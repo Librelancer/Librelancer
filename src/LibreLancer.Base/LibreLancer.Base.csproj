@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C7A37830-B878-4008-A988-D7294D47F44D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>LibreLancer</RootNamespace>
+    <AssemblyName>LibreLancer.Base</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\bin\Release</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug-OSX|AnyCPU' ">
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\bin\Debug-OSX</OutputPath>
+    <WarningLevel>4</WarningLevel>
+    <DebugSymbols>true</DebugSymbols>
+    <DefineConstants>DEBUG;OSX</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="OpenTK">
+      <HintPath>..\..\extern\opentk\Binaries\OpenTK\Debug\OpenTK.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Bounds\BoundingBox.cs" />
+    <Compile Include="Bounds\BoundingFrustum.cs" />
+    <Compile Include="Bounds\BoundingSphere.cs" />
+    <Compile Include="Bounds\ContainmentType.cs" />
+    <Compile Include="Bounds\Plane.cs" />
+    <Compile Include="Bounds\PlaneIntersectionType.cs" />
+    <Compile Include="Bounds\Ray.cs" />
+    <Compile Include="Colorb.cs" />
+    <Compile Include="CubeMapFace.cs" />
+    <Compile Include="ElementBuffer.cs" />
+    <Compile Include="GLExtensions.cs" />
+    <Compile Include="Primitives\Cuboid.cs" />
+    <Compile Include="Primitives\Cylinder.cs" />
+    <Compile Include="Primitives\Ellipsoid.cs" />
+    <Compile Include="Primitives\Quad.cs" />
+    <Compile Include="PrimitiveTypes.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Rectangle.cs" />
+    <Compile Include="Shader.cs" />
+    <Compile Include="SurfaceFormat.cs" />
+    <Compile Include="SurfaceFormatExtensions.cs" />
+    <Compile Include="Texture.cs" />
+    <Compile Include="Texture2D.cs" />
+    <Compile Include="TextureCube.cs" />
+    <Compile Include="VectorMath.cs" />
+    <Compile Include="VertexBuffer.cs" />
+    <Compile Include="VertexSlots.cs" />
+    <Compile Include="Vertices\IVertexType.cs" />
+    <Compile Include="Vertices\VertexPosition.cs" />
+    <Compile Include="Vertices\VertexPositionColor.cs" />
+    <Compile Include="Vertices\VertexPositionColorTexture.cs" />
+    <Compile Include="Vertices\VertexPositionNormal.cs" />
+    <Compile Include="Vertices\VertexPositionNormalDiffuseTexture.cs" />
+    <Compile Include="Vertices\VertexPositionNormalDiffuseTextureTwo.cs" />
+    <Compile Include="Vertices\VertexPositionNormalTexture.cs" />
+    <Compile Include="Vertices\VertexPositionNormalTextureTangentBinormal.cs" />
+    <Compile Include="Vertices\VertexPositionNormalTextureTwo.cs" />
+    <Compile Include="Vertices\VertexPositionTexture.cs" />
+    <Compile Include="MathConvert.cs" />
+    <Compile Include="IUIThread.cs" />
+    <Compile Include="GLBind.cs" />
+    <Compile Include="RenderTarget2D.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

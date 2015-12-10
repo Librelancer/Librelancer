@@ -1,0 +1,45 @@
+# Folders
+obj/
+[Bb]in/
+[Dd]ebug/
+[Rr]elease/
+
+#NuGet
+[Pp]ackages/
+
+# Visual Studio
+*.suo
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace 
+
+# MonoDevelop
+*.userprefs
+
+# Gedit
+*~
+
+# OSX files
+.DS_Store
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
