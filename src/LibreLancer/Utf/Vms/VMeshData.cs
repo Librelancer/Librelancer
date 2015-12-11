@@ -64,12 +64,13 @@ namespace LibreLancer.Utf.Vms
         /// A list of Vertices in the mesh data
         /// </summary>
         public VertexBuffer VertexBuffer { get; private set; }
+		string vmsname;
 
-        public VMeshData(byte[] data, ILibFile materialLibrary)
+		public VMeshData(byte[] data, ILibFile materialLibrary, string name)
         {
             if (data == null) throw new ArgumentNullException("data");
             if (materialLibrary == null) throw new ArgumentNullException("materialLibrary");
-
+			vmsname = name;
             ready = false;
 
             using (BinaryReader reader = new BinaryReader(new MemoryStream(data)))
@@ -168,6 +169,21 @@ namespace LibreLancer.Utf.Vms
         }
 
 		public void Initialize(ushort startMesh, int endMesh, ResourceCache cache)
+		{
+			VertexBuffer cached;
+			if (cache.TryGetMesh (vmsname, out cached)) {
+				VertexBuffer = cached;
+			} else {
+				GenerateVertexBuffer ();
+				cache.AddMesh (vmsname, VertexBuffer);
+			}
+			for (ushort i = startMesh; i < endMesh; i++)
+			{
+				Meshes [i].Initialize (cache);
+			}
+			ready = true;
+		}
+		void GenerateVertexBuffer()
         {
           
             switch (FlexibleVertexFormat)
@@ -212,12 +228,6 @@ namespace LibreLancer.Utf.Vms
             ElementBuffer = new ElementBuffer(IndexCount);
             ElementBuffer.SetData(indices);
             VertexBuffer.SetElementBuffer(ElementBuffer);
-            for (ushort i = startMesh; i < endMesh; i++)
-            {
-				Meshes [i].Initialize (cache);
-            }
-
-            ready = true;
         }
 
         public void DeviceReset(ushort startMesh, int endMesh)

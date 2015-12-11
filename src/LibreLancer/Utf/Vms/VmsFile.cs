@@ -64,7 +64,7 @@ namespace LibreLancer.Utf.Vms
             {
                 if (vmsNode.Count != 1) throw new Exception("Invalid VMeshLibrary: More than one child or zero elements: " + vmsNode.Name);
                 LeafNode vMeshDataNode = vmsNode[0] as LeafNode;
-                Meshes.Add(CrcTool.FLModelCrc(vmsNode.Name), new VMeshData(vMeshDataNode.ByteArrayData, materialLibrary));
+				Meshes.Add (CrcTool.FLModelCrc (vmsNode.Name), new VMeshData (vMeshDataNode.ByteArrayData, materialLibrary, vmsNode.Name));
             }
         }
 

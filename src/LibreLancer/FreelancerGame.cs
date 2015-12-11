@@ -98,6 +98,7 @@ namespace LibreLancer
 				work ();
 			if (currentState != null)
 				currentState.Update (TimeSpan.FromSeconds (e.Time));
+			FLLog.Debug ("ResourceCache", "Mesh Count: " + ResourceCache.MeshCount);
 			base.OnUpdateFrame (e);
 		}
         protected override void OnRenderFrame(FrameEventArgs e)
