@@ -29,7 +29,8 @@ namespace LibreLancer
 
 		private ModelFile[] starSphereModels;
 		Lighting systemLighting;
-		public SystemRenderer (Camera camera, FreelancerData data)
+		ResourceCache cache;
+		public SystemRenderer (Camera camera, FreelancerData data,ResourceCache rescache)
 		{
 			this.camera = camera;
 			this.data = data;
@@ -37,6 +38,7 @@ namespace LibreLancer
 			Suns = new List<SunRenderer> ();
 			Models = new List<ModelRenderer> ();
 			Planets = new List<PlanetRenderer> ();
+			cache = rescache;
 		}
 
 		void LoadSystem(StarSystem system)
@@ -91,7 +93,7 @@ namespace LibreLancer
 			starSphereModels = starSphereRenderData.ToArray();
 
 			foreach (ModelFile model in starSphereModels)
-				model.Initialize ();
+				model.Initialize (cache);
 
 			foreach (SystemObject o in system.Objects)
 			{
@@ -102,33 +104,29 @@ namespace LibreLancer
 				} else if (o.Archetype is Planet) {
 					Planet planet = o.Archetype as Planet;
 					if (planet.DaArchetype is SphFile) {
-						//PlanetRenderer p = new PlanetRenderer(graphicsDevice, content, camera, World, true, o);
-						//PlanetRenderer p = new PlanetRenderer (starchart, World, o);
-						var p = new PlanetRenderer(camera, World, true, o);
-						Console.WriteLine ("sphere planet");
+						var p = new PlanetRenderer (camera, World, true, o, cache);
 						Planets.Add(p);
 					} else {
-						Console.WriteLine ("model planet");
-						ModelRenderer m = new ModelRenderer (camera, World, true, o);
+						ModelRenderer m = new ModelRenderer (camera, World, true, o, cache);
 						Models.Add (m);
 					}
 				} else if (o.Archetype is TradelaneRing) {
-					ModelRenderer m = new ModelRenderer (camera, World, true, o);
+					ModelRenderer m = new ModelRenderer (camera, World, true, o, cache);
 					Models.Add (m);
 				} else if (o.Archetype is JumpGate) {
-					ModelRenderer m = new ModelRenderer (camera, World, true, o);
+					ModelRenderer m = new ModelRenderer (camera, World, true, o, cache);
 					Models.Add (m);
 				} else if (o.Archetype is JumpHole) {
 					//ModelRenderer m = new ModelRenderer (camera, World, true, o);
 					//Models.Add (m);
 				} else if (o.Archetype is NonTargetable) {
 					//Do stuff here
-					ModelRenderer m = new ModelRenderer (camera, World, true, o);
+					ModelRenderer m = new ModelRenderer (camera, World, true, o, cache);
 					Models.Add (m);
 				}
 				else
 				{
-					ModelRenderer m = new ModelRenderer(camera, World, true, o);
+					ModelRenderer m = new ModelRenderer (camera, World, true, o, cache);
 					Models.Add(m);
 				}
 			}

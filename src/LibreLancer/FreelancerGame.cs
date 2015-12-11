@@ -15,6 +15,7 @@ namespace LibreLancer
 		public FreelancerData GameData;
 		public AudioDevice Audio;
 		public MusicPlayer Music;
+		public ResourceCache ResourceCache;
 		ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
 		int uithread;
 		GameState currentState;
@@ -33,10 +34,11 @@ namespace LibreLancer
 			//Setup
 			uithread = Thread.CurrentThread.ManagedThreadId;
 			FLLog.Info("Platform", Platform.RunningOS.ToString());
-			FLLog.Info ("Graphics", "Depth Buffer: " + GraphicsMode.Default.Depth);
 			VFS.Init(config.FreelancerPath);
 			GameIni = new FreelancerIni ();
 			GameData = new FreelancerData (GameIni);
+			//Cache
+			ResourceCache = new ResourceCache();
 			//Init Audio
 			FLLog.Info("Audio", "Initialising Audio");
 			Audio = new AudioDevice();

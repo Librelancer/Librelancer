@@ -137,9 +137,9 @@ namespace LibreLancer.Utf.Cmp
             }
         }
 
-        public void Initialize()
+		public void Initialize(ResourceCache cache)
         {
-            for (int i = 0; i < Parts.Count; i++) Parts[i].Initialize();
+            for (int i = 0; i < Parts.Count; i++) Parts[i].Initialize(cache);
         }
 
         public void Resized()

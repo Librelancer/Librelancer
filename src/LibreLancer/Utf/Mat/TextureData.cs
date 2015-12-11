@@ -23,46 +23,48 @@ using OpenTK;
 
 namespace LibreLancer.Utf.Mat
 {
-    public class TextureData
-    {
-        private string type;
-        private byte[] data;
+	public class TextureData
+	{
+		private string type;
+		private string texname;
+		private byte[] data;
 
-        public Texture Texture { get; private set; }
+		public Texture Texture { get; private set; }
 
-        public TextureData(LeafNode node)
-        {
-            this.type = node.Name;
-            this.data = node.ByteArrayData;
-        }
+		public TextureData (LeafNode node, string texname)
+		{
+			this.type = node.Name;
+			this.texname = texname;
+			this.data = node.ByteArrayData;
+		}
 
-        public void Initialize()
-        {
-            if (data != null)
-            {
-                using (Stream stream = new MemoryStream(data))
-                {
-                    if (type.Equals("mips", StringComparison.OrdinalIgnoreCase))
-                    {
-                        Texture = DDSLib.DDSFromStream2D(stream,0, true);
-                    }
-                    else if (type.StartsWith("mip", StringComparison.OrdinalIgnoreCase))
-                    {
-						var tex = TGALib.TGAFromStream (stream);
-						if (tex != null)
-							Texture = tex;
-                    }
-                    else if (type.Equals("cube", StringComparison.OrdinalIgnoreCase))
-                    {
-                        Texture = DDSLib.DDSFromStreamCube(stream, 0, true);
-                    }
-                }
-            }
-        }
+		public void Initialize (ResourceCache cache)
+		{
+			if (data != null) {
+				var cacheName = texname + type;
+				Texture cached;
+				if (cache.TryGetTexture (cacheName, out cached)) {
+					Texture = cached;
+				} else {
+					using (Stream stream = new MemoryStream (data)) {
+						if (type.Equals ("mips", StringComparison.OrdinalIgnoreCase)) {
+							Texture = DDSLib.DDSFromStream2D (stream, 0, true);
+						} else if (type.StartsWith ("mip", StringComparison.OrdinalIgnoreCase)) {
+							var tex = TGALib.TGAFromStream (stream);
+							if (tex != null)
+								Texture = tex;
+						} else if (type.Equals ("cube", StringComparison.OrdinalIgnoreCase)) {
+							Texture = DDSLib.DDSFromStreamCube (stream, 0, true);
+						}
+						cache.AddTexture (cacheName, Texture);
+					}
+				}
+			}
+		}
 
-        public override string ToString()
-        {
-            return type;
-        }
-    }
+		public override string ToString ()
+		{
+			return type;
+		}
+	}
 }

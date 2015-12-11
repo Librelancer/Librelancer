@@ -163,7 +163,7 @@ namespace LibreLancer.Utf.Dfm
 			}
 		}
 
-		public void Initialize()
+		public void Initialize(ResourceCache cache)
 		{
 			List<VertexPositionNormalTexture> vertices = new List<VertexPositionNormalTexture>();
 			for (int i = 0; i < PointIndices.Length; i++)
@@ -175,7 +175,7 @@ namespace LibreLancer.Utf.Dfm
 			vertexBuffer.SetData<VertexPositionNormalTexture>(vertices.ToArray());
 
 			foreach (FaceGroup faceGroup in FaceGroups)
-				faceGroup.Initialize ();
+				faceGroup.Initialize (cache);
 
 			ready = true;
 		}

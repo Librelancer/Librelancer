@@ -171,12 +171,12 @@ namespace LibreLancer.Utf.Dfm
 			}
 		}
 
-		public void Initialize()
+		public void Initialize(ResourceCache cache)
 		{
 			//this.camera = camera;
 
 			if (Levels.ContainsKey (0))
-				Levels [0].Initialize ();
+				Levels [0].Initialize (cache);
 			//foreach (VMeshRef level in Levels.Values) level.Initialize(device, content, camera, ambient, lights);
 		}
 

@@ -278,10 +278,10 @@ namespace LibreLancer.GameData.Universe
 			}
 		}
 
-		public void Initialize()
+		public void Initialize(ResourceCache cache)
 		{
 
-			Archetype.Initialize ();
+			Archetype.Initialize (cache);
 
 			if (AtmosphereRange != null)
 			{

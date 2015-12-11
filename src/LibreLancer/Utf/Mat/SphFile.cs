@@ -95,7 +95,7 @@ namespace LibreLancer.Utf.Mat
             }
         }
 
-		public void Initialize()
+		public void Initialize(ResourceCache cache)
         {
             if (sideMaterialNames.Count >= 6)
             {
@@ -106,7 +106,7 @@ namespace LibreLancer.Utf.Mat
                 sphere = new Ellipsoid(new Vector3(Radius), 48, 64);
 
                 foreach (Material m in SideMaterials)
-                    m.Initialize();
+                    m.Initialize(cache);
 
                 //planetEffect = content.Load<EffectInstance>("effects/Planet");
 				//planetEffect.SetParameter ("Projection", camera.Projection);

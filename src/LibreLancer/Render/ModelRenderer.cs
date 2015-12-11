@@ -10,18 +10,18 @@ namespace LibreLancer
 		public ModelFile Model { get; private set; }
 		public CmpFile Cmp { get; private set; }
 
-		public ModelRenderer (Camera camera, Matrix4 world, bool useObjectPosAndRotate, SystemObject spaceObject)
+		public ModelRenderer (Camera camera, Matrix4 world, bool useObjectPosAndRotate, SystemObject spaceObject,ResourceCache cache)
 			: base(camera, world, useObjectPosAndRotate, spaceObject)
 		{
 			IDrawable archetype = spaceObject.Archetype.DaArchetype;
 			if (archetype is ModelFile) {
 				Model = archetype as ModelFile;
 				if (Model != null && Model.Levels.ContainsKey (0)) {
-					Model.Initialize ();
+					Model.Initialize (cache);
 				}
 			} else if (archetype is CmpFile) {
 				Cmp = archetype as CmpFile;
-				Cmp.Initialize ();
+				Cmp.Initialize (cache);
 			}
 		}
 

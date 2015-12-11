@@ -325,32 +325,32 @@ namespace LibreLancer.Utf.Mat
 			return true;
 		}
 
-		public virtual void Initialize ()
+		public virtual void Initialize (ResourceCache cache)
 		{
 			if (DtName != null)
 				Dt = textureLibrary.FindTexture (DtName);
 			if (Dt != null)
-				Dt.Initialize ();
+				Dt.Initialize (cache);
 			if (etName != null)
 				Et = textureLibrary.FindTexture (etName);
 			if (Et != null)
-				Et.Initialize ();
+				Et.Initialize (cache);
 			if (btName != null)
 				Bt = textureLibrary.FindTexture (btName);
 			if (Bt != null)
-				Bt.Initialize ();
+				Bt.Initialize (cache);
 			if (dm0Name != null)
 				Dm0 = textureLibrary.FindTexture (dm0Name);
 			if (Dm0 != null)
-				Dm0.Initialize ();
+				Dm0.Initialize (cache);
 			if (dm1Name != null)
 				Dm1 = textureLibrary.FindTexture (dm1Name);
 			if (Dm1 != null)
-				Dm1.Initialize ();
+				Dm1.Initialize (cache);
 			if (dmName != null)
 				Dm = textureLibrary.FindTexture (dmName);
 			if (Dm != null)
-				Dm.Initialize ();
+				Dm.Initialize (cache);
 			if (isBasic) {
 				var bm = new BasicMaterial (type);
 				Render = bm;

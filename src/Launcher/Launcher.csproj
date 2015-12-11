@@ -38,6 +38,7 @@
     <WarningLevel>4</WarningLevel>
     <DefineConstants>DEBUG;OSX</DefineConstants>
     <DebugSymbols>true</DebugSymbols>
+    <Externalconsole>true</Externalconsole>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

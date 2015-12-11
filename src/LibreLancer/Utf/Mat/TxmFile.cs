@@ -66,7 +66,7 @@ namespace LibreLancer.Utf.Mat
                 LeafNode child = textureNode[textureNode.Count - 1] as LeafNode;
                 if (child == null) throw new Exception("Invalid texture library");
 
-                TextureData data = new TextureData(child);
+				TextureData data = new TextureData (child, textureNode.Name);
                 if (data == null) throw new Exception("Invalid texture library");
 
                 string key = textureNode.Name;//.ToLowerInvariant();

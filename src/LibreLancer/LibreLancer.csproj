@@ -214,8 +214,7 @@
     <Compile Include="Render\ShaderCache.cs" />
     <Compile Include="Render\NebulaRenderer.cs" />
     <Compile Include="GameData\Universe\ZoneSize.cs" />
-    <Compile Include="GameData\Universe\ZoneSizes\ZoneEllipsoidSize.cs" />
-    <Compile Include="GameData\Universe\ZoneSizes\ZoneSphereSize.cs" />
+    <Compile Include="ResourceCache.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />
@@ -264,7 +263,6 @@
     <Folder Include="Utf\Dfm\" />
     <Folder Include="Exceptions\" />
     <Folder Include="Render\Materials\" />
-    <Folder Include="GameData\Universe\ZoneSizes\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="OpenTK.dll.config">

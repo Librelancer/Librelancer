@@ -76,13 +76,13 @@ namespace LibreLancer.Utf.Dfm
 			}
 		}
 
-		public void Initialize()
+		public void Initialize(ResourceCache cache)
 		{
 
 			triangleStripIndexBuffer = new ElementBuffer(TriangleStripIndices.Length);
 			triangleStripIndexBuffer.SetData(TriangleStripIndices);
 
-			Material.Initialize ();
+			Material.Initialize (cache);
 
 			ready = true;
 		}

@@ -63,9 +63,9 @@ namespace LibreLancer.Utf.Cmp
             this.fileName = fileName;
         }
 
-        public void Initialize()
+		public void Initialize(ResourceCache cache)
         {
-            Model.Initialize();
+            Model.Initialize(cache);
         }
 
         public void Resized()

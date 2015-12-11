@@ -16,7 +16,7 @@ namespace LibreLancer
 			sys = g.GameData.Universe.FindSystem ("Li01");
 			camera = new Camera (g.Viewport);
 			camera.Zoom = 5000;
-			sysrender = new SystemRenderer (camera, g.GameData);
+			sysrender = new SystemRenderer (camera, g.GameData, g.ResourceCache);
 			sysrender.StarSystem = sys;
 			camera.UpdateProjection ();
 			Game.KeyPress += (object sender, OpenTK.KeyPressEventArgs e) => {

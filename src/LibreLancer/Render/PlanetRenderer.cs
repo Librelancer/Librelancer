@@ -10,16 +10,12 @@ namespace LibreLancer
 	{
 		public Planet Planet { get; private set; }
 		SphFile sphere;
-		public PlanetRenderer (Camera camera, Matrix4 world, bool useObjectPosAndRotate, SystemObject spaceObject)
+		public PlanetRenderer (Camera camera, Matrix4 world, bool useObjectPosAndRotate, SystemObject spaceObject, ResourceCache cache)
 			: base(camera, world, useObjectPosAndRotate, spaceObject)
 		{
 			Planet = spaceObject.Archetype as Planet;
 			sphere = SpaceObject.Archetype.DaArchetype as SphFile;
-			SpaceObject.Initialize ();
-			Console.WriteLine (spaceObject.Nickname);
-			if (spaceObject.Nickname == "Ku01_01") {
-				Console.WriteLine ();
-			}
+			SpaceObject.Initialize (cache);
 		}
 		public override void Update (TimeSpan elapsed)
 		{

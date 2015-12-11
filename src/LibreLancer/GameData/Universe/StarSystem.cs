@@ -119,7 +119,6 @@ namespace LibreLancer.GameData.Universe
 		{
 			if (universe == null) throw new ArgumentNullException("universe");
 			if (section == null) throw new ArgumentNullException("section");
-
 			string file = null;
 
 			foreach (Entry e in section)
@@ -388,17 +387,17 @@ namespace LibreLancer.GameData.Universe
 			return (from Zone z in Zones where z.Nickname == nickname select z).First<Zone>();
 		}
 
-		public void Initialize()
+		public void Initialize(ResourceCache cache)
 		{
 
 			if (BackgroundBasicStars != null)
-				BackgroundBasicStars.Initialize ();
+				BackgroundBasicStars.Initialize (cache);
 			if (BackgroundComplexStars != null)
-				BackgroundComplexStars.Initialize ();
+				BackgroundComplexStars.Initialize (cache);
 			if (BackgroundNebulae != null)
-				BackgroundNebulae.Initialize ();
+				BackgroundNebulae.Initialize (cache);
 			foreach (SystemObject o in Objects)
-				o.Initialize ();
+				o.Initialize (cache);
 		}
 
 		public void Resized()

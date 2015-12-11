@@ -30,7 +30,6 @@ namespace LibreLancer.GameData.Universe
 	public class Zone : SystemPart, IDrawable
 	{
 		public ZoneShape? Shape { get; private set; }
-		public ZoneSize Size { get; private set; }
 		public List<IValue> AttackIds { get; private set; }
 		public int? TradelaneAttack { get; private set; }
 		public int? PropertyFlags { get; private set; }
@@ -100,22 +99,6 @@ namespace LibreLancer.GameData.Universe
 						Shape = ZoneShape.RING;
 						break;
 					}
-					break;
-					case "size":
-						if (Shape == null)
-							throw new Exception ("[Zone] shape must come before size");
-						switch (Shape.Value) {
-						case ZoneShape.SPHERE:
-							if (e.Count != 1)
-								throw new Exception ("Invalid size for zone shape " + Shape.Value.ToString ());
-							Size = new ZoneSphereSize (e [0].ToSingle ());
-							break;
-						case ZoneShape.ELLIPSOID:
-							if (e.Count != 3)
-								throw new Exception ("Invalid size for zone shape " + Shape.Value.ToString ());
-							Size = new ZoneEllipsoidSize (e [0].ToSingle (), e [1].ToSingle (), e [2].ToSingle ());
-							break;
-						}
 					break;
 				case "attack_ids":
 					if (AttackIds != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
@@ -288,7 +271,7 @@ namespace LibreLancer.GameData.Universe
 			}
 		}
 
-		public void Initialize()
+		public void Initialize(ResourceCache cache)
 		{
 			throw new NotImplementedException();
 		}

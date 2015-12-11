@@ -78,7 +78,7 @@ namespace LibreLancer.Utf.Vms
             primitiveCount = NumRefVertices / 3;
         }
 
-        public void Initialize()
+		public void Initialize(ResourceCache cache)
         {
             /*if (nullMaterial == null)
             {
@@ -86,7 +86,7 @@ namespace LibreLancer.Utf.Vms
                 nullMaterial.Initialize();
             }*/
 
-            if (Material != null) Material.Initialize();
+            if (Material != null) Material.Initialize(cache);
         }
 
         public void DeviceReset()

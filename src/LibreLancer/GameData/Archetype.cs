@@ -218,9 +218,9 @@ namespace LibreLancer.GameData
 			}
 		}
 
-		public void Initialize()
+		public void Initialize(ResourceCache cache)
 		{
-			DaArchetype.Initialize();
+			DaArchetype.Initialize(cache);
 		}
 
 		public void Resized()

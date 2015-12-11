@@ -167,7 +167,7 @@ namespace LibreLancer.Utf.Vms
             }
         }
 
-        public void Initialize(ushort startMesh, int endMesh)
+		public void Initialize(ushort startMesh, int endMesh, ResourceCache cache)
         {
           
             switch (FlexibleVertexFormat)
@@ -214,7 +214,7 @@ namespace LibreLancer.Utf.Vms
             VertexBuffer.SetElementBuffer(ElementBuffer);
             for (ushort i = startMesh; i < endMesh; i++)
             {
-                Meshes[i].Initialize();
+				Meshes [i].Initialize (cache);
             }
 
             ready = true;
