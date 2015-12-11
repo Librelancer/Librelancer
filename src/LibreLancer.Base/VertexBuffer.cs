@@ -10,17 +10,17 @@ namespace LibreLancer
 {
     public class VertexBuffer : IDisposable
     {
+		public static int TotalDrawcalls = 0;
         public int VertexCount { get; private set; }
         public IVertexType VertexType;
-        public int VBO;
-        public int VAO;
-        public bool HasElements = false;
-        Type type;
-		int currentOffset = 0;
-
+        int VBO;
+		int VAO;
+		public bool HasElements = false;
+		Type type;
         public VertexBuffer(Type type, int length)
         {
             VBO = GL.GenBuffer();
+
             this.type = type;
             try
             {
@@ -30,14 +30,11 @@ namespace LibreLancer
             {
                 throw new Exception(string.Format("{0} is not a valid IVertexType", type.FullName));
             }
-            VAO = GL.GenVertexArray();
-            //GL.BindVertexArray(VAO);
-            //GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
-			GLBind.VertexArrayPair(VBO, VAO);
+			VAO = GL.GenVertexArray ();
+            GLBind.VertexArray(VAO);
+			GLBind.VertexBuffer(VBO);
             GL.BufferData(BufferTarget.ArrayBuffer, length * VertexType.VertexSize(), IntPtr.Zero, BufferUsageHint.StaticDraw);
-            VertexType.SetVertexPointers(0);
-            //GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            //GL.BindVertexArray(0);
+			VertexType.SetVertexPointers (0);
 			VertexCount = length;
         }
 
@@ -53,35 +50,28 @@ namespace LibreLancer
 		public void Draw(PrimitiveTypes primitiveType, int baseVertex, int startIndex, int primitiveCount)
 		{
 			int indexElementCount = primitiveType.GetArrayLength (primitiveCount);
-			int vertexOffset = VertexType.VertexSize () * baseVertex;
-			//GL.BindVertexArray(VAO);
-			//GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
-			GLBind.VertexArrayPair(VBO, VAO);
-			if (currentOffset != vertexOffset) {
-				VertexType.SetVertexPointers (vertexOffset);
-				currentOffset = vertexOffset;
-			}
-			GL.DrawElements (primitiveType.GLType (),
+			GLBind.VertexBuffer(VBO);
+			GLBind.VertexArray (VAO);
+			GL.DrawElementsBaseVertex (primitiveType.GLType (),
 				indexElementCount,
 				DrawElementsType.UnsignedShort,
-				startIndex * 2);
-			//GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-			//GL.BindVertexArray(0);
+				(IntPtr)(startIndex * 2),
+				baseVertex);
+			TotalDrawcalls++;
 		}
 
         public void SetElementBuffer(ElementBuffer elems)
         {
-            //GL.BindVertexArray(VAO);
-			GLBind.VertexArrayPair(VBO, VAO);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, elems.Handle);
-            //GL.BindVertexArray(0);
-            HasElements = true;
+			GLBind.VertexBuffer(VBO);
+			GLBind.VertexArray (VAO);
+			GL.BindBuffer (BufferTarget.ElementArrayBuffer, elems.Handle);
+          
         }
 
         public void Dispose()
         {
             GL.DeleteBuffer(VBO);
-            GL.DeleteVertexArray(VAO);
+			GL.DeleteVertexArray (VAO);
         }
     }
 }

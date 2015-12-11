@@ -91,6 +91,7 @@ namespace LibreLancer
 			Audio.Dispose ();
 			base.OnClosing (e);
 		}
+
 		protected override void OnUpdateFrame (FrameEventArgs e)
 		{
 			Action work;
@@ -98,16 +99,25 @@ namespace LibreLancer
 				work ();
 			if (currentState != null)
 				currentState.Update (TimeSpan.FromSeconds (e.Time));
-			FLLog.Debug ("ResourceCache", "Mesh Count: " + ResourceCache.MeshCount);
 			base.OnUpdateFrame (e);
 		}
+
+		const double FPS_INTERVAL = 0.25;
+		double fps_updatetimer = 0;
+		int drawCallsPerFrame = 0;
         protected override void OnRenderFrame(FrameEventArgs e)
         {
-			Title = string.Format ("LibreLancer: {0}fps", RenderFrequency);
+			fps_updatetimer -= e.Time;
+			if (fps_updatetimer <= 0) {
+				Title = string.Format ("LibreLancer: {0:#.##}fps / {1} Drawcalls", RenderFrequency, drawCallsPerFrame);
+				fps_updatetimer = FPS_INTERVAL;
+			}
 			GL.Clear (ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 			if (currentState != null)
 				currentState.Draw (TimeSpan.FromSeconds (e.Time));
             SwapBuffers();
+			drawCallsPerFrame = VertexBuffer.TotalDrawcalls;
+			VertexBuffer.TotalDrawcalls = 0;
             base.OnRenderFrame(e);
         }
     }
