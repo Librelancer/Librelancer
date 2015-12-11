@@ -4,6 +4,10 @@ obj/
 [Dd]ebug/
 [Rr]elease/
 
+# Visual Studio Profiling
+*.psess
+*.vspx
+
 #NuGet
 [Pp]ackages/
 
