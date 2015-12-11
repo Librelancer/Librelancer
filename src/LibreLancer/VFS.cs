@@ -27,6 +27,8 @@ namespace LibreLancer
         }
         public static string GetPath(string filename)
         {
+			if (FreelancerDirectory == null)
+				return filename;
 			if (CaseSensitive) {
 				var split = filename.Split ('\\');
 				var builder = new StringBuilder (FreelancerDirectory.Length + filename.Length);
