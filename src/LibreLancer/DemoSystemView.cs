@@ -13,7 +13,7 @@ namespace LibreLancer
 		public DemoSystemView (FreelancerGame g) : base(g)
 		{
 			FLLog.Info ("Game", "Starting System Viewer Demo");
-			sys = g.GameData.Universe.FindSystem ("Li01");
+			sys = g.GameData.Universe.FindSystem ("Ku01");
 			camera = new Camera (g.Viewport);
 			camera.Zoom = 5000;
 			sysrender = new SystemRenderer (camera, g.GameData, g.ResourceCache);

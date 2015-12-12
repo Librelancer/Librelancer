@@ -31,9 +31,9 @@ namespace LibreLancer
                     glType = PixelType.UnsignedShort4444;
                     break;
                 case SurfaceFormat.Bgra5551:
-                    glInternalFormat = PixelInternalFormat.Rgba;
-                    glFormat = PixelFormat.Rgba;
-                    glType = PixelType.UnsignedShort5551;
+					glInternalFormat = PixelInternalFormat.Rgb5A1;
+                    glFormat = PixelFormat.Bgra;
+                    glType = PixelType.UnsignedShort1555Reversed;
                     break;
                 case SurfaceFormat.Alpha8:
                     glInternalFormat = PixelInternalFormat.Luminance;
