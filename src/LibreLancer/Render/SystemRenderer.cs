@@ -29,7 +29,7 @@ namespace LibreLancer
 			set { LoadSystem(value); }
 		}
 
-		private ModelFile[] starSphereModels;
+		private IDrawable[] starSphereModels;
 		Lighting systemLighting;
 		ResourceCache cache;
 		public SystemRenderer (Camera camera, FreelancerData data,ResourceCache rescache)
@@ -62,7 +62,7 @@ namespace LibreLancer
 
 			if (starSphereModels != null)
 			{
-				starSphereModels = new ModelFile[0];
+				starSphereModels = new CmpFile[0];
 			}
 
 			GC.Collect();
@@ -70,35 +70,27 @@ namespace LibreLancer
 			//Load new system
 			starSystem = system;
 
-			List<ModelFile> starSphereRenderData = new List<ModelFile>();
+			List<IDrawable> starSphereRenderData = new List<IDrawable>();
 
 			CmpFile basicStars = system.BackgroundBasicStars;
-			if (basicStars != null) starSphereRenderData.AddRange(basicStars.Models.Values);
+			if (basicStars != null)
+				starSphereRenderData.Add (basicStars);
 
 			IDrawable complexStars = system.BackgroundComplexStars;
 			if (complexStars != null)
 			{
-				if (complexStars is CmpFile)
-				{
-					CmpFile cmp = complexStars as CmpFile;
-					starSphereRenderData.AddRange(cmp.Models.Values);
-				}
-				else if (complexStars is ModelFile)
-				{
-					ModelFile model = complexStars as ModelFile;
-					starSphereRenderData.Add(model);
-				}
+				starSphereRenderData.Add (complexStars);
 			}
 
 			CmpFile nebulae = system.BackgroundNebulae;
 			if (nebulae != null)
 			{
-				starSphereRenderData.AddRange(nebulae.Models.Values);
+				starSphereRenderData.Add (nebulae);
 			}
 
 			starSphereModels = starSphereRenderData.ToArray();
 
-			foreach (ModelFile model in starSphereModels)
+			foreach (IDrawable model in starSphereModels)
 				model.Initialize (cache);
 
 			foreach (SystemObject o in system.Objects)
@@ -136,27 +128,29 @@ namespace LibreLancer
 					Models.Add(m);
 				}
 			}
-
-			foreach (var n in system.Nebulae) {
-				Nebulae.Add (new NebulaRenderer (n, cache, camera, data));
+			if (system.Nebulae != null) {
+				foreach (var n in system.Nebulae) {
+					Nebulae.Add (new NebulaRenderer (n, cache, camera, data));
+				}
 			}
 			systemLighting = new Lighting ();
 			systemLighting.Ambient = system.AmbientColor ?? Color4.White;
-
-			foreach (var src in system.LightSources) {
-				var lt = new RenderLight ();
-				lt.Attenuation = src.Attenuation ?? new Vector3 (1, 0, 0);
-				lt.Color = src.Color.Value;
-				lt.Position = src.Pos.Value;
-				lt.Range = src.Range.Value;
-				lt.Rotation = src.Rotate ?? Vector3.Zero;
-				systemLighting.Lights.Add (lt);
+			if (system.LightSources != null) {
+				foreach (var src in system.LightSources) {
+					var lt = new RenderLight ();
+					lt.Attenuation = src.Attenuation ?? new Vector3 (1, 0, 0);
+					lt.Color = src.Color.Value;
+					lt.Position = src.Pos.Value;
+					lt.Range = src.Range.Value;
+					lt.Rotation = src.Rotate ?? Vector3.Zero;
+					systemLighting.Lights.Add (lt);
+				}
 			}
 		}
 
 		public void Update(TimeSpan elapsed)
 		{
-			foreach (ModelFile model in starSphereModels)
+			foreach (var model in starSphereModels)
 				model.Update (camera);
 
 			for (int i = 0; i < Suns.Count; i++) Suns[i].Update(elapsed);
@@ -170,7 +164,7 @@ namespace LibreLancer
 			//StarSphere
 			for (int i = 0; i < starSphereModels.Length; i++)
 			{
-				starSphereModels [i].Draw (Matrix4.CreateTranslation (camera.Position), new Lighting ());
+				starSphereModels [i].Draw (Matrix4.CreateTranslation(camera.Position), new Lighting ());
 			}
 			//Clear depth buffer for actual objects
 			GL.Clear (ClearBufferMask.DepthBufferBit);

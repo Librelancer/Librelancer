@@ -16,6 +16,7 @@
  */
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using LibreLancer.Ini;
 
@@ -25,7 +26,7 @@ namespace LibreLancer.GameData.Universe
 	{
 		public string File { get; private set; }
 		public string TextureShape { get; private set; }
-		public List<TextureShape> Shapes { get; private set; }
+		public Dictionary<string,TextureShape> Shapes { get; private set; }
 
 		public TexturePanels(string filename)
 		{
@@ -39,7 +40,7 @@ namespace LibreLancer.GameData.Universe
 
 		void Init(Section section)
 		{
-			Shapes = new List<TextureShape> ();
+			Shapes = new Dictionary<string,TextureShape> ();
 			string current_texname = null;
 			for (int i = 0; i < section.Count; i++)
 			{
@@ -74,7 +75,8 @@ namespace LibreLancer.GameData.Universe
 						throw new Exception ("expected dim, got " + e.Name);
 					if (e.Count != 4)
 						throw new Exception ("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					Shapes.Add(new TextureShape(
+					Shapes.Add(shape_name,
+						new TextureShape(
 						current_texname,
 						shape_name,
 						new RectangleF(

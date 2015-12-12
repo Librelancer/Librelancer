@@ -174,7 +174,7 @@ namespace LibreLancer.Utf.Mat
 		static List<string> basicMaterials = new List<string> {
 			"DcDt", "DcDtTwo", "DcDtEc", "DcDtEt", "DcDtEcEt",
 			"DcDtOcOt", "DcDtBtOcOt", "DcDtBtOcOtTwo", "DcDtEcOcOt",
-			"DcDtOcOtTwo"
+			"DcDtOcOtTwo", "DcDtBt"
 		};
 
 		public RenderMaterial Render;
