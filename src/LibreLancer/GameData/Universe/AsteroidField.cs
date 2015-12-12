@@ -49,7 +49,7 @@ namespace LibreLancer.GameData.Universe
 				switch (s.Name.ToLowerInvariant())
 				{
 				case "texturepanels":
-					TexturePanels = new TexturePanels(s, data);
+					TexturePanels = new TexturePanelsRef(s, data);
 					break;
 				case "properties":
 					foreach (Entry e in s)

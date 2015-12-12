@@ -66,7 +66,7 @@ namespace LibreLancer.GameData.Universe
 		public List<SystemObject> Objects { get; private set; }
 		public List<EncounterParameter> EncounterParameters { get; private set; }
 
-		public TexturePanels TexturePanels { get; private set; }
+		public TexturePanelsRef TexturePanels { get; private set; }
 
 		private string backgroundBasicStarsPath;
 		private CmpFile backgroundBasicStars;
@@ -323,7 +323,7 @@ namespace LibreLancer.GameData.Universe
 					EncounterParameters.Add(new EncounterParameter(s));
 					break;
 				case "texturepanels":
-					TexturePanels = new TexturePanels(s, GameData);
+					TexturePanels = new TexturePanelsRef(s, GameData);
 					break;
 				case "background":
 					foreach (Entry e in s)

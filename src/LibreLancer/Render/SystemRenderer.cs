@@ -20,6 +20,8 @@ namespace LibreLancer
 		public List<SunRenderer> Suns { get; private set; }
 		public List<ModelRenderer> Models { get; private set; }
 		public List<PlanetRenderer> Planets { get; private set; }
+		public List<NebulaRenderer> Nebulae { get; private set; }
+
 		private StarSystem starSystem;
 		public StarSystem StarSystem
 		{
@@ -38,6 +40,7 @@ namespace LibreLancer
 			Suns = new List<SunRenderer> ();
 			Models = new List<ModelRenderer> ();
 			Planets = new List<PlanetRenderer> ();
+			Nebulae = new List<NebulaRenderer> ();
 			cache = rescache;
 		}
 
@@ -52,7 +55,10 @@ namespace LibreLancer
 			Models.Clear();
 
 			foreach (PlanetRenderer r in Planets) r.Dispose();
-			Models.Clear();
+			Planets.Clear();
+
+			foreach (NebulaRenderer r in Nebulae) r.Dispose();
+			Nebulae.Clear();
 
 			if (starSphereModels != null)
 			{
@@ -130,6 +136,10 @@ namespace LibreLancer
 					Models.Add(m);
 				}
 			}
+
+			foreach (var n in system.Nebulae) {
+				Nebulae.Add (new NebulaRenderer (n, cache, camera, data));
+			}
 			systemLighting = new Lighting ();
 			systemLighting.Ambient = system.AmbientColor ?? Color4.White;
 
@@ -152,6 +162,7 @@ namespace LibreLancer
 			for (int i = 0; i < Suns.Count; i++) Suns[i].Update(elapsed);
 			for (int i = 0; i < Planets.Count; i++) Planets[i].Update(elapsed);
 			for (int i = 0; i < Models.Count; i++) Models[i].Update(elapsed);
+			for (int i = 0; i < Nebulae.Count; i++) Nebulae [i].Update (elapsed);
 		}
 
 		public void Draw()
@@ -161,13 +172,13 @@ namespace LibreLancer
 			{
 				starSphereModels [i].Draw (Matrix4.CreateTranslation (camera.Position), new Lighting ());
 			}
-			//starSystem.BackgroundNebulae.Draw (Matrix4.CreateTranslation (camera.Position), new Lighting ());
+			//Clear depth buffer for actual objects
 			GL.Clear (ClearBufferMask.DepthBufferBit);
 
-			//Console.WriteLine ();
-			for (int i = 0; i < Suns.Count; i++) Suns[i].Draw(systemLighting);
 			for (int i = 0; i < Models.Count; i++) Models[i].Draw(systemLighting);
 			for (int i = 0; i < Planets.Count; i++) Planets [i].Draw (systemLighting);
+			for (int i = 0; i < Nebulae.Count; i++) Nebulae [i].Draw (systemLighting);
+			for (int i = 0; i < Suns.Count; i++) Suns[i].Draw(systemLighting);
 		}
 	}
 }

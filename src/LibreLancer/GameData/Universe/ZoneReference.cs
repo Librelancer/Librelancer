@@ -38,7 +38,7 @@ namespace LibreLancer.GameData.Universe
 			}
 		}
 
-		public TexturePanels TexturePanels { get; protected set; }
+		public TexturePanelsRef TexturePanels { get; protected set; }
 		public List<string> Properties { get; private set; }
 		public List<ExclusionZone> ExclusionZones { get; private set; }
 		protected FreelancerData GameData;

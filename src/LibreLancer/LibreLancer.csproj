@@ -215,6 +215,8 @@
     <Compile Include="Render\NebulaRenderer.cs" />
     <Compile Include="GameData\Universe\ZoneSize.cs" />
     <Compile Include="ResourceCache.cs" />
+    <Compile Include="GameData\Universe\TextureShape.cs" />
+    <Compile Include="GameData\Universe\TexturePanelsRef.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />
