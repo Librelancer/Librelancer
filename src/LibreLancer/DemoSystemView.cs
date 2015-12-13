@@ -6,17 +6,17 @@ namespace LibreLancer
 	public class DemoSystemView : GameState
 	{
 		private const float ROTATION_SPEED = 1f;
-		GameData.Universe.StarSystem sys;
+		GameData.StarSystem sys;
 		Camera camera;
 		SystemRenderer sysrender;
 		bool mouseinput = false;
 		public DemoSystemView (FreelancerGame g) : base(g)
 		{
 			FLLog.Info ("Game", "Starting System Viewer Demo");
-			sys = g.GameData.Universe.FindSystem ("Ku01");
+			sys = g.GameData.GetSystem ("Li01");
 			camera = new Camera (g.Viewport);
 			camera.Zoom = 5000;
-			sysrender = new SystemRenderer (camera, g.GameData, g.ResourceCache);
+			sysrender = new SystemRenderer (camera, g.GameData, g.ResourceManager);
 			sysrender.StarSystem = sys;
 			camera.UpdateProjection ();
 			Game.KeyPress += (object sender, OpenTK.KeyPressEventArgs e) => {

@@ -24,6 +24,7 @@ namespace LibreLancer
 			}
 			throw new NotImplementedException ();
 		}
+
 		public override void Use (IVertexType vertextype, Lighting lights)
 		{
 			Shader sh = GetShader (vertextype);

@@ -28,8 +28,7 @@ namespace LibreLancer
 				throw new NotImplementedException ();
 			}
 		}
-		static int renderi = 0;
-		bool saved = false;
+
 		public override void Use (IVertexType vertextype, Lighting lights)
 		{
 			var sh = GetShader (vertextype);

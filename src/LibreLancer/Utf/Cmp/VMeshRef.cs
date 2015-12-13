@@ -101,7 +101,7 @@ namespace LibreLancer.Utf.Cmp
             }
         }
 
-		public void Initialize(ResourceCache cache)
+		public void Initialize(ResourceManager cache)
         {
 			Mesh.Initialize (StartMesh, endMesh, cache);
             ready = true;

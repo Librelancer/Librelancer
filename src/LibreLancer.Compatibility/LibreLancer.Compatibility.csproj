@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{F89CC613-0C7A-4936-9D79-86CBBF26593E}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>LibreLancer.Compatibility</RootNamespace>
+    <AssemblyName>LibreLancer.Compatibility</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug-OSX|AnyCPU' ">
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug-OSX</OutputPath>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Xml" />
+    <Reference Include="OpenTK">
+      <HintPath>..\..\extern\opentk\Binaries\OpenTK\Debug\OpenTK.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Ini\BooleanValue.cs" />
+    <Compile Include="Ini\Entry.cs" />
+    <Compile Include="Ini\IniFile.cs" />
+    <Compile Include="Ini\IniValueType.cs" />
+    <Compile Include="Ini\Int32Value.cs" />
+    <Compile Include="Ini\IValue.cs" />
+    <Compile Include="Ini\MapValue.cs" />
+    <Compile Include="Ini\Section.cs" />
+    <Compile Include="Ini\SingleValue.cs" />
+    <Compile Include="Ini\StringValue.cs" />
+    <Compile Include="GameData\Archetype.cs" />
+    <Compile Include="GameData\Characters\Accessory.cs" />
+    <Compile Include="GameData\Characters\Bodypart.cs" />
+    <Compile Include="GameData\Characters\BodypartsIni.cs" />
+    <Compile Include="GameData\Characters\Costume.cs" />
+    <Compile Include="GameData\Characters\CostumesIni.cs" />
+    <Compile Include="GameData\DacomIni.cs" />
+    <Compile Include="GameData\Equipment\AbstractEquipment.cs" />
+    <Compile Include="GameData\Equipment\EquipmentIni.cs" />
+    <Compile Include="GameData\Equipment\Light.cs" />
+    <Compile Include="GameData\FreelancerData.cs" />
+    <Compile Include="GameData\FreelancerIni.cs" />
+    <Compile Include="GameData\InfocardManager.cs" />
+    <Compile Include="GameData\Solar\AirlockGate.cs" />
+    <Compile Include="GameData\Solar\CollisionGroup.cs" />
+    <Compile Include="GameData\Solar\DestroyableDepot.cs" />
+    <Compile Include="GameData\Solar\DockingRing.cs" />
+    <Compile Include="GameData\Solar\JumpGate.cs" />
+    <Compile Include="GameData\Solar\JumpHole.cs" />
+    <Compile Include="GameData\Solar\Loadout.cs" />
+    <Compile Include="GameData\Solar\LoadoutsIni.cs" />
+    <Compile Include="GameData\Solar\MissionSatellite.cs" />
+    <Compile Include="GameData\Solar\NonTargetable.cs" />
+    <Compile Include="GameData\Solar\Planet.cs" />
+    <Compile Include="GameData\Solar\Satellite.cs" />
+    <Compile Include="GameData\Solar\SolararchIni.cs" />
+    <Compile Include="GameData\Solar\Star.cs" />
+    <Compile Include="GameData\Solar\StararchIni.cs" />
+    <Compile Include="GameData\Solar\Station.cs" />
+    <Compile Include="GameData\Solar\Sun.cs" />
+    <Compile Include="GameData\Solar\TradelaneRing.cs" />
+    <Compile Include="GameData\Solar\Waypoint.cs" />
+    <Compile Include="GameData\Solar\WeaponsPlatform.cs" />
+    <Compile Include="GameData\Universe\Asteroid.cs" />
+    <Compile Include="GameData\Universe\AsteroidBillboards.cs" />
+    <Compile Include="GameData\Universe\AsteroidField.cs" />
+    <Compile Include="GameData\Universe\Band.cs" />
+    <Compile Include="GameData\Universe\Base.cs" />
+    <Compile Include="GameData\Universe\DynamicAsteroids.cs" />
+    <Compile Include="GameData\Universe\Encounter.cs" />
+    <Compile Include="GameData\Universe\EncounterParameter.cs" />
+    <Compile Include="GameData\Universe\ExclusionZone.cs" />
+    <Compile Include="GameData\Universe\Field.cs" />
+    <Compile Include="GameData\Universe\JumpReference.cs" />
+    <Compile Include="GameData\Universe\LightSource.cs" />
+    <Compile Include="GameData\Universe\LightType.cs" />
+    <Compile Include="GameData\Universe\LootableZone.cs" />
+    <Compile Include="GameData\Universe\NamedObject.cs" />
+    <Compile Include="GameData\Universe\Nebula.cs" />
+    <Compile Include="GameData\Universe\NebulaLight.cs" />
+    <Compile Include="GameData\Universe\Room.cs" />
+    <Compile Include="GameData\Universe\StarSystem.cs" />
+    <Compile Include="GameData\Universe\SystemObject.cs" />
+    <Compile Include="GameData\Universe\SystemPart.cs" />
+    <Compile Include="GameData\Universe\TexturePanels.cs" />
+    <Compile Include="GameData\Universe\TexturePanelsRef.cs" />
+    <Compile Include="GameData\Universe\TextureShape.cs" />
+    <Compile Include="GameData\Universe\UniverseElement.cs" />
+    <Compile Include="GameData\Universe\UniverseIni.cs" />
+    <Compile Include="GameData\Universe\Zone.cs" />
+    <Compile Include="GameData\Universe\ZoneReference.cs" />
+    <Compile Include="GameData\Universe\ZoneShape.cs" />
+    <Compile Include="Dll\DllFile.cs" />
+    <Compile Include="Dll\ManagedDllProvider.cs" />
+    <Compile Include="Dll\Structs\IMAGE_DATA_DIRECTORY.cs" />
+    <Compile Include="Dll\Structs\IMAGE_DOS_HEADER.cs" />
+    <Compile Include="Dll\Structs\IMAGE_FILE_HEADER.cs" />
+    <Compile Include="Dll\Structs\IMAGE_OPTIONAL_HEADER.cs" />
+    <Compile Include="Dll\Structs\IMAGE_RESOURCE_DATA_ENTRY.cs" />
+    <Compile Include="Dll\Structs\IMAGE_RESOURCE_DIRECTORY.cs" />
+    <Compile Include="Dll\Structs\IMAGE_RESOURCE_DIRECTORY_ENTRY.cs" />
+    <Compile Include="Dll\Structs\IMAGE_SECTION_HEADER.cs" />
+    <Compile Include="MaterialMap.cs" />
+    <Compile Include="VFS.cs" />
+    <Compile Include="Ini\StringKeyValue.cs" />
+    <Compile Include="Exceptions\FileContentException.cs" />
+    <Compile Include="Exceptions\FileException.cs" />
+    <Compile Include="Exceptions\FileFormatException.cs" />
+    <Compile Include="Exceptions\FileVersionException.cs" />
+    <Compile Include="BinaryReaderExtensions.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Folder Include="Ini\" />
+    <Folder Include="GameData\" />
+    <Folder Include="Dll\" />
+    <Folder Include="Exceptions\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">
+      <Project>{C7A37830-B878-4008-A988-D7294D47F44D}</Project>
+      <Name>LibreLancer.Base</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

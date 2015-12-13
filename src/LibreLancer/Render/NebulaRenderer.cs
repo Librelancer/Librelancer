@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using LibreLancer.GameData.Universe;
 using LibreLancer.GameData;
 namespace LibreLancer
@@ -7,10 +7,10 @@ namespace LibreLancer
 	{
 		Nebula nebula;
 		Camera camera;
-		ResourceCache cache;
+		ResourceManager cache;
 
 		TexturePanels panels;
-		public NebulaRenderer (Nebula n, ResourceCache cache, Camera c, FreelancerData data)
+		public NebulaRenderer (Nebula n, ResourceManager cache, Camera c, FreelancerData data)
 		{
 			nebula = n;
 			this.cache = cache;
@@ -44,5 +44,5 @@ namespace LibreLancer
 
 		}
 	}
-}
+}*/
 

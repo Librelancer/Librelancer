@@ -60,7 +60,7 @@ namespace LibreLancer
 			shader.SetMatrix ("ViewProjection", ref ViewProjection);
 			//Dt
 			shader.SetInteger ("DtSampler", 0);
-			BindTexture (DtSampler, TextureUnit.Texture0);
+			BindTexture (DtSampler, TextureUnit.Texture0, false);
 			//Dc
 			shader.SetColor4("Dc", Dc);
 			//Oc
@@ -75,7 +75,7 @@ namespace LibreLancer
 			shader.SetColor4("Ec", Ec);
 			//EtSampler
 			shader.SetInteger("EtSampler", 1);
-			BindTexture (EtSampler, TextureUnit.Texture1);
+			BindTexture (EtSampler, TextureUnit.Texture1, false);
 			//Set lights
 			SetLights(shader, lights);
 

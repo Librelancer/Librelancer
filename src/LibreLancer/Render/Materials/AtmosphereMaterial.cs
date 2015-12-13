@@ -28,6 +28,7 @@ namespace LibreLancer
 		}
 		public override void Use (IVertexType vertextype, Lighting lights)
 		{
+			throw new NotImplementedException ();
 			var sh = GetShader (vertextype);
 
 			sh.SetColor4 ("Ac", Ac);

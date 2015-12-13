@@ -163,7 +163,7 @@ namespace LibreLancer.Utf.Cmp
             }
         }
 
-		public void Initialize(ResourceCache cache)
+		public void Initialize(ResourceManager cache)
         {
             //this.camera = camera;
 
@@ -194,11 +194,10 @@ namespace LibreLancer.Utf.Cmp
 
 		public void Draw(Matrix4 world, Lighting light)
         {
-            if (ready)
-            {
-                Levels[0].Draw(world, light);
+			if (ready) {
+				Levels [0].Draw (world, light);
 
-                /*Matrix tworld = Transform * world;
+				/*Matrix tworld = Transform * world;
                 float cameraDistance = Vector3.Distance(tworld.Translation, camera.Position);
 
                 for (int i = 0; i < Switch2.Length; i++)
@@ -209,30 +208,17 @@ namespace LibreLancer.Utf.Cmp
                         break;
                     }
                 }*/
-            }
+			}
         }
 
         public TextureData FindTexture(string name)
         {
-            if (TextureLibrary != null)
-            {
-                TextureData texture = TextureLibrary.FindTexture(name);
-                if (texture != null) return texture;
-            }
-            if (additionalLibrary != null) return additionalLibrary.FindTexture(name);
-            return null;
-
+            return additionalLibrary.FindTexture(name);
         }
 
         public Material FindMaterial(uint materialId)
         {
-            if (MaterialLibrary != null)
-            {
-                Material material = MaterialLibrary.FindMaterial(materialId);
-                if (material != null) return material;
-            }
-            if (additionalLibrary != null) return additionalLibrary.FindMaterial(materialId);
-            return null;
+			return additionalLibrary.FindMaterial(materialId);
         }
 
         public VMeshData FindMesh(uint vMeshLibId)

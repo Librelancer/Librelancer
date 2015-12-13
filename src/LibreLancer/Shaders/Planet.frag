@@ -32,11 +32,7 @@ uniform samplerCube planetTexture;
 void main()
 {
 	vec4 dc = texture(planetTexture, out_texcoord);
-	out_color = dc;
-	//out_color = light(vec4(0,0,0,0), dc, world_position, out_normal);
-	//out_color = texture(DtSampler, out_texcoord) * Dc;
-
-	//out_color = vec4(1,0,0,1);
+	out_color = vec4(dc.xyz, 1);
 }
 
 

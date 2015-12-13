@@ -1,6 +1,6 @@
 ﻿using System;
 using OpenTK;
-using LibreLancer.GameData.Universe;
+using LibreLancer.GameData;
 namespace LibreLancer
 {
 	public abstract class ObjectRenderer : IDisposable
@@ -13,12 +13,9 @@ namespace LibreLancer
 		{
 			if (useObjectPosAndRotate)
 			{
-				World = world * Matrix4.CreateTranslation(spaceObject.Pos.Value);
-				if (spaceObject.Rotate != null) World =
-					Matrix4.CreateRotationX(MathConvert.ToRadians(spaceObject.Rotate.Value.X)) *
-					Matrix4.CreateRotationY(MathConvert.ToRadians(spaceObject.Rotate.Value.Y)) *
-					Matrix4.CreateRotationZ(MathConvert.ToRadians(spaceObject.Rotate.Value.Z)) *
-					World;
+				World = world * Matrix4.CreateTranslation(spaceObject.Position);
+				if(spaceObject.Rotation != null)
+					World = spaceObject.Rotation.Value * World;
 			}
 			else World = Matrix4.Identity;
 			SpaceObject = spaceObject;

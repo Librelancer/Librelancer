@@ -95,26 +95,21 @@ namespace LibreLancer.Utf.Mat
             }
         }
 
-		public void Initialize(ResourceCache cache)
+		public void Initialize(ResourceManager cache)
         {
             if (sideMaterialNames.Count >= 6)
             {
                 //this.device = device;
                 //this.camera = camera;
-
                 quad = new Quad();
                 sphere = new Ellipsoid(new Vector3(Radius), 48, 64);
-
-                foreach (Material m in SideMaterials)
-                    m.Initialize(cache);
-
+				drawPlanetTexture ();
                 //planetEffect = content.Load<EffectInstance>("effects/Planet");
 				//planetEffect.SetParameter ("Projection", camera.Projection);
 				shader = ShaderCache.Get (
 					"Planet.vs",
 					"Planet.frag"
 				);
-				drawPlanetTexture ();
                 ready = true;
             }
         }
@@ -138,7 +133,6 @@ namespace LibreLancer.Utf.Mat
 				//planetEffect.SetParameter ("View", camera.View);
             }
         }
-		static int ddsno = 0;
         private void drawPlanetTexture()
         {
 			
@@ -162,7 +156,6 @@ namespace LibreLancer.Utf.Mat
 				SideMaterials [i].Render.Use (quad.VertexBuffer.VertexType, new Lighting ());
 				quad.VertexBuffer.Draw (PrimitiveTypes.TriangleList, 0, 0, Quad.PrimitiveCount);
 				rendertarget.GetData (data);
-				DDSLib.DDSToFile ("rendered" + ddsno++ + ".dds", false, rendertarget, false);
 				planetTexture.SetData (faces[i], data);
 			}
 			GL.BindFramebuffer (FramebufferTarget.Framebuffer, 0);
@@ -213,17 +206,18 @@ namespace LibreLancer.Utf.Mat
 
 		public void Draw(Matrix4 world, Lighting lights)
         {
-            if (ready)
-            {
+			if (ready) {
 				if (updatePlanetTexture)
 					drawPlanetTexture ();
+				GL.Enable (EnableCap.DepthTest);
+				GL.Disable (EnableCap.Blend);
 				//Set texture
-				shader.SetInteger("planetTexture", 0);
+				shader.SetInteger ("planetTexture", 0);
 				planetTexture.BindTo (TextureUnit.Texture0);
 				//Do the rest
 				shader.SetMatrix ("World", ref world);
 				shader.SetMatrix ("ViewProjection", ref viewproj);
-				shader.SetColor4("AmbientColor", lights.Ambient);
+				shader.SetColor4 ("AmbientColor", lights.Ambient);
 				shader.SetInteger ("LightCount", lights.Lights.Count);
 				for (int i = 0; i < lights.Lights.Count; i++) {
 					var lt = lights.Lights [i];
@@ -238,7 +232,7 @@ namespace LibreLancer.Utf.Mat
 					PrimitiveTypes.TriangleList, 0, 0, 
 					sphere.ElementBuffer.IndexCount / 3
 				);
-                /*if (updatePlanetTexture) drawPlanetTexture();
+				/*if (updatePlanetTexture) drawPlanetTexture();
 
                 // Draw planet
                 device.SetVertexBuffer(sphere.VertexBuffer);
@@ -261,7 +255,7 @@ namespace LibreLancer.Utf.Mat
 				planetEffect.SetParameter ("PlanetTexture", planetTexture);
 				planetEffect.Apply ();
                 device.DrawIndexedPrimitives(PrimitiveTypes.TriangleList, 0, 0, sphere.VertexBuffer.VertexCount, 0, sphere.IndexBuffer.IndexCount / 3);*/
-            }
+			}
         }
     }
 }

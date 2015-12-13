@@ -168,15 +168,9 @@ namespace LibreLancer.Utf.Vms
             }
         }
 
-		public void Initialize(ushort startMesh, int endMesh, ResourceCache cache)
+		public void Initialize(ushort startMesh, int endMesh, ResourceManager cache)
 		{
-			VertexBuffer cached;
-			if (cache.TryGetMesh (vmsname, out cached)) {
-				VertexBuffer = cached;
-			} else {
-				GenerateVertexBuffer ();
-				cache.AddMesh (vmsname, VertexBuffer);
-			}
+			GenerateVertexBuffer ();
 			for (ushort i = startMesh; i < endMesh; i++)
 			{
 				Meshes [i].Initialize (cache);

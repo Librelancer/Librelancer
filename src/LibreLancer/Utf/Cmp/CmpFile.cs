@@ -137,7 +137,7 @@ namespace LibreLancer.Utf.Cmp
             }
         }
 
-		public void Initialize(ResourceCache cache)
+		public void Initialize(ResourceManager cache)
         {
             for (int i = 0; i < Parts.Count; i++) Parts[i].Initialize(cache);
         }
@@ -181,25 +181,12 @@ namespace LibreLancer.Utf.Cmp
 
         public TextureData FindTexture(string name)
         {
-            if (TextureLibrary != null)
-            {
-                TextureData texture = TextureLibrary.FindTexture(name);
-                if (texture != null) return texture;
-            }
-            if (additionalLibrary != null) return additionalLibrary.FindTexture(name);
-            return null;
-
+           	return additionalLibrary.FindTexture(name);
         }
 
         public Material FindMaterial(uint materialId)
         {
-            if (MaterialLibrary != null)
-            {
-                Material material = MaterialLibrary.FindMaterial(materialId);
-                if (material != null) return material;
-            }
-            if (additionalLibrary != null) return additionalLibrary.FindMaterial(materialId);
-            return null;
+           	return additionalLibrary.FindMaterial(materialId);
         }
 
         public VMeshData FindMesh(uint vMeshLibId)

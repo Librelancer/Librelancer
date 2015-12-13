@@ -1,19 +1,20 @@
 ﻿using System;
 using OpenTK;
 using LibreLancer.Utf.Cmp;
-
-using LibreLancer.GameData.Universe;
+using LibreLancer.Utf.Mat;
+using LibreLancer.GameData;
 namespace LibreLancer
 {
 	public class ModelRenderer : ObjectRenderer
 	{
 		public ModelFile Model { get; private set; }
 		public CmpFile Cmp { get; private set; }
+		public SphFile Sph { get; private set; }
 
-		public ModelRenderer (Camera camera, Matrix4 world, bool useObjectPosAndRotate, SystemObject spaceObject,ResourceCache cache)
+		public ModelRenderer (Camera camera, Matrix4 world, bool useObjectPosAndRotate, SystemObject spaceObject,ResourceManager cache)
 			: base(camera, world, useObjectPosAndRotate, spaceObject)
 		{
-			IDrawable archetype = spaceObject.Archetype.DaArchetype;
+			IDrawable archetype = spaceObject.Archetype.Drawable;
 			if (archetype is ModelFile) {
 				Model = archetype as ModelFile;
 				if (Model != null && Model.Levels.ContainsKey (0)) {
@@ -22,13 +23,20 @@ namespace LibreLancer
 			} else if (archetype is CmpFile) {
 				Cmp = archetype as CmpFile;
 				Cmp.Initialize (cache);
+			} else if (archetype is SphFile) {
+				Sph = archetype as SphFile;
+				Sph.Initialize (cache);
 			}
 		}
 
 		public override void Update(TimeSpan elapsed)
 		{
-			if (Model != null) Model.Update(camera);
-			else if (Cmp != null) Cmp.Update(camera);
+			if (Model != null)
+				Model.Update (camera);
+			else if (Cmp != null)
+				Cmp.Update (camera);
+			else if (Sph != null)
+				Sph.Update (camera);
 			base.Update(elapsed);
 		}
 
@@ -42,10 +50,9 @@ namespace LibreLancer
 					if (camera.Frustum.Intersects (bbox))
 						Model.Draw (World, lights);
 				}
-			}
-			else if (Cmp != null) {
+			} else if (Cmp != null) {
 				foreach (ModelFile model in Cmp.Models.Values)
-					if (model.Levels.ContainsKey(0)) {
+					if (model.Levels.ContainsKey (0)) {
 						var bbox = model.Levels [0].BoundingBox;
 						bbox.Max = Vector3.Transform (bbox.Max, World);
 						bbox.Min = Vector3.Transform (bbox.Min, World);
@@ -54,6 +61,8 @@ namespace LibreLancer
 							break;
 						}
 					}
+			} else if (Sph != null) {
+				Sph.Draw (World, lights); //Need to cull this
 			}
 		}
 

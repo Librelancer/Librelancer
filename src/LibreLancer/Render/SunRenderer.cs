@@ -1,8 +1,8 @@
 ﻿using System;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Primitives;
-using LibreLancer.GameData.Solar;
-using LibreLancer.GameData.Universe;
+using LibreLancer.GameData;
+using LibreLancer.GameData.Archetypes;
 using OpenTK;
 namespace LibreLancer
 {
@@ -18,7 +18,7 @@ namespace LibreLancer
 			:base (camera, world, useObjectPosAndRotate, sun)
 		{
 			Sun = SpaceObject.Archetype as Sun;
-			SphFile s = Sun.DaArchetype as SphFile;
+			SphFile s = Sun.Drawable as SphFile;
 
 			Ellipsoid sphere = new Ellipsoid(new Vector3(s.Radius), 100, 100);
 			vertexBuffer = sphere.VertexBuffer;

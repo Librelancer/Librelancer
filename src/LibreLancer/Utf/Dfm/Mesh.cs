@@ -163,7 +163,7 @@ namespace LibreLancer.Utf.Dfm
 			}
 		}
 
-		public void Initialize(ResourceCache cache)
+		public void Initialize(ResourceManager cache)
 		{
 			List<VertexPositionNormalTexture> vertices = new List<VertexPositionNormalTexture>();
 			for (int i = 0; i < PointIndices.Length; i++)

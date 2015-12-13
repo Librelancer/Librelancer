@@ -17,6 +17,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External", "External", "{90
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFmpeg.AutoGen", "..\extern\FFmpeg.AutoGen\FFmpeg.AutoGen\FFmpeg.AutoGen.csproj", "{A536B02A-B0B1-4753-8328-17369EF09976}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Compatibility", "LibreLancer.Compatibility\LibreLancer.Compatibility.csproj", "{F89CC613-0C7A-4936-9D79-86CBBF26593E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -164,6 +166,28 @@ Global
 		{C7A37830-B878-4008-A988-D7294D47F44D}.Release|x86.Build.0 = Release|Any CPU
 		{C7A37830-B878-4008-A988-D7294D47F44D}.ReleaseMinimal|Any CPU.ActiveCfg = Debug|Any CPU
 		{C7A37830-B878-4008-A988-D7294D47F44D}.ReleaseMinimal|Any CPU.Build.0 = Debug|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.Debug|x64.Build.0 = Debug|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.Debug|x86.Build.0 = Debug|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.DebugMinimal|Any CPU.ActiveCfg = Debug|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.DebugMinimal|Any CPU.Build.0 = Debug|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.Debug-OSX|Any CPU.ActiveCfg = Debug|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.Debug-OSX|Any CPU.Build.0 = Debug|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.Documentation|Any CPU.ActiveCfg = Debug|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.Documentation|Any CPU.Build.0 = Debug|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.Nsis|Any CPU.ActiveCfg = Debug|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.Nsis|Any CPU.Build.0 = Debug|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.Release|x64.ActiveCfg = Release|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.Release|x64.Build.0 = Release|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.Release|x86.ActiveCfg = Release|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.Release|x86.Build.0 = Release|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.ReleaseMinimal|Any CPU.ActiveCfg = Debug|Any CPU
+		{F89CC613-0C7A-4936-9D79-86CBBF26593E}.ReleaseMinimal|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A536B02A-B0B1-4753-8328-17369EF09976} = {90A9388C-60E5-4BFD-B36A-D4E2A8E64DF3}

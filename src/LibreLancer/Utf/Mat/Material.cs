@@ -176,8 +176,14 @@ namespace LibreLancer.Utf.Mat
 			"DcDtOcOt", "DcDtBtOcOt", "DcDtBtOcOtTwo", "DcDtEcOcOt",
 			"DcDtOcOtTwo", "DcDtBt"
 		};
-
-		public RenderMaterial Render;
+		RenderMaterial _rmat;
+		public RenderMaterial Render {
+			get {
+				if (_rmat == null)
+					Initialize ();
+				return _rmat;
+			}
+		}
 		bool isBasic = false;
 
 		protected Material (IntermediateNode node, ILibFile library, string type)
@@ -325,41 +331,32 @@ namespace LibreLancer.Utf.Mat
 			return true;
 		}
 
-		public virtual void Initialize (ResourceCache cache)
+		public virtual void Initialize ()
 		{
 			if (DtName != null)
 				Dt = textureLibrary.FindTexture (DtName);
-			if (Dt != null)
-				Dt.Initialize (cache);
 			if (etName != null)
 				Et = textureLibrary.FindTexture (etName);
-			if (Et != null)
-				Et.Initialize (cache);
 			if (btName != null)
 				Bt = textureLibrary.FindTexture (btName);
-			if (Bt != null)
-				Bt.Initialize (cache);
 			if (dm0Name != null)
 				Dm0 = textureLibrary.FindTexture (dm0Name);
-			if (Dm0 != null)
-				Dm0.Initialize (cache);
 			if (dm1Name != null)
 				Dm1 = textureLibrary.FindTexture (dm1Name);
-			if (Dm1 != null)
-				Dm1.Initialize (cache);
 			if (dmName != null)
 				Dm = textureLibrary.FindTexture (dmName);
-			if (Dm != null)
-				Dm.Initialize (cache);
 			if (isBasic) {
 				var bm = new BasicMaterial (type);
-				Render = bm;
+				_rmat = bm;
 				//set up material
 				bm.Dc = Dc;
 				bm.Oc = Oc;
 				bm.Ec = Ec;
-				if (Dt != null)
+				if (Dt != null) {
+					if (Dt.Texture == null)
+						throw new Exception ();
 					bm.DtSampler = Dt.Texture;
+				}
 				if (Et != null)
 					bm.EtSampler = Et.Texture;
 				if (type.Contains ("Ot"))
@@ -368,13 +365,13 @@ namespace LibreLancer.Utf.Mat
 				switch (type) {
 				case "Nebula":
 					var nb = new NebulaMaterial ();
-					Render = nb;
+					_rmat = nb;
 					if (Dt != null)
 						nb.DtSampler = Dt.Texture;
 					break;
 				case "AtmosphereMaterial":
 					var am = new AtmosphereMaterial ();
-					Render = am;
+					_rmat = am;
 					am.Dc = Dc;
 					am.Ac = Ac;
 					am.Alpha = Alpha;
@@ -385,7 +382,7 @@ namespace LibreLancer.Utf.Mat
 					break;
 				case "Masked2DetailMapMaterial":
 					var m2 = new Masked2DetailMapMaterial ();
-					Render = m2;
+					_rmat = m2;
 					m2.Dc = Dc;
 					m2.Ac = Ac;
 					m2.TileRate0 = TileRate0;
@@ -401,7 +398,7 @@ namespace LibreLancer.Utf.Mat
 					break;
 				case "DetailMap2Dm1Msk2PassMaterial":
 					var dm2p = new DetailMap2Dm1Msk2PassMaterial ();
-					Render = dm2p;
+					_rmat = dm2p;
 					dm2p.Dc = Dc;
 					dm2p.Ac = Ac;
 					dm2p.FlipU = FlipU;
@@ -414,7 +411,7 @@ namespace LibreLancer.Utf.Mat
 					break;
 				case "DetailMapMaterial":
 					var dm = new DetailMapMaterial ();
-					Render = dm;
+					_rmat = dm;
 					dm.Dc = Dc;
 					dm.Ac = Ac;
 					dm.FlipU = FlipU;

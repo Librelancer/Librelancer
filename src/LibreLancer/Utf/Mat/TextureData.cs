@@ -38,28 +38,22 @@ namespace LibreLancer.Utf.Mat
 			this.data = node.ByteArrayData;
 		}
 
-		public void Initialize (ResourceCache cache)
+		public void Initialize ()
 		{
 			if (data != null) {
-				var cacheName = texname + type;
-				Texture cached;
-				if (cache.TryGetTexture (cacheName, out cached)) {
-					Texture = cached;
-				} else {
-					using (Stream stream = new MemoryStream (data)) {
-						if (type.Equals ("mips", StringComparison.OrdinalIgnoreCase)) {
-							Texture = DDSLib.DDSFromStream2D (stream, 0, true);
-						} else if (type.StartsWith ("mip", StringComparison.OrdinalIgnoreCase)) {
-							var tex = TGALib.TGAFromStream (stream);
-							if (tex != null)
-								Texture = tex;
-						} else if (type.Equals ("cube", StringComparison.OrdinalIgnoreCase)) {
-							Texture = DDSLib.DDSFromStreamCube (stream, 0, true);
-						}
-						cache.AddTexture (cacheName, Texture);
+				using (Stream stream = new MemoryStream (data)) {
+					if (type.Equals ("mips", StringComparison.OrdinalIgnoreCase)) {
+						Texture = DDSLib.DDSFromStream2D (stream, 0, true);
+					} else if (type.StartsWith ("mip", StringComparison.OrdinalIgnoreCase)) {
+						var tex = TGALib.TGAFromStream (stream);
+						if (tex != null)
+							Texture = tex;
+					} else if (type.Equals ("cube", StringComparison.OrdinalIgnoreCase)) {
+						Texture = DDSLib.DDSFromStreamCube (stream, 0, true);
 					}
 				}
-			}
+			} else
+				FLLog.Error ("Texture " + texname, "data == null");
 		}
 
 		public override string ToString ()

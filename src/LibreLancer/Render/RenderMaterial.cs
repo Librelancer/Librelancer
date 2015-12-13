@@ -23,9 +23,11 @@ namespace LibreLancer
 				shader.SetVector3 ("LightsAttenuation", lt.Attenuation, i);
 			}
 		}
-		protected void BindTexture(Texture tex, TextureUnit unit)
+		protected void BindTexture(Texture tex, TextureUnit unit, bool throwonNull = true)
 		{
 			if (tex == null) {
+				if (throwonNull)
+					throw new Exception ();
 				if (nullTexture == null) {
 					nullTexture = new Texture2D (256, 256, false, SurfaceFormat.Color);
 					Colorb[] colors = new Colorb[nullTexture.Width * nullTexture.Height];

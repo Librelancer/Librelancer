@@ -11,11 +11,10 @@ namespace LibreLancer
 {
 	public class FreelancerGame : GameWindow, IUIThread
     {
-		public FreelancerIni GameIni;
-		public FreelancerData GameData;
+		public LegacyGameData GameData;
 		public AudioDevice Audio;
 		public MusicPlayer Music;
-		public ResourceCache ResourceCache;
+		public ResourceManager ResourceManager;
 		ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
 		int uithread;
 		GameState currentState;
@@ -34,11 +33,8 @@ namespace LibreLancer
 			//Setup
 			uithread = Thread.CurrentThread.ManagedThreadId;
 			FLLog.Info("Platform", Platform.RunningOS.ToString());
-			VFS.Init(config.FreelancerPath);
-			GameIni = new FreelancerIni ();
-			GameData = new FreelancerData (GameIni);
 			//Cache
-			ResourceCache = new ResourceCache();
+			ResourceManager = new ResourceManager();
 			//Init Audio
 			FLLog.Info("Audio", "Initialising Audio");
 			Audio = new AudioDevice();
@@ -46,7 +42,7 @@ namespace LibreLancer
 			//Load data
 			FLLog.Info("Game", "Loading game data");
 			new Thread (() => {
-				GameData.LoadData();
+				GameData = new LegacyGameData(config.FreelancerPath, ResourceManager);
 				FLLog.Info("Game", "Finished loading game data");
 				QueueUIThread(Switch);
 			}).Start ();
@@ -79,6 +75,7 @@ namespace LibreLancer
             base.OnLoad(e);
             GL.ClearColor(Color4.Black);
 			GL.Enable (EnableCap.DepthTest);
+			GL.DepthFunc (DepthFunction.Lequal);
 			GL.Enable (EnableCap.CullFace);
 			GL.CullFace (CullFaceMode.Back);
 			var vp = new ViewportManager ();

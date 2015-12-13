@@ -171,7 +171,7 @@ namespace LibreLancer.Utf.Dfm
 			}
 		}
 
-		public void Initialize(ResourceCache cache)
+		public void Initialize(ResourceManager cache)
 		{
 			//this.camera = camera;
 

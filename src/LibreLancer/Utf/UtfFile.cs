@@ -35,7 +35,7 @@ namespace LibreLancer.Utf
             string stringBlock;
             byte[] dataBlock;
 
-            using (BinaryReader reader = new BinaryReader(VFS.Open(path)))
+			using (BinaryReader reader = new BinaryReader(File.OpenRead(path)))
             {
                 byte[] buffer = new byte[TAG_LEN];
                 reader.Read(buffer, 0, TAG_LEN);
