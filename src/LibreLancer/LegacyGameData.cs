@@ -43,6 +43,15 @@ namespace LibreLancer
 			}
 			return sys;
 		}
+		public GameData.Ship GetShip(string nickname)
+		{
+			var legacy = fldata.Ships.GetShip (nickname);
+			var ship = new GameData.Ship ();
+			foreach (var matlib in legacy.MaterialLibraries)
+				resource.LoadMat (matlib);
+			ship.Drawable = resource.GetDrawable (legacy.DaArchetypeName);
+			return ship;
+		}
 		public GameData.SystemObject GetSystemObject(Legacy.Universe.SystemObject o)
 		{
 			var drawable = resource.GetDrawable (o.Archetype.DaArchetypeName);

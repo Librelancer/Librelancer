@@ -128,6 +128,7 @@
     <Compile Include="GameData\SystemObject.cs" />
     <Compile Include="GameData\Archetype.cs" />
     <Compile Include="GameData\Archetypes\Sun.cs" />
+    <Compile Include="GameData\Ship.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />

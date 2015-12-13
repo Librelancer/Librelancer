@@ -131,6 +131,8 @@
     <Compile Include="Exceptions\FileFormatException.cs" />
     <Compile Include="Exceptions\FileVersionException.cs" />
     <Compile Include="BinaryReaderExtensions.cs" />
+    <Compile Include="GameData\Ships\ShiparchIni.cs" />
+    <Compile Include="GameData\Ships\Ship.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -138,6 +140,7 @@
     <Folder Include="GameData\" />
     <Folder Include="Dll\" />
     <Folder Include="Exceptions\" />
+    <Folder Include="GameData\Ships\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">
