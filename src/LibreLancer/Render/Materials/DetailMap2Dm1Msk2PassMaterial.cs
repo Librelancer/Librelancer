@@ -36,8 +36,14 @@ namespace LibreLancer
 			sh.SetColor4 ("Ac", Ac);
 			sh.SetColor4 ("Dc", Dc);
 			sh.SetFloat ("TileRate", TileRate);
-			sh.SetInteger ("FlipU", FlipU);
-			sh.SetInteger ("FlipV", FlipV);
+			if (FlipU == 1)
+				sh.SetFloat ("FlipU", -1);
+			else
+				sh.SetFloat ("FlipU", 1);
+			if (FlipV == 1)
+				sh.SetFloat ("FlipV", -1);
+			else
+				sh.SetFloat ("FlipV", 1);
 
 			sh.SetInteger ("DtSampler", 0);
 			BindTexture (DtSampler, TextureUnit.Texture0);

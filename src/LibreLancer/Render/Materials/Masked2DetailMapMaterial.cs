@@ -32,13 +32,21 @@ namespace LibreLancer
 		public override void Use (IVertexType vertextype, Lighting lights)
 		{
 			var sh = GetShader (vertextype);
+			sh.SetMatrix ("ViewProjection", ref ViewProjection);
+			sh.SetMatrix ("World", ref World);
 
 			sh.SetColor4 ("Ac", Ac);
 			sh.SetColor4 ("Dc", Dc);
 			sh.SetFloat ("TileRate0", TileRate0);
 			sh.SetFloat ("TileRate1", TileRate1);
-			sh.SetInteger ("FlipU", FlipU);
-			sh.SetInteger ("FlipV", FlipV);
+			if (FlipU == 1)
+				sh.SetFloat ("FlipU", -1);
+			else
+				sh.SetFloat ("FlipU", 1);
+			if (FlipV == 1)
+				sh.SetFloat ("FlipV", -1);
+			else
+				sh.SetFloat ("FlipV", 1);
 
 			sh.SetInteger ("DtSampler", 0);
 			BindTexture (DtSampler, TextureUnit.Texture0);

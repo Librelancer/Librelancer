@@ -18,6 +18,7 @@ namespace LibreLancer
 		ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
 		int uithread;
 		GameState currentState;
+
 		public Viewport Viewport {
 			get {
 				return new Viewport (ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, ClientRectangle.Height);

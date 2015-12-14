@@ -141,8 +141,6 @@
     <EmbeddedResource Include="Shaders\Sun.frag" />
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTextureTwo.vs" />
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTextureTwo.frag" />
-    <EmbeddedResource Include="Shaders\Planet.frag" />
-    <EmbeddedResource Include="Shaders\Planet.vs" />
     <EmbeddedResource Include="Shaders\Masked2DetailMapMaterial.frag" />
     <EmbeddedResource Include="Shaders\PositionTextureFlip.vs" />
     <EmbeddedResource Include="Shaders\DetailMap2Dm1Msk2PassMaterial.frag" />

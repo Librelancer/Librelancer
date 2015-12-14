@@ -1,6 +1,9 @@
 ﻿using System;
 using OpenTK;
 using OpenTK.Input;
+using OpenTK.Graphics.OpenGL;
+using LibreLancer.Primitives;
+using LibreLancer.Vertices;
 namespace LibreLancer
 {
 	public class DemoSystemView : GameState
@@ -9,7 +12,8 @@ namespace LibreLancer
 		GameData.StarSystem sys;
 		Camera camera;
 		SystemRenderer sysrender;
-		bool mouseinput = false;
+		bool wireframe = false;
+
 		public DemoSystemView (FreelancerGame g) : base(g)
 		{
 			FLLog.Info ("Game", "Starting System Viewer Demo");
@@ -20,9 +24,13 @@ namespace LibreLancer
 			sysrender.StarSystem = sys;
 			camera.UpdateProjection ();
 			Game.KeyPress += (object sender, OpenTK.KeyPressEventArgs e) => {
-				if(e.KeyChar == 'm') {
-					mouseinput = !mouseinput;
-					Game.CursorVisible = !mouseinput;
+				if(e.KeyChar == 'p') {
+					wireframe = !wireframe;
+					if(wireframe) {
+						GL.PolygonMode (MaterialFace.FrontAndBack, PolygonMode.Line);
+					} else {
+						GL.PolygonMode (MaterialFace.FrontAndBack, PolygonMode.Fill);
+					}
 				}
 			};
 		}
@@ -47,6 +55,15 @@ namespace LibreLancer
 			}
 			if (Game.Keyboard [Key.W]) {
 				camera.MoveVector = VectorMath.Forward;
+			}
+			if (Game.Keyboard [Key.S]) {
+				camera.MoveVector = VectorMath.Backward;
+			}
+			if (Game.Keyboard [Key.A]) {
+				camera.MoveVector = VectorMath.Left;
+			}
+			if (Game.Keyboard [Key.D]) {
+				camera.MoveVector = VectorMath.Right;
 			}
 			camera.Update (delta);
 			camera.Free = true;

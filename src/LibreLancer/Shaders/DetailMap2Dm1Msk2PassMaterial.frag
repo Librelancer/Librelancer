@@ -13,7 +13,7 @@ void main()
 {
 	vec2 texcoord = out_texcoord;
 
-	vec4 dc = texture(DtSampler, texcoord);
+    vec4 dc = texture(DtSampler, texcoord);
 	dc *= Dc;
 
 	texcoord *= TileRate;

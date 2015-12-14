@@ -8,14 +8,17 @@ out vec2 out_texcoord;
 uniform mat4x4 World;
 uniform mat4x4 ViewProjection;
 
-bool FlipU;
-bool FlipV;
+
+uniform float FlipU;
+uniform float FlipV;
 
 void main()
 {
-	gl_Position = vec4(vertex_position,1);
-	vec2 texcoord = vec2(vertex_texture1.x, 1 - vertex_texture1.y);
-	if (FlipU) texcoord.x = 1 - texcoord.x;
-	if (FlipV) texcoord.y = 1 - texcoord.y;
+	gl_Position = (ViewProjection * World) * vec4(vertex_position, 1.0);
+
+	vec2 texcoord = vec2(vertex_texture1.x, vertex_texture1.y);
+	texcoord.x *= FlipU;
+	texcoord.y *= FlipV;
+
 	out_texcoord = texcoord;
 }
