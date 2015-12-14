@@ -46,11 +46,11 @@ namespace LibreLancer.Media
 					instances [i].Update ();
 				}
 				Thread.Sleep (5);
-				//CheckALError ();
 			}
 		}
-		internal static void CheckALError()
+		internal static void ALFunc(Action act)
 		{
+			act ();
 			ALError error;
 			if ((error = AL.GetError()) != ALError.NoError)
 				throw new InvalidOperationException(AL.GetErrorString(error));
