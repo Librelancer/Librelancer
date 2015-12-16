@@ -95,7 +95,7 @@ namespace LibreLancer.Utf.Mat
         {
             if (sideMaterialNames.Count >= 6)
 			{
-				sphere = new QuadSphere(8);
+				sphere = new QuadSphere(16);
 
                 ready = true;
             }

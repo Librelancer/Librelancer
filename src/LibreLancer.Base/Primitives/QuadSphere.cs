@@ -102,6 +102,8 @@ namespace LibreLancer.Primitives
 		{
 			float posAdvance = 2f / (float)slices;
 			float texAdvance = 1f / (float)slices;
+			if (Y == -1)
+				texAdvance = -texAdvance;
 			for (int x = 0; x < slices; x++) {
 				for (int z = 0; z < slices; z++) {
 					float advX = posAdvance * x;
@@ -136,7 +138,7 @@ namespace LibreLancer.Primitives
 		void FrontBack (int Z, int slices, VertexPositionTexture[] vertices, ref int vertexCount)
 		{
 			float posAdvance = 2f / (float)slices;
-			float texAdvance = 1f / (float)slices;
+			float texAdvance = -(1f / (float)slices);
 			for (int x = 0; x < slices; x++) {
 				for (int y = 0; y < slices; y++) {
 					float advX = posAdvance * x;
@@ -168,6 +170,14 @@ namespace LibreLancer.Primitives
 			}
 		}
 
+		static Vector2 TexLR(float x, float y)
+		{
+			float sin = (float)Math.Sin (MathConvert.ToRadians (90));
+			float cos = (float)Math.Cos (MathConvert.ToRadians (90));
+			x -= 0.5f;
+			y -= 0.5f;
+			return new Vector2 ((cos * x) - (sin * y) + 0.5f, -((sin * x) + (cos * y) + 0.5f));
+		}
 		void LeftRight (int X, int slices, VertexPositionTexture[] vertices, ref int vertexCount)
 		{
 			float posAdvance = 2f / (float)slices;
@@ -176,28 +186,32 @@ namespace LibreLancer.Primitives
 				for (int z = 0; z < slices; z++) {
 					float advY = posAdvance * y;
 					float advZ = posAdvance * z;
-
 					float tadvY = texAdvance * y;
 					float tadvZ = texAdvance * z; 
+					//UV coords
+					var tl = TexLR (tadvY, tadvZ);
+					var tr = TexLR (tadvY + texAdvance, tadvZ);
+					var bl = TexLR (tadvY, tadvZ + texAdvance);
+					var br = TexLR (tadvY + texAdvance, tadvZ + texAdvance);
 					//top-left
 					vertices [vertexCount++] = new VertexPositionTexture (
 						new Vector3 (X, -1 + advY, -1 + advZ),
-						new Vector2 (0 + tadvY, 0 + tadvZ)
+						tl
 					);
 					//top-right
 					vertices [vertexCount++] = new VertexPositionTexture (
 						new Vector3 (X, -1 + advY + posAdvance, -1 + advZ),
-						new Vector2 (0 + tadvY + texAdvance, 0 + tadvZ)
+						tr
 					);
 					//bottom-left
 					vertices [vertexCount++] = new VertexPositionTexture (
 						new Vector3 (X, -1 + advY, -1 + advZ + posAdvance),
-						new Vector2 (0 + tadvY, 0 + tadvZ + texAdvance)
+						bl
 					);
 					//bottom-right
 					vertices [vertexCount++] = new VertexPositionTexture (
 						new Vector3 (X, -1 + advY + posAdvance, -1 + advZ + posAdvance),
-						new Vector2 (0 + tadvY + texAdvance, 0 + tadvZ + texAdvance)
+						br
 					);
 				}
 			}
