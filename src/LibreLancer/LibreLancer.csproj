@@ -129,6 +129,13 @@
     <Compile Include="GameData\Archetype.cs" />
     <Compile Include="GameData\Archetypes\Sun.cs" />
     <Compile Include="GameData\Ship.cs" />
+    <Compile Include="Sur\SurFile.cs" />
+    <Compile Include="BinaryReaderExtensions.cs" />
+    <Compile Include="Sur\Surface.cs" />
+    <Compile Include="Sur\TGroupHeader.cs" />
+    <Compile Include="Sur\Side.cs" />
+    <Compile Include="Sur\SurTriangle.cs" />
+    <Compile Include="Sur\SurVertex.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />
@@ -178,6 +185,7 @@
     <Folder Include="Render\Materials\" />
     <Folder Include="GameData\" />
     <Folder Include="GameData\Archetypes\" />
+    <Folder Include="Sur\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="OpenTK.dll.config">
