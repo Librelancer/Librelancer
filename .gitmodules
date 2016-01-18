@@ -4,3 +4,6 @@
 [submodule "extern/opentk"]
 	path = extern/opentk
 	url = https://github.com/splitandthechro/opentk
+[submodule "extern/jitterphysics"]
+	path = extern/jitterphysics
+	url = https://github.com/mattleibow/jitterphysics.git

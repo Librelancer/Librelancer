@@ -159,6 +159,10 @@
       <Project>{F89CC613-0C7A-4936-9D79-86CBBF26593E}</Project>
       <Name>LibreLancer.Compatibility</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\extern\jitterphysics\source\Jitter\Jitter.csproj">
+      <Project>{AA03EF1A-94F7-4D30-AB14-2092863FF923}</Project>
+      <Name>Jitter</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
