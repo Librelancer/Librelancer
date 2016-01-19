@@ -113,5 +113,15 @@ namespace LibreLancer
 
             return ~crc;
         }
+
+		public static uint FLAleCrc(string name)
+		{
+			if (name == null) throw new ArgumentNullException("name");
+
+			uint crc = 0xFFFFFFFF;
+			for (int i = 0; i < name.Length; i++) crc = (crc >> 8) ^ crcTable[(byte)crc ^ (byte)name[i]];
+
+			return ~crc;
+		}
     }
 }

@@ -31,10 +31,10 @@ namespace LibreLancer
 					throw new Exception ();
 				if (nullTexture == null) {
 					nullTexture = new Texture2D (256, 256, false, SurfaceFormat.Color);
-					Colorb[] colors = new Colorb[nullTexture.Width * nullTexture.Height];
+					Color4b[] colors = new Color4b[nullTexture.Width * nullTexture.Height];
 					for (int i = 0; i < colors.Length; i++)
-						colors [i] = Colorb.White;
-					nullTexture.SetData<Colorb> (colors);
+						colors [i] = Color4b.White;
+					nullTexture.SetData<Color4b> (colors);
 				}
 				nullTexture.BindTo (unit);
 			} else

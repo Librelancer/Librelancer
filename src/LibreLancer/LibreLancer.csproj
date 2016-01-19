@@ -136,6 +136,25 @@
     <Compile Include="Sur\Side.cs" />
     <Compile Include="Sur\SurTriangle.cs" />
     <Compile Include="Sur\SurVertex.cs" />
+    <Compile Include="Utf\Ale\AleFile.cs" />
+    <Compile Include="Utf\Ale\ALEffectLib.cs" />
+    <Compile Include="Utf\Ale\AlchemyNodeLibrary.cs" />
+    <Compile Include="Utf\Ale\EffectReference.cs" />
+    <Compile Include="Utf\Ale\ALEffect.cs" />
+    <Compile Include="Utf\Ale\AleParameter.cs" />
+    <Compile Include="Utf\Ale\AlchemyNode.cs" />
+    <Compile Include="Utf\Ale\AlchemyFloats.cs" />
+    <Compile Include="Utf\Ale\AlchemyColors.cs" />
+    <Compile Include="Utf\Ale\AleCrc.cs">
+      <DependentUpon>AleCrc.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Utf\Ale\AlchemyTransform.cs" />
+    <Compile Include="Utf\Ale\AlchemyColorAnimation.cs" />
+    <Compile Include="Utf\Ale\AlchemyFloatAnimation.cs" />
+    <Compile Include="Utf\Ale\EasingTypes.cs" />
+    <Compile Include="Utf\Ale\AlchemyCurveAnimation.cs" />
+    <Compile Include="Utf\Ale\CurveParameterKeyframe.cs" />
+    <Compile Include="Utf\Ale\CurveKeyframe.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />
@@ -186,11 +205,16 @@
     <Folder Include="GameData\" />
     <Folder Include="GameData\Archetypes\" />
     <Folder Include="Sur\" />
+    <Folder Include="Utf\Ale\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="OpenTK.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Shaders\AtmosphereMaterial_PositionTexture.frag" />
+    <None Include="Utf\Ale\AleCrc.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>AleCrc.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 </Project>

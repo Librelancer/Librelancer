@@ -61,7 +61,6 @@
     <Compile Include="Bounds\Plane.cs" />
     <Compile Include="Bounds\PlaneIntersectionType.cs" />
     <Compile Include="Bounds\Ray.cs" />
-    <Compile Include="Colorb.cs" />
     <Compile Include="CubeMapFace.cs" />
     <Compile Include="ElementBuffer.cs" />
     <Compile Include="GLExtensions.cs" />
@@ -102,6 +101,8 @@
     <Compile Include="Primitives\QuadSphere.cs" />
     <Compile Include="RenderState.cs" />
     <Compile Include="BlendMode.cs" />
+    <Compile Include="Color3f.cs" />
+    <Compile Include="Color4b.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
