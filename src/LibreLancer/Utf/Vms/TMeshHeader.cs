@@ -101,12 +101,12 @@ namespace LibreLancer.Utf.Vms
             else */Material.Render.ViewProjection = camera.ViewProjection;
         }
 
-		public void Draw(VertexBuffer buff, ushort startVertex, Matrix4 world, Lighting light)
+		public void Draw(RenderState rstate, VertexBuffer buff, ushort startVertex, Matrix4 world, Lighting light)
         {
             //if (Material == null) nullMaterial.Draw(buff, PrimitiveTypes.TriangleList, startVertex + StartVertex, numVertices, TriangleStart, primitiveCount, world);
             //else Material.Draw(buff, PrimitiveTypes.TriangleList, startVertex + StartVertex, numVertices, TriangleStart, primitiveCount, world);
 			Material.Render.World = world;
-			Material.Render.Use (buff.VertexType, light);
+			Material.Render.Use (rstate, buff.VertexType, light);
 			buff.Draw (PrimitiveTypes.TriangleList, startVertex + StartVertex, TriangleStart, primitiveCount);
         }
     }

@@ -192,10 +192,10 @@ namespace LibreLancer.Utf.Cmp
             }
         }
 
-		public void Draw(Matrix4 world, Lighting light)
+		public void Draw(RenderState rstate, Matrix4 world, Lighting light)
         {
 			if (ready) {
-				Levels [0].Draw (world, light);
+				Levels [0].Draw (rstate, world, light);
 
 				/*Matrix tworld = Transform * world;
                 float cameraDistance = Vector3.Distance(tworld.Translation, camera.Position);

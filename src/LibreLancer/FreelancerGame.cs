@@ -15,6 +15,8 @@ namespace LibreLancer
 		public AudioDevice Audio;
 		public MusicPlayer Music;
 		public ResourceManager ResourceManager;
+		public RenderState RenderState;
+
 		ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
 		int uithread;
 		GameState currentState;
@@ -35,7 +37,7 @@ namespace LibreLancer
 			uithread = Thread.CurrentThread.ManagedThreadId;
 			FLLog.Info("Platform", Platform.RunningOS.ToString());
 			//Cache
-			ResourceManager = new ResourceManager();
+			ResourceManager = new ResourceManager(this);
 			//Init Audio
 			FLLog.Info("Audio", "Initialising Audio");
 			Audio = new AudioDevice();
@@ -74,11 +76,7 @@ namespace LibreLancer
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
-            GL.ClearColor(Color4.Black);
-			GL.Enable (EnableCap.DepthTest);
-			GL.DepthFunc (DepthFunction.Lequal);
-			GL.Enable (EnableCap.CullFace);
-			GL.CullFace (CullFaceMode.Back);
+			RenderState = new RenderState ();
 			var vp = new ViewportManager ();
 			vp.Push (0, 0, 1024, 768);
         }

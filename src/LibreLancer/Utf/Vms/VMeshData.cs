@@ -246,13 +246,13 @@ namespace LibreLancer.Utf.Vms
             }
         }
 
-		public void Draw(ushort startMesh, int endMesh, ushort startVertex, Matrix4 world, Lighting light)
+		public void Draw(RenderState rstate, ushort startMesh, int endMesh, ushort startVertex, Matrix4 world, Lighting light)
         {
             if (ready)
 			{
                 for (ushort i = startMesh; i < endMesh; i++)
                 {
-					Meshes [i].Draw (VertexBuffer, startVertex, world, light);
+					Meshes [i].Draw (rstate, VertexBuffer, startVertex, world, light);
                 }
             }
         }

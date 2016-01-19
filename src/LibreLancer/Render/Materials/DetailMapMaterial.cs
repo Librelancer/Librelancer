@@ -25,8 +25,11 @@ namespace LibreLancer
 			throw new NotImplementedException ();
 		}
 
-		public override void Use (IVertexType vertextype, Lighting lights)
+		public override void Use (RenderState rstate, IVertexType vertextype, Lighting lights)
 		{
+			rstate.DepthEnabled = true;
+			rstate.BlendMode = BlendMode.Opaque;
+
 			Shader sh = GetShader (vertextype);
 			sh.SetMatrix ("World", ref World);
 			sh.SetMatrix ("ViewProjection", ref ViewProjection);

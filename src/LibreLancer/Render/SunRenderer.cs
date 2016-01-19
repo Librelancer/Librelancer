@@ -30,10 +30,10 @@ namespace LibreLancer
 		{
 			material.ViewProjection = camera.ViewProjection;
 		}
-		public override void Draw (Lighting lights)
+		public override void Draw (RenderState rstate, Lighting lights)
 		{
 			material.World = World;
-			material.Use (null, null);
+			material.Use (rstate, null, null);
 			vertexBuffer.Draw (PrimitiveTypes.TriangleList, 0, 0, primitiveCount);
 		}
 		public override void Dispose ()

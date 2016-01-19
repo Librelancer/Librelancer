@@ -52,9 +52,9 @@ namespace LibreLancer
 			}
 		}
 
-		public override void Use (IVertexType vertextype, Lighting lights)
+		public override void Use (RenderState rstate, IVertexType vertextype, Lighting lights)
 		{
-			GL.Enable (EnableCap.DepthTest);
+			rstate.DepthEnabled = true;
 			var shader = GetShader (vertextype);
 			shader.SetMatrix ("World", ref World);
 			shader.SetMatrix ("ViewProjection", ref ViewProjection);
@@ -66,10 +66,9 @@ namespace LibreLancer
 			//Oc
 			shader.SetFloat("Oc", Oc);
 			if (AlphaEnabled) {
-				GL.Enable (EnableCap.Blend);
-				GL.BlendFunc (BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+				rstate.BlendMode = BlendMode.Normal;
 			} else {
-				GL.Disable (EnableCap.Blend);
+				rstate.BlendMode = BlendMode.Opaque;
 			}
 			//Ec
 			shader.SetColor4("Ec", Ec);

@@ -6,7 +6,8 @@ namespace LibreLancer.Sur
 	//TODO: Sur reader is VERY incomplete & undocumented
 	public class SurFile
 	{
-		string VERS_TAG = "vers";
+		const string VERS_TAG = "vers";
+
 		public SurFile (Stream stream)
 		{
 			using (var reader = new BinaryReader (stream)) {

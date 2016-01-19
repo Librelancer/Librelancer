@@ -4,7 +4,7 @@ namespace LibreLancer
 {
 	public class SunMaterial : RenderMaterial
 	{
-		public override void Use (LibreLancer.Vertices.IVertexType vertextype, Lighting lights)
+		public override void Use (RenderState rstate, LibreLancer.Vertices.IVertexType vertextype, Lighting lights)
 		{
 			//GL.Enable (EnableCap.DepthTest);
 			var sh = ShaderCache.Get ("Sun.vs", "Sun.frag");

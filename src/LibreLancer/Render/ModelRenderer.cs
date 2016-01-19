@@ -40,7 +40,7 @@ namespace LibreLancer
 			base.Update(elapsed);
 		}
 
-		public override void Draw(Lighting lights)
+		public override void Draw(RenderState rstate, Lighting lights)
 		{
 			if (Model != null) {
 				if (Model.Levels.ContainsKey (0)) {
@@ -48,7 +48,7 @@ namespace LibreLancer
 					bbox.Max = Vector3.Transform (bbox.Max, World);
 					bbox.Min = Vector3.Transform (bbox.Min, World);
 					if (camera.Frustum.Intersects (bbox))
-						Model.Draw (World, lights);
+						Model.Draw (rstate, World, lights);
 				}
 			} else if (Cmp != null) {
 				foreach (ModelFile model in Cmp.Models.Values)
@@ -57,12 +57,12 @@ namespace LibreLancer
 						bbox.Max = Vector3.Transform (bbox.Max, World);
 						bbox.Min = Vector3.Transform (bbox.Min, World);
 						if (camera.Frustum.Intersects (bbox)) {
-							Cmp.Draw (World, lights);
+							Cmp.Draw (rstate, World, lights);
 							break;
 						}
 					}
 			} else if (Sph != null) {
-				Sph.Draw (World, lights); //Need to cull this
+				Sph.Draw (rstate, World, lights); //Need to cull this
 			}
 		}
 

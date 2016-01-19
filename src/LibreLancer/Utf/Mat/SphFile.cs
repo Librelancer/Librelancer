@@ -126,7 +126,7 @@ namespace LibreLancer.Utf.Mat
 			CubeMapFace.PositiveY,
 			CubeMapFace.NegativeY
 		};
-		public void Draw(Matrix4 world, Lighting lights)
+		public void Draw(RenderState rstate, Matrix4 world, Lighting lights)
         {
 			if (ready) {
 				//Draw for me!
@@ -135,7 +135,7 @@ namespace LibreLancer.Utf.Mat
 				for (int i = 0; i < 6; i++) {
 					SideMaterials [i].Render.World = Matrix4.CreateScale (Radius) * world;
 					SideMaterials [i].Render.ViewProjection = viewproj;
-					SideMaterials [i].Render.Use (sphere.VertexType, lights);
+					SideMaterials [i].Render.Use (rstate, sphere.VertexType, lights);
 					sphere.Draw (faces [i]);
 				}
 			} else

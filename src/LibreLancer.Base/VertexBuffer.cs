@@ -49,6 +49,7 @@ namespace LibreLancer
 
 		public void Draw(PrimitiveTypes primitiveType, int baseVertex, int startIndex, int primitiveCount)
 		{
+			RenderState.Instance.Apply ();
 			int indexElementCount = primitiveType.GetArrayLength (primitiveCount);
 			GLBind.VertexBuffer(VBO);
 			GLBind.VertexArray (VAO);

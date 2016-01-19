@@ -8,8 +8,9 @@ namespace LibreLancer
 	{
 		public Matrix4 World = Matrix4.Identity;
 		public Matrix4 ViewProjection = Matrix4.Identity;
-		public abstract void Use (IVertexType vertextype, Lighting lights);
+		public abstract void Use (RenderState rstate, IVertexType vertextype, Lighting lights);
 		static Texture2D nullTexture;
+
 		protected void SetLights(Shader shader, Lighting lights)
 		{
 			shader.SetColor4("AmbientColor", lights.Ambient);

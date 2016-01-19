@@ -190,13 +190,13 @@ namespace LibreLancer.Utf.Dfm
 			if (ready) foreach (FaceGroup faceGroup in FaceGroups) faceGroup.Update(camera);
 		}
 
-		public void Draw(Matrix4 world, Lighting lights)
+		public void Draw(RenderState rstate, Matrix4 world, Lighting lights)
 		{
 			if (ready)
 			{
 				foreach (FaceGroup faceGroup in FaceGroups)
 				{
-					faceGroup.Draw (vertexBuffer, vertexBuffer.VertexCount, world, lights);
+					faceGroup.Draw (rstate, vertexBuffer, vertexBuffer.VertexCount, world, lights);
 				}
 			}
 		}

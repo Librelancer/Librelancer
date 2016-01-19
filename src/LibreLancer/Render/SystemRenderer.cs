@@ -29,6 +29,7 @@ namespace LibreLancer
 		private IDrawable[] starSphereModels;
 		Lighting systemLighting;
 		ResourceManager cache;
+		RenderState rstate;
 		public SystemRenderer (Camera camera, LegacyGameData data,ResourceManager rescache)
 		{
 			this.camera = camera;
@@ -37,6 +38,7 @@ namespace LibreLancer
 			Suns = new List<SunRenderer> ();
 			Models = new List<ModelRenderer> ();
 			cache = rescache;
+			rstate = cache.Game.RenderState;
 		}
 
 		void LoadSystem(StarSystem system)
@@ -103,17 +105,17 @@ namespace LibreLancer
 
 		public void Draw()
 		{
-			GL.ClearColor (starSystem.BackgroundColor);
-			GL.Clear (ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+			rstate.ClearColor = starSystem.BackgroundColor;
+			rstate.ClearAll ();
 			//StarSphere
 			for (int i = 0; i < starSphereModels.Length; i++)
 			{
-				starSphereModels [i].Draw (Matrix4.CreateTranslation(camera.Position), new Lighting ());
+				starSphereModels [i].Draw (rstate, Matrix4.CreateTranslation(camera.Position), new Lighting ());
 			}
-			//Clear depth buffer for actual objects
-			GL.Clear (ClearBufferMask.DepthBufferBit);
-			for (int i = 0; i < Models.Count; i++) Models[i].Draw(systemLighting);
-			for (int i = 0; i < Suns.Count; i++) Suns[i].Draw(systemLighting);
+			//Clear depth buffer for game objects
+			rstate.ClearDepth();
+			for (int i = 0; i < Models.Count; i++) Models[i].Draw(rstate, systemLighting);
+			for (int i = 0; i < Suns.Count; i++) Suns[i].Draw(rstate, systemLighting);
 		}
 	}
 }

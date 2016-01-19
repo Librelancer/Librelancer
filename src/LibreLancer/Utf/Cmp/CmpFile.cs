@@ -153,9 +153,9 @@ namespace LibreLancer.Utf.Cmp
             for (int i = 0; i < Parts.Count; i++) Parts[i].Update(camera);
         }
 
-		public void Draw(Matrix4 world, Lighting light)
+		public void Draw(RenderState rstate, Matrix4 world, Lighting light)
         {
-            for (int i = 0; i < Parts.Count; i++) Parts[i].Draw(world, light);
+            for (int i = 0; i < Parts.Count; i++) Parts[i].Draw(rstate, world, light);
 
             /*foreach (ModelFile m in cmp.Models.Values)
             {

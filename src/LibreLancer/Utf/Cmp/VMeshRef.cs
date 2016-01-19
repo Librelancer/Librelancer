@@ -117,11 +117,11 @@ namespace LibreLancer.Utf.Cmp
             if (ready) Mesh.Update(camera, StartMesh, endMesh);
         }
 
-		public void Draw(Matrix4 world, Lighting light)
+		public void Draw(RenderState rstate, Matrix4 world, Lighting light)
         {
 			if (Mesh.FlexibleVertexFormat == (D3DFVF.XYZ | D3DFVF.NORMAL))
 				return;
-            if (ready) Mesh.Draw(StartMesh, endMesh, StartVertex, world, light);
+            if (ready) Mesh.Draw(rstate, StartMesh, endMesh, StartVertex, world, light);
         }
 
         public override string ToString()

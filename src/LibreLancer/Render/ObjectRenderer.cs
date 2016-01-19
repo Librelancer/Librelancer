@@ -23,7 +23,7 @@ namespace LibreLancer
 		}
 
 		public virtual void Update(TimeSpan elapsed) {}
-		public abstract void Draw(Lighting lights);
+		public abstract void Draw(RenderState rstate, Lighting lights);
 		public abstract void Dispose();
 
 	}

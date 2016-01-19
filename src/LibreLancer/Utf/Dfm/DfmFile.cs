@@ -192,9 +192,9 @@ namespace LibreLancer.Utf.Dfm
 			//foreach (VMeshRef level in Levels.Values) level.Update();
 		}
 
-		public void Draw(Matrix4 world, Lighting lights)
+		public void Draw(RenderState rstate, Matrix4 world, Lighting lights)
 		{
-			Levels [0].Draw (world, lights);
+			Levels [0].Draw (rstate, world, lights);
 
 			/*Matrix4 tworld = Transform * world;
             float cameraDistance = Vector3.Distance(tworld.Translation, camera.Position);

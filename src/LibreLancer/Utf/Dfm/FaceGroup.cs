@@ -94,13 +94,13 @@ namespace LibreLancer.Utf.Dfm
 			if (ready) Material.Update(camera);
 		}
 
-		public void Draw(VertexBuffer vbo, int vertexCount, Matrix4 world, Lighting lights)
+		public void Draw(RenderState rstate, VertexBuffer vbo, int vertexCount, Matrix4 world, Lighting lights)
 		{
 			if (ready)
 			{
 				vbo.SetElementBuffer(triangleStripIndexBuffer);
 				Material.Render.World = world;
-				Material.Render.Use (vbo.VertexType, lights);
+				Material.Render.Use (rstate, vbo.VertexType, lights);
 				vbo.Draw (PrimitiveTypes.TriangleStrip, 0, vertexCount, TriangleStripIndices.Length - 2);
 				//Material.Draw(D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX1, PrimitiveTypes.TriangleStrip, 0, vertexCount, 0, TriangleStripIndices.Length - 2, ambient, lights, world);
 			}

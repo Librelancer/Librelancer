@@ -22,13 +22,12 @@ namespace LibreLancer
 				throw new NotImplementedException ();
 			}
 		}
-		public override void Use(IVertexType vertextype, Lighting lights)
+		public override void Use(RenderState rstate, IVertexType vertextype, Lighting lights)
 		{
 			//fragment shader you multiply tex sampler rgb by vertex color and alpha the same (that is should texture have alpha of its own, sometimes they may as well)
-			GL.Enable (EnableCap.Blend);
-			GL.Disable (EnableCap.DepthTest);
-			//GL.BlendFunc (BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-			GL.BlendFunc (BlendingFactorSrc.SrcAlpha, BlendingFactorDest.One);
+			rstate.DepthEnabled = false;
+			rstate.BlendMode = BlendMode.Additive;
+
 			var shader = GetShader(vertextype);
 			shader.SetMatrix ("World", ref World);
 			shader.SetMatrix ("ViewProjection", ref ViewProjection);

@@ -8,6 +8,8 @@ namespace LibreLancer
 	//TODO: Allow for disposing and all that Jazz
 	public class ResourceManager : ILibFile
 	{
+		public FreelancerGame Game;
+
 		Dictionary<string,VertexBuffer> meshes = new Dictionary<string, VertexBuffer>();
 		Dictionary<uint, Material> materials = new Dictionary<uint, Material>();
 		Dictionary<string, TextureData> textures = new Dictionary<string, TextureData>();
@@ -18,6 +20,11 @@ namespace LibreLancer
 
 		List<string> loadedMatFiles = new List<string>();
 		List<string> loadedTxmFiles = new List<string>();
+
+		public ResourceManager(FreelancerGame g)
+		{
+			Game = g;
+		}
 
 		public TextureData FindTexture (string name)
 		{

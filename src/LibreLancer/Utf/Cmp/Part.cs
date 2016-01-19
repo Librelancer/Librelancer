@@ -78,11 +78,11 @@ namespace LibreLancer.Utf.Cmp
             Model.Update(camera);
         }
 
-		public void Draw(Matrix4 world, Lighting light)
+		public void Draw(RenderState rstate, Matrix4 world, Lighting light)
         {
             Matrix4 transform = world;
             if (Construct != null) transform = Construct.Transform * world;
-            Model.Draw(transform, light);
+            Model.Draw(rstate, transform, light);
         }
     }
 }
