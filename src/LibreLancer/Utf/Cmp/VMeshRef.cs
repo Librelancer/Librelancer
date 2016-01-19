@@ -112,7 +112,7 @@ namespace LibreLancer.Utf.Cmp
             if (ready) Mesh.DeviceReset(StartMesh, endMesh);
         }
 
-        public void Update(Camera camera)
+		public void Update(Camera camera, TimeSpan delta)
         {
             if (ready) Mesh.Update(camera, StartMesh, endMesh);
         }

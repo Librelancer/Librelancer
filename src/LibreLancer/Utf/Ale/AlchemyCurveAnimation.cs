@@ -28,7 +28,7 @@ namespace LibreLancer.Utf.Ale
 							Out = reader.ReadSingle()
 						});
 					}
-					cpkf.Loop = l;
+					cpkf.Keyframes = l;
 				}
 				Keyframes.Add (cpkf);
 			}

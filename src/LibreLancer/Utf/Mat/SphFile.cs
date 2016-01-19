@@ -111,7 +111,7 @@ namespace LibreLancer.Utf.Mat
             }
         }
 		Matrix4 viewproj;
-		public void Update(Camera camera)
+		public void Update(Camera camera, TimeSpan delta)
         {
             if (ready)
             {

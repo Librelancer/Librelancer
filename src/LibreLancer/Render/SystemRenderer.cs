@@ -97,7 +97,7 @@ namespace LibreLancer
 		public void Update(TimeSpan elapsed)
 		{
 			foreach (var model in starSphereModels)
-				model.Update (camera);
+				model.Update (camera, elapsed);
 
 			for (int i = 0; i < Suns.Count; i++) Suns[i].Update(elapsed);
 			for (int i = 0; i < Models.Count; i++) Models[i].Update(elapsed);

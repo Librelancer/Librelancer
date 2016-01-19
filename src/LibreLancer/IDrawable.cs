@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using OpenTK;
 //using FLCommon;
@@ -11,7 +12,7 @@ namespace LibreLancer
     {
 		void Initialize(ResourceManager cache);
         void Resized();
-        void Update(Camera camera);
+		void Update(Camera camera, TimeSpan delta);
 		void Draw(RenderState rstate, Matrix4 world, Lighting light);
     }
 }

@@ -42,9 +42,9 @@ namespace LibreLancer.Utf.Anm
             }
         }
 
-        public void Update()
+		public void Update(TimeSpan delta)
         {
-            foreach (Channel channel in Channels) channel.Update();
+            foreach (Channel channel in Channels) channel.Update(delta);
         }
     }
 }

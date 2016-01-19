@@ -73,9 +73,9 @@ namespace LibreLancer.Utf.Cmp
             Model.Resized();
         }
 
-        public void Update(Camera camera)
+		public void Update(Camera camera, TimeSpan delta)
         {
-            Model.Update(camera);
+			Model.Update (camera, delta);
         }
 
 		public void Draw(RenderState rstate, Matrix4 world, Lighting light)

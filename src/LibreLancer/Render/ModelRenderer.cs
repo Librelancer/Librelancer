@@ -32,11 +32,11 @@ namespace LibreLancer
 		public override void Update(TimeSpan elapsed)
 		{
 			if (Model != null)
-				Model.Update (camera);
+				Model.Update (camera, elapsed);
 			else if (Cmp != null)
-				Cmp.Update (camera);
+				Cmp.Update (camera, elapsed);
 			else if (Sph != null)
-				Sph.Update (camera);
+				Sph.Update (camera, elapsed);
 			base.Update(elapsed);
 		}
 

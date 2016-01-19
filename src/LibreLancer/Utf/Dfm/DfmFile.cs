@@ -186,9 +186,9 @@ namespace LibreLancer.Utf.Dfm
 			//foreach (VMeshRef level in Levels.Values) level.DeviceReset();
 		}
 
-		public void Update(Camera camera)
+		public void Update(Camera camera, TimeSpan delta)
 		{
-			Levels [0].Update (camera);
+			Levels [0].Update (camera, delta);
 			//foreach (VMeshRef level in Levels.Values) level.Update();
 		}
 

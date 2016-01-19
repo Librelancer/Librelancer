@@ -106,14 +106,16 @@ namespace LibreLancer.Utf.Anm
             currentFrame = Frames[0];
         }
 
-        public void Update()
+		public void Update(TimeSpan delta)
         {
             if (Interval == -1)
             {
                 if (globalTime < currentFrame.Time.Value)
                 {
-                    globalTime += .1f;
-                    frameTime += .1f;
+                    //globalTime += .1f;
+					//frameTime += .1f;
+					globalTime += (float)delta.TotalSeconds;
+					frameTime += (float)delta.TotalSeconds;
                 }
                 else
                 {

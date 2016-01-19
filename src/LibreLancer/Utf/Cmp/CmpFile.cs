@@ -147,10 +147,10 @@ namespace LibreLancer.Utf.Cmp
             for (int i = 0; i < Parts.Count; i++) Parts[i].Resized();
         }
 
-        public void Update(Camera camera)
+		public void Update(Camera camera, TimeSpan delta)
         {
-            if (Animation != null) Animation.Update();
-            for (int i = 0; i < Parts.Count; i++) Parts[i].Update(camera);
+            if (Animation != null) Animation.Update(delta);
+            for (int i = 0; i < Parts.Count; i++) Parts[i].Update(camera, delta);
         }
 
 		public void Draw(RenderState rstate, Matrix4 world, Lighting light)
