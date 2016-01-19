@@ -12,7 +12,7 @@ namespace LibreLancer
 		}
 
 		[DllImport("kernel32.dll")]
-		static bool SetDllDirectory (string directory);
+		static extern bool SetDllDirectory (string directory);
 
 		public void Launch()
 		{
