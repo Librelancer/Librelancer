@@ -6,7 +6,7 @@ namespace LibreLancer.Utf.Ale
 	{
 		public float SParam;
 		public float Value;
-		public List<CurveKeyframe> Loop;
+		public List<CurveKeyframe> Keyframes;
 		public CurveParameterKeyframe ()
 		{
 		}

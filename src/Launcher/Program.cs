@@ -25,8 +25,6 @@ namespace Launcher
 				Application.Run (new MainForm ());
 			#endif
 			//Actually run the game
-			var file = new LibreLancer.Utf.Ale.AleFile("/Volumes/Untitled/Freelancer/DATA/FX/ENGINES/gf_li_smallengine03.ale");
-
             if(LaunchPath != null)
             {
 				var conf = new LibreLancer.GameConfig ();
