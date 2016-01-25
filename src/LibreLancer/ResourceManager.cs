@@ -28,7 +28,7 @@ namespace LibreLancer
 
 		public TextureData FindTexture (string name)
 		{
-			return textures [name];
+			return textures [name.ToLower()];
 		}
 
 		public Material FindMaterial (uint materialId)
@@ -62,9 +62,9 @@ namespace LibreLancer
 		void AddTextures(TxmFile t)
 		{
 			foreach (var tex in t.Textures) {
-				if (!textures.ContainsKey (tex.Key)) {
+				if (!textures.ContainsKey (tex.Key.ToLower())) {
 					tex.Value.Initialize ();
-					textures.Add (tex.Key, tex.Value);
+					textures.Add (tex.Key.ToLower(), tex.Value);
 				}
 			}
 		}

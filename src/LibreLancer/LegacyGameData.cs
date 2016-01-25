@@ -24,9 +24,12 @@ namespace LibreLancer
 			sys.AmbientColor = legacy.AmbientColor ?? Color4.White;
 			sys.Name = legacy.StridName;
 			sys.BackgroundColor = legacy.SpaceColor ?? Color4.Black;
-			sys.StarsBasic = resource.GetDrawable (legacy.BackgroundBasicStarsPath);
-			sys.StarsComplex = resource.GetDrawable (legacy.BackgroundComplexStarsPath);
-			sys.StarsNebula = resource.GetDrawable (legacy.BackgroundNebulaePath);
+			if(legacy.BackgroundBasicStarsPath != null)
+				sys.StarsBasic = resource.GetDrawable (legacy.BackgroundBasicStarsPath);
+			if (legacy.BackgroundComplexStarsPath != null)
+				sys.StarsComplex = resource.GetDrawable (legacy.BackgroundComplexStarsPath);
+			if (legacy.BackgroundNebulaePath != null)
+				sys.StarsNebula = resource.GetDrawable (legacy.BackgroundNebulaePath);
 			if (legacy.LightSources != null) {
 				foreach (var src in legacy.LightSources) {
 					var lt = new RenderLight ();
