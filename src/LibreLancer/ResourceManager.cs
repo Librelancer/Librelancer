@@ -10,13 +10,14 @@ namespace LibreLancer
 	{
 		public FreelancerGame Game;
 
-		Dictionary<string,VertexBuffer> meshes = new Dictionary<string, VertexBuffer>();
+		Dictionary<uint,VMeshData> meshes = new Dictionary<uint, VMeshData> ();
 		Dictionary<uint, Material> materials = new Dictionary<uint, Material>();
 		Dictionary<string, TextureData> textures = new Dictionary<string, TextureData>();
 
 		Dictionary<string, CmpFile> cmps = new Dictionary<string, CmpFile>();
 		Dictionary<string, ModelFile> models = new Dictionary<string, ModelFile>();
 		Dictionary<string, SphFile> sphs = new Dictionary<string, SphFile>();
+		Dictionary<string, VmsFile> vmss = new Dictionary<string, VmsFile>();
 
 		List<string> loadedMatFiles = new List<string>();
 		List<string> loadedTxmFiles = new List<string>();
@@ -38,7 +39,7 @@ namespace LibreLancer
 
 		public VMeshData FindMesh (uint vMeshLibId)
 		{
-			throw new NotImplementedException ();
+			return meshes [vMeshLibId];
 		}
 
 		public void LoadMat(string filename)
@@ -78,7 +79,13 @@ namespace LibreLancer
 					materials.Add (kv.Key, kv.Value);
 			}
 		}
-
+		void AddMeshes(VmsFile vms)
+		{
+			foreach (var kv in vms.Meshes) {
+				if (!meshes.ContainsKey (kv.Key))
+					meshes.Add (kv.Key, kv.Value);
+			}
+		}
 		public IDrawable GetDrawable(string filename)
 		{
 			if(filename.EndsWith(".cmp"))
@@ -109,12 +116,21 @@ namespace LibreLancer
 				if (file.MaterialLibrary != null) {
 					AddMaterials (file.MaterialLibrary);
 				}
+				if (file.VMeshLibrary != null) {
+					AddMeshes (file.VMeshLibrary);
+				}
 				file.Initialize (this);
 				cmps.Add (filename, file);
 			}
 			return cmps [filename];
 		}
-
+		public void LoadVms(string filename)
+		{
+			if (!vmss.ContainsKey (filename)) {
+				var file = new VmsFile (filename, this);
+				AddMeshes (file);
+			}
+		}
 		public ModelFile GetModel(string filename)
 		{
 			if(!models.ContainsKey(filename)) {
@@ -124,6 +140,9 @@ namespace LibreLancer
 				}
 				if (file.MaterialLibrary != null) {
 					AddMaterials (file.MaterialLibrary);
+				}
+				if (file.VMeshLibrary != null) {
+					AddMeshes (file.VMeshLibrary);
 				}
 				file.Initialize (this);
 				models.Add (filename, file);

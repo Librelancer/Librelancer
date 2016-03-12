@@ -155,6 +155,7 @@
     <Compile Include="Utf\Ale\AlchemyCurveAnimation.cs" />
     <Compile Include="Utf\Ale\CurveParameterKeyframe.cs" />
     <Compile Include="Utf\Ale\CurveKeyframe.cs" />
+    <Compile Include="Utf\Mat\SamplerFlags.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />

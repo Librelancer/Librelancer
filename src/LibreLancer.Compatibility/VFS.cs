@@ -30,7 +30,7 @@ namespace LibreLancer.Compatibility
 			if (FreelancerDirectory == null)
 				return filename;
 			if (CaseSensitive) {
-				var split = filename.Split ('\\');
+				var split = filename.Split ('\\', '/');
 				var builder = new StringBuilder (FreelancerDirectory.Length + filename.Length);
 				builder.Append (FreelancerDirectory);
 				builder.Append (Path.DirectorySeparatorChar);
