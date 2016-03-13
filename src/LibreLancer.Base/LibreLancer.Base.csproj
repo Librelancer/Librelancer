@@ -133,5 +133,9 @@
       <Project>{C293DB32-FA42-486D-B128-5A12522FAE4E}</Project>
       <Name>SharpFont</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\extern\FontConfigSharp\FontConfigSharp\FontConfigSharp.csproj">
+      <Project>{CBBDC35F-DCA3-453C-A9E3-29EE7E43DE85}</Project>
+      <Name>FontConfigSharp</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>
