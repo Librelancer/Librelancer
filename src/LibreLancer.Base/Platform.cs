@@ -2,6 +2,7 @@
 using System.IO;
 using System.Runtime.InteropServices;
 using LibreLancer.Platforms;
+using SharpFont;
 
 namespace LibreLancer
 {
@@ -40,6 +41,11 @@ namespace LibreLancer
 		public static bool IsDirCaseSensitive (string directory)
 		{
 			return RunningPlatform.IsDirCaseSensitive (directory);
+		}
+
+		public static Face LoadSystemFace (Library library, string face)
+		{
+			return RunningPlatform.LoadSystemFace (library, face);
 		}
 	}
 

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using SharpFont;
+using Librelancer.Platforms.Mac;
 namespace LibreLancer.Platforms
 {
 	class MacPlatform : IPlatform
@@ -42,6 +44,30 @@ namespace LibreLancer.Platforms
 				}
 			}
 			return false;
+		}
+
+		public MacPlatform()
+		{
+			Cocoa.Initialize ();
+		}
+
+		public Face LoadSystemFace (Library library, string face)
+		{
+			return new Face (library, GetFontPath (face));
+		}
+
+		static string GetFontPath(string fontName)
+		{
+			string path = null;
+			//Create NSAutoreleasePool
+			var autoreleasePool = Cocoa.SendIntPtr (Class.NSAutoreleasePool, Selector.Alloc);
+			Cocoa.SendIntPtr (autoreleasePool, Selector.Init);
+			var desc = CoreText.CTFontDescriptorCreateWithNameAndSize (Cocoa.ToNSString(fontName), new CGFloat (12));
+			var urlref = CoreText.CTFontDescriptorCopyAttribute (desc, CoreText.kCTFontURLAttribute);
+			path = Cocoa.FromNSString (Cocoa.SendIntPtr (urlref, Selector.Path));
+			//Delete NSAutoreleasePool
+			Cocoa.SendVoid (autoreleasePool, Selector.Release);
+			return path;
 		}
 	}
 }
