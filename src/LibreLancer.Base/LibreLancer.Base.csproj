@@ -91,7 +91,6 @@
     <Compile Include="Vertices\VertexPositionNormalTextureTangentBinormal.cs" />
     <Compile Include="Vertices\VertexPositionNormalTextureTwo.cs" />
     <Compile Include="Vertices\VertexPositionTexture.cs" />
-    <Compile Include="MathConvert.cs" />
     <Compile Include="IUIThread.cs" />
     <Compile Include="GLBind.cs" />
     <Compile Include="RenderTarget2D.cs" />

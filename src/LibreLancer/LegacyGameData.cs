@@ -62,9 +62,9 @@ namespace LibreLancer
 			obj.Position = o.Pos.Value;
 			if (o.Rotate != null) {
 				obj.Rotation = 
-					Matrix4.CreateRotationX (MathConvert.ToRadians (o.Rotate.Value.X)) *
-					Matrix4.CreateRotationY (MathConvert.ToRadians (o.Rotate.Value.Y)) *
-					Matrix4.CreateRotationZ (MathConvert.ToRadians (o.Rotate.Value.Z));
+					Matrix4.CreateRotationX (MathHelper.DegreesToRadians (o.Rotate.Value.X)) *
+					Matrix4.CreateRotationY (MathHelper.DegreesToRadians (o.Rotate.Value.Y)) *
+					Matrix4.CreateRotationZ (MathHelper.DegreesToRadians (o.Rotate.Value.Z));
 			}
 			//Load archetype references
 			foreach (var path in o.Archetype.TexturePaths)

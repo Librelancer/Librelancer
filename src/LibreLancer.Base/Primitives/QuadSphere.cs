@@ -172,8 +172,8 @@ namespace LibreLancer.Primitives
 
 		static Vector2 TexLR(float x, float y)
 		{
-			float sin = (float)Math.Sin (MathConvert.ToRadians (90));
-			float cos = (float)Math.Cos (MathConvert.ToRadians (90));
+			float sin = (float)Math.Sin (MathHelper.DegreesToRadians (90));
+			float cos = (float)Math.Cos (MathHelper.DegreesToRadians (90));
 			x -= 0.5f;
 			y -= 0.5f;
 			return new Vector2 ((cos * x) - (sin * y) + 0.5f, -((sin * x) + (cos * y) + 0.5f));

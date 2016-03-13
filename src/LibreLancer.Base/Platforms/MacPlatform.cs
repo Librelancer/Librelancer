@@ -30,7 +30,7 @@ namespace LibreLancer.Platforms
 		[DllImport ("libc")]
 		static extern unsafe int getattrlist (string path, attrlist*_attrlist, void*attrbuf, IntPtr attrbufsize, IntPtr options);
 
-		public bool IsDirCaseSensitive (string directory)
+		public unsafe bool IsDirCaseSensitive (string directory)
 		{
 			var alist = new attrlist ();
 			alist.volattr = ATTR_VOL_CAPABILITIES;
