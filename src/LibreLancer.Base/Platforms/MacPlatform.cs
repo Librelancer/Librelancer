@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using SharpFont;
-using Librelancer.Platforms.Mac;
+using LibreLancer.Platforms.Mac;
 namespace LibreLancer.Platforms
 {
 	class MacPlatform : IPlatform
@@ -46,14 +46,19 @@ namespace LibreLancer.Platforms
 			return false;
 		}
 
+		string helveticaPath;
+
 		public MacPlatform()
 		{
 			Cocoa.Initialize ();
+			helveticaPath = GetFontPath ("Helvetica");
 		}
 
 		public Face LoadSystemFace (Library library, string face)
 		{
-			return new Face (library, GetFontPath (face));
+			//fall back on helvetica if the font isn't found
+			var path = GetFontPath (face);
+			return new Face (library, path ?? helveticaPath);
 		}
 
 		static string GetFontPath(string fontName)

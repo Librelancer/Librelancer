@@ -20,6 +20,11 @@ namespace LibreLancer
                     glFormat = PixelFormat.Bgra;
                     glType = PixelType.UnsignedByte;
                     break;
+				case SurfaceFormat.R8:
+					glInternalFormat = PixelInternalFormat.R8;
+					glFormat = PixelFormat.Red;
+					glType = PixelType.UnsignedByte;
+					break;
                 case SurfaceFormat.Bgr565:
                     glInternalFormat = PixelInternalFormat.Rgb;
                     glFormat = PixelFormat.Rgb;
@@ -35,11 +40,11 @@ namespace LibreLancer
                     glFormat = PixelFormat.Bgra;
                     glType = PixelType.UnsignedShort1555Reversed;
                     break;
-                case SurfaceFormat.Alpha8:
+                /*case SurfaceFormat.Alpha8: luminance removed in GL 3.1
                     glInternalFormat = PixelInternalFormat.Luminance;
                     glFormat = PixelFormat.Luminance;
                     glType = PixelType.UnsignedByte;
-                    break;
+                    break;*/
                 case SurfaceFormat.Dxt1:
                     glInternalFormat = PixelInternalFormat.CompressedRgbaS3tcDxt1Ext;
                     glFormat = (PixelFormat)All.CompressedTextureFormats;

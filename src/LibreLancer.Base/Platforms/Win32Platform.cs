@@ -1,6 +1,6 @@
 ﻿using System;
 using SharpFont;
-using Librelancer.Platforms.Win32;
+using LibreLancer.Platforms.Win32;
 namespace LibreLancer.Platforms
 {
 	class Win32Platform : IPlatform

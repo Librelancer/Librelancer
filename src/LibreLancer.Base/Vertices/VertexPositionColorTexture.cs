@@ -24,7 +24,7 @@ namespace LibreLancer.Vertices
             GL.EnableVertexAttribArray(VertexSlots.Texture1);
             GL.VertexAttribPointer(VertexSlots.Position, 3, VertexAttribPointerType.Float, false, VertexSize(), offset);
             GL.VertexAttribPointer(VertexSlots.Color, 4, VertexAttribPointerType.Float, false, VertexSize(), offset + sizeof(float) * 3);
-            GL.VertexAttribPointer(VertexSlots.Texture1, 4, VertexAttribPointerType.Float, false, VertexSize(), offset + sizeof(float) * 7);
+            GL.VertexAttribPointer(VertexSlots.Texture1, 2, VertexAttribPointerType.Float, false, VertexSize(), offset + sizeof(float) * 7);
         }
         public int VertexSize()
         {

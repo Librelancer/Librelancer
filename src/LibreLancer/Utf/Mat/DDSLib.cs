@@ -702,7 +702,8 @@ namespace LibreLancer.Utf.Mat
                     case 0:
                         if (rgbBitCount == 8)
                         {
-                            return SurfaceFormat.Alpha8;
+							throw new NotSupportedException ("Alpha8 not supported in GL 3");
+                            //return SurfaceFormat.Alpha8;
                         }
                         if (rgbBitCount == 16)
                         {
@@ -728,8 +729,8 @@ namespace LibreLancer.Utf.Mat
             {
                 switch (loadSurfaceFormat)
                 {
-                    case LoadSurfaceFormat.Alpha8:
-                        return SurfaceFormat.Alpha8;
+				case LoadSurfaceFormat.Alpha8:
+					throw new NotSupportedException ("Alpha8 not supported in GL 3+");
                     case LoadSurfaceFormat.Bgr565:
                         return SurfaceFormat.Bgr565;
                     case LoadSurfaceFormat.Bgra4444:
@@ -1236,9 +1237,9 @@ namespace LibreLancer.Utf.Mat
                     pixelWidth = 2;
                     break;
 
-                case SurfaceFormat.Alpha8:
+                /*case SurfaceFormat.Alpha8:
                     pixelWidth = 1;
-                    break;
+                    break;*/
                 default:
                     throw new Exception(texture.Format + " has no save as DDS support.");
             }
@@ -1365,7 +1366,7 @@ namespace LibreLancer.Utf.Mat
                     aBitMask = 0;
                     break;
 
-                case SurfaceFormat.Alpha8:
+                /*case SurfaceFormat.Alpha8:
                     flags = 2;
                     fourCC = 0;
                     rgbBitCount = 8;
@@ -1373,7 +1374,7 @@ namespace LibreLancer.Utf.Mat
                     gBitMask = 0;
                     bBitMask = 0;
                     aBitMask = 255;
-                    break;
+                    break;*/
 
                 case SurfaceFormat.Single:
                     flags = 4;

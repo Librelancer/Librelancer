@@ -17,10 +17,10 @@ namespace LibreLancer
 		int VAO;
 		public bool HasElements = false;
 		Type type;
-        public VertexBuffer(Type type, int length)
+		public VertexBuffer(Type type, int length, bool isStream = false)
         {
             VBO = GL.GenBuffer();
-
+			var usageHint = isStream ? BufferUsageHint.StreamDraw : BufferUsageHint.DynamicDraw;
             this.type = type;
             try
             {
@@ -33,17 +33,18 @@ namespace LibreLancer
 			VAO = GL.GenVertexArray ();
             GLBind.VertexArray(VAO);
 			GLBind.VertexBuffer(VBO);
-            GL.BufferData(BufferTarget.ArrayBuffer, length * VertexType.VertexSize(), IntPtr.Zero, BufferUsageHint.StaticDraw);
+			GL.BufferData (BufferTarget.ArrayBuffer, length * VertexType.VertexSize (), IntPtr.Zero, usageHint);
 			VertexType.SetVertexPointers (0);
 			VertexCount = length;
         }
 
-        public void SetData<T>(T[] data) where T : struct
+		public void SetData<T>(T[] data, int? length = null) where T : struct
         {
             if (typeof(T) != type)
                 throw new Exception("Data must be of type " + type.FullName);
+			int len = length ?? data.Length;
             GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
-            GL.BufferData(BufferTarget.ArrayBuffer, data.Length * VertexType.VertexSize(), data, BufferUsageHint.StaticDraw);
+			GL.BufferSubData (BufferTarget.ArrayBuffer, IntPtr.Zero, len * VertexType.VertexSize (), data);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
 
@@ -60,13 +61,25 @@ namespace LibreLancer
 				baseVertex);
 			TotalDrawcalls++;
 		}
+		public void Draw(PrimitiveTypes primitiveType, int primitiveCount)
+		{
+			RenderState.Instance.Apply ();
+			int indexElementCount = primitiveType.GetArrayLength (primitiveCount);
+			GLBind.VertexBuffer (VBO);
+			GLBind.VertexArray (VAO);
+			GL.DrawElements (primitiveType.GLType (),
+				indexElementCount,
+				DrawElementsType.UnsignedShort,
+				IntPtr.Zero
+			);
+			TotalDrawcalls++;
+		}
 
         public void SetElementBuffer(ElementBuffer elems)
         {
 			GLBind.VertexBuffer(VBO);
 			GLBind.VertexArray (VAO);
 			GL.BindBuffer (BufferTarget.ElementArrayBuffer, elems.Handle);
-          
         }
 
         public void Dispose()

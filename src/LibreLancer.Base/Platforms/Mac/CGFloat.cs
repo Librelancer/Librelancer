@@ -1,6 +1,6 @@
 using System;
 
-namespace Librelancer.Platforms.Mac
+namespace LibreLancer.Platforms.Mac
 {
 	unsafe struct CGFloat
 	{

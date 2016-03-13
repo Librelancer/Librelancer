@@ -31,7 +31,7 @@ using System.Runtime.InteropServices;
 using System;
 using System.Collections.Generic;
 
-namespace Librelancer.Platforms.Mac
+namespace LibreLancer.Platforms.Mac
 {
 	static class Class
 	{

@@ -2,6 +2,7 @@
 using OpenTK;
 using OpenTK.Input;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics;
 using LibreLancer.Primitives;
 using LibreLancer.Vertices;
 namespace LibreLancer
@@ -13,7 +14,8 @@ namespace LibreLancer
 		Camera camera;
 		SystemRenderer sysrender;
 		bool wireframe = false;
-
+		TextRenderer trender;
+		Font font;
 		public DemoSystemView (FreelancerGame g) : base(g)
 		{
 			FLLog.Info ("Game", "Starting System Viewer Demo");
@@ -33,6 +35,8 @@ namespace LibreLancer
 					}
 				}
 			};
+			trender = new TextRenderer (Game.RenderState);
+			font = Font.FromSystemFont (trender, "Agency FB", 16);
 		}
 
 		public override void Update (TimeSpan delta)
@@ -72,6 +76,21 @@ namespace LibreLancer
 		public override void Draw (TimeSpan delta)
 		{
 			sysrender.Draw ();
+			trender.Start (Game.Width, Game.Height);
+			DrawShadowedText ("System Viewer Demo", 5, 5);
+			trender.Finish ();
+		}
+
+		void DrawShadowedText(string text, float x, float y)
+		{
+			trender.DrawString (font,
+				text,
+				x + 2, y + 2,
+				Color4.Black);
+			trender.DrawString (font,
+				text,
+				x, y,
+				Color4.White);
 		}
 	}
 }

@@ -98,14 +98,14 @@ namespace LibreLancer
 				i++;
 			}
 		}
-        public void SetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T : struct
+		public void SetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T: struct
         {
             GL.BindTexture(TextureTarget.Texture2D, ID);
             if (glFormat == (PixelFormat)All.CompressedTextureFormats)
             {
 				int w, h;
 				GetMipSize (level, out w, out h);
-                GL.CompressedTexImage2D<T>(TextureTarget.Texture2D, level, glInternalFormat,
+                GL.CompressedTexImage2D(TextureTarget.Texture2D, level, glInternalFormat,
                                          w, h, 0,
                                          count, data);
             }
@@ -118,17 +118,23 @@ namespace LibreLancer
                 {
                     w = rect.Value.Width;
                     h = rect.Value.Height;
-                    x = rect.Value.Width;
-                    y = rect.Value.Height;
-                    GL.TexSubImage2D<T>(TextureTarget.Texture2D, level, x, y, w, h, glFormat, glType, data);
+                    x = rect.Value.X;
+                    y = rect.Value.Y;
+                    GL.TexSubImage2D(TextureTarget.Texture2D, level, x, y, w, h, glFormat, glType, data);
                 }
                 else {
                     w = Math.Max(Width >> level, 1);
                     h = Math.Max(Height >> level, 1);
-                    GL.TexImage2D<T>(TextureTarget.Texture2D, level, glInternalFormat, w, h, 0, glFormat, glType, data);
+                    GL.TexImage2D(TextureTarget.Texture2D, level, glInternalFormat, w, h, 0, glFormat, glType, data);
                 }
             }
         }
+
+		internal void SetData(int level, Rectangle rect, IntPtr data)
+		{
+			GL.TexSubImage2D (TextureTarget.Texture2D, 0, rect.X, rect.Y, rect.Width, rect.Height, glFormat, glType, data);
+		}
+
         public void SetData<T>(T[] data) where T : struct
         {
             SetData<T>(0, null, data, 0, data.Length);

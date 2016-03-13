@@ -29,7 +29,7 @@
 using System.Runtime.InteropServices;
 using System;
 
-namespace Librelancer.Platforms.Mac
+namespace LibreLancer.Platforms.Mac
 {
 	static class Cocoa
 	{

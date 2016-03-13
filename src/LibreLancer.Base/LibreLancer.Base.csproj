@@ -113,6 +113,11 @@
     <Compile Include="Platforms\Mac\CoreText.cs" />
     <Compile Include="Platforms\Mac\NS.cs" />
     <Compile Include="Platforms\Mac\Selector.cs" />
+    <Compile Include="Text\TextRenderer.cs" />
+    <Compile Include="Text\Font.cs" />
+    <Compile Include="Text\CodepointIterator.cs" />
+    <Compile Include="Text\GlyphInfo.cs" />
+    <Compile Include="Point.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -126,6 +131,7 @@
     <Folder Include="Platforms\" />
     <Folder Include="Platforms\Mac\" />
     <Folder Include="Platforms\Win32\" />
+    <Folder Include="Text\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\extern\SharpFont\Source\SharpFont\SharpFont.csproj">

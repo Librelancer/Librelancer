@@ -29,7 +29,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Librelancer.Platforms.Mac
+namespace LibreLancer.Platforms.Mac
 {
 	[Flags]
 	enum AddImageFlags

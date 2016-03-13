@@ -16,7 +16,8 @@ namespace LibreLancer
         Rgba1010102,
         Rg32,
         Rgba64,
-        Alpha8,
+        //Alpha8, - Removed in OpenGL 3.1,
+		R8, //Just red channel - NOT an XNA value
         Single,
         Vector2,
         Vector4,

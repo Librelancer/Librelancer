@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-namespace Librelancer.Platforms.Win32
+namespace LibreLancer.Platforms.Win32
 {
 	static class GDI
 	{
