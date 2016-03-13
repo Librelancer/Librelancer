@@ -10,3 +10,6 @@
 [submodule "extern/SharpFont"]
 	path = extern/SharpFont
 	url = https://github.com/Robmaister/SharpFont.git
+[submodule "extern/FontConfigSharp"]
+	path = extern/FontConfigSharp
+	url = https://github.com/CallumDev/FontConfigSharp.git
