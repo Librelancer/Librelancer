@@ -103,6 +103,10 @@
     <Compile Include="BlendMode.cs" />
     <Compile Include="Color3f.cs" />
     <Compile Include="Color4b.cs" />
+    <Compile Include="Platforms\IPlatform.cs" />
+    <Compile Include="Platforms\LinuxPlatform.cs" />
+    <Compile Include="Platforms\Win32Platform.cs" />
+    <Compile Include="Platforms\MacPlatform.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -112,4 +116,7 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <Folder Include="Platforms\" />
+  </ItemGroup>
 </Project>
