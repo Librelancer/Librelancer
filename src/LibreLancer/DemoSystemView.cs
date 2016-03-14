@@ -11,16 +11,16 @@ namespace LibreLancer
 	{
 		private const float ROTATION_SPEED = 1f;
 		GameData.StarSystem sys;
-		Camera camera;
+		DebugCamera camera;
 		SystemRenderer sysrender;
 		bool wireframe = false;
-		TextRenderer trender;
+		Renderer2D trender;
 		Font font;
 		public DemoSystemView (FreelancerGame g) : base(g)
 		{
 			FLLog.Info ("Game", "Starting System Viewer Demo");
 			sys = g.GameData.GetSystem ("Li01");
-			camera = new Camera (g.Viewport);
+			camera = new DebugCamera (g.Viewport);
 			camera.Zoom = 5000;
 			sysrender = new SystemRenderer (camera, g.GameData, g.ResourceManager);
 			sysrender.StarSystem = sys;
@@ -35,7 +35,7 @@ namespace LibreLancer
 					}
 				}
 			};
-			trender = new TextRenderer (Game.RenderState);
+			trender = new Renderer2D (Game.RenderState);
 			font = Font.FromSystemFont (trender, "Agency FB", 16);
 		}
 

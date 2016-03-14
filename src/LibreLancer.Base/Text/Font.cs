@@ -22,18 +22,18 @@ namespace LibreLancer
 				return lineHeight;
 			}
 		}
-		public Font (TextRenderer t, string filename, float size)
+		public Font (Renderer2D t, string filename, float size)
 			: this (t, new Face(t.FT, filename), size)
 		{
 		}
 
-		public static Font FromSystemFont(TextRenderer t, string name, float size)
+		public static Font FromSystemFont(Renderer2D t, string name, float size)
 		{
 			var face = Platform.LoadSystemFace (t.FT, name);
 			return new Font (t, face, size);
 		}
 
-		private Font(TextRenderer t, Face f, float sz)
+		private Font(Renderer2D t, Face f, float sz)
 		{
 			this.Face = f;
 			f.SetCharSize (0, sz, 0, 96);

@@ -235,7 +235,7 @@ namespace LibreLancer.Utf.Vms
             }
         }
 
-        public void Update(Camera camera, ushort startMesh, int endMesh)
+        public void Update(ICamera camera, ushort startMesh, int endMesh)
         {
             if (ready)
             {

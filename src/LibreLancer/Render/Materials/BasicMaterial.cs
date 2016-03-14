@@ -4,6 +4,9 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using LibreLancer.Vertices;
+using LibreLancer.Utf.Mat;
+
+
 namespace LibreLancer
 {
 	public class BasicMaterial : RenderMaterial
@@ -12,9 +15,10 @@ namespace LibreLancer
 
 		public Color4 Dc = Color4.White;
 		public Texture DtSampler;
-		public float Oc = 0f;
+		public SamplerFlags DtFlags;
+		public float Oc = 1f;
 		public bool AlphaEnabled = false;
-		public Color4 Ec = new Color4(0, 0, 0, 0);
+		public Color4 Ec = Color4.White;
 		public Texture EtSampler;
 
 		public BasicMaterial(string type)
@@ -59,13 +63,19 @@ namespace LibreLancer
 
 		public override void Use(RenderState rstate, IVertexType vertextype, Lighting lights)
 		{
-			rstate.DepthEnabled = true;
 			var shader = GetShader(vertextype);
 			shader.SetMatrix("World", ref World);
 			shader.SetMatrix("ViewProjection", ref ViewProjection);
 			//Dt
 			shader.SetInteger("DtSampler", 0);
 			BindTexture(DtSampler, TextureUnit.Texture0, false);
+			if ((DtFlags & SamplerFlags.ClampToEdgeU) == SamplerFlags.ClampToEdgeU) {
+				GL.TexParameter (TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureParameterName.ClampToEdge);
+			}
+			if ((DtFlags & SamplerFlags.ClampToEdgeV) == SamplerFlags.ClampToEdgeV) {
+				GL.TexParameter (TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureParameterName.ClampToEdge);
+			}
+
 			//Dc
 			shader.SetColor4("Dc", Dc);
 			//Oc

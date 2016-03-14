@@ -147,7 +147,7 @@ namespace LibreLancer.Utf.Cmp
             for (int i = 0; i < Parts.Count; i++) Parts[i].Resized();
         }
 
-		public void Update(Camera camera, TimeSpan delta)
+		public void Update(ICamera camera, TimeSpan delta)
         {
             if (Animation != null) Animation.Update(delta);
             for (int i = 0; i < Parts.Count; i++) Parts[i].Update(camera, delta);

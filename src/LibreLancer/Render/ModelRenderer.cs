@@ -11,7 +11,7 @@ namespace LibreLancer
 		public CmpFile Cmp { get; private set; }
 		public SphFile Sph { get; private set; }
 
-		public ModelRenderer (Camera camera, Matrix4 world, bool useObjectPosAndRotate, SystemObject spaceObject,ResourceManager cache)
+		public ModelRenderer (DebugCamera camera, Matrix4 world, bool useObjectPosAndRotate, SystemObject spaceObject,ResourceManager cache)
 			: base(camera, world, useObjectPosAndRotate, spaceObject)
 		{
 			IDrawable archetype = spaceObject.Archetype.Drawable;

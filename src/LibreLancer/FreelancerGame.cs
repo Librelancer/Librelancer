@@ -71,14 +71,14 @@ namespace LibreLancer
 		}
 		void Switch()
 		{
-			currentState = new DemoSystemView (this);
+			currentState = new MainMenu (this);
 		}
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
 			RenderState = new RenderState ();
 			var vp = new ViewportManager ();
-			vp.Push (0, 0, 1024, 768);
+			vp.Push (0, 0, Width, Height);
         }
 
 		protected override void OnClosing (System.ComponentModel.CancelEventArgs e)

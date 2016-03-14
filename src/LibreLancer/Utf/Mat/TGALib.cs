@@ -115,8 +115,7 @@ namespace LibreLancer.Utf.Mat
                 int pal = (int)stream.Position;
                 stream.Seek(3 * colorMapLength, SeekOrigin.Current);
                 long streampos = stream.Position;
-
-                for (int y = imageHeight; --y >= 0; )
+				for (int y = 0; y < imageHeight;y++ )
                 {
                     int p = y * stride;
                     for (int x = 0; x < imageWidth; ++x)
@@ -135,7 +134,7 @@ namespace LibreLancer.Utf.Mat
             }
             else if (pixelDepth == 16)
             {
-                for (int y = imageHeight; --y >= 0; )
+				for (int y = 0; y < imageHeight;y++ )
                 {
                     int p = y * stride;
                     for (int x = 0; x < imageWidth; ++x)
@@ -154,7 +153,7 @@ namespace LibreLancer.Utf.Mat
             }
             else
             {
-                for (int y = imageHeight; --y >= 0; )
+				for (int y = 0; y < imageHeight;y++ )
                 {
                     int p = y * stride;
                     for (int x = 0; x < imageWidth; ++x)

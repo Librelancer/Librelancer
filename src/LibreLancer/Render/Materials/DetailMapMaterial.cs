@@ -27,7 +27,6 @@ namespace LibreLancer
 
 		public override void Use (RenderState rstate, IVertexType vertextype, Lighting lights)
 		{
-			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Opaque;
 
 			Shader sh = GetShader (vertextype);

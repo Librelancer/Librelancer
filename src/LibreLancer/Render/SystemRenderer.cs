@@ -11,7 +11,7 @@ namespace LibreLancer
 {
 	public class SystemRenderer
 	{
-		Camera camera;
+		DebugCamera camera;
 		LegacyGameData data;
 
 		public Matrix4 World { get; private set; }
@@ -30,7 +30,7 @@ namespace LibreLancer
 		Lighting systemLighting;
 		ResourceManager cache;
 		RenderState rstate;
-		public SystemRenderer (Camera camera, LegacyGameData data,ResourceManager rescache)
+		public SystemRenderer (DebugCamera camera, LegacyGameData data,ResourceManager rescache)
 		{
 			this.camera = camera;
 			this.data = data;
@@ -107,6 +107,7 @@ namespace LibreLancer
 		{
 			rstate.ClearColor = starSystem.BackgroundColor;
 			rstate.ClearAll ();
+			rstate.DepthEnabled = true;
 			//StarSphere
 			for (int i = 0; i < starSphereModels.Length; i++)
 			{

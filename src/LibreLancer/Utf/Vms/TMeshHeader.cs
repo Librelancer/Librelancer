@@ -95,7 +95,7 @@ namespace LibreLancer.Utf.Vms
 			else */Material.Resized();
         }
 
-        public void Update(Camera camera)
+        public void Update(ICamera camera)
         {
             /*if (Material == null) nullMaterial.Update(camera);
             else */Material.Render.ViewProjection = camera.ViewProjection;

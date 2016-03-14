@@ -183,7 +183,7 @@ namespace LibreLancer.Utf.Cmp
             }
         }
 
-		public void Update(Camera camera, TimeSpan delta)
+		public void Update(ICamera camera, TimeSpan delta)
         {
             if (ready)
             {

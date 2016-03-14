@@ -89,7 +89,7 @@ namespace LibreLancer.Utf.Dfm
 			if (ready) Material.Resized();
 		}
 
-		public void Update(Camera camera)
+		public void Update(ICamera camera)
 		{
 			if (ready) Material.Update(camera);
 		}

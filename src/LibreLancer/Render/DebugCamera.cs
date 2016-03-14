@@ -19,7 +19,7 @@ using OpenTK;
 
 namespace LibreLancer
 {
-	public class Camera
+	public class DebugCamera : ICamera
 	{
 		private const float MOVE_SPEED = 3000f;
 
@@ -79,7 +79,7 @@ namespace LibreLancer
 
 		public bool Free { get; set; }
 
-		public Camera(Viewport viewport)
+		public DebugCamera(Viewport viewport)
 		{
 			this.Viewport = viewport;
 			Free = false;

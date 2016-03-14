@@ -73,7 +73,7 @@ namespace LibreLancer.Utf.Cmp
             Model.Resized();
         }
 
-		public void Update(Camera camera, TimeSpan delta)
+		public void Update(ICamera camera, TimeSpan delta)
         {
 			Model.Update (camera, delta);
         }

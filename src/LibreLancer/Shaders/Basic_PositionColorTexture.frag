@@ -34,10 +34,9 @@ uniform float Oc;
 
 void main()
 {
-	out_color = (texture(DtSampler, out_texcoord) * Dc * frag_vertexcolor);
-	if(Oc > -1) {
-		out_color *= Ec * Oc;
-	}
+	//out_color = (texture(DtSampler, out_texcoord) * Dc * frag_vertexcolor);
+	//out_color *= Ec * Oc;
+	out_color = (texture(DtSampler, out_texcoord) * vec4(Dc.xyz, Oc) * frag_vertexcolor);
 	//out_color = texture(DtSampler, out_texcoord) * Dc;
 }
 

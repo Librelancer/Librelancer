@@ -6,7 +6,6 @@ namespace LibreLancer
 	{
 		public override void Use (RenderState rstate, LibreLancer.Vertices.IVertexType vertextype, Lighting lights)
 		{
-			//GL.Enable (EnableCap.DepthTest);
 			var sh = ShaderCache.Get ("Sun.vs", "Sun.frag");
 			sh.SetMatrix ("ViewProjection", ref ViewProjection);
 			sh.SetMatrix ("World", ref World);

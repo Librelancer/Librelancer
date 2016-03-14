@@ -5,11 +5,11 @@ namespace LibreLancer
 {
 	public abstract class ObjectRenderer : IDisposable
 	{
-		protected Camera camera;
+		protected DebugCamera camera;
 		public Matrix4 World { get; private set; }
 		public SystemObject SpaceObject { get; private set; }
 
-		public ObjectRenderer (Camera camera, Matrix4 world, bool useObjectPosAndRotate, SystemObject spaceObject)
+		public ObjectRenderer (DebugCamera camera, Matrix4 world, bool useObjectPosAndRotate, SystemObject spaceObject)
 		{
 			if (useObjectPosAndRotate)
 			{

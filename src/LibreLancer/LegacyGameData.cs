@@ -16,7 +16,14 @@ namespace LibreLancer
 			fldata = new Legacy.FreelancerData (flini);
 			fldata.LoadData ();
 		}
-
+		public void LoadInterfaceVms()
+		{
+			resource.LoadVms (Compatibility.VFS.GetPath (fldata.Freelancer.DataPath + "INTERFACE/interface.generic.vms"));
+		}
+		public IDrawable GetMenuButton()
+		{
+			return resource.GetDrawable(Compatibility.VFS.GetPath (fldata.Freelancer.DataPath + "INTERFACE/INTRO/OBJECTS/front_button.cmp"));
+		}
 		public GameData.StarSystem GetSystem(string id)
 		{
 			var legacy = fldata.Universe.FindSystem (id);

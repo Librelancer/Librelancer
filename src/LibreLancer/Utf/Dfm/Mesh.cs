@@ -185,7 +185,7 @@ namespace LibreLancer.Utf.Dfm
 			if (ready) foreach (FaceGroup faceGroup in FaceGroups) faceGroup.Resized();
 		}
 
-		public void Update(Camera camera, TimeSpan delta)
+		public void Update(ICamera camera, TimeSpan delta)
 		{
 			if (ready) foreach (FaceGroup faceGroup in FaceGroups) faceGroup.Update (camera);
 		}

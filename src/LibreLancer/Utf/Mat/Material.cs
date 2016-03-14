@@ -79,7 +79,7 @@ namespace LibreLancer.Utf.Mat
 		/// <summary>
 		/// Opacity
 		/// </summary>
-		public float Oc = -1;
+		public float Oc = 1;
 
 		/// <summary>
 		/// Emissive Texture Flags
@@ -356,6 +356,7 @@ namespace LibreLancer.Utf.Mat
 					if (Dt.Texture == null)
 						throw new Exception ();
 					bm.DtSampler = Dt.Texture;
+					bm.DtFlags = (SamplerFlags)DtFlags;
 				}
 				if (Et != null)
 					bm.EtSampler = Et.Texture;
@@ -436,7 +437,7 @@ namespace LibreLancer.Utf.Mat
 
 		Matrix4 ViewProjection = Matrix4.Identity;
 
-		public void Update (Camera camera)
+		public void Update (ICamera camera)
 		{
 			ViewProjection = camera.ViewProjection;
 			if (Render != null)

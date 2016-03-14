@@ -113,11 +113,11 @@
     <Compile Include="Platforms\Mac\CoreText.cs" />
     <Compile Include="Platforms\Mac\NS.cs" />
     <Compile Include="Platforms\Mac\Selector.cs" />
-    <Compile Include="Text\TextRenderer.cs" />
     <Compile Include="Text\Font.cs" />
     <Compile Include="Text\CodepointIterator.cs" />
     <Compile Include="Text\GlyphInfo.cs" />
     <Compile Include="Point.cs" />
+    <Compile Include="Text\Renderer2D.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

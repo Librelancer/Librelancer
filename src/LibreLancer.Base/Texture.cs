@@ -4,7 +4,7 @@ namespace LibreLancer
 {
     public abstract class Texture : IDisposable
     {
-        internal int ID;
+        public int ID;
         public SurfaceFormat Format { get; protected set; }
         static bool compressedChecked = false;
         protected static void CheckCompressed()
