@@ -16,10 +16,12 @@ namespace LibreLancer
 		Font buttonFont;
 		string aboutText = "LIBRELANCER 0.1";
 		List<UIButton> buttons = new List<UIButton>();
+		Texture2D logoOverlay;
 		public MainMenu (FreelancerGame g) : base(g)
 		{
 			g.GameData.LoadInterfaceVms ();
 			menuButton = g.GameData.GetMenuButton ();
+			logoOverlay = g.GameData.GetFreelancerLogo ();
 			lights = new Lighting (); // no lighting
 			uirender = new Renderer2D(g.RenderState);
 			var textSize = GetTextSize (GetTextRectangle (0, 0).Height);
@@ -42,6 +44,10 @@ namespace LibreLancer
 
 			//Draw UI
 			Game.RenderState.DepthEnabled = false;
+			//UI Background
+			uirender.Start(Game.Width, Game.Height);
+			uirender.DrawImageStretched (logoOverlay, new Rectangle (0, 0, Game.Width, Game.Height), Color4.White, true);
+			uirender.Finish ();
 			//buttons
 			foreach (var b in buttons) {
 				menuButton.Draw (Game.RenderState,

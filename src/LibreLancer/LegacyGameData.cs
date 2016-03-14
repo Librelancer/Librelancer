@@ -24,6 +24,12 @@ namespace LibreLancer
 		{
 			return resource.GetDrawable(Compatibility.VFS.GetPath (fldata.Freelancer.DataPath + "INTERFACE/INTRO/OBJECTS/front_button.cmp"));
 		}
+		public Texture2D GetFreelancerLogo()
+		{
+			return Utf.Mat.TGALib.TGAFromStream (
+				Compatibility.VFS.Open (fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga")
+			);
+		}
 		public GameData.StarSystem GetSystem(string id)
 		{
 			var legacy = fldata.Universe.FindSystem (id);

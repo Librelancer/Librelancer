@@ -30,7 +30,7 @@ namespace LibreLancer
 		}
 		";
 
-		const string fragment_source = @"
+		const string text_fragment_source = @"
 		#version 140
 		in vec2 out_texcoord;
 		in vec4 blendColor;
@@ -42,7 +42,20 @@ namespace LibreLancer
 			out_color = vec4(blendColor.xyz, blendColor.a * alpha);
 		}
 		";
-
+		
+		const string img_fragment_source = @"
+		#version 140
+		in vec2 out_texcoord;
+		in vec4 blendColor;
+		out vec4 out_color;
+		uniform sampler2D tex;
+		void main()
+		{
+			vec4 src = texture(tex, out_texcoord);
+			out_color = src * blendColor;
+		}
+		";
+		
 		[StructLayout(LayoutKind.Sequential)]
 		struct Vertex2D : IVertexType {
 			public Vector2 Position;
@@ -77,14 +90,17 @@ namespace LibreLancer
 		VertexBuffer vbo;
 		ElementBuffer el;
 		Vertex2D[] vertices;
-		Shader shader;
+		Shader textShader;
+		Shader imgShader;
 		Texture2D dot;
 		public Renderer2D (RenderState rstate)
 		{
 			rs = rstate;
 			FT = new Library ();
-			shader = new Shader (vertex_source, fragment_source);
-			shader.SetInteger ("tex", 0);
+			textShader = new Shader (vertex_source, text_fragment_source);
+			textShader.SetInteger ("tex", 0);
+			imgShader = new Shader (vertex_source, img_fragment_source);
+			textShader.SetInteger ("tex", 0);
 			vbo = new VertexBuffer (typeof(Vertex2D), MAX_VERT, true);
 			el = new ElementBuffer (MAX_INDEX);
 			var indices = new ushort[MAX_INDEX];
@@ -144,6 +160,7 @@ namespace LibreLancer
 		int vertexCount = 0;
 		int primitiveCount = 0;
 		Texture2D currentTexture = null;
+		Shader currentShader = null;
 
 		public void Start(int vpWidth, int vpHeight)
 		{
@@ -151,7 +168,8 @@ namespace LibreLancer
 				throw new InvalidOperationException ("TextRenderer.Start() called without calling TextRenderer.Finish()");
 			active = true;
 			var mat = Matrix4.CreateOrthographicOffCenter (0, vpWidth, vpHeight, 0, 0, 1);
-			shader.SetMatrix ("modelviewproj", ref mat);
+			textShader.SetMatrix ("modelviewproj", ref mat);
+			imgShader.SetMatrix ("modelviewproj", ref mat);
 		}
 
 		public void DrawString(Font font, string str, Vector2 vec, Color4 color)
@@ -196,6 +214,7 @@ namespace LibreLancer
 						glyph.Rectangle.Height
 					);
 					DrawQuad (
+						textShader,
 						glyph.Texture,
 						glyph.Rectangle,
 						dst,
@@ -216,16 +235,38 @@ namespace LibreLancer
 		}
 		public void FillRectangle(Rectangle rect, Color4 color)
 		{
-			DrawQuad(dot, new Rectangle(0,0,1,1), rect, color);
+			DrawQuad(textShader, dot, new Rectangle(0,0,1,1), rect, color);
 		}
-		void DrawQuad(Texture2D tex, Rectangle source, Rectangle dest, Color4 color)
+		public void DrawImageStretched(Texture2D tex, Rectangle dest, Color4 color, bool flip = false)
 		{
+			DrawQuad (
+				imgShader,
+				tex,
+				new Rectangle (0, 0, tex.Width, tex.Height),
+				dest,
+				color,
+				flip
+			);
+		}
+		void Swap<T>(ref T a, ref T b)
+		{
+			var temp = a;
+			a = b;
+			b = temp;
+		}
+		void DrawQuad(Shader shader, Texture2D tex, Rectangle source, Rectangle dest, Color4 color, bool flip = false)
+		{
+			if (currentShader != null && currentShader != shader) {
+				Flush ();
+			}
 			if (currentTexture != null && currentTexture != tex) {
 				Flush ();
 			}
 			if ((primitiveCount + 2) * 3 >= MAX_INDEX || (vertexCount + 4) >= MAX_VERT)
 				Flush ();
+			
 			currentTexture = tex;
+			currentShader = shader;
 
 			float x = (float)dest.X;
 			float y = (float)dest.Y;
@@ -244,7 +285,10 @@ namespace LibreLancer
 				(srcY + srcH) / (float)tex.Height);
 			Vector2 bottomRightCoord = new Vector2 ((srcX + srcW) / (float)tex.Width,
 				(srcY + srcH) / (float)tex.Height);
-			
+			if (flip) {
+				Swap (ref bottomLeftCoord, ref topLeftCoord);
+				Swap (ref bottomRightCoord, ref topRightCoord);
+			}
 			vertices [vertexCount++] = new Vertex2D (
 				new Vector2 (x, y),
 				topLeftCoord,
@@ -284,7 +328,7 @@ namespace LibreLancer
 			rs.BlendMode = BlendMode.Normal;
 			rs.DepthEnabled = false;
 			currentTexture.BindTo (TextureUnit.Texture0);
-			shader.UseProgram ();
+			currentShader.UseProgram ();
 			vbo.SetData (vertices, vertexCount);
 			vbo.Draw (PrimitiveTypes.TriangleList, primitiveCount);
 
