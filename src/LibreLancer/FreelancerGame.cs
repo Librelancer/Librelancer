@@ -16,6 +16,7 @@ namespace LibreLancer
 		public MusicPlayer Music;
 		public ResourceManager ResourceManager;
 		public RenderState RenderState;
+		public Renderer2D Renderer2D;
 
 		ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
 		int uithread;
@@ -77,6 +78,7 @@ namespace LibreLancer
         {
             base.OnLoad(e);
 			RenderState = new RenderState ();
+			Renderer2D = new Renderer2D(RenderState);
 			var vp = new ViewportManager ();
 			vp.Push (0, 0, Width, Height);
         }

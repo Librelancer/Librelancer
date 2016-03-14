@@ -5,6 +5,8 @@ namespace LibreLancer
 {
 	public class Lighting
 	{
+		public static readonly Lighting Empty = new Lighting();
+
 		public Color4 Ambient = Color4.White;
 		public List<RenderLight> Lights = new List<RenderLight>();
 		public Lighting ()

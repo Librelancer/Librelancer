@@ -158,6 +158,11 @@
     <Compile Include="MainMenu.cs" />
     <Compile Include="Render\ICamera.cs" />
     <Compile Include="Render\DebugCamera.cs" />
+    <Compile Include="Easings.cs" />
+    <Compile Include="Interface\UIManager.cs" />
+    <Compile Include="Render\IdentityCamera.cs" />
+    <Compile Include="Interface\UIElement.cs" />
+    <Compile Include="Interface\UIMenuButton.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />
@@ -209,6 +214,7 @@
     <Folder Include="GameData\Archetypes\" />
     <Folder Include="Sur\" />
     <Folder Include="Utf\Ale\" />
+    <Folder Include="Interface\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="OpenTK.dll.config">
