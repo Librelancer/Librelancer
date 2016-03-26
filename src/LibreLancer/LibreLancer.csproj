@@ -165,6 +165,7 @@
     <Compile Include="Interface\UIMenuButton.cs" />
     <Compile Include="Interface\UIAnimation.cs" />
     <Compile Include="Interface\FlyInLeft.cs" />
+    <Compile Include="InputManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />

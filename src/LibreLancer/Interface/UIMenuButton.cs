@@ -32,7 +32,7 @@ namespace LibreLancer
 			var mstate = Manager.Game.Mouse.GetCursorState ();
 			var rect = GetTextRectangle ();
 			color = Tag != null ? Manager.TextColor : Color4.Gray;
-			if (rect.Contains (mstate.X, mstate.Y) && Tag != null) {
+			if (rect.Contains (Manager.Game.Input.MouseX, Manager.Game.Input.MouseY) && Tag != null) {
 				color = Color4.Yellow;
 				if (mstate.IsButtonDown (MouseButton.Left)) {
 					Manager.OnClick (Tag);

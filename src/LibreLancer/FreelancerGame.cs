@@ -17,7 +17,7 @@ namespace LibreLancer
 		public ResourceManager ResourceManager;
 		public RenderState RenderState;
 		public Renderer2D Renderer2D;
-
+		public InputManager Input;
 		ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
 		int uithread;
 		GameState currentState;
@@ -36,13 +36,18 @@ namespace LibreLancer
         {
 			//Setup
 			uithread = Thread.CurrentThread.ManagedThreadId;
-			FLLog.Info("Platform", Platform.RunningOS.ToString());
+			Input = new InputManager ();
+			MouseMove += (object sender, OpenTK.Input.MouseMoveEventArgs e) => {
+				Input.MouseX = e.X;
+				Input.MouseY = e.Y;
+			};
+			FLLog.Info("Platform", Platform.RunningOS.ToString() + (IntPtr.Size == 4 ? "32-bit" : "64-bit"));
 			//Cache
 			ResourceManager = new ResourceManager(this);
 			//Init Audio
-			FLLog.Info("Audio", "Initialising Audio");
-			Audio = new AudioDevice();
-			Music = new MusicPlayer (Audio);
+			//FLLog.Info("Audio", "Initialising Audio");
+			//Audio = new AudioDevice();
+			//Music = new MusicPlayer (Audio);
 			//Load data
 			FLLog.Info("Game", "Loading game data");
 			new Thread (() => {
@@ -89,8 +94,8 @@ namespace LibreLancer
 
 		protected override void OnClosing (System.ComponentModel.CancelEventArgs e)
 		{
-			Music.Stop ();
-			Audio.Dispose ();
+			//Music.Stop ();
+			//Audio.Dispose ();
 			base.OnClosing (e);
 		}
 
