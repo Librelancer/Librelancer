@@ -70,6 +70,10 @@ namespace LibreLancer
 					Thread.Sleep (1);
 			}
 		}
+		public void ChangeState(GameState state)
+		{
+			currentState = state;
+		}
 		void Switch()
 		{
 			currentState = new MainMenu (this);

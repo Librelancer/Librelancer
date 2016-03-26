@@ -4,7 +4,7 @@ using SharpFont;
 using OpenTK.Graphics.OpenGL;
 namespace LibreLancer
 {
-	public class Font
+	public class Font : IDisposable
 	{
 		const int TEXTURE_SIZE = 1024;
 
@@ -135,6 +135,12 @@ namespace LibreLancer
 					)
 				);
 			}
+		}
+		public void Dispose()
+		{
+			Face.Dispose ();
+			foreach (var tex in textures)
+				tex.Dispose ();
 		}
 	}
 }

@@ -9,6 +9,13 @@ namespace LibreLancer
 {
 	public class DemoSystemView : GameState
 	{
+		const string DEMO_TEXT =
+@"SYSTEM VIEWER DEMO
+Controls:
+WSAD - Move
+Arrow Keys - Rotate Camera
+Escape - Exit
+";
 		private const float ROTATION_SPEED = 1f;
 		GameData.StarSystem sys;
 		DebugCamera camera;
@@ -69,6 +76,9 @@ namespace LibreLancer
 			if (Game.Keyboard [Key.D]) {
 				camera.MoveVector = VectorMath.Right;
 			}
+			if (Game.Keyboard [Key.Escape]) {
+				Game.Exit ();
+			}
 			camera.Update (delta);
 			camera.Free = true;
 			sysrender.Update (delta);
@@ -77,7 +87,7 @@ namespace LibreLancer
 		{
 			sysrender.Draw ();
 			trender.Start (Game.Width, Game.Height);
-			DrawShadowedText ("System Viewer Demo", 5, 5);
+			DrawShadowedText (DEMO_TEXT, 5, 5);
 			trender.Finish ();
 		}
 
