@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if false
+using System;
 
 namespace LibreLancer.Media
 {
@@ -52,4 +53,5 @@ namespace LibreLancer.Media
 		}
 	}
 }
+#endif
 

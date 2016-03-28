@@ -45,8 +45,8 @@ namespace LibreLancer
 			if (Model != null) {
 				if (Model.Levels.ContainsKey (0)) {
 					var bbox = Model.Levels [0].BoundingBox;
-					bbox.Max = Vector3.Transform (bbox.Max, World);
-					bbox.Min = Vector3.Transform (bbox.Min, World);
+					bbox.Max = VectorMath.Transform (bbox.Max, World);
+					bbox.Min = VectorMath.Transform (bbox.Min, World);
 					if (camera.Frustum.Intersects (bbox))
 						Model.Draw (rstate, World, lights);
 				}
@@ -54,8 +54,8 @@ namespace LibreLancer
 				foreach (ModelFile model in Cmp.Models.Values)
 					if (model.Levels.ContainsKey (0)) {
 						var bbox = model.Levels [0].BoundingBox;
-						bbox.Max = Vector3.Transform (bbox.Max, World);
-						bbox.Min = Vector3.Transform (bbox.Min, World);
+						bbox.Max = VectorMath.Transform (bbox.Max, World);
+						bbox.Min = VectorMath.Transform (bbox.Min, World);
 						if (camera.Frustum.Intersects (bbox)) {
 							Cmp.Draw (rstate, World, lights);
 							break;

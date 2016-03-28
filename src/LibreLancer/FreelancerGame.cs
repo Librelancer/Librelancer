@@ -13,7 +13,7 @@ namespace LibreLancer
     {
 		public LegacyGameData GameData;
 		public AudioDevice Audio;
-		public MusicPlayer Music;
+		//public MusicPlayer Music;
 		public ResourceManager ResourceManager;
 		public RenderState RenderState;
 		public Renderer2D Renderer2D;

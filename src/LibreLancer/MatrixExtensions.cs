@@ -6,7 +6,7 @@ namespace LibreLancer
 	{
 		public static Vector3 Transform(this Matrix4 mat, Vector3 toTransform)
 		{
-			return Vector3.Transform (toTransform, mat);
+			return VectorMath.Transform (toTransform, mat);
 		}
 	}
 }

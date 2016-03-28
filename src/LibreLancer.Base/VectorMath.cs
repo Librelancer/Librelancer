@@ -24,6 +24,11 @@ namespace LibreLancer
                     (a.Z - b.Z) * (a.Z - b.Z);
             return (float)Math.Sqrt(result);
         }
+		public static Vector3 Transform(Vector3 position, Matrix4 matrix)
+		{
+			var result = Vector4.Transform (new Vector4 (position,1 ),matrix);
+			return result.Xyz;
+		}
 
         /*public static Vector3 Transform(Vector3 position, Matrix matrix)
         {

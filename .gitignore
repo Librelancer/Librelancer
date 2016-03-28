@@ -3,6 +3,7 @@ obj/
 [Bb]in/
 [Dd]ebug/
 [Rr]elease/
+packages/
 
 # Visual Studio Profiling
 *.psess
@@ -30,12 +31,6 @@ obj/
 .LSOverride
 .Spotlight-V100
 .Trashes
-
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
 
 # Executables
 *.exe

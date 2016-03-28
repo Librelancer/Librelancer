@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if false
+using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
@@ -162,4 +163,4 @@ namespace LibreLancer.Media
 		}
 	}
 }
-
+#endif

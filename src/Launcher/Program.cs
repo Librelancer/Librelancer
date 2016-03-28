@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Threading;
+using Eto.Forms;
 namespace Launcher
 {
     static class Program
@@ -15,15 +11,7 @@ namespace Launcher
         [STAThread]
         static void Main()
         {
-			
-			#if OSX
-			//I'll get to making this work on OSX later. For now a nice hardcoded path - Callum
-			LaunchPath = "/Users/cmcging/freelancer_Work/Freelancer";
-			#else
-				Application.EnableVisualStyles ();
-				Application.SetCompatibleTextRenderingDefault (true);
-				Application.Run (new MainForm ());
-			#endif
+			new Application ().Run (new MainWindow ());
 			//Actually run the game
             if(LaunchPath != null)
             {
