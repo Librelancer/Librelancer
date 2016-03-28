@@ -1,6 +1,3 @@
-[submodule "extern/FFmpeg.AutoGen"]
-	path = extern/FFmpeg.AutoGen
-	url = https://github.com/Ruslan-B/FFmpeg.AutoGen
 [submodule "extern/jitterphysics"]
 	path = extern/jitterphysics
 	url = https://github.com/mattleibow/jitterphysics.git
