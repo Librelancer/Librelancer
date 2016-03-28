@@ -10,3 +10,6 @@
 [submodule "extern/FontConfigSharp"]
 	path = extern/FontConfigSharp
 	url = https://github.com/CallumDev/FontConfigSharp.git
+[submodule "extern/opentk"]
+	path = extern/opentk
+	url = https://github.com/opentk/opentk
