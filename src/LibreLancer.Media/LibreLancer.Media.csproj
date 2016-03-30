@@ -58,10 +58,4 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\extern\FFmpeg.AutoGen\FFmpeg.AutoGen\FFmpeg.AutoGen.csproj">
-      <Project>{A536B02A-B0B1-4753-8328-17369EF09976}</Project>
-      <Name>FFmpeg.AutoGen</Name>
-    </ProjectReference>
-  </ItemGroup>
 </Project>
