@@ -3,6 +3,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using LibreLancer.Vertices;
+using LibreLancer.Utf.Mat;
 namespace LibreLancer
 {
 	public class AtmosphereMaterial : RenderMaterial
@@ -10,6 +11,8 @@ namespace LibreLancer
 		public Color4 Ac = Color4.White;
 		public Color4 Dc = Color4.White;
 		public Texture DtSampler;
+		public SamplerFlags DtFlags;
+		public Vector3 CameraPosition;
 		public float Alpha;
 		public float Fade;
 		public float Scale;
@@ -19,7 +22,7 @@ namespace LibreLancer
 			switch (vertextype.GetType ().Name) {
 			case "VertexPositionTexture":
 				return ShaderCache.Get (
-					"Basic_PositionTexture.vs",
+					"Atmosphere.vs",
 					"AtmosphereMaterial_PositionTexture.frag"
 				);
 			default:
@@ -28,11 +31,13 @@ namespace LibreLancer
 		}
 		public override void Use (RenderState rstate, IVertexType vertextype, Lighting lights)
 		{
-			throw new NotImplementedException ();
+
+			rstate.BlendMode = BlendMode.Normal;
 			var sh = GetShader (vertextype);
 
 			sh.SetColor4 ("Ac", Ac);
 			sh.SetColor4 ("Dc", Dc);
+			sh.SetVector3 ("CameraPosition", CameraPosition);
 			sh.SetFloat ("Alpha", Alpha);
 			sh.SetFloat ("Fade", Fade);
 			sh.SetFloat ("Scale", Scale);
@@ -40,7 +45,7 @@ namespace LibreLancer
 			sh.SetMatrix ("ViewProjection", ref ViewProjection);
 
 			sh.SetInteger ("DtSampler", 0);
-			BindTexture (DtSampler, TextureUnit.Texture0);
+			BindTexture (DtSampler, TextureUnit.Texture0, DtFlags);
 
 			sh.UseProgram ();
 		}

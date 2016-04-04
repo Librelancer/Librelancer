@@ -17,6 +17,11 @@ namespace LibreLancer
 				return Matrix4.Identity;
 			}
 		}
+		public Vector3 Position {
+			get {
+				return Vector3.Zero;
+			}
+		}
 	}
 }
 

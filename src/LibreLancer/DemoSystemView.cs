@@ -15,6 +15,7 @@ Controls:
 WSAD - Move
 Arrow Keys - Rotate Camera
 Escape - Exit
+Position: (X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00})
 ";
 		private const float ROTATION_SPEED = 1f;
 		GameData.StarSystem sys;
@@ -87,7 +88,7 @@ Escape - Exit
 		{
 			sysrender.Draw ();
 			trender.Start (Game.Width, Game.Height);
-			DrawShadowedText (DEMO_TEXT, 5, 5);
+			DrawShadowedText (string.Format(DEMO_TEXT,camera.Position.X, camera.Position.Y, camera.Position.Z), 5, 5);
 			trender.Finish ();
 		}
 

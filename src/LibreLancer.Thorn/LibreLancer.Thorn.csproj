@@ -50,7 +50,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IAddOp.cs" />
     <Compile Include="LuaLocal.cs" />
     <Compile Include="LuaObject.cs" />
     <Compile Include="LuaOpcodes.cs" />

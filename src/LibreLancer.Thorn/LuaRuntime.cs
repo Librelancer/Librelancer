@@ -102,8 +102,7 @@ namespace LibreLancer.Thorn
 				case LuaOpcodes.AddOp:
 					var b = stack.Pop ();
 					var a = stack.Pop ();
-					if (a is IAddOp)
-						stack.Push (((IAddOp)a).Add (a, b));
+					stack.Push(DynamicOr(a, b));
 					break;
 				case LuaOpcodes.EndCode:
 					//Success! Do nothing
@@ -114,6 +113,13 @@ namespace LibreLancer.Thorn
 			}
 			//end
 			PC = 0;
+		}
+
+		object DynamicOr(object n1, object n2)
+		{
+			dynamic a = n1;
+			dynamic b = n2;
+			return (object)(a | b);
 		}
 
 		Opcode ReadOpcode()

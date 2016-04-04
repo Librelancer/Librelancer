@@ -95,7 +95,7 @@ namespace LibreLancer.Utf.Mat
         {
             if (sideMaterialNames.Count >= 6)
 			{
-				sphere = new QuadSphere(16);
+				sphere = new QuadSphere(48);
 
                 ready = true;
             }
@@ -116,6 +116,10 @@ namespace LibreLancer.Utf.Mat
             if (ready)
             {
 				viewproj = camera.ViewProjection;
+				if (SideMaterials.Length > 6) {
+					var mat = (AtmosphereMaterial)SideMaterials [6].Render;
+					mat.CameraPosition = camera.Position;
+				}
             }
         }
 		static CubeMapFace[] faces = new CubeMapFace[] {
@@ -130,14 +134,20 @@ namespace LibreLancer.Utf.Mat
         {
 			if (ready) {
 				//Draw for me!
-				GL.Disable(EnableCap.Blend);
-				GL.Enable (EnableCap.DepthTest);
 				for (int i = 0; i < 6; i++) {
 					SideMaterials [i].Render.World = Matrix4.CreateScale (Radius) * world;
 					SideMaterials [i].Render.ViewProjection = viewproj;
 					SideMaterials [i].Render.Use (rstate, sphere.VertexType, lights);
 					sphere.Draw (faces [i]);
 				}
+				/*if (SideMaterials.Length > 6) {
+					var mat = (AtmosphereMaterial)SideMaterials [6].Render;
+					SideMaterials [6].Render.World = Matrix4.CreateScale (Radius * mat.Scale) * world;
+					SideMaterials [6].Render.ViewProjection = viewproj;
+					SideMaterials [6].Render.Use (rstate, sphere.VertexType, lights);
+					for (int i = 0; i < 6; i++)
+						sphere.Draw (faces [i]);
+				}*/
 			} else
 				throw new Exception ();
         }

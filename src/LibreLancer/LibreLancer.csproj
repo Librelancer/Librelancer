@@ -166,6 +166,11 @@
     <Compile Include="Interface\UIAnimation.cs" />
     <Compile Include="Interface\FlyInLeft.cs" />
     <Compile Include="InputManager.cs" />
+    <Compile Include="Thn\ThnScript.cs" />
+    <Compile Include="Thn\ThnLighting.cs" />
+    <Compile Include="Thn\AttachFlags.cs" />
+    <Compile Include="Thn\EntityTypes.cs" />
+    <Compile Include="Thn\EventTypes.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />
@@ -182,6 +187,8 @@
     <EmbeddedResource Include="Shaders\PositionTextureFlip.vs" />
     <EmbeddedResource Include="Shaders\DetailMap2Dm1Msk2PassMaterial.frag" />
     <EmbeddedResource Include="Shaders\DetailMapMaterial.frag" />
+    <EmbeddedResource Include="Shaders\AtmosphereMaterial_PositionTexture.frag" />
+    <EmbeddedResource Include="Shaders\Atmosphere.vs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">
@@ -199,6 +206,10 @@
     <ProjectReference Include="..\..\extern\jitterphysics\source\Jitter\Jitter.csproj">
       <Project>{AA03EF1A-94F7-4D30-AB14-2092863FF923}</Project>
       <Name>Jitter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LibreLancer.Thorn\LibreLancer.Thorn.csproj">
+      <Project>{1D0655D3-D4BC-4155-B180-ABD09FF47BD2}</Project>
+      <Name>LibreLancer.Thorn</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -218,12 +229,12 @@
     <Folder Include="Sur\" />
     <Folder Include="Utf\Ale\" />
     <Folder Include="Interface\" />
+    <Folder Include="Thn\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="OpenTK.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Shaders\AtmosphereMaterial_PositionTexture.frag" />
     <None Include="Utf\Ale\AleCrc.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>AleCrc.cs</LastGenOutput>

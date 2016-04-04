@@ -358,8 +358,10 @@ namespace LibreLancer.Utf.Mat
 					bm.DtSampler = Dt.Texture;
 					bm.DtFlags = (SamplerFlags)DtFlags;
 				}
-				if (Et != null)
+				if (Et != null) {
 					bm.EtSampler = Et.Texture;
+					bm.EtFlags = (SamplerFlags)EtFlags;
+				}
 				if (type.Contains ("Ot"))
 					bm.AlphaEnabled = true;
 			} else {
@@ -367,8 +369,10 @@ namespace LibreLancer.Utf.Mat
 				case "Nebula":
 					var nb = new NebulaMaterial ();
 					_rmat = nb;
-					if (Dt != null)
+					if (Dt != null) {
 						nb.DtSampler = Dt.Texture;
+						nb.DtFlags = (SamplerFlags)DtFlags;
+					}
 					break;
 				case "AtmosphereMaterial":
 					var am = new AtmosphereMaterial ();
@@ -378,8 +382,10 @@ namespace LibreLancer.Utf.Mat
 					am.Alpha = Alpha;
 					am.Fade = Fade;
 					am.Scale = Scale;
-					if (Dt != null)
+					if (Dt != null) {
 						am.DtSampler = Dt.Texture;
+						am.DtFlags = (SamplerFlags)DtFlags;
+					}
 					break;
 				case "Masked2DetailMapMaterial":
 					var m2 = new Masked2DetailMapMaterial ();
@@ -390,12 +396,18 @@ namespace LibreLancer.Utf.Mat
 					m2.TileRate1 = TileRate1;
 					m2.FlipU = FlipU;
 					m2.FlipV = FlipV;
-					if (Dt != null)
+					if (Dt != null) {
 						m2.DtSampler = Dt.Texture;
-					if (Dm0 != null)
+						m2.DtFlags = (SamplerFlags)DtFlags;
+					}
+					if (Dm0 != null) {
 						m2.Dm0Sampler = Dm0.Texture;
-					if (Dm1 != null)
+						m2.Dm0Flags = (SamplerFlags)Dm0Flags;
+					}
+					if (Dm1 != null) {
 						m2.Dm1Sampler = Dm1.Texture;
+						m2.Dm1Flags = (SamplerFlags)Dm1Flags;
+					}
 					break;
 				case "DetailMap2Dm1Msk2PassMaterial":
 					var dm2p = new DetailMap2Dm1Msk2PassMaterial ();
@@ -405,10 +417,14 @@ namespace LibreLancer.Utf.Mat
 					dm2p.FlipU = FlipU;
 					dm2p.FlipV = FlipV;
 					dm2p.TileRate = TileRate;
-					if (Dt != null)
+					if (Dt != null) {
 						dm2p.DtSampler = Dt.Texture;
-					if (Dm1 != null)
+						dm2p.DtFlags = (SamplerFlags)DtFlags;
+					}
+					if (Dm1 != null) {
 						dm2p.Dm1Sampler = Dm1.Texture;
+						dm2p.Dm1Flags = (SamplerFlags)Dm1Flags;
+					}
 					break;
 				case "DetailMapMaterial":
 					var dm = new DetailMapMaterial ();
@@ -418,10 +434,14 @@ namespace LibreLancer.Utf.Mat
 					dm.FlipU = FlipU;
 					dm.FlipV = FlipV;
 					dm.TileRate = TileRate;
-					if (Dm != null)
+					if (Dm != null) {
 						dm.DmSampler = Dm.Texture;
-					if (Dt != null)
+						dm.DmFlags = (SamplerFlags)DmFlags;
+					}
+					if (Dt != null) {
 						dm.DtSampler = Dt.Texture;
+						dm.DtFlags = (SamplerFlags)DtFlags;
+					}
 					break;
 				default:
 					throw new NotImplementedException ();

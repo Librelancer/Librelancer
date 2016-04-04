@@ -20,6 +20,7 @@ namespace LibreLancer
 		public bool AlphaEnabled = false;
 		public Color4 Ec = Color4.White;
 		public Texture EtSampler;
+		public SamplerFlags EtFlags;
 
 		public BasicMaterial(string type)
 		{
@@ -68,13 +69,8 @@ namespace LibreLancer
 			shader.SetMatrix("ViewProjection", ref ViewProjection);
 			//Dt
 			shader.SetInteger("DtSampler", 0);
-			BindTexture(DtSampler, TextureUnit.Texture0, false);
-			if ((DtFlags & SamplerFlags.ClampToEdgeU) == SamplerFlags.ClampToEdgeU) {
-				GL.TexParameter (TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureParameterName.ClampToEdge);
-			}
-			if ((DtFlags & SamplerFlags.ClampToEdgeV) == SamplerFlags.ClampToEdgeV) {
-				GL.TexParameter (TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureParameterName.ClampToEdge);
-			}
+			BindTexture(DtSampler, TextureUnit.Texture0,DtFlags, false);
+
 
 			//Dc
 			shader.SetColor4("Dc", Dc);
@@ -91,7 +87,7 @@ namespace LibreLancer
 			shader.SetColor4("Ec", Ec);
 			//EtSampler
 			shader.SetInteger("EtSampler", 1);
-			BindTexture(EtSampler, TextureUnit.Texture1, false);
+			BindTexture(EtSampler, TextureUnit.Texture1, EtFlags, false);
 			//Set lights
 			SetLights(shader, lights);
 

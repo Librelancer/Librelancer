@@ -139,7 +139,7 @@ namespace LibreLancer
 			}
 		}
 
-		public void SetVector3(string name, Vector3 vector, int index)
+		public void SetVector3(string name, Vector3 vector, int index = 0)
 		{
 			GLBind.UseProgram (programID);
 			var loc = GetLocation (name);

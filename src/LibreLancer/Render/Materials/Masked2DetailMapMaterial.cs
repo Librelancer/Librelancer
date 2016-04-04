@@ -10,8 +10,11 @@ namespace LibreLancer
 		public Color4 Ac = Color4.White;
 		public Color4 Dc = Color4.White;
 		public Texture DtSampler;
+		public SamplerFlags DtFlags;
 		public Texture Dm0Sampler;
+		public SamplerFlags Dm0Flags;
 		public Texture Dm1Sampler;
+		public SamplerFlags Dm1Flags;
 		public float TileRate0;
 		public float TileRate1;
 		public int FlipU;
@@ -41,21 +44,23 @@ namespace LibreLancer
 			sh.SetColor4 ("Dc", Dc);
 			sh.SetFloat ("TileRate0", TileRate0);
 			sh.SetFloat ("TileRate1", TileRate1);
-			if (FlipU == 1)
+			/*if (FlipU == 1)
 				sh.SetFloat ("FlipU", -1);
 			else
 				sh.SetFloat ("FlipU", 1);
 			if (FlipV == 1)
 				sh.SetFloat ("FlipV", -1);
 			else
-				sh.SetFloat ("FlipV", 1);
+				sh.SetFloat ("FlipV", 1);*/
+			sh.SetInteger ("FlipU", FlipU);
+			sh.SetInteger ("FlipV", FlipV);
 
 			sh.SetInteger ("DtSampler", 0);
-			BindTexture (DtSampler, TextureUnit.Texture0);
+			BindTexture (DtSampler, TextureUnit.Texture0, DtFlags);
 			sh.SetInteger ("Dm0Sampler", 1);
-			BindTexture (Dm0Sampler, TextureUnit.Texture1);
+			BindTexture (Dm0Sampler, TextureUnit.Texture1, Dm0Flags);
 			sh.SetInteger ("Dm1Sampler", 2);
-			BindTexture (Dm1Sampler, TextureUnit.Texture2);
+			BindTexture (Dm1Sampler, TextureUnit.Texture2, Dm1Flags);
 
 			sh.UseProgram ();
 		}

@@ -7,6 +7,7 @@ namespace LibreLancer
 	public class NebulaMaterial : RenderMaterial
 	{
 		public Texture DtSampler;
+		public SamplerFlags DtFlags;
 		public NebulaMaterial ()
 		{
 		}
@@ -32,7 +33,7 @@ namespace LibreLancer
 			shader.SetMatrix ("ViewProjection", ref ViewProjection);
 			//Dt
 			shader.SetInteger ("DtSampler", 0);
-			BindTexture (DtSampler, TextureUnit.Texture0);
+			BindTexture (DtSampler, TextureUnit.Texture0, DtFlags);
 			shader.UseProgram ();
 		}
 	}
