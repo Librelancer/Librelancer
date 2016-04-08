@@ -17,6 +17,16 @@ namespace LibreLancer
 				return Matrix4.Identity;
 			}
 		}
+		public Matrix4 View {
+			get {
+				return Matrix4.Identity;
+			}
+		}
+		public Matrix4 Projection {
+			get {
+				return Matrix4.Identity;
+			}
+		}
 		public Vector3 Position {
 			get {
 				return Vector3.Zero;

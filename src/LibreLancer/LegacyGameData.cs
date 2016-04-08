@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using OpenTK;
 using OpenTK.Graphics;
 using Legacy = LibreLancer.Compatibility.GameData;
@@ -56,6 +57,28 @@ namespace LibreLancer
 			}
 			foreach (var obj in legacy.Objects) {
 				sys.Objects.Add (GetSystemObject (obj));
+			}
+			foreach (var zne in legacy.Zones) {
+				var z = new GameData.Zone ();
+				z.Nickname = zne.Nickname;
+				z.EdgeFraction = zne.EdgeFraction ?? 0.25f;
+				z.Position = zne.Pos.Value;
+				switch (zne.Shape.Value) {
+				case Legacy.Universe.ZoneShape.ELLIPSOID:
+					z.Shape = new GameData.ZoneEllipsoid (
+						zne.Size.Value.X,
+						zne.Size.Value.Y,
+						zne.Size.Value.Z
+					);
+					break;
+				}
+				sys.Zones.Add (z);
+			}
+			foreach (var nbl in legacy.Nebulae) {
+				var n = new GameData.Nebula ();
+				n.Zone = sys.Zones.Where ((z) => z.Nickname.ToLower () == nbl.ZoneName.ToLower ()).First ();
+
+				sys.Nebulae.Add (n);
 			}
 			return sys;
 		}

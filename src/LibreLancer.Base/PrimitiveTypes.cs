@@ -7,7 +7,8 @@ namespace LibreLancer
     {
         TriangleList,
         TriangleStrip,
-        LineList
+        LineList,
+		Points
     }
 
     public static class PrimitiveTypeExtensions
@@ -22,6 +23,8 @@ namespace LibreLancer
                     return PrimitiveType.Triangles;
                 case PrimitiveTypes.TriangleStrip:
                     return PrimitiveType.TriangleStrip;
+			case PrimitiveTypes.Points:
+				return PrimitiveType.Points;
             }
             throw new ArgumentException();
         }
@@ -36,6 +39,8 @@ namespace LibreLancer
                     return primitiveCount * 3;
                 case PrimitiveTypes.TriangleStrip:
                     return 3 + (primitiveCount - 1);
+				case PrimitiveTypes.Points:
+					return 1;
             }
             throw new ArgumentException();
         }

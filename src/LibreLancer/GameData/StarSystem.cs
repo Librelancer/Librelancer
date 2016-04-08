@@ -18,6 +18,11 @@ namespace LibreLancer.GameData
 		public List<RenderLight> LightSources = new List<RenderLight>();
 		//Objects
 		public List<SystemObject> Objects = new List<SystemObject>();
+		//Nebulae
+		public List<Nebula> Nebulae = new List<Nebula>();
+		//Zones
+		public List<Zone> Zones = new List<Zone>();
+
 		public StarSystem ()
 		{
 		}

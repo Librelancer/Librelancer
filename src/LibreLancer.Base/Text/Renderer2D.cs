@@ -117,6 +117,7 @@ namespace LibreLancer
 				indices[iptr++] = (ushort)(i + 2);
 			}
 			el.SetData (indices);
+			vbo.SetElementBuffer (el);
 			dot = new Texture2D (1, 1, false, SurfaceFormat.R8);
 			dot.SetData (new byte[] { 255 });
 		}

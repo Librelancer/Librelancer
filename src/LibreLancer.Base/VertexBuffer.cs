@@ -64,14 +64,21 @@ namespace LibreLancer
 		public void Draw(PrimitiveTypes primitiveType, int primitiveCount)
 		{
 			RenderState.Instance.Apply ();
-			int indexElementCount = primitiveType.GetArrayLength (primitiveCount);
 			GLBind.VertexBuffer (VBO);
 			GLBind.VertexArray (VAO);
-			GL.DrawElements (primitiveType.GLType (),
-				indexElementCount,
-				DrawElementsType.UnsignedShort,
-				IntPtr.Zero
-			);
+			if (HasElements) {
+				int indexElementCount = primitiveType.GetArrayLength (primitiveCount);
+				GL.DrawElements (primitiveType.GLType (),
+					indexElementCount,
+					DrawElementsType.UnsignedShort,
+					IntPtr.Zero
+				);
+			} else {
+				GL.DrawArrays (primitiveType.GLType (),
+					0,
+					primitiveCount
+				);
+			}
 			TotalDrawcalls++;
 		}
 
@@ -80,6 +87,7 @@ namespace LibreLancer
 			GLBind.VertexBuffer(VBO);
 			GLBind.VertexArray (VAO);
 			GL.BindBuffer (BufferTarget.ElementArrayBuffer, elems.Handle);
+			HasElements = true;
         }
 
         public void Dispose()

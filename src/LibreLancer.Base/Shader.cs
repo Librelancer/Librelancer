@@ -11,7 +11,7 @@ namespace LibreLancer
         int programID = 0;
         Dictionary<string, int> progLocations = new Dictionary<string, int>();
 		Dictionary<int, object> cachedObjects = new Dictionary<int, object>();
-        public Shader(string vertex_source, string fragment_source)
+		public Shader(string vertex_source, string fragment_source, string geometry_source = null)
         {
             var vertexHandle = GL.CreateShader(ShaderType.VertexShader);
             var fragmentHandle = GL.CreateShader(ShaderType.FragmentShader);
@@ -32,12 +32,29 @@ namespace LibreLancer
 				throw new Exception ("Fragment shader compilation failed");
 			}
             programID = GL.CreateProgram();
+			if (geometry_source != null) {
+				var geometryHandle = GL.CreateShader (ShaderType.GeometryShader);
+				GL.ShaderSource (geometryHandle, geometry_source);
+				GL.CompileShader (geometryHandle);
+				GL.GetShader (geometryHandle, ShaderParameter.CompileStatus, out status);
+				if (status == 0) {
+					Console.WriteLine (GL.GetShaderInfoLog (geometryHandle));
+					throw new Exception ("Geometry shader compilation failed");
+				}
+				GL.AttachShader (programID, geometryHandle);
+			}
             GL.AttachShader(programID, vertexHandle);
             GL.AttachShader(programID, fragmentHandle);
             GL.BindAttribLocation(programID, VertexSlots.Position, "vertex_position");
             GL.BindAttribLocation(programID, VertexSlots.Normal, "vertex_normal");
             GL.BindAttribLocation(programID, VertexSlots.Color, "vertex_color");
             GL.BindAttribLocation(programID, VertexSlots.Texture1, "vertex_texture1");
+			GL.BindAttribLocation (programID, VertexSlots.Texture2, "vertex_texture2");
+			GL.BindAttribLocation (programID, VertexSlots.Texture3, "vertex_texture3");
+			GL.BindAttribLocation (programID, VertexSlots.Texture4, "vertex_texture4");
+			GL.BindAttribLocation (programID, VertexSlots.Size, "vertex_size");
+			GL.BindAttribLocation (programID, VertexSlots.Angle, "vertex_angle");
+
             GL.LinkProgram(programID);
 			GL.GetProgram (programID, GetProgramParameterName.LinkStatus, out status);
 			if (status == 0) {

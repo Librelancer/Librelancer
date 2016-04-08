@@ -1,22 +1,18 @@
-﻿/*using System;
-using LibreLancer.GameData.Universe;
+﻿using System;
+using OpenTK;
 using LibreLancer.GameData;
+using LibreLancer.Vertices;
 namespace LibreLancer
 {
 	public class NebulaRenderer : IDisposable
 	{
 		Nebula nebula;
-		Camera camera;
-		ResourceManager cache;
+		ICamera camera;
 
-		TexturePanels panels;
-		public NebulaRenderer (Nebula n, ResourceManager cache, Camera c, FreelancerData data)
+		public NebulaRenderer (Nebula n, ICamera c)
 		{
 			nebula = n;
-			this.cache = cache;
 			camera = c;
-
-			panels = new TexturePanels (data.Freelancer.DataPath + nebula.TexturePanels.File);
 		}
 
 		public void Update(TimeSpan elapsed)
@@ -31,12 +27,7 @@ namespace LibreLancer
 
 		void RenderExterior()
 		{
-			if (!nebula.Zone.Shape.HasValue)
-				return;
-			if (nebula.Zone.Shape.Value != ZoneShape.ELLIPSOID
-			   && nebula.Zone.Shape.Value != ZoneShape.SPHERE)
-				return;
-			
+				
 		}
 
 		public void Dispose()
@@ -44,5 +35,5 @@ namespace LibreLancer
 
 		}
 	}
-}*/
+}
 

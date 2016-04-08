@@ -171,6 +171,11 @@
     <Compile Include="Thn\AttachFlags.cs" />
     <Compile Include="Thn\EntityTypes.cs" />
     <Compile Include="Thn\EventTypes.cs" />
+    <Compile Include="GameData\Nebula.cs" />
+    <Compile Include="GameData\Zone.cs" />
+    <Compile Include="GameData\ZoneShape.cs" />
+    <Compile Include="GameData\ZoneEllipsoid.cs" />
+    <Compile Include="Render\Billboards.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />
@@ -189,6 +194,9 @@
     <EmbeddedResource Include="Shaders\DetailMapMaterial.frag" />
     <EmbeddedResource Include="Shaders\AtmosphereMaterial_PositionTexture.frag" />
     <EmbeddedResource Include="Shaders\Atmosphere.vs" />
+    <EmbeddedResource Include="Shaders\Billboard.vs" />
+    <EmbeddedResource Include="Shaders\Billboard.gs" />
+    <EmbeddedResource Include="Shaders\Billboard.frag" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

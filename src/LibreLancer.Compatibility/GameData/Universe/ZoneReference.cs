@@ -27,13 +27,13 @@ namespace LibreLancer.Compatibility.GameData.Universe
 		protected StarSystem parent;
 		protected string file;
 
-		private string zoneName;
+		public string ZoneName;
 		private Zone zone;
 		public Zone Zone
 		{
 			get
 			{
-				if (zone == null) zone = parent.FindZone(zoneName);
+				if (zone == null) zone = parent.FindZone(ZoneName);
 				return zone;
 			}
 		}
@@ -61,8 +61,8 @@ namespace LibreLancer.Compatibility.GameData.Universe
 					break;
 				case "zone":
 					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (zoneName != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					zoneName = e[0].ToString();
+					if (ZoneName != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+					ZoneName = e[0].ToString();
 					break;
 				default:
 					throw new Exception("Invalid Entry in " + section.Name + ": " + e.Name);
