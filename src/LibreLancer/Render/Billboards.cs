@@ -65,11 +65,13 @@ namespace LibreLancer
 		ICamera camera;
 		Texture2D currentTexture;
 		int billboardCount = 0;
-		public void Begin(ICamera cam)
+		RenderState renderstate;
+		public void Begin(ICamera cam, RenderState rs)
 		{
 			camera = cam;
 			currentTexture = null;
 			billboardCount = 0;
+			renderstate = rs;
 		}
 
 		public void Draw(
@@ -90,7 +92,7 @@ namespace LibreLancer
 				Flush ();
 			currentTexture = texture;
 			//setup vertex
-			vertices[billboardCount].Position = Position;
+			vertices [billboardCount].Position = Position;
 			vertices [billboardCount].Size = size;
 			vertices [billboardCount].Color = color;
 			vertices [billboardCount].Texture0 = topleft;
@@ -115,7 +117,7 @@ namespace LibreLancer
 			shader.UseProgram ();
 			//draw
 			GL.Disable (EnableCap.CullFace);
-			GL.Enable (EnableCap.Blend);
+			renderstate.BlendMode = BlendMode.Normal;
 			vbo.SetData(vertices, billboardCount);
 			vbo.Draw (PrimitiveTypes.Points, billboardCount);
 			GL.Enable (EnableCap.CullFace);

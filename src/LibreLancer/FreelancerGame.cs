@@ -18,6 +18,7 @@ namespace LibreLancer
 		public RenderState RenderState;
 		public Renderer2D Renderer2D;
 		public InputManager Input;
+		public Billboards Billboards;
 		ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
 		int uithread;
 		GameState currentState;
@@ -88,6 +89,7 @@ namespace LibreLancer
             base.OnLoad(e);
 			RenderState = new RenderState ();
 			Renderer2D = new Renderer2D(RenderState);
+			Billboards = new Billboards ();
 			var vp = new ViewportManager ();
 			vp.Push (0, 0, Width, Height);
         }

@@ -21,7 +21,6 @@ uniform mat4 View;
 out vec2 Vertex_UV;
 out vec4 Vertex_Color;
 
-
 void main(void)
 {
 	vec3 srcRight = vec3(
@@ -34,8 +33,7 @@ void main(void)
 		View[1][1],
 		View[2][1]
 	);
-	//TODO: Non-square is broken
-	vec3 sz = vertex[0].size.xxx;
+	vec2 size = vertex[0].size;
 
 	//Rotation
 	float s = sin(vertex[0].angle);
@@ -45,28 +43,30 @@ void main(void)
 
 	vec3 P = gl_in[0].gl_Position.xyz;
  	// a: bottom-left
- 	vec3 va = P - (right + up) * sz;
+ 	vec3 va = P + (right * -0.5 * size.x) + (up * -0.5 * size.y);
  	gl_Position = ViewProjection * vec4(va, 1);
  	Vertex_UV = vertex[0].texture2;
  	Vertex_Color = vertex[0].color;
  	EmitVertex();  
   
   	// b: top-left
-  	vec3 vb = P - (right - up) * sz;
+  	vec3 vb = P + (right * 0.5 * size.x) + (up * -0.5 * size.y);
   	gl_Position = ViewProjection * vec4(vb, 1);
   	Vertex_UV = vertex[0].texture0;
   	Vertex_Color = vertex[0].color;
   	EmitVertex();  
   
   	// d: bottom-right
-  	vec3 vd = P + (right - up) * sz;
+  	//vec3 vd = P + (right - up);
+  	vec3 vd = P + (right * -0.5 * size.x) + (up * 0.5 * size.y);
+  	//vec3 vd = getpos(P, right, up, vec2(-0.5, 0.5), sz);
   	gl_Position = ViewProjection * vec4(vd, 1);
   	Vertex_UV = vertex[0].texture3;
   	Vertex_Color = vertex[0].color;
   	EmitVertex();  
  
   	// c: top-right
-  	vec3 vc = P + (right + up) * sz;
+  	vec3 vc = P + (right * 0.5 * size.x) + (up * 0.5 * size.y);
   	gl_Position = ViewProjection * vec4(vc, 1);
   	Vertex_UV = vertex[0].texture1;
   	Vertex_Color = vertex[0].color;

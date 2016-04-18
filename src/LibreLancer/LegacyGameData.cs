@@ -27,7 +27,7 @@ namespace LibreLancer
 		}
 		public Texture2D GetFreelancerLogo()
 		{
-			return Utf.Mat.TGALib.TGAFromStream (
+			return ImageLib.TGA.FromStream (
 				Compatibility.VFS.Open (fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga")
 			);
 		}

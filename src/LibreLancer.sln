@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FontConfigSharp", "..\exter
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Compatibility", "LibreLancer.Compatibility\LibreLancer.Compatibility.csproj", "{F89CC613-0C7A-4936-9D79-86CBBF26593E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.ImageLib", "LibreLancer.ImageLib\LibreLancer.ImageLib.csproj", "{6967FE1C-5953-4416-889C-FF10AE1F7DD1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -104,6 +106,28 @@ Global
 		{5D6B114D-5254-4856-8001-EB2043A8DE16}.Release|x86.Build.0 = Release|Any CPU
 		{5D6B114D-5254-4856-8001-EB2043A8DE16}.ReleaseMinimal|Any CPU.ActiveCfg = Debug|Any CPU
 		{5D6B114D-5254-4856-8001-EB2043A8DE16}.ReleaseMinimal|Any CPU.Build.0 = Debug|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.Debug|x64.Build.0 = Debug|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.Debug|x86.Build.0 = Debug|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.DebugMinimal|Any CPU.ActiveCfg = Debug|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.DebugMinimal|Any CPU.Build.0 = Debug|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.Debug-OSX|Any CPU.ActiveCfg = Debug|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.Debug-OSX|Any CPU.Build.0 = Debug|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.Documentation|Any CPU.ActiveCfg = Debug|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.Documentation|Any CPU.Build.0 = Debug|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.Nsis|Any CPU.ActiveCfg = Debug|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.Nsis|Any CPU.Build.0 = Debug|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.Release|x64.ActiveCfg = Release|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.Release|x64.Build.0 = Release|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.Release|x86.ActiveCfg = Release|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.Release|x86.Build.0 = Release|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.ReleaseMinimal|Any CPU.ActiveCfg = Debug|Any CPU
+		{6967FE1C-5953-4416-889C-FF10AE1F7DD1}.ReleaseMinimal|Any CPU.Build.0 = Debug|Any CPU
 		{AA03EF1A-94F7-4D30-AB14-2092863FF923}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{AA03EF1A-94F7-4D30-AB14-2092863FF923}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA03EF1A-94F7-4D30-AB14-2092863FF923}.Debug|x64.ActiveCfg = Debug|Any CPU

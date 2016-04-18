@@ -77,12 +77,10 @@
     <Compile Include="Utf\IntermediateNode.cs" />
     <Compile Include="Utf\LeafNode.cs" />
     <Compile Include="Utf\LooseConstruct.cs" />
-    <Compile Include="Utf\Mat\DDSLib.cs" />
     <Compile Include="Utf\Mat\Material.cs" />
     <Compile Include="Utf\Mat\MatFile.cs" />
     <Compile Include="Utf\Mat\SphFile.cs" />
     <Compile Include="Utf\Mat\TextureData.cs" />
-    <Compile Include="Utf\Mat\TGALib.cs" />
     <Compile Include="Utf\Mat\TxmFile.cs" />
     <Compile Include="Utf\Node.cs" />
     <Compile Include="Utf\NodeFlags.cs" />
@@ -218,6 +216,10 @@
     <ProjectReference Include="..\LibreLancer.Thorn\LibreLancer.Thorn.csproj">
       <Project>{1D0655D3-D4BC-4155-B180-ABD09FF47BD2}</Project>
       <Name>LibreLancer.Thorn</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj">
+      <Project>{6967FE1C-5953-4416-889C-FF10AE1F7DD1}</Project>
+      <Name>LibreLancer.ImageLib</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

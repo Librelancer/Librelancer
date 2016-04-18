@@ -43,13 +43,13 @@ namespace LibreLancer.Utf.Mat
 			if (data != null) {
 				using (Stream stream = new MemoryStream (data)) {
 					if (type.Equals ("mips", StringComparison.OrdinalIgnoreCase)) {
-						Texture = DDSLib.DDSFromStream2D (stream, 0, true);
+						Texture = ImageLib.DDS.DDSFromStream2D (stream, 0, true);
 					} else if (type.StartsWith ("mip", StringComparison.OrdinalIgnoreCase)) {
-						var tex = TGALib.TGAFromStream (stream);
+						var tex = ImageLib.TGA.FromStream (stream);
 						if (tex != null)
 							Texture = tex;
 					} else if (type.Equals ("cube", StringComparison.OrdinalIgnoreCase)) {
-						Texture = DDSLib.DDSFromStreamCube (stream, 0, true);
+						Texture = ImageLib.DDS.DDSFromStreamCube (stream, 0, true);
 					}
 				}
 			} else
