@@ -14,7 +14,7 @@ namespace LibreLancer
 		ElementBuffer elementBuffer;
 		int primitiveCount;
 
-		public SunRenderer (DebugCamera camera, Matrix4 world, bool useObjectPosAndRotate, SystemObject sun)
+		public SunRenderer (ICamera camera, Matrix4 world, bool useObjectPosAndRotate, SystemObject sun)
 			:base (camera, world, useObjectPosAndRotate, sun)
 		{
 			Sun = SpaceObject.Archetype as Sun;

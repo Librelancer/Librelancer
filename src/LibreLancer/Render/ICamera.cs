@@ -8,6 +8,7 @@ namespace LibreLancer
 		Matrix4 Projection { get; }
 		Matrix4 View { get; }
 		Vector3 Position { get; }
+		BoundingFrustum Frustum { get; }
 	}
 }
 

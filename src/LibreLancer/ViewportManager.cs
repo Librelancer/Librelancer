@@ -22,6 +22,16 @@ namespace LibreLancer
 			viewports.Push (vp);
 			GL.Viewport (x, y, width, height);
 		}
+		public void Replace(int x, int y, int width, int height)
+		{
+			viewports.Pop ();
+			Push (x, y, width, height);
+		}
+		public void CheckViewports()
+		{
+			if (viewports.Count != 1)
+				throw new Exception ("viewports.Count != 1 at end of frame");
+		}
 		public void Pop()
 		{
 			viewports.Pop ();

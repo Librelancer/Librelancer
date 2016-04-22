@@ -107,7 +107,6 @@
     <Compile Include="Render\ObjectRenderer.cs" />
     <Compile Include="Render\ModelRenderer.cs" />
     <Compile Include="Render\SunRenderer.cs" />
-    <Compile Include="MatrixExtensions.cs" />
     <Compile Include="Render\Materials\BasicMaterial.cs" />
     <Compile Include="Render\Materials\NebulaMaterial.cs" />
     <Compile Include="Render\Materials\SunMaterial.cs" />
@@ -174,6 +173,9 @@
     <Compile Include="GameData\ZoneShape.cs" />
     <Compile Include="GameData\ZoneEllipsoid.cs" />
     <Compile Include="Render\Billboards.cs" />
+    <Compile Include="ChaseCamera.cs" />
+    <Compile Include="MathExtensions.cs" />
+    <Compile Include="PlayerController.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />

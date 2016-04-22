@@ -1,9 +1,24 @@
-﻿using System;
+﻿/* The contents of this file are subject to the Mozilla Public License
+ * Version 1.1 (the "License"); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ * 
+ * Software distributed under the License is distributed on an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific language governing rights and limitations
+ * under the License.
+ * 
+ * 
+ * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
+ * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * the Initial Developer. All Rights Reserved.
+ */
+using System;
 using OpenTK;
 using Jitter.LinearMath;
 namespace LibreLancer
 {
-	public static class MatrixExtensions
+	public static class MathExtensions
 	{
 		public static Vector3 Transform(this Matrix4 mat, Vector3 toTransform)
 		{
@@ -32,6 +47,10 @@ namespace LibreLancer
 		{
 			return new Vector3 (-mat.M31, -mat.M32, -mat.M33);
 		}
+		public static JVector GetForward(this JMatrix mat)
+		{
+			return new JVector (-mat.M31, -mat.M32, -mat.M33);
+		}
 		public static Vector3 GetUp(this Matrix4 mat)
 		{
 			return new Vector3 (mat.M21, mat.M22, mat.M23);
@@ -40,12 +59,20 @@ namespace LibreLancer
 		{
 			return new Vector3 (mat.M11, mat.M12, mat.M13);
 		}
+		public static Vector3 ToOpenTK(this JVector src)
+		{
+			return new Vector3 (src.X, src.Y, src.Z);
+		}
+		public static JVector ToJitter(this Vector3 src)
+		{
+			return new JVector (src.X, src.Y, src.Z);
+		}
 		public static Matrix4 ToOpenTK(this JMatrix src)
 		{
 			return new Matrix4 (
-				         src.M11, src.M12, src.M13, 1,
-				         src.M21, src.M22, src.M23, 1,
-				         src.M31, src.M32, src.M33, 1,
+				         src.M11, src.M12, src.M13, 0,
+				         src.M21, src.M22, src.M23, 0,
+				         src.M31, src.M32, src.M33, 0,
 				         0, 0, 0, 1
 			         );
 		}
