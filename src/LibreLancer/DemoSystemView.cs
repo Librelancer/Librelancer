@@ -20,6 +20,7 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Graphics;
 using LibreLancer.Primitives;
 using LibreLancer.Vertices;
+using LibreLancer.Utf.Cmp;
 namespace LibreLancer
 {
 	public class DemoSystemView : GameState

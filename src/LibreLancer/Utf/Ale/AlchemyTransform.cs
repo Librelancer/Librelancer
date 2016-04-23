@@ -29,13 +29,14 @@ namespace LibreLancer.Utf.Ale
 		public AlchemyCurveAnimation ScaleX;
 		public AlchemyCurveAnimation ScaleY;
 		public AlchemyCurveAnimation ScaleZ;
+		bool hasTransform;
 		public AlchemyTransform (BinaryReader reader)
 		{
 			Xform = (uint)reader.ReadByte () << 8;
 			Xform |= (uint)reader.ReadByte () << 4;
 			Xform |= (uint)reader.ReadByte ();
 
-			var hasTransform = reader.ReadByte () != 0;
+			hasTransform = reader.ReadByte () != 0;
 			if (hasTransform) {
 				TranslateX = new AlchemyCurveAnimation (reader);
 				TranslateY = new AlchemyCurveAnimation (reader);
@@ -48,7 +49,10 @@ namespace LibreLancer.Utf.Ale
 				ScaleZ = new AlchemyCurveAnimation (reader);
 			}
 		}
-
+		public AlchemyTransform()
+		{
+			hasTransform = false;
+		}
 		public override string ToString ()
 		{
 			return string.Format ("<Xform: 0x{0:X}>", Xform);

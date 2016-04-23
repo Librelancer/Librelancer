@@ -6,37 +6,39 @@ namespace LibreLancer.Compatibility.GameData
 {
 	public class InfocardManager
 	{
-		List<DllFile> resources;
+		Dictionary<int,string> strings = new Dictionary<int, string>();
+		Dictionary<int, XmlDocument> infocards = new Dictionary<int, XmlDocument>();
 		public InfocardManager (List<DllFile> res)
 		{
-			resources = res;
+			int i = 0;
+			foreach (var file in res) {
+				foreach (var k in file.Strings.Keys) {
+					strings.Add (k + (i * 65536), file.Strings [k]);
+				}
+				foreach (var k in file.Infocards.Keys) {
+					infocards.Add (k + (i * 65536), file.Infocards [k]);
+				}
+				i++;
+			}
 		}
 		public string GetStringResource(int id)
 		{
-			int fileId = id % 65536;
-			if (fileId >= 0 && fileId < resources.Count)
-			{
-				ushort resId = (ushort)id;
-				return resources[fileId].GetString(resId);
+			if (strings.ContainsKey (id)) {
+				return strings [id];
+			} else {
+				FLLog.Warning ("Infocards","Not Found: " + id);
+				return "";
 			}
-			else return string.Empty;
 		}
 
 		public XmlDocument GetXmlResource(int id)
 		{
-			int fileId = id % 65536;
-			if (fileId >= 0 && fileId < resources.Count)
-			{
-				ushort resId = (ushort)id;
-				XmlDocument result = resources[fileId].GetXml(resId);
-				/*if (result == null)
-                {
-                    result = new XmlDocument();
-                    result.Load(Resources[fileId].GetString(resId));
-                }*/
-				return result;
+			if (infocards.ContainsKey (id)) {
+				return infocards [id];
+			} else {
+				FLLog.Warning ("Infocards","Not Found: " + id);
+				return null;
 			}
-			else return null;
 		}
 	}
 }

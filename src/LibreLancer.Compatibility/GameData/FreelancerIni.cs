@@ -38,7 +38,9 @@ namespace LibreLancer.Compatibility.GameData
 					}
 					break;
 				case "resources":
-					Resources = new List<DllFile>();
+					Resources = new List<DllFile> ();
+					//NOTE: Freelancer hardcodes resources.dll
+					Resources.Add (new DllFile ("EXE\\resources.dll"));
 					foreach (Entry e in s)
 					{
 						if (e.Name.ToLowerInvariant () != "dll")

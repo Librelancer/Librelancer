@@ -19,6 +19,8 @@ namespace LibreLancer.GameData
 {
 	public class SystemObject
 	{
+		public string Nickname;
+		public string DisplayName;
 		public Archetype Archetype;
 		public Vector3 Position = Vector3.Zero;
 		public Matrix4? Rotation;

@@ -28,8 +28,8 @@ namespace LibreLancer.Dll
 		private const uint RT_STRING = 6;
 		private const ushort IMAGE_FILE_32BIT_MACHINE = 256;
 
-		public Dictionary<int, string> stringTable;
-		public Dictionary<int, XmlDocument> infocardTable;
+		public Dictionary<int, string> Strings;
+		public Dictionary<int, XmlDocument> Infocards;
 
 		public ManagedDllProvider (Stream stream)
 		{
@@ -70,8 +70,8 @@ namespace LibreLancer.Dll
                 {
                     entries[j] = binaryReader.ReadStruct<IMAGE_RESOURCE_DIRECTORY_ENTRY>();
                 }
-                stringTable = new Dictionary<int, string>();
-                infocardTable = new Dictionary<int, XmlDocument>();
+                Strings = new Dictionary<int, string>();
+                Infocards = new Dictionary<int, XmlDocument>();
                 for (int k = 0; k < num; k++)
                 {
                     if (entries[k].Name == RT_STRING)
@@ -115,7 +115,7 @@ namespace LibreLancer.Dll
 					{
 						byte[] bytes = reader.ReadBytes (length);
 						string str = Encoding.Unicode.GetString (bytes);
-						stringTable.Add (blockId + j, str);
+						Strings.Add (blockId + j, str);
 					}
 				}
 			}
@@ -144,7 +144,7 @@ namespace LibreLancer.Dll
 				try {
 					XmlDocument xmlDocument = new XmlDocument ();
 					xmlDocument.Load (new MemoryStream (xmlBytes));
-					infocardTable.Add ((int)entries [j].Name, xmlDocument);
+					Infocards.Add ((int)entries [j].Name, xmlDocument);
 				} catch (Exception) {
 					FLLog.Error ("Infocards", "Infocard Corrupt: " + entries[j].Name);
 				}
@@ -156,7 +156,7 @@ namespace LibreLancer.Dll
 		{
 
 			try {
-				return infocardTable[(int)resourceId];
+				return Infocards[(int)resourceId];
 			} catch (Exception) {
 				FLLog.Warning ("Infocards","Not Found: " + resourceId);
 				return null;
@@ -167,7 +167,7 @@ namespace LibreLancer.Dll
 		public string GetString (ushort resourceId)
 		{
 			try {
-				return stringTable[(int)resourceId];
+				return Strings[(int)resourceId];
 			} catch (Exception) {
 				FLLog.Warning ("Infocards","Not Found: " + resourceId);
 				return "";

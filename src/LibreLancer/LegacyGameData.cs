@@ -110,6 +110,8 @@ namespace LibreLancer
 		{
 			var drawable = resource.GetDrawable (o.Archetype.DaArchetypeName);
 			var obj = new GameData.SystemObject ();
+			obj.Nickname = o.Nickname;
+			obj.DisplayName = o.IdsName;
 			obj.Position = o.Pos.Value;
 			if (o.Rotate != null) {
 				obj.Rotation = 

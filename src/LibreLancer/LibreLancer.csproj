@@ -176,6 +176,8 @@
     <Compile Include="ChaseCamera.cs" />
     <Compile Include="MathExtensions.cs" />
     <Compile Include="PlayerController.cs" />
+    <Compile Include="Fx\FxNode.cs" />
+    <Compile Include="Fx\FxEmitter.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />
@@ -242,6 +244,7 @@
     <Folder Include="Utf\Ale\" />
     <Folder Include="Interface\" />
     <Folder Include="Thn\" />
+    <Folder Include="Fx\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="OpenTK.dll.config">

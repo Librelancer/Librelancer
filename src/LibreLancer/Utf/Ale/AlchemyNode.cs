@@ -28,6 +28,18 @@ namespace LibreLancer.Utf.Ale
 		{
 			return Name;
 		}
+		public bool TryGetParameter(string name, out AleParameter parameter)
+		{
+			parameter = null;
+			var nm = name.ToUpperInvariant ();
+			foreach (var p in Parameters) {
+				if (p.Name.ToUpperInvariant () == nm) {
+					parameter = p;
+					return true;
+				}
+			}
+			return false;
+		}
 	}
 }
 
