@@ -14,6 +14,8 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace LibreLancer.Thorn
 {
@@ -113,7 +115,7 @@ namespace LibreLancer.Thorn
 
 		ParseFunction[] functions;
 
-		public GenericLexer (params ParseFunction[] lexfuncs)
+		public LuaLexer (params ParseFunction[] lexfuncs)
 		{
 			functions = lexfuncs;
 		}
