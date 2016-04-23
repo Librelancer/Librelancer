@@ -17,14 +17,14 @@ using System;
 using System.Collections.Generic;
 namespace LibreLancer.Thorn
 {
-	public partial class LuaRuntime
+	partial class LuaBinaryRuntime
 	{
 		LuaPrototype data;
 		int PC = 0;
 		const int LFIELDS_PER_FLUSH = 64;
 		public Dictionary<string, object> Env = new Dictionary<string, object>();
 		public Dictionary<string,object> Globals = new Dictionary<string,object>();
-		public LuaRuntime (LuaPrototype proto)
+		public LuaBinaryRuntime (LuaPrototype proto)
 		{
 			data = proto;
 		}

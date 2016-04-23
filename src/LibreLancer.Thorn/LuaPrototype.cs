@@ -17,7 +17,7 @@ using System;
 
 namespace LibreLancer.Thorn
 {
-	public class LuaPrototype
+	class LuaPrototype
 	{
 		public int LinesDefined;
 		public string Source;

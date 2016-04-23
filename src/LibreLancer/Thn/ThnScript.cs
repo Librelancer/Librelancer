@@ -45,14 +45,8 @@ namespace LibreLancer
 		}
 		public ThnScript (string scriptfile)
 		{
-			//create a Lua 3.2 interpreter
-			var file = Undump.Load (scriptfile);
-			var runtime = new LuaRuntime (file);
-			runtime.Env = thnEnv;
-			//interpret
-			runtime.Run ();
-			//TODO: Do things with the results
-
+			var runner = new LuaRunner (thnEnv);
+			runner.DoFile (scriptfile);
 		}
 	}
 }
