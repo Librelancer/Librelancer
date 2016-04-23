@@ -17,7 +17,7 @@ using System;
 
 namespace LibreLancer.Thorn
 {
-	public partial class LuaRuntime
+	partial class LuaBinaryRuntime
 	{
 		OpcodeInfo[] Info = new OpcodeInfo[] {
 			new OpcodeInfo(LuaOpcodes.EndCode, LuaOpcodes.EndCode, Arguments.None),

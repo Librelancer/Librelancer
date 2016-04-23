@@ -96,11 +96,11 @@ namespace LibreLancer.Thorn
 					{
 						op.Argument1++;
 						//fetch dictionary from stack
-						Dictionary<object,object> map = new Dictionary<object, object> (op.Argument1);
+						Dictionary<string,object> map = new Dictionary<string, object> (op.Argument1);
 						int i = 0;
 						while (i < op.Argument1) {
 							var idx = (stack.Count - ((op.Argument1 * 2) - i * 2));
-							map.Add (stack[idx], stack[(idx + 1)]);
+							map.Add (stack[idx] as string, stack[(idx + 1)]);
 							i++;
 						}
 						//pop from stack

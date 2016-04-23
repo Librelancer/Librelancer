@@ -24,7 +24,7 @@ namespace LibreLancer.Thorn
 		public int Capacity;
 		bool isArray = false;
 		object[] arrayStorage;
-		Dictionary<object,object> mapStorage;
+		Dictionary<string,object> mapStorage;
 		public LuaTable (int capacity)
 		{
 			Capacity = capacity;
@@ -36,7 +36,7 @@ namespace LibreLancer.Thorn
 		}
 		public void SetArray(int offset, object[] stuff)
 		{
-			if (offset == 1 && stuff.Length == 36)
+			if (offset == 1 && stuff.Length == 36) //TODO: What is this
 				throw new Exception ();
 			isArray = true;
 			if (arrayStorage == null)
@@ -47,7 +47,7 @@ namespace LibreLancer.Thorn
 				arrayStorage [i + offset] = stuff [i];
 			}
 		}
-		public void SetMap(Dictionary<object,object> stuff)
+		public void SetMap(Dictionary<string,object> stuff)
 		{
 			isArray = false;
 			mapStorage = stuff;
@@ -69,7 +69,7 @@ namespace LibreLancer.Thorn
 				if (isArray) {
 					return arrayStorage [(int)indexer];
 				} else {
-					return mapStorage [indexer];
+					return mapStorage [(string)indexer];
 				}
 			}
 		}
