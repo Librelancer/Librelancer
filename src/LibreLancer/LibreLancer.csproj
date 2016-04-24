@@ -178,6 +178,25 @@
     <Compile Include="PlayerController.cs" />
     <Compile Include="Fx\FxNode.cs" />
     <Compile Include="Fx\FxEmitter.cs" />
+    <Compile Include="Fx\FxAppearance.cs" />
+    <Compile Include="Fx\Appearances\FLDustAppearance.cs" />
+    <Compile Include="Fx\Appearances\FxBasicAppearance.cs" />
+    <Compile Include="Fx\Appearances\FxBeamAppearance.cs" />
+    <Compile Include="Fx\Appearances\FxOrientedAppearance.cs" />
+    <Compile Include="Fx\Appearances\FxParticleAppearance.cs" />
+    <Compile Include="Fx\Appearances\FxPerpAppearance.cs" />
+    <Compile Include="Fx\Appearances\FxRectAppearance.cs" />
+    <Compile Include="Fx\Emitters\FxCubeEmitter.cs" />
+    <Compile Include="Fx\Emitters\FxSphereEmitter.cs" />
+    <Compile Include="Fx\Emitters\FxConeEmitter.cs" />
+    <Compile Include="Fx\FxField.cs" />
+    <Compile Include="Fx\Fields\FxRadialField.cs" />
+    <Compile Include="Fx\Fields\FxGravityField.cs" />
+    <Compile Include="Fx\Fields\FxCollideField.cs" />
+    <Compile Include="Fx\Fields\FxTurbulenceField.cs" />
+    <Compile Include="Fx\Fields\FxAirField.cs" />
+    <Compile Include="Fx\Fields\FLDustField.cs" />
+    <Compile Include="Fx\Fields\FLBeamField.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />
@@ -245,6 +264,9 @@
     <Folder Include="Interface\" />
     <Folder Include="Thn\" />
     <Folder Include="Fx\" />
+    <Folder Include="Fx\Emitters\" />
+    <Folder Include="Fx\Appearances\" />
+    <Folder Include="Fx\Fields\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="OpenTK.dll.config">
