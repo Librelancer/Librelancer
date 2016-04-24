@@ -118,6 +118,7 @@
     <Compile Include="Text\GlyphInfo.cs" />
     <Compile Include="Point.cs" />
     <Compile Include="Text\Renderer2D.cs" />
+    <Compile Include="HSLColor.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -25,6 +25,29 @@ namespace LibreLancer.Utf.Ale
 		public AlchemyFloats ()
 		{
 		}
+		public float GetValue(float time) {
+			//Only have one keyframe? Just return it.
+			if (Data.Length == 1) {
+				return Data [0].Item2;
+			}
+			//Locate the keyframes to interpolate between
+			float t1 = float.NegativeInfinity;
+			float t2 = 0, v1 = 0, v2 = 0;
+			for (int i = 0; i < Data.Length - 1; i++) {
+				if (time >= Data [i].Item1 && time <= Data [i + 1].Item1) {
+					t1 = Data [i].Item1;
+					t2 = Data [i + 1].Item1;
+					v1 = Data [i].Item2;
+					v2 = Data [i + 1].Item2;
+				}
+			}
+			//Time wasn't between any values. Return max.
+			if (t1 == float.NegativeInfinity) {
+				return Data [Data.Length - 1].Item2;
+			}
+			//Interpolate!
+			return AlchemyEasing.Ease(Type,time, t1, t2, v1, v2);
+		}
 	}
 }
 

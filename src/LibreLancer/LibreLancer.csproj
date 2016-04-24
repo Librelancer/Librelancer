@@ -146,9 +146,7 @@
     <Compile Include="Utf\Ale\AlchemyTransform.cs" />
     <Compile Include="Utf\Ale\AlchemyColorAnimation.cs" />
     <Compile Include="Utf\Ale\AlchemyFloatAnimation.cs" />
-    <Compile Include="Utf\Ale\EasingTypes.cs" />
     <Compile Include="Utf\Ale\AlchemyCurveAnimation.cs" />
-    <Compile Include="Utf\Ale\CurveParameterKeyframe.cs" />
     <Compile Include="Utf\Ale\CurveKeyframe.cs" />
     <Compile Include="Utf\Mat\SamplerFlags.cs" />
     <Compile Include="Utf\Ale\AlchemyNodeRef.cs" />
@@ -197,6 +195,11 @@
     <Compile Include="Fx\Fields\FxAirField.cs" />
     <Compile Include="Fx\Fields\FLDustField.cs" />
     <Compile Include="Fx\Fields\FLBeamField.cs" />
+    <Compile Include="Utf\Ale\AlchemyEasing.cs" />
+    <Compile Include="Utf\Ale\LoopFlags.cs" />
+    <Compile Include="Utf\Ale\AlchemyCurve.cs" />
+    <Compile Include="CubicBezier.cs" />
+    <Compile Include="Utf\Ale\AlchemyBlending.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />

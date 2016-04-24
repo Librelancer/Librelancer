@@ -21,8 +21,8 @@ namespace LibreLancer
 	{
 		public float FrameIndex;
 		public float Value;
-		public float In;
-		public float Out;
+		public float InTangent;
+		public float OutTangent;
 		public CurveKeyframe ()
 		{
 		}

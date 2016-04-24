@@ -21,17 +21,19 @@ namespace LibreLancer.Utf.Ale
 	public class AlchemyCurveAnimation
 	{
 		public EasingTypes Type;
-		public List<CurveParameterKeyframe> Keyframes;
+		public List<AlchemyCurve> Items;
+
 		public AlchemyCurveAnimation (BinaryReader reader)
 		{
 			Type = (EasingTypes)reader.ReadByte ();
 			int scount = reader.ReadByte ();
-			Keyframes = new List<CurveParameterKeyframe> (scount);
+			Items = new List<AlchemyCurve> (scount);
 			for (int i = 0; i < scount; i++) {
-				var cpkf = new CurveParameterKeyframe ();
+				var cpkf = new AlchemyCurve ();
 				cpkf.SParam = reader.ReadSingle ();
 				cpkf.Value = reader.ReadSingle ();
 				ushort loop = reader.ReadUInt16 ();
+				cpkf.Flags = (LoopFlags)loop;
 				ushort lcnt = reader.ReadUInt16 ();
 				if (loop != 0 || lcnt != 0) {
 					var l = new List<CurveKeyframe> (lcnt);
@@ -39,14 +41,38 @@ namespace LibreLancer.Utf.Ale
 						l.Add (new CurveKeyframe () {
 							FrameIndex = reader.ReadSingle(),
 							Value = reader.ReadSingle(),
-							In = reader.ReadSingle(),
-							Out = reader.ReadSingle()
+							InTangent = reader.ReadSingle(),
+							OutTangent = reader.ReadSingle()
 						});
 					}
 					cpkf.Keyframes = l;
 				}
-				Keyframes.Add (cpkf);
+				Items.Add (cpkf);
 			}
+		}
+
+		public float GetValue(float sparam, float time)
+		{
+			//1 item, 1 value
+			if (Items.Count == 1) {
+				return Items [0].GetValue (time);
+			}
+			//Find 2 keyframes to interpolate between
+			AlchemyCurve c1 = null, c2 = null;
+			for (int i = 0; i < Items.Count - 1; i++) {
+				if (sparam >= Items [i].SParam && sparam <= Items [i + 1].SParam) {
+					c1 = Items [i];
+					c2 = Items [i + 1];
+				}
+			}
+			//We're at the end
+			if (c1 == null) {
+				return Items [Items.Count - 1].GetValue(time);
+			}
+			//Interpolate between SParams
+			var v1 = c1.GetValue (time);
+			var v2 = c2.GetValue (time);
+			return AlchemyEasing.Ease (Type, sparam, c1.SParam, c2.SParam, v1, v2);
 		}
 	}
 }

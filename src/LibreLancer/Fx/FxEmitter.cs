@@ -23,7 +23,7 @@ namespace LibreLancer.Fx
 		public AlchemyCurveAnimation Frequency;
 		public AlchemyFloatAnimation EmitCount;
 		public AlchemyCurveAnimation InitLifeSpan;
-		public AlchemyCurveAnimation LODCurve;
+		//public AlchemyCurveAnimation LODCurve; -- Not really relevant in a modern context
 		public AlchemyCurveAnimation Pressure;
 		public AlchemyCurveAnimation VelocityApproach;
 
@@ -41,9 +41,6 @@ namespace LibreLancer.Fx
 			}
 			if (ale.TryGetParameter ("Emitter_InitLifeSpan", out temp)) {
 				InitLifeSpan = (AlchemyCurveAnimation)temp.Value;
-			}
-			if (ale.TryGetParameter ("Emitter_LODCurve", out temp)) {
-				LODCurve = (AlchemyCurveAnimation)temp.Value;
 			}
 			if (ale.TryGetParameter ("Emitter_Pressure", out temp)) {
 				Pressure = (AlchemyCurveAnimation)temp.Value;

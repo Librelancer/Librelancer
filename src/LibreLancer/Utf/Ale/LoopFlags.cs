@@ -14,17 +14,17 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using System.Collections.Generic;
+
 namespace LibreLancer.Utf.Ale
 {
-	public class CurveParameterKeyframe
+	[Flags]
+	public enum LoopFlags : ushort
 	{
-		public float SParam;
-		public float Value;
-		public List<CurveKeyframe> Keyframes;
-		public CurveParameterKeyframe ()
-		{
-		}
+		PlayOnce = 0,
+		Repeat = 16,
+		Reverse = 32,
+		Continue = 64,
+		ContinueRepeat = Repeat | Continue
 	}
 }
 
