@@ -1,14 +1,15 @@
 # Librelancer
 A re-implementation of Freelancer in C# and OpenGL.
 
-Currently running on Windows and OSX
+Currently running on OSX, Windows and Linux (both experimental).
+Pull Requests are welcome!
 
 ### Requirements
 * GPU must be capable of OpenGL 3.1+
-* Windows: Windows 7 or newer, .NET Framework 4.5, OpenAL
+* Windows: Windows 7 or newer, .NET Framework 4.5.1, OpenAL
 * OSX: Version 10.10 or newer with Mono 4.0+ (older OSX versions may work but are not tested)
-* Linux: Mono 4.0+, ffmpeg, OpenAL
-* A *vanilla* Freelancer installation
+* Linux: Mono 4.0+, OpenAL
+* A *vanilla* Freelancer installation (demo untested but should work)
 
 ### Build instructions
 1. Clone this repository with `git clone --recursive https://github.com/CallumDev/Librelancer`
