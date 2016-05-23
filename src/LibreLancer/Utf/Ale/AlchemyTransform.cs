@@ -15,6 +15,7 @@
  */
 using System;
 using System.IO;
+using OpenTK;
 namespace LibreLancer.Utf.Ale
 {
 	public class AlchemyTransform
@@ -48,6 +49,24 @@ namespace LibreLancer.Utf.Ale
 				ScaleY = new AlchemyCurveAnimation (reader);
 				ScaleZ = new AlchemyCurveAnimation (reader);
 			}
+		}
+		public Matrix4 GetMatrix(float sparam, float time)
+		{
+			var translate = Matrix4.CreateTranslation (
+				TranslateX.GetValue (sparam, time),
+				TranslateY.GetValue (sparam, time),
+				TranslateZ.GetValue (sparam, time)
+			);
+			var rotate = 
+				Matrix4.CreateRotationX (RotateX.GetValue (sparam, time)) *
+				Matrix4.CreateRotationY (RotateY.GetValue (sparam, time)) *
+				Matrix4.CreateRotationZ (RotateZ.GetValue (sparam, time));
+			var scale = Matrix4.CreateScale (
+					ScaleX.GetValue (sparam, time),
+					ScaleY.GetValue (sparam, time),
+					ScaleZ.GetValue (sparam, time)
+				);
+			return translate * rotate * scale;
 		}
 		public AlchemyTransform()
 		{

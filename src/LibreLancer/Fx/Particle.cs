@@ -14,19 +14,16 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using System.Collections.Generic;
-namespace LibreLancer.Utf.Ale
+using OpenTK;
+namespace LibreLancer.Fx
 {
-	public class ALEffect
+	public struct Particle
 	{
-		public string Name;
-		public uint CRC;
-		public List<AlchemyNodeRef> FxTree;
-		public List<AlchemyNodeRef> Fx;
-		public List<Tuple<uint,uint>> Pairs;
-		public ALEffect ()
-		{
-		}
+		public bool Active;
+		public Vector3 Position;
+		public Vector3 Normal;
+		public float LifeSpan;
+		public float CreationTime;
 	}
 }
 

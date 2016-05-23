@@ -200,6 +200,11 @@
     <Compile Include="Utf\Ale\AlchemyCurve.cs" />
     <Compile Include="CubicBezier.cs" />
     <Compile Include="Utf\Ale\AlchemyBlending.cs" />
+    <Compile Include="Fx\Particle.cs" />
+    <Compile Include="Fx\ParticleLibrary.cs" />
+    <Compile Include="Fx\ParticleEffect.cs" />
+    <Compile Include="Fx\FxRootNode.cs" />
+    <Compile Include="Fx\ParticleEffectInstance.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />

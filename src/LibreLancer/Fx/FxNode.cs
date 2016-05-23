@@ -14,6 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using OpenTK;
 using LibreLancer.Utf.Ale;
 namespace LibreLancer.Fx
 {
@@ -39,6 +40,23 @@ namespace LibreLancer.Fx
 			if (ale.TryGetParameter ("Node_LifeSpan", out temp)) {
 				NodeLifeSpan = (float)temp.Value;
 			}
+		}
+		protected Matrix4 GetTranslation(ParticleEffect effect, Matrix4 attachment, float sparam, float time)
+		{
+			Matrix4 mat = Transform.GetMatrix (sparam, time);
+			if (effect.Parents [this] is FxRootNode) {
+				return mat;
+			} else if (effect.AttachmentNodes.Contains (this)) {
+				return attachment * mat;
+			}
+			else {
+				return effect.Parents [this].GetTranslation (effect, attachment, sparam, time) * mat;
+			}
+		}
+		public FxNode(string name, string nodename)
+		{
+			Name = name;
+			NodeName = nodename;
 		}
 	}
 }

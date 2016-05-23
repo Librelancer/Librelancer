@@ -15,8 +15,6 @@
  */
 using System;
 using System.IO;
-using System.Drawing;
-using Imaging = System.Drawing.Imaging;
 using OpenTK.Graphics.OpenGL;
 using System.Runtime.InteropServices;
 
@@ -159,69 +157,6 @@ namespace LibreLancer
             GL.DeleteTexture(ID);
             base.Dispose();
         }
-        public static Texture2D FromStream(Stream stream)
-        {
-            //use a native library for this / roll own library?
-            //system.drawing is a large dependency + we only use TGA and BMP
-            Console.WriteLine("Texture2D.FromStream: Shouldn't be called!");
-            Bitmap image = (Bitmap)Bitmap.FromStream(stream);
-            try
-            {
-                // Fix up the Image to match the expected format
-                image = (Bitmap)RGBToBGR(image);
-                // TODO: make this more efficient. Shouldn't need another buffer
-                var data = new byte[image.Width * image.Height * 4];
-                Imaging.BitmapData bitmapData = image.LockBits(new System.Drawing.Rectangle(0, 0, image.Width, image.Height),
-                    Imaging.ImageLockMode.ReadOnly, Imaging.PixelFormat.Format32bppArgb);
-                if (bitmapData.Stride != image.Width * 4)
-                    throw new NotImplementedException();
-                Marshal.Copy(bitmapData.Scan0, data, 0, data.Length);
-                image.UnlockBits(bitmapData);
-                Texture2D texture = null;
-                texture = new Texture2D(image.Width, image.Height);
-                texture.SetData(data);
-
-                return texture;
-            }
-            finally
-            {
-                image.Dispose();
-            }
-        }
-        private static float[][] matrixData = new float[][]
-        {
-            new float[] {0, 0, 1, 0, 0},
-            new float[] {0, 1, 0, 0, 0},
-            new float[] {1, 0, 0, 0, 0},
-            new float[] {0, 0, 0, 1, 0},
-            new float[] {0, 0, 0, 0, 1}
-        };
-        //Converts bitmaps to internal representation (includes .GIF support too!)
-        internal static Image RGBToBGR(Image bmp)
-        {
-            Image result;
-            if ((bmp.PixelFormat & Imaging.PixelFormat.Indexed) != 0)
-                result = new Bitmap(bmp.Width, bmp.Height, Imaging.PixelFormat.Format32bppArgb);
-            else
-                result = bmp;
-            try
-            {
-                var attributes = new Imaging.ImageAttributes();
-                var colorMatrix = new Imaging.ColorMatrix(matrixData);
-                attributes.SetColorMatrix(colorMatrix);
-                using (Graphics g = Graphics.FromImage(result))
-                {
-                    g.DrawImage(bmp, new System.Drawing.Rectangle(0, 0, bmp.Width, bmp.Height), 0, 0, bmp.Width, bmp.Height, GraphicsUnit.Pixel, attributes);
-                }
-            }
-            finally
-            {
-                if (result != bmp)
-                    bmp.Dispose();
-            }
-            return result;
-        }
-
     }
 }
 

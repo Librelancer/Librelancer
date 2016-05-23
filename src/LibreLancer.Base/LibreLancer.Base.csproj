@@ -42,7 +42,6 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -52,6 +51,7 @@
     <Reference Include="OpenTK">
       <HintPath>..\..\extern\opentk\Binaries\OpenTK\Debug\OpenTK.dll</HintPath>
     </Reference>
+    <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bounds\BoundingBox.cs" />

@@ -24,6 +24,7 @@ namespace LibreLancer.Utf.Ale
 	{
 		public float Version;
 		public List<ALEffect> Effects;
+
 		public ALEffectLib (LeafNode node)
 		{
 			using (var reader = new BinaryReader (new MemoryStream (node.ByteArrayData))) {
@@ -54,7 +55,8 @@ namespace LibreLancer.Utf.Ale
 					}
 					Effects.Add (
 						new ALEffect () {
-							Name = name, 
+							Name = name,
+							CRC = CrcTool.FLAleCrc(name),
 							FxTree = BuildTree(refs),
 							Fx = refs,
 							Pairs = pairs
