@@ -30,7 +30,7 @@ namespace LibreLancer.Media
 		int sourceId;
 		int[] bufferIds;
 		PlayState currentState = PlayState.Stopped;
-		AudioDevice device;
+		AudioManager device;
 		float volume = 1f;
 		public float Volume {
 			get {
@@ -38,17 +38,17 @@ namespace LibreLancer.Media
 			} set {
 				if (value != volume) {
 					volume = value;
-					AudioDevice.ALFunc (() => AL.Source (sourceId, ALSourcef.Gain, volume));
+					AudioManager.ALFunc (() => AL.Source (sourceId, ALSourcef.Gain, volume));
 				}
 			}
 		}
-		internal StreamingAudio (AudioDevice device, ALFormat format, int sampleRate)
+		internal StreamingAudio (AudioManager device, ALFormat format, int sampleRate)
 		{
 			bufferFormat = format;
 			while (!device.ready)
 				;
-			AudioDevice.ALFunc (() => { sourceId = AL.GenSource(); });
-			AudioDevice.ALFunc(() => { bufferIds = AL.GenBuffers (4); });
+			AudioManager.ALFunc (() => { sourceId = AL.GenSource(); });
+			AudioManager.ALFunc(() => { bufferIds = AL.GenBuffers (4); });
 			this.device = device;
 			this.sampleRate = sampleRate;
 		}
@@ -59,7 +59,7 @@ namespace LibreLancer.Media
 		{
 			//manage state
 			if (currentState == PlayState.Stopped) {
-				AudioDevice.ALFunc (() => AL.SourceStop (sourceId));
+				AudioManager.ALFunc (() => AL.SourceStop (sourceId));
 				device.Remove (this);
 				threadRunning = false;
 				if (!userStopped) {
@@ -70,11 +70,11 @@ namespace LibreLancer.Media
 				return;
 			}
 			ALSourceState state = ALSourceState.Playing;
-			AudioDevice.ALFunc(() => { state = AL.GetSourceState (sourceId); });
+			AudioManager.ALFunc(() => { state = AL.GetSourceState (sourceId); });
 
 			if (currentState == PlayState.Paused) {
 				if (state != ALSourceState.Paused)
-					AudioDevice.ALFunc(() => AL.SourcePause (sourceId));
+					AudioManager.ALFunc(() => AL.SourcePause (sourceId));
 				return;
 			}
 
@@ -83,15 +83,15 @@ namespace LibreLancer.Media
 			AL.GetSource (sourceId, ALGetSourcei.BuffersProcessed, out processed_count);
 			while (processed_count > 0) {
 				int bid = 0;
-				AudioDevice.ALFunc(() => AL.SourceUnqueueBuffer (sourceId));
+				AudioManager.ALFunc(() => AL.SourceUnqueueBuffer (sourceId));
 				if (bid != 0 && !finished) {
 					byte[] buffer;
 					finished = !BufferNeeded (this, out buffer);
 					if (!finished) {
-						AudioDevice.ALFunc(() => 
+						AudioManager.ALFunc(() => 
 							AL.BufferData (bid, bufferFormat, buffer, buffer.Length, sampleRate)
 						);
-						AudioDevice.ALFunc(() => 
+						AudioManager.ALFunc(() => 
 							AL.SourceQueueBuffer (sourceId, bid)
 						);
 					}
@@ -100,7 +100,7 @@ namespace LibreLancer.Media
 			}
 			//check buffer
 			if (state == ALSourceState.Stopped && !finished) {
-				AudioDevice.ALFunc(() => AL.SourcePlay (sourceId));
+				AudioManager.ALFunc(() => AL.SourcePlay (sourceId));
 			}
 			//are we finished?
 			if (finished && state == ALSourceState.Stopped) {
@@ -123,13 +123,13 @@ namespace LibreLancer.Media
 				for (int i = 0; i < bufferIds.Length; i++) {
 					byte[] buffer;
 					BufferNeeded (this, out buffer);
-					AudioDevice.ALFunc (() =>
+					AudioManager.ALFunc (() =>
 						AL.BufferData (bufferIds [i], bufferFormat, buffer, buffer.Length, sampleRate)
 					);
-					AudioDevice.ALFunc (() =>
+					AudioManager.ALFunc (() =>
 						AL.SourceQueueBuffer (sourceId, bufferIds [i])
 					);
-					AudioDevice.ALFunc (() =>
+					AudioManager.ALFunc (() =>
 						AL.SourcePlay (sourceId)
 					);
 				}
@@ -161,14 +161,14 @@ namespace LibreLancer.Media
 		void Empty()
 		{
 			int queued = 0;
-			AudioDevice.ALFunc (() =>
+			AudioManager.ALFunc (() =>
 				AL.GetSource (sourceId, ALGetSourcei.BuffersQueued, out queued)
 			);
 			if (queued > 0)
 			{
 				try
 				{
-					AudioDevice.ALFunc(() =>
+					AudioManager.ALFunc(() =>
 						AL.SourceUnqueueBuffers(sourceId, queued)
 					);
 				}
@@ -176,17 +176,17 @@ namespace LibreLancer.Media
 				{
 					//work around OpenAL bug
 					int processed = 0;
-					AudioDevice.ALFunc (() =>
+					AudioManager.ALFunc (() =>
 						AL.GetSource (sourceId, ALGetSourcei.BuffersProcessed, out processed)
 					);
 					var salvaged = new int[processed];
 					if (processed > 0)
 					{
-						AudioDevice.ALFunc (() => 
+						AudioManager.ALFunc (() => 
 							AL.SourceUnqueueBuffers (sourceId, processed, salvaged)
 						);
 					}
-					AudioDevice.ALFunc (() => AL.SourceStop (sourceId));
+					AudioManager.ALFunc (() => AL.SourceStop (sourceId));
 					Empty();
 				}
 			}

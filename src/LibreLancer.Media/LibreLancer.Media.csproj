@@ -48,9 +48,10 @@
     <Compile Include="MusicDecoder.cs" />
     <Compile Include="MusicPlayer.cs" />
     <Compile Include="StreamingAudio.cs" />
-    <Compile Include="AudioDevice.cs" />
+    <Compile Include="AudioManager.cs" />
     <Compile Include="PlayState.cs" />
     <Compile Include="SoundFormat.cs" />
+    <Compile Include="SoundEffectInstance.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

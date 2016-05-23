@@ -1,5 +1,6 @@
 # Librelancer
 A re-implementation of Freelancer in C# and OpenGL.
+*Freelancer is not currently playable at current. This is a tech-demo*
 
 Currently running on OSX, Windows and Linux (both experimental).
 Pull Requests are welcome!

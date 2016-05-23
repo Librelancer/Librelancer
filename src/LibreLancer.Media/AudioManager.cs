@@ -22,22 +22,57 @@ using OpenTK.Audio.OpenAL;
 
 namespace LibreLancer.Media
 {
-	public class AudioDevice
+	public class AudioManager
 	{
+		//TODO: Heuristics to determine max number of sources
+		const int MAX_SOURCES = 32;
 		internal AudioContext context;
 		internal bool ready = false;
 		bool createContext;
 		bool running = true;
 		//ConcurrentQueues to avoid threading errors
-		ConcurrentQueue<StreamingAudio> toRemove = new ConcurrentQueue<StreamingAudio> ();
-		ConcurrentQueue<StreamingAudio> toAdd = new ConcurrentQueue<StreamingAudio> ();
-		List<StreamingAudio> instances = new List<StreamingAudio> ();
-		public AudioDevice(bool createContext = true)
+		ConcurrentQueue<int> toRemove = new ConcurrentQueue<int> ();
+		ConcurrentQueue<int> toAdd = new ConcurrentQueue<int> ();
+		ConcurrentQueue<int> freeSources = new ConcurrentQueue<int>();
+		List<int> sfxInstances = new List<int>();
+		int musicSource;
+
+		public AudioManager(bool createContext = true)
 		{
 			this.createContext = createContext;
+			for (int i = 0; i < MAX_SOURCES; i++)
+			{
+				freeSources.Enqueue(AL.GenSource());
+			}
+			AllocateSource(out musicSource);
 			new Thread (new ThreadStart (UpdateThread)).Start ();
+
 		}
 
+		bool AllocateSource(out int source)
+		{
+			if (freeSources.Count > 0)
+			{
+				return freeSources.TryDequeue(out source);
+			}
+			else
+			{
+				source = -1;
+				return false;
+			}
+		}
+		public bool CreateInstance(out SoundEffectInstance instance)
+		{
+			instance = null;
+			int source;
+			if (AllocateSource(out source))
+			{
+				instance = new SoundEffectInstance(this, source);
+				return true;
+			}
+			else
+				return false;
+		}
 		void UpdateThread()
 		{
 			if(createContext)
@@ -46,19 +81,25 @@ namespace LibreLancer.Media
 			while (running) {
 				//remove from items to update
 				while (toRemove.Count > 0) {
-					StreamingAudio item;
+					int item;
 					if (toRemove.TryDequeue (out item))
-						instances.Remove (item);
+						sfxInstances.Remove (item);
 				}
 				//insert into items to update
 				while (toAdd.Count > 0) {
-					StreamingAudio item;
+					int item;
 					if (toAdd.TryDequeue (out item))
-						instances.Add(item);
+						sfxInstances.Add(item);
 				}
 				//update
-				for (int i = 0; i < instances.Count; i++) {
-					instances [i].Update ();
+				for (int i = sfxInstances.Count; i >= 0; i--) {
+					var state = AL.GetSourceState(sfxInstances[i]);
+					if (state != ALSourceState.Playing)
+					{
+						freeSources.Enqueue(sfxInstances[i]);
+						sfxInstances.RemoveAt(i);
+						i--;
+					}
 				}
 				Thread.Sleep (5);
 			}
@@ -70,13 +111,10 @@ namespace LibreLancer.Media
 			if ((error = AL.GetError()) != ALError.NoError)
 				throw new InvalidOperationException(AL.GetErrorString(error));
 		}
-		internal void Add (StreamingAudio audio)
+		internal void PlayInternal(int sid)
 		{
-			toAdd.Enqueue (audio);
-		}
-		internal void Remove(StreamingAudio audio)
-		{
-			toRemove.Enqueue (audio);
+			ALFunc(() => AL.SourcePlay(sid));
+			toAdd.Enqueue(sid);
 		}
 		public void Dispose()
 		{

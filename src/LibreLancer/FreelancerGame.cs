@@ -27,7 +27,7 @@ namespace LibreLancer
 	public class FreelancerGame : GameWindow, IUIThread
     {
 		public LegacyGameData GameData;
-		public AudioDevice Audio;
+		public AudioManager Audio;
 		//public MusicPlayer Music;
 		public ResourceManager ResourceManager;
 		public RenderState RenderState;
