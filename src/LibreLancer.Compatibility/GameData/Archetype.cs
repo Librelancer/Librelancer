@@ -36,7 +36,7 @@ namespace LibreLancer.Compatibility.GameData
 
 		public string Nickname { get; private set; }
 		public string IdsName { get; private set; }
-		public List<XmlDocument> IdsInfo { get; private set; }
+		public List<string> IdsInfo { get; private set; }
 
 		public List<string> MaterialPaths = new List<string>();
 
@@ -60,7 +60,7 @@ namespace LibreLancer.Compatibility.GameData
 			FLData = data;
 			this.section = section;
 
-			IdsInfo = new List<XmlDocument>();
+			IdsInfo = new List<string>();
 			CollisionGroups = new List<CollisionGroup>();
 		}
 

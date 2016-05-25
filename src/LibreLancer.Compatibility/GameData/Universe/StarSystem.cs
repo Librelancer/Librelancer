@@ -35,7 +35,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 		public Vector2? Pos { get; private set; }
 		public string MsgIdPrefix { get; private set; }
 		public int? Visit { get; private set; }
-		public XmlDocument IdsInfo { get; private set; }
+		public string IdsInfo { get; private set; }
 		public float? NavMapScale { get; private set; }
 
 		public Color4? SpaceColor { get; private set; }

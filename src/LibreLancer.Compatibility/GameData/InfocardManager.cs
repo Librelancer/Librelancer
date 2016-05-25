@@ -7,7 +7,7 @@ namespace LibreLancer.Compatibility.GameData
 	public class InfocardManager
 	{
 		Dictionary<int,string> strings = new Dictionary<int, string>();
-		Dictionary<int, XmlDocument> infocards = new Dictionary<int, XmlDocument>();
+		Dictionary<int, string> infocards = new Dictionary<int, string>();
 		public InfocardManager (List<DllFile> res)
 		{
 			int i = 0;
@@ -31,7 +31,7 @@ namespace LibreLancer.Compatibility.GameData
 			}
 		}
 
-		public XmlDocument GetXmlResource(int id)
+		public string GetXmlResource(int id)
 		{
 			if (infocards.ContainsKey (id)) {
 				return infocards [id];

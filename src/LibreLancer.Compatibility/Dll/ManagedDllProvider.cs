@@ -29,7 +29,7 @@ namespace LibreLancer.Dll
 		private const ushort IMAGE_FILE_32BIT_MACHINE = 256;
 
 		public Dictionary<int, string> Strings;
-		public Dictionary<int, XmlDocument> Infocards;
+		public Dictionary<int, string> Infocards;
 
 		public ManagedDllProvider (Stream stream)
 		{
@@ -71,7 +71,7 @@ namespace LibreLancer.Dll
                     entries[j] = binaryReader.ReadStruct<IMAGE_RESOURCE_DIRECTORY_ENTRY>();
                 }
                 Strings = new Dictionary<int, string>();
-                Infocards = new Dictionary<int, XmlDocument>();
+                Infocards = new Dictionary<int, string>();
                 for (int k = 0; k < num; k++)
                 {
                     if (entries[k].Name == RT_STRING)
@@ -142,9 +142,7 @@ namespace LibreLancer.Dll
 				reader.BaseStream.Seek ((long)dataEntry.OffsetToData, SeekOrigin.Begin);
 				byte[] xmlBytes = reader.ReadBytes ((int)dataEntry.Size);
 				try {
-					XmlDocument xmlDocument = new XmlDocument ();
-					xmlDocument.Load (new MemoryStream (xmlBytes));
-					Infocards.Add ((int)entries [j].Name, xmlDocument);
+					Infocards.Add ((int)entries [j].Name, Encoding.Unicode.GetString(xmlBytes));
 				} catch (Exception) {
 					FLLog.Error ("Infocards", "Infocard Corrupt: " + entries[j].Name);
 				}
@@ -152,7 +150,7 @@ namespace LibreLancer.Dll
 			}
 		}
 
-		public XmlDocument GetXml (ushort resourceId)
+		public string GetXml (ushort resourceId)
 		{
 
 			try {

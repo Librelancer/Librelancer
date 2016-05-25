@@ -31,7 +31,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 		private Section section;
 
 		public string IdsName { get; private set; }
-		public List<XmlDocument> IdsInfo { get; private set; }
+		public List<string> IdsInfo { get; private set; }
 		public Vector3? Size { get; private set; }
 		public Vector3? Spin { get; private set; }
 		public string Reputation { get; private set; }
@@ -59,7 +59,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 					break;
 				case "ids_info":
 					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (IdsInfo == null) IdsInfo = new List<XmlDocument>();
+					if (IdsInfo == null) IdsInfo = new List<string>();
 					IdsInfo.Add(GameData.Infocards.GetXmlResource(e[0].ToInt32()));
 					break;
 				case "size":

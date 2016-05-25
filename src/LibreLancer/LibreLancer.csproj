@@ -205,6 +205,12 @@
     <Compile Include="Fx\ParticleEffect.cs" />
     <Compile Include="Fx\FxRootNode.cs" />
     <Compile Include="Fx\ParticleEffectInstance.cs" />
+    <Compile Include="Infocards\Infocard.cs" />
+    <Compile Include="Infocards\RDLParse.cs" />
+    <Compile Include="Infocards\TextAlignment.cs" />
+    <Compile Include="Infocards\InfocardNode.cs" />
+    <Compile Include="Infocards\InfocardTextNode.cs" />
+    <Compile Include="Infocards\InfocardParagraphNode.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />
@@ -275,6 +281,7 @@
     <Folder Include="Fx\Emitters\" />
     <Folder Include="Fx\Appearances\" />
     <Folder Include="Fx\Fields\" />
+    <Folder Include="Infocards\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="OpenTK.dll.config">

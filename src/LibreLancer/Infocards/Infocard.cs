@@ -15,38 +15,11 @@
  */
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Xml;
-using LibreLancer.Compatibility;
-namespace LibreLancer.Dll
+namespace LibreLancer.Infocards
 {
-    public class DllFile
-    {
-		public string Name;
-		ManagedDllProvider provider;
-
-        public DllFile(string path)
-        {
-			
-            if (path == null) 
-				throw new ArgumentNullException("path");
-			Name = Path.GetFileName (path);
-            using (var file = VFS.Open(path))
-            {
-                provider = new ManagedDllProvider(file);
-            }
-        }
-
-		public Dictionary<int,string> Strings {
-			get {
-				return provider.Strings;
-			}
-		}
-
-		public Dictionary<int, string> Infocards {
-			get {
-				return provider.Infocards;
-			}
-		}
-    }
+	public class Infocard
+	{
+		public List<InfocardNode> Nodes;
+	}
 }
+
