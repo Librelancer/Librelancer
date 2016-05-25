@@ -45,18 +45,30 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="MusicDecoder.cs" />
     <Compile Include="MusicPlayer.cs" />
     <Compile Include="StreamingAudio.cs" />
     <Compile Include="AudioManager.cs" />
     <Compile Include="PlayState.cs" />
-    <Compile Include="SoundFormat.cs" />
     <Compile Include="SoundEffectInstance.cs" />
+    <Compile Include="SoundData.cs" />
+    <Compile Include="Decoding\Mp3Utils.cs" />
+    <Compile Include="Decoding\RiffFile.cs" />
+    <Compile Include="Decoding\WaveFormat.cs" />
+    <Compile Include="BinaryReaderExtensions.cs" />
+    <Compile Include="Decoding\ContainerDetection.cs" />
+    <Compile Include="Decoding\ContainerKind.cs" />
+    <Compile Include="ALUtils.cs" />
+    <Compile Include="StreamingDecoder.cs" />
+    <Compile Include="Decoding\SliceStream.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <None Include="FFmpeg.AutoGen.dll.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <Folder Include="Decoding\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\extern\MP3Sharp\MP3Sharp\MP3Sharp.csproj">
+      <Project>{BF3B29F8-DA04-4973-93DB-144A5BBE2472}</Project>
+      <Name>MP3Sharp</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>

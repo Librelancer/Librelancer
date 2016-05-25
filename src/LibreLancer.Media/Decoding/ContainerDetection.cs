@@ -14,26 +14,28 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK.Audio.OpenAL;
+using System.IO;
 namespace LibreLancer.Media
 {
-	public class SoundEffectInstance
+	static class ContainerDetection
 	{
-		int sid;
-		AudioManager au;
-		SoundData data;
-		internal SoundEffectInstance(AudioManager manager, int source, SoundData data)
-		{
-			this.sid = source;
-			this.au = manager;
-			this.data = data;
-		}
+		const uint MAGIC_RIFF = 0x46464952;
+		const uint MAGIC_OGG = 0x5367674F; //Future reference
 
-		public void Play(float volume)
+		public static ContainerKind Detect(Stream stream)
 		{
-			AudioManager.ALFunc(() => AL.BindBufferToSource(sid, data.ID));
-			AudioManager.ALFunc(() => AL.Source(sid, ALSourcef.Gain, volume));
-			au.PlayInternal(sid);
+			var reader = new BinaryReader(stream);
+			uint magic = reader.ReadUInt32();
+			reader.BaseStream.Seek(-4, SeekOrigin.Current);
+			switch (magic)
+			{
+				case MAGIC_RIFF:
+					return ContainerKind.RIFF;
+				case MAGIC_OGG:
+					throw new NotSupportedException("Ogg files");
+				default:
+					return ContainerKind.MP3;
+			}
 		}
 	}
 }

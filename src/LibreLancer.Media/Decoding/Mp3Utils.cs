@@ -14,27 +14,29 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-
+using System.IO;
 namespace LibreLancer.Media
 {
-	public enum SoundFormat
+	class Mp3Utils
 	{
-		/// <summary>
-		/// Mono 8-bit PCM Audio
-		/// </summary>
-		Mono8,
-		/// <summary>
-		/// Mono 16-bit PCM Audio
-		/// </summary>
-		Mono16,
-		/// <summary>
-		/// Stereo 8-bit PCM Audio
-		/// </summary>
-		Stereo8,
-		/// <summary>
-		/// Stereo 16-bit PCM Audio
-		/// </summary>
-		Stereo16
+		public static byte[] DecodeAll(Stream input, out int channels, out int freq)
+		{
+			channels = -1;
+			freq = -1;
+			using (var stream = new MP3Sharp.MP3Stream(input))
+			{
+				freq = stream.Frequency;
+				if (stream.Format == MP3Sharp.SoundFormat.Pcm16BitMono)
+					channels = 1;
+				else
+					channels = 2;
+				using (var mem = new MemoryStream())
+				{
+					stream.CopyTo(mem);
+					return mem.ToArray();
+				}
+			}
+		}
 	}
 }
 

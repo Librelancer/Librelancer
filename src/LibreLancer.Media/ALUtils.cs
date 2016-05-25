@@ -17,23 +17,29 @@ using System;
 using OpenTK.Audio.OpenAL;
 namespace LibreLancer.Media
 {
-	public class SoundEffectInstance
+	static class ALUtils
 	{
-		int sid;
-		AudioManager au;
-		SoundData data;
-		internal SoundEffectInstance(AudioManager manager, int source, SoundData data)
+		public static ALFormat GetFormat(int channels, int bits)
 		{
-			this.sid = source;
-			this.au = manager;
-			this.data = data;
-		}
-
-		public void Play(float volume)
-		{
-			AudioManager.ALFunc(() => AL.BindBufferToSource(sid, data.ID));
-			AudioManager.ALFunc(() => AL.Source(sid, ALSourcef.Gain, volume));
-			au.PlayInternal(sid);
+			if (bits == 8)
+			{
+				if (channels == 1)
+					return ALFormat.Mono8;
+				else if (channels == 2)
+					return ALFormat.Stereo8;
+				else
+					throw new NotSupportedException(channels + "-channel data");
+			}
+			else if (bits == 16)
+			{
+				if (channels == 1)
+					return ALFormat.Mono16;
+				else if (channels == 2)
+					return ALFormat.Stereo16;
+				else
+					throw new NotSupportedException(channels + "-channel data");
+			}
+			throw new NotSupportedException(bits + "-bit data");
 		}
 	}
 }

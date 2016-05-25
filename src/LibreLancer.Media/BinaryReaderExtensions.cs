@@ -14,26 +14,14 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK.Audio.OpenAL;
+using System.IO;
 namespace LibreLancer.Media
 {
-	public class SoundEffectInstance
+	static class BinaryReaderExtensions
 	{
-		int sid;
-		AudioManager au;
-		SoundData data;
-		internal SoundEffectInstance(AudioManager manager, int source, SoundData data)
+		public static void Skip(this BinaryReader reader, int bytes)
 		{
-			this.sid = source;
-			this.au = manager;
-			this.data = data;
-		}
-
-		public void Play(float volume)
-		{
-			AudioManager.ALFunc(() => AL.BindBufferToSource(sid, data.ID));
-			AudioManager.ALFunc(() => AL.Source(sid, ALSourcef.Gain, volume));
-			au.PlayInternal(sid);
+			reader.BaseStream.Seek(bytes, SeekOrigin.Current);
 		}
 	}
 }

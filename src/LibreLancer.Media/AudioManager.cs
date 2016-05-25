@@ -27,30 +27,31 @@ namespace LibreLancer.Media
 		//TODO: Heuristics to determine max number of sources
 		const int MAX_SOURCES = 32;
 		internal AudioContext context;
-		internal bool ready = false;
+		internal bool Ready = false;
 		bool createContext;
 		bool running = true;
 		//ConcurrentQueues to avoid threading errors
-		ConcurrentQueue<int> toRemove = new ConcurrentQueue<int> ();
 		ConcurrentQueue<int> toAdd = new ConcurrentQueue<int> ();
 		ConcurrentQueue<int> freeSources = new ConcurrentQueue<int>();
+		ConcurrentQueue<int> streamingSources = new ConcurrentQueue<int>();
 		List<int> sfxInstances = new List<int>();
-		int musicSource;
+		List<StreamingAudio> streamingInstances = new List<StreamingAudio>();
+		ConcurrentQueue<StreamingAudio> toAddStreaming = new ConcurrentQueue<StreamingAudio>();
+		ConcurrentQueue<StreamingAudio> toRemoveStreaming = new ConcurrentQueue<StreamingAudio>();
+		public MusicPlayer Music { get; private set; }
 
 		public AudioManager(bool createContext = true)
 		{
 			this.createContext = createContext;
-			for (int i = 0; i < MAX_SOURCES; i++)
-			{
-				freeSources.Enqueue(AL.GenSource());
-			}
-			AllocateSource(out musicSource);
+			Music = new MusicPlayer(this);
+
 			new Thread (new ThreadStart (UpdateThread)).Start ();
 
 		}
 
 		bool AllocateSource(out int source)
 		{
+			while (!Ready) { }
 			if (freeSources.Count > 0)
 			{
 				return freeSources.TryDequeue(out source);
@@ -61,38 +62,84 @@ namespace LibreLancer.Media
 				return false;
 			}
 		}
-		public bool CreateInstance(out SoundEffectInstance instance)
+
+		internal bool AllocateSourceStreaming(out int source)
+		{
+			while (!Ready) { }
+			if (freeSources.Count > 0)
+			{
+				return streamingSources.TryDequeue(out source);
+			}
+			else
+			{
+				source = -1;
+				return false;
+			}
+		}
+
+		internal void RelinquishSourceStreaming(int source)
+		{
+			streamingSources.Enqueue(source);
+		}
+
+		public bool CreateInstance(out SoundEffectInstance instance, SoundData data)
 		{
 			instance = null;
 			int source;
 			if (AllocateSource(out source))
 			{
-				instance = new SoundEffectInstance(this, source);
+				instance = new SoundEffectInstance(this, source, data);
 				return true;
 			}
 			else
 				return false;
 		}
+		public SoundData AllocateData()
+		{
+			while (!Ready) { }
+			return new SoundData(AL.GenBuffer());
+		}
 		void UpdateThread()
 		{
 			if(createContext)
 				context = new AudioContext ();
-			ready = true;
+			for (int i = 0; i < MAX_SOURCES; i++)
+			{
+				freeSources.Enqueue(AL.GenSource());
+			}
+			int musicSource;
+			for (int i = 0; i < 2; i++)
+			{
+				while (!freeSources.TryDequeue(out musicSource)) {}
+				streamingSources.Enqueue(musicSource);
+			}
+			Console.WriteLine("Ready");
+			Ready = true;
 			while (running) {
-				//remove from items to update
-				while (toRemove.Count > 0) {
-					int item;
-					if (toRemove.TryDequeue (out item))
-						sfxInstances.Remove (item);
-				}
+				
 				//insert into items to update
 				while (toAdd.Count > 0) {
 					int item;
 					if (toAdd.TryDequeue (out item))
 						sfxInstances.Add(item);
 				}
-				//update
-				for (int i = sfxInstances.Count; i >= 0; i--) {
+				while (toAddStreaming.Count > 0)
+				{
+					StreamingAudio item;
+					if (toAddStreaming.TryDequeue(out item))
+						streamingInstances.Add(item);
+				}
+				//remove items
+				while (toRemoveStreaming.Count > 0)
+				{
+					StreamingAudio item;
+					if (toRemoveStreaming.TryDequeue(out item))
+					{
+						streamingInstances.Remove(item);
+					}
+				}
+				//update SFX
+				for (int i = sfxInstances.Count - 1; i >= 0; i--) {
 					var state = AL.GetSourceState(sfxInstances[i]);
 					if (state != ALSourceState.Playing)
 					{
@@ -101,6 +148,9 @@ namespace LibreLancer.Media
 						i--;
 					}
 				}
+				//update Streaming
+				foreach (var item in streamingInstances)
+					item.Update();
 				Thread.Sleep (5);
 			}
 		}
@@ -115,6 +165,14 @@ namespace LibreLancer.Media
 		{
 			ALFunc(() => AL.SourcePlay(sid));
 			toAdd.Enqueue(sid);
+		}
+		internal void Add(StreamingAudio audio)
+		{
+			toAddStreaming.Enqueue(audio);
+		}
+		internal void Remove(StreamingAudio audio)
+		{
+			toRemoveStreaming.Enqueue(audio);
 		}
 		public void Dispose()
 		{

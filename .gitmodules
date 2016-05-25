@@ -10,3 +10,6 @@
 [submodule "extern/opentk"]
 	path = extern/opentk
 	url = https://github.com/opentk/opentk
+[submodule "extern/MP3Sharp"]
+	path = extern/MP3Sharp
+	url = https://github.com/ZaneDubya/MP3Sharp

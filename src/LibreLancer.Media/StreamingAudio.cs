@@ -30,7 +30,7 @@ namespace LibreLancer.Media
 		int sourceId;
 		int[] bufferIds;
 		PlayState currentState = PlayState.Stopped;
-		AudioManager device;
+		AudioManager manager;
 		float volume = 1f;
 		public float Volume {
 			get {
@@ -45,11 +45,11 @@ namespace LibreLancer.Media
 		internal StreamingAudio (AudioManager device, ALFormat format, int sampleRate)
 		{
 			bufferFormat = format;
-			while (!device.ready)
-				;
-			AudioManager.ALFunc (() => { sourceId = AL.GenSource(); });
+			while (!device.Ready) { }
+			if (!device.AllocateSourceStreaming(out sourceId))
+				throw new Exception("Out of sources for music, should not happen");
 			AudioManager.ALFunc(() => { bufferIds = AL.GenBuffers (4); });
-			this.device = device;
+			this.manager = device;
 			this.sampleRate = sampleRate;
 		}
 		bool finished = false;
@@ -60,7 +60,7 @@ namespace LibreLancer.Media
 			//manage state
 			if (currentState == PlayState.Stopped) {
 				AudioManager.ALFunc (() => AL.SourceStop (sourceId));
-				device.Remove (this);
+				manager.Remove (this);
 				threadRunning = false;
 				if (!userStopped) {
 					if (PlaybackFinished != null)
@@ -83,16 +83,17 @@ namespace LibreLancer.Media
 			AL.GetSource (sourceId, ALGetSourcei.BuffersProcessed, out processed_count);
 			while (processed_count > 0) {
 				int bid = 0;
-				AudioManager.ALFunc(() => AL.SourceUnqueueBuffer (sourceId));
+				AudioManager.ALFunc(() => { bid = AL.SourceUnqueueBuffer(sourceId);});
 				if (bid != 0 && !finished) {
 					byte[] buffer;
 					finished = !BufferNeeded (this, out buffer);
-					if (!finished) {
-						AudioManager.ALFunc(() => 
-							AL.BufferData (bid, bufferFormat, buffer, buffer.Length, sampleRate)
+					if (!finished)
+					{
+						AudioManager.ALFunc(() =>
+							AL.BufferData(bid, bufferFormat, buffer, buffer.Length, sampleRate)
 						);
-						AudioManager.ALFunc(() => 
-							AL.SourceQueueBuffer (sourceId, bid)
+						AudioManager.ALFunc(() =>
+							AL.SourceQueueBuffer(sourceId, bid)
 						);
 					}
 				}
@@ -102,9 +103,10 @@ namespace LibreLancer.Media
 			if (state == ALSourceState.Stopped && !finished) {
 				AudioManager.ALFunc(() => AL.SourcePlay (sourceId));
 			}
+
 			//are we finished?
 			if (finished && state == ALSourceState.Stopped) {
-				device.Remove (this);
+				manager.Remove (this);
 				currentState = PlayState.Stopped;
 				threadRunning = false;
 				Empty ();
@@ -129,11 +131,11 @@ namespace LibreLancer.Media
 					AudioManager.ALFunc (() =>
 						AL.SourceQueueBuffer (sourceId, bufferIds [i])
 					);
-					AudioManager.ALFunc (() =>
-						AL.SourcePlay (sourceId)
-					);
 				}
-				device.Add (this);
+				AudioManager.ALFunc(() =>
+					   AL.SourcePlay(sourceId)
+				);
+				manager.Add (this);
 				threadRunning = true;
 			}
 			currentState = PlayState.Playing;
@@ -154,7 +156,7 @@ namespace LibreLancer.Media
 			while (threadRunning)
 				;
 			AL.SourceStop (sourceId);
-			device.Remove (this);
+			manager.Remove (this);
 			Empty ();
 		}
 
@@ -200,7 +202,7 @@ namespace LibreLancer.Media
 		{
 			Stop ();
 			AL.DeleteBuffers (bufferIds);
-			AL.DeleteSource (sourceId);
+			manager.RelinquishSourceStreaming(sourceId);
 		}
 	}
 }

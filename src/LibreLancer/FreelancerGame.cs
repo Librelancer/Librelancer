@@ -28,7 +28,6 @@ namespace LibreLancer
     {
 		public LegacyGameData GameData;
 		public AudioManager Audio;
-		//public MusicPlayer Music;
 		public ResourceManager ResourceManager;
 		public RenderState RenderState;
 		public Renderer2D Renderer2D;
@@ -57,13 +56,12 @@ namespace LibreLancer
 				Input.MouseX = e.X;
 				Input.MouseY = e.Y;
 			};
-			FLLog.Info("Platform", Platform.RunningOS.ToString() + (IntPtr.Size == 4 ? "32-bit" : "64-bit"));
+			FLLog.Info("Platform", Platform.RunningOS.ToString() + (IntPtr.Size == 4 ? " 32-bit" : " 64-bit"));
 			//Cache
 			ResourceManager = new ResourceManager(this);
 			//Init Audio
-			//FLLog.Info("Audio", "Initialising Audio");
-			//Audio = new AudioDevice();
-			//Music = new MusicPlayer (Audio);
+			FLLog.Info("Audio", "Initialising Audio");
+			Audio = new AudioManager();
 			//Load data
 			FLLog.Info("Game", "Loading game data");
 			new Thread (() => {
@@ -111,8 +109,8 @@ namespace LibreLancer
 
 		protected override void OnClosing (System.ComponentModel.CancelEventArgs e)
 		{
-			//Music.Stop ();
-			//Audio.Dispose ();
+			Audio.Music.Stop ();
+			Audio.Dispose ();
 			base.OnClosing (e);
 		}
 
