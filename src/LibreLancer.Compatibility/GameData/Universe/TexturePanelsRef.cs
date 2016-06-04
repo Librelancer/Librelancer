@@ -15,7 +15,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 				case "file":
 					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 					if (File != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					File = e[0].ToString();
+					File = gameData.Freelancer.DataPath + e[0].ToString();
 					break;
 				default: throw new Exception("Invalid Entry in " + section.Name + ": " + e.Name);
 				}

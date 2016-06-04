@@ -78,6 +78,13 @@ namespace LibreLancer
 				z.Nickname = zne.Nickname;
 				z.EdgeFraction = zne.EdgeFraction ?? 0.25f;
 				z.Position = zne.Pos.Value;
+				if (zne.Rotate != null)
+				{
+					var r = zne.Rotate.Value;
+					z.Rotation = Matrix4.CreateRotationX(r.X) * Matrix4.CreateRotationY(r.Y) * Matrix4.CreateRotationZ(r.Z);
+				}
+				else
+					z.Rotation = Matrix4.Identity;
 				switch (zne.Shape.Value) {
 				case Legacy.Universe.ZoneShape.ELLIPSOID:
 					z.Shape = new GameData.ZoneEllipsoid (
@@ -86,14 +93,29 @@ namespace LibreLancer
 						zne.Size.Value.Z
 					);
 					break;
+				case Legacy.Universe.ZoneShape.SPHERE:
+					z.Shape = new GameData.ZoneSphere(
+						zne.Size.Value.X
+					);
+					break;
 				}
 				sys.Zones.Add (z);
 			}
-			foreach (var nbl in legacy.Nebulae) {
-				var n = new GameData.Nebula ();
-				n.Zone = sys.Zones.Where ((z) => z.Nickname.ToLower () == nbl.ZoneName.ToLower ()).First ();
+			if (legacy.Nebulae != null)
+			{
+				foreach (var nbl in legacy.Nebulae)
+				{
+					var n = new GameData.Nebula();
+					n.Zone = sys.Zones.Where((z) => z.Nickname.ToLower() == nbl.ZoneName.ToLower()).First();
+					var panels = new Legacy.Universe.TexturePanels(nbl.TexturePanels.File);
+					foreach(var txmfile in panels.Files)
+						resource.LoadTxm(Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + txmfile));
+					n.ExteriorFill = nbl.ExteriorFillShape;
+					n.ExteriorColor = nbl.ExteriorColor ?? Color4.White;
+					n.FogColor = nbl.FogColor ?? Color4.Black;
 
-				sys.Nebulae.Add (n);
+					sys.Nebulae.Add(n);
+			}
 			}
 			return sys;
 		}

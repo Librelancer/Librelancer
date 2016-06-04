@@ -14,13 +14,16 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-
+using LibreLancer.Utf.Mat;
+using OpenTK.Graphics;
 namespace LibreLancer.GameData
 {
 	public class Nebula
 	{
 		public Zone Zone;
-
+		public string ExteriorFill;
+		public Color4 ExteriorColor;
+		public Color4 FogColor;
 	}
 }
 

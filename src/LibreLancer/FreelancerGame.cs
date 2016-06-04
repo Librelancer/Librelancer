@@ -33,6 +33,7 @@ namespace LibreLancer
 		public Renderer2D Renderer2D;
 		public InputManager Input;
 		public Billboards Billboards;
+		public NebulaVertices Nebulae;
 		ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
 		int uithread;
 		GameState currentState;
@@ -103,6 +104,7 @@ namespace LibreLancer
 			RenderState = new RenderState ();
 			Renderer2D = new Renderer2D(RenderState);
 			Billboards = new Billboards ();
+			Nebulae = new NebulaVertices();
 			var vp = new ViewportManager ();
 			vp.Push (0, 0, Width, Height);
         }

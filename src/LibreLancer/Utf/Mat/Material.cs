@@ -409,6 +409,31 @@ namespace LibreLancer.Utf.Mat
 						m2.Dm1Flags = (SamplerFlags)Dm1Flags;
 					}
 					break;
+				case "IllumDetailMapMaterial":
+					var ilm = new IllumDetailMapMaterial();
+					_rmat = ilm;
+					ilm.Dc = Dc;
+					ilm.Ac = Ac;
+					ilm.TileRate0 = TileRate0;
+					ilm.TileRate1 = TileRate1;
+					ilm.FlipU = FlipU;
+					ilm.FlipV = FlipV;
+					if (Dt != null)
+					{
+						ilm.DtSampler = Dt.Texture;
+						ilm.DtFlags = (SamplerFlags)DtFlags;
+					}
+					if (Dm0 != null)
+					{
+						ilm.Dm0Sampler = Dm0.Texture;
+						ilm.Dm0Flags = (SamplerFlags)Dm0Flags;
+					}
+					if (Dm1 != null)
+					{
+						ilm.Dm1Sampler = Dm1.Texture;
+						ilm.Dm1Flags = (SamplerFlags)Dm1Flags;
+					}
+					break;
 				case "DetailMap2Dm1Msk2PassMaterial":
 					var dm2p = new DetailMap2Dm1Msk2PassMaterial ();
 					_rmat = dm2p;

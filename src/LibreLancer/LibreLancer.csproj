@@ -211,6 +211,10 @@
     <Compile Include="Infocards\InfocardNode.cs" />
     <Compile Include="Infocards\InfocardTextNode.cs" />
     <Compile Include="Infocards\InfocardParagraphNode.cs" />
+    <Compile Include="Render\NebulaVertices.cs" />
+    <Compile Include="GameData\ZoneSphere.cs" />
+    <Compile Include="PrimitiveMath.cs" />
+    <Compile Include="Render\Materials\IllumDetailMapMaterial.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />
@@ -232,6 +236,9 @@
     <EmbeddedResource Include="Shaders\Billboard.vs" />
     <EmbeddedResource Include="Shaders\Billboard.gs" />
     <EmbeddedResource Include="Shaders\Billboard.frag" />
+    <EmbeddedResource Include="Shaders\NebulaInterior.vs" />
+    <EmbeddedResource Include="Shaders\NebulaInterior.frag" />
+    <EmbeddedResource Include="Shaders\IllumDetailMapMaterial.frag" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

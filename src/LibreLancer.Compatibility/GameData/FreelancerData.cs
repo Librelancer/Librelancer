@@ -5,6 +5,7 @@ using LibreLancer.Compatibility.GameData.Solar;
 using LibreLancer.Compatibility.GameData.Characters;
 using LibreLancer.Compatibility.GameData.Universe;
 using LibreLancer.Compatibility.GameData.Ships;
+using LibreLancer.Compatibility.GameData.Audio;
 
 namespace LibreLancer.Compatibility.GameData
 {
@@ -23,6 +24,7 @@ namespace LibreLancer.Compatibility.GameData
 		public CostumesIni Costumes;
 		public UniverseIni Universe;
 		public ShiparchIni Ships;
+		public AudioIni Audio;
 		public bool Loaded = false;
 		public FreelancerData (FreelancerIni fli)
 		{
@@ -55,6 +57,10 @@ namespace LibreLancer.Compatibility.GameData
 			Ships = new ShiparchIni();
 			foreach (var shp in Freelancer.ShiparchPaths)
 				Ships.AddShiparchIni (shp, this);
+			//Audio
+			Audio = new AudioIni();
+			foreach (var snd in Freelancer.SoundPaths)
+				Audio.AddIni(snd, Freelancer);
 			Loaded = true;
 		}
 	}

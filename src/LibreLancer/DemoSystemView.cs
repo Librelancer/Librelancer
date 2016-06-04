@@ -43,7 +43,7 @@ Position: (X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00})
 		public DemoSystemView (FreelancerGame g) : base(g)
 		{
 			FLLog.Info ("Game", "Starting System Viewer Demo");
-			sys = g.GameData.GetSystem ("Li01");
+			sys = g.GameData.GetSystem ("li01");
 			camera = new DebugCamera (g.Viewport);
 			camera.Zoom = 5000;
 			sysrender = new SystemRenderer (camera, g.GameData, g.ResourceManager);

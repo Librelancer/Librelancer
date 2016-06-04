@@ -33,6 +33,7 @@ namespace LibreLancer
 
 		public List<SunRenderer> Suns { get; private set; }
 		public List<ModelRenderer> Models { get; private set; }
+		public List<NebulaRenderer> Nebulae { get; private set; }
 
 		private StarSystem starSystem;
 		public StarSystem StarSystem
@@ -45,6 +46,7 @@ namespace LibreLancer
 		Lighting systemLighting;
 		ResourceManager cache;
 		RenderState rstate;
+		FreelancerGame game;
 		public SystemRenderer (ICamera camera, LegacyGameData data,ResourceManager rescache)
 		{
 			this.camera = camera;
@@ -99,11 +101,12 @@ namespace LibreLancer
 					Models.Add (m);
 				}
 			}
-			/*if (system.Nebulae != null) {
+			Nebulae = new List<NebulaRenderer>();
+			if (system.Nebulae != null) {
 				foreach (var n in system.Nebulae) {
-					Nebulae.Add (new NebulaRenderer (n, cache, camera, data));
+					Nebulae.Add(new NebulaRenderer(n, camera, cache.Game));
 				}
-			}*/
+			}
 			systemLighting = new Lighting ();
 			systemLighting.Ambient = system.AmbientColor;
 			systemLighting.Lights = system.LightSources;
@@ -117,21 +120,54 @@ namespace LibreLancer
 			for (int i = 0; i < Suns.Count; i++) Suns[i].Update(elapsed);
 			for (int i = 0; i < Models.Count; i++) Models[i].Update(elapsed);
 		}
-
+		NebulaRenderer CheckNebulae()
+		{
+			for (int i = 0; i < Nebulae.Count; i++)
+			{
+				var n = Nebulae[i];
+				if (n.Nebula.Zone.Shape.ContainsPoint(
+					n.Nebula.Zone.Position,
+					camera.Position
+				))
+					return n;
+			}
+			return null;
+		}
 		public void Draw()
 		{
-			rstate.ClearColor = starSystem.BackgroundColor;
-			rstate.ClearAll ();
+			NebulaRenderer nr = CheckNebulae(); //are we in a nebula?
+			bool transitioned = false;
+			if (nr != null)
+				transitioned = nr.FogTransitioned();
 			rstate.DepthEnabled = true;
-			//StarSphere
-			for (int i = 0; i < starSphereModels.Length; i++)
+			if (transitioned)
 			{
-				starSphereModels [i].Draw (rstate, Matrix4.CreateTranslation(camera.Position), new Lighting ());
+				//Fully in fog. Skip Starsphere
+				rstate.ClearColor = nr.Nebula.FogColor;
+				rstate.ClearAll();
+			}
+			else
+			{
+				rstate.ClearColor = starSystem.BackgroundColor;
+				rstate.ClearAll();
+				//Starsphere
+				for (int i = 0; i < starSphereModels.Length; i++)
+				{
+					starSphereModels[i].Draw(rstate, Matrix4.CreateTranslation(camera.Position), new Lighting());
+				}
+				//Render fog transition: if any
+				if (nr != null)
+				{
+					rstate.DepthEnabled = false;
+					nr.RenderFogTransition();
+					rstate.DepthEnabled = true;
+				}
 			}
 			//Clear depth buffer for game objects
 			rstate.ClearDepth();
 			for (int i = 0; i < Models.Count; i++) Models[i].Draw(rstate, systemLighting);
 			for (int i = 0; i < Suns.Count; i++) Suns[i].Draw(rstate, systemLighting);
+			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Draw(systemLighting);
 		}
 	}
 }

@@ -14,12 +14,15 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-
+using OpenTK;
 namespace LibreLancer.GameData
 {
 	public abstract class ZoneShape
 	{
-		
+		public abstract bool Intersects(Vector3 position, BoundingBox box);
+		public abstract bool ContainsPoint(Vector3 position, Vector3 point);
+		public abstract float ScaledDistance(Vector3 position, Vector3 point);
+		public abstract ZoneShape Scale(float scale);
 	}
 }
 

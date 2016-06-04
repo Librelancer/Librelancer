@@ -77,7 +77,6 @@ namespace LibreLancer
 
 		BlendMode blend = BlendMode.Normal;
 		bool blendDirty = false;
-		bool blendEnabled = true;
 
 		public RenderState ()
 		{
@@ -122,7 +121,7 @@ namespace LibreLancer
 			}
 
 			if (blendDirty) {
-				if (blendEnabled && blend == BlendMode.Opaque)
+				/*if (blendEnabled && blend == BlendMode.Opaque)
 					GL.Disable (EnableCap.Blend);
 				if (!blendEnabled && blend != BlendMode.Opaque)
 					GL.Enable (EnableCap.Blend);
@@ -130,7 +129,21 @@ namespace LibreLancer
 				if(blend == BlendMode.Additive)
 					GL.BlendFunc (BlendingFactorSrc.SrcAlpha, BlendingFactorDest.One);
 				if(blend == BlendMode.Normal)
-					GL.BlendFunc (BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+					GL.BlendFunc (BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);*/
+				switch (blend)
+				{
+					case BlendMode.Normal:
+						GL.Enable(EnableCap.Blend);
+						GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+						break;
+					case BlendMode.Opaque:
+						GL.Disable(EnableCap.Blend);
+						break;
+					case BlendMode.Additive:
+						GL.Enable(EnableCap.Blend);
+						GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.One);
+						break;
+				}
 				blendDirty = false;
 			}
 		}

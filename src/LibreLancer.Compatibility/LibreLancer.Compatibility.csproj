@@ -133,6 +133,9 @@
     <Compile Include="BinaryReaderExtensions.cs" />
     <Compile Include="GameData\Ships\ShiparchIni.cs" />
     <Compile Include="GameData\Ships\Ship.cs" />
+    <Compile Include="GameData\Audio\AudioEntry.cs" />
+    <Compile Include="GameData\Audio\AudioIni.cs" />
+    <Compile Include="GameData\Audio\AudioType.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -141,6 +144,7 @@
     <Folder Include="Dll\" />
     <Folder Include="Exceptions\" />
     <Folder Include="GameData\Ships\" />
+    <Folder Include="GameData\Audio\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

@@ -24,24 +24,30 @@ namespace LibreLancer.Compatibility.GameData.Universe
 {
 	public class TexturePanels : IniFile
 	{
-		public string File { get; private set; }
-		public string TextureShape { get; private set; }
+		public List<string> Files { get; private set; }
+		public List<string> TextureShapes { get; private set; }
 		public Dictionary<string,TextureShape> Shapes { get; private set; }
 
 		public TexturePanels(string filename)
 		{
 			var parsed = ParseFile (filename);
-			if (parsed.Count != 1)
-				throw new Exception ("Shape ini must have ONE section");
-			if (parsed [0].Name != "Texture")
-				throw new Exception (string.Format ("Expected [Texture], got [{0}]", parsed [0].Name));
-			Init (parsed [0]);
+
+			Shapes = new Dictionary<string, TextureShape>();
+			Files = new List<string>();
+			TextureShapes = new List<string>();
+			foreach (var s in parsed)
+			{
+				if (s.Name.ToUpperInvariant() != "TEXTURE")
+					throw new Exception("Invalid section " + s.Name + " in " + filename);
+				Add(s);
+			}
 		}
 
-		void Init(Section section)
+		void Add(Section section)
 		{
-			Shapes = new Dictionary<string,TextureShape> ();
+			
 			string current_texname = null;
+			string f = null;
 			for (int i = 0; i < section.Count; i++)
 			{
 				Entry e = section [i];
@@ -49,8 +55,9 @@ namespace LibreLancer.Compatibility.GameData.Universe
 				{
 				case "file":
 					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (File != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					File = e[0].ToString();
+					if (f != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+					Files.Add(e[0].ToString());
+					f = e[0].ToString();
 					break;
 				case "texture_name":
 					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
@@ -58,11 +65,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 					break;
 				case "tex_shape":
 					//TODO: I have no idea what this value does - Callum
-					if (e.Count != 1)
-						throw new Exception ("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (TextureShape != null)
-						throw new Exception ("Already have tex_shape entry");
-					TextureShape = e [0].ToString ();
+					TextureShapes.Add(e[0].ToString());
 					break;
 				case "shape_name":
 					if (e.Count != 1)
@@ -95,7 +98,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 
 		public override string ToString()
 		{
-			return File;
+			return "TextureShapes";
 		}
 	}
 }

@@ -15,6 +15,7 @@ namespace LibreLancer.Compatibility.GameData
 		public List<string> EquipmentPaths { get; private set; }
 		public List<string> LoadoutPaths { get; private set; }
 		public List<string> ShiparchPaths { get; private set; }
+		public List<string> SoundPaths { get; private set; }
 		public string StarsPath { get; private set; }
 		public string BodypartsPath { get; private set; }
 		public string CostumesPath { get; private set; }
@@ -24,6 +25,7 @@ namespace LibreLancer.Compatibility.GameData
 			EquipmentPaths = new List<string> ();
 			LoadoutPaths = new List<string> ();
 			ShiparchPaths = new List<string> ();
+			SoundPaths = new List<string>();
 			foreach (Section s in ParseFile("EXE\\freelancer.ini")) {
 				switch (s.Name.ToLowerInvariant ()) {
 				case "freelancer":
@@ -79,6 +81,9 @@ namespace LibreLancer.Compatibility.GameData
 							break;
 						case "costumes":
 							CostumesPath = DataPath + e [0];
+							break;
+						case "sounds":
+							SoundPaths.Add(DataPath + e[0]);
 							break;
 						case "ships":
 							ShiparchPaths.Add (DataPath + e [0].ToString ());

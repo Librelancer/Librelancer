@@ -14,35 +14,32 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using System.Linq;
-namespace LibreLancer.Fx
+using OpenTK;
+namespace LibreLancer.GameData
 {
-	public class ParticleEffectInstance
+	public class ZoneSphere : ZoneShape
 	{
-		const int PARTICLES_LIMIT = 1024;
-
-		public Particle[] Particles;
-		public ParticleEffect Effect;
-
-		public ParticleEffectInstance (ParticleEffect fx)
+		public float Radius;
+		public ZoneSphere(float r)
 		{
-			Effect = fx;
-			int emitterCount = 0;
-			foreach (var node in Effect.Nodes) {
-				if (node is FxEmitter)
-					emitterCount++;
-			}
-			Particles = new Particle[PARTICLES_LIMIT * emitterCount];
+			Radius = r;
 		}
-
-		public void Update(TimeSpan delta)
+		public override bool Intersects(Vector3 position, BoundingBox box)
 		{
-
+			var sph = new BoundingSphere(position, Radius);
+			return sph.Intersects(box);
 		}
-
-		public void Draw(RenderState rstate)
+		public override bool ContainsPoint(Vector3 position, Vector3 point)
 		{
-
+			return new BoundingSphere(position, Radius).Contains(point) != ContainmentType.Disjoint;
+		}
+		public override ZoneShape Scale(float scale)
+		{
+			return new ZoneSphere(Radius * scale);
+		}
+		public override float ScaledDistance(Vector3 position, Vector3 point)
+		{
+			return VectorMath.Distance(position, point) / Radius;
 		}
 	}
 }

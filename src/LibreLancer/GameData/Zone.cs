@@ -21,6 +21,7 @@ namespace LibreLancer.GameData
 	{
 		public string Nickname;
 		public Vector3 Position;
+		public Matrix4 Rotation;
 		public ZoneShape Shape;
 		public float EdgeFraction;
 
