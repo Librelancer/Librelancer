@@ -52,6 +52,7 @@ namespace LibreLancer
 			var sys = new GameData.StarSystem ();
 			sys.AmbientColor = legacy.AmbientColor ?? Color4.White;
 			sys.Name = legacy.StridName;
+			sys.Id = legacy.Nickname;
 			sys.BackgroundColor = legacy.SpaceColor ?? Color4.Black;
 			if(legacy.BackgroundBasicStarsPath != null)
 				sys.StarsBasic = resource.GetDrawable (legacy.BackgroundBasicStarsPath);
@@ -73,6 +74,7 @@ namespace LibreLancer
 			foreach (var obj in legacy.Objects) {
 				sys.Objects.Add (GetSystemObject (obj));
 			}
+			if(legacy.Zones != null)
 			foreach (var zne in legacy.Zones) {
 				var z = new GameData.Zone ();
 				z.Nickname = zne.Nickname;

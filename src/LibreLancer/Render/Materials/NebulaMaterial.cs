@@ -34,6 +34,11 @@ namespace LibreLancer
 					"Basic_PositionColorTexture.vs",
 					"Nebula_PositionColorTexture.frag"
 				);
+			case "VertexPositionTexture":
+				return ShaderCache.Get(
+					"Basic_PositionTexture.vs",
+					"Nebula_PositionColorTexture.frag"
+				);
 			default:
 				throw new NotImplementedException ();
 			}

@@ -27,10 +27,11 @@ namespace LibreLancer
 	{
 		const string DEMO_TEXT =
 @"SYSTEM VIEWER DEMO
+{3} ({4})
 Controls:
 WSAD - Move
 Arrow Keys - Rotate Camera
-Escape - Exit
+Tab - Switch System
 Position: (X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00})
 ";
 		private const float ROTATION_SPEED = 1f;
@@ -40,6 +41,8 @@ Position: (X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00})
 		bool wireframe = false;
 		Renderer2D trender;
 		Font font;
+		bool textEntry = false;
+		string currentText = "";
 		public DemoSystemView (FreelancerGame g) : base(g)
 		{
 			FLLog.Info ("Game", "Starting System Viewer Demo");
@@ -49,63 +52,121 @@ Position: (X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00})
 			sysrender = new SystemRenderer (camera, g.GameData, g.ResourceManager);
 			sysrender.StarSystem = sys;
 			camera.UpdateProjection ();
-			Game.KeyPress += (object sender, OpenTK.KeyPressEventArgs e) => {
-				if(e.KeyChar == 'p') {
-					wireframe = !wireframe;
-					if(wireframe) {
-						GL.PolygonMode (MaterialFace.FrontAndBack, PolygonMode.Line);
-					} else {
-						GL.PolygonMode (MaterialFace.FrontAndBack, PolygonMode.Fill);
-					}
-				}
-			};
+
 			trender = new Renderer2D (Game.RenderState);
 			font = Font.FromSystemFont (trender, "Agency FB", 16);
-
+			g.KeyPress += HandleKeyPress;
+			g.KeyDown += HandleKeyDown;
 		}
 
 		public override void Update (TimeSpan delta)
 		{
-			if (Game.Keyboard [Key.Right]) {
-				camera.Rotation = new Vector2 (camera.Rotation.X - (ROTATION_SPEED * (float)delta.TotalSeconds),
-					camera.Rotation.Y);
-			}
-			if (Game.Keyboard [Key.Left]) {
-				camera.Rotation = new Vector2 (camera.Rotation.X + (ROTATION_SPEED * (float)delta.TotalSeconds),
-					camera.Rotation.Y);
-			}
-			if (Game.Keyboard [Key.Up]) {
-				camera.Rotation = new Vector2 (camera.Rotation.X,
-					camera.Rotation.Y  + (ROTATION_SPEED * (float)delta.TotalSeconds));
-			}
-			if (Game.Keyboard [Key.Down]) {
-				camera.Rotation = new Vector2 (camera.Rotation.X,
-					camera.Rotation.Y  - (ROTATION_SPEED * (float)delta.TotalSeconds));
-			}
-			if (Game.Keyboard [Key.W]) {
-				camera.MoveVector = VectorMath.Forward;
-			}
-			if (Game.Keyboard [Key.S]) {
-				camera.MoveVector = VectorMath.Backward;
-			}
-			if (Game.Keyboard [Key.A]) {
-				camera.MoveVector = VectorMath.Left;
-			}
-			if (Game.Keyboard [Key.D]) {
-				camera.MoveVector = VectorMath.Right;
-			}
-			if (Game.Keyboard [Key.Escape]) {
-				Game.Exit ();
+			if (!textEntry)
+				ProcessInput(delta);
+			else
+			{
+				if (Game.Keyboard[Key.Enter])
+				{
+					textEntry = false;
+					sys = Game.GameData.GetSystem(currentText.Trim());
+					sysrender.StarSystem = sys;
+					camera.Free = false;
+					camera.Update(TimeSpan.FromSeconds(1));
+					camera.Free = true;
+				}
+				if (Game.Keyboard[Key.Escape])
+					textEntry = false;
+				
 			}
 			camera.Update (delta);
 			camera.Free = true;
 			sysrender.Update (delta);
 		}
+		void HandleKeyDown(object sender, KeyboardKeyEventArgs e)
+		{
+			if (e.Key == Key.BackSpace && textEntry)
+			{
+				if (currentText.Length > 0)
+				{
+					currentText = currentText.Substring(0, currentText.Length - 1);
+				}
+			}
+		}
+		void HandleKeyPress(object sender, KeyPressEventArgs e)
+		{
+			if (textEntry)
+			{
+				currentText += e.KeyChar;
+				return;
+			}
+			if (e.KeyChar == 'p')
+			{
+				wireframe = !wireframe;
+				if (wireframe)
+				{
+					GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+				}
+				else
+				{
+					GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+				}
+			}
+		}
+		void ProcessInput(TimeSpan delta)
+		{
+			if (Game.Keyboard[Key.Tab])
+			{
+				currentText = "";
+				textEntry = true;
+				return;
+			}
+			if (Game.Keyboard[Key.Right])
+			{
+				camera.Rotation = new Vector2(camera.Rotation.X - (ROTATION_SPEED * (float)delta.TotalSeconds),
+					camera.Rotation.Y);
+			}
+			if (Game.Keyboard[Key.Left])
+			{
+				camera.Rotation = new Vector2(camera.Rotation.X + (ROTATION_SPEED * (float)delta.TotalSeconds),
+					camera.Rotation.Y);
+			}
+			if (Game.Keyboard[Key.Up])
+			{
+				camera.Rotation = new Vector2(camera.Rotation.X,
+					camera.Rotation.Y + (ROTATION_SPEED * (float)delta.TotalSeconds));
+			}
+			if (Game.Keyboard[Key.Down])
+			{
+				camera.Rotation = new Vector2(camera.Rotation.X,
+					camera.Rotation.Y - (ROTATION_SPEED * (float)delta.TotalSeconds));
+			}
+			if (Game.Keyboard[Key.W])
+			{
+				camera.MoveVector = VectorMath.Forward;
+			}
+			if (Game.Keyboard[Key.S])
+			{
+				camera.MoveVector = VectorMath.Backward;
+			}
+			if (Game.Keyboard[Key.A])
+			{
+				camera.MoveVector = VectorMath.Left;
+			}
+			if (Game.Keyboard[Key.D])
+			{
+				camera.MoveVector = VectorMath.Right;
+			}
+		}
+
 		public override void Draw (TimeSpan delta)
 		{
 			sysrender.Draw ();
 			trender.Start (Game.Width, Game.Height);
-			DrawShadowedText (string.Format(DEMO_TEXT,camera.Position.X, camera.Position.Y, camera.Position.Z), 5, 5);
+			DrawShadowedText (string.Format(DEMO_TEXT,camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name), 5, 5);
+			if (textEntry)
+			{
+				DrawShadowedText("Change System (Esc to cancel): " + currentText, 5, 200);
+			}
 			trender.Finish ();
 		}
 
