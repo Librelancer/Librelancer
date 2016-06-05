@@ -67,7 +67,13 @@ namespace LibreLancer.Primitives
                 VertexBuffer.SetElementBuffer(ElementBuffer);
             }
         }
-
+		public void Update(Vector3[] corners)
+		{
+			VertexPositionColor[] vertices = new VertexPositionColor[VERTEX_COUNT];
+			for (int i = 0; i < VERTEX_COUNT; i++)
+				vertices[i] = new VertexPositionColor(corners[i], Color4.White);
+			VertexBuffer.SetData<VertexPositionColor>(vertices);
+		}
         private void setUpBoxFromCorners(Vector3[] corners)
         {
             VertexPositionColor[] vertices = new VertexPositionColor[VERTEX_COUNT];

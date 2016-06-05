@@ -59,19 +59,21 @@ namespace LibreLancer
 		{
 			if (Model != null) {
 				if (Model.Levels.ContainsKey (0)) {
-					var bbox = Model.Levels [0].BoundingBox;
-					bbox.Max = VectorMath.Transform (bbox.Max, World);
-					bbox.Min = VectorMath.Transform (bbox.Min, World);
-					if (camera.Frustum.Intersects (bbox))
+					var bsphere = new BoundingSphere(
+						VectorMath.Transform(Model.Levels[0].Center, World),
+						Model.Levels[0].Radius
+					);
+					if (camera.Frustum.Intersects (bsphere))
 						Model.Draw (rstate, World, lights);
 				}
 			} else if (Cmp != null) {
 				foreach (ModelFile model in Cmp.Models.Values)
 					if (model.Levels.ContainsKey (0)) {
-						var bbox = model.Levels [0].BoundingBox;
-						bbox.Max = VectorMath.Transform (bbox.Max, World);
-						bbox.Min = VectorMath.Transform (bbox.Min, World);
-						if (camera.Frustum.Intersects (bbox)) {
+						var bsphere = new BoundingSphere(
+							VectorMath.Transform(model.Levels[0].Center, World),
+							model.Levels[0].Radius
+						);
+						if (camera.Frustum.Intersects (bsphere)) {
 							Cmp.Draw (rstate, World, lights);
 							break;
 						}
