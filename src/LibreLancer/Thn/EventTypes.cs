@@ -22,7 +22,11 @@ namespace LibreLancer
 		SetCamera,
 		AttachEntity,
 		StartSpatialPropAnim,
-		StartPSys
+		StartPSys,
+		StartPSysPropAnim,
+		StartPathAnimation,
+		StartMotion,
+		StartFogPropAnim
 	}
 }
 

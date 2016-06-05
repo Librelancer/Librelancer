@@ -40,7 +40,7 @@ namespace LibreLancer.Compatibility.GameData.Audio
 						case "file":
 							if (au.File != null)
 								throw new Exception("Invalid file entry in " + path);
-							au.File = VFS.GetPath(ini.DataPath + e[0].ToString());
+							au.File = e[0].ToString();
 							break;
 						case "crv_pitch":
 							au.CrvPitch = e[0].ToInt32();

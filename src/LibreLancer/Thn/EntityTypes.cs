@@ -23,7 +23,10 @@ namespace LibreLancer
 		Scene,
 		Monitor,
 		PSys,
-		Marker
+		Marker,
+		Compound,
+		Light,
+		MotionPath
 	}
 }
 

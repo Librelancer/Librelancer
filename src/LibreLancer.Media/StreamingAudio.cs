@@ -79,8 +79,8 @@ namespace LibreLancer.Media
 			}
 
 			//load buffers
-			int processed_count;
-			AL.GetSource (sourceId, ALGetSourcei.BuffersProcessed, out processed_count);
+			int processed_count = 0;
+			AudioManager.ALFunc(() => AL.GetSource(sourceId, ALGetSourcei.BuffersProcessed, out processed_count));
 			while (processed_count > 0) {
 				int bid = 0;
 				AudioManager.ALFunc(() => { bid = AL.SourceUnqueueBuffer(sourceId);});
@@ -155,7 +155,7 @@ namespace LibreLancer.Media
 			currentState = PlayState.Stopped;
 			while (threadRunning)
 				;
-			AL.SourceStop (sourceId);
+			AudioManager.ALFunc(() => AL.SourceStop(sourceId));
 			manager.Remove (this);
 			Empty ();
 		}
@@ -192,6 +192,7 @@ namespace LibreLancer.Media
 					Empty();
 				}
 			}
+			AudioManager.ALFunc(() => AL.Source(sourceId, ALSourcei.Buffer, 0));
 		}
 		public PlayState GetState ()
 		{
@@ -201,7 +202,7 @@ namespace LibreLancer.Media
 		public void Dispose ()
 		{
 			Stop ();
-			AL.DeleteBuffers (bufferIds);
+			AudioManager.ALFunc(() => AL.DeleteBuffers(bufferIds));
 			manager.RelinquishSourceStreaming(sourceId);
 		}
 	}

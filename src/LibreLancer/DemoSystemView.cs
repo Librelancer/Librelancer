@@ -51,6 +51,7 @@ Position: (X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00})
 			camera.Zoom = 5000;
 			sysrender = new SystemRenderer (camera, g.GameData, g.ResourceManager);
 			sysrender.StarSystem = sys;
+			g.Sound.PlayMusic(sys.MusicSpace);
 			camera.UpdateProjection ();
 
 			trender = new Renderer2D (Game.RenderState);
@@ -73,6 +74,7 @@ Position: (X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00})
 					camera.Free = false;
 					camera.Update(TimeSpan.FromSeconds(1));
 					camera.Free = true;
+					Game.Sound.PlayMusic(sys.MusicSpace);
 				}
 				if (Game.Keyboard[Key.Escape])
 					textEntry = false;

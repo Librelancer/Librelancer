@@ -28,6 +28,7 @@ namespace LibreLancer
     {
 		public LegacyGameData GameData;
 		public AudioManager Audio;
+		public SoundManager Sound;
 		public ResourceManager ResourceManager;
 		public RenderState RenderState;
 		public Renderer2D Renderer2D;
@@ -69,6 +70,7 @@ namespace LibreLancer
 			GameData = new LegacyGameData(config.FreelancerPath, ResourceManager);
 			new Thread(() => {
 				GameData.LoadData();
+				Sound = new SoundManager(GameData, Audio);
 				FLLog.Info("Game", "Finished loading game data");
 				QueueUIThread(Switch);
 			}).Start ();

@@ -14,6 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using OpenTK;
 using OpenTK.Graphics;
@@ -24,6 +25,7 @@ namespace LibreLancer
 	{
 		Legacy.FreelancerData fldata;
 		ResourceManager resource;
+		List<GameData.IntroScene> IntroScenes;
 		public LegacyGameData (string path, ResourceManager resman)
 		{
 			resource = resman;
@@ -35,6 +37,32 @@ namespace LibreLancer
 		public void LoadData()
 		{
 			fldata.LoadData();
+			IntroScenes = new List<GameData.IntroScene>();
+			foreach(var b in fldata.Universe.Bases) {
+				if (b.Nickname.StartsWith("intro", StringComparison.InvariantCultureIgnoreCase))
+				{
+					foreach (var room in b.Rooms)
+					{
+						if (room.Nickname == b.StartRoom)
+						{
+							var isc = new GameData.IntroScene();
+							isc.Music = room.Music;
+							isc.Script = new ThnScript(Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + room.SceneScript));
+							IntroScenes.Add(isc);
+						}
+					}
+				}
+			}
+		}
+		public string GetMusicPath(string id)
+		{
+			var audio = fldata.Audio.Entries.Where((arg) => arg.Nickname.ToLowerInvariant() == id.ToLowerInvariant()).First();
+			return Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + audio.File);
+		}
+		public GameData.IntroScene GetIntroScene()
+		{
+			var rand = new Random();
+			return IntroScenes[rand.Next(0, IntroScenes.Count)];
 		}
 		public void LoadInterfaceVms()
 		{
@@ -74,6 +102,7 @@ namespace LibreLancer
 			sys.Name = legacy.StridName;
 			sys.Id = legacy.Nickname;
 			sys.BackgroundColor = legacy.SpaceColor ?? Color4.Black;
+			sys.MusicSpace = legacy.MusicSpace;
 			if(legacy.BackgroundBasicStarsPath != null)
 				sys.StarsBasic = resource.GetDrawable (legacy.BackgroundBasicStarsPath);
 			if (legacy.BackgroundComplexStarsPath != null)

@@ -72,7 +72,8 @@ namespace LibreLancer.Thorn
 					{
 						var key = data.Constants [op.Argument1].Cast<string> ();
 						if (!Env.ContainsKey (key)) {
-							stack.Push (Globals [key]);
+
+								stack.Push (Globals [key]);
 						} else
 							stack.Push (Env [key]);
 						break;

@@ -25,6 +25,9 @@ namespace LibreLancer.Compatibility.GameData.Universe
 	{
 		FreelancerData GameData;
 		public string Nickname { get; private set; }
+		public string Music { get; private set; }
+		public string Scene0 { get; private set; }
+		public string SceneScript { get; private set; }
 
 		public Room(Section section, FreelancerData data)
 		{
@@ -55,10 +58,21 @@ namespace LibreLancer.Compatibility.GameData.Universe
 				switch (s.Name.ToLowerInvariant())
 				{
 				case "room_info":
-					// TODO Room room_info
+						foreach (Entry e in s)
+						{
+							if (e.Name.ToLowerInvariant() == "scene")
+							{
+								Scene0 = e[0].ToString();
+								SceneScript = e[1].ToString();
+							}
+						}
 					break;
 				case "room_sound":
-					// TODO Room room_sound
+						foreach (Entry e in s)
+						{
+							if (e.Name.ToLowerInvariant() == "music")
+								Music = e[0].ToString();
+						}
 					break;
 				case "camera":
 					// TODO Room camera

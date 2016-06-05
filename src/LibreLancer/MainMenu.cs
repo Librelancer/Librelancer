@@ -17,7 +17,7 @@ using System;
 using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Graphics;
-
+using LibreLancer.GameData;
 namespace LibreLancer
 {
 	public class MainMenu : GameState
@@ -26,6 +26,7 @@ namespace LibreLancer
 		UIManager manager;
 		string lastTag = null;
 		const double FLYIN_LENGTH = 0.6;
+		IntroScene intro;
 
 		public MainMenu (FreelancerGame g) : base (g)
 		{
@@ -41,6 +42,9 @@ namespace LibreLancer
 			manager.Elements.Add (new UIMenuButton (manager, new Vector2 (-0.65f, -0.6f), "EXIT", "exit"));
 			manager.FlyInAll(FLYIN_LENGTH, 0.05);
 			manager.Clicked += (tag) => lastTag = tag;
+
+			intro = g.GameData.GetIntroScene();
+			g.Sound.PlayMusic(intro.Music);
 		}
 
 

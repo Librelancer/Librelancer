@@ -217,6 +217,11 @@
     <Compile Include="Render\Materials\IllumDetailMapMaterial.cs" />
     <Compile Include="WeightedRandomCollection.cs" />
     <Compile Include="LoadingDataState.cs" />
+    <Compile Include="GameData\IntroScene.cs" />
+    <Compile Include="Thn\LightTypes.cs" />
+    <Compile Include="Thn\TargetTypes.cs" />
+    <Compile Include="Thn\FogModes.cs" />
+    <Compile Include="SoundManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />
