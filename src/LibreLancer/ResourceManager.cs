@@ -142,12 +142,16 @@ namespace LibreLancer
 			foreach (var tex in t.Textures) {
 				if (!textures.ContainsKey(tex.Key.ToLower()))
 				{
-					textures.Add(tex.Key.ToLower(), tex.Value);
+					var v = tex.Value;
+					v.Initialize();
+					textures.Add(tex.Key.ToLower(), v.Texture);
 					texturefiles.Add(tex.Key.ToLower(), filename);
 				}
 				else if (textures[tex.Key.ToLower()] == null)
 				{
-					textures[tex.Key.ToLower()] = tex.Value;
+					var v = tex.Value;
+					v.Initialize();
+					textures[tex.Key.ToLower()] = v.Texture;
 				}
 			}
 		}

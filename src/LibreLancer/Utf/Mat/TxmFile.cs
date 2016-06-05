@@ -25,13 +25,12 @@ using LibreLancer.Utf.Vms;
 
 namespace LibreLancer.Utf.Mat
 {
-    public class TxmFile : UtfFile, ILibFile
-    {
-        public Dictionary<string, Texture> Textures { get; private set; }
-
+	public class TxmFile : UtfFile, ILibFile
+	{
+		public Dictionary<string, TextureData> Textures { get; private set; }
         public TxmFile()
         {
-            Textures = new Dictionary<string, Texture>();
+            Textures = new Dictionary<string, TextureData>();
         }
 
         public TxmFile(string path)
@@ -69,18 +68,14 @@ namespace LibreLancer.Utf.Mat
 				TextureData data = new TextureData (child, textureNode.Name);
                 if (data == null) throw new Exception("Invalid texture library");
 
-                string key = textureNode.Name;//.ToLowerInvariant();
-				data.Initialize();
-                //if (!textures.ContainsKey(key))
-                Textures.Add(key, data.Texture);
+				string key = textureNode.Name;
+				Textures.Add(key, data);
             }
         }
 
         public Texture FindTexture(string name)
         {
-            if (Textures.ContainsKey(name)) return Textures[name];
-
-            return null;
+			return null;
         }
 
         public Material FindMaterial(uint materialId)

@@ -170,6 +170,11 @@ namespace LibreLancer.Utf.Vms
 
 		public void Initialize(ushort startMesh, int endMesh, ResourceManager cache)
 		{
+			if (VertexBuffer != null)
+			{
+				//Don't upload vmeshdata a million times to ram.
+				return;
+			}
 			GenerateVertexBuffer ();
 			for (ushort i = startMesh; i < endMesh; i++)
 			{
