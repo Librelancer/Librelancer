@@ -230,11 +230,11 @@ namespace LibreLancer.Utf.Dfm
 			}*/
 		}
 
-		public TextureData FindTexture(string name)
+		public Texture FindTexture(string name)
 		{
 			if (TextureLibrary != null)
 			{
-				TextureData texture = TextureLibrary.FindTexture(name);
+				Texture texture = TextureLibrary.FindTexture(name);
 				if (texture != null) return texture;
 			}
 			if (additionalLibrary != null) return additionalLibrary.FindTexture(name);

@@ -62,6 +62,7 @@ namespace LibreLancer
         }
         public virtual void Dispose()
         {
+			GL.DeleteTexture(ID);
             isDisposed = true;
         }
     }

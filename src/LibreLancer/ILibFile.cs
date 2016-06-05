@@ -26,7 +26,7 @@ namespace LibreLancer
 {
     public interface ILibFile
     {
-        TextureData FindTexture(string name);
+        Texture FindTexture(string name);
         Material FindMaterial(uint materialId);
         VMeshData FindMesh(uint vMeshLibId);
     }

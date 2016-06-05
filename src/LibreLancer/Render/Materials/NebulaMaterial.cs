@@ -21,7 +21,7 @@ namespace LibreLancer
 {
 	public class NebulaMaterial : RenderMaterial
 	{
-		public Texture DtSampler;
+		public string DtSampler;
 		public SamplerFlags DtFlags;
 		public NebulaMaterial ()
 		{

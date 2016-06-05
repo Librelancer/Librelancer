@@ -24,11 +24,11 @@ namespace LibreLancer
 	{
 		public Color4 Ac = Color4.White;
 		public Color4 Dc = Color4.White;
-		public Texture DtSampler;
+		public string DtSampler;
 		public SamplerFlags DtFlags;
-		public Texture Dm0Sampler;
+		public string Dm0Sampler;
 		public SamplerFlags Dm0Flags;
-		public Texture Dm1Sampler;
+		public string Dm1Sampler;
 		public SamplerFlags Dm1Flags;
 		public float TileRate0;
 		public float TileRate1;

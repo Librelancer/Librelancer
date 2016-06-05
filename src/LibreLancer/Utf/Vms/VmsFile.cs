@@ -68,7 +68,7 @@ namespace LibreLancer.Utf.Vms
             }
         }
 
-        public TextureData FindTexture(string name)
+        public Texture FindTexture(string name)
         {
             return null;
         }

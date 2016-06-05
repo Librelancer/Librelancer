@@ -29,10 +29,10 @@ namespace LibreLancer
 @"SYSTEM VIEWER DEMO
 {3} ({4})
 Controls:
-WSAD - Move
-Arrow Keys - Rotate Camera
+WSAD, Arrow Keys - Move/Rotate
 Tab - Switch System
 Position: (X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00})
+C# Memory Usage: {5}
 ";
 		private const float ROTATION_SPEED = 1f;
 		GameData.StarSystem sys;
@@ -164,12 +164,25 @@ Position: (X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00})
 		{
 			sysrender.Draw ();
 			trender.Start (Game.Width, Game.Height);
-			DrawShadowedText (string.Format(DEMO_TEXT,camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name), 5, 5);
+			DrawShadowedText (string.Format(DEMO_TEXT,camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, SizeSuffix(GC.GetTotalMemory(false))), 5, 5);
 			if (textEntry)
 			{
 				DrawShadowedText("Change System (Esc to cancel): " + currentText, 5, 200);
 			}
 			trender.Finish ();
+		}
+
+		static readonly string[] SizeSuffixes =
+				   { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+		static string SizeSuffix(Int64 value)
+		{
+			if (value < 0) { return "-" + SizeSuffix(-value); }
+			if (value == 0) { return "0.0 bytes"; }
+
+			int mag = (int)Math.Log(value, 1024);
+			decimal adjustedSize = (decimal)value / (1L << (mag * 10));
+
+			return string.Format("{0:n1} {1}", adjustedSize, SizeSuffixes[mag]);
 		}
 
 		void DrawShadowedText(string text, float x, float y)

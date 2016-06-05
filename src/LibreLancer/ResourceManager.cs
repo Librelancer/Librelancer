@@ -27,7 +27,8 @@ namespace LibreLancer
 
 		Dictionary<uint, VMeshData> meshes = new Dictionary<uint, VMeshData>();
 		Dictionary<uint, Material> materials = new Dictionary<uint, Material>();
-		Dictionary<string, TextureData> textures = new Dictionary<string, TextureData>();
+		Dictionary<string, Texture> textures = new Dictionary<string, Texture>();
+		Dictionary<string, string> texturefiles = new Dictionary<string, string>();
 
 		Dictionary<string, CmpFile> cmps = new Dictionary<string, CmpFile>();
 		Dictionary<string, ModelFile> models = new Dictionary<string, ModelFile>();
@@ -44,16 +45,68 @@ namespace LibreLancer
 
 		public bool TextureExists(string name)
 		{
-			return textures.ContainsKey(name.ToLower());
+			return texturefiles.ContainsKey(name.ToLower());
 		}
+
 		public void AddTexture(string name,string filename)
 		{
-			var dat = new TextureData(filename);
-			textures.Add(name, dat);
+			var dat = ImageLib.Generic.FromFile(filename);
+			textures.Add(name.ToLower(), dat);
+			texturefiles.Add(name.ToLower(), filename);
 		}
-		public TextureData FindTexture (string name)
+
+		public void ClearTextures()
 		{
-			return textures [name.ToLower()];
+			var keys = new string[textures.Count];
+			textures.Keys.CopyTo(keys, 0);
+			foreach (var k in keys)
+			{
+				if (textures[k] != null)
+				{
+					textures[k].Dispose();
+					textures[k] = null;
+				}
+			}
+			OpenTK.Graphics.OpenGL.GL.Finish();
+		}
+
+		public Texture FindTexture (string name)
+		{
+			if (textures[name.ToLower()] == null)
+			{
+				
+				var file = texturefiles[name.ToLower()];
+				FLLog.Debug("Resources", string.Format("Reloading {0} from {1}", name, file));
+				if (file.EndsWith(".mat"))
+				{
+					loadedMatFiles.Remove(file);
+					LoadMat(file);
+				}
+				else if (file.EndsWith(".cmp"))
+				{
+					var c = new CmpFile(file, this);
+					if (c.MaterialLibrary != null)
+						AddMaterials(c.MaterialLibrary, file);
+					AddTextures(c.TextureLibrary, file);
+				}
+				else if (file.EndsWith(".3db"))
+				{
+					var m = new ModelFile(file, this);
+					if (m.MaterialLibrary != null)
+						AddMaterials(m.MaterialLibrary, file);
+					AddTextures(m.TextureLibrary, file);
+				}
+				else if (file.EndsWith(".txm"))
+				{
+					loadedTxmFiles.Remove(file);
+					LoadTxm(file);
+				}
+				else
+				{
+					textures[name.ToLower()] = ImageLib.Generic.FromFile(file);
+				}
+			}
+			return textures[name.ToLower()];
 		}
 
 		public Material FindMaterial (uint materialId)
@@ -71,32 +124,37 @@ namespace LibreLancer
 			if (loadedMatFiles.Contains (filename))
 				return;
 			var m = new MatFile (filename, this);
-			AddMaterials (m);
+			AddMaterials(m, filename);
 			loadedMatFiles.Add (filename);
 		}
-			
+
 		public void LoadTxm(string filename)
 		{
 			if (loadedTxmFiles.Contains (filename))
 				return;
 			var t = new TxmFile (filename);
-			AddTextures (t);
+			AddTextures(t, filename);
 			loadedTxmFiles.Add (filename);
 		}
 
-		void AddTextures(TxmFile t)
+		void AddTextures(TxmFile t, string filename)
 		{
 			foreach (var tex in t.Textures) {
-				if (!textures.ContainsKey (tex.Key.ToLower())) {
-					tex.Value.Initialize ();
-					textures.Add (tex.Key.ToLower(), tex.Value);
+				if (!textures.ContainsKey(tex.Key.ToLower()))
+				{
+					textures.Add(tex.Key.ToLower(), tex.Value);
+					texturefiles.Add(tex.Key.ToLower(), filename);
+				}
+				else if (textures[tex.Key.ToLower()] == null)
+				{
+					textures[tex.Key.ToLower()] = tex.Value;
 				}
 			}
 		}
-		void AddMaterials(MatFile m)
+		void AddMaterials(MatFile m, string filename)
 		{
 			if (m.TextureLibrary != null) {
-				AddTextures (m.TextureLibrary);
+				AddTextures(m.TextureLibrary, filename);
 			}
 			foreach (var kv in m.Materials) {
 				if(!materials.ContainsKey(kv.Key))
@@ -112,7 +170,7 @@ namespace LibreLancer
 		}
 		public IDrawable GetDrawable(string filename)
 		{
-			if(filename.EndsWith(".cmp"))
+			if (filename.EndsWith(".cmp"))
 				return GetCmp(filename);
 			if (filename.EndsWith (".3db"))
 				return GetModel (filename);
@@ -135,10 +193,10 @@ namespace LibreLancer
 			if (!cmps.ContainsKey (filename)) {
 				var file = new CmpFile (filename, this);
 				if (file.TextureLibrary != null) {
-					AddTextures (file.TextureLibrary);
+					AddTextures(file.TextureLibrary, filename);
 				}
 				if (file.MaterialLibrary != null) {
-					AddMaterials (file.MaterialLibrary);
+					AddMaterials(file.MaterialLibrary, filename);
 				}
 				if (file.VMeshLibrary != null) {
 					AddMeshes (file.VMeshLibrary);
@@ -160,10 +218,10 @@ namespace LibreLancer
 			if(!models.ContainsKey(filename)) {
 				var file = new ModelFile (filename, this);
 				if (file.TextureLibrary != null) {
-					AddTextures (file.TextureLibrary);
+					AddTextures(file.TextureLibrary, filename);
 				}
 				if (file.MaterialLibrary != null) {
-					AddMaterials (file.MaterialLibrary);
+					AddMaterials(file.MaterialLibrary, filename);
 				}
 				if (file.VMeshLibrary != null) {
 					AddMeshes (file.VMeshLibrary);

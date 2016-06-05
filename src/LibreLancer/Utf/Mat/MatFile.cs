@@ -92,7 +92,7 @@ namespace LibreLancer.Utf.Mat
 			//throw new Exception("Invalid material count: " + count + " != " + materials.Count);
 		}
 
-		public TextureData FindTexture (string name)
+		public Texture FindTexture (string name)
 		{
 			return additionalTextureLibrary.FindTexture (name);
 		}

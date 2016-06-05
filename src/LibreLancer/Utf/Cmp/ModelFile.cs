@@ -211,7 +211,7 @@ namespace LibreLancer.Utf.Cmp
 			}
         }
 
-        public TextureData FindTexture(string name)
+        public Texture FindTexture(string name)
         {
             return additionalLibrary.FindTexture(name);
         }

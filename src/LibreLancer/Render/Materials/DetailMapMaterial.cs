@@ -23,14 +23,14 @@ namespace LibreLancer
 {
 	public class DetailMapMaterial : RenderMaterial
 	{
-		public Texture DmSampler;
+		public string DmSampler;
 		public SamplerFlags DmFlags;
 		public float TileRate;
 		public int FlipU;
 		public int FlipV;
 		public Color4 Ac;
 		public Color4 Dc;
-		public Texture DtSampler;
+		public string DtSampler;
 		public SamplerFlags DtFlags;
 
 		Shader GetShader(IVertexType vertextype) {

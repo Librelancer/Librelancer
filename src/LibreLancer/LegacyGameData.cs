@@ -81,7 +81,7 @@ namespace LibreLancer
 					Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen_1280.tga")
 				);
 			}
-			return (Texture2D)resource.FindTexture("__startupscreen_1280.tga").Texture;
+			return (Texture2D)resource.FindTexture("__startupscreen_1280.tga");
 		}
 		public Texture2D GetFreelancerLogo()
 		{
@@ -92,7 +92,7 @@ namespace LibreLancer
 					Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga")
 				);
 			}
-			return (Texture2D)resource.FindTexture("__freelancerlogo.tga").Texture;
+			return (Texture2D)resource.FindTexture("__freelancerlogo.tga");
 		}
 		public GameData.StarSystem GetSystem(string id)
 		{

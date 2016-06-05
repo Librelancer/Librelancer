@@ -82,11 +82,6 @@ namespace LibreLancer
         {
             GL.BindTexture(TextureTarget.TextureCubeMap, ID);
         }
-
-        public override void Dispose()
-        {
-            GL.DeleteTexture(ID);
-        }
     }
 }
 

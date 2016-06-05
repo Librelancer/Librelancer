@@ -29,12 +29,12 @@ namespace LibreLancer
 		public string Type;
 
 		public Color4 Dc = Color4.White;
-		public Texture DtSampler;
+		public string DtSampler;
 		public SamplerFlags DtFlags;
 		public float Oc = 1f;
 		public bool AlphaEnabled = false;
 		public Color4 Ec = Color4.White;
-		public Texture EtSampler;
+		public string EtSampler;
 		public SamplerFlags EtFlags;
 
 		public BasicMaterial(string type)

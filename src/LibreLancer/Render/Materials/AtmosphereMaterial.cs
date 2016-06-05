@@ -25,7 +25,7 @@ namespace LibreLancer
 	{
 		public Color4 Ac = Color4.White;
 		public Color4 Dc = Color4.White;
-		public Texture DtSampler;
+		public string DtSampler;
 		public SamplerFlags DtFlags;
 		public Vector3 CameraPosition;
 		public float Alpha;

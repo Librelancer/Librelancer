@@ -9,9 +9,16 @@ namespace Launcher
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+		static void Main(string[] args)
         {
-			new Application ().Run (new MainWindow ());
+			if (args.Length == 1)
+			{
+				LaunchPath = args[0];
+			}
+			else
+			{
+				new Application().Run(new MainWindow());
+			}
 			//Actually run the game
             if(LaunchPath != null)
             {

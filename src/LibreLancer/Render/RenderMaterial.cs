@@ -25,6 +25,7 @@ namespace LibreLancer
 	{
 		public Matrix4 World = Matrix4.Identity;
 		public Matrix4 ViewProjection = Matrix4.Identity;
+		public ILibFile Library;
 		public abstract void Use (RenderState rstate, IVertexType vertextype, Lighting lights);
 		static Texture2D nullTexture;
 
@@ -41,21 +42,27 @@ namespace LibreLancer
 				shader.SetVector3 ("LightsAttenuation", lt.Attenuation, i);
 			}
 		}
-		protected void BindTexture(Texture tex, TextureUnit unit, SamplerFlags flags, bool throwonNull = true)
+		protected void BindTexture(string tex, TextureUnit unit, SamplerFlags flags, bool throwonNull = true)
 		{
-			if (tex == null) {
+			if (tex == null)
+			{
 				if (throwonNull)
-					throw new Exception ();
-				if (nullTexture == null) {
-					nullTexture = new Texture2D (256, 256, false, SurfaceFormat.Color);
+					throw new Exception();
+				if (nullTexture == null)
+				{
+					nullTexture = new Texture2D(256, 256, false, SurfaceFormat.Color);
 					Color4b[] colors = new Color4b[nullTexture.Width * nullTexture.Height];
 					for (int i = 0; i < colors.Length; i++)
-						colors [i] = Color4b.White;
-					nullTexture.SetData<Color4b> (colors);
+						colors[i] = Color4b.White;
+					nullTexture.SetData<Color4b>(colors);
 				}
-				nullTexture.BindTo (unit);
-			} else
-				tex.BindTo (unit);
+				nullTexture.BindTo(unit);
+			}
+			else
+			{
+				var t = Library.FindTexture(tex);
+				((Texture2D)t).BindTo(unit);
+			}
 			if ((flags & SamplerFlags.ClampToEdgeU) == SamplerFlags.ClampToEdgeU) {
 				GL.TexParameter (TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureParameterName.ClampToEdge);
 			}

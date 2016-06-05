@@ -74,6 +74,7 @@ namespace LibreLancer
 			}
 
 			GC.Collect();
+			cache.ClearTextures();
 
 			//Load new system
 			starSystem = system;

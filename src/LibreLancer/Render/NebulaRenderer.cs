@@ -101,7 +101,7 @@ namespace LibreLancer
 			else
 				return;
 			var p = Nebula.Zone.Position;
-			var tex = (Texture2D)game.ResourceManager.FindTexture(Nebula.ExteriorFill).Texture;
+			var tex = (Texture2D)game.ResourceManager.FindTexture(Nebula.ExteriorFill);
 			//X axis
 			{
 				var tl = new VertexPositionTexture(

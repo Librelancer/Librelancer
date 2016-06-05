@@ -72,8 +72,10 @@ namespace LibreLancer
         }
         protected Texture2D(bool genID)
         {
-            if (genID)
-                ID = GL.GenTexture();
+			if (genID)
+			{
+				ID = GL.GenTexture();
+			}
         }
         internal override void Bind()
         {
@@ -151,11 +153,6 @@ namespace LibreLancer
         public void SetData<T>(T[] data) where T : struct
         {
             SetData<T>(0, null, data, 0, data.Length);
-        }
-        public override void Dispose()
-        {
-            GL.DeleteTexture(ID);
-            base.Dispose();
         }
     }
 }
