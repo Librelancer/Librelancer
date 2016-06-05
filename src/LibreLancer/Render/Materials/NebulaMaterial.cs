@@ -47,7 +47,6 @@ namespace LibreLancer
 		{
 			//fragment shader you multiply tex sampler rgb by vertex color and alpha the same (that is should texture have alpha of its own, sometimes they may as well)
 			rstate.BlendMode = BlendMode.Additive;
-
 			var shader = GetShader(vertextype);
 			shader.SetMatrix ("World", ref World);
 			shader.SetMatrix ("ViewProjection", ref ViewProjection);

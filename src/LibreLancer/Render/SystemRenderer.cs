@@ -148,6 +148,7 @@ namespace LibreLancer
 			}
 			else
 			{
+				rstate.DepthEnabled = false;
 				rstate.ClearColor = starSystem.BackgroundColor;
 				rstate.ClearAll();
 				//Starsphere
@@ -163,6 +164,7 @@ namespace LibreLancer
 					rstate.DepthEnabled = true;
 				}
 			}
+			rstate.DepthEnabled = true;
 			//Clear depth buffer for game objects
 			rstate.ClearDepth();
 			for (int i = 0; i < Models.Count; i++) Models[i].Draw(rstate, systemLighting);
