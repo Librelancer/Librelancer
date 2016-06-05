@@ -39,6 +39,16 @@ namespace LibreLancer.Utf.Ale
 			return new HSLColor (h, s, l).ToRGB ();
 		}
 
+		public static Color3f EaseColorRGB(EasingTypes type, float time, float t1, float t2, Color3f c1, Color3f c2)
+		{
+
+			float r = Ease(type, time, t1, t2, c1.R, c2.R);
+			float g = Ease(type, time, t1, t2, c1.G, c2.G);
+			float b = Ease(type, time, t1, t2, c1.B, c1.B);
+
+			return new Color3f(r, g, b);
+		}
+
 		public static float Ease(EasingTypes type, float time, float t1, float t2, float v1, float v2)
 		{
 			switch (type) {

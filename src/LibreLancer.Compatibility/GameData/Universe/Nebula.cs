@@ -49,8 +49,8 @@ namespace LibreLancer.Compatibility.GameData.Universe
 		public int? CloudsMaxDistance { get; private set; }
 		public int? CloudsPuffCount { get; private set; }
 		public int? CloudsPuffRadius { get; private set; }
-		public Color4? CloudsPuffColorA { get; private set; }
-		public Color4? CloudsPuffColorB { get; private set; }
+		public Color3f? CloudsPuffColorA { get; private set; }
+		public Color3f? CloudsPuffColorB { get; private set; }
 		public float? CloudsPuffMaxAlpha { get; private set; }
 		public List<string> CloudsPuffShape { get; private set; }
 		public List<int> CloudsPuffWeights { get; private set; }
@@ -76,7 +76,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 		{
 			ExteriorShape = new List<string>();
 			NebulaLights = new List<NebulaLight>();
-			CloudsPuffShape = new List<string>();
+
 
 			foreach (Section s in ParseFile(data.Freelancer.DataPath + file))
 			{
@@ -264,12 +264,12 @@ namespace LibreLancer.Compatibility.GameData.Universe
 						case "puff_colora":
 							if (e.Count != 3) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (CloudsPuffColorA != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
-							CloudsPuffColorA = new Color4(e[0].ToInt32() / 255f, e[1].ToInt32() / 255f, e[2].ToInt32() / 255f, 1f);
+							CloudsPuffColorA = new Color3f(e[0].ToInt32() / 255f, e[1].ToInt32() / 255f, e[2].ToInt32() / 255f);
 							break;
 						case "puff_colorb":
 							if (e.Count != 3) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (CloudsPuffColorB != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
-							CloudsPuffColorB = new Color4(e[0].ToInt32() / 255f, e[1].ToInt32() / 255f, e[2].ToInt32() / 255f, 1f);
+							CloudsPuffColorB = new Color3f(e[0].ToInt32() / 255f, e[1].ToInt32() / 255f, e[2].ToInt32() / 255f);
 							break;
 						case "puff_max_alpha":
 							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
@@ -278,6 +278,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 							break;
 						case "puff_shape":
 							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
+							if (CloudsPuffShape == null) CloudsPuffShape = new List<string>();
 							CloudsPuffShape.Add(e[0].ToString());
 							break;
 						case "puff_weights":

@@ -14,25 +14,41 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK;
+using System.Linq;
 namespace LibreLancer
 {
-	public static class PrimitiveMath
+	public class WeightedRandomCollection<T>
 	{
-		//Standard equation of an ellipsoid: (x/a)^2 + (y/b)^2 + (z/c)^2 = 1
-		public static bool EllipsoidContains(Vector3 center, Vector3 size, Vector3 point)
+		Random random;
+		T[] items;
+		float[] weights;
+		float max;
+		public WeightedRandomCollection(T[] items, int[] weights)
 		{
-			return EllipsoidFunction(center, size, point) < 1;
+			if (items.Length != weights.Length)
+			{
+				throw new InvalidOperationException();
+			}
+			random = new Random();
+			max = weights.Sum();
+			float current = 0;
+			this.weights = new float[weights.Length];
+			for (int i = 0; i < weights.Length; i++)
+			{
+				this.weights[i] = current + weights[i];
+				current += weights[i];
+			}
+			this.items = items;
 		}
-		public static float EllipsoidFunction(Vector3 center, Vector3 size, Vector3 point)
+		public T GetNext()
 		{
-			var test = point - center;
-			double result = (
-				Math.Pow((test.X / size.X), 2) +
-				Math.Pow((test.Y / size.Y), 2) +
-				Math.Pow((test.Z / size.Z), 2)
-			);
-			return (float)result;
+			var val = (float)(random.NextDouble() * max);
+			for (int i = 0; i < weights.Length; i++)
+			{
+				if (val < weights[i])
+					return items[i];
+			}
+			return items[items.Length - 1];
 		}
 	}
 }

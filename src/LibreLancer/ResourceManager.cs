@@ -25,7 +25,7 @@ namespace LibreLancer
 	{
 		public FreelancerGame Game;
 
-		Dictionary<uint,VMeshData> meshes = new Dictionary<uint, VMeshData> ();
+		Dictionary<uint, VMeshData> meshes = new Dictionary<uint, VMeshData>();
 		Dictionary<uint, Material> materials = new Dictionary<uint, Material>();
 		Dictionary<string, TextureData> textures = new Dictionary<string, TextureData>();
 
@@ -42,6 +42,15 @@ namespace LibreLancer
 			Game = g;
 		}
 
+		public bool TextureExists(string name)
+		{
+			return textures.ContainsKey(name.ToLower());
+		}
+		public void AddTexture(string name,string filename)
+		{
+			var dat = new TextureData(filename);
+			textures.Add(name, dat);
+		}
 		public TextureData FindTexture (string name)
 		{
 			return textures [name.ToLower()];

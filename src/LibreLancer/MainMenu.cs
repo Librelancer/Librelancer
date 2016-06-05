@@ -25,6 +25,8 @@ namespace LibreLancer
 		Texture2D logoOverlay;
 		UIManager manager;
 		string lastTag = null;
+		const double FLYIN_LENGTH = 0.6;
+
 		public MainMenu (FreelancerGame g) : base (g)
 		{
 			g.GameData.LoadInterfaceVms ();
@@ -37,13 +39,21 @@ namespace LibreLancer
 			manager.Elements.Add (new UIMenuButton (manager, new Vector2 (-0.65f, -0.1f), "MULTIPLAYER"));
 			manager.Elements.Add (new UIMenuButton (manager, new Vector2 (-0.65f, -0.35f), "OPTIONS"));
 			manager.Elements.Add (new UIMenuButton (manager, new Vector2 (-0.65f, -0.6f), "EXIT", "exit"));
+			manager.FlyInAll(FLYIN_LENGTH, 0.05);
 			manager.Clicked += (tag) => lastTag = tag;
 		}
 
-		const double ANIMATION_LENGTH = 0.6;
 
+		int frames = 0;
+		int dframes = 0;
 		public override void Update (TimeSpan delta)
 		{
+			//Don't want the big lag at the start
+			if (frames == 0)
+			{
+				frames = 1;
+				return;
+			}
 			manager.Update (delta);
 			if (lastTag == "new") {
 				Game.ChangeState (new DemoSystemView (Game));
@@ -56,6 +66,12 @@ namespace LibreLancer
 
 		public override void Draw (TimeSpan delta)
 		{
+			//Make sure delta time is normal
+			if (dframes == 0)
+			{
+				dframes = 1;
+				return;
+			}
 			//TODO: Draw background THN
 
 			//UI Background

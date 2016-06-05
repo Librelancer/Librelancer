@@ -24,7 +24,7 @@ namespace LibreLancer.ImageLib
 		public static bool StreamIsBMP(Stream stream)
 		{
 			var reader = new BinaryReader (stream);
-			var result = reader.ReadUInt16 () != MAGIC;
+			var result = reader.ReadUInt16 () == MAGIC;
 			stream.Position = 0;
 			return result;
 		}

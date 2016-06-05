@@ -42,13 +42,13 @@ namespace LibreLancer
 				Lighting.Empty
 			);
 		}
-		public override void Update (TimeSpan time)
+		protected override void UpdateInternal (TimeSpan time)
 		{
 			var mstate = Manager.Game.Mouse.GetCursorState ();
 			var rect = GetTextRectangle ();
 			color = Tag != null ? Manager.TextColor : Color4.Gray;
 			if (rect.Contains (Manager.Game.Input.MouseX, Manager.Game.Input.MouseY) && Tag != null) {
-				color = Color4.Yellow;
+				color = GetPulseColor();
 				if (mstate.IsButtonDown (MouseButton.Left)) {
 					Manager.OnClick (Tag);
 				}
@@ -65,7 +65,22 @@ namespace LibreLancer
 		{
 			return (int)Math.Floor ((px * (72.0f / 96.0f)) - 14);
 		}
-
+		Color4 GetPulseColor()
+		{
+			//TODO: Made this function playing around in GeoGebra. Probably not great
+			double pulseState = Math.Abs(Math.Cos(9 * Manager.Game.TotalTime));
+			var a = new Color3f(Manager.TextColor.R, Manager.TextColor.G, Manager.TextColor.B);
+			var b = new Color3f(Color4.Yellow.R, Color4.Yellow.G, Color4.Yellow.B);
+			var result =  Utf.Ale.AlchemyEasing.EaseColorRGB(
+				Utf.Ale.EasingTypes.Linear,
+				(float)pulseState,
+				0,
+				1,
+				a,
+				b
+			);
+			return new Color4(result.R, result.G, result.B, 1);
+		}
 		Rectangle GetTextRectangle ()
 		{
 			var topleft = Manager.ScreenToPixel (Position.X - 0.125f * UIScale.X, Position.Y + 0.022f * UIScale.Y);

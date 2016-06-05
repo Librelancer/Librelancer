@@ -27,33 +27,45 @@ namespace LibreLancer
 		protected UIManager Manager;
 		public UIAnimation Animation;
 
-		public Vector2 Position {
-			get {
+		public Vector2 Position
+		{
+			get
+			{
 				if (Animation != null && Animation.Running)
 					return Animation.CurrentPosition;
 				else
 					return UIPosition;
 			}
 		}
-		public Vector2 Scale {
-			get {
+		public Vector2 Scale
+		{
+			get
+			{
 				if (Animation != null &&
-				    Animation.Running &&
-				    Animation.CurrentScale != null)
+					Animation.Running &&
+					Animation.CurrentScale != null)
 					return Animation.CurrentScale.Value;
 				else
 					return UIScale;
 			}
 		}
-		public UIElement (UIManager m)
+		public UIElement(UIManager m)
 		{
 			Manager = m;
 		}
 
-		public abstract void DrawBase ();
-		public abstract void DrawText ();
+		public abstract void DrawBase();
+		public abstract void DrawText();
 
-		public virtual void Update(TimeSpan time)
+		public void Update(TimeSpan time)
+		{
+			if (Animation != null && Animation.Running)
+				Animation.Update(time.TotalSeconds);
+			else
+				UpdateInternal(time);
+		}
+
+		protected virtual void UpdateInternal(TimeSpan time)
 		{
 
 		}

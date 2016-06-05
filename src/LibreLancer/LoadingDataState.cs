@@ -14,25 +14,25 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK;
+using OpenTK.Graphics;
 namespace LibreLancer
 {
-	public static class PrimitiveMath
+	public class LoadingDataState : GameState
 	{
-		//Standard equation of an ellipsoid: (x/a)^2 + (y/b)^2 + (z/c)^2 = 1
-		public static bool EllipsoidContains(Vector3 center, Vector3 size, Vector3 point)
+		Texture2D splash;
+		public LoadingDataState(FreelancerGame g) : base(g)
 		{
-			return EllipsoidFunction(center, size, point) < 1;
+			splash = g.GameData.GetSplashScreen();
 		}
-		public static float EllipsoidFunction(Vector3 center, Vector3 size, Vector3 point)
+		public override void Draw(TimeSpan delta)
 		{
-			var test = point - center;
-			double result = (
-				Math.Pow((test.X / size.X), 2) +
-				Math.Pow((test.Y / size.Y), 2) +
-				Math.Pow((test.Z / size.Z), 2)
-			);
-			return (float)result;
+			Game.Renderer2D.Start(Game.Width, Game.Height);
+			Game.Renderer2D.DrawImageStretched(splash, new Rectangle(0, 0, Game.Width, Game.Height), Color4.White, true);
+			Game.Renderer2D.Finish();
+		}
+		public override void Update(TimeSpan delta)
+		{
+			
 		}
 	}
 }

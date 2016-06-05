@@ -26,8 +26,10 @@ namespace LibreLancer
 		public Vector2? CurrentScale;
 		public bool Running = false;
 
-		protected UIAnimation (double start, double time)
+		protected UIAnimation (double start, double duration)
 		{
+			Start = start;
+			Duration = duration;
 		}
 
 		public void Update(double delta)

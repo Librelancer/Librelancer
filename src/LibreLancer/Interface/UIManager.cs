@@ -52,7 +52,20 @@ namespace LibreLancer
 				e.DrawText ();
 			Game.Renderer2D.Finish ();
 		}
-
+		public void FlyInAll(double duration, double spacing)
+		{
+			double currentspacing = 0;
+			foreach (var elem in Elements)
+			{
+				elem.Animation = new FlyInLeft(
+					elem.UIPosition,
+					currentspacing,
+					duration
+				);
+				elem.Animation.Begin();
+				currentspacing += spacing;
+			}
+		}
 		public void OnClick(string tag)
 		{
 			if (Clicked != null)

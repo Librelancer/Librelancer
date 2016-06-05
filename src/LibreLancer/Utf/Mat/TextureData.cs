@@ -37,7 +37,10 @@ namespace LibreLancer.Utf.Mat
 			this.texname = texname;
 			this.data = node.ByteArrayData;
 		}
-
+		public TextureData(string filename)
+		{
+			Texture = ImageLib.Generic.FromFile(filename);
+		}
 		public void Initialize ()
 		{
 			if (data != null) {

@@ -30,7 +30,11 @@ namespace LibreLancer
 			Compatibility.VFS.Init (path);
 			var flini = new Legacy.FreelancerIni ();
 			fldata = new Legacy.FreelancerData (flini);
-			fldata.LoadData ();
+
+		}
+		public void LoadData()
+		{
+			fldata.LoadData();
 		}
 		public void LoadInterfaceVms()
 		{
@@ -40,11 +44,27 @@ namespace LibreLancer
 		{
 			return resource.GetDrawable(Compatibility.VFS.GetPath (fldata.Freelancer.DataPath + "INTERFACE/INTRO/OBJECTS/front_button.cmp"));
 		}
+		public Texture2D GetSplashScreen()
+		{
+			if (!resource.TextureExists("__startupscreen_1280.tga"))
+			{
+				resource.AddTexture(
+					"__startupscreen_1280.tga",
+					Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen_1280.tga")
+				);
+			}
+			return (Texture2D)resource.FindTexture("__startupscreen_1280.tga").Texture;
+		}
 		public Texture2D GetFreelancerLogo()
 		{
-			return ImageLib.TGA.FromStream (
-				Compatibility.VFS.Open (fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga")
-			);
+			if (!resource.TextureExists("__freelancerlogo.tga"))
+			{
+				resource.AddTexture(
+					"__freelancerlogo.tga",
+					Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga")
+				);
+			}
+			return (Texture2D)resource.FindTexture("__freelancerlogo.tga").Texture;
 		}
 		public GameData.StarSystem GetSystem(string id)
 		{
@@ -83,7 +103,10 @@ namespace LibreLancer
 				if (zne.Rotate != null)
 				{
 					var r = zne.Rotate.Value;
-					z.Rotation = Matrix4.CreateRotationX(r.X) * Matrix4.CreateRotationY(r.Y) * Matrix4.CreateRotationZ(r.Z);
+					z.Rotation = 
+							Matrix4.CreateRotationX(MathHelper.DegreesToRadians(r.X)) * 
+							Matrix4.CreateRotationY(MathHelper.DegreesToRadians(r.Y)) * 
+							Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(r.Z));
 				}
 				else
 					z.Rotation = Matrix4.Identity;
@@ -115,7 +138,17 @@ namespace LibreLancer
 					n.ExteriorFill = nbl.ExteriorFillShape;
 					n.ExteriorColor = nbl.ExteriorColor ?? Color4.White;
 					n.FogColor = nbl.FogColor ?? Color4.Black;
-
+					if (nbl.CloudsPuffShape != null)
+					{
+						n.HasInteriorClouds = true;
+						n.InteriorCloudShapes = new WeightedRandomCollection<string>(
+							nbl.CloudsPuffShape.ToArray(),
+							nbl.CloudsPuffWeights.ToArray()
+						);
+						n.InteriorCloudColorA = nbl.CloudsPuffColorA.Value;
+						n.InteriorCloudColorB = nbl.CloudsPuffColorB.Value;
+						n.InteriorCloudRadius = nbl.CloudsPuffRadius.Value;
+					}
 					sys.Nebulae.Add(n);
 			}
 			}

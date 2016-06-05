@@ -215,6 +215,8 @@
     <Compile Include="GameData\ZoneSphere.cs" />
     <Compile Include="PrimitiveMath.cs" />
     <Compile Include="Render\Materials\IllumDetailMapMaterial.cs" />
+    <Compile Include="WeightedRandomCollection.cs" />
+    <Compile Include="LoadingDataState.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />

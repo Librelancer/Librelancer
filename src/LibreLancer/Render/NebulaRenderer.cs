@@ -24,7 +24,7 @@ namespace LibreLancer
 	public class NebulaRenderer
 	{
 		public Nebula Nebula;
-
+		Random rand;
 		ICamera camera;
 		FreelancerGame game;
 
@@ -33,6 +33,7 @@ namespace LibreLancer
 			Nebula = n;
 			camera = c;
 			game = g;
+			rand = new Random();
 		}
 
 		public bool FogTransitioned()
@@ -73,6 +74,20 @@ namespace LibreLancer
 		void RenderInteriorPuffs()
 		{
 			
+		}
+
+		Color4 GetPuffColor()
+		{
+			var lerpval = rand.NextDouble();
+			var c = Utf.Ale.AlchemyEasing.EaseColor(
+				Utf.Ale.EasingTypes.Linear,
+				(float)lerpval,
+				0,
+				1,
+				Nebula.InteriorCloudColorA,
+				Nebula.InteriorCloudColorB
+			);
+			return new Color4(c.R, c.G, c.B, 1f);  
 		}
 
 		void RenderFill()

@@ -34,6 +34,7 @@ namespace LibreLancer
 		public InputManager Input;
 		public Billboards Billboards;
 		public NebulaVertices Nebulae;
+		public double TotalTime;
 		ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
 		int uithread;
 		GameState currentState;
@@ -65,8 +66,9 @@ namespace LibreLancer
 			Audio = new AudioManager();
 			//Load data
 			FLLog.Info("Game", "Loading game data");
-			new Thread (() => {
-				GameData = new LegacyGameData(config.FreelancerPath, ResourceManager);
+			GameData = new LegacyGameData(config.FreelancerPath, ResourceManager);
+			new Thread(() => {
+				GameData.LoadData();
 				FLLog.Info("Game", "Finished loading game data");
 				QueueUIThread(Switch);
 			}).Start ();
@@ -107,6 +109,7 @@ namespace LibreLancer
 			Nebulae = new NebulaVertices();
 			var vp = new ViewportManager ();
 			vp.Push (0, 0, Width, Height);
+			ChangeState(new LoadingDataState(this));
         }
 
 		protected override void OnClosing (System.ComponentModel.CancelEventArgs e)
@@ -123,6 +126,7 @@ namespace LibreLancer
 				work ();
 			if (currentState != null)
 				currentState.Update (TimeSpan.FromSeconds (e.Time));
+			TotalTime += e.Time;
 			base.OnUpdateFrame (e);
 		}
 
