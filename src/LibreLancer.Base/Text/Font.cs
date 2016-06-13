@@ -16,7 +16,7 @@
 using System;
 using System.Collections.Generic;
 using SharpFont;
-using OpenTK.Graphics.OpenGL;
+
 namespace LibreLancer
 {
 	public class Font : IDisposable
@@ -130,9 +130,9 @@ namespace LibreLancer
 					           Face.Glyph.Bitmap.Rows
 				           );
 				var tex = textures [textures.Count - 1];
-				GL.PixelStore (PixelStoreParameter.UnpackAlignment, 1);
+				GL.PixelStorei (GL.GL_UNPACK_ALIGNMENT, 1);
 				tex.SetData (0, rect, Face.Glyph.Bitmap.Buffer);
-				GL.PixelStore (PixelStoreParameter.UnpackAlignment, 4);
+				GL.PixelStorei (GL.GL_UNPACK_ALIGNMENT, 4);
 				currentX += Face.Glyph.Bitmap.Width;
 				//tex.SetData (0, rect, Face.Glyph.Bitmap.Buffer,0, Face.Glyph.Bitmap.Width * Face.Glyph.Bitmap.Rows);
 				glyphs.Add (

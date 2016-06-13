@@ -20,7 +20,6 @@ using System;
 using System.Collections.Generic;
 
 //using FLCommon;
-using OpenTK;
 
 //using FLParser.Utf;
 

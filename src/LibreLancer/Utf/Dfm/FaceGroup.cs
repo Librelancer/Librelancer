@@ -22,8 +22,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using OpenTK;
-
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Vms;
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using OpenTK.Graphics.OpenGL;
 namespace LibreLancer
 {
 	public class ViewportManager
@@ -12,15 +11,17 @@ namespace LibreLancer
 		}
 		static ViewportManager _vpm;
 		Stack<Viewport> viewports = new Stack<Viewport>();
-		public ViewportManager ()
+		RenderState render;
+		public ViewportManager (RenderState rs)
 		{
 			_vpm = this;
+			render = rs;
 		}
 		public void Push(int x, int y, int width, int height)
 		{
 			var vp = new Viewport (x, y, width, height);
 			viewports.Push (vp);
-			GL.Viewport (x, y, width, height);
+			render.SetViewport (x, y, width, height);
 		}
 		public void Replace(int x, int y, int width, int height)
 		{
@@ -36,7 +37,7 @@ namespace LibreLancer
 		{
 			viewports.Pop ();
 			var vp = viewports.Peek ();
-			GL.Viewport (vp.X, vp.Y, vp.Width, vp.Height);
+			render.SetViewport (vp.X, vp.Y, vp.Width, vp.Height);
 		}
 	}
 }

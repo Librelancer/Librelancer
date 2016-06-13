@@ -17,9 +17,6 @@ using System;
 using System.Runtime.InteropServices;
 using SharpFont;
 using LibreLancer.Vertices;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL;
 
 namespace LibreLancer
 {
@@ -77,26 +74,21 @@ namespace LibreLancer
 			public Vector2 TexCoord;
 			public Color4 Color;
 
-			public void SetVertexPointers (int offset)
-			{
-				GL.EnableVertexAttribArray(VertexSlots.Position);
-				GL.EnableVertexAttribArray(VertexSlots.Color);
-				GL.EnableVertexAttribArray(VertexSlots.Texture1);
-				GL.VertexAttribPointer(VertexSlots.Position, 2, VertexAttribPointerType.Float, false, VertexSize(), offset);
-				GL.VertexAttribPointer(VertexSlots.Texture1, 2, VertexAttribPointerType.Float, false, VertexSize(), offset + sizeof(float) * 2);
-				GL.VertexAttribPointer(VertexSlots.Color, 4, VertexAttribPointerType.Float, false, VertexSize(), offset + sizeof(float) * 4);
-			}
 			public Vertex2D(Vector2 position, Vector2 texcoord, Color4 color)
 			{
 				Position = position;
 				TexCoord = texcoord;
 				Color = color;
 			}
-			public int VertexSize ()
+
+			public VertexDeclaration GetVertexDeclaration()
 			{
-				return sizeof(float) * 2 +
-				sizeof(float) * 2 +
-				sizeof(float) * 4;
+				return new VertexDeclaration (
+					sizeof(float) * 2 + sizeof(float) * 2 + sizeof(float) * 4,
+					new VertexElement (VertexSlots.Position, 2, VertexElementType.Float, false, 0),
+					new VertexElement (VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 2),
+					new VertexElement (VertexSlots.Color, 4, VertexElementType.Float, false, sizeof(float) * 4)
+				);
 			}
 		}
 		
@@ -340,10 +332,10 @@ namespace LibreLancer
 		{
 			if (vertexCount == 0 || primitiveCount == 0)
 				return;
-			GL.Disable (EnableCap.CullFace);
+			rs.Cull = false;
 			rs.BlendMode = BlendMode.Normal;
 			rs.DepthEnabled = false;
-			currentTexture.BindTo (TextureUnit.Texture0);
+			currentTexture.BindTo (0);
 			currentShader.UseProgram ();
 			vbo.SetData (vertices, vertexCount);
 			vbo.Draw (PrimitiveTypes.TriangleList, primitiveCount);
@@ -351,7 +343,7 @@ namespace LibreLancer
 			vertexCount = 0;
 			primitiveCount = 0;
 			currentTexture = null;
-			GL.Enable (EnableCap.CullFace);
+			rs.Cull = true;
 		}
 
 		public void Dispose()

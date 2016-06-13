@@ -14,8 +14,8 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK;
 using Jitter.LinearMath;
+
 namespace LibreLancer
 {
 	public static class MathExtensions

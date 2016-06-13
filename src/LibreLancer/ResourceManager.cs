@@ -67,7 +67,6 @@ namespace LibreLancer
 					textures[k] = null;
 				}
 			}
-			OpenTK.Graphics.OpenGL.GL.Finish();
 		}
 
 		public Texture FindTexture (string name)

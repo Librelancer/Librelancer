@@ -14,7 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK;
+
 namespace LibreLancer.Fx
 {
 	public struct Particle

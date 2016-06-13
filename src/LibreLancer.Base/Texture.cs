@@ -14,12 +14,11 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK.Graphics.OpenGL;
 namespace LibreLancer
 {
     public abstract class Texture : IDisposable
     {
-        public int ID;
+        public uint ID;
         public SurfaceFormat Format { get; protected set; }
         static bool compressedChecked = false;
         protected static void CheckCompressed()
@@ -44,9 +43,9 @@ namespace LibreLancer
             }
         }
         internal abstract void Bind();
-        public void BindTo(TextureUnit unit)
+        public void BindTo(int unit)
         {
-            GL.ActiveTexture(unit);
+			GL.ActiveTexture (GL.GL_TEXTURE0 + unit);
             Bind();
         }
         internal static int CalculateMipLevels(int width, int height = 0)

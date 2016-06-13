@@ -20,12 +20,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 
-using OpenTK;
-
 using LibreLancer.Ini;
-
 using LibreLancer.Compatibility.GameData.Solar;
-//using LibreLancer.GameData.Universe;
 
 namespace LibreLancer.Compatibility.GameData
 {

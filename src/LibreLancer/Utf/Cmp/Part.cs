@@ -21,7 +21,6 @@ using System;
 using System.Collections.Generic;
 
 //using FLCommon;
-using OpenTK;
 
 //using FLApi.Universe;
 using LibreLancer.Utf.Anm;

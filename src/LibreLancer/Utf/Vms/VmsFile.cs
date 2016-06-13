@@ -19,7 +19,6 @@
 using System;
 using System.Collections.Generic;
 
-using OpenTK;
 using LibreLancer.Utf.Mat;
 namespace LibreLancer.Utf.Vms
 {

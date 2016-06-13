@@ -1498,7 +1498,8 @@ namespace LibreLancer.ImageLib
 				throw new Exception("Unsuported format");
 			}
 		}
-
+		//TODO: Re-enable DDS Saving
+		/*
 		//Write texture data to stream if the texture is a 2d texture the face is ignored.
 		private static void WriteTexture(BinaryWriter writer, CubeMapFace face, Texture texture, bool saveMipMaps, int width, int height, bool isCompressed, FourCC fourCC, int rgbBitCount)
 		{
@@ -1593,6 +1594,8 @@ namespace LibreLancer.ImageLib
 
 		}
 
+		*/
+		/*
 		/// <summary>
 		/// Save a texture from memory to a stream.
 		/// (Supported formats : Dxt1,Dxt3,Dxt5,A8R8G8B8/Color,A4R4G4B4,A1R5G5B5,R5G6B5,A8,
@@ -1828,6 +1831,7 @@ namespace LibreLancer.ImageLib
 
 		}
 
+		*/
 		/// <summary>
 		/// Get the size of the byte array that you should use if you want to get the entier mip-map level using the GetData() function.
 		/// </summary>

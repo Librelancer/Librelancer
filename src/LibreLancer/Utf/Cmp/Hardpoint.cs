@@ -17,9 +17,6 @@
  */
 
 using System;
-
-using OpenTK;
-
 namespace LibreLancer.Utf.Cmp
 {
     public abstract class Hardpoint

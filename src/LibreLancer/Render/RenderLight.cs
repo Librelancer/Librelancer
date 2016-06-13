@@ -14,8 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK;
-using OpenTK.Graphics;
+
 namespace LibreLancer
 {
 	public class RenderLight

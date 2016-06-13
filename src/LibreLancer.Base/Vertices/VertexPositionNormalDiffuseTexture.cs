@@ -16,8 +16,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using OpenTK;
-using OpenTK.Graphics;
+
 namespace LibreLancer.Vertices
 {
     [StructLayout(LayoutKind.Sequential)]

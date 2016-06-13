@@ -14,8 +14,6 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK;
-using OpenTK.Graphics.OpenGL;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
 
@@ -42,7 +40,7 @@ namespace LibreLancer
 				shader.SetVector3 ("LightsAttenuation", lt.Attenuation, i);
 			}
 		}
-		protected void BindTexture(string tex, TextureUnit unit, SamplerFlags flags, bool throwonNull = true)
+		protected void BindTexture(string tex, int unit, SamplerFlags flags, bool throwonNull = true)
 		{
 			if (tex == null)
 			{
@@ -60,21 +58,22 @@ namespace LibreLancer
 			}
 			else
 			{
-				var t = Library.FindTexture(tex);
-				((Texture2D)t).BindTo(unit);
+				var tex2d = (Texture2D)Library.FindTexture(tex);
+				tex2d.BindTo(unit);
+				if ((flags & SamplerFlags.ClampToEdgeU) == SamplerFlags.ClampToEdgeU) {
+					tex2d.SetWrapModeS (WrapMode.ClampToEdge);
+				}
+				if ((flags & SamplerFlags.ClampToEdgeV) == SamplerFlags.ClampToEdgeV) {
+					tex2d.SetWrapModeT (WrapMode.ClampToEdge);
+				}
+				if ((flags & SamplerFlags.MirrorRepeatU) == SamplerFlags.MirrorRepeatU) {
+					tex2d.SetWrapModeS (WrapMode.MirroredRepeat);
+				}
+				if ((flags & SamplerFlags.MirrorRepeatU) == SamplerFlags.MirrorRepeatV) {
+					tex2d.SetWrapModeT(WrapMode.MirroredRepeat);
+				}
 			}
-			if ((flags & SamplerFlags.ClampToEdgeU) == SamplerFlags.ClampToEdgeU) {
-				GL.TexParameter (TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureParameterName.ClampToEdge);
-			}
-			if ((flags & SamplerFlags.ClampToEdgeV) == SamplerFlags.ClampToEdgeV) {
-				GL.TexParameter (TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureParameterName.ClampToEdge);
-			}
-			if ((flags & SamplerFlags.MirrorRepeatU) == SamplerFlags.MirrorRepeatU) {
-				GL.TexParameter (TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureParameterName.TextureWrapS);
-			}
-			if ((flags & SamplerFlags.MirrorRepeatU) == SamplerFlags.MirrorRepeatV) {
-				GL.TexParameter (TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureParameterName.TextureWrapT);
-			}
+
 		}
 	}
 }

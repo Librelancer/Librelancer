@@ -19,8 +19,6 @@
 using System.Collections.Generic;
 using System.IO;
 
-using OpenTK;
-
 namespace LibreLancer.Utf
 {
     public class PrisConstruct : AbstractConstruct

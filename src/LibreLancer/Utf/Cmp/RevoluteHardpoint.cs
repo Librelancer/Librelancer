@@ -18,8 +18,6 @@
 
 using System;
 
-using OpenTK;
-
 
 namespace LibreLancer.Utf.Cmp
 {

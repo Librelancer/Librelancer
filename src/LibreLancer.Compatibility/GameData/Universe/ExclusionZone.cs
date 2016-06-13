@@ -14,7 +14,6 @@
  * Portions created by the Initial Developer are Copyright (C) 2011
  * the Initial Developer. All Rights Reserved.
  */
-using OpenTK.Graphics;
 
 namespace LibreLancer.Compatibility.GameData.Universe
 {

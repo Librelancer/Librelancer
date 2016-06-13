@@ -14,9 +14,6 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
 namespace LibreLancer
@@ -67,9 +64,9 @@ namespace LibreLancer
 			sh.SetInteger ("FlipV", FlipV);
 
 			sh.SetInteger ("DtSampler", 0);
-			BindTexture (DtSampler, TextureUnit.Texture0, DtFlags);
+			BindTexture (DtSampler, 0, DtFlags);
 			sh.SetInteger ("DmSampler", 1);
-			BindTexture (DmSampler, TextureUnit.Texture1, DmFlags);
+			BindTexture (DmSampler, 1, DmFlags);
 
 			sh.UseProgram ();
 		}

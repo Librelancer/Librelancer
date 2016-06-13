@@ -15,12 +15,24 @@
  */
 using System;
 
-namespace LibreLancer
+namespace LibreLancer.Vertices
 {
-	public class InputManager
+	public struct VertexElement
 	{
-		public int MouseX;
-		public int MouseY;
+		public int Slot;
+		public int Elements;
+		public VertexElementType Type;
+		public bool Normalized;
+		public int Offset;
+
+		public VertexElement (int slot, int elems, VertexElementType type, bool normalized, int offset)
+		{
+			Slot = slot;
+			Elements = elems;
+			Type = type;
+			Normalized = normalized;
+			Offset = offset;
+		}
 	}
 }
 

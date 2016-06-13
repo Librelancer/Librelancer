@@ -18,8 +18,6 @@
 using System;
 using System.Linq;
 
-using OpenTK;
-
 using LibreLancer.Ini;
 
 namespace LibreLancer.Compatibility.GameData.Universe

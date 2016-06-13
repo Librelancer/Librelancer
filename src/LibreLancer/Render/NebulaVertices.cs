@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using OpenTK;
-using OpenTK.Graphics.OpenGL;
-using OpenTK.Graphics;
 using LibreLancer.Vertices;
+
 namespace LibreLancer
 {
 	public class NebulaVertices
@@ -64,13 +62,13 @@ namespace LibreLancer
 			shader.SetMatrix("World", ref world);
 			shader.SetColor4("Tint", color);
 			shader.SetInteger("Texture", 0);
-			texture.BindTo(TextureUnit.Texture0);
+			texture.BindTo(0);
 			shader.UseProgram();
 			rstate.BlendMode = BlendMode.Normal;
-			GL.Disable(EnableCap.CullFace);
+			rstate.Cull = false;
 			vbo.SetData(verts, currentVerts);
 			vbo.Draw(PrimitiveTypes.TriangleList, currentIndex / 3);
-			GL.Enable(EnableCap.CullFace);
+			rstate.Cull = true;
 			currentVerts = 0;
 			currentIndex = 0;
 		}

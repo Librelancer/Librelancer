@@ -15,7 +15,6 @@
  */
 using System;
 using System.Collections.Generic;
-using OpenTK.Graphics;
 namespace LibreLancer.GameData
 {
 	public class StarSystem

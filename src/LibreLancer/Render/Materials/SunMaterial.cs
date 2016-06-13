@@ -14,7 +14,6 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK.Graphics.OpenGL;
 namespace LibreLancer
 {
 	public class SunMaterial : RenderMaterial

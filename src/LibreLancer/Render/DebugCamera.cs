@@ -15,8 +15,6 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK;
-
 namespace LibreLancer
 {
 	public class DebugCamera : ICamera

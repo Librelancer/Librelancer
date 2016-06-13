@@ -18,8 +18,6 @@
 
 using System;
 using System.IO;
-using OpenTK;
-
 
 namespace LibreLancer.Utf.Mat
 {

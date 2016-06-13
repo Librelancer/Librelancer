@@ -16,9 +16,6 @@
  */
 
 using System;
-
-using OpenTK.Graphics;
-
 using LibreLancer.Ini;
 
 namespace LibreLancer.Compatibility.GameData.Universe

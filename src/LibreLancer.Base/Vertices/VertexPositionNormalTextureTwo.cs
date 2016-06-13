@@ -16,8 +16,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using OpenTK;
-using OpenTK.Graphics.OpenGL;
+
 namespace LibreLancer.Vertices
 {
     [StructLayout(LayoutKind.Sequential)]
@@ -36,21 +35,16 @@ namespace LibreLancer.Vertices
 			this.TextureCoordinate = new Vector2(reader.ReadSingle(), 1 - reader.ReadSingle());
 			this.TextureCoordinateTwo = new Vector2(reader.ReadSingle(), 1 - reader.ReadSingle());
         }
-			
-		public void SetVertexPointers (int offset)
-		{
-			GL.EnableVertexAttribArray(VertexSlots.Position);
-			GL.EnableVertexAttribArray(VertexSlots.Normal);
-			GL.EnableVertexAttribArray(VertexSlots.Texture1);
-			GL.VertexAttribPointer(VertexSlots.Position, 3, VertexAttribPointerType.Float, false, VertexSize(), offset + 0);
-			GL.VertexAttribPointer(VertexSlots.Normal, 3, VertexAttribPointerType.Float, false, VertexSize(), offset + sizeof(float) * 3);
-			GL.VertexAttribPointer(VertexSlots.Texture1, 2, VertexAttribPointerType.Float, false, VertexSize(), offset + sizeof(float) * 6);
-			GL.VertexAttribPointer (VertexSlots.Texture2, 2, VertexAttribPointerType.Float, false, VertexSize (), offset + sizeof(float) * 8);
-		}
 
-		public int VertexSize ()
+		public VertexDeclaration GetVertexDeclaration() 
 		{
-			return sizeof(float) * 3 + sizeof(float) * 3 + (sizeof(float) * 2) * 2;
+			return new VertexDeclaration (
+				sizeof(float) * 3 + sizeof(float) * 3 + (sizeof(float) * 2) * 2,
+				new VertexElement (VertexSlots.Position, 3, VertexElementType.Float, false, 0),
+				new VertexElement (VertexSlots.Normal, 3, VertexElementType.Float, false, sizeof(float) * 3),
+				new VertexElement (VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 6),
+				new VertexElement (VertexSlots.Texture2, 2, VertexElementType.Float, false, sizeof(float) * 8)
+			);
 		}
     }
 }

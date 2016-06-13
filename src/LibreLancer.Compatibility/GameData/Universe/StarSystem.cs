@@ -19,10 +19,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
-
-using OpenTK;
-using OpenTK.Graphics;
-
 using LibreLancer.Ini;
 
 using LibreLancer.Compatibility.GameData.Solar;

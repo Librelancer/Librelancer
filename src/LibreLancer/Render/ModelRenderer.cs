@@ -14,7 +14,6 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
 using LibreLancer.GameData;

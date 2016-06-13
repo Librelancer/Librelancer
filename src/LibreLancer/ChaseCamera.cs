@@ -1,5 +1,5 @@
 ﻿using System;
-using OpenTK;
+
 namespace LibreLancer
 {
 	public class ChaseCamera : ICamera

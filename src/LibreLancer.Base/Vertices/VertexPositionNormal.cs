@@ -16,8 +16,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using OpenTK;
-using OpenTK.Graphics.OpenGL;
+
 namespace LibreLancer.Vertices
 {
     [StructLayout(LayoutKind.Sequential)]
@@ -32,16 +31,14 @@ namespace LibreLancer.Vertices
             this.Position = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
             this.Normal = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
         }
-		public void SetVertexPointers(int offset)
-        {
-            GL.EnableVertexAttribArray(VertexSlots.Position);
-            GL.EnableVertexAttribArray(VertexSlots.Normal);
-            GL.VertexAttribPointer(VertexSlots.Position, 3, VertexAttribPointerType.Float, false, VertexSize(), offset + 0);
-            GL.VertexAttribPointer(VertexSlots.Normal, 3, VertexAttribPointerType.Float, false, VertexSize(), offset + sizeof(float) * 3);
-        }
-        public int VertexSize()
-        {
-            return sizeof(float) * 3 + sizeof(float) * 3;
-        }
+
+		public VertexDeclaration GetVertexDeclaration()
+		{
+			return new VertexDeclaration (
+				sizeof(float) * 3 + sizeof(float) * 3,
+				new VertexElement (VertexSlots.Position, 3, VertexElementType.Float, false, 0),
+				new VertexElement (VertexSlots.Normal, 3, VertexElementType.Float, false, sizeof(float) * 3)
+			);
+		}
     }
 }

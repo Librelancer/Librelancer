@@ -14,7 +14,6 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK.Graphics.OpenGL;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
 namespace LibreLancer
@@ -52,7 +51,7 @@ namespace LibreLancer
 			shader.SetMatrix ("ViewProjection", ref ViewProjection);
 			//Dt
 			shader.SetInteger ("DtSampler", 0);
-			BindTexture (DtSampler, TextureUnit.Texture0, DtFlags);
+			BindTexture (DtSampler, 0, DtFlags);
 			shader.UseProgram ();
 		}
 	}

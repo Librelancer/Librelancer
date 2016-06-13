@@ -18,14 +18,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using OpenTK;
-using OpenTK.Graphics.OpenGL;
+
 namespace LibreLancer
 {
-    public class ElementBuffer : IDisposable
+    public unsafe class ElementBuffer : IDisposable
     {
         public int IndexCount { get; private set;  }
-        public int Handle;
+        public uint Handle;
         public ElementBuffer(int count)
         {
             IndexCount = count;
@@ -33,13 +32,17 @@ namespace LibreLancer
         }
         public void SetData(short[] data)
         {
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, Handle);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, new IntPtr(data.Length * 2), data, BufferUsageHint.StaticDraw);
+			GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, Handle);
+			fixed(short* ptr = data) {
+				GL.BufferData (GL.GL_ELEMENT_ARRAY_BUFFER, new IntPtr (data.Length * 2), (IntPtr)ptr, GL.GL_STATIC_DRAW);
+			}
         }
         public void SetData(ushort[] data)
         {
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, Handle);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, new IntPtr(data.Length * 2), data, BufferUsageHint.StaticDraw);
+			GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, Handle);
+			fixed(ushort* ptr = data) {
+				GL.BufferData (GL.GL_ELEMENT_ARRAY_BUFFER, new IntPtr (data.Length * 2), (IntPtr)ptr, GL.GL_STATIC_DRAW);
+			}
         }
         public void Dispose()
         {

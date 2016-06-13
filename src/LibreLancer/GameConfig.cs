@@ -36,9 +36,8 @@ namespace LibreLancer
 				var fullpath = Path.Combine (bindir, IntPtr.Size == 8 ? "win64" : "win32");
 				SetDllDirectory (fullpath);
 			}
-			using (var game = new FreelancerGame (this)) {
-				game.Run (60.0, 60.0);
-			}
+			var game = new FreelancerGame (this);
+			game.Run ();
 		}
 	}
 }

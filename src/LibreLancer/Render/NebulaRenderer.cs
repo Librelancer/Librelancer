@@ -14,8 +14,6 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK;
-using OpenTK.Graphics;
 using LibreLancer.GameData;
 using LibreLancer.Vertices;
 

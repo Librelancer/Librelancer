@@ -19,8 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using OpenTK;
-using OpenTK.Graphics;
+
 namespace LibreLancer
 {
     public static class ConvertData

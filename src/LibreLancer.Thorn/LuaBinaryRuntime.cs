@@ -112,7 +112,6 @@ namespace LibreLancer.Thorn
 						if (!(pk is LuaTable))
 							throw new Exception ("Stack type mismatch");
 						((LuaTable)pk).SetMap (map);
-						Console.WriteLine ();
 						break;
 					}
 				case LuaOpcodes.AddOp:

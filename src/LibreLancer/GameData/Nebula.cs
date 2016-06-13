@@ -15,7 +15,7 @@
  */
 using System;
 using LibreLancer.Utf.Mat;
-using OpenTK.Graphics;
+
 namespace LibreLancer.GameData
 {
 	public class Nebula

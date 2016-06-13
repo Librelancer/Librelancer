@@ -15,32 +15,29 @@
  */
 using System;
 using System.Collections.Generic;
-using OpenTK.Graphics.OpenGL;
-using OpenTK.Graphics;
-using OpenTK;
-
+using System.Runtime.InteropServices;
 namespace LibreLancer
 {
     public class Shader
     {
-        int programID = 0;
+        uint programID = 0;
         Dictionary<string, int> progLocations = new Dictionary<string, int>();
 		Dictionary<int, object> cachedObjects = new Dictionary<int, object>();
 		public Shader(string vertex_source, string fragment_source, string geometry_source = null)
         {
-            var vertexHandle = GL.CreateShader(ShaderType.VertexShader);
-            var fragmentHandle = GL.CreateShader(ShaderType.FragmentShader);
+			var vertexHandle = GL.CreateShader (GL.GL_VERTEX_SHADER);
+			var fragmentHandle = GL.CreateShader (GL.GL_FRAGMENT_SHADER);
             GL.ShaderSource(vertexHandle, vertex_source);
             GL.ShaderSource(fragmentHandle, fragment_source);
             GL.CompileShader(vertexHandle);
 			int status;
-			GL.GetShader (vertexHandle, ShaderParameter.CompileStatus, out status);
+			GL.GetShaderiv (vertexHandle, GL.GL_COMPILE_STATUS, out status);
 			if (status == 0) {
 				Console.WriteLine (GL.GetShaderInfoLog (vertexHandle));
 				throw new Exception ("Vertex shader compilation failed");
 			}
             GL.CompileShader(fragmentHandle);
-			GL.GetShader (fragmentHandle, ShaderParameter.CompileStatus, out status);
+			GL.GetShaderiv (fragmentHandle, GL.GL_COMPILE_STATUS, out status);
 			if (status == 0) {
 				Console.WriteLine (GL.GetShaderInfoLog (fragmentHandle));
 
@@ -48,10 +45,10 @@ namespace LibreLancer
 			}
             programID = GL.CreateProgram();
 			if (geometry_source != null) {
-				var geometryHandle = GL.CreateShader (ShaderType.GeometryShader);
+				var geometryHandle = GL.CreateShader (GL.GL_GEOMETRY_SHADER);
 				GL.ShaderSource (geometryHandle, geometry_source);
 				GL.CompileShader (geometryHandle);
-				GL.GetShader (geometryHandle, ShaderParameter.CompileStatus, out status);
+				GL.GetShaderiv (geometryHandle, GL.GL_COMPILE_STATUS, out status);
 				if (status == 0) {
 					Console.WriteLine (GL.GetShaderInfoLog (geometryHandle));
 					throw new Exception ("Geometry shader compilation failed");
@@ -71,7 +68,7 @@ namespace LibreLancer
 			GL.BindAttribLocation (programID, VertexSlots.Angle, "vertex_angle");
 
             GL.LinkProgram(programID);
-			GL.GetProgram (programID, GetProgramParameterName.LinkStatus, out status);
+			GL.GetProgramiv (programID, GL.GL_LINK_STATUS, out status);
 			if (status == 0) {
 				Console.WriteLine (GL.GetProgramInfoLog (programID));
 				throw new Exception ("Program link failed");
@@ -105,7 +102,9 @@ namespace LibreLancer
 			if (loc == -1)
 				return;
 			if(NeedUpdate(loc, (object)mat)){
-				GL.UniformMatrix4(GetLocation(name), false, ref mat);
+				var handle = GCHandle.Alloc (mat, GCHandleType.Pinned);
+				GL.UniformMatrix4fv (GetLocation (name), 1, false, handle.AddrOfPinnedObject());
+				handle.Free ();
 				Update(loc, mat);
 			}
            
@@ -118,7 +117,7 @@ namespace LibreLancer
 			if (loc == -1)
 				return;
 			if (NeedUpdate (loc, value)) {
-				GL.Uniform1 (GetLocation (name), value);
+				GL.Uniform1i (GetLocation (name), value);
 				Update (loc, value);
 			}
         }
@@ -130,7 +129,7 @@ namespace LibreLancer
 			if (loc == -1)
 				return;
 			if (NeedUpdate (loc + index, value)) {
-				GL.Uniform1 (GetLocation (name) + index, value);
+				GL.Uniform1i (GetLocation (name) + index, value);
 				Update (loc + index, value);
 			}
 		}
@@ -142,7 +141,7 @@ namespace LibreLancer
 			if (loc == -1)
 				return;
 			if (NeedUpdate (loc, value)) {
-				GL.Uniform1 (GetLocation (name), value);
+				GL.Uniform1f (GetLocation (name), value);
 				Update (loc, value);
 			}
         }
@@ -154,7 +153,7 @@ namespace LibreLancer
 			if (loc == -1)
 				return;
 			if (NeedUpdate (loc, value)) {
-				GL.Uniform4 (GetLocation (name), value);
+				GL.Uniform4f (GetLocation (name), value.R, value.G, value.B, value.A);
 				Update (loc, value);
 			}
         }
@@ -166,7 +165,7 @@ namespace LibreLancer
 			if (loc == -1)
 				return;
 			if (NeedUpdate (loc + index, value)) {
-				GL.Uniform4 (GetLocation (name) + index, value);
+				GL.Uniform4f (GetLocation (name) + index, value.R, value.G, value.B, value.A);
 				Update (loc + index, value);
 			}
 		}
@@ -178,7 +177,7 @@ namespace LibreLancer
 			if (loc == -1)
 				return;
 			if (NeedUpdate (loc + index, vector)) {
-				GL.Uniform3 (GetLocation (name) + index, vector);
+				GL.Uniform3f (GetLocation (name) + index, vector.X, vector.Y, vector.Z);
 				Update (loc + index, vector);
 			}
 		}

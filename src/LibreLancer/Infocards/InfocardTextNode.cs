@@ -14,7 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK.Graphics;
+
 namespace LibreLancer.Infocards
 {
 	public class InfocardTextNode : InfocardNode

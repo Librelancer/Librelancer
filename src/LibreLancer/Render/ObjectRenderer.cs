@@ -14,8 +14,8 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK;
 using LibreLancer.GameData;
+
 namespace LibreLancer
 {
 	public abstract class ObjectRenderer : IDisposable

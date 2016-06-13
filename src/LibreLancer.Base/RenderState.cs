@@ -14,8 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL;
+
 namespace LibreLancer
 {
 	//OpenGL Render States
@@ -66,6 +65,19 @@ namespace LibreLancer
 			}
 		}
 
+		public bool Cull {
+			get {
+				return cull;
+			} set {
+				if (cull == value)
+					return;
+				cull = value;
+				cullDirty = true;
+			}
+		}
+		bool cull = true;
+		bool cullDirty = false;
+
 		Color4 clearColor = Color4.Black;
 		bool clearDirty = false;
 
@@ -80,71 +92,73 @@ namespace LibreLancer
 
 		public RenderState ()
 		{
-			GL.ClearColor (Color4.Black);
-			GL.Enable (EnableCap.Blend);
-			GL.Enable (EnableCap.DepthTest);
-			GL.BlendFunc (BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-			GL.DepthFunc (DepthFunction.Lequal);
-			GL.Enable (EnableCap.CullFace);
-			GL.CullFace (CullFaceMode.Back);
+			GL.ClearColor (0f, 0f, 0f, 1f);
+			GL.Enable (GL.GL_BLEND);
+			GL.Enable (GL.GL_DEPTH_TEST);
+			GL.BlendFunc (GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+			GL.DepthFunc (GL.GL_LEQUAL);
+			GL.Enable (GL.GL_CULL_FACE);
+			GL.CullFace (GL.GL_BACK);
 			Instance = this;
+		}
+
+		public void SetViewport(int x, int y, int w, int h)
+		{
+			GL.Viewport(x,y,w,h);
 		}
 
 		public void ClearAll()
 		{
-			GL.Clear (ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+			GL.Clear (GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 		}
 
 		public void ClearDepth()
 		{
-			GL.Clear (ClearBufferMask.DepthBufferBit);
+			GL.Clear (GL.GL_DEPTH_BUFFER_BIT);
 		}
 
 		internal void Apply()
 		{
 			if (clearDirty) {
-				GL.ClearColor (clearColor);
+				GL.ClearColor (clearColor.R, clearColor.G, clearColor.B, clearColor.A);
 				clearDirty = false;
 			}
 
 			if (wireframeDirty) {
-				GL.PolygonMode (MaterialFace.FrontAndBack, isWireframe ? PolygonMode.Line : PolygonMode.Fill);
+				GL.PolygonMode (GL.GL_FRONT_AND_BACK, isWireframe ? GL.GL_LINE : GL.GL_FILL);
 				wireframeDirty = false;
 			}
 
 			if (depthDirty) {
 				if (depthEnabled)
-					GL.Enable (EnableCap.DepthTest);
+					GL.Enable (GL.GL_DEPTH_TEST);
 				else
-					GL.Disable (EnableCap.DepthTest);
+					GL.Disable (GL.GL_DEPTH_TEST);
 				depthDirty = false;
 			}
 
 			if (blendDirty) {
-				/*if (blendEnabled && blend == BlendMode.Opaque)
-					GL.Disable (EnableCap.Blend);
-				if (!blendEnabled && blend != BlendMode.Opaque)
-					GL.Enable (EnableCap.Blend);
-				blendEnabled = blend != BlendMode.Opaque;
-				if(blend == BlendMode.Additive)
-					GL.BlendFunc (BlendingFactorSrc.SrcAlpha, BlendingFactorDest.One);
-				if(blend == BlendMode.Normal)
-					GL.BlendFunc (BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);*/
 				switch (blend)
 				{
 					case BlendMode.Normal:
-						GL.Enable(EnableCap.Blend);
-						GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+						GL.Enable(GL.GL_BLEND);
+						GL.BlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
 						break;
 					case BlendMode.Opaque:
-						GL.Disable(EnableCap.Blend);
+						GL.Disable (GL.GL_BLEND);
 						break;
 					case BlendMode.Additive:
-						GL.Enable(EnableCap.Blend);
-						GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.One);
+						GL.Enable (GL.GL_BLEND);
+						GL.BlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE);
 						break;
 				}
 				blendDirty = false;
+			}
+			if (cullDirty) {
+				if (cull)
+					GL.Enable (GL.GL_CULL_FACE);
+				else
+					GL.Disable (GL.GL_CULL_FACE);
 			}
 		}
 	}

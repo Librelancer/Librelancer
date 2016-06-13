@@ -14,8 +14,8 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK;
 using LibreLancer.Utf.Ale;
+
 namespace LibreLancer.Fx
 {
 	public class FxNode

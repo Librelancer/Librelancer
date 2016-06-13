@@ -16,9 +16,6 @@
  */
 
 using System;
-
-using OpenTK;
-using OpenTK.Graphics;
 using LibreLancer.Vertices;
 
 namespace LibreLancer.Primitives

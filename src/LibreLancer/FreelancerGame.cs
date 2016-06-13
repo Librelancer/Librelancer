@@ -17,14 +17,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.IO;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL;
 using LibreLancer.GameData;
 using LibreLancer.Media;
 namespace LibreLancer
 {
-	public class FreelancerGame : GameWindow, IUIThread
+	public class FreelancerGame : Game, IUIThread
     {
 		public LegacyGameData GameData;
 		public AudioManager Audio;
@@ -32,33 +29,23 @@ namespace LibreLancer
 		public ResourceManager ResourceManager;
 		public RenderState RenderState;
 		public Renderer2D Renderer2D;
-		public InputManager Input;
 		public Billboards Billboards;
 		public NebulaVertices Nebulae;
-		public double TotalTime;
+
 		ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
 		int uithread;
 		GameState currentState;
 
 		public Viewport Viewport {
 			get {
-				return new Viewport (ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, ClientRectangle.Height);
+				return new Viewport (0, 0, Width, Height);
 			}
 		}
-		public FreelancerGame(GameConfig config) : base
-		(1024, 768, new GraphicsMode(new ColorFormat(32),
-			32), 
-            "LibreLancer", GameWindowFlags.Default, 
-            DisplayDevice.Default, 3, 2, 
-            GraphicsContextFlags.ForwardCompatible)
+		public FreelancerGame(GameConfig config) : base(1024, 768, false)
         {
 			//Setup
 			uithread = Thread.CurrentThread.ManagedThreadId;
-			Input = new InputManager ();
-			MouseMove += (object sender, OpenTK.Input.MouseMoveEventArgs e) => {
-				Input.MouseX = e.X;
-				Input.MouseY = e.Y;
-			};
+
 			FLLog.Info("Platform", Platform.RunningOS.ToString() + (IntPtr.Size == 4 ? " 32-bit" : " 64-bit"));
 			//Cache
 			ResourceManager = new ResourceManager(this);
@@ -102,54 +89,48 @@ namespace LibreLancer
 		{
 			currentState = new MainMenu (this);
 		}
-        protected override void OnLoad(EventArgs e)
+		protected override void Load()
         {
-            base.OnLoad(e);
 			RenderState = new RenderState ();
 			Renderer2D = new Renderer2D(RenderState);
 			Billboards = new Billboards ();
 			Nebulae = new NebulaVertices();
-			var vp = new ViewportManager ();
+			var vp = new ViewportManager (RenderState);
 			vp.Push (0, 0, Width, Height);
 			ChangeState(new LoadingDataState(this));
         }
 
-		protected override void OnClosing (System.ComponentModel.CancelEventArgs e)
+		protected override void Cleanup()
 		{
 			Audio.Music.Stop ();
 			Audio.Dispose ();
-			base.OnClosing (e);
 		}
 
-		protected override void OnUpdateFrame (FrameEventArgs e)
+		protected override void Update (double elapsed)
 		{
 			Action work;
 			if (actions.TryDequeue (out work))
 				work ();
 			if (currentState != null)
-				currentState.Update (TimeSpan.FromSeconds (e.Time));
-			TotalTime += e.Time;
-			base.OnUpdateFrame (e);
+				currentState.Update (TimeSpan.FromSeconds (elapsed));
 		}
 
 		const double FPS_INTERVAL = 0.25;
 		double fps_updatetimer = 0;
 		int drawCallsPerFrame = 0;
-        protected override void OnRenderFrame(FrameEventArgs e)
-        {
-			fps_updatetimer -= e.Time;
+		protected override void Draw (double elapsed)
+		{
+			fps_updatetimer -= elapsed;
 			if (fps_updatetimer <= 0) {
 				Title = string.Format ("LibreLancer: {0:#.##}fps / {1} Drawcalls", RenderFrequency, drawCallsPerFrame);
 				fps_updatetimer = FPS_INTERVAL;
 			}
-			GL.Clear (ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+			RenderState.ClearAll ();
 			if (currentState != null)
-				currentState.Draw (TimeSpan.FromSeconds (e.Time));
-            SwapBuffers();
+				currentState.Draw (TimeSpan.FromSeconds (elapsed));
 			drawCallsPerFrame = VertexBuffer.TotalDrawcalls;
 			VertexBuffer.TotalDrawcalls = 0;
 			ViewportManager.Instance.CheckViewports ();
-            base.OnRenderFrame(e);
         }
     }
 }

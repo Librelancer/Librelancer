@@ -14,7 +14,6 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK.Graphics.OpenGL;
 
 namespace LibreLancer
 {
@@ -29,20 +28,20 @@ namespace LibreLancer
 
     public static class PrimitiveTypeExtensions
     {
-        public static PrimitiveType GLType(this PrimitiveTypes type)
+        public static int GLType(this PrimitiveTypes type)
         {
             switch (type)
             {
-                case PrimitiveTypes.LineList:
-                    return PrimitiveType.Lines;
-                case PrimitiveTypes.TriangleList:
-                    return PrimitiveType.Triangles;
-                case PrimitiveTypes.TriangleStrip:
-                    return PrimitiveType.TriangleStrip;
+				case PrimitiveTypes.LineList:
+					return GL.GL_LINES;
+				case PrimitiveTypes.TriangleList:
+					return GL.GL_TRIANGLES;
+				case PrimitiveTypes.TriangleStrip:
+					return GL.GL_TRIANGLE_STRIP;
 				case PrimitiveTypes.LineStrip:
-					return PrimitiveType.LineStrip;
-			case PrimitiveTypes.Points:
-				return PrimitiveType.Points;
+					return GL.GL_LINE_STRIP;
+				case PrimitiveTypes.Points:
+					return GL.GL_POINTS;
             }
             throw new ArgumentException();
         }

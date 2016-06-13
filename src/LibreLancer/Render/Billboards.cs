@@ -14,10 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK;
-using OpenTK.Graphics;
 using System.Runtime.InteropServices;
-using OpenTK.Graphics.OpenGL;
 using LibreLancer.Vertices;
 namespace LibreLancer
 {
@@ -36,30 +33,22 @@ namespace LibreLancer
 			public Vector2 Texture2;
 			public Vector2 Texture3;
 			public float Angle;
-			public void SetVertexPointers (int offset)
-			{
-				GL.EnableVertexAttribArray(VertexSlots.Position);
-				GL.EnableVertexAttribArray (VertexSlots.Size);
-				GL.EnableVertexAttribArray(VertexSlots.Color);
-				GL.EnableVertexAttribArray (VertexSlots.Texture1);
-				GL.EnableVertexAttribArray (VertexSlots.Texture2);
-				GL.EnableVertexAttribArray (VertexSlots.Texture3);
-				GL.EnableVertexAttribArray (VertexSlots.Texture4);
-				GL.EnableVertexAttribArray (VertexSlots.Angle);
 
-				GL.VertexAttribPointer(VertexSlots.Position, 3, VertexAttribPointerType.Float, false, VertexSize(), offset);
-				GL.VertexAttribPointer(VertexSlots.Size, 2, VertexAttribPointerType.Float, false, VertexSize(), offset + sizeof(float) * 3);
-				GL.VertexAttribPointer (VertexSlots.Color, 4, VertexAttribPointerType.Float, false, VertexSize (), offset + sizeof(float) * 5);
-				GL.VertexAttribPointer (VertexSlots.Texture1, 2, VertexAttribPointerType.Float, false, VertexSize (), offset + sizeof(float) * 9);
-				GL.VertexAttribPointer (VertexSlots.Texture2, 2, VertexAttribPointerType.Float, false, VertexSize (), offset + sizeof(float) * 11);
-				GL.VertexAttribPointer (VertexSlots.Texture3, 2, VertexAttribPointerType.Float, false, VertexSize (), offset + sizeof(float) * 13);
-				GL.VertexAttribPointer (VertexSlots.Texture4, 2, VertexAttribPointerType.Float, false, VertexSize (), offset + sizeof(float) * 15);
-				GL.VertexAttribPointer (VertexSlots.Angle, 1, VertexAttribPointerType.Float, false, VertexSize (), offset + sizeof(float) * 17);
-			}
-			public int VertexSize ()
+			public VertexDeclaration GetVertexDeclaration()
 			{
-				return 18 * sizeof(float);
+				return new VertexDeclaration (
+					18 * sizeof(float),
+					new VertexElement (VertexSlots.Position, 3, VertexElementType.Float, false, 0),
+					new VertexElement (VertexSlots.Size, 2, VertexElementType.Float, false, sizeof(float) * 3),
+					new VertexElement (VertexSlots.Color, 4, VertexElementType.Float, false, sizeof(float) * 5),
+					new VertexElement (VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 9),
+					new VertexElement (VertexSlots.Texture2, 2, VertexElementType.Float, false, sizeof(float) * 11),
+					new VertexElement (VertexSlots.Texture3, 2, VertexElementType.Float, false, sizeof(float) * 13),
+					new VertexElement (VertexSlots.Texture4, 2, VertexElementType.Float, false, sizeof(float) * 15),
+					new VertexElement (VertexSlots.Angle, 1, VertexElementType.Float, false, sizeof(float) * 17)
+				);
 			}
+
 		}
 
 		Shader shader;
@@ -128,14 +117,14 @@ namespace LibreLancer
 			var vp = camera.ViewProjection;
 			shader.SetMatrix ("View", ref view);
 			shader.SetMatrix ("ViewProjection", ref vp);
-			currentTexture.BindTo (TextureUnit.Texture0);
+			currentTexture.BindTo (0);
 			shader.UseProgram ();
 			//draw
-			GL.Disable (EnableCap.CullFace);
+			renderstate.Cull = false;
 			renderstate.BlendMode = BlendMode.Normal;
 			vbo.SetData(vertices, billboardCount);
 			vbo.Draw (PrimitiveTypes.Points, billboardCount);
-			GL.Enable (EnableCap.CullFace);
+			renderstate.Cull = true;
 			//blah
 			currentTexture = null;
 			billboardCount = 0;

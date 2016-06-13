@@ -14,7 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK.Graphics;
+
 namespace LibreLancer
 {
 	public class LoadingDataState : GameState

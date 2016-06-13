@@ -18,7 +18,6 @@ using LibreLancer.Utf.Mat;
 using LibreLancer.Primitives;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Archetypes;
-using OpenTK;
 namespace LibreLancer
 {
 	public class SunRenderer : ObjectRenderer

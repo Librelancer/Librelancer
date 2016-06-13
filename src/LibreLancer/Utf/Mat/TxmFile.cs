@@ -19,8 +19,6 @@
 using System;
 using System.Collections.Generic;
 
-using OpenTK;
-
 using LibreLancer.Utf.Vms;
 
 namespace LibreLancer.Utf.Mat

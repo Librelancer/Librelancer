@@ -16,7 +16,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenTK.Graphics.OpenGL;
 namespace LibreLancer
 {
     public static class GLExtensions
@@ -27,10 +26,11 @@ namespace LibreLancer
 		{
 			if (ExtensionList != null)
 				return;
-			int n = GL.GetInteger (GetPName.NumExtensions);
+			int n;
+			GL.GetIntegerv (GL.GL_NUM_EXTENSIONS, out n);
 			ExtensionList = new List<string> (n);
 			for (int i = 0; i < n; i++)
-				ExtensionList.Add (GL.GetString (StringNameIndexed.Extensions, i));
+				ExtensionList.Add (GL.GetString (GL.GL_EXTENSIONS, i));
 		}
         public static void CheckExtensions()
         {

@@ -15,13 +15,11 @@
  */
 using System;
 using System.Collections.Generic;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Archetypes;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
+
 namespace LibreLancer
 {
 	public class SystemRenderer

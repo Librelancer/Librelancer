@@ -21,9 +21,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using OpenTK;
-
-
 using LibreLancer.Utf.Vms;
 using LibreLancer.Utf.Mat;
 

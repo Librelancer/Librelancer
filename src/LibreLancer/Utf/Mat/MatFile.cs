@@ -20,9 +20,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using OpenTK;
-
-
 using LibreLancer.Utf.Vms;
 
 namespace LibreLancer.Utf.Mat

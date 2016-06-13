@@ -21,8 +21,6 @@ using System.Linq;
 using System.IO;
 using System.Text;
 
-//using FLCommon;
-using OpenTK;
 
 //using FLParser;
 //using FLParser.Utf;

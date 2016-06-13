@@ -23,7 +23,6 @@ namespace LibreLancer.Vertices
 {
     public interface IVertexType
     {
-		void SetVertexPointers(int offset);
-        int VertexSize();
+		VertexDeclaration GetVertexDeclaration();
     }
 }

@@ -15,7 +15,6 @@
  */
 using System;
 using System.IO;
-using OpenTK.Graphics.OpenGL;
 using System.Runtime.InteropServices;
 
 namespace LibreLancer
@@ -24,9 +23,9 @@ namespace LibreLancer
     {
         public int Width { get; private set; }
         public int Height { get; private set; }
-        PixelInternalFormat glInternalFormat;
-        PixelFormat glFormat;
-        PixelType glType;
+        int glInternalFormat;
+        int glFormat;
+        int glType;
 
         public Texture2D(int width, int height, bool hasMipMaps, SurfaceFormat format) : this(true)
         {
@@ -39,7 +38,7 @@ namespace LibreLancer
             Bind();
             //initialise the texture data
             var imageSize = 0;
-            if (glFormat == (PixelFormat)All.CompressedTextureFormats)
+			if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)
             {
                 CheckCompressed();
                 switch (Format)
@@ -52,19 +51,19 @@ namespace LibreLancer
                     default:
                         throw new NotSupportedException();
                 }
-                GL.CompressedTexImage2D(TextureTarget.Texture2D, 0, glInternalFormat,
+				GL.CompressedTexImage2D(GL.GL_TEXTURE_2D, 0, glInternalFormat,
                                         Width, Height, 0,
                                         imageSize, IntPtr.Zero);
             }
             else {
-                GL.TexImage2D(TextureTarget.Texture2D, 0,
+				GL.TexImage2D(GL.GL_TEXTURE_2D, 0,
                               glInternalFormat,
                               Width, Height, 0,
                               glFormat, glType, IntPtr.Zero);
             }
             //enable filtering
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMagFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+			GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
+			GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
         }
         public Texture2D(int width, int height) : this(width, height, false, SurfaceFormat.Color)
         {
@@ -79,15 +78,16 @@ namespace LibreLancer
         }
         internal override void Bind()
         {
-            GL.BindTexture(TextureTarget.Texture2D, ID);
+			GL.BindTexture(GL.GL_TEXTURE_2D, ID);
         }
-        public void GetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T : struct
+		//TODO: Re-implement Texture2D.GetData later
+        /*public void GetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T : struct
         {
             GetData<T>(data);
         }
         public void GetData<T>(T[] data) where T : struct
         {
-            GL.BindTexture(TextureTarget.Texture2D, ID);
+            GL.BindTexture(GL.GL_TEXTURE_2D, ID);
             if (glFormat == (PixelFormat)All.CompressedTextureFormats)
             {
                 throw new NotImplementedException();
@@ -101,7 +101,7 @@ namespace LibreLancer
                     data
                 );
             }
-        }
+        }*/
 		void GetMipSize(int level, out int width, out int height)
 		{
 			width = Width;
@@ -113,16 +113,18 @@ namespace LibreLancer
 				i++;
 			}
 		}
-		public void SetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T: struct
+		public unsafe void SetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T: struct
         {
-            GL.BindTexture(TextureTarget.Texture2D, ID);
-            if (glFormat == (PixelFormat)All.CompressedTextureFormats)
+			GL.BindTexture(GL.GL_TEXTURE_2D, ID);
+			if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)
             {
 				int w, h;
 				GetMipSize (level, out w, out h);
-                GL.CompressedTexImage2D(TextureTarget.Texture2D, level, glInternalFormat,
-                                         w, h, 0,
-                                         count, data);
+				var handle = GCHandle.Alloc (data, GCHandleType.Pinned);
+					GL.CompressedTexImage2D (GL.GL_TEXTURE_2D, level, glInternalFormat,
+						w, h, 0,
+						count, handle.AddrOfPinnedObject());
+				handle.Free ();
             }
             else {
                 int w = Width;
@@ -135,19 +137,41 @@ namespace LibreLancer
                     h = rect.Value.Height;
                     x = rect.Value.X;
                     y = rect.Value.Y;
-                    GL.TexSubImage2D(TextureTarget.Texture2D, level, x, y, w, h, glFormat, glType, data);
+					var handle = GCHandle.Alloc (data, GCHandleType.Pinned);
+					GL.TexSubImage2D (GL.GL_TEXTURE_2D, level, x, y, w, h, glFormat, glType, handle.AddrOfPinnedObject());
+					handle.Free ();
                 }
                 else {
                     w = Math.Max(Width >> level, 1);
                     h = Math.Max(Height >> level, 1);
-                    GL.TexImage2D(TextureTarget.Texture2D, level, glInternalFormat, w, h, 0, glFormat, glType, data);
+					var handle = GCHandle.Alloc (data, GCHandleType.Pinned);
+					GL.TexImage2D (GL.GL_TEXTURE_2D, level, glInternalFormat, w, h, 0, glFormat, glType, handle.AddrOfPinnedObject());
+					handle.Free ();
                 }
             }
         }
+		WrapMode modeS = 0;
+		WrapMode modeT = 0;
+		public void SetWrapModeS(WrapMode mode)
+		{
+			if (mode == modeS)
+				return;
+			modeS = mode;
+			Bind ();
+			GL.TexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, (int)mode);
+		}
+		public void SetWrapModeT(WrapMode mode)
+		{
+			if (mode == modeT)
+				return;
+			modeT = mode;
+			Bind ();
+			GL.TexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, (int)mode);
+		}
 
 		internal void SetData(int level, Rectangle rect, IntPtr data)
 		{
-			GL.TexSubImage2D (TextureTarget.Texture2D, 0, rect.X, rect.Y, rect.Width, rect.Height, glFormat, glType, data);
+			GL.TexSubImage2D (GL.GL_TEXTURE_2D, 0, rect.X, rect.Y, rect.Width, rect.Height, glFormat, glType, data);
 		}
 
         public void SetData<T>(T[] data) where T : struct

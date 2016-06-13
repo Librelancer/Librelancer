@@ -14,131 +14,131 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK.Graphics.OpenGL;
+
 namespace LibreLancer
 {
     public static class SurfaceFormatExtensions
     {
         internal static void GetGLFormat(this SurfaceFormat format,
-                                          out PixelInternalFormat glInternalFormat,
-                                          out PixelFormat glFormat,
-                                          out PixelType glType)
+                                          out int glInternalFormat,
+                                          out int glFormat,
+                                          out int glType)
         {
-            glInternalFormat = PixelInternalFormat.Rgba;
-            glFormat = PixelFormat.Rgba;
-            glType = PixelType.UnsignedByte;
+			glInternalFormat = GL.GL_RGBA;
+			glFormat = GL.GL_RGBA;
+			glType = GL.GL_UNSIGNED_BYTE;
 
             switch (format)
             {
-                case SurfaceFormat.Color:
-                    glInternalFormat = PixelInternalFormat.Rgba;
-                    glFormat = PixelFormat.Bgra;
-                    glType = PixelType.UnsignedByte;
+				case SurfaceFormat.Color:
+					glInternalFormat = GL.GL_RGBA;
+					glFormat = GL.GL_BGRA;
+					glType = GL.GL_UNSIGNED_BYTE;
                     break;
 				case SurfaceFormat.R8:
-					glInternalFormat = PixelInternalFormat.R8;
-					glFormat = PixelFormat.Red;
-					glType = PixelType.UnsignedByte;
+					glInternalFormat = GL.GL_R8;
+					glFormat = GL.GL_RED;
+					glType = GL.GL_UNSIGNED_BYTE;
 					break;
-                case SurfaceFormat.Bgr565:
-                    glInternalFormat = PixelInternalFormat.Rgb;
-                    glFormat = PixelFormat.Rgb;
-                    glType = PixelType.UnsignedShort565;
+				case SurfaceFormat.Bgr565:
+					glInternalFormat = GL.GL_RGB;
+					glFormat = GL.GL_RGB;
+					glType = GL.GL_UNSIGNED_SHORT_5_6_5;
                     break;
-                case SurfaceFormat.Bgra4444:
-                    glInternalFormat = PixelInternalFormat.Rgba4;
-                    glFormat = PixelFormat.Rgba;
-                    glType = PixelType.UnsignedShort4444;
+				case SurfaceFormat.Bgra4444:
+					glInternalFormat = GL.GL_RGBA4;
+					glFormat = GL.GL_RGBA;
+					glType = GL.GL_UNSIGNED_SHORT_4_4_4_4;
                     break;
-                case SurfaceFormat.Bgra5551:
-					glInternalFormat = PixelInternalFormat.Rgb5A1;
-                    glFormat = PixelFormat.Bgra;
-                    glType = PixelType.UnsignedShort1555Reversed;
+				case SurfaceFormat.Bgra5551:
+					glInternalFormat = GL.GL_RGB5_A1;
+					glFormat = GL.GL_BGRA;
+					glType = GL.GL_UNSIGNED_SHORT_1_5_5_5_REVERSED;
                     break;
                 /*case SurfaceFormat.Alpha8: luminance removed in GL 3.1
                     glInternalFormat = PixelInternalFormat.Luminance;
                     glFormat = PixelFormat.Luminance;
                     glType = PixelType.UnsignedByte;
                     break;*/
-                case SurfaceFormat.Dxt1:
-                    glInternalFormat = PixelInternalFormat.CompressedRgbaS3tcDxt1Ext;
-                    glFormat = (PixelFormat)All.CompressedTextureFormats;
+				case SurfaceFormat.Dxt1:
+					glInternalFormat = GL.GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+					glFormat = GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS;
                     break;
-                case SurfaceFormat.Dxt3:
-                    glInternalFormat = PixelInternalFormat.CompressedRgbaS3tcDxt3Ext;
-                    glFormat = (PixelFormat)All.CompressedTextureFormats;
+				case SurfaceFormat.Dxt3:
+					glInternalFormat = GL.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+					glFormat = GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS;
                     break;
-                case SurfaceFormat.Dxt5:
-                    glInternalFormat = PixelInternalFormat.CompressedRgbaS3tcDxt5Ext;
-                    glFormat = (PixelFormat)All.CompressedTextureFormats;
+				case SurfaceFormat.Dxt5:
+					glInternalFormat = GL.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+					glFormat = GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS;
                     break;
 
                 case SurfaceFormat.Single:
-                    glInternalFormat = PixelInternalFormat.R32f;
-                    glFormat = PixelFormat.Red;
-                    glType = PixelType.Float;
+					glInternalFormat = GL.GL_R32F;
+					glFormat = GL.GL_RED;
+					glType = GL.GL_FLOAT;
                     break;
 
                 case SurfaceFormat.HalfVector2:
-                    glInternalFormat = PixelInternalFormat.Rg16f;
-                    glFormat = PixelFormat.Rg;
-                    glType = PixelType.HalfFloat;
+					glInternalFormat = GL.GL_RG16F;
+					glFormat = GL.GL_RG;
+					glType = GL.GL_HALF_FLOAT;
                     break;
 
                 // HdrBlendable implemented as HalfVector4 (see http://blogs.msdn.com/b/shawnhar/archive/2010/07/09/surfaceformat-hdrblendable.aspx)
                 case SurfaceFormat.HdrBlendable:
                 case SurfaceFormat.HalfVector4:
-                    glInternalFormat = PixelInternalFormat.Rgba16f;
-                    glFormat = PixelFormat.Rgba;
-                    glType = PixelType.HalfFloat;
+					glInternalFormat = GL.GL_RGBA16F;
+					glFormat = GL.GL_RGBA;
+					glType = GL.GL_HALF_FLOAT;
                     break;
 
                 case SurfaceFormat.HalfSingle:
-                    glInternalFormat = PixelInternalFormat.R16f;
-                    glFormat = PixelFormat.Red;
-                    glType = PixelType.HalfFloat;
+					glInternalFormat = GL.GL_R16F;
+					glFormat = GL.GL_RED;
+					glType = GL.GL_HALF_FLOAT;
                     break;
 
                 case SurfaceFormat.Vector2:
-                    glInternalFormat = PixelInternalFormat.Rg32f;
-                    glFormat = PixelFormat.Rg;
-                    glType = PixelType.Float;
+					glInternalFormat = GL.GL_RG32F;
+					glFormat = GL.GL_RG;
+					glType = GL.GL_FLOAT;
                     break;
 
                 case SurfaceFormat.Vector4:
-                    glInternalFormat = PixelInternalFormat.Rgba32f;
-                    glFormat = PixelFormat.Rgba;
-                    glType = PixelType.Float;
+					glInternalFormat = GL.GL_RGBA32F;
+					glFormat = GL.GL_RGBA;
+					glType = GL.GL_FLOAT;
                     break;
 
                 case SurfaceFormat.NormalizedByte2:
-                    glInternalFormat = PixelInternalFormat.Rg8i;
-                    glFormat = PixelFormat.Rg;
-                    glType = PixelType.Byte;
+					glInternalFormat = GL.GL_RG8I;
+					glFormat = GL.GL_RG;
+					glType = GL.GL_BYTE;
                     break;
 
                 case SurfaceFormat.NormalizedByte4:
-                    glInternalFormat = PixelInternalFormat.Rgba8i;
-                    glFormat = PixelFormat.Rgba;
-                    glType = PixelType.Byte;
+					glInternalFormat = GL.GL_RGBA8I;
+					glFormat = GL.GL_RGBA;
+					glType = GL.GL_BYTE;
                     break;
 
-                case SurfaceFormat.Rg32:
-                    glInternalFormat = PixelInternalFormat.Rg16ui;
-                    glFormat = PixelFormat.Rg;
-                    glType = PixelType.UnsignedShort;
+				case SurfaceFormat.Rg32:
+					glInternalFormat = GL.GL_RG16UI;
+					glFormat = GL.GL_RG;
+					glType = GL.GL_UNSIGNED_SHORT;
                     break;
 
-                case SurfaceFormat.Rgba64:
-                    glInternalFormat = PixelInternalFormat.Rgba16ui;
-                    glFormat = PixelFormat.Rgba;
-                    glType = PixelType.UnsignedShort;
+				case SurfaceFormat.Rgba64:
+					glInternalFormat = GL.GL_RGBA16UI;
+					glFormat = GL.GL_RGBA;
+					glType = GL.GL_UNSIGNED_SHORT;
                     break;
 
-                case SurfaceFormat.Rgba1010102:
-                    glInternalFormat = PixelInternalFormat.Rgb10A2ui;
-                    glFormat = PixelFormat.Rgba;
-                    glType = PixelType.UnsignedInt1010102;
+				case SurfaceFormat.Rgba1010102:
+					glInternalFormat = GL.GL_RGB10_A2UI;
+					glFormat = GL.GL_RGBA;
+					glType = GL.GL_UNSIGNED_INT_10_10_10_2;
                     break;
 
                 default:

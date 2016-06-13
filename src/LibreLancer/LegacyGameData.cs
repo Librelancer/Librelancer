@@ -16,8 +16,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OpenTK;
-using OpenTK.Graphics;
 using Legacy = LibreLancer.Compatibility.GameData;
 namespace LibreLancer
 {

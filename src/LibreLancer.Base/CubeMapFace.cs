@@ -14,7 +14,6 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK.Graphics.OpenGL;
 namespace LibreLancer
 {
     public enum CubeMapFace
@@ -26,24 +25,24 @@ namespace LibreLancer
         PositiveZ,
         NegativeZ
     }
-    public static class CubeMapFaceExtensions
+    static class CubeMapFaceExtensions
     {
-        public static TextureTarget GL(this CubeMapFace face)
+        public static int ToGL(this CubeMapFace face)
         {
             switch (face)
             {
-                case CubeMapFace.PositiveX:
-                    return TextureTarget.TextureCubeMapPositiveX;
+				case CubeMapFace.PositiveX:
+					return GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X;
                 case CubeMapFace.PositiveY:
-                    return TextureTarget.TextureCubeMapPositiveY;
+					return GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y;
                 case CubeMapFace.PositiveZ:
-                    return TextureTarget.TextureCubeMapPositiveZ;
-                case CubeMapFace.NegativeX:
-                    return TextureTarget.TextureCubeMapNegativeX;
-                case CubeMapFace.NegativeY:
-                    return TextureTarget.TextureCubeMapNegativeY;
-                case CubeMapFace.NegativeZ:
-                    return TextureTarget.TextureCubeMapNegativeZ;
+					return GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
+				case CubeMapFace.NegativeX:
+					return GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X;
+				case CubeMapFace.NegativeY:
+					return GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y;
+				case CubeMapFace.NegativeZ:
+					return GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

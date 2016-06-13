@@ -15,9 +15,6 @@
  */
 using System;
 using System.Collections.Generic;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
 
@@ -84,7 +81,7 @@ namespace LibreLancer
 			shader.SetMatrix("ViewProjection", ref ViewProjection);
 			//Dt
 			shader.SetInteger("DtSampler", 0);
-			BindTexture(DtSampler, TextureUnit.Texture0,DtFlags, false);
+			BindTexture(DtSampler, 0 ,DtFlags, false);
 
 
 			//Dc
@@ -102,7 +99,7 @@ namespace LibreLancer
 			shader.SetColor4("Ec", Ec);
 			//EtSampler
 			shader.SetInteger("EtSampler", 1);
-			BindTexture(EtSampler, TextureUnit.Texture1, EtFlags, false);
+			BindTexture(EtSampler, 1, EtFlags, false);
 			//Set lights
 			SetLights(shader, lights);
 

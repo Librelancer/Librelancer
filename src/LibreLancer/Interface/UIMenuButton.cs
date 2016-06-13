@@ -14,9 +14,6 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK;
-using OpenTK.Input;
-using OpenTK.Graphics;
 
 namespace LibreLancer
 {
@@ -44,12 +41,12 @@ namespace LibreLancer
 		}
 		protected override void UpdateInternal (TimeSpan time)
 		{
-			var mstate = Manager.Game.Mouse.GetCursorState ();
+			
 			var rect = GetTextRectangle ();
 			color = Tag != null ? Manager.TextColor : Color4.Gray;
-			if (rect.Contains (Manager.Game.Input.MouseX, Manager.Game.Input.MouseY) && Tag != null) {
+			if (rect.Contains (Manager.Game.Mouse.X, Manager.Game.Mouse.Y) && Tag != null) {
 				color = GetPulseColor();
-				if (mstate.IsButtonDown (MouseButton.Left)) {
+				if (Manager.Game.Mouse.IsButtonDown (MouseButtons.Left)) {
 					Manager.OnClick (Tag);
 				}
 			}

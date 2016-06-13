@@ -15,7 +15,6 @@
  */
 using System;
 using System.Collections.Generic;
-using OpenTK.Graphics;
 namespace LibreLancer
 {
 	public class Lighting

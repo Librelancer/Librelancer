@@ -48,9 +48,6 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="OpenTK">
-      <HintPath>..\..\extern\opentk\Binaries\OpenTK\Debug\OpenTK.dll</HintPath>
-    </Reference>
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
@@ -70,7 +67,6 @@
     <Compile Include="Primitives\Quad.cs" />
     <Compile Include="PrimitiveTypes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Rectangle.cs" />
     <Compile Include="Shader.cs" />
     <Compile Include="SurfaceFormat.cs" />
     <Compile Include="SurfaceFormatExtensions.cs" />
@@ -94,14 +90,11 @@
     <Compile Include="IUIThread.cs" />
     <Compile Include="GLBind.cs" />
     <Compile Include="RenderTarget2D.cs" />
-    <Compile Include="RectangleF.cs" />
     <Compile Include="FLLog.cs" />
     <Compile Include="Platform.cs" />
     <Compile Include="Primitives\QuadSphere.cs" />
     <Compile Include="RenderState.cs" />
     <Compile Include="BlendMode.cs" />
-    <Compile Include="Color3f.cs" />
-    <Compile Include="Color4b.cs" />
     <Compile Include="Platforms\IPlatform.cs" />
     <Compile Include="Platforms\LinuxPlatform.cs" />
     <Compile Include="Platforms\Win32Platform.cs" />
@@ -116,9 +109,38 @@
     <Compile Include="Text\Font.cs" />
     <Compile Include="Text\CodepointIterator.cs" />
     <Compile Include="Text\GlyphInfo.cs" />
-    <Compile Include="Point.cs" />
     <Compile Include="Text\Renderer2D.cs" />
     <Compile Include="HSLColor.cs" />
+    <Compile Include="Math\MathHelper.cs" />
+    <Compile Include="Math\Matrix3.cs" />
+    <Compile Include="Math\Matrix4.cs" />
+    <Compile Include="Math\Quaternion.cs" />
+    <Compile Include="Math\Vector2.cs" />
+    <Compile Include="Math\Vector3.cs" />
+    <Compile Include="Math\Vector4.cs" />
+    <Compile Include="Math\Point.cs" />
+    <Compile Include="Math\Rectangle.cs" />
+    <Compile Include="Math\RectangleF.cs" />
+    <Compile Include="Math\Color3f.cs" />
+    <Compile Include="Math\Color4b.cs" />
+    <Compile Include="Math\Color4.cs" />
+    <Compile Include="GL\GL.Functions.cs" />
+    <Compile Include="GL\GL.Constants.cs" />
+    <Compile Include="GL\GLDelegates.cs" />
+    <Compile Include="SDL2\SDL2.cs" />
+    <Compile Include="Vertices\VertexDeclaration.cs" />
+    <Compile Include="Vertices\VertexElement.cs" />
+    <Compile Include="Vertices\VertexElementType.cs" />
+    <Compile Include="Game.cs" />
+    <Compile Include="SDL2\LPUtf8StrMarshaler.cs" />
+    <Compile Include="Input\Mouse.cs" />
+    <Compile Include="Input\Keyboard.cs" />
+    <Compile Include="Input\KeyEventArgs.cs" />
+    <Compile Include="Input\KeyModifiers.cs" />
+    <Compile Include="Input\Keys.cs" />
+    <Compile Include="Input\MouseButtons.cs" />
+    <Compile Include="Input\MouseEventArgs.cs" />
+    <Compile Include="WrapMode.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -133,6 +155,10 @@
     <Folder Include="Platforms\Mac\" />
     <Folder Include="Platforms\Win32\" />
     <Folder Include="Text\" />
+    <Folder Include="GL\" />
+    <Folder Include="SDL2\" />
+    <Folder Include="Math\" />
+    <Folder Include="Input\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\extern\SharpFont\Source\SharpFont\SharpFont.csproj">
@@ -143,5 +169,10 @@
       <Project>{CBBDC35F-DCA3-453C-A9E3-29EE7E43DE85}</Project>
       <Name>FontConfigSharp</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="LibreLancer.Base.dll.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

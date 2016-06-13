@@ -15,7 +15,7 @@
  */
 using System;
 using System.Threading;
-using OpenTK;
+
 namespace LibreLancer.GameData
 {
 	public class ZoneEllipsoid : ZoneShape

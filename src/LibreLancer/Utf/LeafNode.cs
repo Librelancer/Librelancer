@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-using OpenTK;
-using OpenTK.Graphics;
-
 namespace LibreLancer.Utf
 {
     public class LeafNode : Node

@@ -49,9 +49,6 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="OpenTK">
-      <HintPath>..\..\extern\opentk\Binaries\OpenTK\Debug\OpenTK.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConvertData.cs" />
@@ -160,7 +157,6 @@
     <Compile Include="Interface\UIMenuButton.cs" />
     <Compile Include="Interface\UIAnimation.cs" />
     <Compile Include="Interface\FlyInLeft.cs" />
-    <Compile Include="InputManager.cs" />
     <Compile Include="Thn\ThnScript.cs" />
     <Compile Include="Thn\ThnLighting.cs" />
     <Compile Include="Thn\AttachFlags.cs" />

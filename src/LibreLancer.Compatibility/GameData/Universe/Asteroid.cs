@@ -1,6 +1,5 @@
 ﻿using System;
 using LibreLancer.Ini;
-using OpenTK;
 
 namespace LibreLancer.Compatibility.GameData.Universe
 {

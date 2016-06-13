@@ -14,13 +14,13 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK.Graphics.OpenGL;
+
 namespace LibreLancer
 {
 	static class GLBind
 	{
-		static int programBound = -1;
-		public static void UseProgram(int prg)
+		static uint programBound = 0;
+		public static void UseProgram(uint prg)
 		{
 			if (programBound != prg) {
 				GL.UseProgram (prg);
@@ -28,17 +28,17 @@ namespace LibreLancer
 			}
 		}
 
-		static int bound_vbo = -1;
-		static int bound_vao = -1;
+		static uint bound_vbo = 0;
+		static uint bound_vao = 0;
 
-		public static void VertexBuffer(int vbo)
+		public static void VertexBuffer(uint vbo)
 		{
 			if (bound_vbo != vbo) {
 				bound_vbo = vbo;
-				GL.BindBuffer (BufferTarget.ArrayBuffer, vbo);
+				GL.BindBuffer (GL.GL_ARRAY_BUFFER, vbo);
 			}
 		}
-		public static void VertexArray(int vao)
+		public static void VertexArray(uint vao)
 		{
 			if (bound_vao != vao) {
 				bound_vao = vao;

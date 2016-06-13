@@ -20,11 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using OpenTK;
-
 using LibreLancer.Utf.Mat;
-//using FLApi.Universe;
-
 namespace LibreLancer.Utf.Vms
 {
     /// <summary>

@@ -28,7 +28,6 @@ SOFTWARE.
 using System;
 using System.ComponentModel;
 using System.Runtime.Serialization;
-using OpenTK;
 
 namespace LibreLancer
 {

@@ -14,10 +14,6 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK;
-using OpenTK.Input;
-using OpenTK.Graphics.OpenGL;
-using OpenTK.Graphics;
 using LibreLancer.Primitives;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Cmp;
@@ -56,8 +52,8 @@ C# Memory Usage: {5}
 
 			trender = new Renderer2D (Game.RenderState);
 			font = Font.FromSystemFont (trender, "Agency FB", 16);
-			g.KeyPress += HandleKeyPress;
-			g.KeyDown += HandleKeyDown;
+			g.Keyboard.KeyDown += G_Keyboard_KeyDown;
+			g.Keyboard.TextInput += G_Keyboard_TextInput;
 		}
 
 		public override void Update (TimeSpan delta)
@@ -66,7 +62,7 @@ C# Memory Usage: {5}
 				ProcessInput(delta);
 			else
 			{
-				if (Game.Keyboard[Key.Enter])
+				if (Game.Keyboard.IsKeyDown(Keys.Enter))
 				{
 					textEntry = false;
 					sys = Game.GameData.GetSystem(currentText.Trim());
@@ -76,7 +72,7 @@ C# Memory Usage: {5}
 					camera.Free = true;
 					Game.Sound.PlayMusic(sys.MusicSpace);
 				}
-				if (Game.Keyboard[Key.Escape])
+				if (Game.Keyboard.IsKeyDown(Keys.Escape))
 					textEntry = false;
 				
 			}
@@ -84,9 +80,10 @@ C# Memory Usage: {5}
 			camera.Free = true;
 			sysrender.Update (delta);
 		}
-		void HandleKeyDown(object sender, KeyboardKeyEventArgs e)
+
+		void G_Keyboard_KeyDown (KeyEventArgs e)
 		{
-			if (e.Key == Key.BackSpace && textEntry)
+			if (e.Key == Keys.Backspace && textEntry)
 			{
 				if (currentText.Length > 0)
 				{
@@ -94,67 +91,54 @@ C# Memory Usage: {5}
 				}
 			}
 		}
-		void HandleKeyPress(object sender, KeyPressEventArgs e)
+
+		void G_Keyboard_TextInput (string text)
 		{
 			if (textEntry)
-			{
-				currentText += e.KeyChar;
-				return;
-			}
-			if (e.KeyChar == 'p')
-			{
-				wireframe = !wireframe;
-				if (wireframe)
-				{
-					GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
-				}
-				else
-				{
-					GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
-				}
-			}
+				currentText += text;
+			
 		}
 		void ProcessInput(TimeSpan delta)
 		{
-			if (Game.Keyboard[Key.Tab])
+			if (Game.Keyboard.IsKeyDown(Keys.Tab))
 			{
 				currentText = "";
 				textEntry = true;
 				return;
 			}
-			if (Game.Keyboard[Key.Right])
+			if (Game.Keyboard.IsKeyDown(Keys.Right))
 			{
 				camera.Rotation = new Vector2(camera.Rotation.X - (ROTATION_SPEED * (float)delta.TotalSeconds),
 					camera.Rotation.Y);
 			}
-			if (Game.Keyboard[Key.Left])
+			if (Game.Keyboard.IsKeyDown(Keys.Left))
 			{
 				camera.Rotation = new Vector2(camera.Rotation.X + (ROTATION_SPEED * (float)delta.TotalSeconds),
 					camera.Rotation.Y);
 			}
-			if (Game.Keyboard[Key.Up])
+			if (Game.Keyboard.IsKeyDown(Keys.Up))
 			{
 				camera.Rotation = new Vector2(camera.Rotation.X,
 					camera.Rotation.Y + (ROTATION_SPEED * (float)delta.TotalSeconds));
 			}
-			if (Game.Keyboard[Key.Down])
+			if (Game.Keyboard.IsKeyDown(Keys.Down))
 			{
 				camera.Rotation = new Vector2(camera.Rotation.X,
 					camera.Rotation.Y - (ROTATION_SPEED * (float)delta.TotalSeconds));
 			}
-			if (Game.Keyboard[Key.W])
+			if (Game.Keyboard.IsKeyDown(Keys.W))
 			{
 				camera.MoveVector = VectorMath.Forward;
 			}
-			if (Game.Keyboard[Key.S])
+			if (Game.Keyboard.IsKeyDown(Keys.S))
 			{
 				camera.MoveVector = VectorMath.Backward;
 			}
-			if (Game.Keyboard[Key.A])
+			if (Game.Keyboard.IsKeyDown(Keys.A))
 			{
 				camera.MoveVector = VectorMath.Left;
 			}
-			if (Game.Keyboard[Key.D])
+			if (Game.Keyboard.IsKeyDown(Keys.D))
 			{
 				camera.MoveVector = VectorMath.Right;
 			}

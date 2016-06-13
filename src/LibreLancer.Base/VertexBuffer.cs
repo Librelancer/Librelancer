@@ -14,10 +14,10 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK.Graphics.OpenGL;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using LibreLancer.Vertices;
 
@@ -27,29 +27,39 @@ namespace LibreLancer
     {
 		public static int TotalDrawcalls = 0;
         public int VertexCount { get; private set; }
-        public IVertexType VertexType;
-        int VBO;
-		int VAO;
+        uint VBO;
+		uint VAO;
 		public bool HasElements = false;
 		Type type;
+		VertexDeclaration decl;
+		IVertexType vertextype;
+		public IVertexType VertexType {
+			get {
+				return vertextype;
+			}
+		}
+
 		public VertexBuffer(Type type, int length, bool isStream = false)
         {
             VBO = GL.GenBuffer();
-			var usageHint = isStream ? BufferUsageHint.StreamDraw : BufferUsageHint.DynamicDraw;
+			var usageHint = isStream ? GL.GL_STREAM_DRAW : GL.GL_DYNAMIC_DRAW;
             this.type = type;
             try
             {
-                VertexType = (IVertexType)Activator.CreateInstance(type);
+				vertextype = (IVertexType)Activator.CreateInstance (type);
+				decl = vertextype.GetVertexDeclaration();
             }
             catch (Exception)
             {
                 throw new Exception(string.Format("{0} is not a valid IVertexType", type.FullName));
             }
-			VAO = GL.GenVertexArray ();
+
+
+			GL.GenVertexArrays (1, out VAO);
             GLBind.VertexArray(VAO);
 			GLBind.VertexBuffer(VBO);
-			GL.BufferData (BufferTarget.ArrayBuffer, length * VertexType.VertexSize (), IntPtr.Zero, usageHint);
-			VertexType.SetVertexPointers (0);
+			GL.BufferData (GL.GL_ARRAY_BUFFER, (IntPtr)(length * decl.Stride), IntPtr.Zero, usageHint);
+			decl.SetPointers ();
 			VertexCount = length;
         }
 
@@ -58,9 +68,10 @@ namespace LibreLancer
             if (typeof(T) != type)
                 throw new Exception("Data must be of type " + type.FullName);
 			int len = length ?? data.Length;
-            GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
-			GL.BufferSubData (BufferTarget.ArrayBuffer, IntPtr.Zero, len * VertexType.VertexSize (), data);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+			GLBind.VertexBuffer (VBO);
+			var handle = GCHandle.Alloc (data, GCHandleType.Pinned);
+			GL.BufferSubData (GL.GL_ARRAY_BUFFER, IntPtr.Zero, (IntPtr)(len * decl.Stride), handle.AddrOfPinnedObject());
+			handle.Free ();
         }
 
 		public void Draw(PrimitiveTypes primitiveType, int baseVertex, int startIndex, int primitiveCount)
@@ -71,7 +82,7 @@ namespace LibreLancer
 			GLBind.VertexArray (VAO);
 			GL.DrawElementsBaseVertex (primitiveType.GLType (),
 				indexElementCount,
-				DrawElementsType.UnsignedShort,
+				GL.GL_UNSIGNED_SHORT,
 				(IntPtr)(startIndex * 2),
 				baseVertex);
 			TotalDrawcalls++;
@@ -85,7 +96,7 @@ namespace LibreLancer
 				int indexElementCount = primitiveType.GetArrayLength (primitiveCount);
 				GL.DrawElements (primitiveType.GLType (),
 					indexElementCount,
-					DrawElementsType.UnsignedShort,
+					GL.GL_UNSIGNED_SHORT,
 					IntPtr.Zero
 				);
 			} else {
@@ -101,7 +112,7 @@ namespace LibreLancer
         {
 			GLBind.VertexBuffer(VBO);
 			GLBind.VertexArray (VAO);
-			GL.BindBuffer (BufferTarget.ElementArrayBuffer, elems.Handle);
+			GL.BindBuffer (GL.GL_ARRAY_BUFFER, elems.Handle);
 			HasElements = true;
         }
 

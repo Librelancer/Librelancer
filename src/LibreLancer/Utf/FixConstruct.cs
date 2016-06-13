@@ -20,10 +20,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using OpenTK;
-
-//using FLParser;
-//using FLCommon;
 namespace LibreLancer.Utf
 {
     public class FixConstruct : AbstractConstruct

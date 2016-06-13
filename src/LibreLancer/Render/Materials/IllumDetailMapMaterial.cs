@@ -14,10 +14,9 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
+
 namespace LibreLancer
 {
 	public class IllumDetailMapMaterial : RenderMaterial
@@ -67,11 +66,11 @@ namespace LibreLancer
 			sh.SetInteger("FlipV", FlipV);
 
 			sh.SetInteger("DtSampler", 0);
-			BindTexture(DtSampler, TextureUnit.Texture0, DtFlags);
+			BindTexture(DtSampler, 0, DtFlags);
 			sh.SetInteger("Dm0Sampler", 1);
-			BindTexture(Dm0Sampler, TextureUnit.Texture1, Dm0Flags);
+			BindTexture(Dm0Sampler, 1, Dm0Flags);
 			sh.SetInteger("Dm1Sampler", 2);
-			BindTexture(Dm1Sampler, TextureUnit.Texture2, Dm1Flags);
+			BindTexture(Dm1Sampler, 2, Dm1Flags);
 
 			sh.UseProgram();
 		}

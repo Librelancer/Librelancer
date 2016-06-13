@@ -20,9 +20,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using OpenTK;
-using OpenTK.Graphics;
-//using FLApi.Utf.Mat;
 using LibreLancer.Vertices;
 
 namespace LibreLancer.Utf.Vms
