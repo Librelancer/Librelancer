@@ -81,6 +81,7 @@ namespace LibreLancer
 			SDL.SDL_GL_SetAttribute (SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 			SDL.SDL_GL_SetAttribute (SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 2);
 			SDL.SDL_GL_SetAttribute (SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
+			SDL.SDL_GL_SetAttribute (SDL.SDL_GLattr.SDL_GL_DEPTH_SIZE, 24);
 			//Create Window
 			var flags = SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE;
 			if (fullscreen)
@@ -114,6 +115,7 @@ namespace LibreLancer
 			double last = 0;
 			double elapsed = 0;
 			SDL.SDL_Event e;
+			SDL.SDL_StopTextInput();
 			while (running) {
 				//Pump message queue
 				while (SDL.SDL_PollEvent (out e) != 0) {
@@ -217,7 +219,14 @@ namespace LibreLancer
 			string text = Encoding.UTF8.GetString (rawBytes, 0, nullIndex);
 			return text;
 		}
-
+		public void EnableTextInput()
+		{
+			SDL.SDL_StartTextInput();
+		}
+		public void DisableTextInput()
+		{
+			SDL.SDL_StopTextInput();
+		}
 		public void Exit()
 		{
 			running = false;

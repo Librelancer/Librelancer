@@ -65,6 +65,7 @@ C# Memory Usage: {5}
 				if (Game.Keyboard.IsKeyDown(Keys.Enter))
 				{
 					textEntry = false;
+					Game.DisableTextInput();
 					sys = Game.GameData.GetSystem(currentText.Trim());
 					sysrender.StarSystem = sys;
 					camera.Free = false;
@@ -104,6 +105,7 @@ C# Memory Usage: {5}
 			{
 				currentText = "";
 				textEntry = true;
+				Game.EnableTextInput();
 				return;
 			}
 			if (Game.Keyboard.IsKeyDown(Keys.Right))
