@@ -14,8 +14,8 @@ Pull Requests are welcome!
 
 ### Build instructions
 1. Clone this repository with `git clone --recursive https://github.com/CallumDev/Librelancer`
-2. Open OpenTK.sln in extern/opentk and compile the project
-3. Build src/LibreLancer.sln
+2. Build src/LibreLancer.sln
+3. Enjoy
 
 ### Screenshots
 ![Rendering of Newark Station](http://i.imgur.com/xIs46Qz.png)
