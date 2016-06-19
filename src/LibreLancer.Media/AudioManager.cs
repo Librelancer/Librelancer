@@ -17,8 +17,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using OpenTK.Audio;
-using OpenTK.Audio.OpenAL;
 
 namespace LibreLancer.Media
 {
@@ -26,30 +24,27 @@ namespace LibreLancer.Media
 	{
 		//TODO: Heuristics to determine max number of sources
 		const int MAX_SOURCES = 32;
-		internal AudioContext context;
 		internal bool Ready = false;
-		bool createContext;
 		bool running = true;
 		//ConcurrentQueues to avoid threading errors
-		ConcurrentQueue<int> toAdd = new ConcurrentQueue<int> ();
-		ConcurrentQueue<int> freeSources = new ConcurrentQueue<int>();
-		ConcurrentQueue<int> streamingSources = new ConcurrentQueue<int>();
-		List<int> sfxInstances = new List<int>();
+		ConcurrentQueue<uint> toAdd = new ConcurrentQueue<uint> ();
+		ConcurrentQueue<uint> freeSources = new ConcurrentQueue<uint>();
+		ConcurrentQueue<uint> streamingSources = new ConcurrentQueue<uint>();
+		List<uint> sfxInstances = new List<uint>();
 		List<StreamingAudio> streamingInstances = new List<StreamingAudio>();
 		ConcurrentQueue<StreamingAudio> toAddStreaming = new ConcurrentQueue<StreamingAudio>();
 		ConcurrentQueue<StreamingAudio> toRemoveStreaming = new ConcurrentQueue<StreamingAudio>();
 		public MusicPlayer Music { get; private set; }
 
-		public AudioManager(bool createContext = true)
+		public AudioManager()
 		{
-			this.createContext = createContext;
 			Music = new MusicPlayer(this);
 
 			new Thread (new ThreadStart (UpdateThread)).Start ();
 
 		}
 
-		bool AllocateSource(out int source)
+		bool AllocateSource(out uint source)
 		{
 			while (!Ready) { }
 			if (freeSources.Count > 0)
@@ -58,12 +53,12 @@ namespace LibreLancer.Media
 			}
 			else
 			{
-				source = -1;
+				source = uint.MaxValue;
 				return false;
 			}
 		}
 
-		internal bool AllocateSourceStreaming(out int source)
+		internal bool AllocateSourceStreaming(out uint source)
 		{
 			while (!Ready) { }
 			if (freeSources.Count > 0)
@@ -72,12 +67,12 @@ namespace LibreLancer.Media
 			}
 			else
 			{
-				source = -1;
+				source = uint.MaxValue;
 				return false;
 			}
 		}
 
-		internal void RelinquishSourceStreaming(int source)
+		internal void RelinquishSourceStreaming(uint source)
 		{
 			streamingSources.Enqueue(source);
 		}
@@ -85,7 +80,7 @@ namespace LibreLancer.Media
 		public bool CreateInstance(out SoundEffectInstance instance, SoundData data)
 		{
 			instance = null;
-			int source;
+			uint source;
 			if (AllocateSource(out source))
 			{
 				instance = new SoundEffectInstance(this, source, data);
@@ -97,17 +92,20 @@ namespace LibreLancer.Media
 		public SoundData AllocateData()
 		{
 			while (!Ready) { }
-			return new SoundData(AL.GenBuffer());
+			return new SoundData(Al.GenBuffer());
 		}
 		void UpdateThread()
 		{
-			if(createContext)
-				context = new AudioContext ();
+			//Init context
+			IntPtr dev = Alc.alcOpenDevice(null);
+			IntPtr ctx = Alc.alcCreateContext(dev, IntPtr.Zero);
+			Alc.alcMakeContextCurrent(ctx);
+
 			for (int i = 0; i < MAX_SOURCES; i++)
 			{
-				freeSources.Enqueue(AL.GenSource());
+				freeSources.Enqueue(Al.GenSource());
 			}
-			int musicSource;
+			uint musicSource;
 			for (int i = 0; i < 2; i++)
 			{
 				while (!freeSources.TryDequeue(out musicSource)) {}
@@ -119,7 +117,7 @@ namespace LibreLancer.Media
 				
 				//insert into items to update
 				while (toAdd.Count > 0) {
-					int item;
+					uint item;
 					if (toAdd.TryDequeue (out item))
 						sfxInstances.Add(item);
 				}
@@ -140,8 +138,9 @@ namespace LibreLancer.Media
 				}
 				//update SFX
 				for (int i = sfxInstances.Count - 1; i >= 0; i--) {
-					var state = AL.GetSourceState(sfxInstances[i]);
-					if (state != ALSourceState.Playing)
+					int state;
+					Al.alGetSourcei(sfxInstances[i], Al.AL_SOURCE_STATE, out state);
+					if (state != Al.AL_PLAYING)
 					{
 						freeSources.Enqueue(sfxInstances[i]);
 						sfxInstances.RemoveAt(i);
@@ -153,17 +152,21 @@ namespace LibreLancer.Media
 					item.Update();
 				Thread.Sleep (5);
 			}
+			//Delete context
+			Alc.alcMakeContextCurrent(IntPtr.Zero);
+			Alc.alcDestroyContext(ctx);
+			Alc.alcCloseDevice(ctx);
 		}
 		internal static void ALFunc(Action act)
 		{
 			act ();
-			ALError error;
-			if ((error = AL.GetError()) != ALError.NoError)
-				throw new InvalidOperationException(AL.GetErrorString(error));
+			int error;
+			if ((error = Al.alGetError()) != Al.AL_NO_ERROR)
+				throw new InvalidOperationException(Al.GetString(error));
 		}
-		internal void PlayInternal(int sid)
+		internal void PlayInternal(uint sid)
 		{
-			ALFunc(() => AL.SourcePlay(sid));
+			ALFunc(() => Al.alSourcePlay(sid));
 			toAdd.Enqueue(sid);
 		}
 		internal void Add(StreamingAudio audio)

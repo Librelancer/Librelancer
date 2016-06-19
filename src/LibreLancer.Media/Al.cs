@@ -1,0 +1,104 @@
+﻿using System;
+using System.Runtime.InteropServices;
+namespace LibreLancer.Media
+{
+	static class Al
+	{
+		const string lib = "openal32.dll";
+
+		//CONSTANTS
+		public const int AL_PITCH = 0x1003;
+		public const int AL_GAIN = 0x100A;
+		public const int AL_BUFFER = 0x1009;
+
+		public const int AL_FORMAT_MONO8 = 0x1100;
+		public const int AL_FORMAT_MONO16 = 0x1101;
+		public const int AL_FORMAT_STEREO8 = 0x1102;
+		public const int AL_FORMAT_STEREO16 = 0x1103;
+
+		public const int AL_BUFFERS_QUEUED = 0x1015;
+		public const int AL_BUFFERS_PROCESSED = 0x1016;
+
+		public const int AL_SOURCE_STATE = 0x1010;
+		public const int AL_PLAYING = 0x1012;
+		public const int AL_PAUSED = 0x1013;
+		public const int AL_STOPPED = 0x1014;
+
+		public const int AL_NO_ERROR = 0;
+		//FUNCTIONS
+		[DllImport(lib)]
+		public static extern void alGenSources(int n, out uint sources);
+
+		public static uint GenSource()
+		{
+			uint s;
+			alGenSources(1, out s);
+			return s;
+		}
+
+		[DllImport(lib)]
+		public static extern void alGenBuffers(int n, out uint buffers);
+
+		[DllImport(lib)]
+		public static extern void alGenBuffers(int n, uint[] buffers);
+
+		public static uint GenBuffer()
+		{
+			uint b;
+			alGenBuffers(1, out b);
+			return b;
+		}
+
+		[DllImport(lib)]
+		public static extern void alSourcef(uint sid, int param, float value);
+
+		[DllImport(lib)]
+		public static extern void alSourcei(uint sid, int param, int value);
+
+		[DllImport(lib)]
+		public static extern void alGetSourcei(uint sid, int param, out int value);
+
+		[DllImport(lib)]
+		public static extern void alBufferData(uint bid, int format, IntPtr buffer, int size, int freq);
+
+		public static unsafe void BufferData(uint bid, int format, byte[] buffer, int size, int freq)
+		{
+			fixed(byte* ptr = buffer)
+			{
+				alBufferData(bid, format, (IntPtr)ptr, size, freq);
+			}
+		}
+
+		[DllImport(lib)]
+		public static extern void alSourcePlay(uint sid);
+
+		[DllImport(lib)]
+		public static extern void alSourceStopv(int n, ref uint sids);
+
+		[DllImport(lib)]
+		public static extern void alSourcePausev(int n, ref uint sids);
+
+		[DllImport(lib)]
+		public static extern void alSourceUnqueueBuffers(uint sid, int n, ref uint bids);
+
+		[DllImport(lib)]
+		public static extern void alSourceUnqueueBuffers(uint sid, int n, uint[] bids);
+
+		[DllImport(lib)]
+		public static extern void alSourceQueueBuffers(uint sid, int r, ref uint bids);
+
+		[DllImport(lib)]
+		public static extern int alGetError();
+
+		[DllImport(lib)]
+		static extern IntPtr alGetString(int param);
+
+		[DllImport(lib)]
+		public static extern void alDeleteBuffers(int i, uint[] buffers);
+		public static string GetString(int param)
+		{
+			return Marshal.PtrToStringAnsi(alGetString(param));
+		}
+	}
+}
+

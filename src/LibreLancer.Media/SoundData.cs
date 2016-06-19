@@ -15,13 +15,13 @@
  */
 using System;
 using System.IO;
-using OpenTK.Audio.OpenAL;
+
 namespace LibreLancer.Media
 {
 	public class SoundData
 	{
-		internal int ID;
-		internal SoundData(int id)
+		internal uint ID;
+		internal SoundData(uint id)
 		{
 			this.ID = id;
 		}
@@ -38,7 +38,7 @@ namespace LibreLancer.Media
 		{
 			int channels, freq, bits;
 			var data = GetPCMData(stream, out channels, out freq, out bits);
-			AudioManager.ALFunc(() => AL.BufferData(ID, ALUtils.GetFormat(channels, bits), data, data.Length, freq));
+			AudioManager.ALFunc(() => Al.BufferData(ID, ALUtils.GetFormat(channels, bits), data, data.Length, freq));
 		}
 
 		static byte[] GetPCMData(Stream stream, out int channels, out int freq, out int bits)

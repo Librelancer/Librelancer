@@ -14,15 +14,15 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK.Audio.OpenAL;
+
 namespace LibreLancer.Media
 {
 	public class SoundEffectInstance
 	{
-		int sid;
+		uint sid;
 		AudioManager au;
 		SoundData data;
-		internal SoundEffectInstance(AudioManager manager, int source, SoundData data)
+		internal SoundEffectInstance(AudioManager manager, uint source, SoundData data)
 		{
 			this.sid = source;
 			this.au = manager;
@@ -31,8 +31,8 @@ namespace LibreLancer.Media
 
 		public void Play(float volume)
 		{
-			AudioManager.ALFunc(() => AL.BindBufferToSource(sid, data.ID));
-			AudioManager.ALFunc(() => AL.Source(sid, ALSourcef.Gain, volume));
+			AudioManager.ALFunc(() => Al.alSourcei(sid, Al.AL_BUFFER, (int)data.ID));
+			AudioManager.ALFunc(() => Al.alSourcef(sid, Al.AL_GAIN, volume));
 			au.PlayInternal(sid);
 		}
 	}

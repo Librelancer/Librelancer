@@ -39,9 +39,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="OpenTK">
-      <HintPath>..\..\extern\opentk\Binaries\OpenTK\Debug\OpenTK.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -60,6 +57,8 @@
     <Compile Include="ALUtils.cs" />
     <Compile Include="StreamingDecoder.cs" />
     <Compile Include="Decoding\SliceStream.cs" />
+    <Compile Include="Alc.cs" />
+    <Compile Include="Al.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -70,5 +69,10 @@
       <Project>{BF3B29F8-DA04-4973-93DB-144A5BBE2472}</Project>
       <Name>MP3Sharp</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="LibreLancer.Media.dll.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

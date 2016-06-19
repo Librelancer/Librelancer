@@ -14,28 +14,28 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using OpenTK.Audio.OpenAL;
+
 namespace LibreLancer.Media
 {
 	static class ALUtils
 	{
-		public static ALFormat GetFormat(int channels, int bits)
+		public static int GetFormat(int channels, int bits)
 		{
 			if (bits == 8)
 			{
 				if (channels == 1)
-					return ALFormat.Mono8;
+					return Al.AL_FORMAT_MONO8;
 				else if (channels == 2)
-					return ALFormat.Stereo8;
+					return Al.AL_FORMAT_MONO16;
 				else
 					throw new NotSupportedException(channels + "-channel data");
 			}
 			else if (bits == 16)
 			{
 				if (channels == 1)
-					return ALFormat.Mono16;
+					return Al.AL_FORMAT_MONO16;
 				else if (channels == 2)
-					return ALFormat.Stereo16;
+					return Al.AL_FORMAT_STEREO16;
 				else
 					throw new NotSupportedException(channels + "-channel data");
 			}

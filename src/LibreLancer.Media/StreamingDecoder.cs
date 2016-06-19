@@ -18,7 +18,7 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using OpenTK.Audio.OpenAL;
+
 namespace LibreLancer.Media
 {
 	class StreamingDecoder : IDisposable
@@ -28,7 +28,7 @@ namespace LibreLancer.Media
 		delegate int ReadFunction(byte[] buffer, int offset, int count);
 		ReadFunction decoderRead;
 		Action decoderDispose;
-		ALFormat format;
+		int format;
 		int freq;
 		ConcurrentQueue<byte[]> buffers = new ConcurrentQueue<byte[]>();
 		bool finished = false;
@@ -42,7 +42,7 @@ namespace LibreLancer.Media
 				return freq;
 			}
 		}
-		public ALFormat Format
+		public int Format
 		{
 			get
 			{
