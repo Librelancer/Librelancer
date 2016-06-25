@@ -34,6 +34,7 @@ namespace LibreLancer.Thorn
 			Capacity = array.Length;
 			SetArray (0, array);
 		}
+
 		public void SetArray(int offset, object[] stuff)
 		{
 			if (offset == 1 && stuff.Length == 36) //TODO: What is this
@@ -47,11 +48,13 @@ namespace LibreLancer.Thorn
 				arrayStorage [i + offset] = stuff [i];
 			}
 		}
+
 		public void SetMap(Dictionary<string,object> stuff)
 		{
 			isArray = false;
 			mapStorage = stuff;
 		}
+
 		public Vector3 ToVector3()
 		{
 			if (!isArray)
@@ -60,10 +63,12 @@ namespace LibreLancer.Thorn
 				throw new InvalidCastException ();
 			return new Vector3 ((float)this [0], (float)this [1], (float)this [2]);
 		}
+
 		public static explicit operator Vector3(LuaTable lt)
 		{
 			return lt.ToVector3 ();
 		}
+
 		public object this[object indexer] {
 			get {
 				if (isArray) {
@@ -72,6 +77,31 @@ namespace LibreLancer.Thorn
 					return mapStorage [(string)indexer];
 				}
 			}
+		}
+
+		public bool TryGetValue(string key, out object value)
+		{
+			return mapStorage.TryGetValue(key, out value);
+		}
+		public bool TryGetVector3(string key, out Vector3 val)
+		{
+			object o;
+			val = Vector3.Zero;
+			if (mapStorage.TryGetValue(key, out o))
+			{
+				if (o is LuaTable)
+				{
+					val = ((LuaTable)o).ToVector3();
+					return true;
+				}
+				if (o is Vector3)
+				{
+					val = (Vector3)o;
+					return true;
+				}
+				return false;
+			}
+			return false;
 		}
 		string ToStr(object o)
 		{

@@ -22,6 +22,17 @@ namespace LibreLancer.Media
 		AudioManager dev;
 		StreamingDecoder dec;
 		StreamingAudio stream;
+		float _volume = 1.0f;
+		public float Volume
+		{
+			get {
+				return _volume;
+			} set {
+				_volume = value;
+				if (stream != null)
+					stream.Volume = value;
+			}
+		}
 		internal MusicPlayer (AudioManager adev)
 		{
 			dev = adev;
@@ -32,6 +43,7 @@ namespace LibreLancer.Media
 			Stop ();
 			dec = new StreamingDecoder (filename);
 			stream = new StreamingAudio (dev, dec.Format, dec.Frequency);
+			stream.Volume = _volume;
 			stream.BufferNeeded += (StreamingAudio instance, out byte[] buffer) => {
 				byte[] buf = null;
 				var ret = dec.GetBuffer(ref buf);

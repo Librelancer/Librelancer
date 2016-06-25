@@ -14,31 +14,22 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using System.IO;
-using System.Runtime.InteropServices;
-
 namespace LibreLancer
 {
-	public class GameConfig
+	public class ThnEntity
 	{
-		public string FreelancerPath;
-		public bool MuteMusic = false;
-		public GameConfig ()
+		public string Name;
+		public string Template = "";
+		public EntityTypes Type;
+		public Vector3? Ambient;
+		public Vector3? Up;
+		public Vector3? Front;
+		public int LightGroup;
+		public int SortGroup;
+		public int UserFlag;
+		public override string ToString()
 		{
-		}
-
-		[DllImport("kernel32.dll")]
-		static extern bool SetDllDirectory (string directory);
-
-		public void Launch()
-		{
-			if (Platform.RunningOS == OS.Windows) {
-				string bindir = Path.GetDirectoryName (typeof(GameConfig).Assembly.Location);
-				var fullpath = Path.Combine (bindir, IntPtr.Size == 8 ? "win64" : "win32");
-				SetDllDirectory (fullpath);
-			}
-			var game = new FreelancerGame (this);
-			game.Run ();
+			return string.Format("[{0}: {1}]", Name, Type);
 		}
 	}
 }

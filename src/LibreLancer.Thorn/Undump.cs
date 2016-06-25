@@ -127,7 +127,7 @@ namespace LibreLancer.Thorn
 				o.Type = (LuaTypes)t;
 				switch (o.Type) {
 				case LuaTypes.Number:
-					o.Value = LoadNumber (stream, native);
+					o.Value = (float)LoadNumber (stream, native);
 					break;
 				case LuaTypes.String:
 					o.Value = LoadTString (stream);

@@ -25,7 +25,7 @@ namespace LibreLancer
 		string lastTag = null;
 		const double FLYIN_LENGTH = 0.6;
 		IntroScene intro;
-
+		Cutscene scene;
 		public MainMenu (FreelancerGame g) : base (g)
 		{
 			g.GameData.LoadInterfaceVms ();
@@ -42,6 +42,7 @@ namespace LibreLancer
 			manager.Clicked += (tag) => lastTag = tag;
 
 			intro = g.GameData.GetIntroScene();
+			scene = new Cutscene(intro.Script);
 			g.Sound.PlayMusic(intro.Music);
 		}
 

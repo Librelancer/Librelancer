@@ -52,6 +52,8 @@ namespace LibreLancer
 			//Init Audio
 			FLLog.Info("Audio", "Initialising Audio");
 			Audio = new AudioManager();
+			if(config.MuteMusic)
+				Audio.Music.Volume = 0f;
 			//Load data
 			FLLog.Info("Game", "Loading game data");
 			GameData = new LegacyGameData(config.FreelancerPath, ResourceManager);

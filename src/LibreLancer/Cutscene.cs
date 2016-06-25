@@ -14,31 +14,44 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using System.IO;
-using System.Runtime.InteropServices;
-
+using System.Collections.Generic;
 namespace LibreLancer
 {
-	public class GameConfig
+	public class Cutscene
 	{
-		public string FreelancerPath;
-		public bool MuteMusic = false;
-		public GameConfig ()
+		double currentTime = 0;
+		Queue<ThnEvent> events = new Queue<ThnEvent>();
+		List<Func<double, bool>> coroutines = new List<Func<double,bool>>();
+		ThnScript thn;
+
+		public Cutscene(ThnScript script)
 		{
+			thn = script;
+			foreach (var ev in thn.Events)
+				events.Enqueue(ev);
 		}
 
-		[DllImport("kernel32.dll")]
-		static extern bool SetDllDirectory (string directory);
-
-		public void Launch()
+		public void Update(double delta)
 		{
-			if (Platform.RunningOS == OS.Windows) {
-				string bindir = Path.GetDirectoryName (typeof(GameConfig).Assembly.Location);
-				var fullpath = Path.Combine (bindir, IntPtr.Size == 8 ? "win64" : "win32");
-				SetDllDirectory (fullpath);
+			currentTime += delta;
+			for (int i = (coroutines.Count - 1); i >= 0; i--)
+			{
+				if(!coroutines[i](delta))
+				{
+					coroutines.RemoveAt(i);
+					i--;
+				}
 			}
-			var game = new FreelancerGame (this);
-			game.Run ();
+			while (events.Peek().Time >= currentTime)
+			{
+				var ev = events.Dequeue();
+				ProcessEvent(ev);
+			}
+		}
+
+		void ProcessEvent(ThnEvent ev)
+		{
+
 		}
 	}
 }

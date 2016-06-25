@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>LibreLancer.ImageLib</RootNamespace>
     <AssemblyName>LibreLancer.ImageLib</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

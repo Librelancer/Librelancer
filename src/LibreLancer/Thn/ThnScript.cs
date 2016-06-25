@@ -20,6 +20,7 @@ namespace LibreLancer
 {
 	public class ThnScript
 	{
+		#region Runtime
 		static Dictionary<string,object> thnEnv = new Dictionary<string, object>();
 		static ThnScript()
 		{
@@ -71,11 +72,68 @@ namespace LibreLancer
 			thnEnv.Add("N", false);
 
 		}
+		#endregion
+
+		public double Duration;
+		public Dictionary<string, ThnEntity> Entities = new Dictionary<string, ThnEntity>();
+		public List<ThnEvent> Events = new List<ThnEvent>();
 		public ThnScript (string scriptfile)
 		{
 			var runner = new LuaRunner (thnEnv);
-			runner.DoFile (scriptfile);
+			var output = runner.DoFile (scriptfile);
+			Duration = (float)output["duration"];
+			var entities = (LuaTable)output["entities"];
+			for (int i = 0; i < entities.Capacity; i++)
+			{
+				var ent = (LuaTable)entities[i];
+				var e = GetEntity(ent);
+				Entities.Add(e.Name, e);
+			}
+			var events = (LuaTable)output["events"];
+			for (int i = 0; i < events.Capacity; i++)
+			{
+				var ev = (LuaTable)events[i];
+				var e = GetEvent(ev);
+				Events.Add(e);
+			}
+			Events.Sort((x, y) => x.Time.CompareTo(y.Time));
 		}
+		ThnEvent GetEvent(LuaTable table)
+		{
+			var e = new ThnEvent();
+			e.Time = (float)table[0];
+			e.Type = (EventTypes)table[1];
+			return e;
+		}
+		ThnEntity GetEntity(LuaTable table)
+		{
+			var e = new ThnEntity();
+			e.Name = (string)table["entity_name"];
+			e.Type = (EntityTypes)table["type"];
+			e.LightGroup = (int)(float)table["lt_grp"];
+			e.SortGroup = (int)(float)table["srt_grp"];
+			e.UserFlag = (int)(float)table["usr_flg"];
+			Vector3 tmp;
+			if (table.TryGetVector3("ambient", out tmp))
+			{
+				e.Ambient = tmp;
+			}
+			if (table.TryGetVector3("up", out tmp))
+			{
+				e.Up = tmp;
+			}
+			if (table.TryGetVector3("front", out tmp))
+			{
+				e.Front = tmp;
+			}
+			object o;
+			if (table.TryGetValue("template_name", out o))
+			{
+				e.Template = (string)o;
+			}
+			return e;
+		}
+
 	}
 }
 

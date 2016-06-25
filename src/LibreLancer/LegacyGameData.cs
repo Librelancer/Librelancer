@@ -44,8 +44,10 @@ namespace LibreLancer
 						if (room.Nickname == b.StartRoom)
 						{
 							var isc = new GameData.IntroScene();
+							var path = Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + room.SceneScript);
+							isc.ThnName = System.IO.Path.GetFileName(path);
 							isc.Music = room.Music;
-							isc.Script = new ThnScript(Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + room.SceneScript));
+							isc.Script = new ThnScript(path);
 							IntroScenes.Add(isc);
 						}
 					}
@@ -59,8 +61,9 @@ namespace LibreLancer
 		}
 		public GameData.IntroScene GetIntroScene()
 		{
-			var rand = new Random();
-			return IntroScenes[rand.Next(0, IntroScenes.Count)];
+			//var rand = new Random();
+			//return IntroScenes[rand.Next(0, IntroScenes.Count)];
+			return IntroScenes[0];
 		}
 		public void LoadInterfaceVms()
 		{
