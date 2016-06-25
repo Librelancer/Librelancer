@@ -21,6 +21,10 @@ namespace LibreLancer
 	{
 		public uint FBO;
 		uint depthbuffer;
+		public static void ClearBinding()
+		{
+			GL.BindFramebuffer(GL.GL_FRAMEBUFFER, 0);
+		}
 		public RenderTarget2D (int width, int height) : base( width, height)
 		{
 			//generate the FBO

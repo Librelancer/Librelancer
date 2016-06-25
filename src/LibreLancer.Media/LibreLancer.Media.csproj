@@ -59,15 +59,25 @@
     <Compile Include="Decoding\SliceStream.cs" />
     <Compile Include="Alc.cs" />
     <Compile Include="Al.cs" />
+    <Compile Include="VideoPlayer.cs" />
+    <Compile Include="VideoPlayerInternal.cs" />
+    <Compile Include="VideoPlayerMpv.cs" />
+    <Compile Include="Mpv\Mpv.cs" />
+    <Compile Include="Mpv\SharedLib.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <Folder Include="Decoding\" />
+    <Folder Include="Mpv\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\extern\MP3Sharp\MP3Sharp\MP3Sharp.csproj">
       <Project>{BF3B29F8-DA04-4973-93DB-144A5BBE2472}</Project>
       <Name>MP3Sharp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">
+      <Project>{C7A37830-B878-4008-A988-D7294D47F44D}</Project>
+      <Name>LibreLancer.Base</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

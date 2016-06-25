@@ -71,6 +71,22 @@ namespace LibreLancer
 			}
 		}
 
+		public IntPtr GetGLProcAddress(string name)
+		{
+			return SDL.SDL_GL_GetProcAddress(name);
+		}
+
+		public void UnbindAll()
+		{
+			GLBind.VertexArray(0);
+			GLBind.VertexBuffer(0);
+		}
+		public void TrashGLState()
+		{
+			GLBind.Trash();
+			RenderState.Instance.Trash();
+		}
+
 		public void Run()
 		{
 			if (SDL.SDL_Init (SDL.SDL_INIT_VIDEO) != 0) {

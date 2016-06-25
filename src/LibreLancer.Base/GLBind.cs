@@ -28,6 +28,13 @@ namespace LibreLancer
 			}
 		}
 
+		public static void Trash()
+		{
+			programBound = 0;
+			bound_vbo = 0;
+			bound_vao = 0;
+		}
+
 		static uint bound_vbo = 0;
 		static uint bound_vao = 0;
 

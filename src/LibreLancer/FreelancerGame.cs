@@ -14,6 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.IO;
@@ -31,9 +32,11 @@ namespace LibreLancer
 		public Renderer2D Renderer2D;
 		public Billboards Billboards;
 		public NebulaVertices Nebulae;
-
+		public List<string> IntroMovies;
+		public bool InitialLoadComplete = false;
 		ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
 		int uithread;
+		bool useintromovies;
 		GameState currentState;
 
 		public Viewport Viewport {
@@ -45,7 +48,7 @@ namespace LibreLancer
         {
 			//Setup
 			uithread = Thread.CurrentThread.ManagedThreadId;
-
+			useintromovies = config.IntroMovies;
 			FLLog.Info("Platform", Platform.RunningOS.ToString() + (IntPtr.Size == 4 ? " 32-bit" : " 64-bit"));
 			//Cache
 			ResourceManager = new ResourceManager(this);
@@ -57,11 +60,12 @@ namespace LibreLancer
 			//Load data
 			FLLog.Info("Game", "Loading game data");
 			GameData = new LegacyGameData(config.FreelancerPath, ResourceManager);
+			IntroMovies = GameData.GetIntroMovies();
 			new Thread(() => {
 				GameData.LoadData();
 				Sound = new SoundManager(GameData, Audio);
 				FLLog.Info("Game", "Finished loading game data");
-				QueueUIThread(Switch);
+				InitialLoadComplete = true;
 			}).Start ();
 
         }
@@ -87,10 +91,6 @@ namespace LibreLancer
 		{
 			currentState = state;
 		}
-		void Switch()
-		{
-			currentState = new MainMenu (this);
-		}
 		protected override void Load()
         {
 			RenderState = new RenderState ();
@@ -99,7 +99,10 @@ namespace LibreLancer
 			Nebulae = new NebulaVertices();
 			var vp = new ViewportManager (RenderState);
 			vp.Push (0, 0, Width, Height);
-			ChangeState(new LoadingDataState(this));
+			if (useintromovies)
+				ChangeState(new IntroMovie(this, 0));
+			else
+				ChangeState(new LoadingDataState(this));
         }
 
 		protected override void Cleanup()

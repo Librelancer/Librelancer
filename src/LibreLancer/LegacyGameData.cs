@@ -32,6 +32,15 @@ namespace LibreLancer
 			fldata = new Legacy.FreelancerData (flini);
 
 		}
+		public List<string> GetIntroMovies()
+		{
+			var movies = new List<string>();
+			foreach (var file in fldata.Freelancer.StartupMovies)
+			{
+				movies.Add(Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + file));
+			}
+			return movies;
+		}
 		public void LoadData()
 		{
 			fldata.LoadData();

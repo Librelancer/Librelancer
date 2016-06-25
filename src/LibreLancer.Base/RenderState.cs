@@ -75,6 +75,14 @@ namespace LibreLancer
 				cullDirty = true;
 			}
 		}
+		internal void Trash()
+		{
+			cullDirty = true;
+			clearDirty = true;
+			wireframeDirty = true;
+			depthDirty = true;
+			blendDirty = true;
+		}
 		bool cull = true;
 		bool cullDirty = false;
 

@@ -42,7 +42,6 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -107,7 +106,6 @@
     <Compile Include="Render\Materials\BasicMaterial.cs" />
     <Compile Include="Render\Materials\NebulaMaterial.cs" />
     <Compile Include="Render\Materials\SunMaterial.cs" />
-    <Compile Include="DemoSystemView.cs" />
     <Compile Include="ViewportManager.cs" />
     <Compile Include="Render\Materials\AtmosphereMaterial.cs" />
     <Compile Include="Render\Materials\Masked2DetailMapMaterial.cs" />
@@ -147,7 +145,6 @@
     <Compile Include="Utf\Ale\CurveKeyframe.cs" />
     <Compile Include="Utf\Mat\SamplerFlags.cs" />
     <Compile Include="Utf\Ale\AlchemyNodeRef.cs" />
-    <Compile Include="MainMenu.cs" />
     <Compile Include="Render\ICamera.cs" />
     <Compile Include="Render\DebugCamera.cs" />
     <Compile Include="Easings.cs" />
@@ -212,7 +209,6 @@
     <Compile Include="PrimitiveMath.cs" />
     <Compile Include="Render\Materials\IllumDetailMapMaterial.cs" />
     <Compile Include="WeightedRandomCollection.cs" />
-    <Compile Include="LoadingDataState.cs" />
     <Compile Include="GameData\IntroScene.cs" />
     <Compile Include="Thn\LightTypes.cs" />
     <Compile Include="Thn\TargetTypes.cs" />
@@ -221,6 +217,10 @@
     <Compile Include="Thn\ThnEntity.cs" />
     <Compile Include="Thn\ThnEvent.cs" />
     <Compile Include="Cutscene.cs" />
+    <Compile Include="GameStates\DemoSystemView.cs" />
+    <Compile Include="GameStates\IntroMovie.cs" />
+    <Compile Include="GameStates\MainMenu.cs" />
+    <Compile Include="GameStates\LoadingDataState.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />
@@ -295,6 +295,7 @@
     <Folder Include="Fx\Appearances\" />
     <Folder Include="Fx\Fields\" />
     <Folder Include="Infocards\" />
+    <Folder Include="GameStates\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="OpenTK.dll.config">

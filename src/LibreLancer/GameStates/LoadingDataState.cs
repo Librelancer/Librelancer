@@ -32,7 +32,8 @@ namespace LibreLancer
 		}
 		public override void Update(TimeSpan delta)
 		{
-			
+			if (Game.InitialLoadComplete)
+				Game.ChangeState(new MainMenu(Game));
 		}
 	}
 }

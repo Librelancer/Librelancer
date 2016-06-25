@@ -14,32 +14,46 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using System.IO;
-using System.Runtime.InteropServices;
-
-namespace LibreLancer
+namespace LibreLancer.Media
 {
-	public class GameConfig
+	public class VideoPlayer : IDisposable
 	{
-		public string FreelancerPath;
-		public bool MuteMusic = false;
-		public bool IntroMovies = true;
-		public GameConfig ()
+		VideoPlayerInternal player;
+		public bool Playing
 		{
-		}
-
-		[DllImport("kernel32.dll")]
-		static extern bool SetDllDirectory (string directory);
-
-		public void Launch()
-		{
-			if (Platform.RunningOS == OS.Windows) {
-				string bindir = Path.GetDirectoryName (typeof(GameConfig).Assembly.Location);
-				var fullpath = Path.Combine (bindir, IntPtr.Size == 8 ? "win64" : "win32");
-				SetDllDirectory (fullpath);
+			get
+			{
+				return player.Playing;
 			}
-			var game = new FreelancerGame (this);
-			game.Run ();
+		}
+		public VideoPlayer(Game game)
+		{
+			if (Platform.RunningOS != OS.Windows)
+			{
+				player = new VideoPlayerMpv(game);
+			}
+		}
+		public bool Init()
+		{
+			if (player == null)
+				return false;
+			return player.Init();
+		}
+		public void PlayFile(string filename)
+		{
+			player.PlayFile(filename);
+		}
+		public void Draw()
+		{
+			player.Draw();
+		}
+		public void Dispose()
+		{
+			player.Dispose();
+		}
+		public Texture2D GetTexture()
+		{
+			return player.GetTexture();
 		}
 	}
 }
