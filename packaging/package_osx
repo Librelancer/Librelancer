@@ -63,8 +63,8 @@ install_name_tool -change "/usr/local/opt/freetype/lib/libfreetype.6.dylib" "@ex
 #Get libpng path from otool
 libpng_path=$(otool -L $freetype_lib | grep libpng | sed -e  's/([^()]*)//g' | tr -d '[[:space:]]')
 libpng_file=$(basename "$libpng_path")
+echo "Installing dependency libpng from $libpng_path"
 cp "$libpng_path" ./packages/Librelancer.app/Contents/MacOS/$libpng_file
-echo "Installing libpng from $libpng_path"
 chmod gu+w ./packages/Librelancer.app/Contents/MacOS/$libpng_file
 install_name_tool -change "$libpng_path" "@executable_path/$libpng_file" ./packages/Librelancer.app/Contents/MacOS/$libpng_file
 install_name_tool -change "$libpng_path" "@executable_path/$libpng_file" $freetype_lib
@@ -76,7 +76,7 @@ cat <<'EOF' > ./packages/Librelancer.app/Contents/MacOS/Launcher.Mac
 #!/bin/bash
 dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 cd $dir
-DYLD_LIBRARY_PATH="$(pwd)" ./Launcher.Mac.bin
+DYLD_LIBRARY_PATH="$(pwd):$(pwd)/mpv/lib" ./Launcher.Mac.bin
 EOF
 chmod +x ./packages/Librelancer.app/Contents/MacOS/Launcher.Mac
 echo App bundle ready
