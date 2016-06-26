@@ -43,7 +43,6 @@ namespace LibreLancer.Media
 			Mpv.mpv_event* ev = Mpv.mpv_wait_event(mpvhandle, 0);
 			while (ev->event_id != Mpv.mpv_event_id.MPV_EVENT_NONE)
 			{
-				Console.WriteLine(ev->event_id);
 				if (ev->event_id == Mpv.mpv_event_id.MPV_EVENT_END_FILE)
 				{
 					Playing = false;
@@ -69,6 +68,11 @@ namespace LibreLancer.Media
 			Mpv.mpv_terminate_destroy(mpvhandle);
 			Playing = false;
 		}
+		const int LC_NUMERIC = 1;
+
+		[DllImport("libc")]
+		public static extern IntPtr setlocale (int category, [MarshalAs (UnmanagedType.LPStr)]string locale);
+
 		public override bool Init()
 		{
 			FLLog.Info("Video", "Opening mpv backend");
@@ -76,6 +80,9 @@ namespace LibreLancer.Media
 				return false;
 			try
 			{
+				//mpv will not run unless lc_numeric is "C"
+				setlocale(LC_NUMERIC, "C");
+
 				mpvhandle = Mpv.mpv_create();
 				if (mpvhandle == IntPtr.Zero)
 					throw new Exception("mpv_create failed");
