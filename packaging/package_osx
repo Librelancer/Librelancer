@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [ ! -d "./assets/mpv.app" ]; then
+  echo "Error: assets/mpv.app does not exist! Build using ./mpv_minimal or include your own"
+  exit 1
+fi
+
+
+cd ../src
+xbuild /p:Configuration="Release"
+cd ../packaging
+
+echo Copying app bundle from xbuild
+mkdir -p ./packages
+rm -rf ./packages/Librelancer.app
+cp -r ../bin/Release/Launcher.Mac.app ./packages/Librelancer.app
+echo Embedding mpv
+mkdir -p ./packages/Librelancer.app/Contents/MacOS/mpv
+cp -r ./assets/mpv.app/Contents/MacOS/* ./packages/Librelancer.app/Contents/MacOS/mpv/.
