@@ -23,10 +23,12 @@ namespace LibreLancer.Media
 		IntPtr mpvgl;
 		Game game;
 		RenderTarget2D framebuffer;
-		public VideoPlayerMpv(Game game)
+		string mpvo;
+		public VideoPlayerMpv(Game game, string mpvoverride)
 		{
 			this.game = game;
 			framebuffer = new RenderTarget2D(game.Width, game.Height);
+			mpvo = mpvoverride;
 		}
 		public override void PlayFile(string filename)
 		{
@@ -76,7 +78,7 @@ namespace LibreLancer.Media
 		public override bool Init()
 		{
 			FLLog.Info("Video", "Opening mpv backend");
-			if (!Mpv.LoadLibrary())
+			if (!Mpv.LoadLibrary(mpvo))
 				return false;
 			try
 			{

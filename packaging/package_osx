@@ -1,19 +1,61 @@
 #!/bin/bash
+# Create fully-contained app bundle for OSX
+# Depends on: 	mpv.app being present in the assets folder
+#				sdl2 being installed in homebrew
+#				freetype being installed in homebrew
+# Check dependencies
+if [ ! -d "/Library" ]; then
+	echo "Error: This script may only be ran on OSX"
+	exit 1
+fi
+if [ ! -d "/Library/Frameworks/Mono.framework" ]; then
+	echo "Error: Mono framework is required to build"
+	exit 1
+fi
+
+if [ ! -d "/Library/Frameworks/Xamarin.Mac.framework" ]; then
+	echo "Error: Xamarin.Mac is required to build"
+	exit 1
+fi
 
 if [ ! -d "./assets/mpv.app" ]; then
   echo "Error: assets/mpv.app does not exist! Build using ./mpv_minimal or include your own"
   exit 1
 fi
 
+if [ ! -f "/usr/local/lib/libSDL2.dylib" ]; then
+  echo "Error: /usr/local/lib/libSDL2.dylib does not exit! Install it with: brew install sdl2"
+  exit 1
+fi
 
+if [ ! -f "/usr/local/lib/libfreetype.6.dylib" ]; then
+  echo "Error: /usr/local/lib/libfreetype.6.dylib does not exit! Install it with: brew install freetype"
+  exit 1
+fi
+# Build project in Release mode
 cd ../src
-xbuild /p:Configuration="Release"
+/Library/Frameworks/Mono.framework/Versions/Current/bin/xbuild /p:Configuration="Release"
 cd ../packaging
-
+# Copy output
 echo Copying app bundle from xbuild
 mkdir -p ./packages
 rm -rf ./packages/Librelancer.app
 cp -r ../bin/Release/Launcher.Mac.app ./packages/Librelancer.app
+# MPV
 echo Embedding mpv
 mkdir -p ./packages/Librelancer.app/Contents/MacOS/mpv
 cp -r ./assets/mpv.app/Contents/MacOS/* ./packages/Librelancer.app/Contents/MacOS/mpv/.
+# SDL2
+echo Installing SDL2
+cp /usr/local/lib/libSDL2.dylib ./packages/Librelancer.app/Contents/MacOS/libSDL2.dylib
+chmod gu+w ./packages/Librelancer.app/Contents/MacOS/libSDL2.dylib
+install_name_tool -change "/usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib" "@executable_path/libSDL2.dylib" ./packages/Librelancer.app/Contents/MacOS/libSDL2.dylib 
+# Freetype
+echo Installing Freetype
+cp /usr/local/lib/libfreetype.6.dylib ./packages/Librelancer.app/Contents/MacOS/libfreetype.6.dylib
+chmod gu+w ./packages/Librelancer.app/Contents/MacOS/libfreetype.6.dylib
+install_name_tool -change "/usr/local/opt/freetype/lib/libfreetype.6.dylib" "@executable_path/libfreetype.6.dylib" ./packages/Librelancer.app/Contents/MacOS/libfreetype.6.dylib
+# Config files for release bundle
+echo Generating config
+echo '<bundlecfg><mpv>Contents/MacOS/mpv/mpv</mpv></bundlecfg>' > ./packages/Librelancer.app/Contents/Resources/bundlecfg.xml
+echo App bundle ready

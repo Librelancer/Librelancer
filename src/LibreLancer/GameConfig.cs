@@ -24,6 +24,7 @@ namespace LibreLancer
 		public string FreelancerPath;
 		public bool MuteMusic = false;
 		public bool IntroMovies = true;
+		public string MpvOverride = "";
 		public GameConfig ()
 		{
 		}

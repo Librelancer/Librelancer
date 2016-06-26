@@ -147,7 +147,7 @@ namespace LibreLancer.Media
 			return _mpv_set_option(handle, Encoding.UTF8.GetBytes(name), format, ref data);
 		}
 		static bool loaded = false;
-		public static bool LoadLibrary()
+		public static bool LoadLibrary(string mpvo)
 		{
 			if (loaded == true)
 				return true;
@@ -155,6 +155,7 @@ namespace LibreLancer.Media
 			{
 				//Open library
 				var lib = new SharedLib(
+					mpvo,
 					"mpv",
 					"libmpv.dylib",
 					"libmpv.so",

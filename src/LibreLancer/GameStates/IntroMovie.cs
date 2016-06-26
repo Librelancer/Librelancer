@@ -10,7 +10,7 @@ namespace LibreLancer
 		public IntroMovie(FreelancerGame game, int index) : base(game)
 		{
 			idx = index;
-			player = new VideoPlayer(game);
+			player = new VideoPlayer(game, game.MpvOverride);
 			if (!player.Init())
 				game.ChangeState(new LoadingDataState(game));
 			index = idx;

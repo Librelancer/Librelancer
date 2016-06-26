@@ -33,6 +33,7 @@ namespace LibreLancer
 		public Billboards Billboards;
 		public NebulaVertices Nebulae;
 		public List<string> IntroMovies;
+		public string MpvOverride;
 		public bool InitialLoadComplete = false;
 		ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
 		int uithread;
@@ -61,6 +62,7 @@ namespace LibreLancer
 			FLLog.Info("Game", "Loading game data");
 			GameData = new LegacyGameData(config.FreelancerPath, ResourceManager);
 			IntroMovies = GameData.GetIntroMovies();
+			MpvOverride = config.MpvOverride;
 			new Thread(() => {
 				GameData.LoadData();
 				Sound = new SoundManager(GameData, Audio);

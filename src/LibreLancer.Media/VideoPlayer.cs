@@ -26,11 +26,11 @@ namespace LibreLancer.Media
 				return player.Playing;
 			}
 		}
-		public VideoPlayer(Game game)
+		public VideoPlayer(Game game, string mpvoverride)
 		{
 			if (Platform.RunningOS != OS.Windows)
 			{
-				player = new VideoPlayerMpv(game);
+				player = new VideoPlayerMpv(game, mpvoverride);
 			}
 		}
 		public bool Init()
