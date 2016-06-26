@@ -8,6 +8,7 @@ if [ ! -d "/Library" ]; then
 	echo "Error: This script may only be ran on OSX"
 	exit 1
 fi
+
 if [ ! -d "/Library/Frameworks/Mono.framework" ]; then
 	echo "Error: Mono framework is required to build"
 	exit 1
@@ -47,15 +48,35 @@ mkdir -p ./packages/Librelancer.app/Contents/MacOS/mpv
 cp -r ./assets/mpv.app/Contents/MacOS/* ./packages/Librelancer.app/Contents/MacOS/mpv/.
 # SDL2
 echo Installing SDL2
-cp /usr/local/lib/libSDL2.dylib ./packages/Librelancer.app/Contents/MacOS/libSDL2.dylib
-chmod gu+w ./packages/Librelancer.app/Contents/MacOS/libSDL2.dylib
-install_name_tool -change "/usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib" "@executable_path/libSDL2.dylib" ./packages/Librelancer.app/Contents/MacOS/libSDL2.dylib 
+cp /usr/local/lib/libSDL2.dylib ./packages/Librelancer.app/Contents/MacOS/libSDL2-2.0.0.dylib
+cd ./packages/Librelancer.app/Contents/MacOS/
+chmod gu+w libSDL2-2.0.0.dylib
+install_name_tool -change "/usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib" "@executable_path/libSDL2.dylib" libSDL2-2.0.0.dylib
+ln -s libSDL2-2.0.0.dylib libSDL2.dylib 
+cd ../../../../
 # Freetype
 echo Installing Freetype
-cp /usr/local/lib/libfreetype.6.dylib ./packages/Librelancer.app/Contents/MacOS/libfreetype.6.dylib
-chmod gu+w ./packages/Librelancer.app/Contents/MacOS/libfreetype.6.dylib
-install_name_tool -change "/usr/local/opt/freetype/lib/libfreetype.6.dylib" "@executable_path/libfreetype.6.dylib" ./packages/Librelancer.app/Contents/MacOS/libfreetype.6.dylib
+freetype_lib=./packages/Librelancer.app/Contents/MacOS/libfreetype.6.dylib
+cp /usr/local/lib/libfreetype.6.dylib $freetype_lib
+chmod gu+w $freetype_lib
+install_name_tool -change "/usr/local/opt/freetype/lib/libfreetype.6.dylib" "@executable_path/libfreetype.6.dylib" $freetype_lib
+#Get libpng path from otool
+libpng_path=$(otool -L $freetype_lib | grep libpng | sed -e  's/([^()]*)//g' | tr -d '[[:space:]]')
+libpng_file=$(basename "$libpng_path")
+cp "$libpng_path" ./packages/Librelancer.app/Contents/MacOS/$libpng_file
+echo "Installing libpng from $libpng_path"
+chmod gu+w ./packages/Librelancer.app/Contents/MacOS/$libpng_file
+install_name_tool -change "$libpng_path" "@executable_path/$libpng_file" ./packages/Librelancer.app/Contents/MacOS/$libpng_file
+install_name_tool -change "$libpng_path" "@executable_path/$libpng_file" $freetype_lib
 # Config files for release bundle
 echo Generating config
 echo '<bundlecfg><mpv>Contents/MacOS/mpv/mpv</mpv></bundlecfg>' > ./packages/Librelancer.app/Contents/Resources/bundlecfg.xml
+mv ./packages/Librelancer.app/Contents/MacOS/Launcher.Mac ./packages/Librelancer.app/Contents/MacOS/Launcher.Mac.bin
+cat <<'EOF' > ./packages/Librelancer.app/Contents/MacOS/Launcher.Mac
+#!/bin/bash
+dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
+cd $dir
+DYLD_LIBRARY_PATH="$(pwd)" ./Launcher.Mac.bin
+EOF
+chmod +x ./packages/Librelancer.app/Contents/MacOS/Launcher.Mac
 echo App bundle ready
