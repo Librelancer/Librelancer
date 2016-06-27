@@ -58,7 +58,7 @@ namespace LibreLancer
                     return 3 + (primitiveCount - 1);
 				case PrimitiveTypes.Points:
 				case PrimitiveTypes.LineStrip:
-					return 1;
+					return primitiveCount;
             }
             throw new ArgumentException();
         }

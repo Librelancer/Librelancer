@@ -62,6 +62,24 @@ namespace LibreLancer
 				Transparent = transparent
 			};
 		}
+		public void AddCommand(Shader shader, Action<Shader, RenderState, RenderCommand> setup, Action<RenderState> cleanup, Matrix4 world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, bool transparent)
+		{
+			Commands[currentCommand++] = new RenderCommand()
+			{
+				Shader = shader,
+				ShaderSetup = setup,
+				World = world,
+				UserData = user,
+				Cleanup = cleanup,
+				Buffer = buffer,
+				Start = start,
+				Count = count,
+				Primitive = primitive,
+				UseMaterial = false,
+				UseBaseVertex = false,
+				Transparent = transparent
+			};
+		}
 		public void DrawOpaque(RenderState state)
 		{
 			for (int i = 0; i < currentCommand; i++)
@@ -121,7 +139,7 @@ namespace LibreLancer
 				if (UseBaseVertex)
 					Buffer.Draw(Primitive, BaseVertex, Start, Count);
 				else
-					Buffer.Draw(Primitive, Count);
+					Buffer.Draw(Primitive, Start, Count);
 				if(Cleanup != null)
 					Cleanup(state);
 			}

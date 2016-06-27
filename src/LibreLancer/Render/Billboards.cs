@@ -20,7 +20,7 @@ namespace LibreLancer
 {
 	public class Billboards
 	{
-		const int MAX_BILLBOARDS = 1024;
+		const int MAX_BILLBOARDS = 4096;
 
 		[StructLayout(LayoutKind.Sequential)]
 		struct BVert : IVertexType
@@ -69,13 +69,13 @@ namespace LibreLancer
 		ICamera camera;
 		Texture2D currentTexture;
 		int billboardCount = 0;
-		RenderState renderstate;
-		public void Begin(ICamera cam, RenderState rs)
+		CommandBuffer buffer;
+		public void Begin(ICamera cam, CommandBuffer cmd)
 		{
 			camera = cam;
 			currentTexture = null;
-			billboardCount = 0;
-			renderstate = rs;
+			billboardCount = lastCount = 0;
+			buffer = cmd;
 		}
 
 		public void Draw(
@@ -93,7 +93,7 @@ namespace LibreLancer
 			if (currentTexture != texture && currentTexture != null)
 				Flush ();
 			if (billboardCount + 1 > MAX_BILLBOARDS)
-				Flush ();
+				throw new Exception("Billboard overflow");
 			currentTexture = texture;
 			//setup vertex
 			vertices [billboardCount].Position = Position;
@@ -108,31 +108,47 @@ namespace LibreLancer
 			billboardCount++;
 		}
 
+		int lastCount = 0;
 		void Flush()
 		{
 			if (billboardCount == 0)
 				return;
-			
 			var view = camera.View;
 			var vp = camera.ViewProjection;
-			shader.SetMatrix ("View", ref view);
-			shader.SetMatrix ("ViewProjection", ref vp);
-			currentTexture.BindTo (0);
-			shader.UseProgram ();
-			//draw
-			renderstate.Cull = false;
-			renderstate.BlendMode = BlendMode.Normal;
-			vbo.SetData(vertices, billboardCount);
-			vbo.Draw (PrimitiveTypes.Points, billboardCount);
-			renderstate.Cull = true;
-			//blah
-			currentTexture = null;
-			billboardCount = 0;
-		}
+			buffer.AddCommand(
+				shader,
+				_setupDelegate,
+				_resetDelegate,
+				view,
+				new RenderUserData() { Texture = currentTexture, ViewProjection = vp },
+				vbo,
+				PrimitiveTypes.Points,
+				lastCount,
+				billboardCount,
+				true
+			);
+			lastCount = billboardCount;
 
+			currentTexture = null;
+		}
+		static Action<Shader, RenderState, RenderCommand> _setupDelegate = SetupShader;
+		static void SetupShader(Shader shader, RenderState rs, RenderCommand cmd)
+		{
+			rs.Cull = false;
+			rs.BlendMode = BlendMode.Normal;
+			shader.SetMatrix("View", ref cmd.World);
+			shader.SetMatrix("ViewProjection", ref cmd.UserData.ViewProjection);
+			cmd.UserData.Texture.BindTo(0);
+		}
+		static Action<RenderState> _resetDelegate = ResetState;
+		static void ResetState(RenderState rs)
+		{
+			rs.Cull = true;
+		}
 		public void End()
 		{
 			Flush ();
+			vbo.SetData(vertices, billboardCount);
 		}
 	}
 }

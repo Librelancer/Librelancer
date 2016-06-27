@@ -180,13 +180,25 @@ namespace LibreLancer
 					if (nbl.CloudsPuffShape != null)
 					{
 						n.HasInteriorClouds = true;
-						n.InteriorCloudShapes = new WeightedRandomCollection<string>(
-							nbl.CloudsPuffShape.ToArray(),
+						GameData.CloudShape[] shapes = new GameData.CloudShape[nbl.CloudsPuffShape.Count];
+						for (int i = 0; i < shapes.Length; i++)
+						{
+							var name = nbl.CloudsPuffShape[i];
+							shapes[i].Texture = panels.Shapes[name].TextureName;
+							shapes[i].Dimensions = panels.Shapes[name].Dimensions;
+						}
+						n.InteriorCloudShapes = new WeightedRandomCollection<GameData.CloudShape>(
+							shapes,
 							nbl.CloudsPuffWeights.ToArray()
 						);
 						n.InteriorCloudColorA = nbl.CloudsPuffColorA.Value;
 						n.InteriorCloudColorB = nbl.CloudsPuffColorB.Value;
 						n.InteriorCloudRadius = nbl.CloudsPuffRadius.Value;
+						n.InteriorCloudCount = nbl.CloudsPuffCount.Value;
+						n.InteriorCloudMaxDistance = nbl.CloudsMaxDistance.Value;
+						n.InteriorCloudMaxAlpha = nbl.CloudsPuffMaxAlpha.Value;
+						n.InteriorCloudFadeDistance = nbl.CloudsNearFadeDistance.Value;
+						n.InteriorCloudDrift = nbl.CloudsPuffDrift.Value;
 					}
 					sys.Nebulae.Add(n);
 			}

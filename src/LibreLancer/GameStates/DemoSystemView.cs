@@ -144,6 +144,18 @@ C# Memory Usage: {5}
 			{
 				camera.MoveVector = VectorMath.Right;
 			}
+			if (Game.Keyboard.IsKeyDown(Keys.D1))
+			{
+				camera.MoveSpeed = 3000;
+			}
+			if (Game.Keyboard.IsKeyDown(Keys.D2))
+			{
+				camera.MoveSpeed = 300;
+			}
+			if (Game.Keyboard.IsKeyDown(Keys.D3))
+			{
+				camera.MoveSpeed = 90;
+			}
 		}
 
 		public override void Draw (TimeSpan delta)

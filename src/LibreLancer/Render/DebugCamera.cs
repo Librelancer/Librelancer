@@ -19,8 +19,7 @@ namespace LibreLancer
 {
 	public class DebugCamera : ICamera
 	{
-		private const float MOVE_SPEED = 3000f;
-
+		public float MoveSpeed = 3000f;
 		public Viewport Viewport { 
 			get { 
 				return _vp; 
@@ -100,7 +99,7 @@ namespace LibreLancer
 
 				//Vector3 rotatedVector = VectorMath.Transform(MoveVector, rotationMatrix);
 				var rotatedVector = rotationMatrix.Transform(MoveVector);;
-				Position += (float)(delta.TotalSeconds * MOVE_SPEED) * rotatedVector;
+				Position += (float)(delta.TotalSeconds * MoveSpeed) * rotatedVector;
 
 				Vector3 originalTarget = VectorMath.Forward;
 				Vector3 rotatedTarget = rotationMatrix.Transform(originalTarget);
@@ -121,10 +120,10 @@ namespace LibreLancer
 				{
 					Vector3 direction = selectedTarget - currentTarget;
 
-					if (direction.Length >= MOVE_SPEED)
+					if (direction.Length >= MoveSpeed)
 					{
 						direction.Normalize();
-						currentTarget += direction * MOVE_SPEED;
+						currentTarget += direction * MoveSpeed;
 					}
 					else currentTarget = selectedTarget;
 				}

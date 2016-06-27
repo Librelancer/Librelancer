@@ -108,7 +108,30 @@ namespace LibreLancer
 			}
 			TotalDrawcalls++;
 		}
-
+		public void Draw(PrimitiveTypes primitiveType,int start, int primitiveCount)
+		{
+			RenderState.Instance.Apply();
+			GLBind.VertexBuffer(VBO);
+			GLBind.VertexArray(VAO);
+			if (HasElements)
+			{
+				int indexElementCount = primitiveType.GetArrayLength(primitiveCount);
+				GL.DrawElements(primitiveType.GLType(),
+					indexElementCount,
+					GL.GL_UNSIGNED_SHORT,
+				    (IntPtr)(2 * start)
+				);
+			}
+			else
+			{
+				int indexElementCount = primitiveType.GetArrayLength(primitiveCount);
+				GL.DrawArrays(primitiveType.GLType(),
+					start,
+					indexElementCount
+				);
+			}
+			TotalDrawcalls++;
+		}
         public void SetElementBuffer(ElementBuffer elems)
         {
 			GLBind.VertexBuffer(VBO);

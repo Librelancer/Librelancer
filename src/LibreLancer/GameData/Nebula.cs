@@ -26,10 +26,25 @@ namespace LibreLancer.GameData
 		public Color4 FogColor;
 
 		public bool HasInteriorClouds = false;
-		public WeightedRandomCollection<string> InteriorCloudShapes;
+		public WeightedRandomCollection<CloudShape> InteriorCloudShapes;
 		public Color3f InteriorCloudColorA;
 		public Color3f InteriorCloudColorB;
 		public int InteriorCloudRadius;
+		public int InteriorCloudCount;
+		public int InteriorCloudMaxDistance;
+		public Vector2 InteriorCloudFadeDistance;
+		public float InteriorCloudMaxAlpha;
+		public float InteriorCloudDrift;
+	}
+	public struct CloudShape
+	{
+		public string Texture;
+		public RectangleF Dimensions;
+		public CloudShape(string tex, RectangleF dim)
+		{
+			Texture = tex;
+			Dimensions = dim;
+		}
 	}
 }
 

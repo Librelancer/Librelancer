@@ -26,12 +26,16 @@ namespace LibreLancer
 		ICamera camera;
 		FreelancerGame game;
 
-		public NebulaRenderer (Nebula n, ICamera c, FreelancerGame g)
+		public NebulaRenderer(Nebula n, ICamera c, FreelancerGame g)
 		{
 			Nebula = n;
 			camera = c;
 			game = g;
 			rand = new Random();
+			if (n.HasInteriorClouds)
+				puffsinterior = new InteriorPuff[n.InteriorCloudCount];
+			for (int i = 0; i < n.InteriorCloudCount; i++)
+				puffsinterior[i].Spawned = false;
 		}
 
 		public bool FogTransitioned()
@@ -58,26 +62,110 @@ namespace LibreLancer
 
 		public void Update(TimeSpan elapsed)
 		{
-
+			if (Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, camera.Position))
+			{
+				if (Nebula.HasInteriorClouds)
+				{
+					for (int i = 0; i < Nebula.InteriorCloudCount; i++)
+					{
+						if (!puffsinterior[i].Spawned ||
+							VectorMath.Distance(puffsinterior[i].Position, camera.Position) > Nebula.InteriorCloudMaxDistance)
+						{
+							puffsinterior[i].Color = GetPuffColor();
+							puffsinterior[i].Shape = Nebula.InteriorCloudShapes.GetNext();
+							puffsinterior[i].Position = camera.Position + RandomPointSphere(Nebula.InteriorCloudMaxDistance);
+							puffsinterior[i].Spawned = true;
+							puffsinterior[i].Velocity = RandomDirection() * Nebula.InteriorCloudDrift;
+						}
+						puffsinterior[i].Position += puffsinterior[i].Velocity * (float)elapsed.TotalSeconds;
+					}
+				}
+			}
 		}
 
 		public void Draw(CommandBuffer buffer, Lighting lights)
 		{
-			if(!Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, camera.Position) || !FogTransitioned())
+			if (!Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, camera.Position) || !FogTransitioned())
 				RenderFill(buffer);
 			if (Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, camera.Position))
 				RenderInteriorPuffs();
 		}
 
-		void RenderInteriorPuffs()
+		struct InteriorPuff
 		{
-			
+			public bool Spawned;
+			public Vector3 Position;
+			public Vector3 Velocity;
+			public Color3f Color;
+			public CloudShape Shape;
 		}
 
-		Color4 GetPuffColor()
+		InteriorPuff[] puffsinterior;
+		void RenderInteriorPuffs()
+		{
+			if (Nebula.HasInteriorClouds)
+			{
+				for (int i = 0; i < Nebula.InteriorCloudCount; i++)
+				{
+					if (!puffsinterior[i].Spawned)
+						continue;
+					var distance = VectorMath.Distance(puffsinterior[i].Position, camera.Position);
+					var alpha = Nebula.InteriorCloudMaxAlpha;
+					if (distance > Nebula.InteriorCloudFadeDistance.X && distance < Nebula.InteriorCloudFadeDistance.Y)
+					{
+						var distance_difference = Nebula.InteriorCloudFadeDistance.Y - Nebula.InteriorCloudFadeDistance.X;
+						var current = distance - Nebula.InteriorCloudFadeDistance.X;
+						alpha -= (alpha * (distance_difference - current) / distance_difference);
+						Console.WriteLine();
+					}
+					if (distance < Nebula.InteriorCloudFadeDistance.X)
+						alpha = 0;
+					var shape = puffsinterior[i].Shape;
+					game.Billboards.Draw(
+						(Texture2D)game.ResourceManager.FindTexture(shape.Texture),
+						puffsinterior[i].Position,
+						new Vector2(Nebula.InteriorCloudRadius),
+						new Color4(puffsinterior[i].Color.R, puffsinterior[i].Color.G, puffsinterior[i].Color.B, alpha),
+						new Vector2(shape.Dimensions.X, shape.Dimensions.Y),
+						new Vector2(shape.Dimensions.X + shape.Dimensions.Width, shape.Dimensions.Y),
+						new Vector2(shape.Dimensions.X, shape.Dimensions.Y + shape.Dimensions.Height),
+						new Vector2(shape.Dimensions.X + shape.Dimensions.Width, shape.Dimensions.Y + shape.Dimensions.Height),
+						0
+					);
+				}
+			}
+		}
+							                                                 
+		Vector3 RandomDirection()
+		{
+			var v = new Vector3(
+				-1f + (float)(rand.NextDouble() * 2),
+				-1f + (float)(rand.NextDouble() * 2),
+				-1f + (float)(rand.NextDouble() * 2)
+			);
+			v.Normalize();
+			return v;
+		}
+							                                                 
+		Vector3 RandomPointSphere(float radius)
+		{
+			var phi = (rand.NextDouble() * (2 * Math.PI));
+			var costheta = (-1 + (rand.NextDouble() * 2));
+			var u = rand.NextDouble();
+
+			var theta = Math.Acos(costheta);
+			var r = radius * Math.Pow(u, 1.0 / 3.0);
+
+			var x = r * Math.Sin(theta) * Math.Cos(phi);
+			var y = r * Math.Sin(theta) * Math.Sin(phi);
+			var z = r * Math.Cos(theta);
+			return new Vector3((float)x, (float)y, (float)z);
+		}
+
+		Color3f GetPuffColor()
 		{
 			var lerpval = rand.NextDouble();
-			var c = Utf.Ale.AlchemyEasing.EaseColor(
+			var c = Utf.Ale.AlchemyEasing.EaseColorRGB(
 				Utf.Ale.EasingTypes.Linear,
 				(float)lerpval,
 				0,
@@ -85,7 +173,7 @@ namespace LibreLancer
 				Nebula.InteriorCloudColorA,
 				Nebula.InteriorCloudColorB
 			);
-			return new Color4(c.R, c.G, c.B, 1f);  
+			return new Color3f(c.R, c.G, c.B);
 		}
 
 		void RenderFill(CommandBuffer buffer)
@@ -111,7 +199,7 @@ namespace LibreLancer
 					new Vector2(1, 1)
 				);
 				var bl = new VertexPositionTexture(
-					new Vector3( -1, +1, 0),
+					new Vector3(-1, +1, 0),
 					new Vector2(0, 0)
 				);
 				var br = new VertexPositionTexture(
@@ -147,11 +235,11 @@ namespace LibreLancer
 			//Y Axis
 			{
 				var tl = new VertexPositionTexture(
-					new Vector3(- 1, 0, - 1),
+					new Vector3(-1, 0, -1),
 					new Vector2(0, 1)
 				);
 				var tr = new VertexPositionTexture(
-					new Vector3(- 1, 0, 1),
+					new Vector3(-1, 0, 1),
 					new Vector2(1, 1)
 				);
 				var bl = new VertexPositionTexture(
@@ -168,8 +256,8 @@ namespace LibreLancer
 			}
 			var transform = Matrix4.CreateScale(sz) * Nebula.Zone.Rotation * Matrix4.CreateTranslation(p);
 			game.Nebulae.Draw(
-				buffer, 
-				camera, 
+				buffer,
+				camera,
 				tex,
 				Nebula.ExteriorColor,
 				transform

@@ -45,7 +45,7 @@ namespace LibreLancer
 		ResourceManager cache;
 		RenderState rstate;
 		FreelancerGame game;
-
+		Texture2D dot;
 		public SystemRenderer(ICamera camera, LegacyGameData data, ResourceManager rescache)
 		{
 			this.camera = camera;
@@ -56,6 +56,8 @@ namespace LibreLancer
 			cache = rescache;
 			rstate = cache.Game.RenderState;
 			game = rescache.Game;
+			dot = new Texture2D(1, 1, false, SurfaceFormat.Color);
+			dot.SetData(new uint[] { 0xFFFFFFFF });
 		}
 
 		void LoadSystem(StarSystem system)
@@ -125,7 +127,9 @@ namespace LibreLancer
 
 			for (int i = 0; i < Suns.Count; i++) Suns[i].Update(elapsed);
 			for (int i = 0; i < Models.Count; i++) Models[i].Update(elapsed);
+			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Update(elapsed);
 		}
+
 		NebulaRenderer CheckNebulae()
 		{
 			for (int i = 0; i < Nebulae.Count; i++)
@@ -176,11 +180,13 @@ namespace LibreLancer
 			rstate.DepthEnabled = true;
 			//Clear depth buffer for game objects
 			rstate.ClearDepth();
+			game.Billboards.Begin(camera, commands);
 			for (int i = 0; i < Models.Count; i++) Models[i].Draw(commands, systemLighting);
 			for (int i = 0; i < Suns.Count; i++) Suns[i].Draw(commands, systemLighting);
 			game.Nebulae.NewFrame();
 			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Draw(commands, systemLighting);
 			game.Nebulae.SetData();
+			game.Billboards.End();
 			commands.DrawOpaque(rstate);
 			rstate.DepthWrite = false;
 			commands.DrawTransparent(rstate);
