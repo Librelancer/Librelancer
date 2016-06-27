@@ -190,7 +190,11 @@ namespace LibreLancer.Utf.Cmp
                 //foreach (VMeshRef level in Levels.Values) level.Update();
             }
         }
-
+		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light)
+		{
+			if (ready)
+				Levels[0].DrawBuffer(buffer, world, light);
+		}
 		public void Draw(RenderState rstate, Matrix4 world, Lighting light)
         {
 			if (ready) {

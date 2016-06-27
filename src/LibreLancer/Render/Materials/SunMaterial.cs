@@ -26,6 +26,13 @@ namespace LibreLancer
 			sh.SetMatrix ("World", ref World);
 			sh.UseProgram ();
 		}
+		public override bool IsTransparent
+		{
+			get
+			{
+				return false;
+			}
+		}
 	}
 }
 

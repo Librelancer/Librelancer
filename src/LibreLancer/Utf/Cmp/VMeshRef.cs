@@ -123,6 +123,12 @@ namespace LibreLancer.Utf.Cmp
             if (ready) Mesh.Draw(rstate, StartMesh, endMesh, StartVertex, world, light);
         }
 
+		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light)
+		{
+			if (Mesh.FlexibleVertexFormat == (D3DFVF.XYZ | D3DFVF.NORMAL))
+				return;
+			if (ready) Mesh.DrawBuffer(buffer, StartMesh, endMesh, StartVertex, world, light);
+		}
         public override string ToString()
         {
             return "VMeshRef";

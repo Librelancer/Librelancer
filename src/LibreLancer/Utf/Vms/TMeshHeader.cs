@@ -105,5 +105,19 @@ namespace LibreLancer.Utf.Vms
 			Material.Render.Use (rstate, buff.VertexType, light);
 			buff.Draw (PrimitiveTypes.TriangleList, startVertex + StartVertex, TriangleStart, primitiveCount);
         }
+
+		public void DrawBuffer(CommandBuffer buffer, VertexBuffer buff, ushort startVertex, Matrix4 world, Lighting light)
+		{
+			buffer.AddCommand(
+				Material.Render,
+				world,
+				light,
+				buff,
+				PrimitiveTypes.TriangleList,
+				startVertex + StartVertex,
+				TriangleStart,
+				primitiveCount
+			);
+		}
     }
 }

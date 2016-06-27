@@ -54,6 +54,13 @@ namespace LibreLancer
 			BindTexture (DtSampler, 0, DtFlags);
 			shader.UseProgram ();
 		}
+		public override bool IsTransparent
+		{
+			get
+			{
+				return true;
+			}
+		}
 	}
 }
 

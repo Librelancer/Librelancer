@@ -196,6 +196,7 @@ namespace LibreLancer
 					break;
 				Draw (elapsed);
 				elapsed = timer.Elapsed.TotalSeconds - last;
+				renderFrequency = (1.0 / CalcAverageTick(elapsed));
 				last = timer.Elapsed.TotalSeconds;
 				totalTime = timer.Elapsed.TotalSeconds;
 				SDL.SDL_GL_SwapWindow (sdlWin);
@@ -208,7 +209,20 @@ namespace LibreLancer
 			Cleanup ();
 			SDL.SDL_Quit ();
 		}
+		const int FPS_MAXSAMPLES = 50;
+		int tickindex = 0;
+		double ticksum = 0;
+		double[] ticklist = new double[FPS_MAXSAMPLES];
 
+		double CalcAverageTick(double newtick)
+		{
+			ticksum -= ticklist[tickindex];
+			ticksum += newtick;
+			ticklist[tickindex] = newtick;
+			if (++tickindex == FPS_MAXSAMPLES)
+				tickindex=0;
+			return ((double)ticksum / FPS_MAXSAMPLES);
+		}
 		//Convert from SDL2 button to saner button
 		MouseButtons GetMouseButton(byte b)
 		{

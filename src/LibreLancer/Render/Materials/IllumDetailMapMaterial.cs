@@ -74,6 +74,13 @@ namespace LibreLancer
 
 			sh.UseProgram();
 		}
+		public override bool IsTransparent
+		{
+			get
+			{
+				return false;
+			}
+		}
 	}
 }
 

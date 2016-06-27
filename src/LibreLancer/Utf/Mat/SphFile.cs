@@ -148,5 +148,29 @@ namespace LibreLancer.Utf.Mat
 			} else
 				throw new Exception ();
         }
+		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting lighting)
+		{
+			if (ready)
+			{
+				for (int i = 0; i < 6; i++)
+				{
+					int start, count;
+					sphere.GetDrawParameters(faces[i], out start, out count);
+					SideMaterials[i].Render.ViewProjection = viewproj;
+					buffer.AddCommand(
+						SideMaterials[i].Render,
+						Matrix4.CreateScale(Radius) * world,
+						lighting,
+						sphere.VertexBuffer,
+						PrimitiveTypes.TriangleList,
+						0,
+						start,
+						count
+					);
+				}
+			}
+			else
+				throw new Exception();
+		}
     }
 }

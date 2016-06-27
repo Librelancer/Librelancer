@@ -38,6 +38,7 @@ namespace LibreLancer.GLDelegates
 	delegate void DepthFunc(int func);
 	delegate void CullFace(int face);
 	delegate void PixelStorei(int pname, int param);
+	delegate void DepthMask(bool flag);
 	//Textures
 	delegate void GenTextures(int n, out uint textures);
 	delegate void DeleteTextures(int n, ref uint textures);

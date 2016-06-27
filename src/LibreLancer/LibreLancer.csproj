@@ -221,6 +221,8 @@
     <Compile Include="GameStates\IntroMovie.cs" />
     <Compile Include="GameStates\MainMenu.cs" />
     <Compile Include="GameStates\LoadingDataState.cs" />
+    <Compile Include="CommandBuffer.cs" />
+    <Compile Include="RenderUserData.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />

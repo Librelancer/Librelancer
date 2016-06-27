@@ -34,6 +34,13 @@ namespace LibreLancer.Primitives
 				return vertexBuffer.VertexType;
 			}
 		}
+		public VertexBuffer VertexBuffer
+		{
+			get
+			{
+				return vertexBuffer;
+			}
+		}
 		public QuadSphere (int slices)
 		{
 			//6 sides of slices^2 quads
@@ -254,6 +261,11 @@ namespace LibreLancer.Primitives
 		public void Draw (CubeMapFace face)
 		{
 			vertexBuffer.Draw (PrimitiveTypes.TriangleList, 0, offsets [face], primitiveCountSide);
+		}
+		public void GetDrawParameters(CubeMapFace face, out int start, out int count)
+		{
+			start = offsets[face];
+			count = primitiveCountSide;
 		}
 	}
 }

@@ -44,11 +44,21 @@ namespace LibreLancer
 		{
 			material.ViewProjection = camera.ViewProjection;
 		}
-		public override void Draw (RenderState rstate, Lighting lights)
+		public override void Draw (CommandBuffer buffer, Lighting lights)
 		{
-			material.World = World;
+			/*material.World = World;
 			material.Use (rstate, null, null);
-			vertexBuffer.Draw (PrimitiveTypes.TriangleList, 0, 0, primitiveCount);
+			vertexBuffer.Draw (PrimitiveTypes.TriangleList, 0, 0, primitiveCount)*/
+			buffer.AddCommand(
+				material,
+				World,
+				lights,
+				vertexBuffer,
+				PrimitiveTypes.TriangleList,
+				0,
+				0,
+				primitiveCount
+			);
 		}
 		public override void Dispose ()
 		{

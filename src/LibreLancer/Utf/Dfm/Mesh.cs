@@ -26,7 +26,7 @@ using LibreLancer.Vertices;
 
 namespace LibreLancer.Utf.Dfm
 {
-	public class Mesh : IDrawable
+	public class Mesh
 	{
 		private Dictionary<int, Part> parts;
 

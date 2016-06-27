@@ -53,7 +53,19 @@ namespace LibreLancer
 				depthDirty = true;
 			}
 		}
-
+		public bool DepthWrite
+		{
+			get
+			{
+				return depthwrite;
+			} set
+			{
+				if (depthwrite == value)
+					return;
+				depthwrite = value;
+				depthwritedirty = true;
+			}
+		}
 		public BlendMode BlendMode {
 			get {
 				return blend;
@@ -98,6 +110,8 @@ namespace LibreLancer
 		BlendMode blend = BlendMode.Normal;
 		bool blendDirty = false;
 
+		bool depthwrite = true;
+		bool depthwritedirty = false;
 		public RenderState ()
 		{
 			GL.ClearColor (0f, 0f, 0f, 1f);
@@ -167,6 +181,12 @@ namespace LibreLancer
 					GL.Enable (GL.GL_CULL_FACE);
 				else
 					GL.Disable (GL.GL_CULL_FACE);
+				cullDirty = false;
+			}
+			if (depthwritedirty)
+			{
+				GL.DepthMask(depthwrite);
+				depthwritedirty = false;
 			}
 		}
 	}

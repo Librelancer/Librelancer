@@ -54,7 +54,7 @@ namespace LibreLancer
 			base.Update(elapsed);
 		}
 
-		public override void Draw(RenderState rstate, Lighting lights)
+		public override void Draw(CommandBuffer buffer, Lighting lights)
 		{
 			if (Model != null) {
 				if (Model.Levels.ContainsKey (0)) {
@@ -63,7 +63,7 @@ namespace LibreLancer
 						Model.Levels[0].Radius
 					);
 					if (camera.Frustum.Intersects (bsphere))
-						Model.Draw (rstate, World, lights);
+						Model.DrawBuffer (buffer, World, lights);
 				}
 			} else if (Cmp != null) {
 				foreach (ModelFile model in Cmp.Models.Values)
@@ -73,12 +73,12 @@ namespace LibreLancer
 							model.Levels[0].Radius
 						);
 						if (camera.Frustum.Intersects (bsphere)) {
-							Cmp.Draw (rstate, World, lights);
+							Cmp.DrawBuffer (buffer, World, lights);
 							break;
 						}
 					}
 			} else if (Sph != null) {
-				Sph.Draw (rstate, World, lights); //Need to cull this
+				Sph.DrawBuffer (buffer, World, lights); //Need to cull this
 			}
 		}
 

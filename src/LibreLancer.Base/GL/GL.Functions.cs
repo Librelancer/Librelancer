@@ -56,6 +56,8 @@ namespace LibreLancer
 		public static CullFace CullFace;
 		[MapsTo("glPixelStorei")]
 		public static PixelStorei PixelStorei;
+		[MapsTo("glDepthMask")]
+		public static DepthMask DepthMask;
 		//Textures
 		[MapsTo("glGenTextures")]
 		public static GenTextures GenTextures;

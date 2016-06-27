@@ -1,4 +1,19 @@
-﻿using System;
+﻿/* The contents of this file are subject to the Mozilla Public License
+ * Version 1.1 (the "License"); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ * 
+ * Software distributed under the License is distributed on an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific language governing rights and limitations
+ * under the License.
+ * 
+ * 
+ * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
+ * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * the Initial Developer. All Rights Reserved.
+ */
+using System;
 using System.Runtime.InteropServices;
 using LibreLancer.Vertices;
 
@@ -6,7 +21,7 @@ namespace LibreLancer
 {
 	public class NebulaVertices
 	{
-		const int MAX_QUADS = 300; //100 plane slices
+		const int MAX_QUADS = 3000; //1000 plane slices
 		Shader shader;
 		VertexBuffer vbo;
 		ElementBuffer el;
@@ -54,23 +69,48 @@ namespace LibreLancer
 			verts[currentVerts++] = v3;
 			verts[currentVerts++] = v4;
 		}
-
-		public void Draw(RenderState rstate, ICamera camera, Texture texture, Color4 color, Matrix4 world)
+		int lastIndex = 0;
+		public void Draw(CommandBuffer buffer, ICamera camera, Texture texture, Color4 color, Matrix4 world)
 		{
 			var vp = camera.ViewProjection;
-			shader.SetMatrix("ViewProjection", ref vp);
-			shader.SetMatrix("World", ref world);
-			shader.SetColor4("Tint", color);
+			buffer.AddCommand(
+				shader,
+				shaderDelegate,
+				resetDelegate,
+				world,
+				new RenderUserData() { Color = color, ViewProjection = vp, Texture = texture },
+				vbo,
+				PrimitiveTypes.TriangleList,
+				0,
+				lastIndex,
+				(currentIndex - lastIndex) / 3,
+				true
+			);
+			lastIndex = currentIndex;
+		}
+		static Action<Shader, RenderState, RenderCommand> shaderDelegate = ShaderSetup;
+		static void ShaderSetup(Shader shader, RenderState state, RenderCommand command)
+		{
+			state.Cull = false;
+			state.BlendMode = BlendMode.Normal;
+			shader.SetMatrix("ViewProjection", ref command.UserData.ViewProjection);
+			shader.SetMatrix("World", ref command.World);
+			shader.SetColor4("Tint", command.UserData.Color);
 			shader.SetInteger("Texture", 0);
-			texture.BindTo(0);
-			shader.UseProgram();
-			rstate.BlendMode = BlendMode.Normal;
-			rstate.Cull = false;
+			command.UserData.Texture.BindTo(0);
+		}
+		static Action<RenderState> resetDelegate = ResetState;
+		static void ResetState(RenderState state)
+		{
+			state.Cull = true;
+		}
+		public void SetData()
+		{
 			vbo.SetData(verts, currentVerts);
-			vbo.Draw(PrimitiveTypes.TriangleList, currentIndex / 3);
-			rstate.Cull = true;
-			currentVerts = 0;
-			currentIndex = 0;
+		}
+		public void NewFrame()
+		{
+			lastIndex = currentIndex = currentVerts = 0;
 		}
 	}
 }

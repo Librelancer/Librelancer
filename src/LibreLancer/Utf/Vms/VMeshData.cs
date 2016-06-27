@@ -259,6 +259,17 @@ namespace LibreLancer.Utf.Vms
             }
         }
 
+		public void DrawBuffer(CommandBuffer buff, ushort startMesh, int endMesh, ushort startVertex, Matrix4 world, Lighting light)
+		{
+			if (ready)
+			{
+				for (ushort i = startMesh; i < endMesh; i++)
+				{
+					Meshes[i].DrawBuffer(buff, VertexBuffer, startVertex, world, light);
+				}
+			}
+		}
+
         public override string ToString()
         {
             return FlexibleVertexFormat.ToString();

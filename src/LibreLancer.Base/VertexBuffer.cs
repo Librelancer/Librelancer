@@ -100,9 +100,10 @@ namespace LibreLancer
 					IntPtr.Zero
 				);
 			} else {
+				int indexElementCount = primitiveType.GetArrayLength(primitiveCount);
 				GL.DrawArrays (primitiveType.GLType (),
 					0,
-					primitiveCount
+					indexElementCount
 				);
 			}
 			TotalDrawcalls++;

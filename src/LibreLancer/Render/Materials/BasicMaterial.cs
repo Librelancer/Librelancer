@@ -105,6 +105,13 @@ namespace LibreLancer
 
 			shader.UseProgram();
 		}
+		public override bool IsTransparent
+		{
+			get
+			{
+				return AlphaEnabled;
+			}
+		}
 	}
 }
 

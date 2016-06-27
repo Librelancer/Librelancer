@@ -61,10 +61,10 @@ namespace LibreLancer
 
 		}
 
-		public void Draw(Lighting lights)
+		public void Draw(CommandBuffer buffer, Lighting lights)
 		{
 			if(!Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, camera.Position) || !FogTransitioned())
-				RenderFill();
+				RenderFill(buffer);
 			if (Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, camera.Position))
 				RenderInteriorPuffs();
 		}
@@ -88,7 +88,7 @@ namespace LibreLancer
 			return new Color4(c.R, c.G, c.B, 1f);  
 		}
 
-		void RenderFill()
+		void RenderFill(CommandBuffer buffer)
 		{
 			Vector3 sz = Vector3.Zero;
 			//Only render ellipsoid and sphere exteriors
@@ -168,7 +168,7 @@ namespace LibreLancer
 			}
 			var transform = Matrix4.CreateScale(sz) * Nebula.Zone.Rotation * Matrix4.CreateTranslation(p);
 			game.Nebulae.Draw(
-				game.RenderState, 
+				buffer, 
 				camera, 
 				tex,
 				Nebula.ExteriorColor,

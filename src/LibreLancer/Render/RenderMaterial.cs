@@ -26,6 +26,7 @@ namespace LibreLancer
 		public ILibFile Library;
 		public abstract void Use (RenderState rstate, IVertexType vertextype, Lighting lights);
 		static Texture2D nullTexture;
+		public abstract bool IsTransparent { get; }
 
 		protected void SetLights(Shader shader, Lighting lights)
 		{

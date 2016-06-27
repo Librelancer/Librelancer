@@ -29,7 +29,7 @@ namespace LibreLancer.Utf.Dfm
 	/// <summary>
 	/// Represents a UTF Compound File (.cmp)
 	/// </summary>
-	public class DfmFile : UtfFile, IDrawable, ILibFile
+	public class DfmFile : UtfFile, ILibFile
 	{
 		private ILibFile additionalLibrary;
 

@@ -83,5 +83,12 @@ namespace LibreLancer.Utf.Cmp
             if (Construct != null) transform = Construct.Transform * world;
             Model.Draw(rstate, transform, light);
         }
+
+		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light)
+		{
+			Matrix4 transform = world;
+			if (Construct != null) transform = Construct.Transform * world;
+			Model.DrawBuffer(buffer, transform, light);
+		}
     }
 }
