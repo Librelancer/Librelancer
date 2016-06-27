@@ -255,6 +255,15 @@ namespace LibreLancer
 					sun.CenterColorOuter = new Color4(centerglow.OuterColor, 1);
 					sun.CenterScale = centerglow.Scale;
 				}
+				if (star.Spines != null)
+				{
+					var spines = fldata.Stars.FindSpines(star.Spines);
+					sun.SpinesSprite = spines.Shape;
+					sun.SpinesScale = spines.RadiusScale;
+					sun.Spines = new List<GameData.Spine>(spines.Items.Count);
+					foreach (var sp in spines.Items)
+						sun.Spines.Add(new GameData.Spine(sp.LengthScale, sp.WidthScale, sp.InnerColor, sp.OuterColor, sp.Alpha));
+				}
 				obj.Archetype = sun;
 			} else {
 				obj.Archetype = new GameData.Archetype ();

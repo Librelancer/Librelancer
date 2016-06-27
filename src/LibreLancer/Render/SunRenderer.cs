@@ -38,6 +38,26 @@ namespace LibreLancer
 		{
 			var dist_scale = 1; // TODO: Modify this based on nebula burn-through.
 			var glow_scale = dist_scale * Sun.GlowScale;
+			if (Sun.SpinesSprite != null)
+			{
+				double current_angle = 0;
+				double delta_angle = (2 * Math.PI) / Sun.Spines.Count;
+				var spinetex = (Texture2D)game.ResourceManager.FindTexture(Sun.SpinesSprite);
+				for (int i = 0; i < Sun.Spines.Count; i++)
+				{
+					var s = Sun.Spines[i];
+					current_angle += delta_angle;
+					DrawSpine(
+						spinetex,
+						pos,
+						new Vector2(Sun.Radius, Sun.Radius) * Sun.SpinesScale * new Vector2(s.WidthScale / s.LengthScale, s.LengthScale),
+						s.InnerColor,
+						s.OuterColor,
+						s.Alpha,
+						(float)current_angle
+					);
+				}
+			}
 			DrawRadial(
 				(Texture2D)game.ResourceManager.FindTexture(Sun.GlowSprite),
 				new Vector3(pos),
@@ -58,6 +78,7 @@ namespace LibreLancer
 					0
 				);
 			}
+
 		}
 		void DrawRadial(Texture2D texture, Vector3 position, Vector2 size, Color4 inner, Color4 outer, float expand)
 		{
@@ -74,6 +95,21 @@ namespace LibreLancer
 				0
 			);
 		}
+		void DrawSpine(Texture2D texture, Vector3 position, Vector2 size, Color3f inner, Color3f outer, float alpha, float angle)
+		{
+			game.Billboards.DrawCustomShader(
+				"sun_spine.frag",
+				new RenderUserData() { Texture = texture, Color = new Color4(inner,1), Color2 = new Color4(outer,1), Float = alpha, UserFunction = _setupSpineDelegate },
+				position,
+				size,
+				Color4.White,
+				new Vector2(0, 0),
+				new Vector2(0, 1),
+				new Vector2(1, 0),
+				new Vector2(1, 1),
+				angle
+			);
+		}
 		static Action<Shader, RenderUserData> _setupRadialDelegate = SetupRadialShader;
 		static void SetupRadialShader(Shader sh, RenderUserData dat)
 		{
@@ -82,6 +118,15 @@ namespace LibreLancer
 			sh.SetColor4("innercolor", dat.Color);
 			sh.SetColor4("outercolor", dat.Color2);
 			sh.SetFloat("expand", dat.Float);
+		}
+		static Action<Shader, RenderUserData> _setupSpineDelegate = SetupSpineShader;
+		static void SetupSpineShader(Shader sh, RenderUserData dat)
+		{
+			sh.SetInteger("tex0", 0);
+			dat.Texture.BindTo(0);
+			sh.SetVector3("innercolor", new Vector3(dat.Color.R, dat.Color.G, dat.Color.B));
+			sh.SetVector3("outercolor", new Vector3(dat.Color2.R, dat.Color2.G, dat.Color2.B));
+			sh.SetFloat("alpha", dat.Float);
 		}
 	}
 }

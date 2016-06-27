@@ -14,44 +14,26 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using System.Collections.Generic;
 using LibreLancer.Ini;
 namespace LibreLancer.Compatibility.GameData.Solar
 {
-	public class Spines
+	public class Spine
 	{
-		public string Nickname;
-		public int RadiusScale;
-		public string Shape;
-		public int MinRadius;
-		public int MaxRadius;
-		public List<Spine> Items = new List<Spine>();
-		public Spines(Section s)
+		//FORMAT: LengthScale, WidthScale, [Inner: r, g, b], [Outer: r, g, b], Alpha
+
+		public float LengthScale;
+		public float WidthScale;
+		public Color3f InnerColor;
+		public Color3f OuterColor;
+		public float Alpha;
+
+		public Spine(Entry e)
 		{
-			foreach (var e in s)
-			{
-				switch (e.Name.ToLowerInvariant())
-				{
-					case "nickname":
-						Nickname = e[0].ToString();
-						break;
-					case "radius_scale":
-						RadiusScale = e[0].ToInt32();
-						break;
-					case "shape":
-						Shape = e[0].ToString();
-						break;
-					case "min_radius":
-						MinRadius = e[0].ToInt32();
-						break;
-					case "max_radius":
-						MaxRadius = e[0].ToInt32();
-						break;
-					case "spine":
-						Items.Add(new Spine(e));
-						break;
-				}
-			}
+			LengthScale = e[0].ToSingle();
+			WidthScale = e[1].ToSingle();
+			InnerColor = new Color3f(e[2].ToSingle(), e[3].ToSingle(), e[4].ToSingle());
+			OuterColor = new Color3f(e[5].ToSingle(), e[6].ToSingle(), e[7].ToSingle());
+			Alpha = e[8].ToSingle();
 		}
 	}
 }

@@ -14,25 +14,22 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using System.Collections.Generic;
-namespace LibreLancer.GameData.Archetypes
+namespace LibreLancer.GameData
 {
-	public class Sun : Archetype
+	public class Spine
 	{
-		public float Radius;
-		public string GlowSprite;
-		public Color4 GlowColorInner;
-		public Color4 GlowColorOuter;
-		public float GlowScale;
-		public string CenterSprite;
-		public Color4 CenterColorInner;
-		public Color4 CenterColorOuter;
-		public float CenterScale;
-		public string SpinesSprite;
-		public float SpinesScale;
-		public List<Spine> Spines;
-		public Sun ()
+		public float LengthScale;
+		public float WidthScale;
+		public Color3f InnerColor;
+		public Color3f OuterColor;
+		public float Alpha;
+		public Spine(float length, float width, Color3f inner, Color3f outer, float alpha)
 		{
+			LengthScale = length;
+			WidthScale = width;
+			InnerColor = inner;
+			OuterColor = outer;
+			Alpha = alpha;
 		}
 	}
 }

@@ -223,6 +223,7 @@
     <Compile Include="GameStates\LoadingDataState.cs" />
     <Compile Include="CommandBuffer.cs" />
     <Compile Include="RenderUserData.cs" />
+    <Compile Include="GameData\Spine.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />
@@ -246,6 +247,7 @@
     <EmbeddedResource Include="Shaders\NebulaInterior.frag" />
     <EmbeddedResource Include="Shaders\IllumDetailMapMaterial.frag" />
     <EmbeddedResource Include="Shaders\sun_radial.frag" />
+    <EmbeddedResource Include="Shaders\sun_spine.frag" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">
