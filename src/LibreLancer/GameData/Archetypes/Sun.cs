@@ -23,9 +23,11 @@ namespace LibreLancer.GameData.Archetypes
 		public string GlowSprite;
 		public Color4 GlowColorInner;
 		public Color4 GlowColorOuter;
+		public float GlowScale;
 		public string CenterSprite;
 		public Color4 CenterColorInner;
 		public Color4 CenterColorOuter;
+		public float CenterScale;
 		public Sun ()
 		{
 		}

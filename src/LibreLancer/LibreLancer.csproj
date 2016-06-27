@@ -231,8 +231,6 @@
     <EmbeddedResource Include="Shaders\Basic_PositionColorTexture.vs" />
     <EmbeddedResource Include="Shaders\Basic_PositionTexture.vs" />
     <EmbeddedResource Include="Shaders\Nebula_PositionColorTexture.frag" />
-    <EmbeddedResource Include="Shaders\Sun.vs" />
-    <EmbeddedResource Include="Shaders\Sun.frag" />
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTextureTwo.vs" />
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTextureTwo.frag" />
     <EmbeddedResource Include="Shaders\Masked2DetailMapMaterial.frag" />

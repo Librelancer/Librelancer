@@ -36,8 +36,8 @@ namespace LibreLancer
 		}
 		public void Draw ()
 		{
-			var glow_scale = (VectorMath.Distance(pos, camera_pos) / Sun.Radius);
-			var center_scale = Math.Max(1, glow_scale * 0.5f);
+			var dist_scale = 1; // TODO: Modify this based on nebula burn-through.
+			var glow_scale = dist_scale * Sun.GlowScale;
 			DrawRadial(
 				(Texture2D)game.ResourceManager.FindTexture(Sun.GlowSprite),
 				new Vector3(pos),
@@ -48,6 +48,7 @@ namespace LibreLancer
 			);
 			if (Sun.CenterSprite != null)
 			{
+				var center_scale = dist_scale * Sun.CenterScale;
 				DrawRadial(
 					(Texture2D)game.ResourceManager.FindTexture(Sun.CenterSprite),
 					new Vector3(pos),

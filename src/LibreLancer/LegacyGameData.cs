@@ -245,6 +245,7 @@ namespace LibreLancer
 				sun.GlowSprite = starglow.Shape;
 				sun.GlowColorInner = new Color4(starglow.InnerColor, 1);
 				sun.GlowColorOuter = new Color4(starglow.OuterColor, 1);
+				sun.GlowScale = starglow.Scale;
 				//center
 				if (star.StarCenter != null)
 				{
@@ -252,6 +253,7 @@ namespace LibreLancer
 					sun.CenterSprite = centerglow.Shape;
 					sun.CenterColorInner = new Color4(centerglow.InnerColor, 1);
 					sun.CenterColorOuter = new Color4(centerglow.OuterColor, 1);
+					sun.CenterScale = centerglow.Scale;
 				}
 				obj.Archetype = sun;
 			} else {
