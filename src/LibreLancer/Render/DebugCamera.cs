@@ -138,6 +138,7 @@ namespace LibreLancer
 				Vector3 upVector = rotationMatrix.Transform (VectorMath.Up);
 
 				View = Matrix4.LookAt(Position, currentTarget, upVector);
+				_vpdirty = true;
 			}
 
 			// Reflection
