@@ -14,20 +14,42 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-
-namespace LibreLancer.GameData.Archetypes
+using LibreLancer.Ini;
+namespace LibreLancer.Compatibility.GameData.Solar
 {
-	public class Sun : Archetype
+	public class Spines
 	{
-		public float Radius;
-		public string GlowSprite;
-		public Color4 GlowColorInner;
-		public Color4 GlowColorOuter;
-		public string CenterSprite;
-		public Color4 CenterColorInner;
-		public Color4 CenterColorOuter;
-		public Sun ()
+		public string Nickname;
+		public int RadiusScale;
+		public string Shape;
+		public int MinRadius;
+		public int MaxRadius;
+		public Spines(Section s)
 		{
+			foreach (var e in s)
+			{
+				switch (e.Name.ToLowerInvariant())
+				{
+					case "nickname":
+						Nickname = e[0].ToString();
+						break;
+					case "radius_scale":
+						RadiusScale = e[0].ToInt32();
+						break;
+					case "shape":
+						Shape = e[0].ToString();
+						break;
+					case "min_radius":
+						MinRadius = e[0].ToInt32();
+						break;
+					case "max_radius":
+						MaxRadius = e[0].ToInt32();
+						break;
+					case "spine":
+						//TODO: wtf is this
+						break;
+				}
+			}
 		}
 	}
 }

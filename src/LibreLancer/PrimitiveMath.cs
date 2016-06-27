@@ -34,6 +34,17 @@ namespace LibreLancer
 			);
 			return (float)result;
 		}
+		public static Vector3 GetPointOnRadius(Vector3 size, float y, float angle)
+		{
+			float x0 = (float)Math.Sin(angle);
+			float z0 = (float)Math.Sin(angle);
+
+			float scalefactor = 1 - (y / size.Y);
+
+			float x = x0 * size.X * scalefactor;
+			float z = z0 * size.X * scalefactor;
+			return new Vector3(x, y, z);
+		}
 	}
 }
 

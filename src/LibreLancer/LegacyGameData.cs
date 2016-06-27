@@ -107,6 +107,8 @@ namespace LibreLancer
 		public GameData.StarSystem GetSystem(string id)
 		{
 			var legacy = fldata.Universe.FindSystem (id);
+			foreach (var txmfile in fldata.Stars.TextureFiles)
+				resource.LoadTxm(Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + txmfile));
 			var sys = new GameData.StarSystem ();
 			sys.AmbientColor = legacy.AmbientColor ?? Color4.White;
 			sys.Name = legacy.StridName;
@@ -234,7 +236,24 @@ namespace LibreLancer
 				resource.LoadMat (path);
 			//Construct archetype
 			if (o.Archetype is Legacy.Solar.Sun) {
-				obj.Archetype = new GameData.Archetypes.Sun ();
+				var sun = new GameData.Archetypes.Sun();
+				var star = fldata.Stars.FindStar(o.Star);
+				//general
+				sun.Radius = star.Radius.Value;
+				//glow
+				var starglow = fldata.Stars.FindStarGlow(star.StarGlow);
+				sun.GlowSprite = starglow.Shape;
+				sun.GlowColorInner = new Color4(starglow.InnerColor, 1);
+				sun.GlowColorOuter = new Color4(starglow.OuterColor, 1);
+				//center
+				if (star.StarCenter != null)
+				{
+					var centerglow = fldata.Stars.FindStarGlow(star.StarCenter);
+					sun.CenterSprite = centerglow.Shape;
+					sun.CenterColorInner = new Color4(centerglow.InnerColor, 1);
+					sun.CenterColorOuter = new Color4(centerglow.OuterColor, 1);
+				}
+				obj.Archetype = sun;
 			} else {
 				obj.Archetype = new GameData.Archetype ();
 			}

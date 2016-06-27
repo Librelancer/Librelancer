@@ -78,6 +78,53 @@ namespace LibreLancer
 			buffer = cmd;
 		}
 
+		public void DrawCustomShader(
+			string shader,
+			RenderUserData userData,
+			Vector3 Position,
+			Vector2 size,
+			Color4 color,
+			Vector2 topleft,
+			Vector2 topright,
+			Vector2 bottomleft,
+			Vector2 bottomright,
+			float angle
+		)
+		{
+			Flush();
+			var sh = ShaderCache.Get(
+				"Billboard.vs",
+				shader,
+				"Billboard.gs"
+			);
+			currentTexture = null;
+			vertices[billboardCount].Position = Position;
+			vertices[billboardCount].Size = size;
+			vertices[billboardCount].Color = color;
+			vertices[billboardCount].Texture0 = topleft;
+			vertices[billboardCount].Texture1 = topright;
+			vertices[billboardCount].Texture2 = bottomleft;
+			vertices[billboardCount].Texture3 = bottomright;
+			vertices[billboardCount].Angle = angle;
+			//increase count
+			billboardCount++;
+			var dat = userData;
+			dat.ViewProjection = camera.ViewProjection;
+			buffer.AddCommand(
+				sh,
+				_setupDelegateCustom,
+				_resetDelegate,
+				camera.View,
+				dat,
+				vbo,
+				PrimitiveTypes.Points,
+				lastCount,
+				billboardCount,
+				true
+			);
+			lastCount = billboardCount;
+		}
+
 		public void Draw(
 			Texture2D texture,
 			Vector3 Position,
@@ -111,7 +158,7 @@ namespace LibreLancer
 		int lastCount = 0;
 		void Flush()
 		{
-			if (billboardCount == 0)
+			if (billboardCount == 0 || lastCount == billboardCount)
 				return;
 			var view = camera.View;
 			var vp = camera.ViewProjection;
@@ -140,6 +187,17 @@ namespace LibreLancer
 			shader.SetMatrix("ViewProjection", ref cmd.UserData.ViewProjection);
 			cmd.UserData.Texture.BindTo(0);
 		}
+
+		static Action<Shader, RenderState, RenderCommand> _setupDelegateCustom = SetupShaderCustom;
+		static void SetupShaderCustom(Shader shader, RenderState rs, RenderCommand cmd)
+		{
+			rs.Cull = false;
+			rs.BlendMode = BlendMode.Normal;
+			shader.SetMatrix("View", ref cmd.World);
+			shader.SetMatrix("ViewProjection", ref cmd.UserData.ViewProjection);
+			cmd.UserData.UserFunction(shader, cmd.UserData);
+		}
+
 		static Action<RenderState> _resetDelegate = ResetState;
 		static void ResetState(RenderState rs)
 		{

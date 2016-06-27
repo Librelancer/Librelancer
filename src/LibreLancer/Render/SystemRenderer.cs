@@ -64,7 +64,6 @@ namespace LibreLancer
 		{
 			starSystem = system;
 
-			foreach (SunRenderer s in Suns) s.Dispose();
 			Suns.Clear();
 
 			foreach (ModelRenderer r in Models) r.Dispose();
@@ -98,7 +97,7 @@ namespace LibreLancer
 			{
 				if (o.Archetype is Sun)
 				{
-					SunRenderer s = new SunRenderer(camera, World, true, o);
+					SunRenderer s = new SunRenderer(o, game);
 					Suns.Add(s);
 				}
 				else if (o.Archetype.ArchetypeName != "JumpHole")
@@ -125,7 +124,7 @@ namespace LibreLancer
 			foreach (var model in starSphereModels)
 				model.Update(camera, elapsed);
 
-			for (int i = 0; i < Suns.Count; i++) Suns[i].Update(elapsed);
+			for (int i = 0; i < Suns.Count; i++) Suns[i].Update(elapsed, camera);
 			for (int i = 0; i < Models.Count; i++) Models[i].Update(elapsed);
 			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Update(elapsed);
 		}
@@ -182,10 +181,10 @@ namespace LibreLancer
 			rstate.ClearDepth();
 			game.Billboards.Begin(camera, commands);
 			for (int i = 0; i < Models.Count; i++) Models[i].Draw(commands, systemLighting);
-			for (int i = 0; i < Suns.Count; i++) Suns[i].Draw(commands, systemLighting);
 			game.Nebulae.NewFrame();
 			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Draw(commands, systemLighting);
 			game.Nebulae.SetData();
+			for (int i = 0; i < Suns.Count; i++) Suns[i].Draw();
 			game.Billboards.End();
 			commands.DrawOpaque(rstate);
 			rstate.DepthWrite = false;

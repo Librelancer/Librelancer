@@ -247,6 +247,7 @@
     <EmbeddedResource Include="Shaders\NebulaInterior.vs" />
     <EmbeddedResource Include="Shaders\NebulaInterior.frag" />
     <EmbeddedResource Include="Shaders\IllumDetailMapMaterial.frag" />
+    <EmbeddedResource Include="Shaders\sun_radial.frag" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

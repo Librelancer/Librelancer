@@ -133,6 +133,10 @@
     <Compile Include="GameData\Audio\AudioEntry.cs" />
     <Compile Include="GameData\Audio\AudioIni.cs" />
     <Compile Include="GameData\Audio\AudioType.cs" />
+    <Compile Include="GameData\Solar\StarGlow.cs" />
+    <Compile Include="GameData\Solar\LensFlare.cs" />
+    <Compile Include="GameData\Solar\LensGlow.cs" />
+    <Compile Include="GameData\Solar\Spines.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

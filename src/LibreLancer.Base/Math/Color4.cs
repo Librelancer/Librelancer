@@ -93,6 +93,15 @@ namespace LibreLancer
             B = b / (float)Byte.MaxValue;
             A = a / (float)Byte.MaxValue;
         }
+
+		public Color4(Color3f c, float alpha)
+		{
+			R = c.R;
+			G = c.G;
+			B = c.B;
+			A = alpha;
+		}
+
         #endregion
 
         #region Public Members

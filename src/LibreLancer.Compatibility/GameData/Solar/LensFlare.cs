@@ -14,20 +14,38 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-
-namespace LibreLancer.GameData.Archetypes
+using LibreLancer.Ini;
+namespace LibreLancer.Compatibility.GameData.Solar
 {
-	public class Sun : Archetype
+	public class LensFlare
 	{
-		public float Radius;
-		public string GlowSprite;
-		public Color4 GlowColorInner;
-		public Color4 GlowColorOuter;
-		public string CenterSprite;
-		public Color4 CenterColorInner;
-		public Color4 CenterColorOuter;
-		public Sun ()
+		public string Nickname;
+		public string Shape;
+		public int MinRadius;
+		public int MaxRadius;
+		public LensFlare(Section s)
 		{
+			foreach (var e in s)
+			{
+				switch (e.Name.ToLowerInvariant())
+				{
+					case "nickname":
+						Nickname = e[0].ToString();
+						break;
+					case "shape":
+						Shape = e[0].ToString();
+						break;
+					case "min_radius":
+						MinRadius = e[0].ToInt32();
+						break;
+					case "max_radius":
+						MaxRadius = e[0].ToInt32();
+						break;
+					case "bead":
+						//TODO: what the hell is this (6 floats)
+						break;
+				}
+			}
 		}
 	}
 }

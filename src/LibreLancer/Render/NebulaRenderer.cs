@@ -176,6 +176,19 @@ namespace LibreLancer
 			return new Color3f(c.R, c.G, c.B);
 		}
 
+		void ExteriorBits()
+		{
+			Vector3 sz = Vector3.Zero;
+			//Only render ellipsoid and sphere exteriors
+			if (Nebula.Zone.Shape is ZoneEllipsoid)
+				sz = ((ZoneEllipsoid)Nebula.Zone.Shape).Size / 2; //we want radius instead of diameter
+			else if (Nebula.Zone.Shape is ZoneSphere)
+				sz = new Vector3(((ZoneSphere)Nebula.Zone.Shape).Radius);
+			else
+				return;
+			
+		}
+
 		void RenderFill(CommandBuffer buffer)
 		{
 			Vector3 sz = Vector3.Zero;

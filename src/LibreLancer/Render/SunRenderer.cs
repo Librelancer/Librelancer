@@ -14,56 +14,73 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using LibreLancer.Utf.Mat;
-using LibreLancer.Primitives;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Archetypes;
 namespace LibreLancer
 {
-	public class SunRenderer : ObjectRenderer
+	public class SunRenderer
 	{
 		public Sun Sun { get; private set; }
-		SunMaterial material;
-		VertexBuffer vertexBuffer;
-		ElementBuffer elementBuffer;
-		int primitiveCount;
-
-		public SunRenderer (ICamera camera, Matrix4 world, bool useObjectPosAndRotate, SystemObject sun)
-			:base (camera, world, useObjectPosAndRotate, sun)
+		FreelancerGame game;
+		Vector3 pos;
+		Vector3 camera_pos;
+		public SunRenderer (SystemObject obj, FreelancerGame game)
 		{
-			Sun = SpaceObject.Archetype as Sun;
-			SphFile s = Sun.Drawable as SphFile;
-
-			Ellipsoid sphere = new Ellipsoid(new Vector3(s.Radius), 100, 100);
-			vertexBuffer = sphere.VertexBuffer;
-			elementBuffer = sphere.ElementBuffer;
-			primitiveCount = elementBuffer.IndexCount / 3;
-			material = new SunMaterial ();
+			Sun = obj.Archetype as Sun;
+			pos = obj.Position;
+			this.game = game;
 		}
-		public override void Update (TimeSpan elapsed)
+		public void Update (TimeSpan elapsed, ICamera camera)
 		{
-			material.ViewProjection = camera.ViewProjection;
+			camera_pos = camera.Position;
 		}
-		public override void Draw (CommandBuffer buffer, Lighting lights)
+		public void Draw ()
 		{
-			/*material.World = World;
-			material.Use (rstate, null, null);
-			vertexBuffer.Draw (PrimitiveTypes.TriangleList, 0, 0, primitiveCount)*/
-			buffer.AddCommand(
-				material,
-				World,
-				lights,
-				vertexBuffer,
-				PrimitiveTypes.TriangleList,
-				0,
-				0,
-				primitiveCount
+			var glow_scale = (VectorMath.Distance(pos, camera_pos) / Sun.Radius);
+			var center_scale = Math.Max(1, glow_scale * 0.5f);
+			DrawRadial(
+				(Texture2D)game.ResourceManager.FindTexture(Sun.GlowSprite),
+				new Vector3(pos),
+				new Vector2(Sun.Radius, Sun.Radius) * glow_scale,
+				Sun.GlowColorInner,
+				Sun.GlowColorOuter,
+				0
+			);
+			if (Sun.CenterSprite != null)
+			{
+				DrawRadial(
+					(Texture2D)game.ResourceManager.FindTexture(Sun.CenterSprite),
+					new Vector3(pos),
+					new Vector2(Sun.Radius, Sun.Radius) * center_scale,
+					Sun.CenterColorInner,
+					Sun.CenterColorOuter,
+					0
+				);
+			}
+		}
+		void DrawRadial(Texture2D texture, Vector3 position, Vector2 size, Color4 inner, Color4 outer, float expand)
+		{
+			game.Billboards.DrawCustomShader(
+				"sun_radial.frag",
+				new RenderUserData() { Texture = texture, Color = inner, Color2 = outer, Float = expand,  UserFunction = _setupRadialDelegate },
+				position,
+				size,
+				Color4.White,
+				new Vector2(0, 0),
+				new Vector2(0, 1),
+				new Vector2(1, 0),
+				new Vector2(1, 1),
+				0
 			);
 		}
-		public override void Dispose ()
+		static Action<Shader, RenderUserData> _setupRadialDelegate = SetupRadialShader;
+		static void SetupRadialShader(Shader sh, RenderUserData dat)
 		{
-			vertexBuffer.Dispose ();
-			elementBuffer.Dispose ();
+			sh.SetInteger("tex0", 0);
+			dat.Texture.BindTo(0);
+			sh.SetColor4("innercolor", dat.Color);
+			sh.SetColor4("outercolor", dat.Color2);
+			sh.SetFloat("expand", dat.Float);
 		}
 	}
 }
