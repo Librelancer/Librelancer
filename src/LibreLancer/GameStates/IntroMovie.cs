@@ -5,30 +5,35 @@ namespace LibreLancer
 	public class IntroMovie : GameState
 	{
 		VideoPlayer player;
-		int idx;
+		int idx = int.MaxValue;
 
 		public IntroMovie(FreelancerGame game, int index) : base(game)
 		{
-			idx = index;
 			player = new VideoPlayer(game, game.MpvOverride);
-			if (!player.Init())
-				game.ChangeState(new LoadingDataState(game));
-			index = idx;
-			game.Keyboard.KeyDown += HandleKeyDown;
-			player.PlayFile(game.IntroMovies[index]);
+			if (player.Init())
+			{
+				idx = index;
+				game.Keyboard.KeyDown += HandleKeyDown;
+				player.PlayFile(game.IntroMovies[index]);
+			}
 		}
 
 		public override void Draw(TimeSpan delta)
 		{
-			player.Draw();
-			if (!player.Playing)
+			if (idx != int.MaxValue)
 			{
-				Leave();
+				player.Draw();
+				if (!player.Playing)
+				{
+					Leave();
+				}
+				var tex = player.GetTexture();
+				Game.Renderer2D.Start(Game.Width, Game.Height);
+				Game.Renderer2D.DrawImageStretched(tex, new Rectangle(0, 0, Game.Width, Game.Height), Color4.White);
+				Game.Renderer2D.Finish();
 			}
-			var tex = player.GetTexture();
-			Game.Renderer2D.Start(Game.Width, Game.Height);
-			Game.Renderer2D.DrawImageStretched(tex, new Rectangle(0, 0, Game.Width, Game.Height), Color4.White);
-			Game.Renderer2D.Finish();
+			else
+				Game.ChangeState(new LoadingDataState(Game));
 		}
 
 		void HandleKeyDown(KeyEventArgs args)
