@@ -8,6 +8,7 @@ namespace LibreLancer
 		public Color4 Color2;
 		public Texture Texture;
 		public float Float;
+		public float Float2;
 		public Action<Shader, RenderUserData> UserFunction;
 
 	}

@@ -91,6 +91,10 @@ C# Memory Usage: {5}
 					currentText = currentText.Substring(0, currentText.Length - 1);
 				}
 			}
+			if (e.Key == Keys.P && !textEntry)
+			{
+				Game.RenderState.Wireframe = !Game.RenderState.Wireframe;
+			}
 		}
 
 		void G_Keyboard_TextInput (string text)

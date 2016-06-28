@@ -23,7 +23,6 @@ namespace LibreLancer
 		public Sun Sun { get; private set; }
 		FreelancerGame game;
 		Vector3 pos;
-		Vector3 camera_pos;
 		public SunRenderer (SystemObject obj, FreelancerGame game)
 		{
 			Sun = obj.Archetype as Sun;
@@ -32,7 +31,7 @@ namespace LibreLancer
 		}
 		public void Update (TimeSpan elapsed, ICamera camera)
 		{
-			camera_pos = camera.Position;
+			
 		}
 		public void Draw ()
 		{
@@ -84,7 +83,7 @@ namespace LibreLancer
 		{
 			game.Billboards.DrawCustomShader(
 				"sun_radial.frag",
-				new RenderUserData() { Texture = texture, Color = inner, Color2 = outer, Float = expand,  UserFunction = _setupRadialDelegate },
+				new RenderUserData() { Texture = texture, Color = inner, Color2 = outer, Float = expand, UserFunction = _setupRadialDelegate },
 				position,
 				size,
 				Color4.White,

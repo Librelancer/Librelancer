@@ -119,7 +119,7 @@ namespace LibreLancer
 				vbo,
 				PrimitiveTypes.Points,
 				lastCount,
-				billboardCount,
+				1,
 				true
 			);
 			lastCount = billboardCount;
@@ -158,7 +158,7 @@ namespace LibreLancer
 		int lastCount = 0;
 		void Flush()
 		{
-			if (billboardCount == 0 || lastCount == billboardCount)
+			if (billboardCount == 0 || lastCount == billboardCount || currentTexture == null)
 				return;
 			var view = camera.View;
 			var vp = camera.ViewProjection;
@@ -171,7 +171,7 @@ namespace LibreLancer
 				vbo,
 				PrimitiveTypes.Points,
 				lastCount,
-				billboardCount,
+				billboardCount - lastCount,
 				true
 			);
 			lastCount = billboardCount;
@@ -189,13 +189,13 @@ namespace LibreLancer
 		}
 
 		static Action<Shader, RenderState, RenderCommand> _setupDelegateCustom = SetupShaderCustom;
-		static void SetupShaderCustom(Shader shader, RenderState rs, RenderCommand cmd)
+		static void SetupShaderCustom(Shader shdr, RenderState rs, RenderCommand cmd)
 		{
 			rs.Cull = false;
 			rs.BlendMode = BlendMode.Normal;
-			shader.SetMatrix("View", ref cmd.World);
-			shader.SetMatrix("ViewProjection", ref cmd.UserData.ViewProjection);
-			cmd.UserData.UserFunction(shader, cmd.UserData);
+			cmd.UserData.UserFunction(shdr, cmd.UserData);
+			shdr.SetMatrix("View", ref cmd.World);
+			shdr.SetMatrix("ViewProjection", ref cmd.UserData.ViewProjection);
 		}
 
 		static Action<RenderState> _resetDelegate = ResetState;
