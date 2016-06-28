@@ -9,7 +9,7 @@ namespace LibreLancer
 		public Texture Texture;
 		public float Float;
 		public float Float2;
-		public Action<Shader, RenderUserData> UserFunction;
+		public Action<Shader, RenderState, RenderUserData> UserFunction;
 
 	}
 }

@@ -109,17 +109,19 @@ namespace LibreLancer
 				angle
 			);
 		}
-		static Action<Shader, RenderUserData> _setupRadialDelegate = SetupRadialShader;
-		static void SetupRadialShader(Shader sh, RenderUserData dat)
+		static Action<Shader, RenderState, RenderUserData> _setupRadialDelegate = SetupRadialShader;
+		static void SetupRadialShader(Shader sh, RenderState rs, RenderUserData dat)
 		{
 			sh.SetInteger("tex0", 0);
 			dat.Texture.BindTo(0);
 			sh.SetColor4("innercolor", dat.Color);
 			sh.SetColor4("outercolor", dat.Color2);
 			sh.SetFloat("expand", dat.Float);
+			if (!((Texture2D)dat.Texture).WithAlpha)
+				rs.BlendMode = BlendMode.Additive;
 		}
-		static Action<Shader, RenderUserData> _setupSpineDelegate = SetupSpineShader;
-		static void SetupSpineShader(Shader sh, RenderUserData dat)
+		static Action<Shader, RenderState, RenderUserData> _setupSpineDelegate = SetupSpineShader;
+		static void SetupSpineShader(Shader sh, RenderState rs, RenderUserData dat)
 		{
 			sh.SetInteger("tex0", 0);
 			dat.Texture.BindTo(0);

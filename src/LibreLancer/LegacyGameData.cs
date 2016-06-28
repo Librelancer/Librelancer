@@ -198,7 +198,7 @@ namespace LibreLancer
 						n.InteriorCloudRadius = nbl.CloudsPuffRadius.Value;
 						n.InteriorCloudCount = nbl.CloudsPuffCount.Value;
 						n.InteriorCloudMaxDistance = nbl.CloudsMaxDistance.Value;
-						n.InteriorCloudMaxAlpha = nbl.CloudsPuffMaxAlpha.Value;
+						n.InteriorCloudMaxAlpha = nbl.CloudsPuffMaxAlpha ?? 1f;
 						n.InteriorCloudFadeDistance = nbl.CloudsNearFadeDistance.Value;
 						n.InteriorCloudDrift = nbl.CloudsPuffDrift.Value;
 					}

@@ -23,6 +23,7 @@ namespace LibreLancer
     {
         public int Width { get; private set; }
         public int Height { get; private set; }
+		public bool WithAlpha = true;
         int glInternalFormat;
         int glFormat;
         int glType;

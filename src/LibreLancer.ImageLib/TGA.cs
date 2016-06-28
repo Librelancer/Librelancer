@@ -112,7 +112,7 @@ namespace LibreLancer.ImageLib
 			{
 				throw new Exception(); //return null;
 			}
-			int stride = 4 * imageWidth;
+			int stride = (4 * imageWidth);
 			int bytes = stride * imageHeight;
 			byte[] pdata = new byte[bytes];
 
@@ -182,6 +182,8 @@ namespace LibreLancer.ImageLib
 			}
 			var tex = new Texture2D (imageWidth, imageHeight, false, SurfaceFormat.Color);
 			tex.SetData (pdata);
+			if (pixelDepth != 32 || imageType == 1)
+				tex.WithAlpha = false;
 			return tex;
 		}
 	}

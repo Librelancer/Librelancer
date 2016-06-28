@@ -193,7 +193,7 @@ namespace LibreLancer
 		{
 			rs.Cull = false;
 			rs.BlendMode = BlendMode.Normal;
-			cmd.UserData.UserFunction(shdr, cmd.UserData);
+			cmd.UserData.UserFunction(shdr,rs, cmd.UserData);
 			shdr.SetMatrix("View", ref cmd.World);
 			shdr.SetMatrix("ViewProjection", ref cmd.UserData.ViewProjection);
 		}
