@@ -14,33 +14,16 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using LibreLancer.GameData;
-
 namespace LibreLancer
 {
-	public abstract class ObjectRenderer : IDisposable
+	static class RandomExtensions
 	{
-		protected ICamera camera;
-		public Matrix4 World { get; private set; }
-		public SystemObject SpaceObject { get; private set; }
-
-		public ObjectRenderer (ICamera camera, Matrix4 world, bool useObjectPosAndRotate, SystemObject spaceObject)
+		public static float NextFloat(this Random rnd, float min, float max)
 		{
-			if (useObjectPosAndRotate)
-			{
-				World = world * Matrix4.CreateTranslation(spaceObject.Position);
-				if(spaceObject.Rotation != null)
-					World = spaceObject.Rotation.Value * World;
-			}
-			else World = Matrix4.Identity;
-			SpaceObject = spaceObject;
-			this.camera = camera;
+			return (float)(
+				min + (rnd.NextDouble() * (max - min))
+			);
 		}
-
-		public virtual void Update(TimeSpan elapsed) {}
-		public abstract void Draw(CommandBuffer buffer, Lighting lights);
-		public abstract void Dispose();
-
 	}
 }
 

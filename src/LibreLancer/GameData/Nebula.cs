@@ -21,10 +21,19 @@ namespace LibreLancer.GameData
 	public class Nebula
 	{
 		public Zone Zone;
+		//Exterior
 		public string ExteriorFill;
 		public Color4 ExteriorColor;
+		public bool HasExteriorBits = false;
+		public int ExteriorMinBits;
+		public int ExteriorMaxBits;
+		public float ExteriorBitRadius;
+		public float ExteriorBitRandomVariation;
+		public float ExteriorMoveBitPercent;
+		public WeightedRandomCollection<CloudShape> ExteriorCloudShapes;
+		//Fog
 		public Color4 FogColor;
-
+		//Interior
 		public bool HasInteriorClouds = false;
 		public WeightedRandomCollection<CloudShape> InteriorCloudShapes;
 		public Color3f InteriorCloudColorA;

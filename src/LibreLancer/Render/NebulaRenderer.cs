@@ -14,6 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Collections.Generic;
 using LibreLancer.GameData;
 using LibreLancer.Vertices;
 
@@ -25,7 +26,7 @@ namespace LibreLancer
 		Random rand;
 		ICamera camera;
 		FreelancerGame game;
-
+		List<ExteriorPuff> Exterior = new List<ExteriorPuff>();
 		public NebulaRenderer(Nebula n, ICamera c, FreelancerGame g)
 		{
 			Nebula = n;
@@ -36,6 +37,8 @@ namespace LibreLancer
 				puffsinterior = new InteriorPuff[n.InteriorCloudCount];
 			for (int i = 0; i < n.InteriorCloudCount; i++)
 				puffsinterior[i].Spawned = false;
+			GenerateExteriorPuffs();
+
 		}
 
 		public bool FogTransitioned()
@@ -59,6 +62,7 @@ namespace LibreLancer
 			game.Renderer2D.FillRectangle(new Rectangle(0, 0, game.Width, game.Height), c);
 			game.Renderer2D.Finish();
 		}
+
 
 		public void Update(TimeSpan elapsed)
 		{
@@ -87,8 +91,94 @@ namespace LibreLancer
 		{
 			if (!Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, camera.Position) || !FogTransitioned())
 				RenderFill(buffer);
+			DrawPuffRing();
 			if (Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, camera.Position))
 				RenderInteriorPuffs();
+		}
+		void DrawPuffRing()
+		{
+			var c = Nebula.ExteriorColor;
+			if (FogTransitioned())
+			{
+				c = Nebula.FogColor;
+			}
+			else if (Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, camera.Position))
+			{
+				//Find transitional colour based on how far into the nebula we are
+				//ScaledDistance is from 0 at center to 1 at edge. Reverse this.
+				var sd = 1 - Nebula.Zone.Shape.ScaledDistance(Nebula.Zone.Position, camera.Position);
+				var delta = sd / Nebula.Zone.EdgeFraction; //at 0 distance, exterior color, at EdgeFraction distance, fog color
+				var c3f = Utf.Ale.AlchemyEasing.EaseColorRGB(
+					Utf.Ale.EasingTypes.Linear,
+					delta,
+					0,
+					1,
+					new Color3f(Nebula.ExteriorColor.R, Nebula.ExteriorColor.G, Nebula.ExteriorColor.B),
+					new Color3f(Nebula.FogColor.R, Nebula.FogColor.G, Nebula.FogColor.B)
+				);
+				c = new Color4(c3f, 1);
+			}
+			for (int i = 0; i < Exterior.Count; i++)
+			{
+				var p = Exterior[i];
+				game.Billboards.Draw(
+						(Texture2D)game.ResourceManager.FindTexture(p.Shape.Texture),
+						p.Position,
+						p.Size,
+						c,
+						new Vector2(p.Shape.Dimensions.X, p.Shape.Dimensions.Y),
+						new Vector2(p.Shape.Dimensions.X + p.Shape.Dimensions.Width, p.Shape.Dimensions.Y),
+						new Vector2(p.Shape.Dimensions.X, p.Shape.Dimensions.Y + p.Shape.Dimensions.Height),
+						new Vector2(p.Shape.Dimensions.X + p.Shape.Dimensions.Width, p.Shape.Dimensions.Y + p.Shape.Dimensions.Height),
+						0
+					);
+			}
+		}
+		void GenerateExteriorPuffs()
+		{
+			var rn = new Random(1001);
+			GeneratePuffRing(0.25f , rn);
+			GeneratePuffRing(0.5f, rn);
+			GeneratePuffRing(0.75f, rn);
+		}
+		void GeneratePuffRing(float ypct, Random rn)
+		{
+			Vector3 sz = Vector3.Zero;
+			//Only render ellipsoid and sphere exteriors
+			if (Nebula.Zone.Shape is ZoneEllipsoid)
+				sz = ((ZoneEllipsoid)Nebula.Zone.Shape).Size / 2; //we want radius instead of diameter
+			else if (Nebula.Zone.Shape is ZoneSphere)
+				sz = new Vector3(((ZoneSphere)Nebula.Zone.Shape).Radius);
+			else
+				return;
+			var yval = ypct * sz.Y;
+			int puffcount = rn.Next(Nebula.ExteriorMinBits, Nebula.ExteriorMaxBits + 1);
+			double current_angle = 0;
+			double delta_angle = (2 * Math.PI) / puffcount;
+			for (int i = 0; i < puffcount; i++)
+			{
+				var puff = new ExteriorPuff();
+				var y = rn.NextFloat(
+					yval - (sz.Y * Nebula.ExteriorMoveBitPercent),
+					yval + (sz.Y * Nebula.ExteriorMoveBitPercent)
+				);
+				var pos = PrimitiveMath.GetPointOnRadius(sz, y, (float)current_angle);
+				puff.Position = Nebula.Zone.Position + new Vector3(pos.X, pos.Y - (sz.Y / 2), pos.Z);
+				var radius = rn.NextFloat(
+					Nebula.ExteriorBitRadius * (1 - Nebula.ExteriorBitRandomVariation),
+					Nebula.ExteriorBitRadius * (1 + Nebula.ExteriorBitRandomVariation)
+				);
+				puff.Size = new Vector2(radius);
+				puff.Shape = Nebula.ExteriorCloudShapes.GetNext();
+				Exterior.Add(puff);
+				current_angle += delta_angle;
+			}
+		}
+		struct ExteriorPuff
+		{
+			public Vector3 Position;
+			public Vector2 Size;
+			public CloudShape Shape;
 		}
 
 		struct InteriorPuff
@@ -176,18 +266,7 @@ namespace LibreLancer
 			return new Color3f(c.R, c.G, c.B);
 		}
 
-		void ExteriorBits()
-		{
-			Vector3 sz = Vector3.Zero;
-			//Only render ellipsoid and sphere exteriors
-			if (Nebula.Zone.Shape is ZoneEllipsoid)
-				sz = ((ZoneEllipsoid)Nebula.Zone.Shape).Size / 2; //we want radius instead of diameter
-			else if (Nebula.Zone.Shape is ZoneSphere)
-				sz = new Vector3(((ZoneSphere)Nebula.Zone.Shape).Radius);
-			else
-				return;
-			
-		}
+	
 
 		void RenderFill(CommandBuffer buffer)
 		{

@@ -202,6 +202,26 @@ namespace LibreLancer
 						n.InteriorCloudFadeDistance = nbl.CloudsNearFadeDistance.Value;
 						n.InteriorCloudDrift = nbl.CloudsPuffDrift.Value;
 					}
+					if (nbl.ExteriorShape != null)
+					{
+						n.HasExteriorBits = true;
+						GameData.CloudShape[] shapes = new GameData.CloudShape[nbl.ExteriorShape.Count];
+						for (int i = 0; i < shapes.Length; i++)
+						{
+							var name = nbl.ExteriorShape[i];
+							shapes[i].Texture = panels.Shapes[name].TextureName;
+							shapes[i].Dimensions = panels.Shapes[name].Dimensions;
+						}
+						n.ExteriorCloudShapes = new WeightedRandomCollection<GameData.CloudShape>(
+							shapes,
+							nbl.ExteriorShapeWeights.ToArray()
+						);
+						n.ExteriorMinBits = nbl.ExteriorMinBits.Value;
+						n.ExteriorMaxBits = nbl.ExteriorMaxBits.Value;
+						n.ExteriorBitRadius = nbl.ExteriorBitRadius.Value;
+						n.ExteriorBitRandomVariation = nbl.ExteriorBitRadiusRandomVariation ?? 0;
+						n.ExteriorMoveBitPercent = nbl.ExteriorMoveBitPercent ?? 0;
+					}
 					sys.Nebulae.Add(n);
 			}
 			}

@@ -66,7 +66,6 @@ namespace LibreLancer
 
 			Suns.Clear();
 
-			foreach (ModelRenderer r in Models) r.Dispose();
 			Models.Clear();
 
 			if (starSphereModels != null)
@@ -92,6 +91,14 @@ namespace LibreLancer
 
 			starSphereModels = starSphereRenderData.ToArray();
 
+			Nebulae = new List<NebulaRenderer>();
+			if (system.Nebulae != null)
+			{
+				foreach (var n in system.Nebulae)
+				{
+					Nebulae.Add(new NebulaRenderer(n, camera, cache.Game));
+				}
+			}
 
 			foreach (SystemObject o in system.Objects)
 			{
@@ -102,18 +109,11 @@ namespace LibreLancer
 				}
 				else if (o.Archetype.ArchetypeName != "JumpHole")
 				{
-					ModelRenderer m = new ModelRenderer(camera, World, true, o, cache);
+					ModelRenderer m = new ModelRenderer(camera, World, o, cache, ObjectInNebula(o.Position));
 					Models.Add(m);
 				}
 			}
-			Nebulae = new List<NebulaRenderer>();
-			if (system.Nebulae != null)
-			{
-				foreach (var n in system.Nebulae)
-				{
-					Nebulae.Add(new NebulaRenderer(n, camera, cache.Game));
-				}
-			}
+		
 			systemLighting = new Lighting();
 			systemLighting.Ambient = system.AmbientColor;
 			systemLighting.Lights = system.LightSources;
@@ -128,7 +128,18 @@ namespace LibreLancer
 			for (int i = 0; i < Models.Count; i++) Models[i].Update(elapsed);
 			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Update(elapsed);
 		}
-
+		string ObjectInNebula(Vector3 position)
+		{
+			for (int i = 0; i < Nebulae.Count; i++)
+			{
+				var n = Nebulae[i];
+				if (n.Nebula.Zone.Shape.Scale(1 - n.Nebula.Zone.EdgeFraction).ContainsPoint(
+					n.Nebula.Zone.Position,
+					position))
+					return n.Nebula.Zone.Nickname;
+			}
+			return null;
+		}
 		NebulaRenderer CheckNebulae()
 		{
 			for (int i = 0; i < Nebulae.Count; i++)
@@ -175,12 +186,13 @@ namespace LibreLancer
 					rstate.DepthEnabled = true;
 				}
 			}
+			string nb = nr != null ? nr.Nebula.Zone.Nickname : null;
 			commands.StartFrame();
 			rstate.DepthEnabled = true;
 			//Clear depth buffer for game objects
 			rstate.ClearDepth();
 			game.Billboards.Begin(camera, commands);
-			for (int i = 0; i < Models.Count; i++) Models[i].Draw(commands, systemLighting);
+			for (int i = 0; i < Models.Count; i++) Models[i].Draw(commands, systemLighting, nb);
 			game.Nebulae.NewFrame();
 			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Draw(commands, systemLighting);
 			game.Nebulae.SetData();

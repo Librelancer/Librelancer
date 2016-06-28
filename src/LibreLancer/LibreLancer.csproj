@@ -100,7 +100,6 @@
     <Compile Include="GameState.cs" />
     <Compile Include="Render\SystemRenderer.cs" />
     <Compile Include="Viewport.cs" />
-    <Compile Include="Render\ObjectRenderer.cs" />
     <Compile Include="Render\ModelRenderer.cs" />
     <Compile Include="Render\SunRenderer.cs" />
     <Compile Include="Render\Materials\BasicMaterial.cs" />
@@ -224,6 +223,7 @@
     <Compile Include="CommandBuffer.cs" />
     <Compile Include="RenderUserData.cs" />
     <Compile Include="GameData\Spine.cs" />
+    <Compile Include="RandomExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />

@@ -19,15 +19,24 @@ using LibreLancer.Utf.Mat;
 using LibreLancer.GameData;
 namespace LibreLancer
 {
-	public class ModelRenderer : ObjectRenderer
+	public class ModelRenderer
 	{
+		ICamera camera;
+		public Matrix4 World { get; private set; }
+		public SystemObject SpaceObject { get; private set; }
 		public ModelFile Model { get; private set; }
 		public CmpFile Cmp { get; private set; }
 		public SphFile Sph { get; private set; }
+		public string Nebula;
 
-		public ModelRenderer (ICamera camera, Matrix4 world, bool useObjectPosAndRotate, SystemObject spaceObject,ResourceManager cache)
-			: base(camera, world, useObjectPosAndRotate, spaceObject)
+		public ModelRenderer (ICamera camera, Matrix4 world, SystemObject spaceObject,ResourceManager cache, string nebula)
 		{
+			Nebula = nebula;
+			World = world * Matrix4.CreateTranslation(spaceObject.Position);
+			if (spaceObject.Rotation != null)
+				World = spaceObject.Rotation.Value * World;
+			SpaceObject = spaceObject;
+			this.camera = camera;
 			IDrawable archetype = spaceObject.Archetype.Drawable;
 			if (archetype is ModelFile) {
 				Model = archetype as ModelFile;
@@ -43,7 +52,7 @@ namespace LibreLancer
 			}
 		}
 
-		public override void Update(TimeSpan elapsed)
+		public void Update(TimeSpan elapsed)
 		{
 			if (Model != null)
 				Model.Update (camera, elapsed);
@@ -51,11 +60,12 @@ namespace LibreLancer
 				Cmp.Update (camera, elapsed);
 			else if (Sph != null)
 				Sph.Update (camera, elapsed);
-			base.Update(elapsed);
 		}
 
-		public override void Draw(CommandBuffer buffer, Lighting lights)
+		public void Draw(CommandBuffer buffer, Lighting lights, string nebula)
 		{
+			if (Nebula != null && nebula != Nebula)
+				return;
 			if (Model != null) {
 				if (Model.Levels.ContainsKey (0)) {
 					var bsphere = new BoundingSphere(
@@ -80,11 +90,6 @@ namespace LibreLancer
 			} else if (Sph != null) {
 				Sph.DrawBuffer (buffer, World, lights); //Need to cull this
 			}
-		}
-
-		public override void Dispose ()
-		{
-			
 		}
 	}
 }
