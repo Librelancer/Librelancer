@@ -7,6 +7,7 @@ in vec2 vertex_texture1;
 out vec2 out_texcoord;
 out vec3 out_normal;
 out vec3 world_position;
+out vec4 out_vertexcolor;
 
 uniform mat4x4 World;
 uniform mat4x4 ViewProjection;
@@ -18,4 +19,5 @@ void main()
 	world_position = (vec4(vertex_position,1) * World).xyz;
 	out_normal = (vec4(vertex_normal,1) * World).xyz;
 	out_texcoord = vec2(vertex_texture1.x, 1 - vertex_texture1.y);
+	out_vertexcolor = vec4(1,1,1,1);
 }

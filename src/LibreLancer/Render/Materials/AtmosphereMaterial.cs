@@ -32,7 +32,7 @@ namespace LibreLancer
 		Shader GetShader(IVertexType vertextype)
 		{
 			switch (vertextype.GetType ().Name) {
-			case "VertexPositionTexture":
+			case "VertexPositionNormalTexture":
 				return ShaderCache.Get (
 					"Atmosphere.vs",
 					"AtmosphereMaterial_PositionTexture.frag"
@@ -41,6 +41,7 @@ namespace LibreLancer
 				throw new NotImplementedException ();
 			}
 		}
+
 		public override void Use (RenderState rstate, IVertexType vertextype, Lighting lights)
 		{
 			rstate.DepthEnabled = true;
@@ -55,10 +56,8 @@ namespace LibreLancer
 			sh.SetFloat ("Scale", Scale);
 			sh.SetMatrix ("World", ref World);
 			sh.SetMatrix ("ViewProjection", ref ViewProjection);
-
-			sh.SetInteger ("DtSampler", 0);
-			BindTexture (DtSampler, 0, DtFlags);
-
+			sh.SetMatrix("View", ref View);
+			//BindTexture (DtSampler, 0, DtFlags);
 			sh.UseProgram ();
 		}
 		public override bool IsTransparent

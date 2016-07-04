@@ -115,6 +115,8 @@ namespace LibreLancer.Utf.Mat
 				viewproj = camera.ViewProjection;
 				if (SideMaterials.Length > 6) {
 					var mat = (AtmosphereMaterial)SideMaterials [6].Render;
+					mat.View = camera.View;
+					mat.Projection = camera.Projection;
 					mat.CameraPosition = camera.Position;
 				}
             }
@@ -137,14 +139,14 @@ namespace LibreLancer.Utf.Mat
 					SideMaterials [i].Render.Use (rstate, sphere.VertexType, lights);
 					sphere.Draw (faces [i]);
 				}
-				/*if (SideMaterials.Length > 6) {
+				if (SideMaterials.Length > 6) {
 					var mat = (AtmosphereMaterial)SideMaterials [6].Render;
 					SideMaterials [6].Render.World = Matrix4.CreateScale (Radius * mat.Scale) * world;
 					SideMaterials [6].Render.ViewProjection = viewproj;
 					SideMaterials [6].Render.Use (rstate, sphere.VertexType, lights);
 					for (int i = 0; i < 6; i++)
 						sphere.Draw (faces [i]);
-				}*/
+				}
 			} else
 				throw new Exception ();
         }
@@ -167,6 +169,27 @@ namespace LibreLancer.Utf.Mat
 						start,
 						count
 					);
+				}
+				//Draw atmosphere
+				if (SideMaterials.Length > 6)
+				{
+					var mat = (AtmosphereMaterial)SideMaterials[6].Render;
+					for (int i = 0; i < 6; i++)
+					{
+						int start, count;
+						sphere.GetDrawParameters(faces[i], out start, out count);
+						SideMaterials[6].Render.ViewProjection = viewproj;
+						buffer.AddCommand(
+							mat,
+							Matrix4.CreateScale(Radius * mat.Scale) * world,
+							lighting,
+							sphere.VertexBuffer,
+							PrimitiveTypes.TriangleList,
+							0,
+							start,
+							count
+						);
+					}
 				}
 			}
 			else

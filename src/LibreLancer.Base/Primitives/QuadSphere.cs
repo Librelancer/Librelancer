@@ -54,7 +54,7 @@ namespace LibreLancer.Primitives
 			offsets.Add (CubeMapFace.PositiveZ, 3 * indicesPerSide);
 			offsets.Add (CubeMapFace.NegativeX, 4 * indicesPerSide);
 			offsets.Add (CubeMapFace.PositiveX, 5 * indicesPerSide);
-			var vertices = new VertexPositionTexture[(slices * slices) * 4 * 6];
+			var vertices = new VertexPositionNormalTexture[(slices * slices) * 4 * 6];
 			int verticesPerSide = (slices * slices) * 4;
 			//Setup Indices
 			int currIndex = 0;
@@ -96,8 +96,9 @@ namespace LibreLancer.Primitives
 					(float)(z * Math.Sqrt(1.0 - (x*x/2.0) - (y*y/2.0) + (x*x*y*y/3.0)))
 				);
 			}
+			CalculateNormals(vertices, indices);
 			//Upload
-			vertexBuffer = new VertexBuffer (typeof(VertexPositionTexture), vertices.Length);
+			vertexBuffer = new VertexBuffer (typeof(VertexPositionNormalTexture), vertices.Length);
 			vertexBuffer.SetData (vertices);
 			elementBuffer = new ElementBuffer (indices.Length);
 			elementBuffer.SetData (indices);
@@ -119,7 +120,7 @@ namespace LibreLancer.Primitives
 			currVertex += verticesPerSide;
 		}
 
-		void TopBottom (int Y, int slices, VertexPositionTexture[] vertices, ref int vertexCount)
+		void TopBottom (int Y, int slices, VertexPositionNormalTexture[] vertices, ref int vertexCount)
 		{
 			float posAdvance = 2f / (float)slices;
 			float texInitialV = 1;
@@ -138,30 +139,34 @@ namespace LibreLancer.Primitives
 					float tadvX = texInitialU + (texAdvanceU * x);
 					float tadvZ = texInitialV + (texAdvanceV * z); 
 					//top-left
-					vertices [vertexCount++] = new VertexPositionTexture (
+					vertices [vertexCount++] = new VertexPositionNormalTexture (
 						new Vector3 (-1 + advX, Y, -1 + advZ),
+						Vector3.Zero,
 						new Vector2 (0 + tadvX, 0 + tadvZ)
 					);
 					//top-right
-					vertices [vertexCount++] = new VertexPositionTexture (
+					vertices [vertexCount++] = new VertexPositionNormalTexture (
 						new Vector3 (-1 + advX + posAdvance, Y, -1 + advZ),
+						Vector3.Zero,
 						new Vector2 (0 + tadvX + texAdvanceU, 0 + tadvZ)
 					);
 					//bottom-left
-					vertices [vertexCount++] = new VertexPositionTexture (
+					vertices [vertexCount++] = new VertexPositionNormalTexture (
 						new Vector3 (-1 + advX, Y, -1 + advZ + posAdvance),
+						Vector3.Zero,
 						new Vector2 (0 + tadvX, 0 + tadvZ + texAdvanceV)
 					);
 					//bottom-right
-					vertices [vertexCount++] = new VertexPositionTexture (
+					vertices [vertexCount++] = new VertexPositionNormalTexture (
 						new Vector3 (-1 + advX + posAdvance, Y, -1 + advZ + posAdvance),
+						Vector3.Zero,
 						new Vector2 (0 + tadvX + texAdvanceU, 0 + tadvZ + texAdvanceV)
 					);
 				}
 			}
 		}
 
-		void FrontBack (int Z, int slices, VertexPositionTexture[] vertices, ref int vertexCount)
+		void FrontBack (int Z, int slices, VertexPositionNormalTexture[] vertices, ref int vertexCount)
 		{
 			float posAdvance = 2f / (float)slices;
 			float texInitialU = 0;
@@ -180,30 +185,34 @@ namespace LibreLancer.Primitives
 					float tadvX = texInitialU + (texAdvanceU * x);
 					float tadvY = texInitialV + (texAdvanceV * y); 
 					//top-left
-					vertices [vertexCount++] = new VertexPositionTexture (
+					vertices [vertexCount++] = new VertexPositionNormalTexture (
 						new Vector3 (-1 + advX, -1 + advY, Z),
+						Vector3.Zero,
 						new Vector2 (0 + tadvX, 0 + tadvY)
 					);
 					//top-right
-					vertices [vertexCount++] = new VertexPositionTexture (
+					vertices [vertexCount++] = new VertexPositionNormalTexture (
 						new Vector3 (-1 + advX + posAdvance, -1 + advY, Z),
+						Vector3.Zero,
 						new Vector2 (0 + tadvX + texAdvanceU, 0 + tadvY)
 					);
 					//bottom-left
-					vertices [vertexCount++] = new VertexPositionTexture (
+					vertices [vertexCount++] = new VertexPositionNormalTexture (
 						new Vector3 (-1 + advX, -1 + advY + posAdvance, Z),
+						Vector3.Zero,
 						new Vector2 (0 + tadvX, 0 + tadvY + texAdvanceV)
 					);
 					//bottom-right
-					vertices [vertexCount++] = new VertexPositionTexture (
+					vertices [vertexCount++] = new VertexPositionNormalTexture (
 						new Vector3 (-1 + advX + posAdvance, -1 + advY + posAdvance, Z),
+						Vector3.Zero,
 						new Vector2 (0 + tadvX + texAdvanceU, 0 + tadvY + texAdvanceV)
 					);
 				}
 			}
 		}
 
-		void LeftRight (int X, int slices, VertexPositionTexture[] vertices, ref int vertexCount)
+		void LeftRight (int X, int slices, VertexPositionNormalTexture[] vertices, ref int vertexCount)
 		{
 			float posAdvance = 2f / (float)slices;
 			float initialU = 0;
@@ -230,29 +239,48 @@ namespace LibreLancer.Primitives
 					var bl = new Vector2 (tadvZ + texAdvanceV, tadvY);
 					var br = new Vector2 (tadvZ + texAdvanceV, tadvY + texAdvanceU);
 					//top-left
-					vertices [vertexCount++] = new VertexPositionTexture (
+					vertices [vertexCount++] = new VertexPositionNormalTexture (
 						new Vector3 (X, -1 + advY, -1 + advZ),
+						Vector3.Zero,
 						tl
 					);
 					//top-right
-					vertices [vertexCount++] = new VertexPositionTexture (
+					vertices [vertexCount++] = new VertexPositionNormalTexture (
 						new Vector3 (X, -1 + advY + posAdvance, -1 + advZ),
+						Vector3.Zero,
 						tr
 					);
 					//bottom-left
-					vertices [vertexCount++] = new VertexPositionTexture (
+					vertices [vertexCount++] = new VertexPositionNormalTexture (
 						new Vector3 (X, -1 + advY, -1 + advZ + posAdvance),
+						Vector3.Zero,
 						bl
 					);
 					//bottom-right
-					vertices [vertexCount++] = new VertexPositionTexture (
+					vertices [vertexCount++] = new VertexPositionNormalTexture (
 						new Vector3 (X, -1 + advY + posAdvance, -1 + advZ + posAdvance),
+						Vector3.Zero,
 						br
 					);
 				}
 			}
 		}
 
+		void CalculateNormals(VertexPositionNormalTexture[] array, ushort[] indices)
+		{
+			for (int i = 0; i < indices.Length / 3; i++)
+			{
+				var firstVec = array[indices[i * 3 + 1]].Position - array[indices[i * 3]].Position;
+				var secondVec = array[indices[i * 3]].Position - array[indices[i * 3 + 2]].Position;
+				var normal = Vector3.Cross(firstVec, secondVec);
+				normal.Normalize();
+				array[indices[i * 3]].Normal += normal;
+				array[indices[i * 3 + 1]].Normal += normal;
+				array[indices[i * 3 + 2]].Normal += normal;
+			}
+			for (int i = 0; i < array.Length; i++)
+				array[i].Normal.Normalize();
+		}
 		public void Draw ()
 		{
 			vertexBuffer.Draw (PrimitiveTypes.TriangleList, 0, 0, primitiveCount);

@@ -22,6 +22,8 @@ namespace LibreLancer
 	public abstract class RenderMaterial
 	{
 		public Matrix4 World = Matrix4.Identity;
+		public Matrix4 View = Matrix4.Identity;
+		public Matrix4 Projection = Matrix4.Identity;
 		public Matrix4 ViewProjection = Matrix4.Identity;
 		public ILibFile Library;
 		public abstract void Use (RenderState rstate, IVertexType vertextype, Lighting lights);
@@ -30,6 +32,7 @@ namespace LibreLancer
 
 		protected void SetLights(Shader shader, Lighting lights)
 		{
+			shader.SetInteger("LightingEnabled", lights.Enabled ? 1 : 0);
 			shader.SetColor4("AmbientColor", lights.Ambient);
 			shader.SetInteger ("LightCount", lights.Lights.Count);
 			for (int i = 0; i < lights.Lights.Count; i++) {

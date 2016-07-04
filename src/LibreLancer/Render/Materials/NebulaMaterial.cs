@@ -28,14 +28,14 @@ namespace LibreLancer
 		Shader GetShader(IVertexType vtype)
 		{
 			switch (vtype.GetType ().Name) {
-			case "VertexPositionColorTexture":
+			case "VertexPositionNormalColorTexture":
 				return ShaderCache.Get (
-					"Basic_PositionColorTexture.vs",
+					"PositionColorTexture.vs",
 					"Nebula_PositionColorTexture.frag"
 				);
-			case "VertexPositionTexture":
+			case "VertexPositionNormalTexture":
 				return ShaderCache.Get(
-					"Basic_PositionTexture.vs",
+					"PositionTextureFlip.vs",
 					"Nebula_PositionColorTexture.frag"
 				);
 			default:

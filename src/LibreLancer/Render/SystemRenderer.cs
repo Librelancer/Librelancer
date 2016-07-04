@@ -176,7 +176,7 @@ namespace LibreLancer
 				//Starsphere
 				for (int i = 0; i < starSphereModels.Length; i++)
 				{
-					starSphereModels[i].Draw(rstate, Matrix4.CreateTranslation(camera.Position), new Lighting());
+					starSphereModels[i].Draw(rstate, Matrix4.CreateTranslation(camera.Position), Lighting.Empty);
 				}
 				//Render fog transition: if any
 				if (nr != null)

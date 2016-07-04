@@ -69,7 +69,7 @@ namespace LibreLancer.Utf.Mat
 		/// <summary>
 		/// Opacity
 		/// </summary>
-		public float Oc = 1;
+		public float? Oc;
 
 		/// <summary>
 		/// Emissive Texture Flags
@@ -316,7 +316,9 @@ namespace LibreLancer.Utf.Mat
 				_rmat = bm;
 				//set up material
 				bm.Dc = Dc;
-				bm.Oc = Oc;
+				bm.OcEnabled = Oc.HasValue;
+				if (Oc.HasValue)
+					bm.Oc = Oc.Value;
 				bm.Ec = Ec;
 				bm.DtSampler = DtName;
 				bm.DtFlags = (SamplerFlags)DtFlags;

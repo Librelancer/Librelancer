@@ -226,11 +226,9 @@
     <Compile Include="RandomExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.frag" />
+    <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.vs" />
-    <EmbeddedResource Include="Shaders\Basic_PositionColorTexture.frag" />
-    <EmbeddedResource Include="Shaders\Basic_PositionColorTexture.vs" />
-    <EmbeddedResource Include="Shaders\Basic_PositionTexture.vs" />
+    <EmbeddedResource Include="Shaders\Basic_PositionNormalColorTexture.vs" />
     <EmbeddedResource Include="Shaders\Nebula_PositionColorTexture.frag" />
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTextureTwo.vs" />
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTextureTwo.frag" />
@@ -248,6 +246,8 @@
     <EmbeddedResource Include="Shaders\IllumDetailMapMaterial.frag" />
     <EmbeddedResource Include="Shaders\sun_radial.frag" />
     <EmbeddedResource Include="Shaders\sun_spine.frag" />
+    <EmbeddedResource Include="Shaders\PositionColorTexture.vs" />
+    <EmbeddedResource Include="Shaders\lighting.inc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

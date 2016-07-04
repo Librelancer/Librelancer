@@ -36,7 +36,7 @@ namespace LibreLancer
 
 		Shader GetShader(IVertexType vertextype)
 		{
-			if (vertextype.GetType().Name == "VertexPositionTexture")
+			if (vertextype.GetType().Name == "VertexPositionNormalTexture")
 			{
 				return ShaderCache.Get(
 					"PositionTextureFlip.vs",
@@ -71,7 +71,7 @@ namespace LibreLancer
 			BindTexture(Dm0Sampler, 1, Dm0Flags);
 			sh.SetInteger("Dm1Sampler", 2);
 			BindTexture(Dm1Sampler, 2, Dm1Flags);
-
+			SetLights(sh, lights);
 			sh.UseProgram();
 		}
 		public override bool IsTransparent

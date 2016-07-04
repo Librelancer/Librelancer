@@ -17,9 +17,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace LibreLancer
 {
@@ -34,10 +32,24 @@ namespace LibreLancer
 			if (!shaders.ContainsKey (k)) {
 				FLLog.Debug ("Shader", "Compiling [ " + vs + " , " + fs + " ]");
 				shaders.Add (k, new Shader (
-					LoadEmbedded ("LibreLancer.Shaders." + vs), LoadEmbedded ("LibreLancer.Shaders." + fs)
+					LoadEmbedded ("LibreLancer.Shaders." + vs), ProcessIncludes(LoadEmbedded ("LibreLancer.Shaders." + fs))
 				));
 			}
 			return shaders [k];
+		}
+		//includes in form '#pragma include (file.inc)'
+		static string ProcessIncludes(string src)
+		{
+			Regex findincludes = new Regex(@"^\s*#\s*pragma include\s+[<\(]([^>\)]*)[>\)]\s*", RegexOptions.Multiline);
+			var m = findincludes.Match(src);
+			string newsrc = src;
+			while (m.Success)
+			{
+				var inc = ProcessIncludes(LoadEmbedded("LibreLancer.Shaders." + m.Groups[1].Value));
+				newsrc = newsrc.Remove(m.Index, m.Length).Insert(m.Index, inc);
+				m = findincludes.Match(newsrc);
+			}
+			return newsrc;
 		}
 		public static Shader Get(string vs, string fs, string gs)
 		{

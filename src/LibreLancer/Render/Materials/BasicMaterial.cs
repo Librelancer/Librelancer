@@ -29,6 +29,7 @@ namespace LibreLancer
 		public string DtSampler;
 		public SamplerFlags DtFlags;
 		public float Oc = 1f;
+		public bool OcEnabled = false;
 		public bool AlphaEnabled = false;
 		public Color4 Ec = Color4.White;
 		public string EtSampler;
@@ -47,27 +48,27 @@ namespace LibreLancer
 				case "VertexPositionNormalTexture":
 					return ShaderCache.Get(
 						"Basic_PositionNormalTexture.vs",
-						"Basic_PositionNormalTexture.frag"
+						"Basic_Fragment.frag"
 					);
 				case "VertexPositionNormalTextureTwo":
 					return ShaderCache.Get(
 						"Basic_PositionNormalTextureTwo.vs",
 						"Basic_PositionNormalTextureTwo.frag"
 					);
-				case "VertexPositionColorTexture":
+				case "VertexPositionNormalColorTexture":
 					return ShaderCache.Get(
-						"Basic_PositionColorTexture.vs",
-						"Basic_PositionColorTexture.frag"
+						"Basic_PositionNormalColorTexture.vs",
+						"Basic_Fragment.frag"
 					);
 				case "VertexPositionTexture":
 					return ShaderCache.Get(
 						"Basic_PositionTexture.vs",
-						"Basic_PositionColorTexture.frag"
+						"Basic_Fragment.frag"
 					);
 				case "VertexPosition":
 					return ShaderCache.Get(
 						"Basic_PositionTexture.vs",
-						"Basic_PositionColorTexture.frag"
+						"Basic_Fragment.frag"
 					);
 				default:
 					throw new NotImplementedException(vert);
@@ -87,6 +88,7 @@ namespace LibreLancer
 			//Dc
 			shader.SetColor4("Dc", Dc);
 			//Oc
+			shader.SetInteger("OcEnabled", OcEnabled ? 1 : 0);
 			shader.SetFloat("Oc", Oc);
 			if (AlphaEnabled)
 			{

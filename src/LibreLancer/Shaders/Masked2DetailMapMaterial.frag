@@ -1,5 +1,5 @@
 ﻿#version 140
-
+#pragma include (lighting.inc)
 uniform sampler2D DtSampler;
 uniform sampler2D Dm0Sampler;
 uniform sampler2D Dm1Sampler;
@@ -11,6 +11,8 @@ uniform float TileRate1;
 
 in vec2 out_texcoord;
 out vec4 out_color;
+in vec3 out_normal;
+in vec3 world_position;
 
 void main()
 {
@@ -27,5 +29,5 @@ void main()
 	vec4 detail = vec4(mix(detail0.xyz, detail1.xyz, dc.a),1);
 	dc *= detail;
 
-	out_color =  Ac * dc;
+	out_color = light(vec4(0), Ac * dc, world_position, out_normal);
 }

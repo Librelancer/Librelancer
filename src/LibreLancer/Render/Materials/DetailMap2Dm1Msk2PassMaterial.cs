@@ -35,7 +35,7 @@ namespace LibreLancer
 		}
 		Shader GetShader(IVertexType vertextype)
 		{
-			if (vertextype.GetType ().Name == "VertexPositionTexture") {
+			if (vertextype.GetType ().Name == "VertexPositionNormalTexture") {
 				return ShaderCache.Get (
 					"PositionTextureFlip.vs",
 					"DetailMap2Dm1Msk2PassMaterial.frag"
@@ -55,14 +55,6 @@ namespace LibreLancer
 			sh.SetColor4 ("Ac", Ac);
 			sh.SetColor4 ("Dc", Dc);
 			sh.SetFloat ("TileRate", TileRate);
-			/*if (FlipU == 1)
-				sh.SetFloat ("FlipU", -1);
-			else
-				sh.SetFloat ("FlipU", 1);
-			if (FlipV == 1)
-				sh.SetFloat ("FlipV", -1);
-			else
-				sh.SetFloat ("FlipV", 1);*/
 			sh.SetInteger ("FlipU", FlipU);
 			sh.SetInteger ("FlipV", FlipV);
 
@@ -70,7 +62,7 @@ namespace LibreLancer
 			BindTexture (DtSampler, 0, DtFlags);
 			sh.SetInteger ("Dm1Sampler", 1);
 			BindTexture (Dm1Sampler, 1, Dm1Flags);
-
+			SetLights(sh, lights);
 			sh.UseProgram ();
 		}
 		public override bool IsTransparent

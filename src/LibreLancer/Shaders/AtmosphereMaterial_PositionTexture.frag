@@ -7,19 +7,21 @@ uniform float Scale;
 uniform sampler2D DtSampler;
 uniform vec3 CameraPosition;
 
-in vec2 out_texcoord;
-in vec3 world_position;
-in vec3 normal;
+in vec3 e;
+in vec3 n;
 
 out vec4 out_color;
 
 void main()
 {
-	vec4 result = vec4(Dc.xyz * Ac.xyz, Alpha);
-
-	vec3 viewDirection = normalize(world_position - CameraPosition);
-	float viewAngle = dot(-viewDirection, normal);
-	result *=  Fade - viewAngle;
-
-	out_color = mix(vec4(Ac.xyz, Alpha), result, Scale);
+	vec3 r = reflect ( e, n );
+	float m = 2.0 *  sqrt(
+		pow (r.x, 2.0) +
+		pow (r.y, 2.0) +
+		pow (r.z + 1.0, 2.0)
+	);
+	vec2 envcoords = r.xy / m + 0.5;
+	float dist = distance(envcoords, vec2(0.5,0.5));
+	vec4 result = vec4(Dc.rgb * Ac.rgb, dist * 2 * Alpha);
+	out_color = result;
 }

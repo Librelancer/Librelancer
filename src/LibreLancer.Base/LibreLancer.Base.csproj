@@ -80,7 +80,6 @@
     <Compile Include="Vertices\VertexPositionColor.cs" />
     <Compile Include="Vertices\VertexPositionColorTexture.cs" />
     <Compile Include="Vertices\VertexPositionNormal.cs" />
-    <Compile Include="Vertices\VertexPositionNormalDiffuseTexture.cs" />
     <Compile Include="Vertices\VertexPositionNormalDiffuseTextureTwo.cs" />
     <Compile Include="Vertices\VertexPositionNormalTexture.cs" />
     <Compile Include="Vertices\VertexPositionNormalTextureTangentBinormal.cs" />
@@ -140,6 +139,7 @@
     <Compile Include="Input\MouseButtons.cs" />
     <Compile Include="Input\MouseEventArgs.cs" />
     <Compile Include="WrapMode.cs" />
+    <Compile Include="Vertices\VertexPositionNormalColorTexture.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
