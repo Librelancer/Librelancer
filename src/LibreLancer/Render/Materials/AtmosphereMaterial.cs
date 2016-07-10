@@ -47,6 +47,7 @@ namespace LibreLancer
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Normal;
 			var sh = GetShader (vertextype);
+			//mat4x4 normalMatrix = transpose(inverse(View * World));
 
 			sh.SetColor4 ("Ac", Ac);
 			sh.SetColor4 ("Dc", Dc);
@@ -58,6 +59,10 @@ namespace LibreLancer
 			sh.SetMatrix ("ViewProjection", ref ViewProjection);
 			sh.SetMatrix("View", ref View);
 			//BindTexture (DtSampler, 0, DtFlags);
+			var normalmat = View * World;
+			normalmat.Invert();
+			normalmat.Normalize();
+			sh.SetMatrix("NormalMatrix", ref normalmat);
 			sh.UseProgram ();
 		}
 		public override bool IsTransparent

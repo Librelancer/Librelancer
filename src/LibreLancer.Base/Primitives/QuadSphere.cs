@@ -24,13 +24,14 @@ namespace LibreLancer.Primitives
 		VertexBuffer vertexBuffer;
 		ElementBuffer elementBuffer;
 
-		int primitiveCount;
 		int primitiveCountSide;
 
-		Dictionary<CubeMapFace,int> offsets = new Dictionary<CubeMapFace, int> ();
+		Dictionary<CubeMapFace, int> offsets = new Dictionary<CubeMapFace, int>();
 
-		public IVertexType VertexType {
-			get {
+		public IVertexType VertexType
+		{
+			get
+			{
 				return vertexBuffer.VertexType;
 			}
 		}
@@ -41,254 +42,186 @@ namespace LibreLancer.Primitives
 				return vertexBuffer;
 			}
 		}
-		public QuadSphere (int slices)
+		VertexPositionNormalTexture[] vertices;
+		ushort[] indices;
+		public QuadSphere(int slices)
 		{
-			//6 sides of slices^2 quads
-			var indices = new ushort[(slices * slices) * 6 * 6];
-			var indicesPerSide = (slices * slices) * 6;
-			primitiveCount = indices.Length / 3;
-			primitiveCountSide = indicesPerSide / 3;
-			offsets.Add (CubeMapFace.PositiveY, 0);
-			offsets.Add (CubeMapFace.NegativeY, indicesPerSide);
-			offsets.Add (CubeMapFace.NegativeZ, 2 * indicesPerSide);
-			offsets.Add (CubeMapFace.PositiveZ, 3 * indicesPerSide);
-			offsets.Add (CubeMapFace.NegativeX, 4 * indicesPerSide);
-			offsets.Add (CubeMapFace.PositiveX, 5 * indicesPerSide);
-			var vertices = new VertexPositionNormalTexture[(slices * slices) * 4 * 6];
-			int verticesPerSide = (slices * slices) * 4;
-			//Setup Indices
-			int currIndex = 0;
-			int currVertex = 0;
-			//Top - POSITIVE Y
-			Indices (2, 1, 0, 2, 3, 1, indices, ref currVertex, ref currIndex, verticesPerSide);
-			//Bottom - NEGATIVE Y
-			Indices (2, 0, 1, 2, 1, 3, indices, ref currVertex, ref currIndex, verticesPerSide);
-			//front - NEGATIVE Z
-			Indices (2, 1, 0, 2, 3, 1, indices, ref currVertex, ref currIndex, verticesPerSide);
-			//back - POSITIVE Z
-			Indices (2, 0, 1, 1, 3, 2, indices, ref currVertex, ref currIndex, verticesPerSide);
-			//left - NEGATIVE X
-			Indices (2, 1, 0, 2, 3, 1, indices, ref currVertex, ref currIndex, verticesPerSide);
-			//right - POSITIVE X
-			Indices (1, 2, 0, 3, 2, 1, indices, ref currVertex, ref currIndex, verticesPerSide);
-			//setup vertices
-			//BOTTOM
+			int planeVerts = (slices + 1) * (slices + 1);
+			vertices = new VertexPositionNormalTexture[planeVerts * 6];
+			int planeIndices = slices * slices * 6;
+			indices = new ushort[planeIndices * 6];
+			bool[] ccw = new bool[planeIndices * 6];
+			primitiveCountSide = planeIndices / 3;
+			//Offsets
+			offsets.Add(CubeMapFace.PositiveY, 0);
+			offsets.Add(CubeMapFace.NegativeY, planeIndices);
+			offsets.Add(CubeMapFace.NegativeZ, 2 * planeIndices);
+			offsets.Add(CubeMapFace.PositiveZ, 3 * planeIndices);
+			offsets.Add(CubeMapFace.NegativeX, 4 * planeIndices);
+			offsets.Add(CubeMapFace.PositiveX, 5 * planeIndices);
+			//Generate planes
 			int vertexCount = 0;
-			TopBottom (1, slices, vertices, ref vertexCount);
+			//BOTTOM
+			TopBottom(1, slices, vertices, vertexCount);
+			vertexCount += planeVerts;
 			//TOP
-			TopBottom (-1, slices, vertices, ref vertexCount);
+			TopBottom(-1, slices, vertices, vertexCount);
+			vertexCount += planeVerts;
 			//FRONT
-			FrontBack (-1, slices, vertices, ref vertexCount);
+			FrontBack(-1, slices, vertices, vertexCount);
+			vertexCount += planeVerts;
 			//BACK
-			FrontBack (1, slices, vertices, ref vertexCount);
+			FrontBack(1, slices, vertices, vertexCount);
+			vertexCount += planeVerts;
 			//LEFT
-			LeftRight (-1, slices, vertices, ref vertexCount);
+			LeftRight(-1, slices, vertices, vertexCount);
+			vertexCount += planeVerts;
 			//RIGHT
-			LeftRight (1, slices, vertices, ref vertexCount);
-			//Transform to Sphere
-			for (int i = 0; i < vertices.Length; i++) {
-				float x = vertices [i].Position.X;
-				float y = vertices [i].Position.Y;
-				float z = vertices [i].Position.Z;
-				vertices [i].Position = new Vector3 (
-					(float)(x * Math.Sqrt(1.0 - (y*y/2.0) - (z*z/2.0) + (y*y*z*z/3.0))),
-					(float)(y * Math.Sqrt(1.0 - (z*z/2.0) - (x*x/2.0) + (z*z*x*x/3.0))),
-					(float)(z * Math.Sqrt(1.0 - (x*x/2.0) - (y*y/2.0) + (x*x*y*y/3.0)))
-				);
-			}
-			CalculateNormals(vertices, indices);
-			//Upload
-			vertexBuffer = new VertexBuffer (typeof(VertexPositionNormalTexture), vertices.Length);
-			vertexBuffer.SetData (vertices);
-			elementBuffer = new ElementBuffer (indices.Length);
-			elementBuffer.SetData (indices);
-			vertexBuffer.SetElementBuffer (elementBuffer);
-		}
-
-		static void Indices (int t0, int t1, int t2, int t3, int t4, int t5, ushort[] indices, ref int currVertex, ref int currIndex, int verticesPerSide)
-		{
-			for (int i = currVertex; i < (currVertex + verticesPerSide); i += 4) {
-				//Triangle 1
-				indices [currIndex++] = (ushort)(i + t0);
-				indices [currIndex++] = (ushort)(i + t1);
-				indices [currIndex++] = (ushort)(i + t2);
-				//Triangle 2
-				indices [currIndex++] = (ushort)(i + t3);
-				indices [currIndex++] = (ushort)(i + t4);
-				indices [currIndex++] = (ushort)(i + t5);
-			}
-			currVertex += verticesPerSide;
-		}
-
-		void TopBottom (int Y, int slices, VertexPositionNormalTexture[] vertices, ref int vertexCount)
-		{
-			float posAdvance = 2f / (float)slices;
-			float texInitialV = 1;
-			float texAdvanceV = -(1f / (float)slices);
-			float texInitialU = 0;
-			float texAdvanceU = (1f / (float)slices);
-			if (Y == -1) {
-				texInitialV = 0;
-				texAdvanceV = -texAdvanceV;
-			}
-			for (int x = 0; x < slices; x++) {
-				for (int z = 0; z < slices; z++) {
-					float advX = posAdvance * x;
-					float advZ = posAdvance * z;
-
-					float tadvX = texInitialU + (texAdvanceU * x);
-					float tadvZ = texInitialV + (texAdvanceV * z); 
-					//top-left
-					vertices [vertexCount++] = new VertexPositionNormalTexture (
-						new Vector3 (-1 + advX, Y, -1 + advZ),
-						Vector3.Zero,
-						new Vector2 (0 + tadvX, 0 + tadvZ)
-					);
-					//top-right
-					vertices [vertexCount++] = new VertexPositionNormalTexture (
-						new Vector3 (-1 + advX + posAdvance, Y, -1 + advZ),
-						Vector3.Zero,
-						new Vector2 (0 + tadvX + texAdvanceU, 0 + tadvZ)
-					);
-					//bottom-left
-					vertices [vertexCount++] = new VertexPositionNormalTexture (
-						new Vector3 (-1 + advX, Y, -1 + advZ + posAdvance),
-						Vector3.Zero,
-						new Vector2 (0 + tadvX, 0 + tadvZ + texAdvanceV)
-					);
-					//bottom-right
-					vertices [vertexCount++] = new VertexPositionNormalTexture (
-						new Vector3 (-1 + advX + posAdvance, Y, -1 + advZ + posAdvance),
-						Vector3.Zero,
-						new Vector2 (0 + tadvX + texAdvanceU, 0 + tadvZ + texAdvanceV)
-					);
-				}
-			}
-		}
-
-		void FrontBack (int Z, int slices, VertexPositionNormalTexture[] vertices, ref int vertexCount)
-		{
-			float posAdvance = 2f / (float)slices;
-			float texInitialU = 0;
-			float texAdvanceU = (1f / (float)slices);
-			float texInitialV = 0;
-			float texAdvanceV = (1f / (float)slices);
-			if (Z == -1) {
-				texInitialU = 1;
-				texAdvanceU = -texAdvanceU;
-			}
-			for (int x = 0; x < slices; x++) {
-				for (int y = 0; y < slices; y++) {
-					float advX = posAdvance * x;
-					float advY = posAdvance * y;
-
-					float tadvX = texInitialU + (texAdvanceU * x);
-					float tadvY = texInitialV + (texAdvanceV * y); 
-					//top-left
-					vertices [vertexCount++] = new VertexPositionNormalTexture (
-						new Vector3 (-1 + advX, -1 + advY, Z),
-						Vector3.Zero,
-						new Vector2 (0 + tadvX, 0 + tadvY)
-					);
-					//top-right
-					vertices [vertexCount++] = new VertexPositionNormalTexture (
-						new Vector3 (-1 + advX + posAdvance, -1 + advY, Z),
-						Vector3.Zero,
-						new Vector2 (0 + tadvX + texAdvanceU, 0 + tadvY)
-					);
-					//bottom-left
-					vertices [vertexCount++] = new VertexPositionNormalTexture (
-						new Vector3 (-1 + advX, -1 + advY + posAdvance, Z),
-						Vector3.Zero,
-						new Vector2 (0 + tadvX, 0 + tadvY + texAdvanceV)
-					);
-					//bottom-right
-					vertices [vertexCount++] = new VertexPositionNormalTexture (
-						new Vector3 (-1 + advX + posAdvance, -1 + advY + posAdvance, Z),
-						Vector3.Zero,
-						new Vector2 (0 + tadvX + texAdvanceU, 0 + tadvY + texAdvanceV)
-					);
-				}
-			}
-		}
-
-		void LeftRight (int X, int slices, VertexPositionNormalTexture[] vertices, ref int vertexCount)
-		{
-			float posAdvance = 2f / (float)slices;
-			float initialU = 0;
-			float texAdvanceU = (1f / (float)slices);
-
-			float initialV = 1;
-			float texAdvanceV = -(1f / (float)slices);
-			if (X == -1) {
-				initialV = 0;
-				texAdvanceV = -texAdvanceV;
-			}
-
-			for (int y = 0; y < slices; y++) {
-				for (int z = 0; z < slices; z++) {
-					float advY = posAdvance * y;
-					float advZ = posAdvance * z;
-					float tadvY = initialU + (texAdvanceU * y);
-					float tadvZ = initialV + (texAdvanceV * z);
-					//z = y
-					//y = x
-					//UV coords
-					var tl = new Vector2 (tadvZ, tadvY);
-					var tr = new Vector2 (tadvZ, tadvY + texAdvanceU);
-					var bl = new Vector2 (tadvZ + texAdvanceV, tadvY);
-					var br = new Vector2 (tadvZ + texAdvanceV, tadvY + texAdvanceU);
-					//top-left
-					vertices [vertexCount++] = new VertexPositionNormalTexture (
-						new Vector3 (X, -1 + advY, -1 + advZ),
-						Vector3.Zero,
-						tl
-					);
-					//top-right
-					vertices [vertexCount++] = new VertexPositionNormalTexture (
-						new Vector3 (X, -1 + advY + posAdvance, -1 + advZ),
-						Vector3.Zero,
-						tr
-					);
-					//bottom-left
-					vertices [vertexCount++] = new VertexPositionNormalTexture (
-						new Vector3 (X, -1 + advY, -1 + advZ + posAdvance),
-						Vector3.Zero,
-						bl
-					);
-					//bottom-right
-					vertices [vertexCount++] = new VertexPositionNormalTexture (
-						new Vector3 (X, -1 + advY + posAdvance, -1 + advZ + posAdvance),
-						Vector3.Zero,
-						br
-					);
-				}
-			}
-		}
-
-		void CalculateNormals(VertexPositionNormalTexture[] array, ushort[] indices)
-		{
-			for (int i = 0; i < indices.Length / 3; i++)
+			LeftRight(1, slices, vertices, vertexCount);
+			vertexCount += planeVerts;
+			//Generate indices
+			int indexCount = 0;
+			int baseVert = 0;
+			//BOTTOM
+			Indices(2, 1, 0, 1, 2, 3, slices, ref indexCount, indices, baseVert);
+			baseVert += planeVerts;
+			//TOP
+			Indices(0, 1, 2, 3, 2, 1, slices, ref indexCount, indices, baseVert);
+			baseVert += planeVerts;
+			//FRONT
+			Indices(2, 1, 0, 1, 2, 3, slices, ref indexCount, indices, baseVert);
+			baseVert += planeVerts;
+			//BACK
+			Indices(0, 1, 2, 3, 2, 1, slices, ref indexCount, indices, baseVert);
+			baseVert += planeVerts;
+			//LEFT
+			Indices(2, 1, 0, 1, 2, 3, slices, ref indexCount, indices, baseVert);
+			baseVert += planeVerts;
+			//RIGHT
+			Indices(0, 1, 2, 3, 2, 1, slices, ref indexCount, indices, baseVert);
+			//Transform Cube to Sphere
+			for (int i = 0; i < vertices.Length; i++)
 			{
-				var firstVec = array[indices[i * 3 + 1]].Position - array[indices[i * 3]].Position;
-				var secondVec = array[indices[i * 3]].Position - array[indices[i * 3 + 2]].Position;
-				var normal = Vector3.Cross(firstVec, secondVec);
-				normal.Normalize();
-				array[indices[i * 3]].Normal += normal;
-				array[indices[i * 3 + 1]].Normal += normal;
-				array[indices[i * 3 + 2]].Normal += normal;
+				float x = vertices[i].Position.X;
+				float y = vertices[i].Position.Y;
+				float z = vertices[i].Position.Z;
+				vertices[i].Position = new Vector3(
+					(float)(x * Math.Sqrt(1.0 - (y * y / 2.0) - (z * z / 2.0) + (y * y * z * z / 3.0))),
+					(float)(y * Math.Sqrt(1.0 - (z * z / 2.0) - (x * x / 2.0) + (z * z * x * x / 3.0))),
+					(float)(z * Math.Sqrt(1.0 - (x * x / 2.0) - (y * y / 2.0) + (x * x * y * y / 3.0)))
+				);
+				vertices[i].Normal = vertices[i].Position;
 			}
-			for (int i = 0; i < array.Length; i++)
-				array[i].Normal.Normalize();
+			//Upload
+			vertexBuffer = new VertexBuffer(typeof(VertexPositionNormalTexture), vertices.Length);
+			vertexBuffer.SetData(vertices);
+			elementBuffer = new ElementBuffer(indices.Length);
+			elementBuffer.SetData(indices);
+			vertexBuffer.SetElementBuffer(elementBuffer);
 		}
-		public void Draw ()
+		void TopBottom(int Y, int slices, VertexPositionNormalTexture[] vertices, int vertexCount)
 		{
-			vertexBuffer.Draw (PrimitiveTypes.TriangleList, 0, 0, primitiveCount);
+			int width = slices + 1, height = slices + 1;
+			float advance = (2f / slices);
+			float tadvance = (1f / slices);
+			for (int z = 0; z < height; z++)
+			{
+				int basev = vertexCount + (z * width);
+				for (int x = 0; x < width; x++)
+				{
+					int index = basev + x;
+					vertices[index] = new VertexPositionNormalTexture(
+						new Vector3(
+							-1 + advance * x,
+							Y,
+							-1 + advance * z
+						),
+						Vector3.Zero,
+						new Vector2(
+							tadvance * x, 
+							(Y == -1) ? tadvance * z : 1 - (tadvance * z)
+						)
+					);
+				}
+			}
 		}
+		void FrontBack(int Z, int slices, VertexPositionNormalTexture[] vertices, int vertexCount)
+		{
+			int width = slices + 1, height = slices + 1;
+			float advance = (2f / slices);
+			float tadvance = (1f / slices);
+			for (int z = 0; z < height; z++)
+			{
+				int basev = vertexCount + (z * width);
+				for (int x = 0; x < width; x++)
+				{
+					int index = basev + x;
+					vertices[index] = new VertexPositionNormalTexture(
+						new Vector3(
+							-1 + advance * x,
+							-1 + advance * z,
+							Z
+						),
+						Vector3.Zero,
+						new Vector2(
+							(Z == -1) ? 1 - (tadvance * x) : tadvance * x, 
+							tadvance * z
+						)
+					);
+				}
+			}
+		}
+		void LeftRight(int X, int slices, VertexPositionNormalTexture[] vertices, int vertexCount)
+		{
+			int width = slices + 1, height = slices + 1;
+			float advance = (2f / slices);
+			float tadvance = (1f / slices);
+			for (int z = 0; z < height; z++)
+			{
+				int basev = vertexCount + (z * width);
+				for (int x = 0; x < width; x++)
+				{
+					int index = basev + x;
+					vertices[index] = new VertexPositionNormalTexture(
+						new Vector3(
+							X,
+							-1 + advance * x,
+							-1 + advance * z
+						),
+						Vector3.Zero,
+						new Vector2(
+							(X == -1) ? tadvance * z : 1 - (tadvance * z), 
+							tadvance * x
+						)
+					);
+				}
+			}
+		}
+		void Indices(ushort t0, ushort t1, ushort t2, ushort t3, ushort t4, ushort t5, int slices, ref int i, ushort[] indices, int baseVert)
+		{
+			int width = slices + 1;
+			int height = slices;
+			ushort[] temp = new ushort[6];
+			for (int y = 0; y < height; y++)
+			{
+				int basev = baseVert + (y * width);
+				for (int x = 0; x < slices; x++)
+				{
+					//Allow defined winding order
+					temp[0] = (ushort)(basev + x);
+					temp[1] = (ushort)(basev + x + 1);
+					temp[2] = (ushort)(basev + width + x);
+					temp[3] = (ushort)(basev + width + x + 1);
 
-		public void Draw (CubeMapFace face)
-		{
-			vertexBuffer.Draw (PrimitiveTypes.TriangleList, 0, offsets [face], primitiveCountSide);
+					indices[i++] = temp[t0];
+					indices[i++] = temp[t1];
+					indices[i++] = temp[t2];
+
+					indices[i++] = temp[t3];
+					indices[i++] = temp[t4];
+					indices[i++] = temp[t5];
+				}
+			}
 		}
 		public void GetDrawParameters(CubeMapFace face, out int start, out int count)
 		{
@@ -297,4 +230,3 @@ namespace LibreLancer.Primitives
 		}
 	}
 }
-

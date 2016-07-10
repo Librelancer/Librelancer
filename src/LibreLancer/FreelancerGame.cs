@@ -15,14 +15,13 @@
  */
 using System;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using System.Threading;
 using System.IO;
 using LibreLancer.GameData;
 using LibreLancer.Media;
 namespace LibreLancer
 {
-	public class FreelancerGame : Game, IUIThread
+	public class FreelancerGame : Game
     {
 		public LegacyGameData GameData;
 		public AudioManager Audio;
@@ -35,7 +34,6 @@ namespace LibreLancer
 		public List<string> IntroMovies;
 		public string MpvOverride;
 		public bool InitialLoadComplete = false;
-		ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
 		int uithread;
 		bool useintromovies;
 		GameState currentState;
@@ -71,24 +69,7 @@ namespace LibreLancer
 			}).Start ();
 
         }
-		public void QueueUIThread(Action work)
-		{
-			actions.Enqueue(work);
-		}
-		public void EnsureUIThread (Action work)
-		{
-			if (Thread.CurrentThread.ManagedThreadId == uithread)
-				work ();
-			else {
-				bool done = false;
-				actions.Enqueue (() => {
-					work();
-					done = true;
-				});
-				while (!done)
-					Thread.Sleep (1);
-			}
-		}
+
 		public void ChangeState(GameState state)
 		{
 			currentState = state;
@@ -115,9 +96,6 @@ namespace LibreLancer
 
 		protected override void Update (double elapsed)
 		{
-			Action work;
-			if (actions.TryDequeue (out work))
-				work ();
 			if (currentState != null)
 				currentState.Update (TimeSpan.FromSeconds (elapsed));
 		}

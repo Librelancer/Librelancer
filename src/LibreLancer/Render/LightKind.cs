@@ -14,16 +14,12 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-
 namespace LibreLancer
 {
-	public struct RenderLight
+	public enum LightKind
 	{
-		public LightKind Kind;
-		public Vector3 Position; 
-		public Vector3 Direction;
-		public Color4 Color;
-		public int Range;
+		Directional,
+		Point
 	}
 }
 

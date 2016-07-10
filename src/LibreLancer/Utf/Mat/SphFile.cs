@@ -108,14 +108,15 @@ namespace LibreLancer.Utf.Mat
             }
         }
 		Matrix4 viewproj;
+		Matrix4 view;
 		public void Update(ICamera camera, TimeSpan delta)
         {
             if (ready)
             {
 				viewproj = camera.ViewProjection;
+				view = camera.View;
 				if (SideMaterials.Length > 6) {
 					var mat = (AtmosphereMaterial)SideMaterials [6].Render;
-					mat.View = camera.View;
 					mat.Projection = camera.Projection;
 					mat.CameraPosition = camera.Position;
 				}
@@ -131,24 +132,7 @@ namespace LibreLancer.Utf.Mat
 		};
 		public void Draw(RenderState rstate, Matrix4 world, Lighting lights)
         {
-			if (ready) {
-				//Draw for me!
-				for (int i = 0; i < 6; i++) {
-					SideMaterials [i].Render.World = Matrix4.CreateScale (Radius) * world;
-					SideMaterials [i].Render.ViewProjection = viewproj;
-					SideMaterials [i].Render.Use (rstate, sphere.VertexType, lights);
-					sphere.Draw (faces [i]);
-				}
-				if (SideMaterials.Length > 6) {
-					var mat = (AtmosphereMaterial)SideMaterials [6].Render;
-					SideMaterials [6].Render.World = Matrix4.CreateScale (Radius * mat.Scale) * world;
-					SideMaterials [6].Render.ViewProjection = viewproj;
-					SideMaterials [6].Render.Use (rstate, sphere.VertexType, lights);
-					for (int i = 0; i < 6; i++)
-						sphere.Draw (faces [i]);
-				}
-			} else
-				throw new Exception ();
+			throw new NotImplementedException();
         }
 		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting lighting)
 		{
@@ -159,6 +143,7 @@ namespace LibreLancer.Utf.Mat
 					int start, count;
 					sphere.GetDrawParameters(faces[i], out start, out count);
 					SideMaterials[i].Render.ViewProjection = viewproj;
+					SideMaterials[i].Render.View = view;
 					buffer.AddCommand(
 						SideMaterials[i].Render,
 						Matrix4.CreateScale(Radius) * world,
@@ -171,7 +156,7 @@ namespace LibreLancer.Utf.Mat
 					);
 				}
 				//Draw atmosphere
-				if (SideMaterials.Length > 6)
+				/*if (SideMaterials.Length > 6)
 				{
 					var mat = (AtmosphereMaterial)SideMaterials[6].Render;
 					for (int i = 0; i < 6; i++)
@@ -190,7 +175,7 @@ namespace LibreLancer.Utf.Mat
 							count
 						);
 					}
-				}
+				}*/
 			}
 			else
 				throw new Exception();

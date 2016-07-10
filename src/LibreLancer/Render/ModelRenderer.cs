@@ -61,7 +61,30 @@ namespace LibreLancer
 			else if (Sph != null)
 				Sph.Update (camera, elapsed);
 		}
-
+		Lighting GetLights(Lighting sys, Vector3 c, float r)
+		{
+			var lights = new Lighting();
+			lights.Ambient = sys.Ambient;
+			foreach (var l in sys.Lights)
+			{
+				if (l.Kind == LightKind.Point &&
+				    VectorMath.Distance(l.Position, c) > r + l.Range)
+					continue;
+				if (l.Kind == LightKind.Point && Sph != null && 
+				    PrimitiveMath.EllipsoidContains(SpaceObject.Position,new Vector3(Sph.Radius), l.Position))
+				{
+					/*lights.Ambient = new Color4(
+						lights.Ambient.R + l.Color.R,
+						lights.Ambient.G + l.Color.G,
+						lights.Ambient.B + l.Color.B,
+						lights.Ambient.A
+					);*/
+					//Do something to the planet when light is inside
+				}
+				lights.Lights.Add(l);
+			}
+			return lights;
+		}
 		public void Draw(CommandBuffer buffer, Lighting lights, string nebula)
 		{
 			if (Nebula != null && nebula != Nebula)
@@ -72,8 +95,10 @@ namespace LibreLancer
 						VectorMath.Transform(Model.Levels[0].Center, World),
 						Model.Levels[0].Radius
 					);
-					if (camera.Frustum.Intersects (bsphere))
-						Model.DrawBuffer (buffer, World, lights);
+					if (camera.Frustum.Intersects(bsphere))
+					{
+						Model.DrawBuffer(buffer, World, GetLights(lights, World.Transform(Model.Levels[0].Center), Model.Levels[0].Radius));
+					}
 				}
 			} else if (Cmp != null) {
 				foreach (ModelFile model in Cmp.Models.Values)
@@ -83,12 +108,20 @@ namespace LibreLancer
 							model.Levels[0].Radius
 						);
 						if (camera.Frustum.Intersects (bsphere)) {
-							Cmp.DrawBuffer (buffer, World, lights);
+							Cmp.DrawBuffer (buffer, World, GetLights(lights,World.Transform(model.Levels[0].Center), model.Levels[0].Radius));
 							break;
 						}
 					}
 			} else if (Sph != null) {
-				Sph.DrawBuffer (buffer, World, lights); //Need to cull this
+				//TODO: Planet culling imprecise
+				var bsphere = new BoundingSphere(
+					SpaceObject.Position,
+					Sph.Radius * 2);
+				if (camera.Frustum.Intersects(bsphere))
+				{
+					var l = GetLights(lights, SpaceObject.Position, Sph.Radius);
+					Sph.DrawBuffer(buffer, World, l);
+				}
 			}
 		}
 	}

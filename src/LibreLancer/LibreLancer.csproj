@@ -224,6 +224,7 @@
     <Compile Include="RenderUserData.cs" />
     <Compile Include="GameData\Spine.cs" />
     <Compile Include="RandomExtensions.cs" />
+    <Compile Include="Render\LightKind.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

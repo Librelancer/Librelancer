@@ -21,7 +21,7 @@ namespace LibreLancer.Media
 		public bool Playing = false;
 		public abstract bool Init();
 		public abstract void PlayFile(string filename);
-		public abstract void Draw();
+		public abstract void Draw(RenderState rstate);
 		public abstract void Dispose();
 		public abstract Texture2D GetTexture();
 	}

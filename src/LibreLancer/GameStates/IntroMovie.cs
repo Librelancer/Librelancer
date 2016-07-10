@@ -22,10 +22,11 @@ namespace LibreLancer
 		{
 			if (idx != int.MaxValue)
 			{
-				player.Draw();
+				player.Draw(Game.RenderState);
 				if (!player.Playing)
 				{
 					Leave();
+					return;
 				}
 				var tex = player.GetTexture();
 				Game.Renderer2D.Start(Game.Width, Game.Height);
@@ -33,7 +34,7 @@ namespace LibreLancer
 				Game.Renderer2D.Finish();
 			}
 			else
-				Game.ChangeState(new LoadingDataState(Game));
+				Leave();
 		}
 
 		void HandleKeyDown(KeyEventArgs args)

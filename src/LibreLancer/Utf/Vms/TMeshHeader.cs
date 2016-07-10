@@ -95,6 +95,7 @@ namespace LibreLancer.Utf.Vms
         {
             /*if (Material == null) nullMaterial.Update(camera);
             else */Material.Render.ViewProjection = camera.ViewProjection;
+			Material.Render.View = camera.View;
         }
 
 		public void Draw(RenderState rstate, VertexBuffer buff, ushort startVertex, Matrix4 world, Lighting light)

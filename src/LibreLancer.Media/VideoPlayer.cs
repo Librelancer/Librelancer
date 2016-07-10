@@ -43,9 +43,9 @@ namespace LibreLancer.Media
 		{
 			player.PlayFile(filename);
 		}
-		public void Draw()
+		public void Draw(RenderState rstate)
 		{
-			player.Draw();
+			player.Draw(rstate);
 		}
 		public void Dispose()
 		{

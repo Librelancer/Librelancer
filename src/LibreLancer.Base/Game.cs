@@ -14,13 +14,14 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
 using System.Text;
 using System.Runtime.InteropServices;
 namespace LibreLancer
 {
-	public class Game
+	public class Game : IUIThread 
 	{
 		int width;
 		int height;
@@ -32,10 +33,13 @@ namespace LibreLancer
 		double renderFrequency;
 		public Mouse Mouse = new Mouse();
 		public Keyboard Keyboard = new Keyboard();
+		ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
+		int mythread = -1;
 		public Game (int w, int h, bool fullscreen)
 		{
 			width = w;
 			height = h;
+			mythread = Thread.CurrentThread.ManagedThreadId;
 		}
 
 		public int Width {
@@ -85,6 +89,27 @@ namespace LibreLancer
 		{
 			GLBind.Trash();
 			RenderState.Instance.Trash();
+		}
+
+		public void QueueUIThread(Action work)
+		{
+			actions.Enqueue(work);
+		}
+		public void EnsureUIThread(Action work)
+		{
+			if (Thread.CurrentThread.ManagedThreadId == mythread)
+				work();
+			else
+			{
+				bool done = false;
+				actions.Enqueue(() =>
+				{
+					work();
+					done = true;
+				});
+				while (!done)
+					Thread.Sleep(1);
+			}
 		}
 
 		public void Run()
@@ -191,6 +216,9 @@ namespace LibreLancer
 				//Do game things
 				if (!running)
 					break;
+				Action work;
+				while (actions.TryDequeue(out work))
+					work();
 				Update (elapsed);
 				if (!running)
 					break;

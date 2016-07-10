@@ -44,6 +44,10 @@ namespace LibreLancer
 			//unbind the FBO
 			GL.BindFramebuffer (GL.GL_FRAMEBUFFER, 0);
 		}
+		public void BindFramebuffer()
+		{
+			GL.BindFramebuffer(GL.GL_FRAMEBUFFER, FBO);
+		}
 		public override void Dispose ()
 		{
 			GL.DeleteFramebuffer (FBO);

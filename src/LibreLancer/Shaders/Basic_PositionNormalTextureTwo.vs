@@ -12,13 +12,13 @@ out vec3 world_position;
 
 uniform mat4x4 World;
 uniform mat4x4 ViewProjection;
-
+uniform mat4x4 NormalMatrix;
 void main()
 {
 	vec4 pos = (ViewProjection * World) * vec4(vertex_position, 1.0);
 	gl_Position = pos;
-	world_position = (vec4(vertex_position,1) * World).xyz;
-	out_normal = (vec4(vertex_normal,1) * World).xyz;
+	world_position = (World * vec4(vertex_position,1)).xyz;
+	out_normal = (NormalMatrix * vec4(vertex_normal,0)).xyz;
 	out_texcoord1 = vec2(vertex_texture1.x, 1 - vertex_texture1.y);
 	out_texcoord2 = vec2(vertex_texture2.x, 1 - vertex_texture2.y);
 }

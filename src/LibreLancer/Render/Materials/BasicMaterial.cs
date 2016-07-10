@@ -79,6 +79,7 @@ namespace LibreLancer
 		{
 			var shader = GetShader(vertextype);
 			shader.SetMatrix("World", ref World);
+			shader.SetMatrix("View", ref View);
 			shader.SetMatrix("ViewProjection", ref ViewProjection);
 			//Dt
 			shader.SetInteger("DtSampler", 0);
@@ -104,7 +105,10 @@ namespace LibreLancer
 			BindTexture(EtSampler, 1, EtFlags, false);
 			//Set lights
 			SetLights(shader, lights);
-
+			var normalMatrix = World;
+			normalMatrix.Invert();
+			normalMatrix.Transpose();
+			shader.SetMatrix("NormalMatrix", ref normalMatrix);
 			shader.UseProgram();
 		}
 		public override bool IsTransparent

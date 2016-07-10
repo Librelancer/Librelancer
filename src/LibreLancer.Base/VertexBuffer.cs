@@ -69,6 +69,7 @@ namespace LibreLancer
                 throw new Exception("Data must be of type " + type.FullName);
 			int len = length ?? data.Length;
 			GLBind.VertexBuffer (VBO);
+			GLBind.VertexArray(VAO);
 			var handle = GCHandle.Alloc (data, GCHandleType.Pinned);
 			GL.BufferSubData (GL.GL_ARRAY_BUFFER, IntPtr.Zero, (IntPtr)(len * decl.Stride), handle.AddrOfPinnedObject());
 			handle.Free ();

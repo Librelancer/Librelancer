@@ -24,6 +24,7 @@ namespace LibreLancer.Media
 		Game game;
 		RenderTarget2D framebuffer;
 		string mpvo;
+		bool doDraw = false;
 		public VideoPlayerMpv(Game game, string mpvoverride)
 		{
 			this.game = game;
@@ -40,7 +41,8 @@ namespace LibreLancer.Media
 		{
 			return framebuffer;
 		}
-		public override void Draw()
+		bool firstDraw = true;
+		public override void Draw(RenderState rstate)
 		{
 			Mpv.mpv_event* ev = Mpv.mpv_wait_event(mpvhandle, 0);
 			while (ev->event_id != Mpv.mpv_event_id.MPV_EVENT_NONE)
@@ -51,10 +53,25 @@ namespace LibreLancer.Media
 				}
 				ev = Mpv.mpv_wait_event(mpvhandle, 0);
 			}
+			if (disposed)
+				return;
 			game.UnbindAll();
-			Mpv.mpv_opengl_cb_draw(mpvgl, (int)framebuffer.FBO, game.Width, game.Height);
 			RenderTarget2D.ClearBinding();
 			game.TrashGLState();
+			if (firstDraw)
+			{
+				firstDraw = false;
+				framebuffer.BindFramebuffer();
+				rstate.ClearColor = Color4.Black;
+				rstate.ClearAll();
+				RenderTarget2D.ClearBinding();
+			}
+			if (doDraw)
+			{
+				Mpv.mpv_opengl_cb_draw(mpvgl, (int)framebuffer.FBO, game.Width, game.Height);
+				doDraw = false;
+			}
+
 		}
 
 		public IntPtr GetProcAddress(IntPtr fn_ctx, IntPtr address)
@@ -62,19 +79,21 @@ namespace LibreLancer.Media
 			var str = Marshal.PtrToStringAnsi(address);
 			return game.GetGLProcAddress(str);
 		}
-
+		bool disposed = false;
 		public override void Dispose()
 		{
+			disposed = true;
 			FLLog.Info("Video", "Closing mpv backend");
 			Mpv.mpv_opengl_cb_uninit_gl(mpvgl);
 			Mpv.mpv_terminate_destroy(mpvhandle);
+			framebuffer.Dispose();
 			Playing = false;
 		}
 		const int LC_NUMERIC = 1;
 
 		[DllImport("libc")]
 		public static extern IntPtr setlocale (int category, [MarshalAs (UnmanagedType.LPStr)]string locale);
-
+		Mpv.GLUpdateDelegate update;
 		public override bool Init()
 		{
 			FLLog.Info("Video", "Opening mpv backend");
@@ -92,6 +111,8 @@ namespace LibreLancer.Media
 				mpvgl = Mpv.mpv_get_sub_api(mpvhandle, Mpv.mpv_sub_api.MPV_SUB_API_OPENGL_CB);
 				CheckError(Mpv.mpv_opengl_cb_init_gl(mpvgl, IntPtr.Zero, GetProcAddress, IntPtr.Zero));
 				CheckError(Mpv.mpv_set_option_string(mpvhandle, "vo", "opengl-cb"));
+				update = ctx => game.QueueUIThread(() => doDraw = true);
+				Mpv.mpv_opengl_cb_set_update_callback(mpvgl, update, IntPtr.Zero);
 			}
 			catch (Exception ex)
 			{

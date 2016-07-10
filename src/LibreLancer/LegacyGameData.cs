@@ -124,11 +124,11 @@ namespace LibreLancer
 			if (legacy.LightSources != null) {
 				foreach (var src in legacy.LightSources) {
 					var lt = new RenderLight ();
-					lt.Attenuation = src.Attenuation ?? new Vector3 (1, 0, 0);
 					lt.Color = src.Color.Value;
 					lt.Position = src.Pos.Value;
 					lt.Range = src.Range.Value;
-					lt.Rotation = src.Rotate ?? Vector3.Zero;
+					lt.Direction = src.Direction ?? Vector3.Zero;
+					lt.Kind = ((src.Type ?? Legacy.Universe.LightType.Point) == Legacy.Universe.LightType.Point) ? LightKind.Point : LightKind.Directional;
 					sys.LightSources.Add (lt);
 				}
 			}

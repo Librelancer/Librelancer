@@ -29,5 +29,5 @@ void main()
 	vec4 detail = vec4(mix(detail0.xyz, detail1.xyz, dc.a),1);
 	dc *= detail;
 
-	out_color = light(vec4(0), Ac * dc, world_position, out_normal);
+	out_color = vec4(light(vec4(0), dc, world_position, out_normal).xyz, 1);
 }

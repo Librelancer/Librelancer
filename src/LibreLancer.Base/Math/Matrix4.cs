@@ -1524,7 +1524,9 @@ namespace LibreLancer
                 // check for singular matrix
                 if (pivot == 0.0f)
                 {
-                    throw new InvalidOperationException("Matrix is singular and cannot be inverted.");
+					result = mat;
+					return;
+                    //throw new InvalidOperationException("Matrix is singular and cannot be inverted.");
                 }
 
                 // Scale row so it has a unit diagonal

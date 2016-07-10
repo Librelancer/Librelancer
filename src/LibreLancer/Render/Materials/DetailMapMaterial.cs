@@ -48,6 +48,7 @@ namespace LibreLancer
 			Shader sh = GetShader (vertextype);
 			sh.SetMatrix ("World", ref World);
 			sh.SetMatrix ("ViewProjection", ref ViewProjection);
+			sh.SetMatrix("View", ref View);
 
 			sh.SetColor4 ("Ac", Ac);
 			sh.SetColor4 ("Dc", Dc);
@@ -60,6 +61,10 @@ namespace LibreLancer
 			sh.SetInteger ("DmSampler", 1);
 			BindTexture (DmSampler, 1, DmFlags);
 			SetLights(sh, lights);
+			var normalMatrix = World;
+			normalMatrix.Invert();
+			normalMatrix.Transpose();
+			sh.SetMatrix("NormalMatrix", ref normalMatrix);
 			sh.UseProgram ();
 		}
 		public override bool IsTransparent

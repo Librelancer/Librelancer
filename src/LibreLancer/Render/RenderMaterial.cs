@@ -37,11 +37,17 @@ namespace LibreLancer
 			shader.SetInteger ("LightCount", lights.Lights.Count);
 			for (int i = 0; i < lights.Lights.Count; i++) {
 				var lt = lights.Lights [i];
-				shader.SetVector3 ("LightsPos", lt.Position, i);
-				shader.SetVector3 ("LightsRot", lt.Rotation, i);
-				shader.SetColor4 ("LightsColor", lt.Color, i);
-				shader.SetInteger ("LightsRange", lt.Range, i);
-				shader.SetVector3 ("LightsAttenuation", lt.Attenuation, i);
+				shader.SetColor4 ("LightsPos", 
+				                  new Color4(
+					                  lt.Position.X, 
+				                      lt.Position.Y, 
+				                      lt.Position.Z, 
+				                      lt.Kind != LightKind.Directional ? 1 : 0
+				                      ), 
+				                  i);
+				shader.SetVector3 ("LightsDir", lt.Direction, i);
+				shader.SetVector3 ("LightsColor", new Vector3(lt.Color.R, lt.Color.G, lt.Color.B), i);
+				shader.SetInteger("LightsRange", lt.Range);
 			}
 		}
 		protected void BindTexture(string tex, int unit, SamplerFlags flags, bool throwonNull = true)
