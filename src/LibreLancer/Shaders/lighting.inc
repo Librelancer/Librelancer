@@ -38,5 +38,5 @@ vec4 light(vec4 ec, vec4 dc, vec3 position, vec3 normal)
 	{
 		result += apply_light(i, ec, dc, position, n);
 	}
-	return vec4(result, dc.a);
+	return vec4(result + ec.rgb, dc.a);
 }
