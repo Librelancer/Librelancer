@@ -34,11 +34,14 @@ namespace LibreLancer.GLDelegates
 	delegate void Clear(int flags);
 	delegate void Viewport(int x, int y, int width, int height);
 	delegate void BlendFunc(int sfactor, int dfactor);
+	delegate void BlendFunci(int index, int sfactor, int dfactor);
+	delegate void BlendFuncSeparate(int srcRGB, int drcRGB, int srcAlpha, int dstAlpha);
 	delegate void PolygonMode(int faces, int mode);
 	delegate void DepthFunc(int func);
 	delegate void CullFace(int face);
 	delegate void PixelStorei(int pname, int param);
 	delegate void DepthMask(bool flag);
+	delegate void AlphaFunc(int func, float _ref);
 	//Textures
 	delegate void GenTextures(int n, out uint textures);
 	delegate void DeleteTextures(int n, ref uint textures);
@@ -57,6 +60,7 @@ namespace LibreLancer.GLDelegates
 	delegate uint CreateProgram();
 	delegate void AttachShader(uint program, uint shader);
 	delegate void BindAttribLocation(uint program, uint index, string name);
+	delegate void BindFragDataLocation(uint program, uint colorNumber, string name);
 	delegate void LinkProgram(uint program);
 	delegate void UseProgram(uint program);
 	delegate void GetShaderiv(uint shader, int pname, out int param);
@@ -78,6 +82,7 @@ namespace LibreLancer.GLDelegates
 	delegate void BindVertexArray(uint array);
 	delegate void EnableVertexAttribArray(int index);
 	delegate void VertexAttribPointer(uint index, int size, int type, bool normalized, int stride, IntPtr data);
+	delegate void DrawBuffers(int n, IntPtr bufs);
 	//Drawing
 	delegate void DrawElements(int mode, int count, int type, IntPtr indices);
 	delegate void DrawArrays(int mode, int first, int count);

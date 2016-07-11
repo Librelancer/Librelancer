@@ -1,0 +1,91 @@
+﻿using System;
+using LibreLancer.GameData;
+using LibreLancer.Primitives;
+namespace LibreLancer
+{
+	public class AsteroidFieldRenderer
+	{
+		const int SIDES = 20;
+
+		AsteroidField field;
+		bool renderBand = false;
+		Matrix4 bandTransform;
+		OpenCylinder bandCylinder;
+		Matrix4 vp;
+		Matrix4 bandNormal;
+		Shader bandShader;
+		Vector3 cameraPos;
+		public AsteroidFieldRenderer(AsteroidField field)
+		{
+			this.field = field;
+
+			//Set up band
+			bandShader = ShaderCache.Get("AsteroidBand.vs", "AsteroidBand.frag");
+			Vector3 sz;
+			if (field.Zone.Shape is ZoneSphere)
+				sz = new Vector3(((ZoneSphere)field.Zone.Shape).Radius);
+			else if (field.Zone.Shape is ZoneEllipsoid)
+				sz = ((ZoneEllipsoid)field.Zone.Shape).Size;
+			else
+				return;
+			renderBand = true;
+			bandTransform =  Matrix4.CreateScale(sz.X, field.Band.Height, sz.Z) * field.Zone.RotationMatrix * Matrix4.CreateTranslation(field.Zone.Position);
+			bandCylinder = new OpenCylinder(SIDES);
+			bandNormal = bandTransform;
+			bandNormal.Invert();
+			bandNormal.Transpose();
+		}
+
+		public void Update(ICamera camera)
+		{
+			vp = camera.ViewProjection;
+			cameraPos = camera.Position;
+		}
+
+		public void Draw(ResourceManager res, CommandBuffer buffer)
+		{
+			//Billboards
+
+			//Band is last
+			if (renderBand)
+			{
+				var tex = (Texture2D)res.FindTexture(field.Band.Shape);
+				for (int i = 0; i < SIDES; i++)
+				{
+					var p = bandCylinder.GetSidePosition(i);
+					var zcoord = RenderHelpers.GetZ(bandTransform, cameraPos, p);
+					buffer.AddCommand(
+						bandShader,
+						bandShaderDelegate,
+						bandShaderCleanup,
+						bandTransform,
+						new RenderUserData() { ViewProjection = vp, Texture = tex, Vector = cameraPos, Matrix2 = bandNormal },
+						bandCylinder.VertexBuffer,
+						PrimitiveTypes.TriangleList,
+						0,
+						i * 6,
+						2,
+						true,
+						zcoord
+					);
+				}
+			}
+		}
+		static Action<Shader, RenderState, RenderCommand> bandShaderDelegate = BandShaderSetup;
+		static void BandShaderSetup(Shader shader, RenderState state, RenderCommand command)
+		{
+			shader.SetMatrix("World", ref command.World);
+			shader.SetMatrix("ViewProjection", ref command.UserData.ViewProjection);
+			shader.SetMatrix("NormalMatrix", ref command.UserData.Matrix2);
+			shader.SetInteger("Texture", 0);
+			shader.SetVector3("CameraPosition", command.UserData.Vector);
+			command.UserData.Texture.BindTo(0);
+
+			shader.UseProgram();
+			state.BlendMode = BlendMode.Normal;
+			state.Cull = false;
+		}
+		static Action<RenderState> bandShaderCleanup = obj => { obj.Cull = true; };
+	}
+}
+

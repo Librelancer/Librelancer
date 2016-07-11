@@ -31,6 +31,7 @@ namespace LibreLancer
 
 		public List<SunRenderer> Suns { get; private set; }
 		public List<ModelRenderer> Models { get; private set; }
+		public List<AsteroidFieldRenderer> AsteroidFields { get; private set; }
 		public List<NebulaRenderer> Nebulae { get; private set; }
 
 		private StarSystem starSystem;
@@ -53,6 +54,7 @@ namespace LibreLancer
 			World = Matrix4.Identity;
 			Suns = new List<SunRenderer>();
 			Models = new List<ModelRenderer>();
+			AsteroidFields = new List<AsteroidFieldRenderer>();
 			cache = rescache;
 			rstate = cache.Game.RenderState;
 			game = rescache.Game;
@@ -91,6 +93,15 @@ namespace LibreLancer
 
 			starSphereModels = starSphereRenderData.ToArray();
 
+			AsteroidFields = new List<AsteroidFieldRenderer>();
+			if (system.AsteroidFields != null)
+			{
+				foreach (var a in system.AsteroidFields)
+				{
+					AsteroidFields.Add(new AsteroidFieldRenderer(a));
+				}
+			}
+
 			Nebulae = new List<NebulaRenderer>();
 			if (system.Nebulae != null)
 			{
@@ -126,6 +137,7 @@ namespace LibreLancer
 
 			for (int i = 0; i < Suns.Count; i++) Suns[i].Update(elapsed, camera);
 			for (int i = 0; i < Models.Count; i++) Models[i].Update(elapsed);
+			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Update(camera);
 			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Update(elapsed);
 		}
 		string ObjectInNebula(Vector3 position)
@@ -154,7 +166,6 @@ namespace LibreLancer
 			return null;
 		}
 		CommandBuffer commands = new CommandBuffer();
-
 		public void Draw()
 		{
 			NebulaRenderer nr = CheckNebulae(); //are we in a nebula?
@@ -190,15 +201,18 @@ namespace LibreLancer
 			commands.StartFrame();
 			rstate.DepthEnabled = true;
 			//Clear depth buffer for game objects
-			rstate.ClearDepth();
 			game.Billboards.Begin(camera, commands);
 			for (int i = 0; i < Models.Count; i++) Models[i].Draw(commands, systemLighting, nb);
+			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(cache, commands);
 			game.Nebulae.NewFrame();
 			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Draw(commands, systemLighting);
 			game.Nebulae.SetData();
 			for (int i = 0; i < Suns.Count; i++) Suns[i].Draw();
 			game.Billboards.End();
+			//Opaque Pass
+			rstate.DepthEnabled = true;
 			commands.DrawOpaque(rstate);
+			//Transparent Pass
 			rstate.DepthWrite = false;
 			commands.DrawTransparent(rstate);
 			rstate.DepthWrite = true;

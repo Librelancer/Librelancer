@@ -346,7 +346,7 @@ namespace LibreLancer
 					tl, tr, bl, br
 				);
 			}
-			var transform = Matrix4.CreateScale(sz) * Nebula.Zone.Rotation * Matrix4.CreateTranslation(p);
+			var transform = Matrix4.CreateScale(sz) * Nebula.Zone.RotationMatrix * Matrix4.CreateTranslation(p);
 			game.Nebulae.Draw(
 				buffer,
 				camera,

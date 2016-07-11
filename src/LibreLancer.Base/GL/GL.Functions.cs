@@ -41,12 +41,16 @@ namespace LibreLancer
 		public static Viewport Viewport;
 		[MapsTo("glBlendFunc")]
 		public static BlendFunc BlendFunc;
+		[MapsTo("glBlendFunci")]
+		public static BlendFunci BlendFunci;
+		[MapsTo("glBlendFuncSeparate")]
+		public static BlendFuncSeparate BlendFuncSeparate;
 		[MapsTo("glGetStringi")]
 		static GetStringi _getString;
 		public static string GetString(int name, int index)
 		{
-			var ptr = _getString (name, index);
-			return Marshal.PtrToStringAnsi (ptr);
+			var ptr = _getString(name, index);
+			return Marshal.PtrToStringAnsi(ptr);
 		}
 		[MapsTo("glPolygonMode")]
 		public static PolygonMode PolygonMode;
@@ -58,6 +62,8 @@ namespace LibreLancer
 		public static PixelStorei PixelStorei;
 		[MapsTo("glDepthMask")]
 		public static DepthMask DepthMask;
+		[MapsTo("glAlphaFunc")]
+		public static AlphaFunc AlphaFunc;
 		//Textures
 		[MapsTo("glGenTextures")]
 		public static GenTextures GenTextures;
@@ -122,6 +128,8 @@ namespace LibreLancer
 		public static AttachShader AttachShader;
 		[MapsTo("glBindAttribLocation")]
 		public static BindAttribLocation BindAttribLocation;
+		[MapsTo("glBindFragDataLocation")]
+		public static BindFragDataLocation BindFragDataLocation;
 		[MapsTo("glGetUniformLocation")]
 		public static GetUniformLocation GetUniformLocation;
 		[MapsTo("glUniform1i")]
@@ -186,6 +194,19 @@ namespace LibreLancer
 		public static EnableVertexAttribArray EnableVertexAttribArray;
 		[MapsTo("glVertexAttribPointer")]
 		public static VertexAttribPointer VertexAttribPointer;
+		[MapsTo("glDrawBuffers")]
+		static DrawBuffers _DrawBuffers;
+		public static unsafe void DrawBuffers(int[] buffers)
+		{
+			fixed(int* ptr = buffers)
+			{
+				_DrawBuffers(buffers.Length, (IntPtr)ptr);
+			}
+		}
+		public static unsafe void DrawBuffer(int buffer)
+		{
+			_DrawBuffers(1, (IntPtr)(&buffer));
+		}
 		//Drawing
 		[MapsTo("glDrawElements")]
 		public static DrawElements DrawElements;

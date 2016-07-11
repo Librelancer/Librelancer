@@ -20,7 +20,7 @@ namespace LibreLancer
 	public class RenderTarget2D : Texture2D
 	{
 		public uint FBO;
-		uint depthbuffer;
+		public DepthBuffer DepthBuffer;
 		public static void ClearBinding()
 		{
 			GL.BindFramebuffer(GL.GL_FRAMEBUFFER, 0);
@@ -31,12 +31,10 @@ namespace LibreLancer
 			FBO = GL.GenFramebuffer ();
 			GL.BindFramebuffer (GL.GL_FRAMEBUFFER, FBO);
 			//make the depth buffer
-			depthbuffer = GL.GenRenderbuffer ();
-			GL.BindRenderbuffer (GL.GL_RENDERBUFFER, depthbuffer);
-			GL.RenderbufferStorage (GL.GL_RENDERBUFFER, GL.GL_DEPTH_COMPONENT24, width, height);
+			DepthBuffer = new DepthBuffer(width, height);
 			GL.FramebufferRenderbuffer (GL.GL_FRAMEBUFFER, 
 				GL.GL_DEPTH_ATTACHMENT, 
-				GL.GL_RENDERBUFFER, depthbuffer);
+				GL.GL_RENDERBUFFER, DepthBuffer.ID);
 			//bind the texture
 			GL.FramebufferTexture2D (GL.GL_FRAMEBUFFER, 
 				GL.GL_COLOR_ATTACHMENT0, 
@@ -51,7 +49,7 @@ namespace LibreLancer
 		public override void Dispose ()
 		{
 			GL.DeleteFramebuffer (FBO);
-			GL.DeleteRenderbuffer (depthbuffer);
+			DepthBuffer.Dispose();
 			base.Dispose ();
 		}
 	}

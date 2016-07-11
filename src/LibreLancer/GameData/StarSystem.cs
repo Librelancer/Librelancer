@@ -34,6 +34,8 @@ namespace LibreLancer.GameData
 		public List<SystemObject> Objects = new List<SystemObject>();
 		//Nebulae
 		public List<Nebula> Nebulae = new List<Nebula>();
+		//Asteroid Fields
+		public List<AsteroidField> AsteroidFields = new List<AsteroidField>();
 		//Zones
 		public List<Zone> Zones = new List<Zone>();
 		//Music

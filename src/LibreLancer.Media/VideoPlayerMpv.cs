@@ -68,10 +68,12 @@ namespace LibreLancer.Media
 			}
 			if (doDraw)
 			{
+				rstate.Cull = false;
+				rstate.Apply();
 				Mpv.mpv_opengl_cb_draw(mpvgl, (int)framebuffer.FBO, game.Width, game.Height);
 				doDraw = false;
+				rstate.Cull = true;
 			}
-
 		}
 
 		public IntPtr GetProcAddress(IntPtr fn_ctx, IntPtr address)

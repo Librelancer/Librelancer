@@ -14,20 +14,22 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
 namespace LibreLancer
 {
 	public class CommandBuffer
 	{
+		const int MAX_COMMANDS = 4096;
 		//public List<RenderCommand> Commands = new List<RenderCommand>();
-		RenderCommand[] Commands = new RenderCommand[4096];
+		RenderCommand[] Commands = new RenderCommand[MAX_COMMANDS];
 		int currentCommand = 0;
 		public void StartFrame()
 		{
 			currentCommand = 0;
 		}
-		public void AddCommand(RenderMaterial material, Matrix4 world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count)
+		public void AddCommand(RenderMaterial material, Matrix4 world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, float z = 0)
 		{
 			Commands[currentCommand++] = new RenderCommand()
 			{
@@ -44,7 +46,7 @@ namespace LibreLancer
 				World = world
 			};
 		}
-		public void AddCommand(Shader shader, Action<Shader,RenderState,RenderCommand> setup, Action<RenderState> cleanup, Matrix4 world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent)
+		public void AddCommand(Shader shader, Action<Shader,RenderState,RenderCommand> setup, Action<RenderState> cleanup, Matrix4 world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, float z = 0)
 		{
 			Commands[currentCommand++] = new RenderCommand()
 			{
@@ -59,10 +61,11 @@ namespace LibreLancer
 				Primitive = primitive,
 				UseMaterial = false,
 				UseBaseVertex = true,
-				Transparent = transparent
+				Transparent = transparent,
+				Z = z
 			};
 		}
-		public void AddCommand(Shader shader, Action<Shader, RenderState, RenderCommand> setup, Action<RenderState> cleanup, Matrix4 world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, bool transparent)
+		public void AddCommand(Shader shader, Action<Shader, RenderState, RenderCommand> setup, Action<RenderState> cleanup, Matrix4 world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, bool transparent, float z = 0)
 		{
 			Commands[currentCommand++] = new RenderCommand()
 			{
@@ -77,7 +80,8 @@ namespace LibreLancer
 				Primitive = primitive,
 				UseMaterial = false,
 				UseBaseVertex = false,
-				Transparent = transparent
+				Transparent = transparent,
+				Z = z
 			};
 		}
 		public void DrawOpaque(RenderState state)
@@ -91,17 +95,36 @@ namespace LibreLancer
 				
 			}
 		}
+		int[] cmdptr = new int[MAX_COMMANDS];
 		public void DrawTransparent(RenderState state)
 		{
+			int a = 0;
 			for (int i = 0; i < currentCommand; i++)
 			{
 				if (Commands[i].Transparent)
 				{
-					Commands[i].Run(state);
+					cmdptr[a++] = i;
 				}
+			}
+			Array.Sort<int>(cmdptr, 0, a, new ZComparer(Commands));
+			for (int i = a - 1; i >= 0; i--)
+			{
+				Commands[cmdptr[i]].Run(state);
 			}
 		}
 
+	}
+	class ZComparer : IComparer<int>
+	{
+		RenderCommand[] cmds;
+		public ZComparer(RenderCommand[] commands)
+		{
+			cmds = commands;
+		}
+		public int Compare(int x, int y)
+		{
+			return cmds[x].Z.CompareTo(cmds[y].Z);
+		}
 	}
 	public struct RenderCommand
 	{
@@ -120,7 +143,12 @@ namespace LibreLancer
 		public int Count;
 		public bool Transparent;
 		public Lighting Lights;
-
+		public float Z;
+		public string Caller;
+		public override string ToString()
+		{
+			return string.Format("[{1} - Z: {0}]", Z, Caller);
+		}
 		public void Run(RenderState state)
 		{
 			if (UseMaterial)

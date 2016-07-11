@@ -21,7 +21,7 @@ namespace LibreLancer
 	{
 		Normal,
 		Opaque,
-		Additive
+		Additive,
 	}
 }
 

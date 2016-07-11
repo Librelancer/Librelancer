@@ -64,30 +64,37 @@ namespace LibreLancer.Compatibility.GameData.Universe
 					current_texname = e [0].ToString ();
 					break;
 				case "tex_shape":
-					//TODO: I have no idea what this value does - Callum
-					TextureShapes.Add(e[0].ToString());
+						Shapes.Add(e[0].ToString(),
+									new TextureShape(
+									e[0].ToString(),
+									e[0].ToString(),
+									new RectangleF(0, 0, 1, 1)
+								));
 					break;
 				case "shape_name":
 					if (e.Count != 1)
 						throw new Exception ("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 					var shape_name = e [0].ToString ();
-					if (i + 1 >= section.Count)
-						throw new Exception ("shape_name needs accompanying dim");
-					e = section [i + 1];
-					if (e.Name != "dim")
-						throw new Exception ("expected dim, got " + e.Name);
-					if (e.Count != 4)
-						throw new Exception ("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+						RectangleF dimensions;
+						if (i + 1 >= section.Count || section[i + 1].Name.ToLower() != "dim")
+						{
+							dimensions = new RectangleF(0, 0, 1, 1);
+						}
+						else
+						{
+							e = section[i + 1];
+							if (e.Name != "dim")
+								throw new Exception("expected dim, got " + e.Name);
+							if (e.Count != 4)
+								throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+							dimensions = new RectangleF(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle(), e[3].ToSingle());
+						}
+					
 					Shapes.Add(shape_name,
 						new TextureShape(
 						current_texname,
 						shape_name,
-						new RectangleF(
-							e[0].ToSingle(), 
-							e[1].ToSingle(), 
-							e[2].ToSingle(), 
-							e[3].ToSingle()
-						)
+						dimensions
 					));
 					i++;
 					break;

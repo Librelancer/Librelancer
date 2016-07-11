@@ -131,6 +131,7 @@ namespace LibreLancer
 
 		public void ClearAll()
 		{
+			Apply();
 			GL.Clear (GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 		}
 
@@ -138,8 +139,7 @@ namespace LibreLancer
 		{
 			GL.Clear (GL.GL_DEPTH_BUFFER_BIT);
 		}
-
-		internal void Apply()
+		public void Apply()
 		{
 			if (clearDirty) {
 				GL.ClearColor (clearColor.R, clearColor.G, clearColor.B, clearColor.A);

@@ -85,7 +85,7 @@ namespace LibreLancer
 
 		public void UpdateProjection()
 		{
-			Projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(35f), Viewport.AspectRatio, 3f, 250000f);
+			Projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(35f), Viewport.AspectRatio, 10f, 100000000f);
 		}
 
 		/// <summary>

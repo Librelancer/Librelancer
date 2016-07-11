@@ -45,7 +45,7 @@ namespace LibreLancer
 			string newsrc = src;
 			while (m.Success)
 			{
-				var inc = ProcessIncludes(LoadEmbedded("LibreLancer.Shaders." + m.Groups[1].Value));
+				var inc = ProcessIncludes(LoadEmbedded("LibreLancer.Shaders." + m.Groups[1].Value)) + "\n";
 				newsrc = newsrc.Remove(m.Index, m.Length).Insert(m.Index, inc);
 				m = findincludes.Match(newsrc);
 			}
@@ -58,7 +58,7 @@ namespace LibreLancer
 				FLLog.Debug ("Shader", "Compiling [ " + vs + " , " + fs + " , " + gs + " ]");
 				shaderGeo.Add (k, new Shader (
 					LoadEmbedded ("LibreLancer.Shaders." + vs), 
-					LoadEmbedded ("LibreLancer.Shaders." + fs),
+					ProcessIncludes(LoadEmbedded ("LibreLancer.Shaders." + fs)),
 					LoadEmbedded("LibreLancer.Shaders." + gs)
 				));
 			}

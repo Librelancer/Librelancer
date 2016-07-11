@@ -141,16 +141,27 @@ namespace LibreLancer
 				z.Nickname = zne.Nickname;
 				z.EdgeFraction = zne.EdgeFraction ?? 0.25f;
 				z.Position = zne.Pos.Value;
-				if (zne.Rotate != null)
-				{
-					var r = zne.Rotate.Value;
-					z.Rotation = 
-							Matrix4.CreateRotationX(MathHelper.DegreesToRadians(r.X)) * 
-							Matrix4.CreateRotationY(MathHelper.DegreesToRadians(r.Y)) * 
-							Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(r.Z));
-				}
-				else
-					z.Rotation = Matrix4.Identity;
+					if (zne.Rotate != null)
+					{
+						var r = zne.Rotate.Value;
+
+						var qx = Quaternion.FromEulerAngles(
+							MathHelper.DegreesToRadians(r.X),
+							MathHelper.DegreesToRadians(r.Y),
+							MathHelper.DegreesToRadians(r.Z)
+						);
+						z.RotationMatrix = Matrix4.CreateFromQuaternion(qx);
+						z.RotationAngles = new Vector3(
+							MathHelper.DegreesToRadians(r.X),
+							MathHelper.DegreesToRadians(r.Y),
+							MathHelper.DegreesToRadians(r.Z)
+						);
+					}
+					else
+					{
+						z.RotationMatrix = Matrix4.Identity;
+						z.RotationAngles = Vector3.Zero;
+					}
 				switch (zne.Shape.Value) {
 				case Legacy.Universe.ZoneShape.ELLIPSOID:
 					z.Shape = new GameData.ZoneEllipsoid (
@@ -167,6 +178,26 @@ namespace LibreLancer
 				}
 				sys.Zones.Add (z);
 			}
+			if (legacy.Asteroids != null)
+			{
+				foreach (var ast in legacy.Asteroids)
+				{
+					if (ast.Band == null)
+						continue;
+					var panels = new Legacy.Universe.TexturePanels(ast.TexturePanels.File);
+					foreach (var txmfile in panels.Files)
+						resource.LoadTxm(Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + txmfile));
+					var a = new GameData.AsteroidField();
+					a.Zone = sys.Zones.Where((z) => z.Nickname.ToLower() == ast.ZoneName.ToLower()).First();
+					a.Band = new GameData.AsteroidBand();
+					a.Band.RenderParts = ast.Band.RenderParts.Value;
+					a.Band.Height = ast.Band.Height.Value;
+					a.Band.Shape = panels.Shapes[ast.Band.Shape].TextureName;
+					a.Band.Fade = new Vector4(ast.Band.Fade[0], ast.Band.Fade[1], ast.Band.Fade[2], ast.Band.Fade[3]);
+					sys.AsteroidFields.Add(a);
+				}
+			}
+
 			if (legacy.Nebulae != null)
 			{
 				foreach (var nbl in legacy.Nebulae)

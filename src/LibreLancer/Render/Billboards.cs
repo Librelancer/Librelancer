@@ -120,7 +120,8 @@ namespace LibreLancer
 				PrimitiveTypes.Points,
 				lastCount,
 				1,
-				true
+				true,
+				RenderHelpers.GetZ(Matrix4.Identity, camera.Position, Position)
 			);
 			lastCount = billboardCount;
 		}
@@ -137,10 +138,11 @@ namespace LibreLancer
 			float angle
 		)
 		{
-			if (currentTexture != texture && currentTexture != null)
+			/*if (currentTexture != texture && currentTexture != null)
 				Flush ();
 			if (billboardCount + 1 > MAX_BILLBOARDS)
-				throw new Exception("Billboard overflow");
+				throw new Exception("Billboard overflow");*/
+			Flush();
 			currentTexture = texture;
 			//setup vertex
 			vertices [billboardCount].Position = Position;
@@ -162,6 +164,11 @@ namespace LibreLancer
 				return;
 			var view = camera.View;
 			var vp = camera.ViewProjection;
+			Vector3 avgPos = Vector3.Zero;
+			for (int i = lastCount; i < billboardCount; i++)
+				avgPos += vertices[i].Position;
+			avgPos /= (billboardCount - lastCount);
+			var z = RenderHelpers.GetZ(Matrix4.Identity, camera.Position, avgPos);
 			buffer.AddCommand(
 				shader,
 				_setupDelegate,
@@ -172,7 +179,8 @@ namespace LibreLancer
 				PrimitiveTypes.Points,
 				lastCount,
 				billboardCount - lastCount,
-				true
+				true,
+				z
 			);
 			lastCount = billboardCount;
 

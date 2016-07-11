@@ -53,7 +53,7 @@ namespace LibreLancer
 				case "VertexPositionNormalTextureTwo":
 					return ShaderCache.Get(
 						"Basic_PositionNormalTextureTwo.vs",
-						"Basic_PositionNormalTextureTwo.frag"
+						"Basic_Fragment.frag"
 					);
 				case "VertexPositionNormalColorTexture":
 					return ShaderCache.Get(

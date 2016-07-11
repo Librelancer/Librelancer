@@ -57,6 +57,7 @@ namespace LibreLancer
 			}
             GL.AttachShader(programID, vertexHandle);
             GL.AttachShader(programID, fragmentHandle);
+			//Attributes
             GL.BindAttribLocation(programID, VertexSlots.Position, "vertex_position");
             GL.BindAttribLocation(programID, VertexSlots.Normal, "vertex_normal");
             GL.BindAttribLocation(programID, VertexSlots.Color, "vertex_color");
@@ -66,6 +67,11 @@ namespace LibreLancer
 			GL.BindAttribLocation (programID, VertexSlots.Texture4, "vertex_texture4");
 			GL.BindAttribLocation (programID, VertexSlots.Size, "vertex_size");
 			GL.BindAttribLocation (programID, VertexSlots.Angle, "vertex_angle");
+			//Fragment Outputs
+			GL.BindFragDataLocation(programID, 0, "out_color0");
+			GL.BindFragDataLocation(programID, 1, "out_color1");
+			GL.BindFragDataLocation(programID, 2, "out_color2");
+			GL.BindFragDataLocation(programID, 3, "out_color3");
 
             GL.LinkProgram(programID);
 			GL.GetProgramiv (programID, GL.GL_LINK_STATUS, out status);

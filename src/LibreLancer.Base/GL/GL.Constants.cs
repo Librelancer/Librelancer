@@ -104,8 +104,10 @@ namespace LibreLancer
 		public const int GL_SRC_ALPHA = 0x0302;
 		public const int GL_ONE_MINUS_SRC_ALPHA = 0x0303;
 		public const int GL_CULL_FACE = 0x0B44;
+		public const int GL_ZERO = 0;
 		public const int GL_ONE = 1;
 
+		public const int GL_EQUAL = 0x0202;
 		public const int GL_LEQUAL = 0x0203;
 
 		public const int GL_NUM_EXTENSIONS = 0x821D;
@@ -124,6 +126,7 @@ namespace LibreLancer
 		public const int GL_BACK = 0x0405;
 
 		public const int GL_UNPACK_ALIGNMENT = 0x0CF5;
+		public const int GL_ONE_MINUS_SRC_COLOR = 0x0301;
 	}
 }
 

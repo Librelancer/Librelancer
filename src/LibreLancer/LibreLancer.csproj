@@ -104,7 +104,6 @@
     <Compile Include="Render\SunRenderer.cs" />
     <Compile Include="Render\Materials\BasicMaterial.cs" />
     <Compile Include="Render\Materials\NebulaMaterial.cs" />
-    <Compile Include="Render\Materials\SunMaterial.cs" />
     <Compile Include="ViewportManager.cs" />
     <Compile Include="Render\Materials\AtmosphereMaterial.cs" />
     <Compile Include="Render\Materials\Masked2DetailMapMaterial.cs" />
@@ -225,6 +224,10 @@
     <Compile Include="GameData\Spine.cs" />
     <Compile Include="RandomExtensions.cs" />
     <Compile Include="Render\LightKind.cs" />
+    <Compile Include="GameData\AsteroidBand.cs" />
+    <Compile Include="GameData\AsteroidField.cs" />
+    <Compile Include="Render\AsteroidFieldRenderer.cs" />
+    <Compile Include="Render\RenderHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -232,7 +235,6 @@
     <EmbeddedResource Include="Shaders\Basic_PositionNormalColorTexture.vs" />
     <EmbeddedResource Include="Shaders\Nebula_PositionColorTexture.frag" />
     <EmbeddedResource Include="Shaders\Basic_PositionNormalTextureTwo.vs" />
-    <EmbeddedResource Include="Shaders\Basic_PositionNormalTextureTwo.frag" />
     <EmbeddedResource Include="Shaders\Masked2DetailMapMaterial.frag" />
     <EmbeddedResource Include="Shaders\PositionTextureFlip.vs" />
     <EmbeddedResource Include="Shaders\DetailMap2Dm1Msk2PassMaterial.frag" />
@@ -249,6 +251,8 @@
     <EmbeddedResource Include="Shaders\sun_spine.frag" />
     <EmbeddedResource Include="Shaders\PositionColorTexture.vs" />
     <EmbeddedResource Include="Shaders\lighting.inc" />
+    <EmbeddedResource Include="Shaders\AsteroidBand.vs" />
+    <EmbeddedResource Include="Shaders\AsteroidBand.frag" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">
