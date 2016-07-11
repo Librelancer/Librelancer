@@ -127,7 +127,7 @@ namespace LibreLancer.Utf.Cmp
 		{
 			if (Mesh.FlexibleVertexFormat == (D3DFVF.XYZ | D3DFVF.NORMAL))
 				return;
-			if (ready) Mesh.DrawBuffer(buffer, StartMesh, endMesh, StartVertex, world, light);
+			if (ready) Mesh.DrawBuffer(buffer, StartMesh, endMesh, StartVertex, world, light, Center);
 		}
         public override string ToString()
         {

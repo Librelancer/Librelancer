@@ -43,7 +43,8 @@ namespace LibreLancer
 				UseMaterial = true,
 				UseBaseVertex = true,
 				Transparent = material.IsTransparent,
-				World = world
+				World = world,
+				Z = z
 			};
 		}
 		public void AddCommand(Shader shader, Action<Shader,RenderState,RenderCommand> setup, Action<RenderState> cleanup, Matrix4 world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, float z = 0)
