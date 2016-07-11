@@ -253,6 +253,7 @@
     <EmbeddedResource Include="Shaders\lighting.inc" />
     <EmbeddedResource Include="Shaders\AsteroidBand.vs" />
     <EmbeddedResource Include="Shaders\AsteroidBand.frag" />
+    <EmbeddedResource Include="Shaders\Basic_PositionTexture.vs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

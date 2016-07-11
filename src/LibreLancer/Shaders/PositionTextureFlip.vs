@@ -7,6 +7,7 @@ in vec2 vertex_texture1;
 out vec2 out_texcoord;
 out vec3 out_normal;
 out vec3 world_position;
+out vec4 frag_vertexcolor;
 uniform mat4x4 World;
 uniform mat4x4 View;
 uniform mat4x4 NormalMatrix;
@@ -19,4 +20,5 @@ void main()
 	world_position = (World * vec4(vertex_position,1)).xyz;
 	out_normal = (NormalMatrix * vec4(vertex_normal,0.0)).xyz;
 	out_texcoord = texcoord;
+	frag_vertexcolor = vec4(1);
 }
