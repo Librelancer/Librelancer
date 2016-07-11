@@ -88,7 +88,8 @@ namespace LibreLancer
 			Vector2 topright,
 			Vector2 bottomleft,
 			Vector2 bottomright,
-			float angle
+			float angle,
+			float z = float.NegativeInfinity
 		)
 		{
 			Flush();
@@ -121,7 +122,7 @@ namespace LibreLancer
 				lastCount,
 				1,
 				true,
-				RenderHelpers.GetZ(Matrix4.Identity, camera.Position, Position)
+				float.IsNegativeInfinity(z) ? RenderHelpers.GetZ(Matrix4.Identity, camera.Position, Position) : z
 			);
 			lastCount = billboardCount;
 		}
