@@ -15,11 +15,10 @@ void main()
 {
 	vec2 texcoord = out_texcoord;
 
-    vec4 dc = texture(DtSampler, texcoord);
-	dc *= Dc;
+    vec4 tex = texture(DtSampler, texcoord);
 
 	texcoord *= TileRate;
-	dc *= mix(texture(Dm1Sampler, texcoord), vec4(1), dc.a);
+	tex *= mix(texture(Dm1Sampler, texcoord), vec4(1), tex.a);
 
-	out_color = light(vec4(0), Ac * dc, world_position, out_normal);
+	out_color = light(Ac, vec4(0), Dc, tex, world_position, out_normal);
 }

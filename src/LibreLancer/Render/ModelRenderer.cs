@@ -28,6 +28,7 @@ namespace LibreLancer
 		public CmpFile Cmp { get; private set; }
 		public SphFile Sph { get; private set; }
 		public string Nebula;
+		float radiusAtmosphere;
 
 		public ModelRenderer (ICamera camera, Matrix4 world, SystemObject spaceObject,ResourceManager cache, string nebula)
 		{
@@ -49,6 +50,10 @@ namespace LibreLancer
 			} else if (archetype is SphFile) {
 				Sph = archetype as SphFile;
 				Sph.Initialize (cache);
+				if (Sph.SideMaterials.Length > 6)
+					radiusAtmosphere = Sph.Radius * Sph.SideMaterials[6].Scale;
+				else
+					radiusAtmosphere = Sph.Radius;
 			}
 		}
 
@@ -61,30 +66,19 @@ namespace LibreLancer
 			else if (Sph != null)
 				Sph.Update (camera, elapsed);
 		}
-		Lighting GetLights(Lighting sys, Vector3 c, float r)
+
+		public bool LightInSphere(ref RenderLight lt)
 		{
-			var lights = new Lighting();
-			lights.Ambient = sys.Ambient;
-			foreach (var l in sys.Lights)
-			{
-				if (l.Kind == LightKind.Point &&
-				    VectorMath.Distance(l.Position, c) > r + l.Range)
-					continue;
-				if (l.Kind == LightKind.Point && Sph != null && 
-				    PrimitiveMath.EllipsoidContains(SpaceObject.Position,new Vector3(Sph.Radius), l.Position))
-				{
-					/*lights.Ambient = new Color4(
-						lights.Ambient.R + l.Color.R,
-						lights.Ambient.G + l.Color.G,
-						lights.Ambient.B + l.Color.B,
-						lights.Ambient.A
-					);*/
-					//Do something to the planet when light is inside
-				}
-				lights.Lights.Add(l);
-			}
-			return lights;
+			if (Sph == null)
+				return false;
+			var bsphere = new BoundingSphere(
+				SpaceObject.Position,
+				radiusAtmosphere
+			);
+			return bsphere.Contains(lt.Position) == ContainmentType.Contains;
 		}
+
+
 		public void Draw(CommandBuffer buffer, Lighting lights, string nebula)
 		{
 			if (Nebula != null && nebula != Nebula)
@@ -97,7 +91,7 @@ namespace LibreLancer
 					);
 					if (camera.Frustum.Intersects(bsphere))
 					{
-						Model.DrawBuffer(buffer, World, GetLights(lights, World.Transform(Model.Levels[0].Center), Model.Levels[0].Radius));
+						Model.DrawBuffer(buffer, World, RenderHelpers.ApplyLights(lights, World.Transform(Model.Levels[0].Center), Model.Levels[0].Radius));
 					}
 				}
 			} else if (Cmp != null) {
@@ -108,18 +102,17 @@ namespace LibreLancer
 							model.Levels[0].Radius
 						);
 						if (camera.Frustum.Intersects (bsphere)) {
-							Cmp.DrawBuffer (buffer, World, GetLights(lights,World.Transform(model.Levels[0].Center), model.Levels[0].Radius));
+							Cmp.DrawBuffer (buffer, World, RenderHelpers.ApplyLights(lights,World.Transform(model.Levels[0].Center), model.Levels[0].Radius));
 							break;
 						}
 					}
 			} else if (Sph != null) {
-				//TODO: Planet culling imprecise
 				var bsphere = new BoundingSphere(
 					SpaceObject.Position,
-					Sph.Radius * 2);
+					radiusAtmosphere);
 				if (camera.Frustum.Intersects(bsphere))
 				{
-					var l = GetLights(lights, SpaceObject.Position, Sph.Radius);
+					var l = RenderHelpers.ApplyLights(lights, SpaceObject.Position, Sph.Radius);
 					Sph.DrawBuffer(buffer, World, l);
 				}
 			}

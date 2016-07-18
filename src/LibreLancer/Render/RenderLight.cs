@@ -22,8 +22,10 @@ namespace LibreLancer
 		public LightKind Kind;
 		public Vector3 Position; 
 		public Vector3 Direction;
+		public Vector3 Attenuation;
 		public Color4 Color;
 		public int Range;
+		public bool FlipNormals;
 	}
 }
 

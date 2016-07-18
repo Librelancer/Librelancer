@@ -203,7 +203,7 @@ namespace LibreLancer
 			//Clear depth buffer for game objects
 			game.Billboards.Begin(camera, commands);
 			for (int i = 0; i < Models.Count; i++) Models[i].Draw(commands, systemLighting, nb);
-			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(cache, commands);
+			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(cache, systemLighting, commands);
 			game.Nebulae.NewFrame();
 			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Draw(commands, systemLighting);
 			game.Nebulae.SetData();

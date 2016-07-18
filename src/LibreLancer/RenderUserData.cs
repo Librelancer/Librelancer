@@ -12,7 +12,7 @@ namespace LibreLancer
 		public float Float;
 		public float Float2;
 		public Action<Shader, RenderState, RenderUserData> UserFunction;
-
+		public object Object;
 	}
 }
 

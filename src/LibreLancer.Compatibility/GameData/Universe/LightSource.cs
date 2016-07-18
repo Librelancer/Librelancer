@@ -27,7 +27,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 		public int? Range { get; private set; } // = 120000
 		public LightType? Type { get; private set; }
 		public string AttenCurve { get; private set; } // = DYNAMIC_DIRECTION
-		//public Vector3? Attenuation { get; private set; }
+		public Vector3? Attenuation { get; private set; }
 		public Vector3? Direction { get; private set; } // = 642, 0, 198
 
 		public LightSource(Vector3 pos, Color4 color, int range, FreelancerData data)
@@ -76,9 +76,9 @@ namespace LibreLancer.Compatibility.GameData.Universe
 						AttenCurve = e[0].ToString();
 						break;
 					case "attenuation":
-						//if (e.Count != 3) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-						//if (Attenuation != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-						//Attenuation = new Vector3(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle());
+						if (e.Count != 3) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+						if (Attenuation != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+						Attenuation = new Vector3(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle());
 						break;
 					case "direction":
 						if (e.Count != 3) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);

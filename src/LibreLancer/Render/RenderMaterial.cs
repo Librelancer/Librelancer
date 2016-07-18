@@ -30,7 +30,7 @@ namespace LibreLancer
 		static Texture2D nullTexture;
 		public abstract bool IsTransparent { get; }
 
-		protected void SetLights(Shader shader, Lighting lights)
+		public static void SetLights(Shader shader, Lighting lights)
 		{
 			shader.SetInteger("LightingEnabled", lights.Enabled ? 1 : 0);
 			shader.SetColor4("AmbientColor", lights.Ambient);
@@ -47,7 +47,8 @@ namespace LibreLancer
 				                  i);
 				shader.SetVector3 ("LightsDir", lt.Direction, i);
 				shader.SetVector3 ("LightsColor", new Vector3(lt.Color.R, lt.Color.G, lt.Color.B), i);
-				shader.SetInteger("LightsRange", lt.Range);
+				shader.SetVector3("LightsAttenuation", lt.Attenuation, i);
+				shader.SetInteger("LightsRange", lt.Range, i);
 			}
 		}
 		protected void BindTexture(string tex, int unit, SamplerFlags flags, bool throwonNull = true)

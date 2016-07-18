@@ -16,7 +16,7 @@ uniform bool OcEnabled;
 void main()
 {
 	vec4 sampler = texture(DtSampler, out_texcoord);
-	vec4 color = light(Ec, texture(DtSampler, out_texcoord) * Dc * out_vertexcolor, world_position, out_normal);
+	vec4 color = light(vec4(1), Ec, Dc * out_vertexcolor, texture(DtSampler, out_texcoord), world_position, out_normal);
 	if(OcEnabled)
 		out_color = color * vec4(1,1,1,Oc);
 	else

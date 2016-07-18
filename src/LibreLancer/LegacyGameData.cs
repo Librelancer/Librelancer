@@ -127,8 +127,9 @@ namespace LibreLancer
 					lt.Color = src.Color.Value;
 					lt.Position = src.Pos.Value;
 					lt.Range = src.Range.Value;
-					lt.Direction = src.Direction ?? Vector3.Zero;
+					lt.Direction = src.Direction ?? Vector3.UnitZ;
 					lt.Kind = ((src.Type ?? Legacy.Universe.LightType.Point) == Legacy.Universe.LightType.Point) ? LightKind.Point : LightKind.Directional;
+					lt.Attenuation = src.Attenuation ?? Vector3.UnitY;
 					sys.LightSources.Add (lt);
 				}
 			}
@@ -194,6 +195,10 @@ namespace LibreLancer
 					a.Band.Height = ast.Band.Height.Value;
 					a.Band.Shape = panels.Shapes[ast.Band.Shape].TextureName;
 					a.Band.Fade = new Vector4(ast.Band.Fade[0], ast.Band.Fade[1], ast.Band.Fade[2], ast.Band.Fade[3]);
+					var cs =  ast.Band.ColorShift ?? Vector3.One;
+					a.Band.ColorShift = new Color4(cs.X, cs.Y, cs.Z, 1f);
+					a.Band.TextureAspect = ast.Band.TextureAspect ?? 1f;
+					a.Band.OffsetDistance = ast.Band.OffsetDist ?? 0f;
 					sys.AsteroidFields.Add(a);
 				}
 			}

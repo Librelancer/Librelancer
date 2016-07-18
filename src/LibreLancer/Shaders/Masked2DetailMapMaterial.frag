@@ -18,7 +18,7 @@ void main()
 {
 	vec2 texcoord = out_texcoord;
 
-	vec4 dc = texture(DtSampler, texcoord);
+	vec4 tex = texture(DtSampler, texcoord);
 
 	vec2 texcoord0 = texcoord * TileRate0;
 	vec4 detail0 = texture(Dm0Sampler, texcoord0);
@@ -26,8 +26,8 @@ void main()
 	vec2 texcoord1 = texcoord * TileRate1;
 	vec4 detail1 = texture(Dm1Sampler, texcoord1);
 
-	vec4 detail = vec4(mix(detail0.xyz, detail1.xyz, dc.a),1);
-	dc *= detail;
+	vec4 detail = vec4(mix(detail0.xyz, detail1.xyz, tex.a),1);
+	tex *= detail;
 
-	out_color = vec4(light(vec4(0), dc, world_position, out_normal).xyz, 1);
+	out_color = vec4(light(Ac, vec4(0), Dc, tex, world_position, out_normal).xyz, 1);
 }

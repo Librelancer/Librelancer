@@ -1,4 +1,8 @@
 ﻿#version 150
+#pragma include (lighting.inc)
+uniform vec4 ColorShift;
+uniform float TextureAspect;
+
 out vec4 out_color;
 in vec2 texcoords;
 in vec3 world_position;
@@ -13,6 +17,7 @@ void main(void)
 	float dist = distance(CameraPosition, world_position);
 	float delta = max(FADE_DISTANCE - dist, 0.0);
 	float alpha = (FADE_DISTANCE - delta) / FADE_DISTANCE;
-	vec4 tex = texture(Texture, texcoords);
-	out_color = vec4(tex.rgb, tex.a * alpha);
+	vec4 tex = texture(Texture, texcoords * vec2(TextureAspect, 1));
+	vec4 dc = vec4(tex.rgb * ColorShift.rgb, tex.a * alpha);
+	out_color = light(vec4(1), vec4(0), vec4(1), dc, world_position, normal);
 }

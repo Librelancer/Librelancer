@@ -15,6 +15,7 @@ namespace LibreLancer
 		Matrix4 bandNormal;
 		Shader bandShader;
 		Vector3 cameraPos;
+		float lightingRadius;
 		public AsteroidFieldRenderer(AsteroidField field)
 		{
 			this.field = field;
@@ -28,8 +29,14 @@ namespace LibreLancer
 				sz = ((ZoneEllipsoid)field.Zone.Shape).Size;
 			else
 				return;
+			sz.Xz -= new Vector2(field.Band.OffsetDistance);
+			lightingRadius = Math.Max(sz.X, sz.Z);
 			renderBand = true;
-			bandTransform =  Matrix4.CreateScale(sz.X, field.Band.Height, sz.Z) * field.Zone.RotationMatrix * Matrix4.CreateTranslation(field.Zone.Position);
+			bandTransform = (
+				Matrix4.CreateScale(sz.X, field.Band.Height / 2, sz.Z) * 
+				field.Zone.RotationMatrix * 
+				Matrix4.CreateTranslation(field.Zone.Position)
+			);
 			bandCylinder = new OpenCylinder(SIDES);
 			bandNormal = bandTransform;
 			bandNormal.Invert();
@@ -42,7 +49,7 @@ namespace LibreLancer
 			cameraPos = camera.Position;
 		}
 
-		public void Draw(ResourceManager res, CommandBuffer buffer)
+		public void Draw(ResourceManager res, Lighting lighting, CommandBuffer buffer)
 		{
 			//Billboards
 
@@ -50,6 +57,7 @@ namespace LibreLancer
 			if (renderBand)
 			{
 				var tex = (Texture2D)res.FindTexture(field.Band.Shape);
+				var lt = RenderHelpers.ApplyLights(lighting, field.Zone.Position, lightingRadius);
 				for (int i = 0; i < SIDES; i++)
 				{
 					var p = bandCylinder.GetSidePosition(i);
@@ -59,7 +67,15 @@ namespace LibreLancer
 						bandShaderDelegate,
 						bandShaderCleanup,
 						bandTransform,
-						new RenderUserData() { ViewProjection = vp, Texture = tex, Vector = cameraPos, Matrix2 = bandNormal },
+						new RenderUserData() { 
+							Object = lt, 
+							Float = field.Band.TextureAspect, 
+							Color = field.Band.ColorShift, 
+							ViewProjection = vp, 
+							Texture = tex, 
+							Vector = cameraPos, 
+							Matrix2 = bandNormal 
+						},
 						bandCylinder.VertexBuffer,
 						PrimitiveTypes.TriangleList,
 						0,
@@ -79,12 +95,15 @@ namespace LibreLancer
 			shader.SetMatrix("NormalMatrix", ref command.UserData.Matrix2);
 			shader.SetInteger("Texture", 0);
 			shader.SetVector3("CameraPosition", command.UserData.Vector);
+			shader.SetColor4("ColorShift", command.UserData.Color);
+			shader.SetFloat("TextureAspect", command.UserData.Float);
+			RenderMaterial.SetLights(shader, (Lighting)command.UserData.Object);
 			command.UserData.Texture.BindTo(0);
-
 			shader.UseProgram();
 			state.BlendMode = BlendMode.Normal;
 			state.Cull = false;
 		}
+
 		static Action<RenderState> bandShaderCleanup = obj => { obj.Cull = true; };
 	}
 }

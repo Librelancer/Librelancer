@@ -152,6 +152,19 @@ namespace LibreLancer
 			}
         }
 
+		public void SetFloat(string name, float value, int index)
+		{
+			GLBind.UseProgram(programID);
+			var loc = GetLocation(name);
+			if (loc == -1)
+				return;
+			if (NeedUpdate(loc + index, value))
+			{
+				GL.Uniform1f(GetLocation(name) + index, value);
+				Update(loc + index, value);
+			}
+		}
+
         public void SetColor4(string name, Color4 value)
         {
             GLBind.UseProgram(programID);
