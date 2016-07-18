@@ -33,29 +33,15 @@ namespace LibreLancer.Compatibility.GameData.Universe
 		}
 
 		public float? FogFar { get; set; }
-
-		/*
-         * TODO
-         * 
-         * public string ZoneShellPath { private get; set; }
-        private UtfFile zoneShell;
-        public UtfFile ZoneShell
-        {
-            get
-            {
-                //if (zoneShell == null) zoneShell = new UtfFile(Data.FLDataPath + ZoneShellPath);
-                return zoneShell;
-            }
-        }*/
-
 		public float? ShellScalar { get; set; }
 		public float? MaxAlpha { get; set; }
 		public Color4? Color { get; set; }
-		public Color4? Tint { get; set; }
+		public Color3f? Tint { get; set; }
 		public int? ExcludeBillboards { get; set; }
 		public int? ExcludeDynamicAsteroids { get; set; }
 		public float? EmptyCubeFrequency { get; set; }
 		public int? BillboardCount { get; set; }
+		public string ZoneShellPath { get; set; }
 
 		public ExclusionZone(StarSystem parent, string exclusion)
 		{

@@ -130,6 +130,10 @@ namespace LibreLancer.Utf.Mat
 			CubeMapFace.PositiveY,
 			CubeMapFace.NegativeY
 		};
+		public float GetRadius()
+		{
+			return Radius;
+		}
 		public void Draw(RenderState rstate, Matrix4 world, Lighting lights)
         {
 			throw new NotImplementedException();

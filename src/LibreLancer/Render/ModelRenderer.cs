@@ -27,10 +27,10 @@ namespace LibreLancer
 		public ModelFile Model { get; private set; }
 		public CmpFile Cmp { get; private set; }
 		public SphFile Sph { get; private set; }
-		public string Nebula;
+		public NebulaRenderer Nebula;
 		float radiusAtmosphere;
 
-		public ModelRenderer (ICamera camera, Matrix4 world, SystemObject spaceObject,ResourceManager cache, string nebula)
+		public ModelRenderer (ICamera camera, Matrix4 world, SystemObject spaceObject,ResourceManager cache, NebulaRenderer nebula)
 		{
 			Nebula = nebula;
 			World = world * Matrix4.CreateTranslation(spaceObject.Position);
@@ -79,7 +79,7 @@ namespace LibreLancer
 		}
 
 
-		public void Draw(CommandBuffer buffer, Lighting lights, string nebula)
+		public void Draw(CommandBuffer buffer, Lighting lights, NebulaRenderer nebula)
 		{
 			if (Nebula != null && nebula != Nebula)
 				return;
@@ -91,7 +91,7 @@ namespace LibreLancer
 					);
 					if (camera.Frustum.Intersects(bsphere))
 					{
-						Model.DrawBuffer(buffer, World, RenderHelpers.ApplyLights(lights, World.Transform(Model.Levels[0].Center), Model.Levels[0].Radius));
+						Model.DrawBuffer(buffer, World, RenderHelpers.ApplyLights(lights, World.Transform(Model.Levels[0].Center), Model.Levels[0].Radius, Nebula));
 					}
 				}
 			} else if (Cmp != null) {
@@ -102,7 +102,7 @@ namespace LibreLancer
 							model.Levels[0].Radius
 						);
 						if (camera.Frustum.Intersects (bsphere)) {
-							Cmp.DrawBuffer (buffer, World, RenderHelpers.ApplyLights(lights,World.Transform(model.Levels[0].Center), model.Levels[0].Radius));
+							Cmp.DrawBuffer (buffer, World, RenderHelpers.ApplyLights(lights,World.Transform(model.Levels[0].Center), model.Levels[0].Radius, Nebula));
 							break;
 						}
 					}
@@ -112,7 +112,7 @@ namespace LibreLancer
 					radiusAtmosphere);
 				if (camera.Frustum.Intersects(bsphere))
 				{
-					var l = RenderHelpers.ApplyLights(lights, SpaceObject.Position, Sph.Radius);
+					var l = RenderHelpers.ApplyLights(lights, SpaceObject.Position, Sph.Radius, Nebula);
 					Sph.DrawBuffer(buffer, World, l);
 				}
 			}

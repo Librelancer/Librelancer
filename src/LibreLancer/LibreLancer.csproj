@@ -233,6 +233,7 @@
     <Compile Include="Render\AsteroidFieldRenderer.cs" />
     <Compile Include="Render\RenderHelpers.cs" />
     <Compile Include="ApproximateCurve.cs" />
+    <Compile Include="GameData\ExclusionZone.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -259,6 +260,7 @@
     <EmbeddedResource Include="Shaders\AsteroidBand.vs" />
     <EmbeddedResource Include="Shaders\AsteroidBand.frag" />
     <EmbeddedResource Include="Shaders\Basic_PositionTexture.vs" />
+    <EmbeddedResource Include="Shaders\nebula_extpuff.frag" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

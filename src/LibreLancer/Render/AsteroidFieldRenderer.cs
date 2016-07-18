@@ -57,7 +57,7 @@ namespace LibreLancer
 			if (renderBand)
 			{
 				var tex = (Texture2D)res.FindTexture(field.Band.Shape);
-				var lt = RenderHelpers.ApplyLights(lighting, field.Zone.Position, lightingRadius);
+				var lt = RenderHelpers.ApplyLights(lighting, field.Zone.Position, lightingRadius, null);
 				for (int i = 0; i < SIDES; i++)
 				{
 					var p = bandCylinder.GetSidePosition(i);

@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer.GameData;
+using LibreLancer.Utf.Cmp;
 using LibreLancer.Vertices;
 
 namespace LibreLancer
@@ -49,14 +50,18 @@ namespace LibreLancer
 			return scaled.ContainsPoint(Nebula.Zone.Position, camera.Position);
 		}
 
+		float CalculateTransition(Zone zone)
+		{
+			//Find transitional value based on how far into the zone we are
+			//ScaledDistance is from 0 at center to 1 at edge. Reverse this.
+			var sd = 1 - MathHelper.Clamp(zone.Shape.ScaledDistance(zone.Position, camera.Position), 0f, 1f);
+			return MathHelper.Clamp(sd / zone.EdgeFraction, 0, 1);
+		}
+
 		public void RenderFogTransition()
 		{
-			//Find transitional colour based on how far into the nebula we are
-			//ScaledDistance is from 0 at center to 1 at edge. Reverse this.
-			var sd = 1 - Nebula.Zone.Shape.ScaledDistance(Nebula.Zone.Position, camera.Position);
-			var alpha = sd / Nebula.Zone.EdgeFraction; //at 0 distance, 0 alpha, at EdgeFraction distance, full alpha
 			var c = Nebula.FogColor;
-			c.A = alpha;
+			c.A = CalculateTransition(Nebula.Zone);
 
 			game.Renderer2D.Start(game.Width, game.Height);
 			game.Renderer2D.FillRectangle(new Rectangle(0, 0, game.Width, game.Height), c);
@@ -87,53 +92,113 @@ namespace LibreLancer
 			}
 		}
 
+		public void GetLighting(Vector3 position, out bool FogEnabled, out Color4? Ambient, out Vector2 FogRange, out Color4 FogColor)
+		{
+			Ambient = Nebula.AmbientColor;
+			FogEnabled = Nebula.FogEnabled;
+			FogColor = Nebula.FogColor;
+			FogRange = Nebula.FogRange;
+			var ex = GetExclusion(position);
+			if (ex != null)
+			{
+				var factor = CalculateTransition(ex.Zone);
+				FogRange.Y = MathHelper.Lerp(FogRange.Y, ex.FogFar, factor);;
+			}
+		}
+
+		ExclusionZone GetExclusion(Vector3 position)
+		{
+			if (Nebula.ExclusionZones != null)
+			{
+				foreach (var zone in Nebula.ExclusionZones)
+					if (zone.Zone.Shape.ContainsPoint(zone.Zone.Position, position))
+						return zone;
+			}
+			return null;
+		}
+
 		public void Draw(CommandBuffer buffer, Lighting lights)
 		{
 			if (!Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, camera.Position) || !FogTransitioned())
 				RenderFill(buffer);
 			DrawPuffRing();
 			if (Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, camera.Position))
-				RenderInteriorPuffs();
+			{
+				var ex = GetExclusion(camera.Position);
+				if (ex != null)
+				{
+					RenderExclusionZone(buffer, ex);
+				}
+				else
+					RenderInteriorPuffs();
+			}
 		}
+
+		void RenderExclusionZone(CommandBuffer buffer, ExclusionZone ex)
+		{
+			if (ex.Shell == null)
+				return;
+			Vector3 sz = Vector3.Zero;
+			//Only render ellipsoid and sphere exteriors
+			if (Nebula.Zone.Shape is ZoneEllipsoid)
+				sz = ((ZoneEllipsoid)Nebula.Zone.Shape).Size / 2; //we want radius instead of diameter
+			else if (Nebula.Zone.Shape is ZoneSphere)
+				sz = new Vector3(((ZoneSphere)Nebula.Zone.Shape).Radius);
+			else
+				return;
+			sz *= (1 / ex.Shell.GetRadius());
+			var world = Matrix4.CreateScale(ex.ShellScalar * sz) * ex.Zone.RotationMatrix * Matrix4.CreateTranslation(ex.Zone.Position);
+			var shell = (ModelFile)ex.Shell;
+			//Calculate Alpha
+			var alpha = ex.ShellMaxAlpha * CalculateTransition(ex.Zone);
+			//Set all render materials. We don't want LOD for this Mesh.
+			var l0 = shell.Levels[0];
+			for (int i = l0.StartMesh; (i < l0.StartMesh + l0.MeshCount); i++)
+			{
+				var mat = (BasicMaterial)l0.Mesh.Meshes[i].Material.Render;
+				mat.Oc = alpha;
+				mat.OcEnabled = true;
+				mat.AlphaEnabled = true;
+				mat.Dc = new Color4(ex.ShellTint, 1) * Nebula.FogColor;
+			}
+			//Render
+			l0.Update(camera, TimeSpan.Zero);
+			l0.DrawBuffer(buffer, world, Lighting.Empty);
+		}
+
 		void DrawPuffRing()
 		{
-			var c = Nebula.ExteriorColor;
-			if (FogTransitioned())
-			{
-				c = Nebula.FogColor;
-			}
-			else if (Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, camera.Position))
-			{
-				//Find transitional colour based on how far into the nebula we are
-				//ScaledDistance is from 0 at center to 1 at edge. Reverse this.
-				var sd = 1 - Nebula.Zone.Shape.ScaledDistance(Nebula.Zone.Position, camera.Position);
-				var delta = sd / Nebula.Zone.EdgeFraction; //at 0 distance, exterior color, at EdgeFraction distance, fog color
-				var c3f = Utf.Ale.AlchemyEasing.EaseColorRGB(
-					Utf.Ale.EasingTypes.Linear,
-					delta,
-					0,
-					1,
-					new Color3f(Nebula.ExteriorColor.R, Nebula.ExteriorColor.G, Nebula.ExteriorColor.B),
-					new Color3f(Nebula.FogColor.R, Nebula.FogColor.G, Nebula.FogColor.B)
-				);
-				c = new Color4(c3f, 1);
-			}
+			var sd = 1 - MathHelper.Clamp(Nebula.Zone.Shape.ScaledDistance(Nebula.Zone.Position, camera.Position), 0f, 1f);
+			var factor = MathHelper.Clamp(sd / Nebula.Zone.EdgeFraction, 0, 1);
+
 			for (int i = 0; i < Exterior.Count; i++)
 			{
 				var p = Exterior[i];
-				game.Billboards.Draw(
-						(Texture2D)game.ResourceManager.FindTexture(p.Shape.Texture),
-						p.Position,
-						p.Size,
-						c,
-						new Vector2(p.Shape.Dimensions.X, p.Shape.Dimensions.Y),
-						new Vector2(p.Shape.Dimensions.X + p.Shape.Dimensions.Width, p.Shape.Dimensions.Y),
-						new Vector2(p.Shape.Dimensions.X, p.Shape.Dimensions.Y + p.Shape.Dimensions.Height),
-						new Vector2(p.Shape.Dimensions.X + p.Shape.Dimensions.Width, p.Shape.Dimensions.Y + p.Shape.Dimensions.Height),
-						0
-					);
+				var tex = game.ResourceManager.FindTexture(p.Shape.Texture);
+				game.Billboards.DrawCustomShader(
+					"nebula_extpuff.frag",
+					new RenderUserData() { Texture = tex, Color = Nebula.FogColor, Float = factor, UserFunction = _setupPuffDelegate },
+					p.Position,
+					p.Size,
+					Nebula.ExteriorColor,
+					new Vector2(p.Shape.Dimensions.X, p.Shape.Dimensions.Y),
+					new Vector2(p.Shape.Dimensions.X + p.Shape.Dimensions.Width, p.Shape.Dimensions.Y),
+					new Vector2(p.Shape.Dimensions.X, p.Shape.Dimensions.Y + p.Shape.Dimensions.Height),
+					new Vector2(p.Shape.Dimensions.X + p.Shape.Dimensions.Width, p.Shape.Dimensions.Y + p.Shape.Dimensions.Height),
+					0
+				);
 			}
 		}
+
+		static Action<Shader, RenderState, RenderUserData> _setupPuffDelegate = SetupPuffShader;
+		static void SetupPuffShader(Shader sh, RenderState rs, RenderUserData dat)
+		{
+			sh.SetInteger("tex0", 0);
+			dat.Texture.BindTo(0);
+			sh.SetColor4("FogColor", dat.Color);
+			sh.SetFloat("FogFactor", dat.Float);
+		}
+
 		void GenerateExteriorPuffs()
 		{
 			var rn = new Random(1001);
@@ -141,6 +206,7 @@ namespace LibreLancer
 			GeneratePuffRing(0.5f, rn);
 			GeneratePuffRing(0.75f, rn);
 		}
+
 		void GeneratePuffRing(float ypct, Random rn)
 		{
 			Vector3 sz = Vector3.Zero;
@@ -168,7 +234,7 @@ namespace LibreLancer
 					Nebula.ExteriorBitRadius * (1 - Nebula.ExteriorBitRandomVariation),
 					Nebula.ExteriorBitRadius * (1 + Nebula.ExteriorBitRandomVariation)
 				);
-				puff.Size = new Vector2(radius);
+				puff.Size = new Vector2(radius * 2);
 				puff.Shape = Nebula.ExteriorCloudShapes.GetNext();
 				Exterior.Add(puff);
 				current_angle += delta_angle;
@@ -266,8 +332,6 @@ namespace LibreLancer
 			return new Color3f(c.R, c.G, c.B);
 		}
 
-	
-
 		void RenderFill(CommandBuffer buffer)
 		{
 			Vector3 sz = Vector3.Zero;
@@ -351,7 +415,7 @@ namespace LibreLancer
 				buffer,
 				camera,
 				tex,
-				Nebula.ExteriorColor,
+				Nebula.FogColor,
 				transform
 			);
 		}

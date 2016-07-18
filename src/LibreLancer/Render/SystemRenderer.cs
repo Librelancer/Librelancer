@@ -140,15 +140,15 @@ namespace LibreLancer
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Update(camera);
 			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Update(elapsed);
 		}
-		string ObjectInNebula(Vector3 position)
+		NebulaRenderer ObjectInNebula(Vector3 position)
 		{
 			for (int i = 0; i < Nebulae.Count; i++)
 			{
 				var n = Nebulae[i];
-				if (n.Nebula.Zone.Shape.Scale(1 - n.Nebula.Zone.EdgeFraction).ContainsPoint(
+				if (n.Nebula.Zone.Shape.ContainsPoint(
 					n.Nebula.Zone.Position,
 					position))
-					return n.Nebula.Zone.Nickname;
+					return n;
 			}
 			return null;
 		}
@@ -197,12 +197,11 @@ namespace LibreLancer
 					rstate.DepthEnabled = true;
 				}
 			}
-			string nb = nr != null ? nr.Nebula.Zone.Nickname : null;
 			commands.StartFrame();
 			rstate.DepthEnabled = true;
 			//Clear depth buffer for game objects
 			game.Billboards.Begin(camera, commands);
-			for (int i = 0; i < Models.Count; i++) Models[i].Draw(commands, systemLighting, nb);
+			for (int i = 0; i < Models.Count; i++) Models[i].Draw(commands, systemLighting, nr);
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(cache, systemLighting, commands);
 			game.Nebulae.NewFrame();
 			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Draw(commands, systemLighting);

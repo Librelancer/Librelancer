@@ -150,6 +150,10 @@ namespace LibreLancer.Utf.Cmp
             if (Animation != null) Animation.Update(delta);
             for (int i = 0; i < Parts.Count; i++) Parts[i].Update(camera, delta);
         }
+		public float GetRadius()
+		{
+			throw new NotImplementedException();
+		}
 		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light)
 		{
 			for (int i = 0; i < Parts.Count; i++) Parts[i].DrawBuffer(buffer, world, light);

@@ -57,7 +57,11 @@ namespace LibreLancer.Media
 			else
 			{
 				while (buffers.Count < 1)
+				{
 					Thread.Sleep(1);
+					if (running == false)
+						return false;
+				}
 				buffers.TryDequeue(out output);
 				return true;
 			}

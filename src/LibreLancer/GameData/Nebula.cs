@@ -14,6 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Collections.Generic;
 using LibreLancer.Utf.Mat;
 
 namespace LibreLancer.GameData
@@ -31,8 +32,11 @@ namespace LibreLancer.GameData
 		public float ExteriorBitRandomVariation;
 		public float ExteriorMoveBitPercent;
 		public WeightedRandomCollection<CloudShape> ExteriorCloudShapes;
-		//Fog
+		//Fog + Lighting
+		public bool FogEnabled;
 		public Color4 FogColor;
+		public Vector2 FogRange;
+		public Color4? AmbientColor;
 		//Interior
 		public bool HasInteriorClouds = false;
 		public WeightedRandomCollection<CloudShape> InteriorCloudShapes;
@@ -44,6 +48,8 @@ namespace LibreLancer.GameData
 		public Vector2 InteriorCloudFadeDistance;
 		public float InteriorCloudMaxAlpha;
 		public float InteriorCloudDrift;
+		//Exclusion
+		public List<ExclusionZone> ExclusionZones;
 	}
 	public struct CloudShape
 	{

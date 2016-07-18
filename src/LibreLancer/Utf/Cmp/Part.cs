@@ -72,6 +72,11 @@ namespace LibreLancer.Utf.Cmp
             Model.Resized();
         }
 
+		public float GetRadius()
+		{
+			throw new NotImplementedException();
+		}
+
 		public void Update(ICamera camera, TimeSpan delta)
         {
 			Model.Update (camera, delta);

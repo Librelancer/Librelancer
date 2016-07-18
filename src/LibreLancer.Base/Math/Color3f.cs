@@ -19,6 +19,8 @@ namespace LibreLancer
 {
 	public struct Color3f
 	{
+		public static readonly Color3f White = new Color3f(1, 1, 1);
+
 		public float R;
 		public float G;
 		public float B;

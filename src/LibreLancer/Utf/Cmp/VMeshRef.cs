@@ -116,6 +116,11 @@ namespace LibreLancer.Utf.Cmp
             if (ready) Mesh.Update(camera, StartMesh, endMesh);
         }
 
+		public float GetRadius()
+		{
+			return Radius;
+		}
+
 		public void Draw(RenderState rstate, Matrix4 world, Lighting light)
         {
 			if (Mesh.FlexibleVertexFormat == (D3DFVF.XYZ | D3DFVF.NORMAL))
@@ -129,6 +134,7 @@ namespace LibreLancer.Utf.Cmp
 				return;
 			if (ready) Mesh.DrawBuffer(buffer, StartMesh, endMesh, StartVertex, world, light, Center);
 		}
+
         public override string ToString()
         {
             return "VMeshRef";

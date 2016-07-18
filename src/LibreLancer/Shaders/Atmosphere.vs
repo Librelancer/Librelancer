@@ -8,6 +8,8 @@ out vec3 e;
 out vec3 n;
 out vec3 world_position;
 out vec3 out_normal;
+out vec3 view_position;
+
 uniform mat4x4 World;
 uniform mat4x4 View;
 uniform mat4x4 ViewProjection;
@@ -25,5 +27,6 @@ void main()
 	n = normalize(vec3(NormalMatrix * vec4(vertex_normal, 0.0)));
 	out_normal = (NormalMatrix * vec4(vertex_normal, 0.0)).xyz;
 	world_position = (World * vec4(vertex_position, 1.0)).xyz;
+	view_position = (View * World) * vec4(vertex_Position,1);
 }
 

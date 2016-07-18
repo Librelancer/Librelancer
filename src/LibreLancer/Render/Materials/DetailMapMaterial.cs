@@ -47,6 +47,7 @@ namespace LibreLancer
 
 			Shader sh = GetShader (vertextype);
 			sh.SetMatrix ("World", ref World);
+			sh.SetMatrix ("View", ref View);
 			sh.SetMatrix ("ViewProjection", ref ViewProjection);
 			sh.SetMatrix("View", ref View);
 

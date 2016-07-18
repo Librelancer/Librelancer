@@ -33,6 +33,8 @@ namespace LibreLancer
 		public static void SetLights(Shader shader, Lighting lights)
 		{
 			shader.SetInteger ("LightingEnabled", lights.Enabled ? 1 : 0);
+			if (!lights.Enabled)
+				return;
 			shader.SetColor4 ("AmbientColor", lights.Ambient);
 			shader.SetInteger ("LightCount", lights.Lights.Count);
 			for (int i = 0; i < lights.Lights.Count; i++) {
@@ -42,6 +44,12 @@ namespace LibreLancer
 				shader.SetVector3 ("LightsColor", new Vector3(lt.Color.R, lt.Color.G, lt.Color.B), i);
 				shader.SetVector4 ("LightsAttenuation", lt.Attenuation, i);
 				shader.SetInteger ("LightsRange", lt.Range, i);
+			}
+			shader.SetInteger("FogEnabled", lights.FogEnabled ? 1 : 0);
+			if (lights.FogEnabled)
+			{
+				shader.SetColor4("FogColor", lights.FogColor);
+				shader.SetVector2("FogRange", lights.FogRange);
 			}
 		}
 		protected void BindTexture(string tex, int unit, SamplerFlags flags, bool throwonNull = true)

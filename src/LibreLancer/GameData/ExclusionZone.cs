@@ -14,22 +14,18 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using System.Collections.Generic;
-namespace LibreLancer
+namespace LibreLancer.GameData
 {
-	public class Lighting
+	public class ExclusionZone
 	{
-		public static readonly Lighting Empty = new Lighting() { Enabled = false };
-		public bool Enabled = true;
-		public Color4 Ambient = Color4.White;
-		public List<RenderLight> Lights = new List<RenderLight>();
-		public bool FogEnabled = false;
-		public Color4 FogColor = Color4.White;
-		public Vector2 FogRange = Vector2.Zero;
-
-		public Lighting ()
-		{
-		}
+		public Zone Zone;
+		//Shell
+		public IDrawable Shell;
+		public Color3f ShellTint;
+		public float ShellMaxAlpha;
+		public float ShellScalar;
+		//Fog
+		public float FogFar;
 	}
 }
 

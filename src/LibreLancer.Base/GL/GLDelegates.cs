@@ -68,6 +68,7 @@ namespace LibreLancer.GLDelegates
 	delegate int GetUniformLocation(uint program, string name);
 	delegate void Uniform1i(int location, int v0);
 	delegate void Uniform1f(int location, float v0);
+	delegate void Uniform2f(int location, float v0, float v1);
 	delegate void Uniform3f(int location, float v0, float v1, float v2);
 	delegate void Uniform4f(int location, float v0, float v1, float v2, float v3);
 	delegate void UniformMatrix4fv(int location, int count, bool transpose, IntPtr value);

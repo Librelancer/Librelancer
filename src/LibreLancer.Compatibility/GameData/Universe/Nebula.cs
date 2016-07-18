@@ -142,7 +142,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 						case "zone_shell":
 							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (ExclusionZones.Count == 0) throw new Exception(e.Name + " before exclusion");
-							//TODO:ExclusionZones[ExclusionZones.Count - 1].ZoneShellPath = e[0].ToString();
+							ExclusionZones[ExclusionZones.Count - 1].ZoneShellPath = e[0].ToString();
 							break;
 						case "shell_scalar":
 							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
@@ -162,7 +162,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 						case "exclusion_tint":
 							if (e.Count != 3) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (ExclusionZones.Count == 0) throw new Exception(e.Name + " before exclusion");
-							ExclusionZones[ExclusionZones.Count - 1].Tint = new Color4(e[0].ToInt32() / 255f, e[0].ToInt32() / 255f, e[0].ToInt32() / 255f, 1f);
+							ExclusionZones[ExclusionZones.Count - 1].Tint = new Color3f(e[0].ToInt32() / 255f, e[0].ToInt32() / 255f, e[0].ToInt32() / 255f);
 							break;
 						default:
 							throw new Exception("Invalid Entry in " + s.Name + ": " + e.Name);

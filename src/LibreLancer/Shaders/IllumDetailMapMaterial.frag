@@ -14,6 +14,7 @@ in vec2 out_texcoord;
 out vec4 out_color;
 in vec3 out_normal;
 in vec3 world_position;
+in vec4 view_position;
 
 void main()
 {
@@ -30,5 +31,5 @@ void main()
 	vec4 detail1 = texture(Dm1Sampler, texcoord1);
 
 
-	out_color = light(Ac, detail0 * tex.a, Dc, tex * detail1, world_position, out_normal);
+	out_color = light(Ac, detail0 * tex.a, Dc, tex * detail1, world_position, view_position, out_normal);
 }

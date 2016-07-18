@@ -1427,5 +1427,15 @@ namespace LibreLancer
 				left.A + right.A
 			);
 		}
+
+		public static Color4 operator *(Color4 left, Color4 right)
+		{
+			return new Color4(
+				left.R * right.R,
+				left.G * right.G,
+				left.B * right.B,
+				left.A * right.A
+			);
+		}
     }
 }

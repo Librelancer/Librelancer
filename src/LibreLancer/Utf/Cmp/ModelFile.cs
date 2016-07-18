@@ -190,6 +190,10 @@ namespace LibreLancer.Utf.Cmp
                 //foreach (VMeshRef level in Levels.Values) level.Update();
             }
         }
+		public float GetRadius()
+		{
+			return Levels[0].Radius;
+		}
 		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light)
 		{
 			if (ready)

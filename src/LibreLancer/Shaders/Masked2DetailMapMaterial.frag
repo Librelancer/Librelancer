@@ -13,6 +13,7 @@ in vec2 out_texcoord;
 out vec4 out_color;
 in vec3 out_normal;
 in vec3 world_position;
+in vec4 view_position;
 
 void main()
 {
@@ -29,5 +30,5 @@ void main()
 	vec4 detail = vec4(mix(detail0.xyz, detail1.xyz, tex.a),1);
 	tex *= detail;
 
-	out_color = vec4(light(Ac, vec4(0), Dc, tex, world_position, out_normal).xyz, 1);
+	out_color = vec4(light(Ac, vec4(0), Dc, tex, world_position, view_position, out_normal).xyz, 1);
 }

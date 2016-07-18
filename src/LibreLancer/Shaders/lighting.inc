@@ -7,6 +7,10 @@ uniform int LightsRange[MAX_LIGHTS];
 uniform vec4 AmbientColor;
 uniform int LightCount;
 uniform bool LightingEnabled;
+uniform bool FogEnabled;
+uniform vec4 FogColor;
+uniform vec2 FogRange;
+
 /* 
  * approximate function given in [IGraph]
  * ax^3 + bx^2 + cx + d
@@ -38,15 +42,25 @@ vec3 apply_light(int i, vec4 dc, vec3 position, vec3 normal)
     return attenuation * diffuse;
 }
 
+vec3 apply_fog(vec4 view_position, vec3 object_color)
+{
+	float dist = length(view_position);
+	//FogRange - x: near, y: far
+	float fogFactor = (FogRange.y - dist) / (FogRange.y - FogRange.x);
+	fogFactor = clamp(fogFactor, 0.0, 1.0);
+	return mix(FogColor.rgb, object_color, fogFactor);
+}
+
 /*
  * ac : Ambient Color (material)
  * ec : Emissive Color
  * dc : Diffuse Color
  * tex : Diffuse Texture
  * position: World Position
+ * view_position: View Position
  * normal: World Normal
  */
-vec4 light(vec4 ac, vec4 ec, vec4 dc, vec4 tex, vec3 position, vec3 normal)
+vec4 light(vec4 ac, vec4 ec, vec4 dc, vec4 tex, vec3 position, vec4 view_position, vec3 normal)
 {
 	if(!LightingEnabled)
 		return dc * tex;
@@ -56,8 +70,9 @@ vec4 light(vec4 ac, vec4 ec, vec4 dc, vec4 tex, vec3 position, vec3 normal)
 	{
 		diffuse += apply_light(i, dc, position, n);
 	}
-	return vec4(
-		ec.rgb + (tex.rgb * diffuse),
-		tex.a
-	);
+	vec3 object_color = ec.rgb + (tex.rgb * diffuse);
+	if(FogEnabled) {
+		object_color = apply_fog(view_position, object_color);
+	}
+	return vec4(object_color, tex.a);
 }

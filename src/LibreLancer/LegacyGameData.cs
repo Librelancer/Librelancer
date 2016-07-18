@@ -213,61 +213,90 @@ namespace LibreLancer
 			{
 				foreach (var nbl in legacy.Nebulae)
 				{
-					var n = new GameData.Nebula();
-					n.Zone = sys.Zones.Where((z) => z.Nickname.ToLower() == nbl.ZoneName.ToLower()).First();
-					var panels = new Legacy.Universe.TexturePanels(nbl.TexturePanels.File);
-					foreach(var txmfile in panels.Files)
-						resource.LoadTxm(Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + txmfile));
-					n.ExteriorFill = nbl.ExteriorFillShape;
-					n.ExteriorColor = nbl.ExteriorColor ?? Color4.White;
-					n.FogColor = nbl.FogColor ?? Color4.Black;
-					if (nbl.CloudsPuffShape != null)
-					{
-						n.HasInteriorClouds = true;
-						GameData.CloudShape[] shapes = new GameData.CloudShape[nbl.CloudsPuffShape.Count];
-						for (int i = 0; i < shapes.Length; i++)
-						{
-							var name = nbl.CloudsPuffShape[i];
-							shapes[i].Texture = panels.Shapes[name].TextureName;
-							shapes[i].Dimensions = panels.Shapes[name].Dimensions;
-						}
-						n.InteriorCloudShapes = new WeightedRandomCollection<GameData.CloudShape>(
-							shapes,
-							nbl.CloudsPuffWeights.ToArray()
-						);
-						n.InteriorCloudColorA = nbl.CloudsPuffColorA.Value;
-						n.InteriorCloudColorB = nbl.CloudsPuffColorB.Value;
-						n.InteriorCloudRadius = nbl.CloudsPuffRadius.Value;
-						n.InteriorCloudCount = nbl.CloudsPuffCount.Value;
-						n.InteriorCloudMaxDistance = nbl.CloudsMaxDistance.Value;
-						n.InteriorCloudMaxAlpha = nbl.CloudsPuffMaxAlpha ?? 1f;
-						n.InteriorCloudFadeDistance = nbl.CloudsNearFadeDistance.Value;
-						n.InteriorCloudDrift = nbl.CloudsPuffDrift.Value;
-					}
-					if (nbl.ExteriorShape != null)
-					{
-						n.HasExteriorBits = true;
-						GameData.CloudShape[] shapes = new GameData.CloudShape[nbl.ExteriorShape.Count];
-						for (int i = 0; i < shapes.Length; i++)
-						{
-							var name = nbl.ExteriorShape[i];
-							shapes[i].Texture = panels.Shapes[name].TextureName;
-							shapes[i].Dimensions = panels.Shapes[name].Dimensions;
-						}
-						n.ExteriorCloudShapes = new WeightedRandomCollection<GameData.CloudShape>(
-							shapes,
-							nbl.ExteriorShapeWeights.ToArray()
-						);
-						n.ExteriorMinBits = nbl.ExteriorMinBits.Value;
-						n.ExteriorMaxBits = nbl.ExteriorMaxBits.Value;
-						n.ExteriorBitRadius = nbl.ExteriorBitRadius.Value;
-						n.ExteriorBitRandomVariation = nbl.ExteriorBitRadiusRandomVariation ?? 0;
-						n.ExteriorMoveBitPercent = nbl.ExteriorMoveBitPercent ?? 0;
-					}
-					sys.Nebulae.Add(n);
-			}
+					sys.Nebulae.Add(GetNebula(sys, nbl));
+				}
 			}
 			return sys;
+		}
+		public GameData.Nebula GetNebula(GameData.StarSystem sys, Legacy.Universe.Nebula nbl)
+		{
+			var n = new GameData.Nebula();
+			n.Zone = sys.Zones.Where((z) => z.Nickname.ToLower() == nbl.ZoneName.ToLower()).First();
+			var panels = new Legacy.Universe.TexturePanels(nbl.TexturePanels.File);
+			foreach (var txmfile in panels.Files)
+				resource.LoadTxm(Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + txmfile));
+			n.ExteriorFill = nbl.ExteriorFillShape;
+			n.ExteriorColor = nbl.ExteriorColor ?? Color4.White;
+			n.FogColor = nbl.FogColor ?? Color4.Black;
+			n.FogEnabled = (nbl.FogEnabled ?? 0) != 0;
+			n.FogRange = new Vector2(nbl.FogNear ?? 0, nbl.FogDistance ?? 0);
+			if (nbl.NebulaLights != null && nbl.NebulaLights.Count > 0)
+			{
+				n.AmbientColor = nbl.NebulaLights[0].Ambient;
+			}
+			if (nbl.CloudsPuffShape != null)
+			{
+				n.HasInteriorClouds = true;
+				GameData.CloudShape[] shapes = new GameData.CloudShape[nbl.CloudsPuffShape.Count];
+				for (int i = 0; i < shapes.Length; i++)
+				{
+					var name = nbl.CloudsPuffShape[i];
+					shapes[i].Texture = panels.Shapes[name].TextureName;
+					shapes[i].Dimensions = panels.Shapes[name].Dimensions;
+				}
+				n.InteriorCloudShapes = new WeightedRandomCollection<GameData.CloudShape>(
+					shapes,
+					nbl.CloudsPuffWeights.ToArray()
+				);
+				n.InteriorCloudColorA = nbl.CloudsPuffColorA.Value;
+				n.InteriorCloudColorB = nbl.CloudsPuffColorB.Value;
+				n.InteriorCloudRadius = nbl.CloudsPuffRadius.Value;
+				n.InteriorCloudCount = nbl.CloudsPuffCount.Value;
+				n.InteriorCloudMaxDistance = nbl.CloudsMaxDistance.Value;
+				n.InteriorCloudMaxAlpha = nbl.CloudsPuffMaxAlpha ?? 1f;
+				n.InteriorCloudFadeDistance = nbl.CloudsNearFadeDistance.Value;
+				n.InteriorCloudDrift = nbl.CloudsPuffDrift.Value;
+			}
+			if (nbl.ExteriorShape != null)
+			{
+				n.HasExteriorBits = true;
+				GameData.CloudShape[] shapes = new GameData.CloudShape[nbl.ExteriorShape.Count];
+				for (int i = 0; i < shapes.Length; i++)
+				{
+					var name = nbl.ExteriorShape[i];
+					shapes[i].Texture = panels.Shapes[name].TextureName;
+					shapes[i].Dimensions = panels.Shapes[name].Dimensions;
+				}
+				n.ExteriorCloudShapes = new WeightedRandomCollection<GameData.CloudShape>(
+					shapes,
+					nbl.ExteriorShapeWeights.ToArray()
+				);
+				n.ExteriorMinBits = nbl.ExteriorMinBits.Value;
+				n.ExteriorMaxBits = nbl.ExteriorMaxBits.Value;
+				n.ExteriorBitRadius = nbl.ExteriorBitRadius.Value;
+				n.ExteriorBitRandomVariation = nbl.ExteriorBitRadiusRandomVariation ?? 0;
+				n.ExteriorMoveBitPercent = nbl.ExteriorMoveBitPercent ?? 0;
+			}
+			if (nbl.ExclusionZones != null)
+			{
+				n.ExclusionZones = new List<GameData.ExclusionZone>();
+				foreach (var excz in nbl.ExclusionZones)
+				{
+					var e = new GameData.ExclusionZone();
+					e.Zone = sys.Zones.Where((z) => z.Nickname.ToLower() == excz.Exclusion.Nickname.ToLower()).First();
+					e.FogFar = excz.FogFar ?? n.FogRange.Y;
+					if (excz.ZoneShellPath != null)
+					{
+						var pth = Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + excz.ZoneShellPath);
+						e.Shell = resource.GetDrawable(pth);
+						e.ShellTint = excz.Tint ?? Color3f.White;
+						e.ShellScalar = excz.ShellScalar ?? 1f;
+						e.ShellMaxAlpha = excz.MaxAlpha ?? 1f;
+					}
+					n.ExclusionZones.Add(e);
+				}
+			}
+			return n;
 		}
 		public GameData.Ship GetShip(string nickname)
 		{

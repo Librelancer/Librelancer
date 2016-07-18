@@ -326,8 +326,13 @@ namespace LibreLancer
             return Math.Max(Math.Min(n, max), min);
         }
 
-        #endregion
+		#endregion
 
-        #endregion
+		#endregion
+
+		public static float Lerp(float value1, float value2, float amount)
+		{
+			return value1 + (value2 - value1) * amount;
+		}
     }
 }

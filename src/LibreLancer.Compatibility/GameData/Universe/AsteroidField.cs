@@ -99,7 +99,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 						case "exclusion_tint":
 							if (e.Count != 3) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (ExclusionZones.Count == 0) throw new Exception(e.Name + " before exclusion");
-							ExclusionZones[ExclusionZones.Count - 1].Tint = new Color4(e[0].ToInt32() / 255f, e[0].ToInt32() / 255f, e[0].ToInt32() / 255f, 1f);
+							ExclusionZones[ExclusionZones.Count - 1].Tint = new Color3f(e[0].ToInt32() / 255f, e[0].ToInt32() / 255f, e[0].ToInt32() / 255f);
 							break;
 						case "exclude_billboards":
 							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);

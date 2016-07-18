@@ -213,6 +213,20 @@ namespace LibreLancer
 				Update (loc + index, vector);
 			}
 		}
+
+		public void SetVector2(string name, Vector2 vector, int index = 0)
+		{
+			GLBind.UseProgram(programID);
+			var loc = GetLocation(name);
+			if (loc == -1)
+				return;
+			if (NeedUpdate(loc + index, vector))
+			{
+				GL.Uniform2f(GetLocation(name) + index, vector.X, vector.Y);
+				Update(loc + index, vector);
+			}
+		}
+
         public void UseProgram()
         {
             GLBind.UseProgram(programID);

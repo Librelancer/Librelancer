@@ -10,7 +10,7 @@ in vec2 out_texcoord;
 out vec4 out_color;
 in vec3 out_normal;
 in vec3 world_position;
-
+in vec4 view_position;
 void main()
 {
 	vec2 texcoord = out_texcoord;
@@ -20,5 +20,5 @@ void main()
 	texcoord *= TileRate;
 	tex *= mix(texture(Dm1Sampler, texcoord), vec4(1), tex.a);
 
-	out_color = light(Ac, vec4(0), Dc, tex, world_position, out_normal);
+	out_color = light(Ac, vec4(0), Dc, tex, world_position, view_position, out_normal);
 }

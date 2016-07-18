@@ -28,5 +28,6 @@ namespace LibreLancer
 		void Update(ICamera camera, TimeSpan delta);
 		void Draw(RenderState rstate, Matrix4 world, Lighting light);
 		void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light);
+		float GetRadius();
     }
 }
