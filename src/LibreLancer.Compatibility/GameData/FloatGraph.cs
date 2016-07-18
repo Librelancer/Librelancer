@@ -14,17 +14,13 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-
-namespace LibreLancer
+using System.Collections.Generic;
+namespace LibreLancer.Compatibility.GameData
 {
-	public struct RenderLight
+	public class FloatGraph
 	{
-		public LightKind Kind;
-		public Vector3 Position; 
-		public Vector3 Direction;
-		public Vector4 Attenuation;
-		public Color4 Color;
-		public int Range;
+		public string Name;
+		public List<Vector2> Points = new List<Vector2>();
 	}
 }
 

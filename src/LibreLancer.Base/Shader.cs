@@ -189,6 +189,19 @@ namespace LibreLancer
 			}
 		}
 
+		public void SetVector4(string name, Vector4 value, int index = 0)
+		{
+			GLBind.UseProgram(programID);
+			var loc = GetLocation(name);
+			if (loc == -1)
+				return;
+			if (NeedUpdate(loc + index, value))
+			{
+				GL.Uniform4f(GetLocation(name) + index, value.X, value.Y, value.Z, value.W);
+				Update(loc + index, value);
+			}
+		}
+
 		public void SetVector3(string name, Vector3 vector, int index = 0)
 		{
 			GLBind.UseProgram (programID);

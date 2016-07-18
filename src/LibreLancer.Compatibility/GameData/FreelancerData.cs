@@ -25,6 +25,7 @@ namespace LibreLancer.Compatibility.GameData
 		public UniverseIni Universe;
 		public ShiparchIni Ships;
 		public AudioIni Audio;
+		public GraphIni Graphs;
 		public bool Loaded = false;
 		public FreelancerData (FreelancerIni fli)
 		{
@@ -62,6 +63,10 @@ namespace LibreLancer.Compatibility.GameData
 			foreach (var snd in Freelancer.SoundPaths)
 				Audio.AddIni(snd, Freelancer);
 			Loaded = true;
+			//Graphs
+			Graphs = new GraphIni();
+			foreach (var g in Freelancer.GraphPaths)
+				Graphs.AddGraphIni(g);
 		}
 	}
 }

@@ -138,6 +138,8 @@
     <Compile Include="GameData\Solar\LensGlow.cs" />
     <Compile Include="GameData\Solar\Spines.cs" />
     <Compile Include="GameData\Solar\Spine.cs" />
+    <Compile Include="GameData\GraphIni.cs" />
+    <Compile Include="GameData\FloatGraph.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

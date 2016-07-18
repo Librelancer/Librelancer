@@ -48,6 +48,10 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="MathNet.Numerics">
+      <HintPath>..\packages\MathNet.Numerics.3.12.0\lib\net40\MathNet.Numerics.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConvertData.cs" />
@@ -228,6 +232,7 @@
     <Compile Include="GameData\AsteroidField.cs" />
     <Compile Include="Render\AsteroidFieldRenderer.cs" />
     <Compile Include="Render\RenderHelpers.cs" />
+    <Compile Include="ApproximateCurve.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -314,5 +319,6 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>AleCrc.cs</LastGenOutput>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
