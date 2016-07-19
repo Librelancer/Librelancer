@@ -35,10 +35,11 @@ namespace LibreLancer
             Format = format;
             Format.GetGLFormat(out glInternalFormat, out glFormat, out glType);
             LevelCount = hasMipMaps ? CalculateMipLevels(width, height) : 1;
-            //Bind the new Texture2D
-            BindTo(0);
-            //initialise the texture data
-            var imageSize = 0;
+			//Bind the new TextureD
+			GLBind.Trash();
+			GLBind.BindTexture(0, GL.GL_TEXTURE_2D, ID);
+			//initialise the texture data
+			var imageSize = 0;
 			if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)
             {
                 CheckCompressed();
