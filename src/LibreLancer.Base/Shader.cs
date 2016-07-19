@@ -23,7 +23,7 @@ namespace LibreLancer
         const int MAX_UNIFORM_LOC = 128;
         uint programID = 0;
         Dictionary<string, int> progLocations = new Dictionary<string, int>();
-        object[] cachedObjects = new object[MAX_UNIFORM_LOC];
+        int[] cachedObjects = new int[MAX_UNIFORM_LOC];
 		public Shader(string vertex_source, string fragment_source, string geometry_source = null)
         {
 			var vertexHandle = GL.CreateShader (GL.GL_VERTEX_SHADER);
@@ -81,14 +81,11 @@ namespace LibreLancer
 				throw new Exception ("Program link failed");
 			}
         }
+
 		public int UserTag = 0;
-		bool NeedUpdate(int loc, object obj)
+		bool NeedUpdate(int loc, int hash)
 		{
-            return (cachedObjects[loc] == null || !cachedObjects[loc].Equals(obj));
-		}
-		void Update(int loc, object obj)
-		{
-            cachedObjects[loc] = obj;
+            return cachedObjects[loc] != hash;
 		}
         int GetLocation(string name)
         {
@@ -107,28 +104,17 @@ namespace LibreLancer
 			var loc = GetLocation (name);
 			if (loc == -1)
 				return;
-			if(NeedUpdate(loc, (object)mat)){
+            var hash = Matrix4.HashMatLazy(ref mat);
+			if(NeedUpdate(loc, hash)){
 				var handle = GCHandle.Alloc (mat, GCHandleType.Pinned);
 				GL.UniformMatrix4fv (loc, 1, false, handle.AddrOfPinnedObject());
 				handle.Free ();
-				Update(loc, mat);
+                cachedObjects[loc] = hash;
 			}
            
         }
 
-        public void SetInteger(string name, int value)
-        {
-            GLBind.UseProgram(programID);
-			var loc = GetLocation (name);
-			if (loc == -1)
-				return;
-			if (NeedUpdate (loc, value)) {
-				GL.Uniform1i (loc, value);
-				Update (loc, value);
-			}
-        }
-
-		public void SetInteger(string name, int value, int index)
+		public void SetInteger(string name, int value, int index = 0)
 		{
 			GLBind.UseProgram(programID);
 			var loc = GetLocation (name);
@@ -136,56 +122,40 @@ namespace LibreLancer
 				return;
 			if (NeedUpdate (loc + index, value)) {
 				GL.Uniform1i (loc + index, value);
-				Update (loc + index, value);
+                cachedObjects[loc + index] = value;
 			}
 		}
-
-        public void SetFloat(string name, float value)
+        [StructLayout(LayoutKind.Explicit)]
+        struct Float2Int
+        {
+            [FieldOffset(0)]
+            public int i;
+            [FieldOffset(0)]
+            public float f;
+        }
+        public void SetFloat(string name, float value, int index = 0)
         {
             GLBind.UseProgram(programID);
 			var loc = GetLocation (name);
 			if (loc == -1)
 				return;
-			if (NeedUpdate (loc, value)) {
-				GL.Uniform1f (loc, value);
-				Update (loc, value);
+            var ibits = (new Float2Int() { f = value }).i;
+			if (NeedUpdate (loc + index, ibits)) {
+				GL.Uniform1f (loc + index, value);
+                cachedObjects[loc + index] = ibits;
 			}
         }
 
-		public void SetFloat(string name, float value, int index)
-		{
-			GLBind.UseProgram(programID);
-			var loc = GetLocation(name);
-			if (loc == -1)
-				return;
-			if (NeedUpdate(loc + index, value))
-			{
-				GL.Uniform1f(loc + index, value);
-				Update(loc + index, value);
-			}
-		}
-
-        public void SetColor4(string name, Color4 value)
-        {
-            GLBind.UseProgram(programID);
-			var loc = GetLocation (name);
-			if (loc == -1)
-				return;
-			if (NeedUpdate (loc, value)) {
-				GL.Uniform4f (loc, value.R, value.G, value.B, value.A);
-				Update (loc, value);
-			}
-        }
-
-		public void SetColor4(string name, Color4 value, int index)
+		public void SetColor4(string name, Color4 value, int index = 0)
 		{
 			GLBind.UseProgram(programID);
 			var loc = GetLocation (name);
 			if (loc == -1)
 				return;
-			if (NeedUpdate (loc + index, value)) {
+            var hash = value.GetHashCode();
+			if (NeedUpdate (loc + index, hash)) {
 				GL.Uniform4f (loc + index, value.R, value.G, value.B, value.A);
-				Update (loc + index, value);
+                cachedObjects[loc + index] = hash;
 			}
 		}
 
@@ -195,10 +165,11 @@ namespace LibreLancer
 			var loc = GetLocation(name);
 			if (loc == -1)
 				return;
-			if (NeedUpdate(loc + index, value))
+            var hash = value.GetHashCode();
+			if (NeedUpdate(loc + index, hash))
 			{
 				GL.Uniform4f(loc + index, value.X, value.Y, value.Z, value.W);
-				Update(loc + index, value);
+				cachedObjects[loc + index] = hash;
 			}
 		}
 
@@ -208,9 +179,10 @@ namespace LibreLancer
 			var loc = GetLocation (name);
 			if (loc == -1)
 				return;
-			if (NeedUpdate (loc + index, vector)) {
+            var hash = vector.GetHashCode();
+			if (NeedUpdate (loc + index, hash)) {
 				GL.Uniform3f (loc + index, vector.X, vector.Y, vector.Z);
-				Update (loc + index, vector);
+                cachedObjects[loc + index] = hash;
 			}
 		}
 
@@ -220,10 +192,11 @@ namespace LibreLancer
 			var loc = GetLocation(name);
 			if (loc == -1)
 				return;
-			if (NeedUpdate(loc + index, vector))
+            var hash = vector.GetHashCode();
+			if (NeedUpdate(loc + index, hash))
 			{
 				GL.Uniform2f(loc + index, vector.X, vector.Y);
-				Update(loc + index, vector);
+                cachedObjects[loc + index] = hash;
 			}
 		}
 
