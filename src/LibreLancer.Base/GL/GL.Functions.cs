@@ -285,6 +285,7 @@ namespace LibreLancer
 			}
 			FLLog.Info ("OpenGL", "Loaded " + loaded + " function pointers");
 		}
+		static bool _isMono = Type.GetType("Mono.Runtime") != null;
 		static Delegate MakeWrapper(Type t, Delegate del)
 		{
 			var mi = del.Method;
@@ -293,14 +294,23 @@ namespace LibreLancer
 			Expression body;
 			if (mi.ReturnType.FullName != "System.Void") {
 				var variable = Expression.Variable (mi.ReturnType, "__returnvalue");
+				MethodCallExpression delegateCall;
+				if (_isMono)
+					delegateCall = Expression.Call(mi, pm);
+				else
+					delegateCall = Expression.Call(Expression.Constant(del), mi, pm);
 				body = Expression.Block (
 					new [] { variable },
-					Expression.Assign (variable, Expression.Call (Expression.Constant(del), mi, pm)),
+					Expression.Assign (variable, delegateCall),
 					Expression.Call (null, checkerr),
 					variable
 				);
 			} else {
-                var a = Expression.Call(Expression.Constant(del), mi, pm);
+				MethodCallExpression a;
+				if (_isMono) //MethodInfo is static on mono.
+					a = Expression.Call(mi, pm);
+				else
+					a = Expression.Call(Expression.Constant(del), mi, pm);
                 var b = Expression.Call(null, checkerr);
                 body = Expression.Block (
 					a,b
