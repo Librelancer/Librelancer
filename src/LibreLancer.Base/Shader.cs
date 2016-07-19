@@ -20,9 +20,10 @@ namespace LibreLancer
 {
     public class Shader
     {
+        const int MAX_UNIFORM_LOC = 128;
         uint programID = 0;
         Dictionary<string, int> progLocations = new Dictionary<string, int>();
-		Dictionary<int, object> cachedObjects = new Dictionary<int, object>();
+        object[] cachedObjects = new object[MAX_UNIFORM_LOC];
 		public Shader(string vertex_source, string fragment_source, string geometry_source = null)
         {
 			var vertexHandle = GL.CreateShader (GL.GL_VERTEX_SHADER);
@@ -82,23 +83,21 @@ namespace LibreLancer
         }
 		bool NeedUpdate(int loc, object obj)
 		{
-			if (cachedObjects.ContainsKey (loc)) {
-				return !cachedObjects [loc].Equals (obj);
-			}
-			return true;
+            return (cachedObjects[loc] == null || !cachedObjects[loc].Equals(obj));
 		}
 		void Update(int loc, object obj)
 		{
-			if (cachedObjects.ContainsKey (loc)) {
-				cachedObjects [loc] = obj;
-			} else
-				cachedObjects.Add (loc, obj);
+            cachedObjects[loc] = obj;
 		}
         int GetLocation(string name)
         {
-            if (!progLocations.ContainsKey(name))
-                progLocations[name] = GL.GetUniformLocation(programID, name);
-            return progLocations[name];
+            int loc;
+            if(!progLocations.TryGetValue(name, out loc))
+            {
+                loc = GL.GetUniformLocation(programID, name);
+                progLocations[name] = loc;
+            }
+            return loc;
         }
 
         public void SetMatrix(string name, ref Matrix4 mat)
@@ -109,7 +108,7 @@ namespace LibreLancer
 				return;
 			if(NeedUpdate(loc, (object)mat)){
 				var handle = GCHandle.Alloc (mat, GCHandleType.Pinned);
-				GL.UniformMatrix4fv (GetLocation (name), 1, false, handle.AddrOfPinnedObject());
+				GL.UniformMatrix4fv (loc, 1, false, handle.AddrOfPinnedObject());
 				handle.Free ();
 				Update(loc, mat);
 			}
@@ -123,7 +122,7 @@ namespace LibreLancer
 			if (loc == -1)
 				return;
 			if (NeedUpdate (loc, value)) {
-				GL.Uniform1i (GetLocation (name), value);
+				GL.Uniform1i (loc, value);
 				Update (loc, value);
 			}
         }
@@ -135,7 +134,7 @@ namespace LibreLancer
 			if (loc == -1)
 				return;
 			if (NeedUpdate (loc + index, value)) {
-				GL.Uniform1i (GetLocation (name) + index, value);
+				GL.Uniform1i (loc + index, value);
 				Update (loc + index, value);
 			}
 		}
@@ -147,7 +146,7 @@ namespace LibreLancer
 			if (loc == -1)
 				return;
 			if (NeedUpdate (loc, value)) {
-				GL.Uniform1f (GetLocation (name), value);
+				GL.Uniform1f (loc, value);
 				Update (loc, value);
 			}
         }
@@ -160,7 +159,7 @@ namespace LibreLancer
 				return;
 			if (NeedUpdate(loc + index, value))
 			{
-				GL.Uniform1f(GetLocation(name) + index, value);
+				GL.Uniform1f(loc + index, value);
 				Update(loc + index, value);
 			}
 		}
@@ -172,7 +171,7 @@ namespace LibreLancer
 			if (loc == -1)
 				return;
 			if (NeedUpdate (loc, value)) {
-				GL.Uniform4f (GetLocation (name), value.R, value.G, value.B, value.A);
+				GL.Uniform4f (loc, value.R, value.G, value.B, value.A);
 				Update (loc, value);
 			}
         }
@@ -184,7 +183,7 @@ namespace LibreLancer
 			if (loc == -1)
 				return;
 			if (NeedUpdate (loc + index, value)) {
-				GL.Uniform4f (GetLocation (name) + index, value.R, value.G, value.B, value.A);
+				GL.Uniform4f (loc + index, value.R, value.G, value.B, value.A);
 				Update (loc + index, value);
 			}
 		}
@@ -197,7 +196,7 @@ namespace LibreLancer
 				return;
 			if (NeedUpdate(loc + index, value))
 			{
-				GL.Uniform4f(GetLocation(name) + index, value.X, value.Y, value.Z, value.W);
+				GL.Uniform4f(loc + index, value.X, value.Y, value.Z, value.W);
 				Update(loc + index, value);
 			}
 		}
@@ -209,7 +208,7 @@ namespace LibreLancer
 			if (loc == -1)
 				return;
 			if (NeedUpdate (loc + index, vector)) {
-				GL.Uniform3f (GetLocation (name) + index, vector.X, vector.Y, vector.Z);
+				GL.Uniform3f (loc + index, vector.X, vector.Y, vector.Z);
 				Update (loc + index, vector);
 			}
 		}
@@ -222,7 +221,7 @@ namespace LibreLancer
 				return;
 			if (NeedUpdate(loc + index, vector))
 			{
-				GL.Uniform2f(GetLocation(name) + index, vector.X, vector.Y);
+				GL.Uniform2f(loc + index, vector.X, vector.Y);
 				Update(loc + index, vector);
 			}
 		}

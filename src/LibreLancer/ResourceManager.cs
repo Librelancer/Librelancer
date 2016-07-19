@@ -71,9 +71,9 @@ namespace LibreLancer
 
 		public Texture FindTexture (string name)
 		{
-			if (textures[name.ToLower()] == null)
+            Texture outtex;
+			if ((outtex = textures[name.ToLower()]) == null)
 			{
-				
 				var file = texturefiles[name.ToLower()];
 				FLLog.Debug("Resources", string.Format("Reloading {0} from {1}", name, file));
 				if (file.EndsWith(".mat"))
@@ -104,8 +104,9 @@ namespace LibreLancer
 				{
 					textures[name.ToLower()] = ImageLib.Generic.FromFile(file);
 				}
+                outtex = textures[name.ToLower()];
 			}
-			return textures[name.ToLower()];
+            return outtex;
 		}
 
 		public Material FindMaterial (uint materialId)
