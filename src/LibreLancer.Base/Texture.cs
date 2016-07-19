@@ -42,12 +42,9 @@ namespace LibreLancer
                 return isDisposed;
             }
         }
-        internal abstract void Bind();
-        public void BindTo(int unit)
-        {
-			GL.ActiveTexture (GL.GL_TEXTURE0 + unit);
-            Bind();
-        }
+
+        public abstract void BindTo(int unit);
+
         internal static int CalculateMipLevels(int width, int height = 0)
         {
             int levels = 1;

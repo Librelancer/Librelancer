@@ -23,22 +23,23 @@ namespace LibreLancer
 {
     static class ShaderCache
     {
-        static Dictionary<Tuple<string, string>, Shader> shaders = new Dictionary<Tuple<string, string>, Shader>();
-		static Dictionary<Tuple<string, string,string >, Shader> shaderGeo = new Dictionary<Tuple<string, string,string>, Shader>();
+        static Dictionary<Strings2, Shader> shaders = new Dictionary<Strings2, Shader>();
+		static Dictionary<Strings3, Shader> shaderGeo = new Dictionary<Strings3, Shader>();
         public static Shader Get(string vs, string fs)
 		{
-			
-			var k = new Tuple<string, string> (vs, fs);
-			if (!shaders.ContainsKey (k)) {
+			var k = new Strings2 (vs, fs);
+            Shader sh;
+			if (!shaders.TryGetValue(k, out sh)) {
 				FLLog.Debug ("Shader", "Compiling [ " + vs + " , " + fs + " ]");
-				shaders.Add (k, new Shader (
-					LoadEmbedded ("LibreLancer.Shaders." + vs), ProcessIncludes(LoadEmbedded ("LibreLancer.Shaders." + fs))
-				));
+                sh = new Shader(
+                    LoadEmbedded("LibreLancer.Shaders." + vs), ProcessIncludes(LoadEmbedded("LibreLancer.Shaders." + fs))
+                );
+                shaders.Add(k, sh);
 			}
-			return shaders [k];
+            return sh;
 		}
-		//includes in form '#pragma include (file.inc)'
-		static string ProcessIncludes(string src)
+        //includes in form '#pragma include (file.inc)'
+        static string ProcessIncludes(string src)
 		{
 			Regex findincludes = new Regex(@"^\s*#\s*pragma include\s+[<\(]([^>\)]*)[>\)]\s*", RegexOptions.Multiline);
 			var m = findincludes.Match(src);
@@ -53,16 +54,18 @@ namespace LibreLancer
 		}
 		public static Shader Get(string vs, string fs, string gs)
 		{
-			var k = new Tuple<string, string,string> (vs, fs, gs);
-			if (!shaderGeo.ContainsKey (k)) {
+			var k = new Strings3 (vs, fs, gs);
+            Shader sh;
+			if (!shaderGeo.TryGetValue (k, out sh)) {
 				FLLog.Debug ("Shader", "Compiling [ " + vs + " , " + fs + " , " + gs + " ]");
-				shaderGeo.Add (k, new Shader (
-					LoadEmbedded ("LibreLancer.Shaders." + vs), 
-					ProcessIncludes(LoadEmbedded ("LibreLancer.Shaders." + fs)),
-					LoadEmbedded("LibreLancer.Shaders." + gs)
-				));
+                sh = new Shader(
+                    LoadEmbedded("LibreLancer.Shaders." + vs),
+                    ProcessIncludes(LoadEmbedded("LibreLancer.Shaders." + fs)),
+                    LoadEmbedded("LibreLancer.Shaders." + gs)
+                );
+                shaderGeo.Add(k, sh);
 			}
-			return shaderGeo [k];
+            return sh;
 		}
         static string LoadEmbedded(string name)
         {
@@ -71,5 +74,64 @@ namespace LibreLancer
                 return stream.ReadToEnd();
             }
         }
+        #region Custom Dictionary Key Structs
+        struct Strings2
+        {
+            public string A;
+            public string B;
+            public Strings2(string a, string b)
+            {
+                A = a;
+                B = b;
+            }
+            public override bool Equals(object obj)
+            {
+                if (!(obj is Strings2))
+                    return false;
+                var other = (Strings2)obj;
+                return other.A == A && other.B == B;
+            }
+            public override int GetHashCode()
+            {
+                int hash = 17;
+                unchecked
+                {
+                    hash = hash * 23 + A.GetHashCode();
+                    hash = hash * 23 + B.GetHashCode();
+                }
+                return hash;
+            }
+        }
+        struct Strings3
+        {
+            public string A;
+            public string B;
+            public string C;
+            public Strings3(string a, string b, string c)
+            {
+                A = a;
+                B = b;
+                C = c;
+            }
+            public override bool Equals(object obj)
+            {
+                if (!(obj is Strings3))
+                    return false;
+                var other = (Strings3)obj;
+                return other.A == A && other.B == B && other.C == C;
+            }
+            public override int GetHashCode()
+            {
+                int hash = 17;
+                unchecked
+                {
+                    hash = hash * 23 + A.GetHashCode();
+                    hash = hash * 23 + B.GetHashCode();
+                    hash = hash * 23 + C.GetHashCode();
+                }
+                return hash;
+            }
+        }
+        #endregion
     }
 }

@@ -36,7 +36,7 @@ namespace LibreLancer
             Format.GetGLFormat(out glInternalFormat, out glFormat, out glType);
             LevelCount = hasMipMaps ? CalculateMipLevels(width, height) : 1;
             //Bind the new Texture2D
-            Bind();
+            BindTo(0);
             //initialise the texture data
             var imageSize = 0;
 			if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)
@@ -77,10 +77,12 @@ namespace LibreLancer
 				ID = GL.GenTexture();
 			}
         }
-        internal override void Bind()
+
+        public override void BindTo(int unit)
         {
-			GL.BindTexture(GL.GL_TEXTURE_2D, ID);
+            GLBind.BindTexture(unit, GL.GL_TEXTURE_2D, ID);
         }
+
 		//TODO: Re-implement Texture2D.GetData later
         /*public void GetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T : struct
         {
@@ -158,7 +160,7 @@ namespace LibreLancer
 			if (mode == modeS)
 				return;
 			modeS = mode;
-			Bind ();
+			BindTo (4);
 			GL.TexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, (int)mode);
 		}
 		public void SetWrapModeT(WrapMode mode)
@@ -166,7 +168,7 @@ namespace LibreLancer
 			if (mode == modeT)
 				return;
 			modeT = mode;
-			Bind ();
+			BindTo (4);
 			GL.TexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, (int)mode);
 		}
 

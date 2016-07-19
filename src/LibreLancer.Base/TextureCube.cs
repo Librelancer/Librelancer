@@ -35,7 +35,7 @@ namespace LibreLancer
 			if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)
                 throw new NotImplementedException("Compressed cubemaps");
             //Bind the new TextureCube
-            Bind();
+            BindTo(0);
             //enable filtering
 			GL.TexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
 			GL.TexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
@@ -80,9 +80,9 @@ namespace LibreLancer
             SetData<T>(face, 0, null, data, 0, data.Length);
         }
 
-        internal override void Bind()
+        public override void BindTo(int unit)
         {
-			GL.BindTexture(GL.GL_TEXTURE_CUBE_MAP, ID);
+			GLBind.BindTexture(unit, GL.GL_TEXTURE_CUBE_MAP, ID);
         }
     }
 }
