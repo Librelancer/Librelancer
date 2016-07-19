@@ -27,6 +27,41 @@ namespace LibreLancer
 		public Color4 FogColor = Color4.White;
 		public Vector2 FogRange = Vector2.Zero;
 
+		bool needsHashCalculation = true;
+		int _hash = 0;
+
+		public int Hash
+		{
+			get
+			{
+				if (needsHashCalculation)
+					CalculateHash();
+				return _hash;
+			}
+		}
+
+		void CalculateHash()
+		{
+			needsHashCalculation = false;
+			if (!Enabled)
+			{
+				_hash = 0;
+				return;
+			}
+			_hash = 17;
+			unchecked
+			{
+				_hash = _hash * 23 + Ambient.GetHashCode();
+				foreach (var lt in Lights)
+					_hash = _hash * 23 + lt.GetHashCode();
+				if (FogEnabled)
+				{
+					_hash = _hash * 23 + FogColor.GetHashCode();
+					_hash = _hash * 23 + FogRange.GetHashCode();
+				}
+			}
+		}
+
 		public Lighting ()
 		{
 		}

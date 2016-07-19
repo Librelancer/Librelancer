@@ -32,6 +32,10 @@ namespace LibreLancer
 
 		public static void SetLights(Shader shader, Lighting lights)
 		{
+			var h = lights.Hash;
+			if (shader.UserTag == h)
+				return;
+			shader.UserTag = h;
 			shader.SetInteger ("LightingEnabled", lights.Enabled ? 1 : 0);
 			if (!lights.Enabled)
 				return;

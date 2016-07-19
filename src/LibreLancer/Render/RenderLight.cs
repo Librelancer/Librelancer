@@ -25,6 +25,21 @@ namespace LibreLancer
 		public Vector4 Attenuation;
 		public Color4 Color;
 		public int Range;
+
+		public override int GetHashCode()
+		{
+			int hash = 17;
+			unchecked
+			{
+				hash = hash * 23 + Kind.GetHashCode();
+				hash = hash * 23 + Position.GetHashCode();
+				hash = hash * 23 + Direction.GetHashCode();
+				hash = hash * 23 + Attenuation.GetHashCode();
+				hash = hash * 23 + Color.GetHashCode();
+				hash = hash * 23 + Range.GetHashCode();
+			}
+			return hash;
+		}
 	}
 }
 

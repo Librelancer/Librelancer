@@ -81,6 +81,7 @@ namespace LibreLancer
 				throw new Exception ("Program link failed");
 			}
         }
+		public int UserTag = 0;
 		bool NeedUpdate(int loc, object obj)
 		{
             return (cachedObjects[loc] == null || !cachedObjects[loc].Equals(obj));
