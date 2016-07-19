@@ -1785,31 +1785,5 @@ namespace LibreLancer
         }
 
         #endregion
-        //HACK: This will probably break if two Matrix4s only differ by the outer column.
-        public static int HashMatLazy(ref Matrix4 mat)
-        {
-            int hash = 17;
-            fixed(float *m = mat.vals)
-            {
-                unchecked
-                {
-                    hash = hash * 23 + m[0].GetHashCode();
-                    hash = hash * 23 + m[1].GetHashCode();
-                    hash = hash * 23 + m[2].GetHashCode();
-                    //
-                    hash = hash * 23 + m[4].GetHashCode();
-                    hash = hash * 23 + m[5].GetHashCode();
-                    hash = hash * 23 + m[6].GetHashCode();
-                    //
-                    hash = hash * 23 + m[8].GetHashCode();
-                    hash = hash * 23 + m[9].GetHashCode();
-                    hash = hash * 23 + m[10].GetHashCode();
-                    //
-                    hash = hash * 23 + m[12].GetHashCode();
-                    hash = hash * 23 + m[15].GetHashCode();
-                }
-            }
-            return hash;
-        }
     }
 }

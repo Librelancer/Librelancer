@@ -104,14 +104,15 @@ namespace LibreLancer
 			var loc = GetLocation (name);
 			if (loc == -1)
 				return;
-            var hash = Matrix4.HashMatLazy(ref mat);
-			if(NeedUpdate(loc, hash)){
-				var handle = GCHandle.Alloc (mat, GCHandleType.Pinned);
-				GL.UniformMatrix4fv (loc, 1, false, handle.AddrOfPinnedObject());
-				handle.Free ();
-                cachedObjects[loc] = hash;
+			//Note: Have to hash all matrix members or game artifacts
+			var hash = mat.GetHashCode();
+			if (NeedUpdate(loc, hash))
+			{
+				var handle = GCHandle.Alloc(mat, GCHandleType.Pinned);
+				GL.UniformMatrix4fv(loc, 1, false, handle.AddrOfPinnedObject());
+				handle.Free();
+				cachedObjects[loc] = hash;
 			}
-           
         }
 
 		public void SetInteger(string name, int value, int index = 0)
