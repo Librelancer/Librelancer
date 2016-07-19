@@ -6,16 +6,20 @@ namespace LibreLancer
 	{
 		VideoPlayer player;
 		int idx = int.MaxValue;
-
+        bool inited = false;
 		public IntroMovie(FreelancerGame game, int index) : base(game)
 		{
 			player = new VideoPlayer(game, game.MpvOverride);
-			if (player.Init())
-			{
-				idx = index;
-				game.Keyboard.KeyDown += HandleKeyDown;
-				player.PlayFile(game.IntroMovies[index]);
-			}
+            if ((inited = player.Init()))
+            {
+                idx = index;
+                game.Keyboard.KeyDown += HandleKeyDown;
+                player.PlayFile(game.IntroMovies[index]);
+            }
+            else
+            {
+                Leave();
+            }
 		}
 
 		public override void Draw(TimeSpan delta)
@@ -46,7 +50,7 @@ namespace LibreLancer
 		{
 			Game.Keyboard.KeyDown -= HandleKeyDown;
 			player.Dispose();
-			if ((idx + 1) >= Game.IntroMovies.Count)
+			if ((idx + 1) >= Game.IntroMovies.Count || !inited)
 			{
 				Game.ChangeState(new LoadingDataState(Game));
 			}

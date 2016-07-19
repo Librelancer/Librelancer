@@ -59,7 +59,7 @@ namespace LibreLancer.Media
 
 		public T GetFunction<T>(string name)
 		{
-			return Marshal.GetDelegateForFunctionPointer<T>(GetProcAddress(name));
+            return (T)(object)Marshal.GetDelegateForFunctionPointer(GetProcAddress(name), typeof(T));
 		}
 
 		public void Dispose()

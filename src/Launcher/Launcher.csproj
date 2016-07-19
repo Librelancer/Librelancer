@@ -8,7 +8,7 @@
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Launcher</RootNamespace>
-    <AssemblyName>Librelancer</AssemblyName>
+    <AssemblyName>Librelancer.Launcher</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
@@ -97,7 +97,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="win32\" />
-    <Folder Include="win64\" />
+    <Content Include="..\..\deps\x86\SDL2.dll">
+      <Link>win32\SDL2.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>

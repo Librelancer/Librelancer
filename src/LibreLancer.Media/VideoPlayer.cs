@@ -41,15 +41,18 @@ namespace LibreLancer.Media
 		}
 		public void PlayFile(string filename)
 		{
-			player.PlayFile(filename);
+            if (player != null)
+                player.PlayFile(filename);
 		}
 		public void Draw(RenderState rstate)
 		{
-			player.Draw(rstate);
+            if (player != null)
+                player.Draw(rstate);
 		}
 		public void Dispose()
 		{
-			player.Dispose();
+            if(player != null)
+			    player.Dispose();
 		}
 		public Texture2D GetTexture()
 		{

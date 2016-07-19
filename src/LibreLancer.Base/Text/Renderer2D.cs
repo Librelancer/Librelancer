@@ -139,6 +139,10 @@ namespace LibreLancer
 			float penX = 0, penY = 0;
 			while (iter.Iterate ()) {
 				uint c = iter.Codepoint;
+                if (c == (uint)'\r') //Skip CR in windows CRLF combo
+                {
+                    continue;
+                }
 				if (c == (uint)'\n') {
 					penY += font.LineHeight;
 					penX = 0;

@@ -25,9 +25,9 @@ namespace LibreLancer.Media
 		public const int AL_STOPPED = 0x1014;
 
 		public const int AL_NO_ERROR = 0;
-		//FUNCTIONS
-		[DllImport(lib)]
-		public static extern void alGenSources(int n, out uint sources);
+        //FUNCTIONS
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void alGenSources(int n, out uint sources);
 
 		public static uint GenSource()
 		{
@@ -36,11 +36,11 @@ namespace LibreLancer.Media
 			return s;
 		}
 
-		[DllImport(lib)]
-		public static extern void alGenBuffers(int n, out uint buffers);
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void alGenBuffers(int n, out uint buffers);
 
-		[DllImport(lib)]
-		public static extern void alGenBuffers(int n, uint[] buffers);
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void alGenBuffers(int n, uint[] buffers);
 
 		public static uint GenBuffer()
 		{
@@ -49,17 +49,17 @@ namespace LibreLancer.Media
 			return b;
 		}
 
-		[DllImport(lib)]
-		public static extern void alSourcef(uint sid, int param, float value);
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void alSourcef(uint sid, int param, float value);
 
-		[DllImport(lib)]
-		public static extern void alSourcei(uint sid, int param, int value);
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void alSourcei(uint sid, int param, int value);
 
-		[DllImport(lib)]
-		public static extern void alGetSourcei(uint sid, int param, out int value);
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void alGetSourcei(uint sid, int param, out int value);
 
-		[DllImport(lib)]
-		public static extern void alBufferData(uint bid, int format, IntPtr buffer, int size, int freq);
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void alBufferData(uint bid, int format, IntPtr buffer, int size, int freq);
 
 		public static unsafe void BufferData(uint bid, int format, byte[] buffer, int size, int freq)
 		{
@@ -69,32 +69,32 @@ namespace LibreLancer.Media
 			}
 		}
 
-		[DllImport(lib)]
-		public static extern void alSourcePlay(uint sid);
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void alSourcePlay(uint sid);
 
-		[DllImport(lib)]
-		public static extern void alSourceStopv(int n, ref uint sids);
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void alSourceStopv(int n, ref uint sids);
 
-		[DllImport(lib)]
-		public static extern void alSourcePausev(int n, ref uint sids);
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void alSourcePausev(int n, ref uint sids);
 
-		[DllImport(lib)]
-		public static extern void alSourceUnqueueBuffers(uint sid, int n, ref uint bids);
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void alSourceUnqueueBuffers(uint sid, int n, ref uint bids);
 
-		[DllImport(lib)]
-		public static extern void alSourceUnqueueBuffers(uint sid, int n, uint[] bids);
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void alSourceUnqueueBuffers(uint sid, int n, uint[] bids);
 
-		[DllImport(lib)]
-		public static extern void alSourceQueueBuffers(uint sid, int r, ref uint bids);
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void alSourceQueueBuffers(uint sid, int r, ref uint bids);
 
-		[DllImport(lib)]
-		public static extern int alGetError();
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int alGetError();
 
-		[DllImport(lib)]
-		static extern IntPtr alGetString(int param);
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        static extern IntPtr alGetString(int param);
 
-		[DllImport(lib)]
-		public static extern void alDeleteBuffers(int i, uint[] buffers);
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void alDeleteBuffers(int i, uint[] buffers);
 		public static string GetString(int param)
 		{
 			return Marshal.PtrToStringAnsi(alGetString(param));

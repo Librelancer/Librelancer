@@ -295,14 +295,15 @@ namespace LibreLancer
 				var variable = Expression.Variable (mi.ReturnType, "__returnvalue");
 				body = Expression.Block (
 					new [] { variable },
-					Expression.Assign (variable, Expression.Call (mi, pm)),
+					Expression.Assign (variable, Expression.Call (Expression.Constant(del), mi, pm)),
 					Expression.Call (null, checkerr),
 					variable
 				);
 			} else {
-				body = Expression.Block (
-					Expression.Call (mi, pm),
-					Expression.Call (null, checkerr)
+                var a = Expression.Call(Expression.Constant(del), mi, pm);
+                var b = Expression.Call(null, checkerr);
+                body = Expression.Block (
+					a,b
 				);
 			}
 			return Expression.Lambda (t, body, pm).Compile ();
