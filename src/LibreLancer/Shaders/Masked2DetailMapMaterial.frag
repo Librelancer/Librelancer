@@ -15,6 +15,8 @@ in vec3 out_normal;
 in vec3 world_position;
 in vec4 view_position;
 
+#pragma include (blend_overlay.inc)
+
 void main()
 {
 	vec2 texcoord = out_texcoord;
@@ -28,7 +30,7 @@ void main()
 	vec4 detail1 = texture(Dm1Sampler, texcoord1);
 
 	vec4 detail = vec4(mix(detail0.xyz, detail1.xyz, tex.a),1);
-	tex *= detail;
+	tex = blend_overlay(detail, tex);
 
 	out_color = vec4(light(Ac, vec4(0), Dc, tex, world_position, view_position, out_normal).xyz, 1);
 }

@@ -262,6 +262,7 @@
     <EmbeddedResource Include="Shaders\AsteroidBand.frag" />
     <EmbeddedResource Include="Shaders\Basic_PositionTexture.vs" />
     <EmbeddedResource Include="Shaders\nebula_extpuff.frag" />
+    <EmbeddedResource Include="Shaders\blend_overlay.inc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">
