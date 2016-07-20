@@ -89,6 +89,7 @@ namespace LibreLancer
 			Vector2 bottomleft,
 			Vector2 bottomright,
 			float angle,
+			int layer,
 			float z = float.NegativeInfinity
 		)
 		{
@@ -122,11 +123,12 @@ namespace LibreLancer
 				lastCount,
 				1,
 				true,
+				layer,
 				float.IsNegativeInfinity(z) ? RenderHelpers.GetZ(Matrix4.Identity, camera.Position, Position) : z
 			);
 			lastCount = billboardCount;
 		}
-
+		int currentLayer = 0;
 		public void Draw(
 			Texture2D texture,
 			Vector3 Position,
@@ -136,7 +138,8 @@ namespace LibreLancer
 			Vector2 topright,
 			Vector2 bottomleft,
 			Vector2 bottomright,
-			float angle
+			float angle,
+			int layer
 		)
 		{
 			/*if (currentTexture != texture && currentTexture != null)
@@ -145,6 +148,7 @@ namespace LibreLancer
 				throw new Exception("Billboard overflow");*/
 			Flush();
 			currentTexture = texture;
+			currentLayer = layer;
 			//setup vertex
 			vertices [billboardCount].Position = Position;
 			vertices [billboardCount].Size = size;
@@ -181,10 +185,11 @@ namespace LibreLancer
 				lastCount,
 				billboardCount - lastCount,
 				true,
+				currentLayer,
 				z
 			);
 			lastCount = billboardCount;
-
+			currentLayer = 0;
 			currentTexture = null;
 		}
 		static Action<Shader, RenderState, RenderCommand> _setupDelegate = SetupShader;

@@ -34,10 +34,11 @@ namespace LibreLancer
 		{
 			cameraPos = camera.Position;
 		}
-		public void Draw ()
+		public void Draw (NebulaRenderer nr)
 		{
 			float z = RenderHelpers.GetZ(Matrix4.Identity, cameraPos, pos);
-			var dist_scale = 1; // TODO: Modify this based on nebula burn-through.
+			var dist_scale = nr != null ? nr.Nebula.SunBurnthroughScale : 1; // TODO: Modify this based on nebula burn-through.
+			var alpha = nr != null ? nr.Nebula.SunBurnthroughIntensity : 1;
 			var glow_scale = dist_scale * Sun.GlowScale;
 			if (Sun.CenterSprite != null)
 			{
@@ -46,8 +47,8 @@ namespace LibreLancer
 					(Texture2D)game.ResourceManager.FindTexture(Sun.CenterSprite),
 					new Vector3(pos),
 					new Vector2(Sun.Radius, Sun.Radius) * center_scale,
-					Sun.CenterColorInner,
-					Sun.CenterColorOuter,
+					new Color4(Sun.CenterColorInner, alpha),
+					new Color4(Sun.CenterColorOuter, alpha),
 					0,
 					z
 				);
@@ -56,12 +57,12 @@ namespace LibreLancer
 				(Texture2D)game.ResourceManager.FindTexture(Sun.GlowSprite),
 				new Vector3(pos),
 				new Vector2(Sun.Radius, Sun.Radius) * glow_scale,
-				Sun.GlowColorInner,
-				Sun.GlowColorOuter,
+				new Color4(Sun.GlowColorInner, alpha),
+				new Color4(Sun.GlowColorOuter, alpha),
 				0,
 				z + 1f
 			);
-			if (Sun.SpinesSprite != null)
+			if (Sun.SpinesSprite != null && nr == null)
 			{
 				double current_angle = 0;
 				double delta_angle = (2 * Math.PI) / Sun.Spines.Count;
@@ -96,6 +97,7 @@ namespace LibreLancer
 				new Vector2(1, 0),
 				new Vector2(1, 1),
 				0,
+				SortLayers.SUN,
 				z
 			);
 		}
@@ -112,6 +114,7 @@ namespace LibreLancer
 				new Vector2(1, 0),
 				new Vector2(1, 1),
 				angle,
+				SortLayers.SUN,
 				z
 			);
 		}

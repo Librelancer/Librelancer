@@ -29,7 +29,7 @@ namespace LibreLancer
 		{
 			currentCommand = 0;
 		}
-		public void AddCommand(RenderMaterial material, Matrix4 world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, float z = 0)
+		public void AddCommand(RenderMaterial material, Matrix4 world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, int layer, float z = 0)
 		{
 			Commands[currentCommand++] = new RenderCommand()
 			{
@@ -44,10 +44,11 @@ namespace LibreLancer
 				UseBaseVertex = true,
 				Transparent = material.IsTransparent,
 				World = world,
+				SortLayer = layer,
 				Z = z
 			};
 		}
-		public void AddCommand(Shader shader, Action<Shader,RenderState,RenderCommand> setup, Action<RenderState> cleanup, Matrix4 world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, float z = 0)
+		public void AddCommand(Shader shader, Action<Shader,RenderState,RenderCommand> setup, Action<RenderState> cleanup, Matrix4 world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0)
 		{
 			Commands[currentCommand++] = new RenderCommand()
 			{
@@ -63,10 +64,11 @@ namespace LibreLancer
 				UseMaterial = false,
 				UseBaseVertex = true,
 				Transparent = transparent,
+				SortLayer = layer,
 				Z = z
 			};
 		}
-		public void AddCommand(Shader shader, Action<Shader, RenderState, RenderCommand> setup, Action<RenderState> cleanup, Matrix4 world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, bool transparent, float z = 0)
+		public void AddCommand(Shader shader, Action<Shader, RenderState, RenderCommand> setup, Action<RenderState> cleanup, Matrix4 world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, bool transparent, int layer, float z = 0)
 		{
 			Commands[currentCommand++] = new RenderCommand()
 			{
@@ -82,6 +84,7 @@ namespace LibreLancer
 				UseMaterial = false,
 				UseBaseVertex = false,
 				Transparent = transparent,
+				SortLayer = layer,
 				Z = z
 			};
 		}
@@ -124,7 +127,12 @@ namespace LibreLancer
 		}
 		public int Compare(int x, int y)
 		{
-			return cmds[x].Z.CompareTo(cmds[y].Z);
+			if (cmds[x].SortLayer > cmds[y].SortLayer)
+				return -1;
+			else if (cmds[x].SortLayer < cmds[y].SortLayer)
+				return 1;
+			else
+				return cmds[x].Z.CompareTo(cmds[y].Z);
 		}
 	}
 	public struct RenderCommand
@@ -146,6 +154,7 @@ namespace LibreLancer
 		public Lighting Lights;
 		public float Z;
 		public string Caller;
+		public int SortLayer;
 		public override string ToString()
 		{
 			return string.Format("[{1} - Z: {0}]", Z, Caller);

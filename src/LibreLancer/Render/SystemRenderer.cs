@@ -202,11 +202,16 @@ namespace LibreLancer
 			//Clear depth buffer for game objects
 			game.Billboards.Begin(camera, commands);
 			for (int i = 0; i < Models.Count; i++) Models[i].Draw(commands, systemLighting, nr);
-			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(cache, systemLighting, commands);
+			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(cache, systemLighting, commands, nr);
 			game.Nebulae.NewFrame();
-			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Draw(commands, systemLighting);
+			if (nr == null)
+			{
+				for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Draw(commands, systemLighting);
+			}
+			else
+				nr.Draw(commands, systemLighting);
 			game.Nebulae.SetData();
-			for (int i = 0; i < Suns.Count; i++) Suns[i].Draw();
+			for (int i = 0; i < Suns.Count; i++) Suns[i].Draw(nr);
 			game.Billboards.End();
 			//Opaque Pass
 			rstate.DepthEnabled = true;

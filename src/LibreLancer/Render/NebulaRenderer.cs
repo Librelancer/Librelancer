@@ -35,11 +35,15 @@ namespace LibreLancer
 			game = g;
 			rand = new Random();
 			if (n.HasInteriorClouds)
+			{
 				puffsinterior = new InteriorPuff[n.InteriorCloudCount];
-			for (int i = 0; i < n.InteriorCloudCount; i++)
-				puffsinterior[i].Spawned = false;
+				for (int i = 0; i < n.InteriorCloudCount; i++)
+					puffsinterior[i].Spawned = false;
+			}
 			GenerateExteriorPuffs();
-
+			//Set Timers
+			dynLightningTimer = Nebula.DynamicLightningGap;
+			bckLightningTimer = Nebula.BackgroundLightningGap;
 		}
 
 		public bool FogTransitioned()
@@ -60,7 +64,7 @@ namespace LibreLancer
 
 		public void RenderFogTransition()
 		{
-			var c = Nebula.FogColor;
+			var c = GetFogColor();
 			c.A = CalculateTransition(Nebula.Zone);
 
 			game.Renderer2D.Start(game.Width, game.Height);
@@ -68,11 +72,21 @@ namespace LibreLancer
 			game.Renderer2D.Finish();
 		}
 
+		Color4 GetFogColor()
+		{
+			if (bckLightningActive)
+				return Nebula.BackgroundLightningColor;
+			else
+				return Nebula.FogColor;
+		}
 
 		public void Update(TimeSpan elapsed)
 		{
 			if (Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, camera.Position))
 			{
+				UpdateBackgroundLightning(elapsed);
+				UpdateDynamicLightning(elapsed);
+				UpdateCloudLightning(elapsed);
 				if (Nebula.HasInteriorClouds)
 				{
 					for (int i = 0; i < Nebula.InteriorCloudCount; i++)
@@ -92,17 +106,106 @@ namespace LibreLancer
 			}
 		}
 
-		public void GetLighting(Vector3 position, out bool FogEnabled, out Color4? Ambient, out Vector2 FogRange, out Color4 FogColor)
+		double bckLightningTimer = 0.0;
+		bool bckLightningActive = false;
+		void UpdateBackgroundLightning(TimeSpan elapsed)
+		{
+			if (!Nebula.BackgroundLightning)
+				return;
+			bckLightningTimer -= elapsed.TotalSeconds;
+			if (bckLightningActive == false)
+			{
+				if (bckLightningTimer <= 0.0)
+				{
+					bckLightningActive = true;
+					bckLightningTimer = Nebula.BackgroundLightningDuration;
+				}
+			}
+			else
+			{
+				if (bckLightningTimer <= 0.0)
+				{
+					bckLightningActive = false;
+					bckLightningTimer = Nebula.BackgroundLightningGap;
+				}
+			}
+		}
+
+		double dynLightningTimer = 0.0;
+		bool dynLightningActive = false;
+		Vector3 dynamicLightningPos = Vector3.Zero;
+		void UpdateDynamicLightning(TimeSpan elapsed)
+		{
+			if (!Nebula.DynamicLightning)
+				return;
+			dynLightningTimer -= elapsed.TotalSeconds;
+			if (dynLightningActive == false)
+			{
+				if (dynLightningTimer <= 0.0)
+				{
+					dynLightningActive = true;
+					dynLightningTimer = Nebula.DynamicLightningDuration;
+					//spawn dynamic lightning
+					dynamicLightningPos = camera.Position + RandomPointSphere(Nebula.FogRange.Y);
+				}
+			}
+			else
+			{
+				if (dynLightningTimer <= 0.0)
+				{
+					dynLightningActive = false;
+					dynLightningTimer = Nebula.DynamicLightningGap;
+				}
+			}
+		}
+
+		double cldLightningTimer = 0.0;
+		bool cldLightningActive = false;
+		void UpdateCloudLightning(TimeSpan elapsed)
+		{
+			if (!Nebula.CloudLightning)
+				return;
+			cldLightningTimer -= elapsed.TotalSeconds;
+			if (cldLightningActive == false)
+			{
+				if (cldLightningTimer <= 0.0)
+				{
+					cldLightningActive = true;
+					cldLightningTimer = Nebula.CloudLightningDuration;
+				}
+			}
+			else
+			{
+				if (cldLightningTimer <= 0.0)
+				{
+					cldLightningActive = false;
+					cldLightningTimer = Nebula.CloudLightningGap;
+				}
+			}
+		}
+
+		public void GetLighting(out bool FogEnabled, out Color4? Ambient, out Vector2 FogRange, out Color4 FogColor, out RenderLight? lightning)
 		{
 			Ambient = Nebula.AmbientColor;
 			FogEnabled = Nebula.FogEnabled;
-			FogColor = Nebula.FogColor;
+			FogColor = GetFogColor();
 			FogRange = Nebula.FogRange;
-			var ex = GetExclusion(position);
+			var ex = GetExclusion(camera.Position);
 			if (ex != null)
 			{
 				var factor = CalculateTransition(ex.Zone);
 				FogRange.Y = MathHelper.Lerp(FogRange.Y, ex.FogFar, factor);;
+			}
+			lightning = null;
+			if (dynLightningActive)
+			{
+				var rl = new RenderLight();
+				rl.Kind = LightKind.Point;
+				rl.Color = Nebula.DynamicLightningColor;
+				rl.Position = dynamicLightningPos;
+				rl.Attenuation = new Vector4(1, 0, 0.0000055f, 0);
+				rl.Range = (int)Nebula.FogRange.Y;
+				lightning = rl;
 			}
 		}
 
@@ -119,10 +222,11 @@ namespace LibreLancer
 
 		public void Draw(CommandBuffer buffer, Lighting lights)
 		{
-			if (!Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, camera.Position) || !FogTransitioned())
-				RenderFill(buffer);
-			DrawPuffRing();
-			if (Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, camera.Position))
+			bool inside = Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, camera.Position);
+			if (!inside || !FogTransitioned())
+				RenderFill(buffer, inside);
+			DrawPuffRing(inside);
+			if (inside)
 			{
 				var ex = GetExclusion(camera.Position);
 				if (ex != null)
@@ -159,14 +263,14 @@ namespace LibreLancer
 				mat.Oc = alpha;
 				mat.OcEnabled = true;
 				mat.AlphaEnabled = true;
-				mat.Dc = new Color4(ex.ShellTint, 1) * Nebula.FogColor;
+				mat.Dc = new Color4(ex.ShellTint, 1) * (Nebula.AmbientColor ?? Color4.White);
 			}
 			//Render
 			l0.Update(camera, TimeSpan.Zero);
 			l0.DrawBuffer(buffer, world, Lighting.Empty);
 		}
 
-		void DrawPuffRing()
+		void DrawPuffRing(bool inside)
 		{
 			var sd = 1 - MathHelper.Clamp(Nebula.Zone.Shape.ScaledDistance(Nebula.Zone.Position, camera.Position), 0f, 1f);
 			var factor = MathHelper.Clamp(sd / Nebula.Zone.EdgeFraction, 0, 1);
@@ -185,7 +289,8 @@ namespace LibreLancer
 					new Vector2(p.Shape.Dimensions.X + p.Shape.Dimensions.Width, p.Shape.Dimensions.Y),
 					new Vector2(p.Shape.Dimensions.X, p.Shape.Dimensions.Y + p.Shape.Dimensions.Height),
 					new Vector2(p.Shape.Dimensions.X + p.Shape.Dimensions.Width, p.Shape.Dimensions.Y + p.Shape.Dimensions.Height),
-					0
+					0,
+					inside ? SortLayers.NEBULA_INSIDE : SortLayers.NEBULA_NORMAL
 				);
 			}
 		}
@@ -277,16 +382,22 @@ namespace LibreLancer
 					if (distance < Nebula.InteriorCloudFadeDistance.X)
 						alpha = 0;
 					var shape = puffsinterior[i].Shape;
+					Color4 c = new Color4(puffsinterior[i].Color, alpha);
+					if (cldLightningActive)
+					{
+						c *= Nebula.CloudLightningColor;
+					}
 					game.Billboards.Draw(
 						(Texture2D)game.ResourceManager.FindTexture(shape.Texture),
 						puffsinterior[i].Position,
 						new Vector2(Nebula.InteriorCloudRadius),
-						new Color4(puffsinterior[i].Color.R, puffsinterior[i].Color.G, puffsinterior[i].Color.B, alpha),
+						c,
 						new Vector2(shape.Dimensions.X, shape.Dimensions.Y),
 						new Vector2(shape.Dimensions.X + shape.Dimensions.Width, shape.Dimensions.Y),
 						new Vector2(shape.Dimensions.X, shape.Dimensions.Y + shape.Dimensions.Height),
 						new Vector2(shape.Dimensions.X + shape.Dimensions.Width, shape.Dimensions.Y + shape.Dimensions.Height),
-						0
+						0,
+						SortLayers.OBJECT
 					);
 				}
 			}
@@ -332,7 +443,7 @@ namespace LibreLancer
 			return new Color3f(c.R, c.G, c.B);
 		}
 
-		void RenderFill(CommandBuffer buffer)
+		void RenderFill(CommandBuffer buffer, bool inside)
 		{
 			Vector3 sz = Vector3.Zero;
 			//Only render ellipsoid and sphere exteriors
@@ -416,7 +527,8 @@ namespace LibreLancer
 				camera,
 				tex,
 				Nebula.FogColor,
-				transform
+				transform,
+				inside
 			);
 		}
 	}

@@ -41,7 +41,8 @@ namespace LibreLancer
 				bool fogenabled;
 				Vector2 fogrange;
 				Color4 fogcolor;
-				nebula.GetLighting(c, out fogenabled, out ambient, out fogrange, out fogcolor);
+				RenderLight? lightning;
+				nebula.GetLighting(out fogenabled, out ambient, out fogrange, out fogcolor, out lightning);
 				if (ambient != null)
 					lights.Ambient = ambient.Value;
 				if (fogenabled)
@@ -49,6 +50,10 @@ namespace LibreLancer
 					lights.FogEnabled = true;
 					lights.FogColor = fogcolor;
 					lights.FogRange = fogrange;
+				}
+				if (lightning != null)
+				{
+					lights.Lights.Add(lightning.Value);
 				}
 			}
 			return lights;

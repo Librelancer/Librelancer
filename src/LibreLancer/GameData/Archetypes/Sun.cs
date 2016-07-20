@@ -21,12 +21,12 @@ namespace LibreLancer.GameData.Archetypes
 	{
 		public float Radius;
 		public string GlowSprite;
-		public Color4 GlowColorInner;
-		public Color4 GlowColorOuter;
+		public Color3f GlowColorInner;
+		public Color3f GlowColorOuter;
 		public float GlowScale;
 		public string CenterSprite;
-		public Color4 CenterColorInner;
-		public Color4 CenterColorOuter;
+		public Color3f CenterColorInner;
+		public Color3f CenterColorOuter;
 		public float CenterScale;
 		public string SpinesSprite;
 		public float SpinesScale;

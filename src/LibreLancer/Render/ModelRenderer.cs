@@ -79,41 +79,55 @@ namespace LibreLancer
 		}
 
 
-		public void Draw(CommandBuffer buffer, Lighting lights, NebulaRenderer nebula)
+		public void Draw(CommandBuffer buffer, Lighting lights, NebulaRenderer nr)
 		{
-			if (Nebula != null && nebula != Nebula)
+			if (Nebula != null && nr != Nebula)
 				return;
 			if (Model != null) {
 				if (Model.Levels.ContainsKey (0)) {
+					var center = VectorMath.Transform(Model.Levels[0].Center, World);
 					var bsphere = new BoundingSphere(
-						VectorMath.Transform(Model.Levels[0].Center, World),
+						center,
 						Model.Levels[0].Radius
 					);
-					if (camera.Frustum.Intersects(bsphere))
-					{
-						Model.DrawBuffer(buffer, World, RenderHelpers.ApplyLights(lights, World.Transform(Model.Levels[0].Center), Model.Levels[0].Radius, Nebula));
+					if (camera.Frustum.Intersects(bsphere)) {
+						var lighting = RenderHelpers.ApplyLights(lights, center, Model.Levels[0].Radius, nr);
+						if (!lighting.FogEnabled || VectorMath.Distance(camera.Position, center) <= Model.Levels[0].Radius + lighting.FogRange.Y)
+							Model.DrawBuffer(buffer, World, lighting);
 					}
 				}
 			} else if (Cmp != null) {
-				foreach (ModelFile model in Cmp.Models.Values)
-					if (model.Levels.ContainsKey (0)) {
+				foreach (Part p in Cmp.Parts.Values)
+				{
+					var model = p.Model;
+					Matrix4 w = World;
+					if (p.Construct != null)
+						w = p.Construct.Transform * World;
+					if (model.Levels.ContainsKey(0))
+					{
+
+						var center = VectorMath.Transform(model.Levels[0].Center, w);
 						var bsphere = new BoundingSphere(
-							VectorMath.Transform(model.Levels[0].Center, World),
+							center,
 							model.Levels[0].Radius
 						);
-						if (camera.Frustum.Intersects (bsphere)) {
-							Cmp.DrawBuffer (buffer, World, RenderHelpers.ApplyLights(lights,World.Transform(model.Levels[0].Center), model.Levels[0].Radius, Nebula));
-							break;
+						if (camera.Frustum.Intersects(bsphere))
+						{
+							var lighting = RenderHelpers.ApplyLights(lights, center, model.Levels[0].Radius, nr);
+							if (!lighting.FogEnabled || VectorMath.Distance(camera.Position, center) <= model.Levels[0].Radius + lighting.FogRange.Y)
+								model.DrawBuffer(buffer, w, lighting);
 						}
 					}
+				}
 			} else if (Sph != null) {
 				var bsphere = new BoundingSphere(
 					SpaceObject.Position,
 					radiusAtmosphere);
 				if (camera.Frustum.Intersects(bsphere))
 				{
-					var l = RenderHelpers.ApplyLights(lights, SpaceObject.Position, Sph.Radius, Nebula);
-					Sph.DrawBuffer(buffer, World, l);
+					var l = RenderHelpers.ApplyLights(lights, SpaceObject.Position, Sph.Radius, nr);
+					if(!l.FogEnabled || VectorMath.Distance(camera.Position, SpaceObject.Position) <= Sph.Radius + l.FogRange.Y)
+						Sph.DrawBuffer(buffer, World, l);
 				}
 			}
 		}

@@ -118,6 +118,7 @@ namespace LibreLancer.Utf.Vms
 				startVertex + StartVertex,
 				TriangleStart,
 				primitiveCount,
+				SortLayers.OBJECT,
 				z
 			);
 		}

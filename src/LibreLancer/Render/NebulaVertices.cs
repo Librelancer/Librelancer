@@ -70,7 +70,7 @@ namespace LibreLancer
 			verts[currentVerts++] = v4;
 		}
 		int lastIndex = 0;
-		public void Draw(CommandBuffer buffer, ICamera camera, Texture texture, Color4 color, Matrix4 world)
+		public void Draw(CommandBuffer buffer, ICamera camera, Texture texture, Color4 color, Matrix4 world, bool inside)
 		{
 			var vp = camera.ViewProjection;
 			var z = RenderHelpers.GetZ(world, camera.Position, Vector3.Zero);
@@ -86,6 +86,7 @@ namespace LibreLancer
 				lastIndex,
 				(currentIndex - lastIndex) / 3,
 				true,
+				inside ? SortLayers.NEBULA_INSIDE : SortLayers.NEBULA_NORMAL,
 				z
 			);
 			lastIndex = currentIndex;

@@ -156,7 +156,8 @@ namespace LibreLancer.Utf.Mat
 						PrimitiveTypes.TriangleList,
 						0,
 						start,
-						count
+						count,
+						SortLayers.OBJECT
 					);
 				}
 				//Draw atmosphere

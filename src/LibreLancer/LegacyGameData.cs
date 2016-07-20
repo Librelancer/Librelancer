@@ -115,6 +115,7 @@ namespace LibreLancer
 			sys.Id = legacy.Nickname;
 			sys.BackgroundColor = legacy.SpaceColor ?? Color4.Black;
 			sys.MusicSpace = legacy.MusicSpace;
+			sys.FarClip = legacy.SpaceFarClip ?? 20000f;
 			if(legacy.BackgroundBasicStarsPath != null)
 				sys.StarsBasic = resource.GetDrawable (legacy.BackgroundBasicStarsPath);
 			if (legacy.BackgroundComplexStarsPath != null)
@@ -230,9 +231,12 @@ namespace LibreLancer
 			n.FogColor = nbl.FogColor ?? Color4.Black;
 			n.FogEnabled = (nbl.FogEnabled ?? 0) != 0;
 			n.FogRange = new Vector2(nbl.FogNear ?? 0, nbl.FogDistance ?? 0);
+			n.SunBurnthroughScale = n.SunBurnthroughIntensity = 1f;
 			if (nbl.NebulaLights != null && nbl.NebulaLights.Count > 0)
 			{
 				n.AmbientColor = nbl.NebulaLights[0].Ambient;
+				n.SunBurnthroughScale = nbl.NebulaLights[0].SunBurnthroughScaler ?? 1f;
+				n.SunBurnthroughIntensity = nbl.NebulaLights[0].SunBurnthroughIntensity ?? 1f;
 			}
 			if (nbl.CloudsPuffShape != null)
 			{
@@ -296,6 +300,28 @@ namespace LibreLancer
 					n.ExclusionZones.Add(e);
 				}
 			}
+			if (nbl.BackgroundLightningDuration != null)
+			{
+				n.BackgroundLightning = true;
+				n.BackgroundLightningDuration = nbl.BackgroundLightningDuration.Value;
+				n.BackgroundLightningColor = nbl.BackgroundLightningColor.Value;
+				n.BackgroundLightningGap = nbl.BackgroundLightningGap.Value;
+			}
+			if (nbl.DynamicLightningDuration != null)
+			{
+				n.DynamicLightning = true;
+				n.DynamicLightningGap = nbl.DynamicLightningGap.Value;
+				n.DynamicLightningColor = nbl.DynamicLightningColor.Value;
+				n.DynamicLightningDuration = nbl.DynamicLightningDuration.Value;
+			}
+			if (nbl.CloudsLightningDuration != null)
+			{
+				n.CloudLightning = true;
+				n.CloudLightningDuration = nbl.CloudsLightningDuration.Value;
+				n.CloudLightningColor = nbl.CloudsLightningColor.Value;
+				n.CloudLightningGap = nbl.CloudsLightningGap.Value;
+				n.CloudLightningIntensity = nbl.CloudsLightningIntensity.Value;
+			}
 			return n;
 		}
 		public GameData.Ship GetShip(string nickname)
@@ -334,16 +360,16 @@ namespace LibreLancer
 				//glow
 				var starglow = fldata.Stars.FindStarGlow(star.StarGlow);
 				sun.GlowSprite = starglow.Shape;
-				sun.GlowColorInner = new Color4(starglow.InnerColor, 1);
-				sun.GlowColorOuter = new Color4(starglow.OuterColor, 1);
+				sun.GlowColorInner = starglow.InnerColor;
+				sun.GlowColorOuter = starglow.OuterColor;
 				sun.GlowScale = starglow.Scale;
 				//center
 				if (star.StarCenter != null)
 				{
 					var centerglow = fldata.Stars.FindStarGlow(star.StarCenter);
 					sun.CenterSprite = centerglow.Shape;
-					sun.CenterColorInner = new Color4(centerglow.InnerColor, 1);
-					sun.CenterColorOuter = new Color4(centerglow.OuterColor, 1);
+					sun.CenterColorInner = centerglow.InnerColor;
+					sun.CenterColorOuter = centerglow.OuterColor;
 					sun.CenterScale = centerglow.Scale;
 				}
 				if (star.Spines != null)

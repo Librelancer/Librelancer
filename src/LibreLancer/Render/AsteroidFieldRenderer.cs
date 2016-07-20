@@ -49,7 +49,7 @@ namespace LibreLancer
 			cameraPos = camera.Position;
 		}
 
-		public void Draw(ResourceManager res, Lighting lighting, CommandBuffer buffer)
+		public void Draw(ResourceManager res, Lighting lighting, CommandBuffer buffer, NebulaRenderer nr)
 		{
 			//Billboards
 
@@ -57,33 +57,38 @@ namespace LibreLancer
 			if (renderBand)
 			{
 				var tex = (Texture2D)res.FindTexture(field.Band.Shape);
-				var lt = RenderHelpers.ApplyLights(lighting, field.Zone.Position, lightingRadius, null);
 				for (int i = 0; i < SIDES; i++)
 				{
 					var p = bandCylinder.GetSidePosition(i);
 					var zcoord = RenderHelpers.GetZ(bandTransform, cameraPos, p);
-					buffer.AddCommand(
-						bandShader,
-						bandShaderDelegate,
-						bandShaderCleanup,
-						bandTransform,
-						new RenderUserData() { 
-							Object = lt, 
-							Float = field.Band.TextureAspect, 
-							Color = field.Band.ColorShift, 
-							ViewProjection = vp, 
-							Texture = tex, 
-							Vector = cameraPos, 
-							Matrix2 = bandNormal 
-						},
-						bandCylinder.VertexBuffer,
-						PrimitiveTypes.TriangleList,
-						0,
-						i * 6,
-						2,
-						true,
-						zcoord
-					);
+					var lt = RenderHelpers.ApplyLights(lighting, p, 1000, nr);
+					if (!lt.FogEnabled || VectorMath.Distance(cameraPos, p) <= 1000 + lighting.FogRange.Y)
+					{
+						buffer.AddCommand(
+							bandShader,
+							bandShaderDelegate,
+							bandShaderCleanup,
+							bandTransform,
+							new RenderUserData()
+							{
+								Object = lt,
+								Float = field.Band.TextureAspect,
+								Color = field.Band.ColorShift,
+								ViewProjection = vp,
+								Texture = tex,
+								Vector = cameraPos,
+								Matrix2 = bandNormal
+							},
+							bandCylinder.VertexBuffer,
+							PrimitiveTypes.TriangleList,
+							0,
+							i * 6,
+							2,
+							true,
+							SortLayers.OBJECT,
+							zcoord
+						);
+					}
 				}
 			}
 		}

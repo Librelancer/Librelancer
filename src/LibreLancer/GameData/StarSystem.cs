@@ -40,7 +40,8 @@ namespace LibreLancer.GameData
 		public List<Zone> Zones = new List<Zone>();
 		//Music
 		public string MusicSpace;
-
+		//Clipping
+		public float FarClip;
 		public StarSystem ()
 		{
 		}

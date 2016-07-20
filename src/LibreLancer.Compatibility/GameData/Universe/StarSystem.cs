@@ -71,6 +71,8 @@ namespace LibreLancer.Compatibility.GameData.Universe
 		public Field Field { get; private set; }
 		public AsteroidBillboards AsteroidBillboards { get; private set; }
 
+		public float? SpaceFarClip { get; private set; }
+
 		public StarSystem(UniverseIni universe, Section section, FreelancerData data)
 			: base(data)
 		{
@@ -157,7 +159,8 @@ namespace LibreLancer.Compatibility.GameData.Universe
 							RpopSolarDetection = e[0].ToBoolean();
 							break;
 						case "space_farclip":
-							FLLog.Warning ("StarSystem", "Unimplemented: space_farclip");
+							if (SpaceFarClip != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
+							SpaceFarClip = e[0].ToSingle();
 							break;
 						default:
 							throw new Exception("Invalid Entry in " + section.Name + ": " + e.Name);

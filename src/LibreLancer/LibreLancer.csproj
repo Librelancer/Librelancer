@@ -234,6 +234,7 @@
     <Compile Include="Render\RenderHelpers.cs" />
     <Compile Include="ApproximateCurve.cs" />
     <Compile Include="GameData\ExclusionZone.cs" />
+    <Compile Include="Render\SortLayers.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
