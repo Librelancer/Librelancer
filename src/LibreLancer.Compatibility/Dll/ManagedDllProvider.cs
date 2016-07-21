@@ -108,7 +108,7 @@ namespace LibreLancer.Dll
 				reader.BaseStream.Seek ((long)dataEntry.OffsetToData, SeekOrigin.Begin);
 				int blockId = (int)((entries [i].Name - 1u) * 16);
 
-				for (int j = 0; j < 15; j++)
+				for (int j = 0; j < 16; j++)
 				{
 					int length = (int)(reader.ReadUInt16 () * 2);
 					if (length != 0)
