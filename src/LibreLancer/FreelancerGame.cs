@@ -43,31 +43,11 @@ namespace LibreLancer
 				return new Viewport (0, 0, Width, Height);
 			}
 		}
+		GameConfig _cfg;
 		public FreelancerGame(GameConfig config) : base(1024, 768, false)
-        {
-			//Setup
-			uithread = Thread.CurrentThread.ManagedThreadId;
-			useintromovies = config.IntroMovies;
-			FLLog.Info("Platform", Platform.RunningOS.ToString() + (IntPtr.Size == 4 ? " 32-bit" : " 64-bit"));
-			//Cache
-			ResourceManager = new ResourceManager(this);
-			//Init Audio
-			FLLog.Info("Audio", "Initialising Audio");
-			Audio = new AudioManager();
-			if(config.MuteMusic)
-				Audio.Music.Volume = 0f;
-			//Load data
-			FLLog.Info("Game", "Loading game data");
-			GameData = new LegacyGameData(config.FreelancerPath, ResourceManager);
-			IntroMovies = GameData.GetIntroMovies();
-			MpvOverride = config.MpvOverride;
-			new Thread(() => {
-				GameData.LoadData();
-				Sound = new SoundManager(GameData, Audio);
-				FLLog.Info("Game", "Finished loading game data");
-				InitialLoadComplete = true;
-			}).Start ();
-
+		{
+			//DO NOT RUN CODE HERE. IT CAUSES THE STUPIDEST CRASH ON OSX KNOWN TO MAN
+			_cfg = config;
         }
 
 		public void ChangeState(GameState state)
@@ -76,6 +56,30 @@ namespace LibreLancer
 		}
 		protected override void Load()
         {
+			//Move to stop _TSGetMainThread error on OSX
+			uithread = Thread.CurrentThread.ManagedThreadId;
+			useintromovies = _cfg.IntroMovies;
+			FLLog.Info("Platform", Platform.RunningOS.ToString() + (IntPtr.Size == 4 ? " 32-bit" : " 64-bit"));
+			//Cache
+			ResourceManager = new ResourceManager(this);
+			//Init Audio
+			FLLog.Info("Audio", "Initialising Audio");
+			Audio = new AudioManager();
+			if (_cfg.MuteMusic)
+				Audio.Music.Volume = 0f;
+			//Load data
+			FLLog.Info("Game", "Loading game data");
+			GameData = new LegacyGameData(_cfg.FreelancerPath, ResourceManager);
+			IntroMovies = GameData.GetIntroMovies();
+			MpvOverride = _cfg.MpvOverride;
+			new Thread(() =>
+			{
+				GameData.LoadData();
+				Sound = new SoundManager(GameData, Audio);
+				FLLog.Info("Game", "Finished loading game data");
+				InitialLoadComplete = true;
+			}).Start();
+			//
 			RenderState = new RenderState ();
 			Renderer2D = new Renderer2D(RenderState);
 			Billboards = new Billboards ();

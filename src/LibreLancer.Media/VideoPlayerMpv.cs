@@ -85,13 +85,16 @@ namespace LibreLancer.Media
 		public override void Dispose()
 		{
 			disposed = true;
-			FLLog.Info("Video", "Closing mpv backend");
-			Mpv.mpv_opengl_cb_uninit_gl(mpvgl);
-			Mpv.mpv_terminate_destroy(mpvhandle);
-			framebuffer.Dispose();
-			Playing = false;
+			if (mpvhandle != IntPtr.Zero)
+			{
+				FLLog.Info("Video", "Closing mpv backend");
+				Mpv.mpv_opengl_cb_uninit_gl(mpvgl);
+				Mpv.mpv_terminate_destroy(mpvhandle);
+				framebuffer.Dispose();
+				Playing = false;
+			}
 		}
-		const int LC_NUMERIC = 1;
+		const int LC_NUMERIC = 4;
 
 		[DllImport("libc")]
 		public static extern IntPtr setlocale (int category, [MarshalAs (UnmanagedType.LPStr)]string locale);
@@ -104,8 +107,9 @@ namespace LibreLancer.Media
 			try
 			{
 				//mpv will not run unless lc_numeric is "C"
-				setlocale(LC_NUMERIC, "C");
-
+				IntPtr locale;
+				if ((locale = setlocale(LC_NUMERIC, "C")) == IntPtr.Zero)
+					throw new Exception("setlocale(LC_NUMERIC, \"C\") failed");
 				mpvhandle = Mpv.mpv_create();
 				if (mpvhandle == IntPtr.Zero)
 					throw new Exception("mpv_create failed");
