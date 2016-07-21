@@ -12,7 +12,7 @@ in vec3 out_normal;
 in vec3 world_position;
 in vec4 view_position;
 
-#pragma include (blend_overlay.inc);
+#pragma include (blend_overlay.inc)
 
 void main()
 {

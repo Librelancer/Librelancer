@@ -223,10 +223,20 @@ namespace LibreLancer.Primitives
 				}
 			}
 		}
-		public void GetDrawParameters(CubeMapFace face, out int start, out int count)
+		static Dictionary<CubeMapFace, Vector3> facePositions = new Dictionary<CubeMapFace, Vector3>()
+		{
+			{ CubeMapFace.NegativeX, new Vector3(-1,0, 0) },
+			{ CubeMapFace.NegativeY, new Vector3(0,-1, 0) },
+			{ CubeMapFace.NegativeZ, new Vector3(0, 0,-1) },
+			{ CubeMapFace.PositiveX, new Vector3(1, 0, 0) },
+			{ CubeMapFace.PositiveY, new Vector3(0, 1, 0) },
+			{ CubeMapFace.PositiveZ, new Vector3(0, 0, 1) }
+		};
+		public void GetDrawParameters(CubeMapFace face, out int start, out int count, out Vector3 pos)
 		{
 			start = offsets[face];
 			count = primitiveCountSide;
+			pos = facePositions[face];
 		}
 	}
 }

@@ -145,7 +145,8 @@ namespace LibreLancer.Utf.Mat
 				for (int i = 0; i < 6; i++)
 				{
 					int start, count;
-					sphere.GetDrawParameters(faces[i], out start, out count);
+					Vector3 pos;
+					sphere.GetDrawParameters(faces[i], out start, out count, out pos);
 					SideMaterials[i].Render.ViewProjection = viewproj;
 					SideMaterials[i].Render.View = view;
 					buffer.AddCommand(
