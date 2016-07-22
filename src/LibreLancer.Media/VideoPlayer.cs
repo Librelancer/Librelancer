@@ -28,10 +28,10 @@ namespace LibreLancer.Media
 		}
 		public VideoPlayer(Game game, string mpvoverride)
 		{
-			if (Platform.RunningOS != OS.Windows)
-			{
-				player = new VideoPlayerMpv(game, mpvoverride);
-			}
+            if (Platform.RunningOS != OS.Windows)
+                player = new VideoPlayerMpv(game, mpvoverride);
+            else
+                player = new VideoPlayerWMF();
 		}
 		public bool Init()
 		{

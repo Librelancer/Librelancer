@@ -1,0 +1,283 @@
+﻿/* The contents of this file are subject to the Mozilla Public License
+ * Version 1.1 (the "License"); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ * 
+ * Software distributed under the License is distributed on an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific language governing rights and limitations
+ * under the License.
+ * 
+ * 
+ * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
+ * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * the Initial Developer. All Rights Reserved.
+ */
+using System;
+using System.Runtime.InteropServices;
+using SharpDX;
+using SharpDX.MediaFoundation;
+using SharpDX.Win32;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LibreLancer.Media
+{
+    class VideoPlayerWMF : VideoPlayerInternal
+    {
+        MediaSession session;
+        PresentationClock clock;
+        Texture2D _texture;
+        Topology topology;
+        MFSamples videoSampler;
+        MediaType mt;
+        static Texture2D dot;
+        bool _textureWrittenTo;
+        public override void Dispose()
+        {
+            FLLog.Info("Video", "Closing Windows Media Foundation backend");
+            if (session != null)
+            {
+                session.ClearTopologies();
+                session.Stop();
+                session.Close();
+                session.Dispose();
+            }
+            if (topology != null)
+                topology.Dispose();
+            if (videoSampler != null)
+                videoSampler.Dispose();
+            if (clock != null)
+                clock.Dispose();
+            if (_texture != null)
+                _texture.Dispose();
+            if (cb != null)
+                cb.Dispose();
+        }
+
+        public override void Draw(RenderState rstate)
+        {
+            if(Playing)
+            {
+               
+                if (videoSampler.Changed)
+                {
+                    _texture.SetData(videoSampler.TextureData);
+                    _textureWrittenTo = true;
+                    videoSampler.Changed = false;
+                }
+            }
+        }
+
+        public override Texture2D GetTexture()
+        {
+            if (_texture != null && _textureWrittenTo) {
+                return _texture;
+            }
+            return dot;
+        }
+        static bool _started = false;
+        public override bool Init()
+        {
+            FLLog.Info("Video", "Opening Windows Media Foundation backend");
+            try
+            {
+               if(dot == null)
+                {
+                    dot = new Texture2D(1, 1);
+                    dot.SetData(new uint[] { 0x000000FF });
+                }
+                if (!_started)
+                {
+                    MediaManager.Startup();
+                    _started = true;
+                }
+                MediaFactory.CreateTopology(out topology);
+                MediaFactory.CreateMediaSession(null, out session);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                FLLog.Info("Video", "Media Foundation: " + ex.Message);
+                return false;
+            }
+        }
+        MFCallback cb;
+        public override void PlayFile(string filename)
+        {
+            //Load the file
+            MediaSource mediaSource;
+            {
+                var resolver = new SourceResolver();
+                ObjectType otype;
+                ComObject source = resolver.CreateObjectFromURL(filename, SourceResolverFlags.MediaSource, null, out otype);
+                mediaSource = source.QueryInterface<MediaSource>();
+                resolver.Dispose();
+                source.Dispose();
+            }
+
+            PresentationDescriptor presDesc;
+            mediaSource.CreatePresentationDescriptor(out presDesc);
+
+            for(int i = 0; i < presDesc.StreamDescriptorCount; i++)
+            {
+                SharpDX.Mathematics.Interop.RawBool selected;
+                StreamDescriptor desc;
+                presDesc.GetStreamDescriptorByIndex(i, out selected, out desc);
+                if(selected)
+                {
+                    TopologyNode sourceNode;
+                    MediaFactory.CreateTopologyNode(TopologyType.SourceStreamNode, out sourceNode);
+
+                    sourceNode.Set(TopologyNodeAttributeKeys.Source, mediaSource);
+                    sourceNode.Set(TopologyNodeAttributeKeys.PresentationDescriptor, presDesc);
+                    sourceNode.Set(TopologyNodeAttributeKeys.StreamDescriptor, desc);
+
+                    TopologyNode outputNode;
+                    MediaFactory.CreateTopologyNode(TopologyType.OutputNode, out outputNode);
+
+                    var majorType = desc.MediaTypeHandler.MajorType;
+                    if (majorType == MediaTypeGuids.Video)
+                    {
+                        Activate activate;
+
+                        videoSampler = new MFSamples();
+                        //retrieve size of video
+                        long sz = desc.MediaTypeHandler.CurrentMediaType.Get<long>(new Guid("{1652c33d-d6b2-4012-b834-72030849a37d}"));
+                        int height = (int)(sz & uint.MaxValue), width = (int)(sz >> 32);
+                        _texture = new Texture2D(width, height, false, SurfaceFormat.Color);
+                        mt = new MediaType();
+
+                        mt.Set(MediaTypeAttributeKeys.MajorType, MediaTypeGuids.Video);
+
+                        // Specify that we want the data to come in as RGB32.
+                        mt.Set(MediaTypeAttributeKeys.Subtype, new Guid("00000016-0000-0010-8000-00AA00389B71"));
+
+                        MediaFactory.CreateSampleGrabberSinkActivate(mt, videoSampler, out activate);
+                        outputNode.Object = activate;
+                    }
+
+                    if (majorType == MediaTypeGuids.Audio)
+                    {
+                        Activate activate;
+                        MediaFactory.CreateAudioRendererActivate(out activate);
+
+                        outputNode.Object = activate;
+                    }
+
+                    topology.AddNode(sourceNode);
+                    topology.AddNode(outputNode);
+                    sourceNode.ConnectOutput(0, outputNode, 0);
+
+                    sourceNode.Dispose();
+                    outputNode.Dispose();
+                }
+                desc.Dispose();
+            }
+
+            presDesc.Dispose();
+            mediaSource.Dispose();
+            //Play the file
+            cb = new MFCallback(this, session);
+            session.BeginGetEvent(cb, null);
+            session.SetTopology(SessionSetTopologyFlags.Immediate, topology);
+            // Get the clock
+            clock = session.Clock.QueryInterface<PresentationClock>();
+           
+            // Start playing.
+            Playing = true;
+        }
+        class MFSamples : CallbackBase, SampleGrabberSinkCallback
+        {
+            internal byte[] TextureData { get; private set; }
+            public bool Changed = false;
+            public void OnProcessSample(Guid guidMajorMediaType, int dwSampleFlags, long llSampleTime, long llSampleDuration, IntPtr sampleBufferRef, int dwSampleSize)
+            {
+                if (TextureData == null || TextureData.Length != dwSampleSize)
+                    TextureData = new byte[dwSampleSize];
+
+                Marshal.Copy(sampleBufferRef, TextureData, 0, dwSampleSize);
+                //SET ALPHA to 0xFF
+                for (int i = 3; i < TextureData.Length; i += 4)
+                    TextureData[i] = 0xFF;
+                Changed = true;
+            }
+
+            public void OnSetPresentationClock(PresentationClock presentationClockRef)
+            {
+            }
+
+            public void OnShutdown()
+            {
+            }
+
+            public void OnClockPause(long systemTime)
+            {
+            }
+
+            public void OnClockRestart(long systemTime)
+            {
+            }
+
+            public void OnClockSetRate(long systemTime, float flRate)
+            {
+            }
+
+            public void OnClockStart(long systemTime, long llClockStartOffset)
+            {
+            }
+
+            public void OnClockStop(long hnsSystemTime)
+            {
+            }
+        }
+        class MFCallback : IAsyncCallback
+        {
+            MediaSession _session;
+            VideoPlayerWMF _player;
+            public MFCallback(VideoPlayerWMF player, MediaSession _session)
+            {
+                this._session = _session;
+                _player = player;
+            }
+            bool disposed = false;
+            public void Dispose()
+            {
+                disposed = true;
+            }
+
+            public IDisposable Shadow { get; set; }
+            public void Invoke(AsyncResult asyncResultRef)
+            {
+                if (disposed)
+                    return;
+                try
+                {
+                    var ev = _session.EndGetEvent(asyncResultRef);
+                    if (disposed)
+                        return;
+                    if (ev.TypeInfo == MediaEventTypes.SessionTopologySet)
+                    {
+                        _player.Begin();
+                    }
+                    if (ev.TypeInfo == MediaEventTypes.SessionEnded)
+                        _player.Playing = false;
+                    _session.BeginGetEvent(this, null);
+                }
+                catch (Exception)
+                {
+                }
+
+            }
+            public AsyncCallbackFlags Flags { get; private set; }
+            public WorkQueueId WorkQueueId { get; private set; }
+        }
+        internal void Begin()
+        {
+            var varStart = new Variant();
+            session.Start(null, varStart);
+        }
+    }
+}
