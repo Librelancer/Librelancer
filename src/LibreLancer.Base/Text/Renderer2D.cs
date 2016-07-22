@@ -216,6 +216,10 @@ namespace LibreLancer
 			float penX = x, penY = y;
 			while (iter.Iterate ()) {
 				uint c = iter.Codepoint;
+                if(c == (uint)'\r') //Skip CR from CRLF
+                {
+                    continue;
+                }
 				var glyph = font.GetGlyph (c);
 				if (glyph.Render) {
 					float y2 = -penY - glyph.YOffset;
