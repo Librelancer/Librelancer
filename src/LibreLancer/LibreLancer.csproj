@@ -66,11 +66,11 @@
     <Compile Include="Utf\Anm\Frame.cs" />
     <Compile Include="Utf\Anm\Script.cs" />
     <Compile Include="Utf\Cmp\CmpFile.cs" />
-    <Compile Include="Utf\Cmp\FixedHardpoint.cs" />
-    <Compile Include="Utf\Cmp\Hardpoint.cs" />
+    <Compile Include="Utf\Cmp\FixedHardpointDefinition.cs" />
+    <Compile Include="Utf\Cmp\HardpointDefinition.cs" />
     <Compile Include="Utf\Cmp\ModelFile.cs" />
     <Compile Include="Utf\Cmp\Part.cs" />
-    <Compile Include="Utf\Cmp\RevoluteHardpoint.cs" />
+    <Compile Include="Utf\Cmp\RevoluteHardpointDefinition.cs" />
     <Compile Include="Utf\Cmp\VMeshRef.cs" />
     <Compile Include="Utf\ConstructCollection.cs" />
     <Compile Include="Utf\FixConstruct.cs" />
@@ -235,6 +235,10 @@
     <Compile Include="ApproximateCurve.cs" />
     <Compile Include="GameData\ExclusionZone.cs" />
     <Compile Include="Render\SortLayers.cs" />
+    <Compile Include="GameWorld.cs" />
+    <Compile Include="GameObject.cs" />
+    <Compile Include="Hardpoint.cs" />
+    <Compile Include="Render\IObjectRenderer.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

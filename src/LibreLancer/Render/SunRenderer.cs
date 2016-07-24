@@ -18,25 +18,35 @@ using LibreLancer.GameData;
 using LibreLancer.GameData.Archetypes;
 namespace LibreLancer
 {
-	public class SunRenderer
+	public class SunRenderer : IObjectRenderer
 	{
 		public Sun Sun { get; private set; }
-		FreelancerGame game;
 		Vector3 pos;
-		Vector3 cameraPos;
-		public SunRenderer (SystemObject obj, FreelancerGame game)
+		SystemRenderer sysr;
+		public SunRenderer (Sun sun)
 		{
-			Sun = obj.Archetype as Sun;
-			pos = obj.Position;
-			this.game = game;
+			Sun = sun;
+			pos = Vector3.Zero;
 		}
-		public void Update (TimeSpan elapsed, ICamera camera)
+		public void Update(TimeSpan elapsed, Vector3 position, Matrix4 transform)
 		{
-			cameraPos = camera.Position;
+			pos = position;
 		}
-		public void Draw (NebulaRenderer nr)
+		public void Register(SystemRenderer renderer)
 		{
-			float z = RenderHelpers.GetZ(Matrix4.Identity, cameraPos, pos);
+			sysr = renderer;
+			sysr.Objects.Add(this);
+		}
+		public void Unregister()
+		{
+			sysr.Objects.Remove(this);
+			sysr = null;
+		}
+		public void Draw (ICamera camera, CommandBuffer commands, Lighting lights, NebulaRenderer nr)
+		{
+			if (sysr == null)
+				return;
+			float z = RenderHelpers.GetZ(Matrix4.Identity, camera.Position, pos);
 			var dist_scale = nr != null ? nr.Nebula.SunBurnthroughScale : 1; // TODO: Modify this based on nebula burn-through.
 			var alpha = nr != null ? nr.Nebula.SunBurnthroughIntensity : 1;
 			var glow_scale = dist_scale * Sun.GlowScale;
@@ -44,7 +54,7 @@ namespace LibreLancer
 			{
 				var center_scale = dist_scale * Sun.CenterScale;
 				DrawRadial(
-					(Texture2D)game.ResourceManager.FindTexture(Sun.CenterSprite),
+					(Texture2D)sysr.Game.ResourceManager.FindTexture(Sun.CenterSprite),
 					new Vector3(pos),
 					new Vector2(Sun.Radius, Sun.Radius) * center_scale,
 					new Color4(Sun.CenterColorInner, alpha),
@@ -54,7 +64,7 @@ namespace LibreLancer
 				);
 			}
 			DrawRadial(
-				(Texture2D)game.ResourceManager.FindTexture(Sun.GlowSprite),
+				(Texture2D)sysr.Game.ResourceManager.FindTexture(Sun.GlowSprite),
 				new Vector3(pos),
 				new Vector2(Sun.Radius, Sun.Radius) * glow_scale,
 				new Color4(Sun.GlowColorInner, alpha),
@@ -66,7 +76,7 @@ namespace LibreLancer
 			{
 				double current_angle = 0;
 				double delta_angle = (2 * Math.PI) / Sun.Spines.Count;
-				var spinetex = (Texture2D)game.ResourceManager.FindTexture(Sun.SpinesSprite);
+				var spinetex = (Texture2D)sysr.Game.ResourceManager.FindTexture(Sun.SpinesSprite);
 				for (int i = 0; i < Sun.Spines.Count; i++)
 				{
 					var s = Sun.Spines[i];
@@ -86,7 +96,7 @@ namespace LibreLancer
 		}
 		void DrawRadial(Texture2D texture, Vector3 position, Vector2 size, Color4 inner, Color4 outer, float expand, float z)
 		{
-			game.Billboards.DrawCustomShader(
+			sysr.Game.Billboards.DrawCustomShader(
 				"sun_radial.frag",
 				new RenderUserData() { Texture = texture, Color = inner, Color2 = outer, Float = expand, UserFunction = _setupRadialDelegate },
 				position,
@@ -103,7 +113,7 @@ namespace LibreLancer
 		}
 		void DrawSpine(Texture2D texture, Vector3 position, Vector2 size, Color3f inner, Color3f outer, float alpha, float angle, float z)
 		{
-			game.Billboards.DrawCustomShader(
+			sysr.Game.Billboards.DrawCustomShader(
 				"sun_spine.frag",
 				new RenderUserData() { Texture = texture, Color = new Color4(inner,1), Color2 = new Color4(outer,1), Float = alpha, UserFunction = _setupSpineDelegate },
 				position,

@@ -32,6 +32,7 @@ C# Memory Usage: {5}
 ";
 		private const float ROTATION_SPEED = 1f;
 		GameData.StarSystem sys;
+		GameWorld world;
 		DebugCamera camera;
 		SystemRenderer sysrender;
 		bool wireframe = false;
@@ -46,7 +47,8 @@ C# Memory Usage: {5}
 			camera = new DebugCamera (g.Viewport);
 			camera.Zoom = 5000;
 			sysrender = new SystemRenderer (camera, g.GameData, g.ResourceManager);
-			sysrender.StarSystem = sys;
+			world = new GameWorld(sysrender);
+			world.LoadSystem(sys);
 			g.Sound.PlayMusic(sys.MusicSpace);
 			camera.UpdateProjection ();
 
@@ -67,7 +69,7 @@ C# Memory Usage: {5}
 					textEntry = false;
 					Game.DisableTextInput();
 					sys = Game.GameData.GetSystem(currentText.Trim());
-					sysrender.StarSystem = sys;
+					world.LoadSystem(sys);
 					camera.Free = false;
 					camera.Update(TimeSpan.FromSeconds(1));
 					camera.Free = true;
@@ -79,7 +81,7 @@ C# Memory Usage: {5}
 			}
 			camera.Update (delta);
 			camera.Free = true;
-			sysrender.Update (delta);
+			world.Update (delta);
 		}
 
 		void G_Keyboard_KeyDown (KeyEventArgs e)

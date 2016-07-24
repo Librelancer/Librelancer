@@ -25,12 +25,10 @@ namespace LibreLancer
 	public class SystemRenderer
 	{
 		ICamera camera;
-		LegacyGameData data;
 
 		public Matrix4 World { get; private set; }
 
-		public List<SunRenderer> Suns { get; private set; }
-		public List<ModelRenderer> Models { get; private set; }
+		public List<IObjectRenderer> Objects { get; private set; }
 		public List<AsteroidFieldRenderer> AsteroidFields { get; private set; }
 		public List<NebulaRenderer> Nebulae { get; private set; }
 
@@ -47,13 +45,21 @@ namespace LibreLancer
 		RenderState rstate;
 		FreelancerGame game;
 		Texture2D dot;
+
+		public FreelancerGame Game
+		{
+			get
+			{
+				return game;
+			}
+		}
+
 		public SystemRenderer(ICamera camera, LegacyGameData data, ResourceManager rescache)
 		{
 			this.camera = camera;
 			this.data = data;
 			World = Matrix4.Identity;
-			Suns = new List<SunRenderer>();
-			Models = new List<ModelRenderer>();
+			Objects = new List<IObjectRenderer>();
 			AsteroidFields = new List<AsteroidFieldRenderer>();
 			cache = rescache;
 			rstate = cache.Game.RenderState;
@@ -66,16 +72,11 @@ namespace LibreLancer
 		{
 			starSystem = system;
 
-			Suns.Clear();
-
-			Models.Clear();
-
 			if (starSphereModels != null)
 			{
 				starSphereModels = new CmpFile[0];
 			}
 
-			GC.Collect();
 			cache.ClearTextures();
 
 			//Load new system
@@ -110,20 +111,6 @@ namespace LibreLancer
 					Nebulae.Add(new NebulaRenderer(n, camera, cache.Game));
 				}
 			}
-
-			foreach (SystemObject o in system.Objects)
-			{
-				if (o.Archetype is Sun)
-				{
-					SunRenderer s = new SunRenderer(o, game);
-					Suns.Add(s);
-				}
-				else if (o.Archetype.ArchetypeName != "JumpHole")
-				{
-					ModelRenderer m = new ModelRenderer(camera, World, o, cache, ObjectInNebula(o.Position));
-					Models.Add(m);
-				}
-			}
 		
 			systemLighting = new Lighting();
 			systemLighting.Ambient = system.AmbientColor;
@@ -135,12 +122,11 @@ namespace LibreLancer
 			foreach (var model in starSphereModels)
 				model.Update(camera, elapsed);
 
-			for (int i = 0; i < Suns.Count; i++) Suns[i].Update(elapsed, camera);
-			for (int i = 0; i < Models.Count; i++) Models[i].Update(elapsed);
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Update(camera);
 			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Update(elapsed);
 		}
-		NebulaRenderer ObjectInNebula(Vector3 position)
+
+		public NebulaRenderer ObjectInNebula(Vector3 position)
 		{
 			for (int i = 0; i < Nebulae.Count; i++)
 			{
@@ -152,6 +138,7 @@ namespace LibreLancer
 			}
 			return null;
 		}
+
 		NebulaRenderer CheckNebulae()
 		{
 			for (int i = 0; i < Nebulae.Count; i++)
@@ -201,7 +188,7 @@ namespace LibreLancer
 			rstate.DepthEnabled = true;
 			//Clear depth buffer for game objects
 			game.Billboards.Begin(camera, commands);
-			for (int i = 0; i < Models.Count; i++) Models[i].Draw(commands, systemLighting, nr);
+			for (int i = 0; i < Objects.Count; i++) Objects[i].Draw(camera, commands, systemLighting, nr);
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(cache, systemLighting, commands, nr);
 			game.Nebulae.NewFrame();
 			if (nr == null)
@@ -211,7 +198,6 @@ namespace LibreLancer
 			else
 				nr.Draw(commands, systemLighting);
 			game.Nebulae.SetData();
-			for (int i = 0; i < Suns.Count; i++) Suns[i].Draw(nr);
 			game.Billboards.End();
 			//Opaque Pass
 			rstate.DepthEnabled = true;

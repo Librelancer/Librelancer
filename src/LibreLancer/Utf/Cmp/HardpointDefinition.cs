@@ -17,37 +17,44 @@
  */
 
 using System;
-
-
 namespace LibreLancer.Utf.Cmp
 {
-    public class RevoluteHardpoint : Hardpoint
+    public abstract class HardpointDefinition
     {
-        public Vector3 Axis { get; private set; }
-        public float Max { get; private set; }
-        public float Min { get; private set; }
+        public string Name { get; private set; }
+        public Matrix4 Orientation { get; private set; }
+        public Vector3 Position { get; private set; }
 
-        public RevoluteHardpoint(IntermediateNode root)
-            : base(root)
+        public HardpointDefinition(IntermediateNode root)
         {
-            foreach (LeafNode node in root)
-            {
-                if (!parentNode(node))
-                    switch (node.Name.ToLowerInvariant())
-                    {
-                        case "axis":
-                            Axis = node.Vector3Data.Value;
-                            break;
-                        case "max":
-                            Max = node.SingleData.Value;
-                            break;
-                        case "min":
-                            Min = node.SingleData.Value;
-                            break;
-                        default:
-                            throw new Exception("Invalid LeafNode in " + root.Name + ": " + node.Name);
-                    }
-            }
+            if (root == null) throw new ArgumentNullException("root");
+
+            Name = root.Name;
         }
+
+        protected bool parentNode(LeafNode node)
+        {
+            switch (node.Name.ToLowerInvariant())
+            {
+                case "orientation":
+                    Orientation = node.MatrixData3x3.Value;
+                    break;
+                case "position":
+                    Position = node.Vector3Data.Value;
+                    break;
+                default:
+                    return false;
+            }
+
+            return true;
+        }
+
+		public virtual Matrix4 Transform
+		{
+			get
+			{
+				return Orientation * Matrix4.CreateTranslation(Position);
+			}	
+		}
     }
 }

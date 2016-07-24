@@ -1470,7 +1470,7 @@ namespace LibreLancer
         /// <exception cref="InvalidOperationException">Thrown if the Matrix4 is singular.</exception>
         public static void Invert(ref Matrix4 mat, out Matrix4 result)
         {
-            result = Matrix4.Identity;
+			result = mat;
             float* inv = stackalloc float[16];
             fixed(float* m = mat.vals, invOut = result.vals)
             {
@@ -1589,13 +1589,17 @@ namespace LibreLancer
 
                 det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
 
-                if (det == 0)
-                    throw new Exception("Matrix is singular and cannot be inverted");
+				if (det == 0)
+				{
+					//Do nothing
+				}
+				else
+				{
+					det = 1.0f / det;
 
-                det = 1.0f / det;
-
-                for (int i = 0; i < 16; i++)
-                    invOut[i] = inv[i] * det;
+					for (int i = 0; i < 16; i++)
+						invOut[i] = inv[i] * det;
+				}
             }
         }
 

@@ -19,72 +19,76 @@ using LibreLancer.Utf.Mat;
 using LibreLancer.GameData;
 namespace LibreLancer
 {
-	public class ModelRenderer
+	public class ModelRenderer : IObjectRenderer
 	{
-		ICamera camera;
 		public Matrix4 World { get; private set; }
-		public SystemObject SpaceObject { get; private set; }
 		public ModelFile Model { get; private set; }
 		public CmpFile Cmp { get; private set; }
 		public SphFile Sph { get; private set; }
 		public NebulaRenderer Nebula;
 		float radiusAtmosphere;
-
-		public ModelRenderer (ICamera camera, Matrix4 world, SystemObject spaceObject,ResourceManager cache, NebulaRenderer nebula)
+		Vector3 pos;
+		bool inited = false;
+		SystemRenderer sysr;
+		public ModelRenderer (IDrawable drawable)
 		{
-			Nebula = nebula;
-			World = world * Matrix4.CreateTranslation(spaceObject.Position);
-			if (spaceObject.Rotation != null)
-				World = spaceObject.Rotation.Value * World;
-			SpaceObject = spaceObject;
-			this.camera = camera;
-			IDrawable archetype = spaceObject.Archetype.Drawable;
-			if (archetype is ModelFile) {
-				Model = archetype as ModelFile;
-				if (Model != null && Model.Levels.ContainsKey (0)) {
-					Model.Initialize (cache);
-				}
-			} else if (archetype is CmpFile) {
-				Cmp = archetype as CmpFile;
-				Cmp.Initialize (cache);
-			} else if (archetype is SphFile) {
-				Sph = archetype as SphFile;
-				Sph.Initialize (cache);
-				if (Sph.SideMaterials.Length > 6)
-					radiusAtmosphere = Sph.Radius * Sph.SideMaterials[6].Scale;
-				else
-					radiusAtmosphere = Sph.Radius;
+			if (drawable is ModelFile)
+				Model = drawable as ModelFile;
+			else if (drawable is CmpFile)
+				Cmp = drawable as CmpFile;
+			else if (drawable is SphFile)
+				Sph = drawable as SphFile;
+		}
+
+		public void Update(TimeSpan elapsed, Vector3 position, Matrix4 transform)
+		{
+			if (sysr == null)
+				return;
+			World = transform;
+			if (Nebula == null || pos != position)
+			{
+				pos = position;
+				Nebula = sysr.ObjectInNebula(position);
 			}
 		}
 
-		public void Update(TimeSpan elapsed)
+		public void Register(SystemRenderer renderer)
 		{
-			if (Model != null)
-				Model.Update (camera, elapsed);
-			else if (Cmp != null)
-				Cmp.Update (camera, elapsed);
-			else if (Sph != null)
-				Sph.Update (camera, elapsed);
+			sysr = renderer;
+			sysr.Objects.Add(this);
+			if (!inited)
+			{
+				if (Model != null && Model.Levels.ContainsKey(0))
+					Model.Initialize(sysr.Game.ResourceManager);
+				else if (Cmp != null)
+					Cmp.Initialize(sysr.Game.ResourceManager);
+				else if (Sph != null)
+				{
+					Sph.Initialize(sysr.Game.ResourceManager);
+					if (Sph.SideMaterials.Length > 6)
+						radiusAtmosphere = Sph.Radius * Sph.SideMaterials[6].Scale;
+					else
+						radiusAtmosphere = Sph.Radius;
+				}
+				inited = true;
+			}
 		}
 
-		public bool LightInSphere(ref RenderLight lt)
+		public void Unregister()
 		{
-			if (Sph == null)
-				return false;
-			var bsphere = new BoundingSphere(
-				SpaceObject.Position,
-				radiusAtmosphere
-			);
-			return bsphere.Contains(lt.Position) == ContainmentType.Contains;
+			sysr.Objects.Remove(this);
+			sysr = null;
 		}
 
-
-		public void Draw(CommandBuffer buffer, Lighting lights, NebulaRenderer nr)
+		public void Draw(ICamera camera, CommandBuffer commands, Lighting lights, NebulaRenderer nr)
 		{
+			if (sysr == null)
+				return;
 			if (Nebula != null && nr != Nebula)
 				return;
 			if (Model != null) {
 				if (Model.Levels.ContainsKey (0)) {
+					Model.Update(camera, TimeSpan.Zero);
 					var center = VectorMath.Transform(Model.Levels[0].Center, World);
 					var bsphere = new BoundingSphere(
 						center,
@@ -93,10 +97,11 @@ namespace LibreLancer
 					if (camera.Frustum.Intersects(bsphere)) {
 						var lighting = RenderHelpers.ApplyLights(lights, center, Model.Levels[0].Radius, nr);
 						if (!lighting.FogEnabled || VectorMath.Distance(camera.Position, center) <= Model.Levels[0].Radius + lighting.FogRange.Y)
-							Model.DrawBuffer(buffer, World, lighting);
+							Model.DrawBuffer(commands, World, lighting);
 					}
 				}
 			} else if (Cmp != null) {
+				Cmp.Update(camera, TimeSpan.Zero);
 				foreach (Part p in Cmp.Parts.Values)
 				{
 					var model = p.Model;
@@ -115,19 +120,20 @@ namespace LibreLancer
 						{
 							var lighting = RenderHelpers.ApplyLights(lights, center, model.Levels[0].Radius, nr);
 							if (!lighting.FogEnabled || VectorMath.Distance(camera.Position, center) <= model.Levels[0].Radius + lighting.FogRange.Y)
-								model.DrawBuffer(buffer, w, lighting);
+								model.DrawBuffer(commands, w, lighting);
 						}
 					}
 				}
 			} else if (Sph != null) {
+				Sph.Update(camera, TimeSpan.Zero);
 				var bsphere = new BoundingSphere(
-					SpaceObject.Position,
+					pos,
 					radiusAtmosphere);
 				if (camera.Frustum.Intersects(bsphere))
 				{
-					var l = RenderHelpers.ApplyLights(lights, SpaceObject.Position, Sph.Radius, nr);
-					if(!l.FogEnabled || VectorMath.Distance(camera.Position, SpaceObject.Position) <= Sph.Radius + l.FogRange.Y)
-						Sph.DrawBuffer(buffer, World, l);
+					var l = RenderHelpers.ApplyLights(lights, pos, Sph.Radius, nr);
+					if(!l.FogEnabled || VectorMath.Distance(camera.Position, pos) <= Sph.Radius + l.FogRange.Y)
+						Sph.DrawBuffer(commands, World, l);
 				}
 			}
 		}

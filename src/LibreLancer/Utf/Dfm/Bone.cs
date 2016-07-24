@@ -27,14 +27,14 @@ namespace LibreLancer.Utf.Dfm
 	{
 		public Matrix4 BoneToRoot { get; private set; }
 		public byte LodBits { get; private set; }
-		public List<Hardpoint> Hardpoints { get; private set; }
+		public List<HardpointDefinition> Hardpoints { get; private set; }
 
 		protected Matrix4 transform = Matrix4.Identity;
 		public Matrix4 Transform { get { return transform; } }
 
 		public Bone(IntermediateNode node)
 		{
-			Hardpoints = new List<Hardpoint>();
+			Hardpoints = new List<HardpointDefinition>();
 
 			foreach (Node subNode in node)
 			{
@@ -54,11 +54,11 @@ namespace LibreLancer.Utf.Dfm
 						{
 						case "fixed":
 							foreach (IntermediateNode fixedNode in hardpointTypeNode)
-								Hardpoints.Add(new FixedHardpoint(fixedNode));
+								Hardpoints.Add(new FixedHardpointDefinition(fixedNode));
 							break;
 						case "revolute":
 							foreach (IntermediateNode revoluteNode in hardpointTypeNode)
-								Hardpoints.Add(new RevoluteHardpoint(revoluteNode));
+								Hardpoints.Add(new RevoluteHardpointDefinition(revoluteNode));
 							break;
 						default: throw new Exception("Invalid node in " + hardpointsNode.Name + ": " + hardpointTypeNode.Name);
 						}

@@ -21,15 +21,32 @@ using System;
 
 namespace LibreLancer.Utf.Cmp
 {
-    public class FixedHardpoint : Hardpoint
+    public class RevoluteHardpointDefinition : HardpointDefinition
     {
-        public FixedHardpoint(IntermediateNode root)
+        public Vector3 Axis { get; private set; }
+        public float Max { get; private set; }
+        public float Min { get; private set; }
+
+        public RevoluteHardpointDefinition(IntermediateNode root)
             : base(root)
         {
             foreach (LeafNode node in root)
             {
                 if (!parentNode(node))
-                    throw new Exception("Invalid LeafNode in " + root.Name + ": " + node.Name);
+                    switch (node.Name.ToLowerInvariant())
+                    {
+                        case "axis":
+                            Axis = node.Vector3Data.Value;
+                            break;
+                        case "max":
+                            Max = node.SingleData.Value;
+                            break;
+                        case "min":
+                            Min = node.SingleData.Value;
+                            break;
+                        default:
+                            throw new Exception("Invalid LeafNode in " + root.Name + ": " + node.Name);
+                    }
             }
         }
     }

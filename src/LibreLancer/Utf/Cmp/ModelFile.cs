@@ -44,7 +44,7 @@ namespace LibreLancer.Utf.Cmp
         public MatFile MaterialLibrary { get; private set; }
         public TxmFile TextureLibrary { get; private set; }
 
-        public List<Hardpoint> Hardpoints { get; private set; }
+        public List<HardpointDefinition> Hardpoints { get; private set; }
         public Dictionary<int, VMeshRef> Levels { get; private set; }
         public float[] Switch2 { get; private set; }
 
@@ -65,7 +65,7 @@ namespace LibreLancer.Utf.Cmp
             this.additionalLibrary = additionalLibrary;
             ready = false;
 
-            Hardpoints = new List<Hardpoint>();
+            Hardpoints = new List<HardpointDefinition>();
             Levels = new Dictionary<int, VMeshRef>();
 
             foreach (Node node in root)
@@ -97,11 +97,11 @@ namespace LibreLancer.Utf.Cmp
                             {
                                 case "fixed":
                                     foreach (IntermediateNode fixedNode in hardpointTypeNode)
-                                        Hardpoints.Add(new FixedHardpoint(fixedNode));
+                                        Hardpoints.Add(new FixedHardpointDefinition(fixedNode));
                                     break;
                                 case "revolute":
                                     foreach (IntermediateNode revoluteNode in hardpointTypeNode)
-                                        Hardpoints.Add(new RevoluteHardpoint(revoluteNode));
+                                        Hardpoints.Add(new RevoluteHardpointDefinition(revoluteNode));
                                     break;
                                 default: throw new Exception("Invalid node in " + hardpointsNode.Name + ": " + hardpointTypeNode.Name);
                             }

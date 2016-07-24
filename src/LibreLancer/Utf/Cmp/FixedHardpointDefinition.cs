@@ -17,36 +17,20 @@
  */
 
 using System;
+
+
 namespace LibreLancer.Utf.Cmp
 {
-    public abstract class Hardpoint
+    public class FixedHardpointDefinition : HardpointDefinition
     {
-        public string Name { get; private set; }
-        public Matrix4 Orientation { get; private set; }
-        public Vector3 Position { get; private set; }
-
-        public Hardpoint(IntermediateNode root)
+        public FixedHardpointDefinition(IntermediateNode root)
+            : base(root)
         {
-            if (root == null) throw new ArgumentNullException("root");
-
-            Name = root.Name;
-        }
-
-        protected bool parentNode(LeafNode node)
-        {
-            switch (node.Name.ToLowerInvariant())
+            foreach (LeafNode node in root)
             {
-                case "orientation":
-                    Orientation = node.MatrixData3x3.Value;
-                    break;
-                case "position":
-                    Position = node.Vector3Data.Value;
-                    break;
-                default:
-                    return false;
+                if (!parentNode(node))
+                    throw new Exception("Invalid LeafNode in " + root.Name + ": " + node.Name);
             }
-
-            return true;
         }
     }
 }
