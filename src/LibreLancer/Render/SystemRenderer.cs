@@ -56,9 +56,7 @@ namespace LibreLancer
 
 		public SystemRenderer(ICamera camera, LegacyGameData data, ResourceManager rescache)
 		{
-			this.camera = camera;
-			this.data = data;
-			World = Matrix4.Identity;
+			this.camera = camera;			World = Matrix4.Identity;
 			Objects = new List<IObjectRenderer>();
 			AsteroidFields = new List<AsteroidFieldRenderer>();
 			cache = rescache;

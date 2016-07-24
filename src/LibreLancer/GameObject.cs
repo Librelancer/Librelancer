@@ -15,6 +15,7 @@
  */
 using System;
 using System.Collections.Generic;
+using LibreLancer.Utf;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.GameData;
 using Archs = LibreLancer.GameData.Archetypes;
@@ -47,23 +48,22 @@ namespace LibreLancer
 			}
 		}
 
-		void PopulateHardpoints(IDrawable drawable, Matrix4? transform = null)
+		void PopulateHardpoints(IDrawable drawable, AbstractConstruct transform = null)
 		{
 			if (drawable is CmpFile)
 			{
 				var cmp = (CmpFile)drawable;
 				foreach (var part in cmp.Parts.Values)
 				{
-					PopulateHardpoints(part.Model, part.Construct != null ? part.Construct.Transform : Matrix4.Identity);
+					PopulateHardpoints(part.Model, part.Construct);
 				}
 			}
 			else if (drawable is ModelFile)
 			{
 				var model = (ModelFile)drawable;
-				var tr = transform ?? Matrix4.Identity;
 				foreach (var hpdef in model.Hardpoints)
 				{
-					hardpoints.Add(hpdef.Name, new Hardpoint(hpdef, tr));
+					hardpoints.Add(hpdef.Name, new Hardpoint(hpdef, transform));
 				}
 			}
 		}

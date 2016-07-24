@@ -8,13 +8,14 @@ mpv_build() {
 	git clone https://github.com/mxcl/homebrew.git
 	export PATH="$(pwd)/homebrew/bin:/usr/bin:/usr/sbin:/sbin:/bin"
 	brew update
+	FFMPEG_VERSION=$(brew info ffmpeg | grep "ffmpeg:" | awk '{print $3}')
 	echo INSTALLING FFMPEG DEPENDENCIES
 	brew install --only-dependencies ffmpeg
 	echo "INSTALLING MINIMAL FFMPEG (no programs, encoders, https, devices, filters)"
-	curl https://ffmpeg.org/releases/ffmpeg-3.0.2.tar.bz2 > ffmpeg.tar.bz2
+	curl https://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2 > ffmpeg.tar.bz2
 	tar xjf ffmpeg.tar.bz2
-	export FF_PREFIX=$(pwd)/homebrew/Cellar/ffmpeg/3.0.2
-	cd ffmpeg-3.0.2
+	export FF_PREFIX=$(pwd)/homebrew/Cellar/ffmpeg/$FFMPEG_VERSION
+	cd ffmpeg-$FFMPEG_VERSION
 	./configure --disable-programs --disable-doc --enable-small --enable-shared --enable-pthreads --enable-avresample --disable-encoders --disable-devices --disable-sdl --disable-protocols --disable-filters --enable-filter=yadif --enable-protocol=file "--prefix=$FF_PREFIX"
 	make
 	make install
