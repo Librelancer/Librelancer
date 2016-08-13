@@ -140,7 +140,13 @@ namespace LibreLancer
 			GL.BindBuffer (GL.GL_ARRAY_BUFFER, elems.Handle);
 			HasElements = true;
         }
-
+		public void UnsetElementBuffer()
+		{
+			GLBind.VertexBuffer(VBO);
+			GLBind.VertexArray(VAO);
+			GL.BindBuffer(GL.GL_ARRAY_BUFFER, 0);
+			HasElements = false;
+		}
         public void Dispose()
         {
             GL.DeleteBuffer(VBO);

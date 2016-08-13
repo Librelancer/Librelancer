@@ -21,7 +21,12 @@ namespace LibreLancer
 	{
 		public static float GetZ(Matrix4 world, Vector3 cameraPosition, Vector3 vec)
 		{
-			var res =  VectorMath.Distance(world.Transform(vec), cameraPosition);
+			var res =  VectorMath.DistanceSquared(world.Transform(vec), cameraPosition);
+			return res;
+		}
+		public static float GetZ(Vector3 cameraPosition, Vector3 vec)
+		{
+			var res = VectorMath.DistanceSquared(vec, cameraPosition);
 			return res;
 		}
 		public static Lighting ApplyLights(Lighting src, Vector3 c, float r, NebulaRenderer nebula)

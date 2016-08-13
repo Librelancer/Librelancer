@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.GameData;
+using LibreLancer.GameData.Items;
 using Archs = LibreLancer.GameData.Archetypes;
 namespace LibreLancer
 {
@@ -26,16 +27,17 @@ namespace LibreLancer
 		public string Name;
 		public string Nickname;
 		public Hardpoint Attachment;
-		public Matrix4 Transform;
-		public Vector3 Position;
+		public Matrix4 Transform = Matrix4.Identity;
 		public GameObject Parent;
 		public List<GameObject> Children = new List<GameObject>();
 		IDrawable dr;
 		IObjectRenderer renderComponent;
 		Dictionary<string, Hardpoint> hardpoints = new Dictionary<string, Hardpoint>(StringComparer.OrdinalIgnoreCase);
-
-		public GameObject(Archetype arch)
+		bool staticpos = false;
+		public Vector3 StaticPosition;
+		public GameObject(Archetype arch, bool staticpos = false)
 		{
+			this.staticpos = staticpos;
 			if (arch is Archs.Sun)
 			{
 				renderComponent = new SunRenderer((Archs.Sun)arch);
@@ -47,6 +49,26 @@ namespace LibreLancer
 				renderComponent = new ModelRenderer(dr);
 			}
 		}
+
+		public GameObject(Equipment equip, Hardpoint hp, GameObject parent)
+		{
+			Parent = parent;
+			Attachment = hp;
+			if (equip is LightEquipment)
+			{
+				renderComponent = new LightEquipRenderer((LightEquipment)equip);
+			}
+		}
+
+		public void SetLoadout(Dictionary<string, Equipment> equipment)
+		{
+			foreach (var k in equipment.Keys)
+			{
+				var hp = GetHardpoint(k);
+				Children.Add(new GameObject(equipment[k], hp, this));
+			}
+		}
+
 
 		void PopulateHardpoints(IDrawable drawable, AbstractConstruct transform = null)
 		{
@@ -72,20 +94,27 @@ namespace LibreLancer
 		{
 			if (renderComponent != null)
 			{
-				renderComponent.Update(time, Position, GetTransform());
+				var tr = GetTransform();
+				renderComponent.Update(time, staticpos ? StaticPosition : tr.Transform(Vector3.Zero), tr);
 			}
-			foreach (var c in Children)
-				c.Update(time);
+			for (int i = 0; i < Children.Count; i++)
+				Children[i].Update(time);
 		}
 
 		public void Register(SystemRenderer renderer)
 		{
-			renderComponent.Register(renderer);
+			if(renderComponent != null)
+				renderComponent.Register(renderer);
+			foreach (var child in Children)
+				child.Register(renderer);
 		}
 
 		public void Unregister()
 		{
-			renderComponent.Unregister();
+			if(renderComponent != null)
+				renderComponent.Unregister();
+			foreach (var child in Children)
+				child.Unregister();
 		}
 
 		public Hardpoint GetHardpoint(string hpname)
@@ -95,8 +124,10 @@ namespace LibreLancer
 
 		public Matrix4 GetTransform()
 		{
+			if (staticpos)
+				return Transform;
 			var tr = Matrix4.Identity;
-			if(Parent != null)
+			if (Parent != null)
 				tr = Parent.GetTransform();
 			if (Attachment != null)
 				tr = Attachment.Transform * tr;

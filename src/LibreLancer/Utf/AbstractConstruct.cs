@@ -37,7 +37,7 @@ namespace LibreLancer.Utf
         public Matrix4 Rotation { get; set; }
 
         public abstract Matrix4 Transform { get; }
-
+		bool parentExists = true;
         protected AbstractConstruct(BinaryReader reader, ConstructCollection constructs)
         {
             if (reader == null) throw new ArgumentNullException("reader");
@@ -58,10 +58,18 @@ namespace LibreLancer.Utf
             Origin = ConvertData.ToVector3(reader);
         }
 
+		AbstractConstruct parent;
         protected Matrix4 internalGetTransform(Matrix4 matrix)
         {
-            AbstractConstruct parent = constructs.Find(ParentName);
-            if (parent != null) matrix *= parent.Transform;
+			if (parentExists)
+			{
+				if(parent == null)
+					parent = constructs.Find(ParentName);
+				if (parent != null) 
+					matrix *= parent.Transform;
+				else
+					parentExists = false;
+			}
 
             return matrix;
         }

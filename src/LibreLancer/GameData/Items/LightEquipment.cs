@@ -14,26 +14,18 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-
-namespace LibreLancer
+namespace LibreLancer.GameData.Items
 {
-	public struct Color3f
+	public class LightEquipment : Equipment
 	{
-		public static readonly Color3f White = new Color3f(1, 1, 1);
-		public static readonly Color3f Black = new Color3f(0, 0, 0);
-		public float R;
-		public float G;
-		public float B;
-		public Color3f(float r, float g, float b)
-		{
-			R = r;
-			G = g;
-			B = b;
-		}
-		public override string ToString ()
-		{
-			return string.Format ("[R:{0}, G:{1}, B:{2}]", R, G, B);
-		}
+		public Color3f Color;
+		public Color3f MinColor;
+		public Color3f GlowColor;
+		public float BulbSize;
+		public float GlowSize;
+		public bool Animated;
+		public float AvgDelay;
+		public float BlinkDuration;
 	}
 }
 

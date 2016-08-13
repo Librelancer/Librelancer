@@ -53,7 +53,10 @@ namespace LibreLancer
 
 		Shader shader;
 		BVert[] vertices;
+		RenderData[] rendat;
 		VertexBuffer vbo;
+		ushort[] indices = new ushort[MAX_BILLBOARDS];
+		ElementBuffer ibo;
 		public Billboards ()
 		{
 			shader = ShaderCache.Get (
@@ -63,9 +66,30 @@ namespace LibreLancer
 			);
 			shader.SetInteger ("tex0", 0);
 			vertices = new BVert[MAX_BILLBOARDS];
+			rendat = new RenderData[MAX_BILLBOARDS];
 			vbo = new VertexBuffer (typeof(BVert), MAX_BILLBOARDS, true);
+			ibo = new ElementBuffer(MAX_BILLBOARDS);
 		}
-
+		struct RenderData
+		{
+			public Texture Texture;
+			public BlendMode BlendMode;
+			public RenderData(Texture tex, BlendMode blend)
+			{
+				Texture = tex;
+				BlendMode = blend;
+			}
+			public override int GetHashCode()
+			{
+				unchecked
+				{
+					int hash = 17;
+					hash += hash * 23 + Texture.GetHashCode();
+					hash += hash * 23 + BlendMode.GetHashCode();
+					return hash;
+				}
+			}
+		}
 		ICamera camera;
 		Texture2D currentTexture;
 		int billboardCount = 0;
@@ -129,6 +153,7 @@ namespace LibreLancer
 			lastCount = billboardCount;
 		}
 		int currentLayer = 0;
+		int bmode = 0;
 		public void Draw(
 			Texture2D texture,
 			Vector3 Position,
@@ -139,16 +164,18 @@ namespace LibreLancer
 			Vector2 bottomleft,
 			Vector2 bottomright,
 			float angle,
-			int layer
+			int layer,
+			BlendMode blend = BlendMode.Normal
 		)
 		{
 			/*if (currentTexture != texture && currentTexture != null)
 				Flush ();
 			if (billboardCount + 1 > MAX_BILLBOARDS)
 				throw new Exception("Billboard overflow");*/
-			Flush();
-			currentTexture = texture;
-			currentLayer = layer;
+			//bmode = (int)blend;
+			//Flush();
+			//currentTexture = texture;
+			//currentLayer = layer;
 			//setup vertex
 			vertices [billboardCount].Position = Position;
 			vertices [billboardCount].Size = size;
@@ -158,8 +185,19 @@ namespace LibreLancer
 			vertices [billboardCount].Texture2 = bottomleft;
 			vertices [billboardCount].Texture3 = bottomright;
 			vertices [billboardCount].Angle = angle;
+			rendat[billboardCount].Texture = texture;
+			rendat[billboardCount].BlendMode = blend;
+			var z = RenderHelpers.GetZ(camera.Position, Position);
+			buffer.AddCommand(
+				this,
+				rendat[billboardCount].GetHashCode(),
+				billboardCount,
+				layer,
+				z
+			);
 			//increase count
 			billboardCount++;
+			lastCount = billboardCount;
 		}
 
 		int lastCount = 0;
@@ -173,13 +211,13 @@ namespace LibreLancer
 			for (int i = lastCount; i < billboardCount; i++)
 				avgPos += vertices[i].Position;
 			avgPos /= (billboardCount - lastCount);
-			var z = RenderHelpers.GetZ(Matrix4.Identity, camera.Position, avgPos);
+			var z = RenderHelpers.GetZ(camera.Position, avgPos);
 			buffer.AddCommand(
 				shader,
 				_setupDelegate,
 				_resetDelegate,
 				view,
-				new RenderUserData() { Texture = currentTexture, ViewProjection = vp },
+				new RenderUserData() { Texture = currentTexture, ViewProjection = vp, Integer = (int)bmode },
 				vbo,
 				PrimitiveTypes.Points,
 				lastCount,
@@ -192,11 +230,48 @@ namespace LibreLancer
 			currentLayer = 0;
 			currentTexture = null;
 		}
+		int lasthash = -1;
+		int datindex = 0;
+		int indexCount = 0;
+
+		public void RenderStandard(int index, int hash, RenderState rs)
+		{
+			if (hash != lasthash && lasthash != -1)
+				FlushCommands(rs);
+			lasthash = hash;
+			datindex = index;
+			indices[indexCount++] = (ushort)index;
+		}
+
+		public void FlushCommands(RenderState rs)
+		{
+			if (indexCount == 0)
+			{
+				lasthash = -1;
+				return;
+			}
+			ibo.SetData(indices, indexCount);
+			vbo.SetElementBuffer(ibo);
+			rs.Cull = false;
+			rs.BlendMode = rendat[datindex].BlendMode;
+			var v = camera.View;
+			var vp = camera.ViewProjection;
+			shader.SetMatrix("View", ref v);
+			shader.SetMatrix("ViewProjection", ref vp);
+			rendat[datindex].Texture.BindTo(0);
+			shader.UseProgram();
+			vbo.Draw(PrimitiveTypes.Points, 0, 0, indexCount);
+			rs.Cull = false;
+			vbo.UnsetElementBuffer();
+			lasthash = -1;
+			indexCount = 0;
+		}
+
 		static Action<Shader, RenderState, RenderCommand> _setupDelegate = SetupShader;
 		static void SetupShader(Shader shader, RenderState rs, RenderCommand cmd)
 		{
 			rs.Cull = false;
-			rs.BlendMode = BlendMode.Normal;
+			rs.BlendMode = (BlendMode)cmd.UserData.Integer;
 			shader.SetMatrix("View", ref cmd.World);
 			shader.SetMatrix("ViewProjection", ref cmd.UserData.ViewProjection);
 			cmd.UserData.Texture.BindTo(0);

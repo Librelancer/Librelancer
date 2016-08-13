@@ -56,6 +56,14 @@ namespace LibreLancer
             }
             return levels;
         }
+
+		public override int GetHashCode()
+		{
+			unchecked
+			{
+				return (int)ID;
+			}
+		}
         public virtual void Dispose()
         {
 			GL.DeleteTexture(ID);

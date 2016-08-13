@@ -28,7 +28,7 @@ namespace LibreLancer
 		Cutscene scene;
 		public MainMenu (FreelancerGame g) : base (g)
 		{
-			g.GameData.LoadInterfaceVms ();
+			g.GameData.LoadHardcodedFiles ();
 			logoOverlay = g.GameData.GetFreelancerLogo ();
 
 			manager = new UIManager (g);

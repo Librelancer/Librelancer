@@ -40,11 +40,12 @@ namespace LibreLancer
 
 			foreach (var obj in sys.Objects)
 			{
-				var g = new GameObject(obj.Archetype);
+				var g = new GameObject(obj.Archetype, true);
 				g.Name = obj.DisplayName;
 				g.Nickname = obj.Nickname;
 				g.Transform = (obj.Rotation ?? Matrix4.Identity) * Matrix4.CreateTranslation(obj.Position);
-				g.Position = obj.Position;
+				g.SetLoadout(obj.Loadout);
+				g.StaticPosition = obj.Position;
 				g.Register(Renderer);
 				Objects.Add(g);
 			}

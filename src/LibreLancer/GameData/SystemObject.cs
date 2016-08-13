@@ -14,6 +14,8 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Collections.Generic;
+using LibreLancer.GameData.Items;
 namespace LibreLancer.GameData
 {
 	public class SystemObject
@@ -23,7 +25,7 @@ namespace LibreLancer.GameData
 		public Archetype Archetype;
 		public Vector3 Position = Vector3.Zero;
 		public Matrix4? Rotation;
-
+		public Dictionary<string, Equipment> Loadout = new Dictionary<string, Equipment>();
 		public SystemObject ()
 		{
 		}

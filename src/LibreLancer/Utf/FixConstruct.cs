@@ -24,12 +24,14 @@ namespace LibreLancer.Utf
 {
     public class FixConstruct : AbstractConstruct
     {
-        public override Matrix4 Transform { get { return internalGetTransform(Rotation * Matrix4.CreateTranslation(Origin)); } }
+		Matrix4 fixtransform;
+        public override Matrix4 Transform { get { return internalGetTransform(fixtransform); } }
 
         public FixConstruct(BinaryReader reader, ConstructCollection constructs)
             : base(reader, constructs)
         {
             Rotation = ConvertData.ToMatrix3x3(reader);
+			fixtransform = Rotation * Matrix4.CreateTranslation(Origin);
         }
 
         public override void Update(float distance)

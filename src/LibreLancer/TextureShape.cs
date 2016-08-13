@@ -8,32 +8,20 @@
  * License for the specific language governing rights and limitations
  * under the License.
  * 
+ * The Original Code is Starchart code (http://flapi.sourceforge.net/).
  * 
- * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * The Initial Developer of the Original Code is Malte Rupprecht (mailto:rupprema@googlemail.com).
+ * Portions created by the Initial Developer are Copyright (C) 2011
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-
 namespace LibreLancer
 {
-	public struct Color3f
+	public class TextureShape
 	{
-		public static readonly Color3f White = new Color3f(1, 1, 1);
-		public static readonly Color3f Black = new Color3f(0, 0, 0);
-		public float R;
-		public float G;
-		public float B;
-		public Color3f(float r, float g, float b)
-		{
-			R = r;
-			G = g;
-			B = b;
-		}
-		public override string ToString ()
-		{
-			return string.Format ("[R:{0}, G:{1}, B:{2}]", R, G, B);
-		}
+		public string Nickname;
+		public string Texture;
+		public RectangleF Dimensions;
 	}
 }
 

@@ -20,7 +20,7 @@ namespace LibreLancer.Compatibility.GameData
 		public string StarsPath { get; private set; }
 		public string BodypartsPath { get; private set; }
 		public string CostumesPath { get; private set; }
-
+		public string EffectShapesPath { get; private set; }
 		public FreelancerIni ()
 		{
 			EquipmentPaths = new List<string> ();
@@ -92,6 +92,9 @@ namespace LibreLancer.Compatibility.GameData
 							break;
 						case "igraph":
 							GraphPaths.Add(DataPath + e[0].ToString());
+							break;
+						case "effect_shapes":
+							EffectShapesPath = DataPath + e[0].ToString();
 							break;
 						}
 					}

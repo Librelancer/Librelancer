@@ -60,7 +60,23 @@ namespace LibreLancer.Utf.Mat
         {
             foreach (IntermediateNode textureNode in textureLibraryNode)
             {
-                LeafNode child = textureNode[textureNode.Count - 1] as LeafNode;
+				LeafNode child = null;
+				if (textureNode.Count == 1)
+				{
+					child = textureNode[0] as LeafNode;
+				}
+				else
+				{
+					//TODO: Mipmapping
+					foreach (var node in textureNode)
+					{
+						if (node.Name.ToLowerInvariant().Trim() == "mip0")
+						{
+							child = node as LeafNode;
+							break;
+						}
+					}
+				}
                 if (child == null) throw new Exception("Invalid texture library");
 
 				TextureData data = new TextureData (child, textureNode.Name);

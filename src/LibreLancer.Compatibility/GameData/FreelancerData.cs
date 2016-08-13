@@ -26,7 +26,9 @@ namespace LibreLancer.Compatibility.GameData
 		public ShiparchIni Ships;
 		public AudioIni Audio;
 		public GraphIni Graphs;
+		public TexturePanels EffectShapes;
 		public bool Loaded = false;
+
 		public FreelancerData (FreelancerIni fli)
 		{
 			Freelancer = fli;
@@ -67,6 +69,8 @@ namespace LibreLancer.Compatibility.GameData
 			Graphs = new GraphIni();
 			foreach (var g in Freelancer.GraphPaths)
 				Graphs.AddGraphIni(g);
+			//Shapes
+			EffectShapes = new TexturePanels(Freelancer.EffectShapesPath);
 		}
 	}
 }

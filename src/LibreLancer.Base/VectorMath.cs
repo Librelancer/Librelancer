@@ -39,6 +39,12 @@ namespace LibreLancer
                     (a.Z - b.Z) * (a.Z - b.Z);
             return (float)Math.Sqrt(result);
         }
+
+		public static float DistanceSquared(Vector3 a, Vector3 b)
+		{
+			return (a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y) + (a.Z - b.Z) * (a.Z - b.Z);
+		}
+
 		public static Vector3 Transform(Vector3 position, Matrix4 matrix)
 		{
 			var result = Vector4.Transform (new Vector4 (position,1 ),matrix);

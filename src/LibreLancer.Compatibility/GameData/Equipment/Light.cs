@@ -67,8 +67,8 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 			}
 		}
 
-		private Color4? glowColor;
-		public Color4? GlowColor
+		private Color3f? glowColor;
+		public Color3f? GlowColor
 		{
 			get
 			{
@@ -77,8 +77,8 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 			}
 		}
 
-		private Color4? color;
-		public Color4? Color
+		private Color3f? color;
+		public Color3f? Color
 		{
 			get
 			{
@@ -117,8 +117,8 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 			}
 		}
 
-		private Color4? minColor;
-		public Color4? MinColor
+		private Color3f? minColor;
+		public Color3f? MinColor
 		{
 			get
 			{
@@ -184,12 +184,12 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 					case "glow_color":
 						if (e.Count != 3) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 						if (glowColor != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-						glowColor = new Color4(e[0].ToInt32() / 255f, e[1].ToInt32() / 255f, e[2].ToInt32() / 255f, 1f);
+							glowColor = new Color3f(e[0].ToInt32() / 255f, e[1].ToInt32() / 255f, e[2].ToInt32() / 255f);
 						break;
 					case "color":
 						if (e.Count != 3) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 						if (color != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-						color = new Color4(e[0].ToInt32() / 255f , e[1].ToInt32() / 255f, e[2].ToInt32() / 255f, 1f);
+							color = new Color3f(e[0].ToInt32() / 255f, e[1].ToInt32() / 255f, e[2].ToInt32() / 255f);
 						break;
 					case "flare_cone":
 						if (e.Count != 2) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
@@ -209,7 +209,7 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 					case "min_color":
 						if (e.Count != 3) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 						if (minColor != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-						minColor = new Color4(e[0].ToInt32() / 255f, e[1].ToInt32() / 255f, e[2].ToInt32() / 255f, 1f);
+							minColor = new Color3f(e[0].ToInt32() / 255f, e[1].ToInt32() / 255f, e[2].ToInt32() / 255f);
 						break;
 					case "avg_delay":
 						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);

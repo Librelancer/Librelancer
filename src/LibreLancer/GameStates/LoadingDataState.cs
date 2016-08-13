@@ -33,7 +33,10 @@ namespace LibreLancer
 		public override void Update(TimeSpan delta)
 		{
 			if (Game.InitialLoadComplete)
+			{
+				Game.ResourceManager.Preload();
 				Game.ChangeState(new MainMenu(Game));
+			}
 		}
 	}
 }

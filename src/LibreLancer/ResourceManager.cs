@@ -29,18 +29,46 @@ namespace LibreLancer
 		Dictionary<uint, Material> materials = new Dictionary<uint, Material>();
 		Dictionary<string, Texture> textures = new Dictionary<string, Texture>();
 		Dictionary<string, string> texturefiles = new Dictionary<string, string>();
-
 		Dictionary<string, CmpFile> cmps = new Dictionary<string, CmpFile>();
 		Dictionary<string, ModelFile> models = new Dictionary<string, ModelFile>();
 		Dictionary<string, SphFile> sphs = new Dictionary<string, SphFile>();
 		Dictionary<string, VmsFile> vmss = new Dictionary<string, VmsFile>();
+		Dictionary<string, TextureShape> shapes = new Dictionary<string, TextureShape>(StringComparer.OrdinalIgnoreCase);
 
 		List<string> loadedMatFiles = new List<string>();
 		List<string> loadedTxmFiles = new List<string>();
+		List<string> preloadFiles = new List<string>();
 
 		public ResourceManager(FreelancerGame g)
 		{
 			Game = g;
+		}
+
+
+		public void Preload()
+		{
+			foreach (var file in preloadFiles)
+			{
+				if (file.ToLowerInvariant().EndsWith(".mat"))
+					LoadMat(file);
+				if (file.ToLowerInvariant().EndsWith(".txm"))
+					LoadTxm(file);
+			}
+			preloadFiles = null;
+		}
+
+		public void AddShape(string name, TextureShape shape)
+		{
+			shapes.Add(name, shape);
+		}
+		public TextureShape GetShape(string name)
+		{
+			return shapes[name];
+		}
+
+		public void AddPreload(IEnumerable<string> files)
+		{
+			preloadFiles.AddRange(files);
 		}
 
 		public bool TextureExists(string name)

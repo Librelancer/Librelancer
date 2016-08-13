@@ -29,7 +29,10 @@ namespace LibreLancer
         {
             IndexCount = count;
             Handle = GL.GenBuffer();
-        }
+			GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, Handle);
+			GL.BufferData(GL.GL_ELEMENT_ARRAY_BUFFER, new IntPtr(count * 2), IntPtr.Zero, GL.GL_STATIC_DRAW);
+
+		}
         public void SetData(short[] data)
         {
 			GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, Handle);
@@ -44,6 +47,15 @@ namespace LibreLancer
 				GL.BufferData (GL.GL_ELEMENT_ARRAY_BUFFER, new IntPtr (data.Length * 2), (IntPtr)ptr, GL.GL_STATIC_DRAW);
 			}
         }
+		public void SetData(ushort[] data, int count)
+		{
+			GLBind.VertexArray(0);
+			GLBind.VertexBuffer(0);
+			GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, Handle);
+			fixed (ushort* ptr = data) {;
+				GL.BufferSubData(GL.GL_ELEMENT_ARRAY_BUFFER, IntPtr.Zero, new IntPtr(count * 2), (IntPtr)ptr);
+			}
+		}
         public void Dispose()
         {
             GL.DeleteBuffer(Handle);

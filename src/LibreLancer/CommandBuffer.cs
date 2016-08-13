@@ -21,7 +21,7 @@ namespace LibreLancer
 {
 	public class CommandBuffer
 	{
-		const int MAX_COMMANDS = 4096;
+		const int MAX_COMMANDS = 8192;
 		//public List<RenderCommand> Commands = new List<RenderCommand>();
 		RenderCommand[] Commands = new RenderCommand[MAX_COMMANDS];
 		int currentCommand = 0;
@@ -40,7 +40,7 @@ namespace LibreLancer
 				Start = start,
 				Count = count,
 				Primitive = primitive,
-				UseMaterial = true,
+				CmdType = RenderCmdType.Material,
 				UseBaseVertex = true,
 				Transparent = material.IsTransparent,
 				World = world,
@@ -61,7 +61,7 @@ namespace LibreLancer
 				Start = start,
 				Count = count,
 				Primitive = primitive,
-				UseMaterial = false,
+				CmdType = RenderCmdType.Shader,
 				UseBaseVertex = true,
 				Transparent = transparent,
 				SortLayer = layer,
@@ -81,11 +81,24 @@ namespace LibreLancer
 				Start = start,
 				Count = count,
 				Primitive = primitive,
-				UseMaterial = false,
+				CmdType = RenderCmdType.Shader,
 				UseBaseVertex = false,
 				Transparent = transparent,
 				SortLayer = layer,
 				Z = z
+			};
+		}
+		public void AddCommand(Billboards billboards, int hash, int index, int sortLayer, float z)
+		{
+			Commands[currentCommand++] = new RenderCommand()
+			{
+				CmdType = RenderCmdType.Billboard,
+				Billboards = billboards,
+				Hash = hash,
+				Index = index,
+				SortLayer = sortLayer,
+				Z = z,
+				Transparent = true
 			};
 		}
 		public void DrawOpaque(RenderState state)
@@ -103,6 +116,7 @@ namespace LibreLancer
 		public void DrawTransparent(RenderState state)
 		{
 			int a = 0;
+
 			for (int i = 0; i < currentCommand; i++)
 			{
 				if (Commands[i].Transparent)
@@ -111,10 +125,19 @@ namespace LibreLancer
 				}
 			}
 			Array.Sort<int>(cmdptr, 0, a, new ZComparer(Commands));
+			Billboards lastbb = null;
 			for (int i = a - 1; i >= 0; i--)
 			{
+				if (lastbb != null && Commands[cmdptr[i]].CmdType != RenderCmdType.Billboard)
+				{
+					lastbb.FlushCommands(state);
+					lastbb = null;
+				}
+				lastbb = Commands[cmdptr[i]].Billboards;
 				Commands[cmdptr[i]].Run(state);
 			}
+			if (lastbb != null)
+				lastbb.FlushCommands(state);
 		}
 
 	}
@@ -135,6 +158,12 @@ namespace LibreLancer
 				return cmds[x].Z.CompareTo(cmds[y].Z);
 		}
 	}
+	public enum RenderCmdType
+	{
+		Material,
+		Shader,
+		Billboard
+	}
 	public struct RenderCommand
 	{
 		public PrimitiveTypes Primitive;
@@ -146,7 +175,7 @@ namespace LibreLancer
 		public Action<RenderState> Cleanup;
 		public VertexBuffer Buffer;
 		public int BaseVertex;
-		public bool UseMaterial;
+		public RenderCmdType CmdType;
 		public bool UseBaseVertex;
 		public int Start;
 		public int Count;
@@ -155,13 +184,16 @@ namespace LibreLancer
 		public float Z;
 		public string Caller;
 		public int SortLayer;
+		public Billboards Billboards;
+		public int Hash;
+		public int Index;
 		public override string ToString()
 		{
 			return string.Format("[{1} - Z: {0}]", Z, Caller);
 		}
 		public void Run(RenderState state)
 		{
-			if (UseMaterial)
+			if (CmdType == RenderCmdType.Material)
 			{
 				Material.World = World;
 				Material.Use(state, Buffer.VertexType, Lights);
@@ -170,7 +202,7 @@ namespace LibreLancer
 				else
 					Buffer.Draw(Primitive, Count);
 			}
-			else
+			else if (CmdType == RenderCmdType.Shader)
 			{
 				ShaderSetup(Shader, state, this);
 				Shader.UseProgram();
@@ -178,8 +210,12 @@ namespace LibreLancer
 					Buffer.Draw(Primitive, BaseVertex, Start, Count);
 				else
 					Buffer.Draw(Primitive, Start, Count);
-				if(Cleanup != null)
+				if (Cleanup != null)
 					Cleanup(state);
+			}
+			else if (CmdType == RenderCmdType.Billboard)
+			{
+				Billboards.RenderStandard(Index, Hash, state);
 			}
 		}
 	}

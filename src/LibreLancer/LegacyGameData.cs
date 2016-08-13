@@ -62,6 +62,19 @@ namespace LibreLancer
 					}
 				}
 			}
+			resource.AddPreload(
+				fldata.EffectShapes.Files.Select(txmfile => Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + txmfile))
+			);
+			foreach (var shape in fldata.EffectShapes.Shapes)
+			{
+				var s = new TextureShape()
+				{
+					Texture = shape.Value.TextureName,
+					Nickname = shape.Value.ShapeName,
+					Dimensions = shape.Value.Dimensions
+				};
+				resource.AddShape(shape.Key, s);
+			}
 		}
 		public string GetMusicPath(string id)
 		{
@@ -74,7 +87,7 @@ namespace LibreLancer
 			//return IntroScenes[rand.Next(0, IntroScenes.Count)];
 			return IntroScenes[0];
 		}
-		public void LoadInterfaceVms()
+		public void LoadHardcodedFiles()
 		{
 			resource.LoadVms (Compatibility.VFS.GetPath (fldata.Freelancer.DataPath + "INTERFACE/interface.generic.vms"));
 		}
@@ -388,7 +401,38 @@ namespace LibreLancer
 			obj.Archetype.ArchetypeName = o.Archetype.GetType ().Name;
 			Console.WriteLine (obj.Archetype.ArchetypeName);
 			obj.Archetype.Drawable = drawable;
+			var ld = o.Loadout;
+			if (ld != null)
+			{
+				foreach (var key in ld.Equip.Keys)
+				{
+					var val = ld.Equip[key];
+					if (val == null)
+						continue;
+					if (val is Legacy.Equipment.Light)
+					{
+						var light = GetLight((Legacy.Equipment.Light)val);
+						obj.Loadout.Add(key, light);
+					}
+				}
+			}
 			return obj;
+		}
+		GameData.Items.LightEquipment GetLight(Legacy.Equipment.Light lt)
+		{
+			var equip = new GameData.Items.LightEquipment();
+			equip.Color = lt.Color ?? Color3f.White;
+			equip.MinColor = lt.MinColor ?? Color3f.Black;
+			equip.GlowColor = lt.GlowColor ?? equip.Color;
+			equip.BulbSize = lt.BulbSize ?? 1f;
+			equip.GlowSize = lt.GlowSize ?? 1f;
+			if (lt.AvgDelay != null)
+			{
+				equip.Animated = true;
+				equip.AvgDelay = lt.AvgDelay.Value;
+				equip.BlinkDuration = lt.BlinkDuration.Value;
+			}
+			return equip;
 		}
 	}
 }

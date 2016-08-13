@@ -184,6 +184,8 @@ namespace LibreLancer
 			}
 			commands.StartFrame();
 			rstate.DepthEnabled = true;
+			//Optimisation for dictionary lookups
+			LightEquipRenderer.FrameStart();
 			//Clear depth buffer for game objects
 			game.Billboards.Begin(camera, commands);
 			for (int i = 0; i < Objects.Count; i++) Objects[i].Draw(camera, commands, systemLighting, nr);

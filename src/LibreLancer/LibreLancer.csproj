@@ -239,6 +239,10 @@
     <Compile Include="GameObject.cs" />
     <Compile Include="Hardpoint.cs" />
     <Compile Include="Render\IObjectRenderer.cs" />
+    <Compile Include="GameData\Items\LightEquipment.cs" />
+    <Compile Include="GameData\Items\Equipment.cs" />
+    <Compile Include="TextureShape.cs" />
+    <Compile Include="Render\LightEquipRenderer.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -318,6 +322,7 @@
     <Folder Include="Fx\Fields\" />
     <Folder Include="Infocards\" />
     <Folder Include="GameStates\" />
+    <Folder Include="GameData\Items\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="OpenTK.dll.config">
