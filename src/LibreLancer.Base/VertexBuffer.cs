@@ -38,7 +38,14 @@ namespace LibreLancer
 				return vertextype;
 			}
 		}
-
+		ElementBuffer _elements;
+		public ElementBuffer Elements
+		{
+			get
+			{
+				return _elements;
+			}
+		}
 		public VertexBuffer(Type type, int length, bool isStream = false)
         {
             VBO = GL.GenBuffer();
@@ -139,6 +146,7 @@ namespace LibreLancer
 			GLBind.VertexArray (VAO);
 			GL.BindBuffer (GL.GL_ARRAY_BUFFER, elems.Handle);
 			HasElements = true;
+			_elements = elems;
         }
 		public void UnsetElementBuffer()
 		{
@@ -146,6 +154,7 @@ namespace LibreLancer
 			GLBind.VertexArray(VAO);
 			GL.BindBuffer(GL.GL_ARRAY_BUFFER, 0);
 			HasElements = false;
+			_elements = null;
 		}
         public void Dispose()
         {

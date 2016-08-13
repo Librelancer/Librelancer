@@ -42,10 +42,7 @@ namespace LibreLancer
         }
         public void SetData(ushort[] data)
         {
-			GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, Handle);
-			fixed(ushort* ptr = data) {
-				GL.BufferData (GL.GL_ELEMENT_ARRAY_BUFFER, new IntPtr (data.Length * 2), (IntPtr)ptr, GL.GL_STATIC_DRAW);
-			}
+			SetData(data, data.Length);
         }
 		public void SetData(ushort[] data, int count)
 		{

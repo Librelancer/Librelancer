@@ -28,24 +28,18 @@ namespace LibreLancer
 			public Vector3 Position;
 			public Vector2 Size;
 			public Color4 Color;
-			public Vector2 Texture0;
-			public Vector2 Texture1;
-			public Vector2 Texture2;
-			public Vector2 Texture3;
+			public Vector2 TexCoord;
 			public float Angle;
 
 			public VertexDeclaration GetVertexDeclaration()
 			{
-				return new VertexDeclaration (
-					18 * sizeof(float),
-					new VertexElement (VertexSlots.Position, 3, VertexElementType.Float, false, 0),
-					new VertexElement (VertexSlots.Size, 2, VertexElementType.Float, false, sizeof(float) * 3),
-					new VertexElement (VertexSlots.Color, 4, VertexElementType.Float, false, sizeof(float) * 5),
-					new VertexElement (VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 9),
-					new VertexElement (VertexSlots.Texture2, 2, VertexElementType.Float, false, sizeof(float) * 11),
-					new VertexElement (VertexSlots.Texture3, 2, VertexElementType.Float, false, sizeof(float) * 13),
-					new VertexElement (VertexSlots.Texture4, 2, VertexElementType.Float, false, sizeof(float) * 15),
-					new VertexElement (VertexSlots.Angle, 1, VertexElementType.Float, false, sizeof(float) * 17)
+				return new VertexDeclaration(
+					12 * sizeof(float),
+					new VertexElement(VertexSlots.Position, 3, VertexElementType.Float, false, 0),
+					new VertexElement(VertexSlots.Size, 2, VertexElementType.Float, false, sizeof(float) * 3),
+					new VertexElement(VertexSlots.Color, 4, VertexElementType.Float, false, sizeof(float) * 5),
+					new VertexElement(VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 9),
+					new VertexElement(VertexSlots.Angle, 1, VertexElementType.Float, false, sizeof(float) * 11)
 				);
 			}
 
@@ -55,29 +49,42 @@ namespace LibreLancer
 		BVert[] vertices;
 		RenderData[] rendat;
 		VertexBuffer vbo;
-		ushort[] indices = new ushort[MAX_BILLBOARDS];
+		ushort[] indices = new ushort[MAX_BILLBOARDS * 6];
+		ushort[] single_indices = new ushort[6];
 		ElementBuffer ibo;
-		public Billboards ()
+		public Billboards()
 		{
-			shader = ShaderCache.Get (
+			shader = ShaderCache.Get(
 				"Billboard.vs",
-				"Billboard.frag",
-				"Billboard.gs"
+				"Billboard.frag"
 			);
-			shader.SetInteger ("tex0", 0);
-			vertices = new BVert[MAX_BILLBOARDS];
+			shader.SetInteger("tex0", 0);
+			vertices = new BVert[MAX_BILLBOARDS * 4];
 			rendat = new RenderData[MAX_BILLBOARDS];
-			vbo = new VertexBuffer (typeof(BVert), MAX_BILLBOARDS, true);
-			ibo = new ElementBuffer(MAX_BILLBOARDS);
+			vbo = new VertexBuffer(typeof(BVert), MAX_BILLBOARDS * 4, true);
+			ibo = new ElementBuffer(MAX_BILLBOARDS * 6);
+			vbo.SetElementBuffer(ibo);
 		}
 		struct RenderData
 		{
 			public Texture Texture;
 			public BlendMode BlendMode;
-			public RenderData(Texture tex, BlendMode blend)
+			public ushort Index0;
+			public ushort Index1;
+			public ushort Index2;
+			public ushort Index3;
+			public ushort Index4;
+			public ushort Index5;
+			public RenderData(Texture tex, BlendMode blend, ushort idxStart)
 			{
 				Texture = tex;
 				BlendMode = blend;
+				Index0 = idxStart;
+				Index1 = (ushort)(idxStart + 1);
+				Index2 = (ushort)(idxStart + 2);
+				Index3 = (ushort)(idxStart + 1);
+				Index4 = (ushort)(idxStart + 3);
+				Index5 = (ushort)(idxStart + 2);
 			}
 			public override int GetHashCode()
 			{
@@ -98,7 +105,7 @@ namespace LibreLancer
 		{
 			camera = cam;
 			currentTexture = null;
-			billboardCount = lastCount = 0;
+			billboardCount = vertexCount = indexCount = 0;
 			buffer = cmd;
 		}
 
@@ -117,25 +124,25 @@ namespace LibreLancer
 			float z = float.NegativeInfinity
 		)
 		{
-			Flush();
 			var sh = ShaderCache.Get(
 				"Billboard.vs",
-				shader,
-				"Billboard.gs"
+				shader
 			);
 			currentTexture = null;
-			vertices[billboardCount].Position = Position;
-			vertices[billboardCount].Size = size;
-			vertices[billboardCount].Color = color;
-			vertices[billboardCount].Texture0 = topleft;
-			vertices[billboardCount].Texture1 = topright;
-			vertices[billboardCount].Texture2 = bottomleft;
-			vertices[billboardCount].Texture3 = bottomright;
-			vertices[billboardCount].Angle = angle;
-			//increase count
-			billboardCount++;
 			var dat = userData;
 			dat.ViewProjection = camera.ViewProjection;
+			dat.Integer = vertexCount;
+			dat.Object = single_indices;
+			CreateBillboard(
+				Position,
+				size,
+				color,
+				angle,
+				topleft,
+				topright,
+				bottomleft,
+				bottomright
+			);
 			buffer.AddCommand(
 				sh,
 				_setupDelegateCustom,
@@ -143,17 +150,50 @@ namespace LibreLancer
 				camera.View,
 				dat,
 				vbo,
-				PrimitiveTypes.Points,
-				lastCount,
-				1,
+				PrimitiveTypes.TriangleList,
+				0,
+				2,
 				true,
 				layer,
 				float.IsNegativeInfinity(z) ? RenderHelpers.GetZ(Matrix4.Identity, camera.Position, Position) : z
 			);
-			lastCount = billboardCount;
 		}
-		int currentLayer = 0;
-		int bmode = 0;
+		void CreateBillboard(Vector3 position, Vector2 size, Color4 color, float angle, Vector2 topleft, Vector2 topright, Vector2 bottomleft, Vector2 bottomright)
+		{
+			vertices[vertexCount++] = new BVert()
+			{
+				Position = position,
+				Size = size * -0.5f,
+				Angle = angle,
+				Color = color,
+				TexCoord = bottomleft
+			};
+			vertices[vertexCount++] = new BVert()
+			{
+				Position = position,
+				Size = size * new Vector2(0.5f, -0.5f),
+				Angle = angle,
+				Color = color,
+				TexCoord = topleft
+			};
+			vertices[vertexCount++] = new BVert()
+			{
+				Position = position,
+				Size = size * new Vector2(-0.5f, 0.5f),
+				Angle = angle,
+				Color = color,
+				TexCoord = bottomright
+			};
+			vertices[vertexCount++] = new BVert()
+			{
+				Position = position,
+				Size = size * 0.5f,
+				Angle = angle,
+				Color = color,
+				TexCoord = topright
+			};
+		}
+
 		public void Draw(
 			Texture2D texture,
 			Vector3 Position,
@@ -168,25 +208,21 @@ namespace LibreLancer
 			BlendMode blend = BlendMode.Normal
 		)
 		{
-			/*if (currentTexture != texture && currentTexture != null)
-				Flush ();
-			if (billboardCount + 1 > MAX_BILLBOARDS)
-				throw new Exception("Billboard overflow");*/
-			//bmode = (int)blend;
-			//Flush();
-			//currentTexture = texture;
-			//currentLayer = layer;
-			//setup vertex
-			vertices [billboardCount].Position = Position;
-			vertices [billboardCount].Size = size;
-			vertices [billboardCount].Color = color;
-			vertices [billboardCount].Texture0 = topleft;
-			vertices [billboardCount].Texture1 = topright;
-			vertices [billboardCount].Texture2 = bottomleft;
-			vertices [billboardCount].Texture3 = bottomright;
-			vertices [billboardCount].Angle = angle;
-			rendat[billboardCount].Texture = texture;
-			rendat[billboardCount].BlendMode = blend;
+			rendat[billboardCount] = new RenderData(
+				texture,
+				blend,
+				(ushort)vertexCount
+			);
+			CreateBillboard(
+				Position,
+				size,
+				color,
+				angle,
+				topleft,
+				topright,
+				bottomleft,
+				bottomright
+			);
 			var z = RenderHelpers.GetZ(camera.Position, Position);
 			buffer.AddCommand(
 				this,
@@ -195,44 +231,13 @@ namespace LibreLancer
 				layer,
 				z
 			);
-			//increase count
 			billboardCount++;
-			lastCount = billboardCount;
 		}
 
-		int lastCount = 0;
-		void Flush()
-		{
-			if (billboardCount == 0 || lastCount == billboardCount || currentTexture == null)
-				return;
-			var view = camera.View;
-			var vp = camera.ViewProjection;
-			Vector3 avgPos = Vector3.Zero;
-			for (int i = lastCount; i < billboardCount; i++)
-				avgPos += vertices[i].Position;
-			avgPos /= (billboardCount - lastCount);
-			var z = RenderHelpers.GetZ(camera.Position, avgPos);
-			buffer.AddCommand(
-				shader,
-				_setupDelegate,
-				_resetDelegate,
-				view,
-				new RenderUserData() { Texture = currentTexture, ViewProjection = vp, Integer = (int)bmode },
-				vbo,
-				PrimitiveTypes.Points,
-				lastCount,
-				billboardCount - lastCount,
-				true,
-				currentLayer,
-				z
-			);
-			lastCount = billboardCount;
-			currentLayer = 0;
-			currentTexture = null;
-		}
 		int lasthash = -1;
 		int datindex = 0;
 		int indexCount = 0;
+		int vertexCount = 0;
 
 		public void RenderStandard(int index, int hash, RenderState rs)
 		{
@@ -240,9 +245,16 @@ namespace LibreLancer
 				FlushCommands(rs);
 			lasthash = hash;
 			datindex = index;
-			indices[indexCount++] = (ushort)index;
+			var dat = rendat[index];
+			indices[indexCount++] = dat.Index0;
+			indices[indexCount++] = dat.Index1;
+			indices[indexCount++] = dat.Index2;
+			indices[indexCount++] = dat.Index3;
+			indices[indexCount++] = dat.Index4;
+			indices[indexCount++] = dat.Index5;
+			_frameStart = true;
 		}
-
+		bool _frameStart = true;
 		public void FlushCommands(RenderState rs)
 		{
 			if (indexCount == 0)
@@ -251,30 +263,22 @@ namespace LibreLancer
 				return;
 			}
 			ibo.SetData(indices, indexCount);
-			vbo.SetElementBuffer(ibo);
 			rs.Cull = false;
 			rs.BlendMode = rendat[datindex].BlendMode;
-			var v = camera.View;
-			var vp = camera.ViewProjection;
-			shader.SetMatrix("View", ref v);
-			shader.SetMatrix("ViewProjection", ref vp);
+			if (_frameStart)
+			{
+				var v = camera.View;
+				var vp = camera.ViewProjection;
+				shader.SetMatrix("View", ref v);
+				shader.SetMatrix("ViewProjection", ref vp);
+				_frameStart = false;
+			}
 			rendat[datindex].Texture.BindTo(0);
 			shader.UseProgram();
-			vbo.Draw(PrimitiveTypes.Points, 0, 0, indexCount);
-			rs.Cull = false;
-			vbo.UnsetElementBuffer();
+			vbo.Draw(PrimitiveTypes.TriangleList, 0, 0, indexCount / 3);
+			rs.Cull = true;
 			lasthash = -1;
 			indexCount = 0;
-		}
-
-		static Action<Shader, RenderState, RenderCommand> _setupDelegate = SetupShader;
-		static void SetupShader(Shader shader, RenderState rs, RenderCommand cmd)
-		{
-			rs.Cull = false;
-			rs.BlendMode = (BlendMode)cmd.UserData.Integer;
-			shader.SetMatrix("View", ref cmd.World);
-			shader.SetMatrix("ViewProjection", ref cmd.UserData.ViewProjection);
-			cmd.UserData.Texture.BindTo(0);
 		}
 
 		static Action<Shader, RenderState, RenderCommand> _setupDelegateCustom = SetupShaderCustom;
@@ -285,17 +289,25 @@ namespace LibreLancer
 			cmd.UserData.UserFunction(shdr,rs, cmd.UserData);
 			shdr.SetMatrix("View", ref cmd.World);
 			shdr.SetMatrix("ViewProjection", ref cmd.UserData.ViewProjection);
+			int idxStart = cmd.UserData.Integer;
+			var indices = (ushort[])cmd.UserData.Object;
+			indices[0] = (ushort)idxStart;
+			indices[1] = (ushort)(idxStart + 1);
+			indices[2] = (ushort)(idxStart + 2);
+			indices[3] = (ushort)(idxStart + 1);
+			indices[4] = (ushort)(idxStart + 3);
+			indices[5] = (ushort)(idxStart + 2);
+			cmd.Buffer.Elements.SetData(indices);
 		}
-
 		static Action<RenderState> _resetDelegate = ResetState;
 		static void ResetState(RenderState rs)
 		{
 			rs.Cull = true;
 		}
+
 		public void End()
 		{
-			Flush ();
-			vbo.SetData(vertices, billboardCount);
+			vbo.SetData(vertices, vertexCount);
 		}
 	}
 }
