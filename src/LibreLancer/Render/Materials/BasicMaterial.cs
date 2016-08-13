@@ -78,12 +78,12 @@ namespace LibreLancer
 		public override void Use(RenderState rstate, IVertexType vertextype, Lighting lights)
 		{
 			var shader = GetShader(vertextype);
-			shader.SetMatrix("World", ref World);
-			shader.SetMatrix("View", ref View);
-			shader.SetMatrix("ViewProjection", ref ViewProjection);
+			shader.SetWorld(ref World);
+			shader.SetView(ref View);
+			shader.SetViewProjection(ref ViewProjection);
 			//Dt
 			shader.SetInteger("DtSampler", 0);
-			BindTexture(DtSampler, 0 ,DtFlags, false);
+			BindTexture(0, DtSampler, 0 ,DtFlags, false);
 
 
 			//Dc
@@ -102,7 +102,7 @@ namespace LibreLancer
 			shader.SetColor4("Ec", Ec);
 			//EtSampler
 			shader.SetInteger("EtSampler", 1);
-			BindTexture(EtSampler, 1, EtFlags, false);
+			BindTexture(1, EtSampler, 1, EtFlags, false);
 			//Set lights
 			SetLights(shader, lights);
 			var normalMatrix = World;

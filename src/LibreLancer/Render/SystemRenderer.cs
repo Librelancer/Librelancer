@@ -28,7 +28,7 @@ namespace LibreLancer
 
 		public Matrix4 World { get; private set; }
 
-		public List<IObjectRenderer> Objects { get; private set; }
+		public List<ObjectRenderer> Objects { get; private set; }
 		public List<AsteroidFieldRenderer> AsteroidFields { get; private set; }
 		public List<NebulaRenderer> Nebulae { get; private set; }
 
@@ -56,8 +56,9 @@ namespace LibreLancer
 
 		public SystemRenderer(ICamera camera, LegacyGameData data, ResourceManager rescache)
 		{
-			this.camera = camera;			World = Matrix4.Identity;
-			Objects = new List<IObjectRenderer>();
+			this.camera = camera;			
+			World = Matrix4.Identity;
+			Objects = new List<ObjectRenderer>();
 			AsteroidFields = new List<AsteroidFieldRenderer>();
 			cache = rescache;
 			rstate = cache.Game.RenderState;

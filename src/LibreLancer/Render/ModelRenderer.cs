@@ -19,7 +19,7 @@ using LibreLancer.Utf.Mat;
 using LibreLancer.GameData;
 namespace LibreLancer
 {
-	public class ModelRenderer : IObjectRenderer
+	public class ModelRenderer : ObjectRenderer
 	{
 		public Matrix4 World { get; private set; }
 		public ModelFile Model { get; private set; }
@@ -40,7 +40,7 @@ namespace LibreLancer
 				Sph = drawable as SphFile;
 		}
 
-		public void Update(TimeSpan elapsed, Vector3 position, Matrix4 transform)
+		public override void Update(TimeSpan elapsed, Vector3 position, Matrix4 transform)
 		{
 			if (sysr == null)
 				return;
@@ -52,7 +52,7 @@ namespace LibreLancer
 			}
 		}
 
-		public void Register(SystemRenderer renderer)
+		public override void Register(SystemRenderer renderer)
 		{
 			sysr = renderer;
 			sysr.Objects.Add(this);
@@ -74,13 +74,13 @@ namespace LibreLancer
 			}
 		}
 
-		public void Unregister()
+		public override void Unregister()
 		{
 			sysr.Objects.Remove(this);
 			sysr = null;
 		}
 
-		public void Draw(ICamera camera, CommandBuffer commands, Lighting lights, NebulaRenderer nr)
+		public override void Draw(ICamera camera, CommandBuffer commands, Lighting lights, NebulaRenderer nr)
 		{
 			if (sysr == null)
 				return;

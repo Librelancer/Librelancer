@@ -71,7 +71,7 @@ namespace LibreLancer.GLDelegates
 	delegate void Uniform2f(int location, float v0, float v1);
 	delegate void Uniform3f(int location, float v0, float v1, float v2);
 	delegate void Uniform4f(int location, float v0, float v1, float v2, float v3);
-	delegate void UniformMatrix4fv(int location, int count, bool transpose, IntPtr value);
+	delegate void UniformMatrix4fv(int location, int count, bool transpose, ref Matrix4 value);
 	//Buffers
 	delegate void GenBuffers(int n, out uint buffers);
 	delegate void DeleteBuffers(int n, ref uint id);

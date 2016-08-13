@@ -80,7 +80,14 @@ namespace LibreLancer
 				Console.WriteLine (GL.GetProgramInfoLog (programID));
 				throw new Exception ("Program link failed");
 			}
+
+			viewProjectionLoc = GetLocation("ViewProjection");
+			viewLoc = GetLocation("View");
+			worldLoc = GetLocation("World");
         }
+		int viewProjectionLoc = 0; 
+		int viewLoc = 0;
+		int worldLoc = 0;
 
 		public int UserTag = 0;
 		bool NeedUpdate(int loc, int hash)
@@ -98,22 +105,45 @@ namespace LibreLancer
             return loc;
         }
 
+		void SetMatrixInternal(int loc, ref Matrix4 mat)
+		{
+			//var hash = mat.GetHashCode();
+			//if (NeedUpdate(loc, hash))
+			//{
+			//var handle = GCHandle.Alloc(mat, GCHandleType.Pinned);
+			GL.UniformMatrix4fv(loc, 1, false, ref mat);
+				//handle.Free();
+			//	cachedObjects[loc] = hash;
+			//}
+		}
+
         public void SetMatrix(string name, ref Matrix4 mat)
         {
             GLBind.UseProgram(programID);
 			var loc = GetLocation (name);
 			if (loc == -1)
 				return;
-			//Note: Have to hash all matrix members or game artifacts
-			var hash = mat.GetHashCode();
-			if (NeedUpdate(loc, hash))
-			{
-				var handle = GCHandle.Alloc(mat, GCHandleType.Pinned);
-				GL.UniformMatrix4fv(loc, 1, false, handle.AddrOfPinnedObject());
-				handle.Free();
-				cachedObjects[loc] = hash;
-			}
+			SetMatrixInternal(loc, ref mat);
         }
+
+		public void SetWorld(ref Matrix4 mat)
+		{
+			GLBind.UseProgram(programID);
+			var hash = mat.GetHashCode();
+			SetMatrixInternal(worldLoc, ref mat);
+		}
+		public void SetView(ref Matrix4 mat)
+		{
+			GLBind.UseProgram(programID);
+			var hash = mat.GetHashCode();
+			SetMatrixInternal(viewLoc, ref mat);
+		}
+		public void SetViewProjection(ref Matrix4 mat)
+		{
+			GLBind.UseProgram(programID);
+			var hash = mat.GetHashCode();
+			SetMatrixInternal(viewProjectionLoc, ref mat);
+		}
 
 		public void SetInteger(string name, int value, int index = 0)
 		{

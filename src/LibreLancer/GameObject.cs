@@ -31,7 +31,7 @@ namespace LibreLancer
 		public GameObject Parent;
 		public List<GameObject> Children = new List<GameObject>();
 		IDrawable dr;
-		IObjectRenderer renderComponent;
+		ObjectRenderer renderComponent;
 		Dictionary<string, Hardpoint> hardpoints = new Dictionary<string, Hardpoint>(StringComparer.OrdinalIgnoreCase);
 		bool staticpos = false;
 		public Vector3 StaticPosition;

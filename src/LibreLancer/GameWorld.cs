@@ -56,8 +56,8 @@ namespace LibreLancer
 		public void Update(TimeSpan t)
 		{
 			Renderer.Update(t);
-			foreach (var g in Objects)
-				g.Update(t);
+			for (int i = 0; i < Objects.Count; i++)
+				Objects[i].Update(t);
 		}
 	}
 }

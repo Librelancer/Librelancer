@@ -27,12 +27,12 @@ namespace LibreLancer
 
 		Dictionary<uint, VMeshData> meshes = new Dictionary<uint, VMeshData>();
 		Dictionary<uint, Material> materials = new Dictionary<uint, Material>();
-		Dictionary<string, Texture> textures = new Dictionary<string, Texture>();
-		Dictionary<string, string> texturefiles = new Dictionary<string, string>();
-		Dictionary<string, CmpFile> cmps = new Dictionary<string, CmpFile>();
-		Dictionary<string, ModelFile> models = new Dictionary<string, ModelFile>();
-		Dictionary<string, SphFile> sphs = new Dictionary<string, SphFile>();
-		Dictionary<string, VmsFile> vmss = new Dictionary<string, VmsFile>();
+		Dictionary<string, Texture> textures = new Dictionary<string, Texture>(StringComparer.OrdinalIgnoreCase);
+		Dictionary<string, string> texturefiles = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+		Dictionary<string, CmpFile> cmps = new Dictionary<string, CmpFile>(StringComparer.OrdinalIgnoreCase);
+		Dictionary<string, ModelFile> models = new Dictionary<string, ModelFile>(StringComparer.OrdinalIgnoreCase);
+		Dictionary<string, SphFile> sphs = new Dictionary<string, SphFile>(StringComparer.OrdinalIgnoreCase);
+		Dictionary<string, VmsFile> vmss = new Dictionary<string, VmsFile>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, TextureShape> shapes = new Dictionary<string, TextureShape>(StringComparer.OrdinalIgnoreCase);
 
 		List<string> loadedMatFiles = new List<string>();
@@ -73,14 +73,14 @@ namespace LibreLancer
 
 		public bool TextureExists(string name)
 		{
-			return texturefiles.ContainsKey(name.ToLower());
+			return texturefiles.ContainsKey(name);
 		}
 
 		public void AddTexture(string name,string filename)
 		{
 			var dat = ImageLib.Generic.FromFile(filename);
-			textures.Add(name.ToLower(), dat);
-			texturefiles.Add(name.ToLower(), filename);
+			textures.Add(name, dat);
+			texturefiles.Add(name, filename);
 		}
 
 		public void ClearTextures()
@@ -100,9 +100,9 @@ namespace LibreLancer
 		public Texture FindTexture (string name)
 		{
             Texture outtex;
-			if ((outtex = textures[name.ToLower()]) == null)
+			if ((outtex = textures[name]) == null)
 			{
-				var file = texturefiles[name.ToLower()];
+				var file = texturefiles[name];
 				FLLog.Debug("Resources", string.Format("Reloading {0} from {1}", name, file));
 				if (file.EndsWith(".mat"))
 				{
@@ -130,9 +130,9 @@ namespace LibreLancer
 				}
 				else
 				{
-					textures[name.ToLower()] = ImageLib.Generic.FromFile(file);
+					textures[name] = ImageLib.Generic.FromFile(file);
 				}
-                outtex = textures[name.ToLower()];
+                outtex = textures[name];
 			}
             return outtex;
 		}
@@ -168,18 +168,18 @@ namespace LibreLancer
 		void AddTextures(TxmFile t, string filename)
 		{
 			foreach (var tex in t.Textures) {
-				if (!textures.ContainsKey(tex.Key.ToLower()))
+				if (!textures.ContainsKey(tex.Key))
 				{
 					var v = tex.Value;
 					v.Initialize();
-					textures.Add(tex.Key.ToLower(), v.Texture);
-					texturefiles.Add(tex.Key.ToLower(), filename);
+					textures.Add(tex.Key, v.Texture);
+					texturefiles.Add(tex.Key, filename);
 				}
-				else if (textures[tex.Key.ToLower()] == null)
+				else if (textures[tex.Key] == null)
 				{
 					var v = tex.Value;
 					v.Initialize();
-					textures[tex.Key.ToLower()] = v.Texture;
+					textures[tex.Key] = v.Texture;
 				}
 			}
 		}

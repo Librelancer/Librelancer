@@ -238,7 +238,7 @@
     <Compile Include="GameWorld.cs" />
     <Compile Include="GameObject.cs" />
     <Compile Include="Hardpoint.cs" />
-    <Compile Include="Render\IObjectRenderer.cs" />
+    <Compile Include="Render\ObjectRenderer.cs" />
     <Compile Include="GameData\Items\LightEquipment.cs" />
     <Compile Include="GameData\Items\Equipment.cs" />
     <Compile Include="TextureShape.cs" />

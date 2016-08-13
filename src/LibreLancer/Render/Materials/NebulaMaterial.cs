@@ -51,7 +51,7 @@ namespace LibreLancer
 			shader.SetMatrix ("ViewProjection", ref ViewProjection);
 			//Dt
 			shader.SetInteger ("DtSampler", 0);
-			BindTexture (DtSampler, 0, DtFlags);
+			BindTexture (0, DtSampler, 0, DtFlags);
 			shader.UseProgram ();
 		}
 		public override bool IsTransparent

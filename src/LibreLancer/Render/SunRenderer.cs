@@ -18,7 +18,7 @@ using LibreLancer.GameData;
 using LibreLancer.GameData.Archetypes;
 namespace LibreLancer
 {
-	public class SunRenderer : IObjectRenderer
+	public class SunRenderer : ObjectRenderer
 	{
 		public Sun Sun { get; private set; }
 		Vector3 pos;
@@ -28,21 +28,21 @@ namespace LibreLancer
 			Sun = sun;
 			pos = Vector3.Zero;
 		}
-		public void Update(TimeSpan elapsed, Vector3 position, Matrix4 transform)
+		public override void Update(TimeSpan elapsed, Vector3 position, Matrix4 transform)
 		{
 			pos = position;
 		}
-		public void Register(SystemRenderer renderer)
+		public override void Register(SystemRenderer renderer)
 		{
 			sysr = renderer;
 			sysr.Objects.Add(this);
 		}
-		public void Unregister()
+		public override void Unregister()
 		{
 			sysr.Objects.Remove(this);
 			sysr = null;
 		}
-		public void Draw (ICamera camera, CommandBuffer commands, Lighting lights, NebulaRenderer nr)
+		public override void Draw (ICamera camera, CommandBuffer commands, Lighting lights, NebulaRenderer nr)
 		{
 			if (sysr == null)
 				return;

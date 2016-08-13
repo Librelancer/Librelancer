@@ -18,7 +18,7 @@ using LibreLancer.Utf.Ale;
 using LibreLancer.GameData.Items;
 namespace LibreLancer
 {
-	public class LightEquipRenderer : IObjectRenderer
+	public class LightEquipRenderer : ObjectRenderer
 	{
 		const float BASE_SIZE = 10f;
 		Vector3 pos;
@@ -40,7 +40,9 @@ namespace LibreLancer
 		{
 			frameStart = true;
 		}
-		public void Draw(ICamera camera, CommandBuffer commands, Lighting lights, NebulaRenderer nr)
+		const float CULL_DISTANCE = 20000;
+		const float CULL = CULL_DISTANCE * CULL_DISTANCE;
+		public override void Draw(ICamera camera, CommandBuffer commands, Lighting lights, NebulaRenderer nr)
 		{
 			if (sys == null)
 				return;
@@ -52,6 +54,8 @@ namespace LibreLancer
 				shinetex = (Texture2D)sys.Game.ResourceManager.FindTexture(shineshape.Texture);
 				frameStart = false;
 			}
+			if (VectorMath.DistanceSquared(camera.Position, pos) > CULL)
+				return;
 			if (camera.Frustum.Intersects(new BoundingSphere(pos, 100))) {
 				sys.Game.Billboards.Draw(
 					shinetex,
@@ -82,13 +86,13 @@ namespace LibreLancer
 			}
 		}
 
-		public void Register(SystemRenderer renderer)
+		public override void Register(SystemRenderer renderer)
 		{
 			sys = renderer;
 			renderer.Objects.Add(this);
 		}
 
-		public void Unregister()
+		public override void Unregister()
 		{
 			if (sys != null)
 				sys.Objects.Remove(this);
@@ -98,7 +102,7 @@ namespace LibreLancer
 		bool lt_on = true;
 		Color3f colorBulb;
 		Color3f colorGlow;
-		public void Update(TimeSpan time, Vector3 position, Matrix4 transform)
+		public override void Update(TimeSpan time, Vector3 position, Matrix4 transform)
 		{
 			if (sys == null)
 				return;

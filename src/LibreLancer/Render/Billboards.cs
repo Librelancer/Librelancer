@@ -252,7 +252,6 @@ namespace LibreLancer
 			indices[indexCount++] = dat.Index3;
 			indices[indexCount++] = dat.Index4;
 			indices[indexCount++] = dat.Index5;
-			_frameStart = true;
 		}
 		bool _frameStart = true;
 		public void FlushCommands(RenderState rs)
@@ -269,8 +268,8 @@ namespace LibreLancer
 			{
 				var v = camera.View;
 				var vp = camera.ViewProjection;
-				shader.SetMatrix("View", ref v);
-				shader.SetMatrix("ViewProjection", ref vp);
+				shader.SetView(ref v);
+				shader.SetViewProjection(ref vp);
 				_frameStart = false;
 			}
 			rendat[datindex].Texture.BindTo(0);
@@ -308,6 +307,7 @@ namespace LibreLancer
 		public void End()
 		{
 			vbo.SetData(vertices, vertexCount);
+			_frameStart = true;
 		}
 	}
 }

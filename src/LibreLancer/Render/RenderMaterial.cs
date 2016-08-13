@@ -29,7 +29,7 @@ namespace LibreLancer
 		public abstract void Use (RenderState rstate, IVertexType vertextype, Lighting lights);
 		static Texture2D nullTexture;
 		public abstract bool IsTransparent { get; }
-
+		Texture2D[] textures = new Texture2D[8];
 		public static void SetLights(Shader shader, Lighting lights)
 		{
 			var h = lights.Hash;
@@ -56,7 +56,7 @@ namespace LibreLancer
 				shader.SetVector2("FogRange", lights.FogRange);
 			}
 		}
-		protected void BindTexture(string tex, int unit, SamplerFlags flags, bool throwonNull = true)
+		protected void BindTexture(int cacheidx, string tex, int unit, SamplerFlags flags, bool throwonNull = true)
 		{
 			if (tex == null)
 			{
@@ -74,7 +74,11 @@ namespace LibreLancer
 			}
 			else
 			{
-				var tex2d = (Texture2D)Library.FindTexture(tex);
+				if(textures[cacheidx] == null)
+					textures[cacheidx] = (Texture2D)Library.FindTexture(tex);
+				var tex2d = textures[cacheidx];
+				if (tex2d.IsDisposed)
+					tex2d = textures[cacheidx] = (Texture2D)Library.FindTexture(tex);
 				tex2d.BindTo(unit);
 				if ((flags & SamplerFlags.ClampToEdgeU) == SamplerFlags.ClampToEdgeU) {
 					tex2d.SetWrapModeS (WrapMode.ClampToEdge);
