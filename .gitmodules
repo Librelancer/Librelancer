@@ -1,6 +1,6 @@
 [submodule "extern/jitterphysics"]
 	path = extern/jitterphysics
-	url = https://github.com/mattleibow/jitterphysics.git
+	url = https://github.com/CallumDev/jitterphysics.git
 [submodule "extern/SharpFont"]
 	path = extern/SharpFont
 	url = https://github.com/Robmaister/SharpFont.git
