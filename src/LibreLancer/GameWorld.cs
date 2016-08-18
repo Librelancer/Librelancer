@@ -16,23 +16,30 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer.GameData;
-
+using Jitter;
+using Jitter.Collision;
+using Jitter.LinearMath;
 namespace LibreLancer
 {
+	
 	public class GameWorld
 	{
+		public World Physics;
 		public SystemRenderer Renderer;
 		public List<GameObject> Objects = new List<GameObject>();
-
+		public delegate void RenderUpdateHandler(TimeSpan delta);
+		public event RenderUpdateHandler RenderUpdate;
 		public GameWorld(SystemRenderer render)
 		{
 			Renderer = render;
+			Physics = new World(new CollisionSystemSAP());
+			Physics.Gravity = JVector.Zero;
 		}
 
-		public void LoadSystem(StarSystem sys)
+		public void LoadSystem(StarSystem sys, ResourceManager res)
 		{
 			foreach (var g in Objects)
-				g.Unregister();
+				g.Unregister(Physics);
 			
 			Renderer.StarSystem = sys;
 
@@ -40,13 +47,13 @@ namespace LibreLancer
 
 			foreach (var obj in sys.Objects)
 			{
-				var g = new GameObject(obj.Archetype, true);
+				var g = new GameObject(obj.Archetype, res, true);
 				g.Name = obj.DisplayName;
 				g.Nickname = obj.Nickname;
 				g.Transform = (obj.Rotation ?? Matrix4.Identity) * Matrix4.CreateTranslation(obj.Position);
 				g.SetLoadout(obj.Loadout);
 				g.StaticPosition = obj.Position;
-				g.Register(Renderer);
+				g.Register(Renderer, Physics);
 				Objects.Add(g);
 			}
 
@@ -55,9 +62,12 @@ namespace LibreLancer
 
 		public void Update(TimeSpan t)
 		{
-			Renderer.Update(t);
+			Physics.Step((float)t.TotalSeconds, true, 1f / 120f, 6);
 			for (int i = 0; i < Objects.Count; i++)
 				Objects[i].Update(t);
+			if (RenderUpdate != null)
+				RenderUpdate(t);
+			Renderer.Update(t);
 		}
 	}
 }

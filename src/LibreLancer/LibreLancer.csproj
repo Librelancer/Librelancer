@@ -243,6 +243,9 @@
     <Compile Include="GameData\Items\Equipment.cs" />
     <Compile Include="TextureShape.cs" />
     <Compile Include="Render\LightEquipRenderer.cs" />
+    <Compile Include="GameStates\DemoGameplay.cs" />
+    <Compile Include="Render\PhysicsDebugRenderer.cs" />
+    <Compile Include="CompoundSurShape.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -270,6 +273,8 @@
     <EmbeddedResource Include="Shaders\Basic_PositionTexture.vs" />
     <EmbeddedResource Include="Shaders\nebula_extpuff.frag" />
     <EmbeddedResource Include="Shaders\blend_overlay.inc" />
+    <EmbeddedResource Include="Shaders\physicsdebug.frag" />
+    <EmbeddedResource Include="Shaders\physicsdebug.vs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

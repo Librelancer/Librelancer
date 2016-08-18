@@ -29,13 +29,15 @@ namespace LibreLancer.Sur
 		public uint BitsStart;
 		public float Radius;
 		//FL-OS comment: some sort of multiplier for the radius
-		public uint Scale; //TODO: Surface - What is this?
+		public byte Scale; //TODO: Surface - What is this?
+		public List<SurVertex> Vertices = new List<SurVertex>();
+		public List<SurTriangle> Triangles = new List<SurTriangle>();
 		public Surface (BinaryReader reader)
 		{
 			Center = new JVector (reader.ReadSingle (), reader.ReadSingle (), reader.ReadSingle ());
 			Inertia = new JVector (reader.ReadSingle (), reader.ReadSingle (), reader.ReadSingle ());
 			Radius = reader.ReadSingle ();
-			Scale = reader.ReadByte ();
+			Scale = reader.ReadByte();
 			BitsEnd = reader.ReadUInt24 ();
 			BitsStart = reader.ReadUInt32 ();
 			//FL-OS comment: padding.
@@ -50,12 +52,14 @@ namespace LibreLancer.Sur
 				TGroupHeader th = new TGroupHeader(reader);
 				for(int i = 0; i < th.TriangleCount;i++) {
 					var tri = new SurTriangle(reader);
+					Triangles.Add(tri);
 				}
 				done = (th.VertexArrayOffset == (TGroupHeader.SIZE + SurTriangle.SIZE * th.TriangleCount));
 			} while (!done);
 
 			while (reader.BaseStream.Position < bStart) {
 				var vert = new SurVertex (reader);
+				Vertices.Add(vert);
 			}
 			while (reader.BaseStream.Position < bEnd) {
 				var bh = new BitHeader (reader);

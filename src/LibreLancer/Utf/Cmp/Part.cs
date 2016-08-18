@@ -33,6 +33,13 @@ namespace LibreLancer.Utf.Cmp
         private ConstructCollection constructs;
 
         private string objectName;
+		public string ObjectName
+		{
+			get
+			{
+				return objectName;
+			}
+		}
         private AbstractConstruct construct;
         public AbstractConstruct Construct
         {

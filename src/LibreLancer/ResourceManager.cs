@@ -14,10 +14,12 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.IO;
 using System.Collections.Generic;
 using LibreLancer.Utf.Vms;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
+using LibreLancer.Sur;
 namespace LibreLancer
 {
 	//TODO: Allow for disposing and all that Jazz
@@ -34,7 +36,7 @@ namespace LibreLancer
 		Dictionary<string, SphFile> sphs = new Dictionary<string, SphFile>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, VmsFile> vmss = new Dictionary<string, VmsFile>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, TextureShape> shapes = new Dictionary<string, TextureShape>(StringComparer.OrdinalIgnoreCase);
-
+		Dictionary<string, SurFile> surs = new Dictionary<string, SurFile>(StringComparer.OrdinalIgnoreCase);
 		List<string> loadedMatFiles = new List<string>();
 		List<string> loadedTxmFiles = new List<string>();
 		List<string> preloadFiles = new List<string>();
@@ -57,6 +59,19 @@ namespace LibreLancer
 			preloadFiles = null;
 		}
 
+		public SurFile GetSur(string filename)
+		{
+			SurFile sur;
+			if (!surs.TryGetValue(filename, out sur))
+			{
+				using (var stream = File.OpenRead(filename))
+				{
+					sur = new SurFile(stream);
+				}
+				surs.Add(filename, sur);
+			}
+			return sur;
+		}
 		public void AddShape(string name, TextureShape shape)
 		{
 			shapes.Add(name, shape);

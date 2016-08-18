@@ -38,7 +38,7 @@ namespace LibreLancer.Utf.Cmp
         private ILibFile additionalLibrary;
         private bool ready;
 
-        public string Name { get; private set; }
+        public string Path { get; private set; }
 
         public VmsFile VMeshLibrary { get; private set; }
         public MatFile MaterialLibrary { get; private set; }
@@ -50,13 +50,13 @@ namespace LibreLancer.Utf.Cmp
 
         public ModelFile(string path, ILibFile additionalLibrary)
         {
-            Name = path;
+            Path = path;
             load(parseFile(path), additionalLibrary);
         }
 
         public ModelFile(IntermediateNode root, ILibFile additionalLibrary)
         {
-            Name = root.Name;
+            Path = root.Name;
             load(root, additionalLibrary);
         }
 
@@ -241,7 +241,7 @@ namespace LibreLancer.Utf.Cmp
 
         public override string ToString()
         {
-            return Name;
+            return Path;
         }
     }
 }

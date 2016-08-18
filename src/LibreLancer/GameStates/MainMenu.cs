@@ -33,8 +33,8 @@ namespace LibreLancer
 
 			manager = new UIManager (g);
 			manager.MenuButton = g.GameData.GetMenuButton ();
-			manager.Elements.Add (new UIMenuButton (manager, new Vector2 (-0.65f, 0.40f), "NEW GAME", "new"));
-			manager.Elements.Add (new UIMenuButton (manager, new Vector2 (-0.65f, 0.15f), "LOAD GAME"));
+			manager.Elements.Add (new UIMenuButton (manager, new Vector2 (-0.65f, 0.40f), "GAMEPLAY DEMO", "gameplay"));
+			manager.Elements.Add (new UIMenuButton (manager, new Vector2 (-0.65f, 0.15f), "SYSTEM VIEWER", "system"));
 			manager.Elements.Add (new UIMenuButton (manager, new Vector2 (-0.65f, -0.1f), "MULTIPLAYER"));
 			manager.Elements.Add (new UIMenuButton (manager, new Vector2 (-0.65f, -0.35f), "OPTIONS"));
 			manager.Elements.Add (new UIMenuButton (manager, new Vector2 (-0.65f, -0.6f), "EXIT", "exit"));
@@ -58,7 +58,11 @@ namespace LibreLancer
 				return;
 			}
 			manager.Update (delta);
-			if (lastTag == "new") {
+			if (lastTag == "gameplay")
+			{
+				Game.ChangeState(new DemoGameplay(Game));
+			}
+			if (lastTag == "system") {
 				Game.ChangeState (new DemoSystemView (Game));
 			}
 			if (lastTag == "exit") {

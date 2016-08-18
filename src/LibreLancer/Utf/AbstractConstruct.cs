@@ -65,8 +65,8 @@ namespace LibreLancer.Utf
 			{
 				if(parent == null)
 					parent = constructs.Find(ParentName);
-				if (parent != null) 
-					matrix *= parent.Transform;
+				if (parent != null)
+					matrix = matrix * parent.Transform;
 				else
 					parentExists = false;
 			}

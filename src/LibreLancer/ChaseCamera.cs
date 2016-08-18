@@ -1,213 +1,112 @@
-﻿using System;
-
+﻿/* The contents of this file are subject to the Mozilla Public License
+ * Version 1.1 (the "License"); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ * 
+ * Software distributed under the License is distributed on an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific language governing rights and limitations
+ * under the License.
+ * 
+ * The Original Code is RenderTools code (http://flapi.sourceforge.net/).
+ * 
+ * The Initial Developer of the Original Code is Malte Rupprecht (mailto:rupprema@googlemail.com).
+ * Portions created by the Initial Developer are Copyright (C) 2011, 2012
+ * the Initial Developer. All Rights Reserved.
+ */
+using System;
 namespace LibreLancer
 {
 	public class ChaseCamera : ICamera
 	{
-		public Vector3 ChasePosition;
-		public Vector3 ChaseDirection;
-		public Vector3 Up;
-		public Vector3 DesiredPositionOffset = new Vector3(0, 25f, 100f);
-		public Vector3 LookAtOffset = new Vector3(0, 0, 0);
-		public Vector3 DesiredPosition {
-			get {
-				UpdateWorldPositions ();
-				return desiredPosition;
+		public Viewport Viewport
+		{
+			get
+			{
+				return _vp;
+			}
+			set
+			{
+				_vp = value;
+				UpdateProjection();
 			}
 		}
-		private Vector3 desiredPosition;
-		public Vector3 LookAt {
-			get {
-				UpdateWorldPositions ();
+		Viewport _vp;
 
-				return lookAt;
+		public Vector3 ChasePosition { get; set; }
+		public Vector3 DesiredPositionOffset = new Vector3(0, 4f, 28f);
+
+		public Matrix4 Projection { get; private set; }
+		public Matrix4 View { get; private set; }
+		Matrix4 viewprojection;
+		bool _vpdirty = true;
+		public BoundingFrustum _frustum = null;
+		public BoundingFrustum Frustum
+		{
+			get
+			{
+				if (_frustum == null)
+				{
+					UpdateVp();
+				}
+				return _frustum;
 			}
 		}
-		private Vector3 lookAt;
-		#region Camera physics (typically set when creating camera)
-
-		/// <summary>
-		/// Physics coefficient which controls the influence of the camera's position
-		/// over the spring force. The stiffer the spring, the closer it will stay to
-		/// the chased object.
-		/// </summary>
-		public float Stiffness
+		void UpdateVp()
 		{
-			get { return stiffness; }
-			set { stiffness = value; }
-		}
-		private float stiffness = 1800.0f;
+			viewprojection = View * Projection;
+			_frustum = new BoundingFrustum(viewprojection);
 
-		/// <summary>
-		/// Physics coefficient which approximates internal friction of the spring.
-		/// Sufficient damping will prevent the spring from oscillating infinitely.
-		/// </summary>
-		public float Damping
+			_vpdirty = false;
+		}
+		public Matrix4 ViewProjection
 		{
-			get { return damping; }
-			set { damping = value; }
-		}
-		private float damping = 600.0f;
-
-		/// <summary>
-		/// Mass of the camera body. Heaver objects require stiffer springs with less
-		/// damping to move at the same rate as lighter objects.
-		/// </summary>
-		public float Mass
-		{
-			get { return mass; }
-			set { mass = value; }
-		}
-		private float mass = 50.0f;
-
-		#endregion
-
-		#region Perspective properties
-
-		/// <summary>
-		/// Perspective aspect ratio. Default value should be overriden by application.
-		/// </summary>
-		public float AspectRatio
-		{
-			get { return aspectRatio; }
-			set { aspectRatio = value; }
-		}
-		private float aspectRatio = 4.0f / 3.0f;
-
-		/// <summary>
-		/// Perspective field of view.
-		/// </summary>
-		public float FieldOfView
-		{
-			get { return fieldOfView; }
-			set { fieldOfView = value; }
-		}
-		private float fieldOfView = MathHelper.DegreesToRadians(45.0f);
-
-		/// <summary>
-		/// Distance to the near clipping plane.
-		/// </summary>
-		public float NearPlaneDistance
-		{
-			get { return nearPlaneDistance; }
-			set { nearPlaneDistance = value; }
-		}
-		private float nearPlaneDistance = 1.0f;
-
-		/// <summary>
-		/// Distance to the far clipping plane.
-		/// </summary>
-		public float FarPlaneDistance
-		{
-			get { return farPlaneDistance; }
-			set { farPlaneDistance = value; }
-		}
-		private float farPlaneDistance = 100000.0f;
-
-		#endregion
-		public ChaseCamera ()
-		{
-		}
-
-		public void Reset()
-		{
-			UpdateWorldPositions();
-
-			// Stop motion
-			velocity = Vector3.Zero;
-
-			// Force desired position
-			position = desiredPosition;
-
-			UpdateMatrices();
-		}
-		public BoundingFrustum Frustum {
-			get {
-				return frustum;
+			get
+			{
+				if (_vpdirty)
+				{
+					UpdateVp();
+				}
+				return viewprojection;
 			}
 		}
-		BoundingFrustum frustum;
+		Vector3 _position;
+		public Vector3 Position
+		{
+			get
+			{
+				return _position;
+			}
+			set
+			{
+				_position = value;
+			}
+		}
+
+		public ChaseCamera(Viewport viewport)
+		{
+			this.Viewport = viewport;
+		}
+
+		public void UpdateProjection()
+		{
+			Projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(50f), Viewport.AspectRatio, 10f, 100000000f);
+		}
+
+		/// <summary>
+		/// Allows the game component to update itself.
+		/// </summary>
 		public void Update(TimeSpan delta)
 		{
-			UpdateWorldPositions ();
-			float elapsed = (float)delta.TotalSeconds;
 
-			// Calculate spring force
-			Vector3 stretch = position - desiredPosition;
-			Vector3 force = -stiffness * stretch - damping * velocity;
+			Matrix4 rotationMatrix = Matrix4.Identity;
 
-			// Apply acceleration
-			Vector3 acceleration = force / mass;
-			velocity += acceleration * elapsed;
+			_position = ChasePosition + DesiredPositionOffset;
 
-			// Apply velocity
-			position += velocity * elapsed;
+			Vector3 upVector = rotationMatrix.Transform(VectorMath.Up);
 
-			UpdateMatrices();
+			View = Matrix4.LookAt(Position, ChasePosition, upVector);
+			_vpdirty = true;
 		}
-		/// <summary>
-		/// Rebuilds object space values in world space. Invoke before publicly
-		/// returning or privately accessing world space values.
-		/// </summary>
-		private void UpdateWorldPositions()
-		{
-			// Construct a matrix to transform from object space to worldspace
-			Matrix4 transform = Matrix4.Identity;
-			transform.SetForward (ChaseDirection);
-			transform.SetUp(Up);
-			transform.SetRight (Vector3.Cross (Up, ChaseDirection));
-
-			// Calculate desired camera properties in world space
-			desiredPosition = ChasePosition +
-				Vector3.TransformNormal(DesiredPositionOffset, transform);
-			lookAt = ChasePosition +
-				Vector3.TransformNormal(LookAtOffset, transform);
-		}
-
-		/// <summary>
-		/// Rebuilds camera's view and projection matricies.
-		/// </summary>
-		private void UpdateMatrices()
-		{
-			view = Matrix4.LookAt(this.Position, this.LookAt, this.Up);
-			projection = Matrix4.CreatePerspectiveFieldOfView(FieldOfView,
-				AspectRatio, NearPlaneDistance, FarPlaneDistance);
-			vp = view * projection;
-			frustum = new BoundingFrustum (vp);
-		}
-
-		Matrix4 vp;
-		public Matrix4 ViewProjection {
-			get {
-				return vp;
-			}
-		}
-
-		Matrix4 projection;
-		public Matrix4 Projection {
-			get {
-				return projection;
-			}
-		}
-		Matrix4 view;
-		public Matrix4 View {
-			get {
-				return view;
-			}
-		}
-
-		Vector3 position;
-		public Vector3 Position {
-			get {
-				return position;
-			}
-		}
-
-		public Vector3 Velocity
-		{
-			get { return velocity; }
-		}
-		private Vector3 velocity;
 	}
 }
-

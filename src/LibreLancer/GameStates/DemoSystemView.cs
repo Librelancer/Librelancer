@@ -48,7 +48,7 @@ C# Memory Usage: {5}
 			camera.Zoom = 5000;
 			sysrender = new SystemRenderer (camera, g.GameData, g.ResourceManager);
 			world = new GameWorld(sysrender);
-			world.LoadSystem(sys);
+			world.LoadSystem(sys, g.ResourceManager);
 			g.Sound.PlayMusic(sys.MusicSpace);
 			camera.UpdateProjection ();
 
@@ -69,7 +69,7 @@ C# Memory Usage: {5}
 					textEntry = false;
 					Game.DisableTextInput();
 					sys = Game.GameData.GetSystem(currentText.Trim());
-					world.LoadSystem(sys);
+					world.LoadSystem(sys, Game.ResourceManager);
 					camera.Free = false;
 					camera.Update(TimeSpan.FromSeconds(1));
 					camera.Free = true;
