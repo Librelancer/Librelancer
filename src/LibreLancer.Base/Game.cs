@@ -114,6 +114,7 @@ namespace LibreLancer
 
 		public void Run()
 		{
+            SSEMath.Load();
 			if (SDL.SDL_Init (SDL.SDL_INIT_VIDEO) != 0) {
 				FLLog.Error ("SDL", "SDL_Init failed, exiting.");
 				return;
@@ -157,6 +158,7 @@ namespace LibreLancer
 			double elapsed = 0;
 			SDL.SDL_Event e;
 			SDL.SDL_StopTextInput();
+            SDL.SDL_GL_SetSwapInterval(-1);
 			while (running) {
 				//Pump message queue
 				while (SDL.SDL_PollEvent (out e) != 0) {
@@ -223,16 +225,17 @@ namespace LibreLancer
 				if (!running)
 					break;
 				Draw (elapsed);
-				elapsed = timer.Elapsed.TotalSeconds - last;
-				renderFrequency = (1.0 / CalcAverageTick(elapsed));
-				last = timer.Elapsed.TotalSeconds;
-				totalTime = timer.Elapsed.TotalSeconds;
+				
 				SDL.SDL_GL_SwapWindow (sdlWin);
-				if (elapsed < 0) {
+                elapsed = timer.Elapsed.TotalSeconds - last;
+                //renderFrequency = (1.0 / CalcAverageTick(elapsed));
+                renderFrequency = CalcAverageTick(elapsed) * 1000.0;
+                last = timer.Elapsed.TotalSeconds;
+                totalTime = timer.Elapsed.TotalSeconds;
+                if (elapsed < 0) {
 					elapsed = 0;
 					FLLog.Warning ("Timing", "Stopwatch returned negative time!");
 				}
-				Thread.Sleep (0);
 			}
 			Cleanup ();
 			SDL.SDL_Quit ();

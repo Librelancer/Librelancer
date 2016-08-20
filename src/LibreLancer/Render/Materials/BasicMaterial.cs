@@ -40,41 +40,55 @@ namespace LibreLancer
 			Type = type;
 		}
 
-		Shader GetShader(IVertexType vertextype)
+        static Shader sh_posNormalTexture;
+        static Shader sh_posNormalTextureTwo;
+        static Shader sh_posNormalColorTexture;
+        static Shader sh_posTexture;
+        static Shader sh_pos;
+		static Shader GetShader(IVertexType vertextype)
 		{
 			var vert = vertextype.GetType().Name;
 			switch (vert)
 			{
 				case "VertexPositionNormalTexture":
-					return ShaderCache.Get(
+                    if(sh_posNormalTexture == null)
+					sh_posNormalTexture = ShaderCache.Get(
 						"Basic_PositionNormalTexture.vs",
 						"Basic_Fragment.frag"
 					);
+                    return sh_posNormalTexture;
 				case "VertexPositionNormalTextureTwo":
-					return ShaderCache.Get(
+                    if(sh_posNormalTextureTwo == null)
+					sh_posNormalTextureTwo = ShaderCache.Get(
 						"Basic_PositionNormalTextureTwo.vs",
 						"Basic_Fragment.frag"
 					);
+                    return sh_posNormalTextureTwo;
 				case "VertexPositionNormalColorTexture":
-					return ShaderCache.Get(
+                    if(sh_posNormalColorTexture == null)
+					sh_posNormalColorTexture = ShaderCache.Get(
 						"Basic_PositionNormalColorTexture.vs",
 						"Basic_Fragment.frag"
 					);
+                    return sh_posNormalColorTexture;
 				case "VertexPositionTexture":
-					return ShaderCache.Get(
+                    if(sh_posTexture == null)
+					sh_posTexture = ShaderCache.Get(
 						"Basic_PositionTexture.vs",
 						"Basic_Fragment.frag"
 					);
+                    return sh_posTexture;
 				case "VertexPosition":
-					return ShaderCache.Get(
+                    if(sh_pos == null)
+					sh_pos = ShaderCache.Get(
 						"Basic_PositionTexture.vs",
 						"Basic_Fragment.frag"
 					);
+                    return sh_pos;
 				default:
 					throw new NotImplementedException(vert);
 			}
 		}
-
 		public override void Use(RenderState rstate, IVertexType vertextype, Lighting lights)
 		{
 			var shader = GetShader(vertextype);
@@ -84,8 +98,6 @@ namespace LibreLancer
 			//Dt
 			shader.SetInteger("DtSampler", 0);
 			BindTexture(0, DtSampler, 0 ,DtFlags, false);
-
-
 			//Dc
 			shader.SetColor4("Dc", Dc);
 			//Oc
@@ -105,9 +117,9 @@ namespace LibreLancer
 			BindTexture(1, EtSampler, 1, EtFlags, false);
 			//Set lights
 			SetLights(shader, lights);
-			var normalMatrix = World;
-			normalMatrix.Invert();
-			normalMatrix.Transpose();
+            var normalMatrix = World;
+            normalMatrix.Invert();
+            normalMatrix.Transpose();
 			shader.SetMatrix("NormalMatrix", ref normalMatrix);
 			shader.UseProgram();
 		}

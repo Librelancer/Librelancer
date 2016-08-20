@@ -30,12 +30,15 @@ namespace LibreLancer
 		public string DtSampler;
 		public SamplerFlags DtFlags;
 
-		Shader GetShader(IVertexType vertextype) {
+        static Shader sh_posNormalTexture;
+		static Shader GetShader(IVertexType vertextype) {
 			if (vertextype.GetType ().Name == "VertexPositionNormalTexture") {
+                if(sh_posNormalTexture == null)
 				return ShaderCache.Get (
 					"PositionTextureFlip.vs",
 					"DetailMapMaterial.frag"
 				);
+                return sh_posNormalTexture;
 			}
 			throw new NotImplementedException ();
 		}
@@ -46,10 +49,9 @@ namespace LibreLancer
 			rstate.BlendMode = BlendMode.Opaque;
 
 			Shader sh = GetShader (vertextype);
-			sh.SetMatrix ("World", ref World);
-			sh.SetMatrix ("View", ref View);
-			sh.SetMatrix ("ViewProjection", ref ViewProjection);
-			sh.SetMatrix("View", ref View);
+			sh.SetWorld (ref World);
+			sh.SetView (ref View);
+			sh.SetViewProjection (ref ViewProjection);
 
 			sh.SetColor4 ("Ac", Ac);
 			sh.SetColor4 ("Dc", Dc);

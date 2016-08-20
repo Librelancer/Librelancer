@@ -26,7 +26,9 @@ namespace LibreLancer
 		{
 			this.parent = parent;
 			this.transform = def.Transform;
+            IsStatic = parent is FixConstruct && def is FixedHardpointDefinition;
 		}
+        public bool IsStatic { get; private set; }
 		public Matrix4 Transform
 		{
 			get

@@ -94,10 +94,24 @@ namespace LibreLancer
 				}
 			}
 		}
-		void DrawRadial(Texture2D texture, Vector3 position, Vector2 size, Color4 inner, Color4 outer, float expand, float z)
+        static Shader _spinesh;
+        Shader GetSpineShader(Billboards bl)
+        {
+            if (_spinesh == null)
+                _spinesh = bl.GetShader("sun_spine.frag");
+            return _spinesh;
+        }
+        static Shader _radialsh;
+        Shader GetRadialShader(Billboards bl)
+        {
+            if (_radialsh == null)
+                _radialsh = bl.GetShader("sun_radial.frag");
+            return _radialsh;
+        }
+        void DrawRadial(Texture2D texture, Vector3 position, Vector2 size, Color4 inner, Color4 outer, float expand, float z)
 		{
 			sysr.Game.Billboards.DrawCustomShader(
-				"sun_radial.frag",
+				GetRadialShader(sysr.Game.Billboards),
 				new RenderUserData() { Texture = texture, Color = inner, Color2 = outer, Float = expand, UserFunction = _setupRadialDelegate },
 				position,
 				size,
@@ -114,7 +128,7 @@ namespace LibreLancer
 		void DrawSpine(Texture2D texture, Vector3 position, Vector2 size, Color3f inner, Color3f outer, float alpha, float angle, float z)
 		{
 			sysr.Game.Billboards.DrawCustomShader(
-				"sun_spine.frag",
+				GetSpineShader(sysr.Game.Billboards),
 				new RenderUserData() { Texture = texture, Color = new Color4(inner,1), Color2 = new Color4(outer,1), Float = alpha, UserFunction = _setupSpineDelegate },
 				position,
 				size,

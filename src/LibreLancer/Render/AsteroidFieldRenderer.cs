@@ -48,11 +48,9 @@ namespace LibreLancer
 			vp = camera.ViewProjection;
 			cameraPos = camera.Position;
 		}
-
 		public void Draw(ResourceManager res, Lighting lighting, CommandBuffer buffer, NebulaRenderer nr)
 		{
 			//Billboards
-
 			//Band is last
 			if (renderBand)
 			{
@@ -71,7 +69,7 @@ namespace LibreLancer
 							bandTransform,
 							new RenderUserData()
 							{
-								Object = lt,
+								Lighting = lt,
 								Float = field.Band.TextureAspect,
 								Color = field.Band.ColorShift,
 								ViewProjection = vp,
@@ -95,21 +93,25 @@ namespace LibreLancer
 		static Action<Shader, RenderState, RenderCommand> bandShaderDelegate = BandShaderSetup;
 		static void BandShaderSetup(Shader shader, RenderState state, RenderCommand command)
 		{
-			shader.SetMatrix("World", ref command.World);
-			shader.SetMatrix("ViewProjection", ref command.UserData.ViewProjection);
+			shader.SetWorld(ref command.World);
+			shader.SetViewProjection(ref command.UserData.ViewProjection);
 			shader.SetMatrix("NormalMatrix", ref command.UserData.Matrix2);
 			shader.SetInteger("Texture", 0);
 			shader.SetVector3("CameraPosition", command.UserData.Vector);
 			shader.SetColor4("ColorShift", command.UserData.Color);
 			shader.SetFloat("TextureAspect", command.UserData.Float);
-			RenderMaterial.SetLights(shader, (Lighting)command.UserData.Object);
+			RenderMaterial.SetLights(shader, command.UserData.Lighting);
 			command.UserData.Texture.BindTo(0);
 			shader.UseProgram();
 			state.BlendMode = BlendMode.Normal;
 			state.Cull = false;
 		}
 
-		static Action<RenderState> bandShaderCleanup = obj => { obj.Cull = true; };
+        static Action<RenderState> bandShaderCleanup = BandShaderCleanup;
+        static void BandShaderCleanup(RenderState state)
+        {
+            state.Cull = true;
+        }
 	}
 }
 

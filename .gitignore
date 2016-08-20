@@ -42,3 +42,5 @@ packages/
 
 # Debug files
 *.dSYM/
+*.vsp
+/src/UpgradeLog.htm

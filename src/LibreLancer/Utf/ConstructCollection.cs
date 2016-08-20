@@ -65,7 +65,12 @@ namespace LibreLancer.Utf
 
         public AbstractConstruct Find(string name)
         {
-            return constructs.Find(p => p.ChildName.Equals(name, StringComparison.OrdinalIgnoreCase));
+            for(int i = 0; i < constructs.Count; i++)
+            {
+                if (constructs[i].ChildName.Equals(name, StringComparison.OrdinalIgnoreCase))
+                    return constructs[i];
+            }
+            return null;
         }
 
         public int IndexOf(AbstractConstruct item)

@@ -256,6 +256,7 @@ namespace LibreLancer
 			DeleteRenderbuffers (1, ref renderbuffer);
 		}
 		static Dictionary<int, string> errors;
+        public static bool ErrorChecking = false;
 		public static void Load()
 		{
 			errors = new Dictionary<int, string> ();
@@ -323,12 +324,17 @@ namespace LibreLancer
 
 		static void CheckErrors()
 		{
-			var err = GetError ();
-			if (err != 0) {
-				string str = "UNKNOWN ERROR";
-				errors.TryGetValue (err, out str);
-				throw new Exception ("GL Error: " + str);
-			}
+            if (ErrorChecking)
+            {
+                var err = GetError();
+                if (err != 0)
+                {
+                    string str;
+                    if (!errors.TryGetValue(err, out str))
+                        str = "Unknown Error";
+                    throw new Exception("GL Error: " + str);
+                }
+            }
 		}
 
 

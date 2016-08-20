@@ -269,7 +269,13 @@ namespace LibreLancer
 			l0.Update(camera, TimeSpan.Zero);
 			l0.DrawBuffer(buffer, world, Lighting.Empty);
 		}
-
+        static Shader _puffringsh;
+        Shader GetPuffShader(Billboards bl)
+        {
+            if (_puffringsh == null)
+                _puffringsh = bl.GetShader("nebula_extpuff.frag");
+            return _puffringsh;
+        }
 		void DrawPuffRing(bool inside)
 		{
 			var sd = 1 - MathHelper.Clamp(Nebula.Zone.Shape.ScaledDistance(Nebula.Zone.Position, camera.Position), 0f, 1f);
@@ -280,7 +286,7 @@ namespace LibreLancer
 				var p = Exterior[i];
 				var tex = game.ResourceManager.FindTexture(p.Shape.Texture);
 				game.Billboards.DrawCustomShader(
-					"nebula_extpuff.frag",
+					GetPuffShader(game.Billboards),
 					new RenderUserData() { Texture = tex, Color = Nebula.FogColor, Float = factor, UserFunction = _setupPuffDelegate },
 					p.Position,
 					p.Size,

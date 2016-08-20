@@ -33,13 +33,16 @@ namespace LibreLancer
 		public int FlipU;
 		public int FlipV;
 
-		Shader GetShader(IVertexType vertextype)
+        static Shader sh_posNormalTexture;
+		static Shader GetShader(IVertexType vertextype)
 		{
 			if (vertextype.GetType ().Name == "VertexPositionNormalTexture") {
-				return ShaderCache.Get (
+                if(sh_posNormalTexture == null)
+				sh_posNormalTexture = ShaderCache.Get (
 					"PositionTextureFlip.vs",
 					"Masked2DetailMapMaterial.frag"
 				);
+                return sh_posNormalTexture;
 			} else {
 				throw new NotImplementedException ();
 			}
@@ -50,9 +53,9 @@ namespace LibreLancer
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Opaque;
 			var sh = GetShader (vertextype);
-			sh.SetMatrix ("ViewProjection", ref ViewProjection);
-			sh.SetMatrix ("World", ref World);
-			sh.SetMatrix("View", ref View);
+			sh.SetViewProjection(ref ViewProjection);
+			sh.SetWorld (ref World);
+			sh.SetView(ref View);
 
 			sh.SetColor4 ("Ac", Ac);
 			sh.SetColor4 ("Dc", Dc);

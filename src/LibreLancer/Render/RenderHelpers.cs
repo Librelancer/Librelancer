@@ -31,10 +31,11 @@ namespace LibreLancer
 		}
 		public static Lighting ApplyLights(Lighting src, Vector3 c, float r, NebulaRenderer nebula)
 		{
-			var lights = new Lighting();
+            var lights = Lighting.Create();
 			lights.Ambient = src.Ambient;
-			foreach (var l in src.Lights)
+			for(int i = 0; i < src.Lights.Count; i++)
 			{
+                var l = src.Lights[i];
 				if (l.Kind == LightKind.Point &&
 					VectorMath.Distance(l.Position, c) > r + l.Range)
 					continue;

@@ -113,7 +113,8 @@ namespace LibreLancer
 		
 			systemLighting = new Lighting();
 			systemLighting.Ambient = system.AmbientColor;
-			systemLighting.Lights = system.LightSources;
+            foreach (var lt in system.LightSources)
+                systemLighting.Lights.Add(lt);
 		}
 
 		public void Update(TimeSpan elapsed)

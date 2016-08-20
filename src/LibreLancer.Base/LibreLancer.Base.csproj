@@ -67,6 +67,9 @@
     <Compile Include="PrimitiveTypes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Shader.cs" />
+    <Compile Include="SSE\AsmMethodAttribute.cs" />
+    <Compile Include="SSE\SSEMath.cs" />
+    <Compile Include="SSE\SSEMath.Matrix.cs" />
     <Compile Include="SurfaceFormat.cs" />
     <Compile Include="SurfaceFormatExtensions.cs" />
     <Compile Include="Texture.cs" />
@@ -150,16 +153,7 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <ItemGroup>
-    <Folder Include="Platforms\" />
-    <Folder Include="Platforms\Mac\" />
-    <Folder Include="Platforms\Win32\" />
-    <Folder Include="Text\" />
-    <Folder Include="GL\" />
-    <Folder Include="SDL2\" />
-    <Folder Include="Math\" />
-    <Folder Include="Input\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\..\extern\SharpFont\Source\SharpFont\SharpFont.csproj">
       <Project>{C293DB32-FA42-486D-B128-5A12522FAE4E}</Project>

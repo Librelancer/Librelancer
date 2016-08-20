@@ -1404,6 +1404,11 @@ namespace LibreLancer
         /// <param name="result">A new instance that is the result of the multiplication.</param>
         public static void Mult(ref Matrix4 left, ref Matrix4 right, out Matrix4 result)
         {
+            if(SSEMath.IsAccelerated)
+            {
+                SSEMath.MatrixMultiply(ref left, ref right, out result);
+                return;
+            }
             float lM11 = left.Row0.X, lM12 = left.Row0.Y, lM13 = left.Row0.Z, lM14 = left.Row0.W,
                 lM21 = left.Row1.X, lM22 = left.Row1.Y, lM23 = left.Row1.Z, lM24 = left.Row1.W,
                 lM31 = left.Row2.X, lM32 = left.Row2.Y, lM33 = left.Row2.Z, lM34 = left.Row2.W,
@@ -1470,6 +1475,11 @@ namespace LibreLancer
         /// <exception cref="InvalidOperationException">Thrown if the Matrix4 is singular.</exception>
         public static void Invert(ref Matrix4 mat, out Matrix4 result)
         {
+            if(SSEMath.IsAccelerated)
+            {
+                SSEMath.MatrixInvert(ref mat, out result);
+                return;
+            }
 			result = mat;
             float* inv = stackalloc float[16];
             fixed(float* m = mat.vals, invOut = result.vals)

@@ -108,9 +108,15 @@ namespace LibreLancer
 			billboardCount = vertexCount = indexCount = 0;
 			buffer = cmd;
 		}
-
+        public Shader GetShader(string shader)
+        {
+            return ShaderCache.Get(
+                "Billboard.vs",
+                shader
+            );
+        }
 		public void DrawCustomShader(
-			string shader,
+			Shader shader,
 			RenderUserData userData,
 			Vector3 Position,
 			Vector2 size,
@@ -124,10 +130,6 @@ namespace LibreLancer
 			float z = float.NegativeInfinity
 		)
 		{
-			var sh = ShaderCache.Get(
-				"Billboard.vs",
-				shader
-			);
 			currentTexture = null;
 			var dat = userData;
 			dat.ViewProjection = camera.ViewProjection;
@@ -144,7 +146,7 @@ namespace LibreLancer
 				bottomright
 			);
 			buffer.AddCommand(
-				sh,
+				shader,
 				_setupDelegateCustom,
 				_resetDelegate,
 				camera.View,

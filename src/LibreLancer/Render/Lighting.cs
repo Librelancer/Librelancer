@@ -15,20 +15,21 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 namespace LibreLancer
 {
-	public class Lighting
+	public struct Lighting
 	{
 		public static readonly Lighting Empty = new Lighting() { Enabled = false };
-		public bool Enabled = true;
-		public Color4 Ambient = Color4.White;
-		public List<RenderLight> Lights = new List<RenderLight>();
-		public bool FogEnabled = false;
-		public Color4 FogColor = Color4.White;
-		public Vector2 FogRange = Vector2.Zero;
+        public bool Enabled;
+        public Color4 Ambient;
+        public LightsArray Lights;
+        public bool FogEnabled;
+        public Color4 FogColor;
+        public Vector2 FogRange;
 
-		bool needsHashCalculation = true;
-		int _hash = 0;
+        bool needsHashCalculation;
+        int _hash;
 
 		public int Hash
 		{
@@ -52,8 +53,10 @@ namespace LibreLancer
 			unchecked
 			{
 				_hash = _hash * 23 + Ambient.GetHashCode();
-				foreach (var lt in Lights)
-					_hash = _hash * 23 + lt.GetHashCode();
+                for (int i = 0; i < Lights.Count; i++)
+                {
+                    _hash = _hash * 23 + Lights[i].GetHashCode();
+                }
 				if (FogEnabled)
 				{
 					_hash = _hash * 23 + FogColor.GetHashCode();
@@ -62,9 +65,74 @@ namespace LibreLancer
 			}
 		}
 
-		public Lighting ()
-		{
-		}
+		public static Lighting Create()
+        {
+            return new Lighting
+            {
+                needsHashCalculation = true,
+                Enabled = true,
+                FogColor = Color4.White,
+                FogEnabled = false,
+                Ambient = Color4.Black
+            };
+        }
+        [StructLayout(LayoutKind.Sequential)]
+        public unsafe struct LightsArray
+        {
+            static int Stride = Marshal.SizeOf(typeof(RenderLight));
+            public int Count;
+            RenderLight _l0;
+            RenderLight _l1;
+            RenderLight _l2;
+            RenderLight _l3;
+            RenderLight _l4;
+            RenderLight _l5;
+            RenderLight _l6;
+            RenderLight _l7;
+            RenderLight _l8;
+            RenderLight _l9;
+            public unsafe RenderLight this [int index]
+            {
+                get
+                {
+                    if (index < 0 || index > Count)
+                        throw new IndexOutOfRangeException();
+                    return GetLight(ref this, index);
+                }
+                private set
+                {
+                    if (index < 0 || index > Count)
+                        throw new IndexOutOfRangeException();
+                    SetLight(ref this, index, value);
+                }
+            }
+            public void Add(RenderLight light)
+            {
+                if (Count == 8)
+                    throw new Exception("Too many lights!");
+                SetLight(ref this, Count++, light);
+            }
+            static RenderLight GetLight(ref LightsArray lt, int index)
+            {
+                fixed(LightsArray *lights = &lt)
+                {
+                    var ptr = (ulong)lights;
+                    ptr += sizeof(int);
+                    ptr += (ulong)(Stride * index);
+                    return *((RenderLight*)ptr);
+                }
+            }
+            static void SetLight(ref LightsArray lt, int index, RenderLight value)
+            {
+                fixed (LightsArray* lights = &lt)
+                {
+                    var ptr = (ulong)lights;
+                    ptr += sizeof(int);
+                    ptr += (ulong)(Stride * index);
+                    *((RenderLight*)ptr) = value;
+                }
+            }
+        }
 	}
 }
 

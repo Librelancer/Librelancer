@@ -64,6 +64,22 @@ namespace LibreLancer
 			Codepoint = 0;
 			strIndex = 0;
 		}
-	}
+        public CodepointIterator(string str, int start, int end)
+        {
+            this.str = str;
+            //Count the amount of UTF32 codepoints
+            Count = 0;
+            for (int i = start; i < end; ++i)
+            {
+                Count++;
+                if (char.IsHighSurrogate(str, i))
+                    i++;
+            }
+            //C# complains if we don't set these fields
+            Index = 0;
+            Codepoint = 0;
+            strIndex = start;
+        }
+    }
 }
 

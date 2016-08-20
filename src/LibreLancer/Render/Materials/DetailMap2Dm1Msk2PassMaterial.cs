@@ -33,13 +33,16 @@ namespace LibreLancer
 		public DetailMap2Dm1Msk2PassMaterial ()
 		{
 		}
-		Shader GetShader(IVertexType vertextype)
+        static Shader sh_posNormalTexture;
+		static Shader GetShader(IVertexType vertextype)
 		{
 			if (vertextype.GetType ().Name == "VertexPositionNormalTexture") {
-				return ShaderCache.Get (
+                if(sh_posNormalTexture == null)
+				sh_posNormalTexture = ShaderCache.Get (
 					"PositionTextureFlip.vs",
 					"DetailMap2Dm1Msk2PassMaterial.frag"
 				);
+                return sh_posNormalTexture;
 			}
 			throw new NotImplementedException ();
 		}
@@ -49,10 +52,9 @@ namespace LibreLancer
 			rstate.BlendMode = BlendMode.Opaque;
 
 			Shader sh = GetShader (vertextype);
-			sh.SetMatrix ("World", ref World);
-			sh.SetMatrix("View", ref View);
-			sh.SetMatrix ("ViewProjection", ref ViewProjection);
-			sh.SetMatrix("View", ref View);
+			sh.SetWorld (ref World);
+			sh.SetViewProjection (ref ViewProjection);
+			sh.SetView (ref View);
 			sh.SetColor4 ("Ac", Ac);
 			sh.SetColor4 ("Dc", Dc);
 			sh.SetFloat ("TileRate", TileRate);

@@ -31,7 +31,7 @@ namespace LibreLancer
 			int hash = 17;
 			unchecked
 			{
-				hash = hash * 23 + Kind.GetHashCode();
+                hash = hash * 23 + (int)Kind * 7;
 				hash = hash * 23 + Position.GetHashCode();
 				hash = hash * 23 + Direction.GetHashCode();
 				hash = hash * 23 + Attenuation.GetHashCode();

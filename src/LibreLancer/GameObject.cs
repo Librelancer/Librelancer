@@ -144,6 +144,13 @@ namespace LibreLancer
 			{
 				renderComponent = new LightEquipRenderer((LightEquipment)equip);
 			}
+            //Optimisation: Don't re-calculate transforms every frame for static objects
+            if(parent.isstatic && hp.IsStatic)
+            {
+                Transform = GetTransform();
+                isstatic = true;
+                StaticPosition = Transform.Transform(Vector3.Zero);
+            }
 		}
 
 		public void SetLoadout(Dictionary<string, Equipment> equipment)

@@ -129,19 +129,16 @@ namespace LibreLancer
 		public void SetWorld(ref Matrix4 mat)
 		{
 			GLBind.UseProgram(programID);
-			var hash = mat.GetHashCode();
-			SetMatrixInternal(worldLoc, ref mat);
+            SetMatrixInternal(worldLoc, ref mat);
 		}
 		public void SetView(ref Matrix4 mat)
 		{
 			GLBind.UseProgram(programID);
-			var hash = mat.GetHashCode();
 			SetMatrixInternal(viewLoc, ref mat);
 		}
 		public void SetViewProjection(ref Matrix4 mat)
 		{
 			GLBind.UseProgram(programID);
-			var hash = mat.GetHashCode();
 			SetMatrixInternal(viewProjectionLoc, ref mat);
 		}
 

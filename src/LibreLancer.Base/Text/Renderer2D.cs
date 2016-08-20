@@ -195,24 +195,33 @@ namespace LibreLancer
 				throw new InvalidOperationException ("TextRenderer.Start() must be called before TextRenderer.DrawString");
 			if (text == "") //skip empty str
 				return;
-			string[] split = text.Split ('\n');
 			float dy = y;
-			foreach(var str in split) {
-				DrawStringInternal (font, str, x, dy, color);
-				dy += font.LineHeight;
-			}
-
+            int start = 0;
+            for(int i = 0; i < text.Length; i++)
+            {
+                if(text[i] == '\n')
+                {
+                    DrawStringInternal(font, text, start, i, x, dy, color);
+                    dy += font.LineHeight;
+                    i++;
+                    start = i;
+                }
+            }
+            if(start < text.Length)
+            {
+                DrawStringInternal(font, text, start, text.Length, x, dy, color);
+            }
 		}
-		void DrawStringInternal(Font font, string str, float x, float y, Color4 color)
+		void DrawStringInternal(Font font, string str, int start, int end, float x, float y, Color4 color)
 		{
-			var measureIter = new CodepointIterator (str);
+            var measureIter = new CodepointIterator(str, start, end);
 			int maxHeight = 0;
 			while (measureIter.Iterate ()) {
 				uint c = measureIter.Codepoint;
 				var glyph = font.GetGlyph (c);
 				maxHeight = Math.Max (maxHeight, glyph.Rectangle.Height);
 			}
-			var iter = new CodepointIterator (str);
+			var iter = new CodepointIterator (str, start, end);
 			float penX = x, penY = y;
 			while (iter.Iterate ()) {
 				uint c = iter.Codepoint;
