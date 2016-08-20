@@ -228,8 +228,7 @@ namespace LibreLancer
 				
 				SDL.SDL_GL_SwapWindow (sdlWin);
                 elapsed = timer.Elapsed.TotalSeconds - last;
-                //renderFrequency = (1.0 / CalcAverageTick(elapsed));
-                renderFrequency = CalcAverageTick(elapsed) * 1000.0;
+                renderFrequency = (1.0 / CalcAverageTick(elapsed));
                 last = timer.Elapsed.TotalSeconds;
                 totalTime = timer.Elapsed.TotalSeconds;
                 if (elapsed < 0) {
