@@ -93,6 +93,10 @@ Hitbox Drawing (H/J): {7}
 
 		public override void Update(TimeSpan delta)
 		{
+			if (player.PhysicsComponent.LinearVelocity.Length() < Velocity)
+			{
+				player.PhysicsComponent.ApplyImpulse(JVector.Transform(JVector.Forward, player.PhysicsComponent.Orientation) * 40);
+			}
 			ProcessInput(delta);
 			world.Update(delta);
 		}
@@ -137,13 +141,11 @@ Hitbox Drawing (H/J): {7}
 			{
 				Velocity += (float)(delta.TotalSeconds * ACCEL);
 				Velocity = MathHelper.Clamp(Velocity, 0, MAX_VELOCITY);
-				player.PhysicsComponent.LinearVelocity = new JVector(0, 0, -Velocity);
 			}
 			else if (Game.Keyboard.IsKeyDown(Keys.S))
 			{
 				Velocity -= (float)(delta.TotalSeconds * ACCEL);
 				Velocity = MathHelper.Clamp(Velocity, 0, MAX_VELOCITY);
-				player.PhysicsComponent.LinearVelocity = new JVector(0, 0, -Velocity);
 			}
 		}
 
