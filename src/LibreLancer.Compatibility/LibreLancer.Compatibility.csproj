@@ -140,6 +140,10 @@
     <Compile Include="GameData\Solar\Spine.cs" />
     <Compile Include="GameData\GraphIni.cs" />
     <Compile Include="GameData\FloatGraph.cs" />
+    <Compile Include="GameData\Effects\VisEffect.cs" />
+    <Compile Include="GameData\Equipment\AttachedFx.cs" />
+    <Compile Include="GameData\Effects\EffectsIni.cs" />
+    <Compile Include="GameData\Effects\Effect.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -149,6 +153,7 @@
     <Folder Include="Exceptions\" />
     <Folder Include="GameData\Ships\" />
     <Folder Include="GameData\Audio\" />
+    <Folder Include="GameData\Effects\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

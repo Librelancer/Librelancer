@@ -20,38 +20,16 @@ namespace LibreLancer
 {
 	public class Billboards
 	{
-		const int MAX_BILLBOARDS = 4096;
-
-		[StructLayout(LayoutKind.Sequential)]
-		struct BVert : IVertexType
-		{
-			public Vector3 Position;
-			public Vector2 Size;
-			public Color4 Color;
-			public Vector2 TexCoord;
-			public float Angle;
-
-			public VertexDeclaration GetVertexDeclaration()
-			{
-				return new VertexDeclaration(
-					12 * sizeof(float),
-					new VertexElement(VertexSlots.Position, 3, VertexElementType.Float, false, 0),
-					new VertexElement(VertexSlots.Size, 2, VertexElementType.Float, false, sizeof(float) * 3),
-					new VertexElement(VertexSlots.Color, 4, VertexElementType.Float, false, sizeof(float) * 5),
-					new VertexElement(VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 9),
-					new VertexElement(VertexSlots.Angle, 1, VertexElementType.Float, false, sizeof(float) * 11)
-				);
-			}
-
-		}
+		const int MAX_BILLBOARDS = 40000;
 
 		Shader shader;
-		BVert[] vertices;
+		VertexPositionColorTexture[] vertices;
 		RenderData[] rendat;
 		VertexBuffer vbo;
 		ushort[] indices = new ushort[MAX_BILLBOARDS * 6];
 		ushort[] single_indices = new ushort[6];
 		ElementBuffer ibo;
+
 		public Billboards()
 		{
 			shader = ShaderCache.Get(
@@ -59,9 +37,9 @@ namespace LibreLancer
 				"Billboard.frag"
 			);
 			shader.SetInteger("tex0", 0);
-			vertices = new BVert[MAX_BILLBOARDS * 4];
+			vertices = new VertexPositionColorTexture[MAX_BILLBOARDS * 4];
 			rendat = new RenderData[MAX_BILLBOARDS];
-			vbo = new VertexBuffer(typeof(BVert), MAX_BILLBOARDS * 4, true);
+			vbo = new VertexBuffer(typeof(VertexPositionColorTexture), MAX_BILLBOARDS * 4, true);
 			ibo = new ElementBuffer(MAX_BILLBOARDS * 6);
 			vbo.SetElementBuffer(ibo);
 		}
@@ -115,6 +93,7 @@ namespace LibreLancer
                 shader
             );
         }
+
 		public void DrawCustomShader(
 			Shader shader,
 			RenderUserData userData,
@@ -160,40 +139,104 @@ namespace LibreLancer
 				float.IsNegativeInfinity(z) ? RenderHelpers.GetZ(Matrix4.Identity, camera.Position, Position) : z
 			);
 		}
+
 		void CreateBillboard(Vector3 position, Vector2 size, Color4 color, float angle, Vector2 topleft, Vector2 topright, Vector2 bottomleft, Vector2 bottomright)
 		{
-			vertices[vertexCount++] = new BVert()
+			CreateBillboard(
+				position,
+				size,
+				color,
+				angle,
+				topleft,
+				topright,
+				bottomleft,
+				bottomright,
+				camera.View.GetRight(),
+				camera.View.GetUp()
+			);
+
+		}
+
+		void CreateBillboard(Vector3 position, Vector2 size, Color4 color, float angle, Vector2 topleft, Vector2 topright, Vector2 bottomleft, Vector2 bottomright, Vector3 src_right, Vector3 src_up)
+		{
+			var s = (float)Math.Sin(angle);
+			var c = (float)Math.Cos(angle);
+			var up = c * src_right - s * src_up;
+			var right = s * src_right + c * src_up;
+
+			var sz1 = size * -0.5f;
+			var sz2 = size * new Vector2(0.5f, -0.5f);
+			var sz3 = size * new Vector2(-0.5f, 0.5f);
+			var sz4 = size * 0.5f;
+			vertices[vertexCount++] = new VertexPositionColorTexture()
 			{
-				Position = position,
-				Size = size * -0.5f,
-				Angle = angle,
+				Position = position + (right * sz1.X) + (up * sz1.Y),
 				Color = color,
-				TexCoord = bottomleft
+				TextureCoordinate = bottomleft
 			};
-			vertices[vertexCount++] = new BVert()
+			vertices[vertexCount++] = new VertexPositionColorTexture()
 			{
-				Position = position,
-				Size = size * new Vector2(0.5f, -0.5f),
-				Angle = angle,
+				Position = position + (right * sz2.X) + (up * sz2.Y),
 				Color = color,
-				TexCoord = topleft
+				TextureCoordinate = topleft
 			};
-			vertices[vertexCount++] = new BVert()
+			vertices[vertexCount++] = new VertexPositionColorTexture()
 			{
-				Position = position,
-				Size = size * new Vector2(-0.5f, 0.5f),
-				Angle = angle,
+				Position = position + (right * sz3.X) + (up * sz3.Y),
 				Color = color,
-				TexCoord = bottomright
+				TextureCoordinate = bottomright
 			};
-			vertices[vertexCount++] = new BVert()
+			vertices[vertexCount++] = new VertexPositionColorTexture()
 			{
-				Position = position,
-				Size = size * 0.5f,
-				Angle = angle,
+				Position = position + (right * sz4.X) + (up * sz4.Y),
 				Color = color,
-				TexCoord = topright
+				TextureCoordinate = topright
 			};
+		}
+
+		public void DrawPerspective(
+			Texture2D texture,
+			Vector3 Position,
+			Vector2 size,
+			Color4 color,
+			Vector2 topleft,
+			Vector2 topright,
+			Vector2 bottomleft,
+			Vector2 bottomright,
+			Vector3 normal,
+			float angle,
+			int layer,
+			BlendMode blend = BlendMode.Normal
+		)
+		{
+			var right = Vector3.Cross(normal, Vector3.UnitY).Normalized();
+
+			rendat[billboardCount] = new RenderData(
+				texture,
+				blend,
+				(ushort)vertexCount
+			);
+			CreateBillboard(
+				Position,
+				size,
+				color,
+				angle,
+				topleft,
+				topright,
+				bottomleft,
+				bottomright,
+				right,
+				Vector3.UnitY
+			);
+			var z = RenderHelpers.GetZ(camera.Position, Position);
+			buffer.AddCommand(
+				this,
+				rendat[billboardCount].GetHashCode(),
+				billboardCount,
+				layer,
+				z
+			);
+			billboardCount++;
 		}
 
 		public void Draw(
@@ -255,6 +298,7 @@ namespace LibreLancer
 			indices[indexCount++] = dat.Index4;
 			indices[indexCount++] = dat.Index5;
 		}
+
 		bool _frameStart = true;
 		public void FlushCommands(RenderState rs)
 		{

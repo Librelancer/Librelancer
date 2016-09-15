@@ -23,9 +23,9 @@ namespace LibreLancer.Utf.Ale
 		public AlchemyCurveAnimation TranslateX;
 		public AlchemyCurveAnimation TranslateY;
 		public AlchemyCurveAnimation TranslateZ;
-		public AlchemyCurveAnimation RotateX;
-		public AlchemyCurveAnimation RotateY;
-		public AlchemyCurveAnimation RotateZ;
+		public AlchemyCurveAnimation RotatePitch;
+		public AlchemyCurveAnimation RotateYaw;
+		public AlchemyCurveAnimation RotateRoll;
 		public AlchemyCurveAnimation ScaleX;
 		public AlchemyCurveAnimation ScaleY;
 		public AlchemyCurveAnimation ScaleZ;
@@ -41,9 +41,9 @@ namespace LibreLancer.Utf.Ale
 				TranslateX = new AlchemyCurveAnimation (reader);
 				TranslateY = new AlchemyCurveAnimation (reader);
 				TranslateZ = new AlchemyCurveAnimation (reader);
-				RotateX = new AlchemyCurveAnimation (reader);
-				RotateY = new AlchemyCurveAnimation (reader);
-				RotateZ = new AlchemyCurveAnimation (reader);
+				RotatePitch = new AlchemyCurveAnimation (reader);
+				RotateYaw= new AlchemyCurveAnimation (reader);
+				RotateRoll = new AlchemyCurveAnimation (reader);
 				ScaleX = new AlchemyCurveAnimation (reader);
 				ScaleY = new AlchemyCurveAnimation (reader);
 				ScaleZ = new AlchemyCurveAnimation (reader);
@@ -51,21 +51,26 @@ namespace LibreLancer.Utf.Ale
 		}
 		public Matrix4 GetMatrix(float sparam, float time)
 		{
+			if (!hasTransform)
+				return Matrix4.Identity;
 			var translate = Matrix4.CreateTranslation (
 				TranslateX.GetValue (sparam, time),
 				TranslateY.GetValue (sparam, time),
 				TranslateZ.GetValue (sparam, time)
 			);
-			var rotate = 
-				Matrix4.CreateRotationX (RotateX.GetValue (sparam, time)) *
-				Matrix4.CreateRotationY (RotateY.GetValue (sparam, time)) *
-				Matrix4.CreateRotationZ (RotateZ.GetValue (sparam, time));
-			var scale = Matrix4.CreateScale (
-					ScaleX.GetValue (sparam, time),
-					ScaleY.GetValue (sparam, time),
-					ScaleZ.GetValue (sparam, time)
-				);
-			return translate * rotate * scale;
+			
+			var quat = Quaternion.FromEulerAngles(
+				MathHelper.TwoPi - MathHelper.DegreesToRadians(RotatePitch.GetValue(sparam, time)),
+				MathHelper.TwoPi - MathHelper.DegreesToRadians(RotateYaw.GetValue(sparam,time)),
+				MathHelper.TwoPi - MathHelper.DegreesToRadians(RotateRoll.GetValue(sparam, time))
+			);
+
+			var rotate = Matrix4.CreateFromQuaternion(quat);
+			var s = new Vector3(ScaleX.GetValue(sparam, time),
+								ScaleY.GetValue(sparam, time),
+								ScaleZ.GetValue(sparam, time));
+			var scale = Matrix4.CreateScale (s);
+			return translate * rotate  * scale;
 		}
 		public AlchemyTransform()
 		{

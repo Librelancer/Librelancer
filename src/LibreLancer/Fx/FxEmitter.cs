@@ -21,12 +21,12 @@ namespace LibreLancer.Fx
 	{
 		public int InitialParticles;
 		public AlchemyCurveAnimation Frequency;
-		public AlchemyFloatAnimation EmitCount;
+		public AlchemyCurveAnimation EmitCount;
 		public AlchemyCurveAnimation InitLifeSpan;
 		//public AlchemyCurveAnimation LODCurve; -- Not really relevant in a modern context
 		public AlchemyCurveAnimation Pressure;
 		public AlchemyCurveAnimation VelocityApproach;
-
+		public AlchemyCurveAnimation MaxParticles;
 		public FxEmitter (AlchemyNode ale) : base(ale)
 		{
 			AleParameter temp;
@@ -37,7 +37,7 @@ namespace LibreLancer.Fx
 				Frequency = (AlchemyCurveAnimation)temp.Value;
 			}
 			if (ale.TryGetParameter ("Emitter_EmitCount", out temp)) {
-				EmitCount = (AlchemyFloatAnimation)temp.Value;
+				EmitCount = (AlchemyCurveAnimation)temp.Value;
 			}
 			if (ale.TryGetParameter ("Emitter_InitLifeSpan", out temp)) {
 				InitLifeSpan = (AlchemyCurveAnimation)temp.Value;
@@ -47,6 +47,59 @@ namespace LibreLancer.Fx
 			}
 			if (ale.TryGetParameter ("Emitter_VelocityApproach", out temp)) {
 				VelocityApproach = (AlchemyCurveAnimation)temp.Value;
+			}
+			if (ale.TryGetParameter("Emitter_MaxParticles", out temp)) {
+				MaxParticles = (AlchemyCurveAnimation)temp.Value;
+			}
+		}
+
+		public void SpawnInitialParticles(ParticleEffect fx, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+		{
+			int j = 0;
+			for (int i = 0; i < InitialParticles; i--)
+			{
+				var idx = instance.GetNextFreeParticle();
+				if (idx == -1)
+					break;
+				SpawnParticle(idx, fx, instance, ref transform, sparam);
+				j++;
+			}
+			instance.GetEmitterState(this).ParticleCount = j;
+		}
+		protected void SpawnParticle(int idx, ParticleEffect fx, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+		{
+			instance.Particles[idx].Active = true;
+			instance.Particles[idx].Emitter = this;
+			instance.Particles[idx].Appearance = (FxAppearance)fx.Pairs[this];
+			instance.Particles[idx].TimeAlive = 0f;
+			instance.Particles[idx].LifeSpan = InitLifeSpan.GetValue(sparam, 0f);
+			SetParticle(idx, fx, instance, ref transform, sparam);
+		}
+		protected virtual void SetParticle(int idx, ParticleEffect fx, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+		{
+			
+		}
+		public override void Update(ParticleEffect fx, ParticleEffectInstance instance, TimeSpan delta, ref Matrix4 transform, float sparam)
+		{
+			var maxCount = MaxParticles == null ? int.MaxValue : MaxParticles.GetValue(sparam, 0f);
+			var freq = Frequency == null ? 0f : Frequency.GetValue(sparam, 0f);
+			var spawnMs = freq <= 0 ? 0 : 1 / freq;
+			var state = instance.GetEmitterState(this);
+			if (state.ParticleCount >= maxCount)
+			{
+				return;
+			}
+			if (spawnMs > 0)
+			{
+				state.SpawnTimer -= (float)delta.TotalSeconds;
+				if (state.SpawnTimer <= 0)
+				{
+					state.SpawnTimer = spawnMs;
+					var idx = instance.GetNextFreeParticle();
+					if (idx == -1)
+						return;
+					SpawnParticle(idx, fx, instance, ref transform, sparam);
+				}
 			}
 		}
 	}

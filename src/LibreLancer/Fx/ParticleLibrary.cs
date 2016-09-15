@@ -14,6 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using LibreLancer.Utf.Ale;
 namespace LibreLancer.Fx
@@ -32,26 +33,61 @@ namespace LibreLancer.Fx
 			}
 			foreach (var effect in ale.FxLib.Effects) {
 				var fx = new ParticleEffect (this);
+				var root = new FxRootNode();
 				fx.CRC = effect.CRC;
 				fx.Name = effect.Name;
-
-				foreach (var noderef in effect.Fx) {
-					if (noderef.IsAttachmentNode)
-						fx.AttachmentNodes.Add (Nodes [(int)noderef.Index]);
+				foreach (var noderef in effect.Fx)
+				{
+					if (noderef.IsAttachmentNode && FindNode(noderef.CRC) == null)
+					{
+						Nodes.Add(new FxNode("Attachment_0x" + noderef.CRC.ToString("X"), "Empty") { CRC = noderef.CRC });
+					}
 				}
-
+				foreach (var noderef in effect.Fx) {
+					var nd = FindNode(noderef.CRC);
+					if (noderef.Parent != 32768)
+					{
+						fx.Parents.Add(nd, FindNode(effect.FindRef(noderef.Parent).CRC));
+					}
+					else
+						fx.Parents.Add(nd, root);
+					if (noderef.IsAttachmentNode)
+						fx.AttachmentNodes.Add(nd);
+				}
+				foreach (var pair in effect.Pairs)
+					fx.Pairs.Add(FindNode(effect.FindRef(pair.Item1).CRC), FindNode(effect.FindRef(pair.Item2).CRC));
+				fx.SetNodes(effect.Fx.Select(arg => FindNode(arg.CRC)));
+				Effects.Add(fx);
 			}
+		}
+		FxNode FindNode(uint crc)
+		{
+			var result = from FxNode n in Nodes where n.CRC == crc select n;
+			var c = result.Count();
+			if (c == 1)
+				return result.First();
+			else if (c == 0)
+				return null;
+			else
+				throw new Exception("ALE CRC collision");
 		}
 		static FxNode NodeFromAle(AlchemyNode ale)
 		{
-			switch (ale.Name) {
-			case "FxBasicAppearance":
-				return new FxBasicAppearance (ale);
-			case "FxConeEmitter":
-				return new FxConeEmitter (ale);
-			default:
-				throw new NotImplementedException (ale.Name);
+			var type = typeof(ParticleLibrary).Assembly.GetType("LibreLancer.Fx." + ale.Name);
+			if (type != null)
+			{
+				return (FxNode)Activator.CreateInstance(type, ale);
 			}
+			else {
+				throw new NotImplementedException(ale.Name);
+			}
+		}
+		public ParticleEffect FindEffect(uint crc)
+		{
+			var result = from ParticleEffect e in Effects where e.CRC == crc select e;
+			if (result.Count() == 1)
+				return result.First();
+			throw new Exception();
 		}
 	}
 }

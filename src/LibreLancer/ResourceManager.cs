@@ -76,9 +76,9 @@ namespace LibreLancer
 		{
 			shapes.Add(name, shape);
 		}
-		public TextureShape GetShape(string name)
+		public bool TryGetShape(string name, out TextureShape shape)
 		{
-			return shapes[name];
+			return shapes.TryGetValue(name, out shape);
 		}
 
 		public void AddPreload(IEnumerable<string> files)

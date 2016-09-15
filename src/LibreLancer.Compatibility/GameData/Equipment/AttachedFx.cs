@@ -14,27 +14,27 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using System.Collections.Generic;
-using System.Linq;
-namespace LibreLancer.Utf.Ale
+using LibreLancer.Ini;
+namespace LibreLancer.Compatibility.GameData.Equipment
 {
-	public class ALEffect
+	public class AttachedFx : AbstractEquipment
 	{
-		public string Name;
-		public uint CRC;
-		public List<AlchemyNodeRef> FxTree;
-		public List<AlchemyNodeRef> Fx;
-		public List<Tuple<uint,uint>> Pairs;
-		public ALEffect ()
+		public string Particles;
+		public AttachedFx(Section section, FreelancerData gdata)
+			: base(section)
 		{
-		}
-		public AlchemyNodeRef FindRef(uint index)
-		{
-			var result = from AlchemyNodeRef r in Fx where r.Index == index select r;
-			if (result.Count() == 1)
-				return result.First();
-			throw new Exception();
+			foreach (Entry e in section)
+			{
+				if (!parentEntry(e))
+				{
+					switch (e.Name.ToLowerInvariant())
+					{
+						case "particles":
+							Particles = e[0].ToString();
+							break;
+					}
+				}
+			}
 		}
 	}
 }
-

@@ -235,9 +235,6 @@
     <Compile Include="ApproximateCurve.cs" />
     <Compile Include="GameData\ExclusionZone.cs" />
     <Compile Include="Render\SortLayers.cs" />
-    <Compile Include="GameWorld.cs" />
-    <Compile Include="GameObject.cs" />
-    <Compile Include="Hardpoint.cs" />
     <Compile Include="Render\ObjectRenderer.cs" />
     <Compile Include="GameData\Items\LightEquipment.cs" />
     <Compile Include="GameData\Items\Equipment.cs" />
@@ -246,6 +243,15 @@
     <Compile Include="GameStates\DemoGameplay.cs" />
     <Compile Include="Render\PhysicsDebugRenderer.cs" />
     <Compile Include="CompoundSurShape.cs" />
+    <Compile Include="Gameplay\GameWorld.cs" />
+    <Compile Include="Gameplay\GameObject.cs" />
+    <Compile Include="Gameplay\GameComponent.cs" />
+    <Compile Include="Gameplay\Hardpoint.cs" />
+    <Compile Include="Gameplay\Components\EngineComponent.cs" />
+    <Compile Include="GameData\Items\Engine.cs" />
+    <Compile Include="GameData\Items\EffectEquipment.cs" />
+    <Compile Include="Render\ParticleEffectRenderer.cs" />
+    <Compile Include="Fx\BlendMap.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -327,6 +333,8 @@
     <Folder Include="Infocards\" />
     <Folder Include="GameStates\" />
     <Folder Include="GameData\Items\" />
+    <Folder Include="Gameplay\" />
+    <Folder Include="Gameplay\Components\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="OpenTK.dll.config">

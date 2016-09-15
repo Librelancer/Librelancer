@@ -22,6 +22,7 @@ namespace LibreLancer.Fx
 	{
 		public string Name;
 		public string NodeName = "LIBRELANCER:UNNAMED_NODE";
+		public uint CRC;
 		public float NodeLifeSpan = float.PositiveInfinity;
 		public AlchemyTransform Transform;
 
@@ -31,6 +32,7 @@ namespace LibreLancer.Fx
 			AleParameter temp;
 			if (ale.TryGetParameter ("Node_Name", out temp)) {
 				NodeName = (string)temp.Value;
+				CRC = CrcTool.FLAleCrc(NodeName);
 			}
 			if (ale.TryGetParameter ("Node_Transform", out temp)) {
 				Transform = (AlchemyTransform)temp.Value;
@@ -41,18 +43,25 @@ namespace LibreLancer.Fx
 				NodeLifeSpan = (float)temp.Value;
 			}
 		}
-		protected Matrix4 GetTranslation(ParticleEffect effect, Matrix4 attachment, float sparam, float time)
+		public Matrix4 GetTranslation(ParticleEffect effect, Matrix4 attachment, float sparam, float time)
 		{
-			Matrix4 mat = Transform.GetMatrix (sparam, time);
-			if (effect.Parents [this] is FxRootNode) {
+			Matrix4 mat = Matrix4.Identity;
+			if(Transform != null)
+				mat = Transform.GetMatrix (sparam, time);
+			if (effect.AttachmentNodes.Contains(this)) {
+				return mat * attachment;
+			} else if (effect.Parents[this] is FxRootNode) {
 				return mat;
-			} else if (effect.AttachmentNodes.Contains (this)) {
-				return attachment * mat;
 			}
 			else {
-				return effect.Parents [this].GetTranslation (effect, attachment, sparam, time) * mat;
+				return mat * effect.Parents [this].GetTranslation (effect, attachment, sparam, time);
 			}
 		}
+
+		public virtual void Update(ParticleEffect fx, ParticleEffectInstance instance, TimeSpan delta, ref Matrix4 transform, float sparam)
+		{
+		}
+
 		public FxNode(string name, string nodename)
 		{
 			Name = name;

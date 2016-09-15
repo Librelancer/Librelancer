@@ -15,26 +15,27 @@
  */
 using System;
 using System.Collections.Generic;
-using System.Linq;
-namespace LibreLancer.Utf.Ale
+using LibreLancer.Ini;
+namespace LibreLancer.Compatibility.GameData.Effects
 {
-	public class ALEffect
+	public class Effect
 	{
-		public string Name;
-		public uint CRC;
-		public List<AlchemyNodeRef> FxTree;
-		public List<AlchemyNodeRef> Fx;
-		public List<Tuple<uint,uint>> Pairs;
-		public ALEffect ()
+		public string Nickname;
+		public string VisEffect;
+		public Effect(Section s)
 		{
-		}
-		public AlchemyNodeRef FindRef(uint index)
-		{
-			var result = from AlchemyNodeRef r in Fx where r.Index == index select r;
-			if (result.Count() == 1)
-				return result.First();
-			throw new Exception();
+			foreach (var e in s)
+			{
+				switch (e.Name.ToLowerInvariant())
+				{
+					case "nickname":
+						Nickname = e[0].ToString();
+						break;
+					case "vis_effect":
+						VisEffect = e[0].ToString();
+						break;
+				}
+			}
 		}
 	}
 }
-

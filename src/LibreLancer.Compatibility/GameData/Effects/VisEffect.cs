@@ -15,26 +15,36 @@
  */
 using System;
 using System.Collections.Generic;
-using System.Linq;
-namespace LibreLancer.Utf.Ale
+using LibreLancer.Ini;
+namespace LibreLancer.Compatibility.GameData.Effects
 {
-	public class ALEffect
+	public class VisEffect
 	{
-		public string Name;
-		public uint CRC;
-		public List<AlchemyNodeRef> FxTree;
-		public List<AlchemyNodeRef> Fx;
-		public List<Tuple<uint,uint>> Pairs;
-		public ALEffect ()
+		public string Nickname;
+		public int EffectCrc;
+		public string AlchemyPath;
+		public List<string> Textures = new List<string>();
+		public VisEffect(Section s)
 		{
-		}
-		public AlchemyNodeRef FindRef(uint index)
-		{
-			var result = from AlchemyNodeRef r in Fx where r.Index == index select r;
-			if (result.Count() == 1)
-				return result.First();
-			throw new Exception();
+			foreach (var e in s)
+			{
+				switch (e.Name.ToLowerInvariant())
+				{
+					case "nickname":
+						Nickname = e[0].ToString();
+						break;
+					case "alchemy":
+						AlchemyPath = e[0].ToString();
+						break;
+					case "textures":
+						Textures.Add(e[0].ToString());
+						break;
+					case "effect_crc":
+						EffectCrc = e[0].ToInt32();
+						break;
+						
+				}
+			}
 		}
 	}
 }
-

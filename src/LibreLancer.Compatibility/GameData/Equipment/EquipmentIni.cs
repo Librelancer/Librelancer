@@ -68,6 +68,7 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 				case "internalfx":
 					break;
 				case "attachedfx":
+					Equip.Add(new AttachedFx(s, data));
 					break;
 				case "shieldgenerator":
 					break;

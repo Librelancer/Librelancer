@@ -14,31 +14,17 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using LibreLancer.Utf;
-using LibreLancer.Utf.Cmp;
 namespace LibreLancer
 {
-	public class Hardpoint
+	public class GameComponent
 	{
-		Matrix4 transform;
-		AbstractConstruct parent;
-		public Hardpoint(HardpointDefinition def, AbstractConstruct parent)
+		public GameObject Parent;
+		public GameComponent(GameObject parent)
 		{
-			this.parent = parent;
-			this.transform = def.Transform;
-            IsStatic = parent is FixConstruct && def is FixedHardpointDefinition;
+			Parent = parent;
 		}
-        public bool IsStatic { get; private set; }
-		public Matrix4 Transform
+		public virtual void Update(TimeSpan time)
 		{
-			get
-			{
-				if (parent != null)
-					return parent.Transform * transform;
-				else
-					return transform;
-			}
 		}
 	}
 }
-

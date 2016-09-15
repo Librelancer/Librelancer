@@ -73,6 +73,7 @@ Hitbox Drawing (H/J): {7}
 			world.Objects.Add(player);
 			world.Physics.SetDampingFactors(0.5f, 1f);
 			world.RenderUpdate += World_RenderUpdate;
+			player.Components.Add(new EngineComponent(player, null));
 			player.Register(sysrender, world.Physics);
 			g.Sound.PlayMusic(sys.MusicSpace);
 			trender = new Renderer2D(Game.RenderState);

@@ -17,6 +17,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Legacy = LibreLancer.Compatibility.GameData;
+using LibreLancer.Fx;
+using LibreLancer.Utf.Ale;
 namespace LibreLancer
 {
 	public class LegacyGameData
@@ -414,10 +416,36 @@ namespace LibreLancer
 						var light = GetLight((Legacy.Equipment.Light)val);
 						obj.Loadout.Add(key, light);
 					}
+					if (val is Legacy.Equipment.AttachedFx)
+					{
+						var fx = GetAttachedFx((Legacy.Equipment.AttachedFx)val);
+						obj.Loadout.Add(key, fx);
+					}
 				}
 			}
 			return obj;
 		}
+
+		GameData.Items.EffectEquipment GetAttachedFx(Legacy.Equipment.AttachedFx fx)
+		{
+			var equip = new GameData.Items.EffectEquipment();
+			var effect = fldata.Effects.FindEffect(fx.Particles);
+			var visfx = fldata.Effects.FindVisEffect(effect.VisEffect);
+			foreach (var texfile in visfx.Textures)
+			{
+				var path = Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + texfile);
+				if (path.EndsWith(".txm"))
+					resource.LoadTxm(path);
+				else if (path.EndsWith(".mat"))
+					resource.LoadMat(path);
+			}
+			var alepath = Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + visfx.AlchemyPath);
+			var ale = new AleFile(alepath);
+			var lib = new ParticleLibrary(resource, ale);
+			equip.Particles = lib.FindEffect((uint)visfx.EffectCrc);
+			return equip;
+		}
+
 		GameData.Items.LightEquipment GetLight(Legacy.Equipment.Light lt)
 		{
 			var equip = new GameData.Items.LightEquipment();

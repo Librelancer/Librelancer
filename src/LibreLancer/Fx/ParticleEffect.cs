@@ -24,12 +24,45 @@ namespace LibreLancer.Fx
 		public string Name;
 		public uint CRC;
 		public Dictionary<FxNode, FxNode> Parents = new Dictionary<FxNode, FxNode>();
+		public Dictionary<FxNode, FxNode> Pairs = new Dictionary<FxNode, FxNode>();
 		public List<FxNode> AttachmentNodes = new List<FxNode>();
-		public List<FxNode> Nodes = new List<FxNode>();
+		List<FxEmitter> emitters = new List<FxEmitter>();
 
+		public int EmitterCount
+		{
+			get
+			{
+				return emitters.Count;
+			}
+		}
 		public ParticleEffect (ParticleLibrary lib)
 		{
 			this.lib = lib;
+		}
+
+		public ResourceManager ResourceManager
+		{	
+			get
+			{
+				return lib.Resources;
+			}
+		}
+
+		public void SetNodes(IEnumerable<FxNode> nodes)
+		{
+			foreach (var n in nodes)
+			{
+				if (n is FxEmitter)
+					emitters.Add((FxEmitter)n);
+			}
+		}
+
+		public void Update(ParticleEffectInstance instance, TimeSpan delta, ref Matrix4 transform, float sparam)
+		{
+			for (int i = 0; i < emitters.Count; i++)
+			{
+				emitters[i].Update(this, instance, delta, ref transform, sparam);
+			}
 		}
 	}
 }

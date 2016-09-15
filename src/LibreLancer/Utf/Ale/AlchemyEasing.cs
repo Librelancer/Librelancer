@@ -44,7 +44,7 @@ namespace LibreLancer.Utf.Ale
 
 			float r = Ease(type, time, t1, t2, c1.R, c2.R);
 			float g = Ease(type, time, t1, t2, c1.G, c2.G);
-			float b = Ease(type, time, t1, t2, c1.B, c1.B);
+			float b = Ease(type, time, t1, t2, c1.B, c2.B);
 
 			return new Color3f(r, g, b);
 		}
@@ -88,19 +88,11 @@ namespace LibreLancer.Utf.Ale
 			return v1 + (v2 - v1) * y;
 		}
 
-		//0.5 * (0.5 ^ 1.925)
-		const double EASE_IN_OUT_CONST = 0.131670129494354;
 
 		static float EaseInOut(float time, float t1, float t2, float v1, float v2)
 		{
-			// very close approximation to cubic-bezier(0.42, 0, 0.58, 1.0)
-			var x = (time - t1) / t2;
-			float y;
-			if (x < 0.5f) {
-				y = (float)(EASE_IN_OUT_CONST * Math.Pow (x, 1.925));
-			} else {
-				y = (float)(1 - EASE_IN_OUT_CONST * Math.Pow(1-x, 1.925));
-			}
+			var t = (time - t1) / t2;
+			var y = t < 0.5f ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
 			return v1 + (v2 - v1) * y;
 		}
 

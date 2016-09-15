@@ -52,6 +52,7 @@ namespace LibreLancer
 		}
 		public GameObject Parent;
 		public List<GameObject> Children = new List<GameObject>();
+		public List<GameComponent> Components = new List<GameComponent>();
 		IDrawable dr;
 		ObjectRenderer renderComponent;
 		Dictionary<string, Hardpoint> hardpoints = new Dictionary<string, Hardpoint>(StringComparer.OrdinalIgnoreCase);
@@ -144,6 +145,10 @@ namespace LibreLancer
 			{
 				renderComponent = new LightEquipRenderer((LightEquipment)equip);
 			}
+			if (equip is EffectEquipment)
+			{
+				renderComponent = new ParticleEffectRenderer(((EffectEquipment)equip).Particles);
+			}
             //Optimisation: Don't re-calculate transforms every frame for static objects
             if(parent.isstatic && hp.IsStatic)
             {
@@ -222,17 +227,20 @@ namespace LibreLancer
 		{
 			return hardpoints[hpname];
 		}
-
+		public IEnumerable<Hardpoint> GetHardpoints()
+		{
+			return hardpoints.Values;
+		}
 		public Matrix4 GetTransform()
 		{
 			if (isstatic)
 				return Transform;
-			var tr = Matrix4.Identity;
-			if (Parent != null)
-				tr = Parent.GetTransform();
+			var tr = Transform;
 			if (Attachment != null)
-				tr = Attachment.Transform * tr;
-			return Transform * tr;
+				tr *= Attachment.Transform;
+			if (Parent != null)
+				tr *= Parent.GetTransform();
+			return tr;
 		}
 	}
 }

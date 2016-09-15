@@ -53,11 +53,11 @@ namespace LibreLancer
 		}
 		public static Vector3 GetUp(this Matrix4 mat)
 		{
-			return new Vector3 (mat.M21, mat.M22, mat.M23);
+			return new Vector3 (mat.M12, mat.M22, mat.M32);
 		}
 		public static Vector3 GetRight(this Matrix4 mat)
 		{
-			return new Vector3 (mat.M11, mat.M12, mat.M13);
+			return new Vector3 (mat.M11, mat.M21, mat.M31);
 		}
 		public static Vector3 ToOpenTK(this JVector src)
 		{

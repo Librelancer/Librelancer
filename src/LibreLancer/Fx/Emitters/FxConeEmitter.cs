@@ -19,8 +19,55 @@ namespace LibreLancer.Fx
 {
 	public class FxConeEmitter : FxEmitter
 	{
+		public AlchemyCurveAnimation MinRadius;
+		public AlchemyCurveAnimation MaxRadius;
+		public AlchemyCurveAnimation MinSpread;
+		public AlchemyCurveAnimation MaxSpread;
+
 		public FxConeEmitter (AlchemyNode ale) : base(ale)
 		{
+			AleParameter temp;
+			if (ale.TryGetParameter("ConeEmitter_MinRadius", out temp)) {
+				MinRadius = (AlchemyCurveAnimation)temp.Value;
+			}
+			if (ale.TryGetParameter("ConeEmitter_MaxRadius", out temp)) {
+				MaxRadius = (AlchemyCurveAnimation)temp.Value;
+			}
+			if (ale.TryGetParameter("ConeEmitter_MinSpread", out temp)){
+				MinSpread = (AlchemyCurveAnimation)temp.Value;
+			}
+			if (ale.TryGetParameter("ConeEmitter_MaxSpread", out temp)) {
+				MaxSpread = (AlchemyCurveAnimation)temp.Value;
+			}
+		}
+		protected override void SetParticle(int idx, ParticleEffect fx, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+		{
+
+			var r_min = MinRadius.GetValue(sparam, 0);
+			var r_max = MaxRadius.GetValue(sparam, 0);
+
+			var s_min = MathHelper.DegreesToRadians(MinSpread.GetValue(sparam, 0));
+			var s_max = MathHelper.DegreesToRadians(MaxSpread.GetValue(sparam, 0));
+
+			var radius = instance.Random.NextFloat(r_min, r_max);
+			var theta = instance.Random.NextFloat(s_min, s_max);
+			var phi = instance.Random.NextFloat(s_min, s_max);
+
+			var x = radius * Math.Sin(phi) * Math.Cos(theta);
+			var z = radius * Math.Cos(phi);
+			var y = radius * Math.Sin(phi) * Math.Sin(theta);
+
+			var p = new Vector3(
+				(float)x,
+				(float)y,
+				(float)z
+			);
+
+			var tr = GetTranslation(fx, transform, sparam, 0);
+			var n = (tr * new Vector4(p.Normalized(), 0)).Xyz;
+			n *= Pressure.GetValue(sparam, 0);
+			instance.Particles[idx].Position = tr.Transform(p);
+			instance.Particles[idx].Normal = n;
 		}
 	}
 }

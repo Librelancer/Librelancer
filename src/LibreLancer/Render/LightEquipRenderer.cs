@@ -48,9 +48,9 @@ namespace LibreLancer
 				return;
 			if (frameStart)
 			{
-				bulbshape = sys.Game.ResourceManager.GetShape("bulb");
+				sys.Game.ResourceManager.TryGetShape("bulb", out bulbshape);
 				bulbtex = (Texture2D)sys.Game.ResourceManager.FindTexture(bulbshape.Texture);
-				shineshape = sys.Game.ResourceManager.GetShape("shine");
+				sys.Game.ResourceManager.TryGetShape("shine", out shineshape);
 				shinetex = (Texture2D)sys.Game.ResourceManager.FindTexture(shineshape.Texture);
 				frameStart = false;
 			}

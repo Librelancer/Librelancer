@@ -6,6 +6,7 @@ using LibreLancer.Compatibility.GameData.Characters;
 using LibreLancer.Compatibility.GameData.Universe;
 using LibreLancer.Compatibility.GameData.Ships;
 using LibreLancer.Compatibility.GameData.Audio;
+using LibreLancer.Compatibility.GameData.Effects;
 
 namespace LibreLancer.Compatibility.GameData
 {
@@ -16,6 +17,7 @@ namespace LibreLancer.Compatibility.GameData
 		public FreelancerIni Freelancer;
 		//Data
 		public InfocardManager Infocards;
+		public EffectsIni Effects;
 		public EquipmentIni Equipment;
 		public LoadoutsIni Loadouts;
 		public SolararchIni Solar;
@@ -71,6 +73,10 @@ namespace LibreLancer.Compatibility.GameData
 				Graphs.AddGraphIni(g);
 			//Shapes
 			EffectShapes = new TexturePanels(Freelancer.EffectShapesPath);
+			//Effects
+			Effects = new EffectsIni();
+			foreach (var fx in Freelancer.EffectPaths)
+				Effects.AddIni(fx);
 		}
 	}
 }

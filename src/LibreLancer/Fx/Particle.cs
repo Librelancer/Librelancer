@@ -23,7 +23,10 @@ namespace LibreLancer.Fx
 		public Vector3 Position;
 		public Vector3 Normal;
 		public float LifeSpan;
-		public float CreationTime;
+		public float TimeAlive;
+		public float Rotation;
+		public FxAppearance Appearance;
+		public FxEmitter Emitter;
 	}
 }
 

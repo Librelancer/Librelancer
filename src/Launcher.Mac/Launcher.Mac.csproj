@@ -30,6 +30,7 @@
     <XamMacArch></XamMacArch>
     <PackageSigningKey>Developer ID Installer</PackageSigningKey>
     <MonoBundlingExtraArgs>--arch=x86_64</MonoBundlingExtraArgs>
+    <LinkMode>None</LinkMode>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -56,6 +57,7 @@
     <Reference Include="Xamarin.Mac" />
     <Reference Include="System.Xml.Serialization" />
     <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
     <ImageAsset Include="Assets.xcassets\AppIcons.appiconset\Contents.json" />

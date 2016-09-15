@@ -14,26 +14,36 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using System.Collections.Generic;
-using System.Linq;
-namespace LibreLancer.Utf.Ale
+using LibreLancer.Utf;
+using LibreLancer.Utf.Cmp;
+namespace LibreLancer
 {
-	public class ALEffect
+	public class Hardpoint
 	{
+		Matrix4 transform;
+		AbstractConstruct parent;
 		public string Name;
-		public uint CRC;
-		public List<AlchemyNodeRef> FxTree;
-		public List<AlchemyNodeRef> Fx;
-		public List<Tuple<uint,uint>> Pairs;
-		public ALEffect ()
+		public Hardpoint(HardpointDefinition def, AbstractConstruct parent)
 		{
+			this.parent = parent;
+			this.transform = def.Transform;
+			Name = def.Name;
+            IsStatic = parent is FixConstruct && def is FixedHardpointDefinition;
 		}
-		public AlchemyNodeRef FindRef(uint index)
+        public bool IsStatic { get; private set; }
+		public Matrix4 Transform
 		{
-			var result = from AlchemyNodeRef r in Fx where r.Index == index select r;
-			if (result.Count() == 1)
-				return result.First();
-			throw new Exception();
+			get
+			{
+				if (parent != null)
+					return transform * parent.Transform;
+				else
+					return transform;
+			}
+		}
+		public override string ToString()
+		{
+			return string.Format("[{0}, IsStatic={1}]", Name, IsStatic);
 		}
 	}
 }

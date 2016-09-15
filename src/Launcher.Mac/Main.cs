@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using System.Xml.Serialization;
 using AppKit;
 using Foundation;
@@ -35,7 +36,11 @@ namespace Launcher.Mac
 			}
 			if (LaunchPath != null)
 			{
-				var conf = new LibreLancer.GameConfig();
+				//HACK: Work-around Xamarin.Mac getting itself confused with all the dependencies
+				var asm = Assembly.LoadFrom(bundlepath + "/Contents/MonoBundle/LibreLancer.dll");
+				var t = asm.GetType("LibreLancer.GameConfig", true);
+				dynamic conf = Activator.CreateInstance(t);
+				//var conf = new LibreLancer.GameConfig();
 				if (cfg != null)
 					if (cfg.mpv != null)
 					conf.MpvOverride = Path.Combine(bundlepath, cfg.mpv);

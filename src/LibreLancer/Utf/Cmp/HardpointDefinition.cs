@@ -30,14 +30,17 @@ namespace LibreLancer.Utf.Cmp
             if (root == null) throw new ArgumentNullException("root");
 
             Name = root.Name;
+			Orientation = Matrix4.Identity;
+			Position = Vector3.Zero;
         }
 
         protected bool parentNode(LeafNode node)
         {
+			
             switch (node.Name.ToLowerInvariant())
             {
                 case "orientation":
-                    Orientation = node.MatrixData3x3.Value;
+					Orientation = node.MatrixData3x3.Value;
                     break;
                 case "position":
                     Position = node.Vector3Data.Value;
