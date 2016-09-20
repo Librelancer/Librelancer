@@ -17,7 +17,8 @@ uniform vec2 FogRange;
  */
 float fcubic(float x, vec4 params)
 {
-	return params.x * pow(x, 3) + params.y * pow(x, 2) + params.z * x + params.w;
+	float x2 = x * x;
+	return params.x * x2 * x + params.y * x2 + params.z * x + params.w;
 }
 
 vec3 apply_light(int i, vec4 dc, vec3 position, vec3 normal)
