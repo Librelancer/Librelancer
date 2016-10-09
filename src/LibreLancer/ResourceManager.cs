@@ -37,6 +37,8 @@ namespace LibreLancer
 		Dictionary<string, VmsFile> vmss = new Dictionary<string, VmsFile>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, TextureShape> shapes = new Dictionary<string, TextureShape>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, SurFile> surs = new Dictionary<string, SurFile>(StringComparer.OrdinalIgnoreCase);
+		Dictionary<string, Cursor> cursors = new Dictionary<string, Cursor>(StringComparer.OrdinalIgnoreCase);
+
 		List<string> loadedMatFiles = new List<string>();
 		List<string> loadedTxmFiles = new List<string>();
 		List<string> preloadFiles = new List<string>();
@@ -72,6 +74,18 @@ namespace LibreLancer
 			}
 			return sur;
 		}
+
+		public Cursor GetCursor(string name)
+		{
+			return cursors[name];
+		}
+
+		public void AddCursor(Cursor c, string name)
+		{
+			c.Resources = this;
+			cursors.Add(name, c);
+		}
+
 		public void AddShape(string name, TextureShape shape)
 		{
 			shapes.Add(name, shape);

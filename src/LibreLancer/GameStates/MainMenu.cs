@@ -26,9 +26,13 @@ namespace LibreLancer
 		const double FLYIN_LENGTH = 0.6;
 		IntroScene intro;
 		Cutscene scene;
+		Cursor cur;
 		public MainMenu (FreelancerGame g) : base (g)
 		{
 			g.GameData.LoadHardcodedFiles ();
+			g.GameData.PopulateCursors();
+			g.MouseVisible = false;
+
 			logoOverlay = g.GameData.GetFreelancerLogo ();
 
 			manager = new UIManager (g);
@@ -44,6 +48,8 @@ namespace LibreLancer
 			intro = g.GameData.GetIntroScene();
 			scene = new Cutscene(intro.Script);
 			g.Sound.PlayMusic(intro.Music);
+
+			cur = g.ResourceManager.GetCursor("arrow");
 		}
 
 
@@ -87,6 +93,10 @@ namespace LibreLancer
 			Game.Renderer2D.Finish ();
 			//buttons
 			manager.Draw();
+			//Cursor
+			Game.Renderer2D.Start(Game.Width, Game.Height);
+			cur.Draw(Game.Renderer2D, Game.Mouse);
+			Game.Renderer2D.Finish();
 		}
 	}
 }

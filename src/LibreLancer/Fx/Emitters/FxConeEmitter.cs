@@ -53,9 +53,9 @@ namespace LibreLancer.Fx
 			var theta = instance.Random.NextFloat(s_min, s_max);
 			var phi = instance.Random.NextFloat(s_min, s_max);
 
-			var x = radius * Math.Sin(phi) * Math.Cos(theta);
-			var z = radius * Math.Cos(phi);
-			var y = radius * Math.Sin(phi) * Math.Sin(theta);
+			var x = Math.Sin(phi) * Math.Cos(theta);
+			var y = Math.Sin(phi) * Math.Sin(theta);
+			var z = Math.Cos(phi);
 
 			var p = new Vector3(
 				(float)x,
@@ -64,9 +64,13 @@ namespace LibreLancer.Fx
 			);
 
 			var tr = GetTranslation(fx, transform, sparam, 0);
-			var n = (tr * new Vector4(p.Normalized(), 0)).Xyz;
+			var n = (tr * new Vector4(p.Normalized(), 0)).Xyz.Normalized();
+			var pressure = Pressure.GetValue(sparam, 0);
 			n *= Pressure.GetValue(sparam, 0);
-			instance.Particles[idx].Position = tr.Transform(p);
+			if (fx.Name != "gf_misc_gasexhaust")
+				Console.WriteLine();
+			var pr = tr.Transform(p * radius);
+			instance.Particles[idx].Position = pr;
 			instance.Particles[idx].Normal = n;
 		}
 	}

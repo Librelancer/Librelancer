@@ -201,6 +201,8 @@ namespace LibreLancer
 			}
 			for (int i = 0; i < Children.Count; i++)
 				Children[i].Update(time);
+			for (int i = 0; i < Components.Count; i++)
+				Components[i].Update(time);
 		}
 
 		public void Register(SystemRenderer renderer, World physics)
@@ -211,6 +213,8 @@ namespace LibreLancer
 				physics.AddBody(PhysicsComponent);
 			foreach (var child in Children)
 				child.Register(renderer, physics);
+			foreach (var component in Components)
+				component.Register(renderer, physics);
 		}
 
 		public void Unregister(World physics)

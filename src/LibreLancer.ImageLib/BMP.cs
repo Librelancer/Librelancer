@@ -28,7 +28,6 @@ namespace LibreLancer.ImageLib
 			stream.Position = 0;
 			return result;
 		}
-
 		public static Texture2D FromFile(string file)
 		{
 			using (var stream = File.OpenRead (file)) {

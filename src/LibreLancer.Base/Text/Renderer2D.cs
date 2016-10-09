@@ -173,6 +173,7 @@ namespace LibreLancer
 		int primitiveCount = 0;
 		Texture2D currentTexture = null;
 		Shader currentShader = null;
+		BlendMode currentMode = BlendMode.Normal;
 
 		public void Start(int vpWidth, int vpHeight)
 		{
@@ -182,6 +183,7 @@ namespace LibreLancer
 			var mat = Matrix4.CreateOrthographicOffCenter (0, vpWidth, vpHeight, 0, 0, 1);
 			textShader.SetMatrix ("modelviewproj", ref mat);
 			imgShader.SetMatrix ("modelviewproj", ref mat);
+			currentMode = BlendMode.Normal;
 		}
 
 		public void DrawString(Font font, string str, Vector2 vec, Color4 color)
@@ -243,7 +245,8 @@ namespace LibreLancer
 						glyph.Texture,
 						glyph.Rectangle,
 						dst,
-						color
+						color,
+						BlendMode.Normal
 					);
 					penX += glyph.HorizontalAdvance;
 					//penY += glyph.AdvanceY;
@@ -260,7 +263,7 @@ namespace LibreLancer
 		}
 		public void FillRectangle(Rectangle rect, Color4 color)
 		{
-			DrawQuad(textShader, dot, new Rectangle(0,0,1,1), rect, color);
+			DrawQuad(textShader, dot, new Rectangle(0,0,1,1), rect, color, BlendMode.Normal);
 		}
 		public void DrawImageStretched(Texture2D tex, Rectangle dest, Color4 color, bool flip = false)
 		{
@@ -270,6 +273,7 @@ namespace LibreLancer
 				new Rectangle (0, 0, tex.Width, tex.Height),
 				dest,
 				color,
+				BlendMode.Normal,
 				flip
 			);
 		}
@@ -279,10 +283,20 @@ namespace LibreLancer
 			a = b;
 			b = temp;
 		}
-		void DrawQuad(Shader shader, Texture2D tex, Rectangle source, Rectangle dest, Color4 color, bool flip = false)
+
+		public void Draw(Texture2D tex, Rectangle source, Rectangle dest, Color4 color, BlendMode mode = BlendMode.Normal, bool flip = false)
 		{
-			if (currentShader != null && currentShader != shader) {
-				Flush ();
+			DrawQuad(imgShader, tex, source, dest, color, mode, flip);
+		}
+
+		void DrawQuad(Shader shader, Texture2D tex, Rectangle source, Rectangle dest, Color4 color, BlendMode mode, bool flip = false)
+		{
+			if (currentShader != null && currentShader != shader)
+			{
+				Flush();
+			}
+			if (currentMode != mode) {
+				Flush();
 			}
 			if (currentTexture != null && currentTexture != tex) {
 				Flush ();
@@ -292,6 +306,7 @@ namespace LibreLancer
 			
 			currentTexture = tex;
 			currentShader = shader;
+			currentMode = mode;
 
 			float x = (float)dest.X;
 			float y = (float)dest.Y;
@@ -350,7 +365,7 @@ namespace LibreLancer
 			if (vertexCount == 0 || primitiveCount == 0)
 				return;
 			rs.Cull = false;
-			rs.BlendMode = BlendMode.Normal;
+			rs.BlendMode = currentMode;
 			rs.DepthEnabled = false;
 			currentTexture.BindTo (0);
 			currentShader.UseProgram ();

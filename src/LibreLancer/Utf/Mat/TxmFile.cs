@@ -61,6 +61,7 @@ namespace LibreLancer.Utf.Mat
             foreach (IntermediateNode textureNode in textureLibraryNode)
             {
 				LeafNode child = null;
+				bool isTexture = true;
 				if (textureNode.Count == 1)
 				{
 					child = textureNode[0] as LeafNode;
@@ -70,20 +71,34 @@ namespace LibreLancer.Utf.Mat
 					//TODO: Mipmapping
 					foreach (var node in textureNode)
 					{
-						if (node.Name.ToLowerInvariant().Trim() == "mip0")
+						
+						var n = node.Name.ToLowerInvariant().Trim();
+						if (n == "mip0")
 						{
 							child = node as LeafNode;
 							break;
 						}
+						if (n == "fps")
+						{
+							isTexture = false;
+							break;
+						}
 					}
 				}
-                if (child == null) throw new Exception("Invalid texture library");
+				if (isTexture)
+				{
+					if (child == null) throw new Exception("Invalid texture library");
 
-				TextureData data = new TextureData (child, textureNode.Name);
-                if (data == null) throw new Exception("Invalid texture library");
+					TextureData data = new TextureData(child, textureNode.Name);
+					if (data == null) throw new Exception("Invalid texture library");
 
-				string key = textureNode.Name;
-				Textures.Add(key, data);
+					string key = textureNode.Name;
+					Textures.Add(key, data);
+				}
+				else {
+					//Frame Animation
+
+				}
             }
         }
 

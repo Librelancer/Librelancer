@@ -27,10 +27,10 @@ namespace LibreLancer
 		public AudioManager Audio;
 		public SoundManager Sound;
 		public ResourceManager ResourceManager;
-		public RenderState RenderState;
 		public Renderer2D Renderer2D;
 		public Billboards Billboards;
 		public NebulaVertices Nebulae;
+		public ScreenshotManager Screenshots;
 		public List<string> IntroMovies;
 		public string MpvOverride;
 		public bool InitialLoadComplete = false;
@@ -48,6 +48,7 @@ namespace LibreLancer
 		{
 			//DO NOT RUN CODE HERE. IT CAUSES THE STUPIDEST CRASH ON OSX KNOWN TO MAN
 			_cfg = config;
+			ScreenshotSave += FreelancerGame_ScreenshotSave;
         }
 
 		public void ChangeState(GameState state)
@@ -81,12 +82,12 @@ namespace LibreLancer
 				InitialLoadComplete = true;
 			}).Start();
 			//
-			RenderState = new RenderState ();
 			Renderer2D = new Renderer2D(RenderState);
 			Billboards = new Billboards ();
 			Nebulae = new NebulaVertices();
 			var vp = new ViewportManager (RenderState);
 			vp.Push (0, 0, Width, Height);
+			Screenshots = new ScreenshotManager(this);
 			if (useintromovies)
 				ChangeState(new IntroMovie(this, 0));
 			else
@@ -97,6 +98,7 @@ namespace LibreLancer
 		{
 			Audio.Music.Stop ();
 			Audio.Dispose ();
+			Screenshots.Stop();
 		}
 
 		protected override void Update (double elapsed)
@@ -122,5 +124,10 @@ namespace LibreLancer
 			VertexBuffer.TotalDrawcalls = 0;
 			ViewportManager.Instance.CheckViewports ();
         }
+
+		void FreelancerGame_ScreenshotSave(string filename, int width, int height, byte[] data)
+		{
+			Screenshots.Save(filename, width, height, data);
+		}
     }
 }

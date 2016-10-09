@@ -27,6 +27,7 @@ namespace LibreLancer
 Controls:
 WSAD, Arrow Keys - Move/Rotate
 Tab - Switch System
+L - Screenshot
 Position: (X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00})
 C# Memory Usage: {5}
 ";
@@ -96,6 +97,10 @@ C# Memory Usage: {5}
 			if (e.Key == Keys.P && !textEntry)
 			{
 				Game.RenderState.Wireframe = !Game.RenderState.Wireframe;
+			}
+			if (e.Key == Keys.L && !textEntry)
+			{
+				Game.Screenshots.TakeScreenshot();
 			}
 		}
 

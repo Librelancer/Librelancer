@@ -144,6 +144,9 @@
     <Compile Include="GameData\Equipment\AttachedFx.cs" />
     <Compile Include="GameData\Effects\EffectsIni.cs" />
     <Compile Include="GameData\Effects\Effect.cs" />
+    <Compile Include="GameData\MouseIni.cs" />
+    <Compile Include="GameData\MouseShape.cs" />
+    <Compile Include="GameData\Cursor.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

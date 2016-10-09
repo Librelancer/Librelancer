@@ -35,6 +35,7 @@ namespace LibreLancer
 
 		public Vector3 ChasePosition { get; set; }
 		public Vector3 DesiredPositionOffset = new Vector3(0, 4f, 28f);
+		public Vector3 OffsetDirection;
 
 		public Matrix4 Projection { get; private set; }
 		public Matrix4 View { get; private set; }
@@ -86,6 +87,7 @@ namespace LibreLancer
 		public ChaseCamera(Viewport viewport)
 		{
 			this.Viewport = viewport;
+			OffsetDirection = DesiredPositionOffset.Normalized();
 		}
 
 		public void UpdateProjection()

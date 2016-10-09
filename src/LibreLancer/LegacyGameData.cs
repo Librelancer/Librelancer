@@ -78,6 +78,25 @@ namespace LibreLancer
 				resource.AddShape(shape.Key, s);
 			}
 		}
+		public void PopulateCursors()
+		{
+			resource.LoadTxm(
+				Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + fldata.Mouse.TxmFile)
+			);
+			foreach (var lc in fldata.Mouse.Cursors)
+			{
+				var shape = fldata.Mouse.Shapes.Where((arg) => arg.Name.Equals(lc.Shape, StringComparison.OrdinalIgnoreCase)).First();
+				var cur = new Cursor();
+				cur.Nickname = lc.Nickname;
+				cur.Scale = lc.Scale;
+				cur.Spin = lc.Spin;
+				cur.Color = lc.Color;
+				cur.Hotspot = lc.Hotspot;
+				cur.Dimensions = shape.Dimensions;
+				cur.Texture = fldata.Mouse.TextureName;
+				resource.AddCursor(cur, cur.Nickname);
+			}
+		}
 		public string GetMusicPath(string id)
 		{
 			var audio = fldata.Audio.Entries.Where((arg) => arg.Nickname.ToLowerInvariant() == id.ToLowerInvariant()).First();
@@ -426,10 +445,9 @@ namespace LibreLancer
 			return obj;
 		}
 
-		GameData.Items.EffectEquipment GetAttachedFx(Legacy.Equipment.AttachedFx fx)
+		public ParticleEffect GetEffect(string effectName)
 		{
-			var equip = new GameData.Items.EffectEquipment();
-			var effect = fldata.Effects.FindEffect(fx.Particles);
+			var effect = fldata.Effects.FindEffect(effectName);
 			var visfx = fldata.Effects.FindVisEffect(effect.VisEffect);
 			foreach (var texfile in visfx.Textures)
 			{
@@ -442,7 +460,13 @@ namespace LibreLancer
 			var alepath = Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + visfx.AlchemyPath);
 			var ale = new AleFile(alepath);
 			var lib = new ParticleLibrary(resource, ale);
-			equip.Particles = lib.FindEffect((uint)visfx.EffectCrc);
+			return lib.FindEffect((uint)visfx.EffectCrc);
+		}
+
+		GameData.Items.EffectEquipment GetAttachedFx(Legacy.Equipment.AttachedFx fx)
+		{
+			var equip = new GameData.Items.EffectEquipment();
+			equip.Particles = GetEffect(fx.Particles);
 			return equip;
 		}
 

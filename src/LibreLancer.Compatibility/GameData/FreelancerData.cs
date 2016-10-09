@@ -29,6 +29,7 @@ namespace LibreLancer.Compatibility.GameData
 		public AudioIni Audio;
 		public GraphIni Graphs;
 		public TexturePanels EffectShapes;
+		public MouseIni Mouse;
 		public bool Loaded = false;
 
 		public FreelancerData (FreelancerIni fli)
@@ -77,6 +78,8 @@ namespace LibreLancer.Compatibility.GameData
 			Effects = new EffectsIni();
 			foreach (var fx in Freelancer.EffectPaths)
 				Effects.AddIni(fx);
+			//Mouse
+			Mouse = new MouseIni(Freelancer.DataPath + "//mouse.ini");
 		}
 	}
 }

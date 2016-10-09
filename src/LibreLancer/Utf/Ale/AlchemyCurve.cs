@@ -26,51 +26,57 @@ namespace LibreLancer.Utf.Ale
 		public LoopFlags Flags;
 		public List<CurveKeyframe> Keyframes;
 		Dictionary<Vector2, BezierFunction> beziers =new Dictionary<Vector2, BezierFunction>();
-		float duration = float.NegativeInfinity;
+		float tmin, tmax;
 		public float GetValue(float time) {
 			if (Keyframes == null)
 				return Value;
 			if (Keyframes.Count == 1)
 				return Keyframes [0].Value;
-			throw new NotImplementedException ();
 			if (beziers == null)
 				GenerateBezierFunctions ();
-			if (duration == float.NegativeInfinity)
-				CalculateDuration ();
-		}
-			
-		void CalculateDuration()
-		{
-
+			if (time <= tmin)
+				return Keyframes[0].Value;
+			if (time >= tmax)
+			{
+				switch (Flags)
+				{
+					case LoopFlags.PlayOnce:
+						return Keyframes[Keyframes.Count - 1].Value;
+				}
+				return Keyframes[Keyframes.Count - 1].Value;
+			}
+			for (int i = 0; i < Keyframes.Count - 1; i++)
+			{
+				var a = Keyframes[i];
+				var b = Keyframes[i + 1];
+				if (time < b.Time && time > a.Time)
+				{
+					var t = (time - a.Time) / (b.Time - a.Time);
+					var amount = beziers[new Vector2(a.Time, b.Time)](t);
+					return AlchemyEasing.Ease(EasingTypes.Linear, (float)amount, 0, 1, a.Value, b.Value);
+				}
+			}
+			throw new Exception("Malformed AlchemyCurve");
 		}
 
 		void GenerateBezierFunctions()
 		{
-			//Generate forward functions
-			foreach (var pair in Keyframes.Skip(1).Zip(Keyframes, (second, first) => new[] { first, second })) {
+			foreach (var pair in Keyframes.Zip(Keyframes.Skip(1), (a, b) => new[] { a, b })) {
 				GenerateFunction (pair [0], pair [1]);
 			}
-			var kf2 = new List<CurveKeyframe> (Keyframes);
-			kf2.Reverse ();
-			//Generate backwards functions
-			foreach (var pair in kf2.Skip(1).Zip(Keyframes, (second, first) => new[] { first, second })) {
-				GenerateFunction (pair [0], pair [1]);
-			}
-			//Connect end to start
-			GenerateFunction(Keyframes[Keyframes.Count - 1], Keyframes[0]);
-			//Connect start to end
-			GenerateFunction (Keyframes[0], Keyframes[Keyframes.Count - 1]);
+			tmin = Keyframes[0].Time;
+			tmax = Keyframes[Keyframes.Count - 1].Time;
 		}
 
 		void GenerateFunction(CurveKeyframe a, CurveKeyframe b)
 		{
-			var key = new Vector2 (a.FrameIndex, b.FrameIndex);
+			var key = new Vector2 (a.Time, b.Time);
 			if (beziers.ContainsKey (key))
 				return;
-			float delta = b.Value - a.Value;
-			float p1y = a.OutTangent / delta;
-			float p2y = b.InTangent / delta;
-			beziers.Add (key, CubicBezier.Bezier (0, p1y, 1, p2y));
+			float p1y = AlchemyEasing.Ease(EasingTypes.Linear, b.InTangent, a.Value, b.Value, 0, 1);
+
+			float p2y = AlchemyEasing.Ease(EasingTypes.Linear, a.OutTangent, a.Value, b.Value, 0, 1);
+			beziers.Add (key, CubicBezier.Bezier (0.5, p1y, 0.5, 1 - p2y));
 		}
 	}
 }

@@ -39,7 +39,7 @@ namespace LibreLancer.Utf.Ale
 					var l = new List<CurveKeyframe> (lcnt);
 					for (int j = 0; j < lcnt; j++) {
 						l.Add (new CurveKeyframe () {
-							FrameIndex = reader.ReadSingle(),
+							Time = reader.ReadSingle(),
 							Value = reader.ReadSingle(),
 							InTangent = reader.ReadSingle(),
 							OutTangent = reader.ReadSingle()

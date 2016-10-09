@@ -166,6 +166,10 @@ namespace LibreLancer.GLDelegates
     delegate void DeleteFramebuffers(int n, ref uint framebuffers);
     [SuppressUnmanagedCodeSecurity]
     delegate void DeleteRenderbuffers(int n, ref uint renderbuffers);
+	[SuppressUnmanagedCodeSecurity]
+	delegate void ReadBuffer(int buffer);
+	[SuppressUnmanagedCodeSecurity]
+	delegate void ReadPixels(int x, int y, int width, int height, int format, int type, IntPtr data);
     [SuppressUnmanagedCodeSecurity]
     delegate int GetError();
 }

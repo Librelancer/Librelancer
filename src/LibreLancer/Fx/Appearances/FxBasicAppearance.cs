@@ -89,23 +89,23 @@ namespace LibreLancer.Fx
 		public override void Draw(ref Particle particle, ParticleEffect effect, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
 		{
 			var time = particle.TimeAlive / particle.LifeSpan;
-			var tr = GetTranslation(effect, transform, sparam, time);
+			var node_tr = GetTranslation(effect, transform, sparam, time);
 
-			var p = tr.Transform(particle.Position);
+			var p = node_tr.Transform(particle.Position);
 			Texture2D tex;
-			var shape = GetTexture(res, out tex);
+			Vector2 tl, tr, bl, br;
+			HandleTexture(res, sparam, ref particle, out tex, out tl, out tr, out bl, out br);
 			var c = Color.GetValue(sparam, time);
 			var a = Alpha.GetValue(sparam, time);
-
 			billboards.Draw(
 				tex,
 				p,
 				new Vector2(Size.GetValue(sparam, time)) * 2,
 				new Color4(c, a),
-				new Vector2(FlipHorizontal ? 1 : 0, FlipVertical ? 1 : 0),
-				new Vector2(FlipHorizontal ? 0 : 1, FlipVertical ? 1 : 0),
-				new Vector2(FlipHorizontal ? 1 : 0, FlipVertical ? 0 : 1),
-				new Vector2(FlipHorizontal ? 0 : 1, FlipVertical ? 0 : 1),
+				tl,
+				tr,
+				bl,
+				br,
 				Rotate.GetValue(sparam, time),
 				SortLayers.OBJECT,
 				BlendInfo
@@ -114,14 +114,28 @@ namespace LibreLancer.Fx
 
 		TextureShape _tex;
 		Texture2D _tex2D;
-		protected TextureShape GetTexture(ResourceManager res, out Texture2D tex2d)
+		protected void HandleTexture(
+			ResourceManager res, 
+			float sparam, 
+			ref Particle particle, 
+			out Texture2D tex2d, 
+			out Vector2 tl, 
+			out Vector2 tr, 
+			out Vector2 bl, 
+			out Vector2 br
+		)
 		{
+			//Initial texcoords
+			tl = new Vector2(0, 0);
+			tr = new Vector2(1, 0);
+			bl = new Vector2(0, 1);
+			br = new Vector2(1, 1);
+			//Get the Texture2D
 			if (_tex == null && _tex2D != null)
 			{
 				if (_tex2D == null || _tex2D.IsDisposed)
 					_tex2D = (Texture2D)res.FindTexture(Texture);
 				tex2d = _tex2D;
-				return null;
 			}
 			if (_tex == null)
 			{
@@ -135,7 +149,31 @@ namespace LibreLancer.Fx
 			if (_tex2D == null || _tex2D.IsDisposed)
 				_tex2D = (Texture2D)res.FindTexture(_tex.Texture);
 			tex2d = _tex2D;
-			return _tex;
+			//Shape?
+			if (_tex != null)
+			{
+				tl = new Vector2(_tex.Dimensions.X, _tex.Dimensions.Y);
+				tr = new Vector2(_tex.Dimensions.X + _tex.Dimensions.Width, _tex.Dimensions.Y);
+				bl = new Vector2(_tex.Dimensions.X, _tex.Dimensions.Y + _tex.Dimensions.Height);
+				br = new Vector2(_tex.Dimensions.X + _tex.Dimensions.Width, _tex.Dimensions.Y + _tex.Dimensions.Height);
+			}
+			//Animation?
+
+			//Flip
+			if (FlipHorizontal)
+			{
+				tl.X = 1 - tl.X;
+				tr.X = 1 - tl.X;
+				bl.X = 1 - bl.X;
+				br.X = 1 - br.X;
+			}
+			if (FlipVertical)
+			{
+				tl.Y = 1 - tl.Y;
+				tr.Y = 1 - tr.Y;
+				bl.Y = 1 - bl.Y;
+				br.Y = 1 - br.Y;
+			}
 		}
 
 

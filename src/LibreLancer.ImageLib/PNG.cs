@@ -21,7 +21,7 @@ using System.Text;
 //TODO: Refactor and optimise PngLoader
 namespace LibreLancer.ImageLib
 {
-	public static class PNG
+	public static partial class PNG
 	{
 		const ulong PNG_SIGNATURE = 0xA1A0A0D474E5089;
 
@@ -50,6 +50,7 @@ namespace LibreLancer.ImageLib
 			stream.Position = 0;
 			return result;
 		}
+
 		public static Texture2D FromStream(Stream stream)
 		{
 			List<byte> idat = new List<byte> ();

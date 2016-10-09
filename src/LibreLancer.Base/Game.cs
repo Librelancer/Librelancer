@@ -21,6 +21,7 @@ using System.Text;
 using System.Runtime.InteropServices;
 namespace LibreLancer
 {
+	public delegate void ScreenshotSaveHandler(string filename, int width, int height, byte[] data);
 	public class Game : IUIThread 
 	{
 		int width;
@@ -35,6 +36,10 @@ namespace LibreLancer
 		public Keyboard Keyboard = new Keyboard();
 		ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
 		int mythread = -1;
+		public ScreenshotSaveHandler ScreenshotSave;
+		public RenderState RenderState;
+		bool mouseVisible = true;
+
 		public Game (int w, int h, bool fullscreen)
 		{
 			width = w;
@@ -48,6 +53,18 @@ namespace LibreLancer
 			}
 		}
 
+		public bool MouseVisible
+		{
+			get
+			{ 
+				return mouseVisible;
+			} 
+			set
+			{
+				mouseVisible = value;
+				SDL.SDL_ShowCursor(mouseVisible ? 1 : 0);
+			}
+		}
 		public int Height {
 			get {
 				return height;
@@ -112,6 +129,37 @@ namespace LibreLancer
 			}
 		}
 
+		string _screenshotpath;
+		bool _screenshot;
+		public void Screenshot(string filename)
+		{
+			_screenshotpath = filename;
+			_screenshot = true;
+		}
+
+		unsafe void TakeScreenshot()
+		{
+			if (ScreenshotSave != null)
+			{
+				GL.ReadBuffer(GL.GL_BACK);
+				var colordata = new byte[width * height * 4];
+				fixed (byte* ptr = colordata)
+				{
+					GL.ReadPixels(0, 0, width, height, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, (IntPtr)ptr);
+				}
+				var c = RenderState.ClearColor;
+				for (int x = 0; x < width; x++)
+					for (int y = 0; y < height; y++)
+					{
+						int offset = (y * height * 4) + (x * 4);
+						colordata[offset + 3] = 0xFF;
+					}
+	
+				ScreenshotSave(_screenshotpath, width, height, colordata);
+			}
+
+		}
+
 		public void Run()
 		{
             SSEMath.Load();
@@ -149,6 +197,7 @@ namespace LibreLancer
 			//Load pointers
 			GL.Load();
 			//Init game state
+			RenderState = new RenderState();
 			Load();
 			//Start game
 			running = true;
@@ -225,7 +274,13 @@ namespace LibreLancer
 				if (!running)
 					break;
 				Draw (elapsed);
-				
+
+				if (_screenshot)
+				{
+					TakeScreenshot();
+					_screenshot = false;
+				}
+
 				SDL.SDL_GL_SwapWindow (sdlWin);
                 elapsed = timer.Elapsed.TotalSeconds - last;
                 renderFrequency = (1.0 / CalcAverageTick(elapsed));

@@ -24,11 +24,12 @@ namespace LibreLancer.Fx
 		public override void Draw(ref Particle particle, ParticleEffect effect, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
 		{
 			var time = particle.TimeAlive / particle.LifeSpan;
-			var tr = GetTranslation(effect, transform, sparam, time);
+			var node_tr = GetTranslation(effect, transform, sparam, time);
 
-			var p = tr.Transform(particle.Position);
+			var p = node_tr.Transform(particle.Position);
 			Texture2D tex;
-			var shape = GetTexture(res, out tex);
+			Vector2 tl, tr, bl, br;
+			HandleTexture(res, sparam, ref particle, out tex, out tl, out tr, out bl, out br);
 			var c = Color.GetValue(sparam, time);
 			var a = Alpha.GetValue(sparam, time);
 
@@ -37,12 +38,12 @@ namespace LibreLancer.Fx
 				p,
 				new Vector2(Size.GetValue(sparam, time)) * 2,
 				new Color4(c, a),
-				new Vector2(FlipHorizontal ? 1 : 0, FlipVertical ? 1 : 0),
-				new Vector2(FlipHorizontal ? 0 : 1, FlipVertical ? 1 : 0),
-				new Vector2(FlipHorizontal ? 1 : 0, FlipVertical ? 0 : 1),
-				new Vector2(FlipHorizontal ? 0 : 1, FlipVertical ? 0 : 1),
+				tl,
+				tr,
+				bl,
+				br,
 				particle.Normal.Normalized(),
-				Rotate.GetValue(sparam, time),
+				Rotate == null ? 0f : Rotate.GetValue(sparam, time),
 				SortLayers.OBJECT,
 				BlendInfo
 			);

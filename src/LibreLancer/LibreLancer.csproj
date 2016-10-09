@@ -252,6 +252,9 @@
     <Compile Include="GameData\Items\EffectEquipment.cs" />
     <Compile Include="Render\ParticleEffectRenderer.cs" />
     <Compile Include="Fx\BlendMap.cs" />
+    <Compile Include="Utf\Mat\TexFrameAnimation.cs" />
+    <Compile Include="ScreenshotManager.cs" />
+    <Compile Include="Cursor.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

@@ -23,22 +23,35 @@ namespace LibreLancer
 	{
 		public float Speed = 1f;
 		List<AttachedEffect> fireFx = new List<AttachedEffect>();
+		GameObject parent;
 		public EngineComponent(GameObject parent, Engine engine, FreelancerGame game) : base(parent)
 		{
+			var fx = game.GameData.GetEffect(engine.FireEffect);
 			var hps = parent.GetHardpoints();
 			foreach (var hp in hps)
 			{
-				if (hp.Name.ToLowerInvariant().StartsWith("dpengine"))
+				if (!hp.Name.Equals("hpengineglow", StringComparison.OrdinalIgnoreCase) &&
+				    hp.Name.StartsWith("hpengine", StringComparison.OrdinalIgnoreCase))
 				{
-					//fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(
+					fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(fx)));
 				}
 			}
-			Console.WriteLine();
+			this.parent = parent;
 		}
 		public override void Update(TimeSpan time)
 		{
 			for (int i = 0; i < fireFx.Count; i++)
-				fireFx[i].Update(time, Speed);
+				fireFx[i].Update(parent, time, Speed);
+		}
+		public override void Register(SystemRenderer renderer, Jitter.World physics)
+		{
+			for (int i = 0; i < fireFx.Count; i++)
+				fireFx[i].Effect.Register(renderer);
+		}
+		public override void Unregister()
+		{
+			for (int i = 0; i < fireFx.Count; i++)
+				fireFx[i].Effect.Unregister();
 		}
 		class AttachedEffect
 		{
@@ -48,11 +61,11 @@ namespace LibreLancer
 			{
 				Attachment = attachment;
 				Effect = fx;
-				Effect.SParam = 0f;
+				Effect.SParam = 1f;
 			}
-			public void Update(TimeSpan time, float sparam)
+			public void Update(GameObject parent, TimeSpan time, float sparam)
 			{
-				Effect.Update(time, Vector3.Zero, Attachment.Transform);
+				Effect.Update(time, Vector3.Zero, Attachment.Transform * parent.GetTransform());
 			}
 		}
 	}

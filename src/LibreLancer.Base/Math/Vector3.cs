@@ -297,7 +297,12 @@ namespace LibreLancer
         /// </summary>
         public void Normalize()
         {
-            float scale = 1.0f / this.Length;
+			var ln = this.Length;
+			if (ln < float.Epsilon) {
+				X = Y = Z = 0;
+				return;
+			}
+			float scale = 1.0f / ln;
             X *= scale;
             Y *= scale;
             Z *= scale;

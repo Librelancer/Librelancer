@@ -255,6 +255,11 @@ namespace LibreLancer
 		{
 			DeleteRenderbuffers (1, ref renderbuffer);
 		}
+		[MapsTo("glReadBuffer")]
+		public static ReadBuffer ReadBuffer;
+		[MapsTo("glReadPixels")]
+		public static ReadPixels ReadPixels;
+
 		static Dictionary<int, string> errors;
         public static bool ErrorChecking = false;
 		public static void Load()
