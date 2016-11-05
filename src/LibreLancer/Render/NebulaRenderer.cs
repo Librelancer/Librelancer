@@ -383,7 +383,6 @@ namespace LibreLancer
 						var distance_difference = Nebula.InteriorCloudFadeDistance.Y - Nebula.InteriorCloudFadeDistance.X;
 						var current = distance - Nebula.InteriorCloudFadeDistance.X;
 						alpha -= (alpha * (distance_difference - current) / distance_difference);
-						Console.WriteLine();
 					}
 					if (distance < Nebula.InteriorCloudFadeDistance.X)
 						alpha = 0;

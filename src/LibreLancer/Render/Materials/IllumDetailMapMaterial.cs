@@ -39,7 +39,7 @@ namespace LibreLancer
 		{
 			if (vertextype.GetType().Name == "VertexPositionNormalTexture")
 			{
-                if(sh_posNormalTexture != null)
+                if(sh_posNormalTexture == null)
 				sh_posNormalTexture = ShaderCache.Get(
 					"PositionTextureFlip.vs",
 					"IllumDetailMapMaterial.frag"

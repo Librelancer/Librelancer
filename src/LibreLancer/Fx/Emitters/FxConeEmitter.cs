@@ -67,8 +67,6 @@ namespace LibreLancer.Fx
 			var n = (tr * new Vector4(p.Normalized(), 0)).Xyz.Normalized();
 			var pressure = Pressure.GetValue(sparam, 0);
 			n *= Pressure.GetValue(sparam, 0);
-			if (fx.Name != "gf_misc_gasexhaust")
-				Console.WriteLine();
 			var pr = tr.Transform(p * radius);
 			instance.Particles[idx].Position = pr;
 			instance.Particles[idx].Normal = n;

@@ -109,6 +109,7 @@ namespace LibreLancer
 
 		BlendMode blend = BlendMode.Normal;
 		bool blendDirty = false;
+		bool blendEnable = true;
 
 		bool depthwrite = true;
 		bool depthwritedirty = false;
@@ -160,18 +161,24 @@ namespace LibreLancer
 			}
 
 			if (blendDirty) {
+				if (!blendEnable && blend != BlendMode.Opaque) {
+					GL.Enable (GL.GL_BLEND);
+					blendEnable = true;
+				}
+				if (blendEnable && blend == BlendMode.Opaque) {
+					GL.Disable (GL.GL_BLEND);
+					blendEnable = false;
+				}
 				switch (blend)
 				{
 					case BlendMode.Normal:
-						GL.Enable(GL.GL_BLEND);
 						GL.BlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
 						break;
-					case BlendMode.Opaque:
-						GL.Disable (GL.GL_BLEND);
-						break;
 					case BlendMode.Additive:
-						GL.Enable (GL.GL_BLEND);
 						GL.BlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE);
+						break;
+					case BlendMode.OneInvSrcColor:
+						GL.BlendFunc (GL.GL_ONE, GL.GL_ONE_MINUS_SRC_COLOR);
 						break;
 				}
 				blendDirty = false;

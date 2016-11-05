@@ -42,8 +42,9 @@ namespace LibreLancer.Fx
 			}
 			if (ale.TryGetParameter("BasicApp_TriTexture", out temp))
 			{
-				if ((bool)temp.Value)
-					throw new NotImplementedException("BasicApp_TriTexture");
+				if ((bool)temp.Value) {
+					FLLog.Warning ("ALE", "BasicApp_TriTexture not implemented (" + ale.Name + ")");
+				}
 			}
 			if (ale.TryGetParameter ("BasicApp_MotionBlur", out temp)) {
 				MotionBlur = (bool)temp.Value;

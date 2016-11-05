@@ -79,19 +79,24 @@ namespace LibreLancer
         }
         [DllImport("libc", SetLastError = true)]
         static extern IntPtr mmap(IntPtr addr, IntPtr length, int prot, int flags, int fd, int offset);
+		[DllImport("libc")]
+		static extern int mprotect (IntPtr addr, IntPtr len, int prot);
 
         const int MAP_SHARED = 0x01;
-        const int MAP_ANONYMOUS = 0x1000;
+        const int MAP_ANONYMOUS = 0x20;
         const int PROT_READ = 0x1;
         const int PROT_WRITE = 0x2;
         const int PROT_EXEC = 0x4;
         static Delegate GetFunctionUnix(byte[] code, Type type)
         {
-            IntPtr func = mmap(IntPtr.Zero, (IntPtr)code.Length, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+			//Make W^X distros happy
+			IntPtr func = mmap(IntPtr.Zero, (IntPtr)code.Length, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
             Marshal.Copy(code, 0, func, code.Length);
+			mprotect (func, (IntPtr)code.Length, PROT_READ | PROT_EXEC);
             var del = (Delegate)(object)Marshal.GetDelegateForFunctionPointer(func, type);
             return del;
         }
+
         [DllImport("kernel32.dll")]
         static extern IntPtr VirtualAlloc(IntPtr lpAddress, IntPtr dwSize, uint flAllocationType, uint flProtect);
         const uint MEM_COMMIT = 0x00001000;

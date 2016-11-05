@@ -93,7 +93,6 @@ namespace LibreLancer.Utf.Ale
 							throw new InvalidDataException ("Invalid ALE Type: 0x" + (id & 0x7FFF).ToString ("x"));
 						}
 						node.Parameters.Add (new AleParameter () { Name = efname, Value = value });
-						Console.WriteLine (value);
 					}
 					Nodes.Add (node);
 				}

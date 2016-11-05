@@ -22,6 +22,7 @@ namespace LibreLancer
 		Normal,
 		Opaque,
 		Additive,
+		OneInvSrcColor
 	}
 }
 

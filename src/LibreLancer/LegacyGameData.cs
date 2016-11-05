@@ -420,7 +420,6 @@ namespace LibreLancer
 				obj.Archetype = new GameData.Archetype ();
 			}
 			obj.Archetype.ArchetypeName = o.Archetype.GetType ().Name;
-			Console.WriteLine (obj.Archetype.ArchetypeName);
 			obj.Archetype.Drawable = drawable;
 			var ld = o.Loadout;
 			if (ld != null)
