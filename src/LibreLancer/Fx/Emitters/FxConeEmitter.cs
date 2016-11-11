@@ -64,7 +64,8 @@ namespace LibreLancer.Fx
 			);
 
 			var tr = GetTranslation(fx, transform, sparam, 0);
-			var n = (tr * new Vector4(p.Normalized(), 0)).Xyz.Normalized();
+			var direction = Vector3.UnitZ + p;
+			var n = (tr * new Vector4(direction.Normalized(), 0)).Xyz.Normalized();
 			var pressure = Pressure.GetValue(sparam, 0);
 			n *= Pressure.GetValue(sparam, 0);
 			var pr = tr.Transform(p * radius);
