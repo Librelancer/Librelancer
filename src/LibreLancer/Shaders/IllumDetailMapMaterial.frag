@@ -21,8 +21,8 @@ in vec4 view_position;
 void main()
 {
 	vec2 texcoord = out_texcoord;
-	if (FlipU != 0) texcoord.x = 1 - texcoord.x;
-	if (FlipV != 0) texcoord.y = 1 - texcoord.y;
+	if (FlipU != 0) texcoord.x = 1. - texcoord.x;
+	if (FlipV != 0) texcoord.y = 1. - texcoord.y;
 
 	vec4 tex = texture(DtSampler, texcoord);
 

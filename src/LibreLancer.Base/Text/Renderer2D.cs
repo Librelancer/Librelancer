@@ -33,7 +33,7 @@ namespace LibreLancer
 		in vec4 vertex_color;
 		out vec2 out_texcoord;
 		out vec4 blendColor;
-		uniform mat4x4 modelviewproj;
+		uniform mat4 modelviewproj;
 		void main()
 		{
     		gl_Position = modelviewproj * vec4(vertex_position, 0.0, 1.0);

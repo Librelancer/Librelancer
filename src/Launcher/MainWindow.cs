@@ -7,7 +7,7 @@ namespace Launcher
 	public class MainWindow : Form
 	{
 		TextBox textInput;
-
+        bool forceANGLE = false;
 		public MainWindow ()
 		{
 			Title = "Librelancer Launcher";
@@ -29,6 +29,12 @@ namespace Launcher
 				new TableCell(textInput, true),
 				findButton
 			));
+            if(Environment.OSVersion.Platform != PlatformID.Unix)
+            {
+                var angleCheck = new CheckBox() { Text = "Force DX9 (Not Recommended)" };
+                angleCheck.CheckedChanged += AngleCheck_CheckedChanged;
+                layout.Rows.Add(new TableRow(angleCheck));
+            }
 			var launchButton = new Button () { Text = "Launch Librelancer" };
 			launchButton.Click += LaunchButton_Click;
 			layout.Rows.Add(new TableRow { ScaleHeight = true });
@@ -41,7 +47,12 @@ namespace Launcher
 			Content = layout;
 		}
 
-		void FindButton_Click (object sender, EventArgs e)
+        private void AngleCheck_CheckedChanged(object sender, EventArgs e)
+        {
+            forceANGLE = ((CheckBox)sender).Checked ?? false;
+        }
+
+        void FindButton_Click (object sender, EventArgs e)
 		{
 			var dlg = new SelectFolderDialog ();
 			if (dlg.ShowDialog (this) == DialogResult.Ok) {
@@ -60,6 +71,7 @@ namespace Launcher
 					return;
 				}
 				Program.LaunchPath = textInput.Text;
+                Program.ForceAngle = forceANGLE;
 				Close ();			
 			}
 			else

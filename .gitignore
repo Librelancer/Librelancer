@@ -44,3 +44,5 @@ packages/
 *.dSYM/
 *.vsp
 /src/UpgradeLog.htm
+/src/LibreLancer.VC.VC.opendb
+*.db

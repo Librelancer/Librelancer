@@ -23,6 +23,7 @@ namespace LibreLancer
 	{
 		public string FreelancerPath;
 		public bool MuteMusic = false;
+        public bool ForceAngle = false;
 		public bool IntroMovies = true;
 		//This default is to stop dlopen on linux from trying to open itself
 		public string MpvOverride = "__MPV_OVERRIDE_STRING";

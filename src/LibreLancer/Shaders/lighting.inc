@@ -21,28 +21,6 @@ float fcubic(float x, vec4 params)
 	return params.x * x2 * x + params.y * x2 + params.z * x + params.w;
 }
 
-vec3 apply_light(int i, vec4 dc, vec3 position, vec3 normal)
-{
-    vec3 surfaceToLight;
-    float attenuation;
-    if (LightsPos[i].w == 0.0) {
-		//directional light
-		surfaceToLight = normalize(LightsDir[i]);
-		float distanceToLight = length(LightsPos[i].xyz - position);
-		attenuation = fcubic(distanceToLight / LightsRange[i], LightsAttenuation[i]);
-    } else {
-		//point light
-		surfaceToLight = normalize(LightsPos[i].xyz - position);
-		float distanceToLight = length(LightsPos[i].xyz - position);
-		vec3 curve = LightsAttenuation[i].xyz;
-		attenuation = 1.0 / (curve.x + curve.y * distanceToLight + curve.z * (distanceToLight * distanceToLight));
-    }
-    //color calculation
-    float diffuseCoefficient = max(dot(normal, surfaceToLight), 0.0);
-    vec3 diffuse = diffuseCoefficient * dc.rgb * LightsColor[i];
-    return attenuation * diffuse;
-}
-
 vec3 apply_fog(vec4 view_position, vec3 object_color)
 {
 	float dist = length(view_position);
@@ -65,13 +43,31 @@ vec4 light(vec4 ac, vec4 ec, vec4 dc, vec4 tex, vec3 position, vec4 view_positio
 {
 	if(!LightingEnabled)
 		return dc * tex;
-	vec3 diffuse = AmbientColor.rgb * ac.rgb;
+	vec3 color = AmbientColor.rgb * ac.rgb;
 	vec3 n = normalize(normal);
-	for(int i = 0; i < LightCount; i++)
+	for(int i = 0; i < MAX_LIGHTS; i++)
 	{
-		diffuse += apply_light(i, dc, position, n);
+		if(i >= LightCount) break;
+		vec3 surfaceToLight;
+		float attenuation;
+		if (LightsPos[i].w == 0.0) {
+			//directional light
+			surfaceToLight = normalize(LightsDir[i]);
+			float distanceToLight = length(LightsPos[i].xyz - position);
+			attenuation = fcubic(distanceToLight / float(LightsRange[i]), LightsAttenuation[i]);
+		} else {
+			//point light
+			surfaceToLight = normalize(LightsPos[i].xyz - position);
+			float distanceToLight = length(LightsPos[i].xyz - position);
+			vec3 curve = LightsAttenuation[i].xyz;
+			attenuation = 1.0 / (curve.x + curve.y * distanceToLight + curve.z * (distanceToLight * distanceToLight));
+		}
+		//color calculation
+		float diffuseCoefficient = max(dot(n, surfaceToLight), 0.0);
+		vec3 diffuse = diffuseCoefficient * dc.rgb * LightsColor[i];
+		color += attenuation * diffuse;
 	}
-	vec3 object_color = ec.rgb + (tex.rgb * diffuse);
+	vec3 object_color = ec.rgb + (tex.rgb * color);
 	if(FogEnabled) {
 		object_color = apply_fog(view_position, object_color);
 	}

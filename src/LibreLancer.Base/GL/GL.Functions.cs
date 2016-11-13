@@ -41,18 +41,26 @@ namespace LibreLancer
 		public static Viewport Viewport;
 		[MapsTo("glBlendFunc")]
 		public static BlendFunc BlendFunc;
-		[MapsTo("glBlendFunci")]
+		/*[MapsTo("glBlendFunci")]
 		public static BlendFunci BlendFunci;
 		[MapsTo("glBlendFuncSeparate")]
-		public static BlendFuncSeparate BlendFuncSeparate;
+		public static BlendFuncSeparate BlendFuncSeparate;*/
 		[MapsTo("glGetStringi")]
-		static GetStringi _getString;
+		static GetStringi _getStringi;
 		public static string GetString(int name, int index)
 		{
-			var ptr = _getString(name, index);
+			var ptr = _getStringi(name, index);
 			return Marshal.PtrToStringAnsi(ptr);
 		}
-		[MapsTo("glPolygonMode")]
+
+        [MapsTo("glGetString")]
+        static GetString _getString;
+        public static string GetString(int name)
+        {
+            var ptr = _getString(name);
+            return Marshal.PtrToStringAnsi(ptr);
+        }
+        [MapsTo("glPolygonMode")]
 		public static PolygonMode PolygonMode;
 		[MapsTo("glDepthFunc")]
 		public static DepthFunc DepthFunc;
@@ -62,8 +70,8 @@ namespace LibreLancer
 		public static PixelStorei PixelStorei;
 		[MapsTo("glDepthMask")]
 		public static DepthMask DepthMask;
-		[MapsTo("glAlphaFunc")]
-		public static AlphaFunc AlphaFunc;
+		//[MapsTo("glAlphaFunc")]
+		//public static AlphaFunc AlphaFunc;
 		//Textures
 		[MapsTo("glGenTextures")]
 		public static GenTextures GenTextures;
@@ -128,8 +136,8 @@ namespace LibreLancer
 		public static AttachShader AttachShader;
 		[MapsTo("glBindAttribLocation")]
 		public static BindAttribLocation BindAttribLocation;
-		[MapsTo("glBindFragDataLocation")]
-		public static BindFragDataLocation BindFragDataLocation;
+		//[MapsTo("glBindFragDataLocation")]
+		//public static BindFragDataLocation BindFragDataLocation;
 		[MapsTo("glGetUniformLocation")]
 		public static GetUniformLocation GetUniformLocation;
 		[MapsTo("glUniform1i")]
@@ -260,43 +268,54 @@ namespace LibreLancer
 		[MapsTo("glReadPixels")]
 		public static ReadPixels ReadPixels;
 
+        public static bool GLES = true;
 		static Dictionary<int, string> errors;
-        public static bool ErrorChecking = false;
-		public static void Load()
-		{
-			errors = new Dictionary<int, string> ();
-			errors.Add (0x0500, "Invalid Enum");
-			errors.Add (0x0501, "Invalid Value");
-			errors.Add (0x0502, "Invalid Operation");
-			errors.Add (0x0503, "Stack Overflow");
-			errors.Add (0x0504, "Stack Underflow");
-			errors.Add (0x0505, "Out Of Memory");
-			errors.Add (0x0506, "Invalid Framebuffer Operation");
+        public static bool ErrorChecking = true;
 
-			int loaded = 0;
-			foreach (var f in typeof(GL).GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)) {
-				string proc = null;
-				foreach (var attr in f.CustomAttributes) {
-					if (attr.AttributeType == typeof(MapsToAttribute)) {
-						proc = (string)attr.ConstructorArguments [0].Value;
-					}
-				}
-				if (proc == null)
-					continue;
-				var del = Marshal.GetDelegateForFunctionPointer (SDL.SDL_GL_GetProcAddress (proc), f.FieldType);
-				if (proc != "glGetError")
-					del = MakeWrapper (f.FieldType, del);
-				f.SetValue (null, del);
-				loaded++;
-			}
-			FLLog.Info ("OpenGL", "Loaded " + loaded + " function pointers");
+		public static void LoadSDL()
+		{
+            GLES = false;
+            Load((f, t) => Marshal.GetDelegateForFunctionPointer(SDL.SDL_GL_GetProcAddress(f), (t)));
 		}
+        public static void Load(Func<string,Type,Delegate> getprocaddress)
+        {
+            errors = new Dictionary<int, string>();
+            errors.Add(0x0500, "Invalid Enum");
+            errors.Add(0x0501, "Invalid Value");
+            errors.Add(0x0502, "Invalid Operation");
+            errors.Add(0x0503, "Stack Overflow");
+            errors.Add(0x0504, "Stack Underflow");
+            errors.Add(0x0505, "Out Of Memory");
+            errors.Add(0x0506, "Invalid Framebuffer Operation");
+
+            int loaded = 0;
+            foreach (var f in typeof(GL).GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                string proc = null;
+                foreach (var attr in f.CustomAttributes)
+                {
+                    if (attr.AttributeType == typeof(MapsToAttribute))
+                    {
+                        proc = (string)attr.ConstructorArguments[0].Value;
+                    }
+                }
+                if (proc == null)
+                    continue;
+                //var del = Marshal.GetDelegateForFunctionPointer(getprocaddress(proc), f.FieldType);
+                var del = getprocaddress(proc, f.FieldType);
+                if (proc != "glGetError")
+                    del = MakeWrapper(f.FieldType, del);
+                f.SetValue(null, del);
+                loaded++;
+            }
+            FLLog.Info("OpenGL", "Loaded " + loaded + " function pointers");
+        }
 		static bool _isMono = Type.GetType("Mono.Runtime") != null;
 		static Delegate MakeWrapper(Type t, Delegate del)
 		{
 			var mi = del.Method;
 			var pm = mi.GetParameters ().Select ((x) => Expression.Parameter (x.ParameterType, x.Name)).ToList ();
-			var checkerr = typeof(GL).GetMethod ("CheckErrors", BindingFlags.Static | BindingFlags.NonPublic);
+			var checkerr = typeof(GL).GetMethod ("CheckErrors", BindingFlags.Static | BindingFlags.Public);
 			Expression body;
 			if (mi.ReturnType.FullName != "System.Void") {
 				var variable = Expression.Variable (mi.ReturnType, "__returnvalue");
@@ -313,7 +332,7 @@ namespace LibreLancer
 				);
 			} else {
 				MethodCallExpression a;
-				if (_isMono) //MethodInfo is static on mono.
+				if (_isMono || mi.IsStatic) //MethodInfo is static on mono.
 					a = Expression.Call(mi, pm);
 				else
 					a = Expression.Call(Expression.Constant(del), mi, pm);
@@ -327,7 +346,7 @@ namespace LibreLancer
 		[MapsTo("glGetError")]
 		static GetError GetError;
 
-		static void CheckErrors()
+		public static void CheckErrors()
 		{
             if (ErrorChecking)
             {

@@ -20,6 +20,6 @@ void main()
 	world_position = (World * vec4(vertex_position,1)).xyz;
 	view_position = (View * World) * vec4(vertex_position, 1);
 	out_normal = vec3(1,1,1);
-	out_texcoord = vec2(vertex_texture1.x, 1 - vertex_texture1.y);
+	out_texcoord = vec2(vertex_texture1.x, 1. - vertex_texture1.y);
 	out_vertexcolor = vec4(1,1,1,1);
 }

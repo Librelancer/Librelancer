@@ -26,6 +26,12 @@ namespace LibreLancer
         int[] cachedObjects = new int[MAX_UNIFORM_LOC];
 		public Shader(string vertex_source, string fragment_source, string geometry_source = null)
         {
+            if(GL.GLES)
+            {
+                //transform to DX9-level GLSL
+                GLSLUtils.GLESVertex(ref vertex_source);
+                GLSLUtils.GLESFragment(ref fragment_source);
+            }
 			var vertexHandle = GL.CreateShader (GL.GL_VERTEX_SHADER);
 			var fragmentHandle = GL.CreateShader (GL.GL_FRAGMENT_SHADER);
             GL.ShaderSource(vertexHandle, vertex_source);
@@ -69,10 +75,10 @@ namespace LibreLancer
 			GL.BindAttribLocation (programID, VertexSlots.Size, "vertex_size");
 			GL.BindAttribLocation (programID, VertexSlots.Angle, "vertex_angle");
 			//Fragment Outputs
-			GL.BindFragDataLocation(programID, 0, "out_color0");
-			GL.BindFragDataLocation(programID, 1, "out_color1");
-			GL.BindFragDataLocation(programID, 2, "out_color2");
-			GL.BindFragDataLocation(programID, 3, "out_color3");
+			//GL.BindFragDataLocation(programID, 0, "out_color0");
+			//GL.BindFragDataLocation(programID, 1, "out_color1");
+			//GL.BindFragDataLocation(programID, 2, "out_color2");
+			//GL.BindFragDataLocation(programID, 3, "out_color3");
 
             GL.LinkProgram(programID);
 			GL.GetProgramiv (programID, GL.GL_LINK_STATUS, out status);

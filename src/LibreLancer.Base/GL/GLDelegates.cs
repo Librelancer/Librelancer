@@ -36,6 +36,8 @@ namespace LibreLancer.GLDelegates
     [SuppressUnmanagedCodeSecurity]
     delegate IntPtr GetStringi(int name, int index);
     [SuppressUnmanagedCodeSecurity]
+    delegate IntPtr GetString(int name);
+    [SuppressUnmanagedCodeSecurity]
     delegate void ClearColor(float r, float g, float b, float a);
     [SuppressUnmanagedCodeSecurity]
     delegate void Clear(int flags);

@@ -39,12 +39,18 @@ namespace LibreLancer
 		public ScreenshotSaveHandler ScreenshotSave;
 		public RenderState RenderState;
 		bool mouseVisible = true;
-
-		public Game (int w, int h, bool fullscreen)
+        bool forceANGLE = false;
+        ANGLE angle;
+        public string Renderer
+        {
+            get; private set;
+        }
+		public Game (int w, int h, bool fullscreen, bool forceAngle)
 		{
 			width = w;
 			height = h;
 			mythread = Thread.CurrentThread.ManagedThreadId;
+            forceANGLE = forceAngle;
 		}
 
 		public int Width {
@@ -160,6 +166,15 @@ namespace LibreLancer
 
 		}
 
+        void LoadANGLE()
+        {
+            angle = new ANGLE();
+            SDL.SDL_SysWMinfo wminfo = new SDL.SDL_SysWMinfo();
+            SDL.SDL_GetWindowWMInfo(windowptr, ref wminfo);
+            angle.CreateContext(wminfo.info.win.window);
+            Renderer = "Direct3D9 (ANGLE)";
+        }
+
 		public void Run()
 		{
             SSEMath.Load();
@@ -189,15 +204,30 @@ namespace LibreLancer
 				return;
 			}
 			windowptr = sdlWin;
-			var glcontext = SDL.SDL_GL_CreateContext (sdlWin);
-			if (glcontext == IntPtr.Zero) {
-				FLLog.Error ("OpenGL", "Failed to create OpenGL context, exiting.");
-				return;
-			}
-			//Load pointers
-			GL.Load();
-			//Init game state
-			RenderState = new RenderState();
+            if (forceANGLE)
+            {
+                LoadANGLE();
+            }
+            else
+            {
+                var glcontext = SDL.SDL_GL_CreateContext(sdlWin);
+                if (glcontext == IntPtr.Zero)
+                {
+                    if (Platform.RunningOS == OS.Windows)
+                    {
+                        LoadANGLE();
+                    }
+                    else
+                    {
+                        FLLog.Error("OpenGL", "Failed to create OpenGL context, exiting.");
+                        return;
+                    }
+                }
+                GL.LoadSDL();
+                Renderer = string.Format("{0} ({1})", GL.GetString(GL.GL_VERSION), GL.GetString(GL.GL_RENDERER));
+            }
+            //Init game state
+            RenderState = new RenderState();
 			Load();
 			//Start game
 			running = true;
@@ -280,8 +310,10 @@ namespace LibreLancer
 					TakeScreenshot();
 					_screenshot = false;
 				}
-
-				SDL.SDL_GL_SwapWindow (sdlWin);
+                if (angle != null)
+                    angle.SwapBuffers();
+                else
+				    SDL.SDL_GL_SwapWindow (sdlWin);
                 elapsed = timer.Elapsed.TotalSeconds - last;
                 renderFrequency = (1.0 / CalcAverageTick(elapsed));
                 last = timer.Elapsed.TotalSeconds;

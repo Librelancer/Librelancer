@@ -11,7 +11,7 @@ in vec4 view_position;
 uniform sampler2D Texture;
 uniform vec3 CameraPosition;
 
-#define FADE_DISTANCE 12000
+#define FADE_DISTANCE 12000.
 
 void main(void)
 {

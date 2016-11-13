@@ -22,7 +22,7 @@ namespace LibreLancer
 	public class DemoSystemView : GameState
 	{
 		const string DEMO_TEXT =
-@"SYSTEM VIEWER DEMO
+@"SYSTEM VIEWER DEMO - {6}
 {3} ({4})
 Controls:
 WSAD, Arrow Keys - Move/Rotate
@@ -173,7 +173,7 @@ C# Memory Usage: {5}
 		{
 			sysrender.Draw ();
 			trender.Start (Game.Width, Game.Height);
-			DrawShadowedText (string.Format(DEMO_TEXT,camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, SizeSuffix(GC.GetTotalMemory(false))), 5, 5);
+			DrawShadowedText (string.Format(DEMO_TEXT,camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, SizeSuffix(GC.GetTotalMemory(false)), Game.Renderer), 5, 5);
 			if (textEntry)
 			{
 				DrawShadowedText("Change System (Esc to cancel): " + currentText, 5, 200);

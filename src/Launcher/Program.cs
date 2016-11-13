@@ -5,6 +5,7 @@ namespace Launcher
     static class Program
     {
         public static string LaunchPath = null;
+        public static bool ForceAngle = false;
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -24,6 +25,7 @@ namespace Launcher
             {
 				var conf = new LibreLancer.GameConfig ();
 				conf.FreelancerPath = LaunchPath;
+                conf.ForceAngle = ForceAngle;
 				conf.Launch ();
             }
         }

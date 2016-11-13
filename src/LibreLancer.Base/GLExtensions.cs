@@ -22,7 +22,7 @@ namespace LibreLancer
     {
 		public static List<string> ExtensionList;
         //Global method for checking extensions. Called upon GraphicsDevice creation
-		static void PopulateExtensions()
+		public static void PopulateExtensions()
 		{
 			if (ExtensionList != null)
 				return;
@@ -34,6 +34,8 @@ namespace LibreLancer
 		}
         public static void CheckExtensions()
         {
+            if (GL.GLES)
+                return;
 			PopulateExtensions ();
 			if (!ExtensionList.Contains ("GL_EXT_texture_compression_s3tc")) {
 				throw new NotSupportedException ("OPENGL ERROR: Texture Compression (s3tc) not supported");

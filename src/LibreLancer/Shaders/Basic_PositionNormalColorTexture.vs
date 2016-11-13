@@ -24,5 +24,5 @@ void main()
 	view_position = (View * World) * vec4(vertex_position,1);
 	out_vertexcolor = vertex_color;
 	out_normal = (NormalMatrix * vec4(vertex_normal, 0.0)).xyz;
-	out_texcoord = vec2(vertex_texture1.x, 1 - vertex_texture1.y);
+	out_texcoord = vec2(vertex_texture1.x, 1. - vertex_texture1.y);
 }

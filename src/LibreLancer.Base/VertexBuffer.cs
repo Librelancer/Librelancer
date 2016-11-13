@@ -49,7 +49,7 @@ namespace LibreLancer
 		public VertexBuffer(Type type, int length, bool isStream = false)
         {
             VBO = GL.GenBuffer();
-			var usageHint = isStream ? GL.GL_STREAM_DRAW : GL.GL_DYNAMIC_DRAW;
+			var usageHint = isStream ? GL.GL_STREAM_DRAW : GL.GL_STATIC_DRAW;
             this.type = type;
             try
             {
@@ -144,7 +144,7 @@ namespace LibreLancer
         {
 			GLBind.VertexBuffer(VBO);
 			GLBind.VertexArray (VAO);
-			GL.BindBuffer (GL.GL_ARRAY_BUFFER, elems.Handle);
+			GL.BindBuffer (GL.GL_ELEMENT_ARRAY_BUFFER, elems.Handle);
 			HasElements = true;
 			_elements = elems;
         }
@@ -152,7 +152,7 @@ namespace LibreLancer
 		{
 			GLBind.VertexBuffer(VBO);
 			GLBind.VertexArray(VAO);
-			GL.BindBuffer(GL.GL_ARRAY_BUFFER, 0);
+			GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
 			HasElements = false;
 			_elements = null;
 		}
