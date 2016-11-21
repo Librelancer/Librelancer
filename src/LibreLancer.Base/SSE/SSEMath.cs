@@ -84,13 +84,16 @@ namespace LibreLancer
 
         const int MAP_SHARED = 0x01;
         const int MAP_ANONYMOUS = 0x20;
+		const int MAP_ANONYMOUS_MAC = 0x1000;
         const int PROT_READ = 0x1;
         const int PROT_WRITE = 0x2;
         const int PROT_EXEC = 0x4;
+
         static Delegate GetFunctionUnix(byte[] code, Type type)
         {
 			//Make W^X distros happy
-			IntPtr func = mmap(IntPtr.Zero, (IntPtr)code.Length, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+			int map_anonymous = Platform.RunningOS == OS.Mac ? MAP_ANONYMOUS_MAC : MAP_ANONYMOUS;
+			IntPtr func = mmap(IntPtr.Zero, (IntPtr)code.Length, PROT_READ | PROT_WRITE, MAP_SHARED | map_anonymous, -1, 0);
             Marshal.Copy(code, 0, func, code.Length);
 			mprotect (func, (IntPtr)code.Length, PROT_READ | PROT_EXEC);
             var del = (Delegate)(object)Marshal.GetDelegateForFunctionPointer(func, type);
