@@ -31,7 +31,7 @@ namespace LibreLancer.GameData
 			var me = new BoundingBox (min, max);
 			return me.Intersects (box);
 		}
-		public override bool ContainsPoint(Vector3 position, Vector3 point)
+		public override bool ContainsPoint(Vector3 position, Matrix4 rotation, Vector3 point)
 		{
 			var min = position - (Size / 2);
 			var max = position + (Size / 2);

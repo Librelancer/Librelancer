@@ -16,11 +16,27 @@ namespace LibreLancer
 		Shader bandShader;
 		Vector3 cameraPos;
 		float lightingRadius;
+		float renderDistSq;
 		public AsteroidFieldRenderer(AsteroidField field)
 		{
 			this.field = field;
-
+			//Set up renderDistSq
+			float rdist = 0f;
+			if (field.Zone.Shape is ZoneSphere)
+				rdist = ((ZoneSphere)field.Zone.Shape).Radius;
+			else if (field.Zone.Shape is ZoneEllipsoid) {
+				var s = ((ZoneEllipsoid)field.Zone.Shape).Size;
+				rdist = Math.Max (Math.Max (s.X, s.Y), s.Z);
+			}
+			else if (field.Zone.Shape is ZoneBox) {
+				var s = ((ZoneEllipsoid)field.Zone.Shape).Size;
+				rdist = Math.Max (Math.Max (s.X, s.Y), s.Z);
+			}
+			rdist += field.FillDist;
+			renderDistSq = rdist * rdist;
 			//Set up band
+			if (field.Band == null)
+				return;
 			bandShader = ShaderCache.Get("AsteroidBand.vs", "AsteroidBand.frag");
 			Vector3 sz;
 			if (field.Zone.Shape is ZoneSphere)
@@ -43,13 +59,59 @@ namespace LibreLancer
 			bandNormal.Transpose();
 		}
 
+
+		ICamera _camera;
 		public void Update(ICamera camera)
 		{
 			vp = camera.ViewProjection;
 			cameraPos = camera.Position;
+			_camera = camera;
+			for (int i = 0; i < field.Cube.Count; i++)
+				field.Cube [i].Drawable.Update (camera, TimeSpan.Zero);
 		}
+
+		ExclusionZone GetExclusionZone(Vector3 pt)
+		{
+			for (int i = 0; i < field.ExclusionZones.Count; i++) {
+				var f = field.ExclusionZones [i];
+				if (f.Zone.Shape.ContainsPoint (f.Zone.Position, f.Zone.RotationMatrix, pt))
+					return f;
+			}
+			return null;
+		}
+
 		public void Draw(ResourceManager res, Lighting lighting, CommandBuffer buffer, NebulaRenderer nr)
 		{
+			//Asteroids!
+			if (VectorMath.DistanceSquared (cameraPos, field.Zone.Position) <= renderDistSq) {
+				var close = AsteroidFieldShared.GetCloseCube (cameraPos, field.CubeSize);
+				int amountCubes = (field.FillDist / field.CubeSize) + 1;
+				for (int x = -amountCubes; x <= amountCubes; x++) {
+					for (int y = -amountCubes; y <= amountCubes; y++) {
+						for (int z = -amountCubes; z <= amountCubes; z++) {
+							var center = close + new Vector3 (x * field.CubeSize, y * field.CubeSize, z * field.CubeSize);
+							if (!field.Zone.Shape.ContainsPoint (field.Zone.Position, field.Zone.RotationMatrix, center))
+								continue;
+							if (GetExclusionZone (center) != null)
+								continue;
+							if (!AsteroidFieldShared.CubeExists (center, field.EmptyCubeFrequency))
+								continue;
+							//TODO: Cull cubes with bounding box (?)
+							//Render the asteroids
+							for (int i = 0; i < field.Cube.Count; i++) {
+								var c = field.Cube [i];
+								var astpos = center + (c.Position * field.CubeSize);
+								var r = c.Drawable.GetRadius ();
+								if (_camera.Frustum.Intersects (new BoundingSphere (astpos, r))) {
+									var lt = RenderHelpers.ApplyLights (lighting, astpos, r, nr);
+									if (!lt.FogEnabled || VectorMath.Distance(cameraPos, astpos) <= r + lt.FogRange.Y)
+										c.Drawable.DrawBuffer (buffer, c.RotationMatrix * Matrix4.CreateTranslation(astpos), lt);
+								}
+							}
+						}
+					}
+				}
+			}
 			//Billboards
 			//Band is last
 			if (renderBand)
@@ -59,8 +121,8 @@ namespace LibreLancer
 				{
 					var p = bandCylinder.GetSidePosition(i);
 					var zcoord = RenderHelpers.GetZ(bandTransform, cameraPos, p);
-					var lt = RenderHelpers.ApplyLights(lighting, p, 1000, nr);
-					if (!lt.FogEnabled || VectorMath.Distance(cameraPos, p) <= 1000 + lighting.FogRange.Y)
+					var lt = RenderHelpers.ApplyLights(lighting, p, lightingRadius, nr);
+					if (!lt.FogEnabled || VectorMath.Distance(cameraPos, p) <= lightingRadius + lighting.FogRange.Y)
 					{
 						buffer.AddCommand(
 							bandShader,

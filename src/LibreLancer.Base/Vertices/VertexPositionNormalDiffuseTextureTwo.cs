@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 namespace LibreLancer.Vertices
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct VertexPositionNormalDiffuseTextureTwo
+    public struct VertexPositionNormalDiffuseTextureTwo : IVertexType
     {
         public Vector3 Position;
         public Vector3 Normal;
@@ -37,5 +37,17 @@ namespace LibreLancer.Vertices
 			this.TextureCoordinate = new Vector2(reader.ReadSingle(), 1 - reader.ReadSingle());
 			this.TextureCoordinateTwo = new Vector2(reader.ReadSingle(), 1 - reader.ReadSingle());
         }
+
+		public VertexDeclaration GetVertexDeclaration()
+		{
+			return new VertexDeclaration(
+				sizeof(float) * 3 + + sizeof(float) * 3 + sizeof(float) * 4 + sizeof(float) * 2 + sizeof(float) * 2,
+				new VertexElement(VertexSlots.Position, 3, VertexElementType.Float, false, 0),
+				new VertexElement(VertexSlots.Normal, 3, VertexElementType.Float, false, sizeof(float) * 3),
+				new VertexElement(VertexSlots.Color, 4, VertexElementType.Float, false, sizeof(float) * 6),
+				new VertexElement(VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 10),
+				new VertexElement(VertexSlots.Texture2, 2, VertexElementType.Float, false, sizeof(float) * 12)
+			);
+		}
     }
 }

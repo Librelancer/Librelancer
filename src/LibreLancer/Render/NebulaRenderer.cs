@@ -51,7 +51,7 @@ namespace LibreLancer
 			if (Math.Abs(Nebula.Zone.EdgeFraction) < 0.000000001) //basically == 0. Instant transition
 				return true;
 			var scaled = Nebula.Zone.Shape.Scale(1 - Nebula.Zone.EdgeFraction);
-			return scaled.ContainsPoint(Nebula.Zone.Position, camera.Position);
+			return scaled.ContainsPoint(Nebula.Zone.Position, Nebula.Zone.RotationMatrix, camera.Position);
 		}
 
 		float CalculateTransition(Zone zone)
@@ -82,7 +82,7 @@ namespace LibreLancer
 
 		public void Update(TimeSpan elapsed)
 		{
-			if (Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, camera.Position))
+			if (Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, Nebula.Zone.RotationMatrix, camera.Position))
 			{
 				UpdateBackgroundLightning(elapsed);
 				UpdateDynamicLightning(elapsed);
@@ -214,7 +214,7 @@ namespace LibreLancer
 			if (Nebula.ExclusionZones != null)
 			{
 				foreach (var zone in Nebula.ExclusionZones)
-					if (zone.Zone.Shape.ContainsPoint(zone.Zone.Position, position))
+					if (zone.Zone.Shape.ContainsPoint(zone.Zone.Position, zone.Zone.RotationMatrix, position))
 						return zone;
 			}
 			return null;
@@ -222,7 +222,7 @@ namespace LibreLancer
 
 		public void Draw(CommandBuffer buffer, Lighting lights)
 		{
-			bool inside = Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, camera.Position);
+			bool inside = Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, Nebula.Zone.RotationMatrix, camera.Position);
 			if (!inside || !FogTransitioned())
 				RenderFill(buffer, inside);
 			DrawPuffRing(inside);

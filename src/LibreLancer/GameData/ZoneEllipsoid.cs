@@ -37,7 +37,7 @@ namespace LibreLancer.GameData
 			}
 			return false;
 		}
-		public override bool ContainsPoint(Vector3 position, Vector3 point)
+		public override bool ContainsPoint(Vector3 position, Matrix4 rotation, Vector3 point)
 		{
 			return PrimitiveMath.EllipsoidContains(position, Size, point);
 		}

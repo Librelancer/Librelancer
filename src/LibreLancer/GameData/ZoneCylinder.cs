@@ -30,9 +30,21 @@ namespace LibreLancer.GameData
 		{
 			throw new NotImplementedException ();
 		}
-		public override bool ContainsPoint(Vector3 position, Vector3 point)
+		public override bool ContainsPoint(Vector3 position, Matrix4 rotation, Vector3 point)
 		{
-			throw new NotImplementedException ();
+			//Define the cylinder
+			var pt1 = position - new Vector3 (0, Height / 2, 0);
+			var pt2 = position + new Vector3 (0, Height / 2, 0);
+			pt1 = rotation.Transform (pt1);
+			pt2 = rotation.Transform (pt2);
+			//Calculate values
+			var length_sq = VectorMath.DistanceSquared (pt1, pt2);
+			var radius_sq = Radius * Radius;
+			Vector3 d = pt2 - pt1;
+			Vector3 pd = point - pt1;
+			float dot = Vector3.Dot (pd, d);
+
+			return !(dot < 0.0f || dot > length_sq);
 		}
 		public override ZoneShape Scale(float scale)
 		{

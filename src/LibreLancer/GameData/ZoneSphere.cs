@@ -29,7 +29,7 @@ namespace LibreLancer.GameData
 			var sph = new BoundingSphere(position, Radius);
 			return sph.Intersects(box);
 		}
-		public override bool ContainsPoint(Vector3 position, Vector3 point)
+		public override bool ContainsPoint(Vector3 position, Matrix4 rotation, Vector3 point)
 		{
 			return new BoundingSphere(position, Radius).Contains(point) != ContainmentType.Disjoint;
 		}
