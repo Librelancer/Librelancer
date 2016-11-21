@@ -14,12 +14,18 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Collections.Generic;
 namespace LibreLancer.GameData
 {
 	public class AsteroidField
 	{
 		public Zone Zone;
 		public AsteroidBand Band;
+		public List<StaticAsteroid> Cube;
+		public List<ExclusionZone> ExclusionZones;
+		public int CubeSize;
+		public int FillDist;
+		public float EmptyCubeFrequency;
 	}
 }
 

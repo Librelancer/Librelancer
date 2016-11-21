@@ -50,6 +50,15 @@ namespace LibreLancer.GameData
 		{
 			return PrimitiveMath.EllipsoidFunction(position, Size, point);
 		}
+		public override Vector3 RandomPoint (Func<float> randfunc)
+		{
+			var theta = randfunc () * 2 * Math.PI;
+			var phi = randfunc () * 2 * Math.PI;
+			var x = Math.Cos (theta) * Math.Cos (phi);
+			var y = Math.Sin (phi);
+			var z = Math.Sin (theta) * Math.Cos (phi);
+			return new Vector3 ((float)x, (float)y, (float)z) * Size;
+		}
 	}
 }
 

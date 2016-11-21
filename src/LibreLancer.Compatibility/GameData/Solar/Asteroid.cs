@@ -14,16 +14,32 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-
-namespace LibreLancer.GameData
+using LibreLancer.Ini;
+namespace LibreLancer.Compatibility.GameData.Solar
 {
-	public abstract class ZoneShape
+	public class Asteroid
 	{
-		public abstract bool Intersects(Vector3 position, BoundingBox box);
-		public abstract bool ContainsPoint(Vector3 position, Vector3 point);
-		public abstract float ScaledDistance(Vector3 position, Vector3 point);
-		public abstract Vector3 RandomPoint (Func<float> randfunc);
-		public abstract ZoneShape Scale(float scale);
+		public string Nickname;
+		public string DaArchetype;
+		public string MaterialLibrary;
+		public bool IsMine;
+		public Asteroid (Section section)
+		{
+			IsMine = section.Name.ToLowerInvariant () == "asteroidmine";
+			foreach (var e in section) {
+				switch (e.Name.ToLowerInvariant ()) {
+				case "nickname":
+					Nickname = e [0].ToString ();
+					break;
+				case "da_archetype":
+					DaArchetype = e [0].ToString ();
+					break;
+				case "material_library":
+					MaterialLibrary = e [0].ToString ();
+					break;
+				}
+			}
+		}
 	}
 }
 

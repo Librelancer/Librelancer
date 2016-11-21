@@ -17,39 +17,40 @@ using System;
 
 namespace LibreLancer.GameData
 {
-	public class ZoneSphere : ZoneShape
+	public class ZoneBox : ZoneShape
 	{
-		public float Radius;
-		public ZoneSphere(float r)
+		public Vector3 Size;
+		public ZoneBox (float x, float y, float z)
 		{
-			Radius = r;
+			Size = new Vector3 (x, y, z);
 		}
 		public override bool Intersects(Vector3 position, BoundingBox box)
 		{
-			var sph = new BoundingSphere(position, Radius);
-			return sph.Intersects(box);
+			var min = position - (Size / 2);
+			var max = position + (Size / 2);
+			var me = new BoundingBox (min, max);
+			return me.Intersects (box);
 		}
 		public override bool ContainsPoint(Vector3 position, Vector3 point)
 		{
-			return new BoundingSphere(position, Radius).Contains(point) != ContainmentType.Disjoint;
+			var min = position - (Size / 2);
+			var max = position + (Size / 2);
+			return !(point.X < min.X || point.Y < min.Y || point.Z < min.Z || point.X > max.X || point.Y > max.Y || point.Z > max.Z);
 		}
 		public override ZoneShape Scale(float scale)
 		{
-			return new ZoneSphere(Radius * scale);
+			var scl = Size * scale;
+			return new ZoneBox(scl.X, scl.Y, scl.Z);
 		}
 		public override float ScaledDistance(Vector3 position, Vector3 point)
 		{
-			return VectorMath.Distance(position, point) / Radius;
+			throw new NotImplementedException ();
 		}
 		public override Vector3 RandomPoint (Func<float> randfunc)
 		{
-			var theta = randfunc () * 2 * Math.PI;
-			var phi = randfunc () * 2 * Math.PI;
-			var x = Math.Cos (theta) * Math.Cos (phi);
-			var y = Math.Sin (phi);
-			var z = Math.Sin (theta) * Math.Cos (phi);
-			return new Vector3 ((float)x, (float)y, (float)z) * Radius;
+			return new Vector3 (randfunc (), randfunc (), randfunc ()) * Size;
 		}
+
 	}
 }
 

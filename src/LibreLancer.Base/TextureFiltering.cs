@@ -15,15 +15,12 @@
  */
 using System;
 
-namespace LibreLancer.GameData
+namespace LibreLancer
 {
-	public abstract class ZoneShape
+	public enum TextureFiltering
 	{
-		public abstract bool Intersects(Vector3 position, BoundingBox box);
-		public abstract bool ContainsPoint(Vector3 position, Vector3 point);
-		public abstract float ScaledDistance(Vector3 position, Vector3 point);
-		public abstract Vector3 RandomPoint (Func<float> randfunc);
-		public abstract ZoneShape Scale(float scale);
+		Linear,
+		Nearest
 	}
 }
 

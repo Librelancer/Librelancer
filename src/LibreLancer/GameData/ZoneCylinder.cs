@@ -17,13 +17,35 @@ using System;
 
 namespace LibreLancer.GameData
 {
-	public abstract class ZoneShape
+	public class ZoneCylinder : ZoneShape
 	{
-		public abstract bool Intersects(Vector3 position, BoundingBox box);
-		public abstract bool ContainsPoint(Vector3 position, Vector3 point);
-		public abstract float ScaledDistance(Vector3 position, Vector3 point);
-		public abstract Vector3 RandomPoint (Func<float> randfunc);
-		public abstract ZoneShape Scale(float scale);
+		public float Radius;
+		public float Height;
+		public ZoneCylinder(float r, float h)
+		{
+			Radius = r;
+			Height = h;
+		}
+		public override bool Intersects(Vector3 position, BoundingBox box)
+		{
+			throw new NotImplementedException ();
+		}
+		public override bool ContainsPoint(Vector3 position, Vector3 point)
+		{
+			throw new NotImplementedException ();
+		}
+		public override ZoneShape Scale(float scale)
+		{
+			return new ZoneCylinder (Radius * scale, Height * scale);
+		}
+		public override float ScaledDistance(Vector3 position, Vector3 point)
+		{
+			throw new NotImplementedException ();
+		}
+		public override Vector3 RandomPoint (Func<float> randfunc)
+		{
+			throw new NotImplementedException ();
+		}
 	}
 }
 

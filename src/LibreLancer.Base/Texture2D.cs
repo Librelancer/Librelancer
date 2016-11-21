@@ -67,6 +67,22 @@ namespace LibreLancer
 			GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
 			GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
         }
+
+		public void SetFiltering(TextureFiltering filtering)
+		{
+			BindTo (4);
+			switch (filtering) {
+			case TextureFiltering.Linear:
+				GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
+				GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
+				break;
+			case TextureFiltering.Nearest:
+				GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+				GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+				break;
+			}
+		}
+
         public Texture2D(int width, int height) : this(width, height, false, SurfaceFormat.Color)
         {
 
@@ -154,6 +170,7 @@ namespace LibreLancer
                 }
             }
         }
+
 		WrapMode modeS = 0;
 		WrapMode modeT = 0;
 		public void SetWrapModeS(WrapMode mode)

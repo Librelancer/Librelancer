@@ -81,7 +81,6 @@
     <Compile Include="GameData\Solar\TradelaneRing.cs" />
     <Compile Include="GameData\Solar\Waypoint.cs" />
     <Compile Include="GameData\Solar\WeaponsPlatform.cs" />
-    <Compile Include="GameData\Universe\Asteroid.cs" />
     <Compile Include="GameData\Universe\AsteroidBillboards.cs" />
     <Compile Include="GameData\Universe\AsteroidField.cs" />
     <Compile Include="GameData\Universe\Band.cs" />
@@ -147,6 +146,9 @@
     <Compile Include="GameData\MouseIni.cs" />
     <Compile Include="GameData\MouseShape.cs" />
     <Compile Include="GameData\Cursor.cs" />
+    <Compile Include="GameData\Solar\AsteroidArchIni.cs" />
+    <Compile Include="GameData\Universe\CubeAsteroid.cs" />
+    <Compile Include="GameData\Solar\Asteroid.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

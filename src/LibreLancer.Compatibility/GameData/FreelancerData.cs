@@ -30,6 +30,7 @@ namespace LibreLancer.Compatibility.GameData
 		public GraphIni Graphs;
 		public TexturePanels EffectShapes;
 		public MouseIni Mouse;
+		public AsteroidArchIni Asteroids;
 		public bool Loaded = false;
 
 		public FreelancerData (FreelancerIni fli)
@@ -53,6 +54,9 @@ namespace LibreLancer.Compatibility.GameData
 			//Solars
 			Solar = new SolararchIni (Freelancer.SolarPath, this);
 			Stars = new StararchIni (Freelancer.StarsPath);
+			Asteroids = new AsteroidArchIni ();
+			foreach (var ast in Freelancer.AsteroidPaths)
+				Asteroids.AddFile (ast);
 			//Loadouts
 			Loadouts = new LoadoutsIni();
 			foreach (var lo in Freelancer.LoadoutPaths)

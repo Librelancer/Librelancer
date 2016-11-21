@@ -17,13 +17,13 @@ using System;
 
 namespace LibreLancer.GameData
 {
-	public abstract class ZoneShape
+	public class StaticAsteroid
 	{
-		public abstract bool Intersects(Vector3 position, BoundingBox box);
-		public abstract bool ContainsPoint(Vector3 position, Vector3 point);
-		public abstract float ScaledDistance(Vector3 position, Vector3 point);
-		public abstract Vector3 RandomPoint (Func<float> randfunc);
-		public abstract ZoneShape Scale(float scale);
+		public IDrawable Drawable;
+		public Vector3 Rotation;
+		public Vector3 Position;
+		public Matrix4 RotationMatrix;
+		public string Info;
 	}
 }
 

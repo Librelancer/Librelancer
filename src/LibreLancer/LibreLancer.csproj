@@ -255,6 +255,10 @@
     <Compile Include="Utf\Mat\TexFrameAnimation.cs" />
     <Compile Include="ScreenshotManager.cs" />
     <Compile Include="Cursor.cs" />
+    <Compile Include="GameData\StaticAsteroid.cs" />
+    <Compile Include="AsteroidFieldShared.cs" />
+    <Compile Include="GameData\ZoneBox.cs" />
+    <Compile Include="GameData\ZoneCylinder.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

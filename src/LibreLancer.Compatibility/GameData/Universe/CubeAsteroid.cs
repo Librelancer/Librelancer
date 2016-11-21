@@ -14,16 +14,24 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using LibreLancer.Ini;
 
-namespace LibreLancer.GameData
+namespace LibreLancer.Compatibility.GameData.Universe
 {
-	public abstract class ZoneShape
+	public class CubeAsteroid
 	{
-		public abstract bool Intersects(Vector3 position, BoundingBox box);
-		public abstract bool ContainsPoint(Vector3 position, Vector3 point);
-		public abstract float ScaledDistance(Vector3 position, Vector3 point);
-		public abstract Vector3 RandomPoint (Func<float> randfunc);
-		public abstract ZoneShape Scale(float scale);
+		public string Name { get; private set; }
+		public Vector3 Rotation { get; private set; }
+		public Vector3 Position { get; private set; }
+		public string Info { get; private set; }
+
+		public CubeAsteroid (Entry e)
+		{
+			Name = e[0].ToString();
+			Position =  new Vector3(e[1].ToSingle(), e[2].ToSingle(), e[3].ToSingle());
+			Rotation = new Vector3(e[4].ToSingle(), e[5].ToSingle(), e[6].ToSingle());
+			Info = e.Count == 8 ? e[7].ToString() : string.Empty;
+		}
 	}
 }
 

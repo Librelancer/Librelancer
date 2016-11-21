@@ -26,7 +26,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 	public class AsteroidField : ZoneReference
 	{
 		public Field Field { get; private set; }
-		public List<Asteroid> Cube { get; private set; }
+		public List<CubeAsteroid> Cube { get; private set; }
 		public Band Band { get; private set; }
 		public Band ExclusionBand { get; private set; }
 		public AsteroidBillboards AsteroidBillboards { get; private set; }
@@ -36,7 +36,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 		public AsteroidField(StarSystem parent, Section section, FreelancerData data)
 			: base(parent, section, data)
 		{
-			Cube = new List<Asteroid>();
+			Cube = new List<CubeAsteroid>();
 			DynamicAsteroids = new List<DynamicAsteroids>();
 			LootableZones = new List<LootableZone>();
 
@@ -135,7 +135,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 						{
 						case "asteroid":
 							if (e.Count < 7 || e.Count > 8) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
-							Cube.Add(new Asteroid(e));
+							Cube.Add(new CubeAsteroid(e));
 							break;
 						}
 					}

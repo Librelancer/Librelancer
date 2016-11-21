@@ -213,10 +213,27 @@ namespace LibreLancer
 					);
 					break;
 				case Legacy.Universe.ZoneShape.SPHERE:
-					z.Shape = new GameData.ZoneSphere(
+					z.Shape = new GameData.ZoneSphere (
 						zne.Size.Value.X
 					);
 					break;
+				case Legacy.Universe.ZoneShape.BOX:
+					z.Shape = new GameData.ZoneBox (
+						zne.Size.Value.X,
+						zne.Size.Value.Y,
+						zne.Size.Value.Z
+					);
+					break;
+				case Legacy.Universe.ZoneShape.CYLINDER:
+					z.Shape = new GameData.ZoneCylinder (
+						zne.Size.Value.X,
+						zne.Size.Value.Y
+					);
+					break;
+				default:
+						Console.WriteLine (zne.Nickname);
+						Console.WriteLine (zne.Shape.Value);
+						throw new NotImplementedException ();
 				}
 				sys.Zones.Add (z);
 			}
@@ -224,23 +241,7 @@ namespace LibreLancer
 			{
 				foreach (var ast in legacy.Asteroids)
 				{
-					if (ast.Band == null)
-						continue;
-					var panels = new Legacy.Universe.TexturePanels(ast.TexturePanels.File);
-					foreach (var txmfile in panels.Files)
-						resource.LoadTxm(Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + txmfile));
-					var a = new GameData.AsteroidField();
-					a.Zone = sys.Zones.Where((z) => z.Nickname.ToLower() == ast.ZoneName.ToLower()).First();
-					a.Band = new GameData.AsteroidBand();
-					a.Band.RenderParts = ast.Band.RenderParts.Value;
-					a.Band.Height = ast.Band.Height.Value;
-					a.Band.Shape = panels.Shapes[ast.Band.Shape].TextureName;
-					a.Band.Fade = new Vector4(ast.Band.Fade[0], ast.Band.Fade[1], ast.Band.Fade[2], ast.Band.Fade[3]);
-					var cs =  ast.Band.ColorShift ?? Vector3.One;
-					a.Band.ColorShift = new Color4(cs.X, cs.Y, cs.Z, 1f);
-					a.Band.TextureAspect = ast.Band.TextureAspect ?? 1f;
-					a.Band.OffsetDistance = ast.Band.OffsetDist ?? 0f;
-					sys.AsteroidFields.Add(a);
+					sys.AsteroidFields.Add (GetAsteroidField (sys, ast));
 				}
 			}
 
@@ -252,6 +253,65 @@ namespace LibreLancer
 				}
 			}
 			return sys;
+		}
+		GameData.AsteroidField GetAsteroidField(GameData.StarSystem sys, Legacy.Universe.AsteroidField ast)
+		{
+			var a = new GameData.AsteroidField();
+			a.Zone = sys.Zones.Where((z) => z.Nickname.ToLower() == ast.ZoneName.ToLower()).First();
+			if (ast.Band != null) {
+				var panels = new Legacy.Universe.TexturePanels (ast.TexturePanels.File);
+				foreach (var txmfile in panels.Files)
+					resource.LoadTxm (Compatibility.VFS.GetPath (fldata.Freelancer.DataPath + txmfile));
+				a.Band = new GameData.AsteroidBand ();
+				a.Band.RenderParts = ast.Band.RenderParts.Value;
+				a.Band.Height = ast.Band.Height.Value;
+				a.Band.Shape = panels.Shapes [ast.Band.Shape].TextureName;
+				a.Band.Fade = new Vector4 (ast.Band.Fade [0], ast.Band.Fade [1], ast.Band.Fade [2], ast.Band.Fade [3]);
+				var cs = ast.Band.ColorShift ?? Vector3.One;
+				a.Band.ColorShift = new Color4 (cs.X, cs.Y, cs.Z, 1f);
+				a.Band.TextureAspect = ast.Band.TextureAspect ?? 1f;
+				a.Band.OffsetDistance = ast.Band.OffsetDist ?? 0f;
+			}
+			a.Cube = new List<GameData.StaticAsteroid> ();
+			a.CubeSize = ast.Field.CubeSize.Value;
+			a.FillDist = ast.Field.FillDist.Value;
+			a.EmptyCubeFrequency = ast.Field.EmptyCubeFrequency ?? 0f;
+			foreach (var c in ast.Cube) {
+				var sta = new GameData.StaticAsteroid () {
+					Rotation = c.Rotation,
+					Position = c.Position,
+					Info = c.Info
+				};
+				sta.RotationMatrix =
+					Matrix4.CreateRotationX (MathHelper.DegreesToRadians (c.Rotation.X)) *
+					Matrix4.CreateRotationY (MathHelper.DegreesToRadians (c.Rotation.Y)) *
+					Matrix4.CreateRotationZ (MathHelper.DegreesToRadians (c.Rotation.Z));
+				var n = c.Name;
+				var arch = fldata.Asteroids.FindAsteroid (c.Name);
+				resource.LoadMat (Compatibility.VFS.GetPath (fldata.Freelancer.DataPath + arch.MaterialLibrary));
+				sta.Drawable = resource.GetDrawable (Compatibility.VFS.GetPath (fldata.Freelancer.DataPath + arch.DaArchetype));
+				a.Cube.Add (sta);
+			}
+			a.ExclusionZones = new List<GameData.ExclusionZone>();
+			if (ast.ExclusionZones != null)
+			{
+				foreach (var excz in ast.ExclusionZones)
+				{
+					var e = new GameData.ExclusionZone();
+					e.Zone = sys.Zones.Where((z) => z.Nickname.ToLower() == excz.Exclusion.Nickname.ToLower()).First();
+					//e.FogFar = excz.FogFar ?? n.FogRange.Y;
+					if (excz.ZoneShellPath != null)
+					{
+						var pth = Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + excz.ZoneShellPath);
+						e.Shell = resource.GetDrawable(pth);
+						e.ShellTint = excz.Tint ?? Color3f.White;
+						e.ShellScalar = excz.ShellScalar ?? 1f;
+						e.ShellMaxAlpha = excz.MaxAlpha ?? 1f;
+					}
+					a.ExclusionZones.Add(e);
+				}
+			}
+			return a;
 		}
 		public GameData.Nebula GetNebula(GameData.StarSystem sys, Legacy.Universe.Nebula nbl)
 		{
