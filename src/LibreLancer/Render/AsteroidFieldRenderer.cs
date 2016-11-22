@@ -82,6 +82,9 @@ namespace LibreLancer
 
 		public void Draw(ResourceManager res, Lighting lighting, CommandBuffer buffer, NebulaRenderer nr)
 		{
+            //Null check
+            if (_camera == null)
+                return;
 			//Asteroids!
 			if (VectorMath.DistanceSquared (cameraPos, field.Zone.Position) <= renderDistSq) {
 				var close = AsteroidFieldShared.GetCloseCube (cameraPos, field.CubeSize);
