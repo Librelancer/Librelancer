@@ -56,7 +56,6 @@ namespace LibreLancer.Utf.Ale
 						if (!AleCrc.FxCrc.TryGetValue (crc, out efname)) {
 							efname = string.Format ("CRC: 0x{0:X}", crc);
 						}
-						Console.Write ("{0} ({1}): ", efname, id.ToString ("x"));
 						object value = null;
 						switch (type) {
 						case AleTypes.Boolean:

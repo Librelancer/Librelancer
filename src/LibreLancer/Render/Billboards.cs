@@ -282,8 +282,22 @@ namespace LibreLancer
 		int lasthash = -1;
 		int datindex = 0;
 		int indexCount = 0;
+        int fillCount = 0;
+        int lastIndex = 0;
 		int vertexCount = 0;
 
+        public void AddIndices(int index)
+        {
+            var dat = rendat[index];
+            indices[fillCount++] = dat.Index0;
+            indices[fillCount++] = dat.Index1;
+            indices[fillCount++] = dat.Index2;
+            indices[fillCount++] = dat.Index3;
+            indices[fillCount++] = dat.Index4;
+            indices[fillCount++] = dat.Index5;
+            _iboFilled = false;
+        }
+        bool _iboFilled = false;
 		public void RenderStandard(int index, int hash, RenderState rs)
 		{
 			if (hash != lasthash && lasthash != -1)
@@ -291,12 +305,13 @@ namespace LibreLancer
 			lasthash = hash;
 			datindex = index;
 			var dat = rendat[index];
-			indices[indexCount++] = dat.Index0;
+            indexCount += 6;
+			/*indices[indexCount++] = dat.Index0;
 			indices[indexCount++] = dat.Index1;
 			indices[indexCount++] = dat.Index2;
 			indices[indexCount++] = dat.Index3;
 			indices[indexCount++] = dat.Index4;
-			indices[indexCount++] = dat.Index5;
+			indices[indexCount++] = dat.Index5;*/
 		}
 
 		bool _frameStart = true;
@@ -307,7 +322,6 @@ namespace LibreLancer
 				lasthash = -1;
 				return;
 			}
-			ibo.SetData(indices, indexCount);
 			rs.Cull = false;
 			rs.BlendMode = rendat[datindex].BlendMode;
 			if (_frameStart)
@@ -320,9 +334,16 @@ namespace LibreLancer
 			}
 			rendat[datindex].Texture.BindTo(0);
 			shader.UseProgram();
-			vbo.Draw(PrimitiveTypes.TriangleList, 0, 0, indexCount / 3);
+            if (!_iboFilled)
+            {
+                ibo.SetData(indices, fillCount);
+                _iboFilled = true;
+                fillCount = 0;
+            }
+            vbo.Draw(PrimitiveTypes.TriangleList, 0, lastIndex, indexCount / 3);
 			rs.Cull = true;
 			lasthash = -1;
+            lastIndex += indexCount;
 			indexCount = 0;
 		}
 
@@ -354,6 +375,8 @@ namespace LibreLancer
 		{
 			vbo.SetData(vertices, vertexCount);
 			_frameStart = true;
+            _iboFilled = false;
+            lastIndex = 0;
 		}
 	}
 }

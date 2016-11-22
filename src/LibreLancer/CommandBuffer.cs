@@ -125,7 +125,14 @@ namespace LibreLancer
 				}
 			}
 			Array.Sort<int>(cmdptr, 0, a, new ZComparer(Commands));
-			Billboards lastbb = null;
+            for (int i = a - 1; i >= 0; i--)
+            {
+                if(Commands[cmdptr[i]].CmdType == RenderCmdType.Billboard)
+                {
+                    Commands[cmdptr[i]].Billboards.AddIndices(Commands[cmdptr[i]].Index);
+                }
+            }
+                Billboards lastbb = null;
 			for (int i = a - 1; i >= 0; i--)
 			{
 				if (lastbb != null && Commands[cmdptr[i]].CmdType != RenderCmdType.Billboard)
