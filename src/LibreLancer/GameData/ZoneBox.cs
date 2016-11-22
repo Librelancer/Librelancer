@@ -33,8 +33,13 @@ namespace LibreLancer.GameData
 		}
 		public override bool ContainsPoint(Vector3 position, Matrix4 rotation, Vector3 point)
 		{
-			var min = position - (Size / 2);
-			var max = position + (Size / 2);
+			//transform point
+			var R = rotation;
+			R.Transpose();
+			point = R.Transform(point) - R.Transform(position);
+			//test
+			var min = -(Size / 2);
+			var max = (Size / 2);
 			return !(point.X < min.X || point.Y < min.Y || point.Z < min.Z || point.X > max.X || point.Y > max.Y || point.Z > max.Z);
 		}
 		public override ZoneShape Scale(float scale)

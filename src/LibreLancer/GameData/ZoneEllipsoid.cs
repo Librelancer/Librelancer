@@ -39,7 +39,12 @@ namespace LibreLancer.GameData
 		}
 		public override bool ContainsPoint(Vector3 position, Matrix4 rotation, Vector3 point)
 		{
-			return PrimitiveMath.EllipsoidContains(position, Size, point);
+			//Transform point
+			var R = rotation;
+			R.Transpose();
+			point = R.Transform(point) - R.Transform(position);
+			//Test
+			return PrimitiveMath.EllipsoidContains(Vector3.Zero, Size, point);
 		}
 		public override ZoneShape Scale(float scale)
 		{

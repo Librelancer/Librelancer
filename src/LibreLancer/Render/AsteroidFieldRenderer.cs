@@ -116,13 +116,16 @@ namespace LibreLancer
 			//Band is last
 			if (renderBand)
 			{
+				if (!_camera.Frustum.Intersects(new BoundingSphere(field.Zone.Position, lightingRadius)))
+					return;
 				var tex = (Texture2D)res.FindTexture(field.Band.Shape);
 				for (int i = 0; i < SIDES; i++)
 				{
 					var p = bandCylinder.GetSidePosition(i);
 					var zcoord = RenderHelpers.GetZ(bandTransform, cameraPos, p);
+					p = bandTransform.Transform(p);
 					var lt = RenderHelpers.ApplyLights(lighting, p, lightingRadius, nr);
-					if (!lt.FogEnabled || VectorMath.Distance(cameraPos, p) <= lightingRadius + lighting.FogRange.Y)
+					if (!lt.FogEnabled || VectorMath.Distance(cameraPos, p) <= lightingRadius + lt.FogRange.Y)
 					{
 						buffer.AddCommand(
 							bandShader,
