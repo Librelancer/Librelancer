@@ -154,8 +154,10 @@ namespace LibreLancer.Media
 				return;
 			userStopped = true;
 			currentState = PlayState.Stopped;
-			while (threadRunning)
-				;
+            while (threadRunning)
+            {
+                System.Threading.Thread.Sleep(1);
+            }
 			AudioManager.ALFunc(() => Al.alSourceStopv(1, ref sourceId));
 			manager.Remove (this);
 			Empty ();

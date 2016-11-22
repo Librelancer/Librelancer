@@ -114,7 +114,7 @@ namespace LibreLancer
 		{
 			fps_updatetimer -= elapsed;
 			if (fps_updatetimer <= 0) {
-				Title = string.Format ("LibreLancer: {0:#.##}fps / {1} Drawcalls", RenderFrequency, drawCallsPerFrame);
+				Title = string.Format ("LibreLancer: {0:00.00}fps/ {2:00.00}ms - {1} Drawcalls", RenderFrequency, drawCallsPerFrame, FrameTime * 1000.0);
 				fps_updatetimer = FPS_INTERVAL;
 			}
 			RenderState.ClearAll ();

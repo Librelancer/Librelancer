@@ -97,7 +97,13 @@ namespace LibreLancer
 				return renderFrequency;
 			}
 		}
-
+        double frameTime;
+        public double FrameTime
+        {
+            get {
+                return frameTime;
+            }
+        }
 		public IntPtr GetGLProcAddress(string name)
 		{
 			return SDL.SDL_GL_GetProcAddress(name);
@@ -237,7 +243,8 @@ namespace LibreLancer
 			double elapsed = 0;
 			SDL.SDL_Event e;
 			SDL.SDL_StopTextInput();
-            SDL.SDL_GL_SetSwapInterval(-1);
+            if (SDL.SDL_GL_SetSwapInterval(-1) < 0)
+                SDL.SDL_GL_SetSwapInterval(1);
 			while (running) {
 				//Pump message queue
 				while (SDL.SDL_PollEvent (out e) != 0) {
@@ -300,11 +307,14 @@ namespace LibreLancer
 				Action work;
 				while (actions.TryDequeue(out work))
 					work();
-				Update (elapsed);
+                totalTime = timer.Elapsed.TotalSeconds;
+                Update(elapsed);
 				if (!running)
 					break;
 				Draw (elapsed);
-
+                //Frame time before, FPS after
+                var tk = timer.Elapsed.TotalSeconds - totalTime;
+                frameTime = CalcAverageTime(tk);
 				if (_screenshot)
 				{
 					TakeScreenshot();
@@ -340,8 +350,23 @@ namespace LibreLancer
 				tickindex=0;
 			return ((double)ticksum / FPS_MAXSAMPLES);
 		}
-		//Convert from SDL2 button to saner button
-		MouseButtons GetMouseButton(byte b)
+
+        int timeindex = 0;
+        double timesum = 0;
+        double[] timelist = new double[FPS_MAXSAMPLES];
+
+        double CalcAverageTime(double newtick)
+        {
+            timesum -= timelist[tickindex];
+            timesum += newtick;
+            timelist[timeindex] = newtick;
+            if (++timeindex == FPS_MAXSAMPLES)
+                timeindex = 0;
+            return ((double)timesum / FPS_MAXSAMPLES);
+        }
+
+        //Convert from SDL2 button to saner button
+        MouseButtons GetMouseButton(byte b)
 		{
 			if (b == SDL.SDL_BUTTON_LEFT)
 				return MouseButtons.Left;
