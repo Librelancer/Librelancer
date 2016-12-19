@@ -1,4 +1,19 @@
-﻿using System;
+﻿/* The contents of this file are subject to the Mozilla Public License
+ * Version 1.1 (the "License"); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ * 
+ * Software distributed under the License is distributed on an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific language governing rights and limitations
+ * under the License.
+ * 
+ * 
+ * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
+ * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * the Initial Developer. All Rights Reserved.
+ */
+using System;
 using LibreLancer.GameData;
 using LibreLancer.Primitives;
 namespace LibreLancer
@@ -17,9 +32,14 @@ namespace LibreLancer
 		Vector3 cameraPos;
 		float lightingRadius;
 		float renderDistSq;
-		public AsteroidFieldRenderer(AsteroidField field)
+		AsteroidBillboard[] astbillboards;
+		Random rand = new Random();
+		SystemRenderer sys;
+
+		public AsteroidFieldRenderer(AsteroidField field, SystemRenderer sys)
 		{
 			this.field = field;
+			this.sys = sys;
 			//Set up renderDistSq
 			float rdist = 0f;
 			if (field.Zone.Shape is ZoneSphere)
@@ -32,6 +52,8 @@ namespace LibreLancer
 				var s = ((ZoneEllipsoid)field.Zone.Shape).Size;
 				rdist = Math.Max (Math.Max (s.X, s.Y), s.Z);
 			}
+			if (field.BillboardCount != -1)
+				astbillboards = new AsteroidBillboard[field.BillboardCount];
 			rdist += field.FillDist;
 			renderDistSq = rdist * rdist;
 			//Set up band
@@ -57,6 +79,7 @@ namespace LibreLancer
 			bandNormal = bandTransform;
 			bandNormal.Invert();
 			bandNormal.Transpose();
+
 		}
 
 
@@ -79,7 +102,40 @@ namespace LibreLancer
 			}
 			return null;
 		}
+		struct AsteroidBillboard
+		{
+			public Vector3 Position;
+			public bool Visible;
+			public bool Inited;
+			public float Size;
+			public int Texture;
+			public void Spawn(AsteroidFieldRenderer r)
+			{
+				Inited = true;
+				var dist = r.rand.NextFloat (r.field.BillboardDistance, r.field.FillDist);
+				var theta = r.rand.NextFloat(0, (float)Math.PI * 2);
+				var phi = r.rand.NextFloat(0, (float)Math.PI * 2);
+				var p = new Vector3(
+					(float)(Math.Sin(phi) * Math.Cos(theta)),
+					(float)(Math.Sin(phi) * Math.Sin(theta)),
+					(float)(Math.Cos(phi))
+				);
+				var directional = (p * dist);
+				Position = directional + r.cameraPos;
+				Visible = r.field.Zone.Shape.ContainsPoint (r.field.Zone.Position, r.field.Zone.RotationMatrix, Position) 
+					&& (r.GetExclusionZone (Position) == null);
+				Size = r.rand.NextFloat (r.field.BillboardSize.X, r.field.BillboardSize.Y) * 2;
+				Texture = r.rand.Next (0, 3);
+			}
+		}
 
+		Texture2D billboardTex;
+		static readonly Vector2[][] billboardCoords =  {
+			new []{ new Vector2(0.5f,0.5f), new Vector2(0,0),  new Vector2(1,0) },
+			new []{ new Vector2(0.5f,0.5f), new Vector2(0,0),  new Vector2(0,1) },
+			new []{ new Vector2(0.5f,0.5f), new Vector2(0,1),  new Vector2(1,1) },
+			new []{ new Vector2(0.5f,0.5f), new Vector2(1,0),  new Vector2(1,1) }
+		};
 		public void Draw(ResourceManager res, Lighting lighting, CommandBuffer buffer, NebulaRenderer nr)
 		{
             //Null check
@@ -114,8 +170,34 @@ namespace LibreLancer
 						}
 					}
 				}
+				if (field.BillboardCount != -1) {	
+					if (billboardTex == null || billboardTex.IsDisposed)
+						billboardTex = (Texture2D)res.FindTexture (field.BillboardShape.Texture);
+				
+					for (int i = 0; i < astbillboards.Length; i++) {
+						if (!astbillboards [i].Inited) {
+							astbillboards [i].Spawn (this);
+						}
+						var d = VectorMath.DistanceSquared (cameraPos, astbillboards [i].Position);
+						if (d < (field.BillboardDistance * field.BillboardDistance) || d > (field.FillDist * field.FillDist))
+							astbillboards [i].Spawn (this);
+						if (astbillboards [i].Visible) {
+							var alpha = 1f;
+							var coords = billboardCoords [astbillboards [i].Texture];
+							sys.Game.Billboards.DrawTri (
+								billboardTex,
+								astbillboards [i].Position,
+								astbillboards[i].Size,
+								new Color4(field.BillboardTint, alpha),
+								coords[0], coords[2], coords[1],
+								0,
+								SortLayers.OBJECT
+							);
+						}
+					}
+				}
 			}
-			//Billboards
+
 			//Band is last
 			if (renderBand)
 			{

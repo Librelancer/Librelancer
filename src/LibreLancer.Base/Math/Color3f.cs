@@ -30,6 +30,8 @@ namespace LibreLancer
 			G = g;
 			B = b;
 		}
+		public Color3f(Vector3 val) : this(val.X, val.Y, val.Z) {}
+
 		public override string ToString ()
 		{
 			return string.Format ("[R:{0}, G:{1}, B:{2}]", R, G, B);

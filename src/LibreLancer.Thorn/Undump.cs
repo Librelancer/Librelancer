@@ -16,6 +16,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Globalization;
 
 namespace LibreLancer.Thorn
 {
@@ -68,7 +69,7 @@ namespace LibreLancer.Thorn
 				return BitConverter.ToDouble (ReadBytes (stream, 8), 0);
 			} else {
 				int size = ReadByte (stream);
-				return double.Parse (Encoding.ASCII.GetString (ReadBytes (stream, size)));
+				return double.Parse (Encoding.ASCII.GetString (ReadBytes (stream, size)), CultureInfo.InvariantCulture);
 			}
 		}
 
@@ -81,19 +82,24 @@ namespace LibreLancer.Thorn
 				return null;
 		}
 
-		public static LuaPrototype Load (Stream stream)
+		public static bool Load (Stream stream, out LuaPrototype result)
 		{
 			int c = stream.ReadByte ();
 			if (c == IDCHUNK) {
-				return LoadChunk (stream);
+				result = LoadChunk (stream);
+				return result != null;
 			} else {
-				throw new Exception ("Not a Lua binary file");
+				result = null;
+				return false;
 			}
 		}
 
 		static LuaPrototype LoadChunk (Stream stream)
 		{
-			return LoadFunction (stream, LoadHeader (stream));
+			if (LoadSignature (stream)) {
+				return LoadFunction (stream, LoadHeader (stream));
+			} else
+				return null;
 		}
 
 		static byte[] LoadCode (Stream stream)
@@ -157,12 +163,13 @@ namespace LibreLancer.Thorn
 			return proto;
 		}
 
-		static void LoadSignature (Stream stream)
+		static bool LoadSignature (Stream stream)
 		{
 			byte[] buffer = new byte[3];
 			stream.Read (buffer, 0, 3);
 			if (buffer [0] != (byte)SIGNATURE [0] || buffer [1] != (byte)SIGNATURE [1] || buffer [2] != (byte)SIGNATURE [2])
-				throw new Exception ("Not a Lua binary file");
+				return false;
+			return true;
 		}
 
 		static bool LoadHeader (Stream stream)
@@ -170,7 +177,6 @@ namespace LibreLancer.Thorn
 			int version;
 			int sizeofR;
 			bool native;
-			LoadSignature (stream);
 			version = ReadByte (stream);
 			if (version > VERSION)
 				throw new Exception ("Lua too new at version " + version.ToString ("X"));

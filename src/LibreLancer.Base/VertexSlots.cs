@@ -28,9 +28,8 @@ namespace LibreLancer
 		public const int Normal = 2;
         public const int Texture1 = 3;
 		public const int Texture2 = 4;
-		public const int Texture3 = 5;
-		public const int Texture4 = 6;
-		public const int Size = 7;
-		public const int Angle = 8;
+		public const int Dimensions = 5;
+		public const int Right = 6;
+		public const int Up = 7;
     }
 }

@@ -31,18 +31,14 @@ namespace LibreLancer.Thorn
 		public Dictionary<string,object> DoFile(string filename)
 		{
 			using (var stream = File.OpenRead (filename)) {
-				LuaPrototype p = null;
-				try {
-					p = Undump.Load(stream);
-				} catch (Exception) {
-					stream.Position = 0;
-				}
-				if (p != null) {
+				LuaPrototype p;
+				if (Undump.Load(stream, out p)) {
 					var runtime = new LuaBinaryRuntime (p);
 					runtime.Env = Env;
 					runtime.Run ();
 					return runtime.Globals;
 				} else {
+					stream.Position = 0;
 					return DoTextFile (stream);
 				}
 			}

@@ -11,7 +11,7 @@ namespace Launcher
 		public MainWindow ()
 		{
 			Title = "Librelancer Launcher";
-			ClientSize = new Size (400, 100);
+			ClientSize = new Size (400, 150);
 			Resizable = false;
 			var layout = new TableLayout ();
 			layout.Spacing = new Size (2, 2);
@@ -29,6 +29,9 @@ namespace Launcher
 				new TableCell(textInput, true),
 				findButton
 			));
+			var skipMovies = new CheckBox () { Text = "Skip Intro Movies" };
+			skipMovies.CheckedChanged += SkipMovies_CheckedChanged;
+			layout.Rows.Add (new TableRow (skipMovies));
             if(Environment.OSVersion.Platform != PlatformID.Unix)
             {
                 var angleCheck = new CheckBox() { Text = "Force DX9 (Not Recommended)" };
@@ -45,6 +48,11 @@ namespace Launcher
 				)
 			);
 			Content = layout;
+		}
+
+		void SkipMovies_CheckedChanged (object sender, EventArgs e)
+		{
+			Program.SkipIntroMovies = ((CheckBox)sender).Checked ?? false;
 		}
 
         private void AngleCheck_CheckedChanged(object sender, EventArgs e)

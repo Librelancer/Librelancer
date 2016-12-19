@@ -70,10 +70,9 @@ namespace LibreLancer
             GL.BindAttribLocation(programID, VertexSlots.Color, "vertex_color");
             GL.BindAttribLocation(programID, VertexSlots.Texture1, "vertex_texture1");
 			GL.BindAttribLocation (programID, VertexSlots.Texture2, "vertex_texture2");
-			GL.BindAttribLocation (programID, VertexSlots.Texture3, "vertex_texture3");
-			GL.BindAttribLocation (programID, VertexSlots.Texture4, "vertex_texture4");
-			GL.BindAttribLocation (programID, VertexSlots.Size, "vertex_size");
-			GL.BindAttribLocation (programID, VertexSlots.Angle, "vertex_angle");
+			GL.BindAttribLocation (programID, VertexSlots.Dimensions, "vertex_dimensions");
+			GL.BindAttribLocation (programID, VertexSlots.Right, "vertex_right");
+			GL.BindAttribLocation (programID, VertexSlots.Up, "vertex_up");
 			//Fragment Outputs
 			//GL.BindFragDataLocation(programID, 0, "out_color0");
 			//GL.BindFragDataLocation(programID, 1, "out_color1");

@@ -26,6 +26,12 @@ namespace LibreLancer.GameData
 		public int CubeSize;
 		public int FillDist;
 		public float EmptyCubeFrequency;
+		public int BillboardCount;
+		public float BillboardDistance;
+		public float BillboardFadePercentage;
+		public TextureShape BillboardShape;
+		public Vector2 BillboardSize;
+		public Color3f BillboardTint;
 	}
 }
 

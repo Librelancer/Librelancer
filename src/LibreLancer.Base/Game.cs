@@ -357,7 +357,7 @@ namespace LibreLancer
 
         double CalcAverageTime(double newtick)
         {
-            timesum -= timelist[tickindex];
+            timesum -= timelist[timeindex];
             timesum += newtick;
             timelist[timeindex] = newtick;
             if (++timeindex == FPS_MAXSAMPLES)

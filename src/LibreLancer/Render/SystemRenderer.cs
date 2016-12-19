@@ -98,7 +98,7 @@ namespace LibreLancer
 			{
 				foreach (var a in system.AsteroidFields)
 				{
-					AsteroidFields.Add(new AsteroidFieldRenderer(a));
+					AsteroidFields.Add(new AsteroidFieldRenderer(a, this));
 				}
 			}
 

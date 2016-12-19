@@ -23,7 +23,7 @@ namespace LibreLancer
 		const int MAX_BILLBOARDS = 40000;
 
 		Shader shader;
-		VertexPositionColorTexture[] vertices;
+		BillboardVert[] vertices;
 		RenderData[] rendat;
 		VertexBuffer vbo;
 		ushort[] indices = new ushort[MAX_BILLBOARDS * 6];
@@ -37,11 +37,33 @@ namespace LibreLancer
 				"Billboard.frag"
 			);
 			shader.SetInteger("tex0", 0);
-			vertices = new VertexPositionColorTexture[MAX_BILLBOARDS * 4];
+			vertices = new BillboardVert[MAX_BILLBOARDS * 4];
 			rendat = new RenderData[MAX_BILLBOARDS];
-			vbo = new VertexBuffer(typeof(VertexPositionColorTexture), MAX_BILLBOARDS * 4, true);
+			vbo = new VertexBuffer(typeof(BillboardVert), MAX_BILLBOARDS * 4, true);
 			ibo = new ElementBuffer(MAX_BILLBOARDS * 6);
 			vbo.SetElementBuffer(ibo);
+		}
+		[StructLayout(LayoutKind.Sequential)]
+		struct BillboardVert : IVertexType
+		{
+			public Vector3 Position;
+			public Color4 Color;
+			public Vector2 TextureCoordinate;
+			public Vector3 Dimensions;
+			public Vector3 Right;
+			public Vector3 Up;
+			public VertexDeclaration GetVertexDeclaration()
+			{
+				return new VertexDeclaration (
+					sizeof(float) * 3 + sizeof(float) * 4 + sizeof(float) * 2 + sizeof(float) * 3 * 3,
+					new VertexElement (VertexSlots.Position, 3, VertexElementType.Float, false, 0),
+					new VertexElement (VertexSlots.Color, 4, VertexElementType.Float, false, sizeof(float) * 3),
+					new VertexElement (VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 7),
+					new VertexElement (VertexSlots.Dimensions, 3, VertexElementType.Float, false, sizeof(float) * 9),
+					new VertexElement (VertexSlots.Right, 3, VertexElementType.Float, false, sizeof(float) * 12),
+					new VertexElement (VertexSlots.Up, 3, VertexElementType.Float, false, sizeof(float) * 15)
+				);
+			}
 		}
 		struct RenderData
 		{
@@ -63,6 +85,22 @@ namespace LibreLancer
 				Index3 = (ushort)(idxStart + 1);
 				Index4 = (ushort)(idxStart + 3);
 				Index5 = (ushort)(idxStart + 2);
+			}
+			public static RenderData CreateTri(Texture tex, BlendMode blend, ushort idxStart)
+			{
+				var d = new RenderData ();
+				d.Texture = tex;
+				d.BlendMode = blend;
+				d.Index0 = idxStart;
+				d.Index1 = (ushort)(idxStart + 1);
+				d.Index2 = (ushort)(idxStart + 2);
+				d.Index3 = (ushort)(idxStart);
+				return d;
+			}
+			public bool Tri {
+				get {
+					return Index3 == Index0;
+				}
 			}
 			public override int GetHashCode()
 			{
@@ -156,41 +194,94 @@ namespace LibreLancer
 			);
 
 		}
+		/* Some pre-calculated values */
+		const float cos120 = -0.5000001f;
+		const float sin120 = 0.8660254f;
+		const float cos240 = -0.4999999f;
+		const float sin240 = -0.8660254f;
+		const float deg30 = -0.5235988f;
+
+		void CreateTriBillboard(Vector3 position, float radius, Color4 color, float angle, Vector2 texA, Vector2 texB, Vector2 texC, Vector3 src_right, Vector3 src_up)
+		{
+			/* Create triangle points */
+			var rOn2 = radius * 0.5f; //this should be much faster than division
+			var rOn4 = radius * 0.25f;
+			var ptC = new Vector3 (0, -(rOn2), angle);
+			var ptB = new Vector3 (-rOn2 * sin120, -rOn2 * cos120, angle);
+			var ptA = new Vector3 (-rOn4 * sin240, -rOn4 * cos240, angle); //triangle is half as tall as it is wide
+
+			vertices [vertexCount++] = new BillboardVert () 
+			{
+				Position = position,
+				Color = color,
+				TextureCoordinate = texA,
+				Dimensions = ptA,
+				Right = src_right,
+				Up = src_up
+			};
+
+			vertices [vertexCount++] = new BillboardVert () 
+			{
+				Position = position,
+				Color = color,
+				TextureCoordinate = texB,
+				Dimensions = ptB,
+				Right = src_right,
+				Up = src_up
+			};
+
+			vertices [vertexCount++] = new BillboardVert () 
+			{
+				Position = position,
+				Color = color,
+				TextureCoordinate = texC,
+				Dimensions = ptC,
+				Right = src_right,
+				Up = src_up
+			};
+		}
 
 		void CreateBillboard(Vector3 position, Vector2 size, Color4 color, float angle, Vector2 topleft, Vector2 topright, Vector2 bottomleft, Vector2 bottomright, Vector3 src_right, Vector3 src_up)
 		{
-			var s = (float)Math.Sin(angle);
-			var c = (float)Math.Cos(angle);
-			var up = c * src_right - s * src_up;
-			var right = s * src_right + c * src_up;
-
-			var sz1 = size * -0.5f;
-			var sz2 = size * new Vector2(0.5f, -0.5f);
-			var sz3 = size * new Vector2(-0.5f, 0.5f);
-			var sz4 = size * 0.5f;
-			vertices[vertexCount++] = new VertexPositionColorTexture()
+			var sz1 = new Vector3 (size.X * -0.5f, size.Y * -0.5f, angle);
+			var sz2 = new Vector3(size.X * 0.5f, size.Y * -0.5f, angle);
+			var sz3 = new Vector3(size.X * -0.5f, size.Y * 0.5f, angle);
+			var sz4 = new Vector3 (size.X * 0.5f, size.Y * 0.5f, angle);
+			vertices[vertexCount++] = new BillboardVert()
 			{
-				Position = position + (right * sz1.X) + (up * sz1.Y),
+				Position = position,
 				Color = color,
-				TextureCoordinate = bottomleft
+				TextureCoordinate = bottomleft,
+				Dimensions = sz1,
+				Right = src_right,
+				Up = src_up
 			};
-			vertices[vertexCount++] = new VertexPositionColorTexture()
+			vertices[vertexCount++] = new BillboardVert()
 			{
-				Position = position + (right * sz2.X) + (up * sz2.Y),
+				Position = position,
 				Color = color,
-				TextureCoordinate = topleft
+				TextureCoordinate = topleft,
+				Dimensions = sz2,
+				Right = src_right,
+				Up = src_up
 			};
-			vertices[vertexCount++] = new VertexPositionColorTexture()
+			vertices[vertexCount++] = new BillboardVert()
 			{
-				Position = position + (right * sz3.X) + (up * sz3.Y),
+				Position = position,
 				Color = color,
-				TextureCoordinate = bottomright
+				TextureCoordinate = bottomright,
+				Dimensions = sz3,
+				Right = src_right,
+				Up = src_up
 			};
-			vertices[vertexCount++] = new VertexPositionColorTexture()
+			vertices[vertexCount++] = new BillboardVert()
 			{
-				Position = position + (right * sz4.X) + (up * sz4.Y),
+				Position = position,
 				Color = color,
-				TextureCoordinate = topright
+				TextureCoordinate = topright,
+				Dimensions = sz4,
+				Right = src_right,
+				Up = src_up
 			};
 		}
 
@@ -210,7 +301,6 @@ namespace LibreLancer
 		)
 		{
 			var right = Vector3.Cross(normal, Vector3.UnitY).Normalized();
-
 			rendat[billboardCount] = new RenderData(
 				texture,
 				blend,
@@ -227,6 +317,46 @@ namespace LibreLancer
 				bottomright,
 				right,
 				Vector3.UnitY
+			);
+			var z = RenderHelpers.GetZ(camera.Position, Position);
+			buffer.AddCommand(
+				this,
+				rendat[billboardCount].GetHashCode(),
+				billboardCount,
+				layer,
+				z
+			);
+			billboardCount++;
+		}
+
+		public void DrawTri(
+			Texture2D texture,
+			Vector3 Position,
+			float radius,
+			Color4 color,
+			Vector2 texa,
+			Vector2 texb,
+			Vector2 texc,
+			float angle,
+			int layer,
+			BlendMode blend = BlendMode.Normal
+		)
+		{
+			rendat[billboardCount] = RenderData.CreateTri(
+				texture,
+				blend,
+				(ushort)vertexCount
+			);
+			CreateTriBillboard(
+				Position,
+				radius,
+				color,
+				angle,
+				texa,
+				texb,
+				texc,
+				camera.View.GetRight(),
+				camera.View.GetUp()
 			);
 			var z = RenderHelpers.GetZ(camera.Position, Position);
 			buffer.AddCommand(
@@ -292,11 +422,14 @@ namespace LibreLancer
             indices[fillCount++] = dat.Index0;
             indices[fillCount++] = dat.Index1;
             indices[fillCount++] = dat.Index2;
-            indices[fillCount++] = dat.Index3;
-            indices[fillCount++] = dat.Index4;
-            indices[fillCount++] = dat.Index5;
+			if (!dat.Tri) {
+				indices [fillCount++] = dat.Index3;
+				indices [fillCount++] = dat.Index4;
+				indices [fillCount++] = dat.Index5;
+			}
             _iboFilled = false;
         }
+
         bool _iboFilled = false;
 		public void RenderStandard(int index, int hash, RenderState rs)
 		{
@@ -305,7 +438,7 @@ namespace LibreLancer
 			lasthash = hash;
 			datindex = index;
 			var dat = rendat[index];
-            indexCount += 6;
+			indexCount += dat.Tri ? 3 : 6;
 			/*indices[indexCount++] = dat.Index0;
 			indices[indexCount++] = dat.Index1;
 			indices[indexCount++] = dat.Index2;

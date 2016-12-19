@@ -258,10 +258,13 @@ namespace LibreLancer
 		{
 			var a = new GameData.AsteroidField();
 			a.Zone = sys.Zones.Where((z) => z.Nickname.ToLower() == ast.ZoneName.ToLower()).First();
-			if (ast.Band != null) {
-				var panels = new Legacy.Universe.TexturePanels (ast.TexturePanels.File);
+			Legacy.Universe.TexturePanels panels = null;
+			if (ast.TexturePanels != null) {
+				panels = new Legacy.Universe.TexturePanels (ast.TexturePanels.File);
 				foreach (var txmfile in panels.Files)
 					resource.LoadTxm (Compatibility.VFS.GetPath (fldata.Freelancer.DataPath + txmfile));
+			}
+			if (ast.Band != null) {
 				a.Band = new GameData.AsteroidBand ();
 				a.Band.RenderParts = ast.Band.RenderParts.Value;
 				a.Band.Height = ast.Band.Height.Value;
@@ -310,6 +313,23 @@ namespace LibreLancer
 					}
 					a.ExclusionZones.Add(e);
 				}
+			}
+			a.BillboardCount = ast.AsteroidBillboards == null ? -1 : ast.AsteroidBillboards.Count.Value;
+			if (a.BillboardCount != -1) {
+				a.BillboardDistance = ast.AsteroidBillboards.StartDist.Value;
+				a.BillboardFadePercentage = ast.AsteroidBillboards.FadeDistPercent.Value;
+				Compatibility.GameData.Universe.TextureShape sh = null;
+				if (panels != null)
+					sh = panels.Shapes [ast.AsteroidBillboards.Shape];
+				else
+					sh = new Legacy.Universe.TextureShape (ast.AsteroidBillboards.Shape, ast.AsteroidBillboards.Shape, new RectangleF (0, 0, 1, 1));
+				a.BillboardShape = new TextureShape () {
+					Texture = sh.TextureName,
+					Dimensions = sh.Dimensions,
+					Nickname = ast.AsteroidBillboards.Shape
+				};
+				a.BillboardSize = ast.AsteroidBillboards.Size.Value;
+				a.BillboardTint = new Color3f (ast.AsteroidBillboards.ColorShift ?? Vector3.One);
 			}
 			return a;
 		}

@@ -94,7 +94,7 @@ namespace LibreLancer.Media
 				Playing = false;
 			}
 		}
-		const int LC_NUMERIC = 4;
+		static readonly int LC_NUMERIC = Platform.RunningOS == OS.Linux ? 1 : 4;
 
 		[DllImport("libc")]
 		public static extern IntPtr setlocale (int category, [MarshalAs (UnmanagedType.LPStr)]string locale);
