@@ -96,7 +96,8 @@ namespace LibreLancer
 					);
 					if (camera.Frustum.Intersects(bsphere)) {
 						var lighting = RenderHelpers.ApplyLights(lights, center, Model.Levels[0].Radius, nr);
-						if (!lighting.FogEnabled || VectorMath.Distance(camera.Position, center) <= Model.Levels[0].Radius + lighting.FogRange.Y)
+						var r = Model.Levels [0].Radius + lighting.FogRange.Y;
+						if (!lighting.FogEnabled || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
 							Model.DrawBuffer(commands, World, lighting);
 					}
 				}
@@ -119,7 +120,8 @@ namespace LibreLancer
 						if (camera.Frustum.Intersects(bsphere))
 						{
 							var lighting = RenderHelpers.ApplyLights(lights, center, model.Levels[0].Radius, nr);
-							if (!lighting.FogEnabled || VectorMath.Distance(camera.Position, center) <= model.Levels[0].Radius + lighting.FogRange.Y)
+							var r = model.Levels [0].Radius + lighting.FogRange.Y;
+							if (!lighting.FogEnabled || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
 								model.DrawBuffer(commands, w, lighting);
 						}
 					}
@@ -132,7 +134,8 @@ namespace LibreLancer
 				if (camera.Frustum.Intersects(bsphere))
 				{
 					var l = RenderHelpers.ApplyLights(lights, pos, Sph.Radius, nr);
-					if(!l.FogEnabled || VectorMath.Distance(camera.Position, pos) <= Sph.Radius + l.FogRange.Y)
+					var r = Sph.Radius + l.FogRange.Y;
+					if(!l.FogEnabled || VectorMath.DistanceSquared(camera.Position, pos) <= (r * r))
 						Sph.DrawBuffer(commands, World, l);
 				}
 			}

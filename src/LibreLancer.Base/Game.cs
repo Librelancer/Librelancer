@@ -324,6 +324,8 @@ namespace LibreLancer
                     angle.SwapBuffers();
                 else
 				    SDL.SDL_GL_SwapWindow (sdlWin);
+				if (GL.FrameHadErrors ()) //If there was a GL error, track it down.
+					GL.ErrorChecking = true;
                 elapsed = timer.Elapsed.TotalSeconds - last;
                 renderFrequency = (1.0 / CalcAverageTick(elapsed));
                 last = timer.Elapsed.TotalSeconds;

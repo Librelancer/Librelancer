@@ -61,29 +61,39 @@ namespace LibreLancer
 		/// <returns><c>true</c> if the cube is present, <c>false</c> otherwise.</returns>
 		/// <param name="cubePos">Cube position.</param>
 		/// <param name="fill_rate">Fill rate.</param>
-		public static bool CubeExists(Vector3 cubePos, float empty_frequency)
+		public static unsafe bool CubeExists(Vector3 cubePos, float empty_frequency)
 		{
 			//Check for fill rate
 			if (empty_frequency < float.Epsilon)
 				return true;
 			if (empty_frequency >= 1)
 				return false;
-			//Create the 128-bit Seed
-			ulong s0 = ((ulong)cubePos.X << 32) | ((ulong)cubePos.Y);
-			ulong s1 = ((ulong)cubePos.Z << 32) | (ulong)(uint)((double)empty_frequency * uint.MaxValue);
-			//XORSHIFT it 3 times
-			ulong rand = 0;
-			for (int i = 0; i < 3; i++) {
-				ulong x = s0;
-				ulong y = s1;
-				s0 = y;
-				x ^= x << 23;
-				s1 = x ^ y ^ (x >> 17) ^ (y >> 26);
-				rand = s1 + y;
-			}
-			//Make a floating point number
-			var n = (double)rand / (double)UInt64.MaxValue;
-			return n > empty_frequency;
+			//integer hash
+			var u = (uint*)&cubePos;
+			var h = hash (u [0]) ^ hash (u [1]) ^ hash (u [2]);
+			//get float
+			var f = constructFloat(h);
+			return f < empty_frequency;
+		}
+		//return a float between [0,1] for a hash
+		static unsafe float constructFloat(uint m)
+		{
+			const uint ieeeMantissa = 0x007FFFFFu;
+			const uint ieeeOne = 0x3F800000u;
+			m &= ieeeMantissa;
+			m |= ieeeOne;
+			float f = *(float*)&m;
+			return f - 1.0f;
+		}
+		//simple hash function
+		static uint hash(uint x)
+		{
+			x += (x << 10);
+			x ^= (x >> 6);
+			x += (x << 3);
+			x ^= (x >> 11);
+			x += (x << 15);
+			return x;
 		}
 	}
 }

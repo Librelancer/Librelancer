@@ -36,8 +36,9 @@ namespace LibreLancer
 			for(int i = 0; i < src.Lights.Count; i++)
 			{
                 var l = src.Lights[i];
+				var r2 = r + l.Range;
 				if (l.Kind == LightKind.Point &&
-					VectorMath.Distance(l.Position, c) > r + l.Range)
+					VectorMath.DistanceSquared(l.Position, c) > (r2 * r2))
 					continue;
 				lights.Lights.Add(l);
 			}

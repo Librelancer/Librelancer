@@ -24,7 +24,11 @@ namespace LibreLancer.GameData
 		public List<StaticAsteroid> Cube;
 		public List<ExclusionZone> ExclusionZones;
 		public int CubeSize;
-		public int FillDist;
+		public float FillDist { get; private set; }
+		public void SetFillDist(int fillDist)
+		{
+			FillDist = fillDist * FILLDIST_MULTIPLIER;
+		}
 		public float EmptyCubeFrequency;
 		public int BillboardCount;
 		public float BillboardDistance;
@@ -32,6 +36,10 @@ namespace LibreLancer.GameData
 		public TextureShape BillboardShape;
 		public Vector2 BillboardSize;
 		public Color3f BillboardTint;
+
+		//Multiplier hardcoded in Freelancer's common.dll
+		const float FILLDIST_MULTIPLIER = 1.74f;
+
 	}
 }
 

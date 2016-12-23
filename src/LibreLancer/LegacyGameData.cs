@@ -277,7 +277,7 @@ namespace LibreLancer
 			}
 			a.Cube = new List<GameData.StaticAsteroid> ();
 			a.CubeSize = ast.Field.CubeSize.Value;
-			a.FillDist = ast.Field.FillDist.Value;
+			a.SetFillDist(ast.Field.FillDist.Value);
 			a.EmptyCubeFrequency = ast.Field.EmptyCubeFrequency ?? 0f;
 			foreach (var c in ast.Cube) {
 				var sta = new GameData.StaticAsteroid () {

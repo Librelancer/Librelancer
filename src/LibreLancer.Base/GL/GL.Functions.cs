@@ -270,7 +270,7 @@ namespace LibreLancer
 
         public static bool GLES = true;
 		static Dictionary<int, string> errors;
-        public static bool ErrorChecking = true;
+        public static bool ErrorChecking = false;
 
 		public static void LoadSDL()
 		{
@@ -361,6 +361,16 @@ namespace LibreLancer
             }
 		}
 
+		public static bool FrameHadErrors()
+		{
+			bool hasErrors = false;
+			var err = GetError ();
+			while (err != 0) {
+				hasErrors = true;
+				err = GetError ();
+			}
+			return hasErrors;
+		}
 
 	}
 }

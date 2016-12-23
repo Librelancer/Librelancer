@@ -25,9 +25,11 @@ namespace LibreLancer
 		//public List<RenderCommand> Commands = new List<RenderCommand>();
 		RenderCommand[] Commands = new RenderCommand[MAX_COMMANDS];
 		int currentCommand = 0;
+		Action _transparentSort;
 		public void StartFrame()
 		{
 			currentCommand = 0;
+			_transparentSort = SortTransparent;
 		}
 		public void AddCommand(RenderMaterial material, Matrix4 world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, int layer, float z = 0)
 		{
@@ -101,8 +103,11 @@ namespace LibreLancer
 				Transparent = true
 			};
 		}
+		bool _sorted = false;
 		public void DrawOpaque(RenderState state)
 		{
+			_sorted = false;
+			AsyncManager.RunTask (_transparentSort);
 			for (int i = 0; i < currentCommand; i++)
 			{
 				if (!Commands[i].Transparent)
@@ -112,11 +117,10 @@ namespace LibreLancer
 				
 			}
 		}
-		int[] cmdptr = new int[MAX_COMMANDS];
-		public void DrawTransparent(RenderState state)
+
+		void SortTransparent()
 		{
 			int a = 0;
-
 			for (int i = 0; i < currentCommand; i++)
 			{
 				if (Commands[i].Transparent)
@@ -125,7 +129,17 @@ namespace LibreLancer
 				}
 			}
 			Array.Sort<int>(cmdptr, 0, a, new ZComparer(Commands));
-            for (int i = a - 1; i >= 0; i--)
+			transparentCount = a;
+			_sorted = true;
+		}
+
+		int[] cmdptr = new int[MAX_COMMANDS];
+		int transparentCount = 0;
+		public void DrawTransparent(RenderState state)
+		{
+			while (!_sorted) {
+			}
+            for (int i = transparentCount - 1; i >= 0; i--)
             {
                 if(Commands[cmdptr[i]].CmdType == RenderCmdType.Billboard)
                 {
@@ -133,7 +147,7 @@ namespace LibreLancer
                 }
             }
                 Billboards lastbb = null;
-			for (int i = a - 1; i >= 0; i--)
+			for (int i = transparentCount - 1; i >= 0; i--)
 			{
 				if (lastbb != null && Commands[cmdptr[i]].CmdType != RenderCmdType.Billboard)
 				{
