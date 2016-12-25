@@ -270,10 +270,18 @@ namespace LibreLancer
 			l0.DrawBuffer(buffer, world, Lighting.Empty);
 		}
         static Shader _puffringsh;
+		static int _ptex0;
+		static int _pfogcolor;
+		static int _pfogfactor;
         Shader GetPuffShader(Billboards bl)
         {
-            if (_puffringsh == null)
-                _puffringsh = bl.GetShader("nebula_extpuff.frag");
+			if (_puffringsh == null)
+			{
+				_puffringsh = bl.GetShader("nebula_extpuff.frag");
+				_ptex0 = _puffringsh.GetLocation("tex0");
+				_pfogcolor = _puffringsh.GetLocation("FogColor");
+				_pfogfactor = _puffringsh.GetLocation("FogFactor");
+			}
             return _puffringsh;
         }
 		void DrawPuffRing(bool inside)
@@ -304,10 +312,10 @@ namespace LibreLancer
 		static Action<Shader, RenderState, RenderUserData> _setupPuffDelegate = SetupPuffShader;
 		static void SetupPuffShader(Shader sh, RenderState rs, RenderUserData dat)
 		{
-			sh.SetInteger("tex0", 0);
+			sh.SetInteger(_ptex0, 0);
 			dat.Texture.BindTo(0);
-			sh.SetColor4("FogColor", dat.Color);
-			sh.SetFloat("FogFactor", dat.Float);
+			sh.SetColor4(_pfogcolor, dat.Color);
+			sh.SetFloat(_pfogfactor, dat.Float);
 		}
 
 		void GenerateExteriorPuffs()

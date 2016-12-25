@@ -28,7 +28,10 @@ namespace LibreLancer
 		int currentVerts = 0;
 		int currentIndex = 0;
 		VertexPositionTexture[] verts;
-
+		static int _viewproj;
+		static int _world;
+		static int _tint;
+		static int _texture;
 		public NebulaVertices()
 		{
 			verts = new VertexPositionTexture[MAX_QUADS * 4];
@@ -49,7 +52,11 @@ namespace LibreLancer
 			el = new ElementBuffer(indices.Length);
 			el.SetData(indices);
 			vbo.SetElementBuffer(el);
-			shader = ShaderCache.Get("NebulaInterior.vs", "NebulaInterior.frag");
+			shader = ShaderCache.Get("NebulaInterior.vs", "NebulaInterior.frag").Shader;
+			_viewproj = shader.GetLocation("ViewProjection");
+			_world = shader.GetLocation("World");
+			_tint = shader.GetLocation("Tint");
+			_texture = shader.GetLocation("Texture");
 		}
 
 		public void SubmitQuad(
@@ -96,10 +103,10 @@ namespace LibreLancer
 		{
 			state.Cull = false;
 			state.BlendMode = BlendMode.Normal;
-			shader.SetMatrix("ViewProjection", ref command.UserData.ViewProjection);
-			shader.SetMatrix("World", ref command.World);
-			shader.SetColor4("Tint", command.UserData.Color);
-			shader.SetInteger("Texture", 0);
+			shader.SetMatrix(_viewproj, ref command.UserData.ViewProjection);
+			shader.SetMatrix(_world, ref command.World);
+			shader.SetColor4(_tint, command.UserData.Color);
+			shader.SetInteger(_texture, 0);
 			command.UserData.Texture.BindTo(0);
 		}
 		static Action<RenderState> resetDelegate = ResetState;

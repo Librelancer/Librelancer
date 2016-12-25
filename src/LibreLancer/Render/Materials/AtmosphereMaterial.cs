@@ -29,7 +29,7 @@ namespace LibreLancer
 		public float Fade;
 		public float Scale;
 
-		Shader GetShader(IVertexType vertextype)
+		ShaderVariables GetShader(IVertexType vertextype)
 		{
 			switch (vertextype.GetType ().Name) {
 			case "VertexPositionNormalTexture":
@@ -44,18 +44,18 @@ namespace LibreLancer
 
 		public override void Use (RenderState rstate, IVertexType vertextype, Lighting lights)
 		{
-			rstate.DepthEnabled = true;
+			/*rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Normal;
 			var sh = GetShader (vertextype);
 			//mat4x4 normalMatrix = transpose(inverse(View * World));
 
-			sh.SetColor4 ("Ac", Ac);
-			sh.SetColor4 ("Dc", Dc);
+			sh.SetAc(Ac);
+			sh.SetDc(Dc);
 			sh.SetVector3 ("CameraPosition", CameraPosition);
 			sh.SetFloat ("Alpha", Alpha);
 			sh.SetFloat ("Fade", Fade);
 			sh.SetFloat ("Scale", Scale);
-			sh.SetMatrix ("World", ref World);
+			sh.SetWorld(ref World);
 			sh.SetMatrix ("ViewProjection", ref ViewProjection);
 			sh.SetMatrix("View", ref View);
 			//BindTexture (DtSampler, 0, DtFlags);
@@ -63,7 +63,7 @@ namespace LibreLancer
 			normalmat.Invert();
 			normalmat.Normalize();
 			sh.SetMatrix("NormalMatrix", ref normalmat);
-			sh.UseProgram ();
+			sh.UseProgram ();*/
 		}
 		public override bool IsTransparent
 		{

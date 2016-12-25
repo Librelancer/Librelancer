@@ -12,7 +12,7 @@ namespace LibreLancer
 		VertexBuffer linebuffer;
 		int lineVertices = 0;
 
-		Shader shader;
+		ShaderVariables shader;
 		public PhysicsDebugRenderer()
 		{
 			shader = ShaderCache.Get("physicsdebug.vs", "physicsdebug.frag");
@@ -73,7 +73,7 @@ namespace LibreLancer
 			rstate.Cull = false;
 			rstate.DepthEnabled = false;
 			var vp = camera.ViewProjection;
-			shader.SetMatrix("ViewProjection", ref vp);
+			shader.SetViewProjection(ref vp);
 			shader.UseProgram();
 			linebuffer.SetData(lines, lineVertices);
 			linebuffer.Draw(PrimitiveTypes.LineList, lineVertices / 2);

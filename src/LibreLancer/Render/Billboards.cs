@@ -22,7 +22,7 @@ namespace LibreLancer
 	{
 		const int MAX_BILLBOARDS = 40000;
 
-		Shader shader;
+		ShaderVariables shader;
 		BillboardVert[] vertices;
 		RenderData[] rendat;
 		VertexBuffer vbo;
@@ -36,7 +36,7 @@ namespace LibreLancer
 				"Billboard.vs",
 				"Billboard.frag"
 			);
-			shader.SetInteger("tex0", 0);
+			shader.Shader.SetInteger(shader.Shader.GetLocation("tex0"), 0);
 			vertices = new BillboardVert[MAX_BILLBOARDS * 4];
 			rendat = new RenderData[MAX_BILLBOARDS];
 			vbo = new VertexBuffer(typeof(BillboardVert), MAX_BILLBOARDS * 4, true);
@@ -129,7 +129,7 @@ namespace LibreLancer
             return ShaderCache.Get(
                 "Billboard.vs",
                 shader
-            );
+            ).Shader;
         }
 
 		public void DrawCustomShader(
@@ -479,15 +479,31 @@ namespace LibreLancer
             lastIndex += indexCount;
 			indexCount = 0;
 		}
-
+		[StructLayout(LayoutKind.Explicit)]
+		struct SplitInt
+		{
+			[FieldOffset(0)]
+			public short A;
+			[FieldOffset(2)]
+			public short B;
+			[FieldOffset(0)]
+			public int I;
+		}
 		static Action<Shader, RenderState, RenderCommand> _setupDelegateCustom = SetupShaderCustom;
 		static void SetupShaderCustom(Shader shdr, RenderState rs, RenderCommand cmd)
 		{
 			rs.Cull = false;
 			rs.BlendMode = BlendMode.Normal;
 			cmd.UserData.UserFunction(shdr,rs, cmd.UserData);
-			shdr.SetMatrix("View", ref cmd.World);
-			shdr.SetMatrix("ViewProjection", ref cmd.UserData.ViewProjection);
+			var splt = new SplitInt() { I = shdr.UserTag };
+			if (shdr.UserTag == 0)
+			{
+				splt.A = (short)shdr.GetLocation("View");
+				splt.B = (short)shdr.GetLocation("ViewProjection");
+				shdr.UserTag = splt.I;
+			}
+			shdr.SetMatrix(splt.A, ref cmd.World);
+			shdr.SetMatrix(splt.B, ref cmd.UserData.ViewProjection);
 			int idxStart = cmd.UserData.Integer;
 			var indices = (ushort[])cmd.UserData.Object;
 			indices[0] = (ushort)idxStart;

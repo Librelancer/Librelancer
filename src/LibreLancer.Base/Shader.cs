@@ -85,30 +85,18 @@ namespace LibreLancer
 				Console.WriteLine (GL.GetProgramInfoLog (programID));
 				throw new Exception ("Program link failed");
 			}
-
-			viewProjectionLoc = GetLocation("ViewProjection");
-			viewLoc = GetLocation("View");
-			worldLoc = GetLocation("World");
         }
-		int viewProjectionLoc = 0; 
-		int viewLoc = 0;
-		int worldLoc = 0;
 
 		public int UserTag = 0;
 		bool NeedUpdate(int loc, int hash)
 		{
             return cachedObjects[loc] != hash;
 		}
-        int GetLocation(string name)
-        {
-            int loc;
-            if(!progLocations.TryGetValue(name, out loc))
-            {
-                loc = GL.GetUniformLocation(programID, name);
-                progLocations[name] = loc;
-            }
-            return loc;
-        }
+
+		public int GetLocation(string name)
+		{
+			return GL.GetUniformLocation(programID, name);
+		}
 
 		void SetMatrixInternal(int loc, ref Matrix4 mat)
 		{
@@ -122,37 +110,15 @@ namespace LibreLancer
 			//}
 		}
 
-        public void SetMatrix(string name, ref Matrix4 mat)
+        public void SetMatrix(int loc, ref Matrix4 mat)
         {
             GLBind.UseProgram(programID);
-			var loc = GetLocation (name);
-			if (loc == -1)
-				return;
 			SetMatrixInternal(loc, ref mat);
         }
 
-		public void SetWorld(ref Matrix4 mat)
+		public void SetInteger(int loc, int value, int index = 0)
 		{
 			GLBind.UseProgram(programID);
-            SetMatrixInternal(worldLoc, ref mat);
-		}
-		public void SetView(ref Matrix4 mat)
-		{
-			GLBind.UseProgram(programID);
-			SetMatrixInternal(viewLoc, ref mat);
-		}
-		public void SetViewProjection(ref Matrix4 mat)
-		{
-			GLBind.UseProgram(programID);
-			SetMatrixInternal(viewProjectionLoc, ref mat);
-		}
-
-		public void SetInteger(string name, int value, int index = 0)
-		{
-			GLBind.UseProgram(programID);
-			var loc = GetLocation (name);
-			if (loc == -1)
-				return;
 			if (NeedUpdate (loc + index, value)) {
 				GL.Uniform1i (loc + index, value);
                 cachedObjects[loc + index] = value;
@@ -166,12 +132,9 @@ namespace LibreLancer
             [FieldOffset(0)]
             public float f;
         }
-        public void SetFloat(string name, float value, int index = 0)
+        public void SetFloat(int loc, float value, int index = 0)
         {
             GLBind.UseProgram(programID);
-			var loc = GetLocation (name);
-			if (loc == -1)
-				return;
             var ibits = (new Float2Int() { f = value }).i;
 			if (NeedUpdate (loc + index, ibits)) {
 				GL.Uniform1f (loc + index, value);
@@ -179,12 +142,9 @@ namespace LibreLancer
 			}
         }
 
-		public void SetColor4(string name, Color4 value, int index = 0)
+		public void SetColor4(int loc, Color4 value, int index = 0)
 		{
 			GLBind.UseProgram(programID);
-			var loc = GetLocation (name);
-			if (loc == -1)
-				return;
             var hash = value.GetHashCode();
 			if (NeedUpdate (loc + index, hash)) {
 				GL.Uniform4f (loc + index, value.R, value.G, value.B, value.A);
@@ -192,12 +152,9 @@ namespace LibreLancer
 			}
 		}
 
-		public void SetVector4(string name, Vector4 value, int index = 0)
+		public void SetVector4(int loc, Vector4 value, int index = 0)
 		{
 			GLBind.UseProgram(programID);
-			var loc = GetLocation(name);
-			if (loc == -1)
-				return;
             var hash = value.GetHashCode();
 			if (NeedUpdate(loc + index, hash))
 			{
@@ -206,12 +163,9 @@ namespace LibreLancer
 			}
 		}
 
-		public void SetVector3(string name, Vector3 vector, int index = 0)
+		public void SetVector3(int loc, Vector3 vector, int index = 0)
 		{
 			GLBind.UseProgram (programID);
-			var loc = GetLocation (name);
-			if (loc == -1)
-				return;
             var hash = vector.GetHashCode();
 			if (NeedUpdate (loc + index, hash)) {
 				GL.Uniform3f (loc + index, vector.X, vector.Y, vector.Z);
@@ -219,12 +173,9 @@ namespace LibreLancer
 			}
 		}
 
-		public void SetVector2(string name, Vector2 vector, int index = 0)
+		public void SetVector2(int loc, Vector2 vector, int index = 0)
 		{
 			GLBind.UseProgram(programID);
-			var loc = GetLocation(name);
-			if (loc == -1)
-				return;
             var hash = vector.GetHashCode();
 			if (NeedUpdate(loc + index, hash))
 			{

@@ -30,8 +30,8 @@ namespace LibreLancer
 		public string DtSampler;
 		public SamplerFlags DtFlags;
 
-        static Shader sh_posNormalTexture;
-		static Shader GetShader(IVertexType vertextype) {
+        static ShaderVariables sh_posNormalTexture;
+		static ShaderVariables GetShader(IVertexType vertextype) {
 			if (vertextype.GetType ().Name == "VertexPositionNormalTexture") {
                 if(sh_posNormalTexture == null)
 				return ShaderCache.Get (
@@ -48,26 +48,26 @@ namespace LibreLancer
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Opaque;
 
-			Shader sh = GetShader (vertextype);
+			ShaderVariables sh = GetShader (vertextype);
 			sh.SetWorld (ref World);
 			sh.SetView (ref View);
 			sh.SetViewProjection (ref ViewProjection);
 
-			sh.SetColor4 ("Ac", Ac);
-			sh.SetColor4 ("Dc", Dc);
-			sh.SetFloat ("TileRate", TileRate);
-			sh.SetInteger ("FlipU", FlipU);
-			sh.SetInteger ("FlipV", FlipV);
+			sh.SetAc(Ac);
+			sh.SetDc(Dc);
+			sh.SetTileRate(TileRate);
+			sh.SetFlipU(FlipU);
+			sh.SetFlipV(FlipV);
 
-			sh.SetInteger ("DtSampler", 0);
+			sh.SetDtSampler(0);
 			BindTexture (0, DtSampler, 0, DtFlags);
-			sh.SetInteger ("DmSampler", 1);
+			sh.SetDmSampler(1);
 			BindTexture (1, DmSampler, 1, DmFlags);
 			SetLights(sh, lights);
 			var normalMatrix = World;
 			normalMatrix.Invert();
 			normalMatrix.Transpose();
-			sh.SetMatrix("NormalMatrix", ref normalMatrix);
+			sh.SetNormalMatrix(ref normalMatrix);
 			sh.UseProgram ();
 		}
 		public override bool IsTransparent

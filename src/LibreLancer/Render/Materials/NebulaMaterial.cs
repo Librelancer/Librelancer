@@ -25,7 +25,7 @@ namespace LibreLancer
 		public NebulaMaterial ()
 		{
 		}
-		Shader GetShader(IVertexType vtype)
+		ShaderVariables GetShader(IVertexType vtype)
 		{
 			switch (vtype.GetType ().Name) {
 			case "VertexPositionNormalColorTexture":
@@ -47,10 +47,10 @@ namespace LibreLancer
 			//fragment shader you multiply tex sampler rgb by vertex color and alpha the same (that is should texture have alpha of its own, sometimes they may as well)
 			rstate.BlendMode = BlendMode.Additive;
 			var shader = GetShader(vertextype);
-			shader.SetMatrix ("World", ref World);
-			shader.SetMatrix ("ViewProjection", ref ViewProjection);
+			shader.SetWorld(ref World);
+			shader.SetViewProjection(ref ViewProjection);
 			//Dt
-			shader.SetInteger ("DtSampler", 0);
+			shader.SetDtSampler(0);
 			BindTexture (0, DtSampler, 0, DtFlags);
 			shader.UseProgram ();
 		}

@@ -23,16 +23,15 @@ namespace LibreLancer
 {
     static class ShaderCache
     {
-        static Dictionary<Strings2, Shader> shaders = new Dictionary<Strings2, Shader>();
-		static Dictionary<Strings3, Shader> shaderGeo = new Dictionary<Strings3, Shader>();
-        public static Shader Get(string vs, string fs)
+        static Dictionary<Strings2, ShaderVariables> shaders = new Dictionary<Strings2, ShaderVariables>();
+        public static ShaderVariables Get(string vs, string fs)
 		{
 			var k = new Strings2 (vs, fs);
-            Shader sh;
+            ShaderVariables sh;
 			if (!shaders.TryGetValue(k, out sh)) {
 				FLLog.Debug ("Shader", "Compiling [ " + vs + " , " + fs + " ]");
-                sh = new Shader(
-                    LoadEmbedded("LibreLancer.Shaders." + vs), ProcessIncludes(LoadEmbedded("LibreLancer.Shaders." + fs))
+                sh = new ShaderVariables(
+					new Shader(LoadEmbedded("LibreLancer.Shaders." + vs), ProcessIncludes(LoadEmbedded("LibreLancer.Shaders." + fs)))
                 );
                 shaders.Add(k, sh);
 			}
@@ -51,21 +50,6 @@ namespace LibreLancer
 				m = findincludes.Match(newsrc);
 			}
 			return newsrc;
-		}
-		public static Shader Get(string vs, string fs, string gs)
-		{
-			var k = new Strings3 (vs, fs, gs);
-            Shader sh;
-			if (!shaderGeo.TryGetValue (k, out sh)) {
-				FLLog.Debug ("Shader", "Compiling [ " + vs + " , " + fs + " , " + gs + " ]");
-                sh = new Shader(
-                    LoadEmbedded("LibreLancer.Shaders." + vs),
-                    ProcessIncludes(LoadEmbedded("LibreLancer.Shaders." + fs)),
-                    LoadEmbedded("LibreLancer.Shaders." + gs)
-                );
-                shaderGeo.Add(k, sh);
-			}
-            return sh;
 		}
         static string LoadEmbedded(string name)
         {
@@ -98,36 +82,6 @@ namespace LibreLancer
                 {
                     hash = hash * 23 + A.GetHashCode();
                     hash = hash * 23 + B.GetHashCode();
-                }
-                return hash;
-            }
-        }
-        struct Strings3
-        {
-            public string A;
-            public string B;
-            public string C;
-            public Strings3(string a, string b, string c)
-            {
-                A = a;
-                B = b;
-                C = c;
-            }
-            public override bool Equals(object obj)
-            {
-                if (!(obj is Strings3))
-                    return false;
-                var other = (Strings3)obj;
-                return other.A == A && other.B == B && other.C == C;
-            }
-            public override int GetHashCode()
-            {
-                int hash = 17;
-                unchecked
-                {
-                    hash = hash * 23 + A.GetHashCode();
-                    hash = hash * 23 + B.GetHashCode();
-                    hash = hash * 23 + C.GetHashCode();
                 }
                 return hash;
             }

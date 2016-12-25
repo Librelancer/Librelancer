@@ -30,30 +30,30 @@ namespace LibreLancer
 		static Texture2D nullTexture;
 		public abstract bool IsTransparent { get; }
 		Texture2D[] textures = new Texture2D[8];
-		public static void SetLights(Shader shader, Lighting lights)
+		public static void SetLights(ShaderVariables shader, Lighting lights)
 		{
 			var h = lights.Hash;
 			if (shader.UserTag == h)
 				return;
 			shader.UserTag = h;
-			shader.SetInteger ("LightingEnabled", lights.Enabled ? 1 : 0);
+			shader.SetLightingEnabled(lights.Enabled ? 1 : 0);
 			if (!lights.Enabled)
 				return;
-			shader.SetColor4 ("AmbientColor", lights.Ambient);
-			shader.SetInteger ("LightCount", lights.Lights.Count);
+			shader.SetAmbientColor(lights.Ambient);
+			shader.SetLightCount(lights.Lights.Count);
 			for (int i = 0; i < lights.Lights.Count; i++) {
 				var lt = lights.Lights [i];
-				shader.SetVector4 ("LightsPos", new Vector4(lt.Position, lt.Kind != LightKind.Directional ? 1 : 0), i);
-				shader.SetVector3 ("LightsDir", lt.Direction, i);
-				shader.SetVector3 ("LightsColor", new Vector3(lt.Color.R, lt.Color.G, lt.Color.B), i);
-				shader.SetVector4 ("LightsAttenuation", lt.Attenuation, i);
-				shader.SetInteger ("LightsRange", lt.Range, i);
+				shader.SetLightsPos(i, new Vector4(lt.Position, lt.Kind != LightKind.Directional ? 1 : 0));
+				shader.SetLightsDir(i, lt.Direction);
+				shader.SetLightsColor(i, new Vector3(lt.Color.R, lt.Color.G, lt.Color.B));
+				shader.SetLightsAttenuation (i, lt.Attenuation);
+				shader.SetLightsRange(i, lt.Range);
 			}
-			shader.SetInteger("FogEnabled", lights.FogEnabled ? 1 : 0);
+			shader.SetFogEnabled(lights.FogEnabled ? 1 : 0);
 			if (lights.FogEnabled)
 			{
-				shader.SetColor4("FogColor", lights.FogColor);
-				shader.SetVector2("FogRange", lights.FogRange);
+				shader.SetFogColor(lights.FogColor);
+				shader.SetFogRange(lights.FogRange);
 			}
 		}
 		protected void BindTexture(int cacheidx, string tex, int unit, SamplerFlags flags, bool throwonNull = true)

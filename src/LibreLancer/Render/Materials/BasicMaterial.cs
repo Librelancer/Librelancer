@@ -40,12 +40,12 @@ namespace LibreLancer
 			Type = type;
 		}
 
-        static Shader sh_posNormalTexture;
-        static Shader sh_posNormalTextureTwo;
-        static Shader sh_posNormalColorTexture;
-        static Shader sh_posTexture;
-        static Shader sh_pos;
-		static Shader GetShader(IVertexType vertextype)
+        static ShaderVariables sh_posNormalTexture;
+        static ShaderVariables sh_posNormalTextureTwo;
+        static ShaderVariables sh_posNormalColorTexture;
+        static ShaderVariables sh_posTexture;
+        static ShaderVariables sh_pos;
+		static ShaderVariables GetShader(IVertexType vertextype)
 		{
 			var vert = vertextype.GetType().Name;
 			switch (vert)
@@ -96,13 +96,13 @@ namespace LibreLancer
 			shader.SetView(ref View);
 			shader.SetViewProjection(ref ViewProjection);
 			//Dt
-			shader.SetInteger("DtSampler", 0);
+			shader.SetDtSampler(0);
 			BindTexture(0, DtSampler, 0 ,DtFlags, false);
 			//Dc
-			shader.SetColor4("Dc", Dc);
+			shader.SetDc(Dc);
 			//Oc
-			shader.SetInteger("OcEnabled", OcEnabled ? 1 : 0);
-			shader.SetFloat("Oc", Oc);
+			shader.SetOcEnabled(OcEnabled ? 1 : 0);
+			shader.SetOc(Oc);
 			if (AlphaEnabled)
 			{
 				rstate.BlendMode = BlendMode.Normal;
@@ -111,16 +111,16 @@ namespace LibreLancer
 				rstate.BlendMode = BlendMode.Opaque;
 			}
 			//Ec
-			shader.SetColor4("Ec", Ec);
+			shader.SetEc(Ec);
 			//EtSampler
-			shader.SetInteger("EtSampler", 1);
+			shader.SetEtSampler(1);
 			BindTexture(1, EtSampler, 1, EtFlags, false);
 			//Set lights
 			SetLights(shader, lights);
             var normalMatrix = World;
             normalMatrix.Invert();
             normalMatrix.Transpose();
-			shader.SetMatrix("NormalMatrix", ref normalMatrix);
+			shader.SetNormalMatrix(ref normalMatrix);
 			shader.UseProgram();
 		}
 		public override bool IsTransparent

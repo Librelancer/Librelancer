@@ -105,9 +105,9 @@ namespace LibreLancer
 			rs = rstate;
 			FT = new Library ();
 			textShader = new Shader (vertex_source, text_fragment_source);
-			textShader.SetInteger ("tex", 0);
+			textShader.SetInteger (textShader.GetLocation("tex"), 0);
 			imgShader = new Shader (vertex_source, img_fragment_source);
-			textShader.SetInteger ("tex", 0);
+			imgShader.SetInteger (imgShader.GetLocation("tex"), 0);
 			vbo = new VertexBuffer (typeof(Vertex2D), MAX_VERT, true);
 			el = new ElementBuffer (MAX_INDEX);
 			var indices = new ushort[MAX_INDEX];
@@ -181,8 +181,8 @@ namespace LibreLancer
 				throw new InvalidOperationException ("TextRenderer.Start() called without calling TextRenderer.Finish()");
 			active = true;
 			var mat = Matrix4.CreateOrthographicOffCenter (0, vpWidth, vpHeight, 0, 0, 1);
-			textShader.SetMatrix ("modelviewproj", ref mat);
-			imgShader.SetMatrix ("modelviewproj", ref mat);
+			textShader.SetMatrix (textShader.GetLocation("modelviewproj"), ref mat);
+			imgShader.SetMatrix (imgShader.GetLocation("modelviewproj"), ref mat);
 			currentMode = BlendMode.Normal;
 		}
 

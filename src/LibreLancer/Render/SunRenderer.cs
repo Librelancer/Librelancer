@@ -94,18 +94,38 @@ namespace LibreLancer
 				}
 			}
 		}
+		static int _spinetex0;
+		static int _spineinner;
+		static int _spineouter;
+		static int _spinealpha;
         static Shader _spinesh;
         Shader GetSpineShader(Billboards bl)
         {
-            if (_spinesh == null)
-                _spinesh = bl.GetShader("sun_spine.frag");
+			if (_spinesh == null)
+			{
+				_spinesh = bl.GetShader("sun_spine.frag");
+				_spinetex0 = _spinesh.GetLocation("tex0");
+				_spineinner = _spinesh.GetLocation("innercolor");
+				_spineouter = _spinesh.GetLocation("outercolor");
+				_spinealpha = _spinesh.GetLocation("alpha");
+			}
             return _spinesh;
         }
+		static int _radialtex0;
+		static int _radialinner;
+		static int _radialouter;
+		static int _radialexpand;
         static Shader _radialsh;
         Shader GetRadialShader(Billboards bl)
         {
-            if (_radialsh == null)
-                _radialsh = bl.GetShader("sun_radial.frag");
+			if (_radialsh == null)
+			{
+				_radialsh = bl.GetShader("sun_radial.frag");
+				_radialtex0 = _radialsh.GetLocation("tex0");
+				_radialinner = _radialsh.GetLocation("innercolor");
+				_radialouter = _radialsh.GetLocation("outercolor");
+				_radialexpand = _radialsh.GetLocation("expand");
+			}
             return _radialsh;
         }
         void DrawRadial(Texture2D texture, Vector3 position, Vector2 size, Color4 inner, Color4 outer, float expand, float z)
@@ -145,22 +165,22 @@ namespace LibreLancer
 		static Action<Shader, RenderState, RenderUserData> _setupRadialDelegate = SetupRadialShader;
 		static void SetupRadialShader(Shader sh, RenderState rs, RenderUserData dat)
 		{
-			sh.SetInteger("tex0", 0);
+			sh.SetInteger(_radialtex0, 0);
 			dat.Texture.BindTo(0);
-			sh.SetColor4("innercolor", dat.Color);
-			sh.SetColor4("outercolor", dat.Color2);
-			sh.SetFloat("expand", dat.Float);
+			sh.SetColor4(_radialinner, dat.Color);
+			sh.SetColor4(_radialouter, dat.Color2);
+			sh.SetFloat(_radialexpand, dat.Float);
 			if (!((Texture2D)dat.Texture).WithAlpha)
 				rs.BlendMode = BlendMode.Additive;
 		}
 		static Action<Shader, RenderState, RenderUserData> _setupSpineDelegate = SetupSpineShader;
 		static void SetupSpineShader(Shader sh, RenderState rs, RenderUserData dat)
 		{
-			sh.SetInteger("tex0", 0);
+			sh.SetInteger(_spinetex0, 0);
 			dat.Texture.BindTo(0);
-			sh.SetVector3("innercolor", new Vector3(dat.Color.R, dat.Color.G, dat.Color.B));
-			sh.SetVector3("outercolor", new Vector3(dat.Color2.R, dat.Color2.G, dat.Color2.B));
-			sh.SetFloat("alpha", dat.Float);
+			sh.SetVector3(_spineinner, new Vector3(dat.Color.R, dat.Color.G, dat.Color.B));
+			sh.SetVector3(_spineouter, new Vector3(dat.Color2.R, dat.Color2.G, dat.Color2.B));
+			sh.SetFloat(_spinealpha, dat.Float);
 		}
 	}
 }
