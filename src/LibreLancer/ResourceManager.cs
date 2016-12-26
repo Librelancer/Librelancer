@@ -133,26 +133,26 @@ namespace LibreLancer
 			{
 				var file = texturefiles[name];
 				FLLog.Debug("Resources", string.Format("Reloading {0} from {1}", name, file));
-				if (file.EndsWith(".mat"))
+				if (file.EndsWith(".mat", StringComparison.OrdinalIgnoreCase))
 				{
 					loadedMatFiles.Remove(file);
 					LoadMat(file);
 				}
-				else if (file.EndsWith(".cmp"))
+				else if (file.EndsWith(".cmp", StringComparison.OrdinalIgnoreCase))
 				{
 					var c = new CmpFile(file, this);
 					if (c.MaterialLibrary != null)
 						AddMaterials(c.MaterialLibrary, file);
 					AddTextures(c.TextureLibrary, file);
 				}
-				else if (file.EndsWith(".3db"))
+				else if (file.EndsWith(".3db", StringComparison.OrdinalIgnoreCase))
 				{
 					var m = new ModelFile(file, this);
 					if (m.MaterialLibrary != null)
 						AddMaterials(m.MaterialLibrary, file);
 					AddTextures(m.TextureLibrary, file);
 				}
-				else if (file.EndsWith(".txm"))
+				else if (file.EndsWith(".txm", StringComparison.OrdinalIgnoreCase))
 				{
 					loadedTxmFiles.Remove(file);
 					LoadTxm(file);
@@ -231,11 +231,11 @@ namespace LibreLancer
 		}
 		public IDrawable GetDrawable(string filename)
 		{
-			if (filename.EndsWith(".cmp"))
+			if (filename.EndsWith(".cmp", StringComparison.OrdinalIgnoreCase))
 				return GetCmp(filename);
-			if (filename.EndsWith (".3db"))
+			if (filename.EndsWith (".3db", StringComparison.OrdinalIgnoreCase))
 				return GetModel (filename);
-			if (filename.EndsWith (".sph"))
+			if (filename.EndsWith (".sph", StringComparison.OrdinalIgnoreCase))
 				return GetSph (filename);
 			throw new NotSupportedException (filename);
 		}

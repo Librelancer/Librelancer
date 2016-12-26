@@ -67,6 +67,12 @@ namespace LibreLancer
 		{
 			return new JVector (src.X, src.Y, src.Z);
 		}
+		public static JMatrix GetOrientation(this Matrix4 src)
+		{
+			var qt = src.ExtractRotation(true);
+			var jqt = new JQuaternion(qt.X, qt.Y, qt.Z, qt.W);
+			return JMatrix.CreateFromQuaternion(jqt);
+		}
 		public static Matrix4 ToOpenTK(this JMatrix src)
 		{
 			return new Matrix4 (

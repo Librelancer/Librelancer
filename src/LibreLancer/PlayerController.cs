@@ -29,6 +29,7 @@ namespace LibreLancer
 		public PlayerController(RigidBody player)
 		{
 			p = player;
+
 		}
 
 	

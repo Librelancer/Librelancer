@@ -31,32 +31,40 @@ namespace LibreLancer.Sur
 		//FL-OS comment: some sort of multiplier for the radius
 		public byte Scale; //TODO: Surface - What is this?
 		public List<SurVertex> Vertices = new List<SurVertex>();
-		public List<SurTriangle> Triangles = new List<SurTriangle>();
-		public Surface (BinaryReader reader)
+		public TGroupHeader[] Groups;
+		public Surface(BinaryReader reader)
 		{
-			Center = new JVector (reader.ReadSingle (), reader.ReadSingle (), reader.ReadSingle ());
-			Inertia = new JVector (reader.ReadSingle (), reader.ReadSingle (), reader.ReadSingle ());
-			Radius = reader.ReadSingle ();
+
+			Center = new JVector(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+			Inertia = new JVector(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+			Radius = reader.ReadSingle();
 			Scale = reader.ReadByte();
-			BitsEnd = reader.ReadUInt24 ();
-			BitsStart = reader.ReadUInt32 ();
+			BitsEnd = reader.ReadUInt24();
+			BitsStart = reader.ReadUInt32();
 			//FL-OS comment: padding.
 			//TODO: Surface - Is this actually padding?
-			reader.BaseStream.Seek (12, SeekOrigin.Current);
+			reader.BaseStream.Seek(12, SeekOrigin.Current);
 
 			long bStart = reader.BaseStream.Position + BitsStart - SIZE;
 			long bEnd = reader.BaseStream.Position + BitsEnd - SIZE;
-
+			var tbase = reader.BaseStream.Position;
 			bool done = false;
-			do {
+			var grp = new List<TGroupHeader>();
+			do
+			{
 				TGroupHeader th = new TGroupHeader(reader);
-				for(int i = 0; i < th.TriangleCount;i++) {
+				for (int i = 0; i < th.TriangleCount; i++)
+				{
 					var tri = new SurTriangle(reader);
-					Triangles.Add(tri);
+					th.Triangles.Add(tri);
 				}
+				grp.Add(th);
 				done = (th.VertexArrayOffset == (TGroupHeader.SIZE + SurTriangle.SIZE * th.TriangleCount));
 			} while (!done);
-
+			Groups = grp.ToArray();
+			for (int i = 0; i < Groups.Length; i++) {
+				Groups[i].VertexArrayOffset -= (uint)(reader.BaseStream.Position - Groups[i].HeaderOffset);
+			}
 			while (reader.BaseStream.Position < bStart) {
 				var vert = new SurVertex (reader);
 				Vertices.Add(vert);

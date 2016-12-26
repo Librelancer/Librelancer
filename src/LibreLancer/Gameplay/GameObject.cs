@@ -47,6 +47,7 @@ namespace LibreLancer
 				if (PhysicsComponent != null)
 				{
 					PhysicsComponent.Position = _transform.ExtractTranslation().ToJitter();
+					PhysicsComponent.Orientation = _transform.GetOrientation();
 				}
 			}
 		}
@@ -92,7 +93,10 @@ namespace LibreLancer
 				if (File.Exists(path))
 				{
 					SurFile sur = res.GetSur(path);
-					collisionShape = sur.GetShape(0);
+					var shs = new List<CompoundSurShape.TransformedShape>();
+					foreach (var s in sur.GetShape(0))
+						shs.Add(new CompoundSurShape.TransformedShape(s, JMatrix.Identity, JVector.Zero));
+					collisionShape = new CompoundSurShape(shs);
 				}
 			}
 			else if (dr is CmpFile)
@@ -115,15 +119,16 @@ namespace LibreLancer
 						var colshape = sur.GetShape(crc);
 						if (part.Construct == null)
 						{
-							shapes.Add(new CompoundSurShape.TransformedShape(colshape, JMatrix.Identity, JVector.Zero));
-						}
+							foreach (var s in colshape)
+								shapes.Add(new CompoundSurShape.TransformedShape(s, JMatrix.Identity, JVector.Zero));						}
 						else
 						{
 							var tr = part.Construct.Transform;
 							var pos = tr.ExtractTranslation().ToJitter();
 							var q = tr.ExtractRotation(true);
 							var rot = JMatrix.CreateFromQuaternion(new JQuaternion(q.X, q.Y, q.Z, q.W));
-							shapes.Add(new CompoundSurShape.TransformedShape(colshape, rot, pos));
+							foreach (var s in colshape)
+								shapes.Add(new CompoundSurShape.TransformedShape(s, rot, pos));
 						}
 					}
 					collisionShape = new CompoundSurShape(shapes);

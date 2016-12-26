@@ -25,18 +25,42 @@ namespace LibreLancer.Sur
 	{
 		const string VERS_TAG = "vers";
 		Dictionary<uint, Surface> surfaces = new Dictionary<uint, Surface>();
-		Dictionary<uint, ConvexHullShape> shapes = new Dictionary<uint, ConvexHullShape>();
+		Dictionary<uint, ConvexHullShape[]> shapes = new Dictionary<uint, ConvexHullShape[]>();
 		//I'm assuming this gives me some sort of workable mesh
-		public ConvexHullShape GetShape(uint meshId)
+		public ConvexHullShape[] GetShape(uint meshId)
 		{
 			if (!shapes.ContainsKey(meshId))
 			{
-				List<JVector> verts = new List<JVector>();
+				List<ConvexHullShape> hull = new List<ConvexHullShape>();
 				var surface = surfaces[meshId];
-				foreach (var vert in surface.Vertices)
-					if(vert.Mesh == meshId)
-						verts.Add(vert.Point);
-				shapes.Add(meshId, new ConvexHullShape(verts));
+				for (int i = 0; i < surface.Groups.Length; i++)
+				{
+					var th = surface.Groups[i];
+					if (th.MeshID != meshId)
+						continue;
+					var verts = new List<JVector>();
+					if (th.VertexArrayOffset != 0)
+						throw new Exception("tgroupheader vertexarrayoffset wrong");
+					List<ushort> vertsAdded = new List<ushort>();
+					foreach (var tri in th.Triangles)
+					{
+						if (!vertsAdded.Contains(tri.Vertices[0].Vertex)) {
+							vertsAdded.Add(tri.Vertices[0].Vertex);
+							verts.Add(surface.Vertices[tri.Vertices[0].Vertex].Point);
+						}
+						if (!vertsAdded.Contains(tri.Vertices[1].Vertex)) {
+							vertsAdded.Add(tri.Vertices[1].Vertex);
+							verts.Add(surface.Vertices[tri.Vertices[1].Vertex].Point);
+						}
+						if (!vertsAdded.Contains(tri.Vertices[0].Vertex))
+						{
+							vertsAdded.Add(tri.Vertices[2].Vertex);
+							verts.Add(surface.Vertices[tri.Vertices[2].Vertex].Point);
+						}
+					}
+					hull.Add(new ConvexHullShape(verts));
+				}
+				shapes.Add(meshId, hull.ToArray());
 			}
 			return shapes[meshId];
 		}

@@ -34,6 +34,7 @@ namespace LibreLancer
 		Viewport _vp;
 
 		public Vector3 ChasePosition { get; set; }
+		public Matrix4 ChaseOrientation { get; set; }
 		public Vector3 DesiredPositionOffset = new Vector3(0, 4f, 28f);
 		public Vector3 OffsetDirection;
 
@@ -87,6 +88,7 @@ namespace LibreLancer
 		public ChaseCamera(Viewport viewport)
 		{
 			this.Viewport = viewport;
+			ChaseOrientation = Matrix4.Identity;
 			OffsetDirection = DesiredPositionOffset.Normalized();
 		}
 
@@ -101,9 +103,9 @@ namespace LibreLancer
 		public void Update(TimeSpan delta)
 		{
 
-			Matrix4 rotationMatrix = Matrix4.Identity;
+			Matrix4 rotationMatrix = ChaseOrientation;
 
-			_position = ChasePosition + DesiredPositionOffset;
+			_position = ChasePosition + (rotationMatrix.Transform(DesiredPositionOffset));
 
 			Vector3 upVector = rotationMatrix.Transform(VectorMath.Up);
 

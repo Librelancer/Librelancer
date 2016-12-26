@@ -61,7 +61,7 @@ namespace LibreLancer
 			{
 				Attachment = attachment;
 				Effect = fx;
-				Effect.SParam = 1f;
+				Effect.SParam = 0.9f;
 			}
 			public void Update(GameObject parent, TimeSpan time, float sparam)
 			{

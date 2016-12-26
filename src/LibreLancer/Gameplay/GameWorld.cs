@@ -29,11 +29,14 @@ namespace LibreLancer
 		public List<GameObject> Objects = new List<GameObject>();
 		public delegate void RenderUpdateHandler(TimeSpan delta);
 		public event RenderUpdateHandler RenderUpdate;
+		public delegate void PhysicsUpdateHandler(TimeSpan delta);
+		public event PhysicsUpdateHandler PhysicsUpdate;
 		public GameWorld(SystemRenderer render)
 		{
 			Renderer = render;
 			Physics = new World(new CollisionSystemSAP());
 			Physics.Gravity = JVector.Zero;
+			Physics.Events.PreStep += Events_PreStep;
 		}
 
 		public void LoadSystem(StarSystem sys, ResourceManager res)
@@ -53,11 +56,18 @@ namespace LibreLancer
 				g.Transform = (obj.Rotation ?? Matrix4.Identity) * Matrix4.CreateTranslation(obj.Position);
 				g.SetLoadout(obj.Loadout);
 				g.StaticPosition = obj.Position;
+
 				g.Register(Renderer, Physics);
 				Objects.Add(g);
 			}
 
 			GC.Collect();
+		}
+
+		void Events_PreStep(float timestep)
+		{
+			if (PhysicsUpdate != null)
+				PhysicsUpdate(TimeSpan.FromSeconds(timestep));
 		}
 
 		public void Update(TimeSpan t)

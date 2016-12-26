@@ -20,6 +20,7 @@ namespace LibreLancer.Sur
 {
 	public struct SurVertex
 	{
+		public const int SIZE = sizeof(float) * 3 + sizeof(uint);
 		public JVector Point;
 		public uint Mesh;
 

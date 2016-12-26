@@ -22,6 +22,7 @@ namespace LibreLancer
 {
 	public class DemoGameplay : GameState
 	{
+
 		const string DEMO_TEXT =
 @"GAMEPLAY DEMO
 {3} ({4})
@@ -29,6 +30,7 @@ Camera Position: (X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00})
 C# Memory Usage: {5}
 Velocity: {6}
 Hitbox Drawing (H/J): {7}
+Mouse Position: {8} {9}
 ";
 		private const float ROTATION_SPEED = 1f;
 		GameData.StarSystem sys;
@@ -54,6 +56,7 @@ Hitbox Drawing (H/J): {7}
 			Color4.Yellow,
 			Color4.Pink
 		};
+		Cursor cur;
 		public DemoGameplay(FreelancerGame g) : base(g)
 		{
 			FLLog.Info("Game", "Starting Gameplay Demo");
@@ -73,6 +76,7 @@ Hitbox Drawing (H/J): {7}
 			world.Objects.Add(player);
 			world.Physics.SetDampingFactors(0.5f, 1f);
 			world.RenderUpdate += World_RenderUpdate;
+			world.PhysicsUpdate += World_PhysicsUpdate;
 			var eng = new GameData.Items.Engine() { FireEffect = "gf_li_smallengine02_fire" };
 			player.Components.Add(new EngineComponent(player, eng, g));
 			player.Register(sysrender, world.Physics);
@@ -82,25 +86,30 @@ Hitbox Drawing (H/J): {7}
 			g.Keyboard.KeyDown += G_Keyboard_KeyDown;
 			g.Keyboard.TextInput += G_Keyboard_TextInput;
 			debugphysics = new PhysicsDebugRenderer();
-			foreach (RigidBody body in world.Physics.RigidBodies)
-				body.EnableDebugDraw = true;
+			cur = g.ResourceManager.GetCursor("arrow");
 		}
 
 		void World_RenderUpdate(TimeSpan delta)
 		{
 			//Has to be here or glitches
 			camera.ChasePosition = player.PhysicsComponent.Position.ToOpenTK();
+			camera.ChaseOrientation = player.PhysicsComponent.Orientation.ToOpenTK();
 			camera.Update(delta);
 		}
 
 		public override void Update(TimeSpan delta)
 		{
+			world.Update(delta);
+		}
+
+		void World_PhysicsUpdate(TimeSpan delta)
+		{
+			player.PhysicsComponent.LinearVelocity *= 0.8f;
 			if (player.PhysicsComponent.LinearVelocity.Length() < Velocity)
 			{
-				player.PhysicsComponent.ApplyImpulse(JVector.Transform(JVector.Forward, player.PhysicsComponent.Orientation) * 40);
+				player.PhysicsComponent.ApplyImpulse(JVector.Transform(JVector.Forward, player.PhysicsComponent.Orientation) * player.PhysicsComponent.Mass * 40);
 			}
 			ProcessInput(delta);
-			world.Update(delta);
 		}
 
 		void G_Keyboard_KeyDown(KeyEventArgs e)
@@ -136,19 +145,31 @@ Hitbox Drawing (H/J): {7}
 				currentText += text;
 
 		}
+		Vector2 moffset = Vector2.Zero;
 		const float ACCEL = 85;
 		void ProcessInput(TimeSpan delta)
 		{
+			moffset = (new Vector2(Game.Mouse.X, Game.Mouse.Y) - new Vector2(Game.Width / 2, Game.Height / 2));
+			moffset *= new Vector2(1f / Game.Width, 1f / Game.Height);
+
 			if (Game.Keyboard.IsKeyDown(Keys.W))
 			{
 				Velocity += (float)(delta.TotalSeconds * ACCEL);
 				Velocity = MathHelper.Clamp(Velocity, 0, MAX_VELOCITY);
 			}
+
 			else if (Game.Keyboard.IsKeyDown(Keys.S))
 			{
 				Velocity -= (float)(delta.TotalSeconds * ACCEL);
 				Velocity = MathHelper.Clamp(Velocity, 0, MAX_VELOCITY);
 			}
+			if (Game.Mouse.IsButtonDown(MouseButtons.Left))
+			{
+				var pc = player.PhysicsComponent;
+				player.PhysicsComponent.AddTorque(JVector.Transform(JVector.Up, pc.Orientation) * -moffset.X * 10000);
+				player.PhysicsComponent.AddTorque(JVector.Transform(JVector.Right, pc.Orientation) * moffset.Y * 10000);
+			}
+
 			if (Game.Keyboard.IsKeyDown(Keys.Up))
 			{
 				camera.DesiredPositionOffset -= (10 * (float)delta.TotalSeconds * camera.OffsetDirection);
@@ -170,6 +191,8 @@ Hitbox Drawing (H/J): {7}
 				debugphysics.Color = colors[i];
 				if (j == draw_hitboxes)
 				{
+					if (!body.EnableDebugDraw)
+						body.EnableDebugDraw = true;
 					body.DebugDraw(debugphysics);
 				}
 				i++;
@@ -179,7 +202,8 @@ Hitbox Drawing (H/J): {7}
 			}
 			debugphysics.Render();
 			trender.Start(Game.Width, Game.Height);
-			DrawShadowedText(string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, SizeSuffix(GC.GetTotalMemory(false)), Velocity, draw_hitboxes), 5, 5);
+			DrawShadowedText(string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, SizeSuffix(GC.GetTotalMemory(false)), Velocity, draw_hitboxes, moffset.X, moffset.Y), 5, 5);
+			cur.Draw(trender, Game.Mouse);
 			trender.Finish();
 		}
 
