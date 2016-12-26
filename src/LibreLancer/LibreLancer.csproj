@@ -296,6 +296,7 @@
     <Compile Include="AsyncManager.cs" />
     <Compile Include="Render\ShaderVariables.cs" />
     <Compile Include="GameData\ZoneRing.cs" />
+    <Compile Include="GameData\AsteroidCubeRotation.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

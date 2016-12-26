@@ -61,9 +61,10 @@ namespace LibreLancer
 		/// <returns><c>true</c> if the cube is present, <c>false</c> otherwise.</returns>
 		/// <param name="cubePos">Cube position.</param>
 		/// <param name="fill_rate">Fill rate.</param>
-		public static unsafe bool CubeExists(Vector3 cubePos, float empty_frequency)
+		public static unsafe bool CubeExists(Vector3 cubePos, float empty_frequency, out float test_value)
 		{
 			//Check for fill rate
+			test_value = 0;
 			if (empty_frequency < float.Epsilon)
 				return true;
 			if (empty_frequency >= 1)
@@ -72,8 +73,8 @@ namespace LibreLancer
 			var u = (uint*)&cubePos;
 			var h = hash (u [0]) ^ hash (u [1]) ^ hash (u [2]);
 			//get float
-			var f = constructFloat(h);
-			return f < empty_frequency;
+			test_value = constructFloat(h);
+			return test_value < empty_frequency;
 		}
 		//return a float between [0,1] for a hash
 		static unsafe float constructFloat(uint m)

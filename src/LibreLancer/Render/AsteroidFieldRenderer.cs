@@ -60,7 +60,7 @@ namespace LibreLancer
 				astbillboards = new AsteroidBillboard[field.BillboardCount];
 			rdist += field.FillDist;
 			renderDistSq = rdist * rdist;
-			cubes = new Vector3[1000];
+			cubes = new CalculatedCube[1000];
 			_asteroidsCalculation = CalculateAsteroids;
 			//Set up band
 			if (field.Band == null)
@@ -145,11 +145,16 @@ namespace LibreLancer
 				Texture = r.rand.Next (0, 3);
 			}
 		}
-
+		struct CalculatedCube
+		{
+			public Vector3 pos;
+			public Vector3 rot;
+			public CalculatedCube(Vector3 p, Vector3 r) { pos = p; rot = r; }
+		}
 		Action _asteroidsCalculation;
 		bool _asteroidsCalculated = false;
 		int cubeCount = -1;
-		Vector3[] cubes;
+		CalculatedCube[] cubes;
 		void CalculateAsteroids()
 		{
 			Vector3 position;
@@ -169,12 +174,13 @@ namespace LibreLancer
 							continue;
 						if (GetExclusionZone (center) != null)
 							continue;
-						if (!AsteroidFieldShared.CubeExists (center, field.EmptyCubeFrequency))
+						float tval;
+						if (!AsteroidFieldShared.CubeExists (center, field.EmptyCubeFrequency, out tval))
 							continue;
 						var cubeBox = new BoundingBox(center - cubeRad, center + cubeRad);
 						if (!frustum.Intersects (cubeBox))
 							continue;
-						cubes [cubeCount++] = center;
+						cubes[cubeCount++] = new CalculatedCube(center, field.CubeRotation.GetRotation(tval));
 					}
 				}
 			}
@@ -202,12 +208,16 @@ namespace LibreLancer
 				for (int j = 0; j < cubeCount; j++) {
 					for (int i = 0; i < field.Cube.Count; i++) {
 						var c = field.Cube [i];
-						var astpos = cubes[j] + (c.Position * field.CubeSize);
+						var center = cubes[j].pos;
+						var rotmat = Matrix4.CreateRotationX(cubes[j].rot.X) *
+											Matrix4.CreateRotationY(cubes[j].rot.Y) *
+											Matrix4.CreateRotationZ(cubes[j].rot.Z);
+						var astpos = center + rotmat.Transform((c.Position * field.CubeSize));
 						var r = c.Drawable.GetRadius ();
 						if (_camera.Frustum.Intersects (new BoundingSphere (astpos, r))) {
 							var lt = RenderHelpers.ApplyLights (lighting, astpos, r, nr);
 							if (!lt.FogEnabled || VectorMath.DistanceSquared (cameraPos, astpos) <= (r + lt.FogRange.Y) * (r + lt.FogRange.Y))
-								c.Drawable.DrawBuffer (buffer, c.RotationMatrix * Matrix4.CreateTranslation (astpos), lt);
+								c.Drawable.DrawBuffer (buffer, rotmat * c.RotationMatrix * Matrix4.CreateTranslation (astpos), lt);
 						}
 					}
 				}

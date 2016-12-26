@@ -26,6 +26,9 @@ namespace LibreLancer.Compatibility.GameData.Universe
 	public class AsteroidField : ZoneReference
 	{
 		public Field Field { get; private set; }
+		public Vector4? Cube_RotationX { get; private set; }
+		public Vector4? Cube_RotationY { get; private set; }
+		public Vector4? Cube_RotationZ { get; private set; }
 		public List<CubeAsteroid> Cube { get; private set; }
 		public Band Band { get; private set; }
 		public Band ExclusionBand { get; private set; }
@@ -133,6 +136,15 @@ namespace LibreLancer.Compatibility.GameData.Universe
 					{
 						switch (e.Name.ToLowerInvariant())
 						{
+						case "xaxis_rotation":
+							Cube_RotationX = new Vector4(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle(), e[3].ToSingle());
+							break;
+						case "yaxis_rotation":
+							Cube_RotationY = new Vector4(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle(), e[3].ToSingle());
+							break;
+						case "zaxis_rotation":
+							Cube_RotationZ = new Vector4(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle(), e[3].ToSingle());
+							break;
 						case "asteroid":
 							if (e.Count < 7 || e.Count > 8) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							Cube.Add(new CubeAsteroid(e));

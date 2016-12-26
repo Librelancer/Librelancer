@@ -283,6 +283,10 @@ namespace LibreLancer
 				a.Band.OffsetDistance = ast.Band.OffsetDist ?? 0f;
 			}
 			a.Cube = new List<GameData.StaticAsteroid> ();
+			a.CubeRotation = new GameData.AsteroidCubeRotation();
+			a.CubeRotation.AxisX = ast.Cube_RotationX ?? GameData.AsteroidCubeRotation.Default_AxisX;
+			a.CubeRotation.AxisY = ast.Cube_RotationY ?? GameData.AsteroidCubeRotation.Default_AxisY;
+			a.CubeRotation.AxisZ = ast.Cube_RotationZ ?? GameData.AsteroidCubeRotation.Default_AxisZ;
 			a.CubeSize = ast.Field.CubeSize.Value;
 			a.SetFillDist(ast.Field.FillDist.Value);
 			a.EmptyCubeFrequency = ast.Field.EmptyCubeFrequency ?? 0f;

@@ -21,6 +21,7 @@ namespace LibreLancer.GameData
 	{
 		public Zone Zone;
 		public AsteroidBand Band;
+		public AsteroidCubeRotation CubeRotation;
 		public List<StaticAsteroid> Cube;
 		public List<ExclusionZone> ExclusionZones;
 		public int CubeSize;
