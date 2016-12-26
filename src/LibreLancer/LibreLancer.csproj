@@ -295,6 +295,7 @@
     <Compile Include="GameData\ZoneCylinder.cs" />
     <Compile Include="AsyncManager.cs" />
     <Compile Include="Render\ShaderVariables.cs" />
+    <Compile Include="GameData\ZoneRing.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

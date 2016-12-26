@@ -17,17 +17,20 @@ using System;
 
 namespace LibreLancer.GameData
 {
-	public class ZoneCylinder : ZoneShape
+	public class ZoneRing : ZoneShape
 	{
-		public float Radius;
+		public float OuterRadius;
+		public float InnerRadius;
 		public float Height;
 		Vector3 pt1;
 		Vector3 pt2;
 		float length_sq;
 		float radius_sq;
-		public ZoneCylinder(Zone zone, float r, float h) : base (zone)
+		float radius_inner_sq;
+		public ZoneRing(Zone zone, float r_outer, float r_inner, float h) : base(zone)
 		{
-			Radius = r;
+			OuterRadius = r_outer;
+			InnerRadius = r_inner;
 			Height = h;
 			//Define the cylinder
 			pt1 = Zone.Position - new Vector3(0, Height / 2, 0);
@@ -36,17 +39,18 @@ namespace LibreLancer.GameData
 			pt2 = Zone.RotationMatrix.Transform(pt2);
 			//Calculate values
 			length_sq = VectorMath.DistanceSquared(pt1, pt2);
-			radius_sq = Radius * Radius;
+			radius_sq = OuterRadius * OuterRadius;
+			radius_inner_sq = InnerRadius * InnerRadius;
 		}
 		public override bool Intersects(BoundingBox box)
 		{
-			throw new NotImplementedException ();
+			throw new NotImplementedException();
 		}
 		public override bool ContainsPoint(Vector3 point)
 		{
 			Vector3 d = pt2 - pt1;
 			Vector3 pd = point - pt1;
-			float dot = Vector3.Dot (pd, d);
+			float dot = Vector3.Dot(pd, d);
 
 			if (dot < 0.0f || dot > length_sq)
 			{
@@ -55,20 +59,20 @@ namespace LibreLancer.GameData
 			else
 			{
 				float dsq = (pd.X * pd.X + pd.Y * pd.Y + pd.Z * pd.Z) - dot * dot / length_sq;
-				return dsq <= radius_sq;
+				return dsq <= radius_sq && dsq >= radius_inner_sq;
 			}
 		}
 		public override ZoneShape Scale(float scale)
 		{
-			return new ZoneCylinder (Zone, Radius * scale, Height * scale);
+			return new ZoneRing(Zone, OuterRadius * scale, InnerRadius * scale, Height * scale);
 		}
 		public override float ScaledDistance(Vector3 point)
 		{
-			throw new NotImplementedException ();
+			throw new NotImplementedException();
 		}
-		public override Vector3 RandomPoint (Func<float> randfunc)
+		public override Vector3 RandomPoint(Func<float> randfunc)
 		{
-			throw new NotImplementedException ();
+			throw new NotImplementedException();
 		}
 	}
 }

@@ -51,14 +51,14 @@ namespace LibreLancer
 			if (Math.Abs(Nebula.Zone.EdgeFraction) < 0.000000001) //basically == 0. Instant transition
 				return true;
 			var scaled = Nebula.Zone.Shape.Scale(1 - Nebula.Zone.EdgeFraction);
-			return scaled.ContainsPoint(Nebula.Zone.Position, Nebula.Zone.RotationMatrix, camera.Position);
+			return scaled.ContainsPoint(camera.Position);
 		}
 
 		float CalculateTransition(Zone zone)
 		{
 			//Find transitional value based on how far into the zone we are
 			//ScaledDistance is from 0 at center to 1 at edge. Reverse this.
-			var sd = 1 - MathHelper.Clamp(zone.Shape.ScaledDistance(zone.Position, camera.Position), 0f, 1f);
+			var sd = 1 - MathHelper.Clamp(zone.Shape.ScaledDistance(camera.Position), 0f, 1f);
 			return MathHelper.Clamp(sd / zone.EdgeFraction, 0, 1);
 		}
 
@@ -82,7 +82,7 @@ namespace LibreLancer
 
 		public void Update(TimeSpan elapsed)
 		{
-			if (Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, Nebula.Zone.RotationMatrix, camera.Position))
+			if (Nebula.Zone.Shape.ContainsPoint(camera.Position))
 			{
 				UpdateBackgroundLightning(elapsed);
 				UpdateDynamicLightning(elapsed);
@@ -214,7 +214,7 @@ namespace LibreLancer
 			if (Nebula.ExclusionZones != null)
 			{
 				foreach (var zone in Nebula.ExclusionZones)
-					if (zone.Zone.Shape.ContainsPoint(zone.Zone.Position, zone.Zone.RotationMatrix, position))
+					if (zone.Zone.Shape.ContainsPoint(position))
 						return zone;
 			}
 			return null;
@@ -222,7 +222,7 @@ namespace LibreLancer
 
 		public void Draw(CommandBuffer buffer, Lighting lights)
 		{
-			bool inside = Nebula.Zone.Shape.ContainsPoint(Nebula.Zone.Position, Nebula.Zone.RotationMatrix, camera.Position);
+			bool inside = Nebula.Zone.Shape.ContainsPoint(camera.Position);
 			if (!inside || !FogTransitioned())
 				RenderFill(buffer, inside);
 			DrawPuffRing(inside);
@@ -286,7 +286,7 @@ namespace LibreLancer
         }
 		void DrawPuffRing(bool inside)
 		{
-			var sd = 1 - MathHelper.Clamp(Nebula.Zone.Shape.ScaledDistance(Nebula.Zone.Position, camera.Position), 0f, 1f);
+			var sd = 1 - MathHelper.Clamp(Nebula.Zone.Shape.ScaledDistance(camera.Position), 0f, 1f);
 			var factor = MathHelper.Clamp(sd / Nebula.Zone.EdgeFraction, 0, 1);
 
 			for (int i = 0; i < Exterior.Count; i++)

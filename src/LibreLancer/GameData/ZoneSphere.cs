@@ -20,26 +20,27 @@ namespace LibreLancer.GameData
 	public class ZoneSphere : ZoneShape
 	{
 		public float Radius;
-		public ZoneSphere(float r)
+		BoundingSphere sph;
+		public ZoneSphere(Zone zone, float r) : base(zone)
 		{
 			Radius = r;
+			sph = new BoundingSphere(zone.Position, Radius);
 		}
-		public override bool Intersects(Vector3 position, BoundingBox box)
+		public override bool Intersects(BoundingBox box)
 		{
-			var sph = new BoundingSphere(position, Radius);
 			return sph.Intersects(box);
 		}
-		public override bool ContainsPoint(Vector3 position, Matrix4 rotation, Vector3 point)
+		public override bool ContainsPoint(Vector3 point)
 		{
-			return new BoundingSphere(position, Radius).Contains(point) != ContainmentType.Disjoint;
+			return sph.Contains(point) != ContainmentType.Disjoint;
 		}
 		public override ZoneShape Scale(float scale)
 		{
-			return new ZoneSphere(Radius * scale);
+			return new ZoneSphere(Zone, Radius * scale);
 		}
-		public override float ScaledDistance(Vector3 position, Vector3 point)
+		public override float ScaledDistance(Vector3 point)
 		{
-			return VectorMath.Distance(position, point) / Radius;
+			return VectorMath.Distance(Zone.Position, point) / Radius;
 		}
 		public override Vector3 RandomPoint (Func<float> randfunc)
 		{

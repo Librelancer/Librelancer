@@ -206,28 +206,35 @@ namespace LibreLancer
 					}
 				switch (zne.Shape.Value) {
 				case Legacy.Universe.ZoneShape.ELLIPSOID:
-					z.Shape = new GameData.ZoneEllipsoid (
+					z.Shape = new GameData.ZoneEllipsoid (z,
 						zne.Size.Value.X,
 						zne.Size.Value.Y,
 						zne.Size.Value.Z
 					);
 					break;
 				case Legacy.Universe.ZoneShape.SPHERE:
-					z.Shape = new GameData.ZoneSphere (
+					z.Shape = new GameData.ZoneSphere (z,
 						zne.Size.Value.X
 					);
 					break;
 				case Legacy.Universe.ZoneShape.BOX:
-					z.Shape = new GameData.ZoneBox (
+					z.Shape = new GameData.ZoneBox (z,
 						zne.Size.Value.X,
 						zne.Size.Value.Y,
 						zne.Size.Value.Z
 					);
 					break;
 				case Legacy.Universe.ZoneShape.CYLINDER:
-					z.Shape = new GameData.ZoneCylinder (
+					z.Shape = new GameData.ZoneCylinder (z,
 						zne.Size.Value.X,
 						zne.Size.Value.Y
+					);
+					break;
+				case Legacy.Universe.ZoneShape.RING:
+					z.Shape = new GameData.ZoneRing(z,
+						zne.Size.Value.X,
+						zne.Size.Value.Y,
+						zne.Size.Value.Z
 					);
 					break;
 				default:

@@ -19,11 +19,17 @@ namespace LibreLancer.GameData
 {
 	public abstract class ZoneShape
 	{
-		public abstract bool Intersects(Vector3 position, BoundingBox box);
-		public abstract bool ContainsPoint(Vector3 position, Matrix4 rotation, Vector3 point);
-		public abstract float ScaledDistance(Vector3 position, Vector3 point);
+		public abstract bool Intersects(BoundingBox box);
+		public abstract bool ContainsPoint(Vector3 point);
+		public abstract float ScaledDistance(Vector3 point);
 		public abstract Vector3 RandomPoint (Func<float> randfunc);
 		public abstract ZoneShape Scale(float scale);
+
+		protected Zone Zone;
+		protected ZoneShape(Zone zn)
+		{
+			Zone = zn;
+		}
 	}
 }
 

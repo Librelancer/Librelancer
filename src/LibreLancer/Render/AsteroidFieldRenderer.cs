@@ -114,7 +114,7 @@ namespace LibreLancer
 		{
 			for (int i = 0; i < field.ExclusionZones.Count; i++) {
 				var f = field.ExclusionZones [i];
-				if (f.Zone.Shape.ContainsPoint (f.Zone.Position, f.Zone.RotationMatrix, pt))
+				if (f.Zone.Shape.ContainsPoint (pt))
 					return f;
 			}
 			return null;
@@ -139,7 +139,7 @@ namespace LibreLancer
 				);
 				var directional = (p * dist);
 				Position = directional + r.cameraPos;
-				Visible = r.field.Zone.Shape.ContainsPoint (r.field.Zone.Position, r.field.Zone.RotationMatrix, Position) 
+				Visible = r.field.Zone.Shape.ContainsPoint (Position) 
 					&& (r.GetExclusionZone (Position) == null);
 				Size = r.rand.NextFloat (r.field.BillboardSize.X, r.field.BillboardSize.Y) * 2;
 				Texture = r.rand.Next (0, 3);
@@ -165,7 +165,7 @@ namespace LibreLancer
 				for (int y = -amountCubes; y <= amountCubes; y++) {
 					for (int z = -amountCubes; z <= amountCubes; z++) {
 						var center = close + new Vector3 (x * field.CubeSize, y * field.CubeSize, z * field.CubeSize);
-						if (!field.Zone.Shape.ContainsPoint (field.Zone.Position, field.Zone.RotationMatrix, center))
+						if (!field.Zone.Shape.ContainsPoint (center))
 							continue;
 						if (GetExclusionZone (center) != null)
 							continue;

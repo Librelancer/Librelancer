@@ -131,10 +131,7 @@ namespace LibreLancer
 			for (int i = 0; i < Nebulae.Count; i++)
 			{
 				var n = Nebulae[i];
-				if (n.Nebula.Zone.Shape.ContainsPoint(
-					n.Nebula.Zone.Position,
-					n.Nebula.Zone.RotationMatrix,
-					position))
+				if (n.Nebula.Zone.Shape.ContainsPoint(position))
 					return n;
 			}
 			return null;
@@ -145,11 +142,7 @@ namespace LibreLancer
 			for (int i = 0; i < Nebulae.Count; i++)
 			{
 				var n = Nebulae[i];
-				if (n.Nebula.Zone.Shape.ContainsPoint(
-					n.Nebula.Zone.Position,
-					n.Nebula.Zone.RotationMatrix,
-					camera.Position
-				))
+				if (n.Nebula.Zone.Shape.ContainsPoint(camera.Position))
 					return n;
 			}
 			return null;

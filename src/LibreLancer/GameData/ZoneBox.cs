@@ -20,34 +20,37 @@ namespace LibreLancer.GameData
 	public class ZoneBox : ZoneShape
 	{
 		public Vector3 Size;
-		public ZoneBox (float x, float y, float z)
+		Matrix4 R;
+		Vector3 transformedPos;
+		public ZoneBox (Zone zone, float x, float y, float z) : base(zone)
 		{
 			Size = new Vector3 (x, y, z);
+			R = zone.RotationMatrix;
+			R.Transpose();
+			transformedPos = R.Transform(zone.Position);
 		}
-		public override bool Intersects(Vector3 position, BoundingBox box)
+		public override bool Intersects(BoundingBox box)
 		{
-			var min = position - (Size / 2);
-			var max = position + (Size / 2);
+			var min = Zone.Position - (Size / 2);
+			var max = Zone.Position + (Size / 2);
 			var me = new BoundingBox (min, max);
 			return me.Intersects (box);
 		}
-		public override bool ContainsPoint(Vector3 position, Matrix4 rotation, Vector3 point)
+		public override bool ContainsPoint(Vector3 point)
 		{
 			//transform point
-			var R = rotation;
-			R.Transpose();
-			point = R.Transform(point) - R.Transform(position);
+			point = R.Transform(point) - transformedPos;
 			//test
-			var min = -(Size / 2);
-			var max = (Size / 2);
+			var min = -(Size * 0.5f);
+			var max = (Size * 0.5f);
 			return !(point.X < min.X || point.Y < min.Y || point.Z < min.Z || point.X > max.X || point.Y > max.Y || point.Z > max.Z);
 		}
 		public override ZoneShape Scale(float scale)
 		{
 			var scl = Size * scale;
-			return new ZoneBox(scl.X, scl.Y, scl.Z);
+			return new ZoneBox(Zone, scl.X, scl.Y, scl.Z);
 		}
-		public override float ScaledDistance(Vector3 position, Vector3 point)
+		public override float ScaledDistance(Vector3 point)
 		{
 			throw new NotImplementedException ();
 		}

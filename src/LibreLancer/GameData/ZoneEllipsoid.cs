@@ -21,39 +21,42 @@ namespace LibreLancer.GameData
 	public class ZoneEllipsoid : ZoneShape
 	{
 		public Vector3 Size;
+		Matrix4 R;
+		Vector3 transformedPos;
 		static readonly ThreadLocal<Vector3[]> cornerbuf = new ThreadLocal<Vector3[]>(() => new Vector3[6]);
-		public ZoneEllipsoid (float x, float y, float z)
+		public ZoneEllipsoid (Zone zone, float x, float y, float z) : base(zone)
 		{
 			Size = new Vector3 (x, y, z);
+			R = zone.RotationMatrix;
+			R.Transpose();
+			transformedPos = R.Transform(zone.Position);
 		}
-		public override bool Intersects(Vector3 position, BoundingBox box)
+		public override bool Intersects(BoundingBox box)
 		{
 			var corners = cornerbuf.Value;
 			box.GetCorners(corners);
 			foreach (var c in corners)
 			{
-				if (PrimitiveMath.EllipsoidContains(position, Size, c))
+				if (PrimitiveMath.EllipsoidContains(Zone.Position, Size, c))
 					return true;
 			}
 			return false;
 		}
-		public override bool ContainsPoint(Vector3 position, Matrix4 rotation, Vector3 point)
+		public override bool ContainsPoint(Vector3 point)
 		{
 			//Transform point
-			var R = rotation;
-			R.Transpose();
-			point = R.Transform(point) - R.Transform(position);
+			point = R.Transform(point) - transformedPos;
 			//Test
 			return PrimitiveMath.EllipsoidContains(Vector3.Zero, Size, point);
 		}
 		public override ZoneShape Scale(float scale)
 		{
 			var scl = Size * scale;
-			return new ZoneEllipsoid(scl.X, scl.Y, scl.Z);
+			return new ZoneEllipsoid(Zone, scl.X, scl.Y, scl.Z);
 		}
-		public override float ScaledDistance(Vector3 position, Vector3 point)
+		public override float ScaledDistance(Vector3 point)
 		{
-			return PrimitiveMath.EllipsoidFunction(position, Size, point);
+			return PrimitiveMath.EllipsoidFunction(Zone.Position, Size, point);
 		}
 		public override Vector3 RandomPoint (Func<float> randfunc)
 		{
