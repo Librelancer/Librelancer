@@ -121,13 +121,42 @@ namespace LibreLancer
 		{
 			if (viewPosition != -1)
 				shader.SetMatrix(viewPosition, ref view);
+            _camera = null;
 		}
 
 		public void SetViewProjection(ref Matrix4 viewProjection)
 		{
 			if (viewProjectionPosition != -1)
 				shader.SetMatrix(viewProjectionPosition, ref viewProjection);
-		}
+            _camera = null;
+        }
+
+        //Set View and ViewProjection once per frame per shader
+        ICamera _camera;
+        long _vframeNumber;
+        long _vpframeNumber;
+
+        public void SetView(ICamera camera)
+        {
+            if (camera == _camera && camera.FrameNumber == _vframeNumber)
+                return;
+            _camera = camera;
+            _vframeNumber = camera.FrameNumber;
+            var v = camera.View;
+            if (viewPosition != -1)
+                shader.SetMatrix(viewPosition, ref v);
+        }
+
+        public void SetViewProjection(ICamera camera)
+        {
+            if (camera == _camera && camera.FrameNumber == _vpframeNumber)
+                return;
+            _camera = camera;
+            _vpframeNumber = camera.FrameNumber;
+            var vp = camera.ViewProjection;
+            if (viewProjectionPosition != -1)
+                shader.SetMatrix(viewProjectionPosition, ref vp);
+        }
 
 		public void SetWorld(ref Matrix4 world)
 		{

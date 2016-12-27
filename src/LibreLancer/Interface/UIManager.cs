@@ -41,8 +41,9 @@ namespace LibreLancer
 			return buttonFont;
 		}
 		public void Draw()
-		{
-			Game.RenderState.DepthEnabled = false;
+        {
+            MenuButton.Update (IdentityCamera.Instance, TimeSpan.Zero);
+            Game.RenderState.DepthEnabled = false;
 			foreach (var e in Elements)
 				e.DrawBase ();
 			Game.Renderer2D.Start (Game.Width, Game.Height);

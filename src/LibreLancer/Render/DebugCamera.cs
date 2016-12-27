@@ -87,13 +87,21 @@ namespace LibreLancer
 		{
 			Projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(50f), Viewport.AspectRatio, 10f, 100000000f);
 		}
-
+        public long FrameNumber
+        {
+            get
+            {
+                return fnum;
+            }
+        }
+        long fnum;
 		/// <summary>
 		/// Allows the game component to update itself.
 		/// </summary>
 		public void Update(TimeSpan delta)
 		{
-			if (Free)
+            fnum++;
+            if (Free)
 			{
 				Matrix4 rotationMatrix = Matrix4.CreateRotationX(Rotation.Y) * Matrix4.CreateRotationY(Rotation.X);
 

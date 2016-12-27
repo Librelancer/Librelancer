@@ -23,6 +23,7 @@ namespace LibreLancer
 		Matrix4 View { get; }
 		Vector3 Position { get; }
 		BoundingFrustum Frustum { get; }
+        long FrameNumber { get; }
 	}
 }
 

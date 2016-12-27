@@ -44,11 +44,13 @@ namespace LibreLancer
 		}
 		public override void Use(RenderState rstate, IVertexType vertextype, Lighting lights)
 		{
+            if (Camera == null)
+                return;
 			//fragment shader you multiply tex sampler rgb by vertex color and alpha the same (that is should texture have alpha of its own, sometimes they may as well)
 			rstate.BlendMode = BlendMode.Additive;
 			var shader = GetShader(vertextype);
 			shader.SetWorld(ref World);
-			shader.SetViewProjection(ref ViewProjection);
+            shader.SetViewProjection(Camera);
 			//Dt
 			shader.SetDtSampler(0);
 			BindTexture (0, DtSampler, 0, DtFlags);

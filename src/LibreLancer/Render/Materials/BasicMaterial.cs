@@ -91,10 +91,12 @@ namespace LibreLancer
 		}
 		public override void Use(RenderState rstate, IVertexType vertextype, Lighting lights)
 		{
+            if (Camera == null)
+                return;
 			var shader = GetShader(vertextype);
 			shader.SetWorld(ref World);
-			shader.SetView(ref View);
-			shader.SetViewProjection(ref ViewProjection);
+            shader.SetView(Camera);
+            shader.SetViewProjection(Camera);
 			//Dt
 			shader.SetDtSampler(0);
 			BindTexture(0, DtSampler, 0 ,DtFlags, false);

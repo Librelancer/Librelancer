@@ -53,9 +53,9 @@ namespace LibreLancer
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Opaque;
 			var sh = GetShader (vertextype);
-			sh.SetViewProjection(ref ViewProjection);
+            sh.SetViewProjection(Camera);
 			sh.SetWorld (ref World);
-			sh.SetView(ref View);
+            sh.SetView(Camera);
 
 			sh.SetAc(Ac);
 			sh.SetDc(Dc);

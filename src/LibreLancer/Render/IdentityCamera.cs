@@ -26,6 +26,14 @@ namespace LibreLancer
 				return _instance;
 			}
 		}
+        long _fn = 0;
+        public long FrameNumber
+        {
+            get
+            {
+                return _fn++;
+            }
+        }
 		public Matrix4 ViewProjection {
 			get {
 				return Matrix4.Identity;

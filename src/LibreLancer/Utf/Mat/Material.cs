@@ -434,8 +434,8 @@ namespace LibreLancer.Utf.Mat
 		public void Update(ICamera camera)
 		{
 			ViewProjection = camera.ViewProjection;
-			if (Render != null)
-				Render.ViewProjection = ViewProjection;
+            if (Render != null)
+                Render.Camera = camera;
 		}
 	}
 }

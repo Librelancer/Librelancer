@@ -28,9 +28,9 @@ namespace LibreLancer
 		{
 			var test = point - center;
 			double result = (
-				Math.Pow((test.X / size.X), 2) +
-				Math.Pow((test.Y / size.Y), 2) +
-				Math.Pow((test.Z / size.Z), 2)
+				((test.X / size.X) * (test.X / size.X)) +
+				((test.Y / size.Y) * (test.Y / size.Y)) +
+				((test.Z / size.Z) * (test.Z / size.Z))
 			);
 			return (float)result;
 		}

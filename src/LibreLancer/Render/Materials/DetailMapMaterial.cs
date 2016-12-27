@@ -50,8 +50,8 @@ namespace LibreLancer
 
 			ShaderVariables sh = GetShader (vertextype);
 			sh.SetWorld (ref World);
-			sh.SetView (ref View);
-			sh.SetViewProjection (ref ViewProjection);
+            sh.SetView(Camera);
+            sh.SetViewProjection(Camera);
 
 			sh.SetAc(Ac);
 			sh.SetDc(Dc);

@@ -22,9 +22,7 @@ namespace LibreLancer
 	public abstract class RenderMaterial
 	{
 		public Matrix4 World = Matrix4.Identity;
-		public Matrix4 View = Matrix4.Identity;
-		public Matrix4 Projection = Matrix4.Identity;
-		public Matrix4 ViewProjection = Matrix4.Identity;
+        public ICamera Camera;
 		public ILibFile Library;
 		public abstract void Use (RenderState rstate, IVertexType vertextype, Lighting lights);
 		static Texture2D nullTexture;

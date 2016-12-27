@@ -107,18 +107,16 @@ namespace LibreLancer.Utf.Mat
                 //updatePlanetTexture = true;
             }
         }
-		Matrix4 viewproj;
-		Matrix4 view;
+        ICamera _camera;
 		public void Update(ICamera camera, TimeSpan delta)
         {
             if (ready)
             {
-				viewproj = camera.ViewProjection;
-				view = camera.View;
+                _camera = camera;
 				if (SideMaterials.Length > 6) {
-					var mat = (AtmosphereMaterial)SideMaterials [6].Render;
-					mat.Projection = camera.Projection;
-					mat.CameraPosition = camera.Position;
+					//var mat = (AtmosphereMaterial)SideMaterials [6].Render;
+					//mat.Projection = camera.Projection;
+					//mat.CameraPosition = camera.Position;
 				}
             }
         }
@@ -147,8 +145,7 @@ namespace LibreLancer.Utf.Mat
 					int start, count;
 					Vector3 pos;
 					sphere.GetDrawParameters(faces[i], out start, out count, out pos);
-					SideMaterials[i].Render.ViewProjection = viewproj;
-					SideMaterials[i].Render.View = view;
+                    SideMaterials[i].Render.Camera = _camera;
 					buffer.AddCommand(
 						SideMaterials[i].Render,
 						Matrix4.CreateScale(Radius) * world,

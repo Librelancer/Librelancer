@@ -96,13 +96,20 @@ namespace LibreLancer
 		{
 			Projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(50f), Viewport.AspectRatio, 10f, 100000000f);
 		}
-
+        public long FrameNumber
+        {
+            get
+            {
+                return fnum;
+            }
+        }
+        long fnum = 0;
 		/// <summary>
 		/// Allows the game component to update itself.
 		/// </summary>
 		public void Update(TimeSpan delta)
 		{
-
+            fnum++;
 			Matrix4 rotationMatrix = ChaseOrientation;
 
 			_position = ChasePosition + (rotationMatrix.Transform(DesiredPositionOffset));

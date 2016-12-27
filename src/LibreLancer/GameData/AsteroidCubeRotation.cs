@@ -23,6 +23,7 @@ namespace LibreLancer.GameData
 		public static readonly Vector4 Default_AxisY = new Vector4(0, 90, 180, 270);
 		public static readonly Vector4 Default_AxisZ = new Vector4(0, 90, 180, 270);
 
+        bool dirty = true;
 		public Vector4 AxisX
 		{
 			get 
@@ -32,12 +33,7 @@ namespace LibreLancer.GameData
 			set 
 			{
 				axisx = value;
-				_x = new Vector4(
-					MathHelper.DegreesToRadians(axisx.X),
-					MathHelper.DegreesToRadians(axisx.Y),
-					MathHelper.DegreesToRadians(axisx.Z),
-					MathHelper.DegreesToRadians(axisx.W)
-				);
+                dirty = true;
 			}
 		}
 		public Vector4 AxisY
@@ -49,12 +45,7 @@ namespace LibreLancer.GameData
 			set
 			{
 				axisy = value;
-				_y = new Vector4(
-					MathHelper.DegreesToRadians(axisy.X),
-					MathHelper.DegreesToRadians(axisy.Y),
-					MathHelper.DegreesToRadians(axisy.Z),
-					MathHelper.DegreesToRadians(axisy.W)
-				);
+                dirty = true;
 			}
 		}
 		public Vector4 AxisZ
@@ -66,12 +57,7 @@ namespace LibreLancer.GameData
 			set
 			{
 				axisz = value;
-				_z = new Vector4(
-					MathHelper.DegreesToRadians(axisz.X),
-					MathHelper.DegreesToRadians(axisz.Y),
-					MathHelper.DegreesToRadians(axisz.Z),
-					MathHelper.DegreesToRadians(axisz.W)
-				);
+                dirty = true;
 			}
 		}
 
@@ -79,21 +65,37 @@ namespace LibreLancer.GameData
 		Vector4 axisy;
 		Vector4 axisz;
 
-		Vector4 _x;
-		Vector4 _y;
-		Vector4 _z;
+        Matrix4 m1;
+        Matrix4 m2;
+        Matrix4 m3;
+        Matrix4 m4;
 
-		public Vector3 GetRotation(float param)
+		public Matrix4 GetRotation(float param)
 		{
-			
-			if (param < 0.25f)
-				return new Vector3(_x.X, _y.X, _z.X);
-			else if (param < 0.5f)
-				return new Vector3(_x.Y, _y.Y, _z.Y);
-			else if (param < 0.75f)
-				return new Vector3(_x.Z, _y.Z, _z.Z);
-			else
-				return new Vector3(_x.W, _y.W, _z.W);
+            if (dirty)
+            {
+                m1 = Matrix4.CreateRotationX(MathHelper.DegreesToRadians(AxisX.X)) *
+                    Matrix4.CreateRotationY(MathHelper.DegreesToRadians(AxisY.X)) *
+                    Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(AxisZ.X));
+                m2 = Matrix4.CreateRotationX(MathHelper.DegreesToRadians(AxisX.Y)) *
+                   Matrix4.CreateRotationY(MathHelper.DegreesToRadians(AxisY.Y)) *
+                   Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(AxisZ.Y));
+                m3 = Matrix4.CreateRotationX(MathHelper.DegreesToRadians(AxisX.Z)) *
+                   Matrix4.CreateRotationY(MathHelper.DegreesToRadians(AxisY.Z)) *
+                   Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(AxisZ.Z));
+                m4 = Matrix4.CreateRotationX(MathHelper.DegreesToRadians(AxisX.W)) *
+                   Matrix4.CreateRotationY(MathHelper.DegreesToRadians(AxisY.W)) *
+                   Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(AxisZ.W));
+                dirty = false;
+            }
+            if (param < 0.25f)
+                return m1;
+            else if (param < 0.5f)
+                return m2;
+            else if (param < 0.75f)
+                return m3;
+            else
+                return m4;
 		}
 	}
 }
