@@ -43,6 +43,22 @@ namespace LibreLancer.Vertices
 				new VertexElement(VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 10)
 			);
 		}
+
+		public static bool operator ==(VertexPositionNormalColorTexture left, VertexPositionNormalColorTexture right)
+		{
+			return left.Position == right.Position &&
+					   left.Normal == right.Normal &&
+					   left.Color == right.Color &&
+					   left.TextureCoordinate == right.TextureCoordinate;
+		}
+
+		public static bool operator !=(VertexPositionNormalColorTexture left, VertexPositionNormalColorTexture right)
+		{
+			return left.Position != right.Position ||
+					   left.Normal != right.Normal ||
+					   left.Color != right.Color ||
+					   left.TextureCoordinate != right.TextureCoordinate;
+		}
 	}
 }
 

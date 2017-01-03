@@ -14,11 +14,17 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using LibreLancer.GameData;
 using LibreLancer.Primitives;
+using LibreLancer.Utf.Cmp;
+using LibreLancer.Utf.Mat;
+using LibreLancer.Vertices;
+
 namespace LibreLancer
 {
-	public class AsteroidFieldRenderer
+	public class AsteroidFieldRenderer : IDisposable
 	{
 		const int SIDES = 20;
 
@@ -62,6 +68,7 @@ namespace LibreLancer
 			renderDistSq = rdist * rdist;
 			cubes = new CalculatedCube[1000];
 			_asteroidsCalculation = CalculateAsteroids;
+			CreateBufferObject();
 			//Set up band
 			if (field.Band == null)
 				return;
@@ -94,6 +101,139 @@ namespace LibreLancer
 			bandNormal.Transpose();
 		}
 
+		List<VertexPositionNormalColorTexture> verts;
+		List<ushort> indices;
+		List<DrawCall> cubeDrawCalls = new List<DrawCall>();
+
+		VertexBuffer cube_vbo;
+		ElementBuffer cube_ibo;
+		class DrawCall
+		{
+			public Material Material;
+			public int StartIndex;
+			public int Count;
+		}
+
+		//Code for baking an asteroid cube into a mesh
+		void CreateBufferObject()
+		{
+			verts = new List<VertexPositionNormalColorTexture>();
+			indices = new List<ushort>();
+			//Gather a list of all materials
+			List<Material> mats = new List<Material>();
+			if (field.AllowMultipleMaterials)
+			{
+				foreach (var ast in field.Cube)
+				{
+					var l0 = (ast.Drawable as ModelFile).Levels[0];
+					for (int i = l0.StartMesh; i < l0.StartMesh + l0.MeshCount; i++)
+					{
+						var m = l0.Mesh.Meshes[i].Material;
+						bool add = true;
+						foreach (var mat in mats)
+						{
+							if (m.Name == mat.Name)
+							{
+								add = false;
+								break;
+							}
+						}
+						if (add)
+							mats.Add(m);
+					}
+				}
+			}
+			else
+			{
+				var msh = (field.Cube[0].Drawable as ModelFile).Levels[0];
+				mats.Add(msh.Mesh.Meshes[msh.StartMesh].Material);
+			}
+			//Create the draw calls
+			foreach (var mat in mats)
+			{
+				var start = indices.Count;
+				foreach (var ast in field.Cube)
+				{
+					AddAsteroidToBuffer(ast, mat);
+				}
+				var count = indices.Count - start;
+				cubeDrawCalls.Add(new DrawCall() { Material = mat, StartIndex = start, Count = count });
+			}
+			cube_vbo = new VertexBuffer(typeof(VertexPositionNormalColorTexture), verts.Count);
+			cube_ibo = new ElementBuffer(indices.Count);
+			cube_ibo.SetData(indices.ToArray());
+			cube_vbo.SetData(verts.ToArray());
+			cube_vbo.SetElementBuffer(cube_ibo);
+			verts = null;
+			indices = null;
+		}
+
+		void AddAsteroidToBuffer(StaticAsteroid ast, Material mat)
+		{
+			var model = ast.Drawable as ModelFile;
+			var l0 = model.Levels[0];
+			var vertType = l0.Mesh.VertexBuffer.VertexType.GetType();
+			var transform = ast.RotationMatrix * Matrix4.CreateTranslation(ast.Position * field.CubeSize);
+			for (int i = l0.StartMesh; i < l0.StartMesh + l0.MeshCount; i++)
+			{
+				var m = l0.Mesh.Meshes[i];
+				var baseVertex = l0.StartVertex + m.StartVertex;
+				int indexStart = m.TriangleStart;
+				int indexCount = m.NumRefVertices;
+				for (int j = indexStart; j < indexStart + indexCount; j++) {
+					VertexPositionNormalColorTexture vert;
+					var idx = baseVertex + l0.Mesh.Indices[j];
+					if (vertType == typeof(VertexPositionNormalColorTexture))
+					{
+						vert = l0.Mesh.verticesVertexPositionNormalColorTexture[idx];
+					}
+					else if (vertType == typeof(VertexPositionNormalTexture))
+					{
+						var v = l0.Mesh.verticesVertexPositionNormalTexture[idx];
+						vert = new VertexPositionNormalColorTexture(
+							v.Position,
+							v.Normal,
+							Color4.White,
+							v.TextureCoordinate);
+					}
+					else if (vertType == typeof(VertexPositionNormalTextureTwo))
+					{
+						var v = l0.Mesh.verticesVertexPositionNormalTextureTwo[idx];
+						vert = new VertexPositionNormalColorTexture(
+							v.Position,
+							v.Normal,
+							Color4.White,
+							v.TextureCoordinate);
+					}
+					else
+					{
+						throw new NotImplementedException("Asteroids: " + vertType.FullName);
+					}
+					vert.Position = VectorMath.Transform(vert.Position, transform);
+					int newIdx = -1;
+					for (int k = 0; k < verts.Count; k++)
+					{
+						if (verts[k] == vert)
+						{
+							newIdx = k;
+							break;
+						}
+					}
+					if (newIdx == -1)
+					{
+						newIdx = verts.Count;
+						verts.Add(vert);
+					}
+					indices.Add((ushort)newIdx);
+				}
+			}
+		}
+
+		public void Dispose()
+		{
+			cube_ibo.Dispose();
+			cube_vbo.Dispose();
+		}
 
 		ICamera _camera;
 		public void Update(ICamera camera)
@@ -206,16 +346,25 @@ namespace LibreLancer
 				while (!_asteroidsCalculated) {
 				}
 				for (int j = 0; j < cubeCount; j++) {
-					for (int i = 0; i < field.Cube.Count; i++) {
-						var c = field.Cube [i];
-						var center = cubes[j].pos;
-						var astpos = center + cubes[j].rot.Transform((c.Position * field.CubeSize));
-						var r = c.Drawable.GetRadius ();
-						if (_camera.Frustum.Intersects (new BoundingSphere (astpos, r))) {
-							var lt = RenderHelpers.ApplyLights (lighting, astpos, r, nr);
-							if (!lt.FogEnabled || VectorMath.DistanceSquared (cameraPos, astpos) <= (r + lt.FogRange.Y) * (r + lt.FogRange.Y))
-								c.Drawable.DrawBuffer (buffer, cubes[j].rot * c.RotationMatrix * Matrix4.CreateTranslation (astpos), lt);
-						}
+					var center = cubes[j].pos;
+					var z = RenderHelpers.GetZ(cameraPos, center);
+					var lt = RenderHelpers.ApplyLights(lighting, center, field.CubeSize, nr);
+					var transform = Matrix4.CreateTranslation(center) * cubes[j].rot;
+					for (int i = 0; i < cubeDrawCalls.Count; i++)
+					{
+						var dc = cubeDrawCalls[i];
+						buffer.AddCommand(
+							dc.Material.Render,
+							transform,
+							lt,
+							cube_vbo,
+							PrimitiveTypes.TriangleList,
+							0,
+							dc.StartIndex,
+							dc.Count / 3,
+							SortLayers.OBJECT,
+							z
+						);
 					}
 				}
 				if (field.BillboardCount != -1) {	

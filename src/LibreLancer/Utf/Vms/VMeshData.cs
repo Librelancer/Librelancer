@@ -41,7 +41,7 @@ namespace LibreLancer.Utf.Vms
         /// </summary>
         public List<TMeshHeader> Meshes { get; private set; }
 
-        private ushort[] indices;
+		public ushort[] Indices;
 
         /// <summary>
         /// A list of triangles in the mesh data
@@ -91,8 +91,8 @@ namespace LibreLancer.Utf.Vms
                 }
 
                 // Read the triangle data
-                indices = new ushort[IndexCount];
-                for (int i = 0; i < IndexCount; i++) indices[i] = reader.ReadUInt16();
+                Indices = new ushort[IndexCount];
+                for (int i = 0; i < IndexCount; i++) Indices[i] = reader.ReadUInt16();
 
                 // Read the vertex data.
                 // The FVF defines what fields are included for each vertex.
@@ -229,35 +229,35 @@ namespace LibreLancer.Utf.Vms
                     break;*/
             }
             ElementBuffer = new ElementBuffer(IndexCount);
-            ElementBuffer.SetData(indices);
+            ElementBuffer.SetData(Indices);
             VertexBuffer.SetElementBuffer(ElementBuffer);
         }
 		public void CalculateNormals(VertexPositionNormalTexture[] array)
 		{
-			for (int i = 0; i < indices.Length / 3; i++)
+			for (int i = 0; i < Indices.Length / 3; i++)
 			{
-				var firstVec = array[indices[i * 3 + 1]].Position - array[indices[i * 3]].Position;
-				var secondVec = array[indices[i * 3]].Position - array[indices[i * 3 + 2]].Position;
+				var firstVec = array[Indices[i * 3 + 1]].Position - array[Indices[i * 3]].Position;
+				var secondVec = array[Indices[i * 3]].Position - array[Indices[i * 3 + 2]].Position;
 				var normal = Vector3.Cross(firstVec, secondVec);
 				normal.Normalize();
-				array[indices[i * 3]].Normal += normal;
-				array[indices[i * 3 + 1]].Normal += normal;
-				array[indices[i * 3 + 2]].Normal += normal;
+				array[Indices[i * 3]].Normal += normal;
+				array[Indices[i * 3 + 1]].Normal += normal;
+				array[Indices[i * 3 + 2]].Normal += normal;
 			}
 			for (int i = 0; i < array.Length; i++)
 				array[i].Normal.Normalize();
 		}
 		public void CalculateNormals(VertexPositionNormalColorTexture[] array)
 		{
-			for (int i = 0; i < indices.Length / 3; i++)
+			for (int i = 0; i < Indices.Length / 3; i++)
 			{
-				var firstVec = array[indices[i * 3 + 1]].Position - array[indices[i * 3]].Position;
-				var secondVec = array[indices[i * 3]].Position - array[indices[i * 3 + 2]].Position;
+				var firstVec = array[Indices[i * 3 + 1]].Position - array[Indices[i * 3]].Position;
+				var secondVec = array[Indices[i * 3]].Position - array[Indices[i * 3 + 2]].Position;
 				var normal = Vector3.Cross(firstVec, secondVec);
 				normal.Normalize();
-				array[indices[i * 3]].Normal += normal;
-				array[indices[i * 3 + 1]].Normal += normal;
-				array[indices[i * 3 + 2]].Normal += normal;
+				array[Indices[i * 3]].Normal += normal;
+				array[Indices[i * 3 + 1]].Normal += normal;
+				array[Indices[i * 3 + 2]].Normal += normal;
 			}
 			for (int i = 0; i < array.Length; i++)
 				array[i].Normal.Normalize();

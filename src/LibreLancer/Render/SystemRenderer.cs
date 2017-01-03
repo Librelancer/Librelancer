@@ -76,6 +76,9 @@ namespace LibreLancer
 				starSphereModels = new CmpFile[0];
 			}
 
+			if (AsteroidFields != null)
+				foreach (var f in AsteroidFields) f.Dispose();
+			
 			cache.ClearTextures();
 
 			//Load new system
