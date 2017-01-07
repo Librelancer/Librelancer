@@ -75,7 +75,6 @@ namespace LibreLancer
 			return false;
 		}
 
-		float MAX_DIFFERENCE = 0.001f;
 		bool ProcessJointMap(JointMap jm, double startTime)
 		{
 			var joint = Parent.CmpConstructs.Find(jm.ChildName);
@@ -92,8 +91,8 @@ namespace LibreLancer
 				var v2 = jm.Channel.Frames[i + 1].JointValue;
 				if (t >= t0 && t <= t1)
 				{
-					var distance = (Math.Abs(v2) - Math.Abs(v1)) * (Math.Abs(v2) - Math.Abs(v1));
-					if (distance < MAX_DIFFERENCE)
+					var dist = Math.Abs(v2 - v1);
+					if (Math.Abs(t1 - t0) < 0.5f && dist > 1f)
 					{
 						//Deal with the horrible rotation scripts
 						//Disable interpolation between e.g.  3.137246 to -3.13287
