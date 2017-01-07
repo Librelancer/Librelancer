@@ -102,5 +102,10 @@ namespace LibreLancer.Utf.Cmp
 			if (Construct != null) transform = Construct.Transform * world;
 			Model.DrawBuffer(buffer, transform, light);
 		}
+
+		public Part Clone(ConstructCollection newcol)
+		{
+			return new Part(ObjectName, fileName, models, newcol);
+		}
     }
 }

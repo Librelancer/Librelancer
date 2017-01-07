@@ -54,7 +54,7 @@ namespace LibreLancer
 				g.Name = obj.DisplayName;
 				g.Nickname = obj.Nickname;
 				g.Transform = (obj.Rotation ?? Matrix4.Identity) * Matrix4.CreateTranslation(obj.Position);
-				g.SetLoadout(obj.Loadout);
+				g.SetLoadout(obj.Loadout, obj.LoadoutNoHardpoint);
 				g.StaticPosition = obj.Position;
 
 				g.Register(Renderer, Physics);

@@ -297,6 +297,10 @@
     <Compile Include="Render\ShaderVariables.cs" />
     <Compile Include="GameData\ZoneRing.cs" />
     <Compile Include="GameData\AsteroidCubeRotation.cs" />
+    <Compile Include="Gameplay\Components\AnimationComponent.cs" />
+    <Compile Include="Utf\Anm\ObjectMap.cs" />
+    <Compile Include="Utf\Anm\JointMap.cs" />
+    <Compile Include="GameData\Items\AnimationEquipment.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

@@ -885,6 +885,11 @@ namespace LibreLancer
 
         #endregion
 
+		public Color3f Rgb
+		{
+			get { return new Color3f(R, G, B); }
+		}
+
         #region Color conversions
 
         #region sRGB

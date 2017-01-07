@@ -520,15 +520,27 @@ namespace LibreLancer
 					var val = ld.Equip[key];
 					if (val == null)
 						continue;
+					GameData.Items.Equipment equip = null;
 					if (val is Legacy.Equipment.Light)
 					{
-						var light = GetLight((Legacy.Equipment.Light)val);
-						obj.Loadout.Add(key, light);
+						equip = GetLight((Legacy.Equipment.Light)val);
+					}
+					else if (val is Legacy.Equipment.InternalFx)
+					{
+						var eq = new GameData.Items.AnimationEquipment();
+						eq.Animation = ((Legacy.Equipment.InternalFx)val).UseAnimation;
+						equip = eq;
 					}
 					if (val is Legacy.Equipment.AttachedFx)
 					{
-						var fx = GetAttachedFx((Legacy.Equipment.AttachedFx)val);
-						obj.Loadout.Add(key, fx);
+						equip = GetAttachedFx((Legacy.Equipment.AttachedFx)val);
+					}
+					if (equip != null)
+					{
+						if (key.StartsWith("__noHardpoint", StringComparison.Ordinal))
+							obj.LoadoutNoHardpoint.Add(equip);
+						else
+							obj.Loadout.Add(key, equip);
 					}
 				}
 			}

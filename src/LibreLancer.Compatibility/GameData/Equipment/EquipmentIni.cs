@@ -66,6 +66,7 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 				case "tradelane":
 					break;
 				case "internalfx":
+					Equip.Add(new InternalFx(s, data));
 					break;
 				case "attachedfx":
 					Equip.Add(new AttachedFx(s, data));

@@ -171,6 +171,7 @@
     <Compile Include="GameData\Solar\AsteroidArchIni.cs" />
     <Compile Include="GameData\Universe\CubeAsteroid.cs" />
     <Compile Include="GameData\Solar\Asteroid.cs" />
+    <Compile Include="GameData\Equipment\InternalFx.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

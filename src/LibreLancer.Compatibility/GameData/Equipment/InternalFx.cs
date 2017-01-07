@@ -10,26 +10,35 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2017
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using System.Collections.Generic;
-using LibreLancer.GameData.Items;
-namespace LibreLancer.GameData
+using LibreLancer.Ini;
+namespace LibreLancer.Compatibility.GameData.Equipment
 {
-	public class SystemObject
+	public class InternalFx : AbstractEquipment
 	{
-		public string Nickname;
-		public string DisplayName;
-		public Archetype Archetype;
-		public Vector3 Position = Vector3.Zero;
-		public Matrix4? Rotation;
-		public Dictionary<string, Equipment> Loadout = new Dictionary<string, Equipment>();
-		public List<Equipment> LoadoutNoHardpoint = new List<Equipment>();
-		public SystemObject ()
+		public string UseAnimation;
+		public string UseSound;
+		public InternalFx(Section section, FreelancerData gdata)
+			: base(section)
 		{
+			foreach (Entry e in section)
+			{
+				if (!parentEntry(e))
+				{
+					switch (e.Name.ToLowerInvariant())
+					{
+						case "use_animation":
+							UseAnimation = e[0].ToString();
+							break;
+						case "use_sound":
+							UseSound = e[0].ToString();
+							break;
+					}
+				}
+			}
 		}
 	}
 }
-

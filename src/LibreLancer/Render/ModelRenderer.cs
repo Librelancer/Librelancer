@@ -14,6 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Collections.Generic;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
 using LibreLancer.GameData;
@@ -24,13 +25,14 @@ namespace LibreLancer
 		public Matrix4 World { get; private set; }
 		public ModelFile Model { get; private set; }
 		public CmpFile Cmp { get; private set; }
+		public List<Part> CmpParts { get; private set; }
 		public SphFile Sph { get; private set; }
 		public NebulaRenderer Nebula;
 		float radiusAtmosphere;
 		Vector3 pos;
 		bool inited = false;
 		SystemRenderer sysr;
-		public ModelRenderer (IDrawable drawable)
+		public ModelRenderer(IDrawable drawable)
 		{
 			if (drawable is ModelFile)
 				Model = drawable as ModelFile;
@@ -39,7 +41,10 @@ namespace LibreLancer
 			else if (drawable is SphFile)
 				Sph = drawable as SphFile;
 		}
-
+		public ModelRenderer(List<Part> drawable)
+		{
+			CmpParts = drawable;
+		}
 		public override void Update(TimeSpan elapsed, Vector3 position, Matrix4 transform)
 		{
 			if (sysr == null)
@@ -121,6 +126,30 @@ namespace LibreLancer
 						{
 							var lighting = RenderHelpers.ApplyLights(lights, center, model.Levels[0].Radius, nr);
 							var r = model.Levels [0].Radius + lighting.FogRange.Y;
+							if (!lighting.FogEnabled || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
+								model.DrawBuffer(commands, w, lighting);
+						}
+					}
+				}
+			} else if (CmpParts != null) {
+				foreach (Part p in CmpParts)
+				{
+					p.Update(camera, TimeSpan.Zero);
+					var model = p.Model;
+					Matrix4 w = World;
+					if (p.Construct != null)
+						w = p.Construct.Transform * World;
+					if (model.Levels.ContainsKey(0))
+					{
+						var center = VectorMath.Transform(model.Levels[0].Center, w);
+						var bsphere = new BoundingSphere(
+							center,
+							model.Levels[0].Radius
+						);
+						if (camera.Frustum.Intersects(bsphere))
+						{
+							var lighting = RenderHelpers.ApplyLights(lights, center, model.Levels[0].Radius, nr);
+							var r = model.Levels[0].Radius + lighting.FogRange.Y;
 							if (!lighting.FogEnabled || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
 								model.DrawBuffer(commands, w, lighting);
 						}

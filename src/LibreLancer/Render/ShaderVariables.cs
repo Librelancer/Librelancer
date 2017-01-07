@@ -54,6 +54,8 @@ namespace LibreLancer
 		int fogColorPosition;
 		int fogRangePosition;
 
+		int fadePosition;
+		int fadeRangePosition;
 		Shader shader;
 
 		public ShaderVariables(Shader sh)
@@ -94,6 +96,9 @@ namespace LibreLancer
 			fogEnabledPosition = sh.GetLocation("FogEnabled");
 			fogColorPosition = sh.GetLocation("FogColor");
 			fogRangePosition = sh.GetLocation("FogRange");
+
+			fadePosition = sh.GetLocation("Fade");
+			fadeRangePosition = sh.GetLocation("FadeRange");
 		}
 
 		public void UseProgram()
@@ -324,6 +329,18 @@ namespace LibreLancer
 		{
 			if (fogRangePosition != -1)
 				shader.SetVector2(fogRangePosition, range);
+		}
+
+		public void SetFade(bool fade)
+		{
+			if (fadePosition != -1)
+				shader.SetInteger(fadePosition, fade ? 1 : 0);
+		}
+
+		public void SetFadeRange(Vector2 range)
+		{
+			if (fadeRangePosition != -1)
+				shader.SetVector2(fadeRangePosition, range);
 		}
 	}
 }

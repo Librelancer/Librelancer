@@ -57,7 +57,7 @@ namespace LibreLancer.Compatibility.GameData.Solar
 				case "equip":
 					if (e.Count < 1 || e.Count > 2) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 					//Equip.Add(new Equip(e[0].ToString(), e.Count == 2 ? e[1].ToString() : null));
-					string key = e.Count == 2 ? e[1].ToString() : "HpNone" + (emptyHp++).ToString("d2");
+					string key = e.Count == 2 ? e[1].ToString() : "__noHardpoint" + (emptyHp++).ToString("d2");
 					if (!Equip.ContainsKey(key)) Equip.Add(key, freelancerIni.Equipment.FindEquipment(e[0].ToString()));
 					break;
 				case "cargo":

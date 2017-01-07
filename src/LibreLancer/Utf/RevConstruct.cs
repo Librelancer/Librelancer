@@ -43,9 +43,21 @@ namespace LibreLancer.Utf
             Max = reader.ReadSingle();
         }
 
+		protected RevConstruct(RevConstruct cf) : base(cf) { }
+		public override AbstractConstruct Clone(ConstructCollection newcol)
+		{
+			var newc = new RevConstruct(this);
+			newc.Offset = Offset;
+			newc.AxisRotation = AxisRotation;
+			newc.Min = Min;
+			newc.Max = Max;
+			newc.constructs = newcol;
+			return newc;
+		}
+
         public override void Update(float distance)
         {
-            Vector3 currentRotation = AxisRotation * distance;
+			Vector3 currentRotation = AxisRotation * MathHelper.Clamp(distance, Min, Max);
             currentTransform = Matrix4.CreateRotationX(currentRotation.X) * Matrix4.CreateRotationY(currentRotation.Y) * Matrix4.CreateRotationZ(currentRotation.Z);
         }
     }

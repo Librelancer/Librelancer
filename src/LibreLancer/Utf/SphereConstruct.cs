@@ -47,6 +47,20 @@ namespace LibreLancer.Utf
             Min3 = reader.ReadSingle();
             Max3 = reader.ReadSingle();
         }
+		protected SphereConstruct(SphereConstruct cf) : base(cf) { }
+		public override AbstractConstruct Clone(ConstructCollection newcol)
+		{
+			var newc = new SphereConstruct(this);
+			newc.constructs = newcol;
+			newc.Offset = Offset;
+			newc.Min1 = Min1;
+			newc.Min2 = Min2;
+			newc.Min3 = Min3;
+			newc.Max1 = Max1;
+			newc.Max2 = Max2;
+			newc.Max3 = Max3;
+			return newc;
+		}
 
         public override void Update(float distance)
         {

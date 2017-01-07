@@ -42,10 +42,21 @@ namespace LibreLancer.Utf
             Min = reader.ReadSingle();
             Max = reader.ReadSingle();
         }
+		protected PrisConstruct(PrisConstruct cloneFrom) : base(cloneFrom) { }
+		public override AbstractConstruct Clone(ConstructCollection newcol)
+		{
+			var newc = new PrisConstruct(this);
+			newc.constructs = newcol;
+			newc.Offset = Offset;
+			newc.AxisTranslation = AxisTranslation;
+			newc.Min = Min;
+			newc.Max = Max;
+			return newc;
+		}
 
         public override void Update(float distance)
         {
-            Vector3 currentRotation = AxisTranslation * distance;
+			Vector3 currentRotation = AxisTranslation * MathHelper.Clamp(distance, Min, Max);
             currentTransform = Matrix4.CreateTranslation(currentRotation);
         }
     }

@@ -14,37 +14,14 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-
-namespace LibreLancer
+using LibreLancer.Fx;
+namespace LibreLancer.GameData.Items
 {
-	public struct Color3f
+	public class AnimationEquipment : Equipment
 	{
-		public static readonly Color3f White = new Color3f(1, 1, 1);
-		public static readonly Color3f Black = new Color3f(0, 0, 0);
-		public float R;
-		public float G;
-		public float B;
-		public Color3f(float r, float g, float b)
+		public string Animation;
+		public AnimationEquipment()
 		{
-			R = r;
-			G = g;
-			B = b;
-		}
-		public Color3f(Vector3 val) : this(val.X, val.Y, val.Z) {}
-
-		public override string ToString ()
-		{
-			return string.Format ("[R:{0}, G:{1}, B:{2}]", R, G, B);
-		}
-
-		public static Color3f operator *(Color3f a, Color3f b)
-		{
-			return new Color3f(
-				a.R * b.R,
-				a.G * b.G,
-				a.B * b.B
-			);
 		}
 	}
 }
-

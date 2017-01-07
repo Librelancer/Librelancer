@@ -63,6 +63,15 @@ namespace LibreLancer.Utf
             }
         }
 
+		public ConstructCollection CloneAll()
+		{
+			var newcol = new ConstructCollection();
+			foreach (var c in constructs) {
+				newcol.constructs.Add(c.Clone(newcol));
+			}
+			return newcol;
+		}
+
         public AbstractConstruct Find(string name)
         {
             for(int i = 0; i < constructs.Count; i++)

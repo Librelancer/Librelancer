@@ -29,7 +29,7 @@ namespace LibreLancer.Utf
     public abstract class AbstractConstruct
     {
         const int STR_LENGTH = 64;
-        private ConstructCollection constructs;
+        protected ConstructCollection constructs;
 
         public string ParentName { get; private set; }
         public string ChildName { get; private set; }
@@ -57,6 +57,16 @@ namespace LibreLancer.Utf
 
             Origin = ConvertData.ToVector3(reader);
         }
+
+		protected AbstractConstruct(AbstractConstruct cloneFrom)
+		{
+			ParentName = cloneFrom.ParentName;
+			ChildName = cloneFrom.ChildName;
+			Origin = cloneFrom.Origin;
+			Rotation = cloneFrom.Rotation;
+		}
+
+		public abstract AbstractConstruct Clone(ConstructCollection newcol);
 
 		AbstractConstruct parent;
         protected Matrix4 internalGetTransform(Matrix4 matrix)

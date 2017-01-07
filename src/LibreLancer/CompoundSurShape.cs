@@ -49,6 +49,7 @@ namespace LibreLancer
 			internal JMatrix invOrientation;
 			internal JBBox boundingBox;
 
+			public object Tag;
 			/// <summary>
 			/// The 'sub' shape.
 			/// </summary>
@@ -99,6 +100,7 @@ namespace LibreLancer
 				JMatrix.Transpose(ref orientation, out invOrientation);
 				this.shape = shape;
 				this.boundingBox = new JBBox();
+				this.Tag = null;
 				UpdateBoundingBox();
 			}
 		}

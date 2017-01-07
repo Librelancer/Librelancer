@@ -24,6 +24,9 @@ namespace LibreLancer
 		public Matrix4 World = Matrix4.Identity;
         public ICamera Camera;
 		public ILibFile Library;
+		public bool Fade = false;
+		public float FadeNear = 0;
+		public float FadeFar = 0;
 		public abstract void Use (RenderState rstate, IVertexType vertextype, Lighting lights);
 		static Texture2D nullTexture;
 		public abstract bool IsTransparent { get; }

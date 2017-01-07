@@ -105,12 +105,22 @@ namespace LibreLancer
 			//Oc
 			shader.SetOcEnabled(OcEnabled ? 1 : 0);
 			shader.SetOc(Oc);
-			if (AlphaEnabled)
+			if (AlphaEnabled || Fade)
 			{
 				rstate.BlendMode = BlendMode.Normal;
 			}
 			else {
 				rstate.BlendMode = BlendMode.Opaque;
+			}
+			//Fade
+			if (Fade)
+			{
+				shader.SetFade(true);
+				shader.SetFadeRange(new Vector2(FadeNear, FadeFar));
+			}
+			else
+			{
+				shader.SetFade(false);
 			}
 			//Ec
 			shader.SetEc(Ec);

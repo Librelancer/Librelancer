@@ -50,6 +50,27 @@ namespace LibreLancer
 				Z = z
 			};
 		}
+		public unsafe void AddCommandFade(RenderMaterial material, Matrix4 world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, int layer, Vector2 fadeParams, float z = 0)
+		{
+			Commands[currentCommand++] = new RenderCommand()
+			{
+				Material = material,
+				Lights = lights,
+				Buffer = buffer,
+				Start = start,
+				Count = count,
+				Primitive = primitive,
+				CmdType = RenderCmdType.Material,
+				UseBaseVertex = false,
+				Fade = true,
+				BaseVertex = *(int*)(&fadeParams.X),
+				Index = *(int*)(&fadeParams.Y),
+				Transparent = material.IsTransparent,
+				World = world,
+				SortLayer = layer,
+				Z = z
+			};
+		}
 		public void AddCommand(Shader shader, Action<Shader,RenderState,RenderCommand> setup, Action<RenderState> cleanup, Matrix4 world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0)
 		{
 			Commands[currentCommand++] = new RenderCommand()
@@ -203,25 +224,37 @@ namespace LibreLancer
 		public bool Transparent;
 		public Lighting Lights;
 		public float Z;
-		public string Caller;
 		public int SortLayer;
 		public Billboards Billboards;
 		public int Hash;
 		public int Index;
+		public bool Fade;
 		public override string ToString()
 		{
-			return string.Format("[{1} - Z: {0}]", Z, Caller);
+			return string.Format("[Z: {0}]", Z);
 		}
-		public void Run(RenderState state)
+		public unsafe void Run(RenderState state)
 		{
 			if (CmdType == RenderCmdType.Material)
 			{
 				Material.World = World;
+				if (Fade)
+				{
+					Material.Fade = true;
+					var fn = BaseVertex;
+					var ff = Index;
+					Material.FadeNear = *(float*)(&fn);
+					Material.FadeFar = *(float*)(&ff);
+				}
 				Material.Use(state, Buffer.VertexType, Lights);
 				if (UseBaseVertex)
 					Buffer.Draw(Primitive, BaseVertex, Start, Count);
 				else
 					Buffer.Draw(Primitive, Count);
+				if (Fade)
+				{
+					Material.Fade = false;
+				}
 			}
 			else if (CmdType == RenderCmdType.Shader)
 			{

@@ -341,6 +341,8 @@ namespace LibreLancer
                 return;
 			//Asteroids!
 			if (VectorMath.DistanceSquared (cameraPos, field.Zone.Position) <= renderDistSq) {
+				float fadeNear = field.FillDist * 0.9f;
+				float fadeFar = field.FillDist;
 				if (cubeCount == -1)
 					return;
 				while (!_asteroidsCalculated) {
@@ -353,21 +355,22 @@ namespace LibreLancer
 					for (int i = 0; i < cubeDrawCalls.Count; i++)
 					{
 						var dc = cubeDrawCalls[i];
-						buffer.AddCommand(
+						buffer.AddCommandFade(
 							dc.Material.Render,
 							transform,
 							lt,
 							cube_vbo,
 							PrimitiveTypes.TriangleList,
-							0,
 							dc.StartIndex,
 							dc.Count / 3,
 							SortLayers.OBJECT,
+							new Vector2(fadeNear, fadeFar),
 							z
 						);
 					}
 				}
-				if (field.BillboardCount != -1) {	
+				if (field.BillboardCount != -1) {
+					var cameraLights = RenderHelpers.ApplyLights(lighting, cameraPos, 1, nr);
 					if (billboardTex == null || billboardTex.IsDisposed)
 						billboardTex = (Texture2D)res.FindTexture (field.BillboardShape.Texture);
 				
@@ -385,7 +388,7 @@ namespace LibreLancer
 								billboardTex,
 								astbillboards [i].Position,
 								astbillboards[i].Size,
-								new Color4(field.BillboardTint, alpha),
+								new Color4(field.BillboardTint * cameraLights.Ambient.Rgb, alpha),
 								coords[0], coords[2], coords[1],
 								0,
 								SortLayers.OBJECT

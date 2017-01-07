@@ -25,26 +25,22 @@ namespace LibreLancer.Utf.Anm
     public class Script
     {
         public float RootHeight { get; private set; }
-        public List<Channel> Channels { get; private set; }
+		public List<ObjectMap> ObjectMaps { get; private set; }
+		public List<JointMap> JointMaps { get; private set; }
 
         public Script(IntermediateNode root, ConstructCollection constructs)
         {
-            Channels = new List<Channel>();
-
+			ObjectMaps = new List<ObjectMap>();
+			JointMaps = new List<JointMap>();
             foreach (Node node in root)
             {
-                if (node.Name.Equals("root height", StringComparison.OrdinalIgnoreCase)) RootHeight = (node as LeafNode).SingleData.Value;
-                else if (
-                    node.Name.StartsWith("object map ", StringComparison.OrdinalIgnoreCase) ||
-                    node.Name.StartsWith("joint map ", StringComparison.OrdinalIgnoreCase)
-                ) Channels.Add(new Channel(node as IntermediateNode, constructs));
+				if (node.Name.Equals("root height", StringComparison.OrdinalIgnoreCase)) RootHeight = (node as LeafNode).SingleData.Value;
+				else if (node.Name.StartsWith("object map", StringComparison.OrdinalIgnoreCase))
+					ObjectMaps.Add(new ObjectMap(node as IntermediateNode));
+				else if (node.Name.StartsWith("joint map", StringComparison.OrdinalIgnoreCase))
+					JointMaps.Add(new JointMap(node as IntermediateNode));
                 else throw new Exception("Invalid Node in script root: " + node.Name);
             }
-        }
-
-		public void Update(TimeSpan delta)
-        {
-            foreach (Channel channel in Channels) channel.Update(delta);
         }
     }
 }

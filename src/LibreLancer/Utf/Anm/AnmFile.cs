@@ -64,10 +64,5 @@ namespace LibreLancer.Utf.Anm
                 }
             }
         }
-
-		public void Update(TimeSpan delta)
-        {
-            foreach (KeyValuePair<string, Script> s in Scripts) if (s.Key.StartsWith("sc_rotate", StringComparison.OrdinalIgnoreCase)) s.Value.Update(delta);
-        }
     }
 }

@@ -32,6 +32,7 @@ namespace LibreLancer
 {
 	public class GameObject
 	{
+		//Object data
 		public string Name;
 		public string Nickname;
 		public Hardpoint Attachment;
@@ -52,14 +53,19 @@ namespace LibreLancer
 			}
 		}
 		public GameObject Parent;
-		public List<GameObject> Children = new List<GameObject>();
-		public List<GameComponent> Components = new List<GameComponent>();
-		IDrawable dr;
-		ObjectRenderer renderComponent;
-		Dictionary<string, Hardpoint> hardpoints = new Dictionary<string, Hardpoint>(StringComparer.OrdinalIgnoreCase);
 		bool isstatic = false;
 		public Vector3 StaticPosition;
+		IDrawable dr;
+		public ConstructCollection CmpConstructs;
+		public List<Part> CmpParts = new List<Part>();
+		Dictionary<string, Hardpoint> hardpoints = new Dictionary<string, Hardpoint>(StringComparer.OrdinalIgnoreCase);
+		//Components
+		public List<GameObject> Children = new List<GameObject>();
+		public List<GameComponent> Components = new List<GameComponent>();
+		ObjectRenderer renderComponent;
 		public RigidBody PhysicsComponent;
+		public AnimationComponent AnimationComponent;
+
 		public GameObject(Archetype arch, ResourceManager res, bool staticpos = false)
 		{
 			isstatic = staticpos;
@@ -77,10 +83,15 @@ namespace LibreLancer
 			isstatic = staticpos;
 			InitWithDrawable(drawable, res, staticpos);
 		}
+		public void UpdateCollision()
+		{
+
+		}
 		void InitWithDrawable(IDrawable drawable, ResourceManager res, bool staticpos)
 		{
 			dr = drawable;
 			Shape collisionShape = null;
+			bool isCmp = false;
 			if (dr is SphFile)
 			{
 				var radius = ((SphFile)dr).Radius;
@@ -101,16 +112,27 @@ namespace LibreLancer
 			}
 			else if (dr is CmpFile)
 			{
+				isCmp = true;
 				var cmp = dr as CmpFile;
+				CmpParts = new List<Part>();
+				CmpConstructs = cmp.Constructs.CloneAll();
+				foreach (var part in cmp.Parts.Values)
+				{
+					CmpParts.Add(part.Clone(CmpConstructs));
+				}
+				if (cmp.Animation != null)
+				{
+					AnimationComponent = new AnimationComponent(this, cmp.Animation);
+					Components.Add(AnimationComponent);
+				}
 				var path = Path.ChangeExtension(cmp.Path, "sur");
 				if (File.Exists(path))
 				{
 					SurFile sur = res.GetSur(path);
 					var shapes = new List<CompoundSurShape.TransformedShape>();
-					foreach (var part in cmp.Parts.Values)
+					foreach (var part in CmpParts)
 					{
 						var crc = CrcTool.FLModelCrc(part.ObjectName);
-
 						if (!sur.HasShape(crc))
 						{
 							FLLog.Warning("Sur", "No hitbox for " + part.ObjectName);
@@ -128,7 +150,7 @@ namespace LibreLancer
 							var q = tr.ExtractRotation(true);
 							var rot = JMatrix.CreateFromQuaternion(new JQuaternion(q.X, q.Y, q.Z, q.W));
 							foreach (var s in colshape)
-								shapes.Add(new CompoundSurShape.TransformedShape(s, rot, pos));
+								shapes.Add(new CompoundSurShape.TransformedShape(s, rot, pos) { Tag = part.Construct });
 						}
 					}
 					collisionShape = new CompoundSurShape(shapes);
@@ -140,8 +162,12 @@ namespace LibreLancer
 				PhysicsComponent.IsStatic = staticpos;
 			}
 			PopulateHardpoints(dr);
-			renderComponent = new ModelRenderer(dr);
+			if (isCmp)
+				renderComponent = new ModelRenderer(CmpParts);
+			else
+				renderComponent = new ModelRenderer(dr);
 		}
+
 		public GameObject(Equipment equip, Hardpoint hp, GameObject parent)
 		{
 			Parent = parent;
@@ -163,12 +189,21 @@ namespace LibreLancer
             }
 		}
 
-		public void SetLoadout(Dictionary<string, Equipment> equipment)
+		public void SetLoadout(Dictionary<string, Equipment> equipment, List<Equipment> nohp)
 		{
 			foreach (var k in equipment.Keys)
 			{
 				var hp = GetHardpoint(k);
 				Children.Add(new GameObject(equipment[k], hp, this));
+			}
+			foreach (var eq in nohp)
+			{
+				if (eq is AnimationEquipment)
+				{
+					var anm = (AnimationEquipment)eq;
+					if(anm.Animation != null)
+						AnimationComponent?.StartAnimation(anm.Animation);
+				}
 			}
 		}
 
@@ -177,8 +212,7 @@ namespace LibreLancer
 		{
 			if (drawable is CmpFile)
 			{
-				var cmp = (CmpFile)drawable;
-				foreach (var part in cmp.Parts.Values)
+				foreach (var part in CmpParts)
 				{
 					PopulateHardpoints(part.Model, part.Construct);
 				}
@@ -231,7 +265,6 @@ namespace LibreLancer
 			foreach (var child in Children)
 				child.Unregister(physics);
 		}
-
 		public Hardpoint GetHardpoint(string hpname)
 		{
 			return hardpoints[hpname];
@@ -253,4 +286,3 @@ namespace LibreLancer
 		}
 	}
 }
-

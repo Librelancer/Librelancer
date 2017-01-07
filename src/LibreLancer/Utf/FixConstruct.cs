@@ -34,6 +34,15 @@ namespace LibreLancer.Utf
 			fixtransform = Rotation * Matrix4.CreateTranslation(Origin);
         }
 
+		protected FixConstruct(FixConstruct cf) : base(cf) { }
+		public override AbstractConstruct Clone(ConstructCollection newcol)
+		{
+			var newc = new FixConstruct(this);
+			newc.constructs = newcol;
+			newc.fixtransform = fixtransform;
+			return newc;
+		}
+
         public override void Update(float distance)
         {
             throw new NotImplementedException();

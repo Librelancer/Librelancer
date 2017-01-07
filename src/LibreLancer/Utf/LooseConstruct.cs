@@ -31,6 +31,15 @@ namespace LibreLancer.Utf
             Rotation = ConvertData.ToMatrix3x3(reader);
         }
 
+		protected LooseConstruct(LooseConstruct cf) : base(cf) { }
+
+		public override AbstractConstruct Clone(ConstructCollection newcol)
+		{
+			var newc = new LooseConstruct(this);
+			newc.constructs = constructs;
+			return newc;
+		}
+
         public override void Update(float distance)
         {
             throw new NotImplementedException();
