@@ -47,6 +47,8 @@ namespace LibreLancer
 			if (sysr == null)
 				return;
 			float z = RenderHelpers.GetZ(Matrix4.Identity, camera.Position, pos);
+			if (z > 900000) // Reduce artefacts from fast Z-sort calculation. This'll probably cause issues somewhere else
+				z = 900000;
 			var dist_scale = nr != null ? nr.Nebula.SunBurnthroughScale : 1; // TODO: Modify this based on nebula burn-through.
 			var alpha = nr != null ? nr.Nebula.SunBurnthroughIntensity : 1;
 			var glow_scale = dist_scale * Sun.GlowScale;
@@ -70,7 +72,7 @@ namespace LibreLancer
 				new Color4(Sun.GlowColorInner, alpha),
 				new Color4(Sun.GlowColorOuter, alpha),
 				0,
-				z + 1f
+				z + 108f
 			);
 			if (Sun.SpinesSprite != null && nr == null)
 			{
@@ -89,7 +91,7 @@ namespace LibreLancer
 						s.OuterColor,
 						s.Alpha,
 						(float)current_angle,
-						z + 2f + (1f * i)
+						z + 1112f + (2f * i)
 					);
 				}
 			}
