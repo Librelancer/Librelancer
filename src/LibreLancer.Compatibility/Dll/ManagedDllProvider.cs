@@ -141,8 +141,15 @@ namespace LibreLancer.Dll
 				IMAGE_RESOURCE_DATA_ENTRY dataEntry = reader.ReadStruct<IMAGE_RESOURCE_DATA_ENTRY> ();
 				reader.BaseStream.Seek ((long)dataEntry.OffsetToData, SeekOrigin.Begin);
 				byte[] xmlBytes = reader.ReadBytes ((int)dataEntry.Size);
+				int idx = 0;
+				int count = xmlBytes.Length;
+				if (xmlBytes[0] == 0xFF && xmlBytes[1] == 0xFE) //Skip BOM
+				{
+					idx = 2;
+					count -= 2;
+				}
 				try {
-					Infocards.Add ((int)entries [j].Name, Encoding.Unicode.GetString(xmlBytes));
+					Infocards.Add ((int)entries [j].Name, Encoding.Unicode.GetString(xmlBytes,idx,count));
 				} catch (Exception) {
 					FLLog.Error ("Infocards", "Infocard Corrupt: " + entries[j].Name);
 				}

@@ -43,6 +43,8 @@ namespace LibreLancer.GLDelegates
     delegate void Clear(int flags);
     [SuppressUnmanagedCodeSecurity]
     delegate void Viewport(int x, int y, int width, int height);
+	[SuppressUnmanagedCodeSecurity]
+	delegate void Scissor(int x, int y, int width, int height);
     [SuppressUnmanagedCodeSecurity]
     delegate void BlendFunc(int sfactor, int dfactor);
     [SuppressUnmanagedCodeSecurity]

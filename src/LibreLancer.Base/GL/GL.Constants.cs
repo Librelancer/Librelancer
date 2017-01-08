@@ -102,6 +102,7 @@ namespace LibreLancer
 
 		public const int GL_BLEND = 0x0BE2;
 		public const int GL_DEPTH_TEST = 0x0B71;
+		public const int GL_SCISSOR_TEST = 0x0C11;
 		public const int GL_SRC_ALPHA = 0x0302;
 		public const int GL_ONE_MINUS_SRC_ALPHA = 0x0303;
 		public const int GL_CULL_FACE = 0x0B44;

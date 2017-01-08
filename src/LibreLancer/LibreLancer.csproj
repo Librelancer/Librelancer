@@ -301,6 +301,7 @@
     <Compile Include="Utf\Anm\ObjectMap.cs" />
     <Compile Include="Utf\Anm\JointMap.cs" />
     <Compile Include="GameData\Items\AnimationEquipment.cs" />
+    <Compile Include="Infocards\InfocardDisplay.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

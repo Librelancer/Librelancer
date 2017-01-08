@@ -102,6 +102,10 @@ namespace LibreLancer
 			var audio = fldata.Audio.Entries.Where((arg) => arg.Nickname.ToLowerInvariant() == id.ToLowerInvariant()).First();
 			return Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + audio.File);
 		}
+		public Infocards.Infocard GetInfocard(int id)
+		{
+			return Infocards.RDLParse.Parse(fldata.Infocards.GetXmlResource(id));
+		}
 		public GameData.IntroScene GetIntroScene()
 		{
 			//var rand = new Random();

@@ -174,16 +174,29 @@ namespace LibreLancer
 		Texture2D currentTexture = null;
 		Shader currentShader = null;
 		BlendMode currentMode = BlendMode.Normal;
-
+		int vpHeight;
 		public void Start(int vpWidth, int vpHeight)
 		{
 			if (active)
-				throw new InvalidOperationException ("TextRenderer.Start() called without calling TextRenderer.Finish()");
+				throw new InvalidOperationException ("Renderer2D.Start() called without calling Renderer2D.Finish()");
 			active = true;
+			this.vpHeight = vpHeight;
 			var mat = Matrix4.CreateOrthographicOffCenter (0, vpWidth, vpHeight, 0, 0, 1);
 			textShader.SetMatrix (textShader.GetLocation("modelviewproj"), ref mat);
 			imgShader.SetMatrix (imgShader.GetLocation("modelviewproj"), ref mat);
 			currentMode = BlendMode.Normal;
+		}
+
+		public void DrawWithClip(Rectangle clip, Action drawfunc)
+		{
+			if (!active)
+				throw new InvalidOperationException("Renderer2D.Start() must be called before Renderer2D.DrawWithClip()");
+			Flush();
+			GL.Enable(GL.GL_SCISSOR_TEST);
+			GL.Scissor(clip.X, vpHeight - clip.Y - clip.Height, clip.Width, clip.Height);
+			drawfunc();
+			Flush();
+			GL.Disable(GL.GL_SCISSOR_TEST);
 		}
 
 		public void DrawString(Font font, string str, Vector2 vec, Color4 color)
@@ -191,10 +204,36 @@ namespace LibreLancer
 			DrawString (font, str, vec.X, vec.Y, color);
 		}
 
-		public void DrawString(Font font, string text, float x, float y, Color4 color)
+		public void DrawStringIndented(Font font, string text, float x, float y, float start_x, Color4 color, bool underline = false)
 		{
 			if (!active)
-				throw new InvalidOperationException ("TextRenderer.Start() must be called before TextRenderer.DrawString");
+				throw new InvalidOperationException("Renderer2D.Start() must be called before Renderer2D.DrawString");
+			if (text == "") //skip empty str
+				return;
+			float dy = y;
+			int start = 0;
+			float dX = x;
+			for (int i = 0; i < text.Length; i++)
+			{
+				if (text[i] == '\n')
+				{
+					DrawStringInternal(font, text, start, i, dX, dy, color, underline);
+					dX = start_x;
+					dy += font.LineHeight;
+					i++;
+					start = i;
+				}
+			}
+			if (start < text.Length)
+			{
+				DrawStringInternal(font, text, start, text.Length, dX, dy, color, underline);
+			}
+		}
+
+		public void DrawString(Font font, string text, float x, float y, Color4 color, bool underline = false)
+		{
+			if (!active)
+				throw new InvalidOperationException ("Renderer2D.Start() must be called before Renderer2D.DrawString");
 			if (text == "") //skip empty str
 				return;
 			float dy = y;
@@ -203,7 +242,7 @@ namespace LibreLancer
             {
                 if(text[i] == '\n')
                 {
-                    DrawStringInternal(font, text, start, i, x, dy, color);
+                    DrawStringInternal(font, text, start, i, x, dy, color, underline);
                     dy += font.LineHeight;
                     i++;
                     start = i;
@@ -211,10 +250,10 @@ namespace LibreLancer
             }
             if(start < text.Length)
             {
-                DrawStringInternal(font, text, start, text.Length, x, dy, color);
+                DrawStringInternal(font, text, start, text.Length, x, dy, color, underline);
             }
 		}
-		void DrawStringInternal(Font font, string str, int start, int end, float x, float y, Color4 color)
+		void DrawStringInternal(Font font, string str, int start, int end, float x, float y, Color4 color, bool underline)
 		{
             var measureIter = new CodepointIterator(str, start, end);
 			int maxHeight = 0;
@@ -233,7 +272,6 @@ namespace LibreLancer
                 }
 				var glyph = font.GetGlyph (c);
 				if (glyph.Render) {
-					float y2 = -penY - glyph.YOffset;
 					var dst = new Rectangle (
 						(int)penX + glyph.XOffset,
 						(int)penY + (maxHeight - glyph.YOffset),
@@ -259,6 +297,14 @@ namespace LibreLancer
 					var kerning = font.Face.GetKerning (glyph.CharIndex, g2.CharIndex, KerningMode.Default);
 					penX += (float)kerning.X;
 				}
+			}
+
+			if (underline)
+			{
+				//TODO: This is probably not the proper way to draw underline, but it seems to work for now
+				float width = penX - x;
+				var ypos = font.GetGlyph((uint)'|').YOffset + 2;
+				FillRectangle(new Rectangle((int)x, (int)y + ypos, (int)width, 1), color);
 			}
 		}
 		public void FillRectangle(Rectangle rect, Color4 color)

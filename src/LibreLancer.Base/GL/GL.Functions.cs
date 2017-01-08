@@ -41,6 +41,8 @@ namespace LibreLancer
 		public static Viewport Viewport;
 		[MapsTo("glBlendFunc")]
 		public static BlendFunc BlendFunc;
+		[MapsTo("glScissor")]
+		public static Scissor Scissor;
 		/*[MapsTo("glBlendFunci")]
 		public static BlendFunci BlendFunci;
 		[MapsTo("glBlendFuncSeparate")]
