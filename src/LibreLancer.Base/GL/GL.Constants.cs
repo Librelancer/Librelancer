@@ -29,7 +29,7 @@ namespace LibreLancer
 		public const int GL_LINK_STATUS = 0x8B82;
 
 		public const int GL_TEXTURE_2D = 0x0DE1;
-
+		public const int GL_TEXTURE_2D_MULTISAMPLE = 0x9100;
 		public const int GL_TEXTURE_MIN_FILTER = 0x2801;
 		public const int GL_TEXTURE_MAG_FILTER = 0x2800;
 		public const int GL_LINEAR = 0x2601;
@@ -116,11 +116,14 @@ namespace LibreLancer
 		public const int GL_EXTENSIONS = 0x1F03;
 
 		public const int GL_FRAMEBUFFER = 0x8D40;
+		public const int GL_READ_FRAMEBUFFER = 0x8CA8;
+		public const int GL_DRAW_FRAMEBUFFER = 0x8CA9;
 		public const int GL_RENDERBUFFER = 0x8D41;
 		public const int GL_DEPTH_COMPONENT24 = 0x81A6;
 		public const int GL_DEPTH_ATTACHMENT = 0x8D00;
 		public const int GL_COLOR_ATTACHMENT0 = 0x8CE0;
 
+		public const int GL_MULTISAMPLE = 0x809D;
 
 		public const int GL_FRONT_AND_BACK = 0x0408;
 		public const int GL_LINE = 0x1B01;

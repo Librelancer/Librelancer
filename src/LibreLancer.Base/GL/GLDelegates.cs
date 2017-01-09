@@ -76,6 +76,8 @@ namespace LibreLancer.GLDelegates
     delegate void ActiveTexture(int unit);
     [SuppressUnmanagedCodeSecurity]
     delegate void TexImage2D(int target, int level, int internalFormat, int width, int height, int border, int format, int type, IntPtr data);
+	[SuppressUnmanagedCodeSecurity]
+	delegate void TexImage2DMultisample(int target, int samples, int internalFormat, int width, int height, bool fixedsamplelocations);
     [SuppressUnmanagedCodeSecurity]
     delegate void CompressedTexImage2D(int target, int level, int internalFormat, int width, int height, int border, int imageSize, IntPtr data);
     [SuppressUnmanagedCodeSecurity]
@@ -144,6 +146,8 @@ namespace LibreLancer.GLDelegates
     delegate void VertexAttribPointer(uint index, int size, int type, bool normalized, int stride, IntPtr data);
     [SuppressUnmanagedCodeSecurity]
     delegate void DrawBuffers(int n, IntPtr bufs);
+	[SuppressUnmanagedCodeSecurity]
+	delegate void DrawBuffer(int buf);
     //Drawing
     [SuppressUnmanagedCodeSecurity]
     delegate void DrawElements(int mode, int count, int type, IntPtr indices);
@@ -154,14 +158,20 @@ namespace LibreLancer.GLDelegates
     //Framebuffers
     [SuppressUnmanagedCodeSecurity]
     delegate void GenFramebuffers(int n, out uint framebuffers);
+	[SuppressUnmanagedCodeSecurity]
+	delegate int CheckFramebufferStatus(int target);
     [SuppressUnmanagedCodeSecurity]
     delegate void BindFramebuffer(int target, uint framebuffer);
+	[SuppressUnmanagedCodeSecurity]
+	delegate void BlitFramebuffer(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, int mask, int filter);
     [SuppressUnmanagedCodeSecurity]
     delegate void GenRenderbuffers(int n, out uint renderbuffers);
     [SuppressUnmanagedCodeSecurity]
     delegate void BindRenderbuffer(int target, uint renderbuffer);
     [SuppressUnmanagedCodeSecurity]
     delegate void RenderbufferStorage(int target, int internalformat, int width, int height);
+	[SuppressUnmanagedCodeSecurity]
+	delegate void RenderbufferStorageMultisample(int target, int samples, int internalformat, int width, int height);
     [SuppressUnmanagedCodeSecurity]
     delegate void FramebufferRenderbuffer(int target, int attachment, int renderbuffertarget, uint renderbuffer);
     [SuppressUnmanagedCodeSecurity]

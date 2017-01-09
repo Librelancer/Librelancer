@@ -97,6 +97,8 @@ namespace LibreLancer
 		public static BindTexture BindTexture;
 		[MapsTo("glTexImage2D")]
 		public static TexImage2D TexImage2D;
+		[MapsTo("glTexImage2DMultisample")]
+		public static TexImage2DMultisample TexImage2DMultisample;
 		[MapsTo("glTexSubImage2D")]
 		public static TexSubImage2D TexSubImage2D;
 		[MapsTo("glCompressedTexImage2D")]
@@ -215,10 +217,8 @@ namespace LibreLancer
 				_DrawBuffers(buffers.Length, (IntPtr)ptr);
 			}
 		}
-		public static unsafe void DrawBuffer(int buffer)
-		{
-			_DrawBuffers(1, (IntPtr)(&buffer));
-		}
+		[MapsTo("glDrawBuffer")]
+		public static DrawBuffer DrawBuffer;
 		//Drawing
 		[MapsTo("glDrawElements")]
 		public static DrawElements DrawElements;
@@ -235,8 +235,12 @@ namespace LibreLancer
 			GenFramebuffers (1, out fbo);
 			return fbo;
 		}
+		[MapsTo("glCheckFramebufferStatus")]
+		public static CheckFramebufferStatus CheckFramebufferStatus;
 		[MapsTo("glBindFramebuffer")]
 		public static BindFramebuffer BindFramebuffer;
+		[MapsTo("glBlitFramebuffer")]
+		public static BlitFramebuffer BlitFramebuffer;
 		[MapsTo("glGenRenderbuffers")]
 		public static GenRenderbuffers GenRenderbuffers;
 		public static uint GenRenderbuffer()
@@ -249,6 +253,8 @@ namespace LibreLancer
 		public static BindRenderbuffer BindRenderbuffer;
 		[MapsTo("glRenderbufferStorage")]
 		public static RenderbufferStorage RenderbufferStorage;
+		[MapsTo("glRenderbufferStorageMultisample")]
+		public static RenderbufferStorageMultisample RenderbufferStorageMultisample;
 		[MapsTo("glFramebufferRenderbuffer")]
 		public static FramebufferRenderbuffer FramebufferRenderbuffer;
 		[MapsTo("glFramebufferTexture2D")]

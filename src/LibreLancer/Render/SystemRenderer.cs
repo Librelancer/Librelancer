@@ -39,6 +39,8 @@ namespace LibreLancer
 			set { LoadSystem(value); }
 		}
 
+		public bool MSAAEnabled = false;
+
 		private IDrawable[] starSphereModels;
 		Lighting systemLighting;
 		ResourceManager cache;
@@ -150,9 +152,23 @@ namespace LibreLancer
 			}
 			return null;
 		}
+		MultisampleTarget msaa;
+		int _mwidth = -1, _mheight = -1;
 		CommandBuffer commands = new CommandBuffer();
 		public void Draw()
 		{
+			if (MSAAEnabled)
+			{
+				if (_mwidth != Game.Width || _mheight != Game.Height)
+				{
+					_mwidth = Game.Width;
+					_mheight = Game.Height;
+					if (msaa != null)
+						msaa.Dispose();
+					msaa = new MultisampleTarget(Game.Width, Game.Height, 4);
+				}
+				msaa.Bind();
+			}
 			NebulaRenderer nr = CheckNebulae(); //are we in a nebula?
 			bool transitioned = false;
 			if (nr != null)
@@ -206,6 +222,11 @@ namespace LibreLancer
 			rstate.DepthWrite = false;
 			commands.DrawTransparent(rstate);
 			rstate.DepthWrite = true;
+
+			if (MSAAEnabled)
+			{
+				msaa.BlitToScreen();
+			}
 		}
 
 	}
