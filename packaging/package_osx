@@ -62,6 +62,38 @@ echo Copying app bundle from xbuild
 mkdir -p ./packages
 rm -rf ./packages/Librelancer.app
 cp -r ../bin/Release/Launcher.Mac.app ./packages/Librelancer.app
+function generate_icon_size {
+	/Applications/Inkscape.app/Contents/Resources/bin/inkscape -z -e $PWD/icons.iconset/icon_$3.png -w $1 -h $2 $PWD/assets/icon.svg
+}
+# Embed icon
+if [ -f "./assets/icons.icns" ]; then
+	echo Copying ./assets/icons.icns
+	cp ./assets/icons.icns ./packages/Librelancer.app/Resources/AppIcons.icns
+elif [ -f "./assets/icon.svg" ]; then
+	if [ -f "/Applications/Inkscape.app/Contents/Resources/bin/Inkscape" ]; then
+		echo Converting ./assets/icon.svg to .icns
+		mkdir icons.iconset
+		generate_icon_size 16 16 16x16
+		generate_icon_size 32 32 16x16@2x
+		generate_icon_size 32 32 32x32
+		generate_icon_size 64 64 32x32@2x
+		generate_icon_size 128 128 128x128
+		generate_icon_size 256 256 128x128@2x
+		generate_icon_size 256 256 256x256
+		generate_icon_size 512 512 256x256@2x
+		generate_icon_size 512 512 512x512
+		generate_icon_size 1024 1024 512x512@2x
+		iconutil -c icns icons.iconset
+		echo Replacing icon
+		cp icons.icns ./packages/Librelancer.app/Contents/Resources/AppIcons.icns
+		rm icons.icns
+		rm -rf icons.iconset
+	else
+		echo Inkscape is not installed, skipping icon step.
+	fi
+else
+	echo No icon files exist to copy
+fi
 # Remove extraneous files
 echo Removing extra files from bundle
 cd ./packages/Librelancer.app/Contents/MonoBundle
