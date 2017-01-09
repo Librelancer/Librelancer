@@ -3,6 +3,26 @@
 # Depends on: 	mpv.app being present in the assets folder
 #				sdl2 being installed in homebrew
 #				freetype being installed in homebrew
+# Things that'll probably change between MonoDevelop version
+# SharpDX pulls in System.Windows.Forms and System.Drawing which pull in a bunch of useless files
+EXTRANEOUS_FILES="libpixman* \
+libcairo* \
+libgio* \
+libsqlite* \
+libglib* \
+libfreetype* \
+libtiff* \
+libgdiplus* \
+libjpeg* \
+libfontconfig* \
+libgobject* \
+libpng* \
+libexpat* \
+libgdk* \
+libffi* \
+libgif* \
+libgmodule*"
+
 # Check dependencies
 if [ ! -d "/Library" ]; then
 	echo "Error: This script may only be ran on OSX"
@@ -25,12 +45,12 @@ if [ ! -d "./assets/mpv.app" ]; then
 fi
 
 if [ ! -f "/usr/local/lib/libSDL2.dylib" ]; then
-  echo "Error: /usr/local/lib/libSDL2.dylib does not exit! Install it with: brew install sdl2"
+  echo "Error: /usr/local/lib/libSDL2.dylib does not exist! Install it with: brew install sdl2"
   exit 1
 fi
 
 if [ ! -f "/usr/local/lib/libfreetype.6.dylib" ]; then
-  echo "Error: /usr/local/lib/libfreetype.6.dylib does not exit! Install it with: brew install freetype"
+  echo "Error: /usr/local/lib/libfreetype.6.dylib does not exist! Install it with: brew install freetype"
   exit 1
 fi
 # Build project in Release mode
@@ -42,6 +62,13 @@ echo Copying app bundle from xbuild
 mkdir -p ./packages
 rm -rf ./packages/Librelancer.app
 cp -r ../bin/Release/Launcher.Mac.app ./packages/Librelancer.app
+# Remove extraneous files
+echo Removing extra files from bundle
+cd ./packages/Librelancer.app/Contents/MonoBundle
+set -x
+rm $EXTRANEOUS_FILES
+set +x
+cd ../../../../
 # MPV
 echo Embedding mpv
 mkdir -p ./packages/Librelancer.app/Contents/MacOS/mpv
