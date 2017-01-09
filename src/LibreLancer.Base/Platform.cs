@@ -58,9 +58,9 @@ namespace LibreLancer
 			return RunningPlatform.IsDirCaseSensitive (directory);
 		}
 
-		public static Face LoadSystemFace (Library library, string face)
+		public static Face LoadSystemFace (Library library, string face, ref FontStyles style)
 		{
-			return RunningPlatform.LoadSystemFace (library, face);
+			return RunningPlatform.LoadSystemFace(library, face, ref style);
 		}
 	}
 

@@ -61,31 +61,84 @@ namespace LibreLancer.Platforms
 			return false;
 		}
 
-		string helveticaPath;
-
+		string helvetica;
 		public MacPlatform()
 		{
 			Cocoa.Initialize ();
-			helveticaPath = GetFontPath ("Helvetica");
+			helvetica = GetFontPath ("Helvetica", FontStyles.Regular);
 		}
 
-		public Face LoadSystemFace (Library library, string face)
+		public Face LoadSystemFace (Library library, string face, ref FontStyles style)
 		{
-			//fall back on helvetica if the font isn't found
-			var path = GetFontPath (face);
-			return new Face (library, path ?? helveticaPath);
+			//Find the font file, substituting with helvetica if the font is not found
+			var regularPath = GetFontPath(face, FontStyles.Regular);
+			string stylePath;
+			if (regularPath == null)
+			{
+				stylePath = regularPath = helvetica;
+			}
+			else
+			{
+				stylePath = GetFontPath(face, style);
+				if (stylePath == null)
+					stylePath = helvetica;
+			}
+			//Get the correct style
+			if (regularPath == stylePath)
+			{
+				if (regularPath.EndsWith(".dfont", StringComparison.OrdinalIgnoreCase) ||
+				    regularPath.EndsWith(".ttc", StringComparison.OrdinalIgnoreCase)) {
+					using (var fd = new Face(library, regularPath))
+					{
+						for (int i = 0; i < fd.FaceCount; i++)
+						{
+							var internal_face = new Face(library, regularPath, i);
+							var fs = FontStyles.Regular;
+							if ((internal_face.StyleFlags & StyleFlags.Bold) != 0) fs |= FontStyles.Bold;
+							if ((internal_face.StyleFlags & StyleFlags.Italic) != 0) fs |= FontStyles.Italic;
+							if (fs == style)
+								return internal_face;
+							internal_face.Dispose();
+						}
+					}
+				}
+				style = FontStyles.Regular;
+				return new Face(library, regularPath);
+			}
+			return new Face(library, stylePath);
 		}
 
-		static string GetFontPath(string fontName)
+		static string GetFontPath(string fontName, FontStyles styles)
 		{
 			string path = null;
 			//Create NSAutoreleasePool
 			var autoreleasePool = Cocoa.SendIntPtr (Class.NSAutoreleasePool, Selector.Alloc);
-			Cocoa.SendIntPtr (autoreleasePool, Selector.Init);
-			var desc = CoreText.CTFontDescriptorCreateWithNameAndSize (Cocoa.ToNSString(fontName), new CGFloat (12));
+			autoreleasePool = Cocoa.SendIntPtr (autoreleasePool, Selector.Init);
+			//Create Font Attributes
+			var nsDictionary = Cocoa.SendIntPtr(Class.NSMutableDictionary, Selector.Alloc);
+			nsDictionary = Cocoa.SendIntPtr(nsDictionary, Selector.Init);
+			Cocoa.SendVoid(nsDictionary, Selector.SetObjectForKey, Cocoa.ToNSString(fontName), CoreText.kCTFontFamilyNameAttribute);
+			uint symbolicTraits = 0;
+			if ((styles & FontStyles.Bold) == FontStyles.Bold)
+				symbolicTraits |= (uint)CTFontSymbolicTraits.Bold;
+			if ((styles & FontStyles.Italic) == FontStyles.Italic)
+				symbolicTraits |= (uint)CTFontSymbolicTraits.Italic;
+			if (symbolicTraits != 0)
+			{
+				//Put traits in dictionary
+				var traitDictionary = Cocoa.SendIntPtr(Class.NSMutableDictionary, Selector.Alloc);
+				traitDictionary = Cocoa.SendIntPtr(traitDictionary, Selector.Init);
+				var num = Cocoa.SendIntPtr(Class.NSNumber, Selector.Alloc);
+				num = Cocoa.SendIntPtr(num, Selector.InitWithUnsignedInt, symbolicTraits);
+				Cocoa.SendVoid(traitDictionary, Selector.SetObjectForKey, num, CoreText.kCTFontSymbolicTrait);
+				//Set traits
+				Cocoa.SendVoid(nsDictionary, Selector.SetObjectForKey, traitDictionary, CoreText.kCTFontTraitsAttribute);
+			}
+			var desc = CoreText.CTFontDescriptorCreateWithAttributes(nsDictionary);
 			var urlref = CoreText.CTFontDescriptorCopyAttribute (desc, CoreText.kCTFontURLAttribute);
 			path = Cocoa.FromNSString (Cocoa.SendIntPtr (urlref, Selector.Path));
 			//Delete NSAutoreleasePool
+			CoreText.CFRelease(desc);
 			Cocoa.SendVoid (autoreleasePool, Selector.Release);
 			return path;
 		}

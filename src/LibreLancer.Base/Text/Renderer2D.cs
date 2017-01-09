@@ -204,7 +204,7 @@ namespace LibreLancer
 			DrawString (font, str, vec.X, vec.Y, color);
 		}
 
-		public void DrawStringIndented(Font font, string text, float x, float y, float start_x, Color4 color, bool underline = false)
+		public void DrawStringBaseline(Font font, string text, float x, float y, float start_x, Color4 color, bool underline = false)
 		{
 			if (!active)
 				throw new InvalidOperationException("Renderer2D.Start() must be called before Renderer2D.DrawString");
@@ -217,7 +217,7 @@ namespace LibreLancer
 			{
 				if (text[i] == '\n')
 				{
-					DrawStringInternal(font, text, start, i, dX, dy, color, underline);
+					DrawStringInternal(font, text, start, i, dX, dy, color, underline, true);
 					dX = start_x;
 					dy += font.LineHeight;
 					i++;
@@ -226,7 +226,7 @@ namespace LibreLancer
 			}
 			if (start < text.Length)
 			{
-				DrawStringInternal(font, text, start, text.Length, dX, dy, color, underline);
+				DrawStringInternal(font, text, start, text.Length, dX, dy, color, underline, true);
 			}
 		}
 
@@ -242,7 +242,7 @@ namespace LibreLancer
             {
                 if(text[i] == '\n')
                 {
-                    DrawStringInternal(font, text, start, i, x, dy, color, underline);
+                    DrawStringInternal(font, text, start, i, x, dy, color, underline, false);
                     dy += font.LineHeight;
                     i++;
                     start = i;
@@ -250,18 +250,29 @@ namespace LibreLancer
             }
             if(start < text.Length)
             {
-                DrawStringInternal(font, text, start, text.Length, x, dy, color, underline);
+                DrawStringInternal(font, text, start, text.Length, x, dy, color, underline, false);
             }
 		}
-		void DrawStringInternal(Font font, string str, int start, int end, float x, float y, Color4 color, bool underline)
+
+		static int GetAscender(Font font)
 		{
-            var measureIter = new CodepointIterator(str, start, end);
+			return font.Face.Size.Metrics.Ascender.ToInt32();
+		}
+
+		void DrawStringInternal(Font font, string str, int start, int end, float x, float y, Color4 color, bool underline, bool baseline)
+		{
 			int maxHeight = 0;
-			while (measureIter.Iterate ()) {
-				uint c = measureIter.Codepoint;
-				var glyph = font.GetGlyph (c);
-				maxHeight = Math.Max (maxHeight, glyph.Rectangle.Height);
+			if (!baseline)
+			{
+				var measureIter = new CodepointIterator(str, start, end);
+				while (measureIter.Iterate())
+				{
+					uint c = measureIter.Codepoint;
+					var glyph = font.GetGlyph(c);
+					maxHeight = Math.Max(maxHeight, glyph.Rectangle.Height);
+				}
 			}
+			var asc = GetAscender(font);
 			var iter = new CodepointIterator (str, start, end);
 			float penX = x, penY = y;
 			while (iter.Iterate ()) {
@@ -272,9 +283,10 @@ namespace LibreLancer
                 }
 				var glyph = font.GetGlyph (c);
 				if (glyph.Render) {
+					int py = baseline ? (int)penY + asc - glyph.YOffset : (int)penY + maxHeight - glyph.YOffset;
 					var dst = new Rectangle (
 						(int)penX + glyph.XOffset,
-						(int)penY + (maxHeight - glyph.YOffset),
+						py,
 						glyph.Rectangle.Width,
 						glyph.Rectangle.Height
 					);
@@ -298,12 +310,11 @@ namespace LibreLancer
 					penX += (float)kerning.X;
 				}
 			}
-
 			if (underline)
 			{
 				//TODO: This is probably not the proper way to draw underline, but it seems to work for now
 				float width = penX - x;
-				var ypos = font.GetGlyph((uint)'|').YOffset + 2;
+				var ypos = asc + 2;
 				FillRectangle(new Rectangle((int)x, (int)y + ypos, (int)width, 1), color);
 			}
 		}

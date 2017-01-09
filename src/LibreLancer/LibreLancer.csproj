@@ -302,6 +302,7 @@
     <Compile Include="Utf\Anm\JointMap.cs" />
     <Compile Include="GameData\Items\AnimationEquipment.cs" />
     <Compile Include="Infocards\InfocardDisplay.cs" />
+    <Compile Include="FontManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

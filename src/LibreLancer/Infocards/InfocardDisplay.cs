@@ -29,24 +29,26 @@ namespace LibreLancer.Infocards
 			public Color4 Color;
 			public bool Underline;
 			public TextAlignment Align;
+			public Font Font;
 		}
 
 		Infocard[] infocards;
 		Rectangle rectangle;
 		Renderer2D renderer;
+		FontManager fnts;
 		List<TextCommand> commands;
-		Font fnt;
 
 		public int Height
 		{
 			get; private set; 
 		}
+
 		public InfocardDisplay(FreelancerGame g, Rectangle rect, params Infocard[] card)
 		{
 			infocards = card;
 			rectangle = rect;
 			renderer = g.Renderer2D;
-			fnt = Font.FromSystemFont(renderer, "Agency FB", 12);
+			fnts = g.Fonts;
 			UpdateLayout();
 		}
 
@@ -67,6 +69,7 @@ namespace LibreLancer.Infocards
 			commands = new List<TextCommand>();
 			int dX = 0, dY = 0;
 			TextAlignment lastAlignment = TextAlignment.Left;
+			Font fnt = fnts.GetInfocardFont(0, FontStyles.Regular);
 			foreach (var card in infocards)
 			{
 				foreach (var node in card.Nodes)
@@ -79,6 +82,10 @@ namespace LibreLancer.Infocards
 					else
 					{
 						var n = (InfocardTextNode)node;
+						var style = FontStyles.Regular;
+						if (n.Bold) style |= FontStyles.Bold;
+						if (n.Italic) style |= FontStyles.Italic;
+						fnt = fnts.GetInfocardFont(n.FontIndex, style);
 						if (lastAlignment != n.Alignment)
 							dX = 0;
 						int origX = dX;
@@ -93,7 +100,8 @@ namespace LibreLancer.Infocards
 								Y = origY,
 								Color = n.Color,
 								Underline = n.Underline,
-								Align = n.Alignment
+								Align = n.Alignment,
+								Font = fnt
 							});
 						}
 						else if (n.Alignment == TextAlignment.Right)
@@ -109,7 +117,7 @@ namespace LibreLancer.Infocards
 									if (commands[i].Y != origY || commands[i].Align != n.Alignment) break;
 									commands[i].X -= width0;
 								}
-								newX = commands[commands.Count - 1].X + renderer.MeasureString(fnt, commands[commands.Count - 1].String).X;
+								newX = commands[commands.Count - 1].X + renderer.MeasureString(commands[commands.Count - 1].Font, commands[commands.Count - 1].String).X;
 							}
 							//Append our text
 							commands.Add(new TextCommand()
@@ -119,7 +127,8 @@ namespace LibreLancer.Infocards
 								Y = origY,
 								Color = n.Color,
 								Underline = n.Underline,
-								Align = n.Alignment
+								Align = n.Alignment,
+								Font = fnt
 							});
 							for (int i = 1; i < text.Count; i++)
 							{
@@ -129,7 +138,8 @@ namespace LibreLancer.Infocards
 									X = rectangle.Width - renderer.MeasureString(fnt, text[i]).X,
 									Y = origY + (int)fnt.LineHeight * i,
 									Color = n.Color,
-									Underline = n.Underline
+									Underline = n.Underline,
+									Font = fnt
 								});
 							}
 						}
@@ -185,8 +195,8 @@ namespace LibreLancer.Infocards
 			{
 				for (int i = 0; i < commands.Count; i++)
 				{
-					renderer.DrawStringIndented(
-						fnt,
+					renderer.DrawStringBaseline(
+						commands[i].Font,
 						commands[i].String,
 						commands[i].X + rectangle.X,
 						commands[i].Y + rectangle.Y - scrollOffset,

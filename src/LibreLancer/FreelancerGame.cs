@@ -25,6 +25,7 @@ namespace LibreLancer
     {
 		public LegacyGameData GameData;
 		public AudioManager Audio;
+		public FontManager Fonts;
 		public SoundManager Sound;
 		public ResourceManager ResourceManager;
 		public Renderer2D Renderer2D;
@@ -83,6 +84,7 @@ namespace LibreLancer
 			}).Start();
 			//
 			Renderer2D = new Renderer2D(RenderState);
+			Fonts = new FontManager(this);
 			Billboards = new Billboards ();
 			Nebulae = new NebulaVertices();
 			var vp = new ViewportManager (RenderState);

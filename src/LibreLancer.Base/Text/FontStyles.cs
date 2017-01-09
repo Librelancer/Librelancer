@@ -10,17 +10,17 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2017
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using SharpFont;
-namespace LibreLancer.Platforms
+namespace LibreLancer
 {
-	interface IPlatform
+	[Flags]
+	public enum FontStyles
 	{
-		bool IsDirCaseSensitive(string directory);
-		Face LoadSystemFace(Library library, string face, ref FontStyles style);
+		Regular = 0x0,
+		Bold = 0x2,
+		Italic = 0x4
 	}
 }
-

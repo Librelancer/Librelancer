@@ -31,6 +31,7 @@ namespace LibreLancer.Compatibility.GameData
 		public TexturePanels EffectShapes;
 		public MouseIni Mouse;
 		public AsteroidArchIni Asteroids;
+		public RichFontsIni RichFonts;
 		public bool Loaded = false;
 
 		public FreelancerData (FreelancerIni fli)
@@ -84,6 +85,10 @@ namespace LibreLancer.Compatibility.GameData
 				Effects.AddIni(fx);
 			//Mouse
 			Mouse = new MouseIni(Freelancer.DataPath + "//mouse.ini");
+			//Fonts
+			RichFonts = new RichFontsIni();
+			foreach (var rf in Freelancer.RichFontPaths)
+				RichFonts.AddRichFontsIni(rf);
 		}
 	}
 }

@@ -40,6 +40,9 @@ namespace LibreLancer.Platforms.Mac
 		[DllImport(LibObjC, EntryPoint="objc_msgSend")]
 		public extern static IntPtr SendIntPtr(IntPtr receiver, IntPtr selector);
 
+		[DllImport(LibObjC, EntryPoint = "objc_msgSend")]
+		public extern static IntPtr SendIntPtr(IntPtr receiver, IntPtr selector, uint uint1);
+
 		[DllImport(LibObjC, EntryPoint="objc_msgSend")]
 		public extern static IntPtr SendIntPtr(IntPtr receiver, IntPtr selector, ulong ulong1);
 
@@ -84,6 +87,9 @@ namespace LibreLancer.Platforms.Mac
 
 		[DllImport(LibObjC, EntryPoint="objc_msgSend")]
 		public extern static void SendVoid(IntPtr receiver, IntPtr selector, bool bool1);
+
+		[DllImport(LibObjC, EntryPoint = "objc_msgSend")]
+		public extern static void SendVoid(IntPtr receiver, IntPtr selector, bool bool1, IntPtr intPtr1);
 
 		[DllImport(LibObjC, EntryPoint="objc_msgSend")]
 		public extern static int SendInt(IntPtr receiver, IntPtr selector);

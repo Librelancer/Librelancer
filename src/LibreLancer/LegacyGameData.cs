@@ -43,6 +43,10 @@ namespace LibreLancer
 			}
 			return movies;
 		}
+		public List<Compatibility.RichFont> GetRichFonts()
+		{
+			return fldata.RichFonts.Fonts;
+		}
 		public void LoadData()
 		{
 			fldata.LoadData();

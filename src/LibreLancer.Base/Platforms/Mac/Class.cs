@@ -37,6 +37,7 @@ namespace LibreLancer.Platforms.Mac
 	{
 		public static readonly IntPtr NSAutoreleasePool = Get ("NSAutoreleasePool");
 		public static readonly IntPtr NSDictionary = Get ("NSDictionary");
+		public static readonly IntPtr NSMutableDictionary = Get("NSMutableDictionary");
 		public static readonly IntPtr NSNumber = Get ("NSNumber");
 		public static readonly IntPtr NSUserDefaults = Get ("NSUserDefaults");
 

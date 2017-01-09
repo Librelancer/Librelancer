@@ -10,17 +10,32 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2017
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using SharpFont;
-namespace LibreLancer.Platforms
+using System.Collections.Generic;
+using LibreLancer.Ini;
+namespace LibreLancer.Compatibility
 {
-	interface IPlatform
+	public class RichFontsIni : IniFile
 	{
-		bool IsDirCaseSensitive(string directory);
-		Face LoadSystemFace(Library library, string face, ref FontStyles style);
+		public List<RichFont> Fonts = new List<RichFont>();
+		public void AddRichFontsIni(string path)
+		{
+			foreach (var section in ParseFile(path))
+			{
+				if (section.Name.ToLowerInvariant() == "truetype")
+				{
+					foreach (var e in section)
+					{
+						if (e.Name.ToLowerInvariant() == "font")
+						{
+							Fonts.Add(new RichFont() { Index = e[0].ToInt32(), Name = e[1].ToString(), Size = e[2].ToInt32() });
+						}
+					}
+				}
+			}
+		}
 	}
 }
-

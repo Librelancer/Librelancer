@@ -25,7 +25,7 @@ namespace LibreLancer.Platforms
 			return false;
 		}
 
-		public Face LoadSystemFace (Library library, string face)
+		public Face LoadSystemFace (Library library, string face, ref FontStyles style)
 		{
 			byte[] buffer;
 			//Get font data from GDI
@@ -46,6 +46,8 @@ namespace LibreLancer.Platforms
 				//delete font
 				GDI.DeleteObject (hfont);
 			}
+			//TODO: Implement style matching on Windows
+			style = FontStyles.Regular;
 			//create font object
 			return new Face(library, buffer,0);
 		}

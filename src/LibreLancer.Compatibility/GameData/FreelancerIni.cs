@@ -19,6 +19,7 @@ namespace LibreLancer.Compatibility.GameData
 		public List<string> GraphPaths { get; private set; }
 		public List<string> EffectPaths { get; private set; }
 		public List<string> AsteroidPaths { get; private set; }
+		public List<string> RichFontPaths { get; private set; }
 		public string StarsPath { get; private set; }
 		public string BodypartsPath { get; private set; }
 		public string CostumesPath { get; private set; }
@@ -32,6 +33,7 @@ namespace LibreLancer.Compatibility.GameData
 			GraphPaths = new List<string>();
 			EffectPaths = new List<string>();
 			AsteroidPaths = new List<string> ();
+			RichFontPaths = new List<string>();
 			foreach (Section s in ParseFile("EXE\\freelancer.ini")) {
 				switch (s.Name.ToLowerInvariant ()) {
 				case "freelancer":
@@ -93,6 +95,9 @@ namespace LibreLancer.Compatibility.GameData
 							break;
 						case "ships":
 							ShiparchPaths.Add (DataPath + e [0].ToString ());
+							break;
+						case "rich_fonts":
+							RichFontPaths.Add(DataPath + e[0].ToString());
 							break;
 						case "igraph":
 							GraphPaths.Add(DataPath + e[0].ToString());

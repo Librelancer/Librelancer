@@ -36,11 +36,13 @@ namespace LibreLancer.Platforms.Mac
 		// Frequently used selectors
 		public static readonly IntPtr Init = Selector.Get("init");
 		public static readonly IntPtr InitWithCoder = Selector.Get("initWithCoder:");
+		public static readonly IntPtr InitWithUnsignedInt = Selector.Get("initWithUnsignedInt:");
 		public static readonly IntPtr Alloc = Selector.Get("alloc");
 		public static readonly IntPtr Retain = Selector.Get("retain");
 		public static readonly IntPtr Release = Selector.Get("release");
 		public static readonly IntPtr Autorelease = Selector.Get("autorelease");
 		public static readonly IntPtr Path = Selector.Get("path");
+		public static readonly IntPtr SetObjectForKey = Selector.Get("setObject:forKey:");
 
 		[DllImport ("/usr/lib/libobjc.dylib", EntryPoint="sel_registerName")]
 		public extern static IntPtr Get(string name);

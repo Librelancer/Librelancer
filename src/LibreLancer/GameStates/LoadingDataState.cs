@@ -35,6 +35,7 @@ namespace LibreLancer
 			if (Game.InitialLoadComplete)
 			{
 				Game.ResourceManager.Preload();
+				Game.Fonts.LoadFonts();
 				Game.ChangeState(new MainMenu(Game));
 			}
 		}

@@ -32,24 +32,47 @@ namespace LibreLancer
 		internal Face Face;
 		string facename;
 		float facesize;
+		bool emulate_bold = false;
+		bool emulate_italics = false;
 		public float LineHeight {
 			get {
 				return lineHeight;
 			}
 		}
-		public Font (Renderer2D t, string filename, float size)
-			: this (t, new Face(t.FT, filename), size)
+		public Font (Renderer2D t, string filename, float size, bool bold = false, bool italic = false)
+			: this (t, new Face(t.FT, filename), size, bold, italic)
 		{
 		}
 
-		public static Font FromSystemFont(Renderer2D t, string name, float size)
+		public static Font FromSystemFont(Renderer2D t, string name, float size, FontStyles styles = FontStyles.Regular)
 		{
-			var face = Platform.LoadSystemFace (t.FT, name);
-			return new Font (t, face, size);
+			FontStyles s = styles;
+			var face = Platform.LoadSystemFace(t.FT, name, ref s);
+			bool emulate_bold = false;
+			bool emulate_italics = false;
+			if (s != styles)
+			{
+				switch (styles)
+				{
+					case FontStyles.Bold:
+						emulate_bold = true;
+						break;
+					case FontStyles.Italic:
+						emulate_italics = true;
+						break;
+					case FontStyles.Bold | FontStyles.Italic:
+						emulate_bold = s != FontStyles.Bold;
+						emulate_italics = s != FontStyles.Italic;
+						break;
+				}
+			}
+			return new Font(t, face, size, emulate_bold, emulate_italics);
 		}
 
-		private Font(Renderer2D t, Face f, float sz)
+		private Font(Renderer2D t, Face f, float sz, bool bold, bool italic)
 		{
+			emulate_bold = bold;
+			emulate_italics = italic;
 			this.Face = f;
 			f.SetCharSize (0, sz, 0, 96);
 			lineHeight = (float)Face.Size.Metrics.Height;
@@ -91,6 +114,15 @@ namespace LibreLancer
 				return;
 			}
 			Face.LoadGlyph (index, LoadFlags.Default | LoadFlags.ForceAutohint, LoadTarget.Normal);
+			if (emulate_bold) {
+				//Automatically determine a strength
+				var strength = (Face.UnitsPerEM * Face.Size.Metrics.ScaleY.Value) / 0x10000;
+				strength /= 24;
+				Face.Glyph.Outline.Embolden(Fixed26Dot6.FromRawValue(strength));
+			}
+			if (emulate_italics) {
+				Face.Glyph.Outline.Transform(new FTMatrix(0x10000, 0x0366A, 0x00000, 0x10000));
+			}
 			Face.Glyph.RenderGlyph (RenderMode.Normal);
 			if (Face.Glyph.Bitmap.Width == 0 || Face.Glyph.Bitmap.Rows == 0) {
 				glyphs.Add (cp,
@@ -104,7 +136,6 @@ namespace LibreLancer
 			} else {
 				if (Face.Glyph.Bitmap.PixelMode != PixelMode.Gray)
 					throw new NotImplementedException ();
-				//Continue
 				if (currentX + Face.Glyph.Bitmap.Width > TEXTURE_SIZE) {
 					currentX = 0;
 					currentY += lineMax;

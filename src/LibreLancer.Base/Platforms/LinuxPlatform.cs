@@ -32,7 +32,7 @@ namespace LibreLancer.Platforms
 			return true;
 		}
 
-		public Face LoadSystemFace (Library library, string face)
+		public Face LoadSystemFace (Library library, string face, ref FontStyles style)
 		{
 			string file = null;
 			using (var pat = FcPattern.FromFamilyName (face)) {
@@ -45,6 +45,8 @@ namespace LibreLancer.Platforms
 					}
 				}
 			}
+			//TODO: Implement style matching on Linux
+			style = FontStyles.Regular;
 			//This shouldn't be thrown since fontconfig substitutes, but have this just in case
 			throw new Exception ("Font not found: " + face);
 		}
