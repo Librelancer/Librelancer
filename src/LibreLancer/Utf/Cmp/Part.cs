@@ -84,9 +84,9 @@ namespace LibreLancer.Utf.Cmp
 			throw new NotImplementedException();
 		}
 
-		public void Update(ICamera camera, TimeSpan delta)
+		public void Update(ICamera camera, TimeSpan delta, TimeSpan totalTime)
         {
-			Model.Update (camera, delta);
+			Model.Update (camera, delta, totalTime);
         }
 
 		public void Draw(RenderState rstate, Matrix4 world, Lighting light)

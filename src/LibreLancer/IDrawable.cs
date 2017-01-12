@@ -25,7 +25,7 @@ namespace LibreLancer
     {
 		void Initialize(ResourceManager cache);
         void Resized();
-		void Update(ICamera camera, TimeSpan delta);
+		void Update(ICamera camera, TimeSpan delta, TimeSpan totalTime);
 		void Draw(RenderState rstate, Matrix4 world, Lighting light);
 		void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light);
 		float GetRadius();

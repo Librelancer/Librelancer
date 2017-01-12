@@ -56,6 +56,8 @@ namespace LibreLancer
 
 		int fadePosition;
 		int fadeRangePosition;
+
+		int materialAnimPosition;
 		Shader shader;
 
 		public ShaderVariables(Shader sh)
@@ -99,6 +101,7 @@ namespace LibreLancer
 
 			fadePosition = sh.GetLocation("Fade");
 			fadeRangePosition = sh.GetLocation("FadeRange");
+			materialAnimPosition = sh.GetLocation("MaterialAnim");
 		}
 
 		public void UseProgram()
@@ -341,6 +344,12 @@ namespace LibreLancer
 		{
 			if (fadeRangePosition != -1)
 				shader.SetVector2(fadeRangePosition, range);
+		}
+
+		public void SetMaterialAnim(Vector4 anim)
+		{
+			if (materialAnimPosition != -1)
+				shader.SetVector4(materialAnimPosition, anim);
 		}
 	}
 }

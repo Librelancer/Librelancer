@@ -108,7 +108,7 @@ namespace LibreLancer.Utf.Mat
             }
         }
         ICamera _camera;
-		public void Update(ICamera camera, TimeSpan delta)
+		public void Update(ICamera camera, TimeSpan delta, TimeSpan totalTime)
         {
             if (ready)
             {
@@ -148,6 +148,7 @@ namespace LibreLancer.Utf.Mat
                     SideMaterials[i].Render.Camera = _camera;
 					buffer.AddCommand(
 						SideMaterials[i].Render,
+						null,
 						Matrix4.CreateScale(Radius) * world,
 						lighting,
 						sphere.VertexBuffer,

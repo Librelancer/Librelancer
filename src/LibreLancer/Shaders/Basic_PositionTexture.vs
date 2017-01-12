@@ -12,6 +12,7 @@ out vec4 view_position;
 uniform mat4x4 World;
 uniform mat4x4 View;
 uniform mat4x4 ViewProjection;
+uniform vec4 MaterialAnim;
 
 void main()
 {
@@ -20,6 +21,9 @@ void main()
 	world_position = (World * vec4(vertex_position,1)).xyz;
 	view_position = (View * World) * vec4(vertex_position, 1);
 	out_normal = vec3(1,1,1);
-	out_texcoord = vec2(vertex_texture1.x, 1. - vertex_texture1.y);
+	out_texcoord = vec2(
+		(vertex_texture1.x + MaterialAnim.x) * MaterialAnim.z, 
+		1. - (vertex_texture1.y + MaterialAnim.y) * MaterialAnim.w
+	);
 	out_vertexcolor = vec4(1,1,1,1);
 }

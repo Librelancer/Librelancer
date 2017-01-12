@@ -93,7 +93,7 @@ namespace LibreLancer
 				return;
 			if (Model != null) {
 				if (Model.Levels.ContainsKey (0)) {
-					Model.Update(camera, TimeSpan.Zero);
+					Model.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
 					var center = VectorMath.Transform(Model.Levels[0].Center, World);
 					var bsphere = new BoundingSphere(
 						center,
@@ -107,7 +107,7 @@ namespace LibreLancer
 					}
 				}
 			} else if (Cmp != null) {
-				Cmp.Update(camera, TimeSpan.Zero);
+				Cmp.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
 				foreach (Part p in Cmp.Parts.Values)
 				{
 					var model = p.Model;
@@ -134,7 +134,7 @@ namespace LibreLancer
 			} else if (CmpParts != null) {
 				foreach (Part p in CmpParts)
 				{
-					p.Update(camera, TimeSpan.Zero);
+					p.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
 					var model = p.Model;
 					Matrix4 w = World;
 					if (p.Construct != null)
@@ -156,7 +156,7 @@ namespace LibreLancer
 					}
 				}
 			} else if (Sph != null) {
-				Sph.Update(camera, TimeSpan.Zero);
+				Sph.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
 				var bsphere = new BoundingSphere(
 					pos,
 					radiusAtmosphere);

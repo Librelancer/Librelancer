@@ -17,6 +17,8 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
+using LibreLancer.Utf.Cmp;
+
 namespace LibreLancer
 {
 	public class CommandBuffer
@@ -31,11 +33,12 @@ namespace LibreLancer
 			currentCommand = 0;
 			_transparentSort = SortTransparent;
 		}
-		public void AddCommand(RenderMaterial material, Matrix4 world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, int layer, float z = 0)
+		public void AddCommand(RenderMaterial material, MaterialAnim anim, Matrix4 world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, int layer, float z = 0)
 		{
 			Commands[currentCommand++] = new RenderCommand()
 			{
 				Material = material,
+				MaterialAnim = anim,
 				Lights = lights,
 				Buffer = buffer,
 				BaseVertex = baseVertex,
@@ -50,11 +53,13 @@ namespace LibreLancer
 				Z = z
 			};
 		}
+		//TODO: Implement MaterialAnim for asteroids
 		public unsafe void AddCommandFade(RenderMaterial material, Matrix4 world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, int layer, Vector2 fadeParams, float z = 0)
 		{
 			Commands[currentCommand++] = new RenderCommand()
 			{
 				Material = material,
+				MaterialAnim = null,
 				Lights = lights,
 				Buffer = buffer,
 				Start = start,
@@ -226,6 +231,7 @@ namespace LibreLancer
 		public float Z;
 		public int SortLayer;
 		public Billboards Billboards;
+		public MaterialAnim MaterialAnim;
 		public int Hash;
 		public int Index;
 		public bool Fade;
@@ -237,6 +243,7 @@ namespace LibreLancer
 		{
 			if (CmdType == RenderCmdType.Material)
 			{
+				Material.MaterialAnim = MaterialAnim;
 				Material.World = World;
 				if (Fade)
 				{

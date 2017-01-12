@@ -122,6 +122,20 @@ namespace LibreLancer
 			{
 				shader.SetFade(false);
 			}
+			//MaterialAnim
+			if (MaterialAnim != null)
+			{
+				shader.SetMaterialAnim(new Vector4(
+					MaterialAnim.UOffset,
+					MaterialAnim.VOffset,
+					MaterialAnim.UScale,
+					MaterialAnim.VScale
+				));
+			}
+			else
+			{
+				shader.SetMaterialAnim(new Vector4(0, 0, 1, 1));
+			}
 			//Ec
 			shader.SetEc(Ec);
 			//EtSampler

@@ -304,6 +304,8 @@
     <Compile Include="Infocards\InfocardDisplay.cs" />
     <Compile Include="FontManager.cs" />
     <Compile Include="Interface\Hud.cs" />
+    <Compile Include="Utf\Cmp\MaterialAnimCollection.cs" />
+    <Compile Include="Utf\Cmp\MaterialAnim.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

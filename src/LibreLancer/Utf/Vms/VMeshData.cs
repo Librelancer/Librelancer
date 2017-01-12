@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using LibreLancer.Vertices;
+using LibreLancer.Utf.Cmp;
 
 namespace LibreLancer.Utf.Vms
 {
@@ -286,24 +287,24 @@ namespace LibreLancer.Utf.Vms
             }
         }
 
-		public void Draw(RenderState rstate, ushort startMesh, int endMesh, ushort startVertex, Matrix4 world, Lighting light)
+		public void Draw(RenderState rstate, ushort startMesh, int endMesh, ushort startVertex, Matrix4 world, Lighting light, MaterialAnimCollection mc)
         {
             if (ready)
 			{
                 for (ushort i = startMesh; i < endMesh; i++)
                 {
-					Meshes [i].Draw (rstate, VertexBuffer, startVertex, world, light);
+					Meshes [i].Draw (rstate, VertexBuffer, startVertex, world, light, mc);
                 }
             }
         }
 
-		public void DrawBuffer(CommandBuffer buff, ushort startMesh, int endMesh, ushort startVertex, Matrix4 world, Lighting light, Vector3 center)
+		public void DrawBuffer(CommandBuffer buff, ushort startMesh, int endMesh, ushort startVertex, Matrix4 world, Lighting light, Vector3 center, MaterialAnimCollection mc)
 		{
 			if (ready)
 			{
 				for (ushort i = startMesh; i < endMesh; i++)
 				{
-					Meshes[i].DrawBuffer(buff, VertexBuffer, startVertex, world, light, RenderHelpers.GetZ(world, cameraPos, center));
+					Meshes[i].DrawBuffer(buff, VertexBuffer, startVertex, world, light, RenderHelpers.GetZ(world, cameraPos, center), mc);
 				}
 			}
 		}

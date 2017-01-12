@@ -41,8 +41,9 @@ namespace LibreLancer.Utf.Cmp
         public AnmFile Animation { get; private set; }
         public MatFile MaterialLibrary { get; private set; }
         public TxmFile TextureLibrary { get; private set; }
+		public MaterialAnimCollection MaterialAnim { get; private set; }
 
-        public Dictionary<int, Part> Parts { get; private set; }
+		public Dictionary<int, Part> Parts { get; private set; }
         public ConstructCollection Constructs { get; private set; }
         public Dictionary<string, ModelFile> Models { get; private set; }
 
@@ -121,7 +122,7 @@ namespace LibreLancer.Utf.Cmp
                         }
                         break;
                     case "materialanim":
-                        //TODO cmp materialanim
+						MaterialAnim = new MaterialAnimCollection((IntermediateNode)node);
                         break;
                     default:
                         if (node.Name.EndsWith(".3db", StringComparison.OrdinalIgnoreCase))
@@ -145,9 +146,11 @@ namespace LibreLancer.Utf.Cmp
             for (int i = 0; i < Parts.Count; i++) Parts[i].Resized();
         }
 
-		public void Update(ICamera camera, TimeSpan delta)
+		public void Update(ICamera camera, TimeSpan delta, TimeSpan totalTime)
 		{
-            for (int i = 0; i < Parts.Count; i++) Parts[i].Update(camera, delta);
+			if (MaterialAnim != null)
+				MaterialAnim.Update((float)totalTime.TotalSeconds);
+            for (int i = 0; i < Parts.Count; i++) Parts[i].Update(camera, delta, totalTime);
         }
 
 		public float GetRadius()
@@ -161,27 +164,6 @@ namespace LibreLancer.Utf.Cmp
 		public void Draw(RenderState rstate, Matrix4 world, Lighting light)
         {
             for (int i = 0; i < Parts.Count; i++) Parts[i].Draw(rstate, world, light);
-
-            /*foreach (ModelFile m in cmp.Models.Values)
-            {
-                int lightCount = lights.Count;
-                foreach (Hardpoint h in m.Hardpoints)
-                {
-                    Light light = null;
-
-                    if (SpaceObject.Loadout != null && SpaceObject.Loadout.Equip.ContainsKey(h.Name))
-                        light = SpaceObject.Loadout.Equip[h.Name] as Light;
-                    else if (archetype.Loadout != null && archetype.Loadout.Equip.ContainsKey(h.Name))
-                        light = archetype.Loadout.Equip[h.Name] as Light;
-
-                    if (light != null)
-                    {
-                        lights.Add(new RenderLight(light, Vector3.Transform(h.Position, World)));
-                        lightCount++;
-                        if (lightCount == MAX_LIGHTS) break;
-                    }
-                }
-            }*/
         }
 
         public Texture FindTexture(string name)

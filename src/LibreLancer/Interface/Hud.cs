@@ -92,7 +92,7 @@ namespace LibreLancer
 
 		void DrawStatusGauge(FreelancerGame game)
 		{
-			hud_gaugewindow.Update(IdentityCamera.Instance, TimeSpan.Zero);
+			hud_gaugewindow.Update(IdentityCamera.Instance, TimeSpan.Zero, TimeSpan.FromSeconds(game.TotalTime));
 			hud_gaugewindow.Draw(game.RenderState, hud_gaugetransform, Lighting.Empty);
 
 			game.Renderer2D.Start(game.Width, game.Height);
@@ -117,19 +117,19 @@ namespace LibreLancer
 		{
 			//TODO : Extend Nav Buttons to support a variable amount of maneuvers
 			var mbox = hud_maneuverbox4;
-			mbox.Update(IdentityCamera.Instance, TimeSpan.Zero);
+			mbox.Update(IdentityCamera.Instance, TimeSpan.Zero, TimeSpan.FromSeconds(g.TotalTime));
 			mbox.Draw(g.RenderState, hud_maneuverstransform, Lighting.Empty);
 		}
 
 		void DrawContactsList(FreelancerGame g)
 		{
-			hud_target.Update(IdentityCamera.Instance, TimeSpan.Zero);
+			hud_target.Update(IdentityCamera.Instance, TimeSpan.Zero, TimeSpan.FromSeconds(g.TotalTime));
 			hud_target.Draw(g.RenderState, hud_targettransform, Lighting.Empty);
 		}
 
 		void DrawShipInfo(FreelancerGame g)
 		{
-			hud_shipinfo.Update(IdentityCamera.Instance, TimeSpan.Zero);
+			hud_shipinfo.Update(IdentityCamera.Instance, TimeSpan.Zero, TimeSpan.FromSeconds(g.TotalTime));
 			hud_shipinfo.Draw(g.RenderState, hud_shipinfotransform, Lighting.Empty);
 		}
 

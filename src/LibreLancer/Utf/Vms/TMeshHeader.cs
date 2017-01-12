@@ -19,7 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-
+using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
 namespace LibreLancer.Utf.Vms
 {
@@ -97,20 +97,42 @@ namespace LibreLancer.Utf.Vms
             else */
             Material.Render.Camera = camera;
         }
+		MaterialAnimCollection lastmc;
+		MaterialAnim ma;
 
-		public void Draw(RenderState rstate, VertexBuffer buff, ushort startVertex, Matrix4 world, Lighting light)
+		public void Draw(RenderState rstate, VertexBuffer buff, ushort startVertex, Matrix4 world, Lighting light, MaterialAnimCollection mc)
         {
-            //if (Material == null) nullMaterial.Draw(buff, PrimitiveTypes.TriangleList, startVertex + StartVertex, numVertices, TriangleStart, primitiveCount, world);
-            //else Material.Draw(buff, PrimitiveTypes.TriangleList, startVertex + StartVertex, numVertices, TriangleStart, primitiveCount, world);
+			if (lastmc != mc)
+			{
+				if (mc != null)
+				{
+					mc.Anims.TryGetValue(Material.Name, out ma);
+					lastmc = mc;
+				}
+				else
+					ma = null;
+			}
+			Material.Render.MaterialAnim = ma;
 			Material.Render.World = world;
 			Material.Render.Use (rstate, buff.VertexType, light);
 			buff.Draw (PrimitiveTypes.TriangleList, startVertex + StartVertex, TriangleStart, primitiveCount);
         }
 
-		public void DrawBuffer(CommandBuffer buffer, VertexBuffer buff, ushort startVertex, Matrix4 world, Lighting light, float z)
+		public void DrawBuffer(CommandBuffer buffer, VertexBuffer buff, ushort startVertex, Matrix4 world, Lighting light, float z, MaterialAnimCollection mc)
 		{
+			if (lastmc != mc)
+			{
+				if (mc != null)
+				{
+					mc.Anims.TryGetValue(Material.Name, out ma);
+					lastmc = mc;
+				}
+				else
+					ma = null;
+			}
 			buffer.AddCommand(
 				Material.Render,
+				ma,
 				world,
 				light,
 				buff,

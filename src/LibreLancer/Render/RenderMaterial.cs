@@ -16,11 +16,12 @@
 using System;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
-
+using LibreLancer.Utf.Cmp;
 namespace LibreLancer
 {
 	public abstract class RenderMaterial
 	{
+		public MaterialAnim MaterialAnim;
 		public Matrix4 World = Matrix4.Identity;
         public ICamera Camera;
 		public ILibFile Library;

@@ -15,6 +15,7 @@ uniform mat4x4 World;
 uniform mat4x4 View;
 uniform mat4x4 ViewProjection;
 uniform mat4x4 NormalMatrix;
+uniform vec4 MaterialAnim;
 
 void main()
 {
@@ -24,5 +25,8 @@ void main()
 	view_position = (View * World) * vec4(vertex_position,1);
 	out_vertexcolor = vertex_color;
 	out_normal = (NormalMatrix * vec4(vertex_normal, 0.0)).xyz;
-	out_texcoord = vec2(vertex_texture1.x, 1. - vertex_texture1.y);
+	out_texcoord = vec2(
+		(vertex_texture1.x + MaterialAnim.x) * MaterialAnim.z, 
+		1. - (vertex_texture1.y + MaterialAnim.y) * MaterialAnim.w
+	);
 }

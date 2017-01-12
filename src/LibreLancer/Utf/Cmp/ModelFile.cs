@@ -43,6 +43,7 @@ namespace LibreLancer.Utf.Cmp
         public VmsFile VMeshLibrary { get; private set; }
         public MatFile MaterialLibrary { get; private set; }
         public TxmFile TextureLibrary { get; private set; }
+		public MaterialAnimCollection MaterialAnim { get; private set; }
 
         public List<HardpointDefinition> Hardpoints { get; private set; }
         public Dictionary<int, VMeshRef> Levels { get; private set; }
@@ -157,6 +158,9 @@ namespace LibreLancer.Utf.Cmp
                     case "extent tree":
                         // TODO 3db Extent Tree
                         break;
+					case "materialanim":
+						MaterialAnim = new MaterialAnimCollection((IntermediateNode)node);
+						break;
                     default: throw new Exception("Invalid node in 3db root: " + node.Name);
                 }
             }
@@ -182,10 +186,12 @@ namespace LibreLancer.Utf.Cmp
             }
         }
 
-		public void Update(ICamera camera, TimeSpan delta)
+		public void Update(ICamera camera, TimeSpan delta, TimeSpan totalTime)
         {
             if (ready)
             {
+				if (MaterialAnim != null)
+					MaterialAnim.Update((float)totalTime.TotalSeconds);
 				Levels[0].Update(camera, delta);
                 //foreach (VMeshRef level in Levels.Values) level.Update();
             }
@@ -197,12 +203,20 @@ namespace LibreLancer.Utf.Cmp
 		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light)
 		{
 			if (ready)
-				Levels[0].DrawBuffer(buffer, world, light);
+			{
+				var ma = MaterialAnim;
+				if (ma == null && additionalLibrary is CmpFile)
+					ma = ((CmpFile)additionalLibrary).MaterialAnim;
+				Levels[0].DrawBuffer(buffer, world, light, ma);
+			}
 		}
 		public void Draw(RenderState rstate, Matrix4 world, Lighting light)
         {
 			if (ready) {
-				Levels [0].Draw (rstate, world, light);
+				var ma = MaterialAnim;
+				if (ma == null && additionalLibrary is CmpFile)
+					ma = ((CmpFile)additionalLibrary).MaterialAnim;
+				Levels [0].Draw (rstate, world, light, ma);
 
 				/*Matrix tworld = Transform * world;
                 float cameraDistance = Vector3.Distance(tworld.Translation, camera.Position);

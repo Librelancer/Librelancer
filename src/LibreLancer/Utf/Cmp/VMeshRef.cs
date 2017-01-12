@@ -30,7 +30,7 @@ using LibreLancer.Utf.Vms;
 
 namespace LibreLancer.Utf.Cmp
 {
-    public class VMeshRef : IDrawable
+    public class VMeshRef
     {
         private ILibFile vMeshLibrary;
         private bool ready = false;
@@ -121,18 +121,18 @@ namespace LibreLancer.Utf.Cmp
 			return Radius;
 		}
 
-		public void Draw(RenderState rstate, Matrix4 world, Lighting light)
+		public void Draw(RenderState rstate, Matrix4 world, Lighting light, MaterialAnimCollection mc)
         {
 			if (Mesh.FlexibleVertexFormat == (D3DFVF.XYZ | D3DFVF.NORMAL))
 				return;
-            if (ready) Mesh.Draw(rstate, StartMesh, endMesh, StartVertex, world, light);
+            if (ready) Mesh.Draw(rstate, StartMesh, endMesh, StartVertex, world, light, mc);
         }
 
-		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light)
+		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light, MaterialAnimCollection mc)
 		{
 			if (Mesh.FlexibleVertexFormat == (D3DFVF.XYZ | D3DFVF.NORMAL))
 				return;
-			if (ready) Mesh.DrawBuffer(buffer, StartMesh, endMesh, StartVertex, world, light, Center);
+			if (ready) Mesh.DrawBuffer(buffer, StartMesh, endMesh, StartVertex, world, light, Center, mc);
 		}
 
         public override string ToString()

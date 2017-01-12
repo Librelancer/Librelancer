@@ -241,8 +241,8 @@ namespace LibreLancer
 			vp = camera.ViewProjection;
 			cameraPos = camera.Position;
 			_camera = camera;
-			for (int i = 0; i < field.Cube.Count; i++)
-				field.Cube [i].Drawable.Update (camera, TimeSpan.Zero);
+			//for (int i = 0; i < field.Cube.Count; i++)
+				//field.Cube [i].Drawable.Update (camera, TimeSpan.Zero);
 			if (VectorMath.DistanceSquared (cameraPos, field.Zone.Position) <= renderDistSq) {
 				_asteroidsCalculated = false;
 				cubeCount = 0;
