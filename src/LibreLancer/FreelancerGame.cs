@@ -59,6 +59,7 @@ namespace LibreLancer
 		protected override void Load()
         {
 			//Move to stop _TSGetMainThread error on OSX
+			new IdentityCamera(this);
 			uithread = Thread.CurrentThread.ManagedThreadId;
 			useintromovies = _cfg.IntroMovies;
 			FLLog.Info("Platform", Platform.RunningOS.ToString() + (IntPtr.Size == 4 ? " 32-bit" : " 64-bit"));

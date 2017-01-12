@@ -322,6 +322,12 @@ namespace LibreLancer
 		{
 			DrawQuad(textShader, dot, new Rectangle(0,0,1,1), rect, color, BlendMode.Normal);
 		}
+
+		public void FillRectangleMask(Texture2D mask, Rectangle src, Rectangle dst, Color4 color)
+		{
+			DrawQuad(textShader, mask, src, dst, color, BlendMode.Normal);
+		}
+
 		public void DrawImageStretched(Texture2D tex, Rectangle dest, Color4 color, bool flip = false)
 		{
 			DrawQuad (

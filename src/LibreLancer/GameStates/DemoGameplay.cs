@@ -57,6 +57,7 @@ Mouse Position: {8} {9}
 			Color4.Pink
 		};
 		Cursor cur;
+		Hud hud;
 		public DemoGameplay(FreelancerGame g) : base(g)
 		{
 			FLLog.Info("Game", "Starting Gameplay Demo");
@@ -87,6 +88,14 @@ Mouse Position: {8} {9}
 			g.Keyboard.TextInput += G_Keyboard_TextInput;
 			debugphysics = new PhysicsDebugRenderer();
 			cur = g.ResourceManager.GetCursor("arrow");
+			hud = new Hud(g);
+			g.Keyboard.KeyDown += (e) =>
+			{
+				if (e.Key == Keys.L)
+				{
+					g.Screenshots.TakeScreenshot();
+				}
+			};
 		}
 
 		void World_RenderUpdate(TimeSpan delta)
@@ -201,6 +210,7 @@ Mouse Position: {8} {9}
 					i = 0;
 			}
 			debugphysics.Render();
+			hud.Draw(Game);
 			trender.Start(Game.Width, Game.Height);
 			DrawShadowedText(string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, SizeSuffix(GC.GetTotalMemory(false)), Velocity, draw_hitboxes, moffset.X, moffset.Y), 5, 5);
 			cur.Draw(trender, Game.Mouse);

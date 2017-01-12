@@ -21,11 +21,17 @@ namespace LibreLancer
 		static IdentityCamera _instance;
 		public static IdentityCamera Instance {
 			get {
-				if (_instance == null)
-					_instance = new IdentityCamera ();
 				return _instance;
 			}
 		}
+
+		FreelancerGame game;
+		public IdentityCamera(FreelancerGame game)
+		{
+			this.game = game;
+			_instance = this;
+		}
+
         long _fn = 0;
         public long FrameNumber
         {
@@ -36,9 +42,34 @@ namespace LibreLancer
         }
 		public Matrix4 ViewProjection {
 			get {
+				float screenAspect = game.Width / (float)game.Height;
+				float uiAspect = 4f / 3f;
+				if (screenAspect > uiAspect)
+					return Matrix4.CreateScale(uiAspect / screenAspect, 1, 1);
+				
 				return Matrix4.Identity;
+				//return Matrix4.CreateScale(
 			}
 		}
+
+		public Vector2 ScreenToPixel(float screenx, float screeny)
+		{
+			float scaleX = 1;
+			float scaleY = 1;
+			float screenAspect = game.Width / (float)game.Height;
+			float uiAspect = 4f / 3f;
+			if (screenAspect > uiAspect)
+				scaleX = uiAspect / screenAspect;
+
+			float distx = screenx * (game.Width / 2) * scaleX;
+			float x = (game.Width / 2) + distx;
+
+			float disty = screeny * (game.Height / 2);
+			float y = (game.Height / 2) - disty;
+
+			return new Vector2(x, y * scaleY);
+		}
+
 		public Matrix4 View {
 			get {
 				return Matrix4.Identity;

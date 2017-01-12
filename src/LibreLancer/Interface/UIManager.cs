@@ -80,13 +80,7 @@ namespace LibreLancer
 
 		public Vector2 ScreenToPixel (float screenx, float screeny)
 		{
-			float distx = screenx * (Game.Width / 2);
-			float x = (Game.Width / 2) + distx;
-
-			float disty = screeny * (Game.Height / 2);
-			float y = (Game.Height / 2) - disty;
-
-			return new Vector2 (x, y);
+			return IdentityCamera.Instance.ScreenToPixel(screenx, screeny);
 		}
 	}
 }

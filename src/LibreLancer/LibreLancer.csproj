@@ -303,6 +303,7 @@
     <Compile Include="GameData\Items\AnimationEquipment.cs" />
     <Compile Include="Infocards\InfocardDisplay.cs" />
     <Compile Include="FontManager.cs" />
+    <Compile Include="Interface\Hud.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -332,6 +333,7 @@
     <EmbeddedResource Include="Shaders\blend_overlay.inc" />
     <EmbeddedResource Include="Shaders\physicsdebug.frag" />
     <EmbeddedResource Include="Shaders\physicsdebug.vs" />
+    <EmbeddedResource Include="Shaders\gauge_mask.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

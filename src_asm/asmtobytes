@@ -1,0 +1,14 @@
+function get_bytes
+{
+	otool -t "$@" | grep -v ":" | grep -v "section" | cut -d ' ' -f2- | xargs | awk '{for(i=1;i<=NF; i++) { $i="0x"$i","; print $i}}' | xargs | sed 's/\(.*\)\,/\1 /'
+}
+
+O_FILE=$(echo $RANDOM.$$.o)
+clang -c "$@" -o "$O_FILE"
+echo "static byte[] _code = new byte[] {"
+get_bytes $O_FILE
+rm $O_FILE
+echo "};"
+
+
+

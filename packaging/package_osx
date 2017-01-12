@@ -21,7 +21,10 @@ libexpat* \
 libgdk* \
 libffi* \
 libgif* \
-libgmodule*"
+libgmodule*
+System.Windows.Forms.dll
+System.Drawing.dll
+Mono.WebBrowser.dll"
 
 # Check dependencies
 if [ ! -d "/Library" ]; then
@@ -70,8 +73,15 @@ if [ -f "./assets/icons.icns" ]; then
 	echo Copying ./assets/icons.icns
 	cp ./assets/icons.icns ./packages/Librelancer.app/Resources/AppIcons.icns
 elif [ -f "./assets/icon.svg" ]; then
-	if [ -f "/Applications/Inkscape.app/Contents/Resources/bin/Inkscape" ]; then
+	INKSCAPE=`which inkscape`
+	if [ ! -f "$INKSCAPE" ]; then
+		if [ -f "/Applications/Inkscape.app/Contents/Resources/bin/Inkscape" ]; then
+			INKSCAPE="/Applications/Inkscape.app/Contents/Resources/bin/Inkscape"
+		fi
+	fi
+	if [ -f "$INKSCAPE" ]; then
 		echo Converting ./assets/icon.svg to .icns
+		echo Using $INKSCAPE
 		mkdir icons.iconset
 		generate_icon_size 16 16 16x16
 		generate_icon_size 32 32 16x16@2x
@@ -90,6 +100,8 @@ elif [ -f "./assets/icon.svg" ]; then
 		rm -rf icons.iconset
 	else
 		echo Inkscape is not installed, skipping icon step.
+		echo Install inkscape with brew install homebrew/gui/inkscape
+		echo Or place an install in /Applications/Inkscape.app
 	fi
 else
 	echo No icon files exist to copy
