@@ -163,7 +163,7 @@ namespace LibreLancer
 			}
 			PopulateHardpoints(dr);
 			if (isCmp)
-				renderComponent = new ModelRenderer(CmpParts);
+				renderComponent = new ModelRenderer(CmpParts, (dr as CmpFile));
 			else
 				renderComponent = new ModelRenderer(dr);
 		}

@@ -26,6 +26,7 @@ namespace LibreLancer
 		public ModelFile Model { get; private set; }
 		public CmpFile Cmp { get; private set; }
 		public List<Part> CmpParts { get; private set; }
+		CmpFile _parentCmp;
 		public SphFile Sph { get; private set; }
 		public NebulaRenderer Nebula;
 		float radiusAtmosphere;
@@ -41,9 +42,10 @@ namespace LibreLancer
 			else if (drawable is SphFile)
 				Sph = drawable as SphFile;
 		}
-		public ModelRenderer(List<Part> drawable)
+		public ModelRenderer(List<Part> drawable, CmpFile parent)
 		{
 			CmpParts = drawable;
+			_parentCmp = parent;
 		}
 		public override void Update(TimeSpan elapsed, Vector3 position, Matrix4 transform)
 		{
@@ -132,6 +134,7 @@ namespace LibreLancer
 					}
 				}
 			} else if (CmpParts != null) {
+				_parentCmp.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
 				foreach (Part p in CmpParts)
 				{
 					p.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
