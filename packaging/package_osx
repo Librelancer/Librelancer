@@ -66,7 +66,7 @@ mkdir -p ./packages
 rm -rf ./packages/Librelancer.app
 cp -r ../bin/Release/Launcher.Mac.app ./packages/Librelancer.app
 function generate_icon_size {
-	/Applications/Inkscape.app/Contents/Resources/bin/inkscape -z -e $PWD/icons.iconset/icon_$3.png -w $1 -h $2 $PWD/assets/icon.svg
+	$INKSCAPE -z -e $PWD/icons.iconset/icon_$3.png -w $1 -h $2 $PWD/assets/icon.svg
 }
 # Embed icon
 if [ -f "./assets/icons.icns" ]; then
