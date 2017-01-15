@@ -24,6 +24,7 @@ namespace LibreLancer
         public int Width { get; private set; }
         public int Height { get; private set; }
 		public bool WithAlpha = true;
+		public bool Dxt1 = false;
         int glInternalFormat;
         int glFormat;
         int glType;
@@ -40,6 +41,7 @@ namespace LibreLancer
 			GLBind.BindTexture(0, GL.GL_TEXTURE_2D, ID);
 			//initialise the texture data
 			var imageSize = 0;
+			Dxt1 = format == SurfaceFormat.Dxt1;
 			if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)
             {
                 CheckCompressed();

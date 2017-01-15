@@ -327,6 +327,8 @@ namespace LibreLancer.Utf.Mat
 				bm.Library = textureLibrary;
 				if (type.Contains("Ot"))
 					bm.AlphaEnabled = true;
+				if (type.Contains("Two"))
+					bm.DoubleSided = true;
 			}
 			else
 			{

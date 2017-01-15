@@ -258,6 +258,17 @@ namespace LibreLancer
 					Buffer.Draw(Primitive, BaseVertex, Start, Count);
 				else
 					Buffer.Draw(Primitive, Count);
+				if (Material.DoubleSided)
+				{
+					Material.FlipNormals = true;
+					state.CullFace = CullFaces.Front;
+					if (UseBaseVertex)
+						Buffer.Draw(Primitive, BaseVertex, Start, Count);
+					else
+						Buffer.Draw(Primitive, Count);
+					Material.FlipNormals = false;
+					state.CullFace = CullFaces.Back;
+				}
 				if (Fade)
 				{
 					Material.Fade = false;

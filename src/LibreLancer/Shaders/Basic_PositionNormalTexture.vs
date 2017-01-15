@@ -15,6 +15,7 @@ uniform mat4x4 View;
 uniform mat4x4 ViewProjection;
 uniform mat4x4 NormalMatrix;
 uniform vec4 MaterialAnim;
+uniform float FlipNormal;
 
 void main()
 {
@@ -22,7 +23,7 @@ void main()
 	gl_Position = pos;
 	world_position = (World * vec4(vertex_position,1)).xyz;
 	view_position = (View * World) * vec4(vertex_position,1);
-	out_normal = (NormalMatrix * vec4(vertex_normal,0)).xyz;
+	out_normal = (NormalMatrix * vec4(vertex_normal,0)).xyz * FlipNormal;
 	out_texcoord = vec2(
 		(vertex_texture1.x + MaterialAnim.x) * MaterialAnim.z, 
 		1. - (vertex_texture1.y + MaterialAnim.y) * MaterialAnim.w

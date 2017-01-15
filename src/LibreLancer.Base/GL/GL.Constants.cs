@@ -125,6 +125,7 @@ namespace LibreLancer
 
 		public const int GL_MULTISAMPLE = 0x809D;
 
+		public const int GL_FRONT = 0x0404;
 		public const int GL_FRONT_AND_BACK = 0x0408;
 		public const int GL_LINE = 0x1B01;
 		public const int GL_FILL = 0x1B02;

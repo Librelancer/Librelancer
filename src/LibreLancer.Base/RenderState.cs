@@ -87,6 +87,18 @@ namespace LibreLancer
 				cullDirty = true;
 			}
 		}
+
+		CullFaces requestedCull = CullFaces.Back;
+		CullFaces cullFace = CullFaces.Back;
+		public CullFaces CullFace
+		{
+			get {
+				return requestedCull;
+			} set {
+				requestedCull = value;
+			}
+		}
+
 		internal void Trash()
 		{
 			cullDirty = true;
@@ -189,6 +201,11 @@ namespace LibreLancer
 				else
 					GL.Disable (GL.GL_CULL_FACE);
 				cullDirty = false;
+			}
+			if (requestedCull != cullFace)
+			{
+				cullFace = requestedCull;
+				GL.CullFace(cullFace == CullFaces.Back ? GL.GL_BACK : GL.GL_FRONT);
 			}
 			if (depthwritedirty)
 			{

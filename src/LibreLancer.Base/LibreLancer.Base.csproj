@@ -177,6 +177,7 @@
     <Compile Include="TextureFiltering.cs" />
     <Compile Include="MultisampleTarget.cs" />
     <Compile Include="Text\FontStyles.cs" />
+    <Compile Include="CullFaces.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

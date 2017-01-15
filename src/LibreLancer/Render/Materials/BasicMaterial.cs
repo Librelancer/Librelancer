@@ -136,6 +136,12 @@ namespace LibreLancer
 			{
 				shader.SetMaterialAnim(new Vector4(0, 0, 1, 1));
 			}
+			if (AlphaEnabled && GetTexture(0, DtSampler).Dxt1)
+				shader.SetAlphaTest(true);
+			else
+				shader.SetAlphaTest(false);
+			
+			shader.SetFlipNormal(FlipNormals);
 			//Ec
 			shader.SetEc(Ec);
 			//EtSampler
@@ -153,7 +159,7 @@ namespace LibreLancer
 		{
 			get
 			{
-				return AlphaEnabled;
+				return AlphaEnabled && !GetTexture(0, DtSampler).Dxt1;
 			}
 		}
 	}

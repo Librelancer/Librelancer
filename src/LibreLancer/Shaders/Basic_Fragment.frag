@@ -16,10 +16,16 @@ uniform float Oc;
 uniform bool OcEnabled;
 
 uniform bool Fade;
+uniform bool AlphaTest;
 uniform vec2 FadeRange;
 void main()
 {
 	vec4 sampler = texture(DtSampler, out_texcoord);
+	if(AlphaTest) {
+		if(sampler.a < 1.0) {
+			discard;
+		}
+	}
 	vec4 color = light(vec4(1), Ec, Dc * out_vertexcolor, texture(DtSampler, out_texcoord), world_position, view_position, out_normal);
 	vec4 acolor;
 	if (OcEnabled)

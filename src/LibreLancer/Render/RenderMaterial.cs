@@ -23,14 +23,16 @@ namespace LibreLancer
 	{
 		public MaterialAnim MaterialAnim;
 		public Matrix4 World = Matrix4.Identity;
-        public ICamera Camera;
+		public bool FlipNormals = false;
+		public ICamera Camera;
 		public ILibFile Library;
 		public bool Fade = false;
 		public float FadeNear = 0;
 		public float FadeFar = 0;
-		public abstract void Use (RenderState rstate, IVertexType vertextype, Lighting lights);
+		public abstract void Use(RenderState rstate, IVertexType vertextype, Lighting lights);
 		static Texture2D nullTexture;
 		public abstract bool IsTransparent { get; }
+		public bool DoubleSided = false;
 		Texture2D[] textures = new Texture2D[8];
 		public static void SetLights(ShaderVariables shader, Lighting lights)
 		{
@@ -43,12 +45,13 @@ namespace LibreLancer
 				return;
 			shader.SetAmbientColor(lights.Ambient);
 			shader.SetLightCount(lights.Lights.Count);
-			for (int i = 0; i < lights.Lights.Count; i++) {
-				var lt = lights.Lights [i];
+			for (int i = 0; i < lights.Lights.Count; i++)
+			{
+				var lt = lights.Lights[i];
 				shader.SetLightsPos(i, new Vector4(lt.Position, lt.Kind != LightKind.Directional ? 1 : 0));
 				shader.SetLightsDir(i, lt.Direction);
 				shader.SetLightsColor(i, new Vector3(lt.Color.R, lt.Color.G, lt.Color.B));
-				shader.SetLightsAttenuation (i, lt.Attenuation);
+				shader.SetLightsAttenuation(i, lt.Attenuation);
 				shader.SetLightsRange(i, lt.Range);
 			}
 			shader.SetFogEnabled(lights.FogEnabled ? 1 : 0);
@@ -58,21 +61,38 @@ namespace LibreLancer
 				shader.SetFogRange(lights.FogRange);
 			}
 		}
+		Texture2D GetNull()
+		{
+			if (nullTexture == null)
+			{
+				nullTexture = new Texture2D(256, 256, false, SurfaceFormat.Color);
+				Color4b[] colors = new Color4b[nullTexture.Width * nullTexture.Height];
+				for (int i = 0; i < colors.Length; i++)
+					colors[i] = Color4b.White;
+				nullTexture.SetData<Color4b>(colors);
+			}
+			return nullTexture;
+		}
+
+		protected Texture2D GetTexture(int cacheidx, string tex)
+		{
+			if (tex == null)
+				return GetNull();
+			if (textures[cacheidx] == null)
+				textures[cacheidx] = (Texture2D)Library.FindTexture(tex);
+			var tex2d = textures[cacheidx];
+			if (tex2d.IsDisposed)
+				tex2d = textures[cacheidx] = (Texture2D)Library.FindTexture(tex);
+			return textures[cacheidx];
+		}
+
 		protected void BindTexture(int cacheidx, string tex, int unit, SamplerFlags flags, bool throwonNull = true)
 		{
 			if (tex == null)
 			{
 				if (throwonNull)
 					throw new Exception();
-				if (nullTexture == null)
-				{
-					nullTexture = new Texture2D(256, 256, false, SurfaceFormat.Color);
-					Color4b[] colors = new Color4b[nullTexture.Width * nullTexture.Height];
-					for (int i = 0; i < colors.Length; i++)
-						colors[i] = Color4b.White;
-					nullTexture.SetData<Color4b>(colors);
-				}
-				nullTexture.BindTo(unit);
+				GetNull().BindTo(unit);
 			}
 			else
 			{

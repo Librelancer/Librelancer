@@ -58,6 +58,8 @@ namespace LibreLancer
 		int fadeRangePosition;
 
 		int materialAnimPosition;
+		int alphaTestPosition;
+		int flipNormalPosition;
 		Shader shader;
 
 		public ShaderVariables(Shader sh)
@@ -102,6 +104,8 @@ namespace LibreLancer
 			fadePosition = sh.GetLocation("Fade");
 			fadeRangePosition = sh.GetLocation("FadeRange");
 			materialAnimPosition = sh.GetLocation("MaterialAnim");
+			alphaTestPosition = sh.GetLocation("AlphaTest");
+			flipNormalPosition = sh.GetLocation("FlipNormal");
 		}
 
 		public void UseProgram()
@@ -350,6 +354,18 @@ namespace LibreLancer
 		{
 			if (materialAnimPosition != -1)
 				shader.SetVector4(materialAnimPosition, anim);
+		}
+
+		public void SetAlphaTest(bool test)
+		{
+			if (alphaTestPosition != -1)
+				shader.SetInteger(alphaTestPosition, test ? 1 : 0);
+		}
+
+		public void SetFlipNormal(bool flip)
+		{
+			if (flipNormalPosition != -1)
+				shader.SetFloat(flipNormalPosition, flip ? -1 : 1);
 		}
 	}
 }
