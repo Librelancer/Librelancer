@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.IO;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
+using LibreLancer.Vertices;
 namespace LibreLancer.Utf.Vms
 {
     /// <summary>
@@ -118,7 +119,50 @@ namespace LibreLancer.Utf.Vms
 			buff.Draw (PrimitiveTypes.TriangleList, startVertex + StartVertex, TriangleStart, primitiveCount);
         }
 
-		public void DrawBuffer(CommandBuffer buffer, VertexBuffer buff, ushort startVertex, Matrix4 world, Lighting light, float z, MaterialAnimCollection mc)
+		struct Average
+		{
+			public ushort StartVertex;
+			public VMeshData VMesh;
+			public Vector3 Point;
+		}
+		List<Average> averages = new List<Average>();
+		Vector3 CalculateAvg(VMeshData vm, ushort sv)
+		{
+			for (int i = 0; i < averages.Count; i++)
+				if (averages[i].StartVertex == sv && averages[i].VMesh == vm)
+					return averages[i].Point;
+			var v = sv + StartVertex;
+			double x = 0;
+			double y = 0;
+			double z = 0;
+			var vertType = vm.VertexBuffer.VertexType.GetType();
+			for (int i = TriangleStart; i < TriangleStart + NumRefVertices; i++)
+			{
+				Vector3 vert = Vector3.Zero;
+				int idx = vm.Indices[i] + v;
+				if (vertType == typeof(VertexPositionNormalColorTexture))
+					vert = vm.verticesVertexPositionNormalColorTexture[idx].Position;
+				else if (vertType == typeof(VertexPositionNormalTexture))
+					vert = vm.verticesVertexPositionNormalTexture[idx].Position;
+				else if (vertType == typeof(VertexPositionNormalTextureTwo))
+					vert = vm.verticesVertexPositionNormalTextureTwo[idx].Position;
+				else if (vertType == typeof(VertexPositionNormalDiffuseTextureTwo))
+					vert = vm.verticesVertexPositionNormalDiffuseTextureTwo[idx].Position;
+				else
+					throw new Exception();
+				x += vert.X;
+				y += vert.Y;
+				z += vert.Z;
+			}
+			x /= NumRefVertices;
+			y /= NumRefVertices;
+			z /= NumRefVertices;
+			var avg = new Vector3((float)x, (float)y, (float)z);
+			averages.Add(new Average() { VMesh = vm, StartVertex = sv, Point = avg });
+			return avg;
+		}
+
+		public void DrawBuffer(CommandBuffer buffer, VMeshData data, ushort startVertex, Matrix4 world, Lighting light, MaterialAnimCollection mc)
 		{
 			if (lastmc != mc)
 			{
@@ -130,12 +174,16 @@ namespace LibreLancer.Utf.Vms
 				else
 					ma = null;
 			}
+			float z = 0;
+			if (Material.Render.IsTransparent)
+				z = RenderHelpers.GetZ(world, Material.Render.Camera.Position, CalculateAvg(data, startVertex));
+			
 			buffer.AddCommand(
 				Material.Render,
 				ma,
 				world,
 				light,
-				buff,
+				data.VertexBuffer,
 				PrimitiveTypes.TriangleList,
 				startVertex + StartVertex,
 				TriangleStart,

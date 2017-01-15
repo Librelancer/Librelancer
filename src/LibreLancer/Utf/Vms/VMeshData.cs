@@ -274,12 +274,12 @@ namespace LibreLancer.Utf.Vms
                 }
             }
         }
-		Vector3 cameraPos;
+		ICamera camera;
         public void Update(ICamera camera, ushort startMesh, int endMesh)
         {
             if (ready)
             {
-				cameraPos = camera.Position;
+				this.camera = camera;
                 for (ushort i = startMesh; i < endMesh; i++)
                 {
                     Meshes[i].Update(camera);
@@ -304,7 +304,8 @@ namespace LibreLancer.Utf.Vms
 			{
 				for (ushort i = startMesh; i < endMesh; i++)
 				{
-					Meshes[i].DrawBuffer(buff, VertexBuffer, startVertex, world, light, RenderHelpers.GetZ(world, cameraPos, center), mc);
+					//Meshes[i].DrawBuffer(buff, this, startVertex, world, light, cameraPos, mc);
+					Meshes[i].DrawBuffer(buff, this, startVertex, world, light, mc);
 				}
 			}
 		}

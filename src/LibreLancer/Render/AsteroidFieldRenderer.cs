@@ -205,6 +205,15 @@ namespace LibreLancer
 							Color4.White,
 							v.TextureCoordinate);
 					}
+					else if (vertType == typeof(VertexPositionNormalDiffuseTextureTwo))
+					{
+						var v = l0.Mesh.verticesVertexPositionNormalDiffuseTextureTwo[idx];
+						vert = new VertexPositionNormalColorTexture(
+							v.Position,
+							v.Normal,
+							v.Diffuse,
+							v.TextureCoordinate);
+					}
 					else
 					{
 						throw new NotImplementedException("Asteroids: " + vertType.FullName);

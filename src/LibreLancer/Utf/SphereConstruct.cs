@@ -64,7 +64,7 @@ namespace LibreLancer.Utf
 
         public override void Update(float distance)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
     }
 }

@@ -33,6 +33,9 @@ namespace LibreLancer.Fx
 			var c = Color.GetValue(sparam, time);
 			var a = Alpha.GetValue(sparam, time);
 
+			var p2 = node_tr.Transform(particle.Position + particle.Normal);
+			var n = (p - p2).Normalized();
+
 			billboards.DrawPerspective(
 				tex,
 				p,
@@ -42,7 +45,7 @@ namespace LibreLancer.Fx
 				tr,
 				bl,
 				br,
-				particle.Normal.Normalized(),
+				n,
 				Rotate == null ? 0f : Rotate.GetValue(sparam, time),
 				SortLayers.OBJECT,
 				BlendInfo

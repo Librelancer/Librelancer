@@ -67,9 +67,9 @@ namespace LibreLancer.Fx
 				(float)(Math.Cos(phi))
 			);
 
-			var tr = GetTranslation(fx, transform, sparam, 0);
+			var tr = Transform.GetMatrix(sparam, 0);
 			n = (tr * new Vector4(n.Normalized(), 0)).Xyz.Normalized();
-			var pr = tr.Transform(pos);
+			var pr = pos;
 			instance.Particles[idx].Position = pr;
 			instance.Particles [idx].Normal = n * Pressure.GetValue (sparam, 0);
 		}

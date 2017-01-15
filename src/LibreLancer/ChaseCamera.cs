@@ -35,7 +35,7 @@ namespace LibreLancer
 
 		public Vector3 ChasePosition { get; set; }
 		public Matrix4 ChaseOrientation { get; set; }
-		public Vector3 DesiredPositionOffset = new Vector3(0, 4f, 28f);
+		public Vector3 DesiredPositionOffset = new Vector3(17f, 4f, 28f);
 		public Vector3 OffsetDirection;
 
 		public Matrix4 Projection { get; private set; }

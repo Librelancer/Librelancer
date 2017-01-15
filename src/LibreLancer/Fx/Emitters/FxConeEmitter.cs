@@ -63,12 +63,12 @@ namespace LibreLancer.Fx
 				(float)z
 			);
 
-			var tr = GetTranslation(fx, transform, sparam, 0);
+			var tr = Transform.GetMatrix(sparam, 0);
 			var direction = Vector3.UnitZ + p;
 			var n = (tr * new Vector4(direction.Normalized(), 0)).Xyz.Normalized();
-			var pressure = Pressure.GetValue(sparam, 0);
+			//var pressure = Pressure.GetValue(sparam, 0);
 			n *= Pressure.GetValue(sparam, 0);
-			var pr = tr.Transform(p * radius);
+			var pr = p * radius;
 			instance.Particles[idx].Position = pr;
 			instance.Particles[idx].Normal = n;
 		}

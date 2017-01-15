@@ -300,7 +300,11 @@ namespace LibreLancer
 			BlendMode blend = BlendMode.Normal
 		)
 		{
-			var right = Vector3.Cross(normal, Vector3.UnitY).Normalized();
+			var right = Vector3.Cross(normal, Vector3.UnitY);
+			var up = Vector3.Cross(right, normal);
+
+			up.Normalize();
+			right.Normalize();
 			rendat[billboardCount] = new RenderData(
 				texture,
 				blend,
@@ -316,7 +320,7 @@ namespace LibreLancer
 				bottomleft,
 				bottomright,
 				right,
-				Vector3.UnitY
+				up
 			);
 			var z = RenderHelpers.GetZ(camera.Position, Position);
 			buffer.AddCommand(

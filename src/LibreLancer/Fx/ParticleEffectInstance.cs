@@ -21,7 +21,7 @@ namespace LibreLancer.Fx
 	public class EmitterState
 	{
 		public int ParticleCount = 0;
-		public float SpawnTimer = 0f;
+		public double SpawnTimer = 0f;
 	}
 	public class ParticleEffectInstance
 	{

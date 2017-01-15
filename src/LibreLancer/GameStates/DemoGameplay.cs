@@ -58,6 +58,7 @@ Mouse Position: {8} {9}
 		};
 		Cursor cur;
 		Hud hud;
+		EngineComponent ecpt;
 		public DemoGameplay(FreelancerGame g) : base(g)
 		{
 			FLLog.Info("Game", "Starting Gameplay Demo");
@@ -79,7 +80,8 @@ Mouse Position: {8} {9}
 			world.RenderUpdate += World_RenderUpdate;
 			world.PhysicsUpdate += World_PhysicsUpdate;
 			var eng = new GameData.Items.Engine() { FireEffect = "gf_li_smallengine02_fire" };
-			player.Components.Add(new EngineComponent(player, eng, g));
+			player.Components.Add((ecpt = new EngineComponent(player, eng, g)));
+			ecpt.Speed = 0;
 			player.Register(sysrender, world.Physics);
 			g.Sound.PlayMusic(sys.MusicSpace);
 			trender = new Renderer2D(Game.RenderState);
@@ -108,6 +110,7 @@ Mouse Position: {8} {9}
 
 		public override void Update(TimeSpan delta)
 		{
+			ecpt.Speed = (Velocity / MAX_VELOCITY) * 0.9f;
 			world.Update(delta);
 		}
 
@@ -186,6 +189,15 @@ Mouse Position: {8} {9}
 			else if (Game.Keyboard.IsKeyDown(Keys.Down))
 			{
 				camera.DesiredPositionOffset += (10 * (float)delta.TotalSeconds * camera.OffsetDirection);
+			}
+
+			if (Game.Keyboard.IsKeyDown(Keys.Left))
+			{
+				camera.DesiredPositionOffset.X += 10 * (float)delta.TotalSeconds;
+			}
+			if (Game.Keyboard.IsKeyDown(Keys.Right))
+			{
+				camera.DesiredPositionOffset.X -= 10 * (float)delta.TotalSeconds;
 			}
 		}
 

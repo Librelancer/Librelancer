@@ -31,7 +31,7 @@ namespace LibreLancer.ImageLib
 			}
 		}
 
-		public static Texture2D FromStream(Stream stream)
+		public static Texture2D FromStream(Stream stream, bool hasMipMaps = false, Texture2D target = null, int mipLevel = -1)
 		{
 			byte[] buffer = new byte[2];
 
@@ -180,11 +180,19 @@ namespace LibreLancer.ImageLib
 					}
 				}
 			}
-			var tex = new Texture2D (imageWidth, imageHeight, false, SurfaceFormat.Color);
-			tex.SetData (pdata);
-			if (pixelDepth != 32 || imageType == 1)
-				tex.WithAlpha = false;
-			return tex;
+			if (target == null)
+			{
+				var tex = new Texture2D(imageWidth, imageHeight, hasMipMaps, SurfaceFormat.Color);
+				tex.SetData(pdata);
+				if (pixelDepth != 32 || imageType == 1)
+					tex.WithAlpha = false;
+				return tex;
+			}
+			else
+			{
+				target.SetData(mipLevel, null, pdata, 0, pdata.Length);
+				return null;
+			}
 		}
 	}
 }

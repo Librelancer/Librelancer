@@ -17,6 +17,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace LibreLancer.Utf.Mat
@@ -26,35 +27,62 @@ namespace LibreLancer.Utf.Mat
 		private string type;
 		private string texname;
 		private byte[] data;
-
 		public Texture Texture { get; private set; }
+		Dictionary<int, byte[]> levels;
 
-		public TextureData (LeafNode node, string texname)
+		public TextureData (LeafNode node, string texname, bool isTgaMips)
 		{
 			this.type = node.Name;
 			this.texname = texname;
 			this.data = node.ByteArrayData;
+			if (isTgaMips)
+				levels = new Dictionary<int, byte[]>();
 		}
+
 		public TextureData(string filename)
 		{
 			Texture = ImageLib.Generic.FromFile(filename);
 		}
+
 		public void Initialize ()
 		{
-			if (data != null) {
+			if (data != null && Texture == null) {
 				using (Stream stream = new MemoryStream (data)) {
 					if (type.Equals ("mips", StringComparison.OrdinalIgnoreCase)) {
 						Texture = ImageLib.DDS.DDSFromStream2D (stream, 0, true);
-					} else if (type.StartsWith ("mip", StringComparison.OrdinalIgnoreCase)) {
-						var tex = ImageLib.TGA.FromStream (stream);
-						if (tex != null)
-							Texture = tex;
+					} else if (type.StartsWith ("mip", StringComparison.OrdinalIgnoreCase)) {;
+						var tga = ImageLib.TGA.FromStream(stream, levels != null);
+						if (levels != null)
+						{
+							foreach (var lv in levels)
+							{
+								using (var s2 = new MemoryStream(lv.Value)) {
+									ImageLib.TGA.FromStream(s2, true, tga, lv.Key);
+								}
+							}
+						}
+						Texture = tga;
+						levels = null;
 					} else if (type.Equals ("cube", StringComparison.OrdinalIgnoreCase)) {
 						Texture = ImageLib.DDS.DDSFromStreamCube (stream, 0, true);
 					}
 				}
 			} else
 				FLLog.Error ("Texture " + texname, "data == null");
+		}
+
+		public void SetLevel(Node node)
+		{
+			var n = node as LeafNode;
+			if (n == null)
+				throw new Exception("Invalid node in TextureData MIPS " + node.Name);
+			var name = n.Name.Trim();
+			if (!name.StartsWith("mip", StringComparison.OrdinalIgnoreCase))
+				throw new Exception("Invalid node in TextureData MIPS " + node.Name);
+			var mipLevel = int.Parse(name.Substring(3));
+			if (mipLevel == 0)
+				return;
+			levels.Add(mipLevel, n.ByteArrayData);
 		}
 
 		public override string ToString ()

@@ -81,9 +81,9 @@ namespace LibreLancer.Fx
 		}
 		public override void Update(ParticleEffect fx, ParticleEffectInstance instance, TimeSpan delta, ref Matrix4 transform, float sparam)
 		{
-			var maxCount = MaxParticles == null ? int.MaxValue : MaxParticles.GetValue(sparam, 0f);
+			var maxCount = MaxParticles == null ? int.MaxValue : (int)Math.Ceiling(MaxParticles.GetValue(sparam, 0f));
 			var freq = Frequency == null ? 0f : Frequency.GetValue(sparam, 0f);
-			var spawnMs = freq <= 0 ? 0 : 1 / freq;
+			var spawnMs = freq <= 0 ? 0 : 1 / (double)freq;
 			var state = instance.GetEmitterState(this);
 			if (state.ParticleCount >= maxCount)
 			{
@@ -91,14 +91,25 @@ namespace LibreLancer.Fx
 			}
 			if (spawnMs > 0)
 			{
-				state.SpawnTimer -= (float)delta.TotalSeconds;
-				if (state.SpawnTimer <= 0)
+				//Spawn lots of particles
+				var dt = delta.TotalSeconds;
+				while (true)
 				{
-					state.SpawnTimer = spawnMs;
-					var idx = instance.GetNextFreeParticle();
-					if (idx == -1)
-						return;
-					SpawnParticle(idx, fx, instance, ref transform, sparam);
+					if (state.SpawnTimer < dt) {
+						dt -= state.SpawnTimer;
+						state.SpawnTimer = spawnMs;
+					} else {
+						state.SpawnTimer -= dt;
+						break;
+					}
+					if (state.ParticleCount + 1 <= maxCount)
+					{
+						var idx = instance.GetNextFreeParticle();
+						if (idx == -1)
+							return;
+						state.ParticleCount++;
+						SpawnParticle(idx, fx, instance, ref transform, sparam);
+					}
 				}
 			}
 		}
