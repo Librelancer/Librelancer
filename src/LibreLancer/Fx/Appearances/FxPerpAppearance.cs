@@ -39,7 +39,7 @@ namespace LibreLancer.Fx
 			billboards.DrawPerspective(
 				tex,
 				p,
-				new Vector2(Size.GetValue(sparam, time)) * 2,
+				new Vector2(Size.GetValue(sparam, time)),
 				new Color4(c, a),
 				tl,
 				tr,

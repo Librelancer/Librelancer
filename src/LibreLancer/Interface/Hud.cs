@@ -29,6 +29,7 @@ namespace LibreLancer
 		IDrawable hud_target;
 		IDrawable hud_shipinfo;
 		IDrawable hud_gaugewindow;
+		IDrawable hud_numberboxes;
 
 		//Elements
 		Texture2D gauge_mask; //mask texture for creating power/hull/shield gauges
@@ -44,6 +45,7 @@ namespace LibreLancer
 		Matrix4 hud_targettransform;
 		Matrix4 hud_shipinfotransform;
 		Matrix4 hud_maneuverstransform;
+		Matrix4 hud_numberboxestransform;
 
 		public Hud(FreelancerGame game)
 		{
@@ -60,17 +62,20 @@ namespace LibreLancer
 			gauge_mask = ImageLib.PNG.FromStream(typeof(Hud).Assembly.GetManifestResourceStream("LibreLancer.Shaders.gauge_mask.png"));
 			gauge_mask.SetFiltering(TextureFiltering.Nearest);
 
+			hud_numberboxes = L(game, "hud_numberboxes.cmp");
 			//Set Transforms
 			hud_gaugetransform = Matrix4.CreateScale(1.95f, 2.75f, 1) * Matrix4.CreateTranslation(0.01f, -0.95f, 0);
 			hud_targettransform = Matrix4.CreateScale(2.1f, 2.9f, 1) * Matrix4.CreateTranslation(-0.73f, -0.69f, 0);
 			hud_shipinfotransform = Matrix4.CreateScale(2.1f, 2.9f, 1) * Matrix4.CreateTranslation(0.73f, -0.69f, 0);
 			hud_maneuverstransform = Matrix4.CreateScale(4.5f, 6f, 0) * Matrix4.CreateTranslation(0, 0.925f, 1);
+			hud_numberboxestransform = Matrix4.CreateScale(1.93f, 2.5f, 0) * Matrix4.CreateTranslation(0.01f, -0.952f, 0);
 		}
 
 		public void Draw(FreelancerGame game)
 		{
 			game.RenderState.DepthEnabled = false;
 			DrawStatusGauge(game);
+			DrawNumberBoxes(game);
 			DrawNavButtons(game);
 			DrawContactsList(game);
 			DrawShipInfo(game);
@@ -110,7 +115,71 @@ namespace LibreLancer
 			float scaleFactor = ph / (float)gauge_mask.Height;
 			int pw = (int)((gauge_mask.Width * scaleFactor) * pct);
 			var src = new Rectangle(0, 0, (int)(gauge_mask.Width * pct), gauge_mask.Height);
-			g.Renderer2D.FillRectangleMask(gauge_mask, src,new Rectangle((int)p1.X, (int)p1.Y, pw, ph), color);
+			g.Renderer2D.FillRectangleMask(gauge_mask, src, new Rectangle((int)p1.X, (int)p1.Y, pw, ph), color);
+		}
+
+		Rectangle FromScreenRect(float screenx, float screeny, float screenw, float screenh)
+		{
+			var p1 = IdentityCamera.Instance.ScreenToPixel(screenx, screeny);
+			var p2 = IdentityCamera.Instance.ScreenToPixel(screenx + screenw, screeny - screenh);
+			return new Rectangle(
+				(int)(p1.X),
+				(int)(p1.Y),
+				(int)(p2.X - p1.X),
+				(int)(p2.Y - p1.Y)
+			);
+		}
+
+		Font numberFont;
+		float numberSize = -1;
+		Font GetNumbersFont(float sz, FreelancerGame g)
+		{
+			if (numberSize != sz)
+			{
+				if (numberFont != null)
+					numberFont.Dispose();
+				numberSize = sz;
+				numberFont = Font.FromSystemFont(g.Renderer2D, "Agency FB", numberSize);
+			}
+			return numberFont;
+		}
+
+		float GetTextSize(float px)
+		{
+			return (px * (72.0f / 96.0f));
+		}
+
+		protected void DrawShadowedText(Renderer2D r, Font font, string text, float x, float y, Color4 c)
+		{
+			r.DrawString(font, text, x + 2, y + 2, Color4.Black);
+			r.DrawString(font, text, x, y, c);
+		}
+
+		protected void DrawTextCentered(Renderer2D r, Font font, string text, Rectangle rect, Color4 c)
+		{
+			var size = r.MeasureString(font, text);
+			var pos = new Vector2(
+				rect.X + (rect.Width / 2f - size.X / 2),
+				rect.Y + (rect.Height / 2f - size.Y / 2)
+			);
+			DrawShadowedText(r, font, text, pos.X, pos.Y, c);
+		}
+
+		public Color4 TextColor = new Color4(160, 196, 210, 255);
+		public float ThrustAvailable = 1;
+		public float Velocity = 0;
+		void DrawNumberBoxes(FreelancerGame game)
+		{
+			hud_numberboxes.Update(IdentityCamera.Instance, TimeSpan.Zero, TimeSpan.FromSeconds(game.TotalTime));
+			hud_numberboxes.Draw(game.RenderState, hud_numberboxestransform, Lighting.Empty);
+
+			var thrustbox = FromScreenRect(-0.2925f, -0.93f, 0.077f, 0.055f);
+			var speedbox = FromScreenRect(0.231f, -0.93f, 0.077f, 0.055f);
+			var font = GetNumbersFont(GetTextSize(thrustbox.Height), game);
+			game.Renderer2D.Start(game.Width, game.Height);
+			DrawTextCentered(game.Renderer2D, font, (int)MathHelper.Clamp(ThrustAvailable * 100, 0, 100) + "%", thrustbox, TextColor);
+			DrawTextCentered(game.Renderer2D, font, ((int)Velocity).ToString(), speedbox, TextColor);
+			game.Renderer2D.Finish();
 		}
 
 		void DrawNavButtons(FreelancerGame g)

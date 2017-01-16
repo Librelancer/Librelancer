@@ -111,6 +111,7 @@ Mouse Position: {8} {9}
 		public override void Update(TimeSpan delta)
 		{
 			ecpt.Speed = (Velocity / MAX_VELOCITY) * 0.9f;
+			hud.Velocity = Velocity;
 			world.Update(delta);
 		}
 
