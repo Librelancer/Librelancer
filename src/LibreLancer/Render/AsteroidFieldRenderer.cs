@@ -233,6 +233,10 @@ namespace LibreLancer
 						newIdx = verts.Count;
 						verts.Add(vert);
 					}
+					if (newIdx > ushort.MaxValue)
+					{
+						throw new Exception();
+					}
 					indices.Add((ushort)newIdx);
 				}
 			}
@@ -364,6 +368,7 @@ namespace LibreLancer
 					for (int i = 0; i < cubeDrawCalls.Count; i++)
 					{
 						var dc = cubeDrawCalls[i];
+						dc.Material.Update(_camera);
 						buffer.AddCommandFade(
 							dc.Material.Render,
 							transform,
