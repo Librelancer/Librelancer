@@ -160,6 +160,8 @@ namespace LibreLancer
 			{
 				PhysicsComponent = new RigidBody(collisionShape);
 				PhysicsComponent.IsStatic = staticpos;
+				if (staticpos)
+					PhysicsComponent.Material.Restitution = 1;
 			}
 			PopulateHardpoints(dr);
 			if (isCmp)

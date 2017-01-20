@@ -31,6 +31,7 @@ C# Memory Usage: {5}
 Velocity: {6}
 Hitbox Drawing (H/J): {7}
 Mouse Position: {8} {9}
+Mouse Flight: {10}
 ";
 		private const float ROTATION_SPEED = 1f;
 		GameData.StarSystem sys;
@@ -46,7 +47,7 @@ Mouse Position: {8} {9}
 		GameObject player;
 		public float Velocity = 0f;
 		const float MAX_VELOCITY = 320f;
-		int draw_hitboxes = 0;
+		int draw_hitboxes = 8;
 		Color4[] colors = new Color4[]
 		{
 			Color4.White,
@@ -64,19 +65,20 @@ Mouse Position: {8} {9}
 			FLLog.Info("Game", "Starting Gameplay Demo");
 			sys = g.GameData.GetSystem("li01");
 			var shp = g.GameData.GetShip("li_elite");
+			//Set up player object + camera
 			player = new GameObject(shp.Drawable, g.ResourceManager, false);
-			//player.PhysicsComponent = new RigidBody(new CapsuleShape(100, 25));
 			player.PhysicsComponent.Position = new JVector(-31000, 0, -26755);
+			player.PhysicsComponent.Material.Restitution = 1;
 			camera = new ChaseCamera(Game.Viewport);
-			//camera.Up = VectorMath.UnitY;
 			camera.ChasePosition = new Vector3(-31000, 0, -26755);
-			//camera.ChaseDirection = VectorMath.Forward;
-			//camera.Reset();
+			camera.ChaseOrientation = player.PhysicsComponent.Orientation.ToOpenTK();
+			camera.Reset();
+
 			sysrender = new SystemRenderer(camera, g.GameData, g.ResourceManager);
 			world = new GameWorld(sysrender);
 			world.LoadSystem(sys, g.ResourceManager);
 			world.Objects.Add(player);
-			world.Physics.SetDampingFactors(0.5f, 1f);
+			world.Physics.SetDampingFactors(0.01f, 1f);
 			world.RenderUpdate += World_RenderUpdate;
 			world.PhysicsUpdate += World_PhysicsUpdate;
 			var eng = new GameData.Items.Engine() { FireEffect = "gf_li_smallengine02_fire" };
@@ -124,7 +126,7 @@ Mouse Position: {8} {9}
 			}
 			ProcessInput(delta);
 		}
-
+		bool mouseFlight = false;
 		void G_Keyboard_KeyDown(KeyEventArgs e)
 		{
 			if (e.Key == Keys.Backspace && textEntry)
@@ -133,6 +135,10 @@ Mouse Position: {8} {9}
 				{
 					currentText = currentText.Substring(0, currentText.Length - 1);
 				}
+			}
+			if (e.Key == Keys.Space && !textEntry)
+			{
+				mouseFlight = !mouseFlight;
 			}
 			if (e.Key == Keys.P && !textEntry)
 			{
@@ -176,11 +182,19 @@ Mouse Position: {8} {9}
 				Velocity -= (float)(delta.TotalSeconds * ACCEL);
 				Velocity = MathHelper.Clamp(Velocity, 0, MAX_VELOCITY);
 			}
-			if (Game.Mouse.IsButtonDown(MouseButtons.Left))
+
+			var pc = player.PhysicsComponent;
+			if (Game.Mouse.IsButtonDown(MouseButtons.Left) || mouseFlight)
 			{
-				var pc = player.PhysicsComponent;
-				player.PhysicsComponent.AddTorque(JVector.Transform(JVector.Up, pc.Orientation) * -moffset.X * 10000);
-				player.PhysicsComponent.AddTorque(JVector.Transform(JVector.Right, pc.Orientation) * moffset.Y * 10000);
+				float rotateSpeed = 0.03f;
+				pc.Orientation = JMatrix.CreateFromYawPitchRoll(-moffset.X * rotateSpeed, -moffset.Y * rotateSpeed, 0) * pc.Orientation;
+			}
+			else
+			{
+				double pitch, yaw, roll;
+				DecomposeOrientation(pc.Orientation, out pitch, out yaw, out roll);
+				var lerped = MathHelper.Lerp((float)roll, 0, 0.007f);
+				pc.Orientation = JMatrix.CreateFromYawPitchRoll((float)yaw, (float)pitch, lerped);
 			}
 
 			if (Game.Keyboard.IsKeyDown(Keys.Up))
@@ -201,6 +215,25 @@ Mouse Position: {8} {9}
 				camera.DesiredPositionOffset.X -= 10 * (float)delta.TotalSeconds;
 			}
 		}
+
+		static void DecomposeOrientation(JMatrix mx, out double xPitch, out double yYaw, out double zRoll)
+		{
+			xPitch = Math.Asin(-mx.M32);
+			double threshold = 0.001; // Hardcoded constant – burn him, he’s a witch
+			double test = Math.Cos(xPitch);
+
+			if (test > threshold)
+			{
+				zRoll = Math.Atan2(mx.M12, mx.M22);
+				yYaw = Math.Atan2(mx.M31, mx.M33);
+			}
+			else
+			{
+				zRoll = Math.Atan2(-mx.M21, mx.M11);
+				yYaw = 0.0;
+			}
+		}
+
 
 		public override void Draw(TimeSpan delta)
 		{
@@ -225,7 +258,7 @@ Mouse Position: {8} {9}
 			debugphysics.Render();
 			hud.Draw(Game);
 			trender.Start(Game.Width, Game.Height);
-			DrawShadowedText(string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, SizeSuffix(GC.GetTotalMemory(false)), Velocity, draw_hitboxes, moffset.X, moffset.Y), 5, 5);
+			DrawShadowedText(string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, SizeSuffix(GC.GetTotalMemory(false)), Velocity, draw_hitboxes, moffset.X, moffset.Y, mouseFlight), 5, 5);
 			cur.Draw(trender, Game.Mouse);
 			trender.Finish();
 		}

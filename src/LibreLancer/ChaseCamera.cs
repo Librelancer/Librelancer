@@ -15,6 +15,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using Jitter.LinearMath;
 namespace LibreLancer
 {
 	public class ChaseCamera : ICamera
@@ -35,8 +36,19 @@ namespace LibreLancer
 
 		public Vector3 ChasePosition { get; set; }
 		public Matrix4 ChaseOrientation { get; set; }
-		public Vector3 DesiredPositionOffset = new Vector3(17f, 4f, 28f);
 		public Vector3 OffsetDirection;
+
+		public Vector3 DesiredPositionOffset = new Vector3(0, 4f, 28f);
+		public Vector3 LookAtOffset = new Vector3(0, 0.28f, 0);
+
+		//Stiffer makes the camera come closer
+		public float Stiffness = 1800;
+		//Stop spring oscillating
+		public float Damping = 600;
+		//Mass of the camera
+		public float Mass = 50;
+
+		Vector3 velocity = Vector3.Zero;
 
 		public Matrix4 Projection { get; private set; }
 		public Matrix4 View { get; private set; }
@@ -54,6 +66,7 @@ namespace LibreLancer
 				return _frustum;
 			}
 		}
+
 		void UpdateVp()
 		{
 			viewprojection = View * Projection;
@@ -61,6 +74,7 @@ namespace LibreLancer
 
 			_vpdirty = false;
 		}
+
 		public Matrix4 ViewProjection
 		{
 			get
@@ -72,6 +86,7 @@ namespace LibreLancer
 				return viewprojection;
 			}
 		}
+
 		Vector3 _position;
 		public Vector3 Position
 		{
@@ -88,14 +103,28 @@ namespace LibreLancer
 		public ChaseCamera(Viewport viewport)
 		{
 			this.Viewport = viewport;
-			ChaseOrientation = Matrix4.Identity;
+			ChasePosition = Vector3.Zero;
 			OffsetDirection = DesiredPositionOffset.Normalized();
 		}
 
+		public void Reset()
+		{
+			UpdateWanted();
+			Position = desiredPosition;
+			Vector3 upVector = ChaseOrientation.Transform(VectorMath.Up);
+			View = Matrix4.LookAt(Position, lookAt, upVector);
+		}
+
+		void UpdateWanted()
+		{
+			desiredPosition = ChasePosition + ChaseOrientation.Transform(DesiredPositionOffset);
+			lookAt = ChasePosition + ChaseOrientation.Transform(LookAtOffset);
+		}
 		public void UpdateProjection()
 		{
 			Projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(50f), Viewport.AspectRatio, 10f, 100000000f);
 		}
+
         public long FrameNumber
         {
             get
@@ -103,6 +132,8 @@ namespace LibreLancer
                 return fnum;
             }
         }
+		Vector3 lookAt = Vector3.Zero;
+		Vector3 desiredPosition;
         long fnum = 0;
 		/// <summary>
 		/// Allows the game component to update itself.
@@ -110,13 +141,18 @@ namespace LibreLancer
 		public void Update(TimeSpan delta)
 		{
             fnum++;
-			Matrix4 rotationMatrix = ChaseOrientation;
 
-			_position = ChasePosition + (rotationMatrix.Transform(DesiredPositionOffset));
+			UpdateWanted();
 
-			Vector3 upVector = rotationMatrix.Transform(VectorMath.Up);
+			Vector3 stretch = Position - desiredPosition;
+			Vector3 force = -Stiffness * stretch - Damping * velocity;
 
-			View = Matrix4.LookAt(Position, ChasePosition, upVector);
+			Vector3 acceleration = force / Mass;
+			velocity += acceleration * (float)delta.TotalSeconds;
+
+			Vector3 upVector = ChaseOrientation.Transform(VectorMath.Up);
+			Position += velocity * (float)delta.TotalSeconds;
+			View = Matrix4.LookAt(Position, lookAt, upVector);
 			_vpdirty = true;
 		}
 	}
