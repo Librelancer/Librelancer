@@ -77,7 +77,7 @@ namespace LibreLancer.Compatibility.GameData.Solar
 					break;
 				case "spines":
 					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (Spines != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+					//if (Spines != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name); //TODO: Throw warning for duplicates instead of errors
 					Spines = e[0].ToString();
 					break;
 				case "intensity_fade_in":

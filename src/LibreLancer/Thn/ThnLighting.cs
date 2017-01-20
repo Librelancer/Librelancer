@@ -21,7 +21,8 @@ namespace LibreLancer
 	public enum ThnLighting
 	{
 		Dynamic = 2,
-		Ambient = 4
+		Ambient = 4,
+		Hidden = 16
 	}
 }
 

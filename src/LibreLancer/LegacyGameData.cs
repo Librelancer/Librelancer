@@ -164,12 +164,34 @@ namespace LibreLancer
 			sys.BackgroundColor = legacy.SpaceColor ?? Color4.Black;
 			sys.MusicSpace = legacy.MusicSpace;
 			sys.FarClip = legacy.SpaceFarClip ?? 20000f;
-			if(legacy.BackgroundBasicStarsPath != null)
-				sys.StarsBasic = resource.GetDrawable (legacy.BackgroundBasicStarsPath);
-			if (legacy.BackgroundComplexStarsPath != null)
-				sys.StarsComplex = resource.GetDrawable (legacy.BackgroundComplexStarsPath);
-			if (legacy.BackgroundNebulaePath != null)
-				sys.StarsNebula = resource.GetDrawable (legacy.BackgroundNebulaePath);
+			if (legacy.BackgroundBasicStarsPath != null) {
+				try {
+					sys.StarsBasic = resource.GetDrawable (legacy.BackgroundBasicStarsPath);
+				} catch (Exception) {
+					sys.StarsBasic = null;
+					FLLog.Error ("System", "Failed to load starsphere " + legacy.BackgroundBasicStarsPath);
+				}
+			}
+
+			if (legacy.BackgroundComplexStarsPath != null) {
+				try {
+					sys.StarsComplex = resource.GetDrawable (legacy.BackgroundComplexStarsPath);
+				} catch (Exception) {
+					sys.StarsComplex = null;
+					FLLog.Error ("System", "Failed to load starsphere " + legacy.BackgroundComplexStarsPath);
+				}
+
+			}
+
+			if (legacy.BackgroundNebulaePath != null) {
+				try {
+					sys.StarsNebula = resource.GetDrawable (legacy.BackgroundNebulaePath);
+				} catch (Exception) {
+					sys.StarsNebula = null;
+					FLLog.Error ("System", "Failed to load starsphere " + legacy.BackgroundNebulaePath);
+				}
+			}
+
 			if (legacy.LightSources != null) {
 				foreach (var src in legacy.LightSources) {
 					var lt = new RenderLight ();
@@ -281,9 +303,11 @@ namespace LibreLancer
 			a.Zone = sys.Zones.Where((z) => z.Nickname.ToLower() == ast.ZoneName.ToLower()).First();
 			Legacy.Universe.TexturePanels panels = null;
 			if (ast.TexturePanels != null) {
-				panels = new Legacy.Universe.TexturePanels (ast.TexturePanels.File);
-				foreach (var txmfile in panels.Files)
-					resource.LoadTxm (Compatibility.VFS.GetPath (fldata.Freelancer.DataPath + txmfile));
+				foreach (var f in ast.TexturePanels.Files) {
+					panels = new Legacy.Universe.TexturePanels (f);
+					foreach (var txmfile in panels.Files)
+						resource.LoadTxm (Compatibility.VFS.GetPath (fldata.Freelancer.DataPath + txmfile));
+				}
 			}
 			if (ast.Band != null) {
 				a.Band = new GameData.AsteroidBand ();
@@ -362,7 +386,7 @@ namespace LibreLancer
 		{
 			var n = new GameData.Nebula();
 			n.Zone = sys.Zones.Where((z) => z.Nickname.ToLower() == nbl.ZoneName.ToLower()).First();
-			var panels = new Legacy.Universe.TexturePanels(nbl.TexturePanels.File);
+			var panels = new Legacy.Universe.TexturePanels(nbl.TexturePanels.Files[0]);
 			foreach (var txmfile in panels.Files)
 				resource.LoadTxm(Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + txmfile));
 			n.ExteriorFill = nbl.ExteriorFillShape;

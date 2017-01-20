@@ -129,6 +129,11 @@ namespace LibreLancer.Compatibility.GameData.Universe
 				}
 			}
 
+			if (file == null) { //TODO: MultiUniverse
+				FLLog.Warning("Ini", "Unimplemented: Possible MultiUniverse system " + Nickname);
+				return;
+			}
+			
 			foreach (Section s in ParseFile(GameData.Freelancer.DataPath + "universe\\" + file))
 			{
 				switch (s.Name.ToLowerInvariant())

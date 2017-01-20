@@ -180,7 +180,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 					foreach (IValue i in e) MissionType[MissionType.Count - 1].Add(i.ToString());
 					break;
 				case "sort":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+					if (e.Count != 1) FLLog.Warning("Ini", "Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 					if (Sort != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
 					Sort = e[0].ToSingle();
 					break;
@@ -252,16 +252,22 @@ namespace LibreLancer.Compatibility.GameData.Universe
 					DensityRestriction.Add(e[1].ToString(), e[0].ToInt32());
 					break;
 				case "encounter":
-					if (e.Count != 3) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					Encounters.Add(new Encounter(e[0].ToString(), e[1].ToInt32(), e[2].ToSingle()));
+					//if (e.Count != 3) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+					//Encounters.Add(new Encounter(e[0].ToString(), e[1].ToInt32(), e[2].ToSingle()));
 					break;
 				case "faction":
-					if (e.Count != 2) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (Encounters.Count == 0) throw new Exception(e.Name + " before encounter");
-					Encounters[Encounters.Count - 1].Factions.Add(e[0].ToString(), e[1].ToSingle());
+					//TODO: Re-enable encounter parsing
+					//if (Encounters.Count == 0) throw new Exception(e.Name + " before encounter");
+					//if (e.Count == 1) {
+						//Encounters[Encounters.Count - 1].Factions.Add(e[0].ToString(), 100);
+					//}
+					//else if (e.Count != 2) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+					//else Encounters[Encounters.Count - 1].Factions.Add(e[0].ToString(), e[1].ToSingle());
 					break;
 				default:
-					throw new Exception("Invalid Entry in " + section.Name + ": " + e.Name);
+					//throw new Exception("Invalid Entry in " + section.Name + ": " + e.Name);
+						FLLog.Warning ("Zone", "Invalid Entry in " + section.Name + ": " + e.Name);
+						break;
 				}
 			}
 		}

@@ -168,7 +168,9 @@ namespace LibreLancer
 
 		public Material FindMaterial (uint materialId)
 		{
-			return materials [materialId];
+			Material m = null;
+			materials.TryGetValue (materialId, out m);
+			return m;
 		}
 
 		public VMeshData FindMesh (uint vMeshLibId)
@@ -237,6 +239,8 @@ namespace LibreLancer
 				return GetModel (filename);
 			if (filename.EndsWith (".sph", StringComparison.OrdinalIgnoreCase))
 				return GetSph (filename);
+
+			return GetCmp (filename + ".cmp");
 			throw new NotSupportedException (filename);
 		}
 

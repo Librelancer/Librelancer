@@ -121,7 +121,6 @@ namespace LibreLancer
             foreach (var lt in system.LightSources)
                 systemLighting.Lights.Add(lt);
 		}
-
 		public void Update(TimeSpan elapsed)
 		{
 			foreach (var model in starSphereModels)

@@ -145,7 +145,7 @@ namespace LibreLancer.Utf.Mat
 		static List<string> basicMaterials = new List<string> {
 			"DcDt", "DcDtTwo", "DcDtEc", "DcDtEt", "DcDtEcEt",
 			"DcDtOcOt", "DcDtBtOcOt", "DcDtBtOcOtTwo", "DcDtEcOcOt",
-			"DcDtOcOtTwo", "DcDtBt"
+			"DcDtOcOtTwo", "DcDtBt", "DcDtBtTwo"
 		};
 		RenderMaterial _rmat;
 		public RenderMaterial Render
@@ -227,37 +227,46 @@ namespace LibreLancer.Utf.Mat
 			{
 				//standard flags (Dc*)
 				case "dt_flags":
-					DtFlags = n.Int32Data.Value;
+					DtFlags = n.Int32ArrayData [0];
 					break;
 				case "dt_name":
 					DtName = n.StringData;
 					break;
 				case "dc":
-					Dc = n.ColorData.Value;
+					if (n.ColorData == null)
+						Dc = new Color4 (n.SingleArrayData [0], n.SingleArrayData [1], n.SingleArrayData [2], 1);
+					else
+						Dc = n.ColorData.Value;
 					break;
 				case "ec":
-					Ec = n.ColorData.Value;
+					if (n.ColorData == null)
+						Ec = new Color4 (n.SingleArrayData [0], n.SingleArrayData [1], n.SingleArrayData [2], 1);
+					else
+						Ec = n.ColorData.Value;
 					break;
 				case "bt_flags":
-					BtFlags = n.Int32Data.Value;
+					BtFlags = n.Int32ArrayData[0];
 					break;
 				case "bt_name":
 					btName = n.StringData;
 					break;
 				case "et_flags":
-					EtFlags = n.Int32Data.Value;
+					EtFlags = n.Int32ArrayData [0];
 					break;
 				case "et_name":
 					etName = n.StringData;
 					break;
 				case "oc":
-					Oc = n.SingleData.Value;
+					Oc = n.SingleArrayData [0];
 					break;
 				case "type":
 					break;
 				//different material types
 				case "ac":
-					Ac = n.ColorData.Value;
+					if (n.ColorData == null)
+						Ac = new Color4 (n.SingleArrayData [0], n.SingleArrayData [1], n.SingleArrayData [2], 1);
+					else
+						Ac = n.ColorData.Value;
 					break;
 				case "flip u":
 					FlipU = n.Int32Data.Value;

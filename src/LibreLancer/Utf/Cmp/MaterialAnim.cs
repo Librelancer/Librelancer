@@ -32,7 +32,7 @@ namespace LibreLancer.Utf.Cmp
 				switch (leaf.Name.ToLowerInvariant())
 				{
 					case "macount":
-						MACount = leaf.Int32Data.Value;
+						MACount = leaf.Int32ArrayData [0];
 						break;
 					case "maflags":
 						MAFlags = leaf.Int32Data.Value;

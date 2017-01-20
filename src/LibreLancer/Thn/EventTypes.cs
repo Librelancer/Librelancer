@@ -26,7 +26,9 @@ namespace LibreLancer
 		StartPSysPropAnim,
 		StartPathAnimation,
 		StartMotion,
-		StartFogPropAnim
+		StartFogPropAnim,
+		StartLightPropAnim,
+		StartCameraPropAnim
 	}
 }
 

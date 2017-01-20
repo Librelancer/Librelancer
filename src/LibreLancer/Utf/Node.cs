@@ -40,8 +40,10 @@ namespace LibreLancer.Utf
                     return new IntermediateNode(peerOffset, name, reader, stringBlock, dataBlock);
                 else if ((flags & NodeFlags.Leaf) == NodeFlags.Leaf)
                     return new LeafNode(peerOffset, name, reader, dataBlock);
-                else
-                    throw new FileContentException(UtfFile.FILE_TYPE, "Neither required flag set. Flags: " + flags);
+				else {
+                    //throw new FileContentException(UtfFile.FILE_TYPE, "Neither required flag set. Flags: " + flags);
+					return new LeafNode(peerOffset, name, reader, dataBlock);
+				}
             }
 
             public override string ToString()

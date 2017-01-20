@@ -92,8 +92,11 @@ namespace LibreLancer.Utf.Cmp
                         break;
                     case "hardpoints":
                         IntermediateNode hardpointsNode = node as IntermediateNode;
-                        foreach (IntermediateNode hardpointTypeNode in hardpointsNode)
+                        foreach (Node hpn in hardpointsNode)
                         {
+							if (hpn is LeafNode)
+								continue; //No nodes here
+							var hardpointTypeNode = (IntermediateNode)hpn;
                             switch (hardpointTypeNode.Name.ToLowerInvariant())
                             {
                                 case "fixed":
@@ -125,6 +128,8 @@ namespace LibreLancer.Utf.Cmp
                         {
                             if (multiLevelSubNode.Name.StartsWith("level", StringComparison.OrdinalIgnoreCase))
                             {
+								if (multiLevelSubNode is LeafNode)
+									continue;
                                 IntermediateNode levelNode = multiLevelSubNode as IntermediateNode;
                                 if (levelNode.Count == 1)
                                 {

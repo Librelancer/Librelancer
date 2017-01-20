@@ -109,8 +109,11 @@ namespace LibreLancer.Utf.Cmp
                                         case "file name":
                                             fileName = partNode.StringData;
                                             break;
-                                        case "index":
-                                            index = partNode.Int32Data.Value;
+										case "index":
+											if (partNode.Int32Data != null)
+												index = partNode.Int32Data.Value;
+											else
+												index = partNode.Int32ArrayData [0];
                                             break;
                                         default: throw new Exception("Invalid node in " + cmpndSubNode.Name + ": " + partNode.Name);
                                     }

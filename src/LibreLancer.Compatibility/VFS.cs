@@ -80,8 +80,9 @@ namespace LibreLancer.Compatibility
 					if (fn == tofind) {
 						return builder.Append (Path.GetFileName (file)).ToString ();
 					}
-				}
-				throw new FileNotFoundException (filename);
+				} 
+				return builder.Append(split[split.Length - 1]).ToString(); //Hack around mods with missing files
+				//throw new FileNotFoundException (filename);
 			}
             return Path.Combine(FreelancerDirectory, filename.Replace('\\', Path.DirectorySeparatorChar));
         }

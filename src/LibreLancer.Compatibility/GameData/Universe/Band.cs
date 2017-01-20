@@ -85,13 +85,13 @@ namespace LibreLancer.Compatibility.GameData.Universe
 					OffsetDist = e[0].ToInt32();
 					break;
 				case "fade":
-					if (e.Count != 4) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+					//if (e.Count != 4) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 					if (Fade != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
 					Fade = new List<float>();
-					foreach (IValue i in e) Fade.Add(e[0].ToSingle());
+					foreach (IValue i in e) Fade.Add(i.ToSingle());
 					break;
 				case "texture_aspect":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+					if (e.Count != 1) FLLog.Warning ("Ini", "Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 					if (TextureAspect != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
 					TextureAspect = e[0].ToSingle();
 					break;

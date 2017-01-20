@@ -27,6 +27,19 @@ namespace LibreLancer.Thorn
 
 		public delegate object ParseFunction (char ch, StringIterator reader);
 
+		public static object ParseComment(char ch, StringIterator reader)
+		{
+			if (ch != '-' || (char)reader.Peek (2) != '-')
+				return null;
+			while (true) {
+				int pk = reader.Peek ();
+				if (pk == -1 || pk == (char)'\n')
+					break;
+				reader.Read ();
+			}
+			return Eat;
+		}
+
 		public static object ParseFloat (char ch, StringIterator reader)
 		{
 			if (!char.IsDigit (ch) && !(ch == '-' && char.IsDigit((char)reader.Peek(2))))

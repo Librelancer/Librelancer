@@ -50,11 +50,13 @@ namespace LibreLancer.Compatibility.GameData.Universe
 				switch (e.Name.ToLowerInvariant())
 				{
 				case "ids_name":
+					if (e.Count == 0) break;
 					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 					if (IdsName != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
 					IdsName = GameData.Infocards.GetStringResource(e[0].ToInt32());
 					break;
 				case "ids_info":
+					if (e.Count == 0) break;
 					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 					if (IdsInfo == null) IdsInfo = new List<string>();
 					IdsInfo.Add(GameData.Infocards.GetXmlResource(e[0].ToInt32()));

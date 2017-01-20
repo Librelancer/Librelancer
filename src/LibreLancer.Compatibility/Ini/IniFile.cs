@@ -70,6 +70,7 @@ namespace LibreLancer.Ini
 					StreamReader reader = new StreamReader(stream);
 
 					int currentSection = -1;
+					int currentLine = 0;
 					while (!reader.EndOfStream)
 					{
 						string line = reader.ReadLine().Trim();
@@ -93,8 +94,10 @@ namespace LibreLancer.Ini
 						{
 							if (currentSection < -1) throw new FileContentException(path, IniFileType, "Entry before first section: " + line);
 							if (line.Contains(";")) line = line.Remove(line.IndexOf(";", StringComparison.OrdinalIgnoreCase)).TrimEnd();
-
-							if (line.Contains("="))
+							if (!char.IsLetterOrDigit (line [0]) && line [0] != '_') {
+								FLLog.Warning ("Ini", "Invalid line in file: " + path + " at line " + currentLine + '"' + line + '"');
+							}
+							else if (line.Contains("="))
 							{
 								string[] parts = line.Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
 								if (parts.Length == 2) {
@@ -127,11 +130,14 @@ namespace LibreLancer.Ini
 									string k = parts [1].Trim ();
 									string v = parts [2].Trim ();
 
+								} else if (parts.Length == 1) {
+									sections [currentSection].Add (new Entry (parts [0].Trim (), new List<IValue> ()));
 								}
 								else throw new FileContentException(path, IniFileType, "Invalid entry line: " + line);
 							}
 							else sections[currentSection].Add(new Entry(line, new List<IValue>(0)));
 						}
+						currentLine++;
 					}
 				}
 			}

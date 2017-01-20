@@ -55,7 +55,7 @@ namespace LibreLancer.Compatibility.GameData.Solar
 					Archetype = freelancerIni.Solar.FindSolar(e[0].ToString());
 					break;
 				case "equip":
-					if (e.Count < 1 || e.Count > 2) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+					//if (e.Count < 1 || e.Count > 2) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count); //TODO: Reverse-engineer this properly
 					//HACK: Come up with a proper way of handling this
 					string key = e.Count == 2 ? e[1].ToString() : "__noHardpoint" + (emptyHp++).ToString("d2");
 						if (e.Count == 2 && e[1].ToString().Trim() == "") key = "__noHardpoint" + (emptyHp++).ToString("d2");
@@ -63,6 +63,12 @@ namespace LibreLancer.Compatibility.GameData.Solar
 					break;
 				case "cargo":
 					// TODO: Loadout cargo
+					break;
+				case "hull":
+					// TODO: Loadout hull?
+					break;
+				case "addon":
+					// TODO: Loadout addon?
 					break;
 				default:
 					throw new Exception("Invalid Entry in " + section.Name + ": " + e.Name);
