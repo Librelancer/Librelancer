@@ -48,6 +48,7 @@ namespace LibreLancer.Thorn
 		{
 			LuaLexer lex = new LuaLexer (
 				LuaLexer.EatWhitespace,
+				LuaLexer.ParseComment,
 				LuaLexer.ParseFloat,
 				LuaLexer.ParseStringLiteral,
 				LuaLexer.ParseIdentifier,

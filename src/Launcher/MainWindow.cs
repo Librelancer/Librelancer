@@ -29,7 +29,7 @@ namespace Launcher
 				new TableCell(textInput, true),
 				findButton
 			));
-			var skipMovies = new CheckBox () { Text = "Skip Intro Movies" };
+			var skipMovies = new CheckBox () { Text = "Skip Intro Movies", Checked = true };
 			skipMovies.CheckedChanged += SkipMovies_CheckedChanged;
 			layout.Rows.Add (new TableRow (skipMovies));
             if(Environment.OSVersion.Platform != PlatformID.Unix)

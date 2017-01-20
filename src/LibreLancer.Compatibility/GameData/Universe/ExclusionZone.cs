@@ -33,6 +33,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 		}
 
 		public float? FogFar { get; set; }
+		public float? FogNear { get; set; }
 		public float? ShellScalar { get; set; }
 		public float? MaxAlpha { get; set; }
 		public Color4? Color { get; set; }

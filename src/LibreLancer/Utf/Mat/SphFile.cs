@@ -77,11 +77,11 @@ namespace LibreLancer.Utf.Mat
             {
                 string name = sphereSubNode.Name.ToLowerInvariant();
 
-                if (name.StartsWith("m", StringComparison.OrdinalIgnoreCase)) sideMaterialNames.Add(sphereSubNode.StringData);
-                else if (name == "radius") Radius = sphereSubNode.SingleData.Value;
+				if (name.StartsWith ("m", StringComparison.OrdinalIgnoreCase)) sideMaterialNames.Add (sphereSubNode.StringData);
+				else if (name == "radius") Radius = sphereSubNode.SingleArrayData [0];
                 else if (name == "sides")
                 {
-                    int count = sphereSubNode.Int32Data.Value;
+					int count = sphereSubNode.Int32ArrayData [0];
                     if (count != sideMaterialNames.Count) throw new Exception("Invalid number of sides in " + sphereNode.Name + ": " + count);
                 }
                 else throw new Exception("Invalid node in " + sphereNode.Name + ": " + sphereSubNode.Name);
@@ -138,6 +138,8 @@ namespace LibreLancer.Utf.Mat
         }
 		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting lighting)
 		{
+			if (SideMaterials.Length < 6)
+				return;
 			if (ready)
 			{
 				for (int i = 0; i < 6; i++)

@@ -6,7 +6,7 @@ namespace Launcher
     {
         public static string LaunchPath = null;
         public static bool ForceAngle = false;
-		public static bool SkipIntroMovies = false;
+		public static bool SkipIntroMovies = true;
         /// <summary>
         /// The main entry point for the application.
         /// </summary>

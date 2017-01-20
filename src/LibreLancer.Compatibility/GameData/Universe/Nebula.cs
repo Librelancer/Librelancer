@@ -91,7 +91,8 @@ namespace LibreLancer.Compatibility.GameData.Universe
 							Properties.Add(e[0].ToString());
 							break;
 						default:
-							throw new Exception("Invalid Entry in " + s.Name + ": " + e.Name);
+							FLLog.Warning ("Ini", "Invalid Entry in " + s.Name + ": " + e.Name);
+							break;
 						}
 					}
 					break;
@@ -139,13 +140,19 @@ namespace LibreLancer.Compatibility.GameData.Universe
 							if (ExclusionZones.Count == 0) throw new Exception(e.Name + " before exclusion");
 							ExclusionZones[ExclusionZones.Count - 1].FogFar = e[0].ToSingle();
 							break;
+						case "fog_near":
+							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
+							if (ExclusionZones.Count == 0) throw new Exception(e.Name + " before exclusion");
+							ExclusionZones[ExclusionZones.Count - 1].FogNear = e[0].ToSingle();
+							break;
 						case "zone_shell":
 							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (ExclusionZones.Count == 0) throw new Exception(e.Name + " before exclusion");
 							ExclusionZones[ExclusionZones.Count - 1].ZoneShellPath = e[0].ToString();
 							break;
 						case "shell_scalar":
-							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
+							//if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
+							if (e.Count != 1) FLLog.Warning("Ini", "Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (ExclusionZones.Count == 0) throw new Exception(e.Name + " before exclusion");
 							ExclusionZones[ExclusionZones.Count - 1].ShellScalar = e[0].ToSingle();
 							break;
@@ -200,7 +207,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 							ExteriorBitRadius = e[0].ToInt32();
 							break;
 						case "bit_radius_random_variation":
-							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
+							if (e.Count != 1) FLLog.Warning("Ini", "Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (ExteriorBitRadiusRandomVariation != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
 							ExteriorBitRadiusRandomVariation = e[0].ToSingle();
 							break;
@@ -215,12 +222,12 @@ namespace LibreLancer.Compatibility.GameData.Universe
 							ExteriorMaxBits = e[0].ToInt32();
 							break;
 						case "move_bit_percent":
-							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
+							if (e.Count != 1) FLLog.Warning("Ini", "Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (ExteriorMoveBitPercent != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
 							ExteriorMoveBitPercent = e[0].ToSingle();
 							break;
 						case "equator_bias":
-							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
+							if (e.Count != 1) FLLog.Warning("Ini", "Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (ExteriorEquatorBias != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
 							ExteriorEquatorBias = e[0].ToSingle();
 							break;
@@ -238,6 +245,10 @@ namespace LibreLancer.Compatibility.GameData.Universe
 					NebulaLights.Add(new NebulaLight(s));
 					break;
 				case "clouds":
+					if (CloudsMaxDistance != null) {
+						FLLog.Warning ("Ini", "Multiple [Clouds] in Nebula " + ZoneName);
+						break;
+					}
 					foreach (Entry e in s)
 					{
 						switch (e.Name.ToLowerInvariant())
@@ -268,7 +279,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 							CloudsPuffColorB = new Color3f(e[0].ToInt32() / 255f, e[1].ToInt32() / 255f, e[2].ToInt32() / 255f);
 							break;
 						case "puff_max_alpha":
-							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
+							if (e.Count != 1) FLLog.Warning("Ini", "Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (CloudsPuffMaxAlpha != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
 							CloudsPuffMaxAlpha = e[0].ToSingle();
 							break;
@@ -284,7 +295,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 							foreach (IValue i in e) CloudsPuffWeights.Add(i.ToInt32());
 							break;
 						case "puff_drift":
-							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
+							if (e.Count != 1) FLLog.Warning("Ini", "Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (CloudsPuffDrift != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
 							CloudsPuffDrift = e[0].ToSingle();
 							break;
@@ -294,7 +305,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 							CloudsNearFadeDistance = new Vector2(e[0].ToSingle(), e[1].ToSingle());
 							break;
 						case "lightning_intensity":
-							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
+							if (e.Count != 1) FLLog.Warning("Ini", "Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (CloudsLightningIntensity != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
 							CloudsLightningIntensity = e[0].ToSingle();
 							break;
@@ -304,12 +315,12 @@ namespace LibreLancer.Compatibility.GameData.Universe
 							CloudsLightningColor = new Color4(e[0].ToInt32() / 255f, e[1].ToInt32() / 255f, e[2].ToInt32() / 255f, 1f);
 							break;
 						case "lightning_gap":
-							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
+							if (e.Count != 1) FLLog.Warning("Ini", "Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (CloudsLightningGap != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
 							CloudsLightningGap = e[0].ToSingle();
 							break;
 						case "lightning_duration":
-							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
+							if (e.Count != 1) FLLog.Warning("Ini", "Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (CloudsLightningDuration != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
 							CloudsLightningDuration = e[0].ToSingle();
 							break;
@@ -324,12 +335,12 @@ namespace LibreLancer.Compatibility.GameData.Universe
 						switch (e.Name.ToLowerInvariant())
 						{
 						case "duration":
-							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
+							if (e.Count != 1) FLLog.Warning("Ini", "Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (BackgroundLightningDuration != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
 							BackgroundLightningDuration = e[0].ToSingle();
 							break;
 						case "gap":
-							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
+							if (e.Count != 1) FLLog.Warning("Ini", "Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (BackgroundLightningGap != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
 							BackgroundLightningGap = e[0].ToSingle();
 							break;

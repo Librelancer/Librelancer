@@ -50,16 +50,19 @@ namespace LibreLancer.Utf.Anm
         {
             Scripts = new Dictionary<string, Script>();
 
-            foreach (IntermediateNode node in root)
+			foreach (Node node in root)
             {
                 switch (node.Name.ToLowerInvariant())
                 {
                     case "script":
-                        foreach (IntermediateNode scNode in node)
+						foreach (IntermediateNode scNode in (IntermediateNode)node)
                         {
                             Scripts.Add(scNode.Name, new Script(scNode, constructs));
                         }
                         break;
+					case "anim_credits":
+						//TODO: What is this?
+						break;
                     default: throw new Exception("Invalid node in " + root.Name + ": " + node.Name);
                 }
             }

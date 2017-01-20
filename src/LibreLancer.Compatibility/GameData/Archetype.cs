@@ -45,6 +45,10 @@ namespace LibreLancer.Compatibility.GameData
 
 		public string DaArchetypeName;
 
+		public float? Hitpoints { get; private set; }
+
+		//TODO: I don't know what this is or what it does
+		public bool? PhantomPhysics { get; private set; }
 
 		public string LoadoutName;
 
@@ -78,6 +82,14 @@ namespace LibreLancer.Compatibility.GameData
 				if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 				IdsInfo.Add(FLData.Infocards.GetXmlResource(e[0].ToInt32()));
 				break;
+			case "hit_pts":
+				if (e.Count != 1) throw new Exception ("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+				Hitpoints = e [0].ToSingle ();
+				break;
+			case "phantom_physics":
+				if (e.Count != 1) throw new Exception ("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+				PhantomPhysics = e [0].ToBoolean ();
+				break;
 			case "type":
 				break;
 			case "material_library":
@@ -97,7 +109,7 @@ namespace LibreLancer.Compatibility.GameData
 				break;
 			case "mass":
 				if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-				if (Mass != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+				//if (Mass != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name); //Hack around discovery errors
 				Mass = e[0].ToSingle();
 				break;
 			case "shape_name":
@@ -132,7 +144,14 @@ namespace LibreLancer.Compatibility.GameData
 		{
 			if (section == null) throw new ArgumentNullException("section");
 
-			Entry type = section["type"];
+			Entry type = section ["type"];
+			if (type == null) { //Find case-insensitive
+				foreach (var entry in section)
+					if (entry.Name.ToLowerInvariant () == "type") {
+						type = entry;
+						break;
+					}
+			}
 			if (type == null) throw new Exception("Missing type Entry in " + section.Name);
 			if (type.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry type: " + type.Count);
 

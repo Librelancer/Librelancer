@@ -38,11 +38,11 @@ namespace LibreLancer.Utf.Cmp
                         case "axis":
                             Axis = node.Vector3Data.Value;
                             break;
-                        case "max":
-                            Max = node.SingleData.Value;
+						case "max":
+							Max = node.SingleArrayData [0];
                             break;
-                        case "min":
-                            Min = node.SingleData.Value;
+						case "min":
+							Min = node.SingleArrayData [0];
                             break;
                         default:
                             throw new Exception("Invalid LeafNode in " + root.Name + ": " + node.Name);

@@ -48,7 +48,8 @@ namespace LibreLancer.Compatibility.GameData.Universe
 			switch (e.Name.ToLowerInvariant())
 			{
 			case "nickname":
-				if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+				//if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+				if (e.Count != 1) FLLog.Warning("Ini", "Object " + e[0].ToString() + " has multiple values in nickname section");
 				if (Nickname != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
 				Nickname = e[0].ToString();
 				break;
@@ -58,9 +59,18 @@ namespace LibreLancer.Compatibility.GameData.Universe
 				Pos = new Vector3(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle());
 				break;
 			case "rotate":
-				if (e.Count != 3) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-				if (Rotate != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-				Rotate = new Vector3(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle());
+				if (e.Count == 1) {
+					if (e [0].ToSingle () == 0)
+						Rotate = Vector3.Zero;
+					else
+						throw new Exception ("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+				} else {
+					if (e.Count != 3)
+						throw new Exception ("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+					if (Rotate != null)
+						throw new Exception ("Duplicate " + e.Name + " Entry in " + section.Name);
+					Rotate = new Vector3 (e [0].ToSingle (), e [1].ToSingle (), e [2].ToSingle ());
+				}
 				break;
 			default: return false;
 			}

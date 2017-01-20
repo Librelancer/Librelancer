@@ -10,7 +10,7 @@ namespace LibreLancer
 		public IntroMovie(FreelancerGame game, int index) : base(game)
 		{
 			player = new VideoPlayer(game, game.MpvOverride);
-            if ((inited = player.Init()))
+			if ((inited = player.Init()) && game.IntroMovies.Count > 0)
             {
                 idx = index;
                 game.Keyboard.KeyDown += HandleKeyDown;
@@ -50,7 +50,7 @@ namespace LibreLancer
 		{
 			Game.Keyboard.KeyDown -= HandleKeyDown;
 			player.Dispose();
-			if ((idx + 1) >= Game.IntroMovies.Count || !inited)
+			if ((idx + 1) >= Game.IntroMovies.Count || !inited || Game.IntroMovies.Count <= 0)
 			{
 				Game.ChangeState(new LoadingDataState(Game));
 			}

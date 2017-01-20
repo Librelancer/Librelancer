@@ -223,7 +223,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 						SpaceCostume = new Costume(e[0].ToString(), e[1].ToString(), e.Count == 3 ? e[2].ToString() : string.Empty, freelancerIni);
 						break;
 					case "faction":
-						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+						if (e.Count != 1) FLLog.Warning("Ini", "Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 						if (Faction != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
 						Faction = e[0].ToString();
 						break;

@@ -124,7 +124,8 @@ namespace LibreLancer.Compatibility.GameData.Universe
 							ExclusionZones[ExclusionZones.Count - 1].BillboardCount = e[0].ToInt32();
 							break;
 						default:
-							throw new Exception("Invalid Entry in " + s.Name + ": " + e.Name);
+							FLLog.Warning ("Ini", "Invalid Entry in " + s.Name + ": " + e.Name);
+							break;
 						}
 					}
 					break;
@@ -146,7 +147,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 							Cube_RotationZ = new Vector4(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle(), e[3].ToSingle());
 							break;
 						case "asteroid":
-							if (e.Count < 7 || e.Count > 8) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
+							//if (e.Count < 7 || e.Count > 8) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							Cube.Add(new CubeAsteroid(e));
 							break;
 						}

@@ -27,6 +27,7 @@ namespace LibreLancer
 			//ThnLighting
 			thnEnv.Add("LIT_DYNAMIC", ThnLighting.Dynamic);
 			thnEnv.Add("LIT_AMBIENT", ThnLighting.Ambient);
+			thnEnv.Add ("HIDDEN", ThnLighting.Hidden);
 			//LightTypes
 			thnEnv.Add("L_DIRECT", LightTypes.Direct);
 			thnEnv.Add("L_POINT", LightTypes.Point);
@@ -49,17 +50,20 @@ namespace LibreLancer
 			thnEnv.Add("COMPOUND", EntityTypes.Compound);
 			thnEnv.Add("LIGHT", EntityTypes.Light);
 			thnEnv.Add("MOTION_PATH", EntityTypes.MotionPath);
+			thnEnv.Add("DEFORMABLE", EntityTypes.Deformable);
 			//FogModes
 			thnEnv.Add("F_EXP2", FogModes.Exp2);
 			//EventTypes
 			thnEnv.Add("SET_CAMERA", EventTypes.SetCamera);
 			thnEnv.Add("ATTACH_ENTITY", EventTypes.AttachEntity);
 			thnEnv.Add("START_SPATIAL_PROP_ANIM", EventTypes.StartSpatialPropAnim);
+			thnEnv.Add("START_LIGHT_PROP_ANIM", EventTypes.StartLightPropAnim);
 			thnEnv.Add("START_PSYS", EventTypes.StartPSys);
 			thnEnv.Add("START_PSYS_PROP_ANIM", EventTypes.StartPSysPropAnim);
 			thnEnv.Add("START_PATH_ANIMATION", EventTypes.StartPathAnimation);
 			thnEnv.Add("START_MOTION", EventTypes.StartMotion);
 			thnEnv.Add("START_FOG_PROP_ANIM", EventTypes.StartFogPropAnim);
+			thnEnv.Add("START_CAMERA_PROP_ANIM", EventTypes.StartCameraPropAnim);
 			//Axis
 			thnEnv.Add("X_AXIS", VectorMath.UnitX);
 			thnEnv.Add("Y_AXIS", VectorMath.UnitY);
@@ -102,7 +106,11 @@ namespace LibreLancer
 		{
 			var e = new ThnEvent();
 			e.Time = (float)table[0];
-			e.Type = (EventTypes)table[1];
+			if (table [1] is string) {
+				e.Type = (EventTypes)thnEnv [table [1].ToString()];
+			} else {
+				e.Type = (EventTypes)table [1];
+			}
 			return e;
 		}
 		ThnEntity GetEntity(LuaTable table)

@@ -40,17 +40,18 @@ namespace LibreLancer.Compatibility.GameData.Universe
 					Ambient = new Color4(e[0].ToInt32() / 255f, e[1].ToInt32() / 255f, e[2].ToInt32() / 255f, 1f);
 					break;
 				case "sun_burnthrough_intensity":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+					if (e.Count != 1) FLLog.Warning("Ini", "Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 					if (SunBurnthroughIntensity != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
 					SunBurnthroughIntensity = e[0].ToSingle();
 					break;
 				case "sun_burnthrough_scaler":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+					if (e.Count != 1)  FLLog.Warning("Ini", "Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 					if (SunBurnthroughScaler != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
 					SunBurnthroughScaler = e[0].ToSingle();
 					break;
 				default:
-					throw new Exception("Invalid Entry in " + section.Name + ": " + e.Name);
+					FLLog.Warning ("Ini", "Invalid Entry in " + section.Name + ": " + e.Name);
+					break;
 				}
 			}
 		}

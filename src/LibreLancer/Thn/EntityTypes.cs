@@ -26,7 +26,8 @@ namespace LibreLancer
 		Marker,
 		Compound,
 		Light,
-		MotionPath
+		MotionPath,
+		Deformable
 	}
 }
 

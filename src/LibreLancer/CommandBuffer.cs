@@ -243,6 +243,8 @@ namespace LibreLancer
 		{
 			if (CmdType == RenderCmdType.Material)
 			{
+				if (Material == null)
+					return;
 				Material.MaterialAnim = MaterialAnim;
 				Material.World = World;
 				if (Fade)
