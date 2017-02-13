@@ -338,6 +338,8 @@ namespace LibreLancer.Utf.Mat
 					bm.AlphaEnabled = true;
 				if (type.Contains("Two"))
 					bm.DoubleSided = true;
+				if (type.Contains("Et"))
+					bm.EtEnabled = true;
 			}
 			else
 			{
@@ -447,6 +449,11 @@ namespace LibreLancer.Utf.Mat
 			ViewProjection = camera.ViewProjection;
             if (Render != null)
                 Render.Camera = camera;
+		}
+
+		public override string ToString()
+		{
+			return string.Format("[{0}: {1}]", type, Name);
 		}
 	}
 }

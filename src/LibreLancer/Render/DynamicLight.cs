@@ -10,25 +10,16 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2017
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using LibreLancer.Thorn;
 namespace LibreLancer
 {
-	public class ThnEvent
+	public class DynamicLight
 	{
-		public float Duration;
-		public double Time;
-		public EventTypes Type;
-		public LuaTable Targets;
-		public LuaTable Properties;
-		public ParameterCurve ParamCurve;
-		public override string ToString()
-		{
-			return string.Format("[{0}: {1}]", Time, Type);
-		}
+		public int LightGroup = 0;
+		public bool Active = true;
+		public RenderLight Light;
 	}
 }
-

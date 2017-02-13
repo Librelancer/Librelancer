@@ -18,8 +18,9 @@ namespace LibreLancer
 {
 	public enum LightKind
 	{
-		Directional,
-		Point
+		Directional, //DX8 directional light - standard DX8 attenuation
+		Point, //Point light - standard DX8 attenuation
+		PointAttenCurve, //Point light - IGraph attenuation
 	}
 }
 

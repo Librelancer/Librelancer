@@ -10,25 +10,20 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2017
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using LibreLancer.Thorn;
+using System.Collections.Generic;
 namespace LibreLancer
 {
-	public class ThnEvent
+	public class SystemLighting
 	{
-		public float Duration;
-		public double Time;
-		public EventTypes Type;
-		public LuaTable Targets;
-		public LuaTable Properties;
-		public ParameterCurve ParamCurve;
-		public override string ToString()
-		{
-			return string.Format("[{0}: {1}]", Time, Type);
-		}
+		public Color4 Ambient = Color4.Black;
+		public List<DynamicLight> Lights = new List<DynamicLight>();
+		public FogModes FogMode = FogModes.None;
+		public float FogDensity = 0f;
+		public Color4 FogColor = Color4.Black;
+		public Vector2 FogRange = Vector2.Zero;
 	}
 }
-

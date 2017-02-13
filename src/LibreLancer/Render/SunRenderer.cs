@@ -42,7 +42,7 @@ namespace LibreLancer
 			sysr.Objects.Remove(this);
 			sysr = null;
 		}
-		public override void Draw (ICamera camera, CommandBuffer commands, Lighting lights, NebulaRenderer nr)
+		public override void Draw (ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
 			if (sysr == null)
 				return;

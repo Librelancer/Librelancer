@@ -44,35 +44,42 @@ namespace LibreLancer.Thorn
 			}
 		}
 
-		Dictionary<string,object> DoTextFile(Stream stream)
+		public Dictionary<string, object> DoString(string str)
 		{
-			LuaLexer lex = new LuaLexer (
+			LuaLexer lex = new LuaLexer(
 				LuaLexer.EatWhitespace,
 				LuaLexer.ParseComment,
 				LuaLexer.ParseFloat,
 				LuaLexer.ParseStringLiteral,
 				LuaLexer.ParseIdentifier,
-				LuaLexer.ParseChars (
+				LuaLexer.ParseChars(
 					'{', '}', ',', '=', '+', ';'
 				)
 			);
-			IEnumerable<object> tokstream;
-			using (var reader = new StreamReader (stream)) {
-				tokstream = lex.Process (reader.ReadToEnd ());
-			}
-			Dictionary<string,object> env = new Dictionary<string, object> ();
-			using (IEnumerator<object> e = tokstream.GetEnumerator ()) {
+			IEnumerable<object> tokstream = lex.Process(str);
+			Dictionary<string, object> env = new Dictionary<string, object>();
+			using (IEnumerator<object> e = tokstream.GetEnumerator())
+			{
 				//Get first element
-				e.MustMoveNext ();
+				e.MustMoveNext();
 				LKeyValue lkv;
-				while ((lkv = ParseAssignment (e)) != null) {
-					if (e.Current.Equals (';'))
-						e.MoveNext ();
-					env.Add (lkv.Key, lkv.Value);
+				while ((lkv = ParseAssignment(e)) != null)
+				{
+					if (e.Current.Equals(';'))
+						e.MoveNext();
+					env.Add(lkv.Key, lkv.Value);
 				}
 			}
 			return env;
 		}
+
+		Dictionary<string,object> DoTextFile(Stream stream)
+		{
+			using (var reader = new StreamReader (stream)) {
+				return DoString(reader.ReadToEnd());
+			}
+		}
+
 		LKeyValue ParseAssignment (IEnumerator<object> e)
 		{
 			if (!(e.Current is string) && e.MoveNext () == false)
@@ -117,7 +124,7 @@ namespace LibreLancer.Thorn
 						objs.Add (new LKeyValue (ident, ParseValue (e)));
 						isArray = false;
 					} else {
-						objs.Add (ident);
+						objs.Add (Env[ident]);
 					}
 				} else if (e.Current is StringBuilder) {
 					objs.Add (e.Current.ToString ());

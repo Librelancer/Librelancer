@@ -26,8 +26,11 @@ namespace LibreLancer
 		public Hardpoint(HardpointDefinition def, AbstractConstruct parent)
 		{
 			this.parent = parent;
-			this.transform = def.Transform;
-			Name = def.Name;
+			if (def != null)
+				this.transform = def.Transform;
+			else
+				this.transform = Matrix4.Identity;
+			Name = def == null ? "Dummy Hardpoint" : def.Name;
             IsStatic = parent is FixConstruct && def is FixedHardpointDefinition;
 		}
         public bool IsStatic { get; private set; }

@@ -10,25 +10,18 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2017
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using LibreLancer.Thorn;
 namespace LibreLancer
 {
-	public class ThnEvent
+	public class ThnCameraTransform
 	{
-		public float Duration;
-		public double Time;
-		public EventTypes Type;
-		public LuaTable Targets;
-		public LuaTable Properties;
-		public ParameterCurve ParamCurve;
-		public override string ToString()
-		{
-			return string.Format("[{0}: {1}]", Time, Type);
-		}
+		public float FovH = 17;
+		public float AspectRatio = 4f / 3f;
+		public Vector3 Position = Vector3.Zero;
+		public Matrix4 Orientation = Matrix4.Identity;
+		public GameObject LookAt = null;
 	}
 }
-

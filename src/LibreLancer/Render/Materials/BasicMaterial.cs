@@ -30,6 +30,7 @@ namespace LibreLancer
 		public SamplerFlags DtFlags;
 		public float Oc = 1f;
 		public bool OcEnabled = false;
+		public bool EtEnabled = false;
 		public bool AlphaEnabled = false;
 		public Color4 Ec = Color4.White;
 		public string EtSampler;
@@ -145,8 +146,11 @@ namespace LibreLancer
 			//Ec
 			shader.SetEc(Ec);
 			//EtSampler
-			shader.SetEtSampler(1);
-			BindTexture(1, EtSampler, 1, EtFlags, false);
+			shader.SetEtEnabled(EtEnabled);
+			if (EtEnabled) {
+				shader.SetEtSampler(1);
+				BindTexture(1, EtSampler, 1, EtFlags, false);
+			}
 			//Set lights
 			SetLights(shader, lights);
             var normalMatrix = World;

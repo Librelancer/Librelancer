@@ -20,6 +20,7 @@ namespace LibreLancer.Compatibility.GameData
 		public List<string> EffectPaths { get; private set; }
 		public List<string> AsteroidPaths { get; private set; }
 		public List<string> RichFontPaths { get; private set; }
+		public List<string> PetalDbPaths { get; private set; }
 		public string StarsPath { get; private set; }
 		public string BodypartsPath { get; private set; }
 		public string CostumesPath { get; private set; }
@@ -34,6 +35,7 @@ namespace LibreLancer.Compatibility.GameData
 			EffectPaths = new List<string>();
 			AsteroidPaths = new List<string> ();
 			RichFontPaths = new List<string>();
+			PetalDbPaths = new List<string>();
 			foreach (Section s in ParseFile("EXE\\freelancer.ini")) {
 				switch (s.Name.ToLowerInvariant ()) {
 				case "freelancer":
@@ -110,6 +112,9 @@ namespace LibreLancer.Compatibility.GameData
 							break;
 						case "asteroids":
 							AsteroidPaths.Add (DataPath + e [0].ToString ());
+							break;
+						case "petaldb":
+							PetalDbPaths.Add(DataPath + e[0].ToString());
 							break;
 						}
 					}

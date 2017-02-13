@@ -27,6 +27,14 @@ namespace LibreLancer
 		public int LightGroup;
 		public int SortGroup;
 		public int UserFlag;
+		public string MeshCategory;
+		public Vector3? Position;
+		public Matrix4? RotationMatrix;
+		public float? FovH;
+		public float? HVAspect;
+		public ThnLightProps LightProps;
+		public MotionPath Path;
+
 		public override string ToString()
 		{
 			return string.Format("[{0}: {1}]", Name, Type);

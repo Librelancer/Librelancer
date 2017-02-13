@@ -19,6 +19,7 @@ using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
 namespace LibreLancer
 {
+	
 	public abstract class RenderMaterial
 	{
 		public MaterialAnim MaterialAnim;
@@ -48,17 +49,25 @@ namespace LibreLancer
 			for (int i = 0; i < lights.Lights.Count; i++)
 			{
 				var lt = lights.Lights[i];
-				shader.SetLightsPos(i, new Vector4(lt.Position, lt.Kind != LightKind.Directional ? 1 : 0));
-				shader.SetLightsDir(i, lt.Direction);
-				shader.SetLightsColor(i, new Vector3(lt.Color.R, lt.Color.G, lt.Color.B));
+				float kind = 0;
+				if (lt.Kind == LightKind.Point)
+					kind = 1;
+				else if (lt.Kind == LightKind.PointAttenCurve)
+					kind = 2;
+				shader.SetLightsPos(i, new Vector4(lt.Kind == LightKind.Directional ? lt.Direction : lt.Position, kind));
+				shader.SetLightsColorRange(i, new Vector4(lt.Color.R, lt.Color.G, lt.Color.B, lt.Range));
 				shader.SetLightsAttenuation(i, lt.Attenuation);
-				shader.SetLightsRange(i, lt.Range);
 			}
-			shader.SetFogEnabled(lights.FogEnabled ? 1 : 0);
-			if (lights.FogEnabled)
+			shader.SetFogMode((int)lights.FogMode);
+			if (lights.FogMode == FogModes.Linear)
 			{
 				shader.SetFogColor(lights.FogColor);
 				shader.SetFogRange(lights.FogRange);
+			}
+			else if (lights.FogMode == FogModes.Exp || lights.FogMode == FogModes.Exp2)
+			{
+				shader.SetFogColor(lights.FogColor);
+				shader.SetFogRange(new Vector2(lights.FogDensity, 0));
 			}
 		}
 		Texture2D GetNull()

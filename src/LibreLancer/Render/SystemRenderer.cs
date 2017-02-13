@@ -41,8 +41,10 @@ namespace LibreLancer
 
 		public bool MSAAEnabled = false;
 
-		private IDrawable[] starSphereModels;
-		Lighting systemLighting;
+		public IDrawable[] StarSphereModels;
+		public Matrix4[] StarSphereWorlds;
+
+		public SystemLighting SystemLighting = new SystemLighting();
 		ResourceManager cache;
 		RenderState rstate;
 		FreelancerGame game;
@@ -62,6 +64,8 @@ namespace LibreLancer
 			World = Matrix4.Identity;
 			Objects = new List<ObjectRenderer>();
 			AsteroidFields = new List<AsteroidFieldRenderer>();
+			Nebulae = new List<NebulaRenderer>();
+			StarSphereModels = new IDrawable[0];
 			cache = rescache;
 			rstate = cache.Game.RenderState;
 			game = rescache.Game;
@@ -73,9 +77,9 @@ namespace LibreLancer
 		{
 			starSystem = system;
 
-			if (starSphereModels != null)
+			if (StarSphereModels != null)
 			{
-				starSphereModels = new CmpFile[0];
+				StarSphereModels = new CmpFile[0];
 			}
 
 			if (AsteroidFields != null)
@@ -96,7 +100,7 @@ namespace LibreLancer
 			if (system.StarsNebula != null)
 				starSphereRenderData.Add(system.StarsNebula);
 
-			starSphereModels = starSphereRenderData.ToArray();
+			StarSphereModels = starSphereRenderData.ToArray();
 
 			AsteroidFields = new List<AsteroidFieldRenderer>();
 			if (system.AsteroidFields != null)
@@ -116,14 +120,14 @@ namespace LibreLancer
 				}
 			}
 		
-			systemLighting = new Lighting();
-			systemLighting.Ambient = system.AmbientColor;
+			SystemLighting = new SystemLighting();
+			SystemLighting.Ambient = system.AmbientColor;
             foreach (var lt in system.LightSources)
-                systemLighting.Lights.Add(lt);
+				SystemLighting.Lights.Add(new DynamicLight() { Light = lt });
 		}
 		public void Update(TimeSpan elapsed)
 		{
-			foreach (var model in starSphereModels)
+			foreach (var model in StarSphereModels)
 				model.Update(camera, elapsed, TimeSpan.FromSeconds(game.TotalTime));
 
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Update(camera);
@@ -182,12 +186,17 @@ namespace LibreLancer
 			else
 			{
 				rstate.DepthEnabled = false;
-				rstate.ClearColor = starSystem.BackgroundColor;
+				if (starSystem == null)
+					rstate.ClearColor = Color4.Black;
+				else
+					rstate.ClearColor = starSystem.BackgroundColor;
 				rstate.ClearAll();
 				//Starsphere
-				for (int i = 0; i < starSphereModels.Length; i++)
+				for (int i = 0; i < StarSphereModels.Length; i++)
 				{
-					starSphereModels[i].Draw(rstate, Matrix4.CreateTranslation(camera.Position), Lighting.Empty);
+					Matrix4 ssworld = Matrix4.CreateTranslation(camera.Position);
+					if (StarSphereWorlds != null) ssworld = StarSphereWorlds[i] * ssworld;
+					StarSphereModels[i].Draw(rstate, ssworld, Lighting.Empty);
 				}
 				//Render fog transition: if any
 				if (nr != null)
@@ -203,15 +212,15 @@ namespace LibreLancer
 			LightEquipRenderer.FrameStart();
 			//Clear depth buffer for game objects
 			game.Billboards.Begin(camera, commands);
-			for (int i = 0; i < Objects.Count; i++) Objects[i].Draw(camera, commands, systemLighting, nr);
-			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(cache, systemLighting, commands, nr);
+			for (int i = 0; i < Objects.Count; i++) Objects[i].Draw(camera, commands, SystemLighting, nr);
+			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(cache, SystemLighting, commands, nr);
 			game.Nebulae.NewFrame();
 			if (nr == null)
 			{
-				for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Draw(commands, systemLighting);
+				for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Draw(commands);
 			}
 			else
-				nr.Draw(commands, systemLighting);
+				nr.Draw(commands);
 			game.Nebulae.SetData();
 			game.Billboards.End();
 			//Opaque Pass

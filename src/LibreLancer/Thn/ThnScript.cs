@@ -79,7 +79,7 @@ namespace LibreLancer
 		#endregion
 
 		public double Duration;
-		public Dictionary<string, ThnEntity> Entities = new Dictionary<string, ThnEntity>();
+		public Dictionary<string, ThnEntity> Entities = new Dictionary<string, ThnEntity>(StringComparer.OrdinalIgnoreCase);
 		public List<ThnEvent> Events = new List<ThnEvent>();
 		public ThnScript (string scriptfile)
 		{
@@ -111,6 +111,25 @@ namespace LibreLancer
 			} else {
 				e.Type = (EventTypes)table [1];
 			}
+			e.Targets = (LuaTable)table[2];
+			if (table.Capacity >= 4)
+			{
+				e.Properties = (LuaTable)table[3];
+				//Get properties common to most events
+				object tmp;
+				if (e.Properties.TryGetValue("param_curve", out tmp))
+				{
+					e.ParamCurve = new ParameterCurve((LuaTable)tmp);
+					if (e.Properties.TryGetValue("pcurve_period", out tmp))
+					{
+						e.ParamCurve.Period = (float)tmp;
+					}
+				}
+				if (e.Properties.TryGetValue("duration", out tmp))
+				{
+					e.Duration = (float)tmp;
+				}
+			}
 			return e;
 		}
 		ThnEntity GetEntity(LuaTable table)
@@ -138,6 +157,98 @@ namespace LibreLancer
 			if (table.TryGetValue("template_name", out o))
 			{
 				e.Template = (string)o;
+			}
+
+			if (table.TryGetValue("userprops", out o))
+			{
+				var usrprops = (LuaTable)o;
+				if (usrprops.TryGetValue("category", out o))
+				{
+					e.MeshCategory = (string)o;
+				}
+			}
+
+			if (table.TryGetValue("spatialprops", out o))
+			{
+				var spatialprops = (LuaTable)o;
+				if (spatialprops.TryGetVector3("pos", out tmp))
+				{
+					e.Position = tmp;
+				}
+				if (spatialprops.TryGetValue("orient", out o))
+				{
+					var orient = (LuaTable)o;
+					var m11 = (float)((LuaTable)orient[0])[0];
+					var m12 = (float)((LuaTable)orient[0])[1];
+					var m13 = (float)((LuaTable)orient[0])[2];
+
+					var m21 = (float)((LuaTable)orient[1])[0];
+					var m22 = (float)((LuaTable)orient[1])[1];
+					var m23 = (float)((LuaTable)orient[1])[2];
+
+					var m31 = (float)((LuaTable)orient[2])[0];
+					var m32 = (float)((LuaTable)orient[2])[1];
+					var m33 = (float)((LuaTable)orient[2])[2];
+					e.RotationMatrix = new Matrix4(
+						m11, m12, m13, 0,
+						m21, m22, m23, 0,
+						m31, m32, m33, 0,
+						0  , 0  , 0  , 1
+					);
+				}
+			}
+
+			if (table.TryGetValue("cameraprops", out o))
+			{
+				var cameraprops = (LuaTable)o;
+				if (cameraprops.TryGetValue("fovh", out o))
+				{
+					e.FovH = (float)o;
+				}
+				if (cameraprops.TryGetValue("hvaspect", out o))
+				{
+					e.HVAspect = (float)o;
+				}
+			}
+			if (table.TryGetValue("lightprops", out o))
+			{
+				var lightprops = (LuaTable)o;
+				e.LightProps = new ThnLightProps();
+				if (lightprops.TryGetValue("on", out o))
+					e.LightProps.On = (bool)o;
+				else
+					e.LightProps.On = true;
+				var r = new RenderLight();
+				r.Position = e.Position.Value;
+				if (lightprops.TryGetValue("type", out o))
+				{
+					var tp = (LightTypes)o;
+					if (tp == LightTypes.Point)
+						r.Kind = LightKind.Point;
+					if (tp == LightTypes.Direct)
+						r.Kind = LightKind.Directional;
+				}
+				else
+					throw new Exception("Light without type");
+				if (lightprops.TryGetVector3("diffuse", out tmp))
+					r.Color = new Color4(tmp.X, tmp.Y, tmp.Z, 1);
+				if (lightprops.TryGetVector3("direction", out tmp))
+					r.Direction = tmp;
+				if (lightprops.TryGetValue("range", out o))
+					r.Range = (int)(float)o;
+				if (lightprops.TryGetVector3("atten", out tmp))
+				{
+					r.Attenuation = new Vector4(tmp, 0);
+				}
+				e.LightProps.Render = r;
+			}
+			if (table.TryGetValue("pathprops", out o))
+			{
+				var pathprops = (LuaTable)o;
+				if (pathprops.TryGetValue("path_data", out o))
+				{
+					e.Path = new MotionPath((string)o);
+				}
 			}
 			return e;
 		}

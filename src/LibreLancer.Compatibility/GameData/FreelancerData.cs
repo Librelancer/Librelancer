@@ -32,6 +32,7 @@ namespace LibreLancer.Compatibility.GameData
 		public MouseIni Mouse;
 		public AsteroidArchIni Asteroids;
 		public RichFontsIni RichFonts;
+		public PetalDbIni PetalDb;
 		public bool Loaded = false;
 
 		public FreelancerData (FreelancerIni fli)
@@ -89,6 +90,10 @@ namespace LibreLancer.Compatibility.GameData
 			RichFonts = new RichFontsIni();
 			foreach (var rf in Freelancer.RichFontPaths)
 				RichFonts.AddRichFontsIni(rf);
+			//PetalDb
+			PetalDb = new PetalDbIni();
+			foreach (var pt in Freelancer.PetalDbPaths)
+				PetalDb.AddFile(pt);
 		}
 	}
 }

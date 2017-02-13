@@ -206,7 +206,7 @@
     <Compile Include="Fx\FxNode.cs" />
     <Compile Include="Fx\FxEmitter.cs" />
     <Compile Include="Fx\FxAppearance.cs" />
-    <Compile Include="Fx\Appearances\FLDustAppearance.cs" />
+    <Compile Include="Fx\Appearances\FLBeamAppearance.cs" />
     <Compile Include="Fx\Appearances\FxBasicAppearance.cs" />
     <Compile Include="Fx\Appearances\FxBeamAppearance.cs" />
     <Compile Include="Fx\Appearances\FxOrientedAppearance.cs" />
@@ -252,7 +252,6 @@
     <Compile Include="SoundManager.cs" />
     <Compile Include="Thn\ThnEntity.cs" />
     <Compile Include="Thn\ThnEvent.cs" />
-    <Compile Include="Cutscene.cs" />
     <Compile Include="GameStates\DemoSystemView.cs" />
     <Compile Include="GameStates\IntroMovie.cs" />
     <Compile Include="GameStates\MainMenu.cs" />
@@ -306,6 +305,15 @@
     <Compile Include="Interface\Hud.cs" />
     <Compile Include="Utf\Cmp\MaterialAnimCollection.cs" />
     <Compile Include="Utf\Cmp\MaterialAnim.cs" />
+    <Compile Include="Render\DynamicLight.cs" />
+    <Compile Include="Render\SystemLighting.cs" />
+    <Compile Include="Thn\ThnLightProps.cs" />
+    <Compile Include="Thn\Cutscene.cs" />
+    <Compile Include="Thn\ThnCamera.cs" />
+    <Compile Include="Thn\ThnCameraTransform.cs" />
+    <Compile Include="Fx\Appearances\FxMeshAppearance.cs" />
+    <Compile Include="Thn\ParameterCurve.cs" />
+    <Compile Include="Thn\MotionPath.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

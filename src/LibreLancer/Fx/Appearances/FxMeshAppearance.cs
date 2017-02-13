@@ -10,25 +10,18 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2017
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using LibreLancer.Thorn;
-namespace LibreLancer
+using LibreLancer.Utf.Ale;
+namespace LibreLancer.Fx
 {
-	public class ThnEvent
+	//Class left unimplemented on purpose. Does not work in Vanilla Freelancer
+	public class FxMeshAppearance : FxAppearance
 	{
-		public float Duration;
-		public double Time;
-		public EventTypes Type;
-		public LuaTable Targets;
-		public LuaTable Properties;
-		public ParameterCurve ParamCurve;
-		public override string ToString()
+		public FxMeshAppearance(AlchemyNode ale) : base(ale)
 		{
-			return string.Format("[{0}: {1}]", Time, Type);
 		}
 	}
 }
-

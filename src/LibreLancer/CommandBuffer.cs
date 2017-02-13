@@ -23,7 +23,7 @@ namespace LibreLancer
 {
 	public class CommandBuffer
 	{
-		const int MAX_COMMANDS = 8192;
+		const int MAX_COMMANDS = 16384;
 		//public List<RenderCommand> Commands = new List<RenderCommand>();
 		RenderCommand[] Commands = new RenderCommand[MAX_COMMANDS];
 		int currentCommand = 0;

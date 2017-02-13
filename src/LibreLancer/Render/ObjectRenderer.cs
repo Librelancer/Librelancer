@@ -19,7 +19,7 @@ namespace LibreLancer
 	public abstract class ObjectRenderer
 	{
 		public abstract void Update(TimeSpan time, Vector3 position, Matrix4 transform);
-		public abstract void Draw(ICamera camera, CommandBuffer commands, Lighting lights, NebulaRenderer nr);
+		public abstract void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr);
 		public abstract void Register(SystemRenderer renderer);
 		public abstract void Unregister();
 	}

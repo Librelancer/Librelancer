@@ -347,7 +347,7 @@ namespace LibreLancer
 			new []{ new Vector2(0.5f,0.5f), new Vector2(0,1),  new Vector2(1,1) },
 			new []{ new Vector2(0.5f,0.5f), new Vector2(1,0),  new Vector2(1,1) }
 		};
-		public void Draw(ResourceManager res, Lighting lighting, CommandBuffer buffer, NebulaRenderer nr)
+		public void Draw(ResourceManager res, SystemLighting lighting, CommandBuffer buffer, NebulaRenderer nr)
 		{
             //Null check
             if (_camera == null)
@@ -363,7 +363,7 @@ namespace LibreLancer
 				for (int j = 0; j < cubeCount; j++) {
 					var center = cubes[j].pos;
 					var z = RenderHelpers.GetZ(cameraPos, center);
-					var lt = RenderHelpers.ApplyLights(lighting, center, field.CubeSize, nr);
+					var lt = RenderHelpers.ApplyLights(lighting, 0, center, field.CubeSize, nr);
 					var transform = Matrix4.CreateTranslation(center) * cubes[j].rot;
 					for (int i = 0; i < cubeDrawCalls.Count; i++)
 					{
@@ -384,7 +384,7 @@ namespace LibreLancer
 					}
 				}
 				if (field.BillboardCount != -1) {
-					var cameraLights = RenderHelpers.ApplyLights(lighting, cameraPos, 1, nr);
+					var cameraLights = RenderHelpers.ApplyLights(lighting, 0, cameraPos, 1, nr);
 					if (billboardTex == null || billboardTex.IsDisposed)
 						billboardTex = (Texture2D)res.FindTexture (field.BillboardShape.Texture);
 				
@@ -423,8 +423,8 @@ namespace LibreLancer
 					var p = bandCylinder.GetSidePosition(i);
 					var zcoord = RenderHelpers.GetZ(bandTransform, cameraPos, p);
 					p = bandTransform.Transform(p);
-					var lt = RenderHelpers.ApplyLights(lighting, p, lightingRadius, nr);
-					if (!lt.FogEnabled || VectorMath.DistanceSquared(cameraPos, p) <= (lightingRadius + lt.FogRange.Y) * (lightingRadius + lt.FogRange.Y))
+					var lt = RenderHelpers.ApplyLights(lighting, 0, p, lightingRadius, nr);
+					if (lt.FogMode != FogModes.Linear || VectorMath.DistanceSquared(cameraPos, p) <= (lightingRadius + lt.FogRange.Y) * (lightingRadius + lt.FogRange.Y))
 					{
 						buffer.AddCommand(
 							bandShader.Shader,

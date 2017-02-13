@@ -21,6 +21,7 @@ namespace LibreLancer
 	public class ParticleEffectRenderer : ObjectRenderer
 	{
 		public float SParam = 0f;
+		public bool Active = true;
 		SystemRenderer sys;
 		ParticleEffectInstance fx;
 		public ParticleEffectRenderer(ParticleEffect effect)
@@ -41,12 +42,16 @@ namespace LibreLancer
 		Matrix4 tr;
 		public override void Update(TimeSpan time, Vector3 position, Matrix4 transform)
 		{
-			tr = transform;
-			fx.Update(time, transform, SParam);
+			if (Active)
+			{
+				tr = transform;
+				fx.Update(time, transform, SParam);
+			}
 		}
-		public override void Draw(ICamera camera, CommandBuffer commands, Lighting lights, NebulaRenderer nr)
+		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
-			fx.Draw(sys.Game.Billboards, tr, SParam);
+			if(Active)
+				fx.Draw(sys.Game.Billboards, tr, SParam);
 		}
 	}
 }

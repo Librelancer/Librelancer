@@ -64,6 +64,12 @@ namespace LibreLancer
 			GC.Collect();
 		}
 
+		public void RegisterAll()
+		{
+			foreach (var obj in Objects)
+				obj.Register(Renderer, Physics);
+		}
+
 		void Events_PreStep(float timestep)
 		{
 			if (PhysicsUpdate != null)

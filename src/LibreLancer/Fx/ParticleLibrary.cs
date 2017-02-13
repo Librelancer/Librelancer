@@ -55,7 +55,15 @@ namespace LibreLancer.Fx
 						fx.AttachmentNodes.Add(nd);
 				}
 				foreach (var pair in effect.Pairs)
-					fx.Pairs.Add(FindNode(effect.FindRef(pair.Item1).CRC), FindNode(effect.FindRef(pair.Item2).CRC));
+				{
+					var n1 = FindNode(effect.FindRef(pair.Item1).CRC);
+					List<Fx.FxNode> pairedTo;
+					if (!fx.Pairs.TryGetValue(n1, out pairedTo)) {
+						pairedTo = new List<FxNode>();
+						fx.Pairs.Add(n1, pairedTo);
+					}
+					pairedTo.Add(FindNode(effect.FindRef(pair.Item2).CRC));
+				}
 				fx.SetNodes(effect.Fx.Select(arg => FindNode(arg.CRC)));
 				Effects.Add(fx);
 			}

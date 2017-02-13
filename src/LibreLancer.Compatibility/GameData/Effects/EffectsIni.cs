@@ -45,7 +45,7 @@ namespace LibreLancer.Compatibility.GameData.Effects
 			var result = from Effect e in Effects where e.Nickname.Equals(nickname,StringComparison.OrdinalIgnoreCase) select e;
 			if (result.Count() == 1)
 				return result.First();
-			throw new Exception();
+			return null;
 		}
 
 		public VisEffect FindVisEffect(string nickname)

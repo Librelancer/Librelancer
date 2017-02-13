@@ -62,7 +62,7 @@ namespace LibreLancer
 		//Components
 		public List<GameObject> Children = new List<GameObject>();
 		public List<GameComponent> Components = new List<GameComponent>();
-		ObjectRenderer renderComponent;
+		public ObjectRenderer RenderComponent;
 		public RigidBody PhysicsComponent;
 		public AnimationComponent AnimationComponent;
 
@@ -71,12 +71,16 @@ namespace LibreLancer
 			isstatic = staticpos;
 			if (arch is Archs.Sun)
 			{
-				renderComponent = new SunRenderer((Archs.Sun)arch);
+				RenderComponent = new SunRenderer((Archs.Sun)arch);
 			}
 			else
 			{
 				InitWithDrawable(arch.Drawable, res, staticpos);
 			}
+		}
+		public GameObject()
+		{
+
 		}
 		public GameObject(IDrawable drawable, ResourceManager res, bool staticpos = false)
 		{
@@ -165,9 +169,9 @@ namespace LibreLancer
 			}
 			PopulateHardpoints(dr);
 			if (isCmp)
-				renderComponent = new ModelRenderer(CmpParts, (dr as CmpFile));
+				RenderComponent = new ModelRenderer(CmpParts, (dr as CmpFile));
 			else
-				renderComponent = new ModelRenderer(dr);
+				RenderComponent = new ModelRenderer(dr);
 		}
 
 		public GameObject(Equipment equip, Hardpoint hp, GameObject parent)
@@ -176,11 +180,11 @@ namespace LibreLancer
 			Attachment = hp;
 			if (equip is LightEquipment)
 			{
-				renderComponent = new LightEquipRenderer((LightEquipment)equip);
+				RenderComponent = new LightEquipRenderer((LightEquipment)equip);
 			}
 			if (equip is EffectEquipment)
 			{
-				renderComponent = new ParticleEffectRenderer(((EffectEquipment)equip).Particles);
+				RenderComponent = new ParticleEffectRenderer(((EffectEquipment)equip).Particles);
 			}
             //Optimisation: Don't re-calculate transforms every frame for static objects
             if(parent.isstatic && hp.IsStatic)
@@ -235,10 +239,10 @@ namespace LibreLancer
 			{
 				Transform = PhysicsComponent.Orientation.ToOpenTK() * Matrix4.CreateTranslation(PhysicsComponent.Position.ToOpenTK());
 			}
-			if (renderComponent != null)
+			if (RenderComponent != null)
 			{
 				var tr = GetTransform();
-				renderComponent.Update(time, isstatic ? StaticPosition : tr.Transform(Vector3.Zero), tr);
+				RenderComponent.Update(time, isstatic ? StaticPosition : tr.Transform(Vector3.Zero), tr);
 			}
 			for (int i = 0; i < Children.Count; i++)
 				Children[i].Update(time);
@@ -248,8 +252,8 @@ namespace LibreLancer
 
 		public void Register(SystemRenderer renderer, World physics)
 		{
-			if(renderComponent != null)
-				renderComponent.Register(renderer);
+			if(RenderComponent != null)
+				RenderComponent.Register(renderer);
 			if (PhysicsComponent != null)
 				physics.AddBody(PhysicsComponent);
 			foreach (var child in Children)
@@ -260,8 +264,8 @@ namespace LibreLancer
 
 		public void Unregister(World physics)
 		{
-			if(renderComponent != null)
-				renderComponent.Unregister();
+			if(RenderComponent != null)
+				RenderComponent.Unregister();
 			if (PhysicsComponent != null)
 				physics.RemoveBody(PhysicsComponent);
 			foreach (var child in Children)

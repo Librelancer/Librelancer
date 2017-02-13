@@ -152,6 +152,7 @@ namespace LibreLancer
 			}
 			return (Texture2D)resource.FindTexture("__freelancerlogo.tga");
 		}
+
 		public GameData.StarSystem GetSystem(string id)
 		{
 			var legacy = fldata.Universe.FindSystem (id);
@@ -198,11 +199,12 @@ namespace LibreLancer
 					lt.Color = src.Color.Value;
 					lt.Position = src.Pos.Value;
 					lt.Range = src.Range.Value;
-					lt.Direction = src.Direction ?? Vector3.UnitZ;
+					lt.Direction = src.Direction ?? new Vector3(0, 0, 1);
 					lt.Kind = ((src.Type ?? Legacy.Universe.LightType.Point) == Legacy.Universe.LightType.Point) ? LightKind.Point : LightKind.Directional;
 					lt.Attenuation = new Vector4(src.Attenuation ?? Vector3.UnitY, 0);
 					if (src.AttenCurve != null)
 					{
+						lt.Kind = LightKind.PointAttenCurve;
 						lt.Attenuation = ApproximateCurve.GetCubicFunction(
 							fldata.Graphs.FindFloatGraph(src.AttenCurve).Points.ToArray()
 						);
@@ -496,6 +498,24 @@ namespace LibreLancer
 			ship.Drawable = resource.GetDrawable (legacy.DaArchetypeName);
 			return ship;
 		}
+
+		public IDrawable GetSolar(string solar)
+		{
+			var archetype = fldata.Solar.FindSolar(solar);
+			//Load archetype references
+			foreach (var path in archetype.TexturePaths)
+				resource.LoadTxm(path);
+			foreach (var path in archetype.MaterialPaths)
+				resource.LoadMat(path);
+			//Get drawable
+			return resource.GetDrawable(archetype.DaArchetypeName);
+		}
+
+		public IDrawable GetProp(string prop)
+		{
+			return resource.GetDrawable(ResolveDataPath(fldata.PetalDb.Props[prop]));
+		}
+
 		public GameData.SystemObject GetSystemObject(Legacy.Universe.SystemObject o)
 		{
 			var drawable = resource.GetDrawable (o.Archetype.DaArchetypeName);
@@ -588,7 +608,11 @@ namespace LibreLancer
 		public ParticleEffect GetEffect(string effectName)
 		{
 			var effect = fldata.Effects.FindEffect(effectName);
-			var visfx = fldata.Effects.FindVisEffect(effect.VisEffect);
+			Legacy.Effects.VisEffect visfx;
+			if (effect == null)
+				visfx = fldata.Effects.FindVisEffect(effectName);
+			else
+				visfx = fldata.Effects.FindVisEffect(effect.VisEffect);
 			foreach (var texfile in visfx.Textures)
 			{
 				var path = Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + texfile);

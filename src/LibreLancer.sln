@@ -29,6 +29,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{3F1482D4-A
 	ProjectSection(SolutionItems) = preProject
 		..\LICENSE = ..\LICENSE
 		..\README.md = ..\README.md
+		Shader Readme.txt = Shader Readme.txt
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MP3Sharp", "..\extern\MP3Sharp\MP3Sharp\MP3Sharp.csproj", "{BF3B29F8-DA04-4973-93DB-144A5BBE2472}"

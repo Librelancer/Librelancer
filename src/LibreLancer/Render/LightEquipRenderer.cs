@@ -42,7 +42,7 @@ namespace LibreLancer
 		}
 		const float CULL_DISTANCE = 20000;
 		const float CULL = CULL_DISTANCE * CULL_DISTANCE;
-		public override void Draw(ICamera camera, CommandBuffer commands, Lighting lights, NebulaRenderer nr)
+		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
 			if (sys == null)
 				return;

@@ -113,6 +113,13 @@ namespace LibreLancer
 				}
 			}
 		}
+		public ICamera Camera
+		{
+			get
+			{
+				return camera;
+			}
+		}
 		ICamera camera;
 		Texture2D currentTexture;
 		int billboardCount = 0;

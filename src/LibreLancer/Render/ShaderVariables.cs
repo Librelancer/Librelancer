@@ -23,7 +23,6 @@ namespace LibreLancer
 		int worldPosition;
 		int normalMatrixPosition;
 
-
 		int dtSamplerPosition;
 		int dm1SamplerPosition;
 		int dm0SamplerPosition;
@@ -34,6 +33,7 @@ namespace LibreLancer
 		int ocPosition;
 		int ecPosition;
 		int etSamplerPosition;
+		int etEnabledPosition;
 
 		int flipUPosition;
 		int flipVPosition;
@@ -45,12 +45,10 @@ namespace LibreLancer
 		int ambientColorPosition;
 		int lightCountPosition;
 		int lightsPosPosition;
-		int lightsDirPosition;
-		int lightsColorPosition;
+		int lightsColorRangePosition;
 		int lightsAttenuationPosition;
-		int lightsRangePosition;
 
-		int fogEnabledPosition;
+		int fogModePosition;
 		int fogColorPosition;
 		int fogRangePosition;
 
@@ -81,6 +79,7 @@ namespace LibreLancer
 			ocPosition = sh.GetLocation("Oc");
 			ecPosition = sh.GetLocation("Ec");
 			etSamplerPosition = sh.GetLocation("EtSampler");
+			etEnabledPosition = sh.GetLocation("EtEnabled");
 
 			flipUPosition = sh.GetLocation("FlipU");
 			flipVPosition = sh.GetLocation("FlipV");
@@ -92,12 +91,10 @@ namespace LibreLancer
 			ambientColorPosition = sh.GetLocation("AmbientColor");
 			lightCountPosition = sh.GetLocation("LightCount");
 			lightsPosPosition = sh.GetLocation("LightsPos");
-			lightsDirPosition = sh.GetLocation("LightsDir");
-			lightsColorPosition = sh.GetLocation("LightsColor");
+			lightsColorRangePosition = sh.GetLocation("LightsColorRange");
 			lightsAttenuationPosition = sh.GetLocation("LightsAttenuation");
-			lightsRangePosition = sh.GetLocation("LightsRange");
 
-			fogEnabledPosition = sh.GetLocation("FogEnabled");
+			fogModePosition = sh.GetLocation("FogMode");
 			fogColorPosition = sh.GetLocation("FogColor");
 			fogRangePosition = sh.GetLocation("FogRange");
 
@@ -242,6 +239,12 @@ namespace LibreLancer
 				shader.SetInteger(etSamplerPosition, et);
 		}
 
+		public void SetEtEnabled(bool et)
+		{
+			if (etEnabledPosition != -1)
+				shader.SetInteger(etEnabledPosition, et ? 1 : 0);
+		}
+
 		public void SetFlipU(int flip)
 		{
 			if (flipUPosition != -1)
@@ -296,16 +299,10 @@ namespace LibreLancer
 				shader.SetVector4(lightsPosPosition, pos, index);
 		}
 
-		public void SetLightsDir(int index, Vector3 dir)
+		public void SetLightsColorRange(int index, Vector4 colorrange)
 		{
-			if (lightsDirPosition != -1)
-				shader.SetVector3(lightsDirPosition, dir, index);
-		}
-
-		public void SetLightsColor(int index, Vector3 color)
-		{
-			if (lightsColorPosition != -1)
-				shader.SetVector3(lightsColorPosition, color, index);
+			if (lightsColorRangePosition != -1)
+				shader.SetVector4(lightsColorRangePosition , colorrange, index);
 		}
 
 		public void SetLightsAttenuation(int index, Vector4 attenuation)
@@ -314,16 +311,10 @@ namespace LibreLancer
 				shader.SetVector4(lightsAttenuationPosition, attenuation, index);
 		}
 
-		public void SetLightsRange(int index, int range)
+		public void SetFogMode(int mode)
 		{
-			if (lightsRangePosition != -1)
-				shader.SetInteger(lightsRangePosition, range, index);
-		}
-
-		public void SetFogEnabled(int enabled)
-		{
-			if (fogEnabledPosition != -1)
-				shader.SetInteger(fogEnabledPosition, enabled);
+			if (fogModePosition != -1)
+				shader.SetInteger(fogModePosition, mode);
 		}
 
 		public void SetFogColor(Color4 color)

@@ -29,15 +29,21 @@ namespace LibreLancer
 			var res = VectorMath.DistanceSquared(vec, cameraPosition);
 			return res;
 		}
-		public static Lighting ApplyLights(Lighting src, Vector3 c, float r, NebulaRenderer nebula)
+		public static Lighting ApplyLights(SystemLighting src, int lightGroup, Vector3 c, float r, NebulaRenderer nebula)
 		{
             var lights = Lighting.Create();
 			lights.Ambient = src.Ambient;
+			lights.FogMode = src.FogMode;
+			lights.FogDensity = src.FogDensity;
+			lights.FogColor = src.FogColor;
+			lights.FogRange = src.FogRange;
 			for(int i = 0; i < src.Lights.Count; i++)
 			{
-                var l = src.Lights[i];
+				if (src.Lights[i].LightGroup != lightGroup)
+					continue;
+                var l = src.Lights[i].Light;
 				var r2 = r + l.Range;
-				if (l.Kind == LightKind.Point &&
+				if ((l.Kind == LightKind.Point || l.Kind == LightKind.PointAttenCurve) &&
 					VectorMath.DistanceSquared(l.Position, c) > (r2 * r2))
 					continue;
 				lights.Lights.Add(l);
@@ -54,7 +60,7 @@ namespace LibreLancer
 					lights.Ambient = ambient.Value;
 				if (fogenabled)
 				{
-					lights.FogEnabled = true;
+					lights.FogMode = FogModes.Linear;
 					lights.FogColor = fogcolor;
 					lights.FogRange = fogrange;
 				}

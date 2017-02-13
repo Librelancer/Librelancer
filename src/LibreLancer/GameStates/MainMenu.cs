@@ -46,10 +46,12 @@ namespace LibreLancer
 			manager.Clicked += (tag) => lastTag = tag;
 
 			intro = g.GameData.GetIntroScene();
-			scene = new Cutscene(intro.Script);
+			scene = new Cutscene(intro.Script, Game);
+			scene.Update(TimeSpan.FromSeconds(1f / 60f)); //Do all the setup events - smoother entrance
 			g.Sound.PlayMusic(intro.Music);
 
 			cur = g.ResourceManager.GetCursor("arrow");
+			GC.Collect(); //GC before showing
 		}
 
 
@@ -63,6 +65,7 @@ namespace LibreLancer
 				frames = 1;
 				return;
 			}
+			scene.Update(delta);
 			manager.Update (delta);
 			if (lastTag == "gameplay")
 			{
@@ -86,7 +89,7 @@ namespace LibreLancer
 				return;
 			}
 			//TODO: Draw background THN
-
+			scene.Draw();
 			//UI Background
 			Game.Renderer2D.Start (Game.Width, Game.Height);
 			Game.Renderer2D.DrawImageStretched (logoOverlay, new Rectangle (0, 0, Game.Width, Game.Height), Color4.White, true);

@@ -26,6 +26,7 @@ namespace LibreLancer
 		public ModelFile Model { get; private set; }
 		public CmpFile Cmp { get; private set; }
 		public List<Part> CmpParts { get; private set; }
+		public int LightGroup = 0;
 		CmpFile _parentCmp;
 		public SphFile Sph { get; private set; }
 		public NebulaRenderer Nebula;
@@ -87,7 +88,7 @@ namespace LibreLancer
 			sysr = null;
 		}
 
-		public override void Draw(ICamera camera, CommandBuffer commands, Lighting lights, NebulaRenderer nr)
+		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
 			if (sysr == null)
 				return;
@@ -102,9 +103,9 @@ namespace LibreLancer
 						Model.Levels[0].Radius
 					);
 					if (camera.Frustum.Intersects(bsphere)) {
-						var lighting = RenderHelpers.ApplyLights(lights, center, Model.Levels[0].Radius, nr);
+						var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, Model.Levels[0].Radius, nr);
 						var r = Model.Levels [0].Radius + lighting.FogRange.Y;
-						if (!lighting.FogEnabled || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
+						if (lighting.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
 							Model.DrawBuffer(commands, World, lighting);
 					}
 				}
@@ -126,9 +127,9 @@ namespace LibreLancer
 						);
 						if (camera.Frustum.Intersects(bsphere))
 						{
-							var lighting = RenderHelpers.ApplyLights(lights, center, model.Levels[0].Radius, nr);
+							var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, model.Levels[0].Radius, nr);
 							var r = model.Levels [0].Radius + lighting.FogRange.Y;
-							if (!lighting.FogEnabled || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
+							if (lighting.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
 								model.DrawBuffer(commands, w, lighting);
 						}
 					}
@@ -151,9 +152,9 @@ namespace LibreLancer
 						);
 						if (camera.Frustum.Intersects(bsphere))
 						{
-							var lighting = RenderHelpers.ApplyLights(lights, center, model.Levels[0].Radius, nr);
+							var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, model.Levels[0].Radius, nr);
 							var r = model.Levels[0].Radius + lighting.FogRange.Y;
-							if (!lighting.FogEnabled || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
+							if (lighting.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
 								model.DrawBuffer(commands, w, lighting);
 						}
 					}
@@ -165,9 +166,9 @@ namespace LibreLancer
 					radiusAtmosphere);
 				if (camera.Frustum.Intersects(bsphere))
 				{
-					var l = RenderHelpers.ApplyLights(lights, pos, Sph.Radius, nr);
+					var l = RenderHelpers.ApplyLights(lights, LightGroup, pos, Sph.Radius, nr);
 					var r = Sph.Radius + l.FogRange.Y;
-					if(!l.FogEnabled || VectorMath.DistanceSquared(camera.Position, pos) <= (r * r))
+					if(l.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, pos) <= (r * r))
 						Sph.DrawBuffer(commands, World, l);
 				}
 			}

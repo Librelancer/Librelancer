@@ -12,6 +12,8 @@ out vec4 out_color;
 uniform vec4 Dc;
 uniform vec4 Ec;
 uniform sampler2D DtSampler;
+uniform sampler2D EtSampler;
+uniform bool EtEnabled;
 uniform float Oc;
 uniform bool OcEnabled;
 
@@ -26,7 +28,11 @@ void main()
 			discard;
 		}
 	}
-	vec4 color = light(vec4(1), Ec, Dc * out_vertexcolor, texture(DtSampler, out_texcoord), world_position, view_position, out_normal);
+	vec4 ec = Ec;
+	if(EtEnabled) {
+		ec += texture(EtSampler, out_texcoord);
+	}
+	vec4 color = light(vec4(1), ec, Dc * out_vertexcolor, texture(DtSampler, out_texcoord), world_position, view_position, out_normal);
 	vec4 acolor;
 	if (OcEnabled)
 		acolor = color * vec4(1,1,1,Oc);

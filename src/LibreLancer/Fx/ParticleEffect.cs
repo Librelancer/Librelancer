@@ -24,7 +24,7 @@ namespace LibreLancer.Fx
 		public string Name;
 		public uint CRC;
 		public Dictionary<FxNode, FxNode> Parents = new Dictionary<FxNode, FxNode>();
-		public Dictionary<FxNode, FxNode> Pairs = new Dictionary<FxNode, FxNode>();
+		public Dictionary<FxNode, List<FxNode>> Pairs = new Dictionary<FxNode, List<FxNode>>();
 		public List<FxNode> AttachmentNodes = new List<FxNode>();
 		List<FxEmitter> emitters = new List<FxEmitter>();
 

@@ -220,7 +220,7 @@ namespace LibreLancer
 			return null;
 		}
 
-		public void Draw(CommandBuffer buffer, Lighting lights)
+		public void Draw(CommandBuffer buffer)
 		{
 			bool inside = Nebula.Zone.Shape.ContainsPoint(camera.Position);
 			if (!inside || !FogTransitioned())

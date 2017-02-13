@@ -70,7 +70,7 @@ namespace LibreLancer.Fx
 		{
 			instance.Particles[idx].Active = true;
 			instance.Particles[idx].Emitter = this;
-			instance.Particles[idx].Appearance = (FxAppearance)fx.Pairs[this];
+			instance.Particles[idx].Appearance = (FxAppearance)fx.Pairs[this][0];
 			instance.Particles[idx].TimeAlive = 0f;
 			instance.Particles[idx].LifeSpan = InitLifeSpan.GetValue(sparam, 0f);
 			SetParticle(idx, fx, instance, ref transform, sparam);
