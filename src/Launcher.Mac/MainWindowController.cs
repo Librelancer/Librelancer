@@ -59,6 +59,8 @@ namespace Launcher.Mac
 					return;
 				}
 				MainClass.LaunchPath = DirectoryField.StringValue;
+				MainClass.MuteMusic = MuteMusic.State == NSCellStateValue.On;
+				MainClass.SkipIntroMovies = SkipIntroMovies.State == NSCellStateValue.On;
 				NSApplication.SharedApplication.Stop(this);
 			}
 			else

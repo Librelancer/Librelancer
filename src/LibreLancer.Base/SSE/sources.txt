@@ -1,0 +1,2 @@
+﻿matrix_invert.c
+asm|void MatrixMultiply(ref Matrix4 a, ref Matrix4 b, out Matrix4 output)|multiply_matrix_unix.S|multiply_matrix_windows.S|multiply_matrix_x86.S

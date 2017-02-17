@@ -15,6 +15,12 @@ namespace Launcher.Mac
 		[Outlet]
 		AppKit.NSTextField DirectoryField { get; set; }
 
+		[Outlet]
+		AppKit.NSButton MuteMusic { get; set; }
+
+		[Outlet]
+		AppKit.NSButton SkipIntroMovies { get; set; }
+
 		[Action ("BrowseAction:")]
 		partial void BrowseAction (Foundation.NSObject sender);
 
@@ -23,6 +29,16 @@ namespace Launcher.Mac
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (MuteMusic != null) {
+				MuteMusic.Dispose ();
+				MuteMusic = null;
+			}
+
+			if (SkipIntroMovies != null) {
+				SkipIntroMovies.Dispose ();
+				SkipIntroMovies = null;
+			}
+
 			if (DirectoryField != null) {
 				DirectoryField.Dispose ();
 				DirectoryField = null;

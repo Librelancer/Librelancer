@@ -15,6 +15,7 @@
  */
 using System;
 using LibreLancer.Utf.Ale;
+using Jitter.LinearMath;
 namespace LibreLancer.Fx
 {
 	public class FxRectAppearance : FxBasicAppearance
@@ -50,7 +51,7 @@ namespace LibreLancer.Fx
 			}
 		}
 
-		public override void Draw(ref Particle particle, ParticleEffect effect, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
+		public override void Draw(ref Particle particle, float globaltime, ParticleEffect effect, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
 		{
 			var time = particle.TimeAlive / particle.LifeSpan;
 			var node_tr = GetTranslation(effect, transform, sparam, time);
@@ -58,17 +59,18 @@ namespace LibreLancer.Fx
 			var p = node_tr.Transform(particle.Position);
 			Texture2D tex;
 			Vector2 tl, tr, bl, br;
-			HandleTexture(res, sparam, ref particle, out tex, out tl, out tr, out bl, out br);
+			HandleTexture(res, globaltime, sparam, ref particle, out tex, out tl, out tr, out bl, out br);
 			var c = Color.GetValue(sparam, time);
 			var a = Alpha.GetValue(sparam, time);
-			var n = (p - billboards.Camera.Position).Normalized();
+			var p2 = node_tr.Transform(particle.Position + particle.Normal);
+			var n = (p2 - p).Normalized();
 			var l = Length.GetValue(sparam, time);
 			var w = Width.GetValue(sparam, time);
-			billboards.DrawPerspective(
+			billboards.DrawRectAppearance(
 				tex,
 				p,
-				new Vector2(w, l) * Scale.GetValue(sparam, time),
-				new Color4(c, a),
+				new Vector2(l, w) * Scale.GetValue(sparam, time) * 0.5f,
+				new Color4(c,a),
 				tl,
 				tr,
 				bl,

@@ -21,7 +21,7 @@ namespace LibreLancer.Fx
 	{
 		public FxPerpAppearance(AlchemyNode ale) : base(ale) { }
 
-		public override void Draw(ref Particle particle, ParticleEffect effect, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
+		public override void Draw(ref Particle particle, float globaltime, ParticleEffect effect, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
 		{
 			var time = particle.TimeAlive / particle.LifeSpan;
 			var node_tr = GetTranslation(effect, transform, sparam, time);
@@ -29,7 +29,7 @@ namespace LibreLancer.Fx
 			var p = node_tr.Transform(particle.Position);
 			Texture2D tex;
 			Vector2 tl, tr, bl, br;
-			HandleTexture(res, sparam, ref particle, out tex, out tl, out tr, out bl, out br);
+			HandleTexture(res, globaltime, sparam, ref particle, out tex, out tl, out tr, out bl, out br);
 			var c = Color.GetValue(sparam, time);
 			var a = Alpha.GetValue(sparam, time);
 

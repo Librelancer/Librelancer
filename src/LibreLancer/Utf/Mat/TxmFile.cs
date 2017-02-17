@@ -26,9 +26,11 @@ namespace LibreLancer.Utf.Mat
 	public class TxmFile : UtfFile, ILibFile
 	{
 		public Dictionary<string, TextureData> Textures { get; private set; }
+		public Dictionary<string, TexFrameAnimation> Animations { get; private set; }
         public TxmFile()
         {
             Textures = new Dictionary<string, TextureData>();
+			Animations = new Dictionary<string, TexFrameAnimation>();
         }
 
         public TxmFile(string path)
@@ -107,8 +109,7 @@ namespace LibreLancer.Utf.Mat
 					Textures.Add(key, data);
 				}
 				else {
-					//Frame Animation
-
+					Animations.Add(textureNode.Name, new TexFrameAnimation(textureNode));
 				}
             }
         }

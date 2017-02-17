@@ -7,7 +7,7 @@ namespace LibreLancer
 	public class PhysicsDebugRenderer : IDebugDrawer
 	{
 		public Color4 Color = Color4.Red;
-		const int MAX_LINES = 32768;
+		const int MAX_LINES = 50000;
 		VertexPositionColor[] lines = new VertexPositionColor[MAX_LINES * 2];
 		VertexBuffer linebuffer;
 		int lineVertices = 0;

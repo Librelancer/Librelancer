@@ -571,38 +571,48 @@ namespace LibreLancer
 			obj.Archetype.ArchetypeName = o.Archetype.GetType ().Name;
 			obj.Archetype.Drawable = drawable;
 			var ld = o.Loadout;
-			if (ld != null)
+			var archld = fldata.Loadouts.FindLoadout(o.Archetype.LoadoutName);
+			if (obj.Nickname.ToLowerInvariant() == "li01_testbed")
 			{
-				foreach (var key in ld.Equip.Keys)
+				Console.WriteLine();
+			}
+			if(ld != null) ProcessLoadout(ld, obj);
+			if (archld != null) ProcessLoadout(archld, obj);
+			return obj;
+		}
+
+		void ProcessLoadout(Legacy.Solar.Loadout ld, GameData.SystemObject obj)
+		{
+			foreach (var key in ld.Equip.Keys)
+			{
+				var val = ld.Equip[key];
+				if (val == null)
+					continue;
+				GameData.Items.Equipment equip = null;
+				if (val is Legacy.Equipment.Light)
 				{
-					var val = ld.Equip[key];
-					if (val == null)
-						continue;
-					GameData.Items.Equipment equip = null;
-					if (val is Legacy.Equipment.Light)
+					equip = GetLight((Legacy.Equipment.Light)val);
+				}
+				else if (val is Legacy.Equipment.InternalFx)
+				{
+					var eq = new GameData.Items.AnimationEquipment();
+					eq.Animation = ((Legacy.Equipment.InternalFx)val).UseAnimation;
+					equip = eq;
+				}
+				if (val is Legacy.Equipment.AttachedFx)
+				{
+					equip = GetAttachedFx((Legacy.Equipment.AttachedFx)val);
+				}
+				if (equip != null)
+				{
+					if (key.StartsWith("__noHardpoint", StringComparison.Ordinal))
+						obj.LoadoutNoHardpoint.Add(equip);
+					else
 					{
-						equip = GetLight((Legacy.Equipment.Light)val);
-					}
-					else if (val is Legacy.Equipment.InternalFx)
-					{
-						var eq = new GameData.Items.AnimationEquipment();
-						eq.Animation = ((Legacy.Equipment.InternalFx)val).UseAnimation;
-						equip = eq;
-					}
-					if (val is Legacy.Equipment.AttachedFx)
-					{
-						equip = GetAttachedFx((Legacy.Equipment.AttachedFx)val);
-					}
-					if (equip != null)
-					{
-						if (key.StartsWith("__noHardpoint", StringComparison.Ordinal))
-							obj.LoadoutNoHardpoint.Add(equip);
-						else
-							obj.Loadout.Add(key, equip);
+						if(!obj.Loadout.ContainsKey(key)) obj.Loadout.Add(key, equip);
 					}
 				}
 			}
-			return obj;
 		}
 
 		public ParticleEffect GetEffect(string effectName)

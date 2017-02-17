@@ -9,6 +9,8 @@ namespace Launcher.Mac
 	static class MainClass
 	{
 		public static string LaunchPath = null;
+		public static bool SkipIntroMovies;
+		public static bool MuteMusic;
 		static void Main(string[] args)
 		{
 			NSApplication.Init();
@@ -44,6 +46,8 @@ namespace Launcher.Mac
 				if (cfg != null)
 					if (cfg.mpv != null)
 					conf.MpvOverride = Path.Combine(bundlepath, cfg.mpv);
+				conf.IntroMovies = !SkipIntroMovies;
+				conf.MuteMusic = MuteMusic;
 				conf.FreelancerPath = LaunchPath;
 				conf.Launch();
 			}

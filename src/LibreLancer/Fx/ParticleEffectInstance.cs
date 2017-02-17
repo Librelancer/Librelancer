@@ -32,6 +32,7 @@ namespace LibreLancer.Fx
 		public ResourceManager Resources;
 		Dictionary<FxEmitter, EmitterState> emitStates = new Dictionary<FxEmitter, EmitterState>();
 		public Random Random = new Random();
+		double globaltime = 0;
 		public ParticleEffectInstance (ParticleEffect fx)
 		{
 			Effect = fx;
@@ -41,6 +42,7 @@ namespace LibreLancer.Fx
 		bool freeParticles;
 		public void Update(TimeSpan delta, Matrix4 transform, float sparam)
 		{
+			globaltime += delta.TotalSeconds;
 			freeParticles = true;
 			for (int i = 0; i < Particles.Length; i++)
 			{
@@ -84,13 +86,14 @@ namespace LibreLancer.Fx
 			return -1;
 		}
 
-		public void Draw(Billboards billboards, Matrix4 transform, float sparam)
+		public void Draw(Billboards billboards, PhysicsDebugRenderer debug, Matrix4 transform, float sparam)
 		{
 			for (int i = 0; i < Particles.Length; i++)
 			{
 				if (!Particles[i].Active)
 					continue;
-				Particles[i].Appearance.Draw(ref Particles[i], Effect, Effect.ResourceManager, billboards, ref transform, sparam);
+				Particles[i].Appearance.Debug = debug;
+				Particles[i].Appearance.Draw(ref Particles[i], (float)globaltime, Effect, Effect.ResourceManager, billboards, ref transform, sparam);
 			}
 		}
 	}

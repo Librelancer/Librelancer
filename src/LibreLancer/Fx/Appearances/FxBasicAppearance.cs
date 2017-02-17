@@ -15,6 +15,7 @@
  */
 using System;
 using LibreLancer.Utf.Ale;
+using LibreLancer.Utf.Mat;
 namespace LibreLancer.Fx
 {
 	public class FxBasicAppearance : FxAppearance
@@ -87,7 +88,7 @@ namespace LibreLancer.Fx
 			}
 		}
 
-		public override void Draw(ref Particle particle, ParticleEffect effect, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
+		public override void Draw(ref Particle particle, float globaltime, ParticleEffect effect, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
 		{
 			var time = particle.TimeAlive / particle.LifeSpan;
 			var node_tr = GetTranslation(effect, transform, sparam, time);
@@ -95,7 +96,7 @@ namespace LibreLancer.Fx
 			var p = node_tr.Transform(particle.Position);
 			Texture2D tex;
 			Vector2 tl, tr, bl, br;
-			HandleTexture(res, sparam, ref particle, out tex, out tl, out tr, out bl, out br);
+			HandleTexture(res, sparam, globaltime, ref particle, out tex, out tl, out tr, out bl, out br);
 			var c = Color.GetValue(sparam, time);
 			var a = Alpha.GetValue(sparam, time);
 			billboards.Draw(
@@ -114,9 +115,12 @@ namespace LibreLancer.Fx
 		}
 
 		TextureShape _tex;
+		TexFrameAnimation _frame;
 		Texture2D _tex2D;
+
 		protected void HandleTexture(
-			ResourceManager res, 
+			ResourceManager res,
+			float globaltime,
 			float sparam, 
 			ref Particle particle, 
 			out Texture2D tex2d, 
@@ -132,23 +136,32 @@ namespace LibreLancer.Fx
 			bl = new Vector2(0, 1);
 			br = new Vector2(1, 1);
 			//Get the Texture2D
-			if (_tex == null && _tex2D != null)
+			if (_tex == null && _frame == null && _tex2D != null)
 			{
 				if (_tex2D == null || _tex2D.IsDisposed)
 					_tex2D = (Texture2D)res.FindTexture(Texture);
 				tex2d = _tex2D;
 			}
-			if (_tex == null)
+			else if (_tex == null)
 			{
 				if (res.TryGetShape(Texture, out _tex))
 					_tex2D = (Texture2D)res.FindTexture(_tex.Texture);
+				else if (res.TryGetFrameAnimation(Texture, out _frame))
+				{
+					_tex2D = (Texture2D)res.FindTexture(Texture + "_0");
+				}
 				else
 				{
 					_tex2D = (Texture2D)res.FindTexture(Texture);
 				}
 			}
 			if (_tex2D == null || _tex2D.IsDisposed)
-				_tex2D = (Texture2D)res.FindTexture(_tex.Texture);
+			{
+				if (_frame == null)
+					_tex2D = (Texture2D)res.FindTexture(_tex.Texture);
+				else
+					_tex2D = (Texture2D)res.FindTexture(Texture + "_0");
+			}
 			tex2d = _tex2D;
 			//Shape?
 			if (_tex != null)
@@ -158,7 +171,25 @@ namespace LibreLancer.Fx
 				bl = new Vector2(_tex.Dimensions.X, _tex.Dimensions.Y + _tex.Dimensions.Height);
 				br = new Vector2(_tex.Dimensions.X + _tex.Dimensions.Width, _tex.Dimensions.Y + _tex.Dimensions.Height);
 			}
-			//Animation?
+			else if (_frame != null)
+			{
+				float frame = 0;
+				if (UseCommonAnimation)
+				{
+					frame = CommonAnimation.GetValue(sparam, globaltime);
+				}
+				else
+				{
+					frame = Animation.GetValue(sparam, particle.TimeAlive / particle.LifeSpan);
+				}
+				frame = MathHelper.Clamp(frame, 0, 1);
+				var frameNo = (int)Math.Floor(frame / _frame.FrameCount);
+				var rect = _frame.Frames[frameNo];
+				tl = new Vector2(rect.X, rect.Y);
+				tr = new Vector2(rect.X + rect.Width, rect.Y);
+				bl = new Vector2(rect.X, rect.Y + rect.Height);
+				br = new Vector2(rect.X + rect.Width, rect.Y + rect.Height);
+			}
 
 			//Flip
 			if (FlipHorizontal)

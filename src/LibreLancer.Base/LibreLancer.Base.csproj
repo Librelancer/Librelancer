@@ -98,8 +98,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Shader.cs" />
     <Compile Include="SSE\AsmMethodAttribute.cs" />
-    <Compile Include="SSE\SSEMath.cs" />
-    <Compile Include="SSE\SSEMath.Matrix.cs" />
+    <Compile Include="SSE\SSEMath.Runtime.cs" />
     <Compile Include="SurfaceFormat.cs" />
     <Compile Include="SurfaceFormatExtensions.cs" />
     <Compile Include="Texture.cs" />
@@ -178,6 +177,9 @@
     <Compile Include="MultisampleTarget.cs" />
     <Compile Include="Text\FontStyles.cs" />
     <Compile Include="CullFaces.cs" />
+    <Compile Include="SSE\SSEMath.cs">
+      <DependentUpon>SSEMath.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -202,5 +204,16 @@
     <None Include="LibreLancer.Base.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="SSE\multiply_matrix_x86.S" />
+    <None Include="SSE\multiply_matrix_windows.S" />
+    <None Include="SSE\multiply_matrix_unix.S" />
+    <None Include="SSE\sources.txt" />
+    <None Include="SSE\SSEMath.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SSEMath.cs</LastGenOutput>
+    </None>
+    <None Include="SSE\matrix_invert.c" />
+    <None Include="SSE\embedding.h" />
+    <None Include="SSE\README.txt" />
   </ItemGroup>
 </Project>

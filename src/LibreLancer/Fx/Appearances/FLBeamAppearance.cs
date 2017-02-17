@@ -22,6 +22,11 @@ namespace LibreLancer.Fx
 		public FLBeamAppearance (AlchemyNode ale) : base(ale)
 		{
 		}
+
+		public override void Draw(ref Particle particle, float globaltime, ParticleEffect effect, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
+		{
+		}
+
 	}
 }
 

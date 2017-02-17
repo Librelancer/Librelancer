@@ -1,2 +1,0 @@
-These files are compiled, and the source inserted as byte arrays into LibreLancer.Base/SSE
-(Note: asmtobytes only works on OSX for now)

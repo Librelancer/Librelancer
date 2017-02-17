@@ -38,6 +38,7 @@ namespace LibreLancer
 		Dictionary<string, TextureShape> shapes = new Dictionary<string, TextureShape>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, SurFile> surs = new Dictionary<string, SurFile>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, Cursor> cursors = new Dictionary<string, Cursor>(StringComparer.OrdinalIgnoreCase);
+		Dictionary<string, TexFrameAnimation> frameanims = new Dictionary<string, TexFrameAnimation>(StringComparer.OrdinalIgnoreCase);
 
 		List<string> loadedMatFiles = new List<string>();
 		List<string> loadedTxmFiles = new List<string>();
@@ -93,6 +94,11 @@ namespace LibreLancer
 		public bool TryGetShape(string name, out TextureShape shape)
 		{
 			return shapes.TryGetValue(name, out shape);
+		}
+
+		public bool TryGetFrameAnimation(string name, out TexFrameAnimation anim)
+		{
+			return frameanims.TryGetValue(name, out anim);
 		}
 
 		public void AddPreload(IEnumerable<string> files)
@@ -213,7 +219,15 @@ namespace LibreLancer
 					textures[tex.Key] = v.Texture;
 				}
 			}
+			foreach (var anim in t.Animations)
+			{
+				if (!frameanims.ContainsKey(anim.Key))
+				{
+					frameanims.Add(anim.Key, anim.Value);
+				}
+			}
 		}
+
 		void AddMaterials(MatFile m, string filename)
 		{
 			if (m.TextureLibrary != null) {
@@ -241,7 +255,6 @@ namespace LibreLancer
 				return GetSph (filename);
 
 			return GetCmp (filename + ".cmp");
-			throw new NotSupportedException (filename);
 		}
 
 		public SphFile GetSph(string filename)

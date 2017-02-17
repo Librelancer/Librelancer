@@ -292,6 +292,65 @@ namespace LibreLancer
 			};
 		}
 
+		public void DrawRectAppearance(
+			Texture2D texture,
+			Vector3 Position,
+			Vector2 size,
+			Color4 color,
+			Vector2 topleft,
+			Vector2 topright,
+			Vector2 bottomleft,
+			Vector2 bottomright,
+			Vector3 normal,
+			float angle,
+			int layer,
+			BlendMode blend = BlendMode.Normal
+		)
+		{
+			//float projectedPointFactor = Vector3.Dot(camera.Position - Position, normal) / Vector3.Dot(normal, normal);
+			//var projectedPoint = Position + projectedPointFactor * normal;
+			var up = normal;
+			var toCamera = (camera.Position - Position).Normalized();
+			var right = Vector3.Cross(toCamera, up);
+			//var right = camera.View.GetRight() * normal;
+			//var up = camera.View.GetUp() * normal;
+			//right *= normal;
+			//up *= normal;
+			//var up = normal;
+			//var right = Camera.View.GetRight();
+			up.Normalize();
+			right.Normalize();
+
+			//up.Normalize();
+			//right.Normalize();
+			rendat[billboardCount] = new RenderData(
+				texture,
+				blend,
+				(ushort)vertexCount
+			);
+			CreateBillboard(
+				Position,
+				size,
+				color,
+				angle,
+				topleft,
+				topright,
+				bottomleft,
+				bottomright,
+				right,
+				up
+			);
+			var z = RenderHelpers.GetZ(camera.Position, Position);
+			buffer.AddCommand(
+				this,
+				rendat[billboardCount].GetHashCode(),
+				billboardCount,
+				layer,
+				z
+			);
+			billboardCount++;
+		}
+
 		public void DrawPerspective(
 			Texture2D texture,
 			Vector3 Position,

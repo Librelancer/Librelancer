@@ -51,7 +51,7 @@ namespace LibreLancer
 		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
 			if(Active)
-				fx.Draw(sys.Game.Billboards, tr, SParam);
+				fx.Draw(sys.Game.Billboards, sys.DebugRenderer, tr, SParam);
 		}
 	}
 }

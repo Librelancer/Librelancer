@@ -44,6 +44,7 @@ namespace LibreLancer
 		public IDrawable[] StarSphereModels;
 		public Matrix4[] StarSphereWorlds;
 
+		public PhysicsDebugRenderer DebugRenderer;
 		public SystemLighting SystemLighting = new SystemLighting();
 		ResourceManager cache;
 		RenderState rstate;
@@ -71,6 +72,7 @@ namespace LibreLancer
 			game = rescache.Game;
 			dot = new Texture2D(1, 1, false, SurfaceFormat.Color);
 			dot.SetData(new uint[] { 0xFFFFFFFF });
+			DebugRenderer = new PhysicsDebugRenderer();
 		}
 
 		void LoadSystem(StarSystem system)
@@ -206,6 +208,7 @@ namespace LibreLancer
 					rstate.DepthEnabled = true;
 				}
 			}
+			DebugRenderer.StartFrame(camera, rstate);
 			commands.StartFrame();
 			rstate.DepthEnabled = true;
 			//Optimisation for dictionary lookups
@@ -230,7 +233,7 @@ namespace LibreLancer
 			rstate.DepthWrite = false;
 			commands.DrawTransparent(rstate);
 			rstate.DepthWrite = true;
-
+			DebugRenderer.Render();
 			if (MSAAEnabled)
 			{
 				msaa.BlitToScreen();

@@ -18,6 +18,8 @@ namespace LibreLancer.Utf.Mat
 {
 	public class TexFrameAnimation
 	{
+		public int TextureCount = 1;
+		public int FrameCount = 0;
 		public float FPS;
 		public RectangleF[] Frames;
 		public TexFrameAnimation(IntermediateNode node)
@@ -29,10 +31,16 @@ namespace LibreLancer.Utf.Mat
 					throw new Exception("Texture Animation should not have child intermediate node");
 				switch (leaf.Name.ToLowerInvariant())
 				{
+					case "texture count":
+						TextureCount = leaf.Int32Data.Value;
+						break;
+					case "frame count":
+						FrameCount = leaf.Int32Data.Value;
+						break;
 					case "fps":
 						FPS = leaf.SingleData.Value;
 						break;
-					case "frames":
+					case "frame rects":
 						var floats = leaf.SingleArrayData;
 						if (floats.Length % 4 != 0)
 							throw new Exception("Incorrect frame data for Texture Animation");

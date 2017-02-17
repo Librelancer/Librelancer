@@ -21,10 +21,12 @@ namespace LibreLancer
     {
         public string UnixName;
         public string WindowsName;
-        public AsmMethodAttribute(string unixname, string windowsname)
+		public string X86Name;
+        public AsmMethodAttribute(string unixname, string windowsname, string x86name)
         {
             UnixName = unixname;
             WindowsName = windowsname;
+			X86Name = x86name;
         }
     }
 }
