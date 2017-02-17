@@ -19,7 +19,7 @@ using System.Reflection;
 
 namespace LibreLancer
 {
-    static partial class SSEMath
+    public static partial class SSEMath
     {
         public static bool IsAccelerated = false;
         public static void Load()

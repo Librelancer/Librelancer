@@ -1,8 +1,7 @@
-	push %ebp
-	push %ebx
+	push %ebx # save ebx register (cdecl)
 	movl 8(%esp), %ebx # 1st argument
-	movl 12(%ebp), %ecx # 2nd argument
-	movl 16(%ebp), %edx # 3rd argument
+	movl 12(%esp), %ecx # 2nd argument
+	movl 16(%esp), %edx # 3rd argument
 
     movups   (%ecx), %xmm0
     movups 16(%ecx), %xmm1
@@ -29,6 +28,5 @@
     movups %xmm5, (%edx, %eax)
     subl $16, %eax                      # one 'sub' (vs 'add' & 'cmp')
     jge 1b                              # SF=OF, idiom: jump if positive
-    pop %ebx
- 	pop %ebp
+    pop %ebx # restore ebx (cdecl)
     ret
