@@ -55,21 +55,26 @@ namespace LibreLancer.Fx
 		{
 			var time = particle.TimeAlive / particle.LifeSpan;
 			var node_tr = GetTranslation(effect, transform, sparam, time);
-
-			var p = node_tr.Transform(particle.Position);
+			var src_pos = particle.Position;
+			var l = Length.GetValue(sparam, time);
+			var w = Width.GetValue(sparam, time);
+			var sc = Scale.GetValue(sparam, time);
+			if (!CenterOnPos) {
+				var nd = particle.Normal.Normalized();
+				src_pos += nd * (l * sc * 0.25f);
+			}
+			var p = node_tr.Transform(src_pos);
 			Texture2D tex;
 			Vector2 tl, tr, bl, br;
 			HandleTexture(res, globaltime, sparam, ref particle, out tex, out tl, out tr, out bl, out br);
 			var c = Color.GetValue(sparam, time);
 			var a = Alpha.GetValue(sparam, time);
-			var p2 = node_tr.Transform(particle.Position + particle.Normal);
+			var p2 = node_tr.Transform(src_pos + particle.Normal);
 			var n = (p2 - p).Normalized();
-			var l = Length.GetValue(sparam, time);
-			var w = Width.GetValue(sparam, time);
 			billboards.DrawRectAppearance(
 				tex,
 				p,
-				new Vector2(l, w) * Scale.GetValue(sparam, time) * 0.5f,
+				new Vector2(l, w) * sc * 0.5f,
 				new Color4(c,a),
 				tl,
 				tr,

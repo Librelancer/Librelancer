@@ -174,6 +174,9 @@ namespace LibreLancer
 			var l0 = model.Levels[0];
 			var vertType = l0.Mesh.VertexBuffer.VertexType.GetType();
 			var transform = ast.RotationMatrix * Matrix4.CreateTranslation(ast.Position * field.CubeSize);
+			var norm = transform;
+			norm.Invert();
+			norm.Transpose();
 			for (int i = l0.StartMesh; i < l0.StartMesh + l0.MeshCount; i++)
 			{
 				var m = l0.Mesh.Meshes[i];
@@ -219,6 +222,7 @@ namespace LibreLancer
 						throw new NotImplementedException("Asteroids: " + vertType.FullName);
 					}
 					vert.Position = VectorMath.Transform(vert.Position, transform);
+					vert.Normal = (norm * new Vector4(vert.Normal, 0)).Xyz;
 					int newIdx = -1;
 					for (int k = 0; k < verts.Count; k++)
 					{
