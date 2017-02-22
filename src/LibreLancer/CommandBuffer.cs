@@ -21,6 +21,7 @@ using LibreLancer.Utf.Cmp;
 
 namespace LibreLancer
 {
+	public delegate void ShaderAction(Shader shdr, RenderState res, ref RenderCommand cmd);
 	public class CommandBuffer
 	{
 		const int MAX_COMMANDS = 16384;
@@ -28,6 +29,12 @@ namespace LibreLancer
 		RenderCommand[] Commands = new RenderCommand[MAX_COMMANDS];
 		int currentCommand = 0;
 		Action _transparentSort;
+
+		public CommandBuffer()
+		{
+			FLLog.Info("RenderCommand Size", System.Runtime.InteropServices.Marshal.SizeOf(typeof(RenderCommand)).ToString());
+		}
+
 		public void StartFrame()
 		{
 			currentCommand = 0;
@@ -37,7 +44,7 @@ namespace LibreLancer
 		{
 			Commands[currentCommand++] = new RenderCommand()
 			{
-				Material = material,
+				Source = material,
 				MaterialAnim = anim,
 				Lights = lights,
 				Buffer = buffer,
@@ -46,10 +53,8 @@ namespace LibreLancer
 				Count = count,
 				Primitive = primitive,
 				CmdType = RenderCmdType.Material,
-				UseBaseVertex = true,
-				Transparent = material.IsTransparent,
 				World = world,
-				SortLayer = layer,
+				SortLayer = material.IsTransparent ? layer : SortLayers.OPAQUE,
 				Z = z
 			};
 		}
@@ -58,7 +63,7 @@ namespace LibreLancer
 		{
 			Commands[currentCommand++] = new RenderCommand()
 			{
-				Material = material,
+				Source = material,
 				MaterialAnim = null,
 				Lights = lights,
 				Buffer = buffer,
@@ -66,21 +71,38 @@ namespace LibreLancer
 				Count = count,
 				Primitive = primitive,
 				CmdType = RenderCmdType.Material,
-				UseBaseVertex = false,
 				Fade = true,
 				BaseVertex = *(int*)(&fadeParams.X),
 				Index = *(int*)(&fadeParams.Y),
-				Transparent = material.IsTransparent,
 				World = world,
-				SortLayer = layer,
+				SortLayer = material.IsTransparent ? layer : SortLayers.OPAQUE,
 				Z = z
 			};
 		}
-		public void AddCommand(Shader shader, Action<Shader,RenderState,RenderCommand> setup, Action<RenderState> cleanup, Matrix4 world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0)
+		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, Matrix4 world, Lighting lt, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0)
 		{
 			Commands[currentCommand++] = new RenderCommand()
 			{
-				Shader = shader,
+				Source = shader,
+				ShaderSetup = setup,
+				World = world,
+				UserData = user,
+				Cleanup = cleanup,
+				Buffer = buffer,
+				Lights = lt,
+				Start = start,
+				Count = count,
+				Primitive = primitive,
+				CmdType = RenderCmdType.Shader,
+				SortLayer = transparent ? layer : SortLayers.OPAQUE,
+				Z = z
+			};
+		}
+		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, Matrix4 world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0)
+		{
+			Commands[currentCommand++] = new RenderCommand()
+			{
+				Source = shader,
 				ShaderSetup = setup,
 				World = world,
 				UserData = user,
@@ -90,17 +112,15 @@ namespace LibreLancer
 				Count = count,
 				Primitive = primitive,
 				CmdType = RenderCmdType.Shader,
-				UseBaseVertex = true,
-				Transparent = transparent,
-				SortLayer = layer,
+				SortLayer = transparent ? layer : SortLayers.OPAQUE,
 				Z = z
 			};
 		}
-		public void AddCommand(Shader shader, Action<Shader, RenderState, RenderCommand> setup, Action<RenderState> cleanup, Matrix4 world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, bool transparent, int layer, float z = 0)
+		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, Matrix4 world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, bool transparent, int layer, float z = 0)
 		{
 			Commands[currentCommand++] = new RenderCommand()
 			{
-				Shader = shader,
+				Source = shader,
 				ShaderSetup = setup,
 				World = world,
 				UserData = user,
@@ -110,9 +130,8 @@ namespace LibreLancer
 				Count = count,
 				Primitive = primitive,
 				CmdType = RenderCmdType.Shader,
-				UseBaseVertex = false,
-				Transparent = transparent,
-				SortLayer = layer,
+				BaseVertex = -1,
+				SortLayer = transparent ? layer : SortLayers.OPAQUE,
 				Z = z
 			};
 		}
@@ -121,12 +140,11 @@ namespace LibreLancer
 			Commands[currentCommand++] = new RenderCommand()
 			{
 				CmdType = RenderCmdType.Billboard,
-				Billboards = billboards,
+				Source = billboards,
 				Hash = hash,
 				Index = index,
 				SortLayer = sortLayer,
-				Z = z,
-				Transparent = true
+				Z = z
 			};
 		}
 		bool _sorted = false;
@@ -136,7 +154,7 @@ namespace LibreLancer
 			AsyncManager.RunTask (_transparentSort);
 			for (int i = 0; i < currentCommand; i++)
 			{
-				if (!Commands[i].Transparent)
+				if (Commands[i].SortLayer == SortLayers.OPAQUE)
 				{
 					Commands[i].Run(state);
 				}
@@ -149,7 +167,7 @@ namespace LibreLancer
 			int a = 0;
 			for (int i = 0; i < currentCommand; i++)
 			{
-				if (Commands[i].Transparent)
+				if (Commands[i].SortLayer != SortLayers.OPAQUE)
 				{
 					cmdptr[a++] = i;
 				}
@@ -169,7 +187,8 @@ namespace LibreLancer
             {
                 if(Commands[cmdptr[i]].CmdType == RenderCmdType.Billboard)
                 {
-                    Commands[cmdptr[i]].Billboards.AddIndices(Commands[cmdptr[i]].Index);
+					var bb = (Billboards)Commands[cmdptr[i]].Source;
+                    bb.AddIndices(Commands[cmdptr[i]].Index);
                 }
             }
                 Billboards lastbb = null;
@@ -180,7 +199,7 @@ namespace LibreLancer
 					lastbb.FlushCommands(state);
 					lastbb = null;
 				}
-				lastbb = Commands[cmdptr[i]].Billboards;
+				lastbb = (Commands[cmdptr[i]].Source as Billboards);
 				Commands[cmdptr[i]].Run(state);
 			}
 			if (lastbb != null)
@@ -214,23 +233,19 @@ namespace LibreLancer
 	public struct RenderCommand
 	{
 		public PrimitiveTypes Primitive;
-		public RenderMaterial Material;
+		public object Source;
 		public Matrix4 World;
 		public RenderUserData UserData;
-		public Shader Shader;
-		public Action<Shader, RenderState,RenderCommand> ShaderSetup;
+		public ShaderAction ShaderSetup;
 		public Action<RenderState> Cleanup;
 		public VertexBuffer Buffer;
 		public int BaseVertex;
 		public RenderCmdType CmdType;
-		public bool UseBaseVertex;
 		public int Start;
 		public int Count;
-		public bool Transparent;
 		public Lighting Lights;
 		public float Z;
 		public int SortLayer;
-		public Billboards Billboards;
 		public MaterialAnim MaterialAnim;
 		public int Hash;
 		public int Index;
@@ -243,6 +258,7 @@ namespace LibreLancer
 		{
 			if (CmdType == RenderCmdType.Material)
 			{
+				var Material = (RenderMaterial)Source;
 				if (Material == null)
 					return;
 				Material.MaterialAnim = MaterialAnim;
@@ -256,7 +272,7 @@ namespace LibreLancer
 					Material.FadeFar = *(float*)(&ff);
 				}
 				Material.Use(state, Buffer.VertexType, Lights);
-				if (UseBaseVertex)
+				if (!Fade && BaseVertex != -1)
 					Buffer.Draw(Primitive, BaseVertex, Start, Count);
 				else
 					Buffer.Draw(Primitive, Count);
@@ -264,7 +280,7 @@ namespace LibreLancer
 				{
 					Material.FlipNormals = true;
 					state.CullFace = CullFaces.Front;
-					if (UseBaseVertex)
+					if (!Fade && BaseVertex != -1)
 						Buffer.Draw(Primitive, BaseVertex, Start, Count);
 					else
 						Buffer.Draw(Primitive, Count);
@@ -278,9 +294,10 @@ namespace LibreLancer
 			}
 			else if (CmdType == RenderCmdType.Shader)
 			{
-				ShaderSetup(Shader, state, this);
+				var Shader = (Shader)Source;
+				ShaderSetup(Shader, state, ref this);
 				Shader.UseProgram();
-				if (UseBaseVertex)
+				if (BaseVertex != -1)
 					Buffer.Draw(Primitive, BaseVertex, Start, Count);
 				else
 					Buffer.Draw(Primitive, Start, Count);
@@ -289,6 +306,7 @@ namespace LibreLancer
 			}
 			else if (CmdType == RenderCmdType.Billboard)
 			{
+				var Billboards = (Billboards)Source;
 				Billboards.RenderStandard(Index, Hash, state);
 			}
 		}

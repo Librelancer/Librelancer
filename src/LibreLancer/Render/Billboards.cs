@@ -156,8 +156,9 @@ namespace LibreLancer
 		{
 			currentTexture = null;
 			var dat = userData;
-			dat.ViewProjection = camera.ViewProjection;
-			dat.Integer = vertexCount;
+			dat.Camera = camera;
+			//dat.Integer = vertexCount;
+			int vc = vertexCount;
 			dat.Object = single_indices;
 			CreateBillboard(
 				Position,
@@ -177,7 +178,7 @@ namespace LibreLancer
 				dat,
 				vbo,
 				PrimitiveTypes.TriangleList,
-				0,
+				vc,
 				2,
 				true,
 				layer,
@@ -559,12 +560,12 @@ namespace LibreLancer
 			[FieldOffset(0)]
 			public int I;
 		}
-		static Action<Shader, RenderState, RenderCommand> _setupDelegateCustom = SetupShaderCustom;
-		static void SetupShaderCustom(Shader shdr, RenderState rs, RenderCommand cmd)
+		static ShaderAction _setupDelegateCustom = SetupShaderCustom;
+		static void SetupShaderCustom(Shader shdr, RenderState rs, ref RenderCommand cmd)
 		{
 			rs.Cull = false;
 			rs.BlendMode = BlendMode.Normal;
-			cmd.UserData.UserFunction(shdr,rs, cmd.UserData);
+			cmd.UserData.UserFunction(shdr,rs, ref cmd);
 			var splt = new SplitInt() { I = shdr.UserTag };
 			if (shdr.UserTag == 0)
 			{
@@ -573,8 +574,10 @@ namespace LibreLancer
 				shdr.UserTag = splt.I;
 			}
 			shdr.SetMatrix(splt.A, ref cmd.World);
-			shdr.SetMatrix(splt.B, ref cmd.UserData.ViewProjection);
-			int idxStart = cmd.UserData.Integer;
+			var vp = cmd.UserData.Camera.ViewProjection;
+			shdr.SetMatrix(splt.B, ref vp);
+			int idxStart = cmd.Start; //re-use this
+			cmd.Start = 0; //hack of the year
 			var indices = (ushort[])cmd.UserData.Object;
 			indices[0] = (ushort)idxStart;
 			indices[1] = (ushort)(idxStart + 1);
@@ -598,5 +601,6 @@ namespace LibreLancer
             lastIndex = 0;
 		}
 	}
+
 }
 

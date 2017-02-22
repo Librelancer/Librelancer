@@ -435,14 +435,13 @@ namespace LibreLancer
 							bandShaderDelegate,
 							bandShaderCleanup,
 							bandTransform,
+							lt,
 							new RenderUserData()
 							{
-								Lighting = lt,
 								Float = field.Band.TextureAspect,
 								Color = field.Band.ColorShift,
-								ViewProjection = vp,
+								Camera = _camera,
 								Texture = tex,
-								Vector = cameraPos,
 								Matrix2 = bandNormal
 							},
 							bandCylinder.VertexBuffer,
@@ -458,17 +457,18 @@ namespace LibreLancer
 				}
 			}
 		}
-		static Action<Shader, RenderState, RenderCommand> bandShaderDelegate = BandShaderSetup;
-		static void BandShaderSetup(Shader shader, RenderState state, RenderCommand command)
+		static ShaderAction bandShaderDelegate = BandShaderSetup;
+		static void BandShaderSetup(Shader shader, RenderState state, ref RenderCommand command)
 		{
 			bandShader.SetWorld(ref command.World);
-			bandShader.SetViewProjection(ref command.UserData.ViewProjection);
+			var vp = command.UserData.Camera.ViewProjection;
+			bandShader.SetViewProjection(ref vp);
 			bandShader.SetNormalMatrix(ref command.UserData.Matrix2);
 			shader.SetInteger(_bsTexture, 0);
-			shader.SetVector3(_bsCameraPosition, command.UserData.Vector);
+			shader.SetVector3(_bsCameraPosition, command.UserData.Camera.Position);
 			shader.SetColor4(_bsColorShift, command.UserData.Color);
 			shader.SetFloat(_bsTextureAspect, command.UserData.Float);
-			RenderMaterial.SetLights(bandShader, command.UserData.Lighting);
+			RenderMaterial.SetLights(bandShader, command.Lights);
 			command.UserData.Texture.BindTo(0);
 			shader.UseProgram();
 			state.BlendMode = BlendMode.Normal;

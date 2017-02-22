@@ -79,14 +79,13 @@ namespace LibreLancer
 		int lastIndex = 0;
 		public void Draw(CommandBuffer buffer, ICamera camera, Texture texture, Color4 color, Matrix4 world, bool inside)
 		{
-			var vp = camera.ViewProjection;
 			var z = RenderHelpers.GetZ(world, camera.Position, Vector3.Zero);
 			buffer.AddCommand(
 				shader,
 				shaderDelegate,
 				resetDelegate,
 				world,
-				new RenderUserData() { Color = color, ViewProjection = vp, Texture = texture },
+				new RenderUserData() { Color = color, Camera = camera, Texture = texture },
 				vbo,
 				PrimitiveTypes.TriangleList,
 				0,
@@ -98,12 +97,13 @@ namespace LibreLancer
 			);
 			lastIndex = currentIndex;
 		}
-		static Action<Shader, RenderState, RenderCommand> shaderDelegate = ShaderSetup;
-		static void ShaderSetup(Shader shader, RenderState state, RenderCommand command)
+		static ShaderAction shaderDelegate = ShaderSetup;
+		static void ShaderSetup(Shader shader, RenderState state, ref RenderCommand command)
 		{
 			state.Cull = false;
 			state.BlendMode = BlendMode.Normal;
-			shader.SetMatrix(_viewproj, ref command.UserData.ViewProjection);
+			var vp = command.UserData.Camera.ViewProjection;
+			shader.SetMatrix(_viewproj, ref vp);
 			shader.SetMatrix(_world, ref command.World);
 			shader.SetColor4(_tint, command.UserData.Color);
 			shader.SetInteger(_texture, 0);

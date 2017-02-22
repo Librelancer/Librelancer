@@ -309,13 +309,13 @@ namespace LibreLancer
 			}
 		}
 
-		static Action<Shader, RenderState, RenderUserData> _setupPuffDelegate = SetupPuffShader;
-		static void SetupPuffShader(Shader sh, RenderState rs, RenderUserData dat)
+		static ShaderAction _setupPuffDelegate = SetupPuffShader;
+		static void SetupPuffShader(Shader sh, RenderState rs, ref RenderCommand dat)
 		{
 			sh.SetInteger(_ptex0, 0);
-			dat.Texture.BindTo(0);
-			sh.SetColor4(_pfogcolor, dat.Color);
-			sh.SetFloat(_pfogfactor, dat.Float);
+			dat.UserData.Texture.BindTo(0);
+			sh.SetColor4(_pfogcolor, dat.UserData.Color);
+			sh.SetFloat(_pfogfactor, dat.UserData.Float);
 		}
 
 		void GenerateExteriorPuffs()
