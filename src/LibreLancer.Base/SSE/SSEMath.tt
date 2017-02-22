@@ -227,7 +227,7 @@ string ProcessFile(string file)
 		builder.AppendLine("\t\t" + getbytes_mac(file, "-DMSABI"));
 		builder.AppendLine("\t\t};");
 		builder.AppendLine("\t\tstatic byte[] " + codeNameCdecl + " = new byte[] {");
-		builder.AppendLine("\t\t" + getbytes_mac(file,"-m32"));
+		builder.AppendLine("\t\t" + getbytes_mac(file,"-m32 -DCDECL -mstackrealign"));
 		builder.AppendLine("\t\t};");
 	}
 	if(RunningOS == OS.Linux || RunningOS == OS.Windows) {
@@ -238,7 +238,7 @@ string ProcessFile(string file)
 		builder.AppendLine("\t\t" + getbytes_gcc(file, "-DMSABI"));
 		builder.AppendLine("\t\t};");
 		builder.AppendLine("\t\tstatic byte[] " + codeNameCdecl + " = new byte[] {");
-		builder.AppendLine("\t\t" + getbytes_gcc(file,"-m32 -DCDECL"));
+		builder.AppendLine("\t\t" + getbytes_gcc(file,"-m32 -DCDECL -mstackrealign"));
 		builder.AppendLine("\t\t};");
 	}
 	return builder.ToString();
