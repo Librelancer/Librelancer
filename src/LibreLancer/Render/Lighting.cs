@@ -92,7 +92,6 @@ namespace LibreLancer
             RenderLight _l6;
             RenderLight _l7;
             RenderLight _l8;
-            RenderLight _l9;
             public unsafe RenderLight this [int index]
             {
                 get

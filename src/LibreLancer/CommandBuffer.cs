@@ -30,11 +30,6 @@ namespace LibreLancer
 		int currentCommand = 0;
 		Action _transparentSort;
 
-		public CommandBuffer()
-		{
-			FLLog.Info("RenderCommand Size", System.Runtime.InteropServices.Marshal.SizeOf(typeof(RenderCommand)).ToString());
-		}
-
 		public void StartFrame()
 		{
 			currentCommand = 0;
