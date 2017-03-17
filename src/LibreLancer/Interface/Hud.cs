@@ -59,7 +59,7 @@ namespace LibreLancer
 			hud_target = L(game, "hud_target.cmp");
 			hud_shipinfo = L(game, "hud_shipinfo.cmp");
 			hud_gaugewindow = L(game, "hud_guagewindow.cmp"); //This is how it's spelt in Freelancer
-			gauge_mask = ImageLib.PNG.FromStream(typeof(Hud).Assembly.GetManifestResourceStream("LibreLancer.Shaders.gauge_mask.png"));
+			gauge_mask = ImageLib.Generic.FromStream(typeof(Hud).Assembly.GetManifestResourceStream("LibreLancer.Shaders.gauge_mask.png"));
 			gauge_mask.SetFiltering(TextureFiltering.Nearest);
 
 			hud_numberboxes = L(game, "hud_numberboxes.cmp");

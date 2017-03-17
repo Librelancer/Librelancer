@@ -15,6 +15,7 @@
  */
 using System;
 using System.IO;
+using StbSharp;
 namespace LibreLancer.ImageLib
 {
 	public static class Generic
@@ -29,12 +30,41 @@ namespace LibreLancer.ImageLib
 		{
 			if (DDS.StreamIsDDS (stream)) {
 				return DDS.DDSFromStream2D (stream, 0, true);
-			} else if (PNG.StreamIsPng (stream)) {
-				return PNG.FromStream (stream);
-			} else if (BMP.StreamIsBMP (stream)) {
-				return BMP.FromStream (stream);
 			} else {
-				return TGA.FromStream (stream);
+				/* Read full stream */
+				int len = (int)stream.Length;
+				byte[] b = new byte[len];
+				int pos = 0;
+				int r = 0;
+				while ((r = stream.Read(b, pos, len - pos)) > 0)
+				{
+					pos += r;
+				}
+				/* stb_image it */
+				int x, y, comp;
+				Stb.stbi_set_flip_vertically_on_load(1);
+				var data = Stb.stbi_load_from_memory(b, out x, out y, out comp, Stb.STBI_rgb_alpha);
+				unsafe
+				{
+					fixed(byte *d = data)
+					{
+						int j = 0;
+						for (int i = 0; i < data.Length; i+=4)
+						{
+							var R = d[i];
+							var G = d[i + 1];
+							var B = d[i + 2];
+							var A = d[i + 3];
+							d[j++] = B;
+							d[j++] = G;
+							d[j++] = R;
+							d[j++] = A;
+						}
+					}
+				}
+				var t = new Texture2D(x, y, false, SurfaceFormat.Color);
+				t.SetData(data);
+				return t;
 			}
 		}
 	}

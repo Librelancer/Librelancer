@@ -9,6 +9,24 @@ namespace LibreLancer.ImageLib
 {
 	public static partial class PNG
 	{
+		const ulong PNG_SIGNATURE = 0xA1A0A0D474E5089;
+		enum ColorType
+		{
+			Grayscale = 0,
+			Rgb = 2,
+			Palette = 3,
+			GrayscaleAlpha = 4,
+			Rgba = 6
+		}
+
+		enum FilterType
+		{
+			None = 0,
+			Sub = 1,
+			Up = 2,
+			Average = 3,
+			Paeth = 4
+		}
 		public static void Save(string filename, int width, int height, byte[] data)
 		{
 			using (var writer = new BinaryWriter(File.Create(filename)))
@@ -85,6 +103,7 @@ namespace LibreLancer.ImageLib
 					bufb.CopyTo(bufa, 0);
 				}
 			}
+			ApplyPaeth(data, prev, curr, count, bufa, out score, out type);
 		}
 		delegate void ApplyFilter(byte[] data, int prev, int curr, int count, byte[] buf, out int score, out FilterType ft);
 		static void ApplyNone(byte[] data, int prev, int curr, int count, byte[] buf, out int score, out FilterType ft)
@@ -145,20 +164,28 @@ namespace LibreLancer.ImageLib
 		}
 		static void ApplyPaeth(byte[] data, int prev, int curr, int count, byte[] buf, out int score, out FilterType ft)
 		{
-			ft = FilterType.Sub;
+			ft = FilterType.Paeth;
 			score = 0;
 			int j = 0;
 			int last = 0;
 			for (int i = 0; i < count; i++)
 			{
-				var p = (i - 4 >= 0) ? data[curr + (i - 4)] : 0;
-				var pl = (i - 4 >= 0) ? data[prev + (i - 4)] : 0;
+				var p = (i - 4 >= 0) ? data[curr + (i - 4)] : (byte)0;
+				var pl = (i - 4 >= 0) ? data[prev + (i - 4)] : (byte)0;
 				var r = (byte)((data[curr + i] - PaethPredictor(p, data[prev + i], pl)) % 256);
 				score += Math.Abs(last - r);
 				last = r;
 				buf[j++] = r;
 			}
 		}
-
+		static byte PaethPredictor(byte a, byte b, byte c)
+		{
+			int pa = Math.Abs(b - c);
+			int pb = Math.Abs(a - c);
+			int pc = Math.Abs(a + b - c - c);
+			if (pc < pa && pc < pb) return c;
+			else if (pb < pa) return b;
+			else return a;
+		}
 	}
 }
