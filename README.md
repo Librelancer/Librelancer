@@ -20,6 +20,7 @@ Pull Requests are welcome!
 4. Enjoy
 
 #### Linux
+*Note for Ubuntu users: the official mono package must be installed as outlined [here](http://www.mono-project.com/docs/getting-started/install/linux/#debian-ubuntu-and-derivatives)*
 1. Install mpv, mono, sdl2, openal and freetype
 2. Clone this repository with `git clone --recursive https://github.com/CallumDev/Librelancer`
 3. Build src/LibreLancer.sln in Xamarin Studio or with xbuild, and launch *Launcher*
