@@ -1,5 +1,5 @@
 # Librelancer
-A re-implementation of Freelancer in C# and OpenGL.
+A re-implementation of the 2003 Space Game [Freelancer](https://en.wikipedia.org/wiki/Freelancer_(video_game)) in C# and OpenGL.
 *Freelancer is not currently playable at current. This is a tech-demo*
 
 Currently running on OSX, Windows and Linux (both experimental).
