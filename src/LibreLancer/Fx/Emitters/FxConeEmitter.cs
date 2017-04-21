@@ -40,18 +40,22 @@ namespace LibreLancer.Fx
 				MaxSpread = (AlchemyCurveAnimation)temp.Value;
 			}
 		}
+
+		protected virtual float GetSpread(Random rand, float sparam, float time)
+		{
+			var s_min = MathHelper.DegreesToRadians(MinSpread.GetValue(sparam, 0));
+			var s_max = MathHelper.DegreesToRadians(MaxSpread.GetValue(sparam, 0));
+			return rand.NextFloat(s_min, s_max);
+		}
+
 		protected override void SetParticle(int idx, ParticleEffect fx, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
 		{
-
 			var r_min = MinRadius.GetValue(sparam, 0);
 			var r_max = MaxRadius.GetValue(sparam, 0);
 
-			var s_min = MathHelper.DegreesToRadians(MinSpread.GetValue(sparam, 0));
-			var s_max = MathHelper.DegreesToRadians(MaxSpread.GetValue(sparam, 0));
-
 			var radius = instance.Random.NextFloat(r_min, r_max);
-			var theta = instance.Random.NextFloat(s_min, s_max);
-			var phi = instance.Random.NextFloat(s_min, s_max);
+			var theta = instance.Random.NextFloat(0, MathHelper.Pi);
+			var phi = GetSpread(instance.Random, sparam, 0);
 
 			var x = Math.Sin(phi) * Math.Cos(theta);
 			var y = Math.Sin(phi) * Math.Sin(theta);

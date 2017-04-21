@@ -17,10 +17,24 @@ using System;
 using LibreLancer.Utf.Ale;
 namespace LibreLancer.Fx
 {
-	public class FxSphereEmitter : FxEmitter
+	public class FxSphereEmitter : FxConeEmitter
 	{
 		public FxSphereEmitter (AlchemyNode ale) : base(ale)
 		{
+			AleParameter temp;
+			if (ale.TryGetParameter("SphereEmitter_MinRadius", out temp))
+			{
+				MinRadius = (AlchemyCurveAnimation)temp.Value;
+			}
+			if (ale.TryGetParameter("SphereEmitter_MaxRadius", out temp))
+			{
+				MaxRadius = (AlchemyCurveAnimation)temp.Value;
+			}
+		}
+
+		protected override float GetSpread(Random rand, float sparam, float time)
+		{
+			return rand.NextFloat(0, MathHelper.TwoPi);
 		}
 	}
 }

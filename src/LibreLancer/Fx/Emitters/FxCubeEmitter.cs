@@ -58,20 +58,33 @@ namespace LibreLancer.Fx
 				          instance.Random.NextFloat (-h, h),
 				          instance.Random.NextFloat (-d, d)
 			          );
-			var n = Vector3.UnitY;
-			var theta = instance.Random.NextFloat(s_min, s_max);
-			var phi = instance.Random.NextFloat(s_min, s_max);
-			n += new Vector3(
-				(float)(Math.Sin(phi) * Math.Cos(theta)),
-				(float)(Math.Sin(phi) * Math.Sin(theta)),
-				(float)(Math.Cos(phi))
-			);
-
+			//var angle = instance.Random.NextFloat(s_min, s_max);
+			/*var n = new Vector3(
+				(float)(Math.Cos(angle)),
+				1,
+				(float)(Math.Sin(angle))
+			);*/
+			var n = RandomInCone(instance.Random, s_min, s_max);
 			var tr = Transform.GetMatrix(sparam, 0);
 			n = (tr * new Vector4(n.Normalized(), 0)).Xyz.Normalized();
 			var pr = pos;
 			instance.Particles[idx].Position = pr;
 			instance.Particles [idx].Normal = n * Pressure.GetValue (sparam, 0);
+		}
+
+
+		static Vector3 RandomInCone(Random r, float minradius, float maxradius)
+		{
+			//(sqrt(1 - z^2) * cosϕ, sqrt(1 - z^2) * sinϕ, z)
+			var radradius = maxradius / 2;
+
+			float z = r.NextFloat((float)Math.Cos(radradius), 1 - (minradius / 2));
+			float t = r.NextFloat(0, (float)(Math.PI * 2));
+			return new Vector3(
+				(float)(Math.Sqrt(1 - z * z) * Math.Cos(t)),  
+				z,
+				(float)(Math.Sqrt(1 - z * z) * Math.Sin(t))
+			);
 		}
 
 	}

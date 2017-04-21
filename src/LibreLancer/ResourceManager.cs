@@ -48,7 +48,9 @@ namespace LibreLancer
 		{
 			Game = g;
 		}
-
+		public ResourceManager()
+		{
+		}
 
 		public void Preload()
 		{

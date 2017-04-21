@@ -47,7 +47,14 @@ namespace LibreLancer.Fx
 					var nd = FindNode(noderef.CRC);
 					if (noderef.Parent != 32768)
 					{
-						fx.Parents.Add(nd, FindNode(effect.FindRef(noderef.Parent).CRC));
+						if (fx.Parents.ContainsKey(nd))
+						{
+							FLLog.Error("ALE", "HACK: node used in effect " + fx.Name + ", ignoring");
+						}
+						else
+						{
+							fx.Parents.Add(nd, FindNode(effect.FindRef(noderef.Parent).CRC));
+						}
 					}
 					else
 						fx.Parents.Add(nd, root);

@@ -17,7 +17,7 @@ using System;
 
 namespace LibreLancer
 {
-	internal static partial class GL
+	public static partial class GL
 	{
 		public const int GL_COLOR_BUFFER_BIT = 0x00004000;
 		public const int GL_DEPTH_BUFFER_BIT = 0x00000100;

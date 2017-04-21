@@ -24,7 +24,7 @@ using LibreLancer.GLDelegates;
 
 namespace LibreLancer
 {
-	internal static partial class GL
+	public static partial class GL
 	{
 		//General State
 		[MapsTo("glEnable")]
