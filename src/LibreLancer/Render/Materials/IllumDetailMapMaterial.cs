@@ -70,11 +70,11 @@ namespace LibreLancer
 			sh.SetFlipV(FlipV);
 
 			sh.SetDtSampler(0);
-			BindTexture(0, DtSampler, 0, DtFlags);
+			BindTexture(rstate, 0, DtSampler, 0, DtFlags);
 			sh.SetDm0Sampler(1);
-			BindTexture(1, Dm0Sampler, 1, Dm0Flags);
+			BindTexture(rstate, 1, Dm0Sampler, 1, Dm0Flags);
 			sh.SetDm1Sampler(2);
-			BindTexture(2, Dm1Sampler, 2, Dm1Flags);
+			BindTexture(rstate, 2, Dm1Sampler, 2, Dm1Flags);
 			SetLights(sh, lights);
 			var normalMatrix = World;
 			normalMatrix.Invert();

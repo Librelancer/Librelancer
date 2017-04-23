@@ -19,6 +19,8 @@ namespace LibreLancer
 {
 	public enum TextureFiltering
 	{
+		Trilinear,
+		Bilinear,
 		Linear,
 		Nearest
 	}

@@ -33,6 +33,8 @@ namespace LibreLancer
 		public const int GL_TEXTURE_MIN_FILTER = 0x2801;
 		public const int GL_TEXTURE_MAG_FILTER = 0x2800;
 		public const int GL_LINEAR = 0x2601;
+		public const int GL_LINEAR_MIPMAP_NEAREST = 0x2701;
+		public const int GL_LINEAR_MIPMAP_LINEAR = 0x2703;
 		public const int GL_NEAREST = 0x2600;
 		public const int GL_TEXTURE0 = 0x84C0;
 		public const int GL_TEXTURE_WRAP_S = 0x2802;

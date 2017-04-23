@@ -53,6 +53,9 @@ namespace LibreLancer
 				depthDirty = true;
 			}
 		}
+
+		public TextureFiltering PreferredFilterLevel { get; set; }
+
 		public bool DepthWrite
 		{
 			get
@@ -135,6 +138,7 @@ namespace LibreLancer
 			GL.Enable (GL.GL_CULL_FACE);
 			GL.CullFace (GL.GL_BACK);
 			Instance = this;
+			PreferredFilterLevel = TextureFiltering.Trilinear;
 		}
 
 		public void SetViewport(int x, int y, int w, int h)

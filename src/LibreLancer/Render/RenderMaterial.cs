@@ -95,7 +95,7 @@ namespace LibreLancer
 			return textures[cacheidx];
 		}
 
-		protected void BindTexture(int cacheidx, string tex, int unit, SamplerFlags flags, bool throwonNull = true)
+		protected void BindTexture(RenderState rstate, int cacheidx, string tex, int unit, SamplerFlags flags, bool throwonNull = true)
 		{
 			if (tex == null)
 			{
@@ -111,6 +111,7 @@ namespace LibreLancer
 				if (tex2d.IsDisposed)
 					tex2d = textures[cacheidx] = (Texture2D)Library.FindTexture(tex);
 				tex2d.BindTo(unit);
+				tex2d.SetFiltering(rstate.PreferredFilterLevel);
 				if ((flags & SamplerFlags.ClampToEdgeU) == SamplerFlags.ClampToEdgeU) {
 					tex2d.SetWrapModeS (WrapMode.ClampToEdge);
 				}

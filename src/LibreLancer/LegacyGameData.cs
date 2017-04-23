@@ -327,7 +327,7 @@ namespace LibreLancer
 			a.CubeRotation.AxisX = ast.Cube_RotationX ?? GameData.AsteroidCubeRotation.Default_AxisX;
 			a.CubeRotation.AxisY = ast.Cube_RotationY ?? GameData.AsteroidCubeRotation.Default_AxisY;
 			a.CubeRotation.AxisZ = ast.Cube_RotationZ ?? GameData.AsteroidCubeRotation.Default_AxisZ;
-			a.CubeSize = ast.Field.CubeSize.Value;
+			a.CubeSize = ast.Field.CubeSize ?? 100; //HACK: Actually handle null cube correctly
 			a.SetFillDist(ast.Field.FillDist.Value);
 			a.EmptyCubeFrequency = ast.Field.EmptyCubeFrequency ?? 0f;
 			foreach (var c in ast.Cube) {

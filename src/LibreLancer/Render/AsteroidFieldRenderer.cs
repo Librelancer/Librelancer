@@ -68,7 +68,10 @@ namespace LibreLancer
 			renderDistSq = rdist * rdist;
 			cubes = new CalculatedCube[1000];
 			_asteroidsCalculation = CalculateAsteroids;
-			CreateBufferObject();
+			if (field.Cube.Count > 0)
+			{
+				CreateBufferObject();
+			}
 			//Set up band
 			if (field.Band == null)
 				return;
@@ -248,8 +251,11 @@ namespace LibreLancer
 
 		public void Dispose()
 		{
-			cube_ibo.Dispose();
-			cube_vbo.Dispose();
+			if (field.Cube.Count > 0)
+			{
+				cube_ibo.Dispose();
+				cube_vbo.Dispose();
+			}
 		}
 
 		ICamera _camera;
@@ -260,7 +266,7 @@ namespace LibreLancer
 			_camera = camera;
 			//for (int i = 0; i < field.Cube.Count; i++)
 				//field.Cube [i].Drawable.Update (camera, TimeSpan.Zero);
-			if (VectorMath.DistanceSquared (cameraPos, field.Zone.Position) <= renderDistSq) {
+			if (field.Cube.Count > 0 && VectorMath.DistanceSquared (cameraPos, field.Zone.Position) <= renderDistSq) {
 				_asteroidsCalculated = false;
 				cubeCount = 0;
 				AsyncManager.RunTask (_asteroidsCalculation);
@@ -360,31 +366,36 @@ namespace LibreLancer
 			if (VectorMath.DistanceSquared (cameraPos, field.Zone.Position) <= renderDistSq) {
 				float fadeNear = field.FillDist * 0.9f;
 				float fadeFar = field.FillDist;
-				if (cubeCount == -1)
-					return;
-				while (!_asteroidsCalculated) {
-				}
-				for (int j = 0; j < cubeCount; j++) {
-					var center = cubes[j].pos;
-					var z = RenderHelpers.GetZ(cameraPos, center);
-					var lt = RenderHelpers.ApplyLights(lighting, 0, center, field.CubeSize, nr);
-					var transform = Matrix4.CreateTranslation(center) * cubes[j].rot;
-					for (int i = 0; i < cubeDrawCalls.Count; i++)
+				if (field.Cube.Count > 0)
+				{
+					if (cubeCount == -1)
+						return;
+					while (!_asteroidsCalculated)
 					{
-						var dc = cubeDrawCalls[i];
-						dc.Material.Update(_camera);
-						buffer.AddCommandFade(
-							dc.Material.Render,
-							transform,
-							lt,
-							cube_vbo,
-							PrimitiveTypes.TriangleList,
-							dc.StartIndex,
-							dc.Count / 3,
-							SortLayers.OBJECT,
-							new Vector2(fadeNear, fadeFar),
-							z
-						);
+					}
+					for (int j = 0; j < cubeCount; j++)
+					{
+						var center = cubes[j].pos;
+						var z = RenderHelpers.GetZ(cameraPos, center);
+						var lt = RenderHelpers.ApplyLights(lighting, 0, center, field.CubeSize, nr);
+						var transform = Matrix4.CreateTranslation(center) * cubes[j].rot;
+						for (int i = 0; i < cubeDrawCalls.Count; i++)
+						{
+							var dc = cubeDrawCalls[i];
+							dc.Material.Update(_camera);
+							buffer.AddCommandFade(
+								dc.Material.Render,
+								transform,
+								lt,
+								cube_vbo,
+								PrimitiveTypes.TriangleList,
+								dc.StartIndex,
+								dc.Count / 3,
+								SortLayers.OBJECT,
+								new Vector2(fadeNear, fadeFar),
+								z
+							);
+						}
 					}
 				}
 				if (field.BillboardCount != -1) {

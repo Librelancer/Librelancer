@@ -17,8 +17,11 @@ using System;
 using LibreLancer.Utf.Ale;
 namespace LibreLancer.Fx
 {
-	public class FxSphereEmitter : FxConeEmitter
+	public class FxSphereEmitter : FxEmitter
 	{
+		public AlchemyCurveAnimation MinRadius;
+		public AlchemyCurveAnimation MaxRadius;
+
 		public FxSphereEmitter (AlchemyNode ale) : base(ale)
 		{
 			AleParameter temp;
@@ -32,9 +35,27 @@ namespace LibreLancer.Fx
 			}
 		}
 
-		protected override float GetSpread(Random rand, float sparam, float time)
+		protected override void SetParticle(int idx, ParticleEffect fx, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
 		{
-			return rand.NextFloat(0, MathHelper.TwoPi);
+			var r_min = MinRadius.GetValue(sparam, 0);
+			var r_max = MaxRadius.GetValue(sparam, 0);
+
+			var radius = instance.Random.NextFloat(r_min, r_max);
+
+			var p = new Vector3(
+				instance.Random.NextFloat(-1, 1),
+				instance.Random.NextFloat(-1, 1),
+				instance.Random.NextFloat(-1, 1)
+			);
+			p.Normalize();
+			var direction = p;
+
+			var tr = Transform.GetMatrix(sparam, 0);
+			var n = (tr * new Vector4(direction, 0)).Xyz.Normalized();
+			n *= Pressure.GetValue(sparam, 0);
+			var pr = p * radius;
+			instance.Particles[idx].Position = pr;
+			instance.Particles[idx].Normal = n;
 		}
 	}
 }
