@@ -14,14 +14,13 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-
+using System.IO;
 namespace LibreLancer.Media
 {
 	public class MusicPlayer
 	{
 		AudioManager dev;
-		StreamingDecoder dec;
-		StreamingAudio stream;
+		StreamingSource sound;
 		float _volume = 1.0f;
 		public float Volume
 		{
@@ -29,8 +28,8 @@ namespace LibreLancer.Media
 				return _volume;
 			} set {
 				_volume = value;
-				if (stream != null)
-					stream.Volume = value;
+				if (sound != null)
+					sound.Volume = value;
 			}
 		}
 		internal MusicPlayer (AudioManager adev)
@@ -40,41 +39,33 @@ namespace LibreLancer.Media
 
 		public void Play(string filename, bool loop = false)
 		{
-			Stop ();
-			dec = new StreamingDecoder (filename);
-			stream = new StreamingAudio (dev, dec.Format, dec.Frequency);
-			stream.Volume = _volume;
-			stream.BufferNeeded += (StreamingAudio instance, out byte[] buffer) => {
-				byte[] buf = null;
-				var ret = dec.GetBuffer(ref buf);
-				buffer = buf;
-				return ret;
-			};
-			stream.PlaybackFinished += (sender, e) => {
-				if (loop)
-					Play(filename, loop);
-				else {
-					stream.Dispose();
-					dec.Dispose();
-					stream = null;
-				}
-			};
-			stream.Play ();
+			Stop();
+			var stream = File.OpenRead(filename);
+			var data = SoundLoader.Open(stream);
+			sound = dev.CreateStreaming(data);
+			sound.Volume = Volume;
+			sound.Stopped += Sound_Stopped;
+			sound.Begin(loop);
 		}
 
 		public void Stop()
 		{
-			if(State == PlayState.Playing) {
-				stream.Stop ();
-				stream.Dispose();
-				dec.Dispose();
-				stream = null;
+			if (sound != null)
+			{
+				sound.Stop();
+				sound = null;
 			}
+		}
+
+		void Sound_Stopped(object sender, EventArgs e)
+		{
+			var snd = (StreamingSource)sender;
+			snd.Dispose();
 		}
 
 		public PlayState State {
 			get {
-				return stream == null ? PlayState.Stopped : PlayState.Playing;
+				return sound == null ? PlayState.Stopped : PlayState.Playing;
 			}
 		}
 	}

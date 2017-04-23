@@ -163,6 +163,7 @@ namespace LibreLancer
 			if (collisionShape != null)
 			{
 				PhysicsComponent = new RigidBody(collisionShape);
+				PhysicsComponent.Tag = this;
 				PhysicsComponent.IsStatic = staticpos;
 				if (staticpos)
 					PhysicsComponent.Material.Restitution = 1;

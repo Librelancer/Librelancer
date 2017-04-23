@@ -68,7 +68,7 @@ namespace LibreLancer
 			ResourceManager = new ResourceManager(this);
 			//Init Audio
 			FLLog.Info("Audio", "Initialising Audio");
-			Audio = new AudioManager();
+			Audio = new AudioManager(this);
 			if (_cfg.MuteMusic)
 				Audio.Music.Volume = 0f;
 			//Load data

@@ -31,8 +31,8 @@ namespace LibreLancer.Media
 
 		public void Play(float volume)
 		{
-			AudioManager.ALFunc(() => Al.alSourcei(sid, Al.AL_BUFFER, (int)data.ID));
-			AudioManager.ALFunc(() => Al.alSourcef(sid, Al.AL_GAIN, volume));
+			Al.alSourcei(sid, Al.AL_BUFFER, (int)data.ID);
+			Al.alSourcef(sid, Al.AL_GAIN, volume);
 			au.PlayInternal(sid);
 		}
 	}

@@ -17,19 +17,18 @@ using System;
 using System.IO;
 namespace LibreLancer.Media
 {
-	class RiffFile
+	class RiffLoader
 	{
 		const int WFORMATTAG_WAV = 0x1;
 		const int WFORMATTAG_MP3 = 0x55;
 
-		public byte[] Data;
-		public int Channels;
-		public int Frequency;
-		public int Bits;
-		public WaveFormat Format;
+		int Channels;
+		int Frequency;
+		int Bits;
+		WaveFormat Format;
 		Stream inputStream;
 		int dataLength;
-		public RiffFile(Stream input)
+		private RiffLoader(Stream input)
 		{
 			var reader = new BinaryReader(input);
 			inputStream = input;
@@ -74,21 +73,28 @@ namespace LibreLancer.Media
 			}
 
 		}
-		bool dataAccessed = false;
-		public void ReadAllData()
+		Stream GetDataStream()
 		{
-			if (dataAccessed)
-				throw new InvalidOperationException();
-			Data = new byte[dataLength];
-			inputStream.Read(Data, 0, dataLength);
-			dataAccessed = true;
-		}
-		public Stream GetDataStream()
-		{
-			if (dataAccessed)
-				throw new InvalidOperationException();
-			dataAccessed = true;
 			return new SliceStream(dataLength, inputStream);
+		}
+
+		public static StreamingSound GetSound(Stream stream)
+		{
+			var file = new RiffLoader(stream);
+			if (file.Format == WaveFormat.PCM)
+			{
+				var snd = new StreamingSound();
+				snd.Format = ALUtils.GetFormat(file.Channels, file.Bits);
+				snd.Frequency = file.Frequency;
+				snd.Size = file.dataLength;
+				snd.Data = file.GetDataStream();
+				return snd;
+			}
+			else if (file.Format == WaveFormat.MP3)
+			{
+				return Mp3Utils.GetSound(file.GetDataStream());
+			}
+			throw new NotSupportedException();
 		}
 	}
 }

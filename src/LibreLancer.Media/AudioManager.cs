@@ -24,22 +24,25 @@ namespace LibreLancer.Media
 	{
 		//TODO: Heuristics to determine max number of sources
 		const int MAX_SOURCES = 32;
+		const int MAX_BUFFERS = 256;
 		internal bool Ready = false;
 		bool running = true;
 		//ConcurrentQueues to avoid threading errors
 		ConcurrentQueue<uint> toAdd = new ConcurrentQueue<uint> ();
 		ConcurrentQueue<uint> freeSources = new ConcurrentQueue<uint>();
-		ConcurrentQueue<uint> streamingSources = new ConcurrentQueue<uint>();
+		internal Queue<uint> streamingSources = new Queue<uint>();
+		internal Queue<uint> Buffers = new Queue<uint>();
 		List<uint> sfxInstances = new List<uint>();
-		List<StreamingAudio> streamingInstances = new List<StreamingAudio>();
-		ConcurrentQueue<StreamingAudio> toAddStreaming = new ConcurrentQueue<StreamingAudio>();
-		ConcurrentQueue<StreamingAudio> toRemoveStreaming = new ConcurrentQueue<StreamingAudio>();
+		internal ConcurrentQueue<Action> Actions = new ConcurrentQueue<Action>();
+		internal List<StreamingSource> activeStreamers = new List<StreamingSource>();
+		internal List<StreamingSource> toRemove = new List<StreamingSource>();
 		public MusicPlayer Music { get; private set; }
 
-		public AudioManager()
+		internal IUIThread UIThread;
+		public AudioManager(IUIThread uithread)
 		{
 			Music = new MusicPlayer(this);
-
+			this.UIThread = uithread;
 			new Thread (new ThreadStart (UpdateThread)).Start ();
 
 		}
@@ -58,25 +61,6 @@ namespace LibreLancer.Media
 			}
 		}
 
-		internal bool AllocateSourceStreaming(out uint source)
-		{
-			while (!Ready) { }
-			if (freeSources.Count > 0)
-			{
-				return streamingSources.TryDequeue(out source);
-			}
-			else
-			{
-				source = uint.MaxValue;
-				return false;
-			}
-		}
-
-		internal void RelinquishSourceStreaming(uint source)
-		{
-			streamingSources.Enqueue(source);
-		}
-
 		public bool CreateInstance(out SoundEffectInstance instance, SoundData data)
 		{
 			instance = null;
@@ -89,21 +73,31 @@ namespace LibreLancer.Media
 			else
 				return false;
 		}
+
+		internal StreamingSource CreateStreaming(StreamingSound sound)
+		{
+			return new StreamingSource(this, sound, streamingSources.Dequeue());
+		}
+
 		public SoundData AllocateData()
 		{
 			while (!Ready) { }
 			return new SoundData(Al.GenBuffer());
 		}
+
 		void UpdateThread()
 		{
 			//Init context
 			IntPtr dev = Alc.alcOpenDevice(null);
 			IntPtr ctx = Alc.alcCreateContext(dev, IntPtr.Zero);
 			Alc.alcMakeContextCurrent(ctx);
-
 			for (int i = 0; i < MAX_SOURCES; i++)
 			{
 				freeSources.Enqueue(Al.GenSource());
+			}
+			for (int i = 0; i < MAX_BUFFERS; i++)
+			{
+				Buffers.Enqueue(Al.GenBuffer());
 			}
 			uint musicSource;
 			for (int i = 0; i < 2; i++)
@@ -111,31 +105,17 @@ namespace LibreLancer.Media
 				while (!freeSources.TryDequeue(out musicSource)) {}
 				streamingSources.Enqueue(musicSource);
 			}
-			Console.WriteLine("Ready");
+			FLLog.Debug("Audio", "Audio initialised");
 			Ready = true;
 			while (running) {
-				
 				//insert into items to update
 				while (toAdd.Count > 0) {
 					uint item;
 					if (toAdd.TryDequeue (out item))
 						sfxInstances.Add(item);
 				}
-				while (toAddStreaming.Count > 0)
-				{
-					StreamingAudio item;
-					if (toAddStreaming.TryDequeue(out item))
-						streamingInstances.Add(item);
-				}
-				//remove items
-				while (toRemoveStreaming.Count > 0)
-				{
-					StreamingAudio item;
-					if (toRemoveStreaming.TryDequeue(out item))
-					{
-						streamingInstances.Remove(item);
-					}
-				}
+				Action toRun;
+				while (Actions.TryDequeue(out toRun)) toRun();
 				//update SFX
 				for (int i = sfxInstances.Count - 1; i >= 0; i--) {
 					int state;
@@ -148,8 +128,14 @@ namespace LibreLancer.Media
 					}
 				}
 				//update Streaming
-				foreach (var item in streamingInstances)
+				foreach (var item in activeStreamers)
 					item.Update();
+				foreach (var item in toRemove)
+				{
+					activeStreamers.Remove(item);
+					if (item.Stopped != null)
+						item.OnStopped();
+				}
 				Thread.Sleep (5);
 			}
 			//Delete context
@@ -157,29 +143,24 @@ namespace LibreLancer.Media
 			Alc.alcDestroyContext(ctx);
 			Alc.alcCloseDevice(ctx);
 		}
-		internal static void ALFunc(Action act)
-		{
-			act ();
-			int error;
-			if ((error = Al.alGetError()) != Al.AL_NO_ERROR)
-				throw new InvalidOperationException(Al.GetString(error));
-		}
+
 		internal void PlayInternal(uint sid)
 		{
-			ALFunc(() => Al.alSourcePlay(sid));
+			Al.alSourcePlay(sid);
 			toAdd.Enqueue(sid);
-		}
-		internal void Add(StreamingAudio audio)
-		{
-			toAddStreaming.Enqueue(audio);
-		}
-		internal void Remove(StreamingAudio audio)
-		{
-			toRemoveStreaming.Enqueue(audio);
 		}
 		public void Dispose()
 		{
 			running = false;
+		}
+		internal void RunActionBlocking(Action action)
+		{
+			bool ran = false;
+			Actions.Enqueue(() =>
+			{
+				action(); ran = true;
+			});
+			while (!ran) { };
 		}
 	}
 }

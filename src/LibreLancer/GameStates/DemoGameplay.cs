@@ -29,7 +29,7 @@ namespace LibreLancer
 Camera Position: (X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00})
 C# Memory Usage: {5}
 Velocity: {6}
-Hitbox Drawing (H/J): {7}
+Selected Object (right click): {7}
 Mouse Position: {8} {9}
 Mouse Flight: {10}
 ";
@@ -47,7 +47,6 @@ Mouse Flight: {10}
 		GameObject player;
 		public float Velocity = 0f;
 		const float MAX_VELOCITY = 320f;
-		int draw_hitboxes = 8;
 		Color4[] colors = new Color4[]
 		{
 			Color4.White,
@@ -144,18 +143,6 @@ Mouse Flight: {10}
 			{
 				Game.RenderState.Wireframe = !Game.RenderState.Wireframe;
 			}
-			if (e.Key == Keys.H)
-			{
-				draw_hitboxes++;
-				if (draw_hitboxes >= world.Physics.RigidBodies.Count)
-					draw_hitboxes = 0;
-			}
-			if (e.Key == Keys.J)
-			{
-				draw_hitboxes--;
-				if (draw_hitboxes <= 0)
-					draw_hitboxes = world.Physics.RigidBodies.Count - 1;
-			}
 		}
 
 		void G_Keyboard_TextInput(string text)
@@ -166,6 +153,7 @@ Mouse Flight: {10}
 		}
 		Vector2 moffset = Vector2.Zero;
 		const float ACCEL = 85;
+		GameObject selected;
 		void ProcessInput(TimeSpan delta)
 		{
 			moffset = (new Vector2(Game.Mouse.X, Game.Mouse.Y) - new Vector2(Game.Width / 2, Game.Height / 2));
@@ -197,6 +185,23 @@ Mouse Flight: {10}
 				pc.Orientation = JMatrix.CreateFromYawPitchRoll((float)yaw, (float)pitch, lerped);
 			}
 
+			if (Game.Mouse.IsButtonDown(MouseButtons.Right))
+			{
+				var newselected = GetSelection(Game.Mouse.X, Game.Mouse.Y);
+				if (selected != null && newselected != selected)
+					selected.PhysicsComponent.EnableDebugDraw = false;
+				if (newselected != null)
+				{
+					newselected.PhysicsComponent.EnableDebugDraw = true;
+					debugDrawBody = newselected.PhysicsComponent;
+				}
+				else
+				{
+					debugDrawBody = null;
+				}
+				selected = newselected;
+			}
+
 			if (Game.Keyboard.IsKeyDown(Keys.Up))
 			{
 				camera.DesiredPositionOffset -= (10 * (float)delta.TotalSeconds * camera.OffsetDirection);
@@ -214,6 +219,62 @@ Mouse Flight: {10}
 			{
 				camera.DesiredPositionOffset.X -= 10 * (float)delta.TotalSeconds;
 			}
+		}
+
+		GameObject GetSelection(float x, float y)
+		{
+			var vp = new Vector2(Game.Width, Game.Height);
+
+			var start = UnProject(new Vector3(x, y, 0f), camera.Projection, camera.View, vp).ToJitter();
+			var end = UnProject(new Vector3(x, y, 1f), camera.Projection, camera.View, vp).ToJitter();
+
+			var dir = end;
+			dir.Normalize();
+			dir *= 200000;
+			RigidBody rb;
+			JVector normal;
+			float fraction;
+			var result = world.Physics.CollisionSystem.Raycast(
+				start,
+				dir,
+				RaycastCallback,
+				out rb,
+				out normal,
+				out fraction
+			);
+			if (result && rb.Tag is GameObject)
+				return (GameObject)rb.Tag;
+			return null;
+		}
+
+		bool RaycastCallback(RigidBody body, JVector normal, float fraction)
+		{
+			return body.Tag != player;
+		}
+
+		static Vector3 UnProject(Vector3 mouse, Matrix4 projection, Matrix4 view, Vector2 viewport)
+		{
+			Vector4 vec;
+
+			vec.X = 2.0f * mouse.X / (float)viewport.X - 1;
+			vec.Y = -(2.0f * mouse.Y / (float)viewport.Y - 1);
+			vec.Z = mouse.Z;
+			vec.W = 1.0f;
+
+			Matrix4 viewInv = Matrix4.Invert(view);
+			Matrix4 projInv = Matrix4.Invert(projection);
+
+			Vector4.Transform(ref vec, ref projInv, out vec);
+			Vector4.Transform(ref vec, ref viewInv, out vec);
+
+			if (vec.W > 0.000001f || vec.W < -0.000001f)
+			{
+				vec.X /= vec.W;
+				vec.Y /= vec.W;
+				vec.Z /= vec.W;
+			}
+
+			return vec.Xyz;
 		}
 
 		static void DecomposeOrientation(JMatrix mx, out double xPitch, out double yYaw, out double zRoll)
@@ -234,14 +295,14 @@ Mouse Flight: {10}
 			}
 		}
 
-
+		RigidBody debugDrawBody;
 		public override void Draw(TimeSpan delta)
 		{
 			sysrender.Draw();
 			int i = 0;
 			int j = 0;
 			debugphysics.StartFrame(camera, Game.RenderState);
-			foreach (RigidBody body in world.Physics.RigidBodies)
+			/*foreach (RigidBody body in world.Physics.RigidBodies)
 			{
 				debugphysics.Color = colors[i];
 				if (j == draw_hitboxes)
@@ -254,11 +315,24 @@ Mouse Flight: {10}
 				j++;
 				if (i >= colors.Length)
 					i = 0;
+			}*/
+			if (debugDrawBody != null)
+			{
+				debugDrawBody.DebugDraw(debugphysics);
 			}
+
 			debugphysics.Render();
 			hud.Draw(Game);
 			trender.Start(Game.Width, Game.Height);
-			DrawShadowedText(string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, SizeSuffix(GC.GetTotalMemory(false)), Velocity, draw_hitboxes, moffset.X, moffset.Y, mouseFlight), 5, 5);
+			string sel_obj = "None";
+			if (selected != null)
+			{
+				if (selected.Name == null)
+					sel_obj = "unknown object";
+				else
+					sel_obj = selected.Name;
+			}
+			DrawShadowedText(string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, moffset.X, moffset.Y, mouseFlight), 5, 5);
 			cur.Draw(trender, Game.Mouse);
 			trender.Finish();
 		}

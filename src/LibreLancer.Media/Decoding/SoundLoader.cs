@@ -17,12 +17,12 @@ using System;
 using System.IO;
 namespace LibreLancer.Media
 {
-	static class ContainerDetection
+	static class SoundLoader
 	{
 		const uint MAGIC_RIFF = 0x46464952;
 		const uint MAGIC_OGG = 0x5367674F; //Future reference
 
-		public static ContainerKind Detect(Stream stream)
+		public static StreamingSound Open(Stream stream)
 		{
 			var reader = new BinaryReader(stream);
 			uint magic = reader.ReadUInt32();
@@ -30,11 +30,12 @@ namespace LibreLancer.Media
 			switch (magic)
 			{
 				case MAGIC_RIFF:
-					return ContainerKind.RIFF;
+					return RiffLoader.GetSound(stream);
 				case MAGIC_OGG:
-					throw new NotSupportedException("Ogg files");
+					//TODO: Opus
+					return VorbisLoader.GetSound(stream);
 				default:
-					return ContainerKind.MP3;
+					return Mp3Utils.GetSound(stream);
 			}
 		}
 	}

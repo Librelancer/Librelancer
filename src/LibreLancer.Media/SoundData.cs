@@ -36,43 +36,26 @@ namespace LibreLancer.Media
 
 		public void LoadStream(Stream stream)
 		{
-			int channels, freq, bits;
-			var data = GetPCMData(stream, out channels, out freq, out bits);
-			AudioManager.ALFunc(() => Al.BufferData(ID, ALUtils.GetFormat(channels, bits), data, data.Length, freq));
-		}
-
-		static byte[] GetPCMData(Stream stream, out int channels, out int freq, out int bits)
-		{
-			var detected = ContainerDetection.Detect(stream);
-			if (detected == ContainerKind.MP3)
+			using (var snd = SoundLoader.Open(stream))
 			{
-				bits = 16;
-				return Mp3Utils.DecodeAll(stream, out channels, out freq);
-			}
-			if (detected == ContainerKind.RIFF)
-			{
-				var riff = new RiffFile(stream);
-				riff.ReadAllData();
-				if (riff.Format == WaveFormat.PCM)
+				byte[] data;
+				if (snd.Size != -1)
 				{
-					channels = riff.Channels;
-					freq = riff.Frequency;
-					bits = riff.Bits;
-					return riff.Data;
+					data = new byte[snd.Size];
+					System.Diagnostics.Trace.Assert(snd.Data.Read(data, 0, snd.Size) == snd.Size);
 				}
-				else if (riff.Format == WaveFormat.MP3)
+				else
 				{
-					bits = 16;
-					using (var mem = new MemoryStream(riff.Data))
+					using (var mem = new MemoryStream())
 					{
-						return Mp3Utils.DecodeAll(mem, out channels, out freq);
+						snd.Data.CopyTo(mem);
+						data = mem.GetBuffer();
 					}
 				}
+				Al.BufferData(ID, snd.Format, data, data.Length, snd.Frequency);
 			}
-			//Shouldn't be called
-			bits = 0; channels = 0; freq = 0;
-			throw new NotImplementedException(detected.ToString());
 		}
+
 	}
 }
 

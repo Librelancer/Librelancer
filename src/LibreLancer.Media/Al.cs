@@ -99,6 +99,13 @@ namespace LibreLancer.Media
 		{
 			return Marshal.PtrToStringAnsi(alGetString(param));
 		}
+
+		public static void CheckErrors()
+		{
+			int error;
+			if ((error = Al.alGetError()) != Al.AL_NO_ERROR)
+				throw new InvalidOperationException(Al.GetString(error));
+		}
 	}
 }
 

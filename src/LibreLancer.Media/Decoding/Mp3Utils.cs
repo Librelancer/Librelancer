@@ -19,23 +19,17 @@ namespace LibreLancer.Media
 {
 	class Mp3Utils
 	{
-		public static byte[] DecodeAll(Stream input, out int channels, out int freq)
+		public static StreamingSound GetSound(Stream stream)
 		{
-			channels = -1;
-			freq = -1;
-			using (var stream = new MP3Sharp.MP3Stream(input))
-			{
-				freq = stream.Frequency;
-				if (stream.Format == MP3Sharp.SoundFormat.Pcm16BitMono)
-					channels = 1;
-				else
-					channels = 2;
-				using (var mem = new MemoryStream())
-				{
-					stream.CopyTo(mem);
-					return mem.ToArray();
-				}
-			}
+			var mp3 = new MP3Sharp.MP3Stream(stream);
+			var snd = new StreamingSound();
+			snd.Data = mp3;
+			if (mp3.Format == MP3Sharp.SoundFormat.Pcm16BitMono)
+				snd.Format = Al.AL_FORMAT_MONO16;
+			else
+				snd.Format = Al.AL_FORMAT_STEREO16;
+			snd.Frequency = mp3.Frequency;
+			return snd;
 		}
 	}
 }

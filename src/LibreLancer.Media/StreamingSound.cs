@@ -10,16 +10,27 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2017
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.IO;
 namespace LibreLancer.Media
 {
-	enum ContainerKind
+	class StreamingSound : IDisposable
 	{
-		RIFF,
-		MP3
+		public Stream Data;
+		public int Format;
+		public int Frequency;
+		public int Size = -1;
+
+		internal StreamingSound()
+		{
+		}
+
+		public void Dispose()
+		{
+			Data.Dispose();
+		}
 	}
 }
-
