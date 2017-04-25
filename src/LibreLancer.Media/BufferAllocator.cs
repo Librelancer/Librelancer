@@ -24,7 +24,8 @@ namespace LibreLancer.Media
 		const int BUFFERS_MAX = 20;
 
 		static ConcurrentQueue<byte[]> buffers = new ConcurrentQueue<byte[]>();
-		static ConcurrentQueue<float[]> fbuffers = new ConcurrentQueue<float[]>;
+		static ConcurrentQueue<float[]> fbuffers = new ConcurrentQueue<float[]>();
+
 		public static byte[] AllocateBytes()
 		{
 			if (buffers.Count <= 0)
