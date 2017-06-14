@@ -314,6 +314,12 @@
     <Compile Include="Fx\Appearances\FxMeshAppearance.cs" />
     <Compile Include="Thn\ParameterCurve.cs" />
     <Compile Include="Thn\MotionPath.cs" />
+    <Compile Include="Render\ShaderCaps.cs" />
+    <Compile Include="Interface\HudModelElement.cs" />
+    <Compile Include="Interface\HudNumberBoxElement.cs" />
+    <Compile Include="Interface\HudGaugeElement.cs" />
+    <Compile Include="Interface\HudToggleButtonElement.cs" />
+    <Compile Include="Interface\Maneuver.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

@@ -46,7 +46,7 @@ namespace LibreLancer
         static ShaderVariables sh_posNormalColorTexture;
         static ShaderVariables sh_posTexture;
         static ShaderVariables sh_pos;
-		static ShaderVariables GetShader(IVertexType vertextype)
+		static ShaderVariables GetShader(IVertexType vertextype, ShaderCaps caps)
 		{
 			var vert = vertextype.GetType().Name;
 			switch (vert)
@@ -55,35 +55,40 @@ namespace LibreLancer
                     if(sh_posNormalTexture == null)
 					sh_posNormalTexture = ShaderCache.Get(
 						"Basic_PositionNormalTexture.vs",
-						"Basic_Fragment.frag"
+						"Basic_Fragment.frag",
+						caps
 					);
                     return sh_posNormalTexture;
 				case "VertexPositionNormalTextureTwo":
                     if(sh_posNormalTextureTwo == null)
 					sh_posNormalTextureTwo = ShaderCache.Get(
 						"Basic_PositionNormalTextureTwo.vs",
-						"Basic_Fragment.frag"
+						"Basic_Fragment.frag",
+						caps
 					);
                     return sh_posNormalTextureTwo;
 				case "VertexPositionNormalColorTexture":
                     if(sh_posNormalColorTexture == null)
 					sh_posNormalColorTexture = ShaderCache.Get(
 						"Basic_PositionNormalColorTexture.vs",
-						"Basic_Fragment.frag"
+						"Basic_Fragment.frag",
+						caps
 					);
                     return sh_posNormalColorTexture;
 				case "VertexPositionTexture":
                     if(sh_posTexture == null)
 					sh_posTexture = ShaderCache.Get(
 						"Basic_PositionTexture.vs",
-						"Basic_Fragment.frag"
+						"Basic_Fragment.frag",
+						caps
 					);
                     return sh_posTexture;
 				case "VertexPosition":
                     if(sh_pos == null)
 					sh_pos = ShaderCache.Get(
 						"Basic_PositionTexture.vs",
-						"Basic_Fragment.frag"
+						"Basic_Fragment.frag",
+						caps
 					);
                     return sh_pos;
 				default:
@@ -94,7 +99,11 @@ namespace LibreLancer
 		{
             if (Camera == null)
                 return;
-			var shader = GetShader(vertextype);
+			ShaderCaps caps = ShaderCaps.None;
+			if (EtEnabled) caps |= ShaderCaps.EtEnabled;
+			if (Fade) caps |= ShaderCaps.FadeEnabled;
+			if (AlphaEnabled && GetTexture(0, DtSampler).Dxt1) caps |= ShaderCaps.AlphaTestEnabled;
+			var shader = GetShader(vertextype, caps);
 			shader.SetWorld(ref World);
             shader.SetView(Camera);
             shader.SetViewProjection(Camera);
@@ -104,9 +113,8 @@ namespace LibreLancer
 			//Dc
 			shader.SetDc(Dc);
 			//Oc
-			shader.SetOcEnabled(OcEnabled ? 1 : 0);
 			shader.SetOc(Oc);
-			if (AlphaEnabled || Fade)
+			if (AlphaEnabled || Fade || OcEnabled)
 			{
 				rstate.BlendMode = BlendMode.Normal;
 			}
@@ -114,15 +122,7 @@ namespace LibreLancer
 				rstate.BlendMode = BlendMode.Opaque;
 			}
 			//Fade
-			if (Fade)
-			{
-				shader.SetFade(true);
-				shader.SetFadeRange(new Vector2(FadeNear, FadeFar));
-			}
-			else
-			{
-				shader.SetFade(false);
-			}
+			if (Fade) shader.SetFadeRange(new Vector2(FadeNear, FadeFar));
 			//MaterialAnim
 			if (MaterialAnim != null)
 			{
@@ -137,16 +137,10 @@ namespace LibreLancer
 			{
 				shader.SetMaterialAnim(new Vector4(0, 0, 1, 1));
 			}
-			if (AlphaEnabled && GetTexture(0, DtSampler).Dxt1)
-				shader.SetAlphaTest(true);
-			else
-				shader.SetAlphaTest(false);
-			
 			shader.SetFlipNormal(FlipNormals);
 			//Ec
 			shader.SetEc(Ec);
 			//EtSampler
-			shader.SetEtEnabled(EtEnabled);
 			if (EtEnabled) {
 				shader.SetEtSampler(1);
 				BindTexture(rstate, 1, EtSampler, 1, EtFlags, false);

@@ -113,6 +113,7 @@ Mouse Flight: {10}
 		{
 			ecpt.Speed = (Velocity / MAX_VELOCITY) * 0.9f;
 			hud.Velocity = Velocity;
+			hud.Update(delta);
 			world.Update(delta);
 		}
 
@@ -322,7 +323,7 @@ Mouse Flight: {10}
 			}
 
 			debugphysics.Render();
-			hud.Draw(Game);
+			hud.Draw();
 			trender.Start(Game.Width, Game.Height);
 			string sel_obj = "None";
 			if (selected != null)

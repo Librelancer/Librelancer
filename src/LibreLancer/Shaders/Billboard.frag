@@ -1,5 +1,4 @@
-﻿#version 150
-uniform sampler2D tex0;
+﻿uniform sampler2D tex0;
 in vec2 Vertex_UV;
 in vec4 Vertex_Color;
 out vec4 FragColor;

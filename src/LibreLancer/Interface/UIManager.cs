@@ -42,7 +42,7 @@ namespace LibreLancer
 		}
 		public void Draw()
         {
-			MenuButton.Update (IdentityCamera.Instance, TimeSpan.Zero, TimeSpan.FromSeconds(Game.TotalTime));
+			if (MenuButton != null) MenuButton.Update (IdentityCamera.Instance, TimeSpan.Zero, TimeSpan.FromSeconds(Game.TotalTime));
             Game.RenderState.DepthEnabled = false;
 			foreach (var e in Elements)
 				e.DrawBase ();
@@ -73,7 +73,7 @@ namespace LibreLancer
 
 		public void Update(TimeSpan delta)
 		{
-			MenuButton.Update (IdentityCamera.Instance, delta, TimeSpan.FromSeconds(Game.TotalTime));
+			if (MenuButton != null) MenuButton.Update (IdentityCamera.Instance, delta, TimeSpan.FromSeconds(Game.TotalTime));
 			foreach (var elem in Elements)
 				elem.Update (delta);
 		}

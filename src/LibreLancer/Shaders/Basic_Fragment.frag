@@ -1,5 +1,4 @@
-﻿#version 140
-//Lighting code
+﻿//Lighting code
 #pragma include (lighting.inc)
 //Material code
 in vec2 out_texcoord;
@@ -13,41 +12,33 @@ uniform vec4 Dc;
 uniform vec4 Ec;
 uniform sampler2D DtSampler;
 uniform sampler2D EtSampler;
-uniform bool EtEnabled;
 uniform float Oc;
-uniform bool OcEnabled;
 
-uniform bool Fade;
-uniform bool AlphaTest;
 uniform vec2 FadeRange;
 void main()
 {
 	vec4 sampler = texture(DtSampler, out_texcoord);
-	if(AlphaTest) {
-		if(sampler.a < 1.0) {
-			discard;
-		}
+	#ifdef ALPHATEST_ENABLED
+	if(sampler.a < 1.0) {
+		discard;
 	}
+	#endif
 	vec4 ec = Ec;
-	if(EtEnabled) {
-		ec += texture(EtSampler, out_texcoord);
-	}
+	#ifdef ET_ENABLED
+	ec += texture(EtSampler, out_texcoord);
+	#endif
 	vec4 color = light(vec4(1), ec, Dc * out_vertexcolor, texture(DtSampler, out_texcoord), world_position, view_position, out_normal);
-	vec4 acolor;
-	if (OcEnabled)
-		acolor = color * vec4(1,1,1,Oc);
-	else
-		acolor = vec4(color.rgb, sampler.a);
-	if(Fade) {
-		float dist = length(view_position);
-		//FadeRange - x: near, y: far
-		float fadeFactor = (FadeRange.y - dist) / (FadeRange.y - FadeRange.x);
-		fadeFactor = clamp(fadeFactor, 0.0, 1.0);
-		//fade
-		out_color = vec4(acolor.rgb, acolor.a * fadeFactor);
-	} else {
-		out_color = acolor;
-	}
+	vec4 acolor = color * vec4(1,1,1,Oc);
+	#ifdef FADE_ENABLED
+	float dist = length(view_position);
+	//FadeRange - x: near, y: far
+	float fadeFactor = (FadeRange.y - dist) / (FadeRange.y - FadeRange.x);
+	fadeFactor = clamp(fadeFactor, 0.0, 1.0);
+	//fade
+	out_color = vec4(acolor.rgb, acolor.a * fadeFactor);
+	#else
+	out_color = acolor;
+	#endif
 }
 
 

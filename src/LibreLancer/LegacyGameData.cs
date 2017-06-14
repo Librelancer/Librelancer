@@ -152,7 +152,20 @@ namespace LibreLancer
 			}
 			return (Texture2D)resource.FindTexture("__freelancerlogo.tga");
 		}
-
+		public IEnumerable<Maneuver> GetManeuvers()
+		{
+			foreach (var m in fldata.Hud.Maneuvers)
+			{
+				yield return new Maneuver()
+				{
+					Action = m.Action,
+					InfocardA = fldata.Infocards.GetStringResource(m.InfocardA),
+					InfocardB = fldata.Infocards.GetStringResource(m.InfocardB),
+					ActiveModel = m.ActiveModel,
+					InactiveModel = m.InactiveModel
+				};
+			}
+		}
 		public GameData.StarSystem GetSystem(string id)
 		{
 			var legacy = fldata.Universe.FindSystem (id);
@@ -410,8 +423,17 @@ namespace LibreLancer
 				for (int i = 0; i < shapes.Length; i++)
 				{
 					var name = nbl.CloudsPuffShape[i];
-					shapes[i].Texture = panels.Shapes[name].TextureName;
-					shapes[i].Dimensions = panels.Shapes[name].Dimensions;
+					if (!panels.Shapes.ContainsKey(name))
+					{
+						FLLog.Error("Nebula", "Shape " + name + " does not exist in " + nbl.TexturePanels.Files[0]);
+						shapes[i].Texture = ResourceManager.NullTextureName;
+						shapes[i].Dimensions = new RectangleF(0, 0, 1, 1);
+					}
+					else
+					{
+						shapes[i].Texture = panels.Shapes[name].TextureName;
+						shapes[i].Dimensions = panels.Shapes[name].Dimensions;
+					}
 				}
 				n.InteriorCloudShapes = new WeightedRandomCollection<GameData.CloudShape>(
 					shapes,
@@ -433,8 +455,17 @@ namespace LibreLancer
 				for (int i = 0; i < shapes.Length; i++)
 				{
 					var name = nbl.ExteriorShape[i];
-					shapes[i].Texture = panels.Shapes[name].TextureName;
-					shapes[i].Dimensions = panels.Shapes[name].Dimensions;
+					if (!panels.Shapes.ContainsKey(name))
+					{
+						FLLog.Error("Nebula", "Shape " + name + " does not exist in " + nbl.TexturePanels.Files[0]);
+						shapes[i].Texture = ResourceManager.NullTextureName;
+						shapes[i].Dimensions = new RectangleF(0, 0, 1, 1);
+					}
+					else
+					{
+						shapes[i].Texture = panels.Shapes[name].TextureName;
+						shapes[i].Dimensions = panels.Shapes[name].Dimensions;
+					}
 				}
 				n.ExteriorCloudShapes = new WeightedRandomCollection<GameData.CloudShape>(
 					shapes,
@@ -514,6 +545,11 @@ namespace LibreLancer
 		public IDrawable GetProp(string prop)
 		{
 			return resource.GetDrawable(ResolveDataPath(fldata.PetalDb.Props[prop]));
+		}
+
+		public IDrawable GetRoom(string room)
+		{
+			return resource.GetDrawable(ResolveDataPath(fldata.PetalDb.Rooms[room]));
 		}
 
 		public GameData.SystemObject GetSystemObject(Legacy.Universe.SystemObject o)

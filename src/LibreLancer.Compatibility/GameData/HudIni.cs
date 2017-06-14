@@ -10,37 +10,34 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2017
  * the Initial Developer. All Rights Reserved.
  */
 using System;
 using System.Collections.Generic;
-namespace LibreLancer.Utf.Ale
+using System.Linq;
+using LibreLancer.Ini;
+using LibreLancer.Compatibility.GameData.Interface;
+namespace LibreLancer.Compatibility.GameData
 {
-	public class AlchemyNode
+	public class HudIni : IniFile
 	{
-		public string Name;
-		public uint CRC;
-		public List<AleParameter> Parameters = new List<AleParameter>();
-		public AlchemyNode ()
+		public List<HudManeuver> Maneuvers = new List<HudManeuver>();
+		public HudIni()
 		{
 		}
-		public override string ToString ()
+		public void AddIni(string path)
 		{
-			return Name;
-		}
-		public bool TryGetParameter(string name, out AleParameter parameter)
-		{
-			parameter = null;
-			var nm = name.ToUpperInvariant ();
-			foreach (var p in Parameters) {
-				if (p.Name.ToUpperInvariant () == nm) {
-					parameter = p;
-					return true;
+			foreach (var section in ParseFile(path))
+			{
+				switch (section.Name.ToLowerInvariant())
+				{
+					case "maneuvers":
+						foreach (var e in section)
+							Maneuvers.Add(new HudManeuver(e));
+						break;
 				}
 			}
-			return false;
 		}
 	}
 }
-

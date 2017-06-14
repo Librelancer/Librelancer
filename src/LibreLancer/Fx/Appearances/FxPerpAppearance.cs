@@ -17,7 +17,7 @@ using System;
 using LibreLancer.Utf.Ale;
 namespace LibreLancer.Fx
 {
-	public class FxPerpAppearance : FxOrientedAppearance
+	public class FxPerpAppearance : FxBasicAppearance
 	{
 		public FxPerpAppearance(AlchemyNode ale) : base(ale) { }
 

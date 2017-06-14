@@ -229,7 +229,9 @@ namespace LibreLancer
 				var model = (ModelFile)drawable;
 				foreach (var hpdef in model.Hardpoints)
 				{
-					hardpoints.Add(hpdef.Name, new Hardpoint(hpdef, transform));
+					//Workaround broken models
+					if(!hardpoints.ContainsKey(hpdef.Name))
+						hardpoints.Add(hpdef.Name, new Hardpoint(hpdef, transform));
 				}
 			}
 		}

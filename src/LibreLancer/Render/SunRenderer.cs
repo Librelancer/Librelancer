@@ -59,7 +59,7 @@ namespace LibreLancer
 					(Texture2D)sysr.Game.ResourceManager.FindTexture(Sun.CenterSprite),
 					new Vector3(pos),
 					new Vector2(Sun.Radius, Sun.Radius) * center_scale,
-					new Color4(Sun.CenterColorInner, alpha),
+					new Color4(Sun.CenterColorInner, 1),
 					new Color4(Sun.CenterColorOuter, alpha),
 					0,
 					z
@@ -69,7 +69,7 @@ namespace LibreLancer
 				(Texture2D)sysr.Game.ResourceManager.FindTexture(Sun.GlowSprite),
 				new Vector3(pos),
 				new Vector2(Sun.Radius, Sun.Radius) * glow_scale,
-				new Color4(Sun.GlowColorInner, alpha),
+				new Color4(Sun.GlowColorInner, 0),
 				new Color4(Sun.GlowColorOuter, alpha),
 				0,
 				z + 108f
@@ -169,11 +169,11 @@ namespace LibreLancer
 		{
 			sh.SetInteger(_radialtex0, 0);
 			dat.UserData.Texture.BindTo(0);
-			sh.SetColor4(_radialinner, dat.UserData.Color);
+			var inner = new Color4(dat.UserData.Color.R, dat.UserData.Color.G, dat.UserData.Color.B, dat.UserData.Color2.A);
+			sh.SetColor4(_radialinner, inner);
 			sh.SetColor4(_radialouter, dat.UserData.Color2);
 			sh.SetFloat(_radialexpand, dat.UserData.Float);
-			if (!((Texture2D)dat.UserData.Texture).WithAlpha)
-				rs.BlendMode = BlendMode.Additive;
+			rs.BlendMode = dat.UserData.Color.A == 1 ? BlendMode.Additive : BlendMode.Normal;
 		}
 		static ShaderAction _setupSpineDelegate = SetupSpineShader;
 		static void SetupSpineShader(Shader sh, RenderState rs, ref RenderCommand dat)
@@ -183,6 +183,7 @@ namespace LibreLancer
 			sh.SetVector3(_spineinner, new Vector3(dat.UserData.Color.R, dat.UserData.Color.G, dat.UserData.Color.B));
 			sh.SetVector3(_spineouter, new Vector3(dat.UserData.Color2.R, dat.UserData.Color2.G, dat.UserData.Color2.B));
 			sh.SetFloat(_spinealpha, dat.UserData.Float);
+			rs.BlendMode = BlendMode.Additive;
 		}
 	}
 }

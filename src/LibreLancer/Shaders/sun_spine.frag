@@ -1,5 +1,4 @@
-﻿#version 150
-uniform sampler2D tex0;
+﻿uniform sampler2D tex0;
 uniform vec3 innercolor;
 uniform vec3 outercolor;
 uniform float alpha;

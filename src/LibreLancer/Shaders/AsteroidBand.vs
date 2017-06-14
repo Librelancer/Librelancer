@@ -1,5 +1,4 @@
-﻿#version 150
-in vec3 vertex_position;
+﻿in vec3 vertex_position;
 in vec3 vertex_normal;
 in vec2 vertex_texture1;
 out vec2 texcoords;

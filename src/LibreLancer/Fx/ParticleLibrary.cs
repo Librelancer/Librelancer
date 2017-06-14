@@ -21,40 +21,39 @@ namespace LibreLancer.Fx
 {
 	public class ParticleLibrary
 	{
-		public List<FxNode> Nodes = new List<FxNode> ();
 		public List<ParticleEffect> Effects = new List<ParticleEffect>();
 		public ResourceManager Resources;
-
 		public ParticleLibrary (ResourceManager res, AleFile ale)
 		{
 			Resources = res;
-			foreach (var node in ale.NodeLib.Nodes) {
-				Nodes.Add (NodeFromAle (node));
-			}
 			foreach (var effect in ale.FxLib.Effects) {
 				var fx = new ParticleEffect (this);
 				var root = new FxRootNode();
 				fx.CRC = effect.CRC;
 				fx.Name = effect.Name;
+				List<FxNode> nodes = new List<FxNode>();
+				Dictionary<uint, FxNode> nodesByIndex = new Dictionary<uint, FxNode>();
 				foreach (var noderef in effect.Fx)
 				{
-					if (noderef.IsAttachmentNode && FindNode(noderef.CRC) == null)
+					FxNode node;
+					if (noderef.IsAttachmentNode)
 					{
-						Nodes.Add(new FxNode("Attachment_0x" + noderef.CRC.ToString("X"), "Empty") { CRC = noderef.CRC });
+						node = new FxNode("Attachment_0x" + noderef.CRC.ToString("X"), "Empty") { CRC = noderef.CRC };
 					}
+					else
+					{
+						node = NodeFromAle(ale.NodeLib.Nodes.Where((arg) => arg.CRC == noderef.CRC).First()); 
+					}
+					nodes.Add(node);
+					nodesByIndex.Add(noderef.Index, node);
 				}
-				foreach (var noderef in effect.Fx) {
-					var nd = FindNode(noderef.CRC);
+				foreach (var noderef in effect.Fx)
+				{
+					var nd = nodesByIndex[noderef.Index];
+					//var nd = FindNode(noderef.CRC);
 					if (noderef.Parent != 32768)
 					{
-						if (fx.Parents.ContainsKey(nd))
-						{
-							FLLog.Error("ALE", "HACK: node used in effect " + fx.Name + ", ignoring");
-						}
-						else
-						{
-							fx.Parents.Add(nd, FindNode(effect.FindRef(noderef.Parent).CRC));
-						}
+						fx.Parents.Add(nd, nodesByIndex[noderef.Parent]);
 					}
 					else
 						fx.Parents.Add(nd, root);
@@ -63,28 +62,18 @@ namespace LibreLancer.Fx
 				}
 				foreach (var pair in effect.Pairs)
 				{
-					var n1 = FindNode(effect.FindRef(pair.Item1).CRC);
+					var n1 = nodesByIndex[pair.Item1];
+					var n2 = nodesByIndex[pair.Item2];
 					List<Fx.FxNode> pairedTo;
 					if (!fx.Pairs.TryGetValue(n1, out pairedTo)) {
 						pairedTo = new List<FxNode>();
 						fx.Pairs.Add(n1, pairedTo);
 					}
-					pairedTo.Add(FindNode(effect.FindRef(pair.Item2).CRC));
+					pairedTo.Add(n2);
 				}
-				fx.SetNodes(effect.Fx.Select(arg => FindNode(arg.CRC)));
+				fx.SetNodes(nodes);
 				Effects.Add(fx);
 			}
-		}
-		FxNode FindNode(uint crc)
-		{
-			var result = from FxNode n in Nodes where n.CRC == crc select n;
-			var c = result.Count();
-			if (c == 1)
-				return result.First();
-			else if (c == 0)
-				return null;
-			else
-				throw new Exception("ALE CRC collision");
 		}
 		static FxNode NodeFromAle(AlchemyNode ale)
 		{
@@ -99,6 +88,8 @@ namespace LibreLancer.Fx
 		}
 		public ParticleEffect FindEffect(uint crc)
 		{
+			if (Effects.Count == 1)
+				return Effects[0]; //Work around buggy mods
 			var result = from ParticleEffect e in Effects where e.CRC == crc select e;
 			if (result.Count() == 1)
 				return result.First();

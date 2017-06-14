@@ -1,5 +1,4 @@
-﻿#version 140
-#pragma include (lighting.inc)
+﻿#pragma include (lighting.inc)
 uniform sampler2D DtSampler;
 uniform sampler2D Dm0Sampler;
 uniform sampler2D Dm1Sampler;

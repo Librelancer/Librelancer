@@ -47,7 +47,12 @@ namespace LibreLancer
 		public ResourceManager(FreelancerGame g)
 		{
 			Game = g;
+			NullTexture = new Texture2D(1, 1, false, SurfaceFormat.Color);
+			NullTexture.SetData(new byte[] { 0xFF, 0xFF, 0xFF, 0x0 });
 		}
+
+		public Texture2D NullTexture;
+		public const string NullTextureName = "$$LIBRELANCER.Null";
 		public ResourceManager()
 		{
 		}
@@ -110,7 +115,7 @@ namespace LibreLancer
 
 		public bool TextureExists(string name)
 		{
-			return texturefiles.ContainsKey(name);
+			return texturefiles.ContainsKey(name) || name == NullTextureName;
 		}
 
 		public void AddTexture(string name,string filename)
@@ -136,6 +141,8 @@ namespace LibreLancer
 
 		public Texture FindTexture (string name)
 		{
+			if (name == NullTextureName)
+				return NullTexture;
             Texture outtex;
 			if ((outtex = textures[name]) == null)
 			{

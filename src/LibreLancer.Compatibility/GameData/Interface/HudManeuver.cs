@@ -14,33 +14,24 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using System.Collections.Generic;
-namespace LibreLancer.Utf.Ale
+using LibreLancer.Ini;
+namespace LibreLancer.Compatibility.GameData.Interface
 {
-	public class AlchemyNode
+	public class HudManeuver
 	{
-		public string Name;
-		public uint CRC;
-		public List<AleParameter> Parameters = new List<AleParameter>();
-		public AlchemyNode ()
+		public string Action;
+		public int InfocardA;
+		public int InfocardB;
+		public string ActiveModel;
+		public string InactiveModel;
+
+		public HudManeuver(Entry e)
 		{
-		}
-		public override string ToString ()
-		{
-			return Name;
-		}
-		public bool TryGetParameter(string name, out AleParameter parameter)
-		{
-			parameter = null;
-			var nm = name.ToUpperInvariant ();
-			foreach (var p in Parameters) {
-				if (p.Name.ToUpperInvariant () == nm) {
-					parameter = p;
-					return true;
-				}
-			}
-			return false;
+			Action = e[0].ToString();
+			InfocardA = e[1].ToInt32();
+			InfocardB = e[2].ToInt32();
+			ActiveModel = e[3].ToString();
+			InactiveModel = e[4].ToString();
 		}
 	}
 }
-

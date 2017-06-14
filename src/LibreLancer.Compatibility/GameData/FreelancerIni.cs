@@ -12,6 +12,7 @@ namespace LibreLancer.Compatibility.GameData
 		public string DataPath { get; private set; }
 		public string SolarPath { get; private set; }
 		public string UniversePath { get; private set; }
+		public string HudPath { get; private set; }
 		public List<string> EquipmentPaths { get; private set; }
 		public List<string> LoadoutPaths { get; private set; }
 		public List<string> ShiparchPaths { get; private set; }
@@ -115,6 +116,9 @@ namespace LibreLancer.Compatibility.GameData
 							break;
 						case "petaldb":
 							PetalDbPaths.Add(DataPath + e[0].ToString());
+							break;
+						case "hud":
+							HudPath = DataPath + e[0].ToString();
 							break;
 						}
 					}

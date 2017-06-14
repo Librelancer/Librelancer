@@ -24,14 +24,15 @@ namespace LibreLancer
     static class ShaderCache
     {
         static Dictionary<Strings2, ShaderVariables> shaders = new Dictionary<Strings2, ShaderVariables>();
-        public static ShaderVariables Get(string vs, string fs)
+		public static ShaderVariables Get(string vs, string fs, ShaderCaps caps = ShaderCaps.None)
 		{
-			var k = new Strings2 (vs, fs);
+			var k = new Strings2(vs, fs, caps);
+			var prelude = "#version 150\n" + caps.GetDefines() + "\n#line 0\n";
             ShaderVariables sh;
 			if (!shaders.TryGetValue(k, out sh)) {
 				FLLog.Debug ("Shader", "Compiling [ " + vs + " , " + fs + " ]");
                 sh = new ShaderVariables(
-					new Shader(LoadEmbedded("LibreLancer.Shaders." + vs), ProcessIncludes(LoadEmbedded("LibreLancer.Shaders." + fs)))
+					new Shader(prelude + LoadEmbedded("LibreLancer.Shaders." + vs), prelude + ProcessIncludes(LoadEmbedded("LibreLancer.Shaders." + fs)))
                 );
                 shaders.Add(k, sh);
 			}
@@ -51,7 +52,7 @@ namespace LibreLancer
 			}
 			return newsrc;
 		}
-        static string LoadEmbedded(string name)
+		static string LoadEmbedded(string name)
         {
             using(var stream = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream(name)))
             {
@@ -63,17 +64,19 @@ namespace LibreLancer
         {
             public string A;
             public string B;
-            public Strings2(string a, string b)
+			public ShaderCaps C;
+			public Strings2(string a, string b, ShaderCaps c)
             {
                 A = a;
                 B = b;
+				C = c;
             }
             public override bool Equals(object obj)
             {
                 if (!(obj is Strings2))
                     return false;
                 var other = (Strings2)obj;
-                return other.A == A && other.B == B;
+				return other.A == A && other.B == B && other.C == C;
             }
             public override int GetHashCode()
             {
@@ -82,6 +85,7 @@ namespace LibreLancer
                 {
                     hash = hash * 23 + A.GetHashCode();
                     hash = hash * 23 + B.GetHashCode();
+					hash += (int)C;
                 }
                 return hash;
             }

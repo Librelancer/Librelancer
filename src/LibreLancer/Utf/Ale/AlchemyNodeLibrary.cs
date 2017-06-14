@@ -45,6 +45,7 @@ namespace LibreLancer.Utf.Ale
 					var nodeName = Encoding.ASCII.GetString (reader.ReadBytes (nameLen)).TrimEnd ('\0');
 					reader.BaseStream.Seek(nameLen & 1, SeekOrigin.Current); //padding
 					var node = new AlchemyNode () { Name = nodeName };
+					node.CRC = CrcTool.FLAleCrc(nodeName);
 					uint id, crc;
 					while (true) {
 						id = reader.ReadUInt16 ();
@@ -92,6 +93,12 @@ namespace LibreLancer.Utf.Ale
 							throw new InvalidDataException ("Invalid ALE Type: 0x" + (id & 0x7FFF).ToString ("x"));
 						}
 						node.Parameters.Add (new AleParameter () { Name = efname, Value = value });
+					}
+					AleParameter temp;
+					if (node.TryGetParameter("Node_Name", out temp))
+					{
+						var nn = (string)temp.Value;
+						node.CRC = CrcTool.FLAleCrc(nn);
 					}
 					Nodes.Add (node);
 				}

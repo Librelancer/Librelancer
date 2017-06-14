@@ -175,6 +175,8 @@
     <Compile Include="GameData\RichFontsIni.cs" />
     <Compile Include="GameData\RichFont.cs" />
     <Compile Include="GameData\PetalDbIni.cs" />
+    <Compile Include="GameData\HudIni.cs" />
+    <Compile Include="GameData\Interface\HudManeuver.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />
@@ -183,5 +185,8 @@
       <Project>{C7A37830-B878-4008-A988-D7294D47F44D}</Project>
       <Name>LibreLancer.Base</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="GameData\Interface\" />
   </ItemGroup>
 </Project>

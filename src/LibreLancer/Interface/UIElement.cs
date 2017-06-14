@@ -87,6 +87,18 @@ namespace LibreLancer
 			);			
 			DrawShadowedText (font, text, pos.X, pos.Y,c);
 		}
+
+		protected Rectangle FromScreenRect(float screenx, float screeny, float screenw, float screenh)
+		{
+			var p1 = IdentityCamera.Instance.ScreenToPixel(screenx, screeny);
+			var p2 = IdentityCamera.Instance.ScreenToPixel(screenx + screenw, screeny - screenh);
+			return new Rectangle(
+				(int)(p1.X),
+				(int)(p1.Y),
+				(int)(p2.X - p1.X),
+				(int)(p2.Y - p1.Y)
+			);
+		}
 	}
 }
 

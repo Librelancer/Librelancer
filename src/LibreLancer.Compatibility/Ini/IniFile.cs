@@ -133,7 +133,7 @@ namespace LibreLancer.Ini
 								} else if (parts.Length == 1) {
 									sections [currentSection].Add (new Entry (parts [0].Trim (), new List<IValue> ()));
 								}
-								else throw new FileContentException(path, IniFileType, "Invalid entry line: " + line);
+								else FLLog.Error("INI", "Invalid entry line: " + line + " in " + path);
 							}
 							else sections[currentSection].Add(new Entry(line, new List<IValue>(0)));
 						}

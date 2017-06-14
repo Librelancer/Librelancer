@@ -143,6 +143,7 @@ namespace LibreLancer.Utf.Mat
 		private string dmName;
 
 		static List<string> basicMaterials = new List<string> {
+			"Dc", //DcDt buggy
 			"DcDt", "DcDtTwo", "DcDtEc", "DcDtEt", "DcDtEcEt",
 			"DcDtOcOt", "DcDtBtOcOt", "DcDtBtOcOtTwo", "DcDtEcOcOt",
 			"DcDtOcOtTwo", "DcDtBt", "DcDtBtTwo"

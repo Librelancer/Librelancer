@@ -1,6 +1,4 @@
-﻿#version 140
-
-in vec4 frag_vertexcolor;
+﻿in vec4 frag_vertexcolor;
 out vec4 out_color;
 void main()
 {

@@ -82,6 +82,9 @@ namespace LibreLancer
 						case "prop":
 							drawable = game.GameData.GetProp(kv.Value.Template);
 							break;
+						case "room":
+							drawable = game.GameData.GetRoom(kv.Value.Template);
+							break;
 						default:
 							throw new NotImplementedException("Mesh Category " + kv.Value.MeshCategory);
 					}

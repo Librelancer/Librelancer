@@ -35,7 +35,7 @@ namespace LibreLancer.Utf.Cmp
 						MACount = leaf.Int32ArrayData [0];
 						break;
 					case "maflags":
-						MAFlags = leaf.Int32Data.Value;
+						MAFlags = leaf.Int32ArrayData[0];
 						break;
 					case "madeltas":
 						MADeltas = leaf.SingleArrayData;

@@ -1,5 +1,4 @@
-﻿#version 150
-uniform sampler2D tex0;
+﻿uniform sampler2D tex0;
 uniform vec4 FogColor;
 uniform float FogFactor;
 in vec2 Vertex_UV;

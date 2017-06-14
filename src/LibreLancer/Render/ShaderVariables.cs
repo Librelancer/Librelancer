@@ -29,11 +29,9 @@ namespace LibreLancer
 		int dmSamplerPosition;
 		int acPosition;
 		int dcPosition;
-		int ocEnabledPosition;
 		int ocPosition;
 		int ecPosition;
 		int etSamplerPosition;
-		int etEnabledPosition;
 
 		int flipUPosition;
 		int flipVPosition;
@@ -52,11 +50,9 @@ namespace LibreLancer
 		int fogColorPosition;
 		int fogRangePosition;
 
-		int fadePosition;
 		int fadeRangePosition;
 
 		int materialAnimPosition;
-		int alphaTestPosition;
 		int flipNormalPosition;
 		Shader shader;
 
@@ -75,11 +71,9 @@ namespace LibreLancer
 			dmSamplerPosition = sh.GetLocation("DmSampler");
 			dcPosition = sh.GetLocation("Dc");
 			acPosition = sh.GetLocation("Ac");
-			ocEnabledPosition = sh.GetLocation("OcEnabled");
 			ocPosition = sh.GetLocation("Oc");
 			ecPosition = sh.GetLocation("Ec");
 			etSamplerPosition = sh.GetLocation("EtSampler");
-			etEnabledPosition = sh.GetLocation("EtEnabled");
 
 			flipUPosition = sh.GetLocation("FlipU");
 			flipVPosition = sh.GetLocation("FlipV");
@@ -98,10 +92,8 @@ namespace LibreLancer
 			fogColorPosition = sh.GetLocation("FogColor");
 			fogRangePosition = sh.GetLocation("FogRange");
 
-			fadePosition = sh.GetLocation("Fade");
 			fadeRangePosition = sh.GetLocation("FadeRange");
 			materialAnimPosition = sh.GetLocation("MaterialAnim");
-			alphaTestPosition = sh.GetLocation("AlphaTest");
 			flipNormalPosition = sh.GetLocation("FlipNormal");
 		}
 
@@ -215,12 +207,6 @@ namespace LibreLancer
 				shader.SetInteger(dmSamplerPosition, dt);
 		}
 
-		public void SetOcEnabled(int oce)
-		{
-			if (ocEnabledPosition != -1)
-				shader.SetInteger(ocEnabledPosition, oce);
-		}
-
 		public void SetOc(float oc)
 		{
 			if (ocPosition != -1)
@@ -237,12 +223,6 @@ namespace LibreLancer
 		{
 			if (etSamplerPosition != -1)
 				shader.SetInteger(etSamplerPosition, et);
-		}
-
-		public void SetEtEnabled(bool et)
-		{
-			if (etEnabledPosition != -1)
-				shader.SetInteger(etEnabledPosition, et ? 1 : 0);
 		}
 
 		public void SetFlipU(int flip)
@@ -329,12 +309,6 @@ namespace LibreLancer
 				shader.SetVector2(fogRangePosition, range);
 		}
 
-		public void SetFade(bool fade)
-		{
-			if (fadePosition != -1)
-				shader.SetInteger(fadePosition, fade ? 1 : 0);
-		}
-
 		public void SetFadeRange(Vector2 range)
 		{
 			if (fadeRangePosition != -1)
@@ -345,12 +319,6 @@ namespace LibreLancer
 		{
 			if (materialAnimPosition != -1)
 				shader.SetVector4(materialAnimPosition, anim);
-		}
-
-		public void SetAlphaTest(bool test)
-		{
-			if (alphaTestPosition != -1)
-				shader.SetInteger(alphaTestPosition, test ? 1 : 0);
 		}
 
 		public void SetFlipNormal(bool flip)

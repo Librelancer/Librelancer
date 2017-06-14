@@ -1,5 +1,4 @@
-﻿#version 140
-#pragma include (lighting.inc)
+﻿#pragma include (lighting.inc)
 uniform vec4 Dc;
 uniform vec4 Ac;
 uniform float Alpha;

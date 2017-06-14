@@ -1,5 +1,4 @@
-﻿#version 140
-//Material code
+﻿//Material code
 in vec2 out_texcoord;
 in vec3 world_position;
 in vec4 frag_vertexcolor;

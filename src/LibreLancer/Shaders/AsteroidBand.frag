@@ -1,5 +1,4 @@
-﻿#version 150
-#pragma include (lighting.inc)
+﻿#pragma include (lighting.inc)
 uniform vec4 ColorShift;
 uniform float TextureAspect;
 

@@ -1,5 +1,4 @@
-﻿#version 150
-uniform sampler2D tex0;
+﻿uniform sampler2D tex0;
 uniform vec4 innercolor;
 uniform vec4 outercolor;
 uniform float expand;

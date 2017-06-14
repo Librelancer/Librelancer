@@ -1,5 +1,4 @@
-﻿#version 150
-in vec3 vertex_position;
+﻿in vec3 vertex_position;
 in vec3 vertex_dimensions;
 in vec3 vertex_right;
 in vec3 vertex_up;

@@ -1,5 +1,4 @@
-﻿#version 150
-uniform sampler2D Texture;
+﻿uniform sampler2D Texture;
 uniform vec4 Tint;
 
 in vec2 texcoord;

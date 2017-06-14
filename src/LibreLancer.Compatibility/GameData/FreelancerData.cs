@@ -33,6 +33,7 @@ namespace LibreLancer.Compatibility.GameData
 		public AsteroidArchIni Asteroids;
 		public RichFontsIni RichFonts;
 		public PetalDbIni PetalDb;
+		public HudIni Hud;
 		public bool Loaded = false;
 
 		public FreelancerData (FreelancerIni fli)
@@ -94,6 +95,9 @@ namespace LibreLancer.Compatibility.GameData
 			PetalDb = new PetalDbIni();
 			foreach (var pt in Freelancer.PetalDbPaths)
 				PetalDb.AddFile(pt);
+			//Hud
+			Hud = new HudIni();
+			Hud.AddIni(Freelancer.HudPath);
 		}
 	}
 }
