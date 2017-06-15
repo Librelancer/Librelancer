@@ -7,11 +7,13 @@ namespace Launcher
 	public class MainWindow : Form
 	{
 		TextBox textInput;
+		NumericMaskedTextBox<int> resWidthBox;
+		NumericMaskedTextBox<int> resHeightBox;
         bool forceANGLE = false;
 		public MainWindow ()
 		{
 			Title = "Librelancer Launcher";
-			ClientSize = new Size (400, 150);
+			ClientSize = new Size (400, 250);
 			Resizable = false;
 			var layout = new TableLayout ();
 			layout.Spacing = new Size (2, 2);
@@ -25,10 +27,10 @@ namespace Launcher
 			var findButton = new Button () { Text = "..." };
 			findButton.Click += FindButton_Click;
 
-			layout.Rows.Add (new TableRow (
+			layout.Rows.Add (new TableLayout(new TableRow (
 				new TableCell(textInput, true),
 				findButton
-			));
+			)));
 			var skipMovies = new CheckBox () { Text = "Skip Intro Movies", Checked = true };
 			skipMovies.CheckedChanged += SkipMovies_CheckedChanged;
 			layout.Rows.Add (new TableRow (skipMovies));
@@ -38,6 +40,15 @@ namespace Launcher
                 angleCheck.CheckedChanged += AngleCheck_CheckedChanged;
                 layout.Rows.Add(new TableRow(angleCheck));
             }
+			resWidthBox = new NumericMaskedTextBox<int>();
+			resWidthBox.Value = 1024;
+			resHeightBox = new NumericMaskedTextBox<int>();
+			resHeightBox.Value = 768;
+			layout.Rows.Add(new TableLayout(new TableRow(
+				new TableCell(new Label() { Text = "Resolution: ", VerticalAlignment = VerticalAlignment.Center }, true),
+				resWidthBox,
+				resHeightBox
+			)));
 			var launchButton = new Button () { Text = "Launch Librelancer" };
 			launchButton.Click += LaunchButton_Click;
 			layout.Rows.Add(new TableRow { ScaleHeight = true });
@@ -80,6 +91,8 @@ namespace Launcher
 				}
 				Program.LaunchPath = textInput.Text;
                 Program.ForceAngle = forceANGLE;
+				Program.ResWidth = resWidthBox.Value;
+				Program.ResHeight = resHeightBox.Value;
 				Close ();			
 			}
 			else

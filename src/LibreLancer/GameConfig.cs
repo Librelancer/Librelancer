@@ -25,6 +25,9 @@ namespace LibreLancer
 		public bool MuteMusic = false;
         public bool ForceAngle = false;
 		public bool IntroMovies = true;
+		public int BufferWidth = 1024;
+		public int BufferHeight = 768;
+		
 		//This default is to stop dlopen on linux from trying to open itself
 		public string MpvOverride = "__MPV_OVERRIDE_STRING";
 		public GameConfig ()
@@ -41,7 +44,7 @@ namespace LibreLancer
 				var fullpath = Path.Combine (bindir, IntPtr.Size == 8 ? "win64" : "win32");
 				SetDllDirectory (fullpath);
 			}
-			var game = new FreelancerGame (this);
+			var game = new FreelancerGame(this);
 			game.Run ();
 		}
 	}

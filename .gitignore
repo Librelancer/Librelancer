@@ -9,6 +9,9 @@ packages/
 *.psess
 *.vspx
 
+#Project Rider
+.idea/
+
 #NuGet
 [Pp]ackages/
 

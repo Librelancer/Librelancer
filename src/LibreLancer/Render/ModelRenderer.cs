@@ -66,7 +66,7 @@ namespace LibreLancer
 			sysr.Objects.Add(this);
 			if (!inited)
 			{
-				if (Model != null && Model.Levels.ContainsKey(0))
+				if (Model != null && Model.Levels.Length > 0)
 					Model.Initialize(sysr.Game.ResourceManager);
 				else if (Cmp != null)
 					Cmp.Initialize(sysr.Game.ResourceManager);
@@ -88,6 +88,22 @@ namespace LibreLancer
 			sysr = null;
 		}
 
+		VMeshRef GetLevel(ModelFile file, Vector3 center, Vector3 camera)
+		{
+			if (file.Switch2 == null) return file.Levels[0];
+			var dsq = VectorMath.DistanceSquared(center, camera);
+			var lvl = file.Levels[0];
+			for (int i = 0; i < file.Switch2.Length; i++)
+			{
+				var d = file.Switch2[i];
+				if (i > 0 && file.Switch2[i] < file.Switch2[i - 1]) break;
+				if (dsq < (d * sysr.LODMultiplier) * (d * sysr.LODMultiplier)) break;
+				if (i >= file.Levels.Length) return null;
+				lvl = file.Levels[i];
+			}
+			return lvl;
+		}
+		
 		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
 			if (sysr == null)
@@ -95,9 +111,11 @@ namespace LibreLancer
 			if (Nebula != null && nr != Nebula)
 				return;
 			if (Model != null) {
-				if (Model.Levels.ContainsKey (0)) {
+				if (Model.Levels.Length > 0) {
 					Model.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
 					var center = VectorMath.Transform(Model.Levels[0].Center, World);
+					var lvl = GetLevel(Model, center, camera.Position);
+					if (lvl == null) return;
 					var bsphere = new BoundingSphere(
 						center,
 						Model.Levels[0].Radius
@@ -106,7 +124,7 @@ namespace LibreLancer
 						var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, Model.Levels[0].Radius, nr);
 						var r = Model.Levels [0].Radius + lighting.FogRange.Y;
 						if (lighting.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
-							Model.DrawBuffer(commands, World, lighting);
+							Model.DrawBufferLevel(lvl, commands, World, lighting);
 					}
 				}
 			} else if (Cmp != null) {
@@ -117,10 +135,12 @@ namespace LibreLancer
 					Matrix4 w = World;
 					if (p.Construct != null)
 						w = p.Construct.Transform * World;
-					if (model.Levels.ContainsKey(0))
+					if (model.Levels.Length > 0)
 					{
 
 						var center = VectorMath.Transform(model.Levels[0].Center, w);
+						var lvl = GetLevel(model, center, camera.Position);
+						if (lvl == null) continue;
 						var bsphere = new BoundingSphere(
 							center,
 							model.Levels[0].Radius
@@ -130,7 +150,7 @@ namespace LibreLancer
 							var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, model.Levels[0].Radius, nr);
 							var r = model.Levels [0].Radius + lighting.FogRange.Y;
 							if (lighting.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
-								model.DrawBuffer(commands, w, lighting);
+								model.DrawBufferLevel(lvl, commands, w, lighting);
 						}
 					}
 				}
@@ -143,9 +163,11 @@ namespace LibreLancer
 					Matrix4 w = World;
 					if (p.Construct != null)
 						w = p.Construct.Transform * World;
-					if (model.Levels.ContainsKey(0))
+					if (model.Levels.Length > 0)
 					{
 						var center = VectorMath.Transform(model.Levels[0].Center, w);
+						var lvl = GetLevel(model, center, camera.Position);
+						if (lvl == null) continue;
 						var bsphere = new BoundingSphere(
 							center,
 							model.Levels[0].Radius
@@ -155,7 +177,7 @@ namespace LibreLancer
 							var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, model.Levels[0].Radius, nr);
 							var r = model.Levels[0].Radius + lighting.FogRange.Y;
 							if (lighting.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
-								model.DrawBuffer(commands, w, lighting);
+								model.DrawBufferLevel(lvl, commands, w, lighting);
 						}
 					}
 				}

@@ -46,7 +46,7 @@ namespace LibreLancer.Utf.Cmp
 		public MaterialAnimCollection MaterialAnim { get; private set; }
 
         public List<HardpointDefinition> Hardpoints { get; private set; }
-        public Dictionary<int, VMeshRef> Levels { get; private set; }
+        public VMeshRef[] Levels { get; private set; }
         public float[] Switch2 { get; private set; }
 
         public ModelFile(string path, ILibFile additionalLibrary)
@@ -67,7 +67,7 @@ namespace LibreLancer.Utf.Cmp
             ready = false;
 
             Hardpoints = new List<HardpointDefinition>();
-            Levels = new Dictionary<int, VMeshRef>();
+            var lvls = new Dictionary<int, VMeshRef>();
 
             foreach (Node node in root)
             {
@@ -117,7 +117,7 @@ namespace LibreLancer.Utf.Cmp
                             if (vMeshPartNode.Count == 1)
                             {
                                 LeafNode vMeshRefNode = vMeshPartNode[0] as LeafNode;
-                                Levels.Add(0, new VMeshRef(vMeshRefNode.ByteArrayData, this));
+                                lvls.Add(0, new VMeshRef(vMeshRefNode.ByteArrayData, this));
                             }
                             else throw new Exception("Invalid VMeshPart: More than one child or zero elements");
                         }
@@ -140,7 +140,7 @@ namespace LibreLancer.Utf.Cmp
                                     if (vMeshPartNode.Count == 1)
                                     {
                                         LeafNode vMeshRefNode = vMeshPartNode[0] as LeafNode;
-                                        Levels.Add(level, new VMeshRef(vMeshRefNode.ByteArrayData, this));
+                                        lvls.Add(level, new VMeshRef(vMeshRefNode.ByteArrayData, this));
                                     }
                                     else throw new Exception("Invalid VMeshPart: More than one child or zero elements");
                                 }
@@ -169,17 +169,27 @@ namespace LibreLancer.Utf.Cmp
                     default: throw new Exception("Invalid node in 3db root: " + node.Name);
                 }
             }
+            
+            //Sort levels in order
+            var lvl2 = new List<VMeshRef>();
+            for (int i = 0; i < 100; i++)
+            {
+                if (lvls.ContainsKey(i))
+                {
+                    lvl2.Add(lvls[i]);
+                }
+                else
+                {
+                    break;
+                }
+            }
+            Levels = lvl2.ToArray();
         }
 
 		public void Initialize(ResourceManager cache)
         {
-            //this.camera = camera;
-
-			if (Levels.ContainsKey (0))
-				Levels [0].Initialize (cache);
-            //foreach (VMeshRef level in Levels.Values) level.Initialize(device, content, camera, ambient, lights);
-
-            ready = Levels.ContainsKey(0);
+            for(int i = 0; i < Levels.Length; i++) Levels[i].Initialize(cache);
+            ready = Levels.Length > 0;
         }
 
         public void Resized()
@@ -197,8 +207,8 @@ namespace LibreLancer.Utf.Cmp
             {
 				if (MaterialAnim != null)
 					MaterialAnim.Update((float)totalTime.TotalSeconds);
-				Levels[0].Update(camera, delta);
-                //foreach (VMeshRef level in Levels.Values) level.Update();
+				//Levels[0].Update(camera, delta);
+                for(int i = 0; i < Levels.Length; i++) Levels[i].Update(camera, delta);
             }
         }
 		public float GetRadius()
@@ -215,6 +225,18 @@ namespace LibreLancer.Utf.Cmp
 				Levels[0].DrawBuffer(buffer, world, light, ma);
 			}
 		}
+
+        public void DrawBufferLevel(VMeshRef level, CommandBuffer buffer, Matrix4 world, Lighting light)
+        {
+            if (ready)
+            {
+                var ma = MaterialAnim;
+                if (ma == null && additionalLibrary is CmpFile)
+                    ma = ((CmpFile)additionalLibrary).MaterialAnim;
+                level.DrawBuffer(buffer, world, light, ma);
+            }
+        }
+        
 		public void Draw(RenderState rstate, Matrix4 world, Lighting light)
         {
 			if (ready) {

@@ -38,9 +38,11 @@ namespace LibreLancer
 			get { return starSystem; }
 			set { LoadSystem(value); }
 		}
-
+		
+		//Global Renderer Options
 		public bool MSAAEnabled = false;
-
+		public float LODMultiplier = 32;
+		
 		public IDrawable[] StarSphereModels;
 		public Matrix4[] StarSphereWorlds;
 

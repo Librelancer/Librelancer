@@ -7,6 +7,8 @@ namespace Launcher
         public static string LaunchPath = null;
         public static bool ForceAngle = false;
 		public static bool SkipIntroMovies = true;
+	    public static int ResWidth = 1024;
+	    public static int ResHeight = 768;
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -28,6 +30,8 @@ namespace Launcher
 				conf.FreelancerPath = LaunchPath;
                 conf.ForceAngle = ForceAngle;
 				conf.IntroMovies = !SkipIntroMovies;
+	            conf.BufferWidth = ResWidth;
+	            conf.BufferHeight = ResHeight;
 				conf.Launch ();
             }
         }
