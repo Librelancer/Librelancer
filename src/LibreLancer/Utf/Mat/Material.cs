@@ -199,7 +199,21 @@ namespace LibreLancer.Utf.Mat
 
 
 			string type = typeNode.StringData;
-			type = MaterialMap.Instance.Get(type);
+			type = MaterialMap.Instance.Get(type) ?? type;
+			type = MaterialMap.Instance.Get(node.Name.ToLowerInvariant()) ?? type;
+
+			if (type == "HighGlassMaterial")
+			{
+				type = "DcDtOcOt"; //HACK: Should do env mapping
+			}
+			if (type == "BtDetailMapMaterial")
+			{
+				type = "DcDtBtOcOt"; //HACK: Implement this properly
+			}
+			if (type == "ExclusionZoneMaterial")
+			{
+				type = "DcDt"; //HACK: This is handled in NebulaRenderer, not in Material.cs
+			}
 			var mat = new Material(node, textureLibrary, type);
 			if (basicMaterials.Contains(type))
 			{
@@ -209,11 +223,13 @@ namespace LibreLancer.Utf.Mat
 				switch (type)
 				{
 					case "Nebula":
+					case "NebulaTwo":
 					case "AtmosphereMaterial":
 					case "DetailMapMaterial":
 					case "DetailMap2Dm1Msk2PassMaterial":
 					case "IllumDetailMapMaterial":
 					case "Masked2DetailMapMaterial":
+					case "NomadMaterialNoBendy":
 						break;
 					default:
 						throw new Exception("Invalid material type: " + type);
@@ -347,7 +363,9 @@ namespace LibreLancer.Utf.Mat
 				switch (type)
 				{
 					case "Nebula":
+					case "NebulaTwo":
 						var nb = new NebulaMaterial();
+						if (type == "NebulaTwo") nb.DoubleSided = true;
 						_rmat = nb;
 						nb.DtSampler = DtName;
 						nb.DtFlags = (SamplerFlags)DtFlags;
@@ -416,6 +434,18 @@ namespace LibreLancer.Utf.Mat
 						dm2p.Dm1Sampler = dm1Name;
 						dm2p.Dm1Flags = (SamplerFlags)Dm1Flags;
 						dm2p.Library = textureLibrary;
+						break;
+					case "NomadMaterialNoBendy":
+					case "NomadMaterial":
+						var nmd = new NomadMaterial();
+						_rmat = nmd;
+						nmd.Dc = Dc;
+						nmd.BtSampler = btName;
+						nmd.BtFlags = (SamplerFlags)BtFlags;
+						nmd.DtSampler = DtName;
+						nmd.DtFlags = (SamplerFlags)DtFlags;
+						nmd.Oc = Oc ?? 1f;
+						nmd.Library = textureLibrary;
 						break;
 					case "DetailMapMaterial":
 						var dm = new DetailMapMaterial();

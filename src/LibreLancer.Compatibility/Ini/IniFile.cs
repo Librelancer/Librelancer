@@ -129,7 +129,7 @@ namespace LibreLancer.Ini
 								} else if (parts.Length == 3 && allowmaps) {
 									string k = parts [1].Trim ();
 									string v = parts [2].Trim ();
-
+									sections[currentSection].Add(new Entry(parts[0].Trim(), new IValue[] { new StringKeyValue(k,v) }));
 								} else if (parts.Length == 1) {
 									sections [currentSection].Add (new Entry (parts [0].Trim (), new List<IValue> ()));
 								}

@@ -26,45 +26,44 @@ namespace LibreLancer
 		public SamplerFlags DtFlags;
 		public Vector3 CameraPosition;
 		public float Alpha;
-		public float Fade;
+		public float Fade; //TODO: This is unimplemented in shader. Higher values seem to make the effect more intense?
 		public float Scale;
 
 		ShaderVariables GetShader(IVertexType vertextype)
 		{
-			switch (vertextype.GetType ().Name) {
-			case "VertexPositionNormalTexture":
-				return ShaderCache.Get (
+			if (vertextype is VertexPositionNormalTexture)
+			{
+				return ShaderCache.Get(
 					"Atmosphere.vs",
 					"AtmosphereMaterial_PositionTexture.frag"
 				);
-			default:
-				throw new NotImplementedException ();
 			}
+			throw new NotImplementedException ();
 		}
 
 		public override void Use (RenderState rstate, IVertexType vertextype, Lighting lights)
 		{
-			/*rstate.DepthEnabled = true;
+			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Normal;
 			var sh = GetShader (vertextype);
-			//mat4x4 normalMatrix = transpose(inverse(View * World));
-
 			sh.SetAc(Ac);
 			sh.SetDc(Dc);
-			sh.SetVector3 ("CameraPosition", CameraPosition);
-			sh.SetFloat ("Alpha", Alpha);
-			sh.SetFloat ("Fade", Fade);
-			sh.SetFloat ("Scale", Scale);
+			sh.SetOc(Alpha);
+			sh.SetTileRate(Fade);
 			sh.SetWorld(ref World);
-			sh.SetMatrix ("ViewProjection", ref ViewProjection);
-			sh.SetMatrix("View", ref View);
-			//BindTexture (DtSampler, 0, DtFlags);
-			var normalmat = View * World;
+			sh.SetView(Camera);
+			sh.SetViewProjection(Camera);
+			sh.SetDtSampler(0);
+			BindTexture(rstate, 0, DtSampler, 0, DtFlags);
+			var normalmat = World;
 			normalmat.Invert();
 			normalmat.Normalize();
-			sh.SetMatrix("NormalMatrix", ref normalmat);
-			sh.UseProgram ();*/
+			SetLights(sh, lights);
+			sh.SetNormalMatrix(ref normalmat);
+			sh.UseProgram ();
 		}
+		
+		
 		public override bool IsTransparent
 		{
 			get

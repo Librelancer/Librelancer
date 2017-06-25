@@ -37,7 +37,7 @@ namespace LibreLancer
         static ShaderVariables sh_posNormalTexture;
 		static ShaderVariables GetShader(IVertexType vertextype)
 		{
-			if (vertextype.GetType().Name == "VertexPositionNormalTexture")
+			if (vertextype is VertexPositionNormalTexture)
 			{
                 if(sh_posNormalTexture == null)
 				sh_posNormalTexture = ShaderCache.Get(

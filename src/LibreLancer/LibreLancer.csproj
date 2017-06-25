@@ -1,5 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -320,6 +319,7 @@
     <Compile Include="Interface\HudGaugeElement.cs" />
     <Compile Include="Interface\HudToggleButtonElement.cs" />
     <Compile Include="Interface\Maneuver.cs" />
+    <Compile Include="Render\Materials\NomadMaterial.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -335,7 +335,6 @@
     <EmbeddedResource Include="Shaders\Atmosphere.vs" />
     <EmbeddedResource Include="Shaders\Billboard.vs" />
     <EmbeddedResource Include="Shaders\Billboard.frag" />
-    <EmbeddedResource Include="Shaders\NebulaInterior.vs" />
     <EmbeddedResource Include="Shaders\NebulaInterior.frag" />
     <EmbeddedResource Include="Shaders\IllumDetailMapMaterial.frag" />
     <EmbeddedResource Include="Shaders\sun_radial.frag" />
@@ -347,9 +346,12 @@
     <EmbeddedResource Include="Shaders\Basic_PositionTexture.vs" />
     <EmbeddedResource Include="Shaders\nebula_extpuff.frag" />
     <EmbeddedResource Include="Shaders\blend_overlay.inc" />
+    <EmbeddedResource Include="Shaders\NebulaInterior.vs" />
     <EmbeddedResource Include="Shaders\physicsdebug.frag" />
     <EmbeddedResource Include="Shaders\physicsdebug.vs" />
     <EmbeddedResource Include="Shaders\gauge_mask.png" />
+    <EmbeddedResource Include="Shaders\NomadMaterial.frag" />
+    <EmbeddedResource Include="Shaders\Nomad_PositionNormalTexture.vs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

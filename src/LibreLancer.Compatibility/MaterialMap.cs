@@ -60,7 +60,7 @@ namespace LibreLancer
 				return maps [val];
 			}
 			
-			return val;
+			return null;
 		}
 		public void AddRegex(StringKeyValue kv)
 		{

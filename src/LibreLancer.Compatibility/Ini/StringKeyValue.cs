@@ -2,7 +2,7 @@
 
 namespace LibreLancer.Ini
 {
-	public class StringKeyValue
+	public class StringKeyValue : IValue
 	{
 		public string Key;
 		public string Value;
@@ -10,6 +10,26 @@ namespace LibreLancer.Ini
 		{
 			Key = k;
 			Value = v;
+		}
+
+		public bool ToBoolean()
+		{
+			throw new NotImplementedException();
+		}
+
+		public int ToInt32()
+		{
+			throw new NotImplementedException();
+		}
+
+		public StringKeyValue ToKeyValue()
+		{
+			return this;
+		}
+
+		public float ToSingle()
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

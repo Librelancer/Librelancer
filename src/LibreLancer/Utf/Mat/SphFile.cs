@@ -162,26 +162,29 @@ namespace LibreLancer.Utf.Mat
 					);
 				}
 				//Draw atmosphere
-				/*if (SideMaterials.Length > 6)
+				if (SideMaterials.Length > 6)
 				{
 					var mat = (AtmosphereMaterial)SideMaterials[6].Render;
 					for (int i = 0; i < 6; i++)
 					{
 						int start, count;
-						sphere.GetDrawParameters(faces[i], out start, out count);
-						SideMaterials[6].Render.ViewProjection = viewproj;
+						Vector3 pos;
+						sphere.GetDrawParameters(faces[i], out start, out count, out pos);
+						SideMaterials[6].Render.Camera = _camera;
 						buffer.AddCommand(
-							mat,
+							SideMaterials[6].Render,
+							null,
 							Matrix4.CreateScale(Radius * mat.Scale) * world,
 							lighting,
 							sphere.VertexBuffer,
 							PrimitiveTypes.TriangleList,
 							0,
 							start,
-							count
+							count,
+							SortLayers.OBJECT
 						);
 					}
-				}*/
+				}
 			}
 			else
 				throw new Exception();

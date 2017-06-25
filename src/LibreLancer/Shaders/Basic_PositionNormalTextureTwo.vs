@@ -4,6 +4,7 @@ in vec2 vertex_texture1;
 in vec2 vertex_texture2;
 
 out vec2 out_texcoord;
+out vec2 out_texcoord2;
 out vec3 out_normal;
 out vec3 world_position;
 out vec4 out_vertexcolor;
@@ -27,5 +28,5 @@ void main()
 		1. - (vertex_texture1.y + MaterialAnim.y) * MaterialAnim.w
 	);
 	out_vertexcolor = vec4(1);
-	//out_texcoord2 = vec2(vertex_texture2.x, 1. - vertex_texture2.y);
+	out_texcoord2 = vec2(vertex_texture2.x, 1. - vertex_texture2.y);
 }

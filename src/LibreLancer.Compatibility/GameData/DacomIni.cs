@@ -13,7 +13,7 @@ namespace LibreLancer.Compatibility.GameData
 				case "materialmap":
 					var map = new MaterialMap ();
 					foreach (Entry e in s) {
-						if (e.Name.ToLowerInvariant () != "Name") {
+						if (e.Name.ToLowerInvariant () != "name") {
 							map.AddMap (e.Name, e [0].ToString ());
 						} else {
 							map.AddRegex (e [0].ToKeyValue ());
