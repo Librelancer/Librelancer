@@ -34,13 +34,15 @@ namespace LibreLancer.Compatibility.GameData.Audio
 					{
 						case "nickname":
 							if (au.Nickname != null)
-								throw new Exception("Invalid nickname entry in " + path);
-							au.Nickname = e[0].ToString();
+								FLLog.Warning("Audio", "Invalid nickname entry in " + path + " (prev " + au.Nickname + ")");
+							else
+								au.Nickname = e[0].ToString();
 							break;
 						case "file":
 							if (au.File != null)
-								throw new Exception("Invalid file entry in " + path);
-							au.File = e[0].ToString();
+								FLLog.Warning("Audio", "Invalid file entry in " + path+  " (nick: " + (au.Nickname ?? "null") + ")");
+							else
+								au.File = e[0].ToString();
 							break;
 						case "crv_pitch":
 							au.CrvPitch = e[0].ToInt32();

@@ -202,7 +202,9 @@ namespace LibreLancer.Utf.Mat
 			type = MaterialMap.Instance.Get(type) ?? type;
 			type = MaterialMap.Instance.Get(node.Name.ToLowerInvariant()) ?? type;
 
-			if (type == "HighGlassMaterial")
+			if (type == "HighGlassMaterial" || 
+			    type == "HUDAnimMaterial" || 
+			    type == "HUDIconMaterial")
 			{
 				type = "DcDtOcOt"; //HACK: Should do env mapping
 			}

@@ -74,6 +74,8 @@ namespace LibreLancer
 		{
 			if (PhysicsUpdate != null)
 				PhysicsUpdate(TimeSpan.FromSeconds(timestep));
+			for (int i = 0; i < Objects.Count; i++)
+				Objects[i].FixedUpdate(TimeSpan.FromSeconds(timestep));
 		}
 
 		public void Update(TimeSpan t)

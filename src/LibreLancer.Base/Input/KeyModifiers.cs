@@ -36,7 +36,7 @@ namespace LibreLancer
 
 		/* These are defines in the SDL headers */
 		Control = (LeftControl | RightControl),
-		Shfit = (LeftShift | RightShift),
+		Shift = (LeftShift | RightShift),
 		Alt = (LeftAlt | RightAlt),
 		GUI = (LeftGUI | RightGUI)
 	}

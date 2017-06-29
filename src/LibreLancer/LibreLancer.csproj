@@ -320,6 +320,9 @@
     <Compile Include="Interface\HudToggleButtonElement.cs" />
     <Compile Include="Interface\Maneuver.cs" />
     <Compile Include="Render\Materials\NomadMaterial.cs" />
+    <Compile Include="Gameplay\Components\ShipControlComponent.cs" />
+    <Compile Include="InputManager.cs" />
+    <Compile Include="InputAction.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

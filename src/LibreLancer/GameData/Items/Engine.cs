@@ -19,6 +19,8 @@ namespace LibreLancer.GameData.Items
 	public class Engine : Equipment
 	{
 		public string FireEffect;
+		public float MaxForce;
+		public float LinearDrag;
 		public Engine()
 		{
 		}

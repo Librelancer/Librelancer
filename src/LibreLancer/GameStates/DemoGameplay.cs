@@ -45,20 +45,13 @@ Mouse Flight: {10}
 		bool textEntry = false;
 		string currentText = "";
 		GameObject player;
+		ShipControlComponent control;
 		public float Velocity = 0f;
-		const float MAX_VELOCITY = 320f;
-		Color4[] colors = new Color4[]
-		{
-			Color4.White,
-			Color4.Red,
-			Color4.Green,
-			Color4.Blue,
-			Color4.Yellow,
-			Color4.Pink
-		};
+		const float MAX_VELOCITY = 80f;
 		Cursor cur;
 		Hud hud;
 		EngineComponent ecpt;
+		InputManager input;
 		public DemoGameplay(FreelancerGame g) : base(g)
 		{
 			FLLog.Info("Game", "Starting Gameplay Demo");
@@ -66,8 +59,11 @@ Mouse Flight: {10}
 			var shp = g.GameData.GetShip("li_elite");
 			//Set up player object + camera
 			player = new GameObject(shp.Drawable, g.ResourceManager, false);
+			control = new ShipControlComponent(player);
+			player.Components.Add(control);
 			player.PhysicsComponent.Position = new JVector(-31000, 0, -26755);
 			player.PhysicsComponent.Material.Restitution = 1;
+			player.PhysicsComponent.Mass = 150;
 			camera = new ChaseCamera(Game.Viewport);
 			camera.ChasePosition = new Vector3(-31000, 0, -26755);
 			camera.ChaseOrientation = player.PhysicsComponent.Orientation.ToOpenTK();
@@ -80,7 +76,7 @@ Mouse Flight: {10}
 			world.Physics.SetDampingFactors(0.01f, 1f);
 			world.RenderUpdate += World_RenderUpdate;
 			world.PhysicsUpdate += World_PhysicsUpdate;
-			var eng = new GameData.Items.Engine() { FireEffect = "gf_li_smallengine02_fire" };
+			var eng = new GameData.Items.Engine() { FireEffect = "gf_li_smallengine02_fire", LinearDrag = 600, MaxForce = 48000 };
 			player.Components.Add((ecpt = new EngineComponent(player, eng, g)));
 			ecpt.Speed = 0;
 			player.Register(sysrender, world.Physics);
@@ -99,6 +95,8 @@ Mouse Flight: {10}
 					g.Screenshots.TakeScreenshot();
 				}
 			};
+			input = new InputManager(Game);
+			input.ToggleActivated += Input_ToggleActivated;
 		}
 
 		void World_RenderUpdate(TimeSpan delta)
@@ -107,23 +105,24 @@ Mouse Flight: {10}
 			camera.ChasePosition = player.PhysicsComponent.Position.ToOpenTK();
 			camera.ChaseOrientation = player.PhysicsComponent.Orientation.ToOpenTK();
 			camera.Update(delta);
+			hud.Velocity = player.PhysicsComponent.LinearVelocity.Length();
 		}
 
 		public override void Update(TimeSpan delta)
 		{
-			ecpt.Speed = (Velocity / MAX_VELOCITY) * 0.9f;
-			hud.Velocity = Velocity;
+			//hud.Velocity = Velocity;
 			hud.Update(delta);
 			world.Update(delta);
 		}
 
+		bool cruise = false;
+		bool thrust = false;
+
 		void World_PhysicsUpdate(TimeSpan delta)
 		{
-			player.PhysicsComponent.LinearVelocity *= 0.8f;
-			if (player.PhysicsComponent.LinearVelocity.Length() < Velocity)
-			{
-				player.PhysicsComponent.ApplyImpulse(JVector.Transform(JVector.Forward, player.PhysicsComponent.Orientation) * player.PhysicsComponent.Mass * 40);
-			}
+			control.EnginePower = (Velocity / MAX_VELOCITY);
+			control.CruiseEnabled = cruise;
+			control.ThrustEnabled = thrust;
 			ProcessInput(delta);
 		}
 		bool mouseFlight = false;
@@ -136,13 +135,26 @@ Mouse Flight: {10}
 					currentText = currentText.Substring(0, currentText.Length - 1);
 				}
 			}
-			if (e.Key == Keys.Space && !textEntry)
-			{
-				mouseFlight = !mouseFlight;
-			}
+			//if (e.Key == Keys.Space && !textEntry)
+			//{
+				//mouseFlight = !mouseFlight;
+			//}
 			if (e.Key == Keys.P && !textEntry)
 			{
 				Game.RenderState.Wireframe = !Game.RenderState.Wireframe;
+			}
+		}
+
+		void Input_ToggleActivated(int id)
+		{
+			switch (id)
+			{
+				case InputAction.ID_TOGGLECRUISE:
+					cruise = !cruise;
+					break;
+				case InputAction.ID_TOGGLEMOUSEFLIGHT:
+					mouseFlight = !mouseFlight;
+					break;
 			}
 		}
 
@@ -160,18 +172,27 @@ Mouse Flight: {10}
 			moffset = (new Vector2(Game.Mouse.X, Game.Mouse.Y) - new Vector2(Game.Width / 2, Game.Height / 2));
 			moffset *= new Vector2(1f / Game.Width, 1f / Game.Height);
 
-			if (Game.Keyboard.IsKeyDown(Keys.W))
+			input.Update();
+
+			if (input.ActionDown(InputAction.ID_THROTTLEUP))
 			{
 				Velocity += (float)(delta.TotalSeconds * ACCEL);
 				Velocity = MathHelper.Clamp(Velocity, 0, MAX_VELOCITY);
 			}
 
-			else if (Game.Keyboard.IsKeyDown(Keys.S))
+			else if (input.ActionDown(InputAction.ID_THROTTLEDOWN))
 			{
 				Velocity -= (float)(delta.TotalSeconds * ACCEL);
 				Velocity = MathHelper.Clamp(Velocity, 0, MAX_VELOCITY);
 			}
 
+			StrafeControls strafe = StrafeControls.None;
+			if (input.ActionDown(InputAction.ID_STRAFELEFT)) strafe |= StrafeControls.Left;
+			if (input.ActionDown(InputAction.ID_STRAFERIGHT)) strafe |= StrafeControls.Right;
+			if (input.ActionDown(InputAction.ID_STRAFEUP)) strafe |= StrafeControls.Up;
+			if (input.ActionDown(InputAction.ID_STRAFEDOWN)) strafe |= StrafeControls.Down;
+
+			thrust = input.ActionDown(InputAction.ID_THRUST);
 			var pc = player.PhysicsComponent;
 			if (Game.Mouse.IsButtonDown(MouseButtons.Left) || mouseFlight)
 			{
@@ -186,6 +207,7 @@ Mouse Flight: {10}
 				pc.Orientation = JMatrix.CreateFromYawPitchRoll((float)yaw, (float)pitch, lerped);
 			}
 
+			control.CurrentStrafe = strafe;
 			if (Game.Mouse.IsButtonDown(MouseButtons.Right))
 			{
 				var newselected = GetSelection(Game.Mouse.X, Game.Mouse.Y);
@@ -201,24 +223,6 @@ Mouse Flight: {10}
 					debugDrawBody = null;
 				}
 				selected = newselected;
-			}
-
-			if (Game.Keyboard.IsKeyDown(Keys.Up))
-			{
-				camera.DesiredPositionOffset -= (10 * (float)delta.TotalSeconds * camera.OffsetDirection);
-			}
-			else if (Game.Keyboard.IsKeyDown(Keys.Down))
-			{
-				camera.DesiredPositionOffset += (10 * (float)delta.TotalSeconds * camera.OffsetDirection);
-			}
-
-			if (Game.Keyboard.IsKeyDown(Keys.Left))
-			{
-				camera.DesiredPositionOffset.X += 10 * (float)delta.TotalSeconds;
-			}
-			if (Game.Keyboard.IsKeyDown(Keys.Right))
-			{
-				camera.DesiredPositionOffset.X -= 10 * (float)delta.TotalSeconds;
 			}
 		}
 
@@ -300,23 +304,7 @@ Mouse Flight: {10}
 		public override void Draw(TimeSpan delta)
 		{
 			sysrender.Draw();
-			int i = 0;
-			int j = 0;
 			debugphysics.StartFrame(camera, Game.RenderState);
-			/*foreach (RigidBody body in world.Physics.RigidBodies)
-			{
-				debugphysics.Color = colors[i];
-				if (j == draw_hitboxes)
-				{
-					if (!body.EnableDebugDraw)
-						body.EnableDebugDraw = true;
-					body.DebugDraw(debugphysics);
-				}
-				i++;
-				j++;
-				if (i >= colors.Length)
-					i = 0;
-			}*/
 			if (debugDrawBody != null)
 			{
 				debugDrawBody.DebugDraw(debugphysics);

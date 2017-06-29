@@ -40,9 +40,14 @@ namespace LibreLancer
 			sys = null;
 		}
 		Matrix4 tr;
+		Vector3 pos;
+		float dist = 0;
+		const float CULL_DISTANCE = 20000;
+		const float CULL = CULL_DISTANCE * CULL_DISTANCE;
 		public override void Update(TimeSpan time, Vector3 position, Matrix4 transform)
 		{
-			if (Active)
+			pos = position;
+			if (Active && dist < CULL)
 			{
 				tr = transform;
 				fx.Update(time, transform, SParam);
@@ -50,7 +55,8 @@ namespace LibreLancer
 		}
 		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
-			if(Active)
+			dist = VectorMath.DistanceSquared(pos, camera.Position);
+			if(Active && dist < (20000 * 20000))
 				fx.Draw(sys.Game.Billboards, sys.DebugRenderer, tr, SParam);
 		}
 	}

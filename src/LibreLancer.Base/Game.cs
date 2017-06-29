@@ -291,7 +291,7 @@ namespace LibreLancer
 						}
 					case SDL.SDL_EventType.SDL_KEYDOWN:
 						{
-							Keyboard.OnKeyDown ((Keys)e.key.keysym.sym, (KeyModifiers)e.key.keysym.mod);
+							Keyboard.OnKeyDown((Keys)e.key.keysym.sym, (KeyModifiers)e.key.keysym.mod, e.key.repeat != 0);
 							break;
 						}
 					case SDL.SDL_EventType.SDL_KEYUP:

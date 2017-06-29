@@ -188,7 +188,7 @@ namespace LibreLancer
 		public override void CalculateMassInertia()
 		{
 			base.Inertia = JMatrix.Zero;
-			base.Mass = 0.0f;
+			base.Mass = 1f;
 
 			for (int i = 0; i < Shapes.Length; i++)
 			{
@@ -210,7 +210,7 @@ namespace LibreLancer
 				currentInertia.M23 += -p.Y * p.Z * m;
 
 				base.Inertia += currentInertia;
-				base.Mass += m;
+				//base.Mass += m;
 			}
 		}
 

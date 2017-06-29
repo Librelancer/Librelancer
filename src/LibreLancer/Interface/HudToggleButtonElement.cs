@@ -50,9 +50,32 @@ namespace LibreLancer
 			}
 		}
 
+		protected override void UpdateInternal(TimeSpan time)
+		{
+			if (GetHitRectangle().Contains(Manager.Game.Mouse.X, Manager.Game.Mouse.Y) && Tag != null)
+			{
+				if (Manager.Game.Mouse.IsButtonDown(MouseButtons.Left))
+				{
+					Manager.OnClick(Tag);
+				}
+			}
+		}
+
 		public override void DrawText()
 		{
+		}
 
+		Rectangle GetHitRectangle()
+		{
+			var topleft = Manager.ScreenToPixel(Position.X - 0.015f * UIScale.X, Position.Y + 0.015f * UIScale.Y);
+			var bottomRight = Manager.ScreenToPixel(Position.X + 0.015f * UIScale.X, Position.Y - 0.015f * UIScale.Y);
+			var rect = new Rectangle(
+				(int)topleft.X,
+				(int)topleft.Y,
+				(int)(bottomRight.X - topleft.X),
+				(int)(bottomRight.Y - topleft.Y)
+			);
+			return rect;
 		}
 	}
 }

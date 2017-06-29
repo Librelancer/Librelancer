@@ -21,11 +21,12 @@ namespace LibreLancer
 	{
 		public Keys Key { get; private set; }
 		public KeyModifiers Modifiers { get; private set; }
-
-		public KeyEventArgs (Keys key, KeyModifiers mod)
+		public bool IsRepeat { get; private set; }
+		public KeyEventArgs (Keys key, KeyModifiers mod, bool repeat)
 		{
 			Key = key;
 			Modifiers = mod;
+			IsRepeat = repeat;
 		}
 	}
 }

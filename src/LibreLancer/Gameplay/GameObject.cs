@@ -236,6 +236,13 @@ namespace LibreLancer
 			}
 		}
 
+		public T GetComponent<T>() where T : GameComponent
+		{
+			for (int i = 0; i < Components.Count; i++)
+				if (Components[i] is T)
+					return (T)Components[i];
+			return null;
+		}
 		public void Update(TimeSpan time)
 		{
 			if (PhysicsComponent != null && !isstatic)
@@ -251,6 +258,14 @@ namespace LibreLancer
 				Children[i].Update(time);
 			for (int i = 0; i < Components.Count; i++)
 				Components[i].Update(time);
+		}
+
+		public void FixedUpdate(TimeSpan time)
+		{
+			for (int i = 0; i < Children.Count; i++)
+				Children[i].FixedUpdate(time);
+			for (int i = 0; i < Components.Count; i++)
+				Components[i].FixedUpdate(time);
 		}
 
 		public void Register(SystemRenderer renderer, World physics)

@@ -69,7 +69,7 @@ namespace LibreLancer
 			decl.SetPointers ();
 			VertexCount = length;
         }
-
+		int count = 0;
 		public void SetData<T>(T[] data, int? length = null) where T : struct
         {
             if (typeof(T) != type)

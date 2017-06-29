@@ -40,7 +40,7 @@ namespace LibreLancer
 			vertices = new BillboardVert[MAX_BILLBOARDS * 4];
 			rendat = new RenderData[MAX_BILLBOARDS];
 			vbo = new VertexBuffer(typeof(BillboardVert), MAX_BILLBOARDS * 4, true);
-			ibo = new ElementBuffer(MAX_BILLBOARDS * 6);
+			ibo = new ElementBuffer(MAX_BILLBOARDS * 6, true);
 			vbo.SetElementBuffer(ibo);
 		}
 		[StructLayout(LayoutKind.Sequential)]

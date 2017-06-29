@@ -34,12 +34,20 @@ namespace LibreLancer
 		public float HullPercentage = 1f;
 		public float Velocity;
 		public float ThrustAvailable = 1f;
+		public bool ShowMouseFlight = false;
+		public bool CruiseCharging = false;
+		public GameObject SelectedObject = null;
 
 		HudToggleButtonElement maneuverA;
 		HudToggleButtonElement maneuverB;
 		HudToggleButtonElement maneuverC;
 		HudToggleButtonElement maneuverD;
 
+		IDrawable reticle;
+		IDrawable reticle_arrows;
+		IDrawable reticle_health;
+		IDrawable reticle_quotes;
+		IDrawable reticle_shields;
 		public Hud(FreelancerGame game)
 		{
 			manager = new UIManager(game);
@@ -63,32 +71,84 @@ namespace LibreLancer
 			var mnvs = game.GameData.GetManeuvers().ToList();
 			if (mnvs.Count != 4) throw new NotImplementedException();
 
-			maneuverA = new HudToggleButtonElement(manager, mnvs[0].ActiveModel, mnvs[0].InactiveModel, -0.218f, 0.925f, 4.26f, 5.48f);
+			maneuverA = new HudToggleButtonElement(manager, mnvs[0].ActiveModel, mnvs[0].InactiveModel, -0.218f, 0.925f, 4.26f, 5.48f) { Tag = "mmA" };
 			manager.Elements.Add(maneuverA);
 
-			maneuverB = new HudToggleButtonElement(manager, mnvs[1].ActiveModel, mnvs[1].InactiveModel, -0.063f, 0.925f, 4.26f, 5.48f);
+			maneuverB = new HudToggleButtonElement(manager, mnvs[1].ActiveModel, mnvs[1].InactiveModel, -0.063f, 0.925f, 4.26f, 5.48f) { Tag = "mmB" };
 			maneuverB.State = ToggleState.Inactive;
 			manager.Elements.Add(maneuverB);
 
-			maneuverC = new HudToggleButtonElement(manager, mnvs[2].ActiveModel, mnvs[2].InactiveModel, 0.071f, 0.914f, 4.26f, 5.48f);
+			maneuverC = new HudToggleButtonElement(manager, mnvs[2].ActiveModel, mnvs[2].InactiveModel, 0.071f, 0.914f, 4.26f, 5.48f) { Tag = "mmC" };
 			maneuverC.State = ToggleState.Inactive;
 			manager.Elements.Add(maneuverC);
 
-			maneuverD = new HudToggleButtonElement(manager, mnvs[3].ActiveModel, mnvs[3].InactiveModel, 0.228f, 0.925f, 4.26f, 5.48f);
+			maneuverD = new HudToggleButtonElement(manager, mnvs[3].ActiveModel, mnvs[3].InactiveModel, 0.228f, 0.925f, 4.26f, 5.48f) { Tag = "mmD" };
 			maneuverD.State = ToggleState.Inactive;
 			manager.Elements.Add(maneuverD);
+
+			manager.Clicked += Manager_OnClick;
+
+			reticle = game.ResourceManager.GetDrawable(game.GameData.ResolveDataPath("INTERFACE/HUD/hud_reticle.3db"));
+			reticle_health = game.ResourceManager.GetDrawable(game.GameData.ResolveDataPath("INTERFACE/HUD/hud_reticle_health.3db"));
+			reticle_shields = game.ResourceManager.GetDrawable(game.GameData.ResolveDataPath("INTERFACE/HUD/hud_reticle_shields.3db"));
+
+
 		}
 
+		void Manager_OnClick(string obj)
+		{
+			switch (obj)
+			{
+				case "mmA":
+					ManeuverClick(maneuverA);
+					break;
+				case "mmB":
+					ManeuverClick(maneuverB);
+					break;
+				case "mmC":
+					ManeuverClick(maneuverC);
+					break;
+				case "mmD":
+					ManeuverClick(maneuverD);
+					break;
+			}
+		}
+
+		void ManeuverClick(HudToggleButtonElement element)
+		{
+			maneuverA.State = ToggleState.Inactive;
+			maneuverB.State = ToggleState.Inactive;
+			maneuverC.State = ToggleState.Inactive;
+			maneuverD.State = ToggleState.Inactive;
+			element.State = ToggleState.Active;
+		}
 
 
 		public void Update(TimeSpan delta)
 		{
-			
+			numberbox.Velocity = Velocity;
 			manager.Update(delta);
+		}
+
+		//Get size of text used for mouse flight
+		float GetStatusTextSize(float px)
+		{
+			return 12f;
 		}
 
 		public void Draw()
 		{
+			if (true)
+			{
+				manager.Game.RenderState.Cull = false;
+				manager.Game.RenderState.DepthEnabled = false;
+				reticle.Update(IdentityCamera.Instance, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0));
+				reticle.Draw(manager.Game.RenderState, Matrix4.Identity, Lighting.Empty);
+				reticle_health.Update(IdentityCamera.Instance, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0));
+				reticle_health.Draw(manager.Game.RenderState, Matrix4.Identity, Lighting.Empty);
+				reticle_shields.Update(IdentityCamera.Instance, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0));
+				reticle_shields.Draw(manager.Game.RenderState, Matrix4.Identity, Lighting.Empty);
+			}
 			manager.Draw();
 		}
 	}

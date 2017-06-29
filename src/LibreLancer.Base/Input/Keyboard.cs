@@ -36,17 +36,17 @@ namespace LibreLancer
 				TextInput (text);
 		}
 
-		internal void OnKeyDown (Keys key, KeyModifiers mod)
+		internal void OnKeyDown (Keys key, KeyModifiers mod, bool isRepeat)
 		{
 			if (KeyDown != null)
-				KeyDown (new KeyEventArgs (key, mod));
+				KeyDown (new KeyEventArgs (key, mod, isRepeat));
 			keysDown [key] = true;
 		}
 
 		internal void OnKeyUp (Keys key, KeyModifiers mod)
 		{
 			if (KeyUp != null)
-				KeyUp (new KeyEventArgs (key, mod));
+				KeyUp (new KeyEventArgs (key, mod, false));
 			keysDown [key] = false;
 		}
 

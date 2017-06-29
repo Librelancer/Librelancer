@@ -21,6 +21,7 @@ namespace LibreLancer
 {
 	public class EngineComponent : GameComponent
 	{
+		public Engine Engine;
 		public float Speed = 1f;
 		List<AttachedEffect> fireFx = new List<AttachedEffect>();
 		GameObject parent;
@@ -37,6 +38,7 @@ namespace LibreLancer
 				}
 			}
 			this.parent = parent;
+			Engine = engine;
 		}
 		public override void Update(TimeSpan time)
 		{
