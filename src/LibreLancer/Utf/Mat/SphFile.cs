@@ -165,6 +165,7 @@ namespace LibreLancer.Utf.Mat
 				if (SideMaterials.Length > 6)
 				{
 					var mat = (AtmosphereMaterial)SideMaterials[6].Render;
+					var transform = Matrix4.CreateScale(Radius * mat.Scale) * world;
 					for (int i = 0; i < 6; i++)
 					{
 						int start, count;
@@ -174,14 +175,15 @@ namespace LibreLancer.Utf.Mat
 						buffer.AddCommand(
 							SideMaterials[6].Render,
 							null,
-							Matrix4.CreateScale(Radius * mat.Scale) * world,
+							transform,
 							lighting,
 							sphere.VertexBuffer,
 							PrimitiveTypes.TriangleList,
 							0,
 							start,
 							count,
-							SortLayers.OBJECT
+							SortLayers.OBJECT,
+							RenderHelpers.GetZ(transform, _camera.Position, pos)
 						);
 					}
 				}
