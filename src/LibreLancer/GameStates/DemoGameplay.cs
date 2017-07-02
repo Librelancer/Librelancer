@@ -192,7 +192,7 @@ Mouse Flight: {10}
 			if (input.ActionDown(InputAction.ID_STRAFEUP)) strafe |= StrafeControls.Up;
 			if (input.ActionDown(InputAction.ID_STRAFEDOWN)) strafe |= StrafeControls.Down;
 
-			thrust = input.ActionDown(InputAction.ID_THRUST);
+			control.ThrustEnabled = input.ActionDown(InputAction.ID_THRUST);
 			var pc = player.PhysicsComponent;
 			if (Game.Mouse.IsButtonDown(MouseButtons.Left) || mouseFlight)
 			{
@@ -208,6 +208,7 @@ Mouse Flight: {10}
 			}
 
 			control.CurrentStrafe = strafe;
+			control.EnginePower = Velocity / MAX_VELOCITY;
 			if (Game.Mouse.IsButtonDown(MouseButtons.Right))
 			{
 				var newselected = GetSelection(Game.Mouse.X, Game.Mouse.Y);

@@ -49,6 +49,7 @@ namespace LibreLancer
 					(act.Primary != Keys.Unknown && game.Keyboard.IsKeyDown(act.Primary)) ||
 					(act.Secondary != Keys.Unknown && game.Keyboard.IsKeyDown(act.Secondary))
 				);
+				actions[i] = act;
 			}
 		}
 
