@@ -191,6 +191,10 @@ namespace LibreLancer
                 return (Delegate)new GLDelegates.VertexAttribPointer(VertexAttribPointer);
             if (name == "glGenVertexArrays")
                 name = "glGenVertexArraysOES";
+			if (name == "glBlitFramebuffer")
+				name = "glBlitFramebufferANGLE";
+			if (name == "glRenderbufferStorageMultisample")
+				name = "glRenderbufferStorageMultisampleANGLE";
             if (name == "glBindVertexArray")
                 return (Delegate)new GLDelegates.BindVertexArray(BindVertexArray);
             if (name == "glTexImage2D")

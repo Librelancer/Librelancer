@@ -41,62 +41,63 @@ namespace LibreLancer
 			Type = type;
 		}
 
-		static ShaderVariables sh_posNormalTexture;
-		static ShaderVariables sh_posNormalTextureTwo;
-		static ShaderVariables sh_posNormalColorTexture;
-		static ShaderVariables sh_posTexture;
-		static ShaderVariables sh_pos;
+		static ShaderVariables[] sh_posNormalTexture = new ShaderVariables[ShaderCapsExtensions.N_SHADERCAPS];
+		static ShaderVariables[] sh_posNormalTextureTwo = new ShaderVariables[ShaderCapsExtensions.N_SHADERCAPS];
+		static ShaderVariables[] sh_posNormalColorTexture = new ShaderVariables[ShaderCapsExtensions.N_SHADERCAPS];
+		static ShaderVariables[] sh_posTexture = new ShaderVariables[ShaderCapsExtensions.N_SHADERCAPS];
+		static ShaderVariables[] sh_pos = new ShaderVariables[ShaderCapsExtensions.N_SHADERCAPS];
 		static ShaderVariables GetShader(IVertexType vertextype, ShaderCaps caps)
 		{
+			var i = caps.GetIndex();
 			if (vertextype is VertexPositionNormalTexture)
 			{
-				if (sh_posNormalTexture == null)
-					sh_posNormalTexture = ShaderCache.Get(
+				if (sh_posNormalTexture[i] == null)
+					sh_posNormalTexture[i] = ShaderCache.Get(
 						"Basic_PositionNormalTexture.vs",
 						"Basic_Fragment.frag",
 						caps
 					);
-				return sh_posNormalTexture;
+				return sh_posNormalTexture[i];
 			}
 			if (vertextype is VertexPositionNormalTextureTwo)
 			{
-				if (sh_posNormalTextureTwo == null)
-					sh_posNormalTextureTwo = ShaderCache.Get(
+				if (sh_posNormalTextureTwo[i] == null)
+					sh_posNormalTextureTwo[i] = ShaderCache.Get(
 						"Basic_PositionNormalTextureTwo.vs",
 						"Basic_Fragment.frag",
 						caps
 					);
-				return sh_posNormalTextureTwo;
+				return sh_posNormalTextureTwo[i];
 			}
 			if (vertextype is VertexPositionNormalColorTexture)
 			{
-				if (sh_posNormalColorTexture == null)
-					sh_posNormalColorTexture = ShaderCache.Get(
+				if (sh_posNormalColorTexture[i] == null)
+					sh_posNormalColorTexture[i] = ShaderCache.Get(
 						"Basic_PositionNormalColorTexture.vs",
 						"Basic_Fragment.frag",
 						caps
 					);
-				return sh_posNormalColorTexture;
+				return sh_posNormalColorTexture[i];
 			}
 			if (vertextype is VertexPositionTexture)
 			{
-				if (sh_posTexture == null)
-					sh_posTexture = ShaderCache.Get(
+				if (sh_posTexture[i] == null)
+					sh_posTexture[i] = ShaderCache.Get(
 						"Basic_PositionTexture.vs",
 						"Basic_Fragment.frag",
 						caps
 					);
-				return sh_posTexture;
+				return sh_posTexture[i];
 			}
 			if (vertextype is VertexPosition)
 			{
-				if (sh_pos == null)
-					sh_pos = ShaderCache.Get(
+				if (sh_pos[i] == null)
+					sh_pos[i] = ShaderCache.Get(
 						"Basic_PositionTexture.vs",
 						"Basic_Fragment.frag",
 						caps
 					);
-				return sh_pos;
+				return sh_pos[i];
 			}
 			throw new NotImplementedException(vertextype.GetType().Name);
 		}
@@ -107,7 +108,10 @@ namespace LibreLancer
 			ShaderCaps caps = ShaderCaps.None;
 			if (EtEnabled) caps |= ShaderCaps.EtEnabled;
 			if (Fade) caps |= ShaderCaps.FadeEnabled;
-			if (AlphaEnabled && GetTexture(0, DtSampler).Dxt1) caps |= ShaderCaps.AlphaTestEnabled;
+			if (GetTexture(0, DtSampler).Dxt1)
+			{
+				caps |= ShaderCaps.AlphaTestEnabled; //Shitty way of dealing with alpha_mask
+			}
 			var shader = GetShader(vertextype, caps);
 			shader.SetWorld(ref World);
 			shader.SetView(Camera);
@@ -164,7 +168,7 @@ namespace LibreLancer
 		{
 			get
 			{
-				return AlphaEnabled && !GetTexture(0, DtSampler).Dxt1;
+				return AlphaEnabled;
 			}
 		}
 	}

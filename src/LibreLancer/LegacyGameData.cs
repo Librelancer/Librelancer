@@ -166,6 +166,10 @@ namespace LibreLancer
 				};
 			}
 		}
+		public bool SystemExists(string id)
+		{
+			return fldata.Universe.FindSystem(id) != null;
+		}
 		public GameData.StarSystem GetSystem(string id)
 		{
 			var legacy = fldata.Universe.FindSystem (id);

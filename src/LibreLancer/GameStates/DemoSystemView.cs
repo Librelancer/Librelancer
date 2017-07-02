@@ -58,9 +58,18 @@ C# Memory Usage: {5}
 			g.Keyboard.KeyDown += G_Keyboard_KeyDown;
 			g.Keyboard.TextInput += G_Keyboard_TextInput;
 		}
+		const double MSG_TIMER = 3;
+		double msg_current_time = 0;
+		string current_msg = "";
 
 		public override void Update (TimeSpan delta)
 		{
+			if (current_msg != "")
+			{
+				msg_current_time -= delta.TotalSeconds;
+				if (msg_current_time < 0)
+					current_msg = "";
+			}
 			if (!textEntry)
 				ProcessInput(delta);
 			else
@@ -69,12 +78,20 @@ C# Memory Usage: {5}
 				{
 					textEntry = false;
 					Game.DisableTextInput();
-					sys = Game.GameData.GetSystem(currentText.Trim());
-					world.LoadSystem(sys, Game.ResourceManager);
-					camera.Free = false;
-					camera.Update(TimeSpan.FromSeconds(1));
-					camera.Free = true;
-					Game.Sound.PlayMusic(sys.MusicSpace);
+					if (Game.GameData.SystemExists(currentText.Trim()))
+					{
+						sys = Game.GameData.GetSystem(currentText.Trim());
+						world.LoadSystem(sys, Game.ResourceManager);
+						camera.Free = false;
+						camera.Update(TimeSpan.FromSeconds(1));
+						camera.Free = true;
+						Game.Sound.PlayMusic(sys.MusicSpace);
+					}
+					else
+					{
+						msg_current_time = MSG_TIMER;
+						current_msg = string.Format("{0} is not a valid system", currentText.Trim());
+					}
 				}
 				if (Game.Keyboard.IsKeyDown(Keys.Escape))
 					textEntry = false;
@@ -174,9 +191,14 @@ C# Memory Usage: {5}
 			sysrender.Draw ();
 			trender.Start (Game.Width, Game.Height);
 			DrawShadowedText (string.Format(DEMO_TEXT,camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, SizeSuffix(GC.GetTotalMemory(false)), Game.Renderer), 5, 5);
+
 			if (textEntry)
 			{
 				DrawShadowedText("Change System (Esc to cancel): " + currentText, 5, 200);
+			}
+			if (current_msg != null)
+			{
+				DrawShadowedText(current_msg, 5, 230, Color4.Red);
 			}
 			trender.Finish ();
 		}
@@ -194,7 +216,7 @@ C# Memory Usage: {5}
 			return string.Format("{0:n1} {1}", adjustedSize, SizeSuffixes[mag]);
 		}
 
-		void DrawShadowedText(string text, float x, float y)
+		void DrawShadowedText(string text, float x, float y, Color4? color = null)
 		{
 			trender.DrawString (font,
 				text,
@@ -203,7 +225,7 @@ C# Memory Usage: {5}
 			trender.DrawString (font,
 				text,
 				x, y,
-				Color4.White);
+				color ?? Color4.White);
 		}
 	}
 }
