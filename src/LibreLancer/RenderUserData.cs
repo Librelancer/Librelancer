@@ -11,7 +11,7 @@ namespace LibreLancer
 		public Texture Texture;
 		public float Float;
 		//public float Float2;
-		public ShaderAction UserFunction;
+		//public ShaderAction UserFunction;
 		//public Lighting Lighting;
         public object Object;
 		//public int Integer;

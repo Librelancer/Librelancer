@@ -142,6 +142,20 @@ namespace LibreLancer
 				Z = z
 			};
 		}
+		public void AddCommand(Billboards billboards, Shader shader, ShaderAction setup, RenderUserData userData, int indexStart, int layer, float z)
+		{
+			Commands[currentCommand++] = new RenderCommand()
+			{
+				CmdType = RenderCmdType.BillboardCustom,
+				Source = billboards,
+				ShaderSetup = setup,
+				UserData = userData,
+				Index = indexStart,
+				Cleanup = shader,
+				SortLayer = layer,
+				Z = z
+			};
+		}
 		bool _sorted = false;
 		public void DrawOpaque(RenderState state)
 		{
@@ -185,11 +199,16 @@ namespace LibreLancer
 					var bb = (Billboards)Commands[cmdptr[i]].Source;
                     bb.AddIndices(Commands[cmdptr[i]].Index);
                 }
+				if (Commands[cmdptr[i]].CmdType == RenderCmdType.BillboardCustom)
+				{
+					var bb = (Billboards)Commands[cmdptr[i]].Source;
+					bb.AddCustomIndices(Commands[cmdptr[i]].Index);
+				}
             }
-                Billboards lastbb = null;
+            Billboards lastbb = null;
 			for (int i = transparentCount - 1; i >= 0; i--)
 			{
-				if (lastbb != null && Commands[cmdptr[i]].CmdType != RenderCmdType.Billboard)
+				if (lastbb != null && Commands[cmdptr[i]].CmdType != RenderCmdType.Billboard && Commands[cmdptr[i]].CmdType != RenderCmdType.BillboardCustom)
 				{
 					lastbb.FlushCommands(state);
 					lastbb = null;
@@ -223,7 +242,8 @@ namespace LibreLancer
 	{
 		Material,
 		Shader,
-		Billboard
+		Billboard,
+		BillboardCustom
 	}
 	public struct RenderCommand
 	{
@@ -232,7 +252,7 @@ namespace LibreLancer
 		public Matrix4 World;
 		public RenderUserData UserData;
 		public ShaderAction ShaderSetup;
-		public Action<RenderState> Cleanup;
+		public object Cleanup;
 		public VertexBuffer Buffer;
 		public int BaseVertex;
 		public RenderCmdType CmdType;
@@ -297,12 +317,17 @@ namespace LibreLancer
 				else
 					Buffer.Draw(Primitive, Start, Count);
 				if (Cleanup != null)
-					Cleanup(state);
+					((Action<RenderState>)Cleanup)(state);
 			}
 			else if (CmdType == RenderCmdType.Billboard)
 			{
 				var Billboards = (Billboards)Source;
 				Billboards.RenderStandard(Index, Hash, state);
+			}
+			else if (CmdType == RenderCmdType.BillboardCustom)
+			{
+				var billboards = (Billboards)Source;
+				billboards.RenderCustom(state, (Shader)Cleanup, ShaderSetup, ref this);
 			}
 		}
 	}

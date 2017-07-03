@@ -134,7 +134,8 @@ namespace LibreLancer
 		{
 			sysr.Game.Billboards.DrawCustomShader(
 				GetRadialShader(sysr.Game.Billboards),
-				new RenderUserData() { Texture = texture, Color = inner, Color2 = outer, Float = expand, UserFunction = _setupRadialDelegate },
+				_setupRadialDelegate,
+				new RenderUserData() { Texture = texture, Color = inner, Color2 = outer, Float = expand },
 				position,
 				size,
 				Color4.White,
@@ -151,7 +152,8 @@ namespace LibreLancer
 		{
 			sysr.Game.Billboards.DrawCustomShader(
 				GetSpineShader(sysr.Game.Billboards),
-				new RenderUserData() { Texture = texture, Color = new Color4(inner,1), Color2 = new Color4(outer,1), Float = alpha, UserFunction = _setupSpineDelegate },
+				_setupSpineDelegate,
+				new RenderUserData() { Texture = texture, Color = new Color4(inner,1), Color2 = new Color4(outer,1), Float = alpha },
 				position,
 				size,
 				Color4.White,

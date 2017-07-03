@@ -295,7 +295,8 @@ namespace LibreLancer
 				var tex = game.ResourceManager.FindTexture(p.Shape.Texture);
 				game.Billboards.DrawCustomShader(
 					GetPuffShader(game.Billboards),
-					new RenderUserData() { Texture = tex, Color = Nebula.FogColor, Float = factor, UserFunction = _setupPuffDelegate },
+					_setupPuffDelegate,
+					new RenderUserData() { Texture = tex, Color = Nebula.FogColor, Float = factor },
 					p.Position,
 					p.Size,
 					Nebula.ExteriorColor,
