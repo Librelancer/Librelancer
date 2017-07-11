@@ -95,7 +95,8 @@ namespace LibreLancer
 				strafe +
 				(JVector.Transform(JVector.Forward, Parent.PhysicsComponent.Orientation) * engine_force)
 			);
-
+			if (totalForce.Length() > float.Epsilon)
+				Parent.PhysicsComponent.IsActive = true;
 			Parent.PhysicsComponent.AddForce(totalForce);
 		}
 	}

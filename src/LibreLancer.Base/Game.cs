@@ -338,6 +338,14 @@ namespace LibreLancer
 			Cleanup ();
 			SDL.SDL_Quit ();
 		}
+
+		//TODO: Terrible Hack
+		public void Crashed()
+		{
+			Cleanup();
+			SDL.SDL_Quit();
+		}
+
 		const int FPS_MAXSAMPLES = 50;
 		int tickindex = 0;
 		double ticksum = 0;

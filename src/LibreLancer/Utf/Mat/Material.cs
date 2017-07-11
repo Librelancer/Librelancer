@@ -146,7 +146,7 @@ namespace LibreLancer.Utf.Mat
 			"Dc", //DcDt buggy
 			"DcDt", "DcDtTwo", "DcDtEc", "DcDtEt", "DcDtEcEt",
 			"DcDtOcOt", "DcDtBtOcOt", "DcDtBtOcOtTwo", "DcDtEcOcOt",
-			"DcDtOcOtTwo", "DcDtBt", "DcDtBtTwo"
+			"DcDtOcOtTwo", "DcDtBt", "DcDtBtTwo", "BtDetailMapMaterial"
 		};
 		RenderMaterial _rmat;
 		public RenderMaterial Render
@@ -207,10 +207,6 @@ namespace LibreLancer.Utf.Mat
 			    type == "HUDIconMaterial")
 			{
 				type = "DcDtOcOt"; //HACK: Should do env mapping
-			}
-			if (type == "BtDetailMapMaterial")
-			{
-				type = "DcDtBtOcOt"; //HACK: Implement this properly
 			}
 			if (type == "ExclusionZoneMaterial")
 			{

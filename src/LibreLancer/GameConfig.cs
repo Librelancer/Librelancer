@@ -37,6 +37,8 @@ namespace LibreLancer
 		[DllImport("kernel32.dll")]
 		static extern bool SetDllDirectory (string directory);
 
+		FreelancerGame game;
+
 		public void Launch()
 		{
 			if (Platform.RunningOS == OS.Windows) {
@@ -44,8 +46,13 @@ namespace LibreLancer
 				var fullpath = Path.Combine (bindir, IntPtr.Size == 8 ? "win64" : "win32");
 				SetDllDirectory (fullpath);
 			}
-			var game = new FreelancerGame(this);
+			game = new FreelancerGame(this);
 			game.Run ();
+		}
+
+		public void Crashed()
+		{
+			game.Crashed();
 		}
 	}
 }

@@ -54,27 +54,30 @@ namespace LibreLancer.Fx
 			var r_max = MaxRadius.GetValue(sparam, 0);
 
 			var radius = instance.Random.NextFloat(r_min, r_max);
-			var theta = instance.Random.NextFloat(0, MathHelper.Pi);
-			var phi = GetSpread(instance.Random, sparam, 0);
+			float s_min = MathHelper.DegreesToRadians(MinSpread.GetValue(sparam, 0));
+			float s_max = MathHelper.DegreesToRadians(MaxSpread.GetValue(sparam, 0));
 
-			var x = Math.Sin(phi) * Math.Cos(theta);
-			var y = Math.Sin(phi) * Math.Sin(theta);
-			var z = Math.Cos(phi);
-
-			var p = new Vector3(
-				(float)x,
-				(float)y,
-				(float)z
-			);
-
+			var direction = RandomInCone(instance.Random, s_min, s_max);
 			var tr = Transform.GetMatrix(sparam, 0);
-			var direction = Vector3.UnitZ + p;
 			var n = (tr * new Vector4(direction.Normalized(), 0)).Xyz.Normalized();
-			//var pressure = Pressure.GetValue(sparam, 0);
+			var p = n * radius;
 			n *= Pressure.GetValue(sparam, 0);
-			var pr = p * radius;
-			instance.Particles[idx].Position = pr;
+			instance.Particles[idx].Position = p;
 			instance.Particles[idx].Normal = n;
+		}
+		//Different direction to FxCubeEmitter
+		static Vector3 RandomInCone(Random r, float minradius, float maxradius)
+		{
+			//(sqrt(1 - z^2) * cosϕ, sqrt(1 - z^2) * sinϕ, z)
+			var radradius = maxradius / 2;
+
+			float z = r.NextFloat((float)Math.Cos(radradius), 1 - (minradius / 2));
+			float t = r.NextFloat(0, (float)(Math.PI * 2));
+			return new Vector3(
+				(float)(Math.Sqrt(1 - z * z) * Math.Cos(t)),
+				(float)(Math.Sqrt(1 - z * z) * Math.Sin(t)),
+				z
+			);
 		}
 	}
 }

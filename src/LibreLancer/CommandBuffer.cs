@@ -70,7 +70,7 @@ namespace LibreLancer
 				BaseVertex = *(int*)(&fadeParams.X),
 				Index = *(int*)(&fadeParams.Y),
 				World = world,
-				SortLayer = material.IsTransparent ? layer : SortLayers.OPAQUE,
+				SortLayer = layer, //Fade is always transparent 
 				Z = z
 			};
 		}

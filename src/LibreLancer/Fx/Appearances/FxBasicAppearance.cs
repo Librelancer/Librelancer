@@ -135,6 +135,10 @@ namespace LibreLancer.Fx
 			tr = new Vector2(1, 0);
 			bl = new Vector2(0, 1);
 			br = new Vector2(1, 1);
+			if (Texture == null) {
+				tex2d = res.NullTexture;
+				return;
+			}
 			//Get the Texture2D
 			if (_tex == null && _frame == null && _tex2D != null)
 			{

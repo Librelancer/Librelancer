@@ -383,6 +383,10 @@ namespace LibreLancer
 						{
 							var dc = cubeDrawCalls[i];
 							dc.Material.Update(_camera);
+							if (VectorMath.DistanceSquared(center, cameraPos) < (fadeNear * fadeNear))
+							{
+
+							}
 							buffer.AddCommandFade(
 								dc.Material.Render,
 								transform,
