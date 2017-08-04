@@ -130,27 +130,29 @@ namespace LibreLancer
         }
 
 		//TODO: Re-implement Texture2D.GetData later
-        /*public void GetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T : struct
+        public void GetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T : struct
         {
             GetData<T>(data);
         }
         public void GetData<T>(T[] data) where T : struct
         {
             GL.BindTexture(GL.GL_TEXTURE_2D, ID);
-            if (glFormat == (PixelFormat)All.CompressedTextureFormats)
+			if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)
             {
                 throw new NotImplementedException();
             }
             else {
-                GL.GetTexImage<T>(
-                    TextureTarget.Texture2D,
+				var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+                GL.GetTexImage(
+                    GL.GL_TEXTURE_2D,
                     0,
                     glFormat,
                     glType,
-                    data
+					handle.AddrOfPinnedObject()
                 );
+				handle.Free();
             }
-        }*/
+        }
 		void GetMipSize(int level, out int width, out int height)
 		{
 			width = Width;

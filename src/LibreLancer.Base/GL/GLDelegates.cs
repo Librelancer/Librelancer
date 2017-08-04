@@ -82,6 +82,8 @@ namespace LibreLancer.GLDelegates
     public delegate void CompressedTexImage2D(int target, int level, int internalFormat, int width, int height, int border, int imageSize, IntPtr data);
     [SuppressUnmanagedCodeSecurity]
     public delegate void TexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, int type, IntPtr data);
+	[SuppressUnmanagedCodeSecurity]
+	public delegate void GetTexImage(int target, int level, int format, int type, IntPtr pixels);
     //Shaders
     [SuppressUnmanagedCodeSecurity]
     public delegate uint CreateShader(int shaderType);

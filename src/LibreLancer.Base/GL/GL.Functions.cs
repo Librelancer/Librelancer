@@ -103,6 +103,8 @@ namespace LibreLancer
 		public static TexSubImage2D TexSubImage2D;
 		[MapsTo("glCompressedTexImage2D")]
 		public static CompressedTexImage2D CompressedTexImage2D;
+		[MapsTo("glGetTexImage")]
+		public static GetTexImage GetTexImage;
 		//Shaders
 		[MapsTo("glCreateShader")]
 		public static CreateShader CreateShader;

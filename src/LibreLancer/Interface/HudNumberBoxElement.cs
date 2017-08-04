@@ -21,7 +21,8 @@ namespace LibreLancer
 		public float Velocity = 0;
 		public float ThrustAvailable = 1f;
 		public Color4 TextColor = new Color4(160, 196, 210, 255);
-
+		public Color4 CriticalColor = Color4.Red;
+		public int CriticalThreshold = 20;
 		public HudNumberBoxElement(UIManager manager) : base(manager, "hud_numberboxes.cmp", 0.01f, -0.952f, 1.93f, 2.5f)
 		{
 		}
@@ -31,7 +32,8 @@ namespace LibreLancer
 			var thrustbox = FromScreenRect(-0.2925f, -0.93f, 0.077f, 0.055f);
 			var speedbox = FromScreenRect(0.231f, -0.93f, 0.077f, 0.055f);
 			var font = GetNumbersFont(GetTextSize(thrustbox.Height), Manager.Game);
-			DrawTextCentered(font, (int)MathHelper.Clamp(ThrustAvailable * 100, 0, 100) + "%", thrustbox, TextColor);
+			var pct = (int)MathHelper.Clamp(ThrustAvailable * 100, 0, 100);
+			DrawTextCentered(font, pct + "%", thrustbox, pct <= CriticalThreshold ? CriticalColor : TextColor);
 			DrawTextCentered(font, ((int)Velocity).ToString(), speedbox, TextColor);
 		}
 

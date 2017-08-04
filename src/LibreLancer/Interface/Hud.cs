@@ -127,6 +127,7 @@ namespace LibreLancer
 		public void Update(TimeSpan delta)
 		{
 			numberbox.Velocity = Velocity;
+			numberbox.ThrustAvailable = ThrustAvailable;
 			manager.Update(delta);
 		}
 

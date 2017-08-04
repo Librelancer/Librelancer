@@ -20,6 +20,7 @@ namespace LibreLancer
 	public class InputManager : IDisposable
 	{
 		public event Action<int> ToggleActivated;
+		public event Action<int> ToggleUp;
 
 		List<InputAction> actions = new List<InputAction>();
 		Game game;
@@ -31,11 +32,12 @@ namespace LibreLancer
 			actions.Add(new InputAction(InputAction.ID_STRAFERIGHT, "Strafe Right", false, Keys.D));
 			actions.Add(new InputAction(InputAction.ID_THROTTLEUP, "Increase Throttle", false, Keys.Up));
 			actions.Add(new InputAction(InputAction.ID_THROTTLEDOWN, "Decrease Throttle", false, Keys.Down));
-			actions.Add(new InputAction(InputAction.ID_THRUST, "Thrust", false, Keys.Tab));
+			actions.Add(new InputAction(InputAction.ID_THRUST, "Thrust", true, Keys.Tab));
 			actions.Add(new InputAction(InputAction.ID_TOGGLECRUISE, "Toggle Cruise", true, Keys.W, KeyModifiers.LeftShift));
 			actions.Add(new InputAction(InputAction.ID_CANCEL, "Cancel", true, Keys.Escape));
 			actions.Add(new InputAction(InputAction.ID_TOGGLEMOUSEFLIGHT, "Toggle Mouse Flight", true, Keys.Space));
 			game.Keyboard.KeyDown += Keyboard_KeyDown;
+			game.Keyboard.KeyUp += Keyboard_KeyUp;
 			this.game = game;
 		}
 
@@ -78,14 +80,35 @@ namespace LibreLancer
 			}
 		}
 
+		void Keyboard_KeyUp(KeyEventArgs e)
+		{
+			for (int i = 0; i < actions.Count; i++)
+			{
+				var act = actions[i];
+				if (!act.IsToggle) continue;
+				if ((e.Key == act.Primary && e.Modifiers == act.PrimaryModifiers) ||
+					(e.Key == act.Secondary && e.Modifiers == act.SecondaryModifiers))
+				{
+					OnToggleUp(act.ID);
+					return;
+				}
+			}
+		}
+
 		void OnToggleActivated(int id)
 		{
 			if (ToggleActivated != null) ToggleActivated(id);
 		}
 
+		void OnToggleUp(int id)
+		{
+			if (ToggleUp != null) ToggleUp(id);
+		}
+
 		public void Dispose()
 		{
 			game.Keyboard.KeyDown -= Keyboard_KeyDown;
+			game.Keyboard.KeyUp -= Keyboard_KeyUp;
 		}
 	}
 }

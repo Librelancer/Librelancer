@@ -97,6 +97,7 @@ Mouse Flight: {10}
 			};
 			input = new InputManager(Game);
 			input.ToggleActivated += Input_ToggleActivated;
+			input.ToggleUp += Input_ToggleUp; 
 		}
 
 		void World_RenderUpdate(TimeSpan delta)
@@ -106,6 +107,7 @@ Mouse Flight: {10}
 			camera.ChaseOrientation = player.PhysicsComponent.Orientation.ToOpenTK();
 			camera.Update(delta);
 			hud.Velocity = player.PhysicsComponent.LinearVelocity.Length();
+			hud.ThrustAvailable = (float)control.ThrustPercent;
 		}
 
 		public override void Update(TimeSpan delta)
@@ -122,7 +124,6 @@ Mouse Flight: {10}
 		{
 			control.EnginePower = (Velocity / MAX_VELOCITY);
 			control.CruiseEnabled = cruise;
-			control.ThrustEnabled = thrust;
 			ProcessInput(delta);
 		}
 		bool mouseFlight = false;
@@ -155,7 +156,16 @@ Mouse Flight: {10}
 				case InputAction.ID_TOGGLEMOUSEFLIGHT:
 					mouseFlight = !mouseFlight;
 					break;
+				case InputAction.ID_THRUST:
+					control.ThrustEnabled = true;
+					break;
 			}
+		}
+
+		void Input_ToggleUp(int obj)
+		{
+			if (obj == InputAction.ID_THRUST)
+				control.ThrustEnabled = false;
 		}
 
 		void G_Keyboard_TextInput(string text)
@@ -192,7 +202,6 @@ Mouse Flight: {10}
 			if (input.ActionDown(InputAction.ID_STRAFEUP)) strafe |= StrafeControls.Up;
 			if (input.ActionDown(InputAction.ID_STRAFEDOWN)) strafe |= StrafeControls.Down;
 
-			control.ThrustEnabled = input.ActionDown(InputAction.ID_THRUST);
 			var pc = player.PhysicsComponent;
 			if (Game.Mouse.IsButtonDown(MouseButtons.Left) || mouseFlight)
 			{
