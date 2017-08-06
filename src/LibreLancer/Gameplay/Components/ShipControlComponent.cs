@@ -34,56 +34,39 @@ namespace LibreLancer
 		public float CruiseSpeed = 300f;
 		public float StrafeForce = 20000; //TODO: Set this from ship definition (include as component, or set directly at instantiation?)
 		public bool ThrustEnabled = false;
-		public double ThrustPercent = 1;
-		float thrustDrainRate = CalculateDrainRate(150);
-		float thrustRecovery = 1 / 6f; //6 seconds to regain thrust? TODO: confirm proper rate
-		float drain = 150;
-		public float ThrusterDrain
-		{
-			get
-			{
-				return drain;
-			}
-			set
-			{
-				drain = value;
-				thrustDrainRate = CalculateDrainRate(drain);
-			}
-		}
+		public float ThrusterDrain = 150;
 		public bool CruiseEnabled = false;
 		public StrafeControls CurrentStrafe = StrafeControls.None;
 		public ShipControlComponent(GameObject parent) : base(parent)
 		{
 		}
 
-		static float CalculateDrainRate(float x)
-		{
-			//y = 4953.718 - (189.3364 / 0.03826031) * (1 - e ^ (-0.03826031 * x))
-			//Total seconds of thrust, complete bs TODO: come up with real formula
-			var y = 4953.718 - (189.3364 / 0.03826031) * (1 - Math.Pow(Math.E, -0.03826031 * x));
-			//convert to drain % per second
-			return (float)(1 / y);
-		}
-
 		public override void FixedUpdate(TimeSpan time)
 		{
 			var engine = Parent.GetComponent<EngineComponent>(); //Get mounted engine
+			var power = Parent.GetComponent<PowerCoreComponent>();
 			if (Parent.PhysicsComponent == null) return;
 			if (engine == null) return;
+			if (power == null) return;
 			//Drag = -linearDrag * Velocity
 			var drag = -engine.Engine.LinearDrag * Parent.PhysicsComponent.LinearVelocity;
 			var engine_force = EnginePower * engine.Engine.MaxForce;
+			power.CurrentThrustCapacity += power.ThrustChargeRate * (float)(time.TotalSeconds);
+			power.CurrentThrustCapacity = MathHelper.Clamp(power.CurrentThrustCapacity, 0, power.ThrustCapacity);
+			foreach (var thruster in Parent.GetChildComponents<ThrusterComponent>())
+			{
+				thruster.Enabled = false;
+			}
 			if (ThrustEnabled)
 			{
-				engine_force += 72000; //TODO: Load thruster from equipment Mr. Lazy
-				ThrustPercent -= thrustDrainRate * time.TotalSeconds;
-				ThrustPercent = MathHelper.Clamp(ThrustPercent, 0.0, 1.0);
-				if (ThrustPercent == 0)
-					ThrustEnabled = false;
-			}
-			else
-			{
-				ThrustPercent = MathHelper.Clamp(ThrustPercent + time.TotalSeconds * thrustRecovery, 0.0, 1.0);
+				foreach (var thruster in Parent.GetChildComponents<ThrusterComponent>())
+				{
+					engine_force += thruster.Equip.Force;
+					thruster.Enabled = true;
+					power.CurrentThrustCapacity -= (float)(thruster.Equip.Drain * time.TotalSeconds);
+					power.CurrentThrustCapacity = MathHelper.Clamp(power.CurrentThrustCapacity, 0, power.ThrustCapacity);
+					if (power.CurrentThrustCapacity == 0) ThrustEnabled = false;
+				}
 			}
 			if (CruiseEnabled)
 			{ //Cruise has entirely different force calculation

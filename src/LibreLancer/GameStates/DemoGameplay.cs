@@ -46,9 +46,12 @@ Mouse Flight: {10}
 		string currentText = "";
 		GameObject player;
 		ShipControlComponent control;
+		PowerCoreComponent powerCore;
 		public float Velocity = 0f;
 		const float MAX_VELOCITY = 80f;
-		Cursor cur;
+		Cursor cur_arrow;
+		Cursor cur_reticle;
+		Cursor current_cur;
 		Hud hud;
 		EngineComponent ecpt;
 		InputManager input;
@@ -61,9 +64,18 @@ Mouse Flight: {10}
 			player = new GameObject(shp.Drawable, g.ResourceManager, false);
 			control = new ShipControlComponent(player);
 			player.Components.Add(control);
+			powerCore = new PowerCoreComponent(player)
+			{
+				ThrustCapacity = 1000,
+				ThrustChargeRate = 100
+			};
+			player.Components.Add(powerCore);
 			player.PhysicsComponent.Position = new JVector(-31000, 0, -26755);
 			player.PhysicsComponent.Material.Restitution = 1;
 			player.PhysicsComponent.Mass = 150;
+			var thrusterEquip = (GameData.Items.ThrusterEquipment)g.GameData.GetEquipment("ge_s_thruster_02");
+			var thruster = new GameObject(thrusterEquip, player.GetHardpoint("hpthruster01"), player);
+			player.Children.Add(thruster);
 			camera = new ChaseCamera(Game.Viewport);
 			camera.ChasePosition = new Vector3(-31000, 0, -26755);
 			camera.ChaseOrientation = player.PhysicsComponent.Orientation.ToOpenTK();
@@ -86,7 +98,9 @@ Mouse Flight: {10}
 			g.Keyboard.KeyDown += G_Keyboard_KeyDown;
 			g.Keyboard.TextInput += G_Keyboard_TextInput;
 			debugphysics = new PhysicsDebugRenderer();
-			cur = g.ResourceManager.GetCursor("arrow");
+			cur_arrow = g.ResourceManager.GetCursor("cross");
+			cur_reticle = g.ResourceManager.GetCursor("fire_neutral");
+			current_cur = cur_arrow;
 			hud = new Hud(g);
 			g.Keyboard.KeyDown += (e) =>
 			{
@@ -107,7 +121,7 @@ Mouse Flight: {10}
 			camera.ChaseOrientation = player.PhysicsComponent.Orientation.ToOpenTK();
 			camera.Update(delta);
 			hud.Velocity = player.PhysicsComponent.LinearVelocity.Length();
-			hud.ThrustAvailable = (float)control.ThrustPercent;
+			hud.ThrustAvailable = (float)(powerCore.CurrentThrustCapacity / powerCore.ThrustCapacity);
 		}
 
 		public override void Update(TimeSpan delta)
@@ -136,10 +150,6 @@ Mouse Flight: {10}
 					currentText = currentText.Substring(0, currentText.Length - 1);
 				}
 			}
-			//if (e.Key == Keys.Space && !textEntry)
-			//{
-				//mouseFlight = !mouseFlight;
-			//}
 			if (e.Key == Keys.P && !textEntry)
 			{
 				Game.RenderState.Wireframe = !Game.RenderState.Wireframe;
@@ -218,6 +228,8 @@ Mouse Flight: {10}
 
 			control.CurrentStrafe = strafe;
 			control.EnginePower = Velocity / MAX_VELOCITY;
+			var obj = GetSelection(Game.Mouse.X, Game.Mouse.Y);
+			current_cur = obj == null ? cur_arrow : cur_reticle;
 			if (Game.Mouse.IsButtonDown(MouseButtons.Right))
 			{
 				var newselected = GetSelection(Game.Mouse.X, Game.Mouse.Y);
@@ -242,29 +254,99 @@ Mouse Flight: {10}
 
 			var start = UnProject(new Vector3(x, y, 0f), camera.Projection, camera.View, vp).ToJitter();
 			var end = UnProject(new Vector3(x, y, 1f), camera.Projection, camera.View, vp).ToJitter();
-
 			var dir = end;
-			dir.Normalize();
-			dir *= 200000;
+
 			RigidBody rb;
-			JVector normal;
-			float fraction;
-			var result = world.Physics.CollisionSystem.Raycast(
+			var result = SelectionCast(
 				start,
 				dir,
-				RaycastCallback,
-				out rb,
-				out normal,
-				out fraction
+				800000,
+				out rb
 			);
 			if (result && rb.Tag is GameObject)
 				return (GameObject)rb.Tag;
 			return null;
 		}
 
-		bool RaycastCallback(RigidBody body, JVector normal, float fraction)
+		//Select by bounding box, not by mesh
+		bool SelectionCast(JVector rayOrigin, JVector direction, float maxDist, out RigidBody body)
 		{
-			return body.Tag != player;
+			float dist = float.MaxValue;
+			body = null;
+			var jitterDir = direction * maxDist;
+			foreach (var b in world.Physics.RigidBodies)
+			{
+				var rb = (RigidBody)b;
+				if (rb.Tag == player) continue;
+				if (rb.Shape is SphereShape)
+				{
+					//Test spheres
+					var sph = (SphereShape)rb.Shape;
+					if (SphereRayIntersect(rayOrigin, direction, maxDist, rb.Position, sph.Radius))
+					{
+						var nd = VectorMath.DistanceSquared(rb.Position.ToOpenTK(), camera.Position);
+						if (nd < dist)
+						{
+							dist = nd;
+							body = rb;
+						}
+					}
+				}
+				else
+				{
+					var tag = rb.Tag as GameObject;
+					if (!rb.BoundingBox.RayIntersect(ref rayOrigin, ref jitterDir)) continue;
+					if (tag == null || tag.CmpParts.Count == 0)
+					{
+						//Single part
+						var nd = VectorMath.DistanceSquared(rb.Position.ToOpenTK(), camera.Position);
+						if (nd < dist)
+						{
+							dist = nd;
+							body = rb;
+						}
+					}
+					else
+					{
+						//Test by cmp parts
+						var sh = (CompoundSurShape)rb.Shape;
+						for (int i = 0; i < sh.Shapes.Length; i++)
+						{
+							sh.Shapes[i].UpdateBoundingBox();
+							var bb = sh.Shapes[i].BoundingBox;
+							bb.Min += rb.Position;
+							bb.Max += rb.Position;
+							if (bb.RayIntersect(ref rayOrigin, ref jitterDir))
+							{
+								
+								var nd = VectorMath.DistanceSquared(rb.Position.ToOpenTK(), camera.Position);
+								if (nd < dist)
+								{
+									dist = nd;
+									body = rb;
+								}
+								break;
+							}
+						}
+					}
+				}
+			}
+			return body != null;
+		}
+
+		static bool SphereRayIntersect(JVector rayOrigin, JVector d, float maxdistance, JVector centre, float radius)
+		{
+			var dist = VectorMath.DistanceSquared(rayOrigin.ToOpenTK(), centre.ToOpenTK());
+			if (dist > (maxdistance - radius) * (maxdistance - radius)) return false;
+			//Ray start offset from sphere centre
+			var p = rayOrigin - centre;
+			float rSquared = radius * radius;
+			float p_d = JVector.Dot(p, d);
+			if (p_d > 0 || JVector.Dot(p, p) < rSquared)
+				return false;
+			var a = p - p_d * d;
+			var aSquared = JVector.Dot(a, a);
+			return aSquared < rSquared;
 		}
 
 		static Vector3 UnProject(Vector3 mouse, Matrix4 projection, Matrix4 view, Vector2 viewport)
@@ -332,7 +414,7 @@ Mouse Flight: {10}
 					sel_obj = selected.Name;
 			}
 			DrawShadowedText(string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, moffset.X, moffset.Y, mouseFlight), 5, 5);
-			cur.Draw(trender, Game.Mouse);
+			current_cur.Draw(trender, Game.Mouse);
 			trender.Finish();
 		}
 

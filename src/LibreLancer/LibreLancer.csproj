@@ -323,6 +323,10 @@
     <Compile Include="Gameplay\Components\ShipControlComponent.cs" />
     <Compile Include="InputManager.cs" />
     <Compile Include="InputAction.cs" />
+    <Compile Include="Gameplay\Components\PowerCoreComponent.cs" />
+    <Compile Include="Gameplay\Components\ThrusterComponent.cs" />
+    <Compile Include="GameData\Items\ThrusterEquipment.cs" />
+    <Compile Include="AttachedEffect.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

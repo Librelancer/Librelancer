@@ -78,6 +78,7 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 				case "engine":
 					break;
 				case "thruster":
+					Equip.Add(new Thruster(s));
 					break;
 				case "cloakingdevice":
 					break;

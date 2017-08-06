@@ -66,13 +66,16 @@ namespace LibreLancer
 
 		void Keyboard_KeyDown(KeyEventArgs e)
 		{
+			var mod = e.Modifiers;
+			mod &= ~KeyModifiers.Numlock;
+			mod &= ~KeyModifiers.Capslock;
 			if (e.IsRepeat) return;
 			for (int i = 0; i < actions.Count; i++)
 			{
 				var act = actions[i];
 				if (!act.IsToggle) continue;
-				if ((e.Key == act.Primary && e.Modifiers == act.PrimaryModifiers) || 
-				    (e.Key == act.Secondary && e.Modifiers == act.SecondaryModifiers))
+				if ((e.Key == act.Primary && mod == act.PrimaryModifiers) || 
+				    (e.Key == act.Secondary && mod == act.SecondaryModifiers))
 				{
 					OnToggleActivated(act.ID);
 					return;
@@ -82,12 +85,15 @@ namespace LibreLancer
 
 		void Keyboard_KeyUp(KeyEventArgs e)
 		{
+			var mod = e.Modifiers;
+			mod &= ~KeyModifiers.Numlock;
+			mod &= ~KeyModifiers.Capslock;
 			for (int i = 0; i < actions.Count; i++)
 			{
 				var act = actions[i];
 				if (!act.IsToggle) continue;
-				if ((e.Key == act.Primary && e.Modifiers == act.PrimaryModifiers) ||
-					(e.Key == act.Secondary && e.Modifiers == act.SecondaryModifiers))
+				if ((e.Key == act.Primary && mod == act.PrimaryModifiers) ||
+					(e.Key == act.Secondary && mod == act.SecondaryModifiers))
 				{
 					OnToggleUp(act.ID);
 					return;

@@ -621,6 +621,43 @@ namespace LibreLancer
 			return obj;
 		}
 
+		public GameData.Items.Equipment GetEquipment(string id)
+		{
+			return GetEquipment(fldata.Equipment.FindEquipment(id));
+		}
+		GameData.Items.Equipment GetEquipment(Legacy.Equipment.AbstractEquipment val)
+		{
+			GameData.Items.Equipment equip = null;
+			if (val is Legacy.Equipment.Light)
+			{
+				equip = GetLight((Legacy.Equipment.Light)val);
+			}
+			else if (val is Legacy.Equipment.InternalFx)
+			{
+				var eq = new GameData.Items.AnimationEquipment();
+				eq.Animation = ((Legacy.Equipment.InternalFx)val).UseAnimation;
+				equip = eq;
+			}
+			if (val is Legacy.Equipment.AttachedFx)
+			{
+				equip = GetAttachedFx((Legacy.Equipment.AttachedFx)val);
+			}
+			if (val is Legacy.Equipment.Thruster)
+			{
+				var th = (val as Legacy.Equipment.Thruster);
+				resource.LoadMat(ResolveDataPath(th.MaterialLibrary));
+				var drawable = resource.GetDrawable(ResolveDataPath(th.DaArchetype));
+				equip = new GameData.Items.ThrusterEquipment()
+				{
+					Drain = th.PowerUsage,
+					Force = th.MaxForce,
+					Model = drawable,
+					HpParticles = th.HpParticles,
+					Particles = GetEffect(th.Particles)
+				};
+			}
+			return equip;
+		}
 		void ProcessLoadout(Legacy.Solar.Loadout ld, GameData.SystemObject obj)
 		{
 			foreach (var key in ld.Equip.Keys)
@@ -628,21 +665,7 @@ namespace LibreLancer
 				var val = ld.Equip[key];
 				if (val == null)
 					continue;
-				GameData.Items.Equipment equip = null;
-				if (val is Legacy.Equipment.Light)
-				{
-					equip = GetLight((Legacy.Equipment.Light)val);
-				}
-				else if (val is Legacy.Equipment.InternalFx)
-				{
-					var eq = new GameData.Items.AnimationEquipment();
-					eq.Animation = ((Legacy.Equipment.InternalFx)val).UseAnimation;
-					equip = eq;
-				}
-				if (val is Legacy.Equipment.AttachedFx)
-				{
-					equip = GetAttachedFx((Legacy.Equipment.AttachedFx)val);
-				}
+				GameData.Items.Equipment equip = GetEquipment(val);
 				if (equip != null)
 				{
 					if (key.StartsWith("__noHardpoint", StringComparison.Ordinal))

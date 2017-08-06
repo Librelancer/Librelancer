@@ -72,6 +72,10 @@ namespace LibreLancer
 			if (arch is Archs.Sun)
 			{
 				RenderComponent = new SunRenderer((Archs.Sun)arch);
+				//TODO: You can't collide with a sun
+				PhysicsComponent = new RigidBody(new SphereShape((((Archs.Sun)arch).Radius)));
+				PhysicsComponent.IsStatic = true;
+				PhysicsComponent.Tag = this;
 			}
 			else
 			{
@@ -91,8 +95,10 @@ namespace LibreLancer
 		{
 
 		}
+		public ResourceManager Resources;
 		void InitWithDrawable(IDrawable drawable, ResourceManager res, bool staticpos)
 		{
+			Resources = res;
 			dr = drawable;
 			Shape collisionShape = null;
 			bool isCmp = false;
@@ -187,6 +193,12 @@ namespace LibreLancer
 			{
 				RenderComponent = new ParticleEffectRenderer(((EffectEquipment)equip).Particles);
 			}
+			if (equip is ThrusterEquipment)
+			{
+				var th = (ThrusterEquipment)equip;
+				InitWithDrawable(th.Model, parent.Resources, false);
+				Components.Add(new ThrusterComponent(this, th));
+			}
             //Optimisation: Don't re-calculate transforms every frame for static objects
             if(parent.isstatic && hp.IsStatic)
             {
@@ -243,6 +255,16 @@ namespace LibreLancer
 					return (T)Components[i];
 			return null;
 		}
+
+		public IEnumerable<T> GetChildComponents<T>() where T : GameComponent
+		{
+			for (int i = 0; i < Children.Count; i++)
+			{
+				var c = Children[i].GetComponent<T>();
+				if (c != null) yield return c;
+			}
+		}
+
 		public void Update(TimeSpan time)
 		{
 			if (PhysicsComponent != null && !isstatic)

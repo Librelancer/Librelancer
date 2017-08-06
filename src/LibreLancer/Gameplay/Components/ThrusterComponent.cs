@@ -10,40 +10,35 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2017
  * the Initial Developer. All Rights Reserved.
  */
 using System;
 using System.Collections.Generic;
-using LibreLancer.GameData.Items;
-using LibreLancer.Fx;
 namespace LibreLancer
 {
-	public class EngineComponent : GameComponent
+	public class ThrusterComponent : GameComponent
 	{
-		public Engine Engine;
-		public float Speed = 1f;
+		public GameData.Items.ThrusterEquipment Equip;
+		public bool Enabled;
 		List<AttachedEffect> fireFx = new List<AttachedEffect>();
-		GameObject parent;
-		public EngineComponent(GameObject parent, Engine engine, FreelancerGame game) : base(parent)
+		public ThrusterComponent(GameObject parent, GameData.Items.ThrusterEquipment equip) : base(parent)
 		{
-			var fx = game.GameData.GetEffect(engine.FireEffect);
+			Equip = equip;
 			var hps = parent.GetHardpoints();
 			foreach (var hp in hps)
 			{
-				if (!hp.Name.Equals("hpengineglow", StringComparison.OrdinalIgnoreCase) &&
-				    hp.Name.StartsWith("hpengine", StringComparison.OrdinalIgnoreCase))
+				if (!hp.Name.Equals(Equip.HpParticles, StringComparison.OrdinalIgnoreCase))
 				{
-					fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(fx)));
+					fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(Equip.Particles)));
 				}
 			}
-			this.parent = parent;
-			Engine = engine;
 		}
+
 		public override void Update(TimeSpan time)
 		{
 			for (int i = 0; i < fireFx.Count; i++)
-				fireFx[i].Update(parent, time, Speed);
+				fireFx[i].Update(Parent, time, Enabled ? 1 : 0);
 		}
 		public override void Register(SystemRenderer renderer, Jitter.World physics)
 		{
@@ -55,6 +50,5 @@ namespace LibreLancer
 			for (int i = 0; i < fireFx.Count; i++)
 				fireFx[i].Effect.Unregister();
 		}
-
 	}
 }
