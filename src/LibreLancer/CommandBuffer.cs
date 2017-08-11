@@ -25,38 +25,62 @@ namespace LibreLancer
 	public class CommandBuffer
 	{
 		const int MAX_COMMANDS = 16384;
+		const int MAX_TRANSPARENT_COMMANDS = 16384;
+
 		//public List<RenderCommand> Commands = new List<RenderCommand>();
 		RenderCommand[] Commands = new RenderCommand[MAX_COMMANDS];
+		RenderCommand[] Transparents = new RenderCommand[MAX_TRANSPARENT_COMMANDS];
 		int currentCommand = 0;
+		int transparentCommand = 0;
 		Action _transparentSort;
 
 		public void StartFrame()
 		{
 			currentCommand = 0;
+			transparentCommand = 0;
 			_transparentSort = SortTransparent;
 		}
 		public void AddCommand(RenderMaterial material, MaterialAnim anim, Matrix4 world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, int layer, float z = 0)
 		{
-			Commands[currentCommand++] = new RenderCommand()
+			if (material.IsTransparent)
 			{
-				Source = material,
-				MaterialAnim = anim,
-				Lights = lights,
-				Buffer = buffer,
-				BaseVertex = baseVertex,
-				Start = start,
-				Count = count,
-				Primitive = primitive,
-				CmdType = RenderCmdType.Material,
-				World = world,
-				SortLayer = material.IsTransparent ? layer : SortLayers.OPAQUE,
-				Z = z
-			};
+				Transparents[transparentCommand++] = new RenderCommand()
+				{
+					Source = material,
+					MaterialAnim = anim,
+					Lights = lights,
+					Buffer = buffer,
+					BaseVertex = baseVertex,
+					Start = start,
+					Count = count,
+					Primitive = primitive,
+					CmdType = RenderCmdType.Material,
+					World = world,
+					SortLayer = layer,
+					Z = z
+				};
+			}
+			else
+			{
+				Commands[currentCommand++] = new RenderCommand()
+				{
+					Source = material,
+					MaterialAnim = anim,
+					Lights = lights,
+					Buffer = buffer,
+					BaseVertex = baseVertex,
+					Start = start,
+					Count = count,
+					Primitive = primitive,
+					CmdType = RenderCmdType.Material,
+					World = world,
+				};
+			}
 		}
 		//TODO: Implement MaterialAnim for asteroids
 		public unsafe void AddCommandFade(RenderMaterial material, Matrix4 world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, int layer, Vector2 fadeParams, float z = 0)
 		{
-			Commands[currentCommand++] = new RenderCommand()
+			Transparents[transparentCommand++] = new RenderCommand()
 			{
 				Source = material,
 				MaterialAnim = null,
@@ -76,63 +100,128 @@ namespace LibreLancer
 		}
 		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, Matrix4 world, Lighting lt, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0)
 		{
-			Commands[currentCommand++] = new RenderCommand()
+			if (transparent)
 			{
-				Source = shader,
-				ShaderSetup = setup,
-				World = world,
-				UserData = user,
-				Cleanup = cleanup,
-				Buffer = buffer,
-				Lights = lt,
-				Start = start,
-				Count = count,
-				Primitive = primitive,
-				CmdType = RenderCmdType.Shader,
-				SortLayer = transparent ? layer : SortLayers.OPAQUE,
-				Z = z
-			};
+				Transparents[transparentCommand++] = new RenderCommand()
+				{
+					Source = shader,
+					ShaderSetup = setup,
+					World = world,
+					UserData = user,
+					Cleanup = cleanup,
+					Buffer = buffer,
+					Lights = lt,
+					Start = start,
+					Count = count,
+					Primitive = primitive,
+					CmdType = RenderCmdType.Shader,
+					SortLayer = transparent ? layer : SortLayers.OPAQUE,
+					Z = z
+				};
+			}
+			else
+			{
+				Commands[currentCommand++] = new RenderCommand()
+				{
+					Source = shader,
+					ShaderSetup = setup,
+					World = world,
+					UserData = user,
+					Cleanup = cleanup,
+					Buffer = buffer,
+					Lights = lt,
+					Start = start,
+					Count = count,
+					Primitive = primitive,
+					CmdType = RenderCmdType.Shader,
+					SortLayer = transparent ? layer : SortLayers.OPAQUE,
+					Z = z
+				};
+			}
 		}
 		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, Matrix4 world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0)
 		{
-			Commands[currentCommand++] = new RenderCommand()
+			if (transparent)
 			{
-				Source = shader,
-				ShaderSetup = setup,
-				World = world,
-				UserData = user,
-				Cleanup = cleanup,
-				Buffer = buffer,
-				Start = start,
-				Count = count,
-				Primitive = primitive,
-				CmdType = RenderCmdType.Shader,
-				SortLayer = transparent ? layer : SortLayers.OPAQUE,
-				Z = z
-			};
+				Transparents[transparentCommand++] = new RenderCommand()
+				{
+					Source = shader,
+					ShaderSetup = setup,
+					World = world,
+					UserData = user,
+					Cleanup = cleanup,
+					Buffer = buffer,
+					Start = start,
+					Count = count,
+					Primitive = primitive,
+					CmdType = RenderCmdType.Shader,
+					SortLayer = transparent ? layer : SortLayers.OPAQUE,
+					Z = z
+				};
+			}
+			else
+			{
+				Commands[currentCommand++] = new RenderCommand()
+				{
+					Source = shader,
+					ShaderSetup = setup,
+					World = world,
+					UserData = user,
+					Cleanup = cleanup,
+					Buffer = buffer,
+					Start = start,
+					Count = count,
+					Primitive = primitive,
+					CmdType = RenderCmdType.Shader,
+					SortLayer = transparent ? layer : SortLayers.OPAQUE,
+					Z = z
+				};
+			}
 		}
 		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, Matrix4 world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, bool transparent, int layer, float z = 0)
 		{
-			Commands[currentCommand++] = new RenderCommand()
+			if (transparent)
 			{
-				Source = shader,
-				ShaderSetup = setup,
-				World = world,
-				UserData = user,
-				Cleanup = cleanup,
-				Buffer = buffer,
-				Start = start,
-				Count = count,
-				Primitive = primitive,
-				CmdType = RenderCmdType.Shader,
-				BaseVertex = -1,
-				SortLayer = transparent ? layer : SortLayers.OPAQUE,
-				Z = z
-			};
+				Transparents[transparentCommand++] = new RenderCommand()
+				{
+					Source = shader,
+					ShaderSetup = setup,
+					World = world,
+					UserData = user,
+					Cleanup = cleanup,
+					Buffer = buffer,
+					Start = start,
+					Count = count,
+					Primitive = primitive,
+					CmdType = RenderCmdType.Shader,
+					BaseVertex = -1,
+					SortLayer = transparent ? layer : SortLayers.OPAQUE,
+					Z = z
+				};
+			}
+			else
+			{
+				Commands[currentCommand++] = new RenderCommand()
+				{
+					Source = shader,
+					ShaderSetup = setup,
+					World = world,
+					UserData = user,
+					Cleanup = cleanup,
+					Buffer = buffer,
+					Start = start,
+					Count = count,
+					Primitive = primitive,
+					CmdType = RenderCmdType.Shader,
+					BaseVertex = -1,
+					SortLayer = transparent ? layer : SortLayers.OPAQUE,
+					Z = z
+				};
+			}
 		}
 		public void AddCommand(Billboards billboards, int hash, int index, int sortLayer, float z)
 		{
-			Commands[currentCommand++] = new RenderCommand()
+			Transparents[transparentCommand++] = new RenderCommand()
 			{
 				CmdType = RenderCmdType.Billboard,
 				Source = billboards,
@@ -144,7 +233,7 @@ namespace LibreLancer
 		}
 		public void AddCommand(Billboards billboards, Shader shader, ShaderAction setup, RenderUserData userData, int indexStart, int layer, float z)
 		{
-			Commands[currentCommand++] = new RenderCommand()
+			Transparents[transparentCommand++] = new RenderCommand()
 			{
 				CmdType = RenderCmdType.BillboardCustom,
 				Source = billboards,
@@ -163,26 +252,18 @@ namespace LibreLancer
 			AsyncManager.RunTask (_transparentSort);
 			for (int i = 0; i < currentCommand; i++)
 			{
-				if (Commands[i].SortLayer == SortLayers.OPAQUE)
-				{
-					Commands[i].Run(state);
-				}
-				
+				Commands[i].Run(state);
 			}
 		}
 
 		void SortTransparent()
 		{
-			int a = 0;
-			for (int i = 0; i < currentCommand; i++)
+			for (int i = 0; i < transparentCommand; i++)
 			{
-				if (Commands[i].SortLayer != SortLayers.OPAQUE)
-				{
-					cmdptr[a++] = i;
-				}
+				cmdptr[i] = i;
 			}
-			Array.Sort<int>(cmdptr, 0, a, new ZComparer(Commands));
-			transparentCount = a;
+			Array.Sort<int>(cmdptr, 0, transparentCommand, new ZComparer(Transparents));
+			//transparentCount = a;
 			_sorted = true;
 		}
 
@@ -192,29 +273,29 @@ namespace LibreLancer
 		{
 			while (!_sorted) {
 			}
-            for (int i = transparentCount - 1; i >= 0; i--)
+            for (int i = transparentCommand - 1; i >= 0; i--)
             {
-                if(Commands[cmdptr[i]].CmdType == RenderCmdType.Billboard)
+                if(Transparents[cmdptr[i]].CmdType == RenderCmdType.Billboard)
                 {
-					var bb = (Billboards)Commands[cmdptr[i]].Source;
-                    bb.AddIndices(Commands[cmdptr[i]].Index);
+					var bb = (Billboards)Transparents[cmdptr[i]].Source;
+                    bb.AddIndices(Transparents[cmdptr[i]].Index);
                 }
-				if (Commands[cmdptr[i]].CmdType == RenderCmdType.BillboardCustom)
+				if (Transparents[cmdptr[i]].CmdType == RenderCmdType.BillboardCustom)
 				{
-					var bb = (Billboards)Commands[cmdptr[i]].Source;
-					bb.AddCustomIndices(Commands[cmdptr[i]].Index);
+					var bb = (Billboards)Transparents[cmdptr[i]].Source;
+					bb.AddCustomIndices(Transparents[cmdptr[i]].Index);
 				}
             }
             Billboards lastbb = null;
-			for (int i = transparentCount - 1; i >= 0; i--)
+			for (int i = transparentCommand - 1; i >= 0; i--)
 			{
-				if (lastbb != null && Commands[cmdptr[i]].CmdType != RenderCmdType.Billboard && Commands[cmdptr[i]].CmdType != RenderCmdType.BillboardCustom)
+				if (lastbb != null && Transparents[cmdptr[i]].CmdType != RenderCmdType.Billboard && Transparents[cmdptr[i]].CmdType != RenderCmdType.BillboardCustom)
 				{
 					lastbb.FlushCommands(state);
 					lastbb = null;
 				}
-				lastbb = (Commands[cmdptr[i]].Source as Billboards);
-				Commands[cmdptr[i]].Run(state);
+				lastbb = (Transparents[cmdptr[i]].Source as Billboards);
+				Transparents[cmdptr[i]].Run(state);
 			}
 			if (lastbb != null)
 				lastbb.FlushCommands(state);

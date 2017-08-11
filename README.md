@@ -5,7 +5,7 @@ A re-implementation of the 2003 Space Game [Freelancer](https://en.wikipedia.org
 Currently running on OSX, Windows and Linux (both experimental).
 Pull Requests are welcome!
 
-To help speed up development, donations can be sent to paypal.paymentsmc@gmail.com.
+To help speed up development, donations can be sent to paypal.paymentmc@gmail.com.
 
 ### General Requirements
 * GPU must be capable of OpenGL 3.1+

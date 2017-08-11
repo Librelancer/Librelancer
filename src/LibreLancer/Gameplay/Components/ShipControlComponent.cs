@@ -37,6 +37,11 @@ namespace LibreLancer
 		public float ThrusterDrain = 150;
 		public bool CruiseEnabled = false;
 		public StrafeControls CurrentStrafe = StrafeControls.None;
+		/*
+		 * steering_torque=43000,43000,63000
+			angular_drag=41000,41000,41000
+			rotation_inertia=8400,8400,2400
+		 */
 		public ShipControlComponent(GameObject parent) : base(parent)
 		{
 		}
@@ -115,6 +120,7 @@ namespace LibreLancer
 			if (totalForce.Length() > float.Epsilon)
 				Parent.PhysicsComponent.IsActive = true;
 			Parent.PhysicsComponent.AddForce(totalForce);
+
 		}
 	}
 }
