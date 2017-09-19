@@ -28,6 +28,9 @@ namespace LibreLancer.Fx
 		{
 			
 		}
+		public virtual void OnParticleSpawned(int idx, ParticleEffectInstance instance)
+		{
+		}
 	}
 }
 

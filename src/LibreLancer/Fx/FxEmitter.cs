@@ -92,7 +92,7 @@ namespace LibreLancer.Fx
 			if (spawnMs > 0)
 			{
 				//Spawn lots of particles
-				var dt = delta.TotalSeconds;
+				var dt = Math.Min(delta.TotalSeconds, 1); //don't go crazy during debug pauses
 				while (true)
 				{
 					if (state.SpawnTimer < dt) {
@@ -109,6 +109,7 @@ namespace LibreLancer.Fx
 							return;
 						state.ParticleCount++;
 						SpawnParticle(idx, fx, instance, ref transform, sparam);
+						instance.Particles[idx].Appearance.OnParticleSpawned(idx, instance);
 					}
 				}
 			}

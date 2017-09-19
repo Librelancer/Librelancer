@@ -14,6 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Runtime.InteropServices;
 
 namespace LibreLancer
 {
@@ -27,29 +28,50 @@ namespace LibreLancer
 	{
 		#if DEBUG
 		public static LogSeverity MinimumSeverity = LogSeverity.Debug;
-		#else
+#else
 		public static LogSeverity MinimumSeverity = LogSeverity.Info;
-		#endif
+#endif
+
+		[DllImport("libc")]
+		static extern bool isatty(int desc);
 
 		public static void Write(string component, string message, LogSeverity severity)
 		{
 			if ((int)severity < (int)MinimumSeverity)
 				return;
-			var c = Console.ForegroundColor;
+			
+			var newC = ConsoleColor.White;
 			switch (severity) {
 			case LogSeverity.Debug:
-				Console.ForegroundColor = ConsoleColor.DarkGray;
+				newC = ConsoleColor.DarkGray;
 				break;
 			case LogSeverity.Error:
-				Console.ForegroundColor = ConsoleColor.Red;
+				newC = ConsoleColor.Red;
 				break;
 			case LogSeverity.Warning:
-				Console.ForegroundColor = ConsoleColor.Yellow;
+				newC = ConsoleColor.Yellow;
 				break;
 			}
-			Console.WriteLine ("[{1}] {0}: {2}", component, severity, message);
-			Console.ForegroundColor = c;
+			if (Platform.RunningOS == OS.Windows)
+			{
+				var c = Console.ForegroundColor;
+				Console.ForegroundColor = newC;
+				Console.WriteLine("[{1}] {0}: {2}", component, severity, message);
+				Console.ForegroundColor = c;
+			}
+			else if (newC != ConsoleColor.White && isatty(1))
+			{
+				string cc = "";
+				if (newC == ConsoleColor.DarkGray) cc = "\x1b[90m";
+				if (newC == ConsoleColor.Yellow) cc = "\x1b[33m";
+				if (newC == ConsoleColor.Red) cc = "\x1b[91m";
+				Console.WriteLine("{3}[{1}] {0}: {2}\x1b[0m", component, severity, message, cc);
+			}
+			else
+				Console.WriteLine("[{1}] {0}: {2}", component, severity, message);
 		}
+
+
 		public static void Info(string component, string message)
 		{
 			Write (component, message, LogSeverity.Info);

@@ -207,7 +207,6 @@
     <Compile Include="Fx\FxAppearance.cs" />
     <Compile Include="Fx\Appearances\FLBeamAppearance.cs" />
     <Compile Include="Fx\Appearances\FxBasicAppearance.cs" />
-    <Compile Include="Fx\Appearances\FxBeamAppearance.cs" />
     <Compile Include="Fx\Appearances\FxOrientedAppearance.cs" />
     <Compile Include="Fx\Appearances\FxParticleAppearance.cs" />
     <Compile Include="Fx\Appearances\FxPerpAppearance.cs" />
@@ -327,6 +326,8 @@
     <Compile Include="Gameplay\Components\ThrusterComponent.cs" />
     <Compile Include="GameData\Items\ThrusterEquipment.cs" />
     <Compile Include="AttachedEffect.cs" />
+    <Compile Include="Fx\LineBuffer.cs" />
+    <Compile Include="Render\PolylineRender.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -359,6 +360,7 @@
     <EmbeddedResource Include="Shaders\gauge_mask.png" />
     <EmbeddedResource Include="Shaders\NomadMaterial.frag" />
     <EmbeddedResource Include="Shaders\Nomad_PositionNormalTexture.vs" />
+    <EmbeddedResource Include="Shaders\Polyline.vs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

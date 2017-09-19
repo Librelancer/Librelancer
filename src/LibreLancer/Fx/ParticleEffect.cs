@@ -15,6 +15,7 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Linq;
 namespace LibreLancer.Fx
 {
 	public class ParticleEffect
@@ -27,6 +28,7 @@ namespace LibreLancer.Fx
 		public Dictionary<FxNode, List<FxNode>> Pairs = new Dictionary<FxNode, List<FxNode>>();
 		public List<FxNode> AttachmentNodes = new List<FxNode>();
 		List<FxEmitter> emitters = new List<FxEmitter>();
+		public List<FxNode> Nodes;
 
 		public int EmitterCount
 		{
@@ -50,7 +52,8 @@ namespace LibreLancer.Fx
 
 		public void SetNodes(IEnumerable<FxNode> nodes)
 		{
-			foreach (var n in nodes)
+			Nodes = nodes.ToList();
+			foreach (var n in Nodes)
 			{
 				if (n is FxEmitter)
 					emitters.Add((FxEmitter)n);

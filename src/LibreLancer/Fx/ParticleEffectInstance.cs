@@ -31,12 +31,20 @@ namespace LibreLancer.Fx
 		public ParticleEffect Effect;
 		public ResourceManager Resources;
 		Dictionary<FxEmitter, EmitterState> emitStates = new Dictionary<FxEmitter, EmitterState>();
+		public Dictionary<FLBeamAppearance, LineBuffer> BeamAppearances = new Dictionary<FLBeamAppearance, LineBuffer>();
 		public Random Random = new Random();
 		double globaltime = 0;
 		public ParticleEffectInstance (ParticleEffect fx)
 		{
 			Effect = fx;
 			Particles = new Particle[PARTICLES_PER_EMITTER * fx.EmitterCount];
+			foreach (var node in fx.Nodes)
+			{
+				if (node is FLBeamAppearance) {
+					var beam = (FLBeamAppearance)node;
+					BeamAppearances.Add(beam, new LineBuffer(256));
+				}
+			}
 		}
 
 		bool freeParticles;
@@ -57,7 +65,17 @@ namespace LibreLancer.Fx
 					continue;
 				}
 			}
-
+			//Clean the circular buffers
+			foreach (var buffer in BeamAppearances.Values)
+			{
+				for (int i = 0; i < buffer.Count; i++)
+				{
+					if (buffer[i].Active && Particles[buffer[i].ParticleIndex].Active == false)
+						buffer[i] = new LinePointer() { ParticleIndex = -256, Active = false };
+				}
+				while (buffer.Count > 0 && buffer.Peek().Active == false)
+					buffer.Dequeue();
+			}
 			Effect.Update(this, delta, ref transform, sparam);
 		}
 
@@ -79,14 +97,15 @@ namespace LibreLancer.Fx
 				return -1;
 			for (int i = 0; i < Particles.Length; i++)
 			{
-				if (!Particles[i].Active)
+				if (!Particles[i].Active) {
 					return i;
+				}
 			}
 			freeParticles = false;
 			return -1;
 		}
 
-		public void Draw(Billboards billboards, PhysicsDebugRenderer debug, Matrix4 transform, float sparam)
+		public void Draw(PolylineRender polyline, Billboards billboards, PhysicsDebugRenderer debug, Matrix4 transform, float sparam)
 		{
 			for (int i = 0; i < Particles.Length; i++)
 			{
@@ -94,6 +113,10 @@ namespace LibreLancer.Fx
 					continue;
 				Particles[i].Appearance.Debug = debug;
 				Particles[i].Appearance.Draw(ref Particles[i], (float)globaltime, Effect, Effect.ResourceManager, billboards, ref transform, sparam);
+			}
+			foreach (var kv in BeamAppearances)
+			{
+				kv.Key.DrawBeamApp(polyline, kv.Value, (float)globaltime, Effect, this, Effect.ResourceManager, billboards, ref transform, sparam);
 			}
 		}
 	}

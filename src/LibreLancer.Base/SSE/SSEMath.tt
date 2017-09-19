@@ -111,7 +111,7 @@ string RunProcess(string path, string workingdirectory, params string[] argument
 string getbytes_mac(string file, string clangargs)
 {
 	string tmp = Path.GetTempFileName();
-	RunProcess("clang", null, "-O3",clangargs,"-c", DQ(file), "-o", DQ(tmp));
+	RunProcess("clang", null, "-O3 -msse3",clangargs,"-c", DQ(file), "-o", DQ(tmp));
 	//Decompile lol
 	var ex = RunProcess("otool",null,"-t", DQ(tmp));
 	var builder = new StringBuilder();
@@ -140,7 +140,7 @@ string getbytes_mac(string file, string clangargs)
 string getbytes_gcc(string file, string gccargs)
 {
 	string tmp = Path.GetTempFileName();
-	RunProcess(gcc_path, working_dir, "-O3", gccargs, "-c", DQ(file), "-o", DQ(tmp));
+	RunProcess(gcc_path, working_dir, "-O3 -msse3", gccargs, "-c", DQ(file), "-o", DQ(tmp));
 	var ex = RunProcess(objdump_path, working_dir, "-d", DQ(tmp));
 	var builder = new StringBuilder();
 	foreach(var ln in ex.Split('\n')) {

@@ -47,6 +47,7 @@ namespace LibreLancer
 		public Matrix4[] StarSphereWorlds;
 
 		public PhysicsDebugRenderer DebugRenderer;
+		public PolylineRender Polyline;
 		public SystemLighting SystemLighting = new SystemLighting();
 		ResourceManager cache;
 		RenderState rstate;
@@ -69,6 +70,7 @@ namespace LibreLancer
 			AsteroidFields = new List<AsteroidFieldRenderer>();
 			Nebulae = new List<NebulaRenderer>();
 			StarSphereModels = new IDrawable[0];
+			Polyline = new PolylineRender(commands);
 			cache = rescache;
 			rstate = cache.Game.RenderState;
 			game = rescache.Game;
@@ -211,6 +213,7 @@ namespace LibreLancer
 				}
 			}
 			DebugRenderer.StartFrame(camera, rstate);
+			Polyline.SetCamera(camera);
 			commands.StartFrame();
 			rstate.DepthEnabled = true;
 			//Optimisation for dictionary lookups
@@ -228,6 +231,7 @@ namespace LibreLancer
 				nr.Draw(commands);
 			game.Nebulae.SetData();
 			game.Billboards.End();
+			Polyline.FrameEnd();
 			//Opaque Pass
 			rstate.DepthEnabled = true;
 			commands.DrawOpaque(rstate);

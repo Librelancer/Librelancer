@@ -57,7 +57,7 @@ namespace LibreLancer
 		{
 			dist = VectorMath.DistanceSquared(pos, camera.Position);
 			if(Active && dist < (20000 * 20000))
-				fx.Draw(sys.Game.Billboards, sys.DebugRenderer, tr, SParam);
+				fx.Draw(sys.Polyline, sys.Game.Billboards, sys.DebugRenderer, tr, SParam);
 		}
 	}
 }
