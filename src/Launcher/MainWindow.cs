@@ -9,8 +9,9 @@ namespace Launcher
 		TextBox textInput;
 		NumericMaskedTextBox<int> resWidthBox;
 		NumericMaskedTextBox<int> resHeightBox;
+		CheckBox skipMovies;
         bool forceANGLE = false;
-		public MainWindow ()
+		public MainWindow (bool forceNoMovies)
 		{
 			Title = "Librelancer Launcher";
 			ClientSize = new Size (400, 250);
@@ -31,8 +32,7 @@ namespace Launcher
 				new TableCell(textInput, true),
 				findButton
 			)));
-			var skipMovies = new CheckBox () { Text = "Skip Intro Movies", Checked = true };
-			skipMovies.CheckedChanged += SkipMovies_CheckedChanged;
+			skipMovies = new CheckBox () { Text = "Skip Intro Movies", Checked = forceNoMovies, Enabled = !forceNoMovies };
 			layout.Rows.Add (new TableRow (skipMovies));
             if(Environment.OSVersion.Platform != PlatformID.Unix)
             {
@@ -61,11 +61,6 @@ namespace Launcher
 			Content = layout;
 		}
 
-		void SkipMovies_CheckedChanged (object sender, EventArgs e)
-		{
-			Program.SkipIntroMovies = ((CheckBox)sender).Checked ?? false;
-		}
-
         private void AngleCheck_CheckedChanged(object sender, EventArgs e)
         {
             forceANGLE = ((CheckBox)sender).Checked ?? false;
@@ -91,6 +86,7 @@ namespace Launcher
 				}
 				Program.LaunchPath = textInput.Text;
                 Program.ForceAngle = forceANGLE;
+				Program.SkipIntroMovies = skipMovies.Checked ?? true;
 				Program.ResWidth = resWidthBox.Value;
 				Program.ResHeight = resHeightBox.Value;
 				Close ();			

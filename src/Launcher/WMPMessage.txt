@@ -1,0 +1,11 @@
+﻿It appears you don't have Windows Media Player installed. Playback of intro movies will be disabled. Windows Media Player can be downloaded from the following locations:
+
+Windows 7: http://www.microsoft.com/en-US/download/details.aspx?id=16546
+
+Windows 8: http://www.microsoft.com/en-US/download/details.aspx?id=30685
+
+Windows 8.1: http://www.microsoft.com/en-US/download/details.aspx?id=40744
+
+Windows 10: https://www.microsoft.com/en-US/download/details.aspx?id=48231
+
+Windows Vista & XP: http://www.microsoft.com/en-US/download/windows-media-player-details.aspx?id=8163

@@ -155,4 +155,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="WMPMessage.txt" />
+  </ItemGroup>
 </Project>
