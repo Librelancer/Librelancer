@@ -45,6 +45,8 @@ namespace LibreLancer
 		int lightsPosPosition;
 		int lightsColorRangePosition;
 		int lightsAttenuationPosition;
+		int lightsDirPosition;
+		int spotlightParamsPosition;
 
 		int fogModePosition;
 		int fogColorPosition;
@@ -87,6 +89,8 @@ namespace LibreLancer
 			lightsPosPosition = sh.GetLocation("LightsPos");
 			lightsColorRangePosition = sh.GetLocation("LightsColorRange");
 			lightsAttenuationPosition = sh.GetLocation("LightsAttenuation");
+			lightsDirPosition = sh.GetLocation("LightsDir");
+			spotlightParamsPosition = sh.GetLocation("SpotlightParams");
 
 			fogModePosition = sh.GetLocation("FogMode");
 			fogColorPosition = sh.GetLocation("FogColor");
@@ -289,6 +293,16 @@ namespace LibreLancer
 		{
 			if (lightsAttenuationPosition != -1)
 				shader.SetVector4(lightsAttenuationPosition, attenuation, index);
+		}
+		public void SetLightsDir(int index, Vector3 dir)
+		{
+			if (lightsDirPosition != -1)
+				shader.SetVector3(lightsDirPosition, dir, index);
+		}
+		public void SetSpotlightParams(int index, Vector3 param)
+		{
+			if (spotlightParamsPosition != -1)
+				shader.SetVector3(spotlightParamsPosition, param, index);
 		}
 
 		public void SetFogMode(int mode)

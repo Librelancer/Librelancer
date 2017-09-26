@@ -16,7 +16,7 @@
  */
 
 using System;
-
+using System.Collections.Generic;
 using LibreLancer.Ini;
 
 namespace LibreLancer.Compatibility.GameData.Universe
@@ -26,15 +26,14 @@ namespace LibreLancer.Compatibility.GameData.Universe
 		FreelancerData GameData;
 		public string Nickname { get; private set; }
 		public string Music { get; private set; }
-		public string Scene0 { get; private set; }
-		public string SceneScript { get; private set; }
-
+		public List<string> SceneScripts { get; private set; }
+		public string Camera { get; private set; }
 		public Room(Section section, FreelancerData data)
 		{
 			GameData = data;
 			if (section == null) throw new ArgumentNullException("section");
 			string file = null;
-
+			SceneScripts = new List<string>();
 			foreach (Entry e in section)
 			{
 				switch (e.Name.ToLowerInvariant())
@@ -60,10 +59,14 @@ namespace LibreLancer.Compatibility.GameData.Universe
 				case "room_info":
 						foreach (Entry e in s)
 						{
+							if (e.Name.ToLowerInvariant() == "set_script")
+								SceneScripts.Add(e[0].ToString());
 							if (e.Name.ToLowerInvariant() == "scene")
 							{
-								Scene0 = e[0].ToString();
-								SceneScript = e[1].ToString();
+								if (e.Count == 3 || e.Count == 4)
+									SceneScripts.Add(e[2].ToString());
+								else
+									SceneScripts.Add(e[1].ToString());
 							}
 						}
 					break;
@@ -75,7 +78,12 @@ namespace LibreLancer.Compatibility.GameData.Universe
 						}
 					break;
 				case "camera":
-					// TODO Room camera
+						// TODO Room camera
+						foreach (Entry e in s)
+						{
+							if (e.Name.ToLowerInvariant() == "name")
+								Camera = e[0].ToString();
+						}
 					break;
 				case "spiels":
 					// TODO Room spiels

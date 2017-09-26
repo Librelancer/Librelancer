@@ -8,17 +8,19 @@ namespace LibreLancer
 		None = 0,
 		AlphaTestEnabled = 2,
 		EtEnabled = 8,
-		FadeEnabled = 16
+		FadeEnabled = 16,
+		Spotlight = 32
 	}
 	static class ShaderCapsExtensions
 	{
-		public const int N_SHADERCAPS = 8;
+		public const int N_SHADERCAPS = 16;
 		public static string GetDefines(this ShaderCaps caps)
 		{
 			var builder = new StringBuilder();
 			caps.TestCap(builder, ShaderCaps.AlphaTestEnabled, "ALPHATEST_ENABLED");
 			caps.TestCap(builder, ShaderCaps.EtEnabled, "ET_ENABLED");
 			caps.TestCap(builder, ShaderCaps.FadeEnabled, "FADE_ENABLED");
+			caps.TestCap(builder, ShaderCaps.Spotlight, "SPOTLIGHT");
 			return builder.ToString();
 		}
 
@@ -37,6 +39,14 @@ namespace LibreLancer
 			if (caps == (ShaderCaps.FadeEnabled | ShaderCaps.AlphaTestEnabled)) return 5;
 			if (caps == (ShaderCaps.EtEnabled | ShaderCaps.FadeEnabled)) return 6;
 			if (caps == (ShaderCaps.EtEnabled | ShaderCaps.FadeEnabled | ShaderCaps.AlphaTestEnabled)) return 7;
+			if (caps == (ShaderCaps.Spotlight)) return 8;
+			if (caps == (ShaderCaps.AlphaTestEnabled | ShaderCaps.Spotlight)) return 9;
+			if (caps == (ShaderCaps.FadeEnabled | ShaderCaps.Spotlight)) return 10;
+			if (caps == (ShaderCaps.EtEnabled | ShaderCaps.Spotlight)) return 11;
+			if (caps == (ShaderCaps.EtEnabled | ShaderCaps.AlphaTestEnabled | ShaderCaps.Spotlight)) return 12;
+			if (caps == (ShaderCaps.FadeEnabled | ShaderCaps.AlphaTestEnabled | ShaderCaps.Spotlight)) return 13;
+			if (caps == (ShaderCaps.EtEnabled | ShaderCaps.FadeEnabled | ShaderCaps.Spotlight)) return 14;
+			if (caps == (ShaderCaps.EtEnabled | ShaderCaps.FadeEnabled | ShaderCaps.AlphaTestEnabled | ShaderCaps.Spotlight)) return 15;
 			throw new NotImplementedException(caps.ToString());
 		}
 	}

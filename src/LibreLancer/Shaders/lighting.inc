@@ -4,6 +4,10 @@ uniform bool LightingEnabled;
 uniform vec4 LightsPos[MAX_LIGHTS];
 uniform vec4 LightsColorRange[MAX_LIGHTS]; //xyz: color, w: range
 uniform vec4 LightsAttenuation[MAX_LIGHTS];
+#ifdef SPOTLIGHT
+uniform vec3 SpotlightParams[MAX_LIGHTS]; //x: falloff. y: cos(theta/2), z: cos(phi/2)
+uniform vec3 LightsDir[MAX_LIGHTS];
+#endif
 uniform vec4 AmbientColor;
 uniform vec4 FogColor;
 uniform int LightCount;
@@ -75,6 +79,18 @@ vec4 light(vec4 ac, vec4 ec, vec4 dc, vec4 tex, vec3 position, vec4 view_positio
 			float atten0 = attenuation = 1.0 / (curve.x + curve.y * distanceToLight + curve.z * (distanceToLight * distanceToLight));
 			float atten1 = fcubic(distanceToLight / max(LightsColorRange[i].w,1.), LightsAttenuation[i]);
 			attenuation = mix(atten0, atten1, LightsPos[i].w - 1.0); //choose correct attenuation
+			#ifdef SPOTLIGHT
+			if(SpotlightParams[i].x > 0.0) { //It's a spotlight
+				float NdotL = max(dot(n, LightsDir[i]), 0.0);
+				if(NdotL > 0.0) {
+					float rho = dot(surfaceToLight, -LightsDir[i]);
+					attenuation *= pow(clamp((rho - SpotlightParams[i].z) / (SpotlightParams[i].y - SpotlightParams[i].z),0.,1.), SpotlightParams[i].x);
+				} else {
+					attenuation = 0.0;
+				}
+
+			}
+			#endif
 		}
 		//color calculation
 		float diffuseCoefficient = max(dot(n, surfaceToLight), 0.0);

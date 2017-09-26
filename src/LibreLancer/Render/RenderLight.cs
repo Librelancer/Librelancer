@@ -26,6 +26,10 @@ namespace LibreLancer
 		public Color4 Color;
 		public int Range;
 
+		public float Falloff;
+		public float Theta;
+		public float Phi;
+
 		public override int GetHashCode()
 		{
 			int hash = 17;
@@ -37,6 +41,9 @@ namespace LibreLancer
 				hash = hash * 23 + Attenuation.GetHashCode();
 				hash = hash * 23 + Color.GetHashCode();
 				hash = hash * 23 + Range.GetHashCode();
+				hash = hash * 23 + Falloff.GetHashCode();
+				hash = hash * 23 + Theta.GetHashCode();
+				hash = hash * 23 + Phi.GetHashCode();
 			}
 			return hash;
 		}

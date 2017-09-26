@@ -21,6 +21,10 @@ namespace LibreLancer.GameData.Items
 		public Equipment()
 		{
 		}
+		public virtual IDrawable GetDrawable()
+		{
+			throw new NotImplementedException();
+		}
 	}
 }
 

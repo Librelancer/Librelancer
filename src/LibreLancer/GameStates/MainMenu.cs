@@ -46,7 +46,7 @@ namespace LibreLancer
 			manager.Clicked += (tag) => lastTag = tag;
 
 			intro = g.GameData.GetIntroScene();
-			scene = new Cutscene(intro.Script, Game);
+			scene = new Cutscene(intro.Scripts, Game);
 			scene.Update(TimeSpan.FromSeconds(1f / 60f)); //Do all the setup events - smoother entrance
 			g.Sound.PlayMusic(intro.Music);
 
@@ -69,7 +69,7 @@ namespace LibreLancer
 			manager.Update (delta);
 			if (lastTag == "gameplay")
 			{
-				Game.ChangeState(new DemoGameplay(Game));
+				Game.ChangeState(new SpaceGameplay(Game));
 			}
 			if (lastTag == "system") {
 				Game.ChangeState (new DemoSystemView (Game));

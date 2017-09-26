@@ -190,7 +190,7 @@
     <Compile Include="Interface\UIAnimation.cs" />
     <Compile Include="Interface\FlyInLeft.cs" />
     <Compile Include="Thn\ThnScript.cs" />
-    <Compile Include="Thn\ThnLighting.cs" />
+    <Compile Include="Thn\ThnObjectFlags.cs" />
     <Compile Include="Thn\AttachFlags.cs" />
     <Compile Include="Thn\EntityTypes.cs" />
     <Compile Include="Thn\EventTypes.cs" />
@@ -271,7 +271,7 @@
     <Compile Include="GameData\Items\Equipment.cs" />
     <Compile Include="TextureShape.cs" />
     <Compile Include="Render\LightEquipRenderer.cs" />
-    <Compile Include="GameStates\DemoGameplay.cs" />
+    <Compile Include="GameStates\SpaceGameplay.cs" />
     <Compile Include="Render\PhysicsDebugRenderer.cs" />
     <Compile Include="CompoundSurShape.cs" />
     <Compile Include="Gameplay\GameWorld.cs" />
@@ -328,6 +328,10 @@
     <Compile Include="AttachedEffect.cs" />
     <Compile Include="Fx\LineBuffer.cs" />
     <Compile Include="Render\PolylineRender.cs" />
+    <Compile Include="GameStates\RoomGameplay.cs" />
+    <Compile Include="GameData\BaseRoom.cs" />
+    <Compile Include="GameData\Base.cs" />
+    <Compile Include="Thn\EventFlags.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

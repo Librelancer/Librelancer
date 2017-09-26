@@ -41,116 +41,133 @@ namespace LibreLancer
 		Queue<ThnEvent> events = new Queue<ThnEvent>();
 		Dictionary<string, ThnObject> objects = new Dictionary<string, ThnObject>(StringComparer.OrdinalIgnoreCase);
 		List<IThnRoutine> coroutines = new List<IThnRoutine>();
-		ThnScript thn;
+		//ThnScript thn;
 
 		GameWorld world;
 		SystemRenderer renderer;
 
 		ThnCamera camera;
 
-		public Cutscene(ThnScript script, FreelancerGame game)
+		public Cutscene(IEnumerable<ThnScript> scripts, FreelancerGame game)
 		{
 			camera = new ThnCamera(game.Viewport);
 
 			renderer = new SystemRenderer(camera, game.GameData, game.ResourceManager);
 			world = new GameWorld(renderer);
 
-			thn = script;
-			foreach (var ev in thn.Events)
-				events.Enqueue(ev);
+			//thn = script;
+			var evs = new List<ThnEvent>();
 			bool hasScene = false;
 			List<Tuple<IDrawable, Matrix4, int>> layers = new List<Tuple<IDrawable, Matrix4, int>>();
-			foreach (var kv in thn.Entities)
+			foreach (var thn in scripts)
 			{
-				var obj = new ThnObject();
-				obj.Name = kv.Key;
-				obj.Translate = kv.Value.Position ?? Vector3.Zero;
-				obj.Rotate = kv.Value.RotationMatrix ?? Matrix4.Identity;
-				if (kv.Value.Type == EntityTypes.Compound)
+				foreach (var ev in thn.Events)
+					evs.Add(ev);
+				foreach (var kv in thn.Entities)
 				{
-					//Fetch model
-					IDrawable drawable;
-					switch (kv.Value.MeshCategory.ToLowerInvariant())
+					if ((kv.Value.ObjectFlags & ThnObjectFlags.Reference) == ThnObjectFlags.Reference) continue;
+					var obj = new ThnObject();
+					obj.Name = kv.Key;
+					obj.Translate = kv.Value.Position ?? Vector3.Zero;
+					obj.Rotate = kv.Value.RotationMatrix ?? Matrix4.Identity;
+					if (kv.Value.Type == EntityTypes.Compound)
 					{
-						case "solar":
-							drawable = game.GameData.GetSolar(kv.Value.Template);
-							break;
-						case "spaceship":
-							var sh = game.GameData.GetShip(kv.Value.Template);
-							drawable = sh.Drawable;
-							break;
-						case "prop":
-							drawable = game.GameData.GetProp(kv.Value.Template);
-							break;
-						case "room":
-							drawable = game.GameData.GetRoom(kv.Value.Template);
-							break;
-						default:
-							throw new NotImplementedException("Mesh Category " + kv.Value.MeshCategory);
+						
+						//Fetch model
+						IDrawable drawable;
+						switch (kv.Value.MeshCategory.ToLowerInvariant())
+						{
+							case "solar":
+								drawable = game.GameData.GetSolar(kv.Value.Template);
+								break;
+							case "spaceship":
+								var sh = game.GameData.GetShip(kv.Value.Template);
+								drawable = sh.Drawable;
+								break;
+							case "prop":
+								drawable = game.GameData.GetProp(kv.Value.Template);
+								break;
+							case "room":
+								drawable = game.GameData.GetRoom(kv.Value.Template);
+								break;
+							case "equipment":
+								var eq = game.GameData.GetEquipment(kv.Value.Template);
+								drawable = eq.GetDrawable();
+								break;
+							default:
+								throw new NotImplementedException("Mesh Category " + kv.Value.MeshCategory);
+						}
+						if (kv.Value.UserFlag == 1)
+						{
+							//This is a starsphere
+							layers.Add(new Tuple<IDrawable, Matrix4, int>(drawable, kv.Value.RotationMatrix ?? Matrix4.Zero, kv.Value.SortGroup));
+						}
+						else
+						{
+							obj.Object = new GameObject(drawable, game.ResourceManager, false);
+							var r = (ModelRenderer)obj.Object.RenderComponent;
+							r.LightGroup = kv.Value.LightGroup;
+						}
 					}
-					if (kv.Value.UserFlag == 1)
+					else if (kv.Value.Type == EntityTypes.PSys)
 					{
-						//This is a starsphere
-						layers.Add(new Tuple<IDrawable, Matrix4, int>(drawable, kv.Value.RotationMatrix ?? Matrix4.Zero, kv.Value.SortGroup));
+						var fx = game.GameData.GetEffect(kv.Value.Template);
+						obj.Object = new GameObject();
+						obj.Object.RenderComponent = new ParticleEffectRenderer(fx) { Active = false };
 					}
-					else
+					else if (kv.Value.Type == EntityTypes.Scene)
 					{
-						obj.Object = new GameObject(drawable, game.ResourceManager, false);
-						var r = (ModelRenderer)obj.Object.RenderComponent;
-						r.LightGroup = kv.Value.LightGroup;
+						if (hasScene)
+						{
+							//throw new Exception("Thn can only have one scene");
+							continue;
+						}
+						var amb = kv.Value.Ambient.Value;
+						if (amb.X == 0 && amb.Y == 0 && amb.Z == 0) continue;
+						hasScene = true;
+						renderer.SystemLighting.Ambient = new Color4(amb.X / 255f, amb.Y / 255f, amb.Z / 255f, 1);
 					}
-				}
-				else if (kv.Value.Type == EntityTypes.PSys)
-				{
-					var fx = game.GameData.GetEffect(kv.Value.Template);
-					obj.Object = new GameObject();
-					obj.Object.RenderComponent = new ParticleEffectRenderer(fx) { Active = false };
-				}
-				else if (kv.Value.Type == EntityTypes.Scene)
-				{
-					if (hasScene)
-						throw new Exception("Thn can only have one scene");
-					hasScene = true;
-					var amb = kv.Value.Ambient.Value;
-					renderer.SystemLighting.Ambient = new Color4(amb.X / 255f, amb.Y / 255f, amb.Z / 255f, 1);
-				}
-				else if (kv.Value.Type == EntityTypes.Light)
-				{
-					var lt = new DynamicLight();
-					lt.LightGroup = kv.Value.LightGroup;
-					lt.Active = kv.Value.LightProps.On;
-					lt.Light = kv.Value.LightProps.Render;
-					obj.Light = lt;
-					if (kv.Value.RotationMatrix.HasValue)
+					else if (kv.Value.Type == EntityTypes.Light)
 					{
-						var m = kv.Value.RotationMatrix.Value;
-						lt.Light.Direction = (new Vector4(lt.Light.Direction.Normalized(), 0) * m).Xyz.Normalized();
+						var lt = new DynamicLight();
+						lt.LightGroup = kv.Value.LightGroup;
+						lt.Active = kv.Value.LightProps.On;
+						lt.Light = kv.Value.LightProps.Render;
+						obj.Light = lt;
+						if (kv.Value.RotationMatrix.HasValue)
+						{
+							var m = kv.Value.RotationMatrix.Value;
+							lt.Light.Direction = (new Vector4(lt.Light.Direction.Normalized(), 0) * m).Xyz.Normalized();
+						}
+						renderer.SystemLighting.Lights.Add(lt);
 					}
-					renderer.SystemLighting.Lights.Add(lt);
+					else if (kv.Value.Type == EntityTypes.Camera)
+					{
+						obj.Camera = new ThnCameraTransform();
+						obj.Camera.Position = kv.Value.Position.Value;
+						obj.Camera.Orientation = kv.Value.RotationMatrix ?? Matrix4.Identity;
+						obj.Camera.FovH = kv.Value.FovH ?? obj.Camera.FovH;
+						obj.Camera.AspectRatio = kv.Value.HVAspect ?? obj.Camera.AspectRatio;
+					}
+					else if (kv.Value.Type == EntityTypes.Marker)
+					{
+						obj.Object = new GameObject();
+						obj.Object.Name = "Marker";
+						obj.Object.Nickname = "";
+					}
+					if (obj.Object != null)
+					{
+						Vector3 transform = kv.Value.Position ?? Vector3.Zero;
+						obj.Object.Transform = (kv.Value.RotationMatrix ?? Matrix4.Identity) * Matrix4.CreateTranslation(transform);
+						world.Objects.Add(obj.Object);
+					}
+					obj.Entity = kv.Value;
+					objects.Add(kv.Key, obj);
 				}
-				else if (kv.Value.Type == EntityTypes.Camera)
-				{
-					obj.Camera = new ThnCameraTransform();
-					obj.Camera.Position = kv.Value.Position.Value;
-					obj.Camera.Orientation = kv.Value.RotationMatrix ?? Matrix4.Identity;
-					obj.Camera.FovH = kv.Value.FovH ?? obj.Camera.FovH;
-					obj.Camera.AspectRatio = kv.Value.HVAspect ?? obj.Camera.AspectRatio;
-				}
-				else if (kv.Value.Type == EntityTypes.Marker)
-				{
-					obj.Object = new GameObject();
-					obj.Object.Name = "Marker";
-					obj.Object.Nickname = "";
-				}
-				if (obj.Object != null)
-				{
-					Vector3 transform = kv.Value.Position ?? Vector3.Zero;
-					obj.Object.Transform = (kv.Value.RotationMatrix ?? Matrix4.Identity) * Matrix4.CreateTranslation(transform);
-					world.Objects.Add(obj.Object);
-				}
-				obj.Entity = kv.Value;
-				objects.Add(kv.Key, obj);
 			}
+			evs.Sort((x, y) => x.Time.CompareTo(y.Time));
+			foreach (var item in evs)
+				events.Enqueue(item);
 			//Add starspheres in the right order
 			layers.Sort((x, y) => x.Item3.CompareTo(y.Item3));
 			renderer.StarSphereModels = new IDrawable[layers.Count];
@@ -215,10 +232,14 @@ namespace LibreLancer
 		}
 
 		#region SetCamera
+		public void SetCamera(string name)
+		{
+			var cam = objects[name];
+			camera.Transform = cam.Camera;
+		}
 		void ProcessSetCamera(ThnEvent ev)
 		{
-			var cam = objects[(string)ev.Targets[1]];
-			camera.Transform = cam.Camera;
+			SetCamera((string)ev.Targets[1]);
 		}
 		#endregion
 

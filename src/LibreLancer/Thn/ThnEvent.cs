@@ -21,6 +21,7 @@ namespace LibreLancer
 	{
 		public float Duration;
 		public double Time;
+		public EventFlags Flags;
 		public EventTypes Type;
 		public LuaTable Targets;
 		public LuaTable Properties;

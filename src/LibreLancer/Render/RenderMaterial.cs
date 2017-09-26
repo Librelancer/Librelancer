@@ -35,8 +35,16 @@ namespace LibreLancer
 		public abstract bool IsTransparent { get; }
 		public bool DoubleSided = false;
 		Texture2D[] textures = new Texture2D[8];
+		protected static bool HasSpotlight(ref Lighting lights)
+		{
+			for (int i = 0; i < lights.Lights.Count; i++) {
+				if (lights.Lights[i].Kind == LightKind.Spotlight) return true;
+			}
+			return false;
+		}
 		public static void SetLights(ShaderVariables shader, Lighting lights)
 		{
+			bool hasSpotlight = HasSpotlight(ref lights);
 			var h = lights.Hash;
 			if (shader.UserTag == h)
 				return;
@@ -50,13 +58,24 @@ namespace LibreLancer
 			{
 				var lt = lights.Lights[i];
 				float kind = 0;
-				if (lt.Kind == LightKind.Point)
+				if (lt.Kind == LightKind.Point || lt.Kind == LightKind.Spotlight)
 					kind = 1;
 				else if (lt.Kind == LightKind.PointAttenCurve)
 					kind = 2;
 				shader.SetLightsPos(i, new Vector4(lt.Kind == LightKind.Directional ? lt.Direction : lt.Position, kind));
 				shader.SetLightsColorRange(i, new Vector4(lt.Color.R, lt.Color.G, lt.Color.B, lt.Range));
 				shader.SetLightsAttenuation(i, lt.Attenuation);
+				if (hasSpotlight) {
+					if (lt.Kind == LightKind.Spotlight)
+					{
+						shader.SetLightsDir(i, lt.Direction);
+						shader.SetSpotlightParams(i, new Vector3(lt.Falloff, (float)(Math.Cos(lt.Theta / 2.0)), (float)(Math.Cos(lt.Phi / 2.0))));
+					}
+					else if (lt.Kind == LightKind.Point || lt.Kind == LightKind.PointAttenCurve)
+					{
+						shader.SetSpotlightParams(i, Vector3.Zero);
+					}
+				}
 			}
 			shader.SetFogMode((int)lights.FogMode);
 			if (lights.FogMode == FogModes.Linear)

@@ -15,6 +15,10 @@ namespace LibreLancer
 		{
 			audio.Music.Play(data.GetMusicPath(name), true);
 		}
+		public void StopMusic()
+		{
+			audio.Music.Stop();
+		}
 	}
 }
 

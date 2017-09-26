@@ -28,7 +28,8 @@ namespace LibreLancer
 		StartMotion,
 		StartFogPropAnim,
 		StartLightPropAnim,
-		StartCameraPropAnim
+		StartCameraPropAnim,
+		StartSound
 	}
 }
 

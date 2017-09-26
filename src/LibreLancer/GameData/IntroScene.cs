@@ -14,14 +14,14 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Collections.Generic;
 namespace LibreLancer.GameData
 {
 	public class IntroScene
 	{
 		public string ThnName;
-		public ThnScript Script;
+		public List<ThnScript> Scripts;
 		public string Music;
-
 	}
 }
 

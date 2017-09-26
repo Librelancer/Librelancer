@@ -10,25 +10,23 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2017
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-
-namespace LibreLancer
+using System.Collections.Generic;
+namespace LibreLancer.GameData
 {
-	public enum EntityTypes
+	public class BaseRoom
 	{
-		Camera,
-		Scene,
-		Monitor,
-		PSys,
-		Marker,
-		Compound,
-		Light,
-		MotionPath,
-		Deformable,
-		Sound
+		public string Nickname;
+		public string Camera;
+		public List<string> ThnPaths;
+		public string Music;
+
+		public IEnumerable<ThnScript> OpenScripts()
+		{
+			foreach (var p in ThnPaths) yield return new ThnScript(p);
+		}
 	}
 }
-

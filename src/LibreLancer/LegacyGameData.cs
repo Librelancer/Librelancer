@@ -53,6 +53,24 @@ namespace LibreLancer
 		{
 			return fldata.RichFonts.Fonts;
 		}
+		public GameData.Base GetBase(string id)
+		{
+			var legacy = fldata.Universe.FindBase(id);
+			var b = new GameData.Base();
+			foreach (var room in legacy.Rooms)
+			{
+				var nr = new GameData.BaseRoom();
+				nr.Music = room.Music;
+				nr.ThnPaths = new List<string>();
+				foreach (var path in room.SceneScripts)
+					nr.ThnPaths.Add(Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + path));
+				nr.Nickname = room.Nickname;
+				if (room.Nickname == legacy.StartRoom) b.StartRoom = nr;
+				nr.Camera = room.Camera;
+				b.Rooms.Add(nr);
+			}
+			return b;
+		}
 		public void LoadData()
 		{
 			fldata.LoadData();
@@ -65,10 +83,13 @@ namespace LibreLancer
 						if (room.Nickname == b.StartRoom)
 						{
 							var isc = new GameData.IntroScene();
-							var path = Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + room.SceneScript);
-							isc.ThnName = System.IO.Path.GetFileName(path);
+							isc.Scripts = new List<ThnScript>();
+							foreach (var p in room.SceneScripts)
+							{
+								var path = Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + p);
+								isc.Scripts.Add(new ThnScript(path));
+							}
 							isc.Music = room.Music;
-							isc.Script = new ThnScript(path);
 							IntroScenes.Add(isc);
 						}
 					}

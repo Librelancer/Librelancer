@@ -21,6 +21,7 @@ namespace LibreLancer
 		Directional, //DX8 directional light - standard DX8 attenuation
 		Point, //Point light - standard DX8 attenuation
 		PointAttenCurve, //Point light - IGraph attenuation
+		Spotlight //ugh
 	}
 }
 

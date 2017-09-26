@@ -20,7 +20,7 @@ using Jitter.Dynamics;
 using Jitter.LinearMath;
 namespace LibreLancer
 {
-	public class DemoGameplay : GameState
+	public class SpaceGameplay : GameState
 	{
 
 		const string DEMO_TEXT =
@@ -55,7 +55,7 @@ Mouse Flight: {10}
 		Hud hud;
 		EngineComponent ecpt;
 		InputManager input;
-		public DemoGameplay(FreelancerGame g) : base(g)
+		public SpaceGameplay(FreelancerGame g) : base(g)
 		{
 			FLLog.Info("Game", "Starting Gameplay Demo");
 			sys = g.GameData.GetSystem("li01");
@@ -107,6 +107,10 @@ Mouse Flight: {10}
 				if (e.Key == Keys.L)
 				{
 					g.Screenshots.TakeScreenshot();
+				}
+				if (e.Key == Keys.B)
+				{
+					Game.ChangeState(new RoomGameplay(Game, "Br01_01_Base"));
 				}
 			};
 			input = new InputManager(Game);

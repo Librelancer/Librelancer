@@ -24,7 +24,8 @@ namespace LibreLancer
 		Orientation = 4,
 		EntityRelative = 8,
 		LookAt = 16,
-		OrientationRelative = 32
+		OrientationRelative = 32,
+		ParentChild = 64 // Unknown
 	}
 }
 

@@ -10,19 +10,14 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2017
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-
 namespace LibreLancer
 {
-	[Flags]
-	public enum ThnLighting
+	public enum EventFlags
 	{
-		Dynamic = 2,
-		Ambient = 4,
-		Hidden = 16
+		Loop = 2
 	}
 }
-

@@ -17,18 +17,14 @@ using System;
 
 namespace LibreLancer
 {
-	public enum EntityTypes
+	[Flags]
+	public enum ThnObjectFlags
 	{
-		Camera,
-		Scene,
-		Monitor,
-		PSys,
-		Marker,
-		Compound,
-		Light,
-		MotionPath,
-		Deformable,
-		Sound
+		LitDynamic = 2,
+		LitAmbient = 4,
+		Hidden = 16,
+		Reference = 32,
+		Spatial = 64
 	}
 }
 

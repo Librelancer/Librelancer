@@ -106,6 +106,7 @@ namespace LibreLancer
 			if (Camera == null)
 				return;
 			ShaderCaps caps = ShaderCaps.None;
+			if (HasSpotlight(ref lights)) caps |= ShaderCaps.Spotlight;
 			if (EtEnabled) caps |= ShaderCaps.EtEnabled;
 			if (Fade) caps |= ShaderCaps.FadeEnabled;
 			if (GetTexture(0, DtSampler).Dxt1)

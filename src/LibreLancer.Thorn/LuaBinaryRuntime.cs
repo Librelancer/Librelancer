@@ -96,14 +96,33 @@ namespace LibreLancer.Thorn
 				case LuaOpcodes.SetMap:
 					{
 						op.Argument1++;
-						//fetch dictionary from stack
-						Dictionary<string,object> map = new Dictionary<string, object> (op.Argument1);
-						int i = 0;
-						while (i < op.Argument1) {
-							var idx = (stack.Count - ((op.Argument1 * 2) - i * 2));
-							map.Add (stack[idx] as string, stack[(idx + 1)]);
-							i++;
-						}
+							//fetch dictionary from stack
+							var check = stack[(stack.Count - ((op.Argument1 * 2)))];
+							bool isArray = check is float;
+							Dictionary<string, object> map = null;
+							object[] array = null;
+							if (isArray)
+							{
+								array = new object[op.Argument1];
+								int i = 0;
+								while (i < op.Argument1)
+								{
+									var idx = (stack.Count - ((op.Argument1 * 2) - i * 2));
+									array[(int)(float)stack[idx] - 1] = stack[(idx + 1)];
+									i++;
+								}
+							}
+							else
+							{
+								map = new Dictionary<string, object>(op.Argument1);
+								int i = 0;
+								while (i < op.Argument1)
+								{
+									var idx = (stack.Count - ((op.Argument1 * 2) - i * 2));
+									map.Add(stack[idx] as string, stack[(idx + 1)]);
+									i++;
+								}
+							}
 						//pop from stack
 						for (int j = 0; j < (op.Argument1 * 2); j++)
 							stack.Pop ();
@@ -111,7 +130,10 @@ namespace LibreLancer.Thorn
 						var pk = stack.Peek ();
 						if (!(pk is LuaTable))
 							throw new Exception ("Stack type mismatch");
-						((LuaTable)pk).SetMap (map);
+						if (isArray)
+							((LuaTable)pk).SetArray(0, array);
+						else
+							((LuaTable)pk).SetMap (map);
 						break;
 					}
 				case LuaOpcodes.AddOp:
