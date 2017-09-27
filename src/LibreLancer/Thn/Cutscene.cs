@@ -298,12 +298,12 @@ namespace LibreLancer
 
 			var objA = objects[(string)ev.Targets[0]];
 			var objB = objects[(string)ev.Targets[1]];
-			var targetType = (TargetTypes)ev.Properties["target_type"];
+			var targetType = ThnEnum.Check<TargetTypes>(ev.Properties["target_type"]);
 			var flags = AttachFlags.Position | AttachFlags.Orientation;
 			Vector3 offset;
 
 			if (ev.Properties.TryGetValue("flags", out tmp))
-				flags = (AttachFlags)tmp;
+				flags = ThnEnum.Check<AttachFlags>(tmp);
 			ev.Properties.TryGetVector3("offset", out offset);
 			//Attach GameObjects to eachother
 			if (objA.Object != null && objB.Object != null)
@@ -598,7 +598,7 @@ namespace LibreLancer
 			var path = objects[(string)ev.Targets[1]];
 			var start = (float)ev.Properties["start_percent"];
 			var stop = (float)ev.Properties["stop_percent"];
-			var flags = (AttachFlags)ev.Properties["flags"];
+			var flags = ThnEnum.Check<AttachFlags>(ev.Properties["flags"]);
 			if (obj.Object != null)
 			{
 				coroutines.Add(new ObjectPathAnimation()

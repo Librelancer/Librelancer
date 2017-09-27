@@ -332,6 +332,7 @@
     <Compile Include="GameData\BaseRoom.cs" />
     <Compile Include="GameData\Base.cs" />
     <Compile Include="Thn\EventFlags.cs" />
+    <Compile Include="Thn\ThnEnum.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

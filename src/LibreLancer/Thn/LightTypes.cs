@@ -18,9 +18,9 @@ namespace LibreLancer
 {
 	public enum LightTypes
 	{
-		Direct,
-		Point,
-		Spotlight
+		Point = 1,
+		Spotlight = 2,
+		Direct = 3
 	}
 }
 

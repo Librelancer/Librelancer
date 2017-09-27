@@ -21,68 +21,68 @@ namespace LibreLancer
 	public class ThnScript
 	{
 		#region Runtime
-		static Dictionary<string,object> thnEnv = new Dictionary<string, object>();
+		public static Dictionary<string,object> ThnEnv = new Dictionary<string, object>();
 		static ThnScript()
 		{
 			//ThnObjectFlags
-			thnEnv.Add("LIT_DYNAMIC", ThnObjectFlags.LitDynamic);
-			thnEnv.Add("LIT_AMBIENT", ThnObjectFlags.LitAmbient);
-			thnEnv.Add("HIDDEN", ThnObjectFlags.Hidden);
-			thnEnv.Add("REFERENCE", ThnObjectFlags.Reference);
-			thnEnv.Add("SPATIAL", ThnObjectFlags.Spatial);
+			ThnEnv.Add("LIT_DYNAMIC", ThnObjectFlags.LitDynamic);
+			ThnEnv.Add("LIT_AMBIENT", ThnObjectFlags.LitAmbient);
+			ThnEnv.Add("HIDDEN", ThnObjectFlags.Hidden);
+			ThnEnv.Add("REFERENCE", ThnObjectFlags.Reference);
+			ThnEnv.Add("SPATIAL", ThnObjectFlags.Spatial);
 			//EventFlags
-			thnEnv.Add("LOOP", EventFlags.Loop);
+			ThnEnv.Add("LOOP", EventFlags.Loop);
 			//LightTypes
-			thnEnv.Add("L_DIRECT", LightTypes.Direct);
-			thnEnv.Add("L_POINT", LightTypes.Point);
-			thnEnv.Add("L_SPOT", LightTypes.Spotlight);
+			ThnEnv.Add("L_DIRECT", LightTypes.Direct);
+			ThnEnv.Add("L_POINT", LightTypes.Point);
+			ThnEnv.Add("L_SPOT", LightTypes.Spotlight);
 			//TargetTypes
-			thnEnv.Add("HARDPOINT", TargetTypes.Hardpoint);
-			thnEnv.Add("PART", TargetTypes.Part);
-			thnEnv.Add("ROOT", TargetTypes.Root);
+			ThnEnv.Add("HARDPOINT", TargetTypes.Hardpoint);
+			ThnEnv.Add("PART", TargetTypes.Part);
+			ThnEnv.Add("ROOT", TargetTypes.Root);
 			//AttachFlags
-			thnEnv.Add("POSITION", AttachFlags.Position);
-			thnEnv.Add("ORIENTATION", AttachFlags.Orientation);
-			thnEnv.Add("LOOK_AT", AttachFlags.LookAt);
-			thnEnv.Add("ENTITY_RELATIVE", AttachFlags.EntityRelative);
-			thnEnv.Add("ORIENTATION_RELATIVE", AttachFlags.OrientationRelative);
-			thnEnv.Add("PARENT_CHILD", AttachFlags.ParentChild);
+			ThnEnv.Add("POSITION", AttachFlags.Position);
+			ThnEnv.Add("ORIENTATION", AttachFlags.Orientation);
+			ThnEnv.Add("LOOK_AT", AttachFlags.LookAt);
+			ThnEnv.Add("ENTITY_RELATIVE", AttachFlags.EntityRelative);
+			ThnEnv.Add("ORIENTATION_RELATIVE", AttachFlags.OrientationRelative);
+			ThnEnv.Add("PARENT_CHILD", AttachFlags.ParentChild);
 			//EntityTypes
-			thnEnv.Add("CAMERA", EntityTypes.Camera);
-			thnEnv.Add("PSYS", EntityTypes.PSys);
-			thnEnv.Add("MONITOR", EntityTypes.Monitor);
-			thnEnv.Add("SCENE", EntityTypes.Scene);
-			thnEnv.Add("MARKER", EntityTypes.Marker);
-			thnEnv.Add("COMPOUND", EntityTypes.Compound);
-			thnEnv.Add("LIGHT", EntityTypes.Light);
-			thnEnv.Add("MOTION_PATH", EntityTypes.MotionPath);
-			thnEnv.Add("DEFORMABLE", EntityTypes.Deformable);
-			thnEnv.Add("SOUND", EntityTypes.Sound);
+			ThnEnv.Add("CAMERA", EntityTypes.Camera);
+			ThnEnv.Add("PSYS", EntityTypes.PSys);
+			ThnEnv.Add("MONITOR", EntityTypes.Monitor);
+			ThnEnv.Add("SCENE", EntityTypes.Scene);
+			ThnEnv.Add("MARKER", EntityTypes.Marker);
+			ThnEnv.Add("COMPOUND", EntityTypes.Compound);
+			ThnEnv.Add("LIGHT", EntityTypes.Light);
+			ThnEnv.Add("MOTION_PATH", EntityTypes.MotionPath);
+			ThnEnv.Add("DEFORMABLE", EntityTypes.Deformable);
+			ThnEnv.Add("SOUND", EntityTypes.Sound);
 			//FogModes
-			thnEnv.Add("F_EXP2", FogModes.Exp2);
-			thnEnv.Add("F_LINEAR", FogModes.Linear);
+			ThnEnv.Add("F_EXP2", FogModes.Exp2);
+			ThnEnv.Add("F_LINEAR", FogModes.Linear);
 			//EventTypes
-			thnEnv.Add("SET_CAMERA", EventTypes.SetCamera);
-			thnEnv.Add("ATTACH_ENTITY", EventTypes.AttachEntity);
-			thnEnv.Add("START_SPATIAL_PROP_ANIM", EventTypes.StartSpatialPropAnim);
-			thnEnv.Add("START_LIGHT_PROP_ANIM", EventTypes.StartLightPropAnim);
-			thnEnv.Add("START_PSYS", EventTypes.StartPSys);
-			thnEnv.Add("START_PSYS_PROP_ANIM", EventTypes.StartPSysPropAnim);
-			thnEnv.Add("START_PATH_ANIMATION", EventTypes.StartPathAnimation);
-			thnEnv.Add("START_MOTION", EventTypes.StartMotion);
-			thnEnv.Add("START_FOG_PROP_ANIM", EventTypes.StartFogPropAnim);
-			thnEnv.Add("START_CAMERA_PROP_ANIM", EventTypes.StartCameraPropAnim);
-			thnEnv.Add("START_SOUND", EventTypes.StartSound);
+			ThnEnv.Add("SET_CAMERA", EventTypes.SetCamera);
+			ThnEnv.Add("ATTACH_ENTITY", EventTypes.AttachEntity);
+			ThnEnv.Add("START_SPATIAL_PROP_ANIM", EventTypes.StartSpatialPropAnim);
+			ThnEnv.Add("START_LIGHT_PROP_ANIM", EventTypes.StartLightPropAnim);
+			ThnEnv.Add("START_PSYS", EventTypes.StartPSys);
+			ThnEnv.Add("START_PSYS_PROP_ANIM", EventTypes.StartPSysPropAnim);
+			ThnEnv.Add("START_PATH_ANIMATION", EventTypes.StartPathAnimation);
+			ThnEnv.Add("START_MOTION", EventTypes.StartMotion);
+			ThnEnv.Add("START_FOG_PROP_ANIM", EventTypes.StartFogPropAnim);
+			ThnEnv.Add("START_CAMERA_PROP_ANIM", EventTypes.StartCameraPropAnim);
+			ThnEnv.Add("START_SOUND", EventTypes.StartSound);
 			//Axis
-			thnEnv.Add("X_AXIS", VectorMath.UnitX);
-			thnEnv.Add("Y_AXIS", VectorMath.UnitY);
-			thnEnv.Add("Z_AXIS", VectorMath.UnitZ);
-			thnEnv.Add("NEG_X_AXIS", -VectorMath.UnitX);
-			thnEnv.Add("NEG_Y_AXIS", -VectorMath.UnitY);
-			thnEnv.Add("NEG_Z_AXIS", -VectorMath.UnitZ);
+			ThnEnv.Add("X_AXIS", VectorMath.UnitX);
+			ThnEnv.Add("Y_AXIS", VectorMath.UnitY);
+			ThnEnv.Add("Z_AXIS", VectorMath.UnitZ);
+			ThnEnv.Add("NEG_X_AXIS", -VectorMath.UnitX);
+			ThnEnv.Add("NEG_Y_AXIS", -VectorMath.UnitY);
+			ThnEnv.Add("NEG_Z_AXIS", -VectorMath.UnitZ);
 			//Booleans
-			thnEnv.Add("Y", true);
-			thnEnv.Add("N", false);
+			ThnEnv.Add("Y", true);
+			ThnEnv.Add("N", false);
 
 		}
 		#endregion
@@ -92,7 +92,7 @@ namespace LibreLancer
 		public List<ThnEvent> Events = new List<ThnEvent>();
 		public ThnScript (string scriptfile)
 		{
-			var runner = new LuaRunner (thnEnv);
+			var runner = new LuaRunner (ThnEnv);
 			var output = runner.DoFile (scriptfile);
 			Duration = (float)output["duration"];
 			var entities = (LuaTable)output["entities"];
@@ -115,11 +115,7 @@ namespace LibreLancer
 		{
 			var e = new ThnEvent();
 			e.Time = (float)table[0];
-			if (table [1] is string) {
-				e.Type = (EventTypes)thnEnv [table [1].ToString()];
-			} else {
-				e.Type = (EventTypes)table [1];
-			}
+			e.Type = ThnEnum.Check<EventTypes>(table[1]);
 			e.Targets = (LuaTable)table[2];
 			if (table.Capacity >= 4)
 			{
@@ -141,29 +137,40 @@ namespace LibreLancer
 			}
 			return e;
 		}
-		ThnEntity GetEntity(LuaTable table)
+		//Flags are stored differently internally between Freelancer and Librelancer
+		ThnObjectFlags ConvertFlags(EntityTypes type, LuaTable table)
 		{
-			var e = new ThnEntity();
-			e.Name = (string)table["entity_name"];
-			if (table["type"] is float)
+			var val = (int)(float)table["flags"];
+			if (val == 1) return ThnObjectFlags.Reference; //Should be for all types
+			if (type == EntityTypes.Sound)
 			{
-				switch ((int)(float)table["type"])
+				switch (val)
 				{
-					case 1:
-						e.Type = EntityTypes.Compound;
-						break;
-					case 7:
-						e.Type = EntityTypes.Marker;
-						break;
+					case 2:
+						return ThnObjectFlags.Spatial;
 					default:
 						throw new NotImplementedException();
 				}
 			}
 			else
 			{
-				e.Type = (EntityTypes)table["type"];
+				switch (val)
+				{
+					case 4:
+						return ThnObjectFlags.LitDynamic;
+					case (2 | 4):
+						return ThnObjectFlags.LitDynamic | ThnObjectFlags.LitAmbient;
+					default:
+						throw new NotImplementedException();
+				}
 			}
+		}
 
+		ThnEntity GetEntity(LuaTable table)
+		{
+			var e = new ThnEntity();
+			e.Name = (string)table["entity_name"];
+			e.Type = ThnEnum.Check<EntityTypes>(table["type"]);
 			e.LightGroup = (int)(float)table["lt_grp"];
 			e.SortGroup = (int)(float)table["srt_grp"];
 			e.UserFlag = (int)(float)table["usr_flg"];
@@ -187,7 +194,14 @@ namespace LibreLancer
 			}
 			if (table.TryGetValue("flags", out o))
 			{
-				e.ObjectFlags = (ThnObjectFlags)o;
+				if (o is float)
+				{
+					e.ObjectFlags = ConvertFlags(e.Type, table);
+				}
+				else
+				{
+					e.ObjectFlags = (ThnObjectFlags)o;
+				}
 			}
 			if (table.TryGetValue("userprops", out o))
 			{
@@ -245,14 +259,16 @@ namespace LibreLancer
 				var lightprops = (LuaTable)o;
 				e.LightProps = new ThnLightProps();
 				if (lightprops.TryGetValue("on", out o))
-					e.LightProps.On = (bool)o;
+				{
+					e.LightProps.On = ThnEnum.Check<bool>(o);
+				}
 				else
 					e.LightProps.On = true;
 				var r = new RenderLight();
 				r.Position = e.Position.Value;
 				if (lightprops.TryGetValue("type", out o))
 				{
-					var tp = (LightTypes)o;
+					var tp = ThnEnum.Check<LightTypes>(o);
 					if (tp == LightTypes.Point)
 						r.Kind = LightKind.Point;
 					if (tp == LightTypes.Direct)
