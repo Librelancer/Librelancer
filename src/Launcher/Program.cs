@@ -44,7 +44,7 @@ namespace Launcher
 #if !DEBUG
 			}
 			catch (Exception ex) {
-				conf.Crashed();
+				Config.Crashed();
 				Console.Out.WriteLine("Unhandled {0}: ", ex.GetType().Name);
 				Console.Out.WriteLine(ex.Message);
 				Console.Out.WriteLine(ex.StackTrace);
