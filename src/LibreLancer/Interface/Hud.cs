@@ -143,12 +143,12 @@ namespace LibreLancer
 			{
 				manager.Game.RenderState.Cull = false;
 				manager.Game.RenderState.DepthEnabled = false;
-				reticle.Update(IdentityCamera.Instance, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0));
+				/*reticle.Update(IdentityCamera.Instance, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0));
 				reticle.Draw(manager.Game.RenderState, Matrix4.Identity, Lighting.Empty);
 				reticle_health.Update(IdentityCamera.Instance, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0));
 				reticle_health.Draw(manager.Game.RenderState, Matrix4.Identity, Lighting.Empty);
 				reticle_shields.Update(IdentityCamera.Instance, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0));
-				reticle_shields.Draw(manager.Game.RenderState, Matrix4.Identity, Lighting.Empty);
+				reticle_shields.Draw(manager.Game.RenderState, Matrix4.Identity, Lighting.Empty);*/
 			}
 			manager.Draw();
 		}
