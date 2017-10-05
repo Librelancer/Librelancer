@@ -16,7 +16,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-
+using System.Xml.Serialization;
 namespace LibreLancer
 {
 	public class GameConfig
@@ -27,11 +27,54 @@ namespace LibreLancer
 		public bool IntroMovies = true;
 		public int BufferWidth = 1024;
 		public int BufferHeight = 768;
-		
+		public int MSAASamples = 0;
+
 		//This default is to stop dlopen on linux from trying to open itself
+		[XmlIgnore]
 		public string MpvOverride = "__MPV_OVERRIDE_STRING";
-		public GameConfig ()
+
+		private GameConfig(Func<string> filePath) 
 		{
+			this.filePath = filePath;
+		}
+
+		public GameConfig()
+		{
+		}
+
+		Func<string> filePath;
+
+		public static GameConfig Create(bool loadFile = true, Func<string> filePath = null)
+		{
+			if (!loadFile) return new GameConfig((filePath ?? DefaultConfigPath));
+			var cfgpath = (filePath ?? DefaultConfigPath)();
+			if (File.Exists(cfgpath))
+			{
+				var xml = new XmlSerializer(typeof(GameConfig));
+				using (var reader = new StreamReader(cfgpath))
+				{
+					var loaded = (GameConfig)xml.Deserialize(reader);
+					loaded.filePath = (filePath ?? DefaultConfigPath);
+					return loaded;
+				}
+			}
+			var cfg = new GameConfig((filePath ?? DefaultConfigPath));
+			cfg.Save();
+			return cfg;
+		}
+
+		public void Save()
+		{
+			var xml = new XmlSerializer(typeof(GameConfig));
+			using (var writer = new StreamWriter(filePath()))
+			{
+				xml.Serialize(writer, this);
+			}
+		}
+
+		static string DefaultConfigPath()
+		{
+			return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "librelancer.xml");
 		}
 
 		[DllImport("kernel32.dll")]
@@ -41,11 +84,14 @@ namespace LibreLancer
 
 		public void Launch()
 		{
-			if (Platform.RunningOS == OS.Windows) {
-				string bindir = Path.GetDirectoryName (typeof(GameConfig).Assembly.Location);
-				var fullpath = Path.Combine (bindir, IntPtr.Size == 8 ? "win64" : "win32");
-				SetDllDirectory (fullpath);
+			if (Platform.RunningOS == OS.Windows)
+			{
+				string bindir = Path.GetDirectoryName(typeof(GameConfig).Assembly.Location);
+				var fullpath = Path.Combine(bindir, IntPtr.Size == 8 ? "win64" : "win32");
+				SetDllDirectory(fullpath);
 			}
+			else
+				ForceAngle = false;
 			game = new FreelancerGame(this);
 			game.Run ();
 		}

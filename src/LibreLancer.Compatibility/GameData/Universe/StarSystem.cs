@@ -110,11 +110,13 @@ namespace LibreLancer.Compatibility.GameData.Universe
 					Visit = e[0].ToInt32();
 					break;
 				case "strid_name":
+					if (e.Count == 0) break;
 					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 					if (StridName != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
 					StridName = GameData.Infocards.GetStringResource(e[0].ToInt32());
 					break;
 				case "ids_info":
+					if (e.Count == 0) break;
 					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 					if (IdsInfo != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
 					IdsInfo = GameData.Infocards.GetXmlResource(e[0].ToInt32());
@@ -310,7 +312,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 						case "nebulae":
 							if (e.Count != 1)
 								throw new Exception ("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
-							string temp = VFS.GetPath (GameData.Freelancer.DataPath + e [0].ToString ());
+							string temp = VFS.GetPath (GameData.Freelancer.DataPath + e[0].ToString(), false);
 							if (BackgroundNebulaePath != null && BackgroundNebulaePath != temp)
 								throw new Exception ("Duplicate " + e.Name + " Entry in " + s.Name);
 							BackgroundNebulaePath = temp;

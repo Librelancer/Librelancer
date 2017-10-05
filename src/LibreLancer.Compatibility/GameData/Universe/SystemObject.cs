@@ -218,9 +218,9 @@ namespace LibreLancer.Compatibility.GameData.Universe
 						Voice = e[0].ToString();
 						break;
 					case "space_costume":
-						if (e.Count < 1 || e.Count > 3) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+						if (e.Count < 1 /*|| e.Count > 3*/) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 						if (SpaceCostume != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-						SpaceCostume = new Costume(e[0].ToString(), e[1].ToString(), e.Count == 3 ? e[2].ToString() : string.Empty, freelancerIni);
+						SpaceCostume = new Costume(e[0].ToString(), e[1].ToString(), e.Count >= 3 ? e[2].ToString() : string.Empty, freelancerIni);
 						break;
 					case "faction":
 						if (e.Count != 1) FLLog.Warning("Ini", "Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
@@ -259,6 +259,9 @@ namespace LibreLancer.Compatibility.GameData.Universe
 						//TODO
 						break;
 					case "260800": // Strange error
+						break;
+					case "rot":
+						FLLog.Warning("SystemObject", "unimplemented: rot");
 						break;
 					default:
 						throw new Exception("Invalid Entry in " + section.Name + ": " + e.Name);

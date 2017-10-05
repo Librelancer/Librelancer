@@ -40,7 +40,7 @@ namespace LibreLancer.Compatibility
         {
             return File.OpenRead(GetPath(filename));
         }
-        public static string GetPath(string filename)
+		public static string GetPath(string filename, bool throwOnError = true)
         {
 			if (FreelancerDirectory == null)
 				return filename;
@@ -67,7 +67,11 @@ namespace LibreLancer.Compatibility
 							}
 						}
 						if (!found)
-							throw new FileNotFoundException (filename);
+							if (throwOnError)
+								throw new FileNotFoundException(filename);
+							else
+								return "VFS:FileMissing";
+
 					}
 				}
 				//Find file

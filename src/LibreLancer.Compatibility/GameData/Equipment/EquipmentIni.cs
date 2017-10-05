@@ -96,7 +96,7 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 					break;
 				case "lod":
 					break;
-				default: throw new Exception("Invalid Section in " + path + ": " + s.Name);
+					default: FLLog.Error("Equipment Ini", "Invalid Section in " + path + ": " + s.Name); break;
 				}
 			}
 		}

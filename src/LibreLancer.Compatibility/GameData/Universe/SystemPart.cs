@@ -84,6 +84,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 					Spin = new Vector3(x, y, z);
 					break;
 				case "reputation":
+					if (e.Count == 0) break;
 					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 					//if (Reputation != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
 					Reputation = e[0].ToString(); //TODO: are multiple reputation entries valid?

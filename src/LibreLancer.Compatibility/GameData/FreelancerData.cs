@@ -56,7 +56,8 @@ namespace LibreLancer.Compatibility.GameData
 				Equipment.AddEquipmentIni (eq, this);
 			//Solars
 			Solar = new SolararchIni (Freelancer.SolarPath, this);
-			Stars = new StararchIni (Freelancer.StarsPath);
+			if(Freelancer.StarsPath != null)
+				Stars = new StararchIni (Freelancer.StarsPath);
 			Asteroids = new AsteroidArchIni ();
 			foreach (var ast in Freelancer.AsteroidPaths)
 				Asteroids.AddFile (ast);

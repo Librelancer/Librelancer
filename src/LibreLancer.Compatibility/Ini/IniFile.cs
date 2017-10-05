@@ -69,8 +69,9 @@ namespace LibreLancer.Ini
 					stream.Seek(0, SeekOrigin.Begin);
 					StreamReader reader = new StreamReader(stream);
 
-					int currentSection = -1;
+					int currentSection = -2;
 					int currentLine = 0;
+					bool inSection = false;
 					while (!reader.EndOfStream)
 					{
 						string line = reader.ReadLine().Trim();
@@ -82,17 +83,22 @@ namespace LibreLancer.Ini
 
 						if (line.StartsWith("[", StringComparison.OrdinalIgnoreCase))
 						{
+							if (line.Substring(1).Trim()[0] == ';')
+							{
+								inSection = false;
+								currentSection = -1;
+								continue;
+							}
 							if (!line.Contains("]")) throw new FileContentException(path, IniFileType, "Invalid section header: " + line);
-
 							string name = line.Substring(1);
-							currentSection++;
 							sections.Add(new Section(name.Remove(name.IndexOf(']')).Trim()));
-
+							currentSection = sections.Count - 1;
+							inSection = true;
 							continue;
 						}
 						else
 						{
-							if (currentSection < -1) throw new FileContentException(path, IniFileType, "Entry before first section: " + line);
+							if (!inSection) continue;
 							if (line.Contains(";")) line = line.Remove(line.IndexOf(";", StringComparison.OrdinalIgnoreCase)).TrimEnd();
 							if (!char.IsLetterOrDigit (line [0]) && line [0] != '_') {
 								FLLog.Warning ("Ini", "Invalid line in file: " + path + " at line " + currentLine + '"' + line + '"');
@@ -115,12 +121,16 @@ namespace LibreLancer.Ini
 										int tempInt;
 										float tempFloat;
 
-										if (bool.TryParse (s, out tempBool))
-											values.Add (new BooleanValue (tempBool));
-										else if (int.TryParse (s, out tempInt))
-											values.Add (new Int32Value (tempInt));
-										else if (float.TryParse (s, out tempFloat))
-											values.Add (new SingleValue (tempFloat));
+										if (bool.TryParse(s, out tempBool))
+											values.Add(new BooleanValue(tempBool));
+										else if (int.TryParse(s, out tempInt))
+											values.Add(new Int32Value(tempInt));
+										else if (float.TryParse(s, out tempFloat))
+										{
+											long templong;
+											bool a = long.TryParse(s, out templong);
+											values.Add(new SingleValue(tempFloat, a ? (long?)templong : null));
+										}
 										else
 											values.Add (new StringValue (s));
 									}
@@ -141,7 +151,6 @@ namespace LibreLancer.Ini
 					}
 				}
 			}
-
 			return sections;
 		}
 

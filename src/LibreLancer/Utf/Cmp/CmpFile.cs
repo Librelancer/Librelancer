@@ -133,7 +133,7 @@ namespace LibreLancer.Utf.Cmp
                             ModelFile m = new ModelFile(node as IntermediateNode, this);
                             Models.Add(node.Name, m);
                         }
-                        else throw new Exception("Invalid Node in cmp root: " + node.Name);
+                        else FLLog.Error("Cmp", path + ": Invalid Node in cmp root: " + node.Name);
                         break;
                 }
             }

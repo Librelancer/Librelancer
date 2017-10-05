@@ -44,6 +44,13 @@ namespace LibreLancer
 				return new Viewport (0, 0, Width, Height);
 			}
 		}
+		public GameConfig Config
+		{
+			get
+			{
+				return _cfg;
+			}
+		}
 		GameConfig _cfg;
 		public FreelancerGame(GameConfig config) : base(config.BufferWidth, config.BufferHeight, false, config.ForceAngle)
 		{

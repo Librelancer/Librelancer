@@ -40,7 +40,6 @@ namespace LibreLancer
 		}
 		
 		//Global Renderer Options
-		public bool MSAAEnabled = false;
 		public float LODMultiplier = 32;
 		
 		public IDrawable[] StarSphereModels;
@@ -166,7 +165,7 @@ namespace LibreLancer
 		CommandBuffer commands = new CommandBuffer();
 		public void Draw()
 		{
-			if (MSAAEnabled)
+			if (game.Config.MSAASamples > 0)
 			{
 				if (_mwidth != Game.Width || _mheight != Game.Height)
 				{
@@ -174,7 +173,7 @@ namespace LibreLancer
 					_mheight = Game.Height;
 					if (msaa != null)
 						msaa.Dispose();
-					msaa = new MultisampleTarget(Game.Width, Game.Height, 4);
+					msaa = new MultisampleTarget(Game.Width, Game.Height, Game.Config.MSAASamples);
 				}
 				msaa.Bind();
 			}
@@ -240,7 +239,7 @@ namespace LibreLancer
 			commands.DrawTransparent(rstate);
 			rstate.DepthWrite = true;
 			DebugRenderer.Render();
-			if (MSAAEnabled)
+			if (Game.Config.MSAASamples > 0)
 			{
 				msaa.BlitToScreen();
 			}

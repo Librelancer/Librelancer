@@ -121,6 +121,12 @@ namespace LibreLancer.Compatibility.GameData.Universe
 							if (FogColor != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
 							FogColor = new Color4(e[0].ToInt32() / 255f, e[1].ToInt32() / 255f, e[2].ToInt32() / 255f, 1f);
 							break;
+						case "opacity":
+							FLLog.Warning("Nebula", "unimplemented fog opacity");
+							break;
+						case "max_alpha":
+							FLLog.Warning("Nebula", "unimplemented max alpha");
+							break;
 						default:
 							throw new Exception("Invalid Entry in " + s.Name + ": " + e.Name);
 						}
@@ -186,7 +192,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 							ExteriorShape.Add(e[0].ToString());
 							break;
 						case "shape_weights":
-							if (e.Count != 4) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
+							//if (e.Count != 4) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (ExteriorShapeWeights != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
 							ExteriorShapeWeights = new List<int>();
 							foreach (IValue i in e) ExteriorShapeWeights.Add(i.ToInt32());
@@ -268,6 +274,9 @@ namespace LibreLancer.Compatibility.GameData.Universe
 							if (CloudsPuffRadius != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
 							CloudsPuffRadius = e[0].ToInt32();
 							break;
+						case "puff_cloud_size":
+							FLLog.Warning("Nebula", "puff_cloud_size unimplemented");
+							break;
 						case "puff_colora":
 							if (e.Count != 3) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (CloudsPuffColorA != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
@@ -323,6 +332,12 @@ namespace LibreLancer.Compatibility.GameData.Universe
 							if (e.Count != 1) FLLog.Warning("Ini", "Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (CloudsLightningDuration != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
 							CloudsLightningDuration = e[0].ToSingle();
+							break;
+						case "disable_clouds":
+							FLLog.Warning("Nebula", "disable_clouds not implemented");
+							break;
+						case "zwrite_clouds":
+							FLLog.Warning("Nebula", "disable_clouds not implemented");
 							break;
 						default:
 							throw new Exception("Invalid Entry in " + s.Name + ": " + e.Name);

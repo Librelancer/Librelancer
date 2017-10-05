@@ -106,7 +106,11 @@ namespace LibreLancer.Utf.Mat
 					if (data == null) throw new Exception("Invalid texture library");
 
 					string key = textureNode.Name;
-					Textures.Add(key, data);
+					if (Textures.ContainsKey(key))
+					{
+						FLLog.Error("Txm", "Duplicate texture " + key + " in texture library");
+					} else 
+						Textures.Add(key, data);
 				}
 				else {
 					Animations.Add(textureNode.Name, new TexFrameAnimation(textureNode));

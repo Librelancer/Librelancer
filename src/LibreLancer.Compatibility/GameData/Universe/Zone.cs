@@ -181,7 +181,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 					break;
 				case "sort":
 					if (e.Count != 1) FLLog.Warning("Ini", "Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (Sort != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+					if (Sort != null) FLLog.Warning("Zone", "Duplicate " + e.Name + " Entry in " + section.Name);
 					Sort = e[0].ToSingle();
 					break;
 				case "vignette_type":

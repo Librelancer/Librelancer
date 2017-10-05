@@ -30,7 +30,7 @@ namespace LibreLancer.Compatibility.GameData.Solar
 		{
 			foreach (Entry e in section)
 			{
-				if (!parentEntry(e)) throw new Exception("Invalid Entry in " + section.Name + ": " + e.Name);
+				if (!parentEntry(e)) FLLog.Error("Solar", "Invalid Entry in " + section.Name + ": " + e.Name);
 			}
 		}
 	}

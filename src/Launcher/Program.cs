@@ -5,11 +5,7 @@ namespace Launcher
 {
 	static class Program
 	{
-		public static string LaunchPath = null;
-		public static bool ForceAngle = false;
-		public static bool SkipIntroMovies = true;
-		public static int ResWidth = 1024;
-		public static int ResHeight = 768;
+		public static LibreLancer.GameConfig Config;
 		/// <summary>
 		/// The main entry point for the application.
 		/// </summary>
@@ -32,28 +28,18 @@ namespace Launcher
 				}
 			}
 
-			if (args.Length == 1)
-			{
-				LaunchPath = args[0];
-			}
-			else
-			{
-				new Application().Run(new MainWindow(forceNoMovies));
-			}
+			Config = LibreLancer.GameConfig.Create();
+			var app = new Application();
+			var win = new MainWindow(forceNoMovies);
+			app.Run(win);
 			//Actually run the game
-			LibreLancer.GameConfig conf = null;
 #if !DEBUG
 			try {
 #endif
-			if (LaunchPath != null)
+			if (win.Run && Config.FreelancerPath != null)
 			{
-				conf = new LibreLancer.GameConfig();
-				conf.FreelancerPath = LaunchPath;
-				conf.ForceAngle = ForceAngle;
-				conf.IntroMovies = !SkipIntroMovies;
-				conf.BufferWidth = ResWidth;
-				conf.BufferHeight = ResHeight;
-				conf.Launch();
+				Config.Save();
+				Config.Launch();
 			}
 #if !DEBUG
 			}

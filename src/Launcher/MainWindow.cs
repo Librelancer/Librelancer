@@ -6,11 +6,11 @@ namespace Launcher
 {
 	public class MainWindow : Form
 	{
+		public bool Run = false;
 		TextBox textInput;
 		NumericMaskedTextBox<int> resWidthBox;
 		NumericMaskedTextBox<int> resHeightBox;
 		CheckBox skipMovies;
-        bool forceANGLE = false;
 		public MainWindow (bool forceNoMovies)
 		{
 			Title = "Librelancer Launcher";
@@ -25,6 +25,7 @@ namespace Launcher
 			));
 
 			textInput = new TextBox ();
+			textInput.Text = Program.Config.FreelancerPath ?? "";
 			var findButton = new Button () { Text = "..." };
 			findButton.Click += FindButton_Click;
 
@@ -32,18 +33,18 @@ namespace Launcher
 				new TableCell(textInput, true),
 				findButton
 			)));
-			skipMovies = new CheckBox () { Text = "Skip Intro Movies", Checked = forceNoMovies, Enabled = !forceNoMovies };
+			skipMovies = new CheckBox () { Text = "Skip Intro Movies", Checked = forceNoMovies || !Program.Config.IntroMovies, Enabled = !forceNoMovies };
 			layout.Rows.Add (new TableRow (skipMovies));
             if(Environment.OSVersion.Platform != PlatformID.Unix)
             {
-                var angleCheck = new CheckBox() { Text = "Force DX9 (Not Recommended)" };
+                var angleCheck = new CheckBox() { Text = "Force DX9 (Not Recommended)", Checked = Program.Config.ForceAngle };
                 angleCheck.CheckedChanged += AngleCheck_CheckedChanged;
                 layout.Rows.Add(new TableRow(angleCheck));
             }
 			resWidthBox = new NumericMaskedTextBox<int>();
-			resWidthBox.Value = 1024;
+			resWidthBox.Value = Program.Config.BufferWidth;
 			resHeightBox = new NumericMaskedTextBox<int>();
-			resHeightBox.Value = 768;
+			resHeightBox.Value = Program.Config.BufferHeight;
 			layout.Rows.Add(new TableLayout(new TableRow(
 				new TableCell(new Label() { Text = "Resolution: ", VerticalAlignment = VerticalAlignment.Center }, true),
 				resWidthBox,
@@ -63,7 +64,7 @@ namespace Launcher
 
         private void AngleCheck_CheckedChanged(object sender, EventArgs e)
         {
-            forceANGLE = ((CheckBox)sender).Checked ?? false;
+            Program.Config.ForceAngle = ((CheckBox)sender).Checked ?? false;
         }
 
         void FindButton_Click (object sender, EventArgs e)
@@ -84,11 +85,11 @@ namespace Launcher
 					MessageBox.Show (this, "Not a valid freelancer directory", "Librelancer", MessageBoxType.Error);
 					return;
 				}
-				Program.LaunchPath = textInput.Text;
-                Program.ForceAngle = forceANGLE;
-				Program.SkipIntroMovies = skipMovies.Checked ?? true;
-				Program.ResWidth = resWidthBox.Value;
-				Program.ResHeight = resHeightBox.Value;
+				Program.Config.FreelancerPath = textInput.Text;
+				Program.Config.IntroMovies = !(skipMovies.Checked ?? true);
+				Program.Config.BufferWidth = resWidthBox.Value;
+				Program.Config.BufferHeight = resHeightBox.Value;
+				Run = true;
 				Close ();			
 			}
 			else

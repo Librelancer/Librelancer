@@ -208,7 +208,7 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 						break;
 					case "min_color":
 						if (e.Count != 3) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-						if (minColor != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+						if (minColor != null) FLLog.Warning("Light", "Duplicate " + e.Name + " Entry in " + section.Name);
 							minColor = new Color3f(e[0].ToInt32() / 255f, e[1].ToInt32() / 255f, e[2].ToInt32() / 255f);
 						break;
 					case "avg_delay":
@@ -221,7 +221,10 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 						if (blinkDuration != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
 						blinkDuration = e[0].ToSingle();
 						break;
-					default: throw new Exception("Invalid Entry in " + section.Name + ": " + e.Name);
+					case "shape":
+						FLLog.Error("Light", "custom shape not implemented");
+						break;
+						default: FLLog.Error("Equipment", "Invalid Entry in " + section.Name + ": " + e.Name); break;
 					}
 				}
 			}

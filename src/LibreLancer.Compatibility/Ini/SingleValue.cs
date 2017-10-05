@@ -25,7 +25,7 @@ namespace LibreLancer.Ini
 	public class SingleValue : IValue
 	{
 		private float value;
-
+		private long? longvalue;
 		public SingleValue(BinaryReader reader)
 		{
 			if (reader == null) throw new ArgumentNullException("reader");
@@ -33,8 +33,9 @@ namespace LibreLancer.Ini
 			value = reader.ReadSingle();
 		}
 
-		public SingleValue(float value)
+		public SingleValue(float value, long? templong)
 		{
+			longvalue = templong;
 			this.value = value;
 		}
 
@@ -51,6 +52,10 @@ namespace LibreLancer.Ini
 
 		public int ToInt32()
 		{
+			if (longvalue != null)
+			{
+				return unchecked((int)longvalue.Value);
+			}
 			return (int)value;
 		}
 

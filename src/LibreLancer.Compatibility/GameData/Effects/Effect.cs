@@ -32,7 +32,7 @@ namespace LibreLancer.Compatibility.GameData.Effects
 						Nickname = e[0].ToString();
 						break;
 					case "vis_effect":
-						VisEffect = e[0].ToString();
+						if(e.Count > 0) VisEffect = e[0].ToString();
 						break;
 				}
 			}

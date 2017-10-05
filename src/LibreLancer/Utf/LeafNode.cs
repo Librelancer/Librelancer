@@ -17,7 +17,7 @@ namespace LibreLancer.Utf
         {
             get
             {
-                if (data.Length == sizeof(int)) return BitConverter.ToInt32(data, 0);
+                if (data.Length % sizeof(int) == 0) return BitConverter.ToInt32(data, 0);
                 else return null;
             }
         }
@@ -71,7 +71,7 @@ namespace LibreLancer.Utf
         {
             get
             {
-                if (data.Length == sizeof(float)) return BitConverter.ToSingle(data, 0);
+                if (data.Length % sizeof(float) == 0) return BitConverter.ToSingle(data, 0);
                 else return null;
             }
         }

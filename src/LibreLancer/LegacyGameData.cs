@@ -141,7 +141,7 @@ namespace LibreLancer
 		{
 			//var rand = new Random();
 			//return IntroScenes[rand.Next(0, IntroScenes.Count)];
-			return IntroScenes[0];
+			return IntroScenes[1];
 		}
 		public void LoadHardcodedFiles()
 		{
@@ -194,8 +194,11 @@ namespace LibreLancer
 		public GameData.StarSystem GetSystem(string id)
 		{
 			var legacy = fldata.Universe.FindSystem (id);
-			foreach (var txmfile in fldata.Stars.TextureFiles)
-				resource.LoadTxm(Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + txmfile));
+			if (fldata.Stars != null)
+			{
+				foreach (var txmfile in fldata.Stars.TextureFiles)
+					resource.LoadTxm(Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + txmfile));
+			}
 			var sys = new GameData.StarSystem ();
 			sys.AmbientColor = legacy.AmbientColor ?? Color4.White;
 			sys.Name = legacy.StridName;
@@ -633,10 +636,6 @@ namespace LibreLancer
 			obj.Archetype.Drawable = drawable;
 			var ld = o.Loadout;
 			var archld = fldata.Loadouts.FindLoadout(o.Archetype.LoadoutName);
-			if (obj.Nickname.ToLowerInvariant() == "li01_testbed")
-			{
-				Console.WriteLine();
-			}
 			if(ld != null) ProcessLoadout(ld, obj);
 			if (archld != null) ProcessLoadout(archld, obj);
 			return obj;
