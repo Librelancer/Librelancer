@@ -69,9 +69,11 @@ namespace LibreLancer
 			manager.Update (delta);
 			if (lastTag == "gameplay")
 			{
+				manager.Dispose();
 				Game.ChangeState(new SpaceGameplay(Game));
 			}
 			if (lastTag == "system") {
+				manager.Dispose();
 				Game.ChangeState (new DemoSystemView (Game));
 			}
 			if (lastTag == "exit") {

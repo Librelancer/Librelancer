@@ -107,6 +107,16 @@ namespace LibreLancer.Platforms
 			}
 			return new Face(library, stylePath);
 		}
+		Face fh;
+		public Face GetFallbackFace(Library library, uint cp)
+		{
+			if (fh == null)
+			{
+				FontStyles style = FontStyles.Regular;
+				fh = LoadSystemFace(library, "Helvetica", ref style);
+			}
+			return fh;
+		}
 
 		static string GetFontPath(string fontName, FontStyles styles)
 		{

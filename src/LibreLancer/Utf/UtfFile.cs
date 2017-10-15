@@ -75,7 +75,6 @@ namespace LibreLancer.Utf
                 if (dataBlockOffset > reader.BaseStream.Length)
                     throw new FileContentException(fileType, "The data block offset was out of range: " + dataBlockOffset);
 
-
                 nodeBlock = new byte[nodeBlockSize];
                 reader.BaseStream.Seek(nodeBlockOffset, SeekOrigin.Begin);
                 reader.Read(nodeBlock, 0, nodeBlockSize);

@@ -21,7 +21,7 @@ namespace LibreLancer
 {
 	public class Font : IDisposable
 	{
-		const int TEXTURE_SIZE = 1024;
+		const int TEXTURE_SIZE = 512;
 
 		List<Texture2D> textures = new List<Texture2D>();
 		Dictionary<uint, GlyphInfo> glyphs = new Dictionary<uint, GlyphInfo>();
@@ -32,8 +32,11 @@ namespace LibreLancer
 		internal Face Face;
 		string facename;
 		float facesize;
+		FontStyles style;
 		bool emulate_bold = false;
 		bool emulate_italics = false;
+		Renderer2D ren;
+
 		public float LineHeight {
 			get {
 				return lineHeight;
@@ -71,6 +74,7 @@ namespace LibreLancer
 
 		private Font(Renderer2D t, Face f, float sz, bool bold, bool italic)
 		{
+			ren = t;
 			emulate_bold = bold;
 			emulate_italics = italic;
 			this.Face = f;
@@ -103,45 +107,68 @@ namespace LibreLancer
 				var spaceGlyph = GetGlyph ((uint)' ');
 				glyphs.Add (cp, new GlyphInfo (spaceGlyph.AdvanceX * 4, spaceGlyph.AdvanceY, spaceGlyph.CharIndex, spaceGlyph.Kerning));
 			}
-			uint index = Face.GetCharIndex (cp);
+			var c_face = Face;
+			bool dobold = emulate_bold;
+			bool doitalics = emulate_italics;
+			bool dokern = true;
+			uint index = c_face.GetCharIndex (cp);
 
 			if (index == 0) {
 				//Glyph does not exist in font
 				if (cp == (uint)'?')
 					throw new Exception ("Font does not have required ASCII character '?'");
-				var qmGlyph = GetGlyph ((uint)'?');
-				glyphs.Add (cp, qmGlyph);
-				return;
+				var fallback = Platform.GetFallbackFace(ren.FT, cp);
+				if ((index = fallback.GetCharIndex(cp)) != 0)
+				{
+					try
+					{
+						c_face = fallback;
+						c_face.SetCharSize(0, facesize, 0, 96);
+						dobold = doitalics = dokern = false;
+					}
+					catch (Exception)
+					{
+						var qmGlyph = GetGlyph((uint)'?');
+						glyphs.Add(cp, qmGlyph);
+						return;
+					}
+				}
+				else
+				{
+					var qmGlyph = GetGlyph((uint)'?');
+					glyphs.Add(cp, qmGlyph);
+					return;
+				}
 			}
-			Face.LoadGlyph (index, LoadFlags.Default | LoadFlags.ForceAutohint, LoadTarget.Normal);
-			if (emulate_bold) {
+			c_face.LoadGlyph (index, LoadFlags.Default | LoadFlags.ForceAutohint, LoadTarget.Normal);
+			if (dobold) {
 				//Automatically determine a strength
-				var strength = (Face.UnitsPerEM * Face.Size.Metrics.ScaleY.Value) / 0x10000;
+				var strength = (c_face.UnitsPerEM * c_face.Size.Metrics.ScaleY.Value) / 0x10000;
 				strength /= 24;
-				Face.Glyph.Outline.Embolden(Fixed26Dot6.FromRawValue(strength));
+				c_face.Glyph.Outline.Embolden(Fixed26Dot6.FromRawValue(strength));
 			}
-			if (emulate_italics) {
-				Face.Glyph.Outline.Transform(new FTMatrix(0x10000, 0x0366A, 0x00000, 0x10000));
+			if (doitalics) {
+				c_face.Glyph.Outline.Transform(new FTMatrix(0x10000, 0x0366A, 0x00000, 0x10000));
 			}
-			Face.Glyph.RenderGlyph (RenderMode.Normal);
-			if (Face.Glyph.Bitmap.Width == 0 || Face.Glyph.Bitmap.Rows == 0) {
+			c_face.Glyph.RenderGlyph (RenderMode.Normal);
+			if (c_face.Glyph.Bitmap.Width == 0 || c_face.Glyph.Bitmap.Rows == 0) {
 				glyphs.Add (cp,
 					new GlyphInfo (
-						(int)Math.Ceiling((float)Face.Glyph.Advance.X),
-						(int)Math.Ceiling((float)Face.Glyph.Advance.Y),
+						(int)Math.Ceiling((float)c_face.Glyph.Advance.X),
+						(int)Math.Ceiling((float)c_face.Glyph.Advance.Y),
 						index,
-						Face.HasKerning
+						dokern && Face.HasKerning
 					)
 				);
 			} else {
-				if (Face.Glyph.Bitmap.PixelMode != PixelMode.Gray)
+				if (c_face.Glyph.Bitmap.PixelMode != PixelMode.Gray)
 					throw new NotImplementedException ();
-				if (currentX + Face.Glyph.Bitmap.Width > TEXTURE_SIZE) {
+				if (currentX + c_face.Glyph.Bitmap.Width > TEXTURE_SIZE) {
 					currentX = 0;
 					currentY += lineMax;
 					lineMax = 0;
 				}
-				if (currentY + Face.Glyph.Bitmap.Rows > TEXTURE_SIZE) {
+				if (currentY + c_face.Glyph.Bitmap.Rows > TEXTURE_SIZE) {
 					currentX = 0;
 					currentY = 0;
 					lineMax = 0;
@@ -153,31 +180,31 @@ namespace LibreLancer
 					));
 					FLLog.Debug ("Text", string.Format ("{0}@{1}, New Texture", facename, facesize));
 				}
-				lineMax = (int)Math.Max (lineMax, Face.Glyph.Bitmap.Rows);
+				lineMax = (int)Math.Max (lineMax, c_face.Glyph.Bitmap.Rows);
 				var rect = new Rectangle (
 					           currentX,
 					           currentY,
-					           Face.Glyph.Bitmap.Width,
-					           Face.Glyph.Bitmap.Rows
+							   c_face.Glyph.Bitmap.Width,
+							   c_face.Glyph.Bitmap.Rows
 				           );
 				var tex = textures [textures.Count - 1];
 				GL.PixelStorei (GL.GL_UNPACK_ALIGNMENT, 1);
-				tex.SetData (0, rect, Face.Glyph.Bitmap.Buffer);
+				tex.SetData (0, rect, c_face.Glyph.Bitmap.Buffer);
 				GL.PixelStorei (GL.GL_UNPACK_ALIGNMENT, 4);
-				currentX += Face.Glyph.Bitmap.Width;
+				currentX += c_face.Glyph.Bitmap.Width;
 				//tex.SetData (0, rect, Face.Glyph.Bitmap.Buffer,0, Face.Glyph.Bitmap.Width * Face.Glyph.Bitmap.Rows);
 				glyphs.Add (
 					cp,
 					new GlyphInfo (
 						tex,
 						rect,
-						(int)Math.Ceiling((float)Face.Glyph.Advance.X),
-						(int)Math.Ceiling((float)Face.Glyph.Advance.Y),
-						(int)Math.Ceiling((float)Face.Glyph.Metrics.HorizontalAdvance),
-						Face.Glyph.BitmapLeft,
-						Face.Glyph.BitmapTop,
+						(int)Math.Ceiling((float)c_face.Glyph.Advance.X),
+						(int)Math.Ceiling((float)c_face.Glyph.Advance.Y),
+						(int)Math.Ceiling((float)c_face.Glyph.Metrics.HorizontalAdvance),
+						c_face.Glyph.BitmapLeft,
+						c_face.Glyph.BitmapTop,
 						index,
-						Face.HasKerning
+						dokern && Face.HasKerning
 					)
 				);
 			}

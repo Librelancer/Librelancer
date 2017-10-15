@@ -25,6 +25,17 @@ namespace LibreLancer.Platforms
 			return false;
 		}
 
+		Face arialUnicode;
+		public Face GetFallbackFace(Library library, uint cp)
+		{
+			if (arialUnicode == null)
+			{
+				var style = FontStyles.Regular;
+				arialUnicode = LoadSystemFace(library, "Arial Unicode MS", ref style);
+			}
+			return arialUnicode;
+		}
+
 		public Face LoadSystemFace (Library library, string face, ref FontStyles style)
 		{
 			int weight = GDI.FW_REGULAR;

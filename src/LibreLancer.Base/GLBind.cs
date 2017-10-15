@@ -34,7 +34,7 @@ namespace LibreLancer
 			bound_vbo = 0;
 			bound_vao = 0;
             for (int i = 0; i < textures_bound.Length; i++)
-                textures_bound[i] = 0;
+                textures_bound[i] = uint.MaxValue;
             active_unit = -1;
         }
         static uint[] textures_bound = new uint[8];

@@ -62,6 +62,11 @@ namespace LibreLancer
 		{
 			return RunningPlatform.LoadSystemFace(library, face, ref style);
 		}
+
+		public static Face GetFallbackFace(Library library, uint cp)
+		{
+			return RunningPlatform.GetFallbackFace(library, cp);
+		}
 	}
 
 	public enum OS

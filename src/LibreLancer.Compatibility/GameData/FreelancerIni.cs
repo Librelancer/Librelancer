@@ -37,6 +37,8 @@ namespace LibreLancer.Compatibility.GameData
 			AsteroidPaths = new List<string> ();
 			RichFontPaths = new List<string>();
 			PetalDbPaths = new List<string>();
+			StartupMovies = new List<string>();
+
 			foreach (Section s in ParseFile("EXE\\freelancer.ini")) {
 				switch (s.Name.ToLowerInvariant ()) {
 				case "freelancer":
@@ -62,7 +64,6 @@ namespace LibreLancer.Compatibility.GameData
 					}
 					break;
 				case "startup":
-					StartupMovies = new List<string> ();
 					foreach (Entry e in s) {
 						if (e.Name.ToLowerInvariant () != "movie_file")
 							continue;

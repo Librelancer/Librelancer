@@ -94,7 +94,7 @@ namespace LibreLancer.Media
         static extern IntPtr alGetString(int param);
 
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alDeleteBuffers(int i, uint[] buffers);
+        public static extern void alDeleteBuffers(int i, ref uint buffers);
 		public static string GetString(int param)
 		{
 			return Marshal.PtrToStringAnsi(alGetString(param));

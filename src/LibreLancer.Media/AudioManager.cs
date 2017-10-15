@@ -73,7 +73,10 @@ namespace LibreLancer.Media
 			else
 				return false;
 		}
-
+		internal void ReturnSource(uint ID)
+		{
+			freeSources.Enqueue(ID);
+		}
 		internal StreamingSource CreateStreaming(StreamingSound sound)
 		{
 			return new StreamingSource(this, sound, streamingSources.Dequeue());
@@ -115,7 +118,7 @@ namespace LibreLancer.Media
 						sfxInstances.Add(item);
 				}
 				Action toRun;
-				while (Actions.TryDequeue(out toRun)) toRun();
+				if (Actions.TryDequeue(out toRun)) toRun();
 				//update SFX
 				for (int i = sfxInstances.Count - 1; i >= 0; i--) {
 					int state;

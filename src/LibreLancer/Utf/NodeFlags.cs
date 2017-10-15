@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace LibreLancer.Utf
 {
         [Flags()]
-        enum NodeFlags : int
+        public enum NodeFlags : int
         {
             Intermediate = 0x00000010,
             Leaf = 0x00000080

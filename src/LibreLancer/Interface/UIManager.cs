@@ -17,7 +17,7 @@ using System;
 using System.Collections.Generic;
 namespace LibreLancer
 {
-	public class UIManager
+	public class UIManager : IDisposable
 	{
 		public IDrawable MenuButton;
 		public FreelancerGame Game;
@@ -81,6 +81,11 @@ namespace LibreLancer
 		public Vector2 ScreenToPixel (float screenx, float screeny)
 		{
 			return IdentityCamera.Instance.ScreenToPixel(screenx, screeny);
+		}
+
+		public void Dispose()
+		{
+			buttonFont.Dispose();
 		}
 	}
 }

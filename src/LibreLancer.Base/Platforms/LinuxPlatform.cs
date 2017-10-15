@@ -14,6 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Collections.Generic;
 using SharpFont;
 using FontConfigSharp;
 namespace LibreLancer.Platforms
@@ -30,6 +31,41 @@ namespace LibreLancer.Platforms
 		public bool IsDirCaseSensitive (string directory)
 		{
 			return true;
+		}
+
+		Dictionary<string, Face> fallbacks = new Dictionary<string, Face>();
+		Face sans;
+		public Face GetFallbackFace(Library library, uint cp)
+		{
+			string file = null;
+			using (var pat = FcPattern.FromFamilyName("sans"))
+			{
+				using (var cs = new FcCharSet())
+				{
+					pat.ConfigSubstitute(fcconfig, FcMatchKind.Pattern);
+					pat.DefaultSubstitute();
+					cs.AddCharacter(cp);
+					pat.AddCharSet("charset", cs);
+					FcResult result;
+					using (var font = pat.Match(fcconfig, out result))
+					{
+						if (font.GetString(Fc.FC_FILE, 0, ref file) == FcResult.Match)
+						{
+							if (!fallbacks.ContainsKey(file)) {
+								fallbacks.Add(file, new Face(library, file));
+							}
+							return fallbacks[file];
+						}
+					}
+				}
+			}
+
+			if (sans != null)
+				return sans;
+			
+			var style = FontStyles.Regular;
+			sans = LoadSystemFace(library, "sans", ref style);
+			return sans;
 		}
 
 		public Face LoadSystemFace (Library library, string face, ref FontStyles style)

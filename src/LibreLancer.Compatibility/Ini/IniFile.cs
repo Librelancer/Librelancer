@@ -105,6 +105,7 @@ namespace LibreLancer.Ini
 							}
 							else if (line.Contains("="))
 							{
+								
 								string[] parts = line.Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
 								if (parts.Length == 2) {
 									string val = parts [1].TrimStart ();

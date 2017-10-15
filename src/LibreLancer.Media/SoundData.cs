@@ -18,8 +18,9 @@ using System.IO;
 
 namespace LibreLancer.Media
 {
-	public class SoundData
+	public class SoundData : IDisposable
 	{
+		public bool FireAndForget = false;
 		internal uint ID;
 		internal SoundData(uint id)
 		{
@@ -56,6 +57,9 @@ namespace LibreLancer.Media
 			}
 		}
 
+		public void Dispose()
+		{
+			Al.alDeleteBuffers(1, ref ID);
+		}
 	}
 }
-

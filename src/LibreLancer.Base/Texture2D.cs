@@ -136,7 +136,7 @@ namespace LibreLancer
         }
         public void GetData<T>(T[] data) where T : struct
         {
-            GL.BindTexture(GL.GL_TEXTURE_2D, ID);
+			BindTo(4);
 			if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)
             {
                 throw new NotImplementedException();
@@ -166,7 +166,7 @@ namespace LibreLancer
 		}
 		public unsafe void SetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T: struct
         {
-			GL.BindTexture(GL.GL_TEXTURE_2D, ID);
+			BindTo(4);
 			if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)
             {
 				int w, h;
@@ -223,6 +223,7 @@ namespace LibreLancer
 
 		internal void SetData(int level, Rectangle rect, IntPtr data)
 		{
+			BindTo(4);
 			GL.TexSubImage2D (GL.GL_TEXTURE_2D, 0, rect.X, rect.Y, rect.Width, rect.Height, glFormat, glType, data);
 		}
 

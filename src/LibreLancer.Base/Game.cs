@@ -299,8 +299,13 @@ namespace LibreLancer
 							Keyboard.OnKeyUp ((Keys)e.key.keysym.sym, (KeyModifiers)e.key.keysym.mod);
 							break;
 						}
+					case SDL.SDL_EventType.SDL_WINDOWEVENT:
+						if(e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
+							SDL.SDL_GetWindowSize(windowptr, out width, out height);
+						break;
 					}
 				}
+
 				//Do game things
 				if (!running)
 					break;

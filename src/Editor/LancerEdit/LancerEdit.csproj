@@ -1,0 +1,91 @@
+﻿<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{BAE0C534-1D39-438F-8F3E-80D52A69C242}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>LancerEdit</RootNamespace>
+    <AssemblyName>LancerEdit</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>..\bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Xwt">
+      <HintPath>..\..\packages\Xwt.0.2.41\lib\net40\Xwt.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="IMainWindow.cs" />
+    <Compile Include="AppInstance.cs" />
+    <Compile Include="Txt.cs" />
+    <Compile Include="TextEditorPage.cs" />
+    <Compile Include="Dialogs\AboutDialog.cs" />
+    <Compile Include="LTabPage.cs" />
+    <Compile Include="DetectFileType.cs" />
+    <Compile Include="UtfEditorPage.cs" />
+    <Compile Include="Dialogs\RenameNodeDialog.cs" />
+    <Compile Include="GLWidget.cs" />
+    <Compile Include="XwtUtils.cs" />
+    <Compile Include="Dialogs\TextureViewer.cs" />
+    <Compile Include="Dialogs\ASCIIEditor.cs" />
+    <Compile Include="FlexibleImageView.cs" />
+    <Compile Include="EditableUtf.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\XwtPlus.TextEditor\XwtPlus.TextEditor.csproj">
+      <Project>{FA8374B9-9E2A-40CE-9291-640419E64301}</Project>
+      <Name>XwtPlus.TextEditor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\LibreLancer\LibreLancer.csproj">
+      <Project>{C1D53477-0117-48EF-A13D-A0225F0F50CA}</Project>
+      <Name>LibreLancer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">
+      <Project>{C7A37830-B878-4008-A988-D7294D47F44D}</Project>
+      <Name>LibreLancer.Base</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\LibreLancer.Compatibility\LibreLancer.Compatibility.csproj">
+      <Project>{F89CC613-0C7A-4936-9D79-86CBBF26593E}</Project>
+      <Name>LibreLancer.Compatibility</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj">
+      <Project>{6967FE1C-5953-4416-889C-FF10AE1F7DD1}</Project>
+      <Name>LibreLancer.ImageLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\LibreLancer.Media\LibreLancer.Media.csproj">
+      <Project>{38F87B47-C903-477A-A9A3-6AD1A2CE1C09}</Project>
+      <Name>LibreLancer.Media</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="I18N\" />
+    <Folder Include="Dialogs\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="I18N\es.xml" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>

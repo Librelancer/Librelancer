@@ -21,17 +21,18 @@ namespace LibreLancer.Media
 	{
 		uint sid;
 		AudioManager au;
-		SoundData data;
+		internal SoundData Data;
+
 		internal SoundEffectInstance(AudioManager manager, uint source, SoundData data)
 		{
 			this.sid = source;
 			this.au = manager;
-			this.data = data;
+			this.Data = data;
 		}
 
 		public void Play(float volume)
 		{
-			Al.alSourcei(sid, Al.AL_BUFFER, (int)data.ID);
+			Al.alSourcei(sid, Al.AL_BUFFER, (int)Data.ID);
 			Al.alSourcef(sid, Al.AL_GAIN, volume);
 			au.PlayInternal(sid);
 		}
