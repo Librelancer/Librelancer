@@ -111,7 +111,13 @@ namespace LancerEdit.Gtk
 
 		public Xwt.Drawing.Image GetImage(byte[] data, int width, int height)
 		{
-			var pixbuf = new Gdk.Pixbuf(data, true, 8, width, height, width * 4);
+            for (int i = 0; i < data.Length; i += 4)
+            {
+                var r = data[i];
+                data[i] = data[i + 2];
+                data[i + 2] = r;
+            }
+            var pixbuf = new Gdk.Pixbuf(data, true, 8, width, height, width * 4);
 			return Xwt.Toolkit.CurrentEngine.WrapImage(pixbuf);
 		}
 

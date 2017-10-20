@@ -217,7 +217,16 @@ namespace LancerEdit
 		void UtfTree_SelectionChanged(object sender, EventArgs e)
 		{
 			var row = utfTree.SelectedRow;
-			var utfn = store.GetNavigatorAt(row).GetValue(utfd);
+            LUtfNode utfn = null;
+            try
+            {
+                utfn = store.GetNavigatorAt(row).GetValue(utfd);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+			
 			if (utfn.Children != null)
 			{
 				DoIntermediatePreview(utfn);

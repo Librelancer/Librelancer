@@ -139,6 +139,10 @@ namespace LancerEdit
 			paned = new HPaned();
 			paned.Panel2.Content = infocardView;
 			paned.Panel1.Content = null;
+            paned.Panel1.Shrink = true;
+            paned.Panel2.Shrink = true;
+            paned.Panel1.Resize = true;
+            paned.Panel2.Resize = true;
 			LoadShips();
 			PackStart(viewBox, true, true);
 		}

@@ -18,12 +18,14 @@ using Xwt;
 using Xwt.Drawing;
 namespace LancerEdit
 {
-	public enum ImageViewMode
-	{
-		Stretch,
-		Zoom
-	}
-	public class FlexibleImageView : Canvas
+    public enum ImageViewMode
+    {
+        Stretch,
+        Zoom
+    }
+
+    //TODO: Migrate this class to be a GLWidget
+    public class FlexibleImageView : Canvas
 	{
 		public Image Image;
 		ImageViewMode _mode = ImageViewMode.Stretch;
@@ -36,7 +38,7 @@ namespace LancerEdit
 		public float Scale
 		{
 			get { return _scale; }
-			set { _scale = value; QueueDraw(); }
+			set { _scale = value; if(Mode != ImageViewMode.Stretch)QueueDraw(); }
 		}
 		public FlexibleImageView()
 		{
@@ -45,24 +47,36 @@ namespace LancerEdit
 
 		public int CheckerboardSize = 8;
 		public bool UseCheckerboard = true;
-
+        int boundW = -1; int boundH = -1;
+        BitmapImage checkerboard;
 		protected override void OnDraw(Context ctx, Rectangle dirtyRect)
 		{
 			ctx.Rectangle(Bounds);
 			if (UseCheckerboard)
 			{
-				ctx.SetColor(Colors.LightGray);
-				ctx.Fill();
-				ctx.SetColor(Colors.DimGray);
-				for (int x = 0; x < (Bounds.Width + Bounds.Width % (2 * CheckerboardSize)); x += (2 * CheckerboardSize))
-				{
-					for (int y = 0; y < (Bounds.Height + Bounds.Height % CheckerboardSize); y += CheckerboardSize)
-					{
-						int offset = (y % (2 * CheckerboardSize));
-						ctx.Rectangle(new Rectangle(x + offset, y, CheckerboardSize, CheckerboardSize));
-						ctx.Fill();
-					}
-				}
+                //Win32: Drawing super slow - optimise a bit
+                if (boundW != (int)Bounds.Width || boundH != (int)Bounds.Height)
+                {
+                    boundW = (int)Bounds.Width;
+                    boundH = (int)Bounds.Height;
+                    if (checkerboard != null) checkerboard.Dispose();
+                    var b = new ImageBuilder(boundW, boundH);   
+                    b.Context.SetColor(Colors.LightGray);
+                    b.Context.Fill();
+                    b.Context.SetColor(Colors.DimGray);
+                    for (int x = 0; x < (Bounds.Width + Bounds.Width % (2 * CheckerboardSize)); x += (2 * CheckerboardSize))
+                    {
+                        for (int y = 0; y < (Bounds.Height + Bounds.Height % CheckerboardSize); y += CheckerboardSize)
+                        {
+                            int offset = (y % (2 * CheckerboardSize));
+                            b.Context.Rectangle(new Rectangle(x + offset, y, CheckerboardSize, CheckerboardSize));
+                            b.Context.Fill();
+                        }
+                    }
+                    checkerboard = b.ToBitmap(this, ImageFormat.RGB24);
+                }
+
+                ctx.DrawImage(checkerboard, Point.Zero);
 			}
 			else
 			{

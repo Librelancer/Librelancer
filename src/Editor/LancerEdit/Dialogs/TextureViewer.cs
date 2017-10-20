@@ -58,12 +58,6 @@ namespace LancerEdit
 			//Get data
 			var pixels = new byte[tex.Width * tex.Height * 4];
 			target.GetData(pixels);
-			for (int i = 0; i < pixels.Length; i += 4)
-			{
-				var r = pixels[i];
-				pixels[i] = pixels[i + 2];
-				pixels[i + 2] = r;
-			}
 			target.Dispose();
 			tex.Dispose();
 
@@ -115,7 +109,11 @@ namespace LancerEdit
 
 		protected override void Dispose(bool disposing)
 		{
-			image.Dispose();
+            if (image != null)
+            {
+                image.Dispose();
+                image = null;
+            }
 			base.Dispose(disposing);
 		}
 	}

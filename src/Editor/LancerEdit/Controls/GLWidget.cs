@@ -45,12 +45,6 @@ namespace LancerEdit
 			RenderTarget2D.ClearBinding();
 			var data = new byte[w * h * 4];
 			renderTarget.GetData(data);
-			for (int i = 0; i < data.Length; i += 4)
-			{
-				var r = data[i];
-				data[i] = data[i + 2];
-				data[i + 2] = r;
-			}
 			using (var image = app.MainWindow.GetImage(data, w, h))
 			{
 				ctx.DrawImage(image, Xwt.Point.Zero);
