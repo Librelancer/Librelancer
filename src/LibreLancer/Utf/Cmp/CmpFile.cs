@@ -47,17 +47,20 @@ namespace LibreLancer.Utf.Cmp
         public ConstructCollection Constructs { get; private set; }
         public Dictionary<string, ModelFile> Models { get; private set; }
 
-        public CmpFile(string path, ILibFile additionalLibrary)
+		public CmpFile(string path, ILibFile additionalLibrary) : this(parseFile(path), additionalLibrary)
+		{
+			Path = path;
+		}
+
+        public CmpFile(IntermediateNode rootnode, ILibFile additionalLibrary)
         {
             this.additionalLibrary = additionalLibrary;
-
-            Path = path;
 
             Models = new Dictionary<string, ModelFile>();
             Constructs = new ConstructCollection();
             Parts = new Dictionary<int, Part>();
 
-            foreach (Node node in parseFile(path))
+			foreach (Node node in rootnode)
             {
                 switch (node.Name.ToLowerInvariant())
                 {
@@ -133,7 +136,7 @@ namespace LibreLancer.Utf.Cmp
                             ModelFile m = new ModelFile(node as IntermediateNode, this);
                             Models.Add(node.Name, m);
                         }
-                        else FLLog.Error("Cmp", path + ": Invalid Node in cmp root: " + node.Name);
+                        else FLLog.Error("Cmp", Path ?? "Utf" + ": Invalid Node in cmp root: " + node.Name);
                         break;
                 }
             }
@@ -158,7 +161,16 @@ namespace LibreLancer.Utf.Cmp
 
 		public float GetRadius()
 		{
-			throw new NotImplementedException();
+			float max = float.MinValue;
+			foreach (var part in Parts.Values)
+			{
+				var r = part.Model.GetRadius();
+				float d = 0;
+				if(part.Construct != null)
+					d = part.Construct.Transform.Transform(part.Model.Levels[0].Center).Length;
+				max = Math.Max(max, r + d);
+			}
+			return max;
 		}
 		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light)
 		{

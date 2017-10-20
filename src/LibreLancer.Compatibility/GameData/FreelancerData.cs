@@ -36,6 +36,7 @@ namespace LibreLancer.Compatibility.GameData
 		public HudIni Hud;
 		public bool Loaded = false;
 
+		public bool LoadDacom = true;
 		public FreelancerData (FreelancerIni fli)
 		{
 			Freelancer = fli;
@@ -45,7 +46,8 @@ namespace LibreLancer.Compatibility.GameData
 		{
 			if (Loaded)
 				return;
-			Dacom = new DacomIni ();
+			if(LoadDacom)
+				Dacom = new DacomIni ();
 			Infocards = new InfocardManager (Freelancer.Resources);
 			//Dfm
 			Bodyparts = new BodypartsIni (Freelancer.BodypartsPath, this);

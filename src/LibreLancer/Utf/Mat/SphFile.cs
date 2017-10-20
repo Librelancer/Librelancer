@@ -60,9 +60,13 @@ namespace LibreLancer.Utf.Mat
             }
         }
 
-        public SphFile(string path, ILibFile materialLibrary)
+		public SphFile(string path, ILibFile materialLibrary) : this(parseFile(path), materialLibrary)
+		{
+
+		}
+        public SphFile(IntermediateNode node, ILibFile materialLibrary)
         {
-            if (path == null) throw new ArgumentNullException("path");
+            if (node == null) throw new ArgumentNullException("node");
             if (materialLibrary == null) throw new ArgumentNullException("materialLibrary");
 
             ready = false;
@@ -70,8 +74,8 @@ namespace LibreLancer.Utf.Mat
             this.materialLibrary = materialLibrary;
             sideMaterialNames = new List<string>();
 
-            IntermediateNode sphereNode = parseFile(path)[0] as IntermediateNode;
-            if (sphereNode == null) throw new FileContentException(FILE_TYPE, "SphFile without sphere");
+			IntermediateNode sphereNode = node[0] as IntermediateNode;
+			if (sphereNode == null || sphereNode.Name.ToLowerInvariant() != "sphere") throw new FileContentException(FILE_TYPE, "SphFile without sphere");
 
             foreach (LeafNode sphereSubNode in sphereNode)
             {

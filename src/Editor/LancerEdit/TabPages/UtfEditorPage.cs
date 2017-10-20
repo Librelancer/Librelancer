@@ -135,6 +135,66 @@ namespace LancerEdit
 			}
 		}
 
+		public override void DoModelView()
+		{
+			var cmps = utf.Root.Children.FindAll((n) => n.Name.ToLowerInvariant() == "cmpnd");
+			var spheres = utf.Root.Children.FindAll((n) => n.Name.ToLowerInvariant() == "sphere");
+			if (cmps.Count > 1)
+			{
+				MessageDialog.ShowError("More than one cmpnd node");
+				return;
+			}
+			if (spheres.Count > 1)
+			{
+				MessageDialog.ShowError("More than one sphere node");
+				return;
+			}
+			if (cmps.Count > 0 && spheres.Count > 0)
+			{
+				MessageDialog.ShowError("Ambiguous between cmp and sph");
+				return;
+			}
+
+			LibreLancer.IDrawable drawable = null;
+			if (cmps.Count > 0)
+			{
+				try
+				{
+					drawable = new LibreLancer.Utf.Cmp.CmpFile(utf.Export(), app.Resources);
+				}
+				catch (Exception ex)
+				{
+					MessageDialog.ShowError("Failed to open as cmp: \n" + ex.Message);
+					return;
+				}
+			}
+			else if (spheres.Count > 0)
+			{
+				try
+				{
+					drawable = new LibreLancer.Utf.Mat.SphFile(utf.Export(), app.Resources);
+				}
+				catch (Exception ex)
+				{
+					MessageDialog.ShowError("Failed to open as sph: \n" + ex.Message);
+					return;
+				}
+			}
+			else
+			{
+				try
+				{
+					drawable = new LibreLancer.Utf.Cmp.ModelFile(utf.Export(), app.Resources);
+				}
+				catch (Exception ex)
+				{
+					MessageDialog.ShowError("Failed to open as 3db: \n" + ex.Message + "\n" + ex.StackTrace);
+					return;
+				}
+			}
+			new ModelViewer(app, drawable).Show();
+		}
+
 		public void NewFile()
 		{
 			utf = new EditableUtf();

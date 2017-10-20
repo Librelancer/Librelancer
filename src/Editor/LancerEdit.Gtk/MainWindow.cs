@@ -121,6 +121,11 @@ namespace LancerEdit.Gtk
 			Application.Quit();
 		}
 
+		public ISortableList ConstructList()
+		{
+			return new GtkSortableList();
+		}
+
 		public void EnsureUIThread(System.Action work)
 		{
 			Application.Invoke((sender, e) => work());

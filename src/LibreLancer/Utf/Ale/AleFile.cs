@@ -21,10 +21,14 @@ namespace LibreLancer.Utf.Ale
 	{
 		public ALEffectLib FxLib;
 		public AlchemyNodeLibrary NodeLib;
-		public AleFile (string file)
+		public AleFile(string file) : this(parseFile(file))
+		{
+
+		}
+		public AleFile (IntermediateNode root)
 		{
 			//TODO: This is ugly
-			foreach (var node in parseFile(file)) {
+			foreach (var node in root) {
 				switch (node.Name.ToLowerInvariant ()) {
 				case "aleffectlib":
 					FxLib = new ALEffectLib ((node as IntermediateNode) [0] as LeafNode);

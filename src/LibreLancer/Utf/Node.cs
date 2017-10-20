@@ -22,7 +22,10 @@ namespace LibreLancer.Utf
                 this.PeerOffset = peerOffset;
                 this.Name = name;
             }
-
+			protected Node(string name)
+			{
+				this.Name = name;
+			}
             public static Node FromStream(BinaryReader reader, int offset, string stringBlock, byte[] dataBlock)
             {
                 if (reader == null) throw new ArgumentNullException("reader");

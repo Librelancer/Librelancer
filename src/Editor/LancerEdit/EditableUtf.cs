@@ -40,6 +40,25 @@ namespace LancerEdit
 			}
 		}
 
+		//Produce an engine-internal representation of the nodes
+		public LL.IntermediateNode Export()
+		{
+			var children = new List<LL.Node>();
+			foreach (var child in Root.Children)
+				children.Add(ExportNode(child));
+			return new LL.IntermediateNode("/", children);
+		}
+
+		LL.Node ExportNode(LUtfNode n)
+		{
+			if (n.Data != null)
+				return new LL.LeafNode(n.Name, n.Data);
+			var children = new List<LL.Node>();
+			foreach (var child in n.Children)
+				children.Add(ExportNode(child));
+			return new LL.IntermediateNode(n.Name, children);
+		}
+
 		LUtfNode ConvertNode(LL.Node node)
 		{
 			var n = new LUtfNode();
@@ -59,6 +78,7 @@ namespace LancerEdit
 			return n;
 		}
 
+		//Write the nodes out to a file
 		public void Save(string filename)
 		{
 			Dictionary<string, int> stringOffsets = new Dictionary<string, int>();

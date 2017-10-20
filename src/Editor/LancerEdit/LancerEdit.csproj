@@ -38,18 +38,22 @@
     <Compile Include="IMainWindow.cs" />
     <Compile Include="AppInstance.cs" />
     <Compile Include="Txt.cs" />
-    <Compile Include="TextEditorPage.cs" />
     <Compile Include="Dialogs\AboutDialog.cs" />
-    <Compile Include="LTabPage.cs" />
     <Compile Include="DetectFileType.cs" />
-    <Compile Include="UtfEditorPage.cs" />
     <Compile Include="Dialogs\RenameNodeDialog.cs" />
-    <Compile Include="GLWidget.cs" />
     <Compile Include="XwtUtils.cs" />
     <Compile Include="Dialogs\TextureViewer.cs" />
     <Compile Include="Dialogs\ASCIIEditor.cs" />
     <Compile Include="FlexibleImageView.cs" />
     <Compile Include="EditableUtf.cs" />
+    <Compile Include="Dialogs\ModelViewer.cs" />
+    <Compile Include="Controls\GLWidget.cs" />
+    <Compile Include="Controls\ISortableList.cs" />
+    <Compile Include="TabPages\DataExplorerPage.cs" />
+    <Compile Include="TabPages\LTabPage.cs" />
+    <Compile Include="TabPages\UtfEditorPage.cs" />
+    <Compile Include="TabPages\TextEditorPage.cs" />
+    <Compile Include="InfocardTools.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -83,6 +87,8 @@
   <ItemGroup>
     <Folder Include="I18N\" />
     <Folder Include="Dialogs\" />
+    <Folder Include="Controls\" />
+    <Folder Include="TabPages\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="I18N\es.xml" />

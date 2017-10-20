@@ -163,6 +163,11 @@ namespace LibreLancer.Utf
             }
         }
 
+		public LeafNode(string name, byte[] data) : base(name)
+		{
+			this.data = data;
+		}
+
         public LeafNode(int peerOffset, string name, BinaryReader reader, byte[] dataBlock)
             : base(peerOffset, name)
         {

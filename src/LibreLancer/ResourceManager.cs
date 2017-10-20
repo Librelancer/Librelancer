@@ -44,17 +44,17 @@ namespace LibreLancer
 		List<string> loadedTxmFiles = new List<string>();
 		List<string> preloadFiles = new List<string>();
 
-		public ResourceManager(FreelancerGame g)
+		public ResourceManager(FreelancerGame g) : this()
 		{
 			Game = g;
-			NullTexture = new Texture2D(1, 1, false, SurfaceFormat.Color);
-			NullTexture.SetData(new byte[] { 0xFF, 0xFF, 0xFF, 0x0 });
 		}
 
 		public Texture2D NullTexture;
 		public const string NullTextureName = "$$LIBRELANCER.Null";
 		public ResourceManager()
 		{
+			NullTexture = new Texture2D(1, 1, false, SurfaceFormat.Color);
+			NullTexture.SetData(new byte[] { 0xFF, 0xFF, 0xFF, 0x0 });
 		}
 
 		public void Preload()

@@ -11,6 +11,11 @@ namespace LibreLancer.Utf
     {
         private List<Node> children;
 
+		public IntermediateNode(string name, List<Node> children) : base(name)
+		{
+			this.children = children;
+		}
+
         public IntermediateNode(int peerOffset, string name, BinaryReader reader, string stringBlock, byte[] dataBlock)
             : base(peerOffset, name)
         {

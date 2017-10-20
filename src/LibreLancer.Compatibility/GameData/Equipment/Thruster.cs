@@ -25,6 +25,10 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 		public string HpParticles;
 		public int MaxForce;
 		public int PowerUsage;
+		public int IdsName;
+		public int IdsInfo;
+		public int Hitpoints;
+
 		public Thruster(Section section)
 			: base(section)
 		{
@@ -34,6 +38,12 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 				{
 					switch (e.Name.ToLowerInvariant())
 					{
+						case "ids_name":
+							IdsName = e[0].ToInt32();
+							break;
+						case "ids_info":
+							IdsInfo = e[0].ToInt32();
+							break;
 						case "particles":
 							Particles = e[0].ToString();
 							break;
@@ -51,6 +61,9 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 							break;
 						case "material_library":
 							MaterialLibrary = e[0].ToString();
+							break;
+						case "hit_pts":
+							Hitpoints = e[0].ToInt32();
 							break;
 					}
 				}

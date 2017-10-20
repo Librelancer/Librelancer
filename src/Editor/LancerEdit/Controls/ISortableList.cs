@@ -14,41 +14,15 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using Xwt;
 namespace LancerEdit
 {
-	public class LTabPage : Xwt.VBox
+	public interface ISortableList
 	{
-		public object Platform;
-		string tabName;
-
-		public string TabName
-		{
-			get
-			{
-				return tabName;
-			}
-			set
-			{
-				tabName = value;
-				if (TabNameChanged != null) 
-					TabNameChanged(this);
-			}
-		}
-
-		public event Action<LTabPage> TabNameChanged;
-
-		public LTabPage(string name)
-		{
-			tabName = name;
-		}
-
-		public virtual bool CloseRequest()
-		{
-			return true;
-		}
-
-		public virtual void DoSave()
-		{
-		}
+		Widget GetWidget();
+		void AddColumn(string name);
+		void AddRow(params object[] values);
+		object[] GetSelectedRow();
+		event Action SelectionChanged;
 	}
 }

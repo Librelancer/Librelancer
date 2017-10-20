@@ -14,16 +14,45 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using Xwt;
 namespace LancerEdit
 {
-	public interface IMainWindow : LibreLancer.IUIThread
+	public class LTabPage : Xwt.VBox
 	{
-		void AddTab(LTabPage page);
-		void RemoveTab(LTabPage page);
-		LTabPage GetCurrentTab();
-		void Quit();
-		Xwt.Drawing.Image GetImage(byte[] data, int width, int height);
-		ISortableList ConstructList();
+		public object Platform;
+		string tabName;
+
+		public string TabName
+		{
+			get
+			{
+				return tabName;
+			}
+			set
+			{
+				tabName = value;
+				if (TabNameChanged != null) 
+					TabNameChanged(this);
+			}
+		}
+
+		public event Action<LTabPage> TabNameChanged;
+
+		public LTabPage(string name)
+		{
+			tabName = name;
+		}
+
+		public virtual bool CloseRequest()
+		{
+			return true;
+		}
+
+		public virtual void DoSave()
+		{
+		}
+
+		public virtual void DoModelView()
+		{
+		}
 	}
 }

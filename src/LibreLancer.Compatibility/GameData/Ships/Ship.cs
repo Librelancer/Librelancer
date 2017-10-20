@@ -5,6 +5,11 @@ namespace LibreLancer.Compatibility.GameData.Ships
 {
 	public class Ship
 	{
+		public int IdsName;
+		public int IdsInfo;
+		public int? IdsInfo1;
+		public int? IdsInfo2;
+		public int? IdsInfo3;
 		public string Nickname;
 		public string DaArchetypeName;
 		public List<string> MaterialLibraries = new List<string>();
@@ -22,6 +27,21 @@ namespace LibreLancer.Compatibility.GameData.Ships
 				switch (e.Name.ToLowerInvariant ()) {
 				case "nickname":
 					Nickname = e [0].ToString ();
+					break;
+				case "ids_name":
+					IdsName = e[0].ToInt32();
+					break;
+				case "ids_info":
+					IdsInfo = e[0].ToInt32();
+					break;
+				case "ids_info1":
+					IdsInfo1 = e[0].ToInt32();
+					break;
+				case "ids_info2":
+					IdsInfo2 = e[0].ToInt32();
+					break;
+				case "ids_info3":
+					IdsInfo3 = e[0].ToInt32();
 					break;
 				case "da_archetype":
 					DaArchetypeName = VFS.GetPath (fldata.Freelancer.DataPath + e [0].ToString ());

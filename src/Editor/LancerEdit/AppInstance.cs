@@ -24,17 +24,23 @@ namespace LancerEdit
 	{
 		WindowFrame window;
 		public IMainWindow MainWindow;
+		public CommandBuffer CmdBuf;
 		public RenderState RenderState;
 		public Renderer2D Render2D;
 		public AudioManager Audio;
+		public ResourceManager Resources;
+
 		public AppInstance(WindowFrame window, IMainWindow main)
 		{
 			this.window = window;
 			this.MainWindow = main;
+			new LibreLancer.MaterialMap(); //HACK: Init this properly (prompt for Freelancer.ini ?)
 			window.Title = "LancerEdit";
 			RenderState = new RenderState();
 			Render2D = new Renderer2D(RenderState);
 			Audio = new AudioManager(main);
+			CmdBuf = new CommandBuffer();
+			Resources = new ResourceManager();
 			TextEditorOptions.CutText = Txt._("Cut");
 			TextEditorOptions.CopyText = Txt._("Copy");
 			TextEditorOptions.PasteText = Txt._("Paste");
@@ -63,6 +69,20 @@ namespace LancerEdit
 			quitItem.Clicked += QuitItem_Clicked;
 			fileMenu.SubMenu.Items.Add(quitItem);
 			menu.Items.Add(fileMenu);
+
+			var resMenu = new MenuItem(Txt._("Resources"));
+			resMenu.SubMenu = new Menu();
+			var loadResFile = new MenuItem(Txt._("Load File"));
+			loadResFile.Clicked += LoadResFile_Clicked;
+			resMenu.SubMenu.Items.Add(loadResFile);
+			var modelView = new MenuItem(Txt._("View Model"));
+			modelView.Clicked += ModelView_Clicked;
+			var iniExplorer = new MenuItem(Txt._("Ini Explorer"));
+			iniExplorer.Clicked += IniExplorer_Clicked;
+			resMenu.SubMenu.Items.Add(iniExplorer);
+			resMenu.SubMenu.Items.Add(modelView);
+			menu.Items.Add(resMenu);
+
 			var helpMenu = new MenuItem(Txt._("Help"));
 			helpMenu.SubMenu = new Menu();
 			var aboutItem = new MenuItem(Txt._("About"));
@@ -96,6 +116,11 @@ namespace LancerEdit
 			MainWindow.AddTab(page);
 		}
 
+		void IniExplorer_Clicked(object sender, EventArgs e)
+		{
+			MainWindow.AddTab(new DataExplorerPage(MainWindow));
+		}
+
 		void SaveItem_Clicked(object sender, EventArgs e)
 		{
 			MainWindow.GetCurrentTab()?.DoSave();
@@ -106,7 +131,7 @@ namespace LancerEdit
 			using (var dialog = new OpenFileDialog(Txt._("Open")))
 			{
 				dialog.Filters.Add(new FileDialogFilter("Ini Files", "*.ini"));
-				dialog.Filters.Add(new FileDialogFilter("Utf Files", "*.utf", "*.cmp", "*.3db", "*.mat", "*.txm"));
+				dialog.Filters.Add(new FileDialogFilter("Utf Files", "*.utf", "*.cmp", "*.3db", "*.mat", "*.txm", "*.sph"));
 				dialog.Filters.Add(new FileDialogFilter("All Files", "*.*"));
 				if (dialog.Run(window))
 				{
@@ -123,6 +148,30 @@ namespace LancerEdit
 						page.Load(dialog.FileName);
 						MainWindow.AddTab(page);
 					}
+				}
+			}
+		}
+
+		void ModelView_Clicked(object sender, EventArgs e)
+		{
+			MainWindow.GetCurrentTab()?.DoModelView();
+		}
+
+		void LoadResFile_Clicked(object sender, EventArgs e)
+		{
+			using (var dialog = new OpenFileDialog(Txt._("Open")))
+			{
+				dialog.Filters.Add(new FileDialogFilter("Resource Files","*.cmp", "*.3db", "*.mat", "*.txm"));
+				dialog.Filters.Add(new FileDialogFilter("All Files", "*.*"));
+				if (dialog.Run(window))
+				{
+					var n = dialog.FileName.ToLowerInvariant();
+					if (n.EndsWith(".mat"))
+						Resources.LoadMat(dialog.FileName);
+					else if (n.EndsWith(".txm"))
+						Resources.LoadTxm(dialog.FileName);
+					else if (n.EndsWith(".3db") || n.EndsWith(".cmp"))
+						Resources.GetDrawable(dialog.FileName);
 				}
 			}
 		}
