@@ -37,6 +37,7 @@ namespace LibreLancer
 			Physics = new World(new CollisionSystemSAP());
 			Physics.CollisionSystem.EnableSpeculativeContacts = true;
 			Physics.Gravity = JVector.Zero;
+			Physics.SetDampingFactors(1, 1);
 			Physics.Events.PreStep += Events_PreStep;
 		}
 

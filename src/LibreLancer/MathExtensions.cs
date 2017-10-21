@@ -82,6 +82,36 @@ namespace LibreLancer
 				         0, 0, 0, 1
 			         );
 		}
+
+		/// <summary>
+		/// Gets the Pitch Yaw and Roll from a JMatrix SLOW!!!
+		/// </summary>
+		/// <returns>(x - pitch, y - yaw, z - roll)</returns>
+		/// <param name="mx">The matrix.</param>
+		public static JVector GetEuler(this JMatrix mx)
+		{
+			double p, y, r;
+			DecomposeOrientation(mx, out p, out y, out r);
+			return new JVector((float)p, (float)y, (float)r);
+		}
+
+		static void DecomposeOrientation(JMatrix mx, out double xPitch, out double yYaw, out double zRoll)
+		{
+			xPitch = Math.Asin(-mx.M32);
+			double threshold = 0.001; // Hardcoded constant – burn him, he’s a witch
+			double test = Math.Cos(xPitch);
+
+			if (test > threshold)
+			{
+				zRoll = Math.Atan2(mx.M12, mx.M22);
+				yYaw = Math.Atan2(mx.M31, mx.M33);
+			}
+			else
+			{
+				zRoll = Math.Atan2(-mx.M21, mx.M11);
+				yYaw = 0.0;
+			}
+		}
 	}
 }
 

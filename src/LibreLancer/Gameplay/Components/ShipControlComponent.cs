@@ -37,17 +37,34 @@ namespace LibreLancer
 		public float ThrusterDrain = 150;
 		public bool CruiseEnabled = false;
 		public StrafeControls CurrentStrafe = StrafeControls.None;
-		/*
-		 * steering_torque=43000,43000,63000
-			angular_drag=41000,41000,41000
-			rotation_inertia=8400,8400,2400
-		 */
+		public float Pitch; //From -1 to 1
+		public float Yaw; //From -1 to 1
+		public float Roll; //From -1 to 1
+		//FL Handling characteristics
+		public JVector AngularDrag = new JVector(40000, 40000, 141000);
+		public JVector SteeringTorque = new JVector(50000, 50000, 230000);
+		public JVector RotationInertia = new JVector(8400, 8400, 8400);
+
 		public ShipControlComponent(GameObject parent) : base(parent)
 		{
 		}
 
+		//TODO: Engine Kill
+		JVector setInertia = JVector.Zero;
 		public override void FixedUpdate(TimeSpan time)
 		{
+			//Cancel out whatever the heck Jitter does and put in our own inertia
+			//This seems to somewhat work
+			if (setInertia != RotationInertia)
+			{
+				var inertia = JMatrix.Identity;
+				inertia.M11 = RotationInertia.X;
+				inertia.M22 = RotationInertia.Z;
+				inertia.M33 = RotationInertia.Y;
+				Parent.PhysicsComponent.SetMassProperties(inertia, Parent.PhysicsComponent.Mass, false);
+				setInertia = RotationInertia;
+			}
+
 			var engine = Parent.GetComponent<EngineComponent>(); //Get mounted engine
 			var power = Parent.GetComponent<PowerCoreComponent>();
 			if (Parent.PhysicsComponent == null) return;
@@ -120,7 +137,43 @@ namespace LibreLancer
 			if (totalForce.Length() > float.Epsilon)
 				Parent.PhysicsComponent.IsActive = true;
 			Parent.PhysicsComponent.AddForce(totalForce);
+			//add angular drag
+			var angularDrag = JVector.Zero;
+			Parent.PhysicsComponent.AddTorque(ComponentMultiply(Parent.PhysicsComponent.AngularVelocity * -1, AngularDrag));
+			//steer
+			//based on the amazing work of Why485 (https://www.youtube.com/user/Why485)
+			var angularForce = ComponentMultiply(new JVector(Pitch, Yaw, 0), SteeringTorque);
+			//transform torque by direction = unity's AddRelativeTorque
+			Parent.PhysicsComponent.AddTorque(JVector.Transform(angularForce, Parent.PhysicsComponent.Orientation));
+			//auto-roll?
+			if (Pitch == 0 && Yaw == 0) //only auto-roll when not steering (probably incorrect)
+			{
+				var coords = Parent.PhysicsComponent.Orientation.GetEuler();
+				//TODO: Fix to work without directly setting orientation
+				/*float rollForce = 0;
+				if (currRoll > float.Epsilon)
+				{
+					rollForce = 0.3f;
+				}
+				else if (currRoll < -float.Epsilon)
+				{
+					rollForce = -0.3f;
+				}
+				var correctionForce = JVector.Transform(new JVector(0, 0, SteeringTorque.Z) * rollForce, Parent.PhysicsComponent.Orientation);
+				Parent.PhysicsComponent.AddTorque(correctionForce);*/
+				//TODO: Maybe make this based off the forces?
+				var lerped = MathHelper.Lerp((float)coords.Z, 0, 0.007f);
+				Parent.PhysicsComponent.Orientation = JMatrix.CreateFromYawPitchRoll((float)coords.X, (float)coords.Y, lerped);
+			}
+		}
 
+
+		static JVector ComponentMultiply(JVector a, JVector b)
+		{
+			return new JVector(
+				a.X * b.X,
+				a.Y * b.Y,
+				a.Z * b.Z);
 		}
 	}
 }

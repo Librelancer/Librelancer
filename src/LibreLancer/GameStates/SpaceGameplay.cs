@@ -73,6 +73,7 @@ Mouse Flight: {10}
 			player.PhysicsComponent.Position = new JVector(-31000, 0, -26755);
 			player.PhysicsComponent.Material.Restitution = 1;
 			player.PhysicsComponent.Mass = 150;
+
 			var thrusterEquip = (GameData.Items.ThrusterEquipment)g.GameData.GetEquipment("ge_s_thruster_02");
 			var thruster = new GameObject(thrusterEquip, player.GetHardpoint("hpthruster01"), player);
 			player.Children.Add(thruster);
@@ -195,6 +196,7 @@ Mouse Flight: {10}
 		{
 			moffset = (new Vector2(Game.Mouse.X, Game.Mouse.Y) - new Vector2(Game.Width / 2, Game.Height / 2));
 			moffset *= new Vector2(1f / Game.Width, 1f / Game.Height);
+			moffset *= 2;
 
 			input.Update();
 
@@ -219,15 +221,12 @@ Mouse Flight: {10}
 			var pc = player.PhysicsComponent;
 			if (Game.Mouse.IsButtonDown(MouseButtons.Left) || mouseFlight)
 			{
-				float rotateSpeed = 0.03f;
-				pc.Orientation = JMatrix.CreateFromYawPitchRoll(-moffset.X * rotateSpeed, -moffset.Y * rotateSpeed, 0) * pc.Orientation;
+				control.Pitch = -moffset.Y;
+				control.Yaw = -moffset.X;
 			}
 			else
 			{
-				double pitch, yaw, roll;
-				DecomposeOrientation(pc.Orientation, out pitch, out yaw, out roll);
-				var lerped = MathHelper.Lerp((float)roll, 0, 0.007f);
-				pc.Orientation = JMatrix.CreateFromYawPitchRoll((float)yaw, (float)pitch, lerped);
+				control.Pitch = control.Yaw = 0;													
 			}
 
 			control.CurrentStrafe = strafe;
