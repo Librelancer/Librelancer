@@ -17,7 +17,7 @@ To help speed up development, donations can be sent to paypal.paymentmc@gmail.co
 *Note:* SDL2, OpenAL-Soft and Freetype for windows are included in this repository.
 
 1. Make sure you have the .NET Framework 4.5 installed with Visual Studio 2015
-2. Clone this repository and submodules with whichever client you choose
+2. Clone this repository and submodules with whichever client you choose (there are also submodules of submodules (sichem), so use `git clone --recursive https://github.com/CallumDev/Librelancer` or the relevant option in your client.
 3. Build src/LibreLancer.sln, and launch *Launcher*
 4. Enjoy
 
