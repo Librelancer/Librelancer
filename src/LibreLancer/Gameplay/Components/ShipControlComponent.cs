@@ -162,8 +162,8 @@ namespace LibreLancer
 				var correctionForce = JVector.Transform(new JVector(0, 0, SteeringTorque.Z) * rollForce, Parent.PhysicsComponent.Orientation);
 				Parent.PhysicsComponent.AddTorque(correctionForce);*/
 				//TODO: Maybe make this based off the forces?
-				var lerped = MathHelper.Lerp((float)coords.Z, 0, 0.007f);
-				Parent.PhysicsComponent.Orientation = JMatrix.CreateFromYawPitchRoll((float)coords.X, (float)coords.Y, lerped);
+				var lerped = MathHelper.Lerp((float)coords.Z, 0, (float)((0.009f * 60f) * time.TotalSeconds));
+				Parent.PhysicsComponent.Orientation = JMatrix.CreateFromYawPitchRoll((float)coords.Y, (float)coords.X, lerped);
 			}
 		}
 
