@@ -19,14 +19,12 @@ namespace LibreLancer.ImageLib
 			Rgba = 6
 		}
 
-		enum FilterType
-		{
-			None = 0,
-			Sub = 1,
-			Up = 2,
-			Average = 3,
-			Paeth = 4
-		}
+		static readonly byte[] IEND = {
+			0x00, 0x00, 0x00, 0x00, 
+			0x49, 0x45, 0x4E, 0x44,
+			0xAE, 0x42, 0x60, 0x82
+		};
+
 		public static void Save(string filename, int width, int height, byte[] data)
 		{
 			using (var writer = new BinaryWriter(File.Create(filename)))
@@ -47,7 +45,7 @@ namespace LibreLancer.ImageLib
 					//zlib header
 					//deflate compression
 					byte[] buf = new byte[width * 4];
-					var compress = new zlib.ZOutputStream(chnk.BaseStream, zlib.zlibConst.Z_DEFAULT_COMPRESSION);
+					var compress = new zlib.ZOutputStream(chnk.BaseStream, 3);
 					//First line
 					compress.WriteByte((byte)0);
 					for (int x = 0; x < width * 4; x++)
@@ -58,14 +56,13 @@ namespace LibreLancer.ImageLib
 					//Filtered lines
 					for (int y = height - 2; y >= 0; y--)
 					{
-						FilterType t;
-						Filter(data, buf, (y + 1) * width * 4, y * width * 4, width * 4, out t);
-						compress.WriteByte((byte)t);
+						ApplyPaeth(data, (y + 1) * width * 4, y * width * 4, width * 4, buf);
+						compress.WriteByte((byte)4); //paeth filter
 						compress.Write(buf, 0, buf.Length);
 					}
 					compress.finish();
 				});
-				WriteChunk("IEND", writer, (chnk) => { });
+				writer.Write(IEND);
 			}
 		}
 
@@ -84,88 +81,8 @@ namespace LibreLancer.ImageLib
 			writer.WriteInt32BE((int)Crc(idbytes, data));
 		}
 
-		static ApplyFilter[] filters = new ApplyFilter[] {
-			ApplyNone, ApplySub, ApplyUp, ApplyAverage, ApplyPaeth
-		};
-
-		static void Filter(byte[] data, byte[] bufa, int prev, int curr, int count, out FilterType type)
+		static void ApplyPaeth(byte[] data, int prev, int curr, int count, byte[] buf)
 		{
-			int score = int.MaxValue;
-			type = FilterType.None;
-			byte[] bufb = new byte[count];
-			foreach (var f in filters) {
-				int sc;
-				FilterType ftype;
-				f(data, prev, curr, count, bufb, out sc, out ftype);
-				if (sc < score) {
-					score = sc;
-					type = ftype;
-					bufb.CopyTo(bufa, 0);
-				}
-			}
-			ApplyPaeth(data, prev, curr, count, bufa, out score, out type);
-		}
-		delegate void ApplyFilter(byte[] data, int prev, int curr, int count, byte[] buf, out int score, out FilterType ft);
-		static void ApplyNone(byte[] data, int prev, int curr, int count, byte[] buf, out int score, out FilterType ft)
-		{
-			ft = FilterType.None;
-			score = 0;
-			int j = 0;
-			int last = 0;
-			for (int i = curr; i < curr + count; i++)
-			{
-				var r = data[i];
-				score += Math.Abs(last - r);
-				last = r;
-				buf[j++] = data[i];
-			}
-		}
-		static void ApplySub(byte[] data, int prev, int curr, int count, byte[] buf, out int score, out FilterType ft)
-		{
-			ft = FilterType.Sub;
-			score = 0;
-			int j = 0;
-			int last = 0;
-			for (int i = 0; i < count; i++) {
-				var p = (i - 4 >= 0) ? data[curr + (i - 4)] : 0;
-				var r = (byte)((data[curr + i] - p) % 256);
-				score += Math.Abs(last - r);
-				last = r;
-				buf[j++] = r;
-			}
-		}
-		static void ApplyUp(byte[] data, int prev, int curr, int count, byte[] buf, out int score, out FilterType ft)
-		{
-			ft = FilterType.Up;
-			score = 0;
-			int j = 0;
-			int last = 0;
-			for (int i = 0; i < count; i++)
-			{
-				var r = (byte)((data[curr + i] - data[prev + i]) % 256);
-				score += Math.Abs(last - r);
-				last = r;
-				buf[j++] = r;
-			}
-		}
-		static void ApplyAverage(byte[] data, int prev, int curr, int count, byte[] buf, out int score, out FilterType ft)
-		{
-			ft = FilterType.Average;
-			score = 0;
-			int j = 0;
-			int last = 0;
-			for (int i = 0; i < count; i++) {
-				var p = (i - 4 >= 0) ? data[curr + (i - 4)] : 0;
-				var r = (byte)((data[curr + i] - (int)Math.Floor((p + data[prev + i]) / 2.0)) % 256);
-				score += Math.Abs(last - r);
-				last = r;
-				buf[j++] = r;
-			}
-		}
-		static void ApplyPaeth(byte[] data, int prev, int curr, int count, byte[] buf, out int score, out FilterType ft)
-		{
-			ft = FilterType.Paeth;
-			score = 0;
 			int j = 0;
 			int last = 0;
 			for (int i = 0; i < count; i++)
@@ -173,11 +90,11 @@ namespace LibreLancer.ImageLib
 				var p = (i - 4 >= 0) ? data[curr + (i - 4)] : (byte)0;
 				var pl = (i - 4 >= 0) ? data[prev + (i - 4)] : (byte)0;
 				var r = (byte)((data[curr + i] - PaethPredictor(p, data[prev + i], pl)) % 256);
-				score += Math.Abs(last - r);
 				last = r;
 				buf[j++] = r;
 			}
 		}
+
 		static byte PaethPredictor(byte a, byte b, byte c)
 		{
 			int pa = Math.Abs(b - c);
