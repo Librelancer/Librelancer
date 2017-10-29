@@ -58,7 +58,10 @@ namespace LibreLancer
 				g.Transform = (obj.Rotation ?? Matrix4.Identity) * Matrix4.CreateTranslation(obj.Position);
 				g.SetLoadout(obj.Loadout, obj.LoadoutNoHardpoint);
 				g.StaticPosition = obj.Position;
-
+				if (obj.DockWith != null)
+				{
+					g.Components.Add(new DockComponent(g) { DockWith = obj.DockWith });
+				}
 				g.Register(Renderer, Physics);
 				Objects.Add(g);
 			}

@@ -52,7 +52,8 @@ namespace LibreLancer.GameData
 		}
 		public override float ScaledDistance(Vector3 point)
 		{
-			throw new NotImplementedException ();
+			var max = Math.Max(Math.Max(Size.X, Size.Y), Size.Z);
+			return VectorMath.Distance(transformedPos, point) / max;
 		}
 		public override Vector3 RandomPoint (Func<float> randfunc)
 		{

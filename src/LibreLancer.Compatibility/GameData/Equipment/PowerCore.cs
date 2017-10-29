@@ -10,26 +10,35 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2017
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-namespace LibreLancer
+using LibreLancer.Ini;
+namespace LibreLancer.Compatibility.GameData.Equipment
 {
-	public abstract class ObjectRenderer
+	public class PowerCore : AbstractEquipment
 	{
-		public abstract void Update(TimeSpan time, Vector3 position, Matrix4 transform);
-		public abstract void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr);
-		public abstract void Register(SystemRenderer renderer);
-		public abstract void Unregister();
-		public bool LitAmbient = true;
-		public bool LitDynamic = true;
-		public bool Hidden = false;
-		public bool NoFog = false;
-		public virtual bool OutOfView(ICamera camera)
+		public string DaArchetype;
+		public string MaterialLibrary;
+		public PowerCore(Section section)
+			: base(section)
 		{
-			return false;
+			foreach (var e in section)
+			{
+				if (!parentEntry(e))
+				{
+					switch (e.Name.ToLowerInvariant())
+					{
+						case "da_archetype":
+							DaArchetype = e[0].ToString();
+							break;
+						case "material_library":
+							MaterialLibrary = e[0].ToString();
+							break;
+					}
+				}
+			}
 		}
 	}
 }
-

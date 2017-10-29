@@ -103,7 +103,61 @@ namespace LibreLancer
 			}
 			return lvl;
 		}
-		
+
+		public override bool OutOfView(ICamera camera)
+		{
+			if (Model != null)
+			{
+				if (Model.Levels.Length != 0)
+				{
+					var center = VectorMath.Transform(Model.Levels[0].Center, World);
+					var lvl = GetLevel(Model, center, camera.Position);
+					if (lvl == null) return false;
+					var bsphere = new BoundingSphere(
+						center,
+						Model.Levels[0].Radius
+					);
+					if (!camera.Frustum.Intersects(bsphere)) return true; //Culled
+				}
+			}
+			else if (Cmp != null || CmpParts != null)
+			{
+				//Check if -something- renders
+				bool doCull = true;
+				var partCol = (IEnumerable<Part>)CmpParts ?? Cmp.Parts.Values;
+				foreach (Part p in partCol)
+				{
+					var model = p.Model;
+					Matrix4 w = World;
+					if (p.Construct != null)
+						w = p.Construct.Transform * World;
+					if (model.Levels.Length > 0)
+					{
+						var center = VectorMath.Transform(model.Levels[0].Center, w);
+						var lvl = GetLevel(model, center, camera.Position);
+						if (lvl == null) continue;
+						var bsphere = new BoundingSphere(
+							center,
+							model.Levels[0].Radius
+						);
+						if (camera.Frustum.Intersects(bsphere))
+						{
+							doCull = false;
+							break;
+						}
+					}
+				}
+				return doCull;
+			}
+			else if (Sph != null)
+			{
+				var bsphere = new BoundingSphere(
+					pos,
+					radiusAtmosphere);
+				if (!camera.Frustum.Intersects(bsphere)) return true;
+			}
+			return false;
+		}
 		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
 			if (sysr == null)
@@ -121,7 +175,7 @@ namespace LibreLancer
 						Model.Levels[0].Radius
 					);
 					if (camera.Frustum.Intersects(bsphere)) {
-						var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, Model.Levels[0].Radius, nr);
+						var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, Model.Levels[0].Radius, nr, LitAmbient, LitDynamic, NoFog);
 						var r = Model.Levels [0].Radius + lighting.FogRange.Y;
 						if (lighting.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
 							Model.DrawBufferLevel(lvl, commands, World, lighting);
@@ -147,7 +201,7 @@ namespace LibreLancer
 						);
 						if (camera.Frustum.Intersects(bsphere))
 						{
-							var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, model.Levels[0].Radius, nr);
+							var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, model.Levels[0].Radius, nr, LitAmbient, LitDynamic, NoFog);
 							var r = model.Levels [0].Radius + lighting.FogRange.Y;
 							if (lighting.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
 								model.DrawBufferLevel(lvl, commands, w, lighting);
@@ -174,7 +228,7 @@ namespace LibreLancer
 						);
 						if (camera.Frustum.Intersects(bsphere))
 						{
-							var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, model.Levels[0].Radius, nr);
+							var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, model.Levels[0].Radius, nr, LitAmbient, LitDynamic, NoFog);
 							var r = model.Levels[0].Radius + lighting.FogRange.Y;
 							if (lighting.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
 								model.DrawBufferLevel(lvl, commands, w, lighting);
@@ -188,7 +242,7 @@ namespace LibreLancer
 					radiusAtmosphere);
 				if (camera.Frustum.Intersects(bsphere))
 				{
-					var l = RenderHelpers.ApplyLights(lights, LightGroup, pos, Sph.Radius, nr);
+					var l = RenderHelpers.ApplyLights(lights, LightGroup, pos, Sph.Radius, nr, LitAmbient, LitDynamic, NoFog);
 					var r = Sph.Radius + l.FogRange.Y;
 					if(l.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, pos) <= (r * r))
 						Sph.DrawBuffer(commands, World, l);

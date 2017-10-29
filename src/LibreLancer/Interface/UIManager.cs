@@ -45,10 +45,10 @@ namespace LibreLancer
 			if (MenuButton != null) MenuButton.Update (IdentityCamera.Instance, TimeSpan.Zero, TimeSpan.FromSeconds(Game.TotalTime));
             Game.RenderState.DepthEnabled = false;
 			foreach (var e in Elements)
-				e.DrawBase ();
+				if (e.Visible) e.DrawBase ();
 			Game.Renderer2D.Start (Game.Width, Game.Height);
 			foreach (var e in Elements)
-				e.DrawText ();
+				if (e.Visible) e.DrawText ();
 			Game.Renderer2D.Finish ();
 		}
 		public void FlyInAll(double duration, double spacing)
@@ -75,7 +75,7 @@ namespace LibreLancer
 		{
 			if (MenuButton != null) MenuButton.Update (IdentityCamera.Instance, delta, TimeSpan.FromSeconds(Game.TotalTime));
 			foreach (var elem in Elements)
-				elem.Update (delta);
+				if (elem.Visible) elem.Update (delta);
 		}
 
 		public Vector2 ScreenToPixel (float screenx, float screeny)

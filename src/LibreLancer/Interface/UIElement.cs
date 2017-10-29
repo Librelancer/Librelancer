@@ -23,7 +23,7 @@ namespace LibreLancer
 		public string Tag;
 		protected UIManager Manager;
 		public UIAnimation Animation;
-
+		public bool Visible = true;
 		public Vector2 Position
 		{
 			get

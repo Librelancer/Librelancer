@@ -70,7 +70,7 @@ namespace LibreLancer
 			if (lastTag == "gameplay")
 			{
 				manager.Dispose();
-				Game.ChangeState(new SpaceGameplay(Game));
+				Game.ChangeState(new SpaceGameplay(Game, new GameSession(Game)));
 			}
 			if (lastTag == "system") {
 				manager.Dispose();

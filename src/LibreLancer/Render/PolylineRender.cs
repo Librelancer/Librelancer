@@ -19,7 +19,9 @@ namespace LibreLancer
 {
 	public class PolylineRender
 	{
-		VertexPositionColorTexture[] vertices = new VertexPositionColorTexture[2048];
+		const int MAX_VERTICES = 8192;
+
+		VertexPositionColorTexture[] vertices = new VertexPositionColorTexture[MAX_VERTICES];
 		VertexBuffer vbo;
 		static ShaderVariables shader;
 		CommandBuffer buffer;
@@ -33,7 +35,7 @@ namespace LibreLancer
 				);
 				shader.Shader.SetInteger(shader.Shader.GetLocation("tex0"), 0);
 			}
-			vbo = new VertexBuffer(typeof(VertexPositionColorTexture), 2048, true);
+			vbo = new VertexBuffer(typeof(VertexPositionColorTexture), MAX_VERTICES, true);
 			this.buffer = buffer;
 		}
 

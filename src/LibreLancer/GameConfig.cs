@@ -87,7 +87,7 @@ namespace LibreLancer
 			if (Platform.RunningOS == OS.Windows)
 			{
 				string bindir = Path.GetDirectoryName(typeof(GameConfig).Assembly.Location);
-				var fullpath = Path.Combine(bindir, IntPtr.Size == 8 ? "win64" : "win32");
+				var fullpath = Path.Combine(bindir, IntPtr.Size == 8 ? "x64" : "x86");
 				SetDllDirectory(fullpath);
 			}
 			else

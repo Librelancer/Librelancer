@@ -20,6 +20,7 @@ namespace LibreLancer
 	[Flags]
 	public enum ThnObjectFlags
 	{
+		None = 0,
 		LitDynamic = 2,
 		LitAmbient = 4,
 		Hidden = 16,

@@ -94,9 +94,10 @@ namespace LibreLancer.Utf.Vms
 
         public void Update(ICamera camera)
         {
-            /*if (Material == null) nullMaterial.Update(camera);
+			/*if (Material == null) nullMaterial.Update(camera);
             else */
-            Material.Render.Camera = camera;
+			if(Material != null)
+				Material.Render.Camera = camera;
         }
 		MaterialAnimCollection lastmc;
 		MaterialAnim ma;
@@ -164,6 +165,8 @@ namespace LibreLancer.Utf.Vms
 
 		public void DrawBuffer(CommandBuffer buffer, VMeshData data, ushort startVertex, Matrix4 world, Lighting light, MaterialAnimCollection mc)
 		{
+			if (Material == null)
+				return;
 			if (lastmc != mc)
 			{
 				if (mc != null)

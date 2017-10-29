@@ -59,6 +59,7 @@ namespace LibreLancer
 			var evs = new List<ThnEvent>();
 			bool hasScene = false;
 			List<Tuple<IDrawable, Matrix4, int>> layers = new List<Tuple<IDrawable, Matrix4, int>>();
+
 			foreach (var thn in scripts)
 			{
 				foreach (var ev in thn.Events)
@@ -90,6 +91,9 @@ namespace LibreLancer
 							case "room":
 								drawable = game.GameData.GetRoom(kv.Value.Template);
 								break;
+							case "equipment cart":
+								drawable = game.GameData.GetCart(kv.Value.Template);
+								break;
 							case "equipment":
 								var eq = game.GameData.GetEquipment(kv.Value.Template);
 								drawable = eq.GetDrawable();
@@ -97,7 +101,7 @@ namespace LibreLancer
 							default:
 								throw new NotImplementedException("Mesh Category " + kv.Value.MeshCategory);
 						}
-						if (kv.Value.UserFlag == 1)
+						if (kv.Value.UserFlag != 0)
 						{
 							//This is a starsphere
 							layers.Add(new Tuple<IDrawable, Matrix4, int>(drawable, kv.Value.RotationMatrix ?? Matrix4.Zero, kv.Value.SortGroup));
@@ -107,6 +111,11 @@ namespace LibreLancer
 							obj.Object = new GameObject(drawable, game.ResourceManager, false);
 							var r = (ModelRenderer)obj.Object.RenderComponent;
 							r.LightGroup = kv.Value.LightGroup;
+							r.LitDynamic = (kv.Value.ObjectFlags & ThnObjectFlags.LitDynamic) == ThnObjectFlags.LitDynamic;
+							r.LitAmbient = (kv.Value.ObjectFlags & ThnObjectFlags.LitAmbient) == ThnObjectFlags.LitAmbient;
+							//HIDDEN just seems to be an editor flag?
+							//r.Hidden = (kv.Value.ObjectFlags & ThnObjectFlags.Hidden) == ThnObjectFlags.Hidden;
+							r.NoFog = kv.Value.NoFog;
 						}
 					}
 					else if (kv.Value.Type == EntityTypes.PSys)
@@ -120,6 +129,7 @@ namespace LibreLancer
 						if (hasScene)
 						{
 							//throw new Exception("Thn can only have one scene");
+							//TODO: This needs to be handled better
 							continue;
 						}
 						var amb = kv.Value.Ambient.Value;
@@ -295,7 +305,11 @@ namespace LibreLancer
 		void ProcessAttachEntity(ThnEvent ev)
 		{
 			object tmp;
-
+			if (!objects.ContainsKey((string)ev.Targets[0]))
+			{
+				FLLog.Error("Thn", "Object doesn't exist " + (string)ev.Targets[0]);
+				return;
+			}
 			var objA = objects[(string)ev.Targets[0]];
 			var objB = objects[(string)ev.Targets[1]];
 			var targetType = ThnEnum.Check<TargetTypes>(ev.Properties["target_type"]);
@@ -405,9 +419,9 @@ namespace LibreLancer
 			FogModes fogMode = FogModes.Linear;
 			//Get values
 			if (fogprops.TryGetValue("fogon", out tmp))
-				fogon = (bool)tmp;
+				fogon = ThnEnum.Check<bool>(tmp);
 			if (fogprops.TryGetValue("fogmode", out tmp))
-				fogMode = (FogModes)tmp;
+				fogMode = ThnEnum.Check<FogModes>(tmp);
 			if (fogprops.TryGetValue("fogdensity", out tmp))
 				fogDensity = (float)tmp;
 			if (fogprops.TryGetVector3("fogcolor", out tmp2))

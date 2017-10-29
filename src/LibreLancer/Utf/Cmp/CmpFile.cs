@@ -88,6 +88,7 @@ namespace LibreLancer.Utf.Cmp
                         break;
                     case "cmpnd":
                         IntermediateNode cmpndNode = node as IntermediateNode;
+						int maxIndices = int.MaxValue;
                         foreach (IntermediateNode cmpndSubNode in cmpndNode)
                         {
                             if (cmpndSubNode.Name.Equals("cons", StringComparison.OrdinalIgnoreCase))
@@ -121,8 +122,13 @@ namespace LibreLancer.Utf.Cmp
                                         default: throw new Exception("Invalid node in " + cmpndSubNode.Name + ": " + partNode.Name);
                                     }
                                 }
-
-                                Parts.Add(index, new Part(objectName, fileName, Models, Constructs));
+								if (Parts.ContainsKey(index))
+								{
+									FLLog.Error("Cmp", "Duplicate index");
+									Parts.Add(maxIndices--, new Part(objectName, fileName, Models, Constructs));
+								}
+								else
+                                	Parts.Add(index, new Part(objectName, fileName, Models, Constructs));
                             }
                             else throw new Exception("Invalid node in " + cmpndNode.Name + ": " + cmpndSubNode.Name);
                         }
@@ -144,7 +150,7 @@ namespace LibreLancer.Utf.Cmp
 
 		public void Initialize(ResourceManager cache)
         {
-            for (int i = 0; i < Parts.Count; i++) Parts[i].Initialize(cache);
+            foreach (var part in Parts.Values) part.Initialize(cache);
         }
 
         public void Resized()
@@ -156,7 +162,7 @@ namespace LibreLancer.Utf.Cmp
 		{
 			if (MaterialAnim != null)
 				MaterialAnim.Update((float)totalTime.TotalSeconds);
-            for (int i = 0; i < Parts.Count; i++) Parts[i].Update(camera, delta, totalTime);
+            foreach (var part in Parts.Values) part.Update(camera, delta, totalTime);
         }
 
 		public float GetRadius()

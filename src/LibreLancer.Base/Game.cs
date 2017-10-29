@@ -188,6 +188,7 @@ namespace LibreLancer
 				FLLog.Error ("SDL", "SDL_Init failed, exiting.");
 				return;
 			}
+			SDL.SDL_SetHint(SDL.SDL_HINT_IME_INTERNAL_EDITING, "1");
 			//Set GL states
 			SDL.SDL_GL_SetAttribute (SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 			SDL.SDL_GL_SetAttribute (SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 2);

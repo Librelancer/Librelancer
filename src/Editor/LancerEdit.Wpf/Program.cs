@@ -13,7 +13,7 @@ namespace LancerEdit.Wpf
         {
             //DLL dir
             string bindir = Path.GetDirectoryName(typeof(Program).Assembly.Location);
-            var fullpath = Path.Combine(bindir, IntPtr.Size == 8 ? "win64" : "win32");
+            var fullpath = Path.Combine(bindir, IntPtr.Size == 8 ? "x64" : "x86");
             SetDllDirectory(fullpath);
             SDL_Init(SDL_INIT_VIDEO);
             //Set GL states

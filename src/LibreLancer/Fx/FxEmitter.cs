@@ -81,6 +81,7 @@ namespace LibreLancer.Fx
 		}
 		public override void Update(ParticleEffect fx, ParticleEffectInstance instance, TimeSpan delta, ref Matrix4 transform, float sparam)
 		{
+			if (!fx.Pairs.ContainsKey(this)) return;
 			var maxCount = MaxParticles == null ? int.MaxValue : (int)Math.Ceiling(MaxParticles.GetValue(sparam, 0f));
 			var freq = Frequency == null ? 0f : Frequency.GetValue(sparam, 0f);
 			var spawnMs = freq <= 0 ? 0 : 1 / (double)freq;

@@ -44,7 +44,6 @@ namespace LibreLancer
 		
 		public IDrawable[] StarSphereModels;
 		public Matrix4[] StarSphereWorlds;
-
 		public PhysicsDebugRenderer DebugRenderer;
 		public PolylineRender Polyline;
 		public SystemLighting SystemLighting = new SystemLighting();
@@ -219,7 +218,7 @@ namespace LibreLancer
 			LightEquipRenderer.FrameStart();
 			//Clear depth buffer for game objects
 			game.Billboards.Begin(camera, commands);
-			for (int i = 0; i < Objects.Count; i++) Objects[i].Draw(camera, commands, SystemLighting, nr);
+			for (int i = 0; i < Objects.Count; i++) if(!Objects[i].Hidden) Objects[i].Draw(camera, commands, SystemLighting, nr);
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(cache, SystemLighting, commands, nr);
 			game.Nebulae.NewFrame();
 			if (nr == null)
@@ -243,6 +242,7 @@ namespace LibreLancer
 			{
 				msaa.BlitToScreen();
 			}
+			rstate.DepthEnabled = true;
 		}
 
 	}

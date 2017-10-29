@@ -92,7 +92,7 @@ namespace LibreLancer.Infocards
 						int origY = dY;
 						if (n.Alignment == TextAlignment.Left || n.Alignment == TextAlignment.Center)
 						{
-							var text = WrapText(fnt, n.Contents, rectangle.Width, dX, out dX, ref dY);
+							var text = WrapText(renderer, fnt, n.Contents, rectangle.Width, dX, out dX, ref dY);
 							commands.Add(new TextCommand()
 							{
 								String = string.Join<string>("\n", text),
@@ -106,7 +106,7 @@ namespace LibreLancer.Infocards
 						}
 						else if (n.Alignment == TextAlignment.Right)
 						{
-							var text = WrapText(fnt, n.Contents, rectangle.Width, dX, out dX, ref dY);
+							var text = WrapText(renderer, fnt, n.Contents, rectangle.Width, dX, out dX, ref dY);
 							//Shift previous text left
 							int width0 = renderer.MeasureString(fnt, text[0]).X;
 							int newX = rectangle.Width - origX - width0;
@@ -152,7 +152,7 @@ namespace LibreLancer.Infocards
 			Height = commands[commands.Count - 1].Y + renderer.MeasureString(fnt, commands[commands.Count - 1].String).Y;
 		}
 
-		List<string> WrapText(Font font, string text, int maxLineWidth, int x, out int newX, ref int dY)
+		public static List<string> WrapText(Renderer2D renderer, Font font, string text, int maxLineWidth, int x, out int newX, ref int dY)
 		{
 			List<string> strings = new List<string>();
 			string[] words = text.Split(' ');

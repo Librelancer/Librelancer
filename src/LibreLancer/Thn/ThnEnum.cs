@@ -38,6 +38,7 @@ namespace LibreLancer
 			if (typeof(T) == typeof(EntityTypes)) return (T)DoEntityTypes(o);
 			if (typeof(T) == typeof(AttachFlags)) return (T)DoAttachFlags(o);
 			if (typeof(T) == typeof(EventTypes)) return (T)DoEventTypes(o);
+			if (typeof(T) == typeof(FogModes)) return (T)DoFogModes(o);
 			throw new InvalidCastException();
 		}
 
@@ -55,6 +56,23 @@ namespace LibreLancer
 					return AttachFlags.Position | AttachFlags.Orientation;
 				case (2 | 4 | 8):
 					return AttachFlags.Position | AttachFlags.Orientation | AttachFlags.LookAt;
+				case 2:
+					return AttachFlags.Position;
+				case 4:
+					return AttachFlags.Orientation;
+				case (2 | 4 | 32):
+					return AttachFlags.Position | AttachFlags.Orientation | AttachFlags.EntityRelative;
+				default:
+					throw new NotImplementedException(o.ToString());
+			}
+		}
+
+		static object DoFogModes(object o)
+		{
+			switch ((int)(float)o)
+			{
+				case 3:
+					return FogModes.Linear;
 				default:
 					throw new NotImplementedException(o.ToString());
 			}
@@ -75,6 +93,8 @@ namespace LibreLancer
 					return EventTypes.AttachEntity;
 				case 13:
 					return EventTypes.StartPSys;
+				case 16:
+					return EventTypes.StartFogPropAnim;
 				default:
 					throw new NotImplementedException(o.ToString());
 			}

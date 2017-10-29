@@ -93,25 +93,25 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="..\..\deps\x86\freetype6.dll">
-      <Link>win32\freetype6.dll</Link>
+      <Link>x86\freetype6.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="..\..\deps\x86\openal32.dll">
-      <Link>win32\openal32.dll</Link>
+      <Link>x86\openal32.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
     <Compile Include="MainWindow.cs" />
     <None Include="..\..\deps\x64\openal32.dll">
-      <Link>win64\openal32.dll</Link>
+      <Link>x64\openal32.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="..\..\deps\x64\freetype6.dll">
-      <Link>win64\freetype6.dll</Link>
+      <Link>x64\freetype6.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="..\..\deps\x64\SDL2.dll">
-      <Link>win64\SDL2.dll</Link>
+      <Link>x64\SDL2.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="SharpFont.dll.config">
@@ -135,23 +135,23 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\deps\x64\libEGL.dll">
-      <Link>win64\libEGL.dll</Link>
+      <Link>x64\libEGL.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\deps\x64\libGLESv2.dll">
-      <Link>win64\libGLESv2.dll</Link>
+      <Link>x64\libGLESv2.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\deps\x86\libEGL.dll">
-      <Link>win32\libEGL.dll</Link>
+      <Link>x86\libEGL.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\deps\x86\libGLESv2.dll">
-      <Link>win32\libGLESv2.dll</Link>
+      <Link>x86\libGLESv2.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\deps\x86\SDL2.dll">
-      <Link>win32\SDL2.dll</Link>
+      <Link>x86\SDL2.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

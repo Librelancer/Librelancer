@@ -37,7 +37,8 @@ namespace LibreLancer.Ini
 			if (path == null) throw new ArgumentNullException("path");
 
 			List<Section> sections = new List<Section>();
-
+			if (!path.ToLowerInvariant().EndsWith(".ini"))
+				path = path + ".ini";
 			using (Stream stream = VFS.Open(path))
 			{
 				byte[] buffer = new byte[4];

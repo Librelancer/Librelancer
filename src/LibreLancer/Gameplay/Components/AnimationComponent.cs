@@ -36,8 +36,13 @@ namespace LibreLancer
 
 		public void StartAnimation(string animationName)
 		{
-			var sc = anm.Scripts[animationName];
-			animations.Add(new ActiveAnimation() { Name = animationName, Script = sc, StartTime = totalTime });
+			if (anm.Scripts.ContainsKey(animationName))
+			{
+				var sc = anm.Scripts[animationName];
+				animations.Add(new ActiveAnimation() { Name = animationName, Script = sc, StartTime = totalTime });
+			}
+			else
+				FLLog.Error("Animation", animationName + " not present");
 		}
 
 		double totalTime = 0;

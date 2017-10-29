@@ -333,6 +333,11 @@
     <Compile Include="GameData\Base.cs" />
     <Compile Include="Thn\EventFlags.cs" />
     <Compile Include="Thn\ThnEnum.cs" />
+    <Compile Include="Interface\HudChatBox.cs" />
+    <Compile Include="Gameplay\Components\DockComponent.cs" />
+    <Compile Include="GameData\Items\PowerEquipment.cs" />
+    <Compile Include="Interface\DebugDrawing.cs" />
+    <Compile Include="Gameplay\GameSession.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

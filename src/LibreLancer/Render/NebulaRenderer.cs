@@ -459,6 +459,7 @@ namespace LibreLancer
 
 		void RenderFill(CommandBuffer buffer, bool inside)
 		{
+			if (Nebula.ExteriorFill == null) return;
 			Vector3 sz = Vector3.Zero;
 			//Only render ellipsoid and sphere exteriors
 			if (Nebula.Zone.Shape is ZoneEllipsoid)

@@ -65,7 +65,8 @@ namespace LibreLancer.Compatibility.GameData.Universe
 
 		public Base FindBase(string nickname)
 		{
-			IEnumerable<Base> result = from Base b in Bases where b.Nickname == nickname select b;
+			var n = nickname.ToLowerInvariant();
+			IEnumerable<Base> result = from Base b in Bases where b.Nickname.ToLowerInvariant() == n select b;
 			if (result.Count<Base>() == 1) return result.First<Base>();
 			else return null;
 		}

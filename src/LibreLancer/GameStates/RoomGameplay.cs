@@ -22,11 +22,55 @@ namespace LibreLancer
 		Base currentBase;
 		BaseRoom currentRoom;
 		Cutscene scene;
-		public RoomGameplay(FreelancerGame g, string newBase) : base(g)
+		Hud hud;
+		GameSession session;
+		public RoomGameplay(FreelancerGame g, GameSession session, string newBase) : base(g)
 		{
+			this.session = session;
 			currentBase = g.GameData.GetBase(newBase);
 			currentRoom = currentBase.StartRoom;
 			SwitchToRoom();
+			hud = new Hud(g);
+			hud.RoomMode();
+			hud.OnEntered += Hud_OnTextEntry;
+			Game.Keyboard.TextInput += Game_TextInput;
+			Game.Keyboard.KeyDown += Keyboard_KeyDown;
+		}
+
+		public override void Unregister()
+		{
+			Game.Keyboard.TextInput -= Game_TextInput;
+			Game.Keyboard.KeyDown -= Keyboard_KeyDown;
+		}
+
+		void Keyboard_KeyDown(KeyEventArgs e)
+		{
+			if (hud.TextEntry)
+			{
+				hud.TextEntryKeyPress(e.Key);
+				if (hud.TextEntry == false) Game.DisableTextInput();
+			}
+			else
+			{
+				if (e.Key == Keys.L)
+				{
+					Game.Screenshots.TakeScreenshot();
+				}
+				if (e.Key == Keys.Enter)
+				{
+					hud.TextEntry = true;
+					Game.EnableTextInput();
+				}
+			}
+		}
+
+		void Game_TextInput(string text)
+		{
+			hud.OnTextEntry(text);
+		}
+		void Hud_OnTextEntry(string obj)
+		{
+			session.ProcessConsoleCommand(obj);
 		}
 
 		void SwitchToRoom()
@@ -47,12 +91,14 @@ namespace LibreLancer
 		{
 			if(scene != null)
 				scene.Update(delta);
+			hud.Update(delta, IdentityCamera.Instance);
 		}
 
 		public override void Draw(TimeSpan delta)
 		{
 			if(scene != null)
 				scene.Draw();
+			hud.Draw();
 		}
 	}
 }

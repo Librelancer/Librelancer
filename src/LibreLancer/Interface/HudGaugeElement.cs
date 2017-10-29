@@ -24,9 +24,9 @@ namespace LibreLancer
 		Vector2 shieldPosition = new Vector2(-0.1465f, -0.94f);
 		Vector2 hullPosition = new Vector2(-0.1465f, -0.966f);
 
-		Color4 powerColor = new Color4(0xA7, 0xA1, 0x5E, 0xFF);
-		Color4 shieldColor = new Color4(0x3E, 0x3D, 0xB5, 0xFF);
-		Color4 hullColor = new Color4(0x78, 0x2A, 0x33, 0xFF);
+		Color4 PowerColor = new Color4(0xA7, 0xA1, 0x5E, 0xFF);
+		public Color4 ShieldColor = new Color4(0x3E, 0x3D, 0xB5, 0xFF);
+		public Color4 HullColor = new Color4(0x78, 0x2A, 0x33, 0xFF);
 
 		Texture2D gauge_mask;
 
@@ -42,9 +42,9 @@ namespace LibreLancer
 
 		public override void DrawText()
 		{
-			DrawBar(powerPosition, powerColor, PowerPercentage);
-			DrawBar(shieldPosition, shieldColor, ShieldPercentage);
-			DrawBar(hullPosition, hullColor, HullPercentage);
+			DrawBar(powerPosition, PowerColor, PowerPercentage);
+			DrawBar(shieldPosition, ShieldColor, ShieldPercentage);
+			DrawBar(hullPosition, HullColor, HullPercentage);
 		}
 
 		void DrawBar(Vector2 position, Color4 color, float pct)

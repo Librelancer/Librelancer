@@ -35,6 +35,7 @@ namespace LibreLancer
 		public ThnLightProps LightProps;
 		public MotionPath Path;
 		public ThnObjectFlags ObjectFlags;
+		public bool NoFog = false;
 		public override string ToString()
 		{
 			return string.Format("[{0}: {1}]", Name, Type);

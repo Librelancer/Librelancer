@@ -87,7 +87,8 @@ namespace LibreLancer.Compatibility.GameData.Universe
 					ContainsFogZone = e[0].ToBoolean();
 					break;
 				default:
-					throw new Exception("Invalid Entry in " + section.Name + ": " + e.Name);
+					FLLog.Error("Ini", "Invalid Entry in " + section.Name + ": " + e.Name);
+					break;
 				}
 			}
 		}

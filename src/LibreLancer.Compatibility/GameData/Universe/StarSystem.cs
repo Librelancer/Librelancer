@@ -355,7 +355,9 @@ namespace LibreLancer.Compatibility.GameData.Universe
 
 		public Zone FindZone(string nickname)
 		{
-			return (from Zone z in Zones where z.Nickname.ToLowerInvariant() == nickname.ToLowerInvariant() select z).First<Zone>();
+			var res = (from Zone z in Zones where z.Nickname.ToLowerInvariant() == nickname.ToLowerInvariant() select z);
+			if (res.Count() == 0) return null;
+			return res.First();
 		}
 	}
 }

@@ -26,6 +26,9 @@ namespace LibreLancer
 		}
 		public abstract void Update(TimeSpan delta);
 		public abstract void Draw(TimeSpan delta);
+		public virtual void Unregister()
+		{
+		}
 	}
 }
 

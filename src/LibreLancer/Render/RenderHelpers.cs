@@ -29,24 +29,34 @@ namespace LibreLancer
 			var res = VectorMath.DistanceSquared(vec, cameraPosition);
 			return res;
 		}
-		public static Lighting ApplyLights(SystemLighting src, int lightGroup, Vector3 c, float r, NebulaRenderer nebula)
+		public static Lighting ApplyLights(SystemLighting src, int lightGroup, Vector3 c, float r, NebulaRenderer nebula, bool lambient = true, bool ldynamic = true, bool nofog = false)
 		{
             var lights = Lighting.Create();
-			lights.Ambient = src.Ambient;
-			lights.FogMode = src.FogMode;
-			lights.FogDensity = src.FogDensity;
-			lights.FogColor = src.FogColor;
-			lights.FogRange = src.FogRange;
-			for(int i = 0; i < src.Lights.Count; i++)
+			lights.Ambient = lambient ? src.Ambient : Color4.Black;
+			if (nofog)
 			{
-				if (src.Lights[i].LightGroup != lightGroup)
-					continue;
-                var l = src.Lights[i].Light;
-				var r2 = r + l.Range;
-				if ((l.Kind == LightKind.Point || l.Kind == LightKind.PointAttenCurve) &&
-					VectorMath.DistanceSquared(l.Position, c) > (r2 * r2))
-					continue;
-				lights.Lights.Add(l);
+				lights.FogMode = FogModes.None;
+			}
+			else
+			{
+				lights.FogMode = src.FogMode;
+				lights.FogDensity = src.FogDensity;
+				lights.FogColor = src.FogColor;
+				lights.FogRange = src.FogRange;
+			}
+			if (ldynamic)
+			{
+				for (int i = 0; i < src.Lights.Count; i++)
+				{
+					if (src.Lights[i].LightGroup != lightGroup)
+						continue;
+					var l = src.Lights[i].Light;
+					var r2 = r + l.Range;
+					if ((l.Kind == LightKind.Point || l.Kind == LightKind.PointAttenCurve) &&
+						VectorMath.DistanceSquared(l.Position, c) > (r2 * r2))
+						continue;
+					lights.Lights.Add(l);
+				}
 			}
 			if (nebula != null)
 			{

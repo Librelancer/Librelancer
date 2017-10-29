@@ -55,12 +55,14 @@ Mouse Flight: {10}
 		Hud hud;
 		EngineComponent ecpt;
 		InputManager input;
-		public SpaceGameplay(FreelancerGame g) : base(g)
+		GameSession session;
+		public SpaceGameplay(FreelancerGame g, GameSession session) : base(g)
 		{
 			FLLog.Info("Game", "Starting Gameplay Demo");
 			sys = g.GameData.GetSystem("li01");
-			var shp = g.GameData.GetShip("li_elite");
+			var shp = g.GameData.GetShip(session.PlayerShip);
 			//Set up player object + camera
+			this.session = session;
 			player = new GameObject(shp.Drawable, g.ResourceManager, false);
 			control = new ShipControlComponent(player);
 			player.Components.Add(control);
@@ -73,10 +75,13 @@ Mouse Flight: {10}
 			player.PhysicsComponent.Position = new JVector(-31000, 0, -26755);
 			player.PhysicsComponent.Material.Restitution = 1;
 			player.PhysicsComponent.Mass = 150;
+			foreach (var equipment in session.MountedEquipment)
+			{
+				var equip = g.GameData.GetEquipment(equipment.Value);
+				var obj = new GameObject(equip, player.GetHardpoint(equipment.Key), player);
+				player.Children.Add(obj);
+			}
 
-			var thrusterEquip = (GameData.Items.ThrusterEquipment)g.GameData.GetEquipment("ge_s_thruster_02");
-			var thruster = new GameObject(thrusterEquip, player.GetHardpoint("hpthruster01"), player);
-			player.Children.Add(thruster);
 			camera = new ChaseCamera(Game.Viewport);
 			camera.ChasePosition = new Vector3(-31000, 0, -26755);
 			camera.ChaseOrientation = player.PhysicsComponent.Orientation.ToOpenTK();
@@ -96,27 +101,72 @@ Mouse Flight: {10}
 			g.Sound.PlayMusic(sys.MusicSpace);
 			trender = new Renderer2D(Game.RenderState);
 			font = Font.FromSystemFont(trender, "Agency FB", 16);
-			g.Keyboard.KeyDown += G_Keyboard_KeyDown;
 			g.Keyboard.TextInput += G_Keyboard_TextInput;
 			debugphysics = new PhysicsDebugRenderer();
 			cur_arrow = g.ResourceManager.GetCursor("cross");
 			cur_reticle = g.ResourceManager.GetCursor("fire_neutral");
 			current_cur = cur_arrow;
 			hud = new Hud(g);
-			g.Keyboard.KeyDown += (e) =>
-			{
-				if (e.Key == Keys.L)
-				{
-					g.Screenshots.TakeScreenshot();
-				}
-				if (e.Key == Keys.B)
-				{
-					Game.ChangeState(new RoomGameplay(Game, "Br01_01_Base"));
-				}
-			};
+			Game.Keyboard.TextInput += Game_TextInput;
+			g.Keyboard.KeyDown += Keyboard_KeyDown;
 			input = new InputManager(Game);
 			input.ToggleActivated += Input_ToggleActivated;
 			input.ToggleUp += Input_ToggleUp; 
+			hud.OnManeuverSelected += Hud_OnManeuverSelected;
+			hud.OnEntered += Hud_OnTextEntry;
+		}
+
+		public override void Unregister()
+		{
+			Game.Keyboard.TextInput -= Game_TextInput;
+			Game.Keyboard.KeyDown -= Keyboard_KeyDown;
+			input.Dispose();
+		}
+
+		void Keyboard_KeyDown(KeyEventArgs e)
+		{
+			if (hud.TextEntry)
+			{
+				hud.TextEntryKeyPress(e.Key);
+				if (hud.TextEntry == false) Game.DisableTextInput();
+			}
+			else
+			{
+				if (e.Key == Keys.L)
+				{
+					Game.Screenshots.TakeScreenshot();
+				}
+				if (e.Key == Keys.Enter)
+				{
+					hud.TextEntry = true;
+					Game.EnableTextInput();
+				}
+			}
+		}
+
+		void Game_TextInput(string text)
+		{
+			hud.OnTextEntry(text);
+		}
+		void Hud_OnTextEntry(string obj)
+		{
+			session.ProcessConsoleCommand(obj);
+		}
+
+		bool Hud_OnManeuverSelected(string e)
+		{
+			switch (e)
+			{
+				case "FreeFlight":
+					return true;
+				case "Dock":
+					if (selected == null) return false;
+					DockComponent d;
+					if ((d = selected.GetComponent<DockComponent>()) != null)
+						Game.ChangeState(new RoomGameplay(Game, session, d.DockWith));
+					break;
+			}
+			return false;
 		}
 
 		void World_RenderUpdate(TimeSpan delta)
@@ -132,7 +182,7 @@ Mouse Flight: {10}
 		public override void Update(TimeSpan delta)
 		{
 			//hud.Velocity = Velocity;
-			hud.Update(delta);
+			hud.Update(delta, camera);
 			world.Update(delta);
 		}
 
@@ -146,23 +196,10 @@ Mouse Flight: {10}
 			ProcessInput(delta);
 		}
 		bool mouseFlight = false;
-		void G_Keyboard_KeyDown(KeyEventArgs e)
-		{
-			if (e.Key == Keys.Backspace && textEntry)
-			{
-				if (currentText.Length > 0)
-				{
-					currentText = currentText.Substring(0, currentText.Length - 1);
-				}
-			}
-			if (e.Key == Keys.P && !textEntry)
-			{
-				Game.RenderState.Wireframe = !Game.RenderState.Wireframe;
-			}
-		}
 
 		void Input_ToggleActivated(int id)
 		{
+			if (hud.TextEntry) return;
 			switch (id)
 			{
 				case InputAction.ID_TOGGLECRUISE:
@@ -200,23 +237,29 @@ Mouse Flight: {10}
 
 			input.Update();
 
-			if (input.ActionDown(InputAction.ID_THROTTLEUP))
+			if (!hud.TextEntry)
 			{
-				Velocity += (float)(delta.TotalSeconds * ACCEL);
-				Velocity = MathHelper.Clamp(Velocity, 0, MAX_VELOCITY);
-			}
+				if (input.ActionDown(InputAction.ID_THROTTLEUP))
+				{
+					Velocity += (float)(delta.TotalSeconds * ACCEL);
+					Velocity = MathHelper.Clamp(Velocity, 0, MAX_VELOCITY);
+				}
 
-			else if (input.ActionDown(InputAction.ID_THROTTLEDOWN))
-			{
-				Velocity -= (float)(delta.TotalSeconds * ACCEL);
-				Velocity = MathHelper.Clamp(Velocity, 0, MAX_VELOCITY);
+				else if (input.ActionDown(InputAction.ID_THROTTLEDOWN))
+				{
+					Velocity -= (float)(delta.TotalSeconds * ACCEL);
+					Velocity = MathHelper.Clamp(Velocity, 0, MAX_VELOCITY);
+				}
 			}
 
 			StrafeControls strafe = StrafeControls.None;
-			if (input.ActionDown(InputAction.ID_STRAFELEFT)) strafe |= StrafeControls.Left;
-			if (input.ActionDown(InputAction.ID_STRAFERIGHT)) strafe |= StrafeControls.Right;
-			if (input.ActionDown(InputAction.ID_STRAFEUP)) strafe |= StrafeControls.Up;
-			if (input.ActionDown(InputAction.ID_STRAFEDOWN)) strafe |= StrafeControls.Down;
+			if (!hud.TextEntry)
+			{
+				if (input.ActionDown(InputAction.ID_STRAFELEFT)) strafe |= StrafeControls.Left;
+				if (input.ActionDown(InputAction.ID_STRAFERIGHT)) strafe |= StrafeControls.Right;
+				if (input.ActionDown(InputAction.ID_STRAFEUP)) strafe |= StrafeControls.Up;
+				if (input.ActionDown(InputAction.ID_STRAFEDOWN)) strafe |= StrafeControls.Down;
+			}
 
 			var pc = player.PhysicsComponent;
 			if (Game.Mouse.IsButtonDown(MouseButtons.Left) || mouseFlight)
@@ -224,9 +267,23 @@ Mouse Flight: {10}
 				control.Pitch = -moffset.Y;
 				control.Yaw = -moffset.X;
 			}
+			else if (Game.Keyboard.IsKeyDown(Keys.F) && selected != null)
+			{
+				var dirToFace = ((player.Transform.ExtractTranslation()) - (selected.Transform.ExtractTranslation())).Normalized();
+				var fwd = player.PhysicsComponent.Orientation.GetForward().ToOpenTK();
+				var turnDir = (fwd - dirToFace).Normalized();
+				if (turnDir.Y > 0)
+					control.Pitch = 1;
+				if (turnDir.Y < 0)
+					control.Pitch = -1;
+				if (turnDir.X < 0)
+					control.Yaw = -1;
+				if (turnDir.X > 0)
+					control.Yaw = 1;
+			}
 			else
 			{
-				control.Pitch = control.Yaw = 0;													
+				control.Pitch = control.Yaw = 0;
 			}
 
 			control.CurrentStrafe = strafe;
@@ -241,13 +298,14 @@ Mouse Flight: {10}
 				if (newselected != null)
 				{
 					newselected.PhysicsComponent.EnableDebugDraw = true;
-					debugDrawBody = newselected.PhysicsComponent;
+					//debugDrawBody = newselected.PhysicsComponent;
 				}
 				else
 				{
 					debugDrawBody = null;
 				}
 				selected = newselected;
+				hud.SelectedObject = selected;
 			}
 		}
 
@@ -377,24 +435,6 @@ Mouse Flight: {10}
 			return vec.Xyz;
 		}
 
-		static void DecomposeOrientation(JMatrix mx, out double xPitch, out double yYaw, out double zRoll)
-		{
-			xPitch = Math.Asin(-mx.M32);
-			double threshold = 0.001; // Hardcoded constant – burn him, he’s a witch
-			double test = Math.Cos(xPitch);
-
-			if (test > threshold)
-			{
-				zRoll = Math.Atan2(mx.M12, mx.M22);
-				yYaw = Math.Atan2(mx.M31, mx.M33);
-			}
-			else
-			{
-				zRoll = Math.Atan2(-mx.M21, mx.M11);
-				yYaw = 0.0;
-			}
-		}
-
 		RigidBody debugDrawBody;
 		public override void Draw(TimeSpan delta)
 		{
@@ -416,34 +456,9 @@ Mouse Flight: {10}
 				else
 					sel_obj = selected.Name;
 			}
-			DrawShadowedText(string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, moffset.X, moffset.Y, mouseFlight), 5, 5);
+			DebugDrawing.DrawShadowedText(trender, font, string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, moffset.X, moffset.Y, mouseFlight), 5, 5);
 			current_cur.Draw(trender, Game.Mouse);
 			trender.Finish();
-		}
-
-		static readonly string[] SizeSuffixes =
-				   { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
-		static string SizeSuffix(Int64 value)
-		{
-			if (value < 0) { return "-" + SizeSuffix(-value); }
-			if (value == 0) { return "0.0 bytes"; }
-
-			int mag = (int)Math.Log(value, 1024);
-			decimal adjustedSize = (decimal)value / (1L << (mag * 10));
-
-			return string.Format("{0:n1} {1}", adjustedSize, SizeSuffixes[mag]);
-		}
-
-		void DrawShadowedText(string text, float x, float y)
-		{
-			trender.DrawString(font,
-				text,
-				x + 2, y + 2,
-				Color4.Black);
-			trender.DrawString(font,
-				text,
-				x, y,
-				Color4.White);
 		}
 	}
 }

@@ -26,6 +26,7 @@ namespace LibreLancer
 		HudModelElement shipinfo;
 		HudModelElement contactslist;
 		HudModelElement navbuttons;
+		HudChatBox chatbox;
 		HudNumberBoxElement numberbox;
 		HudGaugeElement gauge;
 
@@ -48,6 +49,11 @@ namespace LibreLancer
 		IDrawable reticle_health;
 		IDrawable reticle_quotes;
 		IDrawable reticle_shields;
+
+		RenderMaterial UI_HUD_targetarrow;
+		RenderMaterial UI_HUD_targetingblue;
+
+		List<Maneuver> mnvs;
 		public Hud(FreelancerGame game)
 		{
 			manager = new UIManager(game);
@@ -67,8 +73,11 @@ namespace LibreLancer
 			gauge = new HudGaugeElement(manager);
 			manager.Elements.Add(gauge);
 
+			chatbox = new HudChatBox(manager);
+			manager.Elements.Add(chatbox);
+
 			//Maneuvers
-			var mnvs = game.GameData.GetManeuvers().ToList();
+			mnvs = game.GameData.GetManeuvers().ToList();
 			if (mnvs.Count != 4) throw new NotImplementedException();
 
 			maneuverA = new HudToggleButtonElement(manager, mnvs[0].ActiveModel, mnvs[0].InactiveModel, -0.218f, 0.925f, 4.26f, 5.48f) { Tag = "mmA" };
@@ -92,7 +101,26 @@ namespace LibreLancer
 			reticle_health = game.ResourceManager.GetDrawable(game.GameData.ResolveDataPath("INTERFACE/HUD/hud_reticle_health.3db"));
 			reticle_shields = game.ResourceManager.GetDrawable(game.GameData.ResolveDataPath("INTERFACE/HUD/hud_reticle_shields.3db"));
 
+			UI_HUD_targetarrow = game.ResourceManager.FindMaterial(CrcTool.FLModelCrc("UI_HUD_targetarrow")).Render;
+			UI_HUD_targetingblue = game.ResourceManager.FindMaterial(CrcTool.FLModelCrc("UI_HUD_targetingblue")).Render;
 
+			TextEntry = false;
+		}
+
+		bool roomMode = false;
+		public void RoomMode()
+		{
+			roomMode = true;
+			//Hide non-room controls
+			maneuverA.Visible = false;
+			maneuverB.Visible = false;
+			maneuverC.Visible = false;
+			maneuverD.Visible = false;
+			numberbox.Visible = false;
+			gauge.Visible = false;
+			contactslist.Visible = false;
+			navbuttons.Visible = false;
+			shipinfo.Visible = false;
 		}
 
 		void Manager_OnClick(string obj)
@@ -100,18 +128,31 @@ namespace LibreLancer
 			switch (obj)
 			{
 				case "mmA":
-					ManeuverClick(maneuverA);
+					if (OnManeuver(mnvs[0].Action))
+						ManeuverClick(maneuverA);
 					break;
 				case "mmB":
-					ManeuverClick(maneuverB);
+					if (OnManeuver(mnvs[1].Action))
+						ManeuverClick(maneuverB);
 					break;
 				case "mmC":
-					ManeuverClick(maneuverC);
+					if (OnManeuver(mnvs[2].Action))
+						ManeuverClick(maneuverC);
 					break;
 				case "mmD":
-					ManeuverClick(maneuverD);
+					if (OnManeuver(mnvs[3].Action))
+						ManeuverClick(maneuverD);
 					break;
 			}
+		}
+
+		public event Func<string, bool> OnManeuverSelected;
+		bool OnManeuver(string action)
+		{
+			Console.WriteLine(action);
+			if (OnManeuverSelected != null)
+				return OnManeuverSelected(action);
+			return false;
 		}
 
 		void ManeuverClick(HudToggleButtonElement element)
@@ -124,8 +165,10 @@ namespace LibreLancer
 		}
 
 
-		public void Update(TimeSpan delta)
+		ICamera gameCamera;
+		public void Update(TimeSpan delta, ICamera camera)
 		{
+			gameCamera = camera;
 			numberbox.Velocity = Velocity;
 			numberbox.ThrustAvailable = ThrustAvailable;
 			manager.Update(delta);
@@ -137,20 +180,81 @@ namespace LibreLancer
 			return 12f;
 		}
 
+		public bool TextEntry
+		{
+			get { return chatbox.Visible; }
+			set { chatbox.Visible = value; }
+		}
+		public void OnTextEntry(string e)
+		{
+			chatbox.AppendText(e);
+		}
+
+		public event Action<string> OnEntered;
+
+		public void TextEntryKeyPress(Keys k)
+		{
+			if (k == Keys.Enter)
+			{
+				TextEntry = false;
+				if (OnEntered != null)
+					OnEntered(chatbox.CurrentText);
+				chatbox.CurrentText = "";
+			}
+			if (k == Keys.Backspace)
+			{
+				if (chatbox.CurrentText.Length > 0)
+					chatbox.CurrentText = chatbox.CurrentText.Substring(0, chatbox.CurrentText.Length - 1);
+			}
+			if (k == Keys.Escape)
+			{
+				TextEntry = false;
+				chatbox.CurrentText = "";
+			}
+		}
+
 		public void Draw()
 		{
-			if (true)
+			if (SelectedObject != null)
 			{
 				manager.Game.RenderState.Cull = false;
 				manager.Game.RenderState.DepthEnabled = false;
-				/*reticle.Update(IdentityCamera.Instance, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0));
-				reticle.Draw(manager.Game.RenderState, Matrix4.Identity, Lighting.Empty);
-				reticle_health.Update(IdentityCamera.Instance, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0));
-				reticle_health.Draw(manager.Game.RenderState, Matrix4.Identity, Lighting.Empty);
-				reticle_shields.Update(IdentityCamera.Instance, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0));
-				reticle_shields.Draw(manager.Game.RenderState, Matrix4.Identity, Lighting.Empty);*/
+				if (SelectedObject.RenderComponent.OutOfView(gameCamera))
+				{
+					//Render one of them fancy arrows
+				}
+				else
+				{
+					//Render the hud
+					var vp = gameCamera.ViewProjection;
+					var translation = SelectedObject.GetTransform();
+					//project centre point
+					var projected = new Vector4(0, 0, 0, 1) * (translation * vp);
+					projected /= projected.W;
+					projected.Z = 1f;
+					//do translation
+					var translateSelection = Matrix4.CreateTranslation(projected.X, projected.Y, projected.Z);
+					//HACK: I don't think modifying the materials exactly is what I'm supposed to do.
+					var gaugeMat = (BasicMaterial)UI_HUD_targetarrow;
+					var boxMat = (BasicMaterial)UI_HUD_targetingblue;
+					gaugeMat.Dc = Color4.White;
+					boxMat.Dc = Color4.Green;
+					reticle.Update(IdentityCamera.Instance, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0));
+					reticle.Draw(manager.Game.RenderState, translateSelection, Lighting.Empty);
+					//Hull Gauge
+					gaugeMat.Dc = gauge.HullColor;
+					reticle_health.Update(IdentityCamera.Instance, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0));
+					reticle_health.Draw(manager.Game.RenderState, translateSelection, Lighting.Empty);
+					//Shield Gauge
+					gaugeMat.Dc = gauge.ShieldColor;
+					reticle_shields.Update(IdentityCamera.Instance, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0));
+					reticle_shields.Draw(manager.Game.RenderState, translateSelection, Lighting.Empty);
+				}
+				manager.Game.RenderState.DepthEnabled = true;
+				manager.Game.RenderState.Cull = true;
 			}
 			manager.Draw();
+
 		}
 	}
 }

@@ -81,13 +81,12 @@ namespace LibreLancer.Compatibility.GameData.Universe
 		public string Pilot { get; private set; }
 
 		private string dockWithName;
-		private Base dockWith;
-		public Base DockWith
+
+		public string DockWith
 		{
 			get
 			{
-				if (dockWith == null) dockWith = universe.FindBase(dockWithName);
-				return dockWith;
+				return dockWithName;
 			}
 		}
 

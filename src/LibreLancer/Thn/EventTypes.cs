@@ -29,7 +29,8 @@ namespace LibreLancer
 		StartFogPropAnim,
 		StartLightPropAnim,
 		StartCameraPropAnim,
-		StartSound
+		StartSound,
+		ConnectHardpoints
 	}
 }
 

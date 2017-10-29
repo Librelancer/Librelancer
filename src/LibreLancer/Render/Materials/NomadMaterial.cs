@@ -60,7 +60,7 @@ namespace LibreLancer
 			BindTexture(rstate, 0, DtSampler, 0, DtFlags);
 			//Bt
 			shader.SetEtSampler(1);
-			BindTexture(rstate, 1, BtSampler, 1, BtFlags);
+			BindTexture(rstate, 1, BtSampler, 1, BtFlags, false);
 			//Disable MaterialAnim
 			shader.SetMaterialAnim(new Vector4(0, 0, 1, 1));
 			shader.UseProgram();

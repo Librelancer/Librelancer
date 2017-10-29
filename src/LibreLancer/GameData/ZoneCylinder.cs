@@ -23,12 +23,14 @@ namespace LibreLancer.GameData
 		public float Height;
 		Vector3 pt1;
 		Vector3 pt2;
+		Vector3 centre;
 		float length_sq;
 		float radius_sq;
 		public ZoneCylinder(Zone zone, float r, float h) : base (zone)
 		{
 			Radius = r;
 			Height = h;
+			centre = Zone.Position;
 			//Define the cylinder
 			pt1 = Zone.Position - new Vector3(0, Height / 2, 0);
 			pt2 = Zone.Position + new Vector3(0, Height / 2, 0);
@@ -64,7 +66,7 @@ namespace LibreLancer.GameData
 		}
 		public override float ScaledDistance(Vector3 point)
 		{
-			throw new NotImplementedException ();
+			return VectorMath.Distance(point, centre) / Radius;
 		}
 		public override Vector3 RandomPoint (Func<float> randfunc)
 		{

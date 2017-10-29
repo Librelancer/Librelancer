@@ -139,9 +139,8 @@ namespace LibreLancer
 		}
 		public GameData.IntroScene GetIntroScene()
 		{
-			//var rand = new Random();
-			//return IntroScenes[rand.Next(0, IntroScenes.Count)];
-			return IntroScenes[1];
+			var rand = new Random();
+			return IntroScenes[rand.Next(0, IntroScenes.Count)];
 		}
 		public void LoadHardcodedFiles()
 		{
@@ -510,6 +509,7 @@ namespace LibreLancer
 				n.ExclusionZones = new List<GameData.ExclusionZone>();
 				foreach (var excz in nbl.ExclusionZones)
 				{
+					if (excz.Exclusion == null) continue;
 					var e = new GameData.ExclusionZone();
 					e.Zone = sys.Zones.Where((z) => z.Nickname.ToLower() == excz.Exclusion.Nickname.ToLower()).First();
 					e.FogFar = excz.FogFar ?? n.FogRange.Y;
@@ -575,6 +575,11 @@ namespace LibreLancer
 			return resource.GetDrawable(ResolveDataPath(fldata.PetalDb.Props[prop]));
 		}
 
+		public IDrawable GetCart(string cart)
+		{
+			return resource.GetDrawable(ResolveDataPath(fldata.PetalDb.Carts[cart]));
+		}
+
 		public IDrawable GetRoom(string room)
 		{
 			return resource.GetDrawable(ResolveDataPath(fldata.PetalDb.Rooms[room]));
@@ -587,6 +592,7 @@ namespace LibreLancer
 			obj.Nickname = o.Nickname;
 			obj.DisplayName = o.IdsName;
 			obj.Position = o.Pos.Value;
+			obj.DockWith = o.DockWith;
 			if (o.Rotate != null) {
 				obj.Rotation = 
 					Matrix4.CreateRotationX (MathHelper.DegreesToRadians (o.Rotate.Value.X)) *
@@ -661,6 +667,17 @@ namespace LibreLancer
 			if (val is Legacy.Equipment.AttachedFx)
 			{
 				equip = GetAttachedFx((Legacy.Equipment.AttachedFx)val);
+			}
+			if (val is Legacy.Equipment.PowerCore)
+			{
+				var pc = (val as Legacy.Equipment.PowerCore);
+				if(pc.MaterialLibrary != null)
+					resource.LoadMat(ResolveDataPath(pc.MaterialLibrary));
+				var drawable = resource.GetDrawable(ResolveDataPath(pc.DaArchetype));
+				equip = new GameData.Items.PowerEquipment()
+				{
+					Model = drawable
+				};
 			}
 			if (val is Legacy.Equipment.Thruster)
 			{

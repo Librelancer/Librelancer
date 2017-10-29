@@ -147,7 +147,7 @@ namespace LibreLancer.Utf.Mat
 			"DcDt", "DcDtTwo", "DcDtEc", "DcDtEt", "DcDtEcEt",
 			"DcDtOcOt", "DcDtBtOcOt", "DcDtBtOcOtTwo", "DcDtEcOcOt",
 			"DcDtOcOtTwo", "DcDtBt", "DcDtBtTwo", "BtDetailMapMaterial",
-			"DcDtEcOcOtTwo"
+			"DcDtEcOcOtTwo", "DcDtEtTwo"
 		};
 		RenderMaterial _rmat;
 		public RenderMaterial Render
@@ -205,7 +205,8 @@ namespace LibreLancer.Utf.Mat
 
 			if (type == "HighGlassMaterial" || 
 			    type == "HUDAnimMaterial" || 
-			    type == "HUDIconMaterial")
+			    type == "HUDIconMaterial" ||
+			    type == "PlanetWaterMaterial")
 			{
 				type = "DcDtOcOt"; //HACK: Should do env mapping
 			}
@@ -229,6 +230,7 @@ namespace LibreLancer.Utf.Mat
 					case "IllumDetailMapMaterial":
 					case "Masked2DetailMapMaterial":
 					case "NomadMaterialNoBendy":
+					case "NomadMaterial":
 						break;
 					default:
 						throw new Exception("Invalid material type: " + type);
@@ -325,6 +327,9 @@ namespace LibreLancer.Utf.Mat
 					break;
 				case "dm_name":
 					dmName = n.StringData;
+					break;
+				case "nt_name":
+					FLLog.Error("Material", "what to do with nt??");
 					break;
 				default:
 					throw new NotImplementedException();

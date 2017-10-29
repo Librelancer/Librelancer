@@ -61,6 +61,8 @@ namespace LibreLancer
 
 		public void ChangeState(GameState state)
 		{
+			if (currentState != null)
+				currentState.Unregister();
 			currentState = state;
 		}
 		protected override void Load()
