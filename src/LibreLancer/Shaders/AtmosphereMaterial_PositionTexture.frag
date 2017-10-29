@@ -16,8 +16,8 @@ out vec4 out_color;
 
 void main()
 {
-	float facingRatio = clamp(dot(normalize(V), normalize(N)), 0, 1);
-	vec2 texcoord = vec2(facingRatio, 0);
-	vec4 lit = light(Ac, vec4(0), Dc, vec4(1), world_position, vec4(V,1), out_normal);
+	float facingRatio = clamp(dot(normalize(V), normalize(N)), 0., 1.);
+	vec2 texcoord = vec2(facingRatio, 0.);
+	vec4 lit = light(Ac, vec4(0.), Dc, vec4(1), world_position, vec4(V,1.), out_normal);
 	out_color = vec4(lit.rgb, Oc) * texture(DtSampler, texcoord);
 }

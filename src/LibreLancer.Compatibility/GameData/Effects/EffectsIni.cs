@@ -51,9 +51,9 @@ namespace LibreLancer.Compatibility.GameData.Effects
 		public VisEffect FindVisEffect(string nickname)
 		{
 			var result = from VisEffect v in VisEffects where v.Nickname.Equals(nickname, StringComparison.OrdinalIgnoreCase) select v;
-			if (result.Count() == 1)
+			if (result.Count() >= 1)
 				return result.First();
-			throw new Exception();
+            throw new KeyNotFoundException(nickname);
 		}
 	}
 }

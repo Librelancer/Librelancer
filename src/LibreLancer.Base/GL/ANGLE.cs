@@ -77,8 +77,8 @@ namespace LibreLancer
         IntPtr libgles;
         public ANGLE()
         {
-            var libegl = LoadLibrary(IntPtr.Size == 8 ? "win64\\libEGL.dll" : "win32\\libEGL.dll");
-            libgles = LoadLibrary(IntPtr.Size == 8 ? "win64\\libGLESv2.dll" : "win32\\libGLESv2.dll");
+            var libegl = LoadLibrary(IntPtr.Size == 8 ? "x64\\libEGL.dll" : "x86\\libEGL.dll");
+            libgles = LoadLibrary(IntPtr.Size == 8 ? "x64\\libGLESv2.dll" : "x86\\libGLESv2.dll");
 
             eglGetPlatformDisplayEXT = LoadFunction<_eglGetPlatformDisplayEXT>(libegl, "eglGetPlatformDisplayEXT");
             eglInitialize = LoadFunction<_eglInitialize>(libegl, "eglInitialize");
@@ -201,6 +201,9 @@ namespace LibreLancer
                 return (Delegate)new GLDelegates.TexImage2D(TexImage2D);
             if (name == "glTexSubImage2D")
                 return (Delegate)new GLDelegates.TexSubImage2D(TexSubImage2D);
+            var addr = GetProcAddress(libgles, name);
+            if (addr == IntPtr.Zero)
+                return null;
             return Marshal.GetDelegateForFunctionPointer(GetProcAddress(libgles, name), type);
         }
 

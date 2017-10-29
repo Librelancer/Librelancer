@@ -287,6 +287,14 @@ namespace LibreLancer
             GLES = false;
             Load((f, t) => Marshal.GetDelegateForFunctionPointer(SDL.SDL_GL_GetProcAddress(f), (t)));
 		}
+        public static bool CheckStringSDL()
+        {
+            _getString = (GetString)Marshal.GetDelegateForFunctionPointer(SDL.SDL_GL_GetProcAddress("glGetString"), typeof(GetString));
+            var str = GetString(GL.GL_VERSION);
+            FLLog.Info("GL", "Version String: " + GetString(GL.GL_VERSION));
+            var major = int.Parse(str[0].ToString());
+            return major >= 3;
+        }
         public static void Load(Func<string,Type,Delegate> getprocaddress)
         {
             errors = new Dictionary<int, string>();
@@ -313,7 +321,7 @@ namespace LibreLancer
                     continue;
                 //var del = Marshal.GetDelegateForFunctionPointer(getprocaddress(proc), f.FieldType);
                 var del = getprocaddress(proc, f.FieldType);
-                if (proc != "glGetError")
+                if (proc != "glGetError" && del != null)
                     del = MakeWrapper(f.FieldType, del);
                 f.SetValue(null, del);
                 loaded++;

@@ -218,7 +218,12 @@ namespace LibreLancer
             else
             {
                 var glcontext = SDL.SDL_GL_CreateContext(sdlWin);
-                if (glcontext == IntPtr.Zero)
+                bool check = GL.CheckStringSDL();
+                if(!check) {
+                    FLLog.Warning("GL", "GL Version Insufficient - Using DX9");
+                    SDL.SDL_GL_DeleteContext(glcontext);
+                }
+                if (glcontext == IntPtr.Zero || !check)
                 {
                     if (Platform.RunningOS == OS.Windows)
                     {
@@ -230,8 +235,11 @@ namespace LibreLancer
                         return;
                     }
                 }
-                GL.LoadSDL();
-                Renderer = string.Format("{0} ({1})", GL.GetString(GL.GL_VERSION), GL.GetString(GL.GL_RENDERER));
+                else
+                {
+                    GL.LoadSDL();
+                    Renderer = string.Format("{0} ({1})", GL.GetString(GL.GL_VERSION), GL.GetString(GL.GL_RENDERER));
+                }
             }
             //Init game state
             RenderState = new RenderState();
