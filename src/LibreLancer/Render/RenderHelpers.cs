@@ -54,11 +54,12 @@ namespace LibreLancer
 						continue;
 					var l = src.Lights[i].Light;
 					var r2 = r + l.Range;
-					if ((l.Kind == LightKind.Point || l.Kind == LightKind.PointAttenCurve ||
-					    l.Kind == LightKind.Spotlight) &&
-						VectorMath.DistanceSquared(l.Position, c) > (r2 * r2))
+					//l.Kind > 0 - test if not directional
+					if (l.Kind > 0 && VectorMath.DistanceSquared(l.Position, c) > (r2 * r2))
 						continue;
-					//TODO: Advanced spotlight culling (based on cone?)
+					//Advanced spotlight cull
+					if ((l.Kind == LightKind.Spotlight) && SpotlightTest(ref l, c, r))
+						continue;
 					lights.Lights.Add(l);
 				}
 			}
@@ -84,6 +85,19 @@ namespace LibreLancer
 				}
 			}
 			return lights;
+		}
+
+		//Returns whether or not a spotlight can be culled
+		static bool SpotlightTest(ref RenderLight light, Vector3 objPos, float objRadius)
+		{
+			var V = objPos - light.Position;
+			var VLenSq = V.LengthSquared;
+			var V1len = Vector3.Dot(V, light.Direction);
+			var distClosestPoint = (float)(Math.Cos(light.Phi) * Math.Sqrt(VLenSq - V1len * V1len) - V1len * Math.Sin(light.Phi));
+			var angleCull = distClosestPoint > objRadius;
+			var frontCull = V1len > objRadius + light.Range;
+			var backCull = V1len < -objRadius;
+			return angleCull || frontCull || backCull;
 		}
 	}
 }
