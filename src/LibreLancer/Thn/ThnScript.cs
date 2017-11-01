@@ -74,6 +74,7 @@ namespace LibreLancer
 			ThnEnv.Add("START_FOG_PROP_ANIM", EventTypes.StartFogPropAnim);
 			ThnEnv.Add("START_CAMERA_PROP_ANIM", EventTypes.StartCameraPropAnim);
 			ThnEnv.Add("START_SOUND", EventTypes.StartSound);
+			ThnEnv.Add("START_AUDIO_PROP_ANIM", EventTypes.StartAudioPropAnim);
 			ThnEnv.Add("CONNECT_HARDPOINTS", EventTypes.ConnectHardpoints);
 			//Axis
 			ThnEnv.Add("X_AXIS", VectorMath.UnitX);
@@ -161,28 +162,30 @@ namespace LibreLancer
 						throw new NotImplementedException();
 				}
 			}
-			else if (type == EntityTypes.Camera)
-			{
-				switch (val)
-				{
-					case 16:
-						return ThnObjectFlags.Hidden;
-					default:
-						throw new NotImplementedException();
-				}
-			}
-			else
-			{
-				switch (val)
-				{
-					case 4:
-						return ThnObjectFlags.LitDynamic;
-					case (2 | 4):
-						return ThnObjectFlags.LitDynamic | ThnObjectFlags.LitAmbient;
-					default:
-						throw new NotImplementedException();
-				}
-			}
+			return ThnEnum.FlagsReflected<ThnObjectFlags>(val);
+		}
+
+
+
+		public static Matrix4 GetMatrix(LuaTable orient)
+		{
+			var m11 = (float)((LuaTable)orient[0])[0];
+			var m12 = (float)((LuaTable)orient[0])[1];
+			var m13 = (float)((LuaTable)orient[0])[2];
+
+			var m21 = (float)((LuaTable)orient[1])[0];
+			var m22 = (float)((LuaTable)orient[1])[1];
+			var m23 = (float)((LuaTable)orient[1])[2];
+
+			var m31 = (float)((LuaTable)orient[2])[0];
+			var m32 = (float)((LuaTable)orient[2])[1];
+			var m33 = (float)((LuaTable)orient[2])[2];
+			return new Matrix4(
+				m11, m12, m13, 0,
+				m21, m22, m23, 0,
+				m31, m32, m33, 0,
+				0, 0, 0, 1
+			);
 		}
 
 		ThnEntity GetEntity(LuaTable table)
@@ -256,24 +259,7 @@ namespace LibreLancer
 				}
 				if (spatialprops.TryGetValue("orient", out o))
 				{
-					var orient = (LuaTable)o;
-					var m11 = (float)((LuaTable)orient[0])[0];
-					var m12 = (float)((LuaTable)orient[0])[1];
-					var m13 = (float)((LuaTable)orient[0])[2];
-
-					var m21 = (float)((LuaTable)orient[1])[0];
-					var m22 = (float)((LuaTable)orient[1])[1];
-					var m23 = (float)((LuaTable)orient[1])[2];
-
-					var m31 = (float)((LuaTable)orient[2])[0];
-					var m32 = (float)((LuaTable)orient[2])[1];
-					var m33 = (float)((LuaTable)orient[2])[2];
-					e.RotationMatrix = new Matrix4(
-						m11, m12, m13, 0,
-						m21, m22, m23, 0,
-						m31, m32, m33, 0,
-						0  , 0  , 0  , 1
-					);
+					e.RotationMatrix = GetMatrix((LuaTable)o);
 				}
 			}
 

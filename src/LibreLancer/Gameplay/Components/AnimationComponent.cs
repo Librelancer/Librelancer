@@ -25,6 +25,7 @@ namespace LibreLancer
 			public string Name;
 			public Script Script;
 			public double StartTime;
+			public bool Loop;
 		}
 
 		AnmFile anm;
@@ -34,12 +35,12 @@ namespace LibreLancer
 			anm = animation;
 		}
 
-		public void StartAnimation(string animationName)
+		public void StartAnimation(string animationName, bool loop = true)
 		{
 			if (anm.Scripts.ContainsKey(animationName))
 			{
 				var sc = anm.Scripts[animationName];
-				animations.Add(new ActiveAnimation() { Name = animationName, Script = sc, StartTime = totalTime });
+				animations.Add(new ActiveAnimation() { Name = animationName, Script = sc, StartTime = totalTime, Loop = loop });
 			}
 			else
 				FLLog.Error("Animation", animationName + " not present");
@@ -64,29 +65,35 @@ namespace LibreLancer
 			bool finished = true;
 			foreach (var map in a.Script.ObjectMaps)
 			{
-				if (!ProcessObjectMap(map, a.StartTime))
+				if (!ProcessObjectMap(map, a.StartTime, a.Loop))
 					finished = false;
 			}
 			foreach (var map in a.Script.JointMaps)
 			{
-				if (!ProcessJointMap(map, a.StartTime))
+				if (!ProcessJointMap(map, a.StartTime, a.Loop))
 					finished = false;
 			}
 			return finished;
 		}
 
-		bool ProcessObjectMap(ObjectMap om, double startTime)
+		bool ProcessObjectMap(ObjectMap om, double startTime, bool loop)
 		{
 			return false;
 		}
 
-		bool ProcessJointMap(JointMap jm, double startTime)
+		bool ProcessJointMap(JointMap jm, double startTime, bool loop)
 		{
 			var joint = Parent.CmpConstructs.Find(jm.ChildName);
 			double t = totalTime - startTime;
 			//looping?
 			if (jm.Channel.Interval == -1)
-				t = t % jm.Channel.Frames[jm.Channel.FrameCount - 1].Time.Value;
+			{
+				var duration = jm.Channel.Frames[jm.Channel.FrameCount - 1].Time.Value;
+				if (!loop && t >= duration)
+					return true;
+				else
+					t = t % duration;
+			}
 			float t1 = 0;
 			for (int i = 0; i < jm.Channel.Frames.Length - 1; i++)
 			{

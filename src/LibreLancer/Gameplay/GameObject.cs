@@ -311,10 +311,17 @@ namespace LibreLancer
 			foreach (var child in Children)
 				child.Unregister(physics);
 		}
+
+		public bool HardpointExists(string hpname)
+		{
+			return hardpoints.ContainsKey(hpname);
+		}
+
 		public Hardpoint GetHardpoint(string hpname)
 		{
 			return hardpoints[hpname];
 		}
+
 		public IEnumerable<Hardpoint> GetHardpoints()
 		{
 			return hardpoints.Values;

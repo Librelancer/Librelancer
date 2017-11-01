@@ -22,9 +22,9 @@ namespace LibreLancer
 	{
 		Position = 2,
 		Orientation = 4,
-		EntityRelative = 8,
-		LookAt = 16,
-		OrientationRelative = 32,
+		EntityRelative = 32,
+		LookAt = 8,
+		OrientationRelative = 128, // Check?
 		ParentChild = 64 // Unknown
 	}
 }

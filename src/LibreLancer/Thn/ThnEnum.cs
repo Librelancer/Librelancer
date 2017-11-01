@@ -62,9 +62,31 @@ namespace LibreLancer
 					return AttachFlags.Orientation;
 				case (2 | 4 | 32):
 					return AttachFlags.Position | AttachFlags.Orientation | AttachFlags.EntityRelative;
+				case (2 | 4 | 32 | 128):
+					return AttachFlags.Position | AttachFlags.Orientation | AttachFlags.EntityRelative | AttachFlags.OrientationRelative;
 				default:
 					throw new NotImplementedException(o.ToString());
 			}
+		}
+
+		public static T FlagsReflected<T>(int input)
+		{
+			int v = input;
+			int objFlags = 0;
+			foreach (var fl in Enum.GetValues(typeof(T)))
+			{
+				var integer = (int)(dynamic)fl;
+				if ((v & integer) == integer)
+				{
+					v &= ~integer;
+					objFlags |= integer;
+				}
+			}
+			if (v != 0)
+			{
+				throw new NotImplementedException("Flags for " + typeof(T).Name + ": " + v);
+			}
+			return (T)(dynamic)objFlags;
 		}
 
 		static object DoFogModes(object o)
@@ -85,6 +107,8 @@ namespace LibreLancer
 			{
 				case 3:
 					return EventTypes.StartSound;
+				case 4:
+					return EventTypes.StartLightPropAnim;
 				case 6:
 					return EventTypes.StartPathAnimation;
 				case 7:
@@ -93,6 +117,8 @@ namespace LibreLancer
 					return EventTypes.AttachEntity;
 				case 13:
 					return EventTypes.StartPSys;
+				case 15:
+					return EventTypes.StartAudioPropAnim;
 				case 16:
 					return EventTypes.StartFogPropAnim;
 				default:

@@ -147,7 +147,7 @@ namespace LibreLancer.Utf.Mat
 			"DcDt", "DcDtTwo", "DcDtEc", "DcDtEt", "DcDtEcEt",
 			"DcDtOcOt", "DcDtBtOcOt", "DcDtBtOcOtTwo", "DcDtEcOcOt",
 			"DcDtOcOtTwo", "DcDtBt", "DcDtBtTwo", "BtDetailMapMaterial",
-			"DcDtEcOcOtTwo", "DcDtEtTwo"
+			"DcDtEcOcOtTwo", "DcDtEtTwo", "DcDtEcTwo"
 		};
 		RenderMaterial _rmat;
 		public RenderMaterial Render

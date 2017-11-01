@@ -50,11 +50,15 @@ namespace LibreLancer
 				{
 					if (src.Lights[i].LightGroup != lightGroup)
 						continue;
+					if (!src.Lights[i].Active) 
+						continue;
 					var l = src.Lights[i].Light;
 					var r2 = r + l.Range;
-					if ((l.Kind == LightKind.Point || l.Kind == LightKind.PointAttenCurve) &&
+					if ((l.Kind == LightKind.Point || l.Kind == LightKind.PointAttenCurve ||
+					    l.Kind == LightKind.Spotlight) &&
 						VectorMath.DistanceSquared(l.Position, c) > (r2 * r2))
 						continue;
+					//TODO: Advanced spotlight culling (based on cone?)
 					lights.Lights.Add(l);
 				}
 			}

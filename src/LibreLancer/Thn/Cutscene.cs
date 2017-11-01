@@ -19,6 +19,7 @@ using LibreLancer.Thorn;
 
 namespace LibreLancer
 {
+	//TODO: PCurves
 	public class Cutscene
 	{
 		class ThnObject
@@ -238,6 +239,15 @@ namespace LibreLancer
 				case EventTypes.StartPathAnimation:
 					ProcessStartPathAnimation(ev);
 					break;
+				case EventTypes.StartSpatialPropAnim:
+					ProcessStartSpatialPropAnim(ev);
+					break;
+				case EventTypes.StartPSysPropAnim:
+					ProcessStartPSysPropAnim(ev);
+					break;
+				default:
+					FLLog.Error("Thn", "Unimplemented event: " + ev.Type.ToString());
+					break;
 			}
 		}
 
@@ -325,6 +335,11 @@ namespace LibreLancer
 				if (targetType == TargetTypes.Hardpoint)
 				{
 					var targetHp = ev.Properties["target_part"].ToString();
+					if (!objB.Object.HardpointExists(targetHp))
+					{
+						FLLog.Error("Thn", "object " + objB.Name + " does not have hardpoint " + targetHp);
+						return;
+					}
 					var hp = objB.Object.GetHardpoint(targetHp);
 					objA.Object.Attachment = hp;
 					objA.Object.Parent = objB.Object;
@@ -466,6 +481,35 @@ namespace LibreLancer
 		}
 		#endregion
 
+		#region StartSpatialPropAnim
+		void ProcessStartSpatialPropAnim(ThnEvent ev)
+		{
+			var obj = objects[(string)ev.Targets[0]];
+
+			var props = (LuaTable)ev.Properties["spatialprops"];
+			Matrix4? orient = null;
+			object tmp;
+			if (ev.Properties.TryGetValue("orient", out tmp))
+			{
+				orient = ThnScript.GetMatrix((LuaTable)tmp);
+			}
+			if (obj.Camera != null)
+			{
+				if (orient != null) obj.Camera.Orientation = orient.Value;
+				if (ev.Duration > 0)
+				{
+					FLLog.Error("Thn", "spatialpropanim.duration > 0 - unimplemented");
+					//return;
+				}
+			}
+			if (obj.Camera == null)
+			{
+				FLLog.Error("Thn", "StartSpatialPropAnim unimplemented");
+			}
+		}
+
+		#endregion
+
 		#region StartPSys
 		void ProcessStartPSys(ThnEvent ev)
 		{
@@ -474,14 +518,68 @@ namespace LibreLancer
 		}
 		#endregion
 
+		#region StartPSysPropAnim
+		void ProcessStartPSysPropAnim(ThnEvent ev)
+		{
+			var obj = objects[(string)ev.Targets[0]];
+			var ren = ((ParticleEffectRenderer)obj.Object.RenderComponent);
+			var props = (LuaTable)ev.Properties["psysprops"];
+			var targetSparam = (float)props["sparam"];
+			if (ev.Duration == 0)
+			{
+				ren.SParam = targetSparam;
+			}
+			else
+			{
+				coroutines.Add(new SParamAnimation()
+				{
+					Renderer = ren,
+					StartSParam = ren.SParam,
+					EndSParam = targetSparam,
+					Duration = ev.Duration,
+				});
+			}
+		}
+
+		class SParamAnimation : IThnRoutine
+		{
+			public ParticleEffectRenderer Renderer;
+			public float StartSParam;
+			public float EndSParam;
+			public double Duration;
+			double time;
+			public bool Run(Cutscene cs, double delta)
+			{
+				time += delta;
+				if (time >= Duration)
+				{
+					Renderer.SParam = EndSParam;
+					return false;
+				}
+				var pct = (float)(time / Duration);
+				Renderer.SParam = MathHelper.Lerp(StartSParam, EndSParam, pct);
+				return true;
+			}
+		}
+		#endregion
 		#region StartMotion
 		void ProcessStartMotion(ThnEvent ev)
 		{
 			//How to tie this in with .anm files?
 			var obj = objects[(string)ev.Targets[0]];
+
 			if (obj.Object != null && obj.Object.AnimationComponent != null) //Check if object has Cmp animation
 			{
-				obj.Object.AnimationComponent.StartAnimation((string)ev.Properties["animation"]);
+				object o;
+				bool loop = true;
+				if (ev.Properties.TryGetValue("event_flags", out o))
+				{
+					if (((int)(float)o) == 3)
+					{
+						loop = false; //Play once?
+					}
+				}
+				obj.Object.AnimationComponent.StartAnimation((string)ev.Properties["animation"], loop);
 			}
 		}
 		#endregion
@@ -554,7 +652,8 @@ namespace LibreLancer
 				}
 				else if ((Flags & AttachFlags.Orientation) == AttachFlags.Orientation)
 				{
-
+					if((Flags & AttachFlags.Position) == AttachFlags.Position)
+						SetPosition(pos + Path.Translate);
 				}
 				else if ((Flags & AttachFlags.Position) == AttachFlags.Position)
 				{
