@@ -34,4 +34,4 @@ To help speed up development, donations can be sent to paypal.paymentmc@gmail.co
 __Mac support is currently broken pending a maintainer__
 
 ### Screenshots
-See: http://callumdev.github.io/Librelancer/Screenshots
+See: http://callumdev.github.io/Librelancer/screenshots
