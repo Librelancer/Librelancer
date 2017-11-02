@@ -55,6 +55,7 @@ if(currentPlatform == BPlatforms.Windows) {
 	}
 }
 LoadAssembly(msbuild_path + "Microsoft.Build.dll");
+LoadAssembly(msbuild_path +"Microsoft.Build.Engine.dll");
 using Microsoft.Build.Evaluation;
 
 Console.WriteLine("Platform: {0}", currentPlatform);
@@ -63,21 +64,49 @@ Console.WriteLine("Enumerating Projects...");
 Dictionary<string,string> slnFolders = new Dictionary<string,string>();
 List<string> slnItemFolders = new List<string>();
 bool hasFolders = false;
+//TEST MSBUILD
+bool evaluationNamespace = true;
+string prpath;
+foreach(var p in projects) {
+	if((p.Platform & currentPlatform) != currentPlatform) continue;
+	prpath = Path.Combine(basedir, p.Path);
+	break;
+}
+var pjtest = new Project(prpath);
+if(string.IsNullOrEmpty(pjtest.GetPropertyValue("ProjectGuid"))) {
+	Console.WriteLine("Using Legacy MSBuild API");
+	evaluationNamespace = false;
+}
+//RUN
 foreach(var p in projects) {
 	var projpath = Path.Combine(basedir, p.Path);
 	if((p.Platform & currentPlatform) != currentPlatform) continue;
-	Project project = new Project(projpath);
-	string guid;
-	guid = project.GetPropertyValue("ProjectGuid");
-	p.Guid = guid;
-	string projtype;
-	projtype = project.GetPropertyValue("ProjectTypeGuids");
-	if(string.IsNullOrEmpty(projtype))
-		projtype = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}";
-	p.TypeGuid = projtype;
 	p.Deps = new List<string>();
-	foreach(var item in project.GetItems("ProjectReference")) {
-		p.Deps.Add(item.GetMetadataValue("Project"));
+	if(evaluationNamespace) {
+		Project project = new Project(projpath);
+		string guid;
+		guid = project.GetPropertyValue("ProjectGuid");
+		p.Guid = guid;
+		string projtype;
+		projtype = project.GetPropertyValue("ProjectTypeGuids");
+		if(string.IsNullOrEmpty(projtype))
+			projtype = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}";
+		p.TypeGuid = projtype;
+		foreach(var item in project.GetItems("ProjectReference")) {
+			p.Deps.Add(item.GetMetadataValue("Project"));
+		}
+	} else {
+		Microsoft.Build.BuildEngine.Engine buildEngine = new Microsoft.Build.BuildEngine.Engine(Environment.CurrentDirectory);
+		Microsoft.Build.BuildEngine.Project project = new Microsoft.Build.BuildEngine.Project(buildEngine);
+		project.Load(projpath);
+		string guid;
+		guid = project.GetEvaluatedProperty("ProjectGuid");
+		p.Guid = guid;
+		string projtype;
+		projtype = project.GetEvaluatedProperty("ProjectTypeGuids");
+		if(string.IsNullOrEmpty(projtype))
+			projtype = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}";
+		p.TypeGuid = projtype;
 	}
 	if(p.Folder != null && !slnFolders.ContainsKey(p.Folder)) {
 		var folderGuid = Guid.NewGuid().ToString("B").ToUpperInvariant();
