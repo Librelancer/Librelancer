@@ -9,9 +9,9 @@ fi
 if [ ! -f "slngen/slngen/bin/Debug/slngen.exe" ] || [ "$1" == "--rebuild" ]; then
     cd slngen
     nuget restore
-    if [ "$USE_MSBUILD" -eq 1 ]; then
+    if [ "$USE_MSBUILD" == "1" ]; then
 	msbuild
-    elif [ "$USE_XBUILD" -eq 1]; then
+    elif [ "$USE_XBUILD" == "1" ]; then
 	xbuild
     else
 	xbuild
