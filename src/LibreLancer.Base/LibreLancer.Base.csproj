@@ -76,7 +76,6 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="Mono.Cairo" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bounds\BoundingBox.cs" />

@@ -3,8 +3,8 @@
 //Support Code
 using System;
 using System.Collections.Generic;
-enum BPlatforms {Windows = 2,Linux = 4,MacOS = 8,All = (2 | 4 | 8)}
-class ProjectDef { public string Path; public string Folder; public BPlatforms Platform; public string Guid; public string TypeGuid; }
+
+class ProjectDef { public string Path; public string Folder; public BPlatforms Platform; public string Guid; public string TypeGuid; public List<string> Deps; }
 class SlnItem { public string Path; public string Folder; }
 List<ProjectDef> projects = new List<ProjectDef>();
 List<SlnItem> slnitems = new List<SlnItem>();
@@ -20,11 +20,6 @@ Action<string,string,BPlatforms> PROJECTFP = (name, folder, plat) => { projects.
 
 //Runner
 Console.WriteLine("SLNGEN v1.0");
-LoadAssembly("Microsoft.Build.Engine.dll");
-LoadAssembly("Microsoft.Build.Framework.dll");
-LoadAssembly("Microsoft.Build.dll");
-using Microsoft.Build.BuildEngine;
-using Microsoft.Build.Framework;
 using System.IO;
 BPlatforms currentPlatform = BPlatforms.Windows;
 switch (Environment.OSVersion.Platform) {
@@ -42,6 +37,26 @@ switch (Environment.OSVersion.Platform) {
 		currentPlatform = BPlatforms.MacOS;
 		break;
 }
+string msbuild_path = "";
+if(currentPlatform == BPlatforms.Windows) {
+	var msbuildver = 0.0;
+	foreach(var directory in Directory.GetDirectories("C:\\Program Files (x86)\\MSBuild")) {
+		var split = directory.Split('\\');
+		var ver = split[split.Length - 1];
+		double d;
+		if(double.TryParse(ver, out d)) {
+			msbuildver = Math.Max(d, msbuildver);
+		}
+	}
+	if(msbuildver > 0) {
+		msbuild_path = "C:\\Program Files (x86)\\MSBuild\\" + msbuildver.ToString("0.0") + "\\Bin\\";
+		if(IntPtr.Size == 8) msbuild_path += "amd64\\";
+		Console.WriteLine("MSBuild Auto-detection: " + msbuild_path);
+	}
+}
+LoadAssembly(msbuild_path + "Microsoft.Build.dll");
+using Microsoft.Build.Evaluation;
+
 Console.WriteLine("Platform: {0}", currentPlatform);
 slnname = string.Format(slnname, currentPlatform.ToString());
 Console.WriteLine("Enumerating Projects...");
@@ -51,17 +66,19 @@ bool hasFolders = false;
 foreach(var p in projects) {
 	var projpath = Path.Combine(basedir, p.Path);
 	if((p.Platform & currentPlatform) != currentPlatform) continue;
-	Engine buildEngine = new Engine(Environment.CurrentDirectory);
-	Project project = new Project(buildEngine);
-	project.Load(projpath);
+	Project project = new Project(projpath);
 	string guid;
-	guid = project.GetEvaluatedProperty("ProjectGuid");
+	guid = project.GetPropertyValue("ProjectGuid");
 	p.Guid = guid;
 	string projtype;
-	projtype = project.GetEvaluatedProperty("ProjectTypeGuids");
+	projtype = project.GetPropertyValue("ProjectTypeGuids");
 	if(string.IsNullOrEmpty(projtype))
 		projtype = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}";
 	p.TypeGuid = projtype;
+	p.Deps = new List<string>();
+	foreach(var item in project.GetItems("ProjectReference")) {
+		p.Deps.Add(item.GetMetadataValue("Project"));
+	}
 	if(p.Folder != null && !slnFolders.ContainsKey(p.Folder)) {
 		var folderGuid = Guid.NewGuid().ToString("B").ToUpperInvariant();
 		Console.WriteLine("SOLUTION FOLDER: {0} with Guid: {1}", p.Folder, folderGuid);
@@ -75,21 +92,29 @@ foreach(var itm in slnitems) {
 string FOLDER_GUID="{2150E333-8FDC-42A3-9474-1A3956D46DE8}";
 Console.WriteLine("Outputting to: {0}", Path.Combine(basedir, slnname));
 using(var writer = new StreamWriter(File.Create(Path.Combine(basedir, slnname)))) {
+	writer.NewLine = "\n";
 	writer.WriteLine("Microsoft Visual Studio Solution File, Format Version 12.00");
 	writer.WriteLine("# Visual Studio 14");
 	writer.WriteLine("VisualStudioVersion = 14.0.25420.1");
 	writer.WriteLine("MinimumVisualStudioVersion = 10.0.40219.1");
 	foreach(var p in projects) {
 		if((p.Platform & currentPlatform) != currentPlatform) continue;
-		writer.WriteLine("Project (\"{0}\") = \"{1}\", \"{2}\", \"{3}\"",
+		writer.WriteLine("Project(\"{0}\") = \"{1}\", \"{2}\", \"{3}\"",
 						 p.TypeGuid,
 						 Path.GetFileNameWithoutExtension(p.Path),
 						 p.Path.Replace("/","\\"),
 						 p.Guid);
+		if(p.Deps.Count > 0) {
+			writer.WriteLine("\tProjectSection(ProjectDependencies) = postProject");
+			foreach(var dep in p.Deps) {
+				writer.WriteLine("\t\t{0} = {0}", dep);
+			}
+			writer.WriteLine("\tEndProjectSection");
+		}
 		writer.WriteLine("EndProject");
 	}
 	foreach(var kv in slnFolders) {
-		writer.WriteLine("Project (\"{0}\") = \"{1}\", \"{1}\", \"{2}\"",
+		writer.WriteLine("Project(\"{0}\") = \"{1}\", \"{1}\", \"{2}\"",
 						FOLDER_GUID,
 						kv.Key,
 						kv.Value
@@ -97,7 +122,7 @@ using(var writer = new StreamWriter(File.Create(Path.Combine(basedir, slnname)))
 		writer.WriteLine("EndProject");
 	}
 	foreach(var fld in slnItemFolders) {
-		writer.WriteLine("Project (\"{0}\") = \"{1}\", \"{1}\", \"{2}\"",
+		writer.WriteLine("Project(\"{0}\") = \"{1}\", \"{1}\", \"{2}\"",
 						FOLDER_GUID,
 						fld,
 						Guid.NewGuid().ToString("B").ToUpperInvariant()
