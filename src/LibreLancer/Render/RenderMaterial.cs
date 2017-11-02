@@ -96,7 +96,7 @@ namespace LibreLancer
 				nullTexture = new Texture2D(256, 256, false, SurfaceFormat.Color);
 				Color4b[] colors = new Color4b[nullTexture.Width * nullTexture.Height];
 				for (int i = 0; i < colors.Length; i++)
-					colors[i] = Color4b.White;
+					colors[i] = Color4b.Black;
 				nullTexture.SetData<Color4b>(colors);
 			}
 			return nullTexture;

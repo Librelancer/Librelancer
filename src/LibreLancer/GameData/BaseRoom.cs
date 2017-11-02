@@ -22,11 +22,19 @@ namespace LibreLancer.GameData
 		public string Nickname;
 		public string Camera;
 		public List<string> ThnPaths;
+		public List<BaseHotspot> Hotspots;
 		public string Music;
 
 		public IEnumerable<ThnScript> OpenScripts()
 		{
 			foreach (var p in ThnPaths) yield return new ThnScript(p);
 		}
+	}
+	public class BaseHotspot
+	{
+		public string Name;
+		public string Behaviour;
+		public string Room;
+		public bool RoomIsVirtual;
 	}
 }

@@ -1,0 +1,21 @@
+#!/bin/bash
+if [ "$1" == "--help" ]; then
+    echo usage: "$0" [--rebuild]
+    echo Set USE_MSBUILD=1 or USE_XBUILD=1 to specify build engine
+    echo xbuild is default
+    exit 0
+fi
+
+if [ ! -f "slngen/slngen/bin/Debug/slngen.exe" ] || [ "$1" == "--rebuild" ]; then
+    cd slngen
+    nuget restore
+    if [ "$USE_MSBUILD" -eq 1 ]; then
+	msbuild
+    elif [ "$USE_XBUILD" -eq 1]; then
+	xbuild
+    else
+	xbuild
+    fi    
+    cd ..
+fi
+mono slngen/slngen/bin/Debug/slngen.exe

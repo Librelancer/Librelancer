@@ -98,7 +98,7 @@ vec4 light(vec4 ac, vec4 ec, vec4 dc, vec4 tex, vec3 position, vec4 view_positio
 		color += attenuation * diffuse;
 	}
 	color = clamp(color,0.0,1.0);
-	vec3 object_color = ec.rgb + (tex.rgb * color);
+	vec3 object_color = (ec.rgb * tex.rgb) + (tex.rgb * color);
 	if(FogMode > 0) {
 		object_color = apply_fog(view_position, object_color);
 	}

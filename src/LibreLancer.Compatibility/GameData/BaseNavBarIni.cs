@@ -10,18 +10,29 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2017
+ * Portions created by the Initial Developer are Copyright (C) 2013-2016
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-namespace LibreLancer
+using System.Collections.Generic;
+using LibreLancer.Ini;
+namespace LibreLancer.Compatibility.GameData
 {
-	public class Maneuver
+	public class BaseNavBarIni : IniFile
 	{
-		public string Action;
-		public string InfocardA;
-		public string InfocardB;
-		public string ActiveModel;
-		public string InactiveModel;
+		public Dictionary<string, string> Navbar = new Dictionary<string, string>();
+		public BaseNavBarIni()
+		{
+			foreach (Section s in ParseFile("DATA\\INTERFACE\\BASESIDE\\navbar.ini", true))
+			{
+				if (s.Name.ToLowerInvariant() == "navbar")
+				{
+					foreach (var e in s)
+					{
+						Navbar.Add(e.Name, e[0].ToString());
+					}
+				}
+			}
+		}
 	}
 }

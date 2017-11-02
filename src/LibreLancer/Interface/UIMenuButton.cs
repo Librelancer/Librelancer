@@ -24,7 +24,7 @@ namespace LibreLancer
 
 		public UIMenuButton (UIManager manager, Vector2 position, string text, string tag = null) : base(manager)
 		{
-			UIScale = new Vector2 (2f, 3f);
+			UIScale = new Vector2 (1.865f, 2.72f);
 			Text = text;
 			UIPosition = position;
 			Tag = tag;
@@ -41,7 +41,6 @@ namespace LibreLancer
 		}
 		protected override void UpdateInternal (TimeSpan time)
 		{
-			
 			var rect = GetTextRectangle ();
 			color = Tag != null ? Manager.TextColor : Color4.Gray;
 			if (rect.Contains (Manager.Game.Mouse.X, Manager.Game.Mouse.Y) && Tag != null) {

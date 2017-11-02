@@ -181,6 +181,19 @@ namespace LibreLancer
             Renderer = "Direct3D9 (ANGLE)";
         }
 
+		public void SetVSync(bool vsync)
+		{
+			if (vsync)
+			{
+				if (SDL.SDL_GL_SetSwapInterval(-1) < 0)
+					SDL.SDL_GL_SetSwapInterval(1);
+			}
+			else
+			{
+				SDL.SDL_GL_SetSwapInterval(0);
+			}
+		}
+
 		public void Run()
 		{
             SSEMath.Load();
@@ -241,6 +254,7 @@ namespace LibreLancer
                     Renderer = string.Format("{0} ({1})", GL.GetString(GL.GL_VERSION), GL.GetString(GL.GL_RENDERER));
                 }
             }
+			SetVSync(true);
             //Init game state
             RenderState = new RenderState();
 			Load();
@@ -252,8 +266,6 @@ namespace LibreLancer
 			double elapsed = 0;
 			SDL.SDL_Event e;
 			SDL.SDL_StopTextInput();
-            if (SDL.SDL_GL_SetSwapInterval(-1) < 0)
-                SDL.SDL_GL_SetSwapInterval(1);
 			while (running) {
 				//Pump message queue
 				while (SDL.SDL_PollEvent (out e) != 0) {

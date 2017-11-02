@@ -57,8 +57,8 @@ namespace LibreLancer.Utf
 
         public override void Update(float distance)
         {
-			Vector3 currentRotation = AxisRotation.Xzy * MathHelper.Clamp(distance, Min, Max);
-            currentTransform = Matrix4.CreateRotationX(currentRotation.X) * Matrix4.CreateRotationY(currentRotation.Y) * Matrix4.CreateRotationZ(currentRotation.Z);
+			Vector3 currentRotation = AxisRotation * MathHelper.Clamp(distance, Min, Max);
+            currentTransform =  Matrix4.CreateRotationX(currentRotation.X) * Matrix4.CreateRotationY(currentRotation.Y) * Matrix4.CreateRotationZ(currentRotation.Z);
         }
     }
 }

@@ -26,18 +26,23 @@ namespace LibreLancer
 		Legacy.FreelancerData fldata;
 		ResourceManager resource;
 		List<GameData.IntroScene> IntroScenes;
-		public LegacyGameData (string path, ResourceManager resman)
+		public LegacyGameData(string path, ResourceManager resman)
 		{
 			resource = resman;
-			Compatibility.VFS.Init (path);
-			var flini = new Legacy.FreelancerIni ();
-			fldata = new Legacy.FreelancerData (flini);
+			Compatibility.VFS.Init(path);
+			var flini = new Legacy.FreelancerIni();
+			fldata = new Legacy.FreelancerData(flini);
 
 		}
 
 		public string ResolveDataPath(string input)
 		{
 			return Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + input);
+		}
+
+		public Dictionary<string, string> GetBaseNavbarIcons()
+		{
+			return fldata.BaseNavBar.Navbar;
 		}
 
 		public List<string> GetIntroMovies()
@@ -55,6 +60,7 @@ namespace LibreLancer
 		}
 		public GameData.Base GetBase(string id)
 		{
+			
 			var legacy = fldata.Universe.FindBase(id);
 			var b = new GameData.Base();
 			foreach (var room in legacy.Rooms)
@@ -64,6 +70,15 @@ namespace LibreLancer
 				nr.ThnPaths = new List<string>();
 				foreach (var path in room.SceneScripts)
 					nr.ThnPaths.Add(Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + path));
+				nr.Hotspots = new List<GameData.BaseHotspot>();
+				foreach (var hp in room.Hotspots)
+					nr.Hotspots.Add(new GameData.BaseHotspot()
+					{
+						Name = hp.Name,
+						Behaviour = hp.Behaviour,
+						Room = hp.VirtualRoom ?? hp.RoomSwitch,
+						RoomIsVirtual = hp.VirtualRoom != null
+					});
 				nr.Nickname = room.Nickname;
 				if (room.Nickname == legacy.StartRoom) b.StartRoom = nr;
 				nr.Camera = room.Camera;
@@ -75,7 +90,8 @@ namespace LibreLancer
 		{
 			fldata.LoadData();
 			IntroScenes = new List<GameData.IntroScene>();
-			foreach(var b in fldata.Universe.Bases) {
+			foreach (var b in fldata.Universe.Bases)
+			{
 				if (b.Nickname.StartsWith("intro", StringComparison.InvariantCultureIgnoreCase))
 				{
 					foreach (var room in b.Rooms)
@@ -142,6 +158,14 @@ namespace LibreLancer
 			var rand = new Random();
 			return IntroScenes[rand.Next(0, IntroScenes.Count)];
 		}
+#if DEBUG
+		public GameData.IntroScene GetIntroSceneSpecific(int i)
+		{
+			if (i > IntroScenes.Count)
+				return null;
+			return IntroScenes[i];
+		}
+#endif
 		public void LoadHardcodedFiles()
 		{
 			resource.LoadVms (Compatibility.VFS.GetPath (fldata.Freelancer.DataPath + "INTERFACE/interface.generic.vms"));

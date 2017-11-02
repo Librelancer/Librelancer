@@ -110,6 +110,7 @@ namespace LibreLancer
 						else
 						{
 							obj.Object = new GameObject(drawable, game.ResourceManager, false);
+							obj.Object.PhysicsComponent = null; //Jitter seems to interfere with directly setting orientation
 							var r = (ModelRenderer)obj.Object.RenderComponent;
 							r.LightGroup = kv.Value.LightGroup;
 							r.LitDynamic = (kv.Value.ObjectFlags & ThnObjectFlags.LitDynamic) == ThnObjectFlags.LitDynamic;
@@ -192,7 +193,31 @@ namespace LibreLancer
 			world.RegisterAll();
 		}
 
+		double accumTime = 0;
+		const int MAX_STEPS = 8;
+		const double TIMESTEP = 1.0 / 120.0;
 		public void Update(TimeSpan delta)
+		{
+			int counter = 0;
+			accumTime += delta.TotalSeconds;
+
+			while (accumTime > (1.0 / 120.0))
+			{
+				_Update(TimeSpan.FromSeconds(TIMESTEP));
+
+				accumTime -= TIMESTEP;
+				counter++;
+
+				if (counter > MAX_STEPS)
+				{
+					// okay, okay... we can't keep up
+					FLLog.Warning("Thn", "Can't keep up!");
+					accumTime = 0.0f;
+					break;
+				}
+			}
+		}
+		public void _Update(TimeSpan delta)
 		{
 			currentTime += delta.TotalSeconds;
 			for (int i = (coroutines.Count - 1); i >= 0; i--)
@@ -245,6 +270,9 @@ namespace LibreLancer
 				case EventTypes.StartPSysPropAnim:
 					ProcessStartPSysPropAnim(ev);
 					break;
+				case EventTypes.StartLightPropAnim:
+					ProcessStartLightPropAnim(ev);
+					break;
 				default:
 					FLLog.Error("Thn", "Unimplemented event: " + ev.Type.ToString());
 					break;
@@ -262,6 +290,11 @@ namespace LibreLancer
 			SetCamera((string)ev.Targets[1]);
 		}
 		#endregion
+
+		void ProcessStartLightPropAnim(ThnEvent ev)
+		{
+			FLLog.Error("Thn", "Unimplemented event StartLightPropAnim");
+		}
 
 		#region AttachEntity
 		class AttachCameraToObject : IThnRoutine

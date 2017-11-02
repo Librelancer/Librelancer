@@ -10,18 +10,34 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2017
+ * Portions created by the Initial Developer are Copyright (C) 2013-2016
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+
 namespace LibreLancer
 {
-	public class Maneuver
+	public class FlyOutLeft : UIAnimation
 	{
-		public string Action;
-		public string InfocardA;
-		public string InfocardB;
-		public string ActiveModel;
-		public string InactiveModel;
+		Vector2 finalPos;
+		public FlyOutLeft(Vector2 final, double start, double time) : base(start, time)
+		{
+			finalPos = final;
+			CurrentPosition.Y = finalPos.Y;
+			FinalPositionSet = new Vector2(-2, finalPos.Y);
+		}
+
+		protected override void Run(double currentTime)
+		{
+			CurrentPosition.X = Utf.Ale.AlchemyEasing.Ease(
+				Utf.Ale.EasingTypes.EaseOut,
+				(float)currentTime,
+				 0,
+				(float)Duration,
+				finalPos.X,
+				 -2
+			);
+		}
 	}
 }
+

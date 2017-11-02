@@ -88,7 +88,7 @@ namespace LibreLancer
 
 			if (AsteroidFields != null)
 				foreach (var f in AsteroidFields) f.Dispose();
-			
+
 			cache.ClearTextures();
 
 			//Load new system
@@ -123,12 +123,13 @@ namespace LibreLancer
 					Nebulae.Add(new NebulaRenderer(n, camera, cache.Game));
 				}
 			}
-		
+
 			SystemLighting = new SystemLighting();
 			SystemLighting.Ambient = system.AmbientColor;
-            foreach (var lt in system.LightSources)
+			foreach (var lt in system.LightSources)
 				SystemLighting.Lights.Add(new DynamicLight() { Light = lt });
 		}
+
 		public void Update(TimeSpan elapsed)
 		{
 			foreach (var model in StarSphereModels)

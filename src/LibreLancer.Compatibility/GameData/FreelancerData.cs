@@ -34,6 +34,7 @@ namespace LibreLancer.Compatibility.GameData
 		public RichFontsIni RichFonts;
 		public PetalDbIni PetalDb;
 		public HudIni Hud;
+		public BaseNavBarIni BaseNavBar;
 		public bool Loaded = false;
 
 		public bool LoadDacom = true;
@@ -101,6 +102,8 @@ namespace LibreLancer.Compatibility.GameData
 			//Hud
 			Hud = new HudIni();
 			Hud.AddIni(Freelancer.HudPath);
+			//navbar.ini
+			BaseNavBar = new BaseNavBarIni();
 		}
 	}
 }

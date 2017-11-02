@@ -14,33 +14,63 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using LibreLancer.GameData;
 namespace LibreLancer
 {
 	public class RoomGameplay : GameState
 	{
+		static readonly string[] TOP_IDS = { //IDS that goes up the top?
+			"IDS_HOTSPOT_DECK",
+			"IDS_HOTSPOT_EQUIPMENTDEALER_ROOM",
+			"IDS_HOTSPOT_SHIPDEALER_ROOM",
+			"IDS_HOTSPOT_COMMODITYTRADER_ROOM",
+			"IDS_HOTSPOT_BAR",
+			"IDS_HOTSPOT_EXIT",
+			"IDS_HOTSPOT_PLANETSCAPE"
+		};
 		Base currentBase;
 		BaseRoom currentRoom;
 		Cutscene scene;
 		Hud hud;
 		GameSession session;
-		public RoomGameplay(FreelancerGame g, GameSession session, string newBase) : base(g)
+		string baseId;
+		Cursor cursor;
+		public RoomGameplay(FreelancerGame g, GameSession session, string newBase, BaseRoom room = null) : base(g)
 		{
 			this.session = session;
+			baseId = newBase;
 			currentBase = g.GameData.GetBase(newBase);
-			currentRoom = currentBase.StartRoom;
+			currentRoom = room ?? currentBase.StartRoom;
 			SwitchToRoom();
-			hud = new Hud(g);
+			var tophotspots = new List<BaseHotspot>();
+			foreach (var hp in currentRoom.Hotspots)
+				if (TOP_IDS.Contains(hp.Name))
+					tophotspots.Add(hp);
+			hud = new Hud(g, tophotspots);
 			hud.RoomMode();
 			hud.OnEntered += Hud_OnTextEntry;
+			hud.OnManeuverSelected += Hud_OnManeuverSelected;
 			Game.Keyboard.TextInput += Game_TextInput;
 			Game.Keyboard.KeyDown += Keyboard_KeyDown;
+			cursor = Game.ResourceManager.GetCursor("arrow");
 		}
 
 		public override void Unregister()
 		{
 			Game.Keyboard.TextInput -= Game_TextInput;
 			Game.Keyboard.KeyDown -= Keyboard_KeyDown;
+		}
+
+		bool Hud_OnManeuverSelected(string arg)
+		{
+			var hotspot = currentRoom.Hotspots.Find((obj) => obj.Name == arg);
+			if (!hotspot.RoomIsVirtual) {
+				var rm = currentBase.Rooms.Find((o) => o.Nickname == hotspot.Room);
+				Game.ChangeState(new RoomGameplay(Game, session, baseId, rm));
+			}
+			return false;
 		}
 
 		void Keyboard_KeyDown(KeyEventArgs e)
@@ -55,6 +85,14 @@ namespace LibreLancer
 				if (e.Key == Keys.L)
 				{
 					Game.Screenshots.TakeScreenshot();
+				}
+				if (e.Key == Keys.B)
+				{
+					if (currentRoom.Nickname.ToLowerInvariant() != "shipdealer")
+					{
+						var rm = currentBase.Rooms.Find((o) => o.Nickname.ToLowerInvariant() == "shipdealer");
+						Game.ChangeState(new RoomGameplay(Game, session, baseId, rm));
+					}
 				}
 				if (e.Key == Keys.Enter)
 				{
@@ -99,6 +137,9 @@ namespace LibreLancer
 			if(scene != null)
 				scene.Draw();
 			hud.Draw();
+			Game.Renderer2D.Start(Game.Width, Game.Height);
+			cursor.Draw(Game.Renderer2D, Game.Mouse);
+			Game.Renderer2D.Finish();
 		}
 	}
 }

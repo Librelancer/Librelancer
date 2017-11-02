@@ -12,6 +12,9 @@ namespace LibreLancer
 		public string BtSampler;
 		public SamplerFlags BtFlags;
 
+		public string NtSampler;
+		public SamplerFlags NtFlags;
+
 		public float Oc = 1f;
 
 		public NomadMaterial()
@@ -58,9 +61,11 @@ namespace LibreLancer
 			//Dt
 			shader.SetDtSampler(0);
 			BindTexture(rstate, 0, DtSampler, 0, DtFlags);
+			//Nt
+			shader.SetDmSampler(1); //Repurpose DmSampler
+			BindTexture(rstate, 1, NtSampler ?? "NomadRGB1_NomadAlpha1", 1, NtFlags, false);
 			//Bt
-			shader.SetEtSampler(1);
-			BindTexture(rstate, 1, BtSampler, 1, BtFlags, false);
+
 			//Disable MaterialAnim
 			shader.SetMaterialAnim(new Vector4(0, 0, 1, 1));
 			shader.UseProgram();

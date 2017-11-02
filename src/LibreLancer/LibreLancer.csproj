@@ -338,6 +338,9 @@
     <Compile Include="GameData\Items\PowerEquipment.cs" />
     <Compile Include="Interface\DebugDrawing.cs" />
     <Compile Include="Gameplay\GameSession.cs" />
+    <Compile Include="Interface\FlyOutLeft.cs" />
+    <Compile Include="Interface\HudNavBox.cs" />
+    <Compile Include="Interface\HudBaseButtonElement.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

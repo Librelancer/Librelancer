@@ -27,6 +27,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 		public string Nickname { get; private set; }
 		public string Music { get; private set; }
 		public List<string> SceneScripts { get; private set; }
+		public List<RoomHotspot> Hotspots { get; private set; }
 		public string Camera { get; private set; }
 		public Room(Section section, FreelancerData data)
 		{
@@ -34,6 +35,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 			if (section == null) throw new ArgumentNullException("section");
 			string file = null;
 			SceneScripts = new List<string>();
+			Hotspots = new List<RoomHotspot>();
 			foreach (Entry e in section)
 			{
 				switch (e.Name.ToLowerInvariant())
@@ -98,7 +100,27 @@ namespace LibreLancer.Compatibility.GameData.Universe
 					// TODO Room forsaleshipplacement
 					break;
 				case "hotspot":
-					// TODO Room hotspot
+						// TODO Room hotspot
+						var hotspot = new RoomHotspot();
+						foreach (Entry e in s)
+						{
+							switch (e.Name.ToLowerInvariant())
+							{
+								case "name":
+									hotspot.Name = e[0].ToString();
+									break;
+								case "behaviour":
+									hotspot.Behaviour = e[0].ToString();
+									break;
+								case "room_switch":
+									hotspot.RoomSwitch = e[0].ToString();
+									break;
+								case "virtual_room":
+									hotspot.VirtualRoom = e[0].ToString();
+									break;
+							}
+						}
+						Hotspots.Add(hotspot);
 					break;
 				case "flashlightset":
 					// TODO Room flashlightset
@@ -110,5 +132,12 @@ namespace LibreLancer.Compatibility.GameData.Universe
 				}
 			}
 		}
+	}
+	public class RoomHotspot
+	{
+		public string Name;
+		public string Behaviour;
+		public string RoomSwitch;
+		public string VirtualRoom;
 	}
 }

@@ -28,6 +28,7 @@ namespace LibreLancer
 		public int BufferWidth = 1024;
 		public int BufferHeight = 768;
 		public int MSAASamples = 0;
+		public bool VSync = true;
 
 		//This default is to stop dlopen on linux from trying to open itself
 		[XmlIgnore]

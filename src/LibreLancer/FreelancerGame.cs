@@ -68,6 +68,7 @@ namespace LibreLancer
 		protected override void Load()
         {
 			//Move to stop _TSGetMainThread error on OSX
+			SetVSync(Config.VSync);
 			new IdentityCamera(this);
 			uithread = Thread.CurrentThread.ManagedThreadId;
 			useintromovies = _cfg.IntroMovies;

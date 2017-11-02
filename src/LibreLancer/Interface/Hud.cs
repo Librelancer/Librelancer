@@ -25,7 +25,7 @@ namespace LibreLancer
 
 		HudModelElement shipinfo;
 		HudModelElement contactslist;
-		HudModelElement navbuttons;
+		HudNavBox navbuttons;
 		HudChatBox chatbox;
 		HudNumberBoxElement numberbox;
 		HudGaugeElement gauge;
@@ -39,11 +39,6 @@ namespace LibreLancer
 		public bool CruiseCharging = false;
 		public GameObject SelectedObject = null;
 
-		HudToggleButtonElement maneuverA;
-		HudToggleButtonElement maneuverB;
-		HudToggleButtonElement maneuverC;
-		HudToggleButtonElement maneuverD;
-
 		IDrawable reticle;
 		IDrawable reticle_arrows;
 		IDrawable reticle_health;
@@ -54,15 +49,12 @@ namespace LibreLancer
 		RenderMaterial UI_HUD_targetingblue;
 
 		List<Maneuver> mnvs;
-		public Hud(FreelancerGame game)
+		public Hud(FreelancerGame game, List<GameData.BaseHotspot> hotspots = null)
 		{
 			manager = new UIManager(game);
 			//backgrounds
 			contactslist = new HudModelElement(manager, "hud_target.cmp", -0.73f, -0.69f, 2.1f, 2.9f);
 			manager.Elements.Add(contactslist);
-
-			navbuttons = new HudModelElement(manager, "hud_maneuverbox4.cmp", 0, 0.925f, 4.5f, 6f);
-			manager.Elements.Add(navbuttons);
 
 			shipinfo = new HudModelElement(manager, "hud_shipinfo.cmp", 0.73f, -0.69f, 2.1f, 2.9f);
 			manager.Elements.Add(shipinfo);
@@ -77,23 +69,16 @@ namespace LibreLancer
 			manager.Elements.Add(chatbox);
 
 			//Maneuvers
-			mnvs = game.GameData.GetManeuvers().ToList();
-			if (mnvs.Count != 4) throw new NotImplementedException();
-
-			maneuverA = new HudToggleButtonElement(manager, mnvs[0].ActiveModel, mnvs[0].InactiveModel, -0.218f, 0.925f, 4.26f, 5.48f) { Tag = "mmA" };
-			manager.Elements.Add(maneuverA);
-
-			maneuverB = new HudToggleButtonElement(manager, mnvs[1].ActiveModel, mnvs[1].InactiveModel, -0.063f, 0.925f, 4.26f, 5.48f) { Tag = "mmB" };
-			maneuverB.State = ToggleState.Inactive;
-			manager.Elements.Add(maneuverB);
-
-			maneuverC = new HudToggleButtonElement(manager, mnvs[2].ActiveModel, mnvs[2].InactiveModel, 0.071f, 0.914f, 4.26f, 5.48f) { Tag = "mmC" };
-			maneuverC.State = ToggleState.Inactive;
-			manager.Elements.Add(maneuverC);
-
-			maneuverD = new HudToggleButtonElement(manager, mnvs[3].ActiveModel, mnvs[3].InactiveModel, 0.228f, 0.925f, 4.26f, 5.48f) { Tag = "mmD" };
-			maneuverD.State = ToggleState.Inactive;
-			manager.Elements.Add(maneuverD);
+			if (hotspots == null)
+			{
+				mnvs = game.GameData.GetManeuvers().ToList();
+				navbuttons = new HudNavBox(mnvs, manager);
+			}
+			else
+			{
+				navbuttons = new HudNavBox(game.GameData.GetBaseNavbarIcons(), hotspots, manager);
+			}
+			navbuttons.Show();
 
 			manager.Clicked += Manager_OnClick;
 
@@ -112,38 +97,16 @@ namespace LibreLancer
 		{
 			roomMode = true;
 			//Hide non-room controls
-			maneuverA.Visible = false;
-			maneuverB.Visible = false;
-			maneuverC.Visible = false;
-			maneuverD.Visible = false;
-			numberbox.Visible = false;
 			gauge.Visible = false;
 			contactslist.Visible = false;
-			navbuttons.Visible = false;
+			numberbox.Visible = false;
 			shipinfo.Visible = false;
 		}
 
 		void Manager_OnClick(string obj)
 		{
-			switch (obj)
-			{
-				case "mmA":
-					if (OnManeuver(mnvs[0].Action))
-						ManeuverClick(maneuverA);
-					break;
-				case "mmB":
-					if (OnManeuver(mnvs[1].Action))
-						ManeuverClick(maneuverB);
-					break;
-				case "mmC":
-					if (OnManeuver(mnvs[2].Action))
-						ManeuverClick(maneuverC);
-					break;
-				case "mmD":
-					if (OnManeuver(mnvs[3].Action))
-						ManeuverClick(maneuverD);
-					break;
-			}
+			if (obj.StartsWith("mnv"))
+				navbuttons.ProcessClick(obj, OnManeuver);
 		}
 
 		public event Func<string, bool> OnManeuverSelected;
@@ -154,16 +117,6 @@ namespace LibreLancer
 				return OnManeuverSelected(action);
 			return false;
 		}
-
-		void ManeuverClick(HudToggleButtonElement element)
-		{
-			maneuverA.State = ToggleState.Inactive;
-			maneuverB.State = ToggleState.Inactive;
-			maneuverC.State = ToggleState.Inactive;
-			maneuverD.State = ToggleState.Inactive;
-			element.State = ToggleState.Active;
-		}
-
 
 		ICamera gameCamera;
 		public void Update(TimeSpan delta, ICamera camera)

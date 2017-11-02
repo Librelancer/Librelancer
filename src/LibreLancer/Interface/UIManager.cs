@@ -14,6 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Linq;
 using System.Collections.Generic;
 namespace LibreLancer
 {
@@ -36,7 +37,7 @@ namespace LibreLancer
 				if (buttonFont != null)
 					buttonFont.Dispose ();
 				currentSize = sz;
-				buttonFont = Font.FromSystemFont (Game.Renderer2D, "Agency FB", currentSize);
+				buttonFont = Font.FromSystemFont (Game.Renderer2D, "Agency FB", currentSize, FontStyles.Bold);
 			}
 			return buttonFont;
 		}
@@ -51,8 +52,10 @@ namespace LibreLancer
 				if (e.Visible) e.DrawText ();
 			Game.Renderer2D.Finish ();
 		}
+		bool startedAllAnim = false;
 		public void FlyInAll(double duration, double spacing)
 		{
+			startedAllAnim = true;
 			double currentspacing = 0;
 			foreach (var elem in Elements)
 			{
@@ -65,17 +68,54 @@ namespace LibreLancer
 				currentspacing += spacing;
 			}
 		}
+
+		public void FlyOutAll(double duration, double spacing)
+		{
+			startedAllAnim = true;
+			double currentspacing = 0;
+			foreach (var elem in ((IEnumerable<UIElement>)Elements).Reverse())
+			{
+				elem.Animation = new FlyOutLeft(
+					elem.UIPosition,
+					currentspacing,
+					duration
+				);
+				elem.Animation.Begin();
+				currentspacing += spacing;
+			}
+		}
+
 		public void OnClick(string tag)
 		{
 			if (Clicked != null)
 				Clicked (tag);
 		}
 
+		public void WaitAnimationsComplete()
+		{
+			startedAllAnim = true;
+		}
+
 		public void Update(TimeSpan delta)
 		{
 			if (MenuButton != null) MenuButton.Update (IdentityCamera.Instance, delta, TimeSpan.FromSeconds(Game.TotalTime));
-			foreach (var elem in Elements)
-				if (elem.Visible) elem.Update (delta);
+			bool animating = false;
+			foreach (var elem in Elements) {
+				if (elem.Visible) elem.Update(delta);
+				if (elem.Animation != null && elem.Animation.Running) animating = true;
+			}
+			if (startedAllAnim && !animating) {
+				startedAllAnim = false;
+				OnAnimationComplete();
+			}
+		}
+
+		public event Action AnimationComplete;
+
+		void OnAnimationComplete()
+		{
+			if (AnimationComplete != null)
+				AnimationComplete();
 		}
 
 		public Vector2 ScreenToPixel (float screenx, float screeny)

@@ -66,6 +66,9 @@ namespace LibreLancer.Utf.Mat
 		private string btName;
 
 
+		public int NtFlags { get; private set; }
+		public string NtName;
+
 		/// <summary>
 		/// Opacity
 		/// </summary>
@@ -329,7 +332,10 @@ namespace LibreLancer.Utf.Mat
 					dmName = n.StringData;
 					break;
 				case "nt_name":
-					FLLog.Error("Material", "what to do with nt??");
+					NtName = n.StringData;
+					break;
+				case "nt_flags":
+					NtFlags = n.Int32Data.Value;
 					break;
 				default:
 					throw new NotImplementedException();
@@ -448,6 +454,8 @@ namespace LibreLancer.Utf.Mat
 						nmd.BtFlags = (SamplerFlags)BtFlags;
 						nmd.DtSampler = DtName;
 						nmd.DtFlags = (SamplerFlags)DtFlags;
+						nmd.NtFlags = (SamplerFlags)NtFlags;
+						nmd.NtSampler = NtName;
 						nmd.Oc = Oc ?? 1f;
 						nmd.Library = textureLibrary;
 						break;

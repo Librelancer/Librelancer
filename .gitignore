@@ -17,6 +17,8 @@ packages/
 
 # Visual Studio
 *.suo
+*.sln
+!/slngen/slngen.sln
 
 # Sublime Text
 *.sublime-project

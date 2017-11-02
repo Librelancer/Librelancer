@@ -23,17 +23,18 @@ namespace LibreLancer
 	}
 	public class HudToggleButtonElement : UIElement
 	{
-		IDrawable drawableA;
+		protected IDrawable drawableA;
 		IDrawable drawableB;
 
-		public ToggleState State = ToggleState.Active;
+		public ToggleState State = ToggleState.Inactive;
 
 		public HudToggleButtonElement(UIManager manager, string pathA, string pathB, float x, float y, float scaleX, float scaleY) : base(manager)
 		{
 			UIScale = new Vector2(scaleX, scaleY);
 			UIPosition = new Vector2(x, y);
 			drawableA = manager.Game.ResourceManager.GetDrawable(manager.Game.GameData.ResolveDataPath(pathA));
-			drawableB = manager.Game.ResourceManager.GetDrawable(manager.Game.GameData.ResolveDataPath(pathB));
+			if(pathB != null)
+				drawableB = manager.Game.ResourceManager.GetDrawable(manager.Game.GameData.ResolveDataPath(pathB));
 		}
 
 		public override void DrawBase()

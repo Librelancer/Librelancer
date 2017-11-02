@@ -24,6 +24,7 @@ namespace LibreLancer
 		double time;
 		public Vector2 CurrentPosition = Vector2.Zero;
 		public Vector2? CurrentScale;
+		public Vector2? FinalPositionSet;
 		public bool Running = false;
 
 		protected UIAnimation (double start, double duration)
@@ -49,6 +50,7 @@ namespace LibreLancer
 		{
 			time = 0;
 			Running = true;
+			Run(0);
 		}
 	}
 }

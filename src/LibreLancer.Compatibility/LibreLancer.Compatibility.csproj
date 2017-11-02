@@ -179,6 +179,7 @@
     <Compile Include="GameData\Interface\HudManeuver.cs" />
     <Compile Include="GameData\Equipment\Thruster.cs" />
     <Compile Include="GameData\Equipment\PowerCore.cs" />
+    <Compile Include="GameData\BaseNavBarIni.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

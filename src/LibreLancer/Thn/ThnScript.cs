@@ -59,6 +59,7 @@ namespace LibreLancer
 			ThnEnv.Add("DEFORMABLE", EntityTypes.Deformable);
 			ThnEnv.Add("SOUND", EntityTypes.Sound);
 			//FogModes
+			ThnEnv.Add("F_NONE", FogModes.None);
 			ThnEnv.Add("F_EXP2", FogModes.Exp2);
 			ThnEnv.Add("F_EXP", FogModes.Exp);
 			ThnEnv.Add("F_LINEAR", FogModes.Linear);

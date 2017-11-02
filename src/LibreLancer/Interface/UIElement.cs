@@ -19,6 +19,7 @@ namespace LibreLancer
 	public abstract class UIElement
 	{
 		public Vector2 UIPosition;
+		public Vector2? OverridePosition;
 		public Vector2 UIScale;
 		public string Tag;
 		protected UIManager Manager;
@@ -30,6 +31,8 @@ namespace LibreLancer
 			{
 				if (Animation != null && Animation.Running)
 					return Animation.CurrentPosition;
+				else if (OverridePosition != null)
+					return OverridePosition.Value;
 				else
 					return UIPosition;
 			}
@@ -54,10 +57,18 @@ namespace LibreLancer
 		public abstract void DrawBase();
 		public abstract void DrawText();
 
+		public void Reset()
+		{
+			OverridePosition = null;
+		}
+
 		public void Update(TimeSpan time)
 		{
-			if (Animation != null && Animation.Running)
+			if (Animation != null && Animation.Running) {
 				Animation.Update(time.TotalSeconds);
+				if (!Animation.Running && Animation.FinalPositionSet != null)
+					OverridePosition = Animation.FinalPositionSet.Value;
+			}
 			else
 				UpdateInternal(time);
 		}
