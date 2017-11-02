@@ -129,8 +129,8 @@
     <Compile Include="Render\Lighting.cs" />
     <Compile Include="Render\RenderLight.cs" />
     <Compile Include="Utf\Dfm\Bone.cs" />
-    <Compile Include="Utf\Dfm\Part.cs" />
-    <Compile Include="Utf\Dfm\Mesh.cs" />
+    <Compile Include="Utf\Dfm\DfmPart.cs" />
+    <Compile Include="Utf\Dfm\DfmMesh.cs" />
     <Compile Include="Utf\Dfm\FaceGroup.cs" />
     <Compile Include="Utf\Dfm\DfmFile.cs" />
     <Compile Include="GameConfig.cs" />
@@ -341,6 +341,9 @@
     <Compile Include="Interface\FlyOutLeft.cs" />
     <Compile Include="Interface\HudNavBox.cs" />
     <Compile Include="Interface\HudBaseButtonElement.cs" />
+    <Compile Include="Utf\Dfm\DfmVertex.cs" />
+    <Compile Include="Render\CharacterRenderer.cs" />
+    <Compile Include="Utf\Dfm\DfmHardpoint.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

@@ -22,7 +22,7 @@ namespace LibreLancer
 	//TODO: PCurves
 	public class Cutscene
 	{
-		class ThnObject
+		public class ThnObject
 		{
 			public string Name;
 			public Vector3 Translate;
@@ -40,12 +40,12 @@ namespace LibreLancer
 
 		double currentTime = 0;
 		Queue<ThnEvent> events = new Queue<ThnEvent>();
-		Dictionary<string, ThnObject> objects = new Dictionary<string, ThnObject>(StringComparer.OrdinalIgnoreCase);
+		public Dictionary<string, ThnObject> Objects = new Dictionary<string, ThnObject>(StringComparer.OrdinalIgnoreCase);
 		List<IThnRoutine> coroutines = new List<IThnRoutine>();
 		//ThnScript thn;
 
-		GameWorld world;
-		SystemRenderer renderer;
+		public GameWorld World;
+		public SystemRenderer Renderer;
 
 		ThnCamera camera;
 
@@ -53,8 +53,8 @@ namespace LibreLancer
 		{
 			camera = new ThnCamera(game.Viewport);
 
-			renderer = new SystemRenderer(camera, game.GameData, game.ResourceManager);
-			world = new GameWorld(renderer);
+			Renderer = new SystemRenderer(camera, game.GameData, game.ResourceManager);
+			World = new GameWorld(Renderer);
 
 			//thn = script;
 			var evs = new List<ThnEvent>();
@@ -137,7 +137,7 @@ namespace LibreLancer
 						var amb = kv.Value.Ambient.Value;
 						if (amb.X == 0 && amb.Y == 0 && amb.Z == 0) continue;
 						hasScene = true;
-						renderer.SystemLighting.Ambient = new Color4(amb.X / 255f, amb.Y / 255f, amb.Z / 255f, 1);
+						Renderer.SystemLighting.Ambient = new Color4(amb.X / 255f, amb.Y / 255f, amb.Z / 255f, 1);
 					}
 					else if (kv.Value.Type == EntityTypes.Light)
 					{
@@ -151,7 +151,7 @@ namespace LibreLancer
 							var m = kv.Value.RotationMatrix.Value;
 							lt.Light.Direction = (new Vector4(lt.Light.Direction.Normalized(), 0) * m).Xyz.Normalized();
 						}
-						renderer.SystemLighting.Lights.Add(lt);
+						Renderer.SystemLighting.Lights.Add(lt);
 					}
 					else if (kv.Value.Type == EntityTypes.Camera)
 					{
@@ -171,10 +171,10 @@ namespace LibreLancer
 					{
 						Vector3 transform = kv.Value.Position ?? Vector3.Zero;
 						obj.Object.Transform = (kv.Value.RotationMatrix ?? Matrix4.Identity) * Matrix4.CreateTranslation(transform);
-						world.Objects.Add(obj.Object);
+						World.Objects.Add(obj.Object);
 					}
 					obj.Entity = kv.Value;
-					objects.Add(kv.Key, obj);
+					Objects.Add(kv.Key, obj);
 				}
 			}
 			evs.Sort((x, y) => x.Time.CompareTo(y.Time));
@@ -182,15 +182,15 @@ namespace LibreLancer
 				events.Enqueue(item);
 			//Add starspheres in the right order
 			layers.Sort((x, y) => x.Item3.CompareTo(y.Item3));
-			renderer.StarSphereModels = new IDrawable[layers.Count];
-			renderer.StarSphereWorlds = new Matrix4[layers.Count];
+			Renderer.StarSphereModels = new IDrawable[layers.Count];
+			Renderer.StarSphereWorlds = new Matrix4[layers.Count];
 			for (int i = 0; i < layers.Count; i++)
 			{
-				renderer.StarSphereModels[i] = layers[i].Item1;
-				renderer.StarSphereWorlds[i] = layers[i].Item2;
+				Renderer.StarSphereModels[i] = layers[i].Item1;
+				Renderer.StarSphereWorlds[i] = layers[i].Item2;
 			}
 			//Add objects to the renderer
-			world.RegisterAll();
+			World.RegisterAll();
 		}
 
 		double accumTime = 0;
@@ -234,12 +234,12 @@ namespace LibreLancer
 				ProcessEvent(ev);
 			}
 			camera.Update();
-			world.Update(delta);
+			World.Update(delta);
 		}
 
 		public void Draw()
 		{
-			renderer.Draw();
+			Renderer.Draw();
 		}
 
 		void ProcessEvent(ThnEvent ev)
@@ -282,7 +282,7 @@ namespace LibreLancer
 		#region SetCamera
 		public void SetCamera(string name)
 		{
-			var cam = objects[name];
+			var cam = Objects[name];
 			camera.Transform = cam.Camera;
 		}
 		void ProcessSetCamera(ThnEvent ev)
@@ -348,13 +348,13 @@ namespace LibreLancer
 		void ProcessAttachEntity(ThnEvent ev)
 		{
 			object tmp;
-			if (!objects.ContainsKey((string)ev.Targets[0]))
+			if (!Objects.ContainsKey((string)ev.Targets[0]))
 			{
 				FLLog.Error("Thn", "Object doesn't exist " + (string)ev.Targets[0]);
 				return;
 			}
-			var objA = objects[(string)ev.Targets[0]];
-			var objB = objects[(string)ev.Targets[1]];
+			var objA = Objects[(string)ev.Targets[0]];
+			var objB = Objects[(string)ev.Targets[1]];
 			var targetType = ThnEnum.Check<TargetTypes>(ev.Properties["target_type"]);
 			var flags = AttachFlags.Position | AttachFlags.Orientation;
 			Vector3 offset;
@@ -480,7 +480,7 @@ namespace LibreLancer
 				fogend = (float)tmp;
 
 			if (fogon.HasValue) //i'm pretty sure this can't be animated
-				renderer.SystemLighting.FogMode = fogon.Value ? fogMode : FogModes.None;
+				Renderer.SystemLighting.FogMode = fogon.Value ? fogMode : FogModes.None;
 
 			//Set fog
 			if (Math.Abs(ev.Duration) < float.Epsilon) //just set it
@@ -489,14 +489,14 @@ namespace LibreLancer
 				{
 					var v = fogColor.Value;
 					v *= (1 / 255f);
-					renderer.SystemLighting.FogColor = new Color4(v.X, v.Y, v.Z, 1);
+					Renderer.SystemLighting.FogColor = new Color4(v.X, v.Y, v.Z, 1);
 				}
 				if (fogstart.HasValue)
-					renderer.SystemLighting.FogRange.X = fogstart.Value;
+					Renderer.SystemLighting.FogRange.X = fogstart.Value;
 				if (fogend.HasValue)
-					renderer.SystemLighting.FogRange.Y = fogend.Value;
+					Renderer.SystemLighting.FogRange.Y = fogend.Value;
 				if (fogDensity.HasValue)
-					renderer.SystemLighting.FogDensity = fogDensity.Value;
+					Renderer.SystemLighting.FogDensity = fogDensity.Value;
 			}
 			else
 				coroutines.Add(new FogPropAnimRoutine() //animate it!
@@ -506,10 +506,10 @@ namespace LibreLancer
 					FogColor = fogColor,
 					FogStart = fogstart,
 					FogEnd = fogend,
-					OrigFogColor = renderer.SystemLighting.FogColor,
-					OrigFogStart = renderer.SystemLighting.FogRange.X,
-					OrigFogEnd = renderer.SystemLighting.FogRange.Y,
-					OrigFogDensity = renderer.SystemLighting.FogDensity
+					OrigFogColor = Renderer.SystemLighting.FogColor,
+					OrigFogStart = Renderer.SystemLighting.FogRange.X,
+					OrigFogEnd = Renderer.SystemLighting.FogRange.Y,
+					OrigFogDensity = Renderer.SystemLighting.FogDensity
 				});
 		}
 		#endregion
@@ -517,7 +517,7 @@ namespace LibreLancer
 		#region StartSpatialPropAnim
 		void ProcessStartSpatialPropAnim(ThnEvent ev)
 		{
-			var obj = objects[(string)ev.Targets[0]];
+			var obj = Objects[(string)ev.Targets[0]];
 
 			var props = (LuaTable)ev.Properties["spatialprops"];
 			Matrix4? orient = null;
@@ -546,7 +546,7 @@ namespace LibreLancer
 		#region StartPSys
 		void ProcessStartPSys(ThnEvent ev)
 		{
-			var obj = objects[(string)ev.Targets[0]];
+			var obj = Objects[(string)ev.Targets[0]];
 			((ParticleEffectRenderer)obj.Object.RenderComponent).Active = true;
 		}
 		#endregion
@@ -554,7 +554,7 @@ namespace LibreLancer
 		#region StartPSysPropAnim
 		void ProcessStartPSysPropAnim(ThnEvent ev)
 		{
-			var obj = objects[(string)ev.Targets[0]];
+			var obj = Objects[(string)ev.Targets[0]];
 			var ren = ((ParticleEffectRenderer)obj.Object.RenderComponent);
 			var props = (LuaTable)ev.Properties["psysprops"];
 			var targetSparam = (float)props["sparam"];
@@ -599,7 +599,7 @@ namespace LibreLancer
 		void ProcessStartMotion(ThnEvent ev)
 		{
 			//How to tie this in with .anm files?
-			var obj = objects[(string)ev.Targets[0]];
+			var obj = Objects[(string)ev.Targets[0]];
 
 			if (obj.Object != null && obj.Object.AnimationComponent != null) //Check if object has Cmp animation
 			{
@@ -740,8 +740,8 @@ namespace LibreLancer
 
 		void ProcessStartPathAnimation(ThnEvent ev)
 		{
-			var obj = objects[(string)ev.Targets[0]];
-			var path = objects[(string)ev.Targets[1]];
+			var obj = Objects[(string)ev.Targets[0]];
+			var path = Objects[(string)ev.Targets[1]];
 			var start = (float)ev.Properties["start_percent"];
 			var stop = (float)ev.Properties["stop_percent"];
 			var flags = ThnEnum.Check<AttachFlags>(ev.Properties["flags"]);

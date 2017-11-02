@@ -123,6 +123,20 @@ namespace LibreLancer
 			}
 			scene = new Cutscene(currentRoom.OpenScripts(), Game);
 			if (currentRoom.Camera != null) scene.SetCamera(currentRoom.Camera);
+			/*foreach (var npc in currentRoom.Npcs)
+			{
+				var obj = scene.Objects[npc.StandingPlace];
+				var child = new GameObject();
+				child.RenderComponent = new CharacterRenderer(
+					Game.ResourceManager.GetDfm(npc.HeadMesh),
+					Game.ResourceManager.GetDfm(npc.BodyMesh),
+					Game.ResourceManager.GetDfm(npc.LeftHandMesh),
+					Game.ResourceManager.GetDfm(npc.RightHandMesh)
+				);
+				child.Register(scene.Renderer, scene.World.Physics);
+				child.Transform = Matrix4.CreateTranslation(0, 3, 0);
+				obj.Object.Children.Add(child);
+			}*/
 		}
 
 		public override void Update(TimeSpan delta)

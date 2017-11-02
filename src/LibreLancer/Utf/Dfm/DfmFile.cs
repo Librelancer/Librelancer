@@ -27,9 +27,9 @@ using LibreLancer.Utf.Mat;
 namespace LibreLancer.Utf.Dfm
 {
 	/// <summary>
-	/// Represents a UTF Compound File (.cmp)
+	/// Represents a UTF Deformable File (.dfm)
 	/// </summary>
-	public class DfmFile : UtfFile, ILibFile
+	public class DfmFile : UtfFile, ILibFile, IDrawable
 	{
 		private ILibFile additionalLibrary;
 
@@ -38,26 +38,34 @@ namespace LibreLancer.Utf.Dfm
 		public MatFile MaterialLibrary { get; private set; }
 		public TxmFile TextureLibrary { get; private set; }
 
-		public Dictionary<int, Mesh> Levels { get; private set; }
+		public Dictionary<int, DfmMesh> Levels { get; private set; }
 		public float[] Fractions { get; private set; }
 
 		public string Skeleton { get; private set; }
 		public float? Scale { get; private set; }
 
-		public Dictionary<int, Part> Parts { get; private set; }
+		public Dictionary<int, DfmPart> Parts { get; private set; }
 		public Dictionary<string, Bone> Bones { get; private set; }
 		public ConstructCollection Constructs { get; private set; }
 
+		public IEnumerable<DfmHardpoint> GetHardpoints()
+		{
+			foreach (var b in Bones)
+			{
+				foreach (var hp in b.Value.Hardpoints)
+					yield return new DfmHardpoint() { Bone = b.Value, Hp = hp };
+			}
+		}
 		public DfmFile(string path, ILibFile additionalLibrary)
 		{
 			this.additionalLibrary = additionalLibrary;
 
 			Path = path;
 
-			Levels = new Dictionary<int, Mesh>();
+			Levels = new Dictionary<int, DfmMesh>();
 
 			Bones = new Dictionary<string, Bone>();
-			Parts = new Dictionary<int, Part>();
+			Parts = new Dictionary<int, DfmPart>();
 			Constructs = new ConstructCollection();
 
 			foreach (Node node in parseFile(path))
@@ -86,7 +94,7 @@ namespace LibreLancer.Utf.Dfm
 
 							int level = 0;
 							if (!int.TryParse(meshNode.Name.Substring(4), out level)) throw new Exception("");
-							Levels.Add(level, new Mesh(meshNode, this, Parts));
+							Levels.Add(level, new DfmMesh(meshNode, this, Parts));
 						}
 						else if (multiLevelSubNode.Name.Equals("fractions", StringComparison.OrdinalIgnoreCase))
 						{
@@ -151,7 +159,7 @@ namespace LibreLancer.Utf.Dfm
 								}
 							}
 
-							Parts.Add(index, new Part(objectName, fileName, Bones, Constructs));
+							Parts.Add(index, new DfmPart(objectName, fileName, Bones, Constructs));
 						}
 						else throw new Exception("Invalid node in " + node.Name + ": " + cmpndSubNode.Name);
 					}
@@ -166,65 +174,34 @@ namespace LibreLancer.Utf.Dfm
 					break;
 				}
 			}
+			foreach (var bone in Bones)
+			{
+				foreach (var construct in Constructs)
+				{
+					if (bone.Key.StartsWith(construct.ChildName, StringComparison.OrdinalIgnoreCase))
+					{
+						bone.Value.Construct = construct;
+						break;
+					}
+				}
+			}
 		}
 
 		public void Initialize(ResourceManager cache)
 		{
-			//this.camera = camera;
-
 			if (Levels.ContainsKey (0))
 				Levels [0].Initialize (cache);
-			//foreach (VMeshRef level in Levels.Values) level.Initialize(device, content, camera, ambient, lights);
 		}
 
 		public void Resized()
 		{
 			Levels[0].Resized();
-			//foreach (VMeshRef level in Levels.Values) level.DeviceReset();
 		}
 
-		public void Update(ICamera camera, TimeSpan delta)
-		{
-			Levels [0].Update (camera, delta);
-			//foreach (VMeshRef level in Levels.Values) level.Update();
-		}
 
 		public void Draw(RenderState rstate, Matrix4 world, Lighting lights)
 		{
 			Levels [0].Draw (rstate, world, lights);
-
-			/*Matrix4 tworld = Transform * world;
-            float cameraDistance = Vector3.Distance(tworld.Translation, camera.Position);
-
-            for (int i = 0; i < Switch2.Length; i++)
-            {
-                if (cameraDistance <= Switch2[i])
-                {
-                    if (Levels.ContainsKey(i)) Levels[i].Draw(tworld);
-                    break;
-                }
-            }*/
-
-			/*foreach (ModelFile m in cmp.Models.Values)
-			{
-				int lightCount = lights.Count;
-				foreach (Hardpoint h in m.Hardpoints)
-				{
-					Light light = null;
-
-					if (SpaceObject.Loadout != null && SpaceObject.Loadout.Equip.ContainsKey(h.Name))
-						light = SpaceObject.Loadout.Equip[h.Name] as Light;
-					else if (archetype.Loadout != null && archetype.Loadout.Equip.ContainsKey(h.Name))
-						light = archetype.Loadout.Equip[h.Name] as Light;
-
-					if (light != null)
-					{
-						lights.Add(new RenderLight(light, Vector3.Transform(h.Position, World)));
-						lightCount++;
-						if (lightCount == MAX_LIGHTS) break;
-					}
-				}
-			}*/
 		}
 
 		public Texture FindTexture(string name)
@@ -253,6 +230,21 @@ namespace LibreLancer.Utf.Dfm
 		public VMeshData FindMesh(uint vMeshLibId)
 		{
 			return null;
+		}
+
+		public void Update(ICamera camera, TimeSpan delta, TimeSpan totalTime)
+		{
+			Levels[0].Update(camera, delta);
+		}
+
+		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light)
+		{
+			Levels[0].DrawBuffer(buffer, world, light);		
+		}
+
+		public float GetRadius()
+		{
+			return 20000; //Wrong
 		}
 	}
 }

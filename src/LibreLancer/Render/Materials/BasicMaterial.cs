@@ -49,7 +49,7 @@ namespace LibreLancer
 		static ShaderVariables GetShader(IVertexType vertextype, ShaderCaps caps)
 		{
 			var i = caps.GetIndex();
-			if (vertextype is VertexPositionNormalTexture)
+			if (vertextype is VertexPositionNormalTexture || vertextype is Utf.Dfm.DfmVertex)
 			{
 				if (sh_posNormalTexture[i] == null)
 					sh_posNormalTexture[i] = ShaderCache.Get(

@@ -14,36 +14,40 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using System.Collections.Generic;
-namespace LibreLancer.GameData
+using LibreLancer.Ini;
+namespace LibreLancer.Compatibility.GameData
 {
-	public class BaseRoom
+	public class GfNpc
 	{
 		public string Nickname;
-		public string Camera;
-		public List<string> ThnPaths;
-		public List<BaseHotspot> Hotspots;
-		public List<BaseNpc> Npcs = new List<BaseNpc>();
-		public string Music;
+		public string Body;
+		public string Head;
+		public string LeftHand;
+		public string RightHand;
 
-		public IEnumerable<ThnScript> OpenScripts()
+		public GfNpc(Section s)
 		{
-			foreach (var p in ThnPaths) yield return new ThnScript(p);
+			foreach (var e in s)
+			{
+				switch (e.Name.ToLowerInvariant())
+				{
+					case "nickname":
+						Nickname = e[0].ToString();
+						break;
+					case "body":
+						Body = e[0].ToString();
+						break;
+					case "head":
+						Head = e[0].ToString();
+						break;
+					case "lefthand":
+						LeftHand = e[0].ToString();
+						break;
+					case "righthand":
+						RightHand = e[0].ToString();
+						break;
+				}
+			}
 		}
-	}
-	public class BaseHotspot
-	{
-		public string Name;
-		public string Behaviour;
-		public string Room;
-		public bool RoomIsVirtual;
-	}
-	public class BaseNpc
-	{
-		public string StandingPlace;
-		public string HeadMesh;
-		public string BodyMesh;
-		public string LeftHandMesh;
-		public string RightHandMesh;
 	}
 }

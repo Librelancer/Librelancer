@@ -35,6 +35,7 @@ namespace LibreLancer.Compatibility.GameData
 		public PetalDbIni PetalDb;
 		public HudIni Hud;
 		public BaseNavBarIni BaseNavBar;
+		public MBasesIni MBases;
 		public bool Loaded = false;
 
 		public bool LoadDacom = true;
@@ -104,6 +105,8 @@ namespace LibreLancer.Compatibility.GameData
 			Hud.AddIni(Freelancer.HudPath);
 			//navbar.ini
 			BaseNavBar = new BaseNavBarIni();
+			//mbases.ini
+			MBases = new MBasesIni();
 		}
 	}
 }

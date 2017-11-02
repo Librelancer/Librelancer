@@ -26,9 +26,9 @@ using LibreLancer.Vertices;
 
 namespace LibreLancer.Utf.Dfm
 {
-	public class Mesh
+	public class DfmMesh
 	{
-		private Dictionary<int, Part> parts;
+		private Dictionary<int, DfmPart> parts;
 
 		public List<FaceGroup> FaceGroups { get; private set; }
 		public int[] PointIndices { get; private set; }
@@ -56,9 +56,10 @@ namespace LibreLancer.Utf.Dfm
 		public LeafNode UVDefaultList { get; set; }
 
 		private VertexBuffer vertexBuffer;
+		private ElementBuffer elementBuffer;
 		private bool ready = false;
 
-		public Mesh(IntermediateNode root, ILibFile materialLibrary, Dictionary<int, Part> parts)
+		public DfmMesh(IntermediateNode root, ILibFile materialLibrary, Dictionary<int, DfmPart> parts)
 		{
 			this.parts = parts;
 			FaceGroups = new List<FaceGroup>();
@@ -164,18 +165,32 @@ namespace LibreLancer.Utf.Dfm
 
 		public void Initialize(ResourceManager cache)
 		{
-			List<VertexPositionNormalTexture> vertices = new List<VertexPositionNormalTexture>();
+			List<DfmVertex> vertices = new List<DfmVertex>();
 			for (int i = 0; i < PointIndices.Length; i++)
 			{
-				vertices.Add(new VertexPositionNormalTexture(Points[PointIndices[i]], VertexNormals[PointIndices[i]], UV0[UV0Indices[i]]));
+				vertices.Add(new DfmVertex(Points[PointIndices[i]], VertexNormals[PointIndices[i]], UV0[UV0Indices[i]], PointBoneFirst[PointIndices[i]], PointBoneCount[PointIndices[i]]));
 			}
 
-			vertexBuffer = new VertexBuffer(typeof(VertexPositionNormalTexture), vertices.Count);
-			vertexBuffer.SetData<VertexPositionNormalTexture>(vertices.ToArray());
+			vertexBuffer = new VertexBuffer(typeof(DfmVertex), vertices.Count);
+			vertexBuffer.SetData<DfmVertex>(vertices.ToArray());
 
+			int indexCount = 0;
 			foreach (FaceGroup faceGroup in FaceGroups)
-				faceGroup.Initialize (cache);
-
+			{
+				faceGroup.StartIndex = indexCount;
+				faceGroup.Initialize(cache);
+				indexCount += faceGroup.TriangleStripIndices.Length;
+			}
+			var indices = new ushort[indexCount];
+			elementBuffer = new ElementBuffer(indexCount);
+			indexCount = 0;
+			foreach (FaceGroup faceGroup in FaceGroups)
+			{
+				faceGroup.TriangleStripIndices.CopyTo(indices, indexCount);
+				indexCount += faceGroup.TriangleStripIndices.Length;
+			}
+			elementBuffer.SetData(indices);
+			vertexBuffer.SetElementBuffer(elementBuffer);
 			ready = true;
 		}
 
@@ -187,6 +202,14 @@ namespace LibreLancer.Utf.Dfm
 		public void Update(ICamera camera, TimeSpan delta)
 		{
 			if (ready) foreach (FaceGroup faceGroup in FaceGroups) faceGroup.Update (camera);
+		}
+
+		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light)
+		{
+			foreach (FaceGroup faceGroup in FaceGroups)
+			{
+				faceGroup.DrawBuffer(buffer, vertexBuffer, vertexBuffer.VertexCount, world, light);
+			}
 		}
 
 		public void Draw(RenderState rstate, Matrix4 world, Lighting lights)

@@ -29,6 +29,7 @@ namespace LibreLancer.Utf.Dfm
 {
 	public class FaceGroup
 	{
+
 		private ILibFile materialLibrary;
 
 		private string materialName;
@@ -46,11 +47,11 @@ namespace LibreLancer.Utf.Dfm
 			}
 		}
 
+		public int StartIndex;
 		public ushort[] TriangleStripIndices { get; private set; }
 		public ushort[] EdgeIndices { get; private set; }
 		public float[] EdgeAngles { get; private set; }
 
-		private ElementBuffer triangleStripIndexBuffer;
 		private bool ready = false;
 
 		public FaceGroup(IntermediateNode root, ILibFile materialLibrary)
@@ -76,9 +77,6 @@ namespace LibreLancer.Utf.Dfm
 
 		public void Initialize(ResourceManager cache)
 		{
-			triangleStripIndexBuffer = new ElementBuffer(TriangleStripIndices.Length);
-			triangleStripIndexBuffer.SetData(TriangleStripIndices);
-
 			ready = true;
 		}
 
@@ -92,14 +90,31 @@ namespace LibreLancer.Utf.Dfm
 			if (ready) Material.Update(camera);
 		}
 
+		public void DrawBuffer(CommandBuffer buffer, VertexBuffer vbo, int vertexCount, Matrix4 world, Lighting lights)
+		{
+			buffer.AddCommand(
+				Material.Render,
+				null,
+				world,
+				lights,
+				vbo,
+				PrimitiveTypes.TriangleStrip,
+				0,
+				StartIndex,
+				TriangleStripIndices.Length - 2,
+				SortLayers.OPAQUE,
+				0
+			);
+		}
+
 		public void Draw(RenderState rstate, VertexBuffer vbo, int vertexCount, Matrix4 world, Lighting lights)
 		{
 			if (ready)
 			{
-				vbo.SetElementBuffer(triangleStripIndexBuffer);
-				Material.Render.World = world;
-				Material.Render.Use (rstate, vbo.VertexType, lights);
-				vbo.Draw (PrimitiveTypes.TriangleStrip, 0, vertexCount, TriangleStripIndices.Length - 2);
+				//vbo.SetElementBuffer(triangleStripIndexBuffer);
+				//Material.Render.World = world;
+				//Material.Render.Use (rstate, vbo.VertexType, lights);
+				//vbo.Draw (PrimitiveTypes.TriangleStrip, 0, vertexCount, TriangleStripIndices.Length - 2);
 				//Material.Draw(D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX1, PrimitiveTypes.TriangleStrip, 0, vertexCount, 0, TriangleStripIndices.Length - 2, ambient, lights, world);
 			}
 		}

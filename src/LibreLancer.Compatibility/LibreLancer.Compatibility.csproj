@@ -180,6 +180,10 @@
     <Compile Include="GameData\Equipment\Thruster.cs" />
     <Compile Include="GameData\Equipment\PowerCore.cs" />
     <Compile Include="GameData\BaseNavBarIni.cs" />
+    <Compile Include="GameData\MBases\MBasesIni.cs" />
+    <Compile Include="GameData\MBases\MBase.cs" />
+    <Compile Include="GameData\MBases\MRoom.cs" />
+    <Compile Include="GameData\MBases\GfNpc.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />
@@ -191,5 +195,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="GameData\Interface\" />
+    <Folder Include="GameData\MBases\" />
   </ItemGroup>
 </Project>

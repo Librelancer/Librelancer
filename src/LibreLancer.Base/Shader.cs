@@ -73,11 +73,9 @@ namespace LibreLancer
 			GL.BindAttribLocation (programID, VertexSlots.Dimensions, "vertex_dimensions");
 			GL.BindAttribLocation (programID, VertexSlots.Right, "vertex_right");
 			GL.BindAttribLocation (programID, VertexSlots.Up, "vertex_up");
+			GL.BindAttribLocation(programID, VertexSlots.BoneFirst, "vertex_bonefirst");
+			GL.BindAttribLocation(programID, VertexSlots.BoneCount, "vertex_bonecount");
 			//Fragment Outputs
-			//GL.BindFragDataLocation(programID, 0, "out_color0");
-			//GL.BindFragDataLocation(programID, 1, "out_color1");
-			//GL.BindFragDataLocation(programID, 2, "out_color2");
-			//GL.BindFragDataLocation(programID, 3, "out_color3");
 
             GL.LinkProgram(programID);
 			GL.GetProgramiv (programID, GL.GL_LINK_STATUS, out status);

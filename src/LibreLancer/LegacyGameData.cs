@@ -62,10 +62,12 @@ namespace LibreLancer
 		{
 			
 			var legacy = fldata.Universe.FindBase(id);
+			var mbase = fldata.MBases.FindBase(id);
 			var b = new GameData.Base();
 			foreach (var room in legacy.Rooms)
 			{
 				var nr = new GameData.BaseRoom();
+				var mroom = mbase.FindRoom(room.Nickname);
 				nr.Music = room.Music;
 				nr.ThnPaths = new List<string>();
 				foreach (var path in room.SceneScripts)
@@ -82,6 +84,21 @@ namespace LibreLancer
 				nr.Nickname = room.Nickname;
 				if (room.Nickname == legacy.StartRoom) b.StartRoom = nr;
 				nr.Camera = room.Camera;
+				nr.Npcs = new List<GameData.BaseNpc>();
+				if (mroom != null)
+				{
+					foreach (var npc in mroom.NPCs)
+					{
+						var newnpc = new GameData.BaseNpc();
+						newnpc.StandingPlace = npc.StandMarker;
+						var gfnpc = mbase.FindNpc(npc.Npc);
+						newnpc.HeadMesh = fldata.Bodyparts.FindBodypart(gfnpc.Head).MeshPath;
+						newnpc.BodyMesh = fldata.Bodyparts.FindBodypart(gfnpc.Body).MeshPath;
+						newnpc.LeftHandMesh = fldata.Bodyparts.FindBodypart(gfnpc.LeftHand).MeshPath;
+						newnpc.RightHandMesh = fldata.Bodyparts.FindBodypart(gfnpc.RightHand).MeshPath;
+						nr.Npcs.Add(newnpc);
+					}
+				}
 				b.Rooms.Add(nr);
 			}
 			return b;

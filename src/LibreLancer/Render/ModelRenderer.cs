@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
+using DfmFile = LibreLancer.Utf.Dfm.DfmFile;
 using LibreLancer.GameData;
 namespace LibreLancer
 {
@@ -25,6 +26,7 @@ namespace LibreLancer
 		public Matrix4 World { get; private set; }
 		public ModelFile Model { get; private set; }
 		public CmpFile Cmp { get; private set; }
+		public DfmFile Dfm { get; private set; }
 		public List<Part> CmpParts { get; private set; }
 		public int LightGroup = 0;
 		CmpFile _parentCmp;
@@ -42,6 +44,8 @@ namespace LibreLancer
 				Cmp = drawable as CmpFile;
 			else if (drawable is SphFile)
 				Sph = drawable as SphFile;
+			else if (drawable is DfmFile)
+				Dfm = drawable as DfmFile;
 		}
 		public ModelRenderer(List<Part> drawable, CmpFile parent)
 		{
@@ -66,6 +70,8 @@ namespace LibreLancer
 			sysr.Objects.Add(this);
 			if (!inited)
 			{
+				if (Dfm != null)
+					Dfm.Initialize(sysr.Game.ResourceManager);
 				if (Model != null && Model.Levels.Length > 0)
 					Model.Initialize(sysr.Game.ResourceManager);
 				else if (Cmp != null)
@@ -164,6 +170,13 @@ namespace LibreLancer
 				return;
 			if (Nebula != null && nr != Nebula)
 				return;
+			if (Dfm != null)
+			{
+				Dfm.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
+				var center = VectorMath.Transform(Vector3.Zero, World);
+				//var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, 20, nr, LitAmbient, LitDynamic, NoFog);
+				Dfm.DrawBuffer(commands, World, Lighting.Empty);
+			}
 			if (Model != null) {
 				if (Model.Levels.Length > 0) {
 					Model.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));

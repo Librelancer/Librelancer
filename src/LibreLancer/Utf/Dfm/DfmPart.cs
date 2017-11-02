@@ -27,7 +27,7 @@ using LibreLancer.Utf.Cmp;
 
 namespace LibreLancer.Utf.Dfm
 {
-	public class Part
+	public class DfmPart
 	{
 		private Dictionary<string, Bone> bones;
 		private ConstructCollection constructs;
@@ -54,7 +54,7 @@ namespace LibreLancer.Utf.Dfm
 			}
 		}
 
-		public Part(string objectName, string fileName, Dictionary<string, Bone> models, ConstructCollection constructs)
+		public DfmPart(string objectName, string fileName, Dictionary<string, Bone> models, ConstructCollection constructs)
 		{
 			this.bones = models;
 			this.constructs = constructs;

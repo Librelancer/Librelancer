@@ -15,35 +15,46 @@
  */
 using System;
 using System.Collections.Generic;
-namespace LibreLancer.GameData
+using LibreLancer.Ini;
+namespace LibreLancer.Compatibility.GameData
 {
-	public class BaseRoom
+	public class MRoom
 	{
 		public string Nickname;
-		public string Camera;
-		public List<string> ThnPaths;
-		public List<BaseHotspot> Hotspots;
-		public List<BaseNpc> Npcs = new List<BaseNpc>();
-		public string Music;
-
-		public IEnumerable<ThnScript> OpenScripts()
+		public int CharacterDensity;
+		public List<MRoomNpcRef> NPCs = new List<MRoomNpcRef>();
+		public MRoom(Section section)
 		{
-			foreach (var p in ThnPaths) yield return new ThnScript(p);
+			foreach (var e in section)
+			{
+				switch (e.Name.ToLowerInvariant())
+				{
+					case "nickname":
+						Nickname = e[0].ToString();
+						break;
+					case "character_density":
+						CharacterDensity = e[0].ToInt32();
+						break;
+					case "fixture":
+						NPCs.Add(new MRoomNpcRef(e));
+						break;
+				}
+			}
 		}
 	}
-	public class BaseHotspot
+	public class MRoomNpcRef
 	{
-		public string Name;
-		public string Behaviour;
-		public string Room;
-		public bool RoomIsVirtual;
-	}
-	public class BaseNpc
-	{
-		public string StandingPlace;
-		public string HeadMesh;
-		public string BodyMesh;
-		public string LeftHandMesh;
-		public string RightHandMesh;
+		public string Npc;
+		public string StandMarker;
+		public string Script;
+		public string Action;
+
+		public MRoomNpcRef(Entry e)
+		{
+			Npc = e[0].ToString();
+			StandMarker = e[1].ToString();
+			Script = e[2].ToString();
+			Action = e[3].ToString();
+		}
 	}
 }

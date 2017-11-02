@@ -25,6 +25,7 @@ namespace LibreLancer.Utf.Dfm
 {
 	public class Bone
 	{
+		public AbstractConstruct Construct { get; set; }
 		public Matrix4 BoneToRoot { get; private set; }
 		public byte LodBits { get; private set; }
 		public List<HardpointDefinition> Hardpoints { get; private set; }

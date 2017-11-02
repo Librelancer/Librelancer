@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using LibreLancer.Utf.Vms;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
+using LibreLancer.Utf.Dfm;
 using LibreLancer.Sur;
 namespace LibreLancer
 {
@@ -32,6 +33,7 @@ namespace LibreLancer
 		Dictionary<string, Texture> textures = new Dictionary<string, Texture>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, string> texturefiles = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, CmpFile> cmps = new Dictionary<string, CmpFile>(StringComparer.OrdinalIgnoreCase);
+		Dictionary<string, DfmFile> dfms = new Dictionary<string, DfmFile>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, ModelFile> models = new Dictionary<string, ModelFile>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, SphFile> sphs = new Dictionary<string, SphFile>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, VmsFile> vmss = new Dictionary<string, VmsFile>(StringComparer.OrdinalIgnoreCase);
@@ -262,8 +264,27 @@ namespace LibreLancer
 				return GetModel (filename);
 			if (filename.EndsWith (".sph", StringComparison.OrdinalIgnoreCase))
 				return GetSph (filename);
-
+			if (filename.EndsWith(".dfm", StringComparison.OrdinalIgnoreCase))
+				return GetDfm(filename);
 			return GetCmp (filename + ".cmp");
+		}
+
+		public DfmFile GetDfm(string filename)
+		{
+			if(!dfms.ContainsKey(filename)) {
+				var file = new DfmFile(filename, this);
+				if (file.TextureLibrary != null)
+				{
+					AddTextures(file.TextureLibrary, filename);
+				}
+				if (file.MaterialLibrary != null)
+				{
+					AddMaterials(file.MaterialLibrary, filename);
+				}
+				file.Initialize(this);
+				dfms.Add(filename, file);
+			}
+			return dfms[filename];
 		}
 
 		public SphFile GetSph(string filename)
