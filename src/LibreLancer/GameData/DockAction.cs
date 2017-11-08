@@ -10,22 +10,25 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2017
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using System.Collections.Generic;
-namespace LibreLancer.GameData
+namespace LibreLancer
 {
-	public class Archetype
+	public enum DockKinds
 	{
-		public IDrawable Drawable;
-		//HACK: remove later
-		public string ArchetypeName;
-		public List<DockSphere> DockSpheres = new List<DockSphere>();
-		public Archetype ()
-		{
-		}
+		Base,
+		Jump,
+		Tradelane
+	}
+
+	public class DockAction
+	{
+		public DockKinds Kind;
+		public string Target;
+		public string TargetLeft;
+		public string Exit;
+		public string Tunnel;
 	}
 }
-

@@ -322,7 +322,48 @@ namespace LibreLancer
 		{
 			DrawQuad(textShader, dot, new Rectangle(0,0,1,1), rect, color, BlendMode.Normal);
 		}
+		public void DrawLine(Color4 color, Vector2 start, Vector2 end)
+		{
+			if (currentShader != null && currentShader != textShader) Flush();
+			if (currentMode != BlendMode.Normal) Flush();
+			if (currentTexture != null && currentTexture != dot) Flush();
+			if ((primitiveCount + 2) * 3 >= MAX_INDEX || (vertexCount + 4) >= MAX_VERT) Flush();
 
+			currentShader = textShader;
+			currentTexture = dot;
+			currentMode = BlendMode.Normal;
+
+			var edge = end - start;
+			var angle = (float)Math.Atan2(edge.Y, edge.X);
+			var sin = (float)Math.Sin(angle);
+			var cos = (float)Math.Cos(angle);
+			var x = start.X;
+			var y = start.Y;
+			var w = edge.Length;
+
+			vertices[vertexCount++] = new Vertex2D(
+				new Vector2(x,y),
+				Vector2.Zero,
+				color
+			);
+			vertices[vertexCount++] = new Vertex2D(
+				new Vector2(x + w * cos, y + (w * sin)),
+				Vector2.Zero,
+				color
+			);
+			vertices[vertexCount++] = new Vertex2D(
+				new Vector2(x - sin, y + cos),
+				Vector2.Zero,
+				color
+			);
+			vertices[vertexCount++] = new Vertex2D(
+				new Vector2(x + w * cos - sin, y + w * sin + cos),
+				Vector2.Zero,
+				color
+			);
+
+			primitiveCount += 2;
+		}
 		public void DrawRectangle(Rectangle rect, Color4 color, int width)
 		{
 			FillRectangle(new Rectangle(rect.X, rect.Y, rect.Width, width), color);

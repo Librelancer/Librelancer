@@ -27,7 +27,7 @@ namespace LibreLancer.GameData
 		public Matrix4? Rotation;
 		public Dictionary<string, Equipment> Loadout = new Dictionary<string, Equipment>();
 		public List<Equipment> LoadoutNoHardpoint = new List<Equipment>();
-		public string DockWith;
+		public DockAction Dock;
 		public SystemObject ()
 		{
 		}

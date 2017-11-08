@@ -29,6 +29,10 @@ namespace LibreLancer.Compatibility.GameData.Universe
 		public List<string> SceneScripts { get; private set; }
 		public List<RoomHotspot> Hotspots { get; private set; }
 		public string Camera { get; private set; }
+		public string PlayerShipPlacement { get; private set; }
+		public string LaunchingScript { get; private set; }
+		public string LandingScript { get; private set; }
+
 		public Room(Section section, FreelancerData data)
 		{
 			GameData = data;
@@ -91,7 +95,21 @@ namespace LibreLancer.Compatibility.GameData.Universe
 					// TODO Room spiels
 					break;
 				case "playershipplacement":
-					// TODO Room playershipplacement
+						foreach (Entry e in s)
+						{
+							switch (e.Name.ToLowerInvariant())
+							{
+								case "name":
+									PlayerShipPlacement = e[0].ToString();
+									break;
+								case "launching_script":
+									LaunchingScript = e[0].ToString();
+									break;
+								case "landing_script":
+									LandingScript = e[0].ToString();
+									break;
+							}
+						}
 					break;
 				case "characterplacement":
 					// TODO Room characterplacement

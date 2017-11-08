@@ -65,6 +65,7 @@ namespace LibreLancer
 		public ObjectRenderer RenderComponent;
 		public RigidBody PhysicsComponent;
 		public AnimationComponent AnimationComponent;
+		public SystemObject SystemObject;
 
 		public GameObject(Archetype arch, ResourceManager res, bool staticpos = false)
 		{
@@ -93,7 +94,21 @@ namespace LibreLancer
 		}
 		public void UpdateCollision()
 		{
-
+			if (PhysicsComponent == null) return;
+			if (CmpParts == null) return;
+			var sh = (CompoundSurShape)PhysicsComponent.Shape;
+			foreach (var subshape in sh.Shapes)
+			{
+				if (subshape.Tag == null) continue;
+				var construct = (AbstractConstruct)subshape.Tag;
+				var tr = construct.Transform;
+				var pos = tr.ExtractTranslation().ToJitter();
+				var q = tr.ExtractRotation(true);
+				var rot = JMatrix.CreateFromQuaternion(new JQuaternion(q.X, q.Y, q.Z, q.W));
+				subshape.Position = pos;
+				subshape.Orientation = rot;
+			}
+			sh.UpdateShape();
 		}
 		public ResourceManager Resources;
 		void InitWithDrawable(IDrawable drawable, ResourceManager res, bool staticpos)
@@ -267,10 +282,6 @@ namespace LibreLancer
 
 		public void Update(TimeSpan time)
 		{
-			if (PhysicsComponent != null && !isstatic)
-			{
-				Transform = PhysicsComponent.Orientation.ToOpenTK() * Matrix4.CreateTranslation(PhysicsComponent.Position.ToOpenTK());
-			}
 			if (RenderComponent != null)
 			{
 				var tr = GetTransform();
@@ -288,6 +299,10 @@ namespace LibreLancer
 				Children[i].FixedUpdate(time);
 			for (int i = 0; i < Components.Count; i++)
 				Components[i].FixedUpdate(time);
+			if (PhysicsComponent != null && !isstatic)
+			{
+				Transform = PhysicsComponent.Orientation.ToOpenTK() * Matrix4.CreateTranslation(PhysicsComponent.Position.ToOpenTK());
+			}
 		}
 
 		public void Register(SystemRenderer renderer, World physics)
@@ -300,6 +315,14 @@ namespace LibreLancer
 				child.Register(renderer, physics);
 			foreach (var component in Components)
 				component.Register(renderer, physics);
+		}
+
+		public GameWorld World;
+
+		public GameWorld GetWorld()
+		{
+			if (World == null) return Parent.GetWorld();
+			return World;
 		}
 
 		public void Unregister(World physics)
@@ -320,6 +343,18 @@ namespace LibreLancer
 		public Hardpoint GetHardpoint(string hpname)
 		{
 			return hardpoints[hpname];
+		}
+
+		public JVector InverseTransformPoint(JVector input)
+		{
+			return InverseTransformPoint(input.ToOpenTK()).ToJitter();
+		}
+
+		public Vector3 InverseTransformPoint(Vector3 input)
+		{
+			var tf = GetTransform();
+			tf.Invert();
+			return VectorMath.Transform(input, tf);
 		}
 
 		public IEnumerable<Hardpoint> GetHardpoints()

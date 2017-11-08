@@ -110,6 +110,16 @@ namespace LibreLancer
 				(int)(p2.Y - p1.Y)
 			);
 		}
+
+		public virtual bool TryGetHitRectangle(out Rectangle rect)
+		{
+			rect = new Rectangle(0, 0, 0, 0);
+			return false;
+		}
+
+		public virtual void WasClicked()
+		{
+		}
 	}
 }
 

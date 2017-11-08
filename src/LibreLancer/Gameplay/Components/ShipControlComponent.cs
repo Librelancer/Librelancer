@@ -26,45 +26,55 @@ namespace LibreLancer
 		Up = 8,
 		Down = 16
 	}
+	public enum EngineStates
+	{
+		Standard,
+		CruiseCharging,
+		Cruise,
+		EngineKill
+	}
 	public class ShipControlComponent : GameComponent
 	{
+		public bool Active { get; set; }
+
+		public GameData.Ship Ship;
 		public float EnginePower = 0f; //from 0 to 1
 		//TODO: I forget how this is configured in .ini files. Constants.ini?
 		//Some mods have a per-ship (engine?) cruise speed. Check how this is implemented, and include as native feature.
-		public float CruiseSpeed = 300f;
-		public float StrafeForce = 20000; //TODO: Set this from ship definition (include as component, or set directly at instantiation?)
 		public bool ThrustEnabled = false;
-		public float ThrusterDrain = 150;
-		public bool CruiseEnabled = false;
+		public EngineStates EngineState = EngineStates.Standard;
 		public StrafeControls CurrentStrafe = StrafeControls.None;
 		public float Pitch; //From -1 to 1
 		public float Yaw; //From -1 to 1
 		public float Roll; //From -1 to 1
-		//FL Handling characteristics
-		public JVector AngularDrag = new JVector(40000, 40000, 141000);
-		public JVector SteeringTorque = new JVector(50000, 50000, 230000);
-		public JVector RotationInertia = new JVector(8400, 8400, 8400);
+		//I know it's hacky :(
+		public float PlayerPitch;
+		public float PlayerYaw;
 
 		public ShipControlComponent(GameObject parent) : base(parent)
 		{
+			Active = true;
 		}
-
 		//TODO: Engine Kill
 		JVector setInertia = JVector.Zero;
 		public override void FixedUpdate(TimeSpan time)
 		{
+			if (!Active) return;
 			//Cancel out whatever the heck Jitter does and put in our own inertia
 			//This seems to somewhat work
-			if (setInertia != RotationInertia)
+			if (setInertia != Ship.RotationInertia)
 			{
 				var inertia = JMatrix.Identity;
-				inertia.M11 = RotationInertia.X;
-				inertia.M22 = RotationInertia.Z;
-				inertia.M33 = RotationInertia.Y;
+				inertia.M11 = Ship.RotationInertia.X;
+				inertia.M22 = Ship.RotationInertia.Z;
+				inertia.M33 = Ship.RotationInertia.Y;
 				Parent.PhysicsComponent.SetMassProperties(inertia, Parent.PhysicsComponent.Mass, false);
-				setInertia = RotationInertia;
+				setInertia = Ship.RotationInertia;
 			}
-
+			//Don't de-activate
+			Parent.PhysicsComponent.IsActive = true;
+			Parent.PhysicsComponent.AllowDeactivation = false;
+			//Stuff
 			var engine = Parent.GetComponent<EngineComponent>(); //Get mounted engine
 			var power = Parent.GetComponent<PowerCoreComponent>();
 			if (Parent.PhysicsComponent == null) return;
@@ -90,9 +100,9 @@ namespace LibreLancer
 					if (power.CurrentThrustCapacity == 0) ThrustEnabled = false;
 				}
 			}
-			if (CruiseEnabled)
+			if (EngineState == EngineStates.Cruise)
 			{ //Cruise has entirely different force calculation
-				engine_force = CruiseSpeed * engine.Engine.LinearDrag;
+				engine_force = Ship.CruiseSpeed * engine.Engine.LinearDrag;
 				//Set fx sparam. TODO: This is poorly named
 				engine.Speed = 1.0f;
 			}
@@ -103,7 +113,7 @@ namespace LibreLancer
 
 			JVector strafe = JVector.Zero;
 			//TODO: Trying to strafe during cruise should drop you out
-			if (!CruiseEnabled) //Cannot strafe during cruise
+			if (EngineState != EngineStates.Cruise) //Cannot strafe during cruise
 			{
 				if ((CurrentStrafe & StrafeControls.Left) == StrafeControls.Left)
 				{
@@ -126,7 +136,7 @@ namespace LibreLancer
 					strafe.Normalize();
 					strafe = JVector.Transform(strafe, Parent.PhysicsComponent.Orientation);
 					//Apply strafe force
-					strafe *= StrafeForce;
+					strafe *= Ship.StrafeForce;
 				}
 			}
 			var totalForce = (
@@ -134,39 +144,29 @@ namespace LibreLancer
 				strafe +
 				(JVector.Transform(JVector.Forward, Parent.PhysicsComponent.Orientation) * engine_force)
 			);
-			if (totalForce.Length() > float.Epsilon)
-				Parent.PhysicsComponent.IsActive = true;
 			Parent.PhysicsComponent.AddForce(totalForce);
 			//add angular drag
 			var angularDrag = JVector.Zero;
-			Parent.PhysicsComponent.AddTorque(ComponentMultiply(Parent.PhysicsComponent.AngularVelocity * -1, AngularDrag));
+			Parent.PhysicsComponent.AddTorque(ComponentMultiply(Parent.PhysicsComponent.AngularVelocity * -1, Ship.AngularDrag));
 			//steer
 			//based on the amazing work of Why485 (https://www.youtube.com/user/Why485)
-			var angularForce = ComponentMultiply(new JVector(Pitch, Yaw, 0), SteeringTorque);
+			var steerControl = new JVector(Math.Abs(PlayerPitch) > 0 ? PlayerPitch : Pitch,
+										   Math.Abs(PlayerYaw) > 0 ? PlayerYaw : Yaw,
+										   0);
+			var angularForce = ComponentMultiply(steerControl, Ship.SteeringTorque);
 			//transform torque by direction = unity's AddRelativeTorque
 			Parent.PhysicsComponent.AddTorque(JVector.Transform(angularForce, Parent.PhysicsComponent.Orientation));
 			//auto-roll?
-			if (Pitch == 0 && Yaw == 0) //only auto-roll when not steering (probably incorrect)
+			if (Math.Abs(steerControl.X) < 0.005f && Math.Abs(steerControl.Y) < 0.005f) //only auto-roll when not steering (probably incorrect)
 			{
 				var coords = Parent.PhysicsComponent.Orientation.GetEuler();
 				//TODO: Fix to work without directly setting orientation
-				/*float rollForce = 0;
-				if (currRoll > float.Epsilon)
-				{
-					rollForce = 0.3f;
-				}
-				else if (currRoll < -float.Epsilon)
-				{
-					rollForce = -0.3f;
-				}
-				var correctionForce = JVector.Transform(new JVector(0, 0, SteeringTorque.Z) * rollForce, Parent.PhysicsComponent.Orientation);
-				Parent.PhysicsComponent.AddTorque(correctionForce);*/
 				//TODO: Maybe make this based off the forces?
 				var lerped = MathHelper.Lerp((float)coords.Z, 0, (float)((0.009f * 60f) * time.TotalSeconds));
 				Parent.PhysicsComponent.Orientation = JMatrix.CreateFromYawPitchRoll((float)coords.Y, (float)coords.X, lerped);
 			}
-		}
 
+		}
 
 		static JVector ComponentMultiply(JVector a, JVector b)
 		{

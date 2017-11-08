@@ -90,6 +90,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 			}
 		}
 
+
 		public string Voice { get; private set; }
 		public Costume SpaceCostume { get; private set; }
 		public string Faction { get; private set; }
@@ -97,14 +98,11 @@ namespace LibreLancer.Compatibility.GameData.Universe
 		public string PrevRing { get; private set; }
 
 		private string nextRingName;
-		private SystemObject nextRing;
-		public SystemObject NextRing
+		public string NextRing
 		{
 			get
 			{
-				if (nextRingName == null) return null;
-				if (nextRing == null) nextRing = system.FindObject(nextRingName);
-				return nextRing;
+				return nextRingName;
 			}
 		}
 
@@ -194,7 +192,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 					case "goto":
 						if (e.Count != 3) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 						if (Goto != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-						Goto = new JumpReference(universe, e[0].ToString(), e[1].ToString(), e[2].ToString());
+						Goto = new JumpReference(e[0].ToString(), e[1].ToString(), e[2].ToString());
 						break;
 					case "loadout":
 						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);

@@ -35,6 +35,10 @@ namespace LibreLancer.Compatibility.GameData.Ships
 		public int Mass;
 		public int ShipClass;
 		public string Type;
+		public Vector3 SteeringTorque;
+		public Vector3 AngularDrag;
+		public Vector3 RotationInertia;
+		public float StrafeForce;
 
 		public Vector3 CameraOffset;
 		public float CameraAngularAcceleration;
@@ -82,6 +86,18 @@ namespace LibreLancer.Compatibility.GameData.Ships
 					break;
 				case "mass":
 					Mass = e [0].ToInt32 ();
+					break;
+				case "steering_torque":
+					SteeringTorque = new Vector3(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle());
+					break;
+				case "angular_drag":
+					AngularDrag = new Vector3(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle());
+					break;
+				case "rotation_inertia":
+					RotationInertia = new Vector3(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle());
+					break;
+				case "strafe_force":
+					StrafeForce = e[0].ToSingle();
 					break;
 				case "ship_class":
 					ShipClass = e [0].ToInt32 ();

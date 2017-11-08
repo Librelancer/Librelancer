@@ -46,6 +46,14 @@ namespace LibreLancer
 				FLLog.Error("Animation", animationName + " not present");
 		}
 
+		public bool HasAnimation(string animationName)
+		{
+			if (animationName == null) return false;
+			return anm.Scripts.ContainsKey(animationName);
+		}
+
+		public event Action<string> AnimationCompleted;
+
 		double totalTime = 0;
 		public override void Update(TimeSpan time)
 		{
@@ -54,7 +62,11 @@ namespace LibreLancer
 			for (int i = animations.Count - 1; i >= 0; i--)
 			{
 				if (ProcessAnimation(animations[i]))
+				{
+					if (AnimationCompleted != null)
+						AnimationCompleted(animations[i].Name);
 					animations.RemoveAt(i);
+				}
 			}
 			if (c > 0)
 				Parent.UpdateCollision();

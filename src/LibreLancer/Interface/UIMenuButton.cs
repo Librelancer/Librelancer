@@ -45,11 +45,20 @@ namespace LibreLancer
 			color = Tag != null ? Manager.TextColor : Color4.Gray;
 			if (rect.Contains (Manager.Game.Mouse.X, Manager.Game.Mouse.Y) && Tag != null) {
 				color = GetPulseColor();
-				if (Manager.Game.Mouse.IsButtonDown (MouseButtons.Left)) {
-					Manager.OnClick (Tag);
-				}
 			}
 		}
+
+		public override bool TryGetHitRectangle(out Rectangle rect)
+		{
+			rect = GetTextRectangle();
+			return true;
+		}
+
+		public override void WasClicked()
+		{
+			if (Tag != null) Manager.OnClick(Tag);
+		}
+
 		public override void DrawText()
 		{
 			var r = GetTextRectangle ();

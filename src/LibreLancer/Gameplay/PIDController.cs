@@ -10,22 +10,33 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2017
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using System.Collections.Generic;
-namespace LibreLancer.GameData
+namespace LibreLancer
 {
-	public class Archetype
+	public class PIDController
 	{
-		public IDrawable Drawable;
-		//HACK: remove later
-		public string ArchetypeName;
-		public List<DockSphere> DockSpheres = new List<DockSphere>();
-		public Archetype ()
+		public double P;
+		public double I;
+		public double D;
+
+		double integral;
+		double lastError;
+
+		public void Reset()
 		{
+			integral = lastError = 0;
+		}
+
+		public double Update(double setpoint, double actual, double timeFrame)
+		{
+			double present = setpoint - actual;
+			integral += present * timeFrame;
+			double deriv = (present - lastError) / timeFrame;
+			lastError = present;
+			return present * P + integral * I + deriv * D;
 		}
 	}
 }
-

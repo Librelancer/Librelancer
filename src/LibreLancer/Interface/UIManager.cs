@@ -10,7 +10,7 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2017
  * the Initial Developer. All Rights Reserved.
  */
 using System;
@@ -30,7 +30,10 @@ namespace LibreLancer
 		public UIManager (FreelancerGame game)
 		{
 			Game = game;
+			game.Mouse.MouseDown += Mouse_MouseDown;
+			game.Mouse.MouseUp += Mouse_MouseUp;
 		}
+
 		public Font GetButtonFont(float sz)
 		{
 			if (currentSize != sz) {
@@ -41,6 +44,7 @@ namespace LibreLancer
 			}
 			return buttonFont;
 		}
+
 		public void Draw()
         {
 			if (MenuButton != null) MenuButton.Update (IdentityCamera.Instance, TimeSpan.Zero, TimeSpan.FromSeconds(Game.TotalTime));
@@ -52,6 +56,7 @@ namespace LibreLancer
 				if (e.Visible) e.DrawText ();
 			Game.Renderer2D.Finish ();
 		}
+
 		bool startedAllAnim = false;
 		public void FlyInAll(double duration, double spacing)
 		{
@@ -91,6 +96,37 @@ namespace LibreLancer
 				Clicked (tag);
 		}
 
+		UIElement moused;
+
+		UIElement GetMousedElement(int x, int y)
+		{
+			foreach (var e in Elements)
+			{
+				Rectangle rect;
+				if (e.TryGetHitRectangle(out rect))
+				{
+					if (rect.Contains(x, y)) return e;
+				}
+			}
+			return null;
+		}
+
+		void Mouse_MouseDown(MouseEventArgs e)
+		{
+			if (e.Buttons != MouseButtons.Left) return;
+			moused = GetMousedElement(e.X, e.Y);
+		}
+
+		void Mouse_MouseUp(MouseEventArgs e)
+		{
+			if (e.Buttons != MouseButtons.Left) return;
+			var elem2 = GetMousedElement(e.X, e.Y);
+			if (moused != null && (moused == elem2))
+			{
+				moused.WasClicked();
+			}
+		}
+
 		public void WaitAnimationsComplete()
 		{
 			startedAllAnim = true;
@@ -125,7 +161,9 @@ namespace LibreLancer
 
 		public void Dispose()
 		{
-			buttonFont.Dispose();
+			if(buttonFont != null) buttonFont.Dispose();
+			Game.Mouse.MouseDown -= Mouse_MouseDown;
+			Game.Mouse.MouseUp -= Mouse_MouseUp;
 		}
 	}
 }

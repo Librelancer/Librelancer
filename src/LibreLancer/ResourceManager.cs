@@ -41,7 +41,6 @@ namespace LibreLancer
 		Dictionary<string, SurFile> surs = new Dictionary<string, SurFile>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, Cursor> cursors = new Dictionary<string, Cursor>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, TexFrameAnimation> frameanims = new Dictionary<string, TexFrameAnimation>(StringComparer.OrdinalIgnoreCase);
-
 		List<string> loadedMatFiles = new List<string>();
 		List<string> loadedTxmFiles = new List<string>();
 		List<string> preloadFiles = new List<string>();
@@ -52,11 +51,16 @@ namespace LibreLancer
 		}
 
 		public Texture2D NullTexture;
+		public Texture2D WhiteTexture;
 		public const string NullTextureName = "$$LIBRELANCER.Null";
+		public const string WhiteTextureName = "$$LIBRELANCER.White";
 		public ResourceManager()
 		{
 			NullTexture = new Texture2D(1, 1, false, SurfaceFormat.Color);
 			NullTexture.SetData(new byte[] { 0xFF, 0xFF, 0xFF, 0x0 });
+
+			WhiteTexture = new Texture2D(1, 1, false, SurfaceFormat.Color);
+			WhiteTexture.SetData(new byte[] { 0xFF, 0xFF, 0xFF, 0xFF });
 		}
 
 		public void Preload()
@@ -145,6 +149,8 @@ namespace LibreLancer
 		{
 			if (name == NullTextureName)
 				return NullTexture;
+			if (name == WhiteTextureName)
+				return WhiteTexture;
             Texture outtex;
 			if ((outtex = textures[name]) == null)
 			{

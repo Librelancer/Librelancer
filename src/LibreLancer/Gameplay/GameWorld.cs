@@ -58,15 +58,31 @@ namespace LibreLancer
 				g.Transform = (obj.Rotation ?? Matrix4.Identity) * Matrix4.CreateTranslation(obj.Position);
 				g.SetLoadout(obj.Loadout, obj.LoadoutNoHardpoint);
 				g.StaticPosition = obj.Position;
-				if (obj.DockWith != null)
+				g.World = this;
+				if (obj.Dock != null)
 				{
-					g.Components.Add(new DockComponent(g) { DockWith = obj.DockWith });
+					g.Components.Add(new DockComponent(g) { 
+						Action = obj.Dock,
+						DockAnimation = obj.Archetype.DockSpheres[0].Script,
+						DockHardpoint = obj.Archetype.DockSpheres[0].Hardpoint,
+						TriggerRadius = obj.Archetype.DockSpheres[0].Radius
+					});
 				}
 				g.Register(Renderer, Physics);
 				Objects.Add(g);
 			}
 
 			GC.Collect();
+		}
+
+		public GameObject GetObject(string nickname)
+		{
+			if (nickname == null) return null;
+			foreach (var obj in Objects)
+			{
+				if (obj.Nickname == nickname) return obj;
+			}
+			return null;
 		}
 
 		public void RegisterAll()

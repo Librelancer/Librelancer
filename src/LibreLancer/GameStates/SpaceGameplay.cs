@@ -65,6 +65,7 @@ Mouse Flight: {10}
 			this.session = session;
 			player = new GameObject(shp.Drawable, g.ResourceManager, false);
 			control = new ShipControlComponent(player);
+			control.Ship = shp;
 			player.Components.Add(control);
 			powerCore = new PowerCoreComponent(player)
 			{
@@ -74,7 +75,7 @@ Mouse Flight: {10}
 			player.Components.Add(powerCore);
 			player.PhysicsComponent.Position = new JVector(-31000, 0, -26755);
 			player.PhysicsComponent.Material.Restitution = 1;
-			player.PhysicsComponent.Mass = 150;
+			player.PhysicsComponent.Mass = shp.Mass;
 			foreach (var equipment in session.MountedEquipment)
 			{
 				var equip = g.GameData.GetEquipment(equipment.Value);
@@ -114,6 +115,29 @@ Mouse Flight: {10}
 			input.ToggleUp += Input_ToggleUp; 
 			hud.OnManeuverSelected += Hud_OnManeuverSelected;
 			hud.OnEntered += Hud_OnTextEntry;
+			pilotcomponent = new AutopilotComponent(player);
+			pilotcomponent.GotoComplete += Pilotcomponent_GotoComplete;
+			pilotcomponent.DockComplete += Pilotcomponent_DockComplete;
+			player.Components.Add(pilotcomponent);
+			player.World = world;
+		}
+
+		void Pilotcomponent_GotoComplete()
+		{
+			Console.WriteLine("Went to object!");
+		}
+
+		void Pilotcomponent_DockComplete(DockAction action)
+		{
+			pilotcomponent.CurrentBehaviour = AutopilotBehaviours.None;
+			if (action.Kind == DockKinds.Base)
+			{
+				Game.ChangeState(new RoomGameplay(Game, session, action.Target));
+			}
+			else
+			{
+
+			}
 		}
 
 		public override void Unregister()
@@ -121,6 +145,7 @@ Mouse Flight: {10}
 			Game.Keyboard.TextInput -= Game_TextInput;
 			Game.Keyboard.KeyDown -= Keyboard_KeyDown;
 			input.Dispose();
+			hud.Dispose();
 		}
 
 		void Keyboard_KeyDown(KeyEventArgs e)
@@ -148,8 +173,24 @@ Mouse Flight: {10}
 		{
 			hud.OnTextEntry(text);
 		}
+		bool dogoto = false;
+		AutopilotComponent pilotcomponent = null;
 		void Hud_OnTextEntry(string obj)
 		{
+			var sp = obj.Split('>');
+			switch (sp[0])
+			{
+				case "animate":
+					if (selected == null) return;
+					var component = selected.GetComponent<AnimationComponent>();
+					if (component != null)
+						component.StartAnimation(sp[1].Trim(), false);
+					break;
+				case "wireframe":
+					selected.PhysicsComponent.EnableDebugDraw = true;
+					debugDrawBody = selected.PhysicsComponent;
+					break;
+			}
 			session.ProcessConsoleCommand(obj);
 		}
 
@@ -158,13 +199,23 @@ Mouse Flight: {10}
 			switch (e)
 			{
 				case "FreeFlight":
+					pilotcomponent.CurrentBehaviour = AutopilotBehaviours.None;
 					return true;
 				case "Dock":
 					if (selected == null) return false;
 					DockComponent d;
 					if ((d = selected.GetComponent<DockComponent>()) != null)
-						Game.ChangeState(new RoomGameplay(Game, session, d.DockWith));
-					break;
+					{
+						pilotcomponent.TargetObject = selected;
+						pilotcomponent.CurrentBehaviour = AutopilotBehaviours.Dock;
+						return true;
+					}
+					return false;
+				case "Goto":
+					if (selected == null) return false;
+					pilotcomponent.TargetObject = selected;
+					pilotcomponent.CurrentBehaviour = AutopilotBehaviours.Goto;
+					return true;
 			}
 			return false;
 		}
@@ -191,10 +242,11 @@ Mouse Flight: {10}
 
 		void World_PhysicsUpdate(TimeSpan delta)
 		{
-			control.EnginePower = (Velocity / MAX_VELOCITY);
-			control.CruiseEnabled = cruise;
+			//control.EnginePower = (Velocity / MAX_VELOCITY);
+			control.EngineState = cruise ? EngineStates.Cruise : EngineStates.Standard;
 			ProcessInput(delta);
 		}
+
 		bool mouseFlight = false;
 
 		void Input_ToggleActivated(int id)
@@ -264,46 +316,21 @@ Mouse Flight: {10}
 			var pc = player.PhysicsComponent;
 			if (Game.Mouse.IsButtonDown(MouseButtons.Left) || mouseFlight)
 			{
-				control.Pitch = -moffset.Y;
-				control.Yaw = -moffset.X;
-			}
-			else if (Game.Keyboard.IsKeyDown(Keys.F) && selected != null)
-			{
-				var dirToFace = ((player.Transform.ExtractTranslation()) - (selected.Transform.ExtractTranslation())).Normalized();
-				var fwd = player.PhysicsComponent.Orientation.GetForward().ToOpenTK();
-				var turnDir = (fwd - dirToFace).Normalized();
-				if (turnDir.Y > 0)
-					control.Pitch = 1;
-				if (turnDir.Y < 0)
-					control.Pitch = -1;
-				if (turnDir.X < 0)
-					control.Yaw = -1;
-				if (turnDir.X > 0)
-					control.Yaw = 1;
+				control.PlayerPitch = -moffset.Y;
+				control.PlayerYaw = -moffset.X;
 			}
 			else
 			{
-				control.Pitch = control.Yaw = 0;
+				control.PlayerPitch = control.PlayerYaw = 0;
 			}
 
 			control.CurrentStrafe = strafe;
-			control.EnginePower = Velocity / MAX_VELOCITY;
+			//control.EnginePower = Velocity / MAX_VELOCITY;
 			var obj = GetSelection(Game.Mouse.X, Game.Mouse.Y);
 			current_cur = obj == null ? cur_arrow : cur_reticle;
 			if (Game.Mouse.IsButtonDown(MouseButtons.Right))
 			{
 				var newselected = GetSelection(Game.Mouse.X, Game.Mouse.Y);
-				if (selected != null && newselected != selected)
-					selected.PhysicsComponent.EnableDebugDraw = false;
-				if (newselected != null)
-				{
-					newselected.PhysicsComponent.EnableDebugDraw = true;
-					//debugDrawBody = newselected.PhysicsComponent;
-				}
-				else
-				{
-					debugDrawBody = null;
-				}
 				selected = newselected;
 				hud.SelectedObject = selected;
 			}

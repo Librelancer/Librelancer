@@ -19,27 +19,14 @@ namespace LibreLancer.Compatibility.GameData.Universe
 {
 	public class JumpReference
 	{
-		private UniverseIni universe;
-
-		private string toSystemName;
-		private StarSystem toSystem;
-		public StarSystem System
-		{
-			get
-			{
-				if (toSystem == null) toSystem = universe.FindSystem(toSystemName);
-				return toSystem;
-			}
-		}
-
-		public string Direction { get; private set; }
+		public string System { get; private set; }
+		public string Exit { get; private set; }
 		public string TunnelEffect { get; private set; }
 
-		public JumpReference(UniverseIni universe, string toSystem, string direction, string tunnelEffect)
+		public JumpReference(string toSystem, string exit, string tunnelEffect)
 		{
-			this.universe = universe;
-			this.toSystemName = toSystem;
-			this.Direction = direction;
+			this.System = toSystem;
+			this.Exit = exit;
 			this.TunnelEffect = tunnelEffect;
 		}
 	}

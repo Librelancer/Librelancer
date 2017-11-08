@@ -54,6 +54,11 @@ namespace LibreLancer.Compatibility.GameData
 
 		public List<CollisionGroup> CollisionGroups { get; private set; }
 
+		public List<DockSphere> DockingSpheres { get; private set; }
+
+		public string OpenAnim { get; private set; }
+
+
 		protected Archetype(Section section, FreelancerData data)
 		{
 			if (section == null) throw new ArgumentNullException("section");
@@ -62,6 +67,7 @@ namespace LibreLancer.Compatibility.GameData
 
 			IdsInfo = new List<string>();
 			CollisionGroups = new List<CollisionGroup>();
+			DockingSpheres = new List<DockSphere>();
 		}
 
 		protected virtual bool parentEntry(Entry e)
@@ -133,6 +139,13 @@ namespace LibreLancer.Compatibility.GameData
 				if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 				if (LoadoutName != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
 				LoadoutName = e[0].ToString();
+				break;
+			case "docking_sphere":
+					string scr = e.Count == 4 ? e[3].ToString() : null;
+				DockingSpheres.Add(new DockSphere() { Name = e[0].ToString(), Hardpoint = e[1].ToString(), Radius = e[2].ToInt32(), Script = scr });
+				break;
+			case "open_anim":
+				OpenAnim = e[0].ToString();
 				break;
 			default: return false;
 			}

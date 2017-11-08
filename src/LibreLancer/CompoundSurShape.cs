@@ -35,13 +35,13 @@ namespace LibreLancer
 	/// </summary>
 	public class CompoundSurShape : Multishape
 	{
-		#region public struct TransformedShape
+		#region public class TransformedShape
 
 		/// <summary>
 		/// Holds a 'sub' shape and it's transformation. This TransformedShape can
 		/// be added to the <see cref="CompoundShape"/>
 		/// </summary>
-		public struct TransformedShape
+		public class TransformedShape
 		{
 			private Shape shape;
 			internal JVector position;

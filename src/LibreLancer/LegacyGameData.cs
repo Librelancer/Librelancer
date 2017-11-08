@@ -70,6 +70,7 @@ namespace LibreLancer
 				var mroom = mbase.FindRoom(room.Nickname);
 				nr.Music = room.Music;
 				nr.ThnPaths = new List<string>();
+				nr.PlayerShipPlacement = room.PlayerShipPlacement;
 				foreach (var path in room.SceneScripts)
 					nr.ThnPaths.Add(Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + path));
 				nr.Hotspots = new List<GameData.BaseHotspot>();
@@ -596,6 +597,12 @@ namespace LibreLancer
 			foreach (var matlib in legacy.MaterialLibraries)
 				resource.LoadMat (matlib);
 			ship.Drawable = resource.GetDrawable (legacy.DaArchetypeName);
+			ship.Mass = legacy.Mass;
+			ship.AngularDrag = legacy.AngularDrag.ToJitter();
+			ship.RotationInertia = legacy.RotationInertia.ToJitter();
+			ship.SteeringTorque = legacy.SteeringTorque.ToJitter();
+			ship.CruiseSpeed = 300;
+			ship.StrafeForce = legacy.StrafeForce;
 			return ship;
 		}
 
@@ -633,7 +640,14 @@ namespace LibreLancer
 			obj.Nickname = o.Nickname;
 			obj.DisplayName = o.IdsName;
 			obj.Position = o.Pos.Value;
-			obj.DockWith = o.DockWith;
+			if (o.DockWith != null)
+			{
+				obj.Dock = new DockAction() { Kind = DockKinds.Base, Target = o.DockWith };
+			}
+			else if (o.Goto != null)
+			{
+				obj.Dock = new DockAction() { Kind = DockKinds.Jump, Target = o.Goto.System, Exit = o.Goto.Exit, Tunnel = o.Goto.TunnelEffect };
+			}
 			if (o.Rotate != null) {
 				obj.Rotation = 
 					Matrix4.CreateRotationX (MathHelper.DegreesToRadians (o.Rotate.Value.X)) *
@@ -678,6 +692,42 @@ namespace LibreLancer
 				obj.Archetype = sun;
 			} else {
 				obj.Archetype = new GameData.Archetype ();
+				foreach (var dockSphere in o.Archetype.DockingSpheres)
+				{
+					obj.Archetype.DockSpheres.Add(new GameData.DockSphere()
+					{
+						Name = dockSphere.Name,
+						Hardpoint = dockSphere.Hardpoint,
+						Radius = dockSphere.Radius,
+						Script = dockSphere.Script
+					});
+				}
+				if (o.Archetype.OpenAnim != null)
+				{
+					foreach (var sph in obj.Archetype.DockSpheres)
+						sph.Script =  sph.Script ?? o.Archetype.OpenAnim;
+				}
+				if (o.Archetype is Legacy.Solar.TradelaneRing)
+				{
+					obj.Archetype.DockSpheres.Add(new GameData.DockSphere()
+					{
+						Name = "tradelane",
+						Hardpoint = "HpRightLane",
+						Radius = 30
+					});
+					obj.Archetype.DockSpheres.Add(new GameData.DockSphere()
+					{
+						Name = "tradelane",
+						Hardpoint = "HpLeftLane",
+						Radius = 30
+					});
+					obj.Dock = new DockAction()
+					{
+						Kind = DockKinds.Tradelane,
+						Target = o.NextRing,
+						TargetLeft = o.PrevRing
+					};
+				}
 			}
 			obj.Archetype.ArchetypeName = o.Archetype.GetType ().Name;
 			obj.Archetype.Drawable = drawable;

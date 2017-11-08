@@ -61,6 +61,7 @@ namespace LibreLancer
 		{
 			Game.Keyboard.TextInput -= Game_TextInput;
 			Game.Keyboard.KeyDown -= Keyboard_KeyDown;
+			hud.Dispose();
 		}
 
 		bool Hud_OnManeuverSelected(string arg)
@@ -137,6 +138,15 @@ namespace LibreLancer
 				child.Transform = Matrix4.CreateTranslation(0, 3, 0);
 				obj.Object.Children.Add(child);
 			}*/
+			if (currentRoom.PlayerShipPlacement != null) {
+				var shp = Game.GameData.GetShip(session.PlayerShip);
+				var obj = new GameObject(shp.Drawable, Game.ResourceManager);
+				obj.PhysicsComponent = null;
+				var place = scene.Objects[currentRoom.PlayerShipPlacement];
+				obj.Register(scene.Renderer, scene.World.Physics);
+				obj.Transform = obj.GetHardpoint("HpMount").Transform.Inverted();
+				place.Object.Children.Add(obj);
+			}
 		}
 
 		public override void Update(TimeSpan delta)

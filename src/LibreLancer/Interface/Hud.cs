@@ -172,7 +172,7 @@ namespace LibreLancer
 			{
 				manager.Game.RenderState.Cull = false;
 				manager.Game.RenderState.DepthEnabled = false;
-				if (SelectedObject.RenderComponent.OutOfView(gameCamera))
+				if (SelectedObject.RenderComponent.OutOfView(gameCamera)) //TODO: This doesn't work entirely properly
 				{
 					//Render one of them fancy arrows
 				}
@@ -190,6 +190,8 @@ namespace LibreLancer
 					//HACK: I don't think modifying the materials exactly is what I'm supposed to do.
 					var gaugeMat = (BasicMaterial)UI_HUD_targetarrow;
 					var boxMat = (BasicMaterial)UI_HUD_targetingblue;
+					gaugeMat.DtSampler = ResourceManager.WhiteTextureName; //HACK: Null texture is black
+					boxMat.DtSampler = ResourceManager.WhiteTextureName; //HACK: Null texture is black
 					gaugeMat.Dc = Color4.White;
 					boxMat.Dc = Color4.Green;
 					reticle.Update(IdentityCamera.Instance, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0));
@@ -208,6 +210,11 @@ namespace LibreLancer
 			}
 			manager.Draw();
 
+		}
+
+		public void Dispose()
+		{
+			manager.Dispose();
 		}
 	}
 }

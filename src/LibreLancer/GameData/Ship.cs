@@ -14,13 +14,20 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-
+using Jitter.LinearMath;
 namespace LibreLancer.GameData
 {
 	public class Ship
 	{
 		public string Nickname;
 		public IDrawable Drawable;
+		public JVector SteeringTorque;
+		public JVector AngularDrag;
+		public JVector RotationInertia;
+		public float Mass;
+		public float StrafeForce;
+		public float CruiseSpeed;
+
 		public Ship ()
 		{
 		}

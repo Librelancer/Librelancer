@@ -344,6 +344,13 @@
     <Compile Include="Utf\Dfm\DfmVertex.cs" />
     <Compile Include="Render\CharacterRenderer.cs" />
     <Compile Include="Utf\Dfm\DfmHardpoint.cs" />
+    <Compile Include="Gameplay\PIDController.cs" />
+    <Compile Include="CircularBuffer.cs" />
+    <Compile Include="Interface\DebugGraph.cs" />
+    <Compile Include="Gameplay\Components\AutopilotComponent.cs" />
+    <Compile Include="GameData\DockSphere.cs" />
+    <Compile Include="GameData\DockAction.cs" />
+    <Compile Include="Gameplay\Components\TradelaneMoveComponent.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -406,12 +413,12 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
+       Other similar extension points exist, see Microsoft.Common.targets.   -->
   <Target Name="BeforeBuild">
   </Target>
   <Target Name="AfterBuild">
   </Target>
-  -->
+
   <ItemGroup />
   <ItemGroup>
     <None Include="OpenTK.dll.config">

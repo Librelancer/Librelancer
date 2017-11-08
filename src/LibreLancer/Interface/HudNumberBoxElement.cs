@@ -42,9 +42,9 @@ namespace LibreLancer
 			return (px * (72.0f / 96.0f));
 		}
 
-		Font numberFont;
-		float numberSize = -1;
-		Font GetNumbersFont(float sz, FreelancerGame g)
+		static Font numberFont;
+		static float numberSize = -1;
+		static Font GetNumbersFont(float sz, FreelancerGame g)
 		{
 			if (numberSize != sz)
 			{

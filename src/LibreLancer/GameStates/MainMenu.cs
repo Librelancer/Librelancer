@@ -71,6 +71,7 @@ namespace LibreLancer
 		public override void Unregister()
 		{
 			Game.Keyboard.KeyDown -= Keyboard_KeyDown;
+			manager.Dispose();
 		}
 #endif
 		int frames = 0;
