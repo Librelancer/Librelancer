@@ -158,19 +158,19 @@ C# Memory Usage: {5}
 			}
 			if (Game.Keyboard.IsKeyDown(Keys.W))
 			{
-				camera.MoveVector = VectorMath.Forward;
+				camera.MoveVector = Vector3.Forward;
 			}
 			if (Game.Keyboard.IsKeyDown(Keys.S))
 			{
-				camera.MoveVector = VectorMath.Backward;
+				camera.MoveVector = Vector3.Backward;
 			}
 			if (Game.Keyboard.IsKeyDown(Keys.A))
 			{
-				camera.MoveVector = VectorMath.Left;
+				camera.MoveVector = Vector3.Left;
 			}
 			if (Game.Keyboard.IsKeyDown(Keys.D))
 			{
-				camera.MoveVector = VectorMath.Right;
+				camera.MoveVector = Vector3.Right;
 			}
 			if (Game.Keyboard.IsKeyDown(Keys.D1))
 			{

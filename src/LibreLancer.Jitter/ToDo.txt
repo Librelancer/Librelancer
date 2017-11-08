@@ -1,0 +1,14 @@
+TODO
+======
+
+ - Name it 0.2.0 and release.
+
+
+REFACTORING ! REFACTORING ! REFACTORING ! REFACTORING !
+
+ - Improve overall source structure
+ - Better Softbody support
+ - More Constraints
+ - Commenting code
+
+

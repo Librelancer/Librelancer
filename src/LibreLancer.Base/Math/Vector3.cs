@@ -257,20 +257,36 @@ namespace LibreLancer
             }
         }
 
-        #endregion
 
-        #region public float LengthSquared
 
-        /// <summary>
-        /// Gets the square of the vector length (magnitude).
-        /// </summary>
-        /// <remarks>
-        /// This property avoids the costly square root operation required by the Length property. This makes it more suitable
-        /// for comparisons.
-        /// </remarks>
-        /// <see cref="Length"/>
-        /// <seealso cref="LengthFast"/>
-        public float LengthSquared
+		#endregion
+
+		#region Set
+		public void Set(float x, float y, float z)
+		{
+			X = x;
+			Y = y;
+			Z = z;
+		}
+
+		public void MakeZero()
+		{
+			X = Y = Z = 0;
+		}
+		#endregion
+
+		#region public float LengthSquared
+
+		/// <summary>
+		/// Gets the square of the vector length (magnitude).
+		/// </summary>
+		/// <remarks>
+		/// This property avoids the costly square root operation required by the Length property. This makes it more suitable
+		/// for comparisons.
+		/// </remarks>
+		/// <see cref="Length"/>
+		/// <seealso cref="LengthFast"/>
+		public float LengthSquared
         {
             get
             {
@@ -389,12 +405,19 @@ namespace LibreLancer
         /// <summary>
         /// Defines a zero-length Vector3.
         /// </summary>
-        public static readonly Vector3 Zero = new Vector3(0, 0, 0);
+        public static Vector3 Zero = new Vector3(0, 0, 0);
 
         /// <summary>
         /// Defines an instance with all components set to 1.
         /// </summary>
         public static readonly Vector3 One = new Vector3(1, 1, 1);
+
+		public static readonly Vector3 Up = new Vector3(0f, 1f, 0f);
+		public static readonly Vector3 Down = new Vector3(0f, -1f, 0f);
+		public static readonly Vector3 Right = new Vector3(1f, 0f, 0f);
+		public static readonly Vector3 Left = new Vector3(-1f, 0f, 0f);
+		public static readonly Vector3 Forward = new Vector3(0f, 0f, -1f);
+		public static readonly Vector3 Backward = new Vector3(0f, 0f, 1f);
 
         /// <summary>
         /// Defines the size of the Vector3 struct in bytes.
@@ -752,18 +775,27 @@ namespace LibreLancer
             return left.LengthSquared >= right.LengthSquared ? left : right;
         }
 
-        #endregion
+		#endregion
 
-        #region Clamp
+		#region IsNearlyZero
 
-        /// <summary>
-        /// Clamp a vector to the given minimum and maximum vectors
-        /// </summary>
-        /// <param name="vec">Input vector</param>
-        /// <param name="min">Minimum vector</param>
-        /// <param name="max">Maximum vector</param>
-        /// <returns>The clamped vector</returns>
-        public static Vector3 Clamp(Vector3 vec, Vector3 min, Vector3 max)
+		const float NearlyEpsilon = 1.192092896e-012f;
+		private const float ZeroEpsilonSq = NearlyEpsilon * NearlyEpsilon;
+		public bool IsNearlyZero()
+		{
+			return LengthSquared < ZeroEpsilonSq;
+		}
+		#endregion
+		#region Clamp
+
+		/// <summary>
+		/// Clamp a vector to the given minimum and maximum vectors
+		/// </summary>
+		/// <param name="vec">Input vector</param>
+		/// <param name="min">Minimum vector</param>
+		/// <param name="max">Maximum vector</param>
+		/// <returns>The clamped vector</returns>
+		public static Vector3 Clamp(Vector3 vec, Vector3 min, Vector3 max)
         {
             vec.X = vec.X < min.X ? min.X : vec.X > max.X ? max.X : vec.X;
             vec.Y = vec.Y < min.Y ? min.Y : vec.Y > max.Y ? max.Y : vec.Y;
@@ -861,6 +893,17 @@ namespace LibreLancer
         {
             return left.X * right.X + left.Y * right.Y + left.Z * right.Z;
         }
+
+		/// <summary>
+		/// Calculate the dot (scalar) product of two vectors
+		/// </summary>
+		/// <param name="left">First operand</param>
+		/// <param name="right">Second operand</param>
+		/// <returns>The dot product of the two inputs</returns>
+		public static float Dot(ref Vector3 left, ref Vector3 right)
+		{
+			return left.X * right.X + left.Y * right.Y + left.Z * right.Z;
+		}
 
         /// <summary>
         /// Calculate the dot (scalar) product of two vectors
@@ -1221,18 +1264,48 @@ namespace LibreLancer
             result.Z = v.Z / v.W;
         }
 
-        #endregion
+		#endregion
 
-        #region CalculateAngle
+		#region MinMax
 
-        /// <summary>
-        /// Calculates the angle (in radians) between two vectors.
-        /// </summary>
-        /// <param name="first">The first vector.</param>
-        /// <param name="second">The second vector.</param>
-        /// <returns>Angle (in radians) between the vectors.</returns>
-        /// <remarks>Note that the returned angle is never bigger than the constant Pi.</remarks>
-        public static float CalculateAngle(Vector3 first, Vector3 second)
+		/// <summary>
+		/// Gets a vector with the minimum x,y and z values of both vectors.
+		/// </summary>
+		/// <param name="value1">The first value.</param>
+		/// <param name="value2">The second value.</param>
+		/// <param name="result">A vector with the minimum x,y and z values of both vectors.</param>
+		public static void Min(ref Vector3 value1, ref Vector3 value2, out Vector3 result)
+		{
+			result.X = (value1.X < value2.X) ? value1.X : value2.X;
+			result.Y = (value1.Y < value2.Y) ? value1.Y : value2.Y;
+			result.Z = (value1.Z < value2.Z) ? value1.Z : value2.Z;
+		}
+
+		/// <summary>
+		/// Gets a vector with the maximum x,y and z values of both vectors.
+		/// </summary>
+		/// <param name="value1">The first value.</param>
+		/// <param name="value2">The second value.</param>
+		/// <param name="result">A vector with the maximum x,y and z values of both vectors.</param>
+		public static void Max(ref Vector3 value1, ref Vector3 value2, out Vector3 result)
+		{
+			result.X = (value1.X > value2.X) ? value1.X : value2.X;
+			result.Y = (value1.Y > value2.Y) ? value1.Y : value2.Y;
+			result.Z = (value1.Z > value2.Z) ? value1.Z : value2.Z;
+		}
+
+		#endregion
+
+		#region CalculateAngle
+
+		/// <summary>
+		/// Calculates the angle (in radians) between two vectors.
+		/// </summary>
+		/// <param name="first">The first vector.</param>
+		/// <param name="second">The second vector.</param>
+		/// <returns>Angle (in radians) between the vectors.</returns>
+		/// <remarks>Note that the returned angle is never bigger than the constant Pi.</remarks>
+		public static float CalculateAngle(Vector3 first, Vector3 second)
         {
             float result;
             CalculateAngle(ref first, ref second, out result);
@@ -1251,27 +1324,63 @@ namespace LibreLancer
             result = (float)System.Math.Acos(MathHelper.Clamp(temp / (first.Length * second.Length), -1.0, 1.0));
         }
 
-        #endregion
+		#endregion
 
-        #region Project
+		#region TransposedTransform
+		/// <summary>
+		/// Transforms a vector by the transposed of the given Matrix.
+		/// </summary>
+		/// <param name="position">The vector to transform.</param>
+		/// <param name="matrix">The transform matrix.</param>
+		/// <param name="result">The transformed vector.</param>
+		public static void TransposedTransform(ref Vector3 position, ref Matrix3 matrix, out Vector3 result)
+		{
+			float num0 = ((position.X * matrix.M11) + (position.Y * matrix.M12)) + (position.Z * matrix.M13);
+			float num1 = ((position.X * matrix.M21) + (position.Y * matrix.M22)) + (position.Z * matrix.M23);
+			float num2 = ((position.X * matrix.M31) + (position.Y * matrix.M32)) + (position.Z * matrix.M33);
 
-        /// <summary>
-        /// Projects a vector from object space into screen space.
-        /// </summary>
-        /// <param name="vector">The vector to project.</param>
-        /// <param name="x">The X coordinate of the viewport.</param>
-        /// <param name="y">The Y coordinate of the viewport.</param>
-        /// <param name="width">The width of the viewport.</param>
-        /// <param name="height">The height of the viewport.</param>
-        /// <param name="minZ">The minimum depth of the viewport.</param>
-        /// <param name="maxZ">The maximum depth of the viewport.</param>
-        /// <param name="worldViewProjection">The world-view-projection matrix.</param>
-        /// <returns>The vector in screen space.</returns>
-        /// <remarks>
-        /// To project to normalized device coordinates (NDC) use the following parameters:
-        /// Project(vector, -1, -1, 2, 2, -1, 1, worldViewProjection).
-        /// </remarks>
-        public static Vector3 Project(Vector3 vector, float x, float y, float width, float height, float minZ, float maxZ, Matrix4 worldViewProjection)
+			result.X = num0;
+			result.Y = num1;
+			result.Z = num2;
+		}
+		#endregion
+
+		#region Swap
+		public static void Swap(ref Vector3 a, ref Vector3 b)
+		{
+			Vector3 temp;
+			temp = a;
+			a = b;
+			b = temp;
+		}
+		#endregion
+
+		#region Negate
+		public static void Negate(ref Vector3 input, out Vector3 output)
+		{
+			output = input * -1;
+		}
+		#endregion
+
+		#region Project
+
+		/// <summary>
+		/// Projects a vector from object space into screen space.
+		/// </summary>
+		/// <param name="vector">The vector to project.</param>
+		/// <param name="x">The X coordinate of the viewport.</param>
+		/// <param name="y">The Y coordinate of the viewport.</param>
+		/// <param name="width">The width of the viewport.</param>
+		/// <param name="height">The height of the viewport.</param>
+		/// <param name="minZ">The minimum depth of the viewport.</param>
+		/// <param name="maxZ">The maximum depth of the viewport.</param>
+		/// <param name="worldViewProjection">The world-view-projection matrix.</param>
+		/// <returns>The vector in screen space.</returns>
+		/// <remarks>
+		/// To project to normalized device coordinates (NDC) use the following parameters:
+		/// Project(vector, -1, -1, 2, 2, -1, 1, worldViewProjection).
+		/// </remarks>
+		public static Vector3 Project(Vector3 vector, float x, float y, float width, float height, float minZ, float maxZ, Matrix4 worldViewProjection)
         {
             Vector4 result;
 
@@ -1531,7 +1640,6 @@ namespace LibreLancer
             vec.Z *= scale.Z;
             return vec;
         }
-
         /// <summary>
         /// Transform a Vector by the given Matrix.
         /// </summary>

@@ -15,7 +15,7 @@
  */
 using System;
 using System.Linq;
-using Jitter.LinearMath;
+using LibreLancer.Jitter.LinearMath;
 namespace LibreLancer
 {
 	public class TradelaneMoveComponent : GameComponent
@@ -40,9 +40,9 @@ namespace LibreLancer
 			}
 
 			var tgtcmp = tgt.GetComponent<DockComponent>();
-			var targetPoint = (tgtcmp.GetDockHardpoints().First().Transform * tgt.GetTransform()).Transform(Vector3.Zero).ToJitter();
+			var targetPoint = (tgtcmp.GetDockHardpoints().First().Transform * tgt.GetTransform()).Transform(Vector3.Zero);
 			var direction = targetPoint - Parent.PhysicsComponent.Position;
-			var distance = direction.Length();
+			var distance = direction.Length;
 			if (distance < 200)
 			{
 				currenttradelane = tgt;
@@ -50,6 +50,11 @@ namespace LibreLancer
 			}
 			direction.Normalize();
 			Parent.PhysicsComponent.LinearVelocity = direction * 1000;
+
+			var currRot = Quaternion.FromMatrix(Parent.PhysicsComponent.Orientation);
+			var targetRot = Quaternion.LookAt(Parent.PhysicsComponent.Position, targetPoint);
+			var slerped = Quaternion.Slerp(currRot, targetRot, 0.007f);
+			Parent.PhysicsComponent.Orientation = Matrix3.CreateFromQuaternion(slerped);
 		}
 
 	}

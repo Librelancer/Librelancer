@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{AA03EF1A-94F7-4D30-AB14-2092863FF923}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Jitter</RootNamespace>
+    <AssemblyName>Jitter</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <IntermediateOutputPath>obj\net4\Debug\</IntermediateOutputPath>
+    <OutputPath>bin\net4\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\net4\Debug\Jitter.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <IntermediateOutputPath>obj\net4\Release\</IntermediateOutputPath>
+    <OutputPath>bin\net4\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\net4\Release\Jitter.XML</DocumentationFile>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Collision\CollisionIsland.cs" />
+    <Compile Include="Collision\CollisionSystem.cs" />
+    <Compile Include="Collision\CollisionSystemBrute.cs" />
+    <Compile Include="Collision\CollisionSystemSAP.cs" />
+    <Compile Include="Collision\CollisionSystemPersistentSAP.cs" />
+    <Compile Include="Collision\GJKCollide.cs" />
+    <Compile Include="Collision\IslandManager.cs" />
+    <Compile Include="Collision\Shapes\BoxShape.cs" />
+    <Compile Include="Collision\Shapes\CapsuleShape.cs" />
+    <Compile Include="Collision\Shapes\CompoundShape.cs" />
+    <Compile Include="Collision\Shapes\ConeShape.cs" />
+    <Compile Include="Collision\Shapes\ConvexHullShape.cs" />
+    <Compile Include="Collision\Shapes\CylinderShape.cs" />
+    <Compile Include="Collision\Shapes\MinkowskiSumShape.cs" />
+    <Compile Include="Collision\Shapes\Multishape.cs" />
+    <Compile Include="Collision\Shapes\Shape.cs" />
+    <Compile Include="Collision\Shapes\SphereShape.cs" />
+    <Compile Include="Collision\Shapes\TerrainShape.cs" />
+    <Compile Include="Collision\Shapes\TriangleMeshShape.cs" />
+    <Compile Include="Collision\XenoCollide.cs" />
+    <Compile Include="DataStructures\Action.cs" />
+    <Compile Include="DataStructures\Hashset.cs" />
+    <Compile Include="DataStructures\ReadOnlyHashset.cs" />
+    <Compile Include="Dynamics\Arbiter.cs" />
+    <Compile Include="Dynamics\ArbiterMap.cs" />
+    <Compile Include="Dynamics\Constraints\FixedAngle.cs" />
+    <Compile Include="Dynamics\Constraint.cs" />
+    <Compile Include="Dynamics\Constraints\SingleBody\FixedAngle.cs" />
+    <Compile Include="Dynamics\Constraints\PointOnPoint.cs" />
+    <Compile Include="Dynamics\Constraints\SingleBody\PointOnLine.cs" />
+    <Compile Include="Dynamics\Joints\LimitedHingeJoint.cs" />
+    <Compile Include="Dynamics\Joints\PrismaticJoint.cs" />
+    <Compile Include="Dynamics\Constraints\SingleBody\PointOnPoint.cs" />
+    <Compile Include="Dynamics\Constraints\PointPointDistance.cs" />
+    <Compile Include="Dynamics\Constraints\PointOnLine.cs" />
+    <Compile Include="Dynamics\Contact.cs" />
+    <Compile Include="Dynamics\Joints\HingeJoint.cs" />
+    <Compile Include="Dynamics\Joints\Joint.cs" />
+    <Compile Include="Dynamics\Material.cs" />
+    <Compile Include="Dynamics\RigidBody.cs" />
+    <Compile Include="Collision\DynamicTree.cs" />
+    <Compile Include="IDebugDraw.cs" />
+    <Compile Include="LinearMath\JBBox.cs" />
+    <Compile Include="LinearMath\JConvexHull.cs" />
+    <Compile Include="LinearMath\JMath.cs" />
+    <Compile Include="Collision\Octree.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResourcePool.cs" />
+    <Compile Include="Dynamics\SoftBody.cs" />
+    <Compile Include="ThreadManager.cs" />
+    <Compile Include="World.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ToDo.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">
+      <Project>{C7A37830-B878-4008-A988-D7294D47F44D}</Project>
+      <Name>LibreLancer.Base</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="LICENSE.md" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

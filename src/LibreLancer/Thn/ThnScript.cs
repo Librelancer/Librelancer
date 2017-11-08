@@ -78,12 +78,12 @@ namespace LibreLancer
 			ThnEnv.Add("START_AUDIO_PROP_ANIM", EventTypes.StartAudioPropAnim);
 			ThnEnv.Add("CONNECT_HARDPOINTS", EventTypes.ConnectHardpoints);
 			//Axis
-			ThnEnv.Add("X_AXIS", VectorMath.UnitX);
-			ThnEnv.Add("Y_AXIS", VectorMath.UnitY);
-			ThnEnv.Add("Z_AXIS", VectorMath.UnitZ);
-			ThnEnv.Add("NEG_X_AXIS", -VectorMath.UnitX);
-			ThnEnv.Add("NEG_Y_AXIS", -VectorMath.UnitY);
-			ThnEnv.Add("NEG_Z_AXIS", -VectorMath.UnitZ);
+			ThnEnv.Add("X_AXIS", Vector3.UnitX);
+			ThnEnv.Add("Y_AXIS", Vector3.UnitY);
+			ThnEnv.Add("Z_AXIS", Vector3.UnitZ);
+			ThnEnv.Add("NEG_X_AXIS", -Vector3.UnitX);
+			ThnEnv.Add("NEG_Y_AXIS", -Vector3.UnitY);
+			ThnEnv.Add("NEG_Z_AXIS", -Vector3.UnitZ);
 			//Booleans
 			ThnEnv.Add("Y", true);
 			ThnEnv.Add("N", false);

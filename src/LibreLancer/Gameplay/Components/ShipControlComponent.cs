@@ -14,7 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using Jitter.LinearMath;
+using LibreLancer.Jitter.LinearMath;
 namespace LibreLancer
 {
 	[Flags]
@@ -56,7 +56,7 @@ namespace LibreLancer
 			Active = true;
 		}
 		//TODO: Engine Kill
-		JVector setInertia = JVector.Zero;
+		Vector3 setInertia = Vector3.Zero;
 		public override void FixedUpdate(TimeSpan time)
 		{
 			if (!Active) return;
@@ -64,7 +64,7 @@ namespace LibreLancer
 			//This seems to somewhat work
 			if (setInertia != Ship.RotationInertia)
 			{
-				var inertia = JMatrix.Identity;
+				var inertia = Matrix3.Identity;
 				inertia.M11 = Ship.RotationInertia.X;
 				inertia.M22 = Ship.RotationInertia.Z;
 				inertia.M33 = Ship.RotationInertia.Y;
@@ -111,30 +111,30 @@ namespace LibreLancer
 				engine.Speed = EnginePower * 0.9f;
 			}
 
-			JVector strafe = JVector.Zero;
+			Vector3 strafe = Vector3.Zero;
 			//TODO: Trying to strafe during cruise should drop you out
 			if (EngineState != EngineStates.Cruise) //Cannot strafe during cruise
 			{
 				if ((CurrentStrafe & StrafeControls.Left) == StrafeControls.Left)
 				{
-					strafe -= JVector.Left; // Subtraction intentional
+					strafe -= Vector3.Left; // Subtraction intentional
 				}
 				else if ((CurrentStrafe & StrafeControls.Right) == StrafeControls.Right)
 				{
-					strafe -= JVector.Right; // Subtraction intentional
+					strafe -= Vector3.Right; // Subtraction intentional
 				}
 				if ((CurrentStrafe & StrafeControls.Up) == StrafeControls.Up)
 				{
-					strafe += JVector.Up;
+					strafe += Vector3.Up;
 				}
 				else if ((CurrentStrafe & StrafeControls.Down) == StrafeControls.Down)
 				{
-					strafe += JVector.Down;
+					strafe += Vector3.Down;
 				}
-				if (strafe != JVector.Zero)
+				if (strafe != Vector3.Zero)
 				{
 					strafe.Normalize();
-					strafe = JVector.Transform(strafe, Parent.PhysicsComponent.Orientation);
+					strafe = Vector3.Transform(strafe, Parent.PhysicsComponent.Orientation);
 					//Apply strafe force
 					strafe *= Ship.StrafeForce;
 				}
@@ -142,20 +142,20 @@ namespace LibreLancer
 			var totalForce = (
 				drag +
 				strafe +
-				(JVector.Transform(JVector.Forward, Parent.PhysicsComponent.Orientation) * engine_force)
+				(Vector3.Transform(Vector3.Forward, Parent.PhysicsComponent.Orientation) * engine_force)
 			);
 			Parent.PhysicsComponent.AddForce(totalForce);
 			//add angular drag
-			var angularDrag = JVector.Zero;
-			Parent.PhysicsComponent.AddTorque(ComponentMultiply(Parent.PhysicsComponent.AngularVelocity * -1, Ship.AngularDrag));
+			var angularDrag = Vector3.Zero;
+			Parent.PhysicsComponent.AddTorque((Parent.PhysicsComponent.AngularVelocity * -1) * Ship.AngularDrag);
 			//steer
 			//based on the amazing work of Why485 (https://www.youtube.com/user/Why485)
-			var steerControl = new JVector(Math.Abs(PlayerPitch) > 0 ? PlayerPitch : Pitch,
+			var steerControl = new Vector3(Math.Abs(PlayerPitch) > 0 ? PlayerPitch : Pitch,
 										   Math.Abs(PlayerYaw) > 0 ? PlayerYaw : Yaw,
 										   0);
-			var angularForce = ComponentMultiply(steerControl, Ship.SteeringTorque);
+			var angularForce = steerControl * Ship.SteeringTorque;
 			//transform torque by direction = unity's AddRelativeTorque
-			Parent.PhysicsComponent.AddTorque(JVector.Transform(angularForce, Parent.PhysicsComponent.Orientation));
+			Parent.PhysicsComponent.AddTorque(Vector3.Transform(angularForce, Parent.PhysicsComponent.Orientation));
 			//auto-roll?
 			if (Math.Abs(steerControl.X) < 0.005f && Math.Abs(steerControl.Y) < 0.005f) //only auto-roll when not steering (probably incorrect)
 			{
@@ -163,17 +163,10 @@ namespace LibreLancer
 				//TODO: Fix to work without directly setting orientation
 				//TODO: Maybe make this based off the forces?
 				var lerped = MathHelper.Lerp((float)coords.Z, 0, (float)((0.009f * 60f) * time.TotalSeconds));
-				Parent.PhysicsComponent.Orientation = JMatrix.CreateFromYawPitchRoll((float)coords.Y, (float)coords.X, lerped);
+				Parent.PhysicsComponent.Orientation = Matrix3.FromEulerAngles((float)coords.X, (float)coords.Y, lerped);
 			}
 
 		}
 
-		static JVector ComponentMultiply(JVector a, JVector b)
-		{
-			return new JVector(
-				a.X * b.X,
-				a.Y * b.Y,
-				a.Z * b.Z);
-		}
 	}
 }

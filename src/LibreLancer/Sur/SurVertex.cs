@@ -15,18 +15,18 @@
  */
 using System;
 using System.IO;
-using Jitter.LinearMath;
+using LibreLancer.Jitter.LinearMath;
 namespace LibreLancer.Sur
 {
 	public struct SurVertex
 	{
 		public const int SIZE = sizeof(float) * 3 + sizeof(uint);
-		public JVector Point;
+		public Vector3 Point;
 		public uint Mesh;
 
 		public SurVertex (BinaryReader reader)
 		{
-			Point = new JVector (reader.ReadSingle (), reader.ReadSingle (), reader.ReadSingle ());
+			Point = new Vector3 (reader.ReadSingle (), reader.ReadSingle (), reader.ReadSingle ());
 			Mesh = reader.ReadUInt32 ();
 		}
 	}

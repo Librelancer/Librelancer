@@ -14,10 +14,10 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using Jitter;
-using Jitter.Collision.Shapes;
-using Jitter.Dynamics;
-using Jitter.LinearMath;
+using LibreLancer.Jitter;
+using LibreLancer.Jitter.Collision.Shapes;
+using LibreLancer.Jitter.Dynamics;
+using LibreLancer.Jitter.LinearMath;
 namespace LibreLancer
 {
 	public class SpaceGameplay : GameState
@@ -73,7 +73,7 @@ Mouse Flight: {10}
 				ThrustChargeRate = 100
 			};
 			player.Components.Add(powerCore);
-			player.PhysicsComponent.Position = new JVector(-31000, 0, -26755);
+			player.PhysicsComponent.Position = new Vector3(-31000, 0, -26755);
 			player.PhysicsComponent.Material.Restitution = 1;
 			player.PhysicsComponent.Mass = shp.Mass;
 			foreach (var equipment in session.MountedEquipment)
@@ -85,7 +85,7 @@ Mouse Flight: {10}
 
 			camera = new ChaseCamera(Game.Viewport);
 			camera.ChasePosition = new Vector3(-31000, 0, -26755);
-			camera.ChaseOrientation = player.PhysicsComponent.Orientation.ToOpenTK();
+			camera.ChaseOrientation = new Matrix4(player.PhysicsComponent.Orientation);
 			camera.Reset();
 
 			sysrender = new SystemRenderer(camera, g.GameData, g.ResourceManager);
@@ -223,10 +223,10 @@ Mouse Flight: {10}
 		void World_RenderUpdate(TimeSpan delta)
 		{
 			//Has to be here or glitches
-			camera.ChasePosition = player.PhysicsComponent.Position.ToOpenTK();
-			camera.ChaseOrientation = player.PhysicsComponent.Orientation.ToOpenTK();
+			camera.ChasePosition = player.PhysicsComponent.Position;
+			camera.ChaseOrientation = new Matrix4(player.PhysicsComponent.Orientation);
 			camera.Update(delta);
-			hud.Velocity = player.PhysicsComponent.LinearVelocity.Length();
+			hud.Velocity = player.PhysicsComponent.LinearVelocity.Length;
 			hud.ThrustAvailable = (float)(powerCore.CurrentThrustCapacity / powerCore.ThrustCapacity);
 		}
 
@@ -340,8 +340,8 @@ Mouse Flight: {10}
 		{
 			var vp = new Vector2(Game.Width, Game.Height);
 
-			var start = UnProject(new Vector3(x, y, 0f), camera.Projection, camera.View, vp).ToJitter();
-			var end = UnProject(new Vector3(x, y, 1f), camera.Projection, camera.View, vp).ToJitter();
+			var start = UnProject(new Vector3(x, y, 0f), camera.Projection, camera.View, vp);
+			var end = UnProject(new Vector3(x, y, 1f), camera.Projection, camera.View, vp);
 			var dir = end;
 
 			RigidBody rb;
@@ -357,7 +357,7 @@ Mouse Flight: {10}
 		}
 
 		//Select by bounding box, not by mesh
-		bool SelectionCast(JVector rayOrigin, JVector direction, float maxDist, out RigidBody body)
+		bool SelectionCast(Vector3 rayOrigin, Vector3 direction, float maxDist, out RigidBody body)
 		{
 			float dist = float.MaxValue;
 			body = null;
@@ -372,7 +372,7 @@ Mouse Flight: {10}
 					var sph = (SphereShape)rb.Shape;
 					if (SphereRayIntersect(rayOrigin, direction, maxDist, rb.Position, sph.Radius))
 					{
-						var nd = VectorMath.DistanceSquared(rb.Position.ToOpenTK(), camera.Position);
+						var nd = VectorMath.DistanceSquared(rb.Position, camera.Position);
 						if (nd < dist)
 						{
 							dist = nd;
@@ -387,7 +387,7 @@ Mouse Flight: {10}
 					if (tag == null || tag.CmpParts.Count == 0)
 					{
 						//Single part
-						var nd = VectorMath.DistanceSquared(rb.Position.ToOpenTK(), camera.Position);
+						var nd = VectorMath.DistanceSquared(rb.Position, camera.Position);
 						if (nd < dist)
 						{
 							dist = nd;
@@ -407,7 +407,7 @@ Mouse Flight: {10}
 							if (bb.RayIntersect(ref rayOrigin, ref jitterDir))
 							{
 								
-								var nd = VectorMath.DistanceSquared(rb.Position.ToOpenTK(), camera.Position);
+								var nd = VectorMath.DistanceSquared(rb.Position, camera.Position);
 								if (nd < dist)
 								{
 									dist = nd;
@@ -422,18 +422,18 @@ Mouse Flight: {10}
 			return body != null;
 		}
 
-		static bool SphereRayIntersect(JVector rayOrigin, JVector d, float maxdistance, JVector centre, float radius)
+		static bool SphereRayIntersect(Vector3 rayOrigin, Vector3 d, float maxdistance, Vector3 centre, float radius)
 		{
-			var dist = VectorMath.DistanceSquared(rayOrigin.ToOpenTK(), centre.ToOpenTK());
+			var dist = VectorMath.DistanceSquared(rayOrigin, centre);
 			if (dist > (maxdistance - radius) * (maxdistance - radius)) return false;
 			//Ray start offset from sphere centre
 			var p = rayOrigin - centre;
 			float rSquared = radius * radius;
-			float p_d = JVector.Dot(p, d);
-			if (p_d > 0 || JVector.Dot(p, p) < rSquared)
+			float p_d = Vector3.Dot(p, d);
+			if (p_d > 0 || Vector3.Dot(p, p) < rSquared)
 				return false;
 			var a = p - p_d * d;
-			var aSquared = JVector.Dot(a, a);
+			var aSquared = Vector3.Dot(a, a);
 			return aSquared < rSquared;
 		}
 

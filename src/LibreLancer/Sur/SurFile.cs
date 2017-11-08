@@ -16,8 +16,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Jitter.LinearMath;
-using Jitter.Collision.Shapes;
+using LibreLancer.Jitter.LinearMath;
+using LibreLancer.Jitter.Collision.Shapes;
 namespace LibreLancer.Sur
 {
 	//TODO: Sur reader is VERY incomplete & undocumented
@@ -38,7 +38,7 @@ namespace LibreLancer.Sur
 					var th = surface.Groups[i];
 					if (th.MeshID != meshId)
 						continue;
-					var verts = new List<JVector>();
+					var verts = new List<Vector3>();
 					if (th.VertexArrayOffset != 0)
 						throw new Exception("tgroupheader vertexarrayoffset wrong");
 					List<ushort> vertsAdded = new List<ushort>();

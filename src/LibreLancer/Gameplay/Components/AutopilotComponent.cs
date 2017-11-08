@@ -15,7 +15,7 @@
  */
 using System;
 using System.Linq;
-using Jitter.LinearMath;
+using LibreLancer.Jitter.LinearMath;
 namespace LibreLancer
 {
 	public enum AutopilotBehaviours
@@ -56,12 +56,12 @@ namespace LibreLancer
 			if (CurrentBehaviour == AutopilotBehaviours.None) return;
 
 
-			JVector targetPoint = JVector.Zero;
+			Vector3 targetPoint = Vector3.Zero;
 			float radius = -1;
 			float maxSpeed = 1f;
 			if (CurrentBehaviour == AutopilotBehaviours.Goto)
 			{
-				targetPoint = TargetObject.PhysicsComponent == null ? TargetObject.GetTransform().Transform(Vector3.Zero).ToJitter() : TargetObject.PhysicsComponent.Position;
+				targetPoint = TargetObject.PhysicsComponent == null ? TargetObject.GetTransform().Transform(Vector3.Zero) : TargetObject.PhysicsComponent.Position;
 				ResetDockState();
 			}
 			else
@@ -76,7 +76,7 @@ namespace LibreLancer
 				}
 				var hp = docking.GetDockHardpoints().Skip(lastTargetHp).First();
 				radius = 5;
-				targetPoint = (hp.Transform * TargetObject.GetTransform()).Transform(Vector3.Zero).ToJitter();
+				targetPoint = (hp.Transform * TargetObject.GetTransform()).Transform(Vector3.Zero);
 				if (lastTargetHp > 0) maxSpeed = 0.3f;
 				if (lastTargetHp == 2) radius = docking.TriggerRadius;
 				if (!hasTriggeredAnimation && docking.TryTriggerAnimation(Parent)) hasTriggeredAnimation = true;
@@ -85,13 +85,13 @@ namespace LibreLancer
 					ResetDockState();
 					DockComplete(docking.Action);
 				}
-				var d2 = (targetPoint - Parent.PhysicsComponent.Position).Length();
+				var d2 = (targetPoint - Parent.PhysicsComponent.Position).Length;
 				if (d2 < 80) maxSpeed = 0.3f;
 			}
 			//Bring ship to within 40 metres of target
 			var targetRadius = RadiusFromBoundingBox(TargetObject.PhysicsComponent.Shape.BoundingBox);
 			var myRadius = RadiusFromBoundingBox(Parent.PhysicsComponent.Shape.BoundingBox);
-			var distance = (targetPoint - Parent.PhysicsComponent.Position).Length();
+			var distance = (targetPoint - Parent.PhysicsComponent.Position).Length;
 
 			var distrad = radius < 0 ? (targetRadius + myRadius + 40) : radius + myRadius;
 			bool distanceSatisfied =  distrad >= distance;

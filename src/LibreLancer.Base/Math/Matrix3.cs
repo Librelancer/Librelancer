@@ -54,12 +54,12 @@ namespace LibreLancer
         /// <summary>
         /// The identity matrix.
         /// </summary>
-        public static readonly Matrix3 Identity = new Matrix3(Vector3.UnitX, Vector3.UnitY, Vector3.UnitZ);
+        public static Matrix3 Identity = new Matrix3(Vector3.UnitX, Vector3.UnitY, Vector3.UnitZ);
 
         /// <summary>
         /// The zero matrix.
         /// </summary>
-        public static readonly Matrix3 Zero = new Matrix3(Vector3.Zero, Vector3.Zero, Vector3.Zero);
+        public static Matrix3 Zero = new Matrix3(Vector3.Zero, Vector3.Zero, Vector3.Zero);
         
         #endregion
         
@@ -582,17 +582,40 @@ namespace LibreLancer
             CreateRotationZ(angle, out result);
             return result;
         }
-        
-        #endregion
-        
-        #region CreateScale
-        
-        /// <summary>
-        /// Creates a scale matrix.
-        /// </summary>
-        /// <param name="scale">Single scale factor for the x, y, and z axes.</param>
-        /// <returns>A scale matrix.</returns>
-        public static Matrix3 CreateScale(float scale)
+
+		#endregion
+
+		#region FromEulerAngles
+		public static Matrix3 FromEulerAngles(float pitch, float yaw, float roll)
+		{
+			Matrix3 matrix;
+			var q = new Quaternion();
+			float num9 = roll * 0.5f;
+			float num6 = (float)Math.Sin((double)num9);
+			float num5 = (float)Math.Cos((double)num9);
+			float num8 = pitch * 0.5f;
+			float num4 = (float)Math.Sin((double)num8);
+			float num3 = (float)Math.Cos((double)num8);
+			float num7 = yaw * 0.5f;
+			float num2 = (float)Math.Sin((double)num7);
+			float num = (float)Math.Cos((double)num7);
+			q.X = ((num * num4) * num5) + ((num2 * num3) * num6);
+			q.Y = ((num2 * num3) * num5) - ((num * num4) * num6);
+			q.Z = ((num * num3) * num6) - ((num2 * num4) * num5);
+			q.W = ((num * num3) * num5) + ((num2 * num4) * num6);
+			CreateFromQuaternion(ref q, out matrix);
+			return matrix;
+		}
+		#endregion
+
+		#region CreateScale
+
+		/// <summary>
+		/// Creates a scale matrix.
+		/// </summary>
+		/// <param name="scale">Single scale factor for the x, y, and z axes.</param>
+		/// <returns>A scale matrix.</returns>
+		public static Matrix3 CreateScale(float scale)
         {
             Matrix3 result;
             CreateScale(scale, out result);
@@ -696,10 +719,36 @@ namespace LibreLancer
             Vector3.Add(ref left.Row2, ref right.Row2, out result.Row2);
         }
 
-        #endregion
+		public static Matrix3 Sub(Matrix3 left, Matrix3 right)
+		{
+			Matrix3 result;
+			Sub(ref left, ref right, out result);
+			return result;
+		}
 
-        #region Multiply Functions
+		public static void Sub(ref Matrix3 left, ref Matrix3 right, out Matrix3 result)
+		{
+			Vector3.Subtract(ref left.Row0, ref right.Row0, out result.Row0);
+			Vector3.Subtract(ref left.Row1, ref right.Row1, out result.Row1);
+			Vector3.Subtract(ref left.Row2, ref right.Row2, out result.Row2);
+		}
+		#endregion
 
+		#region Multiply Functions
+
+		public static void Mult(ref Matrix3 matrix1, float num, out Matrix3 result)
+		{
+			result = new Matrix3();
+			result.M11 = matrix1.M11 * num;
+			result.M12 = matrix1.M12 * num;
+			result.M13 = matrix1.M13 * num;
+			result.M21 = matrix1.M21 * num;
+			result.M22 = matrix1.M22 * num;
+			result.M23 = matrix1.M23 * num;
+			result.M31 = matrix1.M31 * num;
+			result.M32 = matrix1.M32 * num;
+			result.M33 = matrix1.M33 * num;
+		}
         /// <summary>
         /// Multiplies two instances.
         /// </summary>
@@ -738,117 +787,45 @@ namespace LibreLancer
             result.Row2.Y = ((lM31 * rM12) + (lM32 * rM22)) + (lM33 * rM32);
             result.Row2.Z = ((lM31 * rM13) + (lM32 * rM23)) + (lM33 * rM33);
         }
-        
-        #endregion
-        
-        #region Invert Functions
-        
-        /// <summary>
-        /// Calculate the inverse of the given matrix
-        /// </summary>
-        /// <param name="mat">The matrix to invert</param>
-        /// <param name="result">The inverse of the given matrix if it has one, or the input if it is singular</param>
-        /// <exception cref="InvalidOperationException">Thrown if the Matrix3 is singular.</exception>
-        public static void Invert(ref Matrix3 mat, out Matrix3 result)
+
+		#endregion
+
+		#region Invert Functions
+
+		/// <summary>
+		/// Calculate the inverse of the given matrix
+		/// </summary>
+		/// <param name="matrix">The matrix to invert</param>
+		/// <param name="result">The inverse of the given matrix if it has one, or the input if it is singular</param>
+		/// <exception cref="InvalidOperationException">Thrown if the Matrix3 is singular.</exception>
+		public static void Invert(ref Matrix3 matrix, out Matrix3 result)
         {
-            int[] colIdx = { 0, 0, 0 };
-            int[] rowIdx = { 0, 0, 0 };
-            int[] pivotIdx = { -1, -1, -1 };
-            
-            float[,] inverse = {{mat.Row0.X, mat.Row0.Y, mat.Row0.Z},
-                {mat.Row1.X, mat.Row1.Y, mat.Row1.Z},
-                {mat.Row2.X, mat.Row2.Y, mat.Row2.Z}};
-            
-            int icol = 0;
-            int irow = 0;
-            for (int i = 0; i < 3; i++)
-            {
-                float maxPivot = 0.0f;
-                for (int j = 0; j < 3; j++)
-                {
-                    if (pivotIdx[j] != 0)
-                    {
-                        for (int k = 0; k < 3; ++k)
-                        {
-                            if (pivotIdx[k] == -1)
-                            {
-                                float absVal = System.Math.Abs(inverse[j, k]);
-                                if (absVal > maxPivot)
-                                {
-                                    maxPivot = absVal;
-                                    irow = j;
-                                    icol = k;
-                                }
-                            }
-                            else if (pivotIdx[k] > 0)
-                            {
-                                result = mat;
-                                return;
-                            }
-                        }
-                    }
-                }
-                
-                ++(pivotIdx[icol]);
-                
-                if (irow != icol)
-                {
-                    for (int k = 0; k < 3; ++k)
-                    {
-                        float f = inverse[irow, k];
-                        inverse[irow, k] = inverse[icol, k];
-                        inverse[icol, k] = f;
-                    }
-                }
-                
-                rowIdx[i] = irow;
-                colIdx[i] = icol;
-                
-                float pivot = inverse[icol, icol];
-                
-                if (pivot == 0.0f)
-                {
-                    throw new InvalidOperationException("Matrix is singular and cannot be inverted.");
-                }
-                
-                float oneOverPivot = 1.0f / pivot;
-                inverse[icol, icol] = 1.0f;
-                for (int k = 0; k < 3; ++k)
-                    inverse[icol, k] *= oneOverPivot;
-                
-                for (int j = 0; j < 3; ++j)
-                {
-                    if (icol != j)
-                    {
-                        float f = inverse[j, icol];
-                        inverse[j, icol] = 0.0f;
-                        for (int k = 0; k < 3; ++k)
-                            inverse[j, k] -= inverse[icol, k] * f;
-                    }
-                }
-            }
-            
-            for (int j = 2; j >= 0; --j)
-            {
-                int ir = rowIdx[j];
-                int ic = colIdx[j];
-                for (int k = 0; k < 3; ++k)
-                {
-                    float f = inverse[k, ir];
-                    inverse[k, ir] = inverse[k, ic];
-                    inverse[k, ic] = f;
-                }
-            }
-            
-            result.Row0.X = inverse[0, 0];
-            result.Row0.Y = inverse[0, 1];
-            result.Row0.Z = inverse[0, 2];
-            result.Row1.X = inverse[1, 0];
-            result.Row1.Y = inverse[1, 1];
-            result.Row1.Z = inverse[1, 2];
-            result.Row2.X = inverse[2, 0];
-            result.Row2.Y = inverse[2, 1];
-            result.Row2.Z = inverse[2, 2];
+            float determinantInverse = 1 / matrix.Determinant;
+			float m11 = (matrix.M22 * matrix.M33 - matrix.M23 * matrix.M32) * determinantInverse;
+			float m12 = (matrix.M13 * matrix.M32 - matrix.M33 * matrix.M12) * determinantInverse;
+			float m13 = (matrix.M12 * matrix.M23 - matrix.M22 * matrix.M13) * determinantInverse;
+
+			float m21 = (matrix.M23 * matrix.M31 - matrix.M21 * matrix.M33) * determinantInverse;
+			float m22 = (matrix.M11 * matrix.M33 - matrix.M13 * matrix.M31) * determinantInverse;
+			float m23 = (matrix.M13 * matrix.M21 - matrix.M11 * matrix.M23) * determinantInverse;
+
+			float m31 = (matrix.M21 * matrix.M32 - matrix.M22 * matrix.M31) * determinantInverse;
+			float m32 = (matrix.M12 * matrix.M31 - matrix.M11 * matrix.M32) * determinantInverse;
+			float m33 = (matrix.M11 * matrix.M22 - matrix.M12 * matrix.M21) * determinantInverse;
+
+			result = new Matrix3();
+
+			result.M11 = m11;
+			result.M12 = m12;
+			result.M13 = m13;
+
+			result.M21 = m21;
+			result.M22 = m22;
+			result.M23 = m23;
+
+			result.M31 = m31;
+			result.M32 = m32;
+			result.M33 = m33;
         }
         
         /// <summary>

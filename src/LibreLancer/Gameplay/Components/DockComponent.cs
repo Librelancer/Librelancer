@@ -45,8 +45,8 @@ namespace LibreLancer
 			var rad = RadiusFromBoundingBox(obj.PhysicsComponent.Shape.BoundingBox);
 			foreach (var hps in GetDockHardpoints())
 			{
-				var targetPos = (hps.Transform * Parent.GetTransform()).Transform(Vector3.Zero).ToJitter();
-				var dist = (targetPos - obj.PhysicsComponent.Position).Length();
+				var targetPos = (hps.Transform * Parent.GetTransform()).Transform(Vector3.Zero);
+				var dist = (targetPos - obj.PhysicsComponent.Position).Length;
 				if (dist < 20 + rad)
 				{
 					TriggerAnimation();
@@ -72,8 +72,8 @@ namespace LibreLancer
 		public bool CanDock(GameObject obj)
 		{
 			var hp = Parent.GetHardpoint(DockHardpoint);
-			var targetPos = (hp.Transform * Parent.GetTransform()).Transform(Vector3.Zero).ToJitter();
-			if ((targetPos - obj.PhysicsComponent.Position).Length() < (TriggerRadius + RadiusFromBoundingBox(obj.PhysicsComponent.Shape.BoundingBox)))
+			var targetPos = (hp.Transform * Parent.GetTransform()).Transform(Vector3.Zero);
+			if ((targetPos - obj.PhysicsComponent.Position).Length < (TriggerRadius + RadiusFromBoundingBox(obj.PhysicsComponent.Shape.BoundingBox)))
 			{
 				return true;
 			}
@@ -88,7 +88,7 @@ namespace LibreLancer
 			component.StartAnimation(DockAnimation, false);
 		}
 
-		static float RadiusFromBoundingBox(Jitter.LinearMath.JBBox box)
+		static float RadiusFromBoundingBox(LibreLancer.Jitter.LinearMath.JBBox box)
 		{
 			float radius = 0;
 			radius = Math.Max(Math.Abs(box.Max.X), radius);

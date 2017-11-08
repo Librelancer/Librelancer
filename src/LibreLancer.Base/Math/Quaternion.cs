@@ -591,6 +591,39 @@ namespace LibreLancer
 
         #endregion
 
+		public static Quaternion LookAt(Vector3 sourcePoint, Vector3 destPoint)
+		{
+			var forwardVector = Vector3.Normalize(destPoint - sourcePoint);
+
+			float dot = Vector3.Dot(Vector3.Forward, forwardVector);
+
+			if (Math.Abs(dot - (-1.0f)) < 0.000001f)
+			{
+				return new Quaternion(Vector3.Up.X, Vector3.Up.Y, Vector3.Up.Z, 3.1415926535897932f);
+			}
+			if (Math.Abs(dot - (1.0f)) < 0.000001f)
+			{
+				return new Quaternion(0, 0, 0, 1);
+			}
+
+			float rotAngle = (float)Math.Acos(dot);
+			Vector3 rotAxis = Vector3.Cross(Vector3.Forward, forwardVector);
+			rotAxis = Vector3.Normalize(rotAxis);
+			return CreateFromAxisAngle(rotAxis, rotAngle);
+		}
+
+		public static Quaternion CreateFromAxisAngle(Vector3 axis, float angle)
+		{
+			float halfAngle = angle * .5f;
+			float s = (float)System.Math.Sin(halfAngle);
+			var q = new Quaternion();
+			q.X = axis.X * s;
+			q.Y = axis.Y * s;
+			q.Z = axis.Z * s;
+			q.W = (float)System.Math.Cos(halfAngle);
+			return q;
+		}
+
         #region FromMatrix
 
         /// <summary>

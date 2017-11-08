@@ -598,9 +598,9 @@ namespace LibreLancer
 				resource.LoadMat (matlib);
 			ship.Drawable = resource.GetDrawable (legacy.DaArchetypeName);
 			ship.Mass = legacy.Mass;
-			ship.AngularDrag = legacy.AngularDrag.ToJitter();
-			ship.RotationInertia = legacy.RotationInertia.ToJitter();
-			ship.SteeringTorque = legacy.SteeringTorque.ToJitter();
+			ship.AngularDrag = legacy.AngularDrag;
+			ship.RotationInertia = legacy.RotationInertia;
+			ship.SteeringTorque = legacy.SteeringTorque;
 			ship.CruiseSpeed = 300;
 			ship.StrafeForce = legacy.StrafeForce;
 			return ship;

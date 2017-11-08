@@ -1,6 +1,6 @@
 ﻿using System;
-using Jitter;
-using Jitter.LinearMath;
+using LibreLancer.Jitter;
+using LibreLancer.Jitter.LinearMath;
 using LibreLancer.Vertices;
 namespace LibreLancer
 {
@@ -28,19 +28,19 @@ namespace LibreLancer
 			lineVertices = 0;	
 		}
 
-		public void DrawLine(JVector start, JVector end)
+		public void DrawLine(Vector3 start, Vector3 end)
 		{
-			DrawLineInternal(start.ToOpenTK(), end.ToOpenTK());
+			DrawLineInternal(start, end);
 		}
 
-		public void DrawPoint(JVector pos)
+		public void DrawPoint(Vector3 pos)
 		{
-			DrawPointInternal(pos.ToOpenTK());
+			DrawPointInternal(pos);
 		}
 
-		public void DrawTriangle(JVector pos1, JVector pos2, JVector pos3)
+		public void DrawTriangle(Vector3 pos1, Vector3 pos2, Vector3 pos3)
 		{
-			DrawTriangleInternal(pos1.ToOpenTK(), pos2.ToOpenTK(), pos3.ToOpenTK());
+			DrawTriangleInternal(pos1, pos2, pos3);
 		}
 
 		void DrawLineInternal(Vector3 start, Vector3 end)

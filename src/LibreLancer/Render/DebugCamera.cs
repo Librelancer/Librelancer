@@ -109,11 +109,11 @@ namespace LibreLancer
 				var rotatedVector = rotationMatrix.Transform(MoveVector);;
 				Position += (float)(delta.TotalSeconds * MoveSpeed) * rotatedVector;
 
-				Vector3 originalTarget = VectorMath.Forward;
+				Vector3 originalTarget = Vector3.Forward;
 				Vector3 rotatedTarget = rotationMatrix.Transform(originalTarget);
 				Vector3 target = Position + rotatedTarget;
 
-				Vector3 upVector = rotationMatrix.Transform(VectorMath.Up);
+				Vector3 upVector = rotationMatrix.Transform(Vector3.Up);
 
 				var v = Matrix4.LookAt(Position, target, upVector);
 				if (View != v) {
@@ -142,7 +142,7 @@ namespace LibreLancer
 				position = rotationMatrix.Transform(position);
 				Position = currentTarget + position;
 
-				Vector3 upVector = rotationMatrix.Transform (VectorMath.Up);
+				Vector3 upVector = rotationMatrix.Transform (Vector3.Up);
 
 				View = Matrix4.LookAt(Position, currentTarget, upVector);
 				_vpdirty = true;

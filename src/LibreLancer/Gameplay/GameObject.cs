@@ -23,10 +23,10 @@ using LibreLancer.Sur;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Items;
 using Archs = LibreLancer.GameData.Archetypes;
-using Jitter;
-using Jitter.LinearMath;
-using Jitter.Collision.Shapes;
-using Jitter.Dynamics;
+using LibreLancer.Jitter;
+using LibreLancer.Jitter.LinearMath;
+using LibreLancer.Jitter.Collision.Shapes;
+using LibreLancer.Jitter.Dynamics;
 
 namespace LibreLancer
 {
@@ -47,8 +47,8 @@ namespace LibreLancer
 				_transform = value;
 				if (PhysicsComponent != null)
 				{
-					PhysicsComponent.Position = _transform.ExtractTranslation().ToJitter();
-					PhysicsComponent.Orientation = _transform.GetOrientation();
+					PhysicsComponent.Position = _transform.ExtractTranslation();
+					PhysicsComponent.Orientation = Matrix3.CreateFromQuaternion(_transform.ExtractRotation());
 				}
 			}
 		}
@@ -102,9 +102,9 @@ namespace LibreLancer
 				if (subshape.Tag == null) continue;
 				var construct = (AbstractConstruct)subshape.Tag;
 				var tr = construct.Transform;
-				var pos = tr.ExtractTranslation().ToJitter();
+				var pos = tr.ExtractTranslation();
 				var q = tr.ExtractRotation(true);
-				var rot = JMatrix.CreateFromQuaternion(new JQuaternion(q.X, q.Y, q.Z, q.W));
+				var rot = Matrix3.CreateFromQuaternion(q);
 				subshape.Position = pos;
 				subshape.Orientation = rot;
 			}
@@ -131,7 +131,7 @@ namespace LibreLancer
 					SurFile sur = res.GetSur(path);
 					var shs = new List<CompoundSurShape.TransformedShape>();
 					foreach (var s in sur.GetShape(0))
-						shs.Add(new CompoundSurShape.TransformedShape(s, JMatrix.Identity, JVector.Zero));
+						shs.Add(new CompoundSurShape.TransformedShape(s, Matrix3.Identity, Vector3.Zero));
 					collisionShape = new CompoundSurShape(shs);
 				}
 			}
@@ -167,13 +167,13 @@ namespace LibreLancer
 						if (part.Construct == null)
 						{
 							foreach (var s in colshape)
-								shapes.Add(new CompoundSurShape.TransformedShape(s, JMatrix.Identity, JVector.Zero));						}
+								shapes.Add(new CompoundSurShape.TransformedShape(s, Matrix3.Identity, Vector3.Zero));						}
 						else
 						{
 							var tr = part.Construct.Transform;
-							var pos = tr.ExtractTranslation().ToJitter();
+							var pos = tr.ExtractTranslation();
 							var q = tr.ExtractRotation(true);
-							var rot = JMatrix.CreateFromQuaternion(new JQuaternion(q.X, q.Y, q.Z, q.W));
+							var rot = Matrix3.CreateFromQuaternion(q);
 							foreach (var s in colshape)
 								shapes.Add(new CompoundSurShape.TransformedShape(s, rot, pos) { Tag = part.Construct });
 						}
@@ -301,7 +301,7 @@ namespace LibreLancer
 				Components[i].FixedUpdate(time);
 			if (PhysicsComponent != null && !isstatic)
 			{
-				Transform = PhysicsComponent.Orientation.ToOpenTK() * Matrix4.CreateTranslation(PhysicsComponent.Position.ToOpenTK());
+				Transform = new Matrix4(PhysicsComponent.Orientation) * Matrix4.CreateTranslation(PhysicsComponent.Position);
 			}
 		}
 
@@ -343,11 +343,6 @@ namespace LibreLancer
 		public Hardpoint GetHardpoint(string hpname)
 		{
 			return hardpoints[hpname];
-		}
-
-		public JVector InverseTransformPoint(JVector input)
-		{
-			return InverseTransformPoint(input.ToOpenTK()).ToJitter();
 		}
 
 		public Vector3 InverseTransformPoint(Vector3 input)

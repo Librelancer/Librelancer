@@ -201,7 +201,6 @@
     <Compile Include="Render\Billboards.cs" />
     <Compile Include="ChaseCamera.cs" />
     <Compile Include="MathExtensions.cs" />
-    <Compile Include="PlayerController.cs" />
     <Compile Include="Fx\FxNode.cs" />
     <Compile Include="Fx\FxEmitter.cs" />
     <Compile Include="Fx\FxAppearance.cs" />
@@ -398,10 +397,6 @@
       <Project>{F89CC613-0C7A-4936-9D79-86CBBF26593E}</Project>
       <Name>LibreLancer.Compatibility</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\extern\jitterphysics\source\Jitter\Jitter.csproj">
-      <Project>{AA03EF1A-94F7-4D30-AB14-2092863FF923}</Project>
-      <Name>Jitter</Name>
-    </ProjectReference>
     <ProjectReference Include="..\LibreLancer.Thorn\LibreLancer.Thorn.csproj">
       <Project>{1D0655D3-D4BC-4155-B180-ABD09FF47BD2}</Project>
       <Name>LibreLancer.Thorn</Name>
@@ -409,6 +404,10 @@
     <ProjectReference Include="..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj">
       <Project>{6967FE1C-5953-4416-889C-FF10AE1F7DD1}</Project>
       <Name>LibreLancer.ImageLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LibreLancer.Jitter\LibreLancer.Jitter.csproj">
+      <Project>{AA03EF1A-94F7-4D30-AB14-2092863FF923}</Project>
+      <Name>LibreLancer.Jitter</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

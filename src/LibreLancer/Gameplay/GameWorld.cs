@@ -16,9 +16,9 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer.GameData;
-using Jitter;
-using Jitter.Collision;
-using Jitter.LinearMath;
+using LibreLancer.Jitter;
+using LibreLancer.Jitter.Collision;
+using LibreLancer.Jitter.LinearMath;
 namespace LibreLancer
 {
 	
@@ -36,7 +36,7 @@ namespace LibreLancer
 			Renderer = render;
 			Physics = new World(new CollisionSystemSAP());
 			Physics.CollisionSystem.EnableSpeculativeContacts = true;
-			Physics.Gravity = JVector.Zero;
+			Physics.Gravity = Vector3.Zero;
 			Physics.SetDampingFactors(1, 1);
 			Physics.Events.PreStep += Events_PreStep;
 		}

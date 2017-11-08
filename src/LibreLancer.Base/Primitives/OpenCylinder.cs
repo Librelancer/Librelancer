@@ -45,12 +45,12 @@ namespace LibreLancer.Primitives
 				var normal = GetCircleVector(i, slices);
 				//generate vertices
 				vertices[vptr++] = new VertexPositionNormalTexture(
-					normal * radius + VectorMath.Up * height,
+					normal * radius + Vector3.Up * height,
 					normal,
 					new Vector2(i, 1)
 				);
 				vertices[vptr++] = new VertexPositionNormalTexture(
-					normal * radius + VectorMath.Down * height,
+					normal * radius + Vector3.Down * height,
 					normal,
 					new Vector2(i, 0)
 				);
@@ -67,12 +67,12 @@ namespace LibreLancer.Primitives
 			var last = GetCircleVector(slices, slices);
 
 			vertices[vptr++] = new VertexPositionNormalTexture(
-				last * radius + VectorMath.Up * height,
+				last * radius + Vector3.Up * height,
 				last,
 				new Vector2(slices, 1)
 			);
 			vertices[vptr++] = new VertexPositionNormalTexture(
-				last * radius + VectorMath.Down * height,
+				last * radius + Vector3.Down * height,
 				last,
 				new Vector2(slices, 0)
 			);

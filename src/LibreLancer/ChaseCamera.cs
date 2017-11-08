@@ -15,7 +15,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using Jitter.LinearMath;
+using LibreLancer.Jitter.LinearMath;
 namespace LibreLancer
 {
 	public class ChaseCamera : ICamera
@@ -111,7 +111,7 @@ namespace LibreLancer
 		{
 			UpdateWanted();
 			Position = desiredPosition;
-			Vector3 upVector = ChaseOrientation.Transform(VectorMath.Up);
+			Vector3 upVector = ChaseOrientation.Transform(Vector3.Up);
 			View = Matrix4.LookAt(Position, lookAt, upVector);
 		}
 
@@ -150,7 +150,7 @@ namespace LibreLancer
 			Vector3 acceleration = force / Mass;
 			velocity += acceleration * (float)delta.TotalSeconds;
 
-			Vector3 upVector = ChaseOrientation.Transform(VectorMath.Up);
+			Vector3 upVector = ChaseOrientation.Transform(Vector3.Up);
 			Position += velocity * (float)delta.TotalSeconds;
 			View = Matrix4.LookAt(Position, lookAt, upVector);
 			_vpdirty = true;

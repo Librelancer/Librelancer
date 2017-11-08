@@ -29,7 +29,7 @@ namespace LibreLancer
 		public virtual void FixedUpdate(TimeSpan time)
 		{
 		}
-		public virtual void Register(SystemRenderer renderer, Jitter.World physics)
+		public virtual void Register(SystemRenderer renderer, LibreLancer.Jitter.World physics)
 		{
 		}
 		public virtual void Unregister()
