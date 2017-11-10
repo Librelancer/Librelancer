@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\packages\Xwt.Gtk.0.2.41\build\Xwt.Gtk.props" Condition="Exists('..\..\packages\Xwt.Gtk.0.2.41\build\Xwt.Gtk.props')" />
+  <Import Project="..\..\packages\Xwt.Gtk.0.2.48\build\Xwt.Gtk.props" Condition="Exists('..\..\packages\Xwt.Gtk.0.2.48\build\Xwt.Gtk.props')" />
   <Import Project="..\packages\Xwt.Gtk.0.2.21\build\Xwt.Gtk.props" Condition="Exists('..\packages\Xwt.Gtk.0.2.21\build\Xwt.Gtk.props')" />
   <PropertyGroup>
     <ProjectGuid>{A1507090-43CA-4EAF-9338-E892B726F0B3}</ProjectGuid>
@@ -56,10 +56,10 @@
     </Reference>
     <Reference Include="Mono.Posix" />
     <Reference Include="Xwt">
-      <HintPath>..\..\packages\Xwt.0.2.41\lib\net40\Xwt.dll</HintPath>
+      <HintPath>..\..\packages\Xwt.0.2.48\lib\net40\Xwt.dll</HintPath>
     </Reference>
     <Reference Include="Xwt.Gtk">
-      <HintPath>..\..\packages\Xwt.Gtk.0.2.41\lib\net40\Xwt.Gtk.dll</HintPath>
+      <HintPath>..\..\packages\Xwt.Gtk.0.2.48\lib\net40\Xwt.Gtk.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

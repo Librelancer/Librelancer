@@ -163,7 +163,6 @@ namespace LibreLancer.Media
 			Actions.Enqueue(() =>
 			{
 				action();
-                Console.WriteLine("Action RAN");
                 ran = true;
 			});
 			while (!ran) { Thread.Sleep(1);  }; //sleep stops hang on Windows Release builds
