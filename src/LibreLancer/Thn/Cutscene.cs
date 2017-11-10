@@ -99,6 +99,9 @@ namespace LibreLancer
 								var eq = game.GameData.GetEquipment(kv.Value.Template);
 								drawable = eq.GetDrawable();
 								break;
+							case "asteroid":
+								drawable = game.GameData.GetAsteroid(kv.Value.Template);
+								break;
 							default:
 								throw new NotImplementedException("Mesh Category " + kv.Value.MeshCategory);
 						}

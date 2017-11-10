@@ -95,6 +95,8 @@ namespace LibreLancer
 			{
 				case 3:
 					return FogModes.Linear;
+				case 0:
+					return FogModes.None;
 				default:
 					throw new NotImplementedException(o.ToString());
 			}

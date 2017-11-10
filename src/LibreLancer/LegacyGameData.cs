@@ -618,6 +618,13 @@ namespace LibreLancer
 			return resource.GetDrawable(archetype.DaArchetypeName);
 		}
 
+		public IDrawable GetAsteroid(string asteroid)
+		{
+			var ast = fldata.Asteroids.FindAsteroid(asteroid);
+			resource.LoadMat(ResolveDataPath(ast.MaterialLibrary));
+			return resource.GetDrawable(ResolveDataPath(ast.DaArchetype));
+		}
+
 		public IDrawable GetProp(string prop)
 		{
 			return resource.GetDrawable(ResolveDataPath(fldata.PetalDb.Props[prop]));
