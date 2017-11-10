@@ -70,9 +70,12 @@ namespace LibreLancer
 			GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
         }
 
+        TextureFiltering currentFiltering = TextureFiltering.Linear;
 		public void SetFiltering(TextureFiltering filtering)
 		{
-			BindTo (4);
+            if (currentFiltering == filtering) return;
+            currentFiltering = filtering;
+            BindTo(4);
 			if (LevelCount > 1)
 			{
 				switch (filtering)

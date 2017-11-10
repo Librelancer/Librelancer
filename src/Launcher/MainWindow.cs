@@ -1,101 +1,123 @@
 ﻿using System;
 using System.IO;
-using Eto.Forms;
-using Eto.Drawing;
+using Xwt;
 namespace Launcher
 {
-	public class MainWindow : Form
+	public class MainWindow : Window
 	{
 		public bool Run = false;
-		TextBox textInput;
-		NumericMaskedTextBox<int> resWidthBox;
-		NumericMaskedTextBox<int> resHeightBox;
+		TextEntry textInput;
+        //NumericMaskedTextBox<int> resWidthBox;
+        //NumericMaskedTextBox<int> resHeightBox;
+        TextEntry resWidthBox;
+        TextEntry resHeightBox;
 		CheckBox skipMovies;
-		public MainWindow (bool forceNoMovies)
-		{
-			Title = "Librelancer Launcher";
-			ClientSize = new Size (400, 250);
-			Resizable = false;
-			var layout = new TableLayout ();
-			layout.Spacing = new Size (2, 2);
-			layout.Padding = new Padding (5, 5, 5, 5);
-
-			layout.Rows.Add (new TableRow (
-				new Label { Text = "Freelancer Directory:" }
-			));
-
-			textInput = new TextBox ();
-			textInput.Text = Program.Config.FreelancerPath ?? "";
-			var findButton = new Button () { Text = "..." };
-			findButton.Click += FindButton_Click;
-
-			layout.Rows.Add (new TableLayout(new TableRow (
-				new TableCell(textInput, true),
-				findButton
-			)));
-			skipMovies = new CheckBox () { Text = "Skip Intro Movies", Checked = forceNoMovies || !Program.Config.IntroMovies, Enabled = !forceNoMovies };
-			layout.Rows.Add (new TableRow (skipMovies));
-            if(Environment.OSVersion.Platform != PlatformID.Unix)
+        CheckBox muteMusic;
+        CheckBox vsync;
+        public MainWindow(bool forceNoMovies)
+        {
+            Title = "Librelancer Launcher";
+            Resizable = false;
+            var mainBox = new VBox() { Spacing = 6 };
+            //Directory
+            var dirbox = new HBox() { Spacing = 2 };
+            mainBox.PackStart(new Label() { Text = "Freelancer Directory: " });
+            dirbox.PackStart((textInput = new TextEntry()), true, true);
+            textInput.Text = Program.Config.FreelancerPath;
+            var btnChooseFolder = new Button() { Label = " ... " };
+            btnChooseFolder.Clicked += BtnChooseFolder_Clicked;
+            dirbox.PackStart(btnChooseFolder);
+            mainBox.PackStart(dirbox);
+            //Options
+            skipMovies = new CheckBox() { Label = "Skip Intro Movies" };
+            if (forceNoMovies)
             {
-                var angleCheck = new CheckBox() { Text = "Force DX9 (Not Recommended)", Checked = Program.Config.ForceAngle };
-                angleCheck.CheckedChanged += AngleCheck_CheckedChanged;
-                layout.Rows.Add(new TableRow(angleCheck));
+                skipMovies.Active = true;
+                skipMovies.Sensitive = false;
             }
-			resWidthBox = new NumericMaskedTextBox<int>();
-			resWidthBox.Value = Program.Config.BufferWidth;
-			resHeightBox = new NumericMaskedTextBox<int>();
-			resHeightBox.Value = Program.Config.BufferHeight;
-			layout.Rows.Add(new TableLayout(new TableRow(
-				new TableCell(new Label() { Text = "Resolution: ", VerticalAlignment = VerticalAlignment.Center }, true),
-				resWidthBox,
-				resHeightBox
-			)));
-			var launchButton = new Button () { Text = "Launch Librelancer" };
-			launchButton.Click += LaunchButton_Click;
-			layout.Rows.Add(new TableRow { ScaleHeight = true });
-
-			layout.Rows.Add (
-				new TableRow (
-				TableLayout.AutoSized (launchButton, null, true)
-				)
-			);
-			Content = layout;
+            else
+                skipMovies.Active = !Program.Config.IntroMovies;
+            var smbox = new HBox();
+            smbox.PackStart(skipMovies);
+            mainBox.PackStart(smbox);
+            muteMusic = new CheckBox() { Label = "Mute Music" };
+            muteMusic.Active = Program.Config.MuteMusic;
+            mainBox.PackStart(muteMusic);
+            vsync = new CheckBox() { Label = "VSync" };
+            vsync.Active = Program.Config.VSync;
+            mainBox.PackStart(vsync);
+            //Resolution
+            resWidthBox = new TextEntry();
+            resWidthBox.Text = Program.Config.BufferWidth.ToString();
+            resWidthBox.TextInput += Masking;
+            resHeightBox = new TextEntry();
+            resHeightBox.Text = Program.Config.BufferHeight.ToString();
+            resHeightBox.TextInput += Masking;
+            var hboxResolution = new HBox();
+            hboxResolution.PackEnd(resHeightBox);
+            hboxResolution.PackEnd(new Label() { Text = "x" });
+            hboxResolution.PackEnd(resWidthBox);
+            hboxResolution.PackStart(new Label() { Text = "Resolution:" });
+            mainBox.PackStart(hboxResolution);
+            //Launch
+            var launchbox = new HBox() { Spacing = 2 };
+            var btnLaunch = new Button("Launch");
+            btnLaunch.Clicked += BtnLaunch_Clicked;
+            launchbox.PackEnd(btnLaunch);
+            mainBox.PackEnd(launchbox);
+            //Finish
+            CloseRequested += MainWindow_CloseRequested;
+            Content = mainBox;
 		}
 
-        private void AngleCheck_CheckedChanged(object sender, EventArgs e)
+        private void Masking(object sender, TextInputEventArgs e)
         {
-            Program.Config.ForceAngle = ((CheckBox)sender).Checked ?? false;
+            foreach (var ch in e.Text)
+            {
+                if(!char.IsDigit(ch))
+                    e.Handled = true;
+            }
         }
 
-        void FindButton_Click (object sender, EventArgs e)
-		{
-			var dlg = new SelectFolderDialog ();
-			if (dlg.ShowDialog (this) == DialogResult.Ok) {
-				textInput.Text = dlg.Directory;
-			}
-		}
+        private void MainWindow_CloseRequested(object sender, CloseRequestedEventArgs args)
+        {
+            Application.Exit();
+        }
 
-		void LaunchButton_Click (object sender, EventArgs e)
-		{
-			if (Directory.Exists(textInput.Text))
-			{
-				if (!LibreLancer.GameConfig.CheckFLDirectory(textInput.Text))
-				{
-					MessageBox.Show (this, "Not a valid freelancer directory", "Librelancer", MessageBoxType.Error);
-					return;
-				}
-				Program.Config.FreelancerPath = textInput.Text;
-				Program.Config.IntroMovies = !(skipMovies.Checked ?? true);
-				Program.Config.BufferWidth = resWidthBox.Value;
-				Program.Config.BufferHeight = resHeightBox.Value;
-				Run = true;
-				Close ();			
-			}
-			else
-			{
-				MessageBox.Show(this, "Path does not exist", "Librelancer", MessageBoxType.Error);
-			}
-		}
-	}
+        private void BtnChooseFolder_Clicked(object sender, EventArgs e)
+        {
+            var dlg = new SelectFolderDialog();
+            if(dlg.Run() == true)
+            {
+                textInput.Text = dlg.Folder;
+            }
+        }
+
+        private void BtnLaunch_Clicked(object sender, EventArgs e)
+        {
+            if (Directory.Exists(textInput.Text))
+            {
+                if (!LibreLancer.GameConfig.CheckFLDirectory(textInput.Text))
+                {
+                    MessageDialog.ShowError(this, "Not a valid freelancer directory");
+                    return;
+                }
+                Program.Config.FreelancerPath = textInput.Text;
+                Program.Config.IntroMovies = !skipMovies.Active;
+                Program.Config.MuteMusic = muteMusic.Active;
+                Program.Config.VSync = vsync.Active;
+                Program.Config.BufferWidth = int.Parse(resWidthBox.Text);
+                Program.Config.BufferHeight = int.Parse(resHeightBox.Text);
+                Run = true;
+                Visible = false;
+                ShowInTaskbar = false;
+                Program.Run();
+            }
+            else
+            {
+                MessageDialog.ShowError(this, "Path does not exist");
+            }
+        }
+    }
 }
 

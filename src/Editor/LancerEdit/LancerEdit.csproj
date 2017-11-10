@@ -1,4 +1,5 @@
-﻿<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -29,8 +30,9 @@
     <Reference Include="System" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml" />
-    <Reference Include="Xwt">
-      <HintPath>..\..\packages\Xwt.0.2.41\lib\net40\Xwt.dll</HintPath>
+    <Reference Include="Xwt, Version=0.2.48.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Xwt.0.2.48\lib\net40\Xwt.dll</HintPath>
+      <Private>True</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -55,9 +57,6 @@
     <Compile Include="TabPages\TextEditorPage.cs" />
     <Compile Include="InfocardTools.cs" />
     <Compile Include="Dialogs\InfocardExportDialog.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\XwtPlus.TextEditor\XwtPlus.TextEditor.csproj">
@@ -85,14 +84,12 @@
       <Name>LibreLancer.Media</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="I18N\" />
-    <Folder Include="Dialogs\" />
-    <Folder Include="Controls\" />
-    <Folder Include="TabPages\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <EmbeddedResource Include="I18N\es.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

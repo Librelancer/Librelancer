@@ -156,14 +156,17 @@ namespace LibreLancer.Media
 		{
 			running = false;
 		}
+
 		internal void RunActionBlocking(Action action)
 		{
 			bool ran = false;
 			Actions.Enqueue(() =>
 			{
-				action(); ran = true;
+				action();
+                Console.WriteLine("Action RAN");
+                ran = true;
 			});
-			while (!ran) { };
+			while (!ran) { Thread.Sleep(1);  }; //sleep stops hang on Windows Release builds
 		}
 	}
 }

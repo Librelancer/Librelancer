@@ -356,6 +356,7 @@ namespace LibreLancer
 		{
 			return hardpoints.Values;
 		}
+
 		public Matrix4 GetTransform()
 		{
 			if (isstatic)
