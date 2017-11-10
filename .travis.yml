@@ -1,0 +1,6 @@
+language: csharp
+solution: src/LibreLancer.Linux.sln
+script:
+ - ./slngen.unix
+ - nuget restore src/LibreLancer.Linux.sln
+ - xbuild /p:Configuration=Release src/LibreLancer.Linux.sln
