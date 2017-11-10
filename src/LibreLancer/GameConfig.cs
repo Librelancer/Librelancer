@@ -45,6 +45,16 @@ namespace LibreLancer
 
 		Func<string> filePath;
 
+		public static bool CheckFLDirectory(string dir)
+		{
+			if (!Directory.Exists(Path.Combine(dir, "EXE")) || 
+			    !Directory.Exists(Path.Combine(dir, "DATA")))
+			{
+				return false;
+			}
+			return true;
+		}
+
 		public static GameConfig Create(bool loadFile = true, Func<string> filePath = null)
 		{
 			if (!loadFile) return new GameConfig((filePath ?? DefaultConfigPath));

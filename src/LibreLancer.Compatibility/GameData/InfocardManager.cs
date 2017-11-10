@@ -14,9 +14,11 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using LibreLancer.Dll;
-using System.Xml;
 using System.Collections.Generic;
+using System.IO;
+using LibreLancer.Dll;
+using Newtonsoft.Json;
+
 namespace LibreLancer.Compatibility.GameData
 {
 	public class InfocardManager
@@ -36,6 +38,28 @@ namespace LibreLancer.Compatibility.GameData
 				i++;
 			}
 		}
+		public InfocardManager(Dictionary<int, string> strings, Dictionary<int, string> infocards)
+		{
+			this.strings = strings;
+			this.infocards = infocards;
+		}
+
+		public void ExportStrings(string filename)
+		{
+			using (var writer = new StreamWriter(filename))
+			{
+				writer.Write(JsonConvert.SerializeObject(strings, Formatting.Indented));
+			}
+		}
+
+		public void ExportInfocards(string filename)
+		{
+			using (var writer = new StreamWriter(filename))
+			{
+				writer.Write(JsonConvert.SerializeObject(infocards, Formatting.Indented));
+			}
+		}
+
 		public string GetStringResource(int id)
 		{
 			if (strings.ContainsKey (id)) {

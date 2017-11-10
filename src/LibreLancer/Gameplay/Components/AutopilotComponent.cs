@@ -30,7 +30,6 @@ namespace LibreLancer
 		public PIDController PitchControl = new PIDController();
 		public PIDController YawControl = new PIDController();
 
-		public event Action GotoComplete;
 		public event Action<DockAction> DockComplete;
 		public GameObject TargetObject;
 
@@ -53,9 +52,11 @@ namespace LibreLancer
 			var control = Parent.GetComponent<ShipControlComponent>();
 			if (control == null) return;
 			control.Pitch = control.Yaw = 0;
-			if (CurrentBehaviour == AutopilotBehaviours.None) return;
-
-
+			if (CurrentBehaviour == AutopilotBehaviours.None)
+			{
+				ResetDockState();
+				return;
+			}
 			Vector3 targetPoint = Vector3.Zero;
 			float radius = -1;
 			float maxSpeed = 1f;
@@ -70,8 +71,8 @@ namespace LibreLancer
 				if (docking == null)
 				{
 					CurrentBehaviour = AutopilotBehaviours.None;
-					if(GotoComplete != null)
-						GotoComplete();
+					ResetDockState();
+					Parent.World.BroadcastMessage(Parent, GameMessageKind.ManeuverFinished);
 					return;
 				}
 				var hp = docking.GetDockHardpoints().Skip(lastTargetHp).First();
@@ -106,7 +107,7 @@ namespace LibreLancer
 			//normalize it
 			vec.Normalize();
 			//
-			bool directionSatisfied = (Math.Abs(vec.X) < 0.005f && Math.Abs(vec.Y) < 0.005f);
+			bool directionSatisfied = (Math.Abs(vec.X) < 0.0015f && Math.Abs(vec.Y) < 0.0015f);
 			if (!directionSatisfied)
 			{
 				control.Yaw = MathHelper.Clamp((float)YawControl.Update(0, vec.X, dt), -1, 1);
@@ -119,8 +120,7 @@ namespace LibreLancer
 			}
 			if (distanceSatisfied && directionSatisfied && CurrentBehaviour == AutopilotBehaviours.Goto)
 			{
-				if (GotoComplete != null)
-					GotoComplete();
+				Parent.World.BroadcastMessage(Parent, GameMessageKind.ManeuverFinished);
 				CurrentBehaviour = AutopilotBehaviours.None;
 			}
 			if (distanceSatisfied && directionSatisfied && CurrentBehaviour == AutopilotBehaviours.Dock)

@@ -119,7 +119,7 @@ namespace LibreLancer
 			shader.SetViewProjection(Camera);
 			//Dt
 			shader.SetDtSampler(0);
-			BindTexture(rstate, 0, DtSampler, 0, DtFlags, false);
+			BindTexture(rstate, 0, DtSampler, 0, DtFlags, ResourceManager.WhiteTextureName);
 			//Dc
 			shader.SetDc(Dc);
 			//Oc
@@ -155,7 +155,7 @@ namespace LibreLancer
 			if (EtEnabled)
 			{
 				shader.SetEtSampler(1);
-				BindTexture(rstate, 1, EtSampler, 1, EtFlags, false);
+				BindTexture(rstate, 1, EtSampler, 1, EtFlags, ResourceManager.NullTextureName);
 			}
 			//Set lights
 			SetLights(shader, lights);

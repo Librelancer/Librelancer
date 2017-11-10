@@ -103,6 +103,11 @@ namespace LibreLancer
 			shipinfo.Visible = false;
 		}
 
+		public void SetManeuver(string current)
+		{
+			navbuttons.SetActive(current);
+		}
+
 		void Manager_OnClick(string obj)
 		{
 			if (obj.StartsWith("mnv"))

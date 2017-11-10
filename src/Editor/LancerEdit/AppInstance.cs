@@ -81,6 +81,11 @@ namespace LancerEdit
 			iniExplorer.Clicked += IniExplorer_Clicked;
 			resMenu.SubMenu.Items.Add(iniExplorer);
 			resMenu.SubMenu.Items.Add(modelView);
+			var infocardExport = new MenuItem(Txt._("Infocard Export"));
+			infocardExport.Clicked += (a,b) => {
+				new InfocardExportDialog().Show();
+			};
+			resMenu.SubMenu.Items.Add(infocardExport);
 			menu.Items.Add(resMenu);
 
 			var helpMenu = new MenuItem(Txt._("Help"));

@@ -609,20 +609,9 @@ namespace LibreLancer
 			float rotAngle = (float)Math.Acos(dot);
 			Vector3 rotAxis = Vector3.Cross(Vector3.Forward, forwardVector);
 			rotAxis = Vector3.Normalize(rotAxis);
-			return CreateFromAxisAngle(rotAxis, rotAngle);
+			return FromAxisAngle(rotAxis, rotAngle);
 		}
 
-		public static Quaternion CreateFromAxisAngle(Vector3 axis, float angle)
-		{
-			float halfAngle = angle * .5f;
-			float s = (float)System.Math.Sin(halfAngle);
-			var q = new Quaternion();
-			q.X = axis.X * s;
-			q.Y = axis.Y * s;
-			q.Z = axis.Z * s;
-			q.W = (float)System.Math.Cos(halfAngle);
-			return q;
-		}
 
         #region FromMatrix
 

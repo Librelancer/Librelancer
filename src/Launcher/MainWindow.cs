@@ -79,8 +79,7 @@ namespace Launcher
 		{
 			if (Directory.Exists(textInput.Text))
 			{
-				if(!Directory.Exists(Path.Combine(textInput.Text, "DATA"))
-					|| !Directory.Exists(Path.Combine(textInput.Text, "EXE")))
+				if (!LibreLancer.GameConfig.CheckFLDirectory(textInput.Text))
 				{
 					MessageBox.Show (this, "Not a valid freelancer directory", "Librelancer", MessageBoxType.Error);
 					return;

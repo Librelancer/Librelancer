@@ -123,15 +123,27 @@ namespace LibreLancer
 				return;
 			}
 			if (!callback(maneuvers[index].Action)) return;
-			for (int i = 0; i < toggleButtons.Length; i++)
-			{
-				toggleButtons[i].State = index == i ? ToggleState.Active : ToggleState.Inactive;
-			}
+			InternalSetActive(index);
 		}
 
 		public void SetActive(string name)
 		{
+			for (int i = 0; i < maneuvers.Count; i++)
+			{
+				if (maneuvers[i].Action == name)
+				{
+					InternalSetActive(i);
+					return;
+				}
+			}
+		}
 
+		void InternalSetActive(int index)
+		{
+			for (int i = 0; i < toggleButtons.Length; i++)
+			{
+				toggleButtons[i].State = index == i ? ToggleState.Active : ToggleState.Inactive;
+			}
 		}
 
 		public void Show()

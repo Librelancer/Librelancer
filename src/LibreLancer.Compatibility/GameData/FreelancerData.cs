@@ -1,4 +1,7 @@
 ﻿using System;
+using System.IO;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 
 using LibreLancer.Compatibility.GameData.Equipment;
 using LibreLancer.Compatibility.GameData.Solar;
@@ -50,7 +53,16 @@ namespace LibreLancer.Compatibility.GameData
 				return;
 			if(LoadDacom)
 				Dacom = new DacomIni ();
-			Infocards = new InfocardManager (Freelancer.Resources);
+			if (Freelancer.JsonResources != null)
+			{
+				var strs = JsonConvert.DeserializeObject<Dictionary<int, string>>(File.ReadAllText(VFS.GetPath("EXE\\" + Freelancer.JsonResources.Item1)));
+				var ifcs = JsonConvert.DeserializeObject<Dictionary<int, string>>(File.ReadAllText(VFS.GetPath("EXE\\" + Freelancer.JsonResources.Item2)));
+				Infocards = new InfocardManager(strs, ifcs);
+			}
+			else
+			{
+				Infocards = new InfocardManager(Freelancer.Resources);
+			}
 			//Dfm
 			Bodyparts = new BodypartsIni (Freelancer.BodypartsPath, this);
 			Costumes = new CostumesIni (Freelancer.CostumesPath, this);

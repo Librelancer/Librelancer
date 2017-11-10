@@ -63,7 +63,7 @@ namespace LibreLancer
 			BindTexture(rstate, 0, DtSampler, 0, DtFlags);
 			//Nt
 			shader.SetDmSampler(1); //Repurpose DmSampler
-			BindTexture(rstate, 1, NtSampler ?? "NomadRGB1_NomadAlpha1", 1, NtFlags, false);
+			BindTexture(rstate, 1, NtSampler ?? "NomadRGB1_NomadAlpha1", 1, NtFlags);
 			//Bt
 
 			//Disable MaterialAnim

@@ -69,7 +69,7 @@ namespace LancerEdit
 				MessageDialog.ShowError("Directory does not exist: " + dir);
 				return;
 			}
-			if (!Directory.Exists(Path.Combine(dir, "EXE")) || !Directory.Exists(Path.Combine(dir, "DATA")))
+			if (!LibreLancer.GameConfig.CheckFLDirectory(dir))
 			{
 				MessageDialog.ShowError("Not a valid Freelancer directory");
 				return;

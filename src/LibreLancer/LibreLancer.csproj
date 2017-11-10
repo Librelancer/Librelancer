@@ -350,6 +350,8 @@
     <Compile Include="GameData\DockSphere.cs" />
     <Compile Include="GameData\DockAction.cs" />
     <Compile Include="Gameplay\Components\TradelaneMoveComponent.cs" />
+    <Compile Include="Gameplay\GameMessageKind.cs" />
+    <Compile Include="Gameplay\Components\AsteroidFieldComponent.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

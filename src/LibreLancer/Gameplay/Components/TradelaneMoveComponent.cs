@@ -36,8 +36,11 @@ namespace LibreLancer
 			{
 				Parent.GetComponent<ShipControlComponent>().Active = true;
 				Parent.Components.Remove(this);
+				Parent.World.BroadcastMessage(Parent, GameMessageKind.ManeuverFinished);
 				return;
 			}
+			var eng = Parent.GetComponent<EngineComponent>();
+			if (eng != null) eng.Speed = 0.9f;
 
 			var tgtcmp = tgt.GetComponent<DockComponent>();
 			var targetPoint = (tgtcmp.GetDockHardpoints().First().Transform * tgt.GetTransform()).Transform(Vector3.Zero);
@@ -53,8 +56,8 @@ namespace LibreLancer
 
 			var currRot = Quaternion.FromMatrix(Parent.PhysicsComponent.Orientation);
 			var targetRot = Quaternion.LookAt(Parent.PhysicsComponent.Position, targetPoint);
-			var slerped = Quaternion.Slerp(currRot, targetRot, 0.007f);
-			Parent.PhysicsComponent.Orientation = Matrix3.CreateFromQuaternion(slerped);
+			//var slerped = Quaternion.Slerp(currRot, targetRot, 0.02f); //TODO: Slerp doesn't work?
+			Parent.PhysicsComponent.Orientation = Matrix3.CreateFromQuaternion(targetRot);
 		}
 
 	}

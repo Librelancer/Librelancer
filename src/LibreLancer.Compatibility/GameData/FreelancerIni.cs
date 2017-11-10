@@ -26,6 +26,7 @@ namespace LibreLancer.Compatibility.GameData
 		public string BodypartsPath { get; private set; }
 		public string CostumesPath { get; private set; }
 		public string EffectShapesPath { get; private set; }
+		public Tuple<string, string> JsonResources { get; private set; }
 		public FreelancerIni ()
 		{
 			EquipmentPaths = new List<string> ();
@@ -51,6 +52,9 @@ namespace LibreLancer.Compatibility.GameData
 							DataPath = "EXE\\" + e [0].ToString () + "\\";
 						}
 					}
+					break;
+				case "jsonresources":
+					JsonResources = new Tuple<string, string>(s[0][0].ToString(), s[0][1].ToString());
 					break;
 				case "resources":
 					Resources = new List<DllFile> ();

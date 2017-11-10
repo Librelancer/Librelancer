@@ -59,7 +59,7 @@ Mouse Flight: {10}
 		public SpaceGameplay(FreelancerGame g, GameSession session) : base(g)
 		{
 			FLLog.Info("Game", "Starting Gameplay Demo");
-			sys = g.GameData.GetSystem("li01");
+			sys = g.GameData.GetSystem(session.PlayerSystem);
 			var shp = g.GameData.GetShip(session.PlayerShip);
 			//Set up player object + camera
 			this.session = session;
@@ -73,9 +73,11 @@ Mouse Flight: {10}
 				ThrustChargeRate = 100
 			};
 			player.Components.Add(powerCore);
-			player.PhysicsComponent.Position = new Vector3(-31000, 0, -26755);
+			player.PhysicsComponent.Position = session.PlayerPosition;
+			player.PhysicsComponent.Orientation = session.PlayerOrientation;
 			player.PhysicsComponent.Material.Restitution = 1;
 			player.PhysicsComponent.Mass = shp.Mass;
+			player.Nickname = "player";
 			foreach (var equipment in session.MountedEquipment)
 			{
 				var equip = g.GameData.GetEquipment(equipment.Value);
@@ -84,7 +86,7 @@ Mouse Flight: {10}
 			}
 
 			camera = new ChaseCamera(Game.Viewport);
-			camera.ChasePosition = new Vector3(-31000, 0, -26755);
+			camera.ChasePosition = session.PlayerPosition;
 			camera.ChaseOrientation = new Matrix4(player.PhysicsComponent.Orientation);
 			camera.Reset();
 
@@ -108,6 +110,7 @@ Mouse Flight: {10}
 			cur_reticle = g.ResourceManager.GetCursor("fire_neutral");
 			current_cur = cur_arrow;
 			hud = new Hud(g);
+			hud.SetManeuver("FreeFlight");
 			Game.Keyboard.TextInput += Game_TextInput;
 			g.Keyboard.KeyDown += Keyboard_KeyDown;
 			input = new InputManager(Game);
@@ -116,10 +119,20 @@ Mouse Flight: {10}
 			hud.OnManeuverSelected += Hud_OnManeuverSelected;
 			hud.OnEntered += Hud_OnTextEntry;
 			pilotcomponent = new AutopilotComponent(player);
-			pilotcomponent.GotoComplete += Pilotcomponent_GotoComplete;
 			pilotcomponent.DockComplete += Pilotcomponent_DockComplete;
 			player.Components.Add(pilotcomponent);
 			player.World = world;
+			world.MessageBroadcasted += World_MessageBroadcasted;
+		}
+
+		void World_MessageBroadcasted(GameObject sender, GameMessageKind kind)
+		{
+			switch (kind)
+			{
+				case GameMessageKind.ManeuverFinished:
+					hud.SetManeuver("FreeFlight");
+					break;
+			}
 		}
 
 		void Pilotcomponent_GotoComplete()
@@ -134,9 +147,9 @@ Mouse Flight: {10}
 			{
 				Game.ChangeState(new RoomGameplay(Game, session, action.Target));
 			}
-			else
+			else if(action.Kind == DockKinds.Jump)
 			{
-
+				session.JumpTo(action.Target, action.Exit);
 			}
 		}
 
@@ -467,11 +480,16 @@ Mouse Flight: {10}
 		{
 			sysrender.Draw();
 			debugphysics.StartFrame(camera, Game.RenderState);
+			foreach (var body in world.Physics.RigidBodies)
+			{
+				var rb = (RigidBody)body;
+				if (rb.EnableDebugDraw) rb.DebugDraw(debugphysics);
+			}
+
 			if (debugDrawBody != null)
 			{
 				debugDrawBody.DebugDraw(debugphysics);
 			}
-
 			debugphysics.Render();
 			hud.Draw();
 			trender.Start(Game.Width, Game.Height);

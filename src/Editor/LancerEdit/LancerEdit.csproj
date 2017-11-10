@@ -54,6 +54,7 @@
     <Compile Include="TabPages\UtfEditorPage.cs" />
     <Compile Include="TabPages\TextEditorPage.cs" />
     <Compile Include="InfocardTools.cs" />
+    <Compile Include="Dialogs\InfocardExportDialog.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

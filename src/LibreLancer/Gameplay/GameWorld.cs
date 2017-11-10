@@ -61,17 +61,28 @@ namespace LibreLancer
 				g.World = this;
 				if (obj.Dock != null)
 				{
-					g.Components.Add(new DockComponent(g) { 
-						Action = obj.Dock,
-						DockAnimation = obj.Archetype.DockSpheres[0].Script,
-						DockHardpoint = obj.Archetype.DockSpheres[0].Hardpoint,
-						TriggerRadius = obj.Archetype.DockSpheres[0].Radius
-					});
+					if (obj.Archetype.DockSpheres.Count > 0) //Dock with no DockSphere?
+					{
+						g.Components.Add(new DockComponent(g)
+						{
+							Action = obj.Dock,
+							DockAnimation = obj.Archetype.DockSpheres[0].Script,
+							DockHardpoint = obj.Archetype.DockSpheres[0].Hardpoint,
+							TriggerRadius = obj.Archetype.DockSpheres[0].Radius
+						});
+					}
 				}
 				g.Register(Renderer, Physics);
 				Objects.Add(g);
 			}
-
+			foreach (var field in sys.AsteroidFields)
+			{
+				var g = new GameObject();
+				g.Resources = res;
+				g.World = this;
+				g.Components.Add(new AsteroidFieldComponent(field, g));
+				Objects.Add(g);
+			}
 			GC.Collect();
 		}
 
@@ -107,6 +118,14 @@ namespace LibreLancer
 			if (RenderUpdate != null)
 				RenderUpdate(t);
 			Renderer.Update(t);
+		}
+
+		public event Action<GameObject, GameMessageKind> MessageBroadcasted;
+
+		public void BroadcastMessage(GameObject sender, GameMessageKind kind)
+		{
+			if (MessageBroadcasted != null)
+				MessageBroadcasted(sender, kind);
 		}
 	}
 }
