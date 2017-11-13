@@ -171,6 +171,16 @@ namespace LibreLancer
 			}
 		}
 
+		string typeWriterText;
+		bool typeWriterActive;
+		float typeWriterTime;
+		public void DoTypewriter(string text)
+		{
+			typeWriterTime = 0;
+			typeWriterActive = true;
+			typeWriterText = text;
+		}
+
 		public void Draw()
 		{
 			if (SelectedObject != null)
@@ -216,6 +226,8 @@ namespace LibreLancer
 			manager.Draw();
 
 		}
+
+
 
 		public void Dispose()
 		{

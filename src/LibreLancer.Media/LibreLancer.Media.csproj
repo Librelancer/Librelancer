@@ -86,7 +86,6 @@
     <Compile Include="MusicPlayer.cs" />
     <Compile Include="AudioManager.cs" />
     <Compile Include="PlayState.cs" />
-    <Compile Include="SoundEffectInstance.cs" />
     <Compile Include="SoundData.cs" />
     <Compile Include="Decoding\Mp3Utils.cs" />
     <Compile Include="Decoding\RiffLoader.cs" />

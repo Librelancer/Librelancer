@@ -22,10 +22,13 @@ namespace LibreLancer
 		public abstract void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr);
 		public abstract void Register(SystemRenderer renderer);
 		public abstract void Unregister();
+		//Rendering Parameters
 		public bool LitAmbient = true;
 		public bool LitDynamic = true;
 		public bool Hidden = false;
 		public bool NoFog = false;
+		public float[] LODRanges;
+
 		public virtual bool OutOfView(ICamera camera)
 		{
 			return false;

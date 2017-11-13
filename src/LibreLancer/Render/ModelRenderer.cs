@@ -36,6 +36,7 @@ namespace LibreLancer
 		Vector3 pos;
 		bool inited = false;
 		SystemRenderer sysr;
+
 		public ModelRenderer(IDrawable drawable)
 		{
 			if (drawable is ModelFile)
@@ -96,13 +97,14 @@ namespace LibreLancer
 
 		VMeshRef GetLevel(ModelFile file, Vector3 center, Vector3 camera)
 		{
-			if (file.Switch2 == null) return file.Levels[0];
+			float[] ranges = LODRanges ?? file.Switch2;
+			if (ranges == null) return file.Levels[0];
 			var dsq = VectorMath.DistanceSquared(center, camera);
 			var lvl = file.Levels[0];
-			for (int i = 0; i < file.Switch2.Length; i++)
+			for (int i = 0; i < ranges.Length; i++)
 			{
-				var d = file.Switch2[i];
-				if (i > 0 && file.Switch2[i] < file.Switch2[i - 1]) break;
+				var d = ranges[i];
+				if (i > 0 && ranges[i] < ranges[i - 1]) break;
 				if (dsq < (d * sysr.LODMultiplier) * (d * sysr.LODMultiplier)) break;
 				if (i >= file.Levels.Length) return null;
 				lvl = file.Levels[i];
@@ -118,7 +120,7 @@ namespace LibreLancer
 				{
 					var center = VectorMath.Transform(Model.Levels[0].Center, World);
 					var lvl = GetLevel(Model, center, camera.Position);
-					if (lvl == null) return false;
+					if (lvl == null) return true;
 					var bsphere = new BoundingSphere(
 						center,
 						Model.Levels[0].Radius
@@ -170,6 +172,13 @@ namespace LibreLancer
 				return;
 			if (Nebula != null && nr != Nebula)
 				return;
+			var dsq = VectorMath.DistanceSquared(pos, camera.Position);
+			if (LODRanges != null) //Fastest cull
+			{
+				var maxd = LODRanges[LODRanges.Length - 1] * sysr.LODMultiplier;
+				maxd *= maxd;
+				if (dsq > maxd) return;
+			}
 			if (Dfm != null)
 			{
 				Dfm.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));

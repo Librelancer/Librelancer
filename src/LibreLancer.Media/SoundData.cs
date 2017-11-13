@@ -20,11 +20,12 @@ namespace LibreLancer.Media
 {
 	public class SoundData : IDisposable
 	{
-		public bool FireAndForget = false;
 		internal uint ID;
-		internal SoundData(uint id)
+		AudioManager man;
+		internal SoundData(uint id, AudioManager manager)
 		{
-			this.ID = id;
+			ID = id;
+			man = manager;
 		}
 
 		public void LoadFile(string filename)
@@ -59,7 +60,7 @@ namespace LibreLancer.Media
 
 		public void Dispose()
 		{
-			Al.alDeleteBuffers(1, ref ID);
+			man.ReturnBuffer(ID);
 		}
 	}
 }

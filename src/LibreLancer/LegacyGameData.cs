@@ -738,6 +738,7 @@ namespace LibreLancer
 			}
 			obj.Archetype.ArchetypeName = o.Archetype.GetType ().Name;
 			obj.Archetype.Drawable = drawable;
+			obj.Archetype.LODRanges = o.Archetype.LODRanges;
 			var ld = o.Loadout;
 			var archld = fldata.Loadouts.FindLoadout(o.Archetype.LoadoutName);
 			if(ld != null) ProcessLoadout(ld, obj);

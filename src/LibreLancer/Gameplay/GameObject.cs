@@ -368,5 +368,10 @@ namespace LibreLancer
 				tr *= Parent.GetTransform();
 			return tr;
 		}
+
+		public override string ToString()
+		{
+			return string.Format("[{0}: {1}]", Nickname, Name);
+		}
 	}
 }

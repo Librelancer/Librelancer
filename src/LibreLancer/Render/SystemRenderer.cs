@@ -40,7 +40,7 @@ namespace LibreLancer
 		}
 		
 		//Global Renderer Options
-		public float LODMultiplier = 32;
+		public float LODMultiplier = 4;
 		
 		public IDrawable[] StarSphereModels;
 		public Matrix4[] StarSphereWorlds;

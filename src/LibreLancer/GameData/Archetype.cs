@@ -23,6 +23,7 @@ namespace LibreLancer.GameData
 		//HACK: remove later
 		public string ArchetypeName;
 		public List<DockSphere> DockSpheres = new List<DockSphere>();
+		public float[] LODRanges;
 		public Archetype ()
 		{
 		}

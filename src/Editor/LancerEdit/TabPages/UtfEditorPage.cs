@@ -371,12 +371,8 @@ namespace LancerEdit
 			var data = app.Audio.AllocateData();
 			using (var stream = new MemoryStream(utfn.Data))
 			{
-				data.LoadStream(stream);
+				app.Audio.PlaySound(stream);
 			}
-			data.FireAndForget = true;
-			LibreLancer.Media.SoundEffectInstance instance;
-			app.Audio.CreateInstance(out instance, data);
-			instance.Play(1f);
 		}
 
 		void ViewTexture_Clicked(object sender, EventArgs e)

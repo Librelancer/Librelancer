@@ -59,6 +59,7 @@ namespace LibreLancer
 				g.SetLoadout(obj.Loadout, obj.LoadoutNoHardpoint);
 				g.StaticPosition = obj.Position;
 				g.World = this;
+				if (g.RenderComponent != null) g.RenderComponent.LODRanges = obj.Archetype.LODRanges;
 				if (obj.Dock != null)
 				{
 					if (obj.Archetype.DockSpheres.Count > 0) //Dock with no DockSphere?

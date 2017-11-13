@@ -58,6 +58,7 @@ namespace LibreLancer.Compatibility.GameData
 
 		public string OpenAnim { get; private set; }
 
+		public float[] LODRanges { get; private set; }
 
 		protected Archetype(Section section, FreelancerData data)
 		{
@@ -146,6 +147,10 @@ namespace LibreLancer.Compatibility.GameData
 				break;
 			case "open_anim":
 				OpenAnim = e[0].ToString();
+				break;
+			case "lodranges":
+				LODRanges = new float[e.Count];
+				for (int i = 0; i < e.Count; i++) LODRanges[i] = e[i].ToSingle();
 				break;
 			default: return false;
 			}
