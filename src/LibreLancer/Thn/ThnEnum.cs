@@ -38,13 +38,12 @@ namespace LibreLancer
 			if (typeof(T) == typeof(EntityTypes)) return (T)DoEntityTypes(o);
 			if (typeof(T) == typeof(AttachFlags)) return (T)DoAttachFlags(o);
 			if (typeof(T) == typeof(EventTypes)) return (T)DoEventTypes(o);
-			if (typeof(T) == typeof(FogModes)) return (T)DoFogModes(o);
 			throw new InvalidCastException();
 		}
 
 		//Types where internal representations match
 		static Type[] workingTypes = new Type[] {
-			typeof(LightTypes)
+			typeof(LightTypes), typeof(FogModes)
 		};
 
 		//WIP enums
@@ -89,19 +88,6 @@ namespace LibreLancer
 			return (T)(dynamic)objFlags;
 		}
 
-		static object DoFogModes(object o)
-		{
-			switch ((int)(float)o)
-			{
-				case 3:
-					return FogModes.Linear;
-				case 0:
-					return FogModes.None;
-				default:
-					throw new NotImplementedException(o.ToString());
-			}
-		}
-
 		//TODO: Migrate to workingTypes
 		static object DoEventTypes(object o)
 		{
@@ -117,6 +103,8 @@ namespace LibreLancer
 					return EventTypes.StartSpatialPropAnim;
 				case 8:
 					return EventTypes.AttachEntity;
+				case 10:
+					return EventTypes.StartMotion;
 				case 13:
 					return EventTypes.StartPSys;
 				case 15:

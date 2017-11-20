@@ -20,8 +20,8 @@ namespace LibreLancer
 	public class HudNavBox
 	{
 		//Box Position
-		static readonly Vector2 BoxPos = new Vector2(0, 0.925f);
-		static readonly Vector2 BoxScale = new Vector2(4.5f, 6);
+		static readonly Vector2 BoxPos = new Vector2(0, 0.91f);
+		static readonly Vector2 BoxScale = new Vector2(4.5f, 5.6f);
 		static readonly string[] Boxes = new string[] {
 			"",
 			"hud_maneuverbox1.cmp",
@@ -38,6 +38,7 @@ namespace LibreLancer
 			0.228f, 0.925f
 		};
 		//TODO: These aren't accurate yet
+		//Different scale + offset based on icon? (Does FL actually hardcode all this?)
 		static readonly float[][] BaseIconPositions = new float[][] {
 			new float[0],
 			new float[] { //1 icon
@@ -53,17 +54,17 @@ namespace LibreLancer
 				0.071f, 0.914f,
 			},
 			new float[] { //4 icons
-				-0.218f, 0.925f,
-				-0.063f, 0.925f,
-				0.071f, 0.914f,
-				0.228f, 0.925f
+				-0.22f, 0.925f,
+				-0.0775f, 0.925f,
+				0.065f, 0.925f,
+				0.21f, 0.915f
 			},
 			new float[] { //5 icons
-				-0.22f, 0.925f,
-				-0.075f, 0.925f,
-				0.06f, 0.914f,
-				0.2f, 0.925f,
-				0.3f, 0.925f
+				-0.25f, 0.93f,
+				-0.11f, 0.925f,
+				0.02f, 0.924f,
+				0.15f, 0.915f,
+				0.27f, 0.925f
 			}
 		};
 		Vector2 IconScale = new Vector2(4.26f, 5.48f);
@@ -93,18 +94,23 @@ namespace LibreLancer
 				{ Tag = "mnv" + i.ToString() };
 			}
 		}
+
+		int idx = -1;
 		public HudNavBox(Dictionary<string,string> icons, List<GameData.BaseHotspot> hotspots, UIManager manager)
 		{
 			this.manager = manager;
 			this.hotspots = hotspots;
 			navbuttons = new HudModelElement(manager, Boxes[hotspots.Count], BoxPos.X, BoxPos.Y, BoxScale.X, BoxScale.Y);
 			toggleButtons = new HudToggleButtonElement[hotspots.Count];
-			IconScale = new Vector2(2.5f, 3f);
+			IconScale = new Vector2(2.08f, 2.96f);
 			for (int i = 0; i < hotspots.Count; i++)
 			{
+				string hack = null;
+				if (!icons.ContainsKey(hotspots[i].SetVirtualRoom ?? hotspots[i].Room))
+					hack = "Cityscape"; //HACK: This probably means FL doesn't determine icons based on room name
 				toggleButtons[i] = new HudBaseButtonElement(
 					manager,
-					icons[hotspots[i].Room],
+					icons[hack ?? hotspots[i].SetVirtualRoom ?? hotspots[i].Room],
 					BaseIconPositions[hotspots.Count][i * 2],
 					BaseIconPositions[hotspots.Count][i * 2 + 1],
 					IconScale.X,
@@ -128,12 +134,34 @@ namespace LibreLancer
 
 		public void SetActive(string name)
 		{
-			for (int i = 0; i < maneuvers.Count; i++)
+			if (hotspots != null)
 			{
-				if (maneuvers[i].Action == name)
+				for (int i = 0; i < hotspots.Count; i++)
 				{
-					InternalSetActive(i);
-					return;
+					if (hotspots[i].SetVirtualRoom == name)
+					{
+						InternalSetActive(i);
+						return;
+					}
+				}
+				for (int i = 0; i < hotspots.Count; i++)
+				{
+					if (hotspots[i].Room == name)
+					{
+						InternalSetActive(i);
+						return;
+					}
+				}
+			}
+			else
+			{
+				for (int i = 0; i < maneuvers.Count; i++)
+				{
+					if (maneuvers[i].Action == name)
+					{
+						InternalSetActive(i);
+						return;
+					}
 				}
 			}
 		}

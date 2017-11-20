@@ -78,9 +78,9 @@ namespace LibreLancer
 					nr.Hotspots.Add(new GameData.BaseHotspot()
 					{
 						Name = hp.Name,
-						Behaviour = hp.Behaviour,
-						Room = hp.VirtualRoom ?? hp.RoomSwitch,
-						RoomIsVirtual = hp.VirtualRoom != null
+						Behavior = hp.Behavior,
+						Room = hp.RoomSwitch,
+						SetVirtualRoom = hp.VirtualRoom
 					});
 				nr.Nickname = room.Nickname;
 				if (room.Nickname == legacy.StartRoom) b.StartRoom = nr;
@@ -812,6 +812,11 @@ namespace LibreLancer
 					}
 				}
 			}
+		}
+
+		public bool HasEffect(string effectName)
+		{
+			return fldata.Effects.FindEffect(effectName) != null || fldata.Effects.FindVisEffect(effectName) != null;
 		}
 
 		public ParticleEffect GetEffect(string effectName)

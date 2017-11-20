@@ -26,6 +26,7 @@ namespace LibreLancer
 		public Color4 Background = new Color4(0.1f, 0.1f, 0.4f, 0.5f);
 		public Color4 Border = Color4.LightGreen;
 		public Color4 TextColor = Color4.White;
+		public bool CentreScreen = false;
 
 		public HudChatBox(UIManager m) : base(m) 
 		{
@@ -93,8 +94,10 @@ namespace LibreLancer
 				xScale = uiAspect / screenAspect;
 			float w = Manager.Game.Width * xScale;
 			float h = Manager.Game.Height;
+
+			var posY = CentreScreen ? (h / 2) - (h * 0.086f) / 2 : (h - (h * 0.18f));
 				return new Rectangle((int)(Manager.Game.Width / 2f - (w * 0.44f) / 2),
-				                     (int)(h - (h * 0.18f)),
+				                     (int)(posY),
 				                     (int)(w * 0.44f),
 				                     (int)(h * 0.086f));
 		}

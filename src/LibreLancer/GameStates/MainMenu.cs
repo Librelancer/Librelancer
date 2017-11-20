@@ -88,6 +88,7 @@ namespace LibreLancer
 			manager.Update (delta);
 			if (lastTag == "gameplay")
 			{
+				manager.PlaySound("ui_motion_swish");
 				manager.FlyOutAll(FLYIN_LENGTH, 0.05);
 				manager.AnimationComplete += () =>
 				{
@@ -96,6 +97,7 @@ namespace LibreLancer
 				};
 			}
 			if (lastTag == "system") {
+				manager.PlaySound("ui_motion_swish");
 				manager.FlyOutAll(FLYIN_LENGTH, 0.05);
 				manager.AnimationComplete += () =>
 				{
@@ -104,14 +106,17 @@ namespace LibreLancer
 				};
 			}
 			if (lastTag == "options") {
+				manager.PlaySound("ui_motion_swish");
 				manager.FlyOutAll(FLYIN_LENGTH, 0.05);
 				manager.AnimationComplete += ConstructOptions;
 			}
 			if (lastTag == "opt_mainmenu") {
+				manager.PlaySound("ui_motion_swish");
 				manager.FlyOutAll(FLYIN_LENGTH, 0.05);
 				manager.AnimationComplete += ConstructMainMenu;
 			}
 			if (lastTag == "exit") {
+				manager.PlaySound("ui_motion_swish");
 				manager.FlyOutAll(FLYIN_LENGTH, 0.05);
 				manager.AnimationComplete += () =>
 				{
@@ -132,6 +137,7 @@ namespace LibreLancer
 			manager.Elements.Add(new UIMenuButton(manager, new Vector2(-0.65f, -0.25f), "AUDIO", "opt_audio"));
 			manager.Elements.Add(new UIMenuButton(manager, new Vector2(-0.65f, -0.50f), "CREDITS", "opt_credits"));
 			manager.Elements.Add(new UIMenuButton(manager, new Vector2(-0.65f, -0.75f), "MAIN MENU", "opt_mainmenu"));
+			manager.PlaySound("ui_motion_swish");
 			manager.FlyInAll(FLYIN_LENGTH, 0.05);
 		}
 
@@ -144,6 +150,7 @@ namespace LibreLancer
 			manager.Elements.Add(new UIMenuButton(manager, new Vector2(-0.65f, -0.1f), "MULTIPLAYER"));
 			manager.Elements.Add(new UIMenuButton(manager, new Vector2(-0.65f, -0.35f), "OPTIONS", "options"));
 			manager.Elements.Add(new UIMenuButton(manager, new Vector2(-0.65f, -0.6f), "EXIT", "exit"));
+			manager.PlaySound("ui_motion_swish");
 			manager.FlyInAll(FLYIN_LENGTH, 0.05);
 		}
 

@@ -10,18 +10,37 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2017
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-namespace LibreLancer
+using Xwt;
+namespace LibreLancer.FxDebugger
 {
-	public enum FogModes
+	static class Program
 	{
-		None = 0, //NOTE: THIS IS HARDCODED IN THE LIGHTING.INC SHADER
-		Linear = 3,
-		Exp = 1,
-		Exp2 = 2
+		public static GameConfig Config;
+		public static bool Start = false;
+
+		[STAThread]
+		public static void Main(string[] args)
+		{
+			Application.Initialize();
+			Config = GameConfig.Create();
+			var win = new LaunchWindow();
+			win.Show();
+			Application.Run();
+
+			if (Start)
+			{
+				Config.Save();
+				//Setup State
+				Config.IntroMovies = false;
+				Config.CustomState = (g) => new MainState(g);
+				Config.VSync = true;
+				//Run
+				Config.Launch();
+			}
+		}
 	}
 }
-

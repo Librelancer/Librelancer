@@ -10,18 +10,24 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2017
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-namespace LibreLancer
+namespace LibreLancer.FxDebugger
 {
-	public enum FogModes
+	public class LabelElement2D : Element2D
 	{
-		None = 0, //NOTE: THIS IS HARDCODED IN THE LIGHTING.INC SHADER
-		Linear = 3,
-		Exp = 1,
-		Exp2 = 2
+		public string Text = "";
+		Font fnt;
+
+		public LabelElement2D(UIManager m, Font uiFont) : base(m)
+		{
+			fnt = uiFont;
+		}
+		public override void DrawText()
+		{
+			Manager.Game.Renderer2D.DrawString(fnt, Text, Position2D, Color4.Black);
+		}
 	}
 }
-

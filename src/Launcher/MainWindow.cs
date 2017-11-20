@@ -61,7 +61,7 @@ namespace Launcher
             mainBox.PackStart(hboxResolution);
             //Launch
             var launchbox = new HBox() { Spacing = 2 };
-            var btnLaunch = new Button("Launch");
+			var btnLaunch = new Button("Launch");
             btnLaunch.Clicked += BtnLaunch_Clicked;
             launchbox.PackEnd(btnLaunch);
             mainBox.PackEnd(launchbox);
@@ -93,7 +93,7 @@ namespace Launcher
             }
         }
 
-        private void BtnLaunch_Clicked(object sender, EventArgs e)
+		private void BtnLaunch_Clicked(object sender, EventArgs e)
         {
             if (Directory.Exists(textInput.Text))
             {

@@ -26,6 +26,7 @@ namespace LibreLancer
 	{
 		ICamera camera;
 
+		public Color4 NullColor = Color4.Black;
 		public Matrix4 World { get; private set; }
 
 		public List<ObjectRenderer> Objects { get; private set; }
@@ -192,7 +193,7 @@ namespace LibreLancer
 			{
 				rstate.DepthEnabled = false;
 				if (starSystem == null)
-					rstate.ClearColor = Color4.Black;
+					rstate.ClearColor = NullColor;
 				else
 					rstate.ClearColor = starSystem.BackgroundColor;
 				rstate.ClearAll();

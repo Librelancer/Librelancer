@@ -369,7 +369,7 @@ namespace LibreLancer
 			FillRectangle(new Rectangle(rect.X, rect.Y, rect.Width, width), color);
 			FillRectangle(new Rectangle(rect.X, rect.Y, width, rect.Height), color);
 			FillRectangle(new Rectangle(rect.X, rect.Y + rect.Height - width, rect.Width, width), color);
-			FillRectangle(new Rectangle(rect.X + rect.Width - 2, rect.Y, width, rect.Height), color);
+			FillRectangle(new Rectangle(rect.X + rect.Width - width, rect.Y, width, rect.Height), color);
 		}
 
 		public void FillRectangleMask(Texture2D mask, Rectangle src, Rectangle dst, Color4 color)

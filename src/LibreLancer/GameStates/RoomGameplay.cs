@@ -37,7 +37,8 @@ namespace LibreLancer
 		GameSession session;
 		string baseId;
 		Cursor cursor;
-		public RoomGameplay(FreelancerGame g, GameSession session, string newBase, BaseRoom room = null) : base(g)
+		string virtualRoom;
+		public RoomGameplay(FreelancerGame g, GameSession session, string newBase, BaseRoom room = null, string virtualRoom = null) : base(g)
 		{
 			this.session = session;
 			baseId = newBase;
@@ -52,6 +53,8 @@ namespace LibreLancer
 			hud.RoomMode();
 			hud.OnEntered += Hud_OnTextEntry;
 			hud.OnManeuverSelected += Hud_OnManeuverSelected;
+			this.virtualRoom = virtualRoom;
+			hud.SetManeuver(virtualRoom ?? currentRoom.Nickname);
 			Game.Keyboard.TextInput += Game_TextInput;
 			Game.Keyboard.KeyDown += Keyboard_KeyDown;
 			cursor = Game.ResourceManager.GetCursor("arrow");
@@ -67,10 +70,17 @@ namespace LibreLancer
 		bool Hud_OnManeuverSelected(string arg)
 		{
 			var hotspot = currentRoom.Hotspots.Find((obj) => obj.Name == arg);
-			if (!hotspot.RoomIsVirtual) {
-				var rm = currentBase.Rooms.Find((o) => o.Nickname == hotspot.Room);
-				Game.ChangeState(new RoomGameplay(Game, session, baseId, rm));
+			switch (hotspot.Behavior)
+			{
+				case "ExitDoor":
+					var rm = currentBase.Rooms.Find((o) => o.Nickname == hotspot.Room);
+					Game.ChangeState(new RoomGameplay(Game, session, baseId, rm, hotspot.SetVirtualRoom));
+					break;
+				case "VirtualRoom":
+					Game.ChangeState(new RoomGameplay(Game, session, baseId, currentRoom, hotspot.Room));
+					break;
 			}
+
 			return false;
 		}
 

@@ -23,9 +23,9 @@ float fcubic(float x, vec4 params)
 	return params.x * x2 * x + params.y * x2 + params.z * x + params.w;
 }
 
-#define FOGMODE_LINEAR 1
-#define FOGMODE_EXP 2
-#define FOGMODE_EXP2 3
+#define FOGMODE_LINEAR 3
+#define FOGMODE_EXP 1
+#define FOGMODE_EXP2 2
 
 vec3 apply_fog(vec4 view_position, vec3 object_color)
 {

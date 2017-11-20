@@ -127,13 +127,13 @@ namespace LibreLancer.Compatibility.GameData.Universe
 								case "name":
 									hotspot.Name = e[0].ToString();
 									break;
-								case "behaviour":
-									hotspot.Behaviour = e[0].ToString();
+								case "behavior":
+									hotspot.Behavior = e[0].ToString();
 									break;
 								case "room_switch":
 									hotspot.RoomSwitch = e[0].ToString();
 									break;
-								case "virtual_room":
+								case "set_virtual_room":
 									hotspot.VirtualRoom = e[0].ToString();
 									break;
 							}
@@ -154,7 +154,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 	public class RoomHotspot
 	{
 		public string Name;
-		public string Behaviour;
+		public string Behavior;
 		public string RoomSwitch;
 		public string VirtualRoom;
 	}

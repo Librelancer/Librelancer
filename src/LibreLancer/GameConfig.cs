@@ -34,6 +34,9 @@ namespace LibreLancer
 		[XmlIgnore]
 		public string MpvOverride = "__MPV_OVERRIDE_STRING";
 
+		[XmlIgnore]
+		public Func<FreelancerGame, GameState> CustomState;
+
 		private GameConfig(Func<string> filePath) 
 		{
 			this.filePath = filePath;

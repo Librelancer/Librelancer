@@ -10,18 +10,31 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2017
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-namespace LibreLancer
+namespace LibreLancer.FxDebugger
 {
-	public enum FogModes
+	class RectangleElement2D : Element2D
 	{
-		None = 0, //NOTE: THIS IS HARDCODED IN THE LIGHTING.INC SHADER
-		Linear = 3,
-		Exp = 1,
-		Exp2 = 2
+		public Color4 FillColor = Color4.DarkGray;
+		public bool Fullscreen;
+		public float Width;
+		public float Height;
+
+		public RectangleElement2D(UIManager m) : base(m) { }
+
+		public override void DrawText()
+		{
+			Rectangle r = new Rectangle(
+				(int)Position2D.X,
+				(int)Position2D.Y,
+				(int)Width,
+				(int)Height
+			);
+			if (Fullscreen) r = new Rectangle(0, 0, (int)Manager.Game.Width, (int)Manager.Game.Height);
+			Manager.Game.Renderer2D.FillRectangle(r, FillColor);
+		}
 	}
 }
-

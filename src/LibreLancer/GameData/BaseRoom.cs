@@ -50,9 +50,9 @@ namespace LibreLancer.GameData
 	public class BaseHotspot
 	{
 		public string Name;
-		public string Behaviour;
+		public string Behavior;
 		public string Room;
-		public bool RoomIsVirtual;
+		public string SetVirtualRoom;
 	}
 	public class BaseNpc
 	{

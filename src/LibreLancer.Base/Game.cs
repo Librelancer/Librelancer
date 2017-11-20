@@ -365,6 +365,15 @@ namespace LibreLancer
 			SDL.SDL_Quit ();
 		}
 
+		public void ToggleFullScreen()
+		{
+			if (fullscreen)
+				SDL.SDL_SetWindowFullscreen(windowptr, 0);
+			else
+				SDL.SDL_SetWindowFullscreen(windowptr, (int)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
+			fullscreen = !fullscreen;
+		}
+
 		//TODO: Terrible Hack
 		public void Crashed()
 		{

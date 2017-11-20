@@ -16,6 +16,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using LibreLancer.Media;
 namespace LibreLancer
 {
 	public class UIManager : IDisposable
@@ -24,14 +25,28 @@ namespace LibreLancer
 		public FreelancerGame Game;
 		public Color4 TextColor = new Color4 (160, 196, 210, 255);
 		public List<UIElement> Elements = new List<UIElement> ();
+		public List<UIElement> Dialog;
 		public event Action<string> Clicked;
 		Font buttonFont;
 		float currentSize = -2f;
+		Dictionary<string, SoundData> sounds = new Dictionary<string, SoundData>();
 		public UIManager (FreelancerGame game)
 		{
 			Game = game;
 			game.Mouse.MouseDown += Mouse_MouseDown;
 			game.Mouse.MouseUp += Mouse_MouseUp;
+		}
+
+		public void PlaySound(string name)
+		{
+			SoundData dat;
+			if (!sounds.TryGetValue(name, out dat))
+			{
+				dat = Game.Audio.AllocateData();
+				dat.LoadFile(Game.GameData.GetMusicPath(name));
+				sounds.Add(name, dat);
+			}
+			Game.Audio.PlaySound(dat);
 		}
 
 		public Font GetButtonFont(float sz)
@@ -54,7 +69,16 @@ namespace LibreLancer
 			Game.Renderer2D.Start (Game.Width, Game.Height);
 			foreach (var e in Elements)
 				if (e.Visible) e.DrawText ();
-			Game.Renderer2D.Finish ();
+			Game.Renderer2D.Finish();
+			if (Dialog != null)
+			{
+				foreach (var e in Dialog)
+					if (e.Visible) e.DrawBase();
+				Game.Renderer2D.Start(Game.Width, Game.Height);
+				foreach (var e in Dialog)
+					if (e.Visible) e.DrawText();
+				Game.Renderer2D.Finish();
+			}
 		}
 
 		bool startedAllAnim = false;
@@ -100,7 +124,7 @@ namespace LibreLancer
 
 		UIElement GetMousedElement(int x, int y)
 		{
-			foreach (var e in Elements)
+			foreach (var e in Dialog ?? Elements)
 			{
 				Rectangle rect;
 				if (e.TryGetHitRectangle(out rect))
@@ -136,9 +160,20 @@ namespace LibreLancer
 		{
 			if (MenuButton != null) MenuButton.Update (IdentityCamera.Instance, delta, TimeSpan.FromSeconds(Game.TotalTime));
 			bool animating = false;
-			foreach (var elem in Elements) {
-				if (elem.Visible) elem.Update(delta);
-				if (elem.Animation != null && elem.Animation.Running) animating = true;
+			if (Dialog != null)
+			{
+				foreach (var elem in Dialog)
+				{
+					if (elem.Visible) elem.Update(delta);
+				}
+			}
+			else
+			{
+				foreach (var elem in Elements)
+				{
+					if (elem.Visible) elem.Update(delta);
+					if (elem.Animation != null && elem.Animation.Running) animating = true;
+				}
 			}
 			if (startedAllAnim && !animating) {
 				startedAllAnim = false;
@@ -164,6 +199,8 @@ namespace LibreLancer
 			if(buttonFont != null) buttonFont.Dispose();
 			Game.Mouse.MouseDown -= Mouse_MouseDown;
 			Game.Mouse.MouseUp -= Mouse_MouseUp;
+			foreach (var v in sounds.Values)
+				v.Dispose();
 		}
 	}
 }

@@ -14,6 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Collections.Generic;
 namespace LibreLancer
 {
 	public class HudBaseButtonElement : HudToggleButtonElement
@@ -21,28 +22,57 @@ namespace LibreLancer
 		public Color4 ActiveColor = Color4.Yellow;
 		public Color4 InactiveColor = new Color4(160, 196, 210, 255);
 
+		class ModifiedMaterial
+		{
+			public BasicMaterial Mat;
+			public Color4 Dc;
+		}
+		List<ModifiedMaterial> materials = new List<ModifiedMaterial>();
+
 		public HudBaseButtonElement(UIManager manager, string pathA, float x, float y, float scaleX, float scaleY) : base(manager, pathA, null, x, y, scaleX, scaleY)
 		{
-		}
-
-		public override void DrawBase()
-		{
-			var vms = ((Utf.Cmp.ModelFile)drawableA).Levels[0].Mesh;
-			for (int i = 0; i < vms.MeshCount; i++)
+			var l0 = ((Utf.Cmp.ModelFile)drawableA).Levels[0];
+			var vms = l0.Mesh;
+			//Save Mesh material state
+			for (int i = l0.StartMesh; i < l0.StartMesh + l0.MeshCount; i++)
 			{
 				var mat = (BasicMaterial)vms.Meshes[i].Material?.Render;
 				if (mat == null) continue;
+				bool found = false;
+				foreach (var m in materials) {
+					if (m.Mat == mat)
+					{
+						found = true;
+						break;
+					}
+				}
+				if (found) continue;
+				materials.Add(new ModifiedMaterial() { Mat = mat, Dc = mat.Dc });
+			}
+		}
+
+
+		public override unsafe void DrawBase()
+		{
+			var vms = ((Utf.Cmp.ModelFile)drawableA).Levels[0].Mesh;
+			//Save and restore material colours since it affects other parts of the UI
+			for (int i = 0; i < materials.Count; i++)
+			{
 				if (State == ToggleState.Active)
 				{
-					mat.Dc = ActiveColor;
+					materials[i].Mat.Dc = ActiveColor;
 				}
 				else
 				{
-					mat.Dc = InactiveColor;
+					materials[i].Mat.Dc = InactiveColor;
 				}
 			}
 			drawableA.Update(IdentityCamera.Instance, TimeSpan.Zero, TimeSpan.FromSeconds(Manager.Game.TotalTime));
 			drawableA.Draw(Manager.Game.RenderState, GetWorld(UIScale, Position), Lighting.Empty);
+			for (int i = 0; i < materials.Count; i++)
+			{
+				materials[i].Mat.Dc = materials[i].Dc;
+			}
 		}
 	}
 }
