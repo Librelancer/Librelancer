@@ -14,20 +14,11 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-namespace LibreLancer.FxDebugger
+using System.Collections.Generic;
+namespace LibreLancer
 {
-	public class LabelElement2D : Element2D
+	public interface IUIContainer
 	{
-		public string Text = "";
-		Font fnt;
-
-		public LabelElement2D(UIManager m, Font uiFont) : base(m)
-		{
-			fnt = uiFont;
-		}
-		public override void DrawText()
-		{
-			Manager.Game.Renderer2D.DrawString(fnt, Text, Offset2D + Position2D, Color4.Black);
-		}
+		IEnumerable<UIElement> GetChildren();
 	}
 }

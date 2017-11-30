@@ -126,10 +126,25 @@ namespace LibreLancer
 		{
 			foreach (var e in Dialog ?? Elements)
 			{
-				Rectangle rect;
-				if (e.TryGetHitRectangle(out rect))
+				var res = TestMouseElement(e, x, y);
+				if (res != null) return res;
+			}
+			return null;
+		}
+
+		UIElement TestMouseElement(UIElement e, int x, int y)
+		{
+			Rectangle rect;
+			if (e.TryGetHitRectangle(out rect))
+			{
+				if (rect.Contains(x, y)) return e;
+			}
+			if (e is IUIContainer)
+			{
+				foreach (var c in ((IUIContainer)e).GetChildren())
 				{
-					if (rect.Contains(x, y)) return e;
+					var res = TestMouseElement(c, x, y);
+					if (res != null) return res;
 				}
 			}
 			return null;

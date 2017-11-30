@@ -352,6 +352,7 @@
     <Compile Include="Gameplay\Components\TradelaneMoveComponent.cs" />
     <Compile Include="Gameplay\GameMessageKind.cs" />
     <Compile Include="Gameplay\Components\AsteroidFieldComponent.cs" />
+    <Compile Include="Interface\IUIContainer.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

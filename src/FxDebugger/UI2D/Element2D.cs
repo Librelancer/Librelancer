@@ -19,6 +19,7 @@ namespace LibreLancer.FxDebugger
 	public class Element2D : UIElement
 	{
 		public Vector2 Position2D;
+		public Vector2 Offset2D; //set by parents only
 		public Action CalculatePosition;
 		public Element2D(UIManager m) : base(m) { }
 		public override void DrawBase() { }
@@ -26,6 +27,11 @@ namespace LibreLancer.FxDebugger
 		protected override void UpdateInternal(TimeSpan time)
 		{
 			if (CalculatePosition != null) CalculatePosition();
+		}
+
+		protected Vector2 ClientPosition
+		{
+			get { return Position2D + Offset2D; }
 		}
 	}
 }

@@ -16,46 +16,31 @@
 using System;
 namespace LibreLancer.FxDebugger
 {
-	public class ButtonElement2D : Element2D
+	public class CheckBoxElement2D : Element2D
 	{
-		public float Width;
-		public float Height;
-		public string Label = "";
-		Font fnt;
+		public bool Checked = true;
+		public bool InView = true;
+		public Action Clicked;
 
-		public void AutoSize(Renderer2D ren)
-		{
-			var sz = ren.MeasureString(fnt, Label);
-			Width = sz.X + 18;
-			Height = fnt.LineHeight + 5;
-		}
-
-		public ButtonElement2D(UIManager m, Font uiFont) : base(m)
-		{
-			fnt = uiFont;
-		}
+		public CheckBoxElement2D(UIManager m) : base(m) { }
 
 		public override void DrawText()
 		{
 			Rectangle r;
 			TryGetHitRectangle(out r);
-			Manager.Game.Renderer2D.FillRectangle(
-				r,
-				Color4.LightGray);
-			Manager.Game.Renderer2D.DrawRectangle(
-				r,
-				Color4.Black,
-				1);
-			var sz = Manager.Game.Renderer2D.MeasureString(fnt, Label);
-			float xPos = ClientPosition.X + (Width / 2) - sz.X / 2;
-			float yPos = ClientPosition.Y + (Height / 2) - (fnt.LineHeight / 2);
-			Manager.Game.Renderer2D.DrawStringBaseline(fnt, Label, xPos, yPos, 0, Color4.Black);
+			Manager.Game.Renderer2D.FillRectangle(r, Color4.LightGray);
+			Manager.Game.Renderer2D.DrawRectangle(r, Color4.Black, 1);
+			if (Checked)
+			{
+				Manager.Game.Renderer2D.DrawLine(Color4.Black, ClientPosition + new Vector2(2), ClientPosition + new Vector2(14));
+				Manager.Game.Renderer2D.DrawLine(Color4.Black, ClientPosition + new Vector2(2, 14), ClientPosition + new Vector2(14, 2));
+			}
 		}
 
-		public Action Clicked;
 		public override void WasClicked()
 		{
-			Clicked();
+			Checked = !Checked;
+			if(Clicked != null) Clicked();
 		}
 
 		public override bool TryGetHitRectangle(out Rectangle rect)
@@ -63,10 +48,10 @@ namespace LibreLancer.FxDebugger
 			rect = new Rectangle(
 				(int)ClientPosition.X,
 				(int)ClientPosition.Y,
-				(int)Width,
-				(int)Height
+				16,
+				16
 			);
-			return true;
+			return InView;
 		}
 	}
 }

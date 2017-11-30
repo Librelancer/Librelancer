@@ -19,7 +19,7 @@ namespace LibreLancer.FxDebugger
 	public class SliderElement2D : Element2D
 	{
 		public float Value = 1000;
-		public float Minimum = 50;
+		public float Minimum = 10;
 		public float Maximum = 4000;
 
 		public float Width;
@@ -47,8 +47,8 @@ namespace LibreLancer.FxDebugger
 			if (CalculatePosition != null) CalculatePosition();
 			if (!Manager.Game.Mouse.IsButtonDown(MouseButtons.Left)) return;
 			var lblSz = Manager.Game.Renderer2D.MeasureString(fnt, Label);
-			var startX = Position2D.X + lblSz.X + 7;
-			var startY = Position2D.Y + (Height / 2) - (Height * 0.4f);
+			var startX = ClientPosition.X + lblSz.X + 7;
+			var startY = ClientPosition.Y + (Height / 2) - (Height * 0.4f);
 			var sliderW = Width - (lblSz.X + 7);
 			var height = Height * 0.8f;
 			var rect = new Rectangle((int)startX, (int)startY, (int)sliderW, (int)height);
@@ -63,16 +63,16 @@ namespace LibreLancer.FxDebugger
 		public bool BlackText = false;
 		public override void DrawText()
 		{
-			float yPos = Position2D.Y + (Height / 2) - (fnt.LineHeight / 2);
+			float yPos = ClientPosition.Y + (Height / 2) - (fnt.LineHeight / 2);
 			if (BlackText)
 			{
-				Manager.Game.Renderer2D.DrawStringBaseline(fnt, Label, Position2D.X, yPos, 0, Color4.Black);
+				Manager.Game.Renderer2D.DrawStringBaseline(fnt, Label, ClientPosition.X, yPos, 0, Color4.Black);
 			}
 			else
 			{
 				//Shadowed label
-				Manager.Game.Renderer2D.DrawStringBaseline(fnt, Label, Position2D.X + 1, yPos + 1, 0, Color4.Black);
-				Manager.Game.Renderer2D.DrawStringBaseline(fnt, Label, Position2D.X, yPos, 0, Color4.White);
+				Manager.Game.Renderer2D.DrawStringBaseline(fnt, Label, ClientPosition.X + 1, yPos + 1, 0, Color4.Black);
+				Manager.Game.Renderer2D.DrawStringBaseline(fnt, Label, ClientPosition.X, yPos, 0, Color4.White);
 			}
 			//Draw Slider
 			var lblSz = Manager.Game.Renderer2D.MeasureString(fnt, Label);
@@ -80,14 +80,14 @@ namespace LibreLancer.FxDebugger
 			var sliderX = lblSz.X + 7;
 			var sliderW = Width - sliderX;
 			Manager.Game.Renderer2D.FillRectangle(new Rectangle(
-				(int)(Position2D.X + sliderX),
-				(int)(Position2D.Y + (Height / 2) - 1),
+				(int)(ClientPosition.X + sliderX),
+				(int)(ClientPosition.Y + (Height / 2) - 1),
 				(int)sliderW,
 				2), Color4.Gray);
 			//thumb
-			var xPos = Position2D.X + sliderX + ((Value / (Maximum + Minimum)) * sliderW) - 6;
+			var xPos = ClientPosition.X + sliderX + ((Value / (Maximum + Minimum)) * sliderW) - 6;
 			var off = ((Value / Maximum) * sliderW);
-			yPos = Position2D.Y + (Height / 2) - (Height * 0.4f);
+			yPos = ClientPosition.Y + (Height / 2) - (Height * 0.4f);
 
 			Manager.Game.Renderer2D.FillRectangle(new Rectangle(
 			(int)(xPos),

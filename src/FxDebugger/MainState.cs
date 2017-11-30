@@ -22,7 +22,7 @@ namespace LibreLancer.FxDebugger
 	public class MainState : GameState
 	{
 		UIManager manager;
-		RectangleElement2D menuBackground;
+		PanelElement2D menuBackground;
 		Font uiFont;
 
 		SystemRenderer renderer;
@@ -30,12 +30,14 @@ namespace LibreLancer.FxDebugger
 
 		ChaseCamera cam;
 		SliderElement2D zoomSlider;
+		FloatingCheckList list;
+
 		public MainState(FreelancerGame game) : base(game)
 		{
 			manager = new UIManager(game);
 			uiFont = Font.FromSystemFont(game.Renderer2D, "Arial", 10);
 			//Construct Menu
-			menuBackground = new RectangleElement2D(manager);
+			menuBackground = new PanelElement2D(manager);
 			menuBackground.FillColor = new Color4(0, 0, 0, 0.25f);
 			manager.Elements.Add(menuBackground);
 			var btnOpen = new ButtonElement2D(manager, uiFont) { Label = "Open" };
@@ -82,8 +84,8 @@ namespace LibreLancer.FxDebugger
 		void OptionsDialog()
 		{
 			var dlg = new List<UIElement>();
-			dlg.Add(new RectangleElement2D(manager) { FillColor = new Color4(0, 0, 0, 0.4f), Fullscreen = true });
-			var bkg = new RectangleElement2D(manager) { FillColor = Color4.White, Width = 300, Height = 300 };
+			dlg.Add(new PanelElement2D(manager) { FillColor = new Color4(0, 0, 0, 0.4f), Fullscreen = true });
+			var bkg = new PanelElement2D(manager) { FillColor = Color4.White, Width = 300, Height = 300 };
 			bkg.CalculatePosition += () =>
 			{
 				bkg.Position2D = new Vector2(Game.Width / 2 - 150, Game.Height / 2 - 150);
@@ -91,45 +93,32 @@ namespace LibreLancer.FxDebugger
 			dlg.Add(bkg);
 
 			var lbl = new LabelElement2D(manager, uiFont) { Text = "Background Color:" };
-			lbl.CalculatePosition += () =>
-			{
-				lbl.Position2D = new Vector2(Game.Width / 2 - 150 + 10, Game.Height / 2 - 150 + 10);
-			};
-			dlg.Add(lbl);
+			lbl.Position2D = new Vector2(10, 10);
+			bkg.Children.Add(lbl);
 
-			var zoomR = new SliderElement2D(manager, uiFont) { Label = "R:", BlackText = true, Minimum = 0, Value = renderer.NullColor.R, Maximum = 1 };
-			zoomR.AutoSize(Game.Renderer2D);
-			zoomR.CalculatePosition += () =>
-			{
-				zoomR.Position2D = new Vector2(Game.Width / 2 - 150 + 10, Game.Height / 2 - 150 + 50);
+			var sliderR = new SliderElement2D(manager, uiFont) { Label = "R:", BlackText = true, Minimum = 0, Value = renderer.NullColor.R, Maximum = 1 };
+			sliderR.AutoSize(Game.Renderer2D);
+			sliderR.Position2D = new Vector2(10, 50);
+			bkg.Children.Add(sliderR);
 
-			};
-			dlg.Add(zoomR);
+			var sliderG = new SliderElement2D(manager, uiFont) { Label = "G:", BlackText = true, Minimum = 0, Value = renderer.NullColor.G, Maximum = 1 };
+			sliderG.AutoSize(Game.Renderer2D);
+			sliderG.Position2D = new Vector2(10, 100);
+			bkg.Children.Add(sliderG);
 
-			var zoomG = new SliderElement2D(manager, uiFont) { Label = "G:", BlackText = true, Minimum = 0, Value = renderer.NullColor.G, Maximum = 1 };
-			zoomG.AutoSize(Game.Renderer2D);
-			zoomG.CalculatePosition += () =>
-			{
-				zoomG.Position2D = new Vector2(Game.Width / 2 - 150 + 10, Game.Height / 2 - 150 + 100);
+			var sliderB = new SliderElement2D(manager, uiFont) { Label = "B:", BlackText = true, Minimum = 0, Value = renderer.NullColor.B, Maximum = 1 };
+			sliderB.AutoSize(Game.Renderer2D);
+			sliderB.Position2D = new Vector2(10, 150);
+			bkg.Children.Add(sliderB);
 
-			};
-			dlg.Add(zoomG);
-
-			var zoomB = new SliderElement2D(manager, uiFont) { Label = "B:", BlackText = true, Minimum = 0, Value = renderer.NullColor.B, Maximum = 1 };
-			zoomB.AutoSize(Game.Renderer2D);
-			zoomB.CalculatePosition += () =>
-			{
-				zoomB.Position2D = new Vector2(Game.Width / 2 - 150 + 10, Game.Height / 2 - 150 + 150);
-			};
-			dlg.Add(zoomB);
-
-			var prev = new RectangleElement2D(manager) { FillColor = renderer.NullColor };
-			prev.Width = prev.Height = zoomB.Height;
+			var prev = new PanelElement2D(manager) { FillColor = renderer.NullColor };
+			prev.Width = prev.Height = sliderB.Height;
+			prev.Position2D = new Vector2(200, 10);
 			prev.CalculatePosition += () =>
 			{
-				prev.Position2D = new Vector2(Game.Width / 2 - 150 + 250, Game.Height / 2 - 150 + 10);
-				prev.FillColor = new Color4(zoomR.Value, zoomG.Value, zoomB.Value, 1f);
+				prev.FillColor = new Color4(sliderR.Value, sliderG.Value, sliderB.Value, 1f);
 			};
+			bkg.Children.Add(prev);
 
 			var btnCancel = new ButtonElement2D(manager, uiFont) { Label = "Cancel" };
 			btnCancel.AutoSize(Game.Renderer2D);
@@ -139,7 +128,7 @@ namespace LibreLancer.FxDebugger
 			btnOk.Height = btnCancel.Height;
 			btnOk.Clicked += () =>
 			{
-				renderer.NullColor = new Color4(zoomR.Value, zoomG.Value, zoomB.Value, 1f);
+				renderer.NullColor = new Color4(sliderR.Value, sliderG.Value, sliderB.Value, 1f);
 				manager.Dialog = null;
 			};
 
@@ -155,7 +144,6 @@ namespace LibreLancer.FxDebugger
 			dlg.Add(btnOk);
 			dlg.Add(btnCancel);
 
-			dlg.Add(prev);
 			manager.Dialog = dlg;
 		}
 
@@ -174,7 +162,6 @@ namespace LibreLancer.FxDebugger
 				if ((e.Modifiers & KeyModifiers.LeftAlt) == KeyModifiers.LeftAlt && e.Key == Keys.Enter) {
 					Game.ToggleFullScreen();
 				}
-				Console.WriteLine("{0} {1}", e.Modifiers, e.Key);
 				return;
 			}
 			if (e.Key == Keys.Enter)
@@ -199,13 +186,13 @@ namespace LibreLancer.FxDebugger
 		void OpenFxDialog()
 		{
 			var dlg = new List<UIElement>();
-			dlg.Add(new RectangleElement2D(manager) { FillColor = new Color4(0, 0, 0, 0.4f), Fullscreen = true });
+			dlg.Add(new PanelElement2D(manager) { FillColor = new Color4(0, 0, 0, 0.4f), Fullscreen = true });
 			entry = new HudChatBox(manager) { CentreScreen = true, CurrentEntry = "Effect->" };
 			dlg.Add(entry);
 			Game.EnableTextInput();
 			manager.Dialog = dlg;
 		}
-
+		Fx.ParticleEffect fx;
 		void DoOpenFx(string name)
 		{
 			manager.Dialog = null;
@@ -216,17 +203,81 @@ namespace LibreLancer.FxDebugger
 			}
 			currentOpen = name;
 			Game.ResourceManager.ClearTextures(); //Don't wanna use all our memory up!
-			var fx = Game.GameData.GetEffect(name);
+			fx = Game.GameData.GetEffect(name);
 			if (pfx != null) pfx.Unregister();
 			pfx = new ParticleEffectRenderer(fx);
 			pfx.Register(renderer);
+			float lx = 300, ly = 300;
+			if (list != null)
+			{
+				lx = list.Position2D.X;
+				ly = list.Position2D.Y;
+				manager.Elements.Remove(list);
+			}
+			list = new FloatingCheckList(manager, uiFont);
+			list.Title = "Appearances";
+			list.Position2D = new Vector2(lx, ly);
+			list.MinYPosition = 25;
+			list.Width = 300;
+			list.Height = 200;
+			list.SetActive += (node, enabled) =>
+			{
+				pfx.SetAppearanceEnabled(node, enabled);
+			};
+			list.OpenMenu += NodeOptions;
+			foreach (var n in fx.Nodes) {
+				if (n is Fx.FxAppearance)
+				{
+					list.AddNode(n.NodeName);
+				}
+			}
+			manager.Elements.Add(list);
+		}
+
+		void NodeOptions(string name)
+		{
+			//Dialog
+			var dlg = new List<UIElement>();
+			dlg.Add(new PanelElement2D(manager) { FillColor = new Color4(0, 0, 0, 0.4f), Fullscreen = true });
+			var bkg = new PanelElement2D(manager) { FillColor = Color4.White, Width = 300, Height = 200 };
+			bkg.CalculatePosition += () =>
+			{
+				bkg.Position2D = new Vector2(Game.Width / 2 - 150, Game.Height / 2 - 100);
+			};
+			dlg.Add(bkg);
+			//Node info
+			var node = fx.Nodes.Find((n) => n.NodeName == name);
+			var lbl = new LabelElement2D(manager, uiFont);
+			int a, b = 0;
+			lbl.Text = string.Join("\n", Infocards.InfocardDisplay.WrapText(Game.Renderer2D, uiFont, string.Format("{0}: {1}", name, node.GetType().Name), 280, 0, out a, ref b));
+			lbl.Position2D = new Vector2(10, 10);
+			bkg.Children.Add(lbl);
+			//Node options
+			if (node is Fx.FxAppearance)
+			{
+				var fxapp = (Fx.FxAppearance)node;
+				var chkNormals = new CheckBoxElement2D(manager) { Position2D = new Vector2(10, 40), Checked = fxapp.DrawNormals };
+				chkNormals.Clicked += () => fxapp.DrawNormals = chkNormals.Checked;
+				bkg.Children.Add(chkNormals);
+				bkg.Children.Add(new LabelElement2D(manager, uiFont) { Text = "Draw Normals", Position2D = new Vector2(30, 45) });
+			}
+			//Ok button
+			var btnOk = new ButtonElement2D(manager, uiFont) { Label = "OK" };
+			btnOk.AutoSize(Game.Renderer2D);
+			btnOk.CalculatePosition += () =>
+			{
+				btnOk.Position2D = new Vector2(Game.Width / 2 - (btnOk.Width / 2), Game.Height / 2 + 50);
+			};
+			btnOk.Clicked += () => manager.Dialog = null;
+			dlg.Add(btnOk);
+			manager.Dialog = dlg;
 		}
 
 		void MessageDialog(string text, Action yes = null)
 		{
 			var dlg = new List<UIElement>();
-			dlg.Add(new RectangleElement2D(manager) { FillColor = new Color4(0, 0, 0, 0.4f), Fullscreen = true });
-			var bkg = new RectangleElement2D(manager) { FillColor = Color4.White, Width = 300, Height = 200 };
+			dlg.Add(new PanelElement2D(manager) { FillColor = new Color4(0, 0, 0, 0.4f), Fullscreen = true });
+			var bkg = new PanelElement2D(manager) { FillColor = Color4.White, Width = 300, Height = 200 };
 			bkg.CalculatePosition += () =>
 			{
 				bkg.Position2D = new Vector2(Game.Width / 2 - 150, Game.Height / 2 - 100);
@@ -235,11 +286,9 @@ namespace LibreLancer.FxDebugger
 			var lbl = new LabelElement2D(manager, uiFont);
 			int a, b = 0;
 			lbl.Text = string.Join("\n", Infocards.InfocardDisplay.WrapText(Game.Renderer2D, uiFont, text, 280, 0, out a, ref b));
-			lbl.CalculatePosition += () =>
-			{
-				lbl.Position2D = new Vector2(Game.Width / 2 - 150 + 10, Game.Height / 2 - 100 + 10);
-			};
-			dlg.Add(lbl);
+			lbl.Position2D = new Vector2(10, 10);
+			bkg.Children.Add(lbl);
+
 			if (yes == null)
 			{
 				var btnOk = new ButtonElement2D(manager, uiFont) { Label = "OK" };

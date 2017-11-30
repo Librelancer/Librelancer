@@ -50,6 +50,11 @@ namespace LibreLancer.Fx
 				SortLayers.OBJECT,
 				BlendInfo
 			);
+
+			if (DrawNormals)
+			{
+				Debug.DrawLine(p - (n * 8), p + (n * 8));
+			}
 		}
 	}
 }

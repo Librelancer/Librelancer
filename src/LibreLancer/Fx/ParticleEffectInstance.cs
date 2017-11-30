@@ -32,6 +32,7 @@ namespace LibreLancer.Fx
 		public ResourceManager Resources;
 		Dictionary<FxEmitter, EmitterState> emitStates = new Dictionary<FxEmitter, EmitterState>();
 		public Dictionary<FLBeamAppearance, LineBuffer> BeamAppearances = new Dictionary<FLBeamAppearance, LineBuffer>();
+		public Dictionary<string, bool> EnableStates = new Dictionary<string, bool>();
 		public Random Random = new Random();
 		double globaltime = 0;
 		public ParticleEffectInstance (ParticleEffect fx)
@@ -105,18 +106,31 @@ namespace LibreLancer.Fx
 			return -1;
 		}
 
+		bool DrawEnabled(FxAppearance node)
+		{
+			bool val;
+			if (!EnableStates.TryGetValue(node.NodeName, out val)) return true;
+			return val;
+		}
+
 		public void Draw(PolylineRender polyline, Billboards billboards, PhysicsDebugRenderer debug, Matrix4 transform, float sparam)
 		{
 			for (int i = 0; i < Particles.Length; i++)
 			{
 				if (!Particles[i].Active)
 					continue;
-				Particles[i].Appearance.Debug = debug;
-				Particles[i].Appearance.Draw(ref Particles[i], (float)globaltime, Effect, Effect.ResourceManager, billboards, ref transform, sparam);
+				if (DrawEnabled(Particles[i].Appearance))
+				{
+					Particles[i].Appearance.Debug = debug;
+					Particles[i].Appearance.Draw(ref Particles[i], (float)globaltime, Effect, Effect.ResourceManager, billboards, ref transform, sparam);
+				}
 			}
 			foreach (var kv in BeamAppearances)
 			{
-				kv.Key.DrawBeamApp(polyline, kv.Value, (float)globaltime, Effect, this, Effect.ResourceManager, billboards, ref transform, sparam);
+				if (DrawEnabled(kv.Key))
+				{
+					kv.Key.DrawBeamApp(polyline, kv.Value, (float)globaltime, Effect, this, Effect.ResourceManager, billboards, ref transform, sparam);
+				}
 			}
 		}
 	}

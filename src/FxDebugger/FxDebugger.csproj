@@ -43,12 +43,14 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI2D\Element2D.cs" />
-    <Compile Include="UI2D\RectangleElement2D.cs" />
+    <Compile Include="UI2D\PanelElement2D.cs" />
     <Compile Include="UI2D\LabelElement2D.cs" />
     <Compile Include="UI2D\ButtonElement2D.cs" />
     <Compile Include="MainState.cs" />
     <Compile Include="LaunchWindow.cs" />
     <Compile Include="UI2D\SliderElement2D.cs" />
+    <Compile Include="UI2D\FloatingCheckList.cs" />
+    <Compile Include="UI2D\CheckBoxElement2D.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="UI2D\" />

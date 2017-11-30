@@ -401,6 +401,49 @@ namespace LibreLancer
 			DrawQuad(imgShader, tex, source, dest, color, mode, flip);
 		}
 
+		public void FillTriangle(Vector2 point1, Vector2 point2, Vector2 point3, Color4 color)
+		{
+			if (currentShader != null && currentShader != textShader)
+			{
+				Flush();
+			}
+			if (currentMode != BlendMode.Normal)
+			{
+				Flush();
+			}
+			if (currentTexture != null && currentTexture != dot)
+			{
+				Flush();
+			}
+			if ((primitiveCount + 2) * 3 >= MAX_INDEX || (vertexCount + 4) >= MAX_VERT)
+				Flush();
+			currentTexture = dot;
+			currentShader = textShader;
+			currentMode = BlendMode.Normal;
+			vertices[vertexCount++] = new Vertex2D(
+				point1,
+				Vector2.Zero,
+				color
+			);
+			vertices[vertexCount++] = new Vertex2D(
+				point2,
+				Vector2.Zero,
+				color
+			);
+			vertices[vertexCount++] = new Vertex2D(
+				point3,
+				Vector2.Zero,
+				color
+			);
+			vertices[vertexCount++] = new Vertex2D(
+				point3,
+				Vector2.Zero,
+				color
+			);
+
+			primitiveCount += 2;
+
+		}
 		void DrawQuad(Shader shader, Texture2D tex, Rectangle source, Rectangle dest, Color4 color, BlendMode mode, bool flip = false)
 		{
 			if (currentShader != null && currentShader != shader)

@@ -245,11 +245,19 @@ namespace LibreLancer.Compatibility.GameData.Universe
 					break;
 				case "faction_weight":
 					if (e.Count != 2) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					FactionWeight.Add(e[0].ToString(), e[1].ToInt32());
+					if (FactionWeight.ContainsKey(e[0].ToString())) {
+						FLLog.Error("Ini", string.Format("Duplicate faction_weight for {0} in {1}, ignoring.", e[0], Nickname ?? "[undefined]"));
+					} else {
+						FactionWeight.Add(e[0].ToString(), e[1].ToInt32());
+					}
 					break;
 				case "density_restriction":
 					if (e.Count != 2) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					DensityRestriction.Add(e[1].ToString(), e[0].ToInt32());
+					if (DensityRestriction.ContainsKey(e[1].ToString())) {
+						FLLog.Error("Ini", string.Format("Duplicate density_restriction for {0} in {1}, ignoring.", e[1], Nickname ?? "[undefined]"));
+					} else {
+						DensityRestriction.Add(e[1].ToString(), e[0].ToInt32());
+					}
 					break;
 				case "encounter":
 					//if (e.Count != 3) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);

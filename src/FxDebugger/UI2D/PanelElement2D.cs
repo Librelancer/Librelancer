@@ -14,27 +14,48 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Collections.Generic;
 namespace LibreLancer.FxDebugger
 {
-	class RectangleElement2D : Element2D
+	class PanelElement2D : Element2D, IUIContainer
 	{
 		public Color4 FillColor = Color4.DarkGray;
 		public bool Fullscreen;
 		public float Width;
 		public float Height;
+		public List<Element2D> Children = new List<Element2D>();
+		public PanelElement2D(UIManager m) : base(m) { }
 
-		public RectangleElement2D(UIManager m) : base(m) { }
+		protected override void UpdateInternal(TimeSpan time)
+		{
+			base.UpdateInternal(time);
+			foreach (var child in Children)
+			{
+				child.Offset2D = (Position2D + Offset2D);
+				child.Update(time);
+			}
+		}
 
 		public override void DrawText()
 		{
 			Rectangle r = new Rectangle(
-				(int)Position2D.X,
-				(int)Position2D.Y,
+				(int)ClientPosition.X,
+				(int)ClientPosition.Y,
 				(int)Width,
 				(int)Height
 			);
 			if (Fullscreen) r = new Rectangle(0, 0, (int)Manager.Game.Width, (int)Manager.Game.Height);
 			Manager.Game.Renderer2D.FillRectangle(r, FillColor);
+
+			foreach (var child in Children)
+			{
+				child.DrawText();
+			}
+		}
+
+		public IEnumerable<UIElement> GetChildren()
+		{
+			return Children;
 		}
 	}
 }

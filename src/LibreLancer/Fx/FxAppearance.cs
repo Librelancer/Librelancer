@@ -21,6 +21,7 @@ namespace LibreLancer.Fx
 	public class FxAppearance : FxNode
 	{
 		public PhysicsDebugRenderer Debug;
+		public bool DrawNormals = false;
 		public FxAppearance (AlchemyNode ale) : base(ale)
 		{
 		}

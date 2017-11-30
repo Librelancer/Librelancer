@@ -53,6 +53,10 @@ namespace LibreLancer
 				fx.Update(time, transform, SParam);
 			}
 		}
+		public void SetAppearanceEnabled(string name, bool enabled)
+		{
+			fx.EnableStates[name] = enabled;
+		}
 		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
 			dist = VectorMath.DistanceSquared(pos, camera.Position);

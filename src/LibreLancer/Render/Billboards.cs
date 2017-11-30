@@ -310,6 +310,7 @@ namespace LibreLancer
 				blend,
 				(ushort)vertexCount
 			);
+			//construct points then billboard them?
 			CreateBillboard(
 				Position,
 				size,

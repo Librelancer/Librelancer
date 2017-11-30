@@ -68,16 +68,17 @@ namespace LibreLancer.Fx
 		//Different direction to FxCubeEmitter
 		static Vector3 RandomInCone(Random r, float minradius, float maxradius)
 		{
-			//(sqrt(1 - z^2) * cosϕ, sqrt(1 - z^2) * sinϕ, z)
-			var radradius = maxradius / 2;
 
-			float z = r.NextFloat((float)Math.Cos(radradius), 1 - (minradius / 2));
-			float t = r.NextFloat(0, (float)(Math.PI * 2));
-			return new Vector3(
-				(float)(Math.Sqrt(1 - z * z) * Math.Cos(t)),
-				(float)(Math.Sqrt(1 - z * z) * Math.Sin(t)),
-				z
-			);
+			var direction = Vector3.UnitZ;
+			var axis = Vector3.Cross(Vector3.UnitZ, Vector3.UnitY);
+
+			var angle = r.NextFloat(minradius, maxradius);
+			var rotation = Quaternion.FromAxisAngle(axis, angle);
+			Vector3 output = rotation * direction;
+			var random = r.NextFloat(-MathHelper.Pi, MathHelper.Pi);
+			rotation = Quaternion.FromAxisAngle(direction, random);
+			output = rotation * output;
+			return output;
 		}
 	}
 }
