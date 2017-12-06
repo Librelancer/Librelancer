@@ -55,7 +55,7 @@ namespace LibreLancer
 				if (buttonFont != null)
 					buttonFont.Dispose ();
 				currentSize = sz;
-				buttonFont = Font.FromSystemFont (Game.Renderer2D, "Agency FB", currentSize, FontStyles.Bold);
+				buttonFont = Font.FromSystemFont (Game.Renderer2D, "Agency FB", currentSize, FontStyles.Regular);
 			}
 			return buttonFont;
 		}
@@ -65,19 +65,30 @@ namespace LibreLancer
 			if (MenuButton != null) MenuButton.Update (IdentityCamera.Instance, TimeSpan.Zero, TimeSpan.FromSeconds(Game.TotalTime));
             Game.RenderState.DepthEnabled = false;
 			foreach (var e in Elements)
-				if (e.Visible) e.DrawBase ();
-			Game.Renderer2D.Start (Game.Width, Game.Height);
-			foreach (var e in Elements)
-				if (e.Visible) e.DrawText ();
-			Game.Renderer2D.Finish();
+			{
+				if (e.Visible)
+				{
+					e.DrawBase();
+					Game.Renderer2D.Start(Game.Width, Game.Height);
+					e.DrawText();
+					Game.Renderer2D.Finish();
+				}
+			}
+			
 			if (Dialog != null)
 			{
+				Game.RenderState.ClearDepth();
 				foreach (var e in Dialog)
-					if (e.Visible) e.DrawBase();
-				Game.Renderer2D.Start(Game.Width, Game.Height);
-				foreach (var e in Dialog)
-					if (e.Visible) e.DrawText();
-				Game.Renderer2D.Finish();
+				{
+					if (e.Visible)
+					{
+						e.DrawBase();
+						Game.Renderer2D.Start(Game.Width, Game.Height);
+						e.DrawText();
+						Game.Renderer2D.Finish();
+					}
+				}
+				
 			}
 		}
 

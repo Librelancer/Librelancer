@@ -14,8 +14,11 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
+using System.Threading;
 
+//High performance console output - nonblocking + colour coded
 namespace LibreLancer
 {
 	public enum LogSeverity {
@@ -32,6 +35,7 @@ namespace LibreLancer
 		public static LogSeverity MinimumSeverity = LogSeverity.Info;
 #endif
 
+
 		[DllImport("libc")]
 		static extern bool isatty(int desc);
 
@@ -39,7 +43,6 @@ namespace LibreLancer
 		{
 			if ((int)severity < (int)MinimumSeverity)
 				return;
-			
 			var newC = ConsoleColor.White;
 			switch (severity) {
 			case LogSeverity.Debug:
@@ -52,25 +55,50 @@ namespace LibreLancer
 				newC = ConsoleColor.Yellow;
 				break;
 			}
-			if (Platform.RunningOS == OS.Windows)
-			{
-				var c = Console.ForegroundColor;
-				Console.ForegroundColor = newC;
-				Console.WriteLine("[{1}] {0}: {2}", component, severity, message);
-				Console.ForegroundColor = c;
-			}
-			else if (newC != ConsoleColor.White && isatty(1))
-			{
-				string cc = "";
-				if (newC == ConsoleColor.DarkGray) cc = "\x1b[90m";
-				if (newC == ConsoleColor.Yellow) cc = "\x1b[33m";
-				if (newC == ConsoleColor.Red) cc = "\x1b[91m";
-				Console.WriteLine("{3}[{1}] {0}: {2}\x1b[0m", component, severity, message, cc);
-			}
-			else
-				Console.WriteLine("[{1}] {0}: {2}", component, severity, message);
+			NonblockWrite(newC, string.Format("[{0}] {1}: {2}", severity, component, message));
 		}
 
+		struct NonblockingWrite
+		{
+			public ConsoleColor Color;
+			public string Value;
+		}
+
+		static BlockingCollection<NonblockingWrite> m_Queue = new BlockingCollection<NonblockingWrite>();
+		static FLLog()
+		{
+			var thread = new Thread(
+	 		() =>
+	 		{
+				 while (true)
+				 {
+					 var q = m_Queue.Take();
+					 if (Platform.RunningOS == OS.Windows)
+					 {
+						 var c = Console.ForegroundColor;
+						 Console.ForegroundColor = q.Color;
+						 Console.WriteLine(q.Value);
+						 Console.ForegroundColor = c;
+					 }
+					 else if (q.Color != ConsoleColor.White && isatty(1))
+					 {
+						 string cc = "";
+						 if (q.Color == ConsoleColor.DarkGray) cc = "\x1b[90m";
+						 if (q.Color == ConsoleColor.Yellow) cc = "\x1b[33m";
+						 if (q.Color == ConsoleColor.Red) cc = "\x1b[91m";
+						 Console.WriteLine("{0}{1}\x1b[0m", cc, q.Value);
+					 }
+					 else
+						 Console.WriteLine(q.Value);
+				 }
+	 		});
+			thread.IsBackground = true;
+			thread.Start();
+		}
+		static void NonblockWrite(ConsoleColor color, string message)
+		{
+			m_Queue.Add(new NonblockingWrite() { Color = color, Value = message });
+		}
 
 		public static void Info(string component, string message)
 		{

@@ -68,7 +68,7 @@ namespace LibreLancer
 
 		float GetTextSize (float px)
 		{
-			return (int)Math.Floor ((px * (72.0f / 96.0f)) - 14);
+			return (int)Math.Floor ((px * (72.0f / 96.0f)) - 10);
 		}
 		Color4 GetPulseColor()
 		{

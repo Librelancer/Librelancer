@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\Xwt.Gtk.0.2.55\build\Xwt.Gtk.props" Condition="Exists('..\packages\Xwt.Gtk.0.2.55\build\Xwt.Gtk.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{4D9E845B-576A-4FA2-B95A-36B3040BA437}</ProjectGuid>
+    <ProjectGuid>{F7C6FEEE-1D20-4A7E-BC4C-94E1BDE04E95}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>LibreLancer.FxDebugger</RootNamespace>
-    <AssemblyName>FxDebugger</AssemblyName>
+    <RootNamespace>Server</RootNamespace>
+    <AssemblyName>Server</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -29,44 +28,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="Xwt">
-      <HintPath>..\packages\Xwt.0.2.55\lib\net40\Xwt.dll</HintPath>
-    </Reference>
-    <Reference Include="Xwt.WPF">
-      <HintPath>..\packages\Xwt.WPF.0.2.55\lib\net40\Xwt.WPF.dll</HintPath>
-    </Reference>
-    <Reference Include="Xwt.Gtk">
-      <HintPath>..\packages\Xwt.Gtk.0.2.55\lib\net40\Xwt.Gtk.dll</HintPath>
+    <Reference Include="LibreLancer.Base">
+      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UI2D\Element2D.cs" />
-    <Compile Include="UI2D\PanelElement2D.cs" />
-    <Compile Include="UI2D\LabelElement2D.cs" />
-    <Compile Include="UI2D\ButtonElement2D.cs" />
-    <Compile Include="MainState.cs" />
-    <Compile Include="LaunchWindow.cs" />
-    <Compile Include="UI2D\SliderElement2D.cs" />
-    <Compile Include="UI2D\FloatingCheckList.cs" />
-    <Compile Include="UI2D\CheckBoxElement2D.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="UI2D\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">
-      <Project>{C7A37830-B878-4008-A988-D7294D47F44D}</Project>
-      <Name>LibreLancer.Base</Name>
-    </ProjectReference>
     <ProjectReference Include="..\LibreLancer\LibreLancer.csproj">
       <Project>{C1D53477-0117-48EF-A13D-A0225F0F50CA}</Project>
       <Name>LibreLancer</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

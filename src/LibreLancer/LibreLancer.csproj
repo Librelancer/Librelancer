@@ -9,7 +9,7 @@
     <RootNamespace>LibreLancer</RootNamespace>
     <AssemblyName>LibreLancer</AssemblyName>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -186,9 +186,7 @@
     <Compile Include="Interface\UIManager.cs" />
     <Compile Include="Render\IdentityCamera.cs" />
     <Compile Include="Interface\UIElement.cs" />
-    <Compile Include="Interface\UIMenuButton.cs" />
     <Compile Include="Interface\UIAnimation.cs" />
-    <Compile Include="Interface\FlyInLeft.cs" />
     <Compile Include="Thn\ThnScript.cs" />
     <Compile Include="Thn\ThnObjectFlags.cs" />
     <Compile Include="Thn\AttachFlags.cs" />
@@ -299,7 +297,6 @@
     <Compile Include="GameData\Items\AnimationEquipment.cs" />
     <Compile Include="Infocards\InfocardDisplay.cs" />
     <Compile Include="FontManager.cs" />
-    <Compile Include="Interface\Hud.cs" />
     <Compile Include="Utf\Cmp\MaterialAnimCollection.cs" />
     <Compile Include="Utf\Cmp\MaterialAnim.cs" />
     <Compile Include="Render\DynamicLight.cs" />
@@ -312,11 +309,6 @@
     <Compile Include="Thn\ParameterCurve.cs" />
     <Compile Include="Thn\MotionPath.cs" />
     <Compile Include="Render\ShaderCaps.cs" />
-    <Compile Include="Interface\HudModelElement.cs" />
-    <Compile Include="Interface\HudNumberBoxElement.cs" />
-    <Compile Include="Interface\HudGaugeElement.cs" />
-    <Compile Include="Interface\HudToggleButtonElement.cs" />
-    <Compile Include="Interface\Maneuver.cs" />
     <Compile Include="Render\Materials\NomadMaterial.cs" />
     <Compile Include="Gameplay\Components\ShipControlComponent.cs" />
     <Compile Include="InputManager.cs" />
@@ -332,14 +324,10 @@
     <Compile Include="GameData\Base.cs" />
     <Compile Include="Thn\EventFlags.cs" />
     <Compile Include="Thn\ThnEnum.cs" />
-    <Compile Include="Interface\HudChatBox.cs" />
     <Compile Include="Gameplay\Components\DockComponent.cs" />
     <Compile Include="GameData\Items\PowerEquipment.cs" />
     <Compile Include="Interface\DebugDrawing.cs" />
     <Compile Include="Gameplay\GameSession.cs" />
-    <Compile Include="Interface\FlyOutLeft.cs" />
-    <Compile Include="Interface\HudNavBox.cs" />
-    <Compile Include="Interface\HudBaseButtonElement.cs" />
     <Compile Include="Utf\Dfm\DfmVertex.cs" />
     <Compile Include="Render\CharacterRenderer.cs" />
     <Compile Include="Utf\Dfm\DfmHardpoint.cs" />
@@ -353,6 +341,27 @@
     <Compile Include="Gameplay\GameMessageKind.cs" />
     <Compile Include="Gameplay\Components\AsteroidFieldComponent.cs" />
     <Compile Include="Interface\IUIContainer.cs" />
+    <Compile Include="Net\GameServer.cs" />
+    <Compile Include="Net\NetConstants.cs" />
+    <Compile Include="Net\NetPacking.cs" />
+    <Compile Include="Net\GameClient.cs" />
+    <Compile Include="Net\LocalServerInfo.cs" />
+    <Compile Include="Interface\UIBackgroundElement.cs" />
+    <Compile Include="Interface\Animations\FlyInRight.cs" />
+    <Compile Include="Interface\Animations\FlyInLeft.cs" />
+    <Compile Include="Interface\Animations\FlyOutLeft.cs" />
+    <Compile Include="Interface\Menu\UIMenuButton.cs" />
+    <Compile Include="Interface\Menu\UIMessageBox.cs" />
+    <Compile Include="Interface\Menu\UIXButton.cs" />
+    <Compile Include="Interface\Hud\Maneuver.cs" />
+    <Compile Include="Interface\Hud\HudToggleButtonElement.cs" />
+    <Compile Include="Interface\Hud\HudGaugeElement.cs" />
+    <Compile Include="Interface\Hud\HudBaseButtonElement.cs" />
+    <Compile Include="Interface\Hud\Hud.cs" />
+    <Compile Include="Interface\Hud\HudModelElement.cs" />
+    <Compile Include="Interface\Hud\HudNavBox.cs" />
+    <Compile Include="Interface\Hud\HudNumberBoxElement.cs" />
+    <Compile Include="Interface\Hud\HudChatBox.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -412,6 +421,10 @@
       <Project>{AA03EF1A-94F7-4D30-AB14-2092863FF923}</Project>
       <Name>LibreLancer.Jitter</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\extern\lidgren-network-gen3\Lidgren.Network\Lidgren.Network.csproj">
+      <Project>{49BA1C69-6104-41AC-A5D8-B54FA9F696E8}</Project>
+      <Name>Lidgren.Network</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -431,5 +444,11 @@
       <LastGenOutput>AleCrc.cs</LastGenOutput>
     </None>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Net\" />
+    <Folder Include="Interface\Animations\" />
+    <Folder Include="Interface\Hud\" />
+    <Folder Include="Interface\Menu\" />
   </ItemGroup>
 </Project>

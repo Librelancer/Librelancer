@@ -40,15 +40,15 @@ namespace LibreLancer
                 return _fn++;
             }
         }
+
 		public Matrix4 ViewProjection {
 			get {
 				float screenAspect = game.Width / (float)game.Height;
 				float uiAspect = 4f / 3f;
 				if (screenAspect > uiAspect)
 					return Matrix4.CreateScale(uiAspect / screenAspect, 1, 1);
-				
+
 				return Matrix4.Identity;
-				//return Matrix4.CreateScale(
 			}
 		}
 

@@ -5,7 +5,7 @@
   <PropertyGroup>
     <ProjectGuid>{A1507090-43CA-4EAF-9338-E892B726F0B3}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <RootNamespace>LancerEdit.Gtk</RootNamespace>
     <AssemblyName>LancerEdit.Gtk</AssemblyName>
   </PropertyGroup>

@@ -125,22 +125,25 @@ namespace LibreLancer
 							}
 							isc.Music = room.Music;
 							IntroScenes.Add(isc);
-						}
+						} 
 					}
 				}
 			}
-			resource.AddPreload(
-				fldata.EffectShapes.Files.Select(txmfile => Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + txmfile))
-			);
-			foreach (var shape in fldata.EffectShapes.Shapes)
+			if (resource != null)
 			{
-				var s = new TextureShape()
+				resource.AddPreload(
+					fldata.EffectShapes.Files.Select(txmfile => Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + txmfile))
+				);
+				foreach (var shape in fldata.EffectShapes.Shapes)
 				{
-					Texture = shape.Value.TextureName,
-					Nickname = shape.Value.ShapeName,
-					Dimensions = shape.Value.Dimensions
-				};
-				resource.AddShape(shape.Key, s);
+					var s = new TextureShape()
+					{
+						Texture = shape.Value.TextureName,
+						Nickname = shape.Value.ShapeName,
+						Dimensions = shape.Value.Dimensions
+					};
+					resource.AddShape(shape.Key, s);
+				}
 			}
 		}
 		public void PopulateCursors()

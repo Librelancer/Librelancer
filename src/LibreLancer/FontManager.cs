@@ -37,6 +37,13 @@ namespace LibreLancer
 
 		public void LoadFonts()
 		{
+			var v = new FontVariations();
+			v.Regular = Font.FromSystemFont(game.Renderer2D, "Agency FB", 14);
+			v.Bold = Font.FromSystemFont(game.Renderer2D, "Agency FB", 14, FontStyles.Bold);
+			v.Italic = Font.FromSystemFont(game.Renderer2D,"Agency FB", 14, FontStyles.Italic);
+			v.BoldItalic = Font.FromSystemFont(game.Renderer2D, "Agency FB", 14, FontStyles.Bold | FontStyles.Italic);
+			infocardFonts.Add(-1, v);
+
 			foreach (var f in game.GameData.GetRichFonts())
 			{
 				//points = pixels * 72 / 96
