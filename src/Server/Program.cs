@@ -14,6 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.IO;
 using System.Diagnostics;
 using System.Threading;
 using LibreLancer;
@@ -21,9 +22,25 @@ namespace Server
 {
 	class MainClass
 	{
-		public static void Main(string[] args)
+		public static int Main(string[] args)
 		{
-			var srv = new GameServer("/home/cmcging/FLVanilla");
+			var confpath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "librelancer.serverpath.txt");
+			string path = "";
+			if (File.Exists("librelancer.serverpath.txt"))
+			{
+				path = File.ReadAllText("librelancer.serverpath.txt").Trim();
+			}
+			else if (File.Exists(confpath))
+			{
+				path = File.ReadAllText(confpath).Trim();
+			}
+			else
+			{
+				Console.Error.WriteLine("Failed to find librelancer.serverpath.txt");
+				Console.Error.WriteLine("Please create it in the current directory or at {0}", confpath);
+				return 2;
+			}
+			var srv = new GameServer(path);
 			srv.Start();
 			bool running = true;
 			while (running)
@@ -39,6 +56,7 @@ namespace Server
 				}
 			}
 			srv.Stop();
+			return 0;
 		}
 	}
 }
