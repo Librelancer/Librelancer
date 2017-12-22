@@ -1,11 +1,9 @@
 # Librelancer
 A re-implementation of the 2003 Space Game [Freelancer](https://en.wikipedia.org/wiki/Freelancer_(video_game)) in C# and OpenGL.
-Build Status: [![Build Status](https://travis-ci.org/CallumDev/Librelancer.svg?branch=master)](https://travis-ci.org/CallumDev/Librelancer)
+Build Status: [![Build Status](https://travis-ci.org/Librelancer/Librelancer.svg?branch=master)](https://travis-ci.org/Librelancer/Librelancer)
 
 Currently running on Windows and Linux (macOS pending maintainer)
 Pull Requests are welcome!
-
-To help speed up development, donations can be sent to paypal.paymentmc@gmail.com.
 
 ### General Requirements
 * GPU must be capable of OpenGL 3.1+
@@ -35,4 +33,4 @@ To help speed up development, donations can be sent to paypal.paymentmc@gmail.co
 __Mac support is currently broken pending a maintainer__
 
 ### Screenshots
-See: http://callumdev.github.io/Librelancer/screenshots
+See: http://librelancer.github.io/Librelancer/screenshots
