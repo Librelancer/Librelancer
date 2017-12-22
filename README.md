@@ -33,4 +33,4 @@ Pull Requests are welcome!
 __Mac support is currently broken pending a maintainer__
 
 ### Screenshots
-See: http://librelancer.github.io/Librelancer/screenshots
+See: http://librelancer.github.io/screenshots
