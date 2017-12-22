@@ -31,6 +31,8 @@ namespace slngen
                 string guid = project.GetEvaluatedProperty("ProjectGuid");
                 info.ProjectGuid = guid;
                 string projtype = project.GetEvaluatedProperty("ProjectTypeGuids");
+				//TODO: Big hack
+				if (!string.IsNullOrEmpty(projtype) && projtype.Contains(DEFAULT_TYPE)) projtype = DEFAULT_TYPE;
                 info.TypeGuid = string.IsNullOrEmpty(projtype) ? DEFAULT_TYPE : projtype;
             }
             else
@@ -40,6 +42,8 @@ namespace slngen
                 string guid = project.GetPropertyValue("ProjectGuid");
                 info.ProjectGuid = guid;
                 string projtype = project.GetPropertyValue("ProjectTypeGuids");
+				//TODO: Big hack
+				if (!string.IsNullOrEmpty(projtype) && projtype.Contains(DEFAULT_TYPE)) projtype = DEFAULT_TYPE;
                 info.TypeGuid = string.IsNullOrEmpty(projtype) ? DEFAULT_TYPE : projtype;
                 foreach (var item in project.GetItems("ProjectReference"))
                 {

@@ -5,16 +5,22 @@ if [ "$1" == "--help" ]; then
     echo xbuild is default
     exit 0
 fi
+XBUILD=xbuild
+MONO=mono
+if [ $(uname) == "Darwin" ]; then
+	XBUILD=/Library/Frameworks/Mono.framework/Versions/Current/bin/xbuild
+	MONO=/Library/Frameworks/Mono.framework/Versions/Current/bin/mono
+fi
 
 if [ ! -f "slngen/slngen/bin/Debug/slngen.exe" ] || [ "$1" == "--rebuild" ]; then
     cd slngen
     if [ "$USE_MSBUILD" == "1" ]; then
 	msbuild
     elif [ "$USE_XBUILD" == "1" ]; then
-	xbuild
+	$XBUILD
     else
-	xbuild
+	$XBUILD
     fi    
     cd ..
 fi
-mono slngen/slngen/bin/Debug/slngen.exe
+$MONO slngen/slngen/bin/Debug/slngen.exe "$@"

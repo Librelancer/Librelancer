@@ -18,6 +18,7 @@ namespace slngen
             public string Path;
             public string Folder;
         }
+		[Flags]
         enum BPlatforms
         {
             None = 0,
@@ -120,7 +121,7 @@ namespace slngen
             Console.WriteLine("Enumerating Projects");
             foreach (var p in projects)
             {
-                if ((p.Platforms & currentPlatform) != currentPlatform) continue;
+				if ((p.Platforms & currentPlatform) != currentPlatform) continue;
                 var projpath = Path.Combine(basedir, p.Path);
                 p.Info = ms.GetInformation(projpath);
                 if (p.Folder != null && !slnFolders.ContainsKey(p.Folder))
