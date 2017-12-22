@@ -25,7 +25,7 @@ namespace slngen
             var info = new ProjectInformation();
             if (legacy)
             {
-                var buildEngine = ms.New("BuildEngine", Environment.CurrentDirectory);
+                var buildEngine = ms.New("Engine", Environment.CurrentDirectory);
                 var project = ms.New("Project", buildEngine);
                 project.Load(path);
                 string guid = project.GetEvaluatedProperty("ProjectGuid");
