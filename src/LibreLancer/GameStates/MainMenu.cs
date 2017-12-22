@@ -35,6 +35,7 @@ namespace LibreLancer
 
 			logoOverlay = g.GameData.GetFreelancerLogo();
 
+			g.WillClose += G_WillClose;
 			manager = new UIManager(g);
 			manager.MenuButton = g.GameData.GetMenuButton();
 			manager.Clicked += (tag) => lastTag = tag;
@@ -68,12 +69,23 @@ namespace LibreLancer
 			}
 
 		}
+
+#endif
 		public override void Unregister()
 		{
+#if DEBUG
 			Game.Keyboard.KeyDown -= Keyboard_KeyDown;
+#endif
+			Game.WillClose -= G_WillClose;
 			manager.Dispose();
 		}
-#endif
+
+
+		void G_WillClose()
+		{
+			if (netClient != null) netClient.Dispose();
+		}
+
 		int frames = 0;
 		int dframes = 0;
 		public override void Update (TimeSpan delta)
@@ -124,16 +136,40 @@ namespace LibreLancer
 				manager.AnimationComplete += ConstructMainMenu;
 			}
 			if (lastTag == "srvlst_refresh") {
+				connectButton.Tag = null;
+				serverList.Servers.Clear();
 				netClient.DiscoverLocalPeers();
 				if (internetServers)
 					netClient.DiscoverGlobalPeers();
 			}
+			if (lastTag == "srvlst_connect") {
+				netClient.Connect(selectedInfo.EndPoint);
+			}
 			if (lastTag == "srvlst_mainmenu") {
+				netClient.Disconnected -= ServerList_Disconnected;
 				netClient.Dispose();
 				netClient = null;
 				manager.PlaySound("ui_motion_swish");
 				manager.FlyOutAll(FLYIN_LENGTH, 0.05);
 				manager.AnimationComplete += ConstructMainMenu;
+			}
+			if (lastTag == "csel_mainmenu")
+			{
+				netClient.Disconnected -= CharSelect_Disconnected;
+				netClient.Dispose();
+				netClient = null;
+				manager.PlaySound("ui_motion_swish");
+				manager.FlyOutAll(FLYIN_LENGTH, 0.05);
+				manager.AnimationComplete += ConstructMainMenu;
+			}
+			if (lastTag == "csel_servlist")
+			{
+				netClient.Disconnected -= CharSelect_Disconnected;
+				netClient.Stop();
+				netClient.Start();
+				manager.PlaySound("ui_motion_swish");
+				manager.FlyOutAll(FLYIN_LENGTH, 0.05);
+				manager.AnimationComplete += ConstructServerList;
 			}
 			if (lastTag == "exit") {
 				manager.PlaySound("ui_motion_swish");
@@ -150,6 +186,7 @@ namespace LibreLancer
 			}
 			lastTag = null;
 		}
+
 
 		const int LANORINTERNET_INFOCARD = 393712;
 		void ConstructLanInternetDialog()
@@ -173,42 +210,99 @@ namespace LibreLancer
 
 		bool internetServers = false;
 		GameClient netClient;
+		UIServerList serverList;
+		UIServerDescription serverDescription;
+		UIMenuButton connectButton;
+		LocalServerInfo selectedInfo;
+		CharacterSelectInfo csel;
+
+		void ServerList_Selected(LibreLancer.LocalServerInfo obj)
+		{
+			selectedInfo = obj;
+			serverDescription.Description = obj.Description;
+			connectButton.Tag = "srvlst_connect";
+		}
+
+
+		void ConstructCharacterSelect()
+		{
+			manager.Elements.Clear();
+			manager.AnimationComplete -= ConstructCharacterSelect;
+			netClient.Disconnected += CharSelect_Disconnected;
+			Vector2 buttonScale = new Vector2(1.87f, 2.5f);
+			manager.Elements.Add(new UIMenuButton(manager, new Vector2(-0.70f, 0.42f), "NEW CHARACTER", "opt_general") { UIScale = buttonScale });
+			manager.Elements.Add(new UIMenuButton(manager, new Vector2(-0.70f, 0.24f), "LOAD CHARACTER", "opt_controls") { UIScale = buttonScale });
+			manager.Elements.Add(new UIMenuButton(manager, new Vector2(-0.70f, 0.06f), "DELETE CHARACTER", "opt_performance") { UIScale = buttonScale });
+			manager.Elements.Add(new UIMenuButton(manager, new Vector2(-0.70f, -0.12f), "SELECT ANOTHER SERVER", "csel_servlist") { UIScale = buttonScale });
+			manager.Elements.Add(new UIMenuButton(manager, new Vector2(-0.70f, -0.30f), "MAIN MENU", "csel_mainmenu") { UIScale = buttonScale });
+			manager.Elements.Add(new UICharacterList(manager));
+			manager.PlaySound("ui_motion_swish");
+			manager.FlyInAll(FLYIN_LENGTH, 0.05);
+		}
+
+		void CharSelect_Disconnected(string obj)
+		{
+			netClient.Disconnected -= CharSelect_Disconnected;
+			manager.FlyOutAll(FLYIN_LENGTH, 0.05);
+			manager.PlaySound("ui_motion_swish");
+			manager.AnimationComplete += ConstructServerList;
+			netClient.Disconnected += ServerList_Disconnected;
+		}
+
 		void ConstructServerList()
 		{
 			manager.Elements.Clear();
 			manager.AnimationComplete -= ConstructServerList;
-			manager.Elements.Add(new HudModelElement(manager, "../INTRO/OBJECTS/front_serverselect.cmp", 0.04f, 0.1f, 1.91f, 2.49f));
-			manager.Elements.Add(new UIMenuButton(manager, new Vector2(0.01f, -0.55f), "SET FILTER", "srvlist_filter"));
+			serverList = new UIServerList(manager) { Internet = internetServers };
+			serverList.Selected += ServerList_Selected;
+			manager.Elements.Add(serverList);
+			manager.Elements.Add(new UIMenuButton(manager, new Vector2(0.01f, -0.55f), "SET FILTER", "srvlst_filter"));
 			manager.Elements.Add(new UIMenuButton(manager, new Vector2(-0.64f, -0.55f), "MAIN MENU", "srvlst_mainmenu"));
 			manager.FlyInAll(FLYIN_LENGTH, 0.05);
 			//Refresh button - from right
-			var rfrsh = new UIMenuButton(manager, new Vector2(0.67f, -0.55f), "REFRESH LIST", "srvlist_refresh");
+			var rfrsh = new UIMenuButton(manager, new Vector2(0.67f, -0.55f), "REFRESH LIST", "srvlst_refresh");
 			rfrsh.Animation = new FlyInRight(rfrsh.UIPosition, 0, FLYIN_LENGTH);
 			rfrsh.Animation.Begin();
 			manager.Elements.Add(rfrsh);
 			//Connect button - from right
-			var connect = new UIMenuButton(manager, new Vector2(0.67f, -0.82f), "CONNECT >", "srvlist_connect");
-			connect.Animation = new FlyInRight(connect.UIPosition, 0, FLYIN_LENGTH);
-			connect.Animation.Begin();
-			manager.Elements.Add(connect);
+			connectButton = new UIMenuButton(manager, new Vector2(0.67f, -0.82f), "CONNECT >");
+			connectButton.Animation = new FlyInRight(connectButton.UIPosition, 0, FLYIN_LENGTH);
+			connectButton.Animation.Begin();
+			manager.Elements.Add(connectButton);
 			//SERVER DESCRIPTION - from right
-			var serverinfo = new HudModelElement(manager, "../INTRO/OBJECTS/front_serverselect_info.cmp", -0.32f, -0.81f, 1.93f, 2.65f);
-			serverinfo.Animation = new FlyInRight(serverinfo.UIPosition, 0, FLYIN_LENGTH);
-			serverinfo.Animation.Begin();
-			manager.Elements.Add(serverinfo);
-
+			serverDescription = new UIServerDescription(manager, -0.32f, -0.81f) { ServerList = serverList };
+			serverDescription.Animation = new FlyInRight(serverDescription.UIPosition, 0, FLYIN_LENGTH);
+			serverDescription.Animation.Begin();
+			manager.Elements.Add(serverDescription);
 			manager.PlaySound("ui_motion_swish");
-			netClient = new GameClient(Game);
-			netClient.ServerFound += NetClient_ServerFound;
-			netClient.Start();
+			if (netClient == null)
+			{
+				netClient = new GameClient(Game);
+				netClient.Disconnected += ServerList_Disconnected;
+				netClient.ServerFound += NetClient_ServerFound;
+				netClient.Start();
+				netClient.UUID = Game.Config.UUID.Value;
+				netClient.CharacterSelection += (info) =>
+				{
+					csel = info;
+					manager.FlyOutAll(FLYIN_LENGTH, 0.05);
+					manager.PlaySound("ui_motion_swish");
+					manager.AnimationComplete += ConstructCharacterSelect;
+					netClient.Disconnected -= ServerList_Disconnected;
+				};
+			}
 			netClient.DiscoverLocalPeers();
 			if (internetServers)
 				netClient.DiscoverGlobalPeers();
 		}
 
+		void ServerList_Disconnected(string reason)
+		{
+
+		}
 		void NetClient_ServerFound(LocalServerInfo obj)
 		{
-			Console.WriteLine("{0} {1}", obj.Name, obj.EndPoint);
+			serverList.Servers.Add(obj);
 		}
 
 		void ConstructOptions()

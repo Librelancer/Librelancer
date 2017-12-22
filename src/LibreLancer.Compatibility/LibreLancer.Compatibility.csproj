@@ -188,6 +188,7 @@
     <Compile Include="GameData\MBases\MRoom.cs" />
     <Compile Include="GameData\MBases\GfNpc.cs" />
     <Compile Include="GameData\Solar\DockSphere.cs" />
+    <Compile Include="JSON.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

@@ -113,7 +113,19 @@ namespace LancerEdit
 		void OnLoadError()
 		{
 			Remove(loadScreen);
-			PackStart(new Label() { Text = loadException.Message + "\n" + loadException.StackTrace }, true, true);
+			var builder = new StringBuilder();
+			builder.AppendLine(loadException.Message);
+			builder.AppendLine(loadException.StackTrace);
+			if (loadException.InnerException != null)
+			{
+				builder.AppendLine("----");
+				builder.AppendLine(loadException.InnerException.Message);
+				builder.AppendLine(loadException.InnerException.StackTrace);
+			}
+			var rtv = new RichTextView();
+			rtv.ReadOnly = true;
+			rtv.LoadText(builder.ToString(), Xwt.Formats.TextFormat.Plain);
+			PackStart(rtv, true, true);
 		}
 
 		VBox viewBox;

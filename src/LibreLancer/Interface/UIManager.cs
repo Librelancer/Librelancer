@@ -60,6 +60,11 @@ namespace LibreLancer
 			return buttonFont;
 		}
 
+		public Font GetButtonFontCached()
+		{
+			return buttonFont;
+		}
+
 		public void Draw()
         {
 			if (MenuButton != null) MenuButton.Update (IdentityCamera.Instance, TimeSpan.Zero, TimeSpan.FromSeconds(Game.TotalTime));

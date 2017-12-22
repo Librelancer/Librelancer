@@ -41,6 +41,10 @@
       <Project>{C1D53477-0117-48EF-A13D-A0225F0F50CA}</Project>
       <Name>LibreLancer</Name>
     </ProjectReference>
+    <ProjectReference Include="..\LibreLancer.Compatibility\LibreLancer.Compatibility.csproj">
+      <Project>{F89CC613-0C7A-4936-9D79-86CBBF26593E}</Project>
+      <Name>LibreLancer.Compatibility</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

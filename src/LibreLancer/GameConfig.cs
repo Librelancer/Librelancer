@@ -29,6 +29,7 @@ namespace LibreLancer
 		public int BufferHeight = 768;
 		public int MSAASamples = 0;
 		public bool VSync = true;
+		public Guid? UUID;
 
 		//This default is to stop dlopen on linux from trying to open itself
 		[XmlIgnore]
@@ -69,10 +70,14 @@ namespace LibreLancer
 				{
 					var loaded = (GameConfig)xml.Deserialize(reader);
 					loaded.filePath = (filePath ?? DefaultConfigPath);
+					if (loaded.UUID == null)
+						loaded.UUID = Guid.NewGuid();
 					return loaded;
 				}
 			}
 			var cfg = new GameConfig((filePath ?? DefaultConfigPath));
+			if (cfg.UUID == null)
+				cfg.UUID = Guid.NewGuid();
 			cfg.Save();
 			return cfg;
 		}

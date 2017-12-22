@@ -32,7 +32,7 @@ namespace LibreLancer
 			if (!shaders.TryGetValue(k, out sh)) {
 				FLLog.Debug ("Shader", "Compiling [ " + vs + " , " + fs + " ]");
                 sh = new ShaderVariables(
-					new Shader(prelude + LoadEmbedded("LibreLancer.Shaders." + vs), prelude + ProcessIncludes(LoadEmbedded("LibreLancer.Shaders." + fs)))
+					new Shader(prelude + Resources.LoadString("LibreLancer.Shaders." + vs), prelude + ProcessIncludes(Resources.LoadString("LibreLancer.Shaders." + fs)))
                 );
                 shaders.Add(k, sh);
 			}
@@ -46,19 +46,13 @@ namespace LibreLancer
 			string newsrc = src;
 			while (m.Success)
 			{
-				var inc = ProcessIncludes(LoadEmbedded("LibreLancer.Shaders." + m.Groups[1].Value)) + "\n";
+				var inc = ProcessIncludes(Resources.LoadString("LibreLancer.Shaders." + m.Groups[1].Value)) + "\n";
 				newsrc = newsrc.Remove(m.Index, m.Length).Insert(m.Index, inc);
 				m = findincludes.Match(newsrc);
 			}
 			return newsrc;
 		}
-		static string LoadEmbedded(string name)
-        {
-            using(var stream = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream(name)))
-            {
-                return stream.ReadToEnd();
-            }
-        }
+
         #region Custom Dictionary Key Structs
         struct Strings2
         {

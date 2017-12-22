@@ -89,8 +89,10 @@ namespace LibreLancer.Utf.Cmp
                     case "cmpnd":
                         IntermediateNode cmpndNode = node as IntermediateNode;
 						int maxIndices = int.MaxValue;
-                        foreach (IntermediateNode cmpndSubNode in cmpndNode)
+                        foreach (Node SubNode in cmpndNode)
                         {
+							if (SubNode is LeafNode) continue;
+							var cmpndSubNode = (IntermediateNode)SubNode;
                             if (cmpndSubNode.Name.Equals("cons", StringComparison.OrdinalIgnoreCase))
                             {
                                 Constructs.AddNode(cmpndSubNode);

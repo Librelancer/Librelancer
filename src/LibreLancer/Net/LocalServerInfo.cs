@@ -20,6 +20,7 @@ namespace LibreLancer
 	public class LocalServerInfo
 	{
 		public string Name;
+		public string Description;
 		public int CurrentPlayers;
 		public int MaxPlayers;
 		public IPEndPoint EndPoint;

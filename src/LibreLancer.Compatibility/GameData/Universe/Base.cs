@@ -37,7 +37,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 		public string StartRoom { get; private set; }
 
 		public List<Room> Rooms { get; private set; }
-		public Base (Section section, FreelancerData data) : base (data)
+		public Base(Section section, FreelancerData data) : base(data)
 		{
 			if (section == null) throw new ArgumentNullException("section");
 			string file = null;
@@ -45,107 +45,116 @@ namespace LibreLancer.Compatibility.GameData.Universe
 			{
 				switch (e.Name.ToLowerInvariant())
 				{
-				case "nickname":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (Nickname != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					Nickname = e[0].ToString();
-					break;
-				case "system":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (System != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					System = e[0].ToString();
-					break;
-				case "strid_name":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (StridName != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					StridName = data.Infocards.GetStringResource(e[0].ToInt32());
-					break;
-				case "file":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (file != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					file = e[0].ToString();
-					break;
-				case "bgcs_base_run_by":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (BGCSBaseRunBy != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					BGCSBaseRunBy = e[0].ToString();
-					break;
-				case "terrain_tiny":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (TerrainTiny != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					TerrainTiny = e[0].ToString();
-					break;
-				case "terrain_sml":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (TerrainSml != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					TerrainSml = e[0].ToString();
-					break;
-				case "terrain_mdm":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (TerrainMdm != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					TerrainMdm = e[0].ToString();
-					break;
-				case "terrain_lrg":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (TerrainLrg != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					TerrainLrg = e[0].ToString();
-					break;
-				case "terrain_dyna_01":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (TerrainDyna1 != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					TerrainDyna1 = e[0].ToString();
-					break;
-				case "terrain_dyna_02":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (TerrainDyna2 != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					TerrainDyna2 = e[0].ToString();
-					break;
-				case "autosave_forbidden":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (AutosaveForbidden != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					AutosaveForbidden = e[0].ToBoolean();
-					break;
-				default:
-					throw new Exception("Invalid Entry in " + section.Name + ": " + e.Name);
+					case "nickname":
+						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+						if (Nickname != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+						Nickname = e[0].ToString();
+						break;
+					case "system":
+						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+						if (System != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+						System = e[0].ToString();
+						break;
+					case "strid_name":
+						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+						if (StridName != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+						StridName = data.Infocards.GetStringResource(e[0].ToInt32());
+						break;
+					case "file":
+						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+						if (file != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+						file = e[0].ToString();
+						break;
+					case "bgcs_base_run_by":
+						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+						if (BGCSBaseRunBy != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+						BGCSBaseRunBy = e[0].ToString();
+						break;
+					case "terrain_tiny":
+						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+						if (TerrainTiny != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+						TerrainTiny = e[0].ToString();
+						break;
+					case "terrain_sml":
+						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+						if (TerrainSml != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+						TerrainSml = e[0].ToString();
+						break;
+					case "terrain_mdm":
+						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+						if (TerrainMdm != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+						TerrainMdm = e[0].ToString();
+						break;
+					case "terrain_lrg":
+						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+						if (TerrainLrg != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+						TerrainLrg = e[0].ToString();
+						break;
+					case "terrain_dyna_01":
+						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+						if (TerrainDyna1 != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+						TerrainDyna1 = e[0].ToString();
+						break;
+					case "terrain_dyna_02":
+						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+						if (TerrainDyna2 != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+						TerrainDyna2 = e[0].ToString();
+						break;
+					case "autosave_forbidden":
+						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+						if (AutosaveForbidden != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+						AutosaveForbidden = e[0].ToBoolean();
+						break;
+					default:
+						throw new Exception("Invalid Entry in " + section.Name + ": " + e.Name);
 				}
 			}
 
 			Rooms = new List<Room>();
 
-			foreach (Section s in ParseFile(data.Freelancer.DataPath + file))
+			try
 			{
-				switch (s.Name.ToLowerInvariant())
+				foreach (Section s in ParseFile(data.Freelancer.DataPath + file))
 				{
-				case "baseinfo":
-					foreach (Entry e in s)
+					switch (s.Name.ToLowerInvariant())
 					{
-						switch (e.Name.ToLowerInvariant())
-						{
-						case "nickname":
-							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
-							if (Name != null) FLLog.Warning("Base","Duplicate " + e.Name + " Entry in " + s.Name);
-							Name = e[0].ToString();
+						case "baseinfo":
+							foreach (Entry e in s)
+							{
+								switch (e.Name.ToLowerInvariant())
+								{
+									case "nickname":
+										if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
+										if (Name != null) FLLog.Warning("Base", "Duplicate " + e.Name + " Entry in " + s.Name);
+										Name = e[0].ToString();
+										break;
+									case "start_room":
+										if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
+										if (StartRoom != null) FLLog.Warning("Base", "Duplicate " + e.Name + " Entry in " + s.Name);
+										StartRoom = e[0].ToString();
+										break;
+									case "price_variance":
+										FLLog.Error("Base", "Unimplemented: price_variance");
+										break;
+									default:
+										throw new Exception("Invalid Entry in " + s.Name + ": " + e.Name);
+								}
+							}
 							break;
-						case "start_room":
-							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
-							if (StartRoom != null) FLLog.Warning("Base", "Duplicate " + e.Name + " Entry in " + s.Name);
-							StartRoom = e[0].ToString();
-							break;
-					    case "price_variance":
-							FLLog.Error("Base", "Unimplemented: price_variance");
+						case "room":
+							Rooms.Add(new Room(s, data));
 							break;
 						default:
-							throw new Exception("Invalid Entry in " + s.Name + ": " + e.Name);
-						}
+							throw new Exception("Invalid Section in " + file + ": " + s.Name);
 					}
-					break;
-				case "room":
-					Rooms.Add(new Room(s, data));
-					break;
-				default:
-					throw new Exception("Invalid Section in " + file + ": " + s.Name);
 				}
+
 			}
+			catch (Exception ex)
+			{
+				throw new Exception("Error in file: " + file, ex);
+			}
+		
 		}
 	}
 }

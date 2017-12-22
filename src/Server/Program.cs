@@ -15,32 +15,31 @@
  */
 using System;
 using System.IO;
-using System.Diagnostics;
-using System.Threading;
 using LibreLancer;
+using LibreLancer.Compatibility;
 namespace Server
 {
+	class Config
+	{
+		public string server_name;
+		public string server_description;
+		public string freelancer_path;
+		public string dbconnectionstring;
+	}
 	class MainClass
 	{
 		public static int Main(string[] args)
 		{
-			var confpath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "librelancer.serverpath.txt");
-			string path = "";
-			if (File.Exists("librelancer.serverpath.txt"))
+			if (args.Length > 1 && args[0] == "--makeconfig")
 			{
-				path = File.ReadAllText("librelancer.serverpath.txt").Trim();
+				MakeConfig();
+				return 0;
 			}
-			else if (File.Exists(confpath))
-			{
-				path = File.ReadAllText(confpath).Trim();
-			}
-			else
-			{
-				Console.Error.WriteLine("Failed to find librelancer.serverpath.txt");
-				Console.Error.WriteLine("Please create it in the current directory or at {0}", confpath);
-				return 2;
-			}
-			var srv = new GameServer(path);
+			var config = JSON.Deserialize<Config>(File.ReadAllText("librelancerserver.config.json"));
+			var srv = new GameServer(config.freelancer_path);
+			srv.DbConnectionString = config.dbconnectionstring;
+			srv.ServerName = config.server_name;
+			srv.ServerDescription = config.server_description;
 			srv.Start();
 			bool running = true;
 			while (running)
@@ -57,6 +56,20 @@ namespace Server
 			}
 			srv.Stop();
 			return 0;
+		}
+
+		static void MakeConfig()
+		{
+			var config = new Config();
+			Console.Write("Freelancer Path: ");
+			config.freelancer_path = Console.ReadLine().Trim();
+			Console.Write("Db Connection String: ");
+			config.dbconnectionstring = Console.ReadLine().Trim();
+			Console.Write("Server Name: ");
+			config.server_name = Console.ReadLine().Trim();
+			Console.Write("Server Description: ");
+			config.server_description = Console.ReadLine().Trim();
+			File.WriteAllText("librelancerserver.config.json", JSON.Serialize(config));
 		}
 	}
 }

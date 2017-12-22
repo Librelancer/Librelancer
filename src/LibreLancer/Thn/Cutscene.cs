@@ -108,7 +108,8 @@ namespace LibreLancer
 						if (kv.Value.UserFlag != 0)
 						{
 							//This is a starsphere
-							layers.Add(new Tuple<IDrawable, Matrix4, int>(drawable, kv.Value.RotationMatrix ?? Matrix4.Zero, kv.Value.SortGroup));
+							var transform = (kv.Value.RotationMatrix ?? Matrix4.Identity) * Matrix4.CreateTranslation(kv.Value.Position ?? Vector3.Zero);
+							layers.Add(new Tuple<IDrawable, Matrix4, int>(drawable, transform, kv.Value.SortGroup));
 						}
 						else
 						{

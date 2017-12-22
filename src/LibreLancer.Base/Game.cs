@@ -194,6 +194,8 @@ namespace LibreLancer
 			}
 		}
 
+		public event Action WillClose;
+
 		public void Run()
 		{
             SSEMath.Load();
@@ -272,6 +274,7 @@ namespace LibreLancer
 					switch (e.type) {
 					case SDL.SDL_EventType.SDL_QUIT:
 						{
+							if (WillClose != null) WillClose();
 							running = false; //TODO: Raise Event
 							break;
 						}

@@ -90,14 +90,14 @@ namespace LibreLancer
 				{
 					foreach (var npc in mroom.NPCs)
 					{
-						var newnpc = new GameData.BaseNpc();
+						/*var newnpc = new GameData.BaseNpc();
 						newnpc.StandingPlace = npc.StandMarker;
 						var gfnpc = mbase.FindNpc(npc.Npc);
 						newnpc.HeadMesh = fldata.Bodyparts.FindBodypart(gfnpc.Head).MeshPath;
 						newnpc.BodyMesh = fldata.Bodyparts.FindBodypart(gfnpc.Body).MeshPath;
 						newnpc.LeftHandMesh = fldata.Bodyparts.FindBodypart(gfnpc.LeftHand).MeshPath;
 						newnpc.RightHandMesh = fldata.Bodyparts.FindBodypart(gfnpc.RightHand).MeshPath;
-						nr.Npcs.Add(newnpc);
+						nr.Npcs.Add(newnpc);*/
 					}
 				}
 				b.Rooms.Add(nr);
@@ -174,6 +174,10 @@ namespace LibreLancer
 		{
 			return Infocards.RDLParse.Parse(fldata.Infocards.GetXmlResource(id));
 		}
+		public string GetString(int id)
+		{
+			return fldata.Infocards.GetStringResource(id);
+		}
 		public GameData.IntroScene GetIntroScene()
 		{
 			var rand = new Random();
@@ -234,6 +238,14 @@ namespace LibreLancer
 		public bool SystemExists(string id)
 		{
 			return fldata.Universe.FindSystem(id) != null;
+		}
+		public IEnumerable<string> ListSystems()
+		{
+			foreach (var sys in fldata.Universe.Systems) yield return sys.Nickname;
+		}
+		public IEnumerable<string> ListBases()
+		{
+			foreach (var bse in fldata.Universe.Bases) yield return bse.Nickname;
 		}
 		public GameData.StarSystem GetSystem(string id)
 		{

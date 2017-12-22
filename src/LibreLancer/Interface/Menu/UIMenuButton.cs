@@ -24,7 +24,7 @@ namespace LibreLancer
 
 		public UIMenuButton (UIManager manager, Vector2 position, string text, string tag = null) : base(manager)
 		{
-			UIScale = new Vector2 (1.865f, 2.72f);
+			UIScale = new Vector2 (1.86f, 2.73f);
 			Text = text;
 			UIPosition = position;
 			Tag = tag;
@@ -68,7 +68,7 @@ namespace LibreLancer
 
 		float GetTextSize (float px)
 		{
-			return (int)Math.Floor ((px * (72.0f / 96.0f)) - 10);
+			return (int)Math.Floor ((px * (72.0f / 96.0f)) - 11);
 		}
 		Color4 GetPulseColor()
 		{
@@ -88,8 +88,8 @@ namespace LibreLancer
 		}
 		Rectangle GetTextRectangle ()
 		{
-			var topleft = Manager.ScreenToPixel (Position.X - 0.125f * UIScale.X, Position.Y + 0.022f * UIScale.Y);
-			var bottomRight = Manager.ScreenToPixel (Position.X + 0.125f * UIScale.X, Position.Y - 0.022f * UIScale.Y);
+			var topleft = Manager.ScreenToPixel (Position.X - 0.125f * UIScale.X, Position.Y + 0.02f * UIScale.Y);
+			var bottomRight = Manager.ScreenToPixel (Position.X + 0.125f * UIScale.X, Position.Y - 0.02f * UIScale.Y);
 			var rect = new Rectangle (
 				(int)topleft.X,
 				(int)topleft.Y,

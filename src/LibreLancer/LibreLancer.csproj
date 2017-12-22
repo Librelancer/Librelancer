@@ -85,6 +85,10 @@
       <HintPath>..\packages\MathNet.Numerics.3.12.0\lib\net40\MathNet.Numerics.dll</HintPath>
     </Reference>
     <Reference Include="System.Numerics" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="MySql.Data">
+      <HintPath>..\packages\MySql.Data.6.9.10\lib\net45\MySql.Data.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConvertData.cs" />
@@ -341,9 +345,7 @@
     <Compile Include="Gameplay\GameMessageKind.cs" />
     <Compile Include="Gameplay\Components\AsteroidFieldComponent.cs" />
     <Compile Include="Interface\IUIContainer.cs" />
-    <Compile Include="Net\GameServer.cs" />
     <Compile Include="Net\NetConstants.cs" />
-    <Compile Include="Net\NetPacking.cs" />
     <Compile Include="Net\GameClient.cs" />
     <Compile Include="Net\LocalServerInfo.cs" />
     <Compile Include="Interface\UIBackgroundElement.cs" />
@@ -362,6 +364,20 @@
     <Compile Include="Interface\Hud\HudNavBox.cs" />
     <Compile Include="Interface\Hud\HudNumberBoxElement.cs" />
     <Compile Include="Interface\Hud\HudChatBox.cs" />
+    <Compile Include="Interface\Menu\UIServerList.cs" />
+    <Compile Include="Interface\GridControl.cs" />
+    <Compile Include="Resources.cs" />
+    <Compile Include="Interface\Menu\UIServerDescription.cs" />
+    <Compile Include="Interface\Menu\UICharacterList.cs" />
+    <Compile Include="Net\Protocol\AuthenticationKind.cs" />
+    <Compile Include="Net\Protocol\CharacterSelectInfo.cs" />
+    <Compile Include="Net\Protocol\NetPacking.cs" />
+    <Compile Include="Net\Protocol\PacketKind.cs" />
+    <Compile Include="Net\Server\PlayerAccount.cs" />
+    <Compile Include="Net\Server\GameServer.cs" />
+    <Compile Include="Net\Server\ServerDatabase.cs" />
+    <Compile Include="Net\Server\NetPlayer.cs" />
+    <Compile Include="Net\Server\ListedCharacter.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -436,19 +452,19 @@
 
   <ItemGroup />
   <ItemGroup>
-    <None Include="OpenTK.dll.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="Utf\Ale\AleCrc.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>AleCrc.cs</LastGenOutput>
     </None>
     <None Include="packages.config" />
+    <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Net\" />
     <Folder Include="Interface\Animations\" />
     <Folder Include="Interface\Hud\" />
     <Folder Include="Interface\Menu\" />
+    <Folder Include="Net\Protocol\" />
+    <Folder Include="Net\Server\" />
   </ItemGroup>
 </Project>
