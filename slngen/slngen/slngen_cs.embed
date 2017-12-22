@@ -44,7 +44,7 @@ if(currentPlatform == BPlatforms.Windows) {
 		var split = directory.Split('\\');
 		var ver = split[split.Length - 1];
 		double d;
-		if(double.TryParse(ver, out d)) {
+		if(double.TryParse(ver, out d) && Directory.Exists(directory + "\\Bin")) {
 			msbuildver = Math.Max(d, msbuildver);
 		}
 	}
@@ -83,7 +83,8 @@ foreach(var p in projects) {
 	if((p.Platform & currentPlatform) != currentPlatform) continue;
 	p.Deps = new List<string>();
 	if(evaluationNamespace) {
-		Project project = new Project(projpath);
+		var col = new ProjectCollection();
+		Project project = new Project(projpath,null,null,col);
 		string guid;
 		guid = project.GetPropertyValue("ProjectGuid");
 		p.Guid = guid;
@@ -95,6 +96,7 @@ foreach(var p in projects) {
 		foreach(var item in project.GetItems("ProjectReference")) {
 			p.Deps.Add(item.GetMetadataValue("Project"));
 		}
+		col.Dispose();
 	} else {
 		Microsoft.Build.BuildEngine.Engine buildEngine = new Microsoft.Build.BuildEngine.Engine(Environment.CurrentDirectory);
 		Microsoft.Build.BuildEngine.Project project = new Microsoft.Build.BuildEngine.Project(buildEngine);
