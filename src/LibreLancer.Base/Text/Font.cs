@@ -35,7 +35,7 @@ namespace LibreLancer
 	}
 	public class Font : IDisposable
 	{
-		const int TEXTURE_SIZE = 2048;
+		const int TEXTURE_SIZE = 1024;
 
 		List<Texture2D> textures = new List<Texture2D>();
 		Dictionary<int, GlyphCollection> glyphs = new Dictionary<int, GlyphCollection>();
