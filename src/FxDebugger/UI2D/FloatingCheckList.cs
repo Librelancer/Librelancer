@@ -19,6 +19,7 @@ namespace LibreLancer.FxDebugger
 {
 	public class FloatingCheckList : Element2D, IUIContainer
 	{
+		const int FNT_SIZE = 10;
 		List<ListItem> items = new List<ListItem>();
 		Font fnt;
 		public string Title;
@@ -111,7 +112,7 @@ namespace LibreLancer.FxDebugger
 				itm.Active.InView = visibleRect.Intersects(hit);
 				itm.More.TryGetHitRectangle(out hit);
 				itm.More.InView = visibleRect.Intersects(hit);
-				y += (int)(fnt.LineHeight + 3);
+				y += (int)(fnt.LineHeight(FNT_SIZE) + 3);
 			}
 		}
 
@@ -135,7 +136,7 @@ namespace LibreLancer.FxDebugger
 							  (int)25),
 				Color4.DarkGray);
 
-			Manager.Game.Renderer2D.DrawStringBaseline(fnt, Title, ClientPosition.X + 3, ClientPosition.Y + 3, 0, Color4.Black);
+			Manager.Game.Renderer2D.DrawStringBaseline(fnt, FNT_SIZE, Title, ClientPosition.X + 3, ClientPosition.Y + 3, 0, Color4.Black);
 			//Collapse button
 			collapser.DrawText();
 			//Children
@@ -173,7 +174,7 @@ namespace LibreLancer.FxDebugger
 
 		float CalculateHeight()
 		{
-			return items.Count * fnt.LineHeight;
+			return items.Count * fnt.LineHeight(FNT_SIZE);
 		}
 
 		class ListItem

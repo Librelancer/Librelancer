@@ -245,15 +245,38 @@ namespace LibreLancer
 				Z = z
 			};
 		}
-		bool _sorted = false;
+		volatile bool _sorted = false;
+		bool _filled = false;
 		public void DrawOpaque(RenderState state)
 		{
 			_sorted = false;
+			_filled = false;
 			AsyncManager.RunTask (_transparentSort);
 			for (int i = 0; i < currentCommand; i++)
 			{
 				Commands[i].Run(state);
+				if (!_filled)
+				{
+					if (_sorted)
+					{
+						FillBillboards();
+					}
+				}
 			}
+		}
+
+		void FillBillboards()
+		{
+			for (int i = transparentCommand - 1; i >= 0; i--)
+			{
+				if (Transparents[cmdptr[i]].CmdType == RenderCmdType.Billboard)
+				{
+					var bb = (Billboards)Transparents[cmdptr[i]].Source;
+					bb.FillIbo();
+					break;
+				}
+			}
+			_filled = true;
 		}
 
 		void SortTransparent()
@@ -263,7 +286,19 @@ namespace LibreLancer
 				cmdptr[i] = i;
 			}
 			Array.Sort<int>(cmdptr, 0, transparentCommand, new ZComparer(Transparents));
-			//transparentCount = a;
+			for (int i = transparentCommand - 1; i >= 0; i--)
+			{
+				if (Transparents[cmdptr[i]].CmdType == RenderCmdType.Billboard)
+				{
+					var bb = (Billboards)Transparents[cmdptr[i]].Source;
+					bb.AddIndices(Transparents[cmdptr[i]].Index);
+				}
+				if (Transparents[cmdptr[i]].CmdType == RenderCmdType.BillboardCustom)
+				{
+					var bb = (Billboards)Transparents[cmdptr[i]].Source;
+					bb.AddCustomIndices(Transparents[cmdptr[i]].Index);
+				}
+			}
 			_sorted = true;
 		}
 
@@ -273,20 +308,8 @@ namespace LibreLancer
 		{
 			while (!_sorted) {
 			}
-            for (int i = transparentCommand - 1; i >= 0; i--)
-            {
-                if(Transparents[cmdptr[i]].CmdType == RenderCmdType.Billboard)
-                {
-					var bb = (Billboards)Transparents[cmdptr[i]].Source;
-                    bb.AddIndices(Transparents[cmdptr[i]].Index);
-                }
-				if (Transparents[cmdptr[i]].CmdType == RenderCmdType.BillboardCustom)
-				{
-					var bb = (Billboards)Transparents[cmdptr[i]].Source;
-					bb.AddCustomIndices(Transparents[cmdptr[i]].Index);
-				}
-            }
-            Billboards lastbb = null;
+			if (!_filled) FillBillboards();
+		  	Billboards lastbb = null;
 			for (int i = transparentCommand - 1; i >= 0; i--)
 			{
 				if (lastbb != null && Transparents[cmdptr[i]].CmdType != RenderCmdType.Billboard && Transparents[cmdptr[i]].CmdType != RenderCmdType.BillboardCustom)

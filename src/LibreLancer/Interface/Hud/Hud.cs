@@ -132,12 +132,6 @@ namespace LibreLancer
 			manager.Update(delta);
 		}
 
-		//Get size of text used for mouse flight
-		float GetStatusTextSize(float px)
-		{
-			return 12f;
-		}
-
 		public bool TextEntry
 		{
 			get { return chatbox.Visible; }

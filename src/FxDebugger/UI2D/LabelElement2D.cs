@@ -27,7 +27,7 @@ namespace LibreLancer.FxDebugger
 		}
 		public override void DrawText()
 		{
-			Manager.Game.Renderer2D.DrawString(fnt, Text, Offset2D + Position2D, Color4.Black);
+			Manager.Game.Renderer2D.DrawString(fnt, 10, Text, Offset2D + Position2D, Color4.Black);
 		}
 	}
 }

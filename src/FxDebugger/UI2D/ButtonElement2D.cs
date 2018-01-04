@@ -18,6 +18,8 @@ namespace LibreLancer.FxDebugger
 {
 	public class ButtonElement2D : Element2D
 	{
+		const int FNT_SIZE = 10;
+
 		public float Width;
 		public float Height;
 		public string Label = "";
@@ -25,9 +27,9 @@ namespace LibreLancer.FxDebugger
 
 		public void AutoSize(Renderer2D ren)
 		{
-			var sz = ren.MeasureString(fnt, Label);
+			var sz = ren.MeasureString(fnt, FNT_SIZE, Label);
 			Width = sz.X + 18;
-			Height = fnt.LineHeight + 5;
+			Height = fnt.LineHeight(FNT_SIZE) + 5;
 		}
 
 		public ButtonElement2D(UIManager m, Font uiFont) : base(m)
@@ -46,10 +48,10 @@ namespace LibreLancer.FxDebugger
 				r,
 				Color4.Black,
 				1);
-			var sz = Manager.Game.Renderer2D.MeasureString(fnt, Label);
+			var sz = Manager.Game.Renderer2D.MeasureString(fnt, FNT_SIZE, Label);
 			float xPos = ClientPosition.X + (Width / 2) - sz.X / 2;
-			float yPos = ClientPosition.Y + (Height / 2) - (fnt.LineHeight / 2);
-			Manager.Game.Renderer2D.DrawStringBaseline(fnt, Label, xPos, yPos, 0, Color4.Black);
+			float yPos = ClientPosition.Y + (Height / 2) - (fnt.LineHeight(FNT_SIZE) / 2);
+			Manager.Game.Renderer2D.DrawStringBaseline(fnt, FNT_SIZE, Label, xPos, yPos, 0, Color4.Black);
 		}
 
 		public Action Clicked;

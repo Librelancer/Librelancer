@@ -38,7 +38,7 @@ namespace LibreLancer
             LevelCount = hasMipMaps ? CalculateMipLevels(width, height) : 1;
 			//Bind the new TextureD
 			GLBind.Trash();
-			GLBind.BindTexture(0, GL.GL_TEXTURE_2D, ID);
+			GLBind.BindTexture(4, GL.GL_TEXTURE_2D, ID);
 			//initialise the texture data
 			var imageSize = 0;
 			Dxt1 = format == SurfaceFormat.Dxt1;

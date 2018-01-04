@@ -21,6 +21,7 @@ namespace LibreLancer
 	{
 		public string Text = "";
 		Color4 color;
+		Font buttonFont;
 
 		public UIMenuButton (UIManager manager, Vector2 position, string text, string tag = null) : base(manager)
 		{
@@ -29,6 +30,7 @@ namespace LibreLancer
 			UIPosition = position;
 			Tag = tag;
 			color = manager.TextColor;
+			buttonFont = manager.Game.Fonts.GetSystemFont("Agency FB");
 		}
 
 		public override void DrawBase ()
@@ -63,7 +65,7 @@ namespace LibreLancer
 		{
 			var r = GetTextRectangle ();
 			var sz = GetTextSize (r.Height);
-			DrawTextCentered (Manager.GetButtonFont (sz), Text, r, color);
+			DrawTextCentered (buttonFont, sz, Text, r, color);
 		}
 
 		float GetTextSize (float px)

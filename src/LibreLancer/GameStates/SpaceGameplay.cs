@@ -103,7 +103,7 @@ Mouse Flight: {10}
 			player.Register(sysrender, world.Physics);
 			g.Sound.PlayMusic(sys.MusicSpace);
 			trender = new Renderer2D(Game.RenderState);
-			font = Font.FromSystemFont(trender, "Agency FB", 16);
+			font = g.Fonts.GetSystemFont("Agency FB");
 			g.Keyboard.TextInput += G_Keyboard_TextInput;
 			debugphysics = new PhysicsDebugRenderer();
 			cur_arrow = g.ResourceManager.GetCursor("cross");
@@ -501,7 +501,7 @@ Mouse Flight: {10}
 				else
 					sel_obj = selected.Name;
 			}
-			DebugDrawing.DrawShadowedText(trender, font, string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, moffset.X, moffset.Y, mouseFlight), 5, 5);
+			DebugDrawing.DrawShadowedText(trender, font, 16, string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, moffset.X, moffset.Y, mouseFlight), 5, 5);
 			current_cur.Draw(trender, Game.Mouse);
 			trender.Finish();
 		}

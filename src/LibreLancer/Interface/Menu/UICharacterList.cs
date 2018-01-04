@@ -68,24 +68,7 @@ namespace LibreLancer
 			var columnNames = new string[] {
 				"CHARACTER NAME", "RANK", "FUNDS", "SHIP TYPE", "LOCATION"
 			};
-			grid = new GridControl(manager, dividerPositions, columnNames, GetRectangle, GetFonts,
-								   new CharacterContent(this), NUM_ROWS);
-		}
-
-		GridFonts fonts = new GridFonts();
-		float lastRowSize = -1;
-		GridFonts GetFonts(float rowSize)
-		{
-			if (lastRowSize != rowSize)
-			{
-				lastRowSize = rowSize;
-				if (fonts.HeaderFont != null) fonts.HeaderFont.Dispose();
-				if (fonts.ContentFont != null) fonts.ContentFont.Dispose();
-				var pts = (rowSize * 0.8f) * (72.0f / 96.0f);
-				fonts.HeaderFont = Font.FromSystemFont(Manager.Game.Renderer2D, "Agency FB", pts);
-				fonts.ContentFont = Font.FromSystemFont(Manager.Game.Renderer2D, "Arial Unicode MS", pts * 0.7f);
-			}
-			return fonts;
+			grid = new GridControl(manager, dividerPositions, columnNames, GetRectangle, new CharacterContent(this), NUM_ROWS);
 		}
 
 		protected override void UpdateInternal(TimeSpan time)

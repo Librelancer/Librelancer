@@ -19,35 +19,62 @@ using SharpFont;
 
 namespace LibreLancer
 {
+	class GlyphCollection
+	{
+		public Font Font;
+		public int Size;
+		public int Ascender;
+		public float LineHeight;
+		public Dictionary<uint, GlyphInfo> glyphs = new Dictionary<uint, GlyphInfo>();
+		internal GlyphInfo GetGlyph(uint codepoint)
+		{
+			if (!glyphs.ContainsKey(codepoint))
+				Font.AddCharacter(this, codepoint);
+			return glyphs[codepoint];
+		}
+	}
 	public class Font : IDisposable
 	{
-		const int TEXTURE_SIZE = 512;
+		const int TEXTURE_SIZE = 2048;
 
 		List<Texture2D> textures = new List<Texture2D>();
-		Dictionary<uint, GlyphInfo> glyphs = new Dictionary<uint, GlyphInfo>();
+		Dictionary<int, GlyphCollection> glyphs = new Dictionary<int, GlyphCollection>();
 		int currentX = 0;
 		int currentY = 0;
 		int lineMax = 0;
 		float lineHeight;
 		internal Face Face;
 		string facename;
-		float facesize;
 		FontStyles style;
 		bool emulate_bold = false;
 		bool emulate_italics = false;
 		Renderer2D ren;
 
-		public float LineHeight {
-			get {
-				return lineHeight;
+
+		public float LineHeight(float sz) 
+		{
+			var r = (int)Math.Round(sz);
+			if (r % 2 != 0) r--; //Every 2 pixel sizes
+			GlyphCollection g;
+			if (!glyphs.TryGetValue(r, out g))
+			{
+				Face.SetCharSize(0, r, 0, 96);
+				g = new GlyphCollection();
+				g.Font = this;
+				g.Size = r;
+				g.LineHeight = (float)Face.Size.Metrics.Height;
+				g.Ascender = Face.Size.Metrics.Ascender.ToInt32();
+				glyphs.Add(r, g);
 			}
+			return g.LineHeight;
 		}
-		public Font (Renderer2D t, string filename, float size, bool bold = false, bool italic = false)
-			: this (t, new Face(t.FT, filename), size, bold, italic)
+
+		public Font (Renderer2D t, string filename, bool bold = false, bool italic = false)
+			: this (t, new Face(t.FT, filename), bold, italic)
 		{
 		}
 
-		public static Font FromSystemFont(Renderer2D t, string name, float size, FontStyles styles = FontStyles.Regular)
+		public static Font FromSystemFont(Renderer2D t, string name, FontStyles styles = FontStyles.Regular)
 		{
 			FontStyles s = styles;
 			var face = Platform.LoadSystemFace(t.FT, name, ref s);
@@ -69,17 +96,15 @@ namespace LibreLancer
 						break;
 				}
 			}
-			return new Font(t, face, size, emulate_bold, emulate_italics);
+			return new Font(t, face, emulate_bold, emulate_italics);
 		}
 
-		private Font(Renderer2D t, Face f, float sz, bool bold, bool italic)
+		private Font(Renderer2D t, Face f, bool bold, bool italic)
 		{
 			ren = t;
 			emulate_bold = bold;
 			emulate_italics = italic;
 			this.Face = f;
-			f.SetCharSize (0, sz, 0, 96);
-			lineHeight = (float)Face.Size.Metrics.Height;
 			textures.Add (new Texture2D (
 				TEXTURE_SIZE,
 				TEXTURE_SIZE,
@@ -87,26 +112,33 @@ namespace LibreLancer
 				SurfaceFormat.R8
 			));
 			facename = Face.FamilyName;
-			facesize = sz;
-			//Generate standard ASCII
-			for (int i = 32; i < 127; i++) {
-				AddCharacter ((uint)i);
-			}
 		}
 
-		internal GlyphInfo GetGlyph(uint codepoint)
+		internal GlyphCollection GetGlyphs(float size)
 		{
-			if (!glyphs.ContainsKey (codepoint))
-				AddCharacter (codepoint);
-			return glyphs [codepoint];
+			int r = (int)Math.Round(size);
+			if (r % 2 != 0) r--; //Every 2 pixel sizes
+			GlyphCollection g;
+			if (!glyphs.TryGetValue(r, out g))
+			{
+				Face.SetCharSize(0, r, 0, 96);
+				g = new GlyphCollection();
+				g.Font = this;
+				g.Size = r;
+				g.LineHeight = (float)Face.Size.Metrics.Height;
+				g.Ascender = Face.Size.Metrics.Ascender.ToInt32();
+				glyphs.Add(r, g);
+			}
+			return g;
 		}
 
-		unsafe void AddCharacter(uint cp)
+		internal unsafe void AddCharacter(GlyphCollection col, uint cp)
 		{
 			if (cp == (uint)'\t') {
-				var spaceGlyph = GetGlyph ((uint)' ');
-				glyphs.Add (cp, new GlyphInfo (spaceGlyph.AdvanceX * 4, spaceGlyph.AdvanceY, spaceGlyph.CharIndex, spaceGlyph.Kerning));
+				var spaceGlyph = col.GetGlyph ((uint)' ');
+				col.glyphs.Add (cp, new GlyphInfo (spaceGlyph.AdvanceX * 4, spaceGlyph.AdvanceY, spaceGlyph.CharIndex, spaceGlyph.Kerning));
 			}
+			Face.SetCharSize(0, col.Size, 0, 96);
 			var c_face = Face;
 			bool dobold = emulate_bold;
 			bool doitalics = emulate_italics;
@@ -123,20 +155,20 @@ namespace LibreLancer
 					try
 					{
 						c_face = fallback;
-						c_face.SetCharSize(0, facesize, 0, 96);
+						c_face.SetCharSize(0, col.Size, 0, 96);
 						dobold = doitalics = dokern = false;
 					}
 					catch (Exception)
 					{
-						var qmGlyph = GetGlyph((uint)'?');
-						glyphs.Add(cp, qmGlyph);
+						var qmGlyph = col.GetGlyph((uint)'?');
+						col.glyphs.Add(cp, qmGlyph);
 						return;
 					}
 				}
 				else
 				{
-					var qmGlyph = GetGlyph((uint)'?');
-					glyphs.Add(cp, qmGlyph);
+					var qmGlyph = col.GetGlyph((uint)'?');
+					col.glyphs.Add(cp, qmGlyph);
 					return;
 				}
 			}
@@ -152,7 +184,7 @@ namespace LibreLancer
 			}
 			c_face.Glyph.RenderGlyph (RenderMode.Normal);
 			if (c_face.Glyph.Bitmap.Width == 0 || c_face.Glyph.Bitmap.Rows == 0) {
-				glyphs.Add (cp,
+				col.glyphs.Add (cp,
 					new GlyphInfo (
 						(int)Math.Ceiling((float)c_face.Glyph.Advance.X),
 						(int)Math.Ceiling((float)c_face.Glyph.Advance.Y),
@@ -178,7 +210,7 @@ namespace LibreLancer
 						false,
 						SurfaceFormat.R8
 					));
-					FLLog.Debug ("Text", string.Format ("{0}@{1}, New Texture", facename, facesize));
+					FLLog.Debug ("Text", string.Format ("{0}@{1}, New Texture", facename, col.Size));
 				}
 				lineMax = (int)Math.Max (lineMax, c_face.Glyph.Bitmap.Rows);
 				var rect = new Rectangle (
@@ -192,8 +224,7 @@ namespace LibreLancer
 				tex.SetData (0, rect, c_face.Glyph.Bitmap.Buffer);
 				GL.PixelStorei (GL.GL_UNPACK_ALIGNMENT, 4);
 				currentX += c_face.Glyph.Bitmap.Width;
-				//tex.SetData (0, rect, Face.Glyph.Bitmap.Buffer,0, Face.Glyph.Bitmap.Width * Face.Glyph.Bitmap.Rows);
-				glyphs.Add (
+				col.glyphs.Add (
 					cp,
 					new GlyphInfo (
 						tex,

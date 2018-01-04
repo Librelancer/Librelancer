@@ -30,6 +30,7 @@ namespace LibreLancer.Infocards
 			public bool Underline;
 			public TextAlignment Align;
 			public Font Font;
+			public int FontSize;
 		}
 
 		Infocard[] infocards;
@@ -71,7 +72,8 @@ namespace LibreLancer.Infocards
 			commands = new List<TextCommand>();
 			int dX = 0, dY = 0;
 			TextAlignment lastAlignment = TextAlignment.Left;
-			Font fnt = fnts.GetInfocardFont(0, FontStyles.Regular);
+			int size;
+			Font fnt = fnts.GetInfocardFont(0, FontStyles.Regular, out size);
 			foreach (var card in infocards)
 			{
 				for (int idx = 0; idx < card.Nodes.Count; idx++)
@@ -79,7 +81,7 @@ namespace LibreLancer.Infocards
 					var node = card.Nodes[idx];
 					if (node is InfocardParagraphNode)
 					{
-						dY += (int)fnt.LineHeight;
+						dY += (int)fnt.LineHeight(size);
 						dX = 0;
 					}
 					else
@@ -88,14 +90,14 @@ namespace LibreLancer.Infocards
 						var style = FontStyles.Regular;
 						if (n.Bold) style |= FontStyles.Bold;
 						if (n.Italic) style |= FontStyles.Italic;
-						fnt = fnts.GetInfocardFont(n.FontIndex, style);
+						fnt = fnts.GetInfocardFont(n.FontIndex, style, out size);
 						if (lastAlignment != n.Alignment)
 							dX = 0;
 						int origX = dX;
 						int origY = dY;
 						if (n.Alignment == TextAlignment.Left)
 						{
-							var text = WrapText(renderer, fnt, n.Contents, rectangle.Width, dX, out dX, ref dY);
+							var text = WrapText(renderer, fnt, size, n.Contents, rectangle.Width, dX, out dX, ref dY);
 							commands.Add(new TextCommand()
 							{
 								String = string.Join<string>("\n", text),
@@ -104,13 +106,14 @@ namespace LibreLancer.Infocards
 								Color = n.Color,
 								Underline = n.Underline,
 								Align = n.Alignment,
-								Font = fnt
+								Font = fnt,
+								FontSize = size,
 							});
 						}
 						else if (n.Alignment == TextAlignment.Center)
 						{
-							var text = WrapText(renderer, fnt, n.Contents, rectangle.Width, dX, out dX, ref dY);
-							var width0 = renderer.MeasureString(fnt, text[0]).X / 2f;
+							var text = WrapText(renderer,fnt, size, n.Contents, rectangle.Width, dX, out dX, ref dY);
+							var width0 = renderer.MeasureString(fnt, size, text[0]).X / 2f;
 							var newX = (rectangle.Width / 2f) - origX - width0;
 							if (commands.Count > 0 && origX != 0) //Don't shift if we're at the beginning
 							{
@@ -119,7 +122,7 @@ namespace LibreLancer.Infocards
 									if (commands[i].Y != origY || commands[i].Align != n.Alignment) break;
 									commands[i].X = (int)((float)commands[i].X - width0);
 								}
-								newX = commands[commands.Count - 1].X + renderer.MeasureString(commands[commands.Count - 1].Font, commands[commands.Count - 1].String).X;
+								newX = commands[commands.Count - 1].X + renderer.MeasureString(commands[commands.Count - 1].Font, size, commands[commands.Count - 1].String).X;
 							}
 							//Append our text
 							commands.Add(new TextCommand()
@@ -130,26 +133,28 @@ namespace LibreLancer.Infocards
 								Color = n.Color,
 								Underline = n.Underline,
 								Align = n.Alignment,
-								Font = fnt
+								Font = fnt,
+								FontSize = size
 							});
 							for (int i = 1; i < text.Count; i++)
 							{
 								commands.Add(new TextCommand()
 								{
 									String = text[i],
-									X = (int)((rectangle.Width / 2f) - (renderer.MeasureString(fnt, text[i]).X / 2f)),
-									Y = origY + (int)fnt.LineHeight * i,
+									X = (int)((rectangle.Width / 2f) - (renderer.MeasureString(fnt, size, text[i]).X / 2f)),
+									Y = origY + (int)fnt.LineHeight(size) * i,
 									Color = n.Color,
 									Underline = n.Underline,
-									Font = fnt
+									Font = fnt,
+									FontSize = size
 								});
 							}
 						}
 						else if (n.Alignment == TextAlignment.Right)
 						{
-							var text = WrapText(renderer, fnt, n.Contents, rectangle.Width, dX, out dX, ref dY);
+							var text = WrapText(renderer, fnt, size, n.Contents, rectangle.Width, dX, out dX, ref dY);
 							//Shift previous text left
-							int width0 = renderer.MeasureString(fnt, text[0]).X;
+							int width0 = renderer.MeasureString(fnt, size, text[0]).X;
 							int newX = rectangle.Width - origX - width0;
 							if (commands.Count > 0 && origX != 0) //Don't shift if we're at the beginning
 							{
@@ -158,7 +163,7 @@ namespace LibreLancer.Infocards
 									if (commands[i].Y != origY || commands[i].Align != n.Alignment) break;
 									commands[i].X -= width0;
 								}
-								newX = commands[commands.Count - 1].X + renderer.MeasureString(commands[commands.Count - 1].Font, commands[commands.Count - 1].String).X;
+								newX = commands[commands.Count - 1].X + renderer.MeasureString(commands[commands.Count - 1].Font, size, commands[commands.Count - 1].String).X;
 							}
 							//Append our text
 							commands.Add(new TextCommand()
@@ -169,40 +174,42 @@ namespace LibreLancer.Infocards
 								Color = n.Color,
 								Underline = n.Underline,
 								Align = n.Alignment,
-								Font = fnt
+								Font = fnt,
+								FontSize = size
 							});
 							for (int i = 1; i < text.Count; i++)
 							{
 								commands.Add(new TextCommand()
 								{
 									String = text[i],
-									X = rectangle.Width - renderer.MeasureString(fnt, text[i]).X,
-									Y = origY + (int)fnt.LineHeight * i,
+									X = rectangle.Width - renderer.MeasureString(fnt, size, text[i]).X,
+									Y = origY + (int)fnt.LineHeight(size) * i,
 									Color = n.Color,
 									Underline = n.Underline,
-									Font = fnt
+									Font = fnt,
+									FontSize = size
 								});
 							}
 						}
 						lastAlignment = n.Alignment;
 					}
 				}
-				dY += (int)fnt.LineHeight;
+				dY += (int)fnt.LineHeight(size);
 				dX = 0;
 			}
-			Height = commands[commands.Count - 1].Y + renderer.MeasureString(fnt, commands[commands.Count - 1].String).Y;
+			Height = commands[commands.Count - 1].Y + renderer.MeasureString(fnt, size, commands[commands.Count - 1].String).Y;
 		}
 
-		public static List<string> WrapText(Renderer2D renderer, Font font, string text, int maxLineWidth, int x, out int newX, ref int dY)
+		public static List<string> WrapText(Renderer2D renderer, Font font, int sz, string text, int maxLineWidth, int x, out int newX, ref int dY)
 		{
 			List<string> strings = new List<string>();
 			string[] words = text.Split(' ');
 			StringBuilder sb = new StringBuilder();
 			int lineWidth = x;
-			int spaceWidth = renderer.MeasureString(font, " ").X;
+			int spaceWidth = renderer.MeasureString(font, sz, " ").X;
 			for (int i = 0; i < words.Length; i++)
 			{
-				var size = renderer.MeasureString(font, words[i]);
+				var size = renderer.MeasureString(font, sz, words[i]);
 				if (lineWidth + size.X < maxLineWidth)
 				{
 					lineWidth += size.X + spaceWidth;
@@ -214,7 +221,7 @@ namespace LibreLancer.Infocards
 						strings.Add(sb.ToString());
 						sb.Clear();
 					}
-					dY += (int)font.LineHeight;
+					dY += (int)font.LineHeight(sz);
 					lineWidth = size.X + spaceWidth;
 				}
 				sb.Append(words[i]);
@@ -240,6 +247,7 @@ namespace LibreLancer.Infocards
 					{
 						renderer.DrawStringBaseline(
 							commands[i].Font,
+							commands[i].FontSize,
 							commands[i].String,
 							commands[i].X + rectangle.X + 2,
 							commands[i].Y + rectangle.Y - scrollOffset + 2,
@@ -250,6 +258,7 @@ namespace LibreLancer.Infocards
 					}
 					renderer.DrawStringBaseline(
 						commands[i].Font,
+						commands[i].FontSize,
 						commands[i].String,
 						commands[i].X + rectangle.X,
 						commands[i].Y + rectangle.Y - scrollOffset,

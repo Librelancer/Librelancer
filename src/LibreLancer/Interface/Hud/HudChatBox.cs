@@ -30,10 +30,10 @@ namespace LibreLancer
 
 		public HudChatBox(UIManager m) : base(m) 
 		{
-			var fotnSizePx = (GetBaseRectangle().Height / 3.2f);
-			var textSize = GetTextSize(fotnSizePx);
-			boldFont = Font.FromSystemFont(m.Game.Renderer2D, "sans-serif", textSize, FontStyles.Bold);
-			regularFont = Font.FromSystemFont(m.Game.Renderer2D, "sans-serif", textSize, FontStyles.Regular);
+			var fontSizePx = (GetBaseRectangle().Height / 3.2f);
+			var textSize = GetTextSize(fontSizePx);
+			boldFont = m.Game.Fonts.GetSystemFont("Arial Unicode MS", FontStyles.Bold);
+			regularFont = m.Game.Fonts.GetSystemFont("Arial Unicode MS", FontStyles.Regular);
 		}
 
 		public bool AppendText(string str)
@@ -55,27 +55,29 @@ namespace LibreLancer
 			Manager.Game.Renderer2D.FillRectangle(r, Background);
 			Manager.Game.Renderer2D.DrawRectangle(r, Border, 1);
 
-			var fontSizePx = r.Height / 3f;
-			var measured = Manager.Game.Renderer2D.MeasureString(boldFont, CurrentEntry);
+			var fontSizePx = r.Height / 3.2f;
+			var textSize = GetTextSize(fontSizePx);
+			var measured = Manager.Game.Renderer2D.MeasureString(boldFont, textSize, CurrentEntry);
 
 			Manager.Game.Renderer2D.DrawWithClip(r, () =>
 			{
-				Manager.Game.Renderer2D.DrawStringBaseline(boldFont, CurrentEntry, r.X + 3, r.Y + 1, r.X + 3, Color4.Black, false);
-				Manager.Game.Renderer2D.DrawStringBaseline(boldFont, CurrentEntry, r.X + 2, r.Y + 1, r.X + 2, TextColor, false);
+				Manager.Game.Renderer2D.DrawStringBaseline(boldFont, textSize, CurrentEntry, r.X + 3, r.Y + 1, r.X + 3, Color4.Black, false);
+				Manager.Game.Renderer2D.DrawStringBaseline(boldFont, textSize, CurrentEntry, r.X + 2, r.Y + 1, r.X + 2, TextColor, false);
 				int a;
 				int dY = 0;
 				var str = string.Join("\n",
 									  Infocards.InfocardDisplay.WrapText(
 										  Manager.Game.Renderer2D,
 										  regularFont,
+					                      (int)textSize,
 										  CurrentText,
 										  r.Width - 2,
 										  measured.X,
 										  out a,
 										  ref dY)
 									 );
-				Manager.Game.Renderer2D.DrawStringBaseline(regularFont, str, r.X + 3 + measured.X, r.Y + 1, r.X + 3, Color4.Black, false);
-				Manager.Game.Renderer2D.DrawStringBaseline(regularFont, str, r.X + 2 + measured.X, r.Y + 1, r.X + 2, TextColor, false);
+				Manager.Game.Renderer2D.DrawStringBaseline(regularFont, textSize, str, r.X + 3 + measured.X, r.Y + 1, r.X + 3, Color4.Black, false);
+				Manager.Game.Renderer2D.DrawStringBaseline(regularFont, textSize, str, r.X + 2 + measured.X, r.Y + 1, r.X + 2, TextColor, false);
 			});
 		}
 

@@ -26,11 +26,9 @@ namespace LibreLancer
 
 		public override void DrawText()
 		{
-			if (ServerList == null) return;
+			/*if (ServerList == null) return;
 			var rect = GetTextRectangle();
-			var fnts = ServerList.GetFontsCached();
-			if (fnts.ContentFont == null) return;
-			if (fnts.HeaderFont == null) return;
+
 
 			var rTitle = new Rectangle(rect.X, rect.Y, rect.Width, (int)fnts.HeaderFont.LineHeight);
 			var rContent = new Rectangle(rect.X, rect.Y + (int)fnts.HeaderFont.LineHeight, rect.Width, (int)fnts.ContentFont.LineHeight);
@@ -43,7 +41,7 @@ namespace LibreLancer
 			{
 				DrawTextCentered(fnts.ContentFont, ln, rContent, Manager.TextColor);
 				rect.Y += (int)fnts.ContentFont.LineHeight;
-			}
+			}*/
 		}
 
 		Rectangle GetTextRectangle()

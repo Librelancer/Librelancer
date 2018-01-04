@@ -18,6 +18,8 @@ namespace LibreLancer.FxDebugger
 {
 	public class SliderElement2D : Element2D
 	{
+		const int FNT_SIZE = 10;
+
 		public float Value = 1000;
 		public float Minimum = 10;
 		public float Maximum = 4000;
@@ -32,9 +34,9 @@ namespace LibreLancer.FxDebugger
 
 		public void AutoSize(Renderer2D renderer)
 		{
-			var sz = renderer.MeasureString(fnt, Label);
+			var sz = renderer.MeasureString(fnt, FNT_SIZE, Label);
 			Width = sz.X + 240;
-			Height = fnt.LineHeight + 5;	
+			Height = fnt.LineHeight(FNT_SIZE) + 5;	
 		}
 
 		public SliderElement2D(UIManager manager, Font uiFont) : base(manager)
@@ -46,7 +48,7 @@ namespace LibreLancer.FxDebugger
 		{
 			if (CalculatePosition != null) CalculatePosition();
 			if (!Manager.Game.Mouse.IsButtonDown(MouseButtons.Left)) return;
-			var lblSz = Manager.Game.Renderer2D.MeasureString(fnt, Label);
+			var lblSz = Manager.Game.Renderer2D.MeasureString(fnt, FNT_SIZE, Label);
 			var startX = ClientPosition.X + lblSz.X + 7;
 			var startY = ClientPosition.Y + (Height / 2) - (Height * 0.4f);
 			var sliderW = Width - (lblSz.X + 7);
@@ -63,19 +65,19 @@ namespace LibreLancer.FxDebugger
 		public bool BlackText = false;
 		public override void DrawText()
 		{
-			float yPos = ClientPosition.Y + (Height / 2) - (fnt.LineHeight / 2);
+			float yPos = ClientPosition.Y + (Height / 2) - (fnt.LineHeight(FNT_SIZE) / 2);
 			if (BlackText)
 			{
-				Manager.Game.Renderer2D.DrawStringBaseline(fnt, Label, ClientPosition.X, yPos, 0, Color4.Black);
+				Manager.Game.Renderer2D.DrawStringBaseline(fnt, FNT_SIZE, Label, ClientPosition.X, yPos, 0, Color4.Black);
 			}
 			else
 			{
 				//Shadowed label
-				Manager.Game.Renderer2D.DrawStringBaseline(fnt, Label, ClientPosition.X + 1, yPos + 1, 0, Color4.Black);
-				Manager.Game.Renderer2D.DrawStringBaseline(fnt, Label, ClientPosition.X, yPos, 0, Color4.White);
+				Manager.Game.Renderer2D.DrawStringBaseline(fnt, FNT_SIZE, Label, ClientPosition.X + 1, yPos + 1, 0, Color4.Black);
+				Manager.Game.Renderer2D.DrawStringBaseline(fnt, FNT_SIZE, Label, ClientPosition.X, yPos, 0, Color4.White);
 			}
 			//Draw Slider
-			var lblSz = Manager.Game.Renderer2D.MeasureString(fnt, Label);
+			var lblSz = Manager.Game.Renderer2D.MeasureString(fnt, FNT_SIZE, Label);
 			//track
 			var sliderX = lblSz.X + 7;
 			var sliderW = Width - sliderX;

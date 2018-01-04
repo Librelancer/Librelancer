@@ -23,37 +23,25 @@ namespace LibreLancer
 		public Color4 TextColor = new Color4(160, 196, 210, 255);
 		public Color4 CriticalColor = Color4.Red;
 		public int CriticalThreshold = 20;
+		Font font;
 		public HudNumberBoxElement(UIManager manager) : base(manager, "hud_numberboxes.cmp", 0.01f, -0.952f, 1.93f, 2.5f)
 		{
+			font = manager.Game.Fonts.GetSystemFont("Agency FB");
 		}
 
 		public override void DrawText()
 		{
 			var thrustbox = FromScreenRect(-0.2925f, -0.93f, 0.077f, 0.055f);
 			var speedbox = FromScreenRect(0.231f, -0.93f, 0.077f, 0.055f);
-			var font = GetNumbersFont(GetTextSize(thrustbox.Height), Manager.Game);
+			var sz = GetTextSize(thrustbox.Height);
 			var pct = (int)MathHelper.Clamp(ThrustAvailable * 100, 0, 100);
-			DrawTextCentered(font, pct + "%", thrustbox, pct <= CriticalThreshold ? CriticalColor : TextColor);
-			DrawTextCentered(font, ((int)Velocity).ToString(), speedbox, TextColor);
+			DrawTextCentered(font, sz, pct + "%", thrustbox, pct <= CriticalThreshold ? CriticalColor : TextColor);
+			DrawTextCentered(font, sz, ((int)Velocity).ToString(), speedbox, TextColor);
 		}
 
 		float GetTextSize(float px)
 		{
 			return (px * (72.0f / 96.0f));
-		}
-
-		static Font numberFont;
-		static float numberSize = -1;
-		static Font GetNumbersFont(float sz, FreelancerGame g)
-		{
-			if (numberSize != sz)
-			{
-				if (numberFont != null)
-					numberFont.Dispose();
-				numberSize = sz;
-				numberFont = Font.FromSystemFont(g.Renderer2D, "Agency FB", numberSize);
-			}
-			return numberFont;
 		}
 	}
 }

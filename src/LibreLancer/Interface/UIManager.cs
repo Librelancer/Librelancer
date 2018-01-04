@@ -27,7 +27,6 @@ namespace LibreLancer
 		public List<UIElement> Elements = new List<UIElement> ();
 		public List<UIElement> Dialog;
 		public event Action<string> Clicked;
-		Font buttonFont;
 		float currentSize = -2f;
 		Dictionary<string, SoundData> sounds = new Dictionary<string, SoundData>();
 		public UIManager (FreelancerGame game)
@@ -49,20 +48,15 @@ namespace LibreLancer
 			Game.Audio.PlaySound(dat);
 		}
 
-		public Font GetButtonFont(float sz)
+		public int ButtonFontSize
 		{
-			if (currentSize != sz) {
-				if (buttonFont != null)
-					buttonFont.Dispose ();
-				currentSize = sz;
-				buttonFont = Font.FromSystemFont (Game.Renderer2D, "Agency FB", currentSize, FontStyles.Regular);
+			get
+			{
+				var topleft = ScreenToPixel(0, +0.02f * 2.73f);
+				var bottomRight = ScreenToPixel(0, -0.02f * 2.73f);
+				var px = (bottomRight.Y - topleft.Y);
+				return (int)Math.Floor((px * (72.0f / 96.0f)) - 11);
 			}
-			return buttonFont;
-		}
-
-		public Font GetButtonFontCached()
-		{
-			return buttonFont;
 		}
 
 		public void Draw()
@@ -227,7 +221,6 @@ namespace LibreLancer
 
 		public void Dispose()
 		{
-			if(buttonFont != null) buttonFont.Dispose();
 			Game.Mouse.MouseDown -= Mouse_MouseDown;
 			Game.Mouse.MouseUp -= Mouse_MouseUp;
 			foreach (var v in sounds.Values)

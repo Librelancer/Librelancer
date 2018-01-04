@@ -35,7 +35,7 @@ namespace LibreLancer.FxDebugger
 		public MainState(FreelancerGame game) : base(game)
 		{
 			manager = new UIManager(game);
-			uiFont = Font.FromSystemFont(game.Renderer2D, "Arial", 10);
+			uiFont = game.Fonts.GetSystemFont("Arial");
 			//Construct Menu
 			menuBackground = new PanelElement2D(manager);
 			menuBackground.FillColor = new Color4(0, 0, 0, 0.25f);
@@ -249,7 +249,7 @@ namespace LibreLancer.FxDebugger
 			var node = fx.Nodes.Find((n) => n.NodeName == name);
 			var lbl = new LabelElement2D(manager, uiFont);
 			int a, b = 0;
-			lbl.Text = string.Join("\n", Infocards.InfocardDisplay.WrapText(Game.Renderer2D, uiFont, string.Format("{0}: {1}", name, node.GetType().Name), 280, 0, out a, ref b));
+			lbl.Text = string.Join("\n", Infocards.InfocardDisplay.WrapText(Game.Renderer2D, uiFont, 10, string.Format("{0}: {1}", name, node.GetType().Name), 280, 0, out a, ref b));
 			lbl.Position2D = new Vector2(10, 10);
 			bkg.Children.Add(lbl);
 			//Node options
@@ -285,7 +285,7 @@ namespace LibreLancer.FxDebugger
 			dlg.Add(bkg);
 			var lbl = new LabelElement2D(manager, uiFont);
 			int a, b = 0;
-			lbl.Text = string.Join("\n", Infocards.InfocardDisplay.WrapText(Game.Renderer2D, uiFont, text, 280, 0, out a, ref b));
+			lbl.Text = string.Join("\n", Infocards.InfocardDisplay.WrapText(Game.Renderer2D, uiFont, 10, text, 280, 0, out a, ref b));
 			lbl.Position2D = new Vector2(10, 10);
 			bkg.Children.Add(lbl);
 

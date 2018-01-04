@@ -83,20 +83,20 @@ namespace LibreLancer
 			return Matrix4.CreateScale (scale.X, scale.Y, 1f) * Matrix4.CreateTranslation (position.X, position.Y, 0f);
 		}
 
-		protected void DrawShadowedText (Font font, string text, float x, float y, Color4 c)
+		protected void DrawShadowedText (Font font, float size, string text, float x, float y, Color4 c)
 		{
-			Manager.Game.Renderer2D.DrawString (font, text, x + 2, y + 2, Color4.Black);
-			Manager.Game.Renderer2D.DrawString (font, text, x, y, c);
+			Manager.Game.Renderer2D.DrawString (font, size, text, x + 2, y + 2, Color4.Black);
+			Manager.Game.Renderer2D.DrawString (font, size, text, x, y, c);
 		}
 
-		protected void DrawTextCentered (Font font, string text, Rectangle rect, Color4 c)
+		protected void DrawTextCentered (Font font, float sz, string text, Rectangle rect, Color4 c)
 		{
-			var size = Manager.Game.Renderer2D.MeasureString (font, text);
+			var size = Manager.Game.Renderer2D.MeasureString (font, sz, text);
 			var pos = new Vector2 (
 				rect.X + (rect.Width / 2f - size.X / 2),
 				rect.Y + (rect.Height / 2f - size.Y / 2)
 			);			
-			DrawShadowedText (font, text, pos.X, pos.Y,c);
+			DrawShadowedText (font, sz, text, pos.X, pos.Y,c);
 		}
 
 		protected Rectangle FromScreenRect(float screenx, float screeny, float screenw, float screenh)

@@ -108,6 +108,7 @@ namespace LibreLancer
 		}
 
 		GridControl grid;
+		Font fntTitle;
 
 		public UIServerList(UIManager manager) : base(manager, "../INTRO/OBJECTS/front_serverselect.cmp", 0.04f, 0.1f, 1.91f, 2.49f)
 		{
@@ -129,34 +130,10 @@ namespace LibreLancer
 			var columnTitles = new string[]{
 				name_label, ip_label, visited_label, ping_label, players_label, version_label, lan_label, options_label
 			};
-			grid = new GridControl(manager, dividerPositions, columnTitles, GetServerListRectangle, GetFonts, new ServerListContent(this), NUM_ROWS);
+			grid = new GridControl(manager, dividerPositions, columnTitles, GetServerListRectangle, new ServerListContent(this), NUM_ROWS);
+			fntTitle = manager.Game.Fonts.GetSystemFont("Agency FB");
 		}
 
-		GridFonts fonts = new GridFonts();
-		float lastRowSize = -1;
-		GridFonts GetFonts(float rowSize)
-		{
-			if (lastRowSize != rowSize)
-			{
-				lastRowSize = rowSize;
-				if (fonts.HeaderFont != null) fonts.HeaderFont.Dispose();
-				if (fonts.ContentFont != null) fonts.ContentFont.Dispose();
-				var pts = (rowSize * 0.8f) * (72.0f / 96.0f);
-				fonts.HeaderFont = Font.FromSystemFont(Manager.Game.Renderer2D, "Agency FB", pts);
-				fonts.ContentFont = Font.FromSystemFont(Manager.Game.Renderer2D, "Arial Unicode MS", pts * 0.7f);
-			}
-			return fonts;
-		}
-
-		public GridFonts GetFontsCached()
-		{
-			return fonts;
-		}
-		public void Dispose()
-		{
-			if (fonts.HeaderFont != null) fonts.HeaderFont.Dispose();
-			if (fonts.ContentFont != null) fonts.ContentFont.Dispose();
-		}
 
 		protected override void UpdateInternal(TimeSpan time)
 		{
@@ -168,12 +145,12 @@ namespace LibreLancer
 		{
 			var rect = GetServerListRectangle();
 			//Title
-			var fntTitle = Manager.GetButtonFontCached(); //TODO: HUGE HACK
-			var measured = Manager.Game.Renderer2D.MeasureString(fntTitle, title_text);
+			var titleSz = Manager.ButtonFontSize; //TODO: HUGE HACK
+			var measured = Manager.Game.Renderer2D.MeasureString(fntTitle, titleSz, title_text);
 			var ofpX = IdentityCamera.Instance.ScreenToPixel(-1f, 0.9f);
-			DrawShadowedText(fntTitle, title_text, rect.X + (rect.Width / 2) - (measured.X / 2), rect.Y - ofpX.Y * 3.4f, Manager.TextColor);
+			DrawShadowedText(fntTitle, titleSz, title_text, rect.X + (rect.Width / 2) - (measured.X / 2), rect.Y - ofpX.Y * 3.4f, Manager.TextColor);
 			//"SELECT A SERVER"
-			DrawShadowedText(fntTitle, server_list_text, rect.X, rect.Y - ofpX.Y * 2.3f, Manager.TextColor);
+			DrawShadowedText(fntTitle, titleSz, server_list_text, rect.X, rect.Y - ofpX.Y * 2.3f, Manager.TextColor);
 			//Grid
 			grid.Draw();
 		}

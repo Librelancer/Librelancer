@@ -2,11 +2,6 @@
 using System.Collections.Generic;
 namespace LibreLancer
 {
-	public class GridFonts
-	{
-		public Font HeaderFont;
-		public Font ContentFont;
-	}
 	public interface IGridContent
 	{
 		int Count { get; }
@@ -18,17 +13,18 @@ namespace LibreLancer
 		float[] dividerPositions;
 		string[] columnTitles;
 		Func<Rectangle> getRect;
-		Func<float, GridFonts> getFonts;
 		List<UIElement> children = new List<UIElement>();
 		UIManager manager;
 		IGridContent content;
 		int rowCount;
 
-		public GridControl(UIManager manager, float[] dividerPositions, string[] columnTitles, Func<Rectangle> getRect, Func<float,GridFonts> getFonts, IGridContent content, int rowCount)
+		Font headerFont;
+		Font contentFont;
+
+		public GridControl(UIManager manager, float[] dividerPositions, string[] columnTitles, Func<Rectangle> getRect, IGridContent content, int rowCount)
 		{
 			this.dividerPositions = dividerPositions;
 			this.getRect = getRect;
-			this.getFonts = getFonts;
 			this.rowCount = rowCount;
 			this.content = content;
 			this.columnTitles = columnTitles;
@@ -38,6 +34,8 @@ namespace LibreLancer
 				for (int j = 0; j < rowCount; j++)
 					children.Add(new HitRect(manager, j, i, this));
 			}
+			headerFont = manager.Game.Fonts.GetSystemFont("Agency FB");
+			contentFont = manager.Game.Fonts.GetSystemFont("Arial Unicode MS");
 		}
 
 		class HitRect : UIElement
@@ -129,7 +127,7 @@ namespace LibreLancer
 			//Get Resources
 			var rect = getRect();
 			var rowSize = rect.Height / (float)rowCount;
-			var fnts = getFonts(rowSize);
+			var textSize = (rowSize * 0.8f) * (72.0f / 96.0f);
 			//Draw Lines
 			for (int i = 0; i < rowCount; i++)
 			{
@@ -155,11 +153,11 @@ namespace LibreLancer
 				var str = columnTitles[i + 1];
 				var titleRect = new Rectangle(
 					(int)x0,
-					rect.Y - (int)(fnts.HeaderFont.LineHeight),
+					rect.Y - (int)(headerFont.LineHeight(textSize)),
 					(int)(x1 - x0),
-					(int)fnts.HeaderFont.LineHeight
+					(int)headerFont.LineHeight(textSize)
 				);
-				DrawTextCentered(fnts.HeaderFont, str, titleRect, manager.TextColor);
+				DrawTextCentered(headerFont, textSize, str, titleRect, manager.TextColor);
 				for (int j = 0; j < content.Count; j++)
 				{
 					var y = rect.Y + j * rowSize;
@@ -172,27 +170,27 @@ namespace LibreLancer
 					var contentStr = content.GetContentString(j, i + 1);
 					if (contentStr != null)
 					{
-						DrawTextCentered(fnts.ContentFont, contentStr, contentRect, content.Selected == j ? Color4.Yellow : manager.TextColor);
+						DrawTextCentered(contentFont, textSize * 0.7f, contentStr, contentRect, content.Selected == j ? Color4.Yellow : manager.TextColor);
 					}
 				}
 			}
 
 		}
 
-		void DrawShadowedText(Font font, string text, float x, float y, Color4 c)
+		void DrawShadowedText(Font font, float sz, string text, float x, float y, Color4 c)
 		{
-			manager.Game.Renderer2D.DrawString(font, text, x + 2, y + 2, Color4.Black);
-			manager.Game.Renderer2D.DrawString(font, text, x, y, c);
+			manager.Game.Renderer2D.DrawString(font, sz, text, x + 2, y + 2, Color4.Black);
+			manager.Game.Renderer2D.DrawString(font, sz, text, x, y, c);
 		}
 
-		void DrawTextCentered(Font font, string text, Rectangle rect, Color4 c)
+		void DrawTextCentered(Font font, float sz, string text, Rectangle rect, Color4 c)
 		{
-			var size = manager.Game.Renderer2D.MeasureString(font, text);
+			var size = manager.Game.Renderer2D.MeasureString(font, sz, text);
 			var pos = new Vector2(
 				rect.X + (rect.Width / 2f - size.X / 2),
 				rect.Y + (rect.Height / 2f - size.Y / 2)
 			);
-			DrawShadowedText(font, text, pos.X, pos.Y, c);
+			DrawShadowedText(font, sz, text, pos.X, pos.Y, c);
 		}
 
 		bool CanDragTo(int i, float pos)

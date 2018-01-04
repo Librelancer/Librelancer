@@ -54,7 +54,7 @@ C# Memory Usage: {5}
 			camera.UpdateProjection ();
 
 			trender = new Renderer2D (Game.RenderState);
-			font = Font.FromSystemFont (trender, "Agency FB", 16);
+			font = g.Fonts.GetSystemFont("Agency FB");
 			g.Keyboard.KeyDown += G_Keyboard_KeyDown;
 			g.Keyboard.TextInput += G_Keyboard_TextInput;
 		}
@@ -190,15 +190,15 @@ C# Memory Usage: {5}
 		{
 			sysrender.Draw ();
 			trender.Start (Game.Width, Game.Height);
-			DebugDrawing.DrawShadowedText (trender, font, string.Format(DEMO_TEXT,camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Game.Renderer), 5, 5);
+			DebugDrawing.DrawShadowedText (trender, font, 16, string.Format(DEMO_TEXT,camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Game.Renderer), 5, 5);
 
 			if (textEntry)
 			{
-				DebugDrawing.DrawShadowedText(trender, font, "Change System (Esc to cancel): " + currentText, 5, 200);
+				DebugDrawing.DrawShadowedText(trender, font, 16, "Change System (Esc to cancel): " + currentText, 5, 200);
 			}
 			if (current_msg != null)
 			{
-				DebugDrawing.DrawShadowedText(trender, font, current_msg, 5, 230, Color4.Red);
+				DebugDrawing.DrawShadowedText(trender, font, 16, current_msg, 5, 230, Color4.Red);
 			}
 			trender.Finish ();
 		}

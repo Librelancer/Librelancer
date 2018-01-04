@@ -19,12 +19,30 @@ namespace LibreLancer
 {
 	public class FontManager
 	{
+		struct FKey
+		{
+			public string Name;
+			public FontStyles Style;
+		}
+		Dictionary<FKey, Font> systemFonts = new Dictionary<FKey, Font>();
+		public Font GetSystemFont(string name, FontStyles style = FontStyles.Regular)
+		{
+			var k = new FKey() { Name = name, Style = style };
+			Font fnt;
+			if (!systemFonts.TryGetValue(k, out fnt))
+			{
+				fnt = Font.FromSystemFont(game.Renderer2D, name, style);
+				systemFonts.Add(k, fnt);
+			}
+			return fnt;
+		}
 		class FontVariations
 		{
 			public Font Regular;
 			public Font Bold;
 			public Font Italic;
 			public Font BoldItalic;
+			public int Size;
 		}
 
 		bool _loaded = false;
@@ -38,32 +56,35 @@ namespace LibreLancer
 		public void LoadFonts()
 		{
 			var v = new FontVariations();
-			v.Regular = Font.FromSystemFont(game.Renderer2D, "Agency FB", 14);
-			v.Bold = Font.FromSystemFont(game.Renderer2D, "Agency FB", 14, FontStyles.Bold);
-			v.Italic = Font.FromSystemFont(game.Renderer2D,"Agency FB", 14, FontStyles.Italic);
-			v.BoldItalic = Font.FromSystemFont(game.Renderer2D, "Agency FB", 14, FontStyles.Bold | FontStyles.Italic);
+			v.Regular = GetSystemFont("Agency FB");
+			v.Bold = GetSystemFont("Agency FB", FontStyles.Bold);
+			v.Italic = GetSystemFont("Agency FB", FontStyles.Italic);
+			v.BoldItalic = GetSystemFont("Agency FB",FontStyles.Bold | FontStyles.Italic);
+			v.Size = 14;
 			infocardFonts.Add(-1, v);
 
 			foreach (var f in game.GameData.GetRichFonts())
 			{
 				//points = pixels * 72 / 96
-				float sz = f.Size * 72f / 96f;
+				int sz = (int)(f.Size * 72f / 96f);
 
 				var variations = new FontVariations();
-				variations.Regular = Font.FromSystemFont(game.Renderer2D, f.Name, sz);
-				variations.Bold = Font.FromSystemFont(game.Renderer2D, f.Name, sz, FontStyles.Bold);
-				variations.Italic = Font.FromSystemFont(game.Renderer2D, f.Name, sz, FontStyles.Italic);
-				variations.BoldItalic = Font.FromSystemFont(game.Renderer2D, f.Name, sz, FontStyles.Bold | FontStyles.Italic);
+				variations.Size = sz;
+				variations.Regular = GetSystemFont(f.Name, FontStyles.Regular);
+				variations.Bold = GetSystemFont(f.Name, FontStyles.Bold);
+				variations.Italic = GetSystemFont(f.Name, FontStyles.Italic);
+				variations.BoldItalic = GetSystemFont(f.Name, FontStyles.Bold | FontStyles.Italic);
 				infocardFonts.Add(f.Index, variations);
 			}
 			_loaded = true;
 		}
 
-		public Font GetInfocardFont(int index, FontStyles style)
+		public Font GetInfocardFont(int index, FontStyles style, out int size)
 		{
 			if (!_loaded)
 				LoadFonts();
 			var variations = infocardFonts[index];
+			size = variations.Size;
 			switch (style)
 			{
 				case FontStyles.Regular:

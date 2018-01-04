@@ -280,7 +280,7 @@ namespace LibreLancer
 
         public static bool GLES = true;
 		static Dictionary<int, string> errors;
-        public static bool ErrorChecking = false;
+		public static bool ErrorChecking = false;
 
 		public static void LoadSDL()
 		{
