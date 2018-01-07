@@ -20,6 +20,7 @@ namespace LibreLancer
 	{
 		public abstract void Update(TimeSpan time, Vector3 position, Matrix4 transform);
 		public abstract void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr);
+		public virtual void DepthPrepass(ICamera camera, RenderState rstate) { }
 		public abstract void Register(SystemRenderer renderer);
 		public abstract void Unregister();
 		//Rendering Parameters
@@ -29,9 +30,22 @@ namespace LibreLancer
 		public bool NoFog = false;
 		public float[] LODRanges;
 
+		protected bool CalculatedVisible = true;
+		public bool Visible
+		{
+			get
+			{
+				return !Hidden && CalculatedVisible;
+			}
+		}
+
 		public virtual bool OutOfView(ICamera camera)
 		{
-			return false;
+			return true;
+		}
+
+		public virtual void PrepareRender(ICamera camera, NebulaRenderer nr)
+		{
 		}
 	}
 }

@@ -82,6 +82,15 @@ namespace LibreLancer
 			sh.SetNormalMatrix(ref normalMatrix);
 			sh.UseProgram();
 		}
+
+		public override void ApplyDepthPrepass(RenderState rstate)
+		{
+			rstate.BlendMode = BlendMode.Normal;
+			NormalPrepassShader.SetWorld(ref World);
+			NormalPrepassShader.SetViewProjection(Camera);
+			NormalPrepassShader.UseProgram();
+		}
+
 		public override bool IsTransparent
 		{
 			get

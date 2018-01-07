@@ -411,6 +411,10 @@
     <EmbeddedResource Include="Shaders\NomadMaterial.frag" />
     <EmbeddedResource Include="Shaders\Nomad_PositionNormalTexture.vs" />
     <EmbeddedResource Include="Shaders\Polyline.vs" />
+    <EmbeddedResource Include="Shaders\DepthPrepass_Normal.vs" />
+    <EmbeddedResource Include="Shaders\DepthPrepass_Normal.frag" />
+    <EmbeddedResource Include="Shaders\DepthPrepass_AlphaTest.vs" />
+    <EmbeddedResource Include="Shaders\DepthPrepass_AlphaTest.frag" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

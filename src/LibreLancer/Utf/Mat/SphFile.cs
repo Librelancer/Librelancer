@@ -140,6 +140,23 @@ namespace LibreLancer.Utf.Mat
         {
 			throw new NotImplementedException();
         }
+		public void DepthPrepass(RenderState rstate, Matrix4 world)
+		{
+			if (SideMaterials.Length < 6)
+				return;
+			var transform = Matrix4.CreateScale(Radius) * world;
+			for (int i = 0; i < 6; i++)
+			{
+				if (SideMaterials[i].Render.IsTransparent) continue;
+				int start, count;
+				Vector3 pos;
+				sphere.GetDrawParameters(faces[i], out start, out count, out pos);
+				SideMaterials[i].Render.Camera = _camera;
+				SideMaterials[i].Render.World = transform;
+				SideMaterials[i].Render.ApplyDepthPrepass(rstate);
+				sphere.VertexBuffer.Draw(PrimitiveTypes.TriangleList, 0, start, count);
+			}
+		}
 		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting lighting)
 		{
 			if (SideMaterials.Length < 6)
@@ -152,10 +169,11 @@ namespace LibreLancer.Utf.Mat
 					Vector3 pos;
 					sphere.GetDrawParameters(faces[i], out start, out count, out pos);
                     SideMaterials[i].Render.Camera = _camera;
+					var transform = Matrix4.CreateScale(Radius) * world;
 					buffer.AddCommand(
 						SideMaterials[i].Render,
 						null,
-						Matrix4.CreateScale(Radius) * world,
+						transform,
 						lighting,
 						sphere.VertexBuffer,
 						PrimitiveTypes.TriangleList,

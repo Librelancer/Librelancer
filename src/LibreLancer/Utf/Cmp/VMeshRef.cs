@@ -135,6 +135,11 @@ namespace LibreLancer.Utf.Cmp
 			if (ready) Mesh.DrawBuffer(buffer, StartMesh, endMesh, StartVertex, world, light, Center, mc);
 		}
 
+		public void DepthPrepass(RenderState rstate, Matrix4 world, MaterialAnimCollection mc)
+		{
+			if (ready) Mesh.DepthPrepass(rstate, StartMesh, endMesh, StartVertex, world, mc);
+		}
+
         public override string ToString()
         {
             return "VMeshRef";

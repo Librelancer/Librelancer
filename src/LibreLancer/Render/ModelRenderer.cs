@@ -166,19 +166,129 @@ namespace LibreLancer
 			}
 			return false;
 		}
-		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
+
+		public override void DepthPrepass(ICamera camera, RenderState rstate)
 		{
-			if (sysr == null)
-				return;
+			if (!Visible) return;
+			if (Model != null)
+			{
+				Model.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
+				if (Model.Levels.Length != 0)
+				{
+					var center = VectorMath.Transform(Model.Levels[0].Center, World);
+					var lvl = GetLevel(Model, center, camera.Position);
+					if (lvl == null) return;
+					Model.DepthPrepassLevel(lvl, rstate, World);
+				}
+			}
+			else if (Cmp != null || CmpParts != null)
+			{
+				if (Cmp != null) Cmp.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
+				else _parentCmp.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
+				//Check if -something- renders
+				var partCol = (IEnumerable<Part>)CmpParts ?? Cmp.Parts.Values;
+				foreach (Part p in partCol)
+				{
+					var model = p.Model;
+					Matrix4 w = World;
+					if (p.Construct != null)
+						w = p.Construct.Transform * World;
+					if (model.Levels.Length > 0)
+					{
+						var center = VectorMath.Transform(model.Levels[0].Center, w);
+						var lvl = GetLevel(model, center, camera.Position);
+						if (lvl == null) continue;
+						var bsphere = new BoundingSphere(
+							center,
+							model.Levels[0].Radius
+						);
+						if (camera.Frustum.Intersects(bsphere))
+						{
+							model.DepthPrepassLevel(lvl, rstate, w);
+						}
+					}
+				}
+			}
+			else if (Sph != null)
+			{
+				Sph.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
+				Sph.DepthPrepass(rstate, World);
+			}
+		}
+
+		public override void PrepareRender(ICamera camera, NebulaRenderer nr)
+		{
+			CalculatedVisible = true;
 			if (Nebula != null && nr != Nebula)
+			{
+				CalculatedVisible = false;
 				return;
+			}
 			var dsq = VectorMath.DistanceSquared(pos, camera.Position);
 			if (LODRanges != null) //Fastest cull
 			{
 				var maxd = LODRanges[LODRanges.Length - 1] * sysr.LODMultiplier;
 				maxd *= maxd;
-				if (dsq > maxd) return;
+				if (dsq > maxd) { CalculatedVisible = false; return; }
 			}
+			if (Model != null)
+			{
+				if (Model.Levels.Length != 0)
+				{
+					var center = VectorMath.Transform(Model.Levels[0].Center, World);
+					var lvl = GetLevel(Model, center, camera.Position);
+					if (lvl == null) CalculatedVisible = false;
+					var bsphere = new BoundingSphere(
+						center,
+						Model.Levels[0].Radius
+					);
+					if (!camera.Frustum.Intersects(bsphere)) CalculatedVisible = false; //Culled
+				}
+			}
+			else if (Cmp != null || CmpParts != null)
+			{
+				//Check if -something- renders
+				CalculatedVisible = false;
+				var partCol = (IEnumerable<Part>)CmpParts ?? Cmp.Parts.Values;
+				bool cmpParts = CmpParts != null;
+				foreach (Part p in partCol)
+				{
+					if(cmpParts) p.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
+					var model = p.Model;
+					Matrix4 w = World;
+					if (p.Construct != null)
+						w = p.Construct.Transform * World;
+					if (model.Levels.Length > 0)
+					{
+						var center = VectorMath.Transform(model.Levels[0].Center, w);
+						var lvl = GetLevel(model, center, camera.Position);
+						if (lvl == null) continue;
+						var bsphere = new BoundingSphere(
+							center,
+							model.Levels[0].Radius
+						);
+						if (camera.Frustum.Intersects(bsphere))
+						{
+							CalculatedVisible = true;
+							break;
+						}
+					}
+				}
+			}
+			else if (Sph != null)
+			{
+				var bsphere = new BoundingSphere(
+					pos,
+					radiusAtmosphere);
+				if (!camera.Frustum.Intersects(bsphere)) CalculatedVisible = false;
+			}
+		}
+		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
+		{
+			if (sysr == null)
+				return;
+			if (!Visible) 
+				return;
 			if (Dfm != null)
 			{
 				Dfm.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
@@ -192,16 +302,10 @@ namespace LibreLancer
 					var center = VectorMath.Transform(Model.Levels[0].Center, World);
 					var lvl = GetLevel(Model, center, camera.Position);
 					if (lvl == null) return;
-					var bsphere = new BoundingSphere(
-						center,
-						Model.Levels[0].Radius
-					);
-					if (camera.Frustum.Intersects(bsphere)) {
-						var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, Model.Levels[0].Radius, nr, LitAmbient, LitDynamic, NoFog);
-						var r = Model.Levels [0].Radius + lighting.FogRange.Y;
-						if (lighting.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
-							Model.DrawBufferLevel(lvl, commands, World, lighting);
-					}
+					var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, Model.Levels[0].Radius, nr, LitAmbient, LitDynamic, NoFog);
+					var r = Model.Levels [0].Radius + lighting.FogRange.Y;
+					if (lighting.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
+						Model.DrawBufferLevel(lvl, commands, World, lighting);
 				}
 			} else if (Cmp != null) {
 				Cmp.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
@@ -213,7 +317,6 @@ namespace LibreLancer
 						w = p.Construct.Transform * World;
 					if (model.Levels.Length > 0)
 					{
-
 						var center = VectorMath.Transform(model.Levels[0].Center, w);
 						var lvl = GetLevel(model, center, camera.Position);
 						if (lvl == null) continue;
@@ -259,16 +362,10 @@ namespace LibreLancer
 				}
 			} else if (Sph != null) {
 				Sph.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
-				var bsphere = new BoundingSphere(
-					pos,
-					radiusAtmosphere);
-				if (camera.Frustum.Intersects(bsphere))
-				{
-					var l = RenderHelpers.ApplyLights(lights, LightGroup, pos, Sph.Radius, nr, LitAmbient, LitDynamic, NoFog);
-					var r = Sph.Radius + l.FogRange.Y;
-					if(l.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, pos) <= (r * r))
-						Sph.DrawBuffer(commands, World, l);
-				}
+				var l = RenderHelpers.ApplyLights(lights, LightGroup, pos, Sph.Radius, nr, LitAmbient, LitDynamic, NoFog);
+				var r = Sph.Radius + l.FogRange.Y;
+				if(l.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, pos) <= (r * r))
+					Sph.DrawBuffer(commands, World, l);
 			}
 		}
 	}

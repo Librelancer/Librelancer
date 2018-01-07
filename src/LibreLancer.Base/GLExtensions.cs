@@ -21,6 +21,22 @@ namespace LibreLancer
     public static class GLExtensions
     {
 		public static List<string> ExtensionList;
+		static bool? _computeShaders;
+
+		public static bool ComputeShaders
+		{
+			get
+			{
+				if (GL.GLES) return false;
+				if (_computeShaders == null)
+				{
+					PopulateExtensions();
+					_computeShaders = ExtensionList.Contains("GL_ARB_compute_shader");
+				}
+				return _computeShaders.Value;
+			}
+		}
+
         //Global method for checking extensions. Called upon GraphicsDevice creation
 		public static void PopulateExtensions()
 		{
@@ -31,6 +47,7 @@ namespace LibreLancer
 			ExtensionList = new List<string> (n);
 			for (int i = 0; i < n; i++)
 				ExtensionList.Add (GL.GetString (GL.GL_EXTENSIONS, i));
+			FLLog.Debug("GL", "Extensions: \n" + string.Join("\n", ExtensionList));
 		}
         public static void CheckExtensions()
         {
@@ -40,6 +57,7 @@ namespace LibreLancer
 			if (!ExtensionList.Contains ("GL_EXT_texture_compression_s3tc")) {
 				throw new NotSupportedException ("OPENGL ERROR: Texture Compression (s3tc) not supported");
 			}
+
         }
     }
 }

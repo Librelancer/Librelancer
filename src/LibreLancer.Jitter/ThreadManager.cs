@@ -131,6 +131,36 @@ namespace LibreLancer.Jitter
             parameters.Clear();
         }
 
+		/// <summary>
+		/// Begins executing all tasks previously added to the ThreadManager.
+		/// The method returns immediately. Call FinishExecute to clean properly
+		/// </summary>
+		public void BeginExecute()
+		{
+			currentTaskIndex = 0;
+			waitingThreadCount = 0;
+			currentWaitHandle.Set();
+		}
+
+		/// <summary>
+		/// Finishes executing all tasks previously added to the ThreadManager.
+		/// The method finishes when all tasks are complete.
+		/// </summary>
+		public void FinishExecute()
+		{
+			PumpTasks();
+
+			while (waitingThreadCount < threads.Length - 1) ThreadSleep(0);
+
+			currentWaitHandle.Reset();
+			currentWaitHandle = (currentWaitHandle == waitHandleA) ? waitHandleB : waitHandleA;
+
+			tasks.Clear();
+			parameters.Clear();
+		}
+
+
+
         /// <summary>
         /// Adds a task to the ThreadManager. The task and the parameter
         /// is added to an internal list. Call <see cref="Execute"/>

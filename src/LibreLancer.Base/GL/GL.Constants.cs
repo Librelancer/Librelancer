@@ -122,6 +122,7 @@ namespace LibreLancer
 		public const int GL_DRAW_FRAMEBUFFER = 0x8CA9;
 		public const int GL_RENDERBUFFER = 0x8D41;
 		public const int GL_DEPTH_COMPONENT24 = 0x81A6;
+		public const int GL_DEPTH_COMPONENT = 0x1902;
 		public const int GL_DEPTH_ATTACHMENT = 0x8D00;
 		public const int GL_COLOR_ATTACHMENT0 = 0x8CE0;
 

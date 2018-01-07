@@ -236,7 +236,18 @@ namespace LibreLancer.Utf.Cmp
                 level.DrawBuffer(buffer, world, light, ma);
             }
         }
-        
+
+		public void DepthPrepassLevel(VMeshRef level, RenderState rstate, Matrix4 world)
+		{
+			if (ready)
+			{
+				var ma = MaterialAnim;
+				if (ma == null && additionalLibrary is CmpFile)
+					ma = ((CmpFile)additionalLibrary).MaterialAnim;
+				level.DepthPrepass(rstate, world, ma);
+			}
+		}
+
 		public void Draw(RenderState rstate, Matrix4 world, Lighting light)
         {
 			if (ready) {

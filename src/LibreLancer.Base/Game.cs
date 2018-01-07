@@ -194,6 +194,22 @@ namespace LibreLancer
 			}
 		}
 
+		Point minWindowSize = Point.Zero;
+
+		public Point MinimumWindowSize
+		{
+			get
+			{
+				return minWindowSize;
+			} 
+			set
+			{
+				minWindowSize = value;
+				if(windowptr != IntPtr.Zero)
+					SDL.SDL_SetWindowMinimumSize(windowptr, value.X, value.Y);
+			}
+		}
+
 		public event Action WillClose;
 
 		public void Run()
@@ -221,6 +237,10 @@ namespace LibreLancer
 				             height,
 				             flags
 			             );
+			if (minWindowSize != Point.Zero)
+			{
+				SDL.SDL_SetWindowMinimumSize(sdlWin, minWindowSize.X, minWindowSize.Y);
+			}
 			if (sdlWin == IntPtr.Zero) {
 				FLLog.Error ("SDL", "Failed to create window, exiting.");
 				return;

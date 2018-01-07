@@ -63,7 +63,11 @@ namespace LibreLancer
 			sh.UseProgram ();
 		}
 		
-		
+		public override void ApplyDepthPrepass(RenderState rstate)
+		{
+			throw new InvalidOperationException();
+		}
+
 		public override bool IsTransparent
 		{
 			get

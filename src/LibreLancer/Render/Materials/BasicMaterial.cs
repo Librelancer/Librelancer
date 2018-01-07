@@ -165,6 +165,26 @@ namespace LibreLancer
 			shader.SetNormalMatrix(ref normalMatrix);
 			shader.UseProgram();
 		}
+
+		public override void ApplyDepthPrepass(RenderState rstate)
+		{
+			rstate.BlendMode = BlendMode.Normal;
+			/*var tex = GetTexture(0, DtSampler);
+			ShaderVariables shader;
+			if (tex.Dxt1)
+			{
+				shader = AlphaTestPrepassShader;
+				shader.SetDtSampler(0);
+				BindTexture(rstate, 0, DtSampler, 0, DtFlags, ResourceManager.WhiteTextureName);
+			}
+			else
+				shader = NormalPrepassShader;*/
+			var shader = NormalPrepassShader;
+			shader.SetWorld(ref World);
+			shader.SetViewProjection(Camera);
+			shader.UseProgram();
+		}
+
 		public override bool IsTransparent
 		{
 			get

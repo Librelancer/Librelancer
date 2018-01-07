@@ -20,6 +20,7 @@ using LibreLancer.GameData.Archetypes;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Vertices;
+using JThreads = LibreLancer.Jitter.ThreadManager;
 namespace LibreLancer
 {
 	public class SystemRenderer
@@ -164,7 +165,7 @@ namespace LibreLancer
 		MultisampleTarget msaa;
 		int _mwidth = -1, _mheight = -1;
 		CommandBuffer commands = new CommandBuffer();
-		public void Draw()
+		public  void Draw()
 		{
 			if (game.Config.MSAASamples > 0)
 			{
@@ -183,6 +184,17 @@ namespace LibreLancer
 			if (nr != null)
 				transitioned = nr.FogTransitioned();
 			rstate.DepthEnabled = true;
+			//Async calcs
+			for (int i = 0; i < Objects.Count; i += 16)
+			{
+				JThreads.Instance.AddTask((o) =>
+				{
+					var offset = (int)o;
+					for (int j = 0; j < 16 && ((j + offset) < Objects.Count); j++) Objects[j + offset].PrepareRender(camera, nr);
+				}, i);
+			}
+			JThreads.Instance.BeginExecute();
+
 			if (transitioned)
 			{
 				//Fully in fog. Skip Starsphere
@@ -219,8 +231,16 @@ namespace LibreLancer
 			//Optimisation for dictionary lookups
 			LightEquipRenderer.FrameStart();
 			//Clear depth buffer for game objects
+			rstate.ClearDepth();
 			game.Billboards.Begin(camera, commands);
-			for (int i = 0; i < Objects.Count; i++) if(!Objects[i].Hidden) Objects[i].Draw(camera, commands, SystemLighting, nr);
+			JThreads.Instance.FinishExecute(); //Make sure visibility calculations are complete
+			//Depth pre-pass
+			rstate.DepthFunction = DepthFunction.Less;
+
+			for (int i = 0; i < Objects.Count; i++) if (Objects[i].Visible) Objects[i].DepthPrepass(camera, rstate);
+			rstate.DepthFunction = DepthFunction.LessEqual;
+			//Actual Drawing
+			for (int i = 0; i < Objects.Count; i++) if(Objects[i].Visible) Objects[i].Draw(camera, commands, SystemLighting, nr);
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(cache, SystemLighting, commands, nr);
 			game.Nebulae.NewFrame();
 			if (nr == null)

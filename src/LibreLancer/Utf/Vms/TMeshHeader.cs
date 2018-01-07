@@ -195,5 +195,27 @@ namespace LibreLancer.Utf.Vms
 				z
 			);
 		}
+
+		public void DepthPrepass(RenderState rstate, VMeshData data, ushort startVertex, Matrix4 world, MaterialAnimCollection mc)
+		{
+			if (Material == null)
+				return;
+			if (Material.Render.IsTransparent)
+				return;
+			if (lastmc != mc)
+			{
+				if (mc != null)
+				{
+					mc.Anims.TryGetValue(Material.Name, out ma);
+					lastmc = mc;
+				}
+				else
+					ma = null;
+			}
+			Material.Render.MaterialAnim = ma;
+			Material.Render.World = world;
+			Material.Render.ApplyDepthPrepass(rstate);
+			data.VertexBuffer.Draw(PrimitiveTypes.TriangleList, startVertex + StartVertex, TriangleStart, primitiveCount);
+		}
     }
 }

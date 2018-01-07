@@ -42,6 +42,29 @@ namespace LibreLancer
 			}
 			return false;
 		}
+
+		static ShaderVariables _normalPrepass;
+		protected static ShaderVariables NormalPrepassShader
+		{
+			get
+			{
+				if (_normalPrepass == null) _normalPrepass = ShaderCache.Get("DepthPrepass_Normal.vs", "DepthPrepass_Normal.frag");
+				return _normalPrepass;
+			}
+		}
+
+		static ShaderVariables _alphaPrepass;
+		protected static ShaderVariables AlphaTestPrepassShader
+		{
+			get
+			{
+				if (_alphaPrepass == null) _alphaPrepass = ShaderCache.Get("DepthPrepass_AlphaTest.vs", "DepthPrepass_AlphaTest.frag");
+				return _alphaPrepass;
+			}
+		}
+
+		public abstract void ApplyDepthPrepass(RenderState rstate);
+
 		public static void SetLights(ShaderVariables shader, Lighting lights)
 		{
 			bool hasSpotlight = HasSpotlight(ref lights);

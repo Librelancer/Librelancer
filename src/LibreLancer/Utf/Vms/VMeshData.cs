@@ -304,8 +304,18 @@ namespace LibreLancer.Utf.Vms
 			{
 				for (ushort i = startMesh; i < endMesh; i++)
 				{
-					//Meshes[i].DrawBuffer(buff, this, startVertex, world, light, cameraPos, mc);
 					Meshes[i].DrawBuffer(buff, this, startVertex, world, light, mc);
+				}
+			}
+		}
+
+		public void DepthPrepass(RenderState rstate, ushort startMesh, int endMesh, ushort startVertex, Matrix4 world, MaterialAnimCollection mc)
+		{
+			if (ready)
+			{
+				for (ushort i = startMesh; i < endMesh; i++)
+				{
+					Meshes[i].DepthPrepass(rstate, this, startVertex, world, mc);
 				}
 			}
 		}
