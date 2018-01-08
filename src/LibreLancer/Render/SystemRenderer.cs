@@ -185,13 +185,13 @@ namespace LibreLancer
 		{
 			if (!GLExtensions.Features430 || !ExtraLights) 
 				return;
-			if (pointLights.Count == 1023)
-				return;
 			var lt = new PointLight();
 			lt.Position = new Vector4(position, 1);
 			lt.ColorRange = new Vector4(color.R, color.G, color.B, range);
 			lt.Attenuation = new Vector4(attenuation, 0);
 			lock(pointLights) {
+				if (pointLights.Count >= 1023)
+					return;
 				pointLights.Add(lt); //TODO: Alternative to Locking this? Try ConcurrentBag<T> again maybe.
 			}
 		}
@@ -222,22 +222,10 @@ namespace LibreLancer
 			if (nr != null)
 				transitioned = nr.FogTransitioned();
 			rstate.DepthEnabled = true;
-			//Add System Point Lights
+			//Add Nebula light
 			if (GLExtensions.Features430 && ExtraLights)
 			{
-				for (int i = 0; i < SystemLighting.Lights.Count; i++)
-				{
-					var lt = SystemLighting.Lights[i];
-					if (!lt.Active) continue;
-					if (lt.Light.Kind == LightKind.Point || lt.Light.Kind == LightKind.PointAttenCurve)
-					{
-						var p = new PointLight();
-						p.Position = new Vector4(lt.Light.Position, 2);
-						p.Attenuation = lt.Light.Attenuation;
-						p.ColorRange = new Vector4(lt.Light.Color.R, lt.Light.Color.G, lt.Light.Color.B, lt.Light.Range);
-						pointLights.Add(p);
-					}
-				}
+				//TODO: Re-add [LightSource] to the compute shader, it shouldn't regress.
 				PointLight p2;
 				if (nr != null && nr.DoLightning(out p2))
 					pointLights.Add(p2);
@@ -295,7 +283,7 @@ namespace LibreLancer
 			{
 				//Forward+ heck yeah!
 				//ISSUES: Z prepass here doesn't work - gives blank texture  (investigate DepthMap.cs)
-				//Lights being culled too aggressively - Pittsburgh planet light, intro_planet_chunks
+				//(WORKED AROUND) Lights being culled too aggressively - Pittsburgh planet light, intro_planet_chunks
 				//Z test - cull transparent and opaque differently (opaqueLightBuffer enable)
 				//Optimisation work needs to be done
 				//When these are fixed this can be enabled by default
