@@ -16,13 +16,14 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer.GameData;
-using LibreLancer.GameData.Archetypes;
 using LibreLancer.Utf.Cmp;
-using LibreLancer.Utf.Mat;
-using LibreLancer.Vertices;
 using JThreads = LibreLancer.Jitter.ThreadManager;
 namespace LibreLancer
 {
+	//TODO: This thing leaks memory like crazy because I haven't written a Dispose function yet
+	//Do that
+
+	//Responsible for rendering the GameWorld.
 	public class SystemRenderer
 	{
 		ICamera camera;
@@ -43,7 +44,8 @@ namespace LibreLancer
 		
 		//Global Renderer Options
 		public float LODMultiplier = 4;
-		
+		public bool ExtraLights = false; //See comments in Draw() before enabling
+
 		public IDrawable[] StarSphereModels;
 		public Matrix4[] StarSphereWorlds;
 		public PhysicsDebugRenderer DebugRenderer;
@@ -53,6 +55,14 @@ namespace LibreLancer
 		RenderState rstate;
 		FreelancerGame game;
 		Texture2D dot;
+
+		//Fancy Forward+ stuff (GL 4.3 up)
+		List<PointLight> pointLights = new List<PointLight>();
+		ComputeShader pointLightCull;
+		ShaderStorageBuffer pointLightBuffer;
+		ShaderStorageBuffer transparentLightBuffer;
+		//ShaderStorageBuffer opaqueLightBuffer;
+		const int MAX_POINTS = 1024;
 
 		public FreelancerGame Game
 		{
@@ -77,6 +87,12 @@ namespace LibreLancer
 			dot = new Texture2D(1, 1, false, SurfaceFormat.Color);
 			dot.SetData(new uint[] { 0xFFFFFFFF });
 			DebugRenderer = new PhysicsDebugRenderer();
+
+			if (GLExtensions.Features430)
+			{
+				pointLightBuffer = new ShaderStorageBuffer(MAX_POINTS * (16 * sizeof(float)));
+				pointLightCull = new ComputeShader(Resources.LoadString("LibreLancer.Shaders.lightingcull.glcompute"));
+			}
 		}
 
 		void LoadSystem(StarSystem system)
@@ -162,10 +178,31 @@ namespace LibreLancer
 			}
 			return null;
 		}
+
+		//ExtraLights: Render a point light with DX attenuation
+		//TODO: Allow for cubic / IGraph attenuation
+		public void PointLightDX(Vector3 position, float range, Color4 color, Vector3 attenuation)
+		{
+			if (!GLExtensions.Features430 || !ExtraLights) 
+				return;
+			if (pointLights.Count == 1023)
+				return;
+			var lt = new PointLight();
+			lt.Position = new Vector4(position, 1);
+			lt.ColorRange = new Vector4(color.R, color.G, color.B, range);
+			lt.Attenuation = new Vector4(attenuation, 0);
+			lock(pointLights) {
+				pointLights.Add(lt); //TODO: Alternative to Locking this? Try ConcurrentBag<T> again maybe.
+			}
+		}
+
 		MultisampleTarget msaa;
 		int _mwidth = -1, _mheight = -1;
 		CommandBuffer commands = new CommandBuffer();
-		public  void Draw()
+		int _twidth = -1, _theight = -1;
+		int _dwidth = -1, _dheight = -1;
+		DepthMap depthMap;
+		public unsafe void Draw()
 		{
 			if (game.Config.MSAASamples > 0)
 			{
@@ -180,10 +217,31 @@ namespace LibreLancer
 				msaa.Bind();
 			}
 			NebulaRenderer nr = CheckNebulae(); //are we in a nebula?
+
 			bool transitioned = false;
 			if (nr != null)
 				transitioned = nr.FogTransitioned();
 			rstate.DepthEnabled = true;
+			//Add System Point Lights
+			if (GLExtensions.Features430 && ExtraLights)
+			{
+				for (int i = 0; i < SystemLighting.Lights.Count; i++)
+				{
+					var lt = SystemLighting.Lights[i];
+					if (!lt.Active) continue;
+					if (lt.Light.Kind == LightKind.Point || lt.Light.Kind == LightKind.PointAttenCurve)
+					{
+						var p = new PointLight();
+						p.Position = new Vector4(lt.Light.Position, 2);
+						p.Attenuation = lt.Light.Attenuation;
+						p.ColorRange = new Vector4(lt.Light.Color.R, lt.Light.Color.G, lt.Light.Color.B, lt.Light.Range);
+						pointLights.Add(p);
+					}
+				}
+				PointLight p2;
+				if (nr != null && nr.DoLightning(out p2))
+					pointLights.Add(p2);
+			}
 			//Async calcs
 			for (int i = 0; i < Objects.Count; i += 16)
 			{
@@ -194,7 +252,6 @@ namespace LibreLancer
 				}, i);
 			}
 			JThreads.Instance.BeginExecute();
-
 			if (transitioned)
 			{
 				//Fully in fog. Skip Starsphere
@@ -233,12 +290,80 @@ namespace LibreLancer
 			//Clear depth buffer for game objects
 			rstate.ClearDepth();
 			game.Billboards.Begin(camera, commands);
-			JThreads.Instance.FinishExecute(); //Make sure visibility calculations are complete
-			//Depth pre-pass
-			rstate.DepthFunction = DepthFunction.Less;
-
-			for (int i = 0; i < Objects.Count; i++) if (Objects[i].Visible) Objects[i].DepthPrepass(camera, rstate);
-			rstate.DepthFunction = DepthFunction.LessEqual;
+			JThreads.Instance.FinishExecute(); //Make sure visibility calculations are complete						  
+			if (GLExtensions.Features430 && ExtraLights)
+			{
+				//Forward+ heck yeah!
+				//ISSUES: Z prepass here doesn't work - gives blank texture  (investigate DepthMap.cs)
+				//Lights being culled too aggressively - Pittsburgh planet light, intro_planet_chunks
+				//Z test - cull transparent and opaque differently (opaqueLightBuffer enable)
+				//Optimisation work needs to be done
+				//When these are fixed this can be enabled by default
+				//Copy lights into buffer
+				int plc = pointLights.Count;
+				using (var h = pointLightBuffer.Map()) {
+					var ptr = (PointLight*)h.Handle;
+					for (int i = 0; i < pointLights.Count; i++)
+					{
+						ptr[i] = pointLights[i];
+					}
+					//Does the rest of the buffer need to be cleared?
+				}
+				pointLights.Clear();
+				//Setup Visible Buffers
+				var tilesW = (Game.Width + (Game.Width % 16)) / 16;
+				var tilesH = (Game.Height + (Game.Height % 16)) / 16;
+				SystemLighting.NumberOfTilesX = tilesW;
+				if (_twidth != tilesW || _theight != tilesH)
+				{
+					_twidth = tilesW;
+					_theight = tilesH;
+					//if (opaqueLightBuffer != null) opaqueLightBuffer.Dispose();
+					if (transparentLightBuffer != null) transparentLightBuffer.Dispose();
+					//opaqueLightBuffer = new ShaderStorageBuffer((tilesW * tilesH) * 512 * sizeof(int)); 
+					transparentLightBuffer = new ShaderStorageBuffer((tilesW * tilesH) * 512 * sizeof(int)); 
+				}
+				//Depth
+				if (_dwidth != Game.Width || _dheight != Game.Height)
+				{
+					_dwidth = Game.Width;
+					_dheight = Game.Height;
+					if (depthMap != null) depthMap.Dispose();
+					depthMap = new DepthMap(Game.Width, game.Height);
+				}
+				depthMap.BindFramebuffer();
+				rstate.ClearDepth();
+				rstate.DepthFunction = DepthFunction.Less;
+				for (int i = 0; i < Objects.Count; i++) if (Objects[i].Visible) Objects[i].DepthPrepass(camera, rstate);
+				rstate.DepthFunction = DepthFunction.LessEqual;
+				RenderTarget2D.ClearBinding();
+				if (game.Config.MSAASamples > 0) msaa.Bind();
+				//Run compute shader
+				pointLightBuffer.BindIndex(0);
+				transparentLightBuffer.BindIndex(1);
+				//opaqueLightBuffer.BindIndex(2);
+				pointLightCull.Uniform1i("depthTexture", 7);
+				depthMap.BindTo(7);
+				pointLightCull.Uniform1i("numLights", plc);
+				pointLightCull.Uniform1i("windowWidth", Game.Width);
+				pointLightCull.Uniform1i("windowHeight", Game.Height);
+				var v = camera.View;
+				var p = camera.Projection;
+				p.Invert();
+				pointLightCull.UniformMatrix4fv("viewMatrix", ref v);
+				pointLightCull.UniformMatrix4fv("invProjection", ref p);
+				GL.MemoryBarrier(GL.GL_SHADER_STORAGE_BARRIER_BIT); //I don't think these need to be here - confirm then remove?
+				pointLightCull.Dispatch((uint)tilesW, (uint)tilesH, 1);
+				GL.MemoryBarrier(GL.GL_SHADER_STORAGE_BARRIER_BIT);
+			}
+			else
+			{
+				SystemLighting.NumberOfTilesX = -1;
+				//Simple depth pre-pass
+				rstate.DepthFunction = DepthFunction.Less;
+				for (int i = 0; i < Objects.Count; i++) if (Objects[i].Visible) Objects[i].DepthPrepass(camera, rstate);
+				rstate.DepthFunction = DepthFunction.LessEqual;
+			}
 			//Actual Drawing
 			for (int i = 0; i < Objects.Count; i++) if(Objects[i].Visible) Objects[i].Draw(camera, commands, SystemLighting, nr);
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(cache, SystemLighting, commands, nr);

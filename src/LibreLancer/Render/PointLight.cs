@@ -10,21 +10,21 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2017
+ * Portions created by the Initial Developer are Copyright (C) 2013-2016
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using System.Collections.Generic;
+using System.Runtime.InteropServices;
 namespace LibreLancer
 {
-	public class SystemLighting
+	//PointLight struct used by shaders (Features430 only)
+	[StructLayout(LayoutKind.Sequential)]
+	public struct PointLight
 	{
-		public Color4 Ambient = Color4.Black;
-		public List<DynamicLight> Lights = new List<DynamicLight>();
-		public FogModes FogMode = FogModes.None;
-		public float FogDensity = 0f;
-		public Color4 FogColor = Color4.Black;
-		public Vector2 FogRange = Vector2.Zero;
-		public int NumberOfTilesX;
+		public Vector4 Position;
+		public Vector4 ColorRange;
+		public Vector4 Attenuation;
+
+		Vector4 padding;
 	}
 }

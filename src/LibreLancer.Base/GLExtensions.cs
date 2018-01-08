@@ -37,6 +37,20 @@ namespace LibreLancer
 			}
 		}
 
+		static bool? _features430;
+		public static bool Features430
+		{
+			get
+			{
+				if (GL.GLES) return false;
+				if (_features430 == null)
+				{
+					PopulateExtensions();
+					_features430 = ExtensionList.Contains("GL_ARB_shader_storage_buffer_object");
+				}
+				return _features430.Value;
+			}
+		}
         //Global method for checking extensions. Called upon GraphicsDevice creation
 		public static void PopulateExtensions()
 		{

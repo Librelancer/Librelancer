@@ -45,6 +45,11 @@ namespace LibreLancer
 					glFormat = GL.GL_RGB;
 					glType = GL.GL_UNSIGNED_SHORT_5_6_5;
                     break;
+				case SurfaceFormat.Depth:
+					glInternalFormat = GL.GL_DEPTH_COMPONENT;
+					glFormat = GL.GL_DEPTH_COMPONENT;
+					glType = GL.GL_FLOAT;
+					break;
 				case SurfaceFormat.Bgra4444:
 					glInternalFormat = GL.GL_RGBA4;
 					glFormat = GL.GL_RGBA;

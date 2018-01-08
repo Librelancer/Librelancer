@@ -23,6 +23,7 @@ namespace LibreLancer
 		public const int GL_DEPTH_BUFFER_BIT = 0x00000100;
 		//Shaders
 		public const int GL_FRAGMENT_SHADER = 0x8B30;
+		public const int GL_COMPUTE_SHADER = 0x91B9;
 		public const int GL_VERTEX_SHADER = 0x8B31;
 		public const int GL_GEOMETRY_SHADER = 0x8DD9;
 		public const int GL_COMPILE_STATUS = 0x8B81;
@@ -32,6 +33,7 @@ namespace LibreLancer
 		public const int GL_TEXTURE_2D_MULTISAMPLE = 0x9100;
 		public const int GL_TEXTURE_MIN_FILTER = 0x2801;
 		public const int GL_TEXTURE_MAG_FILTER = 0x2800;
+		public const int GL_TEXTURE_BORDER_COLOR = 0x1004;
 		public const int GL_LINEAR = 0x2601;
 		public const int GL_LINEAR_MIPMAP_NEAREST = 0x2701;
 		public const int GL_LINEAR_MIPMAP_LINEAR = 0x2703;
@@ -40,6 +42,7 @@ namespace LibreLancer
 		public const int GL_TEXTURE_WRAP_S = 0x2802;
 		public const int GL_TEXTURE_WRAP_T = 0x2803;
 		public const int GL_CLAMP_TO_EDGE = 0x812F;
+		public const int GL_CLAMP_TO_BORDER = 0x812D;
 		public const int GL_MIRRORED_REPEAT = 0x8370;
 		//Texture Cube
 		public const int GL_TEXTURE_CUBE_MAP = 0x8513;
@@ -91,6 +94,7 @@ namespace LibreLancer
 
 		public const int GL_ARRAY_BUFFER = 0x8892;
 		public const int GL_ELEMENT_ARRAY_BUFFER = 0x8893;
+		public const int GL_SHADER_STORAGE_BUFFER = 0x90D2;
 
 		public const int GL_STREAM_DRAW = 0x88E0;
 		public const int GL_DYNAMIC_DRAW = 0x88E8;
@@ -139,6 +143,11 @@ namespace LibreLancer
 
         public const int GL_RENDERER = 0x1F01;
         public const int GL_VERSION = 0x1F02;
+
+		public const int GL_WRITE_ONLY = 0x88B9;
+		public const int GL_READ_WRITE = 0x88BA;
+
+		public const int GL_SHADER_STORAGE_BARRIER_BIT = 0x00002000;
     }
 }
 

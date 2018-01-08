@@ -128,6 +128,14 @@ namespace LibreLancer
 				}
 			}
 		}
+
+		public override void PrepareRender(ICamera camera, NebulaRenderer nr)
+		{
+			/*if (lt_on && camera.Frustum.Intersects(new BoundingSphere(pos, 100)))
+			{
+				sys.PointLightDX(pos, 50, new Color4(equip.GlowColor, 1), new Vector3(1, 0.01f, 0.000055f));
+			}*/ //TODO: Configurable
+		}
 	}
 }
 

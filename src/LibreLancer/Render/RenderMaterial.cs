@@ -77,6 +77,7 @@ namespace LibreLancer
 				return;
 			shader.SetAmbientColor(lights.Ambient);
 			shader.SetLightCount(lights.Lights.Count);
+			shader.SetTilesX(lights.NumberOfTilesX);
 			for (int i = 0; i < lights.Lights.Count; i++)
 			{
 				var lt = lights.Lights[i];

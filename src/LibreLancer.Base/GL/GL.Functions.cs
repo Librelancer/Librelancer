@@ -95,6 +95,8 @@ namespace LibreLancer
 		public static ActiveTexture ActiveTexture;
 		[MapsTo("glTexParameteri")]
 		public static TexParameteri TexParameteri;
+		[MapsTo("glTexParameterfv")]
+		public static TexParameterfv TexParameterfv;
 		[MapsTo("glBindTexture")]
 		public static BindTexture BindTexture;
 		[MapsTo("glTexImage2D")]
@@ -108,6 +110,8 @@ namespace LibreLancer
 		[MapsTo("glGetTexImage")]
 		public static GetTexImage GetTexImage;
 		//Shaders
+		[MapsTo("glDispatchCompute")]
+		public static DispatchCompute DispatchCompute;
 		[MapsTo("glCreateShader")]
 		public static CreateShader CreateShader;
 		[MapsTo("glCompileShader")]
@@ -152,6 +156,8 @@ namespace LibreLancer
 		public static Uniform1i Uniform1i;
 		[MapsTo("glUniform1f")]
 		public static Uniform1f Uniform1f;
+		[MapsTo("glUniform2i")]
+		public static Uniform2i Uniform2i;
 		[MapsTo("glUniform2f")]
 		public static Uniform2f Uniform2f;
 		[MapsTo("glUniform3f")]
@@ -223,6 +229,14 @@ namespace LibreLancer
 		}
 		[MapsTo("glDrawBuffer")]
 		public static DrawBuffer DrawBuffer;
+		[MapsTo("glMapBuffer")]
+		public static MapBuffer MapBuffer;
+		[MapsTo("glUnmapBuffer")]
+		public static UnmapBuffer UnmapBuffer;
+		[MapsTo("glBindBufferBase")]
+		public static BindBufferBase BindBufferBase;
+		[MapsTo("glMemoryBarrier")]
+		public static MemoryBarrier MemoryBarrier;
 		//Drawing
 		[MapsTo("glDrawElements")]
 		public static DrawElements DrawElements;
@@ -282,7 +296,7 @@ namespace LibreLancer
 
         public static bool GLES = true;
 		static Dictionary<int, string> errors;
-		public static bool ErrorChecking = false;
+		public static bool ErrorChecking = true;
 
 		public static void LoadSDL()
 		{

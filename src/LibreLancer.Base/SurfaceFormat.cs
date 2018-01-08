@@ -33,6 +33,7 @@ namespace LibreLancer
         Rgba64,
         //Alpha8, - Removed in OpenGL 3.1,
 		R8, //Just red channel - NOT an XNA value
+		Depth, //Depth texture - NOT an XNA value
         Single,
         Vector2,
         Vector4,

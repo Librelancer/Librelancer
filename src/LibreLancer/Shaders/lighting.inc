@@ -13,6 +13,31 @@ uniform vec4 FogColor;
 uniform int LightCount;
 uniform int FogMode;
 uniform vec2 FogRange;
+
+#ifdef FEATURES430
+#define MAX_NUM_LIGHTS_PER_TILE 512
+
+uniform int NumberOfTilesX;
+struct PointLight {
+	vec4 position;
+	vec4 colorRange;
+	vec4 attenuation;
+	vec4 blank;
+};
+
+struct VisibleIndex {
+	int index;
+};
+
+// Shader storage buffer objects
+layout(std430, binding = 0) readonly buffer LightBuffer {
+	PointLight data[];
+} lightBuffer;
+
+layout(std430, binding = 1) readonly buffer VisibleLightIndicesBuffer {
+	VisibleIndex data[];
+} visibleLightIndicesBuffer;
+#endif
 /* 
  * approximate function given in [IGraph]
  * ax^3 + bx^2 + cx + d
@@ -76,9 +101,6 @@ vec4 light(vec4 ac, vec4 ec, vec4 dc, vec4 tex, vec3 position, vec4 view_positio
 			surfaceToLight = normalize(LightsPos[i].xyz - position);
 			float distanceToLight = length(LightsPos[i].xyz - position);
 			vec3 curve = LightsAttenuation[i].xyz;
-			float atten0 = attenuation = 1.0 / (curve.x + curve.y * distanceToLight + curve.z * (distanceToLight * distanceToLight));
-			float atten1 = fcubic(distanceToLight / max(LightsColorRange[i].w,1.), LightsAttenuation[i]);
-			attenuation = mix(atten0, atten1, LightsPos[i].w - 1.0); //choose correct attenuation
 			#ifdef SPOTLIGHT
 			if(SpotlightParams[i].x > 0.0) { //It's a spotlight
 				float NdotL = max(dot(n, LightsDir[i]), 0.0);
@@ -97,6 +119,34 @@ vec4 light(vec4 ac, vec4 ec, vec4 dc, vec4 tex, vec3 position, vec4 view_positio
 		vec3 diffuse = diffuseCoefficient * dc.rgb * LightsColorRange[i].xyz;
 		color += attenuation * diffuse;
 	}
+	#ifdef FEATURES430
+	if(NumberOfTilesX > -1) {
+
+	ivec2 location = ivec2(gl_FragCoord.xy);
+	ivec2 tileID = location / ivec2(16, 16);
+	uint index = tileID.y * NumberOfTilesX + tileID.x;
+	uint offset = index * MAX_NUM_LIGHTS_PER_TILE;
+	for (uint i = 0; i < MAX_NUM_LIGHTS_PER_TILE && visibleLightIndicesBuffer.data[offset + i].index != -1; i++) {
+		uint lightIndex = visibleLightIndicesBuffer.data[offset + i].index;
+		PointLight light = lightBuffer.data[lightIndex];
+		float attenuation;
+		vec3 surfaceToLight = normalize(light.position.xyz - position);
+		float distanceToLight = length(light.position.xyz - position);
+		if(light.position.w == 1) {
+			vec4 curve = light.attenuation;
+			attenuation = 1.0 / (curve.x + curve.y * distanceToLight + curve.z * (distanceToLight * distanceToLight));
+		} else {
+			attenuation = fcubic(distanceToLight / max(light.colorRange.w,1.), light.attenuation);
+		}
+		if(distanceToLight >  light.colorRange.w) attenuation = 0;
+		float diffuseCoefficient = max(dot(n, surfaceToLight), 0.0);
+		vec3 diffuse = diffuseCoefficient * dc.rgb * light.colorRange.xyz;
+		color += attenuation * diffuse;
+
+	}
+
+	}
+	#endif
 	color = clamp(color,0.0,1.0);
 	vec3 object_color = (ec.rgb * tex.rgb) + (tex.rgb * color);
 	if(FogMode > 0) {

@@ -33,6 +33,7 @@ namespace LibreLancer
 		{
             var lights = Lighting.Create();
 			lights.Ambient = lambient ? src.Ambient : Color4.Black;
+			lights.NumberOfTilesX = src.NumberOfTilesX;
 			if (nofog)
 			{
 				lights.FogMode = FogModes.None;
@@ -57,6 +58,8 @@ namespace LibreLancer
 					//l.Kind > 0 - test if not directional
 					if (l.Kind > 0 && VectorMath.DistanceSquared(l.Position, c) > (r2 * r2))
 						continue;
+					if (src.NumberOfTilesX != -1 && l.Kind > 0 && l.Kind < LightKind.Spotlight)
+						continue;
 					//Advanced spotlight cull
 					if ((l.Kind == LightKind.Spotlight) && SpotlightTest(ref l, c, r))
 						continue;
@@ -79,7 +82,7 @@ namespace LibreLancer
 					lights.FogColor = fogcolor;
 					lights.FogRange = fogrange;
 				}
-				if (lightning != null)
+				if (lightning != null && src.NumberOfTilesX == -1)
 				{
 					lights.Lights.Add(lightning.Value);
 				}

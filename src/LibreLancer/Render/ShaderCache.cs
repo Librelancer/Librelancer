@@ -27,9 +27,13 @@ namespace LibreLancer
 		public static ShaderVariables Get(string vs, string fs, ShaderCaps caps = ShaderCaps.None)
 		{
 			var k = new Strings2(vs, fs, caps);
-			var prelude = "#version 150\n" + caps.GetDefines() + "\n#line 0\n";
             ShaderVariables sh;
 			if (!shaders.TryGetValue(k, out sh)) {
+				string prelude;
+				if (GLExtensions.Features430)
+					prelude = "#version 430\n#define FEATURES430\n" + caps.GetDefines() + "\n#line 0\n";
+				else
+					prelude = "#version 150\n" + caps.GetDefines() + "\n#line 0\n";
 				FLLog.Debug ("Shader", "Compiling [ " + vs + " , " + fs + " ]");
                 sh = new ShaderVariables(
 					new Shader(prelude + Resources.LoadString("LibreLancer.Shaders." + vs), prelude + ProcessIncludes(Resources.LoadString("LibreLancer.Shaders." + fs)))

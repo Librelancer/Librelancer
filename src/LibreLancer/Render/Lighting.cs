@@ -29,6 +29,7 @@ namespace LibreLancer
 		public float FogDensity;
         public Color4 FogColor;
         public Vector2 FogRange;
+		public int NumberOfTilesX;
 
         bool needsHashCalculation;
         int _hash;

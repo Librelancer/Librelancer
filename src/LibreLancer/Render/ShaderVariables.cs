@@ -56,6 +56,7 @@ namespace LibreLancer
 
 		int materialAnimPosition;
 		int flipNormalPosition;
+		int tilesXPosition;
 		Shader shader;
 
 		public ShaderVariables(Shader sh)
@@ -99,6 +100,7 @@ namespace LibreLancer
 			fadeRangePosition = sh.GetLocation("FadeRange");
 			materialAnimPosition = sh.GetLocation("MaterialAnim");
 			flipNormalPosition = sh.GetLocation("FlipNormal");
+			tilesXPosition = sh.GetLocation("NumberOfTilesX");
 		}
 
 		public void UseProgram()
@@ -339,6 +341,11 @@ namespace LibreLancer
 		{
 			if (flipNormalPosition != -1)
 				shader.SetFloat(flipNormalPosition, flip ? -1 : 1);
+		}
+		public void SetTilesX(int tiles)
+		{
+			if (tilesXPosition != -1)
+				shader.SetInteger(tilesXPosition, tiles);
 		}
 	}
 }

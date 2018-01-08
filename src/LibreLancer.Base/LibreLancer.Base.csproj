@@ -180,6 +180,9 @@
     <Compile Include="SSE\SSEMath.cs">
       <DependentUpon>SSEMath.tt</DependentUpon>
     </Compile>
+    <Compile Include="ComputeShader.cs" />
+    <Compile Include="ShaderStorageBuffer.cs" />
+    <Compile Include="DepthMap.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

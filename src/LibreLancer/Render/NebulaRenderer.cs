@@ -209,6 +209,24 @@ namespace LibreLancer
 			}
 		}
 
+		public bool DoLightning(out PointLight lt)
+		{
+			lt = new PointLight();
+			if (dynLightningActive)
+			{
+				lt.Position = new Vector4(dynamicLightningPos, 1);
+				lt.ColorRange = new Vector4(
+					Nebula.DynamicLightningColor.R,
+					Nebula.DynamicLightningColor.G,
+					Nebula.DynamicLightningColor.B,
+					Nebula.FogRange.Y
+				);
+				lt.Attenuation = new Vector4(1, 0, 0.0000055f, 0);
+				return true;
+			}
+			return false;
+		}
+
 		ExclusionZone GetExclusion(Vector3 position)
 		{
 			if (Nebula.ExclusionZones != null)
