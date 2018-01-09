@@ -159,6 +159,7 @@ Mouse Flight: {10}
 			Game.Keyboard.KeyDown -= Keyboard_KeyDown;
 			input.Dispose();
 			hud.Dispose();
+			sysrender.Dispose();
 		}
 
 		void Keyboard_KeyDown(KeyEventArgs e)

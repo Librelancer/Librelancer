@@ -78,6 +78,7 @@ namespace LibreLancer
 #endif
 			Game.WillClose -= G_WillClose;
 			manager.Dispose();
+			scene.Dispose();
 		}
 
 

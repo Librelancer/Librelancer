@@ -4,7 +4,7 @@ using LibreLancer.Jitter.LinearMath;
 using LibreLancer.Vertices;
 namespace LibreLancer
 {
-	public class PhysicsDebugRenderer : IDebugDrawer
+	public class PhysicsDebugRenderer : IDebugDrawer, IDisposable
 	{
 		public Color4 Color = Color4.Red;
 		const int MAX_LINES = 50000;
@@ -79,6 +79,11 @@ namespace LibreLancer
 			linebuffer.Draw(PrimitiveTypes.LineList, lineVertices / 2);
 			rstate.Cull = true;
 			rstate.DepthEnabled = true;
+		}
+
+		public void Dispose()
+		{
+			linebuffer.Dispose();
 		}
 	}
 }

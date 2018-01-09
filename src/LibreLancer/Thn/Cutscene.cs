@@ -20,7 +20,7 @@ using LibreLancer.Thorn;
 namespace LibreLancer
 {
 	//TODO: PCurves
-	public class Cutscene
+	public class Cutscene : IDisposable
 	{
 		public class ThnObject
 		{
@@ -777,6 +777,11 @@ namespace LibreLancer
 			}
 		}
 		#endregion
+
+		public void Dispose()
+		{
+			Renderer.Dispose();
+		}
 	}
 }
 

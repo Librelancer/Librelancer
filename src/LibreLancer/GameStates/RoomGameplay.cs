@@ -65,6 +65,7 @@ namespace LibreLancer
 			Game.Keyboard.TextInput -= Game_TextInput;
 			Game.Keyboard.KeyDown -= Keyboard_KeyDown;
 			hud.Dispose();
+			scene.Dispose();
 		}
 
 		bool Hud_OnManeuverSelected(string arg)

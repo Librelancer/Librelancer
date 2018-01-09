@@ -20,11 +20,8 @@ using LibreLancer.Utf.Cmp;
 using JThreads = LibreLancer.Jitter.ThreadManager;
 namespace LibreLancer
 {
-	//TODO: This thing leaks memory like crazy because I haven't written a Dispose function yet
-	//Do that
-
 	//Responsible for rendering the GameWorld.
-	public class SystemRenderer
+	public class SystemRenderer : IDisposable
 	{
 		ICamera camera;
 
@@ -58,7 +55,7 @@ namespace LibreLancer
 
 		//Fancy Forward+ stuff (GL 4.3 up)
 		List<PointLight> pointLights = new List<PointLight>();
-		ComputeShader pointLightCull;
+		static ComputeShader pointLightCull;
 		ShaderStorageBuffer pointLightBuffer;
 		ShaderStorageBuffer transparentLightBuffer;
 		//ShaderStorageBuffer opaqueLightBuffer;
@@ -84,14 +81,14 @@ namespace LibreLancer
 			cache = rescache;
 			rstate = cache.Game.RenderState;
 			game = rescache.Game;
-			dot = new Texture2D(1, 1, false, SurfaceFormat.Color);
-			dot.SetData(new uint[] { 0xFFFFFFFF });
+			dot = (Texture2D)rescache.FindTexture(ResourceManager.WhiteTextureName);
 			DebugRenderer = new PhysicsDebugRenderer();
 
 			if (GLExtensions.Features430)
 			{
 				pointLightBuffer = new ShaderStorageBuffer(MAX_POINTS * (16 * sizeof(float)));
-				pointLightCull = new ComputeShader(Resources.LoadString("LibreLancer.Shaders.lightingcull.glcompute"));
+				if(pointLightCull != null)
+					pointLightCull = new ComputeShader(Resources.LoadString("LibreLancer.Shaders.lightingcull.glcompute"));
 			}
 		}
 
@@ -380,6 +377,15 @@ namespace LibreLancer
 			rstate.DepthEnabled = true;
 		}
 
+		public void Dispose()
+		{
+			if (pointLightBuffer != null) pointLightBuffer.Dispose();
+			if (transparentLightBuffer != null) transparentLightBuffer.Dispose();
+			if (msaa != null) msaa.Dispose();
+			if (depthMap != null) depthMap.Dispose();
+			Polyline.Dispose();
+			DebugRenderer.Dispose();
+		}
 	}
 }
 

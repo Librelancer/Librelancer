@@ -17,7 +17,7 @@ using System;
 using LibreLancer.Vertices;
 namespace LibreLancer
 {
-	public class PolylineRender
+	public class PolylineRender : IDisposable
 	{
 		const int MAX_VERTICES = 8192;
 
@@ -114,6 +114,11 @@ namespace LibreLancer
 		static void Cleanup(RenderState rs)
 		{
 			rs.Cull = true;
+		}
+
+		public void Dispose()
+		{
+			vbo.Dispose();
 		}
 	}
 }
