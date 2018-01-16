@@ -19,9 +19,15 @@ namespace LibreLancer.Media
 {
 	class Mp3Utils
 	{
-		public static StreamingSound GetSound(Stream stream)
+		public static StreamingSound GetSound(Stream stream, RiffLoader ParsedHeader)
 		{
-			var mp3 = new MP3Sharp.MP3Stream(stream);
+            bool IsMono = false;
+            if (ParsedHeader != null)
+            {
+                if (ParsedHeader.Channels == 1)
+                    IsMono = true;
+            }
+			var mp3 = new MP3Sharp.MP3Stream(stream, IsMono);
 			var snd = new StreamingSound();
 			snd.Data = mp3;
 			if (mp3.Format == MP3Sharp.SoundFormat.Pcm16BitMono)
