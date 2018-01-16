@@ -76,7 +76,7 @@ namespace LibreLancer.FxDebugger
 			Game.Keyboard.TextInput += Keyboard_TextInput;
 			Game.Keyboard.KeyDown += Keyboard_KeyDown;
 			cam = new ChaseCamera(Game.Viewport);
-			renderer = new SystemRenderer(cam, Game.GameData, Game.ResourceManager);
+			renderer = new SystemRenderer(cam, Game.GameData, Game.ResourceManager, Game);
 			renderer.NullColor = new Color4(0.1072961f, 0.1587983f, 0.1845494f, 1);
 		}
 
