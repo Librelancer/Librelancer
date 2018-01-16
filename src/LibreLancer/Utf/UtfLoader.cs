@@ -21,25 +21,29 @@ namespace LibreLancer.Utf
 {
 	public class UtfLoader : UtfFile
 	{
-		public static IDrawable LoadDrawable(string file, ILibFile resources)
+		public static IDrawable GetDrawable(IntermediateNode root, ILibFile resources)
 		{
-			var root = parseFile(file);
 			bool cmpnd = false;
 			bool multilevel = false;
 			foreach (var node in root)
 			{
 				var l = node.Name.ToLowerInvariant();
-				if (l == "sphere") return new SphFile(file, resources);
-				if (l == "vmeshpart") return new ModelFile(file, resources);
+				if (l == "sphere") return new SphFile(root, resources);
+				if (l == "vmeshpart") return new ModelFile(root, resources);
 				if (l == "cmpnd") cmpnd = true;
 				if (l == "multilevel") multilevel = true;
-				if (l == "skeleton") return new DfmFile(file, resources);
+				if (l == "skeleton") return new DfmFile(root, resources);
 			}
 			if (cmpnd)
-				return new CmpFile(file, resources);
+				return new CmpFile(root, resources);
 			if (multilevel)
-				return new ModelFile(file, resources);
+				return new ModelFile(root, resources);
 			throw new Exception("Not a drawable file");
+		}
+		public static IDrawable LoadDrawable(string file, ILibFile resources)
+		{
+			var root = parseFile(file);
+			return GetDrawable(root, resources);
 		}
 		public static void LoadResourceFile(string file, ILibFile library, out MatFile materials, out TxmFile textures, out Vms.VmsFile vms)
 		{

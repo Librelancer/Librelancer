@@ -26,7 +26,7 @@ namespace LibreLancer
 	//TODO: Allow for disposing and all that Jazz
 	public class ResourceManager : ILibFile
 	{
-		public FreelancerGame Game;
+		public Game Game;
 
 		Dictionary<uint, VMeshData> meshes = new Dictionary<uint, VMeshData>();
 		Dictionary<uint, Material> materials = new Dictionary<uint, Material>();
@@ -40,10 +40,14 @@ namespace LibreLancer
 		List<string> loadedResFiles = new List<string>();
 		List<string> preloadFiles = new List<string>();
 
-		public ResourceManager(FreelancerGame g) : this()
+		public ResourceManager(Game g) : this()
 		{
 			Game = g;
+			DefaultMaterial = new Material(this);
+			DefaultMaterial.Name = "LL_DefaultMaterialName";
 		}
+
+		public Material DefaultMaterial;
 
 		public Texture2D NullTexture;
 		public Texture2D WhiteTexture;
@@ -113,7 +117,7 @@ namespace LibreLancer
 
 		public bool TextureExists(string name)
 		{
-			return texturefiles.ContainsKey(name) || name == NullTextureName;
+			return texturefiles.ContainsKey(name) || name == NullTextureName || name == WhiteTextureName;
 		}
 
 		public void AddTexture(string name,string filename)
@@ -144,7 +148,9 @@ namespace LibreLancer
 			if (name == WhiteTextureName)
 				return WhiteTexture;
             Texture outtex;
-			if ((outtex = textures[name]) == null)
+			if (!textures.TryGetValue(name, out outtex))
+				return null;
+			if (outtex == null)
 			{
 				var file = texturefiles[name];
 				FLLog.Debug("Resources", string.Format("Reloading {0} from {1}", name, file));

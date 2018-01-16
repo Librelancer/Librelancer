@@ -34,14 +34,14 @@ namespace LibreLancer.Utf.Mat
 		/// <summary>
 		/// Material Name
 		/// </summary>
-		public string Name { get; private set; }
+		public string Name { get; set; }
 
 		/// <summary>
 		/// Diffuse Texture Flags
 		/// </summary>
-		public int DtFlags { get; private set; }
+		public int DtFlags { get; set; }
 
-		public string DtName { get; private set; }
+		public string DtName { get; set; }
 
 
 		/// <summary>
@@ -179,15 +179,16 @@ namespace LibreLancer.Utf.Mat
 			}
 		}
 
-		public Material()
+		public Material(ResourceManager res)
 		{
-			textureLibrary = new TxmFile();
+			textureLibrary = res;
 			type = "DcDt";
 
 			Name = "NullMaterial";
-
-			DtFlags = -1;
+			DtFlags = 0;
+			Dc = Color4.Magenta;
 			DtName = null;
+			isBasic = true;
 		}
 
 		public static Material FromNode(IntermediateNode node, ILibFile textureLibrary)

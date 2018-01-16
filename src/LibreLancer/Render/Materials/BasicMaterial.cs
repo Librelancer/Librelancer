@@ -109,7 +109,8 @@ namespace LibreLancer
 			if (HasSpotlight(ref lights)) caps |= ShaderCaps.Spotlight;
 			if (EtEnabled) caps |= ShaderCaps.EtEnabled;
 			if (Fade) caps |= ShaderCaps.FadeEnabled;
-			if (GetTexture(0, DtSampler).Dxt1)
+			var dt = GetTexture(0, DtSampler);
+			if (dt != null && dt.Dxt1)
 			{
 				caps |= ShaderCaps.AlphaTestEnabled; //Shitty way of dealing with alpha_mask
 			}

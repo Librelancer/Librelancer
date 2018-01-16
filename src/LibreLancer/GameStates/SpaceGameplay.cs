@@ -90,7 +90,7 @@ Mouse Flight: {10}
 			camera.ChaseOrientation = new Matrix4(player.PhysicsComponent.Orientation);
 			camera.Reset();
 
-			sysrender = new SystemRenderer(camera, g.GameData, g.ResourceManager);
+			sysrender = new SystemRenderer(camera, g.GameData, g.ResourceManager, g);
 			world = new GameWorld(sysrender);
 			world.LoadSystem(sys, g.ResourceManager);
 			world.Objects.Add(player);

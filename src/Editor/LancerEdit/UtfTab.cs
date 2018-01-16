@@ -227,6 +227,20 @@ namespace LancerEdit
 						File.WriteAllBytes(path, selectedNode.Data);
 					}
 				}
+				if (ImGui.Button("View Model"))
+				{
+					IDrawable drawable = null;
+					try
+					{
+						drawable = LibreLancer.Utf.UtfLoader.GetDrawable(Utf.Export(), main.Resources);
+						drawable.Initialize(main.Resources);
+					}
+					catch (Exception) { ErrorPopup("Could not open as model"); drawable = null; }
+					if (drawable != null)
+					{
+						main.AddTab(new ModelViewer("Model Viewer", drawable, main.RenderState, main.Viewport));
+					}
+				}
 			}
 		}
 

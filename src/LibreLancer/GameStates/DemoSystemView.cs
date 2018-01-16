@@ -47,7 +47,7 @@ C# Memory Usage: {5}
 			sys = g.GameData.GetSystem ("li01");
 			camera = new DebugCamera (g.Viewport);
 			camera.Zoom = 5000;
-			sysrender = new SystemRenderer (camera, g.GameData, g.ResourceManager);
+			sysrender = new SystemRenderer (camera, g.GameData, g.ResourceManager, g);
 			world = new GameWorld(sysrender);
 			world.LoadSystem(sys, g.ResourceManager);
 			g.Sound.PlayMusic(sys.MusicSpace);

@@ -34,6 +34,7 @@ namespace LibreLancer
 		public abstract bool IsTransparent { get; }
 		public bool DoubleSided = false;
 		Texture2D[] textures = new Texture2D[8];
+		bool[] loaded = new bool[8];
 		protected static bool HasSpotlight(ref Lighting lights)
 		{
 			for (int i = 0; i < lights.Lights.Count; i++)
@@ -135,9 +136,15 @@ namespace LibreLancer
 					throw new Exception();
 				tex = nullName;
 			}
-
-			if (textures[cacheidx] == null)
+			if (textures[cacheidx] == null || !loaded[cacheidx])
 				textures[cacheidx] = (Texture2D)Library.FindTexture(tex);
+			if (textures[cacheidx] == null)
+			{
+				textures[cacheidx] = (Texture2D)Library.FindTexture(ResourceManager.NullTextureName);
+				loaded[cacheidx] = false;
+			}
+			else
+				loaded[cacheidx] = true;
 			var tex2d = textures[cacheidx];
 			if (tex2d.IsDisposed)
 				tex2d = textures[cacheidx] = (Texture2D)Library.FindTexture(tex);

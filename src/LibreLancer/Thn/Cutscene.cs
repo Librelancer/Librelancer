@@ -53,7 +53,7 @@ namespace LibreLancer
 		{
 			camera = new ThnCamera(game.Viewport);
 
-			Renderer = new SystemRenderer(camera, game.GameData, game.ResourceManager);
+			Renderer = new SystemRenderer(camera, game.GameData, game.ResourceManager, game);
 			World = new GameWorld(Renderer);
 
 			//thn = script;

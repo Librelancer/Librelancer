@@ -37,6 +37,7 @@ namespace LibreLancer.Utf.Vms
         /// </summary>
         private uint MaterialId;
         private Material material;
+		Material defaultMaterial;
         public Material Material
         {
             get
@@ -83,15 +84,11 @@ namespace LibreLancer.Utf.Vms
             primitiveCount = NumRefVertices / 3;
         }
 
+		bool inited = false;
 		public void Initialize(ResourceManager cache)
         {
-            /*if (nullMaterial == null)
-            {
-                nullMaterial = new NullMaterial();
-                nullMaterial.Initialize();
-            }*/
-
-            //if (Material != null) Material.Initialize(cache);
+			inited = true;
+			defaultMaterial = cache.DefaultMaterial;
         }
 
         public void DeviceReset()
@@ -104,8 +101,10 @@ namespace LibreLancer.Utf.Vms
         {
 			/*if (Material == null) nullMaterial.Update(camera);
             else */
-			if(Material != null)
+			if (Material != null)
 				Material.Render.Camera = camera;
+			else
+				defaultMaterial.Render.Camera = camera;
         }
 		MaterialAnimCollection lastmc;
 		MaterialAnim ma;
@@ -173,24 +172,25 @@ namespace LibreLancer.Utf.Vms
 
 		public void DrawBuffer(CommandBuffer buffer, VMeshData data, ushort startVertex, Matrix4 world, Lighting light, MaterialAnimCollection mc)
 		{
-			if (Material == null)
-				return;
+			var mat = Material;
+			if (mat == null)
+				mat = defaultMaterial;
 			if (lastmc != mc)
 			{
 				if (mc != null)
 				{
-					mc.Anims.TryGetValue(Material.Name, out ma);
+					mc.Anims.TryGetValue(mat.Name, out ma);
 					lastmc = mc;
 				}
 				else
 					ma = null;
 			}
 			float z = 0;
-			if (Material.Render.IsTransparent)
-				z = RenderHelpers.GetZ(world, Material.Render.Camera.Position, CalculateAvg(data, startVertex));
+			if (mat.Render.IsTransparent)
+				z = RenderHelpers.GetZ(world, mat.Render.Camera.Position, CalculateAvg(data, startVertex));
 			
 			buffer.AddCommand(
-				Material.Render,
+				mat.Render,
 				ma,
 				world,
 				light,
@@ -206,8 +206,8 @@ namespace LibreLancer.Utf.Vms
 
 		public void DepthPrepass(RenderState rstate, VMeshData data, ushort startVertex, Matrix4 world, MaterialAnimCollection mc)
 		{
-			if (Material == null)
-				return;
+			var m = Material;
+			if (m == null) m = materialLibrary.FindMaterial(0);
 			if (Material.Render.IsTransparent)
 				return;
 			if (lastmc != mc)

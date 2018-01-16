@@ -24,7 +24,8 @@ namespace LancerEdit
 	{
 		ImGuiHelper guiHelper;
 		public AudioManager Audio;
-
+		public ResourceManager Resources;
+		public ViewportManager Viewport;
 		public MainWindow() : base(800,600,false,false)
 		{
 		}
@@ -35,6 +36,9 @@ namespace LancerEdit
 			guiHelper = new ImGuiHelper(this);
 			Audio = new AudioManager(this);
             FileDialog.RegisterParent(this);
+			Viewport = new ViewportManager(RenderState);
+			Resources = new ResourceManager(this);
+			Viewport.Push(0, 0, 800, 600);
 		}
 
 		bool openAbout = false;
@@ -49,7 +53,7 @@ namespace LancerEdit
 		protected override void Draw(double elapsed)
 		{
 			EnableTextInput();
-			RenderState.SetViewport(0, 0, Width, Height);
+			Viewport.Replace(0, 0, Width, Height);
 			RenderState.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
 			RenderState.ClearAll();
 			guiHelper.NewFrame(elapsed);

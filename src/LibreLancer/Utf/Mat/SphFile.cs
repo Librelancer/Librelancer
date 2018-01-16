@@ -55,7 +55,7 @@ namespace LibreLancer.Utf.Mat
                     for (int i = 0; i < sideMaterialNames.Count; i++)
                     {
                         sideMaterials[i] = library.FindMaterial(CrcTool.FLModelCrc(sideMaterialNames[i]));
-                        if (sideMaterials[i] == null) sideMaterials[i] = new Material();
+                        //if (sideMaterials[i] == null) sideMaterials[i] = new Material();
                     }
                 }
 
@@ -126,13 +126,13 @@ namespace LibreLancer.Utf.Mat
 				}
 			}
         }
-
+		Material defaultMaterial;
 		public void Initialize(ResourceManager cache)
         {
             if (sideMaterialNames.Count >= 6)
 			{
 				sphere = new QuadSphere(48);
-
+				defaultMaterial = cache.DefaultMaterial;
                 ready = true;
             }
         }
@@ -203,10 +203,12 @@ namespace LibreLancer.Utf.Mat
 					int start, count;
 					Vector3 pos;
 					sphere.GetDrawParameters(faces[i], out start, out count, out pos);
-                    SideMaterials[i].Render.Camera = _camera;
+					if(SideMaterials[i] == null) SideMaterials[i] = library.FindMaterial(CrcTool.FLModelCrc(sideMaterialNames[i]));
+					var mat = SideMaterials[i] ?? defaultMaterial;
+                    mat.Render.Camera = _camera;
 					var transform = Matrix4.CreateScale(Radius) * world;
 					buffer.AddCommand(
-						SideMaterials[i].Render,
+						mat.Render,
 						null,
 						transform,
 						lighting,
@@ -221,6 +223,11 @@ namespace LibreLancer.Utf.Mat
 				//Draw atmosphere
 				if (SideMaterials.Length > 6)
 				{
+					if (SideMaterials[6] == null)
+					{
+						SideMaterials[6] = library.FindMaterial(CrcTool.FLModelCrc(sideMaterialNames[6]));
+						if (SideMaterials[6] == null) return;
+					}
 					var mat = (AtmosphereMaterial)SideMaterials[6].Render;
 					var transform = Matrix4.CreateScale(Radius * mat.Scale) * world;
 					for (int i = 0; i < 6; i++)

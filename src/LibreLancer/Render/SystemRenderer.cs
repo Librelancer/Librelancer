@@ -69,7 +69,7 @@ namespace LibreLancer
 			}
 		}
 
-		public SystemRenderer(ICamera camera, LegacyGameData data, ResourceManager rescache)
+		public SystemRenderer(ICamera camera, LegacyGameData data, ResourceManager rescache, FreelancerGame game)
 		{
 			this.camera = camera;			
 			World = Matrix4.Identity;
@@ -80,7 +80,7 @@ namespace LibreLancer
 			Polyline = new PolylineRender(commands);
 			cache = rescache;
 			rstate = cache.Game.RenderState;
-			game = rescache.Game;
+			this.game = game;
 			dot = (Texture2D)rescache.FindTexture(ResourceManager.WhiteTextureName);
 			DebugRenderer = new PhysicsDebugRenderer();
 
@@ -135,7 +135,7 @@ namespace LibreLancer
 			{
 				foreach (var n in system.Nebulae)
 				{
-					Nebulae.Add(new NebulaRenderer(n, camera, cache.Game));
+					Nebulae.Add(new NebulaRenderer(n, camera, Game));
 				}
 			}
 

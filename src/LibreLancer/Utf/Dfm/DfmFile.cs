@@ -56,19 +56,17 @@ namespace LibreLancer.Utf.Dfm
 					yield return new DfmHardpoint() { Bone = b.Value, Hp = hp };
 			}
 		}
-		public DfmFile(string path, ILibFile additionalLibrary)
+
+		public DfmFile(IntermediateNode root, ILibFile additionalLibrary)
 		{
 			this.additionalLibrary = additionalLibrary;
-
-			Path = path;
-
 			Levels = new Dictionary<int, DfmMesh>();
 
 			Bones = new Dictionary<string, Bone>();
 			Parts = new Dictionary<int, DfmPart>();
 			Constructs = new ConstructCollection();
 
-			foreach (Node node in parseFile(path))
+			foreach (Node node in root)
 			{
 				switch (node.Name.ToLowerInvariant())
 				{
@@ -206,11 +204,11 @@ namespace LibreLancer.Utf.Dfm
 
 		public Texture FindTexture(string name)
 		{
-			if (TextureLibrary != null)
-			{
-				Texture texture = TextureLibrary.FindTexture(name);
-				if (texture != null) return texture;
-			}
+			//if (TextureLibrary != null)
+			//{
+				//Texture texture = TextureLibrary.FindTexture(name);
+				//if (texture != null) return texture;
+			//}
 			if (additionalLibrary != null) return additionalLibrary.FindTexture(name);
 			return null;
 
