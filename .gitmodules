@@ -13,3 +13,9 @@
 [submodule "extern/lidgren-network-gen3"]
 	path = extern/lidgren-network-gen3
 	url = https://github.com/lidgren/lidgren-network-gen3
+[submodule "extern/ImGui.NET"]
+	path = extern/ImGui.NET
+	url = https://github.com/mellinoe/ImGui.NET
+[submodule "extern/cimgui"]
+	path = extern/cimgui
+	url = https://github.com/Extrawurst/cimgui

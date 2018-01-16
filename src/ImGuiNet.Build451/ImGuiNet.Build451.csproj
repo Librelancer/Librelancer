@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{D24DBB87-1E3D-4080-ABFB-B21CBDDACD87}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>ImGuiNet.Build451</RootNamespace>
+    <AssemblyName>ImGuiNet</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Buffers">
+      <HintPath>..\packages\System.Buffers.4.4.0\lib\netstandard1.1\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.4.0\lib\netstandard1.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">
+      <Project>{C7A37830-B878-4008-A988-D7294D47F44D}</Project>
+      <Name>LibreLancer.Base</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="LibrelancerShim\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\ColorEditFlags.cs">
+      <Link>ColorEditFlags.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\ColorTarget.cs">
+      <Link>ColorTarget.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\ComboFlags.cs">
+      <Link>ComboFlags.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Condition.cs">
+      <Link>Condition.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\DragDropFlags.cs">
+      <Link>DragDropFlags.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\DrawCmd.cs">
+      <Link>DrawCmd.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\DrawData.cs">
+      <Link>DrawData.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\DrawList.cs">
+      <Link>DrawList.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\DrawVert.cs">
+      <Link>DrawVert.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\FocusedFlags.cs">
+      <Link>FocusedFlags.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Font.cs">
+      <Link>Font.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\FontAtlas.cs">
+      <Link>FontAtlas.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\FontConfig.cs">
+      <Link>FontConfig.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\GuiKey.cs">
+      <Link>GuiKey.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\HoveredFlags.cs">
+      <Link>HoveredFlags.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\ImGui.cs">
+      <Link>ImGui.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\ImGuiNative.cs">
+      <Link>ImGuiNative.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\ImVector.cs">
+      <Link>ImVector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\InputTextFlags.cs">
+      <Link>InputTextFlags.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\IntStructs.cs">
+      <Link>IntStructs.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\IO.cs">
+      <Link>IO.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\MouseCursorKind.cs">
+      <Link>MouseCursorKind.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\NativeIO.cs">
+      <Link>NativeIO.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\NativePayload.cs">
+      <Link>NativePayload.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\NativeStyle.cs">
+      <Link>NativeStyle.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Payload.cs">
+      <Link>Payload.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\SelectableFlags.cs">
+      <Link>SelectableFlags.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Storage.cs">
+      <Link>Storage.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Style.cs">
+      <Link>Style.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\StyleVar.cs">
+      <Link>StyleVar.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\TextEditCallback.cs">
+      <Link>TextEditCallback.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\TextEditCallbackData.cs">
+      <Link>TextEditCallbackData.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\TextInputBuffer.cs">
+      <Link>TextInputBuffer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\TreeNodeFlags.cs">
+      <Link>TreeNodeFlags.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\WindowFlags.cs">
+      <Link>WindowFlags.cs</Link>
+    </Compile>
+    <Compile Include="LibrelancerShim\Vector2.cs" />
+    <Compile Include="LibrelancerShim\Vector3.cs" />
+    <Compile Include="LibrelancerShim\Vector4.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>

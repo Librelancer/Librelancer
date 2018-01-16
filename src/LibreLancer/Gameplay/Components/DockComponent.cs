@@ -25,25 +25,42 @@ namespace LibreLancer
 		public string DockAnimation;
 		public int TriggerRadius;
 
+		string tlHP;
 		public DockComponent(GameObject parent) : base(parent)
 		{
 		}
 
-		public IEnumerable<Hardpoint> GetDockHardpoints()
+		public IEnumerable<Hardpoint> GetDockHardpoints(Vector3 position)
 		{
 			if (Action.Kind != DockKinds.Tradelane)
 			{
 				var hpname = DockHardpoint.Replace("DockMount", "DockPoint");
 				yield return Parent.GetHardpoint(hpname + "02");
 				yield return Parent.GetHardpoint(hpname + "01");
+				yield return Parent.GetHardpoint(DockHardpoint);
 			}
-			yield return Parent.GetHardpoint(DockHardpoint);
+			else if (Action.Kind == DockKinds.Tradelane)
+			{
+				var heading = position - Parent.PhysicsComponent.Position;
+				var fwd = new Matrix4(Parent.PhysicsComponent.Orientation).GetForward();
+				var dot = Vector3.Dot(heading, fwd);
+				if (dot > 0)
+				{
+					tlHP = "HpLeftLane";
+					yield return Parent.GetHardpoint("HpLeftLane");
+				}
+				else
+				{
+					tlHP = "HpRightLane";
+					yield return Parent.GetHardpoint("HpRightLane");
+				}
+			}
 		}
 
 		public bool TryTriggerAnimation(GameObject obj)
 		{
 			var rad = RadiusFromBoundingBox(obj.PhysicsComponent.Shape.BoundingBox);
-			foreach (var hps in GetDockHardpoints())
+			foreach (var hps in GetDockHardpoints(obj.PhysicsComponent.Position))
 			{
 				var targetPos = (hps.Transform * Parent.GetTransform()).Transform(Vector3.Zero);
 				var dist = (targetPos - obj.PhysicsComponent.Position).Length;
@@ -63,7 +80,7 @@ namespace LibreLancer
 			{
 				var control = obj.GetComponent<ShipControlComponent>();
 				control.Active = false;
-				var movement = new TradelaneMoveComponent(obj, Parent, DockHardpoint);
+				var movement = new TradelaneMoveComponent(obj, Parent, tlHP);
 				obj.Components.Add(movement);
 			}
 			return can;
@@ -71,9 +88,9 @@ namespace LibreLancer
 
 		public bool CanDock(GameObject obj)
 		{
-			var hp = Parent.GetHardpoint(DockHardpoint);
+			var hp = Parent.GetHardpoint(tlHP ?? DockHardpoint);
 			var targetPos = (hp.Transform * Parent.GetTransform()).Transform(Vector3.Zero);
-			if ((targetPos - obj.PhysicsComponent.Position).Length < (TriggerRadius + RadiusFromBoundingBox(obj.PhysicsComponent.Shape.BoundingBox)))
+			if ((targetPos - obj.PhysicsComponent.Position).Length < (TriggerRadius * 2 + RadiusFromBoundingBox(obj.PhysicsComponent.Shape.BoundingBox)))
 			{
 				return true;
 			}

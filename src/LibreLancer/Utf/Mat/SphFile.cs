@@ -60,6 +60,14 @@ namespace LibreLancer.Utf.Mat
             }
         }
 
+		public List<string> SideMaterialNames
+		{
+			get
+			{
+				return sideMaterialNames;
+			}
+		}
+
 		public SphFile(string path, ILibFile materialLibrary) : this(parseFile(path), materialLibrary)
 		{
 

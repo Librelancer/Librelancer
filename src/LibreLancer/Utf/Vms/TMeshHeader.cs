@@ -46,6 +46,14 @@ namespace LibreLancer.Utf.Vms
             }
         }
 
+		public uint MaterialCrc
+		{
+			get
+			{
+				return MaterialId;
+			}
+		}
+
         public ushort StartVertex { get; private set; }
         public ushort EndVertex { get; private set; }
         public ushort NumRefVertices { get; private set; }

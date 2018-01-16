@@ -34,7 +34,9 @@ namespace LibreLancer
 			var tgt = Parent.GetWorld().GetObject(lane == "HpRightLane" ? cmp.Action.Target : cmp.Action.TargetLeft);
 			if (tgt == null)
 			{
-				Parent.GetComponent<ShipControlComponent>().Active = true;
+				var ctrl = Parent.GetComponent<ShipControlComponent>();
+				ctrl.EnginePower = 0.4f;
+				ctrl.Active = true;
 				Parent.Components.Remove(this);
 				Parent.World.BroadcastMessage(Parent, GameMessageKind.ManeuverFinished);
 				return;
@@ -43,7 +45,7 @@ namespace LibreLancer
 			if (eng != null) eng.Speed = 0.9f;
 
 			var tgtcmp = tgt.GetComponent<DockComponent>();
-			var targetPoint = (tgtcmp.GetDockHardpoints().First().Transform * tgt.GetTransform()).Transform(Vector3.Zero);
+			var targetPoint = (tgt.GetHardpoint(lane).Transform * tgt.GetTransform()).Transform(Vector3.Zero);
 			var direction = targetPoint - Parent.PhysicsComponent.Position;
 			var distance = direction.Length;
 			if (distance < 200)
@@ -52,7 +54,7 @@ namespace LibreLancer
 				return;
 			}
 			direction.Normalize();
-			Parent.PhysicsComponent.LinearVelocity = direction * 1000;
+			Parent.PhysicsComponent.LinearVelocity = direction * 2500;
 
 			var currRot = Quaternion.FromMatrix(Parent.PhysicsComponent.Orientation);
 			var targetRot = Quaternion.LookAt(Parent.PhysicsComponent.Position, targetPoint);

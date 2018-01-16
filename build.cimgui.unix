@@ -1,0 +1,23 @@
+#!/bin/bash
+# TODO: Make this work on something that isn't Linux lmao
+echo CIMGUI build script - unix
+
+SRC_C=extern/cimgui/cimgui
+SRC_IM=extern/cimgui/imgui
+mkdir -p bin/Debug
+mkdir -p bin/Release
+set -x
+g++ -Wall -shared -fPIC -O2 -Iextern/cimgui/imgui -o libcimgui.so \
+ $SRC_C/cimgui.cpp \
+ $SRC_C/drawList.cpp \
+ $SRC_C/fontAtlas.cpp \
+ $SRC_C/listClipper.cpp \
+ $SRC_IM/imgui.cpp \
+ $SRC_IM/imgui_draw.cpp \
+ $SRC_IM/imgui_demo.cpp \
+ src/cimgui_dock/imgui_dock.cpp \
+ src/cimgui_dock/cimgui_dock.cpp
+
+cp libcimgui.so bin/Debug/libcimgui.so
+mv libcimgui.so bin/Release/libcimgui.so
+

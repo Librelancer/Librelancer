@@ -145,7 +145,7 @@ namespace LibreLancer
 			}
 		}
 
-		public Vector3 GetDirection(float t)
+		public Vector3 GetDirection(float t, bool reverse = false)
 		{
 			t = MathHelper.Clamp(t, 0, 1);
 			if (curve)
@@ -157,7 +157,7 @@ namespace LibreLancer
 					end = GetPosition(1);
 					while (true)
 					{
-						t -= 0.0001f;
+						t -= 0.001f;
 						start = GetPosition(t);
 						if ((end - start).Length > 0.001)
 							break;
@@ -166,21 +166,32 @@ namespace LibreLancer
 				else
 				{
 					start = GetPosition(t);
+					int j = 0;
 					while (true)
 					{
-						t += 0.0001f;
-						start = GetPosition(t);
+						j++;
+						t += 0.001f;
+						end = GetPosition(t);
 						if ((end - start).Length > 0.001)
 							break;
+						if (j > 3)
+						{
+							end = GetPosition(1);
+							break;
+						}
 					}
 				}
-				return (start - end).Normalized();
-				//t = t * ((DEGREE + 1) * 2 + points.Count);
-				//return new Vector3(getInterpol(seqX, t), getInterpol(seqY, t), getInterpol(seqZ, t));
+				if (reverse)
+					return (end - start).Normalized();
+				else
+					return (start - end).Normalized();
 			}
 			else
 			{
-				return (points[0] - points[1]).Normalized();
+				if (reverse)
+					return (points[1] - points[0]).Normalized();
+				else
+					return (points[0] - points[1]).Normalized();
 			}
 		}
 		public Quaternion GetOrientation(float t)

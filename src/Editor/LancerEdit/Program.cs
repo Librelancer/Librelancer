@@ -14,24 +14,13 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using System.IO;
 namespace LancerEdit
 {
-	enum FileType
+	class Program
 	{
-		Utf,
-		Ini
-	}
-	class DetectFileType
-	{
-		public static FileType Detect(string filename)
+		static void Main(string[] args)
 		{
-			using (var reader = new BinaryReader(File.OpenRead(filename)))
-			{
-				var str = System.Text.Encoding.ASCII.GetString(reader.ReadBytes(4));
-				if (str == "UTF ") if (reader.ReadInt32() == 257) return FileType.Utf;
-				return FileType.Ini;
-			}
+			new MainWindow().Run();
 		}
 	}
 }

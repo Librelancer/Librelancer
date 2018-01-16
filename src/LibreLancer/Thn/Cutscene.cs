@@ -681,7 +681,7 @@ namespace LibreLancer
 				var pos = path.GetPosition(pct);
 				if ((Flags & AttachFlags.LookAt) == AttachFlags.LookAt)
 				{
-					var orient = Matrix4.CreateFromQuaternion(LookRotation(path.GetDirection(pct), Vector3.UnitY));
+					var orient = Matrix4.CreateFromQuaternion(LookRotation(path.GetDirection(pct, StartPercent > StopPercent), Vector3.UnitY));
 					if ((Flags & AttachFlags.Position) == AttachFlags.Position)
 						SetPositionOrientation(pos + Path.Translate, orient);
 					else

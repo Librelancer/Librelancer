@@ -1,0 +1,234 @@
+﻿using System;
+using System.IO;
+using System.Runtime.InteropServices;
+using LibreLancer;
+using LibreLancer.Vertices;
+using ImGuiNET;
+namespace LancerEdit
+{
+	partial class ImGuiHelper
+	{
+		Game game;
+		//TODO: This is duplicated from Renderer2D
+		[StructLayout(LayoutKind.Sequential)]
+		struct Vertex2D : IVertexType
+		{
+			public Vector2 Position;
+			public Vector2 TexCoord;
+			public Color4 Color;
+
+			public Vertex2D(Vector2 position, Vector2 texcoord, Color4 color)
+			{
+				Position = position;
+				TexCoord = texcoord;
+				Color = color;
+			}
+
+			public VertexDeclaration GetVertexDeclaration()
+			{
+				return new VertexDeclaration(
+					sizeof(float) * 2 + sizeof(float) * 2 + sizeof(float) * 4,
+					new VertexElement(VertexSlots.Position, 2, VertexElementType.Float, false, 0),
+					new VertexElement(VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 2),
+					new VertexElement(VertexSlots.Color, 4, VertexElementType.Float, false, sizeof(float) * 4)
+				);
+			}
+		}
+		const string vertex_source = @"
+		#version 140
+		in vec2 vertex_position;
+		in vec2 vertex_texture1;
+		in vec4 vertex_color;
+		out vec2 out_texcoord;
+		out vec4 blendColor;
+		uniform mat4 modelviewproj;
+		void main()
+		{
+    		gl_Position = modelviewproj * vec4(vertex_position, 0.0, 1.0);
+    		blendColor = vertex_color;
+    		out_texcoord = vertex_texture1;
+		}
+		";
+
+		const string text_fragment_source = @"
+		#version 140
+		in vec2 out_texcoord;
+		in vec4 blendColor;
+		out vec4 out_color;
+		uniform sampler2D tex;
+		void main()
+		{
+			float alpha = texture(tex, out_texcoord).r;
+			out_color = vec4(blendColor.xyz, blendColor.a * alpha);
+		}
+		";
+		Shader shader;
+		Texture2D fontTexture;
+		const int FONT_TEXTURE_ID = 1;
+		Texture2D dot;
+		IntPtr ttfPtr;
+		public static ImGuiNET.Font Noto;
+		public static ImGuiNET.Font Default;
+		public ImGuiHelper(Game game)
+		{
+			this.game = game;
+			game.Keyboard.KeyDown += Keyboard_KeyDown;
+			game.Keyboard.KeyUp += Keyboard_KeyUp;
+			game.Keyboard.TextInput += Keyboard_TextInput;
+			SetKeyMappings();
+			var io = ImGui.GetIO();
+			unsafe
+			{
+				io.GetNativePointer()->IniFilename = IntPtr.Zero;
+			}
+			Default = io.FontAtlas.AddDefaultFont();
+			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LancerEdit.UILib.Roboto-Medium.ttf"))
+			{
+				var ttf = new byte[stream.Length];
+				stream.Read(ttf, 0, ttf.Length);
+				ttfPtr = Marshal.AllocHGlobal(ttf.Length);
+				Marshal.Copy(ttf, 0, ttfPtr, ttf.Length);
+				Noto = io.FontAtlas.AddFontFromMemoryTTF(ttfPtr, ttf.Length, 15);
+			}
+			FontTextureData texData = io.FontAtlas.GetTexDataAsAlpha8();
+			fontTexture = new Texture2D(texData.Width, texData.Height, false, SurfaceFormat.R8);
+			var bytes = new byte[texData.Width * texData.Height * texData.BytesPerPixel];
+			unsafe
+			{
+				Marshal.Copy((IntPtr)texData.Pixels, bytes, 0, texData.Width * texData.Height * texData.BytesPerPixel);
+			}
+			fontTexture.SetData(bytes);
+			fontTexture.SetFiltering(TextureFiltering.Linear);
+			io.FontAtlas.SetTexID(FONT_TEXTURE_ID);
+			io.FontAtlas.ClearTexData();
+			shader = new Shader(vertex_source, text_fragment_source);
+			dot = new Texture2D(1, 1, false, SurfaceFormat.Color);
+			var c = new Color4b[] { Color4b.White };
+			dot.SetData(c);
+		}
+
+		void Keyboard_TextInput(string text)
+		{
+			foreach (var c in text)
+				ImGui.AddInputCharacter(c);
+		}
+
+		void Keyboard_KeyDown(KeyEventArgs e)
+		{
+			var io = ImGui.GetIO();
+			if (mappedKeys.Contains(e.Key)) io.KeysDown[(int)mappedKeys.IndexOf(e.Key)] = true;
+			io.AltPressed = ((e.Modifiers & KeyModifiers.LeftAlt) == KeyModifiers.LeftAlt);
+			io.CtrlPressed = ((e.Modifiers & KeyModifiers.LeftControl) == KeyModifiers.LeftControl);
+			io.ShiftPressed = ((e.Modifiers & KeyModifiers.LeftShift) == KeyModifiers.LeftShift);
+		}
+
+		void Keyboard_KeyUp(KeyEventArgs e)
+		{
+			var io = ImGui.GetIO();
+			if (mappedKeys.Contains(e.Key)) io.KeysDown[(int)mappedKeys.IndexOf(e.Key)] = false;
+			io.AltPressed = ((e.Modifiers & KeyModifiers.LeftAlt) == KeyModifiers.LeftAlt);
+			io.CtrlPressed = ((e.Modifiers & KeyModifiers.LeftControl) == KeyModifiers.LeftControl);
+			io.ShiftPressed = ((e.Modifiers & KeyModifiers.LeftShift) == KeyModifiers.LeftShift);
+		}
+
+
+		public void NewFrame(double elapsed)
+		{
+			IO io = ImGui.GetIO();
+			io.DisplaySize = new Vector2(game.Width, game.Height);
+			io.DisplayFramebufferScale = new Vector2(1, 1);
+			io.DeltaTime = (float)elapsed;
+			//Update input
+			io.MousePosition = new Vector2(game.Mouse.X, game.Mouse.Y);
+			io.MouseDown[0] = game.Mouse.IsButtonDown(MouseButtons.Left);
+			io.MouseDown[1] = game.Mouse.IsButtonDown(MouseButtons.Right);
+			io.MouseDown[2] = game.Mouse.IsButtonDown(MouseButtons.Middle);
+			//TODO: Mouse Wheel
+			//Do stuff
+			ImGui.NewFrame();
+		}
+
+		public void Render(RenderState rstate)
+		{
+			ImGui.Render();
+			unsafe
+			{
+				DrawData* data = ImGui.GetDrawData();
+				RenderImDrawData(data, rstate);
+			}
+		}
+
+		VertexBuffer vbo;
+		ElementBuffer ibo;
+		ushort[] ibuffer;
+		Vertex2D[] vbuffer;
+		int vboSize = -1;
+		int iboSize = -1;
+		unsafe void RenderImDrawData(DrawData* draw_data, RenderState rstate)
+		{
+			var io = ImGui.GetIO();
+			ImGui.ScaleClipRects(draw_data, io.DisplayFramebufferScale);
+
+			var mat = Matrix4.CreateOrthographicOffCenter(0, game.Width, game.Height, 0, 0, 1);
+			shader.SetMatrix(shader.GetLocation("modelviewproj"), ref mat);
+			shader.SetInteger(shader.GetLocation("tex"), 0);
+			shader.UseProgram();
+			rstate.Cull = false;
+			rstate.BlendMode = BlendMode.Normal;
+			rstate.DepthEnabled = false;
+			for (int n = 0; n < draw_data->CmdListsCount; n++)
+			{
+				var cmd_list = draw_data->CmdLists[n];
+				byte* vtx_buffer = (byte*)cmd_list->VtxBuffer.Data;
+				ushort* idx_buffer = (ushort*)cmd_list->IdxBuffer.Data;
+				var vtxCount = cmd_list->VtxBuffer.Size;
+				var idxCount = cmd_list->IdxBuffer.Size;
+				if (vboSize < vtxCount || iboSize < idxCount)
+				{
+					if (vbo != null) vbo.Dispose();
+					if (ibo != null) ibo.Dispose();
+					vboSize = Math.Max(vboSize, vtxCount);
+					iboSize = Math.Max(iboSize, idxCount);
+					vbo = new VertexBuffer(typeof(Vertex2D), vboSize, true);
+					ibo = new ElementBuffer(iboSize, true);
+					vbo.SetElementBuffer(ibo);
+					vbuffer = new Vertex2D[vboSize];
+					ibuffer = new ushort[iboSize];
+				}
+				for (int i = 0; i < cmd_list->IdxBuffer.Size; i++)
+				{
+					ibuffer[i] = idx_buffer[i];
+				}
+				for (int i = 0; i < cmd_list->VtxBuffer.Size; i++)
+				{
+					var ptr = (DrawVert*)vtx_buffer;
+					var unint = ptr[i].col;
+					var a = unint >> 24 & 0xFF;
+					var b = unint >> 16 & 0xFF;
+					var g = unint >> 8 & 0xFF;
+					var r = unint & 0xFF;
+					vbuffer[i] = new Vertex2D(ptr[i].pos, ptr[i].uv, new Color4(r / 255f, g / 255f, b / 255f, a / 255f));
+				}
+				vbo.SetData(vbuffer, cmd_list->VtxBuffer.Size);
+				ibo.SetData(ibuffer, cmd_list->IdxBuffer.Size);
+				int startIndex = 0;
+				for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
+				{
+					var pcmd = &(((DrawCmd*)cmd_list->CmdBuffer.Data)[cmd_i]);
+					//TODO: Do something with pcmd->UserCallback ??
+
+					(pcmd->TextureId.ToInt32() == FONT_TEXTURE_ID ? fontTexture : dot).BindTo(0);
+					GL.Enable(GL.GL_SCISSOR_TEST);
+					GL.Scissor(
+					(int)pcmd->ClipRect.X,
+					(int)(io.DisplaySize.Y - pcmd->ClipRect.W),
+					(int)(pcmd->ClipRect.Z - pcmd->ClipRect.X),
+					(int)(pcmd->ClipRect.W - pcmd->ClipRect.Y));
+					vbo.Draw(PrimitiveTypes.TriangleList, 0, startIndex, (int)pcmd->ElemCount / 3);
+					GL.Disable(GL.GL_SCISSOR_TEST);
+					startIndex += (int)pcmd->ElemCount;
+				}
+			}
+		}
+	}
+}
