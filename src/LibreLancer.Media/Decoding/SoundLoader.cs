@@ -35,7 +35,7 @@ namespace LibreLancer.Media
 					//TODO: Opus
 					return VorbisLoader.GetSound(stream);
 				default:
-					return Mp3Utils.GetSound(stream, null);
+					return Mp3Utils.GetSound(stream);
 			}
 		}
 	}
