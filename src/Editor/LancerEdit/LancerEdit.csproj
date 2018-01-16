@@ -48,6 +48,7 @@
     <Compile Include="UILib\MemoryEditor.cs" />
     <Compile Include="DockTab.cs" />
     <Compile Include="TextureViewer.cs" />
+    <Compile Include="DataEditors.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">
