@@ -31,8 +31,10 @@ namespace LibreLancer
 		List<string> names = new List<string>();
 		public ScreenshotManager(FreelancerGame game)
 		{
-			new Thread(new ThreadStart(SaveThread)).Start();
-			g = game;
+			Thread thr = new Thread(new ThreadStart(SaveThread));
+            thr.Name = "ScreenshotSaver";
+            thr.Start();
+            g = game;
 			screenshotdir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "FreelancerShots");
 		}
 		public void TakeScreenshot()

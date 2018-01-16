@@ -42,7 +42,8 @@ namespace LibreLancer
 		{
 			running = true;
 			networkThread = new Thread(NetworkThread);
-			networkThread.Start();
+            networkThread.Name = "NetClient";
+            networkThread.Start();
 		}
 
 		public void Stop()

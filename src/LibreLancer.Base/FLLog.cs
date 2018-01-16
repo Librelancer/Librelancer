@@ -67,7 +67,7 @@ namespace LibreLancer
 		static BlockingCollection<NonblockingWrite> m_Queue = new BlockingCollection<NonblockingWrite>();
 		static FLLog()
 		{
-			var thread = new Thread(
+			Thread thread = new Thread(
 	 		() =>
 	 		{
 				 while (true)
@@ -93,7 +93,9 @@ namespace LibreLancer
 				 }
 	 		});
 			thread.IsBackground = true;
-			thread.Start();
+            thread.Name = "Log";
+
+            thread.Start();
 		}
 		static void NonblockWrite(ConsoleColor color, string message)
 		{

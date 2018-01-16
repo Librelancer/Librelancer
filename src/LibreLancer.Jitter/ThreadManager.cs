@@ -102,6 +102,7 @@ namespace LibreLancer.Jitter
                     ThreadProc();
                 });
 
+                threads[i].Name = $"Worker_{i}";
                 threads[i].Start();
                 initWaitHandle.WaitOne();
             }

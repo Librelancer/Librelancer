@@ -51,7 +51,8 @@ namespace Launcher
 
         public static void Run()
         {
-            var thread = new Thread(StartGame);
+            Thread thread = new Thread(StartGame);
+            thread.Name = "Main";
             thread.Start();
             Application.MainLoop.DispatchPendingEvents();
             thread.Join();

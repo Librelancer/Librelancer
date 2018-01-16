@@ -87,15 +87,17 @@ namespace LibreLancer
 			GameData = new LegacyGameData(_cfg.FreelancerPath, ResourceManager);
 			IntroMovies = GameData.GetIntroMovies();
 			MpvOverride = _cfg.MpvOverride;
-			new Thread(() =>
-			{
-				GameData.LoadData();
-				Sound = new SoundManager(GameData, Audio);
-				FLLog.Info("Game", "Finished loading game data");
-				InitialLoadComplete = true;
-			}).Start();
-			//
-			Renderer2D = new Renderer2D(RenderState);
+            Thread GameDataLoaderThread = new Thread(() =>
+            {
+                GameData.LoadData();
+                Sound = new SoundManager(GameData, Audio);
+                FLLog.Info("Game", "Finished loading game data");
+                InitialLoadComplete = true;
+            });
+            GameDataLoaderThread.Name = "GamedataLoader";
+            GameDataLoaderThread.Start();
+            //
+            Renderer2D = new Renderer2D(RenderState);
 			Fonts = new FontManager(this);
 			Billboards = new Billboards ();
 			Nebulae = new NebulaVertices();
