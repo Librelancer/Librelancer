@@ -4,15 +4,19 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-void igShutdownDock();
-void igRootDock(float posx, float posy, float sizex, float sizey);
-bool igBeginDock(const char *label, bool *opened, int extra_flags);
-void igEndDock();
-void igSetDockActive();
-void igLoadDock();
-void igSaveDock();
-void igPrint();
+#ifdef _WIN32
+#define IGEXPORT __declspec(dllexport)
+#else
+#define IGEXPORT
+#endif
+IGEXPORT void igShutdownDock();
+IGEXPORT void igRootDock(float posx, float posy, float sizex, float sizey);
+IGEXPORT bool igBeginDock(const char *label, bool *opened, int extra_flags);
+IGEXPORT void igEndDock();
+IGEXPORT void igSetDockActive();
+IGEXPORT void igLoadDock();
+IGEXPORT void igSaveDock();
+IGEXPORT void igPrint();
 #ifdef __cplusplus
 }
 #endif

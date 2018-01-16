@@ -19,6 +19,14 @@ packages/
 *.suo
 *.sln
 !/slngen/slngen.sln
+*.pdb
+*.exp
+*.iobj
+*.ipdb
+*.lib
+*.opendb
+.vs/
+
 
 # Sublime Text
 *.sublime-project

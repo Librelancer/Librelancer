@@ -14,19 +14,20 @@ Pull Requests are welcome!
 #### Windows
 *Note:* SDL2, OpenAL-Soft and Freetype for windows are included in this repository.
 
-1. Make sure you have the .NET Framework 4.5 installed with Visual Studio 2015
+1. Make sure you have the .NET Framework 4.5 installed with Visual Studio 2017 (optional 2015 for rebuilding cimgui)
 2. Clone this repository _and submodules_ with whichever client you choose
 3. Run slngen.bat in the repository root
 4. Restore nuget packages (Visual Studio does this automatically)
-5. Build src/LibreLancer.Linux.sln, and launch *Launcher*
+5. Build src/LibreLancer.Windows.sln, and launch *Launcher*
 
 #### Linux
 *Note for Ubuntu users: the official mono package must be installed as outlined [here](http://www.mono-project.com/docs/getting-started/install/linux/#debian-ubuntu-and-derivatives)*
 1. Install mpv, mono, sdl2, openal, nuget and freetype
 2. Clone this repository with `git clone --recursive https://github.com/CallumDev/Librelancer`
 3. Run slngen.unix in the repository root (Requires command line nuget for first run)
-4. Restore nuget packages (MonoDevelop does this automatically)
-5. Build src/LibreLancer.Linux.sln in MonoDevelop or with xbuild, and launch *Launcher*
+4. *Optional* Run `build.cimgui.unix` to produce libcimgui.so for the editor
+5. Restore nuget packages (MonoDevelop does this automatically)
+6. Build src/LibreLancer.Linux.sln in MonoDevelop or with xbuild, and launch *Launcher*
 
 
 #### Mac

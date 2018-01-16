@@ -14,13 +14,26 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.IO;
+using System.Runtime.InteropServices;
+using LibreLancer;
 namespace LancerEdit
 {
 	class Program
 	{
-		static void Main(string[] args)
+        [DllImport("kernel32.dll")]
+        static extern bool SetDllDirectory(string directory);
+
+        [STAThread]
+        static void Main(string[] args)
 		{
-			new MainWindow().Run();
+            if (Platform.RunningOS == OS.Windows)
+            {
+                string bindir = Path.GetDirectoryName(typeof(Program).Assembly.Location);
+                var fullpath = Path.Combine(bindir, IntPtr.Size == 8 ? "x64" : "x86");
+                SetDllDirectory(fullpath);
+            }
+            new MainWindow().Run();
 		}
 	}
 }

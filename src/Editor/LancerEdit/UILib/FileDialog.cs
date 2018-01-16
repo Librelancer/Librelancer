@@ -6,13 +6,26 @@ namespace LancerEdit
 {
 	static class FileDialog
 	{
-		public static string Open()
+        static dynamic parentForm;
+        public static void RegisterParent(Game game)
+        {
+            if (Platform.RunningOS != OS.Windows) return;
+            IntPtr ptr;
+            if ((ptr = game.GetHwnd()) == IntPtr.Zero) return;
+            LoadSwf();
+            var t = winforms.GetType("System.Windows.Forms.Control");
+            var method = t.GetMethod("FromHandle", BindingFlags.Public | BindingFlags.Static);
+            parentForm = method.Invoke(null, new object[] { ptr });
+        }
+
+        public static string Open()
 		{
 			if (Platform.RunningOS == OS.Windows)
 			{
 				string result = null;
 				using (var ofd = NewObj("System.Windows.Forms.OpenFileDialog"))
 				{
+                    if (parentForm != null) ofd.Parent = parentForm;
 					if (ofd.ShowDialog() == SwfOk())
 					{
 						result = ofd.FileName;
@@ -39,7 +52,8 @@ namespace LancerEdit
 				string result = null;
 				using (var sfd = NewObj("System.Windows.Forms.SaveFileDialog"))
 				{
-					if (sfd.ShowDialog() == SwfOk())
+                    if (parentForm != null) sfd.Parent = parentForm;
+                    if (sfd.ShowDialog() == SwfOk())
 					{
 						result = sfd.FileName;
 					}
@@ -58,25 +72,28 @@ namespace LancerEdit
 			}
 		}
 
-		static Assembly winforms;
+        const string WINFORMS_NAME = "System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
+        static Assembly winforms;
+        static void LoadSwf()
+        {
+            if (winforms == null)
+                winforms = Assembly.Load(WINFORMS_NAME);
+        }
 		static dynamic NewObj(string type)
 		{
-			if (winforms == null)
-				winforms = Assembly.LoadFrom("System.Windows.Forms");
+            LoadSwf();
 			return Activator.CreateInstance(winforms.GetType(type));
 		}
 
 		static dynamic SwfOk()
 		{
-			if (winforms == null)
-				winforms = Assembly.Load("System.Windows.Forms");
+            LoadSwf();
 			var type = winforms.GetType("System.Windows.Forms.DialogResult");
 			return Enum.Parse(type, "OK");
 		}
 		static void WinformsDoEvents()
 		{
-			if (winforms == null)
-				winforms = Assembly.Load("System.Windows.Forms");
+            LoadSwf();
 			var t = winforms.GetType("System.Windows.Forms.Application");
 			var method = t.GetMethod("DoEvents", BindingFlags.Public | BindingFlags.Static);
 			method.Invoke(null, null);

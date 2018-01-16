@@ -160,6 +160,8 @@ namespace LibreLancer
         {
             GL.DeleteBuffer(VBO);
 			GL.DeleteVertexArray (VAO);
+            GLBind.VertexArray(0);
+            GLBind.VertexBuffer(0);
         }
     }
 }

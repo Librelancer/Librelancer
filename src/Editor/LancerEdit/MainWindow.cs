@@ -34,6 +34,7 @@ namespace LancerEdit
 			Title = "LancerEdit";
 			guiHelper = new ImGuiHelper(this);
 			Audio = new AudioManager(this);
+            FileDialog.RegisterParent(this);
 		}
 
 		bool openAbout = false;

@@ -22,19 +22,19 @@ namespace LancerEdit
 			return ptr;
 		}
 
-		[DllImport("cimgui", EntryPoint = "igShutdownDock")]
+		[DllImport("cimgui", EntryPoint = "igShutdownDock", CallingConvention = CallingConvention.Cdecl)]
 		public static extern void ShutdownDock();
 
-		[DllImport("cimgui", EntryPoint = "igEndDock")]
+		[DllImport("cimgui", EntryPoint = "igEndDock", CallingConvention = CallingConvention.Cdecl)]
 		public static extern void EndDock();
 
-		[DllImport("cimgui", EntryPoint = "igSetDockActive")]
+		[DllImport("cimgui", EntryPoint = "igSetDockActive", CallingConvention = CallingConvention.Cdecl)]
 		public static extern void SetDockActive();
 
-		[DllImport("cimgui", EntryPoint = "igRootDock")]
+		[DllImport("cimgui", EntryPoint = "igRootDock", CallingConvention = CallingConvention.Cdecl)]
 		public static extern void RootDock(float posx, float posy, float sizew, float sizeh);
 
-		[DllImport("cimgui")]
+		[DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
 		static extern bool igBeginDock([MarshalAs(UnmanagedType.LPStr)]string label, IntPtr opened, int extraflags);
 
 		public static unsafe bool BeginDock(string label, ref bool opened, WindowFlags extraflags)
@@ -50,7 +50,7 @@ namespace LancerEdit
 			return igBeginDock(label, IntPtr.Zero, 0);
 		}
 
-		[DllImport("cimgui", EntryPoint = "igSaveDock")]
+		[DllImport("cimgui", EntryPoint = "igSaveDock", CallingConvention = CallingConvention.Cdecl)]
 		public static extern void SaveDock();
 	}
 }

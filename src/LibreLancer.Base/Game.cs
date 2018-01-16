@@ -59,6 +59,16 @@ namespace LibreLancer
 			}
 		}
 
+        public IntPtr GetHwnd()
+        {
+            if (Platform.RunningOS != OS.Windows) return IntPtr.Zero;
+            var wminfo = new SDL.SDL_SysWMinfo();
+            SDL.SDL_VERSION(out wminfo.version);
+            if (SDL.SDL_GetWindowWMInfo(windowptr, ref wminfo) != SDL.SDL_bool.SDL_TRUE) return IntPtr.Zero;
+            if (wminfo.subsystem != SDL.SDL_SYSWM_TYPE.SDL_SYSWM_WINDOWS) return IntPtr.Zero;
+            return wminfo.info.win.window;
+        }
+
 		public bool MouseVisible
 		{
 			get
