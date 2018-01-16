@@ -20,5 +20,5 @@ void main()
 	N = normalize(mat3(View * World) * vertex_normal);
 	V = normalize(-vec3((View * World) * p));
 
-	out_texcoord = vertex_texture1;
+	out_texcoord = vec2(vertex_texture1.x, 1 - vertex_texture1.y);
 }

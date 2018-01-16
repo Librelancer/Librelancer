@@ -25,14 +25,17 @@ namespace LancerEdit
 		[DllImport("cimgui", EntryPoint = "igShutdownDock", CallingConvention = CallingConvention.Cdecl)]
 		public static extern void ShutdownDock();
 
+		[DllImport("cimgui", EntryPoint = "igEndDockspace", CallingConvention = CallingConvention.Cdecl)]
+		public static extern void EndDockspace();
+
 		[DllImport("cimgui", EntryPoint = "igEndDock", CallingConvention = CallingConvention.Cdecl)]
 		public static extern void EndDock();
 
 		[DllImport("cimgui", EntryPoint = "igSetDockActive", CallingConvention = CallingConvention.Cdecl)]
 		public static extern void SetDockActive();
 
-		[DllImport("cimgui", EntryPoint = "igRootDock", CallingConvention = CallingConvention.Cdecl)]
-		public static extern void RootDock(float posx, float posy, float sizew, float sizeh);
+		[DllImport("cimgui", EntryPoint = "igBeginDockspace", CallingConvention = CallingConvention.Cdecl)]
+		public static extern void BeginDockspace();
 
 		[DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
 		static extern bool igBeginDock([MarshalAs(UnmanagedType.LPStr)]string label, IntPtr opened, int extraflags);

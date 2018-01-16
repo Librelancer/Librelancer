@@ -33,6 +33,7 @@ namespace LancerEdit
 			Utf = utf;
 			Title = title;
 			text = new TextBuffer();
+			main.Resources.AddResources(utf.Export(), Unique.ToString());
 		}
 		MemoryEditor mem;
 		byte[] hexdata;
@@ -43,6 +44,7 @@ namespace LancerEdit
 		public override void Dispose()
 		{
 			text.Dispose();
+			main.Resources.RemoveResourcesForId(Unique.ToString());
 		}
 
 		bool HasChild(LUtfNode node, string name)

@@ -27,7 +27,7 @@ namespace LibreLancer.Utf.Mat
 		protected ILibFile textureLibrary;
 		protected Shader effect = null;
 
-		public bool IsDisposed { get { return false; } }
+		public bool Loaded = true;
 
 		public string type { get; private set; }
 
@@ -157,6 +157,7 @@ namespace LibreLancer.Utf.Mat
 		{
 			get
 			{
+				if (!Loaded) throw new Exception("Material unloaded"); //Should never happen
 				if (_rmat == null)
 					Initialize();
 				return _rmat;

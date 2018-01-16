@@ -38,11 +38,12 @@ namespace LancerEdit
 			buffer = commands;
 		}
 
+		Vector2 rotation = Vector2.Zero;
 		public override bool Draw()
 		{
 			if (ImGuiExt.BeginDock(Title + "##" + Unique, ref open, 0))
 			{
-				var renderWidth = Math.Max(120, (int)ImGui.GetWindowWidth() - 5);
+				var renderWidth = Math.Max(120, (int)ImGui.GetWindowWidth() - 15);
 				var renderHeight = Math.Max(120, (int)ImGui.GetWindowHeight() - 40);
 				//Generate render target
 				if (rh != renderHeight || rw != renderWidth)
@@ -59,7 +60,20 @@ namespace LancerEdit
 				}
 				DrawGL(renderWidth, renderHeight);
 				//Draw Image
-				ImGui.Image((IntPtr)rid, new Vector2(renderWidth, renderHeight), Vector2.Zero, Vector2.One, Vector4.One, Vector4.One);
+				//ImGui.Image((IntPtr)rid, new Vector2(renderWidth, renderHeight), Vector2.Zero, Vector2.One, Vector4.One, Vector4.One);
+				ImGui.ImageButton((IntPtr)rid, new Vector2(renderWidth, renderHeight),
+								  Vector2.Zero, Vector2.One,
+								  0,
+								  Vector4.One, Vector4.One);
+				if (ImGui.IsItemHovered(HoveredFlags.Default))
+				{
+					if (ImGui.IsMouseDragging(0, 1f))
+					{
+						var delta = (Vector2)ImGui.GetMouseDragDelta(0, 1f);
+						rotation -= (delta / 64);
+						ImGui.ResetMouseDragDelta(0);
+					}
+				}
 			}
 			ImGuiExt.EndDock();
 			return open;
@@ -72,7 +86,7 @@ namespace LancerEdit
 			rstate.Cull = true;
 			var cc = rstate.ClearColor;
 			rstate.DepthEnabled = true;
-			rstate.ClearColor = Color4.CornflowerBlue;
+			rstate.ClearColor = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
 			rstate.ClearAll();
 			vps.Push(0, 0, renderWidth, renderHeight);
 			//Draw Model
@@ -86,7 +100,8 @@ namespace LancerEdit
 			buffer.StartFrame();
 			drawable.Update(cam, TimeSpan.Zero, TimeSpan.Zero);
 			drawable.Update(cam, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0));
-			drawable.DrawBuffer(buffer, Matrix4.Identity, Lighting.Empty);
+			var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+			drawable.DrawBuffer(buffer, matrix, Lighting.Empty);
 			buffer.DrawOpaque(rstate);
 			rstate.DepthWrite = false;
 			buffer.DrawTransparent(rstate);

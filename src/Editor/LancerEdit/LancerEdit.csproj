@@ -50,6 +50,7 @@
     <Compile Include="TextureViewer.cs" />
     <Compile Include="DataEditors.cs" />
     <Compile Include="ModelViewer.cs" />
+    <Compile Include="ResourcesTab.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">

@@ -6,9 +6,9 @@ IGEXPORT void igShutdownDock()
 {
 	ImGui::ShutdownDock();
 }
-IGEXPORT void igRootDock(float posx, float posy, float sizex, float sizey)
+IGEXPORT void igBeginDockspace()
 {
-	ImGui::RootDock(ImVec2(posx, posy), ImVec2(sizex, sizey));
+	ImGui::BeginDockspace();
 }
 IGEXPORT bool igBeginDock(const char *label, bool *opened, int extra_flags)
 {
@@ -17,6 +17,10 @@ IGEXPORT bool igBeginDock(const char *label, bool *opened, int extra_flags)
 IGEXPORT void igEndDock()
 {
 	ImGui::EndDock();
+}
+IGEXPORT void igEndDockspace()
+{
+	ImGui::EndDockspace();
 }
 IGEXPORT void igSetDockActive()
 {
@@ -29,8 +33,4 @@ IGEXPORT void igLoadDock()
 IGEXPORT void igSaveDock()
 {
 	ImGui::SaveDock();
-}
-IGEXPORT void igPrint()
-{
-	ImGui::Print();
 }

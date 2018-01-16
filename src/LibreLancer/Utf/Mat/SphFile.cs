@@ -198,6 +198,8 @@ namespace LibreLancer.Utf.Mat
 				return;
 			if (ready)
 			{
+				for (int i = 0; i < SideMaterials.Length; i++)
+					if (SideMaterials[i] != null && !SideMaterials[i].Loaded) SideMaterials[i].Loaded = false;
 				for (int i = 0; i < 6; i++)
 				{
 					int start, count;

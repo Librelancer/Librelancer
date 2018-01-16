@@ -30,6 +30,7 @@ namespace LibreLancer
 
 		Dictionary<uint, VMeshData> meshes = new Dictionary<uint, VMeshData>();
 		Dictionary<uint, Material> materials = new Dictionary<uint, Material>();
+		Dictionary<uint, string> materialfiles = new Dictionary<uint, string>();
 		Dictionary<string, Texture> textures = new Dictionary<string, Texture>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, string> texturefiles = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, IDrawable> drawables = new Dictionary<string, IDrawable>(StringComparer.OrdinalIgnoreCase);
@@ -40,6 +41,20 @@ namespace LibreLancer
 		List<string> loadedResFiles = new List<string>();
 		List<string> preloadFiles = new List<string>();
 
+		public Dictionary<string, Texture> TextureDictionary
+		{
+			get
+			{
+				return textures;
+			}
+		}
+		public Dictionary<uint, Material> MaterialDictionary
+		{
+			get
+			{
+				return materials;
+			}
+		}
 		public ResourceManager(Game g) : this()
 		{
 			Game = g;
@@ -172,6 +187,45 @@ namespace LibreLancer
 			return meshes [vMeshLibId];
 		}
 
+		public void AddResources(Utf.IntermediateNode node, string id)
+		{
+			MatFile mat;
+			TxmFile txm;
+			VmsFile vms;
+			Utf.UtfLoader.LoadResourceNode(node, this, out mat, out txm, out vms);
+			if (mat != null) AddMaterials(mat, id);
+			if (txm != null) AddTextures(txm, id);
+			if (vms != null) AddMeshes(vms);
+		}
+
+		public void RemoveResourcesForId(string id)
+		{
+			List<string> removeTex = new List<string>();
+			foreach (var tex in textures)
+			{
+				if (texturefiles[tex.Key] == id)
+				{
+					texturefiles.Remove(tex.Key);
+					tex.Value.Dispose();
+					removeTex.Add(tex.Key);
+				}
+			}
+			foreach (var key in removeTex) textures.Remove(key);
+			List<uint> removeMats = new List<uint>();
+			foreach (var mat in materials)
+			{
+				if (materialfiles[mat.Key] == id)
+				{
+					materialfiles.Remove(mat.Key);
+					mat.Value.Loaded = false;
+					removeMats.Add(mat.Key);
+				}
+			}
+			foreach (var key in removeMats) materials.Remove(key);
+		}
+
+
+
 		public void LoadResourceFile(string filename)
 		{
 			MatFile mat;
@@ -216,8 +270,11 @@ namespace LibreLancer
 				AddTextures(m.TextureLibrary, filename);
 			}
 			foreach (var kv in m.Materials) {
-				if(!materials.ContainsKey(kv.Key))
-					materials.Add (kv.Key, kv.Value);
+				if (!materials.ContainsKey(kv.Key))
+				{
+					materials.Add(kv.Key, kv.Value);
+					materialfiles.Add(kv.Key, filename);
+				}
 			}
 		}
 		void AddMeshes(VmsFile vms)

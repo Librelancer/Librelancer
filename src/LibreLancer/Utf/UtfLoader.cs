@@ -48,12 +48,11 @@ namespace LibreLancer.Utf
 			if (dr is CmpFile) ((CmpFile)dr).Path = file;
 			return dr;
 		}
-		public static void LoadResourceFile(string file, ILibFile library, out MatFile materials, out TxmFile textures, out Vms.VmsFile vms)
+		public static void LoadResourceNode(IntermediateNode root, ILibFile library, out MatFile materials, out TxmFile textures, out Vms.VmsFile vms)
 		{
 			materials = null;
 			textures = null;
 			vms = null;
-			var root = parseFile(file);
 			foreach (Node node in root)
 			{
 				switch (node.Name.ToLowerInvariant())
@@ -72,6 +71,14 @@ namespace LibreLancer.Utf
 						break;
 				}
 			}
+		}
+		public static void LoadResourceFile(string file, ILibFile library, out MatFile materials, out TxmFile textures, out Vms.VmsFile vms)
+		{
+			materials = null;
+			textures = null;
+			vms = null;
+			var root = parseFile(file);
+			LoadResourceNode(root, library, out materials, out textures, out vms);
 		}
 	}
 }

@@ -27,8 +27,12 @@ namespace LancerEdit
 		public ResourceManager Resources;
 		public ViewportManager Viewport;
 		public CommandBuffer Commands; //This is a huge object - only have one
+		public MaterialMap MaterialMap;
 		public MainWindow() : base(800,600,false,false)
 		{
+			MaterialMap = new MaterialMap();
+			MaterialMap.AddRegex(new LibreLancer.Ini.StringKeyValue("^nomad.*$", "NomadMaterialNoBendy"));
+			MaterialMap.AddRegex(new LibreLancer.Ini.StringKeyValue("^n-texture.*$", "NomadMaterialNoBendy"));
 		}
 
 		protected override void Load()
@@ -44,7 +48,7 @@ namespace LancerEdit
 		}
 
 		bool openAbout = false;
-		List<DockTab> tabs = new List<DockTab>();
+		public List<DockTab> tabs = new List<DockTab>();
 		List<DockTab> toAdd = new List<DockTab>();
 		double frequency = 0;
 		int updateTime = 10;
@@ -77,6 +81,14 @@ namespace LancerEdit
 				}
 				ImGui.EndMenu();
 			}
+			if (ImGui.BeginMenu("Tools"))
+			{
+				if (ImGui.MenuItem("Resources"))
+				{
+					tabs.Add(new ResourcesTab(Resources));
+				}
+				ImGui.EndMenu();
+			}
 			if (ImGui.BeginMenu("Help"))
 			{
 				if (ImGui.MenuItem("About"))
@@ -101,7 +113,11 @@ namespace LancerEdit
 			ImGui.EndMainMenuBar();
 			var size = (Vector2)ImGui.GetIO().DisplaySize;
 			size.Y -= menu_height;
-			ImGuiExt.RootDock(0, menu_height, size.X, size.Y - 25f);
+			//Window
+			ImGui.SetNextWindowPos(new Vector2(0, menu_height), Condition.Always, Vector2.Zero);
+			ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - 25), Condition.Always);
+			ImGui.BeginWindow("##mainwin", WindowFlags.NoTitleBar | WindowFlags.NoMove | WindowFlags.NoResize | WindowFlags.NoBringToFrontOnFocus);
+			ImGuiExt.BeginDockspace();
 			for (int i = 0; i < tabs.Count; i++)
 			{
 				if (!tabs[i].Draw()) { //No longer open
@@ -110,6 +126,8 @@ namespace LancerEdit
 					i--;
 				}
 			}
+			ImGuiExt.EndDockspace();
+			ImGui.EndWindow();
 			//Status bar
 			ImGui.SetNextWindowSize(new Vector2(size.X, 25f), Condition.Always);
 			ImGui.SetNextWindowPos(new Vector2(0, size.Y - 6f), Condition.Always, Vector2.Zero);
@@ -126,7 +144,7 @@ namespace LancerEdit
 				frequency = RenderFrequency;
 			}
 			else { updateTime++; }
-			ImGui.Text(string.Format("FPS: {0}", (int)Math.Round(frequency)));
+			ImGui.Text(string.Format("FPS: {0} | {1} Materials | {2} Textures", (int)Math.Round(frequency), Resources.MaterialDictionary.Count, Resources.TextureDictionary.Count));
 			ImGui.EndWindow();
 			ImGui.PopFont();
 			guiHelper.Render(RenderState);

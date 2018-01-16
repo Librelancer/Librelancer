@@ -42,6 +42,7 @@ namespace LibreLancer.Utf.Vms
         {
             get
             {
+				if (material != null && !material.Loaded) material = null;
                 if (material == null) material = materialLibrary.FindMaterial(MaterialId);
                 return material;
             }
