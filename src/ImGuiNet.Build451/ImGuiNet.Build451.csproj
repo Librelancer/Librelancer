@@ -156,5 +156,8 @@
     <Compile Include="LibrelancerShim\Vector3.cs" />
     <Compile Include="LibrelancerShim\Vector4.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
