@@ -46,6 +46,8 @@
     <Compile Include="UtfTab.cs" />
     <Compile Include="UILib\TextBuffer.cs" />
     <Compile Include="UILib\MemoryEditor.cs" />
+    <Compile Include="DockTab.cs" />
+    <Compile Include="TextureViewer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">
@@ -68,10 +70,15 @@
       <Project>{38F87B47-C903-477A-A9A3-6AD1A2CE1C09}</Project>
       <Name>LibreLancer.Media</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj">
+      <Project>{6967FE1C-5953-4416-889C-FF10AE1F7DD1}</Project>
+      <Name>LibreLancer.ImageLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
     <EmbeddedResource Include="UILib\Roboto-Medium.ttf" />
+    <EmbeddedResource Include="UILib\checkerboard.png" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\deps\x64\cimgui.dll">

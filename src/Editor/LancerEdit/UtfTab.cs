@@ -17,9 +17,10 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using ImGuiNET;
+using LibreLancer;
 namespace LancerEdit
 {
-	public class UtfTab
+	public class UtfTab : DockTab
 	{
 		public string Title;
 		bool open = true;
@@ -39,14 +40,14 @@ namespace LancerEdit
 		TreeNodeFlags tflags = TreeNodeFlags.OpenOnArrow | TreeNodeFlags.OpenOnDoubleClick;
 		TextBuffer text;
 
-		public void Dispose()
+		public override void Dispose()
 		{
 			text.Dispose();
 		}
 
-		public bool Draw()
+		public override bool Draw()
 		{
-			if (ImGuiExt.BeginDock(Title, ref open, 0))
+			if (ImGuiExt.BeginDock(Title +"##"+ Unique, ref open, 0))
 			{
 				//Layout
 				if (selectedNode != null)
@@ -97,6 +98,14 @@ namespace LancerEdit
 			return open;
 		}
 
+		bool doError = false;
+		string errorText;
+		void ErrorPopup(string error)
+		{
+			errorText = error;
+			doError = true;
+		}
+
 		void NodeInformation()
 		{
 			ImGui.Text("Name: " + selectedNode.Name);
@@ -114,6 +123,24 @@ namespace LancerEdit
 					mem = new MemoryEditor();
 					hexEditor = true;
 				}
+				if (ImGui.Button("Texture Viewer"))
+				{
+					Texture2D tex = null;
+					try
+					{
+						using (var stream = new MemoryStream(selectedNode.Data))
+						{
+							tex = LibreLancer.ImageLib.Generic.FromStream(stream);
+						}
+						var title = string.Format("{0} ({1})", selectedNode.Name, Title);
+						var tab = new TextureViewer(title, tex);
+						main.AddTab(tab);
+					}
+					catch (Exception)
+					{
+						ErrorPopup("Node data couldn't be opened as texture");
+					}
+				}
 				if (ImGui.Button("Play Audio"))
 				{
 					var data = main.Audio.AllocateData();
@@ -122,6 +149,7 @@ namespace LancerEdit
 						main.Audio.PlaySound(stream);
 					}
 				}
+
 			}
 		}
 
@@ -187,6 +215,18 @@ namespace LancerEdit
 				{
 					ImGui.CloseCurrentPopup();
 				}
+				ImGui.EndPopup();
+			}
+			//Error
+			if (doError)
+			{
+				ImGui.OpenPopup("Error");
+				doError = false;
+			}
+			if (ImGui.BeginPopupModal("Error", WindowFlags.AlwaysAutoResize))
+			{
+				ImGui.Text(errorText);
+				if (ImGui.Button("Ok")) ImGui.CloseCurrentPopup();
 				ImGui.EndPopup();
 			}
 		}

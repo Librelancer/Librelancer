@@ -38,9 +38,14 @@ namespace LancerEdit
 		}
 
 		bool openAbout = false;
-		List<UtfTab> tabs = new List<UtfTab>();
+		List<DockTab> tabs = new List<DockTab>();
+		List<DockTab> toAdd = new List<DockTab>();
 		double frequency = 0;
 		int updateTime = 10;
+		public void AddTab(DockTab tab)
+		{
+			toAdd.Add(tab);
+		}
 		protected override void Draw(double elapsed)
 		{
 			EnableTextInput();
@@ -119,6 +124,9 @@ namespace LancerEdit
 			ImGui.EndWindow();
 			ImGui.PopFont();
 			guiHelper.Render(RenderState);
+			foreach (var tab in toAdd)
+				tabs.Add(tab);
+			toAdd.Clear();
 		}
 
 		protected override void Cleanup()

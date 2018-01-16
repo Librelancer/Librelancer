@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using LibreLancer;
@@ -62,10 +63,27 @@ namespace LancerEdit
 			out_color = vec4(blendColor.xyz, blendColor.a * alpha);
 		}
 		";
-		Shader shader;
+
+		const string color_fragment_source = @"
+		#version 140
+		in vec2 out_texcoord;
+		in vec4 blendColor;
+		out vec4 out_color;
+		uniform sampler2D tex;
+		void main()
+		{
+			vec4 texsample = texture(tex, out_texcoord);
+			out_color = blendColor * texsample;
+		}
+		";
+		
+		Shader textShader;
+		Shader colorShader;
 		Texture2D fontTexture;
 		const int FONT_TEXTURE_ID = 1;
+		public static int CheckerboardId;
 		Texture2D dot;
+		Texture2D checkerboard;
 		IntPtr ttfPtr;
 		public static ImGuiNET.Font Noto;
 		public static ImGuiNET.Font Default;
@@ -90,6 +108,11 @@ namespace LancerEdit
 				Marshal.Copy(ttf, 0, ttfPtr, ttf.Length);
 				Noto = io.FontAtlas.AddFontFromMemoryTTF(ttfPtr, ttf.Length, 15);
 			}
+			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LancerEdit.UILib.checkerboard.png"))
+			{
+				checkerboard = LibreLancer.ImageLib.Generic.FromStream(stream);
+				CheckerboardId = RegisterTexture(checkerboard);
+			}
 			FontTextureData texData = io.FontAtlas.GetTexDataAsAlpha8();
 			fontTexture = new Texture2D(texData.Width, texData.Height, false, SurfaceFormat.R8);
 			var bytes = new byte[texData.Width * texData.Height * texData.BytesPerPixel];
@@ -101,10 +124,40 @@ namespace LancerEdit
 			fontTexture.SetFiltering(TextureFiltering.Linear);
 			io.FontAtlas.SetTexID(FONT_TEXTURE_ID);
 			io.FontAtlas.ClearTexData();
-			shader = new Shader(vertex_source, text_fragment_source);
+			textShader = new Shader(vertex_source, text_fragment_source);
+			colorShader = new Shader(vertex_source, color_fragment_source);
 			dot = new Texture2D(1, 1, false, SurfaceFormat.Color);
 			var c = new Color4b[] { Color4b.White };
 			dot.SetData(c);
+		}
+
+		static Dictionary<int, Texture2D> textures = new Dictionary<int, Texture2D>();
+		static Dictionary<Texture2D, int> textureIds = new Dictionary<Texture2D, int>();
+		static int nextId = 2;
+
+		//Useful for crap like FBO resizing where textures will be thrown out a ton
+		static Queue<int> freeIds = new Queue<int>();
+
+		public static int RegisterTexture(Texture2D tex)
+		{
+			int id = 0;
+			if (!textureIds.TryGetValue(tex, out id)) {
+				if (freeIds.Count > 0) 
+					id = freeIds.Dequeue();
+				else
+					id = nextId++;
+				textureIds.Add(tex, id);
+				textures.Add(id, tex);
+			}
+			return id;
+		}
+
+		public static void DeregisterTexture(Texture2D tex)
+		{
+			var id = textureIds[tex];
+			textureIds.Remove(tex);
+			textures.Remove(id);
+			freeIds.Enqueue(id);
 		}
 
 		void Keyboard_TextInput(string text)
@@ -170,9 +223,12 @@ namespace LancerEdit
 			ImGui.ScaleClipRects(draw_data, io.DisplayFramebufferScale);
 
 			var mat = Matrix4.CreateOrthographicOffCenter(0, game.Width, game.Height, 0, 0, 1);
-			shader.SetMatrix(shader.GetLocation("modelviewproj"), ref mat);
-			shader.SetInteger(shader.GetLocation("tex"), 0);
-			shader.UseProgram();
+			Shader lastShader = textShader;
+			textShader.SetMatrix(textShader.GetLocation("modelviewproj"), ref mat);
+			textShader.SetInteger(textShader.GetLocation("tex"), 0);
+			colorShader.SetMatrix(textShader.GetLocation("modelviewproj"), ref mat);
+			colorShader.SetInteger(textShader.GetLocation("tex"), 0);
+			textShader.UseProgram();
 			rstate.Cull = false;
 			rstate.BlendMode = BlendMode.Normal;
 			rstate.DepthEnabled = false;
@@ -216,8 +272,31 @@ namespace LancerEdit
 				{
 					var pcmd = &(((DrawCmd*)cmd_list->CmdBuffer.Data)[cmd_i]);
 					//TODO: Do something with pcmd->UserCallback ??
+					var tid = pcmd->TextureId.ToInt32();
+					Texture2D tex;
+					if (tid == FONT_TEXTURE_ID)
+					{
+						if (lastShader != textShader)
+						{
+							textShader.UseProgram();
+							lastShader = textShader;
+						}
+						fontTexture.BindTo(0);
+					}
+					else if (textures.TryGetValue(tid, out tex))
+					{
+						if (lastShader != colorShader)
+						{
+							colorShader.UseProgram();
+							lastShader = colorShader;
+						}
+						tex.BindTo(0);
+					}
+					else
+					{
+						dot.BindTo(0);
+					}
 
-					(pcmd->TextureId.ToInt32() == FONT_TEXTURE_ID ? fontTexture : dot).BindTo(0);
 					GL.Enable(GL.GL_SCISSOR_TEST);
 					GL.Scissor(
 					(int)pcmd->ClipRect.X,
