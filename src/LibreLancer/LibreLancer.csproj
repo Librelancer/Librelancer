@@ -464,7 +464,6 @@
       <LastGenOutput>AleCrc.cs</LastGenOutput>
     </None>
     <None Include="packages.config" />
-    <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Net\" />
