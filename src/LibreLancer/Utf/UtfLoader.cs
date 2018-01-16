@@ -43,7 +43,10 @@ namespace LibreLancer.Utf
 		public static IDrawable LoadDrawable(string file, ILibFile resources)
 		{
 			var root = parseFile(file);
-			return GetDrawable(root, resources);
+			var dr = GetDrawable(root, resources);
+			if (dr is ModelFile) ((ModelFile)dr).Path = file;
+			if (dr is CmpFile) ((CmpFile)dr).Path = file;
+			return dr;
 		}
 		public static void LoadResourceFile(string file, ILibFile library, out MatFile materials, out TxmFile textures, out Vms.VmsFile vms)
 		{

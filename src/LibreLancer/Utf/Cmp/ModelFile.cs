@@ -38,7 +38,7 @@ namespace LibreLancer.Utf.Cmp
         private ILibFile additionalLibrary;
         private bool ready;
 
-        public string Path { get; private set; }
+        public string Path { get; set; }
 
         public VmsFile VMeshLibrary { get; private set; }
         public MatFile MaterialLibrary { get; private set; }
