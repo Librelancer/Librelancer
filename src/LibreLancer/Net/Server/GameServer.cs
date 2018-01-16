@@ -48,9 +48,11 @@ namespace LibreLancer
 		{
 			running = true;
 			gameThread = new Thread(GameThread);
-			gameThread.Start();
+            gameThread.Name = "Game";
+            gameThread.Start();
 			netThread = new Thread(NetThread);
-			netThread.Start();
+            netThread.Name = "NetServer";
+            netThread.Start();
 		}
 
 		void GameThread()

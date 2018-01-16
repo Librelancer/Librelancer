@@ -44,9 +44,10 @@ namespace LibreLancer.Media
 		{
 			Music = new MusicPlayer(this);
 			this.UIThread = uithread;
-			new Thread (new ThreadStart (UpdateThread)).Start ();
-
-		}
+			Thread AudioThread = new Thread (new ThreadStart (UpdateThread));
+            AudioThread.Name = "Audio";
+            AudioThread.Start();
+        }
 
 		bool AllocateSource(out uint source)
 		{

@@ -40,21 +40,40 @@ namespace LibreLancer.Media
             FLLog.Info("Video", "Closing Windows Media Foundation backend");
             if (session != null)
             {
-                session.ClearTopologies();
                 session.Stop();
+                session.ClearTopologies();
+                //Sample grabber thread works asynchronously (as task), so we need give him a time, to understand, that session is closed
+                //minimal time to wait: 33 ms (1000 ms / 30 fps), but I decide to use a little more
+                System.Threading.Thread.Sleep(100);
                 session.Close();
                 session.Dispose();
+                session = null;
             }
             if (topology != null)
+            {
                 topology.Dispose();
+                topology = null;
+            }
             if (videoSampler != null)
+            {
                 videoSampler.Dispose();
+                videoSampler = null;
+            }
             if (clock != null)
+            {
                 clock.Dispose();
+                clock = null;
+            }
             if (_texture != null)
+            {
                 _texture.Dispose();
+                _texture = null;
+            }
             if (cb != null)
+            {
                 cb.Dispose();
+                cb = null;
+            }
         }
 
         public override void Draw(RenderState rstate)
