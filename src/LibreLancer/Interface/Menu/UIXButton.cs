@@ -31,7 +31,7 @@ namespace LibreLancer
 
 		public UIXButton(UIManager man, float x, float y, float scaleX, float scaleY) : base(man)
 		{
-			model = man.Game.ResourceManager.GetModel(man.Game.GameData.ResolveDataPath("INTERFACE\\TEXTOFFER\\x.3db"));
+			model = (ModelFile)man.Game.ResourceManager.GetDrawable(man.Game.GameData.ResolveDataPath("INTERFACE\\TEXTOFFER\\x.3db"));
 			UIPosition = new Vector2(x, y);
 			UIScale = new Vector2(scaleX, scaleY);
 			var l0 = model.Levels[0];

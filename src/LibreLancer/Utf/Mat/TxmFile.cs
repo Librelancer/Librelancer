@@ -33,25 +33,6 @@ namespace LibreLancer.Utf.Mat
 			Animations = new Dictionary<string, TexFrameAnimation>();
         }
 
-        public TxmFile(string path)
-            : this()
-        {
-            foreach (Node node in parseFile(path))
-            {
-                switch (node.Name.ToLowerInvariant())
-                {
-                    case "texture library":
-                        IntermediateNode textureLibraryNode = node as IntermediateNode;
-                        setTextures(textureLibraryNode);
-                        break;
-                    case "exporter version":
-                        break;
-                    default:
-                        throw new Exception("Invalid node in txm root: " + node.Name);
-                }
-            }
-        }
-
         public TxmFile(IntermediateNode textureLibraryNode)
             : this()
         {

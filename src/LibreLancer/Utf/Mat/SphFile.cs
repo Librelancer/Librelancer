@@ -36,8 +36,11 @@ namespace LibreLancer.Utf.Mat
 		
 		private bool ready;
 
-        private ILibFile materialLibrary;
+        private ILibFile library;
 
+		public MatFile MaterialLibrary;
+		public TxmFile TextureLibrary;
+		public VmsFile VMeshLibrary;
         public float Radius { get; private set; }
 
         private List<string> sideMaterialNames;
@@ -51,7 +54,7 @@ namespace LibreLancer.Utf.Mat
                     sideMaterials = new Material[sideMaterialNames.Count];
                     for (int i = 0; i < sideMaterialNames.Count; i++)
                     {
-                        sideMaterials[i] = materialLibrary.FindMaterial(CrcTool.FLModelCrc(sideMaterialNames[i]));
+                        sideMaterials[i] = library.FindMaterial(CrcTool.FLModelCrc(sideMaterialNames[i]));
                         if (sideMaterials[i] == null) sideMaterials[i] = new Material();
                     }
                 }
@@ -72,32 +75,56 @@ namespace LibreLancer.Utf.Mat
 		{
 
 		}
-        public SphFile(IntermediateNode node, ILibFile materialLibrary)
+		public SphFile(IntermediateNode root, ILibFile library)
         {
-            if (node == null) throw new ArgumentNullException("node");
-            if (materialLibrary == null) throw new ArgumentNullException("materialLibrary");
+            if (root == null) throw new ArgumentNullException("root");
+            if (library == null) throw new ArgumentNullException("materialLibrary");
 
             ready = false;
 
-            this.materialLibrary = materialLibrary;
+			this.library = library;
             sideMaterialNames = new List<string>();
 
-			IntermediateNode sphereNode = node[0] as IntermediateNode;
-			if (sphereNode == null || sphereNode.Name.ToLowerInvariant() != "sphere") throw new FileContentException(FILE_TYPE, "SphFile without sphere");
+			bool sphereSet = false;
+			foreach (Node node in root)
+			{
+				switch (node.Name.ToLowerInvariant())
+				{
+					case "sphere":
+						if (sphereSet) throw new Exception("Multiple sphere nodes");
+						sphereSet = true;
+						var sphereNode = (IntermediateNode)node;
+						foreach (LeafNode sphereSubNode in sphereNode)
+						{
+							string name = sphereSubNode.Name.ToLowerInvariant();
 
-            foreach (LeafNode sphereSubNode in sphereNode)
-            {
-                string name = sphereSubNode.Name.ToLowerInvariant();
-
-				if (name.StartsWith ("m", StringComparison.OrdinalIgnoreCase)) sideMaterialNames.Add (sphereSubNode.StringData);
-				else if (name == "radius") Radius = sphereSubNode.SingleArrayData [0];
-                else if (name == "sides")
-                {
-					int count = sphereSubNode.Int32ArrayData [0];
-                    if (count != sideMaterialNames.Count) throw new Exception("Invalid number of sides in " + sphereNode.Name + ": " + count);
-                }
-                else throw new Exception("Invalid node in " + sphereNode.Name + ": " + sphereSubNode.Name);
-            }
+							if (name.StartsWith("m", StringComparison.OrdinalIgnoreCase)) sideMaterialNames.Add(sphereSubNode.StringData);
+							else if (name == "radius") Radius = sphereSubNode.SingleArrayData[0];
+							else if (name == "sides")
+							{
+								int count = sphereSubNode.Int32ArrayData[0];
+								if (count != sideMaterialNames.Count) throw new Exception("Invalid number of sides in " + node.Name + ": " + count);
+							}
+							else throw new Exception("Invalid node in " + node.Name + ": " + sphereSubNode.Name);
+						}
+						break;
+					case "vmeshlibrary":
+						IntermediateNode vMeshLibraryNode = node as IntermediateNode;
+						if (VMeshLibrary == null) VMeshLibrary = new VmsFile(vMeshLibraryNode, library);
+						else throw new Exception("Multiple vmeshlibrary nodes in 3db root");
+						break;
+					case "material library":
+						IntermediateNode materialLibraryNode = node as IntermediateNode;
+						if (MaterialLibrary == null) MaterialLibrary = new MatFile(materialLibraryNode, library);
+						else throw new Exception("Multiple material library nodes in 3db root");
+						break;
+					case "texture library":
+						IntermediateNode textureLibraryNode = node as IntermediateNode;
+						if (TextureLibrary == null) TextureLibrary = new TxmFile(textureLibraryNode);
+						else throw new Exception("Multiple texture library nodes in 3db root");
+						break;
+				}
+			}
         }
 
 		public void Initialize(ResourceManager cache)

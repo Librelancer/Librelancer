@@ -148,7 +148,7 @@ namespace LibreLancer
 		}
 		public void PopulateCursors()
 		{
-			resource.LoadTxm(
+			resource.LoadResourceFile(
 				Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + fldata.Mouse.TxmFile)
 			);
 			foreach (var lc in fldata.Mouse.Cursors)
@@ -193,7 +193,7 @@ namespace LibreLancer
 #endif
 		public void LoadHardcodedFiles()
 		{
-			resource.LoadVms (Compatibility.VFS.GetPath (fldata.Freelancer.DataPath + "INTERFACE/interface.generic.vms"));
+			resource.LoadResourceFile (Compatibility.VFS.GetPath (fldata.Freelancer.DataPath + "INTERFACE/interface.generic.vms"));
 		}
 		public IDrawable GetMenuButton()
 		{
@@ -253,7 +253,7 @@ namespace LibreLancer
 			if (fldata.Stars != null)
 			{
 				foreach (var txmfile in fldata.Stars.TextureFiles)
-					resource.LoadTxm(Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + txmfile));
+					resource.LoadResourceFile(Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + txmfile));
 			}
 			var sys = new GameData.StarSystem ();
 			sys.AmbientColor = legacy.AmbientColor ?? Color4.White;
@@ -405,7 +405,7 @@ namespace LibreLancer
 				foreach (var f in ast.TexturePanels.Files) {
 					panels = new Legacy.Universe.TexturePanels (f);
 					foreach (var txmfile in panels.Files)
-						resource.LoadTxm (Compatibility.VFS.GetPath (fldata.Freelancer.DataPath + txmfile));
+						resource.LoadResourceFile (Compatibility.VFS.GetPath (fldata.Freelancer.DataPath + txmfile));
 				}
 			}
 			if (ast.Band != null) {
@@ -439,7 +439,7 @@ namespace LibreLancer
 					Matrix4.CreateRotationZ (MathHelper.DegreesToRadians (c.Rotation.Z));
 				var n = c.Name;
 				var arch = fldata.Asteroids.FindAsteroid (c.Name);
-				resource.LoadMat (Compatibility.VFS.GetPath (fldata.Freelancer.DataPath + arch.MaterialLibrary));
+				resource.LoadResourceFile (Compatibility.VFS.GetPath (fldata.Freelancer.DataPath + arch.MaterialLibrary));
 				sta.Drawable = resource.GetDrawable (Compatibility.VFS.GetPath (fldata.Freelancer.DataPath + arch.DaArchetype));
 				a.Cube.Add (sta);
 			}
@@ -487,7 +487,7 @@ namespace LibreLancer
 			n.Zone = sys.Zones.Where((z) => z.Nickname.ToLower() == nbl.ZoneName.ToLower()).First();
 			var panels = new Legacy.Universe.TexturePanels(nbl.TexturePanels.Files[0]);
 			foreach (var txmfile in panels.Files)
-				resource.LoadTxm(Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + txmfile));
+				resource.LoadResourceFile(Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + txmfile));
 			n.ExteriorFill = nbl.ExteriorFillShape;
 			n.ExteriorColor = nbl.ExteriorColor ?? Color4.White;
 			n.FogColor = nbl.FogColor ?? Color4.Black;
@@ -610,7 +610,7 @@ namespace LibreLancer
 			var legacy = fldata.Ships.GetShip (nickname);
 			var ship = new GameData.Ship ();
 			foreach (var matlib in legacy.MaterialLibraries)
-				resource.LoadMat (matlib);
+				resource.LoadResourceFile (matlib);
 			ship.Drawable = resource.GetDrawable (legacy.DaArchetypeName);
 			ship.Mass = legacy.Mass;
 			ship.AngularDrag = legacy.AngularDrag;
@@ -626,9 +626,9 @@ namespace LibreLancer
 			var archetype = fldata.Solar.FindSolar(solar);
 			//Load archetype references
 			foreach (var path in archetype.TexturePaths)
-				resource.LoadTxm(path);
+				resource.LoadResourceFile(path);
 			foreach (var path in archetype.MaterialPaths)
-				resource.LoadMat(path);
+				resource.LoadResourceFile(path);
 			//Get drawable
 			return resource.GetDrawable(archetype.DaArchetypeName);
 		}
@@ -636,7 +636,7 @@ namespace LibreLancer
 		public IDrawable GetAsteroid(string asteroid)
 		{
 			var ast = fldata.Asteroids.FindAsteroid(asteroid);
-			resource.LoadMat(ResolveDataPath(ast.MaterialLibrary));
+			resource.LoadResourceFile(ResolveDataPath(ast.MaterialLibrary));
 			return resource.GetDrawable(ResolveDataPath(ast.DaArchetype));
 		}
 
@@ -678,9 +678,9 @@ namespace LibreLancer
 			}
 			//Load archetype references
 			foreach (var path in o.Archetype.TexturePaths)
-				resource.LoadTxm (path);
+				resource.LoadResourceFile (path);
 			foreach (var path in o.Archetype.MaterialPaths)
-				resource.LoadMat (path);
+				resource.LoadResourceFile (path);
 			//Construct archetype
 			if (o.Archetype is Legacy.Solar.Sun) {
 				var sun = new GameData.Archetypes.Sun();
@@ -786,7 +786,7 @@ namespace LibreLancer
 			{
 				var pc = (val as Legacy.Equipment.PowerCore);
 				if(pc.MaterialLibrary != null)
-					resource.LoadMat(ResolveDataPath(pc.MaterialLibrary));
+					resource.LoadResourceFile(ResolveDataPath(pc.MaterialLibrary));
 				var drawable = resource.GetDrawable(ResolveDataPath(pc.DaArchetype));
 				equip = new GameData.Items.PowerEquipment()
 				{
@@ -796,7 +796,7 @@ namespace LibreLancer
 			if (val is Legacy.Equipment.Thruster)
 			{
 				var th = (val as Legacy.Equipment.Thruster);
-				resource.LoadMat(ResolveDataPath(th.MaterialLibrary));
+				resource.LoadResourceFile(ResolveDataPath(th.MaterialLibrary));
 				var drawable = resource.GetDrawable(ResolveDataPath(th.DaArchetype));
 				equip = new GameData.Items.ThrusterEquipment()
 				{
@@ -845,10 +845,7 @@ namespace LibreLancer
 			foreach (var texfile in visfx.Textures)
 			{
 				var path = Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + texfile);
-				if (path.EndsWith(".txm"))
-					resource.LoadTxm(path);
-				else if (path.EndsWith(".mat"))
-					resource.LoadMat(path);
+				resource.LoadResourceFile(path);
 			}
 			var alepath = Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + visfx.AlchemyPath);
 			var ale = new AleFile(alepath);

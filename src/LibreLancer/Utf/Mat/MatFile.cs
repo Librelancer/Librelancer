@@ -39,34 +39,6 @@ namespace LibreLancer.Utf.Mat
 			Materials = new Dictionary<uint, Material> ();
 		}
 
-		public MatFile (string path, ILibFile additionalTextureLibrary)
-			: this (additionalTextureLibrary)
-		{
-			if (path == null)
-				throw new ArgumentNullException ("path");
-
-			foreach (Node node in parseFile(path)) {
-				switch (node.Name.ToLowerInvariant ()) {
-				case "material library":
-					IntermediateNode materialLibraryNode = node as IntermediateNode;
-					setMaterials (materialLibraryNode);
-					break;
-				case "texture library":
-					IntermediateNode textureLibraryNode = node as IntermediateNode;
-					if (TextureLibrary == null)
-						TextureLibrary = new TxmFile (textureLibraryNode);
-					else
-						throw new Exception ("Multiple texture library nodes in mat root");
-					break;
-				case "exporter version":
-					break;
-				default:
-					throw new Exception ("Invalid node in mat root: " + node.Name);
-				}
-			}
-
-		}
-
 		public MatFile (IntermediateNode materialLibraryNode, ILibFile additionalTextureLibrary)
 			: this (additionalTextureLibrary)
 		{
