@@ -29,13 +29,13 @@ namespace LancerEdit
 		RenderState rstate;
 		CommandBuffer buffer;
 		ViewportManager vps;
-		public ModelViewer(string title, IDrawable drawable, RenderState rstate, ViewportManager viewports)
+		public ModelViewer(string title, IDrawable drawable, RenderState rstate, ViewportManager viewports, CommandBuffer commands)
 		{
 			Title = title;
 			this.drawable = drawable;
 			this.rstate = rstate;
 			this.vps = viewports;
-			buffer = new CommandBuffer();
+			buffer = commands;
 		}
 
 		public override bool Draw()

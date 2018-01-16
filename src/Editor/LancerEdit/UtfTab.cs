@@ -14,8 +14,8 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 using ImGuiNET;
 using LibreLancer;
 namespace LancerEdit
@@ -57,14 +57,6 @@ namespace LancerEdit
 		{
 			if (ImGuiExt.BeginDock(Title + "##" + Unique, ref open, 0))
 			{
-				/*if (HasChild(Utf.Root, "ALEffectLib") &&
-					HasChild(Utf.Root, "AlchemyNodeLibrary"))
-				{
-					if (ImGui.Button("Open ALE"))
-					{
-
-					}
-				} */
 				//Layout
 				if (selectedNode != null)
 				{
@@ -130,7 +122,7 @@ namespace LancerEdit
 			{
 				ImGui.Text(selectedNode.Children.Count + " children");
 			}
-			else
+			else if (selectedNode.Data != null)
 			{
 				ImGui.Text(string.Format("Size: {0}", LibreLancer.DebugDrawing.SizeSuffix(selectedNode.Data.Length)));
 				if (ImGui.Button("Hex Editor"))
@@ -238,9 +230,13 @@ namespace LancerEdit
 					catch (Exception) { ErrorPopup("Could not open as model"); drawable = null; }
 					if (drawable != null)
 					{
-						main.AddTab(new ModelViewer("Model Viewer", drawable, main.RenderState, main.Viewport));
+						main.AddTab(new ModelViewer("Model Viewer", drawable, main.RenderState, main.Viewport, main.Commands));
 					}
 				}
+			}
+			else
+			{
+				ImGui.Text("Empty");
 			}
 		}
 
@@ -352,7 +348,11 @@ namespace LancerEdit
 				ImGui.InputText("", text.Pointer, text.Size, InputTextFlags.Default, text.Callback);
 				if (ImGui.Button("Ok"))
 				{
-					renameNode.Name = text.GetText();
+					var n = text.GetText().Trim();
+					if (n.Length == 0)
+						ErrorPopup("Node name cannot be empty");
+					else
+						renameNode.Name = text.GetText();
 					ImGui.CloseCurrentPopup();
 				}
 				ImGui.SameLine();
@@ -395,6 +395,61 @@ namespace LancerEdit
 				if (ImGui.Button("Ok")) ImGui.CloseCurrentPopup();
 				ImGui.EndPopup();
 			}
+			//Add
+			if (doAddConfirm)
+			{
+				ImGui.OpenPopup("Confirm Add##" + Unique);
+				doAddConfirm = false;
+			}
+			if (ImGui.BeginPopupModal("Confirm Add##" + Unique, WindowFlags.AlwaysAutoResize))
+			{
+				ImGui.Text("Adding children will clear this node's data. Continue?");
+				if (ImGui.Button("Yes"))
+				{
+					doAdd = true;
+					ImGui.CloseCurrentPopup();
+				}
+				ImGui.SameLine();
+				if (ImGui.Button("No")) ImGui.CloseCurrentPopup();
+				ImGui.EndPopup();
+			}
+			if (doAdd)
+			{
+				ImGui.OpenPopup("New Node##" + Unique);
+				doAdd = false;
+			}
+			if (ImGui.BeginPopupModal("New Node##" + Unique, WindowFlags.AlwaysAutoResize))
+			{
+				ImGui.Text("Name: ");
+				ImGui.SameLine();
+				ImGui.InputText("", text.Pointer, text.Size, InputTextFlags.Default, text.Callback);
+				if (ImGui.Button("Ok"))
+				{
+					var node = new LUtfNode() { Name = text.GetText().Trim() };
+					if (node.Name.Length == 0)
+					{
+						ErrorPopup("Node name cannot be empty");
+					}
+					else
+					{
+						if (addParent != null)
+							addParent.Children.Insert(addParent.Children.IndexOf(addNode) + 1, node);
+						else
+						{
+							addNode.Data = null;
+							if (addNode.Children == null) addNode.Children = new List<LUtfNode>();
+							addNode.Children.Add(node);
+						}
+					}
+					ImGui.CloseCurrentPopup();
+				}
+				ImGui.SameLine();
+				if (ImGui.Button("Cancel"))
+				{
+					ImGui.CloseCurrentPopup();
+				}
+				ImGui.EndPopup();
+			}
 		}
 
 
@@ -404,6 +459,11 @@ namespace LancerEdit
 		bool doDelete = false;
 		LUtfNode deleteNode;
 		LUtfNode deleteParent;
+
+		bool doAdd = false;
+		bool doAddConfirm = false;
+		LUtfNode addNode;
+		LUtfNode addParent;
 		void DoNodeMenu(string id, LUtfNode node, LUtfNode parent)
 		{
 			if (ImGui.BeginPopupContextItem(id))
@@ -421,6 +481,27 @@ namespace LancerEdit
 					deleteParent = parent;
 					deleteNode = node;
 					doDelete = true;
+				}
+				if (ImGui.BeginMenu("Add"))
+				{
+					if (ImGui.MenuItem("Child"))
+					{
+						text.SetText("");
+						addParent = null;
+						addNode = node;
+						if (selectedNode.Data != null)
+							doAddConfirm = true;
+						else
+							doAdd = true;
+					}
+					if (ImGui.MenuItem("Sibling", node != Utf.Root))
+					{
+						text.SetText("");
+						addParent = parent;
+						addNode = node;
+						doAdd = true;
+					}
+					ImGui.EndMenu();
 				}
 				ImGui.EndPopup();
 			}
@@ -450,7 +531,15 @@ namespace LancerEdit
 			}
 			else
 			{
-				ImGui.Bullet();
+				if (node.Data != null)
+				{
+					ImGui.Bullet();
+				}
+				else
+				{
+					ImGui.Image((IntPtr)ImGuiHelper.CircleId, new Vector2(15, 19), Vector2.Zero, Vector2.One, Vector4.One, Vector4.Zero);
+					ImGui.SameLine();
+				}
 				bool selected = selectedNode == node;
 				if (ImGui.SelectableEx(id, ref selected))
 				{

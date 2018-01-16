@@ -82,8 +82,10 @@ namespace LancerEdit
 		Texture2D fontTexture;
 		const int FONT_TEXTURE_ID = 1;
 		public static int CheckerboardId;
+		public static int CircleId;
 		Texture2D dot;
 		Texture2D checkerboard;
+		Texture2D circle;
 		IntPtr ttfPtr;
 		public static ImGuiNET.Font Noto;
 		public static ImGuiNET.Font Default;
@@ -112,6 +114,11 @@ namespace LancerEdit
 			{
 				checkerboard = LibreLancer.ImageLib.Generic.FromStream(stream);
 				CheckerboardId = RegisterTexture(checkerboard);
+			}
+			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LancerEdit.UILib.circle.png"))
+			{
+				circle = LibreLancer.ImageLib.Generic.FromStream(stream);
+				CircleId = RegisterTexture(circle);
 			}
 			FontTextureData texData = io.FontAtlas.GetTexDataAsAlpha8();
 			fontTexture = new Texture2D(texData.Width, texData.Height, false, SurfaceFormat.R8);

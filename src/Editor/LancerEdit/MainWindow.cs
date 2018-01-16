@@ -26,6 +26,7 @@ namespace LancerEdit
 		public AudioManager Audio;
 		public ResourceManager Resources;
 		public ViewportManager Viewport;
+		public CommandBuffer Commands; //This is a huge object - only have one
 		public MainWindow() : base(800,600,false,false)
 		{
 		}
@@ -38,6 +39,7 @@ namespace LancerEdit
             FileDialog.RegisterParent(this);
 			Viewport = new ViewportManager(RenderState);
 			Resources = new ResourceManager(this);
+			Commands = new CommandBuffer();
 			Viewport.Push(0, 0, 800, 600);
 		}
 
