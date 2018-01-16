@@ -22,7 +22,12 @@ namespace LibreLancer.Media
 		const int WFORMATTAG_WAV = 0x1;
 		const int WFORMATTAG_MP3 = 0x55;
 
-		int Channels;
+        public int Channels
+        {
+            get { return m_Channels; }
+        }
+
+		int m_Channels;
 		int Frequency;
 		int Bits;
 		WaveFormat Format;
@@ -41,7 +46,7 @@ namespace LibreLancer.Media
 				throw new NotSupportedException("Specified wave file is not supported.");
 			int format_chunk_size = reader.ReadInt32();
 			int audio_format = reader.ReadInt16();
-			Channels = reader.ReadInt16();
+			m_Channels = reader.ReadInt16();
 			Frequency = reader.ReadInt32();
 			//int byte_rate = reader.ReadInt32();
 			//int block_align = reader.ReadInt16();
@@ -80,11 +85,11 @@ namespace LibreLancer.Media
 
 		public static StreamingSound GetSound(Stream stream)
 		{
-			var file = new RiffLoader(stream);
+			RiffLoader file = new RiffLoader(stream);
 			if (file.Format == WaveFormat.PCM)
 			{
 				var snd = new StreamingSound();
-				snd.Format = ALUtils.GetFormat(file.Channels, file.Bits);
+				snd.Format = ALUtils.GetFormat(file.m_Channels, file.Bits);
 				snd.Frequency = file.Frequency;
 				snd.Size = file.dataLength;
 				snd.Data = file.GetDataStream();
@@ -92,7 +97,7 @@ namespace LibreLancer.Media
 			}
 			else if (file.Format == WaveFormat.MP3)
 			{
-				return Mp3Utils.GetSound(file.GetDataStream());
+				return Mp3Utils.GetSound(file.GetDataStream(), file);
 			}
 			throw new NotSupportedException();
 		}
