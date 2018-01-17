@@ -139,8 +139,7 @@ namespace LancerEdit
 			polyline.SetCamera(cam);
 			billboards.Begin(cam, buffer);
 			debug.StartFrame(cam, rstate);
-			var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
-			instance.Draw(polyline, billboards, debug, matrix, sparam);
+			instance.Draw(polyline, billboards, debug, transform, sparam);
 			polyline.FrameEnd();
 			billboards.End();
 			buffer.DrawOpaque(rstate);
@@ -175,9 +174,11 @@ namespace LancerEdit
 			}
 		}
 
+		Matrix4 transform = Matrix4.Identity;
 		public override void Update(double elapsed)
 		{
-			instance.Update(TimeSpan.FromSeconds(elapsed), Matrix4.Identity, sparam);
+			transform = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+			instance.Update(TimeSpan.FromSeconds(elapsed), transform, sparam);
 		}
 
 		public override void Dispose()
