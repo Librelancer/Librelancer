@@ -38,9 +38,16 @@ namespace LancerEdit
 		static readonly string[] viewModes = new string[] {
 			"Textured",
 			"Wireframe",
+			"Textured+Wireframe",
 			"Flat",
 			"Normals"
 		};
+		const int M_TEXTURED = 0;
+		const int M_WIREFRAME = 1;
+		const int M_TEXTURE_WIREFRAME = 2;
+		const int M_FLAT = 3;
+		const int M_NORMALS = 4;
+
 		static readonly Color4[] initialCmpColors = new Color4[] {
 			Color4.White,
 			Color4.Red,
@@ -118,77 +125,7 @@ namespace LancerEdit
 
 		public override void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
 		{
-			if (drawable is CmpFile)
-			{
-				var cmp = (CmpFile)drawable;
-				foreach (var part in cmp.Parts) DetectResourcesModel(part.Value.Model, Name + ", " + part.Value.Model.Path, missing, matrefs, texrefs);
-			}
-			if (drawable is ModelFile)
-			{
-				DetectResourcesModel((ModelFile)drawable, Name, missing, matrefs, texrefs);
-			}
-			if (drawable is SphFile)
-			{
-				var sph = (SphFile)drawable;
-				for (int i = 0; i < sph.SideMaterials.Length; i++)
-				{
-					if (sph.SideMaterials[i] == null)
-					{
-						var str = "Material: " + sph.SideMaterialNames[i];
-						if (!HasMissing(missing, str)) missing.Add(new MissingReference(str, string.Format("{0} M{1}", Name, i)));
-					}
-					else
-					{
-						var crc = CrcTool.FLModelCrc(sph.SideMaterialNames[i]);
-						if (!matrefs.Contains(crc)) matrefs.Add(crc);
-						DoMaterialRefs(sph.SideMaterials[i], missing, texrefs, string.Format(" - {0} M{1}", Name, i));
-					}
-				}
-			}
-		}
-		void DetectResourcesModel(ModelFile mdl, string mdlname, List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
-		{
-			var lvl = mdl.Levels[0];
-			for (int i = lvl.StartMesh; i < (lvl.StartMesh + lvl.MeshCount); i++)
-			{
-				if (lvl.Mesh.Meshes[i].Material == null)
-				{
-					var str = "Material: 0x" + lvl.Mesh.Meshes[i].MaterialCrc.ToString("X");
-					if (!HasMissing(missing, str)) missing.Add(new MissingReference(str, string.Format("{0}, VMesh(0x{1:X}) #{2}", mdlname, lvl.MeshCrc, i)));
-				}
-				else
-				{
-					if (!matrefs.Contains(lvl.Mesh.Meshes[i].MaterialCrc)) matrefs.Add(lvl.Mesh.Meshes[i].MaterialCrc);
-					var m = lvl.Mesh.Meshes[i].Material;
-					DoMaterialRefs(m, missing, texrefs, string.Format(" - {0} VMesh(0x{1:X}) #{2}", mdlname, lvl.MeshCrc, i));
-				}
-			}
-		}
-
-		void DoMaterialRefs(Material m, List<MissingReference> missing, List<string> texrefs, string refstr)
-		{
-			RefTex(m.DtName, missing, texrefs, m.Name, refstr);
-			if (m.Render is NomadMaterial)
-			{
-				var nt = m.NtName ?? "NomadRGB_NomadAlpha1";
-				RefTex(nt, missing, texrefs, m.Name, refstr);
-			}
-			RefTex(m.EtName, missing, texrefs, m.Name, refstr);
-			RefTex(m.DmName, missing, texrefs, m.Name, refstr);
-			RefTex(m.Dm1Name, missing, texrefs, m.Name, refstr);
-		}
-
-		void RefTex(string tex, List<MissingReference> missing, List<string> texrefs, string mName, string refstr)
-		{
-			if (tex != null)
-			{
-				if (!HasTexture(texrefs, tex)) texrefs.Add(tex);
-				if (res.FindTexture(tex) == null)
-				{
-					var str = "Texture: " + tex;
-					if (!HasMissing(missing, str)) missing.Add(new MissingReference(str, mName + refstr));
-				}
-			}
+			ResourceDetection.DetectDrawable(Name, drawable, res, missing, matrefs, texrefs);
 		}
 
 		void DrawGL(int renderWidth, int renderHeight)
@@ -212,25 +149,47 @@ namespace LancerEdit
 			buffer.StartFrame();
 			drawable.Update(cam, TimeSpan.Zero, TimeSpan.Zero);
 			drawable.Update(cam, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0));
-			if (viewMode == 1)
+			bool is2 = false;
+			bool render = true;
+			if (viewMode == M_TEXTURE_WIREFRAME)
 			{
-				rstate.Wireframe = true;
+				is2 = true;
+				viewMode = M_TEXTURED;
 			}
-			if (drawable is CmpFile)
+			while (render)
 			{
-				DrawCmp(cam);
+				if (viewMode == M_WIREFRAME)
+				{
+					rstate.Wireframe = true;
+				}
+				if (drawable is CmpFile)
+				{
+					DrawCmp(cam);
+				}
+				else
+				{
+					DrawSimple(cam);
+				}
+				buffer.DrawOpaque(rstate);
+				rstate.DepthWrite = false;
+				buffer.DrawTransparent(rstate);
+				rstate.DepthWrite = true;
+				if (viewMode == M_WIREFRAME)
+				{
+					rstate.Wireframe = false;
+				}
+				render = false;
+				if (is2 && viewMode == M_TEXTURED)
+				{
+					viewMode = M_WIREFRAME;
+					render = true;
+					GL.PolygonOffset(1, 1);
+				}
 			}
-			else
+			if (is2)
 			{
-				DrawSimple(cam);
-			}
-			buffer.DrawOpaque(rstate);
-			rstate.DepthWrite = false;
-			buffer.DrawTransparent(rstate);
-			rstate.DepthWrite = true;
-			if (viewMode == 1)
-			{
-				rstate.Wireframe = false;
+				GL.PolygonOffset(0f, 0f);
+				viewMode = M_TEXTURE_WIREFRAME;
 			}
 			//Restore state
 			rstate.Cull = false;
@@ -244,12 +203,12 @@ namespace LancerEdit
 		void DrawSimple(ICamera cam)
 		{
 			Material mat = null;
-			if (viewMode == 1 || viewMode == 2)
+			if (viewMode == M_WIREFRAME || viewMode == M_FLAT)
 			{
 				mat = wireframeMaterial3db;
 				mat.Update(cam);
 			}
-			if (viewMode == 3)
+			if (viewMode == M_NORMALS)
 			{
 				mat = normalsDebugMaterial;
 				mat.Update(cam);
@@ -262,11 +221,11 @@ namespace LancerEdit
 		void DrawCmp(ICamera cam)
 		{
 			var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
-			if (viewMode == 0)
+			if (viewMode == M_TEXTURED)
 			{
 				drawable.DrawBuffer(buffer, matrix, Lighting.Empty);
 			}
-			else if (viewMode == 1 || viewMode == 2)
+			else if (viewMode == M_WIREFRAME || viewMode == M_FLAT)
 			{
 				var cmp = (CmpFile)drawable;
 				foreach (var part in cmp.Parts)

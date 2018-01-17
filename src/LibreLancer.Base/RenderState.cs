@@ -179,6 +179,10 @@ namespace LibreLancer
 
 			if (wireframeDirty) {
 				GL.PolygonMode (GL.GL_FRONT_AND_BACK, isWireframe ? GL.GL_LINE : GL.GL_FILL);
+				if (isWireframe)
+					GL.LineWidth(1.7f);
+				else
+					GL.LineWidth(1);
 				wireframeDirty = false;
 			}
 

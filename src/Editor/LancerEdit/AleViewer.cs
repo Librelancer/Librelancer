@@ -158,11 +158,11 @@ namespace LancerEdit
 				if (node is FxBasicAppearance)
 				{
 					var fx = (FxBasicAppearance)node;
-					if (fx.Texture != null && !HasTexture(texrefs, fx.Texture)) texrefs.Add(fx.Texture);
+					if (fx.Texture != null && !ResourceDetection.HasTexture(texrefs, fx.Texture)) texrefs.Add(fx.Texture);
 					if (fx.Texture != null && plib.Resources.FindTexture(fx.Texture) == null)
 					{
 						var str = "Texture: " + fx.Texture; //TODO: This is wrong - handle properly
-						if (!HasMissing(missing, str)) missing.Add(new MissingReference(
+						if (!ResourceDetection.HasMissing(missing, str)) missing.Add(new MissingReference(
 							str, string.Format("{0}: {1} ({2})", instance.Effect.Name, node.NodeName, node.Name)));
 					}
 				}

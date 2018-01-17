@@ -183,13 +183,22 @@ namespace LancerEdit
 			doError = true;
 		}
 
+		string confirmText;
+		bool doConfirm = false;
+		Action confirmAction;
+
+		void Confirm(string text, Action action)
+		{
+			doConfirm = true;
+			confirmAction = action;
+			confirmText = text;
+		}
+
 		unsafe int DummyCallback(TextEditCallbackData* data)
 		{
 			return 0;
 		}
 
-		bool doAddData = false;
-		bool doImportData = false;
 		unsafe void NodeInformation()
 		{
 			ImGui.BeginChild("##scrollnode", false, 0);
@@ -203,11 +212,23 @@ namespace LancerEdit
 					ImGui.Text("Actions:");
 					if (ImGui.Button("Add Data"))
 					{
-						doAddData = true;
+						Confirm("Adding data will delete this node's children. Continue?", () =>
+						{
+							selectedNode.Children = null;
+							selectedNode.Data = new byte[0];
+						});
 					}
 					if (ImGui.Button("Import Data"))
 					{
-						doImportData = true;
+						Confirm("Importing data will delete this node's children. Continue?", () =>
+						{
+							string path;
+							if ((path = FileDialog.Open()) != null)
+							{
+								selectedNode.Children = null;
+								selectedNode.Data = File.ReadAllBytes(path);
+							}
+						});
 					}
 				}
 			}
@@ -546,31 +567,6 @@ namespace LancerEdit
 				}
 				ImGui.EndPopup();
 			}
-			//Delete dialog
-			if (doDelete)
-			{
-				ImGui.OpenPopup("Delete##" + Unique);
-				doDelete = false;
-			}
-			if (ImGui.BeginPopupModal("Delete##" + Unique, WindowFlags.AlwaysAutoResize))
-			{
-				ImGui.Text("Are you sure you want to delete: '" + deleteNode.Name + "'?");
-				if (ImGui.Button("Ok"))
-				{
-					if (selectedNode == deleteNode)
-					{
-						selectedNode = null;
-					}
-					deleteParent.Children.Remove(deleteNode);
-					ImGui.CloseCurrentPopup();
-				}
-				ImGui.SameLine();
-				if (ImGui.Button("Cancel"))
-				{
-					ImGui.CloseCurrentPopup();
-				}
-				ImGui.EndPopup();
-			}
 			//Error
 			if (doError)
 			{
@@ -584,23 +580,6 @@ namespace LancerEdit
 				ImGui.EndPopup();
 			}
 			//Add
-			if (doAddConfirm)
-			{
-				ImGui.OpenPopup("Confirm Add##" + Unique);
-				doAddConfirm = false;
-			}
-			if (ImGui.BeginPopupModal("Confirm Add##" + Unique, WindowFlags.AlwaysAutoResize))
-			{
-				ImGui.Text("Adding children will clear this node's data. Continue?");
-				if (ImGui.Button("Yes"))
-				{
-					doAdd = true;
-					ImGui.CloseCurrentPopup();
-				}
-				ImGui.SameLine();
-				if (ImGui.Button("No")) ImGui.CloseCurrentPopup();
-				ImGui.EndPopup();
-			}
 			if (doAdd)
 			{
 				ImGui.OpenPopup("New Node##" + Unique);
@@ -628,6 +607,7 @@ namespace LancerEdit
 							if (addNode.Children == null) addNode.Children = new List<LUtfNode>();
 							addNode.Children.Add(node);
 						}
+						selectedNode = node;
 					}
 					ImGui.CloseCurrentPopup();
 				}
@@ -638,119 +618,39 @@ namespace LancerEdit
 				}
 				ImGui.EndPopup();
 			}
-			//Add Data
-			if (doAddData)
+			//Confirmation
+			if (doConfirm)
 			{
-				ImGui.OpenPopup("Confirm?##adddata" + Unique);
-				doAddData = false;
+				ImGui.OpenPopup("Confirm?##generic" + Unique);
+				doConfirm = false;
 			}
-			if (ImGui.BeginPopupModal("Confirm?##adddata" + Unique, WindowFlags.AlwaysAutoResize))
+			if (ImGui.BeginPopupModal("Confirm?##generic" + Unique, WindowFlags.AlwaysAutoResize))
 			{
-				ImGui.Text("Adding data will delete this node's children. Continue?");
+				ImGui.Text(confirmText);
 				if (ImGui.Button("Yes"))
 				{
-					selectedNode.Children = null;
-					selectedNode.Data = new byte[0];
+					confirmAction();
 					ImGui.CloseCurrentPopup();
 				}
 				ImGui.SameLine();
 				if (ImGui.Button("No")) ImGui.CloseCurrentPopup();
 				ImGui.EndPopup();
 			}
-			if (doImportData)
-			{
-				ImGui.OpenPopup("Confirm?##importdata" + Unique);
-				doImportData = false;
-			}
-			if (ImGui.BeginPopupModal("Confirm?##importdata" + Unique, WindowFlags.AlwaysAutoResize))
-			{
-				ImGui.Text("Importing data will delete this node's children. Continue?");
-				if (ImGui.Button("Yes"))
-				{
-					string path;
-					if ((path = FileDialog.Open()) != null)
-					{
-						selectedNode.Children = null;
-						selectedNode.Data = File.ReadAllBytes(path);
-					}
-				}
-				ImGui.SameLine();
-				if (ImGui.Button("No")) ImGui.CloseCurrentPopup();
-				ImGui.EndPopup();
-			}
-			if (doClear)
-			{
-				ImGui.OpenPopup("Confirm?##clear" + Unique);
-				doClear = false;
-			}
-			if (ImGui.BeginPopupModal("Confirm?##clear" + Unique, WindowFlags.AlwaysAutoResize))
-			{
-				ImGui.Text("Clearing will delete all data and children. Continue?");
-				if (ImGui.Button("Yes"))
-				{
-					clearNode.Data = null;
-					if (clearNode == Utf.Root)
-						clearNode.Children = new List<LUtfNode>();
-					else
-						clearNode.Children = null;
-					ImGui.CloseCurrentPopup();
-				}
-				ImGui.SameLine();
-				if (ImGui.Button("No")) ImGui.CloseCurrentPopup();
-				ImGui.EndPopup();
-			}
-			if (doPasteConfirm)
-			{
-				ImGui.OpenPopup("Confirm?##paste" + Unique);
-				doPasteConfirm = false;
-			}
-			if (ImGui.BeginPopupModal("Confirm?##paste" + Unique, WindowFlags.AlwaysAutoResize))
-			{
-				ImGui.Text("Adding children will clear this node's data. Continue?");
-				if (ImGui.Button("Yes"))
-				{
-					pasteInto.Data = null;
-					pasteInto.Children = new List<LUtfNode>();
-					if (main.ClipboardCopy)
-					{
-						var cpy = main.Clipboard.MakeCopy();
-						cpy.Parent = pasteInto;
-						pasteInto.Children.Add(cpy);
-					}
-					else
-					{
-						main.Clipboard.Parent = pasteInto;
-						pasteInto.Children.Add(main.Clipboard);
-						main.Clipboard = null;
-					}
-					ImGui.CloseCurrentPopup();
-				}
-				ImGui.SameLine();
-				if (ImGui.Button("No")) ImGui.CloseCurrentPopup();
-				ImGui.EndPopup();
-			}
-		
 		}
 
-		bool doPasteConfirm = false;
 		LUtfNode pasteInto;
-
-		bool doClear = false;
 		LUtfNode clearNode;
 
 		bool doRename = false;
 		LUtfNode renameNode;
 
-		bool doDelete = false;
 		LUtfNode deleteNode;
 		LUtfNode deleteParent;
 
 		bool doAdd = false;
-		bool doAddConfirm = false;
 		int addOffset = 0;
 		LUtfNode addNode;
 		LUtfNode addParent;
-
 
 		void DoNodeMenu(string id, LUtfNode node, LUtfNode parent)
 		{
@@ -769,12 +669,26 @@ namespace LancerEdit
 				{
 					deleteParent = parent;
 					deleteNode = node;
-					doDelete = true;
+					Confirm("Are you sure you want to delete: '" + node.Name + "'?", () =>
+					{
+						if (selectedNode == deleteNode)
+						{
+							selectedNode = null;
+						}
+						deleteParent.Children.Remove(deleteNode);
+					});
 				}
 				if (ImGui.MenuItem("Clear", node.Children != null || node.Data != null))
 				{
 					clearNode = node;
-					doClear = true;
+					Confirm("Clearing this node will delete all data and children. Continue?", () =>
+					{
+						clearNode.Data = null;
+						if (clearNode == Utf.Root)
+							clearNode.Children = new List<LUtfNode>();
+						else
+							clearNode.Children = null;
+					});
 				}
 				ImGui.Separator();
 				if (ImGui.BeginMenu("Add"))
@@ -785,7 +699,12 @@ namespace LancerEdit
 						addParent = null;
 						addNode = node;
 						if (selectedNode.Data != null)
-							doAddConfirm = true;
+						{
+							Confirm("Adding a node will clear data. Continue?", () =>
+							{
+								doAdd = true;
+							});
+						}
 						else
 							doAdd = true;
 					}
@@ -874,7 +793,23 @@ namespace LancerEdit
 							else
 							{
 								pasteInto = node;
-								doPasteConfirm = true;
+								Confirm("Adding children will delete this node's data. Continue?", () =>
+								{
+									pasteInto.Data = null;
+									pasteInto.Children = new List<LUtfNode>();
+									if (main.ClipboardCopy)
+									{
+										var cpy = main.Clipboard.MakeCopy();
+										cpy.Parent = pasteInto;
+										pasteInto.Children.Add(cpy);
+									}
+									else
+									{
+										main.Clipboard.Parent = pasteInto;
+										pasteInto.Children.Add(main.Clipboard);
+										main.Clipboard = null;
+									}
+								});
 							}
 						}
 						ImGui.EndMenu();

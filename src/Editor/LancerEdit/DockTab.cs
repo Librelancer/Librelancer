@@ -35,17 +35,5 @@ namespace LancerEdit
 		public virtual void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
 		{
 		}
-		protected bool HasTexture(List<string> refs, string item)
-		{
-			foreach (string tex in refs)
-				if (tex.Equals(item, StringComparison.InvariantCultureIgnoreCase)) return true;
-			return false;
-		}
-		protected bool HasMissing(List<MissingReference> missing, string item)
-		{
-			foreach (var m in missing)
-				if (m.Missing == item) return true;
-			return false;
-		}
 	}
 }

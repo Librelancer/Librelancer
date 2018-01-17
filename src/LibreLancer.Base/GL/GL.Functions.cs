@@ -64,6 +64,8 @@ namespace LibreLancer
         }
         [MapsTo("glPolygonMode")]
 		public static PolygonMode PolygonMode;
+		[MapsTo("glLineWidth")]
+		public static LineWidth LineWidth;
 		[MapsTo("glDepthFunc")]
 		public static DepthFunc DepthFunc;
 		[MapsTo("glCullFace")]
