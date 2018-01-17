@@ -81,7 +81,7 @@ namespace LancerEdit
 		Vector2 rotation = Vector2.Zero;
 		public override bool Draw()
 		{
-			if (ImGuiExt.BeginDock(Title + "##" + Unique, ref open, 0))
+			if (ImGuiExt.BeginDock(Title + "###" + Unique, ref open, 0))
 			{
 				ImGui.Text("View Mode:");
 				ImGui.SameLine();

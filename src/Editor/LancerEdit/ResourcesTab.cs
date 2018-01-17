@@ -21,7 +21,7 @@ namespace LancerEdit
 
 		public override bool Draw()
 		{
-			if (ImGuiExt.BeginDock("Resources##" + Unique, ref open, WindowFlags.HorizontalScrollbar))
+			if (ImGuiExt.BeginDock("Resources###" + Unique, ref open, WindowFlags.HorizontalScrollbar))
 			{
 				if (res.TextureDictionary.Count + res.MaterialDictionary.Count > 0)
 				{

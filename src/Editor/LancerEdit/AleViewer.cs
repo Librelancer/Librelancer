@@ -67,9 +67,10 @@ namespace LancerEdit
 		}
 		Vector2 rotation = Vector2.Zero;
 		float zoom = 200;
+		bool showNodes = false;
 		public override bool Draw()
 		{
-			if (ImGuiExt.BeginDock(Title + "##" + Unique, ref open, 0))
+			if (ImGuiExt.BeginDock(Title + "###" + Unique, ref open, 0))
 			{
 				//Select Fx
 				lastEffect = currentEffect;
@@ -77,7 +78,20 @@ namespace LancerEdit
 				ImGui.SameLine();
 				ImGui.Combo("##effect", ref currentEffect, effectNames);
 				if (currentEffect != lastEffect) SetupRender(currentEffect);
+				ImGui.SameLine();
+				ImGui.Checkbox("Nodes", ref showNodes);
+				ImGui.Separator();
 				//Render
+				if (showNodes)
+				{
+					ImGui.Columns(2, "##alecolumns", true);
+					ImGui.Text("Viewport");
+					ImGui.NextColumn();
+					ImGui.Text("Nodes");
+					ImGui.Separator();
+					ImGui.NextColumn();
+					ImGui.BeginChild("##renderchild");
+				}
 				var renderWidth = Math.Max(120, (int)ImGui.GetWindowWidth() - 15);
 				var renderHeight = Math.Max(120, (int)ImGui.GetWindowHeight() - 70);
 				//Generate render target
@@ -111,6 +125,29 @@ namespace LancerEdit
 						zoom -= wheel * 15;
 					else
 						zoom -= wheel * 45;
+				}
+				if (showNodes)
+				{
+					ImGui.EndChild();
+					ImGui.NextColumn();
+					ImGui.BeginChild("##nodescroll", false);
+					int j = 0;
+					foreach (var node in instance.Effect.Nodes)
+					{
+						if (ImGui.CollapsingHeader(string.Format("{0}", node.NodeName), "##nh" + (j++), true, false))
+						{
+							ImGui.Text(node.Name);
+							ImGui.Text(string.Format("CRC: 0x{0:X}", node.CRC), new Vector4(0.5f, 0.5f, 0.5f, 1f));
+							if (node is FxAppearance)
+							{
+								bool draw = instance.DrawEnabled((FxAppearance)node);
+								bool draw2 = draw;
+								ImGui.Checkbox("Draw##nh" + j, ref draw);
+								if (draw != draw2) instance.EnableStates[node.NodeName] = draw;
+							}
+						}
+					}
+					ImGui.EndChild();
 				}
 			}
 			ImGuiExt.EndDock();

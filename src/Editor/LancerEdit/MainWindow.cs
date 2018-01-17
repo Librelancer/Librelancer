@@ -155,10 +155,7 @@ namespace LancerEdit
 			var size = (Vector2)ImGui.GetIO().DisplaySize;
 			size.Y -= menu_height;
 			//Window
-			ImGui.SetNextWindowPos(new Vector2(0, menu_height), Condition.Always, Vector2.Zero);
-			ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - 25), Condition.Always);
-			ImGui.BeginWindow("##mainwin", WindowFlags.NoTitleBar | WindowFlags.NoMove | WindowFlags.NoResize | WindowFlags.NoBringToFrontOnFocus);
-			ImGuiExt.BeginDockspace();
+			ImGuiExt.RootDock(0, menu_height, size.X, size.Y - 25);
 			MissingResources.Clear();
 			ReferencedMaterials.Clear();
 			ReferencedTextures.Clear();
@@ -175,8 +172,6 @@ namespace LancerEdit
 					i--;
 				}
 			}
-			ImGuiExt.EndDockspace();
-			ImGui.EndWindow();
 			//Status bar
 			ImGui.SetNextWindowSize(new Vector2(size.X, 25f), Condition.Always);
 			ImGui.SetNextWindowPos(new Vector2(0, size.Y - 6f), Condition.Always, Vector2.Zero);
@@ -202,6 +197,7 @@ namespace LancerEdit
 									 activename,
 									 utfpath));
 			ImGui.EndWindow();
+			//ImGuiExt.DockDebugWindow();
 			ImGui.PopFont();
 			guiHelper.Render(RenderState);
 			foreach (var tab in toAdd)

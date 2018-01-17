@@ -10,13 +10,13 @@ extern "C" {
 #define IGEXPORT
 #endif
 IGEXPORT void igShutdownDock();
-IGEXPORT void igBeginDockspace();
+IGEXPORT void igRootDock(float posx, float posy, float sizew, float sizeh);
 IGEXPORT bool igBeginDock(const char *label, bool *opened, int extra_flags);
 IGEXPORT void igEndDock();
-IGEXPORT void igEndDockspace();
 IGEXPORT void igSetDockActive();
 IGEXPORT void igLoadDock();
 IGEXPORT void igSaveDock();
+IGEXPORT void igPrint();
 #ifdef __cplusplus
 }
 #endif

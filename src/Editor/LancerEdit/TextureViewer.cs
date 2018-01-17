@@ -36,7 +36,7 @@ namespace LancerEdit
 		float zoom = 100;
 		public override bool Draw()
 		{
-			if (ImGuiExt.BeginDock(Title + "##" + Unique, ref open, 0))
+			if (ImGuiExt.BeginDock(Title + "###" + Unique, ref open, 0))
 			{
 				ImGui.Text("Zoom: ");
 				ImGui.SameLine();

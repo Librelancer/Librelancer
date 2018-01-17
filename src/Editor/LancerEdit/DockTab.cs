@@ -19,11 +19,14 @@ namespace LancerEdit
 {
 	public abstract class DockTab : IDisposable
 	{
-		static long _ids;
+		static long _ids = 4;
+		static Random rand = new Random();
 		protected long Unique;
 		protected DockTab()
 		{
-			Unique = _ids++;
+			Unique = _ids;
+			_ids *= 2;
+			_ids -= rand.Next(5, 11);
 		}
 		public abstract bool Draw();
 		public virtual void Update(double elapsed)

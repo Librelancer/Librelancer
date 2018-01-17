@@ -78,7 +78,7 @@ namespace LancerEdit
 
 		public override bool Draw()
 		{
-			if (ImGuiExt.BeginDock(Title + "##" + Unique, ref open, 0))
+			if (ImGuiExt.BeginDock(Title + "###" + Unique, ref open, 0))
 			{
 				//Child Window
 				var size = ImGui.GetWindowSize();

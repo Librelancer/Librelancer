@@ -106,7 +106,7 @@ namespace LibreLancer.Fx
 			return -1;
 		}
 
-		bool DrawEnabled(FxAppearance node)
+		public bool DrawEnabled(FxAppearance node)
 		{
 			bool val;
 			if (!EnableStates.TryGetValue(node.NodeName, out val)) return true;
