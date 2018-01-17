@@ -17,7 +17,7 @@
 
 using System;
 using System.Collections.Generic;
-
+using LibreLancer.Utf.Mat;
 
 namespace LibreLancer
 {
@@ -27,7 +27,7 @@ namespace LibreLancer
         void Resized();
 		void Update(ICamera camera, TimeSpan delta, TimeSpan totalTime);
 		void Draw(RenderState rstate, Matrix4 world, Lighting light);
-		void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light);
+		void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light, Material overrideMat = null);
 		float GetRadius();
     }
 }

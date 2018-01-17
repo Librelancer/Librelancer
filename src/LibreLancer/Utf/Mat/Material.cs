@@ -29,7 +29,19 @@ namespace LibreLancer.Utf.Mat
 
 		public bool Loaded = true;
 
-		public string type { get; private set; }
+		string type;
+		public string Type
+		{
+			get
+			{
+				return type;
+			}
+			set
+			{
+				type = value;
+				isBasic = basicMaterials.Contains(type);
+			}
+		}
 
 		/// <summary>
 		/// Material Name
@@ -474,6 +486,9 @@ namespace LibreLancer.Utf.Mat
 						dm.DtSampler = DtName;
 						dm.DtFlags = (SamplerFlags)DtFlags;
 						dm.Library = textureLibrary;
+						break;
+					case "NormalDebugMaterial":
+						_rmat = new NormalDebugMaterial();
 						break;
 					default:
 						throw new NotImplementedException();

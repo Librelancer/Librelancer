@@ -23,7 +23,7 @@ using System.Collections.Generic;
 //using FLCommon;
 
 //using FLApi.Universe;
-using LibreLancer.Utf.Anm;
+using LibreLancer.Utf.Mat;
 
 namespace LibreLancer.Utf.Cmp
 {
@@ -96,11 +96,11 @@ namespace LibreLancer.Utf.Cmp
             Model.Draw(rstate, transform, light);
         }
 
-		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light)
+		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light, Material overrideMat = null)
 		{
 			Matrix4 transform = world;
 			if (Construct != null) transform = Construct.Transform * world;
-			Model.DrawBuffer(buffer, transform, light);
+			Model.DrawBuffer(buffer, transform, light, overrideMat);
 		}
 
 		public Part Clone(ConstructCollection newcol)

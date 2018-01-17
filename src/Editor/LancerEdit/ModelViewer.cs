@@ -34,6 +34,28 @@ namespace LancerEdit
 		ViewportManager vps;
 		ResourceManager res;
 		public string Name;
+		int viewMode = 0;
+		static readonly string[] viewModes = new string[] {
+			"Textured",
+			"Wireframe",
+			"Flat",
+			"Normals"
+		};
+		static readonly Color4[] initialCmpColors = new Color4[] {
+			Color4.White,
+			Color4.Red,
+			Color4.LightGreen,
+			Color4.Blue,
+			Color4.Yellow,
+			Color4.Magenta,
+			Color4.DarkGreen,
+			Color4.Cyan,
+			Color4.Orange
+		};
+		Material wireframeMaterial3db;
+		Material normalsDebugMaterial;
+		Dictionary<int, Material> partMaterials = new Dictionary<int, Material>();
+
 		public ModelViewer(string title, string name,IDrawable drawable, RenderState rstate, ViewportManager viewports, CommandBuffer commands, ResourceManager res)
 		{
 			Title = title;
@@ -43,6 +65,11 @@ namespace LancerEdit
 			this.vps = viewports;
 			this.res = res;
 			buffer = commands;
+			wireframeMaterial3db = new Material(res);
+			wireframeMaterial3db.Dc = Color4.White;
+			wireframeMaterial3db.DtName = ResourceManager.WhiteTextureName;
+			normalsDebugMaterial = new Material(res);
+			normalsDebugMaterial.Type = "NormalDebugMaterial";
 		}
 
 		Vector2 rotation = Vector2.Zero;
@@ -50,8 +77,11 @@ namespace LancerEdit
 		{
 			if (ImGuiExt.BeginDock(Title + "##" + Unique, ref open, 0))
 			{
+				ImGui.Text("View Mode:");
+				ImGui.SameLine();
+				ImGui.Combo("##modes", ref viewMode, viewModes);
 				var renderWidth = Math.Max(120, (int)ImGui.GetWindowWidth() - 15);
-				var renderHeight = Math.Max(120, (int)ImGui.GetWindowHeight() - 40);
+				var renderHeight = Math.Max(120, (int)ImGui.GetWindowHeight() - 70);
 				//Generate render target
 				if (rh != renderHeight || rw != renderWidth)
 				{
@@ -182,12 +212,26 @@ namespace LancerEdit
 			buffer.StartFrame();
 			drawable.Update(cam, TimeSpan.Zero, TimeSpan.Zero);
 			drawable.Update(cam, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0));
-			var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
-			drawable.DrawBuffer(buffer, matrix, Lighting.Empty);
+			if (viewMode == 1)
+			{
+				rstate.Wireframe = true;
+			}
+			if (drawable is CmpFile)
+			{
+				DrawCmp(cam);
+			}
+			else
+			{
+				DrawSimple(cam);
+			}
 			buffer.DrawOpaque(rstate);
 			rstate.DepthWrite = false;
 			buffer.DrawTransparent(rstate);
 			rstate.DepthWrite = true;
+			if (viewMode == 1)
+			{
+				rstate.Wireframe = false;
+			}
 			//Restore state
 			rstate.Cull = false;
 			rstate.BlendMode = BlendMode.Normal;
@@ -196,6 +240,57 @@ namespace LancerEdit
 			RenderTarget2D.ClearBinding();
 			vps.Pop();
 		}
+
+		void DrawSimple(ICamera cam)
+		{
+			Material mat = null;
+			if (viewMode == 1 || viewMode == 2)
+			{
+				mat = wireframeMaterial3db;
+				mat.Update(cam);
+			}
+			if (viewMode == 3)
+			{
+				mat = normalsDebugMaterial;
+				mat.Update(cam);
+			}
+			var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+			drawable.DrawBuffer(buffer, matrix, Lighting.Empty, mat);
+		}
+
+		int jColors = 0;
+		void DrawCmp(ICamera cam)
+		{
+			var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+			if (viewMode == 0)
+			{
+				drawable.DrawBuffer(buffer, matrix, Lighting.Empty);
+			}
+			else if (viewMode == 1 || viewMode == 2)
+			{
+				var cmp = (CmpFile)drawable;
+				foreach (var part in cmp.Parts)
+				{
+					Material mat;
+					if (!partMaterials.TryGetValue(part.Key, out mat))
+					{
+						mat = new Material(res);
+						mat.DtName = ResourceManager.WhiteTextureName;
+						mat.Dc = initialCmpColors[jColors++];
+						if (jColors >= initialCmpColors.Length) jColors = 0;
+						partMaterials.Add(part.Key, mat);
+					}
+					mat.Update(cam);
+					part.Value.DrawBuffer(buffer, matrix, Lighting.Empty, mat);
+				}
+			}
+			else
+			{
+				normalsDebugMaterial.Update(cam);
+				drawable.DrawBuffer(buffer, matrix, Lighting.Empty, normalsDebugMaterial);
+			}
+		}
+
 		public override void Dispose()
 		{
 			if (renderTarget != null)

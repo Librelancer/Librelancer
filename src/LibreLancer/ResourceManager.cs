@@ -59,11 +59,10 @@ namespace LibreLancer
 		{
 			Game = g;
 			DefaultMaterial = new Material(this);
-			DefaultMaterial.Name = "LL_DefaultMaterialName";
+			DefaultMaterial.Name = "$LL_DefaultMaterialName";
 		}
 
 		public Material DefaultMaterial;
-
 		public Texture2D NullTexture;
 		public Texture2D WhiteTexture;
 		public const string NullTextureName = "$$LIBRELANCER.Null";

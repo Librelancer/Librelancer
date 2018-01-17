@@ -235,7 +235,7 @@ namespace LibreLancer.Utf.Dfm
 			Levels[0].Update(camera, delta);
 		}
 
-		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light)
+		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light, Material overrrideMat = null)
 		{
 			Levels[0].DrawBuffer(buffer, world, light);		
 		}

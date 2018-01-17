@@ -22,7 +22,7 @@ using System.IO;
 
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Cmp;
-
+using LibreLancer.Utf.Mat;
 namespace LibreLancer.Utf.Vms
 {
     public class VMeshData
@@ -298,13 +298,13 @@ namespace LibreLancer.Utf.Vms
             }
         }
 
-		public void DrawBuffer(CommandBuffer buff, ushort startMesh, int endMesh, ushort startVertex, Matrix4 world, Lighting light, Vector3 center, MaterialAnimCollection mc)
+		public void DrawBuffer(CommandBuffer buff, ushort startMesh, int endMesh, ushort startVertex, Matrix4 world, Lighting light, Vector3 center, MaterialAnimCollection mc, Material overrideMat = null)
 		{
 			if (ready)
 			{
 				for (ushort i = startMesh; i < endMesh; i++)
 				{
-					Meshes[i].DrawBuffer(buff, this, startVertex, world, light, mc);
+					Meshes[i].DrawBuffer(buff, this, startVertex, world, light, mc, overrideMat);
 				}
 			}
 		}

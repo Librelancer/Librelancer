@@ -380,6 +380,7 @@
     <Compile Include="Net\Server\ListedCharacter.cs" />
     <Compile Include="Render\PointLight.cs" />
     <Compile Include="Utf\UtfLoader.cs" />
+    <Compile Include="Render\Materials\NormalDebugMaterial.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -418,6 +419,8 @@
     <EmbeddedResource Include="Shaders\DepthPrepass_AlphaTest.vs" />
     <EmbeddedResource Include="Shaders\DepthPrepass_AlphaTest.frag" />
     <EmbeddedResource Include="Shaders\lightingcull.glcompute" />
+    <EmbeddedResource Include="Shaders\Normals_PositionNormal.vs" />
+    <EmbeddedResource Include="Shaders\Normals.frag" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

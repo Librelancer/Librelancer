@@ -192,7 +192,7 @@ namespace LibreLancer.Utf.Mat
 				sphere.VertexBuffer.Draw(PrimitiveTypes.TriangleList, 0, start, count);
 			}
 		}
-		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting lighting)
+		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting lighting, Material overrideMat = null)
 		{
 			if (SideMaterials.Length < 6)
 				return;
@@ -207,6 +207,7 @@ namespace LibreLancer.Utf.Mat
 					sphere.GetDrawParameters(faces[i], out start, out count, out pos);
 					if(SideMaterials[i] == null) SideMaterials[i] = library.FindMaterial(CrcTool.FLModelCrc(sideMaterialNames[i]));
 					var mat = SideMaterials[i] ?? defaultMaterial;
+					mat = overrideMat ?? mat;
                     mat.Render.Camera = _camera;
 					var transform = Matrix4.CreateScale(Radius) * world;
 					buffer.AddCommand(
@@ -223,7 +224,7 @@ namespace LibreLancer.Utf.Mat
 					);
 				}
 				//Draw atmosphere
-				if (SideMaterials.Length > 6)
+				if (SideMaterials.Length > 6 && overrideMat == null)
 				{
 					if (SideMaterials[6] == null)
 					{

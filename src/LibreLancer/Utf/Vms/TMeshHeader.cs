@@ -171,11 +171,13 @@ namespace LibreLancer.Utf.Vms
 			return avg;
 		}
 
-		public void DrawBuffer(CommandBuffer buffer, VMeshData data, ushort startVertex, Matrix4 world, Lighting light, MaterialAnimCollection mc)
+		public void DrawBuffer(CommandBuffer buffer, VMeshData data, ushort startVertex, Matrix4 world, Lighting light, MaterialAnimCollection mc, Material overrideMat = null)
 		{
 			var mat = Material;
 			if (mat == null)
 				mat = defaultMaterial;
+			if (overrideMat != null)
+				mat = overrideMat;
 			if (lastmc != mc)
 			{
 				if (mc != null)
