@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Reflection;
-using LibreLancer;
 using System.Runtime.InteropServices;
+using System.Text;
+using LibreLancer;
 namespace LancerEdit
 {
 	static class FileDialog
@@ -101,7 +102,7 @@ namespace LancerEdit
 			method.Invoke(null, null);
 		}
 
-		static string GtkOpen()
+		static unsafe string GtkOpen()
 		{
 			if (!Gtk.gtk_init_check(IntPtr.Zero, IntPtr.Zero))
 			{
@@ -117,7 +118,13 @@ namespace LancerEdit
 			if (Gtk.gtk_dialog_run(dlg) == Gtk.GTK_RESPONSE_ACCEPT)
 			{
 				var file = Gtk.gtk_file_chooser_get_filename(dlg);
-				result = Marshal.PtrToStringAnsi(file);
+				//UTF8 Conversion
+				int i = 0;
+				var ptr = (byte*)file;
+				while (ptr[i] != 0) i++;
+				var bytes = new byte[i];
+				Marshal.Copy(file, bytes, 0, i);
+				result = Encoding.UTF8.GetString(bytes);
 			}
 			WaitCleanup();
 			Gtk.gtk_widget_destroy(dlg);
@@ -125,7 +132,7 @@ namespace LancerEdit
 			return result;
 		}
 
-		static string GtkSave()
+		static unsafe string GtkSave()
 		{
 			if (!Gtk.gtk_init_check(IntPtr.Zero, IntPtr.Zero))
 			{
@@ -141,7 +148,12 @@ namespace LancerEdit
 			if (Gtk.gtk_dialog_run(dlg) == Gtk.GTK_RESPONSE_ACCEPT)
 			{
 				var file = Gtk.gtk_file_chooser_get_filename(dlg);
-				result = Marshal.PtrToStringAnsi(file);
+				int i = 0;
+				var ptr = (byte*)file;
+				while (ptr[i] != 0) i++;
+				var bytes = new byte[i];
+				Marshal.Copy(file, bytes, 0, i);
+				result = Encoding.UTF8.GetString(bytes);
 			}
 			WaitCleanup();
 			Gtk.gtk_widget_destroy(dlg);
