@@ -76,7 +76,7 @@ namespace LancerEdit
 			RefTex(m.DtName, res, missing, texrefs, m.Name, refstr);
 			if (m.Render is NomadMaterial)
 			{
-				var nt = m.NtName ?? "NomadRGB_NomadAlpha1";
+				var nt = m.NtName ?? "NomadRGB1_NomadAlpha1";
 				RefTex(nt, res, missing, texrefs, m.Name, refstr);
 			}
 			RefTex(m.EtName, res, missing, texrefs, m.Name, refstr);
