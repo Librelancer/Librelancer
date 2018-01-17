@@ -38,6 +38,13 @@ namespace LibreLancer.Utf.Cmp
         public uint HeaderSize { get; private set; }
 
         private uint vMeshLibId;
+		public uint MeshCrc
+		{
+			get
+			{
+				return vMeshLibId;
+			}
+		}
         private VMeshData mesh;
         public VMeshData Mesh
         {

@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.IO;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.Utf.Ale;
 namespace LancerEdit
 {
 	public class UtfTab : DockTab
@@ -55,10 +56,33 @@ namespace LancerEdit
 			return false;
 		}
 
+		public string GetUtfPath()
+		{
+			if (selectedNode == null) return "None";
+			List<string> strings = new List<string>();
+			LUtfNode node = selectedNode;
+			while (node != Utf.Root)
+			{
+				strings.Add(node.Name);
+				node = node.Parent;
+			}
+			strings.Reverse();
+			var path = "/" + string.Join("/", strings);
+			return path;
+		}
+
+		void SelectedChanged()
+		{
+			main.ActiveTab = this;
+		}
+
 		public override bool Draw()
 		{
 			if (ImGuiExt.BeginDock(Title + "##" + Unique, ref open, 0))
 			{
+				//Child Window
+				var size = ImGui.GetWindowSize();
+				ImGui.BeginChild("##utfchild", new Vector2(size.X - 15, size.Y - 50), false, 0);
 				//Layout
 				if (selectedNode != null)
 				{
@@ -81,6 +105,7 @@ namespace LancerEdit
 				if (ImGuiNative.igIsItemClicked(0))
 				{
 					selectedNode = Utf.Root;
+					SelectedChanged();
 				}
 				ImGui.PushID("/");
 				DoNodeMenu("/", Utf.Root, null);
@@ -102,7 +127,49 @@ namespace LancerEdit
 					ImGui.NextColumn();
 					NodeInformation();
 				}
-
+				//Action Bar
+				ImGui.EndChild();
+				ImGui.Separator();
+				if (ImGui.Button("Actions"))
+					ImGui.OpenPopup("actions");
+				if (ImGui.BeginPopup("actions"))
+				{
+					if (ImGui.MenuItem("View Model"))
+					{
+						IDrawable drawable = null;
+						try
+						{
+							drawable = LibreLancer.Utf.UtfLoader.GetDrawable(Utf.Export(), main.Resources);
+							drawable.Initialize(main.Resources);
+						}
+						catch (Exception) { ErrorPopup("Could not open as model"); drawable = null; }
+						if (drawable != null)
+						{
+							main.AddTab(new ModelViewer("Model Viewer (" + Title + ")", Title, drawable, main.RenderState, main.Viewport, main.Commands, main.Resources));
+						}
+					}
+					if (ImGui.MenuItem("View Ale"))
+					{
+						AleFile ale = null;
+						try
+						{
+							ale = new AleFile(Utf.Export());
+						}
+						catch (Exception)
+						{
+							ErrorPopup("Could not open as ale");
+							ale = null;
+						}
+						if (ale != null)
+							main.AddTab(new AleViewer("Ale Viewer (" + Title + ")", Title, ale, main));
+					}
+					if (ImGui.MenuItem("Refresh Resources"))
+					{
+						main.Resources.RemoveResourcesForId(Unique.ToString());
+						main.Resources.AddResources(Utf.Export(), Unique.ToString());
+					}
+					ImGui.EndPopup();
+				}
 			}
 			ImGuiExt.EndDock();
 			Popups();
@@ -117,68 +184,133 @@ namespace LancerEdit
 			doError = true;
 		}
 
-		void NodeInformation()
+		unsafe int DummyCallback(TextEditCallbackData* data)
 		{
+			return 0;
+		}
+
+		bool doAddData = false;
+		bool doImportData = false;
+		unsafe void NodeInformation()
+		{
+			ImGui.BeginChild("##scrollnode", false, 0);
 			ImGui.Text("Name: " + selectedNode.Name);
 			if (selectedNode.Children != null)
 			{
 				ImGui.Text(selectedNode.Children.Count + " children");
+				if (selectedNode != Utf.Root)
+				{
+					ImGui.Separator();
+					ImGui.Text("Actions:");
+					if (ImGui.Button("Add Data"))
+					{
+						doAddData = true;
+					}
+					if (ImGui.Button("Import Data"))
+					{
+						doImportData = true;
+					}
+				}
 			}
 			else if (selectedNode.Data != null)
 			{
 				ImGui.Text(string.Format("Size: {0}", LibreLancer.DebugDrawing.SizeSuffix(selectedNode.Data.Length)));
-				if (ImGui.Button("Hex Editor"))
+				ImGui.Separator();
+				if (selectedNode.Data.Length > 0)
 				{
-					hexdata = new byte[selectedNode.Data.Length];
-					selectedNode.Data.CopyTo(hexdata, 0);
-					mem = new MemoryEditor();
-					hexEditor = true;
+					ImGui.Text("Previews:");
+					//String Preview
+					ImGui.Text("String:");
+					ImGui.SameLine();
+					ImGui.InputText("", selectedNode.Data, (uint)Math.Min(selectedNode.Data.Length, 32), InputTextFlags.ReadOnly, DummyCallback);
+					//Float Preview
+					ImGui.Text("Float:");
+					fixed (byte* ptr = selectedNode.Data)
+					{
+						for (int i = 0; i < 4 && (i < selectedNode.Data.Length / 4); i++)
+						{
+							ImGui.SameLine();
+							ImGui.Text(((float*)ptr)[i].ToString());
+						}
+					}
+					//Int Preview
+					ImGui.Text("Int:");
+					fixed (byte* ptr = selectedNode.Data)
+					{
+						for (int i = 0; i < 4 && (i < selectedNode.Data.Length / 4); i++)
+						{
+							ImGui.SameLine();
+							ImGui.Text(((int*)ptr)[i].ToString());
+						}
+					}
 				}
-				if (ImGui.Button("Float Editor"))
+				else
 				{
-					floats = new float[selectedNode.Data.Length / 4];
-					for (int i = 0; i < selectedNode.Data.Length / 4; i++)
-					{
-						floats[i] = BitConverter.ToSingle(selectedNode.Data, i * 4);
-					}
-					floatEditor = true;
+					ImGui.Text("Empty Data");
 				}
-				if (ImGui.Button("Int Editor"))
+				ImGui.Separator();
+				ImGui.Text("Actions:");
+				if (ImGui.Button("Edit"))
 				{
-					ints = new int[selectedNode.Data.Length / 4];
-					for (int i = 0; i < selectedNode.Data.Length / 4; i++)
-					{
-						ints[i] = BitConverter.ToInt32(selectedNode.Data, i * 4);
-					}
-					intEditor = true;
+					ImGui.OpenPopup("editactions");
 				}
-				if (ImGui.Button("Color Picker"))
+				if (ImGui.BeginPopup("editactions"))
 				{
-					var len = selectedNode.Data.Length / 4;
-					if (len < 3)
+					if (ImGui.MenuItem("Hex Editor"))
 					{
-						pickcolor4 = true;
-						color4 = new System.Numerics.Vector4(0, 0, 0, 1);
+						hexdata = new byte[selectedNode.Data.Length];
+						selectedNode.Data.CopyTo(hexdata, 0);
+						mem = new MemoryEditor();
+						hexEditor = true;
 					}
-					else if (len == 3)
+					if (ImGui.MenuItem("Float Editor"))
 					{
-						pickcolor4 = false;
-						color3 = new System.Numerics.Vector3(
-							BitConverter.ToSingle(selectedNode.Data, 0),
-							BitConverter.ToSingle(selectedNode.Data, 4),
-							BitConverter.ToSingle(selectedNode.Data, 8));
+						floats = new float[selectedNode.Data.Length / 4];
+						for (int i = 0; i < selectedNode.Data.Length / 4; i++)
+						{
+							floats[i] = BitConverter.ToSingle(selectedNode.Data, i * 4);
+						}
+						floatEditor = true;
 					}
-					else if (len > 3)
+					if (ImGui.MenuItem("Int Editor"))
 					{
-						pickcolor4 = true;
-						color4 = new System.Numerics.Vector4(
-							BitConverter.ToSingle(selectedNode.Data, 0),
-							BitConverter.ToSingle(selectedNode.Data, 4),
-							BitConverter.ToSingle(selectedNode.Data, 8),
-							BitConverter.ToSingle(selectedNode.Data, 12));
+						ints = new int[selectedNode.Data.Length / 4];
+						for (int i = 0; i < selectedNode.Data.Length / 4; i++)
+						{
+							ints[i] = BitConverter.ToInt32(selectedNode.Data, i * 4);
+						}
+						intEditor = true;
 					}
-					colorPicker = true;
+					if (ImGui.MenuItem("Color Picker"))
+					{
+						var len = selectedNode.Data.Length / 4;
+						if (len < 3)
+						{
+							pickcolor4 = true;
+							color4 = new System.Numerics.Vector4(0, 0, 0, 1);
+						}
+						else if (len == 3)
+						{
+							pickcolor4 = false;
+							color3 = new System.Numerics.Vector3(
+								BitConverter.ToSingle(selectedNode.Data, 0),
+								BitConverter.ToSingle(selectedNode.Data, 4),
+								BitConverter.ToSingle(selectedNode.Data, 8));
+						}
+						else if (len > 3)
+						{
+							pickcolor4 = true;
+							color4 = new System.Numerics.Vector4(
+								BitConverter.ToSingle(selectedNode.Data, 0),
+								BitConverter.ToSingle(selectedNode.Data, 4),
+								BitConverter.ToSingle(selectedNode.Data, 8),
+								BitConverter.ToSingle(selectedNode.Data, 12));
+						}
+						colorPicker = true;
+					}
+					ImGui.EndPopup();
 				}
+				ImGui.NextColumn();
 				if (ImGui.Button("Texture Viewer"))
 				{
 					Texture2D tex = null;
@@ -221,25 +353,26 @@ namespace LancerEdit
 						File.WriteAllBytes(path, selectedNode.Data);
 					}
 				}
-				if (ImGui.Button("View Model"))
-				{
-					IDrawable drawable = null;
-					try
-					{
-						drawable = LibreLancer.Utf.UtfLoader.GetDrawable(Utf.Export(), main.Resources);
-						drawable.Initialize(main.Resources);
-					}
-					catch (Exception) { ErrorPopup("Could not open as model"); drawable = null; }
-					if (drawable != null)
-					{
-						main.AddTab(new ModelViewer("Model Viewer", drawable, main.RenderState, main.Viewport, main.Commands));
-					}
-				}
 			}
 			else
 			{
 				ImGui.Text("Empty");
+				ImGui.Separator();
+				ImGui.Text("Actions:");
+				if (ImGui.Button("Add Data"))
+				{
+					selectedNode.Data = new byte[0];
+				}
+				if (ImGui.Button("Import Data"))
+				{
+					string path;
+					if ((path = FileDialog.Open()) != null)
+					{
+						selectedNode.Data = File.ReadAllBytes(path);
+					}
+				}
 			}
+			ImGui.EndChild();
 		}
 
 		bool floatEditor = false;
@@ -375,6 +508,10 @@ namespace LancerEdit
 				ImGui.Text("Are you sure you want to delete: '" + deleteNode.Name + "'?");
 				if (ImGui.Button("Ok"))
 				{
+					if (selectedNode == deleteNode)
+					{
+						selectedNode = null;
+					}
 					deleteParent.Children.Remove(deleteNode);
 					ImGui.CloseCurrentPopup();
 				}
@@ -427,7 +564,7 @@ namespace LancerEdit
 				ImGui.InputText("", text.Pointer, text.Size, InputTextFlags.Default, text.Callback);
 				if (ImGui.Button("Ok"))
 				{
-					var node = new LUtfNode() { Name = text.GetText().Trim() };
+					var node = new LUtfNode() { Name = text.GetText().Trim(), Parent = addParent ?? addNode };
 					if (node.Name.Length == 0)
 					{
 						ErrorPopup("Node name cannot be empty");
@@ -450,6 +587,46 @@ namespace LancerEdit
 				{
 					ImGui.CloseCurrentPopup();
 				}
+				ImGui.EndPopup();
+			}
+			//Add Data
+			if (doAddData)
+			{
+				ImGui.OpenPopup("Confirm?##adddata" + Unique);
+				doAddData = false;
+			}
+			if (ImGui.BeginPopupModal("Confirm?##adddata" + Unique, WindowFlags.AlwaysAutoResize))
+			{
+				ImGui.Text("Adding data will delete this node's children. Continue?");
+				if (ImGui.Button("Yes"))
+				{
+					selectedNode.Children = null;
+					selectedNode.Data = new byte[0];
+					ImGui.CloseCurrentPopup();
+				}
+				ImGui.SameLine();
+				if (ImGui.Button("No")) ImGui.CloseCurrentPopup();
+				ImGui.EndPopup();
+			}
+			if (doImportData)
+			{
+				ImGui.OpenPopup("Confirm?##importdata" + Unique);
+				doImportData = false;
+			}
+			if (ImGui.BeginPopupModal("Confirm?##importdata" + Unique, WindowFlags.AlwaysAutoResize))
+			{
+				ImGui.Text("Importing data will delete this node's children. Continue?");
+				if (ImGui.Button("Yes"))
+				{
+					string path;
+					if ((path = FileDialog.Open()) != null)
+					{
+						selectedNode.Children = null;
+						selectedNode.Data = File.ReadAllBytes(path);
+					}
+				}
+				ImGui.SameLine();
+				if (ImGui.Button("No")) ImGui.CloseCurrentPopup();
 				ImGui.EndPopup();
 			}
 		}
@@ -519,6 +696,7 @@ namespace LancerEdit
 				if (ImGuiNative.igIsItemClicked(0))
 				{
 					selectedNode = node;
+					SelectedChanged();
 				}
 				ImGui.PushID(id);
 				DoNodeMenu(id, node, parent);
@@ -546,6 +724,7 @@ namespace LancerEdit
 				if (ImGui.SelectableEx(id, ref selected))
 				{
 					selectedNode = node;
+					SelectedChanged();
 				}
 				DoNodeMenu(id, node, parent);
 			}

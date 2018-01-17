@@ -142,6 +142,7 @@ namespace LibreLancer.Utf.Cmp
                         if (node.Name.EndsWith(".3db", StringComparison.OrdinalIgnoreCase))
                         {
                             ModelFile m = new ModelFile(node as IntermediateNode, this);
+							m.Path = node.Name;
                             Models.Add(node.Name, m);
                         }
                         else FLLog.Error("Cmp", Path ?? "Utf" + ": Invalid Node in cmp root: " + node.Name);

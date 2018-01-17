@@ -25,6 +25,9 @@ namespace LancerEdit
 		ImGuiHelper guiHelper;
 		public AudioManager Audio;
 		public ResourceManager Resources;
+		public Billboards Billboards;
+		public PolylineRender Polyline;
+		public PhysicsDebugRenderer DebugRender;
 		public ViewportManager Viewport;
 		public CommandBuffer Commands; //This is a huge object - only have one
 		public MaterialMap MaterialMap;
@@ -44,17 +47,29 @@ namespace LancerEdit
 			Viewport = new ViewportManager(RenderState);
 			Resources = new ResourceManager(this);
 			Commands = new CommandBuffer();
+			Billboards = new Billboards();
+			Polyline = new PolylineRender(Commands);
+			DebugRender = new PhysicsDebugRenderer();
 			Viewport.Push(0, 0, 800, 600);
 		}
 
 		bool openAbout = false;
 		public List<DockTab> tabs = new List<DockTab>();
+		public List<MissingReference> MissingResources = new List<MissingReference>();
+		public List<uint> ReferencedMaterials = new List<uint>();
+		public List<string> ReferencedTextures = new List<string>();
 		List<DockTab> toAdd = new List<DockTab>();
+		public UtfTab ActiveTab;
 		double frequency = 0;
 		int updateTime = 10;
 		public void AddTab(DockTab tab)
 		{
 			toAdd.Add(tab);
+		}
+		protected override void Update(double elapsed)
+		{
+			foreach (var tab in tabs)
+				tab.Update(elapsed);
 		}
 		protected override void Draw(double elapsed)
 		{
@@ -67,12 +82,36 @@ namespace LancerEdit
 			ImGui.BeginMainMenuBar();
 			if (ImGui.BeginMenu("File"))
 			{
+				if (ImGui.MenuItem("New", "Ctrl-N", false, true))
+				{
+					var t = new UtfTab(this, new EditableUtf(), "Untitled");
+					ActiveTab = t;
+					tabs.Add(t);
+				}
 				if (ImGui.MenuItem("Open", "Ctrl-O", false, true))
 				{
 					var f = FileDialog.Open();
 					if (f != null && DetectFileType.Detect(f) == FileType.Utf)
 					{
-						tabs.Add(new UtfTab(this, new EditableUtf(f), System.IO.Path.GetFileName(f)));
+						var t = new UtfTab(this, new EditableUtf(f), System.IO.Path.GetFileName(f));
+						ActiveTab = t;
+						tabs.Add(t);
+					}
+				}
+				if (ActiveTab == null)
+				{
+					ImGui.MenuItem("Save", "Ctrl-S", false, false);
+				}
+				else
+				{
+					if (ImGui.MenuItem(string.Format("Save '{0}'", ActiveTab.Title), "Ctrl-S", false, true))
+					{
+						var f = FileDialog.Save();
+						if (f != null)
+						{
+							ActiveTab.Title = System.IO.Path.GetFileName(f);
+							ActiveTab.Utf.Save(f);
+						}
 					}
 				}
 				if (ImGui.MenuItem("Quit", "Ctrl-Q", false, true))
@@ -85,7 +124,7 @@ namespace LancerEdit
 			{
 				if (ImGui.MenuItem("Resources"))
 				{
-					tabs.Add(new ResourcesTab(Resources));
+					tabs.Add(new ResourcesTab(Resources, MissingResources, ReferencedMaterials, ReferencedTextures));
 				}
 				ImGui.EndMenu();
 			}
@@ -118,9 +157,17 @@ namespace LancerEdit
 			ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - 25), Condition.Always);
 			ImGui.BeginWindow("##mainwin", WindowFlags.NoTitleBar | WindowFlags.NoMove | WindowFlags.NoResize | WindowFlags.NoBringToFrontOnFocus);
 			ImGuiExt.BeginDockspace();
+			MissingResources.Clear();
+			ReferencedMaterials.Clear();
+			ReferencedTextures.Clear();
+			foreach (var tab in tabs)
+			{
+				tab.DetectResources(MissingResources, ReferencedMaterials, ReferencedTextures);
+			}
 			for (int i = 0; i < tabs.Count; i++)
 			{
 				if (!tabs[i].Draw()) { //No longer open
+					if (tabs[i] is UtfTab && ((UtfTab)tabs[i]) == ActiveTab) ActiveTab = null;
 					tabs[i].Dispose();
 					tabs.RemoveAt(i);
 					i--;
@@ -144,7 +191,14 @@ namespace LancerEdit
 				frequency = RenderFrequency;
 			}
 			else { updateTime++; }
-			ImGui.Text(string.Format("FPS: {0} | {1} Materials | {2} Textures", (int)Math.Round(frequency), Resources.MaterialDictionary.Count, Resources.TextureDictionary.Count));
+			string activename = ActiveTab == null ? "None" : ActiveTab.Title;
+			string utfpath = ActiveTab == null ? "None" : ActiveTab.GetUtfPath();
+			ImGui.Text(string.Format("FPS: {0} | {1} Materials | {2} Textures | Active: {3} - {4}",
+									 (int)Math.Round(frequency),
+									 Resources.MaterialDictionary.Count,
+									 Resources.TextureDictionary.Count,
+									 activename,
+									 utfpath));
 			ImGui.EndWindow();
 			ImGui.PopFont();
 			guiHelper.Render(RenderState);

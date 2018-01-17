@@ -36,7 +36,7 @@ namespace LancerEdit
 		{
 			foreach (var node in parseFile(filename))
 			{
-				Root.Children.Add(ConvertNode(node));
+				Root.Children.Add(ConvertNode(node, Root));
 			}
 		}
 
@@ -59,16 +59,17 @@ namespace LancerEdit
 			return new LL.IntermediateNode(n.Name, children);
 		}
 
-		LUtfNode ConvertNode(LL.Node node)
+		LUtfNode ConvertNode(LL.Node node, LUtfNode parent)
 		{
 			var n = new LUtfNode();
 			n.Name = node.Name;
+			n.Parent = parent;
 			if (node is LL.IntermediateNode)
 			{
 				var im = (LL.IntermediateNode)node;
 				n.Children = new List<LUtfNode>();
 				foreach (var child in im)
-					n.Children.Add(ConvertNode(child));
+					n.Children.Add(ConvertNode(child, n));
 			}
 			else
 			{
@@ -197,6 +198,7 @@ namespace LancerEdit
 	{
 		public string Name;
 		public List<LUtfNode> Children;
+		public LUtfNode Parent;
 		public byte[] Data;
 
 		public IEnumerable<LUtfNode> IterateAll()

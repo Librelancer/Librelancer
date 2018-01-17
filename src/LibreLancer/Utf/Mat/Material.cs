@@ -79,7 +79,7 @@ namespace LibreLancer.Utf.Mat
 		/// </summary>
 		public int EtFlags { get; private set; }
 
-		private string etName;
+		public string EtName;
 
 		public Color4 Ac { get; set; }
 
@@ -121,7 +121,7 @@ namespace LibreLancer.Utf.Mat
 		/// </summary>
 		public int Dm1Flags { get; private set; }
 
-		private string dm1Name;
+		public string Dm1Name;
 
 		/// <summary>
 		/// Tile Rate 0 tile amount (1=no tiling, >1 creates multiple tiles), 0 (f)
@@ -143,7 +143,7 @@ namespace LibreLancer.Utf.Mat
 		/// </summary>
 		public int DmFlags { get; private set; }
 
-		private string dmName;
+		public string DmName;
 
 		static List<string> basicMaterials = new List<string> {
 			"Dc", //DcDt buggy
@@ -277,7 +277,7 @@ namespace LibreLancer.Utf.Mat
 					EtFlags = n.Int32ArrayData [0];
 					break;
 				case "et_name":
-					etName = n.StringData;
+					EtName = n.StringData;
 					break;
 				case "oc":
 					Oc = n.SingleArrayData [0];
@@ -316,7 +316,7 @@ namespace LibreLancer.Utf.Mat
 					Dm1Flags = n.Int32Data.Value;
 					break;
 				case "dm1_name":
-					dm1Name = n.StringData;
+					Dm1Name = n.StringData;
 					break;
 				case "tilerate0":
 					TileRate0 = n.SingleData.Value;
@@ -331,7 +331,7 @@ namespace LibreLancer.Utf.Mat
 					DmFlags = n.Int32Data.Value;
 					break;
 				case "dm_name":
-					dmName = n.StringData;
+					DmName = n.StringData;
 					break;
 				case "nt_name":
 					NtName = n.StringData;
@@ -360,7 +360,7 @@ namespace LibreLancer.Utf.Mat
 				bm.Ec = Ec;
 				bm.DtSampler = DtName;
 				bm.DtFlags = (SamplerFlags)DtFlags;
-				bm.EtSampler = etName;
+				bm.EtSampler = EtName;
 				bm.EtFlags = (SamplerFlags)EtFlags;
 				bm.Library = textureLibrary;
 				if (type.Contains("Ot"))
@@ -408,7 +408,7 @@ namespace LibreLancer.Utf.Mat
 						m2.DtFlags = (SamplerFlags)DtFlags;
 						m2.Dm0Sampler = dm0Name;
 						m2.Dm0Flags = (SamplerFlags)Dm0Flags;
-						m2.Dm1Sampler = dm1Name;
+						m2.Dm1Sampler = Dm1Name;
 						m2.Dm1Flags = (SamplerFlags)Dm1Flags;
 						m2.Library = textureLibrary;
 						break;
@@ -427,7 +427,7 @@ namespace LibreLancer.Utf.Mat
 
 						ilm.Dm0Sampler = dm0Name;
 						ilm.Dm0Flags = (SamplerFlags)Dm0Flags;
-						ilm.Dm1Sampler = dm1Name;
+						ilm.Dm1Sampler = Dm1Name;
 						ilm.Dm1Flags = (SamplerFlags)Dm1Flags;
 						ilm.Library = textureLibrary;
 						break;
@@ -443,7 +443,7 @@ namespace LibreLancer.Utf.Mat
 						dm2p.DtSampler = DtName;
 						dm2p.DtFlags = (SamplerFlags)DtFlags;
 
-						dm2p.Dm1Sampler = dm1Name;
+						dm2p.Dm1Sampler = Dm1Name;
 						dm2p.Dm1Flags = (SamplerFlags)Dm1Flags;
 						dm2p.Library = textureLibrary;
 						break;
@@ -469,7 +469,7 @@ namespace LibreLancer.Utf.Mat
 						dm.FlipU = FlipU;
 						dm.FlipV = FlipV;
 						dm.TileRate = TileRate;;
-						dm.DmSampler = dmName;
+						dm.DmSampler = DmName;
 						dm.DmFlags = (SamplerFlags)DmFlags;
 						dm.DtSampler = DtName;
 						dm.DtFlags = (SamplerFlags)DtFlags;

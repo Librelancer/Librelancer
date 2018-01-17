@@ -203,6 +203,8 @@ namespace LancerEdit
 			io.MouseDown[0] = game.Mouse.IsButtonDown(MouseButtons.Left);
 			io.MouseDown[1] = game.Mouse.IsButtonDown(MouseButtons.Right);
 			io.MouseDown[2] = game.Mouse.IsButtonDown(MouseButtons.Middle);
+			io.MouseWheel = game.Mouse.MouseDelta / 2.5f;
+			game.Mouse.MouseDelta = 0;
 			//TODO: Mouse Wheel
 			//Do stuff
 			ImGui.NewFrame();

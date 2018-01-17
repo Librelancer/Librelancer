@@ -51,6 +51,8 @@
     <Compile Include="DataEditors.cs" />
     <Compile Include="ModelViewer.cs" />
     <Compile Include="ResourcesTab.cs" />
+    <Compile Include="MissingReference.cs" />
+    <Compile Include="AleViewer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">

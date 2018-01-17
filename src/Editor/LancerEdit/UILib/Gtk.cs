@@ -38,5 +38,8 @@ namespace LancerEdit
 
 		[DllImport("libgtk-3.so")]
 		public static extern IntPtr gtk_file_chooser_get_filename(IntPtr chooser);
+
+		[DllImport("libgtk-3.so")]
+		public static extern void gtk_window_set_keep_above(IntPtr window, bool value);
 	}
 }

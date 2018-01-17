@@ -9,13 +9,15 @@ namespace LancerEdit
         static dynamic parentForm;
         public static void RegisterParent(Game game)
         {
-            if (Platform.RunningOS != OS.Windows) return;
-            IntPtr ptr;
-            if ((ptr = game.GetHwnd()) == IntPtr.Zero) return;
-            LoadSwf();
-            var t = winforms.GetType("System.Windows.Forms.Control");
-            var method = t.GetMethod("FromHandle", BindingFlags.Public | BindingFlags.Static);
-            parentForm = method.Invoke(null, new object[] { ptr });
+			if (Platform.RunningOS == OS.Windows)
+			{
+				IntPtr ptr;
+				if ((ptr = game.GetHwnd()) == IntPtr.Zero) return;
+				LoadSwf();
+				var t = winforms.GetType("System.Windows.Forms.Control");
+				var method = t.GetMethod("FromHandle", BindingFlags.Public | BindingFlags.Static);
+				parentForm = method.Invoke(null, new object[] { ptr });
+			}
         }
 
         public static string Open()
@@ -110,6 +112,7 @@ namespace LancerEdit
 													  IntPtr.Zero);
 			Gtk.gtk_dialog_add_button(dlg, "_Cancel", Gtk.GTK_RESPONSE_CANCEL);
 			Gtk.gtk_dialog_add_button(dlg, "_Accept", Gtk.GTK_RESPONSE_ACCEPT);
+			Gtk.gtk_window_set_keep_above(dlg, true); //better than it disappearing
 			string result = null;
 			if (Gtk.gtk_dialog_run(dlg) == Gtk.GTK_RESPONSE_ACCEPT)
 			{
@@ -133,6 +136,7 @@ namespace LancerEdit
 													  IntPtr.Zero);
 			Gtk.gtk_dialog_add_button(dlg, "_Cancel", Gtk.GTK_RESPONSE_CANCEL);
 			Gtk.gtk_dialog_add_button(dlg, "_Accept", Gtk.GTK_RESPONSE_ACCEPT);
+			Gtk.gtk_window_set_keep_above(dlg, true); //better than it disappearing
 			string result = null;
 			if (Gtk.gtk_dialog_run(dlg) == Gtk.GTK_RESPONSE_ACCEPT)
 			{

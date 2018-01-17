@@ -143,7 +143,7 @@ namespace LibreLancer.Fx
 			if (_tex == null && _frame == null && _tex2D != null)
 			{
 				if (_tex2D == null || _tex2D.IsDisposed)
-					_tex2D = (Texture2D)res.FindTexture(Texture);
+					_tex2D = res.FindTexture(Texture) as Texture2D;
 				tex2d = _tex2D;
 			}
 			else if (_tex == null)
@@ -152,21 +152,22 @@ namespace LibreLancer.Fx
 					_tex2D = (Texture2D)res.FindTexture(_tex.Texture);
 				else if (res.TryGetFrameAnimation(Texture, out _frame))
 				{
-					_tex2D = (Texture2D)res.FindTexture(Texture + "_0");
+					_tex2D = res.FindTexture(Texture + "_0") as Texture2D;
 				}
 				else
 				{
-					_tex2D = (Texture2D)res.FindTexture(Texture);
+					_tex2D = res.FindTexture(Texture) as Texture2D;
 				}
 			}
 			if (_tex2D == null || _tex2D.IsDisposed)
 			{
 				if (_frame == null)
-					_tex2D = (Texture2D)res.FindTexture(_tex.Texture);
+					_tex2D = res.FindTexture(_tex == null ? Texture : _tex.Texture) as Texture2D;
 				else
-					_tex2D = (Texture2D)res.FindTexture(Texture + "_0");
+					_tex2D = res.FindTexture(Texture + "_0") as Texture2D;
 			}
 			tex2d = _tex2D;
+			if (tex2d == null) tex2d = (Texture2D)res.FindTexture(ResourceManager.WhiteTextureName);
 			//Shape?
 			if (_tex != null)
 			{

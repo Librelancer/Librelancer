@@ -30,6 +30,8 @@ namespace LibreLancer
 		public event MouseEventHandler MouseDown;
 		public event MouseEventHandler MouseUp;
 
+		public int MouseDelta = 0;
+
 		internal Mouse ()
 		{
 		}
@@ -58,6 +60,7 @@ namespace LibreLancer
 
 		internal void OnMouseWheel(int amount)
 		{
+			MouseDelta += amount;
 			if (MouseWheel != null)
 				MouseWheel (amount);
 		}
