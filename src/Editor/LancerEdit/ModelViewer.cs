@@ -127,7 +127,7 @@ namespace LancerEdit
 		{
 			ResourceDetection.DetectDrawable(Name, drawable, res, missing, matrefs, texrefs);
 		}
-
+        Random rand = new Random();
 		void DrawGL(int renderWidth, int renderHeight)
 		{
 			//Set state
@@ -146,10 +146,10 @@ namespace LancerEdit
 			cam.OffsetDirection = Vector3.UnitX;
 			cam.Reset();
 			cam.Update(TimeSpan.FromSeconds(500));
+            cam.UpdateFrameNumber(rand.Next()); //Stop bad matrix caching
 			buffer.StartFrame();
 			drawable.Update(cam, TimeSpan.Zero, TimeSpan.Zero);
-			drawable.Update(cam, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0));
-			bool is2 = false;
+            bool is2 = false;
 			bool render = true;
 			if (viewMode == M_TEXTURE_WIREFRAME)
 			{

@@ -125,6 +125,10 @@ namespace LibreLancer
 			Projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(50f), Viewport.AspectRatio, 10f, 100000000f);
 		}
 
+        public void UpdateFrameNumber(long f)
+        {
+            fnum = f;
+        }
         public long FrameNumber
         {
             get
