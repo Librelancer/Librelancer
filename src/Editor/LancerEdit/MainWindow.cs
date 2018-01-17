@@ -58,6 +58,8 @@ namespace LancerEdit
 		public List<MissingReference> MissingResources = new List<MissingReference>();
 		public List<uint> ReferencedMaterials = new List<uint>();
 		public List<string> ReferencedTextures = new List<string>();
+		public bool ClipboardCopy = true;
+		public LUtfNode Clipboard;
 		List<DockTab> toAdd = new List<DockTab>();
 		public UtfTab ActiveTab;
 		double frequency = 0;

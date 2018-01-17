@@ -107,15 +107,14 @@ namespace LancerEdit
 					selectedNode = Utf.Root;
 					SelectedChanged();
 				}
-				ImGui.PushID("/");
-				DoNodeMenu("/", Utf.Root, null);
+				ImGui.PushID("/##ROOT");
+				DoNodeMenu("/##ROOT", Utf.Root, null);
 				ImGui.PopID();
 				if (isOpen)
 				{
-					int i = 0;
-					foreach (var node in Utf.Root.Children)
+					for (int i = 0; i < Utf.Root.Children.Count; i++)
 					{
-						DoNode(node, Utf.Root, i++);
+						DoNode(Utf.Root.Children[i], Utf.Root, i);
 					}
 					ImGui.TreePop();
 				}
@@ -256,6 +255,16 @@ namespace LancerEdit
 				}
 				if (ImGui.BeginPopup("editactions"))
 				{
+					if (ImGui.MenuItem("String Editor"))
+					{
+						if (selectedNode.Data.Length > 255)
+							stringConfirm = true;
+						else
+						{
+							text.SetBytes(selectedNode.Data, selectedNode.Data.Length);
+							stringEditor = true;
+						}
+					}
 					if (ImGui.MenuItem("Hex Editor"))
 					{
 						hexdata = new byte[selectedNode.Data.Length];
@@ -375,6 +384,8 @@ namespace LancerEdit
 			ImGui.EndChild();
 		}
 
+		bool stringConfirm = false;
+		bool stringEditor = false;
 		bool floatEditor = false;
 		float[] floats;
 		bool intEditor = false;
@@ -387,13 +398,51 @@ namespace LancerEdit
 
 		unsafe void Popups()
 		{
+			//StringEditor
+			if (stringConfirm)
+			{
+				ImGui.OpenPopup("Confirm?##stringedit" + Unique);
+				stringConfirm = false;
+			}
+			if (ImGui.BeginPopupModal("Confirm?##stringedit" + Unique, WindowFlags.AlwaysAutoResize))
+			{
+				ImGui.Text("Data is >255 bytes, string will be truncated. Continue?");
+				if (ImGui.Button("Yes"))
+				{
+					text.SetBytes(selectedNode.Data, 255);
+					stringEditor = true;
+					ImGui.CloseCurrentPopup();
+				}
+				ImGui.SameLine();
+				if (ImGui.Button("No")) ImGui.CloseCurrentPopup();
+				ImGui.EndPopup();
+			}
+			if (stringEditor)
+			{
+				ImGui.OpenPopup("String Editor##" + Unique);
+				stringEditor = false;
+			}
+			if (ImGui.BeginPopupModal("String Editor##" + Unique, WindowFlags.AlwaysAutoResize))
+			{
+				ImGui.Text("String: ");
+				ImGui.SameLine();
+				ImGui.InputText("", text.Pointer, 255, InputTextFlags.Default, text.Callback);
+				if (ImGui.Button("Ok"))
+				{
+					selectedNode.Data = text.GetByteArray();
+					ImGui.CloseCurrentPopup();
+				}
+				ImGui.SameLine();
+				if (ImGui.Button("Cancel")) ImGui.CloseCurrentPopup();
+				ImGui.EndPopup();
+			}
 			//Hex Editor
 			if (hexEditor)
 			{
-				ImGui.OpenPopup("HexEditor##" +Unique);
+				ImGui.OpenPopup("HexEditor##" + Unique);
 				hexEditor = false;
 			}
-			if (ImGui.BeginPopupModal("HexEditor##" +Unique))
+			if (ImGui.BeginPopupModal("HexEditor##" + Unique))
 			{
 				ImGui.PushFont(ImGuiHelper.Default);
 				int res;
@@ -408,10 +457,10 @@ namespace LancerEdit
 			//Color Picker
 			if (colorPicker)
 			{
-				ImGui.OpenPopup("Color Picker##" +Unique);
+				ImGui.OpenPopup("Color Picker##" + Unique);
 				colorPicker = false;
 			}
-			if (ImGui.BeginPopupModal("Color Picker##" +Unique, WindowFlags.AlwaysAutoResize))
+			if (ImGui.BeginPopupModal("Color Picker##" + Unique, WindowFlags.AlwaysAutoResize))
 			{
 				bool old4 = pickcolor4;
 				ImGui.Checkbox("Alpha?", ref pickcolor4);
@@ -422,7 +471,7 @@ namespace LancerEdit
 				}
 				ImGui.Separator();
 				if (pickcolor4)
-					ImGui.ColorPicker4("Color", ref color4, ColorEditFlags.AlphaPreview  | ColorEditFlags.AlphaBar);
+					ImGui.ColorPicker4("Color", ref color4, ColorEditFlags.AlphaPreview | ColorEditFlags.AlphaBar);
 				else
 					ImGui.ColorPicker3("Color", ref color3);
 				ImGui.Separator();
@@ -442,7 +491,7 @@ namespace LancerEdit
 					else
 					{
 						var bytes = new byte[12];
-						fixed(byte* ptr = bytes)
+						fixed (byte* ptr = bytes)
 						{
 							var f = (System.Numerics.Vector3*)ptr;
 							f[0] = color3;
@@ -460,23 +509,23 @@ namespace LancerEdit
 			//Float Editor
 			if (floatEditor)
 			{
-				ImGui.OpenPopup("Float Editor##" +Unique);
+				ImGui.OpenPopup("Float Editor##" + Unique);
 				floatEditor = false;
 			}
-			DataEditors.FloatEditor("Float Editor##" +Unique, ref floats, selectedNode);
+			DataEditors.FloatEditor("Float Editor##" + Unique, ref floats, selectedNode);
 			if (intEditor)
 			{
-				ImGui.OpenPopup("Int Editor##" +Unique);
+				ImGui.OpenPopup("Int Editor##" + Unique);
 				intEditor = false;
 			}
-			DataEditors.IntEditor("Int Editor##" +Unique, ref ints, ref intHex, selectedNode);
+			DataEditors.IntEditor("Int Editor##" + Unique, ref ints, ref intHex, selectedNode);
 			//Rename dialog
 			if (doRename)
 			{
-				ImGui.OpenPopup("Rename##" +Unique);
+				ImGui.OpenPopup("Rename##" + Unique);
 				doRename = false;
 			}
-			if (ImGui.BeginPopupModal("Rename##" +Unique, WindowFlags.AlwaysAutoResize))
+			if (ImGui.BeginPopupModal("Rename##" + Unique, WindowFlags.AlwaysAutoResize))
 			{
 				ImGui.Text("Name: ");
 				ImGui.SameLine();
@@ -500,10 +549,10 @@ namespace LancerEdit
 			//Delete dialog
 			if (doDelete)
 			{
-				ImGui.OpenPopup("Delete##" +Unique);
+				ImGui.OpenPopup("Delete##" + Unique);
 				doDelete = false;
 			}
-			if (ImGui.BeginPopupModal("Delete##" +Unique, WindowFlags.AlwaysAutoResize))
+			if (ImGui.BeginPopupModal("Delete##" + Unique, WindowFlags.AlwaysAutoResize))
 			{
 				ImGui.Text("Are you sure you want to delete: '" + deleteNode.Name + "'?");
 				if (ImGui.Button("Ok"))
@@ -525,10 +574,10 @@ namespace LancerEdit
 			//Error
 			if (doError)
 			{
-				ImGui.OpenPopup("Error##" +Unique);
+				ImGui.OpenPopup("Error##" + Unique);
 				doError = false;
 			}
-			if (ImGui.BeginPopupModal("Error##" +Unique, WindowFlags.AlwaysAutoResize))
+			if (ImGui.BeginPopupModal("Error##" + Unique, WindowFlags.AlwaysAutoResize))
 			{
 				ImGui.Text(errorText);
 				if (ImGui.Button("Ok")) ImGui.CloseCurrentPopup();
@@ -572,7 +621,7 @@ namespace LancerEdit
 					else
 					{
 						if (addParent != null)
-							addParent.Children.Insert(addParent.Children.IndexOf(addNode) + 1, node);
+							addParent.Children.Insert(addParent.Children.IndexOf(addNode) + addOffset, node);
 						else
 						{
 							addNode.Data = null;
@@ -629,8 +678,65 @@ namespace LancerEdit
 				if (ImGui.Button("No")) ImGui.CloseCurrentPopup();
 				ImGui.EndPopup();
 			}
+			if (doClear)
+			{
+				ImGui.OpenPopup("Confirm?##clear" + Unique);
+				doClear = false;
+			}
+			if (ImGui.BeginPopupModal("Confirm?##clear" + Unique, WindowFlags.AlwaysAutoResize))
+			{
+				ImGui.Text("Clearing will delete all data and children. Continue?");
+				if (ImGui.Button("Yes"))
+				{
+					clearNode.Data = null;
+					if (clearNode == Utf.Root)
+						clearNode.Children = new List<LUtfNode>();
+					else
+						clearNode.Children = null;
+					ImGui.CloseCurrentPopup();
+				}
+				ImGui.SameLine();
+				if (ImGui.Button("No")) ImGui.CloseCurrentPopup();
+				ImGui.EndPopup();
+			}
+			if (doPasteConfirm)
+			{
+				ImGui.OpenPopup("Confirm?##paste" + Unique);
+				doPasteConfirm = false;
+			}
+			if (ImGui.BeginPopupModal("Confirm?##paste" + Unique, WindowFlags.AlwaysAutoResize))
+			{
+				ImGui.Text("Adding children will clear this node's data. Continue?");
+				if (ImGui.Button("Yes"))
+				{
+					pasteInto.Data = null;
+					pasteInto.Children = new List<LUtfNode>();
+					if (main.ClipboardCopy)
+					{
+						var cpy = main.Clipboard.MakeCopy();
+						cpy.Parent = pasteInto;
+						pasteInto.Children.Add(cpy);
+					}
+					else
+					{
+						main.Clipboard.Parent = pasteInto;
+						pasteInto.Children.Add(main.Clipboard);
+						main.Clipboard = null;
+					}
+					ImGui.CloseCurrentPopup();
+				}
+				ImGui.SameLine();
+				if (ImGui.Button("No")) ImGui.CloseCurrentPopup();
+				ImGui.EndPopup();
+			}
+		
 		}
 
+		bool doPasteConfirm = false;
+		LUtfNode pasteInto;
+
+		bool doClear = false;
+		LUtfNode clearNode;
 
 		bool doRename = false;
 		LUtfNode renameNode;
@@ -641,13 +747,17 @@ namespace LancerEdit
 
 		bool doAdd = false;
 		bool doAddConfirm = false;
+		int addOffset = 0;
 		LUtfNode addNode;
 		LUtfNode addParent;
+
+
 		void DoNodeMenu(string id, LUtfNode node, LUtfNode parent)
 		{
 			if (ImGui.BeginPopupContextItem(id))
 			{
 				ImGui.MenuItem(node.Name, false);
+				ImGui.MenuItem(string.Format("CRC: 0x{0:X}", CrcTool.FLModelCrc(node.Name)), false);
 				ImGui.Separator();
 				if (ImGui.MenuItem("Rename", node != Utf.Root))
 				{
@@ -661,6 +771,12 @@ namespace LancerEdit
 					deleteNode = node;
 					doDelete = true;
 				}
+				if (ImGui.MenuItem("Clear", node.Children != null || node.Data != null))
+				{
+					clearNode = node;
+					doClear = true;
+				}
+				ImGui.Separator();
 				if (ImGui.BeginMenu("Add"))
 				{
 					if (ImGui.MenuItem("Child"))
@@ -673,14 +789,100 @@ namespace LancerEdit
 						else
 							doAdd = true;
 					}
-					if (ImGui.MenuItem("Sibling", node != Utf.Root))
+					if (ImGui.MenuItem("Before", node != Utf.Root))
 					{
 						text.SetText("");
 						addParent = parent;
 						addNode = node;
+						addOffset = 0;
+						doAdd = true;
+					}
+					if (ImGui.MenuItem("After", node != Utf.Root))
+					{
+						text.SetText("");
+						addParent = parent;
+						addNode = node;
+						addOffset = 1;
 						doAdd = true;
 					}
 					ImGui.EndMenu();
+				}
+				ImGui.Separator();
+				if (ImGui.MenuItem("Cut", node != Utf.Root))
+				{
+					parent.Children.Remove(node);
+					main.ClipboardCopy = false;
+					main.Clipboard = node;
+				}
+				if (ImGui.MenuItem("Copy", node != Utf.Root))
+				{
+					main.ClipboardCopy = true;
+					main.Clipboard = node.MakeCopy();
+				}
+				if (main.Clipboard != null)
+				{
+					if (ImGui.BeginMenu("Paste"))
+					{
+						if (ImGui.MenuItem("Before", node != Utf.Root))
+						{
+							if (main.ClipboardCopy)
+							{
+								var cpy = main.Clipboard.MakeCopy();
+								cpy.Parent = parent;
+								parent.Children.Insert(parent.Children.IndexOf(node), cpy);
+							}
+							else
+							{
+								main.Clipboard.Parent = parent;
+								parent.Children.Insert(parent.Children.IndexOf(node), main.Clipboard);
+								main.Clipboard = null;
+							}
+						}
+						if (ImGui.MenuItem("After", node != Utf.Root))
+						{
+							if (main.ClipboardCopy)
+							{
+								var cpy = main.Clipboard.MakeCopy();
+								cpy.Parent = parent;
+								parent.Children.Insert(parent.Children.IndexOf(node) + 1, cpy);
+							}
+							else
+							{
+								main.Clipboard.Parent = parent;
+								parent.Children.Insert(parent.Children.IndexOf(node) + 1, main.Clipboard);
+								main.Clipboard = null;
+							}
+						}
+						if (ImGui.MenuItem("Into"))
+						{
+							if (node.Data == null)
+							{
+								if (node.Children == null) node.Children = new List<LUtfNode>();
+								if (main.ClipboardCopy)
+								{
+									var cpy = main.Clipboard.MakeCopy();
+									cpy.Parent = node;
+									node.Children.Add(cpy);
+								}
+								else
+								{
+									main.Clipboard.Parent = node;
+									node.Children.Add(main.Clipboard);
+									main.Clipboard = null;
+								}
+							}
+							else
+							{
+								pasteInto = node;
+								doPasteConfirm = true;
+							}
+						}
+						ImGui.EndMenu();
+					}
+				}
+				else
+				{
+					ImGui.MenuItem("Paste", false);
 				}
 				ImGui.EndPopup();
 			}
@@ -688,7 +890,7 @@ namespace LancerEdit
 
 		void DoNode(LUtfNode node, LUtfNode parent, int idx)
 		{
-			string id = node.Name + "##" + idx;
+			string id = node.Name + "##" + parent.Name + idx;
 			if (node.Children != null)
 			{
 				var flags = selectedNode == node ? TreeNodeFlags.Selected | tflags : tflags;
@@ -701,11 +903,13 @@ namespace LancerEdit
 				ImGui.PushID(id);
 				DoNodeMenu(id, node, parent);
 				ImGui.PopID();
-				int i = 0;
+				//int i = 0;
 				if (isOpen)
 				{
-					foreach (var c in node.Children)
-						DoNode(c, node, i++);
+					for (int i = 0; i < node.Children.Count; i++)
+					{
+						DoNode(node.Children[i], node, (idx * 1024) + i);
+					}
 					ImGui.TreePop();
 				}
 			}

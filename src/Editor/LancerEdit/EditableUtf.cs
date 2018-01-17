@@ -220,8 +220,11 @@ namespace LancerEdit
 			if (Children != null)
 			{
 				copy.Children = new List<LUtfNode>(Children.Count);
-				foreach (var child in Children)
-					copy.Children.Add(child.MakeCopy());
+				foreach (var child in Children) {
+					var newch = child.MakeCopy();
+					newch.Parent = copy;
+					copy.Children.Add(newch);
+				}
 			}
 			return copy;
 		}
