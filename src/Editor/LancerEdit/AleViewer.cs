@@ -66,6 +66,7 @@ namespace LancerEdit
 			instance.Resources = plib.Resources;
 		}
 		Vector2 rotation = Vector2.Zero;
+		float zoom = 200;
 		public override bool Draw()
 		{
 			if (ImGuiExt.BeginDock(Title + "##" + Unique, ref open, 0))
@@ -105,6 +106,11 @@ namespace LancerEdit
 						rotation -= (delta / 64);
 						ImGui.ResetMouseDragDelta(0);
 					}
+					float wheel = ImGui.GetIO().MouseWheel;
+					if (ImGui.GetIO().ShiftPressed)
+						zoom -= wheel * 15;
+					else
+						zoom -= wheel * 45;
 				}
 			}
 			ImGuiExt.EndDock();
@@ -125,7 +131,7 @@ namespace LancerEdit
 			var cam = new ChaseCamera(new Viewport(0, 0, renderWidth, renderHeight));
 			cam.ChasePosition = Vector3.Zero;
 			cam.ChaseOrientation = Matrix4.CreateRotationX(MathHelper.Pi);
-			cam.DesiredPositionOffset = new Vector3(200, 0, 0);
+			cam.DesiredPositionOffset = new Vector3(zoom, 0, 0);
 			cam.OffsetDirection = Vector3.UnitX;
 			cam.Reset();
 			cam.Update(TimeSpan.FromSeconds(500));

@@ -78,7 +78,6 @@ namespace LancerEdit
 			normalsDebugMaterial = new Material(res);
 			normalsDebugMaterial.Type = "NormalDebugMaterial";
 		}
-
 		Vector2 rotation = Vector2.Zero;
 		public override bool Draw()
 		{
