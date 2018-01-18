@@ -30,21 +30,46 @@ namespace LibreLancer.Fx
 		public Particle[] Particles;
 		public ParticleEffect Effect;
 		public ResourceManager Resources;
-		Dictionary<FxEmitter, EmitterState> emitStates = new Dictionary<FxEmitter, EmitterState>();
-		public Dictionary<FLBeamAppearance, LineBuffer> BeamAppearances = new Dictionary<FLBeamAppearance, LineBuffer>();
-		public Dictionary<string, bool> EnableStates = new Dictionary<string, bool>();
+		Dictionary<NodeReference, EmitterState> emitStates = new Dictionary<NodeReference, EmitterState>();
+		public Dictionary<NodeReference, LineBuffer> BeamAppearances = new Dictionary<NodeReference, LineBuffer>();
+		public Dictionary<NodeReference, bool> EnableStates = new Dictionary<NodeReference, bool>();
 		public Random Random = new Random();
 		double globaltime = 0;
+		public double GlobalTime
+		{
+			get
+			{
+				return globaltime;
+			}
+		}
 		public ParticleEffectInstance (ParticleEffect fx)
 		{
 			Effect = fx;
-			Particles = new Particle[PARTICLES_PER_EMITTER * fx.EmitterCount];
-			foreach (var node in fx.Nodes)
+			int emitterCount = 0;
+			foreach (var node in fx.References)
 			{
-				if (node is FLBeamAppearance) {
-					var beam = (FLBeamAppearance)node;
-					BeamAppearances.Add(beam, new LineBuffer(256));
+				if (node.Node is FLBeamAppearance)
+				{
+					BeamAppearances.Add(node, new LineBuffer(256));
 				}
+				if (node.Node is FxEmitter)
+					emitterCount++;
+			}
+			Particles = new Particle[PARTICLES_PER_EMITTER * emitterCount];
+		}
+
+		public void Reset()
+		{
+			globaltime = 0;
+			freeParticles = true;
+			for (int i = 0; i < Particles.Length; i++)
+			{
+				Particles[i].Active = false;
+			}
+			foreach (var state in emitStates)
+			{
+				state.Value.SpawnTimer = 0;
+				state.Value.ParticleCount = 0;
 			}
 		}
 
@@ -77,10 +102,18 @@ namespace LibreLancer.Fx
 				while (buffer.Count > 0 && buffer.Peek().Active == false)
 					buffer.Dequeue();
 			}
-			Effect.Update(this, delta, ref transform, sparam);
+			//Update Emitters
+			for (int i = 0; i < Effect.References.Count; i++)
+			{
+				var r = Effect.References[i];
+				if (NodeEnabled(r) && (r.Node is FxEmitter))
+				{
+					((FxEmitter)r.Node).Update(r, this, delta, ref transform, sparam);
+				}
+			}
 		}
 
-		public EmitterState GetEmitterState(FxEmitter emitter)
+		public EmitterState GetEmitterState(NodeReference emitter)
 		{
 			EmitterState es;
 			if (!emitStates.TryGetValue(emitter, out es))
@@ -106,10 +139,10 @@ namespace LibreLancer.Fx
 			return -1;
 		}
 
-		public bool DrawEnabled(FxAppearance node)
+		public bool NodeEnabled(NodeReference node)
 		{
 			bool val;
-			if (!EnableStates.TryGetValue(node.NodeName, out val)) return true;
+			if (!EnableStates.TryGetValue(node, out val)) return true;
 			return val;
 		}
 
@@ -119,17 +152,19 @@ namespace LibreLancer.Fx
 			{
 				if (!Particles[i].Active)
 					continue;
-				if (DrawEnabled(Particles[i].Appearance))
+				if (NodeEnabled(Particles[i].Appearance))
 				{
-					Particles[i].Appearance.Debug = debug;
-					Particles[i].Appearance.Draw(ref Particles[i], (float)globaltime, Effect, Effect.ResourceManager, billboards, ref transform, sparam);
+					var app = (FxAppearance)Particles[i].Appearance.Node;
+					app.Debug = debug;
+					app.Draw(ref Particles[i], (float)globaltime, Particles[i].Appearance, Effect.ResourceManager, billboards, ref transform, sparam);
 				}
 			}
 			foreach (var kv in BeamAppearances)
 			{
-				if (DrawEnabled(kv.Key))
+				if (NodeEnabled(kv.Key))
 				{
-					kv.Key.DrawBeamApp(polyline, kv.Value, (float)globaltime, Effect, this, Effect.ResourceManager, billboards, ref transform, sparam);
+					var app = (FLBeamAppearance)kv.Key.Node;
+					app.DrawBeamApp(polyline, kv.Value, (float)globaltime, kv.Key, this, Effect.ResourceManager, billboards, ref transform, sparam);
 				}
 			}
 		}

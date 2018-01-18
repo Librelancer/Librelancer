@@ -45,7 +45,7 @@ namespace LibreLancer.Fx
 			}	
 		}
 
-		protected override void SetParticle (int idx, ParticleEffect fx, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+		protected override void SetParticle (int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
 		{
 			float w = Width.GetValue (sparam, 0) / 2;
 			float h = Height.GetValue (sparam, 0) / 2;

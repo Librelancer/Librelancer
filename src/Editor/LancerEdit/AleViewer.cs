@@ -62,36 +62,36 @@ namespace LancerEdit
 		ParticleEffectInstance instance;
 		void SetupRender(int index)
 		{
+			selectedReference = null;
 			instance = new ParticleEffectInstance(plib.Effects[index]);
 			instance.Resources = plib.Resources;
 		}
 		Vector2 rotation = Vector2.Zero;
 		float zoom = 200;
-		bool showNodes = false;
 		public override bool Draw()
 		{
 			if (ImGuiExt.BeginDock(Title + "###" + Unique, ref open, 0))
 			{
-				//Select Fx
+				//Fx management
 				lastEffect = currentEffect;
 				ImGui.Text("Effect:");
 				ImGui.SameLine();
 				ImGui.Combo("##effect", ref currentEffect, effectNames);
 				if (currentEffect != lastEffect) SetupRender(currentEffect);
 				ImGui.SameLine();
-				ImGui.Checkbox("Nodes", ref showNodes);
+				ImGui.Button("+");
+				ImGui.SameLine();
+				ImGui.Button("-");
 				ImGui.Separator();
-				//Render
-				if (showNodes)
-				{
-					ImGui.Columns(2, "##alecolumns", true);
-					ImGui.Text("Viewport");
-					ImGui.NextColumn();
-					ImGui.Text("Nodes");
-					ImGui.Separator();
-					ImGui.NextColumn();
-					ImGui.BeginChild("##renderchild");
-				}
+				//Layout
+				ImGui.Columns(2, "##alecolumns", true);
+				ImGui.Text("Viewport");
+				ImGui.NextColumn();
+				ImGui.Text("Hierachy");
+				ImGui.Separator();
+				ImGui.NextColumn();
+				ImGui.BeginChild("##renderchild");
+				//Viewport Rendering
 				var renderWidth = Math.Max(120, (int)ImGui.GetWindowWidth() - 15);
 				var renderHeight = Math.Max(120, (int)ImGui.GetWindowHeight() - 70);
 				//Generate render target
@@ -108,6 +108,7 @@ namespace LancerEdit
 					rh = renderHeight;
 				}
 				DrawGL(renderWidth, renderHeight);
+				//Display + Camera controls
 				ImGui.ImageButton((IntPtr)rid, new Vector2(renderWidth, renderHeight),
 								  Vector2.Zero, Vector2.One,
 								  0,
@@ -126,32 +127,98 @@ namespace LancerEdit
 					else
 						zoom -= wheel * 45;
 				}
-				if (showNodes)
+				//Action Bar
+				if (ImGui.Button("Actions"))
+					ImGui.OpenPopup("actions");
+				if (ImGui.BeginPopup("actions"))
 				{
-					ImGui.EndChild();
-					ImGui.NextColumn();
-					ImGui.BeginChild("##nodescroll", false);
-					int j = 0;
-					foreach (var node in instance.Effect.Nodes)
+					if (ImGui.MenuItem("Open Node Library"))
 					{
-						if (ImGui.CollapsingHeader(string.Format("{0}", node.NodeName), "##nh" + (j++), true, false))
-						{
-							ImGui.Text(node.Name);
-							ImGui.Text(string.Format("CRC: 0x{0:X}", node.CRC), new Vector4(0.5f, 0.5f, 0.5f, 1f));
-							if (node is FxAppearance)
-							{
-								bool draw = instance.DrawEnabled((FxAppearance)node);
-								bool draw2 = draw;
-								ImGui.Checkbox("Draw##nh" + j, ref draw);
-								if (draw != draw2) instance.EnableStates[node.NodeName] = draw;
-							}
-						}
 					}
-					ImGui.EndChild();
+					ImGui.EndPopup();
 				}
+				ImGui.SameLine();
+				if (ImGui.Button("Reset"))
+				{
+					instance.Reset();
+				}
+				ImGui.SameLine();
+				ImGui.Text(string.Format("T: {0:0.000}", instance.GlobalTime));
+				//Node Hierachy Tab
+				ImGui.EndChild();
+				ImGui.NextColumn();
+				ImGui.BeginChild("##nodesdisplay", false);
+				if (selectedReference != null)
+				{
+					NodeOptions();
+					ImGui.Separator();
+				}
+				ImGui.BeginChild("##nodescroll", false);
+				NodeHierachy();
+				ImGui.EndChild();
+				ImGui.EndChild();
 			}
 			ImGuiExt.EndDock();
 			return open;
+		}
+
+		NodeReference selectedReference = null;
+		void NodeHierachy()
+		{
+			var enabledColor = (Vector4)ImGui.GetStyle().GetColor(ColorTarget.Text);
+			var disabledColor = (Vector4)ImGui.GetStyle().GetColor(ColorTarget.TextDisabled);
+
+			foreach (var reference in instance.Effect.References)
+			{
+				int j = 0;
+				if (reference.Parent == null)
+					DoNode(reference, j++, enabledColor, disabledColor);
+			}
+		}
+
+		void NodeOptions()
+		{
+			ImGui.Text(string.Format("Selected Node: {0} ({1})", selectedReference.Node.NodeName, selectedReference.Node.Name));
+			//Node enabled
+			var enabled = instance.NodeEnabled(selectedReference);
+			var wasEnabled = enabled;
+			ImGui.Checkbox("Enabled", ref enabled);
+			if (enabled != wasEnabled) instance.EnableStates[selectedReference] = enabled;
+			//Normals?
+
+			//Textures?
+
+			//Debug volumes?
+		}
+
+		void DoNode(NodeReference reference, int idx, Vector4 enabled, Vector4 disabled)
+		{
+			var col = instance.NodeEnabled(reference) ? enabled : disabled;
+			string label = null;
+			if (reference.IsAttachmentNode)
+				label = string.Format("Attachment##{0}", idx);
+			else
+				label = string.Format("{0} ({1})##{2}", reference.Node.NodeName, reference.Node.Name, idx);
+			ImGui.PushStyleColor(ColorTarget.Text, col);
+			if (reference.Children.Count > 0)
+			{
+				if (ImGui.TreeNodeEx(label, TreeNodeFlags.OpenOnDoubleClick | TreeNodeFlags.OpenOnArrow))
+				{
+					int j = 0;
+					foreach (var child in reference.Children)
+						DoNode(child, j++, enabled, disabled);
+					ImGui.TreePop();
+				}
+			}
+			else
+			{
+				ImGui.Bullet();
+				ImGui.SameLine();
+				if (ImGui.Selectable(label, selectedReference == reference)) {
+					selectedReference = reference;
+				}
+			}
+			ImGui.PopStyleColor();
 		}
 
 		void DrawGL(int renderWidth, int renderHeight)
@@ -195,11 +262,12 @@ namespace LancerEdit
 
 		public override void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
 		{
-			foreach (var node in instance.Effect.Nodes)
+			foreach (var reference in instance.Effect.References)
 			{
-				if (node is FxBasicAppearance)
+				if (reference.Node is FxBasicAppearance)
 				{
-					var fx = (FxBasicAppearance)node;
+					var node = reference.Node;
+					var fx = (FxBasicAppearance)reference.Node;
 					if (fx.Texture != null && !ResourceDetection.HasTexture(texrefs, fx.Texture)) texrefs.Add(fx.Texture);
 					if (fx.Texture != null && plib.Resources.FindTexture(fx.Texture) == null)
 					{

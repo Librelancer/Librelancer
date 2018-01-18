@@ -14,33 +14,16 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using Xwt;
-namespace LibreLancer.FxDebugger
+using System.Collections.Generic;
+namespace LibreLancer.Fx
 {
-	static class Program
+	public class NodeReference
 	{
-		public static GameConfig Config;
-		public static bool Start = false;
-
-		[STAThread]
-		public static void Main(string[] args)
-		{
-			Application.Initialize();
-			Config = GameConfig.Create();
-			var win = new LaunchWindow();
-			win.Show();
-			Application.Run();
-
-			if (Start)
-			{
-				Config.Save();
-				//Setup State
-				Config.IntroMovies = false;
-				Config.CustomState = (g) => new MainState(g);
-				Config.VSync = true;
-				//Run
-				Config.Launch();
-			}
-		}
+		public FxNode Node;
+		public NodeReference Parent;
+		//Children - Editor Only
+		public List<NodeReference> Children = new List<NodeReference>();
+		public List<NodeReference> Paired = new List<NodeReference>();
+		public bool IsAttachmentNode; //UTF Flag 1
 	}
 }

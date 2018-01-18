@@ -28,50 +28,38 @@ namespace LibreLancer.Fx
 			Resources = res;
 			foreach (var effect in ale.FxLib.Effects) {
 				var fx = new ParticleEffect (this);
-				var root = new FxRootNode();
 				fx.CRC = effect.CRC;
 				fx.Name = effect.Name;
-				List<FxNode> nodes = new List<FxNode>();
-				Dictionary<uint, FxNode> nodesByIndex = new Dictionary<uint, FxNode>();
+				Dictionary<uint, NodeReference> nodesByIndex = new Dictionary<uint, NodeReference>();
 				foreach (var noderef in effect.Fx)
 				{
-					FxNode node;
-					if (noderef.IsAttachmentNode)
-					{
-						node = new FxNode("Attachment_0x" + noderef.CRC.ToString("X"), "Empty") { CRC = noderef.CRC };
-					}
-					else
+					FxNode node = null;
+					if (!noderef.IsAttachmentNode)
 					{
 						node = NodeFromAle(ale.NodeLib.Nodes.Where((arg) => arg.CRC == noderef.CRC).First()); 
 					}
-					nodes.Add(node);
-					nodesByIndex.Add(noderef.Index, node);
+					var reference = new NodeReference();
+					reference.Node = node;
+					reference.IsAttachmentNode = noderef.IsAttachmentNode;
+					nodesByIndex.Add(noderef.Index, reference);
 				}
 				foreach (var noderef in effect.Fx)
 				{
 					var nd = nodesByIndex[noderef.Index];
-					//var nd = FindNode(noderef.CRC);
 					if (noderef.Parent != 32768)
 					{
-						fx.Parents.Add(nd, nodesByIndex[noderef.Parent]);
+						var parent = nodesByIndex[noderef.Parent];
+						parent.Children.Add(nd);
+						nd.Parent = parent;
 					}
-					else
-						fx.Parents.Add(nd, root);
-					if (noderef.IsAttachmentNode)
-						fx.AttachmentNodes.Add(nd);
 				}
 				foreach (var pair in effect.Pairs)
 				{
 					var n1 = nodesByIndex[pair.Item1];
 					var n2 = nodesByIndex[pair.Item2];
-					List<Fx.FxNode> pairedTo;
-					if (!fx.Pairs.TryGetValue(n1, out pairedTo)) {
-						pairedTo = new List<FxNode>();
-						fx.Pairs.Add(n1, pairedTo);
-					}
-					pairedTo.Add(n2);
+					n1.Paired.Add(n2);
 				}
-				fx.SetNodes(nodes);
+				fx.References = new List<NodeReference>(nodesByIndex.Values);
 				Effects.Add(fx);
 			}
 		}

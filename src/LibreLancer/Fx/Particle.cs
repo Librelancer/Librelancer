@@ -25,8 +25,8 @@ namespace LibreLancer.Fx
 		public float LifeSpan;
 		public float TimeAlive;
 		public float Rotation;
-		public FxAppearance Appearance;
-		public FxEmitter Emitter;
+		public NodeReference Appearance;
+		public NodeReference Emitter;
 	}
 }
 

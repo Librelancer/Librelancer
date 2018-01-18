@@ -231,7 +231,6 @@
     <Compile Include="Fx\Particle.cs" />
     <Compile Include="Fx\ParticleLibrary.cs" />
     <Compile Include="Fx\ParticleEffect.cs" />
-    <Compile Include="Fx\FxRootNode.cs" />
     <Compile Include="Fx\ParticleEffectInstance.cs" />
     <Compile Include="Infocards\Infocard.cs" />
     <Compile Include="Infocards\RDLParse.cs" />
@@ -381,6 +380,7 @@
     <Compile Include="Render\PointLight.cs" />
     <Compile Include="Utf\UtfLoader.cs" />
     <Compile Include="Render\Materials\NormalDebugMaterial.cs" />
+    <Compile Include="Fx\NodeReference.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

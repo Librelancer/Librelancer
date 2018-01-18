@@ -21,10 +21,10 @@ namespace LibreLancer.Fx
 	{
 		public FxPerpAppearance(AlchemyNode ale) : base(ale) { }
 
-		public override void Draw(ref Particle particle, float globaltime, ParticleEffect effect, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
+		public override void Draw(ref Particle particle, float globaltime, NodeReference reference, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
 		{
 			var time = particle.TimeAlive / particle.LifeSpan;
-			var node_tr = GetTranslation(effect, transform, sparam, time);
+			var node_tr = GetTranslation(reference, transform, sparam, time);
 
 			var p = node_tr.Transform(particle.Position);
 			Texture2D tex;

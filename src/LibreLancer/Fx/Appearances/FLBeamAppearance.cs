@@ -40,12 +40,12 @@ namespace LibreLancer.Fx
 			}
 		}
 
-		public override void Draw(ref Particle particle, float globaltime, ParticleEffect effect, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
+		public override void Draw(ref Particle particle, float globaltime, NodeReference reference, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
 		{
 			//Empty on purpose. Individual particles don't draw
 		}
 
-		public unsafe void DrawBeamApp(PolylineRender poly, LineBuffer points, float globalTime, ParticleEffect effect, ParticleEffectInstance instance, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
+		public unsafe void DrawBeamApp(PolylineRender poly, LineBuffer points, float globalTime, NodeReference reference, ParticleEffectInstance instance, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
 		{
 			//TODO: Cross-plane not showing
 			//TODO: In some cases particles are going backwards? (Broken emitter or LineBuffer)
@@ -69,7 +69,7 @@ namespace LibreLancer.Fx
 					indices[ptCount++] = points[i].ParticleIndex;
 			}
 
-			var node_tr = GetTranslation(effect, transform, sparam, 0);
+			var node_tr = GetTranslation(reference, transform, sparam, 0);
 			Texture2D tex;
 			Vector2 tl, tr, bl, br;
 			HandleTexture(res, globalTime, sparam, ref instance.Particles[points[lastIndex].ParticleIndex], out tex, out tl, out tr, out bl, out br);
@@ -116,9 +116,9 @@ namespace LibreLancer.Fx
 			}
 		}
 
-		public override void OnParticleSpawned(int idx, ParticleEffectInstance instance)
+		public override void OnParticleSpawned(int idx, NodeReference reference, ParticleEffectInstance instance)
 		{
-			instance.BeamAppearances[this].Enqueue(new LinePointer() { ParticleIndex = idx, Active = true });
+			instance.BeamAppearances[reference].Enqueue(new LinePointer() { ParticleIndex = idx, Active = true });
 		}
 	}
 }
