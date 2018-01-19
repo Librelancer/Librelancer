@@ -36,6 +36,6 @@ tar -czvf librelancer-daily-ubuntu-amd64.tar.gz $FOLDER_NAME
 rm -r $FOLDER_NAME
 cd ..
 #Output Date Timestamp
-echo $(date +%s) > timestamp
+echo $(date +%s) > packages/timestamp
 
  
