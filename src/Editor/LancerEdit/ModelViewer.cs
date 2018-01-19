@@ -28,6 +28,7 @@ namespace LancerEdit
 		int rid = 0;
 		bool open = true;
 		public string Title;
+		Lighting lighting;
 		IDrawable drawable;
 		RenderState rstate;
 		CommandBuffer buffer;
@@ -37,16 +38,18 @@ namespace LancerEdit
 		int viewMode = 0;
 		static readonly string[] viewModes = new string[] {
 			"Textured",
+			"Lit",
 			"Wireframe",
 			"Textured+Wireframe",
 			"Flat",
 			"Normals"
 		};
 		const int M_TEXTURED = 0;
-		const int M_WIREFRAME = 1;
-		const int M_TEXTURE_WIREFRAME = 2;
-		const int M_FLAT = 3;
-		const int M_NORMALS = 4;
+		const int M_LIT = 1;
+		const int M_WIREFRAME = 2;
+		const int M_TEXTURE_WIREFRAME = 3;
+		const int M_FLAT = 4;
+		const int M_NORMALS = 5;
 
 		static readonly Color4[] initialCmpColors = new Color4[] {
 			Color4.White,
@@ -77,6 +80,20 @@ namespace LancerEdit
 			wireframeMaterial3db.DtName = ResourceManager.WhiteTextureName;
 			normalsDebugMaterial = new Material(res);
 			normalsDebugMaterial.Type = "NormalDebugMaterial";
+			lighting = Lighting.Create ();
+			lighting.Enabled = true;
+			lighting.Ambient = Color4.Black;
+			lighting.Lights.Add (new RenderLight () {
+				Kind = LightKind.Directional,
+				Direction = new Vector3(0,-1,0),
+				Color = Color4.White
+			});
+			lighting.Lights.Add (new RenderLight () {
+				Kind = LightKind.Directional,
+				Direction = new Vector3(0,0,1),
+				Color = Color4.White
+			});
+			lighting.NumberOfTilesX = -1;
 		}
 		Vector2 rotation = Vector2.Zero;
 		public override bool Draw()
@@ -213,16 +230,16 @@ namespace LancerEdit
 				mat.Update(cam);
 			}
 			var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
-			drawable.DrawBuffer(buffer, matrix, Lighting.Empty, mat);
+			drawable.DrawBuffer(buffer, matrix, viewMode == M_LIT ? lighting : Lighting.Empty, mat);
 		}
 
 		int jColors = 0;
 		void DrawCmp(ICamera cam)
 		{
 			var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
-			if (viewMode == M_TEXTURED)
+			if (viewMode == M_TEXTURED || viewMode == M_LIT)
 			{
-				drawable.DrawBuffer(buffer, matrix, Lighting.Empty);
+				drawable.DrawBuffer(buffer, matrix, viewMode == M_LIT ? lighting : Lighting.Empty);
 			}
 			else if (viewMode == M_WIREFRAME || viewMode == M_FLAT)
 			{
