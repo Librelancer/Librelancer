@@ -1,0 +1,16 @@
+#!/bin/bash
+#CD TO SELF
+dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
+cd $dir
+#DO STUFF
+FOLDER_NAME=librelancer-$(git rev-parse --short  HEAD)-win
+mkdir -p packages
+cp -r ../bin/Release packages/$FOLDER_NAME
+rm packages/$FOLDER_NAME/*.pdb
+rm packages/$FOLDER_NAME/*.xml
+cd packages
+zip -r librelancer-daily-win.zip $FOLDER_NAME
+rm -r $FOLDER_NAME
+cd ..
+
+ 

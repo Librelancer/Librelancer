@@ -3,3 +3,13 @@ script:
  - ./slngen.unix
  - nuget restore src/LibreLancer.Linux.sln
  - xbuild /p:Configuration=Release src/LibreLancer.Linux.sln
+ - packaging/package_win
+deploy:
+    provider: pages
+    skip-cleanup: true
+    github-token: $GITHUB_TOKEN
+    keep-history: true
+    on:
+        branch: master
+    local-dir: packaging/packages
+    repo: Librelancer/daily-builds
