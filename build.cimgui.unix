@@ -7,7 +7,7 @@ SRC_IM=extern/cimgui/imgui
 mkdir -p bin/Debug
 mkdir -p bin/Release
 set -x
-g++ -Wall -shared -fPIC -O2 -Iextern/cimgui/imgui -o libcimgui.so \
+g++ -Wall -std=gnu++11 -shared -fPIC -O2 -Iextern/cimgui/imgui -o libcimgui.so \
  $SRC_C/cimgui.cpp \
  $SRC_C/drawList.cpp \
  $SRC_C/fontAtlas.cpp \
