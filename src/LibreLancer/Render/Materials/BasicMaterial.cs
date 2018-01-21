@@ -46,6 +46,7 @@ namespace LibreLancer
 		static ShaderVariables[] sh_posNormalColorTexture = new ShaderVariables[ShaderCapsExtensions.N_SHADERCAPS];
 		static ShaderVariables[] sh_posTexture = new ShaderVariables[ShaderCapsExtensions.N_SHADERCAPS];
 		static ShaderVariables[] sh_pos = new ShaderVariables[ShaderCapsExtensions.N_SHADERCAPS];
+        static ShaderVariables[] sh_posColor = new ShaderVariables[ShaderCapsExtensions.N_SHADERCAPS];
 		static ShaderVariables GetShader(IVertexType vertextype, ShaderCaps caps)
 		{
 			var i = caps.GetIndex();
@@ -99,6 +100,16 @@ namespace LibreLancer
 					);
 				return sh_pos[i];
 			}
+            if(vertextype is VertexPositionColor)
+            {
+                if (sh_posColor[i] == null)
+                    sh_posColor[i] = ShaderCache.Get(
+                        "Basic_PositionColor.vs",
+                        "Basic_Fragment.frag",
+                        caps
+                    );
+                return sh_posColor[i];
+            }
 			throw new NotImplementedException(vertextype.GetType().Name);
 		}
 		public override void Use(RenderState rstate, IVertexType vertextype, Lighting lights)

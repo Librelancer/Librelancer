@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer;
+using LibreLancer.Vertices;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
 using ImGuiNET;
@@ -39,17 +40,16 @@ namespace LancerEdit
 		static readonly string[] viewModes = new string[] {
 			"Textured",
 			"Lit",
-			"Wireframe",
-			"Textured+Wireframe",
 			"Flat",
-			"Normals"
+			"Normals",
+            "None"
 		};
+        bool doWireframe = false;
 		const int M_TEXTURED = 0;
 		const int M_LIT = 1;
-		const int M_WIREFRAME = 2;
-		const int M_TEXTURE_WIREFRAME = 3;
-		const int M_FLAT = 4;
-		const int M_NORMALS = 5;
+		const int M_FLAT = 2;
+		const int M_NORMALS = 3;
+        const int M_NONE = 4;
 
 		static readonly Color4[] initialCmpColors = new Color4[] {
 			Color4.White,
@@ -62,6 +62,7 @@ namespace LancerEdit
 			Color4.Cyan,
 			Color4.Orange
 		};
+
 		Material wireframeMaterial3db;
 		Material normalsDebugMaterial;
 		Dictionary<int, Material> partMaterials = new Dictionary<int, Material>();
@@ -94,7 +95,9 @@ namespace LancerEdit
 				Color = Color4.White
 			});
 			lighting.NumberOfTilesX = -1;
+            GizmoRender.Init(res);
 		}
+
 		Vector2 rotation = Vector2.Zero;
 		public override bool Draw()
 		{
@@ -103,6 +106,8 @@ namespace LancerEdit
 				ImGui.Text("View Mode:");
 				ImGui.SameLine();
 				ImGui.Combo("##modes", ref viewMode, viewModes);
+                ImGui.SameLine();
+                ImGui.Checkbox("Wireframe", ref doWireframe);
 				var renderWidth = Math.Max(120, (int)ImGui.GetWindowWidth() - 15);
 				var renderHeight = Math.Max(120, (int)ImGui.GetWindowHeight() - 70);
 				//Generate render target
@@ -163,52 +168,36 @@ namespace LancerEdit
 			cam.Reset();
 			cam.Update(TimeSpan.FromSeconds(500));
             cam.UpdateFrameNumber(rand.Next()); //Stop bad matrix caching
-			buffer.StartFrame();
 			drawable.Update(cam, TimeSpan.Zero, TimeSpan.Zero);
-            bool is2 = false;
-			bool render = true;
-			if (viewMode == M_TEXTURE_WIREFRAME)
-			{
-				is2 = true;
-				viewMode = M_TEXTURED;
-			}
-			while (render)
-			{
-				if (viewMode == M_WIREFRAME)
-				{
-					rstate.Wireframe = true;
-				}
-				if (drawable is CmpFile)
-				{
-					DrawCmp(cam);
-				}
-				else
-				{
-					DrawSimple(cam);
-				}
-				buffer.DrawOpaque(rstate);
-				rstate.DepthWrite = false;
-				buffer.DrawTransparent(rstate);
-				rstate.DepthWrite = true;
-				if (viewMode == M_WIREFRAME)
-				{
-					rstate.Wireframe = false;
-				}
-				render = false;
-				if (is2 && viewMode == M_TEXTURED)
-				{
-					viewMode = M_WIREFRAME;
-					render = true;
-					GL.PolygonOffset(1, 1);
-				}
-			}
-			if (is2)
-			{
-				GL.PolygonOffset(0f, 0f);
-				viewMode = M_TEXTURE_WIREFRAME;
-			}
+            if (viewMode != M_NONE)
+            {
+                buffer.StartFrame();
+                if (drawable is CmpFile)
+                    DrawCmp(cam, false);
+                else
+                    DrawSimple(cam, false);
+                buffer.DrawOpaque(rstate);
+                rstate.DepthWrite = false;
+                buffer.DrawTransparent(rstate);
+                rstate.DepthWrite = true;
+            }
+            if (doWireframe)
+            {
+                buffer.StartFrame();
+                GL.PolygonOffset(1, 1);
+                rstate.Wireframe = true;
+                if (drawable is CmpFile)
+                    DrawCmp(cam, true);
+                else
+                    DrawSimple(cam, false);
+                GL.PolygonOffset(0, 0);
+                buffer.DrawOpaque(rstate);
+                rstate.Wireframe = false;
+            }
+            //Draw hardpoints
+            DrawHardpoints(cam);
 			//Restore state
-			rstate.Cull = false;
+            rstate.Cull = false;
 			rstate.BlendMode = BlendMode.Normal;
 			rstate.DepthEnabled = false;
 			rstate.ClearColor = cc;
@@ -216,15 +205,45 @@ namespace LancerEdit
 			vps.Pop();
 		}
 
-		void DrawSimple(ICamera cam)
+        void DrawHardpoints(ICamera cam)
+        {
+            var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+            List<Matrix4> hardpoints = new List<Matrix4>();
+            if (drawable is CmpFile)
+            {
+                foreach (var p in ((CmpFile)drawable).Parts) {
+                    var parentHp = p.Value.Construct != null ? p.Value.Construct.Transform : Matrix4.Identity;
+                    parentHp *= matrix;
+                    foreach(var hp in p.Value.Model.Hardpoints) {
+                        hardpoints.Add(hp.Transform * parentHp);
+                    }
+                }
+            } 
+            else if (drawable is ModelFile)
+            {
+                foreach(var hp in ((ModelFile)drawable).Hardpoints) {
+                    hardpoints.Add(hp.Transform * matrix);
+                }
+            }
+            if (hardpoints.Count == 0) return;
+            GizmoRender.Begin();
+            foreach(var tr in hardpoints)
+            {
+                //X
+                GizmoRender.AddGizmo(tr);
+            }
+            GizmoRender.RenderGizmos(cam, rstate);
+        }
+
+        void DrawSimple(ICamera cam, bool wireFrame)
 		{
 			Material mat = null;
-			if (viewMode == M_WIREFRAME || viewMode == M_FLAT)
+			if (wireFrame || viewMode == M_FLAT)
 			{
 				mat = wireframeMaterial3db;
 				mat.Update(cam);
 			}
-			if (viewMode == M_NORMALS)
+			else if (viewMode == M_NORMALS)
 			{
 				mat = normalsDebugMaterial;
 				mat.Update(cam);
@@ -234,30 +253,30 @@ namespace LancerEdit
 		}
 
 		int jColors = 0;
-		void DrawCmp(ICamera cam)
+        void DrawCmp(ICamera cam, bool wireFrame)
 		{
 			var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
-			if (viewMode == M_TEXTURED || viewMode == M_LIT)
+            if (wireFrame || viewMode == M_FLAT)
+            {
+                var cmp = (CmpFile)drawable;
+                foreach (var part in cmp.Parts)
+                {
+                    Material mat;
+                    if (!partMaterials.TryGetValue(part.Key, out mat))
+                    {
+                        mat = new Material(res);
+                        mat.DtName = ResourceManager.WhiteTextureName;
+                        mat.Dc = initialCmpColors[jColors++];
+                        if (jColors >= initialCmpColors.Length) jColors = 0;
+                        partMaterials.Add(part.Key, mat);
+                    }
+                    mat.Update(cam);
+                    part.Value.DrawBuffer(buffer, matrix, Lighting.Empty, mat);
+                }
+            }
+			else if (viewMode == M_TEXTURED || viewMode == M_LIT)
 			{
 				drawable.DrawBuffer(buffer, matrix, viewMode == M_LIT ? lighting : Lighting.Empty);
-			}
-			else if (viewMode == M_WIREFRAME || viewMode == M_FLAT)
-			{
-				var cmp = (CmpFile)drawable;
-				foreach (var part in cmp.Parts)
-				{
-					Material mat;
-					if (!partMaterials.TryGetValue(part.Key, out mat))
-					{
-						mat = new Material(res);
-						mat.DtName = ResourceManager.WhiteTextureName;
-						mat.Dc = initialCmpColors[jColors++];
-						if (jColors >= initialCmpColors.Length) jColors = 0;
-						partMaterials.Add(part.Key, mat);
-					}
-					mat.Update(cam);
-					part.Value.DrawBuffer(buffer, matrix, Lighting.Empty, mat);
-				}
 			}
 			else
 			{

@@ -54,6 +54,7 @@
     <Compile Include="MissingReference.cs" />
     <Compile Include="AleViewer.cs" />
     <Compile Include="ResourceDetection.cs" />
+    <Compile Include="GizmoRender.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">
@@ -79,6 +80,10 @@
     <ProjectReference Include="..\..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj">
       <Project>{6967FE1C-5953-4416-889C-FF10AE1F7DD1}</Project>
       <Name>LibreLancer.ImageLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\extern\SharpFont\Source\SharpFont\SharpFont.csproj">
+      <Project>{C293DB32-FA42-486D-B128-5A12522FAE4E}</Project>
+      <Name>SharpFont</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

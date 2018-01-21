@@ -681,19 +681,41 @@ struct DockContext
 	}
 
 
-	bool tabbar(Dock& dock, bool close_button)
+	bool tabbar(Dock& dock, bool close_button, float* scrollbar_height)
 	{
 		float tabbar_height = 2 * GetTextLineHeightWithSpacing();
 		ImVec2 size(dock.size.x, tabbar_height);
+		//Calculate size of tabs together
+		Dock* sztab = &dock;
+		float dock_total = 20;
+		ImGuiWindowFlags extra_child_flags = 0;
+		while(sztab) {
+			const char* text_end = FindRenderedTextEnd(sztab->label);
+			float line_height = GetTextLineHeightWithSpacing();
+			ImVec2 size(CalcTextSize(sztab->label, text_end).x, line_height);
+			size.x += 8; //tab size
+			size.x += 20 + GetStyle().ItemSpacing.x;
+			sztab = sztab->next_tab;
+			dock_total += size.x + 5;
+		}
+		
 		bool tab_closed = false;
 
 		SetCursorScreenPos(dock.pos);
 		char tmp[20];
 		ImFormatString(tmp, IM_ARRAYSIZE(tmp), "tabs%d", (int)dock.id);
-		if (BeginChild(tmp, size, true))
+		//Scroll if too many tabs
+		if(dock_total > dock.size.x) {
+			extra_child_flags = ImGuiWindowFlags_HorizontalScrollbar;
+			size.y += 10;
+			*scrollbar_height = 15;
+			SetNextWindowContentSize(ImVec2(dock_total, 0));
+		}
+		if (BeginChild(tmp, size, true, extra_child_flags))
 		{
 			Dock* dock_tab = &dock;
-
+			if(dock_total > dock.size.x)
+				size.y -= 10;
 			ImDrawList* draw_list = GetWindowDrawList();
 			ImU32 color = GetColorU32(ImGuiCol_FrameBg);
 			ImU32 color_active = GetColorU32(ImGuiCol_FrameBgActive);
@@ -722,7 +744,7 @@ struct DockContext
 					doUndock(*dock_tab);
 					dock_tab->status = Status_Dragged;
 				}
-
+				
 				bool hovered = IsItemHovered();
 				ImVec2 pos = GetItemRectMin();
 				size.x += 20 + GetStyle().ItemSpacing.x;
@@ -1007,12 +1029,14 @@ struct DockContext
 		PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
 		PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0, 0, 0, 0));
 		float tabbar_height = GetTextLineHeightWithSpacing();
-		if (tabbar(dock.getFirstTab(), opened != nullptr))
+		float scrollbar_height = 0;
+		if (tabbar(dock.getFirstTab(), opened != nullptr, &scrollbar_height))
 		{
 			fillLocation(dock);
 			dock.opened = false;
 			*opened = false;
 		}
+		tabbar_height += scrollbar_height;
 		ImVec2 pos = dock.pos;
 		ImVec2 size = dock.size;
 		pos.y += tabbar_height + GetStyle().WindowPadding.y;

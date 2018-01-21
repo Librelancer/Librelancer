@@ -120,6 +120,10 @@ namespace LancerEdit
 				circle = LibreLancer.ImageLib.Generic.FromStream(stream);
 				CircleId = RegisterTexture(circle);
 			}
+            unsafe
+            {
+                ImGuiExt.BuildFontAtlas((IntPtr)ImGuiNative.igGetIO()->FontAtlas);
+            }
 			FontTextureData texData = io.FontAtlas.GetTexDataAsAlpha8();
 			fontTexture = new Texture2D(texData.Width, texData.Height, false, SurfaceFormat.R8);
 			var bytes = new byte[texData.Width * texData.Height * texData.BytesPerPixel];

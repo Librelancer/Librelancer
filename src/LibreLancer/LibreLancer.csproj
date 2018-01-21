@@ -421,6 +421,7 @@
     <EmbeddedResource Include="Shaders\lightingcull.glcompute" />
     <EmbeddedResource Include="Shaders\Normals_PositionNormal.vs" />
     <EmbeddedResource Include="Shaders\Normals.frag" />
+    <EmbeddedResource Include="Shaders\Basic_PositionColor.vs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

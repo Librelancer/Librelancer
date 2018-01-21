@@ -34,6 +34,9 @@ namespace LancerEdit
 		[DllImport("cimgui", EntryPoint = "igRootDock", CallingConvention = CallingConvention.Cdecl)]
 		public static extern void RootDock(float posx, float posy, float sizew, float sizeh);
 
+        [DllImport("cimgui", EntryPoint = "igBuildFontAtlas", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void BuildFontAtlas(IntPtr atlas);
+
 		[DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
 		static extern bool igBeginDock([MarshalAs(UnmanagedType.LPStr)]string label, IntPtr opened, int extraflags);
 
