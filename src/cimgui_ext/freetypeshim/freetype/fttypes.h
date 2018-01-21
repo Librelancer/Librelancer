@@ -282,7 +282,7 @@ FT_BEGIN_HEADER
   /*    coordinates.                                                       */
   /*                                                                       */
 #if _WIN64
-  typedef signed __int64 FT_26Dot6;
+  typedef signed __int64 FT_F26Dot6;
 #else
   typedef signed long  FT_F26Dot6;
 #endif

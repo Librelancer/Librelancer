@@ -78,12 +78,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\..\..\deps\x86</OutDir>
-    <IncludePath>..\..\..\extern\cimgui\imgui;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>..\..\..\extern\cimgui\imgui;..\freetypeshim;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\..\..\deps\x64</OutDir>
-    <IncludePath>..\..\..\extern\cimgui\imgui;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>..\..\..\extern\cimgui\imgui;..\freetypeshim;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -157,7 +157,12 @@
     <ClInclude Include="..\..\..\extern\cimgui\imgui\stb_textedit.h" />
     <ClInclude Include="..\..\..\extern\cimgui\imgui\stb_truetype.h" />
     <ClInclude Include="..\cimgui_dock.h" />
+    <ClInclude Include="..\cimgui_freetype.h" />
+    <ClInclude Include="..\freetypeshim\freetype\freetype.h" />
+    <ClInclude Include="..\freetypeshim\freetype\fttypes.h" />
+    <ClInclude Include="..\ftshim.h" />
     <ClInclude Include="..\imgui_dock.h" />
+    <ClInclude Include="..\imgui_freetype.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\extern\cimgui\cimgui\cimgui.cpp" />
@@ -168,7 +173,10 @@
     <ClCompile Include="..\..\..\extern\cimgui\imgui\imgui_demo.cpp" />
     <ClCompile Include="..\..\..\extern\cimgui\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\cimgui_dock.cpp" />
+    <ClCompile Include="..\cimgui_freetype.cpp" />
+    <ClCompile Include="..\ftshim.c" />
     <ClCompile Include="..\imgui_dock.cpp" />
+    <ClCompile Include="..\imgui_freetype.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

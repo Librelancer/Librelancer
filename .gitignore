@@ -24,6 +24,7 @@ packages/
 *.iobj
 *.ipdb
 *.lib
+*.user
 *.opendb
 .vs/
 

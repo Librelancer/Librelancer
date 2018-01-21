@@ -133,15 +133,21 @@ FT_Glyph_To_Bitmap( FT_Glyph*       the_glyph,
 {
 	return glyphToBitmap(the_glyph, render_mode, origin, destroy);
 }
-#ifdef WIN32
-
+#if (WIN32 || _WIN64)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#define MODULE HMODULE
+#define OPEN_LIB LoadLibraryA("freetype6.dll")
+#define dlsym GetProcAddress
 #else
 #include <dlfcn.h>
+#define MODULE void*
+#define OPEN_LIB dlopen("libfreetype.so.6", RTLD_NOW);
 #endif
 void igLoadFreetype(void)
 {
-	void *module;
-	module = dlopen("libfreetype.so.6", RTLD_NOW);
+	MODULE module;
+	module = OPEN_LIB;
 	initFreetype = (initFreetypePtr)dlsym(module, "FT_Init_FreeType");
 	newMemoryFace = (newMemoryFacePtr)dlsym(module, "FT_New_Memory_Face");
 	selectCharmap = (selectCharmapPtr)dlsym(module, "FT_Select_Charmap");
