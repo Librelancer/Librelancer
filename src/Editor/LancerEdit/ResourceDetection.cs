@@ -38,6 +38,7 @@ namespace LancerEdit
 				var sph = (SphFile)drawable;
 				for (int i = 0; i < sph.SideMaterials.Length; i++)
 				{
+                    if (!sph.SideMaterials[i].Loaded) sph.SideMaterials[i] = null;
 					if (sph.SideMaterials[i] == null)
 					{
 						var str = "Material: " + sph.SideMaterialNames[i];
