@@ -143,7 +143,7 @@ namespace LancerEdit
 				ImGui.OpenPopup("About");
 				openAbout = false;
 			}
-			if (ImGui.BeginPopupModal("About"))
+			if (ImGui.BeginPopupModal("About", WindowFlags.AlwaysAutoResize))
 			{
 				ImGui.Text("LancerEdit");
 				ImGui.Text("Callum McGing 2018");
@@ -197,7 +197,6 @@ namespace LancerEdit
 									 activename,
 									 utfpath));
 			ImGui.EndWindow();
-			//ImGuiExt.DockDebugWindow();
 			ImGui.PopFont();
 			guiHelper.Render(RenderState);
 			foreach (var tab in toAdd)

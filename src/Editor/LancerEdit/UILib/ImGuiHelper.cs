@@ -140,6 +140,7 @@ namespace LancerEdit
 			dot = new Texture2D(1, 1, false, SurfaceFormat.Color);
 			var c = new Color4b[] { Color4b.White };
 			dot.SetData(c);
+            Theme.Apply();
 		}
 
 		static Dictionary<int, Texture2D> textures = new Dictionary<int, Texture2D>();

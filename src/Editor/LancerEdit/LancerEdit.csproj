@@ -55,6 +55,7 @@
     <Compile Include="AleViewer.cs" />
     <Compile Include="ResourceDetection.cs" />
     <Compile Include="GizmoRender.cs" />
+    <Compile Include="UILib\Theme.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">
