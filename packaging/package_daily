@@ -7,6 +7,9 @@ echo Generating Windows Package
 FOLDER_NAME=librelancer-$(git rev-parse --short  HEAD)-win
 mkdir -p packages
 cp -r ../bin/Release packages/$FOLDER_NAME
+cp ../Credits.txt packages/$FOLDER_NAME/
+cp ../LICENSE packages/$FOLDER_NAME/
+echo "Source Code: https://github.com/Librelancer/Librelancer" > packages/$FOLDER_NAME/getsource.txt
 #lgpl compliance
 cp "../deps/openal-soft license.txt" packages/$FOLDER_NAME
 mkdir -p packages/$FOLDER_NAME/LGPL
@@ -29,6 +32,9 @@ cd ..
 ./build.cimgui.unix
 cd packaging
 cp -r ../bin/Release packages/$FOLDER_NAME
+cp ../Credits.txt packages/$FOLDER_NAME/
+cp ../LICENSE packages/$FOLDER_NAME/
+echo "Source Code: https://github.com/Librelancer/Librelancer" > packages/$FOLDER_NAME/getsource.txt
 #Remove debug
 rm packages/$FOLDER_NAME/*.pdb
 rm packages/$FOLDER_NAME/*.xml
