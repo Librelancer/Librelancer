@@ -7,6 +7,12 @@ echo Generating Windows Package
 FOLDER_NAME=librelancer-$(git rev-parse --short  HEAD)-win
 mkdir -p packages
 cp -r ../bin/Release packages/$FOLDER_NAME
+#lgpl compliance
+cp "../deps/openal-soft license.txt" packages/$FOLDER_NAME
+mkdir -p packages/$FOLDER_NAME/LGPL
+cd packages/$FOLDER_NAME/LGPL
+wget $(cat ../../../../deps/openal-sourceurl.txt)
+cd ../../..
 #Bugged file?
 rm packages/$FOLDER_NAME/.dll.config
 #Remove debug
