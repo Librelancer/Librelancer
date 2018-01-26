@@ -32,5 +32,5 @@ void main()
 	vec4 detail1 = texture(Dm1Sampler, texcoord1);
 
 
-	out_color = light(Ac, blend_overlay(detail1, tex) * tex.a, Dc, blend_overlay(detail0, tex), world_position, view_position, out_normal);
+	out_color = light(Ac, detail1 * detail1.a * tex.a, Dc, blend_overlay(detail0, tex), world_position, view_position, out_normal);
 }

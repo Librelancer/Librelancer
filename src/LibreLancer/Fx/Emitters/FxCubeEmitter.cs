@@ -73,12 +73,12 @@ namespace LibreLancer.Fx
 		}
 
 
-		static Vector3 RandomInCone(Random r, float minradius, float maxradius)
+        static Vector3 RandomInCone(Random r, float minspread, float maxspread)
 		{
 			//(sqrt(1 - z^2) * cosϕ, sqrt(1 - z^2) * sinϕ, z)
-			var radradius = maxradius / 2;
+            var halfspread = maxspread / 2;
 
-			float z = r.NextFloat((float)Math.Cos(radradius), 1 - (minradius / 2));
+			float z = r.NextFloat((float)Math.Cos(halfspread), 1 - (minspread / 2));
 			float t = r.NextFloat(0, (float)(Math.PI * 2));
 			return new Vector3(
 				(float)(Math.Sqrt(1 - z * z) * Math.Cos(t)),  
