@@ -23,7 +23,7 @@ namespace LibreLancer.GameData
 		public Vector3 Size;
 		Matrix4 R;
 		Vector3 transformedPos;
-		static readonly ThreadLocal<Vector3[]> cornerbuf = new ThreadLocal<Vector3[]>(() => new Vector3[6]);
+		static readonly ThreadLocal<Vector3[]> cornerbuf = new ThreadLocal<Vector3[]>(() => new Vector3[8]);
 		public ZoneEllipsoid (Zone zone, float x, float y, float z) : base(zone)
 		{
 			Size = new Vector3 (x, y, z);
