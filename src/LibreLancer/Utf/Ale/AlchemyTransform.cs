@@ -41,9 +41,9 @@ namespace LibreLancer.Utf.Ale
 				TranslateX = new AlchemyCurveAnimation (reader);
 				TranslateY = new AlchemyCurveAnimation (reader);
 				TranslateZ = new AlchemyCurveAnimation (reader);
-				RotatePitch = new AlchemyCurveAnimation (reader);
-				RotateYaw= new AlchemyCurveAnimation (reader);
 				RotateRoll = new AlchemyCurveAnimation (reader);
+				RotateYaw = new AlchemyCurveAnimation (reader);
+				RotatePitch = new AlchemyCurveAnimation (reader);
 				ScaleX = new AlchemyCurveAnimation (reader);
 				ScaleY = new AlchemyCurveAnimation (reader);
 				ScaleZ = new AlchemyCurveAnimation (reader);
@@ -60,9 +60,9 @@ namespace LibreLancer.Utf.Ale
 			);
 			
 			var quat = Quaternion.FromEulerAngles(
-				MathHelper.TwoPi - MathHelper.DegreesToRadians(RotatePitch.GetValue(sparam, time)),
-				MathHelper.TwoPi - MathHelper.DegreesToRadians(RotateYaw.GetValue(sparam,time)),
-				MathHelper.TwoPi - MathHelper.DegreesToRadians(RotateRoll.GetValue(sparam, time))
+				MathHelper.Pi - MathHelper.DegreesToRadians(RotatePitch.GetValue(sparam, time)),
+				MathHelper.Pi - MathHelper.DegreesToRadians(RotateYaw.GetValue(sparam,time)),
+				MathHelper.Pi - MathHelper.DegreesToRadians(RotateRoll.GetValue(sparam, time))
 			);
 
 			var rotate = Matrix4.CreateFromQuaternion(quat);

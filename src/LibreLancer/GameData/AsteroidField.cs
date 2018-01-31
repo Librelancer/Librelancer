@@ -25,7 +25,7 @@ namespace LibreLancer.GameData
 		public List<StaticAsteroid> Cube;
 		public List<ExclusionZone> ExclusionZones;
 		public int CubeSize;
-		public bool AllowMultipleMaterials = false;
+		public bool AllowMultipleMaterials = true;
 		public float FillDist { get; private set; }
 		public void SetFillDist(int fillDist)
 		{
