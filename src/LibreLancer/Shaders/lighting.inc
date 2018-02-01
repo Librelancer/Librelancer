@@ -101,6 +101,9 @@ vec4 light(vec4 ac, vec4 ec, vec4 dc, vec4 tex, vec3 position, vec4 view_positio
 			surfaceToLight = normalize(LightsPos[i].xyz - position);
 			float distanceToLight = length(LightsPos[i].xyz - position);
 			vec3 curve = LightsAttenuation[i].xyz;
+            float atten0 = attenuation = 1.0 / (curve.x + curve.y * distanceToLight + curve.z * (distanceToLight * distanceToLight));
+            float atten1 = fcubic(distanceToLight / max(LightsColorRange[i].w,1.), LightsAttenuation[i]);
+            attenuation = mix(atten0, atten1, LightsPos[i].w - 1.0); //choose correct attenuation
 			#ifdef SPOTLIGHT
 			if(SpotlightParams[i].x > 0.0) { //It's a spotlight
 				float NdotL = max(dot(n, LightsDir[i]), 0.0);
