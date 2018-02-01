@@ -31,6 +31,7 @@ namespace LibreLancer
 		public float FadeNear = 0;
 		public float FadeFar = 0;
 		public abstract void Use(RenderState rstate, IVertexType vertextype, Lighting lights);
+        public virtual void UpdateFlipNormals() {} //Optimisation
 		public abstract bool IsTransparent { get; }
 		public bool DoubleSided = false;
 		Texture2D[] textures = new Texture2D[8];

@@ -213,6 +213,8 @@ namespace LibreLancer.Utf.Vms
 			if (m == null) m = materialLibrary.FindMaterial(0);
 			if (Material.Render.IsTransparent)
 				return;
+            if (Material.Render.DoubleSided)
+                return; //TODO: Fix depth prepass for double-sided
 			if (lastmc != mc)
 			{
 				if (mc != null)

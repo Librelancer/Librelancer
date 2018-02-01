@@ -81,9 +81,9 @@ namespace LibreLancer.Fx
 			float z = r.NextFloat((float)Math.Cos(halfspread), 1 - (minspread / 2));
 			float t = r.NextFloat(0, (float)(Math.PI * 2));
 			return new Vector3(
-				(float)(Math.Sqrt(1 - z * z) * Math.Cos(t)),  
-				(float)(Math.Sqrt(1 - z * z) * Math.Sin(t)),
-                z
+				(float)(Math.Sqrt(1 - z * z) * Math.Cos(t)), 
+                z,
+				(float)(Math.Sqrt(1 - z * z) * Math.Sin(t))
 			);
 		}
 

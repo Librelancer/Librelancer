@@ -112,6 +112,11 @@ namespace LibreLancer
             }
 			throw new NotImplementedException(vertextype.GetType().Name);
 		}
+        ShaderVariables lastShader;
+        public override void UpdateFlipNormals()
+        {
+            lastShader.SetFlipNormal(FlipNormals);
+        }
 		public override void Use(RenderState rstate, IVertexType vertextype, Lighting lights)
 		{
 			if (Camera == null)
@@ -120,12 +125,18 @@ namespace LibreLancer
 			if (HasSpotlight(ref lights)) caps |= ShaderCaps.Spotlight;
 			if (EtEnabled) caps |= ShaderCaps.EtEnabled;
 			if (Fade) caps |= ShaderCaps.FadeEnabled;
-			var dt = GetTexture(0, DtSampler);
-			if (dt != null && dt.Dxt1)
+            var dxt1 = GetDxt1();
+            if (dxt1)
 			{
-				caps |= ShaderCaps.AlphaTestEnabled; //Shitty way of dealing with alpha_mask
+				caps |= ShaderCaps.AlphaTestEnabled; 
+                //Shitty way of dealing with alpha_mask
+                //FL has a lot of DXT1 textures that aren't part of alpha_mask
+                //so this brings overall performance down.
+                //Don't change any of this stuff unless you can verify it works
+                //in all places! (Check Li01 shipyards, Bw10 tradelanes)
 			}
 			var shader = GetShader(vertextype, caps);
+            lastShader = shader;
 			shader.SetWorld(ref World);
 			shader.SetView(Camera);
 			shader.SetViewProjection(Camera);
@@ -136,13 +147,13 @@ namespace LibreLancer
 			shader.SetDc(Dc);
 			//Oc
 			shader.SetOc(Oc);
-			if (AlphaEnabled || Fade || OcEnabled)
+			if (AlphaEnabled || Fade || OcEnabled || dxt1)
 			{
 				rstate.BlendMode = BlendMode.Normal;
 			}
 			else
 			{
-				rstate.BlendMode = BlendMode.Opaque;
+                rstate.BlendMode = BlendMode.Opaque; //TODO: Maybe I can just leave this out?
 			}
 			//Fade
 			if (Fade) shader.SetFadeRange(new Vector2(FadeNear, FadeFar));
@@ -181,27 +192,25 @@ namespace LibreLancer
 		public override void ApplyDepthPrepass(RenderState rstate)
 		{
 			rstate.BlendMode = BlendMode.Normal;
-			/*var tex = GetTexture(0, DtSampler);
-			ShaderVariables shader;
-			if (tex.Dxt1)
-			{
-				shader = AlphaTestPrepassShader;
-				shader.SetDtSampler(0);
-				BindTexture(rstate, 0, DtSampler, 0, DtFlags, ResourceManager.WhiteTextureName);
-			}
-			else
-				shader = NormalPrepassShader;*/
-			var shader = NormalPrepassShader;
+            //TODO: This is screwy - Re-do DXT1 test if need be for perf
+			var shader = AlphaTestPrepassShader;
+            BindTexture(rstate, 0, DtSampler, 0, DtFlags, ResourceManager.WhiteTextureName);
 			shader.SetWorld(ref World);
 			shader.SetViewProjection(Camera);
 			shader.UseProgram();
 		}
 
+        bool GetDxt1()
+        {
+            var tex = GetTexture(0, DtSampler);
+            if (tex != null) return tex.Dxt1;
+            return false;
+        }
 		public override bool IsTransparent
 		{
 			get
 			{
-				return AlphaEnabled;
+                return AlphaEnabled && !GetDxt1();
 			}
 		}
 	}
