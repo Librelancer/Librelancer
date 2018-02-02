@@ -291,10 +291,10 @@ namespace LibreLancer
 				shader.SetVector4(lightsColorRangePosition , colorrange, index);
 		}
 
-		public void SetLightsAttenuation(int index, Vector4 attenuation)
+		public void SetLightsAttenuation(int index, Vector3 attenuation)
 		{
 			if (lightsAttenuationPosition != -1)
-				shader.SetVector4(lightsAttenuationPosition, attenuation, index);
+				shader.SetVector3(lightsAttenuationPosition, attenuation, index);
 		}
 		public void SetLightsDir(int index, Vector3 dir)
 		{

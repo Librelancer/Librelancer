@@ -313,7 +313,7 @@ namespace LibreLancer
 					r.Theta = r.Phi = (float)o;
 				if (lightprops.TryGetVector3("atten", out tmp))
 				{
-					r.Attenuation = new Vector4(tmp, 0);
+                    r.Attenuation = tmp;
 				}
 				e.LightProps.Render = r;
 			}

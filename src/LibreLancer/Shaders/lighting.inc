@@ -3,7 +3,7 @@ uniform bool LightingEnabled;
 
 uniform vec4 LightsPos[MAX_LIGHTS];
 uniform vec4 LightsColorRange[MAX_LIGHTS]; //xyz: color, w: range
-uniform vec4 LightsAttenuation[MAX_LIGHTS];
+uniform vec3 LightsAttenuation[MAX_LIGHTS];
 #ifdef SPOTLIGHT
 uniform vec3 SpotlightParams[MAX_LIGHTS]; //x: falloff. y: cos(theta/2), z: cos(phi/2)
 uniform vec3 LightsDir[MAX_LIGHTS];
@@ -40,12 +40,11 @@ layout(std430, binding = 1) readonly buffer VisibleLightIndicesBuffer {
 #endif
 /* 
  * approximate function given in [IGraph]
- * ax^3 + bx^2 + cx + d
+ * ax^2 + b^x + c
  */
-float fcubic(float x, vec4 params)
+float fquadratic(float x, vec3 params)
 {
-	float x2 = x * x;
-	return params.x * x2 * x + params.y * x2 + params.z * x + params.w;
+	return x * x * params.x + x * params.y + params.z;
 }
 
 #define FOGMODE_LINEAR 3
@@ -100,9 +99,9 @@ vec4 light(vec4 ac, vec4 ec, vec4 dc, vec4 tex, vec3 position, vec4 view_positio
 			//point light
 			surfaceToLight = normalize(LightsPos[i].xyz - position);
 			float distanceToLight = length(LightsPos[i].xyz - position);
-			vec3 curve = LightsAttenuation[i].xyz;
+			vec3 curve = LightsAttenuation[i];
             float atten0 = attenuation = 1.0 / (curve.x + curve.y * distanceToLight + curve.z * (distanceToLight * distanceToLight));
-            float atten1 = fcubic(distanceToLight / max(LightsColorRange[i].w,1.), LightsAttenuation[i]);
+            float atten1 = fquadratic(distanceToLight / max(LightsColorRange[i].w,1.),curve);
             attenuation = mix(atten0, atten1, LightsPos[i].w - 1.0); //choose correct attenuation
 			#ifdef SPOTLIGHT
 			if(SpotlightParams[i].x > 0.0) { //It's a spotlight
@@ -139,7 +138,7 @@ vec4 light(vec4 ac, vec4 ec, vec4 dc, vec4 tex, vec3 position, vec4 view_positio
 			vec4 curve = light.attenuation;
 			attenuation = 1.0 / (curve.x + curve.y * distanceToLight + curve.z * (distanceToLight * distanceToLight));
 		} else {
-			attenuation = fcubic(distanceToLight / max(light.colorRange.w,1.), light.attenuation);
+			attenuation = fquadratic(distanceToLight / max(light.colorRange.w,1.), light.attenuation.xyz);
 		}
 		if(distanceToLight >  light.colorRange.w) attenuation = 0;
 		float diffuseCoefficient = max(dot(n, surfaceToLight), 0.0);

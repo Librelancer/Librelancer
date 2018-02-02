@@ -298,11 +298,11 @@ namespace LibreLancer
 					lt.Range = src.Range.Value;
 					lt.Direction = src.Direction ?? new Vector3(0, 0, 1);
 					lt.Kind = ((src.Type ?? Legacy.Universe.LightType.Point) == Legacy.Universe.LightType.Point) ? LightKind.Point : LightKind.Directional;
-					lt.Attenuation = new Vector4(src.Attenuation ?? Vector3.UnitY, 0);
+                    lt.Attenuation = src.Attenuation ?? Vector3.UnitY;
 					if (src.AttenCurve != null)
 					{
 						lt.Kind = LightKind.PointAttenCurve;
-						lt.Attenuation = ApproximateCurve.GetCubicFunction(
+						lt.Attenuation = ApproximateCurve.GetQuadraticFunction(
 							fldata.Graphs.FindFloatGraph(src.AttenCurve).Points.ToArray()
 						);
 					}
