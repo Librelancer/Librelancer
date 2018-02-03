@@ -45,7 +45,6 @@ namespace LibreLancer
         AsteroidBillboard[] astbillboards;
         Random rand = new Random();
         SystemRenderer sys;
-        float cubeRenderRadius = 0;
 
         public AsteroidFieldRenderer(AsteroidField field, SystemRenderer sys)
         {
@@ -299,8 +298,8 @@ namespace LibreLancer
         struct CalculatedCube
         {
             public Vector3 pos;
-            public Matrix4 rot;
-            public CalculatedCube(Vector3 p, Matrix4 r) { pos = p; rot = r; }
+            public Matrix4 tr;
+            public CalculatedCube(Vector3 p, Matrix4 r) { pos = p; tr = r; }
         }
         Action _asteroidsCalculation;
         bool _asteroidsCalculated = false;
@@ -340,7 +339,7 @@ namespace LibreLancer
                         if (GetExclusionZone(center) != null) {
                             continue;
                         }
-                        cubes[cubeCount++] = new CalculatedCube(center, field.CubeRotation.GetRotation(tval));
+                        cubes[cubeCount++] = new CalculatedCube(center, Matrix4.CreateTranslation(center) * field.CubeRotation.GetRotation(tval));
                     }
                 }
             }
@@ -370,6 +369,9 @@ namespace LibreLancer
                 {
                     if (cubeCount == -1)
                         return;
+                    for (int i = 0; i < cubeDrawCalls.Count; i++)
+                        cubeDrawCalls[i].Material.Update(_camera);
+                    var lt = RenderHelpers.ApplyLights(lighting, 0, cameraPos, field.FillDist, nr);
                     while (!_asteroidsCalculated)
                     {
                     }
@@ -377,19 +379,15 @@ namespace LibreLancer
                     {
                         var center = cubes[j].pos;
                         var z = RenderHelpers.GetZ(cameraPos, center);
-                        var lt = RenderHelpers.ApplyLights(lighting, 0, center, field.CubeSize, nr);
-                        var transform = cubes[j].rot * Matrix4.CreateTranslation(center);
                         for (int i = 0; i < cubeDrawCalls.Count; i++)
                         {
                             var dc = cubeDrawCalls[i];
-                            dc.Material.Update(_camera);
                             if (VectorMath.DistanceSquared(center, cameraPos) < (fadeNear * fadeNear))
-                            {
-
+                            { //TODO: Accurately determine whether or not a cube has fading
                             }
                             buffer.AddCommandFade(
                                 dc.Material.Render,
-                                transform,
+                                cubes[j].tr,
                                 lt,
                                 cube_vbo,
                                 PrimitiveTypes.TriangleList,
