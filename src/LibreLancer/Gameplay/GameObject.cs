@@ -214,6 +214,13 @@ namespace LibreLancer
 				InitWithDrawable(th.Model, parent.Resources, false);
 				Components.Add(new ThrusterComponent(this, th));
 			}
+            if (equip is GunEquipment)
+            {
+                var gn = (GunEquipment)equip;
+                InitWithDrawable(gn.Model, parent.Resources,false);
+                if (gn.LODRanges != null) RenderComponent.LODRanges = gn.LODRanges;
+                PhysicsComponent = null;
+            }
             //Optimisation: Don't re-calculate transforms every frame for static objects
             if(parent.isstatic && hp.IsStatic)
             {
@@ -301,7 +308,7 @@ namespace LibreLancer
 				Components[i].FixedUpdate(time);
 			if (PhysicsComponent != null && !isstatic)
 			{
-				Transform = new Matrix4(PhysicsComponent.Orientation) * Matrix4.CreateTranslation(PhysicsComponent.Position);
+		        Transform = new Matrix4(PhysicsComponent.Orientation) * Matrix4.CreateTranslation(PhysicsComponent.Position);
 			}
 		}
 

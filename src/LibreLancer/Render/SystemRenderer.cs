@@ -40,7 +40,7 @@ namespace LibreLancer
 		}
 		
 		//Global Renderer Options
-		public float LODMultiplier = 4;
+		public float LODMultiplier = 2;
 		public bool ExtraLights = false; //See comments in Draw() before enabling
 
 		public IDrawable[] StarSphereModels;
@@ -201,6 +201,7 @@ namespace LibreLancer
 		DepthMap depthMap;
 		public unsafe void Draw()
 		{
+            if (game.Keyboard.IsKeyDown(Keys.I)) return;
 			if (game.Config.MSAASamples > 0)
 			{
 				if (_mwidth != Game.Width || _mheight != Game.Height)
@@ -227,8 +228,8 @@ namespace LibreLancer
 				if (nr != null && nr.DoLightning(out p2))
 					pointLights.Add(p2);
 			}
-			//Async calcs
-			for (int i = 0; i < Objects.Count; i += 16)
+            //Async calcs
+            for (int i = 0; i < Objects.Count; i += 16)
 			{
 				JThreads.Instance.AddTask((o) =>
 				{

@@ -90,6 +90,7 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 				case "munition":
 					break;
 				case "gun":
+                    Equip.Add(new Gun(s));
 					break;
 				case "mine":
 					break;

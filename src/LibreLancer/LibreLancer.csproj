@@ -378,6 +378,9 @@
     <Compile Include="Utf\UtfLoader.cs" />
     <Compile Include="Render\Materials\NormalDebugMaterial.cs" />
     <Compile Include="Fx\NodeReference.cs" />
+    <Compile Include="Gameplay\Components\WeaponControlComponent.cs" />
+    <Compile Include="Gameplay\Components\WeaponComponent.cs" />
+    <Compile Include="GameData\Items\GunEquipment.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

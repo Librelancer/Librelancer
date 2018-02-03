@@ -793,6 +793,18 @@ namespace LibreLancer
 					Model = drawable
 				};
 			}
+            if (val is Legacy.Equipment.Gun)
+            {
+                var gn = (val as Legacy.Equipment.Gun);
+                if(gn.MaterialLibrary != null)
+                    resource.LoadResourceFile(ResolveDataPath(gn.MaterialLibrary));
+                var drawable = resource.GetDrawable(ResolveDataPath(gn.DaArchetype));
+                equip = new GameData.Items.GunEquipment()
+                {
+                    Model = drawable,
+                    LODRanges = gn.LODRanges
+                };
+            }
 			if (val is Legacy.Equipment.Thruster)
 			{
 				var th = (val as Legacy.Equipment.Thruster);
@@ -817,6 +829,7 @@ namespace LibreLancer
 				if (val == null)
 					continue;
 				GameData.Items.Equipment equip = GetEquipment(val);
+                //if (equip is GameData.Items.GunEquipment) continue;
 				if (equip != null)
 				{
 					if (key.StartsWith("__noHardpoint", StringComparison.Ordinal))

@@ -31,11 +31,15 @@ namespace LibreLancer
 		public GameSession(FreelancerGame g)
 		{
 			Game = g;
-			PlayerShip = "li_elite";
+			PlayerShip = "li_fighter";
 			PlayerSystem = "li01";
 			PlayerPosition = new Vector3(-31000, 0, -26755);
 			PlayerOrientation = Matrix3.Identity;
 			MountedEquipment.Add("hpthruster01", "ge_s_thruster_02");
+            MountedEquipment.Add("hpweapon01", "li_gun01_mark01");
+            MountedEquipment.Add("hpweapon02", "li_gun01_mark01");
+            MountedEquipment.Add("hpweapon03", "li_gun01_mark01");
+            MountedEquipment.Add("hpweapon04", "li_gun01_mark01");
 		}
 
 		public void JumpTo(string system, string exitpos)

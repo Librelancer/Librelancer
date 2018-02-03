@@ -108,7 +108,7 @@ namespace LibreLancer.Fx
 				tr,
 				bl,
 				br,
-				Rotate.GetValue(sparam, time),
+                Rotate == null ? 0f : MathHelper.DegreesToRadians(Rotate.GetValue(sparam, time)),
 				SortLayers.OBJECT,
 				BlendInfo
 			);
