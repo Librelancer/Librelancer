@@ -201,7 +201,6 @@ namespace LibreLancer
 		DepthMap depthMap;
 		public unsafe void Draw()
 		{
-            if (game.Keyboard.IsKeyDown(Keys.I)) return;
 			if (game.Config.MSAASamples > 0)
 			{
 				if (_mwidth != Game.Width || _mheight != Game.Height)
