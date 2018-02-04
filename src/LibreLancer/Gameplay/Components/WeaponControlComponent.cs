@@ -19,18 +19,28 @@ namespace LibreLancer
     //For objects that shoot
     public class WeaponControlComponent : GameComponent
     {
+        public Vector3 AimPoint = Vector3.Zero;
         public WeaponControlComponent(GameObject parent) : base(parent)
         {
         }
 
         public override void FixedUpdate(TimeSpan time)
         {
-            //get all objects that are fireable
+            if (AimPoint != Vector3.Zero)
+            {
+                foreach (var wp in Parent.GetChildComponents<WeaponComponent>())
+                {
+                    wp.AimTowards(AimPoint, time);
+                }
+            }
         }
 
         public void FireAll()
         {
-            
+            foreach(var wp in Parent.GetChildComponents<WeaponComponent>())
+            {
+                wp.Fire(AimPoint);
+            }
         }
 
     }

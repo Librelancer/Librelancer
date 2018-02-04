@@ -218,8 +218,15 @@ namespace LibreLancer
             {
                 var gn = (GunEquipment)equip;
                 InitWithDrawable(gn.Model, parent.Resources,false);
-                if (gn.LODRanges != null) RenderComponent.LODRanges = gn.LODRanges;
                 PhysicsComponent = null;
+                Components.Add(new WeaponComponent(this, gn));
+            }
+            if (equip.LODRanges != null && RenderComponent != null) RenderComponent.LODRanges = equip.LODRanges;
+            if(equip.HPChild != null) {
+                if (hardpoints.TryGetValue(equip.HPChild, out Hardpoint hpchild))
+                {
+                    Transform = hpchild.Transform.Inverted();
+                }
             }
             //Optimisation: Don't re-calculate transforms every frame for static objects
             if(parent.isstatic && hp.IsStatic)

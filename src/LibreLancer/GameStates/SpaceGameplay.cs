@@ -46,6 +46,7 @@ Mouse Flight: {10}
 		string currentText = "";
 		GameObject player;
 		ShipControlComponent control;
+        WeaponControlComponent weapons;
 		PowerCoreComponent powerCore;
 		public float Velocity = 0f;
 		const float MAX_VELOCITY = 80f;
@@ -67,6 +68,8 @@ Mouse Flight: {10}
 			control = new ShipControlComponent(player);
 			control.Ship = shp;
 			player.Components.Add(control);
+            weapons = new WeaponControlComponent(player);
+            player.Components.Add(weapons);
 			powerCore = new PowerCoreComponent(player)
 			{
 				ThrustCapacity = 1000,
@@ -348,6 +351,13 @@ Mouse Flight: {10}
 				selected = newselected;
 				hud.SelectedObject = selected;
 			}
+            var ep = UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0.25f), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
+            var tgt = UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0f), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
+            var dir = (tgt - ep).Normalized();
+            var dir2 = player.PhysicsComponent.Orientation * Vector3.UnitZ;
+            tgt += dir * 750;
+            //Console.WriteLine("{0}: {1} {2}", tgt, dir, dir2);
+            weapons.AimPoint = tgt;
 		}
 
 		GameObject GetSelection(float x, float y)

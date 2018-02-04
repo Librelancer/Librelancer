@@ -54,10 +54,11 @@ namespace LibreLancer.Utf
 			newc.constructs = newcol;
 			return newc;
 		}
-
+        public float Current = 0;
         public override void Update(float distance)
         {
-			currentTransform = Matrix4.CreateFromAxisAngle(AxisRotation, MathHelper.Clamp(distance, Min, Max));
+            Current = MathHelper.Clamp(distance, Min, Max);
+			currentTransform = Matrix4.CreateFromAxisAngle(AxisRotation, Current);
         }
     }
 }

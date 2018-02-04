@@ -21,6 +21,9 @@ namespace LibreLancer.GameData.Items
 		public Equipment()
 		{
 		}
+        public string Nickname;
+        public float[] LODRanges;
+        public string HPChild;
 		public virtual IDrawable GetDrawable()
 		{
 			throw new NotImplementedException();

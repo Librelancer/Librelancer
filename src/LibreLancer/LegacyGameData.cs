@@ -802,7 +802,7 @@ namespace LibreLancer
                 equip = new GameData.Items.GunEquipment()
                 {
                     Model = drawable,
-                    LODRanges = gn.LODRanges
+                    TurnRateRadians = MathHelper.DegreesToRadians(gn.TurnRate)
                 };
             }
 			if (val is Legacy.Equipment.Thruster)
@@ -819,6 +819,9 @@ namespace LibreLancer
 					Particles = GetEffect(th.Particles)
 				};
 			}
+            equip.Nickname = val.Nickname;
+            equip.HPChild = val.HPChild;
+            equip.LODRanges = val.LODRanges;
 			return equip;
 		}
 		void ProcessLoadout(Legacy.Solar.Loadout ld, GameData.SystemObject obj)

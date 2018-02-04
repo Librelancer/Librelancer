@@ -18,9 +18,9 @@ namespace LibreLancer.GameData.Items
 {
     public class GunEquipment : Equipment
     {
-        public string Nickname;
+        public float TurnRateRadians;
+        public float RefireDelay;
         public IDrawable Model;
-        public float[] LODRanges;
       
         public override IDrawable GetDrawable()
         {

@@ -24,7 +24,7 @@ namespace LibreLancer.Compatibility.GameData.Equipment
         public int IdsName;
         public int IdsInfo;
         public int Hitpoints;
-        public float[] LODRanges;
+        public float TurnRate;
 
         public Gun(Section section)
             : base(section)
@@ -50,9 +50,8 @@ namespace LibreLancer.Compatibility.GameData.Equipment
                         case "hit_pts":
                             Hitpoints = e[0].ToInt32();
                             break;
-                        case "lodranges":
-                            LODRanges = new float[e.Count];
-                            for (int i = 0; i < e.Count; i++) LODRanges[i] = e[i].ToSingle();
+                        case "turn_rate":
+                            TurnRate = e[0].ToSingle();
                             break;
                     }
                 }
