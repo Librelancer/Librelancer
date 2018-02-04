@@ -42,11 +42,8 @@ namespace LibreLancer
         }
         const float CULL_DISTANCE = 20000;
         const float CULL = CULL_DISTANCE * CULL_DISTANCE;
-        bool visible = false;
         public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
         {
-            if (sys == null || !visible)
-                return;
             if (frameStart)
             {
                 sys.Game.ResourceManager.TryGetShape("bulb", out bulbshape);
@@ -84,18 +81,6 @@ namespace LibreLancer
 
         }
 
-        public override void Register(SystemRenderer renderer)
-        {
-            sys = renderer;
-            renderer.Objects.Add(this);
-        }
-
-        public override void Unregister()
-        {
-            if (sys != null)
-                sys.Objects.Remove(this);
-            sys = null;
-        }
         double timer = 0;
         bool lt_on = true;
         Color3f colorBulb;
@@ -127,12 +112,19 @@ namespace LibreLancer
             }
         }
 
-        public override void PrepareRender(ICamera camera, NebulaRenderer nr)
+        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
         {
-            visible = (
+            var visible = (
                 VectorMath.DistanceSquared(camera.Position, pos) < CULL &&
-                camera.Frustum.Intersects(new BoundingSphere(pos, 100))
+                camera.Frustum.Intersects(new BoundingSphere(pos, equip.BulbSize * 3))
             );
+            this.sys = sys;
+            if(visible) {
+                sys.AddObject(this);
+                return true;
+            } else {
+                return false;
+            }
             /*if (lt_on && camera.Frustum.Intersects(new BoundingSphere(pos, 100)))
 			{
 				sys.PointLightDX(pos, 50, new Color4(equip.GlowColor, 1), new Vector3(1, 0.01f, 0.000055f));

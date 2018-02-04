@@ -171,7 +171,7 @@ namespace LancerEdit
 			drawable.Update(cam, TimeSpan.Zero, TimeSpan.Zero);
             if (viewMode != M_NONE)
             {
-                buffer.StartFrame();
+                buffer.StartFrame(rstate);
                 if (drawable is CmpFile)
                     DrawCmp(cam, false);
                 else
@@ -183,7 +183,7 @@ namespace LancerEdit
             }
             if (doWireframe)
             {
-                buffer.StartFrame();
+                buffer.StartFrame(rstate);
                 GL.PolygonOffset(1, 1);
                 rstate.Wireframe = true;
                 if (drawable is CmpFile)
@@ -249,7 +249,10 @@ namespace LancerEdit
 				mat.Update(cam);
 			}
 			var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
-			drawable.DrawBuffer(buffer, matrix, viewMode == M_LIT ? lighting : Lighting.Empty, mat);
+            if(viewMode == M_LIT)
+			    drawable.DrawBuffer(buffer, matrix, ref lighting, mat);
+            else
+                drawable.DrawBuffer(buffer, matrix, ref Lighting.Empty, mat);
 		}
 
 		int jColors = 0;
@@ -271,17 +274,20 @@ namespace LancerEdit
                         partMaterials.Add(part.Key, mat);
                     }
                     mat.Update(cam);
-                    part.Value.DrawBuffer(buffer, matrix, Lighting.Empty, mat);
+                    part.Value.DrawBuffer(buffer, matrix, ref Lighting.Empty, mat);
                 }
             }
 			else if (viewMode == M_TEXTURED || viewMode == M_LIT)
 			{
-				drawable.DrawBuffer(buffer, matrix, viewMode == M_LIT ? lighting : Lighting.Empty);
+                if(viewMode == M_LIT)
+				    drawable.DrawBuffer(buffer, matrix, ref lighting);
+                else
+                    drawable.DrawBuffer(buffer, matrix, ref Lighting.Empty);
 			}
 			else
 			{
 				normalsDebugMaterial.Update(cam);
-				drawable.DrawBuffer(buffer, matrix, Lighting.Empty, normalsDebugMaterial);
+				drawable.DrawBuffer(buffer, matrix, ref Lighting.Empty, normalsDebugMaterial);
 			}
 		}
 

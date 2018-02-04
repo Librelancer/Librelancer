@@ -21,7 +21,7 @@ namespace LibreLancer
 	public class Hardpoint
 	{
 		Matrix4 transform;
-		AbstractConstruct parent;
+		public AbstractConstruct parent;
 		public string Name;
         public RevoluteHardpointDefinition Revolute;
         public float CurrentRevolution;

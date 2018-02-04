@@ -30,7 +30,7 @@ namespace LibreLancer
 		public bool Fade = false;
 		public float FadeNear = 0;
 		public float FadeFar = 0;
-		public abstract void Use(RenderState rstate, IVertexType vertextype, Lighting lights);
+		public abstract void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights);
         public virtual void UpdateFlipNormals() {} //Optimisation
 		public abstract bool IsTransparent { get; }
 		public bool DoubleSided = false;
@@ -67,7 +67,7 @@ namespace LibreLancer
 
 		public abstract void ApplyDepthPrepass(RenderState rstate);
 
-		public static void SetLights(ShaderVariables shader, Lighting lights)
+		public static void SetLights(ShaderVariables shader, ref Lighting lights)
 		{
 			bool hasSpotlight = HasSpotlight(ref lights);
 			var h = lights.Hash;

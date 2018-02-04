@@ -32,16 +32,12 @@ namespace LibreLancer
 		{
 			pos = position;
 		}
-		public override void Register(SystemRenderer renderer)
-		{
-			sysr = renderer;
-			sysr.Objects.Add(this);
-		}
-		public override void Unregister()
-		{
-			sysr.Objects.Remove(this);
-			sysr = null;
-		}
+        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
+        {
+            sysr = sys;
+            sys.AddObject(this);
+            return true;
+        }
 		public override void Draw (ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
 			if (sysr == null)

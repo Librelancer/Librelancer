@@ -42,7 +42,7 @@ namespace LibreLancer
 				throw new NotImplementedException ();
 			}
 		}
-		public override void Use(RenderState rstate, IVertexType vertextype, Lighting lights)
+		public override void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights)
 		{
             if (Camera == null)
                 return;

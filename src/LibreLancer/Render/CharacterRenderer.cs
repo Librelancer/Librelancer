@@ -43,9 +43,9 @@ namespace LibreLancer
 		{
 			Body.Update(camera, TimeSpan.Zero, TimeSpan.Zero);
 			var bhps = Body.GetHardpoints().Where((arg) => arg.Hp.Name.ToLowerInvariant() == "hp_head").First();
-			Body.DrawBuffer(commands, transform, Lighting.Empty);
+			Body.DrawBuffer(commands, transform, ref Lighting.Empty);
 			Head.Update(camera, TimeSpan.Zero, TimeSpan.Zero);
-			Head.DrawBuffer(commands, bhps.GetTransform(transform), Lighting.Empty);
+			Head.DrawBuffer(commands, bhps.GetTransform(transform), ref Lighting.Empty);
 			var hhps = Head.GetHardpoints().ToArray();
 			LeftHand.Update(camera, TimeSpan.Zero, TimeSpan.Zero);
 			var lhhps = LeftHand.GetHardpoints().ToArray();
@@ -53,17 +53,5 @@ namespace LibreLancer
 			var rhhps = RightHand.GetHardpoints().ToArray();
 		}
 
-		SystemRenderer sysr;
-		public override void Register(SystemRenderer renderer)
-		{
-			sysr = renderer;
-			sysr.Objects.Add(this);
-		}
-
-		public override void Unregister()
-		{
-			sysr.Objects.Remove(this);
-			sysr = null;
-		}
 	}
 }

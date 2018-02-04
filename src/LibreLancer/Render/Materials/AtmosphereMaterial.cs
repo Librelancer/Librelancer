@@ -41,7 +41,7 @@ namespace LibreLancer
 			throw new NotImplementedException ();
 		}
 
-		public override void Use (RenderState rstate, IVertexType vertextype, Lighting lights)
+		public override void Use (RenderState rstate, IVertexType vertextype, ref Lighting lights)
 		{
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Normal;
@@ -58,7 +58,7 @@ namespace LibreLancer
 			var normalmat = World;
 			normalmat.Invert();
 			normalmat.Normalize();
-			SetLights(sh, lights);
+			SetLights(sh, ref lights);
 			sh.SetNormalMatrix(ref normalmat);
 			sh.UseProgram ();
 		}

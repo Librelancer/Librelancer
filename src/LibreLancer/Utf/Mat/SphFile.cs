@@ -192,7 +192,7 @@ namespace LibreLancer.Utf.Mat
 				sphere.VertexBuffer.Draw(PrimitiveTypes.TriangleList, 0, start, count);
 			}
 		}
-		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting lighting, Material overrideMat = null)
+		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, ref Lighting lighting, Material overrideMat = null)
 		{
 			if (SideMaterials.Length < 6)
 				return;

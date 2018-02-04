@@ -15,6 +15,7 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using LibreLancer.GameData;
 using LibreLancer.Utf.Cmp;
 using JThreads = LibreLancer.Jitter.ThreadManager;
@@ -26,9 +27,8 @@ namespace LibreLancer
 		ICamera camera;
 
 		public Color4 NullColor = Color4.Black;
-		public Matrix4 World { get; private set; }
 
-		public List<ObjectRenderer> Objects { get; private set; }
+        public GameWorld World { get; set; }
 		public List<AsteroidFieldRenderer> AsteroidFields { get; private set; }
 		public List<NebulaRenderer> Nebulae { get; private set; }
 
@@ -72,8 +72,6 @@ namespace LibreLancer
 		public SystemRenderer(ICamera camera, LegacyGameData data, ResourceManager rescache, FreelancerGame game)
 		{
 			this.camera = camera;			
-			World = Matrix4.Identity;
-			Objects = new List<ObjectRenderer>();
 			AsteroidFields = new List<AsteroidFieldRenderer>();
 			Nebulae = new List<NebulaRenderer>();
 			StarSphereModels = new IDrawable[0];
@@ -199,6 +197,16 @@ namespace LibreLancer
 		int _twidth = -1, _theight = -1;
 		int _dwidth = -1, _dheight = -1;
 		DepthMap depthMap;
+
+        List<ObjectRenderer> objects;
+
+        public void AddObject(ObjectRenderer render)
+        {
+            lock (objects)
+            {
+                objects.Add(render);
+            }
+        }
 		public unsafe void Draw()
 		{
 			if (game.Config.MSAASamples > 0)
@@ -228,12 +236,13 @@ namespace LibreLancer
 					pointLights.Add(p2);
 			}
             //Async calcs
-            for (int i = 0; i < Objects.Count; i += 16)
+            objects = new List<ObjectRenderer>(250);
+            for (int i = 0; i < World.Objects.Count; i += 16)
 			{
 				JThreads.Instance.AddTask((o) =>
 				{
 					var offset = (int)o;
-					for (int j = 0; j < 16 && ((j + offset) < Objects.Count); j++) Objects[j + offset].PrepareRender(camera, nr);
+					for (int j = 0; j < 16 && ((j + offset) < World.Objects.Count); j++) World.Objects[j + offset].PrepareRender(camera, nr, this);
 				}, i);
 			}
 			JThreads.Instance.BeginExecute();
@@ -268,7 +277,7 @@ namespace LibreLancer
 			}
 			DebugRenderer.StartFrame(camera, rstate);
 			Polyline.SetCamera(camera);
-			commands.StartFrame();
+			commands.StartFrame(rstate);
 			rstate.DepthEnabled = true;
 			//Optimisation for dictionary lookups
 			LightEquipRenderer.FrameStart();
@@ -319,7 +328,8 @@ namespace LibreLancer
 				depthMap.BindFramebuffer();
 				rstate.ClearDepth();
 				rstate.DepthFunction = DepthFunction.Less;
-				for (int i = 0; i < Objects.Count; i++) if (Objects[i].Visible) Objects[i].DepthPrepass(camera, rstate);
+                foreach (var obj in objects) obj.DepthPrepass(camera, rstate);
+				//for (int i = 0; i < Objects.Count; i++) if (Objects[i].Visible) Objects[i].DepthPrepass(camera, rstate);
 				rstate.DepthFunction = DepthFunction.LessEqual;
 				RenderTarget2D.ClearBinding();
 				if (game.Config.MSAASamples > 0) msaa.Bind();
@@ -346,11 +356,11 @@ namespace LibreLancer
 				SystemLighting.NumberOfTilesX = -1;
 				//Simple depth pre-pass
 				rstate.DepthFunction = DepthFunction.Less;
-				for (int i = 0; i < Objects.Count; i++) if (Objects[i].Visible) Objects[i].DepthPrepass(camera, rstate);
+                foreach (var obj in objects) obj.DepthPrepass(camera, rstate);
 				rstate.DepthFunction = DepthFunction.LessEqual;
 			}
 			//Actual Drawing
-			for (int i = 0; i < Objects.Count; i++) if(Objects[i].Visible) Objects[i].Draw(camera, commands, SystemLighting, nr);
+			foreach (var obj in objects) obj.Draw(camera, commands, SystemLighting, nr);
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(cache, SystemLighting, commands, nr);
 			game.Nebulae.NewFrame();
 			if (nr == null)

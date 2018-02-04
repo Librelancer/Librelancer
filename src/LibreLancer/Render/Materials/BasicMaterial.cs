@@ -117,7 +117,7 @@ namespace LibreLancer
         {
             lastShader.SetFlipNormal(FlipNormals);
         }
-		public override void Use(RenderState rstate, IVertexType vertextype, Lighting lights)
+		public override void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights)
 		{
 			if (Camera == null)
 				return;
@@ -181,7 +181,7 @@ namespace LibreLancer
 				BindTexture(rstate, 1, EtSampler, 1, EtFlags, ResourceManager.NullTextureName);
 			}
 			//Set lights
-			SetLights(shader, lights);
+			SetLights(shader, ref lights);
 			var normalMatrix = World;
 			normalMatrix.Invert();
 			normalMatrix.Transpose();

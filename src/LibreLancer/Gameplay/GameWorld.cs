@@ -34,6 +34,7 @@ namespace LibreLancer
 		public GameWorld(SystemRenderer render)
 		{
 			Renderer = render;
+            render.World = this;
 			Physics = new World(new CollisionSystemSAP());
 			Physics.CollisionSystem.EnableSpeculativeContacts = true;
 			Physics.Gravity = Vector3.Zero;

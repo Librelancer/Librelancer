@@ -96,11 +96,11 @@ namespace LibreLancer.Utf.Cmp
             Model.Draw(rstate, transform, light);
         }
 
-		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light, Material overrideMat = null)
+		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, ref Lighting light, Material overrideMat = null)
 		{
 			Matrix4 transform = world;
 			if (Construct != null) transform = Construct.Transform * world;
-			Model.DrawBuffer(buffer, transform, light, overrideMat);
+			Model.DrawBuffer(buffer, transform, ref light, overrideMat);
 		}
 
 		public Part Clone(ConstructCollection newcol)

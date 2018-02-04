@@ -21,7 +21,7 @@ namespace LibreLancer
 	public struct Lighting
 	{
 		public const int MAX_LIGHTS = 9;
-		public static readonly Lighting Empty = new Lighting() { Enabled = false };
+		public static Lighting Empty = new Lighting() { Enabled = false };
         public bool Enabled;
         public Color4 Ambient;
         public LightsArray Lights;

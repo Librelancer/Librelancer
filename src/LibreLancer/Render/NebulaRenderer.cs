@@ -285,7 +285,7 @@ namespace LibreLancer
 			}
 			//Render
 			l0.Update(camera, TimeSpan.Zero);
-			l0.DrawBuffer(buffer, world, Lighting.Empty, null);
+			l0.DrawBuffer(buffer, world, ref Lighting.Empty, null);
 		}
         static Shader _puffringsh;
 		static int _ptex0;

@@ -43,7 +43,7 @@ namespace LibreLancer
 			throw new NotImplementedException ();
 		}
 
-		public override void Use (RenderState rstate, IVertexType vertextype, Lighting lights)
+		public override void Use (RenderState rstate, IVertexType vertextype, ref Lighting lights)
 		{
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Opaque;
@@ -63,7 +63,7 @@ namespace LibreLancer
 			BindTexture (rstate, 0, DtSampler, 0, DtFlags);
 			sh.SetDmSampler(1);
 			BindTexture (rstate, 1, DmSampler, 1, DmFlags);
-			SetLights(sh, lights);
+			SetLights(sh, ref lights);
 			var normalMatrix = World;
 			normalMatrix.Invert();
 			normalMatrix.Transpose();

@@ -481,7 +481,7 @@ namespace LibreLancer
             shader.SetVector3(_bsCameraPosition, command.UserData.Camera.Position);
             shader.SetColor4(_bsColorShift, command.UserData.Color);
             shader.SetFloat(_bsTextureAspect, command.UserData.Float);
-            RenderMaterial.SetLights(bandShader, command.Lights);
+            RenderMaterial.SetLights(bandShader, ref command.Lights);
             command.UserData.Texture.BindTo(0);
             shader.UseProgram();
             state.BlendMode = BlendMode.Normal;

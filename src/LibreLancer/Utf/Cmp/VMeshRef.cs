@@ -136,11 +136,11 @@ namespace LibreLancer.Utf.Cmp
             if (ready) Mesh.Draw(rstate, StartMesh, endMesh, StartVertex, world, light, mc);
         }
 
-		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light, MaterialAnimCollection mc, Material overrideMat = null)
+		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, ref Lighting light, MaterialAnimCollection mc, Material overrideMat = null)
 		{
 			if (Mesh.FlexibleVertexFormat == (D3DFVF.XYZ | D3DFVF.NORMAL))
 				return;
-			if (ready) Mesh.DrawBuffer(buffer, StartMesh, endMesh, StartVertex, world, light, Center, mc, overrideMat);
+			if (ready) Mesh.DrawBuffer(buffer, StartMesh, endMesh, StartVertex, world, ref light, Center, mc, overrideMat);
 		}
 
 		public void DepthPrepass(RenderState rstate, Matrix4 world, MaterialAnimCollection mc)

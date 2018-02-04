@@ -181,9 +181,9 @@ namespace LibreLancer.Utf.Cmp
 			}
 			return max;
 		}
-		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light, Material overrideMat = null)
+		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, ref Lighting light, Material overrideMat = null)
 		{
-			for (int i = 0; i < Parts.Count; i++) Parts[i].DrawBuffer(buffer, world, light, overrideMat);
+			for (int i = 0; i < Parts.Count; i++) Parts[i].DrawBuffer(buffer, world, ref light, overrideMat);
 		}
 		public void Draw(RenderState rstate, Matrix4 world, Lighting light)
         {

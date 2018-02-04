@@ -47,13 +47,13 @@ namespace LibreLancer
 		}
 		public override void Register(SystemRenderer renderer, LibreLancer.Jitter.World physics)
 		{
-			for (int i = 0; i < fireFx.Count; i++)
-				fireFx[i].Effect.Register(renderer);
+            for (int i = 0; i < fireFx.Count; i++)
+                Parent.ForceRenderCheck.Add(fireFx[i].Effect);
 		}
 		public override void Unregister()
 		{
-			for (int i = 0; i < fireFx.Count; i++)
-				fireFx[i].Effect.Unregister();
+            for (int i = 0; i < fireFx.Count; i++)
+                Parent.ForceRenderCheck.Remove(fireFx[i].Effect);
 		}
 
 	}

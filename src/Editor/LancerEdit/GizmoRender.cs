@@ -126,12 +126,12 @@ namespace LancerEdit
             //Cubes
             r.AlphaEnabled = true;
             rstate.Cull = true;
-            r.Use(rstate, lines[0], Lighting.Empty);
+            r.Use(rstate, lines[0], ref Lighting.Empty);
             triBuffer.Draw(PrimitiveTypes.TriangleList, (idxcube.Length * (vertexCountC / 8)) / 3);
             //Lines
             r.AlphaEnabled = false;
             rstate.Cull = false;
-            r.Use(rstate, lines[0], Lighting.Empty);
+            r.Use(rstate, lines[0], ref Lighting.Empty);
             lineBuffer.Draw(PrimitiveTypes.LineList, vertexCountL / 2);
         }
 

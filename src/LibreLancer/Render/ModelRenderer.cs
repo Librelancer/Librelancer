@@ -48,58 +48,56 @@ namespace LibreLancer
 			else if (drawable is DfmFile)
 				Dfm = drawable as DfmFile;
 		}
+
 		public ModelRenderer(List<Part> drawable, CmpFile parent)
 		{
 			CmpParts = drawable;
 			_parentCmp = parent;
 		}
+
 		public override void Update(TimeSpan elapsed, Vector3 position, Matrix4 transform)
 		{
 			if (sysr == null)
 				return;
 			World = transform;
-			if (Nebula == null || pos != position)
+			if (Nebula == null || pos != position && sysr != null)
 			{
 				pos = position;
 				Nebula = sysr.ObjectInNebula(position);
 			}
 		}
 
-		public override void Register(SystemRenderer renderer)
-		{
-			sysr = renderer;
-			sysr.Objects.Add(this);
-			if (!inited)
-			{
-				if (Dfm != null)
-					Dfm.Initialize(sysr.Game.ResourceManager);
-				if (Model != null && Model.Levels.Length > 0)
-					Model.Initialize(sysr.Game.ResourceManager);
-				else if (Cmp != null)
-					Cmp.Initialize(sysr.Game.ResourceManager);
-				else if (Sph != null)
-				{
-					Sph.Initialize(sysr.Game.ResourceManager);
-					if (Sph.SideMaterials.Length > 6)
-						radiusAtmosphere = Sph.Radius * Sph.SideMaterials[6].Scale;
-					else
-						radiusAtmosphere = Sph.Radius;
-				}
-				inited = true;
-			}
-		}
-
-		public override void Unregister()
-		{
-			sysr.Objects.Remove(this);
-			sysr = null;
-		}
+        void Init()
+        {
+            if (!inited)
+            {
+                if (Dfm != null)
+                    Dfm.Initialize(sysr.Game.ResourceManager);
+                if (Model != null && Model.Levels.Length > 0)
+                    Model.Initialize(sysr.Game.ResourceManager);
+                else if (Cmp != null)
+                    Cmp.Initialize(sysr.Game.ResourceManager);
+                else if (Sph != null)
+                {
+                    Sph.Initialize(sysr.Game.ResourceManager);
+                    if (Sph.SideMaterials.Length > 6)
+                        radiusAtmosphere = Sph.Radius * Math.Max(Sph.SideMaterials[6].Scale,1f);
+                    else
+                        radiusAtmosphere = Sph.Radius;
+                }
+                inited = true;
+            }
+        }
 
 		VMeshRef GetLevel(ModelFile file, Vector3 center, Vector3 camera)
 		{
 			float[] ranges = LODRanges ?? file.Switch2;
-			if (ranges == null) return file.Levels[0];
 			var dsq = VectorMath.DistanceSquared(center, camera);
+            if (ranges == null) {
+                if (InheritCull > 0 && dsq > (InheritCull * InheritCull))
+                    return null;
+                return file.Levels[0];
+            }
 			var lvl = file.Levels[0];
 			for (int i = 0; i < ranges.Length; i++)
 			{
@@ -161,7 +159,7 @@ namespace LibreLancer
 			{
 				var bsphere = new BoundingSphere(
 					pos,
-					radiusAtmosphere);
+                    Math.Max(Sph.Radius,radiusAtmosphere));
 				if (!camera.Frustum.Intersects(bsphere)) return true;
 			}
 			return false;
@@ -169,7 +167,7 @@ namespace LibreLancer
 
 		public override void DepthPrepass(ICamera camera, RenderState rstate)
 		{
-			if (!Visible) return;
+            Init();
 			if (Model != null)
 			{
 				Model.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
@@ -216,39 +214,43 @@ namespace LibreLancer
 			}
 		}
 
-		public override void PrepareRender(ICamera camera, NebulaRenderer nr)
+        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
 		{
-			CalculatedVisible = true;
+            this.sysr = sys;
 			if (Nebula != null && nr != Nebula)
 			{
-				CalculatedVisible = false;
-				return;
+                return false;
 			}
 			var dsq = VectorMath.DistanceSquared(pos, camera.Position);
 			if (LODRanges != null) //Fastest cull
 			{
 				var maxd = LODRanges[LODRanges.Length - 1] * sysr.LODMultiplier;
 				maxd *= maxd;
-				if (dsq > maxd) { CalculatedVisible = false; return; }
+                if (dsq > maxd) return false;
 			}
+            if(InheritCull > 0)
+            {
+                if (dsq > (InheritCull * InheritCull)) return false;
+            }
 			if (Model != null)
 			{
 				if (Model.Levels.Length != 0)
 				{
 					var center = VectorMath.Transform(Model.Levels[0].Center, World);
 					var lvl = GetLevel(Model, center, camera.Position);
-					if (lvl == null) CalculatedVisible = false;
+                    if (lvl == null) return false;
 					var bsphere = new BoundingSphere(
 						center,
 						Model.Levels[0].Radius
 					);
-					if (!camera.Frustum.Intersects(bsphere)) CalculatedVisible = false; //Culled
+                    if (!camera.Frustum.Intersects(bsphere)) return false; //Culled
+                    sys.AddObject(this);
+                    return true;
 				}
 			}
 			else if (Cmp != null || CmpParts != null)
 			{
 				//Check if -something- renders
-				CalculatedVisible = false;
 				var partCol = (IEnumerable<Part>)CmpParts ?? Cmp.Parts.Values;
 				bool cmpParts = CmpParts != null;
 				foreach (Part p in partCol)
@@ -269,32 +271,33 @@ namespace LibreLancer
 						);
 						if (camera.Frustum.Intersects(bsphere))
 						{
-							CalculatedVisible = true;
-							break;
+                            sys.AddObject(this);
+                            return true;
 						}
 					}
 				}
+                return false;
 			}
 			else if (Sph != null)
 			{
 				var bsphere = new BoundingSphere(
 					pos,
-					radiusAtmosphere);
-				if (!camera.Frustum.Intersects(bsphere)) CalculatedVisible = false;
+                    Math.Max(Sph.Radius, radiusAtmosphere));
+                if (!camera.Frustum.Intersects(bsphere)) return false;
+                sys.AddObject(this);
+                return true;
 			}
+            return false;
 		}
 		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
-			if (sysr == null)
-				return;
-			if (!Visible) 
-				return;
+            Init();
 			if (Dfm != null)
 			{
 				Dfm.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
 				var center = VectorMath.Transform(Vector3.Zero, World);
 				//var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, 20, nr, LitAmbient, LitDynamic, NoFog);
-				Dfm.DrawBuffer(commands, World, Lighting.Empty);
+				Dfm.DrawBuffer(commands, World, ref Lighting.Empty);
 			}
 			if (Model != null) {
 				if (Model.Levels.Length > 0) {
@@ -305,7 +308,7 @@ namespace LibreLancer
 					var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, Model.Levels[0].Radius, nr, LitAmbient, LitDynamic, NoFog);
 					var r = Model.Levels [0].Radius + lighting.FogRange.Y;
 					if (lighting.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
-						Model.DrawBufferLevel(lvl, commands, World, lighting);
+						Model.DrawBufferLevel(lvl, commands, World, ref lighting);
 				}
 			} else if (Cmp != null) {
 				Cmp.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
@@ -329,7 +332,7 @@ namespace LibreLancer
 							var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, model.Levels[0].Radius, nr, LitAmbient, LitDynamic, NoFog);
 							var r = model.Levels [0].Radius + lighting.FogRange.Y;
 							if (lighting.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
-								model.DrawBufferLevel(lvl, commands, w, lighting);
+								model.DrawBufferLevel(lvl, commands, w, ref lighting);
 						}
 					}
 				}
@@ -356,7 +359,7 @@ namespace LibreLancer
 							var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, model.Levels[0].Radius, nr, LitAmbient, LitDynamic, NoFog);
 							var r = model.Levels[0].Radius + lighting.FogRange.Y;
 							if (lighting.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, center) <= (r * r))
-								model.DrawBufferLevel(lvl, commands, w, lighting);
+								model.DrawBufferLevel(lvl, commands, w, ref lighting);
 						}
 					}
 				}
@@ -365,7 +368,7 @@ namespace LibreLancer
 				var l = RenderHelpers.ApplyLights(lights, LightGroup, pos, Sph.Radius, nr, LitAmbient, LitDynamic, NoFog);
 				var r = Sph.Radius + l.FogRange.Y;
 				if(l.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, pos) <= (r * r))
-					Sph.DrawBuffer(commands, World, l);
+					Sph.DrawBuffer(commands, World, ref l);
 			}
 		}
 	}

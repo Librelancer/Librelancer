@@ -124,7 +124,7 @@ namespace LibreLancer.Utf.Vms
 			}
 			Material.Render.MaterialAnim = ma;
 			Material.Render.World = world;
-			Material.Render.Use (rstate, buff.VertexType, light);
+			Material.Render.Use (rstate, buff.VertexType, ref light);
 			buff.Draw (PrimitiveTypes.TriangleList, startVertex + StartVertex, TriangleStart, primitiveCount);
         }
 
@@ -171,7 +171,7 @@ namespace LibreLancer.Utf.Vms
 			return avg;
 		}
 
-		public void DrawBuffer(CommandBuffer buffer, VMeshData data, ushort startVertex, Matrix4 world, Lighting light, MaterialAnimCollection mc, Material overrideMat = null)
+		public void DrawBuffer(CommandBuffer buffer, VMeshData data, ushort startVertex, Matrix4 world, ref Lighting light, MaterialAnimCollection mc, Material overrideMat = null)
 		{
 			var mat = Material;
 			if (mat == null)

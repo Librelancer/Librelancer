@@ -28,17 +28,18 @@ namespace LibreLancer
 		{
 			fx = new ParticleEffectInstance(effect);
 		}
-		public override void Register(SystemRenderer renderer)
-		{
-			sys = renderer;
-			sys.Objects.Add(this);
-			fx.Resources = sys.Game.ResourceManager;
-		}
-		public override void Unregister()
-		{
-			sys.Objects.Remove(this);
-			sys = null;
-		}
+        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
+        {
+            this.sys = sys;
+            dist = VectorMath.DistanceSquared(pos, camera.Position);
+            fx.Resources = sys.Game.ResourceManager;
+            if (Active && dist < (20000 * 20000))
+            {
+                sys.AddObject(this);
+                return true;
+            }
+            return false;
+        }
 		Matrix4 tr;
 		Vector3 pos;
 		float dist = 0;
@@ -55,9 +56,7 @@ namespace LibreLancer
 		}
 		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
-			dist = VectorMath.DistanceSquared(pos, camera.Position);
-			if(Active && dist < (20000 * 20000))
-				fx.Draw(sys.Polyline, sys.Game.Billboards, sys.DebugRenderer, tr, SParam);
+			fx.Draw(sys.Polyline, sys.Game.Billboards, sys.DebugRenderer, tr, SParam);
 		}
 	}
 }

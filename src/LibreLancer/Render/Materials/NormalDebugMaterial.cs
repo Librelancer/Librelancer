@@ -23,7 +23,7 @@ namespace LibreLancer
 	public class NormalDebugMaterial : RenderMaterial
 	{
 		static ShaderVariables sh;
-		public override void Use(RenderState rstate, IVertexType vertextype, Lighting lights)
+		public override void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights)
 		{
 			if (sh == null)
 				sh = ShaderCache.Get("Normals_PositionNormal.vs", "Normals.frag");

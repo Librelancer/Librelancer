@@ -239,7 +239,7 @@ namespace LancerEdit
 			cam.OffsetDirection = Vector3.UnitX;
 			cam.Reset();
 			cam.Update(TimeSpan.FromSeconds(500));
-			buffer.StartFrame();
+			buffer.StartFrame(rstate);
 			polyline.SetCamera(cam);
 			billboards.Begin(cam, buffer);
 			debug.StartFrame(cam, rstate);
