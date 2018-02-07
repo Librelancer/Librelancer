@@ -15,7 +15,6 @@
  */
 using System;
 using LibreLancer.Utf.Ale;
-using LibreLancer.Jitter.LinearMath;
 namespace LibreLancer.Fx
 {
 	public class FxRectAppearance : FxBasicAppearance

@@ -154,7 +154,7 @@ namespace LibreLancer
 				var obj = new GameObject(shp.Drawable, Game.ResourceManager);
 				obj.PhysicsComponent = null;
 				var place = scene.Objects[currentRoom.PlayerShipPlacement];
-				obj.Register(scene.Renderer, scene.World.Physics);
+				obj.Register(scene.World.Physics);
 				obj.Transform = obj.GetHardpoint("HpMount").Transform.Inverted();
 				place.Object.Children.Add(obj);
 			}

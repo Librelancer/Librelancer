@@ -45,12 +45,12 @@ namespace LibreLancer
 			for (int i = 0; i < fireFx.Count; i++)
 				fireFx[i].Update(parent, time, Speed);
 		}
-		public override void Register(SystemRenderer renderer, LibreLancer.Jitter.World physics)
+		public override void Register(Physics.PhysicsWorld physics)
 		{
             for (int i = 0; i < fireFx.Count; i++)
                 Parent.ForceRenderCheck.Add(fireFx[i].Effect);
 		}
-		public override void Unregister()
+		public override void Unregister(Physics.PhysicsWorld physics)
 		{
             for (int i = 0; i < fireFx.Count; i++)
                 Parent.ForceRenderCheck.Remove(fireFx[i].Effect);

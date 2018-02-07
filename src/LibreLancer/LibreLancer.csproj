@@ -156,13 +156,6 @@
     <Compile Include="GameData\Archetype.cs" />
     <Compile Include="GameData\Archetypes\Sun.cs" />
     <Compile Include="GameData\Ship.cs" />
-    <Compile Include="Sur\SurFile.cs" />
-    <Compile Include="BinaryReaderExtensions.cs" />
-    <Compile Include="Sur\Surface.cs" />
-    <Compile Include="Sur\TGroupHeader.cs" />
-    <Compile Include="Sur\Side.cs" />
-    <Compile Include="Sur\SurTriangle.cs" />
-    <Compile Include="Sur\SurVertex.cs" />
     <Compile Include="Utf\Ale\AleFile.cs" />
     <Compile Include="Utf\Ale\ALEffectLib.cs" />
     <Compile Include="Utf\Ale\AlchemyNodeLibrary.cs" />
@@ -270,7 +263,6 @@
     <Compile Include="Render\LightEquipRenderer.cs" />
     <Compile Include="GameStates\SpaceGameplay.cs" />
     <Compile Include="Render\PhysicsDebugRenderer.cs" />
-    <Compile Include="CompoundSurShape.cs" />
     <Compile Include="Gameplay\GameWorld.cs" />
     <Compile Include="Gameplay\GameObject.cs" />
     <Compile Include="Gameplay\GameComponent.cs" />
@@ -381,6 +373,8 @@
     <Compile Include="Gameplay\Components\WeaponControlComponent.cs" />
     <Compile Include="Gameplay\Components\WeaponComponent.cs" />
     <Compile Include="GameData\Items\GunEquipment.cs" />
+    <Compile Include="Gameplay\Components\PhysicsComponent.cs" />
+    <Compile Include="JThreads.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -444,13 +438,13 @@
       <Project>{6967FE1C-5953-4416-889C-FF10AE1F7DD1}</Project>
       <Name>LibreLancer.ImageLib</Name>
     </ProjectReference>
-    <ProjectReference Include="..\LibreLancer.Jitter\LibreLancer.Jitter.csproj">
-      <Project>{AA03EF1A-94F7-4D30-AB14-2092863FF923}</Project>
-      <Name>LibreLancer.Jitter</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\extern\lidgren-network-gen3\Lidgren.Network\Lidgren.Network.csproj">
       <Project>{49BA1C69-6104-41AC-A5D8-B54FA9F696E8}</Project>
       <Name>Lidgren.Network</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LibreLancer.Physics\LibreLancer.Physics.csproj">
+      <Project>{C2ACC8B3-1805-45D2-B32B-CCBA545AA09F}</Project>
+      <Name>LibreLancer.Physics</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

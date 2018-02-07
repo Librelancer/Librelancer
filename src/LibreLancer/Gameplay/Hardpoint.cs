@@ -45,6 +45,12 @@ namespace LibreLancer
 		}
         public bool IsStatic { get; private set; }
 
+        public Matrix4 HpTransformInfo
+        {
+            get {
+                return transform;
+            }
+        }
         public Matrix4 TransformNoRotate
         {
             get

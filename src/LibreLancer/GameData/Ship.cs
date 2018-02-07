@@ -14,7 +14,6 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using LibreLancer.Jitter.LinearMath;
 namespace LibreLancer.GameData
 {
 	public class Ship
@@ -28,6 +27,7 @@ namespace LibreLancer.GameData
 		public float StrafeForce;
 		public float CruiseSpeed;
 
+        public Vector3 ChaseOffset;
 		public Ship ()
 		{
 		}

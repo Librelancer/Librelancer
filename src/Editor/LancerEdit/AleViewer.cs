@@ -236,7 +236,7 @@ namespace LancerEdit
 			cam.ChasePosition = Vector3.Zero;
 			cam.ChaseOrientation = Matrix4.CreateRotationX(MathHelper.Pi);
 			cam.DesiredPositionOffset = new Vector3(zoom, 0, 0);
-			cam.OffsetDirection = Vector3.UnitX;
+			//cam.OffsetDirection = Vector3.UnitX;
 			cam.Reset();
 			cam.Update(TimeSpan.FromSeconds(500));
 			buffer.StartFrame(rstate);

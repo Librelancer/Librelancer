@@ -10,31 +10,14 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2018
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using LibreLancer.Physics;
-namespace LibreLancer
+namespace LibreLancer.Physics
 {
-	public class GameComponent
-	{
-		public GameObject Parent;
-		public GameComponent(GameObject parent)
-		{
-			Parent = parent;
-		}
-		public virtual void Update(TimeSpan time)
-		{
-		}
-		public virtual void FixedUpdate(TimeSpan time)
-		{
-		}
-		public virtual void Register(PhysicsWorld physics)
-		{
-		}
-		public virtual void Unregister(PhysicsWorld physics)
-		{
-		}
-	}
+    public interface IDebugRenderer
+    {
+        void DrawLine(Vector3 start, Vector3 end, Color4 color);
+    }
 }

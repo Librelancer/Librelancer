@@ -1,13 +1,11 @@
 ﻿using System;
-using LibreLancer.Jitter;
-using LibreLancer.Jitter.LinearMath;
 using LibreLancer.Vertices;
 namespace LibreLancer
 {
-	public class PhysicsDebugRenderer : IDebugDrawer, IDisposable
+	public class PhysicsDebugRenderer :  IDisposable, Physics.IDebugRenderer
 	{
 		public Color4 Color = Color4.Red;
-		const int MAX_LINES = 50000;
+		const int MAX_LINES = 200000;
 		VertexPositionColor[] lines = new VertexPositionColor[MAX_LINES * 2];
 		VertexBuffer linebuffer;
 		int lineVertices = 0;
@@ -30,9 +28,13 @@ namespace LibreLancer
 
 		public void DrawLine(Vector3 start, Vector3 end)
 		{
-			DrawLineInternal(start, end);
+            DrawLineInternal(start, end, Color);
 		}
 
+        public void DrawLine(Vector3 start, Vector3 end, Color4 color)
+        {
+            DrawLineInternal(start, end, color);
+        }
 		public void DrawPoint(Vector3 pos)
 		{
 			DrawPointInternal(pos);
@@ -43,7 +45,7 @@ namespace LibreLancer
 			DrawTriangleInternal(pos1, pos2, pos3);
 		}
 
-		void DrawLineInternal(Vector3 start, Vector3 end)
+        void DrawLineInternal(Vector3 start, Vector3 end, Color4 color)
 		{
 			if ((lineVertices * 2) + 1 >= MAX_LINES)
 			{
@@ -61,9 +63,9 @@ namespace LibreLancer
 
 		void DrawTriangleInternal(Vector3 pos1, Vector3 pos2, Vector3 pos3)
 		{
-			DrawLineInternal(pos1, pos2);
-			DrawLineInternal(pos1, pos3);
-			DrawLineInternal(pos3, pos2);
+            DrawLineInternal(pos1, pos2, Color);
+            DrawLineInternal(pos1, pos3, Color);
+			DrawLineInternal(pos3, pos2, Color);
 		}
 
 		public void Render()

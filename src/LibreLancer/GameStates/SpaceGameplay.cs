@@ -14,10 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using LibreLancer.Jitter;
-using LibreLancer.Jitter.Collision.Shapes;
-using LibreLancer.Jitter.Dynamics;
-using LibreLancer.Jitter.LinearMath;
+using LibreLancer.Physics;
 namespace LibreLancer
 {
 	public class SpaceGameplay : GameState
@@ -76,9 +73,8 @@ Mouse Flight: {10}
 				ThrustChargeRate = 100
 			};
 			player.Components.Add(powerCore);
-			player.PhysicsComponent.Position = session.PlayerPosition;
-			player.PhysicsComponent.Orientation = session.PlayerOrientation;
-			player.PhysicsComponent.Material.Restitution = 1;
+            player.Transform = new Matrix4(session.PlayerOrientation) * Matrix4.CreateTranslation(session.PlayerPosition);
+			//player.PhysicsComponent.Material.Restitution = 1;
 			player.PhysicsComponent.Mass = shp.Mass;
 			player.Nickname = "player";
 			foreach (var equipment in session.MountedEquipment)
@@ -90,25 +86,29 @@ Mouse Flight: {10}
 
 			camera = new ChaseCamera(Game.Viewport);
 			camera.ChasePosition = session.PlayerPosition;
-			camera.ChaseOrientation = new Matrix4(player.PhysicsComponent.Orientation);
+            camera.ChaseOrientation = player.Transform.ClearTranslation();
+            var offset = shp.ChaseOffset;
+           
+            camera.DesiredPositionOffset = offset;
 			camera.Reset();
 
 			sysrender = new SystemRenderer(camera, g.GameData, g.ResourceManager, g);
 			world = new GameWorld(sysrender);
 			world.LoadSystem(sys, g.ResourceManager);
 			world.Objects.Add(player);
-			world.Physics.SetDampingFactors(0.01f, 1f);
+			//world.Physics.SetDampingFactors(0.01f, 1f);
 			world.RenderUpdate += World_RenderUpdate;
 			world.PhysicsUpdate += World_PhysicsUpdate;
-			var eng = new GameData.Items.Engine() { FireEffect = "gf_li_smallengine02_fire", LinearDrag = 600, MaxForce = 48000 };
+			var eng = new GameData.Items.Engine() { FireEffect = "gf_ci_smallengine01_fire", LinearDrag = 600, MaxForce = 48000 };
 			player.Components.Add((ecpt = new EngineComponent(player, eng, g)));
 			ecpt.Speed = 0;
-			player.Register(sysrender, world.Physics);
+			player.Register(world.Physics);
 			g.Sound.PlayMusic(sys.MusicSpace);
 			trender = new Renderer2D(Game.RenderState);
 			font = g.Fonts.GetSystemFont("Agency FB");
 			g.Keyboard.TextInput += G_Keyboard_TextInput;
 			debugphysics = new PhysicsDebugRenderer();
+            //world.Physics.EnableWireframes(debugphysics);
 			cur_arrow = g.ResourceManager.GetCursor("cross");
 			cur_reticle = g.ResourceManager.GetCursor("fire_neutral");
 			current_cur = cur_arrow;
@@ -163,6 +163,7 @@ Mouse Flight: {10}
 			input.Dispose();
 			hud.Dispose();
 			sysrender.Dispose();
+            world.Dispose();
 		}
 
 		void Keyboard_KeyDown(KeyEventArgs e)
@@ -204,8 +205,8 @@ Mouse Flight: {10}
 						component.StartAnimation(sp[1].Trim(), false);
 					break;
 				case "wireframe":
-					selected.PhysicsComponent.EnableDebugDraw = true;
-					debugDrawBody = selected.PhysicsComponent;
+					//selected.PhysicsComponent.EnableDebugDraw = true;
+					//debugDrawBody = selected.PhysicsComponent;
 					break;
 			}
 			session.ProcessConsoleCommand(obj);
@@ -239,11 +240,14 @@ Mouse Flight: {10}
 
 		void World_RenderUpdate(TimeSpan delta)
 		{
-			//Has to be here or glitches
-			camera.ChasePosition = player.PhysicsComponent.Position;
-			camera.ChaseOrientation = new Matrix4(player.PhysicsComponent.Orientation);
+            //Has to be here or glitches
+            if (!Game.Keyboard.IsKeyDown(Keys.U))
+            {
+                camera.ChasePosition = player.PhysicsComponent.Body.Position;
+                camera.ChaseOrientation = player.PhysicsComponent.Body.Transform.ClearTranslation();
+            }
 			camera.Update(delta);
-			hud.Velocity = player.PhysicsComponent.LinearVelocity.Length;
+			hud.Velocity = player.PhysicsComponent.Body.LinearVelocity.Length;
 			hud.ThrustAvailable = (float)(powerCore.CurrentThrustCapacity / powerCore.ThrustCapacity);
 		}
 
@@ -354,7 +358,7 @@ Mouse Flight: {10}
             var ep = UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0.25f), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
             var tgt = UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0f), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
             var dir = (tgt - ep).Normalized();
-            var dir2 = player.PhysicsComponent.Orientation * Vector3.UnitZ;
+            var dir2 = new Matrix3(player.PhysicsComponent.Body.Transform.ClearTranslation()) * Vector3.UnitZ;
             tgt += dir * 750;
             //Console.WriteLine("{0}: {1} {2}", tgt, dir, dir2);
             weapons.AimPoint = tgt;
@@ -368,7 +372,7 @@ Mouse Flight: {10}
 			var end = UnProject(new Vector3(x, y, 1f), camera.Projection, camera.View, vp);
 			var dir = end;
 
-			RigidBody rb;
+			PhysicsObject rb;
 			var result = SelectionCast(
 				start,
 				dir,
@@ -381,19 +385,18 @@ Mouse Flight: {10}
 		}
 
 		//Select by bounding box, not by mesh
-		bool SelectionCast(Vector3 rayOrigin, Vector3 direction, float maxDist, out RigidBody body)
+		bool SelectionCast(Vector3 rayOrigin, Vector3 direction, float maxDist, out PhysicsObject body)
 		{
 			float dist = float.MaxValue;
 			body = null;
 			var jitterDir = direction * maxDist;
-			foreach (var b in world.Physics.RigidBodies)
+			foreach (var rb in world.Physics.Objects)
 			{
-				var rb = (RigidBody)b;
 				if (rb.Tag == player) continue;
-				if (rb.Shape is SphereShape)
+				if (rb.Collider is SphereCollider)
 				{
 					//Test spheres
-					var sph = (SphereShape)rb.Shape;
+					var sph = (SphereCollider)rb.Collider;
 					if (SphereRayIntersect(rayOrigin, direction, maxDist, rb.Position, sph.Radius))
 					{
 						var nd = VectorMath.DistanceSquared(rb.Position, camera.Position);
@@ -406,9 +409,10 @@ Mouse Flight: {10}
 				}
 				else
 				{
-					var tag = rb.Tag as GameObject;
-					if (!rb.BoundingBox.RayIntersect(ref rayOrigin, ref jitterDir)) continue;
-					if (tag == null || tag.CmpParts.Count == 0)
+					//var tag = rb.Tag as GameObject;
+                    if (!rb.GetBoundingBox().RayIntersect(ref rayOrigin, ref jitterDir)) continue;
+                    body = rb;
+					/*if (tag == null || tag.CmpParts.Count == 0)
 					{
 						//Single part
 						var nd = VectorMath.DistanceSquared(rb.Position, camera.Position);
@@ -440,7 +444,7 @@ Mouse Flight: {10}
 								break;
 							}
 						}
-					}
+					}*/
 				}
 			}
 			return body != null;
@@ -486,12 +490,12 @@ Mouse Flight: {10}
 			return vec.Xyz;
 		}
 
-		RigidBody debugDrawBody;
+		//RigidBody debugDrawBody;
 		public override void Draw(TimeSpan delta)
 		{
 			sysrender.Draw();
-			debugphysics.StartFrame(camera, Game.RenderState);
-			foreach (var body in world.Physics.RigidBodies)
+			//debugphysics.StartFrame(camera, Game.RenderState);
+            /*foreach (var body in world.Physics.RigidBodies)
 			{
 				var rb = (RigidBody)body;
 				if (rb.EnableDebugDraw) rb.DebugDraw(debugphysics);
@@ -500,8 +504,9 @@ Mouse Flight: {10}
 			if (debugDrawBody != null)
 			{
 				debugDrawBody.DebugDraw(debugphysics);
-			}
-			debugphysics.Render();
+			}*/
+            //world.Physics.DrawWorld();
+			//debugphysics.Render();
 			hud.Draw();
 			trender.Start(Game.Width, Game.Height);
 			string sel_obj = "None";

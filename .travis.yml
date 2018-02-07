@@ -7,11 +7,12 @@ addons:
     packages:
     - gcc-4.9
     - g++-4.9
+    - cmake
 script:
  - ./slngen.unix
  - nuget restore src/LibreLancer.Linux.sln
  - xbuild /p:Configuration=Release src/LibreLancer.Linux.sln
- - packaging/package_daily
+ - packaging/package_linux_daily
 deploy:
     provider: pages
     skip-cleanup: true

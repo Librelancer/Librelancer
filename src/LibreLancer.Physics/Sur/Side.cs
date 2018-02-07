@@ -14,27 +14,23 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using LibreLancer.Physics;
-namespace LibreLancer
+using System.IO;
+
+namespace LibreLancer.Physics.Sur
 {
-	public class GameComponent
+	//TODO: Sur - ???
+	struct Side
 	{
-		public GameObject Parent;
-		public GameComponent(GameObject parent)
+		public bool Flag;
+		public ushort Offset;
+		public ushort Vertex;
+		public Side(BinaryReader reader)
 		{
-			Parent = parent;
-		}
-		public virtual void Update(TimeSpan time)
-		{
-		}
-		public virtual void FixedUpdate(TimeSpan time)
-		{
-		}
-		public virtual void Register(PhysicsWorld physics)
-		{
-		}
-		public virtual void Unregister(PhysicsWorld physics)
-		{
+			Vertex = reader.ReadUInt16();
+			var arg = reader.ReadUInt16();
+			Offset = (ushort)(arg & 0x7FFF);
+			Flag = ((arg >> 15) & 1) == 1;
 		}
 	}
 }
+	

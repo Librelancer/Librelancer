@@ -41,8 +41,8 @@ namespace LibreLancer
 			}
 			else if (Action.Kind == DockKinds.Tradelane)
 			{
-				var heading = position - Parent.PhysicsComponent.Position;
-				var fwd = new Matrix4(Parent.PhysicsComponent.Orientation).GetForward();
+				var heading = position - Parent.PhysicsComponent.Body.Position;
+                var fwd = Parent.PhysicsComponent.Body.Transform.GetForward();
 				var dot = Vector3.Dot(heading, fwd);
 				if (dot > 0)
 				{
@@ -59,11 +59,11 @@ namespace LibreLancer
 
 		public bool TryTriggerAnimation(GameObject obj)
 		{
-			var rad = RadiusFromBoundingBox(obj.PhysicsComponent.Shape.BoundingBox);
-			foreach (var hps in GetDockHardpoints(obj.PhysicsComponent.Position))
+            var rad = obj.PhysicsComponent.Body.Collider.Radius;
+			foreach (var hps in GetDockHardpoints(obj.PhysicsComponent.Body.Position))
 			{
 				var targetPos = (hps.Transform * Parent.GetTransform()).Transform(Vector3.Zero);
-				var dist = (targetPos - obj.PhysicsComponent.Position).Length;
+				var dist = (targetPos - obj.PhysicsComponent.Body.Position).Length;
 				if (dist < 20 + rad)
 				{
 					TriggerAnimation();
@@ -90,7 +90,7 @@ namespace LibreLancer
 		{
 			var hp = Parent.GetHardpoint(tlHP ?? DockHardpoint);
 			var targetPos = (hp.Transform * Parent.GetTransform()).Transform(Vector3.Zero);
-			if ((targetPos - obj.PhysicsComponent.Position).Length < (TriggerRadius * 2 + RadiusFromBoundingBox(obj.PhysicsComponent.Shape.BoundingBox)))
+			if ((targetPos - obj.PhysicsComponent.Body.Position).Length < (TriggerRadius * 2 + obj.PhysicsComponent.Body.Collider.Radius))
 			{
 				return true;
 			}
@@ -103,18 +103,6 @@ namespace LibreLancer
 			if (component == null) return;
 			if (!component.HasAnimation(DockAnimation)) return;
 			component.StartAnimation(DockAnimation, false);
-		}
-
-		static float RadiusFromBoundingBox(LibreLancer.Jitter.LinearMath.JBBox box)
-		{
-			float radius = 0;
-			radius = Math.Max(Math.Abs(box.Max.X), radius);
-			radius = Math.Max(Math.Abs(box.Max.Y), radius);
-			radius = Math.Max(Math.Abs(box.Max.Z), radius);
-			radius = Math.Max(Math.Abs(box.Min.X), radius);
-			radius = Math.Max(Math.Abs(box.Min.Y), radius);
-			radius = Math.Max(Math.Abs(box.Min.Z), radius);
-			return radius;
 		}
 
 		public override void Update(TimeSpan time)

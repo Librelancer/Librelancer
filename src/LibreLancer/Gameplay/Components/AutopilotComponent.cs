@@ -15,7 +15,6 @@
  */
 using System;
 using System.Linq;
-using LibreLancer.Jitter.LinearMath;
 namespace LibreLancer
 {
 	public enum AutopilotBehaviours
@@ -35,8 +34,8 @@ namespace LibreLancer
 
 		public AutopilotComponent(GameObject parent) : base(parent)
 		{
-			PitchControl.P = 5;
-			YawControl.P = 5;
+			PitchControl.P = 4;
+			YawControl.P = 4;
 		}
 
 		bool hasTriggeredAnimation = false;
@@ -62,7 +61,7 @@ namespace LibreLancer
 			float maxSpeed = 1f;
 			if (CurrentBehaviour == AutopilotBehaviours.Goto)
 			{
-				targetPoint = TargetObject.PhysicsComponent == null ? TargetObject.GetTransform().Transform(Vector3.Zero) : TargetObject.PhysicsComponent.Position;
+				targetPoint = TargetObject.PhysicsComponent == null ? TargetObject.GetTransform().Transform(Vector3.Zero) : TargetObject.PhysicsComponent.Body.Position;
 				ResetDockState();
 			}
 			else
@@ -75,7 +74,7 @@ namespace LibreLancer
 					Parent.World.BroadcastMessage(Parent, GameMessageKind.ManeuverFinished);
 					return;
 				}
-				var hp = docking.GetDockHardpoints(Parent.PhysicsComponent.Position).Skip(lastTargetHp).First();
+				var hp = docking.GetDockHardpoints(Parent.PhysicsComponent.Body.Position).Skip(lastTargetHp).First();
 				radius = 5;
 				targetPoint = (hp.Transform * TargetObject.GetTransform()).Transform(Vector3.Zero);
 				if (lastTargetHp > 0) maxSpeed = 0.3f;
@@ -86,13 +85,13 @@ namespace LibreLancer
 					ResetDockState();
 					DockComplete(docking.Action);
 				}
-				var d2 = (targetPoint - Parent.PhysicsComponent.Position).Length;
+				var d2 = (targetPoint - Parent.PhysicsComponent.Body.Position).Length;
 				if (d2 < 80) maxSpeed = 0.3f;
 			}
-			//Bring ship to within 40 metres of target
-			var targetRadius = RadiusFromBoundingBox(TargetObject.PhysicsComponent.Shape.BoundingBox);
-			var myRadius = RadiusFromBoundingBox(Parent.PhysicsComponent.Shape.BoundingBox);
-			var distance = (targetPoint - Parent.PhysicsComponent.Position).Length;
+            //Bring ship to within 40 metres of target
+            var targetRadius = TargetObject.PhysicsComponent.Body.Collider.Radius;
+            var myRadius = Parent.PhysicsComponent.Body.Collider.Radius;
+			var distance = (targetPoint - Parent.PhysicsComponent.Body.Position).Length;
 
 			var distrad = radius < 0 ? (targetRadius + myRadius + 40) : radius + myRadius;
 			bool distanceSatisfied =  distrad >= distance;
@@ -131,16 +130,5 @@ namespace LibreLancer
 			}
 		}
 
-		static float RadiusFromBoundingBox(JBBox box)
-		{
-			float radius = 0;
-			radius = Math.Max(Math.Abs(box.Max.X), radius);
-			radius = Math.Max(Math.Abs(box.Max.Y), radius);
-			radius = Math.Max(Math.Abs(box.Max.Z), radius);
-			radius = Math.Max(Math.Abs(box.Min.X), radius);
-			radius = Math.Max(Math.Abs(box.Min.Y), radius);
-			radius = Math.Max(Math.Abs(box.Min.Z), radius);
-			return radius;
-		}
 	}
 }

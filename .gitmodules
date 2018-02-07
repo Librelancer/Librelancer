@@ -19,3 +19,9 @@
 [submodule "extern/cimgui"]
 	path = extern/cimgui
 	url = https://github.com/Extrawurst/cimgui
+[submodule "extern/bullet3"]
+	path = extern/bullet3
+	url = https://github.com/bulletphysics/bullet3
+[submodule "extern/BulletSharpPInvoke"]
+	path = extern/BulletSharpPInvoke
+	url = https://github.com/AndresTraks/BulletSharpPInvoke

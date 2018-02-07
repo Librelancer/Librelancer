@@ -618,6 +618,7 @@ namespace LibreLancer
 			ship.SteeringTorque = legacy.SteeringTorque;
 			ship.CruiseSpeed = 300;
 			ship.StrafeForce = legacy.StrafeForce;
+            ship.ChaseOffset = legacy.CameraOffset;
 			return ship;
 		}
 

@@ -10,31 +10,29 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2018
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using LibreLancer.Physics;
-namespace LibreLancer
+using BulletSharp;
+using BM = BulletSharp.Math;
+namespace LibreLancer.Physics
 {
-	public class GameComponent
-	{
-		public GameObject Parent;
-		public GameComponent(GameObject parent)
-		{
-			Parent = parent;
-		}
-		public virtual void Update(TimeSpan time)
-		{
-		}
-		public virtual void FixedUpdate(TimeSpan time)
-		{
-		}
-		public virtual void Register(PhysicsWorld physics)
-		{
-		}
-		public virtual void Unregister(PhysicsWorld physics)
-		{
-		}
-	}
+    public abstract class Collider : IDisposable
+    {
+        internal abstract CollisionShape BtShape { get; }
+        public virtual void Dispose()
+        {
+            if(BtShape != null) {
+                BtShape.Dispose();
+            }
+        }
+        public float Radius {
+            get {
+                BtShape.GetBoundingSphere(out _, out float r);
+                return r;
+            }
+        }
+
+    }
 }

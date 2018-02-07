@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C2ACC8B3-1805-45D2-B32B-CCBA545AA09F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>LibreLancer.Physics</RootNamespace>
+    <AssemblyName>LibreLancer.Physics</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="PhysicsWorld.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sur\Side.cs" />
+    <Compile Include="Sur\Surface.cs" />
+    <Compile Include="Sur\SurFile.cs" />
+    <Compile Include="Sur\SurTriangle.cs" />
+    <Compile Include="Sur\SurVertex.cs" />
+    <Compile Include="Sur\TGroupHeader.cs" />
+    <Compile Include="PhysicsObject.cs" />
+    <Compile Include="SurCollider.cs" />
+    <Compile Include="Util.cs" />
+    <Compile Include="Collider.cs" />
+    <Compile Include="SphereCollider.cs" />
+    <Compile Include="Raycast.cs" />
+    <Compile Include="DebugDrawWrapper.cs" />
+    <Compile Include="IDebugRenderer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\extern\BulletSharpPInvoke\BulletSharp\BulletSharp.csproj">
+      <Project>{76FDED5B-2C12-453E-B499-CB669E55AD5B}</Project>
+      <Name>BulletSharp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">
+      <Project>{C7A37830-B878-4008-A988-D7294D47F44D}</Project>
+      <Name>LibreLancer.Base</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Sur\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>

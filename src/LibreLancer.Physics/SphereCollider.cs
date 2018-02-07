@@ -10,31 +10,26 @@
  * 
  * 
  * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
- * Portions created by the Initial Developer are Copyright (C) 2013-2016
+ * Portions created by the Initial Developer are Copyright (C) 2013-2018
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using LibreLancer.Physics;
-namespace LibreLancer
+using BulletSharp;
+namespace LibreLancer.Physics
 {
-	public class GameComponent
-	{
-		public GameObject Parent;
-		public GameComponent(GameObject parent)
-		{
-			Parent = parent;
-		}
-		public virtual void Update(TimeSpan time)
-		{
-		}
-		public virtual void FixedUpdate(TimeSpan time)
-		{
-		}
-		public virtual void Register(PhysicsWorld physics)
-		{
-		}
-		public virtual void Unregister(PhysicsWorld physics)
-		{
-		}
-	}
+    public class SphereCollider : Collider
+    {
+        SphereShape btSphere;
+        internal override CollisionShape BtShape
+        {
+            get
+            {
+                return btSphere;
+            }
+        }
+        public SphereCollider(float radius)
+        {
+            btSphere = new SphereShape(radius);
+        }
+    }
 }

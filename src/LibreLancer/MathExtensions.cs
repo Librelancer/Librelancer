@@ -14,7 +14,6 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using LibreLancer.Jitter.LinearMath;
 
 namespace LibreLancer
 {
@@ -61,14 +60,14 @@ namespace LibreLancer
 		/// </summary>
 		/// <returns>(x - pitch, y - yaw, z - roll)</returns>
 		/// <param name="mx">The matrix.</param>
-		public static Vector3 GetEuler(this Matrix3 mx)
+		public static Vector3 GetEuler(this Matrix4 mx)
 		{
 			double p, y, r;
 			DecomposeOrientation(mx, out p, out y, out r);
 			return new Vector3((float)p, (float)y, (float)r);
 		}
 
-		static void DecomposeOrientation(Matrix3 mx, out double xPitch, out double yYaw, out double zRoll)
+		static void DecomposeOrientation(Matrix4 mx, out double xPitch, out double yYaw, out double zRoll)
 		{
 			xPitch = Math.Asin(-mx.M32);
 			double threshold = 0.001; // Hardcoded constant – burn him, he’s a witch

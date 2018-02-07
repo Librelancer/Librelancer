@@ -16,15 +16,12 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer.GameData;
-using LibreLancer.Jitter;
-using LibreLancer.Jitter.Collision;
-using LibreLancer.Jitter.LinearMath;
+using LibreLancer.Physics;
 namespace LibreLancer
 {
-	
-	public class GameWorld
+    public class GameWorld : IDisposable
 	{
-		public World Physics;
+		public PhysicsWorld Physics;
 		public SystemRenderer Renderer;
 		public List<GameObject> Objects = new List<GameObject>();
 		public delegate void RenderUpdateHandler(TimeSpan delta);
@@ -35,11 +32,8 @@ namespace LibreLancer
 		{
 			Renderer = render;
             render.World = this;
-			Physics = new World(new CollisionSystemSAP());
-			Physics.CollisionSystem.EnableSpeculativeContacts = true;
-			Physics.Gravity = Vector3.Zero;
-			Physics.SetDampingFactors(1, 1);
-			Physics.Events.PreStep += Events_PreStep;
+            Physics = new PhysicsWorld();
+            Physics.FixedUpdate += FixedUpdate;
 		}
 
 		public void LoadSystem(StarSystem sys, ResourceManager res)
@@ -74,7 +68,7 @@ namespace LibreLancer
 						});
 					}
 				}
-				g.Register(Renderer, Physics);
+				g.Register(Physics);
 				Objects.Add(g);
 			}
 			foreach (var field in sys.AsteroidFields)
@@ -84,6 +78,7 @@ namespace LibreLancer
 				g.World = this;
 				g.Components.Add(new AsteroidFieldComponent(field, g));
 				Objects.Add(g);
+                g.Register(Physics);
 			}
 			GC.Collect();
 		}
@@ -101,20 +96,19 @@ namespace LibreLancer
 		public void RegisterAll()
 		{
 			foreach (var obj in Objects)
-				obj.Register(Renderer, Physics);
+				obj.Register(Physics);
 		}
 
-		void Events_PreStep(float timestep)
-		{
-			if (PhysicsUpdate != null)
-				PhysicsUpdate(TimeSpan.FromSeconds(timestep));
-			for (int i = 0; i < Objects.Count; i++)
-				Objects[i].FixedUpdate(TimeSpan.FromSeconds(timestep));
-		}
+        void FixedUpdate(TimeSpan timespan)
+        {
+            if (PhysicsUpdate != null) PhysicsUpdate(timespan);
+            for (int i = 0; i < Objects.Count; i++)
+                Objects[i].FixedUpdate(timespan);
+        }
 
 		public void Update(TimeSpan t)
 		{
-			Physics.Step((float)t.TotalSeconds, true, 1f / 120f, 6);
+            Physics.Step(t);
 			for (int i = 0; i < Objects.Count; i++)
 				Objects[i].Update(t);
 			if (RenderUpdate != null)
@@ -129,6 +123,11 @@ namespace LibreLancer
 			if (MessageBroadcasted != null)
 				MessageBroadcasted(sender, kind);
 		}
+
+        public void Dispose()
+        {
+            Physics.Dispose();
+        }
 	}
 }
 

@@ -14,27 +14,21 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using LibreLancer.Physics;
-namespace LibreLancer
+using System.IO;
+using BM = BulletSharp.Math;
+namespace LibreLancer.Physics.Sur
 {
-	public class GameComponent
+	public struct SurVertex
 	{
-		public GameObject Parent;
-		public GameComponent(GameObject parent)
+		public const int SIZE = sizeof(float) * 3 + sizeof(uint);
+		public BM.Vector3 Point;
+		public uint Mesh;
+
+		public SurVertex (BinaryReader reader)
 		{
-			Parent = parent;
-		}
-		public virtual void Update(TimeSpan time)
-		{
-		}
-		public virtual void FixedUpdate(TimeSpan time)
-		{
-		}
-		public virtual void Register(PhysicsWorld physics)
-		{
-		}
-		public virtual void Unregister(PhysicsWorld physics)
-		{
+			Point = new BM.Vector3 (reader.ReadSingle (), reader.ReadSingle (), reader.ReadSingle ());
+			Mesh = reader.ReadUInt32 ();
 		}
 	}
 }
+

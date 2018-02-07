@@ -14,7 +14,6 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using LibreLancer.Jitter.LinearMath;
 namespace LibreLancer
 {
 	[Flags]
@@ -51,37 +50,24 @@ namespace LibreLancer
 		public float PlayerPitch;
 		public float PlayerYaw;
 
+        PIDController rollPID = new PIDController() { P = 2 };
 		public ShipControlComponent(GameObject parent) : base(parent)
 		{
 			Active = true;
 		}
 		//TODO: Engine Kill
-		Vector3 setInertia = Vector3.Zero;
 		public override void FixedUpdate(TimeSpan time)
 		{
 			if (!Active) return;
-			//Cancel out whatever the heck Jitter does and put in our own inertia
-			//This seems to somewhat work
-			if (setInertia != Ship.RotationInertia)
-			{
-				var inertia = Matrix3.Identity;
-				inertia.M11 = Ship.RotationInertia.X;
-				inertia.M22 = Ship.RotationInertia.Z;
-				inertia.M33 = Ship.RotationInertia.Y;
-				Parent.PhysicsComponent.SetMassProperties(inertia, Parent.PhysicsComponent.Mass, false);
-				setInertia = Ship.RotationInertia;
-			}
-			//Don't de-activate
-			Parent.PhysicsComponent.IsActive = true;
-			Parent.PhysicsComponent.AllowDeactivation = false;
-			//Stuff
+			//Component checks
 			var engine = Parent.GetComponent<EngineComponent>(); //Get mounted engine
 			var power = Parent.GetComponent<PowerCoreComponent>();
 			if (Parent.PhysicsComponent == null) return;
+            if (Parent.PhysicsComponent.Body == null) return;
 			if (engine == null) return;
 			if (power == null) return;
 			//Drag = -linearDrag * Velocity
-			var drag = -engine.Engine.LinearDrag * Parent.PhysicsComponent.LinearVelocity;
+			var drag = -engine.Engine.LinearDrag * Parent.PhysicsComponent.Body.LinearVelocity;
 			var engine_force = EnginePower * engine.Engine.MaxForce;
 			power.CurrentThrustCapacity += power.ThrustChargeRate * (float)(time.TotalSeconds);
 			power.CurrentThrustCapacity = MathHelper.Clamp(power.CurrentThrustCapacity, 0, power.ThrustCapacity);
@@ -134,7 +120,7 @@ namespace LibreLancer
 				if (strafe != Vector3.Zero)
 				{
 					strafe.Normalize();
-					strafe = Vector3.Transform(strafe, Parent.PhysicsComponent.Orientation);
+                    strafe = Parent.PhysicsComponent.Body.RotateVector(strafe);
 					//Apply strafe force
 					strafe *= Ship.StrafeForce;
 				}
@@ -142,29 +128,27 @@ namespace LibreLancer
 			var totalForce = (
 				drag +
 				strafe +
-				(Vector3.Transform(Vector3.Forward, Parent.PhysicsComponent.Orientation) * engine_force)
+				(Parent.PhysicsComponent.Body.RotateVector(Vector3.Forward) * engine_force)
 			);
-			Parent.PhysicsComponent.AddForce(totalForce);
+			Parent.PhysicsComponent.Body.AddForce(totalForce);
 			//add angular drag
 			var angularDrag = Vector3.Zero;
-			Parent.PhysicsComponent.AddTorque((Parent.PhysicsComponent.AngularVelocity * -1) * Ship.AngularDrag);
+			//Parent.PhysicsComponent.Body.AddTorque((Parent.PhysicsComponent.Body.AngularVelocity * -1) * Ship.AngularDrag);
 			//steer
 			//based on the amazing work of Why485 (https://www.youtube.com/user/Why485)
 			var steerControl = new Vector3(Math.Abs(PlayerPitch) > 0 ? PlayerPitch : Pitch,
 										   Math.Abs(PlayerYaw) > 0 ? PlayerYaw : Yaw,
 										   0);
-			var angularForce = steerControl * Ship.SteeringTorque;
-			//transform torque by direction = unity's AddRelativeTorque
-			Parent.PhysicsComponent.AddTorque(Vector3.Transform(angularForce, Parent.PhysicsComponent.Orientation));
-			//auto-roll?
-			if (Math.Abs(steerControl.X) < 0.005f && Math.Abs(steerControl.Y) < 0.005f) //only auto-roll when not steering (probably incorrect)
-			{
-				var coords = Parent.PhysicsComponent.Orientation.GetEuler();
-				//TODO: Fix to work without directly setting orientation
-				//TODO: Maybe make this based off the forces?
-				var lerped = MathHelper.Lerp((float)coords.Z, 0, (float)((0.009f * 60f) * time.TotalSeconds));
-				Parent.PhysicsComponent.Orientation = Matrix3.FromEulerAngles((float)coords.X, (float)coords.Y, lerped);
-			}
+            var coords = Parent.PhysicsComponent.Body.Transform.GetEuler();
+            if (Math.Abs(PlayerPitch) < 0.005 && Math.Abs(PlayerYaw) < 0.005)
+            {
+                steerControl.Z = MathHelper.Clamp((float)rollPID.Update(0, coords.Z, (float)time.TotalSeconds), -1, 1);
+            }
+            var angularForce = Parent.PhysicsComponent.Body.RotateVector(steerControl * Ship.SteeringTorque);
+            angularForce += (Parent.PhysicsComponent.Body.AngularVelocity * -1) * Ship.AngularDrag;
+
+            //transform torque by direction = unity's AddRelativeTorque
+            Parent.PhysicsComponent.Body.AddTorque(angularForce);
 
 		}
 

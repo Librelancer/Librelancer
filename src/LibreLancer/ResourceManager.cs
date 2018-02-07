@@ -20,7 +20,6 @@ using LibreLancer.Utf.Vms;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Dfm;
-using LibreLancer.Sur;
 namespace LibreLancer
 {
 	//TODO: Allow for disposing and all that Jazz
@@ -35,7 +34,6 @@ namespace LibreLancer
 		Dictionary<string, string> texturefiles = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, IDrawable> drawables = new Dictionary<string, IDrawable>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, TextureShape> shapes = new Dictionary<string, TextureShape>(StringComparer.OrdinalIgnoreCase);
-		Dictionary<string, SurFile> surs = new Dictionary<string, SurFile>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, Cursor> cursors = new Dictionary<string, Cursor>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, TexFrameAnimation> frameanims = new Dictionary<string, TexFrameAnimation>(StringComparer.OrdinalIgnoreCase);
 		List<string> loadedResFiles = new List<string>();
@@ -83,20 +81,6 @@ namespace LibreLancer
 				LoadResourceFile(file);
 			}
 			preloadFiles = null;
-		}
-
-		public SurFile GetSur(string filename)
-		{
-			SurFile sur;
-			if (!surs.TryGetValue(filename, out sur))
-			{
-				using (var stream = File.OpenRead(filename))
-				{
-					sur = new SurFile(stream);
-				}
-				surs.Add(filename, sur);
-			}
-			return sur;
 		}
 
 		public Cursor GetCursor(string name)

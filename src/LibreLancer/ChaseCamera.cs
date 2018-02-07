@@ -15,7 +15,6 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using LibreLancer.Jitter.LinearMath;
 namespace LibreLancer
 {
 	public class ChaseCamera : ICamera
@@ -36,19 +35,8 @@ namespace LibreLancer
 
 		public Vector3 ChasePosition { get; set; }
 		public Matrix4 ChaseOrientation { get; set; }
-		public Vector3 OffsetDirection;
 
-		public Vector3 DesiredPositionOffset = new Vector3(0, 4f, 28f);
-		public Vector3 LookAtOffset = new Vector3(0, 0.28f, 0);
-
-		//Stiffer makes the camera come closer
-		public float Stiffness = 1800;
-		//Stop spring oscillating
-		public float Damping = 600;
-		//Mass of the camera
-		public float Mass = 50;
-
-		Vector3 velocity = Vector3.Zero;
+        public Vector3 DesiredPositionOffset = new Vector3(0, 4f, 28f);
 
 		public Matrix4 Projection { get; private set; }
 		public Matrix4 View { get; private set; }
@@ -104,7 +92,6 @@ namespace LibreLancer
 		{
 			this.Viewport = viewport;
 			ChasePosition = Vector3.Zero;
-			OffsetDirection = DesiredPositionOffset.Normalized();
 		}
 
 		public void Reset()
@@ -118,11 +105,11 @@ namespace LibreLancer
 		void UpdateWanted()
 		{
 			desiredPosition = ChasePosition + ChaseOrientation.Transform(DesiredPositionOffset);
-			lookAt = ChasePosition + ChaseOrientation.Transform(LookAtOffset);
 		}
+
 		public void UpdateProjection()
 		{
-			Projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(50f), Viewport.AspectRatio, 10f, 100000000f);
+			Projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(50f), Viewport.AspectRatio, 3f, 10000000f);
 		}
 
         public void UpdateFrameNumber(long f)
@@ -147,16 +134,8 @@ namespace LibreLancer
             fnum++;
 
 			UpdateWanted();
-
-			Vector3 stretch = Position - desiredPosition;
-			Vector3 force = -Stiffness * stretch - Damping * velocity;
-
-			Vector3 acceleration = force / Mass;
-			velocity += acceleration * (float)delta.TotalSeconds;
-
-			Vector3 upVector = ChaseOrientation.Transform(Vector3.Up);
-			Position += velocity * (float)delta.TotalSeconds;
-			View = Matrix4.LookAt(Position, lookAt, upVector);
+            Position = desiredPosition;
+            View = Matrix4.CreateTranslation(-Position) * ChaseOrientation.Inverted();
 			_vpdirty = true;
 		}
 	}

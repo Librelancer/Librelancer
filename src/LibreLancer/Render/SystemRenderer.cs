@@ -15,10 +15,8 @@
  */
 using System;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using LibreLancer.GameData;
 using LibreLancer.Utf.Cmp;
-using JThreads = LibreLancer.Jitter.ThreadManager;
 namespace LibreLancer
 {
 	//Responsible for rendering the GameWorld.
