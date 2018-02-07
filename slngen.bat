@@ -8,7 +8,6 @@ cd slngen
 cd ..
 :RUNCMD
 slngen\slngen\bin\Debug\slngen.exe
-PAUSE
 EXIT
 :USAGE
 echo Usage: %0 [/rebuild]
