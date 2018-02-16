@@ -288,6 +288,10 @@ namespace LibreLancer
 		public const string SDL_HINT_ANDROID_APK_EXPANSION_PATCH_FILE_VERSION =
 			"SDL_ANDROID_APK_EXPANSION_PATCH_FILE_VERSION";
 
+        /* Only available in SDL mercurial (pending release)*/
+        public const string SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR =
+            "SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR";
+        
 		public enum SDL_HintPriority
 		{
 			SDL_HINT_DEFAULT,

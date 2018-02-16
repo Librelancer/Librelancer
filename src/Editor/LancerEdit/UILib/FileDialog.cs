@@ -37,7 +37,7 @@ namespace LancerEdit
 				WinformsDoEvents();
 				return result;
 			}
-			else if (true || Platform.RunningOS == OS.Linux)
+			else if (Platform.RunningOS == OS.Linux)
 			{
 				return GtkOpen();
 			}
@@ -166,5 +166,6 @@ namespace LancerEdit
 			while (Gtk.gtk_events_pending())
 				Gtk.gtk_main_iteration();
 		}
+
 	}
 }

@@ -125,7 +125,6 @@
     <Compile Include="Utf\Vms\D3DFVF.cs" />
     <Compile Include="Utf\Vms\TMeshHeader.cs" />
     <Compile Include="Utf\Vms\VMeshData.cs" />
-    <Compile Include="Utf\Vms\VmsFile.cs" />
     <Compile Include="Render\RenderMaterial.cs" />
     <Compile Include="Render\Lighting.cs" />
     <Compile Include="Render\RenderLight.cs" />
@@ -375,6 +374,7 @@
     <Compile Include="GameData\Items\GunEquipment.cs" />
     <Compile Include="Gameplay\Components\PhysicsComponent.cs" />
     <Compile Include="JThreads.cs" />
+    <Compile Include="Utf\Vms\VmsFile.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

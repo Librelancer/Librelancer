@@ -69,6 +69,18 @@ namespace LibreLancer
             return wminfo.info.win.window;
         }
 
+        public bool GetX11Info(out IntPtr display, out IntPtr window)
+        {
+            window = display = IntPtr.Zero;
+            var wminfo = new SDL.SDL_SysWMinfo();
+            SDL.SDL_VERSION(out wminfo.version);
+            if (SDL.SDL_GetWindowWMInfo(windowptr, ref wminfo) != SDL.SDL_bool.SDL_TRUE) return false;
+            if (wminfo.subsystem != SDL.SDL_SYSWM_TYPE.SDL_SYSWM_X11) return false;
+            display = wminfo.info.x11.display;
+            window = wminfo.info.x11.window;
+            return true;
+        }
+
 		public bool MouseVisible
 		{
 			get
@@ -230,6 +242,7 @@ namespace LibreLancer
 				return;
 			}
 			SDL.SDL_SetHint(SDL.SDL_HINT_IME_INTERNAL_EDITING, "1");
+            SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
 			//Set GL states
 			SDL.SDL_GL_SetAttribute (SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 			SDL.SDL_GL_SetAttribute (SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 2);
