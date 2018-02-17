@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -8,6 +9,8 @@ namespace LancerEdit
 	static class FileDialog
 	{
         static dynamic parentForm;
+        static bool kdialog;
+        static IntPtr parentWindow;
         public static void RegisterParent(Game game)
         {
 			if (Platform.RunningOS == OS.Windows)
@@ -19,6 +22,11 @@ namespace LancerEdit
 				var method = t.GetMethod("FromHandle", BindingFlags.Public | BindingFlags.Static);
 				parentForm = method.Invoke(null, new object[] { ptr });
 			}
+            else
+            {
+                kdialog = HasKDialog();
+                game.GetX11Info(out IntPtr _, out parentWindow);
+            }
         }
 
         public static string Open()
@@ -39,7 +47,10 @@ namespace LancerEdit
 			}
 			else if (Platform.RunningOS == OS.Linux)
 			{
-				return GtkOpen();
+                if (kdialog)
+                    return KDialogOpen();
+                else
+				    return GtkOpen();
 			}
 			else
 			{
@@ -66,7 +77,10 @@ namespace LancerEdit
 			}
 			else if (Platform.RunningOS == OS.Linux)
 			{
-				return GtkSave();
+                if (kdialog)
+                    return KDialogSave();
+                else
+				    return GtkSave();
 			}
 			else
 			{
@@ -166,6 +180,41 @@ namespace LancerEdit
 			while (Gtk.gtk_events_pending())
 				Gtk.gtk_main_iteration();
 		}
+
+        static bool HasKDialog()
+        {
+            var p = Process.Start("bash", "-c 'command -v kdialog'");
+            p.WaitForExit();
+            return p.ExitCode == 0;
+        }
+
+        static string KDialogProcess(string s)
+        {
+            if (parentWindow != IntPtr.Zero) 
+                s = string.Format("--attach {0} {1}", parentWindow, s);
+            var pinf = new ProcessStartInfo("kdialog", s);
+            pinf.RedirectStandardOutput = true;
+            pinf.UseShellExecute = false;
+            var p = Process.Start(pinf);
+            string output = "";
+            p.OutputDataReceived += (sender, e) => {
+                output += e.Data + "\n";
+            };
+            p.BeginOutputReadLine();
+            p.WaitForExit();
+            if (p.ExitCode == 0)
+                return output.Trim();
+            else
+                return null;
+        }
+        static string KDialogSave()
+        {
+            return KDialogProcess("--getsavefilename");
+        }
+        static string KDialogOpen()
+        {
+            return KDialogProcess("--getopenfilename");
+        }
 
 	}
 }
