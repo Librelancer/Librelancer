@@ -84,16 +84,28 @@ namespace LancerEdit
 			lighting = Lighting.Create ();
 			lighting.Enabled = true;
 			lighting.Ambient = Color4.Black;
-			lighting.Lights.Add (new RenderLight () {
-				Kind = LightKind.Directional,
-				Direction = new Vector3(0,-1,0),
-				Color = Color4.White
-			});
-			lighting.Lights.Add (new RenderLight () {
-				Kind = LightKind.Directional,
-				Direction = new Vector3(0,0,1),
-				Color = Color4.White
-			});
+            var src = new SystemLighting();
+            src.Lights.Add(new DynamicLight()
+            {
+                Light = new RenderLight()
+                {
+                    Kind = LightKind.Directional,
+                    Direction = new Vector3(0, -1, 0),
+                    Color = Color4.White
+                }
+            });
+            src.Lights.Add(new DynamicLight()
+            {
+                Light = new RenderLight()
+                {
+                    Kind = LightKind.Directional,
+                    Direction = new Vector3(0, 0, 1),
+                    Color = Color4.White
+                }
+            });
+            lighting.Lights.SourceLighting = src;
+            lighting.Lights.SourceEnabled[0] = true;
+            lighting.Lights.SourceEnabled[1] = true;
 			lighting.NumberOfTilesX = -1;
             GizmoRender.Init(res);
 		}

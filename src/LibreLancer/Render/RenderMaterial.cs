@@ -38,9 +38,10 @@ namespace LibreLancer
 		bool[] loaded = new bool[8];
 		protected static bool HasSpotlight(ref Lighting lights)
 		{
-			for (int i = 0; i < lights.Lights.Count; i++)
+            if (lights.Lights.SourceLighting == null) return false;
+			for (int i = 0; i < lights.Lights.SourceLighting.Lights.Count; i++)
 			{
-				if (lights.Lights[i].Kind == LightKind.Spotlight) return true;
+				if (lights.Lights.SourceLighting.Lights[i].Light.Kind == LightKind.Spotlight) return true;
 			}
 			return false;
 		}
@@ -67,44 +68,48 @@ namespace LibreLancer
 
 		public abstract void ApplyDepthPrepass(RenderState rstate);
 
+        static void SetLight(ShaderVariables shader, bool hasSpotlight, int i, ref RenderLight lt)
+        {
+            float kind = 0;
+            if (lt.Kind == LightKind.Point || lt.Kind == LightKind.Spotlight)
+                kind = 1;
+            else if (lt.Kind == LightKind.PointAttenCurve)
+                kind = 2;
+            shader.SetLightsPos(i, new Vector4(lt.Kind == LightKind.Directional ? lt.Direction : lt.Position, kind));
+            shader.SetLightsColorRange(i, new Vector4(lt.Color.R, lt.Color.G, lt.Color.B, lt.Range));
+            shader.SetLightsAttenuation(i, lt.Attenuation);
+            if (hasSpotlight)
+            {
+                if (lt.Kind == LightKind.Spotlight)
+                {
+                    shader.SetLightsDir(i, lt.Direction);
+                    shader.SetSpotlightParams(i, new Vector3(lt.Falloff, (float)(Math.Cos(lt.Theta / 2.0)), (float)(Math.Cos(lt.Phi / 2.0))));
+                }
+                else if (lt.Kind == LightKind.Point || lt.Kind == LightKind.PointAttenCurve)
+                {
+                    shader.SetSpotlightParams(i, Vector3.Zero);
+                }
+            }
+        }
 		public static void SetLights(ShaderVariables shader, ref Lighting lights)
 		{
 			bool hasSpotlight = HasSpotlight(ref lights);
-			var h = lights.Hash;
-			if (shader.UserTag == h)
-				return;
-			shader.UserTag = h;
-			shader.SetLightingEnabled(lights.Enabled ? 1 : 0);
+            //shader.SetLightingEnabled(lights.Enabled ? 1 : 0);
+            shader.SetLightParameters(new Vector4i(0, 0, 0, -1));
 			if (!lights.Enabled)
 				return;
 			shader.SetAmbientColor(lights.Ambient);
-			shader.SetLightCount(lights.Lights.Count);
-			shader.SetTilesX(lights.NumberOfTilesX);
-			for (int i = 0; i < lights.Lights.Count; i++)
-			{
-				var lt = lights.Lights[i];
-				float kind = 0;
-				if (lt.Kind == LightKind.Point || lt.Kind == LightKind.Spotlight)
-					kind = 1;
-				else if (lt.Kind == LightKind.PointAttenCurve)
-					kind = 2;
-				shader.SetLightsPos(i, new Vector4(lt.Kind == LightKind.Directional ? lt.Direction : lt.Position, kind));
-				shader.SetLightsColorRange(i, new Vector4(lt.Color.R, lt.Color.G, lt.Color.B, lt.Range));
-				shader.SetLightsAttenuation(i, lt.Attenuation);
-				if (hasSpotlight)
-				{
-					if (lt.Kind == LightKind.Spotlight)
-					{
-						shader.SetLightsDir(i, lt.Direction);
-						shader.SetSpotlightParams(i, new Vector3(lt.Falloff, (float)(Math.Cos(lt.Theta / 2.0)), (float)(Math.Cos(lt.Phi / 2.0))));
-					}
-					else if (lt.Kind == LightKind.Point || lt.Kind == LightKind.PointAttenCurve)
-					{
-						shader.SetSpotlightParams(i, Vector3.Zero);
-					}
-				}
-			}
-			shader.SetFogMode((int)lights.FogMode);
+            int count = 0;
+            if(lights.Lights.SourceLighting != null) {
+                for (int i = 0; i < lights.Lights.SourceLighting.Lights.Count; i++)
+                {
+                    if (lights.Lights.SourceEnabled[i])
+                        SetLight(shader, hasSpotlight, count++, ref lights.Lights.SourceLighting.Lights[i].Light);
+                }
+            }
+            if (lights.Lights.NebulaCount == 1)
+                SetLight(shader, hasSpotlight, count++, ref lights.Lights.Nebula0);
+            shader.SetLightParameters(new Vector4i(1, count, (int)lights.FogMode, lights.NumberOfTilesX));
 			if (lights.FogMode == FogModes.Linear)
 			{
 				shader.SetFogColor(lights.FogColor);

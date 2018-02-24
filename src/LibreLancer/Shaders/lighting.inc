@@ -1,5 +1,10 @@
 ﻿#define MAX_LIGHTS 9
-uniform bool LightingEnabled;
+
+uniform ivec4 LightingParameters;
+#define LightingEnabled (LightingParameters.x == 1)
+#define LightCount (LightingParameters.y)
+#define FogMode (LightingParameters.z)
+#define NumberOfTilesX (LightingParameters.w)
 
 uniform vec4 LightsPos[MAX_LIGHTS];
 uniform vec4 LightsColorRange[MAX_LIGHTS]; //xyz: color, w: range
@@ -10,14 +15,11 @@ uniform vec3 LightsDir[MAX_LIGHTS];
 #endif
 uniform vec4 AmbientColor;
 uniform vec4 FogColor;
-uniform int LightCount;
-uniform int FogMode;
 uniform vec2 FogRange;
 
 #ifdef FEATURES430
 #define MAX_NUM_LIGHTS_PER_TILE 512
 
-uniform int NumberOfTilesX;
 struct PointLight {
 	vec4 position;
 	vec4 colorRange;

@@ -375,6 +375,7 @@
     <Compile Include="Gameplay\Components\PhysicsComponent.cs" />
     <Compile Include="JThreads.cs" />
     <Compile Include="Utf\Vms\VmsFile.cs" />
+    <Compile Include="LightBitfield.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

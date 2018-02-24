@@ -134,6 +134,8 @@ namespace LibreLancer.GLDelegates
     [SuppressUnmanagedCodeSecurity]
     public delegate void Uniform4f(int location, float v0, float v1, float v2, float v3);
     [SuppressUnmanagedCodeSecurity]
+    public delegate void Uniform4i(int location, int v0, int v1, int v2, int v3);
+    [SuppressUnmanagedCodeSecurity]
     public delegate void UniformMatrix4fv(int location, int count, bool transpose, ref Matrix4 value);
     //Buffers
     [SuppressUnmanagedCodeSecurity]

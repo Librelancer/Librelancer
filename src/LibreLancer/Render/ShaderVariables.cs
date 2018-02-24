@@ -39,16 +39,14 @@ namespace LibreLancer
 		int tileRate0Position;
 		int tileRate1Position;
 
-		int lightingEnabledPosition;
+		int lightParametersPosition;
 		int ambientColorPosition;
-		int lightCountPosition;
 		int lightsPosPosition;
 		int lightsColorRangePosition;
 		int lightsAttenuationPosition;
 		int lightsDirPosition;
 		int spotlightParamsPosition;
 
-		int fogModePosition;
 		int fogColorPosition;
 		int fogRangePosition;
 
@@ -56,7 +54,6 @@ namespace LibreLancer
 
 		int materialAnimPosition;
 		int flipNormalPosition;
-		int tilesXPosition;
 		Shader shader;
 
 		public ShaderVariables(Shader sh)
@@ -84,23 +81,20 @@ namespace LibreLancer
 			tileRate0Position = sh.GetLocation("TileRate0");
 			tileRate1Position = sh.GetLocation("TileRate1");
 
-			lightingEnabledPosition = sh.GetLocation("LightingEnabled");
+			lightParametersPosition = sh.GetLocation("LightingParameters");
 			ambientColorPosition = sh.GetLocation("AmbientColor");
-			lightCountPosition = sh.GetLocation("LightCount");
 			lightsPosPosition = sh.GetLocation("LightsPos");
 			lightsColorRangePosition = sh.GetLocation("LightsColorRange");
 			lightsAttenuationPosition = sh.GetLocation("LightsAttenuation");
 			lightsDirPosition = sh.GetLocation("LightsDir");
 			spotlightParamsPosition = sh.GetLocation("SpotlightParams");
 
-			fogModePosition = sh.GetLocation("FogMode");
 			fogColorPosition = sh.GetLocation("FogColor");
 			fogRangePosition = sh.GetLocation("FogRange");
 
 			fadeRangePosition = sh.GetLocation("FadeRange");
 			materialAnimPosition = sh.GetLocation("MaterialAnim");
 			flipNormalPosition = sh.GetLocation("FlipNormal");
-			tilesXPosition = sh.GetLocation("NumberOfTilesX");
 		}
 
 		public void UseProgram()
@@ -261,22 +255,16 @@ namespace LibreLancer
 				shader.SetFloat(tileRate1Position, rate);
 		}
 
-		public void SetLightingEnabled(int enabled)
+        public void SetLightParameters(Vector4i parameters)
 		{
-			if (lightingEnabledPosition != -1)
-				shader.SetInteger(lightingEnabledPosition, enabled);
+            if (lightParametersPosition != -1)
+                shader.SetVector4i(lightParametersPosition, parameters);
 		}
 
 		public void SetAmbientColor(Color4 ambient)
 		{
 			if (ambientColorPosition != -1)
 				shader.SetColor4(ambientColorPosition, ambient);
-		}
-
-		public void SetLightCount(int count)
-		{
-			if (lightCountPosition != -1)
-				shader.SetInteger(lightCountPosition, count);
 		}
 
 		public void SetLightsPos(int index, Vector4 pos)
@@ -307,12 +295,6 @@ namespace LibreLancer
 				shader.SetVector3(spotlightParamsPosition, param, index);
 		}
 
-		public void SetFogMode(int mode)
-		{
-			if (fogModePosition != -1)
-				shader.SetInteger(fogModePosition, mode);
-		}
-
 		public void SetFogColor(Color4 color)
 		{
 			if (fogColorPosition != -1)
@@ -341,11 +323,6 @@ namespace LibreLancer
 		{
 			if (flipNormalPosition != -1)
 				shader.SetFloat(flipNormalPosition, flip ? -1 : 1);
-		}
-		public void SetTilesX(int tiles)
-		{
-			if (tilesXPosition != -1)
-				shader.SetInteger(tilesXPosition, tiles);
 		}
 	}
 }

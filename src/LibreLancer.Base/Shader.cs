@@ -161,6 +161,17 @@ namespace LibreLancer
 			}
 		}
 
+        public void SetVector4i(int loc, Vector4i value, int index = 0)
+        {
+            GLBind.UseProgram(programID);
+            var hash = value.GetHashCode();
+            if (NeedUpdate(loc + index, hash))
+            {
+                GL.Uniform4i(loc + index, value.X, value.Y, value.Z, value.W);
+                cachedObjects[loc + index] = hash;
+            }
+        }
+
 		public void SetVector3(int loc, Vector3 vector, int index = 0)
 		{
 			GLBind.UseProgram (programID);

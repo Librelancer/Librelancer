@@ -19,6 +19,7 @@ namespace LibreLancer
 {
 	public static class RenderHelpers
 	{
+        const int MAX_LIGHTS = 8;
 		public static float GetZ(Matrix4 world, Vector3 cameraPosition, Vector3 vec)
 		{
 			var res =  VectorMath.DistanceSquared(world.Transform(vec), cameraPosition);
@@ -45,8 +46,10 @@ namespace LibreLancer
 				lights.FogColor = src.FogColor;
 				lights.FogRange = src.FogRange;
 			}
+            int lc = 0;
 			if (ldynamic)
 			{
+                lights.Lights.SourceLighting = src;
 				for (int i = 0; i < src.Lights.Count; i++)
 				{
 					if (src.Lights[i].LightGroup != lightGroup)
@@ -61,7 +64,9 @@ namespace LibreLancer
 					//Advanced spotlight cull
 					if ((l.Kind == LightKind.Spotlight) && SpotlightTest(ref l, c, r))
 						continue;
-					lights.Lights.Add(l);
+                    if ((lc + 1) > MAX_LIGHTS) throw new Exception("Too many lights!");
+                    lc++;
+                    lights.Lights.SourceEnabled[i] = true;
 				}
 			}
 			if (nebula != null)
@@ -82,7 +87,9 @@ namespace LibreLancer
 				}
 				if (lightning != null && src.NumberOfTilesX == -1)
 				{
-					lights.Lights.Add(lightning.Value);
+                    if ((lc + 1) > MAX_LIGHTS) throw new Exception("Too many lights!");
+                    lights.Lights.Nebula0 = lightning.Value;
+                    lights.Lights.NebulaCount = 1;
 				}
 			}
 			return lights;

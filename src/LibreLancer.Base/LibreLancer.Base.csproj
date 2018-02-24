@@ -184,6 +184,7 @@
     <Compile Include="ShaderStorageBuffer.cs" />
     <Compile Include="DepthMap.cs" />
     <Compile Include="BinaryReaderExtensions.cs" />
+    <Compile Include="Math\Vector4i.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
