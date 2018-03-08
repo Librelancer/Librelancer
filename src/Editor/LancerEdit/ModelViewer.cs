@@ -66,7 +66,7 @@ namespace LancerEdit
 		Material wireframeMaterial3db;
 		Material normalsDebugMaterial;
 		Dictionary<int, Material> partMaterials = new Dictionary<int, Material>();
-
+        List<HardpointGizmo> gizmos = new List<HardpointGizmo>();
 		public ModelViewer(string title, string name,IDrawable drawable, RenderState rstate, ViewportManager viewports, CommandBuffer commands, ResourceManager res)
 		{
 			Title = title;
@@ -108,9 +108,30 @@ namespace LancerEdit
             lighting.Lights.SourceEnabled[1] = true;
 			lighting.NumberOfTilesX = -1;
             GizmoRender.Init(res);
+            if (drawable is CmpFile)
+            {
+                foreach (var p in ((CmpFile)drawable).Parts)
+                {
+                    var parentHp = p.Value.Construct != null ? p.Value.Construct.Transform : Matrix4.Identity;
+                    foreach (var hp in p.Value.Model.Hardpoints)
+                    {
+                        gizmos.Add(new HardpointGizmo(hp, hp.Transform * parentHp));
+                    }
+                }
+            }
+            else if (drawable is ModelFile)
+            {
+                foreach (var hp in ((ModelFile)drawable).Hardpoints)
+                {
+                    gizmos.Add(new HardpointGizmo(hp, hp.Transform));
+                }
+            }
 		}
 
 		Vector2 rotation = Vector2.Zero;
+        long uniqueHPs;
+        bool hpsopen = false;
+
 		public override bool Draw()
 		{
 			if (ImGuiExt.BeginDock(Title + "###" + Unique, ref open, 0))
@@ -151,16 +172,49 @@ namespace LancerEdit
 						ImGui.ResetMouseDragDelta(0);
 					}
 				}
+                if(ImGui.Button("Hardpoints"))
+                {
+                    if(!hpsopen)
+                    {
+                        uniqueHPs = GenerateUnique();
+                        hpsopen = true;
+                    }
+                }
 			}
 			ImGuiExt.EndDock();
-			return open;
+            //child docks (kinda)
+            if(!open) {
+                CloseChildren();
+                return false;
+            }
+            if (hpsopen)
+            {
+                if (ImGuiExt.BeginDock("Hardpoints" + "###" + uniqueHPs, ref hpsopen, 0))
+                {
+                    int j = 0;
+                    foreach(var gz in gizmos)
+                    {
+                        ImGui.Checkbox(gz.Definition.Name + "##" + j++, ref gz.Enabled);
+                    }
+                }
+                ImGuiExt.EndDock();
+            }
+            //dock is open
+			return true;
 		}
+
+        void CloseChildren()
+        {
+            bool myFalse = false;
+            ImGuiExt.BeginDock("Hardpoints" + "###" + uniqueHPs, ref myFalse, 0);
+            ImGuiExt.EndDock();
+        }
 
 		public override void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
 		{
 			ResourceDetection.DetectDrawable(Name, drawable, res, missing, matrefs, texrefs);
 		}
-        Random rand = new Random();
+
 		void DrawGL(int renderWidth, int renderHeight)
 		{
 			//Set state
@@ -171,15 +225,9 @@ namespace LancerEdit
 			rstate.ClearColor = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
 			rstate.ClearAll();
 			vps.Push(0, 0, renderWidth, renderHeight);
-			//Draw Model
-			var cam = new ChaseCamera(new Viewport(0, 0, renderWidth, renderHeight));
-			cam.ChasePosition = Vector3.Zero;
-			cam.ChaseOrientation = Matrix4.CreateRotationX(MathHelper.Pi);
-			cam.DesiredPositionOffset = new Vector3(drawable.GetRadius() * 2, 0, 0);
-			//cam.OffsetDirection = Vector3.UnitX;
-			cam.Reset();
-			cam.Update(TimeSpan.FromSeconds(500));
-            cam.UpdateFrameNumber(rand.Next()); //Stop bad matrix caching
+            //Draw Model
+            var cam = new LookAtCamera();
+            cam.Update(renderWidth, renderHeight, new Vector3(drawable.GetRadius() * 2, 0, 0), Vector3.Zero);
 			drawable.Update(cam, TimeSpan.Zero, TimeSpan.Zero);
             if (viewMode != M_NONE)
             {
@@ -217,32 +265,28 @@ namespace LancerEdit
 			vps.Pop();
 		}
 
+        class HardpointGizmo
+        {
+            public HardpointDefinition Definition;
+            public Matrix4 Transform;
+            public bool Enabled;
+            public HardpointGizmo(HardpointDefinition def, Matrix4 tr)
+            {
+                Definition = def;
+                Transform = tr;
+                Enabled = false;
+            }
+        }
+
         void DrawHardpoints(ICamera cam)
         {
             var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
-            List<Matrix4> hardpoints = new List<Matrix4>();
-            if (drawable is CmpFile)
-            {
-                foreach (var p in ((CmpFile)drawable).Parts) {
-                    var parentHp = p.Value.Construct != null ? p.Value.Construct.Transform : Matrix4.Identity;
-                    parentHp *= matrix;
-                    foreach(var hp in p.Value.Model.Hardpoints) {
-                        hardpoints.Add(hp.Transform * parentHp);
-                    }
-                }
-            } 
-            else if (drawable is ModelFile)
-            {
-                foreach(var hp in ((ModelFile)drawable).Hardpoints) {
-                    hardpoints.Add(hp.Transform * matrix);
-                }
-            }
-            if (hardpoints.Count == 0) return;
+            if (gizmos.Count == 0) return;
             GizmoRender.Begin();
-            foreach(var tr in hardpoints)
+            foreach(var tr in gizmos)
             {
-                //X
-                GizmoRender.AddGizmo(tr);
+                if(tr.Enabled)
+                    GizmoRender.AddGizmo(tr.Transform * matrix);
             }
             GizmoRender.RenderGizmos(cam, rstate);
         }

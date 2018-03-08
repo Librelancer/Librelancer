@@ -231,14 +231,8 @@ namespace LancerEdit
 			rstate.ClearColor = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
 			rstate.ClearAll();
 			vps.Push(0, 0, renderWidth, renderHeight);
-			//Draw Model
-			var cam = new ChaseCamera(new Viewport(0, 0, renderWidth, renderHeight));
-			cam.ChasePosition = Vector3.Zero;
-			cam.ChaseOrientation = Matrix4.CreateRotationX(MathHelper.Pi);
-			cam.DesiredPositionOffset = new Vector3(zoom, 0, 0);
-			//cam.OffsetDirection = Vector3.UnitX;
-			cam.Reset();
-			cam.Update(TimeSpan.FromSeconds(500));
+            var cam = new LookAtCamera();
+            cam.Update(renderWidth, renderHeight, new Vector3(zoom, 0, 0), Vector3.Zero);
 			buffer.StartFrame(rstate);
 			polyline.SetCamera(cam);
 			billboards.Begin(cam, buffer);
