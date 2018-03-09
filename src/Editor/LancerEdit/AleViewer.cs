@@ -123,9 +123,9 @@ namespace LancerEdit
 					}
 					float wheel = ImGui.GetIO().MouseWheel;
 					if (ImGui.GetIO().ShiftPressed)
-						zoom -= wheel * 15;
+						zoom -= wheel * 10;
 					else
-						zoom -= wheel * 45;
+						zoom -= wheel * 40;
 				}
 				//Action Bar
 				if (ImGui.Button("Actions"))

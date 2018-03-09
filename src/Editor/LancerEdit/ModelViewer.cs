@@ -114,6 +114,7 @@ namespace LancerEdit
             lighting.Lights.SourceEnabled[1] = true;
 			lighting.NumberOfTilesX = -1;
             GizmoRender.Init(res);
+            zoom = drawable.GetRadius() * 2;
             if (drawable is CmpFile)
             {
                 var cmp = (CmpFile)drawable;
@@ -151,16 +152,48 @@ namespace LancerEdit
         long uniqueAnims;
         bool hpsopen = false;
         bool animsopen = false;
-
+        float zoom = 0;
+        Color4 background = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
+        System.Numerics.Vector3 editCol;
 		public override bool Draw()
 		{
 			if (ImGuiExt.BeginDock(Title + "###" + Unique, ref open, 0))
 			{
-				ImGui.Text("View Mode:");
-				ImGui.SameLine();
-				ImGui.Combo("##modes", ref viewMode, viewModes);
+                if (ImGui.ColorButton("Background Color", new Vector4(background.R, background.G, background.B, 1),
+                                    ColorEditFlags.NoAlpha, new Vector2(22, 22)))
+                {
+                    ImGui.OpenPopup("Background Color###" + Unique);
+                    editCol = new System.Numerics.Vector3(background.R, background.G, background.B);
+                }
+                if (ImGui.BeginPopupModal("Background Color###" + Unique, WindowFlags.AlwaysAutoResize))
+                {
+                    ImGui.ColorPicker3("###a", ref editCol);
+                    if (ImGui.Button("OK"))
+                    {
+                        background = new Color4(editCol.X, editCol.Y, editCol.Z, 1);
+                        ImGui.CloseCurrentPopup();
+                    }
+                    ImGui.SameLine();
+                    if (ImGui.Button("Default"))
+                    {
+                        var def = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
+                        editCol = new System.Numerics.Vector3(def.R, def.G, def.B);
+                    }
+                    ImGui.SameLine();
+                    if (ImGui.Button("Cancel")) ImGui.CloseCurrentPopup();
+                    ImGui.EndPopup();
+                }
+                ImGui.SameLine();
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text("Background");
                 ImGui.SameLine();
                 ImGui.Checkbox("Wireframe", ref doWireframe);
+                ImGui.SameLine();
+				ImGui.Text("View Mode:");
+				ImGui.SameLine();
+                ImGui.PushItemWidth(-1);
+                ImGui.Combo("##modes", ref viewMode, viewModes);
+                ImGui.PopItemWidth();
 				var renderWidth = Math.Max(120, (int)ImGui.GetWindowWidth() - 15);
 				var renderHeight = Math.Max(120, (int)ImGui.GetWindowHeight() - 70);
 				//Generate render target
@@ -177,8 +210,6 @@ namespace LancerEdit
 					rh = renderHeight;
 				}
 				DrawGL(renderWidth, renderHeight);
-				//Draw Image
-				//ImGui.Image((IntPtr)rid, new Vector2(renderWidth, renderHeight), Vector2.Zero, Vector2.One, Vector4.One, Vector4.One);
 				ImGui.ImageButton((IntPtr)rid, new Vector2(renderWidth, renderHeight),
 								  Vector2.Zero, Vector2.One,
 								  0,
@@ -191,6 +222,12 @@ namespace LancerEdit
 						rotation -= (delta / 64);
 						ImGui.ResetMouseDragDelta(0);
 					}
+                    float wheel = ImGui.GetIO().MouseWheel;
+                    if (ImGui.GetIO().ShiftPressed)
+                        zoom -= wheel * 10;
+                    else
+                        zoom -= wheel * 40;
+                    if (zoom < 0) zoom = 0;
 				}
                 if(ImGui.Button("Hardpoints"))
                 {
@@ -290,12 +327,12 @@ namespace LancerEdit
 			rstate.Cull = true;
 			var cc = rstate.ClearColor;
 			rstate.DepthEnabled = true;
-			rstate.ClearColor = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
+            rstate.ClearColor = background;
 			rstate.ClearAll();
 			vps.Push(0, 0, renderWidth, renderHeight);
             //Draw Model
             var cam = new LookAtCamera();
-            cam.Update(renderWidth, renderHeight, new Vector3(drawable.GetRadius() * 2, 0, 0), Vector3.Zero);
+            cam.Update(renderWidth, renderHeight, new Vector3(zoom, 0, 0), Vector3.Zero);
 			drawable.Update(cam, TimeSpan.Zero, TimeSpan.Zero);
             if (viewMode != M_NONE)
             {
