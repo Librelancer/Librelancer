@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer.Utf.Anm;
+using LibreLancer.Utf;
 namespace LibreLancer
 {
 	public class AnimationComponent : GameComponent
@@ -29,12 +30,18 @@ namespace LibreLancer
 		}
 
 		AnmFile anm;
+        ConstructCollection constructs;
 		List<ActiveAnimation> animations = new List<ActiveAnimation>();
 		public AnimationComponent(GameObject parent, AnmFile animation) : base(parent)
 		{
 			anm = animation;
 		}
 
+        public AnimationComponent(ConstructCollection constructs, AnmFile animation) : base(null)
+        {
+            anm = animation;
+            this.constructs = constructs;
+        }
 		public void StartAnimation(string animationName, bool loop = true)
 		{
 			if (anm.Scripts.ContainsKey(animationName))
@@ -57,6 +64,7 @@ namespace LibreLancer
 		double totalTime = 0;
 		public override void Update(TimeSpan time)
 		{
+            if (constructs == null) constructs = Parent.CmpConstructs;
 			totalTime += time.TotalSeconds;
 			int c = animations.Count;
 			for (int i = animations.Count - 1; i >= 0; i--)
@@ -68,7 +76,7 @@ namespace LibreLancer
 					animations.RemoveAt(i);
 				}
 			}
-			if (c > 0)
+			if (c > 0 && Parent != null)
 				Parent.UpdateCollision();
 		}
 
@@ -95,7 +103,7 @@ namespace LibreLancer
 
 		bool ProcessJointMap(JointMap jm, double startTime, bool loop)
 		{
-			var joint = Parent.CmpConstructs.Find(jm.ChildName);
+			var joint = constructs.Find(jm.ChildName);
 			double t = totalTime - startTime;
 			//looping?
 			if (jm.Channel.Interval == -1)

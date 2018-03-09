@@ -72,6 +72,7 @@ namespace LancerEdit
 		Material normalsDebugMaterial;
 		Dictionary<int, Material> partMaterials = new Dictionary<int, Material>();
         List<PartHps> partlist = new List<PartHps>();
+        AnimationComponent animator;
 		public ModelViewer(string title, string name,IDrawable drawable, RenderState rstate, ViewportManager viewports, CommandBuffer commands, ResourceManager res)
 		{
 			Title = title;
@@ -115,7 +116,8 @@ namespace LancerEdit
             GizmoRender.Init(res);
             if (drawable is CmpFile)
             {
-                foreach (var p in ((CmpFile)drawable).Parts)
+                var cmp = (CmpFile)drawable;
+                foreach (var p in cmp.Parts)
                 {
                     var parentHp = p.Value.Construct != null ? p.Value.Construct.Transform : Matrix4.Identity;
                     var php = new PartHps() { Part = p.Value };
@@ -125,6 +127,8 @@ namespace LancerEdit
                     }
                     partlist.Add(php);
                 }
+                if (cmp.Animation != null)
+                    animator = new AnimationComponent(cmp.Constructs, cmp.Animation);
             }
             else if (drawable is ModelFile)
             {
@@ -137,9 +141,16 @@ namespace LancerEdit
             }
 		}
 
+        public override void Update(double elapsed)
+        {
+            if (animator != null)
+                animator.Update(TimeSpan.FromSeconds(elapsed));
+        }
 		Vector2 rotation = Vector2.Zero;
         long uniqueHPs;
+        long uniqueAnims;
         bool hpsopen = false;
+        bool animsopen = false;
 
 		public override bool Draw()
 		{
@@ -189,6 +200,18 @@ namespace LancerEdit
                         hpsopen = true;
                     }
                 }
+                if(drawable is CmpFile && ((CmpFile)drawable).Animation != null)
+                {
+                    ImGui.SameLine();
+                    if(ImGui.Button("Animations"))
+                    {
+                        if(!animsopen)
+                        {
+                            uniqueAnims = GenerateUnique();
+                            animsopen = true;
+                        }
+                    }
+                }
 			}
 			ImGuiExt.EndDock();
             //child docks (kinda)
@@ -220,6 +243,20 @@ namespace LancerEdit
                 }
                 ImGuiExt.EndDock();
             }
+            if(animsopen)
+            {
+                if (ImGuiExt.BeginDock("Animations" + "###" + uniqueAnims, ref animsopen, 0))
+                {
+                    var anm = ((CmpFile)drawable).Animation;
+                    int j = 0;
+                    foreach(var sc in anm.Scripts) {
+                        if(ImGui.Button(sc.Key + "###" + j++)) {
+                            animator.StartAnimation(sc.Key, false);
+                        }
+                    }
+                }
+                ImGuiExt.EndDock();
+            }
             //dock is open
 			return true;
 		}
@@ -236,6 +273,8 @@ namespace LancerEdit
         {
             bool myFalse = false;
             ImGuiExt.BeginDock("Hardpoints" + "###" + uniqueHPs, ref myFalse, 0);
+            ImGuiExt.EndDock();
+            ImGuiExt.BeginDock("Animations" + "###" + uniqueAnims, ref myFalse, 0);
             ImGuiExt.EndDock();
         }
 
