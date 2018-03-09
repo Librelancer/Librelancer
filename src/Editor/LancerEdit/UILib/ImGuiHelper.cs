@@ -234,7 +234,30 @@ namespace LancerEdit
 		unsafe void RenderImDrawData(DrawData* draw_data, RenderState rstate)
 		{
 			var io = ImGui.GetIO();
-			ImGui.ScaleClipRects(draw_data, io.DisplayFramebufferScale);
+            //Set cursor
+            var cur = ImGuiNative.igGetMouseCursor();
+            switch(cur) {
+                case MouseCursorKind.Arrow:
+                    game.CursorKind = CursorKind.Arrow;
+                    break;
+                case MouseCursorKind.Move:
+                    game.CursorKind = CursorKind.Move;
+                    break;
+                case MouseCursorKind.TextInput:
+                    game.CursorKind = CursorKind.TextInput;
+                    break;
+                case MouseCursorKind.ResizeNS:
+                    game.CursorKind = CursorKind.ResizeNS;
+                    break;
+                case MouseCursorKind.ResizeNESW:
+                    game.CursorKind = CursorKind.ResizeNESW;
+                    break;
+                case MouseCursorKind.ResizeNWSE:
+                    game.CursorKind = CursorKind.ResizeNWSE;
+                    break;
+            }
+            //Render
+            ImGui.ScaleClipRects(draw_data, io.DisplayFramebufferScale);
 
 			var mat = Matrix4.CreateOrthographicOffCenter(0, game.Width, game.Height, 0, 0, 1);
 			Shader lastShader = textShader;

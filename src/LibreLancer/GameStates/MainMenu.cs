@@ -31,7 +31,7 @@ namespace LibreLancer
 		{
 			g.GameData.LoadHardcodedFiles();
 			g.GameData.PopulateCursors();
-			g.MouseVisible = false;
+			g.CursorKind = CursorKind.None;
 
 			logoOverlay = g.GameData.GetFreelancerLogo();
 

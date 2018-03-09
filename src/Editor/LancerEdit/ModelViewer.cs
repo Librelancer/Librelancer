@@ -63,10 +63,15 @@ namespace LancerEdit
 			Color4.Orange
 		};
 
+        class PartHps
+        {
+            public Part Part;
+            public List<HardpointGizmo> Gizmos = new List<HardpointGizmo>();
+        }
 		Material wireframeMaterial3db;
 		Material normalsDebugMaterial;
 		Dictionary<int, Material> partMaterials = new Dictionary<int, Material>();
-        List<HardpointGizmo> gizmos = new List<HardpointGizmo>();
+        List<PartHps> partlist = new List<PartHps>();
 		public ModelViewer(string title, string name,IDrawable drawable, RenderState rstate, ViewportManager viewports, CommandBuffer commands, ResourceManager res)
 		{
 			Title = title;
@@ -113,18 +118,22 @@ namespace LancerEdit
                 foreach (var p in ((CmpFile)drawable).Parts)
                 {
                     var parentHp = p.Value.Construct != null ? p.Value.Construct.Transform : Matrix4.Identity;
+                    var php = new PartHps() { Part = p.Value };
                     foreach (var hp in p.Value.Model.Hardpoints)
                     {
-                        gizmos.Add(new HardpointGizmo(hp, hp.Transform * parentHp));
+                        php.Gizmos.Add(new HardpointGizmo(hp, hp.Transform * parentHp));
                     }
+                    partlist.Add(php);
                 }
             }
             else if (drawable is ModelFile)
             {
+                var php = new PartHps() { Part = null };
                 foreach (var hp in ((ModelFile)drawable).Hardpoints)
                 {
-                    gizmos.Add(new HardpointGizmo(hp, hp.Transform));
+                    php.Gizmos.Add(new HardpointGizmo(hp, hp.Transform));
                 }
+                partlist.Add(php);
             }
 		}
 
@@ -191,10 +200,22 @@ namespace LancerEdit
             {
                 if (ImGuiExt.BeginDock("Hardpoints" + "###" + uniqueHPs, ref hpsopen, 0))
                 {
-                    int j = 0;
-                    foreach(var gz in gizmos)
+                    if (partlist.Count == 1 && partlist[0].Part == null)
                     {
-                        ImGui.Checkbox(gz.Definition.Name + "##" + j++, ref gz.Enabled);
+                        DoChecks(partlist[0].Gizmos);
+                    }
+                    else if (partlist.Count > 0)
+                    {
+                        int j = 0;
+                        foreach(var pl in partlist)
+                        {
+                            if (pl.Gizmos.Count == 0) continue;
+                            if(ImGui.CollapsingHeader(pl.Part.ObjectName,
+                                                      pl.Part.ObjectName + "_" + j++, 
+                                                      false, true)) {
+                                DoChecks(pl.Gizmos);
+                            }
+                        }
                     }
                 }
                 ImGuiExt.EndDock();
@@ -203,6 +224,14 @@ namespace LancerEdit
 			return true;
 		}
 
+        void DoChecks(List<HardpointGizmo> gizmos)
+        {
+            int j = 0;
+            foreach (var gz in gizmos)
+            {
+                ImGui.Checkbox(gz.Definition.Name + "##" + j++, ref gz.Enabled);
+            }
+        }
         void CloseChildren()
         {
             bool myFalse = false;
@@ -281,12 +310,14 @@ namespace LancerEdit
         void DrawHardpoints(ICamera cam)
         {
             var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
-            if (gizmos.Count == 0) return;
             GizmoRender.Begin();
-            foreach(var tr in gizmos)
+            foreach(var pl in partlist)
             {
-                if(tr.Enabled)
-                    GizmoRender.AddGizmo(tr.Transform * matrix);
+                foreach (var tr in pl.Gizmos)
+                {
+                    if (tr.Enabled)
+                        GizmoRender.AddGizmo(tr.Transform * matrix);
+                }
             }
             GizmoRender.RenderGizmos(cam, rstate);
         }

@@ -207,13 +207,24 @@ namespace LancerEdit
             else
                 return null;
         }
+
+        static string lastSave = "";
         static string KDialogSave()
         {
-            return KDialogProcess("--getsavefilename");
+            if (string.IsNullOrEmpty(lastSave))
+                lastSave = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            var ret = KDialogProcess(string.Format("--getsavefilename \"{0}\"", lastSave));
+            lastSave = ret ?? lastSave;
+            return ret;
         }
+        static string lastOpen = "";
         static string KDialogOpen()
         {
-            return KDialogProcess("--getopenfilename");
+            if (String.IsNullOrEmpty(lastOpen))
+                lastOpen = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            var ret = KDialogProcess(string.Format("--getopenfilename \"{0}\"", lastOpen));
+            lastOpen = ret ?? lastOpen;
+            return ret;
         }
 
 	}

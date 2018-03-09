@@ -38,7 +38,6 @@ namespace LibreLancer
 		int mythread = -1;
 		public ScreenshotSaveHandler ScreenshotSave;
 		public RenderState RenderState;
-		bool mouseVisible = true;
         bool forceANGLE = false;
         ANGLE angle;
         public string Renderer
@@ -81,16 +80,48 @@ namespace LibreLancer
             return true;
         }
 
-		public bool MouseVisible
+        IntPtr curArrow;
+        IntPtr curMove;
+        IntPtr curTextInput;
+        IntPtr curResizeNS;
+        IntPtr curResizeEW;
+        IntPtr curResizeNESW;
+        IntPtr curResizeNWSE;
+        CursorKind cursorKind = CursorKind.Arrow;
+		public CursorKind CursorKind
 		{
 			get
-			{ 
-				return mouseVisible;
+			{
+                return cursorKind;
 			} 
 			set
 			{
-				mouseVisible = value;
-				SDL.SDL_ShowCursor(mouseVisible ? 1 : 0);
+                if (cursorKind == value) return;
+				cursorKind = value;
+                switch(cursorKind) {
+                    case CursorKind.Arrow:
+                        SDL.SDL_SetCursor(curArrow);
+                        break;
+                    case CursorKind.Move:
+                        SDL.SDL_SetCursor(curMove);
+                        break;
+                    case CursorKind.TextInput:
+                        SDL.SDL_SetCursor(curTextInput);
+                        break;
+                    case CursorKind.ResizeNS:
+                        SDL.SDL_SetCursor(curResizeNS);
+                        break;
+                    case CursorKind.ResizeEW:
+                        SDL.SDL_SetCursor(curResizeEW);
+                        break;
+                    case CursorKind.ResizeNESW:
+                        SDL.SDL_SetCursor(curResizeNESW);
+                        break;
+                    case CursorKind.ResizeNWSE:
+                        SDL.SDL_SetCursor(curResizeNWSE);
+                        break;
+                }
+				SDL.SDL_ShowCursor(value == CursorKind.None ? 0 : 1);
 			}
 		}
 		public int Height {
@@ -260,6 +291,15 @@ namespace LibreLancer
 				             height,
 				             flags
 			             );
+            //Cursors
+            curArrow = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW);
+            curMove = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_CROSSHAIR);
+            curTextInput = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_IBEAM);
+            curResizeNS = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENS);
+            curResizeEW = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEWE);
+            curResizeNESW = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENESW);
+            curResizeNWSE = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENWSE);
+            //Window sizing
 			if (minWindowSize != Point.Zero)
 			{
 				SDL.SDL_SetWindowMinimumSize(sdlWin, minWindowSize.X, minWindowSize.Y);
