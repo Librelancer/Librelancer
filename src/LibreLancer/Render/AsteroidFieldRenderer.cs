@@ -302,7 +302,7 @@ namespace LibreLancer
             public CalculatedCube(Vector3 p, Matrix4 r) { pos = p; tr = r; }
         }
         Action _asteroidsCalculation;
-        bool _asteroidsCalculated = false;
+        volatile bool _asteroidsCalculated = false;
         int cubeCount = -1;
         CalculatedCube[] cubes;
         void CalculateAsteroids()

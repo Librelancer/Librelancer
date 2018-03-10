@@ -161,7 +161,6 @@
     <ClInclude Include="..\freetypeshim\freetype\freetype.h" />
     <ClInclude Include="..\freetypeshim\freetype\fttypes.h" />
     <ClInclude Include="..\ftshim.h" />
-    <ClInclude Include="..\imgui_dock.h" />
     <ClInclude Include="..\imgui_freetype.h" />
   </ItemGroup>
   <ItemGroup>
@@ -175,7 +174,6 @@
     <ClCompile Include="..\cimgui_dock.cpp" />
     <ClCompile Include="..\cimgui_freetype.cpp" />
     <ClCompile Include="..\ftshim.c" />
-    <ClCompile Include="..\imgui_dock.cpp" />
     <ClCompile Include="..\imgui_freetype.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

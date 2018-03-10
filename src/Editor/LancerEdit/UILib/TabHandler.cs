@@ -186,7 +186,7 @@ namespace LancerEdit
             public float U0, V0, U1, V1;
         }
 
-        [DllImport("cimgui")]
+        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
         static extern ImFontGlyph* igFontFindGlyph(NativeFont* font, char c);
 
         public static bool VerticalTab(string text, bool v)
