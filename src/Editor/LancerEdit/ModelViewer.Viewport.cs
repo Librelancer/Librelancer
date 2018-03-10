@@ -153,13 +153,11 @@ namespace LancerEdit
         {
             var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
             GizmoRender.Begin();
-            foreach (var pl in partlist)
+          
+            foreach (var tr in gizmos)
             {
-                foreach (var tr in pl.Gizmos)
-                {
-                    if (tr.Enabled)
-                        GizmoRender.AddGizmo(tr.Transform * matrix);
-                }
+                if (tr.Enabled)
+                    GizmoRender.AddGizmo((tr.Parent == null ? Matrix4.Identity : tr.Parent.Transform) * tr.Definition.Transform * matrix);
             }
             GizmoRender.RenderGizmos(cam, rstate);
         }
@@ -178,19 +176,30 @@ namespace LancerEdit
                 mat.Update(cam);
             }
             var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+            ModelFile mdl = drawable as ModelFile;
             if (viewMode == M_LIT)
-                drawable.DrawBuffer(buffer, matrix, ref lighting, mat);
+            {
+                if (mdl != null)
+                    mdl.DrawBufferLevel(mdl.Levels[GetLevel(mdl.Switch2, mdl.Levels.Length - 1)], buffer, matrix, ref lighting);
+                else
+                    drawable.DrawBuffer(buffer, matrix, ref lighting, mat);
+            }
             else
-                drawable.DrawBuffer(buffer, matrix, ref Lighting.Empty, mat);
+            {
+                if (mdl != null)
+                    mdl.DrawBufferLevel(mdl.Levels[GetLevel(mdl.Switch2, mdl.Levels.Length - 1)], buffer, matrix, ref Lighting.Empty);
+                else
+                    drawable.DrawBuffer(buffer, matrix, ref Lighting.Empty, mat);
+            }
         }
 
         int jColors = 0;
         void DrawCmp(ICamera cam, bool wireFrame)
         {
             var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+            var cmp = (CmpFile)drawable;
             if (wireFrame || viewMode == M_FLAT)
             {
-                var cmp = (CmpFile)drawable;
                 foreach (var part in cmp.Parts)
                 {
                     Material mat;
@@ -203,20 +212,39 @@ namespace LancerEdit
                         partMaterials.Add(part.Key, mat);
                     }
                     mat.Update(cam);
-                    part.Value.DrawBuffer(buffer, matrix, ref Lighting.Empty, mat);
+                    part.Value.DrawBufferLevel(
+                        GetLevel(part.Value.Model.Switch2, part.Value.Model.Levels.Length - 1),
+                        buffer, matrix, ref Lighting.Empty, mat
+                    );
                 }
             }
             else if (viewMode == M_TEXTURED || viewMode == M_LIT)
             {
                 if (viewMode == M_LIT)
-                    drawable.DrawBuffer(buffer, matrix, ref lighting);
+                {
+                    foreach(var part in cmp.Parts)
+                        part.Value.DrawBufferLevel(
+                            GetLevel(part.Value.Model.Switch2, part.Value.Model.Levels.Length - 1),
+                            buffer, matrix, ref lighting
+                        );
+                }
                 else
-                    drawable.DrawBuffer(buffer, matrix, ref Lighting.Empty);
+                {
+                    foreach (var part in cmp.Parts)
+                        part.Value.DrawBufferLevel(
+                            GetLevel(part.Value.Model.Switch2, part.Value.Model.Levels.Length - 1),
+                            buffer, matrix, ref Lighting.Empty
+                        );
+                }
             }
             else
             {
                 normalsDebugMaterial.Update(cam);
-                drawable.DrawBuffer(buffer, matrix, ref Lighting.Empty, normalsDebugMaterial);
+                foreach (var part in cmp.Parts)
+                    part.Value.DrawBufferLevel(
+                        GetLevel(part.Value.Model.Switch2, part.Value.Model.Levels.Length - 1),
+                        buffer, matrix, ref Lighting.Empty, normalsDebugMaterial
+                    );
             }
         }
 	}

@@ -85,12 +85,16 @@ namespace LancerEdit
 			ImGui.BeginMainMenuBar();
 			if (ImGui.BeginMenu("File"))
 			{
+                Theme.Icon("new", Color4.White);
+                ImGui.SameLine();
 				if (ImGui.MenuItem("New", "Ctrl-N", false, true))
 				{
 					var t = new UtfTab(this, new EditableUtf(), "Untitled");
 					ActiveTab = t;
                     AddTab(t);
 				}
+                Theme.Icon("open", Color4.White);
+                ImGui.SameLine();
 				if (ImGui.MenuItem("Open", "Ctrl-O", false, true))
 				{
 					var f = FileDialog.Open();
@@ -101,6 +105,8 @@ namespace LancerEdit
                         AddTab(t);
 					}
 				}
+                Theme.Icon("save", Color4.White);
+                ImGui.SameLine();
 				if (ActiveTab == null)
 				{
 					ImGui.MenuItem("Save", "Ctrl-S", false, false);
@@ -117,6 +123,8 @@ namespace LancerEdit
 						}
 					}
 				}
+                Theme.Icon("quit", Color4.White);
+                ImGui.SameLine();
 				if (ImGui.MenuItem("Quit", "Ctrl-Q", false, true))
 				{
 					Exit();
@@ -133,6 +141,8 @@ namespace LancerEdit
 			}
 			if (ImGui.BeginMenu("Help"))
 			{
+                Theme.Icon("about", Color4.White);
+                ImGui.SameLine();
 				if (ImGui.MenuItem("About"))
 				{
 					openAbout = true;
@@ -148,6 +158,10 @@ namespace LancerEdit
 			{
 				ImGui.Text("LancerEdit");
 				ImGui.Text("Callum McGing 2018");
+                ImGui.Separator();
+                ImGui.Text("Icons from Icons8: https://icons8.com/");
+                ImGui.Text("Icons from komorra: https://opengameart.org/content/kmr-editor-icon-set");
+                ImGui.Separator();
 				if (ImGui.Button("OK")) ImGui.CloseCurrentPopup();
 				ImGui.EndPopup();
 			}

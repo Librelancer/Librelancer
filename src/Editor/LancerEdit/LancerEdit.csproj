@@ -94,7 +94,8 @@
   <ItemGroup>
     <EmbeddedResource Include="UILib\Roboto-Medium.ttf" />
     <EmbeddedResource Include="UILib\checkerboard.png" />
-    <EmbeddedResource Include="UILib\circle.png" />
+    <EmbeddedResource Include="UILib\icons.txt" />
+    <EmbeddedResource Include="UILib\icons.png" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\deps\x64\cimgui.dll">

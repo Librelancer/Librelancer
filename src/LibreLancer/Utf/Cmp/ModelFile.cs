@@ -226,14 +226,14 @@ namespace LibreLancer.Utf.Cmp
 			}
 		}
 
-        public void DrawBufferLevel(VMeshRef level, CommandBuffer buffer, Matrix4 world, ref Lighting light)
+        public void DrawBufferLevel(VMeshRef level, CommandBuffer buffer, Matrix4 world, ref Lighting light, Material overrideMat = null)
         {
             if (ready)
             {
                 var ma = MaterialAnim;
                 if (ma == null && additionalLibrary is CmpFile)
                     ma = ((CmpFile)additionalLibrary).MaterialAnim;
-                level.DrawBuffer(buffer, world, ref light, ma);
+                level.DrawBuffer(buffer, world, ref light, ma, overrideMat);
             }
         }
 
