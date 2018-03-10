@@ -1,36 +1,8 @@
 #include "cimgui_dock.h"
 #include "imgui.h"
-#include "imgui_dock.h"
-
-IGEXPORT void igShutdownDock()
+#include "imgui_internal.h"
+IGEXPORT void *igFontFindGlyph(void *font, unsigned short c)
 {
-	ImGui::ShutdownDock();
-}
-IGEXPORT void igRootDock(float posx, float posy, float sizew, float sizeh)
-{
-	ImGui::RootDock(ImVec2(posx,posy), ImVec2(sizew,sizeh));
-}
-IGEXPORT bool igBeginDock(const char *label, bool *opened, int extra_flags)
-{
-	return ImGui::BeginDock(label, opened, (ImGuiWindowFlags)extra_flags);
-}
-IGEXPORT void igEndDock()
-{
-	ImGui::EndDock();
-}
-IGEXPORT void igSetDockActive()
-{
-	ImGui::SetDockActive();
-}
-IGEXPORT void igLoadDock()
-{
-	ImGui::LoadDock();
-}
-IGEXPORT void igSaveDock()
-{
-	ImGui::SaveDock();
-}
-IGEXPORT void igPrint()
-{
-	ImGui::Print();
+    ImFont *fnt = (ImFont*)font;
+    return (void*)fnt->FindGlyph((ImWchar)c);
 }

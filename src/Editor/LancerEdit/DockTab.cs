@@ -19,6 +19,7 @@ namespace LancerEdit
 {
 	public abstract class DockTab : IDisposable
 	{
+        public string Title = "tab";
 		static long _ids = 1;
 		static Random rand = new Random();
 		protected long Unique;
@@ -27,12 +28,6 @@ namespace LancerEdit
 			Unique = _ids;
 			_ids += 2;
 		}
-        protected long GenerateUnique()
-        {
-            var id = _ids;
-            _ids += 2;
-            return id;
-        }
 		public abstract bool Draw();
 		public virtual void Update(double elapsed)
 		{

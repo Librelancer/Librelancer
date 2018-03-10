@@ -9,14 +9,7 @@ extern "C" {
 #else
 #define IGEXPORT
 #endif
-IGEXPORT void igShutdownDock();
-IGEXPORT void igRootDock(float posx, float posy, float sizew, float sizeh);
-IGEXPORT bool igBeginDock(const char *label, bool *opened, int extra_flags);
-IGEXPORT void igEndDock();
-IGEXPORT void igSetDockActive();
-IGEXPORT void igLoadDock();
-IGEXPORT void igSaveDock();
-IGEXPORT void igPrint();
+IGEXPORT void *igFontFindGlyph(void *font, unsigned short c);
 #ifdef __cplusplus
 }
 #endif

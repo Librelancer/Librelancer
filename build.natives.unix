@@ -15,7 +15,6 @@ g++ -Wall -std=gnu++11 -shared -fPIC -ldl -O2 -Isrc/cimgui_ext/freetypeshim -Iex
  $SRC_IM/imgui.cpp \
  $SRC_IM/imgui_draw.cpp \
  $SRC_IM/imgui_demo.cpp \
- src/cimgui_ext/imgui_dock.cpp \
  src/cimgui_ext/cimgui_dock.cpp \
  src/cimgui_ext/imgui_freetype.cpp \
  src/cimgui_ext/cimgui_freetype.cpp \

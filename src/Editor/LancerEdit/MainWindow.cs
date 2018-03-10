@@ -73,6 +73,7 @@ namespace LancerEdit
 			foreach (var tab in tabs)
 				tab.Update(elapsed);
 		}
+        DockTab selected;
 		protected override void Draw(double elapsed)
 		{
 			EnableTextInput();
@@ -88,7 +89,7 @@ namespace LancerEdit
 				{
 					var t = new UtfTab(this, new EditableUtf(), "Untitled");
 					ActiveTab = t;
-					tabs.Add(t);
+                    AddTab(t);
 				}
 				if (ImGui.MenuItem("Open", "Ctrl-O", false, true))
 				{
@@ -97,7 +98,7 @@ namespace LancerEdit
 					{
 						var t = new UtfTab(this, new EditableUtf(f), System.IO.Path.GetFileName(f));
 						ActiveTab = t;
-						tabs.Add(t);
+                        AddTab(t);
 					}
 				}
 				if (ActiveTab == null)
@@ -155,7 +156,6 @@ namespace LancerEdit
 			var size = (Vector2)ImGui.GetIO().DisplaySize;
 			size.Y -= menu_height;
 			//Window
-			ImGuiExt.RootDock(0, menu_height, size.X, size.Y - 25);
 			MissingResources.Clear();
 			ReferencedMaterials.Clear();
 			ReferencedTextures.Clear();
@@ -163,15 +163,22 @@ namespace LancerEdit
 			{
 				tab.DetectResources(MissingResources, ReferencedMaterials, ReferencedTextures);
 			}
-			for (int i = 0; i < tabs.Count; i++)
-			{
-				if (!tabs[i].Draw()) { //No longer open
-					if (tabs[i] is UtfTab && ((UtfTab)tabs[i]) == ActiveTab) ActiveTab = null;
-					tabs[i].Dispose();
-					tabs.RemoveAt(i);
-					i--;
-				}
-			}
+            ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - 25), Condition.Always);
+            ImGui.SetNextWindowPos(new Vector2(0, menu_height), Condition.Always, Vector2.Zero);
+            bool childopened = true;
+            ImGui.BeginWindow("tabwindow", ref childopened,
+                              WindowFlags.NoTitleBar |
+                              WindowFlags.NoSavedSettings |
+                              WindowFlags.NoBringToFrontOnFocus |
+                              WindowFlags.NoMove |
+                              WindowFlags.NoResize);
+            TabHandler.TabLabels(tabs, ref selected);
+            ImGui.BeginChild("###tabcontent");
+            if (selected != null)
+                selected.Draw();
+            ImGui.EndChild();
+            TabHandler.DrawTabDrag(tabs);
+            ImGui.EndWindow();
 			//Status bar
 			ImGui.SetNextWindowSize(new Vector2(size.X, 25f), Condition.Always);
 			ImGui.SetNextWindowPos(new Vector2(0, size.Y - 6f), Condition.Always, Vector2.Zero);
@@ -199,8 +206,11 @@ namespace LancerEdit
 			ImGui.EndWindow();
 			ImGui.PopFont();
 			guiHelper.Render(RenderState);
-			foreach (var tab in toAdd)
-				tabs.Add(tab);
+            foreach (var tab in toAdd)
+            {
+                tabs.Add(tab);
+                selected = tab;
+            }
 			toAdd.Clear();
 		}
 
