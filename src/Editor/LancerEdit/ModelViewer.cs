@@ -16,17 +16,14 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer;
-using LibreLancer.Vertices;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
+using LibreLancer.Utf;
 using ImGuiNET;
 namespace LancerEdit
 {
-    public class ModelViewer : DockTab
+    public partial class ModelViewer : DockTab
     {
-        RenderTarget2D renderTarget;
-        int rw = -1, rh = -1;
-        int rid = 0;
         bool open = true;
         Lighting lighting;
         IDrawable drawable;
@@ -81,41 +78,11 @@ namespace LancerEdit
             this.vps = viewports;
             this.res = res;
             buffer = commands;
-            wireframeMaterial3db = new Material(res);
-            wireframeMaterial3db.Dc = Color4.White;
-            wireframeMaterial3db.DtName = ResourceManager.WhiteTextureName;
-            normalsDebugMaterial = new Material(res);
-            normalsDebugMaterial.Type = "NormalDebugMaterial";
-            lighting = Lighting.Create();
-            lighting.Enabled = true;
-            lighting.Ambient = Color4.Black;
-            var src = new SystemLighting();
-            src.Lights.Add(new DynamicLight()
-            {
-                Light = new RenderLight()
-                {
-                    Kind = LightKind.Directional,
-                    Direction = new Vector3(0, -1, 0),
-                    Color = Color4.White
-                }
-            });
-            src.Lights.Add(new DynamicLight()
-            {
-                Light = new RenderLight()
-                {
-                    Kind = LightKind.Directional,
-                    Direction = new Vector3(0, 0, 1),
-                    Color = Color4.White
-                }
-            });
-            lighting.Lights.SourceLighting = src;
-            lighting.Lights.SourceEnabled[0] = true;
-            lighting.Lights.SourceEnabled[1] = true;
-            lighting.NumberOfTilesX = -1;
-            GizmoRender.Init(res);
+            SetupViewport();
             zoom = drawable.GetRadius() * 2;
             if (drawable is CmpFile)
             {
+                //Setup Editor UI for constructs + hardpoints
                 var cmp = (CmpFile)drawable;
                 foreach (var p in cmp.Parts)
                 {
@@ -129,6 +96,25 @@ namespace LancerEdit
                 }
                 if (cmp.Animation != null)
                     animator = new AnimationComponent(cmp.Constructs, cmp.Animation);
+                var q = new Queue<AbstractConstruct>();
+                foreach (var c in cmp.Constructs)
+                {
+                    if (c.ParentName == "Root" || string.IsNullOrEmpty(c.ParentName))
+                        cons.Add(new ConstructNode() { Con = c });
+                    else
+                    {
+                        if(cmp.Constructs.Find(c.ParentName) != null)
+                            q.Enqueue(c);
+                        else {
+                            conOrphan.Add(c);
+                        }
+                    }
+                }
+                while(q.Count > 0) {
+                    var c = q.Dequeue();
+                    if (!PlaceNode(cons, c))
+                        q.Enqueue(c);
+                }
             }
             else if (drawable is ModelFile)
             {
@@ -140,22 +126,58 @@ namespace LancerEdit
                 partlist.Add(php);
             }
         }
-
+        bool PlaceNode(List<ConstructNode> n, AbstractConstruct con)
+        {
+            foreach(var node in n) {
+                if(node.Con.ChildName == con.ParentName) {
+                    node.Nodes.Add(new ConstructNode() { Con = con });
+                    return true;
+                }
+                if (PlaceNode(node.Nodes, con))
+                    return true;
+            }
+            return false;
+        }
         public override void Update(double elapsed)
         {
             if (animator != null)
                 animator.Update(TimeSpan.FromSeconds(elapsed));
         }
         Vector2 rotation = Vector2.Zero;
-        bool hpsopen = false;
-        bool animsopen = false;
         bool firstTab = true;
         float zoom = 0;
         Color4 background = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
         System.Numerics.Vector3 editCol;
+
+        bool[] openTabs = new bool[] { false, false, false };
+        void TabButton(string name, int idx)
+        {
+            if(TabHandler.VerticalTab(name, openTabs[idx])) {
+                if (!openTabs[idx])
+                {
+                    for (int i = 0; i < openTabs.Length; i++) openTabs[i] = false;
+                    openTabs[idx] = true;
+                }
+                else
+                    openTabs[idx] = false;
+            }
+        }
+        void TabButtons()
+        {
+            ImGuiNative.igBeginGroup();
+            TabButton("Hardpoints", 0);
+            if (drawable is CmpFile)
+                TabButton("Constructs", 1);
+            if (drawable is CmpFile && ((CmpFile)drawable).Animation != null)
+                TabButton("Animations", 2);
+            ImGuiNative.igEndGroup();
+            ImGui.SameLine();
+        }
+
         public override bool Draw()
         {
-            bool doTabs = hpsopen || animsopen;
+            bool doTabs = false;
+            foreach (var t in openTabs) if (t) { doTabs = true; break; }
             var contentw = ImGui.GetContentRegionAvailableWidth();
             if (doTabs)
             {
@@ -165,68 +187,13 @@ namespace LancerEdit
                     firstTab = false;
                 }
                 ImGui.BeginChild("##tabchild");
-                if (hpsopen)
-                {
-                    if (partlist.Count == 1 && partlist[0].Part == null)
-                    {
-                        DoChecks(partlist[0].Gizmos);
-                    }
-                    else if (partlist.Count > 0)
-                    {
-                        int j = 0;
-                        foreach (var pl in partlist)
-                        {
-                            if (pl.Gizmos.Count == 0) continue;
-                            if (ImGui.CollapsingHeader(pl.Part.ObjectName,
-                                                      pl.Part.ObjectName + "_" + j++,
-                                                      false, true))
-                            {
-                                DoChecks(pl.Gizmos);
-                            }
-                        }
-                    }
-                }
-                if (animsopen)
-                {
-                    var anm = ((CmpFile)drawable).Animation;
-                    int j = 0;
-                    foreach (var sc in anm.Scripts)
-                    {
-                        if (ImGui.Button(sc.Key + "###" + j++))
-                        {
-                            animator.StartAnimation(sc.Key, false);
-                        }
-                    }
-                }
+                if (openTabs[0]) HardpointsPanel();
+                if (openTabs[1]) ConstructsPanel();
+                if (openTabs[2]) AnimationPanel();
                 ImGui.EndChild();
                 ImGui.NextColumn();
             }
-            ImGuiNative.igBeginGroup();
-            if (TabHandler.VerticalTab("Hardpoints", hpsopen))
-            {
-                if (!hpsopen)
-                {
-                    hpsopen = true;
-                    animsopen = false;
-                }
-                else
-                    hpsopen = false;
-            }
-            if (drawable is CmpFile && ((CmpFile)drawable).Animation != null)
-            {
-                if (TabHandler.VerticalTab("Animations", animsopen))
-                {
-                    if (!animsopen)
-                    {
-                        animsopen = true;
-                        hpsopen = false;
-                    }
-                    else
-                        animsopen = false;
-                }
-            }
-            ImGuiNative.igEndGroup();
-            ImGui.SameLine();
+            TabButtons();
             ImGui.BeginChild("##main");
             if (ImGui.ColorButton("Background Color", new Vector4(background.R, background.G, background.B, 1),
                                 ColorEditFlags.NoAlpha, new Vector2(22, 22)))
@@ -263,108 +230,9 @@ namespace LancerEdit
             ImGui.PushItemWidth(-1);
             ImGui.Combo("##modes", ref viewMode, viewModes);
             ImGui.PopItemWidth();
-            var renderWidth = Math.Max(120, (int)ImGui.GetWindowWidth() - 15);
-            var renderHeight = Math.Max(120, (int)ImGui.GetWindowHeight() - 40);
-            //Generate render target
-            if (rh != renderHeight || rw != renderWidth)
-            {
-                if (renderTarget != null)
-                {
-                    ImGuiHelper.DeregisterTexture(renderTarget);
-                    renderTarget.Dispose();
-                }
-                renderTarget = new RenderTarget2D(renderWidth, renderHeight);
-                rid = ImGuiHelper.RegisterTexture(renderTarget);
-                rw = renderWidth;
-                rh = renderHeight;
-            }
-            DrawGL(renderWidth, renderHeight);
-            ImGui.ImageButton((IntPtr)rid, new Vector2(renderWidth, renderHeight),
-                              Vector2.Zero, Vector2.One,
-                              0,
-                              Vector4.One, Vector4.One);
-            if (ImGui.IsItemHovered(HoveredFlags.Default))
-            {
-                if (ImGui.IsMouseDragging(0, 1f))
-                {
-                    var delta = (Vector2)ImGui.GetMouseDragDelta(0, 1f);
-                    rotation -= (delta / 64);
-                    ImGui.ResetMouseDragDelta(0);
-                }
-                float wheel = ImGui.GetIO().MouseWheel;
-                if (ImGui.GetIO().ShiftPressed)
-                    zoom -= wheel * 10;
-                else
-                    zoom -= wheel * 40;
-                if (zoom < 0) zoom = 0;
-            }
-
+            DoViewport();
             ImGui.EndChild();
             return true;
-        }
-
-        void DoChecks(List<HardpointGizmo> gizmos)
-        {
-            int j = 0;
-            foreach (var gz in gizmos)
-            {
-                ImGui.Checkbox(gz.Definition.Name + "##" + j++, ref gz.Enabled);
-            }
-        }
-
-        public override void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
-        {
-            ResourceDetection.DetectDrawable(Name, drawable, res, missing, matrefs, texrefs);
-        }
-
-        void DrawGL(int renderWidth, int renderHeight)
-        {
-            //Set state
-            renderTarget.BindFramebuffer();
-            rstate.Cull = true;
-            var cc = rstate.ClearColor;
-            rstate.DepthEnabled = true;
-            rstate.ClearColor = background;
-            rstate.ClearAll();
-            vps.Push(0, 0, renderWidth, renderHeight);
-            //Draw Model
-            var cam = new LookAtCamera();
-            cam.Update(renderWidth, renderHeight, new Vector3(zoom, 0, 0), Vector3.Zero);
-            drawable.Update(cam, TimeSpan.Zero, TimeSpan.Zero);
-            if (viewMode != M_NONE)
-            {
-                buffer.StartFrame(rstate);
-                if (drawable is CmpFile)
-                    DrawCmp(cam, false);
-                else
-                    DrawSimple(cam, false);
-                buffer.DrawOpaque(rstate);
-                rstate.DepthWrite = false;
-                buffer.DrawTransparent(rstate);
-                rstate.DepthWrite = true;
-            }
-            if (doWireframe)
-            {
-                buffer.StartFrame(rstate);
-                GL.PolygonOffset(1, 1);
-                rstate.Wireframe = true;
-                if (drawable is CmpFile)
-                    DrawCmp(cam, true);
-                else
-                    DrawSimple(cam, false);
-                GL.PolygonOffset(0, 0);
-                buffer.DrawOpaque(rstate);
-                rstate.Wireframe = false;
-            }
-            //Draw hardpoints
-            DrawHardpoints(cam);
-            //Restore state
-            rstate.Cull = false;
-            rstate.BlendMode = BlendMode.Normal;
-            rstate.DepthEnabled = false;
-            rstate.ClearColor = cc;
-            RenderTarget2D.ClearBinding();
-            vps.Pop();
         }
 
         class HardpointGizmo
@@ -380,75 +248,89 @@ namespace LancerEdit
             }
         }
 
-        void DrawHardpoints(ICamera cam)
+        void DoChecks(List<HardpointGizmo> gizmos)
         {
-            var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
-            GizmoRender.Begin();
-            foreach (var pl in partlist)
+            int j = 0;
+            foreach (var gz in gizmos)
             {
-                foreach (var tr in pl.Gizmos)
-                {
-                    if (tr.Enabled)
-                        GizmoRender.AddGizmo(tr.Transform * matrix);
-                }
+                ImGui.Checkbox(gz.Definition.Name + "##" + j++, ref gz.Enabled);
             }
-            GizmoRender.RenderGizmos(cam, rstate);
         }
 
-        void DrawSimple(ICamera cam, bool wireFrame)
+        void HardpointsPanel()
         {
-            Material mat = null;
-            if (wireFrame || viewMode == M_FLAT)
+            if (partlist.Count == 1 && partlist[0].Part == null)
             {
-                mat = wireframeMaterial3db;
-                mat.Update(cam);
+                DoChecks(partlist[0].Gizmos);
             }
-            else if (viewMode == M_NORMALS)
+            else if (partlist.Count > 0)
             {
-                mat = normalsDebugMaterial;
-                mat.Update(cam);
-            }
-            var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
-            if (viewMode == M_LIT)
-                drawable.DrawBuffer(buffer, matrix, ref lighting, mat);
-            else
-                drawable.DrawBuffer(buffer, matrix, ref Lighting.Empty, mat);
-        }
-
-        int jColors = 0;
-        void DrawCmp(ICamera cam, bool wireFrame)
-        {
-            var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
-            if (wireFrame || viewMode == M_FLAT)
-            {
-                var cmp = (CmpFile)drawable;
-                foreach (var part in cmp.Parts)
+                int j = 0;
+                foreach (var pl in partlist)
                 {
-                    Material mat;
-                    if (!partMaterials.TryGetValue(part.Key, out mat))
+                    if (pl.Gizmos.Count == 0) continue;
+                    if (ImGui.CollapsingHeader(pl.Part.ObjectName,
+                                              pl.Part.ObjectName + "_" + j++,
+                                              false, true))
                     {
-                        mat = new Material(res);
-                        mat.DtName = ResourceManager.WhiteTextureName;
-                        mat.Dc = initialCmpColors[jColors++];
-                        if (jColors >= initialCmpColors.Length) jColors = 0;
-                        partMaterials.Add(part.Key, mat);
+                        DoChecks(pl.Gizmos);
                     }
-                    mat.Update(cam);
-                    part.Value.DrawBuffer(buffer, matrix, ref Lighting.Empty, mat);
                 }
             }
-            else if (viewMode == M_TEXTURED || viewMode == M_LIT)
+        }
+
+        class ConstructNode
+        {
+            public AbstractConstruct Con;
+            public List<ConstructNode> Nodes = new List<ConstructNode>();
+        }
+        List<ConstructNode> cons = new List<ConstructNode>();
+        List<AbstractConstruct> conOrphan = new List<AbstractConstruct>();
+
+        void DoConstructNode(ConstructNode cn)
+        {
+            var n = string.Format("{0} ({1})", cn.Con.ChildName, cn.Con.GetType().Name);
+            if (cn.Nodes.Count > 0)
             {
-                if (viewMode == M_LIT)
-                    drawable.DrawBuffer(buffer, matrix, ref lighting);
-                else
-                    drawable.DrawBuffer(buffer, matrix, ref Lighting.Empty);
+                if (ImGui.TreeNode(n))
+                {
+                    foreach (var child in cn.Nodes)
+                        DoConstructNode(child);
+                    ImGui.TreePop();
+                }
             }
             else
             {
-                normalsDebugMaterial.Update(cam);
-                drawable.DrawBuffer(buffer, matrix, ref Lighting.Empty, normalsDebugMaterial);
+                ImGui.BulletText(n);
             }
+        }
+
+        void ConstructsPanel()
+        {
+            if (ImGui.TreeNodeEx("Root", TreeNodeFlags.DefaultOpen))
+            {
+                foreach (var n in cons)
+                    DoConstructNode(n);
+                ImGui.TreePop();
+            }
+        }
+
+        void AnimationPanel()
+        {
+            var anm = ((CmpFile)drawable).Animation;
+            int j = 0;
+            foreach (var sc in anm.Scripts)
+            {
+                if (ImGui.Button(sc.Key + "###" + j++))
+                {
+                    animator.StartAnimation(sc.Key, false);
+                }
+            }
+        }
+
+        public override void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
+        {
+            ResourceDetection.DetectDrawable(Name, drawable, res, missing, matrefs, texrefs);
         }
 
         public override void Dispose()

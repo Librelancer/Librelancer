@@ -58,6 +58,7 @@
     <Compile Include="UILib\Theme.cs" />
     <Compile Include="LookAtCamera.cs" />
     <Compile Include="UILib\TabHandler.cs" />
+    <Compile Include="ModelViewer.Viewport.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">
