@@ -1,19 +1,22 @@
-﻿using System;
+﻿using LibreLancer;
+using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Xwt;
 
 namespace Launcher
 {
-	static class Program
-	{
-		public static LibreLancer.GameConfig Config;
-		/// <summary>
-		/// The main entry point for the application.
-		/// </summary>
-		[STAThread]
-		static void Main(string[] args)
-		{
+    static class Program
+    {
+        public static LibreLancer.GameConfig Config;
+
+        /// <summary>
+        /// The main entry point for the application.
+        /// </summary>
+        [STAThread]
+        static void Main(string[] args)
+        {
             Application.Initialize();
             Config = LibreLancer.GameConfig.Create();
             if (Environment.OSVersion.Platform != PlatformID.MacOSX &&
@@ -39,7 +42,7 @@ namespace Launcher
             {
                 ShowLauncher();
             }
-		}
+        }
         //Show Launcher Directly
         //This makes sure Application.Run() is only called once
         static void ShowLauncher()
@@ -66,27 +69,47 @@ namespace Launcher
             }
         }
 
+        [DllImport("kernel32.dll")]
+        static extern bool SetDllDirectory(string directory);
+
         static Exception ex;
         static void StartGame()
         {
-#if !DEBUG
             try
             {
-#endif
                 Config.Save();
-                Config.Launch();
-#if !DEBUG
-            }
-            catch (Exception ex)
-            {
-                Config.Crashed();
-                Console.Out.WriteLine("Unhandled {0}: ", ex.GetType().Name);
-                Console.Out.WriteLine(ex.Message);
-                Console.Out.WriteLine(ex.StackTrace);
-                Program.ex = ex;
-            }
-#endif
-        }
 
+                if (Platform.RunningOS == OS.Windows)
+                {
+                    string bindir = Path.GetDirectoryName(typeof(GameConfig).Assembly.Location);
+                    var fullpath = Path.Combine(bindir, IntPtr.Size == 8 ? "x64" : "x86");
+                    SetDllDirectory(fullpath);
+                }
+                else
+                    Config.ForceAngle = false;
+
+                var game = new FreelancerGame(Config);
+#if !DEBUG
+                try
+                {
+#endif
+                    game.Run();
+#if !DEBUG
+                }
+                catch (Exception ex)
+                {
+                    game.Crashed();
+                    Console.Out.WriteLine("Unhandled {0}: ", ex.GetType().Name);
+                    Console.Out.WriteLine(ex.Message);
+                    Console.Out.WriteLine(ex.StackTrace);
+                    Program.ex = ex;
+                }
+#endif
+            }
+            catch (Exception xcpt)
+            {
+                Program.ex = xcpt;
+            }
+        }
     }
 }
