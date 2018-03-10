@@ -851,7 +851,7 @@ namespace LancerEdit
                 }
                 else
                 {
-                    ImGui.Image((IntPtr)ImGuiHelper.CircleId, new Vector2(15, 19), Vector2.Zero, Vector2.One, Vector4.One, Vector4.Zero);
+                    Theme.Icon("node_empty", Color4.White);
                     ImGui.SameLine();
                 }
                 bool selected = selectedNode == node;

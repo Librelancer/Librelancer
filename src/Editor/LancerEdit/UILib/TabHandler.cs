@@ -150,7 +150,7 @@ namespace LancerEdit
         {
             var style = ImGui.GetStyle();
             var color_hovered = ImGuiNative.igGetColorU32(ColorTarget.FrameBgHovered, 1);
-            var drawList = ImGuiNative.igGetWindowDrawList();
+            var drawList = ImGuiNative.igGetOverlayDrawList();
             if (draggingTabIndex >= 0 && draggingTabIndex < tabs.Count)
             {
                 var mp = ImGui.GetIO().MousePosition;

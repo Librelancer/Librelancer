@@ -24,7 +24,6 @@ namespace LancerEdit
 {
     public partial class ModelViewer : DockTab
     {
-        bool open = true;
         Lighting lighting;
         IDrawable drawable;
         RenderState rstate;
@@ -59,16 +58,12 @@ namespace LancerEdit
             Color4.Orange
         };
 
-        class PartHps
-        {
-            public Part Part;
-            public List<HardpointGizmo> Gizmos = new List<HardpointGizmo>();
-        }
         Material wireframeMaterial3db;
         Material normalsDebugMaterial;
         Dictionary<int, Material> partMaterials = new Dictionary<int, Material>();
-        List<PartHps> partlist = new List<PartHps>();
+        List<HardpointGizmo> gizmos = new List<HardpointGizmo>();
         AnimationComponent animator;
+
         public ModelViewer(string title, string name, IDrawable drawable, RenderState rstate, ViewportManager viewports, CommandBuffer commands, ResourceManager res)
         {
             Title = title;
@@ -87,50 +82,85 @@ namespace LancerEdit
                 foreach (var p in cmp.Parts)
                 {
                     var parentHp = p.Value.Construct != null ? p.Value.Construct.Transform : Matrix4.Identity;
-                    var php = new PartHps() { Part = p.Value };
                     foreach (var hp in p.Value.Model.Hardpoints)
                     {
-                        php.Gizmos.Add(new HardpointGizmo(hp, hp.Transform * parentHp));
+                        gizmos.Add(new HardpointGizmo(hp, p.Value.Construct));
                     }
-                    partlist.Add(php);
                 }
                 if (cmp.Animation != null)
                     animator = new AnimationComponent(cmp.Constructs, cmp.Animation);
+                foreach (var p in cmp.Parts)
+                {
+                    if (p.Value.Construct == null) rootModel = p.Value.Model;
+                }
                 var q = new Queue<AbstractConstruct>();
                 foreach (var c in cmp.Constructs)
                 {
                     if (c.ParentName == "Root" || string.IsNullOrEmpty(c.ParentName))
-                        cons.Add(new ConstructNode() { Con = c });
+                    {
+                        cons.Add(GetNodeCmp(cmp, c));
+                    }
                     else
                     {
-                        if(cmp.Constructs.Find(c.ParentName) != null)
+                        if (cmp.Constructs.Find(c.ParentName) != null)
                             q.Enqueue(c);
-                        else {
+                        else
+                        {
                             conOrphan.Add(c);
                         }
                     }
                 }
-                while(q.Count > 0) {
+                while (q.Count > 0)
+                {
                     var c = q.Dequeue();
                     if (!PlaceNode(cons, c))
                         q.Enqueue(c);
                 }
+                int maxLevels = 0;
+                foreach (var p in cmp.Parts)
+                {
+                    maxLevels = Math.Max(maxLevels, p.Value.Model.Levels.Length - 1);
+                    if (p.Value.Model.Switch2 != null)
+                        for (int i = 0; i < p.Value.Model.Switch2.Length - 1; i++)
+                            maxDistance = Math.Max(maxDistance, p.Value.Model.Switch2[i]);
+                }
+                levels = new string[maxLevels + 1];
+                for (int i = 0; i <= maxLevels; i++)
+                    levels[i] = i.ToString();
             }
             else if (drawable is ModelFile)
             {
-                var php = new PartHps() { Part = null };
-                foreach (var hp in ((ModelFile)drawable).Hardpoints)
+                var mdl = (ModelFile)drawable;
+                rootModel = mdl;
+                foreach (var hp in mdl.Hardpoints)
                 {
-                    php.Gizmos.Add(new HardpointGizmo(hp, hp.Transform));
+                    gizmos.Add(new HardpointGizmo(hp, null));
                 }
-                partlist.Add(php);
+
+                levels = new string[mdl.Levels.Length];
+                for (int i = 0; i < mdl.Levels.Length; i++)
+                    levels[i] = i.ToString();
+                if (mdl.Switch2 != null)
+                    for (int i = 0; i < mdl.Switch2.Length - 1; i++)
+                        maxDistance = Math.Max(maxDistance, mdl.Switch2[i]);
             }
+            maxDistance += 50;
+        }
+        ConstructNode GetNodeCmp(CmpFile c, AbstractConstruct con)
+        {
+            var node = new ConstructNode() { Con = con };
+            foreach (var p in c.Parts)
+                if (p.Value.Construct == con)
+                    node.Model = p.Value.Model;
+            return node;
         }
         bool PlaceNode(List<ConstructNode> n, AbstractConstruct con)
         {
-            foreach(var node in n) {
-                if(node.Con.ChildName == con.ParentName) {
-                    node.Nodes.Add(new ConstructNode() { Con = con });
+            foreach (var node in n)
+            {
+                if (node.Con.ChildName == con.ParentName)
+                {
+                    node.Nodes.Add(GetNodeCmp((CmpFile)drawable, con));
                     return true;
                 }
                 if (PlaceNode(node.Nodes, con))
@@ -149,10 +179,11 @@ namespace LancerEdit
         Color4 background = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
         System.Numerics.Vector3 editCol;
 
-        bool[] openTabs = new bool[] { false, false, false };
+        bool[] openTabs = new bool[] { false, false };
         void TabButton(string name, int idx)
         {
-            if(TabHandler.VerticalTab(name, openTabs[idx])) {
+            if (TabHandler.VerticalTab(name, openTabs[idx]))
+            {
                 if (!openTabs[idx])
                 {
                     for (int i = 0; i < openTabs.Length; i++) openTabs[i] = false;
@@ -165,11 +196,10 @@ namespace LancerEdit
         void TabButtons()
         {
             ImGuiNative.igBeginGroup();
-            TabButton("Hardpoints", 0);
             if (drawable is CmpFile)
-                TabButton("Constructs", 1);
+                TabButton("Hierachy", 0);
             if (drawable is CmpFile && ((CmpFile)drawable).Animation != null)
-                TabButton("Animations", 2);
+                TabButton("Animations", 1);
             ImGuiNative.igEndGroup();
             ImGui.SameLine();
         }
@@ -182,14 +212,14 @@ namespace LancerEdit
             if (doTabs)
             {
                 ImGui.Columns(2, "##panels", true);
-                if(firstTab) {
+                if (firstTab)
+                {
                     ImGui.SetColumnWidth(0, contentw * 0.23f);
                     firstTab = false;
                 }
                 ImGui.BeginChild("##tabchild");
-                if (openTabs[0]) HardpointsPanel();
-                if (openTabs[1]) ConstructsPanel();
-                if (openTabs[2]) AnimationPanel();
+                if (openTabs[0]) HierachyPanel();
+                if (openTabs[1]) AnimationPanel();
                 ImGui.EndChild();
                 ImGui.NextColumn();
             }
@@ -238,44 +268,13 @@ namespace LancerEdit
         class HardpointGizmo
         {
             public HardpointDefinition Definition;
-            public Matrix4 Transform;
+            public AbstractConstruct Parent;
             public bool Enabled;
-            public HardpointGizmo(HardpointDefinition def, Matrix4 tr)
+            public HardpointGizmo(HardpointDefinition def, AbstractConstruct parent)
             {
                 Definition = def;
-                Transform = tr;
+                Parent = parent;
                 Enabled = false;
-            }
-        }
-
-        void DoChecks(List<HardpointGizmo> gizmos)
-        {
-            int j = 0;
-            foreach (var gz in gizmos)
-            {
-                ImGui.Checkbox(gz.Definition.Name + "##" + j++, ref gz.Enabled);
-            }
-        }
-
-        void HardpointsPanel()
-        {
-            if (partlist.Count == 1 && partlist[0].Part == null)
-            {
-                DoChecks(partlist[0].Gizmos);
-            }
-            else if (partlist.Count > 0)
-            {
-                int j = 0;
-                foreach (var pl in partlist)
-                {
-                    if (pl.Gizmos.Count == 0) continue;
-                    if (ImGui.CollapsingHeader(pl.Part.ObjectName,
-                                              pl.Part.ObjectName + "_" + j++,
-                                              false, true))
-                    {
-                        DoChecks(pl.Gizmos);
-                    }
-                }
             }
         }
 
@@ -283,36 +282,149 @@ namespace LancerEdit
         {
             public AbstractConstruct Con;
             public List<ConstructNode> Nodes = new List<ConstructNode>();
+            public ModelFile Model;
         }
         List<ConstructNode> cons = new List<ConstructNode>();
+        ModelFile rootModel;
         List<AbstractConstruct> conOrphan = new List<AbstractConstruct>();
-
+        ConstructNode selectedNode = null;
         void DoConstructNode(ConstructNode cn)
         {
             var n = string.Format("{0} ({1})", cn.Con.ChildName, cn.Con.GetType().Name);
-            if (cn.Nodes.Count > 0)
-            {
-                if (ImGui.TreeNode(n))
-                {
-                    foreach (var child in cn.Nodes)
-                        DoConstructNode(child);
-                    ImGui.TreePop();
-                }
+            var tflags = TreeNodeFlags.OpenOnArrow | TreeNodeFlags.OpenOnDoubleClick;
+            if (selectedNode == cn) tflags |= TreeNodeFlags.Selected;
+            var icon = "fix";
+            var color = Color4.LightYellow;
+            if(cn.Con is PrisConstruct) {
+                icon = "pris";
+                color = Color4.LightPink;
             }
-            else
+            if(cn.Con is SphereConstruct) {
+                icon = "sphere";
+                color = Color4.LightGreen;
+            }
+            if(cn.Con is RevConstruct) {
+                icon = "rev";
+                color = Color4.LightCoral;
+            }
+            if (ImGui.TreeNodeEx(ImGuiExt.Pad(n), tflags))
             {
-                ImGui.BulletText(n);
+                Theme.RenderTreeIcon(n, icon, color);
+                if (ImGuiNative.igIsItemClicked(0))
+                    selectedNode = cn;
+                foreach (var child in cn.Nodes)
+                    DoConstructNode(child);
+                DoModel(cn.Model);
+                ImGui.TreePop();
+            } else {
+                Theme.RenderTreeIcon(n, icon, color);
+                if (ImGuiNative.igIsItemClicked(0))
+                    selectedNode = cn;
             }
         }
 
-        void ConstructsPanel()
+        void DoModel(ModelFile mdl)
         {
-            if (ImGui.TreeNodeEx("Root", TreeNodeFlags.DefaultOpen))
+            if (mdl.Hardpoints.Count > 0)
             {
+                if (ImGui.TreeNode(ImGuiExt.Pad("Hardpoints")))
+                {
+                    Theme.RenderTreeIcon("Hardpoints", "hardpoint", Color4.CornflowerBlue);
+                    foreach (var hp in mdl.Hardpoints)
+                    {
+                        HardpointGizmo gz = null;
+                        foreach (var gizmo in gizmos)
+                        {
+                            if (gizmo.Definition == hp)
+                            {
+                                gz = gizmo;
+                                break;
+                            }
+                        }
+                        if(hp is RevoluteHardpointDefinition) {
+                            Theme.Icon("rev", Color4.LightSeaGreen);
+                        } else {
+                            Theme.Icon("fix", Color4.Purple);
+                        }
+                        ImGui.SameLine();
+                        if(Theme.IconButton("visible$" + hp.Name,"eye", gz.Enabled ? Color4.White : Color4.Gray)) {
+                            gz.Enabled = !gz.Enabled;
+                        }
+                        ImGui.SameLine();
+                        ImGui.Text(hp.Name);
+                    }
+                    ImGui.TreePop();
+                }
+                else
+                   Theme.RenderTreeIcon("Hardpoints", "hardpoint", Color4.CornflowerBlue);
+            }
+            else
+            {
+                Theme.Icon("hardpoint", Color4.CornflowerBlue);
+                ImGui.SameLine();
+                ImGui.Text("Hardpoints");
+            }
+        }
+        int level = 0;
+        string[] levels;
+        float levelDistance = 0;
+        float maxDistance;
+        bool useDistance = false;
+        int GetLevel(float[] switch2, int maxLevel)
+        {
+            if (useDistance)
+            {
+                if (switch2 == null) return 0;
+                for (int i = 0; i < switch2.Length; i++)
+                {
+                    if (levelDistance <= switch2[i])
+                        return Math.Min(i, maxLevel);
+                }
+                return maxLevel;
+            }
+            else
+            {
+                return Math.Min(level, maxLevel);
+            }
+        }
+        void HierachyPanel()
+        {
+            if (!(drawable is SphFile))
+            {
+                ImGui.Text("Level of Detail");
+                ImGui.Checkbox("Use Distance", ref useDistance);
+                if (useDistance)
+                {
+                    ImGui.SliderFloat("Distance", ref levelDistance, 0, maxDistance, "%f", 1);
+                }
+                else
+                {
+                    ImGui.Combo("Level", ref level, levels);
+                }
+                ImGui.Separator();
+            }
+            if (selectedNode != null)
+            {
+                ImGui.Text(selectedNode.Con.ChildName);
+                ImGui.Text(selectedNode.Con.GetType().Name);
+                ImGui.Text("Origin: " + selectedNode.Con.Origin.ToString());
+                var euler = selectedNode.Con.Rotation.GetEuler();
+                ImGui.Text(string.Format("Rotation: (Pitch {0:0.000}, Yaw {1:0.000}, Roll {2:0.000})",
+                                        MathHelper.RadiansToDegrees(euler.X),
+                                        MathHelper.RadiansToDegrees(euler.Y),
+                                         MathHelper.RadiansToDegrees(euler.Z)));
+                ImGui.Separator();
+            }
+            if (ImGui.TreeNodeEx(ImGuiExt.Pad("Root"), TreeNodeFlags.DefaultOpen))
+            {
+                Theme.RenderTreeIcon("Root", "tree", Color4.DarkGreen);
                 foreach (var n in cons)
                     DoConstructNode(n);
+                DoModel(rootModel);
                 ImGui.TreePop();
             }
+            else
+                Theme.RenderTreeIcon("Root", "tree", Color4.DarkGreen);
         }
 
         void AnimationPanel()
