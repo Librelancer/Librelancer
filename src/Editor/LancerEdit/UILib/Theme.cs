@@ -85,6 +85,23 @@ namespace LancerEdit
             ImGui.PopID();
             return ret;
         }
+        const string MENU_PADDING = "        ";
+        public static bool IconMenuItem(string text, string icon, Color4 tint, bool enabled)
+        {
+            bool ret = false;
+            if (enabled) ret = ImGui.Selectable(MENU_PADDING + text);
+            else
+            {
+                ImGui.PushStyleColor(ColorTarget.Text, ImGui.GetStyle().GetColor(ColorTarget.TextDisabled));
+                ImGui.Text(MENU_PADDING + text);
+                ImGui.PopStyleColor();
+            }
+            ImGui.SameLine();
+            var w = ImGui.GetTextSize(text).X;
+            ImGuiNative.igSetCursorPosX(ImGuiNative.igGetCursorPosX() - w - 32);
+            Icon(icon, tint);
+            return ret;
+        }
         static Vector4 RGBA(int r, int g, int b, int a)
         {
             return new Vector4(r / 255f, g / 255f, b / 255f, a / 255f);
