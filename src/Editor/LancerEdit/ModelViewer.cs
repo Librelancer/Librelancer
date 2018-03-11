@@ -63,16 +63,17 @@ namespace LancerEdit
         Dictionary<int, Material> partMaterials = new Dictionary<int, Material>();
         List<HardpointGizmo> gizmos = new List<HardpointGizmo>();
         AnimationComponent animator;
-
-        public ModelViewer(string title, string name, IDrawable drawable, RenderState rstate, ViewportManager viewports, CommandBuffer commands, ResourceManager res)
+        UtfTab parent;
+        public ModelViewer(string title, string name, IDrawable drawable, MainWindow win, UtfTab parent)
         {
             Title = title;
             Name = name;
             this.drawable = drawable;
-            this.rstate = rstate;
-            this.vps = viewports;
-            this.res = res;
-            buffer = commands;
+            this.parent = parent;
+            rstate = win.RenderState;
+            vps = win.Viewport;
+            res = win.Resources;
+            buffer = win.Commands;
             SetupViewport();
             zoom = drawable.GetRadius() * 2;
             if (drawable is CmpFile)
@@ -145,6 +146,10 @@ namespace LancerEdit
                         maxDistance = Math.Max(maxDistance, mdl.Switch2[i]);
             }
             maxDistance += 50;
+        }
+        public override void SetActiveTab(MainWindow win)
+        {
+            win.ActiveTab = parent;
         }
         ConstructNode GetNodeCmp(CmpFile c, AbstractConstruct con)
         {
@@ -288,9 +293,19 @@ namespace LancerEdit
         ModelFile rootModel;
         List<AbstractConstruct> conOrphan = new List<AbstractConstruct>();
         ConstructNode selectedNode = null;
+        string ConType(AbstractConstruct construct)
+        {
+            var type = "???";
+            if (construct is FixConstruct) type = "Fix";
+            if (construct is RevConstruct) type = "Rev";
+            if (construct is LooseConstruct) type = "Loose";
+            if (construct is PrisConstruct) type = "Pris";
+            if (construct is SphereConstruct) type = "Sphere";
+            return type;
+        }
         void DoConstructNode(ConstructNode cn)
         {
-            var n = string.Format("{0} ({1})", cn.Con.ChildName, cn.Con.GetType().Name);
+            var n = string.Format("{0} ({1})", cn.Con.ChildName, ConType(cn.Con));
             var tflags = TreeNodeFlags.OpenOnArrow | TreeNodeFlags.OpenOnDoubleClick;
             if (selectedNode == cn) tflags |= TreeNodeFlags.Selected;
             var icon = "fix";

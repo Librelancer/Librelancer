@@ -85,17 +85,13 @@ namespace LancerEdit
 			ImGui.BeginMainMenuBar();
 			if (ImGui.BeginMenu("File"))
 			{
-                Theme.Icon("new", Color4.White);
-                ImGui.SameLine();
-				if (ImGui.MenuItem("New", "Ctrl-N", false, true))
+				if (Theme.IconMenuItem("New", "new", Color4.White, true))
 				{
 					var t = new UtfTab(this, new EditableUtf(), "Untitled");
 					ActiveTab = t;
                     AddTab(t);
 				}
-                Theme.Icon("open", Color4.White);
-                ImGui.SameLine();
-				if (ImGui.MenuItem("Open", "Ctrl-O", false, true))
+				if (Theme.IconMenuItem("Open", "open", Color4.White, true))
 				{
 					var f = FileDialog.Open();
 					if (f != null && DetectFileType.Detect(f) == FileType.Utf)
@@ -105,15 +101,13 @@ namespace LancerEdit
                         AddTab(t);
 					}
 				}
-                Theme.Icon("save", Color4.White);
-                ImGui.SameLine();
 				if (ActiveTab == null)
 				{
-					ImGui.MenuItem("Save", "Ctrl-S", false, false);
+					Theme.IconMenuItem("Save", "save", Color4.LightGray, false);
 				}
 				else
 				{
-					if (ImGui.MenuItem(string.Format("Save '{0}'", ActiveTab.Title), "Ctrl-S", false, true))
+					if (Theme.IconMenuItem(string.Format("Save '{0}'", ActiveTab.Title), "save", Color4.White, true))
 					{
 						var f = FileDialog.Save();
 						if (f != null)
@@ -123,9 +117,7 @@ namespace LancerEdit
 						}
 					}
 				}
-                Theme.Icon("quit", Color4.White);
-                ImGui.SameLine();
-				if (ImGui.MenuItem("Quit", "Ctrl-Q", false, true))
+				if (Theme.IconMenuItem("Quit", "quit", Color4.White, true))
 				{
 					Exit();
 				}
@@ -141,9 +133,7 @@ namespace LancerEdit
 			}
 			if (ImGui.BeginMenu("Help"))
 			{
-                Theme.Icon("about", Color4.White);
-                ImGui.SameLine();
-				if (ImGui.MenuItem("About"))
+				if (Theme.IconMenuItem("About","about",Color4.White,true))
 				{
 					openAbout = true;
 				}
@@ -189,7 +179,12 @@ namespace LancerEdit
             TabHandler.TabLabels(tabs, ref selected);
             ImGui.BeginChild("###tabcontent");
             if (selected != null)
+            {
                 selected.Draw();
+                selected.SetActiveTab(this);
+            }
+            else
+                ActiveTab = null;
             ImGui.EndChild();
             TabHandler.DrawTabDrag(tabs);
             ImGui.EndWindow();
@@ -225,7 +220,7 @@ namespace LancerEdit
                 tabs.Add(tab);
                 selected = tab;
             }
-			toAdd.Clear();
+            toAdd.Clear();
 		}
 
 		protected override void Cleanup()

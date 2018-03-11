@@ -38,5 +38,9 @@ namespace LancerEdit
 		public virtual void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
 		{
 		}
+        public virtual void SetActiveTab(MainWindow win)
+        {
+            win.ActiveTab = null;
+        }
 	}
 }

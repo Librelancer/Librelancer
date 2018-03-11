@@ -35,6 +35,10 @@ namespace LancerEdit
             text = new TextBuffer();
             main.Resources.AddResources(utf.Export(), Unique.ToString());
         }
+        public override void SetActiveTab(MainWindow win)
+        {
+            win.ActiveTab = this;
+        }
         MemoryEditor mem;
         byte[] hexdata;
         bool hexEditor = false;
@@ -70,11 +74,6 @@ namespace LancerEdit
             return path;
         }
 
-        void SelectedChanged()
-        {
-            main.ActiveTab = this;
-        }
-
         public override bool Draw()
         {
             //Child Window
@@ -102,7 +101,6 @@ namespace LancerEdit
             if (ImGuiNative.igIsItemClicked(0))
             {
                 selectedNode = Utf.Root;
-                SelectedChanged();
             }
             ImGui.PushID("/##ROOT");
             DoNodeMenu("/##ROOT", Utf.Root, null);
@@ -141,7 +139,7 @@ namespace LancerEdit
                     catch (Exception) { ErrorPopup("Could not open as model"); drawable = null; }
                     if (drawable != null)
                     {
-                        main.AddTab(new ModelViewer("Model Viewer (" + Title + ")", Title, drawable, main.RenderState, main.Viewport, main.Commands, main.Resources));
+                        main.AddTab(new ModelViewer("Model Viewer (" + Title + ")", Title, drawable, main, this));
                     }
                 }
                 if (ImGui.MenuItem("View Ale"))
@@ -828,7 +826,6 @@ namespace LancerEdit
                 if (ImGuiNative.igIsItemClicked(0))
                 {
                     selectedNode = node;
-                    SelectedChanged();
                 }
                 ImGui.PushID(id);
                 DoNodeMenu(id, node, parent);
@@ -858,7 +855,6 @@ namespace LancerEdit
                 if (ImGui.SelectableEx(id, ref selected))
                 {
                     selectedNode = node;
-                    SelectedChanged();
                 }
                 DoNodeMenu(id, node, parent);
             }
