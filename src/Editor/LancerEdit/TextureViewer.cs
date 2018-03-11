@@ -71,8 +71,8 @@ namespace LancerEdit
                 ImGui.Dummy((w / 2) - (sz.X / 2), 5);
                 ImGui.SameLine();
             }
-            ImGui.Image((IntPtr)tid, sz, Vector2.Zero, new Vector2(1, 1),
-                        new Vector4(1, 1, 1, 1), new Vector4(0, 0, 0, 0));
+            ImGui.Image((IntPtr)tid, sz, new Vector2(0,1), new Vector2(1, 0),
+                        Vector4.One, Vector4.Zero);
             ImGui.EndChild();
             return open;
         }

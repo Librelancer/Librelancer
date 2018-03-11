@@ -25,3 +25,6 @@
 [submodule "extern/BulletSharpPInvoke"]
 	path = extern/BulletSharpPInvoke
 	url = https://github.com/AndresTraks/BulletSharpPInvoke
+[submodule "extern/nvidia-texture-tools"]
+	path = extern/nvidia-texture-tools
+	url = https://github.com/castano/nvidia-texture-tools

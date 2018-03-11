@@ -212,16 +212,27 @@ namespace LancerEdit
                         });
                     }
                     if (ImGui.Button("Import Data"))
+                        ImGui.OpenPopup("importactions");
+                    if (ImGui.BeginPopup("importactions"))
                     {
-                        Confirm("Importing data will delete this node's children. Continue?", () =>
+                        if (ImGui.MenuItem("File"))
                         {
-                            string path;
-                            if ((path = FileDialog.Open()) != null)
+                            Confirm("Importing data will delete this node's children. Continue?", () =>
                             {
-                                selectedNode.Children = null;
-                                selectedNode.Data = File.ReadAllBytes(path);
-                            }
-                        });
+                                string path;
+                                if ((path = FileDialog.Open()) != null)
+                                {
+                                    selectedNode.Children = null;
+                                    selectedNode.Data = File.ReadAllBytes(path);
+                                }
+                            });
+                        }
+                        if (ImGui.MenuItem("Texture"))
+                            Confirm("Importing data will delete this node's children. Continue?", () =>
+                            {
+                                ImportTexture();
+                            });
+                        ImGui.EndPopup();
                     }
                 }
             }
@@ -361,12 +372,20 @@ namespace LancerEdit
                     }
                 }
                 if (ImGui.Button("Import Data"))
+                    ImGui.OpenPopup("importactions");
+                if (ImGui.BeginPopup("importactions"))
                 {
-                    string path;
-                    if ((path = FileDialog.Open()) != null)
+                    if (ImGui.MenuItem("File"))
                     {
-                        selectedNode.Data = File.ReadAllBytes(path);
+                        string path;
+                        if ((path = FileDialog.Open()) != null)
+                        {
+                            selectedNode.Data = File.ReadAllBytes(path);
+                        }
                     }
+                    if (ImGui.MenuItem("Texture"))
+                        ImportTexture();
+                    ImGui.EndPopup();
                 }
                 if (ImGui.Button("Export Data"))
                 {
@@ -387,16 +406,121 @@ namespace LancerEdit
                     selectedNode.Data = new byte[0];
                 }
                 if (ImGui.Button("Import Data"))
+                    ImGui.OpenPopup("importactions");
+                if(ImGui.BeginPopup("importactions"))
                 {
-                    string path;
-                    if ((path = FileDialog.Open()) != null)
-                    {
-                        selectedNode.Data = File.ReadAllBytes(path);
+                    if(ImGui.MenuItem("File")) {
+                        string path;
+                        if ((path = FileDialog.Open()) != null)
+                        {
+                            selectedNode.Data = File.ReadAllBytes(path);
+                        }
                     }
+                    if(ImGui.MenuItem("Texture"))
+                        ImportTexture();
+                    ImGui.EndPopup();
                 }
             }
             ImGui.EndChild();
         }
+
+        void ImportTexture()
+        {
+            string path;
+            if ((path = FileDialog.Open()) != null)
+            {
+                bool isDDS;
+                using (var stream = File.OpenRead(path))
+                {
+                    isDDS = LibreLancer.ImageLib.DDS.StreamIsDDS(stream);
+                }
+                if(isDDS) {
+                    selectedNode.Children = null;
+                    selectedNode.Data = File.ReadAllBytes(path);
+                } else {
+                    try
+                    {
+                        teximportprev = LibreLancer.ImageLib.Generic.FromFile(path);
+                        teximportpath = path;
+                        teximportid = ImGuiHelper.RegisterTexture(teximportprev);
+                        openTexImport = true;
+                    }
+                    catch (Exception)
+                    {
+                        ErrorPopup("Could not open file as image");
+                    }
+                }
+            }
+        }
+        string teximportpath = "";
+        Texture2D teximportprev;
+        int teximportid;
+        bool openTexImport = false;
+        volatile bool texImportWaiting = false;
+        byte[] texImportData;
+        string[] texOptions = new string[] {
+            "Uncompressed",
+            "DXT1",
+            "DXT1a",
+            "DXT3",
+            "DXT5"
+        };
+        int compressOption = 0;
+        bool compressSlow = false;
+        void TexImportDialog()
+        {
+            if(teximportprev == null) { //processing
+                ImGui.Text("Processing...");
+                if (!texImportWaiting)
+                {
+                    selectedNode.Children = null;
+                    selectedNode.Data = texImportData;
+                    texImportData = null;
+                    ImGui.CloseCurrentPopup();
+                }
+            } else {
+                ImGui.Image((IntPtr)teximportid, new Vector2(64, 64),
+                            new Vector2(0,1), new Vector2(1,0), Vector4.One, Vector4.Zero);
+                ImGui.Text(string.Format("Dimensions: {0}x{1}", teximportprev.Width, teximportprev.Height));
+                ImGui.Combo("Format", ref compressOption, texOptions);
+                ImGui.Checkbox("Production Quality (slow)", ref compressSlow);
+                if(ImGui.Button("Import")) {
+                    ImGuiHelper.DeregisterTexture(teximportprev);
+                    teximportprev.Dispose();
+                    teximportprev = null;
+                    texImportWaiting = true;
+                    new System.Threading.Thread(() =>
+                    {
+                        var format = DDSFormat.Uncompressed;
+                        switch (compressOption)
+                        {
+                            case 1:
+                                format = DDSFormat.DXT1;
+                                break;
+                            case 2:
+                                format = DDSFormat.DXT1a;
+                                break;
+                            case 3:
+                                format = DDSFormat.DXT3;
+                                break;
+                            case 4:
+                                format = DDSFormat.DXT5;
+                                break;
+                        }
+                        texImportData = TextureImport.CreateDDS(teximportpath, format, compressSlow);
+                        texImportWaiting = false;
+                    }).Start();
+                }
+                ImGui.SameLine();
+                if(ImGui.Button("Cancel")) {
+                    ImGuiHelper.DeregisterTexture(teximportprev);
+                    teximportprev.Dispose();
+                    teximportprev = null;
+                    ImGui.CloseCurrentPopup();
+                }
+            }
+        }
+       
 
         bool stringConfirm = false;
         bool stringEditor = false;
@@ -412,6 +536,17 @@ namespace LancerEdit
 
         unsafe void Popups()
         {
+            //TextureImport
+            if (openTexImport)
+            {
+                ImGui.OpenPopup("Import Texture");
+                openTexImport = false;
+            }
+            if(ImGui.BeginPopupModal("Import Texture"))
+            {
+                TexImportDialog();
+                ImGui.EndPopup();
+            }
             //StringEditor
             if (stringConfirm)
             {

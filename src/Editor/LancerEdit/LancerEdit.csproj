@@ -31,6 +31,9 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="TeximpNet">
+      <HintPath>..\..\packages\TeximpNet.1.2.0\lib\net40\TeximpNet.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -59,6 +62,7 @@
     <Compile Include="LookAtCamera.cs" />
     <Compile Include="UILib\TabHandler.cs" />
     <Compile Include="ModelViewer.Viewport.cs" />
+    <Compile Include="TextureImport.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">
@@ -107,5 +111,11 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="LancerEdit.targets" />
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\..\packages\TeximpNet.1.2.0\build\TeximpNet.targets" Condition="Exists('..\..\packages\TeximpNet.1.2.0\build\TeximpNet.targets')" />
+  <Import Project="$(MSBuildProjectDirectory)\LancerEdit.targets" />
 </Project>

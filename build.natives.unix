@@ -34,4 +34,23 @@ cd ../../../..
 cp $BULLETCDIR/libbulletc.so bin/Debug/
 cp $BULLETCDIR/libbulletc.so bin/Release/
 
+# nvtt
+mkdir -p obj
+cd obj
+cmake ../extern/nvidia-texture-tools -DNVTT_SHARED=1 -DCMAKE_BUILD_TYPE=release -G "Unix Makefiles"
+make
+cd ..
+#copy debug
+cp obj/src/nvcore/libnvcore.so bin/Debug/
+cp obj/src/nvimage/libnvimage.so bin/Debug/
+cp obj/src/nvmath/libnvmath.so bin/Debug/
+cp obj/src/nvtt/libnvtt.so bin/Debug/
+#copy release
+cp obj/src/nvcore/libnvcore.so bin/Release/
+cp obj/src/nvimage/libnvimage.so bin/Release/
+cp obj/src/nvmath/libnvmath.so bin/Release/
+cp obj/src/nvtt/libnvtt.so bin/Release/
+
+
+
 
