@@ -1,11 +1,11 @@
-﻿using System;
+﻿using LibreLancer;
+using System;
 using System.IO;
 using Xwt;
 namespace Launcher
 {
 	public class MainWindow : Window
 	{
-		public bool Run = false;
 		TextEntry textInput;
         //NumericMaskedTextBox<int> resWidthBox;
         //NumericMaskedTextBox<int> resHeightBox;
@@ -14,8 +14,11 @@ namespace Launcher
 		CheckBox skipMovies;
         CheckBox muteMusic;
         CheckBox vsync;
-        public MainWindow(bool forceNoMovies)
+        private GameConfig config;
+        public MainWindow(GameConfig config, bool forceNoMovies)
         {
+            this.config = config;
+
             Title = "Librelancer Launcher";
             Resizable = false;
             var mainBox = new VBox() { Spacing = 6 };
@@ -23,7 +26,7 @@ namespace Launcher
             var dirbox = new HBox() { Spacing = 2 };
             mainBox.PackStart(new Label() { Text = "Freelancer Directory: " });
             dirbox.PackStart((textInput = new TextEntry()), true, true);
-            textInput.Text = Program.Config.FreelancerPath;
+            textInput.Text = config.FreelancerPath;
             var btnChooseFolder = new Button() { Label = " ... " };
             btnChooseFolder.Clicked += BtnChooseFolder_Clicked;
             dirbox.PackStart(btnChooseFolder);
@@ -36,22 +39,22 @@ namespace Launcher
                 skipMovies.Sensitive = false;
             }
             else
-                skipMovies.Active = !Program.Config.IntroMovies;
+                skipMovies.Active = !config.IntroMovies;
             var smbox = new HBox();
             smbox.PackStart(skipMovies);
             mainBox.PackStart(smbox);
             muteMusic = new CheckBox() { Label = "Mute Music" };
-            muteMusic.Active = Program.Config.MuteMusic;
+            muteMusic.Active = config.MuteMusic;
             mainBox.PackStart(muteMusic);
             vsync = new CheckBox() { Label = "VSync" };
-            vsync.Active = Program.Config.VSync;
+            vsync.Active = config.VSync;
             mainBox.PackStart(vsync);
             //Resolution
             resWidthBox = new TextEntry();
-            resWidthBox.Text = Program.Config.BufferWidth.ToString();
+            resWidthBox.Text = config.BufferWidth.ToString();
             resWidthBox.TextInput += Masking;
             resHeightBox = new TextEntry();
-            resHeightBox.Text = Program.Config.BufferHeight.ToString();
+            resHeightBox.Text = config.BufferHeight.ToString();
             resHeightBox.TextInput += Masking;
             var hboxResolution = new HBox();
             hboxResolution.PackEnd(resHeightBox);
@@ -93,30 +96,32 @@ namespace Launcher
             }
         }
 
-		private void BtnLaunch_Clicked(object sender, EventArgs e)
+        private void BtnLaunch_Clicked(object sender, EventArgs e)
         {
-            if (Directory.Exists(textInput.Text))
+            try
             {
-                if (!LibreLancer.GameConfig.CheckFLDirectory(textInput.Text))
-                {
-                    MessageDialog.ShowError(this, "Not a valid freelancer directory");
-                    return;
-                }
-                Program.Config.FreelancerPath = textInput.Text;
-                Program.Config.IntroMovies = !skipMovies.Active;
-                Program.Config.MuteMusic = muteMusic.Active;
-                Program.Config.VSync = vsync.Active;
-                Program.Config.BufferWidth = int.Parse(resWidthBox.Text);
-                Program.Config.BufferHeight = int.Parse(resHeightBox.Text);
-                Run = true;
-                Visible = false;
-                ShowInTaskbar = false;
-                Program.Run();
+                config.Validate();
             }
-            else
+            catch (InvalidFreelancerDirectory)
             {
-                MessageDialog.ShowError(this, "Path does not exist");
+                MessageDialog.ShowError(this, "Not a valid freelancer directory");
+                return;
             }
+            catch (Exception ex)
+            {
+                MessageDialog.ShowError(this, "Invalid configuration");
+                return;
+            }
+
+            config.FreelancerPath = textInput.Text;
+            config.IntroMovies = !skipMovies.Active;
+            config.MuteMusic = muteMusic.Active;
+            config.VSync = vsync.Active;
+            config.BufferWidth = int.Parse(resWidthBox.Text);
+            config.BufferHeight = int.Parse(resHeightBox.Text);
+
+            Visible = false;
+            ShowInTaskbar = false;
         }
     }
 }

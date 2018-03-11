@@ -58,6 +58,14 @@ namespace LibreLancer
 			return true;
 		}
 
+        public void Validate()
+        {
+            if (!LibreLancer.GameConfig.CheckFLDirectory(FreelancerPath))
+            {
+                throw new InvalidFreelancerDirectory(FreelancerPath);
+            }
+        }
+
 		public static GameConfig Create(bool loadFile = true, Func<string> filePath = null)
 		{
             if (!loadFile)
@@ -102,5 +110,11 @@ namespace LibreLancer
 			return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "librelancer.xml");
 		}
 	}
+
+    public class InvalidFreelancerDirectory : Exception
+    {
+        public InvalidFreelancerDirectory(string path) : base(path)
+        { }
+    }
 }
 
