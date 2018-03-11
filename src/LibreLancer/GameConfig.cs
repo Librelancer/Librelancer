@@ -13,6 +13,7 @@
  * Portions created by the Initial Developer are Copyright (C) 2013-2016
  * the Initial Developer. All Rights Reserved.
  */
+using LibreLancer.Exceptions;
 using System;
 using System.IO;
 using System.Xml.Serialization;
@@ -57,6 +58,14 @@ namespace LibreLancer
 			}
 			return true;
 		}
+
+        public void Validate()
+        {
+            if (!LibreLancer.GameConfig.CheckFLDirectory(FreelancerPath))
+            {
+                throw new InvalidFreelancerDirectory(FreelancerPath);
+            }
+        }
 
 		public static GameConfig Create(bool loadFile = true, Func<string> filePath = null)
 		{

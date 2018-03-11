@@ -90,6 +90,7 @@
   <ItemGroup>
     <Compile Include="ConvertData.cs" />
     <Compile Include="CrcTool.cs" />
+    <Compile Include="Exceptions\InvalidFreelancerDirectory.cs" />
     <Compile Include="FreelancerGame.cs" />
     <Compile Include="IDrawable.cs" />
     <Compile Include="ILibFile.cs" />
@@ -455,7 +456,6 @@
   </Target>
   <Target Name="AfterBuild">
   </Target>
-
   <ItemGroup />
   <ItemGroup>
     <None Include="Utf\Ale\AleCrc.tt">
@@ -464,12 +464,5 @@
     </None>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Net\" />
-    <Folder Include="Interface\Animations\" />
-    <Folder Include="Interface\Hud\" />
-    <Folder Include="Interface\Menu\" />
-    <Folder Include="Net\Protocol\" />
-    <Folder Include="Net\Server\" />
-  </ItemGroup>
+  <ItemGroup />
 </Project>

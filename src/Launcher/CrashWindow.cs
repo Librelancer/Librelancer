@@ -37,21 +37,6 @@ namespace Launcher
             var wrap = new HBox() { MinWidth = 600, MinHeight = 400 };
             wrap.PackStart(vbox, true, true);
             Content = wrap;
-           
-            CloseRequested += CrashWindow_CloseRequested;
 		}
-
-        private void CrashWindow_CloseRequested(object sender, CloseRequestedEventArgs args)
-        {
-            if (nextWindow)
-            {
-                var win = new MainWindow(nextWindow);
-                win.Show();
-            }
-            else
-            {
-                Application.Exit();
-            }
-        }
     }
 }
