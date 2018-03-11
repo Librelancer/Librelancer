@@ -15,7 +15,6 @@
  */
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Xml.Serialization;
 namespace LibreLancer
 {
@@ -61,25 +60,32 @@ namespace LibreLancer
 
 		public static GameConfig Create(bool loadFile = true, Func<string> filePath = null)
 		{
-			if (!loadFile) return new GameConfig((filePath ?? DefaultConfigPath));
+            if (!loadFile)
+            {
+                return new GameConfig((filePath ?? DefaultConfigPath));
+            }
+
 			var cfgpath = (filePath ?? DefaultConfigPath)();
-			if (File.Exists(cfgpath))
-			{
-				var xml = new XmlSerializer(typeof(GameConfig));
-				using (var reader = new StreamReader(cfgpath))
-				{
-					var loaded = (GameConfig)xml.Deserialize(reader);
-					loaded.filePath = (filePath ?? DefaultConfigPath);
-					if (loaded.UUID == null)
-						loaded.UUID = Guid.NewGuid();
-					return loaded;
-				}
-			}
-			var cfg = new GameConfig((filePath ?? DefaultConfigPath));
-			if (cfg.UUID == null)
-				cfg.UUID = Guid.NewGuid();
-			cfg.Save();
-			return cfg;
+            if (File.Exists(cfgpath))
+            {
+                var xml = new XmlSerializer(typeof(GameConfig));
+                using (var reader = new StreamReader(cfgpath))
+                {
+                    var loaded = (GameConfig)xml.Deserialize(reader);
+                    loaded.filePath = (filePath ?? DefaultConfigPath);
+                    if (loaded.UUID == null)
+                        loaded.UUID = Guid.NewGuid();
+                    return loaded;
+                }
+            }
+            else
+            {
+                var cfg = new GameConfig((filePath ?? DefaultConfigPath));
+                if (cfg.UUID == null)
+                    cfg.UUID = Guid.NewGuid();
+                cfg.Save();
+                return cfg;
+            }
 		}
 
 		public void Save()
@@ -94,30 +100,6 @@ namespace LibreLancer
 		static string DefaultConfigPath()
 		{
 			return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "librelancer.xml");
-		}
-
-		[DllImport("kernel32.dll")]
-		static extern bool SetDllDirectory (string directory);
-
-		FreelancerGame game;
-
-		public void Launch()
-		{
-			if (Platform.RunningOS == OS.Windows)
-			{
-				string bindir = Path.GetDirectoryName(typeof(GameConfig).Assembly.Location);
-				var fullpath = Path.Combine(bindir, IntPtr.Size == 8 ? "x64" : "x86");
-				SetDllDirectory(fullpath);
-			}
-			else
-				ForceAngle = false;
-			game = new FreelancerGame(this);
-			game.Run ();
-		}
-
-		public void Crashed()
-		{
-			game.Crashed();
 		}
 	}
 }

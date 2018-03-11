@@ -131,6 +131,10 @@
   </Target>
   -->
   <ItemGroup>
+    <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">
+      <Project>{c7a37830-b878-4008-a988-d7294d47f44d}</Project>
+      <Name>LibreLancer.Base</Name>
+    </ProjectReference>
     <ProjectReference Include="..\LibreLancer\LibreLancer.csproj">
       <Project>{C1D53477-0117-48EF-A13D-A0225F0F50CA}</Project>
       <Name>LibreLancer</Name>
