@@ -4,10 +4,15 @@ Custom task to handle TeximpNet Natives
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <Target Name="MoveDllToPlatformFolder" AfterTargets="CopyNativeTexImp">
         <Message Text="Stop cluttering my output" Importance="High"/>
-        <Move SourceFiles="$(OutputPath)\FreeImage64.dll" DestinationFolder="$(OutputPath)\x64"/>
-        <Move SourceFiles="$(OutputPath)\FreeImage32.dll" DestinationFolder="$(OutputPath)\x86"/>
-        <Move SourceFiles="$(OutputPath)\nvtt64.dll" DestinationFolder="$(OutputPath)\x64"/>
-        <Move SourceFiles="$(OutputPath)\nvtt32.dll" DestinationFolder="$(OutputPath)\x86"/>
+        <!-- Move task not available everywhere -->
+        <Copy SourceFiles="$(OutputPath)\FreeImage64.dll" DestinationFolder="$(OutputPath)\x64"/>
+        <Delete Files="$(OutputPath\FreeImage64.dll"/>
+        <Copy SourceFiles="$(OutputPath)\FreeImage32.dll" DestinationFolder="$(OutputPath)\x86"/>
+        <Delete Files="$(OutputPath\FreeImage32.dll"/>
+        <Copy SourceFiles="$(OutputPath)\nvtt64.dll" DestinationFolder="$(OutputPath)\x64"/>
+        <Delete Files="$(OutputPath\nvtt64.dll"/>
+        <Copy SourceFiles="$(OutputPath)\nvtt32.dll" DestinationFolder="$(OutputPath)\x86"/>
+        <Delete Files="$(OutputPath\nvtt32.dll"/>
         <Delete Files="$(OutputPath)\libFreeImage64.so"/>
         <Delete Files="$(OutputPath)\libnvtt64.so"/>
     </Target>
