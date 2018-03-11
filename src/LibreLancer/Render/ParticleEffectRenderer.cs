@@ -56,7 +56,13 @@ namespace LibreLancer
 		}
 		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
-			fx.Draw(sys.Polyline, sys.Game.Billboards, sys.DebugRenderer, tr, SParam);
+			    fx.Draw(sys.Polyline, sys.Game.Billboards, sys.DebugRenderer, tr, SParam);
 		}
-	}
+
+        // nice name in debugger window
+        public override string ToString()
+        {
+            return $"[{this.GetType().Name}] {fx.Effect.Name}";
+        }
+    }
 }

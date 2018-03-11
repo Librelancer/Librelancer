@@ -1,4 +1,5 @@
 ﻿using LibreLancer;
+using LibreLancer.Exceptions;
 using System;
 using System.IO;
 using Xwt;

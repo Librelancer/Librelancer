@@ -13,6 +13,7 @@
  * Portions created by the Initial Developer are Copyright (C) 2013-2016
  * the Initial Developer. All Rights Reserved.
  */
+using LibreLancer.Exceptions;
 using System;
 using System.IO;
 using System.Xml.Serialization;
@@ -110,11 +111,5 @@ namespace LibreLancer
 			return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "librelancer.xml");
 		}
 	}
-
-    public class InvalidFreelancerDirectory : Exception
-    {
-        public InvalidFreelancerDirectory(string path) : base(path)
-        { }
-    }
 }
 

@@ -40,7 +40,9 @@ namespace LibreLancer
             MountedEquipment.Add("hpweapon02", "li_gun01_mark01");
             MountedEquipment.Add("hpweapon03", "li_gun01_mark01");
             //MountedEquipment.Add("hpweapon04", "li_gun01_mark01");
-		}
+            MountedEquipment.Add("HpContrail01", "contrail01");
+            MountedEquipment.Add("HpContrail02", "contrail01");
+        }
 
 		public void JumpTo(string system, string exitpos)
 		{
