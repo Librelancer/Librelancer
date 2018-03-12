@@ -99,7 +99,7 @@ Mouse Flight: {10}
 			//world.Physics.SetDampingFactors(0.01f, 1f);
 			world.RenderUpdate += World_RenderUpdate;
 			world.PhysicsUpdate += World_PhysicsUpdate;
-			var eng = new GameData.Items.Engine() { FireEffect = "gf_ci_smallengine01_fire", LinearDrag = 600, MaxForce = 48000 };
+			var eng = new GameData.Items.Engine() { FireEffect = "gf_li_smallengine02_fire", LinearDrag = 600, MaxForce = 48000 };
 			player.Components.Add((ecpt = new EngineComponent(player, eng, g)));
 			ecpt.Speed = 0;
 			player.Register(world.Physics);
@@ -314,14 +314,14 @@ Mouse Flight: {10}
 			{
 				if (input.ActionDown(InputAction.ID_THROTTLEUP))
 				{
-					Velocity += (float)(delta.TotalSeconds * ACCEL);
-					Velocity = MathHelper.Clamp(Velocity, 0, MAX_VELOCITY);
+                    control.EnginePower += (float)(delta.TotalSeconds);
+					control.EnginePower = MathHelper.Clamp(control.EnginePower, 0, 1);
 				}
 
 				else if (input.ActionDown(InputAction.ID_THROTTLEDOWN))
 				{
-					Velocity -= (float)(delta.TotalSeconds * ACCEL);
-					Velocity = MathHelper.Clamp(Velocity, 0, MAX_VELOCITY);
+                    control.EnginePower -= (float)(delta.TotalSeconds);
+                    control.EnginePower = MathHelper.Clamp(control.EnginePower, 0, 1);
 				}
 			}
 

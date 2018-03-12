@@ -25,7 +25,6 @@ namespace LibreLancer.Fx
 		{
 			var time = particle.TimeAlive / particle.LifeSpan;
 			var node_tr = GetTranslation(reference, transform, sparam, time);
-
 			var p = node_tr.Transform(particle.Position);
 			Texture2D tex;
 			Vector2 tl, tr, bl, br;
@@ -53,7 +52,7 @@ namespace LibreLancer.Fx
 
 			if (DrawNormals)
 			{
-				Debug.DrawLine(p - (n * 8), p + (n * 8));
+				Debug.DrawLine(p - (n * 100), p + (n * 100));
 			}
 		}
 	}

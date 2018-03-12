@@ -50,7 +50,7 @@ namespace LibreLancer.Fx
 			{
 				if (node.Node is FLBeamAppearance)
 				{
-					BeamAppearances.Add(node, new LineBuffer(256));
+					BeamAppearances.Add(node, new LineBuffer(512));
 				}
 				if (node.Node is FxEmitter)
 					emitterCount++;
@@ -91,17 +91,13 @@ namespace LibreLancer.Fx
 					continue;
 				}
 			}
-			//Clean the circular buffers
-			foreach (var buffer in BeamAppearances.Values)
-			{
-				for (int i = 0; i < buffer.Count; i++)
-				{
-					if (buffer[i].Active && Particles[buffer[i].ParticleIndex].Active == false)
-						buffer[i] = new LinePointer() { ParticleIndex = -256, Active = false };
-				}
-				while (buffer.Count > 0 && buffer.Peek().Active == false)
-					buffer.Dequeue();
-			}
+            //Line buffers
+            foreach(var buf in BeamAppearances.Values) {
+                for (int i = 0; i < buf.Count(); i++) {
+                    if (buf[i].ParticleIndex >= 0 && !Particles[buf[i].ParticleIndex].Active)
+                        buf[i] = new LinePointer() { Active = false, ParticleIndex = -1 };
+                }
+            }
 			//Update Emitters
 			for (int i = 0; i < Effect.References.Count; i++)
 			{

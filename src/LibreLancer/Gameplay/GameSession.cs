@@ -31,7 +31,7 @@ namespace LibreLancer
 		public GameSession(FreelancerGame g)
 		{
 			Game = g;
-			PlayerShip = "ge_fighter";
+			PlayerShip = "li_elite";
 			PlayerSystem = "li01";
 			PlayerPosition = new Vector3(-31000, 0, -26755);
 			PlayerOrientation = Matrix3.Identity;
@@ -39,7 +39,7 @@ namespace LibreLancer
             MountedEquipment.Add("hpweapon01", "li_gun01_mark01");
             MountedEquipment.Add("hpweapon02", "li_gun01_mark01");
             MountedEquipment.Add("hpweapon03", "li_gun01_mark01");
-            //MountedEquipment.Add("hpweapon04", "li_gun01_mark01");
+            MountedEquipment.Add("hpweapon04", "li_gun01_mark01");
             MountedEquipment.Add("HpContrail01", "contrail01");
             MountedEquipment.Add("HpContrail02", "contrail01");
         }

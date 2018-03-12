@@ -377,6 +377,7 @@
     <Compile Include="JThreads.cs" />
     <Compile Include="Utf\Vms\VmsFile.cs" />
     <Compile Include="LightBitfield.cs" />
+    <Compile Include="Gameplay\Components\UpdateSParamComponent.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

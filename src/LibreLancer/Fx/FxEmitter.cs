@@ -90,6 +90,7 @@ namespace LibreLancer.Fx
 			{
 				return;
 			}
+            int j = 0;
 			if (spawnMs > 0)
 			{
 				//Spawn lots of particles
@@ -108,9 +109,14 @@ namespace LibreLancer.Fx
 						var idx = instance.GetNextFreeParticle();
 						if (idx == -1)
 							return;
+                        j++;
 						state.ParticleCount++;
 						SpawnParticle(idx, reference, instance, ref transform, sparam);
 						var app = ((FxAppearance)instance.Particles[idx].Appearance.Node);
+                        if(instance.Particles[idx].Appearance.Parent == null) {
+                            instance.Particles[idx].Position = VectorMath.Transform(
+                                instance.Particles[idx].Position, transform);
+                        }
 						app.OnParticleSpawned(idx,instance.Particles[idx].Appearance,instance);
 					}
 				}

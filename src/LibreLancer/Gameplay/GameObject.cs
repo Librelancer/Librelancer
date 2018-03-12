@@ -195,6 +195,7 @@ namespace LibreLancer
 			if (equip is EffectEquipment)
 			{
 				RenderComponent = new ParticleEffectRenderer(((EffectEquipment)equip).Particles);
+                Components.Add(new UpdateSParamComponent(this));
 			}
 			if (equip is ThrusterEquipment)
 			{

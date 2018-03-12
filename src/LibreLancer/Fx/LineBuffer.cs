@@ -24,70 +24,55 @@ namespace LibreLancer
 		public bool Active;
 	}
 
-	public class LineBuffer
-	{
-		public int Capacity { get; private set; }
-		LinePointer[] backing;
-		int head;
-		int tail;
+    public class LineBuffer
+    {
+        private LinePointer[] data;
+        private int pointer;
+        private int count;
 
-		public LineBuffer(int capacity)
-		{
-			backing = new LinePointer[capacity];
-			Capacity = capacity;
-			Count = 0;
-			head = capacity - 1;
-		}
+        public LineBuffer(int size)
+        {
+            data = new LinePointer[size];
+            pointer = data.GetLowerBound(0);
+        }
 
-		public int Count { get; private set; }
+        private void Increment()
+        {
+            if (pointer++ == data.GetUpperBound(0))
+            {
+                pointer = data.GetLowerBound(0);
+            }
+        }
 
-		public bool Enqueue(LinePointer item)
-		{
-			head = (head + 1) % Capacity;
-			backing[head] = item;
-			if (Count == Capacity) {
-				tail = (tail + 1) % Capacity;
-				return false;
-			}
-			Count++;
-			return true;
-		}
+        public int Count() => count;
+        public int Size => data.Length;
 
-		public LinePointer Peek()
-		{
-			return backing[tail];
-		}
+        public LinePointer this[int index]
+        {
+            get
+            {
+                var i = pointer - index;
+                if (i < 0)
+                {
+                    i += Size;
+                }
+                return data[i];
+            } set {
+                var i = pointer - index;
+                if (i < 0)
+                    i += Size;
+                data[i] = value;
+            }
+        }
 
-		public LinePointer Dequeue()
-		{
-			var dequeued = backing[tail];
-			tail = (tail + 1) % Capacity;
-			Count--;
-			return dequeued;
-		}
-
-		public void Clear()
-		{
-			head = Capacity - 1;
-			tail = 0;
-			Count = 0;
-		}
-
-		public LinePointer this[int index]
-		{
-			get
-			{
-				if (index < 0 || index >= Count)
-					throw new ArgumentOutOfRangeException("index");
-				return backing[(tail + index) % Capacity];
-			}
-			set
-			{
-				if (index < 0 || index >= Count)
-					throw new ArgumentOutOfRangeException("index");
-				backing[(tail + index) % Capacity] = value;
-			}
-		}
-
-	}
+        public void Push(LinePointer item)
+        {
+            Increment();
+            data[pointer] = item;
+            if (count <= data.GetUpperBound(0))
+            {
+                count++;
+            }
+        }
+    }
 }

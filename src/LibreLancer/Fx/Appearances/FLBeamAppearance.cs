@@ -51,28 +51,28 @@ namespace LibreLancer.Fx
 			//TODO: In some cases particles are going backwards? (Broken emitter or LineBuffer)
 			//TODO: See if z sorting can be better for Polyline
 			//TODO: Implement FLBeamAppearance properties
-			if (points.Count < 2)
+			if (points.Count() < 2)
 				return;
-			int lastIndex = 0;
-			while (points[lastIndex].Active == false)
-			{
-				lastIndex++;
-				if (lastIndex >= points.Count)
-					return;
-			}
-			//Get only active indices, alloc on stack for 0 GC pressure
-			int* indices = stackalloc int[256]; 
+            //Get only active indices, alloc on stack for 0 GC pressure
+            //int* indices = stackalloc int[512]; 
+            var indices = new int[512];
+            var particles = new Particle[512];
+            for (int i = 0; i < 512; i++) indices[i] = -1;
 			int ptCount = 0;
-			for (int i = lastIndex; i < points.Count; i++)
+            for (int i = 0; i < points.Count(); i++)
 			{
-				if (points[i].Active)
-					indices[ptCount++] = points[i].ParticleIndex;
+                if (points[i].Active)
+                    indices[ptCount++] = points[i].ParticleIndex;
 			}
-
+            for (int i = 0; i < ptCount; i++) particles[i] = instance.Particles[indices[i]];
+            for (int i = 1; i < ptCount; i++) {
+                if (particles[i - 1].TimeAlive > particles[i].TimeAlive)
+                    Console.WriteLine("bad order");
+            }
 			var node_tr = GetTranslation(reference, transform, sparam, 0);
 			Texture2D tex;
 			Vector2 tl, tr, bl, br;
-			HandleTexture(res, globalTime, sparam, ref instance.Particles[points[lastIndex].ParticleIndex], out tex, out tl, out tr, out bl, out br);
+			HandleTexture(res, globalTime, sparam, ref instance.Particles[points[0].ParticleIndex], out tex, out tl, out tr, out bl, out br);
 			//Sorting hack kinda
 			var z = RenderHelpers.GetZ(billboards.Camera.Position, node_tr.Transform(Vector3.Zero));
 			for (int j = 0; j < 2; j++) //two planes
@@ -94,7 +94,7 @@ namespace LibreLancer.Fx
 						if (j == 1)
 						{
 							//Broken? Doesn't show up
-							var right = Vector3.Cross(forward, up).Normalized();
+							var right = Vector3.Cross(up, forward).Normalized();
 							dir = right;
 						}
 					}
@@ -118,7 +118,7 @@ namespace LibreLancer.Fx
 
 		public override void OnParticleSpawned(int idx, NodeReference reference, ParticleEffectInstance instance)
 		{
-			instance.BeamAppearances[reference].Enqueue(new LinePointer() { ParticleIndex = idx, Active = true });
+			instance.BeamAppearances[reference].Push(new LinePointer() { ParticleIndex = idx, Active = true });
 		}
 	}
 }
