@@ -63,6 +63,7 @@
     <Compile Include="UILib\TabHandler.cs" />
     <Compile Include="ModelViewer.Viewport.cs" />
     <Compile Include="TextureImport.cs" />
+    <Compile Include="AleViewer.Icons.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">

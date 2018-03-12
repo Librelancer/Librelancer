@@ -21,7 +21,7 @@ using LibreLancer.Utf.Ale;
 using ImGuiNET;
 namespace LancerEdit
 {
-    public class AleViewer : DockTab
+    public partial class AleViewer : DockTab
     {
         //GL
         RenderTarget2D renderTarget;
@@ -38,7 +38,6 @@ namespace LancerEdit
         ParticleLibrary plib;
         int lastEffect = 0;
         int currentEffect = 0;
-        bool open = true;
 
         float sparam = 1;
         string[] effectNames;
@@ -65,10 +64,48 @@ namespace LancerEdit
             instance = new ParticleEffectInstance(plib.Effects[index]);
             instance.Resources = plib.Resources;
         }
+
+        bool[] openTabs = new bool[] { false, false };
+        void TabButton(string name, int idx)
+        {
+            if (TabHandler.VerticalTab(name, openTabs[idx]))
+            {
+                if (!openTabs[idx])
+                {
+                    for (int i = 0; i < openTabs.Length; i++) openTabs[i] = false;
+                    openTabs[idx] = true;
+                }
+                else
+                    openTabs[idx] = false;
+            }
+        }
+        void TabButtons()
+        {
+            ImGuiNative.igBeginGroup();
+            TabButton("Hierachy", 0);
+            //TabButton("Library", 1);
+            ImGuiNative.igEndGroup();
+            ImGui.SameLine();
+        }
+
         Vector2 rotation = Vector2.Zero;
         float zoom = 200;
         public override bool Draw()
         {
+            bool doTabs = false;
+            foreach (var t in openTabs) if (t) { doTabs = true; break; }
+            var contentw = ImGui.GetContentRegionAvailableWidth();
+            if (doTabs)
+            {
+                ImGui.Columns(2, "##alecolumns", true);
+                ImGui.BeginChild("##leftpanel");
+                if (openTabs[0]) NodePanel();
+                ImGui.EndChild();
+                ImGui.NextColumn();
+            }
+            TabButtons();
+            ImGui.SameLine();
+            ImGui.BeginChild("##renderpanel");
             //Fx management
             lastEffect = currentEffect;
             ImGui.Text("Effect:");
@@ -80,17 +117,10 @@ namespace LancerEdit
             ImGui.SameLine();
             ImGui.Button("-");
             ImGui.Separator();
-            //Layout
-            ImGui.Columns(2, "##alecolumns", true);
-            ImGui.Text("Viewport");
-            ImGui.NextColumn();
-            ImGui.Text("Hierachy");
-            ImGui.Separator();
-            ImGui.NextColumn();
+            //Viewport
             ImGui.BeginChild("##renderchild");
-            //Viewport Rendering
             var renderWidth = Math.Max(120, (int)ImGui.GetWindowWidth() - 15);
-            var renderHeight = Math.Max(120, (int)ImGui.GetWindowHeight() - 70);
+            var renderHeight = Math.Max(120, (int)ImGui.GetWindowHeight() - 40);
             //Generate render target
             if (rh != renderHeight || rw != renderWidth)
             {
@@ -125,39 +155,26 @@ namespace LancerEdit
                     zoom -= wheel * 40;
             }
             //Action Bar
-            if (ImGui.Button("Actions"))
-                ImGui.OpenPopup("actions");
-            if (ImGui.BeginPopup("actions"))
-            {
-                if (ImGui.MenuItem("Open Node Library"))
-                {
-                }
-                ImGui.EndPopup();
-            }
-            ImGui.SameLine();
             if (ImGui.Button("Reset"))
             {
                 instance.Reset();
             }
             ImGui.SameLine();
             ImGui.Text(string.Format("T: {0:0.000}", instance.GlobalTime));
-            //Node Hierachy Tab
             ImGui.EndChild();
-            ImGui.NextColumn();
-            ImGui.BeginChild("##nodesdisplay", false);
+            ImGui.EndChild();
+            return true;
+        }
+
+        void NodePanel()
+        {
             if (selectedReference != null)
             {
                 NodeOptions();
                 ImGui.Separator();
             }
-            ImGui.BeginChild("##nodescroll", false);
             NodeHierachy();
-            ImGui.EndChild();
-            ImGui.EndChild();
-
-            return open;
         }
-
         NodeReference selectedReference = null;
         void NodeHierachy()
         {
@@ -174,7 +191,8 @@ namespace LancerEdit
 
         void NodeOptions()
         {
-            ImGui.Text(string.Format("Selected Node: {0} ({1})", selectedReference.Node.NodeName, selectedReference.Node.Name));
+            ImGui.Text(string.Format("Selected: {0}", selectedReference.Node.NodeName));
+            ImGui.Text(selectedReference.Node.Name);
             //Node enabled
             var enabled = instance.NodeEnabled(selectedReference);
             var wasEnabled = enabled;
@@ -194,21 +212,27 @@ namespace LancerEdit
             if (reference.IsAttachmentNode)
                 label = string.Format("Attachment##{0}", idx);
             else
-                label = string.Format("{0} ({1})##{2}", reference.Node.NodeName, reference.Node.Name, idx);
+                label = string.Format("{0}##{1}", reference.Node.NodeName, idx);
             ImGui.PushStyleColor(ColorTarget.Text, col);
+            string icon;
+            Color4 color;
+            NodeIcon(reference.Node, out icon, out color);
             if (reference.Children.Count > 0)
             {
-                if (ImGui.TreeNodeEx(label, TreeNodeFlags.OpenOnDoubleClick | TreeNodeFlags.OpenOnArrow))
+                if (ImGui.TreeNodeEx(ImGuiExt.Pad(label), TreeNodeFlags.OpenOnDoubleClick | TreeNodeFlags.OpenOnArrow))
                 {
+                    Theme.RenderTreeIcon(label.Split('#')[0], icon, color);
                     int j = 0;
                     foreach (var child in reference.Children)
                         DoNode(child, j++, enabled, disabled);
                     ImGui.TreePop();
                 }
+                else
+                    Theme.RenderTreeIcon(label.Split('#')[0], icon, color);
             }
             else
             {
-                ImGui.Bullet();
+                Theme.Icon(icon, color);
                 ImGui.SameLine();
                 if (ImGui.Selectable(label, selectedReference == reference))
                 {
