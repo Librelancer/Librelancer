@@ -81,22 +81,30 @@ namespace Launcher
             win.Show();
             return win;
         }
-
+        volatile static bool running = true;
         public static void RunGame(GameConfig config)
         {
             Exception game_exception = null;
-            var task = new Task(
+            /*var task = new Task(
                 () =>
                 {
                     Thread.CurrentThread.Name = "Main";
-                    game_exception = StartGame(config);
                 }
             );
-            task.Start();
+            task.Start();*/
 
-            while (!task.IsCompleted)
+            var thread = new Thread(() =>
+            {
+                game_exception = StartGame(config);
+                running = false;
+            });
+            thread.Name = "MainThread";
+            thread.Start();
+
+            while (running)
             {
                 Application.MainLoop.DispatchPendingEvents();
+                Thread.Sleep(10);
             }
 
             if (game_exception != null)
@@ -111,24 +119,28 @@ namespace Launcher
 
         static Exception StartGame(GameConfig config)
         {
+#if !DEBUG
             try
             {
+#endif
                 var game = new FreelancerGame(config);
                 game.Run();
 
                 return null;
+#if !DEBUG
+
             }
             catch (Exception ex)
             {
                 // no point in trying to recover from unrecoverable state
                 //game.Crashed();
-#if DEBUG
                 Console.Out.WriteLine("Unhandled {0}: ", ex.GetType().Name);
                 Console.Out.WriteLine(ex.Message);
                 Console.Out.WriteLine(ex.StackTrace);
-#endif
                 return ex;
             }
+#endif
+
         }
     }
 }
