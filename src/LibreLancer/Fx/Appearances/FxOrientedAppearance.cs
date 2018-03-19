@@ -35,7 +35,7 @@ namespace LibreLancer.Fx
 			}
 		}
 
-		public override void Draw(ref Particle particle, float globaltime, NodeReference reference, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
+		public override void Draw(ref Particle particle, float lasttime, float globaltime, NodeReference reference, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
 		{
 			var time = particle.TimeAlive / particle.LifeSpan;
 			var node_tr = GetTranslation(reference, transform, sparam, time);
@@ -51,7 +51,7 @@ namespace LibreLancer.Fx
 			//var n = (p - p2).Normalized();
 			var n = Vector3.UnitZ;
 
-			billboards.DrawPerspective(
+			/*billboards.DrawPerspective(
 				tex,
 				p,
 				new Vector2(Width.GetValue(sparam, time), Height.GetValue(sparam, time)),
@@ -64,7 +64,7 @@ namespace LibreLancer.Fx
                 Rotate == null ? 0f : MathHelper.DegreesToRadians(Rotate.GetValue(sparam, time)),
 				SortLayers.OBJECT,
 				BlendInfo
-			);
+			);*/
 		}
 	}
 }

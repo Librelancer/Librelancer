@@ -49,13 +49,13 @@ namespace LibreLancer.Fx
 			if(reference.Node != null && reference.Node.Transform != null)
 				mat = reference.Node.Transform.GetMatrix (sparam, time);
 			if (reference.IsAttachmentNode) {
-				return mat * attachment;
+				return attachment * mat;
 			}
 			else if (reference.Parent == null) {
 				return mat;
 			}
 			else {
-				return mat * GetTranslation(reference.Parent, attachment, sparam, time);
+                return GetTranslation(reference.Parent, attachment, sparam, time) * mat;
 			}
 		}
 		public virtual void Update(NodeReference reference, ParticleEffectInstance instance, TimeSpan delta, ref Matrix4 transform, float sparam)

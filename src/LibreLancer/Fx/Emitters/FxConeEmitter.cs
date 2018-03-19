@@ -48,7 +48,7 @@ namespace LibreLancer.Fx
 			return rand.NextFloat(s_min, s_max);
 		}
 
-		protected override void SetParticle(int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+        protected override void SetParticle(int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4 transform, float sparam, float globaltime)
 		{
 			var r_min = MinRadius.GetValue(sparam, 0);
 			var r_max = MaxRadius.GetValue(sparam, 0);
@@ -58,7 +58,7 @@ namespace LibreLancer.Fx
 			float s_max = MathHelper.DegreesToRadians(MaxSpread.GetValue(sparam, 0));
 
 			var direction = RandomInCone(instance.Random, s_min, s_max);
-			var tr = Transform.GetMatrix(sparam, 0);
+			var tr = Transform.GetMatrix(sparam, globaltime);
 			var n = (tr * new Vector4(direction.Normalized(), 0)).Xyz.Normalized();
 			var p = n * radius;
 			n *= Pressure.GetValue(sparam, 0);
@@ -69,9 +69,8 @@ namespace LibreLancer.Fx
 		//Different direction to FxCubeEmitter
         static Vector3 RandomInCone(Random r, float minspread, float maxspread)
 		{
-
-			var direction = Vector3.UnitX;
-            var axis = Vector3.UnitZ;
+			var direction = Vector3.UnitY;
+            var axis = Vector3.UnitX;
 
 			var angle = r.NextFloat(minspread, maxspread);
 			var rotation = Quaternion.FromAxisAngle(axis, angle);

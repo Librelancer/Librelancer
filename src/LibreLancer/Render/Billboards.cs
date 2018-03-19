@@ -22,25 +22,40 @@ namespace LibreLancer
 	{
 		const int MAX_BILLBOARDS = 40000;
 
-		ShaderVariables shader;
-		BillboardVert[] vertices;
-		RenderData[] rendat;
-		VertexBuffer vbo;
-		ushort[] indices = new ushort[MAX_BILLBOARDS * 6];
-		ElementBuffer ibo;
-
+        RenderData[] rendat;
+        //Basic
+        ShaderVariables shaderBasic;
+        BillboardVert[] verticesBasic;
+        VertexBuffer vboBasic;
+        ElementBuffer iboBasic;
+        ushort[] indicesBasic = new ushort[MAX_BILLBOARDS * 6];
+        //Rect
+        ShaderVariables shaderRect;
+        VertexPositionColorTexture[] verticesRect = new VertexPositionColorTexture[MAX_BILLBOARDS * 4];
+        ushort[] indicesRect = new ushort[MAX_BILLBOARDS * 6];
+        VertexBuffer vboRect;
+        ElementBuffer iboRect;
 		public Billboards()
 		{
-			shader = ShaderCache.Get(
+			shaderBasic = ShaderCache.Get(
 				"Billboard.vs",
 				"Billboard.frag"
 			);
-			shader.Shader.SetInteger(shader.Shader.GetLocation("tex0"), 0);
-			vertices = new BillboardVert[MAX_BILLBOARDS * 4];
+			shaderBasic.Shader.SetInteger(shaderBasic.Shader.GetLocation("tex0"), 0);
+            shaderRect = ShaderCache.Get(
+                "Polyline.vs",
+                "Billboard.frag"
+            );
+            shaderRect.Shader.SetInteger(shaderRect.Shader.GetLocation("tex0"), 0);
+			verticesBasic = new BillboardVert[MAX_BILLBOARDS * 4];
 			rendat = new RenderData[MAX_BILLBOARDS];
-			vbo = new VertexBuffer(typeof(BillboardVert), MAX_BILLBOARDS * 4, true);
-			ibo = new ElementBuffer(MAX_BILLBOARDS * 6, true);
-			vbo.SetElementBuffer(ibo);
+			vboBasic = new VertexBuffer(typeof(BillboardVert), MAX_BILLBOARDS * 4, true);
+			iboBasic = new ElementBuffer(MAX_BILLBOARDS * 6, true);
+			vboBasic.SetElementBuffer(iboBasic);
+
+            vboRect = new VertexBuffer(typeof(VertexPositionColorTexture), MAX_BILLBOARDS * 4, true);
+            iboRect = new ElementBuffer(MAX_BILLBOARDS * 6, true);
+            vboRect.SetElementBuffer(iboRect);
 		}
 		[StructLayout(LayoutKind.Sequential)]
 		struct BillboardVert : IVertexType
@@ -64,20 +79,27 @@ namespace LibreLancer
 				);
 			}
 		}
+        enum RenderKind
+        {
+            Basic = 3,
+            Rect = 178925648
+        }
 		struct RenderData
 		{
 			public Texture Texture;
 			public BlendMode BlendMode;
+            public RenderKind RenderKind;
 			public ushort Index0;
 			public ushort Index1;
 			public ushort Index2;
 			public ushort Index3;
 			public ushort Index4;
 			public ushort Index5;
-			public RenderData(Texture tex, BlendMode blend, ushort idxStart)
+			public RenderData(Texture tex, BlendMode blend, RenderKind kind, ushort idxStart)
 			{
 				Texture = tex;
 				BlendMode = blend;
+                RenderKind = kind;
 				Index0 = idxStart;
 				Index1 = (ushort)(idxStart + 1);
 				Index2 = (ushort)(idxStart + 2);
@@ -89,6 +111,7 @@ namespace LibreLancer
 			{
 				var d = new RenderData ();
 				d.Texture = tex;
+                d.RenderKind = RenderKind.Basic;
 				d.BlendMode = blend;
 				d.Index0 = idxStart;
 				d.Index1 = (ushort)(idxStart + 1);
@@ -108,6 +131,7 @@ namespace LibreLancer
 					int hash = 17;
 					hash += hash * 23 + Texture.GetHashCode();
 					hash += hash * 23 + BlendMode.GetHashCode();
+                    hash += hash * 23 + (int)RenderKind;
 					return hash;
 				}
 			}
@@ -120,14 +144,13 @@ namespace LibreLancer
 			}
 		}
 		ICamera camera;
-		Texture2D currentTexture;
 		int billboardCount = 0;
 		CommandBuffer buffer;
 		public void Begin(ICamera cam, CommandBuffer cmd)
 		{
 			camera = cam;
-			currentTexture = null;
-			billboardCount = vertexCount = indexCount = 0;
+			billboardCount = vertexCountBasic = indexCountBasic = 0;
+            vertexCountRect = indexCountRect = 0;
 			buffer = cmd;
 		}
         public Shader GetShader(string shader)
@@ -154,8 +177,7 @@ namespace LibreLancer
 			float z = float.NegativeInfinity
 		)
 		{
-			currentTexture = null;
-			int vc = vertexCount;
+			int vc = vertexCountBasic;
 			CreateBillboard(
 				Position,
 				size,
@@ -210,7 +232,7 @@ namespace LibreLancer
 			var ptB = new Vector3 (-rOn2 * sin120, -rOn2 * cos120, angle);
 			var ptA = new Vector3 (-rOn4 * sin240, -rOn4 * cos240, angle); //triangle is half as tall as it is wide
 
-			vertices [vertexCount++] = new BillboardVert () 
+			verticesBasic [vertexCountBasic++] = new BillboardVert () 
 			{
 				Position = position,
 				Color = color,
@@ -220,7 +242,7 @@ namespace LibreLancer
 				Up = src_up
 			};
 
-			vertices [vertexCount++] = new BillboardVert () 
+			verticesBasic [vertexCountBasic++] = new BillboardVert () 
 			{
 				Position = position,
 				Color = color,
@@ -230,7 +252,7 @@ namespace LibreLancer
 				Up = src_up
 			};
 
-			vertices [vertexCount++] = new BillboardVert () 
+			verticesBasic [vertexCountBasic++] = new BillboardVert () 
 			{
 				Position = position,
 				Color = color,
@@ -247,7 +269,7 @@ namespace LibreLancer
 			var sz2 = new Vector3(size.X * 0.5f, size.Y * -0.5f, angle);
 			var sz3 = new Vector3(size.X * -0.5f, size.Y * 0.5f, angle);
 			var sz4 = new Vector3 (size.X * 0.5f, size.Y * 0.5f, angle);
-			vertices[vertexCount++] = new BillboardVert()
+			verticesBasic[vertexCountBasic++] = new BillboardVert()
 			{
 				Position = position,
 				Color = color,
@@ -256,7 +278,7 @@ namespace LibreLancer
 				Right = src_right,
 				Up = src_up
 			};
-			vertices[vertexCount++] = new BillboardVert()
+			verticesBasic[vertexCountBasic++] = new BillboardVert()
 			{
 				Position = position,
 				Color = color,
@@ -265,7 +287,7 @@ namespace LibreLancer
 				Right = src_right,
 				Up = src_up
 			};
-			vertices[vertexCount++] = new BillboardVert()
+			verticesBasic[vertexCountBasic++] = new BillboardVert()
 			{
 				Position = position,
 				Color = color,
@@ -274,7 +296,7 @@ namespace LibreLancer
 				Right = src_right,
 				Up = src_up
 			};
-			vertices[vertexCount++] = new BillboardVert()
+			verticesBasic[vertexCountBasic++] = new BillboardVert()
 			{
 				Position = position,
 				Color = color,
@@ -308,7 +330,8 @@ namespace LibreLancer
 			rendat[billboardCount] = new RenderData(
 				texture,
 				blend,
-				(ushort)vertexCount
+                RenderKind.Basic,
+				(ushort)vertexCountBasic
 			);
 			//construct points then billboard them?
 			CreateBillboard(
@@ -336,7 +359,8 @@ namespace LibreLancer
 
 		public void DrawPerspective(
 			Texture2D texture,
-			Vector3 Position,
+			Vector3 pos,
+            Matrix4 world,
 			Vector2 size,
 			Color4 color,
 			Vector2 topleft,
@@ -349,29 +373,61 @@ namespace LibreLancer
 			BlendMode blend = BlendMode.Normal
 		)
 		{
-			var right = Vector3.Cross(normal, Vector3.UnitY);
-			var up = Vector3.Cross(right, normal);
-
-			up.Normalize();
-			right.Normalize();
+            var upref = Vector3.UnitY;
+            if ((Vector3.UnitY - normal).Length < float.Epsilon)
+                upref = Vector3.UnitZ;
+			var srcright = Vector3.Cross(normal, upref);
+			var srcup = Vector3.Cross(srcright, normal);
+			srcup.Normalize();
+			srcright.Normalize();
+            Vector3 up, right;
+            if(Math.Abs(angle) < float.Epsilon) {
+                up = srcup;
+                right = srcright;
+            } else {
+                var s = (float)Math.Sin(angle);
+                var c = (float)Math.Cos(angle);
+                up = c * srcright - s * srcup;
+                right = s * srcright + c * srcup;
+            }
 			rendat[billboardCount] = new RenderData(
 				texture,
 				blend,
-				(ushort)vertexCount
+                RenderKind.Rect,
+				(ushort)vertexCountRect
 			);
-			CreateBillboard(
-				Position,
-				size,
-				color,
-				angle,
-				topleft,
-				topright,
-				bottomleft,
-				bottomright,
-				right,
-				up
-			);
-			var z = RenderHelpers.GetZ(camera.Position, Position);
+            //
+            var sz = 0.5f * size;
+            verticesRect[vertexCountRect++] = new VertexPositionColorTexture(
+                VectorMath.Transform(
+                    pos - right * sz.X - up * sz.Y, world
+                ),
+                color,
+                bottomleft
+            );
+            verticesRect[vertexCountRect++] = new VertexPositionColorTexture(
+               VectorMath.Transform(
+                   pos + right * sz.X - up * sz.Y, world
+               ),
+               color,
+               topleft
+           );
+            verticesRect[vertexCountRect++] = new VertexPositionColorTexture(
+               VectorMath.Transform(
+                   pos - right * sz.X + up * sz.Y, world
+               ),
+               color,
+               bottomright
+           );
+            verticesRect[vertexCountRect++] = new VertexPositionColorTexture(
+               VectorMath.Transform(
+                   pos + right * sz.X + up * sz.Y, world
+               ),
+               color,
+               topright
+            );
+            //
+			var z = RenderHelpers.GetZ(camera.Position, pos);
 			buffer.AddCommand(
 				this,
 				rendat[billboardCount].GetHashCode(),
@@ -398,7 +454,7 @@ namespace LibreLancer
 			rendat[billboardCount] = RenderData.CreateTri(
 				texture,
 				blend,
-				(ushort)vertexCount
+				(ushort)vertexCountBasic
 			);
 			CreateTriBillboard(
 				Position,
@@ -439,7 +495,8 @@ namespace LibreLancer
 			rendat[billboardCount] = new RenderData(
 				texture,
 				blend,
-				(ushort)vertexCount
+                RenderKind.Basic,
+				(ushort)vertexCountBasic
 			);
 			CreateBillboard(
 				Position,
@@ -462,47 +519,60 @@ namespace LibreLancer
 			billboardCount++;
 		}
 
-		int lasthash = -1;
+        int lastDatHash = -1;
 		int datindex = 0;
-		int indexCount = 0;
-        int fillCount = 0;
-        int lastIndex = 0;
-		int vertexCount = 0;
-
+        int lastIndexBasic = 0;
+        int lastIndexRect = 0;
+        //
+        int indexCountBasic = 0;
+        int fillCountBasic = 0;
+        int vertexCountBasic = 0;
+        //
+        int indexCountRect = 0;
+        int fillCountRect = 0;
+        int vertexCountRect = 0;
         public void AddIndices(int index)
         {
             var dat = rendat[index];
-            indices[fillCount++] = dat.Index0;
-            indices[fillCount++] = dat.Index1;
-            indices[fillCount++] = dat.Index2;
-			if (!dat.Tri) {
-				indices [fillCount++] = dat.Index3;
-				indices [fillCount++] = dat.Index4;
-				indices [fillCount++] = dat.Index5;
-			}
+            if (dat.RenderKind == RenderKind.Basic)
+            {
+                indicesBasic[fillCountBasic++] = dat.Index0;
+                indicesBasic[fillCountBasic++] = dat.Index1;
+                indicesBasic[fillCountBasic++] = dat.Index2;
+                if (!dat.Tri)
+                {
+                    indicesBasic[fillCountBasic++] = dat.Index3;
+                    indicesBasic[fillCountBasic++] = dat.Index4;
+                    indicesBasic[fillCountBasic++] = dat.Index5;
+                }
+            } else {
+                indicesRect[fillCountRect++] = dat.Index0;
+                indicesRect[fillCountRect++] = dat.Index1;
+                indicesRect[fillCountRect++] = dat.Index2;
+                if (!dat.Tri)
+                {
+                    indicesRect[fillCountRect++] = dat.Index3;
+                    indicesRect[fillCountRect++] = dat.Index4;
+                    indicesRect[fillCountRect++] = dat.Index5;
+                }
+            }
             _iboFilled = false;
         }
 
 		public void AddCustomIndices(int idxStart)
 		{
-			indices[fillCount++] = (ushort)idxStart;
-			indices[fillCount++] = (ushort)(idxStart + 1);
-			indices[fillCount++] = (ushort)(idxStart + 2);
-			indices[fillCount++] = (ushort)(idxStart + 1);
-			indices[fillCount++] = (ushort)(idxStart + 3);
-			indices[fillCount++] = (ushort)(idxStart + 2);
+			indicesBasic[fillCountBasic++] = (ushort)idxStart;
+			indicesBasic[fillCountBasic++] = (ushort)(idxStart + 1);
+			indicesBasic[fillCountBasic++] = (ushort)(idxStart + 2);
+			indicesBasic[fillCountBasic++] = (ushort)(idxStart + 1);
+			indicesBasic[fillCountBasic++] = (ushort)(idxStart + 3);
+			indicesBasic[fillCountBasic++] = (ushort)(idxStart + 2);
 			_iboFilled = false;
 		}
 
 		public void RenderCustom(RenderState rs, Shader shdr, ShaderAction customAction, ref RenderCommand cmd)
 		{
 			FlushCommands(rs);
-			if (!_iboFilled)
-			{
-				ibo.SetData(indices, fillCount);
-				_iboFilled = true;
-				fillCount = 0;
-			}
 			//Setup shader default state
 			rs.Cull = false;
 			rs.BlendMode = BlendMode.Normal;
@@ -520,65 +590,74 @@ namespace LibreLancer
 			//User-defined
 			customAction(shdr, rs, ref cmd);
 			//Draw
-			vbo.Draw(PrimitiveTypes.TriangleList, 0, lastIndex, 2);
+			vboBasic.Draw(PrimitiveTypes.TriangleList, 0, lastIndexBasic, 2);
 			//Set stuff
 			rs.Cull = true;
-			lasthash = -1;
-			lastIndex += 6;
+			lastDatHash = -1;
+			lastIndexBasic += 6;
 		}
 
         bool _iboFilled = false;
 		public void RenderStandard(int index, int hash, RenderState rs)
 		{
-			if (hash != lasthash && lasthash != -1)
+			if (hash != lastDatHash && lastDatHash != -1)
 				FlushCommands(rs);
-			lasthash = hash;
+			lastDatHash = hash;
 			datindex = index;
 			var dat = rendat[index];
-			indexCount += dat.Tri ? 3 : 6;
+            if (rendat[index].RenderKind == RenderKind.Basic)
+                indexCountBasic += dat.Tri ? 3 : 6;
+            else
+                indexCountRect += dat.Tri ? 3 : 6;
 		}
 
 		public void FillIbo()
 		{
-			if (!_iboFilled)
-			{
-				ibo.SetData(indices, fillCount);
-				_iboFilled = true;
-				fillCount = 0;
-			}
+            if (!_iboFilled)
+            {
+                iboBasic.SetData(indicesBasic, fillCountBasic);
+                iboRect.SetData(indicesRect, fillCountRect);
+                _iboFilled = true;
+                fillCountRect = 0;
+                fillCountBasic = 0;
+            }
 		}
 
 		bool _frameStart = true;
 		public void FlushCommands(RenderState rs)
 		{
-			if (indexCount == 0)
+            FillIbo();
+			if (indexCountBasic == 0 && indexCountRect == 0)
 			{
-				lasthash = -1;
+				lastDatHash = -1;
 				return;
 			}
 			rs.Cull = false;
 			rs.BlendMode = rendat[datindex].BlendMode;
+            var rect = rendat[datindex].RenderKind == RenderKind.Rect;
 			if (_frameStart)
 			{
 				var v = camera.View;
 				var vp = camera.ViewProjection;
-				shader.SetView(ref v);
-				shader.SetViewProjection(ref vp);
+				shaderBasic.SetView(ref v);
+				shaderBasic.SetViewProjection(ref vp);
+                shaderRect.SetView(ref v);
+                shaderRect.SetViewProjection(ref vp);
 				_frameStart = false;
 			}
 			rendat[datindex].Texture.BindTo(0);
-			shader.UseProgram();
-            if (!_iboFilled)
-            {
-                ibo.SetData(indices, fillCount);
-                _iboFilled = true;
-                fillCount = 0;
+            (rect ? shaderRect : shaderBasic).UseProgram();
+            if(rect) {
+                vboRect.Draw(PrimitiveTypes.TriangleList, 0, lastIndexRect, indexCountRect / 3);
+                lastIndexRect += indexCountRect;
+                indexCountRect = 0;
+            } else {
+                vboBasic.Draw(PrimitiveTypes.TriangleList, 0, lastIndexBasic, indexCountBasic / 3);
+                lastIndexBasic += indexCountBasic;
+                indexCountBasic = 0;
             }
-            vbo.Draw(PrimitiveTypes.TriangleList, 0, lastIndex, indexCount / 3);
 			rs.Cull = true;
-			lasthash = -1;
-            lastIndex += indexCount;
-			indexCount = 0;
+			lastDatHash = -1;
 		}
 		[StructLayout(LayoutKind.Explicit)]
 		struct SplitInt
@@ -593,10 +672,12 @@ namespace LibreLancer
 
 		public void End()
 		{
-			vbo.SetData(vertices, vertexCount);
+			vboBasic.SetData(verticesBasic, vertexCountBasic);
+            vboRect.SetData(verticesRect, vertexCountRect);
 			_frameStart = true;
             _iboFilled = false;
-            lastIndex = 0;
+            lastIndexBasic = 0;
+            lastIndexRect = 0;
 		}
 	}
 }

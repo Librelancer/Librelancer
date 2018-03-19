@@ -35,7 +35,7 @@ namespace LibreLancer.Fx
 			}
 		}
 
-		protected override void SetParticle(int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+        protected override void SetParticle(int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4 transform, float sparam, float globaltime)
 		{
 			var r_min = MinRadius.GetValue(sparam, 0);
 			var r_max = MaxRadius.GetValue(sparam, 0);
@@ -50,7 +50,7 @@ namespace LibreLancer.Fx
 			p.Normalize();
 			var direction = p;
 
-			var tr = Transform.GetMatrix(sparam, 0);
+			var tr = Transform.GetMatrix(sparam, globaltime);
 			var n = (tr * new Vector4(direction, 0)).Xyz.Normalized();
 			n *= Pressure.GetValue(sparam, 0);
 			var pr = p * radius;

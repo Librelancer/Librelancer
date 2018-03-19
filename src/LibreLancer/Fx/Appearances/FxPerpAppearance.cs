@@ -21,23 +21,23 @@ namespace LibreLancer.Fx
 	{
 		public FxPerpAppearance(AlchemyNode ale) : base(ale) { }
 
-		public override void Draw(ref Particle particle, float globaltime, NodeReference reference, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
+		public override void Draw(ref Particle particle, float lasttime, float globaltime, NodeReference reference, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
 		{
 			var time = particle.TimeAlive / particle.LifeSpan;
-			var node_tr = GetTranslation(reference, transform, sparam, time);
-			var p = node_tr.Transform(particle.Position);
+			var node_tr = GetTranslation(reference, transform, sparam, globaltime);
 			Texture2D tex;
 			Vector2 tl, tr, bl, br;
 			HandleTexture(res, globaltime, sparam, ref particle, out tex, out tl, out tr, out bl, out br);
 			var c = Color.GetValue(sparam, time);
 			var a = Alpha.GetValue(sparam, time);
-
-			var p2 = node_tr.Transform(particle.Position + particle.Normal);
-			var n = (p - p2).Normalized();
-
+            var q = particle.Orientation * Transform.GetDeltaRotation(sparam, lasttime, globaltime);
+            particle.Orientation = q;
+            var mat = Matrix4.CreateFromQuaternion(q);
+            var n = (transform * new Vector4(particle.Normal.Normalized(), 0)).Xyz.Normalized();
 			billboards.DrawPerspective(
 				tex,
-				p,
+                VectorMath.Transform(particle.Position,transform),
+                mat,
 				new Vector2(Size.GetValue(sparam, time)),
 				new Color4(c, a),
 				tl,
@@ -52,7 +52,7 @@ namespace LibreLancer.Fx
 
 			if (DrawNormals)
 			{
-				Debug.DrawLine(p - (n * 100), p + (n * 100));
+				//Debug.DrawLine(p - (n * 100), p + (n * 100));
 			}
 		}
 	}

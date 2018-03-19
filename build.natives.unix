@@ -6,50 +6,14 @@ SRC_C=extern/cimgui/cimgui
 SRC_IM=extern/cimgui/imgui
 mkdir -p bin/Debug
 mkdir -p bin/Release
-set -x
-g++ -Wall -std=gnu++11 -shared -fPIC -ldl -O2 -Isrc/cimgui_ext/freetypeshim -Iextern/cimgui/imgui -o libcimgui.so \
- $SRC_C/cimgui.cpp \
- $SRC_C/drawList.cpp \
- $SRC_C/fontAtlas.cpp \
- $SRC_C/listClipper.cpp \
- $SRC_IM/imgui.cpp \
- $SRC_IM/imgui_draw.cpp \
- $SRC_IM/imgui_demo.cpp \
- src/cimgui_ext/cimgui_dock.cpp \
- src/cimgui_ext/imgui_freetype.cpp \
- src/cimgui_ext/cimgui_freetype.cpp \
- src/cimgui_ext/ftshim.c
-
-cp libcimgui.so bin/Debug/libcimgui.so
-mv libcimgui.so bin/Release/libcimgui.so
-
-# libbulletc
-echo Libbulletc
-BULLETCDIR=extern/BulletSharpPInvoke/libbulletc/build
-mkdir -p $BULLETCDIR
-cd $BULLETCDIR
-cmake ..
-make
-cd ../../../..
-cp $BULLETCDIR/libbulletc.so bin/Debug/
-cp $BULLETCDIR/libbulletc.so bin/Release/
-
-# nvtt
 mkdir -p obj
 cd obj
-cmake ../extern/nvidia-texture-tools -DNVTT_SHARED=1 -DCMAKE_BUILD_TYPE=release -G "Unix Makefiles"
-make
-cd ..
-#copy debug
-cp obj/src/nvcore/libnvcore.so bin/Debug/
-cp obj/src/nvimage/libnvimage.so bin/Debug/
-cp obj/src/nvmath/libnvmath.so bin/Debug/
-cp obj/src/nvtt/libnvtt.so bin/Debug/
-#copy release
-cp obj/src/nvcore/libnvcore.so bin/Release/
-cp obj/src/nvimage/libnvimage.so bin/Release/
-cp obj/src/nvmath/libnvmath.so bin/Release/
-cp obj/src/nvtt/libnvtt.so bin/Release/
+set -x
+cmake .. || exit 1
+make || exit 1
+cp binaries/* ../bin/Debug/
+cp binaries/* ../bin/Release/
+
 
 
 

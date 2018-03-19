@@ -24,7 +24,7 @@ namespace LibreLancer.Fx
 		public Vector3 Normal;
 		public float LifeSpan;
 		public float TimeAlive;
-		public float Rotation;
+        public Quaternion Orientation;
 		public NodeReference Appearance;
 		public NodeReference Emitter;
 	}

@@ -58,7 +58,7 @@ namespace LibreLancer.Fx
 			return pt4.Xyz;
 		}
 
-		public override void Draw(ref Particle particle, float globaltime, NodeReference reference, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
+		public override void Draw(ref Particle particle, float lasttime, float globaltime, NodeReference reference, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
 		{
 			var time = particle.TimeAlive / particle.LifeSpan;
 			var node_tr = GetTranslation(reference, transform, sparam, time);
@@ -77,7 +77,8 @@ namespace LibreLancer.Fx
 			var c = Color.GetValue(sparam, time);
 			var a = Alpha.GetValue(sparam, time);
 			var p2 = node_tr.Transform(src_pos + (particle.Normal  * 20));
-			var n = (p2 - p).Normalized();
+            //var n = (p2 - p).Normalized();
+            var n = (transform * new Vector4(particle.Normal.Normalized(), 0)).Xyz.Normalized();
 			billboards.DrawRectAppearance(
 				tex,
 				p,
@@ -92,38 +93,9 @@ namespace LibreLancer.Fx
 				SortLayers.OBJECT,
 				BlendInfo
 			);
-			/*var p1_proj = Project(billboards, p);
-			var p2_proj = Project(billboards, p2);
-
-			var px1 = new Vector2(
-				(p1_proj.X + 1) / 2 * 1024,
-				(1 - p1_proj.Y) / 2 * 768);
-			var px2 = new Vector2(
-				(p2_proj.X + 1) / 2 * 1024,
-				(1 - p2_proj.Y) / 2 * 1024
-			);
-
-			var angle = (float)Math.Atan2(px2.Y - px1.Y, px2.X - px1.X);*/
-
-			/*var src_pos2 = src_pos + (particle.Normal * 20);
-			var angle = (float)Math.Atan2(src_pos2.Y - src_pos.Y, src_pos2.Z - src_pos.Z);
-			var angle_deg = MathHelper.RadiansToDegrees(angle);
-			billboards.Draw(
-				tex,
-				p,
-				new Vector2(l, w) * sc * 0.5f,
-				new Color4(c, a),
-				tl,
-				tr,
-				bl,
-				br,
-				angle, //Rotate == null ? 0f : Rotate.GetValue(sparam, time),
-				SortLayers.OBJECT,
-				BlendInfo
-			);*/
 			if (DrawNormals)
 			{
-				Debug.DrawLine(p - (n * 8), p + (n * 8));
+				Debug.DrawLine(p - (n * 12), p + (n * 12));
 			}
 		}
 	}

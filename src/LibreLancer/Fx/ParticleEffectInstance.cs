@@ -74,8 +74,10 @@ namespace LibreLancer.Fx
 		}
 
 		bool freeParticles;
+        double lasttime = 0;
 		public void Update(TimeSpan delta, Matrix4 transform, float sparam)
 		{
+            lasttime = globaltime;
 			globaltime += delta.TotalSeconds;
 			freeParticles = true;
 			for (int i = 0; i < Particles.Length; i++)
@@ -152,7 +154,7 @@ namespace LibreLancer.Fx
 				{
 					var app = (FxAppearance)Particles[i].Appearance.Node;
 					app.Debug = debug;
-					app.Draw(ref Particles[i], (float)globaltime, Particles[i].Appearance, Effect.ResourceManager, billboards, ref transform, sparam);
+					app.Draw(ref Particles[i], (float)lasttime, (float)globaltime, Particles[i].Appearance, Effect.ResourceManager, billboards, ref transform, sparam);
 				}
 			}
 			foreach (var kv in BeamAppearances)

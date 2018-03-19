@@ -45,7 +45,7 @@ namespace LibreLancer.Fx
 			}	
 		}
 
-		protected override void SetParticle (int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+        protected override void SetParticle (int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4 transform, float sparam, float globaltime)
 		{
 			float w = Width.GetValue (sparam, 0) / 2;
 			float h = Height.GetValue (sparam, 0) / 2;
@@ -58,13 +58,30 @@ namespace LibreLancer.Fx
 				          instance.Random.NextFloat (-h, h),
 				          instance.Random.NextFloat (-d, d)
 			          );
-			var n = RandomCube(instance.Random, s_min, s_max);
-			var tr = Transform.GetMatrix(sparam, 0);
+			var n = RandomInCone(instance.Random, s_min, s_max);
+            var tr = Transform.GetMatrix(sparam, globaltime);
+            //var tr = Matrix4.Identity;
 			n = (tr * new Vector4(n.Normalized(), 0)).Xyz.Normalized();
 			var pr = pos;
 			instance.Particles[idx].Position = pr;
 			instance.Particles [idx].Normal = n * Pressure.GetValue (sparam, 0);
 		}
+
+        //Different direction to FxCubeEmitter
+        static Vector3 RandomInCone(Random r, float minspread, float maxspread)
+        {
+            return Vector3.UnitY;
+            var direction = Vector3.UnitY;
+            var axis = Vector3.UnitZ;
+
+            var angle = r.NextFloat(minspread, maxspread);
+            var rotation = Quaternion.FromAxisAngle(axis, angle);
+            Vector3 output = rotation * direction;
+            var random = r.NextFloat(-MathHelper.Pi, MathHelper.Pi);
+            rotation = Quaternion.FromAxisAngle(direction, random);
+            output = rotation * output;
+            return output;
+        }
 
         static Vector3 RandomCube(Random r, float minspread, float maxspread)
 		{
@@ -75,8 +92,8 @@ namespace LibreLancer.Fx
 			float t = r.NextFloat(0, (float)(Math.PI * 2));
             return new Vector3(
                 (float)(Math.Sqrt(1 - z * z) * Math.Cos(t)),
-                z,
-                (float)(Math.Sqrt(1 - z * z) * Math.Sin(t))
+                (float)(Math.Sqrt(1 - z * z) * Math.Sin(t)),
+                z
             );
 		}
 
