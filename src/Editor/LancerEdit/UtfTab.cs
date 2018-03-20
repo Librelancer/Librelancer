@@ -678,8 +678,8 @@ namespace LancerEdit
             {
                 ImGui.Text("Name: ");
                 ImGui.SameLine();
-                ImGui.InputText("", text.Pointer, text.Size, InputTextFlags.Default, text.Callback);
-                if (ImGui.Button("Ok"))
+                bool entered = ImGui.InputText("", text.Pointer, text.Size, InputTextFlags.EnterReturnsTrue, text.Callback);
+                if (entered || ImGui.Button("Ok"))
                 {
                     var n = text.GetText().Trim();
                     if (n.Length == 0)
@@ -717,8 +717,8 @@ namespace LancerEdit
             {
                 ImGui.Text("Name: ");
                 ImGui.SameLine();
-                ImGui.InputText("", text.Pointer, text.Size, InputTextFlags.Default, text.Callback);
-                if (ImGui.Button("Ok"))
+                bool entered = ImGui.InputText("", text.Pointer, text.Size, InputTextFlags.EnterReturnsTrue, text.Callback);
+                if (entered || ImGui.Button("Ok"))
                 {
                     var node = new LUtfNode() { Name = text.GetText().Trim(), Parent = addParent ?? addNode };
                     if (node.Name.Length == 0)

@@ -93,9 +93,9 @@ namespace LancerEdit
                 }
                 float wheel = ImGui.GetIO().MouseWheel;
                 if (ImGui.GetIO().ShiftPressed)
-                    zoom -= wheel * 10;
+                    zoom -= wheel * (2 * zoomstep);
                 else
-                    zoom -= wheel * 40;
+                    zoom -= wheel * zoomstep;
                 if (zoom < 0) zoom = 0;
             }
         }
@@ -133,7 +133,7 @@ namespace LancerEdit
                 if (drawable is CmpFile)
                     DrawCmp(cam, true);
                 else
-                    DrawSimple(cam, false);
+                    DrawSimple(cam, true);
                 GL.PolygonOffset(0, 0);
                 buffer.DrawOpaque(rstate);
                 rstate.Wireframe = false;
@@ -157,7 +157,7 @@ namespace LancerEdit
             foreach (var tr in gizmos)
             {
                 if (tr.Enabled)
-                    GizmoRender.AddGizmo((tr.Parent == null ? Matrix4.Identity : tr.Parent.Transform) * tr.Definition.Transform * matrix);
+                    GizmoRender.AddGizmo(tr.Definition.Transform * (tr.Parent == null ? Matrix4.Identity : tr.Parent.Transform) * matrix);
             }
             GizmoRender.RenderGizmos(cam, rstate);
         }
@@ -187,7 +187,7 @@ namespace LancerEdit
             else
             {
                 if (mdl != null)
-                    mdl.DrawBufferLevel(mdl.Levels[GetLevel(mdl.Switch2, mdl.Levels.Length - 1)], buffer, matrix, ref Lighting.Empty);
+                    mdl.DrawBufferLevel(mdl.Levels[GetLevel(mdl.Switch2, mdl.Levels.Length - 1)], buffer, matrix, ref Lighting.Empty, mat);
                 else
                     drawable.DrawBuffer(buffer, matrix, ref Lighting.Empty, mat);
             }

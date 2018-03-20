@@ -76,13 +76,13 @@ namespace LancerEdit
             buffer = win.Commands;
             SetupViewport();
             zoom = drawable.GetRadius() * 2;
+            zoomstep = zoom / 3.26f;
             if (drawable is CmpFile)
             {
                 //Setup Editor UI for constructs + hardpoints
                 var cmp = (CmpFile)drawable;
                 foreach (var p in cmp.Parts)
                 {
-                    var parentHp = p.Value.Construct != null ? p.Value.Construct.Transform : Matrix4.Identity;
                     foreach (var hp in p.Value.Model.Hardpoints)
                     {
                         gizmos.Add(new HardpointGizmo(hp, p.Value.Construct));
@@ -181,6 +181,7 @@ namespace LancerEdit
         Vector2 rotation = Vector2.Zero;
         bool firstTab = true;
         float zoom = 0;
+        float zoomstep = 0;
         Color4 background = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
         System.Numerics.Vector3 editCol;
 
@@ -201,8 +202,7 @@ namespace LancerEdit
         void TabButtons()
         {
             ImGuiNative.igBeginGroup();
-            if (drawable is CmpFile)
-                TabButton("Hierachy", 0);
+            TabButton("Hierachy", 0);
             if (drawable is CmpFile && ((CmpFile)drawable).Animation != null)
                 TabButton("Animations", 1);
             ImGuiNative.igEndGroup();
@@ -435,7 +435,7 @@ namespace LancerEdit
                 Theme.RenderTreeIcon("Root", "tree", Color4.DarkGreen);
                 foreach (var n in cons)
                     DoConstructNode(n);
-                DoModel(rootModel);
+                if (!(drawable is SphFile)) DoModel(rootModel);
                 ImGui.TreePop();
             }
             else
