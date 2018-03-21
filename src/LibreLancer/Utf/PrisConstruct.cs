@@ -30,7 +30,7 @@ namespace LibreLancer.Utf
 
         private Matrix4 currentTransform = Matrix4.Identity;
 
-		public override Matrix4 Transform { get { return internalGetTransform(currentTransform * (Rotation * Matrix4.CreateTranslation(Origin + Offset))); } }
+        public override Matrix4 Transform { get { return internalGetTransform(Rotation * currentTransform * Matrix4.CreateTranslation(Origin + Offset)); } }
 
         public PrisConstruct(BinaryReader reader, ConstructCollection constructs)
             : base(reader, constructs)

@@ -64,6 +64,8 @@
     <Compile Include="ModelViewer.Viewport.cs" />
     <Compile Include="TextureImport.cs" />
     <Compile Include="AleViewer.Icons.cs" />
+    <Compile Include="UtfTab.Popups.cs" />
+    <Compile Include="UILib\PopupManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">

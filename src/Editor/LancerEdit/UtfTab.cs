@@ -21,12 +21,13 @@ using LibreLancer;
 using LibreLancer.Utf.Ale;
 namespace LancerEdit
 {
-    public class UtfTab : DockTab
+    public partial class UtfTab : DockTab
     {
         bool open = true;
         public EditableUtf Utf;
         LUtfNode selectedNode = null;
         MainWindow main;
+        PopupManager popups = new PopupManager();
         public UtfTab(MainWindow main, EditableUtf utf, string title)
         {
             this.main = main;
@@ -34,14 +35,14 @@ namespace LancerEdit
             Title = title;
             text = new TextBuffer();
             main.Resources.AddResources(utf.Export(), Unique.ToString());
+            RegisterPopups();
         }
+
         public override void SetActiveTab(MainWindow win)
         {
             win.ActiveTab = this;
         }
-        MemoryEditor mem;
-        byte[] hexdata;
-        bool hexEditor = false;
+      
         TreeNodeFlags tflags = TreeNodeFlags.OpenOnArrow | TreeNodeFlags.OpenOnDoubleClick;
         TextBuffer text;
 
@@ -167,26 +168,7 @@ namespace LancerEdit
             Popups();
             return open;
         }
-
-        bool doError = false;
-        string errorText;
-        void ErrorPopup(string error)
-        {
-            errorText = error;
-            doError = true;
-        }
-
-        string confirmText;
-        bool doConfirm = false;
-        Action confirmAction;
-
-        void Confirm(string text, Action action)
-        {
-            doConfirm = true;
-            confirmAction = action;
-            confirmText = text;
-        }
-
+       
         unsafe int DummyCallback(TextEditCallbackData* data)
         {
             return 0;
@@ -283,11 +265,11 @@ namespace LancerEdit
                     if (ImGui.MenuItem("String Editor"))
                     {
                         if (selectedNode.Data.Length > 255)
-                            stringConfirm = true;
+                            popups.OpenPopup("Confirm?##stringedit");
                         else
                         {
                             text.SetBytes(selectedNode.Data, selectedNode.Data.Length);
-                            stringEditor = true;
+                            popups.OpenPopup("String Editor");
                         }
                     }
                     if (ImGui.MenuItem("Hex Editor"))
@@ -295,7 +277,7 @@ namespace LancerEdit
                         hexdata = new byte[selectedNode.Data.Length];
                         selectedNode.Data.CopyTo(hexdata, 0);
                         mem = new MemoryEditor();
-                        hexEditor = true;
+                        popups.OpenPopup("Hex Editor");
                     }
                     if (ImGui.MenuItem("Float Editor"))
                     {
@@ -340,7 +322,7 @@ namespace LancerEdit
                                 BitConverter.ToSingle(selectedNode.Data, 8),
                                 BitConverter.ToSingle(selectedNode.Data, 12));
                         }
-                        colorPicker = true;
+                        popups.OpenPopup("Color Picker");
                     }
                     ImGui.EndPopup();
                 }
@@ -443,7 +425,7 @@ namespace LancerEdit
                         teximportprev = LibreLancer.ImageLib.Generic.FromFile(path);
                         teximportpath = path;
                         teximportid = ImGuiHelper.RegisterTexture(teximportprev);
-                        openTexImport = true;
+                        popups.OpenPopup("Texture Import");
                     }
                     catch (Exception)
                     {
@@ -452,330 +434,15 @@ namespace LancerEdit
                 }
             }
         }
-        string teximportpath = "";
-        Texture2D teximportprev;
-        int teximportid;
-        bool openTexImport = false;
-        volatile bool texImportWaiting = false;
-        byte[] texImportData;
-        string[] texOptions = new string[] {
-            "Uncompressed",
-            "DXT1",
-            "DXT1a",
-            "DXT3",
-            "DXT5"
-        };
-        int compressOption = 0;
-        bool compressSlow = false;
-        void TexImportDialog()
-        {
-            if(teximportprev == null) { //processing
-                ImGui.Text("Processing...");
-                if (!texImportWaiting)
-                {
-                    selectedNode.Children = null;
-                    selectedNode.Data = texImportData;
-                    texImportData = null;
-                    ImGui.CloseCurrentPopup();
-                }
-            } else {
-                ImGui.Image((IntPtr)teximportid, new Vector2(64, 64),
-                            new Vector2(0,1), new Vector2(1,0), Vector4.One, Vector4.Zero);
-                ImGui.Text(string.Format("Dimensions: {0}x{1}", teximportprev.Width, teximportprev.Height));
-                ImGui.Combo("Format", ref compressOption, texOptions);
-                ImGui.Checkbox("Production Quality (slow)", ref compressSlow);
-                if(ImGui.Button("Import")) {
-                    ImGuiHelper.DeregisterTexture(teximportprev);
-                    teximportprev.Dispose();
-                    teximportprev = null;
-                    texImportWaiting = true;
-                    new System.Threading.Thread(() =>
-                    {
-                        var format = DDSFormat.Uncompressed;
-                        switch (compressOption)
-                        {
-                            case 1:
-                                format = DDSFormat.DXT1;
-                                break;
-                            case 2:
-                                format = DDSFormat.DXT1a;
-                                break;
-                            case 3:
-                                format = DDSFormat.DXT3;
-                                break;
-                            case 4:
-                                format = DDSFormat.DXT5;
-                                break;
-                        }
-                        texImportData = TextureImport.CreateDDS(teximportpath, format, compressSlow);
-                        texImportWaiting = false;
-                    }).Start();
-                }
-                ImGui.SameLine();
-                if(ImGui.Button("Cancel")) {
-                    ImGuiHelper.DeregisterTexture(teximportprev);
-                    teximportprev.Dispose();
-                    teximportprev = null;
-                    ImGui.CloseCurrentPopup();
-                }
-            }
-        }
-       
-
-        bool stringConfirm = false;
-        bool stringEditor = false;
-        bool floatEditor = false;
-        float[] floats;
-        bool intEditor = false;
-        int[] ints;
-        bool intHex = false;
-        bool colorPicker = false;
-        bool pickcolor4 = false;
-        System.Numerics.Vector4 color4;
-        System.Numerics.Vector3 color3;
-
-        unsafe void Popups()
-        {
-            //TextureImport
-            if (openTexImport)
-            {
-                ImGui.OpenPopup("Import Texture");
-                openTexImport = false;
-            }
-            if(ImGui.BeginPopupModal("Import Texture"))
-            {
-                TexImportDialog();
-                ImGui.EndPopup();
-            }
-            //StringEditor
-            if (stringConfirm)
-            {
-                ImGui.OpenPopup("Confirm?##stringedit" + Unique);
-                stringConfirm = false;
-            }
-            if (ImGui.BeginPopupModal("Confirm?##stringedit" + Unique, WindowFlags.AlwaysAutoResize))
-            {
-                ImGui.Text("Data is >255 bytes, string will be truncated. Continue?");
-                if (ImGui.Button("Yes"))
-                {
-                    text.SetBytes(selectedNode.Data, 255);
-                    stringEditor = true;
-                    ImGui.CloseCurrentPopup();
-                }
-                ImGui.SameLine();
-                if (ImGui.Button("No")) ImGui.CloseCurrentPopup();
-                ImGui.EndPopup();
-            }
-            if (stringEditor)
-            {
-                ImGui.OpenPopup("String Editor##" + Unique);
-                stringEditor = false;
-            }
-            if (ImGui.BeginPopupModal("String Editor##" + Unique, WindowFlags.AlwaysAutoResize))
-            {
-                ImGui.Text("String: ");
-                ImGui.SameLine();
-                ImGui.InputText("", text.Pointer, 255, InputTextFlags.Default, text.Callback);
-                if (ImGui.Button("Ok"))
-                {
-                    selectedNode.Data = text.GetByteArray();
-                    ImGui.CloseCurrentPopup();
-                }
-                ImGui.SameLine();
-                if (ImGui.Button("Cancel")) ImGui.CloseCurrentPopup();
-                ImGui.EndPopup();
-            }
-            //Hex Editor
-            if (hexEditor)
-            {
-                ImGui.OpenPopup("HexEditor##" + Unique);
-                hexEditor = false;
-            }
-            if (ImGui.BeginPopupModal("HexEditor##" + Unique))
-            {
-                ImGui.PushFont(ImGuiHelper.Default);
-                int res;
-                if ((res = mem.Draw("Hex", hexdata, hexdata.Length, 0)) != 0)
-                {
-                    if (res == 1) selectedNode.Data = hexdata;
-                    ImGui.CloseCurrentPopup();
-                }
-                ImGui.PopFont();
-                ImGui.EndPopup();
-            }
-            //Color Picker
-            if (colorPicker)
-            {
-                ImGui.OpenPopup("Color Picker##" + Unique);
-                colorPicker = false;
-            }
-            if (ImGui.BeginPopupModal("Color Picker##" + Unique, WindowFlags.AlwaysAutoResize))
-            {
-                bool old4 = pickcolor4;
-                ImGui.Checkbox("Alpha?", ref pickcolor4);
-                if (old4 != pickcolor4)
-                {
-                    if (old4 == false) color4 = new System.Numerics.Vector4(color3.X, color3.Y, color3.Z, 1);
-                    if (old4 == true) color3 = new System.Numerics.Vector3(color4.X, color4.Y, color4.Z);
-                }
-                ImGui.Separator();
-                if (pickcolor4)
-                    ImGui.ColorPicker4("Color", ref color4, ColorEditFlags.AlphaPreview | ColorEditFlags.AlphaBar);
-                else
-                    ImGui.ColorPicker3("Color", ref color3);
-                ImGui.Separator();
-                if (ImGui.Button("Ok"))
-                {
-                    ImGui.CloseCurrentPopup();
-                    if (pickcolor4)
-                    {
-                        var bytes = new byte[16];
-                        fixed (byte* ptr = bytes)
-                        {
-                            var f = (System.Numerics.Vector4*)ptr;
-                            f[0] = color4;
-                        }
-                        selectedNode.Data = bytes;
-                    }
-                    else
-                    {
-                        var bytes = new byte[12];
-                        fixed (byte* ptr = bytes)
-                        {
-                            var f = (System.Numerics.Vector3*)ptr;
-                            f[0] = color3;
-                        }
-                        selectedNode.Data = bytes;
-                    }
-                }
-                ImGui.SameLine();
-                if (ImGui.Button("Cancel"))
-                {
-                    ImGui.CloseCurrentPopup();
-                }
-                ImGui.EndPopup();
-            }
-            //Float Editor
-            if (floatEditor)
-            {
-                ImGui.OpenPopup("Float Editor##" + Unique);
-                floatEditor = false;
-            }
-            DataEditors.FloatEditor("Float Editor##" + Unique, ref floats, selectedNode);
-            if (intEditor)
-            {
-                ImGui.OpenPopup("Int Editor##" + Unique);
-                intEditor = false;
-            }
-            DataEditors.IntEditor("Int Editor##" + Unique, ref ints, ref intHex, selectedNode);
-            //Rename dialog
-            if (doRename)
-            {
-                ImGui.OpenPopup("Rename##" + Unique);
-                doRename = false;
-            }
-            if (ImGui.BeginPopupModal("Rename##" + Unique, WindowFlags.AlwaysAutoResize))
-            {
-                ImGui.Text("Name: ");
-                ImGui.SameLine();
-                bool entered = ImGui.InputText("", text.Pointer, text.Size, InputTextFlags.EnterReturnsTrue, text.Callback);
-                if (entered || ImGui.Button("Ok"))
-                {
-                    var n = text.GetText().Trim();
-                    if (n.Length == 0)
-                        ErrorPopup("Node name cannot be empty");
-                    else
-                        renameNode.Name = text.GetText();
-                    ImGui.CloseCurrentPopup();
-                }
-                ImGui.SameLine();
-                if (ImGui.Button("Cancel"))
-                {
-                    ImGui.CloseCurrentPopup();
-                }
-                ImGui.EndPopup();
-            }
-            //Error
-            if (doError)
-            {
-                ImGui.OpenPopup("Error##" + Unique);
-                doError = false;
-            }
-            if (ImGui.BeginPopupModal("Error##" + Unique, WindowFlags.AlwaysAutoResize))
-            {
-                ImGui.Text(errorText);
-                if (ImGui.Button("Ok")) ImGui.CloseCurrentPopup();
-                ImGui.EndPopup();
-            }
-            //Add
-            if (doAdd)
-            {
-                ImGui.OpenPopup("New Node##" + Unique);
-                doAdd = false;
-            }
-            if (ImGui.BeginPopupModal("New Node##" + Unique, WindowFlags.AlwaysAutoResize))
-            {
-                ImGui.Text("Name: ");
-                ImGui.SameLine();
-                bool entered = ImGui.InputText("", text.Pointer, text.Size, InputTextFlags.EnterReturnsTrue, text.Callback);
-                if (entered || ImGui.Button("Ok"))
-                {
-                    var node = new LUtfNode() { Name = text.GetText().Trim(), Parent = addParent ?? addNode };
-                    if (node.Name.Length == 0)
-                    {
-                        ErrorPopup("Node name cannot be empty");
-                    }
-                    else
-                    {
-                        if (addParent != null)
-                            addParent.Children.Insert(addParent.Children.IndexOf(addNode) + addOffset, node);
-                        else
-                        {
-                            addNode.Data = null;
-                            if (addNode.Children == null) addNode.Children = new List<LUtfNode>();
-                            addNode.Children.Add(node);
-                        }
-                        selectedNode = node;
-                    }
-                    ImGui.CloseCurrentPopup();
-                }
-                ImGui.SameLine();
-                if (ImGui.Button("Cancel"))
-                {
-                    ImGui.CloseCurrentPopup();
-                }
-                ImGui.EndPopup();
-            }
-            //Confirmation
-            if (doConfirm)
-            {
-                ImGui.OpenPopup("Confirm?##generic" + Unique);
-                doConfirm = false;
-            }
-            if (ImGui.BeginPopupModal("Confirm?##generic" + Unique, WindowFlags.AlwaysAutoResize))
-            {
-                ImGui.Text(confirmText);
-                if (ImGui.Button("Yes"))
-                {
-                    confirmAction();
-                    ImGui.CloseCurrentPopup();
-                }
-                ImGui.SameLine();
-                if (ImGui.Button("No")) ImGui.CloseCurrentPopup();
-                ImGui.EndPopup();
-            }
-        }
 
         LUtfNode pasteInto;
         LUtfNode clearNode;
 
-        bool doRename = false;
         LUtfNode renameNode;
 
         LUtfNode deleteNode;
         LUtfNode deleteParent;
 
-        bool doAdd = false;
         int addOffset = 0;
         LUtfNode addNode;
         LUtfNode addParent;
@@ -791,7 +458,7 @@ namespace LancerEdit
                 {
                     text.SetText(node.Name);
                     renameNode = node;
-                    doRename = true;
+                    popups.OpenPopup("Rename Node");
                 }
                 if (ImGui.MenuItem("Delete", node != Utf.Root))
                 {
@@ -830,11 +497,11 @@ namespace LancerEdit
                         {
                             Confirm("Adding a node will clear data. Continue?", () =>
                             {
-                                doAdd = true;
+                                popups.OpenPopup("New Node");
                             });
                         }
                         else
-                            doAdd = true;
+                            popups.OpenPopup("New Node");
                     }
                     if (ImGui.MenuItem("Before", node != Utf.Root))
                     {
@@ -842,7 +509,7 @@ namespace LancerEdit
                         addParent = parent;
                         addNode = node;
                         addOffset = 0;
-                        doAdd = true;
+                        popups.OpenPopup("New Node");
                     }
                     if (ImGui.MenuItem("After", node != Utf.Root))
                     {
@@ -850,7 +517,7 @@ namespace LancerEdit
                         addParent = parent;
                         addNode = node;
                         addOffset = 1;
-                        doAdd = true;
+                        popups.OpenPopup("New Node");
                     }
                     ImGui.EndMenu();
                 }
