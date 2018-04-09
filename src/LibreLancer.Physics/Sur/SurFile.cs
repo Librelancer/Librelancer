@@ -47,8 +47,8 @@ namespace LibreLancer.Physics.Sur
 					foreach (var tri in th.Triangles)
 					{
                         indices.Add(tri.Vertices[0].Vertex);
-                        indices.Add(tri.Vertices[0].Vertex);
-                        indices.Add(tri.Vertices[0].Vertex);
+                        indices.Add(tri.Vertices[1].Vertex);
+                        indices.Add(tri.Vertices[2].Vertex);
 					}
                     //StridingMeshInterface;
                     hull.Add(new ConvexTriangleMeshShape(new TriangleIndexVertexArray(indices, verts)));

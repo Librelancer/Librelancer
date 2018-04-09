@@ -66,6 +66,7 @@ namespace LibreLancer.Physics
                 btCompound.AddChildShape(tr, h);
             }
             currentIndex += hulls.Length;
+            children.Add(pt);
         }
 
         public int LoadSur(string path)

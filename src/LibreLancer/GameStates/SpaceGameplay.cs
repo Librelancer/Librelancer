@@ -507,7 +507,7 @@ Mouse Flight: {10}
 				debugDrawBody.DebugDraw(debugphysics);
 			}*/
             sysrender.DebugRenderer.StartFrame(camera, Game.RenderState);
-            world.Physics.DrawWorld();
+            //world.Physics.DrawWorld();
             sysrender.DebugRenderer.Render();
 			//debugphysics.Render();
 			hud.Draw();
