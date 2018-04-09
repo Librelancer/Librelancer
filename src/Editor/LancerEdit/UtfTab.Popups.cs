@@ -249,7 +249,7 @@ namespace LancerEdit
             ImGui.Text("Name: ");
             ImGui.SameLine();
             bool entered = ImGui.InputText("", text.Pointer, text.Size, InputTextFlags.EnterReturnsTrue, text.Callback);
-            if (data.First) ImGui.SetKeyboardFocusHere();
+            if (data.DoFocus) ImGui.SetKeyboardFocusHere();
             if (entered || ImGui.Button("Ok"))
             {
                 var n = text.GetText().Trim();
@@ -271,7 +271,7 @@ namespace LancerEdit
             ImGui.Text("Name: ");
             ImGui.SameLine();
             bool entered = ImGui.InputText("", text.Pointer, text.Size, InputTextFlags.EnterReturnsTrue, text.Callback);
-            if (data.First) ImGui.SetKeyboardFocusHere();
+            if (data.DoFocus) ImGui.SetKeyboardFocusHere();
             if (entered || ImGui.Button("Ok"))
             {
                 var node = new LUtfNode() { Name = text.GetText().Trim(), Parent = addParent ?? addNode };

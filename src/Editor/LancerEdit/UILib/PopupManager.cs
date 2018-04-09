@@ -33,13 +33,17 @@ namespace LancerEdit
         {
             foreach(var p in popups) {
                 if(p.DoOpen) {
-                    p.Data.First = true;
+                    p.Data.DoFocus = p.Data.First = true;
                     ImGui.OpenPopup(p.Title);
                     p.DoOpen = false;
                 }
                 if(ImGui.BeginPopupModal(p.Title, p.Flags)) {
+                   
                     p.DrawAction(p.Data);
-                    p.Data.First = false;
+                    if (p.Data.First)
+                        p.Data.First = false;
+                    else
+                        p.Data.DoFocus = false;
                     ImGui.EndPopup();
                 }
             }
@@ -47,6 +51,7 @@ namespace LancerEdit
     }
     public class PopupData
     {
+        public bool DoFocus;
         public bool First;
     }
 }
