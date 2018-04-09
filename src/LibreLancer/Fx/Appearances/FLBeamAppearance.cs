@@ -64,6 +64,7 @@ namespace LibreLancer.Fx
                 if (points[i].Active)
                     indices[ptCount++] = points[i].ParticleIndex;
 			}
+            if (ptCount < 2) return;
             for (int i = 0; i < ptCount; i++) particles[i] = instance.Particles[indices[i]];
             for (int i = 1; i < ptCount; i++) {
                 if (particles[i - 1].TimeAlive > particles[i].TimeAlive)
@@ -72,7 +73,7 @@ namespace LibreLancer.Fx
 			var node_tr = GetTranslation(reference, transform, sparam, 0);
 			Texture2D tex;
 			Vector2 tl, tr, bl, br;
-			HandleTexture(res, globalTime, sparam, ref instance.Particles[points[0].ParticleIndex], out tex, out tl, out tr, out bl, out br);
+			HandleTexture(res, globalTime, sparam, ref instance.Particles[indices[0]], out tex, out tl, out tr, out bl, out br);
 			//Sorting hack kinda
 			var z = RenderHelpers.GetZ(billboards.Camera.Position, node_tr.Transform(Vector3.Zero));
 			for (int j = 0; j < 2; j++) //two planes

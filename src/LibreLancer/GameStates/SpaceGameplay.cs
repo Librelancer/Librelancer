@@ -126,6 +126,7 @@ Mouse Flight: {10}
 			player.Components.Add(pilotcomponent);
 			player.World = world;
 			world.MessageBroadcasted += World_MessageBroadcasted;
+            world.Physics.EnableWireframes(sysrender.DebugRenderer);
 		}
 
 		void World_MessageBroadcasted(GameObject sender, GameMessageKind kind)
@@ -494,7 +495,7 @@ Mouse Flight: {10}
 		public override void Draw(TimeSpan delta)
 		{
 			sysrender.Draw();
-			//debugphysics.StartFrame(camera, Game.RenderState);
+            //debugphysics.StartFrame(camera, Game.RenderState);
             /*foreach (var body in world.Physics.RigidBodies)
 			{
 				var rb = (RigidBody)body;
@@ -505,7 +506,9 @@ Mouse Flight: {10}
 			{
 				debugDrawBody.DebugDraw(debugphysics);
 			}*/
-            //world.Physics.DrawWorld();
+            sysrender.DebugRenderer.StartFrame(camera, Game.RenderState);
+            world.Physics.DrawWorld();
+            sysrender.DebugRenderer.Render();
 			//debugphysics.Render();
 			hud.Draw();
 			trender.Start(Game.Width, Game.Height);

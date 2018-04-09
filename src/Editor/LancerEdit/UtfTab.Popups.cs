@@ -1,4 +1,19 @@
-﻿using System;
+﻿/* The contents of this file are subject to the Mozilla Public License
+ * Version 1.1 (the "License"); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ * 
+ * Software distributed under the License is distributed on an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific language governing rights and limitations
+ * under the License.
+ * 
+ * 
+ * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
+ * Portions created by the Initial Developer are Copyright (C) 2013-2018
+ * the Initial Developer. All Rights Reserved.
+ */
+using System;
 using System.Collections.Generic;
 using ImGuiNET;
 using LibreLancer;
@@ -22,6 +37,7 @@ namespace LancerEdit
         int teximportid;
         volatile bool texImportWaiting = false;
         byte[] texImportData;
+        List<LUtfNode> texImportChildren;
         string[] texOptions = new string[] {
             "Uncompressed",
             "DXT1",
@@ -30,6 +46,16 @@ namespace LancerEdit
             "DXT5"
         };
         int compressOption = 0;
+        string[] mipmapOptions = new string[] {
+            "None",
+            "Box",
+            "Bicubic",
+            "Bilinear",
+            "B-Spline",
+            "Catmull-Rom",
+            "Lanczos3"
+        };
+        int mipmapOption = 6;
         bool compressSlow = false;
         void TexImportDialog(PopupData data)
         {
@@ -38,9 +64,20 @@ namespace LancerEdit
                 ImGui.Text("Processing...");
                 if (!texImportWaiting)
                 {
-                    selectedNode.Children = null;
-                    selectedNode.Data = texImportData;
+                    if (texImportChildren != null)
+                    {
+                        selectedNode.Data = null;
+                        foreach (var c in texImportChildren)
+                            c.Parent = selectedNode;
+                        selectedNode.Children = texImportChildren;
+                    }
+                    else
+                    {
+                        selectedNode.Children = null;
+                        selectedNode.Data = texImportData;
+                    }
                     texImportData = null;
+                    texImportChildren = null;
                     ImGui.CloseCurrentPopup();
                 }
             }
@@ -50,6 +87,7 @@ namespace LancerEdit
                             new Vector2(0, 1), new Vector2(1, 0), Vector4.One, Vector4.Zero);
                 ImGui.Text(string.Format("Dimensions: {0}x{1}", teximportprev.Width, teximportprev.Height));
                 ImGui.Combo("Format", ref compressOption, texOptions);
+                ImGui.Combo("Mipmaps", ref mipmapOption, mipmapOptions);
                 ImGui.Checkbox("High Quality (slow)", ref compressSlow);
                 if (ImGui.Button("Import"))
                 {
@@ -75,7 +113,33 @@ namespace LancerEdit
                                 format = DDSFormat.DXT5;
                                 break;
                         }
-                        texImportData = TextureImport.CreateDDS(teximportpath, format, compressSlow);
+                        var mipm = MipmapMethod.None;
+                        switch(mipmapOption) {
+                            case 1:
+                                mipm = MipmapMethod.Box;
+                                break;
+                            case 2:
+                                mipm = MipmapMethod.Bicubic;
+                                break;
+                            case 3:
+                                mipm = MipmapMethod.Bilinear;
+                                break;
+                            case 4:
+                                mipm = MipmapMethod.Bspline;
+                                break;
+                            case 5:
+                                mipm = MipmapMethod.CatmullRom;
+                                break;
+                            case 6:
+                                mipm = MipmapMethod.Lanczos3;
+                                break;
+                        }
+                        if (mipm == MipmapMethod.None && format == DDSFormat.Uncompressed)
+                            texImportData = TextureImport.TGANoMipmap(teximportpath);
+                        else if (format == DDSFormat.Uncompressed)
+                            texImportChildren = TextureImport.TGAMipmaps(teximportpath, mipm);
+                        else
+                            texImportData = TextureImport.CreateDDS(teximportpath, format, mipm, compressSlow);
                         texImportWaiting = false;
                     }).Start();
                 }
@@ -207,6 +271,7 @@ namespace LancerEdit
             ImGui.Text("Name: ");
             ImGui.SameLine();
             bool entered = ImGui.InputText("", text.Pointer, text.Size, InputTextFlags.EnterReturnsTrue, text.Callback);
+            if (data.First) ImGui.SetKeyboardFocusHere();
             if (entered || ImGui.Button("Ok"))
             {
                 var node = new LUtfNode() { Name = text.GetText().Trim(), Parent = addParent ?? addNode };

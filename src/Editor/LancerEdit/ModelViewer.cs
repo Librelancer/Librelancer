@@ -310,15 +310,18 @@ namespace LancerEdit
             if (selectedNode == cn) tflags |= TreeNodeFlags.Selected;
             var icon = "fix";
             var color = Color4.LightYellow;
-            if(cn.Con is PrisConstruct) {
+            if (cn.Con is PrisConstruct)
+            {
                 icon = "pris";
                 color = Color4.LightPink;
             }
-            if(cn.Con is SphereConstruct) {
+            if (cn.Con is SphereConstruct)
+            {
                 icon = "sphere";
                 color = Color4.LightGreen;
             }
-            if(cn.Con is RevConstruct) {
+            if (cn.Con is RevConstruct)
+            {
                 icon = "rev";
                 color = Color4.LightCoral;
             }
@@ -331,7 +334,9 @@ namespace LancerEdit
                     DoConstructNode(child);
                 DoModel(cn.Model);
                 ImGui.TreePop();
-            } else {
+            }
+            else
+            {
                 Theme.RenderTreeIcon(n, icon, color);
                 if (ImGuiNative.igIsItemClicked(0))
                     selectedNode = cn;
