@@ -21,6 +21,7 @@ namespace LibreLancer
 		Authentication = 1,
 		AuthenticationSuccess = 2,
 		NewCharacter = 3,
-
+        CreateCharacter = 4,
+        PositionUpdate = 5,
 	}
 }

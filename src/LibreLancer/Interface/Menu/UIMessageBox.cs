@@ -23,19 +23,28 @@ namespace LibreLancer
 		public UIMessageBox(UIManager m, int infocard) : base(m, "../NEURONET/errorexplanation.cmp", 0, 0, 1.25f, 1.65f)
 		{
 			ifc = m.Game.GameData.GetInfocard(infocard);
-			foreach (var n in ifc.Nodes)
-			{
-				if (n is InfocardTextNode)
-				{
-					//TODO: FL probably just alters the defaults when parsing, but this works for all the vanilla
-					//GUI infocards anyway
-					var t = (InfocardTextNode)n;
-					t.Alignment = TextAlignment.Center;
-					t.Color = Manager.TextColor;
-					t.FontIndex = -1;
-				}
-			}
+            SetFormatting();
 		}
+        public UIMessageBox(UIManager m, Infocard infocard) : base(m, "../NEURONET/errorexplanation.cmp", 0, 0, 1.25f, 1.65f)
+        {
+            ifc = infocard;
+            SetFormatting();
+        }
+        void SetFormatting()
+        {
+            foreach (var n in ifc.Nodes)
+            {
+                if (n is InfocardTextNode)
+                {
+                    //TODO: FL probably just alters the defaults when parsing, but this works for all the vanilla
+                    //GUI infocards anyway
+                    var t = (InfocardTextNode)n;
+                    t.Alignment = TextAlignment.Center;
+                    t.Color = Manager.TextColor;
+                    t.FontIndex = -1;
+                }
+            }
+        }
 
 		Rectangle oldRect = new Rectangle(0, 0, 0, 0);
 		Rectangle GetInfocardRect()

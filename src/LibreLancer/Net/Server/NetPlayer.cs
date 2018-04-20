@@ -25,6 +25,10 @@ namespace LibreLancer
 		Guid playerGuid;
 		PlayerAccount account;
 
+        public Vector3 Position;
+        public Quaternion Orientation;
+        public int ID = 0;
+
 		public NetPlayer(NetConnection conn, GameServer server, Guid playerGuid)
 		{
 			connection = conn;

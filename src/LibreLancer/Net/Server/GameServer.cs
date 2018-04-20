@@ -139,13 +139,15 @@ namespace LibreLancer
 							{
 								if (kind == PacketKind.Authentication)
 								{
+                                    im.SenderConnection.Disconnect("boilerplate reason from server");
+                                    /*
 									var authkind = (AuthenticationKind)im.ReadByte();
 									var guid = new Guid(im.ReadBytes(16));
 									if (guid == Guid.Empty) im.SenderConnection.Disconnect("Invalid UUID");
 									FLLog.Info("Lidgren", "GUID for " + im.SenderEndPoint + " = " + guid.ToString());
 									var p = new NetPlayer(im.SenderConnection, this, guid);
 									im.SenderConnection.Tag = p;
-									AsyncManager.RunTask(() => p.DoAuthSuccess());
+									AsyncManager.RunTask(() => p.DoAuthSuccess());*/
 								}
 								else
 								{
@@ -165,6 +167,10 @@ namespace LibreLancer
 			Database.Dispose();
 		}
 
+        void UpdatePlayerPosition()
+        {
+            
+        }
 		void BeginAuthentication(NetServer server, NetConnection connection)
 		{
 			var msg = server.CreateMessage();

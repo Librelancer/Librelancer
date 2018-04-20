@@ -14,6 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using MySql.Data.MySqlClient;
@@ -22,19 +23,21 @@ namespace LibreLancer
 {
 	public class ServerDatabase : IDisposable
 	{
-		MySqlConnection connection;
-
+        //MySqlConnection connection;
+        List<PlayerAccount> accounts = new List<PlayerAccount>();
 		public ServerDatabase(string connectionString, LegacyGameData gameData)
 		{
-			FLLog.Info("MySQL", "Connecting to database");
-			connection = new MySqlConnection(connectionString);
-			connection.Open();
+			//FLLog.Info("MySQL", "Connecting to database");
+			//connection = new MySqlConnection(connectionString);
+			//connection.Open();
 		}
+
 		//TODO: Fill this in (pending Yuri's work)
 
 		//Account
 		public void CreateAccount(PlayerAccount p)
 		{
+            accounts.Add(p);
 			/*NonQuery("INSERT INTO accounts (accountGUID,lastvisit,registered,email) VALUES (@guid, @_lastvisit, @_registered, @_email)",
 					   "@guid", p.GUID.ToString(),
 					   "@_lastvisit", p.LastVisit,
@@ -46,6 +49,7 @@ namespace LibreLancer
 
 		public PlayerAccount GetAccount(Guid guid)
 		{
+            return accounts.Where((x) => x.GUID == guid).FirstOrDefault();
 			PlayerAccount acc = null;
 			/*Reader("SELECT * FROM accounts WHERE accountGUID=@guid", (reader) =>
 			{
@@ -62,6 +66,7 @@ namespace LibreLancer
 
 		public void AccountAccessed(PlayerAccount account)
 		{
+            account.LastVisit = DateTime.Now;
 			/*account.LastVisit = DateTime.Now;
 			NonQuery("UPDATE accounts SET lastvisit = @visit WHERE accountID = @id",
 					   "@id", account.ID,
@@ -70,7 +75,8 @@ namespace LibreLancer
 		//Character
 		public IEnumerable<ListedCharacter> GetOwnedCharacters(PlayerAccount account)
 		{
-			/*return Reader(
+
+            /*return Reader(
 				"SELECT c.characterID, c.callsign, c.credits, s.nickname FROM characters c" +
 				"LEFT JOIN systems s ON (c.systemID = s.systemID) WHERE c.accountID = @acc", 
 				(reader) =>
@@ -82,14 +88,23 @@ namespace LibreLancer
 				lc.Location = reader.GetString(3);
 				return lc;
 			}, "@acc", account.ID);*/
-			return new List<ListedCharacter>();
+            return account.Characters;
 		}
+
+        public void AddCharacter(ListedCharacter character)
+        {
+            
+        }
+        public void AddCharacterToAccount(PlayerAccount account, ListedCharacter character)
+        {
+            account.Characters.Add(character);
+        }
 
 
 		public void Dispose()
 		{
-			FLLog.Info("MySQL", "Closing connection");
-			connection.Close();
+			//FLLog.Info("MySQL", "Closing connection");
+			//connection.Close();
 		}
 	}
 }

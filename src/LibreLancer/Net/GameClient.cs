@@ -28,6 +28,7 @@ namespace LibreLancer
 		NetClient client;
 		public event Action<LocalServerInfo> ServerFound;
 		public event Action<CharacterSelectInfo> CharacterSelection;
+        public event Action<int> OpenNewCharacter;
 		public event Action<string> Disconnected;
 		public event Action<string> AuthenticationRequired;
 
@@ -106,8 +107,8 @@ namespace LibreLancer
 			{
 				while ((im = client.ReadMessage()) != null)
 				{
-					try
-					{
+					/*try
+					{*/
 						switch (im.MessageType)
 						{
 							case NetIncomingMessageType.DebugMessage:
@@ -180,16 +181,20 @@ namespace LibreLancer
 								switch (kind)
 								{
 									case PacketKind.NewCharacter:
-										
+                                        if(im.ReadByte() == 1) {
+                                            var credits = im.ReadInt32();
+                                            OpenNewCharacter(credits);
+                                        }
 										break;
 								}
 								break;
 						}
-					}
+					/*}
 					catch (Exception)
 					{
 						FLLog.Error("Net", "Error reading message of type " + im.MessageType.ToString());
-					}
+                        throw;
+					}*/
 					client.Recycle(im);
 				}
 				Thread.Sleep(1);

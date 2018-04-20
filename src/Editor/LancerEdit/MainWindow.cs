@@ -127,7 +127,7 @@ namespace LancerEdit
 			{
 				if (ImGui.MenuItem("Resources"))
 				{
-					tabs.Add(new ResourcesTab(Resources, MissingResources, ReferencedMaterials, ReferencedTextures));
+					AddTab(new ResourcesTab(Resources, MissingResources, ReferencedMaterials, ReferencedTextures));
 				}
 				ImGui.EndMenu();
 			}

@@ -14,6 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Collections.Generic;
 namespace LibreLancer
 {
 	public class PlayerAccount
@@ -23,7 +24,7 @@ namespace LibreLancer
 		public DateTime Registered;
 		public DateTime LastVisit;
 		public string Email;
-
+        public List<ListedCharacter> Characters = new List<ListedCharacter>();
 		public PlayerAccount()
 		{
 		}

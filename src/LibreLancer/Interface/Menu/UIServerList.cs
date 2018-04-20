@@ -141,6 +141,7 @@ namespace LibreLancer
 			base.UpdateInternal(time);
 		}
 
+
 		public override void DrawText()
 		{
 			var rect = GetServerListRectangle();

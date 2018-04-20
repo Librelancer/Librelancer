@@ -10,6 +10,7 @@ namespace Launcher
 {
     static class Program
     {
+        public static bool Launch = false;
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -18,13 +19,14 @@ namespace Launcher
         {
             Application.Initialize();
 
-            var config = Congifure();
-            RunGame(config);
+            var config = Configure();
+            if(Launch)
+                RunGame(config);
 
             Application.Exit();
         }
 
-        static GameConfig Congifure()
+        static GameConfig Configure()
         {
             Window win = null;
             var config = LibreLancer.GameConfig.Create();
@@ -51,7 +53,7 @@ namespace Launcher
                     {
                         Application.MainLoop.DispatchPendingEvents();
                     }
-                    Application.Exit();
+                    win = ShowLauncher(config);
                 }
                 else
                 {
@@ -85,13 +87,6 @@ namespace Launcher
         public static void RunGame(GameConfig config)
         {
             Exception game_exception = null;
-            /*var task = new Task(
-                () =>
-                {
-                    Thread.CurrentThread.Name = "Main";
-                }
-            );
-            task.Start();*/
 
             var thread = new Thread(() =>
             {

@@ -20,28 +20,32 @@ namespace LibreLancer
 	{
 		public string Description = "";
 		public UIServerList ServerList;
+        Font fntTitle;
+        Font fntContent;
 		public UIServerDescription(UIManager manager, float x, float y) : base(manager, "../INTRO/OBJECTS/front_serverselect_info.cmp",x,y, 1.93f, 2.65f)
 		{
+            fntTitle = manager.Game.Fonts.GetSystemFont("Agency FB");
+            fntContent = manager.Game.Fonts.GetSystemFont("Arial Unicode MS");
 		}
 
 		public override void DrawText()
 		{
-			/*if (ServerList == null) return;
+			if (ServerList == null) return;
 			var rect = GetTextRectangle();
+            var titleSz = Manager.ButtonFontSize;
 
+			var rTitle = new Rectangle(rect.X, rect.Y, rect.Width, (int)fntTitle.LineHeight(titleSz));
+			var rContent = new Rectangle(rect.X, rect.Y + (int)fntTitle.LineHeight(titleSz), rect.Width, (int)fntContent.LineHeight(12));
 
-			var rTitle = new Rectangle(rect.X, rect.Y, rect.Width, (int)fnts.HeaderFont.LineHeight);
-			var rContent = new Rectangle(rect.X, rect.Y + (int)fnts.HeaderFont.LineHeight, rect.Width, (int)fnts.ContentFont.LineHeight);
-
-			DrawTextCentered(fnts.HeaderFont, "SERVER DESCRIPTION", rTitle, Manager.TextColor);
+			DrawTextCentered(fntTitle, titleSz, "SERVER DESCRIPTION", rTitle, Manager.TextColor);
 			if (string.IsNullOrEmpty(Description)) return;
 			int a, b = 0;
-			var strs = Infocards.InfocardDisplay.WrapText(Manager.Game.Renderer2D, fnts.ContentFont, Description, rect.Width, 0, out a, ref b);
+			var strs = Infocards.InfocardDisplay.WrapText(Manager.Game.Renderer2D, fntContent, 12, Description, rect.Width, 0, out a, ref b);
 			foreach (var ln in strs)
 			{
-				DrawTextCentered(fnts.ContentFont, ln, rContent, Manager.TextColor);
-				rect.Y += (int)fnts.ContentFont.LineHeight;
-			}*/
+				DrawTextCentered(fntContent, 12, ln, rContent, Manager.TextColor);
+                rect.Y += (int)fntContent.LineHeight(12);
+			}
 		}
 
 		Rectangle GetTextRectangle()

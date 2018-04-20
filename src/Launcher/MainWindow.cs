@@ -101,7 +101,16 @@ namespace Launcher
         {
             try
             {
+                config.FreelancerPath = textInput.Text;
+                config.IntroMovies = !skipMovies.Active;
+                config.MuteMusic = muteMusic.Active;
+                config.VSync = vsync.Active;
+                config.BufferWidth = int.Parse(resWidthBox.Text);
+                config.BufferHeight = int.Parse(resHeightBox.Text);
                 config.Validate();
+                Program.Launch = true;
+                Visible = false;
+                ShowInTaskbar = false;
             }
             catch (InvalidFreelancerDirectory)
             {
@@ -113,16 +122,6 @@ namespace Launcher
                 MessageDialog.ShowError(this, "Invalid configuration");
                 return;
             }
-
-            config.FreelancerPath = textInput.Text;
-            config.IntroMovies = !skipMovies.Active;
-            config.MuteMusic = muteMusic.Active;
-            config.VSync = vsync.Active;
-            config.BufferWidth = int.Parse(resWidthBox.Text);
-            config.BufferHeight = int.Parse(resHeightBox.Text);
-
-            Visible = false;
-            ShowInTaskbar = false;
         }
     }
 }

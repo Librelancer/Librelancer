@@ -22,13 +22,14 @@ namespace LibreLancer
 		public string Text = "";
 		Color4 color;
 		Font buttonFont;
+        public Action Action;
 
-		public UIMenuButton (UIManager manager, Vector2 position, string text, string tag = null) : base(manager)
+		public UIMenuButton (UIManager manager, Vector2 position, string text, Action tag = null) : base(manager)
 		{
 			UIScale = new Vector2 (1.86f, 2.73f);
 			Text = text;
 			UIPosition = position;
-			Tag = tag;
+			Action = tag;
 			color = manager.TextColor;
 			buttonFont = manager.Game.Fonts.GetSystemFont("Agency FB");
 		}
@@ -44,8 +45,8 @@ namespace LibreLancer
 		protected override void UpdateInternal (TimeSpan time)
 		{
 			var rect = GetTextRectangle ();
-			color = Tag != null ? Manager.TextColor : Color4.Gray;
-			if (rect.Contains (Manager.Game.Mouse.X, Manager.Game.Mouse.Y) && Tag != null) {
+			color = Action != null ? Manager.TextColor : Color4.Gray;
+			if (rect.Contains (Manager.Game.Mouse.X, Manager.Game.Mouse.Y) && Action != null) {
 				color = GetPulseColor();
 			}
 		}
@@ -58,8 +59,8 @@ namespace LibreLancer
 
 		public override void WasClicked()
 		{
-			if (Tag != null) Manager.OnClick(Tag);
-		}
+            Action?.Invoke();
+        }
 
 		public override void DrawText()
 		{
