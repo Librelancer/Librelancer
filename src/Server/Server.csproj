@@ -7,7 +7,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Server</RootNamespace>
     <AssemblyName>Server</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -28,6 +28,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="LibreLancer.Base">
+      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
+    </Reference>
     <Reference Include="LibreLancer.Base">
       <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
     </Reference>

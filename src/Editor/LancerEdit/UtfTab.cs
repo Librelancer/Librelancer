@@ -143,6 +143,30 @@ namespace LancerEdit
                         main.AddTab(new ModelViewer("Model Viewer (" + Title + ")", Title, drawable, main, this));
                     }
                 }
+                if(ImGui.MenuItem("Dump 3db"))
+                {
+                    LibreLancer.Utf.Cmp.ModelFile model = null;
+                    LibreLancer.Utf.Cmp.CmpFile cmp = null;
+                    try
+                    {
+                        var drawable = LibreLancer.Utf.UtfLoader.GetDrawable(Utf.Export(), main.Resources);
+                        model = (drawable as LibreLancer.Utf.Cmp.ModelFile);
+                        cmp = (drawable as LibreLancer.Utf.Cmp.CmpFile);
+                    }
+                    catch (Exception) { ErrorPopup("Could not open as model"); model = null; }
+                    if (model != null)
+                    {
+                        var output = FileDialog.Save();
+                        if(output != null) {
+                            DumpStatus(Dump3db.DumpObj(model, output));
+                        }
+                    }
+                    if(cmp != null)
+                    {
+                        dumpcmp = cmp;
+                        DoPick3db();
+                    }
+                }
                 if (ImGui.MenuItem("View Ale"))
                 {
                     AleFile ale = null;

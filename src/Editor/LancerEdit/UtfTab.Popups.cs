@@ -30,6 +30,54 @@ namespace LancerEdit
             popups.AddPopup("Color Picker", ColorPicker, WindowFlags.AlwaysAutoResize);
             popups.AddPopup("New Node", AddPopup, WindowFlags.AlwaysAutoResize);
             popups.AddPopup("Rename Node", Rename, WindowFlags.AlwaysAutoResize);
+            popups.AddPopup("Pick 3db", Pick3db, WindowFlags.AlwaysAutoResize);
+        }
+        LibreLancer.Utf.Cmp.CmpFile dumpcmp = null;
+        string[] dumpoptions = null;
+        int dumpindex = 0;
+        void DoPick3db()
+        {
+            var opts = new List<string>();
+            foreach(var mdl in dumpcmp.Models) {
+                opts.Add(mdl.Key);
+            }
+            dumpoptions = opts.ToArray();
+            popups.OpenPopup("Pick 3db");
+            dumpindex = 0;
+        }
+        void DumpStatus(Dump3dbStatus status)
+        {
+            switch (status)
+            {
+                case Dump3dbStatus.Ok:
+                    break;
+                case Dump3dbStatus.Fail:
+                    ErrorPopup("Dump to .obj failed");
+                    break;
+                case Dump3dbStatus.ColorNotExported:
+                    ErrorPopup("Vertex colors not exported");
+                    break;
+                case Dump3dbStatus.TexCoord2NotExported:
+                    ErrorPopup("2nd Texture Coodinate not exported");
+                    break;
+            }
+        }
+        void Pick3db(PopupData data)
+        {
+            ImGui.Combo("3db", ref dumpindex, dumpoptions);
+            if(ImGui.Button("Ok")) {
+                var output = FileDialog.Save();
+                if (output != null)
+                {
+                    var mdl = dumpcmp.Models[dumpoptions[dumpindex]];
+                    DumpStatus(Dump3db.DumpObj(mdl, output));
+                    ImGui.CloseCurrentPopup();
+                }
+            }
+            ImGui.SameLine();
+            if(ImGui.Button("Cancel")) {
+                ImGui.CloseCurrentPopup();
+            }
         }
 
         string teximportpath = "";
