@@ -30,47 +30,53 @@ namespace LancerEdit
             popups.AddPopup("Color Picker", ColorPicker, WindowFlags.AlwaysAutoResize);
             popups.AddPopup("New Node", AddPopup, WindowFlags.AlwaysAutoResize);
             popups.AddPopup("Rename Node", Rename, WindowFlags.AlwaysAutoResize);
-            popups.AddPopup("Pick 3db", Pick3db, WindowFlags.AlwaysAutoResize);
+            popups.AddPopup("Pick Object", PickObject, WindowFlags.AlwaysAutoResize);
         }
         LibreLancer.Utf.Cmp.CmpFile dumpcmp = null;
         string[] dumpoptions = null;
         int dumpindex = 0;
-        void DoPick3db()
+        void DoPickObject()
         {
             var opts = new List<string>();
+            opts.Add("Entire Cmp");
             foreach(var mdl in dumpcmp.Models) {
                 opts.Add(mdl.Key);
             }
             dumpoptions = opts.ToArray();
-            popups.OpenPopup("Pick 3db");
+            popups.OpenPopup("Pick Object");
             dumpindex = 0;
         }
-        void DumpStatus(Dump3dbStatus status)
+        void DumpStatus(DumpObjectStatus status)
         {
             switch (status)
             {
-                case Dump3dbStatus.Ok:
+                case DumpObjectStatus.Ok:
                     break;
-                case Dump3dbStatus.Fail:
+                case DumpObjectStatus.Fail:
                     ErrorPopup("Dump to .obj failed");
                     break;
-                case Dump3dbStatus.ColorNotExported:
+                case DumpObjectStatus.ColorNotExported:
                     ErrorPopup("Vertex colors not exported");
                     break;
-                case Dump3dbStatus.TexCoord2NotExported:
+                case DumpObjectStatus.TexCoord2NotExported:
                     ErrorPopup("2nd Texture Coodinate not exported");
                     break;
             }
         }
-        void Pick3db(PopupData data)
+        void PickObject(PopupData data)
         {
-            ImGui.Combo("3db", ref dumpindex, dumpoptions);
+            ImGui.Combo("Object", ref dumpindex, dumpoptions);
             if(ImGui.Button("Ok")) {
                 var output = FileDialog.Save();
                 if (output != null)
                 {
-                    var mdl = dumpcmp.Models[dumpoptions[dumpindex]];
-                    DumpStatus(Dump3db.DumpObj(mdl, output));
+                    if (dumpindex == 0)
+                        DumpStatus(DumpObject.DumpObj(dumpcmp, output));
+                    else
+                    {
+                        var mdl = dumpcmp.Models[dumpoptions[dumpindex]];
+                        DumpStatus(DumpObject.DumpObj(mdl, output));
+                    }
                     ImGui.CloseCurrentPopup();
                 }
             }

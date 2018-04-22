@@ -143,7 +143,7 @@ namespace LancerEdit
                         main.AddTab(new ModelViewer("Model Viewer (" + Title + ")", Title, drawable, main, this));
                     }
                 }
-                if(ImGui.MenuItem("Dump 3db"))
+                if(ImGui.MenuItem("Dump Model"))
                 {
                     LibreLancer.Utf.Cmp.ModelFile model = null;
                     LibreLancer.Utf.Cmp.CmpFile cmp = null;
@@ -158,13 +158,13 @@ namespace LancerEdit
                     {
                         var output = FileDialog.Save();
                         if(output != null) {
-                            DumpStatus(Dump3db.DumpObj(model, output));
+                            DumpStatus(DumpObject.DumpObj(model, output));
                         }
                     }
                     if(cmp != null)
                     {
                         dumpcmp = cmp;
-                        DoPick3db();
+                        DoPickObject();
                     }
                 }
                 if (ImGui.MenuItem("View Ale"))

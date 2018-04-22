@@ -18,8 +18,10 @@ namespace LibreLancer
 {
 	public static class NetPacking
 	{
-		const float PRECISION = 32767f;
+        const int BITS_COMPONENT = 15;
 
+        const float UNIT_MIN = -0.707107f;
+        const float UNIT_MAX = 0.707107f;
 		public static void WriteQuaternion(Lidgren.Network.NetOutgoingMessage om, Quaternion q)
 		{
 			var maxIndex = 0;
@@ -44,66 +46,47 @@ namespace LibreLancer
 			if (Math.Abs(q.W) > maxValue)
 			{
 				maxValue = Math.Abs(q.W);
-				maxIndex = 2;
+				maxIndex = 3;
 				sign = q.W < 0 ? -1 : 1;
 			}
+            om.WriteRangedInteger(0, 3, maxIndex);
 
-			if (Math.Abs(1f - maxValue) < 0.0001f) //single element is one
+  			if (maxIndex == 0)
 			{
-				om.Write((byte)(maxIndex + 4));
-				return;
-			}
-
-			short a, b, c;
-			if (maxIndex == 0)
-			{
-				a = (short)(q.Y * sign * PRECISION);
-				b = (short)(q.Z * sign * PRECISION);
-				c = (short)(q.W * sign * PRECISION);
+                om.WriteRangedSingle(q.Y * sign, UNIT_MIN, UNIT_MAX, BITS_COMPONENT);
+                om.WriteRangedSingle(q.Z * sign, UNIT_MIN, UNIT_MAX, BITS_COMPONENT);
+                om.WriteRangedSingle(q.W * sign, UNIT_MIN, UNIT_MAX, BITS_COMPONENT);
 			}
 			else if (maxIndex == 1)
 			{
-				a = (short)(q.X * sign * PRECISION);
-				b = (short)(q.Z * sign * PRECISION);
-				c = (short)(q.W * sign * PRECISION);
+                om.WriteRangedSingle(q.X * sign, UNIT_MIN, UNIT_MAX, BITS_COMPONENT);
+                om.WriteRangedSingle(q.Z * sign, UNIT_MIN, UNIT_MAX, BITS_COMPONENT);
+                om.WriteRangedSingle(q.W * sign, UNIT_MIN, UNIT_MAX, BITS_COMPONENT);
 			}
 			else if (maxIndex == 2)
 			{
-				a = (short)(q.X * sign * PRECISION);
-				b = (short)(q.Y * sign * PRECISION);
-				c = (short)(q.W * sign * PRECISION);
+                om.WriteRangedSingle(q.X * sign, UNIT_MIN, UNIT_MAX, BITS_COMPONENT);
+                om.WriteRangedSingle(q.Y * sign, UNIT_MIN, UNIT_MAX, BITS_COMPONENT);
+                om.WriteRangedSingle(q.W * sign, UNIT_MIN, UNIT_MAX, BITS_COMPONENT);
 			}
 			else
 			{
-				a = (short)(q.X * sign * PRECISION);
-				b = (short)(q.Y * sign * PRECISION);
-				c = (short)(q.Z * sign * PRECISION);
+                om.WriteRangedSingle(q.X * sign, UNIT_MIN, UNIT_MAX, BITS_COMPONENT);
+                om.WriteRangedSingle(q.Y * sign, UNIT_MIN, UNIT_MAX, BITS_COMPONENT);
+                om.WriteRangedSingle(q.Z * sign, UNIT_MIN, UNIT_MAX, BITS_COMPONENT);
 			}
-
-			om.Write((byte)maxIndex);
-			om.Write(a);
-			om.Write(b);
-			om.Write(c);
+            om.WritePadBits();
 		}
 
 		public static Quaternion ReadQuaternion(Lidgren.Network.NetIncomingMessage im)
 		{
-			var maxIndex = im.ReadByte();
+            var maxIndex = im.ReadRangedInteger(0, 3);
 
-			if (maxIndex >= 4 && maxIndex <= 7)
-			{
-				var x = (maxIndex == 4) ? 1f : 0f;
-				var y = (maxIndex == 5) ? 1f : 0f;
-				var z = (maxIndex == 6) ? 1f : 0f;
-				var w = (maxIndex == 7) ? 1f : 0f;
-				return new Quaternion(x, y, z, w);
-			}
-
-			var a = (float)im.ReadInt16() / PRECISION;
-			var b = (float)im.ReadInt16() / PRECISION;
-			var c = (float)im.ReadInt16() / PRECISION;
+            var a = im.ReadRangedSingle(UNIT_MIN, UNIT_MAX, BITS_COMPONENT);
+            var b = im.ReadRangedSingle(UNIT_MIN, UNIT_MAX, BITS_COMPONENT);
+            var c = im.ReadRangedSingle(UNIT_MIN, UNIT_MAX, BITS_COMPONENT);
 			var d = (float)Math.Sqrt(1f - (a * a + b * b + c * c));
-
+            im.ReadPadBits();
 			if (maxIndex == 0)
 				return new Quaternion(d, a, b, c);
 			if (maxIndex == 1)
