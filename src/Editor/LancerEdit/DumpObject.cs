@@ -147,6 +147,12 @@ namespace LancerEdit
             public int Offset;
             public VMeshRef Ref;
         }
+        static string GetPath(string path, int cOffset)
+        {
+            if (path == null || path == "/")
+                return "model_" + cOffset;
+            return path;
+        }
         public static DumpObjectStatus DumpObj(IDrawable model, string path)
         {
             try
@@ -163,7 +169,7 @@ namespace LancerEdit
                             var info = new PartInfo() { 
                                 Ref = part.Value.Model.Levels[0], 
                                 Offset = cOffset,
-                                Name = part.Value.Model.Path ?? "model_" + cOffset
+                                Name = GetPath(part.Value.Model.Path,cOffset)
                             };
                             var mat = part.Value.Construct == null ? Matrix4.Identity : part.Value.Construct.Transform;
                             WriteVertices(ref status, ref info.Normals, ref info.Texcoords, writer, vms, mat);
@@ -179,7 +185,7 @@ namespace LancerEdit
                         {
                             Ref = mdl.Levels[0],
                             Offset = 1,
-                            Name = ((CmpFile)model).Path ?? "model_1"
+                            Name = GetPath(mdl.Path,1)
                         };
                         WriteVertices(ref status, ref info.Normals, ref info.Texcoords, writer, mdl.Levels[0].Mesh, Matrix4.Identity);
                         WriteIndices(info, writer);
