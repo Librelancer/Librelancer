@@ -352,7 +352,8 @@ namespace LibreLancer.Utf.Mat
 					NtFlags = n.Int32Data.Value;
 					break;
 				default:
-					throw new NotImplementedException();
+                    FLLog.Warning("Material", "Unknown property " + n.Name.ToLowerInvariant());
+                    break;
 			}
 
 			return true;
