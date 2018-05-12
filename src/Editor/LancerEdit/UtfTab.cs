@@ -395,11 +395,45 @@ namespace LancerEdit
                 }
                 if (ImGui.Button("Export Data"))
                 {
-                    string path;
-                    if ((path = FileDialog.Save()) != null)
+                    if(selectedNode.Name.ToLowerInvariant() == "vmeshdata")
+                        ImGui.OpenPopup("exportactions");
+                    else
                     {
-                        File.WriteAllBytes(path, selectedNode.Data);
+                        string path;
+                        if ((path = FileDialog.Save()) != null)
+                        {
+                            File.WriteAllBytes(path, selectedNode.Data);
+                        }
                     }
+                }
+                if(ImGui.BeginPopup("exportactions"))
+                {
+                    if(ImGui.MenuItem("Raw"))
+                    {
+                        string path;
+                        if ((path = FileDialog.Save()) != null)
+                        {
+                            File.WriteAllBytes(path, selectedNode.Data);
+                        }
+                    }
+                    if(ImGui.MenuItem("VMeshData"))
+                    {
+                        string path;
+                        if ((path = FileDialog.Save()) != null)
+                        {
+                            LibreLancer.Utf.Vms.VMeshData dat = null;
+                            try
+                            {
+                                dat = new LibreLancer.Utf.Vms.VMeshData(selectedNode.Data, new EmptyLib(), "");
+                            }
+                            catch (Exception ex)
+                            {
+                                ErrorPopup(string.Format("Not a valid VMeshData node\n{0}\n{1}", ex.Message, ex.StackTrace));
+                            }
+                            if (dat != null) DumpObject.DumpVmeshData(path, dat);
+                        }
+                    }
+                    ImGui.EndPopup();
                 }
             }
             else

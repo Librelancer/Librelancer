@@ -190,7 +190,7 @@ C# Memory Usage: {5}
 		{
 			sysrender.Draw ();
 			trender.Start (Game.Width, Game.Height);
-			DebugDrawing.DrawShadowedText (trender, font, 16, string.Format(DEMO_TEXT,camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Game.Renderer), 5, 5);
+			//DebugDrawing.DrawShadowedText (trender, font, 16, string.Format(DEMO_TEXT,camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Game.Renderer), 5, 5);
 
 			if (textEntry)
 			{

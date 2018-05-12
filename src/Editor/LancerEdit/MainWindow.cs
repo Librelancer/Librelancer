@@ -177,7 +177,7 @@ namespace LancerEdit
                               WindowFlags.NoMove |
                               WindowFlags.NoResize);
             TabHandler.TabLabels(tabs, ref selected);
-            ImGui.BeginChild("###tabcontent");
+            ImGui.BeginChild("###tabcontent" + (selected != null ? selected.Title : ""));
             if (selected != null)
             {
                 selected.Draw();

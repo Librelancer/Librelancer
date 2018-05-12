@@ -43,7 +43,10 @@ namespace LibreLancer.Utf.Vms
         public List<TMeshHeader> Meshes { get; private set; }
 
 		public ushort[] Indices;
-
+        /// <summary>
+        /// EDITOR USE ONLY - Made null after init
+        /// </summary>
+        public uint[] Diffuse;
         /// <summary>
         /// A list of triangles in the mesh data
         /// </summary>
@@ -130,6 +133,7 @@ namespace LibreLancer.Utf.Vms
                         break;
                     case D3DFVF.XYZ | D3DFVF.DIFFUSE | D3DFVF.TEX1: //(D3DFVF)0x0142:
                         verticesVertexPositionNormalColorTexture = new VertexPositionNormalColorTexture[VertexCount];
+                        Diffuse = new uint[VertexCount];
                         for (int i = 0; i < VertexCount; i++)
                         {
                             Vector3 position = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
@@ -137,6 +141,7 @@ namespace LibreLancer.Utf.Vms
                             int g = reader.ReadByte();
 							int b = reader.ReadByte ();
                             int a = reader.ReadByte();
+                            Diffuse[i] = ((uint)r << 24) | ((uint)g << 16) | ((uint)b << 8) | (uint)a;
                             Color4 diffuse = new Color4(r / 255f, g / 255f, b / 255f, a / 255f);
 							Vector2 textureCoordinate = new Vector2(reader.ReadSingle(), 1 - reader.ReadSingle());
                             verticesVertexPositionNormalColorTexture[i] = new VertexPositionNormalColorTexture(position, Vector3.Zero, diffuse, textureCoordinate);
@@ -146,6 +151,7 @@ namespace LibreLancer.Utf.Vms
                         break;
                     case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.DIFFUSE | D3DFVF.TEX1: //(D3DFVF)0x0152:
                         verticesVertexPositionNormalColorTexture = new VertexPositionNormalColorTexture[VertexCount];
+                        Diffuse = new uint[VertexCount];
 						for (int i = 0; i < VertexCount; i++)
 						{
 							//verticesVertexPositionNormalDiffuseTexture[i] = new VertexPositionNormalDiffuseTexture(reader);
@@ -155,6 +161,7 @@ namespace LibreLancer.Utf.Vms
 							int g = reader.ReadByte();
 							int b = reader.ReadByte();
 							int a = reader.ReadByte();
+                            Diffuse[i] = ((uint)r << 24) | ((uint)g << 16) | ((uint)b << 8) | (uint)a;
 							Color4 diffuse = new Color4(r / 255f, g / 255f, b / 255f, a / 255f);
 							Vector2 textureCoordinate = new Vector2(reader.ReadSingle(), 1 - reader.ReadSingle());
 							verticesVertexPositionNormalColorTexture[i] = new VertexPositionNormalColorTexture(position, normal, diffuse, textureCoordinate);
@@ -188,6 +195,7 @@ namespace LibreLancer.Utf.Vms
 				//Don't upload vmeshdata a million times to ram.
 				return;
 			}
+            Diffuse = null;
 			GenerateVertexBuffer ();
 			ready = true;
 		}

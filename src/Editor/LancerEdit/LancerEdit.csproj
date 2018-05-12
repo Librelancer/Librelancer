@@ -34,6 +34,18 @@
     <Reference Include="TeximpNet">
       <HintPath>..\..\packages\TeximpNet.1.2.0\lib\net40\TeximpNet.dll</HintPath>
     </Reference>
+    <Reference Include="mscorlib">
+      <HintPath>..\..\..\..\..\..\..\usr\lib\mono\4.6-api\mscorlib.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core">
+      <HintPath>..\..\..\..\..\..\..\usr\lib\mono\4.6-api\System.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System">
+      <HintPath>..\..\..\..\..\..\..\usr\lib\mono\4.6-api\System.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp">
+      <HintPath>..\..\..\..\..\..\..\usr\lib\mono\4.6-api\Microsoft.CSharp.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -67,6 +79,7 @@
     <Compile Include="UtfTab.Popups.cs" />
     <Compile Include="UILib\PopupManager.cs" />
     <Compile Include="DumpObject.cs" />
+    <Compile Include="EmptyLib.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">
