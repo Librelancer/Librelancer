@@ -28,3 +28,6 @@
 [submodule "extern/nvidia-texture-tools"]
 	path = extern/nvidia-texture-tools
 	url = https://github.com/castano/nvidia-texture-tools
+[submodule "extern/Collada141"]
+	path = extern/Collada141
+	url = https://github.com/Librelancer/Collada141

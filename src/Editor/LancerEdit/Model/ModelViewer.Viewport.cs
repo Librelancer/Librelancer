@@ -22,12 +22,13 @@ namespace LancerEdit
 {
     public partial class ModelViewer
 	{
-        RenderTarget2D renderTarget;
-        int rw = -1, rh = -1;
-        int rid = 0;
+        Viewport3D modelViewport;
 
         void SetupViewport()
         {
+            modelViewport = new Viewport3D(rstate, vps);
+            modelViewport.Zoom = drawable.GetRadius() * 2;
+            modelViewport.ZoomStep = modelViewport.Zoom / 3.26f;
             wireframeMaterial3db = new Material(res);
             wireframeMaterial3db.Dc = Color4.White;
             wireframeMaterial3db.DtName = ResourceManager.WhiteTextureName;
@@ -63,55 +64,17 @@ namespace LancerEdit
         }
         void DoViewport()
         {
-            var renderWidth = Math.Max(120, (int)ImGui.GetWindowWidth() - 15);
-            var renderHeight = Math.Max(120, (int)ImGui.GetWindowHeight() - 40);
-            //Generate render target
-            if (rh != renderHeight || rw != renderWidth)
-            {
-                if (renderTarget != null)
-                {
-                    ImGuiHelper.DeregisterTexture(renderTarget);
-                    renderTarget.Dispose();
-                }
-                renderTarget = new RenderTarget2D(renderWidth, renderHeight);
-                rid = ImGuiHelper.RegisterTexture(renderTarget);
-                rw = renderWidth;
-                rh = renderHeight;
-            }
-            DrawGL(renderWidth, renderHeight);
-            ImGui.ImageButton((IntPtr)rid, new Vector2(renderWidth, renderHeight),
-                              Vector2.Zero, Vector2.One,
-                              0,
-                              Vector4.One, Vector4.One);
-            if (ImGui.IsItemHovered(HoveredFlags.Default))
-            {
-                if (ImGui.IsMouseDragging(0, 1f))
-                {
-                    var delta = (Vector2)ImGui.GetMouseDragDelta(0, 1f);
-                    rotation -= (delta / 64);
-                    ImGui.ResetMouseDragDelta(0);
-                }
-                float wheel = ImGui.GetIO().MouseWheel;
-                if (ImGui.GetIO().ShiftPressed)
-                    zoom -= wheel * (2 * zoomstep);
-                else
-                    zoom -= wheel * zoomstep;
-                if (zoom < 0) zoom = 0;
-            }
+            modelViewport.Background = background;
+            modelViewport.Begin();
+            DrawGL(modelViewport.RenderWidth, modelViewport.RenderHeight);
+            modelViewport.End();
+            rotation = modelViewport.Rotation;
         }
         void DrawGL(int renderWidth, int renderHeight)
         {
-            //Set state
-            renderTarget.BindFramebuffer();
-            rstate.Cull = true;
-            var cc = rstate.ClearColor;
-            rstate.DepthEnabled = true;
-            rstate.ClearColor = background;
-            rstate.ClearAll();
-            vps.Push(0, 0, renderWidth, renderHeight);
             //Draw Model
             var cam = new LookAtCamera();
-            cam.Update(renderWidth, renderHeight, new Vector3(zoom, 0, 0), Vector3.Zero);
+            cam.Update(renderWidth, renderHeight, new Vector3(modelViewport.Zoom, 0, 0), Vector3.Zero);
             drawable.Update(cam, TimeSpan.Zero, TimeSpan.Zero);
             if (viewMode != M_NONE)
             {
@@ -140,13 +103,6 @@ namespace LancerEdit
             }
             //Draw hardpoints
             DrawHardpoints(cam);
-            //Restore state
-            rstate.Cull = false;
-            rstate.BlendMode = BlendMode.Normal;
-            rstate.DepthEnabled = false;
-            rstate.ClearColor = cc;
-            RenderTarget2D.ClearBinding();
-            vps.Pop();
         }
 
         void DrawHardpoints(ICamera cam)

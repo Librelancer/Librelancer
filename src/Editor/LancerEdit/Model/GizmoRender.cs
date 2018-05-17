@@ -109,7 +109,7 @@ namespace LancerEdit
             AddPoint(VectorMath.Transform(Vector3.UnitY * LineScale, tr), Color4.Green);
             //Z
             AddPoint(VectorMath.Transform(Vector3.Zero, tr), Color4.Blue);
-            AddPoint(VectorMath.Transform(Vector3.UnitZ * LineScale, tr), Color4.Blue);
+            AddPoint(VectorMath.Transform(-Vector3.UnitZ * LineScale, tr), Color4.Blue);
             //Cube
             if (cube)
                 AddCube(ref tr, Color4.Purple);

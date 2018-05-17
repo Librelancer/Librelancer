@@ -6,19 +6,21 @@ namespace LancerEdit
 {
 	public unsafe class TextBuffer : IDisposable
 	{
-		public uint Size = 2048;
+		public int Size;
 		public IntPtr Pointer;
 		public TextEditCallback Callback;
-		public TextBuffer()
+        public TextBuffer(int sz = 2048)
 		{
-			Pointer = Marshal.AllocHGlobal(2048);
+            if ((sz % 8) != 0) throw new Exception("Must be multiple of 8");
+            Size = sz;
+			Pointer = Marshal.AllocHGlobal(sz);
 			Clear();
 			Callback = HandleTextEditCallback;
 		}
 
 		public void Clear()
 		{
-			for (int i = 0; i < 2048 / sizeof(long); i++)
+			for (int i = 0; i < Size / sizeof(long); i++)
 			{
 				var ptr = (long*)Pointer;
 				ptr[i] = 0;
@@ -46,8 +48,8 @@ namespace LancerEdit
 
 		public byte[] GetByteArray()
 		{
-			int len = 2048;
-			for (int i = 0; i < 2048; i++)
+			int len = Size;
+			for (int i = 0; i < Size; i++)
 			{
 				var ptr = (byte*)Pointer;
 				if (ptr[i] == 0)
@@ -63,8 +65,8 @@ namespace LancerEdit
 
 		public string GetText()
 		{
-			int len = 2048;
-			for (int i = 0; i < 2048; i++)
+			int len = Size;
+			for (int i = 0; i < Size; i++)
 			{
 				var ptr = (byte*)Pointer;
 				if (ptr[i] == 0)

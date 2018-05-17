@@ -80,6 +80,14 @@ namespace LibreLancer
             return true;
         }
 
+        public string GetClipboardText()
+        {
+            return SDL.SDL_GetClipboardText();
+        }
+        public void SetClipboardText(string text)
+        {
+            SDL.SDL_SetClipboardText(text);
+        }
         IntPtr curArrow;
         IntPtr curMove;
         IntPtr curTextInput;

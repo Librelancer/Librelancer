@@ -302,7 +302,7 @@ namespace LancerEdit
         {
             ImGui.Text("Name: ");
             ImGui.SameLine();
-            bool entered = ImGui.InputText("", text.Pointer, text.Size, InputTextFlags.EnterReturnsTrue, text.Callback);
+            bool entered = ImGui.InputText("", text.Pointer, (uint)text.Size, InputTextFlags.EnterReturnsTrue, text.Callback);
             if (data.DoFocus) ImGui.SetKeyboardFocusHere();
             if (entered || ImGui.Button("Ok"))
             {
@@ -324,7 +324,7 @@ namespace LancerEdit
         {
             ImGui.Text("Name: ");
             ImGui.SameLine();
-            bool entered = ImGui.InputText("", text.Pointer, text.Size, InputTextFlags.EnterReturnsTrue, text.Callback);
+            bool entered = ImGui.InputText("", text.Pointer, (uint)text.Size, InputTextFlags.EnterReturnsTrue, text.Callback);
             if (data.DoFocus) ImGui.SetKeyboardFocusHere();
             if (entered || ImGui.Button("Ok"))
             {

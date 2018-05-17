@@ -37,7 +37,14 @@ namespace LibreLancer.Vertices
 			this.TextureCoordinate = new Vector2(reader.ReadSingle(), 1 - reader.ReadSingle());
 			this.TextureCoordinateTwo = new Vector2(reader.ReadSingle(), 1 - reader.ReadSingle());
         }
-
+        public VertexPositionNormalDiffuseTextureTwo(Vector3 pos, Vector3 normal, Color4 diffuse, Vector2 tex1, Vector2 tex2)
+        {
+            Position = pos;
+            Normal = normal;
+            Diffuse = diffuse;
+            TextureCoordinate = tex1;
+            TextureCoordinateTwo = tex2;
+        }
 		public VertexDeclaration GetVertexDeclaration()
 		{
 			return new VertexDeclaration(

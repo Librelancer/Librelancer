@@ -24,11 +24,8 @@ namespace LancerEdit
     public partial class AleViewer : DockTab
     {
         //GL
-        RenderTarget2D renderTarget;
-        int rid = 0;
-        int rw = -1, rh = -1;
+        Viewport3D aleViewport;
         RenderState rstate;
-        ViewportManager vps;
         CommandBuffer buffer;
         Billboards billboards;
         PolylineRender polyline;
@@ -50,7 +47,9 @@ namespace LancerEdit
             Title = title;
             this.name = name;
             this.rstate = main.RenderState;
-            vps = main.Viewport;
+            aleViewport = new Viewport3D(rstate, main.Viewport);
+            aleViewport.Zoom = 200;
+            aleViewport.ZoomStep = 25;
             buffer = main.Commands;
             billboards = main.Billboards;
             polyline = main.Polyline;
@@ -88,8 +87,6 @@ namespace LancerEdit
             ImGui.SameLine();
         }
 
-        Vector2 rotation = Vector2.Zero;
-        float zoom = 200;
         public override bool Draw()
         {
             bool doTabs = false;
@@ -119,41 +116,11 @@ namespace LancerEdit
             ImGui.Separator();
             //Viewport
             ImGui.BeginChild("##renderchild");
-            var renderWidth = Math.Max(120, (int)ImGui.GetWindowWidth() - 15);
-            var renderHeight = Math.Max(120, (int)ImGui.GetWindowHeight() - 40);
             //Generate render target
-            if (rh != renderHeight || rw != renderWidth)
-            {
-                if (renderTarget != null)
-                {
-                    ImGuiHelper.DeregisterTexture(renderTarget);
-                    renderTarget.Dispose();
-                }
-                renderTarget = new RenderTarget2D(renderWidth, renderHeight);
-                rid = ImGuiHelper.RegisterTexture(renderTarget);
-                rw = renderWidth;
-                rh = renderHeight;
-            }
-            DrawGL(renderWidth, renderHeight);
+            aleViewport.Begin();
+            DrawGL(aleViewport.RenderWidth, aleViewport.RenderHeight);
             //Display + Camera controls
-            ImGui.ImageButton((IntPtr)rid, new Vector2(renderWidth, renderHeight),
-                              Vector2.Zero, Vector2.One,
-                              0,
-                              Vector4.One, Vector4.One);
-            if (ImGui.IsItemHovered(HoveredFlags.Default))
-            {
-                if (ImGui.IsMouseDragging(0, 1f))
-                {
-                    var delta = (Vector2)ImGui.GetMouseDragDelta(0, 1f);
-                    rotation -= (delta / 64);
-                    ImGui.ResetMouseDragDelta(0);
-                }
-                float wheel = ImGui.GetIO().MouseWheel;
-                if (ImGui.GetIO().ShiftPressed)
-                    zoom -= wheel * 10;
-                else
-                    zoom -= wheel * 40;
-            }
+            aleViewport.End();
             //Action Bar
             if (ImGui.Button("Reset"))
             {
@@ -244,16 +211,8 @@ namespace LancerEdit
 
         void DrawGL(int renderWidth, int renderHeight)
         {
-            //Set state
-            renderTarget.BindFramebuffer();
-            rstate.Cull = true;
-            var cc = rstate.ClearColor;
-            rstate.DepthEnabled = true;
-            rstate.ClearColor = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
-            rstate.ClearAll();
-            vps.Push(0, 0, renderWidth, renderHeight);
             var cam = new LookAtCamera();
-            cam.Update(renderWidth, renderHeight, new Vector3(zoom, 0, 0), Vector3.Zero);
+            cam.Update(renderWidth, renderHeight, new Vector3(aleViewport.Zoom, 0, 0), Vector3.Zero);
             buffer.StartFrame(rstate);
             polyline.SetCamera(cam);
             billboards.Begin(cam, buffer);
@@ -266,13 +225,6 @@ namespace LancerEdit
             buffer.DrawTransparent(rstate);
             rstate.DepthWrite = true;
             debug.Render();
-            //Restore state
-            rstate.Cull = false;
-            rstate.BlendMode = BlendMode.Normal;
-            rstate.DepthEnabled = false;
-            rstate.ClearColor = cc;
-            RenderTarget2D.ClearBinding();
-            vps.Pop();
         }
 
         public override void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
@@ -297,17 +249,13 @@ namespace LancerEdit
         Matrix4 transform = Matrix4.Identity;
         public override void Update(double elapsed)
         {
-            transform = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+            transform = Matrix4.CreateRotationX(aleViewport.Rotation.Y) * Matrix4.CreateRotationY(aleViewport.Rotation.X);
             instance.Update(TimeSpan.FromSeconds(elapsed), transform, sparam);
         }
 
         public override void Dispose()
         {
-            if (renderTarget != null)
-            {
-                ImGuiHelper.DeregisterTexture(renderTarget);
-                renderTarget.Dispose();
-            }
+            aleViewport.Dispose();
         }
     }
 }

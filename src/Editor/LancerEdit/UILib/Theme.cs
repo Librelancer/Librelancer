@@ -85,6 +85,7 @@ namespace LancerEdit
             ImGui.PopID();
             return ret;
         }
+
         const string MENU_PADDING = "        ";
         public static bool IconMenuItem(string text, string icon, Color4 tint, bool enabled)
         {

@@ -35,7 +35,8 @@ namespace LibreLancer
 		public static LogSeverity MinimumSeverity = LogSeverity.Info;
 #endif
 
-
+        public static IUIThread UIThread;
+        public static Action<string> AppendLine;
 		[DllImport("libc")]
 		static extern bool isatty(int desc);
 
@@ -73,6 +74,8 @@ namespace LibreLancer
 				 while (true)
 				 {
 					 var q = m_Queue.Take();
+                     if (UIThread != null && AppendLine != null)
+                         UIThread.QueueUIThread(() => AppendLine(q.Value));
 					 if (Platform.RunningOS == OS.Windows)
 					 {
 						 var c = Console.ForegroundColor;

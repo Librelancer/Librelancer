@@ -46,6 +46,8 @@
     <Reference Include="Microsoft.CSharp">
       <HintPath>..\..\..\..\..\..\..\usr\lib\mono\4.6-api\Microsoft.CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="System.Xml.Serialization" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -64,22 +66,25 @@
     <Compile Include="DockTab.cs" />
     <Compile Include="TextureViewer.cs" />
     <Compile Include="DataEditors.cs" />
-    <Compile Include="ModelViewer.cs" />
     <Compile Include="ResourcesTab.cs" />
     <Compile Include="MissingReference.cs" />
     <Compile Include="AleViewer.cs" />
     <Compile Include="ResourceDetection.cs" />
-    <Compile Include="GizmoRender.cs" />
     <Compile Include="UILib\Theme.cs" />
     <Compile Include="LookAtCamera.cs" />
     <Compile Include="UILib\TabHandler.cs" />
-    <Compile Include="ModelViewer.Viewport.cs" />
     <Compile Include="TextureImport.cs" />
     <Compile Include="AleViewer.Icons.cs" />
     <Compile Include="UtfTab.Popups.cs" />
     <Compile Include="UILib\PopupManager.cs" />
-    <Compile Include="DumpObject.cs" />
-    <Compile Include="EmptyLib.cs" />
+    <Compile Include="Viewport3D.cs" />
+    <Compile Include="Model\DumpObject.cs" />
+    <Compile Include="Model\EmptyLib.cs" />
+    <Compile Include="Model\GizmoRender.cs" />
+    <Compile Include="Model\ColladaSupport.cs" />
+    <Compile Include="Model\ColladaTab.cs" />
+    <Compile Include="Model\ModelViewer.cs" />
+    <Compile Include="Model\ModelViewer.Viewport.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">
@@ -110,6 +115,10 @@
       <Project>{C293DB32-FA42-486D-B128-5A12522FAE4E}</Project>
       <Name>SharpFont</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\extern\Collada141\Collada141.csproj">
+      <Project>{7895D6CA-28F4-47D0-8C57-03B4D05DF9F6}</Project>
+      <Name>Collada141</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
@@ -121,6 +130,9 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="LancerEdit.targets" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Model\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="..\..\packages\TeximpNet.1.2.0\build\TeximpNet.targets" Condition="Exists('..\..\packages\TeximpNet.1.2.0\build\TeximpNet.targets')" />

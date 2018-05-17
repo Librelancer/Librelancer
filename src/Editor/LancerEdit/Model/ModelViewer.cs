@@ -75,8 +75,7 @@ namespace LancerEdit
             res = win.Resources;
             buffer = win.Commands;
             SetupViewport();
-            zoom = drawable.GetRadius() * 2;
-            zoomstep = zoom / 3.26f;
+
             if (drawable is CmpFile)
             {
                 //Setup Editor UI for constructs + hardpoints
@@ -180,8 +179,6 @@ namespace LancerEdit
         }
         Vector2 rotation = Vector2.Zero;
         bool firstTab = true;
-        float zoom = 0;
-        float zoomstep = 0;
         Color4 background = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
         System.Numerics.Vector3 editCol;
 
@@ -467,11 +464,7 @@ namespace LancerEdit
 
         public override void Dispose()
         {
-            if (renderTarget != null)
-            {
-                ImGuiHelper.DeregisterTexture(renderTarget);
-                renderTarget.Dispose();
-            }
+            modelViewport.Dispose();
         }
     }
 }

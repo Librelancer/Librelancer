@@ -14,6 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Text;
 using System.Collections.Generic;
 using LibreLancer;
 using LibreLancer.Media;
@@ -31,11 +32,24 @@ namespace LancerEdit
 		public ViewportManager Viewport;
 		public CommandBuffer Commands; //This is a huge object - only have one
 		public MaterialMap MaterialMap;
-		public MainWindow() : base(800,600,false,false)
+        TextBuffer logBuffer;
+        StringBuilder logText = new StringBuilder();
+        public MainWindow(bool useDX9) : base(800,600,false,useDX9)
 		{
 			MaterialMap = new MaterialMap();
 			MaterialMap.AddRegex(new LibreLancer.Ini.StringKeyValue("^nomad.*$", "NomadMaterialNoBendy"));
 			MaterialMap.AddRegex(new LibreLancer.Ini.StringKeyValue("^n-texture.*$", "NomadMaterialNoBendy"));
+            FLLog.UIThread = this;
+            FLLog.AppendLine = (x) =>
+            {
+                logText.AppendLine(x);
+                if (logText.Length > 16384)
+                {
+                    logText.Remove(0, logText.Length - 16384);
+                }
+                logBuffer.SetText(logText.ToString());
+            };
+            logBuffer = new TextBuffer(32768);
 		}
 
 		protected override void Load()
@@ -74,6 +88,9 @@ namespace LancerEdit
 				tab.Update(elapsed);
 		}
         DockTab selected;
+        TextBuffer errorText;
+        bool showLog = false;
+        float h1 = 200, h2 = 200;
 		protected override void Draw(double elapsed)
 		{
 			EnableTextInput();
@@ -123,12 +140,37 @@ namespace LancerEdit
 				}
 				ImGui.EndMenu();
 			}
+            bool openerror = false;
 			if (ImGui.BeginMenu("Tools"))
 			{
+                if(ImGui.MenuItem("Log"))
+                {
+                    showLog = true;
+                }
 				if (ImGui.MenuItem("Resources"))
 				{
 					AddTab(new ResourcesTab(Resources, MissingResources, ReferencedMaterials, ReferencedTextures));
 				}
+                if(ImGui.MenuItem("Import Collada"))
+                {
+                    string input;
+                    if((input = FileDialog.Open()) != null) {
+                        List<ColladaObject> dae = null;
+                        try
+                        {
+                            dae = ColladaSupport.Parse(input);
+                            AddTab(new ColladaTab(dae,System.IO.Path.GetFileName(input),this));
+                        }
+                        catch (Exception ex)
+                        {
+                            if (errorText != null) errorText.Dispose();
+                            var str = "Import Error:\n" + ex.Message + "\n" + ex.StackTrace;
+                            errorText = new TextBuffer();
+                            errorText.SetText(str);
+                            openerror = true;
+                        }
+                    }
+                }
 				ImGui.EndMenu();
 			}
 			if (ImGui.BeginMenu("Help"))
@@ -144,6 +186,15 @@ namespace LancerEdit
 				ImGui.OpenPopup("About");
 				openAbout = false;
 			}
+            if (openerror) ImGui.OpenPopup("Error");
+            if(ImGui.BeginPopupModal("Error", WindowFlags.AlwaysAutoResize))
+            {
+                ImGui.Text("Error:");
+                ImGui.InputTextMultiline("##etext", errorText.Pointer, (uint)errorText.Size,
+                                         new Vector2(430, 200), InputTextFlags.ReadOnly, errorText.Callback);
+                if (ImGui.Button("OK")) ImGui.CloseCurrentPopup();
+                ImGui.EndPopup();
+            }
 			if (ImGui.BeginPopupModal("About", WindowFlags.AlwaysAutoResize))
 			{
 				ImGui.Text("LancerEdit");
@@ -177,7 +228,15 @@ namespace LancerEdit
                               WindowFlags.NoMove |
                               WindowFlags.NoResize);
             TabHandler.TabLabels(tabs, ref selected);
-            ImGui.BeginChild("###tabcontent" + (selected != null ? selected.Title : ""));
+            var totalH = ImGui.GetWindowHeight();
+            if (showLog)
+            {
+                ImGuiExt.SplitterV(2f, ref h1, ref h2, 8, 8, -1);
+                h1 = totalH - h2 - 24f;
+                if (tabs.Count > 0) h1 -= 20f;
+                ImGui.BeginChild("###tabcontent" + (selected != null ? selected.Title : ""),new Vector2(-1,h1),false,WindowFlags.Default);
+            } else
+                ImGui.BeginChild("###tabcontent" + (selected != null ? selected.Title : ""));
             if (selected != null)
             {
                 selected.Draw();
@@ -187,6 +246,16 @@ namespace LancerEdit
                 ActiveTab = null;
             ImGui.EndChild();
             TabHandler.DrawTabDrag(tabs);
+            if(showLog) {
+                ImGui.BeginChild("###log", new Vector2(-1, h2), false, WindowFlags.Default);
+                ImGui.Text("Log");
+                ImGui.SameLine(ImGui.GetWindowWidth() - 20);
+                if (Theme.IconButton("closelog", "x", Color4.White))
+                    showLog = false;
+                ImGui.InputTextMultiline("##logtext", logBuffer.Pointer, 32768, new Vector2(-1, h2 - 24),
+                                         InputTextFlags.ReadOnly, logBuffer.Callback);
+                ImGui.EndChild();
+            }
             ImGui.EndWindow();
 			//Status bar
 			ImGui.SetNextWindowSize(new Vector2(size.X, 25f), Condition.Always);

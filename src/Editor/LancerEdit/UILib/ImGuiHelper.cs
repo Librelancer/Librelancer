@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using LibreLancer;
 using LibreLancer.Vertices;
 using ImGuiNET;
@@ -87,7 +88,7 @@ namespace LancerEdit
 		IntPtr ttfPtr;
 		public static ImGuiNET.Font Noto;
 		public static ImGuiNET.Font Default;
-		public ImGuiHelper(Game game)
+		public unsafe ImGuiHelper(Game game)
 		{
 			this.game = game;
 			game.Keyboard.KeyDown += Keyboard_KeyDown;
@@ -95,10 +96,7 @@ namespace LancerEdit
 			game.Keyboard.TextInput += Keyboard_TextInput;
 			SetKeyMappings();
 			var io = ImGui.GetIO();
-			unsafe
-			{
-				io.GetNativePointer()->IniFilename = IntPtr.Zero;
-			}
+			io.GetNativePointer()->IniFilename = IntPtr.Zero;
 			Default = io.FontAtlas.AddDefaultFont();
 			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LancerEdit.UILib.Roboto-Medium.ttf"))
 			{
@@ -113,17 +111,11 @@ namespace LancerEdit
 				checkerboard = LibreLancer.ImageLib.Generic.FromStream(stream);
 				CheckerboardId = RegisterTexture(checkerboard);
 			}
-            unsafe
-            {
-                ImGuiExt.BuildFontAtlas((IntPtr)ImGuiNative.igGetIO()->FontAtlas);
-            }
+            ImGuiExt.BuildFontAtlas((IntPtr)ImGuiNative.igGetIO()->FontAtlas);
 			FontTextureData texData = io.FontAtlas.GetTexDataAsAlpha8();
 			fontTexture = new Texture2D(texData.Width, texData.Height, false, SurfaceFormat.R8);
 			var bytes = new byte[texData.Width * texData.Height * texData.BytesPerPixel];
-			unsafe
-			{
-				Marshal.Copy((IntPtr)texData.Pixels, bytes, 0, texData.Width * texData.Height * texData.BytesPerPixel);
-			}
+			Marshal.Copy((IntPtr)texData.Pixels, bytes, 0, texData.Width * texData.Height * texData.BytesPerPixel);
 			fontTexture.SetData(bytes);
 			fontTexture.SetFiltering(TextureFiltering.Linear);
 			io.FontAtlas.SetTexID(FONT_TEXTURE_ID);
@@ -134,8 +126,35 @@ namespace LancerEdit
 			var c = new Color4b[] { Color4b.White };
 			dot.SetData(c);
             Theme.Apply();
+            //Required for clipboard function on non-Windows platforms
+            utf8buf = Marshal.AllocHGlobal(8192);
+            instance = this;
+            setTextDel = SetClipboardText;
+            getTextDel = GetClipboardText;
+            io.GetNativePointer()->GetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(getTextDel);
+            io.GetNativePointer()->SetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(setTextDel);
 		}
-
+        static ImGuiHelper instance;
+        static IntPtr utf8buf;
+        static Func<IntPtr, IntPtr> getTextDel;
+        static Action<IntPtr, IntPtr> setTextDel;
+        static IntPtr GetClipboardText(IntPtr userdata)
+        {
+            var str = instance.game.GetClipboardText();
+            var bytes = Encoding.UTF8.GetBytes(str);
+            Marshal.Copy(bytes, 0, utf8buf, bytes.Length);
+            Marshal.WriteByte(utf8buf, bytes.Length, 0);
+            return utf8buf;
+        }
+        static unsafe void SetClipboardText(IntPtr userdata, IntPtr text)
+        {
+            int i = 0;
+            var ptr = (byte*)text;
+            while (ptr[i] != 0) i++;
+            var bytes = new byte[i];
+            Marshal.Copy(text, bytes, 0, i);
+            instance.game.SetClipboardText(Encoding.UTF8.GetString(bytes));
+        }
 		static Dictionary<int, Texture2D> textures = new Dictionary<int, Texture2D>();
 		static Dictionary<Texture2D, int> textureIds = new Dictionary<Texture2D, int>();
 		static int nextId = 2;
