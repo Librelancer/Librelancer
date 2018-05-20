@@ -131,15 +131,11 @@ namespace LibreLancer.Utf.Cmp
 
 		public void Draw(RenderState rstate, Matrix4 world, Lighting light, MaterialAnimCollection mc)
         {
-			if (Mesh.FlexibleVertexFormat == (D3DFVF.XYZ | D3DFVF.NORMAL))
-				return;
             if (ready) Mesh.Draw(rstate, StartMesh, endMesh, StartVertex, world, light, mc);
         }
 
 		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, ref Lighting light, MaterialAnimCollection mc, Material overrideMat = null)
 		{
-			if (Mesh.FlexibleVertexFormat == (D3DFVF.XYZ | D3DFVF.NORMAL))
-				return;
 			if (ready) Mesh.DrawBuffer(buffer, StartMesh, endMesh, StartVertex, world, ref light, Center, mc, overrideMat);
 		}
 
