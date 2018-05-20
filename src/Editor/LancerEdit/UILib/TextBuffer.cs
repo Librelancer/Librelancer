@@ -1,7 +1,23 @@
-﻿using System;
+﻿/* The contents of this file are subject to the Mozilla Public License
+ * Version 1.1 (the "License"); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ * 
+ * Software distributed under the License is distributed on an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific language governing rights and limitations
+ * under the License.
+ * 
+ * 
+ * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
+ * Portions created by the Initial Developer are Copyright (C) 2013-2018
+ * the Initial Developer. All Rights Reserved.
+ */
+using System;
 using System.Text;
 using System.Runtime.InteropServices;
 using ImGuiNET;
+using LibreLancer;
 namespace LancerEdit
 {
 	public unsafe class TextBuffer : IDisposable
@@ -65,19 +81,7 @@ namespace LancerEdit
 
 		public string GetText()
 		{
-			int len = Size;
-			for (int i = 0; i < Size; i++)
-			{
-				var ptr = (byte*)Pointer;
-				if (ptr[i] == 0)
-				{
-					len = i;
-					break;
-				}
-			}
-			var bytes = new byte[len];
-			Marshal.Copy(Pointer, bytes, 0, len);
-			return Encoding.UTF8.GetString(bytes);
+            return UnsafeHelpers.PtrToStringUTF8(Pointer, Size);
 		}
 
 		public void Dispose()

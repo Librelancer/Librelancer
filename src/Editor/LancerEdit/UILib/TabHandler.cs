@@ -52,10 +52,11 @@ namespace LancerEdit
                 //do button
                 if(i > 0) ImGui.SameLine(0, 15);
                 ImGui.PushID(i);
-                var textSz = ImGui.GetTextSize(tabs[i].Title).X;
+                var title = tabs[i].Title.Split(new string[] { "##" }, StringSplitOptions.None)[0];
+                var textSz = ImGui.GetTextSize(title).X;
                 var size = new Vector2(textSz, lineheight);
                 //Selection and hover
-                if (ImGui.InvisibleButton(tabs[i].Title, size)) { selected = tabs[i]; }
+                if (ImGui.InvisibleButton(title,size)) { selected = tabs[i]; }
                 System.Numerics.Vector2 itemRectSize;
                 ImGuiNative.igGetItemRectSize(out itemRectSize);
                 bool hovered = ImGui.IsItemHovered(HoveredFlags.RectOnly);
@@ -94,7 +95,7 @@ namespace LancerEdit
                     0,
                     0
                 );
-                var bytes = System.Text.Encoding.UTF8.GetBytes(tabs[i].Title);
+                var bytes = System.Text.Encoding.UTF8.GetBytes(title);
                 fixed (byte* ptr = bytes)
                 {
                     ImGuiNative.ImDrawList_AddText(
@@ -165,7 +166,8 @@ namespace LancerEdit
                     drawList, start, end, color_hovered, 0, 0
                 );
                 start.X += style.FramePadding.X; start.Y += style.FramePadding.Y;
-                var textbytes = System.Text.Encoding.UTF8.GetBytes(tabs[draggingTabIndex].Title);
+                var title = tabs[draggingTabIndex].Title.Split(new string[] { "##" }, StringSplitOptions.None)[0];
+                var textbytes = System.Text.Encoding.UTF8.GetBytes(title);
                 fixed (byte* ptr = textbytes)
                 {
                     ImGuiNative.ImDrawList_AddText(

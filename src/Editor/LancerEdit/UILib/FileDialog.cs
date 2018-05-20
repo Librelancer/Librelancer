@@ -1,8 +1,21 @@
-﻿using System;
+﻿/* The contents of this file are subject to the Mozilla Public License
+ * Version 1.1 (the "License"); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ * 
+ * Software distributed under the License is distributed on an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific language governing rights and limitations
+ * under the License.
+ * 
+ * 
+ * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
+ * Portions created by the Initial Developer are Copyright (C) 2013-2018
+ * the Initial Developer. All Rights Reserved.
+ */
+using System;
 using System.Diagnostics;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
 using LibreLancer;
 namespace LancerEdit
 {
@@ -116,7 +129,7 @@ namespace LancerEdit
 			method.Invoke(null, null);
 		}
 
-		static unsafe string GtkOpen()
+		static string GtkOpen()
 		{
 			if (!Gtk.gtk_init_check(IntPtr.Zero, IntPtr.Zero))
 			{
@@ -130,23 +143,14 @@ namespace LancerEdit
 			Gtk.gtk_window_set_keep_above(dlg, true); //better than it disappearing
 			string result = null;
 			if (Gtk.gtk_dialog_run(dlg) == Gtk.GTK_RESPONSE_ACCEPT)
-			{
-				var file = Gtk.gtk_file_chooser_get_filename(dlg);
-				//UTF8 Conversion
-				int i = 0;
-				var ptr = (byte*)file;
-				while (ptr[i] != 0) i++;
-				var bytes = new byte[i];
-				Marshal.Copy(file, bytes, 0, i);
-				result = Encoding.UTF8.GetString(bytes);
-			}
+                result = UnsafeHelpers.PtrToStringUTF8(Gtk.gtk_file_chooser_get_filename(dlg));
 			WaitCleanup();
 			Gtk.gtk_widget_destroy(dlg);
 			WaitCleanup();
 			return result;
 		}
 
-		static unsafe string GtkSave()
+		static string GtkSave()
 		{
 			if (!Gtk.gtk_init_check(IntPtr.Zero, IntPtr.Zero))
 			{
@@ -160,15 +164,7 @@ namespace LancerEdit
 			Gtk.gtk_window_set_keep_above(dlg, true); //better than it disappearing
 			string result = null;
 			if (Gtk.gtk_dialog_run(dlg) == Gtk.GTK_RESPONSE_ACCEPT)
-			{
-				var file = Gtk.gtk_file_chooser_get_filename(dlg);
-				int i = 0;
-				var ptr = (byte*)file;
-				while (ptr[i] != 0) i++;
-				var bytes = new byte[i];
-				Marshal.Copy(file, bytes, 0, i);
-				result = Encoding.UTF8.GetString(bytes);
-			}
+                result = UnsafeHelpers.PtrToStringUTF8(Gtk.gtk_file_chooser_get_filename(dlg));
 			WaitCleanup();
 			Gtk.gtk_widget_destroy(dlg);
 			WaitCleanup();

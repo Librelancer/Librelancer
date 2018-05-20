@@ -107,8 +107,14 @@ namespace LibreLancer.Utf.Vms
                         for (int i = 0; i < VertexCount; i++) verticesVertexPosition[i] = new VertexPosition(reader);
                         break;
                     case D3DFVF.XYZ | D3DFVF.NORMAL: //(D3DFVF)0x0012:
-                        verticesVertexPositionNormal = new VertexPositionNormal[VertexCount];
-                        for (int i = 0; i < VertexCount; i++) verticesVertexPositionNormal[i] = new VertexPositionNormal(reader);
+                        verticesVertexPositionNormalTexture = new VertexPositionNormalTexture[VertexCount];
+                        for (int i = 0; i < VertexCount; i++) {
+                            verticesVertexPositionNormalTexture[i] = new VertexPositionNormalTexture(
+                            new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle()),
+                            new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle()),
+                                Vector2.Zero);
+                        }
+                        FlexibleVertexFormat |= D3DFVF.TEX1;
                         break;
                     case D3DFVF.XYZ | D3DFVF.TEX1: //(D3DFVF)0x0102:
                         verticesVertexPositionNormalTexture = new VertexPositionNormalTexture[VertexCount];

@@ -32,7 +32,8 @@ namespace LancerEdit
         public Matrix4 Transform;
         public ColladaGeometry Geometry;
         public ColladaSpline Spline;
-        public List<ColladaObject> Children;
+        public List<ColladaObject> Children = new List<ColladaObject>();
+        public bool AutodetectInclude;
     }
     public struct ColladaDrawcall
     {
@@ -46,11 +47,131 @@ namespace LancerEdit
     }
     public class ColladaGeometry 
     {
-        public float Radius = float.MinValue;
+        public float Radius;
+        public Vector3 Center;
+        public Vector3 Min;
+        public Vector3 Max;
         public ushort[] Indices;
         public VertexPositionNormalDiffuseTextureTwo[] Vertices;
         public ColladaDrawcall[] Drawcalls;
         public D3DFVF FVF;
+
+        public void CalculateDimensions()
+        {
+            float minX = float.MaxValue, minY = float.MaxValue, minZ = float.MaxValue;
+            float maxX = float.MinValue, maxY = float.MinValue, maxZ = float.MinValue;
+            float avgX = 0, avgY = 0, avgZ = 0;
+            foreach (var v in Vertices)
+            {
+                minX = Math.Min(minX, v.Position.X);
+                minY = Math.Min(minY, v.Position.Y);
+                minZ = Math.Min(minZ, v.Position.Z);
+
+                maxX = Math.Max(maxX, v.Position.X);
+                maxY = Math.Max(maxY, v.Position.Y);
+                maxZ = Math.Max(maxZ, v.Position.Z);
+
+                avgX += v.Position.X;
+                avgY += v.Position.Y;
+                avgZ += v.Position.Z;
+            }
+            Min = new Vector3(minX, minY, minZ);
+            Max = new Vector3(maxX, maxY, maxZ);
+            Center = new Vector3(avgX, avgY, avgZ) / Vertices.Length;
+            Radius = Math.Max(
+                VectorMath.Distance(Center, Min),
+                VectorMath.Distance(Center, Max)
+            );
+        }
+        public byte[] VMeshRef(string nodename)
+        {
+            using(var stream = new MemoryStream())
+            {
+                var writer = new BinaryWriter(stream);
+
+                writer.Write((uint)60); //HeaderSize
+                writer.Write(CrcTool.FLModelCrc(nodename));
+                //Fields used for referencing sections of VMeshData
+                writer.Write((ushort)0); //StartVertex - BaseVertex in drawcall
+                writer.Write((ushort)Vertices.Length); //VertexCount (idk?)
+                writer.Write((ushort)0); //StartIndex
+                writer.Write((ushort)Indices.Length); //IndexCount
+                writer.Write((ushort)0); //StartMesh
+                writer.Write((ushort)Drawcalls.Length); //MeshCount
+                //Write rendering things
+                writer.Write(Min.X);
+                writer.Write(Min.Y);
+                writer.Write(Min.Z);
+
+                writer.Write(Max.X);
+                writer.Write(Max.Y);
+                writer.Write(Max.Z);
+
+                writer.Write(Center.X);
+                writer.Write(Center.Y);
+                writer.Write(Center.Z);
+
+                writer.Write(Radius);
+                return stream.ToArray();
+            }
+        }
+        public byte[] VMeshData()
+        {
+            using (var stream = new MemoryStream())
+            {
+                var writer = new BinaryWriter(stream);
+                writer.Write((uint)0x01); //MeshType
+                writer.Write((uint)0x04); //SurfaceType
+                writer.Write((ushort)(Drawcalls.Length)); //MeshCount
+                writer.Write((ushort)(Indices.Length)); //IndexCount
+                writer.Write((ushort)FVF); //FVF
+                writer.Write((ushort)Vertices.Length); //VertexCount
+
+                int startTri = 0;
+                foreach(var dc in Drawcalls) {
+                    //drawcalls must be sequential (start index isn't in VMeshData)
+                    //this error shouldn't ever throw
+                    if (startTri != dc.Start) throw new Exception("Invalid start index");
+                    //write TMeshHeader
+                    writer.Write(CrcTool.FLModelCrc(dc.Material));
+                    writer.Write((ushort)0); //StartVertex - never offset
+                    writer.Write((ushort)0); //EndVertex - ??? not used in Librelancer
+                    writer.Write((ushort)(dc.TriCount * 3)); //NumRefVertices
+                    writer.Write((ushort)0); //Padding
+                    //validation
+                    startTri += dc.TriCount * 3;
+                }
+
+                foreach (var idx in Indices) writer.Write(idx);
+                foreach(var v in Vertices) {
+                    writer.Write(v.Position.X);
+                    writer.Write(v.Position.Y);
+                    writer.Write(v.Position.Z);
+                    if((FVF & D3DFVF.NORMAL) == D3DFVF.NORMAL) {
+                        writer.Write(v.Normal.X);
+                        writer.Write(v.Normal.Y);
+                        writer.Write(v.Normal.Z);
+                    }
+                    if ((FVF & D3DFVF.DIFFUSE) == D3DFVF.DIFFUSE) {
+                        writer.Write((byte)(v.Diffuse.R * 255));
+                        writer.Write((byte)(v.Diffuse.G * 255));
+                        writer.Write((byte)(v.Diffuse.B * 255));
+                        writer.Write((byte)(v.Diffuse.A * 255));
+                    }
+                    //Librelancer stores texture coordinates flipped internally
+                    if((FVF & D3DFVF.TEX2) == D3DFVF.TEX2) {
+                        writer.Write(v.TextureCoordinate.X);
+                        writer.Write(1 - v.TextureCoordinate.Y);
+                        writer.Write(v.TextureCoordinateTwo.X);
+                        writer.Write(1 - v.TextureCoordinateTwo.Y);
+                    } else if ((FVF & D3DFVF.TEX1) == D3DFVF.TEX1) {
+                        writer.Write(v.TextureCoordinate.X);
+                        writer.Write(1 - v.TextureCoordinate.Y);
+                    }
+                }
+                return stream.ToArray();
+            }
+        }
     }
     public class ColladaSupport
     {
@@ -99,7 +220,6 @@ namespace LancerEdit
                 //TODO: Non-matrix transforms
             }
             if(n.node1 != null && n.node1.Length > 0) {
-                obj.Children = new List<ColladaObject>();
                 foreach(var node in n.node1) {
                     obj.Children.Add(ProcessNode(up, geom, node));
                 }
@@ -274,7 +394,6 @@ namespace LancerEdit
                         offUV1 == int.MinValue ? Vector2.Zero : sourceUV1.GetUV(pRefs[idx + offUV1]),
                         offUV2 == int.MinValue ? Vector2.Zero : sourceUV2.GetUV(pRefs[idx + offUV2])
                     );
-                    conv.Radius = Math.Max(conv.Radius, vert.Position.LengthSquared);
                     var vertIdx = vertices.IndexOf(vert);
                     if (indices.Count >= ushort.MaxValue)
                         throw new Exception("Too many indices");
@@ -296,7 +415,7 @@ namespace LancerEdit
             conv.Indices = indices.ToArray();
             conv.Vertices = vertices.ToArray();
             conv.Drawcalls = drawcalls.ToArray();
-            conv.Radius = (float)Math.Sqrt(conv.Radius);
+            conv.CalculateDimensions();
             return conv;
         }
 

@@ -148,12 +148,7 @@ namespace LancerEdit
         }
         static unsafe void SetClipboardText(IntPtr userdata, IntPtr text)
         {
-            int i = 0;
-            var ptr = (byte*)text;
-            while (ptr[i] != 0) i++;
-            var bytes = new byte[i];
-            Marshal.Copy(text, bytes, 0, i);
-            instance.game.SetClipboardText(Encoding.UTF8.GetString(bytes));
+            instance.game.SetClipboardText(UnsafeHelpers.PtrToStringUTF8(text));
         }
 		static Dictionary<int, Texture2D> textures = new Dictionary<int, Texture2D>();
 		static Dictionary<Texture2D, int> textureIds = new Dictionary<Texture2D, int>();

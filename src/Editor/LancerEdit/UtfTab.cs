@@ -32,7 +32,7 @@ namespace LancerEdit
         {
             this.main = main;
             Utf = utf;
-            Title = title;
+            Title = string.Format("{0}##{1}",title,Unique);
             text = new TextBuffer();
             main.Resources.AddResources(utf.Export(), Unique.ToString());
             RegisterPopups();
@@ -132,12 +132,12 @@ namespace LancerEdit
                 if (ImGui.MenuItem("View Model"))
                 {
                     IDrawable drawable = null;
-                    try
-                    {
+                    //try
+                    //{
                         drawable = LibreLancer.Utf.UtfLoader.GetDrawable(Utf.Export(), main.Resources);
                         drawable.Initialize(main.Resources);
-                    }
-                    catch (Exception) { ErrorPopup("Could not open as model"); drawable = null; }
+                    //}
+                    //catch (Exception) { ErrorPopup("Could not open as model"); drawable = null; }
                     if (drawable != null)
                     {
                         main.AddTab(new ModelViewer("Model Viewer (" + Title + ")", Title, drawable, main, this));
