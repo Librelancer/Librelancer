@@ -14,7 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-
+using System.Collections.Generic;
 
 namespace LibreLancer
 {
@@ -59,9 +59,39 @@ namespace LibreLancer
 				depthDirty = true;
 			}
 		}
-
-		public TextureFiltering PreferredFilterLevel { get; set; }
-
+        TextureFiltering _preferred = TextureFiltering.Trilinear;
+        public TextureFiltering PreferredFilterLevel
+        {
+            get { return _preferred;  }
+            set {
+                if (value == TextureFiltering.Anisotropic && MaxAnisotropy == 0)
+                    _preferred = TextureFiltering.Trilinear;
+                else
+                    _preferred = value;
+            }
+        }
+        public int MaxAnisotropy {
+            get; private set;
+        }
+        int _anisotropyLevel = 0;
+        public int AnisotropyLevel {
+            get {
+                return _anisotropyLevel;
+            } set {
+                _anisotropyLevel = value;
+            }
+        }
+        public int[] GetAnisotropyLevels()
+        {
+            if (MaxAnisotropy == 0) return null;
+            var levels = new List<int>();
+            int i = 2;
+            while(i <= MaxAnisotropy) {
+                levels.Add(i);
+                i *= 2;
+            }
+            return levels.ToArray();
+        }
 		public bool DepthWrite
 		{
 			get
@@ -153,6 +183,15 @@ namespace LibreLancer
 			GL.CullFace (GL.GL_BACK);
 			Instance = this;
 			PreferredFilterLevel = TextureFiltering.Trilinear;
+            if(GLExtensions.Anisotropy) {
+                int af;
+                GL.GetIntegerv(GL.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, out af);
+                MaxAnisotropy = af;
+                FLLog.Debug("GL", "Max Anisotropy: " + af);
+            } else {
+                MaxAnisotropy = 0;
+                FLLog.Debug("GL", "Anisotropic Filter Not Supported!");
+            }
 		}
 
 		public void SetViewport(int x, int y, int w, int h)

@@ -44,6 +44,8 @@ namespace LibreLancer
 		public const int GL_CLAMP_TO_EDGE = 0x812F;
 		public const int GL_CLAMP_TO_BORDER = 0x812D;
 		public const int GL_MIRRORED_REPEAT = 0x8370;
+        public const int GL_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
+        public const int GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
 		//Texture Cube
 		public const int GL_TEXTURE_CUBE_MAP = 0x8513;
 		public const int GL_TEXTURE_CUBE_MAP_POSITIVE_X = 0x8515;

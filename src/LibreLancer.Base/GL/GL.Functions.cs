@@ -97,6 +97,8 @@ namespace LibreLancer
 		public static ActiveTexture ActiveTexture;
 		[MapsTo("glTexParameteri")]
 		public static TexParameteri TexParameteri;
+        [MapsTo("glTexParameterf")]
+        public static TexParameterf TexParameterf;
 		[MapsTo("glTexParameterfv")]
 		public static TexParameterfv TexParameterfv;
 		[MapsTo("glBindTexture")]

@@ -60,8 +60,6 @@ namespace LibreLancer
             {
                 throw new Exception(string.Format("{0} is not a valid IVertexType", type.FullName));
             }
-
-
 			GL.GenVertexArrays (1, out VAO);
             GLBind.VertexArray(VAO);
 			GLBind.VertexBuffer(VBO);
@@ -69,10 +67,24 @@ namespace LibreLancer
 			decl.SetPointers ();
 			VertexCount = length;
         }
+
+        public VertexBuffer(VertexDeclaration decl, int length, bool isStream = false)
+        {
+            this.decl = decl;
+            VBO = GL.GenBuffer();
+            var usageHint = isStream ? GL.GL_STREAM_DRAW : GL.GL_STATIC_DRAW;
+            GL.GenVertexArrays(1, out VAO);
+            GLBind.VertexArray(VAO);
+            GLBind.VertexBuffer(VBO);
+            GL.BufferData(GL.GL_ARRAY_BUFFER, (IntPtr)(length * decl.Stride), IntPtr.Zero, usageHint);
+            decl.SetPointers();
+            VertexCount = length;
+        }
+
 		int count = 0;
 		public void SetData<T>(T[] data, int? length = null) where T : struct
         {
-            if (typeof(T) != type)
+            if (typeof(T) != type && typeof(T) != typeof(byte))
                 throw new Exception("Data must be of type " + type.FullName);
 			int len = length ?? data.Length;
 			GLBind.VertexBuffer (VBO);

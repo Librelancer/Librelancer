@@ -37,6 +37,20 @@ namespace LibreLancer
 			}
 		}
 
+        static bool? _anisotropy;
+        public static bool Anisotropy
+        {
+            get
+            {
+                if(_anisotropy == null)
+                {
+                    PopulateExtensions();
+                    _anisotropy = ExtensionList.Contains("GL_EXT_texture_filter_anisotropic");
+                }
+                return _anisotropy.Value;
+            }
+        }
+
 		static bool? _features430;
 		public static bool Features430
 		{

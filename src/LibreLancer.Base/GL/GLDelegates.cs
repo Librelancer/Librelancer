@@ -74,6 +74,8 @@ namespace LibreLancer.GLDelegates
     public delegate void DeleteTextures(int n, ref uint textures);
     [SuppressUnmanagedCodeSecurity]
     public delegate void TexParameteri(int target, int pname, int param);
+    [SuppressUnmanagedCodeSecurity]
+    public delegate void TexParameterf(int target, int pname, float param);
 	[SuppressUnmanagedCodeSecurity]
 	public delegate void TexParameterfv(int target, int pname, ref Vector4 param);
     [SuppressUnmanagedCodeSecurity]

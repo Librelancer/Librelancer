@@ -22,7 +22,8 @@ namespace LibreLancer
 		Trilinear,
 		Bilinear,
 		Linear,
-		Nearest
+		Nearest,
+        Anisotropic
 	}
 }
 

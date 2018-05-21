@@ -34,6 +34,12 @@ namespace LancerEdit
 		public MaterialMap MaterialMap;
         TextBuffer logBuffer;
         StringBuilder logText = new StringBuilder();
+        static readonly string[] defaultFilters = {
+            "Linear", "Bilinear", "Trilinear"
+        };
+        string[] filters;
+        int[] anisotropyLevels;
+        int cFilter = 2;
         public MainWindow(bool useDX9) : base(800,600,false,useDX9)
 		{
 			MaterialMap = new MaterialMap();
@@ -59,6 +65,14 @@ namespace LancerEdit
 			Audio = new AudioManager(this);
             FileDialog.RegisterParent(this);
 			Viewport = new ViewportManager(RenderState);
+            var texturefilters = new List<string>(defaultFilters);
+            if (RenderState.MaxAnisotropy > 0) {
+                anisotropyLevels = RenderState.GetAnisotropyLevels();
+                foreach(var lvl in anisotropyLevels) {
+                    texturefilters.Add(string.Format("Anisotropic {0}x", lvl));
+                }
+            }
+            filters = texturefilters.ToArray();
 			Resources = new ResourceManager(this);
 			Commands = new CommandBuffer();
 			Billboards = new Billboards();
@@ -90,6 +104,7 @@ namespace LancerEdit
         DockTab selected;
         TextBuffer errorText;
         bool showLog = false;
+        bool showOptions = false;
         float h1 = 200, h2 = 200;
 		protected override void Draw(double elapsed)
 		{
@@ -143,6 +158,10 @@ namespace LancerEdit
             bool openerror = false;
 			if (ImGui.BeginMenu("Tools"))
 			{
+                if(ImGui.MenuItem("Options"))
+                {
+                    showOptions = true;
+                }
                 if(ImGui.MenuItem("Log"))
                 {
                     showLog = true;
@@ -282,6 +301,29 @@ namespace LancerEdit
 									 activename,
 									 utfpath));
 			ImGui.EndWindow();
+            if(showOptions) {
+                ImGui.BeginWindow("Options", ref showOptions, WindowFlags.AlwaysAutoResize);
+                var pastC = cFilter;
+                ImGui.Combo("Texture Filter", ref cFilter, filters);
+                if(cFilter != pastC) {
+                    switch(cFilter) {
+                        case 0:
+                            RenderState.PreferredFilterLevel = TextureFiltering.Linear;
+                            break;
+                        case 1:
+                            RenderState.PreferredFilterLevel = TextureFiltering.Bilinear;
+                            break;
+                        case 2:
+                            RenderState.PreferredFilterLevel = TextureFiltering.Trilinear;
+                            break;
+                        default:
+                            RenderState.AnisotropyLevel = anisotropyLevels[cFilter - 3];
+                            RenderState.PreferredFilterLevel = TextureFiltering.Anisotropic;
+                            break;
+                    }
+                }
+                ImGui.EndWindow();
+            }
 			ImGui.PopFont();
 			guiHelper.Render(RenderState);
             foreach (var tab in toAdd)

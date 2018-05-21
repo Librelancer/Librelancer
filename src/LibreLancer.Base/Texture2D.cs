@@ -70,16 +70,27 @@ namespace LibreLancer
 			GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
         }
 
+
         TextureFiltering currentFiltering = TextureFiltering.Linear;
-		public void SetFiltering(TextureFiltering filtering)
+        public void SetFiltering(TextureFiltering filtering)
 		{
             if (currentFiltering == filtering) return;
+            if(GLExtensions.Anisotropy && currentFiltering == TextureFiltering.Anisotropic) {
+                GL.TexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAX_ANISOTROPY_EXT, 1);
+            }
             currentFiltering = filtering;
             BindTo(4);
 			if (LevelCount > 1)
 			{
 				switch (filtering)
 				{
+                    case TextureFiltering.Anisotropic:
+                        GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_LINEAR);
+                        GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
+                        if(GLExtensions.Anisotropy) {
+                            GL.TexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAX_ANISOTROPY_EXT, RenderState.Instance.AnisotropyLevel);
+                        }
+                        break;
 					case TextureFiltering.Trilinear:
 						GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_LINEAR);
 						GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);

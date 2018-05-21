@@ -957,10 +957,10 @@ namespace LibreLancer.ImageLib
 
 			bool isCompressed = IsCompressedTest(pixelFlags);
 
-			bool hasMipMaps = CheckFullMipChain(width, height, numMips);
+			//bool hasMipMaps = CheckFullMipChain(width, height, numMips);
 
 			bool hasAnyMipmaps = numMips > 0;
-
+            bool hasMipMaps = hasAnyMipmaps;
 			hasMipMaps &= loadMipMap;
 
 			if (isCubeMap)
