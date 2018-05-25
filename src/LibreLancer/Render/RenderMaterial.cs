@@ -93,12 +93,12 @@ namespace LibreLancer
         }
 		public static void SetLights(ShaderVariables shader, ref Lighting lights)
 		{
+            if (!lights.Enabled) {
+                shader.SetLightParameters(new Vector4i(0, 0, 0, -1));
+                return;
+            }
+            shader.SetAmbientColor(lights.Ambient);
 			bool hasSpotlight = HasSpotlight(ref lights);
-            //shader.SetLightingEnabled(lights.Enabled ? 1 : 0);
-            shader.SetLightParameters(new Vector4i(0, 0, 0, -1));
-			if (!lights.Enabled)
-				return;
-			shader.SetAmbientColor(lights.Ambient);
             int count = 0;
             if(lights.Lights.SourceLighting != null) {
                 for (int i = 0; i < lights.Lights.SourceLighting.Lights.Count; i++)
