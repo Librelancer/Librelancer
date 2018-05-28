@@ -304,6 +304,22 @@ namespace LibreLancer
         }
 		void DrawPuffRing(bool inside)
 		{
+            /* Skip rendering puff rings */
+            if(!inside) {
+                Vector3 sz;
+                if (Nebula.Zone.Shape is ZoneEllipsoid)
+                    sz = ((ZoneEllipsoid)Nebula.Zone.Shape).Size / 2; //we want radius instead of diameter
+                else if (Nebula.Zone.Shape is ZoneSphere)
+                    sz = new Vector3(((ZoneSphere)Nebula.Zone.Shape).Radius);
+                else
+                    return;
+                var bitRadius = Nebula.ExteriorBitRadius * (1 + Nebula.ExteriorBitRandomVariation);
+                var szR = Math.Max(sz.X, Math.Max(sz.Y, sz.Z));
+                var sph = new BoundingSphere(Nebula.Zone.Position, (szR + bitRadius) * 1.2f);
+                if (camera.Frustum.Contains(sph) == ContainmentType.Disjoint)
+                    return;
+            }
+            /* Actually Render */
 			var sd = 1 - MathHelper.Clamp(Nebula.Zone.Shape.ScaledDistance(camera.Position), 0f, 1f);
 			var factor = MathHelper.Clamp(sd / Nebula.Zone.EdgeFraction, 0, 1);
 
@@ -487,6 +503,10 @@ namespace LibreLancer
 			else
 				return;
 			var p = Nebula.Zone.Position;
+            var sph = new BoundingSphere(p, Math.Max(sz.X, Math.Max(sz.Y, sz.Z)) * 1.2f);
+            if (camera.Frustum.Contains(sph) == ContainmentType.Disjoint)
+                return;
+
 			var tex = (Texture2D)game.ResourceManager.FindTexture(Nebula.ExteriorFill);
 			//X axis
 			{

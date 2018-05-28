@@ -275,6 +275,8 @@ namespace LibreLancer
 
 		public void Run()
 		{
+            //TODO: This makes i5-7200U on mesa 18 faster, but this should probably be a configurable option
+            Environment.SetEnvironmentVariable("mesa_glthread", "true");
             SSEMath.Load();
 			if (SDL.SDL_Init (SDL.SDL_INIT_VIDEO) != 0) {
 				FLLog.Error ("SDL", "SDL_Init failed, exiting.");

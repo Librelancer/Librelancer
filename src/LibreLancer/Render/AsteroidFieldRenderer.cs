@@ -279,7 +279,8 @@ namespace LibreLancer
             public void Spawn(AsteroidFieldRenderer r)
             {
                 Inited = true;
-                var dist = r.rand.NextFloat (r.field.BillboardDistance, r.field.FillDist);
+                var min = r.field.FillDist * (1 - (r.field.BillboardFadePercentage * 0.1f));
+                var dist = r.rand.NextFloat (min, r.field.FillDist);
                 var theta = r.rand.NextFloat(0, (float)Math.PI * 2);
                 var phi = r.rand.NextFloat(0, (float)Math.PI * 2);
                 var p = new Vector3(
@@ -316,7 +317,7 @@ namespace LibreLancer
             ZfrustumCulled = ZexistCulled = ZexcludeCulled = ZshapeCulled = 0;
             var close = AsteroidFieldShared.GetCloseCube (cameraPos, field.CubeSize);
             var cubeRad = new Vector3 (field.CubeSize) * 0.5f;
-            int amountCubes = (int)Math.Floor((field.FillDist / field.CubeSize)) + 1;
+            int amountCubes = (int)Math.Floor((field.FillDist / field.CubeSize));
             for (int x = -amountCubes; x <= amountCubes; x++) {
                 for (int y = -amountCubes; y <= amountCubes; y++) {
                     for (int z = -amountCubes; z <= amountCubes; z++)
@@ -404,16 +405,26 @@ namespace LibreLancer
                     var cameraLights = RenderHelpers.ApplyLights(lighting, 0, cameraPos, 1, nr);
                     if (billboardTex == null || billboardTex.IsDisposed)
                         billboardTex = (Texture2D)res.FindTexture (field.BillboardShape.Texture);
-                
+                    var bdSq = field.BillboardDistance * field.BillboardDistance;
+                    var fadePctSq = bdSq * field.BillboardFadePercentage;
+                    var fillDistSq = field.FillDist * field.FillDist;
                     for (int i = 0; i < astbillboards.Length; i++) {
                         if (!astbillboards [i].Inited) {
                             astbillboards [i].Spawn (this);
                         }
-                        var d = VectorMath.DistanceSquared (cameraPos, astbillboards [i].Position);
-                        if (d < (field.BillboardDistance * field.BillboardDistance) || d > (field.FillDist * field.FillDist))
+                        var dSq = VectorMath.DistanceSquared (cameraPos, astbillboards [i].Position);
+                        if (dSq > fillDistSq)
                             astbillboards [i].Spawn (this);
                         if (astbillboards [i].Visible) {
                             var alpha = 1f;
+                            var fnear = dSq - bdSq;
+                            if(fnear < fadePctSq) {
+                                alpha = fnear / fadePctSq;
+                            }
+                            var ffar = fillDistSq - dSq;
+                            if(ffar < fadePctSq) {
+                                alpha = ffar / fadePctSq;
+                            }
                             var coords = billboardCoords [astbillboards [i].Texture];
                             sys.Game.Billboards.DrawTri (
                                 billboardTex,
