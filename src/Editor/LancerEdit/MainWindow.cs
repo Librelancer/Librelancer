@@ -139,12 +139,13 @@ namespace LancerEdit
 				}
 				else
 				{
-					if (Theme.IconMenuItem(string.Format("Save '{0}'", ActiveTab.Title), "save", Color4.White, true))
+					if (Theme.IconMenuItem(string.Format("Save '{0}'", ActiveTab.DocumentName), "save", Color4.White, true))
 					{
 						var f = FileDialog.Save();
 						if (f != null)
 						{
-							ActiveTab.Title = System.IO.Path.GetFileName(f);
+							ActiveTab.DocumentName = System.IO.Path.GetFileName(f);
+                            ActiveTab.UpdateTitle();
 							ActiveTab.Utf.Save(f);
 						}
 					}
@@ -292,7 +293,7 @@ namespace LancerEdit
 				frequency = RenderFrequency;
 			}
 			else { updateTime++; }
-			string activename = ActiveTab == null ? "None" : ActiveTab.Title;
+			string activename = ActiveTab == null ? "None" : ActiveTab.DocumentName;
 			string utfpath = ActiveTab == null ? "None" : ActiveTab.GetUtfPath();
 			ImGui.Text(string.Format("FPS: {0} | {1} Materials | {2} Textures | Active: {3} - {4}",
 									 (int)Math.Round(frequency),

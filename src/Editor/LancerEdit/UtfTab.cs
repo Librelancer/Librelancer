@@ -32,12 +32,16 @@ namespace LancerEdit
         {
             this.main = main;
             Utf = utf;
+            DocumentName = title;
             Title = string.Format("{0}##{1}",title,Unique);
             text = new TextBuffer();
             main.Resources.AddResources(utf.Export(), Unique.ToString());
             RegisterPopups();
         }
-
+        public void UpdateTitle()
+        {
+            Title = string.Format("{0}##{1}", DocumentName, Unique);
+        }
         public override void SetActiveTab(MainWindow win)
         {
             win.ActiveTab = this;
@@ -140,7 +144,7 @@ namespace LancerEdit
                     catch (Exception) { ErrorPopup("Could not open as model"); drawable = null; }
                     if (drawable != null)
                     {
-                        main.AddTab(new ModelViewer("Model Viewer (" + Title + ")", Title, drawable, main, this));
+                        main.AddTab(new ModelViewer("Model Viewer (" + DocumentName + ")", DocumentName, drawable, main, this));
                     }
                 }
                 if(ImGui.MenuItem("Dump Model"))

@@ -19,6 +19,7 @@ namespace LancerEdit
 {
 	public abstract class DockTab : IDisposable
 	{
+        public string DocumentName = "document";
         public string Title = "tab";
 		static long _ids = 1;
 		static Random rand = new Random();
