@@ -94,8 +94,7 @@ namespace LibreLancer
 			float[] ranges = LODRanges ?? file.Switch2;
 			var dsq = VectorMath.DistanceSquared(center, camera);
             if (ranges == null) {
-                if (InheritCull > 0 && dsq > (InheritCull * InheritCull))
-                    return null;
+                CurrentLevel = 0;
                 return file.Levels[0];
             }
 			var lvl = file.Levels[0];
@@ -104,8 +103,12 @@ namespace LibreLancer
 				var d = ranges[i];
 				if (i > 0 && ranges[i] < ranges[i - 1]) break;
 				if (dsq < (d * sysr.LODMultiplier) * (d * sysr.LODMultiplier)) break;
-				if (i >= file.Levels.Length) return null;
+                if (i >= file.Levels.Length) {
+                    CurrentLevel = -1;
+                    return null;
+                }
 				lvl = file.Levels[i];
+                CurrentLevel = i;
 			}
 			return lvl;
 		}
@@ -228,10 +231,6 @@ namespace LibreLancer
 				maxd *= maxd;
                 if (dsq > maxd) return false;
 			}
-            if(InheritCull > 0)
-            {
-                if (dsq > (InheritCull * InheritCull)) return false;
-            }
 			if (Model != null)
 			{
 				if (Model.Levels.Length != 0)

@@ -222,13 +222,13 @@ namespace LibreLancer
             {
                 if (parent.RenderComponent.LODRanges != null)
                 {
-                    RenderComponent.InheritCull = parent.RenderComponent.LODRanges[1];
+                    RenderComponent.InheritCull = true;
                 }
                 else if (parent.RenderComponent is ModelRenderer)
                 {
                     var mr = (ModelRenderer)parent.RenderComponent;
                     if (mr.Model != null && mr.Model.Switch2 != null)
-                        RenderComponent.InheritCull = mr.Model.Switch2[1];
+                        RenderComponent.InheritCull = true;
                     if(mr.CmpParts != null)
                     {
                         Part parentPart = null;
@@ -237,7 +237,7 @@ namespace LibreLancer
                         else
                             parentPart = mr.CmpParts.Find((o) => o.ObjectName == "Root");
                         if (parentPart.Model.Switch2 != null)
-                            RenderComponent.InheritCull = parentPart.Model.Switch2[1];
+                            RenderComponent.InheritCull = true;
                     }
                 }
             }
@@ -352,8 +352,13 @@ namespace LibreLancer
         {
             if(RenderComponent == null || RenderComponent.PrepareRender(camera,nr,sys))
             {
-                foreach (var child in Children)
+                //Guns etc. aren't drawn when parent isn't on LOD0
+                var isZero = RenderComponent == null || RenderComponent.CurrentLevel == 0;
+                foreach (var child in Children) {
+                    if((child.RenderComponent != null && !child.RenderComponent.InheritCull) ||
+                       isZero)
                     child.PrepareRender(camera, nr, sys);
+                }
             }
             foreach (var child in ForceRenderCheck)
                 child.PrepareRender(camera, nr, sys);

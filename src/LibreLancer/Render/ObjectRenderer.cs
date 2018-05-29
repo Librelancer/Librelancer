@@ -27,7 +27,8 @@ namespace LibreLancer
 		public bool LitDynamic = true;
 		public bool NoFog = false;
 		public float[] LODRanges;
-        public float InheritCull = float.MinValue;
+        public bool InheritCull = true;
+        public int CurrentLevel = 0;
 
 		public virtual bool OutOfView(ICamera camera)
 		{
