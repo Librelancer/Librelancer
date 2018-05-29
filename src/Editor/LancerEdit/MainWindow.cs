@@ -40,6 +40,19 @@ namespace LancerEdit
         string[] filters;
         int[] anisotropyLevels;
         int cFilter = 2;
+        FileDialogFilters UtfFilters = new FileDialogFilters(
+            new FileFilter("All Utf Files","utf","cmp","3db","vms","mat","txm","ale"),
+            new FileFilter("Utf Files","utf"),
+            new FileFilter("Cmp Files","cmp"),
+            new FileFilter("3db Files","3db"),
+            new FileFilter("Vms Files","vms"),
+            new FileFilter("Mat Files","mat"),
+            new FileFilter("Txm Files","txm"),
+            new FileFilter("Ale Files","ale")
+        );
+        FileDialogFilters ColladaFilters = new FileDialogFilters(
+            new FileFilter("Collada Files", "dae")
+        );
         public MainWindow(bool useDX9) : base(800,600,false,useDX9)
 		{
 			MaterialMap = new MaterialMap();
@@ -125,7 +138,7 @@ namespace LancerEdit
 				}
 				if (Theme.IconMenuItem("Open", "open", Color4.White, true))
 				{
-					var f = FileDialog.Open();
+                    var f = FileDialog.Open(UtfFilters);
 					if (f != null && DetectFileType.Detect(f) == FileType.Utf)
 					{
 						var t = new UtfTab(this, new EditableUtf(f), System.IO.Path.GetFileName(f));
@@ -141,7 +154,7 @@ namespace LancerEdit
 				{
 					if (Theme.IconMenuItem(string.Format("Save '{0}'", ActiveTab.DocumentName), "save", Color4.White, true))
 					{
-						var f = FileDialog.Save();
+                        var f = FileDialog.Save(UtfFilters);
 						if (f != null)
 						{
 							ActiveTab.DocumentName = System.IO.Path.GetFileName(f);
@@ -174,7 +187,7 @@ namespace LancerEdit
                 if(ImGui.MenuItem("Import Collada"))
                 {
                     string input;
-                    if((input = FileDialog.Open()) != null) {
+                    if((input = FileDialog.Open(ColladaFilters)) != null) {
                         List<ColladaObject> dae = null;
                         try
                         {

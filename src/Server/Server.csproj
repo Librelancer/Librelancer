@@ -115,6 +115,9 @@
     <Reference Include="LibreLancer.Base">
       <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
     </Reference>
+    <Reference Include="LibreLancer.Base">
+      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />

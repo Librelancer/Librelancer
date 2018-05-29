@@ -15,10 +15,30 @@
  */
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
+using System.Text;
 using LibreLancer;
 namespace LancerEdit
 {
+    public class FileDialogFilters
+    {
+        public FileFilter[] Filters;
+        public FileDialogFilters(params FileFilter[] filters)
+        {
+            Filters = filters;
+        }
+    }
+    public class FileFilter
+    {
+        public string Name;
+        public string[] Extensions;
+        public FileFilter(string name, params string[] exts)
+        {
+            Name = name;
+            Extensions = exts;
+        }
+    }
 	static class FileDialog
 	{
         static dynamic parentForm;
@@ -42,7 +62,7 @@ namespace LancerEdit
             }
         }
 
-        public static string Open()
+        public static string Open(FileDialogFilters filters = null)
 		{
 			if (Platform.RunningOS == OS.Windows)
 			{
@@ -50,6 +70,7 @@ namespace LancerEdit
 				using (var ofd = NewObj("System.Windows.Forms.OpenFileDialog"))
 				{
                     if (parentForm != null) ofd.Parent = parentForm;
+                    if (filters != null) ofd.Filter = SwfFilter(filters);
 					if (ofd.ShowDialog() == SwfOk())
 					{
 						result = ofd.FileName;
@@ -62,8 +83,10 @@ namespace LancerEdit
 			{
                 if (kdialog)
                     return KDialogOpen();
+                else if (parentWindow != IntPtr.Zero)
+                    return Gtk2.GtkOpen(parentWindow,filters);
                 else
-				    return GtkOpen();
+                    return Gtk3.GtkOpen(filters);
 			}
 			else
 			{
@@ -72,7 +95,7 @@ namespace LancerEdit
 			}
 		}
 
-		public static string Save()
+        public static string Save(FileDialogFilters filters = null)
 		{
 			if (Platform.RunningOS == OS.Windows)
 			{
@@ -80,6 +103,7 @@ namespace LancerEdit
 				using (var sfd = NewObj("System.Windows.Forms.SaveFileDialog"))
 				{
                     if (parentForm != null) sfd.Parent = parentForm;
+                    if (filters != null) sfd.Filter = SwfFilter(filters);
                     if (sfd.ShowDialog() == SwfOk())
 					{
 						result = sfd.FileName;
@@ -92,8 +116,10 @@ namespace LancerEdit
 			{
                 if (kdialog)
                     return KDialogSave();
+                else if (parentWindow != IntPtr.Zero)
+                    return Gtk2.GtkSave(parentWindow,filters);
                 else
-				    return GtkSave();
+                    return Gtk3.GtkSave(filters);
 			}
 			else
 			{
@@ -102,6 +128,23 @@ namespace LancerEdit
 			}
 		}
 
+        static string SwfFilter(FileDialogFilters filters)
+        {
+            var builder = new StringBuilder();
+            bool first = true;
+            foreach(var f in filters.Filters) {
+                if (!first)
+                    builder.Append("|");
+                else
+                    first = false;
+                builder.Append(f.Name);
+                builder.Append(" (");
+                var exts = string.Join(";",f.Extensions.Select((x) => "*." + x));
+                builder.Append(exts).Append(")|").Append(exts);
+            }
+            builder.Append("|All files (*.*)|*.*");
+            return builder.ToString();
+        }
         const string WINFORMS_NAME = "System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
         static Assembly winforms;
         static void LoadSwf()
@@ -127,54 +170,6 @@ namespace LancerEdit
 			var t = winforms.GetType("System.Windows.Forms.Application");
 			var method = t.GetMethod("DoEvents", BindingFlags.Public | BindingFlags.Static);
 			method.Invoke(null, null);
-		}
-
-		static string GtkOpen()
-		{
-			if (!Gtk.gtk_init_check(IntPtr.Zero, IntPtr.Zero))
-			{
-				throw new Exception();
-			}
-			var dlg = Gtk.gtk_file_chooser_dialog_new("Open File", IntPtr.Zero,
-													  Gtk.GTK_FILE_CHOOSER_ACTION_OPEN,
-													  IntPtr.Zero);
-			Gtk.gtk_dialog_add_button(dlg, "_Cancel", Gtk.GTK_RESPONSE_CANCEL);
-			Gtk.gtk_dialog_add_button(dlg, "_Accept", Gtk.GTK_RESPONSE_ACCEPT);
-			Gtk.gtk_window_set_keep_above(dlg, true); //better than it disappearing
-			string result = null;
-			if (Gtk.gtk_dialog_run(dlg) == Gtk.GTK_RESPONSE_ACCEPT)
-                result = UnsafeHelpers.PtrToStringUTF8(Gtk.gtk_file_chooser_get_filename(dlg));
-			WaitCleanup();
-			Gtk.gtk_widget_destroy(dlg);
-			WaitCleanup();
-			return result;
-		}
-
-		static string GtkSave()
-		{
-			if (!Gtk.gtk_init_check(IntPtr.Zero, IntPtr.Zero))
-			{
-				throw new Exception();
-			}
-			var dlg = Gtk.gtk_file_chooser_dialog_new("Save File", IntPtr.Zero,
-													  Gtk.GTK_FILE_CHOOSER_ACTION_SAVE,
-													  IntPtr.Zero);
-			Gtk.gtk_dialog_add_button(dlg, "_Cancel", Gtk.GTK_RESPONSE_CANCEL);
-			Gtk.gtk_dialog_add_button(dlg, "_Accept", Gtk.GTK_RESPONSE_ACCEPT);
-			Gtk.gtk_window_set_keep_above(dlg, true); //better than it disappearing
-			string result = null;
-			if (Gtk.gtk_dialog_run(dlg) == Gtk.GTK_RESPONSE_ACCEPT)
-                result = UnsafeHelpers.PtrToStringUTF8(Gtk.gtk_file_chooser_get_filename(dlg));
-			WaitCleanup();
-			Gtk.gtk_widget_destroy(dlg);
-			WaitCleanup();
-			return result;
-		}
-
-		static void WaitCleanup()
-		{
-			while (Gtk.gtk_events_pending())
-				Gtk.gtk_main_iteration();
 		}
 
         static bool HasKDialog()

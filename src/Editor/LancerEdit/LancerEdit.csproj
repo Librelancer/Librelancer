@@ -56,7 +56,7 @@
     <Compile Include="UILib\ImGuiHelper.cs" />
     <Compile Include="UILib\ImGuiHelper.KeyMappings.cs" />
     <Compile Include="UILib\ImGuiExt.cs" />
-    <Compile Include="UILib\Gtk.cs" />
+    <Compile Include="UILib\Gtk3.cs" />
     <Compile Include="UILib\FileDialog.cs" />
     <Compile Include="DetectFileType.cs" />
     <Compile Include="EditableUtf.cs" />
@@ -85,6 +85,7 @@
     <Compile Include="Model\ColladaTab.cs" />
     <Compile Include="Model\ModelViewer.cs" />
     <Compile Include="Model\ModelViewer.Viewport.cs" />
+    <Compile Include="UILib\Gtk2.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">
