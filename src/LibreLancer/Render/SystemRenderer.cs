@@ -83,7 +83,7 @@ namespace LibreLancer
 			if (GLExtensions.Features430)
 			{
 				pointLightBuffer = new ShaderStorageBuffer(MAX_POINTS * (16 * sizeof(float)));
-				if(pointLightCull != null)
+				if(pointLightCull == null)
 					pointLightCull = new ComputeShader(Resources.LoadString("LibreLancer.Shaders.lightingcull.glcompute"));
 			}
 		}
