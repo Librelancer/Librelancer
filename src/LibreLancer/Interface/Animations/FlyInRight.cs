@@ -20,6 +20,7 @@ namespace LibreLancer
 	public class FlyInRight : UIAnimation
 	{
 		Vector2 finalPos;
+
 		public FlyInRight(Vector2 final, double start, double time) : base(start, time)
 		{
 			finalPos = final;

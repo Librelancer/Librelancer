@@ -752,6 +752,11 @@ namespace LibreLancer
         public static Color4 Red { get { return new Color4(255, 0, 0, 255); } }
 
         /// <summary>
+        /// Gets the system color with (R, G, B, A) = (102, 51, 153, 255)
+        /// </summary>
+        public static Color4 RebeccaPurple { get { return new Color4(102, 51, 153, 255); } }
+
+        /// <summary>
         /// Gets the system color with (R, G, B, A) = (188, 143, 143, 255).
         /// </summary>
         public static Color4 RosyBrown { get { return new Color4(188, 143, 143, 255); } }
@@ -845,6 +850,11 @@ namespace LibreLancer
         /// Gets the system color with (R, G, B, A) = (255, 99, 71, 255).
         /// </summary>
         public static Color4 Tomato { get { return new Color4(255, 99, 71, 255); } }
+
+        /// <summary>
+        /// Gets the system color with (R, G, B, A) = (0, 0, 0, 0);
+        /// </summary>
+        public static Color4 TransparentBlack { get { return new Color4(0f, 0f, 0f, 0f); } }
 
         /// <summary>
         /// Gets the system color with (R, G, B, A) = (64, 224, 208, 255).

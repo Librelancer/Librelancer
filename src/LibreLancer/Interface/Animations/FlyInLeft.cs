@@ -20,6 +20,7 @@ namespace LibreLancer
 	public class FlyInLeft : UIAnimation
 	{
 		Vector2 finalPos;
+        public float From = -2;
 		public FlyInLeft(Vector2 final, double start, double time) : base(start, time)
 		{
 			finalPos = final;
@@ -30,8 +31,8 @@ namespace LibreLancer
 		{
 			CurrentPosition.X = (float)Easings.Circular.EaseOut (
 				currentTime, 
-				-2,
-				Math.Abs (finalPos.X - (-2)),
+				From,
+				Math.Abs (finalPos.X - (From)),
 				Duration
 			);
 		}

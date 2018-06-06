@@ -39,7 +39,7 @@ namespace LibreLancer
 				if (Game.Config.CustomState != null)
 					Game.ChangeState(Game.Config.CustomState(Game));
 				else
-					Game.ChangeState(new MainMenu(Game));
+					Game.ChangeState(new LuaMenu(Game));
 			}
 		}
 	}

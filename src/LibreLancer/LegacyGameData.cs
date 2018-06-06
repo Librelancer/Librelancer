@@ -14,6 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using Legacy = LibreLancer.Compatibility.GameData;
@@ -34,7 +35,12 @@ namespace LibreLancer
 			fldata = new Legacy.FreelancerData(flini);
 
 		}
-
+        public string GetInterfaceXml(string id)
+        {
+            using(var reader = new StreamReader(typeof(LegacyGameData).Assembly.GetManifestResourceStream("LibreLancer.Interface.Default." + id + ".xml"))) {
+                return reader.ReadToEnd();
+            }
+        }
 		public string ResolveDataPath(string input)
 		{
 			return Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + input);

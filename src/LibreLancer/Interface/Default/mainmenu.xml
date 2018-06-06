@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<XInterface>
+    <ResourceFile>//INTERFACE/interface.generic.vms</ResourceFile>
+    <Style id="menubutton">
+        <Size height="8.8%" ratio="3.65"/>
+        <Model path="//INTERFACE/INTRO/OBJECTS/front_button.cmp" transform="0.0 0.0 7.5 31.0"/>
+        <Text x="3%" y="24%" width="95%" height="53%" color="rgba(160,196,210,255)" shadow="black"/>
+        <HitArea x="3%" y="20%" width="95%" height="57%" draw="true"/>
+        <HoverStyle>
+            e:textcolor(mixcolor(math.abs(math.cos(9 * time)), "yellow", "rgba(160,196,210,255)"))
+        </HoverStyle>
+    </Style>
+    <Style id="xbutton">
+        <Size height="5%" ratio="1"/>
+        <Model path="//INTERFACE/TEXTOFFER/x.3db" color="rgba(160,196,210,255)" transform="-0.03 0.0 77.0 82.0"/>
+        <Background color="#333"/>
+        <HoverStyle>
+            e:modelcolor(color("yellow"))
+        </HoverStyle>
+    </Style>
+    <DefaultScene>menu</DefaultScene>
+    <Scene id="menu">
+        <Script>
+        function events.onentry()
+            sound:play('ui_motion_swish')
+            dom:element('newgame'):flyin(0,0.6)
+            dom:element('loadgame'):flyin(0.05,0.6)
+            dom:element('multiplayer'):flyin(0.1,0.6)
+            dom:element('settings'):flyin(0.15,0.6)
+            dom:element('exit'):flyin(0.2,0.6)
+            dom:afteranimation("sound:play('ui_window_open')")
+        end
+        function events.onleave()
+            sound:play('ui_motion_swish')
+            dom:element('exit'):flyout(0,0.6)
+            dom:element('settings'):flyout(0.05,0.6)
+            dom:element('multiplayer'):flyout(0.1,0.6)
+            dom:element('loadgame'):flyout(0.15,0.6)
+            dom:element('newgame'):flyout(0.2,0.6)
+        end
+        </Script>
+        <Image path="//INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga"/>
+        <Button x="6.5%" y="21%" aspect="4/3" id="newgame" style="menubutton" text="NEW GAME" onclick="menu:newgame()"/>
+        <Button x="6.5%" y="32%" aspect="4/3" id="loadgame" style="menubutton" text="LOAD GAME" onclick="menu:loadgame()"/>
+        <Button x="6.5%" y="43%" aspect="4/3" id="multiplayer" style="menubutton" text="MULTIPLAYER" onclick="menu:multiplayer()"/>
+        <Button x="6.5%" y="54%" aspect="4/3" id="settings" style="menubutton" text="SETTINGS" onclick="dom:changeto('second')"/>
+        <Button x="6.5%" y="65%" aspect="4/3" id="exit" style="menubutton" text="EXIT" onclick="menu:exit()"/>
+    </Scene>
+    <Scene id="second">
+        <Script>
+        function events.onentry()
+            sound:play('ui_motion_swish')
+            dom:element('exit'):flyin(0,0.6)
+            dom:afteranimation("sound:play('ui_window_open')")
+        end
+        function events.onleave()
+            sound:play('ui_motion_swish')
+            dom:element('exit'):flyout(0,0.6)
+        end
+        </Script>
+        <Image path="//INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga"/>
+        <Button x="5%" y="14%" aspect="4/3" id="exit" style="menubutton" text="BACK" onclick="dom:changeto('menu')"/>
+    </Scene>
+</XInterface>

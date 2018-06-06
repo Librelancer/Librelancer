@@ -39,5 +39,13 @@ namespace LibreLancer
             Marshal.Copy(intptr, bytes, 0, i);
             return Encoding.UTF8.GetString(bytes);
         }
+        public static unsafe IntPtr StringToHGlobalUTF8(string str)
+        {
+            var bytes = Encoding.UTF8.GetBytes(str);
+            var ptr = Marshal.AllocHGlobal(bytes.Length + 1);
+            Marshal.Copy(bytes, 0, ptr, bytes.Length);
+            ((byte*)ptr)[bytes.Length] = 0;
+            return ptr;
+        }
     }
 }

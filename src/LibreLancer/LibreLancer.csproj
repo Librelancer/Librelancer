@@ -119,6 +119,13 @@
     <Reference Include="System.Xml.Linq">
       <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\System.Xml.Linq.dll</HintPath>
     </Reference>
+    <Reference Include="Neo.Lua.Desktop">
+      <HintPath>..\packages\NeoLua.1.2.25\lib\net45\Neo.Lua.Desktop.dll</HintPath>
+    </Reference>
+    <Reference Include="Neo.Lua">
+      <HintPath>..\packages\NeoLua.1.2.25\lib\net45\Neo.Lua.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Serialization" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConvertData.cs" />
@@ -412,6 +419,14 @@
     <Compile Include="LightBitfield.cs" />
     <Compile Include="Gameplay\Components\UpdateSParamComponent.cs" />
     <Compile Include="GameStates\MainMenu.Multiplayer.cs" />
+    <Compile Include="GameStates\LuaMenu.cs" />
+    <Compile Include="Interface\XInterface.cs" />
+    <Compile Include="Interface\XmlUIManager.cs" />
+    <Compile Include="Interface\XInterface.Parsing.cs" />
+    <Compile Include="Interface\XmlUIButtonElement.cs" />
+    <Compile Include="Interface\XmlUIElement.cs" />
+    <Compile Include="Interface\XmlUIImage.cs" />
+    <Compile Include="Interface\MatrixCamera.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -453,6 +468,7 @@
     <EmbeddedResource Include="Shaders\Normals_PositionNormal.vs" />
     <EmbeddedResource Include="Shaders\Normals.frag" />
     <EmbeddedResource Include="Shaders\Basic_PositionColor.vs" />
+    <EmbeddedResource Include="Interface\Default\mainmenu.xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">
@@ -500,4 +516,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Interface\Default\" />
+  </ItemGroup>
 </Project>

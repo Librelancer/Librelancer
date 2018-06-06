@@ -38,7 +38,7 @@ namespace LibreLancer
 		int uithread;
 		bool useintromovies;
 		GameState currentState;
-
+        public ViewportManager ViewportManager;
 		public Viewport Viewport {
 			get {
 				return new Viewport (0, 0, Width, Height);
@@ -101,8 +101,8 @@ namespace LibreLancer
 			Fonts = new FontManager(this);
 			Billboards = new Billboards ();
 			Nebulae = new NebulaVertices();
-			var vp = new ViewportManager (RenderState);
-			vp.Push (0, 0, Width, Height);
+			ViewportManager = new ViewportManager (RenderState);
+			ViewportManager.Push(0, 0, Width, Height);
 			Screenshots = new ScreenshotManager(this);
 			if (useintromovies && IntroMovies.Count > 0)
 				ChangeState(new IntroMovie(this, 0));
