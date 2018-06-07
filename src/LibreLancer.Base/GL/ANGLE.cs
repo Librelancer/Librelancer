@@ -191,6 +191,8 @@ namespace LibreLancer
                 return (Delegate)new GLDelegates.VertexAttribPointer(VertexAttribPointer);
             if (name == "glGenVertexArrays")
                 name = "glGenVertexArraysOES";
+            if (name == "glDeleteVertexArrays")
+                name = "glDeleteVertexArraysOES";
 			if (name == "glBlitFramebuffer")
 				name = "glBlitFramebufferANGLE";
 			if (name == "glRenderbufferStorageMultisample")
