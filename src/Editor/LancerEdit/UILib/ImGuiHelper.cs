@@ -136,8 +136,10 @@ namespace LancerEdit
 		}
         static ImGuiHelper instance;
         static IntPtr utf8buf;
-        static Func<IntPtr, IntPtr> getTextDel;
-        static Action<IntPtr, IntPtr> setTextDel;
+        static GetClipboardTextType getTextDel;
+        static SetClipboardTextType setTextDel;
+        delegate IntPtr GetClipboardTextType(IntPtr userdata);
+        delegate void SetClipboardTextType(IntPtr userdata, IntPtr text);
         static IntPtr GetClipboardText(IntPtr userdata)
         {
             var str = instance.game.GetClipboardText();
