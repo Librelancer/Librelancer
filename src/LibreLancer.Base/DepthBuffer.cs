@@ -8,7 +8,7 @@ namespace LibreLancer
 		{
 			ID = GL.GenRenderbuffer();
 			GL.BindRenderbuffer(GL.GL_RENDERBUFFER, ID);
-			GL.RenderbufferStorage(GL.GL_RENDERBUFFER, GL.GL_DEPTH_COMPONENT24, width, height);
+            GL.RenderbufferStorage(GL.GL_RENDERBUFFER, GL.GLES ? GL.GL_DEPTH_COMPONENT16 : GL.GL_DEPTH_COMPONENT24, width, height);
 		}
 		public void Dispose()
 		{
