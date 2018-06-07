@@ -14,24 +14,12 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using System.Collections.Generic;
 namespace LibreLancer
 {
-    public class XmlUIButton : XmlUIElement
+    public class XmlUIButton : XmlUIPanel
     {
         public XInt.Button Button;
-        public XInt.Style Style;
 
-        IDrawable drawable;
-        Matrix4 transform;
-
-        //Support color changes
-        class ModifiedMaterial
-        {
-            public BasicMaterial Mat;
-            public Color4 Dc;
-        }
-        List<ModifiedMaterial> materials = new List<ModifiedMaterial>();
         ModifiedStyle hoverStyle = new ModifiedStyle();
         Neo.IronLua.LuaChunk hoverChunk;
         class ModifiedStyle
@@ -49,52 +37,20 @@ namespace LibreLancer
             }
         }
 
-        public XmlUIButton(XmlUIManager manager, XInt.Button button, XInt.Style style) : base(manager)
+        public XmlUIButton(XmlUIManager manager, XInt.Button button, XInt.Style style) : base(style,manager)
         {
             Button = button;
             Positioning = button;
-            Style = style;
             if (Style.HoverStyle != null)
             {
                 hoverChunk = LuaStyleEnvironment.L.CompileChunk(
                     style.HoverStyle, "buttonHover", new Neo.IronLua.LuaCompileOptions()
                 );
             }
-            drawable = Manager.Game.ResourceManager.GetDrawable(
-                Manager.Game.GameData.ResolveDataPath(style.Model.Path.Substring(2))
-            );
-            transform = Matrix4.CreateScale(style.Model.Transform[2], style.Model.Transform[3], 1) *
-                              Matrix4.CreateTranslation(style.Model.Transform[0], style.Model.Transform[1], 0);
+
             ID = button.ID;
-            if (Style.Model.Color != null)
-            { //Dc is modified
-                var l0 = ((Utf.Cmp.ModelFile)drawable).Levels[0];
-                var vms = l0.Mesh;
-                //Save Mesh material state
-                for (int i = l0.StartMesh; i < l0.StartMesh + l0.MeshCount; i++)
-                {
-                    var mat = (BasicMaterial)vms.Meshes[i].Material?.Render;
-                    if (mat == null) continue;
-                    bool found = false;
-                    foreach (var m in materials)
-                    {
-                        if (m.Mat == mat)
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (found) continue;
-                    materials.Add(new ModifiedMaterial() { Mat = mat, Dc = mat.Dc });
-                }
-            }
         }
-        public override float CalculateWidth()
-        {
-            var h = Manager.Game.Height * Style.Size.Height;
-            var w = h * Style.Size.Ratio;
-            return w;
-        }
+        
         bool lastDown = false;
         protected override void UpdateInternal(TimeSpan delta)
         {
@@ -116,42 +72,22 @@ namespace LibreLancer
                 if(hoverChunk != null)
                     LuaStyleEnvironment.Do(hoverChunk, hoverStyle, (float)Manager.Game.TotalTime);
             }
-           
+            modelColor = hoverStyle.ModelColor;
             lastDown = Manager.Game.Mouse.IsButtonDown(MouseButtons.Left);
         }
         protected override void DrawInternal(TimeSpan delta)
         {
+            base.DrawInternal(delta);
             var h = Manager.Game.Height * Style.Size.Height;
             var w = h * Style.Size.Ratio;
             var pos = CalculatePosition();
             int px = (int)pos.X, py = (int)pos.Y;
-            if (Animation != null && Animation.Running)
+            if (Animation != null && (Animation.Remain || Animation.Running))
             {
                 px = (int)Animation.CurrentPosition.X;
                 py = (int)Animation.CurrentPosition.Y;
             }
             var r = new Rectangle(px, py, (int)w, (int)h);
-            //Background (mostly for authoring purposes)
-            if (Style.Background != null)
-            {
-                Manager.Game.Renderer2D.Start(Manager.Game.Width, Manager.Game.Height);
-                Manager.Game.Renderer2D.FillRectangle(r, Style.Background.Color);
-                Manager.Game.Renderer2D.Finish();
-            }
-            //Draw Model - TODO: Optional
-            if (Style.Model.Color != null)
-            {
-                var v = hoverStyle.ModelColor ?? Style.Model.Color.Value;
-                for (int i = 0; i < materials.Count; i++)
-                    materials[i].Mat.Dc = v;
-            }
-            drawable.Update(new MatrixCamera(MatrixCamera.CreateTransform(Manager.Game, r)), delta, TimeSpan.FromSeconds(Manager.Game.TotalTime));
-            drawable.Draw(Manager.Game.RenderState, transform, Lighting.Empty);
-            if (Style.Model.Color != null)
-            {
-                for (int i = 0; i < materials.Count; i++)
-                    materials[i].Mat.Dc = materials[i].Dc;
-            }
             //Draw Text
             if (!string.IsNullOrEmpty(Button.Text) && Style.Text != null)
             {

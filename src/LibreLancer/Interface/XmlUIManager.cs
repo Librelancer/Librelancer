@@ -94,12 +94,18 @@ namespace LibreLancer
             env.Add("sound", new LuaSound(this));
             _g = (dynamic)env;
             var scn = xml.Scenes.Where((x) => x.ID == id).First();
+            if(scn.Scripts != null)
             foreach (var script in scn.Scripts)
                 env.DoChunk(script, "$xml");
+            if(scn.Buttons != null)
             foreach (var button in scn.Buttons)
                 Elements.Add(new XmlUIButton(this, button, xml.Styles.Where((x) => x.ID == button.Style).First()));
+            if(scn.Images != null)
             foreach (var img in scn.Images)
                 Elements.Add(new XmlUIImage(img, this));
+            if(scn.Panels != null)
+            foreach (var pnl in scn.Panels)
+                Elements.Add(new XmlUIPanel(pnl, xml.Styles.Where((x) => x.ID == pnl.Style).First(), this));
         }
         void SwapIn(string id)
         {

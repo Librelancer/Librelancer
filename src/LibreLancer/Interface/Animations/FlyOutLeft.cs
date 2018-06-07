@@ -26,6 +26,7 @@ namespace LibreLancer
 			finalPos = final;
 			CurrentPosition.Y = finalPos.Y;
 			FinalPositionSet = new Vector2(To, finalPos.Y);
+            Remain = true;
 		}
 
 		protected override void Run(double currentTime)

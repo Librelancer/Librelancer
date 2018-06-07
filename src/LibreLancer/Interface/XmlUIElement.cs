@@ -82,12 +82,8 @@ namespace LibreLancer
         }
         protected virtual void UpdateInternal(TimeSpan delta)
         {
-            if (Animation != null)
-            {
+            if (Animation != null && Animation.Running)
                 Animation.Update(delta.TotalSeconds);
-                if (!Animation.Running)
-                    Animation = null;
-            }
         }
         protected virtual void DrawInternal(TimeSpan delta) { }
         public virtual float CalculateWidth() { return 0; }

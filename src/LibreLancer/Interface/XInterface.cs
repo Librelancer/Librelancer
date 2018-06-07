@@ -267,6 +267,9 @@ namespace LibreLancer
             [XmlElement("Button")]
             public XInt.Button[] Buttons { get; set; }
 
+            [XmlElement("Panel")]
+            public XInt.Panel[] Panels { get; set; }
+
             [XmlElement("Image")]
             public XInt.Image[] Images { get; set; }
         }
@@ -301,6 +304,12 @@ namespace LibreLancer
             }
             [XmlAttribute("aspect")]
             public string Aspect { get; set; }
+        }
+
+        public class Panel : Positionable
+        {
+            [XmlAttribute("style")]
+            public string Style { get; set; }
         }
 
         public class Button : Positionable

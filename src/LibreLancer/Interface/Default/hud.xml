@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<XInterface>
+    <ResourceFile>//INTERFACE/interface.generic.vms</ResourceFile>
+    <Style id="contactlist">
+        <Size height="35%" ratio="1.2"/>
+        <Model path="//INTERFACE/HUD/hud_target.cmp" transform="0.025 0.0 8.1 9.3"/>
+    </Style>
+    <Style id="shipinfo">
+        <Size height="35%" ratio="1.2"/>
+        <Model path="//INTERFACE/HUD/hud_shipinfo.cmp" transform="-0.025 0.0 8.1 9.3"/>
+    </Style>
+    <DefaultScene>main</DefaultScene>
+    <Scene id="main">
+        <Panel x="0%" y="65%" aspect="4/3" style="contactlist"/>
+        <Panel x="68%" y="65%" aspect="4/3" style="shipinfo"/>
+    </Scene>
+</XInterface>

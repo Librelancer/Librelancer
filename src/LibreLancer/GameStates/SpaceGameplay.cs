@@ -50,7 +50,8 @@ Mouse Flight: {10}
 		Cursor cur_arrow;
 		Cursor cur_reticle;
 		Cursor current_cur;
-		Hud hud;
+        //Hud hud;
+        XmlUIManager hud;
 		EngineComponent ecpt;
 		InputManager input;
 		GameSession session;
@@ -112,29 +113,38 @@ Mouse Flight: {10}
 			cur_arrow = g.ResourceManager.GetCursor("cross");
 			cur_reticle = g.ResourceManager.GetCursor("fire_neutral");
 			current_cur = cur_arrow;
-			hud = new Hud(g);
-			hud.SetManeuver("FreeFlight");
+			//hud = new Hud(g);
+			//hud.SetManeuver("FreeFlight");
 			Game.Keyboard.TextInput += Game_TextInput;
 			g.Keyboard.KeyDown += Keyboard_KeyDown;
 			input = new InputManager(Game);
 			input.ToggleActivated += Input_ToggleActivated;
 			input.ToggleUp += Input_ToggleUp; 
-			hud.OnManeuverSelected += Hud_OnManeuverSelected;
-			hud.OnEntered += Hud_OnTextEntry;
+			//hud.OnManeuverSelected += Hud_OnManeuverSelected;
+			//hud.OnEntered += Hud_OnTextEntry;
 			pilotcomponent = new AutopilotComponent(player);
 			pilotcomponent.DockComplete += Pilotcomponent_DockComplete;
 			player.Components.Add(pilotcomponent);
 			player.World = world;
 			world.MessageBroadcasted += World_MessageBroadcasted;
             world.Physics.EnableWireframes(sysrender.DebugRenderer);
+            hud = new XmlUIManager(Game, "game", new LuaAPI(this), g.GameData.GetInterfaceXml("hud"));
 		}
+        class LuaAPI
+        {
+            SpaceGameplay g;
+            public LuaAPI(SpaceGameplay gameplay)
+            {
+                this.g = gameplay;   
+            }
 
+        }
 		void World_MessageBroadcasted(GameObject sender, GameMessageKind kind)
 		{
 			switch (kind)
 			{
 				case GameMessageKind.ManeuverFinished:
-					hud.SetManeuver("FreeFlight");
+					//hud.SetManeuver("FreeFlight");
 					break;
 			}
 		}
@@ -169,7 +179,7 @@ Mouse Flight: {10}
 
 		void Keyboard_KeyDown(KeyEventArgs e)
 		{
-			if (hud.TextEntry)
+			/*if (hud.TextEntry)
 			{
 				hud.TextEntryKeyPress(e.Key);
 				if (hud.TextEntry == false) Game.DisableTextInput();
@@ -185,12 +195,12 @@ Mouse Flight: {10}
 					hud.TextEntry = true;
 					Game.EnableTextInput();
 				}
-			}
+			}*/
 		}
 
 		void Game_TextInput(string text)
 		{
-			hud.OnTextEntry(text);
+			//hud.OnTextEntry(text);
 		}
 		bool dogoto = false;
 		AutopilotComponent pilotcomponent = null;
@@ -248,14 +258,15 @@ Mouse Flight: {10}
                 camera.ChaseOrientation = player.PhysicsComponent.Body.Transform.ClearTranslation();
             }
 			camera.Update(delta);
-			hud.Velocity = player.PhysicsComponent.Body.LinearVelocity.Length;
-			hud.ThrustAvailable = (float)(powerCore.CurrentThrustCapacity / powerCore.ThrustCapacity);
+			//hud.Velocity = player.PhysicsComponent.Body.LinearVelocity.Length;
+			//hud.ThrustAvailable = (float)(powerCore.CurrentThrustCapacity / powerCore.ThrustCapacity);
 		}
 
 		public override void Update(TimeSpan delta)
 		{
-			//hud.Velocity = Velocity;
-			hud.Update(delta, camera);
+            //hud.Velocity = Velocity;
+            //hud.Update(delta, camera);
+            hud.Update(delta);
 			world.Update(delta);
 		}
 
@@ -273,7 +284,7 @@ Mouse Flight: {10}
 
 		void Input_ToggleActivated(int id)
 		{
-			if (hud.TextEntry) return;
+			//if (hud.TextEntry) return;
 			switch (id)
 			{
 				case InputAction.ID_TOGGLECRUISE:
@@ -311,7 +322,7 @@ Mouse Flight: {10}
 
 			input.Update();
 
-			if (!hud.TextEntry)
+			//if (!hud.TextEntry)
 			{
 				if (input.ActionDown(InputAction.ID_THROTTLEUP))
 				{
@@ -327,7 +338,7 @@ Mouse Flight: {10}
 			}
 
 			StrafeControls strafe = StrafeControls.None;
-			if (!hud.TextEntry)
+			//if (!hud.TextEntry)
 			{
 				if (input.ActionDown(InputAction.ID_STRAFELEFT)) strafe |= StrafeControls.Left;
 				if (input.ActionDown(InputAction.ID_STRAFERIGHT)) strafe |= StrafeControls.Right;
@@ -354,7 +365,7 @@ Mouse Flight: {10}
 			{
 				var newselected = GetSelection(Game.Mouse.X, Game.Mouse.Y);
 				selected = newselected;
-				hud.SelectedObject = selected;
+				//hud.SelectedObject = selected;
 			}
             var ep = UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0.25f), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
             var tgt = UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0f), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
@@ -509,8 +520,8 @@ Mouse Flight: {10}
             sysrender.DebugRenderer.StartFrame(camera, Game.RenderState);
             //world.Physics.DrawWorld();
             sysrender.DebugRenderer.Render();
-			//debugphysics.Render();
-			hud.Draw();
+            //debugphysics.Render();
+            hud.Draw(delta);
 			trender.Start(Game.Width, Game.Height);
 			string sel_obj = "None";
 			if (selected != null)
