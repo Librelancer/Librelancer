@@ -47,9 +47,9 @@ namespace LibreLancer.XInt
             if (i >= '0' && i <= '9')
                 return i - '0';
             if (i >= 'a' && i <= 'f')
-                return 9 + (i - 'a');
+                return 10 + (i - 'a');
             if (i >= 'A' && i <= 'F')
-                return 9 + (i - 'A');
+                return 10 + (i - 'A');
             throw new Exception("Invalid hex digit " + c);
         }
         public static Color4 Color(string s)

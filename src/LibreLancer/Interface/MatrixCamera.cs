@@ -3,24 +3,32 @@ namespace LibreLancer
 {
     public class MatrixCamera : ICamera
     {
-        Matrix4 vp;
+        public Matrix4 Matrix;
+
         public MatrixCamera(Matrix4 vp)
         {
-            this.vp = vp;
+            this.Matrix = vp;
         }
 
-        public static Matrix4 CreateTransform(Game game, Rectangle r)
+        int w = -1, h = -1;
+        Rectangle rect;
+        public void CreateTransform(Game game, Rectangle r)
         {
+            if (w == game.Width && h == game.Height && rect == r)
+                return;
+            w = game.Width;
+            h = game.Height;
+            rect = r;
             float gX = (float)game.Width / 2;
             float gY = (float)game.Height / 2;
             var tX = (r.X + (r.Width / 2) - gX) / gX;
             var tY = (gY - r.Y - (r.Height / 2)) / gY;
             var sX = r.Width / (float)(game.Width);
             var sY = r.Height / (float)(game.Height);
-            return Matrix4.CreateScale(sX, sY, 1) * Matrix4.CreateTranslation(tX, tY, 0);
+            Matrix = Matrix4.CreateScale(sX, sY, 1) * Matrix4.CreateTranslation(tX, tY, 0);
         }
 
-        Matrix4 ICamera.ViewProjection => vp;
+        Matrix4 ICamera.ViewProjection => Matrix;
 
         Matrix4 ICamera.Projection => Matrix4.Identity;
 

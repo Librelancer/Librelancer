@@ -24,9 +24,13 @@ namespace LibreLancer
         public UIAnimation Animation;
         public XInt.Positionable Positioning;
 
+
         public Vector2 CalculatePosition()
         {
             var r = new Rectangle(0, 0, Manager.Game.Width, Manager.Game.Height);
+            var sz = CalculateSize();
+            float h = sz.Y, w = sz.X;
+
             if(Positioning.Aspect == "4/3") {
                 float scaleX = 1;
                 float screenAspect = Manager.Game.Width / (float)Manager.Game.Height;
@@ -37,10 +41,40 @@ namespace LibreLancer
                 r.X = (int)newX;
                 r.Width = (int)(Manager.Game.Width * scaleX);
             }
-            return new Vector2(
-                r.X + (r.Width * Positioning.X),
-                r.Y + (r.Height * Positioning.Y)
-            );
+            switch(Positioning.Anchor) {
+                case XInt.Anchor.topleft:
+                    return new Vector2(
+                        r.X + (r.Width * Positioning.X),
+                        r.Y + (r.Height * Positioning.Y)
+                    );
+                case XInt.Anchor.top:
+                    return new Vector2(
+                        r.X + (r.Width / 2) - (w / 2) + (r.Width * Positioning.X),
+                        r.Y + (r.Height * Positioning.Y)
+                    );
+                case XInt.Anchor.topright:
+                    return new Vector2(
+                        r.X + r.Width - w - (r.Width * Positioning.X),
+                        r.Y + (r.Height * Positioning.Y)
+                    );
+                case XInt.Anchor.bottomleft:
+                    return new Vector2(
+                        r.X + (r.Width * Positioning.X),
+                        r.Y + r.Height - h - (r.Height * Positioning.Y)
+                    );
+                case XInt.Anchor.bottomright:
+                    return new Vector2(
+                        r.X + r.Width - w - (r.Width * Positioning.X),
+                        r.Y + r.Height - h - (r.Height * Positioning.Y)
+                    );
+                case XInt.Anchor.bottom:
+                    return new Vector2(
+                        r.X + (r.Width / 2) - (w / 2) + (r.Width * Positioning.X),
+                        r.Y + r.Height - h - (r.Height * Positioning.Y)
+                    );
+                default:
+                    throw new Exception("Bad anchor");
+            }
         }
         public XmlUIElement(XmlUIManager manager)
         {
@@ -57,13 +91,13 @@ namespace LibreLancer
             }
             public void flyin(float start, float duration)
             {
-                e.Animation = new FlyInLeft(e.CalculatePosition(), start, duration) { From = -e.CalculateWidth() };
+                e.Animation = new FlyInLeft(e.CalculatePosition(), start, duration) { From = -e.CalculateSize().X };
                 e.Animation.Begin();
                 e.Manager.AnimationFinishTimer = Math.Max(e.Manager.AnimationFinishTimer, start + duration);
             }
             public void flyout(float start, float duration)
             {
-                e.Animation = new FlyOutLeft(e.CalculatePosition(), start, duration) { To = -e.CalculateWidth() };
+                e.Animation = new FlyOutLeft(e.CalculatePosition(), start, duration) { To = -e.CalculateSize().X };
                 e.Animation.Begin();
                 e.Manager.AnimationFinishTimer = Math.Max(e.Manager.AnimationFinishTimer, start + duration);
             }
@@ -86,28 +120,7 @@ namespace LibreLancer
                 Animation.Update(delta.TotalSeconds);
         }
         protected virtual void DrawInternal(TimeSpan delta) { }
-        public virtual float CalculateWidth() { return 0; }
-        protected float GetTextSize(float px)
-        {
-            return (int)Math.Floor((px * (72.0f / 96.0f)));
-        }
-        protected void DrawShadowedText(Font font, float size, string text, float x, float y, Color4 c, Color4 s)
-        {
-            Manager.Game.Renderer2D.DrawString(font, size, text, x + 2, y + 2, s);
-            Manager.Game.Renderer2D.DrawString(font, size, text, x, y, c);
-        }
-        protected void DrawTextCentered(Font font, float sz, string text, Rectangle rect, Color4 c, Color4? s)
-        {
-            var size = Manager.Game.Renderer2D.MeasureString(font, sz, text);
-            var pos = new Vector2(
-                rect.X + (rect.Width / 2f - size.X / 2),
-                rect.Y + (rect.Height / 2f - size.Y / 2)
-            );
-            if (s != null)
-                DrawShadowedText(font, sz, text, pos.X, pos.Y, c, s.Value);
-            else
-                Manager.Game.Renderer2D.DrawString(font, sz, text, pos.X, pos.Y, c);
-        }
+        public virtual Vector2 CalculateSize() { return Vector2.Zero; }
 
     }
 }

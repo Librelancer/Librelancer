@@ -29,8 +29,12 @@ namespace LibreLancer
         {
             L = new Lua();
             G = L.CreateEnvironment();
-            G.Add("mixcolor", (Func<float, string, string, Color4>)MixColor);
-            G.Add("color", (Func<string, Color4>)Color);
+            RegisterFuncs(G);
+        }
+        public static void RegisterFuncs(LuaGlobalPortable gp)
+        {
+            gp.Add("mixcolor", (Func<float, string, string, Color4>)MixColor);
+            gp.Add("color", (Func<string, Color4>)Color);
         }
         public static void Do(LuaChunk c, object e, float time)
         {
@@ -65,6 +69,7 @@ namespace LibreLancer
         LuaGlobalPortable env;
         dynamic _g;
         public List<XmlUIElement> Elements = new List<XmlUIElement>();
+
         public Font Font;
         public double AnimationFinishTimer;
 
@@ -92,6 +97,7 @@ namespace LibreLancer
             env.Add(apiname, api);
             env.Add("dom", new LuaDom(this));
             env.Add("sound", new LuaSound(this));
+            LuaStyleEnvironment.RegisterFuncs(env);
             _g = (dynamic)env;
             var scn = xml.Scenes.Where((x) => x.ID == id).First();
             if(scn.Scripts != null)
@@ -197,8 +203,11 @@ namespace LibreLancer
             } else {
                 After();
             }
+            if (_g.events["onupdate"] != null)
+                _g.events.onupdate();
             foreach (var elem in Elements)
                 elem.Update(delta);
+            
         }
 
         public void Draw(TimeSpan delta)

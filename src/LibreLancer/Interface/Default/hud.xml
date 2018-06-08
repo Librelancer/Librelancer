@@ -2,16 +2,64 @@
 <XInterface>
     <ResourceFile>//INTERFACE/interface.generic.vms</ResourceFile>
     <Style id="contactlist">
-        <Size height="35%" ratio="1.2"/>
+        <Size height="35%" ratio="1"/>
         <Model path="//INTERFACE/HUD/hud_target.cmp" transform="0.025 0.0 8.1 9.3"/>
     </Style>
     <Style id="shipinfo">
-        <Size height="35%" ratio="1.2"/>
+        <Size height="35%" ratio="1"/>
         <Model path="//INTERFACE/HUD/hud_shipinfo.cmp" transform="-0.025 0.0 8.1 9.3"/>
+    </Style>
+    <Style id="numberbox">
+        <Size height="6%" ratio="8.2"/>
+        <Model path="//INTERFACE/HUD/hud_numberboxes.cmp" transform="0.0 0.16 5.85 53.0"/>
+        <Text x="3.2%" y="18.2%" width="14%" height="50%" id="left" color="rgba(160,196,210,255)" shadow="black"/>
+        <Text x="82%" y="18.2%" width="14%" height="50%" id="right" color="rgba(160,196,210,255)" shadow="black"/>
+    </Style>
+    <Style id="gaugecontainer">
+        <Size height="6.7%" ratio="4.2"/>
+        <Model path="//INTERFACE/HUD/hud_guagewindow.cmp" transform="0.0 0.1 10.0 51.0"/>
+    </Style>
+    <Style id="navbox">
+        <Size height="6.7%" ratio="4.2"/>
+        <Model path="//INTERFACE/HUD/hud_maneuverbox4.cmp" transform="0.0 0.0 13.5 52.0"/>
+    </Style>
+    <Style id="nninfo">
+        <Size height="3.2%" ratio="1"/>
+        <Model path="//INTERFACE/NEURONET/ICONS/nn_info.3db" color="rgba(160,196,210,255)" transform="0.0 0.0 64.0 64.0"/>
+        <Background color="rebeccapurple"/>
+        <HoverStyle>
+            e:modelcolor(mixcolor(math.abs(math.cos(9 * time)), "yellow", "rgba(160,196,210,255)"))
+            e:modelrotate(0, -3 * time, 0.3);
+        </HoverStyle>
+    </Style>
+    <Style id="nnbox7">
+        <Size height="4%" ratio="6"/>
+        <Model path="//INTERFACE/HUD/hud_nnbox7.cmp" transform="0.0 0.0 7.2 50.2"/>
     </Style>
     <DefaultScene>main</DefaultScene>
     <Scene id="main">
-        <Panel x="0%" y="65%" aspect="4/3" style="contactlist"/>
-        <Panel x="68%" y="65%" aspect="4/3" style="shipinfo"/>
+        <Script><![CDATA[
+        -- Keep parsed colour for speed
+        red = color("red")
+        function events.onupdate()
+            -- Number Box
+            local n = dom:element('nums')
+            local tleft = n:text('left')
+            local pct = game:thrustpct()
+            if pct < 20 then
+                tleft:color(red)
+            end
+            tleft:value(pct .. '%')
+            n:text('right'):value(game:speed())
+            -- Other stuff below
+        end
+        ]]></Script>
+        <Panel anchor="bottomleft" aspect="4/3" style="contactlist"/>
+        <Panel anchor="bottomright" aspect="4/3" style="shipinfo"/>
+        <Panel id="nums" anchor="bottom" aspect="4/3" style="numberbox"/>
+        <Panel anchor="bottom" aspect="4/3" style="gaugecontainer"/>
+        <Panel anchor="top" aspect="4/3" style="navbox"/>
+        <Panel anchor="topright" aspect="4/3" style="nnbox7"/>
+        <Button x="4.5%" y="4.5%" anchor="topright" style="nninfo"/>
     </Scene>
 </XInterface>

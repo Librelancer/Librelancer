@@ -26,14 +26,16 @@ namespace LibreLancer
         {
             public Color4? ModelColor;
             public Color4? TextColor;
-
+            public Vector3 Rotation;
             public void modelcolor(Color4 c) => ModelColor = c;
+            public void modelrotate(float x, float y, float z) => Rotation = new Vector3(x, y, z);
             public void textcolor(Color4 c) => TextColor = c;
-
+           
             public void Reset()
             {
                 ModelColor = null;
                 TextColor = null;
+                Rotation = Vector3.Zero;
             }
         }
 
@@ -73,38 +75,11 @@ namespace LibreLancer
                     LuaStyleEnvironment.Do(hoverChunk, hoverStyle, (float)Manager.Game.TotalTime);
             }
             modelColor = hoverStyle.ModelColor;
+            modelRotate = hoverStyle.Rotation;
             lastDown = Manager.Game.Mouse.IsButtonDown(MouseButtons.Left);
-        }
-        protected override void DrawInternal(TimeSpan delta)
-        {
-            base.DrawInternal(delta);
-            var h = Manager.Game.Height * Style.Size.Height;
-            var w = h * Style.Size.Ratio;
-            var pos = CalculatePosition();
-            int px = (int)pos.X, py = (int)pos.Y;
-            if (Animation != null && (Animation.Remain || Animation.Running))
-            {
-                px = (int)Animation.CurrentPosition.X;
-                py = (int)Animation.CurrentPosition.Y;
-            }
-            var r = new Rectangle(px, py, (int)w, (int)h);
-            //Draw Text
-            if (!string.IsNullOrEmpty(Button.Text) && Style.Text != null)
-            {
-                var t = Style.Text;
-                var textR = new Rectangle(
-                    (int)(r.X + r.Width * t.X),
-                    (int)(r.Y + r.Height * t.Y),
-                    (int)(r.Width * t.Width),
-                    (int)(r.Height * t.Height)
-                );
-                Manager.Game.Renderer2D.Start(Manager.Game.Width, Manager.Game.Height);
-                if (t.Background != null)
-                {
-                    Manager.Game.Renderer2D.FillRectangle(textR, t.Background.Value);
-                }
-                DrawTextCentered(Manager.Font, GetTextSize(textR.Height), Button.Text, textR, hoverStyle.TextColor ?? t.Color, t.Shadow);
-                Manager.Game.Renderer2D.Finish();
+            if(Texts.Count > 0) {
+                Texts[0].Text = Button.Text;
+                Texts[0].ColorOverride = hoverStyle.TextColor;
             }
         }
     }

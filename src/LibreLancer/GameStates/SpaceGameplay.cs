@@ -129,6 +129,7 @@ Mouse Flight: {10}
 			world.MessageBroadcasted += World_MessageBroadcasted;
             world.Physics.EnableWireframes(sysrender.DebugRenderer);
             hud = new XmlUIManager(Game, "game", new LuaAPI(this), g.GameData.GetInterfaceXml("hud"));
+           
 		}
         class LuaAPI
         {
@@ -137,7 +138,14 @@ Mouse Flight: {10}
             {
                 this.g = gameplay;   
             }
-
+            public int thrustpct()
+            {
+                return ((int)(g.powerCore.CurrentThrustCapacity / g.powerCore.ThrustCapacity * 100));
+            }
+            public int speed()
+            {
+                return ((int)g.player.PhysicsComponent.Body.LinearVelocity.Length);
+            }
         }
 		void World_MessageBroadcasted(GameObject sender, GameMessageKind kind)
 		{

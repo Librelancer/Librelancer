@@ -428,6 +428,7 @@
     <Compile Include="Interface\XmlUIImage.cs" />
     <Compile Include="Interface\MatrixCamera.cs" />
     <Compile Include="Interface\XmlUIPanel.cs" />
+    <Compile Include="Interface\TextElement.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

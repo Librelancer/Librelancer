@@ -110,7 +110,8 @@ namespace LibreLancer
 		bool bckLightningActive = false;
 		void UpdateBackgroundLightning(TimeSpan elapsed)
 		{
-			if (!Nebula.BackgroundLightning)
+            //Vanilla St03 has lightning but with 0 duration
+			if (!Nebula.BackgroundLightning || Nebula.BackgroundLightningDuration == 0)
 				return;
 			bckLightningTimer -= elapsed.TotalSeconds;
 			if (bckLightningActive == false)

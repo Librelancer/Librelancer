@@ -14,6 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Linq;
 using System.Collections.Generic;
 namespace LibreLancer
 {
@@ -32,19 +33,36 @@ namespace LibreLancer
 
         List<ModifiedMaterial> materials = new List<ModifiedMaterial>();
         protected Color4? modelColor;
-
+        protected Vector3 modelRotate;
+        MatrixCamera mcam = new MatrixCamera(Matrix4.Identity);
+        protected List<TextElement> Texts = new List<TextElement>();
         public XmlUIPanel(XInt.Panel pnl, XInt.Style style, XmlUIManager manager) : this(style,manager)
         {
             Positioning = pnl;
             ID = pnl.ID;
         }
 
+        public class PanelAPI : LuaAPI
+        {
+            XmlUIPanel p;
+            public PanelAPI(XmlUIPanel pnl) : base(pnl)
+            {
+                p = pnl;
+            }
+            public TextElement.LuaAPI text(string id)
+            {
+                return p.Texts.Where((x) => x.ID == id).First().Lua;
+            }
+
+        }
         public XmlUIPanel(XInt.Style style, XmlUIManager manager) : base(manager)
         {
+            Lua = new PanelAPI(this);
             Style = style;
             drawable = Manager.Game.ResourceManager.GetDrawable(
                Manager.Game.GameData.ResolveDataPath(style.Model.Path.Substring(2))
             );
+
             transform = Matrix4.CreateScale(style.Model.Transform[2], style.Model.Transform[3], 1) *
                               Matrix4.CreateTranslation(style.Model.Transform[0], style.Model.Transform[1], 0);
             if (Style.Model.Color != null)
@@ -69,13 +87,18 @@ namespace LibreLancer
                     materials.Add(new ModifiedMaterial() { Mat = mat, Dc = mat.Dc });
                 }
             }
+            if(Style.Texts != null) {
+                foreach(var t in Style.Texts) {
+                    Texts.Add(new TextElement(t));
+                }
+            }
         }
 
-        public override float CalculateWidth()
+        public override Vector2 CalculateSize()
         {
             var h = Manager.Game.Height * Style.Size.Height;
             var w = h * Style.Size.Ratio;
-            return w;
+            return new Vector2(w, h);
         }
         protected override void DrawInternal(TimeSpan delta)
         {
@@ -103,12 +126,26 @@ namespace LibreLancer
                 for (int i = 0; i < materials.Count; i++)
                     materials[i].Mat.Dc = v;
             }
-            drawable.Update(new MatrixCamera(MatrixCamera.CreateTransform(Manager.Game, r)), delta, TimeSpan.FromSeconds(Manager.Game.TotalTime));
-            drawable.Draw(Manager.Game.RenderState, transform, Lighting.Empty);
+            mcam.CreateTransform(Manager.Game, r);
+            drawable.Update(mcam, delta, TimeSpan.FromSeconds(Manager.Game.TotalTime));
+            Matrix4 rot = Matrix4.Identity;
+            if (modelRotate != Vector3.Zero)
+                rot = Matrix4.CreateRotationX(modelRotate.X) *
+                             Matrix4.CreateRotationY(modelRotate.Y) *
+                             Matrix4.CreateRotationZ(modelRotate.Z);
+            Manager.Game.RenderState.Cull = false;
+            drawable.Draw(Manager.Game.RenderState, transform * rot, Lighting.Empty);
+            Manager.Game.RenderState.Cull = true;
             if (Style.Model.Color != null)
             {
                 for (int i = 0; i < materials.Count; i++)
                     materials[i].Mat.Dc = materials[i].Dc;
+            }
+            if(Texts.Count > 0) {
+                Manager.Game.Renderer2D.Start(Manager.Game.Width, Manager.Game.Height);
+                foreach (var t in Texts)
+                    t.Draw(Manager, r);
+                Manager.Game.Renderer2D.Finish();
             }
         }
     }

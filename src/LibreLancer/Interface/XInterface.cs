@@ -52,7 +52,7 @@ namespace LibreLancer
             [XmlElement("Size")]
             public StyleSize Size { get; set; }
             [XmlElement("Text")]
-            public StyleText Text { get; set; }
+            public StyleText[] Texts { get; set; }
             [XmlElement("Background")]
             public StyleBackground Background { get; set; }
             [XmlElement("HoverStyle")]
@@ -211,6 +211,9 @@ namespace LibreLancer
                     return shadow.Value;
                 }
             }
+
+            [XmlAttribute("id")]
+            public string ID { get; set; }
         }
       
         public class StyleSize
@@ -278,6 +281,8 @@ namespace LibreLancer
         {
             [XmlAttribute("id")]
             public string ID { get; set; }
+            [XmlAttribute("bindings")]
+            public string Bindings { get; set; }
             [XmlAttribute("x")]
             public string XText { get; set; }
             float? x;
@@ -286,6 +291,7 @@ namespace LibreLancer
             {
                 get
                 {
+                    if (string.IsNullOrEmpty(XText)) return 0;
                     if (x == null) x = Parser.Percentage(XText);
                     return x.Value;
                 }
@@ -298,14 +304,26 @@ namespace LibreLancer
             {
                 get
                 {
+                    if (string.IsNullOrEmpty(YText)) return 0;
                     if (y == null) y = Parser.Percentage(YText);
                     return y.Value;
                 }
             }
             [XmlAttribute("aspect")]
             public string Aspect { get; set; }
+            [XmlAttribute("anchor")]
+            public Anchor Anchor { get; set; }
         }
 
+        public enum Anchor
+        {
+            topleft,
+            top,
+            topright,
+            bottomleft,
+            bottom,
+            bottomright
+        }
         public class Panel : Positionable
         {
             [XmlAttribute("style")]
