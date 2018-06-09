@@ -106,7 +106,7 @@ namespace LibreLancer
 
 
         const int MAX_VAOS = 4096;
-        const int MAX_ATTRIBS = 9;
+        const int MAX_ATTRIBS = 13;
 
         const int EGL_PLATFORM_ANGLE_TYPE_D3D9_ANGLE = 0x3207;
         const int EGL_PLATFORM_ANGLE_TYPE_ANGLE = 0x3203;
