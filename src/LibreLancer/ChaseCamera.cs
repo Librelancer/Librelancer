@@ -107,9 +107,13 @@ namespace LibreLancer
 			desiredPosition = ChasePosition + ChaseOrientation.Transform(DesiredPositionOffset);
 		}
 
+
+       
 		public void UpdateProjection()
 		{
-			Projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(50f), Viewport.AspectRatio, 3f, 10000000f);
+            const float defaultFOV = 50;
+
+			Projection = Matrix4.CreatePerspectiveFieldOfView(FOVUtil.CalcFovx(defaultFOV, Viewport.AspectRatio), Viewport.AspectRatio, 3f, 10000000f);
 		}
 
         public void UpdateFrameNumber(long f)

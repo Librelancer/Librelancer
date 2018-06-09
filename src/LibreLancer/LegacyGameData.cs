@@ -37,8 +37,16 @@ namespace LibreLancer
 		}
         public string GetInterfaceXml(string id)
         {
-            using(var reader = new StreamReader(typeof(LegacyGameData).Assembly.GetManifestResourceStream("LibreLancer.Interface.Default." + id + ".xml"))) {
-                return reader.ReadToEnd();
+            if (fldata.Freelancer.XInterfacePath == null)
+            {
+                using (var reader = new StreamReader(typeof(LegacyGameData).Assembly.GetManifestResourceStream("LibreLancer.Interface.Default." + id + ".xml")))
+                {
+                    return reader.ReadToEnd();
+                }
+            } else {
+                using(var reader = new StreamReader(fldata.Freelancer.XInterfacePath + id + ".xml")) {
+                    return reader.ReadToEnd();
+                }
             }
         }
 		public string ResolveDataPath(string input)

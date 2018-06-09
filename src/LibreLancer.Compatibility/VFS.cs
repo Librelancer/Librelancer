@@ -81,7 +81,7 @@ namespace LibreLancer.Compatibility
 				if(File.Exists(Path.Combine(finaldir, split[split.Length - 1])))
 					return builder.Append(split[split.Length - 1]).ToString();
 				var tofind = split [split.Length - 1].ToLowerInvariant ();
-				foreach (var file in Directory.GetFiles(finaldir)) {
+                foreach (var file in Directory.GetFiles(finaldir)) {
 					var fn = Path.GetFileName (file).ToLowerInvariant ();
 					if (fn == tofind) {
 						return builder.Append (Path.GetFileName (file)).ToString ();

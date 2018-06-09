@@ -110,6 +110,12 @@ namespace LibreLancer
 				ChangeState(new LoadingDataState(this));
         }
 
+        protected override void OnResize()
+        {
+            if (currentState != null)
+                currentState.OnResize();
+        }
+
 		protected override void Cleanup()
 		{
 			Audio.Music.Stop ();

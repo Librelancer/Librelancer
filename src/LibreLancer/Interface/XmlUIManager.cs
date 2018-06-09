@@ -65,11 +65,12 @@ namespace LibreLancer
         public FreelancerGame Game;
 
         XInterface xml;
+        List<XInt.Style> styles = new List<XInt.Style>();
         Lua lua;
         LuaGlobalPortable env;
         dynamic _g;
         public List<XmlUIElement> Elements = new List<XmlUIElement>();
-
+        List<XmlUIElement> toadd = new List<XmlUIElement>();
         public Font Font;
         public double AnimationFinishTimer;
 
@@ -85,7 +86,17 @@ namespace LibreLancer
             Font = game.Fonts.GetSystemFont("Agency FB");
             foreach (var file in xml.ResourceFiles)
                 game.ResourceManager.LoadResourceFile(game.GameData.ResolveDataPath(file.Substring(2)));
+            DoStyles(xml);
             LoadScene(xml.DefaultScene);
+        }
+        void DoStyles(XInterface x)
+        {
+            if (x.Styles != null)
+                styles.AddRange(x.Styles);
+            if(x.Includes != null) {
+                foreach (var inc in x.Includes)
+                    DoStyles(XInterface.Load(Game.GameData.GetInterfaceXml(inc.File)));
+            }
         }
         void LoadScene(string id)
         {
@@ -100,25 +111,46 @@ namespace LibreLancer
             LuaStyleEnvironment.RegisterFuncs(env);
             _g = (dynamic)env;
             var scn = xml.Scenes.Where((x) => x.ID == id).First();
-            if(scn.Scripts != null)
-            foreach (var script in scn.Scripts)
-                env.DoChunk(script, "$xml");
-            if(scn.Buttons != null)
-            foreach (var button in scn.Buttons)
-                Elements.Add(new XmlUIButton(this, button, xml.Styles.Where((x) => x.ID == button.Style).First()));
-            if(scn.Images != null)
-            foreach (var img in scn.Images)
-                Elements.Add(new XmlUIImage(img, this));
-            if(scn.Panels != null)
-            foreach (var pnl in scn.Panels)
-                Elements.Add(new XmlUIPanel(pnl, xml.Styles.Where((x) => x.ID == pnl.Style).First(), this));
+            if (scn.Scripts != null)
+                foreach (var script in scn.Scripts)
+                    env.DoChunk(script, "$xml");
+            foreach (var item in scn.Items)
+            {
+                if (item is XInt.Button)
+                {
+                    var btn = (XInt.Button)item;
+                    Elements.Add(new XmlUIButton(this, btn, styles.Where((x) => x.ID == btn.Style).First()));
+                }
+                else if (item is XInt.Image)
+                {
+                    Elements.Add(new XmlUIImage((XInt.Image)item, this));
+                }
+                else if (item is XInt.Panel)
+                {
+                    var pnl = (XInt.Panel)item;
+                    Elements.Add(new XmlUIPanel(pnl, styles.Where((x) => x.ID == pnl.Style).First(), this));
+                }
+                else if (item is XInt.ChatBox)
+                {
+                    var cb = (XInt.ChatBox)item;
+                    Elements.Add(new XmlChatBox(cb, styles.Where((x) => x.ID == cb.Style).First(), this));
+                }
+            }
         }
         void SwapIn(string id)
         {
             LoadScene(id);
+            OnConstruct();
             Enter();
         }
-
+        public void OnConstruct()
+        {
+            if (_g.events["onconstruct"] != null)
+                _g.events.onconstruct();
+            foreach (var ctrl in toadd)
+                Elements.Add(ctrl);
+            toadd.Clear();
+        }
         Dictionary<string, SoundData> sounds = new Dictionary<string, SoundData>();
         void PlaySound(string name)
         {
@@ -159,6 +191,46 @@ namespace LibreLancer
                     manager.SwapIn(id);
                 };
             }
+            public XmlUIButton.LuaAPI addbutton(dynamic dn)
+            {
+                var btn = new XInt.Button();
+                var style = new XInt.Style();
+                style.Size = new XInt.StyleSize();
+                if (dn["x"] != null) btn.XText = dn.x;
+                if (dn["y"] != null) btn.YText = dn.y;
+                if (dn["anchor"] != null) btn.Anchor = Enum.Parse(typeof(XInt.Anchor), dn.anchor);
+                if (dn["height"] != null) style.Size.HeightText = dn.height;
+                if (dn["ratio"] != null) style.Size.Ratio = (float)dn.ratio;
+                if (dn["onclick"] != null) btn.OnClick = dn.onclick;
+                if (dn["background"] != null) style.Background = new XInt.StyleBackground() { ColorText = dn.background };
+                if (dn["models"] != null) {
+                    var mdlxml = new List<XInt.Model>();
+                    foreach(var kv in dn.models) {
+                        var mdl = kv.Value;
+                        mdlxml.Add(new XInt.Model()
+                        {
+                            Path = mdl.path,
+                            TransformString = mdl.transform,
+                            ColorText = mdl.color
+                        });
+                    }
+                    style.Models = mdlxml.ToArray();
+                }
+                var result = new XmlUIButton(manager, btn, style);
+                manager.toadd.Add(result);
+                return result.Lua;
+            }
+        }
+
+        public dynamic Events {
+            get {
+                return _g.events;
+            }
+        }
+
+        public void TableInsert(LuaTable table, object o)
+        {
+            _g.table.insert(table, o);
         }
 
         public void Enter()
@@ -166,6 +238,7 @@ namespace LibreLancer
             if (_g.events["onentry"] != null)
                 _g.events.onentry();
         }
+
         public void Leave()
         {
             if (_g.events["onleave"] != null)
@@ -207,7 +280,9 @@ namespace LibreLancer
                 _g.events.onupdate();
             foreach (var elem in Elements)
                 elem.Update(delta);
-            
+            foreach (var elem in toadd)
+                Elements.Add(elem);
+            toadd.Clear();
         }
 
         public void Draw(TimeSpan delta)

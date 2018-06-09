@@ -44,32 +44,32 @@ namespace LibreLancer
             switch(Positioning.Anchor) {
                 case XInt.Anchor.topleft:
                     return new Vector2(
-                        r.X + (r.Width * Positioning.X),
+                        r.X + (r.Height * Positioning.X),
                         r.Y + (r.Height * Positioning.Y)
                     );
                 case XInt.Anchor.top:
                     return new Vector2(
-                        r.X + (r.Width / 2) - (w / 2) + (r.Width * Positioning.X),
+                        r.X + (r.Width / 2) - (w / 2) + (r.Height * Positioning.X),
                         r.Y + (r.Height * Positioning.Y)
                     );
                 case XInt.Anchor.topright:
                     return new Vector2(
-                        r.X + r.Width - w - (r.Width * Positioning.X),
+                        r.X + r.Width - w - (r.Height * Positioning.X),
                         r.Y + (r.Height * Positioning.Y)
                     );
                 case XInt.Anchor.bottomleft:
                     return new Vector2(
-                        r.X + (r.Width * Positioning.X),
+                        r.X + (r.Height * Positioning.X),
                         r.Y + r.Height - h - (r.Height * Positioning.Y)
                     );
                 case XInt.Anchor.bottomright:
                     return new Vector2(
-                        r.X + r.Width - w - (r.Width * Positioning.X),
+                        r.X + r.Width - w - (r.Height * Positioning.X),
                         r.Y + r.Height - h - (r.Height * Positioning.Y)
                     );
                 case XInt.Anchor.bottom:
                     return new Vector2(
-                        r.X + (r.Width / 2) - (w / 2) + (r.Width * Positioning.X),
+                        r.X + (r.Width / 2) - (w / 2) + (r.Height * Positioning.X),
                         r.Y + r.Height - h - (r.Height * Positioning.Y)
                     );
                 default:

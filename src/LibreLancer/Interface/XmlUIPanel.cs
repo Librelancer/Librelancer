@@ -21,9 +21,14 @@ namespace LibreLancer
     public class XmlUIPanel : XmlUIElement
     {
         public XInt.Style Style;
-        IDrawable drawable;
-        Matrix4 transform;
+        List<ModelInfo> models = new List<ModelInfo>();
 
+        class ModelInfo
+        {
+            public IDrawable Drawable;
+            public Matrix4 Transform;
+            public List<ModifiedMaterial> Materials = new List<ModifiedMaterial>();
+        }
         //Support color changes
         class ModifiedMaterial
         {
@@ -31,9 +36,11 @@ namespace LibreLancer
             public Color4 Dc;
         }
 
-        List<ModifiedMaterial> materials = new List<ModifiedMaterial>();
         protected Color4? modelColor;
+        protected Color4? borderColor;
         protected Vector3 modelRotate;
+        protected bool renderText = true;
+        protected int modelIndex = 0;
         MatrixCamera mcam = new MatrixCamera(Matrix4.Identity);
         protected List<TextElement> Texts = new List<TextElement>();
         public XmlUIPanel(XInt.Panel pnl, XInt.Style style, XmlUIManager manager) : this(style,manager)
@@ -53,38 +60,48 @@ namespace LibreLancer
             {
                 return p.Texts.Where((x) => x.ID == id).First().Lua;
             }
-
+            public void modelindex(int index)
+            {
+                p.modelIndex = index;
+            }
         }
         public XmlUIPanel(XInt.Style style, XmlUIManager manager) : base(manager)
         {
             Lua = new PanelAPI(this);
             Style = style;
-            drawable = Manager.Game.ResourceManager.GetDrawable(
-               Manager.Game.GameData.ResolveDataPath(style.Model.Path.Substring(2))
-            );
-
-            transform = Matrix4.CreateScale(style.Model.Transform[2], style.Model.Transform[3], 1) *
-                              Matrix4.CreateTranslation(style.Model.Transform[0], style.Model.Transform[1], 0);
-            if (Style.Model.Color != null)
-            { //Dc is modified
-                var l0 = ((Utf.Cmp.ModelFile)drawable).Levels[0];
-                var vms = l0.Mesh;
-                //Save Mesh material state
-                for (int i = l0.StartMesh; i < l0.StartMesh + l0.MeshCount; i++)
+            if (style.Models != null)
+            {
+                foreach (var model in style.Models)
                 {
-                    var mat = (BasicMaterial)vms.Meshes[i].Material?.Render;
-                    if (mat == null) continue;
-                    bool found = false;
-                    foreach (var m in materials)
-                    {
-                        if (m.Mat == mat)
+                    var res = new ModelInfo();
+                    res.Drawable = Manager.Game.ResourceManager.GetDrawable(
+                       Manager.Game.GameData.ResolveDataPath(model.Path.Substring(2))
+                    );
+                    res.Transform = Matrix4.CreateScale(model.Transform[2], model.Transform[3], 1) *
+                                      Matrix4.CreateTranslation(model.Transform[0], model.Transform[1], 0);
+                    if (model.Color != null)
+                    { //Dc is modified
+                        var l0 = ((Utf.Cmp.ModelFile)res.Drawable).Levels[0];
+                        var vms = l0.Mesh;
+                        //Save Mesh material state
+                        for (int i = l0.StartMesh; i < l0.StartMesh + l0.MeshCount; i++)
                         {
-                            found = true;
-                            break;
+                            var mat = (BasicMaterial)vms.Meshes[i].Material?.Render;
+                            if (mat == null) continue;
+                            bool found = false;
+                            foreach (var m in res.Materials)
+                            {
+                                if (m.Mat == mat)
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (found) continue;
+                            res.Materials.Add(new ModifiedMaterial() { Mat = mat, Dc = mat.Dc });
                         }
                     }
-                    if (found) continue;
-                    materials.Add(new ModifiedMaterial() { Mat = mat, Dc = mat.Dc });
+                    models.Add(res);
                 }
             }
             if(Style.Texts != null) {
@@ -113,35 +130,43 @@ namespace LibreLancer
             }
             var r = new Rectangle(px, py, (int)w, (int)h);
             //Background (mostly for authoring purposes)
-            if (Style.Background != null)
+            if (Style.Background != null || Style.Border != null)
             {
                 Manager.Game.Renderer2D.Start(Manager.Game.Width, Manager.Game.Height);
-                Manager.Game.Renderer2D.FillRectangle(r, Style.Background.Color);
+                if(Style.Background != null)
+                    Manager.Game.Renderer2D.FillRectangle(r, Style.Background.Color);
+                if (Style.Border != null)
+                    Manager.Game.Renderer2D.DrawRectangle(r, borderColor ?? Style.Border.Color, 1);
                 Manager.Game.Renderer2D.Finish();
             }
-            //Draw Model - TODO: Optional
-            if (Style.Model.Color != null)
+             
+            if (Style.Models != null && modelIndex >= 0 && modelIndex < Style.Models.Length)
             {
-                var v = modelColor ?? Style.Model.Color.Value;
-                for (int i = 0; i < materials.Count; i++)
-                    materials[i].Mat.Dc = v;
+                var stl = Style.Models[modelIndex];
+                var mdl = models[modelIndex];
+                if (stl.Color != null)
+                {
+                    var v = modelColor ?? stl.Color.Value;
+                    for (int i = 0; i < mdl.Materials.Count; i++)
+                        mdl.Materials[i].Mat.Dc = v;
+                }
+                mcam.CreateTransform(Manager.Game, r);
+                mdl.Drawable.Update(mcam, delta, TimeSpan.FromSeconds(Manager.Game.TotalTime));
+                Matrix4 rot = Matrix4.Identity;
+                if (modelRotate != Vector3.Zero)
+                    rot = Matrix4.CreateRotationX(modelRotate.X) *
+                                 Matrix4.CreateRotationY(modelRotate.Y) *
+                                 Matrix4.CreateRotationZ(modelRotate.Z);
+                Manager.Game.RenderState.Cull = false;
+                mdl.Drawable.Draw(Manager.Game.RenderState, mdl.Transform * rot, Lighting.Empty);
+                Manager.Game.RenderState.Cull = true;
+                if (stl.Color != null)
+                {
+                    for (int i = 0; i < mdl.Materials.Count; i++)
+                        mdl.Materials[i].Mat.Dc = mdl.Materials[i].Dc;
+                }
             }
-            mcam.CreateTransform(Manager.Game, r);
-            drawable.Update(mcam, delta, TimeSpan.FromSeconds(Manager.Game.TotalTime));
-            Matrix4 rot = Matrix4.Identity;
-            if (modelRotate != Vector3.Zero)
-                rot = Matrix4.CreateRotationX(modelRotate.X) *
-                             Matrix4.CreateRotationY(modelRotate.Y) *
-                             Matrix4.CreateRotationZ(modelRotate.Z);
-            Manager.Game.RenderState.Cull = false;
-            drawable.Draw(Manager.Game.RenderState, transform * rot, Lighting.Empty);
-            Manager.Game.RenderState.Cull = true;
-            if (Style.Model.Color != null)
-            {
-                for (int i = 0; i < materials.Count; i++)
-                    materials[i].Mat.Dc = materials[i].Dc;
-            }
-            if(Texts.Count > 0) {
+            if(renderText && Texts.Count > 0) {
                 Manager.Game.Renderer2D.Start(Manager.Game.Width, Manager.Game.Height);
                 foreach (var t in Texts)
                     t.Draw(Manager, r);

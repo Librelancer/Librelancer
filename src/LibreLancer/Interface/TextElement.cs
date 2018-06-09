@@ -15,17 +15,21 @@ namespace LibreLancer
             Style = style;
             Lua = new LuaAPI(this);
         }
-
-        public void Draw(XmlUIManager manager, Rectangle r)
+        public Rectangle GetRectangle(Rectangle r)
         {
-            var s = Text;
-            if(!string.IsNullOrEmpty(s)) {
-                var textR = new Rectangle(
+            var textR = new Rectangle(
                     (int)(r.X + r.Width * Style.X),
                     (int)(r.Y + r.Height * Style.Y),
                     (int)(r.Width * Style.Width),
                     (int)(r.Height * Style.Height)
                 );
+            return textR;
+        }
+        public void Draw(XmlUIManager manager, Rectangle r)
+        {
+            var s = Text;
+            if(!string.IsNullOrEmpty(s)) {
+                var textR = GetRectangle(r);
                 if (Style.Background != null)
                 {
                     manager.Game.Renderer2D.FillRectangle(textR, Style.Background.Value);
@@ -53,16 +57,16 @@ namespace LibreLancer
             }
         }
 
-        public float GetTextSize(float px)
+        public static float GetTextSize(float px)
         {
             return (int)Math.Floor((px * (72.0f / 96.0f)));
         }
-        public void DrawShadowedText(XmlUIManager m, Font font, float size, string text, float x, float y, Color4 c, Color4 s)
+        public static void DrawShadowedText(XmlUIManager m, Font font, float size, string text, float x, float y, Color4 c, Color4 s)
         {
             m.Game.Renderer2D.DrawString(font, size, text, x + 2, y + 2, s);
             m.Game.Renderer2D.DrawString(font, size, text, x, y, c);
         }
-        public void DrawTextCentered(XmlUIManager m, Font font, float sz, string text, Rectangle rect, Color4 c, Color4? s)
+        public static void DrawTextCentered(XmlUIManager m, Font font, float sz, string text, Rectangle rect, Color4 c, Color4? s)
         {
             var size = m.Game.Renderer2D.MeasureString(font, sz, text);
             var pos = new Vector2(

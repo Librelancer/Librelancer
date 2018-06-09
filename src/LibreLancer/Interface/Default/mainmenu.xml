@@ -2,7 +2,7 @@
 <XInterface>
     <ResourceFile>//INTERFACE/interface.generic.vms</ResourceFile>
     <Style id="menubutton">
-        <Size height="8.8%" ratio="3.65"/>
+        <Size height="8.8%" ratio="3.79"/>
         <Model path="//INTERFACE/INTRO/OBJECTS/front_button.cmp" transform="0.0 0.0 7.5 31.0"/>
         <Text x="3%" y="24%" width="95%" height="53%" color="rgba(160,196,210,255)" shadow="black"/>
         <HitArea x="3%" y="20%" width="95%" height="57%" draw="true"/>
@@ -11,12 +11,24 @@
         </HoverStyle>
     </Style>
     <Style id="xbutton">
-        <Size height="5%" ratio="1"/>
+        <Size height="4.2%" ratio="1"/>
         <Model path="//INTERFACE/TEXTOFFER/x.3db" color="rgba(160,196,210,255)" transform="-0.03 0.0 77.0 82.0"/>
         <Background color="#333"/>
         <HoverStyle>
             e:modelcolor(color("yellow"))
         </HoverStyle>
+    </Style>
+    <Style id="label">
+        <Size height="3.7%" ratio="7"/>
+        <Text id="lbl" x="0%" y="0%" width="100%" height="100%" color="rgba(160,196,210,255)" shadow="black"/>
+    </Style>
+    <Style id="listcontainer">
+        <Size height="54.5%" ratio="2.28"/>
+        <Model path="//INTERFACE/INTRO/OBJECTS/front_serverselect.cmp" transform="0.0 0.0 2.06 4.7"/>
+    </Style>
+    <Style id="descriptioncontainer">
+        <Size height="16%" ratio="5.6"/>
+        <Model path="//INTERFACE/INTRO/OBJECTS/front_serverselect_info.cmp" transform="0.0 0.0 2.9 16.6"/>
     </Style>
     <DefaultScene>menu</DefaultScene>
     <Scene id="menu">
@@ -40,13 +52,36 @@
         end
         </Script>
         <Image path="//INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga"/>
-        <Button x="6.5%" y="21%" aspect="4/3" id="newgame" style="menubutton" text="NEW GAME" onclick="menu:newgame()"/>
-        <Button x="6.5%" y="32%" aspect="4/3" id="loadgame" style="menubutton" text="LOAD GAME" onclick="menu:loadgame()"/>
-        <Button x="6.5%" y="43%" aspect="4/3" id="multiplayer" style="menubutton" text="MULTIPLAYER" onclick="menu:multiplayer()"/>
-        <Button x="6.5%" y="54%" aspect="4/3" id="settings" style="menubutton" text="SETTINGS" onclick="dom:changeto('second')"/>
-        <Button x="6.5%" y="65%" aspect="4/3" id="exit" style="menubutton" text="EXIT" onclick="menu:exit()"/>
+        <Button x="6.68%" y="25.8%" aspect="4/3" id="newgame" style="menubutton" text="NEW GAME" onclick="menu:newgame()"/>
+        <Button x="6.68%" y="38.1%" aspect="4/3" id="loadgame" style="menubutton" text="LOAD GAME" onclick="menu:loadgame()"/>
+        <Button x="6.68%" y="51%" aspect="4/3" id="multiplayer" style="menubutton" text="MULTIPLAYER" onclick="dom:changeto('multiplayer')"/>
+        <Button x="6.68%" y="63%" aspect="4/3" id="settings" style="menubutton" text="SETTINGS" onclick="dom:changeto('options')"/>
+        <Button x="6.68%" y="75.8%" aspect="4/3" id="exit" style="menubutton" text="EXIT" onclick="menu:exit()"/>
     </Scene>
-    <Scene id="second">
+    <Scene id="multiplayer">
+        <Script><![CDATA[
+        function events.onconstruct()
+            dom:element('listtitle'):text('lbl'):value('FREELANCER SERVERS')
+            dom:element('serverlabel'):text('lbl'):value('SELECT A SERVER')
+        end
+        function events.onentry()
+            
+        end
+        function events.onleave()
+
+        end
+        ]]></Script>
+        <Image path="//INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga"/>
+        <Button x="7.1%" y="73.1%" aspect="4/3" id="mainmenu" style="menubutton" text="MAIN MENU" onclick="dom:changeto('menu')"/>
+        <Button x="50.8%" y="73.1%" aspect="4/3" id="setfilter" style="menubutton" text="SET FILTER"/>
+        <Button x="94.7%" y="73.1%" aspect="4/3" id="refresh" style="menubutton" text="REFRESH LIST"/>
+        <Button x="94.7%" y="86.7%" aspect="4/3" id="connect" style="menubutton" text="CONNECT >"/>
+        <Panel anchor="top" x="2.6%" y="14.8%" id="listtitle" style="label"/>
+        <Panel anchor="top" x="2.8%" y="18.2%" style="listcontainer"/>
+        <Panel x="6.2%" y="20.22%" aspect="4/3" id="serverlabel" style="label"/>
+        <Panel x="1%" y="1.4%" aspect="4/3" anchor="bottomleft" style="descriptioncontainer"/>
+    </Scene>
+    <Scene id="options">
         <Script>
         function events.onentry()
             sound:play('ui_motion_swish')
@@ -59,6 +94,6 @@
         end
         </Script>
         <Image path="//INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga"/>
-        <Button x="5%" y="14%" aspect="4/3" id="exit" style="menubutton" text="BACK" onclick="dom:changeto('menu')"/>
+        <Button x="5%" y="13.8%" aspect="4/3" id="exit" style="menubutton" text="BACK" onclick="dom:changeto('menu')"/>
     </Scene>
 </XInterface>

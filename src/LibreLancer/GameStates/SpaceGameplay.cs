@@ -37,7 +37,6 @@ Mouse Flight: {10}
 		PhysicsDebugRenderer debugphysics;
 		SystemRenderer sysrender;
 		bool wireframe = false;
-		Renderer2D trender;
 		Font font;
 		bool textEntry = false;
 		string currentText = "";
@@ -50,8 +49,7 @@ Mouse Flight: {10}
 		Cursor cur_arrow;
 		Cursor cur_reticle;
 		Cursor current_cur;
-        //Hud hud;
-        XmlUIManager hud;
+        ScriptedHud hud;
 		EngineComponent ecpt;
 		InputManager input;
 		GameSession session;
@@ -105,7 +103,6 @@ Mouse Flight: {10}
 			ecpt.Speed = 0;
 			player.Register(world.Physics);
 			g.Sound.PlayMusic(sys.MusicSpace);
-			trender = new Renderer2D(Game.RenderState);
 			font = g.Fonts.GetSystemFont("Agency FB");
 			g.Keyboard.TextInput += G_Keyboard_TextInput;
 			debugphysics = new PhysicsDebugRenderer();
@@ -113,23 +110,20 @@ Mouse Flight: {10}
 			cur_arrow = g.ResourceManager.GetCursor("cross");
 			cur_reticle = g.ResourceManager.GetCursor("fire_neutral");
 			current_cur = cur_arrow;
-			//hud = new Hud(g);
-			//hud.SetManeuver("FreeFlight");
 			Game.Keyboard.TextInput += Game_TextInput;
 			g.Keyboard.KeyDown += Keyboard_KeyDown;
 			input = new InputManager(Game);
 			input.ToggleActivated += Input_ToggleActivated;
 			input.ToggleUp += Input_ToggleUp; 
 			//hud.OnManeuverSelected += Hud_OnManeuverSelected;
-			//hud.OnEntered += Hud_OnTextEntry;
+			//
 			pilotcomponent = new AutopilotComponent(player);
 			pilotcomponent.DockComplete += Pilotcomponent_DockComplete;
 			player.Components.Add(pilotcomponent);
 			player.World = world;
 			world.MessageBroadcasted += World_MessageBroadcasted;
             world.Physics.EnableWireframes(sysrender.DebugRenderer);
-            hud = new XmlUIManager(Game, "game", new LuaAPI(this), g.GameData.GetInterfaceXml("hud"));
-           
+            ConstructHud();
 		}
         class LuaAPI
         {
@@ -138,21 +132,30 @@ Mouse Flight: {10}
             {
                 this.g = gameplay;   
             }
-            public int thrustpct()
+            public Neo.IronLua.LuaTable maneuvers()
             {
-                return ((int)(g.powerCore.CurrentThrustCapacity / g.powerCore.ThrustCapacity * 100));
+                var list = new Neo.IronLua.LuaTable();
+                foreach(var maneuver in g.Game.GameData.GetManeuvers()) {
+                    var mn = (dynamic)(new Neo.IronLua.LuaTable());
+                    mn.action = maneuver.Action;
+                    mn.activemodel = "//" + maneuver.ActiveModel;
+                    mn.inactivemodel = "//" + maneuver.InactiveModel;
+                    mn.infocarda = maneuver.InfocardA;
+                    mn.infocardb = maneuver.InfocardB;
+                    g.hud.UI.TableInsert(list, mn);
+                }
+                return list;
             }
-            public int speed()
-            {
-                return ((int)g.player.PhysicsComponent.Body.LinearVelocity.Length);
-            }
+            public int thrustpct() => ((int)(g.powerCore.CurrentThrustCapacity / g.powerCore.ThrustCapacity * 100));
+            public int speed() => ((int)g.player.PhysicsComponent.Body.LinearVelocity.Length);
+            public bool multiplayer() => false;
         }
 		void World_MessageBroadcasted(GameObject sender, GameMessageKind kind)
 		{
 			switch (kind)
 			{
 				case GameMessageKind.ManeuverFinished:
-					//hud.SetManeuver("FreeFlight");
+					hud.SetManeuver("FreeFlight");
 					break;
 			}
 		}
@@ -187,7 +190,7 @@ Mouse Flight: {10}
 
 		void Keyboard_KeyDown(KeyEventArgs e)
 		{
-			/*if (hud.TextEntry)
+			if (hud.TextEntry)
 			{
 				hud.TextEntryKeyPress(e.Key);
 				if (hud.TextEntry == false) Game.DisableTextInput();
@@ -203,13 +206,14 @@ Mouse Flight: {10}
 					hud.TextEntry = true;
 					Game.EnableTextInput();
 				}
-			}*/
+			}
 		}
 
 		void Game_TextInput(string text)
 		{
-			//hud.OnTextEntry(text);
+			hud.OnTextEntry(text);
 		}
+
 		bool dogoto = false;
 		AutopilotComponent pilotcomponent = null;
 		void Hud_OnTextEntry(string obj)
@@ -227,6 +231,9 @@ Mouse Flight: {10}
 					//selected.PhysicsComponent.EnableDebugDraw = true;
 					//debugDrawBody = selected.PhysicsComponent;
 					break;
+                case "reloadxml":
+                    newHud = true;
+                    break;
 			}
 			session.ProcessConsoleCommand(obj);
 		}
@@ -266,14 +273,30 @@ Mouse Flight: {10}
                 camera.ChaseOrientation = player.PhysicsComponent.Body.Transform.ClearTranslation();
             }
 			camera.Update(delta);
-			//hud.Velocity = player.PhysicsComponent.Body.LinearVelocity.Length;
-			//hud.ThrustAvailable = (float)(powerCore.CurrentThrustCapacity / powerCore.ThrustCapacity);
 		}
 
-		public override void Update(TimeSpan delta)
+        bool newHud = false;
+        void ConstructHud()
+        {
+            hud = new ScriptedHud(new LuaAPI(this), true, Game);
+            hud.OnEntered += Hud_OnTextEntry;
+            hud.Init();
+            hud.SetManeuver("FreeFlight");
+        }
+
+        public override void OnResize()
+        {
+            camera.Viewport = Game.Viewport;
+        }
+        public override void Update(TimeSpan delta)
 		{
             //hud.Velocity = Velocity;
             //hud.Update(delta, camera);
+            if(newHud) {
+                hud.Dispose();
+                ConstructHud();
+                newHud = false;
+            }
             hud.Update(delta);
 			world.Update(delta);
 		}
@@ -292,7 +315,7 @@ Mouse Flight: {10}
 
 		void Input_ToggleActivated(int id)
 		{
-			//if (hud.TextEntry) return;
+			if (hud.TextEntry) return;
 			switch (id)
 			{
 				case InputAction.ID_TOGGLECRUISE:
@@ -330,7 +353,7 @@ Mouse Flight: {10}
 
 			input.Update();
 
-			//if (!hud.TextEntry)
+			if (!hud.TextEntry)
 			{
 				if (input.ActionDown(InputAction.ID_THROTTLEUP))
 				{
@@ -346,7 +369,7 @@ Mouse Flight: {10}
 			}
 
 			StrafeControls strafe = StrafeControls.None;
-			//if (!hud.TextEntry)
+			if (!hud.TextEntry)
 			{
 				if (input.ActionDown(InputAction.ID_STRAFELEFT)) strafe |= StrafeControls.Left;
 				if (input.ActionDown(InputAction.ID_STRAFERIGHT)) strafe |= StrafeControls.Right;
@@ -530,7 +553,7 @@ Mouse Flight: {10}
             sysrender.DebugRenderer.Render();
             //debugphysics.Render();
             hud.Draw(delta);
-			trender.Start(Game.Width, Game.Height);
+			Game.Renderer2D.Start(Game.Width, Game.Height);
 			string sel_obj = "None";
 			if (selected != null)
 			{
@@ -539,9 +562,9 @@ Mouse Flight: {10}
 				else
 					sel_obj = selected.Name;
 			}
-			DebugDrawing.DrawShadowedText(trender, font, 16, string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, moffset.X, moffset.Y, mouseFlight), 5, 5);
-			current_cur.Draw(trender, Game.Mouse);
-			trender.Finish();
+			DebugDrawing.DrawShadowedText(Game.Renderer2D, font, 16, string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, moffset.X, moffset.Y, mouseFlight), 5, 5);
+			current_cur.Draw(Game.Renderer2D, Game.Mouse);
+			Game.Renderer2D.Finish();
 		}
 	}
 }

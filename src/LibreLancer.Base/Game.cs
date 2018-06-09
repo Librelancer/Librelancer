@@ -417,8 +417,11 @@ namespace LibreLancer
 							break;
 						}
 					case SDL.SDL_EventType.SDL_WINDOWEVENT:
-						if(e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
-							SDL.SDL_GetWindowSize(windowptr, out width, out height);
+                            if (e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
+                            {
+                                SDL.SDL_GetWindowSize(windowptr, out width, out height);
+                                OnResize();
+                            }
 						break;
 					}
 				}
@@ -460,6 +463,10 @@ namespace LibreLancer
 			Cleanup ();
 			SDL.SDL_Quit ();
 		}
+
+        protected virtual void OnResize()
+        {
+        }
 
 		public void ToggleFullScreen()
 		{

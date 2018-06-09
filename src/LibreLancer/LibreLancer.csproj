@@ -429,6 +429,9 @@
     <Compile Include="Interface\MatrixCamera.cs" />
     <Compile Include="Interface\XmlUIPanel.cs" />
     <Compile Include="Interface\TextElement.cs" />
+    <Compile Include="Interface\XmlChatBox.cs" />
+    <Compile Include="Interface\ScriptedHud.cs" />
+    <Compile Include="Render\FOVUtil.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -472,6 +475,8 @@
     <EmbeddedResource Include="Shaders\Basic_PositionColor.vs" />
     <EmbeddedResource Include="Interface\Default\mainmenu.xml" />
     <EmbeddedResource Include="Interface\Default\hud.xml" />
+    <EmbeddedResource Include="Interface\Default\commonstyles.xml" />
+    <EmbeddedResource Include="Interface\Default\baseside.xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

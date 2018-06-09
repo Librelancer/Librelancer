@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<XInterface>
+    <Include file="commonstyles"/>
+    <DefaultScene>main</DefaultScene>
+    <Scene id="main">
+        <ChatBox anchor="bottom" y="9%" style="chatbox" displayarea="main"/>
+    </Scene>
+</XInterface>

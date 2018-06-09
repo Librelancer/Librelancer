@@ -13,6 +13,8 @@ namespace LibreLancer.Compatibility.GameData
 		public string SolarPath { get; private set; }
 		public string UniversePath { get; private set; }
 		public string HudPath { get; private set; }
+        public string XInterfacePath { get; private set; }
+
 		public List<string> EquipmentPaths { get; private set; }
 		public List<string> LoadoutPaths { get; private set; }
 		public List<string> ShiparchPaths { get; private set; }
@@ -74,6 +76,22 @@ namespace LibreLancer.Compatibility.GameData
 						StartupMovies.Add (e [0].ToString());
 					}
 					break;
+                case "extended":
+                        foreach(Entry e in s) {
+                            switch(e.Name.ToLowerInvariant())
+                            {
+                                case "xinterface":
+                                    if (System.IO.Directory.Exists(e[0].ToString()))
+                                        XInterfacePath = e[0].ToString();
+                                    else
+                                        XInterfacePath = DataPath + e[0].ToString();
+                                    if (!XInterfacePath.EndsWith("\\",StringComparison.InvariantCulture) && 
+                                        !XInterfacePath.EndsWith("/",StringComparison.InvariantCulture))
+                                        XInterfacePath += "/";
+                                    break;
+                            }
+                        }
+                        break;
 				case "data":
 					foreach (Entry e in s) {
 						switch (e.Name.ToLowerInvariant ()) {

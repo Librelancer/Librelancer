@@ -12,6 +12,7 @@ namespace LibreLancer
         public LuaMenu(FreelancerGame g) : base(g)
         {
             ui = new XmlUIManager(g, "menu", new LuaAPI(this), g.GameData.GetInterfaceXml("mainmenu"));
+            ui.OnConstruct();
             ui.Enter();
             g.GameData.PopulateCursors();
             g.CursorKind = CursorKind.None;
@@ -21,6 +22,7 @@ namespace LibreLancer
             cur = g.ResourceManager.GetCursor("arrow");
             GC.Collect(); //crap
             g.Sound.PlayMusic(intro.Music);
+            g.Keyboard.KeyDown += Keyboard_KeyDown;
         }
 
         class LuaAPI
@@ -50,8 +52,15 @@ namespace LibreLancer
 
 
         int uframe = 0;
+        bool newUI = false;
         public override void Update(TimeSpan delta)
         {
+            if(newUI) {
+                ui = new XmlUIManager(Game, "menu", new LuaAPI(this), Game.GameData.GetInterfaceXml("mainmenu"));
+                ui.OnConstruct();
+                ui.Enter();
+                newUI = false;
+            }
             if (uframe < 3)
             { //Allows animations to play correctly
                 uframe++;
@@ -64,10 +73,19 @@ namespace LibreLancer
             }
         }
 
+        void Keyboard_KeyDown(KeyEventArgs e)
+        {
+            if(e.Key == Keys.F5) {
+                newUI = true;
+            }
+        }
+
+
         public override void Unregister()
         {
             ui.Dispose();
             scene.Dispose();
+            Game.Keyboard.KeyDown -= Keyboard_KeyDown;
         }
     }
 }

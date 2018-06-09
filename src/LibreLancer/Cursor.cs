@@ -29,7 +29,7 @@ namespace LibreLancer
 
 		public void Draw(Renderer2D renderer, Mouse m)
 		{
-			var pos = new Vector2(m.X, m.Y) - Hotspot;
+            var pos = new Vector2(m.X, m.Y) - (Hotspot * Scale);
 			var dst = new Rectangle(
 				(int)pos.X, (int)pos.Y,
 				(int)(Dimensions.Width * Scale), (int)(Dimensions.Height * Scale)

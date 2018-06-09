@@ -28,6 +28,9 @@ namespace LibreLancer
 
         public string DefaultScene { get; set; }
 
+        [XmlElement("Include")]
+        public XInt.Include[] Includes { get; set; }
+
         [XmlElement("ResourceFile")]
         public string[] ResourceFiles { get; set; }
         [XmlElement("Style")]
@@ -43,18 +46,26 @@ namespace LibreLancer
 
     namespace XInt
     {
+        public class Include
+        {
+            [XmlAttribute("file")]
+            public string File { get; set; }
+        }
+
         public class Style
         {
             [XmlAttribute("id")]
             public string ID { get; set; }
             [XmlElement("Model")]
-            public Model Model { get; set; }
+            public Model[] Models { get; set; }
             [XmlElement("Size")]
             public StyleSize Size { get; set; }
             [XmlElement("Text")]
             public StyleText[] Texts { get; set; }
             [XmlElement("Background")]
             public StyleBackground Background { get; set; }
+            [XmlElement("Border")]
+            public StyleBackground Border { get; set; }
             [XmlElement("HoverStyle")]
             public string HoverStyle { get; set; }
         }
@@ -230,6 +241,22 @@ namespace LibreLancer
             [XmlAttribute("ratio")]
             public float Ratio { get; set; }
         }
+        public class StyleBorder
+        {
+            [XmlAttribute("color")]
+            public string ColorText { get; set; }
+            Color4? color;
+            [XmlIgnore]
+            public Color4 Color
+            {
+                get
+                {
+                    if (string.IsNullOrEmpty(ColorText)) return Color4.White;
+                    if (color == null) color = Parser.Color(ColorText);
+                    return color.Value;
+                }
+            }
+        }
         public class Model
         {
             [XmlAttribute("path")]
@@ -267,22 +294,17 @@ namespace LibreLancer
             [XmlElement("Script")]
             public string[] Scripts { get; set; }
 
-            [XmlElement("Button")]
-            public XInt.Button[] Buttons { get; set; }
-
-            [XmlElement("Panel")]
-            public XInt.Panel[] Panels { get; set; }
-
-            [XmlElement("Image")]
-            public XInt.Image[] Images { get; set; }
+            [XmlElement("Button", Type = typeof(XInt.Button))]
+            [XmlElement("Panel", Type = typeof(XInt.Panel))]
+            [XmlElement("Image", Type = typeof(XInt.Image))]
+            [XmlElement("ChatBox", Type = typeof(XInt.ChatBox))]
+            public object[] Items;
         }
 
         public class Positionable
         {
             [XmlAttribute("id")]
             public string ID { get; set; }
-            [XmlAttribute("bindings")]
-            public string Bindings { get; set; }
             [XmlAttribute("x")]
             public string XText { get; set; }
             float? x;
@@ -324,10 +346,19 @@ namespace LibreLancer
             bottom,
             bottomright
         }
+
         public class Panel : Positionable
         {
             [XmlAttribute("style")]
             public string Style { get; set; }
+        }
+
+        public class ChatBox : Positionable
+        {
+            [XmlAttribute("style")]
+            public string Style { get; set; }
+            [XmlAttribute("displayarea")]
+            public string DisplayArea { get; set; }
         }
 
         public class Button : Positionable
