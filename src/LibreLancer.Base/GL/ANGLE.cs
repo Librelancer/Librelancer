@@ -40,6 +40,8 @@ namespace LibreLancer
         const int EGL_STENCIL_SIZE = 0x3026;
         const int EGL_SAMPLE_BUFFERS = 0x3032;
         const int EGL_NONE = 0x3038;
+        const int EGL_DEVICE_EXT = 0x322C;
+        const int EGL_D3D9_DEVICE_ANGLE = 0x33A0;
 
         delegate IntPtr _eglGetPlatformDisplayEXT(int platform, IntPtr native_display, int[] attrib_list);
         _eglGetPlatformDisplayEXT eglGetPlatformDisplayEXT;
@@ -65,6 +67,12 @@ namespace LibreLancer
         delegate void _eglSwapBuffers(IntPtr display, IntPtr surface);
         _eglSwapBuffers eglSwapBuffers;
 
+        delegate bool _eglQueryDeviceAttribEXT(IntPtr device, int attribute, out IntPtr value);
+        _eglQueryDeviceAttribEXT eglQueryDeviceAttribEXT;
+
+        delegate bool _eglQueryDisplayAttribEXT(IntPtr display, int attribute, out IntPtr value);
+        _eglQueryDisplayAttribEXT eglQueryDisplayAttribEXT;
+
         static T LoadFunction<T>(IntPtr library, string name)
         {
             return (T)(object)Marshal.GetDelegateForFunctionPointer(GetProcAddress(library, name), typeof(T));
@@ -75,6 +83,9 @@ namespace LibreLancer
         IntPtr surface;
 
         IntPtr libgles;
+        IntPtr d3ddevice;
+        _SetRenderState SetRenderState;
+
         public ANGLE()
         {
             var libegl = LoadLibrary(IntPtr.Size == 8 ? "x64\\libEGL.dll" : "x86\\libEGL.dll");
@@ -88,6 +99,8 @@ namespace LibreLancer
             eglCreateContext = LoadFunction<_eglCreateContext>(libegl, "eglCreateContext");
             eglMakeCurrent = LoadFunction<_eglMakeCurrent>(libegl, "eglMakeCurrent");
             eglSwapBuffers = LoadFunction<_eglSwapBuffers>(libegl, "eglSwapBuffers");
+            eglQueryDeviceAttribEXT = LoadFunction<_eglQueryDeviceAttribEXT>(libegl, "eglQueryDeviceAttribEXT");
+            eglQueryDisplayAttribEXT = LoadFunction<_eglQueryDisplayAttribEXT>(libegl, "eglQueryDisplayAttribEXT");
             Instance = this;
         }
 
@@ -151,7 +164,16 @@ namespace LibreLancer
 
             if (!eglMakeCurrent(display, surface, surface, context))
                 throw new Exception("eglMakeCurrent failed");
-            
+            IntPtr eglDevice;
+            if(eglQueryDisplayAttribEXT(display, EGL_DEVICE_EXT, out eglDevice)) {
+                if (eglQueryDeviceAttribEXT(eglDevice, EGL_D3D9_DEVICE_ANGLE, out d3ddevice))
+                {
+                    SetRenderState = (_SetRenderState)Marshal.GetDelegateForFunctionPointer(
+                        D3DGetPointer(d3ddevice, INDEX_SETRENDERSTATE),
+                        typeof(_SetRenderState)
+                    );
+                }            
+            }
             GL.Load(GetFunction);
             //Initialise GL 3.0 emulation
             glTexImage2D = LoadFunction<GLDelegates.TexImage2D>(libgles, "glTexImage2D");
@@ -211,7 +233,13 @@ namespace LibreLancer
 
         static void PolygonMode(int faces, int mode)
         {
-            //This function is stubbed out for now
+            if(Instance.SetRenderState != null) {
+                if (faces != GL.GL_FRONT_AND_BACK) throw new NotSupportedException("faces != GL_FRONT_AND_BACK");
+                if (mode == GL.GL_LINE)
+                    Instance.SetRenderState(Instance.d3ddevice, D3DRS_FILLMODE, D3DFILL_WIREFRAME);
+                else
+                    Instance.SetRenderState(Instance.d3ddevice, D3DRS_FILLMODE, D3DFILL_SOLID);
+            }
         }
 
         VertexArray[] vaos;
@@ -315,6 +343,18 @@ namespace LibreLancer
         {
             Instance.currentVAO = (int)array;
             Instance.glBindVertexArrayOES(array);
+        }
+
+
+        //Bad D3D Interop
+        const int D3DRS_FILLMODE = 8;
+        const int D3DFILL_WIREFRAME = 2;
+        const int D3DFILL_SOLID = 3;
+        delegate int _SetRenderState(IntPtr native, int a, int b);
+        const int INDEX_SETRENDERSTATE = 57;
+        static unsafe IntPtr D3DGetPointer(IntPtr _nativePointer, int index)
+        {
+            return (IntPtr)((void**)(*(void**)_nativePointer))[index];
         }
     }
 }
