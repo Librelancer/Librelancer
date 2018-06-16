@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.GameData;
+using LibreLancer.Utf.Dfm;
 namespace LibreLancer
 {
 	public class RoomGameplay : GameState
@@ -33,11 +34,13 @@ namespace LibreLancer
 		Base currentBase;
 		BaseRoom currentRoom;
 		Cutscene scene;
-		Hud hud;
+		ScriptedHud hud;
 		GameSession session;
 		string baseId;
+        string active;
 		Cursor cursor;
 		string virtualRoom;
+        List<BaseHotspot> tophotspots;
 		public RoomGameplay(FreelancerGame g, GameSession session, string newBase, BaseRoom room = null, string virtualRoom = null) : base(g)
 		{
 			this.session = session;
@@ -45,21 +48,60 @@ namespace LibreLancer
 			currentBase = g.GameData.GetBase(newBase);
 			currentRoom = room ?? currentBase.StartRoom;
 			SwitchToRoom();
-			var tophotspots = new List<BaseHotspot>();
+			tophotspots = new List<BaseHotspot>();
 			foreach (var hp in currentRoom.Hotspots)
 				if (TOP_IDS.Contains(hp.Name))
 					tophotspots.Add(hp);
-			hud = new Hud(g, tophotspots);
-			hud.RoomMode();
-			hud.OnEntered += Hud_OnTextEntry;
-			hud.OnManeuverSelected += Hud_OnManeuverSelected;
+            var rm = virtualRoom ?? currentRoom.Nickname;
+            SetActiveHotspot(rm);
+            hud = new ScriptedHud(new LuaAPI(this), false, Game);
+            hud.OnEntered += Hud_OnTextEntry;
+            hud.Init();
 			this.virtualRoom = virtualRoom;
-			hud.SetManeuver(virtualRoom ?? currentRoom.Nickname);
 			Game.Keyboard.TextInput += Game_TextInput;
 			Game.Keyboard.KeyDown += Keyboard_KeyDown;
 			cursor = Game.ResourceManager.GetCursor("arrow");
 		}
+        void SetActiveHotspot(string rm)
+        {
+            foreach (var hp in tophotspots) {
+                if (hp.SetVirtualRoom == rm) {
+                    active = hp.Name;
+                    return;
+                }
+            }
+            foreach (var hp in tophotspots) {
+                if (hp.Room == rm) {
+                    active = hp.Name;
+                    return;
+                }
+            }
+        }
 
+        class LuaAPI
+        {
+            RoomGameplay g;
+            public LuaAPI(RoomGameplay g) => this.g = g;
+            public bool multiplayer() => false;
+            public void navclick(string item) => g.Hud_OnManeuverSelected(item);
+            public string activebutton() => g.active;
+            public Neo.IronLua.LuaTable buttons()
+            {
+                var list = new Neo.IronLua.LuaTable();
+                var icons = g.Game.GameData.GetBaseNavbarIcons();
+                foreach(var btn in g.tophotspots) {
+                    var mn = (dynamic)(new Neo.IronLua.LuaTable());
+                    mn.action = btn.Name;
+                    string hack = null;
+                    if (!icons.ContainsKey(btn.SetVirtualRoom ?? btn.Room))
+                        hack = "Cityscape"; //HACK: This probably means FL doesn't determine icons based on room name
+                    var icn = icons[hack ?? btn.SetVirtualRoom ?? btn.Room];
+                    mn.model = "//" + icn;
+                    g.hud.UI.TableInsert(list, mn);
+                }
+                return list;
+            }
+        }
 		public override void Unregister()
 		{
 			Game.Keyboard.TextInput -= Game_TextInput;
@@ -68,8 +110,9 @@ namespace LibreLancer
 			scene.Dispose();
 		}
 
-		bool Hud_OnManeuverSelected(string arg)
+		void Hud_OnManeuverSelected(string arg)
 		{
+            if (arg == active) return;
 			var hotspot = currentRoom.Hotspots.Find((obj) => obj.Name == arg);
 			switch (hotspot.Behavior)
 			{
@@ -81,8 +124,6 @@ namespace LibreLancer
 					Game.ChangeState(new RoomGameplay(Game, session, baseId, currentRoom, hotspot.Room));
 					break;
 			}
-
-			return false;
 		}
 
 		void Keyboard_KeyDown(KeyEventArgs e)
@@ -135,20 +176,20 @@ namespace LibreLancer
 			}
 			scene = new Cutscene(currentRoom.OpenScripts(), Game);
 			if (currentRoom.Camera != null) scene.SetCamera(currentRoom.Camera);
-			/*foreach (var npc in currentRoom.Npcs)
+			foreach (var npc in currentRoom.Npcs)
 			{
 				var obj = scene.Objects[npc.StandingPlace];
 				var child = new GameObject();
 				child.RenderComponent = new CharacterRenderer(
-					Game.ResourceManager.GetDfm(npc.HeadMesh),
-					Game.ResourceManager.GetDfm(npc.BodyMesh),
-					Game.ResourceManager.GetDfm(npc.LeftHandMesh),
-					Game.ResourceManager.GetDfm(npc.RightHandMesh)
+                    (DfmFile)Game.ResourceManager.GetDrawable(npc.HeadMesh),
+                    (DfmFile)Game.ResourceManager.GetDrawable(npc.BodyMesh),
+					(DfmFile)Game.ResourceManager.GetDrawable(npc.LeftHandMesh),
+                    (DfmFile)Game.ResourceManager.GetDrawable(npc.RightHandMesh)
 				);
-				child.Register(scene.Renderer, scene.World.Physics);
+                child.Register(scene.World.Physics);
 				child.Transform = Matrix4.CreateTranslation(0, 3, 0);
 				obj.Object.Children.Add(child);
-			}*/
+			}
 			if (currentRoom.PlayerShipPlacement != null) {
 				var shp = Game.GameData.GetShip(session.PlayerShip);
 				var obj = new GameObject(shp.Drawable, Game.ResourceManager);
@@ -164,14 +205,14 @@ namespace LibreLancer
 		{
 			if(scene != null)
 				scene.Update(delta);
-			hud.Update(delta, IdentityCamera.Instance);
+            hud.Update(delta);
 		}
 
 		public override void Draw(TimeSpan delta)
 		{
 			if(scene != null)
 				scene.Draw();
-			hud.Draw();
+            hud.Draw(delta);
 			Game.Renderer2D.Start(Game.Width, Game.Height);
 			cursor.Draw(Game.Renderer2D, Game.Mouse);
 			Game.Renderer2D.Finish();

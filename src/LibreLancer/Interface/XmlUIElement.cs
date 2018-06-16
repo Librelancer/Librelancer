@@ -105,6 +105,10 @@ namespace LibreLancer
             {
                 e.Visible = false;
             }
+            public void show()
+            {
+                e.Visible = true;
+            }
         }
         public void Update(TimeSpan delta)
         {

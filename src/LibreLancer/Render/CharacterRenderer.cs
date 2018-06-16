@@ -52,6 +52,14 @@ namespace LibreLancer
 			RightHand.Update(camera, TimeSpan.Zero, TimeSpan.Zero);
 			var rhhps = RightHand.GetHardpoints().ToArray();
 		}
-
-	}
+        public override bool OutOfView(ICamera camera)
+        {
+            return false;
+        }
+        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
+        {
+            sys.AddObject(this);
+            return true;
+        }
+    }
 }

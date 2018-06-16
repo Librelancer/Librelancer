@@ -146,6 +146,7 @@ Mouse Flight: {10}
                 }
                 return list;
             }
+            public bool setmaneuver(string e) => g.ManeuverSelect(e);
             public int thrustpct() => ((int)(g.powerCore.CurrentThrustCapacity / g.powerCore.ThrustCapacity * 100));
             public int speed() => ((int)g.player.PhysicsComponent.Body.LinearVelocity.Length);
             public bool multiplayer() => false;
@@ -238,7 +239,7 @@ Mouse Flight: {10}
 			session.ProcessConsoleCommand(obj);
 		}
 
-		bool Hud_OnManeuverSelected(string e)
+		bool ManeuverSelect(string e)
 		{
 			switch (e)
 			{

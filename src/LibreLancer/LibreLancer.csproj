@@ -217,9 +217,7 @@
     <Compile Include="Render\ICamera.cs" />
     <Compile Include="Render\DebugCamera.cs" />
     <Compile Include="Easings.cs" />
-    <Compile Include="Interface\UIManager.cs" />
     <Compile Include="Render\IdentityCamera.cs" />
-    <Compile Include="Interface\UIElement.cs" />
     <Compile Include="Interface\UIAnimation.cs" />
     <Compile Include="Thn\ThnScript.cs" />
     <Compile Include="Thn\ThnObjectFlags.cs" />
@@ -282,7 +280,6 @@
     <Compile Include="Thn\ThnEvent.cs" />
     <Compile Include="GameStates\DemoSystemView.cs" />
     <Compile Include="GameStates\IntroMovie.cs" />
-    <Compile Include="GameStates\MainMenu.cs" />
     <Compile Include="GameStates\LoadingDataState.cs" />
     <Compile Include="CommandBuffer.cs" />
     <Compile Include="RenderUserData.cs" />
@@ -372,31 +369,14 @@
     <Compile Include="Gameplay\Components\TradelaneMoveComponent.cs" />
     <Compile Include="Gameplay\GameMessageKind.cs" />
     <Compile Include="Gameplay\Components\AsteroidFieldComponent.cs" />
-    <Compile Include="Interface\IUIContainer.cs" />
     <Compile Include="Net\NetConstants.cs" />
     <Compile Include="Net\GameClient.cs" />
     <Compile Include="Net\LocalServerInfo.cs" />
-    <Compile Include="Interface\UIBackgroundElement.cs" />
     <Compile Include="Interface\Animations\FlyInRight.cs" />
     <Compile Include="Interface\Animations\FlyInLeft.cs" />
     <Compile Include="Interface\Animations\FlyOutLeft.cs" />
-    <Compile Include="Interface\Menu\UIMenuButton.cs" />
-    <Compile Include="Interface\Menu\UIMessageBox.cs" />
-    <Compile Include="Interface\Menu\UIXButton.cs" />
-    <Compile Include="Interface\Hud\Maneuver.cs" />
-    <Compile Include="Interface\Hud\HudToggleButtonElement.cs" />
-    <Compile Include="Interface\Hud\HudGaugeElement.cs" />
-    <Compile Include="Interface\Hud\HudBaseButtonElement.cs" />
-    <Compile Include="Interface\Hud\Hud.cs" />
-    <Compile Include="Interface\Hud\HudModelElement.cs" />
-    <Compile Include="Interface\Hud\HudNavBox.cs" />
-    <Compile Include="Interface\Hud\HudNumberBoxElement.cs" />
-    <Compile Include="Interface\Hud\HudChatBox.cs" />
-    <Compile Include="Interface\Menu\UIServerList.cs" />
     <Compile Include="Interface\GridControl.cs" />
     <Compile Include="Resources.cs" />
-    <Compile Include="Interface\Menu\UIServerDescription.cs" />
-    <Compile Include="Interface\Menu\UICharacterList.cs" />
     <Compile Include="Net\Protocol\AuthenticationKind.cs" />
     <Compile Include="Net\Protocol\CharacterSelectInfo.cs" />
     <Compile Include="Net\Protocol\NetPacking.cs" />
@@ -418,7 +398,6 @@
     <Compile Include="Utf\Vms\VmsFile.cs" />
     <Compile Include="LightBitfield.cs" />
     <Compile Include="Gameplay\Components\UpdateSParamComponent.cs" />
-    <Compile Include="GameStates\MainMenu.Multiplayer.cs" />
     <Compile Include="GameStates\LuaMenu.cs" />
     <Compile Include="Interface\XInterface.cs" />
     <Compile Include="Interface\XmlUIManager.cs" />
@@ -432,6 +411,7 @@
     <Compile Include="Interface\XmlChatBox.cs" />
     <Compile Include="Interface\ScriptedHud.cs" />
     <Compile Include="Render\FOVUtil.cs" />
+    <Compile Include="Interface\Maneuver.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

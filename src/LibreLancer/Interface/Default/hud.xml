@@ -57,8 +57,9 @@
             setnav(action)
         end
         function navclick(action)
-            -- TODO: Logic to report this back to game
-            setnav(action)
+            if game:setmaneuver(action) then
+                setnav(action)
+            end
         end
         function setnav(action)
             for k, button in pairs(navs) do

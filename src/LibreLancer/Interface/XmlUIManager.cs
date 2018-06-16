@@ -84,6 +84,7 @@ namespace LibreLancer
             this.api = api;
             xml = XInterface.Load(src);
             Font = game.Fonts.GetSystemFont("Agency FB");
+            if(xml.ResourceFiles != null)
             foreach (var file in xml.ResourceFiles)
                 game.ResourceManager.LoadResourceFile(game.GameData.ResolveDataPath(file.Substring(2)));
             DoStyles(xml);
@@ -203,6 +204,7 @@ namespace LibreLancer
                 if (dn["ratio"] != null) style.Size.Ratio = (float)dn.ratio;
                 if (dn["onclick"] != null) btn.OnClick = dn.onclick;
                 if (dn["background"] != null) style.Background = new XInt.StyleBackground() { ColorText = dn.background };
+                style.HoverStyle = dn.hoverstyle;
                 if (dn["models"] != null) {
                     var mdlxml = new List<XInt.Model>();
                     foreach(var kv in dn.models) {
