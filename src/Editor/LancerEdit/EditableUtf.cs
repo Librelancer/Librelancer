@@ -87,13 +87,6 @@ namespace LancerEdit
 			List<string> strings = new List<string>();
 			using (var writer = new BinaryWriter(File.Create(filename)))
 			{
-				/*write signature*/
-				writer.Write((byte)'U');
-				writer.Write((byte)'T');
-				writer.Write((byte)'F');
-				writer.Write((byte)' ');
-				writer.Write(LibreLancer.Utf.UtfFile.FILE_VERSION);
-
 				int currentDataOffset = 0;
 				foreach (var node in Root.IterateAll())
 				{
@@ -101,7 +94,7 @@ namespace LancerEdit
 					if (node.Data != null)
 					{
 						dataOffsets.Add(node, currentDataOffset);
-						currentDataOffset += node.Data.Length;
+                        currentDataOffset += node.Data.Length;
 					}
 				}
 
@@ -119,23 +112,35 @@ namespace LancerEdit
 					stringBlock = mem.ToArray();
 				}
 
-				writer.Write((int)40 + stringBlock.Length); //nodeBlockOffset
-				int strlen = stringBlock.Length;
-				var nodeBlockSz = writer.BaseStream.Position;
-				writer.Write((int)0); //nodeBlockSize
-				writer.Write((int)0); //padding
-				writer.Write((int)40); //headerSize
-				writer.Write((int)40); //stringBlockOffset
-				writer.Write((int)stringBlock.Length);
-				writer.Write((int)0); //unknown
+                byte[] nodeBlock;
+                using(var mem = new MemoryStream())
+                {
+                    WriteNode(Root, new BinaryWriter(mem), stringOffsets, dataOffsets, true);
+                    nodeBlock = mem.ToArray();
+                }
+                /*write signature*/
+                writer.Write((byte)'U');
+                writer.Write((byte)'T');
+                writer.Write((byte)'F');
+                writer.Write((byte)' ');
+                writer.Write(LibreLancer.Utf.UtfFile.FILE_VERSION);
+				writer.Write((int)56); //nodeBlockOffset
+				writer.Write((int)nodeBlock.Length); //nodeBlockLength
+				writer.Write((int)0); //unused entry offset
+				writer.Write((int)44); //entry Size
+				writer.Write((int)56 + nodeBlock.Length); //stringBlockOffset
+				writer.Write((int)stringBlock.Length); //namesAllocatedSize
+				writer.Write((int)stringBlock.Length); //namesUsedSize
 				var dataBlockDesc = writer.BaseStream.Position;
-				writer.Write((int)0); //dataBlockOffset
-									  //write out string block
+				writer.Write((int)(56 + nodeBlock.Length + stringBlock.Length));
+                writer.Write((int)0); //unused
+                writer.Write((int)0); //unused
+                writer.Write((int)0); //filetime
+                writer.Write((int)0); //filetime
+                writer.Write(nodeBlock);
 				writer.Write(stringBlock);
 				stringBlock = null;
-				//write out node block
-				WriteNode(Root, writer, stringOffsets, dataOffsets, 40 + strlen, true);
-				var endNodes = (int)writer.BaseStream.Position;
+                nodeBlock = null;
 				//write out data block
 				foreach (var node in Root.IterateAll())
 				{
@@ -144,33 +149,27 @@ namespace LancerEdit
 						writer.Write(node.Data);
 					}
 				}
-				writer.BaseStream.Seek(nodeBlockSz, SeekOrigin.Begin);
-				int nodesSize = (endNodes - 40 - strlen);
-				writer.Write((int)(endNodes - 40 - strlen));
-				writer.BaseStream.Seek(dataBlockDesc, SeekOrigin.Begin);
-				writer.Write((int)endNodes);
 			}
 		}
-		void WriteNode(LUtfNode node, BinaryWriter writer, Dictionary<string, int> strOff, Dictionary<LUtfNode, int> datOff, int nodeblockoffset, bool last)
+		void WriteNode(LUtfNode node, BinaryWriter writer, Dictionary<string, int> strOff, Dictionary<LUtfNode, int> datOff, bool last)
 		{
 			if (node.Data != null)
 			{
 				if (last)
 					writer.Write((int)0); //no siblings
 				else
-					writer.Write((int)(writer.BaseStream.Position - nodeblockoffset + sizeof(int) * 11)); //peerOffset
+					writer.Write((int)(writer.BaseStream.Position + sizeof(int) * 11)); //peerOffset
 				writer.Write(strOff[node.Name]); //nameOffset
-				writer.Write((int)LL.NodeFlags.Leaf); //leafNode
-
-				writer.Write((int)0); //zero
+				writer.Write(flgs); //leafNode
+				writer.Write((int)LL.NodeFlags.Leaf); //sharing options - zero
 				writer.Write(datOff[node]); //dataOffset
-				writer.Write((int)0); //allocatedSize (?)
-				writer.Write(node.Data.Length);
-				writer.Write(node.Data.Length);
+                writer.Write(node.Data.Length); //allocatedSize (?)
+				writer.Write(node.Data.Length); //usedSize
+				writer.Write(node.Data.Length); //uncompressedSize
 
-				writer.Write((int)0); //padding/timestamp?
-				writer.Write((int)0);
-				writer.Write((int)0);
+                writer.Write((int)0);
+                writer.Write((int)0);
+                writer.Write((int)0);
 				return;
 			}
 
@@ -179,16 +178,23 @@ namespace LancerEdit
 			writer.Write(strOff[node.Name]);
 			writer.Write((int)LL.NodeFlags.Intermediate); //intermediateNode
 			writer.Write((int)0); //padding
-			writer.Write((int)(writer.BaseStream.Position - nodeblockoffset + 4)); //children start immediately after node
+			writer.Write((int)(writer.BaseStream.Position + 28)); //children start immediately after node
+            writer.Write((int)0); //allocatedSize
+            writer.Write((int)0); //usedSize
+            writer.Write((int)0); //uncompressedSize
+
+            writer.Write((int)0); //1
+            writer.Write((int)0); //2
+            writer.Write((int)0); //3
 			for (int i = 0; i < node.Children.Count; i++)
 			{
-				WriteNode(node.Children[i], writer, strOff, datOff, nodeblockoffset, i == (node.Children.Count - 1));
+				WriteNode(node.Children[i], writer, strOff, datOff, i == (node.Children.Count - 1));
 			}
 			if (!last) //if there's siblings
 			{
 				var endPos = writer.BaseStream.Position;
 				writer.BaseStream.Seek(startPos, SeekOrigin.Begin);
-				writer.Write((int)endPos - nodeblockoffset);
+				writer.Write((int)endPos);
 				writer.BaseStream.Seek(endPos, SeekOrigin.Begin);
 			}
 		}
