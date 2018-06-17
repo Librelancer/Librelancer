@@ -46,7 +46,7 @@ namespace LancerEdit
             new FileFilter("Anm Files","anm"),
             new FileFilter("Cmp Files","cmp"),
             new FileFilter("3db Files","3db"),
-            new FileFilter("Dfm Files","Dfm"),
+            new FileFilter("Dfm Files","dfm"),
             new FileFilter("Vms Files","vms"),
             new FileFilter("Mat Files","mat"),
             new FileFilter("Txm Files","txm"),
