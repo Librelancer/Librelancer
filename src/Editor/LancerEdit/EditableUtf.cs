@@ -15,6 +15,7 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using LL = LibreLancer.Utf;
 using System.IO;
 using System.Text;
@@ -78,7 +79,45 @@ namespace LancerEdit
 			}
 			return n;
 		}
-
+        [StructLayout(LayoutKind.Sequential)]
+        struct SmallData
+        {
+            public int Length;
+            public long Data1;
+            public long Data2;
+            public long Data3;
+            public long Data4;
+            public long Data5;
+            public long Data6;
+            public long Data7;
+            public long Data8;
+            public int Offset;
+            public unsafe SmallData(byte[] src)
+            {
+                Length = src.Length;
+                Data1 = Data2 = Data3 = Data4 = 
+                    Data5 = Data6 = Data7 = Data8 = 0;
+                Offset = 0;
+                fixed(long *ptr = &Data1) {
+                    var bytes = (byte*)ptr;
+                    for (int i = 0; i < src.Length; i++)
+                        bytes[i] = src[i];
+                }
+            }
+            public bool Match(ref SmallData b)
+            {
+                if (Length != b.Length) return false;
+                if (Data1 != b.Data1) return false;
+                if (Data2 != b.Data2) return false;
+                if (Data3 != b.Data3) return false;
+                if (Data4 != b.Data4) return false;
+                if (Data5 != b.Data5) return false;
+                if (Data6 != b.Data6) return false;
+                if (Data7 != b.Data7) return false;
+                if (Data8 != b.Data8) return false;
+                return true;
+            }
+        }
 		//Write the nodes out to a file
 		public void Save(string filename)
 		{
@@ -88,16 +127,44 @@ namespace LancerEdit
 			using (var writer = new BinaryWriter(File.Create(filename)))
 			{
 				int currentDataOffset = 0;
+                int bytesSaved = 0;
+                List<SmallData> smallDatas = new List<SmallData>();
 				foreach (var node in Root.IterateAll())
 				{
 					if (!strings.Contains(node.Name)) strings.Add(node.Name);
 					if (node.Data != null)
 					{
-						dataOffsets.Add(node, currentDataOffset);
-                        currentDataOffset += node.Data.Length;
+                        node.Write = true;
+                        //De-duplicate data up to 64 bytes
+                        if (node.Data.Length <= 64)
+                        {
+                            var small = new SmallData(node.Data);
+                            int idx = -1;
+                            for (int i = 0; i < smallDatas.Count; i++) {
+                                if(smallDatas[i].Match(ref small)) {
+                                    idx = i;
+                                    break;
+                                }
+                            }
+                            if(idx == -1) {
+                                small.Offset = currentDataOffset;
+                                smallDatas.Add(small);
+                                dataOffsets.Add(node, currentDataOffset);
+                                currentDataOffset += node.Data.Length;
+                            } else {
+                                node.Write = false;
+                                bytesSaved += smallDatas[idx].Length;
+                                dataOffsets.Add(node, smallDatas[idx].Offset);
+                            }
+                        }
+                        else
+                        {
+                            dataOffsets.Add(node, currentDataOffset);
+                            currentDataOffset += node.Data.Length;
+                        }
 					}
 				}
-
+                LibreLancer.FLLog.Info("UTF", "Bytes Saved: " + bytesSaved);
 				byte[] stringBlock;
 				using (var mem = new MemoryStream())
 				{
@@ -124,27 +191,33 @@ namespace LancerEdit
                 writer.Write((byte)'F');
                 writer.Write((byte)' ');
                 writer.Write(LibreLancer.Utf.UtfFile.FILE_VERSION);
-				writer.Write((int)56); //nodeBlockOffset
+				writer.Write((int)40); //nodeBlockOffset
 				writer.Write((int)nodeBlock.Length); //nodeBlockLength
 				writer.Write((int)0); //unused entry offset
-				writer.Write((int)44); //entry Size
-				writer.Write((int)56 + nodeBlock.Length); //stringBlockOffset
+				writer.Write((int)44); //entry Size - Not accurate but FL expects it to be 44
+				writer.Write((int)40 + nodeBlock.Length); //stringBlockOffset
 				writer.Write((int)stringBlock.Length); //namesAllocatedSize
 				writer.Write((int)stringBlock.Length); //namesUsedSize
 				var dataBlockDesc = writer.BaseStream.Position;
-				writer.Write((int)(56 + nodeBlock.Length + stringBlock.Length));
-                writer.Write((int)0); //unused
-                writer.Write((int)0); //unused
-                writer.Write((int)0); //filetime
-                writer.Write((int)0); //filetime
+                writer.Write((int)(40 + nodeBlock.Length + Math.Min(12,stringBlock.Length)));
+                //These can be omitted and the offset changed to 40
+                //Put garbage in the last 4 fields of the header
+                //writer.Write((int)0); //unused
+                //writer.Write((int)0); //unused
+                //writer.Write((int)0); //filetime
+                //writer.Write((int)0); //filetime
                 writer.Write(nodeBlock);
 				writer.Write(stringBlock);
+                //don't let FL read past end of stream
+                if (stringBlock.Length < 12)
+                    for (int i = 0; i < (12 - stringBlock.Length; i++)
+                        writer.Write((byte)0);
 				stringBlock = null;
                 nodeBlock = null;
 				//write out data block
 				foreach (var node in Root.IterateAll())
 				{
-					if (node.Data != null)
+					if (node.Write && node.Data != null)
 					{
 						writer.Write(node.Data);
 					}
@@ -158,18 +231,16 @@ namespace LancerEdit
 				if (last)
 					writer.Write((int)0); //no siblings
 				else
-					writer.Write((int)(writer.BaseStream.Position + sizeof(int) * 11)); //peerOffset
+					writer.Write((int)(writer.BaseStream.Position + sizeof(int) * 8)); //peerOffset
 				writer.Write(strOff[node.Name]); //nameOffset
-				writer.Write(flgs); //leafNode
-				writer.Write((int)LL.NodeFlags.Leaf); //sharing options - zero
+				writer.Write((int)LL.NodeFlags.Leaf); //leafNode
+                writer.Write((int)0); //padding
 				writer.Write(datOff[node]); //dataOffset
                 writer.Write(node.Data.Length); //allocatedSize (?)
 				writer.Write(node.Data.Length); //usedSize
 				writer.Write(node.Data.Length); //uncompressedSize
 
-                writer.Write((int)0);
-                writer.Write((int)0);
-                writer.Write((int)0);
+                //There should be 3 more DWORDS here but we can safely not write them for FL
 				return;
 			}
 
@@ -178,14 +249,11 @@ namespace LancerEdit
 			writer.Write(strOff[node.Name]);
 			writer.Write((int)LL.NodeFlags.Intermediate); //intermediateNode
 			writer.Write((int)0); //padding
-			writer.Write((int)(writer.BaseStream.Position + 28)); //children start immediately after node
+			writer.Write((int)(writer.BaseStream.Position + 16)); //children start immediately after node
             writer.Write((int)0); //allocatedSize
             writer.Write((int)0); //usedSize
             writer.Write((int)0); //uncompressedSize
-
-            writer.Write((int)0); //1
-            writer.Write((int)0); //2
-            writer.Write((int)0); //3
+            //There should be 3 more DWORDS here but we can safely not write them for FL
 			for (int i = 0; i < node.Children.Count; i++)
 			{
 				WriteNode(node.Children[i], writer, strOff, datOff, i == (node.Children.Count - 1));
@@ -206,6 +274,7 @@ namespace LancerEdit
 		public List<LUtfNode> Children;
 		public LUtfNode Parent;
 		public byte[] Data;
+        public bool Write = true;
 
 		public IEnumerable<LUtfNode> IterateAll()
 		{
