@@ -41,7 +41,7 @@ namespace LancerEdit
 			}
 		}
 
-		//Produce an engine-internal representation of the nodes
+		//Produce an engine-int4ernal representation of the nodes
 		public LL.IntermediateNode Export()
 		{
 			var children = new List<LL.Node>();
@@ -192,14 +192,14 @@ namespace LancerEdit
                 writer.Write((byte)' ');
                 writer.Write(LibreLancer.Utf.UtfFile.FILE_VERSION);
 				writer.Write((int)40); //nodeBlockOffset
-				writer.Write((int)nodeBlock.Length); //nodeBlockLength
+                writer.Write((int)Math.Max(44,nodeBlock.Length)); //nodeBlockLength
 				writer.Write((int)0); //unused entry offset
 				writer.Write((int)44); //entry Size - Not accurate but FL expects it to be 44
 				writer.Write((int)40 + nodeBlock.Length); //stringBlockOffset
 				writer.Write((int)stringBlock.Length); //namesAllocatedSize
 				writer.Write((int)stringBlock.Length); //namesUsedSize
 				var dataBlockDesc = writer.BaseStream.Position;
-                writer.Write((int)(40 + nodeBlock.Length + Math.Min(12,stringBlock.Length)));
+                writer.Write((int)(40 + nodeBlock.Length + Math.Max(12,stringBlock.Length)));
                 //These can be omitted and the offset changed to 40
                 //Put garbage in the last 4 fields of the header
                 //writer.Write((int)0); //unused
