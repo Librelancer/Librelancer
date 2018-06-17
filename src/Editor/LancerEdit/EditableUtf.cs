@@ -210,7 +210,7 @@ namespace LancerEdit
 				writer.Write(stringBlock);
                 //don't let FL read past end of stream
                 if (stringBlock.Length < 12)
-                    for (int i = 0; i < (12 - stringBlock.Length; i++)
+                    for (int i = 0; i < (12 - stringBlock.Length); i++)
                         writer.Write((byte)0);
 				stringBlock = null;
                 nodeBlock = null;
