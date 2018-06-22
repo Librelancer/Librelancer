@@ -22,39 +22,46 @@ namespace LancerEdit
 
         public override bool Draw()
         {
-            if (res.TextureDictionary.Count + res.MaterialDictionary.Count > 0)
+            ImGui.Columns(2, "cols", true);
+            ImGui.Text("Type");
+            ImGui.NextColumn();
+            ImGui.Text("Reference");
+            ImGui.Separator();
+            ImGui.NextColumn();
+            var tcolor = (Vector4)ImGui.GetStyle().GetColor(ColorTarget.Text);
+            foreach (var t in res.TextureDictionary)
             {
-                ImGui.Text("Loaded:");
-                var tcolor = (Vector4)ImGui.GetStyle().GetColor(ColorTarget.Text);
-                foreach (var t in res.TextureDictionary)
+                var col = new Vector4(0.6f, 0.6f, 0.6f, 1f);
+                foreach (var tex in referencedTex)
                 {
-                    var col = new Vector4(0.6f, 0.6f, 0.6f, 1f);
-                    foreach (var tex in referencedTex)
+                    if (t.Key.Equals(tex, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        if (t.Key.Equals(tex, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            col = tcolor;
-                            break;
-                        }
+                        col = tcolor;
+                        break;
                     }
-                    ImGui.Text("Texture: " + t.Key, col);
                 }
+                ImGui.Text("Texture", col);
+                ImGui.NextColumn();
+                ImGui.Text(t.Key, col);
+                ImGui.NextColumn();
+            }
 
-                foreach (var m in res.MaterialDictionary)
-                {
-                    var col = referencedMats.Contains(m.Key) ? tcolor : new Vector4(0.6f, 0.6f, 0.6f, 1f);
-                    ImGui.Text(string.Format("Material: {0} (0x{1:X})", m.Value.Name, m.Key), col);
-                }
-            }
-            else
-                ImGui.Text("Loaded: None");
-            if (missing.Count > 0)
+            foreach (var m in res.MaterialDictionary)
             {
-                ImGui.Separator();
-                ImGui.Text("Missing:");
-                foreach (var ln in missing)
-                    ImGui.Text(string.Format("{0} (Ref {1})", ln.Missing, ln.Reference), new Vector4(1, 0, 0, 1));
+                var col = referencedMats.Contains(m.Key) ? tcolor : new Vector4(0.6f, 0.6f, 0.6f, 1f);
+                ImGui.Text("Material", col);
+                ImGui.NextColumn();
+                ImGui.Text(string.Format("{0} (0x{1:X})", m.Value.Name, m.Key), col);
+                ImGui.NextColumn();
             }
+            foreach (var ln in missing)
+            {
+                ImGui.Text("Missing", new Vector4(1, 0, 0, 1));
+                ImGui.NextColumn();
+                ImGui.Text(string.Format("{0} (Ref {1})", ln.Missing, ln.Reference), new Vector4(1, 0, 0, 1));
+                ImGui.NextColumn();
+            }
+            ImGui.Columns(1, null, false);
             return open;
         }
     }
