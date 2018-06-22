@@ -14,8 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
-using System.Collections.Generic;
-namespace LancerEdit
+namespace LibreLancer.ImUI
 {
 	public abstract class DockTab : IDisposable
 	{
@@ -29,19 +28,12 @@ namespace LancerEdit
 			Unique = _ids;
 			_ids += 2;
 		}
-		public abstract bool Draw();
+		public abstract void Draw();
 		public virtual void Update(double elapsed)
 		{
 		}
 		public virtual void Dispose()
 		{
 		}
-		public virtual void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
-		{
-		}
-        public virtual void SetActiveTab(MainWindow win)
-        {
-            win.ActiveTab = null;
-        }
 	}
 }

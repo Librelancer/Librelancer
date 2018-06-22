@@ -2,7 +2,7 @@
 using LibreLancer;
 using System.Runtime.InteropServices;
 using ImGuiNET;
-namespace LancerEdit
+namespace LibreLancer.ImUI
 {
     public class ImGuiExt
     {

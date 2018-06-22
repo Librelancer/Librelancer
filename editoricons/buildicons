@@ -23,4 +23,4 @@ if [ ! -f "sspack/bin/Debug/sspack.exe" ] || [ "$1" == "--rebuild" ]; then
     fi    
     cd ..
 fi
-$MONO sspack/bin/Debug/sspack.exe /pow2 /sqr /image:../src/Editor/LancerEdit/UILib/icons.png /map:../src/Editor/LancerEdit/UILib/icons.txt *.png
+$MONO sspack/bin/Debug/sspack.exe /pow2 /sqr /image:../src/Editor/LibreLancer.ImUI/icons.png /map:../src/Editor/LibreLancer.ImUI/icons.txt *.png

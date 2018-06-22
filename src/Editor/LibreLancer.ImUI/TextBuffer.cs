@@ -18,7 +18,7 @@ using System.Text;
 using System.Runtime.InteropServices;
 using ImGuiNET;
 using LibreLancer;
-namespace LancerEdit
+namespace LibreLancer.ImUI
 {
 	public unsafe class TextBuffer : IDisposable
 	{

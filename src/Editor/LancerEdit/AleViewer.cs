@@ -16,12 +16,13 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer;
+using LibreLancer.ImUI;
 using LibreLancer.Fx;
 using LibreLancer.Utf.Ale;
 using ImGuiNET;
 namespace LancerEdit
 {
-    public partial class AleViewer : DockTab
+    public partial class AleViewer : EditorTab
     {
         //GL
         Viewport3D aleViewport;
@@ -87,7 +88,7 @@ namespace LancerEdit
             ImGui.SameLine();
         }
 
-        public override bool Draw()
+        public override void Draw()
         {
             bool doTabs = false;
             foreach (var t in openTabs) if (t) { doTabs = true; break; }
@@ -130,7 +131,6 @@ namespace LancerEdit
             ImGui.Text(string.Format("T: {0:0.000}", instance.GlobalTime));
             ImGui.EndChild();
             ImGui.EndChild();
-            return true;
         }
 
         void NodePanel()

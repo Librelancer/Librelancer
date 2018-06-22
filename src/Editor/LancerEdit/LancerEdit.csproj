@@ -53,31 +53,19 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="MainWindow.cs" />
-    <Compile Include="UILib\ImGuiHelper.cs" />
-    <Compile Include="UILib\ImGuiHelper.KeyMappings.cs" />
-    <Compile Include="UILib\ImGuiExt.cs" />
-    <Compile Include="UILib\Gtk3.cs" />
-    <Compile Include="UILib\FileDialog.cs" />
     <Compile Include="DetectFileType.cs" />
     <Compile Include="EditableUtf.cs" />
     <Compile Include="UtfTab.cs" />
-    <Compile Include="UILib\TextBuffer.cs" />
-    <Compile Include="UILib\MemoryEditor.cs" />
-    <Compile Include="DockTab.cs" />
     <Compile Include="TextureViewer.cs" />
     <Compile Include="DataEditors.cs" />
     <Compile Include="ResourcesTab.cs" />
     <Compile Include="MissingReference.cs" />
     <Compile Include="AleViewer.cs" />
     <Compile Include="ResourceDetection.cs" />
-    <Compile Include="UILib\Theme.cs" />
     <Compile Include="LookAtCamera.cs" />
-    <Compile Include="UILib\TabHandler.cs" />
     <Compile Include="TextureImport.cs" />
     <Compile Include="AleViewer.Icons.cs" />
     <Compile Include="UtfTab.Popups.cs" />
-    <Compile Include="UILib\PopupManager.cs" />
-    <Compile Include="Viewport3D.cs" />
     <Compile Include="Model\DumpObject.cs" />
     <Compile Include="Model\EmptyLib.cs" />
     <Compile Include="Model\GizmoRender.cs" />
@@ -85,7 +73,8 @@
     <Compile Include="Model\ColladaTab.cs" />
     <Compile Include="Model\ModelViewer.cs" />
     <Compile Include="Model\ModelViewer.Viewport.cs" />
-    <Compile Include="UILib\Gtk2.cs" />
+    <Compile Include="EditorTab.cs" />
+    <Compile Include="Viewport3D.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">
@@ -120,14 +109,12 @@
       <Project>{7895D6CA-28F4-47D0-8C57-03B4D05DF9F6}</Project>
       <Name>Collada141</Name>
     </ProjectReference>
+    <ProjectReference Include="..\LibreLancer.ImUI\LibreLancer.ImUI.csproj">
+      <Project>{81A8703E-031C-422C-804B-34B3BAF834A6}</Project>
+      <Name>LibreLancer.ImUI</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
-  <ItemGroup>
-    <EmbeddedResource Include="UILib\Roboto-Medium.ttf" />
-    <EmbeddedResource Include="UILib\checkerboard.png" />
-    <EmbeddedResource Include="UILib\icons.txt" />
-    <EmbeddedResource Include="UILib\icons.png" />
-  </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="LancerEdit.targets" />

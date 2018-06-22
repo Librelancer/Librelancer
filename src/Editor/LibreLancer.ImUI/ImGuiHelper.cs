@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
-using LibreLancer;
 using LibreLancer.Vertices;
 using ImGuiNET;
-namespace LancerEdit
+namespace LibreLancer.ImUI
 {
-	partial class ImGuiHelper
+	public partial class ImGuiHelper
 	{
 		Game game;
 		//TODO: This is duplicated from Renderer2D
@@ -98,7 +97,7 @@ namespace LancerEdit
 			var io = ImGui.GetIO();
 			io.GetNativePointer()->IniFilename = IntPtr.Zero;
 			Default = io.FontAtlas.AddDefaultFont();
-			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LancerEdit.UILib.Roboto-Medium.ttf"))
+			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.Roboto-Medium.ttf"))
 			{
 				var ttf = new byte[stream.Length];
 				stream.Read(ttf, 0, ttf.Length);
@@ -106,7 +105,7 @@ namespace LancerEdit
 				Marshal.Copy(ttf, 0, ttfPtr, ttf.Length);
 				Noto = io.FontAtlas.AddFontFromMemoryTTF(ttfPtr, ttf.Length, 15);
 			}
-			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LancerEdit.UILib.checkerboard.png"))
+			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.checkerboard.png"))
 			{
 				checkerboard = LibreLancer.ImageLib.Generic.FromStream(stream);
 				CheckerboardId = RegisterTexture(checkerboard);

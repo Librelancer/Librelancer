@@ -16,13 +16,14 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer;
+using LibreLancer.ImUI;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf;
 using ImGuiNET;
 namespace LancerEdit
 {
-    public partial class ModelViewer : DockTab
+    public partial class ModelViewer : EditorTab
     {
         Lighting lighting;
         IDrawable drawable;
@@ -206,7 +207,7 @@ namespace LancerEdit
             ImGui.SameLine();
         }
 
-        public override bool Draw()
+        public override void Draw()
         {
             bool doTabs = false;
             foreach (var t in openTabs) if (t) { doTabs = true; break; }
@@ -264,7 +265,6 @@ namespace LancerEdit
             ImGui.PopItemWidth();
             DoViewport();
             ImGui.EndChild();
-            return true;
         }
 
         class HardpointGizmo

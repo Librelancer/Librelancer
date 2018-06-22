@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using LibreLancer;
-namespace LancerEdit
+namespace LibreLancer.ImUI
 {
     static class Gtk2
     {

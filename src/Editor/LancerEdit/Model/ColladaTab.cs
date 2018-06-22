@@ -18,9 +18,10 @@ using System.Collections.Generic;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.Vertices;
+using LibreLancer.ImUI;
 namespace LancerEdit
 {
-    public class ColladaTab : DockTab
+    public class ColladaTab : EditorTab
     {
         List<ColladaObject> objs;
         List<OutModel> output = new List<OutModel>();
@@ -200,7 +201,7 @@ namespace LancerEdit
             _errorText = text;
         }
         float collada_h1 = 200, collada_h2 = 200;
-        public override bool Draw()
+        public override void Draw()
         {
             ImGui.Columns(2, "##columns", true);
             ImGui.Text("Collada");
@@ -231,7 +232,6 @@ namespace LancerEdit
                 ImGui.EndPopup();
             }
             _openError = false;
-            return true;
         }
 
         bool colladaPreview = true;

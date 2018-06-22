@@ -16,13 +16,13 @@
 using System;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.ImUI;
 namespace LancerEdit
 {
-    public class TextureViewer : DockTab
+    public class TextureViewer : EditorTab
     {
         int tid;
         Texture2D tex;
-        bool open = true;
         bool checkerboard = true;
         bool dispose;
         public TextureViewer(string title, Texture2D tex, bool disposeTex = true)
@@ -33,7 +33,7 @@ namespace LancerEdit
             dispose = disposeTex;
         }
         float zoom = 100;
-        public override bool Draw()
+        public override void Draw()
         {
             ImGui.Text("Zoom: ");
             ImGui.SameLine();
@@ -74,7 +74,6 @@ namespace LancerEdit
             ImGui.Image((IntPtr)tid, sz, new Vector2(0,1), new Vector2(1, 0),
                         Vector4.One, Vector4.Zero);
             ImGui.EndChild();
-            return open;
         }
 
         public override void Dispose()

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ImGuiNET;
-namespace LancerEdit
+namespace LibreLancer.ImUI
 {
     public class PopupManager
     {

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using LibreLancer;
 using ImGuiNET;
-namespace LancerEdit
+namespace LibreLancer.ImUI
 {
-	partial class ImGuiHelper
+	public partial class ImGuiHelper
 	{
 		static readonly Keys[] _mappedKeys = new Keys[] {
 			Keys.Tab,

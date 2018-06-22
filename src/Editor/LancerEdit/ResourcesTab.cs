@@ -4,10 +4,9 @@ using ImGuiNET;
 using LibreLancer;
 namespace LancerEdit
 {
-    public class ResourcesTab : DockTab
+    public class ResourcesTab : EditorTab
     {
         ResourceManager res;
-        bool open = true;
         List<MissingReference> missing;
         List<uint> referencedMats;
         List<string> referencedTex;
@@ -20,7 +19,7 @@ namespace LancerEdit
             Title = "Resources";
         }
 
-        public override bool Draw()
+        public override void Draw()
         {
             ImGui.Columns(2, "cols", true);
             ImGui.Text("Type");
@@ -62,7 +61,6 @@ namespace LancerEdit
                 ImGui.NextColumn();
             }
             ImGui.Columns(1, null, false);
-            return open;
         }
     }
 }

@@ -15,8 +15,10 @@
  */
 using System;
 using LibreLancer;
+using LibreLancer.ImUI;
 using ImGuiNET;
-namespace LancerEdit
+
+namespace LibreLancer
 {
     public class Viewport3D : IDisposable
     {

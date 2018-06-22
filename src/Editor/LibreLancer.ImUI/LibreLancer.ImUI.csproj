@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{81A8703E-031C-422C-804B-34B3BAF834A6}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>LibreLancer.ImUI</RootNamespace>
+    <AssemblyName>LibreLancer.ImUI</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="FileDialog.cs" />
+    <Compile Include="Gtk2.cs" />
+    <Compile Include="Gtk3.cs" />
+    <Compile Include="ImGuiExt.cs" />
+    <Compile Include="ImGuiHelper.cs" />
+    <Compile Include="ImGuiHelper.KeyMappings.cs" />
+    <Compile Include="MemoryEditor.cs" />
+    <Compile Include="PopupManager.cs" />
+    <Compile Include="TabHandler.cs" />
+    <Compile Include="TextBuffer.cs" />
+    <Compile Include="Theme.cs" />
+    <Compile Include="DockTab.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="checkerboard.png" />
+    <EmbeddedResource Include="icons.png" />
+    <EmbeddedResource Include="icons.txt" />
+    <EmbeddedResource Include="Roboto-Medium.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">
+      <Project>{C7A37830-B878-4008-A988-D7294D47F44D}</Project>
+      <Name>LibreLancer.Base</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj">
+      <Project>{6967FE1C-5953-4416-889C-FF10AE1F7DD1}</Project>
+      <Name>LibreLancer.ImageLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ImGuiNet.Build451\ImGuiNet.Build451.csproj">
+      <Project>{D24DBB87-1E3D-4080-ABFB-B21CBDDACD87}</Project>
+      <Name>ImGuiNet.Build451</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>

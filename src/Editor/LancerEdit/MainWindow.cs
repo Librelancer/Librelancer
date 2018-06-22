@@ -17,6 +17,7 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using LibreLancer;
+using LibreLancer.ImUI;
 using LibreLancer.Media;
 using ImGuiNET;
 namespace LancerEdit
@@ -251,7 +252,7 @@ namespace LancerEdit
 			ReferencedTextures.Clear();
 			foreach (var tab in tabs)
 			{
-				tab.DetectResources(MissingResources, ReferencedMaterials, ReferencedTextures);
+                ((EditorTab)tab).DetectResources(MissingResources, ReferencedMaterials, ReferencedTextures);
 			}
             ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - 25), Condition.Always);
             ImGui.SetNextWindowPos(new Vector2(0, menu_height), Condition.Always, Vector2.Zero);
@@ -275,7 +276,7 @@ namespace LancerEdit
             if (selected != null)
             {
                 selected.Draw();
-                selected.SetActiveTab(this);
+                ((EditorTab)selected).SetActiveTab(this);
             }
             else
                 ActiveTab = null;

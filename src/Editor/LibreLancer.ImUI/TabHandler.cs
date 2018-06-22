@@ -3,8 +3,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using ImGuiNET;
-using LibreLancer;
-namespace LancerEdit
+namespace LibreLancer.ImUI
 {
     public unsafe class TabHandler
     {

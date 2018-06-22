@@ -18,12 +18,12 @@ using System.Collections.Generic;
 using System.IO;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.ImUI;
 using LibreLancer.Utf.Ale;
 namespace LancerEdit
 {
-    public partial class UtfTab : DockTab
+    public partial class UtfTab : EditorTab
     {
-        bool open = true;
         public EditableUtf Utf;
         LUtfNode selectedNode = null;
         MainWindow main;
@@ -79,7 +79,7 @@ namespace LancerEdit
             return path;
         }
 
-        public override bool Draw()
+        public override void Draw()
         {
             //Child Window
             var size = ImGui.GetWindowSize();
@@ -194,7 +194,6 @@ namespace LancerEdit
                 ImGui.EndPopup();
             }
             Popups();
-            return open;
         }
        
         unsafe int DummyCallback(TextEditCallbackData* data)

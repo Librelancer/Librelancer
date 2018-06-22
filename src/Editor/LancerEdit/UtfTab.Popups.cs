@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.ImUI;
 namespace LancerEdit
 {
     public partial class UtfTab

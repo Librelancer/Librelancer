@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using LibreLancer.ImageLib;
-using LibreLancer;
 using ImGuiNET;
-namespace LancerEdit
+namespace LibreLancer.ImUI
 {
     public class Theme
     {
@@ -39,11 +38,11 @@ namespace LancerEdit
             s.SetColor(ColorTarget.ScrollbarBg, RGBA(51, 64, 77, 153));
             s.SetColor(ColorTarget.Button, RGBA(128, 128, 128, 88));
 
-            using(var stream = typeof(Theme).Assembly.GetManifestResourceStream("LancerEdit.UILib.icons.png")) {
+            using(var stream = typeof(Theme).Assembly.GetManifestResourceStream("LibreLancer.ImUI.icons.png")) {
                 iconTexture = Generic.FromStream(stream);
                 iconId = ImGuiHelper.RegisterTexture(iconTexture);
             }
-            using(var reader = new StreamReader(typeof(Theme).Assembly.GetManifestResourceStream("LancerEdit.UILib.icons.txt"))) {
+            using(var reader = new StreamReader(typeof(Theme).Assembly.GetManifestResourceStream("LibreLancer.ImUI.icons.txt"))) {
                 while(!reader.EndOfStream) {
                     var ln = reader.ReadLine().Trim();
                     if (string.IsNullOrEmpty(ln)) continue;

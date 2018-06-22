@@ -18,8 +18,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using LibreLancer;
-namespace LancerEdit
+namespace LibreLancer.ImUI
 {
     public class FileDialogFilters
     {
@@ -39,7 +38,7 @@ namespace LancerEdit
             Extensions = exts;
         }
     }
-	static class FileDialog
+	public  class FileDialog
 	{
         static dynamic parentForm;
         static bool kdialog;
