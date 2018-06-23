@@ -351,7 +351,16 @@ namespace LancerEdit
             toAdd.Clear();
 		}
 
-		protected override void Cleanup()
+        protected override void OnDrop(string file)
+        {
+            if (DetectFileType.Detect(file) == FileType.Utf)
+            {
+                var t = new UtfTab(this, new EditableUtf(file), System.IO.Path.GetFileName(file));
+                ActiveTab = t;
+                AddTab(t);
+            }
+        }
+        protected override void Cleanup()
 		{
 			Audio.Dispose();
 		}
