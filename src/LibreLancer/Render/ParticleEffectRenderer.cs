@@ -32,7 +32,7 @@ namespace LibreLancer
         {
             this.sys = sys;
             dist = VectorMath.DistanceSquared(pos, camera.Position);
-            fx.Resources = sys.Game.ResourceManager;
+            fx.Resources = sys.ResourceManager;
             if (Active && dist < (20000 * 20000))
             {
                 sys.AddObject(this);
@@ -56,7 +56,7 @@ namespace LibreLancer
 		}
 		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
-			    fx.Draw(sys.Polyline, sys.Game.Billboards, sys.DebugRenderer, tr, SParam);
+			    fx.Draw(sys.Polyline, sys.Billboards, sys.DebugRenderer, tr, SParam);
 		}
 
         // nice name in debugger window

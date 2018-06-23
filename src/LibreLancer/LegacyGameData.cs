@@ -261,6 +261,7 @@ namespace LibreLancer
 		{
 			foreach (var bse in fldata.Universe.Bases) yield return bse.Nickname;
 		}
+
 		public GameData.StarSystem GetSystem(string id)
 		{
 			var legacy = fldata.Universe.FindSystem (id);

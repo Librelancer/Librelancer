@@ -33,10 +33,7 @@ namespace LibreLancer
             {
                 state.Game.ChangeState(new SpaceGameplay(state.Game, new GameSession(state.Game)));
             });
-            public void loadgame() => state.ui.Leave(() =>
-            {
-                state.Game.ChangeState(new DemoSystemView(state.Game));
-            });
+            public void loadgame() {}
             public void multiplayer() {}
             public void exit() => state.ui.Leave(() => state.Game.Exit());
         }

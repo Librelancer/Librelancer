@@ -426,7 +426,7 @@ namespace LibreLancer
                                 alpha = ffar / fadePctSq;
                             }
                             var coords = billboardCoords [astbillboards [i].Texture];
-                            sys.Game.Billboards.DrawTri (
+                            sys.Billboards.DrawTri (
                                 billboardTex,
                                 astbillboards [i].Position,
                                 astbillboards[i].Size,

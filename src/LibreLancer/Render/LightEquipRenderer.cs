@@ -46,13 +46,13 @@ namespace LibreLancer
         {
             if (frameStart)
             {
-                sys.Game.ResourceManager.TryGetShape("bulb", out bulbshape);
-                bulbtex = (Texture2D)sys.Game.ResourceManager.FindTexture(bulbshape.Texture);
-                sys.Game.ResourceManager.TryGetShape("shine", out shineshape);
-                shinetex = (Texture2D)sys.Game.ResourceManager.FindTexture(shineshape.Texture);
+                sys.ResourceManager.TryGetShape("bulb", out bulbshape);
+                bulbtex = (Texture2D)sys.ResourceManager.FindTexture(bulbshape.Texture);
+                sys.ResourceManager.TryGetShape("shine", out shineshape);
+                shinetex = (Texture2D)sys.ResourceManager.FindTexture(shineshape.Texture);
                 frameStart = false;
             }
-            sys.Game.Billboards.Draw(
+            sys.Billboards.Draw(
                 shinetex,
                 pos,
                 new Vector2(equip.GlowSize) * 2,
@@ -65,7 +65,7 @@ namespace LibreLancer
                 SortLayers.LIGHT_SHINE,
                 BlendMode.Additive
             );
-            sys.Game.Billboards.Draw(
+            sys.Billboards.Draw(
                 bulbtex,
                 pos,
                 new Vector2(equip.BulbSize) * 2,

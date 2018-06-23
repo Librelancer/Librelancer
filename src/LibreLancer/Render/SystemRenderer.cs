@@ -48,7 +48,7 @@ namespace LibreLancer
 		public SystemLighting SystemLighting = new SystemLighting();
 		ResourceManager cache;
 		RenderState rstate;
-		FreelancerGame game;
+		Game game;
 		Texture2D dot;
 
 		//Fancy Forward+ stuff (GL 4.3 up)
@@ -59,7 +59,7 @@ namespace LibreLancer
 		//ShaderStorageBuffer opaqueLightBuffer;
 		const int MAX_POINTS = 1024;
 
-		public FreelancerGame Game
+		public Game Game
 		{
 			get
 			{
@@ -67,7 +67,28 @@ namespace LibreLancer
 			}
 		}
 
-		public SystemRenderer(ICamera camera, LegacyGameData data, ResourceManager rescache, FreelancerGame game)
+        public Billboards Billboards
+        {
+            get
+            {
+                return billboards;
+            }
+        }
+
+        GameConfig gconfig;
+        Billboards billboards;
+        ResourceManager resman;
+        NebulaVertices nebulae;
+
+        public ResourceManager ResourceManager
+        {
+            get
+            {
+                return resman;
+            }
+        }
+
+		public SystemRenderer(ICamera camera, LegacyGameData data, ResourceManager rescache, Game game)
 		{
 			this.camera = camera;			
 			AsteroidFields = new List<AsteroidFieldRenderer>();
@@ -77,6 +98,10 @@ namespace LibreLancer
 			cache = rescache;
 			rstate = cache.Game.RenderState;
 			this.game = game;
+            gconfig = game.GetService<GameConfig>();
+            billboards = game.GetService<Billboards>();
+            resman = game.GetService<ResourceManager>();
+            nebulae = game.GetService<NebulaVertices>();
 			dot = (Texture2D)rescache.FindTexture(ResourceManager.WhiteTextureName);
 			DebugRenderer = new PhysicsDebugRenderer();
 
@@ -207,7 +232,7 @@ namespace LibreLancer
         }
 		public unsafe void Draw()
 		{
-			if (game.Config.MSAASamples > 0)
+			if (gconfig.MSAASamples > 0)
 			{
 				if (_mwidth != Game.Width || _mheight != Game.Height)
 				{
@@ -215,7 +240,7 @@ namespace LibreLancer
 					_mheight = Game.Height;
 					if (msaa != null)
 						msaa.Dispose();
-					msaa = new MultisampleTarget(Game.Width, Game.Height, Game.Config.MSAASamples);
+					msaa = new MultisampleTarget(Game.Width, Game.Height, gconfig.MSAASamples);
 				}
 				msaa.Bind();
 			}
@@ -281,7 +306,7 @@ namespace LibreLancer
 			LightEquipRenderer.FrameStart();
 			//Clear depth buffer for game objects
 			rstate.ClearDepth();
-			game.Billboards.Begin(camera, commands);
+			billboards.Begin(camera, commands);
 			JThreads.Instance.FinishExecute(); //Make sure visibility calculations are complete						  
 			if (GLExtensions.Features430 && ExtraLights)
 			{
@@ -330,7 +355,7 @@ namespace LibreLancer
 				//for (int i = 0; i < Objects.Count; i++) if (Objects[i].Visible) Objects[i].DepthPrepass(camera, rstate);
 				rstate.DepthFunction = DepthFunction.LessEqual;
 				RenderTarget2D.ClearBinding();
-				if (game.Config.MSAASamples > 0) msaa.Bind();
+				if (gconfig.MSAASamples > 0) msaa.Bind();
 				//Run compute shader
 				pointLightBuffer.BindIndex(0);
 				transparentLightBuffer.BindIndex(1);
@@ -360,15 +385,15 @@ namespace LibreLancer
 			//Actual Drawing
 			foreach (var obj in objects) obj.Draw(camera, commands, SystemLighting, nr);
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(cache, SystemLighting, commands, nr);
-			game.Nebulae.NewFrame();
+			nebulae.NewFrame();
 			if (nr == null)
 			{
 				for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Draw(commands);
 			}
 			else
 				nr.Draw(commands);
-			game.Nebulae.SetData();
-			game.Billboards.End();
+			nebulae.SetData();
+			billboards.End();
 			Polyline.FrameEnd();
 			//Opaque Pass
 			rstate.DepthEnabled = true;
@@ -378,7 +403,7 @@ namespace LibreLancer
 			commands.DrawTransparent(rstate);
 			rstate.DepthWrite = true;
 			DebugRenderer.Render();
-			if (Game.Config.MSAASamples > 0)
+			if (gconfig.MSAASamples > 0)
 			{
 				msaa.BlitToScreen();
 			}

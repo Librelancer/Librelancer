@@ -215,7 +215,6 @@
     <Compile Include="Utf\Mat\SamplerFlags.cs" />
     <Compile Include="Utf\Ale\AlchemyNodeRef.cs" />
     <Compile Include="Render\ICamera.cs" />
-    <Compile Include="Render\DebugCamera.cs" />
     <Compile Include="Easings.cs" />
     <Compile Include="Render\IdentityCamera.cs" />
     <Compile Include="Interface\UIAnimation.cs" />
@@ -278,7 +277,6 @@
     <Compile Include="SoundManager.cs" />
     <Compile Include="Thn\ThnEntity.cs" />
     <Compile Include="Thn\ThnEvent.cs" />
-    <Compile Include="GameStates\DemoSystemView.cs" />
     <Compile Include="GameStates\IntroMovie.cs" />
     <Compile Include="GameStates\LoadingDataState.cs" />
     <Compile Include="CommandBuffer.cs" />

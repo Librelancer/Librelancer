@@ -85,8 +85,11 @@ namespace LibreLancer
 
 		public void UpdateProjection()
 		{
-			Projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(50f), Viewport.AspectRatio, 10f, 100000000f);
-		}
+            const float defaultFOV = 50;
+
+            Projection = Matrix4.CreatePerspectiveFieldOfView(FOVUtil.CalcFovx(defaultFOV, Viewport.AspectRatio), Viewport.AspectRatio, 3f, 10000000f);
+            _vpdirty = true;
+        }
         public long FrameNumber
         {
             get

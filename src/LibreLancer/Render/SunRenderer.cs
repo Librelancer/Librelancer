@@ -32,6 +32,7 @@ namespace LibreLancer
 		{
 			pos = position;
 		}
+
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
         {
             sysr = sys;
@@ -52,7 +53,7 @@ namespace LibreLancer
 			{
 				var center_scale = dist_scale * Sun.CenterScale;
 				DrawRadial(
-					(Texture2D)sysr.Game.ResourceManager.FindTexture(Sun.CenterSprite),
+					(Texture2D)sysr.ResourceManager.FindTexture(Sun.CenterSprite),
 					new Vector3(pos),
 					new Vector2(Sun.Radius, Sun.Radius) * center_scale,
 					new Color4(Sun.CenterColorInner, 1),
@@ -62,7 +63,7 @@ namespace LibreLancer
 				);
 			}
 			DrawRadial(
-				(Texture2D)sysr.Game.ResourceManager.FindTexture(Sun.GlowSprite),
+				(Texture2D)sysr.ResourceManager.FindTexture(Sun.GlowSprite),
 				new Vector3(pos),
 				new Vector2(Sun.Radius, Sun.Radius) * glow_scale,
 				new Color4(Sun.GlowColorInner, 0),
@@ -74,7 +75,7 @@ namespace LibreLancer
 			{
 				double current_angle = 0;
 				double delta_angle = (2 * Math.PI) / Sun.Spines.Count;
-				var spinetex = (Texture2D)sysr.Game.ResourceManager.FindTexture(Sun.SpinesSprite);
+				var spinetex = (Texture2D)sysr.ResourceManager.FindTexture(Sun.SpinesSprite);
 				for (int i = 0; i < Sun.Spines.Count; i++)
 				{
 					var s = Sun.Spines[i];
@@ -128,8 +129,8 @@ namespace LibreLancer
         }
         void DrawRadial(Texture2D texture, Vector3 position, Vector2 size, Color4 inner, Color4 outer, float expand, float z)
 		{
-			sysr.Game.Billboards.DrawCustomShader(
-				GetRadialShader(sysr.Game.Billboards),
+			sysr.Billboards.DrawCustomShader(
+				GetRadialShader(sysr.Billboards),
 				_setupRadialDelegate,
 				new RenderUserData() { Texture = texture, Color = inner, Color2 = outer, Float = expand },
 				position,
@@ -146,8 +147,8 @@ namespace LibreLancer
 		}
 		void DrawSpine(Texture2D texture, Vector3 position, Vector2 size, Color3f inner, Color3f outer, float alpha, float angle, float z)
 		{
-			sysr.Game.Billboards.DrawCustomShader(
-				GetSpineShader(sysr.Game.Billboards),
+			sysr.Billboards.DrawCustomShader(
+				GetSpineShader(sysr.Billboards),
 				_setupSpineDelegate,
 				new RenderUserData() { Texture = texture, Color = new Color4(inner,1), Color2 = new Color4(outer,1), Float = alpha },
 				position,

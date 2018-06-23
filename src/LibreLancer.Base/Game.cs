@@ -14,6 +14,8 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using System.Linq;
+using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
@@ -58,6 +60,11 @@ namespace LibreLancer
 			}
 		}
 
+        protected List<object> Services = new List<object>();
+        public T GetService<T>()
+        {
+            return Services.OfType<T>().FirstOrDefault();
+        }
         public IntPtr GetHwnd()
         {
             if (Platform.RunningOS != OS.Windows) return IntPtr.Zero;

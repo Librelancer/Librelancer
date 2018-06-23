@@ -117,6 +117,28 @@ namespace LibreLancer.ImUI
             return result;
         }
 
+        public static string GtkFolder(IntPtr parent)
+        {
+            if(!gtk_init_check(IntPtr.Zero, IntPtr.Zero))
+            {
+                throw new Exception();
+            }
+            var dlg = gtk_file_chooser_dialog_new("Open Directory", IntPtr.Zero,
+                                                 GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
+                                                  IntPtr.Zero);
+            gtk_dialog_add_button(dlg, "_Cancel", GTK_RESPONSE_CANCEL);
+            gtk_dialog_add_button(dlg, "_Accept", GTK_RESPONSE_ACCEPT);
+            gtk_widget_realize(dlg);
+            XSetTransientForHint(gdk_x11_get_default_xdisplay(),
+                                 gdk_x11_drawable_get_xid(gtk_widget_get_window(dlg)), parent);
+            string result = null;
+            if (gtk_dialog_run(dlg) == GTK_RESPONSE_ACCEPT)
+                result = UnsafeHelpers.PtrToStringUTF8(gtk_file_chooser_get_filename(dlg));
+            WaitCleanup();
+            gtk_widget_destroy(dlg);
+            WaitCleanup();
+            return result;
+        }
         public static string GtkSave(IntPtr parent, FileDialogFilters filters)
         {
             if (!gtk_init_check(IntPtr.Zero, IntPtr.Zero))

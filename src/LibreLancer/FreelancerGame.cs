@@ -104,6 +104,13 @@ namespace LibreLancer
 			ViewportManager = new ViewportManager (RenderState);
 			ViewportManager.Push(0, 0, Width, Height);
 			Screenshots = new ScreenshotManager(this);
+
+            Services.Add(Billboards);
+            Services.Add(Nebulae);
+            Services.Add(ResourceManager);
+            Services.Add(Renderer2D);
+            Services.Add(Config);
+
 			if (useintromovies && IntroMovies.Count > 0)
 				ChangeState(new IntroMovie(this, 0));
 			else

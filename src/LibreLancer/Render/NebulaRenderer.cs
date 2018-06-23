@@ -26,13 +26,21 @@ namespace LibreLancer
 		public Nebula Nebula;
 		Random rand;
 		ICamera camera;
-		FreelancerGame game;
+        Game game;
+        NebulaVertices nverts;
+        Renderer2D render2D;
+        ResourceManager resman;
+        Billboards billboards;
 		List<ExteriorPuff> Exterior = new List<ExteriorPuff>();
-		public NebulaRenderer(Nebula n, ICamera c, FreelancerGame g)
+		public NebulaRenderer(Nebula n, ICamera c, Game g)
 		{
 			Nebula = n;
 			camera = c;
 			game = g;
+            nverts = g.GetService<NebulaVertices>();
+            render2D = g.GetService<Renderer2D>();
+            resman = g.GetService<ResourceManager>();
+            billboards = g.GetService<Billboards>();
 			rand = new Random();
 			if (n.HasInteriorClouds)
 			{
@@ -67,9 +75,9 @@ namespace LibreLancer
 			var c = GetFogColor();
 			c.A = CalculateTransition(Nebula.Zone);
 
-			game.Renderer2D.Start(game.Width, game.Height);
-			game.Renderer2D.FillRectangle(new Rectangle(0, 0, game.Width, game.Height), c);
-			game.Renderer2D.Finish();
+			render2D.Start(game.Width, game.Height);
+			render2D.FillRectangle(new Rectangle(0, 0, game.Width, game.Height), c);
+			render2D.Finish();
 		}
 
 		Color4 GetFogColor()
@@ -327,9 +335,9 @@ namespace LibreLancer
 			for (int i = 0; i < Exterior.Count; i++)
 			{
 				var p = Exterior[i];
-				var tex = game.ResourceManager.FindTexture(p.Shape.Texture);
-				game.Billboards.DrawCustomShader(
-					GetPuffShader(game.Billboards),
+				var tex = resman.FindTexture(p.Shape.Texture);
+				billboards.DrawCustomShader(
+					GetPuffShader(billboards),
 					_setupPuffDelegate,
 					new RenderUserData() { Texture = tex, Color = Nebula.FogColor, Float = factor },
 					p.Position,
@@ -436,8 +444,8 @@ namespace LibreLancer
 					{
 						c *= Nebula.CloudLightningColor;
 					}
-					game.Billboards.Draw(
-						(Texture2D)game.ResourceManager.FindTexture(shape.Texture),
+					billboards.Draw(
+						(Texture2D)resman.FindTexture(shape.Texture),
 						puffsinterior[i].Position,
 						new Vector2(Nebula.InteriorCloudRadius),
 						c,
@@ -508,7 +516,7 @@ namespace LibreLancer
             if (camera.Frustum.Contains(sph) == ContainmentType.Disjoint)
                 return;
 
-			var tex = (Texture2D)game.ResourceManager.FindTexture(Nebula.ExteriorFill);
+			var tex = (Texture2D)resman.FindTexture(Nebula.ExteriorFill);
 			//X axis
 			{
 				var tl = new VertexPositionTexture(
@@ -527,7 +535,7 @@ namespace LibreLancer
 					new Vector3(+1, +1, 0),
 					new Vector2(1, 0)
 				);
-				game.Nebulae.SubmitQuad(
+				nverts.SubmitQuad(
 					tl, tr, bl, br
 				);
 			}
@@ -549,7 +557,7 @@ namespace LibreLancer
 					new Vector3(0, +1, +1),
 					new Vector2(0, 1)
 				);
-				game.Nebulae.SubmitQuad(
+				nverts.SubmitQuad(
 					tl, tr, bl, br
 				);
 			}
@@ -571,12 +579,12 @@ namespace LibreLancer
 					new Vector3(+1, 0, 1),
 					new Vector2(0, 1)
 				);
-				game.Nebulae.SubmitQuad(
+				nverts.SubmitQuad(
 					tl, tr, bl, br
 				);
 			}
 			var transform = Matrix4.CreateScale(sz) * Nebula.Zone.RotationMatrix * Matrix4.CreateTranslation(p);
-			game.Nebulae.Draw(
+			nverts.Draw(
 				buffer,
 				camera,
 				tex,

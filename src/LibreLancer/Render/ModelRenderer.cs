@@ -72,14 +72,14 @@ namespace LibreLancer
             if (!inited)
             {
                 if (Dfm != null)
-                    Dfm.Initialize(sysr.Game.ResourceManager);
+                    Dfm.Initialize(sysr.ResourceManager);
                 if (Model != null && Model.Levels.Length > 0)
-                    Model.Initialize(sysr.Game.ResourceManager);
+                    Model.Initialize(sysr.ResourceManager);
                 else if (Cmp != null)
-                    Cmp.Initialize(sysr.Game.ResourceManager);
+                    Cmp.Initialize(sysr.ResourceManager);
                 else if (Sph != null)
                 {
-                    Sph.Initialize(sysr.Game.ResourceManager);
+                    Sph.Initialize(sysr.ResourceManager);
                     if (Sph.SideMaterials.Length > 6)
                         radiusAtmosphere = Sph.Radius * Math.Max(Sph.SideMaterials[6].Scale,1f);
                     else

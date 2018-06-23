@@ -94,6 +94,28 @@ namespace LibreLancer.ImUI
 			}
 		}
 
+        public static string ChooseFolder()
+        {
+            if(Platform.RunningOS == OS.Windows) {
+                string result = null;
+                using (var fbd = NewObj("System.Windows.Forms.FolderBrowserDialog")) {
+                    if (parentForm != null) fbd.Parent = parentForm;
+                    if (fbd.ShowDialog() == SwfOk() && !string.IsNullOrEmpty(fbd.SelectedPath))
+                        result = fbd.SelectedPath;
+                }
+                return result;
+            } else if (Platform.RunningOS == OS.Linux) {
+                if (kdialog)
+                    throw new NotImplementedException();
+                else if (parentWindow != IntPtr.Zero)
+                    return Gtk2.GtkFolder(parentWindow);
+                else
+                    return Gtk3.GtkFolder();
+            } else {
+                //Mac
+                throw new NotImplementedException();
+            }
+        }
         public static string Save(FileDialogFilters filters = null)
 		{
 			if (Platform.RunningOS == OS.Windows)
