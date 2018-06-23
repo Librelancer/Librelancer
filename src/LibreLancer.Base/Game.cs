@@ -325,6 +325,7 @@ namespace LibreLancer
 				FLLog.Error ("SDL", "Failed to create window, exiting.");
 				return;
 			}
+            SDL.SDL_EventState(SDL.SDL_EventType.SDL_DROPFILE, SDL.SDL_ENABLE);
 			windowptr = sdlWin;
             if (forceANGLE)
             {
@@ -429,7 +430,14 @@ namespace LibreLancer
                                 SDL.SDL_GetWindowSize(windowptr, out width, out height);
                                 OnResize();
                             }
-						break;
+                            break;
+                    case SDL.SDL_EventType.SDL_DROPFILE:
+                        {
+                            var file = UnsafeHelpers.PtrToStringUTF8(e.drop.file);
+                            OnDrop(file);
+                            SDL.SDL_free(e.drop.file);
+                            break;
+                        }
 					}
 				}
 
@@ -474,7 +482,9 @@ namespace LibreLancer
         protected virtual void OnResize()
         {
         }
-
+        protected virtual void OnDrop(string file)
+        {
+        }
 		public void ToggleFullScreen()
 		{
 			if (fullscreen)
