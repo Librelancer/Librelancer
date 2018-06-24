@@ -37,8 +37,10 @@ namespace LancerEdit
     }
     public struct ColladaDrawcall
     {
-        public int Start;
+        public int StartIndex;
         public int TriCount;
+        public int StartVertex;
+        public int EndVertex;
         public string Material;
     }
     public class ColladaSpline
@@ -131,11 +133,11 @@ namespace LancerEdit
                 foreach(var dc in Drawcalls) {
                     //drawcalls must be sequential (start index isn't in VMeshData)
                     //this error shouldn't ever throw
-                    if (startTri != dc.Start) throw new Exception("Invalid start index");
+                    if (startTri != dc.StartIndex) throw new Exception("Invalid start index");
                     //write TMeshHeader
                     writer.Write(CrcTool.FLModelCrc(dc.Material));
-                    writer.Write((ushort)0); //StartVertex - never offset
-                    writer.Write((ushort)0); //EndVertex - ??? not used in Librelancer
+                    writer.Write((ushort)dc.StartVertex);
+                    writer.Write((ushort)dc.EndVertex);
                     writer.Write((ushort)(dc.TriCount * 3)); //NumRefVertices
                     writer.Write((ushort)0); //Padding
                     //validation
@@ -303,6 +305,7 @@ namespace LancerEdit
                     inputs = plist.input;
                     triangleCount = (int)(plist.count * 3);
                 }
+
                 int pStride = 0;
                 foreach (var input in inputs)
                     pStride = Math.Max((int)input.offset, pStride);
@@ -385,6 +388,7 @@ namespace LancerEdit
                             break;
                     }
                 }
+                int vertexOffset = vertices.Count;
                 for (int i = 0; i <  triangleCount; i++) {
                     int idx = i * pStride;
                     var vert = new VertexPositionNormalDiffuseTextureTwo(
@@ -394,20 +398,22 @@ namespace LancerEdit
                         offUV1 == int.MinValue ? Vector2.Zero : sourceUV1.GetUV(pRefs[idx + offUV1]),
                         offUV2 == int.MinValue ? Vector2.Zero : sourceUV2.GetUV(pRefs[idx + offUV2])
                     );
-                    var vertIdx = vertices.IndexOf(vert);
+                    var vertIdx = FindDuplicate(vertices, vertexOffset, ref vert);
                     if (indices.Count >= ushort.MaxValue)
                         throw new Exception("Too many indices");
                     if(vertIdx == -1) {
                         if (vertices.Count + 1 >= ushort.MaxValue)
                             throw new Exception("Overflow");
-                        indices.Add((ushort)vertices.Count);
+                        indices.Add((ushort)(vertices.Count - vertexOffset));
                         vertices.Add(vert);
                     } else {
-                        indices.Add((ushort)vertIdx);
+                        indices.Add((ushort)(vertIdx - vertexOffset));
                     }
                 }
                 drawcalls.Add(new ColladaDrawcall() { 
-                    Start = startIdx, 
+                    StartIndex = startIdx,
+                    StartVertex = vertexOffset,
+                    EndVertex = vertices.Count - 1,
                     TriCount = (indices.Count - startIdx) / 3,
                     Material = string.IsNullOrEmpty(material) ? "NullMaterial" : material
                 });
@@ -419,6 +425,17 @@ namespace LancerEdit
             return conv;
         }
 
+        static int FindDuplicate(List<VertexPositionNormalDiffuseTextureTwo> buf, int startIndex, ref VertexPositionNormalDiffuseTextureTwo search)
+        {
+            for (int i = startIndex; i < buf.Count; i++) {
+                if (buf[i].Position != search.Position) continue;
+                if (buf[i].Normal != search.Normal) continue;
+                if (buf[i].TextureCoordinate != search.TextureCoordinate) continue;
+                if (buf[i].Diffuse != search.Diffuse) continue;
+                if (buf[i].TextureCoordinateTwo != search.TextureCoordinateTwo) continue;
+            }
+            return -1;
+        }
         class GeometrySource
         {
             float[] array;

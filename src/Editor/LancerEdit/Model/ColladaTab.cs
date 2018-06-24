@@ -364,7 +364,7 @@ namespace LancerEdit
             normalMaterial.Use(win.RenderState, new VertexPositionNormalDiffuseTextureTwo(), ref Lighting.Empty);
             foreach (var drawcall in selected.Geometry.Drawcalls)
             {
-                vbo.Draw(PrimitiveTypes.TriangleList, drawcall.Start, drawcall.TriCount);
+                vbo.Draw(PrimitiveTypes.TriangleList, drawcall.StartVertex, drawcall.StartIndex, drawcall.TriCount);
             }
             colladaViewport.End();
         }

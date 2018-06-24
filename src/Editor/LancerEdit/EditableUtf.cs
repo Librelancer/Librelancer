@@ -29,7 +29,7 @@ namespace LancerEdit
 		public EditableUtf()
 		{
 			Root = new LUtfNode();
-			Root.Name = "/";
+            Root.Name = "/";
 			Root.Children = new List<LUtfNode>();
 		}
 
@@ -171,7 +171,10 @@ namespace LancerEdit
 					foreach (var str in strings)
 					{
 						stringOffsets.Add(str, (int)mem.Position);
-						var strb = Encoding.ASCII.GetBytes(str);
+                        var strx = str;
+                        if (strx == "/")
+                            strx = "\\";
+						var strb = Encoding.ASCII.GetBytes(strx);
 						mem.Write(strb, 0, strb.Length);
 						mem.WriteByte(0); //null terminate
 					}
