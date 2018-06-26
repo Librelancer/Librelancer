@@ -15,10 +15,12 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Text;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.Vertices;
 using LibreLancer.ImUI;
+
 namespace LancerEdit
 {
     public class ColladaTab : EditorTab
@@ -135,13 +137,65 @@ namespace LancerEdit
                 {
                     return false; //TODO: CMP
                 }
+                if(generateMaterials) {
+                    List<string> materials = new List<string>();
+                    foreach (var mdl in output)
+                        IterateMaterials(materials, mdl);
+                    var mats = new LUtfNode() { Name = "material library", Parent = utf.Root };
+                    mats.Children = new List<LUtfNode>();
+                    int i = 0;
+                    foreach (var mat in materials)
+                        mats.Children.Add(DefaultMaterialNode(mats,mat,i++));
+                    var txms = new LUtfNode() { Name = "texture library", Parent = utf.Root };
+                    txms.Children = new List<LUtfNode>();
+                    foreach (var mat in materials)
+                        txms.Children.Add(DefaultTextureNode(txms,mat));
+                    utf.Root.Children.Add(mats);
+                    utf.Root.Children.Add(txms);
+                }
                 result = utf;
                 return true;
             }
             else
                 return false;
         }
+        static readonly float[][] matColors =  {
+            new float[]{ 1, 0, 0 },
+            new float[]{ 0, 1, 0 },
+            new float[]{ 0, 0, 1 },
+            new float[]{ 1, 1, 1 },
+            new float[]{ 1, 1, 0 },
+            new float[]{ 0, 1, 1 }
+        };
+        static LUtfNode DefaultMaterialNode(LUtfNode parent, string name, int i)
+        {
+            var matnode = new LUtfNode() { Name = name, Parent = parent };
+            matnode.Children = new List<LUtfNode>();
+            matnode.Children.Add(new LUtfNode() { Name = "Type", Parent = matnode, Data = Encoding.ASCII.GetBytes("DcDt") });
+            matnode.Children.Add(new LUtfNode() { Name = "Dc", Parent = matnode, Data = UnsafeHelpers.CastArray(matColors[i % matColors.Length]) });
+            matnode.Children.Add(new LUtfNode() { Name = "Dt_name", Parent = matnode, Data = Encoding.ASCII.GetBytes(name + ".tex.dds") });
+            matnode.Children.Add(new LUtfNode() { Name = "Dt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
+            return matnode;
+        }
+        static LUtfNode DefaultTextureNode(LUtfNode parent, string name)
+        {
+            var texnode = new LUtfNode() { Name = name + ".tex.dds", Parent = parent };
+            texnode.Children = new List<LUtfNode>();
+            var d = new byte[DefaultTexture.Data.Length];
+            Buffer.BlockCopy(DefaultTexture.Data, 0, d, 0, DefaultTexture.Data.Length);
+            texnode.Children.Add(new LUtfNode() { Name = "MIPS", Parent = texnode, Data = d });
+            return texnode;
+        }
 
+        static void IterateMaterials(List<string> materials, OutModel mdl)
+        {
+            foreach (var lod in mdl.LODs)
+                foreach (var dc in lod.Geometry.Drawcalls)
+                    if (dc.Material != "NullMaterial" && !materials.Contains(dc.Material))
+                        materials.Add(dc.Material);
+            foreach (var child in mdl.Children)
+                IterateMaterials(materials, child);
+        }
         static void Export3DB(LUtfNode node3db, OutModel mdl)
         {
             var vms = new LUtfNode() { Name = "VMeshLibrary", Parent = node3db };
@@ -297,7 +351,8 @@ namespace LancerEdit
         }
 
         float fl_h1 = 200, fl_h2 = 200;
-        bool flPreview = true;
+        bool flPreview = false;
+        bool generateMaterials = true;
         void FLPane()
         {
             var totalH = ImGui.GetWindowHeight();
@@ -316,9 +371,9 @@ namespace LancerEdit
             }
             ImGui.EndChild();
             ImGui.BeginChild("2", new Vector2(-1, fl_h2), false, WindowFlags.Default);
-            if (ImGuiExt.ToggleButton("Preview", flPreview)) flPreview = true;
+            if (ImGuiExt.ToggleButton("Options", !flPreview)) flPreview = false;
             ImGui.SameLine();
-            if (ImGuiExt.ToggleButton("Details", !flPreview)) flPreview = false;
+            if (ImGuiExt.ToggleButton("Preview", flPreview)) flPreview = true;
             ImGui.Separator();
             if (flPreview)
             {
@@ -326,7 +381,7 @@ namespace LancerEdit
             }
             else
             {
-
+                ImGui.Checkbox("Default Materials", ref generateMaterials);
             }
             ImGui.EndChild();
         }

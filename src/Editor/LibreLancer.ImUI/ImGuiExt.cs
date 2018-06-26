@@ -27,5 +27,8 @@ namespace LibreLancer.ImUI
             if(v) ImGui.PopStyleColor();
             return retval;
         }
+
+        [DllImport("cimgui", EntryPoint = "igExtSpinner", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool Spinner(string label, float radius, int thickness, uint color);
 	}
 }

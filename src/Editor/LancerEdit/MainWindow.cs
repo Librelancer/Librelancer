@@ -15,6 +15,7 @@
  */
 using System;
 using System.Text;
+using System.Threading;
 using System.Collections.Generic;
 using LibreLancer;
 using LibreLancer.ImUI;
@@ -38,6 +39,8 @@ namespace LancerEdit
         static readonly string[] defaultFilters = {
             "Linear", "Bilinear", "Trilinear"
         };
+        bool openError = false;
+        bool finishLoading = false;
         string[] filters;
         int[] anisotropyLevels;
         int cFilter = 2;
@@ -172,7 +175,7 @@ namespace LancerEdit
 				}
 				ImGui.EndMenu();
 			}
-            bool openerror = false;
+            bool openLoading = false;
 			if (ImGui.BeginMenu("Tools"))
 			{
                 if(ImGui.MenuItem("Options"))
@@ -191,20 +194,21 @@ namespace LancerEdit
                 {
                     string input;
                     if((input = FileDialog.Open(ColladaFilters)) != null) {
-                        List<ColladaObject> dae = null;
-                        try
+                        openLoading = true;
+                        finishLoading = false;
+                        new Thread(() =>
                         {
-                            dae = ColladaSupport.Parse(input);
-                            AddTab(new ColladaTab(dae,System.IO.Path.GetFileName(input),this));
-                        }
-                        catch (Exception ex)
-                        {
-                            if (errorText != null) errorText.Dispose();
-                            var str = "Import Error:\n" + ex.Message + "\n" + ex.StackTrace;
-                            errorText = new TextBuffer();
-                            errorText.SetText(str);
-                            openerror = true;
-                        }
+                            List<ColladaObject> dae = null;
+                            try
+                            {
+                                dae = ColladaSupport.Parse(input);
+                                EnsureUIThread(() => FinishColladaLoad(dae, System.IO.Path.GetFileName(input)));
+                            }
+                            catch (Exception ex)
+                            {
+                                EnsureUIThread(() => ColladaError(ex));
+                            }
+                        }).Start();
                     }
                 }
 				ImGui.EndMenu();
@@ -222,7 +226,13 @@ namespace LancerEdit
 				ImGui.OpenPopup("About");
 				openAbout = false;
 			}
-            if (openerror) ImGui.OpenPopup("Error");
+            if (openError)
+            {
+                ImGui.OpenPopup("Error");
+                openError = false;
+            }
+            if (openLoading) ImGui.OpenPopup("Processing");
+
             if(ImGui.BeginPopupModal("Error", WindowFlags.AlwaysAutoResize))
             {
                 ImGui.Text("Error:");
@@ -242,6 +252,14 @@ namespace LancerEdit
 				if (ImGui.Button("OK")) ImGui.CloseCurrentPopup();
 				ImGui.EndPopup();
 			}
+            if(ImGui.BeginPopupModal("Processing", WindowFlags.AlwaysAutoResize))
+            {
+                ImGuiExt.Spinner("##spinner", 10, 2, ImGuiNative.igGetColorU32(ColorTarget.ButtonHovered, 1));
+                ImGui.SameLine();
+                ImGui.Text("Processing");
+                if (finishLoading) ImGui.CloseCurrentPopup();
+                ImGui.EndPopup();
+            }
 			var menu_height = ImGui.GetWindowSize().Y;
 			ImGui.EndMainMenuBar();
 			var size = (Vector2)ImGui.GetIO().DisplaySize;
@@ -350,7 +368,19 @@ namespace LancerEdit
             }
             toAdd.Clear();
 		}
-
+        void FinishColladaLoad(List<ColladaObject> dae, string tabName) {
+            finishLoading = true;
+            AddTab(new ColladaTab(dae, tabName, this));
+        }
+        void ColladaError(Exception ex)          
+        {
+            finishLoading = true;
+            if (errorText != null) errorText.Dispose();
+            var str = "Import Error:\n" + ex.Message + "\n" + ex.StackTrace;
+            errorText = new TextBuffer();
+            errorText.SetText(str);
+            openError = true;
+         }
         protected override void OnDrop(string file)
         {
             if (DetectFileType.Detect(file) == FileType.Utf)

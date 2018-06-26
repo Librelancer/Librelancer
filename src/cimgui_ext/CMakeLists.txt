@@ -14,5 +14,6 @@ add_library(cimgui SHARED
     cimgui_dock.cpp
     imgui_freetype.cpp
     cimgui_freetype.cpp
+	cimgui_spinner.cpp
     ftshim.c
 )

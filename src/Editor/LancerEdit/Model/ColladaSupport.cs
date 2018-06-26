@@ -101,13 +101,13 @@ namespace LancerEdit
                 writer.Write((ushort)0); //StartMesh
                 writer.Write((ushort)Drawcalls.Length); //MeshCount
                 //Write rendering things
+                writer.Write(Max.X);
                 writer.Write(Min.X);
+                writer.Write(Max.Y);
                 writer.Write(Min.Y);
+                writer.Write(Max.Z);
                 writer.Write(Min.Z);
 
-                writer.Write(Max.X);
-                writer.Write(Max.Y);
-                writer.Write(Max.Z);
 
                 writer.Write(Center.X);
                 writer.Write(Center.Y);

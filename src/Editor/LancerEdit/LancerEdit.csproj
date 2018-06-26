@@ -75,6 +75,7 @@
     <Compile Include="Model\ModelViewer.Viewport.cs" />
     <Compile Include="EditorTab.cs" />
     <Compile Include="Viewport3D.cs" />
+    <Compile Include="DefaultTexture.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">
@@ -121,6 +122,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Model\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="defaulttexture.dds" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="..\..\packages\TeximpNet.1.2.0\build\TeximpNet.targets" Condition="Exists('..\..\packages\TeximpNet.1.2.0\build\TeximpNet.targets')" />
