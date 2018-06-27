@@ -75,7 +75,7 @@ namespace LancerEdit
             //Draw Model
             var cam = new LookAtCamera();
             cam.Update(renderWidth, renderHeight, new Vector3(modelViewport.Zoom, 0, 0), Vector3.Zero);
-            drawable.Update(cam, TimeSpan.Zero, TimeSpan.Zero);
+            drawable.Update(cam, TimeSpan.Zero, TimeSpan.FromSeconds(_window.TotalTime));
             if (viewMode != M_NONE)
             {
                 buffer.StartFrame(rstate);

@@ -65,6 +65,7 @@ namespace LancerEdit
         List<HardpointGizmo> gizmos = new List<HardpointGizmo>();
         AnimationComponent animator;
         UtfTab parent;
+        MainWindow _window;
         public ModelViewer(string title, string name, IDrawable drawable, MainWindow win, UtfTab parent)
         {
             Title = title;
@@ -75,6 +76,7 @@ namespace LancerEdit
             vps = win.Viewport;
             res = win.Resources;
             buffer = win.Commands;
+            _window = win;
             SetupViewport();
 
             if (drawable is CmpFile)
