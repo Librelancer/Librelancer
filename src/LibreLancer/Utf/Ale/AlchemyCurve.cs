@@ -55,7 +55,9 @@ namespace LibreLancer.Utf.Ale
                 if (time >= a.Time && time <= b.Time)
                     return AlchemyEasing.Ease(EasingTypes.Linear, time, a.Time, b.Time, a.Value, b.Value);
 			}
-			throw new Exception("Malformed AlchemyCurve");
+            //This should be an error at some stage, but the implementation is broken.
+            return Keyframes[Keyframes.Count - 1].Value;
+			//throw new Exception("Malformed AlchemyCurve");
 		}
 	}
 }

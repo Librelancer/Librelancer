@@ -242,7 +242,7 @@ namespace LibreLancer
                 }
             }
             //Optimisation: Don't re-calculate transforms every frame for static objects
-            if(parent.isstatic && hp.IsStatic)
+            if(parent.isstatic && (hp == null || hp.IsStatic))
             {
                 Transform = GetTransform();
                 isstatic = true;
@@ -381,7 +381,9 @@ namespace LibreLancer
 
 		public Hardpoint GetHardpoint(string hpname)
 		{
-			return hardpoints[hpname];
+            Hardpoint tryget;
+            if (hardpoints.TryGetValue(hpname, out tryget)) return tryget;
+            return null;
 		}
 
 		public Vector3 InverseTransformPoint(Vector3 input)

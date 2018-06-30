@@ -273,6 +273,10 @@ namespace LibreLancer
 			if (!drawables.TryGetValue(filename, out drawable))
 			{
 				drawable = Utf.UtfLoader.LoadDrawable(filename, this);
+                if(drawable == null) {
+                    drawables.Add(filename, drawable);
+                    return null;
+                }
 				drawable.Initialize(this);
 				if (drawable is CmpFile) /* Get Resources */
 				{

@@ -112,6 +112,8 @@ namespace LibreLancer.Utf.Vms
 
 		public void Draw(RenderState rstate, VertexBuffer buff, ushort startVertex, Matrix4 world, Lighting light, MaterialAnimCollection mc)
         {
+            if (MaterialCrc == 0) return;
+
 			if (lastmc != mc)
 			{
 				if (mc != null)
@@ -179,6 +181,8 @@ namespace LibreLancer.Utf.Vms
 
 		public void DrawBuffer(CommandBuffer buffer, VMeshData data, ushort startVertex, Matrix4 world, ref Lighting light, MaterialAnimCollection mc, Material overrideMat = null)
 		{
+            if (MaterialCrc == 0) return;
+
 			var mat = Material;
 			if (mat == null)
 				mat = defaultMaterial;
@@ -215,25 +219,27 @@ namespace LibreLancer.Utf.Vms
 
 		public void DepthPrepass(RenderState rstate, VMeshData data, ushort startVertex, Matrix4 world, MaterialAnimCollection mc)
 		{
+            if (MaterialCrc == 0) return;
+
 			var m = Material;
-			if (m == null) m = materialLibrary.FindMaterial(0);
-			if (Material.Render.IsTransparent)
+            if (m == null) m = materialLibrary.FindMaterial(0);
+			if (m.Render.IsTransparent)
 				return;
-            if (Material.Render.DoubleSided)
+            if (m.Render.DoubleSided)
                 return; //TODO: Fix depth prepass for double-sided
 			if (lastmc != mc)
 			{
 				if (mc != null)
 				{
-					mc.Anims.TryGetValue(Material.Name, out ma);
+					mc.Anims.TryGetValue(m.Name, out ma);
 					lastmc = mc;
 				}
 				else
 					ma = null;
 			}
-			Material.Render.MaterialAnim = ma;
-			Material.Render.World = world;
-			Material.Render.ApplyDepthPrepass(rstate);
+			m.Render.MaterialAnim = ma;
+			m.Render.World = world;
+			m.Render.ApplyDepthPrepass(rstate);
 			data.VertexBuffer.Draw(PrimitiveTypes.TriangleList, startVertex + StartVertex, TriangleStart, primitiveCount);
 		}
     }

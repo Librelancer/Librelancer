@@ -38,7 +38,7 @@ namespace LibreLancer.Utf
 				return new CmpFile(root, resources);
 			if (multilevel)
 				return new ModelFile(root, resources);
-			throw new Exception("Not a drawable file");
+            return null;
 		}
 		public static IDrawable LoadDrawable(string file, ILibFile resources)
 		{
@@ -46,6 +46,8 @@ namespace LibreLancer.Utf
 			var dr = GetDrawable(root, resources);
 			if (dr is ModelFile) ((ModelFile)dr).Path = file;
 			if (dr is CmpFile) ((CmpFile)dr).Path = file;
+            if (dr == null)
+                FLLog.Error("Utf", file + " is not valid IDrawable");
 			return dr;
 		}
 		public static void LoadResourceNode(IntermediateNode root, ILibFile library, out MatFile materials, out TxmFile textures, out Vms.VmsFile vms)
