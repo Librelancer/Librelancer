@@ -156,20 +156,21 @@ namespace LancerEdit
             var cmp = (CmpFile)drawable;
             if (wireFrame || viewMode == M_FLAT)
             {
-                foreach (var part in cmp.Parts)
+                for (int i = 0; i < cmp.Parts.Count; i++)
                 {
+                    var part = cmp.Parts[i];
                     Material mat;
-                    if (!partMaterials.TryGetValue(part.Key, out mat))
+                    if (!partMaterials.TryGetValue(i, out mat))
                     {
                         mat = new Material(res);
                         mat.DtName = ResourceManager.WhiteTextureName;
                         mat.Dc = initialCmpColors[jColors++];
                         if (jColors >= initialCmpColors.Length) jColors = 0;
-                        partMaterials.Add(part.Key, mat);
+                        partMaterials.Add(i, mat);
                     }
                     mat.Update(cam);
-                    part.Value.DrawBufferLevel(
-                        GetLevel(part.Value.Model.Switch2, part.Value.Model.Levels.Length - 1),
+                    part.DrawBufferLevel(
+                        GetLevel(part.Model.Switch2, part.Model.Levels.Length - 1),
                         buffer, matrix, ref Lighting.Empty, mat
                     );
                 }
@@ -179,16 +180,16 @@ namespace LancerEdit
                 if (viewMode == M_LIT)
                 {
                     foreach(var part in cmp.Parts)
-                        part.Value.DrawBufferLevel(
-                            GetLevel(part.Value.Model.Switch2, part.Value.Model.Levels.Length - 1),
+                        part.DrawBufferLevel(
+                            GetLevel(part.Model.Switch2, part.Model.Levels.Length - 1),
                             buffer, matrix, ref lighting
                         );
                 }
                 else
                 {
                     foreach (var part in cmp.Parts)
-                        part.Value.DrawBufferLevel(
-                            GetLevel(part.Value.Model.Switch2, part.Value.Model.Levels.Length - 1),
+                        part.DrawBufferLevel(
+                            GetLevel(part.Model.Switch2, part.Model.Levels.Length - 1),
                             buffer, matrix, ref Lighting.Empty
                         );
                 }
@@ -197,8 +198,8 @@ namespace LancerEdit
             {
                 normalsDebugMaterial.Update(cam);
                 foreach (var part in cmp.Parts)
-                    part.Value.DrawBufferLevel(
-                        GetLevel(part.Value.Model.Switch2, part.Value.Model.Levels.Length - 1),
+                    part.DrawBufferLevel(
+                        GetLevel(part.Model.Switch2, part.Model.Levels.Length - 1),
                         buffer, matrix, ref Lighting.Empty, normalsDebugMaterial
                     );
             }

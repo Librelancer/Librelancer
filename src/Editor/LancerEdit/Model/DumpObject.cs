@@ -165,13 +165,13 @@ namespace LancerEdit
                         List<PartInfo> infos = new List<PartInfo>();
                         int cOffset = 1;
                         foreach(var part in ((CmpFile)model).Parts) {
-                            var vms = part.Value.Model.Levels[0].Mesh;
+                            var vms = part.Model.Levels[0].Mesh;
                             var info = new PartInfo() { 
-                                Ref = part.Value.Model.Levels[0], 
+                                Ref = part.Model.Levels[0], 
                                 Offset = cOffset,
-                                Name = GetPath(part.Value.Model.Path,cOffset)
+                                Name = GetPath(part.Model.Path,cOffset)
                             };
-                            var mat = part.Value.Construct == null ? Matrix4.Identity : part.Value.Construct.Transform;
+                            var mat = part.Construct == null ? Matrix4.Identity : part.Construct.Transform;
                             WriteVertices(ref status, ref info.Normals, ref info.Texcoords, writer, vms, mat);
                             infos.Add(info);
                             cOffset += vms.VertexCount;

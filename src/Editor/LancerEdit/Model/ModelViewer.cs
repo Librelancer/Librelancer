@@ -85,16 +85,16 @@ namespace LancerEdit
                 var cmp = (CmpFile)drawable;
                 foreach (var p in cmp.Parts)
                 {
-                    foreach (var hp in p.Value.Model.Hardpoints)
+                    foreach (var hp in p.Model.Hardpoints)
                     {
-                        gizmos.Add(new HardpointGizmo(hp, p.Value.Construct));
+                        gizmos.Add(new HardpointGizmo(hp, p.Construct));
                     }
                 }
                 if (cmp.Animation != null)
                     animator = new AnimationComponent(cmp.Constructs, cmp.Animation);
                 foreach (var p in cmp.Parts)
                 {
-                    if (p.Value.Construct == null) rootModel = p.Value.Model;
+                    if (p.Construct == null) rootModel = p.Model;
                 }
                 var q = new Queue<AbstractConstruct>();
                 foreach (var c in cmp.Constructs)
@@ -122,10 +122,10 @@ namespace LancerEdit
                 int maxLevels = 0;
                 foreach (var p in cmp.Parts)
                 {
-                    maxLevels = Math.Max(maxLevels, p.Value.Model.Levels.Length - 1);
-                    if (p.Value.Model.Switch2 != null)
-                        for (int i = 0; i < p.Value.Model.Switch2.Length - 1; i++)
-                            maxDistance = Math.Max(maxDistance, p.Value.Model.Switch2[i]);
+                    maxLevels = Math.Max(maxLevels, p.Model.Levels.Length - 1);
+                    if (p.Model.Switch2 != null)
+                        for (int i = 0; i < p.Model.Switch2.Length - 1; i++)
+                            maxDistance = Math.Max(maxDistance, p.Model.Switch2[i]);
                 }
                 levels = new string[maxLevels + 1];
                 for (int i = 0; i <= maxLevels; i++)
@@ -157,8 +157,8 @@ namespace LancerEdit
         {
             var node = new ConstructNode() { Con = con };
             foreach (var p in c.Parts)
-                if (p.Value.Construct == con)
-                    node.Model = p.Value.Model;
+                if (p.Construct == con)
+                    node.Model = p.Model;
             return node;
         }
         bool PlaceNode(List<ConstructNode> n, AbstractConstruct con)

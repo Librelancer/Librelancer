@@ -27,7 +27,7 @@ namespace LancerEdit
 			if (drawable is CmpFile)
 			{
 				var cmp = (CmpFile)drawable;
-				foreach (var part in cmp.Parts) DetectResourcesModel(part.Value.Model, name + ", " + part.Value.Model.Path, res, missing, matrefs, texrefs);
+				foreach (var part in cmp.Parts) DetectResourcesModel(part.Model, name + ", " + part.Model.Path, res, missing, matrefs, texrefs);
 			}
 			if (drawable is ModelFile)
 			{
