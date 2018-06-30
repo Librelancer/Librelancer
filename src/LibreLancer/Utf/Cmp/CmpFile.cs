@@ -58,9 +58,8 @@ namespace LibreLancer.Utf.Cmp
 
             Models = new Dictionary<string, ModelFile>();
             Constructs = new ConstructCollection();
-            Parts = new List<Part>(); 
-            var _parts = new Dictionary<int, Part>();
-
+            Parts = new List<Part>();
+            List<string> modelNames = new List<string>(); 
 			foreach (Node node in rootnode)
             {
                 switch (node.Name.ToLowerInvariant())
@@ -89,7 +88,6 @@ namespace LibreLancer.Utf.Cmp
                         break;
                     case "cmpnd":
                         IntermediateNode cmpndNode = node as IntermediateNode;
-						int maxIndices = int.MaxValue;
                         foreach (Node SubNode in cmpndNode)
                         {
 							if (SubNode is LeafNode) continue;
@@ -104,7 +102,6 @@ namespace LibreLancer.Utf.Cmp
                             )
                             {
                                 string objectName = string.Empty, fileName = string.Empty;
-                                int index = -1;
 
                                 foreach (LeafNode partNode in cmpndSubNode)
                                 {
@@ -117,21 +114,13 @@ namespace LibreLancer.Utf.Cmp
                                             fileName = partNode.StringData;
                                             break;
 										case "index":
-											if (partNode.Int32Data != null)
-												index = partNode.Int32Data.Value;
-											else
-												index = partNode.Int32ArrayData [0];
                                             break;
-                                        default: throw new Exception("Invalid node in " + cmpndSubNode.Name + ": " + partNode.Name);
+                                        default: 
+                                            FLLog.Error("Cmp","Invalid node in " + cmpndSubNode.Name + ": " + partNode.Name);
+                                            break;
                                     }
                                 }
-								if (_parts.ContainsKey(index))
-								{
-									FLLog.Error("Cmp", "Duplicate index");
-									_parts.Add(maxIndices--, new Part(objectName, fileName, Models, Constructs));
-								}
-								else
-                                	_parts.Add(index, new Part(objectName, fileName, Models, Constructs));
+								Parts.Add(new Part(objectName, fileName, Models, Constructs));
                             }
                             else throw new Exception("Invalid node in " + cmpndNode.Name + ": " + cmpndSubNode.Name);
                         }
@@ -145,23 +134,18 @@ namespace LibreLancer.Utf.Cmp
                             ModelFile m = new ModelFile(node as IntermediateNode, this);
 							m.Path = node.Name;
                             Models.Add(node.Name, m);
+                            modelNames.Add(node.Name);
                         }
                         else FLLog.Error("Cmp", Path ?? "Utf" + ": Invalid Node in cmp root: " + node.Name);
                         break;
                 }
             }
             //FL handles cmpnd nodes that point to non-existant models: fix up here
-            List<int> broken = new List<int>();
-            foreach(var p in _parts) {
-                if (p.Value.IsBroken())
-                {
-                    FLLog.Warning("Cmp", "Missing node: " + p.Value.FileName);
-                    broken.Add(p.Key);
-                }
+            List<Part> broken = new List<Part>();
+            for (int i = 0; i < Parts.Count; i++) {
+                if (Parts[i].IsBroken()) broken.Add(Parts[i]);
             }
-            foreach (var b in broken) _parts.Remove(b);
-            foreach (var p in _parts)
-                Parts.Add(p.Value);
+            foreach (var b in broken) Parts.Remove(b);
         }
 
 		public void Initialize(ResourceManager cache)

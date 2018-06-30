@@ -41,6 +41,7 @@ namespace LancerEdit
             "None"
         };
         bool doWireframe = false;
+        bool isStarsphere = false;
         const int M_TEXTURED = 0;
         const int M_LIT = 1;
         const int M_FLAT = 2;
@@ -257,6 +258,8 @@ namespace LancerEdit
             ImGui.SameLine();
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Background");
+            ImGui.SameLine();
+            ImGui.Checkbox("Starsphere", ref isStarsphere);
             ImGui.SameLine();
             ImGui.Checkbox("Wireframe", ref doWireframe);
             ImGui.SameLine();

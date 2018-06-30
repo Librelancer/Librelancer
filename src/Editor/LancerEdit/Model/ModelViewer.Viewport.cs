@@ -74,7 +74,12 @@ namespace LancerEdit
         {
             //Draw Model
             var cam = new LookAtCamera();
-            cam.Update(renderWidth, renderHeight, new Vector3(modelViewport.Zoom, 0, 0), Vector3.Zero);
+            Matrix4 rot = Matrix4.Identity;
+
+            if(isStarsphere) //This is really bad
+                rot = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+           
+            cam.Update(renderWidth, renderHeight, new Vector3(modelViewport.Zoom, 0, 0), Vector3.Zero, rot);
             drawable.Update(cam, TimeSpan.Zero, TimeSpan.FromSeconds(_window.TotalTime));
             if (viewMode != M_NONE)
             {
@@ -121,6 +126,11 @@ namespace LancerEdit
         void DrawSimple(ICamera cam, bool wireFrame)
         {
             Material mat = null;
+            var matrix = Matrix4.Identity;
+            if (isStarsphere)
+                matrix = Matrix4.CreateTranslation(cam.Position);
+            else
+                matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
             if (wireFrame || viewMode == M_FLAT)
             {
                 mat = wireframeMaterial3db;
@@ -131,7 +141,7 @@ namespace LancerEdit
                 mat = normalsDebugMaterial;
                 mat.Update(cam);
             }
-            var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+                       
             ModelFile mdl = drawable as ModelFile;
             if (viewMode == M_LIT)
             {
@@ -153,6 +163,8 @@ namespace LancerEdit
         void DrawCmp(ICamera cam, bool wireFrame)
         {
             var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+            if (isStarsphere)
+                matrix = Matrix4.CreateTranslation(cam.Position);
             var cmp = (CmpFile)drawable;
             if (wireFrame || viewMode == M_FLAT)
             {
