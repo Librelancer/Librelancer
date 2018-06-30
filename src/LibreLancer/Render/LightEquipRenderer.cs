@@ -52,6 +52,8 @@ namespace LibreLancer
                 shinetex = (Texture2D)sys.ResourceManager.FindTexture(shineshape.Texture);
                 frameStart = false;
             }
+            if (bulbtex == null || shinetex == null)
+                return;
             sys.Billboards.Draw(
                 shinetex,
                 pos,

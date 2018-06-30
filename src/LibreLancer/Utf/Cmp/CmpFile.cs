@@ -43,7 +43,7 @@ namespace LibreLancer.Utf.Cmp
         public TxmFile TextureLibrary { get; private set; }
 		public MaterialAnimCollection MaterialAnim { get; private set; }
 
-		public Dictionary<int, Part> Parts { get; private set; }
+		public List<Part> Parts { get; private set; }
         public ConstructCollection Constructs { get; private set; }
         public Dictionary<string, ModelFile> Models { get; private set; }
 
@@ -58,7 +58,8 @@ namespace LibreLancer.Utf.Cmp
 
             Models = new Dictionary<string, ModelFile>();
             Constructs = new ConstructCollection();
-            Parts = new Dictionary<int, Part>();
+            Parts = new List<Part>(); 
+            var _parts = new Dictionary<int, Part>();
 
 			foreach (Node node in rootnode)
             {
@@ -124,13 +125,13 @@ namespace LibreLancer.Utf.Cmp
                                         default: throw new Exception("Invalid node in " + cmpndSubNode.Name + ": " + partNode.Name);
                                     }
                                 }
-								if (Parts.ContainsKey(index))
+								if (_parts.ContainsKey(index))
 								{
 									FLLog.Error("Cmp", "Duplicate index");
-									Parts.Add(maxIndices--, new Part(objectName, fileName, Models, Constructs));
+									_parts.Add(maxIndices--, new Part(objectName, fileName, Models, Constructs));
 								}
 								else
-                                	Parts.Add(index, new Part(objectName, fileName, Models, Constructs));
+                                	_parts.Add(index, new Part(objectName, fileName, Models, Constructs));
                             }
                             else throw new Exception("Invalid node in " + cmpndNode.Name + ": " + cmpndSubNode.Name);
                         }
@@ -149,11 +150,23 @@ namespace LibreLancer.Utf.Cmp
                         break;
                 }
             }
+            //FL handles cmpnd nodes that point to non-existant models: fix up here
+            List<int> broken = new List<int>();
+            foreach(var p in _parts) {
+                if (p.Value.IsBroken())
+                {
+                    FLLog.Warning("Cmp", "Missing node: " + p.Value.FileName);
+                    broken.Add(p.Key);
+                }
+            }
+            foreach (var b in broken) _parts.Remove(b);
+            foreach (var p in _parts)
+                Parts.Add(p.Value);
         }
 
 		public void Initialize(ResourceManager cache)
         {
-            foreach (var part in Parts.Values) part.Initialize(cache);
+            foreach (var part in Parts) part.Initialize(cache);
         }
 
         public void Resized()
@@ -165,13 +178,13 @@ namespace LibreLancer.Utf.Cmp
 		{
 			if (MaterialAnim != null)
 				MaterialAnim.Update((float)totalTime.TotalSeconds);
-            foreach (var part in Parts.Values) part.Update(camera, delta, totalTime);
+            foreach (var part in Parts) part.Update(camera, delta, totalTime);
         }
 
 		public float GetRadius()
 		{
 			float max = float.MinValue;
-			foreach (var part in Parts.Values)
+			foreach (var part in Parts)
 			{
 				var r = part.Model.GetRadius();
 				float d = 0;

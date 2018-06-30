@@ -166,7 +166,9 @@ namespace LibreLancer.Utf.Cmp
 					case "materialanim":
 						MaterialAnim = new MaterialAnimCollection((IntermediateNode)node);
 						break;
-                    default: throw new Exception("Invalid node in 3db root: " + node.Name);
+                    default:
+                        FLLog.Error("3db", (Path ?? "") + ": Invalid node: " + node.Name);
+                        break;
                 }
             }
             

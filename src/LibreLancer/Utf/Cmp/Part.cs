@@ -60,6 +60,14 @@ namespace LibreLancer.Utf.Cmp
                 return model;
             }
         }
+        public string FileName
+        {
+            get { return fileName; }
+        }
+        public bool IsBroken()
+        {
+            return !models.ContainsKey(fileName);
+        }
 
         public Part(string objectName, string fileName, Dictionary<string, ModelFile> models, ConstructCollection constructs)
         {

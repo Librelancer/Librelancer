@@ -255,7 +255,7 @@ namespace LibreLancer
 		}
 		public IEnumerable<string> ListSystems()
 		{
-			foreach (var sys in fldata.Universe.Systems) yield return sys.Nickname;
+			foreach (var sys in fldata.Universe.Systems.Where((x) => !x.MultiUniverse)) yield return sys.Nickname;
 		}
 		public IEnumerable<string> ListBases()
 		{
@@ -287,22 +287,22 @@ namespace LibreLancer
 			}
 
 			if (legacy.BackgroundComplexStarsPath != null) {
-				try {
+				//try {
 					sys.StarsComplex = resource.GetDrawable (legacy.BackgroundComplexStarsPath);
-				} catch (Exception) {
-					sys.StarsComplex = null;
-					FLLog.Error ("System", "Failed to load starsphere " + legacy.BackgroundComplexStarsPath);
-				}
+				//} catch (Exception) {
+					//sys.StarsComplex = null;
+					//FLLog.Error ("System", "Failed to load starsphere " + legacy.BackgroundComplexStarsPath);
+				//}
 
 			}
 
 			if (legacy.BackgroundNebulaePath != null) {
-				try {
+				//try {
 					sys.StarsNebula = resource.GetDrawable (legacy.BackgroundNebulaePath);
-				} catch (Exception) {
-					sys.StarsNebula = null;
-					FLLog.Error ("System", "Failed to load starsphere " + legacy.BackgroundNebulaePath);
-				}
+				//} catch (Exception) {
+					//sys.StarsNebula = null;
+					//FLLog.Error ("System", "Failed to load starsphere " + legacy.BackgroundNebulaePath);
+				//}
 			}
 
 			if (legacy.LightSources != null) {

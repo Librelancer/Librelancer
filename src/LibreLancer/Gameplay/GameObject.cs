@@ -128,7 +128,7 @@ namespace LibreLancer
 				var cmp = dr as CmpFile;
 				CmpParts = new List<Part>();
 				CmpConstructs = cmp.Constructs.CloneAll();
-				foreach (var part in cmp.Parts.Values)
+				foreach (var part in cmp.Parts)
 				{
 					CmpParts.Add(part.Clone(CmpConstructs));
 				}

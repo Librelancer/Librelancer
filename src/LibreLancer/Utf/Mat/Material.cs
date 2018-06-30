@@ -252,7 +252,6 @@ namespace LibreLancer.Utf.Mat
 					default:
 						throw new Exception("Invalid material type: " + type);
 				}
-			FLLog.Debug("Material", "Created " + type);
 			return mat;
 		}
 
@@ -352,7 +351,7 @@ namespace LibreLancer.Utf.Mat
 					NtFlags = n.Int32Data.Value;
 					break;
 				default:
-                    FLLog.Warning("Material", "Unknown property " + n.Name.ToLowerInvariant());
+                    FLLog.Warning("Material", Name + ": Unknown property " + n.Name.ToLowerInvariant());
                     break;
 			}
 

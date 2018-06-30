@@ -133,7 +133,7 @@ namespace LibreLancer
 			{
 				//Check if -something- renders
 				bool doCull = true;
-				var partCol = (IEnumerable<Part>)CmpParts ?? Cmp.Parts.Values;
+				var partCol = (IEnumerable<Part>)CmpParts ?? Cmp.Parts;
 				foreach (Part p in partCol)
 				{
 					var model = p.Model;
@@ -187,7 +187,7 @@ namespace LibreLancer
 				if (Cmp != null) Cmp.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
 				else _parentCmp.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
 				//Check if -something- renders
-				var partCol = (IEnumerable<Part>)CmpParts ?? Cmp.Parts.Values;
+				var partCol = (IEnumerable<Part>)CmpParts ?? Cmp.Parts;
 				foreach (Part p in partCol)
 				{
 					var model = p.Model;
@@ -250,7 +250,7 @@ namespace LibreLancer
 			else if (Cmp != null || CmpParts != null)
 			{
 				//Check if -something- renders
-				var partCol = (IEnumerable<Part>)CmpParts ?? Cmp.Parts.Values;
+				var partCol = (IEnumerable<Part>)CmpParts ?? Cmp.Parts;
 				bool cmpParts = CmpParts != null;
 				foreach (Part p in partCol)
 				{
@@ -311,7 +311,7 @@ namespace LibreLancer
 				}
 			} else if (Cmp != null) {
 				Cmp.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
-				foreach (Part p in Cmp.Parts.Values)
+				foreach (Part p in Cmp.Parts)
 				{
 					var model = p.Model;
 					Matrix4 w = World;

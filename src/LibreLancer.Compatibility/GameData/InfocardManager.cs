@@ -60,22 +60,34 @@ namespace LibreLancer.Compatibility.GameData
 			}
 		}
 
+        List<int> missingStrings = new List<int>();
 		public string GetStringResource(int id)
 		{
+            if (id == 0) return "";
 			if (strings.ContainsKey (id)) {
 				return strings [id];
 			} else {
-				FLLog.Warning ("Infocards","Not Found: " + id);
+                if (!missingStrings.Contains(id))
+                {
+                    FLLog.Warning("Strings", "Not Found: " + id);
+                    missingStrings.Add(id);
+                }
 				return "";
 			}
 		}
 
+        List<int> missingXml = new List<int>();
 		public string GetXmlResource(int id)
 		{
+            if (id == 0) return null;
 			if (infocards.ContainsKey (id)) {
 				return infocards [id];
 			} else {
-				FLLog.Warning ("Infocards","Not Found: " + id);
+                if (!missingXml.Contains(id))
+                {
+                    FLLog.Warning("Infocards", "Not Found: " + id);
+                    missingXml.Add(id);
+                }
 				return null;
 			}
 		}

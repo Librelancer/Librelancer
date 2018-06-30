@@ -27,7 +27,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 {
 	public class StarSystem : UniverseElement
 	{
-
+        public bool MultiUniverse { get; private set; }
 		public Vector2? Pos { get; private set; }
 		public string MsgIdPrefix { get; private set; }
 		public int? Visit { get; private set; }
@@ -133,6 +133,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 
 			if (file == null) { //TODO: MultiUniverse
 				FLLog.Warning("Ini", "Unimplemented: Possible MultiUniverse system " + Nickname);
+                MultiUniverse = true;
 				return;
 			}
 			

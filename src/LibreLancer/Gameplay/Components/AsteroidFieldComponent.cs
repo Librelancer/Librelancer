@@ -93,7 +93,7 @@ namespace LibreLancer
         }
         public override void Unregister(PhysicsWorld physics)
         {
-            shape.Dispose();
+            if(shape != null) shape.Dispose();
             phys = null;
         }
 		const float COLLIDE_DISTANCE = 600;

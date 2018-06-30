@@ -79,6 +79,10 @@ namespace LibreLancer
 		int lastIndex = 0;
 		public void Draw(CommandBuffer buffer, ICamera camera, Texture texture, Color4 color, Matrix4 world, bool inside)
 		{
+            if(texture == null) {
+                lastIndex = currentIndex;
+                return;
+            }
 			var z = RenderHelpers.GetZ(world, camera.Position, Vector3.Zero);
 			buffer.AddCommand(
 				shader,
