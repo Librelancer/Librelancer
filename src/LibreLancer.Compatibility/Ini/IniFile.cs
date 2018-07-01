@@ -32,19 +32,19 @@ namespace LibreLancer.Ini
 		public const string FileType = "BINI", IniFileType = "INI";
 		public const int FileVersion = 1;
 
-		protected List<Section> ParseFile(string path, bool allowmaps = false)
+		protected IEnumerable<Section> ParseFile(string path, bool allowmaps = false)
 		{
 			if (path == null) throw new ArgumentNullException("path");
 
-			List<Section> sections = new List<Section>();
+			//List<Section> sections = new List<Section>();
 			if (!path.ToLowerInvariant().EndsWith(".ini"))
 				path = path + ".ini";
-			using (Stream stream = VFS.Open(path))
+            using (Stream stream = VFS.Open(path))
 			{
 				byte[] buffer = new byte[4];
 				stream.Read(buffer, 0, 4);
 				string fileType = Encoding.ASCII.GetString(buffer);
-
+                Section currentSection = null;
 				if (fileType == FileType) // Binary Ini
 				{
 					BinaryReader reader = new BinaryReader(stream);
@@ -63,14 +63,13 @@ namespace LibreLancer.Ini
 					string stringBlock = Encoding.ASCII.GetString(buffer);
 
 					reader.BaseStream.Seek(sectionBlockOffset, SeekOrigin.Begin);
-					while (reader.BaseStream.Position < stringBlockOffset) sections.Add(new Section(reader, stringBlock));
+                    while (reader.BaseStream.Position < stringBlockOffset) yield return new Section(reader, stringBlock);
 				}
 				else // Text Ini
 				{
 					stream.Seek(0, SeekOrigin.Begin);
 					StreamReader reader = new StreamReader(stream);
 
-					int currentSection = -2;
 					int currentLine = 0;
 					bool inSection = false;
 					while (!reader.EndOfStream)
@@ -78,150 +77,82 @@ namespace LibreLancer.Ini
 						string line = reader.ReadLine().Trim();
 
 						if (string.IsNullOrWhiteSpace(line) 
-							|| line.StartsWith(";", StringComparison.OrdinalIgnoreCase)
-							|| line.StartsWith("@", StringComparison.OrdinalIgnoreCase)) 
+                            || line[0] == ';'
+                            || line[0] == '@') 
 							continue;
 
-						if (line.StartsWith("[", StringComparison.OrdinalIgnoreCase))
+						if (line[0] == '[')
 						{
-							if (line.Substring(1).Trim()[0] == ';')
+                            if (currentSection != null) yield return currentSection;
+                            int indexComment = line.IndexOf(';');
+                            int indexClose = line.IndexOf(']');
+                            if (indexComment != -1 && indexComment < indexClose)
 							{
 								inSection = false;
-								currentSection = -1;
+                                currentSection = null;
 								continue;
 							}
-							if (!line.Contains("]")) throw new FileContentException(path, IniFileType, "Invalid section header: " + line);
-							string name = line.Substring(1);
-							sections.Add(new Section(name.Remove(name.IndexOf(']')).Trim()));
-							currentSection = sections.Count - 1;
+							if (indexClose == -1) throw new FileContentException(path, IniFileType, "Invalid section header: " + line);
+                            string name = line.Substring(1, indexClose - 1).Trim();
+                            currentSection = new Section(name);
 							inSection = true;
 							continue;
 						}
 						else
 						{
 							if (!inSection) continue;
-							if (line.Contains(";")) line = line.Remove(line.IndexOf(";", StringComparison.OrdinalIgnoreCase)).TrimEnd();
+                            int indexComment = line.IndexOf(';');
+                            if (indexComment != -1) line = line.Remove(indexComment);
 							if (!char.IsLetterOrDigit (line [0]) && line [0] != '_') {
 								FLLog.Warning ("Ini", "Invalid line in file: " + path + " at line " + currentLine + '"' + line + '"');
 							}
 							else if (line.Contains("="))
 							{
-								
 								string[] parts = line.Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
 								if (parts.Length == 2) {
 									string val = parts [1].TrimStart ();
-									string[] valParts;
-									if (val.Contains (","))
-										valParts = val.Split (new char[] { ',' });
-									else
-										valParts = new string[] { val };
+                                    string[] valParts = val.Split(',');
 
-									List<IValue> values = new List<IValue> ();
+                                    List<IValue> values = new List<IValue>(valParts.Length);
 									foreach (string part in valParts) {
 										string s = part.Trim ();
 										bool tempBool;
-										int tempInt;
 										float tempFloat;
-
-										if (bool.TryParse(s, out tempBool))
-											values.Add(new BooleanValue(tempBool));
-										else if (int.TryParse(s, out tempInt))
-											values.Add(new Int32Value(tempInt));
+                                        long tempLong;
+                                        if (bool.TryParse(s, out tempBool))
+                                            values.Add(new BooleanValue(tempBool));
+                                        else if (long.TryParse(s, out tempLong))
+                                        {
+                                            if (tempLong >= int.MinValue && tempLong <= int.MaxValue)
+                                                values.Add(new Int32Value((int)tempLong));
+                                            else
+                                                values.Add(new SingleValue(tempLong, tempLong));
+                                        }
 										else if (float.TryParse(s, out tempFloat))
 										{
-											long templong;
-											bool a = long.TryParse(s, out templong);
-											values.Add(new SingleValue(tempFloat, a ? (long?)templong : null));
+                                            values.Add(new SingleValue(tempFloat, null));
 										}
 										else
 											values.Add (new StringValue (s));
 									}
 
-									sections [currentSection].Add (new Entry (parts [0].TrimEnd (), values));
+									currentSection.Add (new Entry (parts [0].TrimEnd (), values));
 								} else if (parts.Length == 3 && allowmaps) {
 									string k = parts [1].Trim ();
 									string v = parts [2].Trim ();
-									sections[currentSection].Add(new Entry(parts[0].Trim(), new IValue[] { new StringKeyValue(k,v) }));
+									currentSection.Add(new Entry(parts[0].Trim(), new IValue[] { new StringKeyValue(k,v) }));
 								} else if (parts.Length == 1) {
-									sections [currentSection].Add (new Entry (parts [0].Trim (), new List<IValue> ()));
+									currentSection.Add (new Entry (parts [0].Trim (), new List<IValue> ()));
 								}
 								else FLLog.Error("INI", "Invalid entry line: " + line + " in " + path);
 							}
-							else sections[currentSection].Add(new Entry(line, new List<IValue>(0)));
+							else currentSection.Add(new Entry(line, new List<IValue>(0)));
 						}
 						currentLine++;
 					}
 				}
+                if (currentSection != null) yield return currentSection;
 			}
-			return sections;
 		}
-
-		/*public Section this[int index]
-        {
-            get { return sections[index]; }
-        }
-
-        public Section this[string name]
-        {
-            get
-            {
-                IEnumerable<Section> candidates = from Section s in sections where s.Name.Equals(name, StringComparison.OrdinalIgnoreCase) select s;
-                int count = candidates.Count<Section>();
-                if (count == 0) return null;
-                else return candidates.First<Section>();
-            }
-        }
-
-        public void Add(Section item)
-        {
-            throw new NotSupportedException();
-        }
-
-        public void Clear()
-        {
-            throw new NotSupportedException();
-        }
-
-        public bool Contains(Section item)
-        {
-            return sections.Contains(item);
-        }
-
-        public void CopyTo(Section[] array, int arrayIndex)
-        {
-            sections.CopyTo(array, arrayIndex);
-        }
-
-        public int Count
-        {
-            get { return sections.Count; }
-        }
-
-        public bool IsReadOnly
-        {
-            get { return true; }
-        }
-
-        public bool Remove(Section item)
-        {
-            throw new NotSupportedException();
-        }
-
-        public IEnumerator<Section> GetEnumerator()
-        {
-            return sections.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return sections.GetEnumerator();
-        }
-
-        public override string ToString()
-        {
-            string result = string.Empty;
-            foreach (Section s in sections) result += s + "\r\n";
-            return result;
-        }*/
 	}
 }

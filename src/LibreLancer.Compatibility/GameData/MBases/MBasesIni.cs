@@ -25,8 +25,8 @@ namespace LibreLancer.Compatibility.GameData
 		int i;
 		public MBasesIni()
 		{
-			var sections = ParseFile("DATA\\MISSIONS\\mbases.ini");
-			for (i = 0; i < sections.Count; i++) {
+            var sections = ParseFile("DATA\\MISSIONS\\mbases.ini").ToArray();
+			for (i = 0; i < sections.Length; i++) {
 				if (sections[i].Name.ToLowerInvariant() == "mbase")
 				{
 					Bases.Add(new MBase(EnumerateSections(sections)));
@@ -34,11 +34,11 @@ namespace LibreLancer.Compatibility.GameData
 				}
 			}
 		}
-		IEnumerable<Section> EnumerateSections(List<Section> sections)
+		IEnumerable<Section> EnumerateSections(Section[] sections)
 		{
 			yield return sections[i];
 			i++;
-			while (i < sections.Count && !sections[i].Name.Equals("mbase", StringComparison.OrdinalIgnoreCase))
+			while (i < sections.Length && !sections[i].Name.Equals("mbase", StringComparison.OrdinalIgnoreCase))
 			{
 				yield return sections[i];
 				i++;
