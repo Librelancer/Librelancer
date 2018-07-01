@@ -60,10 +60,11 @@ namespace LibreLancer.Utf.Vms
         public VertexPositionNormalTextureTwo[] verticesVertexPositionNormalTextureTwo { get; private set; }
         public VertexPositionNormalDiffuseTextureTwo[] verticesVertexPositionNormalDiffuseTextureTwo { get; private set; }
 
+        VertexBuffer _vertexBuffer;
         /// <summary>
         /// A list of Vertices in the mesh data
         /// </summary>
-        public VertexBuffer VertexBuffer { get; private set; }
+        public VertexBuffer VertexBuffer { get { return _vertexBuffer; } }
 		string vmsname;
 
 		public VMeshData(byte[] data, ILibFile materialLibrary, string name)
@@ -196,50 +197,43 @@ namespace LibreLancer.Utf.Vms
 				return;
 			}
             Diffuse = null;
-			GenerateVertexBuffer ();
+            GenerateVertexBuffer(cache);
 			ready = true;
 		}
-		void GenerateVertexBuffer()
+        int indexOffset = 0;
+        int vertexOffset = 0;
+        void GenerateVertexBuffer(ResourceManager cache)
         {
           
             switch (FlexibleVertexFormat)
             {
                 case D3DFVF.XYZ: //(D3DFVF)0x0002:
-                    VertexBuffer = new VertexBuffer(typeof(VertexPosition), VertexCount);
-                    VertexBuffer.SetData<VertexPosition>(verticesVertexPosition);
+                    cache.AllocateVertices(verticesVertexPosition, Indices, out indexOffset, out vertexOffset, out _vertexBuffer);
                     break;
                 case D3DFVF.XYZ | D3DFVF.NORMAL: //(D3DFVF)0x0012:
-                    VertexBuffer = new VertexBuffer(typeof(VertexPositionNormal), VertexCount);
-                    VertexBuffer.SetData<VertexPositionNormal>(verticesVertexPositionNormal);
+                    cache.AllocateVertices(verticesVertexPositionNormal, Indices, out indexOffset, out vertexOffset, out _vertexBuffer);
                     break;
                 case D3DFVF.XYZ | D3DFVF.TEX1: //(D3DFVF)0x0102:
-                    VertexBuffer = new VertexBuffer(typeof(VertexPositionTexture), VertexCount);
-                    VertexBuffer.SetData<VertexPositionTexture>(verticesVertexPositionTexture);
+                    cache.AllocateVertices(verticesVertexPositionTexture, Indices, out indexOffset, out vertexOffset, out _vertexBuffer);
                     break;
                 case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX1: //(D3DFVF)0x0112:
-                    VertexBuffer = new VertexBuffer(typeof(VertexPositionNormalTexture), VertexCount);
-                    VertexBuffer.SetData<VertexPositionNormalTexture>(verticesVertexPositionNormalTexture);
+                    cache.AllocateVertices(verticesVertexPositionNormalTexture, Indices, out indexOffset, out vertexOffset, out _vertexBuffer);
                     break;
                 case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.DIFFUSE | D3DFVF.TEX1: //(D3DFVF)0x0152:
-                    VertexBuffer = new VertexBuffer(typeof(VertexPositionNormalColorTexture), VertexCount);
-                    VertexBuffer.SetData<VertexPositionNormalColorTexture>(verticesVertexPositionNormalColorTexture);
+                    cache.AllocateVertices(verticesVertexPositionNormalColorTexture, Indices, out indexOffset, out vertexOffset, out _vertexBuffer);
                     break;
                 case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX2: //(D3DFVF)0x0212:
-                    VertexBuffer = new VertexBuffer(typeof(VertexPositionNormalTextureTwo), VertexCount);
-                    VertexBuffer.SetData<VertexPositionNormalTextureTwo>(verticesVertexPositionNormalTextureTwo);
+                    cache.AllocateVertices(verticesVertexPositionNormalTextureTwo, Indices, out indexOffset, out vertexOffset, out _vertexBuffer);
                     break;
                 case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.DIFFUSE | D3DFVF.TEX2: //(D3DFVF)0x0252:
-                    VertexBuffer = new VertexBuffer(typeof(VertexPositionNormalDiffuseTextureTwo), VertexCount);
-                    VertexBuffer.SetData<VertexPositionNormalDiffuseTextureTwo>(verticesVertexPositionNormalDiffuseTextureTwo);
+                    cache.AllocateVertices(verticesVertexPositionNormalDiffuseTextureTwo, Indices, out indexOffset, out vertexOffset, out _vertexBuffer);
                     break;
                 /*case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX4: //(D3DFVF)0x0412:
                     VertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionNormalTextureTangentBinormal), VertexCount, BufferUsage.WriteOnly);
                     VertexBuffer.SetData<VertexPositionNormalTextureTangentBinormal>(verticesVertexPositionNormalTextureTangentBinormal);
                     break;*/
             }
-            ElementBuffer = new ElementBuffer(IndexCount);
-            ElementBuffer.SetData(Indices);
-            VertexBuffer.SetElementBuffer(ElementBuffer);
+
         }
 		public void CalculateNormals(VertexPositionNormalTexture[] array)
 		{
@@ -301,7 +295,7 @@ namespace LibreLancer.Utf.Vms
 			{
                 for (ushort i = startMesh; i < endMesh; i++)
                 {
-					Meshes [i].Draw (rstate, VertexBuffer, startVertex, world, light, mc);
+					Meshes [i].Draw (rstate, VertexBuffer, startVertex + vertexOffset, indexOffset, world, light, mc);
                 }
             }
         }
@@ -312,7 +306,7 @@ namespace LibreLancer.Utf.Vms
 			{
 				for (ushort i = startMesh; i < endMesh; i++)
 				{
-					Meshes[i].DrawBuffer(buff, this, startVertex, world, ref light, mc, overrideMat);
+					Meshes[i].DrawBuffer(buff, this, vertexOffset, startVertex, indexOffset, world, ref light, mc, overrideMat);
 				}
 			}
 		}
@@ -323,7 +317,7 @@ namespace LibreLancer.Utf.Vms
 			{
 				for (ushort i = startMesh; i < endMesh; i++)
 				{
-					Meshes[i].DepthPrepass(rstate, this, startVertex, world, mc);
+					Meshes[i].DepthPrepass(rstate, this, startVertex + vertexOffset, indexOffset, world, mc);
 				}
 			}
 		}

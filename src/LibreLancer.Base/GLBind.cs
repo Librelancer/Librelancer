@@ -31,7 +31,6 @@ namespace LibreLancer
 		public static void Trash()
 		{
 			programBound = 0;
-			bound_vbo = 0;
 			bound_vao = 0;
            
             active_unit = -1;
@@ -48,16 +47,8 @@ namespace LibreLancer
 			GL.BindTexture(target, texture);
         }
 
-		static uint bound_vbo = 0;
 		static uint bound_vao = 0;
 
-		public static void VertexBuffer(uint vbo)
-		{
-			if (bound_vbo != vbo) {
-				bound_vbo = vbo;
-				GL.BindBuffer (GL.GL_ARRAY_BUFFER, vbo);
-			}
-		}
 		public static void VertexArray(uint vao)
 		{
 			if (bound_vao != vao) {

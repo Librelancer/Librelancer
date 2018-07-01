@@ -410,6 +410,7 @@
     <Compile Include="Interface\ScriptedHud.cs" />
     <Compile Include="Render\FOVUtil.cs" />
     <Compile Include="Interface\Maneuver.cs" />
+    <Compile Include="VertexResource.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

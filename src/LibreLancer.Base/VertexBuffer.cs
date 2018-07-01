@@ -26,6 +26,7 @@ namespace LibreLancer
     public class VertexBuffer : IDisposable
     {
 		public static int TotalDrawcalls = 0;
+        public static int TotalBuffers = 0;
         public int VertexCount { get; private set; }
         uint VBO;
 		uint VAO;
@@ -48,6 +49,7 @@ namespace LibreLancer
 		}
 		public VertexBuffer(Type type, int length, bool isStream = false)
         {
+            TotalBuffers++;
             VBO = GL.GenBuffer();
 			var usageHint = isStream ? GL.GL_STREAM_DRAW : GL.GL_STATIC_DRAW;
             this.type = type;
@@ -62,7 +64,7 @@ namespace LibreLancer
             }
 			GL.GenVertexArrays (1, out VAO);
             GLBind.VertexArray(VAO);
-			GLBind.VertexBuffer(VBO);
+            GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
 			GL.BufferData (GL.GL_ARRAY_BUFFER, (IntPtr)(length * decl.Stride), IntPtr.Zero, usageHint);
 			decl.SetPointers ();
 			VertexCount = length;
@@ -75,22 +77,22 @@ namespace LibreLancer
             var usageHint = isStream ? GL.GL_STREAM_DRAW : GL.GL_STATIC_DRAW;
             GL.GenVertexArrays(1, out VAO);
             GLBind.VertexArray(VAO);
-            GLBind.VertexBuffer(VBO);
+            GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
             GL.BufferData(GL.GL_ARRAY_BUFFER, (IntPtr)(length * decl.Stride), IntPtr.Zero, usageHint);
             decl.SetPointers();
             VertexCount = length;
         }
 
-		int count = 0;
-		public void SetData<T>(T[] data, int? length = null) where T : struct
+		public void SetData<T>(T[] data, int? length = null, int? start = null) where T : struct
         {
             if (typeof(T) != type && typeof(T) != typeof(byte))
                 throw new Exception("Data must be of type " + type.FullName);
 			int len = length ?? data.Length;
-			GLBind.VertexBuffer (VBO);
+            int s = start ?? 0;
 			GLBind.VertexArray(VAO);
+            GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
 			var handle = GCHandle.Alloc (data, GCHandleType.Pinned);
-			GL.BufferSubData (GL.GL_ARRAY_BUFFER, IntPtr.Zero, (IntPtr)(len * decl.Stride), handle.AddrOfPinnedObject());
+			GL.BufferSubData (GL.GL_ARRAY_BUFFER, (IntPtr)(s * decl.Stride), (IntPtr)(len * decl.Stride), handle.AddrOfPinnedObject());
 			handle.Free ();
         }
 
@@ -98,7 +100,6 @@ namespace LibreLancer
 		{
 			RenderState.Instance.Apply ();
 			int indexElementCount = primitiveType.GetArrayLength (primitiveCount);
-			GLBind.VertexBuffer(VBO);
 			GLBind.VertexArray (VAO);
 			GL.DrawElementsBaseVertex (primitiveType.GLType (),
 				indexElementCount,
@@ -107,12 +108,16 @@ namespace LibreLancer
 				baseVertex);
 			TotalDrawcalls++;
 		}
+        internal void Bind()
+        {
+            GLBind.VertexArray(VAO);
+        }
 		public void Draw(PrimitiveTypes primitiveType, int primitiveCount)
 		{
 			RenderState.Instance.Apply ();
-			GLBind.VertexBuffer (VBO);
 			GLBind.VertexArray (VAO);
 			if (HasElements) {
+                GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, _elements.Handle);
 				int indexElementCount = primitiveType.GetArrayLength (primitiveCount);
 				GL.DrawElements (primitiveType.GLType (),
 					indexElementCount,
@@ -131,7 +136,6 @@ namespace LibreLancer
 		public void Draw(PrimitiveTypes primitiveType,int start, int primitiveCount)
 		{
 			RenderState.Instance.Apply();
-			GLBind.VertexBuffer(VBO);
 			GLBind.VertexArray(VAO);
 			if (HasElements)
 			{
@@ -154,26 +158,27 @@ namespace LibreLancer
 		}
         public void SetElementBuffer(ElementBuffer elems)
         {
-			GLBind.VertexBuffer(VBO);
 			GLBind.VertexArray (VAO);
-			GL.BindBuffer (GL.GL_ELEMENT_ARRAY_BUFFER, elems.Handle);
+            GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, elems.Handle);
+
 			HasElements = true;
 			_elements = elems;
+            elems.VertexBuffer = this;
         }
 		public void UnsetElementBuffer()
 		{
-			GLBind.VertexBuffer(VBO);
 			GLBind.VertexArray(VAO);
 			GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
 			HasElements = false;
 			_elements = null;
+            _elements.VertexBuffer = null;
 		}
         public void Dispose()
         {
+            TotalBuffers--;
             GL.DeleteBuffer(VBO);
 			GL.DeleteVertexArray (VAO);
             GLBind.VertexArray(0);
-            GLBind.VertexBuffer(0);
         }
     }
 }

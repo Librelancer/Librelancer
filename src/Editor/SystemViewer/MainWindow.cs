@@ -113,6 +113,8 @@ namespace SystemViewer
 Position: (X: {2:0.00}, Y: {3:0.00}, Z: {4:0.00})
 C# Memory Usage: {5}
 {6} FPS
+{7} Draw Calls
+{8} Vertex Buffers
 ";
         bool showDebug = true;
         bool openChangeSystem = false;
@@ -122,6 +124,7 @@ C# Memory Usage: {5}
         int sysIndexLoaded = 0;
         protected override void Draw(double elapsed)
         {
+            VertexBuffer.TotalDrawcalls = 0;
             EnableTextInput();
             Viewport.Replace(0, 0, Width, Height);
             RenderState.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
@@ -172,7 +175,7 @@ C# Memory Usage: {5}
                                       WindowFlags.NoMove | WindowFlags.AlwaysAutoResize | WindowFlags.NoBringToFrontOnFocus);
                     ImGui.Text(string.Format(DEBUG_TEXT, curSystem.Name, curSystem.Id,
                                             camera.Position.X, camera.Position.Y, camera.Position.Z,
-                                             DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), (int)Math.Round(RenderFrequency)));
+                                             DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), (int)Math.Round(RenderFrequency), VertexBuffer.TotalDrawcalls, VertexBuffer.TotalBuffers));
                     ImGui.EndWindow();
                 }
             }

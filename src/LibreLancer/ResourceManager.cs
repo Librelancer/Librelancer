@@ -20,6 +20,8 @@ using LibreLancer.Utf.Vms;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Dfm;
+using LibreLancer.Vertices;
+using LibreLancer.Primitives;
 namespace LibreLancer
 {
 	//TODO: Allow for disposing and all that Jazz
@@ -38,6 +40,53 @@ namespace LibreLancer
 		Dictionary<string, TexFrameAnimation> frameanims = new Dictionary<string, TexFrameAnimation>(StringComparer.OrdinalIgnoreCase);
 		List<string> loadedResFiles = new List<string>();
 		List<string> preloadFiles = new List<string>();
+
+        Dictionary<int, QuadSphere> quadSpheres = new Dictionary<int, QuadSphere>();
+
+        VertexResource<VertexPosition> posResource = new VertexResource<VertexPosition>();
+        VertexResource<VertexPositionColor> posColorResource = new VertexResource<VertexPositionColor>();
+        VertexResource<VertexPositionNormal> posNormalResource = new VertexResource<VertexPositionNormal>();
+        VertexResource<VertexPositionColorTexture> posColorTextureResource = new VertexResource<VertexPositionColorTexture>();
+        VertexResource<VertexPositionNormalTexture> posNormalTextureResource = new VertexResource<VertexPositionNormalTexture>();
+        VertexResource<VertexPositionNormalColorTexture> posNormalColorTextureResource = new VertexResource<VertexPositionNormalColorTexture>();
+        VertexResource<VertexPositionNormalTextureTwo> posNormalTextureTwoResource = new VertexResource<VertexPositionNormalTextureTwo>();
+        VertexResource<VertexPositionNormalDiffuseTextureTwo> posNormalDiffuseTextureTwoResource = new VertexResource<VertexPositionNormalDiffuseTextureTwo>();
+
+        T[] As<T>(object input) => (T[])input;
+
+        public void AllocateVertices<T>(T[] vertices, ushort[] indices, out int startIndex, out int baseVertex, out VertexBuffer vbo) where T: struct
+        {
+            vbo = null;
+            startIndex = baseVertex = -1;
+            if(typeof(T) == typeof(VertexPosition)) {
+                posResource.Allocate(As<VertexPosition>(vertices), indices, out vbo, out startIndex, out baseVertex);
+            } else if (typeof(T) == typeof(VertexPositionColor)) {
+                posColorResource.Allocate(As<VertexPositionColor>(vertices), indices, out vbo, out startIndex, out baseVertex);
+            } else if (typeof(T) == typeof(VertexPositionNormal)) {
+                posNormalResource.Allocate(As<VertexPositionNormal>(vertices), indices, out vbo, out startIndex, out baseVertex);
+            } else if (typeof(T) == typeof(VertexPositionColorTexture)) {
+                posColorTextureResource.Allocate(As<VertexPositionColorTexture>(vertices), indices, out vbo, out startIndex, out baseVertex);
+            } else if (typeof(T) == typeof(VertexPositionNormalTexture)) {
+                posNormalTextureResource.Allocate(As<VertexPositionNormalTexture>(vertices), indices, out vbo, out startIndex, out baseVertex);
+            } else if (typeof(T) == typeof(VertexPositionNormalColorTexture)) {
+                posNormalColorTextureResource.Allocate(As<VertexPositionNormalColorTexture>(vertices), indices, out vbo, out startIndex, out baseVertex);
+            } else if (typeof(T) == typeof(VertexPositionNormalTextureTwo)) {
+                posNormalTextureTwoResource.Allocate(As<VertexPositionNormalTextureTwo>(vertices), indices, out vbo, out startIndex, out baseVertex);
+            } else if (typeof(T) == typeof(VertexPositionNormalDiffuseTextureTwo)) {
+                posNormalDiffuseTextureTwoResource.Allocate(As<VertexPositionNormalDiffuseTextureTwo>(vertices), indices, out vbo, out startIndex, out baseVertex);
+            } else {
+                throw new NotSupportedException("Allocate " + typeof(T).Name);
+            }
+        }
+
+        public QuadSphere GetQuadSphere(int slices) {
+            QuadSphere sph;
+            if(!quadSpheres.TryGetValue(slices, out sph)) {
+                sph = new QuadSphere(slices);
+                quadSpheres.Add(slices, sph);
+            }
+            return sph;
+        }
 
 		public Dictionary<string, Texture> TextureDictionary
 		{

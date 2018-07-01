@@ -179,8 +179,7 @@ namespace LibreLancer
 
 		public void UnbindAll()
 		{
-			GLBind.VertexArray(0);
-			GLBind.VertexBuffer(0);
+            GLBind.VertexArray(RenderState.Instance.NullVAO);
 		}
 		public void TrashGLState()
 		{

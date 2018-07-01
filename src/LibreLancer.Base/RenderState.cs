@@ -172,6 +172,7 @@ namespace LibreLancer
 
 		bool depthwrite = true;
 		bool depthwritedirty = false;
+        public uint NullVAO;
 		public RenderState ()
 		{
 			GL.ClearColor (0f, 0f, 0f, 1f);
@@ -181,6 +182,7 @@ namespace LibreLancer
 			GL.DepthFunc (GL.GL_LEQUAL);
 			GL.Enable (GL.GL_CULL_FACE);
 			GL.CullFace (GL.GL_BACK);
+            GL.GenVertexArrays(1, out NullVAO);
 			Instance = this;
 			PreferredFilterLevel = TextureFiltering.Trilinear;
             if(GLExtensions.Anisotropy) {

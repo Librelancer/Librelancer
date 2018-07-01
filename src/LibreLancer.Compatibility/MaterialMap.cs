@@ -50,13 +50,11 @@ namespace LibreLancer
 			//Evaluate bottom to top
 			for (int i = regexmaps.Count - 1; i >= 0; i--) {
 				if (regexmaps [i].Regex.IsMatch (val)) {
-					FLLog.Debug ("MaterialMap", "Matched " + val + " to " + regexmaps [i].Value);
 					return regexmaps [i].Value;
 				}
 			}
 
 			if (maps.ContainsKey (val)) {
-				FLLog.Debug ("MaterialMap", "Matched " + val + " to " + maps [val]);
 				return maps [val];
 			}
 			

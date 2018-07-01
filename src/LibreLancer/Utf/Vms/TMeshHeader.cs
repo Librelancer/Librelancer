@@ -110,7 +110,7 @@ namespace LibreLancer.Utf.Vms
 		MaterialAnimCollection lastmc;
 		MaterialAnim ma;
 
-		public void Draw(RenderState rstate, VertexBuffer buff, ushort startVertex, Matrix4 world, Lighting light, MaterialAnimCollection mc)
+		public void Draw(RenderState rstate, VertexBuffer buff, int startVertex, int startIndex, Matrix4 world, Lighting light, MaterialAnimCollection mc)
         {
             if (MaterialCrc == 0) return;
 
@@ -127,7 +127,7 @@ namespace LibreLancer.Utf.Vms
 			Material.Render.MaterialAnim = ma;
 			Material.Render.World = world;
 			Material.Render.Use (rstate, buff.VertexType, ref light);
-			buff.Draw (PrimitiveTypes.TriangleList, startVertex + StartVertex, TriangleStart, primitiveCount);
+			buff.Draw (PrimitiveTypes.TriangleList, startVertex + StartVertex, startIndex + TriangleStart, primitiveCount);
         }
 
 		struct Average
@@ -179,7 +179,7 @@ namespace LibreLancer.Utf.Vms
 			return avg;
 		}
 
-		public void DrawBuffer(CommandBuffer buffer, VMeshData data, ushort startVertex, Matrix4 world, ref Lighting light, MaterialAnimCollection mc, Material overrideMat = null)
+		public void DrawBuffer(CommandBuffer buffer, VMeshData data, int vertexOffset, ushort startVertex, int startIndex, Matrix4 world, ref Lighting light, MaterialAnimCollection mc, Material overrideMat = null)
 		{
             if (MaterialCrc == 0) return;
 
@@ -209,15 +209,15 @@ namespace LibreLancer.Utf.Vms
 				light,
 				data.VertexBuffer,
 				PrimitiveTypes.TriangleList,
-				startVertex + StartVertex,
-				TriangleStart,
+				startVertex + vertexOffset + StartVertex,
+				startIndex + TriangleStart,
 				primitiveCount,
 				SortLayers.OBJECT,
 				z
 			);
 		}
 
-		public void DepthPrepass(RenderState rstate, VMeshData data, ushort startVertex, Matrix4 world, MaterialAnimCollection mc)
+		public void DepthPrepass(RenderState rstate, VMeshData data, int startVertex, int startIndex, Matrix4 world, MaterialAnimCollection mc)
 		{
             if (MaterialCrc == 0) return;
 
@@ -240,7 +240,7 @@ namespace LibreLancer.Utf.Vms
 			m.Render.MaterialAnim = ma;
 			m.Render.World = world;
 			m.Render.ApplyDepthPrepass(rstate);
-			data.VertexBuffer.Draw(PrimitiveTypes.TriangleList, startVertex + StartVertex, TriangleStart, primitiveCount);
+			data.VertexBuffer.Draw(PrimitiveTypes.TriangleList, startVertex + StartVertex, startIndex + TriangleStart, primitiveCount);
 		}
     }
 }
