@@ -188,6 +188,7 @@ C# Memory Usage: {5}
                         camera.UpdateProjection();
                         camera.Free = false;
                         camera.Zoom = 5000;
+                        Resources.ClearTextures();
                         curSystem = GameData.GetSystem(systems[sysIndex]);
                         world.LoadSystem(curSystem, Resources);
                         sysIndexLoaded = sysIndex;
@@ -230,6 +231,7 @@ C# Memory Usage: {5}
             var renderer = new SystemRenderer(camera, GameData, Resources, this);
             world = new GameWorld(renderer);
             systems = GameData.ListSystems().ToArray();
+            Resources.ClearTextures();
             curSystem = GameData.GetSystem(systems[0]);
             world.LoadSystem(curSystem, Resources);
         }

@@ -124,9 +124,7 @@ namespace LibreLancer
 
 			if (AsteroidFields != null)
 				foreach (var f in AsteroidFields) f.Dispose();
-
-			cache.ClearTextures();
-
+                
 			//Load new system
 			starSystem = system;
 

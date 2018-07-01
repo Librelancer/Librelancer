@@ -56,6 +56,7 @@ Mouse Flight: {10}
 		public SpaceGameplay(FreelancerGame g, GameSession session) : base(g)
 		{
 			FLLog.Info("Game", "Starting Gameplay Demo");
+            g.ResourceManager.ClearTextures(); //Do before loading things
 			sys = g.GameData.GetSystem(session.PlayerSystem);
 			var shp = g.GameData.GetShip(session.PlayerShip);
 			//Set up player object + camera
