@@ -74,6 +74,8 @@ namespace LibreLancer
 		public static PixelStorei PixelStorei;
 		[MapsTo("glDepthMask")]
 		public static DepthMask DepthMask;
+        [MapsTo("glColorMask")]
+        public static ColorMask ColorMask;
 		[MapsTo("glPolygonOffset")]
 		public static PolygonOffset PolygonOffset;
 		//[MapsTo("glAlphaFunc")]

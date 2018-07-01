@@ -375,10 +375,12 @@ namespace LibreLancer
 			else
 			{
 				SystemLighting.NumberOfTilesX = -1;
-				//Simple depth pre-pass
+                //Simple depth pre-pass
+                rstate.ColorWrite = false;
 				rstate.DepthFunction = DepthFunction.Less;
                 foreach (var obj in objects) obj.DepthPrepass(camera, rstate);
 				rstate.DepthFunction = DepthFunction.LessEqual;
+                rstate.ColorWrite = true;
 			}
 			//Actual Drawing
 			foreach (var obj in objects) obj.Draw(camera, commands, SystemLighting, nr);

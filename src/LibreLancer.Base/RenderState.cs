@@ -124,6 +124,16 @@ namespace LibreLancer
 			}
 		}
 
+        bool colorWrite = true;
+        bool requestedColorWrite = true;
+        public bool ColorWrite
+        {
+            get {
+                return requestedColorWrite;
+            } set {
+                requestedColorWrite = value;
+            }
+        }
 		public bool Cull {
 			get {
 				return cull;
@@ -154,6 +164,7 @@ namespace LibreLancer
 			depthDirty = true;
 			blendDirty = true;
 		}
+
 		bool cull = true;
 		bool cullDirty = false;
 
@@ -270,6 +281,14 @@ namespace LibreLancer
 				cullFace = requestedCull;
 				GL.CullFace(cullFace == CullFaces.Back ? GL.GL_BACK : GL.GL_FRONT);
 			}
+            if(colorWrite != requestedColorWrite) {
+                colorWrite = requestedColorWrite;
+                if(colorWrite) {
+                    GL.ColorMask(true, true, true, true);
+                } else {
+                    GL.ColorMask(false, false, false, false);
+                }
+            }
 			if (depthwritedirty)
 			{
 				GL.DepthMask(depthwrite);

@@ -64,6 +64,8 @@ namespace LibreLancer.GLDelegates
     [SuppressUnmanagedCodeSecurity]
     public delegate void DepthMask(bool flag);
     [SuppressUnmanagedCodeSecurity]
+    public delegate void ColorMask(bool r, bool g, bool b, bool a);
+    [SuppressUnmanagedCodeSecurity]
     public delegate void AlphaFunc(int func, float _ref);
 	[SuppressUnmanagedCodeSecurity]
 	public delegate void PolygonOffset(float factor, float units);

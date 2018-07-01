@@ -8,5 +8,5 @@ void main()
 	if(sampler.a < 1.0) {
 		discard;
 	}
-	out_color = vec4(0,0,0,0);
+	out_color = vec4(1.);
 }
