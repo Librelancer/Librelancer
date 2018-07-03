@@ -33,7 +33,7 @@ namespace LibreLancer
                     if (value)
                         a |= (1L << idx);
                     else
-                        a &= ~(1L << (idx - 63));
+                        a &= ~(1L << idx);
                 }
             }
         }
