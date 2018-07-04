@@ -158,7 +158,7 @@ namespace LancerEdit
                             hpn.Nodes.Add(n);
                         }
                     }
-                    catch (Exception) { ErrorPopup("Could not open as model"); drawable = null; }
+                    catch (Exception ex) { ErrorPopup("Could not open as model\n" + ex.Message + "\n" + ex.StackTrace); drawable = null; }
                     if (drawable != null)
                     {
                         main.AddTab(new ModelViewer("Model Viewer (" + DocumentName + ")", DocumentName, drawable, main, this,hpn));

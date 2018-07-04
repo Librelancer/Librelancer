@@ -15,6 +15,7 @@
  */
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using ImGuiNET;
 using LibreLancer;
@@ -40,7 +41,7 @@ namespace LancerEdit
                 }
             }
             public bool ParentTransform = false;
-            public bool Transform = false;
+            public bool Transform = true;
             public List<ColladaObject> LODs = new List<ColladaObject>();
             public List<OutModel> Children = new List<OutModel>();
         }
@@ -135,7 +136,22 @@ namespace LancerEdit
                 } 
                 else 
                 {
-                    return false; //TODO: CMP
+                    var suffix = (new Random().Next()) + ".3db";
+                    var vmslib = new LUtfNode() { Name = "VMeshLibrary", Parent = utf.Root, Children = new List<LUtfNode>() };
+                    utf.Root.Children.Add(vmslib);
+                    var cmpnd = new LUtfNode() { Name = "Cmpnd", Parent = utf.Root, Children = new List<LUtfNode>() };
+                    utf.Root.Children.Add(cmpnd);
+                    ExportModels(utf.Root, suffix,vmslib, output[0]);
+                    int cmpndIndex = 1;
+                    FixConstructor fix = new FixConstructor(); 
+                    cmpnd.Children.Add(CmpndNode(cmpnd, "Root", output[0].Name + suffix, "Root", 0));
+                    foreach(var child in output[0].Children) {
+                        ProcessConstruct("Root", child, cmpnd,fix,suffix, ref cmpndIndex);
+                    }
+                    var cons = new LUtfNode() { Name = "Cons", Parent = cmpnd, Children = new List<LUtfNode>() };
+                    var trs = new LUtfNode() { Name = "Fix", Parent = cons, Data = fix.GetData() };
+                    cons.Children.Add(trs);
+                    cmpnd.Children.Add(cons);
                 }
                 if(generateMaterials) {
                     List<string> materials = new List<string>();
@@ -158,6 +174,90 @@ namespace LancerEdit
             }
             else
                 return false;
+        }
+        void ProcessConstruct(string parentName, OutModel mdl, LUtfNode cmpnd, FixConstructor fix, string suffix, ref int index)
+        {
+            cmpnd.Children.Add(CmpndNode(cmpnd, "PART_" + mdl.Name, mdl.Name + suffix, mdl.Name, index++));
+            if(mdl.Transform == true) {
+                fix.Add(parentName, mdl.Name, mdl.Def.Transform);
+            } else {
+                fix.Add(parentName, mdl.Name, Matrix4.Identity);
+            }
+            foreach (var child in mdl.Children)
+                ProcessConstruct(mdl.Name, child, cmpnd, fix, suffix, ref index);
+
+        }
+        class FixConstructor
+        {
+            MemoryStream stream = new MemoryStream();
+            BinaryWriter writer;
+            public FixConstructor()
+            {
+                writer = new BinaryWriter(stream);
+            }
+            public void Add(string parentName, string objectName, Matrix4 transform)
+            {
+                var pbytes = Encoding.ASCII.GetBytes(parentName);
+                writer.Write(pbytes);
+                for (int i = 0; i < (64 - pbytes.Length); i++) {
+                    writer.Write((byte)0);
+                }
+                var cbytes = Encoding.ASCII.GetBytes(objectName);
+                writer.Write(cbytes);
+                for (int i = 0; i < (64 - cbytes.Length); i++) {
+                    writer.Write((byte)0);
+                }
+                var origin = transform.ExtractTranslation();
+                writer.Write(origin.X);
+                writer.Write(origin.Y);
+                writer.Write(origin.Z);
+                var rotate = Matrix4.CreateFromQuaternion(transform.ExtractRotation());
+                writer.Write(rotate.M11);
+                writer.Write(rotate.M12);
+                writer.Write(rotate.M13);
+                writer.Write(rotate.M21);
+                writer.Write(rotate.M22);
+                writer.Write(rotate.M23);
+                writer.Write(rotate.M31);
+                writer.Write(rotate.M32);
+                writer.Write(rotate.M33);
+            }
+            public byte[] GetData()
+            {
+                return stream.ToArray();
+            }
+        }
+        LUtfNode CmpndNode(LUtfNode cmpnd, string name, string filename, string objname, int index)
+        {
+            var node = new LUtfNode() { Parent = cmpnd, Name = name, Children = new List<LUtfNode>() };
+            node.Children.Add(new LUtfNode()
+            {
+                Name = "File Name",
+                Parent = node,
+                Data = Encoding.ASCII.GetBytes(filename)
+            });
+            node.Children.Add(new LUtfNode()
+            {
+                Name = "Object Name",
+                Parent = node,
+                Data = Encoding.ASCII.GetBytes(objname)
+            });
+            node.Children.Add(new LUtfNode()
+            {
+                Name = "Index",
+                Parent = node,
+                Data = BitConverter.GetBytes(index)
+            });
+            return node;
+        }
+        void ExportModels(LUtfNode root, string suffix,LUtfNode vms, OutModel model)
+        {
+            var modelNode = new LUtfNode() { Parent = root, Name = model.Name + suffix };
+            modelNode.Children = new List<LUtfNode>();
+            root.Children.Add(modelNode);
+            Export3DB(modelNode, model, vms);
+            foreach (var child in model.Children)
+                ExportModels(root, suffix,vms, child);
         }
         static readonly float[][] matColors =  {
             new float[]{ 1, 0, 0 },
@@ -196,10 +296,9 @@ namespace LancerEdit
             foreach (var child in mdl.Children)
                 IterateMaterials(materials, child);
         }
-        static void Export3DB(LUtfNode node3db, OutModel mdl)
+        static void Export3DB(LUtfNode node3db, OutModel mdl, LUtfNode vmeshlibrary = null)
         {
-            var vms = new LUtfNode() { Name = "VMeshLibrary", Parent = node3db };
-            vms.Children = new List<LUtfNode>();
+            var vms = vmeshlibrary ?? new LUtfNode() { Name = "VMeshLibrary", Parent = node3db, Children = new List<LUtfNode>() };
             for (int i = 0; i < mdl.LODs.Count; i++)
             {
                 var n = new LUtfNode() { Name = string.Format("{0}.level{1}.vms", mdl.Name, i), Parent = vms };
@@ -207,7 +306,8 @@ namespace LancerEdit
                 n.Children.Add(new LUtfNode() { Name = "VMeshData", Parent = n, Data = mdl.LODs[i].Geometry.VMeshData() });
                 vms.Children.Add(n);
             }
-            node3db.Children.Add(vms);
+            if(vmeshlibrary == null)
+                node3db.Children.Add(vms);
             if (mdl.LODs.Count > 1)
             {
                 var multilevel = new LUtfNode() { Name = "MultiLevel", Parent = node3db };

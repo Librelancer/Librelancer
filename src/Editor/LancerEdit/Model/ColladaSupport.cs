@@ -217,9 +217,15 @@ namespace LancerEdit
             }
             if(n.Items.OfType<CL.matrix>().Any()) {
                 var tr = n.Items.OfType<CL.matrix>().First();
-                obj.Transform = GetMatrix(tr.Text);
+                obj.Transform = GetMatrix(up,tr.Text);
             } else {
-                //TODO: Non-matrix transforms
+                Matrix4 mat = Matrix4.Identity;
+                foreach(var item in n.Items) {
+                    if(item is CL.TargetableFloat3) {
+                        //var float3 = 
+                    }
+                }
+                obj.Transform = mat;
             }
             if(n.node1 != null && n.node1.Length > 0) {
                 foreach(var node in n.node1) {
@@ -265,6 +271,7 @@ namespace LancerEdit
             var msh = geo.Item as CL.mesh;
             if (msh == null) return null;
             List<VertexPositionNormalDiffuseTextureTwo> vertices = new List<VertexPositionNormalDiffuseTextureTwo>();
+            List<int> hashes = new List<int>();
             List<ushort> indices = new List<ushort>();
             List<ColladaDrawcall> drawcalls = new List<ColladaDrawcall>();
             Dictionary<string, GeometrySource> sources = new Dictionary<string, GeometrySource>();
@@ -415,7 +422,8 @@ namespace LancerEdit
                         offUV1 == int.MinValue ? Vector2.Zero : sourceUV1.GetUV(pRefs[idx + offUV1]),
                         offUV2 == int.MinValue ? Vector2.Zero : sourceUV2.GetUV(pRefs[idx + offUV2])
                     );
-                    var vertIdx = FindDuplicate(vertices, vertexOffset, ref vert);
+                    var hash = HashVert(ref vert);
+                    var vertIdx = FindDuplicate(hashes,vertices, vertexOffset, ref vert, hash);
                     if (indices.Count >= ushort.MaxValue)
                         throw new Exception("Too many indices");
                     if(vertIdx == -1) {
@@ -423,6 +431,7 @@ namespace LancerEdit
                             throw new Exception("Too many vertices");
                         indices.Add((ushort)(vertices.Count - vertexOffset));
                         vertices.Add(vert);
+                        hashes.Add(hash);
                     } else {
                         indices.Add((ushort)(vertIdx - vertexOffset));
                     }
@@ -442,9 +451,22 @@ namespace LancerEdit
             return conv;
         }
 
-        static int FindDuplicate(List<VertexPositionNormalDiffuseTextureTwo> buf, int startIndex, ref VertexPositionNormalDiffuseTextureTwo search)
+        static int HashVert(ref VertexPositionNormalDiffuseTextureTwo vert)
+        {
+            unchecked {
+                int hash = (int)2166136261;
+                hash = hash * 16777619 ^ vert.Position.GetHashCode();
+                hash = hash * 16777619 ^ vert.Normal.GetHashCode();
+                hash = hash * 16777619 ^ vert.TextureCoordinate.GetHashCode();
+                hash = hash * 16777619 ^ vert.TextureCoordinateTwo.GetHashCode();
+                hash = hash * 16777619 ^ vert.Diffuse.GetHashCode();
+                return hash;
+            }
+        }
+        static int FindDuplicate(List<int> hashes, List<VertexPositionNormalDiffuseTextureTwo> buf, int startIndex, ref VertexPositionNormalDiffuseTextureTwo search, int hash)
         {
             for (int i = startIndex; i < buf.Count; i++) {
+                if (hashes[i] != hash) continue;
                 if (buf[i].Position != search.Position) continue;
                 if (buf[i].Normal != search.Normal) continue;
                 if (buf[i].TextureCoordinate != search.TextureCoordinate) continue;
@@ -508,18 +530,19 @@ namespace LancerEdit
             }
         }
 
-        static Matrix4 GetMatrix(string text)
+        static Matrix4 GetMatrix(CL.UpAxisType ax, string text)
         {
             var floats = FloatArray(text);
+            Matrix4 mat;
             if (floats.Length == 16)
-                return new Matrix4(
-                    floats[0], floats[1], floats[2], floats[3],
-                    floats[4], floats[5], floats[6], floats[7],
-                    floats[8], floats[9], floats[10], floats[11],
-                    floats[12], floats[13], floats[14], floats[15]
+                mat = new Matrix4(
+                    floats[0], floats[4], floats[8], floats[12],
+                    floats[1], floats[5], floats[9], floats[13],
+                    floats[2], floats[6], floats[10], floats[14],
+                    floats[3], floats[7], floats[11], floats[15]
                 );
             else if (floats.Length == 9)
-                return new Matrix4(
+                mat = new Matrix4(
                     floats[0], floats[1], floats[2], 0,
                     floats[3], floats[4], floats[5], 0,
                     floats[6], floats[7], floats[8], 0,
@@ -527,6 +550,20 @@ namespace LancerEdit
                 );
             else
                 throw new Exception("Invalid Matrix: " + floats.Length + " elements");
+            if (ax == CL.UpAxisType.Z_UP)
+            {
+                var translation = mat.ExtractTranslation();
+                translation = translation.Xzy * new Vector3(-1, 1, -1);
+                var rotq = mat.ExtractRotation();
+                var rot = Matrix4.CreateFromQuaternion(
+                    new Quaternion(rotq.X, rotq.Z, -rotq.Y, rotq.W)
+                );
+                return rot * Matrix4.CreateTranslation(translation);
+            }
+            else if (ax == CL.UpAxisType.Y_UP)
+                return mat;
+            else
+                throw new Exception("X_UP Unsupported");
         }
         static Vector3 VecAxis(CL.UpAxisType ax, Vector3 vec)
         {
