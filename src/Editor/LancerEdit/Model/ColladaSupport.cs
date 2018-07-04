@@ -488,6 +488,7 @@ namespace LancerEdit
                 if (buf[i].TextureCoordinate != search.TextureCoordinate) continue;
                 if (buf[i].Diffuse != search.Diffuse) continue;
                 if (buf[i].TextureCoordinateTwo != search.TextureCoordinateTwo) continue;
+                return i;
             }
             return -1;
         }
