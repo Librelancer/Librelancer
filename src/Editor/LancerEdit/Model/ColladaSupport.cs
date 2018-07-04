@@ -285,6 +285,20 @@ namespace LancerEdit
                     FLLog.Warning("Collada", "Ignoring " + item.GetType().Name + " element.");
                 }
             }
+            int totalTriangles = 0;
+            foreach(var item in msh.Items.Where(x => x is CL.triangles || x is CL.polylist)) {
+                if(item is CL.triangles) {
+                    totalTriangles += (int)((CL.triangles)item).count;
+                } else {
+                    totalTriangles += (int)((CL.polylist)item).count;
+                }
+            }
+            if(totalTriangles > 21845) {
+                throw new Exception(string.Format(
+                    "Overflow!\nCollada geometry {0} has {1} triangles\nVMeshData haslimit of 21845",
+                    string.IsNullOrEmpty(geo.name) ? geo.id : geo.name,
+                    totalTriangles));
+            }
             foreach(var item in msh.Items.Where(x => x is CL.triangles || x is CL.polylist)) {
                 CL.InputLocalOffset[] inputs;
                 int[] pRefs;
@@ -292,9 +306,9 @@ namespace LancerEdit
                 string material;
                 if(item is CL.triangles) {
                     var triangles = (CL.triangles)item;
+                    triangleCount = (int)(triangles.count * 3);
                     pRefs = IntArray(triangles.p);
                     inputs = triangles.input;
-                    triangleCount = (int)(triangles.count * 3);
                     material = triangles.material;
                 } else {
                     var plist = (CL.polylist)item;
@@ -308,7 +322,7 @@ namespace LancerEdit
                     inputs = plist.input;
                     triangleCount = (int)(plist.count * 3);
                 }
-
+                
                 int pStride = 0;
                 foreach (var input in inputs)
                     pStride = Math.Max((int)input.offset, pStride);
