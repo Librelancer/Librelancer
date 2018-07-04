@@ -280,8 +280,11 @@ namespace LancerEdit
                 sources.Add(acc.id, new GeometrySource(acc, arrays));
             }
             //Process geometry
-            if (msh.Items.Where(x => x is CL.triangles || x is CL.polylist).Count() != msh.Items.Length)
-                throw new Exception("Non-triangle geometry");
+            foreach(var item in msh.Items) {
+                if(!(item is CL.triangles || item is CL.polylist)) {
+                    FLLog.Warning("Collada", "Ignoring " + item.GetType().Name + " element.");
+                }
+            }
             foreach(var item in msh.Items.Where(x => x is CL.triangles || x is CL.polylist)) {
                 CL.InputLocalOffset[] inputs;
                 int[] pRefs;
@@ -403,7 +406,7 @@ namespace LancerEdit
                         throw new Exception("Too many indices");
                     if(vertIdx == -1) {
                         if (vertices.Count + 1 >= ushort.MaxValue)
-                            throw new Exception("Overflow");
+                            throw new Exception("Too many vertices");
                         indices.Add((ushort)(vertices.Count - vertexOffset));
                         vertices.Add(vert);
                     } else {

@@ -15,6 +15,7 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using ImGuiNET;
 using LibreLancer;
@@ -136,15 +137,31 @@ namespace LancerEdit
                 if (ImGui.MenuItem("View Model"))
                 {
                     IDrawable drawable = null;
+                    ModelNodes hpn = new ModelNodes();
                     try
                     {
                         drawable = LibreLancer.Utf.UtfLoader.GetDrawable(Utf.Export(), main.Resources);
                         drawable.Initialize(main.Resources);
+                        if(Utf.Root.Children.Any((x) => x.Name.Equals("cmpnd",StringComparison.OrdinalIgnoreCase))) {
+                            foreach(var child in Utf.Root.Children.Where((x) => x.Name.EndsWith(".3db", StringComparison.OrdinalIgnoreCase))) {
+                                var n = new ModelNode();
+                                n.Name = child.Name;
+                                n.Node = child;
+                                n.HardpointsNode = child.Children.FirstOrDefault((x) => x.Name.Equals("hardpoints", StringComparison.OrdinalIgnoreCase));
+                                hpn.Nodes.Add(n);
+                            }
+                        } else {
+                            var n = new ModelNode();
+                            n.Name = "ROOT";
+                            n.Node = Utf.Root;
+                            n.HardpointsNode = Utf.Root.Children.FirstOrDefault((x) => x.Name.Equals("hardpoints", StringComparison.OrdinalIgnoreCase));
+                            hpn.Nodes.Add(n);
+                        }
                     }
                     catch (Exception) { ErrorPopup("Could not open as model"); drawable = null; }
                     if (drawable != null)
                     {
-                        main.AddTab(new ModelViewer("Model Viewer (" + DocumentName + ")", DocumentName, drawable, main, this));
+                        main.AddTab(new ModelViewer("Model Viewer (" + DocumentName + ")", DocumentName, drawable, main, this,hpn));
                     }
                 }
                 if(ImGui.MenuItem("Dump Model"))

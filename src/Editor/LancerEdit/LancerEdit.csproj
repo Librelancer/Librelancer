@@ -76,6 +76,7 @@
     <Compile Include="EditorTab.cs" />
     <Compile Include="Viewport3D.cs" />
     <Compile Include="DefaultTexture.cs" />
+    <Compile Include="Model\ModelNodes.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">

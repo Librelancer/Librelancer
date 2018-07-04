@@ -34,6 +34,7 @@ namespace LibreLancer
             buffers[buffers.Count - 1].Allocate(vertices, indices, out startIndex, out baseVertex);
             vbo = buffers[buffers.Count - 1].Buffer;
         }
+
     }
 
     public class VertexResourceBuffer<T> where T : struct

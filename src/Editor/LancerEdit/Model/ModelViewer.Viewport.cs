@@ -117,8 +117,11 @@ namespace LancerEdit
           
             foreach (var tr in gizmos)
             {
-                if (tr.Enabled)
-                    GizmoRender.AddGizmo(tr.Definition.Transform * (tr.Parent == null ? Matrix4.Identity : tr.Parent.Transform) * matrix);
+                if (tr.Enabled || tr.Override != null)
+                {
+                    var transform = tr.Override ?? tr.Definition.Transform;
+                    GizmoRender.AddGizmo(transform * (tr.Parent == null ? Matrix4.Identity : tr.Parent.Transform) * matrix);
+                }
             }
             GizmoRender.RenderGizmos(cam, rstate);
         }

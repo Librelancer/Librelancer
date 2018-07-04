@@ -22,8 +22,8 @@ namespace LibreLancer.Utf.Cmp
     public abstract class HardpointDefinition
     {
         public string Name { get; private set; }
-        public Matrix4 Orientation { get; private set; }
-        public Vector3 Position { get; private set; }
+        public Matrix4 Orientation;
+        public Vector3 Position;
 
         public HardpointDefinition(IntermediateNode root)
         {
@@ -33,7 +33,12 @@ namespace LibreLancer.Utf.Cmp
 			Orientation = Matrix4.Identity;
 			Position = Vector3.Zero;
         }
-
+        public HardpointDefinition(string name)
+        {
+            Name = name;
+            Orientation = Matrix4.Identity;
+            Position = Vector3.Zero;
+        }
         protected bool parentNode(LeafNode node)
         {
 			

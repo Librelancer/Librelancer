@@ -23,9 +23,9 @@ namespace LibreLancer.Utf.Cmp
 {
     public class RevoluteHardpointDefinition : HardpointDefinition
     {
-        public Vector3 Axis { get; private set; }
-        public float Max { get; private set; }
-        public float Min { get; private set; }
+        public Vector3 Axis;
+        public float Max;
+        public float Min;
 
         public RevoluteHardpointDefinition(IntermediateNode root)
             : base(root)
@@ -48,6 +48,9 @@ namespace LibreLancer.Utf.Cmp
                             throw new Exception("Invalid LeafNode in " + root.Name + ": " + node.Name);
                     }
             }
+        }
+        public RevoluteHardpointDefinition(string name) : base(name) {
+            Axis = Vector3.UnitZ;
         }
     }
 }

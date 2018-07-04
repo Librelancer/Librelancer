@@ -15,6 +15,7 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using LibreLancer;
 using LibreLancer.ImUI;
 using LibreLancer.Utf.Cmp;
@@ -67,12 +68,15 @@ namespace LancerEdit
         AnimationComponent animator;
         UtfTab parent;
         MainWindow _window;
-        public ModelViewer(string title, string name, IDrawable drawable, MainWindow win, UtfTab parent)
+        PopupManager popups;
+        ModelNodes hprefs;
+        public ModelViewer(string title, string name, IDrawable drawable, MainWindow win, UtfTab parent, ModelNodes hprefs)
         {
             Title = title;
             Name = name;
             this.drawable = drawable;
             this.parent = parent;
+            this.hprefs = hprefs;
             rstate = win.RenderState;
             vps = win.Viewport;
             res = win.Resources;
@@ -149,7 +153,17 @@ namespace LancerEdit
                         maxDistance = Math.Max(maxDistance, mdl.Switch2[i]);
             }
             maxDistance += 50;
+
+            popups = new PopupManager();
+            popups.AddPopup("Confirm Delete", ConfirmDelete, WindowFlags.AlwaysAutoResize);
+            popups.AddPopup("Apply Complete", (x) =>
+            {
+                ImGui.Text("Hardpoints successfully written");
+                if (ImGui.Button("Ok")) ImGui.CloseCurrentPopup();
+            },WindowFlags.AlwaysAutoResize);
+            popups.AddPopup("New Hardpoint", NewHardpoint, WindowFlags.AlwaysAutoResize);
         }
+       
         public override void SetActiveTab(MainWindow win)
         {
             win.ActiveTab = parent;
@@ -213,6 +227,8 @@ namespace LancerEdit
         public override void Draw()
         {
             bool doTabs = false;
+            popups.Run();
+            HardpointEditor();
             foreach (var t in openTabs) if (t) { doTabs = true; break; }
             var contentw = ImGui.GetContentRegionAvailableWidth();
             if (doTabs)
@@ -277,6 +293,7 @@ namespace LancerEdit
             public HardpointDefinition Definition;
             public AbstractConstruct Parent;
             public bool Enabled;
+            public Matrix4? Override = null;
             public HardpointGizmo(HardpointDefinition def, AbstractConstruct parent)
             {
                 Definition = def;
@@ -334,7 +351,7 @@ namespace LancerEdit
                     selectedNode = cn;
                 foreach (var child in cn.Nodes)
                     DoConstructNode(child);
-                DoModel(cn.Model);
+                DoModel(cn.Model, cn.Con);
                 ImGui.TreePop();
             }
             else
@@ -344,48 +361,229 @@ namespace LancerEdit
                     selectedNode = cn;
             }
         }
-
-        void DoModel(ModelFile mdl)
+        HardpointDefinition hpEditing;
+        HardpointDefinition hpDelete;
+        List<HardpointDefinition> hpDeleteFrom;
+        void ConfirmDelete(PopupData data)
         {
-            if (mdl.Hardpoints.Count > 0)
-            {
-                if (ImGui.TreeNode(ImGuiExt.Pad("Hardpoints")))
-                {
-                    Theme.RenderTreeIcon("Hardpoints", "hardpoint", Color4.CornflowerBlue);
-                    foreach (var hp in mdl.Hardpoints)
-                    {
-                        HardpointGizmo gz = null;
-                        foreach (var gizmo in gizmos)
-                        {
-                            if (gizmo.Definition == hp)
-                            {
-                                gz = gizmo;
-                                break;
-                            }
-                        }
-                        if(hp is RevoluteHardpointDefinition) {
-                            Theme.Icon("rev", Color4.LightSeaGreen);
-                        } else {
-                            Theme.Icon("fix", Color4.Purple);
-                        }
-                        ImGui.SameLine();
-                        if(Theme.IconButton("visible$" + hp.Name,"eye", gz.Enabled ? Color4.White : Color4.Gray)) {
-                            gz.Enabled = !gz.Enabled;
-                        }
-                        ImGui.SameLine();
-                        ImGui.Text(hp.Name);
-                    }
-                    ImGui.TreePop();
+            ImGui.Text(string.Format("Are you sure you wish to delete '{0}'?", hpDelete.Name));
+            if(ImGui.Button("Yes")) {
+                hpDeleteFrom.Remove(hpDelete);
+                var gz = gizmos.Where((x) => x.Definition == hpDelete).First();
+                if (hpDelete == hpEditing) hpEditing = null;
+                gizmos.Remove(gz);
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.SameLine();
+            if(ImGui.Button("No")) {
+                ImGui.CloseCurrentPopup();
+            }
+        }
+        TextBuffer newHpBuffer = new TextBuffer(256);
+        bool newIsFixed = false;
+        List<HardpointDefinition> addTo;
+        AbstractConstruct addConstruct;
+        void NewHardpoint(PopupData data)
+        {
+            ImGui.Text("Name: ");
+            ImGui.SameLine();
+            ImGui.InputText("##hpname", newHpBuffer.Pointer, (uint)newHpBuffer.Size, InputTextFlags.Default, newHpBuffer.Callback);
+            ImGui.Text("Type: " + (newIsFixed ? "Fixed" : "Revolute"));
+            if(ImGui.Button("Ok")) {
+                var txt = newHpBuffer.GetText();
+                if(txt.Length == 0) {
+                    return;
                 }
-                else
-                   Theme.RenderTreeIcon("Hardpoints", "hardpoint", Color4.CornflowerBlue);
+                HardpointDefinition def;
+                if (newIsFixed) def = new FixedHardpointDefinition(txt);
+                else def = new RevoluteHardpointDefinition(txt);
+                gizmos.Add(new HardpointGizmo(def, addConstruct));
+                addTo.Add(def);
+                ImGui.CloseCurrentPopup();
             }
-            else
+            ImGui.SameLine();
+            if(ImGui.Button("Cancel")) {
+                ImGui.CloseCurrentPopup();
+            }
+        }
+        bool hpEditOpen = false;
+        HardpointGizmo editingGizmo;
+        float HPpitch, HPyaw, HProll;
+        float HPx, HPy, HPz;
+        float HPaxisX, HPaxisY, HPaxisZ;
+        float HPmin, HPmax;
+        void SetHardpointValues()
+        {
+            HPx = hpEditing.Position.X;
+            HPy = hpEditing.Position.Y;
+            HPz = hpEditing.Position.Z;
+            var euler = hpEditing.Orientation.GetEuler();
+            HPpitch = euler.X; HPyaw = euler.Y; HProll = euler.Z;
+            if (hpEditing is RevoluteHardpointDefinition)
             {
-                Theme.Icon("hardpoint", Color4.CornflowerBlue);
-                ImGui.SameLine();
-                ImGui.Text("Hardpoints");
+                var rev = (RevoluteHardpointDefinition)hpEditing;
+                HPmin = rev.Min; HPmax = rev.Max;
+                HPaxisX = rev.Axis.X;
+                HPaxisY = rev.Axis.Y;
+                HPaxisZ = rev.Axis.Z;
             }
+        }
+        unsafe void HardpointEditor()
+        {
+            if(hpEditing == null) {
+                hpEditOpen = false;
+                return;
+            }
+            if(hpEditing != null && hpEditOpen == false) {
+                editingGizmo = gizmos.First((x) => x.Definition == hpEditing);
+                hpEditOpen = true;
+                SetHardpointValues();
+            }
+            if(ImGui.BeginWindow("Hardpoint Editor##" + Unique,ref hpEditOpen, WindowFlags.Default)) {
+                ImGui.Text(hpEditing.Name);
+                bool isFix = hpEditing is FixedHardpointDefinition;
+                ImGui.Text("Type: " + (isFix ? "Fixed" : "Revolute"));
+                if (ImGui.Button("Reset")) SetHardpointValues();
+                ImGui.Separator();
+                ImGui.Text("Position");
+                fixed (float* hpx = &HPx)
+                    ImGuiNative.igInputFloat("X##posX", hpx, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
+                fixed (float* hpy = &HPy)
+                    ImGuiNative.igInputFloat("Y##posY", hpy, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
+                fixed (float* hpz = &HPz)
+                    ImGuiNative.igInputFloat("Z##posZ", hpz, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
+                ImGui.Separator();
+                ImGui.Text("Rotation");
+                if (ImGui.Button("0##0pitch")) HPpitch = 0; ImGui.SameLine();
+                ImGui.SliderFloat("Pitch", ref HPpitch, -MathHelper.Pi, MathHelper.Pi, "%f", 1);
+                if (ImGui.Button("0##0yaw")) HPyaw = 0; ImGui.SameLine();
+                ImGui.SliderFloat("Yaw", ref HPyaw, -MathHelper.Pi, MathHelper.Pi, "%f", 1);
+                if (ImGui.Button("0##0roll")) HProll = 0; ImGui.SameLine();
+                ImGui.SliderFloat("Roll", ref HProll, -MathHelper.Pi, MathHelper.Pi, "%f", 1);
+                ImGui.Separator();
+                if(!isFix) {
+                    ImGui.Text("Axis");
+                    fixed (float* axx = &HPaxisX)
+                        ImGuiNative.igInputFloat("X##axisX", axx, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
+                    fixed (float* axy = &HPaxisY)
+                        ImGuiNative.igInputFloat("Y##axisY", axy, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
+                    fixed (float* axz = &HPaxisZ)
+                        ImGuiNative.igInputFloat("Z##axisZ", axz, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
+                    if (ImGui.Button("0##0min")) HPmin = 0; ImGui.SameLine();
+                    ImGui.SliderFloat("Min", ref HPmin, -MathHelper.Pi, MathHelper.Pi, "%f", 1);
+                    if (ImGui.Button("0##0max")) HPmax = 0; ImGui.SameLine();
+                    ImGui.SliderFloat("Max", ref HPmax, -MathHelper.Pi, MathHelper.Pi, "%f", 1);
+                    ImGui.Separator();
+                }
+                if(ImGui.Button("Apply")) {
+                    hpEditing.Position = new Vector3(HPx, HPy, HPz);
+                    hpEditing.Orientation = Matrix4.CreateFromQuaternion(Quaternion.FromEulerAngles(HPpitch, HPyaw, HProll));
+                    if(!isFix) {
+                        var rev = (RevoluteHardpointDefinition)hpEditing;
+                        rev.Min = HPmin;
+                        rev.Max = HPmax;
+                        rev.Axis = new Vector3(HPaxisX, HPaxisY, HPaxisZ);
+                    }
+                    hpEditOpen = false;
+                }
+                ImGui.SameLine();
+                if(ImGui.Button("Cancel")) {
+                    hpEditOpen = false;
+                }
+                editingGizmo.Override =
+                    Matrix4.CreateFromQuaternion(Quaternion.FromEulerAngles(HPpitch, HPyaw, HProll)) *
+                                Matrix4.CreateTranslation(HPx, HPy, HPz);
+                ImGui.EndWindow();
+            }
+            if (hpEditOpen == false)
+            {
+                hpEditing = null;
+                editingGizmo.Override = null;
+                editingGizmo = null;
+            }
+        }
+        void DoModel(ModelFile mdl, AbstractConstruct con)
+        {
+            bool open = ImGui.TreeNode(ImGuiExt.Pad("Hardpoints"));
+            var act = NewHpMenu(mdl.Path);
+            switch(act) {
+                case ContextActions.NewFixed:
+                case ContextActions.NewRevolute:
+                    newIsFixed = act == ContextActions.NewFixed;
+                    addTo = mdl.Hardpoints;
+                    addConstruct = con;
+                    newHpBuffer.Clear();
+                    popups.OpenPopup("New Hardpoint");
+                    break;
+            }
+            Theme.RenderTreeIcon("Hardpoints", "hardpoint", Color4.CornflowerBlue);
+            if (open)
+            {
+                foreach (var hp in mdl.Hardpoints)
+                {
+                    HardpointGizmo gz = null;
+                    foreach (var gizmo in gizmos)
+                    {
+                        if (gizmo.Definition == hp)
+                        {
+                            gz = gizmo;
+                            break;
+                        }
+                    }
+                    if (hp is RevoluteHardpointDefinition)
+                    {
+                        Theme.Icon("rev", Color4.LightSeaGreen);
+                    }
+                    else
+                    {
+                        Theme.Icon("fix", Color4.Purple);
+                    }
+                    ImGui.SameLine();
+                    if (Theme.IconButton("visible$" + hp.Name, "eye", gz.Enabled ? Color4.White : Color4.Gray))
+                    {
+                        gz.Enabled = !gz.Enabled;
+                    }
+                    ImGui.SameLine();
+                    ImGui.Selectable(hp.Name);
+                    var action = EditDeleteHpMenu(mdl.Path + hp.Name);
+                    if (action == ContextActions.Delete)
+                    {
+                        hpDelete = hp;
+                        hpDeleteFrom = mdl.Hardpoints;
+                        popups.OpenPopup("Confirm Delete");
+                    }
+                    if (action == ContextActions.Edit) hpEditing = hp;
+                }
+                ImGui.TreePop();
+            }
+        }
+        enum ContextActions {
+            None, NewFixed,NewRevolute,Edit,Delete
+        }
+        ContextActions NewHpMenu(string n)
+        {
+            if(ImGuiNative.igIsItemClicked(1))
+                ImGui.OpenPopup(n + "_HardpointContext");
+            if(ImGui.BeginPopupContextItem(n + "_HardpointContext")) {
+                if(ImGui.BeginMenu("New")) {
+                    if (Theme.IconMenuItem("Fixed Hardpoint","fix",Color4.Purple,true)) return ContextActions.NewFixed;
+                    if (Theme.IconMenuItem("Revolute Hardpoint","rev",Color4.LightSeaGreen,true)) return ContextActions.NewRevolute;
+                    ImGui.EndMenu();
+                }
+                ImGui.EndPopup();
+            }
+            return ContextActions.None;
+        }
+        ContextActions EditDeleteHpMenu(string n)
+        {
+            if(ImGuiNative.igIsItemClicked(1))
+                ImGui.OpenPopup(n + "_HardpointEditCtx");
+            if(ImGui.BeginPopupContextItem(n + "_HardpointEditCtx")) {
+                if(ImGui.MenuItem("Edit")) return ContextActions.Edit;
+                if(ImGui.MenuItem("Delete")) return ContextActions.Delete;
+                ImGui.EndPopup();
+            }
+            return ContextActions.None;
         }
         int level = 0;
         string[] levels;
@@ -425,6 +623,7 @@ namespace LancerEdit
                 }
                 ImGui.Separator();
             }
+
             if (selectedNode != null)
             {
                 ImGui.Text(selectedNode.Con.ChildName);
@@ -437,12 +636,25 @@ namespace LancerEdit
                                          MathHelper.RadiansToDegrees(euler.Z)));
                 ImGui.Separator();
             }
+            if(ImGui.Button("Apply Hardpoints")) {
+                if(drawable is CmpFile) {
+                    var cmp = (CmpFile)drawable;
+                    foreach(var kv in cmp.Models) {
+                        var node = hprefs.Nodes.Where((x) => x.Name == kv.Key).First();
+                        node.HardpointsToNodes(kv.Value.Hardpoints);
+                    }
+                } else if (drawable is ModelFile) {
+                    hprefs.Nodes[0].HardpointsToNodes(((ModelFile)drawable).Hardpoints);
+                }
+                popups.OpenPopup("Apply Complete");
+            }
+
             if (ImGui.TreeNodeEx(ImGuiExt.Pad("Root"), TreeNodeFlags.DefaultOpen))
             {
                 Theme.RenderTreeIcon("Root", "tree", Color4.DarkGreen);
                 foreach (var n in cons)
                     DoConstructNode(n);
-                if (!(drawable is SphFile)) DoModel(rootModel);
+                if (!(drawable is SphFile)) DoModel(rootModel,null);
                 ImGui.TreePop();
             }
             else
@@ -470,6 +682,7 @@ namespace LancerEdit
         public override void Dispose()
         {
             modelViewport.Dispose();
+            newHpBuffer.Dispose();
         }
     }
 }

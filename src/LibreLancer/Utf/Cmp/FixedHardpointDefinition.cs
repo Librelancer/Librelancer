@@ -32,5 +32,6 @@ namespace LibreLancer.Utf.Cmp
                     throw new Exception("Invalid LeafNode in " + root.Name + ": " + node.Name);
             }
         }
+        public FixedHardpointDefinition(string name) : base(name) { }
     }
 }
