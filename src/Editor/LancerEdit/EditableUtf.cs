@@ -118,9 +118,33 @@ namespace LancerEdit
                 return true;
             }
         }
+        string GetUtfPath(LUtfNode n)
+        {
+            List<string> strings = new List<string>();
+            LUtfNode node = n;
+            while (node.Name != "/" && node.Name != "\\")
+            {
+                strings.Add(node.Name);
+                node = node.Parent;
+            }
+            strings.Reverse();
+            var path = "/" + string.Join("/", strings);
+            return path;
+        }
 		//Write the nodes out to a file
-		public void Save(string filename)
+        public bool Save(string filename, ref string error)
 		{
+            //Check for invalid UTF
+            foreach (var node in Root.IterateAll())
+            {
+                if(node.Children == null && node.Data == null ||
+                   node.Children != null && node.Children.Count == 0 ||
+                   node.Data != null && node.Data.Length == 0)
+                {
+                    error = string.Format("{0} is empty. Can't write UTF",GetUtfPath(node));
+                    return false;
+                }
+            }
 			Dictionary<string, int> stringOffsets = new Dictionary<string, int>();
 			Dictionary<LUtfNode, int> dataOffsets = new Dictionary<LUtfNode, int>();
 			List<string> strings = new List<string>();
@@ -226,6 +250,7 @@ namespace LancerEdit
 					}
 				}
 			}
+            return true;
 		}
 		void WriteNode(LUtfNode node, BinaryWriter writer, Dictionary<string, int> strOff, Dictionary<LUtfNode, int> datOff, bool last)
 		{

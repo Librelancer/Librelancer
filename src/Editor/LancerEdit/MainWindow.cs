@@ -165,7 +165,12 @@ namespace LancerEdit
 						{
 							ActiveTab.DocumentName = System.IO.Path.GetFileName(f);
                             ActiveTab.UpdateTitle();
-							ActiveTab.Utf.Save(f);
+                            string errText = "";
+                            if(!ActiveTab.Utf.Save(f, ref errText)) {
+                                openError = true;
+                                if (errorText == null) errorText = new TextBuffer();
+                                errorText.SetText(errText);
+                            }
 						}
 					}
 				}
@@ -377,7 +382,8 @@ namespace LancerEdit
             finishLoading = true;
             if (errorText != null) errorText.Dispose();
             var str = "Import Error:\n" + ex.Message + "\n" + ex.StackTrace;
-            errorText = new TextBuffer();
+            if(errorText == null)
+                errorText = new TextBuffer();
             errorText.SetText(str);
             openError = true;
          }

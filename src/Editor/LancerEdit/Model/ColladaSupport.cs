@@ -57,6 +57,7 @@ namespace LancerEdit
         public VertexPositionNormalDiffuseTextureTwo[] Vertices;
         public ColladaDrawcall[] Drawcalls;
         public D3DFVF FVF;
+        public string Name;
 
         public void CalculateDimensions()
         {
@@ -187,6 +188,16 @@ namespace LancerEdit
             //Get libraries
             var geometrylib = dae.Items.OfType<CL.library_geometries>().First();
             var scenelib = dae.Items.OfType<CL.library_visual_scenes>().First();
+            //Check for blender to enable cleanup
+            bool isBlender = false;
+            if (dae.asset.contributor != null &&
+              dae.asset.contributor.Length > 0)
+            {
+                var t = dae.asset.contributor[0].authoring_tool;
+                if (!string.IsNullOrEmpty(t) &&
+                  t.StartsWith("blender", StringComparison.InvariantCultureIgnoreCase))
+                    isBlender = true;
+            }
             //Get main scene
             var urlscn = CheckURI(dae.scene.instance_visual_scene.url);
             var scene = scenelib.visual_scene.Where((x) => x.id == urlscn).First();
@@ -194,12 +205,12 @@ namespace LancerEdit
             var up = dae.asset.up_axis;
             var objs = new List<ColladaObject>();
             foreach(var node in scene.node) {
-                objs.Add(ProcessNode(up, geometrylib, node));
+                objs.Add(ProcessNode(up, geometrylib, node,isBlender));
             }
             return objs;
         }
 
-        static ColladaObject ProcessNode(CL.UpAxisType up, CL.library_geometries geom, CL.node n)
+        static ColladaObject ProcessNode(CL.UpAxisType up, CL.library_geometries geom, CL.node n, bool isBlender)
         {
             var obj = new ColladaObject();
             obj.Name = n.name;
@@ -210,7 +221,7 @@ namespace LancerEdit
                 var uri = CheckURI(n.instance_geometry[0].url);
                 var g = geom.geometry.Where((x) => x.id == uri).First();
                 if(g.Item is CL.mesh) {
-                    obj.Geometry = GetGeometry(up, g);
+                    obj.Geometry = GetGeometry(up, g, isBlender);
                 } else if (g.Item is CL.spline) {
                     obj.Spline = GetSpline(up, g);
                 }
@@ -229,7 +240,7 @@ namespace LancerEdit
             }
             if(n.node1 != null && n.node1.Length > 0) {
                 foreach(var node in n.node1) {
-                    obj.Children.Add(ProcessNode(up, geom, node));
+                    obj.Children.Add(ProcessNode(up, geom, node,isBlender));
                 }
             }
             return obj;
@@ -265,9 +276,10 @@ namespace LancerEdit
         const string SEM_COLOR = "COLOR";
         const string SEM_NORMAL = "NORMAL";
         const string SEM_TEXCOORD = "TEXCOORD";
-        static ColladaGeometry GetGeometry(CL.UpAxisType up, CL.geometry geo)
+        static ColladaGeometry GetGeometry(CL.UpAxisType up, CL.geometry geo, bool isBlender)
         {
             var conv = new ColladaGeometry() { FVF = D3DFVF.XYZ };
+            conv.Name = string.IsNullOrEmpty(geo.name) ? geo.id : geo.name;
             var msh = geo.Item as CL.mesh;
             if (msh == null) return null;
             List<VertexPositionNormalDiffuseTextureTwo> vertices = new List<VertexPositionNormalDiffuseTextureTwo>();
@@ -277,6 +289,7 @@ namespace LancerEdit
             Dictionary<string, GeometrySource> sources = new Dictionary<string, GeometrySource>();
             Dictionary<string, float[]> arrays = new Dictionary<string, float[]>();
             Dictionary<string, GeometrySource> verticesRefs = new Dictionary<string, GeometrySource>();
+            int placeHolderIdx = 0;
             //Get arrays
             foreach(var acc in msh.source) {
                 var arr = acc.Item as CL.float_array;
@@ -329,7 +342,10 @@ namespace LancerEdit
                     inputs = plist.input;
                     triangleCount = (int)(plist.count * 3);
                 }
-                
+                //Blender workaround #1 - their stuff is crap
+                if(!string.IsNullOrEmpty(material) && isBlender && material.EndsWith("-material",StringComparison.InvariantCulture)) {
+                    material = material.Substring(0, material.Length - 9);
+                }
                 int pStride = 0;
                 foreach (var input in inputs)
                     pStride = Math.Max((int)input.offset, pStride);
@@ -441,7 +457,7 @@ namespace LancerEdit
                     StartVertex = vertexOffset,
                     EndVertex = vertices.Count - 1,
                     TriCount = (indices.Count - startIdx) / 3,
-                    Material = string.IsNullOrEmpty(material) ? "NullMaterial" : material
+                    Material = string.IsNullOrEmpty(material) ? (geo.name + "_mat" + placeHolderIdx++) : material
                 });
             }
             conv.Indices = indices.ToArray();

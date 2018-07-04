@@ -44,22 +44,42 @@ namespace LancerEdit
             public bool Transform = true;
             public List<ColladaObject> LODs = new List<ColladaObject>();
             public List<OutModel> Children = new List<OutModel>();
+            public List<MaterialName> Materials = new List<MaterialName>();
         }
-
+        List<TextBuffer> nameBuffers = new List<TextBuffer>();
+        class MaterialName
+        {
+            public ColladaGeometry Geometry;
+            public int Drawcall;
+            public TextBuffer Name;
+        }
         MainWindow win;
-        Viewport3D colladaViewport;
-        Viewport3D flViewport;
         public ColladaTab(List<ColladaObject> objects, string fname, MainWindow win)
         {
             objs = objects;
             Autodetect();
+            foreach (var obj in output)
+                DoMats(obj);
             Title = string.Format("Collada Importer ({0})##{1}", fname,Unique);
-            normalMaterial = new NormalDebugMaterial();
             this.win = win;
-            colladaViewport = new Viewport3D(win.RenderState, win.Viewport);
-            colladaViewport.MarginH = 15;
-            flViewport = new Viewport3D(win.RenderState, win.Viewport);
-            flViewport.MarginH = 15;
+        }
+        void DoMats(OutModel mdl)
+        {
+            foreach(var lod in mdl.LODs) {
+                for (int i = 0; i < lod.Geometry.Drawcalls.Length; i++) {
+                    var buf = new TextBuffer(256);
+                    buf.SetText(lod.Geometry.Drawcalls[i].Material);
+                    mdl.Materials.Add(new MaterialName()
+                    {
+                        Geometry = lod.Geometry,
+                        Drawcall = i,
+                        Name = buf
+                    });
+                    nameBuffers.Add(buf);
+                }
+            }
+            foreach (var child in mdl.Children)
+                DoMats(child);
         }
         void Autodetect()
         {
@@ -118,6 +138,15 @@ namespace LancerEdit
                 if (src[src.Length - postfixfmt.Length + i] != postfixfmt[i]) return false;
             return true;
         }
+        void ApplyMatNames(OutModel model)
+        {
+            foreach(var mat in model.Materials) {
+                mat.Geometry.Drawcalls[mat.Drawcall].Material = mat.Name.GetText();
+            }
+            foreach(var child in model.Children) {
+                ApplyMatNames(child);
+            }
+        }
         const string EXPORTER_VERSION = "LancerEdit Collada Importer 2018";
         bool Finish(out EditableUtf result)
         {
@@ -127,6 +156,10 @@ namespace LancerEdit
             var expv = new LUtfNode() { Name = "Exporter Version", Parent = utf.Root };
             expv.Data = System.Text.Encoding.UTF8.GetBytes(EXPORTER_VERSION);
             utf.Root.Children.Add(expv);
+            //Apply Material names
+            foreach(var mdl in output) {
+                ApplyMatNames(mdl);
+            }
             //Actual stuff
             if (output.Count == 1)
             {
@@ -343,9 +376,6 @@ namespace LancerEdit
                 node3db.Children.Add(part);
             }
         }
-        VertexBuffer vbo;
-        ElementBuffer ibo;
-        NormalDebugMaterial normalMaterial;
 
         bool _openError;
         string _errorText;
@@ -357,11 +387,8 @@ namespace LancerEdit
         float collada_h1 = 200, collada_h2 = 200;
         public override void Draw()
         {
-            ImGui.Columns(2, "##columns", true);
-            ImGui.Text("Collada");
-            ImGui.NextColumn();
-            ImGui.Text("UTF");
-            ImGui.SameLine(ImGui.GetColumnWidth(1) - 60);
+            ImGui.Text("Tree");
+            ImGui.SameLine(ImGui.GetWindowWidth() - 60);
             if (ImGui.Button("Finish"))
             {
                 EditableUtf utf;
@@ -371,11 +398,6 @@ namespace LancerEdit
                     ErrorPopup("Invalid UTF Structure:\nMore than one root node.");
                 }
             }
-            ImGui.NextColumn();
-            ImGui.BeginChild("##collada");
-            ColladaPane();
-            ImGui.EndChild();
-            ImGui.NextColumn();
             ImGui.BeginChild("##fl");
             FLPane();
             ImGui.EndChild();
@@ -388,70 +410,8 @@ namespace LancerEdit
             _openError = false;
         }
 
-        bool colladaPreview = true;
-        void ColladaPane()
-        {
-            var totalH = ImGui.GetWindowHeight();
-            ImGuiExt.SplitterV(2f, ref collada_h1, ref collada_h2, 8, 8, -1);
-            collada_h1 = totalH - collada_h2 - 6f;
-            ImGui.BeginChild("1", new Vector2(-1, collada_h1), false, WindowFlags.Default);
-            ImGui.Separator();
-            if (ImGui.TreeNode("Scene/"))
-            {
-                int i = 0;
-                foreach (var obj in objs)
-                    ColladaTree(obj, ref i);
-                ImGui.TreePop();
-            }
-            CheckSelected();
-            ImGui.EndChild();
-            ImGui.BeginChild("2", new Vector2(-1, collada_h2), false, WindowFlags.Default);
-            //Preview+Properties
-            if (selected == null)
-            {
-                ImGui.Text("No node selected");
-            }
-            else
-            {
-                if (selected.Geometry != null)
-                {
-                    if (ImGuiExt.ToggleButton("Preview", colladaPreview)) colladaPreview = true;
-                    ImGui.SameLine();
-                    if (ImGuiExt.ToggleButton("Details", !colladaPreview)) colladaPreview = false;
-                    ImGui.Separator();
-                    if (colladaPreview)
-                    {
-                        ImGui.BeginChild("##colladapreview");
-                        Render();
-                        ImGui.EndChild();
-                    }
-                    else
-                        ColladaDetails();
-                }
-                else
-                    ColladaDetails();
-            }
-            //
-            ImGui.EndChild();
-        }
-
-        void ColladaDetails()
-        {
-            ImGui.Text(selected.Name);
-            ImGui.Text("ID: " + selected.ID);
-            if (selected.Geometry != null)
-            {
-                ImGui.Text("Mesh: " + selected.Geometry.FVF.ToString());
-                ImGui.Text("Materials:");
-                foreach (var dc in selected.Geometry.Drawcalls)
-                {
-                    ImGui.Text(dc.Material);
-                }
-            }
-        }
-
         float fl_h1 = 200, fl_h2 = 200;
-        bool flPreview = false;
+        int curTab = 0;
         bool generateMaterials = true;
         void FLPane()
         {
@@ -471,31 +431,47 @@ namespace LancerEdit
             }
             ImGui.EndChild();
             ImGui.BeginChild("2", new Vector2(-1, fl_h2), false, WindowFlags.Default);
-            if (ImGuiExt.ToggleButton("Options", !flPreview)) flPreview = false;
+            if (ImGuiExt.ToggleButton("Options", curTab == 0)) curTab = 0;
             ImGui.SameLine();
-            if (ImGuiExt.ToggleButton("Preview", flPreview)) flPreview = true;
+            if (ImGuiExt.ToggleButton("Materials", curTab == 1)) curTab = 1;
             ImGui.Separator();
-            if (flPreview)
-            {
-
-            }
-            else
-            {
-                ImGui.Checkbox("Default Materials", ref generateMaterials);
+            switch(curTab) {
+                case 0: //OPTIONS
+                    ImGui.Checkbox("Generate Materials", ref generateMaterials);
+                    break;
+                case 1: //MATERIALS
+                    if (selected == null)
+                    {
+                        ImGui.Text("No object selected");
+                    }
+                    else
+                        MatNameEdit();
+                    break;
             }
             ImGui.EndChild();
         }
+        void MatNameEdit()
+        {
+            int i = 0;
+            foreach(var name in selected.Materials) {
+                ImGui.Text(string.Format("{0} ({1})", name.Geometry.Name, name.Drawcall));
+                ImGui.SameLine();
+                ImGui.InputText("##" + i++, name.Name.Pointer, (uint)name.Name.Size, InputTextFlags.Default, name.Name.Callback);
+            }
+        }
+        OutModel selected;
         void FLTree(OutModel mdl, ref int i)
         {
             var flags = TreeNodeFlags.OpenOnDoubleClick |
                                          TreeNodeFlags.DefaultOpen |
                                          TreeNodeFlags.OpenOnArrow;
-            //if (obj == selected) flags |= TreeNodeFlags.Selected;
+            if (mdl == selected) flags |= TreeNodeFlags.Selected;
             var open = ImGui.TreeNodeEx(ImGuiExt.Pad(mdl.Name + "##" + i++), flags);
-            //if (ImGuiNative.igIsItemClicked(0))
-            //selected = obj;
-            //ColladaContextMenu();
-            Theme.RenderTreeIcon(mdl.Name, "fix", Color4.White);
+            if(ImGuiNative.igIsItemClicked(0)) {
+                selected = mdl;
+            }
+            ImGui.SameLine();
+            Theme.RenderTreeIcon(mdl.Name,"fix", Color4.LightPink);
             if(open)
             {
                 if(ImGui.TreeNode("LODs")) {
@@ -509,101 +485,11 @@ namespace LancerEdit
             }
             i += 500;
         }
-        void Render()
-        {
-            colladaViewport.Begin();
-            var cam = new LookAtCamera();
-            cam.Update(colladaViewport.RenderWidth, colladaViewport.RenderHeight, new Vector3(colladaViewport.Zoom, 0, 0), Vector3.Zero);
-            normalMaterial.World = Matrix4.CreateRotationX(colladaViewport.Rotation.Y) * Matrix4.CreateRotationY(colladaViewport.Rotation.X);
-            normalMaterial.Camera = cam;
-            normalMaterial.Use(win.RenderState, new VertexPositionNormalDiffuseTextureTwo(), ref Lighting.Empty);
-            foreach (var drawcall in selected.Geometry.Drawcalls)
-            {
-                vbo.Draw(PrimitiveTypes.TriangleList, drawcall.StartVertex, drawcall.StartIndex, drawcall.TriCount);
-            }
-            colladaViewport.End();
-        }
-        void CheckSelected()
-        {
-            if (lastSelected != selected)
-            {
-                if (vbo != null)
-                {
-                    vbo.Dispose();
-                    vbo = null;
-                }
-                if (ibo != null)
-                {
-                    ibo.Dispose();
-                    ibo = null;
-                }
-                if (selected.Geometry != null)
-                {
-                    vbo = new VertexBuffer(typeof(VertexPositionNormalDiffuseTextureTwo),
-                                                    selected.Geometry.Vertices.Length);
-                    vbo.SetData(selected.Geometry.Vertices);
-                    ibo = new ElementBuffer(selected.Geometry.Indices.Length);
-                    ibo.SetData(selected.Geometry.Indices);
-                    vbo.SetElementBuffer(ibo);
-                    colladaViewport.Zoom = selected.Geometry.Radius * 2;
-                    colladaViewport.ZoomStep = colladaViewport.Zoom / 3.76f;
-                    colladaViewport.Rotation = Vector2.Zero;
-                }
-
-                lastSelected = selected;
-            }
-        }
-
-        ColladaObject lastSelected = null;
-        ColladaObject selected = null;
-        void ColladaTree(ColladaObject obj, ref int i)
-        {
-            string tree_icon = "dummy";
-            if (obj.Geometry != null) tree_icon = "fix";
-            if (obj.Children.Count > 0)
-            {
-                var flags = TreeNodeFlags.OpenOnDoubleClick |
-                                         TreeNodeFlags.DefaultOpen |
-                                         TreeNodeFlags.OpenOnArrow;
-                if (obj == selected) flags |= TreeNodeFlags.Selected;
-                var open = ImGui.TreeNodeEx(ImGuiExt.Pad(obj.Name + "##" + i++), flags);
-                if (ImGuiNative.igIsItemClicked(0))
-                    selected = obj;
-                ColladaContextMenu();
-                Theme.RenderTreeIcon(obj.Name, tree_icon, Color4.White);
-                if(open)
-                {
-                    foreach (var child in obj.Children)
-                        ColladaTree(child, ref i);
-                    ImGui.TreePop();
-                }
-                i += 500;
-            }
-            else
-            {
-                if (ImGui.Selectable(ImGuiExt.Pad(obj.Name + "##" + i++), obj == selected))
-                {
-                    selected = obj;
-                }
-                ColladaContextMenu();
-                Theme.RenderTreeIcon(obj.Name, tree_icon, Color4.White);
-            }
-
-        }
-        void ColladaContextMenu()
-        {
-            if (ImGuiNative.igIsItemClicked(1))
-            {
-                ImGui.OpenPopup("colladanodeclick");
-            }
-
-        }
+       
+       
         public override void Dispose()
         {
-            colladaViewport.Dispose();
-            flViewport.Dispose();
-            if (vbo != null) vbo.Dispose();
-            if (ibo != null) ibo.Dispose();
+            foreach (var buf in nameBuffers) buf.Dispose();
         }
     }
 }
