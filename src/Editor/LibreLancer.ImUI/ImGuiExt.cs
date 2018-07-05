@@ -28,6 +28,40 @@ namespace LibreLancer.ImUI
             return retval;
         }
 
+        const int ImDrawCornerFlags_All = 0xF;
+        public static unsafe void ToastText(string text, Color4 background, Color4 foreground)
+        {
+            var displaySize = (Vector2)(ImGui.GetIO().DisplaySize);
+            var textSize = (Vector2)ImGui.GetTextSize(text);
+            var drawlist = ImGuiNative.igGetOverlayDrawList();
+            var textbytes = System.Text.Encoding.UTF8.GetBytes(text);
+            ImGuiNative.ImDrawList_AddRectFilled(
+                drawlist,
+                new Vector2(displaySize.X - textSize.X - 9, 2),
+                new Vector2(displaySize.X, textSize.Y + 9),
+                GetUint(background), 2, ImDrawCornerFlags_All
+            );
+            fixed (byte* ptr = textbytes)
+            {
+                ImGuiNative.ImDrawList_AddText(
+                    drawlist, 
+                    new Vector2(displaySize.X - textSize.X - 3,2), 
+                    GetUint(foreground), ptr, 
+                    (byte*)0
+                );
+            }
+        }
+
+        public static unsafe uint GetUint(Color4 color)
+        {
+            uint a = 0;
+            var ptr = (byte*)&a;
+            ptr[0] = (byte)(color.R * 255);
+            ptr[1] = (byte)(color.G * 255);
+            ptr[2] = (byte)(color.B * 255);
+            ptr[3] = (byte)(color.A * 255);
+            return a;
+        }
         [DllImport("cimgui", EntryPoint = "igExtSpinner", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool Spinner(string label, float radius, int thickness, uint color);
 	}

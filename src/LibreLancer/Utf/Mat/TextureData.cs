@@ -24,6 +24,8 @@ namespace LibreLancer.Utf.Mat
 {
 	public class TextureData
 	{
+        public static bool Bitch = false;
+
 		private string type;
 		private string texname;
 		private byte[] data;
@@ -52,6 +54,13 @@ namespace LibreLancer.Utf.Mat
 						Texture = ImageLib.DDS.DDSFromStream2D (stream, 0, true);
 					} else if (type.StartsWith ("mip", StringComparison.OrdinalIgnoreCase)) {;
 						var tga = ImageLib.TGA.FromStream(stream, levels != null);
+                        if(tga == null) {
+                            FLLog.Error("Mat","Texture " + texname + "\\MIP0" + " is bad");
+                            if (Bitch) throw new Exception("Your texture data is bad, fix it!\n" +
+                                                           texname + "\\MIP0 to be exact");
+                            Texture = null;
+                            return;
+                        }
 						if (levels != null)
 						{
 							foreach (var lv in levels)

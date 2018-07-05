@@ -65,7 +65,7 @@ namespace LancerEdit
 			MaterialMap.AddRegex(new LibreLancer.Ini.StringKeyValue("^nomad.*$", "NomadMaterialNoBendy"));
 			MaterialMap.AddRegex(new LibreLancer.Ini.StringKeyValue("^n-texture.*$", "NomadMaterialNoBendy"));
             FLLog.UIThread = this;
-            FLLog.AppendLine = (x) =>
+            FLLog.AppendLine = (x,severity) =>
             {
                 logText.AppendLine(x);
                 if (logText.Length > 16384)
@@ -73,10 +73,15 @@ namespace LancerEdit
                     logText.Remove(0, logText.Length - 16384);
                 }
                 logBuffer.SetText(logText.ToString());
+                if (severity == LogSeverity.Error)
+                {
+                    errorTimer = 9;
+                    Bell.Play();
+                }
             };
             logBuffer = new TextBuffer(32768);
 		}
-
+        double errorTimer = 0;
 		protected override void Load()
 		{
 			Title = "LancerEdit";
@@ -119,12 +124,14 @@ namespace LancerEdit
 		{
 			foreach (var tab in tabs)
 				tab.Update(elapsed);
+            if (errorTimer > 0) errorTimer -= elapsed;
 		}
         DockTab selected;
         TextBuffer errorText;
         bool showLog = false;
         bool showOptions = false;
         float h1 = 200, h2 = 200;
+        Vector2 errorWindowSize = Vector2.Zero;
 		protected override void Draw(double elapsed)
 		{
 			EnableTextInput();
@@ -342,6 +349,11 @@ namespace LancerEdit
 									 activename,
 									 utfpath));
 			ImGui.EndWindow();
+            if(errorTimer > 0) {
+                ImGuiExt.ToastText("An error has occurred\nCheck the log for details",
+                                   new Color4(21, 21, 22, 128),
+                                   Color4.Red);
+            }
             if(showOptions) {
                 ImGui.BeginWindow("Options", ref showOptions, WindowFlags.AlwaysAutoResize);
                 var pastC = cFilter;

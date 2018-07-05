@@ -277,8 +277,11 @@ namespace LibreLancer
 				{
 					var v = tex.Value;
 					v.Initialize();
-					textures.Add(tex.Key, v.Texture);
-					texturefiles.Add(tex.Key, filename);
+                    if (v.Texture != null)
+                    {
+                        textures.Add(tex.Key, v.Texture);
+                        texturefiles.Add(tex.Key, filename);
+                    }
 				}
 				else if (textures[tex.Key] == null)
 				{

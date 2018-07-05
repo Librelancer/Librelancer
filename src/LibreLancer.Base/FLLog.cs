@@ -36,7 +36,7 @@ namespace LibreLancer
 #endif
 
         public static IUIThread UIThread;
-        public static Action<string> AppendLine;
+        public static Action<string,LogSeverity> AppendLine;
 		[DllImport("libc")]
 		static extern bool isatty(int desc);
 
@@ -56,11 +56,12 @@ namespace LibreLancer
 				newC = ConsoleColor.Yellow;
 				break;
 			}
-			NonblockWrite(newC, string.Format("[{0}] {1}: {2}", severity, component, message));
+			NonblockWrite(newC, string.Format("[{0}] {1}: {2}", severity, component, message),severity);
 		}
 
 		struct NonblockingWrite
 		{
+            public LogSeverity Severity;
 			public ConsoleColor Color;
 			public string Value;
 		}
@@ -75,7 +76,7 @@ namespace LibreLancer
 				 {
 					 var q = m_Queue.Take();
                      if (UIThread != null && AppendLine != null)
-                         UIThread.QueueUIThread(() => AppendLine(q.Value));
+                         UIThread.QueueUIThread(() => AppendLine(q.Value,q.Severity));
 					 if (Platform.RunningOS == OS.Windows)
 					 {
 						 var c = Console.ForegroundColor;
@@ -100,9 +101,9 @@ namespace LibreLancer
 
             thread.Start();
 		}
-		static void NonblockWrite(ConsoleColor color, string message)
+        static void NonblockWrite(ConsoleColor color, string message,LogSeverity severity)
 		{
-			m_Queue.Add(new NonblockingWrite() { Color = color, Value = message });
+			m_Queue.Add(new NonblockingWrite() { Color = color, Value = message, Severity = severity });
 		}
 
 		public static void Info(string component, string message)

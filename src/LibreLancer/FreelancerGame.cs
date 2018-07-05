@@ -57,6 +57,7 @@ namespace LibreLancer
 			//DO NOT RUN CODE HERE. IT CAUSES THE STUPIDEST CRASH ON OSX KNOWN TO MAN
 			_cfg = config;
 			ScreenshotSave += FreelancerGame_ScreenshotSave;
+            Utf.Mat.TextureData.Bitch = true;
         }
 
 		public void ChangeState(GameState state)

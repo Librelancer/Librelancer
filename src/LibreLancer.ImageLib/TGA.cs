@@ -50,7 +50,7 @@ namespace LibreLancer.ImageLib
 			colorMapType = (byte)stream.ReadByte();
 
 			// Should only be 0 (no color-map) or 1 (color-map is included).
-			if (colorMapType != 0 && colorMapType != 1) throw new Exception(); //return null;
+			if (colorMapType != 0 && colorMapType != 1) return null;
 
 			imageType = (byte)stream.ReadByte();
 
