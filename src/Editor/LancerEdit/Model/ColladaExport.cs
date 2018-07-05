@@ -324,14 +324,14 @@ namespace LancerEdit
                     if (tex1 != null)
                         inputs.Add(new CL.InputLocalOffset()
                         {
-                            semantic = "TEXTURE",
+                            semantic = "TEXCOORD",
                             source = "#" + tex1.id,
                             offset = off++
                         });
                     if (tex2 != null)
                         inputs.Add(new CL.InputLocalOffset()
                         {
-                            semantic = "TEXTURE",
+                            semantic = "TEXCOORD",
                             source = "#" + tex2.id,
                             offset = off++
                         });
