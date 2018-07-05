@@ -418,16 +418,20 @@ namespace LancerEdit
             HPy = hpEditing.Position.Y;
             HPz = hpEditing.Position.Z;
             var euler = hpEditing.Orientation.GetEuler();
-            HPpitch = euler.X; HPyaw = euler.Y; HProll = euler.Z;
+            HPpitch = MathHelper.RadiansToDegrees(euler.X); 
+            HPyaw = MathHelper.RadiansToDegrees(euler.Y); 
+            HProll = MathHelper.RadiansToDegrees(euler.Z);
             if (hpEditing is RevoluteHardpointDefinition)
             {
                 var rev = (RevoluteHardpointDefinition)hpEditing;
-                HPmin = rev.Min; HPmax = rev.Max;
+                HPmin = MathHelper.RadiansToDegrees(rev.Min); 
+                HPmax = MathHelper.RadiansToDegrees(rev.Max);
                 HPaxisX = rev.Axis.X;
                 HPaxisY = rev.Axis.Y;
                 HPaxisZ = rev.Axis.Z;
             }
         }
+        bool first = true;
         unsafe void HardpointEditor()
         {
             if(hpEditing == null) {
@@ -439,7 +443,8 @@ namespace LancerEdit
                 hpEditOpen = true;
                 SetHardpointValues();
             }
-            if(ImGui.BeginWindow("Hardpoint Editor##" + Unique,ref hpEditOpen, WindowFlags.Default)) {
+            if(ImGui.BeginWindow("Hardpoint Editor##" + Unique,ref hpEditOpen, first ? WindowFlags.AlwaysAutoResize : WindowFlags.Default)) {
+                first = false;
                 ImGui.Text(hpEditing.Name);
                 bool isFix = hpEditing is FixedHardpointDefinition;
                 ImGui.Text("Type: " + (isFix ? "Fixed" : "Revolute"));
@@ -454,12 +459,12 @@ namespace LancerEdit
                     ImGuiNative.igInputFloat("Z##posZ", hpz, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
                 ImGui.Separator();
                 ImGui.Text("Rotation");
-                if (ImGui.Button("0##0pitch")) HPpitch = 0; ImGui.SameLine();
-                ImGui.SliderFloat("Pitch", ref HPpitch, -MathHelper.Pi, MathHelper.Pi, "%f", 1);
-                if (ImGui.Button("0##0yaw")) HPyaw = 0; ImGui.SameLine();
-                ImGui.SliderFloat("Yaw", ref HPyaw, -MathHelper.Pi, MathHelper.Pi, "%f", 1);
-                if (ImGui.Button("0##0roll")) HProll = 0; ImGui.SameLine();
-                ImGui.SliderFloat("Roll", ref HProll, -MathHelper.Pi, MathHelper.Pi, "%f", 1);
+                fixed (float* hpp = &HPpitch)
+                    ImGuiNative.igInputFloat("Pitch", hpp, 0.1f, 1f, 4, InputTextFlags.CharsDecimal);
+                fixed (float* hpy = &HPyaw)
+                    ImGuiNative.igInputFloat("Yaw", hpy, 0.1f, 1f, 4, InputTextFlags.CharsDecimal);
+                fixed (float* hpr = &HProll)
+                    ImGuiNative.igInputFloat("Roll", hpr, 0.1f, 1f, 4, InputTextFlags.CharsDecimal);
                 ImGui.Separator();
                 if(!isFix) {
                     ImGui.Text("Axis");
@@ -469,19 +474,25 @@ namespace LancerEdit
                         ImGuiNative.igInputFloat("Y##axisY", axy, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
                     fixed (float* axz = &HPaxisZ)
                         ImGuiNative.igInputFloat("Z##axisZ", axz, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
-                    if (ImGui.Button("0##0min")) HPmin = 0; ImGui.SameLine();
-                    ImGui.SliderFloat("Min", ref HPmin, -MathHelper.Pi, MathHelper.Pi, "%f", 1);
-                    if (ImGui.Button("0##0max")) HPmax = 0; ImGui.SameLine();
-                    ImGui.SliderFloat("Max", ref HPmax, -MathHelper.Pi, MathHelper.Pi, "%f", 1);
+                    fixed (float* axmn = &HPmin)
+                        ImGuiNative.igInputFloat("Min", axmn, 0.1f, 1f, 4, InputTextFlags.CharsDecimal);
+                    fixed (float* axmx = &HPmax)
+                        ImGuiNative.igInputFloat("Max", axmx, 0.1f, 1f, 4, InputTextFlags.CharsDecimal);
                     ImGui.Separator();
                 }
                 if(ImGui.Button("Apply")) {
                     hpEditing.Position = new Vector3(HPx, HPy, HPz);
-                    hpEditing.Orientation = Matrix4.CreateFromQuaternion(Quaternion.FromEulerAngles(HPpitch, HPyaw, HProll));
+                    hpEditing.Orientation = Matrix4.CreateFromQuaternion(
+                        Quaternion.FromEulerAngles(
+                            MathHelper.DegreesToRadians(HPpitch), 
+                            MathHelper.DegreesToRadians(HPyaw), 
+                            MathHelper.DegreesToRadians(HProll)
+                        )
+                    );
                     if(!isFix) {
                         var rev = (RevoluteHardpointDefinition)hpEditing;
-                        rev.Min = HPmin;
-                        rev.Max = HPmax;
+                        rev.Min = MathHelper.DegreesToRadians(HPmin);
+                        rev.Max = MathHelper.DegreesToRadians(HPmax);
                         rev.Axis = new Vector3(HPaxisX, HPaxisY, HPaxisZ);
                     }
                     hpEditOpen = false;
@@ -490,9 +501,13 @@ namespace LancerEdit
                 if(ImGui.Button("Cancel")) {
                     hpEditOpen = false;
                 }
-                editingGizmo.Override =
-                    Matrix4.CreateFromQuaternion(Quaternion.FromEulerAngles(HPpitch, HPyaw, HProll)) *
-                                Matrix4.CreateTranslation(HPx, HPy, HPz);
+                editingGizmo.Override =Matrix4.CreateFromQuaternion(
+                        Quaternion.FromEulerAngles(
+                            MathHelper.DegreesToRadians(HPpitch),
+                            MathHelper.DegreesToRadians(HPyaw),
+                            MathHelper.DegreesToRadians(HProll)
+                        )
+                    ) * Matrix4.CreateTranslation(HPx, HPy, HPz);
                 ImGui.EndWindow();
             }
             if (hpEditOpen == false)
