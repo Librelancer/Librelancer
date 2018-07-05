@@ -31,60 +31,6 @@ namespace LancerEdit
             popups.AddPopup("Color Picker", ColorPicker, WindowFlags.AlwaysAutoResize);
             popups.AddPopup("New Node", AddPopup, WindowFlags.AlwaysAutoResize);
             popups.AddPopup("Rename Node", Rename, WindowFlags.AlwaysAutoResize);
-            popups.AddPopup("Pick Object", PickObject, WindowFlags.AlwaysAutoResize);
-        }
-        LibreLancer.Utf.Cmp.CmpFile dumpcmp = null;
-        string[] dumpoptions = null;
-        int dumpindex = 0;
-        void DoPickObject()
-        {
-            var opts = new List<string>();
-            opts.Add("Entire Cmp");
-            foreach(var mdl in dumpcmp.Models) {
-                opts.Add(mdl.Key);
-            }
-            dumpoptions = opts.ToArray();
-            popups.OpenPopup("Pick Object");
-            dumpindex = 0;
-        }
-        void DumpStatus(DumpObjectStatus status)
-        {
-            switch (status)
-            {
-                case DumpObjectStatus.Ok:
-                    break;
-                case DumpObjectStatus.Fail:
-                    ErrorPopup("Dump to .obj failed");
-                    break;
-                case DumpObjectStatus.ColorNotExported:
-                    ErrorPopup("Vertex colors not exported");
-                    break;
-                case DumpObjectStatus.TexCoord2NotExported:
-                    ErrorPopup("2nd Texture Coodinate not exported");
-                    break;
-            }
-        }
-        void PickObject(PopupData data)
-        {
-            ImGui.Combo("Object", ref dumpindex, dumpoptions);
-            if(ImGui.Button("Ok")) {
-                var output = FileDialog.Save();
-                if (output != null)
-                {
-                    if (dumpindex == 0)
-                        DumpStatus(DumpObject.DumpObj(dumpcmp, output));
-                    else
-                    {
-                        var mdl = dumpcmp.Models[dumpoptions[dumpindex]];
-                        DumpStatus(DumpObject.DumpObj(mdl, output));
-                    }
-                    ImGui.CloseCurrentPopup();
-                }
-            }
-            ImGui.SameLine();
-            if(ImGui.Button("Cancel")) {
-                ImGui.CloseCurrentPopup();
-            }
         }
 
         string teximportpath = "";

@@ -178,24 +178,26 @@ namespace LancerEdit
     }
     public class ColladaSupport
     {
-        static XmlSerializer xml = new XmlSerializer(typeof(CL.COLLADA));
+        public static XmlSerializer XML = new XmlSerializer(typeof(CL.COLLADA));
         public static List<ColladaObject> Parse(string filename)
         {
             CL.COLLADA dae;
             using(var reader =new StreamReader(filename)) {
-                dae = (CL.COLLADA)xml.Deserialize(reader);
+                dae = (CL.COLLADA)XML.Deserialize(reader);
             }
             //Get libraries
             var geometrylib = dae.Items.OfType<CL.library_geometries>().First();
             var scenelib = dae.Items.OfType<CL.library_visual_scenes>().First();
-            //Check for blender to enable cleanup
+            //Bad workaround - we aren't fully resolving materials yet
+            //Use implementation detail of blender/lanceredit to remove -material suffix
             bool isBlender = false;
             if (dae.asset.contributor != null &&
               dae.asset.contributor.Length > 0)
             {
                 var t = dae.asset.contributor[0].authoring_tool;
                 if (!string.IsNullOrEmpty(t) &&
-                  t.StartsWith("blender", StringComparison.InvariantCultureIgnoreCase))
+                  (t.StartsWith("blender", StringComparison.InvariantCultureIgnoreCase) ||
+                   t.StartsWith("lanceredit", StringComparison.InvariantCultureIgnoreCase)))
                     isBlender = true;
             }
             //Get main scene
@@ -467,7 +469,7 @@ namespace LancerEdit
             return conv;
         }
 
-        static int HashVert(ref VertexPositionNormalDiffuseTextureTwo vert)
+        public static int HashVert(ref VertexPositionNormalDiffuseTextureTwo vert)
         {
             unchecked {
                 int hash = (int)2166136261;
@@ -479,7 +481,7 @@ namespace LancerEdit
                 return hash;
             }
         }
-        static int FindDuplicate(List<int> hashes, List<VertexPositionNormalDiffuseTextureTwo> buf, int startIndex, ref VertexPositionNormalDiffuseTextureTwo search, int hash)
+        public static int FindDuplicate(List<int> hashes, List<VertexPositionNormalDiffuseTextureTwo> buf, int startIndex, ref VertexPositionNormalDiffuseTextureTwo search, int hash)
         {
             for (int i = startIndex; i < buf.Count; i++) {
                 if (hashes[i] != hash) continue;

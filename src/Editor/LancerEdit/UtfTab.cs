@@ -164,7 +164,7 @@ namespace LancerEdit
                         main.AddTab(new ModelViewer("Model Viewer (" + DocumentName + ")", DocumentName, drawable, main, this,hpn));
                     }
                 }
-                if(ImGui.MenuItem("Dump Model"))
+                if(ImGui.MenuItem("Export Collada"))
                 {
                     LibreLancer.Utf.Cmp.ModelFile model = null;
                     LibreLancer.Utf.Cmp.CmpFile cmp = null;
@@ -177,15 +177,35 @@ namespace LancerEdit
                     catch (Exception) { ErrorPopup("Could not open as model"); model = null; }
                     if (model != null)
                     {
+
                         var output = FileDialog.Save();
                         if(output != null) {
-                            DumpStatus(DumpObject.DumpObj(model, output));
+                            model.Path = DocumentName;
+                            try
+                            {
+                                ColladaExport.ExportCollada(model, main.Resources, output);
+                            }
+                            catch (Exception ex)
+                            {
+                                ErrorPopup("Error\n" + ex.Message + "\n" + ex.StackTrace);
+                            }
                         }
                     }
                     if(cmp != null)
                     {
-                        dumpcmp = cmp;
-                        DoPickObject();
+                        var output = FileDialog.Save();
+                        if(output != null) {
+                            cmp.Path = DocumentName;
+                            try
+                            {
+                                ColladaExport.ExportCollada(cmp, main.Resources, output);
+                            }
+                            catch (Exception ex)
+                            {
+                                ErrorPopup("Error\n" + ex.Message + "\n" + ex.StackTrace);
+                            }
+                        }
+                       
                     }
                 }
                 if (ImGui.MenuItem("View Ale"))

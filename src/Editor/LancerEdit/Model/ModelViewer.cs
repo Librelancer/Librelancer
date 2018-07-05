@@ -448,9 +448,7 @@ namespace LancerEdit
                     return;
                 }
                 if (gizmos.Any((x) => x.Definition.Name.Equals(txt, StringComparison.OrdinalIgnoreCase)))
-                {
                     newErrorTimer = 6;
-                }
                 else
                 {
                     HardpointDefinition def;

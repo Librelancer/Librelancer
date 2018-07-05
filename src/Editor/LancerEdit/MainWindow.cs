@@ -199,9 +199,10 @@ namespace LancerEdit
                 {
                     string input;
                     if((input = FileDialog.Open(ColladaFilters)) != null) {
-                        openLoading = true;
-                        finishLoading = false;
-                        new Thread(() =>
+                        //openLoading = true;
+                        //finishLoading = false;
+                        FinishColladaLoad(ColladaSupport.Parse(input), System.IO.Path.GetFileName(input));
+                        /*new Thread(() =>
                         {
                             List<ColladaObject> dae = null;
                             try
@@ -213,7 +214,7 @@ namespace LancerEdit
                             {
                                 EnsureUIThread(() => ColladaError(ex));
                             }
-                        }).Start();
+                        }).Start();*/
                     }
                 }
 				ImGui.EndMenu();

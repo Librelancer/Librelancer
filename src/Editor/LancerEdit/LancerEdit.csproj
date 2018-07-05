@@ -66,7 +66,6 @@
     <Compile Include="TextureImport.cs" />
     <Compile Include="AleViewer.Icons.cs" />
     <Compile Include="UtfTab.Popups.cs" />
-    <Compile Include="Model\DumpObject.cs" />
     <Compile Include="Model\EmptyLib.cs" />
     <Compile Include="Model\GizmoRender.cs" />
     <Compile Include="Model\ColladaSupport.cs" />
@@ -78,6 +77,7 @@
     <Compile Include="DefaultTexture.cs" />
     <Compile Include="Model\ModelNodes.cs" />
     <Compile Include="Model\HardpointInformation.cs" />
+    <Compile Include="Model\ColladaExport.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">
