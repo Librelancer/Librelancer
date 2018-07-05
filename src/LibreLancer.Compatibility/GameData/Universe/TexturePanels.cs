@@ -32,7 +32,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 		{
 			var parsed = ParseFile (filename);
 
-			Shapes = new Dictionary<string, TextureShape>();
+            Shapes = new Dictionary<string, TextureShape>(StringComparer.InvariantCultureIgnoreCase);
 			Files = new List<string>();
 			TextureShapes = new List<string>();
 			foreach (var s in parsed)

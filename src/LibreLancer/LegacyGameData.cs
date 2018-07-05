@@ -482,8 +482,19 @@ namespace LibreLancer
 				a.BillboardDistance = ast.AsteroidBillboards.StartDist.Value;
 				a.BillboardFadePercentage = ast.AsteroidBillboards.FadeDistPercent.Value;
 				Compatibility.GameData.Universe.TextureShape sh = null;
-				if (panels != null)
-					sh = panels.Shapes [ast.AsteroidBillboards.Shape];
+                if (panels != null)
+                {
+                    if (!panels.Shapes.TryGetValue(ast.AsteroidBillboards.Shape, out sh))
+                    {
+                        a.BillboardCount = -1;
+                        FLLog.Error("Asteroids", "Field " + ast.ZoneName + " can't find billboard shape " + ast.AsteroidBillboards.Shape);
+                        return a;
+                    }
+                    else
+                    {
+                        sh = panels.Shapes[ast.AsteroidBillboards.Shape];
+                    }
+                }
 				else
 					sh = new Legacy.Universe.TextureShape (ast.AsteroidBillboards.Shape, ast.AsteroidBillboards.Shape, new RectangleF (0, 0, 1, 1));
 				a.BillboardShape = new TextureShape () {
@@ -721,11 +732,15 @@ namespace LibreLancer
 				if (star.Spines != null)
 				{
 					var spines = fldata.Stars.FindSpines(star.Spines);
-					sun.SpinesSprite = spines.Shape;
-					sun.SpinesScale = spines.RadiusScale;
-					sun.Spines = new List<GameData.Spine>(spines.Items.Count);
-					foreach (var sp in spines.Items)
-						sun.Spines.Add(new GameData.Spine(sp.LengthScale, sp.WidthScale, sp.InnerColor, sp.OuterColor, sp.Alpha));
+                    if (spines != null)
+                    {
+                        sun.SpinesSprite = spines.Shape;
+                        sun.SpinesScale = spines.RadiusScale;
+                        sun.Spines = new List<GameData.Spine>(spines.Items.Count);
+                        foreach (var sp in spines.Items)
+                            sun.Spines.Add(new GameData.Spine(sp.LengthScale, sp.WidthScale, sp.InnerColor, sp.OuterColor, sp.Alpha));
+                    } else
+                        FLLog.Error("Stararch", "Could not find spines " + star.Spines);
 				}
 				obj.Archetype = sun;
 			} else {

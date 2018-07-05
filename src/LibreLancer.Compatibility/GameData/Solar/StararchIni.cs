@@ -81,7 +81,7 @@ namespace LibreLancer.Compatibility.GameData.Solar
 
 		public Spines FindSpines(string nickname)
 		{
-			return (from Spines s in Spines where s.Nickname.ToLowerInvariant() == nickname.ToLowerInvariant() select s).First();
+			return (from Spines s in Spines where s.Nickname.ToLowerInvariant() == nickname.ToLowerInvariant() select s).FirstOrDefault();
 		}
 	}
 }
