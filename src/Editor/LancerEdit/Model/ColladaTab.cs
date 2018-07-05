@@ -246,13 +246,13 @@ namespace LancerEdit
                 writer.Write(origin.Z);
                 var rotate = Matrix4.CreateFromQuaternion(transform.ExtractRotation());
                 writer.Write(rotate.M11);
-                writer.Write(rotate.M12);
-                writer.Write(rotate.M13);
                 writer.Write(rotate.M21);
-                writer.Write(rotate.M22);
-                writer.Write(rotate.M23);
                 writer.Write(rotate.M31);
+                writer.Write(rotate.M12);
+                writer.Write(rotate.M22);
                 writer.Write(rotate.M32);
+                writer.Write(rotate.M13);
+                writer.Write(rotate.M23);
                 writer.Write(rotate.M33);
             }
             public byte[] GetData()

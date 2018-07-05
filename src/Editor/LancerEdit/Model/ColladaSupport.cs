@@ -572,10 +572,11 @@ namespace LancerEdit
             if (ax == CL.UpAxisType.Z_UP)
             {
                 var translation = mat.ExtractTranslation();
-                translation = translation.Xzy * new Vector3(-1, 1, -1);
+                translation = translation.Xzy * new Vector3(1, 1, -1);
+
                 var rotq = mat.ExtractRotation();
                 var rot = Matrix4.CreateFromQuaternion(
-                    new Quaternion(rotq.X, rotq.Z, -rotq.Y, rotq.W)
+                    new Quaternion(rotq.X,rotq.Z, -rotq.Y, rotq.W)
                 );
                 return rot * Matrix4.CreateTranslation(translation);
             }
