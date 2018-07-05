@@ -77,6 +77,7 @@
     <Compile Include="Viewport3D.cs" />
     <Compile Include="DefaultTexture.cs" />
     <Compile Include="Model\ModelNodes.cs" />
+    <Compile Include="Model\HardpointInformation.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">

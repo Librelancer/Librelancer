@@ -194,6 +194,7 @@ namespace LancerEdit
         {
             if (animator != null)
                 animator.Update(TimeSpan.FromSeconds(elapsed));
+            if (newErrorTimer > 0) newErrorTimer -= elapsed;
         }
         Vector2 rotation = Vector2.Zero;
         bool firstTab = true;
@@ -379,27 +380,86 @@ namespace LancerEdit
                 ImGui.CloseCurrentPopup();
             }
         }
+        int GetHpNumbering(string name)
+        {
+            int val = 0;
+            foreach(var gz in gizmos) {
+                if(gz.Definition.Name.StartsWith(name,StringComparison.OrdinalIgnoreCase)) {
+                    int a;
+                    if(int.TryParse(gz.Definition.Name.Substring(name.Length),out a)) {
+                        val = Math.Max(a, val);
+                    }
+                }
+            }
+            return val + 1;
+        }
+        char GetHpLettering(string name)
+        {
+            int letter = (int)'`';
+            foreach(var gz in gizmos) {
+                if(gz.Definition.Name.StartsWith(name,StringComparison.OrdinalIgnoreCase)) {
+                    if(gz.Definition.Name.Length > name.Length) {
+                        letter = Math.Max(char.ToLowerInvariant(gz.Definition.Name[name.Length]), letter);
+                    }
+                }
+            }
+            return char.ToUpperInvariant((char)(letter + 1));
+        }
         TextBuffer newHpBuffer = new TextBuffer(256);
         bool newIsFixed = false;
         List<HardpointDefinition> addTo;
         AbstractConstruct addConstruct;
+        double newErrorTimer = 0;
         void NewHardpoint(PopupData data)
         {
             ImGui.Text("Name: ");
             ImGui.SameLine();
             ImGui.InputText("##hpname", newHpBuffer.Pointer, (uint)newHpBuffer.Size, InputTextFlags.Default, newHpBuffer.Callback);
+            ImGui.SameLine();
+            if(ImGui.Button("..")) {
+                ImGui.OpenPopup("names");
+            }
+            if(ImGui.BeginPopupContextItem("names")) {
+                var infos = newIsFixed ? HardpointInformation.Fix : HardpointInformation.Rev;
+                foreach(var item in infos) {
+                    if(Theme.IconMenuItem(item.Name,item.Icon,item.Color,true)) {
+                        switch(item.Autoname) {
+                            case HpNaming.None:
+                                newHpBuffer.SetText(item.Name);
+                                break;
+                            case HpNaming.Number:
+                                newHpBuffer.SetText(item.Name + GetHpNumbering(item.Name).ToString("00"));
+                                break;
+                            case HpNaming.Letter:
+                                newHpBuffer.SetText(item.Name + GetHpLettering(item.Name));
+                                break;
+                        }
+                    }
+                }
+                ImGui.EndPopup();
+            }
             ImGui.Text("Type: " + (newIsFixed ? "Fixed" : "Revolute"));
+            if(newErrorTimer > 0) {
+                ImGui.Text("Hardpoint with that name already exists.", new Vector4(1, 0, 0, 1));
+            }
             if(ImGui.Button("Ok")) {
                 var txt = newHpBuffer.GetText();
                 if(txt.Length == 0) {
                     return;
                 }
-                HardpointDefinition def;
-                if (newIsFixed) def = new FixedHardpointDefinition(txt);
-                else def = new RevoluteHardpointDefinition(txt);
-                gizmos.Add(new HardpointGizmo(def, addConstruct));
-                addTo.Add(def);
-                ImGui.CloseCurrentPopup();
+                if (gizmos.Any((x) => x.Definition.Name.Equals(txt, StringComparison.OrdinalIgnoreCase)))
+                {
+                    newErrorTimer = 6;
+                }
+                else
+                {
+                    HardpointDefinition def;
+                    if (newIsFixed) def = new FixedHardpointDefinition(txt);
+                    else def = new RevoluteHardpointDefinition(txt);
+                    gizmos.Add(new HardpointGizmo(def, addConstruct));
+                    addTo.Add(def);
+                    ImGui.CloseCurrentPopup();
+                }
             }
             ImGui.SameLine();
             if(ImGui.Button("Cancel")) {
