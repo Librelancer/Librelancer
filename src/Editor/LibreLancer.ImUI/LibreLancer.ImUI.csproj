@@ -47,6 +47,7 @@
     <Compile Include="Theme.cs" />
     <Compile Include="DockTab.cs" />
     <Compile Include="Bell.cs" />
+    <Compile Include="Shell.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="checkerboard.png" />

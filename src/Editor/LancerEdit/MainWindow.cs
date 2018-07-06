@@ -188,28 +188,29 @@ namespace LancerEdit
 				ImGui.EndMenu();
 			}
             bool openLoading = false;
+            if (ImGui.BeginMenu("View"))
+            {
+                if (ImGui.MenuItem("Log","",showLog,true)) showLog = !showLog;
+                ImGui.EndMenu();
+            }
 			if (ImGui.BeginMenu("Tools"))
 			{
-                if(ImGui.MenuItem("Options"))
+                if(Theme.IconMenuItem("Options","options",Color4.White,true))
                 {
                     showOptions = true;
                 }
-                if(ImGui.MenuItem("Log"))
-                {
-                    showLog = true;
-                }
-				if (ImGui.MenuItem("Resources"))
+               
+				if (Theme.IconMenuItem("Resources","resources",Color4.White,true))
 				{
 					AddTab(new ResourcesTab(Resources, MissingResources, ReferencedMaterials, ReferencedTextures));
 				}
-                if(ImGui.MenuItem("Import Collada"))
+                if(Theme.IconMenuItem("Import Collada","import",Color4.White,true))
                 {
                     string input;
                     if((input = FileDialog.Open(ColladaFilters)) != null) {
-                        //openLoading = true;
-                        //finishLoading = false;
-                        FinishColladaLoad(ColladaSupport.Parse(input), System.IO.Path.GetFileName(input));
-                        /*new Thread(() =>
+                        openLoading = true;
+                        finishLoading = false;
+                        new Thread(() =>
                         {
                             List<ColladaObject> dae = null;
                             try
@@ -221,13 +222,16 @@ namespace LancerEdit
                             {
                                 EnsureUIThread(() => ColladaError(ex));
                             }
-                        }).Start();*/
+                        }).Start();
                     }
                 }
 				ImGui.EndMenu();
 			}
 			if (ImGui.BeginMenu("Help"))
 			{
+                if(Theme.IconMenuItem("Topics","help",Color4.White,true)) {
+                    Shell.OpenCommand("https://wiki.librelancer.net/lanceredit:lanceredit");
+                }
 				if (Theme.IconMenuItem("About","about",Color4.White,true))
 				{
 					openAbout = true;
