@@ -265,6 +265,9 @@
     <Compile Include="StreamingSound.cs" />
     <Compile Include="StreamingSource.cs" />
     <Compile Include="Decoding\VorbisLoader.cs" />
+    <Compile Include="..\CommonVersion.cs">
+      <Link>Properties\CommonVersion.cs</Link>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

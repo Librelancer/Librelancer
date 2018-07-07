@@ -202,6 +202,9 @@
     <Compile Include="GameData\Solar\DockSphere.cs" />
     <Compile Include="JSON.cs" />
     <Compile Include="GameData\Equipment\Gun.cs" />
+    <Compile Include="..\CommonVersion.cs">
+      <Link>Properties\CommonVersion.cs</Link>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

@@ -48,6 +48,9 @@
     <Compile Include="DockTab.cs" />
     <Compile Include="Bell.cs" />
     <Compile Include="Shell.cs" />
+    <Compile Include="..\..\CommonVersion.cs">
+      <Link>Properties\CommonVersion.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="checkerboard.png" />

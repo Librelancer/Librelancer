@@ -15,7 +15,7 @@
  */
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
+using System.Reflection;
 using LibreLancer.Platforms;
 using SharpFont;
 
@@ -67,6 +67,14 @@ namespace LibreLancer
 		{
 			return RunningPlatform.GetFallbackFace(library, cp);
 		}
+
+        public static string GetInformationalVersion<T>()
+        {
+            return ((AssemblyInformationalVersionAttribute)Assembly
+                .GetAssembly(typeof(T))
+                .GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)[0])
+                .InformationalVersion;
+        }
 	}
 
 	public enum OS

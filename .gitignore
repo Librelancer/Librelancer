@@ -18,6 +18,7 @@ packages/
 # Visual Studio
 *.suo
 *.sln
+src/CommonVersion.cs
 !/slngen/slngen.sln
 *.pdb
 *.exp

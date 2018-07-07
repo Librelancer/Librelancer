@@ -281,6 +281,7 @@ namespace LibreLancer
 
 		public void Run()
 		{
+            FLLog.Info("Engine", "Version: " + Platform.GetInformationalVersion<Game>());
             //TODO: This makes i5-7200U on mesa 18 faster, but this should probably be a configurable option
             Environment.SetEnvironmentVariable("mesa_glthread", "true");
             SSEMath.Load();

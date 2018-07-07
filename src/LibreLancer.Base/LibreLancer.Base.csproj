@@ -214,6 +214,9 @@
     <Compile Include="Math\Vector4i.cs" />
     <Compile Include="CursorKind.cs" />
     <Compile Include="UnsafeHelpers.cs" />
+    <Compile Include="..\CommonVersion.cs">
+      <Link>Properties\CommonVersion.cs</Link>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -411,6 +411,9 @@
     <Compile Include="Render\FOVUtil.cs" />
     <Compile Include="Interface\Maneuver.cs" />
     <Compile Include="VertexResource.cs" />
+    <Compile Include="..\CommonVersion.cs">
+      <Link>Properties\CommonVersion.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

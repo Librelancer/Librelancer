@@ -57,6 +57,9 @@
     <Compile Include="Raycast.cs" />
     <Compile Include="DebugDrawWrapper.cs" />
     <Compile Include="IDebugRenderer.cs" />
+    <Compile Include="..\CommonVersion.cs">
+      <Link>Properties\CommonVersion.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\extern\BulletSharpPInvoke\BulletSharp\BulletSharp.csproj">

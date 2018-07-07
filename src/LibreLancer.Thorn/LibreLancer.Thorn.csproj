@@ -114,6 +114,9 @@
     <Compile Include="LuaLexer.cs" />
     <Compile Include="LuaBinaryRuntime.cs" />
     <Compile Include="LuaRunner.cs" />
+    <Compile Include="..\CommonVersion.cs">
+      <Link>Properties\CommonVersion.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

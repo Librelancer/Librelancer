@@ -83,6 +83,9 @@
     <Compile Include="PNG.CRC.cs" />
     <Compile Include="PNG.Writer.cs" />
     <Compile Include="BinaryWriterExtensions.cs" />
+    <Compile Include="..\CommonVersion.cs">
+      <Link>Properties\CommonVersion.cs</Link>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

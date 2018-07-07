@@ -34,6 +34,7 @@ namespace LancerEdit
 		public ViewportManager Viewport;
 		public CommandBuffer Commands; //This is a huge object - only have one
 		public MaterialMap MaterialMap;
+        public string Version;
         TextBuffer logBuffer;
         StringBuilder logText = new StringBuilder();
         static readonly string[] defaultFilters = {
@@ -61,6 +62,7 @@ namespace LancerEdit
         );
         public MainWindow(bool useDX9) : base(800,600,false,useDX9)
 		{
+            Version = "LancerEdit " + Platform.GetInformationalVersion<MainWindow>();
 			MaterialMap = new MaterialMap();
 			MaterialMap.AddRegex(new LibreLancer.Ini.StringKeyValue("^nomad.*$", "NomadMaterialNoBendy"));
 			MaterialMap.AddRegex(new LibreLancer.Ini.StringKeyValue("^n-texture.*$", "NomadMaterialNoBendy"));
@@ -260,7 +262,7 @@ namespace LancerEdit
             }
 			if (ImGui.BeginPopupModal("About", WindowFlags.AlwaysAutoResize))
 			{
-				ImGui.Text("LancerEdit");
+                ImGui.Text(Version);
 				ImGui.Text("Callum McGing 2018");
                 ImGui.Separator();
                 ImGui.Text("Icons from Icons8: https://icons8.com/");

@@ -79,6 +79,9 @@
     <Compile Include="Model\HardpointInformation.cs" />
     <Compile Include="Model\ColladaExport.cs" />
     <Compile Include="Model\DumpObject.cs" />
+    <Compile Include="..\..\CommonVersion.cs">
+      <Link>Properties\CommonVersion.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">
