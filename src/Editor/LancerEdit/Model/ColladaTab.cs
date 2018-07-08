@@ -329,6 +329,7 @@ namespace LancerEdit
             foreach (var child in mdl.Children)
                 IterateMaterials(materials, child);
         }
+
         static void Export3DB(LUtfNode node3db, OutModel mdl, LUtfNode vmeshlibrary = null)
         {
             var vms = vmeshlibrary ?? new LUtfNode() { Name = "VMeshLibrary", Parent = node3db, Children = new List<LUtfNode>() };
@@ -346,7 +347,6 @@ namespace LancerEdit
                 var multilevel = new LUtfNode() { Name = "MultiLevel", Parent = node3db };
                 multilevel.Children = new List<LUtfNode>();
                 var switch2 = new LUtfNode() { Name = "Switch2", Parent = multilevel };
-                switch2.Data = UnsafeHelpers.CastArray(new float[] { 0, 4000});
                 multilevel.Children.Add(switch2);
                 for (int i = 0; i < mdl.LODs.Count; i++)
                 {
@@ -361,6 +361,17 @@ namespace LancerEdit
                     });
                     multilevel.Children.Add(n);
                 }
+                //Generate Switch2: TODO - Be more intelligent about this
+                var mlfloats = new float[multilevel.Children.Count];
+                mlfloats[0] = 0;
+                float cutOff = 2250;
+                for (int i = 1; i < mlfloats.Length - 1; i++)
+                {
+                    mlfloats[i] = cutOff;
+                    cutOff *= 2;
+                }
+                mlfloats[mlfloats.Length - 1] = 1000000;
+                switch2.Data = UnsafeHelpers.CastArray(mlfloats);
                 node3db.Children.Add(multilevel);
             }
             else
