@@ -24,15 +24,17 @@ namespace LibreLancer.Utf
 {
     public class SphereConstruct : AbstractConstruct
     {
-		public Vector3 Offset { get; private set; }
-        public float Min1 { get; private set; }
-        public float Max1 { get; private set; }
-        public float Min2 { get; private set; }
-        public float Max2 { get; private set; }
-        public float Min3 { get; private set; }
-        public float Max3 { get; private set; }
+		public Vector3 Offset { get; set; }
+        public float Min1 { get; set; }
+        public float Max1 { get; set; }
+        public float Min2 { get; set; }
+        public float Max2 { get; set; }
+        public float Min3 { get; set; }
+        public float Max3 { get; set; }
 
         public override Matrix4 Transform { get { return internalGetTransform(Rotation * Matrix4.CreateTranslation(Origin + Offset)); } }
+
+        public SphereConstruct(ConstructCollection constructs) : base(constructs) {}
 
         public SphereConstruct(BinaryReader reader, ConstructCollection constructs)
             : base(reader, constructs)

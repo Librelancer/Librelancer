@@ -150,6 +150,8 @@ namespace LancerEdit
                                 n.HardpointsNode = child.Children.FirstOrDefault((x) => x.Name.Equals("hardpoints", StringComparison.OrdinalIgnoreCase));
                                 hpn.Nodes.Add(n);
                             }
+                            var cmpnd = Utf.Root.Children.First((x) => x.Name.Equals("cmpnd", StringComparison.OrdinalIgnoreCase));
+                            hpn.Cons = cmpnd.Children.First((x) => x.Name.Equals("cons", StringComparison.OrdinalIgnoreCase));
                         } else {
                             var n = new ModelNode();
                             n.Name = "ROOT";

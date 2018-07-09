@@ -24,11 +24,15 @@ namespace LancerEdit
 	{
         Viewport3D modelViewport;
 
+        float gizmoScale;
+        const float RADIUS_ONE = 21.916825f;
         void SetupViewport()
         {
             modelViewport = new Viewport3D(rstate, vps);
+            modelViewport.MarginH = 60;
             modelViewport.Zoom = drawable.GetRadius() * 2;
             modelViewport.ZoomStep = modelViewport.Zoom / 3.26f;
+            gizmoScale = drawable.GetRadius() / RADIUS_ONE;
             wireframeMaterial3db = new Material(res);
             wireframeMaterial3db.Dc = Color4.White;
             wireframeMaterial3db.DtName = ResourceManager.WhiteTextureName;
@@ -113,6 +117,7 @@ namespace LancerEdit
         void DrawHardpoints(ICamera cam)
         {
             var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+            GizmoRender.Scale = gizmoScale;
             GizmoRender.Begin();
           
             foreach (var tr in gizmos)
@@ -120,6 +125,22 @@ namespace LancerEdit
                 if (tr.Enabled || tr.Override != null)
                 {
                     var transform = tr.Override ?? tr.Definition.Transform;
+                    //highlight edited cube
+                    if(tr.Override != null) {
+                        GizmoRender.CubeColor = Color4.CornflowerBlue;
+                        GizmoRender.CubeAlpha = 0.5f;
+                    } else {
+                        GizmoRender.CubeColor = Color4.Purple;
+                        GizmoRender.CubeAlpha = 0.3f;
+                    }
+                    //arc
+                    if(tr.Definition is RevoluteHardpointDefinition) {
+                        var rev = (RevoluteHardpointDefinition)tr.Definition;
+                        var min = tr.Override == null ? rev.Min : tr.EditingMin;
+                        var max = tr.Override == null ? rev.Max : tr.EditingMax;
+                        GizmoRender.AddGizmoArc(transform * (tr.Parent == null ? Matrix4.Identity : tr.Parent.Transform) * matrix, min,max);
+                    }
+                    //
                     GizmoRender.AddGizmo(transform * (tr.Parent == null ? Matrix4.Identity : tr.Parent.Transform) * matrix);
                 }
             }

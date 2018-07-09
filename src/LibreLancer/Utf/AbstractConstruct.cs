@@ -31,13 +31,21 @@ namespace LibreLancer.Utf
         const int STR_LENGTH = 64;
         protected ConstructCollection constructs;
 
-        public string ParentName { get; private set; }
-        public string ChildName { get; private set; }
+        public string ParentName { get; set; }
+        public string ChildName { get; set; }
         public Vector3 Origin { get; set; }
         public Matrix4 Rotation { get; set; }
 
         public abstract Matrix4 Transform { get; }
 		bool parentExists = true;
+
+        public Matrix4? OverrideTransform;
+
+        protected AbstractConstruct(ConstructCollection constructs)
+        {
+            this.constructs = constructs;
+        }
+
         protected AbstractConstruct(BinaryReader reader, ConstructCollection constructs)
         {
             if (reader == null) throw new ArgumentNullException("reader");
@@ -65,12 +73,18 @@ namespace LibreLancer.Utf
 			Origin = cloneFrom.Origin;
 			Rotation = cloneFrom.Rotation;
 		}
-
+        public void ClearParent()
+        {
+            parent = null;
+            parentExists = true;
+        }
 		public abstract AbstractConstruct Clone(ConstructCollection newcol);
 
 		AbstractConstruct parent;
         protected Matrix4 internalGetTransform(Matrix4 matrix)
         {
+            if (OverrideTransform != null)
+                matrix = OverrideTransform.Value;
 			if (parentExists)
 			{
 				if(parent == null)

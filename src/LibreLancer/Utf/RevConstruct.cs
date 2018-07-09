@@ -32,6 +32,8 @@ namespace LibreLancer.Utf
 
 		public override Matrix4 Transform { get { return internalGetTransform((Rotation * currentTransform) * Matrix4.CreateTranslation(Origin + Offset)); } }
 
+        public RevConstruct(ConstructCollection constructs) : base(constructs) {}
+
         public RevConstruct(BinaryReader reader, ConstructCollection constructs)
             : base(reader, constructs)
         {

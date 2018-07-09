@@ -25,6 +25,7 @@ namespace LancerEdit
     public class ModelNodes
     {
         public List<ModelNode> Nodes = new List<ModelNode>();
+        public LUtfNode Cons;
     }
     public class ModelNode
     {

@@ -27,6 +27,11 @@ namespace LibreLancer.Utf
 		Matrix4 fixtransform;
         public override Matrix4 Transform { get { return internalGetTransform(fixtransform); } }
 
+        public FixConstruct(ConstructCollection constructs) : base(constructs)
+        {
+
+        }
+
         public FixConstruct(BinaryReader reader, ConstructCollection constructs)
             : base(reader, constructs)
         {
@@ -42,7 +47,10 @@ namespace LibreLancer.Utf
 			newc.fixtransform = fixtransform;
 			return newc;
 		}
-
+        public void Reset()
+        {
+            fixtransform = Rotation * Matrix4.CreateTranslation(Origin);
+        }
         public override void Update(float distance)
         {
             throw new NotImplementedException();

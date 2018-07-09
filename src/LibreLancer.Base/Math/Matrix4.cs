@@ -620,6 +620,29 @@ namespace LibreLancer
             return result;
         }
 
+        public static Matrix4 CreateFromEulerAngles(float x, float y, float z)
+        {
+            var mat = Matrix4.Identity;
+            float cosY = (float)Math.Cos(y);
+            float sinY = (float)Math.Sin(y);
+            float cosP = (float)Math.Cos(x);
+            float sinP = (float)Math.Sin(x);
+            float cosR = (float)Math.Cos(z);
+            float sinR = (float)Math.Sin(z);
+            mat.M11 = cosY * cosR + sinY * sinP * sinR;
+            mat.M21 = cosR * sinY * sinP - sinR * cosY;
+            mat.M31 = cosP * sinY;
+
+            mat.M12 = cosP * sinR;
+            mat.M22 = cosR * cosP;
+            mat.M32 = -sinP;
+
+            mat.M13 = sinR * cosY * sinP - sinY * cosR;
+            mat.M23 = sinY * sinR + cosR * cosY * sinP;
+            mat.M33 = cosP * cosY;
+
+            return mat;
+        }
         #endregion
 
         #region CreateRotation[XYZ]

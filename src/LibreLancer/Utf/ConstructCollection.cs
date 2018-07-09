@@ -82,6 +82,14 @@ namespace LibreLancer.Utf
             return null;
         }
 
+        public void ClearParents()
+        {
+            foreach(var con in constructs) {
+                con.ClearParent();
+            }
+        }
+
+
         public int IndexOf(AbstractConstruct item)
         {
             return constructs.IndexOf(item);
@@ -105,7 +113,7 @@ namespace LibreLancer.Utf
             }
             set
             {
-                throw new NotSupportedException();
+                constructs[index] = value;
             }
         }
 

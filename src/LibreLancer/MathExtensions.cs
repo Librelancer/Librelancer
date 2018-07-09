@@ -67,6 +67,13 @@ namespace LibreLancer
 			return new Vector3((float)p, (float)y, (float)r);
 		}
 
+        public static Vector3 GetEulerDegrees(this Matrix4 mx)
+        {
+            double p, y, r;
+            DecomposeOrientation(mx, out p, out y, out r);
+            const double radToDeg = 180.0 / Math.PI;
+            return new Vector3((float)(p * radToDeg), (float)(y * radToDeg), (float)(r * radToDeg));
+        }
 		static void DecomposeOrientation(Matrix4 mx, out double xPitch, out double yYaw, out double zRoll)
 		{
 			xPitch = Math.Asin(-mx.M32);

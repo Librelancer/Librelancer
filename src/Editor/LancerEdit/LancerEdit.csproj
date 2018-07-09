@@ -82,6 +82,9 @@
     <Compile Include="..\..\CommonVersion.cs">
       <Link>Properties\CommonVersion.cs</Link>
     </Compile>
+    <Compile Include="Model\Parts.cs" />
+    <Compile Include="Model\ModelViewer.HardpointEditor.cs" />
+    <Compile Include="Model\ModelViewer.PartEditor.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">

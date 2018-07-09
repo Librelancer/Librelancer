@@ -56,8 +56,13 @@ namespace LancerEdit
                 new Vector3(-1.0f,  1.0f, -1.0f),
         };
 
-        public static float LineScale = 2.7f;
-        public static float CubeScale = 0.3f;
+        public const float LINE_LENGTH = 2.7f;
+        public const float CUBE_SIZE = 0.3f;
+        public const float ARC_SIZE = 3.24f;
+        //Render State
+        public static float Scale = 1f;
+        public static Color4 CubeColor = Color4.Purple;
+        public static float CubeAlpha = 0.3f;
 
         static Material gizmoMaterial;
         static VertexPositionColor[] lines;
@@ -100,19 +105,50 @@ namespace LancerEdit
             vertexCountC = vertexCountL = 0;
         }
 
-        public static void AddGizmo(Matrix4 tr, bool cube = true)
+        //We're working with rather small values here, making this too big
+        //messes with floating point.
+        const int ARC_SEGMENTS = 16;
+
+        public static void AddGizmoArc(Matrix4 tr, float min, float max)
         {
-            AddPoint(VectorMath.Transform(Vector3.Zero, tr), Color4.Red);
-            AddPoint(VectorMath.Transform(Vector3.UnitX * LineScale, tr), Color4.Red);
-            //Y
-            AddPoint(VectorMath.Transform(Vector3.Zero, tr), Color4.Green);
-            AddPoint(VectorMath.Transform(Vector3.UnitY * LineScale, tr), Color4.Green);
-            //Z
-            AddPoint(VectorMath.Transform(Vector3.Zero, tr), Color4.Blue);
-            AddPoint(VectorMath.Transform(-Vector3.UnitZ * LineScale, tr), Color4.Blue);
+            var length = max - min;
+            AddPoint(VectorMath.Transform(Vector3.Zero, tr), Color4.Yellow);
+            var r = ARC_SIZE * Scale;
+            var x = r * Math.Cos(min);
+            var y = r * Math.Sin(min);
+            int segments = ARC_SEGMENTS;
+            if (length > Math.PI) segments *= 2; //Double when size of arc is sufficent
+            for (int i = 0; i < segments; i++)
+            {
+                float theta = (length * i) / segments;
+                x = r * Math.Cos(min + theta);
+                y = r * Math.Sin(min + theta);
+                AddPoint(VectorMath.Transform(new Vector3(
+                    (float)y,0,-(float)x
+                ), tr), Color4.Yellow);
+                AddPoint(VectorMath.Transform(new Vector3(
+                    (float)y,0,-(float)x
+               ), tr), Color4.Yellow);
+            }
+            AddPoint(VectorMath.Transform(Vector3.Zero, tr), Color4.Yellow);
+        }
+        public static void AddGizmo(Matrix4 tr, bool cube = true, bool lines = true)
+        {
+            if (lines)
+            {
+                //X
+                AddPoint(VectorMath.Transform(Vector3.Zero, tr), Color4.Red);
+                AddPoint(VectorMath.Transform(Vector3.UnitX * LINE_LENGTH * Scale, tr), Color4.Red);
+                //Y
+                AddPoint(VectorMath.Transform(Vector3.Zero, tr), Color4.Green);
+                AddPoint(VectorMath.Transform(Vector3.UnitY * LINE_LENGTH * Scale, tr), Color4.Green);
+                //Z
+                AddPoint(VectorMath.Transform(Vector3.Zero, tr), Color4.Blue);
+                AddPoint(VectorMath.Transform(-Vector3.UnitZ * LINE_LENGTH * Scale, tr), Color4.Blue);
+            }
             //Cube
             if (cube)
-                AddCube(ref tr, Color4.Purple);
+                AddCube(ref tr, CubeColor);
         }
 
         public static void RenderGizmos(ICamera cam, RenderState rstate)
@@ -142,10 +178,10 @@ namespace LancerEdit
 
         static void AddCube(ref Matrix4 mat, Color4 col)
         {
-            col.A = 0.3f;
+            col.A = CubeAlpha;
             foreach (var vert in vertcube)
                 tris[vertexCountC++] = new VertexPositionColor(
-                    VectorMath.Transform(vert * CubeScale, mat),
+                    VectorMath.Transform(vert * CUBE_SIZE * Scale, mat),
                     col);
         }
     }

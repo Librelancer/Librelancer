@@ -26,7 +26,7 @@ namespace LibreLancer.ImUI
             s.ScrollbarRounding = 3;
             s.NativePtr->FrameBorderSize = 1f;
             //Colours
-            s.SetColor(ColorTarget.WindowBg, RGBA(21, 21, 22, 128));
+            s.SetColor(ColorTarget.WindowBg, RGBA(41, 41, 42, 210));
             s.SetColor(ColorTarget.Border, RGBA(83, 83, 83, 255));
             s.SetColor(ColorTarget.FrameBg, RGBA(56, 57, 58, 255));
             s.SetColor(ColorTarget.PopupBg, RGBA(56, 57, 58, 255));

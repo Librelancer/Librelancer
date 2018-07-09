@@ -220,46 +220,6 @@ namespace LancerEdit
                 ProcessConstruct(mdl.Name, child, cmpnd, fix, suffix, ref index);
 
         }
-        class FixConstructor
-        {
-            MemoryStream stream = new MemoryStream();
-            BinaryWriter writer;
-            public FixConstructor()
-            {
-                writer = new BinaryWriter(stream);
-            }
-            public void Add(string parentName, string objectName, Matrix4 transform)
-            {
-                var pbytes = Encoding.ASCII.GetBytes(parentName);
-                writer.Write(pbytes);
-                for (int i = 0; i < (64 - pbytes.Length); i++) {
-                    writer.Write((byte)0);
-                }
-                var cbytes = Encoding.ASCII.GetBytes(objectName);
-                writer.Write(cbytes);
-                for (int i = 0; i < (64 - cbytes.Length); i++) {
-                    writer.Write((byte)0);
-                }
-                var origin = transform.ExtractTranslation();
-                writer.Write(origin.X);
-                writer.Write(origin.Y);
-                writer.Write(origin.Z);
-                var rotate = Matrix4.CreateFromQuaternion(transform.ExtractRotation());
-                writer.Write(rotate.M11);
-                writer.Write(rotate.M21);
-                writer.Write(rotate.M31);
-                writer.Write(rotate.M12);
-                writer.Write(rotate.M22);
-                writer.Write(rotate.M32);
-                writer.Write(rotate.M13);
-                writer.Write(rotate.M23);
-                writer.Write(rotate.M33);
-            }
-            public byte[] GetData()
-            {
-                return stream.ToArray();
-            }
-        }
         LUtfNode CmpndNode(LUtfNode cmpnd, string name, string filename, string objname, int index)
         {
             var node = new LUtfNode() { Parent = cmpnd, Name = name, Children = new List<LUtfNode>() };
