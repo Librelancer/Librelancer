@@ -70,6 +70,9 @@ namespace LancerEdit
         MainWindow _window;
         PopupManager popups;
         ModelNodes hprefs;
+        TextBuffer filterText = new TextBuffer(128);
+        bool doFilter = false;
+        string currentFilter;
         public ModelViewer(string title, string name, IDrawable drawable, MainWindow win, UtfTab parent, ModelNodes hprefs)
         {
             Title = title;
@@ -231,6 +234,10 @@ namespace LancerEdit
             ImGui.SameLine();
         }
 
+        public override void OnHotkey(Hotkeys hk)
+        {
+            if (hk == Hotkeys.Deselect) selectedNode = null;
+        }
         public override void Draw()
         {
             bool doTabs = false;
@@ -468,6 +475,9 @@ namespace LancerEdit
             {
                 foreach (var hp in mdl.Hardpoints)
                 {
+                    if(doFilter) {
+                        if (hp.Name.IndexOf(currentFilter,StringComparison.OrdinalIgnoreCase) == -1) continue;
+                    }
                     HardpointGizmo gz = null;
                     foreach (var gizmo in gizmos)
                     {
@@ -578,6 +588,14 @@ namespace LancerEdit
                 WriteConstructs();
                 popups.OpenPopup("Apply Complete##Parts");
             }
+            if (ImGuiExt.ToggleButton("Filter", doFilter)) doFilter = !doFilter;
+            if (doFilter) {
+                ImGui.InputText("##filter", filterText.Pointer, (uint)filterText.Size, InputTextFlags.Default, filterText.Callback);
+                currentFilter = filterText.GetText();
+            }
+            else
+                currentFilter = null;
+
             ImGui.Separator();
             if (selectedNode != null)
             {

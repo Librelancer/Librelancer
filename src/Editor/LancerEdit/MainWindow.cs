@@ -105,7 +105,19 @@ namespace LancerEdit
 			Polyline = new PolylineRender(Commands);
 			DebugRender = new PhysicsDebugRenderer();
 			Viewport.Push(0, 0, 800, 600);
+            Keyboard.KeyDown += Keyboard_KeyDown;
 		}
+
+        void Keyboard_KeyDown(KeyEventArgs e)
+        {
+            var mods = e.Modifiers;
+            mods &= ~KeyModifiers.Numlock;
+            mods &= ~KeyModifiers.Capslock;
+            if((mods == KeyModifiers.LeftControl || mods == KeyModifiers.RightControl) && e.Key == Keys.D) {
+                if (selected != null) ((EditorTab)selected).OnHotkey(Hotkeys.Deselect);
+            }
+        }
+
 
 		bool openAbout = false;
 		public List<DockTab> tabs = new List<DockTab>();

@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using LibreLancer.ImUI;
 namespace LancerEdit
 {
+    public enum Hotkeys
+    {
+        Deselect
+    }
     public abstract class EditorTab : DockTab
     {
         public virtual void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
@@ -12,5 +16,6 @@ namespace LancerEdit
         {
             win.ActiveTab = null;
         }
+        public virtual void OnHotkey(Hotkeys hk) {}
     }
 }
