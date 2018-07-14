@@ -1,6 +1,5 @@
 ﻿in vec2 out_texcoord;
-in vec3 V;
-in vec3 N;
+in vec2 texcoord2;
 
 out vec4 out_color;
 uniform vec4 Dc;
@@ -11,8 +10,7 @@ uniform float Oc;
 
 void main()
 {
-	float facingRatio = clamp(dot(normalize(V), normalize(N)), 0, 1);
-	vec2 texcoord2 = vec2(facingRatio, 0);
+
 	vec4 nt = texture(DmSampler, texcoord2);
 	vec4 color = texture(DtSampler, out_texcoord);
 

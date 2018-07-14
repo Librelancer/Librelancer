@@ -71,7 +71,7 @@ namespace LibreLancer
 
 		public override void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights)
 		{
-			rstate.BlendMode = BlendMode.Normal;
+			rstate.BlendMode = BlendMode.Additive;
 			var shader = GetShader(vertextype);
 			shader.SetWorld(ref World);
 			shader.SetView(Camera);
