@@ -583,7 +583,7 @@ namespace LancerEdit
                 }
                 popups.OpenPopup("Apply Complete");
             }
-            if ((drawable is CmpFile) && ImGui.Button("Apply Parts"))
+            if ((drawable is CmpFile) && ((CmpFile)drawable).Parts.Count > 1 && ImGui.Button("Apply Parts"))
             {
                 WriteConstructs();
                 popups.OpenPopup("Apply Complete##Parts");
