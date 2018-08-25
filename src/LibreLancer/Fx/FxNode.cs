@@ -43,21 +43,20 @@ namespace LibreLancer.Fx
 				NodeLifeSpan = (float)temp.Value;
 			}
 		}
-		protected static Matrix4 GetTranslation(NodeReference reference, Matrix4 attachment, float sparam, float time)
+
+        protected static Matrix4 GetAttachment(NodeReference reference, Matrix4 attachment)
 		{
-			Matrix4 mat = Matrix4.Identity;
-			if(reference.Node != null && reference.Node.Transform != null)
-				mat = reference.Node.Transform.GetMatrix (sparam, time);
 			if (reference.IsAttachmentNode) {
-				return attachment * mat;
+                return attachment;
 			}
 			else if (reference.Parent == null) {
-				return mat;
+				return Matrix4.Identity;
 			}
 			else {
-                return GetTranslation(reference.Parent, attachment, sparam, time) * mat;
+                return GetAttachment(reference.Parent, attachment);
 			}
 		}
+
 		public virtual void Update(NodeReference reference, ParticleEffectInstance instance, TimeSpan delta, ref Matrix4 transform, float sparam)
 		{
 		}

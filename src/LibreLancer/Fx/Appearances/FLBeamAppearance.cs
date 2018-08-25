@@ -70,7 +70,7 @@ namespace LibreLancer.Fx
                 if (particles[i - 1].TimeAlive > particles[i].TimeAlive)
                     Console.WriteLine("bad order");
             }
-			var node_tr = GetTranslation(reference, transform, sparam, 0);
+            var node_tr = GetAttachment(reference, transform);
 			Texture2D tex;
 			Vector2 tl, tr, bl, br;
 			HandleTexture(res, globalTime, sparam, ref instance.Particles[indices[0]], out tex, out tl, out tr, out bl, out br);

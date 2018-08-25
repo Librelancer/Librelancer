@@ -48,10 +48,13 @@ namespace LibreLancer.Fx
 				instance.Random.NextFloat(-1, 1)
 			);
 			p.Normalize();
-			var direction = p;
-
-			var tr = Transform.GetMatrix(sparam, globaltime);
-			var n = (tr * new Vector4(direction, 0)).Xyz.Normalized();
+			var n = p;
+			Vector3 translate;
+            Quaternion rotate;
+            if (DoTransform(reference, sparam, globaltime, out translate, out rotate)) {
+                p += translate;
+                n = rotate * n;
+            }
 			n *= Pressure.GetValue(sparam, 0);
 			var pr = p * radius;
 			instance.Particles[idx].Position = pr;

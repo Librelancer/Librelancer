@@ -91,9 +91,15 @@ namespace LibreLancer.Fx
 		public override void Draw(ref Particle particle, float lasttime, float globaltime, NodeReference reference, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
 		{
 			var time = particle.TimeAlive / particle.LifeSpan;
-			var node_tr = GetTranslation(reference, transform, sparam, time);
+            var node_tr = GetAttachment(reference, transform);
 
-			var p = node_tr.Transform(particle.Position);
+            Vector3 deltap;
+            Quaternion deltaq;
+            if(DoTransform(reference,sparam,lasttime,globaltime,out deltap, out deltaq)) {
+                particle.Position += deltap;
+                particle.Orientation *= deltaq;
+            }
+			var p = node_tr.Transform(particle.Orientation * particle.Position);
 			Texture2D tex;
 			Vector2 tl, tr, bl, br;
 			HandleTexture(res, sparam, globaltime, ref particle, out tex, out tl, out tr, out bl, out br);

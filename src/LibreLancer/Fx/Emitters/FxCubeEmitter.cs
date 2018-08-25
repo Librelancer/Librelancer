@@ -59,9 +59,15 @@ namespace LibreLancer.Fx
 				          instance.Random.NextFloat (-d, d)
 			          );
 			var n = RandomInCone(instance.Random, s_min, s_max);
-            var tr = Transform.GetMatrix(sparam, globaltime);
+            //var tr = Transform.GetMatrix(sparam, globaltime);
             //var tr = Matrix4.Identity;
-			n = (tr * new Vector4(n.Normalized(), 0)).Xyz.Normalized();
+            //n = (tr * new Vector4(n.Normalized(), 0)).Xyz.Normalized();
+            Vector3 translate;
+            Quaternion rotate;
+            if(DoTransform(reference, sparam, globaltime, out translate, out rotate)) {
+                pos += translate;
+                n = rotate * n;
+            }
 			var pr = pos;
 			instance.Particles[idx].Position = pr;
 			instance.Particles [idx].Normal = n * Pressure.GetValue (sparam, 0);

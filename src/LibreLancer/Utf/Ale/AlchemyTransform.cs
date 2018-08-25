@@ -29,15 +29,15 @@ namespace LibreLancer.Utf.Ale
 		public AlchemyCurveAnimation ScaleX;
 		public AlchemyCurveAnimation ScaleY;
 		public AlchemyCurveAnimation ScaleZ;
-		bool hasTransform;
+        public bool HasTransform;
 		public AlchemyTransform (BinaryReader reader)
 		{
 			Xform = (uint)reader.ReadByte () << 8;
 			Xform |= (uint)reader.ReadByte () << 4;
 			Xform |= (uint)reader.ReadByte ();
 
-			hasTransform = reader.ReadByte () != 0;
-			if (hasTransform) {
+			HasTransform = reader.ReadByte () != 0;
+			if (HasTransform) {
 				TranslateX = new AlchemyCurveAnimation (reader);
 				TranslateY = new AlchemyCurveAnimation (reader);
 				TranslateZ = new AlchemyCurveAnimation (reader);
@@ -49,66 +49,50 @@ namespace LibreLancer.Utf.Ale
 				ScaleZ = new AlchemyCurveAnimation (reader);
 			}
 		}
-		public Matrix4 GetMatrix(float sparam, float time)
-		{
-			if (!hasTransform)
-				return Matrix4.Identity;
-			var translate = Matrix4.CreateTranslation (
-				TranslateX.GetValue (sparam, time),
-				TranslateY.GetValue (sparam, time),
-				TranslateZ.GetValue (sparam, time)
-			);
-
-            var rotate = FromEulerAngles(
-            	MathHelper.DegreesToRadians(RotatePitch.GetValue(sparam, time)),
-				MathHelper.DegreesToRadians(RotateYaw.GetValue(sparam,time)),
-				MathHelper.DegreesToRadians(RotateRoll.GetValue(sparam, time))
-			);
-
-			//var rotate = Matrix4.CreateFromQuaternion(quat);
-          
-            
-			var s = new Vector3(ScaleX.GetValue(sparam, time),
-								ScaleY.GetValue(sparam, time),
-								ScaleZ.GetValue(sparam, time));
-			var scale = Matrix4.CreateScale (s);
-			return translate * rotate * scale;
-		}
-
-        static Matrix4 FromEulerAngles(float x, float y, float z)
+		
+        public Vector3 GetTranslation(float sparam, float t)
         {
-            var sinx = (float)Math.Sin(x);
-            var cosx = (float)Math.Cos(x);
+            if (!HasTransform)
+                return Vector3.Zero;
+            var x = TranslateX.GetValue(sparam, t);
+            var y = TranslateY.GetValue(sparam, t);
+            var z = TranslateZ.GetValue(sparam, t);
 
-            var siny = (float)Math.Sin(y);
-            var cosy = (float)Math.Cos(y);
+            return new Vector3(x, y, z);
+        }
 
-            var sinz = (float)Math.Sin(z);
-            var cosz = (float)Math.Cos(z);
+        public Vector3 GetDeltaTranslation(float sparam, float t1, float t2)
+        {
+            if (!HasTransform)
+                return Vector3.Zero;
+            var x1 = TranslateX.GetValue(sparam, t1);
+            var y1 = TranslateY.GetValue(sparam, t1);
+            var z1 = TranslateZ.GetValue(sparam, t1);
 
-            float sysx = siny * sinx;
-            float cxsz = cosx * sinz;
-            float cxcz = cosx * cosz;
+            var x2 = TranslateX.GetValue(sparam, t2);
+            var y2 = TranslateY.GetValue(sparam, t2);
+            var z2 = TranslateZ.GetValue(sparam, t2);
 
-            var m = new Matrix3();
-            m.M11 = cosy * cosz;
-            m.M12 = sysx * cosz - cxsz;
-            m.M13 = siny * cxcz + sinx * sinz;
+            return new Vector3(x2 - x1, y2 - y1, z2 - z1);
+        }
 
-            m.M21 = cosy * sinz;
-            m.M22 = sysx * sinz + cxcz;
-            m.M23  = siny * cxsz - sinx * cosz;
-
-            m.M31  = -siny;
-            m.M32 = cosy * sinx;
-            m.M33 = cosy * cosx;
-
-            return new Matrix4(m);
+        public Quaternion GetRotation(float sparam, float t)
+        {
+            if (!HasTransform)
+                return Quaternion.Identity;
+            var x = RotatePitch.GetValue(sparam, t);
+            var y = RotateYaw.GetValue(sparam, t);
+            var z = RotateRoll.GetValue(sparam, t);
+            return Quaternion.FromEulerAngles(
+                MathHelper.DegreesToRadians(x),
+                MathHelper.DegreesToRadians(y),
+                MathHelper.DegreesToRadians(z)
+            );
         }
 
         public Quaternion GetDeltaRotation(float sparam, float t1, float t2)
         {
-            if (!hasTransform)
+            if (!HasTransform)
                 return Quaternion.Identity;
             var x1 = RotatePitch.GetValue(sparam, t1);
             var y1 = RotateYaw.GetValue(sparam, t1);
@@ -124,9 +108,10 @@ namespace LibreLancer.Utf.Ale
                 MathHelper.DegreesToRadians(z2 - z1)
             );
         }
+
 		public AlchemyTransform()
 		{
-			hasTransform = false;
+			HasTransform = false;
 		}
 		public override string ToString ()
 		{

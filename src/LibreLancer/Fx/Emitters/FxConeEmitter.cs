@@ -57,10 +57,14 @@ namespace LibreLancer.Fx
 			float s_min = MathHelper.DegreesToRadians(MinSpread.GetValue(sparam, 0));
 			float s_max = MathHelper.DegreesToRadians(MaxSpread.GetValue(sparam, 0));
 
-			var direction = RandomInCone(instance.Random, s_min, s_max);
-			var tr = Transform.GetMatrix(sparam, globaltime);
-			var n = (tr * new Vector4(direction.Normalized(), 0)).Xyz.Normalized();
-			var p = n * radius;
+			var n = RandomInCone(instance.Random, s_min, s_max);
+            Vector3 translate;
+            Quaternion rotate;
+            if (DoTransform(reference, sparam, globaltime, out translate, out rotate))
+            {
+                n = rotate * n;
+            }
+            var p = n * radius + translate;
 			n *= Pressure.GetValue(sparam, 0);
 			instance.Particles[idx].Position = p;
 			instance.Particles[idx].Normal = n;

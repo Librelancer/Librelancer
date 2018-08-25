@@ -21,7 +21,7 @@ namespace LibreLancer.Fx
 	{
 		public int InitialParticles;
 		public AlchemyCurveAnimation Frequency;
-		public AlchemyCurveAnimation EmitCount;
+        public AlchemyCurveAnimation EmitCount;
 		public AlchemyCurveAnimation InitLifeSpan;
 		//public AlchemyCurveAnimation LODCurve; -- Not really relevant in a modern context
 		public AlchemyCurveAnimation Pressure;
@@ -89,6 +89,31 @@ namespace LibreLancer.Fx
 		{
 			
 		}
+        static readonly AlchemyTransform[] transforms = new AlchemyTransform[32];
+        protected bool DoTransform(NodeReference reference, float sparam, float t, out Vector3 translate, out Quaternion rotate)
+        {
+            translate = Vector3.Zero;
+            rotate = Quaternion.Identity;
+
+            int idx = -1;
+            var pr = reference;
+            while (pr.Parent != null && !pr.IsAttachmentNode)
+            {
+                if (pr.Node.Transform.HasTransform)
+                {
+                    idx++;
+                    transforms[idx] = pr.Node.Transform;
+                }
+                pr = reference.Parent;
+            }
+            for (int i = idx; i >= 0; i--)
+            {
+                translate += transforms[i].GetTranslation(sparam, t);
+                rotate *= transforms[i].GetRotation(sparam, t);
+            }
+            return idx != -1;
+        }
+
 		public override void Update(NodeReference reference, ParticleEffectInstance instance, TimeSpan delta, ref Matrix4 transform, float sparam)
 		{
 			if (reference.Paired.Count == 0) return;

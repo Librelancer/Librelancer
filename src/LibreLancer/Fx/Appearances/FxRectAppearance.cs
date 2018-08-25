@@ -61,7 +61,7 @@ namespace LibreLancer.Fx
 		public override void Draw(ref Particle particle, float lasttime, float globaltime, NodeReference reference, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
 		{
 			var time = particle.TimeAlive / particle.LifeSpan;
-			var node_tr = GetTranslation(reference, transform, sparam, time);
+            var node_tr = GetAttachment(reference, transform);
 			var src_pos = particle.Position;
 			var l = Length.GetValue(sparam, time);
 			var w = Width.GetValue(sparam, time);
