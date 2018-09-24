@@ -27,10 +27,10 @@ namespace Launcher
 			Title = title;
             var vbox = new VBox();
             vbox.PackStart(new Label() { Text = label });
-            var view = new TextEntry();
-            view.MultiLine = true;
+            //24SEP18 - TextView doesn't work on Linux/Gtk with Xwt.
+            var view = new RichTextView();
             view.ReadOnly = true;
-            view.Text = text;
+            view.LoadText(text, Xwt.Formats.TextFormat.Plain);
             vbox.PackStart(view, true, true);
             this.Size = new Size(600, 400);
             this.nextWindow = nextWindow;

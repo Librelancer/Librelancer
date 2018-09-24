@@ -3,7 +3,6 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 using Xwt;
 
 namespace Launcher
@@ -53,17 +52,17 @@ namespace Launcher
                     {
                         Application.MainLoop.DispatchPendingEvents();
                     }
-                    win = ShowLauncher(config);
+                    win = ShowLauncher(config,true);
                 }
                 else
                 {
-                    win = ShowLauncher(config);
+                    win = ShowLauncher(config,false);
                 }
             }
             else
             {
                 config.ForceAngle = false;
-                win = ShowLauncher(config);
+                win = ShowLauncher(config,false);
             }
 
             while (win.Visible)
@@ -77,9 +76,9 @@ namespace Launcher
 
         //Show Launcher Directly
         //This makes sure Application.Run() is only called once
-        static Window ShowLauncher(GameConfig config)
+        static Window ShowLauncher(GameConfig config, bool forceNoMovies)
         {
-            var win = new MainWindow(config, false);
+            var win = new MainWindow(config, forceNoMovies);
             win.Show();
             return win;
         }
@@ -96,16 +95,21 @@ namespace Launcher
             thread.Name = "MainThread";
             thread.Start();
 
-            while (running)
+            for(int i = 0; i < 100 && running; i++)
             {
                 Application.MainLoop.DispatchPendingEvents();
                 Thread.Sleep(10);
             }
+            thread.Join();
 
             if (game_exception != null)
             {
-                new CrashWindow(game_exception).Show();
-                Application.Run();
+                var win = new CrashWindow(game_exception);
+                win.Show();
+                while(win.Visible)
+                {
+                    Application.MainLoop.DispatchPendingEvents();
+                }
             }
         }
 
@@ -114,11 +118,13 @@ namespace Launcher
 
         static Exception StartGame(GameConfig config)
         {
+
+            FreelancerGame game = null;
 #if !DEBUG
             try
             {
-#endif
-                var game = new FreelancerGame(config);
+#endif 
+                game = new FreelancerGame(config);
                 game.Run();
 
                 return null;
@@ -127,13 +133,16 @@ namespace Launcher
             }
             catch (Exception ex)
             {
-                // no point in trying to recover from unrecoverable state
-                //game.Crashed();
+                try { game.Crashed(); } //Calls SDL_Quit to remove zombie window - Do not remove
+                catch { } //Just in-case
                 Console.Out.WriteLine("Unhandled {0}: ", ex.GetType().Name);
                 Console.Out.WriteLine(ex.Message);
                 Console.Out.WriteLine(ex.StackTrace);
                 return ex;
             }
+
+
+
 #endif
 
         }
