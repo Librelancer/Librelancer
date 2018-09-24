@@ -21,6 +21,7 @@ using LibreLancer.ImUI;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf;
+using DF = LibreLancer.Utf.Dfm;
 using ImGuiNET;
 namespace LancerEdit
 {
@@ -227,7 +228,8 @@ namespace LancerEdit
         void TabButtons()
         {
             ImGuiNative.igBeginGroup();
-            TabButton("Hierachy", 0);
+            if(!(drawable is DF.DfmFile))
+                TabButton("Hierachy", 0);
             if (drawable is CmpFile && ((CmpFile)drawable).Animation != null)
                 TabButton("Animations", 1);
             ImGuiNative.igEndGroup();
@@ -300,7 +302,7 @@ namespace LancerEdit
             ImGui.Combo("##modes", ref viewMode, viewModes);
             ImGui.PopItemWidth();
             DoViewport();
-            if (!(drawable is SphFile))
+            if (!(drawable is SphFile) && !(drawable is DF.DfmFile))
             {
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text("Level of Detail:");

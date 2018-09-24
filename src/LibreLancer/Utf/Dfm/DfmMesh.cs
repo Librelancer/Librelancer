@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using LibreLancer.Vertices;
+using LibreLancer.Utf.Mat;
 
 namespace LibreLancer.Utf.Dfm
 {
@@ -204,11 +204,11 @@ namespace LibreLancer.Utf.Dfm
 			if (ready) foreach (FaceGroup faceGroup in FaceGroups) faceGroup.Update (camera);
 		}
 
-		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light)
+		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light, Material overrideMat = null)
 		{
 			foreach (FaceGroup faceGroup in FaceGroups)
 			{
-				faceGroup.DrawBuffer(buffer, vertexBuffer, vertexBuffer.VertexCount, world, light);
+                faceGroup.DrawBuffer(buffer, vertexBuffer, vertexBuffer.VertexCount, world, light, overrideMat);
 			}
 		}
 

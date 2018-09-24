@@ -235,14 +235,26 @@ namespace LibreLancer.Utf.Dfm
 			Levels[0].Update(camera, delta);
 		}
 
-		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, ref Lighting light, Material overrrideMat = null)
+		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, ref Lighting light, Material overrideMat = null)
 		{
-			Levels[0].DrawBuffer(buffer, world, light);		
+			Levels[0].DrawBuffer(buffer, world, light,overrideMat);		
 		}
 
+        //HACK: dfm can't have radius without skinning
+        float radius = -1;
 		public float GetRadius()
 		{
-			return 20000; //Wrong
-		}
+			if(radius == -1)
+            {
+                var msh = Levels[0];
+                float max = 0;
+                foreach (var p in msh.Points)
+                {
+                    max = Math.Max(max, p.Length);
+                }
+                radius = max;
+            }
+            return radius;
+        }
 	}
 }

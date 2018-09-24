@@ -100,11 +100,11 @@
     <Reference Include="Xwt">
       <HintPath>..\packages\Xwt.0.2.121\lib\net40\Xwt.dll</HintPath>
     </Reference>
-    <Reference Include="Xwt.Gtk">
-      <HintPath>..\packages\Xwt.Gtk.0.2.121\lib\net40\Xwt.Gtk.dll</HintPath>
-    </Reference>
     <Reference Include="Xwt.WPF">
       <HintPath>..\packages\Xwt.WPF.0.2.121\lib\net40\Xwt.WPF.dll</HintPath>
+    </Reference>
+    <Reference Include="Xwt.Gtk">
+      <HintPath>..\packages\Xwt.Gtk.0.2.121\lib\net40\Xwt.Gtk.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
