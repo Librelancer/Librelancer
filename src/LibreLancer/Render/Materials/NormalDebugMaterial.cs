@@ -22,11 +22,26 @@ namespace LibreLancer
 {
 	public class NormalDebugMaterial : RenderMaterial
 	{
-		static ShaderVariables sh;
+        static ShaderVariables shader;
+        static ShaderVariables shader_null;
 		public override void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights)
 		{
-			if (sh == null)
-				sh = ShaderCache.Get("Normals_PositionNormal.vs", "Normals.frag");
+            ShaderVariables sh;
+            //These things don't have normals
+            if (vertextype is VertexPositionColorTexture ||
+            vertextype is VertexPosition ||
+                vertextype is VertexPositionColor || vertextype is VertexPositionTexture)
+            {
+                if (shader_null == null)
+                    shader_null = ShaderCache.Get("Normals_Position.vs", "Normals.frag");
+                sh = shader_null;
+            }
+            else
+            {
+                if (shader == null)
+                    shader = ShaderCache.Get("Normals_PositionNormal.vs", "Normals.frag");
+                sh = shader;
+            }
 			if (Camera == null)
 				return;
 			rstate.BlendMode = BlendMode.Opaque;

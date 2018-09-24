@@ -11,5 +11,8 @@ void main()
 {
 	vec4 pos = (ViewProjection * World) * vec4(vertex_position, 1.0);
 	gl_Position = pos;
-	out_normal = (NormalMatrix * vec4(vertex_normal,0)).xyz;
+	vec3 transformed = (NormalMatrix * vec4(vertex_normal,0)).xyz;
+    //output red when model doesn't really have normals
+    float sum = vertex_normal.x + vertex_normal.y + vertex_normal.z;
+    out_normal = mix(transformed,vec3(1.,0,0),step(2.9, sum));
 }

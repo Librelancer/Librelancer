@@ -472,7 +472,7 @@ namespace LancerEdit
                 d.Drawcalls.Add(dc);
             }
             d.Vertices = verts.ToArray();
-            d.FVF = vms.Mesh.FlexibleVertexFormat;
+            d.FVF = vms.Mesh.OriginalFVF;
             return d;
         }
         class VMeshDump

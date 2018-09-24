@@ -23,6 +23,7 @@ namespace LancerEdit
     {
         static string FmtFloat(float f) => f.ToString("#0.########");
         static string FmtNorm(float x) => x.ToString("0.00000").PadLeft(9);
+        //TODO: This breaks due to the engine adding extra normals where they shouldn't be
         public static void DumpVmeshData(string output, VMeshData vms)
         {
             using (var writer = new StreamWriter(output))
@@ -32,7 +33,7 @@ namespace LancerEdit
                 writer.WriteLine("Surface Type              = {0}", vms.SurfaceType);
                 writer.WriteLine("Number of Meshes          = {0}", vms.MeshCount);
                 writer.WriteLine("Total referenced vertices = {0}", vms.IndexCount);
-                writer.WriteLine("Flexible Vertex Format    = 0x{0}", ((int)vms.FlexibleVertexFormat).ToString("X"));
+                writer.WriteLine("Flexible Vertex Format    = 0x{0}", ((int)vms.OriginalFVF).ToString("X"));
                 writer.WriteLine("Total number of vertices  = {0}", vms.VertexCount);
                 writer.WriteLine("\n---- MESHES ----\n");
                 writer.WriteLine("Mesh Number  MaterialID  Start Vertex  End Vertex  Start Triangle  NumRefVertex");

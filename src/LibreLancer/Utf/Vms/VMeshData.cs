@@ -34,7 +34,8 @@ namespace LibreLancer.Utf.Vms
         public uint SurfaceType { get; private set; } //0x00000004
         public ushort MeshCount { get; private set; }
         public ushort IndexCount { get; private set; }
-        public D3DFVF FlexibleVertexFormat { get; private set; } //0x0112
+        public D3DFVF FlexibleVertexFormat { get; private set; } //FVF used for rendering
+        public D3DFVF OriginalFVF { get; private set; } //FVF stored in the file
         public ushort VertexCount { get; private set; }
 
         /// <summary>
@@ -83,6 +84,7 @@ namespace LibreLancer.Utf.Vms
                 MeshCount = reader.ReadUInt16();
                 IndexCount = reader.ReadUInt16();
                 FlexibleVertexFormat = (D3DFVF)reader.ReadUInt16();
+                OriginalFVF = FlexibleVertexFormat;
                 VertexCount = reader.ReadUInt16();
 
                 // Read the mesh headers.
@@ -117,9 +119,8 @@ namespace LibreLancer.Utf.Vms
                         {
                             Vector3 position = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
 							Vector2 textureCoordinate = new Vector2(reader.ReadSingle(), 1 - reader.ReadSingle());
-                            verticesVertexPositionNormalTexture[i] = new VertexPositionNormalTexture(position, Vector3.Zero, textureCoordinate);
+                            verticesVertexPositionNormalTexture[i] = new VertexPositionNormalTexture(position, Vector3.One, textureCoordinate);
                         }
-						CalculateNormals(verticesVertexPositionNormalTexture);
 						FlexibleVertexFormat |= D3DFVF.NORMAL;
                         break;
                     case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX1: //(D3DFVF)0x0112:
@@ -145,10 +146,9 @@ namespace LibreLancer.Utf.Vms
                             Diffuse[i] = ((uint)r << 24) | ((uint)g << 16) | ((uint)b << 8) | (uint)a;
                             Color4 diffuse = new Color4(r / 255f, g / 255f, b / 255f, a / 255f);
 							Vector2 textureCoordinate = new Vector2(reader.ReadSingle(), 1 - reader.ReadSingle());
-                            verticesVertexPositionNormalColorTexture[i] = new VertexPositionNormalColorTexture(position, Vector3.Zero, diffuse, textureCoordinate);
+                            verticesVertexPositionNormalColorTexture[i] = new VertexPositionNormalColorTexture(position, Vector3.One, diffuse, textureCoordinate);
                         }
 						FlexibleVertexFormat |= D3DFVF.NORMAL;
-						CalculateNormals(verticesVertexPositionNormalColorTexture);
                         break;
                     case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.DIFFUSE | D3DFVF.TEX1: //(D3DFVF)0x0152:
                         verticesVertexPositionNormalColorTexture = new VertexPositionNormalColorTexture[VertexCount];
@@ -235,36 +235,6 @@ namespace LibreLancer.Utf.Vms
             }
 
         }
-		public void CalculateNormals(VertexPositionNormalTexture[] array)
-		{
-			for (int i = 0; i < Indices.Length / 3; i++)
-			{
-				var firstVec = array[Indices[i * 3 + 1]].Position - array[Indices[i * 3]].Position;
-				var secondVec = array[Indices[i * 3]].Position - array[Indices[i * 3 + 2]].Position;
-				var normal = Vector3.Cross(firstVec, secondVec);
-				normal.Normalize();
-				array[Indices[i * 3]].Normal += normal;
-				array[Indices[i * 3 + 1]].Normal += normal;
-				array[Indices[i * 3 + 2]].Normal += normal;
-			}
-			for (int i = 0; i < array.Length; i++)
-				array[i].Normal.Normalize();
-		}
-		public void CalculateNormals(VertexPositionNormalColorTexture[] array)
-		{
-			for (int i = 0; i < Indices.Length / 3; i++)
-			{
-				var firstVec = array[Indices[i * 3 + 1]].Position - array[Indices[i * 3]].Position;
-				var secondVec = array[Indices[i * 3]].Position - array[Indices[i * 3 + 2]].Position;
-				var normal = Vector3.Cross(firstVec, secondVec);
-				normal.Normalize();
-				array[Indices[i * 3]].Normal += normal;
-				array[Indices[i * 3 + 1]].Normal += normal;
-				array[Indices[i * 3 + 2]].Normal += normal;
-			}
-			for (int i = 0; i < array.Length; i++)
-				array[i].Normal.Normalize();
-		}
 
         public void DeviceReset(ushort startMesh, int endMesh)
         {
