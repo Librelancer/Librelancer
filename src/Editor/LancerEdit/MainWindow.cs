@@ -60,7 +60,7 @@ namespace LancerEdit
         FileDialogFilters ColladaFilters = new FileDialogFilters(
             new FileFilter("Collada Files", "dae")
         );
-        public MainWindow(bool useDX9) : base(800,600,false,useDX9)
+        public MainWindow() : base(800,600,false)
 		{
             Version = "LancerEdit " + Platform.GetInformationalVersion<MainWindow>();
 			MaterialMap = new MaterialMap();

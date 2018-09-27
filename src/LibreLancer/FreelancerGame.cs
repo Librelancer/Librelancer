@@ -52,7 +52,7 @@ namespace LibreLancer
 			}
 		}
 		GameConfig _cfg;
-		public FreelancerGame(GameConfig config) : base(config.BufferWidth, config.BufferHeight, false, config.ForceAngle)
+		public FreelancerGame(GameConfig config) : base(config.BufferWidth, config.BufferHeight, false)
 		{
 			//DO NOT RUN CODE HERE. IT CAUSES THE STUPIDEST CRASH ON OSX KNOWN TO MAN
 			_cfg = config;

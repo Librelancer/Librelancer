@@ -23,7 +23,6 @@ namespace LibreLancer
 	{
 		public string FreelancerPath;
 		public bool MuteMusic = false;
-        public bool ForceAngle = false;
 		public bool IntroMovies = true;
 		public int BufferWidth = 1024;
 		public int BufferHeight = 768;

@@ -61,7 +61,6 @@ namespace Launcher
             }
             else
             {
-                config.ForceAngle = false;
                 win = ShowLauncher(config,false);
             }
 

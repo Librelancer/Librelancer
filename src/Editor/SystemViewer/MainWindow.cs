@@ -22,7 +22,7 @@ namespace SystemViewer
         GameWorld world;
         DebugCamera camera;
         LibreLancer.GameData.StarSystem curSystem;
-        public MainWindow(bool useDX9) : base(800,600,false,useDX9)
+        public MainWindow() : base(800,600,false)
         {
             FLLog.UIThread = this;
         }

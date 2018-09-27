@@ -26,12 +26,6 @@ namespace LibreLancer
         int[] cachedObjects = new int[MAX_UNIFORM_LOC];
 		public Shader(string vertex_source, string fragment_source, string geometry_source = null)
         {
-            if(GL.GLES)
-            {
-                //transform to DX9-level GLSL
-                GLSLUtils.GLESVertex(ref vertex_source);
-                GLSLUtils.GLESFragment(ref fragment_source);
-            }
 			var vertexHandle = GL.CreateShader (GL.GL_VERTEX_SHADER);
 			var fragmentHandle = GL.CreateShader (GL.GL_FRAGMENT_SHADER);
             GL.ShaderSource(vertexHandle, vertex_source);

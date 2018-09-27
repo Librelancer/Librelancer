@@ -33,10 +33,7 @@ namespace LancerEdit
                 var fullpath = Path.Combine(bindir, IntPtr.Size == 8 ? "x64" : "x86");
                 SetDllDirectory(fullpath);
             }
-            //Apparently some windows installs are screwy enough that they won't fail on
-            //unsupported configs. So allow DX9 to be first choice.
-            bool useDX9 = (args.Length > 0 && args[0] == "--dx9");
-            new MainWindow(useDX9).Run();
+            new MainWindow().Run();
 		}
 	}
 }

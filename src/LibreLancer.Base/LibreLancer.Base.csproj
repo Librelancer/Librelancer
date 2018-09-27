@@ -115,8 +115,6 @@
     <Compile Include="CubeMapFace.cs" />
     <Compile Include="ElementBuffer.cs" />
     <Compile Include="GLExtensions.cs" />
-    <Compile Include="GLSLUtils.cs" />
-    <Compile Include="GL\ANGLE.cs" />
     <Compile Include="Primitives\Cuboid.cs" />
     <Compile Include="Primitives\OpenCylinder.cs" />
     <Compile Include="Primitives\Ellipsoid.cs" />
