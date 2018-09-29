@@ -53,7 +53,13 @@ namespace LibreLancer
 				FLLog.Error("Animation", animationName + " not present");
 		}
 
-		public bool HasAnimation(string animationName)
+        public void ResetAnimations()
+        {
+            animations.Clear();
+            foreach(var c in constructs) c.Reset();
+        }
+
+        public bool HasAnimation(string animationName)
 		{
 			if (animationName == null) return false;
 			return anm.Scripts.ContainsKey(animationName);

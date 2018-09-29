@@ -55,7 +55,10 @@ namespace LibreLancer.Utf
 			newc.Max = Max;
 			return newc;
 		}
-
+        public override void Reset()
+        {
+            currentTransform = Matrix4.Identity;
+        }
         public override void Update(float distance)
         {
 			Vector3 currentTranslation = AxisTranslation * MathHelper.Clamp(distance, Min, Max);

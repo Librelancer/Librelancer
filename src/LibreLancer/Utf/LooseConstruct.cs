@@ -39,7 +39,9 @@ namespace LibreLancer.Utf
 			newc.constructs = constructs;
 			return newc;
 		}
-
+        public override void Reset()
+        {
+        }
         public override void Update(float distance)
         {
             throw new NotImplementedException();

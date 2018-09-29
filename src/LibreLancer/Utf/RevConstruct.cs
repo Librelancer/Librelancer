@@ -56,6 +56,10 @@ namespace LibreLancer.Utf
 			newc.constructs = newcol;
 			return newc;
 		}
+        public override void Reset()
+        {
+            currentTransform = Matrix4.Identity;
+        }
         public float Current = 0;
         public override void Update(float distance)
         {

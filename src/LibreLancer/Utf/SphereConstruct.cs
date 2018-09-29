@@ -63,7 +63,9 @@ namespace LibreLancer.Utf
 			newc.Max3 = Max3;
 			return newc;
 		}
-
+        public override void Reset()
+        {
+        }
         public override void Update(float distance)
         {
             //throw new NotImplementedException();

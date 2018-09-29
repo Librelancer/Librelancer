@@ -47,7 +47,7 @@ namespace LibreLancer.Utf
 			newc.fixtransform = fixtransform;
 			return newc;
 		}
-        public void Reset()
+        public override void Reset()
         {
             fixtransform = Rotation * Matrix4.CreateTranslation(Origin);
         }

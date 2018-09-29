@@ -634,6 +634,8 @@ namespace LancerEdit
                     animator.StartAnimation(sc.Key, false);
                 }
             }
+            ImGui.Separator();
+            if (ImGui.Button("Reset")) animator.ResetAnimations();
         }
 
         public override void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
