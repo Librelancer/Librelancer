@@ -48,6 +48,7 @@ namespace LibreLancer.Utf.Cmp
         public List<HardpointDefinition> Hardpoints { get; private set; }
         public VMeshRef[] Levels { get; private set; }
         public float[] Switch2 { get; private set; }
+        public VMeshWire VMeshWire { get; private set; }
 
         public ModelFile(string path, ILibFile additionalLibrary)
         {
@@ -155,7 +156,7 @@ namespace LibreLancer.Utf.Cmp
                         }
                         break;
                     case "vmeshwire":
-                        // TODO 3db VMeshWire
+                        VMeshWire = new VMeshWire(node as IntermediateNode, this);
                         break;
                     case "mass properties":
                         // TODO 3db Mass Properties
@@ -192,6 +193,7 @@ namespace LibreLancer.Utf.Cmp
         {
             for(int i = 0; i < Levels.Length; i++) Levels[i].Initialize(cache);
             ready = Levels.Length > 0;
+            if (VMeshWire != null) VMeshWire.Initialize(cache);
         }
 
         public void Resized()

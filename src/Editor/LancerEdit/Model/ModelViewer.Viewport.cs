@@ -74,6 +74,9 @@ namespace LancerEdit
             modelViewport.End();
             rotation = modelViewport.Rotation;
         }
+
+
+
         void DrawGL(int renderWidth, int renderHeight)
         {
             //Draw Model
@@ -82,7 +85,7 @@ namespace LancerEdit
 
             if(isStarsphere) //This is really bad
                 rot = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
-           
+            _window.DebugRender.StartFrame(cam, rstate);
             cam.Update(renderWidth, renderHeight, new Vector3(modelViewport.Zoom, 0, 0), Vector3.Zero, rot);
             drawable.Update(cam, TimeSpan.Zero, TimeSpan.FromSeconds(_window.TotalTime));
             if (viewMode != M_NONE)
@@ -110,8 +113,47 @@ namespace LancerEdit
                 buffer.DrawOpaque(rstate);
                 rstate.Wireframe = false;
             }
+            if(drawVMeshWire)
+            {
+                if (drawable is CmpFile)
+                    WireCmp();
+                else if (drawable is ModelFile)
+                    Wire3db();
+            }
+            //Draw VMeshWire (if used)
+            _window.DebugRender.Render();
             //Draw hardpoints
             DrawHardpoints(cam);
+        }
+
+        void WireCmp()
+        {
+            var cmp = (CmpFile)drawable;
+            var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+            foreach (var part in cmp.Parts)
+            {
+                if(part.Model.VMeshWire != null) DrawVMeshWire(part.Model.VMeshWire, part.GetTransform(matrix));
+            }
+        }
+        void Wire3db()
+        {
+            var model = (ModelFile)drawable;
+            if (model.VMeshWire == null) return;
+            var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+            DrawVMeshWire(model.VMeshWire, matrix);
+        }
+        void DrawVMeshWire(VMeshWire wires, Matrix4 mat)
+        {
+            var c = _window.DebugRender.Color;
+            _window.DebugRender.Color = Color4.White;
+            for (int i = 0; i < wires.Lines.Length / 2; i++)
+            {
+                _window.DebugRender.DrawLine(
+                    mat.Transform(wires.Lines[i * 2]),
+                    mat.Transform(wires.Lines[i * 2 + 1])
+                );
+            }
+            _window.DebugRender.Color = c;
         }
 
         void DrawHardpoints(ICamera cam)
@@ -215,30 +257,38 @@ namespace LancerEdit
             {
                 if (viewMode == M_LIT)
                 {
-                    foreach(var part in cmp.Parts)
+                    foreach (var part in cmp.Parts)
+                    {
                         part.DrawBufferLevel(
-                            GetLevel(part.Model.Switch2, part.Model.Levels.Length - 1),
-                            buffer, matrix, ref lighting
-                        );
+                                GetLevel(part.Model.Switch2, part.Model.Levels.Length - 1),
+                                buffer, matrix, ref lighting
+                            );
+                    }
                 }
                 else
                 {
                     foreach (var part in cmp.Parts)
+                    {
                         part.DrawBufferLevel(
-                            GetLevel(part.Model.Switch2, part.Model.Levels.Length - 1),
-                            buffer, matrix, ref Lighting.Empty
+                                GetLevel(part.Model.Switch2, part.Model.Levels.Length - 1),
+                                buffer, matrix, ref Lighting.Empty
                         );
+                    }
                 }
             }
             else
             {
                 normalsDebugMaterial.Update(cam);
                 foreach (var part in cmp.Parts)
+                {
                     part.DrawBufferLevel(
-                        GetLevel(part.Model.Switch2, part.Model.Levels.Length - 1),
-                        buffer, matrix, ref Lighting.Empty, normalsDebugMaterial
-                    );
+                            GetLevel(part.Model.Switch2, part.Model.Levels.Length - 1),
+                            buffer, matrix, ref Lighting.Empty, normalsDebugMaterial
+                        );
+                }
             }
         }
-	}
+
+
+    }
 }

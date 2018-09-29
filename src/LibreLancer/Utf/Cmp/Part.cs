@@ -118,7 +118,14 @@ namespace LibreLancer.Utf.Cmp
             Model.DrawBufferLevel(Model.Levels[level], buffer, transform, ref light, overrideMat);
         }
 
-		public Part Clone(ConstructCollection newcol)
+        public Matrix4 GetTransform(Matrix4 world)
+        {
+            Matrix4 transform = world;
+            if (Construct != null) transform = Construct.Transform * world;
+            return transform;
+        }
+
+        public Part Clone(ConstructCollection newcol)
 		{
 			return new Part(ObjectName, fileName, models, newcol);
 		}
