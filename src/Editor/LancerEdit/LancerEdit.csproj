@@ -8,6 +8,7 @@
     <RootNamespace>LancerEdit</RootNamespace>
     <AssemblyName>LancerEdit</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <ApplicationIcon>..\..\..\editoricons\appicon\reactor.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -134,6 +135,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="defaulttexture.dds" />
+    <EmbeddedResource Include="..\..\..\editoricons\appicon\reactor_64.png">
+      <Link>reactor_64.png</Link>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="..\..\packages\TeximpNet.1.2.0\build\TeximpNet.targets" Condition="Exists('..\..\packages\TeximpNet.1.2.0\build\TeximpNet.targets')" />

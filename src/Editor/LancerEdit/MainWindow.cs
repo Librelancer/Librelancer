@@ -106,7 +106,17 @@ namespace LancerEdit
 			DebugRender = new PhysicsDebugRenderer();
 			Viewport.Push(0, 0, 800, 600);
             Keyboard.KeyDown += Keyboard_KeyDown;
-		}
+
+            //TODO: Icon-setting code very messy
+            int w, h, c;
+            var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("LancerEdit.reactor_64.png");
+            var bytes = new byte[stream.Length];
+            stream.Read(bytes, 0, (int)stream.Length);
+            StbSharp.Stb.stbi_set_flip_vertically_on_load(0);
+            var img = StbSharp.Stb.stbi_load_from_memory(bytes, out w, out h, out c, StbSharp.Stb.STBI_rgb_alpha);
+            StbSharp.Stb.stbi_set_flip_vertically_on_load(1);
+            SetWindowIcon(w, h, img);
+        }
 
         void Keyboard_KeyDown(KeyEventArgs e)
         {
@@ -274,6 +284,7 @@ namespace LancerEdit
             }
 			if (ImGui.BeginPopupModal("About", WindowFlags.AlwaysAutoResize))
 			{
+                Theme.Icon("reactor_128", Color4.White);
                 ImGui.Text(Version);
 				ImGui.Text("Callum McGing 2018");
                 ImGui.Separator();

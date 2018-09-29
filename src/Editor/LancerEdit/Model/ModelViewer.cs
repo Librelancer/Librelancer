@@ -214,7 +214,7 @@ namespace LancerEdit
         Color4 background = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
         System.Numerics.Vector3 editCol;
 
-        bool[] openTabs = new bool[] { false, false };
+        bool[] openTabs = new bool[] { false, false, false };
         void TabButton(string name, int idx)
         {
             if (TabHandler.VerticalTab(name, openTabs[idx]))
@@ -235,6 +235,7 @@ namespace LancerEdit
                 TabButton("Hierachy", 0);
             if (drawable is CmpFile && ((CmpFile)drawable).Animation != null)
                 TabButton("Animations", 1);
+            TabButton("Render", 2);
             ImGuiNative.igEndGroup();
             ImGui.SameLine();
         }
@@ -262,6 +263,7 @@ namespace LancerEdit
                 ImGui.BeginChild("##tabchild");
                 if (openTabs[0]) HierachyPanel();
                 if (openTabs[1]) AnimationPanel();
+                if (openTabs[2]) RenderPanel();
                 ImGui.EndChild();
                 ImGui.NextColumn();
             }
@@ -643,6 +645,38 @@ namespace LancerEdit
             if (ImGui.Button("Reset")) animator.ResetAnimations();
         }
 
+
+        int imageWidth = 256;
+        int imageHeight = 256;
+        bool renderBackground = false;
+        FileDialogFilters pngFilters = new FileDialogFilters(new FileFilter("PNG Files", "png"));
+        unsafe void RenderPanel()
+        {
+            ImGui.Text("Render to Image");
+            ImGui.Checkbox("Background?", ref renderBackground);
+            fixed(int* rw = &imageWidth, rh = &imageHeight) {
+                ImGuiNative.igInputInt("Width", rw, 1, 10, InputTextFlags.Default);
+                ImGuiNative.igInputInt("Height", rh, 1, 0, InputTextFlags.Default);
+            }
+            var w = Math.Max(imageWidth, 16);
+            var h = Math.Max(imageHeight, 16);
+            var rpanelWidth = ImGui.GetWindowWidth() - 15;
+            int rpanelHeight = (int)(rpanelWidth * ((float)h / (float)w));
+            DoPreview((int)rpanelWidth, rpanelHeight);
+            if (ImGui.Button("Export"))
+            {
+                if(imageWidth < 16 || imageHeight < 16)
+                {
+                    FLLog.Error("Export", "Image minimum size is 16x16");
+                }
+                else
+                {
+                    string output;
+                    if((output = FileDialog.Save(pngFilters)) != null)
+                        RenderImage(output);
+                }
+            }
+        }
         public override void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
         {
             ResourceDetection.DetectDrawable(Name, drawable, res, missing, matrefs, texrefs);
@@ -651,6 +685,8 @@ namespace LancerEdit
         public override void Dispose()
         {
             modelViewport.Dispose();
+            imageViewport.Dispose();
+            previewViewport.Dispose();
             newHpBuffer.Dispose();
         }
     }

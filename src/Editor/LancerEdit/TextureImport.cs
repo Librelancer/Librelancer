@@ -42,7 +42,7 @@ namespace LancerEdit
     {
         static bool first = true;
 
-        static void LoadLibraries()
+        public static void LoadLibraries()
         {
             if (first)
             {

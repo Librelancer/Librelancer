@@ -74,6 +74,26 @@ namespace LibreLancer
             return wminfo.info.win.window;
         }
 
+        public unsafe void SetWindowIcon(int width, int height, byte[] data)
+        {
+            IntPtr surface;
+            fixed (byte* ptr = data)
+            {
+                surface = SDL.SDL_CreateRGBSurfaceFrom(
+                    (IntPtr)ptr,
+                    width,
+                    height,
+                    32,
+                    width * 4,
+                    0x000000FF,
+                    0x0000FF00,
+                    0x00FF0000,
+                    0xFF000000);
+            }
+            SDL.SDL_SetWindowIcon(windowptr, surface);
+            SDL.SDL_FreeSurface(surface);
+        }
+
         public bool GetX11Info(out IntPtr display, out IntPtr window)
         {
             window = display = IntPtr.Zero;

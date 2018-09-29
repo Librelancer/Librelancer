@@ -26,7 +26,7 @@ namespace LibreLancer
         ViewportManager vps;
         int rw = -1, rh = -1;
         int rid;
-        RenderTarget2D renderTarget;
+        public RenderTarget2D RenderTarget;
         public float Zoom = 200;
         public float ZoomStep = 0.25f;
         public Vector2 Rotation = Vector2.Zero;
@@ -45,25 +45,27 @@ namespace LibreLancer
         }
 
         Color4 cc;
-        public void Begin()
+        public void Begin(int fixWidth = -1, int fixHeight = -1)
         {
             var renderWidth = Math.Max(120, (int)ImGui.GetWindowWidth() - MarginW);
             var renderHeight = Math.Max(120, (int)ImGui.GetWindowHeight() - MarginH);
+            if (fixWidth > 0) renderWidth = fixWidth;
+            if (fixHeight > 0) renderHeight = fixHeight;
             //Generate render target
             if (rh != renderHeight || rw != renderWidth)
             {
-                if (renderTarget != null)
+                if (RenderTarget != null)
                 {
-                    ImGuiHelper.DeregisterTexture(renderTarget);
-                    renderTarget.Dispose();
+                    ImGuiHelper.DeregisterTexture(RenderTarget);
+                    RenderTarget.Dispose();
                 }
-                renderTarget = new RenderTarget2D(renderWidth, renderHeight);
-                rid = ImGuiHelper.RegisterTexture(renderTarget);
+                RenderTarget = new RenderTarget2D(renderWidth, renderHeight);
+                rid = ImGuiHelper.RegisterTexture(RenderTarget);
                 rw = renderWidth;
                 rh = renderHeight;
             }
             cc = rstate.ClearColor;
-            renderTarget.BindFramebuffer();
+            RenderTarget.BindFramebuffer();
             vps.Push(0, 0, rw, rh);
             rstate.Cull = true;
             rstate.DepthEnabled = true;
@@ -71,7 +73,7 @@ namespace LibreLancer
             rstate.ClearAll();
         }
 
-        public void End()
+        public void End(bool view = true)
         {
             vps.Pop();
             RenderTarget2D.ClearBinding();
@@ -80,32 +82,35 @@ namespace LibreLancer
             rstate.BlendMode = BlendMode.Normal;
             rstate.Cull = false;
             //Viewport Control
-            ImGui.ImageButton((IntPtr)rid, new Vector2(rw, rh),
-                              Vector2.Zero, Vector2.One,
-                              0,
-                              Vector4.One, Vector4.One);
-            if (ImGui.IsItemHovered(HoveredFlags.Default))
+            if (view)
             {
-                if (ImGui.IsMouseDragging(0, 1f))
+                ImGui.ImageButton((IntPtr)rid, new Vector2(rw, rh),
+                                  Vector2.Zero, Vector2.One,
+                                  0,
+                                  Vector4.One, Vector4.One);
+                if (ImGui.IsItemHovered(HoveredFlags.Default))
                 {
-                    var delta = (Vector2)ImGui.GetMouseDragDelta(0, 1f);
-                    Rotation -= (delta / 64);
-                    ImGui.ResetMouseDragDelta(0);
+                    if (ImGui.IsMouseDragging(0, 1f))
+                    {
+                        var delta = (Vector2)ImGui.GetMouseDragDelta(0, 1f);
+                        Rotation -= (delta / 64);
+                        ImGui.ResetMouseDragDelta(0);
+                    }
+                    float wheel = ImGui.GetIO().MouseWheel;
+                    if (ImGui.GetIO().ShiftPressed)
+                        Zoom -= wheel * (2 * ZoomStep);
+                    else
+                        Zoom -= wheel * ZoomStep;
+                    if (Zoom < 0) Zoom = 0;
                 }
-                float wheel = ImGui.GetIO().MouseWheel;
-                if (ImGui.GetIO().ShiftPressed)
-                    Zoom -= wheel * (2 * ZoomStep);
-                else
-                    Zoom -= wheel * ZoomStep;
-                if (Zoom < 0) Zoom = 0;
             }
         }
 
         public void Dispose()
         {
-            if(renderTarget != null) {
-                ImGuiHelper.DeregisterTexture(renderTarget);
-                renderTarget.Dispose();
+            if(RenderTarget != null) {
+                ImGuiHelper.DeregisterTexture(RenderTarget);
+                RenderTarget.Dispose();
             }
         }
     }

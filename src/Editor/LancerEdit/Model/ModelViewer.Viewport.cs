@@ -23,6 +23,8 @@ namespace LancerEdit
     public partial class ModelViewer
 	{
         Viewport3D modelViewport;
+        Viewport3D previewViewport;
+        Viewport3D imageViewport;
 
         float gizmoScale;
         const float RADIUS_ONE = 21.916825f;
@@ -32,6 +34,10 @@ namespace LancerEdit
             modelViewport.MarginH = 60;
             modelViewport.Zoom = drawable.GetRadius() * 2;
             modelViewport.ZoomStep = modelViewport.Zoom / 3.26f;
+
+            previewViewport = new Viewport3D(rstate, vps);
+            imageViewport = new Viewport3D(rstate, vps);
+
             gizmoScale = drawable.GetRadius() / RADIUS_ONE;
             wireframeMaterial3db = new Material(res);
             wireframeMaterial3db.Dc = Color4.White;
@@ -75,6 +81,56 @@ namespace LancerEdit
             rotation = modelViewport.Rotation;
         }
 
+        void DoPreview(int width, int height)
+        {
+            previewViewport.Background = renderBackground ? background : Color4.Black;
+            previewViewport.Begin(width, height);
+            DrawGL(width, height);
+            previewViewport.End();
+        }
+
+        unsafe void RenderImage(string output)
+        {
+            try
+            {
+                TextureImport.LoadLibraries();
+            }
+            catch (Exception)
+            {
+                FLLog.Error("Render", "Could not load FreeImage");
+                return;
+            }
+            imageViewport.Background = renderBackground ? background : Color4.TransparentBlack;
+            int rWidth = Math.Min(imageWidth, 256);
+            int rHeight = (int)(rWidth * (float)imageHeight / imageWidth);
+            rWidth *= 2;
+            rHeight *= 2;
+            imageViewport.Begin(rWidth, rHeight);
+            DrawGL(rWidth, rHeight);
+            imageViewport.End(false);
+            byte[] data = new byte[rWidth * rHeight * 4];
+            imageViewport.RenderTarget.GetData(data);
+            using (var sfc = new TeximpNet.Surface(rWidth, rHeight, true))
+            {
+                //flip
+                fixed (byte* d = data)
+                {
+                    int* src = (int*)d;
+                    int* dst = (int*)sfc.DataPtr;
+                    for (int y = 0; y < rHeight; y++)
+                    {
+                        for (int x = 0; x < rWidth; x++)
+                        {
+                            int dstY = rHeight - y - 1;
+                            dst[dstY * rWidth + x] = src[y * rWidth + x];
+                        }
+                    }
+                }
+                sfc.Resize(imageWidth, imageHeight, TeximpNet.ImageFilter.Lanczos3);
+                sfc.SaveToFile(TeximpNet.ImageFormat.PNG, output);
+            }
+
+        }
 
 
         void DrawGL(int renderWidth, int renderHeight)
