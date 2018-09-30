@@ -385,7 +385,7 @@ namespace LancerEdit
                     if (!ex.Materials.Any((x) => x.Name == dc.Material.Name)) ex.Materials.Add(dc.Material);
                     var trs = new CL.triangles();
                     trs.count = (ulong)(dc.Indices.Length / 3);
-                    trs.material = dc.Material + "-material";
+                    trs.material = dc.Material.Name + "-material";
                     List<int> pRefs = new List<int>(dc.Indices.Length * idxC);
                     List<CL.InputLocalOffset> inputs = new List<CL.InputLocalOffset>() {
                         new CL.InputLocalOffset() {
