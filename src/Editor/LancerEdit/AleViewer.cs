@@ -49,8 +49,9 @@ namespace LancerEdit
             this.name = name;
             this.rstate = main.RenderState;
             aleViewport = new Viewport3D(rstate, main.Viewport);
-            aleViewport.Zoom = 200;
-            aleViewport.ZoomStep = 25;
+            aleViewport.DefaultOffset = 
+            aleViewport.CameraOffset = new Vector3(0, 0, 200);
+            aleViewport.ModelScale = 25;
             buffer = main.Commands;
             billboards = main.Billboards;
             polyline = main.Polyline;
@@ -208,11 +209,15 @@ namespace LancerEdit
             }
             ImGui.PopStyleColor();
         }
-
+        
         void DrawGL(int renderWidth, int renderHeight)
         {
             var cam = new LookAtCamera();
-            cam.Update(renderWidth, renderHeight, new Vector3(aleViewport.Zoom, 0, 0), Vector3.Zero);
+            Matrix4 rot = Matrix4.CreateRotationX(aleViewport.CameraRotation.Y) *
+                Matrix4.CreateRotationY(aleViewport.CameraRotation.X);
+            var dir = rot.Transform(Vector3.Forward);
+            var to = aleViewport.CameraOffset + (dir * 10);
+            cam.Update(renderWidth, renderHeight, aleViewport.CameraOffset, to, rot);
             buffer.StartFrame(rstate);
             polyline.SetCamera(cam);
             billboards.Begin(cam, buffer);

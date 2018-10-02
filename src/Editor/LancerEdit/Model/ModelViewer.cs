@@ -317,6 +317,13 @@ namespace LancerEdit
             ImGui.Combo("##modes", ref viewMode, viewModes);
             ImGui.PopItemWidth();
             DoViewport();
+            //
+            if(ImGui.Button("Reset Camera (Ctrl+R)"))
+            {
+                modelViewport.ResetControls();
+            }
+            ImGui.SameLine();
+            //
             if (!(drawable is SphFile) && !(drawable is DF.DfmFile))
             {
                 ImGui.AlignTextToFramePadding();

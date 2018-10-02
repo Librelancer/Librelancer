@@ -32,9 +32,9 @@ namespace LancerEdit
         {
             modelViewport = new Viewport3D(rstate, vps);
             modelViewport.MarginH = 60;
-            modelViewport.DefaultZoom = modelViewport.Zoom = drawable.GetRadius() * 2;
-            modelViewport.ZoomStep = modelViewport.Zoom / 3.26f;
-            modelViewport.CameraOffset = new Vector3(0, 0, modelViewport.Zoom);
+            modelViewport.DefaultOffset =
+            modelViewport.CameraOffset = new Vector3(0, 0, drawable.GetRadius() * 2);
+            modelViewport.ModelScale = drawable.GetRadius() / 2.6f;
             previewViewport = new Viewport3D(rstate, vps);
             imageViewport = new Viewport3D(rstate, vps);
 
@@ -103,7 +103,6 @@ namespace LancerEdit
             imageViewport.Background = renderBackground ? background : Color4.TransparentBlack;
             int rWidth = Math.Min(imageWidth, 256);
             int rHeight = (int)(rWidth * (float)imageHeight / imageWidth);
-            rWidth *= 2;
             rHeight *= 2;
             imageViewport.Begin(rWidth, rHeight);
             DrawGL(rWidth, rHeight);

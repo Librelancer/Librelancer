@@ -108,7 +108,9 @@ namespace LibreLancer.Utf.Cmp
                                     foreach (IntermediateNode revoluteNode in hardpointTypeNode)
                                         Hardpoints.Add(new RevoluteHardpointDefinition(revoluteNode));
                                     break;
-                                default: throw new Exception("Invalid node in " + hardpointsNode.Name + ": " + hardpointTypeNode.Name);
+                                default:
+                                    Hardpoints.Add(new FixedHardpointDefinition(hardpointTypeNode));
+                                    break;
                             }
                         }
                         break;

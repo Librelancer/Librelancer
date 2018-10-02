@@ -27,10 +27,9 @@ namespace LibreLancer
         int rw = -1, rh = -1;
         int rid;
         public RenderTarget2D RenderTarget;
-        public float Zoom = 200;
-        public float DefaultZoom = 200;
+        public Vector3 DefaultOffset = new Vector3(0, 0, 200);
 
-        public float ZoomStep = 0.25f;
+        public float ModelScale = 0.25f;
         public Vector2 Rotation = Vector2.Zero;
         public Vector2 CameraRotation = Vector2.Zero;
         public int MarginH = 40;
@@ -53,7 +52,7 @@ namespace LibreLancer
         {
             CameraOffset = Vector3.Zero;
             Rotation = CameraRotation = Vector2.Zero;
-            Zoom = DefaultZoom;
+            
         }
         Color4 cc;
         public void Begin(int fixWidth = -1, int fixHeight = -1)
@@ -113,15 +112,15 @@ namespace LibreLancer
                             //LMB + RMB - Move up and down
                             ImGui.ResetMouseDragDelta(1);
                             var y = rotmat.Transform(Vector3.UnitY);
-                            CameraOffset -= y * (delta.Y * ZoomStep / 8.5f);
+                            CameraOffset += y * (delta.Y * ModelScale / 52f);
                         }
                         else
                         {
                             var z = rotmat.Transform(Vector3.UnitZ);
                             var x = rotmat.Transform(Vector3.UnitX);
 
-                            CameraOffset -= x * (delta.X * ZoomStep / 8.5f);
-                            CameraOffset -= z * (delta.Y * ZoomStep / 6f);
+                            CameraOffset -= x * (delta.X * ModelScale / 52f);
+                            CameraOffset -= z * (delta.Y * ModelScale / 44f);
                         }
                     }
                     else if (ImGui.IsMouseDragging(1, 1f))
@@ -131,12 +130,12 @@ namespace LibreLancer
                         if (io.CtrlPressed)
                         {
                             //CTRL + RMB - Rotate Model
-                            Rotation += (delta / 64);
+                            Rotation += (delta / 100) * new Vector2(1,-1);
                         }
                         else
                         {
                             //RMB - Rotate viewport camera
-                            CameraRotation += (delta / 64);
+                            CameraRotation += (delta / 100) * new Vector2(1,-1);
                         }
                     }
                 }
