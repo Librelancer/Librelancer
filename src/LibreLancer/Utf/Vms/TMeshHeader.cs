@@ -242,5 +242,13 @@ namespace LibreLancer.Utf.Vms
 			m.Render.ApplyDepthPrepass(rstate);
 			data.VertexBuffer.Draw(PrimitiveTypes.TriangleList, startVertex + StartVertex, startIndex + TriangleStart, primitiveCount);
 		}
+
+        public override string ToString()
+        {
+            string transparent = "";
+            if (Material != null && Material.Render != null)
+                transparent = Material.Render.IsTransparent ? "-TR" : "";
+            return string.Format("[Mat:{0}{4}, Off:{1}, Start:{2}, Count:{3}]", MaterialCrc.ToString("X"), StartVertex, TriangleStart, NumRefVertices,transparent);
+        }
     }
 }

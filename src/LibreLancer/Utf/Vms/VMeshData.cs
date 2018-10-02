@@ -200,33 +200,34 @@ namespace LibreLancer.Utf.Vms
             GenerateVertexBuffer(cache);
 			ready = true;
 		}
-        int indexOffset = 0;
-        int vertexOffset = 0;
+        public int IndexOffset = 0;
+        public int VertexOffset = 0;
+        public IndexResourceHandle IndexHandle;
         void GenerateVertexBuffer(ResourceManager cache)
         {
           
             switch (FlexibleVertexFormat)
             {
                 case D3DFVF.XYZ: //(D3DFVF)0x0002:
-                    cache.AllocateVertices(verticesVertexPosition, Indices, out indexOffset, out vertexOffset, out _vertexBuffer);
+                    cache.AllocateVertices(verticesVertexPosition, Indices, out IndexOffset, out VertexOffset, out _vertexBuffer, out IndexHandle);
                     break;
                 case D3DFVF.XYZ | D3DFVF.NORMAL: //(D3DFVF)0x0012:
-                    cache.AllocateVertices(verticesVertexPositionNormal, Indices, out indexOffset, out vertexOffset, out _vertexBuffer);
+                    cache.AllocateVertices(verticesVertexPositionNormal, Indices, out IndexOffset, out VertexOffset, out _vertexBuffer, out IndexHandle);
                     break;
                 case D3DFVF.XYZ | D3DFVF.TEX1: //(D3DFVF)0x0102:
-                    cache.AllocateVertices(verticesVertexPositionTexture, Indices, out indexOffset, out vertexOffset, out _vertexBuffer);
+                    cache.AllocateVertices(verticesVertexPositionTexture, Indices, out IndexOffset, out VertexOffset, out _vertexBuffer, out IndexHandle);
                     break;
                 case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX1: //(D3DFVF)0x0112:
-                    cache.AllocateVertices(verticesVertexPositionNormalTexture, Indices, out indexOffset, out vertexOffset, out _vertexBuffer);
+                    cache.AllocateVertices(verticesVertexPositionNormalTexture, Indices, out IndexOffset, out VertexOffset, out _vertexBuffer, out IndexHandle);
                     break;
                 case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.DIFFUSE | D3DFVF.TEX1: //(D3DFVF)0x0152:
-                    cache.AllocateVertices(verticesVertexPositionNormalColorTexture, Indices, out indexOffset, out vertexOffset, out _vertexBuffer);
+                    cache.AllocateVertices(verticesVertexPositionNormalColorTexture, Indices, out IndexOffset, out VertexOffset, out _vertexBuffer, out IndexHandle);
                     break;
                 case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX2: //(D3DFVF)0x0212:
-                    cache.AllocateVertices(verticesVertexPositionNormalTextureTwo, Indices, out indexOffset, out vertexOffset, out _vertexBuffer);
+                    cache.AllocateVertices(verticesVertexPositionNormalTextureTwo, Indices, out IndexOffset, out VertexOffset, out _vertexBuffer, out IndexHandle);
                     break;
                 case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.DIFFUSE | D3DFVF.TEX2: //(D3DFVF)0x0252:
-                    cache.AllocateVertices(verticesVertexPositionNormalDiffuseTextureTwo, Indices, out indexOffset, out vertexOffset, out _vertexBuffer);
+                    cache.AllocateVertices(verticesVertexPositionNormalDiffuseTextureTwo, Indices, out IndexOffset, out VertexOffset, out _vertexBuffer, out IndexHandle);
                     break;
                 /*case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX4: //(D3DFVF)0x0412:
                     VertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionNormalTextureTangentBinormal), VertexCount, BufferUsage.WriteOnly);
@@ -265,18 +266,17 @@ namespace LibreLancer.Utf.Vms
 			{
                 for (ushort i = startMesh; i < endMesh; i++)
                 {
-					Meshes [i].Draw (rstate, VertexBuffer, startVertex + vertexOffset, indexOffset, world, light, mc);
+					Meshes [i].Draw (rstate, VertexBuffer, startVertex + VertexOffset, IndexOffset, world, light, mc);
                 }
             }
         }
-
 		public void DrawBuffer(CommandBuffer buff, ushort startMesh, int endMesh, ushort startVertex, Matrix4 world, ref Lighting light, Vector3 center, MaterialAnimCollection mc, Material overrideMat = null)
 		{
 			if (ready)
 			{
 				for (ushort i = startMesh; i < endMesh; i++)
 				{
-					Meshes[i].DrawBuffer(buff, this, vertexOffset, startVertex, indexOffset, world, ref light, mc, overrideMat);
+					Meshes[i].DrawBuffer(buff, this, VertexOffset, startVertex, IndexOffset, world, ref light, mc, overrideMat);
 				}
 			}
 		}
@@ -287,7 +287,7 @@ namespace LibreLancer.Utf.Vms
 			{
 				for (ushort i = startMesh; i < endMesh; i++)
 				{
-					Meshes[i].DepthPrepass(rstate, this, startVertex + vertexOffset, indexOffset, world, mc);
+					Meshes[i].DepthPrepass(rstate, this, startVertex + VertexOffset, IndexOffset, world, mc);
 				}
 			}
 		}

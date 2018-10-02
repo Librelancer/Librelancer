@@ -54,26 +54,27 @@ namespace LibreLancer
 
         T[] As<T>(object input) => (T[])input;
 
-        public void AllocateVertices<T>(T[] vertices, ushort[] indices, out int startIndex, out int baseVertex, out VertexBuffer vbo) where T: struct
+        public void AllocateVertices<T>(T[] vertices, ushort[] indices, out int startIndex, out int baseVertex, out VertexBuffer vbo, out IndexResourceHandle index) where T: struct
         {
             vbo = null;
+            index = null;
             startIndex = baseVertex = -1;
             if(typeof(T) == typeof(VertexPosition)) {
-                posResource.Allocate(As<VertexPosition>(vertices), indices, out vbo, out startIndex, out baseVertex);
+                posResource.Allocate(As<VertexPosition>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
             } else if (typeof(T) == typeof(VertexPositionColor)) {
-                posColorResource.Allocate(As<VertexPositionColor>(vertices), indices, out vbo, out startIndex, out baseVertex);
+                posColorResource.Allocate(As<VertexPositionColor>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
             } else if (typeof(T) == typeof(VertexPositionNormal)) {
-                posNormalResource.Allocate(As<VertexPositionNormal>(vertices), indices, out vbo, out startIndex, out baseVertex);
+                posNormalResource.Allocate(As<VertexPositionNormal>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
             } else if (typeof(T) == typeof(VertexPositionColorTexture)) {
-                posColorTextureResource.Allocate(As<VertexPositionColorTexture>(vertices), indices, out vbo, out startIndex, out baseVertex);
+                posColorTextureResource.Allocate(As<VertexPositionColorTexture>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
             } else if (typeof(T) == typeof(VertexPositionNormalTexture)) {
-                posNormalTextureResource.Allocate(As<VertexPositionNormalTexture>(vertices), indices, out vbo, out startIndex, out baseVertex);
+                posNormalTextureResource.Allocate(As<VertexPositionNormalTexture>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
             } else if (typeof(T) == typeof(VertexPositionNormalColorTexture)) {
-                posNormalColorTextureResource.Allocate(As<VertexPositionNormalColorTexture>(vertices), indices, out vbo, out startIndex, out baseVertex);
+                posNormalColorTextureResource.Allocate(As<VertexPositionNormalColorTexture>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
             } else if (typeof(T) == typeof(VertexPositionNormalTextureTwo)) {
-                posNormalTextureTwoResource.Allocate(As<VertexPositionNormalTextureTwo>(vertices), indices, out vbo, out startIndex, out baseVertex);
+                posNormalTextureTwoResource.Allocate(As<VertexPositionNormalTextureTwo>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
             } else if (typeof(T) == typeof(VertexPositionNormalDiffuseTextureTwo)) {
-                posNormalDiffuseTextureTwoResource.Allocate(As<VertexPositionNormalDiffuseTextureTwo>(vertices), indices, out vbo, out startIndex, out baseVertex);
+                posNormalDiffuseTextureTwoResource.Allocate(As<VertexPositionNormalDiffuseTextureTwo>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
             } else {
                 throw new NotSupportedException("Allocate " + typeof(T).Name);
             }
