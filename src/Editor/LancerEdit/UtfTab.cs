@@ -225,12 +225,13 @@ namespace LancerEdit
                     if (ale != null)
                         main.AddTab(new AleViewer("Ale Viewer (" + Title + ")", Title, ale, main));
                 }
-                if (ImGui.MenuItem("Refresh Resources"))
-                {
-                    main.Resources.RemoveResourcesForId(Unique.ToString());
-                    main.Resources.AddResources(Utf.Export(), Unique.ToString());
-                }
                 ImGui.EndPopup();
+            }
+            ImGui.SameLine();
+            if(ImGui.Button("Reload Resources"))
+            {
+                main.Resources.RemoveResourcesForId(Unique.ToString());
+                main.Resources.AddResources(Utf.Export(), Unique.ToString());
             }
             Popups();
         }
