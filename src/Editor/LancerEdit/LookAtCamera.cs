@@ -12,7 +12,8 @@ namespace LancerEdit
         {
             pos = from;
             projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(50), vw / vh, 0.1f, 300000);
-            view = Matrix4.LookAt(from, to, -Vector3.Up) * (rot ?? Matrix4.Identity);
+            var up = (rot ?? Matrix4.Identity).Transform(Vector3.Up);
+            view = Matrix4.LookAt(from, to, up);
             vp = view * projection;
         }
         public Matrix4 ViewProjection {

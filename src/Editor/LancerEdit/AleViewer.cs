@@ -246,6 +246,11 @@ namespace LancerEdit
             }
         }
 
+        public override void OnHotkey(Hotkeys hk)
+        {
+            if (hk == Hotkeys.ResetViewport) aleViewport.ResetControls();
+        }
+
         Matrix4 transform = Matrix4.Identity;
         public override void Update(double elapsed)
         {

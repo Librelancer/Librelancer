@@ -28,12 +28,17 @@ namespace LibreLancer
         int rid;
         public RenderTarget2D RenderTarget;
         public float Zoom = 200;
+        public float DefaultZoom = 200;
+
         public float ZoomStep = 0.25f;
         public Vector2 Rotation = Vector2.Zero;
+        public Vector2 CameraRotation = Vector2.Zero;
         public int MarginH = 40;
         public int MarginW = 15;
         public int MinWidth = 120;
         public int MinHeight = 120;
+
+        public Vector3 CameraOffset = Vector3.Zero;
         public Color4 Background = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
 
         public int RenderWidth { get { return rw; }}
@@ -44,6 +49,12 @@ namespace LibreLancer
             this.vps = vps;
         }
 
+        public void ResetControls()
+        {
+            CameraOffset = Vector3.Zero;
+            Rotation = CameraRotation = Vector2.Zero;
+            Zoom = DefaultZoom;
+        }
         Color4 cc;
         public void Begin(int fixWidth = -1, int fixHeight = -1)
         {
@@ -90,18 +101,44 @@ namespace LibreLancer
                                   Vector4.One, Vector4.One);
                 if (ImGui.IsItemHovered(HoveredFlags.Default))
                 {
+                    var io = ImGui.GetIO();
                     if (ImGui.IsMouseDragging(0, 1f))
                     {
                         var delta = (Vector2)ImGui.GetMouseDragDelta(0, 1f);
-                        Rotation -= (delta / 64);
                         ImGui.ResetMouseDragDelta(0);
+                        var rotmat = Matrix4.CreateRotationX(CameraRotation.Y) *
+                            Matrix4.CreateRotationY(CameraRotation.X);
+                        if (ImGui.IsMouseDown(1))
+                        {
+                            //LMB + RMB - Move up and down
+                            ImGui.ResetMouseDragDelta(1);
+                            var y = rotmat.Transform(Vector3.UnitY);
+                            CameraOffset -= y * (delta.Y * ZoomStep / 8.5f);
+                        }
+                        else
+                        {
+                            var z = rotmat.Transform(Vector3.UnitZ);
+                            var x = rotmat.Transform(Vector3.UnitX);
+
+                            CameraOffset -= x * (delta.X * ZoomStep / 8.5f);
+                            CameraOffset -= z * (delta.Y * ZoomStep / 6f);
+                        }
                     }
-                    float wheel = ImGui.GetIO().MouseWheel;
-                    if (ImGui.GetIO().ShiftPressed)
-                        Zoom -= wheel * (2 * ZoomStep);
-                    else
-                        Zoom -= wheel * ZoomStep;
-                    if (Zoom < 0) Zoom = 0;
+                    else if (ImGui.IsMouseDragging(1, 1f))
+                    {
+                        var delta = (Vector2)ImGui.GetMouseDragDelta(1, 1f);
+                        ImGui.ResetMouseDragDelta(1);
+                        if (io.CtrlPressed)
+                        {
+                            //CTRL + RMB - Rotate Model
+                            Rotation += (delta / 64);
+                        }
+                        else
+                        {
+                            //RMB - Rotate viewport camera
+                            CameraRotation += (delta / 64);
+                        }
+                    }
                 }
             }
         }

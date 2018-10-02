@@ -77,6 +77,7 @@ namespace LancerEdit
         TextBuffer filterText = new TextBuffer(128);
         bool doFilter = false;
         string currentFilter;
+        bool hasVWire = false;
         public ModelViewer(string title, string name, IDrawable drawable, MainWindow win, UtfTab parent, ModelNodes hprefs)
         {
             Title = title;
@@ -97,6 +98,7 @@ namespace LancerEdit
                 var cmp = (CmpFile)drawable;
                 foreach (var p in cmp.Parts)
                 {
+                    if (p.Model.VMeshWire != null) hasVWire = true;
                     foreach (var hp in p.Model.Hardpoints)
                     {
                         gizmos.Add(new HardpointGizmo(hp, p.Construct));
@@ -146,6 +148,7 @@ namespace LancerEdit
             else if (drawable is ModelFile)
             {
                 var mdl = (ModelFile)drawable;
+                if (mdl.VMeshWire != null) hasVWire = true;
                 rootModel = mdl;
                 foreach (var hp in mdl.Hardpoints)
                 {
@@ -243,7 +246,9 @@ namespace LancerEdit
         public override void OnHotkey(Hotkeys hk)
         {
             if (hk == Hotkeys.Deselect) selectedNode = null;
+            if (hk == Hotkeys.ResetViewport) modelViewport.ResetControls();
         }
+
         public override void Draw()
         {
             bool doTabs = false;
@@ -299,8 +304,11 @@ namespace LancerEdit
             ImGui.SameLine();
             ImGui.Checkbox("Starsphere", ref isStarsphere);
             ImGui.SameLine();
-            ImGui.Checkbox("VMeshWire", ref drawVMeshWire);
-            ImGui.SameLine();
+            if (hasVWire)
+            {
+                ImGui.Checkbox("VMeshWire", ref drawVMeshWire);
+                ImGui.SameLine();
+            }
             ImGui.Checkbox("Wireframe", ref doWireframe);
             ImGui.SameLine();
             ImGui.Text("View Mode:");

@@ -32,9 +32,9 @@ namespace LancerEdit
         {
             modelViewport = new Viewport3D(rstate, vps);
             modelViewport.MarginH = 60;
-            modelViewport.Zoom = drawable.GetRadius() * 2;
+            modelViewport.DefaultZoom = modelViewport.Zoom = drawable.GetRadius() * 2;
             modelViewport.ZoomStep = modelViewport.Zoom / 3.26f;
-
+            modelViewport.CameraOffset = new Vector3(0, 0, modelViewport.Zoom);
             previewViewport = new Viewport3D(rstate, vps);
             imageViewport = new Viewport3D(rstate, vps);
 
@@ -137,12 +137,15 @@ namespace LancerEdit
         {
             //Draw Model
             var cam = new LookAtCamera();
-            Matrix4 rot = Matrix4.Identity;
+            Matrix4 rot = Matrix4.CreateRotationX(modelViewport.CameraRotation.Y) *
+                Matrix4.CreateRotationY(modelViewport.CameraRotation.X);
 
-            if(isStarsphere) //This is really bad
-                rot = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+            //if(isStarsphere) //This is really bad
+                //rot = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
             _window.DebugRender.StartFrame(cam, rstate);
-            cam.Update(renderWidth, renderHeight, new Vector3(modelViewport.Zoom, 0, 0), Vector3.Zero, rot);
+            var dir = rot.Transform(Vector3.Forward);
+            var to = modelViewport.CameraOffset + (dir * 10);
+            cam.Update(renderWidth, renderHeight, modelViewport.CameraOffset, to, rot);
             drawable.Update(cam, TimeSpan.Zero, TimeSpan.FromSeconds(_window.TotalTime));
             if (viewMode != M_NONE)
             {
@@ -182,10 +185,19 @@ namespace LancerEdit
             DrawHardpoints(cam);
         }
 
+        Matrix4 GetModelMatrix()
+        {
+            return Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+        }
+                
+        void ResetViewport()
+        {
+
+        }
         void WireCmp()
         {
             var cmp = (CmpFile)drawable;
-            var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+            var matrix = GetModelMatrix();
             foreach (var part in cmp.Parts)
             {
                 if(part.Model.VMeshWire != null) DrawVMeshWire(part.Model.VMeshWire, part.GetTransform(matrix));
@@ -195,7 +207,7 @@ namespace LancerEdit
         {
             var model = (ModelFile)drawable;
             if (model.VMeshWire == null) return;
-            var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+            var matrix = GetModelMatrix();
             DrawVMeshWire(model.VMeshWire, matrix);
         }
         void DrawVMeshWire(VMeshWire wires, Matrix4 mat)
@@ -214,7 +226,7 @@ namespace LancerEdit
 
         void DrawHardpoints(ICamera cam)
         {
-            var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+            var matrix = GetModelMatrix();
             GizmoRender.Scale = gizmoScale;
             GizmoRender.Begin();
           
@@ -252,7 +264,7 @@ namespace LancerEdit
             if (isStarsphere)
                 matrix = Matrix4.CreateTranslation(cam.Position);
             else
-                matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+                matrix = GetModelMatrix();
             if (wireFrame || viewMode == M_FLAT)
             {
                 mat = wireframeMaterial3db;
@@ -284,7 +296,7 @@ namespace LancerEdit
         int jColors = 0;
         void DrawCmp(ICamera cam, bool wireFrame)
         {
-            var matrix = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+            var matrix = GetModelMatrix();
             if (isStarsphere)
                 matrix = Matrix4.CreateTranslation(cam.Position);
             var cmp = (CmpFile)drawable;

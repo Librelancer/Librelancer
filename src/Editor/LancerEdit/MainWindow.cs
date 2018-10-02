@@ -126,6 +126,9 @@ namespace LancerEdit
             if((mods == KeyModifiers.LeftControl || mods == KeyModifiers.RightControl) && e.Key == Keys.D) {
                 if (selected != null) ((EditorTab)selected).OnHotkey(Hotkeys.Deselect);
             }
+            if((mods == KeyModifiers.LeftControl || mods == KeyModifiers.RightControl) && e.Key == Keys.R) {
+                if (selected != null) ((EditorTab)selected).OnHotkey(Hotkeys.ResetViewport);
+            }
         }
 
 
@@ -284,13 +287,17 @@ namespace LancerEdit
             }
 			if (ImGui.BeginPopupModal("About", WindowFlags.AlwaysAutoResize))
 			{
+                ImGui.SameLine(ImGui.GetWindowWidth() / 2 - 64);
                 Theme.Icon("reactor_128", Color4.White);
-                ImGui.Text(Version);
-				ImGui.Text("Callum McGing 2018");
+                CenterText(Version);
+				CenterText("Callum McGing 2018");
                 ImGui.Separator();
-                ImGui.Text("Icons from Icons8: https://icons8.com/");
-                ImGui.Text("Icons from komorra: https://opengameart.org/content/kmr-editor-icon-set");
+                CenterText("Icons from Icons8: https://icons8.com/");
+                CenterText("Icons from komorra: https://opengameart.org/content/kmr-editor-icon-set");
                 ImGui.Separator();
+                var btnW = ImGui.GetTextSize("OK").X + ImGui.GetStyle().FramePadding.X * 2;
+                ImGui.Dummy(1, 1);
+                ImGui.SameLine(ImGui.GetWindowWidth() / 2 - (btnW / 2));
 				if (ImGui.Button("OK")) ImGui.CloseCurrentPopup();
 				ImGui.EndPopup();
 			}
@@ -415,6 +422,14 @@ namespace LancerEdit
             }
             toAdd.Clear();
 		}
+        void CenterText(string text)
+        {
+            ImGui.Dummy(1, 1);
+            var win = ImGui.GetWindowWidth();
+            var txt = ImGui.GetTextSize(text).X;
+            ImGui.SameLine(Math.Max((win / 2f) - (txt / 2f),0));
+            ImGui.Text(text);
+        }
         void FinishColladaLoad(List<ColladaObject> dae, string tabName) {
             finishLoading = true;
             AddTab(new ColladaTab(dae, tabName, this));
