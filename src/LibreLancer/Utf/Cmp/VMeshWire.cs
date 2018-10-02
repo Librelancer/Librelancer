@@ -14,6 +14,7 @@
  * the Initial Developer. All Rights Reserved.
  */
 using System;
+using LibreLancer.Utf.Vms;
 namespace LibreLancer.Utf.Cmp
 {
     public class VMeshWire
@@ -39,12 +40,15 @@ namespace LibreLancer.Utf.Cmp
             ReadWireData(wiredata);
         }
 
-        public void Initialize(ResourceManager res)
+        public void Initialize(ILibFile res)
         {
             if (Lines != null) return;
-            var vms = res.FindMesh(MeshCRC);
-            if(vms == null)
-                throw new Exception("VMeshWire CRC not referenced");
+            VMeshData vms;
+            if((vms = res.FindMesh(MeshCRC)) == null) {
+                Lines = new Vector3[0];
+                FLLog.Error("Vms", "VMeshWire cannot find VMeshData CRC 0x" + MeshCRC.ToString("X"));
+                return;
+            }
             Lines = new Vector3[NumIndices];
             for(int i = 0; i < NumIndices; i++)
             {

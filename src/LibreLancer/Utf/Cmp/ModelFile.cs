@@ -195,7 +195,7 @@ namespace LibreLancer.Utf.Cmp
         {
             for(int i = 0; i < Levels.Length; i++) Levels[i].Initialize(cache);
             ready = Levels.Length > 0;
-            if (VMeshWire != null) VMeshWire.Initialize(cache);
+            if(VMeshWire != null) VMeshWire.Initialize(this);
         }
 
         public void Resized()

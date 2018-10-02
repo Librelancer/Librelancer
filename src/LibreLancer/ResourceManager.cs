@@ -214,9 +214,14 @@ namespace LibreLancer
 			return m;
 		}
 
-		public VMeshData FindMesh (uint vMeshLibId)
+     
+
+        public VMeshData FindMesh (uint vMeshLibId)
 		{
-			return meshes [vMeshLibId];
+            VMeshData vms;
+            meshes.TryGetValue(vMeshLibId, out vms);
+            if (vms == null) FLLog.Warning("ResourceManager", "Mesh " + vMeshLibId + " not found");
+            return vms;
 		}
 
 		public void AddResources(Utf.IntermediateNode node, string id)
