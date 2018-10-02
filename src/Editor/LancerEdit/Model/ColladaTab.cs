@@ -47,6 +47,8 @@ namespace LancerEdit
             public List<MaterialName> Materials = new List<MaterialName>();
         }
         List<TextBuffer> nameBuffers = new List<TextBuffer>();
+        TextBuffer modelNameBuffer = new TextBuffer(72);
+        string modelNameDefault;
         class MaterialName
         {
             public ColladaGeometry Geometry;
@@ -61,6 +63,8 @@ namespace LancerEdit
             foreach (var obj in output)
                 DoMats(obj);
             Title = string.Format("Collada Importer ({0})##{1}", fname,Unique);
+            modelNameDefault = Path.GetFileNameWithoutExtension(fname);
+            modelNameBuffer.SetText(modelNameDefault);
             this.win = win;
         }
         void DoMats(OutModel mdl)
@@ -163,9 +167,11 @@ namespace LancerEdit
             //Actual stuff
             if (output.Count == 1)
             {
+                var modelName = modelNameBuffer.GetText();
+                if (string.IsNullOrEmpty(modelName)) modelName = modelNameDefault;
                 if (output[0].Children.Count == 0)
                 {
-                    Export3DB(utf.Root, output[0]);
+                    Export3DB(modelName, utf.Root, output[0]);
                 } 
                 else 
                 {
@@ -174,7 +180,7 @@ namespace LancerEdit
                     utf.Root.Children.Add(vmslib);
                     var cmpnd = new LUtfNode() { Name = "Cmpnd", Parent = utf.Root, Children = new List<LUtfNode>() };
                     utf.Root.Children.Add(cmpnd);
-                    ExportModels(utf.Root, suffix,vmslib, output[0]);
+                    ExportModels(modelName, utf.Root, suffix,vmslib, output[0]);
                     int cmpndIndex = 1;
                     FixConstructor fix = new FixConstructor(); 
                     cmpnd.Children.Add(CmpndNode(cmpnd, "Root", output[0].Name + suffix, "Root", 0));
@@ -243,14 +249,14 @@ namespace LancerEdit
             });
             return node;
         }
-        void ExportModels(LUtfNode root, string suffix,LUtfNode vms, OutModel model)
+        void ExportModels(string mdlName, LUtfNode root, string suffix,LUtfNode vms, OutModel model)
         {
             var modelNode = new LUtfNode() { Parent = root, Name = model.Name + suffix };
             modelNode.Children = new List<LUtfNode>();
             root.Children.Add(modelNode);
-            Export3DB(modelNode, model, vms);
+            Export3DB(mdlName, modelNode, model, vms);
             foreach (var child in model.Children)
-                ExportModels(root, suffix,vms, child);
+                ExportModels(mdlName, root, suffix, vms, child);
         }
         static readonly float[][] matColors =  {
             new float[]{ 1, 0, 0 },
@@ -290,12 +296,12 @@ namespace LancerEdit
                 IterateMaterials(materials, child);
         }
 
-        static void Export3DB(LUtfNode node3db, OutModel mdl, LUtfNode vmeshlibrary = null)
+        static void Export3DB(string mdlName, LUtfNode node3db, OutModel mdl, LUtfNode vmeshlibrary = null)
         {
             var vms = vmeshlibrary ?? new LUtfNode() { Name = "VMeshLibrary", Parent = node3db, Children = new List<LUtfNode>() };
             for (int i = 0; i < mdl.LODs.Count; i++)
             {
-                var n = new LUtfNode() { Name = string.Format("{0}.level{1}.vms", mdl.Name, i), Parent = vms };
+                var n = new LUtfNode() { Name = string.Format("{0}-{1}.lod{2}.{3}.vms", mdlName, mdl.Name, i, (int)mdl.LODs[i].Geometry.FVF), Parent = vms };
                 n.Children = new List<LUtfNode>();
                 n.Children.Add(new LUtfNode() { Name = "VMeshData", Parent = n, Data = mdl.LODs[i].Geometry.VMeshData() });
                 vms.Children.Add(n);
@@ -317,7 +323,7 @@ namespace LancerEdit
                     {
                         Name = "VMeshRef",
                         Parent = n.Children[0],
-                        Data = mdl.LODs[i].Geometry.VMeshRef(string.Format("{0}.level{1}.vms", mdl.Name, i))
+                        Data = mdl.LODs[i].Geometry.VMeshRef(string.Format("{0}-{1}.lod{2}.{3}.vms", mdlName, mdl.Name, i, (int)mdl.LODs[i].Geometry.FVF))
                     });
                     multilevel.Children.Add(n);
                 }
@@ -342,7 +348,7 @@ namespace LancerEdit
                 {
                     Name = "VMeshRef",
                     Parent = part,
-                    Data = mdl.LODs[0].Geometry.VMeshRef(string.Format("{0}.level0.vms", mdl.Name))
+                    Data = mdl.LODs[0].Geometry.VMeshRef(string.Format("{0}-{1}.lod0.{2}.vms", mdlName, mdl.Name, (int)mdl.LODs[0].Geometry.FVF))
                 });
                 node3db.Children.Add(part);
             }
@@ -408,6 +414,10 @@ namespace LancerEdit
             ImGui.Separator();
             switch(curTab) {
                 case 0: //OPTIONS
+                    ImGui.AlignTextToFramePadding();
+                    ImGui.Text("Model Name:");
+                    ImGui.SameLine();
+                    ImGui.InputText("##mdlname", modelNameBuffer.Pointer, (uint)modelNameBuffer.Size, InputTextFlags.Default, modelNameBuffer.Callback);
                     ImGui.Checkbox("Generate Materials", ref generateMaterials);
                     break;
                 case 1: //MATERIALS
@@ -461,6 +471,7 @@ namespace LancerEdit
         public override void Dispose()
         {
             foreach (var buf in nameBuffers) buf.Dispose();
+            modelNameBuffer.Dispose();
         }
     }
 }
