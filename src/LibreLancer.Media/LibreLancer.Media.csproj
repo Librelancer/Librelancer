@@ -264,10 +264,6 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />
   <ItemGroup>
-    <ProjectReference Include="..\..\extern\MP3Sharp\MP3Sharp\MP3Sharp.csproj">
-      <Project>{BF3B29F8-DA04-4973-93DB-144A5BBE2472}</Project>
-      <Name>MP3Sharp</Name>
-    </ProjectReference>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">
       <Project>{C7A37830-B878-4008-A988-D7294D47F44D}</Project>
       <Name>LibreLancer.Base</Name>
