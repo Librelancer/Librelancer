@@ -19,6 +19,7 @@ if(MSVC_IDE)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${LIBOUTPUTDIR}")
 endif()
 add_subdirectory(src/cimgui_ext cimgui)
+add_subdirectory(src/lancerdecode lancerdecode)
 add_subdirectory(extern/BulletSharpPInvoke/libbulletc bulletc)
 # nvtt has different project structure
 # binary handled by nuget for windows

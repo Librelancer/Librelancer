@@ -77,9 +77,6 @@
     <Reference Include="SharpDX.DXGI">
       <HintPath>..\packages\SharpDX.DXGI.3.0.2\lib\net45\SharpDX.DXGI.dll</HintPath>
     </Reference>
-    <Reference Include="NVorbis">
-      <HintPath>..\packages\NVorbis.0.8.5.0\lib\NVorbis.dll</HintPath>
-    </Reference>
     <Reference Include="mscorlib">
       <HintPath>..\..\..\..\..\..\usr\lib\mono\4.5-api\mscorlib.dll</HintPath>
     </Reference>
@@ -246,13 +243,9 @@
     <Compile Include="AudioManager.cs" />
     <Compile Include="PlayState.cs" />
     <Compile Include="SoundData.cs" />
-    <Compile Include="Decoding\Mp3Utils.cs" />
-    <Compile Include="Decoding\RiffLoader.cs" />
-    <Compile Include="Decoding\WaveFormat.cs" />
     <Compile Include="BinaryReaderExtensions.cs" />
     <Compile Include="Decoding\SoundLoader.cs" />
     <Compile Include="ALUtils.cs" />
-    <Compile Include="Decoding\SliceStream.cs" />
     <Compile Include="Alc.cs" />
     <Compile Include="Al.cs" />
     <Compile Include="VideoPlayer.cs" />
@@ -264,7 +257,6 @@
     <Compile Include="BufferAllocator.cs" />
     <Compile Include="StreamingSound.cs" />
     <Compile Include="StreamingSource.cs" />
-    <Compile Include="Decoding\VorbisLoader.cs" />
     <Compile Include="..\CommonVersion.cs">
       <Link>Properties\CommonVersion.cs</Link>
     </Compile>
