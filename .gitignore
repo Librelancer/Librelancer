@@ -15,11 +15,13 @@ packages/
 #NuGet
 [Pp]ackages/
 
+#Cake
+tools/**
+!tools/packages.config
+
 # Visual Studio
 *.suo
-*.sln
 src/CommonVersion.cs
-!/slngen/slngen.sln
 *.pdb
 *.exp
 *.iobj

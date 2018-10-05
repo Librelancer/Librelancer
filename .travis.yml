@@ -9,10 +9,7 @@ addons:
     - g++-4.9
     - cmake
 script:
- - ./slngen.unix
- - nuget restore src/LibreLancer.Linux.sln
- - xbuild /p:Configuration=Release src/LibreLancer.Linux.sln
- - packaging/package_linux_daily
+ - ./build.sh --target=LinuxDaily
 deploy:
     edge:
         branch: v1.8.47
