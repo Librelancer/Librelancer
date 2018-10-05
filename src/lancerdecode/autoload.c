@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-ld_pcmstream_t ld_pcmstream_open(ld_stream_t stream)
+LDEXPORT ld_pcmstream_t ld_pcmstream_open(ld_stream_t stream)
 {
 	unsigned char magic[32];
 	/* Read in magic */
@@ -35,7 +35,7 @@ ld_pcmstream_t ld_pcmstream_open(ld_stream_t stream)
 	return NULL;
 }
 
-void ld_pcmstream_close(ld_pcmstream_t stream)
+LDEXPORT void ld_pcmstream_close(ld_pcmstream_t stream)
 {
 	stream->stream->close(stream->stream);
 	free(stream);

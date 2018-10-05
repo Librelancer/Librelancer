@@ -1,6 +1,9 @@
 #ifndef _LANCERDECODE_H_
 #define _LANCERDECODE_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include <stddef.h>
 #include <stdint.h>
 typedef int32_t LDFORMAT;
@@ -16,6 +19,12 @@ typedef int32_t LDSEEK;
 
 #define LDEOF -256
 
+#ifdef _WIN32
+#define LDEXPORT __declspec(dllexport)
+#else
+#define LDEXPORT
+#endif
+
 typedef struct ld_stream *ld_stream_t;
 typedef struct ld_pcmstream *ld_pcmstream_t;
 
@@ -27,10 +36,10 @@ struct ld_stream {
 	void* userData;
 };
 
-ld_stream_t ld_stream_new();
-ld_stream_t ld_stream_wrap(ld_stream_t src, int32_t len, int closeparent);
-int ld_stream_getc(ld_stream_t stream);
-void ld_stream_destroy(ld_stream_t stream);
+LDEXPORT ld_stream_t ld_stream_new();
+LDEXPORT ld_stream_t ld_stream_wrap(ld_stream_t src, int32_t len, int closeparent);
+LDEXPORT int ld_stream_getc(ld_stream_t stream);
+LDEXPORT void ld_stream_destroy(ld_stream_t stream);
 
 struct ld_pcmstream {
 	ld_stream_t stream;
@@ -40,9 +49,12 @@ struct ld_pcmstream {
 	int32_t blockSize;
 };
 
-ld_pcmstream_t ld_pcmstream_open(ld_stream_t stream);
-void ld_pcmstream_close(ld_pcmstream_t stream);
+LDEXPORT ld_pcmstream_t ld_pcmstream_open(ld_stream_t stream);
+LDEXPORT void ld_pcmstream_close(ld_pcmstream_t stream);
 
 typedef void (*ld_errorlog_callback_t)(const char*);
-void ld_errorlog_register(ld_errorlog_callback_t cb);
+LDEXPORT void ld_errorlog_register(ld_errorlog_callback_t cb);
+#ifdef __cplusplus
+}
+#endif
 #endif

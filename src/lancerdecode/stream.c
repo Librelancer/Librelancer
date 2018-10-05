@@ -1,13 +1,22 @@
 #include "lancerdecode.h"
 #include <stdlib.h>
-ld_stream_t ld_stream_new()
+LDEXPORT ld_stream_t ld_stream_new()
 {
 	return (ld_stream_t)malloc(sizeof(struct ld_stream));
 }
 
-void ld_stream_destroy(ld_stream_t stream)
+LDEXPORT void ld_stream_destroy(ld_stream_t stream)
 {
 	free(stream);
+}
+
+LDEXPORT int ld_stream_getc(ld_stream_t stream)
+{
+	uint8_t ch;
+	if(stream->read(&ch,1,1,stream)) {
+		return ch;
+	}
+	return LDEOF;
 }
 
 typedef struct {
@@ -60,16 +69,7 @@ void stream_wrapclose(ld_stream_t stream)
 	free(stream);
 }
 
-int ld_stream_getc(ld_stream_t stream)
-{
-	uint8_t ch;
-	if(stream->read(&ch,1,1,stream)) {
-		return ch;
-	}
-	return LDEOF;
-}
-
-ld_stream_t ld_stream_wrap(ld_stream_t src, int32_t len, int closeparent)
+LDEXPORT ld_stream_t ld_stream_wrap(ld_stream_t src, int32_t len, int closeparent)
 {
 	ld_stream_t stream = (ld_stream_t)malloc(sizeof(struct ld_stream));
 	wrapper_data_t *data = (wrapper_data_t*)malloc(sizeof(wrapper_data_t));

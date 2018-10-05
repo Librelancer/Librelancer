@@ -4,7 +4,7 @@
 #include <stdio.h>
 ld_errorlog_callback_t callback;
 
-void ld_errorlog_register(ld_errorlog_callback_t cb)
+LDEXPORT void ld_errorlog_register(ld_errorlog_callback_t cb)
 {
 	callback = cb;
 }
