@@ -121,10 +121,11 @@ Task("LinuxDaily")
 	CopyFiles("bin/Release/*","packaging/packages/" + name);
 	DeleteFiles("packaging/packages/" + name + "/*.pdb");
 	DeleteFiles("packaging/packages/" + name + "/*.xml");
-	GZipCompress("packaging/packages/" + name,
+	GZipCompress("packaging/packages/",
 				"packaging/packages/" + name + ".tar.gz", 
 				GetFiles("packaging/packages/" + name + "/*")
 	);
+	DeleteDirectory("packaging/packages/" + name, recursive:true);
 	var unixTime = (long)((DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds);
 	FileWriteText("packaging/packages/timestamp",unixTime.ToString());
 });
