@@ -65,8 +65,11 @@ namespace LibreLancer.Compatibility.GameData.Universe
 					else
 						FLLog.Warning ("INI", "Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 				} else {
-					if (e.Count != 3)
-						throw new Exception ("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+                        if (e.Count != 3)
+                        {
+                            FLLog.Error("Universe", "Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+                            break;
+                        }
 					if (Rotate != null)
 						throw new Exception ("Duplicate " + e.Name + " Entry in " + section.Name);
 					Rotate = new Vector3 (e [0].ToSingle (), e [1].ToSingle (), e [2].ToSingle ());

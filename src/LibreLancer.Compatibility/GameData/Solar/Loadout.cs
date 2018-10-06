@@ -70,8 +70,12 @@ namespace LibreLancer.Compatibility.GameData.Solar
 				case "addon":
 					// TODO: Loadout addon?
 					break;
+                case "hull_damage":
+                        //TODO: Is this real or a disco bug?
+                    break;
 				default:
-					throw new Exception("Invalid Entry in " + section.Name + ": " + e.Name);
+					FLLog.Error("Loadout","Invalid Entry in " + section.Name + ": " + e.Name);
+                    break;
 				}
 			}
 		}

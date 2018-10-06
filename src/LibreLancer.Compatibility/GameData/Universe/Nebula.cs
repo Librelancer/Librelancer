@@ -198,6 +198,11 @@ namespace LibreLancer.Compatibility.GameData.Universe
 							foreach (IValue i in e) ExteriorShapeWeights.Add(i.ToInt32());
 							break;
 						case "fill_shape":
+                            if (e.Count == 0)
+                            {
+                                FLLog.Warning("Nebula", "empty fill_shape in " + file);
+                                break;
+                            }
 							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (ExteriorFillShape != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
 							ExteriorFillShape = e[0].ToString();
@@ -242,6 +247,9 @@ namespace LibreLancer.Compatibility.GameData.Universe
 							if (ExteriorColor != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
 							ExteriorColor = new Color4(e[0].ToInt32() / 255f, e[1].ToInt32() / 255f, e[2].ToInt32() / 255f, 1f);
 							break;
+                         case "opacity":
+                            FLLog.Warning("Nebula", "Exterior opacity not implemented");
+                            break;
 						default:
 							throw new Exception("Invalid Entry in " + s.Name + ": " + e.Name);
 						}

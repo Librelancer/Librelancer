@@ -141,7 +141,7 @@ namespace LibreLancer.Compatibility.GameData.Universe
 					case "ambient_color":
 					case "ambient":
 						if (e.Count != 3) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-						if (AmbientColor != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+						if (AmbientColor != null) FLLog.Warning("Ini","Duplicate " + e.Name + " Entry in " + section.Name);
 						AmbientColor = new Color4(e[0].ToInt32() / 255f, e[1].ToInt32() / 255f, e[2].ToInt32() / 255f, 1f);
 						break;
 					case "archetype":
