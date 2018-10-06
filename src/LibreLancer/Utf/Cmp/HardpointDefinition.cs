@@ -45,10 +45,16 @@ namespace LibreLancer.Utf.Cmp
             switch (node.Name.ToLowerInvariant())
             {
                 case "orientation":
-					Orientation = node.MatrixData3x3.Value;
+                    if (node.MatrixData3x3 != null)
+                        Orientation = node.MatrixData3x3.Value;
+                    else
+                        FLLog.Error("3db", "Hardpoint " + Name + " has garbage orientation, defaulting to identity.");
                     break;
                 case "position":
-                    Position = node.Vector3Data.Value;
+                    if (node.Vector3Data != null)
+                        Position = node.Vector3Data.Value;
+                    else
+                        FLLog.Error("3db", "Hardpoint " + Name + " has garbage position, defaulting to zero.");
                     break;
                 default:
                     return false;
