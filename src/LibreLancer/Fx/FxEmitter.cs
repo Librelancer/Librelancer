@@ -104,7 +104,7 @@ namespace LibreLancer.Fx
                     idx++;
                     transforms[idx] = pr.Node.Transform;
                 }
-                pr = reference.Parent;
+                pr = pr.Parent;
             }
             for (int i = idx; i >= 0; i--)
             {
