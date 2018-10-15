@@ -8,10 +8,9 @@
  * License for the specific language governing rights and limitations
  * under the License.
  * 
- * The Original Code is Starchart code (http://flapi.sourceforge.net/).
  * 
- * The Initial Developer of the Original Code is Malte Rupprecht (mailto:rupprema@googlemail.com).
- * Portions created by the Initial Developer are Copyright (C) 2011
+ * The Initial Developer of the Original Code is Callum McGing (mailto:callum.mcging@gmail.com).
+ * Portions created by the Initial Developer are Copyright (C) 2013-2018
  * the Initial Developer. All Rights Reserved.
  */
 using System;

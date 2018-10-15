@@ -115,10 +115,6 @@
     <Compile Include="CubeMapFace.cs" />
     <Compile Include="ElementBuffer.cs" />
     <Compile Include="GLExtensions.cs" />
-    <Compile Include="Primitives\Cuboid.cs" />
-    <Compile Include="Primitives\OpenCylinder.cs" />
-    <Compile Include="Primitives\Ellipsoid.cs" />
-    <Compile Include="Primitives\Quad.cs" />
     <Compile Include="PrimitiveTypes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Shader.cs" />
@@ -215,6 +211,7 @@
     <Compile Include="..\CommonVersion.cs">
       <Link>Properties\CommonVersion.cs</Link>
     </Compile>
+    <Compile Include="Primitives\OpenCylinder.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
