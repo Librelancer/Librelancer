@@ -13,6 +13,8 @@
  * The Initial Developer of the Original Code is Malte Rupprecht (mailto:rupprema@googlemail.com).
  * Portions created by the Initial Developer are Copyright (C) 2011, 2012
  * the Initial Developer. All Rights Reserved.
+ * 
+ * Contributors: Callum McGing (callum.mcging@gmail.com)
  */
 using System;
 namespace LibreLancer
