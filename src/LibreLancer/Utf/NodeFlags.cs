@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// MIT License - Copyright (c) Malte Rupprecht
+// This file is subject to the terms and confiditons defined in
+// LICENSE, which is part of this source code package
+
+using System;
 
 namespace LibreLancer.Utf
 {
-        [Flags()]
-        public enum NodeFlags : int
-        {
-            Intermediate = 0x00000010,
-            Leaf = 0x00000080
-        }
+    [Flags()]
+    public enum NodeFlags : int
+    {
+        Intermediate = 0x00000010,
+        Leaf = 0x00000080
+    }
 }

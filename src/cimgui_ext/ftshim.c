@@ -1,3 +1,7 @@
+// MIT License - Copyright (c) Callum McGing
+// This file is subject to the terms and confiditons defined in
+// LICENSE, which is part of this source code package
+
 #include "ftshim.h"
 #include <ft2build.h>
 #include FT_FREETYPE_H

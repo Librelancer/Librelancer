@@ -47,7 +47,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Thorn", "LibreL
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Launcher", "Launcher\Launcher.csproj", "{5D6B114D-5254-4856-8001-EB2043A8DE16}"
 	ProjectSection(ProjectDependencies) = postProject
-		{c7a37830-b878-4008-a988-d7294d47f44d} = {c7a37830-b878-4008-a988-d7294d47f44d}
 		{C1D53477-0117-48EF-A13D-A0225F0F50CA} = {C1D53477-0117-48EF-A13D-A0225F0F50CA}
 	EndProjectSection
 EndProject
@@ -118,7 +117,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{F1160AA9-1
 		Shader Readme.txt = Shader Readme.txt
 	EndProjectSection
 EndProject
-
 Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

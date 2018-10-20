@@ -1,9 +1,11 @@
-﻿using System;
+﻿// MIT License - Copyright (c) Malte Rupprecht
+// This file is subject to the terms and confiditons defined in
+// LICENSE, which is part of this source code package
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LibreLancer.Utf
 {
