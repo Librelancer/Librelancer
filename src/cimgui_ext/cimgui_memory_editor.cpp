@@ -10,7 +10,7 @@ IGEXPORT memoryedit_t igExtMemoryEditInit()
 
 IGEXPORT void igExtMemoryEditDrawContents(memoryedit_t memedit, void *mem_data_void_ptr, size_t mem_size, size_t base_display_addr)
 {
-	auto object = (MemoryEditor*)memedit;
+	MemoryEditor* object = (MemoryEditor*)memedit;
 	object->DrawContents(mem_data_void_ptr, mem_size, base_display_addr);
 }
 
