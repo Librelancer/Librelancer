@@ -5,7 +5,7 @@
 #addin nuget:?package=Cake.Compression
 
 var target = Argument("target", "Build");
-var versionSetting = Argument("version","git");
+var versionSetting = Argument("assemblyversion","git");
 var configuration = Argument("configuration","Release");
 
 Task("GenerateVersion")
