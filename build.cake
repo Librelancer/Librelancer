@@ -8,21 +8,20 @@ var target = Argument("target", "Build");
 var versionSetting = Argument("assemblyversion","git");
 var configuration = Argument("configuration","Release");
 
+bool CheckCommand_Unix(string cmd) => (StartProcess("/bin/sh", new ProcessSettings() { Arguments = string.Format("-c 'command -v {0}'",cmd) }) == 0);
+
 string GitLogTip_Shell()
 {
 	if(IsRunningOnWindows()) return GitLogTip(".").Sha;
 	//Linux: Cake.Git seems to intermittently fail with method body errors
 	//call git from shell first
-	using(var process = StartAndReturnProcess("/bin/sh", new ProcessSettings() { Arguments = "-c 'command -v git'" })) {
-		process.WaitForExit();
-		if(process.GetExitCode() != 0) {
-			Warning("BUG: Git not found in PATH, GenerateVersion may fail!");
-			return GitLogTip(".").Sha;
-		}
+	if(!CheckCommand_Unix("git")) {
+		Warning("BUG: Git not found in PATH, GenerateVersion may fail!");
+		return GitLogTip(".").Sha;
 	}
 	IEnumerable<string> gitOutput;
 	StartProcess("git", new ProcessSettings { Arguments = "rev-parse HEAD", RedirectStandardOutput = true }, out gitOutput);
-	return gitOutput.FirstOrDefault() ?? "badversion";
+	return gitOutput.FirstOrDefault() ?? "invalid";
 }
 
 Task("GenerateVersion")
@@ -80,16 +79,10 @@ Task("BuildNatives")
 	}
 	else
 	{
-		CMake(".",new CMakeSettings() {
-			OutputPath = "obj"
-		});
-		using(var process = StartAndReturnProcess("make", new ProcessSettings() { WorkingDirectory = "obj" })) {
-			process.WaitForExit();
-			var code = process.GetExitCode();
-			if(code != 0) {
-				throw new Exception("Make exited with error code " + code);
-			}
-		}
+		CMake(".",new CMakeSettings() { OutputPath = "obj" });
+		int code;
+		if((code = StartProcess("make", new ProcessSettings() { WorkingDirectory = "obj" })) != 0)
+			throw new Exception("Make exited with error code " + code);
 		CopyFiles("obj/binaries/*","./bin/Debug/");
 		CopyFiles("obj/binaries/*","./bin/Release/");
 	}
@@ -110,14 +103,8 @@ Task("Build")
 	}
 	else
 	{
-		//Check for real MSBuild on Unix
-		bool useMSBuild = false;
-		using(var process = StartAndReturnProcess("/bin/sh", new ProcessSettings() { Arguments = "-c 'command -v msbuild'" })) {
-			process.WaitForExit();
-			useMSBuild = (process.GetExitCode() == 0);
-		}
-		//XBuild is also fine
-		if(useMSBuild)
+		//XBuild is also fine, but check for msbuild first
+		if(CheckCommand_Unix("msbuild"))
 			MSBuild("./src/LibreLancer.sln", settings => settings.SetConfiguration(configuration));
 		else
 			XBuild("./src/LibreLancer.sln", settings => settings.SetConfiguration(configuration));
