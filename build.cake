@@ -8,13 +8,30 @@ var target = Argument("target", "Build");
 var versionSetting = Argument("assemblyversion","git");
 var configuration = Argument("configuration","Release");
 
+string GitLogTip_Shell()
+{
+	if(IsRunningOnWindows()) return GitLogTip(".").Sha;
+	//Linux: Cake.Git seems to intermittently fail with method body errors
+	//call git from shell first
+	using(var process = StartAndReturnProcess("/bin/sh", new ProcessSettings() { Arguments = "-c 'command -v git'" })) {
+		process.WaitForExit();
+		if(process.GetExitCode() != 0) {
+			Warning("BUG: Git not found in PATH, GenerateVersion may fail!");
+			return GitLogTip(".").Sha;
+		}
+	}
+	IEnumerable<string> gitOutput;
+	StartProcess("git", new ProcessSettings { Arguments = "rev-parse HEAD", RedirectStandardOutput = true }, out gitOutput);
+	return gitOutput.FirstOrDefault() ?? "badversion";
+}
+
 Task("GenerateVersion")
 	.Does(() =>
 {
 	var version = versionSetting;
 	if(version == "git") {
-		var lastCommit = GitLogTip(".");
-		version = lastCommit.Sha.Substring(0,7) + "-git";
+		var lastSha = GitLogTip_Shell();
+		version = lastSha.Substring(0,7) + "-git";
 	}
 	CreateAssemblyInfo("./src/CommonVersion.cs", new AssemblyInfoSettings {
 		InformationalVersion = version
