@@ -177,51 +177,37 @@ namespace LancerEdit
                 partFirst = true;
                 SetPartValues();
             }
-            if(ImGui.BeginWindow("Part Editor##" + editingPart.ChildName,ref partEditorOpen,partFirst ? WindowFlags.AlwaysAutoResize : WindowFlags.Default)) {
+            if(ImGui.Begin("Part Editor##" + editingPart.ChildName,ref partEditorOpen,partFirst ? ImGuiWindowFlags.AlwaysAutoResize : ImGuiWindowFlags.None)) {
                 partFirst = false;
                 ImGui.Text(editingPart.ChildName);
                 ImGui.Text("Type: " + ModelViewer.ConType(editingPart));
                 if (ImGui.Button("Reset")) SetPartValues();
                 ImGui.Separator();
                 ImGui.Text("Position");
-                fixed (float* hpx = &partX)
-                    ImGuiNative.igInputFloat("X##posX", hpx, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
-                fixed (float* hpy = &partY)
-                    ImGuiNative.igInputFloat("Y##posY", hpy, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
-                fixed (float* hpz = &partZ)
-                    ImGuiNative.igInputFloat("Z##posZ", hpz, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
+                    ImGui.InputFloat("X##posX", ref partX, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
+                    ImGui.InputFloat("Y##posY", ref partY, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
+                    ImGui.InputFloat("Z##posZ", ref partZ, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
                 ImGui.Separator();
                 ImGui.Text("Rotation");
-                fixed (float* hpp = &partPitch)
-                    ImGuiNative.igInputFloat("Pitch", hpp, 0.1f, 1f, 7, InputTextFlags.CharsDecimal);
-                fixed (float* hpy = &partYaw)
-                    ImGuiNative.igInputFloat("Yaw", hpy, 0.1f, 1f, 7, InputTextFlags.CharsDecimal);
-                fixed (float* hpr = &partRoll)
-                    ImGuiNative.igInputFloat("Roll", hpr, 0.1f, 1f, 7, InputTextFlags.CharsDecimal);
+                    ImGui.InputFloat("Pitch", ref partPitch, 0.1f, 1f, "%.7f", ImGuiInputTextFlags.CharsDecimal);
+                    ImGui.InputFloat("Yaw", ref partYaw, 0.1f, 1f, "%.7f", ImGuiInputTextFlags.CharsDecimal);
+                    ImGui.InputFloat("Roll", ref partRoll, 0.1f, 1f, "%.7f", ImGuiInputTextFlags.CharsDecimal);
                 ImGui.Separator();
                 if (!(editingPart is FixConstruct))
                 {
                     ImGui.Text("Offset");
-                    fixed (float* hpx = &partOX)
-                        ImGuiNative.igInputFloat("X##posX", hpx, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
-                    fixed (float* hpy = &partOY)
-                        ImGuiNative.igInputFloat("Y##posY", hpy, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
-                    fixed (float* hpz = &partOZ)
-                        ImGuiNative.igInputFloat("Z##posZ", hpz, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
+                        ImGui.InputFloat("X##offX", ref partOX, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
+                        ImGui.InputFloat("Y##offY", ref partOY, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
+                        ImGui.InputFloat("Z##offZ", ref partOZ, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
                     ImGui.Separator();
                 }
                 if((editingPart is RevConstruct) || (editingPart is PrisConstruct)) {
                     ImGui.Text("Axis");
-                    fixed (float* hpx = &partAxX)
-                        ImGuiNative.igInputFloat("X##posX", hpx, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
-                    fixed (float* hpy = &partAxY)
-                        ImGuiNative.igInputFloat("Y##posY", hpy, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
-                    fixed (float* hpz = &partAxZ)
-                        ImGuiNative.igInputFloat("Z##posZ", hpz, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
-                    fixed (float* axmn = &partMin)
-                        ImGuiNative.igInputFloat("Min", axmn, 0.1f, 1f, 4, InputTextFlags.CharsDecimal);
-                    fixed (float* axmx = &partMax)
-                        ImGuiNative.igInputFloat("Max", axmx, 0.1f, 1f, 4, InputTextFlags.CharsDecimal);
+                        ImGui.InputFloat("X##axX", ref partAxX, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
+                        ImGui.InputFloat("Y##axY", ref partAxY, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
+                        ImGui.InputFloat("Z##axZ", ref partAxZ, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
+                        ImGui.InputFloat("Min", ref partMin, 0.1f, 1f, "%.4f", ImGuiInputTextFlags.CharsDecimal);
+                        ImGui.InputFloat("Max", ref partMax, 0.1f, 1f, "%.4f", ImGuiInputTextFlags.CharsDecimal);
                     if (ImGui.Button("0")) partPreview = 0;
                     ImGui.SameLine();
                     ImGui.PushItemWidth(-1);
@@ -233,18 +219,12 @@ namespace LancerEdit
                     ImGui.Separator();
                 }
                 if(editingPart is SphereConstruct) {
-                    fixed (float* hpx = &min1)
-                        ImGuiNative.igInputFloat("Min1", hpx, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
-                    fixed (float* hpx = &max1)
-                        ImGuiNative.igInputFloat("Max1", hpx, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
-                    fixed (float* hpx = &min2)
-                        ImGuiNative.igInputFloat("Min2", hpx, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
-                    fixed (float* hpx = &max2)
-                        ImGuiNative.igInputFloat("Max2", hpx, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
-                    fixed (float* hpx = &min3)
-                        ImGuiNative.igInputFloat("Min3", hpx, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
-                    fixed (float* hpx = &max3)
-                        ImGuiNative.igInputFloat("Max3", hpx, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
+                        ImGui.InputFloat("Min1", ref min1, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
+                        ImGui.InputFloat("Max1", ref max1, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
+                        ImGui.InputFloat("Min2", ref min2, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
+                        ImGui.InputFloat("Max2", ref max2, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
+                        ImGui.InputFloat("Min3", ref min3, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
+                        ImGui.InputFloat("Max3", ref max3, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
                     ImGui.Separator();
                 }
                 var jointPreview = Matrix4.Identity;
@@ -295,7 +275,7 @@ namespace LancerEdit
                 }
                 ImGui.SameLine();
                 if (ImGui.Button("Cancel")) partEditorOpen = false;
-                ImGui.EndWindow();
+                ImGui.End();
             }
             if (!partEditorOpen) {
                 editingPart.OverrideTransform = null;

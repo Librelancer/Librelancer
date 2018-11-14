@@ -384,7 +384,7 @@ namespace LancerEdit
             var totalH = ImGui.GetWindowHeight();
             ImGuiExt.SplitterV(2f, ref fl_h1, ref fl_h2, 8, 8, -1);
             fl_h1 = totalH - fl_h2 - 6f;
-            ImGui.BeginChild("1", new Vector2(-1, fl_h1), false, WindowFlags.Default);
+            ImGui.BeginChild("1", new Vector2(-1, fl_h1), false, ImGuiWindowFlags.None);
             ImGui.Separator();
             //3DB list
             if (ImGui.TreeNodeEx("Model/"))
@@ -396,7 +396,7 @@ namespace LancerEdit
                 }
             }
             ImGui.EndChild();
-            ImGui.BeginChild("2", new Vector2(-1, fl_h2), false, WindowFlags.Default);
+            ImGui.BeginChild("2", new Vector2(-1, fl_h2), false, ImGuiWindowFlags.None);
             if (ImGuiExt.ToggleButton("Options", curTab == 0)) curTab = 0;
             ImGui.SameLine();
             if (ImGuiExt.ToggleButton("Materials", curTab == 1)) curTab = 1;
@@ -406,7 +406,7 @@ namespace LancerEdit
                     ImGui.AlignTextToFramePadding();
                     ImGui.Text("Model Name:");
                     ImGui.SameLine();
-                    ImGui.InputText("##mdlname", modelNameBuffer.Pointer, (uint)modelNameBuffer.Size, InputTextFlags.Default, modelNameBuffer.Callback);
+                    modelNameBuffer.InputText("##mdlname", ImGuiInputTextFlags.None);
                     ImGui.Checkbox("Generate Materials", ref generateMaterials);
                     break;
                 case 1: //MATERIALS
@@ -426,18 +426,18 @@ namespace LancerEdit
             foreach(var name in selected.Materials) {
                 ImGui.Text(string.Format("{0} ({1})", name.Geometry.Name, name.Drawcall));
                 ImGui.SameLine();
-                ImGui.InputText("##" + i++, name.Name.Pointer, (uint)name.Name.Size, InputTextFlags.Default, name.Name.Callback);
+                name.Name.InputText("##" + i++, ImGuiInputTextFlags.None);
             }
         }
         OutModel selected;
         void FLTree(OutModel mdl, ref int i)
         {
-            var flags = TreeNodeFlags.OpenOnDoubleClick |
-                                         TreeNodeFlags.DefaultOpen |
-                                         TreeNodeFlags.OpenOnArrow;
-            if (mdl == selected) flags |= TreeNodeFlags.Selected;
+            var flags = ImGuiTreeNodeFlags.OpenOnDoubleClick |
+                                         ImGuiTreeNodeFlags.DefaultOpen |
+                                         ImGuiTreeNodeFlags.OpenOnArrow;
+            if (mdl == selected) flags |= ImGuiTreeNodeFlags.Selected;
             var open = ImGui.TreeNodeEx(ImGuiExt.Pad(mdl.Name + "##" + i++), flags);
-            if(ImGuiNative.igIsItemClicked(0)) {
+            if(ImGui.IsItemClicked(0)) {
                 selected = mdl;
             }
             ImGui.SameLine();

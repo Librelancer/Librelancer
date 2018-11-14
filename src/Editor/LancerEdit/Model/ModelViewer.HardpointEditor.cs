@@ -75,7 +75,7 @@ namespace LancerEdit
         {
             ImGui.Text("Name: ");
             ImGui.SameLine();
-            ImGui.InputText("##hpname", newHpBuffer.Pointer, (uint)newHpBuffer.Size, InputTextFlags.Default, newHpBuffer.Callback);
+            newHpBuffer.InputText("##hpname", ImGuiInputTextFlags.None);
             ImGui.SameLine();
             if (ImGui.Button(".."))
             {
@@ -107,7 +107,7 @@ namespace LancerEdit
             ImGui.Text("Type: " + (newIsFixed ? "Fixed" : "Revolute"));
             if (newErrorTimer > 0)
             {
-                ImGui.Text("Hardpoint with that name already exists.", new Vector4(1, 0, 0, 1));
+                ImGui.TextColored(new Vector4(1, 0, 0, 1), "Hardpoint with that name already exists.");
             }
             if (ImGui.Button("Ok"))
             {
@@ -174,7 +174,7 @@ namespace LancerEdit
                 hpFirst = true;
                 SetHardpointValues();
             }
-            if (ImGui.BeginWindow("Hardpoint Editor##" + Unique, ref hpEditOpen, hpFirst ? WindowFlags.AlwaysAutoResize : WindowFlags.Default))
+            if (ImGui.Begin("Hardpoint Editor##" + Unique, ref hpEditOpen, hpFirst ? ImGuiWindowFlags.AlwaysAutoResize : ImGuiWindowFlags.None))
             {
                 hpFirst = false;
                 ImGui.Text(hpEditing.Name);
@@ -183,34 +183,23 @@ namespace LancerEdit
                 if (ImGui.Button("Reset")) SetHardpointValues();
                 ImGui.Separator();
                 ImGui.Text("Position");
-                fixed (float* hpx = &HPx)
-                    ImGuiNative.igInputFloat("X##posX", hpx, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
-                fixed (float* hpy = &HPy)
-                    ImGuiNative.igInputFloat("Y##posY", hpy, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
-                fixed (float* hpz = &HPz)
-                    ImGuiNative.igInputFloat("Z##posZ", hpz, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
+                    ImGui.InputFloat("X##posX", ref HPx, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
+                    ImGui.InputFloat("Y##posY", ref HPy, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
+                    ImGui.InputFloat("Z##posZ", ref HPz, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
                 ImGui.Separator();
                 ImGui.Text("Rotation");
-                fixed (float* hpp = &HPpitch)
-                    ImGuiNative.igInputFloat("Pitch", hpp, 0.1f, 1f, 4, InputTextFlags.CharsDecimal);
-                fixed (float* hpy = &HPyaw)
-                    ImGuiNative.igInputFloat("Yaw", hpy, 0.1f, 1f, 4, InputTextFlags.CharsDecimal);
-                fixed (float* hpr = &HProll)
-                    ImGuiNative.igInputFloat("Roll", hpr, 0.1f, 1f, 4, InputTextFlags.CharsDecimal);
+                    ImGui.InputFloat("Pitch", ref HPpitch, 0.1f, 1f, "%.4f", ImGuiInputTextFlags.CharsDecimal);
+                    ImGui.InputFloat("Yaw", ref HPyaw, 0.1f, 1f, "%.4f", ImGuiInputTextFlags.CharsDecimal);
+                    ImGui.InputFloat("Roll", ref HProll, 0.1f, 1f, "%.4f", ImGuiInputTextFlags.CharsDecimal);
                 ImGui.Separator();
                 if (!isFix)
                 {
                     ImGui.Text("Axis");
-                    fixed (float* axx = &HPaxisX)
-                        ImGuiNative.igInputFloat("X##axisX", axx, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
-                    fixed (float* axy = &HPaxisY)
-                        ImGuiNative.igInputFloat("Y##axisY", axy, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
-                    fixed (float* axz = &HPaxisZ)
-                        ImGuiNative.igInputFloat("Z##axisZ", axz, 0.01f, 0.25f, 5, InputTextFlags.CharsDecimal);
-                    fixed (float* axmn = &HPmin)
-                        ImGuiNative.igInputFloat("Min", axmn, 0.1f, 1f, 4, InputTextFlags.CharsDecimal);
-                    fixed (float* axmx = &HPmax)
-                        ImGuiNative.igInputFloat("Max", axmx, 0.1f, 1f, 4, InputTextFlags.CharsDecimal);
+                    ImGui.InputFloat("X##axisX", ref HPaxisX, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
+                    ImGui.InputFloat("Y##axisY", ref HPaxisY, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
+                    ImGui.InputFloat("Z##axisZ", ref HPaxisZ, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
+                    ImGui.InputFloat("Min", ref HPmin, 0.1f, 1f, "%.4f", ImGuiInputTextFlags.CharsDecimal);
+                    ImGui.InputFloat("Max", ref HPmax, 0.1f, 1f, "%.4f", ImGuiInputTextFlags.CharsDecimal);
                     ImGui.Separator();
                 }
                 if (ImGui.Button("Apply"))
@@ -242,7 +231,7 @@ namespace LancerEdit
                         ) * Matrix4.CreateTranslation(HPx, HPy, HPz);
                 editingGizmo.EditingMin = MathHelper.DegreesToRadians(HPmin);
                 editingGizmo.EditingMax = MathHelper.DegreesToRadians(HPmax);
-                ImGui.EndWindow();
+                ImGui.End();
             }
             if (hpEditOpen == false)
             {

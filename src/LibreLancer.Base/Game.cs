@@ -559,13 +559,26 @@ namespace LibreLancer
             string text = Encoding.UTF8.GetString(rawBytes, 0, nullIndex);
             return text;
         }
+        bool textInputEnabled = false;
+        public bool TextInputEnabled
+        {
+            get { return textInputEnabled; }
+            set
+            {
+                if (textInputEnabled == value) return;
+                if (value) EnableTextInput();
+                else DisableTextInput();
+            }
+        }
         public void EnableTextInput()
         {
             SDL.SDL_StartTextInput();
+            textInputEnabled = true;
         }
         public void DisableTextInput()
         {
             SDL.SDL_StopTextInput();
+            textInputEnabled = false;
         }
         public void Exit()
         {

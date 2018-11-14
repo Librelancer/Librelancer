@@ -19,11 +19,11 @@ namespace LibreLancer.ImUI
             if (tabs.Count == 0) return;
 
             var style = ImGui.GetStyle();
-            var color = ImGuiNative.igGetColorU32(ColorTarget.FrameBg, 1);
-            var color_active = ImGuiNative.igGetColorU32(ColorTarget.FrameBgActive, 1);
-            var color_hovered = ImGuiNative.igGetColorU32(ColorTarget.FrameBgHovered, 1);
-            var text_color = ImGuiNative.igGetColorU32(ColorTarget.Text, 1);
-            var text_color_disabled = ImGuiNative.igGetColorU32(ColorTarget.TextDisabled, 1);
+            var color = ImGuiNative.igGetColorU32(ImGuiCol.FrameBg, 1);
+            var color_active = ImGuiNative.igGetColorU32(ImGuiCol.FrameBgActive, 1);
+            var color_hovered = ImGuiNative.igGetColorU32(ImGuiCol.FrameBgHovered, 1);
+            var text_color = ImGuiNative.igGetColorU32(ImGuiCol.Text, 1);
+            var text_color_disabled = ImGuiNative.igGetColorU32(ImGuiCol.TextDisabled, 1);
 
             float windowWidth = 0;
             windowWidth = ImGui.GetWindowWidth() - 2 * style.WindowPadding.X - (ImGuiNative.igGetScrollMaxY() > 0 ? style.ScrollbarSize : 0);
@@ -38,13 +38,13 @@ namespace LibreLancer.ImUI
             float totalWidth = 0;
             foreach(var sztab in tabs)
             {
-                totalWidth += ImGui.GetTextSize(sztab.Title).X;
+                totalWidth += ImGui.CalcTextSize(sztab.Title).X;
                 totalWidth += 28 + style.ItemSpacing.X;
             }
             var winSize = new Vector2(windowWidth, lineheight);
-            WindowFlags cflags = WindowFlags.Default;
+            var cflags = ImGuiWindowFlags.None;
             if(totalWidth > windowWidth) {
-                cflags = WindowFlags.HorizontalScrollbar;
+                cflags = ImGuiWindowFlags.HorizontalScrollbar;
                 ImGuiNative.igSetNextWindowContentSize(new Vector2(totalWidth, 0));
                 winSize.Y += style.ScrollbarSize + 2;
             }
@@ -56,13 +56,12 @@ namespace LibreLancer.ImUI
                 if(i > 0) ImGui.SameLine(0, 15);
                 ImGui.PushID(i);
                 var title = tabs[i].Title.Split(new string[] { "##" }, StringSplitOptions.None)[0];
-                var textSz = ImGui.GetTextSize(title).X;
+                var textSz = ImGui.CalcTextSize(title).X;
                 var size = new Vector2(textSz, lineheight);
                 //Selection and hover
                 if (ImGui.InvisibleButton(title,size)) { selected = tabs[i]; }
-                System.Numerics.Vector2 itemRectSize;
-                ImGuiNative.igGetItemRectSize(out itemRectSize);
-                bool hovered = ImGui.IsItemHovered(HoveredFlags.RectOnly);
+                var itemRectSize = ImGuiNative.igGetItemRectSize();
+                bool hovered = ImGui.IsItemHovered(ImGuiHoveredFlags.RectOnly);
                 if (hovered) 
                 {
                     // tab reordering
@@ -72,9 +71,8 @@ namespace LibreLancer.ImUI
                         {
                             draggingTabIndex = i;
                             draggingtabSize = size;
-                            Vector2 mp = ImGui.GetIO().MousePosition;
-                            System.Numerics.Vector2 draggingTabCursorPos;
-                            ImGuiNative.igGetCursorPos(&draggingTabCursorPos);
+                            Vector2 mp = ImGui.GetIO().MousePos;
+                            var draggingTabCursorPos = ImGui.GetCursorPos();
                             draggingTabOffset = new Vector2(
                                  draggingtabSize.X * 0.5f,
                                  draggingtabSize.Y * 0.5f
@@ -88,7 +86,7 @@ namespace LibreLancer.ImUI
                     }
                 }
                 //actually draw
-                var pos = (Vector2)ImGui.GetLastItemRectMin();
+                var pos = (Vector2)ImGui.GetItemRectMin();
                 tab_base = pos.Y;
                 size.X += 20 + style.ItemSpacing.X;
                 ImGuiNative.ImDrawList_AddRectFilled(
@@ -116,8 +114,8 @@ namespace LibreLancer.ImUI
                         tabs[i].Dispose();
                         tabs.RemoveAt(i);
                     }
-                    var c = ((Vector2)ImGui.GetLastItemRectMin() +
-                                (Vector2)ImGui.GetLastItemRectMax()) * 0.5f;
+                    var c = ((Vector2)ImGui.GetItemRectMin() +
+                                (Vector2)ImGui.GetItemRectMax()) * 0.5f;
                     ImGuiNative.ImDrawList_AddLine(
                            drawList, c - new Vector2(3.5f, 3.5f), c + new Vector2(3.5f, 3.5f), text_color, 1
                        );
@@ -128,7 +126,7 @@ namespace LibreLancer.ImUI
                 else
                 {
                     ImGui.SameLine();
-                    ImGui.Dummy(16, 16);
+                    ImGui.Dummy(new Vector2(16));
                 }
                 ImGui.PopID();
             }
@@ -153,12 +151,12 @@ namespace LibreLancer.ImUI
         public static void DrawTabDrag(List<DockTab> tabs)
         {
             var style = ImGui.GetStyle();
-            var color_hovered = ImGuiNative.igGetColorU32(ColorTarget.FrameBgHovered, 1);
+            var color_hovered = ImGuiNative.igGetColorU32(ImGuiCol.FrameBgHovered, 1);
             var drawList = ImGuiNative.igGetOverlayDrawList();
             if (draggingTabIndex >= 0 && draggingTabIndex < tabs.Count)
             {
-                var mp = ImGui.GetIO().MousePosition;
-                var wp = ImGui.GetWindowPosition();
+                var mp = ImGui.GetIO().MousePos;
+                var wp = ImGui.GetWindowPos();
                 var start = new Vector2(
                     wp.X + mp.X - draggingTabOffset.X - draggingtabSize.X * 0.5f, wp.Y + mp.Y - draggingTabOffset.Y - draggingtabSize.Y * 0.5f
                 );
@@ -177,7 +175,7 @@ namespace LibreLancer.ImUI
                         drawList, start, uint.MaxValue, ptr, (byte*)0
                     );
                 }
-                ImGuiNative.igSetMouseCursor(MouseCursorKind.Move);
+                ImGuiNative.igSetMouseCursor(ImGuiMouseCursor.ResizeAll);
 
             }
 
@@ -192,7 +190,7 @@ namespace LibreLancer.ImUI
         }
 
         [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
-        static extern ImFontGlyph* igFontFindGlyph(NativeFont* font, char c);
+        static extern ImFontGlyph* igFontFindGlyph(ImFont* font, char c);
 
         public static bool VerticalTab(string text, bool v)
         {
@@ -200,14 +198,14 @@ namespace LibreLancer.ImUI
             var dlist = ImGuiNative.igGetWindowDrawList();
 
             var style = ImGui.GetStyle();
-            var text_color = ImGuiNative.igGetColorU32(ColorTarget.Text, 1);
-            var color = style.GetColor(ColorTarget.Button);
-            if (v) color = style.GetColor(ColorTarget.ButtonActive);
+            var text_color = ImGui.GetColorU32(ImGuiCol.Text);
+            var color = style.Colors[(int)ImGuiCol.Button];
+            if (v) color = style.Colors[(int)ImGuiCol.ButtonActive];
 
-            var textSize = ImGui.GetTextSize(text);
+            var textSize = ImGui.CalcTextSize(text);
             float pad = style.FramePadding.X;
             var pos = ImGui.GetCursorScreenPos() + new Vector2(pad, textSize.X + pad);
-            ImGui.PushStyleColor(ColorTarget.Button, color);
+            ImGui.PushStyleColor(ImGuiCol.Button, color);
             ImGui.PushID(text);
             bool ret = ImGui.Button("", new Vector2(textSize.Y + pad * 2,
                                                     textSize.X + pad * 2));

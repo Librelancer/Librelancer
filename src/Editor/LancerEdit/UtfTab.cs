@@ -37,7 +37,7 @@ namespace LancerEdit
             win.ActiveTab = this;
         }
       
-        TreeNodeFlags tflags = TreeNodeFlags.OpenOnArrow | TreeNodeFlags.OpenOnDoubleClick;
+        ImGuiTreeNodeFlags tflags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
         TextBuffer text;
 
         public override void Dispose()
@@ -90,10 +90,10 @@ namespace LancerEdit
             }
             ImGui.Separator();
             //Tree
-            ImGui.BeginChild("##scroll", false, 0);
-            var flags = selectedNode == Utf.Root ? TreeNodeFlags.Selected | tflags : tflags;
+            ImGui.BeginChild("##scroll");
+            var flags = selectedNode == Utf.Root ? ImGuiTreeNodeFlags.Selected | tflags : tflags;
             var isOpen = ImGui.TreeNodeEx("/", flags);
-            if (ImGuiNative.igIsItemClicked(0))
+            if (ImGui.IsItemClicked(0))
             {
                 selectedNode = Utf.Root;
             }
@@ -225,14 +225,14 @@ namespace LancerEdit
             Popups();
         }
        
-        unsafe int DummyCallback(TextEditCallbackData* data)
+        unsafe int DummyCallback(ImGuiInputTextCallbackData* data)
         {
             return 0;
         }
 
         unsafe void NodeInformation()
         {
-            ImGui.BeginChild("##scrollnode", false, 0);
+            ImGui.BeginChild("##scrollnode");
             ImGui.Text("Name: " + selectedNode.Name);
             if (selectedNode.Children != null)
             {
@@ -284,7 +284,7 @@ namespace LancerEdit
                     //String Preview
                     ImGui.Text("String:");
                     ImGui.SameLine();
-                    ImGui.InputText("", selectedNode.Data, (uint)Math.Min(selectedNode.Data.Length, 32), InputTextFlags.ReadOnly, DummyCallback);
+                    ImGui.InputText("##strpreview", selectedNode.Data, (uint)Math.Min(selectedNode.Data.Length, 32), ImGuiInputTextFlags.ReadOnly, DummyCallback);
                     //Float Preview
                     ImGui.Text("Float:");
                     fixed (byte* ptr = selectedNode.Data)
@@ -583,7 +583,7 @@ namespace LancerEdit
                         text.SetText("");
                         addParent = null;
                         addNode = node;
-                        if (selectedNode.Data != null)
+                        if (node.Data != null)
                         {
                             Confirm("Adding a node will clear data. Continue?", () =>
                             {
@@ -713,9 +713,9 @@ namespace LancerEdit
             string id = node.Name + "##" + parent.Name + idx;
             if (node.Children != null)
             {
-                var flags = selectedNode == node ? TreeNodeFlags.Selected | tflags : tflags;
+                var flags = selectedNode == node ? ImGuiTreeNodeFlags.Selected | tflags : tflags;
                 var isOpen = ImGui.TreeNodeEx(id, flags);
-                if (ImGuiNative.igIsItemClicked(0))
+                if (ImGui.IsItemClicked(0))
                 {
                     selectedNode = node;
                 }
@@ -744,7 +744,7 @@ namespace LancerEdit
                     ImGui.SameLine();
                 }
                 bool selected = selectedNode == node;
-                if (ImGui.SelectableEx(id, ref selected))
+                if (ImGui.Selectable(id, ref selected))
                 {
                     selectedNode = node;
                 }

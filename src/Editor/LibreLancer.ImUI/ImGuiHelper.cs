@@ -64,6 +64,7 @@ namespace LibreLancer.ImUI
 		void main()
 		{
 			float alpha = texture(tex, out_texcoord).r;
+            if(out_texcoord.x > 3) alpha = 1;
 			out_color = vec4(blendColor.xyz, blendColor.a * alpha);
 		}
 		";
@@ -84,45 +85,52 @@ namespace LibreLancer.ImUI
 		Shader textShader;
 		Shader colorShader;
 		Texture2D fontTexture;
-		const int FONT_TEXTURE_ID = 1;
+		const int FONT_TEXTURE_ID = 8;
 		public static int CheckerboardId;
 		Texture2D dot;
 		Texture2D checkerboard;
 		IntPtr ttfPtr;
-		public static ImGuiNET.Font Noto;
-		public static ImGuiNET.Font Default;
+        IntPtr context;
+		public static ImFontPtr Noto;
+		public static ImFontPtr Default;
 		public unsafe ImGuiHelper(Game game)
 		{
 			this.game = game;
 			game.Keyboard.KeyDown += Keyboard_KeyDown;
 			game.Keyboard.KeyUp += Keyboard_KeyUp;
 			game.Keyboard.TextInput += Keyboard_TextInput;
-			SetKeyMappings();
-			var io = ImGui.GetIO();
-			io.GetNativePointer()->IniFilename = IntPtr.Zero;
-			Default = io.FontAtlas.AddDefaultFont();
+            context = ImGui.CreateContext();
+            ImGui.SetCurrentContext(context);
+            SetKeyMappings();
+
+            var io = ImGui.GetIO();
+            //IniFilename?
+            Default = io.Fonts.AddFontDefault();
 			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.Roboto-Medium.ttf"))
 			{
 				var ttf = new byte[stream.Length];
 				stream.Read(ttf, 0, ttf.Length);
 				ttfPtr = Marshal.AllocHGlobal(ttf.Length);
 				Marshal.Copy(ttf, 0, ttfPtr, ttf.Length);
-				Noto = io.FontAtlas.AddFontFromMemoryTTF(ttfPtr, ttf.Length, 15);
+				Noto = io.Fonts.AddFontFromMemoryTTF(ttfPtr, ttf.Length, 15);
 			}
 			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.checkerboard.png"))
 			{
 				checkerboard = LibreLancer.ImageLib.Generic.FromStream(stream);
 				CheckerboardId = RegisterTexture(checkerboard);
 			}
-            ImGuiExt.BuildFontAtlas((IntPtr)ImGuiNative.igGetIO()->FontAtlas);
-			FontTextureData texData = io.FontAtlas.GetTexDataAsAlpha8();
-			fontTexture = new Texture2D(texData.Width, texData.Height, false, SurfaceFormat.R8);
-			var bytes = new byte[texData.Width * texData.Height * texData.BytesPerPixel];
-			Marshal.Copy((IntPtr)texData.Pixels, bytes, 0, texData.Width * texData.Height * texData.BytesPerPixel);
+            ImGuiExt.BuildFontAtlas((IntPtr)io.Fonts.NativePtr);
+            byte* fontBytes;
+            int fontWidth, fontHeight;
+            io.Fonts.GetTexDataAsAlpha8(out fontBytes, out fontWidth, out fontHeight);
+            io.Fonts.TexUvWhitePixel = new Vector2(10, 10);
+            fontTexture = new Texture2D(fontWidth,fontHeight, false, SurfaceFormat.R8);
+			var bytes = new byte[fontWidth * fontHeight];
+            Marshal.Copy((IntPtr)fontBytes, bytes, 0, fontWidth * fontHeight);
 			fontTexture.SetData(bytes);
 			fontTexture.SetFiltering(TextureFiltering.Linear);
-			io.FontAtlas.SetTexID(FONT_TEXTURE_ID);
-			io.FontAtlas.ClearTexData();
+			io.Fonts.SetTexID((IntPtr)FONT_TEXTURE_ID);
+			io.Fonts.ClearTexData();
 			textShader = new Shader(vertex_source, text_fragment_source);
 			colorShader = new Shader(vertex_source, color_fragment_source);
 			dot = new Texture2D(1, 1, false, SurfaceFormat.Color);
@@ -134,8 +142,9 @@ namespace LibreLancer.ImUI
             instance = this;
             setTextDel = SetClipboardText;
             getTextDel = GetClipboardText;
-            io.GetNativePointer()->GetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(getTextDel);
-            io.GetNativePointer()->SetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(setTextDel);
+            
+            io.GetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(getTextDel);
+            io.SetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(setTextDel);
 		}
         static ImGuiHelper instance;
         static IntPtr utf8buf;
@@ -186,55 +195,51 @@ namespace LibreLancer.ImUI
 
 		void Keyboard_TextInput(string text)
 		{
-			foreach (var c in text)
-				ImGui.AddInputCharacter(c);
+            foreach (var c in text)
+                ImGui.GetIO().AddInputCharacter(c);
 		}
 
 		void Keyboard_KeyDown(KeyEventArgs e)
 		{
 			var io = ImGui.GetIO();
 			if (mappedKeys.Contains(e.Key)) io.KeysDown[(int)mappedKeys.IndexOf(e.Key)] = true;
-			io.AltPressed = ((e.Modifiers & KeyModifiers.LeftAlt) == KeyModifiers.LeftAlt);
-			io.CtrlPressed = ((e.Modifiers & KeyModifiers.LeftControl) == KeyModifiers.LeftControl);
-			io.ShiftPressed = ((e.Modifiers & KeyModifiers.LeftShift) == KeyModifiers.LeftShift);
+			io.KeyAlt = ((e.Modifiers & KeyModifiers.LeftAlt) == KeyModifiers.LeftAlt);
+			io.KeyCtrl = ((e.Modifiers & KeyModifiers.LeftControl) == KeyModifiers.LeftControl);
+			io.KeyShift = ((e.Modifiers & KeyModifiers.LeftShift) == KeyModifiers.LeftShift);
 		}
 
 		void Keyboard_KeyUp(KeyEventArgs e)
 		{
 			var io = ImGui.GetIO();
 			if (mappedKeys.Contains(e.Key)) io.KeysDown[(int)mappedKeys.IndexOf(e.Key)] = false;
-			io.AltPressed = ((e.Modifiers & KeyModifiers.LeftAlt) == KeyModifiers.LeftAlt);
-			io.CtrlPressed = ((e.Modifiers & KeyModifiers.LeftControl) == KeyModifiers.LeftControl);
-			io.ShiftPressed = ((e.Modifiers & KeyModifiers.LeftShift) == KeyModifiers.LeftShift);
+			io.KeyAlt = ((e.Modifiers & KeyModifiers.LeftAlt) == KeyModifiers.LeftAlt);
+			io.KeyCtrl = ((e.Modifiers & KeyModifiers.LeftControl) == KeyModifiers.LeftControl);
+			io.KeyShift = ((e.Modifiers & KeyModifiers.LeftShift) == KeyModifiers.LeftShift);
 		}
 
 
 		public void NewFrame(double elapsed)
 		{
-			IO io = ImGui.GetIO();
+			ImGuiIOPtr io = ImGui.GetIO();
 			io.DisplaySize = new Vector2(game.Width, game.Height);
 			io.DisplayFramebufferScale = new Vector2(1, 1);
 			io.DeltaTime = (float)elapsed;
 			//Update input
-			io.MousePosition = new Vector2(game.Mouse.X, game.Mouse.Y);
+			io.MousePos = new Vector2(game.Mouse.X, game.Mouse.Y);
 			io.MouseDown[0] = game.Mouse.IsButtonDown(MouseButtons.Left);
 			io.MouseDown[1] = game.Mouse.IsButtonDown(MouseButtons.Right);
 			io.MouseDown[2] = game.Mouse.IsButtonDown(MouseButtons.Middle);
 			io.MouseWheel = game.Mouse.MouseDelta / 2.5f;
 			game.Mouse.MouseDelta = 0;
+            game.TextInputEnabled = io.WantCaptureKeyboard;
 			//TODO: Mouse Wheel
-			//Do stuff
 			ImGui.NewFrame();
 		}
 
 		public void Render(RenderState rstate)
 		{
 			ImGui.Render();
-			unsafe
-			{
-				DrawData* data = ImGui.GetDrawData();
-				RenderImDrawData(data, rstate);
-			}
+            RenderImDrawData(ImGui.GetDrawData(), rstate);
 		}
 
 		VertexBuffer vbo;
@@ -243,33 +248,33 @@ namespace LibreLancer.ImUI
 		Vertex2D[] vbuffer;
 		int vboSize = -1;
 		int iboSize = -1;
-		unsafe void RenderImDrawData(DrawData* draw_data, RenderState rstate)
+		unsafe void RenderImDrawData(ImDrawDataPtr draw_data, RenderState rstate)
 		{
 			var io = ImGui.GetIO();
             //Set cursor
             var cur = ImGuiNative.igGetMouseCursor();
             switch(cur) {
-                case MouseCursorKind.Arrow:
+                case ImGuiMouseCursor.Arrow:
                     game.CursorKind = CursorKind.Arrow;
                     break;
-                case MouseCursorKind.Move:
+                case ImGuiMouseCursor.ResizeAll:
                     game.CursorKind = CursorKind.Move;
                     break;
-                case MouseCursorKind.TextInput:
+                case ImGuiMouseCursor.TextInput:
                     game.CursorKind = CursorKind.TextInput;
                     break;
-                case MouseCursorKind.ResizeNS:
+                case ImGuiMouseCursor.ResizeNS:
                     game.CursorKind = CursorKind.ResizeNS;
                     break;
-                case MouseCursorKind.ResizeNESW:
+                case ImGuiMouseCursor.ResizeNESW:
                     game.CursorKind = CursorKind.ResizeNESW;
                     break;
-                case MouseCursorKind.ResizeNWSE:
+                case ImGuiMouseCursor.ResizeNWSE:
                     game.CursorKind = CursorKind.ResizeNWSE;
                     break;
             }
             //Render
-            ImGui.ScaleClipRects(draw_data, io.DisplayFramebufferScale);
+            draw_data.ScaleClipRects(io.DisplayFramebufferScale);
 
 			var mat = Matrix4.CreateOrthographicOffCenter(0, game.Width, game.Height, 0, 0, 1);
 			Shader lastShader = textShader;
@@ -281,13 +286,13 @@ namespace LibreLancer.ImUI
 			rstate.Cull = false;
 			rstate.BlendMode = BlendMode.Normal;
 			rstate.DepthEnabled = false;
-			for (int n = 0; n < draw_data->CmdListsCount; n++)
+			for (int n = 0; n < draw_data.CmdListsCount; n++)
 			{
-				var cmd_list = draw_data->CmdLists[n];
-				byte* vtx_buffer = (byte*)cmd_list->VtxBuffer.Data;
-				ushort* idx_buffer = (ushort*)cmd_list->IdxBuffer.Data;
-				var vtxCount = cmd_list->VtxBuffer.Size;
-				var idxCount = cmd_list->IdxBuffer.Size;
+                var cmd_list = draw_data.CmdListsRange[n];
+                byte* vtx_buffer = (byte*)cmd_list.VtxBuffer.Data;
+				ushort* idx_buffer = (ushort*)cmd_list.IdxBuffer.Data;
+				var vtxCount = cmd_list.VtxBuffer.Size;
+				var idxCount = cmd_list.IdxBuffer.Size;
 				if (vboSize < vtxCount || iboSize < idxCount)
 				{
 					if (vbo != null) vbo.Dispose();
@@ -300,13 +305,13 @@ namespace LibreLancer.ImUI
 					vbuffer = new Vertex2D[vboSize];
 					ibuffer = new ushort[iboSize];
 				}
-				for (int i = 0; i < cmd_list->IdxBuffer.Size; i++)
+				for (int i = 0; i < cmd_list.IdxBuffer.Size; i++)
 				{
 					ibuffer[i] = idx_buffer[i];
 				}
-				for (int i = 0; i < cmd_list->VtxBuffer.Size; i++)
+				for (int i = 0; i < cmd_list.VtxBuffer.Size; i++)
 				{
-					var ptr = (DrawVert*)vtx_buffer;
+					var ptr = (ImDrawVert*)vtx_buffer;
 					var unint = ptr[i].col;
 					var a = unint >> 24 & 0xFF;
 					var b = unint >> 16 & 0xFF;
@@ -314,14 +319,14 @@ namespace LibreLancer.ImUI
 					var r = unint & 0xFF;
 					vbuffer[i] = new Vertex2D(ptr[i].pos, ptr[i].uv, new Color4(r / 255f, g / 255f, b / 255f, a / 255f));
 				}
-				vbo.SetData(vbuffer, cmd_list->VtxBuffer.Size);
-				ibo.SetData(ibuffer, cmd_list->IdxBuffer.Size);
+				vbo.SetData(vbuffer, cmd_list.VtxBuffer.Size);
+				ibo.SetData(ibuffer, cmd_list.IdxBuffer.Size);
 				int startIndex = 0;
-				for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
+				for (int cmd_i = 0; cmd_i < cmd_list.CmdBuffer.Size; cmd_i++)
 				{
-					var pcmd = &(((DrawCmd*)cmd_list->CmdBuffer.Data)[cmd_i]);
+                    var pcmd = cmd_list.CmdBuffer[cmd_i];
 					//TODO: Do something with pcmd->UserCallback ??
-					var tid = pcmd->TextureId.ToInt32();
+					var tid = pcmd.TextureId.ToInt32();
 					Texture2D tex;
 					if (tid == FONT_TEXTURE_ID)
 					{
@@ -348,13 +353,13 @@ namespace LibreLancer.ImUI
 
 					GL.Enable(GL.GL_SCISSOR_TEST);
 					GL.Scissor(
-					(int)pcmd->ClipRect.X,
-					(int)(io.DisplaySize.Y - pcmd->ClipRect.W),
-					(int)(pcmd->ClipRect.Z - pcmd->ClipRect.X),
-					(int)(pcmd->ClipRect.W - pcmd->ClipRect.Y));
-					vbo.Draw(PrimitiveTypes.TriangleList, 0, startIndex, (int)pcmd->ElemCount / 3);
+					(int)pcmd.ClipRect.X,
+					(int)(io.DisplaySize.Y - pcmd.ClipRect.W),
+					(int)(pcmd.ClipRect.Z - pcmd.ClipRect.X),
+					(int)(pcmd.ClipRect.W - pcmd.ClipRect.Y));
+					vbo.Draw(PrimitiveTypes.TriangleList, 0, startIndex, (int)pcmd.ElemCount / 3);
 					GL.Disable(GL.GL_SCISSOR_TEST);
-					startIndex += (int)pcmd->ElemCount;
+					startIndex += (int)pcmd.ElemCount;
 				}
 			}
 		}

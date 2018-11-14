@@ -87,7 +87,7 @@ namespace LibreLancer
                                   Vector2.Zero, Vector2.One,
                                   0,
                                   Vector4.One, Vector4.One);
-                if (ImGui.IsItemHovered(HoveredFlags.Default))
+                if (ImGui.IsItemHovered(ImGuiHoveredFlags.None))
                 {
                     var io = ImGui.GetIO();
                     if (ImGui.IsMouseDragging(0, 1f))
@@ -116,7 +116,7 @@ namespace LibreLancer
                     {
                         var delta = (Vector2)ImGui.GetMouseDragDelta(1, 1f);
                         ImGui.ResetMouseDragDelta(1);
-                        if (io.CtrlPressed)
+                        if (io.KeyCtrl)
                         {
                             //CTRL + RMB - Rotate Model
                             Rotation += (delta / 100) * new Vector2(1,-1);

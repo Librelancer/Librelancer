@@ -150,7 +150,6 @@ namespace LancerEdit
         Vector2 errorWindowSize = Vector2.Zero;
 		protected override void Draw(double elapsed)
 		{
-			EnableTextInput();
 			Viewport.Replace(0, 0, Width, Height);
 			RenderState.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
 			RenderState.ClearAll();
@@ -265,16 +264,17 @@ namespace LancerEdit
                 openError = false;
             }
             if (openLoading) ImGui.OpenPopup("Processing");
+            bool pOpen = true;
 
-            if(ImGui.BeginPopupModal("Error", WindowFlags.AlwaysAutoResize))
+            if (ImGui.BeginPopupModal("Error", ref pOpen, ImGuiWindowFlags.AlwaysAutoResize))
             {
                 ImGui.Text("Error:");
-                ImGui.InputTextMultiline("##etext", errorText.Pointer, (uint)errorText.Size,
-                                         new Vector2(430, 200), InputTextFlags.ReadOnly, errorText.Callback);
+                errorText.InputTextMultiline("##etext", new Vector2(430, 200), ImGuiInputTextFlags.ReadOnly);
                 if (ImGui.Button("OK")) ImGui.CloseCurrentPopup();
                 ImGui.EndPopup();
             }
-			if (ImGui.BeginPopupModal("About", WindowFlags.AlwaysAutoResize))
+            pOpen = true;
+			if (ImGui.BeginPopupModal("About", ref pOpen, ImGuiWindowFlags.AlwaysAutoResize))
 			{
                 ImGui.SameLine(ImGui.GetWindowWidth() / 2 - 64);
                 Theme.Icon("reactor_128", Color4.White);
@@ -284,15 +284,16 @@ namespace LancerEdit
                 CenterText("Icons from Icons8: https://icons8.com/");
                 CenterText("Icons from komorra: https://opengameart.org/content/kmr-editor-icon-set");
                 ImGui.Separator();
-                var btnW = ImGui.GetTextSize("OK").X + ImGui.GetStyle().FramePadding.X * 2;
-                ImGui.Dummy(1, 1);
+                var btnW = ImGui.CalcTextSize("OK").X + ImGui.GetStyle().FramePadding.X * 2;
+                ImGui.Dummy(Vector2.One);
                 ImGui.SameLine(ImGui.GetWindowWidth() / 2 - (btnW / 2));
 				if (ImGui.Button("OK")) ImGui.CloseCurrentPopup();
 				ImGui.EndPopup();
 			}
-            if(ImGui.BeginPopupModal("Processing", WindowFlags.AlwaysAutoResize))
+            pOpen = true;
+            if(ImGui.BeginPopupModal("Processing", ref pOpen, ImGuiWindowFlags.AlwaysAutoResize))
             {
-                ImGuiExt.Spinner("##spinner", 10, 2, ImGuiNative.igGetColorU32(ColorTarget.ButtonHovered, 1));
+                ImGuiExt.Spinner("##spinner", 10, 2, ImGuiNative.igGetColorU32(ImGuiCol.ButtonHovered, 1));
                 ImGui.SameLine();
                 ImGui.Text("Processing");
                 if (finishLoading) ImGui.CloseCurrentPopup();
@@ -310,15 +311,15 @@ namespace LancerEdit
 			{
                 ((EditorTab)tab).DetectResources(MissingResources, ReferencedMaterials, ReferencedTextures);
 			}
-            ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - 25), Condition.Always);
-            ImGui.SetNextWindowPos(new Vector2(0, menu_height), Condition.Always, Vector2.Zero);
+            ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - 25), ImGuiCond.Always);
+            ImGui.SetNextWindowPos(new Vector2(0, menu_height), ImGuiCond.Always, Vector2.Zero);
             bool childopened = true;
-            ImGui.BeginWindow("tabwindow", ref childopened,
-                              WindowFlags.NoTitleBar |
-                              WindowFlags.NoSavedSettings |
-                              WindowFlags.NoBringToFrontOnFocus |
-                              WindowFlags.NoMove |
-                              WindowFlags.NoResize);
+            ImGui.Begin("tabwindow", ref childopened,
+                              ImGuiWindowFlags.NoTitleBar |
+                              ImGuiWindowFlags.NoSavedSettings |
+                              ImGuiWindowFlags.NoBringToFrontOnFocus |
+                              ImGuiWindowFlags.NoMove |
+                              ImGuiWindowFlags.NoResize);
             TabHandler.TabLabels(tabs, ref selected);
             var totalH = ImGui.GetWindowHeight();
             if (showLog)
@@ -326,7 +327,7 @@ namespace LancerEdit
                 ImGuiExt.SplitterV(2f, ref h1, ref h2, 8, 8, -1);
                 h1 = totalH - h2 - 24f;
                 if (tabs.Count > 0) h1 -= 20f;
-                ImGui.BeginChild("###tabcontent" + (selected != null ? selected.Title : ""),new Vector2(-1,h1),false,WindowFlags.Default);
+                ImGui.BeginChild("###tabcontent" + (selected != null ? selected.Title : ""),new Vector2(-1,h1),false,ImGuiWindowFlags.None);
             } else
                 ImGui.BeginChild("###tabcontent" + (selected != null ? selected.Title : ""));
             if (selected != null)
@@ -339,26 +340,25 @@ namespace LancerEdit
             ImGui.EndChild();
             TabHandler.DrawTabDrag(tabs);
             if(showLog) {
-                ImGui.BeginChild("###log", new Vector2(-1, h2), false, WindowFlags.Default);
+                ImGui.BeginChild("###log", new Vector2(-1, h2), false, ImGuiWindowFlags.None);
                 ImGui.Text("Log");
                 ImGui.SameLine(ImGui.GetWindowWidth() - 20);
                 if (Theme.IconButton("closelog", "x", Color4.White))
                     showLog = false;
-                ImGui.InputTextMultiline("##logtext", logBuffer.Pointer, 32768, new Vector2(-1, h2 - 24),
-                                         InputTextFlags.ReadOnly, logBuffer.Callback);
+                logBuffer.InputTextMultiline("##logtext", new Vector2(-1, h2 - 24), ImGuiInputTextFlags.ReadOnly);
                 ImGui.EndChild();
             }
-            ImGui.EndWindow();
+            ImGui.End();
 			//Status bar
-			ImGui.SetNextWindowSize(new Vector2(size.X, 25f), Condition.Always);
-			ImGui.SetNextWindowPos(new Vector2(0, size.Y - 6f), Condition.Always, Vector2.Zero);
+			ImGui.SetNextWindowSize(new Vector2(size.X, 25f), ImGuiCond.Always);
+			ImGui.SetNextWindowPos(new Vector2(0, size.Y - 6f), ImGuiCond.Always, Vector2.Zero);
 			bool sbopened = true;
-			ImGui.BeginWindow("statusbar", ref sbopened, 
-			                  WindowFlags.NoTitleBar | 
-			                  WindowFlags.NoSavedSettings | 
-			                  WindowFlags.NoBringToFrontOnFocus | 
-			                  WindowFlags.NoMove | 
-			                  WindowFlags.NoResize);
+			ImGui.Begin("statusbar", ref sbopened, 
+			                  ImGuiWindowFlags.NoTitleBar | 
+			                  ImGuiWindowFlags.NoSavedSettings | 
+			                  ImGuiWindowFlags.NoBringToFrontOnFocus | 
+			                  ImGuiWindowFlags.NoMove | 
+			                  ImGuiWindowFlags.NoResize);
 			if (updateTime > 9)
 			{
 				updateTime = 0;
@@ -373,16 +373,16 @@ namespace LancerEdit
 									 Resources.TextureDictionary.Count,
 									 activename,
 									 utfpath));
-			ImGui.EndWindow();
+			ImGui.End();
             if(errorTimer > 0) {
                 ImGuiExt.ToastText("An error has occurred\nCheck the log for details",
                                    new Color4(21, 21, 22, 128),
                                    Color4.Red);
             }
             if(showOptions) {
-                ImGui.BeginWindow("Options", ref showOptions, WindowFlags.AlwaysAutoResize);
+                ImGui.Begin("Options", ref showOptions, ImGuiWindowFlags.AlwaysAutoResize);
                 var pastC = cFilter;
-                ImGui.Combo("Texture Filter", ref cFilter, filters);
+                ImGui.Combo("Texture Filter", ref cFilter, filters, filters.Length);
                 if(cFilter != pastC) {
                     switch(cFilter) {
                         case 0:
@@ -400,7 +400,7 @@ namespace LancerEdit
                             break;
                     }
                 }
-                ImGui.EndWindow();
+                ImGui.End();
             }
 			ImGui.PopFont();
 			guiHelper.Render(RenderState);
@@ -413,9 +413,9 @@ namespace LancerEdit
 		}
         void CenterText(string text)
         {
-            ImGui.Dummy(1, 1);
+            ImGui.Dummy(new Vector2(1));
             var win = ImGui.GetWindowWidth();
-            var txt = ImGui.GetTextSize(text).X;
+            var txt = ImGui.CalcTextSize(text).X;
             ImGui.SameLine(Math.Max((win / 2f) - (txt / 2f),0));
             ImGui.Text(text);
         }

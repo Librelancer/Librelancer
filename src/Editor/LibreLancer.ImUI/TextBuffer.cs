@@ -13,7 +13,7 @@ namespace LibreLancer.ImUI
 	{
 		public int Size;
 		public IntPtr Pointer;
-		public TextEditCallback Callback;
+		public ImGuiInputTextCallback Callback;
         public TextBuffer(int sz = 2048)
 		{
             if ((sz % 8) != 0) throw new Exception("Must be multiple of 8");
@@ -32,7 +32,7 @@ namespace LibreLancer.ImUI
 			}
 		}
 
-		int HandleTextEditCallback(TextEditCallbackData* data)
+		int HandleTextEditCallback(ImGuiInputTextCallbackData* data)
 		{
 			return 0;
 		}
@@ -51,7 +51,21 @@ namespace LibreLancer.ImUI
 				Marshal.WriteByte(Pointer,len,0);
 		}
 
-		public byte[] GetByteArray()
+        public unsafe void InputText(string id, ImGuiInputTextFlags flags, int sz = -1)
+        {
+            var idBytes = UnsafeHelpers.StringToHGlobalUTF8(id);
+            ImGuiNative.igInputText((byte*)idBytes, (byte*)Pointer, (uint)(sz > 0 ? sz : Size), flags, Callback, (void*)0);
+            Marshal.FreeHGlobal(idBytes);
+        }
+
+        public void InputTextMultiline(string id, Vector2 size, ImGuiInputTextFlags flags, int sz = -1)
+        {
+            var idBytes = UnsafeHelpers.StringToHGlobalUTF8(id);
+            ImGuiNative.igInputTextMultiline((byte*)idBytes, (byte*)Pointer, (uint)(sz > 0 ? sz : Size), size, flags, Callback, (void*)0);
+            Marshal.FreeHGlobal(idBytes);
+        }
+
+        public byte[] GetByteArray()
 		{
 			int len = Size;
 			for (int i = 0; i < Size; i++)

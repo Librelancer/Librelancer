@@ -154,18 +154,18 @@ namespace LancerEdit
             maxDistance += 50;
 
             popups = new PopupManager();
-            popups.AddPopup("Confirm Delete", ConfirmDelete, WindowFlags.AlwaysAutoResize);
+            popups.AddPopup("Confirm Delete", ConfirmDelete, ImGuiWindowFlags.AlwaysAutoResize);
             popups.AddPopup("Apply Complete", (x) =>
             {
                 ImGui.Text("Hardpoints successfully written");
                 if (ImGui.Button("Ok")) ImGui.CloseCurrentPopup();
-            },WindowFlags.AlwaysAutoResize);
+            },ImGuiWindowFlags.AlwaysAutoResize);
             popups.AddPopup("Apply Complete##Parts", (x) =>
             {
                 ImGui.Text("Parts successfully written");
                 if (ImGui.Button("Ok")) ImGui.CloseCurrentPopup();
-            }, WindowFlags.AlwaysAutoResize);
-            popups.AddPopup("New Hardpoint", NewHardpoint, WindowFlags.AlwaysAutoResize);
+            }, ImGuiWindowFlags.AlwaysAutoResize);
+            popups.AddPopup("New Hardpoint", NewHardpoint, ImGuiWindowFlags.AlwaysAutoResize);
         }
        
         public override void SetActiveTab(MainWindow win)
@@ -245,7 +245,7 @@ namespace LancerEdit
             HardpointEditor();
             PartEditor();
             foreach (var t in openTabs) if (t) { doTabs = true; break; }
-            var contentw = ImGui.GetContentRegionAvailableWidth();
+            var contentw = ImGui.GetContentRegionAvailWidth();
             if (doTabs)
             {
                 ImGui.Columns(2, "##panels", true);
@@ -264,12 +264,13 @@ namespace LancerEdit
             TabButtons();
             ImGui.BeginChild("##main");
             if (ImGui.ColorButton("Background Color", new Vector4(background.R, background.G, background.B, 1),
-                                ColorEditFlags.NoAlpha, new Vector2(22, 22)))
+                                ImGuiColorEditFlags.NoAlpha, new Vector2(22, 22)))
             {
                 ImGui.OpenPopup("Background Color###" + Unique);
                 editCol = new System.Numerics.Vector3(background.R, background.G, background.B);
             }
-            if (ImGui.BeginPopupModal("Background Color###" + Unique, WindowFlags.AlwaysAutoResize))
+            bool wOpen = true;
+            if (ImGui.BeginPopupModal("Background Color###" + Unique, ref wOpen, ImGuiWindowFlags.AlwaysAutoResize))
             {
                 ImGui.ColorPicker3("###a", ref editCol);
                 if (ImGui.Button("OK"))
@@ -303,7 +304,7 @@ namespace LancerEdit
             ImGui.Text("View Mode:");
             ImGui.SameLine();
             ImGui.PushItemWidth(-1);
-            ImGui.Combo("##modes", ref viewMode, viewModes);
+            ImGui.Combo("##modes", ref viewMode, viewModes, viewModes.Length);
             ImGui.PopItemWidth();
             DoViewport();
             //
@@ -327,7 +328,7 @@ namespace LancerEdit
                 }
                 else
                 {
-                    ImGui.Combo("Level", ref level, levels);
+                    ImGui.Combo("Level", ref level, levels, levels.Length);
                 }
                 ImGui.PopItemWidth();
             }
@@ -374,8 +375,8 @@ namespace LancerEdit
         void DoConstructNode(ConstructNode cn)
         {
             var n = string.Format("{0} ({1})", cn.Con.ChildName, ConType(cn.Con));
-            var tflags = TreeNodeFlags.OpenOnArrow | TreeNodeFlags.OpenOnDoubleClick;
-            if (selectedNode == cn) tflags |= TreeNodeFlags.Selected;
+            var tflags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
+            if (selectedNode == cn) tflags |= ImGuiTreeNodeFlags.Selected;
             var icon = "fix";
             var color = Color4.LightYellow;
             if (cn.Con is PrisConstruct)
@@ -395,7 +396,7 @@ namespace LancerEdit
             }
             if (ImGui.TreeNodeEx(ImGuiExt.Pad(n), tflags))
             {
-                if (ImGuiNative.igIsItemClicked(0))
+                if (ImGui.IsItemClicked(0))
                     selectedNode = cn;
                 ConstructContext(cn);
                 Theme.RenderTreeIcon(n, icon, color);
@@ -406,7 +407,7 @@ namespace LancerEdit
             }
             else
             {
-                if (ImGuiNative.igIsItemClicked(0))
+                if (ImGui.IsItemClicked(0))
                     selectedNode = cn;
                 ConstructContext(cn);
                 Theme.RenderTreeIcon(n, icon, color);
@@ -416,7 +417,7 @@ namespace LancerEdit
 
         void ConstructContext(ConstructNode con)
         {
-            if (ImGuiNative.igIsItemClicked(1))
+            if (ImGui.IsItemClicked(1))
                 ImGui.OpenPopup(con.Con.ChildName + "_context");
             if(ImGui.BeginPopupContextItem(con.Con.ChildName + "_context")) {
                 if(ImGui.BeginMenu("Change To")) {
@@ -532,7 +533,7 @@ namespace LancerEdit
         }
         ContextActions NewHpMenu(string n)
         {
-            if(ImGuiNative.igIsItemClicked(1))
+            if(ImGui.IsItemClicked(1))
                 ImGui.OpenPopup(n + "_HardpointContext");
             if(ImGui.BeginPopupContextItem(n + "_HardpointContext")) {
                 if(ImGui.BeginMenu("New")) {
@@ -546,7 +547,7 @@ namespace LancerEdit
         }
         ContextActions EditDeleteHpMenu(string n)
         {
-            if(ImGuiNative.igIsItemClicked(1))
+            if(ImGui.IsItemClicked(1))
                 ImGui.OpenPopup(n + "_HardpointEditCtx");
             if(ImGui.BeginPopupContextItem(n + "_HardpointEditCtx")) {
                 if(ImGui.MenuItem("Edit")) return ContextActions.Edit;
@@ -603,7 +604,7 @@ namespace LancerEdit
             }
             if (ImGuiExt.ToggleButton("Filter", doFilter)) doFilter = !doFilter;
             if (doFilter) {
-                ImGui.InputText("##filter", filterText.Pointer, (uint)filterText.Size, InputTextFlags.Default, filterText.Callback);
+                ImGui.InputText("##filter", filterText.Pointer, (uint)filterText.Size, ImGuiInputTextFlags.None, filterText.Callback);
                 currentFilter = filterText.GetText();
             }
             else
@@ -622,7 +623,7 @@ namespace LancerEdit
                                          MathHelper.RadiansToDegrees(euler.Z)));
                 ImGui.Separator();
             }
-            if (ImGui.TreeNodeEx(ImGuiExt.Pad("Root"), TreeNodeFlags.DefaultOpen))
+            if (ImGui.TreeNodeEx(ImGuiExt.Pad("Root"), ImGuiTreeNodeFlags.DefaultOpen))
             {
                 Theme.RenderTreeIcon("Root", "tree", Color4.DarkGreen);
                 foreach (var n in cons)
@@ -658,10 +659,8 @@ namespace LancerEdit
         {
             ImGui.Text("Render to Image");
             ImGui.Checkbox("Background?", ref renderBackground);
-            fixed(int* rw = &imageWidth, rh = &imageHeight) {
-                ImGuiNative.igInputInt("Width", rw, 1, 10, InputTextFlags.Default);
-                ImGuiNative.igInputInt("Height", rh, 1, 0, InputTextFlags.Default);
-            }
+            ImGui.InputInt("Width", ref imageWidth);
+            ImGui.InputInt("Height", ref imageHeight);
             var w = Math.Max(imageWidth, 16);
             var h = Math.Max(imageHeight, 16);
             var rpanelWidth = ImGui.GetWindowWidth() - 15;

@@ -27,15 +27,12 @@ namespace LancerEdit
 				var h = ImGui.GetWindowHeight();
 				ImGui.BeginChild("##scroll", new Vector2(0, h - 94), false, 0);
 				ImGui.Columns(4, "##columns", true);
-				fixed (int* ptr = ints)
-				{
 					for (int i = 0; i < ints.Length; i++)
 					{
-						ImGuiNative.igInputInt("##" + i.ToString(), &ptr[i], 0, 0, intHex ? InputTextFlags.CharsHexadecimal : InputTextFlags.CharsDecimal);
+                        ImGui.InputInt("##" + i.ToString(), ref ints[i], 0, 0, intHex ? ImGuiInputTextFlags.CharsHexadecimal : ImGuiInputTextFlags.CharsDecimal);
 						ImGui.NextColumn();
 						if (i % 4 == 0 && i != 0) ImGui.Separator();
-					}
-				}
+                        }
 				ImGui.EndChild();
 				if (ImGui.Button("Ok"))
 				{
@@ -72,15 +69,12 @@ namespace LancerEdit
 				var h = ImGui.GetWindowHeight();
 				ImGui.BeginChild("##scroll", new Vector2(0, h - 94), false, 0);
 				ImGui.Columns(4, "##columns", true);
-				fixed (float* ptr = floats)
-				{
-					for (int i = 0; i < floats.Length; i++)
-					{
-						ImGuiNative.igInputFloat("##" + i.ToString(), &ptr[i], 0.0f, 0.0f, 4, InputTextFlags.CharsDecimal);
-						ImGui.NextColumn();
-						if (i % 4 == 0 && i != 0) ImGui.Separator();
-					}
-				}
+                for (int i = 0; i < floats.Length; i++)
+                {
+                    ImGui.InputFloat("##" + i, ref floats[i], 0, 0);
+                    ImGui.NextColumn();
+                    if (i % 4 == 0 && i != 0) ImGui.Separator();
+                }
 				ImGui.EndChild();
 				if (ImGui.Button("Ok"))
 				{

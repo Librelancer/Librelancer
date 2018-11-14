@@ -31,7 +31,7 @@ namespace LancerEdit
             ImGui.Text("Reference");
             ImGui.Separator();
             ImGui.NextColumn();
-            var tcolor = (Vector4)ImGui.GetStyle().GetColor(ColorTarget.Text);
+            var tcolor = (Vector4)ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
             foreach (var t in res.TextureDictionary)
             {
                 var col = new Vector4(0.6f, 0.6f, 0.6f, 1f);
@@ -43,25 +43,25 @@ namespace LancerEdit
                         break;
                     }
                 }
-                ImGui.Text("Texture", col);
+                ImGui.TextColored(col, "Texture");
                 ImGui.NextColumn();
-                ImGui.Text(t.Key, col);
+                ImGui.TextColored(col, t.Key);
                 ImGui.NextColumn();
             }
 
             foreach (var m in res.MaterialDictionary)
             {
                 var col = referencedMats.Contains(m.Key) ? tcolor : new Vector4(0.6f, 0.6f, 0.6f, 1f);
-                ImGui.Text("Material", col);
+                ImGui.TextColored(col, "Material");
                 ImGui.NextColumn();
-                ImGui.Text(string.Format("{0} (0x{1:X})", m.Value.Name, m.Key), col);
+                ImGui.TextColored(col, string.Format("{0} (0x{1:X})", m.Value.Name, m.Key));
                 ImGui.NextColumn();
             }
             foreach (var ln in missing)
             {
-                ImGui.Text("Missing", new Vector4(1, 0, 0, 1));
+                ImGui.TextColored(new Vector4(1, 0, 0, 1), "Missing");
                 ImGui.NextColumn();
-                ImGui.Text(string.Format("{0} (Ref {1})", ln.Missing, ln.Reference), new Vector4(1, 0, 0, 1));
+                ImGui.TextColored(new Vector4(1, 0, 0, 1), string.Format("{0} (Ref {1})", ln.Missing, ln.Reference));
                 ImGui.NextColumn();
             }
             ImGui.Columns(1, null, false);

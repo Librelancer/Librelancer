@@ -126,6 +126,7 @@ C# Memory Usage: {5}
         string[] systems;
         int sysIndex = 0;
         int sysIndexLoaded = 0;
+        bool wireFrame = false;
         protected override void Draw(double elapsed)
         {
             VertexBuffer.TotalDrawcalls = 0;
@@ -135,7 +136,9 @@ C# Memory Usage: {5}
             RenderState.ClearAll();
             //
             if(world != null) {
+                if (wireFrame) RenderState.Wireframe = true;
                 world.Renderer.Draw();
+                RenderState.Wireframe = false;
             }
             //
             guiHelper.NewFrame(elapsed);
@@ -167,6 +170,7 @@ C# Memory Usage: {5}
             }
             if(ImGui.BeginMenu("View")) {
                 if (ImGui.MenuItem("Debug Text", "", showDebug, true)) showDebug = !showDebug;
+                if (ImGui.MenuItem("Wireframe", "", wireFrame, true)) wireFrame = !wireFrame;
                 ImGui.EndMenu();
             }
             var h = ImGui.GetWindowHeight();
@@ -174,13 +178,14 @@ C# Memory Usage: {5}
             //Other Windows
             if(world != null) {
                 if(showDebug) {
-                    ImGui.SetNextWindowPos(new Vector2(0, h), Condition.Always, Vector2.Zero);
-                    ImGui.BeginWindow("##debugWindow", WindowFlags.NoTitleBar | 
-                                      WindowFlags.NoMove | WindowFlags.AlwaysAutoResize | WindowFlags.NoBringToFrontOnFocus);
+                    ImGui.SetNextWindowPos(new Vector2(0, h), ImGuiCond.Always, Vector2.Zero);
+                    
+                    ImGui.Begin("##debugWindow", ImGuiWindowFlags.NoTitleBar | 
+                                      ImGuiWindowFlags.NoMove | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoBringToFrontOnFocus);
                     ImGui.Text(string.Format(DEBUG_TEXT, curSystem.Name, curSystem.Id,
                                             camera.Position.X, camera.Position.Y, camera.Position.Z,
                                              DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), (int)Math.Round(RenderFrequency), VertexBuffer.TotalDrawcalls, VertexBuffer.TotalBuffers));
-                    ImGui.EndWindow();
+                    ImGui.End();
                 }
             }
             //dialogs must be children of window or ImGui default "Debug" window appears
@@ -188,8 +193,9 @@ C# Memory Usage: {5}
                 ImGui.OpenPopup("Change System");
                 openChangeSystem = false;
             }
-            if(ImGui.BeginPopupModal("Change System",WindowFlags.AlwaysAutoResize)) {
-                ImGui.Combo("System", ref sysIndex, systems);
+            bool popupopen = true;
+            if(ImGui.BeginPopupModal("Change System",ref popupopen, ImGuiWindowFlags.AlwaysAutoResize)) {
+                ImGui.Combo("System", ref sysIndex, systems, systems.Length);
                 if(ImGui.Button("Ok")) {
                     if (sysIndex != sysIndexLoaded) {
                         camera.UpdateProjection();
@@ -213,9 +219,10 @@ C# Memory Usage: {5}
                 ImGui.OpenPopup("Loading");
                 openLoad = false;
             }
-            if(ImGui.BeginPopupModal("Loading",WindowFlags.AlwaysAutoResize)) {
+            popupopen = true;
+            if(ImGui.BeginPopupModal("Loading", ref popupopen, ImGuiWindowFlags.AlwaysAutoResize)) {
                 if (world != null) ImGui.CloseCurrentPopup();
-                ImGuiExt.Spinner("##spinner", 10, 2, ImGuiNative.igGetColorU32(ColorTarget.ButtonHovered, 1));
+                ImGuiExt.Spinner("##spinner", 10, 2, ImGuiNative.igGetColorU32(ImGuiCol.ButtonHovered, 1));
                 ImGui.SameLine();
                 ImGui.Text("Loading");
                 ImGui.EndPopup();

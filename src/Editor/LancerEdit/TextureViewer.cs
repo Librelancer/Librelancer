@@ -30,12 +30,12 @@ namespace LancerEdit
             ImGui.SameLine();
             ImGui.Checkbox("Checkerboard", ref checkerboard);
             ImGui.Separator();
-            var w = ImGui.GetContentRegionAvailableWidth();
+            var w = ImGui.GetContentRegionAvailWidth();
             zoom = (int)zoom;
             var scale = zoom / 100;
             var sz = new Vector2(tex.Width, tex.Height) * scale;
             ImGuiNative.igSetNextWindowContentSize(new Vector2(sz.X, 0));
-            ImGui.BeginChild("##scroll", false, WindowFlags.HorizontalScrollbar);
+            ImGui.BeginChild("##scroll", new Vector2(-1), false, ImGuiWindowFlags.HorizontalScrollbar);
             var pos = ImGui.GetCursorScreenPos();
             var windowH = ImGui.GetWindowHeight();
             var windowW = ImGui.GetWindowWidth();
@@ -44,7 +44,7 @@ namespace LancerEdit
                 unsafe
                 {
                     var lst = ImGuiNative.igGetWindowDrawList();
-                    ImGuiNative.ImDrawList_AddImage(lst, (void*)ImGuiHelper.CheckerboardId,
+                    ImGuiNative.ImDrawList_AddImage(lst, (IntPtr)ImGuiHelper.CheckerboardId,
                                                     pos, new Vector2(pos.X + windowW, pos.Y + windowH),
                                                     new Vector2(0, 0),
                                                     new Vector2(windowW / 16, windowH / 16),
@@ -53,11 +53,11 @@ namespace LancerEdit
             }
             if (sz.Y < windowH) //Centre
             {
-                ImGui.Dummy(5, (windowH / 2) - (sz.Y / 2));
+                ImGui.Dummy(new Vector2(5, (windowH / 2) - (sz.Y / 2)));
             }
             if (sz.X < w)
             {
-                ImGui.Dummy((w / 2) - (sz.X / 2), 5);
+                ImGui.Dummy(new Vector2((w / 2) - (sz.X / 2), 5));
                 ImGui.SameLine();
             }
             ImGui.Image((IntPtr)tid, sz, new Vector2(0,1), new Vector2(1, 0),

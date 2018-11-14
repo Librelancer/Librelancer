@@ -14,12 +14,12 @@ namespace LancerEdit
         void RegisterPopups()
         {
             popups.AddPopup("Texture Import", TexImportDialog);
-            popups.AddPopup("Confirm?##stringedit", StringConfirm, WindowFlags.AlwaysAutoResize);
-            popups.AddPopup("String Editor", StringEditor, WindowFlags.AlwaysAutoResize);
+            popups.AddPopup("Confirm?##stringedit", StringConfirm, ImGuiWindowFlags.AlwaysAutoResize);
+            popups.AddPopup("String Editor", StringEditor, ImGuiWindowFlags.AlwaysAutoResize);
             popups.AddPopup("Hex Editor", HexEditor);
-            popups.AddPopup("Color Picker", ColorPicker, WindowFlags.AlwaysAutoResize);
-            popups.AddPopup("New Node", AddPopup, WindowFlags.AlwaysAutoResize);
-            popups.AddPopup("Rename Node", Rename, WindowFlags.AlwaysAutoResize);
+            popups.AddPopup("Color Picker", ColorPicker, ImGuiWindowFlags.AlwaysAutoResize);
+            popups.AddPopup("New Node", AddPopup, ImGuiWindowFlags.AlwaysAutoResize);
+            popups.AddPopup("Rename Node", Rename, ImGuiWindowFlags.AlwaysAutoResize);
         }
 
         string teximportpath = "";
@@ -76,8 +76,8 @@ namespace LancerEdit
                 ImGui.Image((IntPtr)teximportid, new Vector2(64, 64),
                             new Vector2(0, 1), new Vector2(1, 0), Vector4.One, Vector4.Zero);
                 ImGui.Text(string.Format("Dimensions: {0}x{1}", teximportprev.Width, teximportprev.Height));
-                ImGui.Combo("Format", ref compressOption, texOptions);
-                ImGui.Combo("Mipmaps", ref mipmapOption, mipmapOptions);
+                ImGui.Combo("Format", ref compressOption, texOptions, texOptions.Length);
+                ImGui.Combo("Mipmaps", ref mipmapOption, mipmapOptions, mipmapOptions.Length);
                 ImGui.Checkbox("High Quality (slow)", ref compressSlow);
                 if (ImGui.Button("Import"))
                 {
@@ -161,7 +161,7 @@ namespace LancerEdit
         {
             ImGui.Text("String: ");
             ImGui.SameLine();
-            ImGui.InputText("", text.Pointer, 255, InputTextFlags.Default, text.Callback);
+            text.InputText("", ImGuiInputTextFlags.None, 255);
             if (ImGui.Button("Ok"))
             {
                 selectedNode.Data = text.GetByteArray();
@@ -175,13 +175,16 @@ namespace LancerEdit
         byte[] hexdata;
         void HexEditor(PopupData data)
         {
-            ImGui.PushFont(ImGuiHelper.Default);
-            int res;
-            if ((res = mem.Draw("Hex", hexdata, hexdata.Length, 0)) != 0)
+            ImGui.SameLine(ImGui.GetWindowWidth() - 90);
+            if (ImGui.Button("Ok"))
             {
-                if (res == 1) selectedNode.Data = hexdata;
+                selectedNode.Data = hexdata;
                 ImGui.CloseCurrentPopup();
             }
+            ImGui.SameLine(ImGui.GetWindowWidth() - 60);
+            if (ImGui.Button("Cancel")) ImGui.CloseCurrentPopup();
+            ImGui.PushFont(ImGuiHelper.Default);
+            mem.DrawContents(hexdata, hexdata.Length);
             ImGui.PopFont();
         }
 
@@ -199,7 +202,7 @@ namespace LancerEdit
             }
             ImGui.Separator();
             if (pickcolor4)
-                ImGui.ColorPicker4("Color", ref color4, ColorEditFlags.AlphaPreview | ColorEditFlags.AlphaBar);
+                ImGui.ColorPicker4("Color", ref color4, ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar);
             else
                 ImGui.ColorPicker3("Color", ref color3);
             ImGui.Separator();
@@ -238,7 +241,7 @@ namespace LancerEdit
         {
             ImGui.Text("Name: ");
             ImGui.SameLine();
-            bool entered = ImGui.InputText("", text.Pointer, (uint)text.Size, InputTextFlags.EnterReturnsTrue, text.Callback);
+            bool entered = ImGui.InputText("", text.Pointer, (uint)text.Size, ImGuiInputTextFlags.EnterReturnsTrue, text.Callback);
             if (data.DoFocus) ImGui.SetKeyboardFocusHere();
             if (entered || ImGui.Button("Ok"))
             {
@@ -260,7 +263,7 @@ namespace LancerEdit
         {
             ImGui.Text("Name: ");
             ImGui.SameLine();
-            bool entered = ImGui.InputText("", text.Pointer, (uint)text.Size, InputTextFlags.EnterReturnsTrue, text.Callback);
+            bool entered = ImGui.InputText("", text.Pointer, (uint)text.Size, ImGuiInputTextFlags.EnterReturnsTrue, text.Callback);
             if (data.DoFocus) ImGui.SetKeyboardFocusHere();
             if (entered || ImGui.Button("Ok"))
             {
@@ -338,7 +341,9 @@ namespace LancerEdit
                 ImGui.OpenPopup("Error##" + Unique);
                 doError = false;
             }
-            if (ImGui.BeginPopupModal("Error##" + Unique, WindowFlags.AlwaysAutoResize))
+            bool wOpen = true;
+
+            if (ImGui.BeginPopupModal("Error##" + Unique, ref wOpen, ImGuiWindowFlags.AlwaysAutoResize))
             {
                 ImGui.Text(errorText);
                 if (ImGui.Button("Ok")) ImGui.CloseCurrentPopup();
@@ -350,7 +355,8 @@ namespace LancerEdit
                 ImGui.OpenPopup("Confirm?##generic" + Unique);
                 doConfirm = false;
             }
-            if (ImGui.BeginPopupModal("Confirm?##generic" + Unique, WindowFlags.AlwaysAutoResize))
+            wOpen = true;
+            if (ImGui.BeginPopupModal("Confirm?##generic" + Unique, ref wOpen, ImGuiWindowFlags.AlwaysAutoResize))
             {
                 ImGui.Text(confirmText);
                 if (ImGui.Button("Yes"))

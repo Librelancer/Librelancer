@@ -25,7 +25,7 @@ namespace LibreLancer.ImUI
         {
             if (v) {
                 var style = ImGui.GetStyle();
-                ImGui.PushStyleColor(ColorTarget.Button, style.GetColor(ColorTarget.ButtonActive));
+                ImGui.PushStyleColor(ImGuiCol.Button, style.Colors[(int)ImGuiCol.ButtonActive]);
             }
             var retval = ImGui.Button(text);
             if(v) ImGui.PopStyleColor();
@@ -36,7 +36,7 @@ namespace LibreLancer.ImUI
         public static unsafe void ToastText(string text, Color4 background, Color4 foreground)
         {
             var displaySize = (Vector2)(ImGui.GetIO().DisplaySize);
-            var textSize = (Vector2)ImGui.GetTextSize(text);
+            var textSize = (Vector2)ImGui.CalcTextSize(text);
             var drawlist = ImGuiNative.igGetOverlayDrawList();
             var textbytes = System.Text.Encoding.UTF8.GetBytes(text);
             ImGuiNative.ImDrawList_AddRectFilled(
