@@ -126,7 +126,7 @@ Task("LinuxDaily")
 	DeleteFiles("packaging/packages/" + name + "/*.pdb");
 	DeleteFiles("packaging/packages/" + name + "/*.xml");
 	GZipCompress("packaging/packages/",
-				"packaging/packages/" + name + ".tar.gz", 
+				"packaging/packages/linux-daily-ubuntu-amd64.tar.gz", 
 				GetFiles("packaging/packages/" + name + "/*")
 	);
 	DeleteDirectory("packaging/packages/" + name, recursive:true);
