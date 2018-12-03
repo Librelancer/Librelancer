@@ -161,7 +161,7 @@ namespace LancerEdit
         {
             ImGui.Text("String: ");
             ImGui.SameLine();
-            text.InputText("", ImGuiInputTextFlags.None, 255);
+            text.InputText("##str", ImGuiInputTextFlags.None, 255);
             if (ImGui.Button("Ok"))
             {
                 selectedNode.Data = text.GetByteArray();
@@ -241,7 +241,7 @@ namespace LancerEdit
         {
             ImGui.Text("Name: ");
             ImGui.SameLine();
-            bool entered = ImGui.InputText("", text.Pointer, (uint)text.Size, ImGuiInputTextFlags.EnterReturnsTrue, text.Callback);
+            bool entered = ImGui.InputText("##name", text.Pointer, (uint)text.Size, ImGuiInputTextFlags.EnterReturnsTrue, text.Callback);
             if (data.DoFocus) ImGui.SetKeyboardFocusHere();
             if (entered || ImGui.Button("Ok"))
             {
@@ -263,7 +263,7 @@ namespace LancerEdit
         {
             ImGui.Text("Name: ");
             ImGui.SameLine();
-            bool entered = ImGui.InputText("", text.Pointer, (uint)text.Size, ImGuiInputTextFlags.EnterReturnsTrue, text.Callback);
+            bool entered = ImGui.InputText("##name", text.Pointer, (uint)text.Size, ImGuiInputTextFlags.EnterReturnsTrue, text.Callback);
             if (data.DoFocus) ImGui.SetKeyboardFocusHere();
             if (entered || ImGui.Button("Ok"))
             {
