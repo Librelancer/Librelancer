@@ -90,31 +90,27 @@ namespace LancerEdit
                 return;
             }
             imageViewport.Background = renderBackground ? background : Color4.TransparentBlack;
-            int rWidth = Math.Min(imageWidth, 256);
-            int rHeight = (int)(rWidth * (float)imageHeight / imageWidth);
-            rHeight *= 2;
-            imageViewport.Begin(rWidth, rHeight);
-            DrawGL(rWidth, rHeight);
+            imageViewport.Begin(imageWidth, imageHeight);
+            DrawGL(imageWidth, imageHeight);
             imageViewport.End(false);
-            byte[] data = new byte[rWidth * rHeight * 4];
+            byte[] data = new byte[imageWidth * imageHeight * 4];
             imageViewport.RenderTarget.GetData(data);
-            using (var sfc = new TeximpNet.Surface(rWidth, rHeight, true))
+            using (var sfc = new TeximpNet.Surface(imageWidth, imageHeight, true))
             {
                 //flip
                 fixed (byte* d = data)
                 {
                     int* src = (int*)d;
                     int* dst = (int*)sfc.DataPtr;
-                    for (int y = 0; y < rHeight; y++)
+                    for (int y = 0; y < imageHeight; y++)
                     {
-                        for (int x = 0; x < rWidth; x++)
+                        for (int x = 0; x < imageWidth; x++)
                         {
-                            int dstY = rHeight - y - 1;
-                            dst[dstY * rWidth + x] = src[y * rWidth + x];
+                            int dstY = imageHeight - y - 1;
+                            dst[dstY * imageWidth + x] = src[y * imageWidth + x];
                         }
                     }
                 }
-                sfc.Resize(imageWidth, imageHeight, TeximpNet.ImageFilter.Lanczos3);
                 sfc.SaveToFile(TeximpNet.ImageFormat.PNG, output);
             }
 

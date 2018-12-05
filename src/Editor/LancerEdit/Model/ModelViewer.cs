@@ -664,7 +664,7 @@ namespace LancerEdit
             var w = Math.Max(imageWidth, 16);
             var h = Math.Max(imageHeight, 16);
             var rpanelWidth = ImGui.GetWindowWidth() - 15;
-            int rpanelHeight = (int)(rpanelWidth * ((float)h / (float)w));
+            int rpanelHeight = Math.Min((int)(rpanelWidth * ((float)h / (float)w)), 4096);
             DoPreview((int)rpanelWidth, rpanelHeight);
             if (ImGui.Button("Export"))
             {
