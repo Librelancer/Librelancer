@@ -176,7 +176,7 @@ namespace LibreLancer.ImageLib
                     header.ddspf.dwRBitMask == 0x7c00 &&
                     header.ddspf.dwGBitMask == 0x3e0 &&
                     header.ddspf.dwBBitMask == 0x1f &&
-                    header.ddspf.dwGBitMask == 0x8000)
+                    header.ddspf.dwABitMask == 0x8000)
                 return SurfaceFormat.Bgra5551;
 
             if (header.ddspf.dwFlags == 0x40 &&
