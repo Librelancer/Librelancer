@@ -52,15 +52,17 @@ namespace LancerEdit
             var pos = ImGui.GetCursorScreenPos();
             var windowH = ImGui.GetWindowHeight();
             var windowW = ImGui.GetWindowWidth();
+            var cbX = Math.Max(windowW, sz.X);
+            var cbY = Math.Max(windowH, sz.Y);
             if (checkerboard)
             {
                 unsafe
                 {
                     var lst = ImGuiNative.igGetWindowDrawList();
                     ImGuiNative.ImDrawList_AddImage(lst, (IntPtr)ImGuiHelper.CheckerboardId,
-                                                    pos, new Vector2(pos.X + windowW, pos.Y + windowH),
+                                                    pos, new Vector2(pos.X + cbX, pos.Y + cbY),
                                                     new Vector2(0, 0),
-                                                    new Vector2(windowW / 16, windowH / 16),
+                                                    new Vector2(cbX / 16, cbY / 16),
                                                     uint.MaxValue);
                 }
             }
