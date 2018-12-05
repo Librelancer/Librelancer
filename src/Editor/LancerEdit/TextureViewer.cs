@@ -29,12 +29,25 @@ namespace LancerEdit
             ImGui.SliderFloat("", ref zoom, 10, 800, "%.0f%%", 1);
             ImGui.SameLine();
             ImGui.Checkbox("Checkerboard", ref checkerboard);
+            ImGui.SameLine();
+            bool doOpen = ImGui.Button("Info");
+            if (doOpen)
+                ImGui.OpenPopup("Info##" + Unique);
             ImGui.Separator();
             var w = ImGui.GetContentRegionAvailWidth();
             zoom = (int)zoom;
             var scale = zoom / 100;
             var sz = new Vector2(tex.Width, tex.Height) * scale;
             ImGuiNative.igSetNextWindowContentSize(new Vector2(sz.X, 0));
+            bool isOpen = true;
+            if (ImGui.BeginPopupModal("Info##" + Unique, ref isOpen, ImGuiWindowFlags.AlwaysAutoResize))
+            {
+                ImGui.Text("Format: " + tex.Format);
+                ImGui.Text("Width: " + tex.Width);
+                ImGui.Text("Height: " + tex.Height);
+                ImGui.Text("Mipmaps: " + ((tex.LevelCount > 1) ? "Yes" : "No"));
+                ImGui.EndPopup();
+            }
             ImGui.BeginChild("##scroll", new Vector2(-1), false, ImGuiWindowFlags.HorizontalScrollbar);
             var pos = ImGui.GetCursorScreenPos();
             var windowH = ImGui.GetWindowHeight();
@@ -62,6 +75,7 @@ namespace LancerEdit
             }
             ImGui.Image((IntPtr)tid, sz, new Vector2(0,1), new Vector2(1, 0),
                         Vector4.One, Vector4.Zero);
+          
             ImGui.EndChild();
         }
 

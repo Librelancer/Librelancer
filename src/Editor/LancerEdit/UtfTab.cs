@@ -396,9 +396,9 @@ namespace LancerEdit
                         var tab = new TextureViewer(title, tex);
                         main.AddTab(tab);
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        ErrorPopup("Node data couldn't be opened as texture");
+                        ErrorPopup("Node data couldn't be opened as texture:\n" + ex.Message);
                     }
                 }
                 if (ImGui.Button("Play Audio"))

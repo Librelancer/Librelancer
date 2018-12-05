@@ -38,7 +38,7 @@ namespace LibreLancer.Utf.Mat
 			if (data != null && Texture == null) {
 				using (Stream stream = new MemoryStream (data)) {
 					if (type.Equals ("mips", StringComparison.OrdinalIgnoreCase)) {
-						Texture = ImageLib.DDS.DDSFromStream2D (stream, 0, true);
+                        Texture = ImageLib.DDS.FromStream(stream);
 					} else if (type.StartsWith ("mip", StringComparison.OrdinalIgnoreCase)) {;
 						var tga = ImageLib.TGA.FromStream(stream, levels != null);
                         if(tga == null) {
@@ -60,7 +60,7 @@ namespace LibreLancer.Utf.Mat
 						Texture = tga;
 						levels = null;
 					} else if (type.Equals ("cube", StringComparison.OrdinalIgnoreCase)) {
-						Texture = ImageLib.DDS.DDSFromStreamCube (stream, 0, true);
+						Texture = ImageLib.DDS.FromStream (stream);
 					}
 				}
 			} else

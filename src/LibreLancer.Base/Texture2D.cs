@@ -25,6 +25,7 @@ namespace LibreLancer
             Format = format;
             Format.GetGLFormat(out glInternalFormat, out glFormat, out glType);
             LevelCount = hasMipMaps ? CalculateMipLevels(width, height) : 1;
+            currentLevels = hasMipMaps ? (LevelCount - 1) : 0;
 			//Bind the new TextureD
 			GLBind.Trash();
 			GLBind.BindTexture(4, GL.GL_TEXTURE_2D, ID);
@@ -130,7 +131,16 @@ namespace LibreLancer
         public override void BindTo(int unit)
         {
             GLBind.BindTexture(unit, GL.GL_TEXTURE_2D, ID);
+            if(LevelCount > 1 && maxLevel != currentLevels) {
+                currentLevels = maxLevel;
+                //This will be called too many times during texture creation but it does fix
+                //the incomplete textures that freelancer supplies
+                GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAX_LEVEL, maxLevel);
+            }
         }
+
+        int maxLevel = 0;
+        int currentLevels = 0;
 
 		//TODO: Re-implement Texture2D.GetData later
         public void GetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T : struct
@@ -169,7 +179,8 @@ namespace LibreLancer
 		}
 		public unsafe void SetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T: struct
         {
-			BindTo(4);
+            maxLevel = Math.Max(level, maxLevel);
+            BindTo(4);
 			if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)
             {
 				int w, h;

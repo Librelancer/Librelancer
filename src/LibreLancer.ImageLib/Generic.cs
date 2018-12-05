@@ -18,7 +18,7 @@ namespace LibreLancer.ImageLib
 		public static Texture2D FromStream(Stream stream)
 		{
 			if (DDS.StreamIsDDS (stream)) {
-				return DDS.DDSFromStream2D (stream, 0, true);
+                return (Texture2D)DDS.FromStream(stream);
 			} else {
 				/* Read full stream */
 				int len = (int)stream.Length;
