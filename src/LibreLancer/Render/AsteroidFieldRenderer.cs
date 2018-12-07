@@ -93,7 +93,7 @@ namespace LibreLancer
             bandNormal.Transpose();
         }
 
-        List<VertexPositionNormalColorTexture> verts;
+        List<VertexPositionNormalDiffuseTexture> verts;
         List<ushort> indices;
         List<DrawCall> cubeDrawCalls = new List<DrawCall>();
 
@@ -109,7 +109,7 @@ namespace LibreLancer
         //Code for baking an asteroid cube into a mesh
         void CreateBufferObject()
         {
-            verts = new List<VertexPositionNormalColorTexture>();
+            verts = new List<VertexPositionNormalDiffuseTexture>();
             indices = new List<ushort>();
             //Gather a list of all materials
             List<Material> mats = new List<Material>();
@@ -151,7 +151,7 @@ namespace LibreLancer
                 var count = indices.Count - start;
                 cubeDrawCalls.Add(new DrawCall() { Material = mat, StartIndex = start, Count = count });
             }
-            cube_vbo = new VertexBuffer(typeof(VertexPositionNormalColorTexture), verts.Count);
+            cube_vbo = new VertexBuffer(typeof(VertexPositionNormalDiffuseTexture), verts.Count);
             cube_ibo = new ElementBuffer(indices.Count);
             cube_ibo.SetData(indices.ToArray());
             cube_vbo.SetData(verts.ToArray());
@@ -171,33 +171,33 @@ namespace LibreLancer
             norm.Transpose();
             int vertOffset = verts.Count;
             for (int i = 0; i < l0.Mesh.VertexCount; i++) {
-                VertexPositionNormalColorTexture vert;
-                if (vertType == typeof(VertexPositionNormalColorTexture))
+                VertexPositionNormalDiffuseTexture vert;
+                if (vertType == typeof(VertexPositionNormalDiffuseTexture))
                 {
-                    vert = l0.Mesh.verticesVertexPositionNormalColorTexture[i];
+                    vert = l0.Mesh.verticesVertexPositionNormalDiffuseTexture[i];
                 }
                 else if (vertType == typeof(VertexPositionNormalTexture))
                 {
                     var v = l0.Mesh.verticesVertexPositionNormalTexture[i];
-                    vert = new VertexPositionNormalColorTexture(
+                    vert = new VertexPositionNormalDiffuseTexture(
                         v.Position,
                         v.Normal,
-                        Color4.White,
+                        (uint)Color4.White.ToArgb(),
                         v.TextureCoordinate);
                 }
                 else if (vertType == typeof(VertexPositionNormalTextureTwo))
                 {
                     var v = l0.Mesh.verticesVertexPositionNormalTextureTwo[i];
-                    vert = new VertexPositionNormalColorTexture(
+                    vert = new VertexPositionNormalDiffuseTexture(
                         v.Position,
                         v.Normal,
-                        Color4.White,
+                        (uint)Color4.White.ToArgb(),
                         v.TextureCoordinate);
                 }
                 else if (vertType == typeof(VertexPositionNormalDiffuseTextureTwo))
                 {
                     var v = l0.Mesh.verticesVertexPositionNormalDiffuseTextureTwo[i];
-                    vert = new VertexPositionNormalColorTexture(
+                    vert = new VertexPositionNormalDiffuseTexture(
                         v.Position,
                         v.Normal,
                         v.Diffuse,

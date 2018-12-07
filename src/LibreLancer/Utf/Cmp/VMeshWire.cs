@@ -48,7 +48,7 @@ namespace LibreLancer.Utf.Cmp
                 if (vms.verticesVertexPositionTexture != null) Lines[i] = vms.verticesVertexPositionTexture[idx].Position;
                 if (vms.verticesVertexPositionNormalTexture != null) Lines[i] = vms.verticesVertexPositionNormalTexture[idx].Position;
                 if (vms.verticesVertexPositionNormalTextureTwo != null) Lines[i] = vms.verticesVertexPositionNormalTextureTwo[idx].Position;
-                if (vms.verticesVertexPositionNormalColorTexture != null) Lines[i] = vms.verticesVertexPositionNormalColorTexture[idx].Position;
+                if (vms.verticesVertexPositionNormalDiffuseTexture != null) Lines[i] = vms.verticesVertexPositionNormalDiffuseTexture[idx].Position;
                 if (vms.verticesVertexPositionNormalDiffuseTextureTwo != null) Lines[i] = vms.verticesVertexPositionNormalDiffuseTextureTwo[idx].Position;
             }
         }

@@ -339,7 +339,7 @@ namespace LancerEdit
                         geo.name + "-color",
                         (k) =>
                         {
-                            var c = processed.Vertices[k].Diffuse;
+                            var c = Color4.FromRgba(processed.Vertices[k].Diffuse);
                             return new Vector4(c.R, c.G, c.B, c.A);
                         }, 4, processed.Vertices.Length);
                     sources.Add(colors);
@@ -526,13 +526,13 @@ namespace LancerEdit
                             TextureCoordinate = vms.Mesh.verticesVertexPositionNormalTextureTwo[idx].TextureCoordinate,
                             TextureCoordinateTwo = vms.Mesh.verticesVertexPositionNormalTextureTwo[idx].TextureCoordinateTwo
                         };
-                    } else if (vms.Mesh.verticesVertexPositionNormalColorTexture != null) {
+                    } else if (vms.Mesh.verticesVertexPositionNormalDiffuseTexture != null) {
                         vert = new VertexPositionNormalDiffuseTextureTwo()
                         {
-                            Position = vms.Mesh.verticesVertexPositionNormalColorTexture[idx].Position,
-                            Normal = vms.Mesh.verticesVertexPositionNormalColorTexture[idx].Normal,
-                            Diffuse = vms.Mesh.verticesVertexPositionNormalColorTexture[idx].Color,
-                            TextureCoordinate = vms.Mesh.verticesVertexPositionNormalColorTexture[idx].TextureCoordinate
+                            Position = vms.Mesh.verticesVertexPositionNormalDiffuseTexture[idx].Position,
+                            Normal = vms.Mesh.verticesVertexPositionNormalDiffuseTexture[idx].Normal,
+                            Diffuse = vms.Mesh.verticesVertexPositionNormalDiffuseTexture[idx].Diffuse,
+                            TextureCoordinate = vms.Mesh.verticesVertexPositionNormalDiffuseTexture[idx].TextureCoordinate
                         };
                     } else if (vms.Mesh.verticesVertexPositionNormalDiffuseTextureTwo != null) {
                         vert = vms.Mesh.verticesVertexPositionNormalDiffuseTextureTwo[idx];

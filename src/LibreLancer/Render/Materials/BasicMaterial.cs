@@ -60,7 +60,7 @@ namespace LibreLancer
 					);
 				return sh_posNormalTextureTwo[i];
 			}
-			if (vertextype is VertexPositionNormalColorTexture)
+			if (vertextype is VertexPositionNormalDiffuseTexture)
 			{
 				if (sh_posNormalColorTexture[i] == null)
 					sh_posNormalColorTexture[i] = ShaderCache.Get(

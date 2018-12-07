@@ -37,7 +37,7 @@ namespace LibreLancer
         VertexResource<VertexPositionNormal> posNormalResource = new VertexResource<VertexPositionNormal>();
         VertexResource<VertexPositionColorTexture> posColorTextureResource = new VertexResource<VertexPositionColorTexture>();
         VertexResource<VertexPositionNormalTexture> posNormalTextureResource = new VertexResource<VertexPositionNormalTexture>();
-        VertexResource<VertexPositionNormalColorTexture> posNormalColorTextureResource = new VertexResource<VertexPositionNormalColorTexture>();
+        VertexResource<VertexPositionNormalDiffuseTexture> posNormalColorTextureResource = new VertexResource<VertexPositionNormalDiffuseTexture>();
         VertexResource<VertexPositionNormalTextureTwo> posNormalTextureTwoResource = new VertexResource<VertexPositionNormalTextureTwo>();
         VertexResource<VertexPositionNormalDiffuseTextureTwo> posNormalDiffuseTextureTwoResource = new VertexResource<VertexPositionNormalDiffuseTextureTwo>();
 
@@ -58,8 +58,8 @@ namespace LibreLancer
                 posColorTextureResource.Allocate(As<VertexPositionColorTexture>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
             } else if (typeof(T) == typeof(VertexPositionNormalTexture)) {
                 posNormalTextureResource.Allocate(As<VertexPositionNormalTexture>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
-            } else if (typeof(T) == typeof(VertexPositionNormalColorTexture)) {
-                posNormalColorTextureResource.Allocate(As<VertexPositionNormalColorTexture>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
+            } else if (typeof(T) == typeof(VertexPositionNormalDiffuseTexture)) {
+                posNormalColorTextureResource.Allocate(As<VertexPositionNormalDiffuseTexture>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
             } else if (typeof(T) == typeof(VertexPositionNormalTextureTwo)) {
                 posNormalTextureTwoResource.Allocate(As<VertexPositionNormalTextureTwo>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
             } else if (typeof(T) == typeof(VertexPositionNormalDiffuseTextureTwo)) {

@@ -59,7 +59,7 @@ namespace LancerEdit
                     writer.WriteLine("Vertex    ----X----,   ----Y----,   ----Z----,    Normal X,    Normal Y,    Normal Z,    ----U----,   ----V----");
                 if (vms.verticesVertexPositionNormalTextureTwo != null)
                     writer.WriteLine("Vertex    ----X----,   ----Y----,   ----Z----,    Normal X,    Normal Y,    Normal Z,    ----U----,   ----V----,    ----U2---,    ----V2---");
-                if (vms.verticesVertexPositionNormalColorTexture != null)
+                if (vms.verticesVertexPositionNormalDiffuseTexture != null)
                     writer.WriteLine("Vertex    ----X----,   ----Y----,   ----Z----,    Normal X,    Normal Y,    Normal Z,    -Diffuse-,    ----U----,   ----V----");
                 if (vms.verticesVertexPositionNormalDiffuseTextureTwo != null)
                     writer.WriteLine("Vertex    ----X----,   ----Y----,   ----Z----,    Normal X,    Normal Y,    Normal Z,    -Diffuse-,    ----U----,   ----V----,    ----U2---,    ----V2---");
@@ -105,18 +105,18 @@ namespace LancerEdit
                                        FmtNorm(vms.verticesVertexPositionNormalTextureTwo[i].TextureCoordinate.Y),
                                          FmtNorm(vms.verticesVertexPositionNormalTextureTwo[i].TextureCoordinateTwo.X),
                                        FmtNorm(vms.verticesVertexPositionNormalTextureTwo[i].TextureCoordinateTwo.Y));
-                    if (vms.verticesVertexPositionNormalColorTexture != null)
+                    if (vms.verticesVertexPositionNormalDiffuseTexture != null)
                         writer.WriteLine("{0}{1},{2},{3},    {4},    {5},   {6},    {7},    {8},   {9}",
                                        i.ToString().PadLeft(6),
-                                       vms.verticesVertexPositionNormalColorTexture[i].Position.X.ToString().PadLeft(13),
-                                       vms.verticesVertexPositionNormalColorTexture[i].Position.Y.ToString().PadLeft(12),
-                                        vms.verticesVertexPositionNormalColorTexture[i].Position.Z.ToString().PadLeft(12),
-                                         FmtNorm(vms.verticesVertexPositionNormalColorTexture[i].Normal.X),
-                                         FmtNorm(vms.verticesVertexPositionNormalColorTexture[i].Normal.Y),
-                                         FmtNorm(vms.verticesVertexPositionNormalColorTexture[i].Normal.Z),
+                                       vms.verticesVertexPositionNormalDiffuseTexture[i].Position.X.ToString().PadLeft(13),
+                                       vms.verticesVertexPositionNormalDiffuseTexture[i].Position.Y.ToString().PadLeft(12),
+                                        vms.verticesVertexPositionNormalDiffuseTexture[i].Position.Z.ToString().PadLeft(12),
+                                         FmtNorm(vms.verticesVertexPositionNormalDiffuseTexture[i].Normal.X),
+                                         FmtNorm(vms.verticesVertexPositionNormalDiffuseTexture[i].Normal.Y),
+                                         FmtNorm(vms.verticesVertexPositionNormalDiffuseTexture[i].Normal.Z),
                                          " " + vms.Diffuse[i].ToString("XXXXXXXX"),
-                                        FmtNorm(vms.verticesVertexPositionNormalColorTexture[i].TextureCoordinate.X),
-                                        FmtNorm(vms.verticesVertexPositionNormalColorTexture[i].TextureCoordinate.Y));
+                                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTexture[i].TextureCoordinate.X),
+                                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTexture[i].TextureCoordinate.Y));
                     if (vms.verticesVertexPositionNormalDiffuseTextureTwo != null) { }
                 }
 

@@ -191,7 +191,7 @@
     <Compile Include="Input\MouseButtons.cs" />
     <Compile Include="Input\MouseEventArgs.cs" />
     <Compile Include="WrapMode.cs" />
-    <Compile Include="Vertices\VertexPositionNormalColorTexture.cs" />
+    <Compile Include="Vertices\VertexPositionNormalDiffuseTexture.cs" />
     <Compile Include="Primitives\QuadSphere.cs" />
     <Compile Include="DepthBuffer.cs" />
     <Compile Include="TextureFiltering.cs" />

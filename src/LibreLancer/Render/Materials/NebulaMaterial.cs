@@ -17,7 +17,7 @@ namespace LibreLancer
 		ShaderVariables GetShader(IVertexType vtype)
 		{
 			switch (vtype.GetType ().Name) {
-			case "VertexPositionNormalColorTexture":
+			case "VertexPositionNormalDiffuseTexture":
 				return ShaderCache.Get (
 					"PositionColorTexture.vs",
 					"Nebula_PositionColorTexture.frag"

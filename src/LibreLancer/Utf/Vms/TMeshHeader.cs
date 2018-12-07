@@ -144,8 +144,8 @@ namespace LibreLancer.Utf.Vms
                     vert = vm.verticesVertexPositionNormal[idx].Position;
                 else if (vertType == typeof(VertexPositionTexture))
                     vert = vm.verticesVertexPositionTexture[idx].Position;
-				else if (vertType == typeof(VertexPositionNormalColorTexture))
-					vert = vm.verticesVertexPositionNormalColorTexture[idx].Position;
+				else if (vertType == typeof(VertexPositionNormalDiffuseTexture))
+					vert = vm.verticesVertexPositionNormalDiffuseTexture[idx].Position;
 				else if (vertType == typeof(VertexPositionNormalTexture))
 					vert = vm.verticesVertexPositionNormalTexture[idx].Position;
 				else if (vertType == typeof(VertexPositionNormalTextureTwo))

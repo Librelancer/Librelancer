@@ -122,6 +122,16 @@ namespace LibreLancer
             return unchecked((int)value);
         }
 
+        public int ToRgba()
+        {
+            uint value =
+                (uint)(R * Byte.MaxValue) << 24 |
+                (uint)(G * Byte.MaxValue) << 16 |
+                (uint)(B * Byte.MaxValue) << 8 |
+                (uint)(A * Byte.MaxValue);
+
+            return unchecked((int)value);
+        }
         /// <summary>
         /// Compares the specified Color4 structures for equality.
         /// </summary>
@@ -945,6 +955,12 @@ namespace LibreLancer
             }
 
             return new Color4(r, g, b, srgb.A);
+        }
+
+        public static unsafe Color4 FromRgba(uint argb)
+        {
+            byte* ptr = (byte*)&argb;
+            return new Color4(ptr[0], ptr[1], ptr[2], ptr[3]);
         }
 
         /// <summary>

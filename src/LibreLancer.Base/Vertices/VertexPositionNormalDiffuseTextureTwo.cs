@@ -13,7 +13,7 @@ namespace LibreLancer.Vertices
     {
         public Vector3 Position;
         public Vector3 Normal;
-        public Color4 Diffuse;
+        public uint Diffuse;
         public Vector2 TextureCoordinate;
         public Vector2 TextureCoordinateTwo;
 
@@ -22,11 +22,11 @@ namespace LibreLancer.Vertices
         {
             this.Position = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
             this.Normal = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-			Diffuse = new Color4(reader.ReadByte() / 255f, reader.ReadByte() / 255f, reader.ReadByte() / 255f, reader.ReadByte() / 255f);
+            this.Diffuse = reader.ReadUInt32();
 			this.TextureCoordinate = new Vector2(reader.ReadSingle(), 1 - reader.ReadSingle());
 			this.TextureCoordinateTwo = new Vector2(reader.ReadSingle(), 1 - reader.ReadSingle());
         }
-        public VertexPositionNormalDiffuseTextureTwo(Vector3 pos, Vector3 normal, Color4 diffuse, Vector2 tex1, Vector2 tex2)
+        public VertexPositionNormalDiffuseTextureTwo(Vector3 pos, Vector3 normal, uint diffuse, Vector2 tex1, Vector2 tex2)
         {
             Position = pos;
             Normal = normal;
@@ -37,12 +37,12 @@ namespace LibreLancer.Vertices
 		public VertexDeclaration GetVertexDeclaration()
 		{
 			return new VertexDeclaration(
-				sizeof(float) * 3 + + sizeof(float) * 3 + sizeof(float) * 4 + sizeof(float) * 2 + sizeof(float) * 2,
+				sizeof(float) * 3 + + sizeof(float) * 3 + sizeof(uint) + sizeof(float) * 2 + sizeof(float) * 2,
 				new VertexElement(VertexSlots.Position, 3, VertexElementType.Float, false, 0),
 				new VertexElement(VertexSlots.Normal, 3, VertexElementType.Float, false, sizeof(float) * 3),
-				new VertexElement(VertexSlots.Color, 4, VertexElementType.Float, false, sizeof(float) * 6),
-				new VertexElement(VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 10),
-				new VertexElement(VertexSlots.Texture2, 2, VertexElementType.Float, false, sizeof(float) * 12)
+				new VertexElement(VertexSlots.Color, 4, VertexElementType.UnsignedByte, true, sizeof(float) * 6),
+				new VertexElement(VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 7),
+				new VertexElement(VertexSlots.Texture2, 2, VertexElementType.Float, false, sizeof(float) * 9)
 			);
 		}
     }

@@ -9,7 +9,8 @@ namespace LibreLancer.Vertices
 	public enum VertexElementType
 	{
 		Float = GL.GL_FLOAT,
-		UnsignedShort = GL.GL_UNSIGNED_SHORT
+		UnsignedShort = GL.GL_UNSIGNED_SHORT,
+        UnsignedByte = GL.GL_UNSIGNED_BYTE
 	}
 }
 

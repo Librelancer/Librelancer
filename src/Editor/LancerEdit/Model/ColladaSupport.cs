@@ -145,10 +145,7 @@ namespace LancerEdit
                         writer.Write(v.Normal.Z);
                     }
                     if ((FVF & D3DFVF.DIFFUSE) == D3DFVF.DIFFUSE) {
-                        writer.Write((byte)(v.Diffuse.R * 255));
-                        writer.Write((byte)(v.Diffuse.G * 255));
-                        writer.Write((byte)(v.Diffuse.B * 255));
-                        writer.Write((byte)(v.Diffuse.A * 255));
+                        writer.Write(v.Diffuse);
                     }
                     //Librelancer stores texture coordinates flipped internally
                     if((FVF & D3DFVF.TEX2) == D3DFVF.TEX2) {
@@ -425,7 +422,7 @@ namespace LancerEdit
                     var vert = new VertexPositionNormalDiffuseTextureTwo(
                         VecAxis(up, sourceXYZ.GetXYZ(pRefs[idx + offXYZ])),
                         offNORMAL == int.MinValue ? Vector3.Zero : VecAxis(up, sourceNORMAL.GetXYZ(pRefs[idx + offNORMAL])),
-                        offCOLOR == int.MinValue ? Color4.White : sourceCOLOR.GetColor(pRefs[idx + offCOLOR]),
+                        offCOLOR == int.MinValue ? (uint)Color4.White.ToRgba() : (uint)sourceCOLOR.GetColor(pRefs[idx + offCOLOR]).ToRgba(),
                         offUV1 == int.MinValue ? Vector2.Zero : sourceUV1.GetUV(pRefs[idx + offUV1]),
                         offUV2 == int.MinValue ? Vector2.Zero : sourceUV2.GetUV(pRefs[idx + offUV2])
                     );
