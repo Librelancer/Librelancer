@@ -54,8 +54,13 @@ namespace LibreLancer.Utf
 						break;
 					case "texture library":
 						IntermediateNode textureLibraryNode = node as IntermediateNode;
-						textures = new TxmFile(textureLibraryNode);
-						break;
+                        try {
+                            textures = new TxmFile(textureLibraryNode);
+                        }
+                        catch (Exception ex) {
+                            FLLog.Error("Utf", ex.Message);
+                        }
+                        break;
 					case "vmeshlibrary":
 						IntermediateNode vmsnode = node as IntermediateNode;
 						vms = new Vms.VmsFile(vmsnode, library);
