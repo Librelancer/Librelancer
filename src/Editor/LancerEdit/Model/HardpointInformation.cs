@@ -61,7 +61,6 @@ namespace LancerEdit
             AddRev("HpTorpedo", HpNaming.Number, "rev", Color4.LightGreen);
             AddRev("HpTurret", HpNaming.Number, "rev", Color4.LightGreen);
             AddRev("HpWeapon", HpNaming.Number, "rev", Color4.LightGreen);
-            AddRev("HpConnect", HpNaming.None, "rev", Color4.Coral);
         }
     }
 }
