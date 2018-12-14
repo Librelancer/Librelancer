@@ -125,6 +125,7 @@ namespace LibreLancer
                         {
                             //RMB - Rotate viewport camera
                             CameraRotation += (delta / 100) * new Vector2(1,-1);
+
                         }
                     }
                 }
