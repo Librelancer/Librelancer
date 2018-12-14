@@ -23,12 +23,13 @@ namespace LibreLancer.Dialogs
             var label = SWF.New("System.Windows.Forms.Label");
             label.Text = message;
             label.Dock = SWF.Enum("DockStyle", "Top");
+            label.AutoSize = true;
 
-            var rtf = SWF.New("System.Windows.Forms.RichTextBox");
+            var rtf = SWF.New("System.Windows.Forms.TextBox");
             rtf.ReadOnly = true;
             rtf.Text = details;
             rtf.Dock = SWF.Enum("DockStyle", "Fill");
-            rtf.DetectUrls = true;
+            rtf.Multiline = true;
 
             form.Controls.Add(rtf);
             form.Controls.Add(label);

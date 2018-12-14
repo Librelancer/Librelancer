@@ -66,15 +66,15 @@ namespace LibreLancer
                 .InformationalVersion;
         }
         //Make it hard to crash with a cryptic message at startup
-        const string V2012_64 = "Librelancer requires Visual C++ 2012 redistributable. Download from: https://download.microsoft.com/download/1/6/B/16B06F60-3B20-4FF2-B699-5E9B7962F9AE/VSU_4/vcredist_x64.exe";
-        const string V2012_32 = "Librelancer requires Visual C++ 2012 redistributable. Download from: https://download.microsoft.com/download/1/6/B/16B06F60-3B20-4FF2-B699-5E9B7962F9AE/VSU_4/vcredist_x86.exe";
-        const string V2015_64 = "Librelancer requires Visual C++ 2015 redistributable. Download from: https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x64.exe";
-        const string V2015_32 = "Librelancer requires Visual C++ 2015 redistributable. Download from: https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe";
+        const string V2012_64 = "Librelancer requires Visual C++ 2012 redistributable (x64). Download from: https://download.microsoft.com/download/1/6/B/16B06F60-3B20-4FF2-B699-5E9B7962F9AE/VSU_4/vcredist_x64.exe";
+        const string V2012_32 = "Librelancer requires Visual C++ 2012 redistributable (x86). Download from: https://download.microsoft.com/download/1/6/B/16B06F60-3B20-4FF2-B699-5E9B7962F9AE/VSU_4/vcredist_x86.exe";
+        const string V2015_64 = "Librelancer requires Visual C++ 2015/2017 redistributable (x64). Download from: https://aka.ms/vs/15/release/vc_redist.x64.exe";
+        const string V2015_32 = "Librelancer requires Visual C++ 2015/2017 redistributable (x86). Download from: https://aka.ms/vs/15/release/vc_redist.x86.exe";
 
-        static bool CheckVCKey(string v,string key)
+        static bool CheckVCKey(string v,string key, string sub="Version")
         {
-            var ver = Microsoft.Win32.Registry.GetValue(key, "Version", null);
-            if (ver == null || !ver.ToString().StartsWith(key, StringComparison.Ordinal)) return false;
+            var ver = Microsoft.Win32.Registry.GetValue(key, sub, null);
+            if (ver == null || !ver.ToString().StartsWith(v, StringComparison.Ordinal)) return false;
             return true;
         }
 
@@ -88,7 +88,8 @@ namespace LibreLancer
                     CrashWindow.Run("Librelancer", "Missing Components", V2012_64);
                     return false;
                 }
-                if (!CheckVCKey("14", @"HKEY_LOCAL_MACHINE\Software\Classes\Installer\Dependencies\{d992c12e-cab2-426f-bde3-fb8c53950b0d}"))
+                if (!CheckVCKey("1", @"HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\14.0\VC\Runtimes\x64","Installed") &&
+                !CheckVCKey("14", @"HKEY_LOCAL_MACHINE\Software\Classes\Installer\Dependencies\{d992c12e-cab2-426f-bde3-fb8c53950b0d}"))
                 {
                     CrashWindow.Run("Librelancer", "Missing Components", V2015_64);
                     return false;
@@ -101,7 +102,8 @@ namespace LibreLancer
                     CrashWindow.Run("Librelancer", "Missing Components", V2012_32);
                     return false;
                 }
-                if (!CheckVCKey("14", @"HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Installer\Dependencies\{e2803110-78b3-4664-a479-3611a381656a}"))
+                if (!CheckVCKey("1", @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x86","Installed") &&
+                !CheckVCKey("14", @"HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Installer\Dependencies\{e2803110-78b3-4664-a479-3611a381656a}"))
                 {
                     CrashWindow.Run("Librelancer", "Missing Components", V2015_32);
                     return false;
