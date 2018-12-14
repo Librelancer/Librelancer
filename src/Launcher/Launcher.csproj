@@ -1,6 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\Xwt.Gtk.0.2.121\build\Xwt.Gtk.props" Condition="Exists('..\packages\Xwt.Gtk.0.2.121\build\Xwt.Gtk.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -58,14 +57,42 @@
     <Reference Include="System.Xml">
       <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\System.Xml.dll</HintPath>
     </Reference>
-    <Reference Include="Xwt">
-      <HintPath>..\packages\Xwt.0.2.121\lib\net40\Xwt.dll</HintPath>
+    <Reference Include="System.Runtime.Serialization.Primitives">
+      <HintPath>..\packages\System.Runtime.Serialization.Primitives.4.3.0\lib\net46\System.Runtime.Serialization.Primitives.dll</HintPath>
     </Reference>
-    <Reference Include="Xwt.WPF">
-      <HintPath>..\packages\Xwt.WPF.0.2.121\lib\net40\Xwt.WPF.dll</HintPath>
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="Eto">
+      <HintPath>..\packages\Eto.Forms.2.4.1\lib\netstandard1.0\Eto.dll</HintPath>
     </Reference>
-    <Reference Include="Xwt.Gtk">
-      <HintPath>..\packages\Xwt.Gtk.0.2.121\lib\net40\Xwt.Gtk.dll</HintPath>
+    <Reference Include="Eto.Gtk3">
+      <HintPath>..\packages\Eto.Platform.Gtk3.2.4.1\lib\net45\Eto.Gtk3.dll</HintPath>
+    </Reference>
+    <Reference Include="Eto.Wpf">
+      <HintPath>..\packages\Eto.Platform.Wpf.2.4.1\lib\net45\Eto.Wpf.dll</HintPath>
+    </Reference>
+    <Reference Include="atk-sharp">
+      <HintPath>..\packages\gtk-sharp-3.3.22.6.4\lib\net40\atk-sharp.dll</HintPath>
+    </Reference>
+    <Reference Include="cairo-sharp">
+      <HintPath>..\packages\gtk-sharp-3.3.22.6.4\lib\net40\cairo-sharp.dll</HintPath>
+    </Reference>
+    <Reference Include="gdk-sharp">
+      <HintPath>..\packages\gtk-sharp-3.3.22.6.4\lib\net40\gdk-sharp.dll</HintPath>
+    </Reference>
+    <Reference Include="gio-sharp">
+      <HintPath>..\packages\gtk-sharp-3.3.22.6.4\lib\net40\gio-sharp.dll</HintPath>
+    </Reference>
+    <Reference Include="glib-sharp">
+      <HintPath>..\packages\gtk-sharp-3.3.22.6.4\lib\net40\glib-sharp.dll</HintPath>
+    </Reference>
+    <Reference Include="gtk-dotnet">
+      <HintPath>..\packages\gtk-sharp-3.3.22.6.4\lib\net40\gtk-dotnet.dll</HintPath>
+    </Reference>
+    <Reference Include="gtk-sharp">
+      <HintPath>..\packages\gtk-sharp-3.3.22.6.4\lib\net40\gtk-sharp.dll</HintPath>
+    </Reference>
+    <Reference Include="pango-sharp">
+      <HintPath>..\packages\gtk-sharp-3.3.22.6.4\lib\net40\pango-sharp.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -79,7 +106,6 @@
       <Link>x86\openal32.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Compile Include="MainWindow.cs" />
     <None Include="..\..\deps\x64\openal32.dll">
       <Link>x64\openal32.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -95,10 +121,10 @@
     <None Include="SharpFont.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Compile Include="CrashWindow.cs" />
     <Compile Include="..\CommonVersion.cs">
       <Link>Properties\CommonVersion.cs</Link>
     </Compile>
+    <Compile Include="MainWindow.cs" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -128,4 +154,6 @@
   <ItemGroup>
     <EmbeddedResource Include="WMPMessage.txt" />
   </ItemGroup>
+  <Import Project="..\packages\Eto.Forms.2.4.1\build\Eto.Forms.targets" Condition="Exists('..\packages\Eto.Forms.2.4.1\build\Eto.Forms.targets')" />
+  <Import Project="..\packages\gtk-sharp-3.3.22.6.4\build\net40\gtk-sharp-3.targets" Condition="Exists('..\packages\gtk-sharp-3.3.22.6.4\build\net40\gtk-sharp-3.targets')" />
 </Project>

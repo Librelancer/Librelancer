@@ -3,12 +3,11 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Runtime.InteropServices;
 using System.IO;
+using System.Runtime.InteropServices;
 using LibreLancer;
 using LibreLancer.Dialogs;
-
-namespace SystemViewer
+namespace lancer
 {
     class MainClass
     {
@@ -28,7 +27,12 @@ namespace SystemViewer
 #if !DEBUG
             try {
 #endif
-            new MainWindow().Run();
+            Func<string> filePath = null;
+            if(args.Length > 0)
+                filePath = () => args[0];
+            var cfg = GameConfig.Create(true, filePath);
+            var game = new FreelancerGame(cfg);
+            game.Run();
 #if !DEBUG
             }
             catch (Exception ex)

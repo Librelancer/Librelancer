@@ -212,6 +212,9 @@
       <Link>Properties\CommonVersion.cs</Link>
     </Compile>
     <Compile Include="Primitives\OpenCylinder.cs" />
+    <Compile Include="Dialogs\CrashWindow.cs" />
+    <Compile Include="Dialogs\DialogPlatform.cs" />
+    <Compile Include="Dialogs\SWF.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -247,5 +250,8 @@
     <None Include="SSE\matrix_invert.c" />
     <None Include="SSE\embedding.h" />
     <None Include="SSE\README.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Dialogs\" />
   </ItemGroup>
 </Project>

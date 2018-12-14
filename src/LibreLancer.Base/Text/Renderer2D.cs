@@ -92,7 +92,7 @@ namespace LibreLancer
 		public Renderer2D (RenderState rstate)
 		{
 			rs = rstate;
-			FT = new Library ();
+            FT = new Library();
 			textShader = new Shader (vertex_source, text_fragment_source);
 			textShader.SetInteger (textShader.GetLocation("tex"), 0);
 			imgShader = new Shader (vertex_source, img_fragment_source);

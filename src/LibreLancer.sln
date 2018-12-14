@@ -117,6 +117,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{F1160AA9-1
 		Shader Readme.txt = Shader Readme.txt
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "lancer", "lancer\lancer.csproj", "{2F0BFBA3-2D0F-48C5-84AF-FF82986913FB}"
+EndProject
 Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -198,6 +200,10 @@ Global
 		{76FDED5B-2C12-453E-B499-CB669E55AD5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{76FDED5B-2C12-453E-B499-CB669E55AD5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{76FDED5B-2C12-453E-B499-CB669E55AD5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F0BFBA3-2D0F-48C5-84AF-FF82986913FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F0BFBA3-2D0F-48C5-84AF-FF82986913FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F0BFBA3-2D0F-48C5-84AF-FF82986913FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F0BFBA3-2D0F-48C5-84AF-FF82986913FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{38B159EB-CF44-4A4F-948A-E238D7FAE28E} = {953F895D-0AAD-4427-B912-71215C04BEFD}

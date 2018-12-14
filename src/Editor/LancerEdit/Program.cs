@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using LibreLancer;
+using LibreLancer.Dialogs;
 namespace LancerEdit
 {
 	class Program
@@ -16,13 +17,26 @@ namespace LancerEdit
         [STAThread]
         static void Main(string[] args)
 		{
+
             if (Platform.RunningOS == OS.Windows)
             {
                 string bindir = Path.GetDirectoryName(typeof(Program).Assembly.Location);
                 var fullpath = Path.Combine(bindir, IntPtr.Size == 8 ? "x64" : "x86");
                 SetDllDirectory(fullpath);
             }
-            new MainWindow().Run();
-		}
+            if (!Platform.CheckDependencies()) return;
+#if !DEBUG
+            try
+            {
+#endif
+                new MainWindow().Run();
+#if !DEBUG
+            }
+            catch(Exception ex)
+            {
+                CrashWindow.Run("Uh-oh!", "LancerEdit has crashed. See the log for more information.", ex.Message + "\n" + ex.StackTrace);
+            }
+#endif
+        }
 	}
 }

@@ -105,6 +105,7 @@ namespace LibreLancer.ImUI
 
             var io = ImGui.GetIO();
             //IniFilename?
+            io.WantSaveIniSettings = false;
             Default = io.Fonts.AddFontDefault();
 			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.Roboto-Medium.ttf"))
 			{
