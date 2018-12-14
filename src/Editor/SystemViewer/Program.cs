@@ -25,14 +25,23 @@ namespace SystemViewer
                 SetDllDirectory(fullpath);
             }
             if (!Platform.CheckDependencies()) return;
+            MainWindow mw = null;
 #if !DEBUG
+            var domain = AppDomain.CurrentDomain;
+            domain.UnhandledException += (object sender, UnhandledExceptionEventArgs e) => {
+                var ex = (Exception)(e.ExceptionObject);
+                CrashWindow.Run("Uh-oh!", "Librelancer has crashed. See the log for more information.",
+                ex.Message + "\n" + ex.StackTrace);
+            };
             try {
 #endif
-            new MainWindow().Run();
+                mw = new MainWindow();
+                mw.Run();
 #if !DEBUG
             }
             catch (Exception ex)
             {
+                try { mw.Crashed();  } catch { }
                 CrashWindow.Run("Uh-oh!", "Librelancer has crashed. See the log for more information.", ex.Message + "\n" + ex.StackTrace);
             }
 #endif

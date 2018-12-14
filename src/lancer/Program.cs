@@ -24,19 +24,27 @@ namespace lancer
                 SetDllDirectory(fullpath);
             }
             if (!Platform.CheckDependencies()) return;
+            FreelancerGame flgame = null;
 #if !DEBUG
+            var domain = AppDomain.CurrentDomain;
+            domain.UnhandledException += (object sender, UnhandledExceptionEventArgs e) => {
+                var ex = (Exception)(e.ExceptionObject);
+                CrashWindow.Run("Uh-oh!", "Librelancer has crashed. See the log for more information.", 
+                ex.Message + "\n" + ex.StackTrace);
+            };
             try {
 #endif
             Func<string> filePath = null;
             if(args.Length > 0)
                 filePath = () => args[0];
             var cfg = GameConfig.Create(true, filePath);
-            var game = new FreelancerGame(cfg);
-            game.Run();
+            flgame = new FreelancerGame(cfg);
+            flgame.Run();
 #if !DEBUG
             }
             catch (Exception ex)
             {
+                try { flgame.Crashed();  } catch { }
                 CrashWindow.Run("Uh-oh!", "Librelancer has crashed. See the log for more information.", ex.Message + "\n" + ex.StackTrace);
             }
 #endif
