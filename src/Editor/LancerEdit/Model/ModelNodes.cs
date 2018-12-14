@@ -54,9 +54,9 @@ namespace LancerEdit
                 {
                     Name = "Orientation", Parent = node,
                     Data = UnsafeHelpers.CastArray(new float[] {
-                        hp.Orientation.M11, hp.Orientation.M12, hp.Orientation.M13,
-                        hp.Orientation.M21, hp.Orientation.M22, hp.Orientation.M23,
-                        hp.Orientation.M31, hp.Orientation.M32, hp.Orientation.M33
+                        hp.Orientation.M11, hp.Orientation.M21, hp.Orientation.M31,
+                        hp.Orientation.M12, hp.Orientation.M22, hp.Orientation.M32,
+                        hp.Orientation.M13, hp.Orientation.M23, hp.Orientation.M33
                     })
                 });
                 node.Children.Add(new LUtfNode()
