@@ -56,11 +56,12 @@ namespace LancerEdit
             AddFix("HpThruster", HpNaming.Number, "fix", Color4.LightGreen);
             AddFix("HpTractor_Source", HpNaming.None, "fix", Color4.Purple);
             AddFix("HpFire", HpNaming.Number, "fix", Color4.Coral);
+            AddFix("HpConnect", HpNaming.None, "fix", Color4.Coral);
 
             AddRev("HpTorpedo", HpNaming.Number, "rev", Color4.LightGreen);
             AddRev("HpTurret", HpNaming.Number, "rev", Color4.LightGreen);
             AddRev("HpWeapon", HpNaming.Number, "rev", Color4.LightGreen);
-            AddFix("HpConnect", HpNaming.None, "rev", Color4.Coral);
+            AddRev("HpConnect", HpNaming.None, "rev", Color4.Coral);
         }
     }
 }
