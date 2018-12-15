@@ -19,13 +19,13 @@ namespace LancerEdit
         const float RADIUS_ONE = 21.916825f;
         void SetupViewport()
         {
-            modelViewport = new Viewport3D(rstate, vps);
+            modelViewport = new Viewport3D(_window);
             modelViewport.MarginH = 60;
             modelViewport.DefaultOffset =
             modelViewport.CameraOffset = new Vector3(0, 0, drawable.GetRadius() * 2);
             modelViewport.ModelScale = drawable.GetRadius() / 2.6f;
-            previewViewport = new Viewport3D(rstate, vps);
-            imageViewport = new Viewport3D(rstate, vps);
+            previewViewport = new Viewport3D(_window);
+            imageViewport = new Viewport3D(_window);
 
             gizmoScale = drawable.GetRadius() / RADIUS_ONE;
             wireframeMaterial3db = new Material(res);

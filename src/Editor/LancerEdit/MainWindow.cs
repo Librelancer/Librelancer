@@ -148,8 +148,10 @@ namespace LancerEdit
         bool showOptions = false;
         float h1 = 200, h2 = 200;
         Vector2 errorWindowSize = Vector2.Zero;
+        public double TimeStep;
 		protected override void Draw(double elapsed)
 		{
+            TimeStep = elapsed;
 			Viewport.Replace(0, 0, Width, Height);
 			RenderState.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
 			RenderState.ClearAll();

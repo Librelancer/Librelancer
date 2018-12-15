@@ -37,7 +37,7 @@ namespace LancerEdit
             Title = title;
             this.name = name;
             this.rstate = main.RenderState;
-            aleViewport = new Viewport3D(rstate, main.Viewport);
+            aleViewport = new Viewport3D(main);
             aleViewport.DefaultOffset = 
             aleViewport.CameraOffset = new Vector3(0, 0, 200);
             aleViewport.ModelScale = 25;

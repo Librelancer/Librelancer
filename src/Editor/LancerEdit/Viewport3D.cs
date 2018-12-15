@@ -7,7 +7,7 @@ using LibreLancer;
 using LibreLancer.ImUI;
 using ImGuiNET;
 
-namespace LibreLancer
+namespace LancerEdit
 {
     public class Viewport3D : IDisposable
     {
@@ -31,10 +31,13 @@ namespace LibreLancer
 
         public int RenderWidth { get { return rw; }}
         public int RenderHeight { get { return rh; }}
-        public Viewport3D(RenderState rstate, ViewportManager vps) 
+
+        MainWindow mw;
+        public Viewport3D(MainWindow mw) 
         {
-            this.rstate = rstate;
-            this.vps = vps;
+            this.mw = mw;
+            rstate = mw.RenderState;
+            vps = mw.Viewport;
         }
 
         public void ResetControls()
@@ -125,7 +128,28 @@ namespace LibreLancer
                         {
                             //RMB - Rotate viewport camera
                             CameraRotation += (delta / 100) * new Vector2(1,-1);
-
+                            var rotmat = Matrix4.CreateRotationX(CameraRotation.Y) *
+                            Matrix4.CreateRotationY(CameraRotation.X);
+                            if (mw.Keyboard.IsKeyDown(Keys.W))
+                            {
+                                var z = rotmat.Transform(-Vector3.UnitZ);
+                                CameraOffset += z * (float)mw.TimeStep * ModelScale;
+                            }
+                            else if (mw.Keyboard.IsKeyDown(Keys.S))
+                            {
+                                var z = rotmat.Transform(Vector3.UnitZ);
+                                CameraOffset += z * (float)mw.TimeStep * ModelScale;
+                            }
+                            if (mw.Keyboard.IsKeyDown(Keys.A))
+                            {
+                                var x = rotmat.Transform(Vector3.UnitX);
+                                CameraOffset += x * (float)mw.TimeStep * ModelScale;
+                            }
+                            else if (mw.Keyboard.IsKeyDown(Keys.D))
+                            {
+                                var x = rotmat.Transform(-Vector3.UnitX);
+                                CameraOffset += x * (float)mw.TimeStep * ModelScale;
+                            }
                         }
                     }
                 }
