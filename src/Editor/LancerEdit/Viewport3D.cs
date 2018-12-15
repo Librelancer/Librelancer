@@ -122,40 +122,56 @@ namespace LancerEdit
                         if (io.KeyCtrl)
                         {
                             //CTRL + RMB - Rotate Model
-                            Rotation += (delta / 100) * new Vector2(1,-1);
+                            Rotation += (delta / 100) * new Vector2(1, -1);
                         }
                         else
                         {
                             //RMB - Rotate viewport camera
-                            CameraRotation += (delta / 100) * new Vector2(1,-1);
-                            var rotmat = Matrix4.CreateRotationX(CameraRotation.Y) *
-                            Matrix4.CreateRotationY(CameraRotation.X);
-                            if (mw.Keyboard.IsKeyDown(Keys.W))
-                            {
-                                var z = rotmat.Transform(-Vector3.UnitZ);
-                                CameraOffset += z * (float)mw.TimeStep * ModelScale;
-                            }
-                            else if (mw.Keyboard.IsKeyDown(Keys.S))
-                            {
-                                var z = rotmat.Transform(Vector3.UnitZ);
-                                CameraOffset += z * (float)mw.TimeStep * ModelScale;
-                            }
-                            if (mw.Keyboard.IsKeyDown(Keys.A))
-                            {
-                                var x = rotmat.Transform(Vector3.UnitX);
-                                CameraOffset += x * (float)mw.TimeStep * ModelScale;
-                            }
-                            else if (mw.Keyboard.IsKeyDown(Keys.D))
-                            {
-                                var x = rotmat.Transform(-Vector3.UnitX);
-                                CameraOffset += x * (float)mw.TimeStep * ModelScale;
-                            }
+                            CameraRotation += (delta / 100) * new Vector2(1, -1);
+                            KeyboardControls();
                         }
                     }
+                    else if (io.MouseDown[1])
+                        KeyboardControls();
                 }
             }
         }
 
+        void KeyboardControls()
+        {
+            var rotmat = Matrix4.CreateRotationX(CameraRotation.Y) *
+                            Matrix4.CreateRotationY(CameraRotation.X);
+            if (mw.Keyboard.IsKeyDown(Keys.W))
+            {
+                var z = rotmat.Transform(-Vector3.UnitZ);
+                CameraOffset += z * (float)mw.TimeStep * ModelScale;
+            }
+            else if (mw.Keyboard.IsKeyDown(Keys.S))
+            {
+                var z = rotmat.Transform(Vector3.UnitZ);
+                CameraOffset += z * (float)mw.TimeStep * ModelScale;
+            }
+            if (mw.Keyboard.IsKeyDown(Keys.A))
+            {
+                var x = rotmat.Transform(Vector3.UnitX);
+                CameraOffset += x * (float)mw.TimeStep * ModelScale;
+            }
+            else if (mw.Keyboard.IsKeyDown(Keys.D))
+            {
+                var x = rotmat.Transform(-Vector3.UnitX);
+                CameraOffset += x * (float)mw.TimeStep * ModelScale;
+            }
+            if (mw.Keyboard.IsKeyDown(Keys.E))
+            {
+                var y = rotmat.Transform(Vector3.UnitY);
+                CameraOffset += y * (float)mw.TimeStep * ModelScale;
+            }
+            else if (mw.Keyboard.IsKeyDown(Keys.Q))
+            {
+                var y = rotmat.Transform(-Vector3.UnitY);
+                CameraOffset += y * (float)mw.TimeStep * ModelScale;
+            }
+        }
         public void Dispose()
         {
             if(RenderTarget != null) {
