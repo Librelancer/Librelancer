@@ -50,31 +50,33 @@ namespace LancerEdit
             }
         }
 
-        static List<TeximpNet.Surface> GenerateMipmapsRGBA(string input, MipmapMethod mipm)
+        static List<TeximpNet.Surface> GenerateMipmapsRGBA(string input, MipmapMethod mipm, bool flip)
         {
             List<TeximpNet.Surface> mips = new List<TeximpNet.Surface>();
             var surface = TeximpNet.Surface.LoadFromFile(input);
+            if (flip) surface.FlipVertically();
             surface.ConvertTo(TeximpNet.ImageConversion.To32Bits);
             surface.GenerateMipMaps(mips, (TeximpNet.ImageFilter)mipm);
             return mips;
         }
 
-        public static byte[] TGANoMipmap(string input)
+        public static byte[] TGANoMipmap(string input, bool flip)
         {
             LoadLibraries();
             using(var stream = new MemoryStream()) {
                 using(var surface = TeximpNet.Surface.LoadFromFile(input)) {
+                    if (flip) surface.FlipVertically();
                     surface.ConvertTo(TeximpNet.ImageConversion.To32Bits);
                     surface.SaveToStream(TeximpNet.ImageFormat.TARGA, stream);
                 }
                 return stream.ToArray();
             }
         }
-        public static unsafe List<LUtfNode> TGAMipmaps(string input, MipmapMethod mipm)
+        public static unsafe List<LUtfNode> TGAMipmaps(string input, MipmapMethod mipm, bool flip)
         {
             LoadLibraries();
             var nodes = new List<LUtfNode>();
-            var mips = GenerateMipmapsRGBA(input, mipm);
+            var mips = GenerateMipmapsRGBA(input, mipm, flip);
             for (int i = 0; i < mips.Count; i++) {
                 using(var stream = new MemoryStream()) {
                     mips[i].SaveToStream(TeximpNet.ImageFormat.TARGA, stream);
@@ -85,7 +87,7 @@ namespace LancerEdit
             }
             return nodes;
         }
-        public static byte[] CreateDDS(string input, DDSFormat format, MipmapMethod mipm, bool slow)
+        public static byte[] CreateDDS(string input, DDSFormat format, MipmapMethod mipm, bool slow, bool flip)
         {
             LoadLibraries();
             using (var stream = new MemoryStream())
@@ -98,10 +100,11 @@ namespace LancerEdit
                     {
                         using (var surface = TeximpNet.Surface.LoadFromFile(input))
                         {
+                            if (flip) surface.FlipVertically();
                             compress.Input.SetData(surface);
                         }
                     } else {
-                        var mips = GenerateMipmapsRGBA(input, mipm);
+                        var mips = GenerateMipmapsRGBA(input, mipm, flip);
                         compress.Input.SetTextureLayout(TextureType.Texture2D, mips[0].Width, mips[0].Height);
 
                         for (int i = 0; i < mips.Count; i++) {

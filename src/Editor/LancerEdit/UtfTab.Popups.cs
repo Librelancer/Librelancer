@@ -47,6 +47,7 @@ namespace LancerEdit
         };
         int mipmapOption = 6;
         bool compressSlow = false;
+        bool texFlip = false;
         void TexImportDialog(PopupData data)
         {
             if (teximportprev == null)
@@ -78,6 +79,7 @@ namespace LancerEdit
                 ImGui.Text(string.Format("Dimensions: {0}x{1}", teximportprev.Width, teximportprev.Height));
                 ImGui.Combo("Format", ref compressOption, texOptions, texOptions.Length);
                 ImGui.Combo("Mipmaps", ref mipmapOption, mipmapOptions, mipmapOptions.Length);
+                ImGui.Checkbox("Flip Vertically", ref texFlip);
                 ImGui.Checkbox("High Quality (slow)", ref compressSlow);
                 if (ImGui.Button("Import"))
                 {
@@ -125,11 +127,11 @@ namespace LancerEdit
                                 break;
                         }
                         if (mipm == MipmapMethod.None && format == DDSFormat.Uncompressed)
-                            texImportData = TextureImport.TGANoMipmap(teximportpath);
+                            texImportData = TextureImport.TGANoMipmap(teximportpath, texFlip);
                         else if (format == DDSFormat.Uncompressed)
-                            texImportChildren = TextureImport.TGAMipmaps(teximportpath, mipm);
+                            texImportChildren = TextureImport.TGAMipmaps(teximportpath, mipm, texFlip);
                         else
-                            texImportData = TextureImport.CreateDDS(teximportpath, format, mipm, compressSlow);
+                            texImportData = TextureImport.CreateDDS(teximportpath, format, mipm, compressSlow, texFlip);
                         texImportWaiting = false;
                     }).Start();
                 }
