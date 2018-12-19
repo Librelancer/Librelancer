@@ -15,6 +15,7 @@ using LibreLancer.Compatibility.GameData.Universe;
 using LibreLancer.Compatibility.GameData.Ships;
 using LibreLancer.Compatibility.GameData.Audio;
 using LibreLancer.Compatibility.GameData.Effects;
+using LibreLancer.Compatibility.GameData.Goods;
 
 namespace LibreLancer.Compatibility.GameData
 {
@@ -35,6 +36,7 @@ namespace LibreLancer.Compatibility.GameData
 		public UniverseIni Universe;
 		public ShiparchIni Ships;
 		public AudioIni Audio;
+        public GoodsIni Goods;
 		public GraphIni Graphs;
 		public TexturePanels EffectShapes;
 		public MouseIni Mouse;
@@ -129,6 +131,9 @@ namespace LibreLancer.Compatibility.GameData
             Ships = new ShiparchIni();
             foreach (var shp in Freelancer.ShiparchPaths)
                 Ships.AddShiparchIni(shp, this);
+            Goods = new GoodsIni();
+            foreach (var gd in Freelancer.GoodsPaths)
+                Goods.AddGoodsIni(gd);
             tUniverse.Join();
             tMisc.Join();
 			Loaded = true;

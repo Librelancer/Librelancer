@@ -22,7 +22,8 @@ namespace LibreLancer.Compatibility.GameData
 		public List<string> EquipmentPaths { get; private set; }
 		public List<string> LoadoutPaths { get; private set; }
 		public List<string> ShiparchPaths { get; private set; }
-		public List<string> SoundPaths { get; private set; }
+        public List<string> GoodsPaths { get; private set; }
+        public List<string> SoundPaths { get; private set; }
 		public List<string> GraphPaths { get; private set; }
 		public List<string> EffectPaths { get; private set; }
 		public List<string> AsteroidPaths { get; private set; }
@@ -45,6 +46,7 @@ namespace LibreLancer.Compatibility.GameData
 			RichFontPaths = new List<string>();
 			PetalDbPaths = new List<string>();
 			StartupMovies = new List<string>();
+            GoodsPaths = new List<string>();
 
 			foreach (Section s in ParseFile("EXE\\freelancer.ini")) {
 				switch (s.Name.ToLowerInvariant ()) {
@@ -147,6 +149,9 @@ namespace LibreLancer.Compatibility.GameData
 						case "hud":
 							HudPath = DataPath + e[0].ToString();
 							break;
+                        case "goods":
+                            GoodsPaths.Add(DataPath + e[0].ToString());
+                            break;
 						}
 					}
 					break;
