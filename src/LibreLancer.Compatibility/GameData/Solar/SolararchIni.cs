@@ -22,13 +22,7 @@ namespace LibreLancer.Compatibility.GameData.Solar
                 switch (s.Name.ToLowerInvariant())
                 {
                     case "solar":
-                        Archetype a;
-                        if ((a = Archetype.FromSection(s, gameData)) != null) {
-                            lastNull = false;
-                            Solars.Add(a);
-                        }
-                        else
-                            lastNull = true;
+                        Solars.Add(FromSection<Archetype>(s));
 					break;
 				case "collisiongroup":
                         if(!lastNull)

@@ -25,6 +25,14 @@ namespace LibreLancer.Compatibility.GameData.Ships
 		public string DaArchetypeName;
         [Entry("material_library", Multiline = true)]
 		public List<string> MaterialLibraries = new List<string>();
+        [Entry("envmap_material")]
+        public string EnvmapMaterial;
+        [Entry("explosion_arch")]
+        public string ExplosionArch;
+        [Entry("msg_id_prefix")]
+        public string MsgIdPrefix;
+        [Entry("nudge_force")]
+        public float NudgeForce;
         [Entry("hit_pts")]
 		public int Hitpoints;
         [Entry("nanobot_limit")]
@@ -47,7 +55,24 @@ namespace LibreLancer.Compatibility.GameData.Ships
 		public Vector3 RotationInertia;
         [Entry("strafe_force")]
 		public float StrafeForce;
-
+        [Entry("strafe_power_usage")]
+        public float StrafePowerUsage;
+        [Entry("max_bank_angle")]
+        public float MaxBankAngle;
+        [Entry("bay_door_anim")]
+        public string BayDoorAnim;
+        [Entry("bay_doors_open_snd")]
+        public string BayDoorsOpenSound;
+        [Entry("bay_doors_close_snd")]
+        public string BayDoorsCloseSound;
+        [Entry("mission_property")]
+        public string MissionProperty;
+        [Entry("linear_drag")]
+        public float LinearDrag;
+        [Entry("cockpit")]
+        public string Cockpit;
+        [Entry("pilot_mesh")]
+        public string PilotMesh;
         [Entry("camera_offset")]
 		Vector2 _cameraOffset;
         public Vector3 CameraOffset
@@ -66,10 +91,28 @@ namespace LibreLancer.Compatibility.GameData.Ships
         [Entry("camera_turn_look_ahead_slerp_amount")]
 		public float CameraTurnLookAheadSlerpAmount;
 
+        [Entry("lodranges")]
+        public float[] LodRanges;
+
+        [Entry("hp_bay_surface")]
+        public string HpBaySurface;
+        [Entry("hp_bay_external")]
+        public string HpBayExternal;
+        [Entry("hp_tractor_source")]
+        public string HpTractorSource;
+        [Entry("num_exhaust_nozzles")]
+        public int NumExhaustNozzles;
+
+        [Entry("nomad")]
+        public bool Nomad;
+
         bool HandleEntry(Entry e)
         {
             switch(e.Name.ToLowerInvariant())
             {
+                case "shield_link":
+                case "fuse":
+                case "surface_hit_effects":
                 case "hp_type":
                     return true;
             }

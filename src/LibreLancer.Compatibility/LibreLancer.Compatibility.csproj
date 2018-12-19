@@ -98,26 +98,12 @@
     <Compile Include="GameData\FreelancerData.cs" />
     <Compile Include="GameData\FreelancerIni.cs" />
     <Compile Include="GameData\InfocardManager.cs" />
-    <Compile Include="GameData\Solar\AirlockGate.cs" />
     <Compile Include="GameData\Solar\CollisionGroup.cs" />
-    <Compile Include="GameData\Solar\DestroyableDepot.cs" />
-    <Compile Include="GameData\Solar\DockingRing.cs" />
-    <Compile Include="GameData\Solar\JumpGate.cs" />
-    <Compile Include="GameData\Solar\JumpHole.cs" />
     <Compile Include="GameData\Solar\Loadout.cs" />
     <Compile Include="GameData\Solar\LoadoutsIni.cs" />
-    <Compile Include="GameData\Solar\MissionSatellite.cs" />
-    <Compile Include="GameData\Solar\NonTargetable.cs" />
-    <Compile Include="GameData\Solar\Planet.cs" />
-    <Compile Include="GameData\Solar\Satellite.cs" />
     <Compile Include="GameData\Solar\SolararchIni.cs" />
     <Compile Include="GameData\Solar\Star.cs" />
     <Compile Include="GameData\Solar\StararchIni.cs" />
-    <Compile Include="GameData\Solar\Station.cs" />
-    <Compile Include="GameData\Solar\Sun.cs" />
-    <Compile Include="GameData\Solar\TradelaneRing.cs" />
-    <Compile Include="GameData\Solar\Waypoint.cs" />
-    <Compile Include="GameData\Solar\WeaponsPlatform.cs" />
     <Compile Include="GameData\Universe\AsteroidBillboards.cs" />
     <Compile Include="GameData\Universe\AsteroidField.cs" />
     <Compile Include="GameData\Universe\Band.cs" />
@@ -208,6 +194,7 @@
     <Compile Include="Ini\IniFile.Reflection.cs" />
     <Compile Include="Ini\EntryAttribute.cs" />
     <Compile Include="Ini\SectionAttribute.cs" />
+    <Compile Include="GameData\Solar\ArchetypeType.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

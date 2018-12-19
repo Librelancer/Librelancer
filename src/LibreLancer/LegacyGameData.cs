@@ -694,7 +694,7 @@ namespace LibreLancer
 			foreach (var path in o.Archetype.MaterialPaths)
 				resource.LoadResourceFile (ResolveDataPath(path));
 			//Construct archetype
-			if (o.Archetype is Legacy.Solar.Sun) {
+			if (o.Archetype.Type == Legacy.Solar.ArchetypeType.sun) {
 				var sun = new GameData.Archetypes.Sun();
 				var star = fldata.Stars.FindStar(o.Star);
 				//general
@@ -745,7 +745,7 @@ namespace LibreLancer
 					foreach (var sph in obj.Archetype.DockSpheres)
 						sph.Script =  sph.Script ?? o.Archetype.OpenAnim;
 				}
-				if (o.Archetype is Legacy.Solar.TradelaneRing)
+				if (o.Archetype.Type == Legacy.Solar.ArchetypeType.tradelane_ring)
 				{
 					obj.Archetype.DockSpheres.Add(new GameData.DockSphere()
 					{
