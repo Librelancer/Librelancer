@@ -11,7 +11,12 @@ namespace LibreLancer
     {
         public void Process(ThnEvent ev, Cutscene cs)
         {
-            var obj = cs.Objects[(string)ev.Targets[0]];
+            ThnObject obj; 
+            if(!cs.Objects.TryGetValue((string)ev.Targets[0], out obj))
+            {
+                FLLog.Error("Thn", "Object does not exist " + (string)ev.Targets[0]);
+                return;
+            }
 
             var props = (LuaTable)ev.Properties["spatialprops"];
             Matrix4? orient = null;

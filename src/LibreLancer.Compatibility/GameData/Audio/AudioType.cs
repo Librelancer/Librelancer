@@ -7,7 +7,7 @@ namespace LibreLancer.Compatibility.GameData.Audio
 {
 	public enum AudioType
 	{
-		Default,
+		Normal,
 		Music,
 		Ambience,
 		Interface,

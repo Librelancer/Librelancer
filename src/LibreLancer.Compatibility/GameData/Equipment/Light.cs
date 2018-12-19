@@ -135,14 +135,14 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 		}
 
 		public Light(Section section, FreelancerData gdata)
-			: base(section)
 		{
 			foreach (Entry e in section)
 			{
-				if (!parentEntry(e))
-				{
 					switch (e.Name.ToLowerInvariant())
 					{
+                    case "nickname":
+                        Nickname = e[0].ToString();
+                        break;
 					case "inherit":
 						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 						if (Inherit != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
@@ -212,7 +212,6 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 						FLLog.Error("Light", "custom shape not implemented");
 						break;
 						default: FLLog.Error("Equipment", "Invalid Entry in " + section.Name + ": " + e.Name); break;
-					}
 				}
 			}
 		}

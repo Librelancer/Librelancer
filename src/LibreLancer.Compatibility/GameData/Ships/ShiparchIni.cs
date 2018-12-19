@@ -18,8 +18,8 @@ namespace LibreLancer.Compatibility.GameData.Ships
 		public void AddShiparchIni(string path, FreelancerData fldata)
 		{
 			foreach (Section s in ParseFile(path)) {
-				if (s.Name.ToLowerInvariant () == "ship")
-					Ships.Add (new Ship (s, fldata));
+                if (s.Name.ToLowerInvariant() == "ship")
+                    Ships.Add(FromSection<Ship>(s));
 			}
 		}
 

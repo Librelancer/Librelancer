@@ -9,31 +9,13 @@ namespace LibreLancer.Compatibility.GameData.Effects
 {
 	public class VisEffect
 	{
+        [Entry("nickname")]
 		public string Nickname;
+        [Entry("effect_crc")]
 		public int EffectCrc;
+        [Entry("alchemy")]
 		public string AlchemyPath;
+        [Entry("textures", Multiline = true)]
 		public List<string> Textures = new List<string>();
-		public VisEffect(Section s)
-		{
-			foreach (var e in s)
-			{
-				switch (e.Name.ToLowerInvariant())
-				{
-					case "nickname":
-						Nickname = e[0].ToString();
-						break;
-					case "alchemy":
-						AlchemyPath = e[0].ToString();
-						break;
-					case "textures":
-						Textures.Add(e[0].ToString());
-						break;
-					case "effect_crc":
-						EffectCrc = e[0].ToInt32();
-						break;
-						
-				}
-			}
-		}
 	}
 }

@@ -15,6 +15,9 @@ namespace LibreLancer.Ini
 	{
 		public string Name { get; private set; }
 
+        public string File;
+        public int Line;
+
 		private List<Entry> entries;
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string")]

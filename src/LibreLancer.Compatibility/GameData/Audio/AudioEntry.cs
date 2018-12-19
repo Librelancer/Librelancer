@@ -3,19 +3,31 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using LibreLancer.Ini;
 namespace LibreLancer.Compatibility.GameData.Audio
 {
 	public class AudioEntry
 	{
+        [Entry("nickname")]
 		public string Nickname;
+        [Entry("file")]
 		public string File;
+        [Entry("type")]
 		public AudioType Type;
+        [Entry("crv_pitch")]
 		public int CrvPitch;
+        [Entry("attenuation")]
 		public int Attenuation;
+        [Entry("is_2d")]
 		public bool Is2d = false;
-		public AudioEntry()
-		{
-		}
+        [Entry("streamer")]
+        public bool Streamer;
+        [Entry("range", MinMax = true)]
+        public Vector2 Range;
+        [Entry("persistent")]
+        public string Persistent;
+        [Entry("pitch_bendable")]
+        public bool PitchBendable;
 	}
 }
 

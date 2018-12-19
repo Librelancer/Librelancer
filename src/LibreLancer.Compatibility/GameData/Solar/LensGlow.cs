@@ -8,44 +8,20 @@ namespace LibreLancer.Compatibility.GameData.Solar
 {
 	public class LensGlow
 	{
+        [Entry("nickname")]
 		public string Nickname;
+        [Entry("shape")]
 		public string Shape;
+        [Entry("radius_scale")]
 		public int RadiusScale;
+        [Entry("inner_color")]
 		public Color3f InnerColor;
+        [Entry("outer_color")]
 		public Color3f OuterColor;
+        [Entry("glow_fade_in_seconds")]
 		public float GlowFadeInSeconds;
+        [Entry("glow_fade_out_seconds")]
 		public float GlowFadeOutSeconds;
-
-		public LensGlow(Section s)
-		{
-			foreach (Entry e in s)
-			{
-				switch (e.Name.ToLowerInvariant())
-				{
-					case "nickname":
-						Nickname = e[0].ToString();
-						break;
-					case "shape":
-						Shape = e[0].ToString();
-						break;
-					case "radius_scale":
-						RadiusScale = e[0].ToInt32();
-						break;
-					case "inner_color":
-						InnerColor = new Color3f(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle());
-						break;
-					case "outer_color":
-						OuterColor = new Color3f(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle());
-						break;
-					case "glow_fade_in_seconds":
-						GlowFadeInSeconds = e[0].ToSingle();
-						break;
-					case "glow_fade_out_seconds":
-						GlowFadeOutSeconds = e[0].ToSingle();
-						break;
-				}
-			}
-		}
 	}
 }
 

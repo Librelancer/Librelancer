@@ -12,8 +12,7 @@ using LibreLancer.Compatibility;
 
 namespace LibreLancer.Ini
 {
-	//[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix")]
-	public abstract class IniFile //: ICollection<Section>
+	public abstract partial class IniFile
 	{
 		public const string FileType = "BINI", IniFileType = "INI";
 		public const int FileVersion = 1;
@@ -80,8 +79,9 @@ namespace LibreLancer.Ini
 							}
 							if (indexClose == -1) throw new FileContentException(path, IniFileType, "Invalid section header: " + line);
                             string name = line.Substring(1, indexClose - 1).Trim();
-                            currentSection = new Section(name);
-							inSection = true;
+                            currentSection = new Section(name) { File = path, Line = currentLine };
+
+                            inSection = true;
 							continue;
 						}
 						else
@@ -122,13 +122,13 @@ namespace LibreLancer.Ini
 											values.Add (new StringValue (s));
 									}
 
-									currentSection.Add (new Entry (parts [0].TrimEnd (), values));
+									currentSection.Add (new Entry(parts[0].TrimEnd(), values) { File = path, Line = currentLine });
 								} else if (parts.Length == 3 && allowmaps) {
 									string k = parts [1].Trim ();
 									string v = parts [2].Trim ();
-									currentSection.Add(new Entry(parts[0].Trim(), new IValue[] { new StringKeyValue(k,v) }));
+									currentSection.Add(new Entry(parts[0].Trim(), new IValue[] { new StringKeyValue(k, v) }) { File = path, Line = currentLine });
 								} else if (parts.Length == 1) {
-									currentSection.Add (new Entry (parts [0].Trim (), new List<IValue> ()));
+									currentSection.Add (new Entry(parts[0].Trim(), new List<IValue>()) { File = path, Line = currentLine });
 								}
 								else FLLog.Error("INI", "Invalid entry line: " + line + " in " + path);
 							}

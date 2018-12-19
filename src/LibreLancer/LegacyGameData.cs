@@ -625,8 +625,8 @@ namespace LibreLancer
 			var legacy = fldata.Ships.GetShip (nickname);
 			var ship = new GameData.Ship ();
 			foreach (var matlib in legacy.MaterialLibraries)
-				resource.LoadResourceFile (matlib);
-			ship.Drawable = resource.GetDrawable (legacy.DaArchetypeName);
+				resource.LoadResourceFile (ResolveDataPath(matlib));
+			ship.Drawable = resource.GetDrawable (ResolveDataPath(legacy.DaArchetypeName));
 			ship.Mass = legacy.Mass;
 			ship.AngularDrag = legacy.AngularDrag;
 			ship.RotationInertia = legacy.RotationInertia;
@@ -641,12 +641,10 @@ namespace LibreLancer
 		{
 			var archetype = fldata.Solar.FindSolar(solar);
 			//Load archetype references
-			foreach (var path in archetype.TexturePaths)
-				resource.LoadResourceFile(path);
 			foreach (var path in archetype.MaterialPaths)
-				resource.LoadResourceFile(path);
+				resource.LoadResourceFile(ResolveDataPath(path));
 			//Get drawable
-			return resource.GetDrawable(archetype.DaArchetypeName);
+			return resource.GetDrawable(ResolveDataPath(archetype.DaArchetypeName));
 		}
 
 		public IDrawable GetAsteroid(string asteroid)
@@ -673,7 +671,7 @@ namespace LibreLancer
 
 		public GameData.SystemObject GetSystemObject(Legacy.Universe.SystemObject o)
 		{
-			var drawable = resource.GetDrawable (o.Archetype.DaArchetypeName);
+			var drawable = resource.GetDrawable (ResolveDataPath(o.Archetype.DaArchetypeName));
 			var obj = new GameData.SystemObject ();
 			obj.Nickname = o.Nickname;
 			obj.DisplayName = o.IdsName;
@@ -693,10 +691,8 @@ namespace LibreLancer
 					Matrix4.CreateRotationZ (MathHelper.DegreesToRadians (o.Rotate.Value.Z));
 			}
 			//Load archetype references
-			foreach (var path in o.Archetype.TexturePaths)
-				resource.LoadResourceFile (path);
 			foreach (var path in o.Archetype.MaterialPaths)
-				resource.LoadResourceFile (path);
+				resource.LoadResourceFile (ResolveDataPath(path));
 			//Construct archetype
 			if (o.Archetype is Legacy.Solar.Sun) {
 				var sun = new GameData.Archetypes.Sun();
@@ -878,7 +874,11 @@ namespace LibreLancer
 				visfx = fldata.Effects.FindVisEffect(effectName);
 			else
 				visfx = fldata.Effects.FindVisEffect(effect.VisEffect);
-			foreach (var texfile in visfx.Textures)
+            if(effect == null && visfx == null) {
+                FLLog.Error("Fx", "Can't find fx " + effectName);
+                return null;
+            }
+            foreach (var texfile in visfx.Textures)
 			{
 				var path = Compatibility.VFS.GetPath(fldata.Freelancer.DataPath + texfile);
 				resource.LoadResourceFile(path);

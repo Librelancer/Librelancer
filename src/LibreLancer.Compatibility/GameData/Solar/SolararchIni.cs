@@ -16,15 +16,22 @@ namespace LibreLancer.Compatibility.GameData.Solar
 		public SolararchIni(string path, FreelancerData gameData)
 		{
 			Solars = new List<Archetype>();
-
+            bool lastNull = false;
 			foreach (Section s in ParseFile(path))
 			{
-				switch (s.Name.ToLowerInvariant())
-				{
-				case "solar":
-					Solars.Add(Archetype.FromSection(s, gameData));
+                switch (s.Name.ToLowerInvariant())
+                {
+                    case "solar":
+                        Archetype a;
+                        if ((a = Archetype.FromSection(s, gameData)) != null) {
+                            lastNull = false;
+                            Solars.Add(a);
+                        }
+                        else
+                            lastNull = true;
 					break;
 				case "collisiongroup":
+                        if(!lastNull)
 					Solars.Last<Archetype>().CollisionGroups.Add(new CollisionGroup(s));
 					break;
 				default:

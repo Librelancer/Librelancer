@@ -8,26 +8,9 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 {
 	public class PowerCore : AbstractEquipment
 	{
+        [Entry("da_archetype")]
 		public string DaArchetype;
+        [Entry("material_library")]
 		public string MaterialLibrary;
-		public PowerCore(Section section)
-			: base(section)
-		{
-			foreach (var e in section)
-			{
-				if (!parentEntry(e))
-				{
-					switch (e.Name.ToLowerInvariant())
-					{
-						case "da_archetype":
-							DaArchetype = e[0].ToString();
-							break;
-						case "material_library":
-							MaterialLibrary = e[0].ToString();
-							break;
-					}
-				}
-			}
-		}
 	}
 }

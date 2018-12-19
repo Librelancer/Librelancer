@@ -58,18 +58,22 @@ namespace LibreLancer
 
         public void Process(ThnEvent ev, Cutscene cs)
         {
-            object tmp;
-            if (!cs.Objects.ContainsKey((string)ev.Targets[0]))
+            ThnObject objA;
+            ThnObject objB;
+            if(!cs.Objects.TryGetValue((string)ev.Targets[0], out objA))
             {
                 FLLog.Error("Thn", "Object doesn't exist " + (string)ev.Targets[0]);
                 return;
             }
-            var objA = cs.Objects[(string)ev.Targets[0]];
-            var objB = cs.Objects[(string)ev.Targets[1]];
+            if(!cs.Objects.TryGetValue((string)ev.Targets[1], out objB))
+            {
+                FLLog.Error("Thn", "Object doesn't exist " + (string)ev.Targets[1]);
+                return;
+            }
             var targetType = ThnEnum.Check<TargetTypes>(ev.Properties["target_type"]);
             var flags = AttachFlags.Position | AttachFlags.Orientation;
             Vector3 offset;
-
+            object tmp;
             if (ev.Properties.TryGetValue("flags", out tmp))
                 flags = ThnEnum.Check<AttachFlags>(tmp);
             ev.Properties.TryGetVector3("offset", out offset);

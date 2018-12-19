@@ -99,49 +99,49 @@ namespace LibreLancer.Compatibility.GameData.Universe
 
 			Rooms = new List<Room>();
 
-			try
-			{
-				foreach (Section s in ParseFile(data.Freelancer.DataPath + file))
-				{
-					switch (s.Name.ToLowerInvariant())
-					{
-						case "baseinfo":
-							foreach (Entry e in s)
-							{
-								switch (e.Name.ToLowerInvariant())
-								{
-									case "nickname":
-										if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
-										if (Name != null) FLLog.Warning("Base", "Duplicate " + e.Name + " Entry in " + s.Name);
-										Name = e[0].ToString();
-										break;
-									case "start_room":
-										if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
-										if (StartRoom != null) FLLog.Warning("Base", "Duplicate " + e.Name + " Entry in " + s.Name);
-										StartRoom = e[0].ToString();
-										break;
-									case "price_variance":
-										FLLog.Error("Base", "Unimplemented: price_variance");
-										break;
-									default:
-										throw new Exception("Invalid Entry in " + s.Name + ": " + e.Name);
-								}
-							}
-							break;
-						case "room":
-							Rooms.Add(new Room(s, data));
-							break;
-						default:
-							throw new Exception("Invalid Section in " + file + ": " + s.Name);
-					}
-				}
+            if (VFS.FileExists(data.Freelancer.DataPath + file))
+            {
+                foreach (Section s in ParseFile(data.Freelancer.DataPath + file))
+                {
+                    switch (s.Name.ToLowerInvariant())
+                    {
+                        case "baseinfo":
+                            foreach (Entry e in s)
+                            {
+                                switch (e.Name.ToLowerInvariant())
+                                {
+                                    case "nickname":
+                                        if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
+                                        if (Name != null) FLLog.Warning("Base", "Duplicate " + e.Name + " Entry in " + s.Name);
+                                        Name = e[0].ToString();
+                                        break;
+                                    case "start_room":
+                                        if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
+                                        if (StartRoom != null) FLLog.Warning("Base", "Duplicate " + e.Name + " Entry in " + s.Name);
+                                        StartRoom = e[0].ToString();
+                                        break;
+                                    case "price_variance":
+                                        FLLog.Error("Base", "Unimplemented: price_variance");
+                                        break;
+                                    default:
+                                        throw new Exception("Invalid Entry in " + s.Name + ": " + e.Name);
+                                }
+                            }
+                            break;
+                        case "room":
+                            Rooms.Add(new Room(s, data));
+                            break;
+                        default:
+                            throw new Exception("Invalid Section in " + file + ": " + s.Name);
+                    }
+                }
+            }
+            else
+            {
+                FLLog.Error("Ini", "Base ini could not find file " + file);
+            }
 
-			}
-			catch (Exception ex)
-			{
-				throw new Exception("Error in file: " + file, ex);
-			}
-		
-		}
+
+        }
 	}
 }

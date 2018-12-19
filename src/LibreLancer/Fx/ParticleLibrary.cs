@@ -25,7 +25,14 @@ namespace LibreLancer.Fx
 					FxNode node = null;
 					if (!noderef.IsAttachmentNode)
 					{
-						node = NodeFromAle(ale.NodeLib.Nodes.Where((arg) => arg.CRC == noderef.CRC).First()); 
+                        var nd = ale.NodeLib.Nodes.FirstOrDefault((arg) => arg.CRC == noderef.CRC);
+                        if(nd == null)
+                        {
+                            node = new FxNode("error node", "error node");
+                            FLLog.Error("Fx", fx.Name + " bad node CRC 0x" + noderef.CRC.ToString("x"));
+                        }
+                        else
+                            node = NodeFromAle(ale.NodeLib.Nodes.Where((arg) => arg.CRC == noderef.CRC).First()); 
 					}
 					var reference = new NodeReference();
 					reference.Node = node;

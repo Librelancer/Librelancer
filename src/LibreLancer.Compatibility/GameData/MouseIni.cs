@@ -37,7 +37,7 @@ namespace LibreLancer.Compatibility.GameData
 						Shapes.Add(new MouseShape(s));
 						break;
 					case "cursor":
-						Cursors.Add(new Cursor(s));
+                        Cursors.Add(FromSection<Cursor>(s));
 						break;
 				}
 			}

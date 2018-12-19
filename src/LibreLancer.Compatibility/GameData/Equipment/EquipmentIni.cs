@@ -29,7 +29,7 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 					Equip.Add(new Light(s, data));
 					break;
 				case "power":
-					Equip.Add(new PowerCore(s));
+                    Equip.Add(FromSection<PowerCore>(s));
 					break;
 				case "scanner":
 					break;
@@ -54,10 +54,10 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 				case "tradelane":
 					break;
 				case "internalfx":
-					Equip.Add(new InternalFx(s, data));
+                    Equip.Add(FromSection<InternalFx>(s));
 					break;
 				case "attachedfx":
-					Equip.Add(new AttachedFx(s, data));
+                    Equip.Add(FromSection<AttachedFx>(s));
 					break;
 				case "shieldgenerator":
 					break;
@@ -66,7 +66,7 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 				case "engine":
 					break;
 				case "thruster":
-					Equip.Add(new Thruster(s));
+                    Equip.Add(FromSection<Thruster>(s));
 					break;
 				case "cloakingdevice":
 					break;
@@ -77,7 +77,7 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 				case "munition":
 					break;
 				case "gun":
-                    Equip.Add(new Gun(s));
+                    Equip.Add(FromSection<Gun>(s));
 					break;
 				case "mine":
 					break;

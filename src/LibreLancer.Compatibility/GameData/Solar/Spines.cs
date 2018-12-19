@@ -9,39 +9,28 @@ namespace LibreLancer.Compatibility.GameData.Solar
 {
 	public class Spines
 	{
+        [Entry("nickname")]
 		public string Nickname;
+        [Entry("radius_scale")]
 		public int RadiusScale;
+        [Entry("shape")]
 		public string Shape;
+        [Entry("min_radius")]
 		public int MinRadius;
+        [Entry("max_radius")]
 		public int MaxRadius;
 		public List<Spine> Items = new List<Spine>();
-		public Spines(Section s)
-		{
-			foreach (var e in s)
-			{
-				switch (e.Name.ToLowerInvariant())
-				{
-					case "nickname":
-						Nickname = e[0].ToString();
-						break;
-					case "radius_scale":
-						RadiusScale = e[0].ToInt32();
-						break;
-					case "shape":
-						Shape = e[0].ToString();
-						break;
-					case "min_radius":
-						MinRadius = e[0].ToInt32();
-						break;
-					case "max_radius":
-						MaxRadius = e[0].ToInt32();
-						break;
-					case "spine":
-						Items.Add(new Spine(e));
-						break;
-				}
-			}
-		}
+
+        //Custom construction for spine objects
+        bool HandleEntry(Entry e)
+        {
+            if(e.Name.Equals("spine", StringComparison.InvariantCultureIgnoreCase))
+            {
+                Items.Add(new Spine(e));
+                return true;
+            }
+            return false;
+        }
 	}
 }
 

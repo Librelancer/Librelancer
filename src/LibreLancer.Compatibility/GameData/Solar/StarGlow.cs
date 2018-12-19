@@ -8,35 +8,16 @@ namespace LibreLancer.Compatibility.GameData.Solar
 {
 	public class StarGlow
 	{
+        [Entry("nickname")]
 		public string Nickname;
+        [Entry("shape")]
 		public string Shape;
+        [Entry("scale")]
 		public int Scale;
+        [Entry("inner_color")]
 		public Color3f InnerColor;
+        [Entry("outer_color")]
 		public Color3f OuterColor;
-		public StarGlow(Section section)
-		{
-			foreach (var e in section)
-			{
-				switch (e.Name.ToLowerInvariant())
-				{
-					case "nickname":
-						Nickname = e[0].ToString();
-						break;
-					case "shape":
-						Shape = e[0].ToString();
-						break;
-					case "scale":
-						Scale = e[0].ToInt32();
-						break;
-					case "inner_color":
-						InnerColor = new Color3f(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle());
-						break;
-					case "outer_color":
-						OuterColor = new Color3f(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle());
-						break;
-				}
-			}
-		}
 	}
 }
 

@@ -8,26 +8,9 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 {
 	public class InternalFx : AbstractEquipment
 	{
+        [Entry("use_animation")]
 		public string UseAnimation;
+        [Entry("use_sound")]
 		public string UseSound;
-		public InternalFx(Section section, FreelancerData gdata)
-			: base(section)
-		{
-			foreach (Entry e in section)
-			{
-				if (!parentEntry(e))
-				{
-					switch (e.Name.ToLowerInvariant())
-					{
-						case "use_animation":
-							UseAnimation = e[0].ToString();
-							break;
-						case "use_sound":
-							UseSound = e[0].ToString();
-							break;
-					}
-				}
-			}
-		}
 	}
 }

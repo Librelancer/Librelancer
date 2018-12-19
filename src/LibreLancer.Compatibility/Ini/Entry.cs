@@ -19,6 +19,9 @@ namespace LibreLancer.Ini
 
 		private List<IValue> values;
 
+        public string File = "BINI";
+        public int Line = -1;
+
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string")]
 		public Entry(BinaryReader reader, string stringBlock)
 		{

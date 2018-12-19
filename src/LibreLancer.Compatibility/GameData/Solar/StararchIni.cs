@@ -12,20 +12,15 @@ namespace LibreLancer.Compatibility.GameData.Solar
 {
 	public class StararchIni : IniFile
 	{
-		public List<Star> Stars { get; private set; }
-		public List<StarGlow> StarGlows { get; private set; }
-		public List<LensFlare> LensFlares { get; private set; }
-		public List<LensGlow> LensGlows { get; private set; }
-		public List<Spines> Spines { get; private set; }
-		public List<string> TextureFiles { get; private set; }
+        public List<Star> Stars = new List<Star>();
+        public List<StarGlow> StarGlows = new List<StarGlow>();
+        public List<LensFlare> LensFlares = new List<LensFlare>();
+        public List<LensGlow> LensGlows = new List<LensGlow>();
+        public List<Spines> Spines = new List<Spines>();
+        public List<string> TextureFiles = new List<string>();
+
 		public StararchIni(string path)
 		{
-			Stars = new List<Star>();
-			StarGlows = new List<StarGlow>();
-			LensFlares = new List<LensFlare>();
-			LensGlows = new List<LensGlow>();
-			Spines = new List<Spines>();
-			TextureFiles = new List<string>();
 			foreach (Section s in ParseFile(path))
 			{
 				switch (s.Name.ToLowerInvariant())
@@ -36,22 +31,23 @@ namespace LibreLancer.Compatibility.GameData.Solar
 								TextureFiles.Add(e[0].ToString());
 						break;
 					case "star":
-						Stars.Add(new Star(this, s));
+                        Stars.Add(FromSection<Star>(s));
 						break;
 					case "star_glow":
-						StarGlows.Add(new StarGlow(s));
+						StarGlows.Add(FromSection<StarGlow>(s));
 						break;
 					case "lens_flare":
-						LensFlares.Add(new LensFlare(s));
+                        LensFlares.Add(FromSection<LensFlare>(s));
 						break;
 					case "lens_glow":
-						LensGlows.Add(new LensGlow(s));
+						LensGlows.Add(FromSection<LensGlow>(s));
 						break;
 					case "spines":
-						Spines.Add(new Spines(s));
+						Spines.Add(FromSection<Spines>(s));
 						break;
 					default:
-						throw new Exception("Invalid Section in " + path + ": " + s.Name);
+						FLLog.Warning("Ini", "Invalid Section in " + path + ": " + s.Name + ", " + s.Line);
+                        break;
 				}
 			}
 		}

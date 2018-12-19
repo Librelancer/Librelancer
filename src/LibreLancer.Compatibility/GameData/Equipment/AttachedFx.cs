@@ -8,22 +8,7 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 {
 	public class AttachedFx : AbstractEquipment
 	{
+        [Entry("particles")]
 		public string Particles;
-		public AttachedFx(Section section, FreelancerData gdata)
-			: base(section)
-		{
-			foreach (Entry e in section)
-			{
-				if (!parentEntry(e))
-				{
-					switch (e.Name.ToLowerInvariant())
-					{
-						case "particles":
-							Particles = e[0].ToString();
-							break;
-					}
-				}
-			}
-		}
 	}
 }

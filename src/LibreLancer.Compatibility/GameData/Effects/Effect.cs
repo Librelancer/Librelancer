@@ -9,22 +9,13 @@ namespace LibreLancer.Compatibility.GameData.Effects
 {
 	public class Effect
 	{
+        [Entry("nickname")]
 		public string Nickname;
+        [Entry("vis_effect")]
 		public string VisEffect;
-		public Effect(Section s)
-		{
-			foreach (var e in s)
-			{
-				switch (e.Name.ToLowerInvariant())
-				{
-					case "nickname":
-						Nickname = e[0].ToString();
-						break;
-					case "vis_effect":
-						if(e.Count > 0) VisEffect = e[0].ToString();
-						break;
-				}
-			}
-		}
+        [Entry("snd_effect")]
+        public string SndEffect;
+        [Entry("type")]
+        public string Type;
 	}
 }

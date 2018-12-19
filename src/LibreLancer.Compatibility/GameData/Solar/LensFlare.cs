@@ -8,34 +8,20 @@ namespace LibreLancer.Compatibility.GameData.Solar
 {
 	public class LensFlare
 	{
+        [Entry("nickname")]
 		public string Nickname;
+        [Entry("shape")]
 		public string Shape;
+        [Entry("min_radius")]
 		public int MinRadius;
+        [Entry("max_radius")]
 		public int MaxRadius;
-		public LensFlare(Section s)
-		{
-			foreach (var e in s)
-			{
-				switch (e.Name.ToLowerInvariant())
-				{
-					case "nickname":
-						Nickname = e[0].ToString();
-						break;
-					case "shape":
-						Shape = e[0].ToString();
-						break;
-					case "min_radius":
-						MinRadius = e[0].ToInt32();
-						break;
-					case "max_radius":
-						MaxRadius = e[0].ToInt32();
-						break;
-					case "bead":
-						//TODO: what the hell is this (6 floats)
-						break;
-				}
-			}
-		}
+
+        //Don't know what to do with bead entry yet, but it is valid
+        bool HandleEntry(Entry e)
+        {
+            return e.Name.Equals("bead", StringComparison.InvariantCultureIgnoreCase);
+        }
 	}
 }
 

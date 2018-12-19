@@ -10,24 +10,12 @@ namespace LibreLancer.Compatibility.GameData.Effects
 {
 	public class EffectsIni : IniFile
 	{
+        [Section("viseffect")]
 		public List<VisEffect> VisEffects = new List<VisEffect>();
+        [Section("effect")]
 		public List<Effect> Effects = new List<Effect>();
 
-		public void AddIni(string ini)
-		{
-			foreach (Section s in ParseFile(ini))
-			{
-				switch (s.Name.ToLowerInvariant())
-				{
-					case "viseffect":
-						VisEffects.Add(new VisEffect(s));
-						break;
-					case "effect":
-						Effects.Add(new Effect(s));
-						break;
-				}
-			}
-		}
+        public void AddIni(string ini) => ParseAndFill(ini);
 
 		public Effect FindEffect(string nickname)
 		{

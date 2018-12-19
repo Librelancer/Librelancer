@@ -205,6 +205,9 @@
     <Compile Include="..\CommonVersion.cs">
       <Link>Properties\CommonVersion.cs</Link>
     </Compile>
+    <Compile Include="Ini\IniFile.Reflection.cs" />
+    <Compile Include="Ini\EntryAttribute.cs" />
+    <Compile Include="Ini\SectionAttribute.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

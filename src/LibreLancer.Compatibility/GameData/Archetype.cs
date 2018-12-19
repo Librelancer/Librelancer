@@ -16,134 +16,49 @@ namespace LibreLancer.Compatibility.GameData
 	{
 		protected Section section;
 		protected FreelancerData FLData;
-
-		public string Nickname { get; private set; }
-		public string IdsName { get; private set; }
-		public List<string> IdsInfo { get; private set; }
-
+        [Entry("nickname")]
+        public string Nickname = "";
+        [Entry("ids_name")]
+        public int IdsName;
+        [Entry("ids_info", Multiline = true)]
+        public List<int> IdsInfo;
+        [Entry("material_library", Multiline = true)]
 		public List<string> MaterialPaths = new List<string>();
-
-		public List<string> TexturePaths = new List<string>();
-
+        [Entry("mass")]
 		public float? Mass { get; private set; }
+        [Entry("shape_name")]
 		public string ShapeName { get; private set; }
-
+        [Entry("solar_radius")]
 		public float? SolarRadius { get; private set; }
-
+        [Entry("da_archetype")]
 		public string DaArchetypeName;
-
+        [Entry("hit_pts")]
 		public float? Hitpoints { get; private set; }
-
-		//TODO: I don't know what this is or what it does
-		public bool? PhantomPhysics { get; private set; }
-
+        [Entry("type")]
+        public string Type;
+        //TODO: I don't know what this is or what it does
+        [Entry("phantom_physics")]
+        public bool? PhantomPhysics;
+        [Entry("loadout")]
 		public string LoadoutName;
+        //Set from parent ini
+        public List<CollisionGroup> CollisionGroups = new List<CollisionGroup>();
+        //Handled manually
+        public List<DockSphere> DockingSpheres = new List<DockSphere>();
+        [Entry("open_anim")]
+        public string OpenAnim;
+        [Entry("lodranges")]
+        public float[] LODRanges;
 
-		public List<CollisionGroup> CollisionGroups { get; private set; }
-
-		public List<DockSphere> DockingSpheres { get; private set; }
-
-		public string OpenAnim { get; private set; }
-
-		public float[] LODRanges { get; private set; }
-
-		protected Archetype(Section section, FreelancerData data)
-		{
-			if (section == null) throw new ArgumentNullException("section");
-			FLData = data;
-			this.section = section;
-
-			IdsInfo = new List<string>();
-			CollisionGroups = new List<CollisionGroup>();
-			DockingSpheres = new List<DockSphere>();
-		}
-
-		protected virtual bool parentEntry(Entry e)
-		{
-			switch (e.Name.ToLowerInvariant())
-			{
-			case "nickname":
-				if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-				if (Nickname != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-				Nickname = e[0].ToString();
-				break;
-			case "ids_name":
-				if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-				if (IdsName != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-				IdsName = FLData.Infocards.GetStringResource(e[0].ToInt32());
-				break;
-			case "ids_info":
-				if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-				IdsInfo.Add(FLData.Infocards.GetXmlResource(e[0].ToInt32()));
-				break;
-			case "hit_pts":
-				if (e.Count != 1) throw new Exception ("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-				Hitpoints = e [0].ToSingle ();
-				break;
-			case "phantom_physics":
-				if (e.Count != 1) throw new Exception ("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-				PhantomPhysics = e [0].ToBoolean ();
-				break;
-			case "type":
-				break;
-			case "material_library":
-				if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-				string path = e[0].ToString();
-				switch (Path.GetExtension(path))
-				{
-				case ".mat":
-					MaterialPaths.Add (VFS.GetPath (FLData.Freelancer.DataPath + path));
-					break;
-				case ".txm":
-					TexturePaths.Add (VFS.GetPath (FLData.Freelancer.DataPath + path));
-					break;
-				default:
-					throw new Exception("Invalid value in " + section.Name + " Entry " + e.Name + ": " + path);
-				}
-				break;
-			case "mass":
-				if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-				//if (Mass != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name); //Hack around discovery errors
-				Mass = e[0].ToSingle();
-				break;
-			case "shape_name":
-				if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-				if (ShapeName != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-				ShapeName = e[0].ToString();
-				break;
-			case "solar_radius":
-				if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-				if (SolarRadius != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-				SolarRadius = e[0].ToSingle();
-				break;
-			case "da_archetype":
-				if (e.Count != 1)
-					throw new Exception ("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-				if (DaArchetypeName != null)
-					throw new Exception ("Duplicate " + e.Name + " Entry in " + section.Name);
-				DaArchetypeName = VFS.GetPath (FLData.Freelancer.DataPath + e [0].ToString ());
-				break;
-			case "loadout":
-				if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-				if (LoadoutName != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-				LoadoutName = e[0].ToString();
-				break;
-			case "docking_sphere":
-					string scr = e.Count == 4 ? e[3].ToString() : null;
-				DockingSpheres.Add(new DockSphere() { Name = e[0].ToString(), Hardpoint = e[1].ToString(), Radius = e[2].ToInt32(), Script = scr });
-				break;
-			case "open_anim":
-				OpenAnim = e[0].ToString();
-				break;
-			case "lodranges":
-				LODRanges = new float[e.Count];
-				for (int i = 0; i < e.Count; i++) LODRanges[i] = e[i].ToSingle();
-				break;
-			default: return false;
-			}
-
-			return true;
-		}
+        protected bool HandleEntry(Entry e)
+        {
+            if(e.Name.Equals("docking_sphere", StringComparison.InvariantCultureIgnoreCase)) {
+                string scr = e.Count == 4 ? e[3].ToString() : null;
+                DockingSpheres.Add(new DockSphere() { Name = e[0].ToString(), Hardpoint = e[1].ToString(), Radius = e[2].ToInt32(), Script = scr });
+                return true;
+            }
+            return false;
+        }
 
 		public static Archetype FromSection(Section section, FreelancerData data)
 		{
@@ -157,26 +72,33 @@ namespace LibreLancer.Compatibility.GameData
 						break;
 					}
 			}
-			if (type == null) throw new Exception("Missing type Entry in " + section.Name);
-			if (type.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry type: " + type.Count);
+            if (type == null) { 
+                FLLog.Error("Ini","Missing type Entry in " + section.Name);
+                return null;
+            }
+            if (type.Count < 1) {
+                FLLog.Error("Ini","Invalid number of values in " + section.Name + " Entry type: " + type.Count);
+                return null;
+            }
 
 			switch (type[0].ToString().ToLowerInvariant())
 			{
-			case "sun": return new Sun(section, data);
-			case "planet": return new Planet(section, data);
-			case "docking_ring": return new DockingRing(section, data);
-			case "station": return new Station(section, data);
-			case "jump_gate": return new JumpGate(section, data);
-			case "satellite": return new Satellite(section, data);
-			case "jump_hole": return new JumpHole(section, data);
-			case "mission_satellite": return new MissionSatellite(section, data);
-			case "non_targetable": return new NonTargetable(section, data);
-			case "weapons_platform": return new WeaponsPlatform(section, data);
-			case "tradelane_ring": return new TradelaneRing(section, data);
-			case "waypoint": return new Waypoint(section, data);
-			case "airlock_gate": return new AirlockGate(section, data);
-			case "destroyable_depot": return new DestroyableDepot(section, data);
-			default: throw new Exception("Invalid value in " + section.Name + " Entry type: " + section["type"][0]);
+			case "sun": return IniFile.FromSection<Sun>(section);
+			case "planet": return IniFile.FromSection<Planet>(section);
+			case "docking_ring": return IniFile.FromSection<DockingRing>(section);
+			case "station": return IniFile.FromSection<Station>(section);
+			case "jump_gate": return IniFile.FromSection<JumpGate>(section);
+			case "satellite": return IniFile.FromSection<Satellite>(section);
+			case "jump_hole": return IniFile.FromSection<JumpHole>(section);
+			case "mission_satellite": return IniFile.FromSection<MissionSatellite>(section);
+			case "non_targetable": return IniFile.FromSection<NonTargetable>(section);
+			case "weapons_platform": return IniFile.FromSection<WeaponsPlatform>(section);
+			case "tradelane_ring": return IniFile.FromSection<TradelaneRing>(section);
+			case "waypoint": return IniFile.FromSection<Waypoint>(section);
+			case "airlock_gate": return IniFile.FromSection<AirlockGate>(section);
+			case "destroyable_depot": return IniFile.FromSection<DestroyableDepot>(section);
+			default: FLLog.Error("Ini", "Invalid value in " + section.Name + " Entry type: " + section["type"][0]);
+                    return null;
 			}
 		}
 	}

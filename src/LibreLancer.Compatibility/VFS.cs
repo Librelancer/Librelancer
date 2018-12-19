@@ -29,7 +29,13 @@ namespace LibreLancer.Compatibility
         {
             return File.OpenRead(GetPath(filename));
         }
-		public static string GetPath(string filename, bool throwOnError = true)
+        public static bool FileExists(string filename)
+        {
+            var fname = GetPath(filename, false);
+            if (fname == "VFS:FileMissing") return false;
+            return File.Exists(fname);
+        }
+        public static string GetPath(string filename, bool throwOnError = true)
         {
 			if (FreelancerDirectory == null)
 				return filename;

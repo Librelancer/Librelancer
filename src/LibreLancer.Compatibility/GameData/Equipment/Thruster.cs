@@ -8,55 +8,23 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 {
 	public class Thruster : AbstractEquipment
 	{
+        [Entry("particles")]
 		public string Particles;
+        [Entry("da_archetype")]
 		public string DaArchetype;
+        [Entry("material_library")]
 		public string MaterialLibrary;
+        [Entry("hp_particles")]
 		public string HpParticles;
+        [Entry("max_force")]
 		public int MaxForce;
+        [Entry("power_usage")]
 		public int PowerUsage;
+        [Entry("ids_name")]
 		public int IdsName;
+        [Entry("ids_info")]
 		public int IdsInfo;
+        [Entry("hit_pts")]
 		public int Hitpoints;
-
-		public Thruster(Section section)
-			: base(section)
-		{
-			foreach (Entry e in section)
-			{
-				if (!parentEntry(e))
-				{
-					switch (e.Name.ToLowerInvariant())
-					{
-						case "ids_name":
-							IdsName = e[0].ToInt32();
-							break;
-						case "ids_info":
-							IdsInfo = e[0].ToInt32();
-							break;
-						case "particles":
-							Particles = e[0].ToString();
-							break;
-						case "hp_particles":
-							HpParticles = e[0].ToString();
-							break;
-						case "max_force":
-							MaxForce = e[0].ToInt32();
-							break;
-						case "power_usage":
-							PowerUsage = e[0].ToInt32();
-							break;
-						case "da_archetype":
-							DaArchetype = e[0].ToString();
-							break;
-						case "material_library":
-							MaterialLibrary = e[0].ToString();
-							break;
-						case "hit_pts":
-							Hitpoints = e[0].ToInt32();
-							break;
-					}
-				}
-			}
-		}
 	}
 }

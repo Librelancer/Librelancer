@@ -8,43 +8,17 @@ namespace LibreLancer.Compatibility.GameData.Equipment
 {
     public class Gun : AbstractEquipment
     {
+        [Entry("da_archetype")]
         public string DaArchetype;
+        [Entry("material_library")]
         public string MaterialLibrary;
+        [Entry("ids_name")]
         public int IdsName;
+        [Entry("ids_info")]
         public int IdsInfo;
+        [Entry("hit_pts")]
         public int Hitpoints;
+        [Entry("turn_rate")]
         public float TurnRate;
-
-        public Gun(Section section)
-            : base(section)
-        {
-            foreach (Entry e in section)
-            {
-                if (!parentEntry(e))
-                {
-                    switch (e.Name.ToLowerInvariant())
-                    {
-                        case "ids_name":
-                            IdsName = e[0].ToInt32();
-                            break;
-                        case "ids_info":
-                            IdsInfo = e[0].ToInt32();
-                            break;
-                        case "da_archetype":
-                            DaArchetype = e[0].ToString();
-                            break;
-                        case "material_library":
-                            MaterialLibrary = e[0].ToString();
-                            break;
-                        case "hit_pts":
-                            Hitpoints = e[0].ToInt32();
-                            break;
-                        case "turn_rate":
-                            TurnRate = e[0].ToSingle();
-                            break;
-                    }
-                }
-            }
-        }
     }
 }
