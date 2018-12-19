@@ -39,55 +39,64 @@ namespace LibreLancer.Ini
 
         const BindingFlags F_CLASSMEMBERS = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
+        static object _sLock = new object();
+        static object _cLock = new object();
+
         static ReflectionInfo GetSectionInfo(Type t)
         {
-            ReflectionInfo info;
-            if (sectionclasses.TryGetValue(t, out info)) return info;
-            info = new ReflectionInfo() { Type = t };
-            foreach (var field in t.GetFields(F_CLASSMEMBERS))
+            lock (_sLock)
             {
-                var attrs = field.GetCustomAttributes<EntryAttribute>();
-                foreach (var a in attrs)
-                    info.Fields.Add(new ReflectionField() { Attr = a, Field = field });
-            }
-            //This should never be tripped
-            if (info.Fields.Count > 64) throw new Exception("Too many fields!! Edit bitmask code & raise limit");
-            foreach (var mthd in t.GetMethods(F_CLASSMEMBERS))
-            {
-                if (mthd.Name == "HandleEntry")
+                ReflectionInfo info;
+                if (sectionclasses.TryGetValue(t, out info)) return info;
+                info = new ReflectionInfo() { Type = t };
+                foreach (var field in t.GetFields(F_CLASSMEMBERS))
                 {
-                    info.HandleEntry = mthd;
-                    break;
+                    var attrs = field.GetCustomAttributes<EntryAttribute>();
+                    foreach (var a in attrs)
+                        info.Fields.Add(new ReflectionField() { Attr = a, Field = field });
                 }
+                //This should never be tripped
+                if (info.Fields.Count > 64) throw new Exception("Too many fields!! Edit bitmask code & raise limit");
+                foreach (var mthd in t.GetMethods(F_CLASSMEMBERS))
+                {
+                    if (mthd.Name == "HandleEntry")
+                    {
+                        info.HandleEntry = mthd;
+                        break;
+                    }
+                }
+                sectionclasses.Add(t, info);
+                return info;
             }
-            sectionclasses.Add(t, info);
-            return info;
         }
 
         static List<ReflectionSection> GetContainerInfo(Type t)
         {
-            List<ReflectionSection> sections;
-            if (containerclasses.TryGetValue(t, out sections)) return sections;
-            sections = new List<ReflectionSection>();
-            foreach (var field in t.GetFields(F_CLASSMEMBERS))
+            lock (_cLock)
             {
-                var attr = field.GetCustomAttributes<SectionAttribute>().FirstOrDefault();
-                if (attr == null) continue;
-                var s = new ReflectionSection() { Name = attr.Name };
-                var fieldType = field.FieldType;
-                //Handle lists
-                if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>))
+                List<ReflectionSection> sections;
+                if (containerclasses.TryGetValue(t, out sections)) return sections;
+                sections = new List<ReflectionSection>();
+                foreach (var field in t.GetFields(F_CLASSMEMBERS))
                 {
-                    s.Add = fieldType.GetMethod("Add", F_CLASSMEMBERS);
-                    if (s.Add == null) throw new Exception();
-                    fieldType = fieldType.GetGenericArguments()[0]; // use this...
+                    var attr = field.GetCustomAttributes<SectionAttribute>().FirstOrDefault();
+                    if (attr == null) continue;
+                    var s = new ReflectionSection() { Name = attr.Name };
+                    var fieldType = field.FieldType;
+                    //Handle lists
+                    if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>))
+                    {
+                        s.Add = fieldType.GetMethod("Add", F_CLASSMEMBERS);
+                        if (s.Add == null) throw new Exception();
+                        fieldType = fieldType.GetGenericArguments()[0]; // use this...
+                    }
+                    s.Type = GetSectionInfo(fieldType);
+                    s.Field = field;
+                    sections.Add(s);
                 }
-                s.Type = GetSectionInfo(fieldType);
-                s.Field = field;
-                sections.Add(s);
+                containerclasses.Add(t, sections);
+                return sections;
             }
-            containerclasses.Add(t, sections);
-            return sections;
         }
 
         public static T FromSection<T>(Section s)

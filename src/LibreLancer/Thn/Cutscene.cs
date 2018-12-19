@@ -88,6 +88,7 @@ namespace LibreLancer
 							case "solar":
 								drawable = game.GameData.GetSolar(kv.Value.Template);
 								break;
+                            case "ship":
 							case "spaceship":
 								var sh = game.GameData.GetShip(kv.Value.Template);
 								drawable = sh.Drawable;

@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Threading;
 using Newtonsoft.Json;
 
 using LibreLancer.Compatibility.GameData.Equipment;
@@ -67,64 +68,70 @@ namespace LibreLancer.Compatibility.GameData
 			{
 				Infocards = new InfocardManager(Freelancer.Resources);
 			}
-			//Dfm
-			Bodyparts = new BodypartsIni (Freelancer.BodypartsPath, this);
-			Costumes = new CostumesIni (Freelancer.CostumesPath, this);
-			//Equipment
-			Equipment = new EquipmentIni();
-			foreach (var eq in Freelancer.EquipmentPaths)
-				Equipment.AddEquipmentIni (eq, this);
-			//Solars
-			Solar = new SolararchIni (Freelancer.SolarPath, this);
-			if (Freelancer.StarsPath != null)
-				Stars = new StararchIni(Freelancer.StarsPath);
-			else
-				Stars = new StararchIni("DATA\\SOLAR\\stararch.ini");
-			Asteroids = new AsteroidArchIni ();
-			foreach (var ast in Freelancer.AsteroidPaths)
-				Asteroids.AddFile (ast);
-			//Loadouts
-			Loadouts = new LoadoutsIni();
-			foreach (var lo in Freelancer.LoadoutPaths)
-				Loadouts.AddLoadoutsIni (lo, this);
-			//Universe
-			Universe = new UniverseIni(Freelancer.UniversePath, this);
-			//Ships
-			Ships = new ShiparchIni();
-			foreach (var shp in Freelancer.ShiparchPaths)
-				Ships.AddShiparchIni (shp, this);
-			//Audio
-			Audio = new AudioIni();
-			foreach (var snd in Freelancer.SoundPaths)
-				Audio.AddIni(snd, Freelancer);
+            //Build Universe
+            var tUniverse = new Thread(() =>
+            {
+                //Equipment
+                Equipment = new EquipmentIni();
+                foreach (var eq in Freelancer.EquipmentPaths)
+                    Equipment.AddEquipmentIni(eq, this);
+                Solar = new SolararchIni(Freelancer.SolarPath, this);
+                if (Freelancer.StarsPath != null)
+                    Stars = new StararchIni(Freelancer.StarsPath);
+                else
+                    Stars = new StararchIni("DATA\\SOLAR\\stararch.ini");
+                Asteroids = new AsteroidArchIni();
+                foreach (var ast in Freelancer.AsteroidPaths)
+                    Asteroids.AddFile(ast);
+                Loadouts = new LoadoutsIni();
+                foreach (var lo in Freelancer.LoadoutPaths)
+                    Loadouts.AddLoadoutsIni(lo, this);
+                Universe = new UniverseIni(Freelancer.UniversePath, this);
+            });
+            //Misc
+            var tMisc = new Thread(() =>
+            {
+                //Graphs
+                Graphs = new GraphIni();
+                foreach (var g in Freelancer.GraphPaths)
+                    Graphs.AddGraphIni(g);
+                //Shapes
+                EffectShapes = new TexturePanels(Freelancer.EffectShapesPath);
+                //Effects
+                Effects = new EffectsIni();
+                foreach (var fx in Freelancer.EffectPaths)
+                    Effects.AddIni(fx);
+                //Mouse
+                Mouse = new MouseIni(Freelancer.DataPath + "//mouse.ini");
+                //Fonts
+                RichFonts = new RichFontsIni();
+                foreach (var rf in Freelancer.RichFontPaths)
+                    RichFonts.AddRichFontsIni(rf);
+                //PetalDb
+                PetalDb = new PetalDbIni();
+                foreach (var pt in Freelancer.PetalDbPaths)
+                    PetalDb.AddFile(pt);
+                //Hud
+                Hud = new HudIni();
+                Hud.AddIni(Freelancer.HudPath);
+                //navbar.ini
+                BaseNavBar = new BaseNavBarIni();
+                //mbases.ini
+                MBases = new MBasesIni();
+            });
+            tMisc.Start();
+            tUniverse.Start();
+            Bodyparts = new BodypartsIni(Freelancer.BodypartsPath, this);
+            Costumes = new CostumesIni(Freelancer.CostumesPath, this);
+            Audio = new AudioIni();
+            foreach (var snd in Freelancer.SoundPaths)
+                Audio.AddIni(snd, Freelancer);
+            Ships = new ShiparchIni();
+            foreach (var shp in Freelancer.ShiparchPaths)
+                Ships.AddShiparchIni(shp, this);
+            tUniverse.Join();
+            tMisc.Join();
 			Loaded = true;
-			//Graphs
-			Graphs = new GraphIni();
-			foreach (var g in Freelancer.GraphPaths)
-				Graphs.AddGraphIni(g);
-			//Shapes
-			EffectShapes = new TexturePanels(Freelancer.EffectShapesPath);
-			//Effects
-			Effects = new EffectsIni();
-			foreach (var fx in Freelancer.EffectPaths)
-				Effects.AddIni(fx);
-			//Mouse
-			Mouse = new MouseIni(Freelancer.DataPath + "//mouse.ini");
-			//Fonts
-			RichFonts = new RichFontsIni();
-			foreach (var rf in Freelancer.RichFontPaths)
-				RichFonts.AddRichFontsIni(rf);
-			//PetalDb
-			PetalDb = new PetalDbIni();
-			foreach (var pt in Freelancer.PetalDbPaths)
-				PetalDb.AddFile(pt);
-			//Hud
-			Hud = new HudIni();
-			Hud.AddIni(Freelancer.HudPath);
-			//navbar.ini
-			BaseNavBar = new BaseNavBarIni();
-			//mbases.ini
-			MBases = new MBasesIni();
 		}
 	}
 }
