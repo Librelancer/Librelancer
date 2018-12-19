@@ -330,6 +330,7 @@ namespace LancerEdit
                     inputs = plist.input;
                     triangleCount = (int)(plist.count * 3);
                 }
+                if (triangleCount == 0) continue; //Skip empty
                 //Blender workaround #1 - their stuff is crap
                 if(!string.IsNullOrEmpty(material) && isBlender && material.EndsWith("-material",StringComparison.InvariantCulture)) {
                     material = material.Substring(0, material.Length - 9);
