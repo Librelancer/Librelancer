@@ -71,7 +71,7 @@ namespace LibreLancer.Data
 				Infocards = new InfocardManager(Freelancer.Resources);
 			}
             //Build Universe
-            var tUniverse = new Thread(() =>
+            var tSolar = new Thread(() =>
             {
                 //Equipment
                 Equipment = new EquipmentIni();
@@ -88,6 +88,9 @@ namespace LibreLancer.Data
                 Loadouts = new LoadoutsIni();
                 foreach (var lo in Freelancer.LoadoutPaths)
                     Loadouts.AddLoadoutsIni(lo, this);
+            });
+            var tUniverse = new Thread(() =>
+            {
                 Universe = new UniverseIni(Freelancer.UniversePath, this);
             });
             //Misc
@@ -122,6 +125,7 @@ namespace LibreLancer.Data
                 MBases = new MBasesIni();
             });
             tMisc.Start();
+            tSolar.Start();
             tUniverse.Start();
             Bodyparts = new BodypartsIni(Freelancer.BodypartsPath, this);
             Costumes = new CostumesIni(Freelancer.CostumesPath, this);
@@ -134,8 +138,9 @@ namespace LibreLancer.Data
             Goods = new GoodsIni();
             foreach (var gd in Freelancer.GoodsPaths)
                 Goods.AddGoodsIni(gd);
-            tUniverse.Join();
+            tSolar.Join();
             tMisc.Join();
+            tUniverse.Join();
 			Loaded = true;
 		}
 	}

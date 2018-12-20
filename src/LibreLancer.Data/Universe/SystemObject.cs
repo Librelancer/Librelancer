@@ -55,16 +55,7 @@ namespace LibreLancer.Data.Universe
 		public int? DifficultyLevel { get; private set; }
 		public JumpReference Goto { get; private set; }
 
-		private string loadoutName;
-		private Loadout loadout;
-		public Loadout Loadout
-		{
-			get
-			{
-				if (loadout == null) loadout = GameData.Loadouts.FindLoadout(loadoutName);
-				return loadout;
-			}
-		}
+		public string LoadoutName;
 
 		public string Pilot { get; private set; }
 
@@ -184,8 +175,8 @@ namespace LibreLancer.Data.Universe
 						break;
 					case "loadout":
 						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-						if (loadoutName != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-						loadoutName = e[0].ToString();
+						if (LoadoutName != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+						LoadoutName = e[0].ToString();
 						break;
 					case "pilot":
 						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);

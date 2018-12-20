@@ -19,7 +19,7 @@ namespace LibreLancer.Data.Universe
 		public Vector2? Pos { get; private set; }
 		public string MsgIdPrefix { get; private set; }
 		public int? Visit { get; private set; }
-		public string IdsInfo { get; private set; }
+		public int IdsInfo { get; private set; }
 		public float? NavMapScale { get; private set; }
 
 		public Color4? SpaceColor { get; private set; }
@@ -100,14 +100,14 @@ namespace LibreLancer.Data.Universe
 				case "strid_name":
 					if (e.Count == 0) break;
 					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (StridName != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					StridName = GameData.Infocards.GetStringResource(e[0].ToInt32());
+					if (IdsName != 0) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+                    IdsName = e[0].ToInt32();
 					break;
 				case "ids_info":
 					if (e.Count == 0) break;
 					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (IdsInfo != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					IdsInfo = GameData.Infocards.GetXmlResource(e[0].ToInt32());
+					if (IdsInfo != 0) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+                    IdsInfo = e[0].ToInt32();
 					break;
 				case "navmapscale":
 					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);

@@ -44,8 +44,8 @@ namespace LibreLancer.Data.Universe
 						break;
 					case "strid_name":
 						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-						if (StridName != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-						StridName = data.Infocards.GetStringResource(e[0].ToInt32());
+						if (IdsName != 0) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+                        IdsName = e[0].ToInt32();
 						break;
 					case "file":
 						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);

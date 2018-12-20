@@ -24,86 +24,94 @@ namespace LibreLancer.Ini
 			//List<Section> sections = new List<Section>();
 			if (!path.ToLowerInvariant().EndsWith(".ini"))
 				path = path + ".ini";
-            using (Stream stream = VFS.Open(path))
-			{
-				byte[] buffer = new byte[4];
-				stream.Read(buffer, 0, 4);
-				string fileType = Encoding.ASCII.GetString(buffer);
+            using (var stream = new MemoryStream())
+            {
+                //Don't wait on I/O for yield return
+                using (Stream file = VFS.Open(path)) {
+                    file.CopyTo(stream);
+                }
+                stream.Position = 0;
+                byte[] buffer = new byte[4];
+                stream.Read(buffer, 0, 4);
+                string fileType = Encoding.ASCII.GetString(buffer);
                 Section currentSection = null;
-				if (fileType == FileType) // Binary Ini
-				{
-					BinaryReader reader = new BinaryReader(stream);
+                if (fileType == FileType) // Binary Ini
+                {
+                    BinaryReader reader = new BinaryReader(stream);
 
-					int formatVersion = reader.ReadInt32();
-					if (formatVersion != FileVersion) throw new FileVersionException(path, fileType, formatVersion, FileVersion);
+                    int formatVersion = reader.ReadInt32();
+                    if (formatVersion != FileVersion) throw new FileVersionException(path, fileType, formatVersion, FileVersion);
 
-					int stringBlockOffset = reader.ReadInt32();
-					if (stringBlockOffset > reader.BaseStream.Length) throw new FileContentException(path, fileType, "The string block offset was out of range: " + stringBlockOffset);
+                    int stringBlockOffset = reader.ReadInt32();
+                    if (stringBlockOffset > reader.BaseStream.Length) throw new FileContentException(path, fileType, "The string block offset was out of range: " + stringBlockOffset);
 
-					long sectionBlockOffset = reader.BaseStream.Position;
+                    long sectionBlockOffset = reader.BaseStream.Position;
 
-					reader.BaseStream.Seek(stringBlockOffset, SeekOrigin.Begin);
-					Array.Resize<byte>(ref buffer, (int)(reader.BaseStream.Length - stringBlockOffset));
-					reader.Read(buffer, 0, buffer.Length);
-					string stringBlock = Encoding.ASCII.GetString(buffer);
+                    reader.BaseStream.Seek(stringBlockOffset, SeekOrigin.Begin);
+                    Array.Resize<byte>(ref buffer, (int)(reader.BaseStream.Length - stringBlockOffset));
+                    reader.Read(buffer, 0, buffer.Length);
+                    string stringBlock = Encoding.ASCII.GetString(buffer);
 
-					reader.BaseStream.Seek(sectionBlockOffset, SeekOrigin.Begin);
+                    reader.BaseStream.Seek(sectionBlockOffset, SeekOrigin.Begin);
                     while (reader.BaseStream.Position < stringBlockOffset) yield return new Section(reader, stringBlock);
-				}
-				else // Text Ini
-				{
-					stream.Seek(0, SeekOrigin.Begin);
-					StreamReader reader = new StreamReader(stream);
+                }
+                else // Text Ini
+                {
+                    stream.Seek(0, SeekOrigin.Begin);
+                    StreamReader reader = new StreamReader(stream);
 
-					int currentLine = 0;
-					bool inSection = false;
-					while (!reader.EndOfStream)
-					{
-						string line = reader.ReadLine().Trim();
+                    int currentLine = 0;
+                    bool inSection = false;
+                    while (!reader.EndOfStream)
+                    {
+                        string line = reader.ReadLine().Trim();
 
-						if (string.IsNullOrWhiteSpace(line) 
+                        if (string.IsNullOrWhiteSpace(line)
                             || line[0] == ';'
-                            || line[0] == '@') 
-							continue;
+                            || line[0] == '@')
+                            continue;
 
-						if (line[0] == '[')
-						{
+                        if (line[0] == '[')
+                        {
                             if (currentSection != null) yield return currentSection;
                             int indexComment = line.IndexOf(';');
                             int indexClose = line.IndexOf(']');
                             if (indexComment != -1 && indexComment < indexClose)
-							{
-								inSection = false;
+                            {
+                                inSection = false;
                                 currentSection = null;
-								continue;
-							}
-							if (indexClose == -1) throw new FileContentException(path, IniFileType, "Invalid section header: " + line);
+                                continue;
+                            }
+                            if (indexClose == -1) throw new FileContentException(path, IniFileType, "Invalid section header: " + line);
                             string name = line.Substring(1, indexClose - 1).Trim();
                             currentSection = new Section(name) { File = path, Line = currentLine };
 
                             inSection = true;
-							continue;
-						}
-						else
-						{
-							if (!inSection) continue;
+                            continue;
+                        }
+                        else
+                        {
+                            if (!inSection) continue;
                             int indexComment = line.IndexOf(';');
                             if (indexComment != -1) line = line.Remove(indexComment);
-							if (!char.IsLetterOrDigit (line [0]) && line [0] != '_') {
-								FLLog.Warning ("Ini", "Invalid line in file: " + path + " at line " + currentLine + '"' + line + '"');
-							}
-							else if (line.Contains("="))
-							{
-								string[] parts = line.Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
-								if (parts.Length == 2) {
-									string val = parts [1].TrimStart ();
+                            if (!char.IsLetterOrDigit(line[0]) && line[0] != '_')
+                            {
+                                FLLog.Warning("Ini", "Invalid line in file: " + path + " at line " + currentLine + '"' + line + '"');
+                            }
+                            else if (line.Contains("="))
+                            {
+                                string[] parts = line.Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
+                                if (parts.Length == 2)
+                                {
+                                    string val = parts[1].TrimStart();
                                     string[] valParts = val.Split(',');
 
                                     List<IValue> values = new List<IValue>(valParts.Length);
-									foreach (string part in valParts) {
-										string s = part.Trim ();
-										bool tempBool;
-										float tempFloat;
+                                    foreach (string part in valParts)
+                                    {
+                                        string s = part.Trim();
+                                        bool tempBool;
+                                        float tempFloat;
                                         long tempLong;
                                         if (bool.TryParse(s, out tempBool))
                                             values.Add(new BooleanValue(tempBool));
@@ -114,31 +122,35 @@ namespace LibreLancer.Ini
                                             else
                                                 values.Add(new SingleValue(tempLong, tempLong));
                                         }
-										else if (float.TryParse(s, out tempFloat))
-										{
+                                        else if (float.TryParse(s, out tempFloat))
+                                        {
                                             values.Add(new SingleValue(tempFloat, null));
-										}
-										else
-											values.Add (new StringValue (s));
-									}
+                                        }
+                                        else
+                                            values.Add(new StringValue(s));
+                                    }
 
-									currentSection.Add (new Entry(parts[0].TrimEnd(), values) { File = path, Line = currentLine });
-								} else if (parts.Length == 3 && allowmaps) {
-									string k = parts [1].Trim ();
-									string v = parts [2].Trim ();
-									currentSection.Add(new Entry(parts[0].Trim(), new IValue[] { new StringKeyValue(k, v) }) { File = path, Line = currentLine });
-								} else if (parts.Length == 1) {
-									currentSection.Add (new Entry(parts[0].Trim(), new List<IValue>()) { File = path, Line = currentLine });
-								}
-								else FLLog.Error("INI", "Invalid entry line: " + line + " in " + path);
-							}
-							else currentSection.Add(new Entry(line, new List<IValue>(0)));
-						}
-						currentLine++;
-					}
-				}
+                                    currentSection.Add(new Entry(parts[0].TrimEnd(), values) { File = path, Line = currentLine });
+                                }
+                                else if (parts.Length == 3 && allowmaps)
+                                {
+                                    string k = parts[1].Trim();
+                                    string v = parts[2].Trim();
+                                    currentSection.Add(new Entry(parts[0].Trim(), new IValue[] { new StringKeyValue(k, v) }) { File = path, Line = currentLine });
+                                }
+                                else if (parts.Length == 1)
+                                {
+                                    currentSection.Add(new Entry(parts[0].Trim(), new List<IValue>()) { File = path, Line = currentLine });
+                                }
+                                else FLLog.Error("INI", "Invalid entry line: " + line + " in " + path);
+                            }
+                            else currentSection.Add(new Entry(line, new List<IValue>(0)));
+                        }
+                        currentLine++;
+                    }
+                }
                 if (currentSection != null) yield return currentSection;
-			}
+            }
 		}
 	}
 }

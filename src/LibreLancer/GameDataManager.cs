@@ -261,7 +261,7 @@ namespace LibreLancer
 			}
 			var sys = new GameData.StarSystem ();
 			sys.AmbientColor = inisys.AmbientColor ?? Color4.White;
-			sys.Name = inisys.StridName;
+            sys.Name = GetString(inisys.IdsName);
 			sys.Id = inisys.Nickname;
 			sys.BackgroundColor = inisys.SpaceColor ?? Color4.Black;
 			sys.MusicSpace = inisys.MusicSpace;
@@ -674,7 +674,7 @@ namespace LibreLancer
 			var drawable = resource.GetDrawable (ResolveDataPath(o.Archetype.DaArchetypeName));
 			var obj = new GameData.SystemObject ();
 			obj.Nickname = o.Nickname;
-			obj.DisplayName = o.IdsName;
+			obj.DisplayName = GetString(o.IdsName);
 			obj.Position = o.Pos.Value;
 			if (o.DockWith != null)
 			{
@@ -770,7 +770,7 @@ namespace LibreLancer
 			obj.Archetype.ArchetypeName = o.Archetype.GetType ().Name;
 			obj.Archetype.Drawable = drawable;
 			obj.Archetype.LODRanges = o.Archetype.LODRanges;
-			var ld = o.Loadout;
+			var ld = fldata.Loadouts.FindLoadout(o.LoadoutName);
 			var archld = fldata.Loadouts.FindLoadout(o.Archetype.LoadoutName);
 			if(ld != null) ProcessLoadout(ld, obj);
 			if (archld != null) ProcessLoadout(archld, obj);

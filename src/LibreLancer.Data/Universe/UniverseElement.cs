@@ -12,7 +12,7 @@ namespace LibreLancer.Data.Universe
 		protected FreelancerData GameData;
 
 		public string Nickname { get; protected set; }
-		public string StridName { get; protected set; }
+		public int IdsName { get; protected set; }
 		public string Name { get; protected set; }
 
 		public UniverseElement(FreelancerData data) {
