@@ -86,39 +86,6 @@
     <Reference Include="MySql.Data">
       <HintPath>..\packages\MySql.Data.6.9.10\lib\net45\MySql.Data.dll</HintPath>
     </Reference>
-    <Reference Include="mscorlib">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\mscorlib.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Core">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\System.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="System">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\System.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.CSharp">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\Microsoft.CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Xml">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\System.Xml.dll</HintPath>
-    </Reference>
-    <Reference Include="System.ComponentModel.DataAnnotations">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\System.ComponentModel.DataAnnotations.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Data.DataSetExtensions">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\System.Data.DataSetExtensions.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Data">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\System.Data.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Net.Http">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\System.Net.Http.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Numerics">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\System.Numerics.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Xml.Linq">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\System.Xml.Linq.dll</HintPath>
-    </Reference>
     <Reference Include="Neo.Lua.Desktop">
       <HintPath>..\packages\NeoLua.1.2.25\lib\net45\Neo.Lua.Desktop.dll</HintPath>
     </Reference>
@@ -477,10 +444,6 @@
       <Project>{38F87B47-C903-477A-A9A3-6AD1A2CE1C09}</Project>
       <Name>LibreLancer.Media</Name>
     </ProjectReference>
-    <ProjectReference Include="..\LibreLancer.Compatibility\LibreLancer.Compatibility.csproj">
-      <Project>{F89CC613-0C7A-4936-9D79-86CBBF26593E}</Project>
-      <Name>LibreLancer.Compatibility</Name>
-    </ProjectReference>
     <ProjectReference Include="..\LibreLancer.Thorn\LibreLancer.Thorn.csproj">
       <Project>{1D0655D3-D4BC-4155-B180-ABD09FF47BD2}</Project>
       <Name>LibreLancer.Thorn</Name>
@@ -496,6 +459,10 @@
     <ProjectReference Include="..\LibreLancer.Physics\LibreLancer.Physics.csproj">
       <Project>{C2ACC8B3-1805-45D2-B32B-CCBA545AA09F}</Project>
       <Name>LibreLancer.Physics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LibreLancer.Data\LibreLancer.Data.csproj">
+      <Project>{F89CC613-0C7A-4936-9D79-86CBBF26593E}</Project>
+      <Name>LibreLancer.Data</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

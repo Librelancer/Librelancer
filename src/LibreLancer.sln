@@ -19,7 +19,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Base", "LibreLa
 		{CBBDC35F-DCA3-453C-A9E3-29EE7E43DE85} = {CBBDC35F-DCA3-453C-A9E3-29EE7E43DE85}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Compatibility", "LibreLancer.Compatibility\LibreLancer.Compatibility.csproj", "{F89CC613-0C7A-4936-9D79-86CBBF26593E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Data", "LibreLancer.Data\LibreLancer.Data.csproj", "{F89CC613-0C7A-4936-9D79-86CBBF26593E}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C7A37830-B878-4008-A988-D7294D47F44D} = {C7A37830-B878-4008-A988-D7294D47F44D}
 	EndProjectSection

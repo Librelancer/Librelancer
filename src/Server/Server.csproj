@@ -28,135 +28,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="mscorlib">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\mscorlib.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Core">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\System.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="System">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\System.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="LibreLancer.Base">
-      <HintPath>..\..\bin\Debug\LibreLancer.Base.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
@@ -167,9 +38,9 @@
       <Project>{C1D53477-0117-48EF-A13D-A0225F0F50CA}</Project>
       <Name>LibreLancer</Name>
     </ProjectReference>
-    <ProjectReference Include="..\LibreLancer.Compatibility\LibreLancer.Compatibility.csproj">
+    <ProjectReference Include="..\LibreLancer.Data\LibreLancer.Data.csproj">
       <Project>{F89CC613-0C7A-4936-9D79-86CBBF26593E}</Project>
-      <Name>LibreLancer.Compatibility</Name>
+      <Name>LibreLancer.Data</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

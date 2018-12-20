@@ -37,18 +37,6 @@
     <Reference Include="TeximpNet">
       <HintPath>..\..\packages\TeximpNet.1.2.0\lib\net40\TeximpNet.dll</HintPath>
     </Reference>
-    <Reference Include="mscorlib">
-      <HintPath>..\..\..\..\..\..\..\usr\lib\mono\4.6-api\mscorlib.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Core">
-      <HintPath>..\..\..\..\..\..\..\usr\lib\mono\4.6-api\System.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="System">
-      <HintPath>..\..\..\..\..\..\..\usr\lib\mono\4.6-api\System.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.CSharp">
-      <HintPath>..\..\..\..\..\..\..\usr\lib\mono\4.6-api\Microsoft.CSharp.dll</HintPath>
-    </Reference>
     <Reference Include="System.Xml.Serialization" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -98,10 +86,6 @@
       <Project>{D24DBB87-1E3D-4080-ABFB-B21CBDDACD87}</Project>
       <Name>ImGuiNet.Build451</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\LibreLancer.Compatibility\LibreLancer.Compatibility.csproj">
-      <Project>{F89CC613-0C7A-4936-9D79-86CBBF26593E}</Project>
-      <Name>LibreLancer.Compatibility</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\LibreLancer\LibreLancer.csproj">
       <Project>{C1D53477-0117-48EF-A13D-A0225F0F50CA}</Project>
       <Name>LibreLancer</Name>
@@ -125,6 +109,10 @@
     <ProjectReference Include="..\LibreLancer.ImUI\LibreLancer.ImUI.csproj">
       <Project>{81A8703E-031C-422C-804B-34B3BAF834A6}</Project>
       <Name>LibreLancer.ImUI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\LibreLancer.Data\LibreLancer.Data.csproj">
+      <Project>{F89CC613-0C7A-4936-9D79-86CBBF26593E}</Project>
+      <Name>LibreLancer.Data</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

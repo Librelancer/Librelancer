@@ -42,21 +42,6 @@
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Xml" />
-    <Reference Include="mscorlib">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\mscorlib.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Core">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\System.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="System">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\System.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.CSharp">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\Microsoft.CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Xml">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\4.6-api\System.Xml.dll</HintPath>
-    </Reference>
     <Reference Include="System.Runtime.Serialization.Primitives">
       <HintPath>..\packages\System.Runtime.Serialization.Primitives.4.3.0\lib\net46\System.Runtime.Serialization.Primitives.dll</HintPath>
     </Reference>
