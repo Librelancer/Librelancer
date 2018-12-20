@@ -5,7 +5,7 @@
 using System;
 using System.IO;
 using LibreLancer;
-using LibreLancer.Compatibility;
+using LibreLancer.Data;
 namespace Server
 {
 	class Config

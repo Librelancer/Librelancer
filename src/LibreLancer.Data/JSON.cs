@@ -4,7 +4,7 @@
 
 using System;
 using Newtonsoft.Json;
-namespace LibreLancer.Compatibility
+namespace LibreLancer.Data
 {
 	//Wrap around JsonConvert
 	public class JSON

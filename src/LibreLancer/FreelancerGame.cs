@@ -12,7 +12,7 @@ namespace LibreLancer
 {
 	public class FreelancerGame : Game
     {
-		public LegacyGameData GameData;
+		public GameDataManager GameData;
 		public AudioManager Audio;
 		public FontManager Fonts;
 		public SoundManager Sound;
@@ -74,7 +74,7 @@ namespace LibreLancer
 				Audio.Music.Volume = 0f;
 			//Load data
 			FLLog.Info("Game", "Loading game data");
-			GameData = new LegacyGameData(_cfg.FreelancerPath, ResourceManager);
+			GameData = new GameDataManager(_cfg.FreelancerPath, ResourceManager);
 			IntroMovies = GameData.GetIntroMovies();
 			MpvOverride = _cfg.MpvOverride;
             Thread GameDataLoaderThread = new Thread(() =>

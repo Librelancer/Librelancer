@@ -157,7 +157,7 @@
     <Compile Include="Render\ShaderCache.cs" />
     <Compile Include="Render\NebulaRenderer.cs" />
     <Compile Include="GameData\StarSystem.cs" />
-    <Compile Include="LegacyGameData.cs" />
+    <Compile Include="GameDataManager.cs" />
     <Compile Include="ResourceManager.cs" />
     <Compile Include="GameData\SystemObject.cs" />
     <Compile Include="GameData\Archetype.cs" />

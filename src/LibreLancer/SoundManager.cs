@@ -8,9 +8,9 @@ namespace LibreLancer
 {
 	public class SoundManager
 	{
-		LegacyGameData data;
+		GameDataManager data;
 		AudioManager audio;
-		public SoundManager(LegacyGameData gameData, AudioManager audio)
+		public SoundManager(GameDataManager gameData, AudioManager audio)
 		{
 			data = gameData;
 			this.audio = audio;

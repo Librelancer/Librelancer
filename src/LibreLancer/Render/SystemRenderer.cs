@@ -77,7 +77,7 @@ namespace LibreLancer
             }
         }
 
-		public SystemRenderer(ICamera camera, LegacyGameData data, ResourceManager rescache, Game game)
+		public SystemRenderer(ICamera camera, GameDataManager data, ResourceManager rescache, Game game)
 		{
 			this.camera = camera;			
 			AsteroidFields = new List<AsteroidFieldRenderer>();

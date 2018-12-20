@@ -20,7 +20,7 @@ namespace LibreLancer
 		public int Port = NetConstants.DEFAULT_PORT;
 		public string AppIdentifier = NetConstants.DEFAULT_APP_IDENT;
 		public string DbConnectionString;
-		public LegacyGameData GameData;
+		public GameDataManager GameData;
 		public ServerDatabase Database;
 
 		volatile bool running = false;
@@ -30,7 +30,7 @@ namespace LibreLancer
 
 		public GameServer(string fldir)
 		{
-			GameData = new LegacyGameData(fldir, null);	
+			GameData = new GameDataManager(fldir, null);	
 		}
 
 		public void Start()

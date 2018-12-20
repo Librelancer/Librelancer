@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
-using LibreLancer.Compatibility;
+using LibreLancer.Data;
 namespace LibreLancer.Dll
 {
     public class DllFile

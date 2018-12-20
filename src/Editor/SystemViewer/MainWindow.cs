@@ -14,7 +14,7 @@ namespace SystemViewer
     public class MainWindow : Game
     {
         public ViewportManager Viewport;
-        public LegacyGameData GameData;
+        public GameDataManager GameData;
         public ResourceManager Resources;
         public Billboards Billboards;
         public NebulaVertices Nebulae;
@@ -258,7 +258,7 @@ C# Memory Usage: {5}
             }
             Thread GameDataLoaderThread = new Thread(() =>
             {
-                GameData = new LegacyGameData(path, Resources);
+                GameData = new GameDataManager(path, Resources);
                 GameData.LoadData();
                 FLLog.Info("Game", "Finished loading game data");
                 EnsureUIThread(OnLoadComplete);

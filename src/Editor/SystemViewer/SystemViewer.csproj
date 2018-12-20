@@ -51,7 +51,7 @@
     </ProjectReference>
     <ProjectReference Include="..\..\LibreLancer.Compatibility\LibreLancer.Compatibility.csproj">
       <Project>{F89CC613-0C7A-4936-9D79-86CBBF26593E}</Project>
-      <Name>LibreLancer.Compatibility</Name>
+      <Name>LibreLancer.Data</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj">
       <Project>{6967FE1C-5953-4416-889C-FF10AE1F7DD1}</Project>

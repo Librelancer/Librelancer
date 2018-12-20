@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LibreLancer.Compatibility
+namespace LibreLancer.Data
 {
     public static class VFS
     {

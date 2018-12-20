@@ -14,7 +14,7 @@ namespace LibreLancer
 	{
         //MySqlConnection connection;
         List<PlayerAccount> accounts = new List<PlayerAccount>();
-		public ServerDatabase(string connectionString, LegacyGameData gameData)
+		public ServerDatabase(string connectionString, GameDataManager gameData)
 		{
 			//FLLog.Info("MySQL", "Connecting to database");
 			//connection = new MySqlConnection(connectionString);

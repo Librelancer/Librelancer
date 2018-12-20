@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using LibreLancer.Compatibility;
+using LibreLancer.Data;
 
 namespace LibreLancer.Ini
 {
