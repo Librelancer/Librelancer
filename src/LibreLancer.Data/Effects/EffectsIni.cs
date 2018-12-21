@@ -12,6 +12,10 @@ namespace LibreLancer.Data.Effects
 	{
         [Section("viseffect")]
 		public List<VisEffect> VisEffects = new List<VisEffect>();
+        [Section("beamspear")]
+        public List<BeamSpear> BeamSpears = new List<BeamSpear>();
+        [Section("beambolt")]
+        public List<BeamBolt> BeamBolts = new List<BeamBolt>();
         [Section("effect")]
 		public List<Effect> Effects = new List<Effect>();
 

@@ -389,6 +389,9 @@
     <Compile Include="Thn\Events\StartPSysPropAnimRunner.cs" />
     <Compile Include="Thn\Events\StartSpatialPropAnimRunner.cs" />
     <Compile Include="Thn\Events\StartMotionRunner.cs" />
+    <Compile Include="Gameplay\ProjectileManager.cs" />
+    <Compile Include="GameData\Items\MunitionEquip.cs" />
+    <Compile Include="Render\ProjectileRenderer.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

@@ -815,10 +815,20 @@ namespace LibreLancer
                 if(gn.MaterialLibrary != null)
                     resource.LoadResourceFile(ResolveDataPath(gn.MaterialLibrary));
                 var drawable = resource.GetDrawable(ResolveDataPath(gn.DaArchetype));
+                var mn = fldata.Equipment.Munitions.FirstOrDefault((x) => x.Nickname.Equals(gn.ProjectileArchetype, StringComparison.OrdinalIgnoreCase));
+                var effect = fldata.Effects.FindEffect(mn.ConstEffect);
+
+                var mequip = new GameData.Items.MunitionEquip()
+                {
+                    Def = mn,
+                    ConstEffect_Beam = fldata.Effects.BeamSpears.FirstOrDefault((x) => x.Nickname.Equals(effect.VisBeam,StringComparison.OrdinalIgnoreCase)),
+                    ConstEffect_Bolt = fldata.Effects.BeamBolts.FirstOrDefault((x) => x.Nickname.Equals(effect.VisBeam, StringComparison.OrdinalIgnoreCase))
+                };
                 equip = new GameData.Items.GunEquipment()
                 {
                     Model = drawable,
-                    TurnRateRadians = MathHelper.DegreesToRadians(gn.TurnRate)
+                    Munition = mequip,
+                    Def = gn                
                 };
             }
 			if (val is Data.Equipment.Thruster)

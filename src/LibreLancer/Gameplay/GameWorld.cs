@@ -12,17 +12,21 @@ namespace LibreLancer
 	{
 		public PhysicsWorld Physics;
 		public SystemRenderer Renderer;
+        public ProjectileManager Projectiles;
+
 		public List<GameObject> Objects = new List<GameObject>();
 		public delegate void RenderUpdateHandler(TimeSpan delta);
 		public event RenderUpdateHandler RenderUpdate;
 		public delegate void PhysicsUpdateHandler(TimeSpan delta);
 		public event PhysicsUpdateHandler PhysicsUpdate;
+
 		public GameWorld(SystemRenderer render)
 		{
 			Renderer = render;
             render.World = this;
             Physics = new PhysicsWorld();
             Physics.FixedUpdate += FixedUpdate;
+            Projectiles = new ProjectileManager(this);
 		}
 
 		public void LoadSystem(StarSystem sys, ResourceManager res)
@@ -33,8 +37,9 @@ namespace LibreLancer
 			Renderer.StarSystem = sys;
 
 			Objects = new List<GameObject>();
+            Objects.Add((new GameObject() { Nickname = "projectiles", RenderComponent = new ProjectileRenderer(Projectiles) }));
 
-			foreach (var obj in sys.Objects)
+            foreach (var obj in sys.Objects)
 			{
 				var g = new GameObject(obj.Archetype, res, true);
 				g.Name = obj.DisplayName;
@@ -90,6 +95,7 @@ namespace LibreLancer
 
         void FixedUpdate(TimeSpan timespan)
         {
+            Projectiles.FixedUpdate(timespan);
             if (PhysicsUpdate != null) PhysicsUpdate(timespan);
             for (int i = 0; i < Objects.Count; i++)
                 Objects[i].FixedUpdate(timespan);

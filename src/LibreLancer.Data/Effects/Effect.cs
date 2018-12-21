@@ -13,6 +13,8 @@ namespace LibreLancer.Data.Effects
 		public string Nickname;
         [Entry("vis_effect")]
 		public string VisEffect;
+        [Entry("vis_beam")]
+        public string VisBeam;
         [Entry("snd_effect")]
         public string SndEffect;
         [Entry("type")]

@@ -186,6 +186,9 @@
     <Compile Include="PetalDbIni.cs" />
     <Compile Include="RichFont.cs" />
     <Compile Include="RichFontsIni.cs" />
+    <Compile Include="Equipment\Munition.cs" />
+    <Compile Include="Effects\BeamSpear.cs" />
+    <Compile Include="Effects\BeamBolt.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

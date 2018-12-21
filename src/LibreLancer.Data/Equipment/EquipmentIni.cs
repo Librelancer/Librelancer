@@ -13,10 +13,11 @@ namespace LibreLancer.Data.Equipment
 	public class EquipmentIni : IniFile
 	{
 		public List<AbstractEquipment> Equip { get; private set; }
-
-		public EquipmentIni()
+        public List<Munition> Munitions { get; private set; }
+        public EquipmentIni()
 		{
 			Equip = new List<AbstractEquipment>();
+            Munitions = new List<Munition>();
 		}
 
 		public void AddEquipmentIni(string path, FreelancerData data)
@@ -75,6 +76,7 @@ namespace LibreLancer.Data.Equipment
 				case "explosion":
 					break;
 				case "munition":
+                    Munitions.Add(FromSection<Munition>(s));
 					break;
 				case "gun":
                     Equip.Add(FromSection<Gun>(s));

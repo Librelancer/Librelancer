@@ -15,7 +15,7 @@ namespace LibreLancer
 Camera Position: (X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00})
 C# Memory Usage: {5}
 Velocity: {6}
-Selected Object (right click): {7}
+Selected Object: {7}
 Mouse Position: {8} {9}
 Mouse Flight: {10}
 ";
@@ -102,6 +102,7 @@ Mouse Flight: {10}
 			current_cur = cur_arrow;
 			Game.Keyboard.TextInput += Game_TextInput;
 			g.Keyboard.KeyDown += Keyboard_KeyDown;
+            g.Mouse.MouseDown += Mouse_MouseDown;
 			input = new InputManager(Game);
 			input.ToggleActivated += Input_ToggleActivated;
 			input.ToggleUp += Input_ToggleUp; 
@@ -332,8 +333,20 @@ Mouse Flight: {10}
 			if (textEntry)
 				currentText += text;
 
-		}
-		Vector2 moffset = Vector2.Zero;
+        }
+
+        double lastDown = -1000;
+
+        void Mouse_MouseDown(MouseEventArgs e)
+        {
+            if((e.Buttons & MouseButtons.Left) > 0)
+            {
+                lastDown = Game.TotalTime;
+            }
+        }
+
+
+        Vector2 moffset = Vector2.Zero;
 		const float ACCEL = 85;
 		GameObject selected;
 		void ProcessInput(TimeSpan delta)
@@ -383,20 +396,22 @@ Mouse Flight: {10}
 			//control.EnginePower = Velocity / MAX_VELOCITY;
 			var obj = GetSelection(Game.Mouse.X, Game.Mouse.Y);
 			current_cur = obj == null ? cur_arrow : cur_reticle;
-			if (Game.Mouse.IsButtonDown(MouseButtons.Right))
-			{
-				var newselected = GetSelection(Game.Mouse.X, Game.Mouse.Y);
-				selected = newselected;
-				//hud.SelectedObject = selected;
-			}
+			
             var ep = UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0.25f), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
             var tgt = UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0f), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
             var dir = (tgt - ep).Normalized();
             var dir2 = new Matrix3(player.PhysicsComponent.Body.Transform.ClearTranslation()) * Vector3.UnitZ;
             tgt += dir * 750;
-            //Console.WriteLine("{0}: {1} {2}", tgt, dir, dir2);
             weapons.AimPoint = tgt;
-		}
+
+            if(!Game.Mouse.IsButtonDown(MouseButtons.Left) && Game.TotalTime - lastDown < 0.25)
+            {
+                var newselected = GetSelection(Game.Mouse.X, Game.Mouse.Y);
+                if (newselected != null) selected = newselected;
+            }
+            if (Game.Mouse.IsButtonDown(MouseButtons.Right))
+                weapons.FireAll();
+        }
 
 		GameObject GetSelection(float x, float y)
 		{

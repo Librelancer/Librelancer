@@ -20,5 +20,13 @@ namespace LibreLancer.Data.Equipment
         public int Hitpoints;
         [Entry("turn_rate")]
         public float TurnRate;
+        [Entry("muzzle_velocity")]
+        public float MuzzleVelocity;
+        [Entry("power_usage")]
+        public float PowerUsage;
+        [Entry("refire_delay")]
+        public float RefireDelay;
+        [Entry("projectile_archetype")]
+        public string ProjectileArchetype;
     }
 }
