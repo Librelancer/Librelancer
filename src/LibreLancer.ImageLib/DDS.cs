@@ -85,7 +85,7 @@ namespace LibreLancer.ImageLib
                 throw new Exception("DX10+ DDS not supported");
             if (header.dwSize != HEADER_SIZE ||
                 header.ddspf.dwSize != PFORMAT_SIZE)
-                throw new Exception("Incompatible DDS header");
+                FLLog.Warning("DDS", "Bad DDS header, loading may fail.");
 
             if (CheckFlag(header.dwFlags, DDSD_DEPTH) || CheckFlag(header.dwCaps2, DDSCAPS2_VOLUME))
                 throw new Exception("3D textures not supported");
