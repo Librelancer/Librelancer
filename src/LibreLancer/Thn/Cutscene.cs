@@ -55,7 +55,7 @@ namespace LibreLancer
             }
         }
 
-        public Cutscene(IEnumerable<ThnScript> scripts, FreelancerGame game)
+        public Cutscene(IEnumerable<ThnScript> scripts, FreelancerGame game, GameObject playerShip = null)
 		{
 			camera = new ThnCamera(game.Viewport);
 
@@ -78,7 +78,20 @@ namespace LibreLancer
 					obj.Name = kv.Key;
 					obj.Translate = kv.Value.Position ?? Vector3.Zero;
 					obj.Rotate = kv.Value.RotationMatrix ?? Matrix4.Identity;
-					if (kv.Value.Type == EntityTypes.Compound)
+                    //PlayerShip object
+                    if (playerShip != null && kv.Value.Type == EntityTypes.Compound && 
+                    kv.Value.Template.Equals("playership", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        obj.Object = playerShip;
+                        obj.Entity = kv.Value;
+                        Vector3 transform = kv.Value.Position ?? Vector3.Zero;
+                        obj.Object.Transform = (kv.Value.RotationMatrix ?? Matrix4.Identity) * Matrix4.CreateTranslation(transform);
+                        World.Objects.Add(obj.Object);
+                        Objects.Add(kv.Key, obj);
+                        continue;
+                    }
+                    //Create objects
+                    if (kv.Value.Type == EntityTypes.Compound)
 					{
 						
 						//Fetch model

@@ -14,6 +14,7 @@ namespace LibreLancer
             var obj = cs.Objects[(string)ev.Targets[0]];
             var ren = ((ParticleEffectRenderer)obj.Object.RenderComponent);
             var props = (LuaTable)ev.Properties["psysprops"];
+            if (props.Capacity == 0) return;
             var targetSparam = (float)props["sparam"];
             if (ev.Duration == 0)
             {

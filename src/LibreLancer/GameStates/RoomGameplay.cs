@@ -98,21 +98,12 @@ namespace LibreLancer
 			hud.Dispose();
 			scene.Dispose();
 		}
+        string ag;
 
 		void Hud_OnManeuverSelected(string arg)
 		{
             if (arg == active) return;
-			var hotspot = currentRoom.Hotspots.Find((obj) => obj.Name == arg);
-			switch (hotspot.Behavior)
-			{
-				case "ExitDoor":
-					var rm = currentBase.Rooms.Find((o) => o.Nickname == hotspot.Room);
-					Game.ChangeState(new RoomGameplay(Game, session, baseId, rm, hotspot.SetVirtualRoom));
-					break;
-				case "VirtualRoom":
-					Game.ChangeState(new RoomGameplay(Game, session, baseId, currentRoom, hotspot.Room));
-					break;
-			}
+            ag = arg; //NeoLua doesn't let you have a full stack walk
 		}
 
 		void Keyboard_KeyDown(KeyEventArgs e)
@@ -163,7 +154,11 @@ namespace LibreLancer
 			{
 				Game.Sound.PlayMusic(currentRoom.Music);
 			}
-			scene = new Cutscene(currentRoom.OpenScripts(), Game);
+            var shp = Game.GameData.GetShip(session.PlayerShip);
+            var PlayerShip = new GameObject(shp.Drawable, Game.ResourceManager);
+            PlayerShip.PhysicsComponent = null;
+
+            scene = new Cutscene(currentRoom.OpenScripts(), Game, PlayerShip);
 			if (currentRoom.Camera != null) scene.SetCamera(currentRoom.Camera);
 			foreach (var npc in currentRoom.Npcs)
 			{
@@ -179,15 +174,6 @@ namespace LibreLancer
 				child.Transform = Matrix4.CreateTranslation(0, 3, 0);
 				obj.Object.Children.Add(child);
 			}
-			if (currentRoom.PlayerShipPlacement != null) {
-				var shp = Game.GameData.GetShip(session.PlayerShip);
-				var obj = new GameObject(shp.Drawable, Game.ResourceManager);
-				obj.PhysicsComponent = null;
-				var place = scene.Objects[currentRoom.PlayerShipPlacement];
-				obj.Register(scene.World.Physics);
-				obj.Transform = obj.GetHardpoint("HpMount").Transform.Inverted();
-				place.Object.Children.Add(obj);
-			}
 		}
 
 		public override void Update(TimeSpan delta)
@@ -195,7 +181,21 @@ namespace LibreLancer
 			if(scene != null)
 				scene.Update(delta);
             hud.Update(delta);
-		}
+            if (ag != null)
+            {
+                var hotspot = currentRoom.Hotspots.Find((obj) => obj.Name == ag);
+                switch (hotspot.Behavior)
+                {
+                    case "ExitDoor":
+                        var rm = currentBase.Rooms.Find((o) => o.Nickname == hotspot.Room);
+                        Game.ChangeState(new RoomGameplay(Game, session, baseId, rm, hotspot.SetVirtualRoom));
+                        break;
+                    case "VirtualRoom":
+                        Game.ChangeState(new RoomGameplay(Game, session, baseId, currentRoom, hotspot.Room));
+                        break;
+                }
+            }
+        }
 
 		public override void Draw(TimeSpan delta)
 		{

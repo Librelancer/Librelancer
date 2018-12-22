@@ -120,7 +120,7 @@ namespace LibreLancer
                 }
                 if (targetType == TargetTypes.Part)
                 {
-                    var hp = new Hardpoint(null, part.CmpConstructs.Find(ev.Properties["target_part"].ToString())); //Create a dummy hardpoint to attach to
+                    var hp = new Hardpoint(null, objB.Object.CmpConstructs.Find(ev.Properties["target_part"].ToString())); //Create a dummy hardpoint to attach to
                     part = new GameObject();
                     part.Parent = objB.Object;
                     part.Attachment = hp;

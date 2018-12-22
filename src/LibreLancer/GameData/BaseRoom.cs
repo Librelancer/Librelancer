@@ -15,10 +15,16 @@ namespace LibreLancer.GameData
 		public List<BaseNpc> Npcs = new List<BaseNpc>();
 		public string Music;
 		public string PlayerShipPlacement;
-
+        public string StartScript;
+        public string LandScript;
+        public string LaunchScript;
+        public string GoodscartScript;
 		public IEnumerable<ThnScript> OpenScripts()
 		{
 			foreach (var p in ThnPaths) yield return new ThnScript(p);
+            if (StartScript != null) yield return new ThnScript(StartScript);
+            if (GoodscartScript != null) yield return new ThnScript(GoodscartScript);
+            if (LandScript != null) yield return new ThnScript(LandScript);
 		}
 	}
 	public class BaseHotspot

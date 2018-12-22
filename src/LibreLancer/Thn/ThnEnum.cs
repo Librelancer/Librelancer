@@ -72,7 +72,7 @@ namespace LibreLancer
 			}
 			if (v != 0)
 			{
-				throw new NotImplementedException("Flags for " + typeof(T).Name + ": " + v);
+				FLLog.Error("Thn","Flags for " + typeof(T).Name + ": " + v);
 			}
 			return (T)(dynamic)objFlags;
 		}
@@ -82,6 +82,8 @@ namespace LibreLancer
 		{
 			switch ((int)(float)o)
 			{
+                case 2:
+                    return EventTypes.SetCamera;
 				case 3:
 					return EventTypes.StartSound;
 				case 4:
@@ -96,6 +98,8 @@ namespace LibreLancer
 					return EventTypes.StartMotion;
 				case 13:
 					return EventTypes.StartPSys;
+                case 14:
+                    return EventTypes.StartPSysPropAnim;
 				case 15:
 					return EventTypes.StartAudioPropAnim;
 				case 16:
@@ -112,8 +116,12 @@ namespace LibreLancer
 			{
 				case 1:
 					return EntityTypes.Compound;
+                case 2:
+                    return EntityTypes.Deformable;
 				case 3:
 					return EntityTypes.Camera;
+                case 4:
+                    return EntityTypes.Monitor;
 				case 5:
 					return EntityTypes.Light;
 				case 6:

@@ -20,8 +20,9 @@ namespace LibreLancer.Data.Universe
 		public string PlayerShipPlacement { get; private set; }
 		public string LaunchingScript { get; private set; }
 		public string LandingScript { get; private set; }
-
-		public Room(Section section, FreelancerData data)
+        public string StartScript { get; private set;  }
+        public string GoodscartScript { get; private set; }
+        public Room(Section section, FreelancerData data)
 		{
 			GameData = data;
 			if (section == null) throw new ArgumentNullException("section");
@@ -56,6 +57,8 @@ namespace LibreLancer.Data.Universe
                             {
                                 if (e.Name.ToLowerInvariant() == "set_script")
                                     SceneScripts.Add(e[0].ToString());
+                                if (e.Name.ToLowerInvariant() == "goodscart_script")
+                                    GoodscartScript = e[0].ToString();
                                 if (e.Name.ToLowerInvariant() == "scene")
                                 {
                                     if (e.Count == 3 || e.Count == 4)
@@ -101,7 +104,15 @@ namespace LibreLancer.Data.Universe
                             }
                             break;
                         case "characterplacement":
-                            // TODO Room characterplacement
+                            foreach(Entry e in s)
+                            {
+                                switch(e.Name.ToLowerInvariant())
+                                {
+                                    case "start_script":
+                                        StartScript = e[0].ToString();
+                                        break;
+                                }
+                            }
                             break;
                         case "forsaleshipplacement":
                             // TODO Room forsaleshipplacement

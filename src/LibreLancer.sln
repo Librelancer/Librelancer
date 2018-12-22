@@ -119,6 +119,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{F1160AA9-1
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "lancer", "lancer\lancer.csproj", "{2F0BFBA3-2D0F-48C5-84AF-FF82986913FB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "thorn2lua", "thorn2lua\thorn2lua.csproj", "{D7F08E5D-94FF-4027-8430-DAE17199B568}"
+EndProject
 Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -204,6 +206,10 @@ Global
 		{2F0BFBA3-2D0F-48C5-84AF-FF82986913FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F0BFBA3-2D0F-48C5-84AF-FF82986913FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2F0BFBA3-2D0F-48C5-84AF-FF82986913FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7F08E5D-94FF-4027-8430-DAE17199B568}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7F08E5D-94FF-4027-8430-DAE17199B568}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7F08E5D-94FF-4027-8430-DAE17199B568}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7F08E5D-94FF-4027-8430-DAE17199B568}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{38B159EB-CF44-4A4F-948A-E238D7FAE28E} = {953F895D-0AAD-4427-B912-71215C04BEFD}

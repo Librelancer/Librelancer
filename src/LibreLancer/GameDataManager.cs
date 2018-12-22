@@ -76,6 +76,14 @@ namespace LibreLancer
 				nr.PlayerShipPlacement = room.PlayerShipPlacement;
 				foreach (var path in room.SceneScripts)
 					nr.ThnPaths.Add(Data.VFS.GetPath(fldata.Freelancer.DataPath + path));
+                if (room.LandingScript != null)
+                    nr.LandScript = Data.VFS.GetPath(fldata.Freelancer.DataPath + room.LandingScript);
+                if (room.StartScript != null)
+                    nr.StartScript = Data.VFS.GetPath(fldata.Freelancer.DataPath + room.StartScript);
+                if (room.LaunchingScript != null)
+                    nr.LaunchScript = Data.VFS.GetPath(fldata.Freelancer.DataPath + room.LaunchingScript);
+                if (room.GoodscartScript != null)
+                    nr.GoodscartScript = Data.VFS.GetPath(fldata.Freelancer.DataPath + room.GoodscartScript);
 				nr.Hotspots = new List<GameData.BaseHotspot>();
 				foreach (var hp in room.Hotspots)
 					nr.Hotspots.Add(new GameData.BaseHotspot()
