@@ -63,20 +63,28 @@ namespace LibreLancer.Physics
             surs.Add(GetSur(path));
             return surs.Count - 1;
         }
-
         public void UpdatePart(object tag, Matrix4 localTransform)
         {
             var tr = localTransform.Cast();
-            foreach(var part in children) {
-                if(part.Tag == tag) {
-                    for (int i = part.Index; i < (part.Index + part.Count); i++) {
-                        btCompound.UpdateChildTransform(i, tr);
+            foreach (var part in children)
+            {
+                if (part.Tag == tag)
+                {
+                    if (part.CurrentTransform == localTransform) return;
+                    part.CurrentTransform = localTransform;
+                    for (int i = part.Index; i < (part.Index + part.Count); i++)
+                    {
+                        btCompound.UpdateChildTransform(i, tr, false);
                     }
                     break;
                 }
             }
+        }
+        public void FinishUpdatePart()
+        {
             btCompound.RecalculateLocalAabb();
         }
+
         public IEnumerable<BoundingBox> GetBoxes(Matrix4 transform)
         {
             foreach(var shape in btCompound.ChildList) {
@@ -90,6 +98,7 @@ namespace LibreLancer.Physics
             public object Tag;
             public int Index = 0;
             public int Count = 0;
+            public Matrix4 CurrentTransform;
         }
     }
 

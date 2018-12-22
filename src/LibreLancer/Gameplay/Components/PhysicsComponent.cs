@@ -57,6 +57,7 @@ namespace LibreLancer
                 if (part.Construct != null)
                     sur.UpdatePart(part.Construct, part.Construct.Transform);
             }
+            sur.FinishUpdatePart();
         }
         public override void Unregister(PhysicsWorld physics)
         {
