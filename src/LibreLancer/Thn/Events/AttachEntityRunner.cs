@@ -8,50 +8,51 @@ namespace LibreLancer
     [ThnEventRunner(EventTypes.AttachEntity)]
     public class AttachEntityRunner : IThnEventRunner
     {
-        class AttachCameraToObject : IThnRoutine
+        class AttachRoutine : IThnRoutine
         {
             public float Duration;
-            public ThnCameraTransform Camera;
+            public ThnObject Child;
             public Vector3 Offset;
-            public GameObject Object;
+            public ThnObject Parent;
             public GameObject Part;
             public bool Position;
             public bool Orientation;
             public bool LookAt;
+            Func<Vector3> lookFunc;
             double t = 0;
             public bool Run(Cutscene cs, double delta)
             {
-                Matrix4 transform;
-                if (Part != null)
-                    transform = Part.GetTransform();
-                else
-                    transform = Object.GetTransform();
-                t += delta;
-                if (t > Duration)
+                Vector3 translate = Parent.Translate;
+                Matrix4 rotate = Parent.Rotate;
+                if (Part != null && (Position || Orientation))
                 {
-                    if (LookAt)
-                        Camera.LookAt = null;
-                    return false;
+                    var tr = Part.GetTransform();
+                    if (Position) translate = tr.ExtractTranslation();
+                    if (Orientation) rotate = Matrix4.CreateFromQuaternion(tr.ExtractRotation());
+                }
+                t += delta;
+                if (LookAt)
+                {
+                    if (lookFunc == null)
+                    {
+                        if (Part != null) lookFunc = () => Part.Transform.Transform(Vector3.Zero);
+                        else lookFunc = () => Parent.Translate;
+                    }
+                }
+                else
+                if (Child.Camera != null) Child.Camera.LookAt = null;
+                
+                if (t > Duration)
+                    if (LookAt) Child.Camera.LookAt = null;
+                if(Offset != Vector3.Zero) { //TODO: This can be optimised
+                    var tr = rotate * Matrix4.CreateTranslation(translate) * Matrix4.CreateTranslation(Offset);
+                    translate = tr.ExtractTranslation();
+                    rotate = Matrix4.CreateFromQuaternion(tr.ExtractRotation());
                 }
                 if (Position)
-                    Camera.Position = transform.ExtractTranslation();
+                    Child.Translate = translate;
                 if (Orientation)
-                    Camera.Orientation = Matrix4.CreateFromQuaternion(transform.ExtractRotation());
-                return true;
-            }
-        }
-
-        class DetachObject : IThnRoutine
-        {
-            public float Duration;
-            public GameObject Object;
-            double t = 0;
-            public bool Run(Cutscene cs, double delta)
-            {
-                t += delta;
-                if (t > Duration)
-                    return false;
-
+                    Child.Rotate = rotate;
                 return true;
             }
         }
@@ -78,64 +79,33 @@ namespace LibreLancer
                 flags = ThnEnum.Check<AttachFlags>(tmp);
             ev.Properties.TryGetVector3("offset", out offset);
             //Attach GameObjects to eachother
-            if (objA.Object != null && objB.Object != null)
+            GameObject part = null;
+            string tgt_part;
+            ev.Properties.TryGetValue("target_part", out tmp);
+            tgt_part = (tmp as string);
+            if (targetType == TargetTypes.Hardpoint && !string.IsNullOrEmpty(tgt_part))
             {
-                if (targetType == TargetTypes.Hardpoint)
-                {
-                    var targetHp = ev.Properties["target_part"].ToString();
-                    if (!objB.Object.HardpointExists(targetHp))
-                    {
-                        FLLog.Error("Thn", "object " + objB.Name + " does not have hardpoint " + targetHp);
-                        return;
-                    }
-                    var hp = objB.Object.GetHardpoint(targetHp);
-                    objA.Object.Attachment = hp;
-                    objA.Object.Parent = objB.Object;
-                    objA.Object.Transform = Matrix4.CreateTranslation(offset);
-                }
-                else if (targetType == TargetTypes.Root)
-                {
-                    objA.Object.Transform = Matrix4.CreateTranslation(offset);
-                    objA.Object.Parent = objB.Object;
-                }
-
+                part = new GameObject();
+                part.Parent = objB.Object;
+                part.Attachment = objB.Object.GetHardpoint(ev.Properties["target_part"].ToString());
             }
-            //Attach GameObjects and Cameras to eachother
-            if (objA.Object != null && objB.Camera != null)
+            if (targetType == TargetTypes.Part && !string.IsNullOrEmpty(tgt_part))
             {
-
+                var hp = new Hardpoint(null, objB.Object.CmpConstructs.Find(ev.Properties["target_part"].ToString())); //Create a dummy hardpoint to attach to
+                part = new GameObject();
+                part.Parent = objB.Object;
+                part.Attachment = hp;
             }
-            if (objA.Camera != null && objB.Object != null)
+            cs.Coroutines.Add(new AttachRoutine()
             {
-                if ((flags & AttachFlags.LookAt) == AttachFlags.LookAt)
-                {
-                    objA.Camera.LookAt = objB.Object;
-                }
-                GameObject part = null;
-                if (targetType == TargetTypes.Hardpoint)
-                {
-                    part = new GameObject();
-                    part.Parent = objB.Object;
-                    part.Attachment = objB.Object.GetHardpoint(ev.Properties["target_part"].ToString());
-                }
-                if (targetType == TargetTypes.Part)
-                {
-                    var hp = new Hardpoint(null, objB.Object.CmpConstructs.Find(ev.Properties["target_part"].ToString())); //Create a dummy hardpoint to attach to
-                    part = new GameObject();
-                    part.Parent = objB.Object;
-                    part.Attachment = hp;
-                }
-                cs.Coroutines.Add(new AttachCameraToObject()
-                {
-                    Duration = ev.Duration,
-                    Camera = objA.Camera,
-                    Object = objB.Object,
-                    Part = part,
-                    Position = ((flags & AttachFlags.Position) == AttachFlags.Position),
-                    Orientation = ((flags & AttachFlags.Orientation) == AttachFlags.Orientation),
-                    LookAt = ((flags & AttachFlags.LookAt) == AttachFlags.LookAt)
-                });
-            }
+                Duration = ev.Duration,
+                Child = objA,
+                Parent = objB,
+                Part = part,
+                Position = ((flags & AttachFlags.Position) == AttachFlags.Position),
+                Orientation = ((flags & AttachFlags.Orientation) == AttachFlags.Orientation),
+                LookAt = ((flags & AttachFlags.LookAt) == AttachFlags.LookAt)
+            });
         }
     }
 }

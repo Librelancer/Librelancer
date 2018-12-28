@@ -31,7 +31,7 @@ namespace LibreLancer
 			projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovy), Transform.AspectRatio, 2.5f, 10000000f);
 			Vector3 originalTarget = Vector3.Forward;
 			Vector3 rotatedTarget = Transform.Orientation.Transform(originalTarget);
-			Vector3 target = Transform.LookAt == null ? Position + rotatedTarget : Transform.LookAt.Transform.ExtractTranslation();
+            Vector3 target = Transform.LookAt == null ? Position + rotatedTarget : Transform.LookAt();
 			Vector3 upVector = Transform.Orientation.Transform(Vector3.Up);
 			view = Matrix4.LookAt(Position, target, upVector);
 			frameNo++;

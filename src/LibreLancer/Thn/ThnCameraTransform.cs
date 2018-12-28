@@ -11,6 +11,6 @@ namespace LibreLancer
 		public float AspectRatio = 4f / 3f;
 		public Vector3 Position = Vector3.Zero;
 		public Matrix4 Orientation = Matrix4.Identity;
-		public GameObject LookAt = null;
+        public Func<Vector3> LookAt;
 	}
 }

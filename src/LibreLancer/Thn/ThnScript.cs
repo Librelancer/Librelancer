@@ -309,10 +309,6 @@ namespace LibreLancer
 			if (table.TryGetValue("pathprops", out o))
 			{
 				var pathprops = (LuaTable)o;
-                if(pathprops.TryGetValue("path_type", out o))
-                {
-                    FLLog.Error("Thn", o.ToString());
-                }
                 if (pathprops.TryGetValue("path_data", out o))
 				{
 					e.Path = new MotionPath((string)o);

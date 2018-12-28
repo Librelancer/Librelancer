@@ -17,6 +17,31 @@ namespace LibreLancer
         public DynamicLight Light;
         public ThnEntity Entity;
         public ThnCameraTransform Camera;
+        public Vector3 LightDir;
+        public Hardpoint HpMount;
+        public void Update()
+        {
+            if (Object != null)
+            {
+                if(HpMount == null)
+                    Object.Transform = Rotate * Matrix4.CreateTranslation(Translate);
+                else {
+                    var tr = HpMount.Transform;
+                    tr.Invert();
+                    Object.Transform = tr * (Rotate * Matrix4.CreateTranslation(Translate));
+                }
+            }
+            if(Camera != null)
+            {
+                Camera.Orientation = Rotate;
+                Camera.Position = Translate;
+            }
+            if(Light != null)
+            {
+                Light.Light.Position = Translate;
+                Light.Light.Direction = (new Vector4(LightDir.Normalized(), 0) * Rotate).Xyz.Normalized();
+            }
+        }
     }
 
     public interface IThnRoutine
@@ -86,6 +111,7 @@ namespace LibreLancer
                         obj.Entity = kv.Value;
                         Vector3 transform = kv.Value.Position ?? Vector3.Zero;
                         obj.Object.Transform = (kv.Value.RotationMatrix ?? Matrix4.Identity) * Matrix4.CreateTranslation(transform);
+                        obj.HpMount = playerShip.GetHardpoint("HpMount");
                         World.Objects.Add(obj.Object);
                         Objects.Add(kv.Key, obj);
                         continue;
@@ -93,7 +119,7 @@ namespace LibreLancer
                     //Create objects
                     if (kv.Value.Type == EntityTypes.Compound)
 					{
-						
+                        bool getHpMount = false;
 						//Fetch model
 						IDrawable drawable;
 						switch (kv.Value.MeshCategory.ToLowerInvariant())
@@ -103,6 +129,7 @@ namespace LibreLancer
 								break;
                             case "ship":
 							case "spaceship":
+                                getHpMount = true;
 								var sh = game.GameData.GetShip(kv.Value.Template);
 								drawable = sh.Drawable;
 								break;
@@ -136,7 +163,9 @@ namespace LibreLancer
 							obj.Object = new GameObject(drawable, game.ResourceManager, false);
                             obj.Object.Name = kv.Value.Name;
 							obj.Object.PhysicsComponent = null; //Jitter seems to interfere with directly setting orientation
-							var r = (ModelRenderer)obj.Object.RenderComponent;
+                            if(getHpMount)
+                                obj.HpMount = obj.Object.GetHardpoint("HpMount");
+                            var r = (ModelRenderer)obj.Object.RenderComponent;
 							r.LightGroup = kv.Value.LightGroup;
 							r.LitDynamic = (kv.Value.ObjectFlags & ThnObjectFlags.LitDynamic) == ThnObjectFlags.LitDynamic;
 							r.LitAmbient = (kv.Value.ObjectFlags & ThnObjectFlags.LitAmbient) == ThnObjectFlags.LitAmbient;
@@ -171,6 +200,7 @@ namespace LibreLancer
 						lt.Active = kv.Value.LightProps.On;
 						lt.Light = kv.Value.LightProps.Render;
 						obj.Light = lt;
+                        obj.LightDir = lt.Light.Direction;
 						if (kv.Value.RotationMatrix.HasValue)
 						{
 							var m = kv.Value.RotationMatrix.Value;
@@ -199,7 +229,7 @@ namespace LibreLancer
 						World.Objects.Add(obj.Object);
 					}
 					obj.Entity = kv.Value;
-					Objects.Add(kv.Key, obj);
+                    Objects[kv.Key] = obj;
 				}
 			}
 			evs.Sort((x, y) => x.Time.CompareTo(y.Time));
@@ -258,6 +288,7 @@ namespace LibreLancer
 				var ev = events.Dequeue();
 				ProcessEvent(ev);
 			}
+            foreach (var obj in Objects.Values) obj.Update();
 			camera.Update();
 			World.Update(delta);
 		}

@@ -25,7 +25,7 @@ namespace LibreLancer
 			//TODO: Move non-flags enums to workingTypes when complete
 			if (typeof(T) == typeof(TargetTypes)) return (T)DoTargetTypes(o);
 			if (typeof(T) == typeof(EntityTypes)) return (T)DoEntityTypes(o);
-			if (typeof(T) == typeof(AttachFlags)) return (T)DoAttachFlags(o);
+			if (typeof(T) == typeof(AttachFlags)) return FlagsReflected<T>((int)(float)o);
 			if (typeof(T) == typeof(EventTypes)) return (T)DoEventTypes(o);
 			throw new InvalidCastException();
 		}
@@ -36,27 +36,6 @@ namespace LibreLancer
 		};
 
 		//WIP enums
-		static object DoAttachFlags(object o)
-		{
-			switch ((int)(float)o)
-			{
-				case (2 | 4):
-					return AttachFlags.Position | AttachFlags.Orientation;
-				case (2 | 4 | 8):
-					return AttachFlags.Position | AttachFlags.Orientation | AttachFlags.LookAt;
-				case 2:
-					return AttachFlags.Position;
-				case 4:
-					return AttachFlags.Orientation;
-				case (2 | 4 | 32):
-					return AttachFlags.Position | AttachFlags.Orientation | AttachFlags.EntityRelative;
-				case (2 | 4 | 32 | 128):
-					return AttachFlags.Position | AttachFlags.Orientation | AttachFlags.EntityRelative | AttachFlags.OrientationRelative;
-				default:
-					throw new NotImplementedException(o.ToString());
-			}
-		}
-
 		public static T FlagsReflected<T>(int input)
 		{
 			int v = input;
@@ -88,6 +67,8 @@ namespace LibreLancer
 					return EventTypes.StartSound;
 				case 4:
 					return EventTypes.StartLightPropAnim;
+                case 5:
+                    return EventTypes.StartCameraPropAnim;
 				case 6:
 					return EventTypes.StartPathAnimation;
 				case 7:

@@ -90,42 +90,23 @@ namespace LibreLancer
 
         class ObjectPathAnimation : PathAnimationBase
         {
-            public GameObject Object;
+            public ThnObject Object;
 
             protected override void SetPosition(Vector3 pos)
             {
-                var rot = Object.Transform.ExtractRotation();
-                Object.Transform = Matrix4.CreateFromQuaternion(rot) * Matrix4.CreateTranslation(pos);
+                Object.Translate = pos;
             }
             protected override void SetPositionOrientation(Vector3 pos, Matrix4 orient)
             {
-                Object.Transform = orient * Matrix4.CreateTranslation(pos);
+                Object.Translate = pos;
+                Object.Rotate = orient;
             }
             protected override void SetOrientation(Matrix4 orient)
             {
-                var translation = Object.Transform.ExtractTranslation();
-                Object.Transform = orient * Matrix4.CreateTranslation(translation);
+                Object.Rotate = orient;
             }
         }
 
-        class CameraPathAnimation : PathAnimationBase
-        {
-            public ThnCameraTransform Camera;
-
-            protected override void SetPosition(Vector3 pos)
-            {
-                Camera.Position = pos;
-            }
-            protected override void SetPositionOrientation(Vector3 pos, Matrix4 orient)
-            {
-                Camera.Position = pos;
-                Camera.Orientation = orient;
-            }
-            protected override void SetOrientation(Matrix4 orient)
-            {
-                Camera.Orientation = orient;
-            }
-        }
 
         public void Process(ThnEvent ev, Cutscene cs)
         {
@@ -134,32 +115,16 @@ namespace LibreLancer
             var start = (float)ev.Properties["start_percent"];
             var stop = (float)ev.Properties["stop_percent"];
             var flags = ThnEnum.Check<AttachFlags>(ev.Properties["flags"]);
-            if (obj.Object != null)
+            cs.Coroutines.Add(new ObjectPathAnimation()
             {
-                cs.Coroutines.Add(new ObjectPathAnimation()
-                {
-                    Duration = ev.Duration,
-                    StartPercent = start,
-                    StopPercent = stop,
-                    Flags = flags,
-                    Curve = ev.ParamCurve,
-                    Path = path,
-                    Object = obj.Object
-                });
-            }
-            if (obj.Camera != null)
-            {
-                cs.Coroutines.Add(new CameraPathAnimation()
-                {
-                    Duration = ev.Duration,
-                    StartPercent = start,
-                    StopPercent = stop,
-                    Flags = flags,
-                    Curve = ev.ParamCurve,
-                    Path = path,
-                    Camera = obj.Camera
-                });
-            }
+                Duration = ev.Duration,
+                StartPercent = start,
+                StopPercent = stop,
+                Flags = flags,
+                Curve = ev.ParamCurve,
+                Path = path,
+                Object = obj
+            });
         }
     }
 }
