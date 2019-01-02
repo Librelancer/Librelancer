@@ -98,10 +98,6 @@
       <Project>{6967FE1C-5953-4416-889C-FF10AE1F7DD1}</Project>
       <Name>LibreLancer.ImageLib</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\extern\SharpFont\Source\SharpFont\SharpFont.csproj">
-      <Project>{C293DB32-FA42-486D-B128-5A12522FAE4E}</Project>
-      <Name>SharpFont</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\extern\Collada141\Collada141.csproj">
       <Project>{7895D6CA-28F4-47D0-8C57-03B4D05DF9F6}</Project>
       <Name>Collada141</Name>

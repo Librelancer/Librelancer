@@ -199,19 +199,16 @@
   -->
   <ItemGroup />
   <ItemGroup>
-    <ProjectReference Include="..\..\extern\SharpFont\Source\SharpFont\SharpFont.csproj">
-      <Project>{C293DB32-FA42-486D-B128-5A12522FAE4E}</Project>
-      <Name>SharpFont</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\extern\FontConfigSharp\FontConfigSharp\FontConfigSharp.csproj">
       <Project>{CBBDC35F-DCA3-453C-A9E3-29EE7E43DE85}</Project>
       <Name>FontConfigSharp</Name>
     </ProjectReference>
+    <ProjectReference Include="..\SharpFont.BuildNoConfig\SharpFont.csproj">
+      <Project>{C293DB32-FA42-486D-B128-5A12522FAE4E}</Project>
+      <Name>SharpFont</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="LibreLancer.Base.dll.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="SSE\multiply_matrix_x86.S" />
     <None Include="SSE\multiply_matrix_windows.S" />
     <None Include="SSE\multiply_matrix_unix.S" />

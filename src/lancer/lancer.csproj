@@ -48,5 +48,16 @@
       <Name>LibreLancer.Base</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="LibreLancer.Base.dll.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="LibreLancer.Media.dll.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="SharpFont.dll.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

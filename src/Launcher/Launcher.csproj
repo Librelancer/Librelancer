@@ -103,9 +103,6 @@
       <Link>x64\SDL2.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="SharpFont.dll.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <Compile Include="..\CommonVersion.cs">
       <Link>Properties\CommonVersion.cs</Link>
     </Compile>
