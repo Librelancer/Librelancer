@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>LibreLancer.Media</RootNamespace>
     <AssemblyName>LibreLancer.Media</AssemblyName>
-    <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -62,10 +62,7 @@
     <DefineConstants>DEBUG;OSX</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PlatformTarget>x64</PlatformTarget>
-    <PlatformTarget>x64</PlatformTarget>
-    <RunWithWarnings>true</RunWithWarnings>
-    <DelaySign>false</DelaySign>
-    <NoWarn></NoWarn>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="SharpDX, Version=3.0.2.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
