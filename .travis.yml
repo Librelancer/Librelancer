@@ -11,8 +11,6 @@ addons:
 script:
  - ./build.sh --target=LinuxDaily
 deploy:
-    edge:
-        branch: v1.8.47
     provider: pages
     skip-cleanup: true
     github-token: $GITHUB_TOKEN

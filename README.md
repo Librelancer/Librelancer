@@ -23,7 +23,7 @@ Download daily builds from https://librelancer.net/downloads.html
 **Prerequisites:**
 
 * 64-bit Windows 7 or newer
-* .NET Framework 4.6+
+* .NET Framework 4.7+
 * Visual Studio 2017
 * [CMake](https://cmake.org/)
 
@@ -53,4 +53,4 @@ Powershell security issues can be troubleshooted [here](https://cakebuild.net/do
 
 
 ## Screenshots
-See: http://librelancer.github.io/screenshots
+See: http://librelancer.net for more!
