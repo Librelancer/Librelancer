@@ -31,6 +31,7 @@ namespace LibreLancer
 		List<string> preloadFiles = new List<string>();
 
         Dictionary<int, QuadSphere> quadSpheres = new Dictionary<int, QuadSphere>();
+        Dictionary<int, OpenCylinder> cylinders = new Dictionary<int, OpenCylinder>();
 
         VertexResource<VertexPosition> posResource = new VertexResource<VertexPosition>();
         VertexResource<VertexPositionColor> posColorResource = new VertexResource<VertexPositionColor>();
@@ -78,7 +79,17 @@ namespace LibreLancer
             return sph;
         }
 
-		public Dictionary<string, Texture> TextureDictionary
+        public OpenCylinder GetOpenCylinder(int slices)
+        {
+            OpenCylinder cyl;
+            if (!cylinders.TryGetValue(slices, out cyl))
+            {
+                cyl = new OpenCylinder(slices);
+                cylinders.Add(slices, cyl);
+            }
+            return cyl;
+        }
+        public Dictionary<string, Texture> TextureDictionary
 		{
 			get
 			{

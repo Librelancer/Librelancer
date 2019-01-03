@@ -18,7 +18,7 @@ namespace LibreLancer
                     return;
                 }
             }
-            FLLog.Debug("Vertices", "Allocating 6MiB for " + typeof(T).Name);
+            FLLog.Debug("Vertices", "Allocating 16MiB for " + typeof(T).Name);
             buffers.Add(new VertexResourceBuffer<T>());
             buffers[buffers.Count - 1].Allocate(vertices, indices, out startIndex, out baseVertex, out index);
             vbo = buffers[buffers.Count - 1].Buffer;
@@ -35,8 +35,8 @@ namespace LibreLancer
 
     public class VertexResourceBuffer<T> where T : struct
     {
-        const int VERTEX_BUFSIZE = (int)(4.5 * 1024 * 1024);
-        const int INDEX_BUFSIZE = (int)(1.5 * 1024 * 1024);
+        const int VERTEX_BUFSIZE = (int)(12.75 * 1024 * 1024);
+        const int INDEX_BUFSIZE = (int)(3.25 * 1024 * 1024);
         public int TotalVertex;
 
         public int TotalIndex {  get { return Index.TotalIndex; } set { Index.TotalIndex = value; } }

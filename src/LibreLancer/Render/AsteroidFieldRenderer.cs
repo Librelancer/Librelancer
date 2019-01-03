@@ -87,7 +87,7 @@ namespace LibreLancer
                 field.Zone.RotationMatrix * 
                 Matrix4.CreateTranslation(field.Zone.Position)
             );
-            bandCylinder = new OpenCylinder(SIDES);
+            bandCylinder = sys.ResourceManager.GetOpenCylinder(SIDES);
             bandNormal = bandTransform;
             bandNormal.Invert();
             bandNormal.Transpose();
