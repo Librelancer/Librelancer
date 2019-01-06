@@ -133,6 +133,8 @@ namespace LibreLancer
 						return TargetTypes.Root;
 					case 1:
 						return TargetTypes.Hardpoint;
+                    case 2:
+                        return TargetTypes.Part;
 					default:
 						throw new NotImplementedException(o.ToString());
 				}

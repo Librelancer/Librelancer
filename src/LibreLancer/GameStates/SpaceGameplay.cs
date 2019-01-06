@@ -559,7 +559,8 @@ Mouse Flight: {10}
 		//RigidBody debugDrawBody;
 		public override void Draw(TimeSpan delta)
 		{
-            if(loading)
+            RenderMaterial.VertexLighting = false;
+            if (loading)
             {
                 loader.Draw(delta);
                 return;

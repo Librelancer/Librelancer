@@ -20,7 +20,8 @@ namespace LibreLancer
 		StartCameraPropAnim,
 		StartSound,
 		StartAudioPropAnim,
-		ConnectHardpoints
+		ConnectHardpoints,
+        StartFloorHeightAnim
 	}
 }
 

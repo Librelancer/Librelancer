@@ -65,6 +65,7 @@ namespace LibreLancer
 			ThnEnv.Add("START_CAMERA_PROP_ANIM", EventTypes.StartCameraPropAnim);
 			ThnEnv.Add("START_SOUND", EventTypes.StartSound);
 			ThnEnv.Add("START_AUDIO_PROP_ANIM", EventTypes.StartAudioPropAnim);
+            ThnEnv.Add("START_FLR_HEIGHT_ANIM", EventTypes.StartFloorHeightAnim);
 			ThnEnv.Add("CONNECT_HARDPOINTS", EventTypes.ConnectHardpoints);
 			//Axis
 			ThnEnv.Add("X_AXIS", Vector3.UnitX);
@@ -293,7 +294,9 @@ namespace LibreLancer
 				else
 					throw new Exception("Light without type");
 				if (lightprops.TryGetVector3("diffuse", out tmp))
-					r.Color = new Color4(tmp.X, tmp.Y, tmp.Z, 1);
+					r.Color = new Color3f(tmp.X, tmp.Y, tmp.Z);
+                if (lightprops.TryGetVector3("ambient", out tmp))
+                    r.Ambient = new Color3f(tmp.X, tmp.Y, tmp.Z);
 				if (lightprops.TryGetVector3("direction", out tmp))
 					r.Direction = tmp;
 				if (lightprops.TryGetValue("range", out o))

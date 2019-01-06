@@ -1,4 +1,5 @@
-﻿in vec3 vertex_position;
+﻿#pragma include (lighting.inc)
+in vec3 vertex_position;
 in vec3 vertex_normal;
 in vec2 vertex_texture1;
 in vec2 vertex_texture2;
@@ -29,4 +30,5 @@ void main()
 	);
 	out_vertexcolor = vec4(1);
 	out_texcoord2 = vec2(vertex_texture2.x, 1. - vertex_texture2.y);
+    light_vert(world_position, view_position, out_normal);
 }

@@ -44,6 +44,7 @@ namespace LibreLancer
 
         public override void Draw(TimeSpan delta) 
         {
+            RenderMaterial.VertexLighting = true;
             scene.Draw();
             ui.Draw(delta);
             Game.Renderer2D.Start(Game.Width, Game.Height);

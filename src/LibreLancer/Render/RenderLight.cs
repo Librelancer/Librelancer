@@ -12,7 +12,8 @@ namespace LibreLancer
 		public Vector3 Position; 
 		public Vector3 Direction;
 		public Vector3 Attenuation;
-		public Color4 Color;
+		public Color3f Color;
+        public Color3f Ambient;
 		public int Range;
 
 		public float Falloff;

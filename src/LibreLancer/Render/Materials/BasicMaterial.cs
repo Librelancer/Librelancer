@@ -112,6 +112,7 @@ namespace LibreLancer
 			if (Camera == null)
 				return;
 			ShaderCaps caps = ShaderCaps.None;
+            if (VertexLighting) caps |= ShaderCaps.VertexLighting;
 			if (HasSpotlight(ref lights)) caps |= ShaderCaps.Spotlight;
 			if (EtEnabled) caps |= ShaderCaps.EtEnabled;
 			if (Fade) caps |= ShaderCaps.FadeEnabled;

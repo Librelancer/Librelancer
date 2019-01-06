@@ -199,7 +199,9 @@ namespace LibreLancer
 			{
 				var rl = new RenderLight();
 				rl.Kind = LightKind.Point;
-				rl.Color = Nebula.DynamicLightningColor;
+                rl.Color = new Color3f(Nebula.DynamicLightningColor.R,
+                    Nebula.DynamicLightningColor.G,
+                    Nebula.DynamicLightningColor.B);
 				rl.Position = dynamicLightningPos;
 				rl.Attenuation = new Vector3(1, 0, 0.0000055f);
 				rl.Range = (int)Nebula.FogRange.Y;

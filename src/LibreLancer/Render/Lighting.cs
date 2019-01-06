@@ -12,11 +12,10 @@ namespace LibreLancer
 		public const int MAX_LIGHTS = 9;
 		public static Lighting Empty = new Lighting() { Enabled = false };
         public bool Enabled;
-        public Color4 Ambient;
+        public Color3f Ambient;
         public LightsArray Lights;
 		public FogModes FogMode;
-		public float FogDensity;
-        public Color4 FogColor;
+        public Color3f FogColor;
         public Vector2 FogRange;
 		public int NumberOfTilesX;
 
@@ -25,9 +24,9 @@ namespace LibreLancer
             return new Lighting
             {
                 Enabled = true,
-                FogColor = Color4.White,
+                FogColor = Color3f.White,
                 FogMode = FogModes.None,
-                Ambient = Color4.Black
+                Ambient = Color3f.Black
             };
         }
         [StructLayout(LayoutKind.Sequential)]

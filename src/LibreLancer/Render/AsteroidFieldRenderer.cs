@@ -419,7 +419,7 @@ namespace LibreLancer
                                 billboardTex,
                                 astbillboards [i].Position,
                                 astbillboards[i].Size,
-                                new Color4(field.BillboardTint * cameraLights.Ambient.Rgb, alpha),
+                                new Color4(field.BillboardTint * cameraLights.Ambient, alpha),
                                 coords[0], coords[2], coords[1],
                                 0,
                                 SortLayers.OBJECT

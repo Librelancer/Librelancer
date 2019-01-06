@@ -5,7 +5,7 @@
 using System;
 namespace LibreLancer
 {
-	public enum LightKind
+	public enum LightKind : byte
 	{
 		Directional = 0, //DX8 directional light - standard DX8 attenuation
 		Point = 1, //Point light - standard DX8 attenuation

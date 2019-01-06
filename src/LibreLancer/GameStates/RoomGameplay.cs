@@ -32,7 +32,7 @@ namespace LibreLancer
         List<BaseHotspot> tophotspots;
 		public RoomGameplay(FreelancerGame g, GameSession session, string newBase, BaseRoom room = null, string virtualRoom = null) : base(g)
 		{
-			this.session = session;
+            this.session = session;
 			baseId = newBase;
 			currentBase = g.GameData.GetBase(newBase);
 			currentRoom = room ?? currentBase.StartRoom;
@@ -203,7 +203,8 @@ namespace LibreLancer
        
 		public override void Draw(TimeSpan delta)
 		{
-			if(scene != null)
+            RenderMaterial.VertexLighting = true;
+            if (scene != null)
 				scene.Draw();
             hud.Draw(delta);
 			Game.Renderer2D.Start(Game.Width, Game.Height);

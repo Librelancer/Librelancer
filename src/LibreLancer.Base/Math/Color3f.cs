@@ -34,6 +34,14 @@ namespace LibreLancer
 				a.B * b.B
 			);
 		}
-	}
+        public override int GetHashCode()
+        {
+            var value = (uint)(R * Byte.MaxValue) << 16 |
+                (uint)(G * Byte.MaxValue) << 8 |
+                (uint)(B * Byte.MaxValue);
+
+            return unchecked((int)value);
+        }
+    }
 }
 

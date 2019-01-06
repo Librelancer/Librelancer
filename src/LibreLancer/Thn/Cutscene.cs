@@ -84,6 +84,7 @@ namespace LibreLancer
         {
             foreach (var kv in thn.Entities)
             {
+                if (Objects.ContainsKey(kv.Key)) continue;
                 if ((kv.Value.ObjectFlags & ThnObjectFlags.Reference) == ThnObjectFlags.Reference) continue;
                 var obj = new ThnObject();
                 obj.Name = kv.Key;
@@ -93,8 +94,11 @@ namespace LibreLancer
                 if (playerShip != null && kv.Value.Type == EntityTypes.Compound &&
                 kv.Value.Template.Equals("playership", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    if (Objects.ContainsKey(kv.Key)) continue;
                     obj.Object = playerShip;
+                    obj.Object.RenderComponent.LitDynamic = (kv.Value.ObjectFlags & ThnObjectFlags.LitDynamic) == ThnObjectFlags.LitDynamic;
+                    obj.Object.RenderComponent.LitAmbient = (kv.Value.ObjectFlags & ThnObjectFlags.LitAmbient) == ThnObjectFlags.LitAmbient;
+                    obj.Object.RenderComponent.NoFog = kv.Value.NoFog;
+                    ((ModelRenderer)obj.Object.RenderComponent).LightGroup = kv.Value.LightGroup;
                     obj.Entity = kv.Value;
                     Vector3 transform = kv.Value.Position ?? Vector3.Zero;
                     obj.Object.Transform = (kv.Value.RotationMatrix ?? Matrix4.Identity) * Matrix4.CreateTranslation(transform);

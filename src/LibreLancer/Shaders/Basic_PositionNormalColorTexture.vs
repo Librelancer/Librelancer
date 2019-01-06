@@ -1,4 +1,5 @@
-﻿in vec3 vertex_position;
+﻿#pragma include (lighting.inc)
+in vec3 vertex_position;
 in vec3 vertex_normal;
 in vec4 vertex_color;
 in vec2 vertex_texture1;
@@ -28,4 +29,5 @@ void main()
 		(vertex_texture1.x + MaterialAnim.x) * MaterialAnim.z, 
 		1. - (vertex_texture1.y + MaterialAnim.y) * MaterialAnim.w
 	);
+    light_vert(world_position, view_position, out_normal);
 }

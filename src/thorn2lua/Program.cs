@@ -115,6 +115,8 @@ namespace thorn2lua
             LuaTable.EnumReverse.Add("StartAudioPropAnim", "START_AUDIO_PROP_ANIM");
             ThnEnv.Add("CONNECT_HARDPOINTS", EventTypes.ConnectHardpoints);
             LuaTable.EnumReverse.Add("ConnectHardpoints", "CONNECT_HARDPOINTS");
+            ThnEnv.Add("START_FLR_HEIGHT_ANIM", EventTypes.StartFloorHeightAnim);
+            LuaTable.EnumReverse.Add("StartFloorHeightAnim", "START_FLR_HEIGHT_ANIM");
             //Axis
             ThnEnv.Add("X_AXIS", Vector3.UnitX);
             ThnEnv.Add("Y_AXIS", Vector3.UnitY);
@@ -172,9 +174,28 @@ namespace thorn2lua
                 if (ent.TryGetValue("lightprops", out o))
                 {
                     var lp = (LuaTable)o;
-                    if (lp.TryGetValue("type", out o)) lp["type"] = ThnEnum.Check<LightTypes>(o);
+                    if (lp.ContainsKey("type")) lp["type"] = ThnEnum.Check<LightTypes>(lp["type"]);
+                }
+                if (ent.ContainsKey("flags")) ent["flags"] = ConvertFlags((EntityTypes)ent["type"], ent);
+            }
+        }
+        static ThnObjectFlags ConvertFlags(EntityTypes type, LuaTable table)
+        {
+            if (!(table["flags"] is float)) return (ThnObjectFlags)table["flags"];
+            var val = (int)(float)table["flags"];
+            if (val == 0) return ThnObjectFlags.None;
+            if (val == 1) return ThnObjectFlags.Reference; //Should be for all types
+            if (type == EntityTypes.Sound)
+            {
+                switch (val)
+                {
+                    case 2:
+                        return ThnObjectFlags.Spatial;
+                    default:
+                        throw new NotImplementedException();
                 }
             }
+            return ThnEnum.FlagsReflected<ThnObjectFlags>(val);
         }
         static void ProcessEvents(LuaTable t)
         {

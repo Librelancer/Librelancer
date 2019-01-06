@@ -5,7 +5,7 @@
 using System;
 namespace LibreLancer
 {
-	public enum FogModes
+	public enum FogModes : byte
 	{
 		None = 0, //NOTE: THIS IS HARDCODED IN THE LIGHTING.INC SHADER
 		Linear = 3,

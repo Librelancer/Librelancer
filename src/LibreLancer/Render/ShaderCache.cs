@@ -25,7 +25,9 @@ namespace LibreLancer
 					prelude = "#version 150\n" + caps.GetDefines() + "\n#line 0\n";
 				FLLog.Debug ("Shader", "Compiling [ " + vs + " , " + fs + " ]");
                 sh = new ShaderVariables(
-					new Shader(prelude + Resources.LoadString("LibreLancer.Shaders." + vs), prelude + ProcessIncludes(Resources.LoadString("LibreLancer.Shaders." + fs)))
+					new Shader(
+                    prelude +"#define VERTEX_SHADER\n"+ ProcessIncludes(Resources.LoadString("LibreLancer.Shaders." + vs)), 
+                        prelude + "#define FRAGMENT_SHADER\n" + ProcessIncludes(Resources.LoadString("LibreLancer.Shaders." + fs)))
                 );
                 shaders.Add(k, sh);
 			}

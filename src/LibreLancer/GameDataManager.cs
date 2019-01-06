@@ -313,7 +313,8 @@ namespace LibreLancer
                 foreach (var src in inisys.LightSources)
                 {
                     var lt = new RenderLight();
-                    lt.Color = src.Color.Value;
+                    var srcCol = src.Color.Value;
+                    lt.Color = new Color3f(srcCol.R, srcCol.G, srcCol.B);
                     lt.Position = src.Pos.Value;
                     lt.Range = src.Range.Value;
                     lt.Direction = src.Direction ?? new Vector3(0, 0, 1);

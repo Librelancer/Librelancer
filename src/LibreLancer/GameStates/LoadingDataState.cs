@@ -45,10 +45,10 @@ namespace LibreLancer
         void CompileShaders()
         {
             Shaders("Atmosphere.vs", "AtmosphereMaterial_PositionTexture.frag");
-            Shaders("Basic_PositionNormalTexture.vs", "Basic_Fragment.frag", ShaderCaps.Spotlight, ShaderCaps.EtEnabled, ShaderCaps.FadeEnabled, ShaderCaps.AlphaTestEnabled);
-            Shaders("Basic_PositionNormalTextureTwo.vs", "Basic_Fragment.frag", ShaderCaps.Spotlight, ShaderCaps.EtEnabled, ShaderCaps.FadeEnabled, ShaderCaps.AlphaTestEnabled);
-            Shaders("Basic_PositionNormalColorTexture.vs", "Basic_Fragment.frag", ShaderCaps.Spotlight, ShaderCaps.EtEnabled, ShaderCaps.FadeEnabled, ShaderCaps.AlphaTestEnabled);
-            Shaders("Basic_PositionNormalTexture.vs", "Basic_Fragment.frag", ShaderCaps.Spotlight, ShaderCaps.EtEnabled, ShaderCaps.FadeEnabled, ShaderCaps.AlphaTestEnabled);
+            Shaders("Basic_PositionNormalTexture.vs", "Basic_Fragment.frag", ShaderCaps.Spotlight, ShaderCaps.EtEnabled, ShaderCaps.FadeEnabled, ShaderCaps.AlphaTestEnabled | ShaderCaps.VertexLighting);
+            Shaders("Basic_PositionNormalTextureTwo.vs", "Basic_Fragment.frag", ShaderCaps.Spotlight, ShaderCaps.EtEnabled, ShaderCaps.FadeEnabled, ShaderCaps.AlphaTestEnabled | ShaderCaps.VertexLighting);
+            Shaders("Basic_PositionNormalColorTexture.vs", "Basic_Fragment.frag", ShaderCaps.Spotlight, ShaderCaps.EtEnabled, ShaderCaps.FadeEnabled, ShaderCaps.AlphaTestEnabled | ShaderCaps.VertexLighting);
+            Shaders("Basic_PositionNormalTexture.vs", "Basic_Fragment.frag", ShaderCaps.Spotlight, ShaderCaps.EtEnabled, ShaderCaps.FadeEnabled, ShaderCaps.AlphaTestEnabled | ShaderCaps.VertexLighting);
             Shaders("PositionTextureFlip.vs", "DetailMap2Dm1Msk2PassMaterial.frag");
             Shaders("PositionTextureFlip.vs", "DetailMapMaterial.frag");
             Shaders("PositionTextureFlip.vs", "IllumDetailMapMaterial.frag");

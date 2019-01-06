@@ -74,7 +74,7 @@ namespace LibreLancer.Thorn
                     mapStorage[(string)indexer] = value;
             }
         }
-
+        public bool ContainsKey(string key) => mapStorage.ContainsKey(key);
 		public bool TryGetValue(string key, out object value)
 		{
 			return mapStorage.TryGetValue(key, out value);
@@ -152,10 +152,12 @@ namespace LibreLancer.Thorn
 		}
 		public override string ToString ()
 		{
+            if (Capacity == 0) return "{}";
             return ToStringTab("");
 		}
         internal string ToStringTab(string tabs)
         {
+            if (Capacity == 0) return tabs + "{}";
             var builder = new StringBuilder();
             if (isArray)
             {

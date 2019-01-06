@@ -26,9 +26,36 @@ namespace LibreLancer
             public bool Run(Cutscene cs, double delta)
             {
                 t += delta;
+                var amount = MathHelper.Clamp((float)(t / Event.Duration), 0, 1);
                 if (t > Event.Duration)
                     return false;
-
+                if (FogColor != null)
+                {
+                    var f = FogColor.Value;
+                    var c2 = new Color3f(f.X / 255f, f.Y / 255f, f.Z / 255f);
+                    var c1 = new Color3f(OrigFogColor.R, OrigFogColor.G, OrigFogColor.B);
+                    var cend = Utf.Ale.AlchemyEasing.EaseColorRGB(Utf.Ale.EasingTypes.Linear, amount, 0, 1, c1, c2);
+                    cs.Renderer.SystemLighting.FogColor = new Color4(cend, 1);
+                }
+                if (FogStart != null)
+                {
+                    var f = FogStart.Value;
+                    cs.Renderer.SystemLighting.FogRange.X =
+                        MathHelper.Lerp(OrigFogStart, f, amount);
+                }
+                if(FogEnd != null)
+                {
+                    var f = FogEnd.Value;
+                    cs.Renderer.SystemLighting.FogRange.Y =
+                        MathHelper.Lerp(OrigFogEnd, f, amount);
+                }
+                if(FogDensity != null)
+                {
+                    var f = FogDensity.Value;
+                    cs.Renderer.SystemLighting.FogDensity =
+                        MathHelper.Lerp(OrigFogDensity, f, amount);
+                }
+               
                 return true;
             }
         }

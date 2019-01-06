@@ -11,6 +11,7 @@ namespace LibreLancer
 
 	public abstract class RenderMaterial
 	{
+        public static bool VertexLighting = false;
 		public MaterialAnim MaterialAnim;
 		public Matrix4 World = Matrix4.Identity;
 		public bool FlipNormals = false;
@@ -86,7 +87,7 @@ namespace LibreLancer
                 shader.SetLightParameters(new Vector4i(0, 0, 0, -1));
                 return;
             }
-            shader.SetAmbientColor(lights.Ambient);
+            shader.SetAmbientColor(new Color4(lights.Ambient,1));
 			bool hasSpotlight = HasSpotlight(ref lights);
             int count = 0;
             if(lights.Lights.SourceLighting != null) {
@@ -101,13 +102,13 @@ namespace LibreLancer
             shader.SetLightParameters(new Vector4i(1, count, (int)lights.FogMode, lights.NumberOfTilesX));
 			if (lights.FogMode == FogModes.Linear)
 			{
-				shader.SetFogColor(lights.FogColor);
+				shader.SetFogColor(new Color4(lights.FogColor,1));
 				shader.SetFogRange(lights.FogRange);
 			}
 			else if (lights.FogMode == FogModes.Exp || lights.FogMode == FogModes.Exp2)
 			{
-				shader.SetFogColor(lights.FogColor);
-				shader.SetFogRange(new Vector2(lights.FogDensity, 0));
+				shader.SetFogColor(new Color4(lights.FogColor,1));
+				shader.SetFogRange(new Vector2(lights.FogRange.X, 0));
 			}
 		}
 
