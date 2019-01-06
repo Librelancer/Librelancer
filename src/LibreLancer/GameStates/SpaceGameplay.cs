@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using LibreLancer.Physics;
 namespace LibreLancer
 {
@@ -42,80 +43,86 @@ Mouse Flight: {10}
 		EngineComponent ecpt;
 		InputManager input;
 		GameSession session;
+        bool loading = true;
+        LoadingScreen loader;
 		public SpaceGameplay(FreelancerGame g, GameSession session) : base(g)
 		{
 			FLLog.Info("Game", "Starting Gameplay Demo");
             g.ResourceManager.ClearTextures(); //Do before loading things
-			sys = g.GameData.GetSystem(session.PlayerSystem);
-			var shp = g.GameData.GetShip(session.PlayerShip);
-			//Set up player object + camera
-			this.session = session;
-			player = new GameObject(shp.Drawable, g.ResourceManager, false);
-			control = new ShipControlComponent(player);
-			control.Ship = shp;
-			player.Components.Add(control);
+            this.session = session;
+            font = Game.Fonts.GetSystemFont("Agency FB");
+
+            sys = new GameData.StarSystem();
+            loader = new LoadingScreen(g, g.GameData.FillSystem(session.PlayerSystem, sys));
+		}
+
+        void FinishLoad()
+        {
+            var shp = Game.GameData.GetShip(session.PlayerShip);
+            //Set up player object + camera
+            player = new GameObject(shp.Drawable, Game.ResourceManager, false);
+            control = new ShipControlComponent(player);
+            control.Ship = shp;
+            player.Components.Add(control);
             weapons = new WeaponControlComponent(player);
             player.Components.Add(weapons);
-			powerCore = new PowerCoreComponent(player)
-			{
-				ThrustCapacity = 1000,
-				ThrustChargeRate = 100
-			};
-			player.Components.Add(powerCore);
+            powerCore = new PowerCoreComponent(player)
+            {
+                ThrustCapacity = 1000,
+                ThrustChargeRate = 100
+            };
+            player.Components.Add(powerCore);
             player.Transform = new Matrix4(session.PlayerOrientation) * Matrix4.CreateTranslation(session.PlayerPosition);
-			//player.PhysicsComponent.Material.Restitution = 1;
-			player.PhysicsComponent.Mass = shp.Mass;
-			player.Nickname = "player";
-			foreach (var equipment in session.MountedEquipment)
-			{
-				var equip = g.GameData.GetEquipment(equipment.Value);
-				var obj = new GameObject(equip, player.GetHardpoint(equipment.Key), player);
-				player.Children.Add(obj);
-			}
+            player.PhysicsComponent.Mass = shp.Mass;
+            player.Nickname = "player";
+            foreach (var equipment in session.MountedEquipment)
+            {
+                var equip = Game.GameData.GetEquipment(equipment.Value);
+                var obj = new GameObject(equip, player.GetHardpoint(equipment.Key), player);
+                player.Children.Add(obj);
+            }
 
-			camera = new ChaseCamera(Game.Viewport);
-			camera.ChasePosition = session.PlayerPosition;
+            camera = new ChaseCamera(Game.Viewport);
+            camera.ChasePosition = session.PlayerPosition;
             camera.ChaseOrientation = player.Transform.ClearTranslation();
             var offset = shp.ChaseOffset;
-           
-            camera.DesiredPositionOffset = offset;
-			camera.Reset();
 
-			sysrender = new SystemRenderer(camera, g.GameData, g.ResourceManager, g);
-			world = new GameWorld(sysrender);
-			world.LoadSystem(sys, g.ResourceManager);
-			world.Objects.Add(player);
-			//world.Physics.SetDampingFactors(0.01f, 1f);
-			world.RenderUpdate += World_RenderUpdate;
-			world.PhysicsUpdate += World_PhysicsUpdate;
-			var eng = new GameData.Items.Engine() { FireEffect = "gf_li_smallengine02_fire", LinearDrag = 600, MaxForce = 48000 };
-			player.Components.Add((ecpt = new EngineComponent(player, eng, g)));
-			ecpt.Speed = 0;
-			player.Register(world.Physics);
-			g.Sound.PlayMusic(sys.MusicSpace);
-			font = g.Fonts.GetSystemFont("Agency FB");
-			g.Keyboard.TextInput += G_Keyboard_TextInput;
-			debugphysics = new PhysicsDebugRenderer();
+            camera.DesiredPositionOffset = offset;
+            camera.Reset();
+
+            sysrender = new SystemRenderer(camera, Game.GameData, Game.ResourceManager, Game);
+            world = new GameWorld(sysrender);
+            world.LoadSystem(sys, Game.ResourceManager);
+
+            world.Objects.Add(player);
+            world.RenderUpdate += World_RenderUpdate;
+            world.PhysicsUpdate += World_PhysicsUpdate;
+            var eng = new GameData.Items.Engine() { FireEffect = "gf_li_smallengine02_fire", LinearDrag = 600, MaxForce = 48000 };
+            player.Components.Add((ecpt = new EngineComponent(player, eng, Game)));
+            ecpt.Speed = 0;
+            player.Register(world.Physics);
+            Game.Sound.PlayMusic(sys.MusicSpace);
+            Game.Keyboard.TextInput += G_Keyboard_TextInput;
+            debugphysics = new PhysicsDebugRenderer();
             //world.Physics.EnableWireframes(debugphysics);
-			cur_arrow = g.ResourceManager.GetCursor("cross");
-			cur_reticle = g.ResourceManager.GetCursor("fire_neutral");
-			current_cur = cur_arrow;
-			Game.Keyboard.TextInput += Game_TextInput;
-			g.Keyboard.KeyDown += Keyboard_KeyDown;
-            g.Mouse.MouseDown += Mouse_MouseDown;
-			input = new InputManager(Game);
-			input.ToggleActivated += Input_ToggleActivated;
-			input.ToggleUp += Input_ToggleUp; 
-			//hud.OnManeuverSelected += Hud_OnManeuverSelected;
-			//
-			pilotcomponent = new AutopilotComponent(player);
-			pilotcomponent.DockComplete += Pilotcomponent_DockComplete;
-			player.Components.Add(pilotcomponent);
-			player.World = world;
-			world.MessageBroadcasted += World_MessageBroadcasted;
+            cur_arrow = Game.ResourceManager.GetCursor("cross");
+            cur_reticle = Game.ResourceManager.GetCursor("fire_neutral");
+            current_cur = cur_arrow;
+            Game.Keyboard.TextInput += Game_TextInput;
+            Game.Keyboard.KeyDown += Keyboard_KeyDown;
+            Game.Mouse.MouseDown += Mouse_MouseDown;
+            input = new InputManager(Game);
+            input.ToggleActivated += Input_ToggleActivated;
+            input.ToggleUp += Input_ToggleUp;
+            pilotcomponent = new AutopilotComponent(player);
+            pilotcomponent.DockComplete += Pilotcomponent_DockComplete;
+            player.Components.Add(pilotcomponent);
+            player.World = world;
+            world.MessageBroadcasted += World_MessageBroadcasted;
             world.Physics.EnableWireframes(sysrender.DebugRenderer);
             ConstructHud();
-		}
+            FadeIn(0.5, 0.5);
+        }
         class LuaAPI
         {
             SpaceGameplay g;
@@ -282,9 +289,19 @@ Mouse Flight: {10}
         }
         public override void Update(TimeSpan delta)
 		{
+            if(loading)
+            {
+                if(loader.Update(delta))
+                {
+                    loading = false;
+                    loader = null;
+                    FinishLoad();
+                }
+                return;
+            }
             //hud.Velocity = Velocity;
             //hud.Update(delta, camera);
-            if(newHud) {
+            if (newHud) {
                 hud.Dispose();
                 ConstructHud();
                 newHud = false;
@@ -542,22 +559,15 @@ Mouse Flight: {10}
 		//RigidBody debugDrawBody;
 		public override void Draw(TimeSpan delta)
 		{
-			sysrender.Draw();
-            //debugphysics.StartFrame(camera, Game.RenderState);
-            /*foreach (var body in world.Physics.RigidBodies)
-			{
-				var rb = (RigidBody)body;
-				if (rb.EnableDebugDraw) rb.DebugDraw(debugphysics);
-			}
+            if(loading)
+            {
+                loader.Draw(delta);
+                return;
+            }
+            sysrender.Draw();
 
-			if (debugDrawBody != null)
-			{
-				debugDrawBody.DebugDraw(debugphysics);
-			}*/
             sysrender.DebugRenderer.StartFrame(camera, Game.RenderState);
-            //world.Physics.DrawWorld();
             sysrender.DebugRenderer.Render();
-            //debugphysics.Render();
             hud.Draw(delta);
 			Game.Renderer2D.Start(Game.Width, Game.Height);
 			string sel_obj = "None";
@@ -570,6 +580,7 @@ Mouse Flight: {10}
 			}
 			DebugDrawing.DrawShadowedText(Game.Renderer2D, font, 16, string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, moffset.X, moffset.Y, mouseFlight), 5, 5);
 			current_cur.Draw(Game.Renderer2D, Game.Mouse);
+            DoFade(delta);
 			Game.Renderer2D.Finish();
 		}
 	}

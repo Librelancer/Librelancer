@@ -9,15 +9,18 @@ namespace LibreLancer
 	public class ThnEvent
 	{
 		public float Duration;
-		public double Time;
-		public EventFlags Flags;
+		public double EventTime;
+        public double TimeOffset;
+        public double Time => EventTime + TimeOffset;
+
+        public EventFlags Flags;
 		public EventTypes Type;
 		public LuaTable Targets;
 		public LuaTable Properties;
 		public ParameterCurve ParamCurve;
 		public override string ToString()
 		{
-			return string.Format("[{0}: {1}]", Time, Type);
+			return string.Format("[{0}: {1}]", EventTime, Type);
 		}
 	}
 }

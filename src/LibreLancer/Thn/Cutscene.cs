@@ -80,158 +80,171 @@ namespace LibreLancer
             }
         }
 
+        void AddEntities(ThnScript thn)
+        {
+            foreach (var kv in thn.Entities)
+            {
+                if ((kv.Value.ObjectFlags & ThnObjectFlags.Reference) == ThnObjectFlags.Reference) continue;
+                var obj = new ThnObject();
+                obj.Name = kv.Key;
+                obj.Translate = kv.Value.Position ?? Vector3.Zero;
+                obj.Rotate = kv.Value.RotationMatrix ?? Matrix4.Identity;
+                //PlayerShip object
+                if (playerShip != null && kv.Value.Type == EntityTypes.Compound &&
+                kv.Value.Template.Equals("playership", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    if (Objects.ContainsKey(kv.Key)) continue;
+                    obj.Object = playerShip;
+                    obj.Entity = kv.Value;
+                    Vector3 transform = kv.Value.Position ?? Vector3.Zero;
+                    obj.Object.Transform = (kv.Value.RotationMatrix ?? Matrix4.Identity) * Matrix4.CreateTranslation(transform);
+                    obj.HpMount = playerShip.GetHardpoint("HpMount");
+                    World.Objects.Add(obj.Object);
+                    Objects.Add(kv.Key, obj);
+                    continue;
+                }
+                //Create objects
+                if (kv.Value.Type == EntityTypes.Compound)
+                {
+                    bool getHpMount = false;
+                    //Fetch model
+                    IDrawable drawable;
+                    switch (kv.Value.MeshCategory.ToLowerInvariant())
+                    {
+                        case "solar":
+                            drawable = game.GameData.GetSolar(kv.Value.Template);
+                            break;
+                        case "ship":
+                        case "spaceship":
+                            getHpMount = true;
+                            var sh = game.GameData.GetShip(kv.Value.Template);
+                            drawable = sh.Drawable;
+                            break;
+                        case "prop":
+                            drawable = game.GameData.GetProp(kv.Value.Template);
+                            break;
+                        case "room":
+                            drawable = game.GameData.GetRoom(kv.Value.Template);
+                            break;
+                        case "equipment cart":
+                            drawable = game.GameData.GetCart(kv.Value.Template);
+                            break;
+                        case "equipment":
+                            var eq = game.GameData.GetEquipment(kv.Value.Template);
+                            drawable = eq.GetDrawable();
+                            break;
+                        case "asteroid":
+                            drawable = game.GameData.GetAsteroid(kv.Value.Template);
+                            break;
+                        default:
+                            throw new NotImplementedException("Mesh Category " + kv.Value.MeshCategory);
+                    }
+                    if (kv.Value.UserFlag != 0)
+                    {
+                        //This is a starsphere
+                        var transform = (kv.Value.RotationMatrix ?? Matrix4.Identity) * Matrix4.CreateTranslation(kv.Value.Position ?? Vector3.Zero);
+                        layers.Add(new Tuple<IDrawable, Matrix4, int>(drawable, transform, kv.Value.SortGroup));
+                    }
+                    else
+                    {
+                        obj.Object = new GameObject(drawable, game.ResourceManager, false);
+                        obj.Object.Name = kv.Value.Name;
+                        obj.Object.PhysicsComponent = null; //Jitter seems to interfere with directly setting orientation
+                        if (getHpMount)
+                            obj.HpMount = obj.Object.GetHardpoint("HpMount");
+                        var r = (ModelRenderer)obj.Object.RenderComponent;
+                        r.LightGroup = kv.Value.LightGroup;
+                        r.LitDynamic = (kv.Value.ObjectFlags & ThnObjectFlags.LitDynamic) == ThnObjectFlags.LitDynamic;
+                        r.LitAmbient = (kv.Value.ObjectFlags & ThnObjectFlags.LitAmbient) == ThnObjectFlags.LitAmbient;
+                        //HIDDEN just seems to be an editor flag?
+                        //r.Hidden = (kv.Value.ObjectFlags & ThnObjectFlags.Hidden) == ThnObjectFlags.Hidden;
+                        r.NoFog = kv.Value.NoFog;
+                    }
+                }
+                else if (kv.Value.Type == EntityTypes.PSys)
+                {
+                    var fx = game.GameData.GetEffect(kv.Value.Template);
+                    obj.Object = new GameObject();
+                    obj.Object.RenderComponent = new ParticleEffectRenderer(fx) { Active = false };
+                }
+                else if (kv.Value.Type == EntityTypes.Scene)
+                {
+                    if (hasScene)
+                    {
+                        //throw new Exception("Thn can only have one scene");
+                        //TODO: This needs to be handled better
+                        continue;
+                    }
+                    var amb = kv.Value.Ambient.Value;
+                    if (amb.X == 0 && amb.Y == 0 && amb.Z == 0) continue;
+                    hasScene = true;
+                    Renderer.SystemLighting.Ambient = new Color4(amb.X / 255f, amb.Y / 255f, amb.Z / 255f, 1);
+                }
+                else if (kv.Value.Type == EntityTypes.Light)
+                {
+                    var lt = new DynamicLight();
+                    lt.LightGroup = kv.Value.LightGroup;
+                    lt.Active = kv.Value.LightProps.On;
+                    lt.Light = kv.Value.LightProps.Render;
+                    obj.Light = lt;
+                    obj.LightDir = lt.Light.Direction;
+                    if (kv.Value.RotationMatrix.HasValue)
+                    {
+                        var m = kv.Value.RotationMatrix.Value;
+                        lt.Light.Direction = (new Vector4(lt.Light.Direction.Normalized(), 0) * m).Xyz.Normalized();
+                    }
+                    Renderer.SystemLighting.Lights.Add(lt);
+                }
+                else if (kv.Value.Type == EntityTypes.Camera)
+                {
+                    obj.Camera = new ThnCameraTransform();
+                    obj.Camera.Position = kv.Value.Position.Value;
+                    obj.Camera.Orientation = kv.Value.RotationMatrix ?? Matrix4.Identity;
+                    obj.Camera.FovH = kv.Value.FovH ?? obj.Camera.FovH;
+                    obj.Camera.AspectRatio = kv.Value.HVAspect ?? obj.Camera.AspectRatio;
+                }
+                else if (kv.Value.Type == EntityTypes.Marker)
+                {
+                    obj.Object = new GameObject();
+                    obj.Object.Name = "Marker";
+                    obj.Object.Nickname = "";
+                }
+                if (obj.Object != null)
+                {
+                    Vector3 transform = kv.Value.Position ?? Vector3.Zero;
+                    obj.Object.Transform = (kv.Value.RotationMatrix ?? Matrix4.Identity) * Matrix4.CreateTranslation(transform);
+                    World.Objects.Add(obj.Object);
+                }
+                obj.Entity = kv.Value;
+                Objects[kv.Key] = obj;
+            }
+        }
+
+        bool hasScene = false;
+        GameObject playerShip;
+        FreelancerGame game;
+        List<Tuple<IDrawable, Matrix4, int>> layers = new List<Tuple<IDrawable, Matrix4, int>>();
+
         public Cutscene(IEnumerable<ThnScript> scripts, FreelancerGame game, GameObject playerShip = null)
 		{
+            this.playerShip = playerShip;
+            this.game = game;
+
 			camera = new ThnCamera(game.Viewport);
 
 			Renderer = new SystemRenderer(camera, game.GameData, game.ResourceManager, game);
 			World = new GameWorld(Renderer);
-
 			//thn = script;
 			var evs = new List<ThnEvent>();
-			bool hasScene = false;
-			List<Tuple<IDrawable, Matrix4, int>> layers = new List<Tuple<IDrawable, Matrix4, int>>();
-
 			foreach (var thn in scripts)
 			{
-				foreach (var ev in thn.Events)
-					evs.Add(ev);
-				foreach (var kv in thn.Entities)
-				{
-					if ((kv.Value.ObjectFlags & ThnObjectFlags.Reference) == ThnObjectFlags.Reference) continue;
-					var obj = new ThnObject();
-					obj.Name = kv.Key;
-					obj.Translate = kv.Value.Position ?? Vector3.Zero;
-					obj.Rotate = kv.Value.RotationMatrix ?? Matrix4.Identity;
-                    //PlayerShip object
-                    if (playerShip != null && kv.Value.Type == EntityTypes.Compound && 
-                    kv.Value.Template.Equals("playership", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        obj.Object = playerShip;
-                        obj.Entity = kv.Value;
-                        Vector3 transform = kv.Value.Position ?? Vector3.Zero;
-                        obj.Object.Transform = (kv.Value.RotationMatrix ?? Matrix4.Identity) * Matrix4.CreateTranslation(transform);
-                        obj.HpMount = playerShip.GetHardpoint("HpMount");
-                        World.Objects.Add(obj.Object);
-                        Objects.Add(kv.Key, obj);
-                        continue;
-                    }
-                    //Create objects
-                    if (kv.Value.Type == EntityTypes.Compound)
-					{
-                        bool getHpMount = false;
-						//Fetch model
-						IDrawable drawable;
-						switch (kv.Value.MeshCategory.ToLowerInvariant())
-						{
-							case "solar":
-								drawable = game.GameData.GetSolar(kv.Value.Template);
-								break;
-                            case "ship":
-							case "spaceship":
-                                getHpMount = true;
-								var sh = game.GameData.GetShip(kv.Value.Template);
-								drawable = sh.Drawable;
-								break;
-							case "prop":
-								drawable = game.GameData.GetProp(kv.Value.Template);
-								break;
-							case "room":
-								drawable = game.GameData.GetRoom(kv.Value.Template);
-								break;
-							case "equipment cart":
-								drawable = game.GameData.GetCart(kv.Value.Template);
-								break;
-							case "equipment":
-								var eq = game.GameData.GetEquipment(kv.Value.Template);
-								drawable = eq.GetDrawable();
-								break;
-							case "asteroid":
-								drawable = game.GameData.GetAsteroid(kv.Value.Template);
-								break;
-							default:
-								throw new NotImplementedException("Mesh Category " + kv.Value.MeshCategory);
-						}
-						if (kv.Value.UserFlag != 0)
-						{
-							//This is a starsphere
-							var transform = (kv.Value.RotationMatrix ?? Matrix4.Identity) * Matrix4.CreateTranslation(kv.Value.Position ?? Vector3.Zero);
-							layers.Add(new Tuple<IDrawable, Matrix4, int>(drawable, transform, kv.Value.SortGroup));
-						}
-						else
-						{
-							obj.Object = new GameObject(drawable, game.ResourceManager, false);
-                            obj.Object.Name = kv.Value.Name;
-							obj.Object.PhysicsComponent = null; //Jitter seems to interfere with directly setting orientation
-                            if(getHpMount)
-                                obj.HpMount = obj.Object.GetHardpoint("HpMount");
-                            var r = (ModelRenderer)obj.Object.RenderComponent;
-							r.LightGroup = kv.Value.LightGroup;
-							r.LitDynamic = (kv.Value.ObjectFlags & ThnObjectFlags.LitDynamic) == ThnObjectFlags.LitDynamic;
-							r.LitAmbient = (kv.Value.ObjectFlags & ThnObjectFlags.LitAmbient) == ThnObjectFlags.LitAmbient;
-							//HIDDEN just seems to be an editor flag?
-							//r.Hidden = (kv.Value.ObjectFlags & ThnObjectFlags.Hidden) == ThnObjectFlags.Hidden;
-							r.NoFog = kv.Value.NoFog;
-						}
-					}
-					else if (kv.Value.Type == EntityTypes.PSys)
-					{
-						var fx = game.GameData.GetEffect(kv.Value.Template);
-						obj.Object = new GameObject();
-						obj.Object.RenderComponent = new ParticleEffectRenderer(fx) { Active = false };
-					}
-					else if (kv.Value.Type == EntityTypes.Scene)
-					{
-						if (hasScene)
-						{
-							//throw new Exception("Thn can only have one scene");
-							//TODO: This needs to be handled better
-							continue;
-						}
-						var amb = kv.Value.Ambient.Value;
-						if (amb.X == 0 && amb.Y == 0 && amb.Z == 0) continue;
-						hasScene = true;
-						Renderer.SystemLighting.Ambient = new Color4(amb.X / 255f, amb.Y / 255f, amb.Z / 255f, 1);
-					}
-					else if (kv.Value.Type == EntityTypes.Light)
-					{
-						var lt = new DynamicLight();
-						lt.LightGroup = kv.Value.LightGroup;
-						lt.Active = kv.Value.LightProps.On;
-						lt.Light = kv.Value.LightProps.Render;
-						obj.Light = lt;
-                        obj.LightDir = lt.Light.Direction;
-						if (kv.Value.RotationMatrix.HasValue)
-						{
-							var m = kv.Value.RotationMatrix.Value;
-							lt.Light.Direction = (new Vector4(lt.Light.Direction.Normalized(), 0) * m).Xyz.Normalized();
-						}
-						Renderer.SystemLighting.Lights.Add(lt);
-					}
-					else if (kv.Value.Type == EntityTypes.Camera)
-					{
-						obj.Camera = new ThnCameraTransform();
-						obj.Camera.Position = kv.Value.Position.Value;
-						obj.Camera.Orientation = kv.Value.RotationMatrix ?? Matrix4.Identity;
-						obj.Camera.FovH = kv.Value.FovH ?? obj.Camera.FovH;
-						obj.Camera.AspectRatio = kv.Value.HVAspect ?? obj.Camera.AspectRatio;
-					}
-					else if (kv.Value.Type == EntityTypes.Marker)
-					{
-						obj.Object = new GameObject();
-						obj.Object.Name = "Marker";
-						obj.Object.Nickname = "";
-					}
-					if (obj.Object != null)
-					{
-						Vector3 transform = kv.Value.Position ?? Vector3.Zero;
-						obj.Object.Transform = (kv.Value.RotationMatrix ?? Matrix4.Identity) * Matrix4.CreateTranslation(transform);
-						World.Objects.Add(obj.Object);
-					}
-					obj.Entity = kv.Value;
-                    Objects[kv.Key] = obj;
-				}
+                foreach (var ev in thn.Events) {
+                    ev.TimeOffset = 0;
+                    evs.Add(ev);
+                }
+                AddEntities(thn);
 			}
+
 			evs.Sort((x, y) => x.Time.CompareTo(y.Time));
 			foreach (var item in evs)
 				events.Enqueue(item);
@@ -248,7 +261,22 @@ namespace LibreLancer
 			World.RegisterAll();
 		}
 
-		double accumTime = 0;
+        public void RunScript(ThnScript thn)
+        {
+            AddEntities(thn);
+            var evArr = events.ToArray();
+            var evsNew = new List<ThnEvent>(evArr);
+            foreach(var ev in thn.Events) {
+                ev.TimeOffset = currentTime;
+                evsNew.Add(ev);
+            }
+            evsNew.Sort((x, y) => x.Time.CompareTo(y.Time));
+            events = new Queue<ThnEvent>();
+            foreach (var item in evsNew)
+                events.Enqueue(item);
+        }
+
+        double accumTime = 0;
 		const int MAX_STEPS = 8;
 		const double TIMESTEP = 1.0 / 120.0;
 		public void Update(TimeSpan delta)

@@ -108,12 +108,12 @@ namespace LibreLancer
 				var e = GetEvent(ev);
 				Events.Add(e);
 			}
-			Events.Sort((x, y) => x.Time.CompareTo(y.Time));
+			Events.Sort((x, y) => x.EventTime.CompareTo(y.EventTime));
 		}
 		ThnEvent GetEvent(LuaTable table)
 		{
 			var e = new ThnEvent();
-			e.Time = (float)table[0];
+			e.EventTime = (float)table[0];
 			e.Type = ThnEnum.Check<EventTypes>(table[1]);
 			e.Targets = (LuaTable)table[2];
 			if (table.Capacity >= 4)

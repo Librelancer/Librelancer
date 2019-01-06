@@ -393,6 +393,7 @@
     <Compile Include="GameData\Items\MunitionEquip.cs" />
     <Compile Include="Render\ProjectileRenderer.cs" />
     <Compile Include="Utf\Cmp\CmpCameraInfo.cs" />
+    <Compile Include="GameStates\LoadingScreen.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -438,6 +439,7 @@
     <EmbeddedResource Include="Interface\Default\hud.xml" />
     <EmbeddedResource Include="Interface\Default\commonstyles.xml" />
     <EmbeddedResource Include="Interface\Default\baseside.xml" />
+    <EmbeddedResource Include="Interface\Default\loading.xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

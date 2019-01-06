@@ -259,154 +259,173 @@ namespace LibreLancer
 			foreach (var bse in fldata.Universe.Bases) yield return bse.Nickname;
 		}
 
-		public GameData.StarSystem GetSystem(string id)
-		{
-			var inisys = fldata.Universe.FindSystem (id);
-			if (fldata.Stars != null)
-			{
-				foreach (var txmfile in fldata.Stars.TextureFiles)
-					resource.LoadResourceFile(Data.VFS.GetPath(fldata.Freelancer.DataPath + txmfile));
-			}
-			var sys = new GameData.StarSystem ();
-			sys.AmbientColor = inisys.AmbientColor ?? Color4.White;
+        public IEnumerator<object> FillSystem(string id, GameData.StarSystem sys)
+        {
+            var inisys = fldata.Universe.FindSystem(id);
+            if (fldata.Stars != null)
+            {
+                foreach (var txmfile in fldata.Stars.TextureFiles)
+                    resource.LoadResourceFile(Data.VFS.GetPath(fldata.Freelancer.DataPath + txmfile));
+            }
+            yield return null;
+            sys.AmbientColor = inisys.AmbientColor ?? Color4.White;
             sys.Name = GetString(inisys.IdsName);
-			sys.Id = inisys.Nickname;
-			sys.BackgroundColor = inisys.SpaceColor ?? Color4.Black;
-			sys.MusicSpace = inisys.MusicSpace;
-			sys.FarClip = inisys.SpaceFarClip ?? 20000f;
-			if (inisys.BackgroundBasicStarsPath != null) {
-				try {
-					sys.StarsBasic = resource.GetDrawable (inisys.BackgroundBasicStarsPath);
-				} catch (Exception) {
-					sys.StarsBasic = null;
-					FLLog.Error ("System", "Failed to load starsphere " + inisys.BackgroundBasicStarsPath);
-				}
-			}
+            sys.Id = inisys.Nickname;
+            sys.BackgroundColor = inisys.SpaceColor ?? Color4.Black;
+            sys.MusicSpace = inisys.MusicSpace;
+            sys.FarClip = inisys.SpaceFarClip ?? 20000f;
+            if (inisys.BackgroundBasicStarsPath != null)
+            {
+                try
+                {
+                    sys.StarsBasic = resource.GetDrawable(inisys.BackgroundBasicStarsPath);
+                }
+                catch (Exception)
+                {
+                    sys.StarsBasic = null;
+                    FLLog.Error("System", "Failed to load starsphere " + inisys.BackgroundBasicStarsPath);
+                }
+            }
+            yield return null;
+            if (inisys.BackgroundComplexStarsPath != null)
+            {
+                //try {
+                sys.StarsComplex = resource.GetDrawable(inisys.BackgroundComplexStarsPath);
+                //} catch (Exception) {
+                //sys.StarsComplex = null;
+                //FLLog.Error ("System", "Failed to load starsphere " + Data.BackgroundComplexStarsPath);
+                //}
 
-			if (inisys.BackgroundComplexStarsPath != null) {
-				//try {
-					sys.StarsComplex = resource.GetDrawable (inisys.BackgroundComplexStarsPath);
-				//} catch (Exception) {
-					//sys.StarsComplex = null;
-					//FLLog.Error ("System", "Failed to load starsphere " + Data.BackgroundComplexStarsPath);
-				//}
+            }
 
-			}
-
-			if (inisys.BackgroundNebulaePath != null) {
-				//try {
-					sys.StarsNebula = resource.GetDrawable (inisys.BackgroundNebulaePath);
-				//} catch (Exception) {
-					//sys.StarsNebula = null;
-					//FLLog.Error ("System", "Failed to load starsphere " + Data.BackgroundNebulaePath);
-				//}
-			}
-
-			if (inisys.LightSources != null) {
-				foreach (var src in inisys.LightSources) {
-					var lt = new RenderLight ();
-					lt.Color = src.Color.Value;
-					lt.Position = src.Pos.Value;
-					lt.Range = src.Range.Value;
-					lt.Direction = src.Direction ?? new Vector3(0, 0, 1);
-					lt.Kind = ((src.Type ?? Data.Universe.LightType.Point) == Data.Universe.LightType.Point) ? LightKind.Point : LightKind.Directional;
+            if (inisys.BackgroundNebulaePath != null)
+            {
+                //try {
+                sys.StarsNebula = resource.GetDrawable(inisys.BackgroundNebulaePath);
+                //} catch (Exception) {
+                //sys.StarsNebula = null;
+                //FLLog.Error ("System", "Failed to load starsphere " + Data.BackgroundNebulaePath);
+                //}
+            }
+            yield return null;
+            if (inisys.LightSources != null)
+            {
+                foreach (var src in inisys.LightSources)
+                {
+                    var lt = new RenderLight();
+                    lt.Color = src.Color.Value;
+                    lt.Position = src.Pos.Value;
+                    lt.Range = src.Range.Value;
+                    lt.Direction = src.Direction ?? new Vector3(0, 0, 1);
+                    lt.Kind = ((src.Type ?? Data.Universe.LightType.Point) == Data.Universe.LightType.Point) ? LightKind.Point : LightKind.Directional;
                     lt.Attenuation = src.Attenuation ?? Vector3.UnitY;
-					if (src.AttenCurve != null)
-					{
-						lt.Kind = LightKind.PointAttenCurve;
-						lt.Attenuation = ApproximateCurve.GetQuadraticFunction(
-							fldata.Graphs.FindFloatGraph(src.AttenCurve).Points.ToArray()
-						);
-					}
-					sys.LightSources.Add (lt);
-				}
-			}
-			foreach (var obj in inisys.Objects) {
-				sys.Objects.Add (GetSystemObject (obj));
-			}
-			if(inisys.Zones != null)
-			foreach (var zne in inisys.Zones) {
-				var z = new GameData.Zone ();
-				z.Nickname = zne.Nickname;
-				z.EdgeFraction = zne.EdgeFraction ?? 0.25f;
-				z.Position = zne.Pos.Value;
-					if (zne.Rotate != null)
-					{
-						var r = zne.Rotate.Value;
+                    if (src.AttenCurve != null)
+                    {
+                        lt.Kind = LightKind.PointAttenCurve;
+                        lt.Attenuation = ApproximateCurve.GetQuadraticFunction(
+                            fldata.Graphs.FindFloatGraph(src.AttenCurve).Points.ToArray()
+                        );
+                    }
+                    sys.LightSources.Add(lt);
+                }
+            }
+            foreach (var obj in inisys.Objects)
+            {
+                sys.Objects.Add(GetSystemObject(obj));
+                yield return null;
+            }
+            if (inisys.Zones != null)
+                foreach (var zne in inisys.Zones)
+                {
+                    var z = new GameData.Zone();
+                    z.Nickname = zne.Nickname;
+                    z.EdgeFraction = zne.EdgeFraction ?? 0.25f;
+                    z.Position = zne.Pos.Value;
+                    if (zne.Rotate != null)
+                    {
+                        var r = zne.Rotate.Value;
 
-						var qx = Quaternion.FromEulerAngles(
-							MathHelper.DegreesToRadians(r.X),
-							MathHelper.DegreesToRadians(r.Y),
-							MathHelper.DegreesToRadians(r.Z)
-						);
-						z.RotationMatrix = Matrix4.CreateFromQuaternion(qx);
-						z.RotationAngles = new Vector3(
-							MathHelper.DegreesToRadians(r.X),
-							MathHelper.DegreesToRadians(r.Y),
-							MathHelper.DegreesToRadians(r.Z)
-						);
-					}
-					else
-					{
-						z.RotationMatrix = Matrix4.Identity;
-						z.RotationAngles = Vector3.Zero;
-					}
-				switch (zne.Shape.Value) {
-				case Data.Universe.ZoneShape.ELLIPSOID:
-					z.Shape = new GameData.ZoneEllipsoid (z,
-						zne.Size.Value.X,
-						zne.Size.Value.Y,
-						zne.Size.Value.Z
-					);
-					break;
-				case Data.Universe.ZoneShape.SPHERE:
-					z.Shape = new GameData.ZoneSphere (z,
-						zne.Size.Value.X
-					);
-					break;
-				case Data.Universe.ZoneShape.BOX:
-					z.Shape = new GameData.ZoneBox (z,
-						zne.Size.Value.X,
-						zne.Size.Value.Y,
-						zne.Size.Value.Z
-					);
-					break;
-				case Data.Universe.ZoneShape.CYLINDER:
-					z.Shape = new GameData.ZoneCylinder (z,
-						zne.Size.Value.X,
-						zne.Size.Value.Y
-					);
-					break;
-				case Data.Universe.ZoneShape.RING:
-					z.Shape = new GameData.ZoneRing(z,
-						zne.Size.Value.X,
-						zne.Size.Value.Y,
-						zne.Size.Value.Z
-					);
-					break;
-				default:
-						Console.WriteLine (zne.Nickname);
-						Console.WriteLine (zne.Shape.Value);
-						throw new NotImplementedException ();
-				}
-				sys.Zones.Add (z);
-			}
-			if (inisys.Asteroids != null)
-			{
-				foreach (var ast in inisys.Asteroids)
-				{
-					sys.AsteroidFields.Add (GetAsteroidField (sys, ast));
-				}
-			}
+                        var qx = Quaternion.FromEulerAngles(
+                            MathHelper.DegreesToRadians(r.X),
+                            MathHelper.DegreesToRadians(r.Y),
+                            MathHelper.DegreesToRadians(r.Z)
+                        );
+                        z.RotationMatrix = Matrix4.CreateFromQuaternion(qx);
+                        z.RotationAngles = new Vector3(
+                            MathHelper.DegreesToRadians(r.X),
+                            MathHelper.DegreesToRadians(r.Y),
+                            MathHelper.DegreesToRadians(r.Z)
+                        );
+                    }
+                    else
+                    {
+                        z.RotationMatrix = Matrix4.Identity;
+                        z.RotationAngles = Vector3.Zero;
+                    }
+                    switch (zne.Shape.Value)
+                    {
+                        case Data.Universe.ZoneShape.ELLIPSOID:
+                            z.Shape = new GameData.ZoneEllipsoid(z,
+                                zne.Size.Value.X,
+                                zne.Size.Value.Y,
+                                zne.Size.Value.Z
+                            );
+                            break;
+                        case Data.Universe.ZoneShape.SPHERE:
+                            z.Shape = new GameData.ZoneSphere(z,
+                                zne.Size.Value.X
+                            );
+                            break;
+                        case Data.Universe.ZoneShape.BOX:
+                            z.Shape = new GameData.ZoneBox(z,
+                                zne.Size.Value.X,
+                                zne.Size.Value.Y,
+                                zne.Size.Value.Z
+                            );
+                            break;
+                        case Data.Universe.ZoneShape.CYLINDER:
+                            z.Shape = new GameData.ZoneCylinder(z,
+                                zne.Size.Value.X,
+                                zne.Size.Value.Y
+                            );
+                            break;
+                        case Data.Universe.ZoneShape.RING:
+                            z.Shape = new GameData.ZoneRing(z,
+                                zne.Size.Value.X,
+                                zne.Size.Value.Y,
+                                zne.Size.Value.Z
+                            );
+                            break;
+                        default:
+                            Console.WriteLine(zne.Nickname);
+                            Console.WriteLine(zne.Shape.Value);
+                            throw new NotImplementedException();
+                    }
+                    sys.Zones.Add(z);
+                }
+            if (inisys.Asteroids != null)
+            {
+                foreach (var ast in inisys.Asteroids)
+                {
+                    sys.AsteroidFields.Add(GetAsteroidField(sys, ast));
+                    yield return null;
+                }
+            }
 
-			if (inisys.Nebulae != null)
-			{
-				foreach (var nbl in inisys.Nebulae)
-				{
-					sys.Nebulae.Add(GetNebula(sys, nbl));
-				}
-			}
-			return sys;
+            if (inisys.Nebulae != null)
+            {
+                foreach (var nbl in inisys.Nebulae)
+                {
+                    sys.Nebulae.Add(GetNebula(sys, nbl));
+                    yield return null;
+                }
+            }
+        }
+        public GameData.StarSystem GetSystem(string id)
+		{
+            var sys = new GameData.StarSystem();
+            while (FillSystem(id, sys).MoveNext()) { }
+            return sys;
 		}
 		GameData.AsteroidField GetAsteroidField(GameData.StarSystem sys, Data.Universe.AsteroidField ast)
 		{

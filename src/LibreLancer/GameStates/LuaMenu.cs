@@ -26,6 +26,7 @@ namespace LibreLancer
             GC.Collect(); //crap
             g.Sound.PlayMusic(intro.Music);
             g.Keyboard.KeyDown += Keyboard_KeyDown;
+            FadeIn(0.1, 0.3);
         }
 
         class LuaAPI
@@ -34,11 +35,11 @@ namespace LibreLancer
             public LuaAPI(LuaMenu m) => state = m;
             public void newgame() => state.ui.Leave(() =>
             {
-                state.Game.ChangeState(new SpaceGameplay(state.Game, new GameSession(state.Game)));
+                state.FadeOut(0.2, () => state.Game.ChangeState(new SpaceGameplay(state.Game, new GameSession(state.Game))));
             });
             public void loadgame() {}
             public void multiplayer() {}
-            public void exit() => state.ui.Leave(() => state.Game.Exit());
+            public void exit() => state.ui.Leave(() => state.FadeOut(0.2, () => state.Game.Exit()));
         }
 
         public override void Draw(TimeSpan delta) 
@@ -46,6 +47,7 @@ namespace LibreLancer
             scene.Draw();
             ui.Draw(delta);
             Game.Renderer2D.Start(Game.Width, Game.Height);
+            DoFade(delta);
             cur.Draw(Game.Renderer2D, Game.Mouse);
             Game.Renderer2D.Finish();
         }
@@ -61,7 +63,7 @@ namespace LibreLancer
                 ui.Enter();
                 newUI = false;
             }
-            if (uframe < 3)
+            if (uframe < 8)
             { //Allows animations to play correctly
                 uframe++;
                 ui.Update(TimeSpan.Zero);

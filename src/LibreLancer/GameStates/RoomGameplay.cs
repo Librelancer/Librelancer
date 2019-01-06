@@ -50,6 +50,7 @@ namespace LibreLancer
 			Game.Keyboard.TextInput += Game_TextInput;
 			Game.Keyboard.KeyDown += Keyboard_KeyDown;
 			cursor = Game.ResourceManager.GetCursor("arrow");
+            FadeIn(0.8, 1.7);
 		}
         void SetActiveHotspot(string rm)
         {
@@ -98,12 +99,25 @@ namespace LibreLancer
 			hud.Dispose();
 			scene.Dispose();
 		}
-        string ag;
 
-		void Hud_OnManeuverSelected(string arg)
-		{
+
+        void Hud_OnManeuverSelected(string arg)
+        {
             if (arg == active) return;
-            ag = arg; //NeoLua doesn't let you have a full stack walk
+            Game.QueueUIThread(() => //Fixes stack trace
+            {
+                var hotspot = currentRoom.Hotspots.Find((obj) => obj.Name == arg);
+                switch (hotspot.Behavior)
+                {
+                    case "ExitDoor":
+                        var rm = currentBase.Rooms.Find((o) => o.Nickname == hotspot.Room);
+                        FadeOut(0.6, () => Game.ChangeState(new RoomGameplay(Game, session, baseId, rm, hotspot.SetVirtualRoom)));
+                        break;
+                    case "VirtualRoom":
+                        FadeOut(0.6, () => Game.ChangeState(new RoomGameplay(Game, session, baseId, currentRoom, hotspot.Room)));
+                        break;
+                }
+            });
 		}
 
 		void Keyboard_KeyDown(KeyEventArgs e)
@@ -141,7 +155,10 @@ namespace LibreLancer
 		}
 		void Hud_OnTextEntry(string obj)
 		{
-			session.ProcessConsoleCommand(obj);
+            if(obj == "launch") {
+                scene.RunScript(new ThnScript(currentRoom.LaunchScript));
+            }
+            session.ProcessConsoleCommand(obj);
 		}
 
 		void SwitchToRoom()
@@ -181,30 +198,18 @@ namespace LibreLancer
 			if(scene != null)
 				scene.Update(delta);
             hud.Update(delta);
-            if (ag != null)
-            {
-                var hotspot = currentRoom.Hotspots.Find((obj) => obj.Name == ag);
-                switch (hotspot.Behavior)
-                {
-                    case "ExitDoor":
-                        var rm = currentBase.Rooms.Find((o) => o.Nickname == hotspot.Room);
-                        Game.ChangeState(new RoomGameplay(Game, session, baseId, rm, hotspot.SetVirtualRoom));
-                        break;
-                    case "VirtualRoom":
-                        Game.ChangeState(new RoomGameplay(Game, session, baseId, currentRoom, hotspot.Room));
-                        break;
-                }
-            }
         }
 
+       
 		public override void Draw(TimeSpan delta)
 		{
 			if(scene != null)
 				scene.Draw();
             hud.Draw(delta);
 			Game.Renderer2D.Start(Game.Width, Game.Height);
-			cursor.Draw(Game.Renderer2D, Game.Mouse);
-			Game.Renderer2D.Finish();
+            DoFade(delta);
+            cursor.Draw(Game.Renderer2D, Game.Mouse);
+            Game.Renderer2D.Finish();
 		}
 	}
 }

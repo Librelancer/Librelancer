@@ -29,53 +29,53 @@ namespace LibreLancer
             Projectiles = new ProjectileManager(this);
 		}
 
-		public void LoadSystem(StarSystem sys, ResourceManager res)
+        public void LoadSystem(StarSystem sys, ResourceManager res)
 		{
-			foreach (var g in Objects)
-				g.Unregister(Physics);
-			
-			Renderer.StarSystem = sys;
+            foreach (var g in Objects)
+                g.Unregister(Physics);
 
-			Objects = new List<GameObject>();
+            Renderer.StarSystem = sys;
+
+            Objects = new List<GameObject>();
             Objects.Add((new GameObject() { Nickname = "projectiles", RenderComponent = new ProjectileRenderer(Projectiles) }));
 
             foreach (var obj in sys.Objects)
-			{
-				var g = new GameObject(obj.Archetype, res, true);
-				g.Name = obj.DisplayName;
-				g.Nickname = obj.Nickname;
-				g.Transform = (obj.Rotation ?? Matrix4.Identity) * Matrix4.CreateTranslation(obj.Position);
-				g.SetLoadout(obj.Loadout, obj.LoadoutNoHardpoint);
-				g.StaticPosition = obj.Position;
-				g.World = this;
-				if (g.RenderComponent != null) g.RenderComponent.LODRanges = obj.Archetype.LODRanges;
-				if (obj.Dock != null)
-				{
-					if (obj.Archetype.DockSpheres.Count > 0) //Dock with no DockSphere?
-					{
-						g.Components.Add(new DockComponent(g)
-						{
-							Action = obj.Dock,
-							DockAnimation = obj.Archetype.DockSpheres[0].Script,
-							DockHardpoint = obj.Archetype.DockSpheres[0].Hardpoint,
-							TriggerRadius = obj.Archetype.DockSpheres[0].Radius
-						});
-					}
-				}
-				g.Register(Physics);
-				Objects.Add(g);
-			}
-			foreach (var field in sys.AsteroidFields)
-			{
-				var g = new GameObject();
-				g.Resources = res;
-				g.World = this;
-				g.Components.Add(new AsteroidFieldComponent(field, g));
-				Objects.Add(g);
+            {
+                var g = new GameObject(obj.Archetype, res, true);
+                g.Name = obj.DisplayName;
+                g.Nickname = obj.Nickname;
+                g.Transform = (obj.Rotation ?? Matrix4.Identity) * Matrix4.CreateTranslation(obj.Position);
+                g.SetLoadout(obj.Loadout, obj.LoadoutNoHardpoint);
+                g.StaticPosition = obj.Position;
+                g.World = this;
+                if (g.RenderComponent != null) g.RenderComponent.LODRanges = obj.Archetype.LODRanges;
+                if (obj.Dock != null)
+                {
+                    if (obj.Archetype.DockSpheres.Count > 0) //Dock with no DockSphere?
+                    {
+                        g.Components.Add(new DockComponent(g)
+                        {
+                            Action = obj.Dock,
+                            DockAnimation = obj.Archetype.DockSpheres[0].Script,
+                            DockHardpoint = obj.Archetype.DockSpheres[0].Hardpoint,
+                            TriggerRadius = obj.Archetype.DockSpheres[0].Radius
+                        });
+                    }
+                }
                 g.Register(Physics);
-			}
-			GC.Collect();
-		}
+                Objects.Add(g);
+            }
+            foreach (var field in sys.AsteroidFields)
+            {
+                var g = new GameObject();
+                g.Resources = res;
+                g.World = this;
+                g.Components.Add(new AsteroidFieldComponent(field, g));
+                Objects.Add(g);
+                g.Register(Physics);
+            }
+            GC.Collect();
+        }
 
 		public GameObject GetObject(string nickname)
 		{

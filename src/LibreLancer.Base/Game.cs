@@ -163,7 +163,14 @@ namespace LibreLancer
                 return totalTime;
             }
         }
-
+        Stopwatch timer;
+        public double TimerTick
+        {
+            get
+            {
+                return timer.ElapsedMilliseconds / 1000.0;
+            }
+        }
         public string Title
         {
             get
@@ -289,7 +296,6 @@ namespace LibreLancer
         }
 
         public event Action WillClose;
-
         public void Run()
         {
             FLLog.Info("Engine", "Version: " + Platform.GetInformationalVersion<Game>());
@@ -364,7 +370,7 @@ namespace LibreLancer
             Load();
             //Start game
             running = true;
-            var timer = new Stopwatch();
+            timer = new Stopwatch();
             timer.Start();
             double last = 0;
             double elapsed = 0;
