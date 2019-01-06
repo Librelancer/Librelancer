@@ -209,7 +209,8 @@ namespace LibreLancer
 
 		public void ClearDepth()
 		{
-			GL.Clear (GL.GL_DEPTH_BUFFER_BIT);
+            Apply();
+            GL.Clear (GL.GL_DEPTH_BUFFER_BIT);
 		}
 		public void Apply()
 		{

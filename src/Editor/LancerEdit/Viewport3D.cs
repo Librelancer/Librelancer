@@ -87,7 +87,7 @@ namespace LancerEdit
             if (view)
             {
                 ImGui.ImageButton((IntPtr)rid, new Vector2(rw, rh),
-                                  Vector2.Zero, Vector2.One,
+                                  new Vector2(0,1), new Vector2(1,0),
                                   0,
                                   Vector4.One, Vector4.One);
                 if (ImGui.IsItemHovered(ImGuiHoveredFlags.None))
@@ -111,7 +111,7 @@ namespace LancerEdit
                             var z = rotmat.Transform(Vector3.UnitZ);
                             var x = rotmat.Transform(Vector3.UnitX);
 
-                            CameraOffset -= x * (delta.X * ModelScale / 52f);
+                            CameraOffset += x * (delta.X * ModelScale / 52f);
                             CameraOffset -= z * (delta.Y * ModelScale / 44f);
                         }
                     }
@@ -127,7 +127,7 @@ namespace LancerEdit
                         else
                         {
                             //RMB - Rotate viewport camera
-                            CameraRotation += (delta / 100) * new Vector2(1, -1);
+                            CameraRotation -= (delta / 100);
                             KeyboardControls();
                         }
                     }

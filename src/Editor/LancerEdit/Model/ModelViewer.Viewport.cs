@@ -127,19 +127,23 @@ namespace LancerEdit
             var dir = rot.Transform(Vector3.Forward);
             var to = modelViewport.CameraOffset + (dir * 10);
             lookAtCam.Update(renderWidth, renderHeight, modelViewport.CameraOffset, to, rot);
+            ThnCamera tcam = null;
+            float znear = 0;
+            float zfar = 0;
             if(doCockpitCam) {
                 var vp = new Viewport(0, 0, renderWidth, renderHeight);
-                var tcam = new ThnCamera(vp);
+                tcam = new ThnCamera(vp);
                 tcam.Transform.AspectRatio = renderWidth / (float)renderHeight;
                 var tr = cameraPart.GetTransform(Matrix4.Identity);
-                tcam.Transform.Orientation = Matrix4.CreateFromQuaternion(tr.ExtractRotation()) * 
-                    Matrix4.CreateRotationZ((float)Math.PI); //Fixes upside-down idk
+                tcam.Transform.Orientation = Matrix4.CreateFromQuaternion(tr.ExtractRotation());
                 tcam.Transform.Position = tr.Transform(Vector3.Zero);
-                tcam.Transform.Znear = cameraPart.Camera.Znear;
-                tcam.Transform.Zfar = cameraPart.Camera.Zfar;
+                znear = cameraPart.Camera.Znear;
+                zfar = cameraPart.Camera.Zfar;
+                tcam.Transform.Znear = 0.001f;
+                tcam.Transform.Zfar = 1000;
                 tcam.Transform.FovH = MathHelper.RadiansToDegrees(cameraPart.Camera.Fovx);
-                tcam.Update();
                 tcam.frameNo = fR++;
+                tcam.Update();
                 cam = tcam;
             }
             else {
@@ -150,15 +154,26 @@ namespace LancerEdit
             drawable.Update(cam, TimeSpan.Zero, TimeSpan.FromSeconds(_window.TotalTime));
             if (viewMode != M_NONE)
             {
-                buffer.StartFrame(rstate);
-                if (drawable is CmpFile)
-                    DrawCmp(cam, false);
-                else
-                    DrawSimple(cam, false);
-                buffer.DrawOpaque(rstate);
-                rstate.DepthWrite = false;
-                buffer.DrawTransparent(rstate);
-                rstate.DepthWrite = true;
+                int drawCount = doCockpitCam ? 2 : 1;
+                for (int i = 0; i < drawCount; i++)
+                {
+                    buffer.StartFrame(rstate);
+                    if (i == 1) {
+                        rstate.ClearDepth();
+                        tcam.Transform.Zfar = zfar;
+                        tcam.Transform.Znear = znear;
+                        tcam.frameNo = fR++;
+                        tcam.Update();
+                    }
+                    if (drawable is CmpFile)
+                        DrawCmp(cam, false);
+                    else
+                        DrawSimple(cam, false);
+                    buffer.DrawOpaque(rstate);
+                    rstate.DepthWrite = false;
+                    buffer.DrawTransparent(rstate);
+                    rstate.DepthWrite = true;
+                }
             }
             if (doWireframe)
             {
