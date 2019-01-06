@@ -392,6 +392,7 @@
     <Compile Include="Gameplay\ProjectileManager.cs" />
     <Compile Include="GameData\Items\MunitionEquip.cs" />
     <Compile Include="Render\ProjectileRenderer.cs" />
+    <Compile Include="Utf\Cmp\CmpCameraInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

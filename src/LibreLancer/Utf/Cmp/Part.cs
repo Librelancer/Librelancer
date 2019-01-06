@@ -13,6 +13,7 @@ namespace LibreLancer.Utf.Cmp
     public class Part : IDrawable
     {
         private Dictionary<string, ModelFile> models;
+        private Dictionary<string, CmpCameraInfo> cameras;
         private ConstructCollection constructs;
 
         private string objectName;
@@ -43,18 +44,34 @@ namespace LibreLancer.Utf.Cmp
                 return model;
             }
         }
+
+        private CmpCameraInfo camera;
+        bool cameraTried = false;
+        public CmpCameraInfo Camera
+        {
+            get
+            {
+                if (camera == null && !cameraTried) {
+                    cameraTried = true;
+                    cameras.TryGetValue(fileName, out camera);
+                }
+                return camera;
+            }
+        }
+
         public string FileName
         {
             get { return fileName; }
         }
         public bool IsBroken()
         {
-            return !models.ContainsKey(fileName);
+            return !cameras.ContainsKey(fileName) && !models.ContainsKey(fileName);
         }
 
-        public Part(string objectName, string fileName, Dictionary<string, ModelFile> models, ConstructCollection constructs)
+        public Part(string objectName, string fileName, Dictionary<string, ModelFile> models, Dictionary<string,CmpCameraInfo> cams, ConstructCollection constructs)
         {
             this.models = models;
+            this.cameras = cams;
             this.constructs = constructs;
             this.objectName = objectName;
             this.fileName = fileName;
@@ -62,11 +79,13 @@ namespace LibreLancer.Utf.Cmp
 
 		public void Initialize(ResourceManager cache)
         {
+            if (Camera != null) return;
             Model.Initialize(cache);
         }
 
         public void Resized()
         {
+            if (Camera != null) return;
             Model.Resized();
         }
 
@@ -77,11 +96,13 @@ namespace LibreLancer.Utf.Cmp
 
 		public void Update(ICamera camera, TimeSpan delta, TimeSpan totalTime)
         {
-			Model.Update (camera, delta, totalTime);
+            if (Camera != null) return;
+            Model.Update (camera, delta, totalTime);
         }
 
 		public void Draw(RenderState rstate, Matrix4 world, Lighting light)
         {
+            if (Camera != null) return;
             Matrix4 transform = world;
             if (Construct != null) transform = Construct.Transform * world;
             Model.Draw(rstate, transform, light);
@@ -89,13 +110,15 @@ namespace LibreLancer.Utf.Cmp
 
 		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, ref Lighting light, Material overrideMat = null)
 		{
-			Matrix4 transform = world;
+            if (Camera != null) return;
+            Matrix4 transform = world;
 			if (Construct != null) transform = Construct.Transform * world;
 			Model.DrawBuffer(buffer, transform, ref light, overrideMat);
 		}
 
         public void DrawBufferLevel(int level, CommandBuffer buffer, Matrix4 world, ref Lighting light, Material overrideMat = null)
         {
+            if (Camera != null) return;
             Matrix4 transform = world;
             if (Construct != null) transform = Construct.Transform * world;
             Model.DrawBufferLevel(Model.Levels[level], buffer, transform, ref light, overrideMat);
@@ -110,7 +133,7 @@ namespace LibreLancer.Utf.Cmp
 
         public Part Clone(ConstructCollection newcol)
 		{
-			return new Part(ObjectName, fileName, models, newcol);
+			return new Part(ObjectName, fileName, models,cameras, newcol);
 		}
     }
 }

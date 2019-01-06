@@ -87,6 +87,7 @@ namespace LancerEdit
                 var cmp = (CmpFile)drawable;
                 foreach (var p in cmp.Parts)
                 {
+                    if (p.Camera != null) continue;
                     if (p.Model.VMeshWire != null) hasVWire = true;
                     foreach (var hp in p.Model.Hardpoints)
                     {
@@ -125,6 +126,7 @@ namespace LancerEdit
                 int maxLevels = 0;
                 foreach (var p in cmp.Parts)
                 {
+                    if (p.Camera != null) continue;
                     maxLevels = Math.Max(maxLevels, p.Model.Levels.Length - 1);
                     if (p.Model.Switch2 != null)
                         for (int i = 0; i < p.Model.Switch2.Length - 1; i++)
@@ -176,8 +178,10 @@ namespace LancerEdit
         {
             var node = new ConstructNode() { Con = con };
             foreach (var p in c.Parts)
-                if (p.Construct == con)
-                    node.Model = p.Model;
+                if (p.Construct == con) {
+                    node.Camera = p.Camera;
+                    if(node.Camera == null) node.Model = p.Model;
+                }
             return node;
         }
         bool PlaceNode(List<ConstructNode> n, AbstractConstruct con)
@@ -356,6 +360,7 @@ namespace LancerEdit
             public AbstractConstruct Con;
             public List<ConstructNode> Nodes = new List<ConstructNode>();
             public ModelFile Model;
+            public CmpCameraInfo Camera;
         }
 
         List<ConstructNode> cons = new List<ConstructNode>();
@@ -402,7 +407,10 @@ namespace LancerEdit
                 Theme.RenderTreeIcon(n, icon, color);
                 foreach (var child in cn.Nodes)
                     DoConstructNode(child);
-                DoModel(cn.Model, cn.Con);
+                if (cn.Camera != null)
+                    DoCamera(cn.Camera, cn.Con);
+                else
+                    DoModel(cn.Model, cn.Con);
                 ImGui.TreePop();
             }
             else
@@ -469,6 +477,10 @@ namespace LancerEdit
                 }
                 ImGui.EndPopup();
             }
+        }
+        void DoCamera(CmpCameraInfo cam, AbstractConstruct con)
+        {
+
         }
         void DoModel(ModelFile mdl, AbstractConstruct con)
         {

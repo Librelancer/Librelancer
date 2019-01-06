@@ -289,6 +289,7 @@ namespace LancerEdit
                 for (int i = 0; i < cmp.Parts.Count; i++)
                 {
                     var part = cmp.Parts[i];
+                    if (part.Camera != null) continue;
                     Material mat;
                     if (!partMaterials.TryGetValue(i, out mat))
                     {
@@ -311,7 +312,8 @@ namespace LancerEdit
                 {
                     foreach (var part in cmp.Parts)
                     {
-                        part.DrawBufferLevel(
+                        if (part.Camera == null)
+                            part.DrawBufferLevel(
                                 GetLevel(part.Model.Switch2, part.Model.Levels.Length - 1),
                                 buffer, matrix, ref lighting
                             );
@@ -321,6 +323,7 @@ namespace LancerEdit
                 {
                     foreach (var part in cmp.Parts)
                     {
+                        if(part.Camera == null)
                         part.DrawBufferLevel(
                                 GetLevel(part.Model.Switch2, part.Model.Levels.Length - 1),
                                 buffer, matrix, ref Lighting.Empty
@@ -333,7 +336,8 @@ namespace LancerEdit
                 normalsDebugMaterial.Update(cam);
                 foreach (var part in cmp.Parts)
                 {
-                    part.DrawBufferLevel(
+                    if (part.Camera == null)
+                        part.DrawBufferLevel(
                             GetLevel(part.Model.Switch2, part.Model.Levels.Length - 1),
                             buffer, matrix, ref Lighting.Empty, normalsDebugMaterial
                         );
