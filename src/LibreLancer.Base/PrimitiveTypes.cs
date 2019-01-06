@@ -6,7 +6,7 @@ using System;
 
 namespace LibreLancer
 {
-    public enum PrimitiveTypes
+    public enum PrimitiveTypes : byte
     {
         TriangleList,
         TriangleStrip,

@@ -5,7 +5,7 @@
 using System;
 namespace LibreLancer
 {
-	public struct RenderUserData
+	public class RenderUserData
 	{
 		public ICamera Camera;
 		public Matrix4 Matrix2;

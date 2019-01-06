@@ -35,7 +35,7 @@ namespace LancerEdit
             normalsDebugMaterial.Type = "NormalDebugMaterial";
             lighting = Lighting.Create();
             lighting.Enabled = true;
-            lighting.Ambient = Color4.Black;
+            lighting.Ambient = Color3f.Black;
             var src = new SystemLighting();
             src.Lights.Add(new DynamicLight()
             {
@@ -43,7 +43,7 @@ namespace LancerEdit
                 {
                     Kind = LightKind.Directional,
                     Direction = new Vector3(0, -1, 0),
-                    Color = Color4.White
+                    Color = Color3f.White
                 }
             });
             src.Lights.Add(new DynamicLight()
@@ -52,7 +52,7 @@ namespace LancerEdit
                 {
                     Kind = LightKind.Directional,
                     Direction = new Vector3(0, 0, 1),
-                    Color = Color4.White
+                    Color = Color3f.White
                 }
             });
             lighting.Lights.SourceLighting = src;

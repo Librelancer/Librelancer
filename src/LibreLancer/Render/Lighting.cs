@@ -11,7 +11,12 @@ namespace LibreLancer
 	{
 		public const int MAX_LIGHTS = 9;
 		public static Lighting Empty = new Lighting() { Enabled = false };
-        public bool Enabled;
+        byte _enabled;
+        public bool Enabled
+        {
+            get { return _enabled == 1; }
+            set { _enabled = value ? (byte)1 : (byte)0; }
+        }
         public Color3f Ambient;
         public LightsArray Lights;
 		public FogModes FogMode;

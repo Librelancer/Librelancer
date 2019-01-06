@@ -79,8 +79,7 @@ namespace LibreLancer
 				Start = start,
 				Count = count,
 				Primitive = primitive,
-				CmdType = RenderCmdType.Material,
-				Fade = true,
+				CmdType = RenderCmdType.MaterialFade,
 				BaseVertex = *(int*)(&fadeParams.X),
 				Index = *(int*)(&fadeParams.Y),
 				World = world,
@@ -272,9 +271,10 @@ namespace LibreLancer
 				return cmds[x].Z.CompareTo(cmds[y].Z);
 		}
 	}
-	public enum RenderCmdType
+	public enum RenderCmdType : byte
 	{
 		Material,
+        MaterialFade,
 		Shader,
 		Billboard,
 		BillboardCustom
@@ -292,27 +292,26 @@ namespace LibreLancer
 		public RenderCmdType CmdType;
 		public int Start;
 		public int Count;
-		public Lighting Lights;
+        public Lighting Lights;
 		public float Z;
 		public int SortLayer;
 		public MaterialAnim MaterialAnim;
 		public int Hash;
 		public int Index;
-		public bool Fade;
 		public override string ToString()
 		{
 			return string.Format("[Z: {0}]", Z);
 		}
 		public unsafe void Run(RenderState state)
 		{
-			if (CmdType == RenderCmdType.Material)
+			if (CmdType == RenderCmdType.Material || CmdType == RenderCmdType.MaterialFade)
 			{
 				var Material = (RenderMaterial)Source;
 				if (Material == null)
 					return;
 				Material.MaterialAnim = MaterialAnim;
 				Material.World = World;
-				if (Fade)
+				if (CmdType == RenderCmdType.MaterialFade)
 				{
 					Material.Fade = true;
 					var fn = BaseVertex;
@@ -321,7 +320,7 @@ namespace LibreLancer
 					Material.FadeFar = *(float*)(&ff);
 				}
 				Material.Use(state, Buffer.VertexType, ref Lights);
-				if (!Fade && BaseVertex != -1)
+				if ((CmdType != RenderCmdType.MaterialFade) && BaseVertex != -1)
 					Buffer.Draw(Primitive, BaseVertex, Start, Count);
 				else
 					Buffer.Draw(Primitive, Count);
@@ -330,14 +329,14 @@ namespace LibreLancer
                     Material.FlipNormals = true;
                     Material.UpdateFlipNormals();
 					state.CullFace = CullFaces.Front;
-					if (!Fade && BaseVertex != -1)
+					if ((CmdType != RenderCmdType.MaterialFade) && BaseVertex != -1)
 						Buffer.Draw(Primitive, BaseVertex, Start, Count);
 					else
 						Buffer.Draw(Primitive, Count);
 					state.CullFace = CullFaces.Back;
                     Material.FlipNormals = false;
 				}
-				if (Fade)
+				if (CmdType == RenderCmdType.MaterialFade)
 				{
 					Material.Fade = false;
 				}
