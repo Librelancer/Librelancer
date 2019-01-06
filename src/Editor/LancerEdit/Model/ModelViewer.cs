@@ -64,6 +64,8 @@ namespace LancerEdit
         PopupManager popups;
         ModelNodes hprefs;
         TextBuffer filterText = new TextBuffer(128);
+        Part cameraPart;
+        bool doCockpitCam = false;
         bool doFilter = false;
         string currentFilter;
         bool hasVWire = false;
@@ -181,6 +183,9 @@ namespace LancerEdit
                 if (p.Construct == con) {
                     node.Camera = p.Camera;
                     if(node.Camera == null) node.Model = p.Model;
+                    else if (p.ObjectName.Equals("cockpit cam", StringComparison.OrdinalIgnoreCase)) {
+                        cameraPart = p;
+                    }
                 }
             return node;
         }
@@ -301,6 +306,10 @@ namespace LancerEdit
             if (hasVWire)
             {
                 ImGui.Checkbox("VMeshWire", ref drawVMeshWire);
+                ImGui.SameLine();
+            }
+            if(cameraPart != null) {
+                ImGui.Checkbox("Cockpit Cam", ref doCockpitCam);
                 ImGui.SameLine();
             }
             ImGui.Checkbox("Wireframe", ref doWireframe);

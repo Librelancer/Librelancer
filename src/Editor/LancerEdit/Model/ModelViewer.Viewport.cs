@@ -116,20 +116,37 @@ namespace LancerEdit
 
         }
 
-
+        long fR = 0;
         void DrawGL(int renderWidth, int renderHeight)
         {
+            ICamera cam;
             //Draw Model
-            var cam = new LookAtCamera();
+            var lookAtCam = new LookAtCamera();
             Matrix4 rot = Matrix4.CreateRotationX(modelViewport.CameraRotation.Y) *
                 Matrix4.CreateRotationY(modelViewport.CameraRotation.X);
-
-            //if(isStarsphere) //This is really bad
-                //rot = Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
-            _window.DebugRender.StartFrame(cam, rstate);
             var dir = rot.Transform(Vector3.Forward);
             var to = modelViewport.CameraOffset + (dir * 10);
-            cam.Update(renderWidth, renderHeight, modelViewport.CameraOffset, to, rot);
+            lookAtCam.Update(renderWidth, renderHeight, modelViewport.CameraOffset, to, rot);
+            if(doCockpitCam) {
+                var vp = new Viewport(0, 0, renderWidth, renderHeight);
+                var tcam = new ThnCamera(vp);
+                tcam.Transform.AspectRatio = renderWidth / (float)renderHeight;
+                var tr = cameraPart.GetTransform(Matrix4.Identity);
+                tcam.Transform.Orientation = Matrix4.CreateFromQuaternion(tr.ExtractRotation()) * 
+                    Matrix4.CreateRotationZ((float)Math.PI); //Fixes upside-down idk
+                tcam.Transform.Position = tr.Transform(Vector3.Zero);
+                tcam.Transform.Znear = cameraPart.Camera.Znear;
+                tcam.Transform.Zfar = cameraPart.Camera.Zfar;
+                tcam.Transform.FovH = MathHelper.RadiansToDegrees(cameraPart.Camera.Fovx);
+                tcam.Update();
+                tcam.frameNo = fR++;
+                cam = tcam;
+            }
+            else {
+                cam = lookAtCam;
+            }
+            _window.DebugRender.StartFrame(cam, rstate);
+
             drawable.Update(cam, TimeSpan.Zero, TimeSpan.FromSeconds(_window.TotalTime));
             if (viewMode != M_NONE)
             {

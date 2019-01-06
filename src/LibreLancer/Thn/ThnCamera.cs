@@ -7,7 +7,7 @@ namespace LibreLancer
 {
 	public class ThnCamera : ICamera
 	{
-		long frameNo = 0;
+		public long frameNo = 0;
 
 		public ThnCameraTransform Transform = new ThnCameraTransform();
 
@@ -28,7 +28,7 @@ namespace LibreLancer
 			var fovy = Transform.FovH * Transform.AspectRatio;
 			//TODO: Tweak clip plane some more - isn't quite right
 			//NOTE: near clip plane can't be too small or it causes z-fighting
-			projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovy), Transform.AspectRatio, 2.5f, 10000000f);
+			projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovy), Transform.AspectRatio, Transform.Znear, Transform.Zfar);
 			Vector3 originalTarget = Vector3.Forward;
 			Vector3 rotatedTarget = Transform.Orientation.Transform(originalTarget);
             Vector3 target = Transform.LookAt == null ? Position + rotatedTarget : Transform.LookAt();

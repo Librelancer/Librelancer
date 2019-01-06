@@ -12,5 +12,7 @@ namespace LibreLancer
 		public Vector3 Position = Vector3.Zero;
 		public Matrix4 Orientation = Matrix4.Identity;
         public Func<Vector3> LookAt;
-	}
+        public float Znear = 2.5f;
+        public float Zfar = 10000000f;
+    }
 }
