@@ -425,7 +425,8 @@ namespace LibreLancer
         public GameData.StarSystem GetSystem(string id)
 		{
             var sys = new GameData.StarSystem();
-            while (FillSystem(id, sys).MoveNext()) { }
+            var iterator = FillSystem(id, sys);
+            while (iterator.MoveNext()) {  }
             return sys;
 		}
 		GameData.AsteroidField GetAsteroidField(GameData.StarSystem sys, Data.Universe.AsteroidField ast)
