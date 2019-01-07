@@ -146,7 +146,7 @@ namespace LibreLancer
                 var start = indices.Count;
                 foreach (var ast in field.Cube)
                 {
-                    AddAsteroidToBuffer(ast, mat);
+                    AddAsteroidToBuffer(ast, mat, mats.Count == 1);
                 }
                 var count = indices.Count - start;
                 cubeDrawCalls.Add(new DrawCall() { Material = mat, StartIndex = start, Count = count });
@@ -160,7 +160,7 @@ namespace LibreLancer
             indices = null;
         }
 
-        void AddAsteroidToBuffer(StaticAsteroid ast, Material mat)
+        void AddAsteroidToBuffer(StaticAsteroid ast, Material mat, bool singleMat)
         {
             var model = ast.Drawable as ModelFile;
             var l0 = model.Levels[0];
@@ -214,6 +214,7 @@ namespace LibreLancer
             for (int i = l0.StartMesh; i < l0.StartMesh + l0.MeshCount; i++)
             {
                 var m = l0.Mesh.Meshes[i];
+                if (m.Material != mat && !singleMat) continue;
                 var baseVertex = vertOffset + l0.StartVertex + m.StartVertex;
                 int indexStart = m.TriangleStart;
                 int indexCount = m.NumRefVertices;
@@ -329,7 +330,7 @@ namespace LibreLancer
                         if (GetExclusionZone(center) != null) {
                             continue;
                         }
-                        cubes[cubeCount++] = new CalculatedCube(center, Matrix4.CreateTranslation(center) * field.CubeRotation.GetRotation(tval));
+                        cubes[cubeCount++] = new CalculatedCube(center, field.CubeRotation.GetRotation(tval) * Matrix4.CreateTranslation(center));
                     }
                 }
             }
@@ -415,7 +416,7 @@ namespace LibreLancer
                                 alpha = ffar / fadePctSq;
                             }
                             var coords = billboardCoords [astbillboards [i].Texture];
-                            sys.Billboards.DrawTri (
+                            /*sys.Billboards.DrawTri (
                                 billboardTex,
                                 astbillboards [i].Position,
                                 astbillboards[i].Size,
@@ -423,10 +424,11 @@ namespace LibreLancer
                                 coords[0], coords[2], coords[1],
                                 0,
                                 SortLayers.OBJECT
-                            );
+                            );*/
                         }
                     }
                 }
+
             }
 
             //Band is last
