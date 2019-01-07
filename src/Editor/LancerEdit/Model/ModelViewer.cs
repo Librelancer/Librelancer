@@ -215,7 +215,7 @@ namespace LancerEdit
         Color4 background = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
         System.Numerics.Vector3 editCol;
 
-        bool[] openTabs = new bool[] { false, false, false };
+        bool[] openTabs = new bool[] { false, false, false, false };
         void TabButton(string name, int idx)
         {
             if (TabHandler.VerticalTab(name, openTabs[idx]))
@@ -236,7 +236,11 @@ namespace LancerEdit
                 TabButton("Hierachy", 0);
             if (drawable is CmpFile && ((CmpFile)drawable).Animation != null)
                 TabButton("Animations", 1);
-            TabButton("Render", 2);
+#if DEBUG
+            if (drawable is DF.DfmFile)
+                TabButton("Skeleton", 2);
+#endif
+            TabButton("Render", 3);
             ImGuiNative.igEndGroup();
             ImGui.SameLine();
         }
@@ -266,7 +270,8 @@ namespace LancerEdit
                 ImGui.BeginChild("##tabchild");
                 if (openTabs[0]) HierachyPanel();
                 if (openTabs[1]) AnimationPanel();
-                if (openTabs[2]) RenderPanel();
+                if (openTabs[2]) SkeletonPanel();
+                if (openTabs[3]) RenderPanel();
                 ImGui.EndChild();
                 ImGui.NextColumn();
             }
@@ -671,6 +676,28 @@ namespace LancerEdit
             if (ImGui.Button("Reset")) animator.ResetAnimations();
         }
 
+        bool drawSkeleton = false;
+        void SkeletonPanel()
+        {
+            ImGui.Text("Remove #if DEBUG when working");
+            ImGui.Separator();
+            ImGui.Checkbox("Draw Skeleton", ref drawSkeleton);
+            var dfm = ((DF.DfmFile)drawable);
+            foreach(var c in ((DF.DfmFile)drawable).Constructs.Constructs)
+            {
+                ImGui.Separator();
+                ImGui.Text("Parent: " + c.ParentName);
+                ImGui.Text("Bone A: " + c.BoneA);
+                var b = dfm.Parts.Values.FirstOrDefault(x => x.objectName == c.BoneA);
+                if (b != null)
+                    ImGui.Text("  BoneToRoot: " + b.Bone.BoneToRoot.Transform(Vector3.Zero));
+                ImGui.Text("Bone B: " + c.BoneB);
+                b = dfm.Parts.Values.FirstOrDefault(x => x.objectName == c.BoneB);
+                if (b != null)
+                    ImGui.Text("  BoneToRoot: " + b.Bone.BoneToRoot.Transform(Vector3.Zero));
+                ImGui.Text("Joint Translate: " + c.Origin);
+            }
+        }
 
         int imageWidth = 256;
         int imageHeight = 256;

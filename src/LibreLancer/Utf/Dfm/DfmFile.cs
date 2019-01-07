@@ -5,17 +5,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-
-using LibreLancer.Utf.Vms;
 using LibreLancer.Utf.Mat;
+using LibreLancer.Utf.Vms;
 
 namespace LibreLancer.Utf.Dfm
 {
-	/// <summary>
-	/// Represents a UTF Deformable File (.dfm)
-	/// </summary>
-	public class DfmFile : UtfFile, ILibFile, IDrawable
+    /// <summary>
+    /// Represents a UTF Deformable File (.dfm)
+    /// </summary>
+    public class DfmFile : UtfFile, ILibFile, IDrawable
 	{
 		private ILibFile additionalLibrary;
 
@@ -32,7 +30,7 @@ namespace LibreLancer.Utf.Dfm
 
 		public Dictionary<int, DfmPart> Parts { get; private set; }
 		public Dictionary<string, Bone> Bones { get; private set; }
-		public ConstructCollection Constructs { get; private set; }
+		public DfmConstructs Constructs { get; private set; }
 
 		public IEnumerable<DfmHardpoint> GetHardpoints()
 		{
@@ -50,7 +48,7 @@ namespace LibreLancer.Utf.Dfm
 
 			Bones = new Dictionary<string, Bone>();
 			Parts = new Dictionary<int, DfmPart>();
-			Constructs = new ConstructCollection();
+			Constructs = new DfmConstructs();
 
 			foreach (Node node in root)
 			{
@@ -143,7 +141,7 @@ namespace LibreLancer.Utf.Dfm
 								}
 							}
 
-							Parts.Add(index, new DfmPart(objectName, fileName, Bones, Constructs));
+							Parts.Add(index, new DfmPart(objectName, fileName, Bones, null));
 						}
 						else throw new Exception("Invalid node in " + node.Name + ": " + cmpndSubNode.Name);
 					}
@@ -158,17 +156,7 @@ namespace LibreLancer.Utf.Dfm
 					break;
 				}
 			}
-			foreach (var bone in Bones)
-			{
-				foreach (var construct in Constructs)
-				{
-					if (bone.Key.StartsWith(construct.ChildName, StringComparison.OrdinalIgnoreCase))
-					{
-						bone.Value.Construct = construct;
-						break;
-					}
-				}
-			}
+			
 		}
 
 		public void Initialize(ResourceManager cache)

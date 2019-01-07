@@ -18,14 +18,15 @@ namespace LibreLancer.Utf.Dfm
 		private Dictionary<string, Bone> bones;
 		private ConstructCollection constructs;
 
-		private string objectName;
+		public string objectName;
 		private AbstractConstruct construct;
 		public AbstractConstruct Construct
 		{
 			get
 			{
-				if (construct == null) construct = constructs.Find(objectName);
-				return construct;
+                //if (construct == null) construct = constructs.Find(objectName);
+                //return construct;
+                return null;
 			}
 		}
 
@@ -43,7 +44,7 @@ namespace LibreLancer.Utf.Dfm
 		public DfmPart(string objectName, string fileName, Dictionary<string, Bone> models, ConstructCollection constructs)
 		{
 			this.bones = models;
-			this.constructs = constructs;
+			//this.constructs = constructs;
 			this.objectName = objectName;
 			this.fileName = fileName;
 		}

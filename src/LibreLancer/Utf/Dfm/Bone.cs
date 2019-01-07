@@ -11,7 +11,7 @@ namespace LibreLancer.Utf.Dfm
 {
 	public class Bone
 	{
-		public AbstractConstruct Construct { get; set; }
+		//public AbstractConstruct Construct { get; set; }
 		public Matrix4 BoneToRoot { get; private set; }
 		public byte LodBits { get; private set; }
 		public List<HardpointDefinition> Hardpoints { get; private set; }
@@ -28,7 +28,7 @@ namespace LibreLancer.Utf.Dfm
 				switch (subNode.Name.ToLowerInvariant())
 				{
 				case "bone to root":
-					BoneToRoot = (subNode as LeafNode).MatrixData4x3.Value;
+                        BoneToRoot = (subNode as LeafNode).MatrixData4x3.Value;
 					break;
 				case "lod bits":
 					LodBits = (subNode as LeafNode).ByteArrayData[0];

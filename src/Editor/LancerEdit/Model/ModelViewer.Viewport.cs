@@ -6,6 +6,7 @@ using System;
 using LibreLancer;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
+using DF = LibreLancer.Utf.Dfm;
 using ImGuiNET;
 namespace LancerEdit
 {
@@ -97,20 +98,6 @@ namespace LancerEdit
             imageViewport.RenderTarget.GetData(data);
             using (var sfc = new TeximpNet.Surface(imageWidth, imageHeight, true))
             {
-                //flip
-                fixed (byte* d = data)
-                {
-                    int* src = (int*)d;
-                    int* dst = (int*)sfc.DataPtr;
-                    for (int y = 0; y < imageHeight; y++)
-                    {
-                        for (int x = 0; x < imageWidth; x++)
-                        {
-                            int dstY = imageHeight - y - 1;
-                            dst[dstY * imageWidth + x] = src[y * imageWidth + x];
-                        }
-                    }
-                }
                 sfc.SaveToFile(TeximpNet.ImageFormat.PNG, output);
             }
 
@@ -199,6 +186,46 @@ namespace LancerEdit
             _window.DebugRender.Render();
             //Draw hardpoints
             DrawHardpoints(cam);
+            if (drawSkeleton) DrawSkeleton(cam);
+        }
+
+        void DrawSkeleton(ICamera cam)
+        {
+            var matrix = GetModelMatrix();
+            GizmoRender.Scale = gizmoScale;
+            GizmoRender.Begin();
+            var df = (DF.DfmFile)drawable;
+            foreach(var c in df.Constructs.Constructs)
+            {
+                var b1 = c.BoneA;
+                var b2 = c.BoneB;
+                if (string.IsNullOrEmpty(c.BoneB))
+                {
+                    b2 = c.ParentName;
+                    b1 = c.BoneA;
+                }
+                var conMat = c.Rotation * Matrix4.CreateTranslation(c.Origin);
+                DF.Bone bone1 = null;
+                DF.Bone bone2 = null;
+                foreach(var k in df.Parts.Values)
+                {
+                    if (k.objectName == b1) bone1 = k.Bone;
+                    if (k.objectName == b2) bone2 = k.Bone;
+                }
+                if (bone1 == null || bone2 == null) continue;
+                GizmoRender.AddGizmo(bone2.BoneToRoot * bone1.BoneToRoot * conMat * matrix);
+            }
+            /*foreach(var b in df.Bones.Values)
+            {
+                var tr = b.BoneToRoot;
+                tr.Transpose();
+                if (b.Construct != null)
+                    tr *= b.Construct.Transform;
+                tr *= matrix;
+               
+                GizmoRender.AddGizmo(tr, true, true);
+            }*/
+            GizmoRender.RenderGizmos(cam, rstate);
         }
 
         Matrix4 GetModelMatrix()

@@ -15,7 +15,8 @@ namespace LibreLancer.Utf.Dfm
 		}
 		public Matrix4 GetTransform(Matrix4 world)
 		{
-			return Hp.Transform * Bone.Construct.Transform * world;
+            return Matrix4.Identity;
+			//return Hp.Transform * Bone.Construct.Transform * world;
 		}
 	}
 }
