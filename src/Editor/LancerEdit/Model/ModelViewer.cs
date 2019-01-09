@@ -452,6 +452,7 @@ namespace LancerEdit
                             Origin = con.Con.Origin,
                             Rotation = con.Con.Rotation
                         };
+                        fix.Reset();
                         ReplaceConstruct(con, fix);
                     }
                     if(!(con.Con is RevConstruct) && Theme.IconMenuItem("Rev","rev",Color4.LightCoral,true)) {

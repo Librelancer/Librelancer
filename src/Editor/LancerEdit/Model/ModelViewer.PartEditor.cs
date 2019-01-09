@@ -86,7 +86,13 @@ namespace LancerEdit
         }
         void ReplaceConstruct(ConstructNode c, AbstractConstruct newc)
         {
+            
             var cmp = (CmpFile)drawable;
+            foreach(var part in cmp.Parts)
+            {
+                if (part.Construct == c.Con)
+                    part.UpdateConstruct(newc);
+            }
             for (int i = 0; i < cmp.Constructs.Count; i++)
             {
                 if (cmp.Constructs[i] == c.Con)

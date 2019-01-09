@@ -8,9 +8,17 @@ namespace LibreLancer.Data.Equipment
 {
 	public class PowerCore : AbstractEquipment
 	{
-        [Entry("da_archetype")]
-		public string DaArchetype;
-        [Entry("material_library")]
-		public string MaterialLibrary;
+        [Entry("volume")]
+        public int Volume;
+        [Entry("mass")]
+        public int Mass;
+        [Entry("capacity")]
+        public int Capacity;
+        [Entry("charge_rate")]
+        public int ChargeRate;
+        [Entry("thrust_capacity")]
+        public int ThrustCapacity;
+        [Entry("thrust_charge_rate")]
+        public int ThrustChargeRate;
 	}
 }

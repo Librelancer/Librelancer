@@ -15,6 +15,8 @@ namespace LibreLancer.Data.Effects
 		public string VisEffect;
         [Entry("vis_beam")]
         public string VisBeam;
+        [Entry("vis_generic")]
+        public string VisGeneric;
         [Entry("snd_effect")]
         public string SndEffect;
         [Entry("type")]

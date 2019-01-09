@@ -8,14 +8,6 @@ namespace LibreLancer.Data.Equipment
 {
     public class Gun : AbstractEquipment
     {
-        [Entry("da_archetype")]
-        public string DaArchetype;
-        [Entry("material_library")]
-        public string MaterialLibrary;
-        [Entry("ids_name")]
-        public int IdsName;
-        [Entry("ids_info")]
-        public int IdsInfo;
         [Entry("hit_pts")]
         public int Hitpoints;
         [Entry("turn_rate")]

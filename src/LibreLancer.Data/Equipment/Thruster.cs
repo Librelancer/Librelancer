@@ -8,22 +8,14 @@ namespace LibreLancer.Data.Equipment
 {
 	public class Thruster : AbstractEquipment
 	{
-        [Entry("particles")]
+		[Entry("particles")]
 		public string Particles;
-        [Entry("da_archetype")]
-		public string DaArchetype;
-        [Entry("material_library")]
-		public string MaterialLibrary;
         [Entry("hp_particles")]
 		public string HpParticles;
         [Entry("max_force")]
 		public int MaxForce;
         [Entry("power_usage")]
 		public int PowerUsage;
-        [Entry("ids_name")]
-		public int IdsName;
-        [Entry("ids_info")]
-		public int IdsInfo;
         [Entry("hit_pts")]
 		public int Hitpoints;
 	}

@@ -33,7 +33,13 @@ namespace LibreLancer.Utf.Cmp
                 return construct;
             }
         }
-
+        /// <summary>
+        /// EDITOR USE ONLY: Changes the construct object for the part
+        /// </summary>
+        public void UpdateConstruct(AbstractConstruct con)
+        {
+            construct = con;
+        }
         private string fileName;
         private ModelFile model;
         public ModelFile Model
