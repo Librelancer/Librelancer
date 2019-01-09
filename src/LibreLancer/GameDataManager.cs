@@ -846,12 +846,14 @@ namespace LibreLancer
                 var drawable = resource.GetDrawable(ResolveDataPath(gn.DaArchetype));
                 var mn = fldata.Equipment.Munitions.FirstOrDefault((x) => x.Nickname.Equals(gn.ProjectileArchetype, StringComparison.OrdinalIgnoreCase));
                 var effect = fldata.Effects.FindEffect(mn.ConstEffect);
-
+                string visbeam;
+                if (effect == null) visbeam = "";
+                else visbeam = effect.VisBeam ?? "";
                 var mequip = new GameData.Items.MunitionEquip()
                 {
                     Def = mn,
-                    ConstEffect_Beam = fldata.Effects.BeamSpears.FirstOrDefault((x) => x.Nickname.Equals(effect.VisBeam,StringComparison.OrdinalIgnoreCase)),
-                    ConstEffect_Bolt = fldata.Effects.BeamBolts.FirstOrDefault((x) => x.Nickname.Equals(effect.VisBeam, StringComparison.OrdinalIgnoreCase))
+                    ConstEffect_Beam = fldata.Effects.BeamSpears.FirstOrDefault((x) => x.Nickname.Equals(visbeam,StringComparison.OrdinalIgnoreCase)),
+                    ConstEffect_Bolt = fldata.Effects.BeamBolts.FirstOrDefault((x) => x.Nickname.Equals(visbeam, StringComparison.OrdinalIgnoreCase))
                 };
                 equip = new GameData.Items.GunEquipment()
                 {
