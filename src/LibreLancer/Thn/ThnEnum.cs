@@ -16,10 +16,18 @@ namespace LibreLancer
 
 			if (workingTypes.Contains(typeof(T)))
 			{
-				var i = (int)(float)o;
-				if (!Enum.IsDefined(typeof(T), i))
-					throw new NotImplementedException(typeof(T).ToString() + ": " + i);
-				return (T)(object)i;
+                if (Enum.GetUnderlyingType(typeof(T)) == typeof(byte)) {
+                    var i = (byte)(int)(float)o;
+                    if (!Enum.IsDefined(typeof(T), i))
+                        throw new NotImplementedException(typeof(T).ToString() + ": " + i);
+                    return (T)(object)i;
+                }
+                else {
+                    var i = (int)(float)o;
+                    if (!Enum.IsDefined(typeof(T), i))
+                        throw new NotImplementedException(typeof(T).ToString() + ": " + i);
+                    return (T)(object)i;
+                }
 			}
 			if (typeof(T) == typeof(bool)) return (T)(object)((float)o != 0);
 			//TODO: Move non-flags enums to workingTypes when complete
