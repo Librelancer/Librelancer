@@ -347,11 +347,7 @@ namespace LibreLancer
             SDL.SDL_EventState(SDL.SDL_EventType.SDL_DROPFILE, SDL.SDL_ENABLE);
             windowptr = sdlWin;
             var glcontext = SDL.SDL_GL_CreateContext(sdlWin);
-            bool check = GL.CheckStringSDL();
-            if (!check)
-            {
-            }
-            if (glcontext == IntPtr.Zero || !check)
+            if (glcontext == IntPtr.Zero || !GL.CheckStringSDL())
             {
                 SDL.SDL_GL_DeleteContext(glcontext);
                 if (Platform.RunningOS == OS.Windows)
