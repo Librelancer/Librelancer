@@ -298,7 +298,12 @@ namespace LibreLancer
 		public static void LoadSDL()
 		{
             GLES = false;
-            Load((f, t) => Marshal.GetDelegateForFunctionPointer(SDL.SDL_GL_GetProcAddress(f), (t)));
+            Load((f, t) =>
+            {
+                var proc = SDL.SDL_GL_GetProcAddress(f);
+                if (proc == IntPtr.Zero) return null;
+                return Marshal.GetDelegateForFunctionPointer(proc, (t));
+            });
 		}
         public static bool CheckStringSDL()
         {
