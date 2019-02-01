@@ -35,13 +35,14 @@ namespace LancerEdit
         int[] anisotropyLevels;
         int cFilter = 2;
         FileDialogFilters UtfFilters = new FileDialogFilters(
-            new FileFilter("All Utf Files","utf","cmp","3db","dfm","vms","mat","txm","ale","anm"),
+            new FileFilter("All Utf Files","utf","cmp","3db","dfm","vms","sph","mat","txm","ale","anm"),
             new FileFilter("Utf Files","utf"),
             new FileFilter("Anm Files","anm"),
             new FileFilter("Cmp Files","cmp"),
             new FileFilter("3db Files","3db"),
             new FileFilter("Dfm Files","dfm"),
             new FileFilter("Vms Files","vms"),
+            new FileFilter("Sph Files","sph"),
             new FileFilter("Mat Files","mat"),
             new FileFilter("Txm Files","txm"),
             new FileFilter("Ale Files","ale")
