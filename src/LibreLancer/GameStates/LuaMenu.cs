@@ -27,7 +27,9 @@ namespace LibreLancer
             cur = g.ResourceManager.GetCursor("arrow");
             GC.Collect(); //crap
             g.Sound.PlayMusic(intro.Music);
+#if DEBUG
             g.Keyboard.KeyDown += Keyboard_KeyDown;
+#endif
             FadeIn(0.1, 0.3);
         }
 
