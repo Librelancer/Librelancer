@@ -395,6 +395,7 @@
     <Compile Include="Utf\Cmp\CmpCameraInfo.cs" />
     <Compile Include="GameStates\LoadingScreen.cs" />
     <Compile Include="Utf\Dfm\DfmConstructs.cs" />
+    <Compile Include="Interface\XmlUIServerList.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

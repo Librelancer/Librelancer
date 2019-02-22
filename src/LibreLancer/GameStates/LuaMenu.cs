@@ -12,9 +12,11 @@ namespace LibreLancer
         IntroScene intro;
         Cutscene scene;
         Cursor cur;
+        LuaAPI api;
         public LuaMenu(FreelancerGame g) : base(g)
         {
-            ui = new XmlUIManager(g, "menu", new LuaAPI(this), g.GameData.GetInterfaceXml("mainmenu"));
+            api = new LuaAPI(this);
+            ui = new XmlUIManager(g, "menu", api, g.GameData.GetInterfaceXml("mainmenu"));
             ui.OnConstruct();
             ui.Enter();
             g.GameData.PopulateCursors();
@@ -38,7 +40,31 @@ namespace LibreLancer
                 state.FadeOut(0.2, () => state.Game.ChangeState(new SpaceGameplay(state.Game, new GameSession(state.Game))));
             });
             public void loadgame() {}
-            public void multiplayer() {}
+            GameClient client;
+            XmlUIServerList serverList;
+            public void doserverlist(XmlUIServerList.ServerListAPI slist)
+            {
+                serverList = slist.Srv;
+                if (client != null) client.Dispose();
+                client = new GameClient(state.Game);
+                client.ServerFound += Client_ServerFound;
+                client.Start();
+                client.UUID = state.Game.Config.UUID.Value;
+                client.DiscoverLocalPeers();
+            }
+
+            void Client_ServerFound(LocalServerInfo obj)
+            {
+                serverList.Servers.Add(obj);
+            }
+
+            internal void _Dispose() //shouldn't be accessible from lua?
+            {
+                if (client != null) {
+                    client.Dispose();
+                }
+            }
+
             public void exit() => state.ui.Leave(() => state.FadeOut(0.2, () => state.Game.Exit()));
         }
 
@@ -58,12 +84,16 @@ namespace LibreLancer
         bool newUI = false;
         public override void Update(TimeSpan delta)
         {
+#if DEBUG
             if(newUI) {
-                ui = new XmlUIManager(Game, "menu", new LuaAPI(this), Game.GameData.GetInterfaceXml("mainmenu"));
+                api._Dispose();
+                api = new LuaAPI(this);
+                ui = new XmlUIManager(Game, "menu", api, Game.GameData.GetInterfaceXml("mainmenu"));
                 ui.OnConstruct();
                 ui.Enter();
                 newUI = false;
             }
+#endif
             if (uframe < 8)
             { //Allows animations to play correctly
                 uframe++;
@@ -75,19 +105,20 @@ namespace LibreLancer
                 scene.Update(delta);
             }
         }
-
+#if DEBUG
         void Keyboard_KeyDown(KeyEventArgs e)
         {
             if(e.Key == Keys.F5) {
                 newUI = true;
             }
         }
-
+#endif
 
         public override void Unregister()
         {
             ui.Dispose();
             scene.Dispose();
+            api._Dispose();
             Game.Keyboard.KeyDown -= Keyboard_KeyDown;
         }
     }

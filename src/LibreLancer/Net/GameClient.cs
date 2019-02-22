@@ -51,7 +51,7 @@ namespace LibreLancer
 		{
 			if (running)
 			{
-				while (client == null) Thread.Sleep(0);
+				while (client == null || client.Status != NetPeerStatus.Running) Thread.Sleep(0);
 				client.DiscoverLocalPeers(NetConstants.DEFAULT_PORT);
 			}
 		}

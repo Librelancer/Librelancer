@@ -112,6 +112,8 @@ namespace LibreLancer
             if (Animation != null && Animation.Running)
                 Animation.Update(delta.TotalSeconds);
         }
+        public virtual void OnMouseDown() { }
+        public virtual void OnMouseUp() { }
         protected virtual void DrawInternal(TimeSpan delta) { }
         public virtual Vector2 CalculateSize() { return Vector2.Zero; }
 

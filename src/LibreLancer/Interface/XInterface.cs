@@ -214,6 +214,9 @@ namespace LibreLancer
 
             [XmlAttribute("id")]
             public string ID { get; set; }
+
+            [XmlAttribute("lines")]
+            public int Lines { get; set; }
         }
       
         public class StyleSize
@@ -285,6 +288,7 @@ namespace LibreLancer
 
             [XmlElement("Button", Type = typeof(XInt.Button))]
             [XmlElement("Panel", Type = typeof(XInt.Panel))]
+            [XmlElement("ServerList", Type = typeof(XInt.ServerList))]
             [XmlElement("Image", Type = typeof(XInt.Image))]
             [XmlElement("ChatBox", Type = typeof(XInt.ChatBox))]
             public object[] Items;
@@ -341,7 +345,9 @@ namespace LibreLancer
             [XmlAttribute("style")]
             public string Style { get; set; }
         }
-
+        public class ServerList : Panel
+        {
+        }
         public class ChatBox : Positionable
         {
             [XmlAttribute("style")]

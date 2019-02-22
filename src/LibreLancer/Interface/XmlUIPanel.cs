@@ -54,9 +54,10 @@ namespace LibreLancer
                 p.modelIndex = index;
             }
         }
-        public XmlUIPanel(XInt.Style style, XmlUIManager manager) : base(manager)
+
+        public XmlUIPanel(XInt.Style style, XmlUIManager manager, bool setLua = true) : base(manager)
         {
-            Lua = new PanelAPI(this);
+            if(setLua) Lua = new PanelAPI(this);
             Style = style;
             if (style.Models != null)
             {

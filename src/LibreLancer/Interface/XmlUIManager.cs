@@ -73,12 +73,18 @@ namespace LibreLancer
             this.api = api;
             xml = XInterface.Load(src);
             Font = game.Fonts.GetSystemFont("Agency FB");
-            if(xml.ResourceFiles != null)
-            foreach (var file in xml.ResourceFiles)
-                game.ResourceManager.LoadResourceFile(game.GameData.ResolveDataPath(file.Substring(2)));
+            if (xml.ResourceFiles != null)
+                foreach (var file in xml.ResourceFiles)
+                    game.ResourceManager.LoadResourceFile(game.GameData.ResolveDataPath(file.Substring(2)));
             DoStyles(xml);
             LoadScene(xml.DefaultScene);
+            game.Mouse.MouseDown += Mouse_MouseDown;
+            game.Mouse.MouseUp += Mouse_MouseUp;
         }
+
+        void Mouse_MouseDown(MouseEventArgs e) { if(e.Buttons == MouseButtons.Left) foreach(var el in Elements) el.OnMouseDown(); }
+        void Mouse_MouseUp(MouseEventArgs e) { if(e.Buttons == MouseButtons.Left) foreach (var el in Elements) el.OnMouseUp(); }
+
         void DoStyles(XInterface x)
         {
             if (x.Styles != null)
@@ -115,6 +121,11 @@ namespace LibreLancer
                 {
                     Elements.Add(new XmlUIImage((XInt.Image)item, this));
                 }
+                else if (item is XInt.ServerList)
+                {
+                    var sl = (XInt.ServerList)item;
+                    Elements.Add(new XmlUIServerList(sl, styles.Where((x) => x.ID == sl.Style).First(), this));
+                }
                 else if (item is XInt.Panel)
                 {
                     var pnl = (XInt.Panel)item;
@@ -125,6 +136,7 @@ namespace LibreLancer
                     var cb = (XInt.ChatBox)item;
                     Elements.Add(new XmlChatBox(cb, styles.Where((x) => x.ID == cb.Style).First(), this));
                 }
+
             }
         }
         void SwapIn(string id)

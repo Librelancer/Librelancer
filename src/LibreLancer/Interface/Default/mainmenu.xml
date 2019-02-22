@@ -26,9 +26,13 @@
         <Size height="54.5%" ratio="2.28"/>
         <Model path="//INTERFACE/INTRO/OBJECTS/front_serverselect.cmp" transform="0.0 0.0 2.06 4.7"/>
     </Style>
+    <Style id="listtable">
+        <Size height="39%" ratio="3"/>
+    </Style>
     <Style id="descriptioncontainer">
         <Size height="16%" ratio="5.6"/>
         <Model path="//INTERFACE/INTRO/OBJECTS/front_serverselect_info.cmp" transform="0.0 0.0 2.9 16.6"/>
+        <Text id="description" x="3%" y="8%" width="90%" height="90%" color="rgba(160,196,210,255)" shadow="black" lines="4"/>
     </Style>
     <DefaultScene>menu</DefaultScene>
     <Scene id="menu">
@@ -63,6 +67,8 @@
         function events.onconstruct()
             dom:element('listtitle'):text('lbl'):value('FREELANCER SERVERS')
             dom:element('serverlabel'):text('lbl'):value('SELECT A SERVER')
+            dom:element('serverlist'):linkdescription(dom:element('description'),'description')
+            menu:doserverlist(dom:element('serverlist'))
         end
         function events.onentry()
             
@@ -78,8 +84,9 @@
         <Button x="94.7%" y="86.7%" aspect="4/3" id="connect" style="menubutton" text="CONNECT >"/>
         <Panel anchor="top" x="2.6%" y="14.8%" id="listtitle" style="label"/>
         <Panel anchor="top" x="2.8%" y="18.2%" style="listcontainer"/>
+        <ServerList anchor="top" x="2.8%" y="30%" style="listtable" id="serverlist"/>
         <Panel x="6.2%" y="20.22%" aspect="4/3" id="serverlabel" style="label"/>
-        <Panel x="1%" y="1.4%" aspect="4/3" anchor="bottomleft" style="descriptioncontainer"/>
+        <Panel x="1%" y="1.4%" aspect="4/3" anchor="bottomleft" id="description" style="descriptioncontainer"/>
     </Scene>
     <Scene id="options">
         <Script>
