@@ -121,7 +121,9 @@ namespace LibreLancer
             ui.Dispose();
             scene.Dispose();
             api._Dispose();
+#if DEBUG
             Game.Keyboard.KeyDown -= Keyboard_KeyDown;
+#endif
         }
     }
 }
