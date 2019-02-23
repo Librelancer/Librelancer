@@ -34,9 +34,9 @@ namespace LibreLancer
             return sh;
 		}
         //includes in form '#pragma include (file.inc)'
+        static Regex findincludes = new Regex(@"^\s*#\s*pragma include\s+[<\(]([^>\)]*)[>\)]\s*", RegexOptions.Multiline | RegexOptions.Compiled);
         static string ProcessIncludes(string src)
 		{
-			Regex findincludes = new Regex(@"^\s*#\s*pragma include\s+[<\(]([^>\)]*)[>\)]\s*", RegexOptions.Multiline);
 			var m = findincludes.Match(src);
 			string newsrc = src;
 			while (m.Success)

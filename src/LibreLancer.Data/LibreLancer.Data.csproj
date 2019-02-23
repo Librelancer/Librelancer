@@ -189,6 +189,9 @@
     <Compile Include="Equipment\Munition.cs" />
     <Compile Include="Effects\BeamSpear.cs" />
     <Compile Include="Effects\BeamBolt.cs" />
+    <Compile Include="Goods\MarketsIni.cs" />
+    <Compile Include="Goods\BaseGood.cs" />
+    <Compile Include="Goods\MarketGood.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

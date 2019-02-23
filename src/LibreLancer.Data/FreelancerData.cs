@@ -37,6 +37,7 @@ namespace LibreLancer.Data
 		public ShiparchIni Ships;
 		public AudioIni Audio;
         public GoodsIni Goods;
+        public MarketsIni Markets;
 		public GraphIni Graphs;
 		public TexturePanels EffectShapes;
 		public MouseIni Mouse;
@@ -138,6 +139,9 @@ namespace LibreLancer.Data
             Goods = new GoodsIni();
             foreach (var gd in Freelancer.GoodsPaths)
                 Goods.AddGoodsIni(gd);
+            Markets = new MarketsIni();
+            foreach (var mkt in Freelancer.MarketsPaths)
+                Markets.AddMarketsIni(mkt);
             tSolar.Join();
             tMisc.Join();
             tUniverse.Join();

@@ -5,8 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using LibreLancer.Ini;
-
+ 
 namespace LibreLancer.Data.Universe
 {
 	public class UniverseIni : IniFile
@@ -18,9 +19,11 @@ namespace LibreLancer.Data.Universe
 
 		public UniverseIni(string path, FreelancerData freelancerIni)
 		{
-			Bases = new List<Base>();
-			Systems = new List<StarSystem>();
+            Bases = new List<Base>();
+            Systems = new List<StarSystem>();
 
+            List<Section> baseSections = new List<Section>();
+            List<Section> systemSections = new List<Section>();
 			foreach (Section s in ParseFile(path))
 			{
 				switch (s.Name.ToLowerInvariant())
@@ -40,15 +43,25 @@ namespace LibreLancer.Data.Universe
 					}
 					break;
 				case "base":
-					Bases.Add(new Base(s, freelancerIni));
+                    baseSections.Add(s);
 					break;
 				case "system":
-					Systems.Add(new StarSystem(this, s, freelancerIni));
+                    systemSections.Add(s);
 					break;
 				default: throw new Exception("Invalid Section in " + path + ": " + s.Name);
 				}
 			}
-		}
+            Parallel.ForEach(baseSections, (section) =>
+            {
+                var b = new Base(section, freelancerIni);
+                lock (Bases) Bases.Add(b);
+            });
+            Parallel.ForEach(systemSections, (section) =>
+            {
+                var s = new StarSystem(this, section, freelancerIni);
+                lock (Systems) Systems.Add(s);
+            });
+        }
 
 		public Base FindBase(string nickname)
 		{
