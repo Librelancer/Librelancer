@@ -9,6 +9,7 @@ namespace LibreLancer
 {
 	public class GameSession
 	{
+        public long Credits;
 		public string PlayerShip;
 		public List<string> PlayerComponents = new List<string>();
 		public Dictionary<string, string> MountedEquipment = new Dictionary<string, string>();
@@ -20,6 +21,7 @@ namespace LibreLancer
 		public GameSession(FreelancerGame g)
 		{
 			Game = g;
+            Credits = 2000;
 			PlayerShip = "li_elite";
 			PlayerSystem = "li01";
 			PlayerPosition = new Vector3(-31000, 0, -26755);

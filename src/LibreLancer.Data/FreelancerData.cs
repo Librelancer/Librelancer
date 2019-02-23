@@ -47,6 +47,7 @@ namespace LibreLancer.Data
 		public HudIni Hud;
 		public BaseNavBarIni BaseNavBar;
 		public MBasesIni MBases;
+        public string DataVersion;
 		public bool Loaded = false;
 
 		public bool LoadDacom = true;
@@ -145,7 +146,11 @@ namespace LibreLancer.Data
             tSolar.Join();
             tMisc.Join();
             tUniverse.Join();
-			Loaded = true;
+            if (!string.IsNullOrEmpty(Freelancer.DataVersion))
+                DataVersion = Freelancer.DataVersion;
+            else
+                DataVersion = "FL-1";
+            Loaded = true;
 		}
 	}
 }

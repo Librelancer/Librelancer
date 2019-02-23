@@ -48,7 +48,6 @@ namespace LibreLancer
 		{
 			Stopwatch sw = Stopwatch.StartNew();
 			double lastTime = 0;
-			int i = 0;
 			while (running)
 			{
 				//Start Loop
@@ -103,6 +102,7 @@ namespace LibreLancer
 							//Include Server Data
 							dresp.Write(ServerName);
 							dresp.Write(ServerDescription);
+                            dresp.Write(GameData.DataVersion);
 							dresp.Write(NetServer.ConnectionsCount);
 							dresp.Write(NetServer.Configuration.MaximumConnections);
 							//Send off

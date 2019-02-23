@@ -23,7 +23,7 @@ namespace LibreLancer
 			var flini = new Data.FreelancerIni();
 			fldata = new Data.FreelancerData(flini);
 		}
-
+        public string DataVersion => fldata.DataVersion;
         public string GetInterfaceXml(string id)
         {
             if (fldata.Freelancer.XInterfacePath == null)

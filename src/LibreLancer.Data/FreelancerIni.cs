@@ -18,8 +18,9 @@ namespace LibreLancer.Data
 		public string UniversePath { get; private set; }
 		public string HudPath { get; private set; }
         public string XInterfacePath { get; private set; }
+        public string DataVersion { get; private set; }
 
-		public List<string> EquipmentPaths { get; private set; }
+        public List<string> EquipmentPaths { get; private set; }
 		public List<string> LoadoutPaths { get; private set; }
 		public List<string> ShiparchPaths { get; private set; }
         public List<string> GoodsPaths { get; private set; }
@@ -96,6 +97,9 @@ namespace LibreLancer.Data
                                     if (!XInterfacePath.EndsWith("\\",StringComparison.InvariantCulture) && 
                                         !XInterfacePath.EndsWith("/",StringComparison.InvariantCulture))
                                         XInterfacePath += "/";
+                                    break;
+                                case "dataversion":
+                                    DataVersion = e[0].ToString();
                                     break;
                             }
                         }

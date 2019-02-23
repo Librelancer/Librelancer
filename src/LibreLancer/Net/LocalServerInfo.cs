@@ -10,8 +10,11 @@ namespace LibreLancer
 	{
 		public string Name;
 		public string Description;
+        public string DataVersion;
 		public int CurrentPlayers;
 		public int MaxPlayers;
 		public IPEndPoint EndPoint;
+        public int Ping = -1;
+        internal long LastPingTime;
 	}
 }

@@ -3,6 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using Lidgren.Network;
@@ -64,6 +66,7 @@ namespace LibreLancer
 		bool connecting = true;
 		public void Connect(IPEndPoint endPoint)
 		{
+            lock (srvinfo) srvinfo.Clear();
 			connecting = true;
 			var message = client.CreateMessage();
 			message.Write("Hello World!");
@@ -85,16 +88,32 @@ namespace LibreLancer
 			om.Write((byte)PacketKind.NewCharacter);
 			client.SendMessage(om, NetDeliveryMethod.ReliableOrdered);
 		}
+        Stopwatch sw;
+        List<LocalServerInfo> srvinfo = new List<LocalServerInfo>();
 
-		void NetworkThread()
+        void NetworkThread()
 		{
+            sw = Stopwatch.StartNew();
 			var conf = new NetPeerConfiguration(NetConstants.DEFAULT_APP_IDENT);
 			client = new NetClient(conf);
 			client.Start();
 			NetIncomingMessage im;
-			while (running)
+                
+            while (running)
 			{
-				while ((im = client.ReadMessage()) != null)
+                //ping servers
+                lock (srvinfo)
+                {
+                    foreach (var inf in srvinfo)
+                    {
+                        if (sw.ElapsedMilliseconds - inf.LastPingTime > 2500)
+                        {
+                            inf.LastPingTime = sw.ElapsedMilliseconds;
+                            AsyncPing.Run(inf.EndPoint.Address, x => inf.Ping = x);
+                        }
+                    }
+                }
+                while ((im = client.ReadMessage()) != null)
 				{
 					/*try
 					{*/
@@ -113,8 +132,12 @@ namespace LibreLancer
 									info.EndPoint = im.SenderEndPoint;
 									info.Name = im.ReadString();
 									info.Description = im.ReadString();
-									info.CurrentPlayers = im.ReadInt32();
+                                    info.DataVersion = im.ReadString();
+                                    info.CurrentPlayers = im.ReadInt32();
 									info.MaxPlayers = im.ReadInt32();
+                                    info.LastPingTime = sw.ElapsedMilliseconds;
+                                    lock (srvinfo) srvinfo.Add(info);
+                                    AsyncPing.Run(info.EndPoint.Address, x => info.Ping = x);
 									mainThread.QueueUIThread(() => ServerFound(info));
 								}
 								break;

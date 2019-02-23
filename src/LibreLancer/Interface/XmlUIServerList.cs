@@ -82,10 +82,13 @@ namespace LibreLancer
                         return srv.EndPoint.Address.ToString();
                     case 2:
                         return "NO";
+                    case 3:
+                        if (srv.Ping == -1) return "???";
+                        else return srv.Ping.ToString();
                     case 4:
                         return string.Format("{0}/{1}", srv.CurrentPlayers, srv.MaxPlayers);
                     case 5:
-                        return "0.1";
+                        return srv.DataVersion;
                     case 6:
                         return "YES";
                 }

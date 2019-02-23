@@ -396,6 +396,7 @@
     <Compile Include="GameStates\LoadingScreen.cs" />
     <Compile Include="Utf\Dfm\DfmConstructs.cs" />
     <Compile Include="Interface\XmlUIServerList.cs" />
+    <Compile Include="Net\AsyncPing.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
