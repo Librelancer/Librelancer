@@ -46,7 +46,11 @@ namespace LibreLancer
         protected override void UpdateInternal(TimeSpan delta)
         {
             base.UpdateInternal(delta);
-            if (Animation != null && Animation.Running) return;
+            if(Texts.Count > 0 && !Enabled) {
+                Texts[0].Text = Button.Text;
+                Texts[0].ColorOverride = Color4.Gray;
+            }
+            if ((Animation != null && Animation.Running) || !Enabled) return;
 
             var h = Manager.Game.Height * Style.Size.Height;
             var w = h * Style.Size.Ratio;

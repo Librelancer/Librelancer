@@ -70,6 +70,13 @@
             dom:element('serverlist'):linkdescription(dom:element('description'),'description')
             menu:doserverlist(dom:element('serverlist'))
         end
+        function events.onupdate()
+            if menu:canconnect() then
+                dom:element('connect'):enable()
+            else
+                dom:element('connect'):disable()
+            end
+        end
         function events.onentry()
             
         end
@@ -80,8 +87,8 @@
         <Image path="//INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga"/>
         <Button x="7.1%" y="73.1%" aspect="4/3" id="mainmenu" style="menubutton" text="MAIN MENU" onclick="dom:changeto('menu')"/>
         <Button x="50.8%" y="73.1%" aspect="4/3" id="setfilter" style="menubutton" text="SET FILTER"/>
-        <Button x="94.7%" y="73.1%" aspect="4/3" id="refresh" style="menubutton" text="REFRESH LIST"/>
-        <Button x="94.7%" y="86.7%" aspect="4/3" id="connect" style="menubutton" text="CONNECT >"/>
+        <Button x="94.7%" y="73.1%" aspect="4/3" id="refresh" style="menubutton" text="REFRESH LIST" onclick="menu:refreshservers()" />
+        <Button x="94.7%" y="86.7%" aspect="4/3" id="connect" style="menubutton" text="CONNECT >" onclick="menu:connectserver()" />
         <Panel anchor="top" x="2.6%" y="14.8%" id="listtitle" style="label"/>
         <Panel anchor="top" x="2.8%" y="18.2%" style="listcontainer"/>
         <ServerList anchor="top" x="2.8%" y="30%" style="listtable" id="serverlist"/>

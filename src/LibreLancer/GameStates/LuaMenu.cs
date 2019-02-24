@@ -47,6 +47,17 @@ namespace LibreLancer
             public void doserverlist(XmlUIServerList.ServerListAPI slist)
             {
                 serverList = slist.Srv;
+                refreshservers();
+            }
+            public bool canconnect() => serverList.Selection >= 0;
+            public void connectserver()
+            {
+
+            }
+            public void refreshservers()
+            {
+                serverList.Servers.Clear();
+                serverList.Selection = -1;
                 if (client != null) client.Dispose();
                 client = new GameClient(state.Game);
                 client.ServerFound += Client_ServerFound;
@@ -54,7 +65,6 @@ namespace LibreLancer
                 client.UUID = state.Game.Config.UUID.Value;
                 client.DiscoverLocalPeers();
             }
-
             void Client_ServerFound(LocalServerInfo obj)
             {
                 serverList.Servers.Add(obj);

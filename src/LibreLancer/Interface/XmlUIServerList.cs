@@ -54,7 +54,8 @@ namespace LibreLancer
 
         public int Selection
         {
-            get { return _selected;  }
+            get { return _selected; }
+            set { _selected = value; }
         }
 
         void UpdateSelection()

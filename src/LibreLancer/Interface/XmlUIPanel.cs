@@ -10,6 +10,7 @@ namespace LibreLancer
     public class XmlUIPanel : XmlUIElement
     {
         public XInt.Style Style;
+        public bool Enabled = true;
         List<ModelInfo> models = new List<ModelInfo>();
 
         class ModelInfo
@@ -49,6 +50,8 @@ namespace LibreLancer
             {
                 return p.Texts.Where((x) => x.ID == id).First().Lua;
             }
+            public void disable() => p.Enabled = false;
+            public void enable() => p.Enabled = true;
             public void modelindex(int index)
             {
                 p.modelIndex = index;
