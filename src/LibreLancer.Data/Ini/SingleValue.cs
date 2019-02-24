@@ -45,7 +45,13 @@ namespace LibreLancer.Ini
 			return (int)value;
 		}
 
-		public float ToSingle()
+        public long ToInt64()
+        {
+            if (longvalue != null) return longvalue.Value;
+            return (int)value;
+        }
+
+        public float ToSingle()
 		{
 			return value;
 		}

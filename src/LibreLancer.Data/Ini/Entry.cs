@@ -144,15 +144,14 @@ namespace LibreLancer.Ini
 
 		public override string ToString()
 		{
-			/*string result = Name;
+			string result = Name;
             if (values.Count > 0) result += " = ";
             for (int i = 0; i < values.Count; i++)
             {
                 result += values[i];
                 if (i < values.Count - 1) result += ", ";
             }
-            return result;*/
-			return Name;
+            return result;
 		}
 	}
 }

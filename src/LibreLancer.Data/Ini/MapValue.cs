@@ -23,8 +23,11 @@ namespace LibreLancer.Ini
 		{
 			throw new InvalidCastException ();
 		}
-
-		public float ToSingle ()
+        public long ToInt64()
+        {
+            throw new InvalidCastException();
+        }
+        public float ToSingle ()
 		{
 			throw new InvalidCastException ();
 		}

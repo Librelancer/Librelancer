@@ -49,7 +49,14 @@ namespace LibreLancer.Ini
 			else return -1;
 		}
 
-		public float ToSingle()
+        public long ToInt64()
+        {
+            long result;
+            if (long.TryParse(value, out result)) return result;
+            else return -1;
+        }
+
+        public float ToSingle()
 		{
 			float result;
 			if (float.TryParse(value, out result)) return result;

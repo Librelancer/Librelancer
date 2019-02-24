@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
@@ -168,6 +169,10 @@ namespace LibreLancer.Ini
                 {
                     if (ComponentCheck(1, s, e)) field.Field.SetValue(obj, e[0].ToInt32());
                 }
+                else if (ftype == typeof(long))
+                {
+                    if (ComponentCheck(1, s, e)) field.Field.SetValue(obj, e[0].ToInt64());
+                }
                 else if (ftype == typeof(bool))
                 {
                     if (ComponentCheck(1, s, e)) field.Field.SetValue(obj, e[0].ToBoolean());
@@ -239,6 +244,28 @@ namespace LibreLancer.Ini
             return obj;
         }
 
+        public void ParseAndFill(string filename, MemoryStream stream)
+        {
+            var sections = GetContainerInfo(this.GetType());
+            foreach (var section in ParseFile(filename, stream))
+            {
+                var tgt = sections.FirstOrDefault((x) => x.Name.Equals(section.Name, StringComparison.InvariantCultureIgnoreCase));
+                if (tgt == null)
+                {
+                    FLLog.Warning("Ini", "Unknown section " + section.Name + FormatLine(section.File, section.Line));
+                    continue;
+                }
+                var parsed = GetFromSection(section, tgt.Type);
+                if (tgt.Add != null)
+                {
+                    var list = tgt.Field.GetValue(this);
+                    tgt.Add.Invoke(list, new object[] { parsed });
+                }
+                else
+                    tgt.Field.SetValue(this, parsed);
+            }
+
+        }
         public void ParseAndFill(string filename)
         {
             var sections = GetContainerInfo(this.GetType());

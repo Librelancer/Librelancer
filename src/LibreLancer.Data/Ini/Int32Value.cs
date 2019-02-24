@@ -40,7 +40,12 @@ namespace LibreLancer.Ini
 			return value;
 		}
 
-		public float ToSingle()
+        public long ToInt64()
+        {
+            return value;
+        }
+
+        public float ToSingle()
 		{
 			return value;
 		}

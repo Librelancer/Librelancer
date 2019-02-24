@@ -192,6 +192,15 @@
     <Compile Include="Goods\MarketsIni.cs" />
     <Compile Include="Goods\BaseGood.cs" />
     <Compile Include="Goods\MarketGood.cs" />
+    <Compile Include="Save\SaveGame.cs" />
+    <Compile Include="Save\FlCodec.cs" />
+    <Compile Include="Save\SavePlayer.cs" />
+    <Compile Include="Save\MPlayer.cs" />
+    <Compile Include="Save\StoryInfo.cs" />
+    <Compile Include="Save\SaveTime.cs" />
+    <Compile Include="Save\SaveGroup.cs" />
+    <Compile Include="Save\LockedGates.cs" />
+    <Compile Include="Save\SaveRep.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />
@@ -212,6 +221,7 @@
     <Folder Include="Ships\" />
     <Folder Include="Solar\" />
     <Folder Include="Universe\" />
+    <Folder Include="Save\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

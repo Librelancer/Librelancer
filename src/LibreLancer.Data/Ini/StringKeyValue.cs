@@ -25,7 +25,12 @@ namespace LibreLancer.Ini
 			throw new NotImplementedException();
 		}
 
-		public StringKeyValue ToKeyValue()
+        public long ToInt64()
+        {
+            throw new NotImplementedException();
+        }
+
+        public StringKeyValue ToKeyValue()
 		{
 			return this;
 		}
