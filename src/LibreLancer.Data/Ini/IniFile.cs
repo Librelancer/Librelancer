@@ -3,10 +3,9 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Collections;
+using System.Globalization;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using LibreLancer.Data;
 
@@ -16,6 +15,40 @@ namespace LibreLancer.Ini
 	{
 		public const string FileType = "BINI", IniFileType = "INI";
 		public const int FileVersion = 1;
+        static int ParseEquals(string line, string[] part, bool allowmaps)
+        {
+            var idx0 = line.IndexOf('=');
+            if (idx0 == -1)
+            {
+                part[0] = line;
+                return 1;
+            }
+
+            part[0] = line.Substring(0, idx0);
+            if ((idx0 + 1) >= line.Length) return 1;
+            var idx1 = line.IndexOf('=', idx0 + 1);
+            if (idx1 != -1 && !allowmaps)
+            {
+                //Skip duplicate equals
+                for (int i = idx0; i < line.Length; i++)
+                {
+                    if (line[i] != '=' && line[i] != ' ' && line[i] != '\t')
+                    {
+                        idx0 = i - 1;
+                        break;
+                    }
+                }
+            }
+            else if (idx1 != -1)
+            {
+                part[1] = line.Substring(idx0 + 1, idx1 - (idx0 + 1));
+                part[2] = line.Substring(idx1 + 1);
+                return 3;
+            }
+            part[1] = line.Substring(idx0 + 1);
+            return 2;
+        }
+
         protected IEnumerable<Section> ParseFile(string path, MemoryStream stream, bool allowmaps = false)
         {
             if (string.IsNullOrEmpty(path)) path = "[Memory]";
@@ -51,6 +84,7 @@ namespace LibreLancer.Ini
 
                 int currentLine = 0;
                 bool inSection = false;
+                string[] parts = new string[3];
                 while (!reader.EndOfStream)
                 {
                     string line = reader.ReadLine().Trim();
@@ -83,16 +117,17 @@ namespace LibreLancer.Ini
                         if (!inSection) continue;
                         int indexComment = line.IndexOf(';');
                         if (indexComment != -1) line = line.Remove(indexComment);
+                        int partCount;
                         if (!char.IsLetterOrDigit(line[0]) && line[0] != '_')
                         {
                             FLLog.Warning("Ini", "Invalid line in file: " + path + " at line " + currentLine + '"' + line + '"');
                         }
-                        else if (line.Contains("="))
+                        else
                         {
-                            string[] parts = line.Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
-                            if (parts.Length == 2)
+                            partCount = ParseEquals(line, parts, allowmaps);
+                            if (partCount == 2)
                             {
-                                string val = parts[1].TrimStart();
+                                string val = parts[1];
                                 string[] valParts = val.Split(',');
 
                                 List<IValue> values = new List<IValue>(valParts.Length);
@@ -102,38 +137,48 @@ namespace LibreLancer.Ini
                                     bool tempBool;
                                     float tempFloat;
                                     long tempLong;
-                                    if (bool.TryParse(s, out tempBool))
-                                        values.Add(new BooleanValue(tempBool));
-                                    else if (long.TryParse(s, out tempLong))
+                                    if (part.Length == 0)
                                     {
-                                        if (tempLong >= int.MinValue && tempLong <= int.MaxValue)
-                                            values.Add(new Int32Value((int)tempLong));
+                                        values.Add(new StringValue(""));
+                                        continue;
+                                    }
+                                    if (part[0] == '-' || (part[0] >= '0' && part[0] <= '9'))
+                                    {
+                                        if (long.TryParse(s, out tempLong))
+                                        {
+                                            if (tempLong >= int.MinValue && tempLong <= int.MaxValue)
+                                                values.Add(new Int32Value((int)tempLong));
+                                            else
+                                                values.Add(new SingleValue(tempLong, tempLong));
+                                        }
+                                        else if (float.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out tempFloat))
+                                        {
+                                            values.Add(new SingleValue(tempFloat, null));
+                                        }
                                         else
-                                            values.Add(new SingleValue(tempLong, tempLong));
+                                            values.Add(new StringValue(s));
                                     }
-                                    else if (float.TryParse(s, out tempFloat))
-                                    {
-                                        values.Add(new SingleValue(tempFloat, null));
-                                    }
+                                    else if (bool.TryParse(s, out tempBool))
+                                        values.Add(new BooleanValue(tempBool));
                                     else
                                         values.Add(new StringValue(s));
                                 }
 
-                                currentSection.Add(new Entry(parts[0].TrimEnd(), values) { File = path, Line = currentLine });
+                                currentSection.Add(new Entry(parts[0].Trim(), values) { File = path, Line = currentLine });
                             }
-                            else if (parts.Length == 3 && allowmaps)
+                            else if (partCount == 3 && allowmaps)
                             {
                                 string k = parts[1].Trim();
                                 string v = parts[2].Trim();
                                 currentSection.Add(new Entry(parts[0].Trim(), new IValue[] { new StringKeyValue(k, v) }) { File = path, Line = currentLine });
                             }
-                            else if (parts.Length == 1)
+                            else if (partCount == 1)
                             {
                                 currentSection.Add(new Entry(parts[0].Trim(), new List<IValue>()) { File = path, Line = currentLine });
                             }
-                            else FLLog.Error("INI", "Invalid entry line: " + line + " in " + path);
                         }
-                        else currentSection.Add(new Entry(line, new List<IValue>(0)));
+                    
+
                     }
                     currentLine++;
                 }

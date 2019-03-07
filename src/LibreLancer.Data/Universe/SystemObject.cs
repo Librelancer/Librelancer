@@ -85,7 +85,7 @@ namespace LibreLancer.Data.Universe
 			}
 		}
 
-		public List<string> TradelaneSpaceName { get; private set; }
+		public List<int> TradelaneSpaceName { get; private set; }
 
 		private string parentName;
 		private SystemObject parent;
@@ -98,7 +98,7 @@ namespace LibreLancer.Data.Universe
 			}
 		}
 
-		public string InfoCardIds { get; private set; }
+		public int InfoCardIds { get; private set; }
 
 		public SystemObject(UniverseIni universe, StarSystem system, Section section, FreelancerData freelancerIni)
 			: base(section, freelancerIni)
@@ -109,7 +109,7 @@ namespace LibreLancer.Data.Universe
 
 			this.universe = universe;
 			this.system = system;
-			TradelaneSpaceName = new List<string>();
+			TradelaneSpaceName = new List<int>();
 
 			foreach (Entry e in section)
 			{
@@ -215,7 +215,7 @@ namespace LibreLancer.Data.Universe
 						break;
 					case "tradelane_space_name":
 						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-						TradelaneSpaceName.Add(GameData.Infocards.GetStringResource(e[0].ToInt32()));
+                        TradelaneSpaceName.Add(e[0].ToInt32());
 						break;
 					case "parent":
 						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
@@ -227,7 +227,7 @@ namespace LibreLancer.Data.Universe
 					case "info_ids":
 						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
 						if (InfoCardIds != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-						InfoCardIds = GameData.Infocards.GetStringResource(e[0].ToInt32());
+                        InfoCardIds = e[0].ToInt32();
 						break;
 					case "ring":
 						if (e.Count != 2) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
