@@ -185,11 +185,11 @@ namespace LibreLancer
 			if (!active)
 				throw new InvalidOperationException("Renderer2D.Start() must be called before Renderer2D.DrawWithClip()");
 			Flush();
-			GL.Enable(GL.GL_SCISSOR_TEST);
-			GL.Scissor(clip.X, vpHeight - clip.Y - clip.Height, clip.Width, clip.Height);
+            rs.ScissorEnabled = true;
+            rs.ScissorRectangle = clip;
 			drawfunc();
 			Flush();
-			GL.Disable(GL.GL_SCISSOR_TEST);
+            rs.ScissorEnabled = false;
 		}
 
 		public void DrawString(Font font, float size, string str, Vector2 vec, Color4 color)

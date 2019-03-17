@@ -13,8 +13,8 @@
     <Style id="numberbox">
         <Size height="5.1%" ratio="8.8"/>
         <Model path="//INTERFACE/HUD/hud_numberboxes.cmp" transform="0.05 -0.05 5.85 53.0"/>
-        <Text x="6.3%" y="31.2%" width="13.6%" height="56%" id="left" color="rgba(160,196,210,255)" shadow="black"/>
-        <Text x="85%" y="31.2%" width="13.6%" height="56%" id="right" color="rgba(160,196,210,255)" shadow="black"/>
+        <Text x="6.3%" y="31.2%" width="13.6%" height="56%" id="left" color="rgba(160,196,210,255)" shadow="black" align="baseline"/>
+        <Text x="85%" y="31.2%" width="13.6%" height="56%" id="right" color="rgba(160,196,210,255)" shadow="black" align="baseline"/>
     </Style>
     <Style id="gaugecontainer">
         <Size height="5.24%" ratio="5.2"/>
@@ -32,15 +32,25 @@
             local mns = game:maneuvers()
             local pct = -16
             for _, maneuver in pairs(mns) do
+                -- MNVR_dock.3db has different dimensions to the other buttons
+                -- This can be removed in modded versions
+                local mdltr = "0.0 0.0 70.0 77.0"
+                local scissor = false
+                if string.match(maneuver.activemodel, "MNVR_dock.3db") then
+                    mdltr = "0.0 -0.032 69.0 77.0"
+                    scissor = true
+                end
+            
                 local b = dom:addbutton({
                     anchor = "top",
                     y = "0.1%",
                     x = (pct .. '%'),
-                    height = "8%",
+                    height = "7.1%",
                     ratio = 1.2,
+                    scissor = scissor,
                     models = {
-                        { path = maneuver.inactivemodel, transform = "0.0 0.0 60.0 65.0" },
-                        { path = maneuver.activemodel, transform = "0.0 0.0 60.0 65.0" }
+                        { path = maneuver.inactivemodel, transform = "0.0 0.0 70.0 77.0" },
+                        { path = maneuver.activemodel, transform = mdltr }
                     },
                     onclick = "navclick('" .. maneuver.action .. "')"
                 })
@@ -98,6 +108,10 @@
         <Panel anchor="topright" id="nnbox7" style="nnbox7"/>
         <!-- Neural net buttons -->
         <Button x="2.1%" y="0.7%" anchor="topright" style="nninfo"/>
+        <Button x="8.1%" y="0.7%" anchor="topright" style="nnplayerstatus"/>
+        <Button x="11.5%" y="0.7%" anchor="topright" style="nninventory"/>
+        <Button x="16.5%" y="0.7%" anchor="topright" style="nnmap"/>
+        <Button x="22%" y="0.7%" anchor="topright" style="nnstorystar"/>
         <!-- ChatBox. Hardcoded for first instance to be used. -->
         <ChatBox anchor="bottom" y="9%" style="chatbox" displayarea="main"/>
     </Scene>

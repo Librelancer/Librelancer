@@ -133,8 +133,10 @@ namespace LibreLancer
 				cullDirty = true;
 			}
 		}
+        public bool ScissorEnabled { get => scissorEnabled; set => scissorEnabled = value; }
+        public Rectangle ScissorRectangle { get => scissorRect; set => scissorRect = value; }
 
-		CullFaces requestedCull = CullFaces.Back;
+        CullFaces requestedCull = CullFaces.Back;
 		CullFaces cullFace = CullFaces.Back;
 		public CullFaces CullFace
 		{
@@ -173,6 +175,14 @@ namespace LibreLancer
 		bool depthwrite = true;
 		bool depthwritedirty = false;
         public uint NullVAO;
+
+        bool scissorEnabled = false;
+        bool currentScissorEnabled = false;
+        Rectangle scissorRect;
+        Rectangle currentScissorRect;
+        bool scissorVpChanged;
+        int vpHeight = 0;
+
 		public RenderState ()
 		{
 			GL.ClearColor (0f, 0f, 0f, 1f);
@@ -199,6 +209,8 @@ namespace LibreLancer
 		public void SetViewport(int x, int y, int w, int h)
 		{
 			GL.Viewport(x,y,w,h);
+            scissorVpChanged = true;
+            vpHeight = h;
 		}
 
 		public void ClearAll()
@@ -284,7 +296,20 @@ namespace LibreLancer
 				GL.DepthMask(depthwrite);
 				depthwritedirty = false;
 			}
-		}
+            if(scissorEnabled != currentScissorEnabled)
+            {
+                if (scissorEnabled) GL.Enable(GL.GL_SCISSOR_TEST);
+                else GL.Disable(GL.GL_SCISSOR_TEST);
+                currentScissorEnabled = scissorEnabled;
+            }
+            if(scissorEnabled & (scissorVpChanged || currentScissorRect != scissorRect))
+            {
+                currentScissorRect = scissorRect;
+                scissorVpChanged = false;
+                GL.Scissor(scissorRect.X, vpHeight - scissorRect.Y - scissorRect.Height, scissorRect.Width, scissorRect.Height);
+            }
+
+        }
 	}
 }
 

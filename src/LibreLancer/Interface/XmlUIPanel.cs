@@ -122,6 +122,11 @@ namespace LibreLancer
                 py = (int)Animation.CurrentPosition.Y;
             }
             var r = new Rectangle(px, py, (int)w, (int)h);
+            if(Style.Scissor)
+            {
+                Manager.Game.RenderState.ScissorEnabled = true;
+                Manager.Game.RenderState.ScissorRectangle = r;
+            }
             //Background (mostly for authoring purposes)
             if (Style.Background != null || Style.Border != null)
             {
@@ -164,6 +169,10 @@ namespace LibreLancer
                 foreach (var t in Texts)
                     t.Draw(Manager, r);
                 Manager.Game.Renderer2D.Finish();
+            }
+            if(Style.Scissor)
+            {
+                Manager.Game.RenderState.ScissorEnabled = false;
             }
         }
     }

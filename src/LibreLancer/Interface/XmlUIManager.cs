@@ -203,6 +203,7 @@ namespace LibreLancer
                 if (dn["anchor"] != null) btn.Anchor = Enum.Parse(typeof(XInt.Anchor), dn.anchor);
                 if (dn["height"] != null) style.Size.HeightText = dn.height;
                 if (dn["ratio"] != null) style.Size.Ratio = (float)dn.ratio;
+                if (dn["scissor"] != null) style.Scissor = (bool)dn.scissor;
                 if (dn["onclick"] != null) btn.OnClick = dn.onclick;
                 if (dn["background"] != null) style.Background = new XInt.StyleBackground() { ColorText = dn.background };
                 style.HoverStyle = dn.hoverstyle;

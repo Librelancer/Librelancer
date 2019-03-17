@@ -12,6 +12,38 @@
             e:modelrotate(0, -3 * time, 0.3);
         </HoverStyle>
     </Style>
+     <Style id="nnplayerstatus">
+        <Size height="4%" ratio="0.5"/>
+        <Model path="//INTERFACE/NEURONET/ICONS/nn_playerstatus.3db" color="rgba(160,196,210,255)" transform="0.0 0.0 120.0 58.0"/>
+        <HoverStyle>
+            e:modelcolor(mixcolor(math.abs(math.cos(9 * time)), "yellow", "rgba(160,196,210,255)"))
+            e:modelrotate(0, -3 * time, 0.3);
+        </HoverStyle>
+    </Style>
+    <Style id="nnmap">
+        <Size height="3.77%" ratio="1"/>
+        <Model path="//INTERFACE/NEURONET/ICONS/nn_map.3db" color="rgba(160,196,210,255)" transform="0.0 0.0 64.0 64.0"/>
+        <HoverStyle>
+            e:modelcolor(mixcolor(math.abs(math.cos(9 * time)), "yellow", "rgba(160,196,210,255)"))
+            e:modelrotate(0, -3 * time, 0.3);
+        </HoverStyle>
+    </Style>
+    <Style id="nnstorystar">
+        <Size height="3.77%" ratio="1"/>
+        <Model path="//INTERFACE/NEURONET/ICONS/nn_storystar.3db" color="rgba(160,196,210,255)" transform="0.0 0.0 64.0 64.0"/>
+        <HoverStyle>
+            e:modelcolor(mixcolor(math.abs(math.cos(9 * time)), "yellow", "rgba(160,196,210,255)"))
+            e:modelrotate(0, -3 * time, 0.3);
+        </HoverStyle>
+    </Style>
+    <Style id="nninventory">
+        <Size height="3.77%" ratio="1"/>
+        <Model path="//INTERFACE/NEURONET/ICONS/nn_inventory.3db" color="rgba(160,196,210,255)" transform="0.0 0.0 64.0 64.0"/>
+        <HoverStyle>
+            e:modelcolor(mixcolor(math.abs(math.cos(9 * time)), "yellow", "rgba(160,196,210,255)"))
+            e:modelrotate(0, -3 * time, 0.3);
+        </HoverStyle>
+    </Style>
     <Style id="nnbox5">
         <Size height="5.35%" ratio="5.2"/>
         <Model path="//INTERFACE/HUD/hud_nnbox5.cmp" transform="0.0 0.05 9.4 45.3"/>

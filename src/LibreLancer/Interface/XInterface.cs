@@ -45,6 +45,8 @@ namespace LibreLancer
         {
             [XmlAttribute("id")]
             public string ID { get; set; }
+            [XmlAttribute("scissor")]
+            public bool Scissor { get; set; }
             [XmlElement("Model")]
             public Model[] Models { get; set; }
             [XmlElement("Size")]
@@ -124,6 +126,13 @@ namespace LibreLancer
                     return color.Value;
                 }
             }
+        }
+        public enum Align
+        {
+            [XmlEnum("default")]
+            Default,
+            [XmlEnum("baseline")]
+            Baseline
         }
         public class StyleText
         {
@@ -217,6 +226,9 @@ namespace LibreLancer
 
             [XmlAttribute("lines")]
             public int Lines { get; set; }
+
+            [XmlAttribute("align")]
+            public Align Align { get; set; }
         }
       
         public class StyleSize

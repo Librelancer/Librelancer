@@ -56,6 +56,19 @@ namespace LibreLancer
                                          );
                     DrawShadowedText(manager, manager.Font, tSize, s, textR.X, textR.Y, ColorOverride ?? Style.Color, Style.Shadow);
                 }
+                else if(Style.Align == XInt.Align.Baseline)
+                {
+                    var sz = GetTextSize(textR.Height);
+                    var size = manager.Game.Renderer2D.MeasureString(manager.Font, sz, s);
+                    var pos = new Vector2(
+                        textR.X + (textR.Width / 2f - size.X / 2),
+                        textR.Y + (textR.Height / 2f - manager.Font.LineHeight(sz) / 2)
+                    );
+                    if(Style.Shadow != null) {
+                        manager.Game.Renderer2D.DrawStringBaseline(manager.Font, sz, s, pos.X + 2, pos.Y + 2, pos.X, Style.Shadow.Value);
+                    }
+                    manager.Game.Renderer2D.DrawStringBaseline(manager.Font, sz, s, pos.X, pos.Y, pos.X, ColorOverride ?? Style.Color);
+                }
                 else
                 {
                     DrawTextCentered(manager, manager.Font, GetTextSize(textR.Height), s, textR, ColorOverride ?? Style.Color, Style.Shadow);
