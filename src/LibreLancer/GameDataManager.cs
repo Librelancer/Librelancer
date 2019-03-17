@@ -925,8 +925,7 @@ namespace LibreLancer
 				resource.LoadResourceFile(path);
 			}
 			var alepath = Data.VFS.GetPath(fldata.Freelancer.DataPath + visfx.AlchemyPath);
-			var ale = new AleFile(alepath);
-			var lib = new ParticleLibrary(resource, ale);
+            var lib = resource.GetParticleLibrary(alepath);
 			return lib.FindEffect((uint)visfx.EffectCrc);
 		}
 

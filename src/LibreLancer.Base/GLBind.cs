@@ -21,19 +21,25 @@ namespace LibreLancer
 		{
 			programBound = 0;
 			bound_vao = 0;
-           
+            for(int i = 0; i < textures.Length; i++) { textures[i] = -1; };
             active_unit = -1;
         }
+
+        static int[] textures = new int[] { -1, -1, -1, -1, -1, -1, -1, -1 };
         static int active_unit = -1;
         public static void BindTexture(int unit, int target, uint texture)
         {
-			var uval = GL.GL_TEXTURE0 + unit;
-			if (uval != active_unit)
-			{
-				GL.ActiveTexture(uval);
-				active_unit = uval;
-			}
-			GL.BindTexture(target, texture);
+            var uval = GL.GL_TEXTURE0 + unit;
+            if (uval != active_unit)
+            {
+                GL.ActiveTexture(uval);
+                active_unit = uval;
+            }
+            if (textures[unit] != (int)texture)
+            {
+                textures[unit] = (int)texture;
+                GL.BindTexture(target, texture);
+            }
         }
 
 		static uint bound_vao = 0;

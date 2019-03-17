@@ -47,7 +47,7 @@ Mouse Flight: {10}
         LoadingScreen loader;
 		public SpaceGameplay(FreelancerGame g, GameSession session) : base(g)
 		{
-			FLLog.Info("Game", "Starting Gameplay Demo");
+			FLLog.Info("Game", "Entering system " + session.PlayerSystem);
             g.ResourceManager.ClearTextures(); //Do before loading things
             this.session = session;
             font = Game.Fonts.GetSystemFont("Agency FB");
@@ -299,8 +299,6 @@ Mouse Flight: {10}
                 }
                 return;
             }
-            //hud.Velocity = Velocity;
-            //hud.Update(delta, camera);
             if (newHud) {
                 hud.Dispose();
                 ConstructHud();
@@ -315,7 +313,6 @@ Mouse Flight: {10}
 
 		void World_PhysicsUpdate(TimeSpan delta)
 		{
-			//control.EnginePower = (Velocity / MAX_VELOCITY);
 			control.EngineState = cruise ? EngineStates.Cruise : EngineStates.Standard;
 			ProcessInput(delta);
 		}
@@ -403,10 +400,18 @@ Mouse Flight: {10}
 			{
 				control.PlayerPitch = -moffset.Y;
 				control.PlayerYaw = -moffset.X;
-			}
+
+                var mX = Game.Mouse.X;
+                var mY = Game.Mouse.Y;
+                camera.MousePosition = new Vector2(
+                    mX, Game.Height - mY
+                );
+                camera.MouseFlight = true;
+            }
 			else
 			{
 				control.PlayerPitch = control.PlayerYaw = 0;
+                camera.MouseFlight = false;
 			}
 
 			control.CurrentStrafe = strafe;

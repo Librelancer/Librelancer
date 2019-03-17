@@ -65,14 +65,14 @@ namespace LibreLancer
         public void SetFiltering(TextureFiltering filtering)
 		{
             if (currentFiltering == filtering) return;
-            if(GLExtensions.Anisotropy && currentFiltering == TextureFiltering.Anisotropic) {
-                GL.TexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAX_ANISOTROPY_EXT, 1);
-            }
             currentFiltering = filtering;
             BindTo(4);
-			if (LevelCount > 1)
+            if (LevelCount > 1)
 			{
-				switch (filtering)
+                if (GLExtensions.Anisotropy && currentFiltering != TextureFiltering.Anisotropic) { 
+                    GL.TexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAX_ANISOTROPY_EXT, 1);
+                }
+                switch (filtering)
 				{
                     case TextureFiltering.Anisotropic:
                         GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_LINEAR);
@@ -131,10 +131,9 @@ namespace LibreLancer
         public override void BindTo(int unit)
         {
             GLBind.BindTexture(unit, GL.GL_TEXTURE_2D, ID);
-            if(LevelCount > 1 && maxLevel != currentLevels) {
+            //Unit 4 is for creation, don't call it a trillion times
+            if(unit != 4 && LevelCount > 1 && maxLevel != currentLevels) {
                 currentLevels = maxLevel;
-                //This will be called too many times during texture creation but it does fix
-                //the incomplete textures that freelancer supplies
                 GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAX_LEVEL, maxLevel);
             }
         }

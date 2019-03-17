@@ -27,6 +27,8 @@ namespace LibreLancer
 		Dictionary<string, TextureShape> shapes = new Dictionary<string, TextureShape>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, Cursor> cursors = new Dictionary<string, Cursor>(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, TexFrameAnimation> frameanims = new Dictionary<string, TexFrameAnimation>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, Fx.ParticleLibrary> particlelibs = new Dictionary<string, Fx.ParticleLibrary>(StringComparer.OrdinalIgnoreCase);
+
 		List<string> loadedResFiles = new List<string>();
 		List<string> preloadFiles = new List<string>();
 
@@ -177,6 +179,7 @@ namespace LibreLancer
 
 		public void ClearTextures()
 		{
+            loadedResFiles = new List<string>();
 			var keys = new string[textures.Count];
 			textures.Keys.CopyTo(keys, 0);
 			foreach (var k in keys)
@@ -262,18 +265,34 @@ namespace LibreLancer
 			foreach (var key in removeMats) materials.Remove(key);
 		}
 
+        public Fx.ParticleLibrary GetParticleLibrary(string filename)
+        {
+            Fx.ParticleLibrary lib;
+            if (!particlelibs.TryGetValue(filename, out lib))
+            {
+                var ale = new Utf.Ale.AleFile(filename);
+                lib = new Fx.ParticleLibrary(this, ale);
+                particlelibs.Add(filename, lib);
+            }
+            return lib;
+        }
 
 
-		public void LoadResourceFile(string filename)
+        public void LoadResourceFile(string filename)
 		{
-			MatFile mat;
-			TxmFile txm;
-			VmsFile vms;
-			Utf.UtfLoader.LoadResourceFile(filename, this, out mat, out txm, out vms);
-			if (mat != null) AddMaterials(mat, filename);
-			if (txm != null) AddTextures(txm, filename);
-			if (vms != null) AddMeshes(vms);
-			if (vms == null && mat == null && txm == null) throw new Exception("Not a resource file " + filename);
+            var fn = filename.ToLowerInvariant();
+            if (!loadedResFiles.Contains(fn))
+            {
+                MatFile mat;
+                TxmFile txm;
+                VmsFile vms;
+                Utf.UtfLoader.LoadResourceFile(filename, this, out mat, out txm, out vms);
+                if (mat != null) AddMaterials(mat, filename);
+                if (txm != null) AddTextures(txm, filename);
+                if (vms != null) AddMeshes(vms);
+                if (vms == null && mat == null && txm == null) throw new Exception("Not a resource file " + filename);
+                loadedResFiles.Add(fn);
+            }
 		}
 
 		void AddTextures(TxmFile t, string filename)
