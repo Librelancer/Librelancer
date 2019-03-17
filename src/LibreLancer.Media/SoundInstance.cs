@@ -1,0 +1,42 @@
+﻿// MIT License - Copyright (c) Callum McGing
+// This file is subject to the terms and conditions defined in
+// LICENSE, which is part of this source code package
+using System;
+using System.Threading;
+
+namespace LibreLancer.Media
+{
+    public class SoundInstance
+    {
+        internal volatile bool Active = true;
+        internal SoundData Dispose;
+        internal uint ID;
+        internal SoundInstance(uint id)
+        {
+            ID = id;
+        }
+        public void SetGain(float gain)
+        {
+            if(Active)
+                Al.alSourcef(ID, Al.AL_GAIN, gain);
+        }
+        public void SetPosition(Vector3 pos)
+        {
+            if (Active)
+                Al.alSource3f(ID, Al.AL_POSITION, pos.X, pos.Y, pos.Z);
+        }
+        public void SetVelocity(Vector3 pos)
+        {
+            if (Active)
+                Al.alSource3f(ID, Al.AL_VELOCITY, pos.X, pos.Y, pos.Z);
+        }
+        public void Stop()
+        {
+            if (Active)
+            {
+                Al.alSourceStopv(1, ref ID);
+                Active = false;
+            }
+        }
+    }
+}

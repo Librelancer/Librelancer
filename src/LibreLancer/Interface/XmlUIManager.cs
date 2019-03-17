@@ -160,7 +160,7 @@ namespace LibreLancer
             if (!sounds.TryGetValue(name, out dat))
             {
                 dat = Game.Audio.AllocateData();
-                dat.LoadFile(Game.GameData.GetMusicPath(name));
+                dat.LoadFile(Game.GameData.GetAudioPath(name));
                 sounds.Add(name, dat);
             }
             Game.Audio.PlaySound(dat);

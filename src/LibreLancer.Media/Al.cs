@@ -14,6 +14,9 @@ namespace LibreLancer.Media
 		public const int AL_PITCH = 0x1003;
 		public const int AL_GAIN = 0x100A;
 		public const int AL_BUFFER = 0x1009;
+        public const int AL_POSITION = 0x1004;
+        public const int AL_VELOCITY = 0x1006;
+        public const int AL_LOOPING = 0x1007;
 
 		public const int AL_FORMAT_MONO8 = 0x1100;
 		public const int AL_FORMAT_MONO16 = 0x1101;
@@ -55,6 +58,9 @@ namespace LibreLancer.Media
 
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
         public static extern void alSourcef(uint sid, int param, float value);
+
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void alSource3f(uint sid, int param, float value1, float value2, float value3);
 
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
         public static extern void alSourcei(uint sid, int param, int value);

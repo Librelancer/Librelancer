@@ -19,6 +19,7 @@ namespace LibreLancer
         public ThnCameraTransform Camera;
         public Vector3 LightDir;
         public Hardpoint HpMount;
+        public ThnSound Sound;
         public void Update()
         {
             if (Object != null)
@@ -213,6 +214,12 @@ namespace LibreLancer
                     obj.Object.Name = "Marker";
                     obj.Object.Nickname = "";
                 }
+                else if (kv.Value.Type == EntityTypes.Sound)
+                {
+                    obj.Sound = new ThnSound(kv.Value.Template, game.Sound, kv.Value.AudioProps, obj);
+                    obj.Sound.Spatial = (kv.Value.ObjectFlags & ThnObjectFlags.Spatial) == ThnObjectFlags.Spatial;
+
+                }
                 if (obj.Object != null)
                 {
                     Vector3 transform = kv.Value.Position ?? Vector3.Zero;
@@ -360,10 +367,28 @@ namespace LibreLancer
 		void ProcessStartPSys(ThnEvent ev)
 		{
 			var obj = Objects[(string)ev.Targets[0]];
-			((ParticleEffectRenderer)obj.Object.RenderComponent).Active = true;
+            var r = (ParticleEffectRenderer)obj.Object.RenderComponent;
+            r.Active = true;
+            Coroutines.Add(new StopPSys() { Duration = ev.Duration, Fx = r });
 		}
 
-		public void Dispose()
+        class StopPSys : IThnRoutine
+        {
+            double time;
+            public double Duration;
+            public ParticleEffectRenderer Fx;
+            public bool Run(Cutscene cs, double delta)
+            {
+                time += delta;
+                if(time >= Duration)
+                {
+                    Fx.Active = false;
+                    return false;
+                }
+                return true;
+            }
+        }
+        public void Dispose()
 		{
 			Renderer.Dispose();
 		}

@@ -397,6 +397,9 @@
     <Compile Include="Utf\Dfm\DfmConstructs.cs" />
     <Compile Include="Interface\XmlUIServerList.cs" />
     <Compile Include="Net\AsyncPing.cs" />
+    <Compile Include="Thn\ThnSound.cs" />
+    <Compile Include="Thn\Events\StartSoundRunner.cs" />
+    <Compile Include="Thn\ThnAudioProps.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

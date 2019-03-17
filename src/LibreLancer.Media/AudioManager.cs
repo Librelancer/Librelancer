@@ -18,11 +18,11 @@ namespace LibreLancer.Media
 		internal bool Ready = false;
 		bool running = true;
 		//ConcurrentQueues to avoid threading errors
-		ConcurrentQueue<SoundEffectInstance> toAdd = new ConcurrentQueue<SoundEffectInstance> ();
+		ConcurrentQueue<SoundInstance> toAdd = new ConcurrentQueue<SoundInstance> ();
 		ConcurrentQueue<uint> freeSources = new ConcurrentQueue<uint>();
 		internal Queue<uint> streamingSources = new Queue<uint>();
 		internal Queue<uint> Buffers = new Queue<uint>();
-		List<SoundEffectInstance> sfxInstances = new List<SoundEffectInstance>();
+		List<SoundInstance> sfxInstances = new List<SoundInstance>();
 		internal ConcurrentQueue<Action> Actions = new ConcurrentQueue<Action>();
 		internal List<StreamingSource> activeStreamers = new List<StreamingSource>();
 		internal List<StreamingSource> toRemove = new List<StreamingSource>();
@@ -101,7 +101,7 @@ namespace LibreLancer.Media
 			while (running) {
 				//insert into items to update
 				while (toAdd.Count > 0) {
-					SoundEffectInstance item;
+					SoundInstance item;
 					if (toAdd.TryDequeue (out item))
 						sfxInstances.Add(item);
 				}
@@ -113,7 +113,8 @@ namespace LibreLancer.Media
 					Al.alGetSourcei(sfxInstances[i].ID, Al.AL_SOURCE_STATE, out state);
 					if (state != Al.AL_PLAYING)
 					{
-						if (sfxInstances[i].Dispose != null)
+                        sfxInstances[i].Active = false;
+                        if (sfxInstances[i].Dispose != null)
 							sfxInstances[i].Dispose.Dispose();
 						freeSources.Enqueue(sfxInstances[i].ID);
 						sfxInstances.RemoveAt(i);
@@ -136,14 +137,16 @@ namespace LibreLancer.Media
 			Alc.alcDestroyContext(ctx);
 			Alc.alcCloseDevice(ctx);
 		}
-
-		struct SoundEffectInstance
-		{
-			public uint ID;
-			public SoundData Dispose;
-		}
-
-		public void PlaySound(Stream stream, float volume = 1f)
+        public void StopAllSfx()
+        {
+            Actions.Enqueue(() =>
+            {
+                foreach (var sfx in sfxInstances)
+                    Al.alSourceStopv(1, ref sfx.ID);
+                sfxInstances.Clear();
+            });
+        }
+        public void PlaySound(Stream stream, float volume = 1f)
 		{
 			uint src;
 			if (!AllocateSource(out src)) return;
@@ -151,18 +154,27 @@ namespace LibreLancer.Media
 			data.LoadStream(stream);
 			Al.alSourcei(src, Al.AL_BUFFER, (int)data.ID);
 			Al.alSourcef(src, Al.AL_GAIN, volume);
+            Al.alSourcei(src, Al.AL_LOOPING, 0);
 			Al.alSourcePlay(src);
-			toAdd.Enqueue(new SoundEffectInstance() { ID = src, Dispose = data });
-		}
+            toAdd.Enqueue(new SoundInstance(src) { Dispose = data });
+        }
 
-		public void PlaySound(SoundData data, float volume = 1f)
+		public SoundInstance PlaySound(SoundData data, bool loop = false, float volume = 1f, Vector3? posv = null)
 		{
 			uint src;
-			if (!AllocateSource(out src)) return;
+			if (!AllocateSource(out src)) return null;
 			Al.alSourcei(src, Al.AL_BUFFER, (int)data.ID);
 			Al.alSourcef(src, Al.AL_GAIN, volume);
-			Al.alSourcePlay(src);
-			toAdd.Enqueue(new SoundEffectInstance() { ID = src });
+            Al.alSourcei(src, Al.AL_LOOPING, loop ? 1 : 0);
+            if(posv != null)
+            {
+                var pos = posv.Value;
+                Al.alSource3f(src, Al.AL_POSITION, pos.X, pos.Y, pos.Z);
+            }
+            Al.alSourcePlay(src);
+            var inst = new SoundInstance(src);
+            toAdd.Enqueue(inst);
+            return inst;
 		}
 
 		public void Dispose()

@@ -176,7 +176,11 @@ namespace LibreLancer
 				resource.AddCursor(cur, cur.Nickname);
 			}
 		}
-		public string GetMusicPath(string id)
+        public Data.Audio.AudioEntry GetAudioEntry(string id)
+        {
+            return fldata.Audio.Entries.Where((arg) => arg.Nickname.ToLowerInvariant() == id.ToLowerInvariant()).First();
+        }
+        public string GetAudioPath(string id)
 		{
 			var audio = fldata.Audio.Entries.Where((arg) => arg.Nickname.ToLowerInvariant() == id.ToLowerInvariant()).First();
 			return Data.VFS.GetPath(fldata.Freelancer.DataPath + audio.File);

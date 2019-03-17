@@ -240,8 +240,20 @@ namespace LibreLancer
 					e.NoFog = ThnEnum.Check<bool>(o);
 				}
 			}
-
-			if (table.TryGetValue("spatialprops", out o))
+            if(table.TryGetValue("audioprops", out o))
+            {
+                var aprops = (LuaTable)o;
+                e.AudioProps = new ThnAudioProps();
+                if (aprops.TryGetValue("rmix", out o)) e.AudioProps.Rmix = (float)o;
+                if (aprops.TryGetValue("ain", out o)) e.AudioProps.Ain = (float)o;
+                if (aprops.TryGetValue("dmax", out o)) e.AudioProps.Dmax = (float)o;
+                if (aprops.TryGetValue("atout", out o)) e.AudioProps.Atout = (float)o;
+                if (aprops.TryGetValue("pan", out o)) e.AudioProps.Pan = (float)o;
+                if (aprops.TryGetValue("dmin", out o)) e.AudioProps.Dmin = (float)o;
+                if (aprops.TryGetValue("aout", out o)) e.AudioProps.Aout = (float)o;
+                if (aprops.TryGetValue("attenuation", out o)) e.AudioProps.Attenuation = (float)o;
+            }
+            if (table.TryGetValue("spatialprops", out o))
 			{
 				var spatialprops = (LuaTable)o;
 				if (spatialprops.TryGetVector3("pos", out tmp))

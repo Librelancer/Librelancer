@@ -51,6 +51,7 @@ namespace LibreLancer
 
 		public void ChangeState(GameState state)
 		{
+            Audio.StopAllSfx();
 			if (currentState != null)
 				currentState.Unregister();
 			currentState = state;

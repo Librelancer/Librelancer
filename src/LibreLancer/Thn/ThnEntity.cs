@@ -22,6 +22,7 @@ namespace LibreLancer
 		public float? FovH;
 		public float? HVAspect;
 		public ThnLightProps LightProps;
+        public ThnAudioProps AudioProps;
 		public MotionPath Path;
 		public ThnObjectFlags ObjectFlags;
 		public bool NoFog = false;
