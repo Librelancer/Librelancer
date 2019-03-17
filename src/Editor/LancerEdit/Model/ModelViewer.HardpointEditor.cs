@@ -35,6 +35,11 @@ namespace LancerEdit
                 ImGui.CloseCurrentPopup();
             }
         }
+        void MinMaxWarning(PopupData data)
+        {
+            ImGui.Text("Min was bigger than max, swapped.");
+            if (ImGui.Button("Ok")) ImGui.CloseCurrentPopup();
+        }
         int GetHpNumbering(string name)
         {
             int val = 0;
@@ -213,6 +218,13 @@ namespace LancerEdit
                     if (!isFix)
                     {
                         var rev = (RevoluteHardpointDefinition)hpEditing;
+                        if(HPmin > HPmax)
+                        {
+                            var t = HPmin;
+                            HPmin = HPmax;
+                            HPmax = t;
+                            popups.OpenPopup("Warning");
+                        }
                         rev.Min = MathHelper.DegreesToRadians(HPmin);
                         rev.Max = MathHelper.DegreesToRadians(HPmax);
                         rev.Axis = new Vector3(HPaxisX, HPaxisY, HPaxisZ);

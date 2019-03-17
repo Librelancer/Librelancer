@@ -159,6 +159,7 @@ namespace LancerEdit
 
             popups = new PopupManager();
             popups.AddPopup("Confirm Delete", ConfirmDelete, ImGuiWindowFlags.AlwaysAutoResize);
+            popups.AddPopup("Warning", MinMaxWarning, ImGuiWindowFlags.AlwaysAutoResize);
             popups.AddPopup("Apply Complete", (x) =>
             {
                 ImGui.Text("Hardpoints successfully written");
