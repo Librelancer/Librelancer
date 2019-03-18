@@ -20,7 +20,7 @@ namespace LibreLancer
 			ThnEnv.Add("REFERENCE", ThnObjectFlags.Reference);
 			ThnEnv.Add("SPATIAL", ThnObjectFlags.Spatial);
 			//EventFlags
-			ThnEnv.Add("LOOP", EventFlags.Loop);
+			ThnEnv.Add("LOOP", SoundFlags.Loop);
 			//LightTypes
 			ThnEnv.Add("L_DIRECT", LightTypes.Direct);
 			ThnEnv.Add("L_POINT", LightTypes.Point);
@@ -134,7 +134,7 @@ namespace LibreLancer
 				{
 					e.Duration = (float)tmp;
 				}
-			}
+            }
 			return e;
 		}
 		//Flags are stored differently internally between Freelancer and Librelancer

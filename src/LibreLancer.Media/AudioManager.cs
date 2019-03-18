@@ -111,7 +111,8 @@ namespace LibreLancer.Media
 				for (int i = sfxInstances.Count - 1; i >= 0; i--) {
 					int state;
 					Al.alGetSourcei(sfxInstances[i].ID, Al.AL_SOURCE_STATE, out state);
-					if (state != Al.AL_PLAYING)
+                    Al.CheckErrors();
+                    if (state != Al.AL_PLAYING)
 					{
                         sfxInstances[i].Active = false;
                         if (sfxInstances[i].Dispose != null)

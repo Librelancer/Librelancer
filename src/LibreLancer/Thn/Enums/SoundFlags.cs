@@ -5,7 +5,8 @@
 using System;
 namespace LibreLancer
 {
-	public enum EventFlags
+    [Flags]
+	public enum SoundFlags
 	{
 		Loop = 2
 	}

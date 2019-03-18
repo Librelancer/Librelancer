@@ -19,22 +19,26 @@ namespace LibreLancer.Media
         {
             if(Active)
                 Al.alSourcef(ID, Al.AL_GAIN, gain);
+            Al.CheckErrors();
         }
         public void SetPosition(Vector3 pos)
         {
             if (Active)
                 Al.alSource3f(ID, Al.AL_POSITION, pos.X, pos.Y, pos.Z);
+            Al.CheckErrors();
         }
         public void SetVelocity(Vector3 pos)
         {
             if (Active)
                 Al.alSource3f(ID, Al.AL_VELOCITY, pos.X, pos.Y, pos.Z);
+            Al.CheckErrors();
         }
         public void Stop()
         {
             if (Active)
             {
                 Al.alSourceStopv(1, ref ID);
+                Al.CheckErrors();
                 Active = false;
             }
         }

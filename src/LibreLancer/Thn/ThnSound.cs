@@ -33,7 +33,7 @@ namespace LibreLancer
         Vector3 lastTranslate;
         public void Update(double delta)
         {
-            if(Spatial)
+            if(Spatial && Instance != null)
             {
                 Instance.SetPosition(Object.Translate);
                 lastTranslate = Object.Translate;

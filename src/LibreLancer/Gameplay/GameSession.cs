@@ -53,11 +53,14 @@ namespace LibreLancer
 		public void ProcessConsoleCommand(string str)
 		{
 			var split = str.Split(' ');
-			switch (split[0])
-			{
-				case "base":
-					Game.ChangeState(new RoomGameplay(Game, this, split[1]));
-					break;
+            switch (split[0])
+            {
+                case "base":
+                    Game.ChangeState(new RoomGameplay(Game, this, split[1]));
+                    break;
+                case "play":
+                    Game.Sound.PlaySound(split[1]);
+                    break;
 			}
 		}
 

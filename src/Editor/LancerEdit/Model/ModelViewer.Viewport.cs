@@ -85,9 +85,10 @@ namespace LancerEdit
             {
                 TextureImport.LoadLibraries();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 FLLog.Error("Render", "Could not load FreeImage");
+                FLLog.Info("Exception Info", ex.Message + "\n" + ex.StackTrace);
                 return;
             }
             imageViewport.Background = renderBackground ? background : Color4.TransparentBlack;
@@ -98,6 +99,8 @@ namespace LancerEdit
             imageViewport.RenderTarget.GetData(data);
             using (var sfc = new TeximpNet.Surface(imageWidth, imageHeight, true))
             {
+                byte* sfcData = (byte*)sfc.DataPtr;
+                for (int i = 0; i < data.Length; i++) sfcData[i] = data[i];
                 sfc.SaveToFile(TeximpNet.ImageFormat.PNG, output);
             }
 

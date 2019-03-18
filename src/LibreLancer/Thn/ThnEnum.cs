@@ -30,7 +30,8 @@ namespace LibreLancer
                 }
 			}
 			if (typeof(T) == typeof(bool)) return (T)(object)((float)o != 0);
-			//TODO: Move non-flags enums to workingTypes when complete
+            //TODO: Move non-flags enums to workingTypes when complete
+            if (typeof(T) == typeof(SoundFlags)) return (T)DoSoundFlags(o);
 			if (typeof(T) == typeof(TargetTypes)) return (T)DoTargetTypes(o);
 			if (typeof(T) == typeof(EntityTypes)) return (T)DoEntityTypes(o);
 			if (typeof(T) == typeof(AttachFlags)) return FlagsReflected<T>((int)(float)o);
@@ -64,8 +65,15 @@ namespace LibreLancer
 			return (T)(dynamic)objFlags;
 		}
 
-		//TODO: Migrate to workingTypes
-		static object DoEventTypes(object o)
+
+        static object DoSoundFlags(object o)
+        {
+            if (o is float && (((int)(float)o) == 8)) return SoundFlags.Loop;
+            throw new NotImplementedException(o.ToString()); 
+        }
+
+        //TODO: Migrate to workingTypes
+        static object DoEventTypes(object o)
 		{
 			switch ((int)(float)o)
 			{

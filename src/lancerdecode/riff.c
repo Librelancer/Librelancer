@@ -69,6 +69,8 @@ ld_pcmstream_t riff_getstream(ld_stream_t stream)
 		stream->seek(stream, wave_format.subChunkSize - 16, LDSEEK_CUR);
 
 	int has_data = 0;
+	int32_t total_samples = -1;
+	int32_t trim_samples = -1;
 	while(!has_data) {
 		if(!stream->read(&wave_data, sizeof(wave_data_t), 1, stream))
 		{
@@ -76,19 +78,30 @@ ld_pcmstream_t riff_getstream(ld_stream_t stream)
 			LOG_ERROR("Unable to find WAVE data");
 			return 0;
 		}
-		has_data = (memcmp(wave_data.subChunkID, "data", 4) == 0) ? 1 : 0;
-		if(!has_data) {
+		if(memcmp(wave_data.subChunkID, "data", 4) == 0) {
+			has_data = 1;
+		} else if (memcmp(wave_data.subChunkID, "fact", 4) == 0) {
+			//MP3: Total PCM Samples encoded, trims padding
+			stream->read(&total_samples, sizeof(int32_t), 1, stream);
+			if(wave_data.subChunk2Size - sizeof(int32_t) > 0)
+				stream->seek(stream, wave_data.subChunk2Size - sizeof(int32_t), LDSEEK_CUR);
+		} else if (memcmp(wave_data.subChunkID, "trim", 4) == 0) {
+			//Freelancer MP3: trim samples at start
+			stream->read(&trim_samples, sizeof(int32_t), 1, stream); 
+			if(wave_data.subChunk2Size - sizeof(int32_t) > 0)
+				stream->seek(stream,wave_data.subChunk2Size - sizeof(int32_t), LDSEEK_CUR);
+		} else {
 			//skip chunk
 			stream->seek(stream, wave_data.subChunk2Size, LDSEEK_CUR);
 		}
 	}
-
+	if(trim_samples == -1)
+		total_samples = trim_samples = -1; //Incomplete data, don't bother trimming
 	switch (wave_format.audioFormat) {
 		case WAVE_FORMAT_PCM:
 			break; //Default decoder
 		case WAVE_FORMAT_MP3:
-			//mp3 file wrapped in wav - because why not?
-			return mp3_getstream(ld_stream_wrap(stream, wave_data.subChunk2Size, 1));
+			return mp3_getstream(ld_stream_wrap(stream, wave_data.subChunk2Size, 1),wave_format.numChannels, wave_format.sampleRate,trim_samples, total_samples);
 		default:
 			LOG_ERROR_F("Unsupported format in WAVE file: '%x'", wave_format.audioFormat);
 			stream->close(stream);

@@ -8,7 +8,7 @@
 
 
 ld_pcmstream_t riff_getstream(ld_stream_t stream);
-ld_pcmstream_t mp3_getstream(ld_stream_t stream);
+ld_pcmstream_t mp3_getstream(ld_stream_t stream, int decodeChannels, int decodeRate, int trimSamples, int totalSamples);
 ld_pcmstream_t ogg_getstream(ld_stream_t stream);
 ld_pcmstream_t flac_getstream(ld_stream_t stream, int oggC);
 

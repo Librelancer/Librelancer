@@ -375,7 +375,7 @@
     <Compile Include="Utf\Cmp\VMeshWire.cs" />
     <Compile Include="Thn\Enums\AttachFlags.cs" />
     <Compile Include="Thn\Enums\EntityTypes.cs" />
-    <Compile Include="Thn\Enums\EventFlags.cs" />
+    <Compile Include="Thn\Enums\SoundFlags.cs" />
     <Compile Include="Thn\Enums\EventTypes.cs" />
     <Compile Include="Thn\Enums\ThnObjectFlags.cs" />
     <Compile Include="Thn\Enums\LightTypes.cs" />

@@ -29,10 +29,10 @@ LDEXPORT ld_pcmstream_t ld_pcmstream_open(ld_stream_t stream)
 	}
 	//Mp3
 	if(memcmp(magic,"ID3", 3) == 0) {
-		return mp3_getstream(stream);
+		return mp3_getstream(stream,-1,-1,-1,-1);
 	}
 	if(magic[0] == 0xFF && magic[1] == 0xFB) {
-		return mp3_getstream(stream);
+		return mp3_getstream(stream,-1,-1,-1,-1);
 	}
 
 	LOG_ERROR("Unable to detect file type");

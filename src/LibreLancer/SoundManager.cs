@@ -26,23 +26,30 @@ namespace LibreLancer
                 toRemove.Data.Dispose();
                 loadedSounds.Remove(toRemove.Name);
             }
-            var path = data.GetAudioPath(name);
-            var snd = audio.AllocateData();
-            snd.LoadFile(path);
             var loaded = new LoadedSound();
-            loaded.Data = snd;
-            loaded.Name = name;
+
             loaded.Entry = data.GetAudioEntry(name);
+            loaded.Name = name;
+            if (loaded.Entry.File.ToLowerInvariant().Replace('\\', '/') == "audio/null.wav")
+            {
+                //HACK: Don't bother with sounds using null.wav, makes awful popping noise
+                loaded.Data = null;
+            }
+            else
+            {
+                var path = data.GetAudioPath(name);
+                var snd = audio.AllocateData();
+                snd.LoadFile(path);
+                loaded.Data = snd;
+            }
             soundQueue.Enqueue(loaded);
             loadedSounds.Add(name, loaded);
         }
         public SoundInstance PlaySound(string name, bool loop = false, float gain = 1, Vector3? pos = null)
         {
-
             if (!loadedSounds.ContainsKey(name)) LoadSound(name);
             var snd = loadedSounds[name];
-            FLLog.Info("Sound", "starting " + name + ", loop=" + loop);
-
+            if (snd.Data == null) return null;
             return audio.PlaySound(snd.Data, loop, gain, pos);
         }
         public void PlayMusic(string name)

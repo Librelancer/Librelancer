@@ -29,7 +29,7 @@ namespace thorn2lua
             ThnEnv.Add("SPATIAL", ThnObjectFlags.Spatial);
             LuaTable.EnumReverse.Add("Spatial", "SPATIAL");
             //EventFlags
-            ThnEnv.Add("LOOP", EventFlags.Loop);
+            ThnEnv.Add("LOOP", SoundFlags.Loop);
             LuaTable.EnumReverse.Add("Loop", "LOOP");
             //LightTypes
             ThnEnv.Add("L_DIRECT", LightTypes.Direct);

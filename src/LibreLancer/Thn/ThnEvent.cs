@@ -13,7 +13,7 @@ namespace LibreLancer
         public double TimeOffset;
         public double Time => EventTime + TimeOffset;
 
-        public EventFlags Flags;
+        public SoundFlags Flags;
 		public EventTypes Type;
 		public LuaTable Targets;
 		public LuaTable Properties;
