@@ -160,7 +160,7 @@ namespace LibreLancer.Media
             toAdd.Enqueue(new SoundInstance(src) { Dispose = data });
         }
 
-		public SoundInstance PlaySound(SoundData data, bool loop = false, float volume = 1f, Vector3? posv = null)
+		public SoundInstance PlaySound(SoundData data, bool loop = false, float volume = 1f, float minD = -1, float maxD = -1, Vector3? posv = null)
 		{
 			uint src;
 			if (!AllocateSource(out src)) return null;
@@ -169,8 +169,19 @@ namespace LibreLancer.Media
             Al.alSourcei(src, Al.AL_LOOPING, loop ? 1 : 0);
             if(posv != null)
             {
+                Al.alSourcei(src, Al.AL_SOURCE_RELATIVE, 0);
                 var pos = posv.Value;
                 Al.alSource3f(src, Al.AL_POSITION, pos.X, pos.Y, pos.Z);
+            }
+            else
+            {
+                Al.alSourcei(src, Al.AL_SOURCE_RELATIVE, 1);
+                Al.alSource3f(src, Al.AL_POSITION, 0, 0, 0);
+            }
+            if (minD != -1 && maxD != -1)
+            {
+                Al.alSourcef(src, Al.AL_REFERENCE_DISTANCE, minD);
+                Al.alSourcef(src, Al.AL_MAX_DISTANCE, maxD);
             }
             Al.alSourcePlay(src);
             var inst = new SoundInstance(src);
@@ -178,7 +189,12 @@ namespace LibreLancer.Media
             return inst;
 		}
 
-		public void Dispose()
+        public void SetListenerPosition(Vector3 pos)
+        {
+            Al.alListener3f(Al.AL_POSITION, pos.X, pos.Y, pos.Z);
+        }
+
+        public void Dispose()
 		{
 			running = false;
 		}

@@ -28,7 +28,8 @@ namespace LibreLancer
         public void Play(bool loop)
         {
             lastTranslate = Object.Translate;
-            Instance = man.PlaySound(SoundName, loop, AlVolume(Attenuation), Spatial ? (Vector3?)Object.Translate : null);
+            Instance = man.PlaySound(SoundName, loop, AlVolume(Attenuation), 
+                Props.Dmin, Props.Dmax, Spatial ? (Vector3?)Object.Translate : null);
         }
         Vector3 lastTranslate;
         public void Update(double delta)

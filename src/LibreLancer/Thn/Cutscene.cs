@@ -310,6 +310,9 @@ namespace LibreLancer
 					break;
 				}
 			}
+
+            var pos = camera.Transform.Position;
+            game.Sound.SetListenerParams(pos);
 		}
 		public void _Update(TimeSpan delta)
 		{

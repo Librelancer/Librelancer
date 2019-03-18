@@ -23,6 +23,11 @@ namespace LibreLancer.Media
         }
         public void SetPosition(Vector3 pos)
         {
+            if(float.IsNaN(pos.X) || float.IsNaN(pos.Y) || float.IsNaN(pos.Z)) {
+                //NaN ??? - Exit
+                FLLog.Error("Sound", "Attempted to set NaN pos");
+                return;
+            }
             if (Active)
                 Al.alSource3f(ID, Al.AL_POSITION, pos.X, pos.Y, pos.Z);
             Al.CheckErrors();

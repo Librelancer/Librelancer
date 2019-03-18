@@ -18,6 +18,10 @@ namespace LibreLancer
 			data = gameData;
 			this.audio = audio;
 		}
+        public void SetListenerParams(Vector3 position)
+        {
+            audio.SetListenerPosition(position);
+        }
         public void LoadSound(string name)
         {
             if (loadedSounds.ContainsKey(name)) return;
@@ -45,12 +49,12 @@ namespace LibreLancer
             soundQueue.Enqueue(loaded);
             loadedSounds.Add(name, loaded);
         }
-        public SoundInstance PlaySound(string name, bool loop = false, float gain = 1, Vector3? pos = null)
+        public SoundInstance PlaySound(string name, bool loop = false, float gain = 1, float mind = -1, float maxd = -1, Vector3? pos = null)
         {
             if (!loadedSounds.ContainsKey(name)) LoadSound(name);
             var snd = loadedSounds[name];
             if (snd.Data == null) return null;
-            return audio.PlaySound(snd.Data, loop, gain, pos);
+            return audio.PlaySound(snd.Data, loop, gain, mind, maxd, pos);
         }
         public void PlayMusic(string name)
 		{

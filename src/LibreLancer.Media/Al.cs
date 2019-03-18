@@ -18,7 +18,10 @@ namespace LibreLancer.Media
         public const int AL_VELOCITY = 0x1006;
         public const int AL_LOOPING = 0x1007;
 
-		public const int AL_FORMAT_MONO8 = 0x1100;
+        public const int AL_REFERENCE_DISTANCE = 0x1020;
+        public const int AL_MAX_DISTANCE = 0x1023;
+
+        public const int AL_FORMAT_MONO8 = 0x1100;
 		public const int AL_FORMAT_MONO16 = 0x1101;
 		public const int AL_FORMAT_STEREO8 = 0x1102;
 		public const int AL_FORMAT_STEREO16 = 0x1103;
@@ -27,6 +30,7 @@ namespace LibreLancer.Media
 		public const int AL_BUFFERS_PROCESSED = 0x1016;
 
 		public const int AL_SOURCE_STATE = 0x1010;
+        public const int AL_SOURCE_RELATIVE = 0x202;
 		public const int AL_PLAYING = 0x1012;
 		public const int AL_PAUSED = 0x1013;
 		public const int AL_STOPPED = 0x1014;
@@ -55,6 +59,9 @@ namespace LibreLancer.Media
 			alGenBuffers(1, out b);
 			return b;
 		}
+
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void alListener3f(int param, float value1, float value2, float value3);
 
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
         public static extern void alSourcef(uint sid, int param, float value);
