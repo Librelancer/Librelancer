@@ -4,6 +4,7 @@ A re-implementation of the 2003 Space Game [Freelancer](https://en.wikipedia.org
 Currently running on Windows and Linux (macOS pending maintainer)
 Pull Requests are welcome!
 
+Support Librelancer on Patreon: https://www.patreon.com/librelancer
 ## Build Status
 
 |  Name | Status |
