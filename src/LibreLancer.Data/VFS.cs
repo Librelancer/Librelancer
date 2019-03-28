@@ -15,7 +15,7 @@ namespace LibreLancer.Data
     {
         static string FreelancerDirectory;
         static bool CaseSensitive;
-        static Dictionary<string, string[]> fileDict = new Dictionary<string, string[]>(StringComparer.CurrentCultureIgnoreCase);
+        static Dictionary<string, string[]> fileDict;
         public static void Init(string fldir)
         {
             FreelancerDirectory = Path.GetFullPath(fldir).TrimEnd('\\', '/');
@@ -24,6 +24,7 @@ namespace LibreLancer.Data
             {
                 //Provide a fast lookup for files in the directory. Don't follow symlinks
                 FLLog.Info("VFS", "Case-Sensitive: Path translation enabled (will impact performance)");
+                fileDict = new Dictionary<string, string[]>(StringComparer.CurrentCultureIgnoreCase);
                 WalkDir(FreelancerDirectory);
             }
             else

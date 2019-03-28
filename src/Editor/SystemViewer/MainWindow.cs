@@ -244,7 +244,7 @@ C# Memory Usage: {5}
             camera.UpdateProjection();
             var renderer = new SystemRenderer(camera, GameData, Resources, this);
             world = new GameWorld(renderer);
-            systems = GameData.ListSystems().ToArray();
+            systems = GameData.ListSystems().OrderBy(x => x).ToArray();
             Resources.ClearTextures();
             curSystem = GameData.GetSystem(systems[0]);
             world.LoadSystem(curSystem, Resources);
