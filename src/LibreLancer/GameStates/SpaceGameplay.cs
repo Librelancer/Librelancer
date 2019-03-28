@@ -74,6 +74,10 @@ Mouse Flight: {10}
             player.Components.Add(powerCore);
             player.Transform = new Matrix4(session.PlayerOrientation) * Matrix4.CreateTranslation(session.PlayerPosition);
             player.PhysicsComponent.Mass = shp.Mass;
+            if(shp.Mass < 0)
+            {
+                FLLog.Error("Ship", "Mass < 0");
+            }
             player.Nickname = "player";
             foreach (var equipment in session.MountedEquipment)
             {

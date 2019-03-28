@@ -42,7 +42,7 @@ namespace LibreLancer.Data.Ships
         [Entry("hold_size")]
 		public int HoldSize;
         [Entry("mass")]
-		public int Mass;
+		public float Mass;
         [Entry("ship_class")]
 		public int ShipClass;
         [Entry("type")]
