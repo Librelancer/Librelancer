@@ -30,7 +30,7 @@ Task("GenerateVersion")
 	var version = versionSetting;
 	if(version == "git") {
 		var lastSha = GitLogTip_Shell();
-		version = lastSha.Substring(0,7) + "-git";
+		version = string.Format("{0}-git ({1})",lastSha.Substring(0,7),DateTime.Now.ToString("yyyyMMdd"));
 	}
 	CreateAssemblyInfo("./src/CommonVersion.cs", new AssemblyInfoSettings {
 		InformationalVersion = version
