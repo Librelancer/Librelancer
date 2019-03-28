@@ -32,7 +32,7 @@ namespace LibreLancer.Data.Universe
 
 		public List<string> ArchetypeShip { get; private set; }
 		public List<string> ArchetypeSimple { get; private set; }
-		public List<Archetype> ArchetypeSolar { get; private set; }
+		public List<string> ArchetypeSolar { get; private set; }
 		public List<string> ArchetypeEquipment { get; private set; }
 		public List<string> ArchetypeSnd { get; private set; }
 		public List<List<string>> ArchetypeVoice { get; private set; }
@@ -205,8 +205,8 @@ namespace LibreLancer.Data.Universe
 							break;
 						case "solar":
 							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
-							if (ArchetypeSolar == null) ArchetypeSolar = new List<Archetype>();
-							ArchetypeSolar.Add(GameData.Solar.FindSolar(e[0].ToString()));
+							if (ArchetypeSolar == null) ArchetypeSolar = new List<string>();
+                            ArchetypeSolar.Add(e[0].ToString());
 							break;
 						case "equipment":
 							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);

@@ -13,18 +13,36 @@ namespace LibreLancer.Data
 {
     public static class VFS
     {
-        static object _pathLock = new object();
         static string FreelancerDirectory;
-		static bool CaseSensitive;
-		public static void Init(string fldir)
-		{
-			FreelancerDirectory = fldir.TrimEnd ('\\', '/');
-			CaseSensitive = Platform.IsDirCaseSensitive (fldir);
-			if (CaseSensitive)
-				FLLog.Info ("VFS","Case-Sensitive: Path translation enabled (will impact performance)");
-			else
-				FLLog.Info ("VFS","Not Case-Sensitive: Path translation disabled");
-		}
+        static bool CaseSensitive;
+        static Dictionary<string, string[]> fileDict = new Dictionary<string, string[]>(StringComparer.CurrentCultureIgnoreCase);
+        public static void Init(string fldir)
+        {
+            FreelancerDirectory = Path.GetFullPath(fldir).TrimEnd('\\', '/');
+            CaseSensitive = Platform.IsDirCaseSensitive(fldir);
+            if (CaseSensitive)
+            {
+                //Provide a fast lookup for files in the directory. Don't follow symlinks
+                FLLog.Info("VFS", "Case-Sensitive: Path translation enabled (will impact performance)");
+                WalkDir(FreelancerDirectory);
+            }
+            else
+                FLLog.Info("VFS", "Not Case-Sensitive: Path translation disabled");
+        }
+
+        static void WalkDir(string dir)
+        {
+            var f = Directory.GetFiles(dir, "*", SearchOption.TopDirectoryOnly);
+            if (f.Length != 0)
+                fileDict.Add(dir.Substring(FreelancerDirectory.Length), f);
+            var dinfo = new DirectoryInfo(dir);
+            foreach (var directory in dinfo.GetDirectories())
+            {
+                if(!directory.Attributes.HasFlag(FileAttributes.ReparsePoint))
+                    WalkDir(directory.FullName);
+            }
+        }
+
         public static Stream Open(string filename)
         {
             return File.OpenRead(GetPath(filename));
@@ -37,67 +55,32 @@ namespace LibreLancer.Data
         }
         public static string GetPath(string filename, bool throwOnError = true)
         {
-			if (FreelancerDirectory == null)
-				return filename;
-			if (File.Exists(filename))
-			   return filename;
-            lock (_pathLock)
+            if (FreelancerDirectory == null)
+                return filename;
+            if (File.Exists(filename))
+                return filename;
+            if (CaseSensitive)
             {
-                if (CaseSensitive)
+                var p = Path.GetFullPath(Path.Combine(FreelancerDirectory, filename.Replace('\\',Path.DirectorySeparatorChar)));
+                if (File.Exists(p)) return p;
+                string[] files;
+                var dirname = Path.GetDirectoryName(p);
+                if (!fileDict.TryGetValue(dirname.Substring(FreelancerDirectory.Length), out files))
                 {
-                    var split = filename.Split('\\', '/');
-                    var builder = new StringBuilder(FreelancerDirectory.Length + filename.Length);
-                    builder.Append(FreelancerDirectory);
-                    builder.Append(Path.DirectorySeparatorChar);
-                    //Directories
-                    for (int i = 0; i < split.Length - 1; i++)
-                    {
-                        var curr = builder.ToString();
-                        if (Directory.Exists(Path.Combine(curr, split[i])))
-                        {
-                            builder.Append(split[i]).Append(Path.DirectorySeparatorChar);
-                        }
-                        else
-                        {
-                            bool found = false;
-                            var s = split[i].ToLowerInvariant();
-                            foreach (var dir in Directory.GetDirectories(curr))
-                            {
-                                var nm = Path.GetFileNameWithoutExtension(dir);
-                                var lower = Path.GetFileNameWithoutExtension(dir).ToLowerInvariant();
-                                if (lower == s)
-                                {
-                                    found = true;
-                                    builder.Append(nm).Append(Path.DirectorySeparatorChar);
-                                    break;
-                                }
-                            }
-                            if (!found)
-                                if (throwOnError)
-                                    throw new FileNotFoundException(filename);
-                                else
-                                    return "VFS:FileMissing";
-
-                        }
-                    }
-                    //Find file
-                    var finaldir = builder.ToString();
-                    if (File.Exists(Path.Combine(finaldir, split[split.Length - 1])))
-                        return builder.Append(split[split.Length - 1]).ToString();
-                    var tofind = split[split.Length - 1].ToLowerInvariant();
-                    foreach (var file in Directory.GetFiles(finaldir))
-                    {
-                        var fn = Path.GetFileName(file).ToLowerInvariant();
-                        if (fn == tofind)
-                        {
-                            return builder.Append(Path.GetFileName(file)).ToString();
-                        }
-                    }
-                    return builder.Append(split[split.Length - 1]).ToString(); //Hack around mods with missing files
-                                                                               //throw new FileNotFoundException (filename);
+                    if (throwOnError)
+                        throw new FileNotFoundException(filename);
+                    else
+                        return "VFS:FileMissing";
                 }
-                return Path.Combine(FreelancerDirectory, filename.Replace('\\', Path.DirectorySeparatorChar));
+                var retval = files.FirstOrDefault(x => x.Equals(p, StringComparison.CurrentCultureIgnoreCase));
+                if (retval == null)
+                {
+                    if (throwOnError) throw new FileNotFoundException(filename);
+                    return "VFS:FileMissing";
+                }
+                return retval;
             }
+            return Path.Combine(FreelancerDirectory, filename.Replace('\\', Path.DirectorySeparatorChar));
         }
     }
 }
