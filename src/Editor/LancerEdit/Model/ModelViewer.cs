@@ -443,7 +443,7 @@ namespace LancerEdit
             if (ImGui.IsItemClicked(1))
                 ImGui.OpenPopup(con.Con.ChildName + "_context");
             if(ImGui.BeginPopupContextItem(con.Con.ChildName + "_context")) {
-                if(ImGui.BeginMenu("Change To")) {
+                if(Theme.BeginIconMenu("Change To","change",Color4.White)) {
                     var cmp = (CmpFile)drawable;
                     if(!(con.Con is FixConstruct) && Theme.IconMenuItem("Fix","fix",Color4.LightYellow,true)) {
                         var fix = new FixConstruct(cmp.Constructs)
@@ -488,7 +488,7 @@ namespace LancerEdit
                     }
                     ImGui.EndMenu();
                 }
-                if(ImGui.MenuItem("Edit")) {
+                if(Theme.IconMenuItem("Edit","edit",Color4.White,true)) {
                     AddPartEditor(con.Con);
                 }
                 ImGui.EndPopup();
@@ -564,7 +564,7 @@ namespace LancerEdit
             if(ImGui.IsItemClicked(1))
                 ImGui.OpenPopup(n + "_HardpointContext");
             if(ImGui.BeginPopupContextItem(n + "_HardpointContext")) {
-                if(ImGui.BeginMenu("New")) {
+                if(Theme.BeginIconMenu("New","add",Color4.White)) {
                     if (Theme.IconMenuItem("Fixed Hardpoint","fix",Color4.Purple,true)) return ContextActions.NewFixed;
                     if (Theme.IconMenuItem("Revolute Hardpoint","rev",Color4.LightSeaGreen,true)) return ContextActions.NewRevolute;
                     ImGui.EndMenu();
@@ -578,8 +578,8 @@ namespace LancerEdit
             if(ImGui.IsItemClicked(1))
                 ImGui.OpenPopup(n + "_HardpointEditCtx");
             if(ImGui.BeginPopupContextItem(n + "_HardpointEditCtx")) {
-                if(ImGui.MenuItem("Edit")) return ContextActions.Edit;
-                if(ImGui.MenuItem("Delete")) return ContextActions.Delete;
+                if(Theme.IconMenuItem("Edit","edit",Color4.White,true)) return ContextActions.Edit;
+                if(Theme.IconMenuItem("Delete","delete",Color4.White,true)) return ContextActions.Delete;
                 ImGui.EndPopup();
             }
             return ContextActions.None;

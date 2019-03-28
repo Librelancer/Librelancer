@@ -98,14 +98,19 @@ namespace LibreLancer.ImUI
             return ret;
         }
 
+      
         const string MENU_PADDING = "        ";
+        const string MENU_NEST_PADDING  = "          ";
+
         public static bool IconMenuItem(string text, string icon, Color4 tint, bool enabled)
         {
             bool ret = false;
             if (enabled) ret = ImGui.Selectable(MENU_PADDING + text);
             else
             {
-                ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetStyle().Colors[(int)ImGuiCol.TextDisabled]);
+                var clr = ImGui.GetStyle().Colors[(int)ImGuiCol.TextDisabled];
+                if (tint == Color4.White) tint = new Color4(clr.X, clr.Y, clr.Z, clr.W);
+                ImGui.PushStyleColor(ImGuiCol.Text, clr);
                 ImGui.Text(MENU_PADDING + text);
                 ImGui.PopStyleColor();
             }
@@ -114,6 +119,13 @@ namespace LibreLancer.ImUI
             ImGuiNative.igSetCursorPosX(ImGuiNative.igGetCursorPosX() - w - 32);
             Icon(icon, tint);
             return ret;
+        }
+        public static bool BeginIconMenu(string text, string icon, Color4 tint)
+        {
+            Icon(icon, tint);
+            ImGui.SameLine();
+            ImGuiNative.igSetCursorPosX(ImGuiNative.igGetCursorPosX() - 30);
+            return ImGui.BeginMenu(MENU_NEST_PADDING + text);
         }
         static Vector4 RGBA(int r, int g, int b, int a)
         {

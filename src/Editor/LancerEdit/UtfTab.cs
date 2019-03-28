@@ -544,13 +544,13 @@ namespace LancerEdit
                 ImGui.MenuItem(node.Name, false);
                 ImGui.MenuItem(string.Format("CRC: 0x{0:X}", CrcTool.FLModelCrc(node.Name)), false);
                 ImGui.Separator();
-                if (ImGui.MenuItem("Rename", node != Utf.Root))
+                if(Theme.IconMenuItem("Rename","rename",Color4.White, node != Utf.Root))
                 {
                     text.SetText(node.Name);
                     renameNode = node;
                     popups.OpenPopup("Rename Node");
                 }
-                if (ImGui.MenuItem("Delete", node != Utf.Root))
+                if (Theme.IconMenuItem("Delete", "delete", Color4.White, node != Utf.Root))
                 {
                     deleteParent = parent;
                     deleteNode = node;
@@ -563,7 +563,7 @@ namespace LancerEdit
                         deleteParent.Children.Remove(deleteNode);
                     });
                 }
-                if (ImGui.MenuItem("Clear", node.Children != null || node.Data != null))
+                if (Theme.IconMenuItem("Clear", "clear", Color4.White, node.Children != null || node.Data != null))
                 {
                     clearNode = node;
                     Confirm("Clearing this node will delete all data and children. Continue?", () =>
@@ -576,7 +576,7 @@ namespace LancerEdit
                     });
                 }
                 ImGui.Separator();
-                if (ImGui.BeginMenu("Add"))
+                if (Theme.BeginIconMenu("Add","add",Color4.White))
                 {
                     if (ImGui.MenuItem("Child"))
                     {
@@ -612,20 +612,20 @@ namespace LancerEdit
                     ImGui.EndMenu();
                 }
                 ImGui.Separator();
-                if (ImGui.MenuItem("Cut", node != Utf.Root))
+                if (Theme.IconMenuItem("Cut", "cut", Color4.White, node != Utf.Root))
                 {
                     parent.Children.Remove(node);
                     main.ClipboardCopy = false;
                     main.Clipboard = node;
                 }
-                if (ImGui.MenuItem("Copy", node != Utf.Root))
+                if (Theme.IconMenuItem("Copy", "copy", Color4.White, node != Utf.Root))
                 {
                     main.ClipboardCopy = true;
                     main.Clipboard = node.MakeCopy();
                 }
                 if (main.Clipboard != null)
                 {
-                    if (ImGui.BeginMenu("Paste"))
+                    if (Theme.BeginIconMenu("Paste","paste",Color4.White))
                     {
                         if (ImGui.MenuItem("Before", node != Utf.Root))
                         {
@@ -702,7 +702,7 @@ namespace LancerEdit
                 }
                 else
                 {
-                    ImGui.MenuItem("Paste", false);
+                    Theme.IconMenuItem("Paste", "paste", Color4.White, false);
                 }
                 ImGui.EndPopup();
             }
