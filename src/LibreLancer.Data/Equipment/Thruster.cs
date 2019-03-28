@@ -16,7 +16,5 @@ namespace LibreLancer.Data.Equipment
 		public int MaxForce;
         [Entry("power_usage")]
 		public int PowerUsage;
-        [Entry("hit_pts")]
-		public int Hitpoints;
 	}
 }

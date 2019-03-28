@@ -1,11 +1,12 @@
-﻿using System;
+﻿// MIT License - Copyright (c) Malte Rupprecht
+// This file is subject to the terms and conditions defined in
+// LICENSE, which is part of this source code package
+using System;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Equipment
 {
-    public class Munition
+    public class Munition : AbstractEquipment
     {
-        [Entry("nickname")]
-        public string Nickname;
         [Entry("const_effect")]
         public string ConstEffect;
         [Entry("requires_ammo")]
@@ -20,8 +21,6 @@ namespace LibreLancer.Data.Equipment
         public float Mass;
         [Entry("volume")]
         public float Volume;
-        [Entry("hit_pts")]
-        public float Hitpoints;
         [Entry("weapon_type")]
         public string WeaponType;
         [Entry("lifetime")]

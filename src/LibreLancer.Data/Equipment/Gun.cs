@@ -8,8 +8,6 @@ namespace LibreLancer.Data.Equipment
 {
     public class Gun : AbstractEquipment
     {
-        [Entry("hit_pts")]
-        public int Hitpoints;
         [Entry("turn_rate")]
         public float TurnRate;
         [Entry("muzzle_velocity")]

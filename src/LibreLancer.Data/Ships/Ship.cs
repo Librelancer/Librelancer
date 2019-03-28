@@ -106,6 +106,9 @@ namespace LibreLancer.Data.Ships
         [Entry("nomad")]
         public bool Nomad;
 
+        [Entry("explosion_resistance")]
+        public float ExplosionResistance;
+
         bool HandleEntry(Entry e)
         {
             switch(e.Name.ToLowerInvariant())

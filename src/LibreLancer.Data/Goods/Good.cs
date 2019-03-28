@@ -27,6 +27,8 @@ namespace LibreLancer.Data.Goods
         public string ShopArchetype;
         [Entry("da_archetype")]
         public string DaArchetype; //Is this valid? Probably same as ShopArchetype
+        [Entry("attachment_archetype")]
+        public string AttachmentArchetype; //TODO: Sort these archetypes out
         [Entry("material_library")]
         public List<string> MaterialLibraries = new List<string>();
         [Entry("price")]

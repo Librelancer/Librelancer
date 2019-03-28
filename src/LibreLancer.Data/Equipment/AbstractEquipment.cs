@@ -26,5 +26,7 @@ namespace LibreLancer.Data.Equipment
         public int IdsInfo = -1;
         [Entry("lootable")]
         public bool Lootable;
+        [Entry("hit_pts")]
+        public int Hitpoints;
     }
 }
