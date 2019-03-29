@@ -10,13 +10,49 @@ using BM = BulletSharp.Math;
 namespace LibreLancer.Physics.Sur
 {
 	//TODO: Sur reader is VERY incomplete & undocumented
-	class SurFile
+	public class SurFile
 	{
 		const string VERS_TAG = "vers";
 		Dictionary<uint, Surface> surfaces = new Dictionary<uint, Surface>();
 		Dictionary<uint, ConvexTriangleMeshShape[]> shapes = new Dictionary<uint, ConvexTriangleMeshShape[]>();
-		//I'm assuming this gives me some sort of workable mesh
-		public ConvexTriangleMeshShape[] GetShape(uint meshId)
+        
+        public IEnumerable<uint> MeshIds => surfaces.Keys;
+        public List<uint> HardpointIds = new List<uint>();
+
+        //For editor display. HACK: Horribly inefficient
+        public ConvexMesh[] GetMesh(uint meshId, bool hardpoint)
+        {
+            List<ConvexMesh> hull = new List<ConvexMesh>();
+            var sfc = new List<Surface>();
+            if (hardpoint) sfc.AddRange(surfaces.Values);
+            else sfc.Add(surfaces[meshId]);
+            foreach (var surface in sfc)
+            {
+                for (int i = 0; i < surface.Groups.Length; i++)
+                {
+                    var th = surface.Groups[i];
+                    if (th.MeshID != meshId)
+                        continue;
+                    var verts = new List<Vector3>();
+                    foreach (var v in surface.Vertices)
+                        verts.Add(v.Point.Cast());
+                    var indices = new List<int>();
+                    if (th.VertexArrayOffset != 0)
+                        throw new Exception("tgroupheader vertexarrayoffset wrong");
+                    foreach (var tri in th.Triangles)
+                    {
+                        indices.Add(tri.Vertices[0].Vertex);
+                        indices.Add(tri.Vertices[1].Vertex);
+                        indices.Add(tri.Vertices[2].Vertex);
+                    }
+                    hull.Add(new ConvexMesh() { Indices = indices.ToArray(), Vertices = verts.ToArray() });
+                }
+            }
+            return hull.ToArray();
+        }
+
+        //I'm assuming this gives me some sort of workable mesh
+        public ConvexTriangleMeshShape[] GetShape(uint meshId)
 		{
 			if (!shapes.ContainsKey(meshId))
 			{
@@ -39,7 +75,6 @@ namespace LibreLancer.Physics.Sur
                         indices.Add(tri.Vertices[1].Vertex);
                         indices.Add(tri.Vertices[2].Vertex);
 					}
-                    //StridingMeshInterface;
                     hull.Add(new ConvexTriangleMeshShape(new TriangleIndexVertexArray(indices, verts)));
 				}
 				shapes.Add(meshId, hull.ToArray());
@@ -87,8 +122,7 @@ namespace LibreLancer.Physics.Sur
 							//TODO: SUR - hpid. What does this do?
 							uint count2 = reader.ReadUInt32 ();
 							while (count2-- > 0) {
-								//uint mesh2 = reader.ReadUInt32 ();
-								reader.BaseStream.Seek(sizeof(uint), SeekOrigin.Current);
+                                HardpointIds.Add(reader.ReadUInt32());
 							}
 						}
 					}

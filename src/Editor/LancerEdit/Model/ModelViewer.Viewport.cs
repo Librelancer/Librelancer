@@ -3,7 +3,10 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Linq;
+using System.Collections.Generic;
 using LibreLancer;
+using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
 using DF = LibreLancer.Utf.Dfm;
@@ -62,6 +65,110 @@ namespace LancerEdit
             lighting.NumberOfTilesX = -1;
             GizmoRender.Init(res);
         }
+
+        class SurModel
+        {
+            public VertexBuffer Vertices;
+            public ElementBuffer Elements;
+            public List<SurDrawCall> Draws = new List<SurDrawCall>();
+            public Part Part;
+            public bool Hardpoint;
+        }
+        class SurDrawCall
+        {
+            public int BaseVertex;
+            public int Start;
+            public int Count;
+        }
+
+        Color4 surPart = new Color4(1, 0, 0, 0.4f);
+        Color4 surHardpoint = new Color4(128, 0, 128, 80);
+        Color4 surShield = new Color4(100, 149, 237, 32);
+        List<SurModel> surs;
+        void ProcessSur(LibreLancer.Physics.Sur.SurFile surfile)
+        {
+            if(surs != null) {
+                foreach(var mdl in surs)
+                {
+                    mdl.Vertices.Dispose();
+                    mdl.Elements.Dispose();
+                }
+            }
+            surs = new List<SurModel>();
+            if((drawable is ModelFile))
+            {
+                surs.Add(GetSurModel(surfile.GetMesh(0,false), null, surPart));
+                foreach(var hpid in surfile.HardpointIds)
+                {
+                    surs.Add(GetSurModel(surfile.GetMesh(hpid, true), null, surHardpoint));
+                }
+            }
+            else
+            {
+                foreach (var part in ((CmpFile)drawable).Parts)
+                {
+                    var crc = CrcTool.FLModelCrc(part.ObjectName);
+                    if (surfile.HasShape(crc))
+                    {
+                        surs.Add(GetSurModel(surfile.GetMesh(crc, false), part, surPart));
+                        foreach(var hp in part.Model.Hardpoints)
+                        {
+                            crc = CrcTool.FLModelCrc(hp.Name);
+                            Color4 c = surHardpoint;
+                            if (hp.Name.Equals("hpmount", StringComparison.OrdinalIgnoreCase))
+                                c = surShield;
+                            if (surfile.HardpointIds.Contains(crc))
+                                surs.Add(GetSurModel(surfile.GetMesh(crc, true), null, c));
+                        }
+                    }
+                }
+            }
+        }
+        SurModel GetSurModel(LibreLancer.Physics.Sur.ConvexMesh[] meshes, Part part, Color4 color)
+        {
+            var mdl = new SurModel() { Part = part };
+            if (color != surPart) mdl.Hardpoint = true;
+            var verts = new List<VertexPositionColor>();
+            var indices = new List<short>();
+            foreach(var m in meshes) {
+                mdl.Draws.Add(new SurDrawCall() { BaseVertex = verts.Count, Start = indices.Count, Count = m.Indices.Length / 3 });
+                verts.AddRange(m.Vertices.Select(x => new VertexPositionColor(x, color)));
+                indices.AddRange(m.Indices.Select(x => (short)x));
+            }
+            mdl.Vertices = new VertexBuffer(typeof(VertexPositionColor), verts.Count);
+            mdl.Vertices.SetData(verts.ToArray());
+            mdl.Elements = new ElementBuffer(indices.Count);
+            mdl.Elements.SetData(indices.ToArray());
+            mdl.Vertices.SetElementBuffer(mdl.Elements);
+            return mdl;
+        }
+
+        void RenderSurs(ICamera cam)
+        {
+            var mat = wireframeMaterial3db.Render;
+            var world = GetModelMatrix();
+            rstate.Cull = false;
+            rstate.DepthWrite = false;
+            var bm = ((BasicMaterial)mat);
+            bm.Oc = 1;
+            bm.OcEnabled = true;
+            GL.PolygonOffset(1, 1);
+            foreach(var mdl in surs) {
+                if (mdl.Hardpoint && !surShowHps) continue;
+                if (!mdl.Hardpoint && !surShowHull) continue;
+                mat.Camera = cam;
+                if (mdl.Part != null) mat.World = mdl.Part.GetTransform(world);
+                else mat.World = world;
+                mat.Use(rstate, new VertexPositionColor(), ref Lighting.Empty);
+                foreach (var dc in mdl.Draws)
+                    mdl.Vertices.Draw(PrimitiveTypes.TriangleList, dc.BaseVertex, dc.Start, dc.Count);
+            }
+            GL.PolygonOffset(0, 0);
+            bm.OcEnabled = false;
+            rstate.DepthWrite = true;
+            rstate.Cull = true;
+        }
+
         void DoViewport()
         {
             modelViewport.Background = background;
@@ -187,6 +294,9 @@ namespace LancerEdit
             }
             //Draw VMeshWire (if used)
             _window.DebugRender.Render();
+            //Draw Sur
+            if (surs != null)
+                RenderSurs(cam);
             //Draw hardpoints
             DrawHardpoints(cam);
             if (drawSkeleton) DrawSkeleton(cam);

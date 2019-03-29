@@ -51,6 +51,7 @@
     <Compile Include="..\CommonVersion.cs">
       <Link>Properties\CommonVersion.cs</Link>
     </Compile>
+    <Compile Include="Sur\ConvexMesh.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\extern\BulletSharpPInvoke\BulletSharp\BulletSharp.csproj">

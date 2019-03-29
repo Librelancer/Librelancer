@@ -110,6 +110,10 @@
       <Project>{F89CC613-0C7A-4936-9D79-86CBBF26593E}</Project>
       <Name>LibreLancer.Data</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\LibreLancer.Physics\LibreLancer.Physics.csproj">
+      <Project>{C2ACC8B3-1805-45D2-B32B-CCBA545AA09F}</Project>
+      <Name>LibreLancer.Physics</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

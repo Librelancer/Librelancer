@@ -54,6 +54,10 @@ namespace LancerEdit
             Color4.Orange
         };
 
+        FileDialogFilters SurFilters = new FileDialogFilters(
+           new FileFilter("Sur Files", "sur")
+        );
+
         Material wireframeMaterial3db;
         Material normalsDebugMaterial;
         Dictionary<int, Material> partMaterials = new Dictionary<int, Material>();
@@ -606,8 +610,42 @@ namespace LancerEdit
                 return Math.Min(level, maxLevel);
             }
         }
+
+        string surname;
+        bool surShowHull = true;
+        bool surShowHps = true;
         void HierachyPanel()
         {
+            if(!(drawable is DF.DfmFile) && !(drawable is SphFile))
+            {
+                //Sur
+                if(ImGui.Button("Open Sur"))
+                {
+                    var file = FileDialog.Open(SurFilters);
+                    surname = System.IO.Path.GetFileName(file);
+                    LibreLancer.Physics.Sur.SurFile sur;
+                    try
+                    {
+                        using (var f = System.IO.File.OpenRead(file))
+                        {
+                            sur = new LibreLancer.Physics.Sur.SurFile(f);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        sur = null;
+                    }
+                    if (sur != null) ProcessSur(sur);
+                }
+                if(surs != null)
+                {
+                    ImGui.Separator();
+                    ImGui.Text("Sur: " + surname);
+                    ImGui.Checkbox("Show Hull", ref surShowHull);
+                    ImGui.Checkbox("Show Hardpoints", ref surShowHps);
+                    ImGui.Separator();
+                }
+            }
             if (ImGui.Button("Apply Hardpoints"))
             {
                 if (drawable is CmpFile)
@@ -737,6 +775,14 @@ namespace LancerEdit
 
         public override void Dispose()
         {
+            if(surs != null)
+            {
+                foreach(var s in surs)
+                {
+                    s.Vertices.Dispose();
+                    s.Elements.Dispose();
+                }
+            }
             modelViewport.Dispose();
             imageViewport.Dispose();
             previewViewport.Dispose();
