@@ -58,16 +58,17 @@ namespace LibreLancer
 			}
 		}
 
-		public override void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights)
+        public override bool DisableCull => true;
+
+        public override void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights)
 		{
-			rstate.BlendMode = BlendMode.Additive;
+			rstate.BlendMode = BlendMode.Normal;
 			var shader = GetShader(vertextype);
 			shader.SetWorld(ref World);
 			shader.SetView(Camera);
 			shader.SetViewProjection(Camera);
 			//Colors
 			shader.SetDc(Dc);
-			shader.SetOc(Oc);
 			//Dt
 			shader.SetDtSampler(0);
 			BindTexture(rstate, 0, DtSampler, 0, DtFlags);

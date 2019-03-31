@@ -120,6 +120,13 @@ namespace LibreLancer.ImUI
             Icon(icon, tint);
             return ret;
         }
+        public static void IconMenuToggle(string text, string icon, Color4 tint, ref bool v, bool enabled)
+        {
+            Icon(icon, tint);
+            ImGui.SameLine();
+            ImGuiNative.igSetCursorPosX(ImGuiNative.igGetCursorPosX() - 30);
+            if (ImGui.MenuItem(MENU_NEST_PADDING + text, "", v, enabled)) v = !v;
+        }
         public static bool BeginIconMenu(string text, string icon, Color4 tint)
         {
             Icon(icon, tint);

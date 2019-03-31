@@ -319,6 +319,7 @@ namespace LibreLancer
 					Material.FadeNear = *(float*)(&fn);
 					Material.FadeFar = *(float*)(&ff);
 				}
+                if (Material.DisableCull) state.Cull = false;
 				Material.Use(state, Buffer.VertexType, ref Lights);
 				if ((CmdType != RenderCmdType.MaterialFade) && BaseVertex != -1)
 					Buffer.Draw(Primitive, BaseVertex, Start, Count);
@@ -340,6 +341,7 @@ namespace LibreLancer
 				{
 					Material.Fade = false;
 				}
+                if (Material.DisableCull) state.Cull = true;
 			}
 			else if (CmdType == RenderCmdType.Shader)
 			{

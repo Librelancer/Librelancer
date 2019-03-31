@@ -208,7 +208,7 @@ namespace LancerEdit
             bool openLoading = false;
             if (ImGui.BeginMenu("View"))
             {
-                if (ImGui.MenuItem("Log","",showLog,true)) showLog = !showLog;
+                Theme.IconMenuToggle("Log", "log", Color4.White, ref showLog, true);
                 ImGui.EndMenu();
             }
 			if (ImGui.BeginMenu("Tools"))

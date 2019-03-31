@@ -23,7 +23,8 @@ namespace LibreLancer
 		public abstract void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights);
         public virtual void UpdateFlipNormals() {} //Optimisation
 		public abstract bool IsTransparent { get; }
-		public bool DoubleSided = false;
+        public virtual bool DisableCull {  get { return false; } }
+        public bool DoubleSided = false;
 		Texture2D[] textures = new Texture2D[8];
 		bool[] loaded = new bool[8];
 		protected static bool HasSpotlight(ref Lighting lights)
@@ -144,6 +145,8 @@ namespace LibreLancer
 			var tex2d = textures[cacheidx];
 			if (tex2d.IsDisposed)
 				tex2d = textures[cacheidx] = (Texture2D)Library.FindTexture(tex);
+            if (tex2d == null)
+                tex2d = (Texture2D)Library.FindTexture(ResourceManager.NullTextureName);
 			tex2d.BindTo(unit);
 			tex2d.SetFiltering(rstate.PreferredFilterLevel);
 			if ((flags & SamplerFlags.ClampToEdgeU) == SamplerFlags.ClampToEdgeU)

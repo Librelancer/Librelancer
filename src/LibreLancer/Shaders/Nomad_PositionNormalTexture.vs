@@ -3,7 +3,8 @@ in vec3 vertex_normal;
 in vec2 vertex_texture1;
 
 out vec2 out_texcoord;
-out vec2 texcoord2;
+out vec3 N;
+out vec3 V;
 
 uniform mat4x4 World;
 uniform mat4x4 View;
@@ -15,11 +16,13 @@ void main()
 	gl_Position = pos;
 
 	vec4 p = vec4(vertex_position, 1.0);
-
-	vec3 N = normalize(mat3(View * World) * vertex_normal);
-	vec3 V = normalize(-vec3((View * World) * p));
-    float facingRatio = dot(V, N);
-    texcoord2 = vec2(facingRatio, 0);
+    
+    mat4 modelview = mat4(View * World);
+    mat4 normmat = transpose(inverse(modelview));
+    
+	
+    N = normalize(vec3(normmat * vec4(vertex_normal,0.0)));
+    V = -vec3(modelview * vec4(vertex_position,1.0));
 
 	out_texcoord = vec2(vertex_texture1.x, 1 - vertex_texture1.y);
 }
