@@ -54,4 +54,4 @@ Powershell security issues can be troubleshooted [here](https://cakebuild.net/do
 
 
 ## Screenshots
-See: http://librelancer.github.io/screenshots
+See: https://librelancer.net/screenshots/
