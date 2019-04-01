@@ -23,10 +23,7 @@ namespace LibreLancer.Physics.Sur
         public ConvexMesh[] GetMesh(uint meshId, bool hardpoint)
         {
             List<ConvexMesh> hull = new List<ConvexMesh>();
-            var sfc = new List<Surface>();
-            if (hardpoint) sfc.AddRange(surfaces.Values);
-            else sfc.Add(surfaces[meshId]);
-            foreach (var surface in sfc)
+            foreach (var surface in surfaces.Values)
             {
                 for (int i = 0; i < surface.Groups.Length; i++)
                 {
@@ -45,7 +42,7 @@ namespace LibreLancer.Physics.Sur
                         indices.Add(tri.Vertices[1].Vertex);
                         indices.Add(tri.Vertices[2].Vertex);
                     }
-                    hull.Add(new ConvexMesh() { Indices = indices.ToArray(), Vertices = verts.ToArray() });
+                    hull.Add(new ConvexMesh() { Indices = indices.ToArray(), Vertices = verts.ToArray(), ParentCrc = surface.Crc });
                 }
             }
             return hull.ToArray();
@@ -101,7 +98,7 @@ namespace LibreLancer.Physics.Sur
 						var tag = reader.ReadTag ();
 						if (tag == "surf") {
 							uint size = reader.ReadUInt32 (); //TODO: SUR - What is this?
-							var surf = new Surface(reader);
+                            var surf = new Surface(reader, meshid);
 							surfaces.Add(meshid, surf);
 						} else if (tag == "exts") {
 							//TODO: SUR - What are exts used for?

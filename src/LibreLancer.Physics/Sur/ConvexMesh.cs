@@ -8,5 +8,6 @@ namespace LibreLancer.Physics.Sur
     {
         public Vector3[] Vertices;
         public int[] Indices;
+        public uint ParentCrc;
     }
 }

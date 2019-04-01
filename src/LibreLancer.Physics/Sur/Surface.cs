@@ -16,13 +16,14 @@ namespace LibreLancer.Physics.Sur
 		public uint BitsEnd;
 		public uint BitsStart;
 		public float Radius;
+        public uint Crc;
 		//FL-OS comment: some sort of multiplier for the radius
 		public byte Scale; //TODO: Surface - What is this?
 		public List<SurVertex> Vertices = new List<SurVertex>();
 		public TGroupHeader[] Groups;
-		public Surface(BinaryReader reader)
+		public Surface(BinaryReader reader, uint crc)
 		{
-
+            Crc = crc;
 			Center = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
 			Inertia = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
 			Radius = reader.ReadSingle();

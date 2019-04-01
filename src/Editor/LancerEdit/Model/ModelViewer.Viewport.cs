@@ -66,6 +66,7 @@ namespace LancerEdit
             GizmoRender.Init(res);
         }
 
+        List<SurModel> surs;
         class SurModel
         {
             public VertexBuffer Vertices;
@@ -73,7 +74,11 @@ namespace LancerEdit
             public List<SurDrawCall> Draws = new List<SurDrawCall>();
             public Part Part;
             public bool Hardpoint;
+
+            public List<VertexPositionColor> BuildVertices = new List<VertexPositionColor>();
+            public List<short> BuildIndices = new List<short>();
         }
+
         class SurDrawCall
         {
             public int BaseVertex;
@@ -84,7 +89,6 @@ namespace LancerEdit
         Color4 surPart = new Color4(1, 0, 0, 0.4f);
         Color4 surHardpoint = new Color4(128, 0, 128, 80);
         Color4 surShield = new Color4(100, 149, 237, 32);
-        List<SurModel> surs;
         void ProcessSur(LibreLancer.Physics.Sur.SurFile surfile)
         {
             if(surs != null) {
@@ -105,24 +109,41 @@ namespace LancerEdit
             }
             else
             {
+                Dictionary<uint, SurModel> crcLookup = new Dictionary<uint, SurModel>();
+                foreach (var part in ((CmpFile)drawable).Parts) crcLookup.Add(CrcTool.FLModelCrc(part.ObjectName), new SurModel() { Part = part });
                 foreach (var part in ((CmpFile)drawable).Parts)
                 {
                     var crc = CrcTool.FLModelCrc(part.ObjectName);
-                    if (surfile.HasShape(crc))
+                    foreach (var msh in surfile.GetMesh(crc, false)) AddVertices(crcLookup[msh.ParentCrc], msh);
+                    foreach (var hp in part.Model.Hardpoints)
                     {
-                        surs.Add(GetSurModel(surfile.GetMesh(crc, false), part, surPart));
-                        foreach(var hp in part.Model.Hardpoints)
-                        {
-                            crc = CrcTool.FLModelCrc(hp.Name);
-                            Color4 c = surHardpoint;
-                            if (hp.Name.Equals("hpmount", StringComparison.OrdinalIgnoreCase))
-                                c = surShield;
-                            if (surfile.HardpointIds.Contains(crc))
-                                surs.Add(GetSurModel(surfile.GetMesh(crc, true), null, c));
-                        }
+                        crc = CrcTool.FLModelCrc(hp.Name);
+                        Color4 c = surHardpoint;
+                        if (hp.Name.Equals("hpmount", StringComparison.OrdinalIgnoreCase))
+                            c = surShield;
+                        if (surfile.HardpointIds.Contains(crc))
+                            surs.Add(GetSurModel(surfile.GetMesh(crc, true), null, c));
                     }
                 }
+                foreach(var mdl in crcLookup.Values) {
+                    mdl.Vertices = new VertexBuffer(typeof(VertexPositionColor), mdl.BuildVertices.Count);
+                    mdl.Vertices.SetData(mdl.BuildVertices.ToArray());
+                    mdl.BuildVertices = null;
+                    mdl.Elements = new ElementBuffer(mdl.BuildIndices.Count);
+                    mdl.Elements.SetData(mdl.BuildIndices.ToArray());
+                    mdl.Vertices.SetElementBuffer(mdl.Elements);
+                    mdl.BuildIndices = null;
+                    surs.Add(mdl);
+                }
             }
+        }
+        void AddVertices(SurModel mdl, LibreLancer.Physics.Sur.ConvexMesh mesh)
+        {
+            var baseVertex = mdl.BuildVertices.Count;
+            var index = mdl.BuildIndices.Count;
+            mdl.BuildVertices.AddRange(mesh.Vertices.Select(x => new VertexPositionColor(x, surPart)));
+            mdl.BuildIndices.AddRange(mesh.Indices.Select(x => (short)x));
+            mdl.Draws.Add(new SurDrawCall() { BaseVertex = baseVertex, Start = index, Count = mesh.Indices.Length / 3 });
         }
         SurModel GetSurModel(LibreLancer.Physics.Sur.ConvexMesh[] meshes, Part part, Color4 color)
         {
