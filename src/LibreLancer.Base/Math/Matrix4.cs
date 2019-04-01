@@ -620,26 +620,36 @@ namespace LibreLancer
             return result;
         }
 
-        public static Matrix4 CreateFromEulerAngles(float x, float y, float z)
+        static float EpsilonCheck(double value)
+        {
+            if (Math.Abs(value) < 1e-12)
+                return 0;
+            return (float)value;
+        }
+
+        public static Matrix4 CreateFromEulerAngles(double x, double y, double z)
         {
             var mat = Matrix4.Identity;
-            float cosY = (float)Math.Cos(y);
-            float sinY = (float)Math.Sin(y);
-            float cosP = (float)Math.Cos(x);
-            float sinP = (float)Math.Sin(x);
-            float cosR = (float)Math.Cos(z);
-            float sinR = (float)Math.Sin(z);
-            mat.M11 = cosY * cosR + sinY * sinP * sinR;
-            mat.M21 = cosR * sinY * sinP - sinR * cosY;
-            mat.M31 = cosP * sinY;
 
-            mat.M12 = cosP * sinR;
-            mat.M22 = cosR * cosP;
-            mat.M32 = -sinP;
+            double cp = Math.Cos(x);
+            double sp = Math.Sin(x);
 
-            mat.M13 = sinR * cosY * sinP - sinY * cosR;
-            mat.M23 = sinY * sinR + cosR * cosY * sinP;
-            mat.M33 = cosP * cosY;
+            double cy = Math.Cos(y);
+            double sy = Math.Sin(y);
+
+            double cr = Math.Cos(z);
+            double sr = Math.Sin(z);
+
+            mat.M11 = EpsilonCheck(cy * cr);
+            mat.M12 = EpsilonCheck(sp * sy * cr + cp * -sr);
+            mat.M13 = EpsilonCheck(cp * sy * cr + -sp * -sr);
+            mat.M21 = EpsilonCheck(cy * sr);
+            mat.M22 = EpsilonCheck(sp * sy * sr + cp * cr);
+            mat.M23 = EpsilonCheck(cp * sy * sr + -sp * cr);
+            mat.M31 = EpsilonCheck(-sy);
+            mat.M32 = EpsilonCheck(sp * cy);
+            mat.M33 = EpsilonCheck(cp * cy);
+
 
             return mat;
         }

@@ -243,16 +243,16 @@ namespace LancerEdit
                     jointPreview = Matrix4.CreateTranslation(translate);
                 }
                 editingPart.OverrideTransform = Matrix4.CreateFromEulerAngles(
-                MathHelper.DegreesToRadians(partPitch),
-                MathHelper.DegreesToRadians(partYaw),
-                MathHelper.DegreesToRadians(partRoll)) * jointPreview *
+                MathHelper.DegreesToRadians((double)partPitch),
+                MathHelper.DegreesToRadians((double)partYaw),
+                MathHelper.DegreesToRadians((double)partRoll)) * jointPreview *
                     Matrix4.CreateTranslation(new Vector3(partX, partY, partZ) + new Vector3(partOX, partOY, partOZ));
                 if(ImGui.Button("Apply")) {
                     editingPart.Origin = new Vector3(partX, partY, partZ);
                     editingPart.Rotation = Matrix4.CreateFromEulerAngles(
-                        MathHelper.DegreesToRadians(partPitch),
-                        MathHelper.DegreesToRadians(partYaw),
-                        MathHelper.DegreesToRadians(partRoll)
+                        MathHelper.DegreesToRadians((double)partPitch),
+                        MathHelper.DegreesToRadians((double)partYaw),
+                        MathHelper.DegreesToRadians((double)partRoll)
                     );
                     if(editingPart is RevConstruct) {
                         var rev = (RevConstruct)editingPart;

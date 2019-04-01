@@ -211,9 +211,9 @@ namespace LancerEdit
                 {
                     hpEditing.Position = new Vector3(HPx, HPy, HPz);
                     hpEditing.Orientation = Matrix4.CreateFromEulerAngles(
-                        MathHelper.DegreesToRadians(HPpitch),
-                        MathHelper.DegreesToRadians(HPyaw),
-                        MathHelper.DegreesToRadians(HProll)
+                        MathHelper.DegreesToRadians((double)HPpitch),
+                        MathHelper.DegreesToRadians((double)HPyaw),
+                        MathHelper.DegreesToRadians((double)HProll)
                     );
                     if (!isFix)
                     {
@@ -237,9 +237,9 @@ namespace LancerEdit
                     hpEditOpen = false;
                 }
                 editingGizmo.Override = Matrix4.CreateFromEulerAngles(
-                            MathHelper.DegreesToRadians(HPpitch),
-                            MathHelper.DegreesToRadians(HPyaw),
-                            MathHelper.DegreesToRadians(HProll)
+                            MathHelper.DegreesToRadians((double)HPpitch),
+                            MathHelper.DegreesToRadians((double)HPyaw),
+                            MathHelper.DegreesToRadians((double)HProll)
                         ) * Matrix4.CreateTranslation(HPx, HPy, HPz);
                 editingGizmo.EditingMin = MathHelper.DegreesToRadians(HPmin);
                 editingGizmo.EditingMax = MathHelper.DegreesToRadians(HPmax);

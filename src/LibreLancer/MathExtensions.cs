@@ -65,21 +65,20 @@ namespace LibreLancer
         }
 		static void DecomposeOrientation(Matrix4 mx, out double xPitch, out double yYaw, out double zRoll)
 		{
-			xPitch = Math.Asin(-mx.M32);
-			double threshold = 0.001; // Hardcoded constant – burn him, he’s a witch
-			double test = Math.Cos(xPitch);
-
-			if (test > threshold)
-			{
-				zRoll = Math.Atan2(mx.M12, mx.M22);
-				yYaw = Math.Atan2(mx.M31, mx.M33);
-			}
-			else
-			{
-				zRoll = Math.Atan2(-mx.M21, mx.M11);
-				yYaw = 0.0;
-			}
-		}
+            double h = Math.Sqrt(mx.M11 * mx.M11 + mx.M21 * mx.M21);
+            if(h > 1 / 524288.0) //Magic number
+            {
+                xPitch = Math.Atan2(mx.M32, mx.M33);
+                yYaw = Math.Atan2(-mx.M31, h);
+                zRoll = Math.Atan2(mx.M21, mx.M11);
+            }
+            else
+            {
+                xPitch = Math.Atan2(-mx.M23, mx.M22);
+                yYaw = Math.Atan2(-mx.M31, h);
+                zRoll = 0;
+            }
+        }
 	}
 }
 
