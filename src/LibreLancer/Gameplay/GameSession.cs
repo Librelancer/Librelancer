@@ -5,7 +5,6 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Collections;
 
 namespace LibreLancer
 {
@@ -64,7 +63,6 @@ namespace LibreLancer
 
         MissionRuntime msnrun;
 
-        Data.Missions.MissionIni msn;
         public void Start()
         {
             if(MissionNum != 0 && (MissionNum - 1) < Game.GameData.Ini.Missions.Count) {
@@ -78,11 +76,11 @@ namespace LibreLancer
         }
 
         string forcedLand = null;
-        public bool Update(SpaceGameplay gameplay)
+        public bool Update(SpaceGameplay gameplay, TimeSpan elapsed)
         {
             forcedLand = null;
             if (msnrun != null)
-                msnrun.Update();
+                msnrun.Update(gameplay, elapsed);
             if(forcedLand != null)
             {
                 Game.ChangeState(new RoomGameplay(Game, this, forcedLand));

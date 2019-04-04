@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 using System;
+using System.Collections.Generic;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Missions
 {
@@ -11,11 +12,22 @@ namespace LibreLancer.Data.Missions
         public string Nickname;
         [Entry("system")]
         public string System;
+
+        public List<DialogLine> Lines = new List<DialogLine>();
         bool HandleEntry(Entry e)
         {
-            //Line = escort, Player, dx_m01_0640C_king
-            if (e.Name.Equals("line", StringComparison.OrdinalIgnoreCase)) return true;
+            if (e.Name.Equals("line", StringComparison.OrdinalIgnoreCase))
+            {
+                Lines.Add(new DialogLine() { Source = e[0].ToString(), Target = e[1].ToString(), Line = e[2].ToString() });
+                return true;
+            }
             return false;
         }
+    }
+    public class DialogLine
+    {
+        public string Source;
+        public string Target;
+        public string Line;
     }
 }

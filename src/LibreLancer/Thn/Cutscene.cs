@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using LibreLancer.Thorn;
 
@@ -54,6 +55,7 @@ namespace LibreLancer
     public class Cutscene : IDisposable
 	{
 		double currentTime = 0;
+        double totalDuration;
 		Queue<ThnEvent> events = new Queue<ThnEvent>();
 		public Dictionary<string, ThnObject> Objects = new Dictionary<string, ThnObject>(StringComparer.OrdinalIgnoreCase);
 		public List<IThnRoutine> Coroutines = new List<IThnRoutine>();
@@ -63,6 +65,9 @@ namespace LibreLancer
 		public SystemRenderer Renderer;
 
 		ThnCamera camera;
+        public ICamera CameraHandle => camera;
+        bool spawnObjects = true;
+        public bool Running => currentTime < totalDuration;
 
         //Event processing
         static Dictionary<EventTypes, IThnEventRunner> eventRunners = new Dictionary<EventTypes, IThnEventRunner>();
@@ -92,7 +97,7 @@ namespace LibreLancer
                 obj.Translate = kv.Value.Position ?? Vector3.Zero;
                 obj.Rotate = kv.Value.RotationMatrix ?? Matrix4.Identity;
                 //PlayerShip object
-                if (playerShip != null && kv.Value.Type == EntityTypes.Compound &&
+                if (spawnObjects && playerShip != null && kv.Value.Type == EntityTypes.Compound &&
                 kv.Value.Template.Equals("playership", StringComparison.InvariantCultureIgnoreCase))
                 {
                     obj.Object = playerShip;
@@ -108,8 +113,7 @@ namespace LibreLancer
                     Objects.Add(kv.Key, obj);
                     continue;
                 }
-                //Create objects
-                if (kv.Value.Type == EntityTypes.Compound)
+                if (spawnObjects && kv.Value.Type == EntityTypes.Compound)
                 {
                     bool getHpMount = false;
                     //Fetch model
@@ -198,7 +202,8 @@ namespace LibreLancer
                         var m = kv.Value.RotationMatrix.Value;
                         lt.Light.Direction = (new Vector4(lt.Light.Direction.Normalized(), 0) * m).Xyz.Normalized();
                     }
-                    Renderer.SystemLighting.Lights.Add(lt);
+                    if(Renderer != null)
+                        Renderer.SystemLighting.Lights.Add(lt);
                 }
                 else if (kv.Value.Type == EntityTypes.Camera)
                 {
@@ -236,6 +241,31 @@ namespace LibreLancer
         FreelancerGame game;
         List<Tuple<IDrawable, Matrix4, int>> layers = new List<Tuple<IDrawable, Matrix4, int>>();
 
+        public Cutscene(IEnumerable<ThnScript> scripts, SpaceGameplay gameplay)
+        {
+            this.game = gameplay.FlGame;
+            World = gameplay.world;
+            spawnObjects = false;
+            camera = new ThnCamera(game.Viewport);
+            //thn = script;
+            var evs = new List<ThnEvent>();
+            foreach (var thn in scripts)
+            {
+                totalDuration = Math.Max(totalDuration, thn.Duration);
+                foreach (var ev in thn.Events)
+                {
+                    ev.TimeOffset = 0;
+                    evs.Add(ev);
+                }
+                AddEntities(thn);
+            }
+            evs.Sort((x, y) => x.Time.CompareTo(y.Time));
+            foreach (var item in evs)
+                events.Enqueue(item);
+            //Add objects to the renderer
+            World.RegisterAll();
+        }
+
         public Cutscene(IEnumerable<ThnScript> scripts, FreelancerGame game, GameObject playerShip = null)
 		{
             this.playerShip = playerShip;
@@ -249,6 +279,7 @@ namespace LibreLancer
 			var evs = new List<ThnEvent>();
 			foreach (var thn in scripts)
 			{
+                totalDuration = Math.Max(totalDuration, thn.Duration);
                 foreach (var ev in thn.Events) {
                     ev.TimeOffset = 0;
                     evs.Add(ev);
@@ -278,6 +309,7 @@ namespace LibreLancer
             var evArr = events.ToArray();
             var evsNew = new List<ThnEvent>(evArr);
             foreach(var ev in thn.Events) {
+                totalDuration = Math.Max(totalDuration, thn.Duration);
                 ev.TimeOffset = currentTime;
                 evsNew.Add(ev);
             }
@@ -310,9 +342,11 @@ namespace LibreLancer
 					break;
 				}
 			}
-
-            var pos = camera.Transform.Position;
-            game.Sound.SetListenerParams(pos);
+            if (Running)
+            {
+                var pos = camera.Transform.Position;
+                game.Sound.SetListenerParams(pos);
+            }
 		}
 		public void _Update(TimeSpan delta)
 		{
@@ -332,7 +366,8 @@ namespace LibreLancer
 			}
             foreach (var obj in Objects.Values) obj.Update();
 			camera.Update();
-			World.Update(delta);
+            if(Renderer != null)
+			    World.Update(delta);
 		}
 
 		public void Draw()

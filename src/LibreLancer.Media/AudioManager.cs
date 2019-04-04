@@ -117,6 +117,8 @@ namespace LibreLancer.Media
                         sfxInstances[i].Active = false;
                         if (sfxInstances[i].Dispose != null)
 							sfxInstances[i].Dispose.Dispose();
+                        if (sfxInstances[i].OnFinish != null)
+                            UIThread.QueueUIThread(sfxInstances[i].OnFinish);
 						freeSources.Enqueue(sfxInstances[i].ID);
 						sfxInstances.RemoveAt(i);
 						i--;
@@ -160,7 +162,7 @@ namespace LibreLancer.Media
             toAdd.Enqueue(new SoundInstance(src) { Dispose = data });
         }
 
-		public SoundInstance PlaySound(SoundData data, bool loop = false, float volume = 1f, float minD = -1, float maxD = -1, Vector3? posv = null)
+		public SoundInstance PlaySound(SoundData data, bool loop = false, float volume = 1f, float minD = -1, float maxD = -1, Vector3? posv = null, SoundData dispose = null, Action onFinish = null)
 		{
 			uint src;
 			if (!AllocateSource(out src)) return null;
@@ -184,7 +186,7 @@ namespace LibreLancer.Media
                 Al.alSourcef(src, Al.AL_MAX_DISTANCE, maxD);
             }
             Al.alSourcePlay(src);
-            var inst = new SoundInstance(src);
+            var inst = new SoundInstance(src) { Dispose = dispose, OnFinish = onFinish };
             toAdd.Enqueue(inst);
             return inst;
 		}

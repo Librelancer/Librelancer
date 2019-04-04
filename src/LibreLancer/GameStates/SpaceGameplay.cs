@@ -22,7 +22,8 @@ Mouse Flight: {10}
 ";
 		private const float ROTATION_SPEED = 1f;
 		GameData.StarSystem sys;
-		GameWorld world;
+		public GameWorld world;
+        public FreelancerGame FlGame => Game;
 		ChaseCamera camera;
 		PhysicsDebugRenderer debugphysics;
 		SystemRenderer sysrender;
@@ -30,7 +31,7 @@ Mouse Flight: {10}
 		Font font;
 		bool textEntry = false;
 		string currentText = "";
-		GameObject player;
+		public GameObject player;
 		ShipControlComponent control;
         WeaponControlComponent weapons;
 		PowerCoreComponent powerCore;
@@ -45,6 +46,7 @@ Mouse Flight: {10}
 		GameSession session;
         bool loading = true;
         LoadingScreen loader;
+        public Cutscene Thn;
 		public SpaceGameplay(FreelancerGame g, GameSession session) : base(g)
 		{
 			FLLog.Info("Game", "Entering system " + session.PlayerSystem);
@@ -294,7 +296,6 @@ Mouse Flight: {10}
         }
 
         public bool ShowHud = true;
-        public bool PlayerActive = true;
 
         public override void Update(TimeSpan delta)
 		{
@@ -308,14 +309,21 @@ Mouse Flight: {10}
                 }
                 return;
             }
-            if (session.Update(this)) return;
+            if (session.Update(this, delta)) return;
             if (newHud) {
                 hud.Dispose();
                 ConstructHud();
                 newHud = false;
             }
-            if(ShowHud && PlayerActive)
+            if(ShowHud && (Thn == null || !Thn.Running))
                 hud.Update(delta);
+            if (Thn != null && Thn.Running)
+            {
+                Thn.Update(delta);
+                sysrender.Camera = Thn.CameraHandle;
+            }
+            else
+                sysrender.Camera = camera;
 			world.Update(delta);
 		}
 
@@ -325,7 +333,7 @@ Mouse Flight: {10}
 		void World_PhysicsUpdate(TimeSpan delta)
 		{
 			control.EngineState = cruise ? EngineStates.Cruise : EngineStates.Standard;
-            if(PlayerActive)
+            if(Thn == null || !Thn.Running)
 			    ProcessInput(delta);
 		}
 
@@ -586,10 +594,10 @@ Mouse Flight: {10}
 
             sysrender.DebugRenderer.StartFrame(camera, Game.RenderState);
             sysrender.DebugRenderer.Render();
-            if(PlayerActive && ShowHud)
+            if((Thn == null || !Thn.Running) && ShowHud)
                 hud.Draw(delta);
 			Game.Renderer2D.Start(Game.Width, Game.Height);
-            if (PlayerActive && ShowHud)
+            if ((Thn == null || !Thn.Running) && ShowHud)
             {
                 string sel_obj = "None";
                 if (selected != null)

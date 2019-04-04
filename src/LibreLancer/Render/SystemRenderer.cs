@@ -11,7 +11,12 @@ namespace LibreLancer
 	//Responsible for rendering the GameWorld.
 	public class SystemRenderer : IDisposable
 	{
-		ICamera camera;
+        public ICamera Camera
+        {
+            get { return camera;  }
+            set { camera = value;  }
+        }
+        ICamera camera;
 
 		public Color4 NullColor = Color4.Black;
 

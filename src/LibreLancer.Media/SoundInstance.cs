@@ -10,6 +10,7 @@ namespace LibreLancer.Media
     {
         internal volatile bool Active = true;
         internal SoundData Dispose;
+        internal Action OnFinish;
         internal uint ID;
         internal SoundInstance(uint id)
         {

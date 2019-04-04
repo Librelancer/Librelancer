@@ -3,8 +3,10 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.IO;
 using System.Collections.Generic;
 using LibreLancer.Media;
+using LibreLancer.Utf.Audio;
 namespace LibreLancer
 {
 	public class SoundManager
@@ -12,6 +14,7 @@ namespace LibreLancer
 		GameDataManager data;
 		AudioManager audio;
         Dictionary<string, LoadedSound> loadedSounds = new Dictionary<string, LoadedSound>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, VoiceUtf> voiceUtfs = new Dictionary<string, VoiceUtf>();
         Queue<LoadedSound> soundQueue = new Queue<LoadedSound>(64);
 		public SoundManager(GameDataManager gameData, AudioManager audio)
 		{
@@ -55,6 +58,20 @@ namespace LibreLancer
             var snd = loadedSounds[name];
             if (snd.Data == null) return null;
             return audio.PlaySound(snd.Data, loop, gain, mind, maxd, pos);
+        }
+        public void PlayVoiceLine(string voice, uint hash, Action onEnd)
+        {
+            var path = data.GetVoicePath(voice);
+            VoiceUtf v;
+            if(!voiceUtfs.TryGetValue(path, out v))
+            {
+                v = new VoiceUtf(path);
+                voiceUtfs.Add(path, v);
+            }
+            var file = v.AudioFiles[hash];
+            var sn = audio.AllocateData();
+            sn.LoadStream(new MemoryStream(file));
+            audio.PlaySound(sn, false, 1, -1, -1, null, sn, onEnd);
         }
         public void PlayMusic(string name)
 		{

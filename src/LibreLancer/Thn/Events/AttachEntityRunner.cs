@@ -38,6 +38,7 @@ namespace LibreLancer
                         if (Part != null) lookFunc = () => Part.Transform.Transform(Vector3.Zero);
                         else lookFunc = () => Parent.Translate;
                     }
+                    if (Child.Camera != null) Child.Camera.LookAt = lookFunc;
                 }
                 else
                 if (Child.Camera != null) Child.Camera.LookAt = null;

@@ -183,7 +183,7 @@ namespace LibreLancer.Ini
                 }
                 else if(ftype == typeof(Quaternion))
                 {
-                    if (ComponentCheck(4, s, e)) field.Field.SetValue(obj, new Quaternion(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle(), e[3].ToSingle()));
+                    if (ComponentCheck(4, s, e)) field.Field.SetValue(obj, new Quaternion(e[1].ToSingle(), e[2].ToSingle(), e[3].ToSingle(), e[0].ToSingle()));
                 }
                 else if (ftype == typeof(Vector2))
                 {

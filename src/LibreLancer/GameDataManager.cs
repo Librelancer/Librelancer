@@ -186,7 +186,11 @@ namespace LibreLancer
 			var audio = fldata.Audio.Entries.Where((arg) => arg.Nickname.ToLowerInvariant() == id.ToLowerInvariant()).First();
 			return Data.VFS.GetPath(fldata.Freelancer.DataPath + audio.File);
 		}
-		public Infocards.Infocard GetInfocard(int id)
+        public string GetVoicePath(string id)
+        {
+            return Data.VFS.GetPath(fldata.Freelancer.DataPath + "\\AUDIO\\" + id + ".utf");
+        }
+        public Infocards.Infocard GetInfocard(int id)
 		{
 			return Infocards.RDLParse.Parse(fldata.Infocards.GetXmlResource(id));
 		}
@@ -818,7 +822,19 @@ namespace LibreLancer
 			return obj;
 		}
 
-		public GameData.Items.Equipment GetEquipment(string id)
+        public GameData.Archetype GetSolarArchetype(string id)
+        {
+            var fl = fldata.Solar.FindSolar(id);
+            foreach (var path in fl.MaterialPaths)
+                resource.LoadResourceFile(ResolveDataPath(path));
+            var arch = new GameData.Archetype();
+            arch.Drawable  = resource.GetDrawable(ResolveDataPath(fl.DaArchetypeName));
+            arch.LODRanges = fl.LODRanges;
+            arch.ArchetypeName = fl.GetType().Name;
+            return arch;
+        }
+
+        public GameData.Items.Equipment GetEquipment(string id)
 		{
             var eq = fldata.Equipment.FindEquipment(id);
             if (eq == null)

@@ -216,6 +216,7 @@
     <Compile Include="Missions\ObjListCommands.cs" />
     <Compile Include="Missions\TriggerInitState.cs" />
     <Compile Include="ContentDll.cs" />
+    <Compile Include="Audio\VoiceIni.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

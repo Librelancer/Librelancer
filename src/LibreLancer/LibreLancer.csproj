@@ -401,6 +401,8 @@
     <Compile Include="Thn\Events\StartSoundRunner.cs" />
     <Compile Include="Thn\ThnAudioProps.cs" />
     <Compile Include="Gameplay\MissionRuntime.cs" />
+    <Compile Include="FLHash.cs" />
+    <Compile Include="Utf\Audio\VoiceUtf.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -498,5 +500,6 @@
     <Folder Include="Interface\Default\" />
     <Folder Include="Thn\Enums\" />
     <Folder Include="Thn\Events\" />
+    <Folder Include="Utf\Audio\" />
   </ItemGroup>
 </Project>
