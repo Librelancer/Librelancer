@@ -12,7 +12,8 @@ namespace LibreLancer
 {
 	public class GameDataManager
 	{
-		Data.FreelancerData fldata;
+        public Data.FreelancerData Ini => fldata;
+        Data.FreelancerData fldata;
 		ResourceManager resource;
 		List<GameData.IntroScene> IntroScenes;
 
@@ -653,24 +654,31 @@ namespace LibreLancer
 			}
 			return n;
 		}
-		public GameData.Ship GetShip(string nickname)
+        public GameData.Ship GetShip(int crc)
+        {
+            return GetShip(fldata.Ships.Ships.FirstOrDefault((x) => CrcTool.FLModelCrc(x.Nickname) == crc));
+        }
+        public GameData.Ship GetShip(string nickname)
 		{
-			var Data = fldata.Ships.GetShip (nickname);
-			var ship = new GameData.Ship ();
-			foreach (var matlib in Data.MaterialLibraries)
-				resource.LoadResourceFile (ResolveDataPath(matlib));
-			ship.Drawable = resource.GetDrawable (ResolveDataPath(Data.DaArchetypeName));
-			ship.Mass = Data.Mass;
-			ship.AngularDrag = Data.AngularDrag;
-			ship.RotationInertia = Data.RotationInertia;
-			ship.SteeringTorque = Data.SteeringTorque;
-			ship.CruiseSpeed = 300;
-			ship.StrafeForce = Data.StrafeForce;
-            ship.ChaseOffset = Data.CameraOffset;
-			return ship;
+            return GetShip(fldata.Ships.GetShip(nickname));
 		}
+        GameData.Ship GetShip(Data.Ships.Ship Data)
+        {
+            var ship = new GameData.Ship();
+            foreach (var matlib in Data.MaterialLibraries)
+                resource.LoadResourceFile(ResolveDataPath(matlib));
+            ship.Drawable = resource.GetDrawable(ResolveDataPath(Data.DaArchetypeName));
+            ship.Mass = Data.Mass;
+            ship.AngularDrag = Data.AngularDrag;
+            ship.RotationInertia = Data.RotationInertia;
+            ship.SteeringTorque = Data.SteeringTorque;
+            ship.CruiseSpeed = 300;
+            ship.StrafeForce = Data.StrafeForce;
+            ship.ChaseOffset = Data.CameraOffset;
+            return ship;
+        }
 
-		public IDrawable GetSolar(string solar)
+        public IDrawable GetSolar(string solar)
 		{
 			var archetype = fldata.Solar.FindSolar(solar);
 			//Load archetype references
@@ -812,11 +820,18 @@ namespace LibreLancer
 
 		public GameData.Items.Equipment GetEquipment(string id)
 		{
-			return GetEquipment(fldata.Equipment.FindEquipment(id));
-		}
-		GameData.Items.Equipment GetEquipment(Data.Equipment.AbstractEquipment val)
+            var eq = fldata.Equipment.FindEquipment(id);
+            if (eq == null)
+            {
+                FLLog.Error("Equipment", "Not found " + id);
+                return null;
+            }
+            return GetEquipment(fldata.Equipment.FindEquipment(id));
+        }
+
+        GameData.Items.Equipment GetEquipment(Data.Equipment.AbstractEquipment val)
 		{
-			GameData.Items.Equipment equip = null;
+            GameData.Items.Equipment equip = null;
 			if (val is Data.Equipment.Light)
 			{
 				equip = GetLight((Data.Equipment.Light)val);

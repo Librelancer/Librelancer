@@ -400,6 +400,7 @@
     <Compile Include="Thn\ThnSound.cs" />
     <Compile Include="Thn\Events\StartSoundRunner.cs" />
     <Compile Include="Thn\ThnAudioProps.cs" />
+    <Compile Include="Gameplay\MissionRuntime.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

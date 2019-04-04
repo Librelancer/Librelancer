@@ -181,6 +181,10 @@ namespace LibreLancer.Ini
                 {
                     if (ComponentCheck(3, s, e)) field.Field.SetValue(obj, new Vector3(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle()));
                 }
+                else if(ftype == typeof(Quaternion))
+                {
+                    if (ComponentCheck(4, s, e)) field.Field.SetValue(obj, new Quaternion(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle(), e[3].ToSingle()));
+                }
                 else if (ftype == typeof(Vector2))
                 {
                     if (e.Count == 1 && field.Attr.MinMax)
@@ -223,6 +227,14 @@ namespace LibreLancer.Ini
                         var floats = new float[e.Count];
                         for (int i = 0; i < e.Count; i++) floats[i] = e[i].ToSingle();
                         field.Field.SetValue(obj, floats);
+                    }
+                }
+                else if (ftype == typeof(string[]))
+                {
+                    if (ComponentCheck(int.MaxValue, s, e, 1)) {
+                        var strings = new string[e.Count];
+                        for (int i = 0; i < e.Count; i++) strings[i] = e[i].ToString();
+                        field.Field.SetValue(obj, strings);
                     }
                 }
                 else if (ftype.IsEnum)

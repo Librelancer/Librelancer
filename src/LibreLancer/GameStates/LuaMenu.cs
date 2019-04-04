@@ -42,6 +42,7 @@ namespace LibreLancer
                 state.FadeOut(0.2, () =>
                 {
                     var session = new GameSession(state.Game);
+                    session.LoadFromPath(Data.VFS.GetPath("EXE\\newplayer.fl"));
                     session.Start();
                 });
             });

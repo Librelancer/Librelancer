@@ -31,6 +31,7 @@ namespace LibreLancer.Data.Save
         public static SaveGame FromFile(string path)
         {
             var sg = new SaveGame();
+            var str = System.Text.Encoding.ASCII.GetString(FlCodec.ReadFile(path));
             using (var stream = new MemoryStream(FlCodec.ReadFile(path)))
             {
                 sg.ParseAndFill(path, stream);

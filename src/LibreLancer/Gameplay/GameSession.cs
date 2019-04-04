@@ -5,6 +5,8 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections;
+
 namespace LibreLancer
 {
 	public class GameSession
@@ -18,6 +20,8 @@ namespace LibreLancer
 		public string PlayerBase;
 		public Vector3 PlayerPosition;
 		public Matrix3 PlayerOrientation;
+        public int MissionNum;
+
 		public GameSession(FreelancerGame g)
 		{
 			Game = g;
@@ -35,14 +39,60 @@ namespace LibreLancer
             MountedEquipment.Add("HpContrail01", "contrail01");
             MountedEquipment.Add("HpContrail02", "contrail01");
         }
+        
+        public void LoadFromPath(string path)
+        {
+            var sg = Data.Save.SaveGame.FromFile(path);
+            PlayerPosition = sg.Player.Position;
+            PlayerSystem = sg.Player.System;
+            PlayerBase = sg.Player.Base;
+            Credits = sg.Player.Money;
+            MissionNum = sg.StoryInfo?.MissionNum ?? 0;
+            if (Game.GameData.Ini.ContentDll.AlwaysMission13) MissionNum = 14;
+            if (sg.Player.ShipArchetype != null)
+                PlayerShip = sg.Player.ShipArchetype;
+            else
+                PlayerShip = Game.GameData.GetShip(sg.Player.ShipArchetypeCrc).Nickname;
+            
+            MountedEquipment = new Dictionary<string, string>();
+            foreach(var eq in sg.Player.Equip)
+            {
+                if (eq.Hardpoint != null && eq.EquipName != null)
+                    MountedEquipment.Add(eq.Hardpoint, eq.EquipName);
+            }
+        }
 
+        MissionRuntime msnrun;
+
+        Data.Missions.MissionIni msn;
         public void Start()
         {
+            if(MissionNum != 0 && (MissionNum - 1) < Game.GameData.Ini.Missions.Count) {
+                msnrun = new MissionRuntime(Game.GameData.Ini.Missions[MissionNum - 1], this);
+            }
+
             if (PlayerBase != null)
                 Game.ChangeState(new RoomGameplay(Game, this, PlayerBase));
             else
                 Game.ChangeState(new SpaceGameplay(Game, this));
         }
+
+        string forcedLand = null;
+        public bool Update(SpaceGameplay gameplay)
+        {
+            forcedLand = null;
+            if (msnrun != null)
+                msnrun.Update();
+            if(forcedLand != null)
+            {
+                Game.ChangeState(new RoomGameplay(Game, this, forcedLand));
+                return true;
+            }
+            return false;
+        }
+
+
+
 
         public void JumpTo(string system, string exitpos)
 		{
@@ -56,7 +106,6 @@ namespace LibreLancer
 			PlayerPosition = Vector3.Transform(new Vector3(0, 0, 500), PlayerOrientation) + obj.Position; //TODO: This is bad
 			//Switch
 			Game.ChangeState(new SpaceGameplay(Game, this));
-
 		}
 
         public void LaunchFrom(string _base)
@@ -82,6 +131,11 @@ namespace LibreLancer
                 PlayerPosition = Vector3.Transform(new Vector3(0, 0, 500), PlayerOrientation) + obj.Position; //TODO: This is bad
             }
             Game.ChangeState(new SpaceGameplay(Game, this));
+        }
+
+        public void ForceLand(string str)
+        {
+            forcedLand = str;
         }
 
         public void ProcessConsoleCommand(string str)

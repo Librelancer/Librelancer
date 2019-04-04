@@ -82,6 +82,7 @@ Mouse Flight: {10}
             foreach (var equipment in session.MountedEquipment)
             {
                 var equip = Game.GameData.GetEquipment(equipment.Value);
+                if (equip == null) continue;
                 var obj = new GameObject(equip, player.GetHardpoint(equipment.Key), player);
                 player.Children.Add(obj);
             }
@@ -291,6 +292,10 @@ Mouse Flight: {10}
         {
             camera.Viewport = Game.Viewport;
         }
+
+        public bool ShowHud = true;
+        public bool PlayerActive = true;
+
         public override void Update(TimeSpan delta)
 		{
             if(loading)
@@ -303,12 +308,14 @@ Mouse Flight: {10}
                 }
                 return;
             }
+            if (session.Update(this)) return;
             if (newHud) {
                 hud.Dispose();
                 ConstructHud();
                 newHud = false;
             }
-            hud.Update(delta);
+            if(ShowHud && PlayerActive)
+                hud.Update(delta);
 			world.Update(delta);
 		}
 
@@ -318,7 +325,8 @@ Mouse Flight: {10}
 		void World_PhysicsUpdate(TimeSpan delta)
 		{
 			control.EngineState = cruise ? EngineStates.Cruise : EngineStates.Standard;
-			ProcessInput(delta);
+            if(PlayerActive)
+			    ProcessInput(delta);
 		}
 
 		bool mouseFlight = false;
@@ -578,18 +586,22 @@ Mouse Flight: {10}
 
             sysrender.DebugRenderer.StartFrame(camera, Game.RenderState);
             sysrender.DebugRenderer.Render();
-            hud.Draw(delta);
+            if(PlayerActive && ShowHud)
+                hud.Draw(delta);
 			Game.Renderer2D.Start(Game.Width, Game.Height);
-			string sel_obj = "None";
-			if (selected != null)
-			{
-				if (selected.Name == null)
-					sel_obj = "unknown object";
-				else
-					sel_obj = selected.Name;
-			}
-			DebugDrawing.DrawShadowedText(Game.Renderer2D, font, 16, string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, moffset.X, moffset.Y, mouseFlight), 5, 5);
-			current_cur.Draw(Game.Renderer2D, Game.Mouse);
+            if (PlayerActive && ShowHud)
+            {
+                string sel_obj = "None";
+                if (selected != null)
+                {
+                    if (selected.Name == null)
+                        sel_obj = "unknown object";
+                    else
+                        sel_obj = selected.Name;
+                }
+                DebugDrawing.DrawShadowedText(Game.Renderer2D, font, 16, string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, moffset.X, moffset.Y, mouseFlight), 5, 5);
+                current_cur.Draw(Game.Renderer2D, Game.Mouse);
+            }
             DoFade(delta);
 			Game.Renderer2D.Finish();
 		}

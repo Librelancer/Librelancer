@@ -102,8 +102,9 @@ namespace LibreLancer.Data.Save
         public Vector3 Position;
         [Entry("rotate")]
         public Vector3 Rotate;
-        [Entry("ship_archetype")]
-        public int ShipArchetype;
+
+        public int ShipArchetypeCrc;
+        public string ShipArchetype;
 
         //HandleEntry(equip)
         public List<PlayerEquipment> Equip = new List<PlayerEquipment>();
@@ -143,6 +144,12 @@ namespace LibreLancer.Data.Save
                     return true;
                 case "cargo":
                     Cargo.Add(new PlayerCargo(e));
+                    return true;
+                case "ship_archetype":
+                    if (e[0] is StringValue)
+                        ShipArchetype = e[0].ToString();
+                    else
+                        ShipArchetypeCrc = e[0].ToInt32();
                     return true;
                 case "visit":
                     return true;

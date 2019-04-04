@@ -201,6 +201,21 @@
     <Compile Include="Save\SaveGroup.cs" />
     <Compile Include="Save\LockedGates.cs" />
     <Compile Include="Save\SaveRep.cs" />
+    <Compile Include="Missions\MissionIni.cs" />
+    <Compile Include="Missions\MissionNPC.cs" />
+    <Compile Include="Missions\NNObjective.cs" />
+    <Compile Include="Missions\MissionTrigger.cs" />
+    <Compile Include="Missions\TriggerConditions.cs" />
+    <Compile Include="Missions\TriggerActions.cs" />
+    <Compile Include="Missions\MissionDialog.cs" />
+    <Compile Include="Missions\MissionShip.cs" />
+    <Compile Include="Missions\MissionSolar.cs" />
+    <Compile Include="Missions\MissionFormation.cs" />
+    <Compile Include="Missions\MissionLoot.cs" />
+    <Compile Include="Missions\ObjList.cs" />
+    <Compile Include="Missions\ObjListCommands.cs" />
+    <Compile Include="Missions\TriggerInitState.cs" />
+    <Compile Include="ContentDll.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />
@@ -222,6 +237,7 @@
     <Folder Include="Solar\" />
     <Folder Include="Universe\" />
     <Folder Include="Save\" />
+    <Folder Include="Missions\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

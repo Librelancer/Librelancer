@@ -47,11 +47,32 @@ namespace LibreLancer.Data
 		public HudIni Hud;
 		public BaseNavBarIni BaseNavBar;
 		public MBasesIni MBases;
+        public ContentDll ContentDll;
         public string DataVersion;
 		public bool Loaded = false;
 
 		public bool LoadDacom = true;
-		public FreelancerData (FreelancerIni fli)
+
+        public List<Missions.MissionIni> Missions = new List<Missions.MissionIni>();
+        static readonly string[] missionFiles = new string[]
+        {
+            "MISSIONS\\M01A\\m01a.ini",
+            "MISSIONS\\M01B\\m01b.ini",
+            "MISSIONS\\M02\\m02.ini",
+            "MISSIONS\\M03\\m03.ini",
+            "MISSIONS\\M04\\m04.ini",
+            "MISSIONS\\M05\\m05.ini",
+            "MISSIONS\\M06\\m06.ini",
+            "MISSIONS\\M07\\m07.ini",
+            "MISSIONS\\M08\\m08.ini",
+            "MISSIONS\\M09\\m09.ini",
+            "MISSIONS\\M10\\m10.ini",
+            "MISSIONS\\M11\\M11.ini",
+            "MISSIONS\\M12\\M12.ini",
+            "MISSIONS\\M13\\M13.ini"
+        };
+
+        public FreelancerData (FreelancerIni fli)
 		{
 			Freelancer = fli;
 		}
@@ -143,6 +164,14 @@ namespace LibreLancer.Data
             Markets = new MarketsIni();
             foreach (var mkt in Freelancer.MarketsPaths)
                 Markets.AddMarketsIni(mkt);
+            foreach(var msn in missionFiles)
+            {
+                if (VFS.FileExists(Freelancer.DataPath + msn))
+                    Missions.Add(new Data.Missions.MissionIni(Freelancer.DataPath + msn));
+            }
+            ContentDll = new ContentDll();
+            if (VFS.FileExists("DLLS\\BIN\\content.dll"))
+                ContentDll.Load(VFS.GetPath("DLLS\\BIN\\content.dll"));
             tSolar.Join();
             tMisc.Join();
             tUniverse.Join();
