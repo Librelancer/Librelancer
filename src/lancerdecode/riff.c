@@ -97,11 +97,13 @@ ld_pcmstream_t riff_getstream(ld_stream_t stream)
 	}
 	if(trim_samples == -1)
 		total_samples = trim_samples = -1; //Incomplete data, don't bother trimming
+	if(total_samples != -1 && trim_samples != -1)
+		total_samples = total_samples + trim_samples;
 	switch (wave_format.audioFormat) {
 		case WAVE_FORMAT_PCM:
 			break; //Default decoder
 		case WAVE_FORMAT_MP3:
-			return mp3_getstream(ld_stream_wrap(stream, wave_data.subChunk2Size, 1),wave_format.numChannels, wave_format.sampleRate,trim_samples, total_samples);
+			return mp3_getstream(ld_stream_wrap(stream, wave_data.subChunk2Size, 1),wave_format.numChannels, wave_format.sampleRate, trim_samples, total_samples);
 		default:
 			LOG_ERROR_F("Unsupported format in WAVE file: '%x'", wave_format.audioFormat);
 			stream->close(stream);
