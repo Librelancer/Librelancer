@@ -18,6 +18,10 @@
         <Size height="9.4%" ratio="5.05"/>
         <Model path="//INTERFACE/HUD/hud_maneuverbox5.cmp" transform="0.0 0.15 12.9 55.0"/>
     </Style>
+     <Style id="actionbox">
+        <Size height="7.6%" ratio="2.6"/>
+        <Model path="//INTERFACE/HUD/hud_maneuverbox1.cmp" transform="0.0 0.15 12.9 55.0"/>
+    </Style>
     <DefaultScene>main</DefaultScene>
     <Scene id="main">
         <Script><![CDATA[
@@ -31,6 +35,7 @@
                 local pct = 0
                 local btns = game:buttons()
                 local cnt = #btns
+                local actionpct = 0
                 if cnt == 1 then
                     dom:element('navbox1'):show()
                 elseif cnt == 2 then
@@ -53,6 +58,8 @@
                     if button.action == active then
                         col = "yellow"
                         hover = ""
+                        dom:element('actionbox'):setpos(pct / 100, 0.087)
+                        actionpct = pct
                     end
                     local b = dom:addbutton({
                     anchor = "top",
@@ -68,6 +75,30 @@
                     })
                     pct = pct + 9.5
                 end
+            
+                local actions = game:actions()
+                cnt = #actions
+                if cnt == 0 then
+                    dom:element('actionbox'):hide()
+                else
+                    for _, button in pairs(actions) do
+                    local col = "white"
+                    local hover = 'e:modelcolor(mixcolor(math.abs(math.cos(9 * time)), "yellow", "rgba(160,196,210,255)"))'
+                    local b = dom:addbutton({
+                        anchor = "top",
+                        y = "8%",
+                        x = (actionpct .. '%'),
+                        height = "7%",
+                        ratio = 1.2,
+                        models = {
+                            { path = button.model, transform = "0.0 0.0 30.0 35.0", color = col },
+                        },
+                        onclick = "navclick('" .. button.action .. "')",
+                        hoverstyle = hover
+                        })
+                    end
+                end
+                
                 if game:multiplayer() then
                     dom:element('nnbox5'):hide()
                 else
@@ -79,6 +110,7 @@
                 game:navclick(action)
             end
         ]]></Script>
+        <Panel anchor="top" id="actionbox" style="actionbox" x="-18%" y="8.7%"/>
         <Panel anchor="top" id="navbox1" style="navbox1"/>
         <Panel anchor="top" id="navbox2" style="navbox2"/>
         <Panel anchor="top" id="navbox3" style="navbox3"/>

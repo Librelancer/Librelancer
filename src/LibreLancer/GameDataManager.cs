@@ -63,10 +63,10 @@ namespace LibreLancer
 		}
 		public GameData.Base GetBase(string id)
 		{
-			
 			var inibase = fldata.Universe.FindBase(id);
 			var mbase = fldata.MBases.FindBase(id);
 			var b = new GameData.Base();
+            b.System = inibase.System;
 			foreach (var room in inibase.Rooms)
 			{
 				var nr = new GameData.BaseRoom();

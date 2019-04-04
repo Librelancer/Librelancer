@@ -78,6 +78,11 @@ namespace LibreLancer
             {
                 this.e = e;
             }
+            public void setpos(float x, float y)
+            {
+                e.Positioning.X = x;
+                e.Positioning.Y = y;
+            }
             public void flyin(float start, float duration)
             {
                 e.Animation = new FlyInLeft(e.CalculatePosition(), start, duration) { From = -e.CalculateSize().X };

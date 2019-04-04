@@ -23,6 +23,7 @@ namespace LibreLancer
 			Game = g;
             Credits = 2000;
 			PlayerShip = "li_elite";
+            PlayerBase = "li01_01_base";
 			PlayerSystem = "li01";
 			PlayerPosition = new Vector3(-31000, 0, -26755);
 			PlayerOrientation = Matrix3.Identity;
@@ -35,7 +36,15 @@ namespace LibreLancer
             MountedEquipment.Add("HpContrail02", "contrail01");
         }
 
-		public void JumpTo(string system, string exitpos)
+        public void Start()
+        {
+            if (PlayerBase != null)
+                Game.ChangeState(new RoomGameplay(Game, this, PlayerBase));
+            else
+                Game.ChangeState(new SpaceGameplay(Game, this));
+        }
+
+        public void JumpTo(string system, string exitpos)
 		{
 			//Find object
 			var sys = Game.GameData.GetSystem(system);
@@ -50,7 +59,32 @@ namespace LibreLancer
 
 		}
 
-		public void ProcessConsoleCommand(string str)
+        public void LaunchFrom(string _base)
+        {
+            var b = Game.GameData.GetBase(_base);
+            var sys = Game.GameData.GetSystem(b.System);
+            var obj = sys.Objects.FirstOrDefault((o) =>
+            {
+                return (o.Dock != null &&
+                    o.Dock.Kind == DockKinds.Base &&
+                    o.Dock.Target.Equals(_base, StringComparison.OrdinalIgnoreCase));
+            });
+            PlayerSystem = b.System;
+            PlayerOrientation = Matrix3.Identity;
+            PlayerPosition = Vector3.Zero;
+            if (obj == null) {
+                FLLog.Error("Base", "Can't find object in " + sys + " docking to " + b);
+            }
+            else
+            {
+                PlayerPosition = obj.Position;
+                PlayerOrientation = obj.Rotation == null ? Matrix3.Identity : new Matrix3(obj.Rotation.Value);
+                PlayerPosition = Vector3.Transform(new Vector3(0, 0, 500), PlayerOrientation) + obj.Position; //TODO: This is bad
+            }
+            Game.ChangeState(new SpaceGameplay(Game, this));
+        }
+
+        public void ProcessConsoleCommand(string str)
 		{
 			var split = str.Split(' ');
             switch (split[0])

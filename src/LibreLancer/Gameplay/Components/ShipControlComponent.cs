@@ -128,10 +128,11 @@ namespace LibreLancer
 			var steerControl = new Vector3(Math.Abs(PlayerPitch) > 0 ? PlayerPitch : Pitch,
 										   Math.Abs(PlayerYaw) > 0 ? PlayerYaw : Yaw,
 										   0);
-            var coords = Parent.PhysicsComponent.Body.Transform.GetEuler();
+            double pitch, yaw, roll;
+            DecomposeOrientation(Parent.PhysicsComponent.Body.Transform, out pitch, out yaw, out roll);
             if (Math.Abs(PlayerPitch) < 0.005 && Math.Abs(PlayerYaw) < 0.005)
             {
-                steerControl.Z = MathHelper.Clamp((float)rollPID.Update(0, coords.Z, (float)time.TotalSeconds), -1, 1);
+                steerControl.Z = MathHelper.Clamp((float)rollPID.Update(0, roll, (float)time.TotalSeconds), -1, 1);
             }
             var angularForce = Parent.PhysicsComponent.Body.RotateVector(steerControl * Ship.SteeringTorque);
             angularForce += (Parent.PhysicsComponent.Body.AngularVelocity * -1) * Ship.AngularDrag;
@@ -140,6 +141,24 @@ namespace LibreLancer
             Parent.PhysicsComponent.Body.AddTorque(angularForce);
 
 		}
+        //This works with the roll thing. Gonna get rid of this whole impl soon anyway
+        static void DecomposeOrientation(Matrix4 mx, out double xPitch, out double yYaw, out double zRoll)
+        {
+            xPitch = Math.Asin(-mx.M32);
+            double threshold = 0.001; // Hardcoded constant – burn him, he’s a witch
+            double test = Math.Cos(xPitch);
 
-	}
+            if (test > threshold)
+            {
+                zRoll = Math.Atan2(mx.M12, mx.M22);
+                yYaw = Math.Atan2(mx.M31, mx.M33);
+            }
+            else
+            {
+                zRoll = Math.Atan2(-mx.M21, mx.M11);
+                yYaw = 0.0;
+            }
+        }
+
+    }
 }

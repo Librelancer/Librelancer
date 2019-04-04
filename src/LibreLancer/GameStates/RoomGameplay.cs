@@ -20,6 +20,8 @@ namespace LibreLancer
 			"IDS_HOTSPOT_EXIT",
 			"IDS_HOTSPOT_PLANETSCAPE"
 		};
+        const string LAUNCH_ACTION = "$LAUNCH";
+
 		Base currentBase;
 		BaseRoom currentRoom;
 		Cutscene scene;
@@ -79,7 +81,7 @@ namespace LibreLancer
             {
                 var list = new Neo.IronLua.LuaTable();
                 var icons = g.Game.GameData.GetBaseNavbarIcons();
-                foreach(var btn in g.tophotspots) {
+                foreach (var btn in g.tophotspots) {
                     var mn = (dynamic)(new Neo.IronLua.LuaTable());
                     mn.action = btn.Name;
                     string hack = null;
@@ -87,6 +89,22 @@ namespace LibreLancer
                         hack = "Cityscape"; //HACK: This probably means FL doesn't determine icons based on room name
                     var icn = icons[hack ?? btn.SetVirtualRoom ?? btn.Room];
                     mn.model = "//" + icn;
+                    g.hud.UI.TableInsert(list, mn);
+                }
+                return list;
+            }
+            public Neo.IronLua.LuaTable actions()
+            {
+                var list = new Neo.IronLua.LuaTable();
+                var icons = g.Game.GameData.GetBaseNavbarIcons();
+                if (g.virtualRoom == null &&
+                    g.currentRoom.Nickname.Equals("cityscape",StringComparison.OrdinalIgnoreCase) ||
+                    g.currentRoom.Nickname.Equals("deck",StringComparison.OrdinalIgnoreCase) ||
+                    g.currentRoom.Nickname.Equals("planetscape", StringComparison.OrdinalIgnoreCase)) 
+                {
+                    var mn = (dynamic)(new Neo.IronLua.LuaTable());
+                    mn.action = LAUNCH_ACTION;
+                    mn.model = "//" + icons["IDS_HOTSPOT_LAUNCH"];
                     g.hud.UI.TableInsert(list, mn);
                 }
                 return list;
@@ -106,6 +124,12 @@ namespace LibreLancer
             if (arg == active) return;
             Game.QueueUIThread(() => //Fixes stack trace
             {
+                if(arg == LAUNCH_ACTION) {
+                    FLLog.Info("Base", "Launch!");
+                    session.LaunchFrom(baseId);
+                    return;
+                }
+
                 var hotspot = currentRoom.Hotspots.Find((obj) => obj.Name == arg);
                 switch (hotspot.Behavior)
                 {
@@ -157,6 +181,10 @@ namespace LibreLancer
 		{
             if(obj == "launch") {
                 scene.RunScript(new ThnScript(currentRoom.LaunchScript));
+            } else if (obj == "reload") {
+                hud = new ScriptedHud(new LuaAPI(this), false, Game);
+                hud.OnEntered += Hud_OnTextEntry;
+                hud.Init();
             }
             session.ProcessConsoleCommand(obj);
 		}
@@ -209,6 +237,8 @@ namespace LibreLancer
             hud.Draw(delta);
 			Game.Renderer2D.Start(Game.Width, Game.Height);
             DoFade(delta);
+            Game.Renderer2D.DrawString(hud.UI.Font, 15, "Room: " + currentRoom.Nickname + "\n" + "Virtual: " +
+                (virtualRoom ?? "NONE"), new Vector2(5, 5), Color4.White);
             cursor.Draw(Game.Renderer2D, Game.Mouse);
             Game.Renderer2D.Finish();
 		}

@@ -321,7 +321,7 @@ namespace LibreLancer
                     if (string.IsNullOrEmpty(XText)) return 0;
                     if (x == null) x = Parser.Percentage(XText);
                     return x.Value;
-                }
+                } set { x = value; }
             }
             [XmlAttribute("y")]
             public string YText { get; set; }
@@ -334,7 +334,7 @@ namespace LibreLancer
                     if (string.IsNullOrEmpty(YText)) return 0;
                     if (y == null) y = Parser.Percentage(YText);
                     return y.Value;
-                }
+                } set { y = value; }
             }
             [XmlAttribute("aspect")]
             public string Aspect { get; set; }

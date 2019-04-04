@@ -39,7 +39,11 @@ namespace LibreLancer
             public LuaAPI(LuaMenu m) => state = m;
             public void newgame() => state.ui.Leave(() =>
             {
-                state.FadeOut(0.2, () => state.Game.ChangeState(new SpaceGameplay(state.Game, new GameSession(state.Game))));
+                state.FadeOut(0.2, () =>
+                {
+                    var session = new GameSession(state.Game);
+                    session.Start();
+                });
             });
             public void loadgame() {}
             GameClient client;
