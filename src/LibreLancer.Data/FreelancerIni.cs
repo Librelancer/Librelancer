@@ -127,11 +127,11 @@ namespace LibreLancer.Data
                                     DataVersion = e[0].ToString();
                                     break;
                                 case "nonavmap":
-                                    if (!extNoNavmaps) { NoNavmapSystems = new List<string>(); extNoNavmaps = true }
+                                    if (!extNoNavmaps) { NoNavmapSystems = new List<string>(); extNoNavmaps = true; }
                                     NoNavmapSystems.Add(e[0].ToString());
                                     break;
                                 case "hidefaction":
-                                    if (!extHideFac) { HiddenFactions = new List<string>();  extHideFac = true };
+                                    if (!extHideFac) { HiddenFactions = new List<string>();  extHideFac = true; };
                                     HiddenFactions.Add(e[0].ToString());
                                     break;
                             }
