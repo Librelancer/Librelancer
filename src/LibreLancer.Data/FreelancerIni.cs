@@ -36,7 +36,27 @@ namespace LibreLancer.Data
 		public string CostumesPath { get; private set; }
 		public string EffectShapesPath { get; private set; }
 		public Tuple<string, string> JsonResources { get; private set; }
-		public FreelancerIni ()
+
+        public List<string> NoNavmapSystems { get; private set; }
+        static readonly string[] NoNavmaps = {
+            "St02c",
+            "St03b",
+            "St03",
+            "St02"
+        };
+        public List<string> HiddenFactions { get; private set;  }
+        static readonly string[] NoShowFactions =  {
+            "fc_uk_grp",
+            "fc_ouk_grp",
+            "fc_q_grp",
+            "fc_f_grp",
+            "fc_or_grp",
+            "fc_n_grp",
+            "fc_rn_grp",
+            "fc_kn_grp",
+            "fc_ln_grp"
+        };
+        public FreelancerIni ()
 		{
 			EquipmentPaths = new List<string> ();
 			LoadoutPaths = new List<string> ();
@@ -50,6 +70,11 @@ namespace LibreLancer.Data
 			StartupMovies = new List<string>();
             GoodsPaths = new List<string>();
             MarketsPaths = new List<string>();
+
+            bool extNoNavmaps = false;
+            bool extHideFac = false;
+            NoNavmapSystems = new List<string>(NoNavmaps);
+            HiddenFactions = new List<string>(NoShowFactions);
 
 			foreach (Section s in ParseFile("EXE\\freelancer.ini")) {
 				switch (s.Name.ToLowerInvariant ()) {
@@ -100,6 +125,14 @@ namespace LibreLancer.Data
                                     break;
                                 case "dataversion":
                                     DataVersion = e[0].ToString();
+                                    break;
+                                case "nonavmap":
+                                    if (!extNoNavmaps) { NoNavmapSystems = new List<string>(); extNoNavmaps = true }
+                                    NoNavmapSystems.Add(e[0].ToString());
+                                    break;
+                                case "hidefaction":
+                                    if (!extHideFac) { HiddenFactions = new List<string>();  extHideFac = true };
+                                    HiddenFactions.Add(e[0].ToString());
                                     break;
                             }
                         }
