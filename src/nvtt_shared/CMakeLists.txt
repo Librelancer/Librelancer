@@ -1,6 +1,7 @@
 cmake_minimum_required (VERSION 2.8.8)
 project(nvttso)
 set(CMAKE_BUILD_TYPE release)
+SET(CMAKE_SKIP_BUILD_RPATH true)
 add_subdirectory(../../extern/nvidia-texture-tools nvtt)
 add_library(nvttso SHARED main.c)
 set_target_properties(nvttso PROPERTIES
