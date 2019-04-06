@@ -1,7 +1,6 @@
 cmake_minimum_required (VERSION 2.8.9)
 project (librelancernatives)
 set(CMAKE_BUILD_TYPE release)
-set(NVTT_SHARED 1)
 # libbulletc should really set this. work around for older GCC+CMake
 if (CMAKE_VERSION VERSION_LESS "3.1")
     if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
@@ -24,5 +23,5 @@ add_subdirectory(extern/BulletSharpPInvoke/libbulletc bulletc)
 # nvtt has different project structure
 # binary handled by nuget for windows
 if(NOT WIN32)
-    add_subdirectory(extern/nvidia-texture-tools nvtt)
+	add_subdirectory(src/nvtt_shared nvttso)
 endif()

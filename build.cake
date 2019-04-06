@@ -80,7 +80,10 @@ Task("BuildNatives")
 	}
 	else
 	{
-		CMake(".",new CMakeSettings() { OutputPath = "obj" });
+		CMake(".",new CMakeSettings() {
+			OutputPath = "obj",
+			Options = new []{ "-DCMAKE_INSTALL_PREFIX=" + prefix }
+		});
 		int code;
 		if((code = StartProcess("make", new ProcessSettings() { WorkingDirectory = "obj" })) != 0)
 			throw new Exception("Make exited with error code " + code);
@@ -123,7 +126,7 @@ Task("Build")
 string[] blacklist_scripts = {
 	"server"
 };
-Task("LinuxScripts")
+Task("BuildLinux")
 	.IsDependentOn("Build")
 	.Does(() =>
 {
@@ -141,7 +144,6 @@ Task("LinuxScripts")
 });
 
 Task("Install")
-	.IsDependentOn("LinuxScripts")
 	.Does(() =>
 {
 	destdir = destdir ?? prefix;
