@@ -1,0 +1,12 @@
+#!/bin/bash
+set -x
+install -d "$1/lib/librelancer"
+install -d "$1/bin"
+#Copy Binaries
+install -m 755 -t "$1/lib/librelancer" "$2/Release/"*.dll
+install -m 755 -t "$1/lib/librelancer" "$2/Release/"*.exe
+install -m 755 -t "$1/lib/librelancer" "$2/Release/"*.config
+install -m 755 -t "$1/lib/librelancer" "$2/Release/"*.so
+#Copy Scripts
+install -m 555 -t "$1/bin/" "$2/scripts/"*
+{ set +x; } 2>/dev/null

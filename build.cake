@@ -7,7 +7,8 @@
 var target = Argument("target", "Build");
 var versionSetting = Argument("assemblyversion","git");
 var configuration = Argument("configuration","Release");
-
+var prefix = Argument("prefix","/usr/local/");
+var destdir = Argument("destdir", (string)null);
 bool CheckCommand_Unix(string cmd) => (StartProcess("/bin/sh", new ProcessSettings() { Arguments = string.Format("-c 'command -v {0}'",cmd) }) == 0);
 
 string GitLogTip_Shell()
@@ -109,6 +110,34 @@ Task("Build")
 		else
 			XBuild("./src/LibreLancer.sln", settings => settings.SetConfiguration(configuration));
 	}
+});
+
+string[] blacklist_scripts = {
+	"server"
+};
+Task("LinuxScripts")
+	.IsDependentOn("Build")
+	.Does(() =>
+{
+	if(!DirectoryExists("bin/scripts")) CreateDirectory("bin/scripts");
+	var files = GetFiles("./bin/Release/*.exe");
+	var libdir = Directory(prefix) + Directory("lib/librelancer");
+	foreach(var file in files) {
+		var f = file.GetFilename();
+		var scriptname = file.GetFilenameWithoutExtension().ToString().ToLowerInvariant();
+		if(blacklist_scripts.Contains(scriptname)) continue;
+		Information("Writing script {0} for {1}",Directory("bin/scripts") + File(scriptname) ,f);
+		FileWriteText(Directory("bin/scripts") + File(scriptname),
+			"#!/bin/bash\n" + "mono $MONO_OPTIONS \"" + (libdir + f) + "\" \"$@\"");  
+	}
+});
+
+Task("Install")
+	.IsDependentOn("LinuxScripts")
+	.Does(() =>
+{
+	destdir = destdir ?? prefix;
+	StartProcess("bash", "-c './scripts/linuxinstall \"" + destdir + "\" \"./bin\"'");
 });
 
 Task("LinuxDaily")

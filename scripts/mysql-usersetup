@@ -1,4 +1,0 @@
-#!/bin/bash
-cd ../bin/mysql
-mysql --defaults-file=my.cnf --user=root mysql < setup.sql
-echo User librelancer@localhost with password librelancerDEVPASSWORD_THISISINSECURE has been setup

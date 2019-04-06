@@ -1,3 +1,0 @@
-#!/bin/bash
-cd ../bin/mysql
-mysql --defaults-file=my.cnf "$@"
