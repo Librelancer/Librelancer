@@ -98,17 +98,25 @@ Task("Build")
 	//Restore NuGet packages
 	NuGetRestore("./src/LibreLancer.sln");
 	//Build C#
+	Action<MSBuildSettings> doSettings = (settings) => {
+		settings.SetConfiguration(configuration);
+		settings.Properties["DebugType"] = new[] { "None" };
+	};
+	Action<XBuildSettings> doSettingsX = (settings) => {
+		settings.SetConfiguration(configuration);
+		settings.Properties["DebugType"] = new[] { "None" };
+	};
 	if(IsRunningOnWindows())
 	{
-		MSBuild("./src/LibreLancer.sln", settings => settings.SetConfiguration(configuration));
+		MSBuild("./src/LibreLancer.sln", doSettings);
 	}
 	else
 	{
 		//XBuild is also fine, but check for msbuild first
 		if(CheckCommand_Unix("msbuild"))
-			MSBuild("./src/LibreLancer.sln", settings => settings.SetConfiguration(configuration));
+			MSBuild("./src/LibreLancer.sln", doSettings);
 		else
-			XBuild("./src/LibreLancer.sln", settings => settings.SetConfiguration(configuration));
+			XBuild("./src/LibreLancer.sln", doSettingsX);
 	}
 });
 
