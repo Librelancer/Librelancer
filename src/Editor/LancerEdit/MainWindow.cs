@@ -106,6 +106,11 @@ namespace LancerEdit
             var img = StbSharp.Stb.stbi_load_from_memory(bytes, out w, out h, out c, StbSharp.Stb.STBI_rgb_alpha);
             StbSharp.Stb.stbi_set_flip_vertically_on_load(1);
             SetWindowIcon(w, h, img);
+
+            //Open passed in files!
+            if(InitOpenFile != null)
+                foreach(var f in InitOpenFile) 
+                    OpenFile(f);
         }
 
         void Keyboard_KeyDown(KeyEventArgs e)
@@ -143,6 +148,16 @@ namespace LancerEdit
 				tab.Update(elapsed);
             if (errorTimer > 0) errorTimer -= elapsed;
 		}
+        public string[] InitOpenFile;
+        public void OpenFile(string f)
+        {
+            if (f != null && System.IO.File.Exists(f) && DetectFileType.Detect(f) == FileType.Utf)
+            {
+                var t = new UtfTab(this, new EditableUtf(f), System.IO.Path.GetFileName(f));
+                ActiveTab = t;
+                AddTab(t);
+            }
+        }
         DockTab selected;
         TextBuffer errorText;
         bool showLog = false;
@@ -170,12 +185,7 @@ namespace LancerEdit
 				if (Theme.IconMenuItem("Open", "open", Color4.White, true))
 				{
                     var f = FileDialog.Open(UtfFilters);
-					if (f != null && DetectFileType.Detect(f) == FileType.Utf)
-					{
-						var t = new UtfTab(this, new EditableUtf(f), System.IO.Path.GetFileName(f));
-						ActiveTab = t;
-                        AddTab(t);
-					}
+                    OpenFile(f);
 				}
 				if (ActiveTab == null)
 				{

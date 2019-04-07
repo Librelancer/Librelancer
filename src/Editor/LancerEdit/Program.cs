@@ -36,8 +36,8 @@ namespace LancerEdit
             try
             {
 #endif
-                mw = new MainWindow();
-                mw.Run();
+            mw = new MainWindow() { InitOpenFile = args };
+            mw.Run();
 #if !DEBUG
             }
             catch(Exception ex)
