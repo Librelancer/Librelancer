@@ -1,9 +1,31 @@
 #!/bin/bash
+nonCopyDlls=(
+	"SharpDX.dll" 
+	"SharpDX.DXGI.dll" 
+	"SharpDX.MediaFoundation.dll" 
+	"Eto.Wpf.dll"
+)
+
+function findWithBlacklist() {
+	local directory="$1"
+	shift
+	local pattern="$1"
+	shift
+	local arr=("$@")
+	local blacklist=""
+	for i in "${arr[@]}"
+	do
+		blacklist="$blacklist ! -iname $i"
+	done
+	find "$directory" -maxdepth 1 -type f -iname $pattern $blacklist | xargs
+}
+INSTALL_DLLS=$(findWithBlacklist "$2/Release/" '*.dll' "${nonCopyDlls[@]}")
+
 set -x
 install -d "$1/lib/librelancer"
 install -d "$1/bin"
 #Copy Binaries
-install -m 755 -t "$1/lib/librelancer" "$2/Release/"*.dll
+install -m 755 -t "$1/lib/librelancer" $INSTALL_DLLS
 install -m 755 -t "$1/lib/librelancer" "$2/Release/"*.exe
 install -m 755 -t "$1/lib/librelancer" "$2/Release/"*.config
 install -m 755 -t "$1/lib/librelancer" "$2/Release/"*.so
