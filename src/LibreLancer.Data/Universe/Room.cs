@@ -15,7 +15,8 @@ namespace LibreLancer.Data.Universe
 		public string Nickname { get; private set; }
 		public string Music { get; private set; }
 		public List<string> SceneScripts { get; private set; }
-		public List<RoomHotspot> Hotspots { get; private set; }
+        public List<string> ForShipSalePlacements { get; private set; }
+        public List<RoomHotspot> Hotspots { get; private set; }
 		public string Camera { get; private set; }
 		public string PlayerShipPlacement { get; private set; }
 		public string LaunchingScript { get; private set; }
@@ -29,6 +30,7 @@ namespace LibreLancer.Data.Universe
 			string file = null;
 			SceneScripts = new List<string>();
 			Hotspots = new List<RoomHotspot>();
+            ForShipSalePlacements = new List<string>();
 			foreach (Entry e in section)
 			{
 				switch (e.Name.ToLowerInvariant())
@@ -115,7 +117,11 @@ namespace LibreLancer.Data.Universe
                             }
                             break;
                         case "forsaleshipplacement":
-                            // TODO Room forsaleshipplacement
+                           foreach(Entry e in s)
+                            {
+                                if (e.Name.Equals("name", StringComparison.OrdinalIgnoreCase))
+                                    ForShipSalePlacements.Add(e[0].ToString());
+                            }
                             break;
                         case "hotspot":
                             // TODO Room hotspot

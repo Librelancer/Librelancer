@@ -403,6 +403,8 @@
     <Compile Include="Gameplay\MissionRuntime.cs" />
     <Compile Include="FLHash.cs" />
     <Compile Include="Utf\Audio\VoiceUtf.cs" />
+    <Compile Include="GameData\Market\ShipPackage.cs" />
+    <Compile Include="GameData\Market\SoldShip.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -501,5 +503,6 @@
     <Folder Include="Thn\Enums\" />
     <Folder Include="Thn\Events\" />
     <Folder Include="Utf\Audio\" />
+    <Folder Include="GameData\Market\" />
   </ItemGroup>
 </Project>

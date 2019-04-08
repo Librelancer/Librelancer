@@ -62,68 +62,137 @@ namespace LibreLancer
 		{
 			return fldata.RichFonts.Fonts;
 		}
-		public GameData.Base GetBase(string id)
+        public GameData.Base GetBase(string id)
+        {
+            return bases[id];
+        }
+        IEnumerable<Data.Universe.Base> InitBases()
 		{
-			var inibase = fldata.Universe.FindBase(id);
-			var mbase = fldata.MBases.FindBase(id);
-			var b = new GameData.Base();
-            b.System = inibase.System;
-			foreach (var room in inibase.Rooms)
-			{
-				var nr = new GameData.BaseRoom();
-				var mroom = mbase.FindRoom(room.Nickname);
-				nr.Music = room.Music;
-				nr.ThnPaths = new List<string>();
-				nr.PlayerShipPlacement = room.PlayerShipPlacement;
-				foreach (var path in room.SceneScripts)
-					nr.ThnPaths.Add(Data.VFS.GetPath(fldata.Freelancer.DataPath + path));
-                if (room.LandingScript != null)
-                    nr.LandScript = Data.VFS.GetPath(fldata.Freelancer.DataPath + room.LandingScript);
-                if (room.StartScript != null)
-                    nr.StartScript = Data.VFS.GetPath(fldata.Freelancer.DataPath + room.StartScript);
-                if (room.LaunchingScript != null)
-                    nr.LaunchScript = Data.VFS.GetPath(fldata.Freelancer.DataPath + room.LaunchingScript);
-                if (room.GoodscartScript != null)
-                    nr.GoodscartScript = Data.VFS.GetPath(fldata.Freelancer.DataPath + room.GoodscartScript);
-				nr.Hotspots = new List<GameData.BaseHotspot>();
-				foreach (var hp in room.Hotspots)
-					nr.Hotspots.Add(new GameData.BaseHotspot()
-					{
-						Name = hp.Name,
-						Behavior = hp.Behavior,
-						Room = hp.RoomSwitch,
-						SetVirtualRoom = hp.VirtualRoom
-					});
-				nr.Nickname = room.Nickname;
-				if (room.Nickname == inibase.StartRoom) b.StartRoom = nr;
-				nr.Camera = room.Camera;
-				nr.Npcs = new List<GameData.BaseNpc>();
-				if (mroom != null)
-				{
-					foreach (var npc in mroom.NPCs)
-					{
-						/*var newnpc = new GameData.BaseNpc();
-						newnpc.StandingPlace = npc.StandMarker;
-						var gfnpc = mbase.FindNpc(npc.Npc);
-						newnpc.HeadMesh = fldata.Bodyparts.FindBodypart(gfnpc.Head).MeshPath;
-						newnpc.BodyMesh = fldata.Bodyparts.FindBodypart(gfnpc.Body).MeshPath;
-						newnpc.LeftHandMesh = fldata.Bodyparts.FindBodypart(gfnpc.LeftHand).MeshPath;
-						newnpc.RightHandMesh = fldata.Bodyparts.FindBodypart(gfnpc.RightHand).MeshPath;
-						nr.Npcs.Add(newnpc);*/
-					}
-				}
-				b.Rooms.Add(nr);
-			}
-			return b;
+            FLLog.Info("Game", "Initing " + fldata.Universe.Bases.Count + " bases");
+            bases = new Dictionary<string, GameData.Base>(fldata.Universe.Bases.Count, StringComparer.OrdinalIgnoreCase);
+            foreach (var inibase in fldata.Universe.Bases)
+            {
+                if (inibase.Nickname.StartsWith("intro", StringComparison.InvariantCultureIgnoreCase))
+                    yield return inibase;
+                Data.MBase mbase;
+                fldata.MBases.Bases.TryGetValue(inibase.Nickname, out mbase);
+                var b = new GameData.Base();
+                b.System = inibase.System;
+                foreach (var room in inibase.Rooms)
+                {
+                    var nr = new GameData.BaseRoom();
+                    nr.Music = room.Music;
+                    nr.ThnPaths = new List<string>();
+                    nr.PlayerShipPlacement = room.PlayerShipPlacement;
+                    nr.ForSaleShipPlacements = room.ForShipSalePlacements;
+                    nr.InitAction = () =>
+                     {
+                         foreach (var path in room.SceneScripts)
+                             nr.ThnPaths.Add(Data.VFS.GetPath(fldata.Freelancer.DataPath + path));
+                         if (room.LandingScript != null)
+                             nr.LandScript = Data.VFS.GetPath(fldata.Freelancer.DataPath + room.LandingScript);
+                         if (room.StartScript != null)
+                             nr.StartScript = Data.VFS.GetPath(fldata.Freelancer.DataPath + room.StartScript);
+                         if (room.LaunchingScript != null)
+                             nr.LaunchScript = Data.VFS.GetPath(fldata.Freelancer.DataPath + room.LaunchingScript);
+                         if (room.GoodscartScript != null)
+                             nr.GoodscartScript = Data.VFS.GetPath(fldata.Freelancer.DataPath + room.GoodscartScript);
+                     };
+                    nr.Hotspots = new List<GameData.BaseHotspot>();
+                    foreach (var hp in room.Hotspots)
+                        nr.Hotspots.Add(new GameData.BaseHotspot()
+                        {
+                            Name = hp.Name,
+                            Behavior = hp.Behavior,
+                            Room = hp.RoomSwitch,
+                            SetVirtualRoom = hp.VirtualRoom
+                        });
+                    nr.Nickname = room.Nickname;
+                    if (room.Nickname == inibase.StartRoom) b.StartRoom = nr;
+                    nr.Camera = room.Camera;
+                    nr.Npcs = new List<GameData.BaseNpc>();
+                    if (mbase == null) continue;
+                    var mroom = mbase.FindRoom(room.Nickname);
+                    if (mroom != null)
+                    {
+                        foreach (var npc in mroom.NPCs)
+                        {
+                            /*var newnpc = new GameData.BaseNpc();
+                            newnpc.StandingPlace = npc.StandMarker;
+                            var gfnpc = mbase.FindNpc(npc.Npc);
+                            newnpc.HeadMesh = fldata.Bodyparts.FindBodypart(gfnpc.Head).MeshPath;
+                            newnpc.BodyMesh = fldata.Bodyparts.FindBodypart(gfnpc.Body).MeshPath;
+                            newnpc.LeftHandMesh = fldata.Bodyparts.FindBodypart(gfnpc.LeftHand).MeshPath;
+                            newnpc.RightHandMesh = fldata.Bodyparts.FindBodypart(gfnpc.RightHand).MeshPath;
+                            nr.Npcs.Add(newnpc);*/
+                        }
+                    }
+                    b.Rooms.Add(nr);
+                }
+                bases.Add(inibase.Nickname, b);
+            }
 		}
+        void InitGoods()
+        {
+            FLLog.Info("Game","Initing " + fldata.Goods.Goods.Count + " goods");
+            Dictionary<string, Data.Goods.Good> hulls = new Dictionary<string, Data.Goods.Good>(256, StringComparer.OrdinalIgnoreCase);
+            foreach(var g in fldata.Goods.Goods)
+            {
+                switch(g.Category)
+                {
+                    case Data.Goods.GoodCategory.ShipHull:
+                        hulls.Add(g.Nickname, g);
+                        //Handled in ship (albeit slowly)
+                        break;
+                    case Data.Goods.GoodCategory.Ship:
+                        Data.Goods.Good hull;
+                        if(!hulls.TryGetValue(g.Hull, out hull))
+                        {
+                            hull = fldata.Goods.Goods.First(x => x.Nickname.Equals(g.Hull, StringComparison.OrdinalIgnoreCase));
+                        }
+                        var sp = new GameData.Market.ShipPackage();
+                        sp.Ship = hull.Ship;
+                        sp.Nickname = g.Nickname;
+                        sp.BasePrice = hull.Price;
+                        shipPackages.Add(g.Nickname, sp);
+                        break;
+                    case Data.Goods.GoodCategory.Equipment:
+                        break;
+                    case Data.Goods.GoodCategory.Commodity:
+                        break;
+                }
+            }
+        }
+        void InitMarkets()
+        {
+            FLLog.Info("Game", "Initing " + fldata.Markets.BaseGoods.Count + " shops");
+            foreach(var m in fldata.Markets.BaseGoods)
+            {
+                var b = bases[m.Base];
+                foreach(var gd in m.MarketGoods)
+                {
+                    GameData.Market.ShipPackage sp;
+                    if(shipPackages.TryGetValue(gd.Good, out sp))
+                    {
+                        b.SoldShips.Add(new GameData.Market.SoldShip() { Package = sp });
+                    }
+                }
+            }
+        }
+        Dictionary<string, GameData.Base> bases;
+        Dictionary<string, GameData.Market.ShipPackage> shipPackages = new Dictionary<string, GameData.Market.ShipPackage>();
+
 		public void LoadData()
 		{
 			fldata.LoadData();
+            FLLog.Info("Game", "Initing Tables");
+            var introbases = InitBases().ToArray();
+            InitGoods();
+            InitMarkets();
+            FLLog.Info("Game", "Loading intro scenes");
 			IntroScenes = new List<GameData.IntroScene>();
-			foreach (var b in fldata.Universe.Bases)
+			foreach (var b in introbases)
 			{
-				if (b.Nickname.StartsWith("intro", StringComparison.InvariantCultureIgnoreCase))
-				{
 					foreach (var room in b.Rooms)
 					{
 						if (room.Nickname == b.StartRoom)
@@ -139,7 +208,6 @@ namespace LibreLancer
 							IntroScenes.Add(isc);
 						} 
 					}
-				}
 			}
 			if (resource != null)
 			{

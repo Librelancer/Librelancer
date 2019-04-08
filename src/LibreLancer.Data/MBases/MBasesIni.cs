@@ -10,7 +10,7 @@ namespace LibreLancer.Data
 {
 	public class MBasesIni : IniFile
 	{
-		public List<MBase> Bases = new List<MBase>();
+        public Dictionary<string, MBase> Bases = new Dictionary<string, MBase>(StringComparer.OrdinalIgnoreCase);
 		int i;
 		public MBasesIni()
 		{
@@ -18,7 +18,8 @@ namespace LibreLancer.Data
 			for (i = 0; i < sections.Length; i++) {
 				if (sections[i].Name.ToLowerInvariant() == "mbase")
 				{
-					Bases.Add(new MBase(EnumerateSections(sections)));
+                    var mb = new MBase(EnumerateSections(sections));
+                    Bases.Add(mb.Nickname, mb);
 					i--;
 				}
 			}
@@ -32,14 +33,6 @@ namespace LibreLancer.Data
 				yield return sections[i];
 				i++;
 			}
-		}
-
-		public MBase FindBase(string nickname)
-		{
-			var n = nickname.ToLowerInvariant();
-			var result = from MBase b in Bases where b.Nickname.ToLowerInvariant() == n select b;
-			if (result.Count<MBase>() == 1) return result.First<MBase>();
-			else return null;
 		}
 	}
 }

@@ -38,6 +38,7 @@ namespace LibreLancer
 			baseId = newBase;
 			currentBase = g.GameData.GetBase(newBase);
 			currentRoom = room ?? currentBase.StartRoom;
+            currentRoom.InitForDisplay();
 			SwitchToRoom();
 			tophotspots = new List<BaseHotspot>();
 			foreach (var hp in currentRoom.Hotspots)
@@ -219,7 +220,26 @@ namespace LibreLancer
 				child.Transform = Matrix4.CreateTranslation(0, 3, 0);
 				obj.Object.Children.Add(child);
 			}
-		}
+            var ships = currentBase.SoldShips.Select(x => x.Package.Ship).ToArray();
+            for(int i = 0; (i < ships.Length && i < currentRoom.ForSaleShipPlacements.Count); i++)
+            {
+                ThnObject marker;
+                if(!scene.Objects.TryGetValue(currentRoom.ForSaleShipPlacements[i],out marker))
+                {
+                    FLLog.Error("Base", "Couldn't display " + ships[i] + " on " + currentRoom.ForSaleShipPlacements[i]);
+                    continue;
+                }
+                var toSellShip = Game.GameData.GetShip(ships[i]);
+                //Set up player object + camera
+                var obj = new GameObject(toSellShip.Drawable, Game.ResourceManager) { Parent = marker.Object };
+                obj.PhysicsComponent = null;
+                marker.Object.Children.Add(obj);
+                if(obj.HardpointExists("HpMount"))
+                {
+                    obj.Transform = obj.GetHardpoint("HpMount").Transform.Inverted();
+                }
+            }
+        }
 
 		public override void Update(TimeSpan delta)
 		{

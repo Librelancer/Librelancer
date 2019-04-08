@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.GameData.Market;
+    
 namespace LibreLancer.GameData
 {
 	public class Base
@@ -11,6 +13,7 @@ namespace LibreLancer.GameData
         public string System;
 		public BaseRoom StartRoom;
 		public List<BaseRoom> Rooms = new List<BaseRoom>();
+        public List<SoldShip> SoldShips = new List<SoldShip>();
 		public Base()
 		{
 		}

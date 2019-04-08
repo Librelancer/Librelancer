@@ -89,9 +89,6 @@ namespace LibreLancer
             return false;
         }
 
-
-
-
         public void JumpTo(string system, string exitpos)
 		{
 			//Find object
@@ -139,6 +136,7 @@ namespace LibreLancer
         public void ProcessConsoleCommand(string str)
 		{
 			var split = str.Split(' ');
+            if (split.Length < 2) return;
             switch (split[0])
             {
                 case "base":
@@ -146,6 +144,11 @@ namespace LibreLancer
                     break;
                 case "play":
                     Game.Sound.PlaySound(split[1]);
+                    break;
+                case "cash":
+                    long l;
+                    if (long.TryParse(split[1], out l))
+                        Credits = l;
                     break;
 			}
 		}

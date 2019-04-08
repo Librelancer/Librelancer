@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace LibreLancer
 {
-	public class LoadingDataState : GameState
+    public class LoadingDataState : GameState
 	{
 		Texture2D splash;
 		public LoadingDataState(FreelancerGame g) : base(g)

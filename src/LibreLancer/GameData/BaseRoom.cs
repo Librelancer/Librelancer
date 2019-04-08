@@ -12,6 +12,7 @@ namespace LibreLancer.GameData
 		public string Camera;
 		public List<string> ThnPaths;
 		public List<BaseHotspot> Hotspots;
+        public List<string> ForSaleShipPlacements;
 		public List<BaseNpc> Npcs = new List<BaseNpc>();
 		public string Music;
 		public string PlayerShipPlacement;
@@ -26,7 +27,16 @@ namespace LibreLancer.GameData
             if (GoodscartScript != null) yield return new ThnScript(GoodscartScript);
             if (LandScript != null) yield return new ThnScript(LandScript);
 		}
-	}
+        internal Action InitAction;
+        public void InitForDisplay()
+        {
+            if(InitAction != null)
+            {
+                InitAction();
+                InitAction = null;
+            }
+        }
+    }
 	public class BaseHotspot
 	{
 		public string Name;
