@@ -19,7 +19,7 @@ namespace LibreLancer.Data
 				if (sections[i].Name.ToLowerInvariant() == "mbase")
 				{
                     var mb = new MBase(EnumerateSections(sections));
-                    Bases.Add(mb.Nickname, mb);
+                    Bases[mb.Nickname] = mb; //Add() won't overwrite duplicates
 					i--;
 				}
 			}
