@@ -13,6 +13,7 @@ using LibreLancer.Primitives;
 
 namespace LibreLancer.Utf.Mat
 {
+   
     /// <summary>
     /// Represents a UTF Sphere File (.sph)
     /// </summary>
@@ -31,23 +32,55 @@ namespace LibreLancer.Utf.Mat
 
         private List<string> sideMaterialNames;
         private Material[] sideMaterials;
-        public Material[] SideMaterials
+        public class SphMaterials
         {
-            get
+            SphFile sph;
+            internal SphMaterials(SphFile sph)
             {
-                if (sideMaterials == null)
+                this.sph = sph;
+            }
+            void CheckNullArray()
+            {
+                if (sph.sideMaterials == null)
                 {
-                    sideMaterials = new Material[sideMaterialNames.Count];
-                    for (int i = 0; i < sideMaterialNames.Count; i++)
+                    sph.sideMaterials = new Material[sph.sideMaterialNames.Count];
+                    for (int i = 0; i < sph.sideMaterialNames.Count; i++)
                     {
-                        sideMaterials[i] = library.FindMaterial(CrcTool.FLModelCrc(sideMaterialNames[i]));
-                        //if (sideMaterials[i] == null) sideMaterials[i] = new Material();
+                        sph.sideMaterials[i] = sph.library.FindMaterial(CrcTool.FLModelCrc(sph.sideMaterialNames[i]));
                     }
                 }
-
-                return sideMaterials;
             }
+            public int Length
+            {
+                get
+                {
+                    CheckNullArray();
+                    return sph.sideMaterials.Length;
+                }
+            }
+            public Material this[int i]
+            {
+                get
+                {
+                    CheckNullArray();
+                    if (sph.sideMaterials[i] == null)
+                    {
+                        var crc = CrcTool.FLModelCrc(sph.sideMaterialNames[i]);
+                        sph.sideMaterials[i] = sph.library.FindMaterial(CrcTool.FLModelCrc(sph.sideMaterialNames[i]));
+                    }
+                    return sph.sideMaterials[i];
+                }
+                set
+                {
+                    CheckNullArray();
+                    sph.sideMaterials[i] = value;
+                }
+            }
+           
         }
+
+        SphMaterials materialsAccessor;
+        public SphMaterials SideMaterials => materialsAccessor;
 
 		public List<string> SideMaterialNames
 		{
@@ -66,6 +99,7 @@ namespace LibreLancer.Utf.Mat
             if (root == null) throw new ArgumentNullException("root");
             if (library == null) throw new ArgumentNullException("materialLibrary");
 
+            materialsAccessor = new SphMaterials(this);
             ready = false;
 
 			this.library = library;

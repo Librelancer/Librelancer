@@ -120,6 +120,7 @@ namespace LibreLancer
 			if (textures[cacheidx] == null)
 				textures[cacheidx] = (Texture2D)Library.FindTexture(tex);
 			var tex2d = textures[cacheidx];
+            if (tex2d == null) return tex2d;
 			if (tex2d.IsDisposed)
 				tex2d = textures[cacheidx] = (Texture2D)Library.FindTexture(tex);
 			return textures[cacheidx];

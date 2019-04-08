@@ -43,6 +43,8 @@ namespace LibreLancer
 			sh.SetView(Camera);
 			sh.SetViewProjection(Camera);
 			sh.SetDtSampler(0);
+            if (GetTexture(0, DtSampler) == null)
+                sh.SetOc(0);
 			BindTexture(rstate, 0, DtSampler, 0, DtFlags);
 			var normalmat = World;
 			normalmat.Invert();
