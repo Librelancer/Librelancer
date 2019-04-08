@@ -13,7 +13,16 @@ namespace LibreLancer.GameData.Items
         public string Nickname;
         public float[] LODRanges;
         public string HPChild;
-		public virtual IDrawable GetDrawable()
+        internal Action LoadResAction;
+        public void LoadResources()
+        {
+            if(LoadResAction!= null)
+            {
+                LoadResAction();
+                LoadResAction = null;
+            }
+        }
+        public virtual IDrawable GetDrawable()
 		{
 			throw new NotImplementedException();
 		}

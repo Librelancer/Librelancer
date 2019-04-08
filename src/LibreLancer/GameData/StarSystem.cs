@@ -31,7 +31,20 @@ namespace LibreLancer.GameData
 		public string MusicSpace;
 		//Clipping
 		public float FarClip;
-		public StarSystem ()
+
+        public Action StarspheresAction;
+        public void LoadStarspheres()
+        {
+            if (StarspheresAction != null)
+            {
+                StarspheresAction();
+                StarspheresAction = null;
+            }
+        }
+
+        public List<string> ResourceFiles = new List<string>();
+
+        public StarSystem ()
 		{
 		}
 	}

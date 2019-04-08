@@ -203,6 +203,7 @@ C# Memory Usage: {5}
                         camera.Zoom = 5000;
                         Resources.ClearTextures();
                         curSystem = GameData.GetSystem(systems[sysIndex]);
+                        GameData.LoadAllSystem(curSystem);
                         world.LoadSystem(curSystem, Resources);
                         sysIndexLoaded = sysIndex;
 
@@ -247,6 +248,7 @@ C# Memory Usage: {5}
             systems = GameData.ListSystems().OrderBy(x => x).ToArray();
             Resources.ClearTextures();
             curSystem = GameData.GetSystem(systems[0]);
+            GameData.LoadAllSystem(curSystem);
             world.LoadSystem(curSystem, Resources);
         }
         void LoadData(string path)

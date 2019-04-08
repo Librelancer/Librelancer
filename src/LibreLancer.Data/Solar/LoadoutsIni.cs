@@ -12,12 +12,7 @@ namespace LibreLancer.Data.Solar
 {
 	public class LoadoutsIni : IniFile
 	{
-		public List<Loadout> Loadouts { get; private set; }
-
-		public LoadoutsIni()
-		{
-			Loadouts = new List<Loadout>();
-		}
+        public Dictionary<string, Loadout> Loadouts = new Dictionary<string, Loadout>(StringComparer.OrdinalIgnoreCase);
 
 		public void AddLoadoutsIni(string path, FreelancerData gdata)
 		{
@@ -25,8 +20,9 @@ namespace LibreLancer.Data.Solar
 			{
 				switch (s.Name.ToLowerInvariant())
 				{
-				case "loadout":
-					Loadouts.Add(new Loadout(s, gdata));
+                    case "loadout":
+                        var l = new Loadout(s, gdata);
+                        Loadouts[l.Nickname] = l;
 					break;
 				default:
 					throw new Exception("Invalid Section in " + path + ": " + s.Name);
@@ -36,11 +32,10 @@ namespace LibreLancer.Data.Solar
 
 		public Loadout FindLoadout(string nickname)
 		{
-			IEnumerable<Loadout> candidates = from Loadout s in Loadouts where s.Nickname.Equals(nickname, StringComparison.OrdinalIgnoreCase) select s;
-			int count = candidates.Count<Loadout>();
-			if (count == 1) return candidates.First<Loadout>();
-			else if (count == 0) return null;
-			else throw new Exception(count + " Loadouts with nickname " + nickname);
+            if (nickname == null) return null;
+            Loadout l;
+            Loadouts.TryGetValue(nickname, out l);
+            return l;
 		}
 	}
 }

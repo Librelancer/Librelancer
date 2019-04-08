@@ -162,7 +162,7 @@ namespace LibreLancer
                                 {
                                     if (equip.Key.StartsWith("__noHardpoint")) continue;
                                     if (equip.Value == null) continue;
-                                    session.MountedEquipment.Add(equip.Key, equip.Value.Nickname);
+                                    session.MountedEquipment.Add(equip.Key, equip.Value);
                                 }
                             }
                            

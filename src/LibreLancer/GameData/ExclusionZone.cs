@@ -8,7 +8,8 @@ namespace LibreLancer.GameData
 	public class ExclusionZone
 	{
 		public Zone Zone;
-		//Shell
+        //Shell
+        public string ShellPath;
 		public IDrawable Shell;
 		public Color3f ShellTint;
 		public float ShellMaxAlpha;

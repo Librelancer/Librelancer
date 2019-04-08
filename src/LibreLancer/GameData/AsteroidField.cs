@@ -31,6 +31,15 @@ namespace LibreLancer.GameData
 		//Multiplier hardcoded in Freelancer's common.dll
 		const float FILLDIST_MULTIPLIER = 1.74f;
 
-	}
+        public Action LoadResAction;
+        public void LoadResources()
+        {
+            if(LoadResAction != null)
+            {
+                LoadResAction();
+                LoadResAction = null;
+            }
+        }
+    }
 }
 

@@ -58,7 +58,17 @@ namespace LibreLancer.GameData
 		public float SunBurnthroughIntensity;
 		//Exclusion
 		public List<ExclusionZone> ExclusionZones;
-	}
+
+        public Action LoadResAction;
+        public void LoadResources()
+        {
+            if(LoadResAction != null)
+            {
+                LoadResAction();
+                LoadResAction = null;
+            }
+        }
+    }
 	public struct CloudShape
 	{
 		public string Texture;

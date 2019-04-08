@@ -54,8 +54,8 @@ Mouse Flight: {10}
             this.session = session;
             font = Game.Fonts.GetSystemFont("Agency FB");
 
-            sys = new GameData.StarSystem();
-            loader = new LoadingScreen(g, g.GameData.FillSystem(session.PlayerSystem, sys));
+            sys = g.GameData.GetSystem(session.PlayerSystem);
+            loader = new LoadingScreen(g, g.GameData.LoadSystemResources(sys));
 		}
 
         void FinishLoad()
@@ -85,6 +85,7 @@ Mouse Flight: {10}
             {
                 var equip = Game.GameData.GetEquipment(equipment.Value);
                 if (equip == null) continue;
+                equip.LoadResources();
                 var obj = new GameObject(equip, player.GetHardpoint(equipment.Key), player);
                 player.Children.Add(obj);
             }

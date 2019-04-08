@@ -13,6 +13,7 @@ namespace LibreLancer.GameData
 		public Vector3 Position;
 		public Matrix4 RotationMatrix;
 		public string Info;
+        public string Archetype;
 	}
 }
 

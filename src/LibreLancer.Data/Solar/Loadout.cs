@@ -16,15 +16,14 @@ namespace LibreLancer.Data.Solar
 		public string Nickname { get; private set; }
 		public Archetype Archetype { get; private set; }
 
-		//public List<Equip> Equip { get; private set; }
-		public Dictionary<string, AbstractEquipment> Equip { get; private set; }
+		public Dictionary<string, string> Equip { get; private set; }
 
 		public Loadout(Section section, FreelancerData freelancerIni)
 		{
 			if (section == null) throw new ArgumentNullException("section");
 
 			//Equip = new List<Equip>();
-			Equip = new Dictionary<string, AbstractEquipment>();
+			Equip = new Dictionary<string, string>();
 
 			int emptyHp = 1;
 			foreach (Entry e in section)
@@ -46,7 +45,7 @@ namespace LibreLancer.Data.Solar
 					//HACK: Come up with a proper way of handling this
 					string key = e.Count == 2 ? e[1].ToString() : "__noHardpoint" + (emptyHp++).ToString("d2");
 						if (e.Count == 2 && e[1].ToString().Trim() == "") key = "__noHardpoint" + (emptyHp++).ToString("d2");
-					if (!Equip.ContainsKey(key)) Equip.Add(key, freelancerIni.Equipment.FindEquipment(e[0].ToString()));
+                        if (!Equip.ContainsKey(key)) Equip.Add(key, e[0].ToString());
 					break;
 				case "cargo":
 					// TODO: Loadout cargo
