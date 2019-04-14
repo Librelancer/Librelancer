@@ -8,6 +8,23 @@ add_library(nvttso SHARED main.c)
 set_target_properties(nvttso PROPERTIES
 	OUTPUT_NAME "nvtt"
 )
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+target_link_libraries(
+	nvttso
+	-Wl,-all_load nvcore
+	nvimage
+	nvmath
+	nvthread
+	squish
+	bc6h
+	bc7
+	rg_etc1
+	nvtt -Wl,-noall_load
+)
+
+else()
+
 target_link_libraries(
 	nvttso
 	-Wl,--whole-archive nvcore
@@ -20,4 +37,7 @@ target_link_libraries(
 	rg_etc1
 	nvtt -Wl,--no-whole-archive
 )
+
+endif()
+
 
