@@ -694,8 +694,12 @@ namespace LibreLancer
             {
                 foreach (var excz in ast.ExclusionZones)
                 {
+                    if(excz.Exclusion == null) {
+                        FLLog.Error("System", "Exclusion zone " + excz.ExclusionName + " zone does not exist in " + sys.Id);
+                        continue;
+                    }
                     var e = new GameData.ExclusionZone();
-                    e.Zone = sys.Zones.Where((z) => z.Nickname.ToLower() == excz.Exclusion.Nickname.ToLower()).First();
+                    e.Zone = sys.Zones.Where((z) => z.Nickname.Equals(excz.ExclusionName,StringComparison.OrdinalIgnoreCase)).First();
                     //e.FogFar = excz.FogFar ?? n.FogRange.Y;
                     if (excz.ZoneShellPath != null)
                     {

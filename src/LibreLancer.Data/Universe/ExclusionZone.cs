@@ -18,8 +18,14 @@ namespace LibreLancer.Data.Universe
 				return exclusion;
 			}
 		}
-
-		public float? FogFar { get; set; }
+        public string ExclusionName
+        {
+            get
+            {
+                return exclusionName;
+            }
+        }
+        public float? FogFar { get; set; }
 		public float? FogNear { get; set; }
 		public float? ShellScalar { get; set; }
 		public float? MaxAlpha { get; set; }

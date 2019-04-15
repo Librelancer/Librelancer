@@ -344,7 +344,7 @@ namespace LibreLancer.Data.Universe
 
 		public Zone FindZone(string nickname)
 		{
-			var res = (from Zone z in Zones where z.Nickname.ToLowerInvariant() == nickname.ToLowerInvariant() select z);
+			var res = (from Zone z in Zones where z.Nickname.Equals(nickname,StringComparison.OrdinalIgnoreCase) select z);
 			if (res.Count() == 0) return null;
 			return res.First();
 		}
