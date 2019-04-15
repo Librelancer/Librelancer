@@ -98,7 +98,7 @@ namespace LibreLancer.Data.Universe
 			}
 		}
 
-		public int InfoCardIds { get; private set; }
+		public int? InfoCardIds { get; private set; }
 
 		public SystemObject(UniverseIni universe, StarSystem system, Section section, FreelancerData freelancerIni)
 			: base(section, freelancerIni)
@@ -225,8 +225,9 @@ namespace LibreLancer.Data.Universe
 					case "info_card_ids":
 					case "info_card":
 					case "info_ids":
-						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-						if (InfoCardIds != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+                        if (e.Count == 0) break;
+						if (e.Count != 1) FLLog.Warning("Ini","Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+						if (InfoCardIds != null) FLLog.Warning("Ini","Duplicate " + e.Name + " Entry in " + section.Name);
                         InfoCardIds = e[0].ToInt32();
 						break;
 					case "ring":
