@@ -27,6 +27,7 @@ namespace SystemViewer
         GameWorld world;
         DebugCamera camera;
         LibreLancer.GameData.StarSystem curSystem;
+        FontManager fontMan;
         public MainWindow() : base(800,600,false)
         {
             FLLog.UIThread = this;
@@ -47,9 +48,9 @@ namespace SystemViewer
             Services.Add(Nebulae);
             Services.Add(Resources);
             Services.Add(Renderer2D);
-            var fntMan = new FontManager(this);
-            fntMan.ConstructDefaultFonts();
-            Services.Add(fntMan);
+            fontMan = new FontManager(this);
+            fontMan.ConstructDefaultFonts();
+            Services.Add(fontMan);
             Services.Add(new GameConfig());
         }
         protected override void Update(double elapsed)
@@ -266,6 +267,7 @@ C# Memory Usage: {5}
         }
         void OnLoadComplete()
         {
+            fontMan.LoadFontsFromGameData(GameData);
             camera = new DebugCamera(new Viewport(0, 0, Width, Height));
             camera.Zoom = 5000;
             camera.UpdateProjection();

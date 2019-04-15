@@ -35,6 +35,13 @@ namespace LibreLancer.Infocards
 
 		public bool DropShadow = false;
 
+        float _fontScale = 1f;
+        public float FontScale
+        {
+            get { return _fontScale; }
+            set { _fontScale = value;  UpdateLayout();  }
+        }
+
 		public InfocardDisplay(Game g, Rectangle rect, params Infocard[] card)
 		{
 			infocards = card;
@@ -66,6 +73,7 @@ namespace LibreLancer.Infocards
 			TextAlignment lastAlignment = TextAlignment.Left;
 			int size;
 			Font fnt = fnts.GetInfocardFont(0, FontStyles.Regular, out size);
+            size = (int)(size * FontScale);
 			foreach (var card in infocards)
 			{
 				for (int idx = 0; idx < card.Nodes.Count; idx++)
@@ -83,6 +91,7 @@ namespace LibreLancer.Infocards
 						if (n.Bold) style |= FontStyles.Bold;
 						if (n.Italic) style |= FontStyles.Italic;
 						fnt = fnts.GetInfocardFont(n.FontIndex, style, out size);
+                        size = (int)(size * FontScale);
 						if (lastAlignment != n.Alignment)
 							dX = 0;
 						int origX = dX;

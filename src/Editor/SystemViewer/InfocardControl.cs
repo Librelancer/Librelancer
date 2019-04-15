@@ -19,6 +19,7 @@ namespace SystemViewer
         {
             window = win;
             icard = new InfocardDisplay(win, new Rectangle(0, 0, (int)initWidth, int.MaxValue), infocard);
+            icard.FontScale = 0.8f;
         }
         public void SetInfocard(Infocard infocard)
         {

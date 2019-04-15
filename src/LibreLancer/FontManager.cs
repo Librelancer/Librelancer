@@ -58,6 +58,8 @@ namespace LibreLancer
 
         public void LoadFontsFromGameData(GameDataManager gd)
 		{
+            infocardFonts = new Dictionary<int, FontVariations>();
+
 			var v = new FontVariations();
 			v.Regular = GetSystemFont("Agency FB");
 			v.Bold = GetSystemFont("Agency FB", FontStyles.Bold);
