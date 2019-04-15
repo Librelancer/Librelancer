@@ -20,7 +20,7 @@ namespace LibreLancer
 			Font fnt;
 			if (!systemFonts.TryGetValue(k, out fnt))
 			{
-				fnt = Font.FromSystemFont(game.Renderer2D, name, style);
+				fnt = Font.FromSystemFont(ren2d, name, style);
 				systemFonts.Add(k, fnt);
 			}
 			return fnt;
@@ -35,14 +35,28 @@ namespace LibreLancer
 		}
 
 		bool _loaded = false;
-		FreelancerGame game;
+		Game game;
+        Renderer2D ren2d;
 		Dictionary<int, FontVariations> infocardFonts = new Dictionary<int, FontVariations>();
-		public FontManager(FreelancerGame game)
+		public FontManager(Game game)
 		{
 			this.game = game;
+            ren2d = game.GetService<Renderer2D>();
 		}
 
-		public void LoadFonts()
+        public void ConstructDefaultFonts()
+        {
+            var v = new FontVariations();
+            v.Regular = GetSystemFont("Agency FB");
+            v.Bold = GetSystemFont("Agency FB", FontStyles.Bold);
+            v.Italic = GetSystemFont("Agency FB", FontStyles.Italic);
+            v.BoldItalic = GetSystemFont("Agency FB", FontStyles.Bold | FontStyles.Italic);
+            v.Size = 14;
+            infocardFonts.Add(-1, v);
+            _loaded = true;
+        }
+
+        public void LoadFontsFromGameData(GameDataManager gd)
 		{
 			var v = new FontVariations();
 			v.Regular = GetSystemFont("Agency FB");
@@ -52,7 +66,7 @@ namespace LibreLancer
 			v.Size = 14;
 			infocardFonts.Add(-1, v);
 
-			foreach (var f in game.GameData.GetRichFonts())
+			foreach (var f in gd.GetRichFonts())
 			{
 				//points = pixels * 72 / 96
 				int sz = (int)(f.Size * 72f / 96f);
@@ -70,10 +84,18 @@ namespace LibreLancer
 
 		public Font GetInfocardFont(int index, FontStyles style, out int size)
 		{
-			if (!_loaded)
-				LoadFonts();
-			var variations = infocardFonts[index];
-			size = variations.Size;
+            if (!_loaded)
+            {
+                throw new InvalidOperationException("Font Manager must be loaded");
+                //LoadFonts();
+            }
+            FontVariations variations;
+
+            if (!infocardFonts.ContainsKey(index))
+                variations = infocardFonts[-1];
+            else
+                variations = infocardFonts[index];
+            size = variations.Size;
 			switch (style)
 			{
 				case FontStyles.Regular:

@@ -104,8 +104,8 @@ namespace LibreLancer.ImUI
             SetKeyMappings();
 
             var io = ImGui.GetIO();
-            //IniFilename?
             io.WantSaveIniSettings = false;
+            io.NativePtr->IniFilename = (byte*)0; //disable ini!!
             Default = io.Fonts.AddFontDefault();
 			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.Roboto-Medium.ttf"))
 			{

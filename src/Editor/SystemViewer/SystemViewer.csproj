@@ -39,6 +39,7 @@
     <Compile Include="..\..\CommonVersion.cs">
       <Link>Properties\CommonVersion.cs</Link>
     </Compile>
+    <Compile Include="InfocardControl.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer\LibreLancer.csproj">

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using LibreLancer;
 using LibreLancer.ImUI;
+using LibreLancer.Infocards;
 using ImGuiNET;
 namespace SystemViewer
 {
@@ -46,6 +47,9 @@ namespace SystemViewer
             Services.Add(Nebulae);
             Services.Add(Resources);
             Services.Add(Renderer2D);
+            var fntMan = new FontManager(this);
+            fntMan.ConstructDefaultFonts();
+            Services.Add(fntMan);
             Services.Add(new GameConfig());
         }
         protected override void Update(double elapsed)
@@ -127,6 +131,9 @@ C# Memory Usage: {5}
         int sysIndex = 0;
         int sysIndexLoaded = 0;
         bool wireFrame = false;
+        bool infocardOpen = true;
+        InfocardControl icard;
+        Infocard systemInfocard;
         protected override void Draw(double elapsed)
         {
             VertexBuffer.TotalDrawcalls = 0;
@@ -171,6 +178,7 @@ C# Memory Usage: {5}
             if(ImGui.BeginMenu("View")) {
                 if (ImGui.MenuItem("Debug Text", "", showDebug, true)) showDebug = !showDebug;
                 if (ImGui.MenuItem("Wireframe", "", wireFrame, true)) wireFrame = !wireFrame;
+                if (ImGui.MenuItem("Infocard", "", infocardOpen, true)) infocardOpen = !infocardOpen;
                 ImGui.EndMenu();
             }
             var h = ImGui.GetWindowHeight();
@@ -185,6 +193,22 @@ C# Memory Usage: {5}
                     ImGui.Text(string.Format(DEBUG_TEXT, curSystem.Name, curSystem.Id,
                                             camera.Position.X, camera.Position.Y, camera.Position.Z,
                                              DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), (int)Math.Round(RenderFrequency), VertexBuffer.TotalDrawcalls, VertexBuffer.TotalBuffers));
+                    ImGui.End();
+                }
+                ImGui.SetNextWindowSize(new Vector2(100, 100), ImGuiCond.FirstUseEver);
+                if (infocardOpen)
+                {
+                    if (ImGui.Begin("Infocard", ref infocardOpen))
+                    {
+                        var szX = Math.Max(20, ImGui.GetWindowWidth());
+                        var szY = Math.Max(20, ImGui.GetWindowHeight());
+                        if (icard == null)
+                        {
+                            icard = new InfocardControl(this, systemInfocard, szX);
+                        }
+                        icard.Draw(szX);
+
+                    }
                     ImGui.End();
                 }
             }
@@ -203,6 +227,8 @@ C# Memory Usage: {5}
                         camera.Zoom = 5000;
                         Resources.ClearTextures();
                         curSystem = GameData.GetSystem(systems[sysIndex]);
+                        systemInfocard = GameData.GetInfocard(curSystem.Infocard);
+                        if (icard != null) icard.SetInfocard(systemInfocard);
                         GameData.LoadAllSystem(curSystem);
                         world.LoadSystem(curSystem, Resources);
                         sysIndexLoaded = sysIndex;
@@ -248,6 +274,7 @@ C# Memory Usage: {5}
             systems = GameData.ListSystems().OrderBy(x => x).ToArray();
             Resources.ClearTextures();
             curSystem = GameData.GetSystem(systems[0]);
+            systemInfocard = GameData.GetInfocard(curSystem.Infocard);
             GameData.LoadAllSystem(curSystem);
             world.LoadSystem(curSystem, Resources);
         }

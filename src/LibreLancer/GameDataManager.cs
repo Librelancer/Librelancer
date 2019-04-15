@@ -445,6 +445,7 @@ namespace LibreLancer
                 var sys = new GameData.StarSystem();
                 sys.AmbientColor = inisys.AmbientColor ?? Color4.White;
                 sys.Name = GetString(inisys.IdsName);
+                sys.Infocard = inisys.IdsInfo;
                 sys.Id = inisys.Nickname;
                 sys.BackgroundColor = inisys.SpaceColor ?? Color4.Black;
                 sys.MusicSpace = inisys.MusicSpace;

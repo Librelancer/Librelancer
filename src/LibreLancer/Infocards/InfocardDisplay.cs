@@ -35,19 +35,22 @@ namespace LibreLancer.Infocards
 
 		public bool DropShadow = false;
 
-		public InfocardDisplay(FreelancerGame g, Rectangle rect, params Infocard[] card)
+		public InfocardDisplay(Game g, Rectangle rect, params Infocard[] card)
 		{
 			infocards = card;
 			rectangle = rect;
-			renderer = g.Renderer2D;
-			fnts = g.Fonts;
+			renderer = g.GetService<Renderer2D>();
+			fnts = g.GetService<FontManager>();
 			UpdateLayout();
 		}
 
 		public void SetRectangle(Rectangle rect)
 		{
-			rectangle = rect;
-			UpdateLayout();
+            if (rectangle != rect)
+            {
+                rectangle = rect;
+                UpdateLayout();
+            }
 		}
 
 		public void SetInfocard(params Infocard[] card)
@@ -186,7 +189,17 @@ namespace LibreLancer.Infocards
 				dY += (int)fnt.LineHeight(size);
 				dX = 0;
 			}
-			Height = commands[commands.Count - 1].Y + renderer.MeasureString(fnt, size, commands[commands.Count - 1].String).Y;
+            //Height by line height because MeasureString doesn't work with baseline
+            int lastCmdH = (int)fnt.LineHeight(size);
+            if (string.IsNullOrEmpty(commands[commands.Count - 1].String)) lastCmdH = 0;
+            else
+            {
+                var str = commands[commands.Count - 1].String;
+                for(int i = 1; i < str.Length; i++) {
+                    if(str[i - 1] == '\n') lastCmdH += (int)fnt.LineHeight(size); 
+                }
+            }
+            Height = commands[commands.Count - 1].Y + lastCmdH;
 		}
 
 		public static List<string> WrapText(Renderer2D renderer, Font font, int sz, string text, int maxLineWidth, int x, out int newX, ref int dY)

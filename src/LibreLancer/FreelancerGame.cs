@@ -101,6 +101,7 @@ namespace LibreLancer
             Services.Add(ResourceManager);
             Services.Add(Renderer2D);
             Services.Add(Config);
+            Services.Add(Fonts);
 
 			if (useintromovies && IntroMovies.Count > 0)
 				ChangeState(new IntroMovie(this, 0));

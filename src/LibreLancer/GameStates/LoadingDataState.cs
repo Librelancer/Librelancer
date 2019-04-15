@@ -34,7 +34,7 @@ namespace LibreLancer
             if (Game.InitialLoadComplete)
 			{
 				Game.ResourceManager.Preload();
-				Game.Fonts.LoadFonts();
+				Game.Fonts.LoadFontsFromGameData(Game.GameData);
 				if (Game.Config.CustomState != null)
 					Game.ChangeState(Game.Config.CustomState(Game));
 				else
