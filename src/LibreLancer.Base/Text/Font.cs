@@ -25,8 +25,16 @@ namespace LibreLancer
 	public class Font : IDisposable
 	{
 		const int TEXTURE_SIZE = 1024;
+        static readonly byte[] gammaTable = new byte[256];
+        const double FONT_GAMMA = 1.42;
+        static Font()
+        {
+            for(int i = 0; i < 256; i++) {
+                gammaTable[i] = (byte)(Math.Round(255.0 *(Math.Pow(i / 255.0, 1 / FONT_GAMMA))));
+            }
+        }
 
-		List<Texture2D> textures = new List<Texture2D>();
+        List<Texture2D> textures = new List<Texture2D>();
 		Dictionary<int, GlyphCollection> glyphs = new Dictionary<int, GlyphCollection>();
 		int currentX = 0;
 		int currentY = 0;
@@ -210,7 +218,14 @@ namespace LibreLancer
 				           );
 				var tex = textures [textures.Count - 1];
 				GL.PixelStorei (GL.GL_UNPACK_ALIGNMENT, 1);
-				tex.SetData (0, rect, c_face.Glyph.Bitmap.Buffer);
+                //Convert to sRGB
+                byte* pixelPtr = (byte*)c_face.Glyph.Bitmap.Buffer;
+                for(int k = 0; k < c_face.Glyph.Bitmap.Width * c_face.Glyph.Bitmap.Rows; k++)
+                {
+                    pixelPtr[k] = gammaTable[pixelPtr[k]];
+                }
+                //Set
+                tex.SetData (0, rect, c_face.Glyph.Bitmap.Buffer);
 				GL.PixelStorei (GL.GL_UNPACK_ALIGNMENT, 4);
 				currentX += c_face.Glyph.Bitmap.Width;
 				col.glyphs.Add (

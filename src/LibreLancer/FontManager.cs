@@ -16,7 +16,8 @@ namespace LibreLancer
 		Dictionary<FKey, Font> systemFonts = new Dictionary<FKey, Font>();
 		public Font GetSystemFont(string name, FontStyles style = FontStyles.Regular)
 		{
-			var k = new FKey() { Name = name, Style = style };
+            if(ren2d == null) ren2d = game.GetService<Renderer2D>();
+            var k = new FKey() { Name = name, Style = style };
 			Font fnt;
 			if (!systemFonts.TryGetValue(k, out fnt))
 			{
@@ -41,7 +42,6 @@ namespace LibreLancer
 		public FontManager(Game game)
 		{
 			this.game = game;
-            ren2d = game.GetService<Renderer2D>();
 		}
 
         public void ConstructDefaultFonts()
