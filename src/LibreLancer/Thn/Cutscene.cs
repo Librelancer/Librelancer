@@ -262,8 +262,6 @@ namespace LibreLancer
             evs.Sort((x, y) => x.Time.CompareTo(y.Time));
             foreach (var item in evs)
                 events.Enqueue(item);
-            //Add objects to the renderer
-            World.RegisterAll();
         }
 
         public Cutscene(IEnumerable<ThnScript> scripts, FreelancerGame game, GameObject playerShip = null)

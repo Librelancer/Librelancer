@@ -80,6 +80,27 @@ namespace LibreLancer.Physics
                 }
             }
         }
+        public void RemovePart(object tag)
+        {
+            for(int i = 0; i < children.Count; i++)
+            {
+                var part = children[i];
+                if(part.Tag == tag) { 
+                    for(int j = i+1; j < children.Count; j++)
+                    {
+                        children[j].Index -= part.Count;
+                    }
+                    int k = 0;
+                    while(k < part.Count)
+                    {
+                        btCompound.RemoveChildShapeByIndex(part.Index);
+                        k++;
+                    }
+                    children.RemoveAt(i);
+                    i--;
+                }
+            }
+        }
         public void FinishUpdatePart()
         {
             btCompound.RecalculateLocalAabb();

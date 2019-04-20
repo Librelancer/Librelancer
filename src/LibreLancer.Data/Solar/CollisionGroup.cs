@@ -12,8 +12,17 @@ namespace LibreLancer.Data.Solar
 {
 	public class CollisionGroup
 	{
-		public CollisionGroup(Section section)
-		{
-		}
+        [Entry("obj")]
+        public string obj;
+        [Entry("child_impulse")]
+        public float ChildImpulse;
+        [Entry("debris_type")]
+        public string DebrisType;
+        [Entry("mass")]
+        public float Mass;
+        [Entry("hit_pts")]
+        public float HitPts;
+        [Entry("separable", Presence=true)]
+        public bool Separable;
 	}
 }

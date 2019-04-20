@@ -202,6 +202,7 @@ namespace LibreLancer
             gameobj.Nickname = sol.Nickname;
             gameobj.World = world;
             gameobj.Register(world.Physics);
+            gameobj.CollisionGroups = arch.CollisionGroups;
             world.Objects.Add(gameobj);
             spawned.Add(solarname, gameobj);
         }

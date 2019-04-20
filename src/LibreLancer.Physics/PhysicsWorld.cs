@@ -88,7 +88,7 @@ namespace LibreLancer.Physics
             {
                 var body = new RigidBody(rbInfo);
                 body.SetDamping(0, 0);
-                body.Restitution = 1;
+                body.Restitution = 1f;
                 var phys = new PhysicsObject(body, col) { Static = false };
                 phys.UpdateProperties();
                 body.UserObject = phys;
@@ -112,6 +112,7 @@ namespace LibreLancer.Physics
             }
             foreach(var obj in dynamicObjects) {
                 obj.UpdateProperties();
+                obj.RigidBody.Activate(true);
             }
         }
 

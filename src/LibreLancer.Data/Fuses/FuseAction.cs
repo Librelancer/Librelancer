@@ -29,12 +29,18 @@ namespace LibreLancer.Data.Fuses
         [Entry("fate")]
         public string Fate;
     }
+    public enum FusePartFate
+    {
+        NONE,
+        disappear,
+        debris
+    }
     public class FuseDestroyGroup : FuseAction //[destroy_group]
     {
         [Entry("group_name")]
         public string GroupName;
         [Entry("fate")]
-        public string Fate;
+        public FusePartFate Fate;
     }
     public class FuseStartCamParticles : FuseAction //[start_cam_particles]
     {

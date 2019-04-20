@@ -25,6 +25,10 @@ namespace LibreLancer
 			Renderer = render;
             render.World = this;
             Physics = new PhysicsWorld();
+            Renderer.PhysicsHook = () =>
+            {
+                Physics.DrawWorld();
+            };
             Physics.FixedUpdate += FixedUpdate;
             Projectiles = new ProjectileManager(this);
 		}
@@ -35,7 +39,7 @@ namespace LibreLancer
                 g.Unregister(Physics);
 
             Renderer.StarSystem = sys;
-
+           
             Objects = new List<GameObject>();
             Objects.Add((new GameObject() { Nickname = "projectiles", RenderComponent = new ProjectileRenderer(Projectiles) }));
 
@@ -48,6 +52,7 @@ namespace LibreLancer
                 g.SetLoadout(obj.Loadout, obj.LoadoutNoHardpoint);
                 g.StaticPosition = obj.Position;
                 g.World = this;
+                g.CollisionGroups = obj.Archetype.CollisionGroups;
                 if (g.RenderComponent != null) g.RenderComponent.LODRanges = obj.Archetype.LODRanges;
                 if (obj.Dock != null)
                 {

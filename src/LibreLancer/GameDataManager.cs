@@ -1076,6 +1076,10 @@ namespace LibreLancer
                         TargetLeft = o.PrevRing
                     };
                 }
+                if(o.Archetype.CollisionGroups.Count > 0)
+                {
+                    obj.Archetype.CollisionGroups = o.Archetype.CollisionGroups.ToArray();
+                }
             }
             if (obj.Archetype != null)
             {
@@ -1099,6 +1103,7 @@ namespace LibreLancer
             arch.Drawable = resource.GetDrawable(ResolveDataPath(fl.DaArchetypeName));
             arch.LODRanges = fl.LODRanges;
             arch.ArchetypeName = fl.GetType().Name;
+            if (fl.CollisionGroups.Count > 0) arch.CollisionGroups = fl.CollisionGroups.ToArray();
             return arch;
         }
 

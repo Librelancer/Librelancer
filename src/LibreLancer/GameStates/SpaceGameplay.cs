@@ -127,7 +127,6 @@ Mouse Flight: {10}
             player.Components.Add(pilotcomponent);
             player.World = world;
             world.MessageBroadcasted += World_MessageBroadcasted;
-            world.Physics.EnableWireframes(sysrender.DebugRenderer);
             ConstructHud();
             FadeIn(0.5, 0.5);
         }

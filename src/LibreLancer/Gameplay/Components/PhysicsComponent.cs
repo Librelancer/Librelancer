@@ -15,12 +15,34 @@ namespace LibreLancer
         public float SphereRadius = -1;
         Collider collider;
         SurCollider sur;
+        uint plainCrc = 0;
+        PhysicsWorld pworld;
         public PhysicsComponent(GameObject parent) : base(parent)
         {
         }
-
+        public void ChildDebris(GameObject parent, Utf.Cmp.Part part, float mass, Vector3 initialforce)
+        {
+            var cp = new PhysicsComponent(parent) { 
+                SurPath = this.SurPath,
+                Mass = mass,
+                plainCrc = CrcTool.FLModelCrc(part.ObjectName),
+            };
+            DisablePart(part);
+            parent.PhysicsComponent = cp;
+            cp.Register(pworld);
+            cp.Body.Impulse(initialforce);
+            parent.Components.Add(cp);
+        }
+            
+        public void DisablePart(Utf.Cmp.Part part)
+        {
+            sur.RemovePart(part);
+            sur.FinishUpdatePart();
+        }
         public override void Register(PhysicsWorld physics)
         {
+            if (pworld == physics) return;
+            pworld = physics;
             Collider cld = null;
             if(SurPath == null) { //sphere
                 cld = new SphereCollider(SphereRadius);
@@ -29,14 +51,14 @@ namespace LibreLancer
                 sur = new SurCollider(SurPath);
                 cld = sur;
                 if(mr.Model != null) {
-                    sur.AddPart(0, Matrix4.Identity, null);
+                    sur.AddPart(plainCrc, Matrix4.Identity, null);
                 } else {
                     foreach(var part in Parent.CmpParts) {
                         var crc = CrcTool.FLModelCrc(part.ObjectName);
                         if (part.Construct == null)
-                            sur.AddPart(crc, Matrix4.Identity, null);
+                            sur.AddPart(crc, Matrix4.Identity, part);
                         else
-                            sur.AddPart(crc, part.Construct.Transform, part.Construct);
+                            sur.AddPart(crc, part.Construct.Transform, part);
                     }
                 }
             }
@@ -55,12 +77,13 @@ namespace LibreLancer
             if (Body == null) return;
             foreach(var part in Parent.CmpParts) {
                 if (part.Construct != null)
-                    sur.UpdatePart(part.Construct, part.Construct.Transform);
+                    sur.UpdatePart(part, part.Construct.Transform);
             }
             sur.FinishUpdatePart();
         }
         public override void Unregister(PhysicsWorld physics)
         {
+            pworld = null;
             physics.RemoveObject(Body);
             collider.Dispose();
         }

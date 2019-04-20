@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
@@ -48,6 +49,7 @@ namespace LibreLancer
 		//Components
 		public List<GameObject> Children = new List<GameObject>();
 		public List<GameComponent> Components = new List<GameComponent>();
+        public Data.Solar.CollisionGroup[] CollisionGroups;
 		public ObjectRenderer RenderComponent;
 		public PhysicsComponent PhysicsComponent;
 		public AnimationComponent AnimationComponent;
@@ -89,7 +91,54 @@ namespace LibreLancer
 			if (PhysicsComponent == null) return;
             PhysicsComponent.UpdateParts();
 		}
-		public ResourceManager Resources;
+        public void DisableCmpPart(string part)
+        {
+            if (CmpParts == null) return;
+            for (int i = 0; i < CmpParts.Count; i++)
+            {
+                if (CmpParts[i].ObjectName.Equals(part, StringComparison.OrdinalIgnoreCase))
+                {
+                    PhysicsComponent.DisablePart(CmpParts[i]);
+                    CmpParts.RemoveAt(i);
+                    return;
+                }
+            }
+        }
+        public GameObject SpawnDebris(string part)
+        {
+            if (CmpParts == null) return null;
+            for (int i = 0; i < CmpParts.Count; i++)
+            {
+                var p = CmpParts[i];
+                if (p.ObjectName.Equals(part, StringComparison.OrdinalIgnoreCase))
+                {
+                    var tr = p.GetTransform(GetTransform());
+                    CmpParts.RemoveAt(i);
+                    var obj = new GameObject(p.Model, Resources, false);
+                    obj.Transform = tr;
+                    obj.World = World;
+                    obj.World.Objects.Add(obj);
+                    var pos0 = GetTransform().Transform(Vector3.Zero);
+                    var pos2 = p.GetTransform(GetTransform()).Transform(Vector3.Zero);
+                    var vec = (pos2 - pos0).Normalized();
+                    var initialforce = 100f;
+                    var mass = 50f;
+                    if(CollisionGroups != null)
+                    {
+                        var cg = CollisionGroups.FirstOrDefault(x => x.obj.Equals(part, StringComparison.OrdinalIgnoreCase));
+                        if(cg != null)
+                        {
+                            mass = cg.Mass;
+                            initialforce = cg.ChildImpulse;
+                        }
+                    }
+                    PhysicsComponent.ChildDebris(obj, p, mass,  vec * initialforce);
+                    return obj;
+                }
+            }
+            return null;
+        }
+        public ResourceManager Resources;
         void InitWithDrawable(IDrawable drawable, ResourceManager res, bool staticpos, bool havePhys = true)
 		{
 			Resources = res;
@@ -130,35 +179,6 @@ namespace LibreLancer
                 name = Path.GetFileNameWithoutExtension(cmp.Path);
                 if (File.Exists(path))
                     phys = new PhysicsComponent(this) { SurPath = path };
-                /*if (File.Exists(path))
-				{
-					SurFile sur = res.GetSur(path);
-					var shapes = new List<CompoundSurShape.TransformedShape>();
-					foreach (var part in CmpParts)
-					{
-						var crc = CrcTool.FLModelCrc(part.ObjectName);
-						if (!sur.HasShape(crc))
-						{
-							FLLog.Warning("Sur", "No hitbox for " + part.ObjectName);
-							continue;
-						}
-						var colshape = sur.GetShape(crc);
-						if (part.Construct == null)
-						{
-							foreach (var s in colshape)
-								shapes.Add(new CompoundSurShape.TransformedShape(s, Matrix3.Identity, Vector3.Zero));						}
-						else
-						{
-							var tr = part.Construct.Transform;
-							var pos = tr.ExtractTranslation();
-							var q = tr.ExtractRotation(true);
-							var rot = Matrix3.CreateFromQuaternion(q);
-							foreach (var s in colshape)
-								shapes.Add(new CompoundSurShape.TransformedShape(s, rot, pos) { Tag = part.Construct });
-						}
-					}
-					collisionShape = new CompoundSurShape(shapes);
-				}*/
 			}
 
             if (havePhys && phys != null)
@@ -298,7 +318,7 @@ namespace LibreLancer
 
 		public void Update(TimeSpan time)
 		{
-			if (RenderComponent != null)
+            if (RenderComponent != null)
 			{
 				var tr = GetTransform();
 				RenderComponent.Update(time, isstatic ? StaticPosition : tr.Transform(Vector3.Zero), tr);

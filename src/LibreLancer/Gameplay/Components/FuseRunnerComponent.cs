@@ -49,7 +49,15 @@ namespace LibreLancer
                 }
                 else if (act is FuseDestroyGroup)
                 {
-
+                    var dst = (FuseDestroyGroup)act;
+                    if(dst.Fate == FusePartFate.disappear)
+                    {
+                        Parent.DisableCmpPart(dst.GroupName);
+                    } 
+                    else if (dst.Fate == FusePartFate.debris)
+                    {
+                        var f = Parent.SpawnDebris(dst.GroupName);
+                    }
                 }
                 else if (act is FuseDestroyHpAttachment)
                 {

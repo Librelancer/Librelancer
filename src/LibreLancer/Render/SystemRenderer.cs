@@ -40,6 +40,7 @@ namespace LibreLancer
 		public IDrawable[] StarSphereModels;
 		public Matrix4[] StarSphereWorlds;
 		public PhysicsDebugRenderer DebugRenderer;
+        public Action PhysicsHook;
 		public PolylineRender Polyline;
 		public SystemLighting SystemLighting = new SystemLighting();
         public ParticleEffectPool FxPool = new ParticleEffectPool();
@@ -400,6 +401,7 @@ namespace LibreLancer
 			rstate.DepthWrite = false;
 			commands.DrawTransparent(rstate);
 			rstate.DepthWrite = true;
+            PhysicsHook?.Invoke();
 			DebugRenderer.Render();
 			if (gconfig.MSAASamples > 0)
 			{

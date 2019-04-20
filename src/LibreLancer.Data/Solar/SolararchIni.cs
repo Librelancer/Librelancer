@@ -24,11 +24,10 @@ namespace LibreLancer.Data.Solar
                     case "solar":
                         current = FromSection<Archetype>(s);
                         Solars[current.Nickname] = current;
-                        //Solars.Add(FromSection<Archetype>(s));
                         break;
                     case "collisiongroup":
                         if (current != null)
-                            current.CollisionGroups.Add(new CollisionGroup(s));
+                            current.CollisionGroups.Add(FromSection<CollisionGroup>(s));
                         break;
                     default:
                         throw new Exception("Invalid Section in " + path + ": " + s.Name);

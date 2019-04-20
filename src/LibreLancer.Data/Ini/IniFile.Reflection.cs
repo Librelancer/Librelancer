@@ -175,7 +175,8 @@ namespace LibreLancer.Ini
                 }
                 else if (ftype == typeof(bool))
                 {
-                    if (ComponentCheck(1, s, e)) field.Field.SetValue(obj, e[0].ToBoolean());
+                    if (field.Attr.Presence) field.Field.SetValue(obj, true);
+                    else if (ComponentCheck(1, s, e)) field.Field.SetValue(obj, e[0].ToBoolean());
                 }
                 else if (ftype == typeof(Vector3))
                 {

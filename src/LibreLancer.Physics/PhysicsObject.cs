@@ -81,7 +81,14 @@ namespace LibreLancer.Physics
                 RigidBody.ApplyForce(force.Cast(), BM.Vector3.Zero);
             }
         }
-
+        public void Impulse(Vector3 force)
+        {
+            if(force.LengthSquared > float.Epsilon)
+            {
+                RigidBody.Activate(true);
+                RigidBody.ApplyImpulse(force.Cast(), BM.Vector3.Zero);
+            }
+        }
         public void AddTorque(Vector3 torque)
         {
             if (torque.LengthSquared > float.Epsilon)
