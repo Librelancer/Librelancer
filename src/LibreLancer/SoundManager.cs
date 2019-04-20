@@ -75,8 +75,16 @@ namespace LibreLancer
         }
         public void PlayMusic(string name)
 		{
-			audio.Music.Play(data.GetAudioPath(name), true);
-		}
+            var path = data.GetAudioPath(name);
+            if (File.Exists(path))
+            {
+                audio.Music.Play(path, true);
+            }
+            else
+            {
+                FLLog.Error("Music", "Can't find file for " + name);
+            }
+        }
 		public void StopMusic()
 		{
 			audio.Music.Stop();

@@ -173,7 +173,13 @@ namespace LibreLancer
             FLLog.Info("Game", "Initing " + fldata.Markets.BaseGoods.Count + " shops");
             foreach (var m in fldata.Markets.BaseGoods)
             {
-                var b = bases[m.Base];
+                GameData.Base b;
+                if(!bases.TryGetValue(m.Base, out b))
+                {
+                    //This is allowed by demo at least
+                    FLLog.Warning("Market", "BaseGoods references nonexistent base " + m.Base);
+                    continue;
+                }
                 foreach (var gd in m.MarketGoods)
                 {
                     GameData.Market.ShipPackage sp;
@@ -262,7 +268,7 @@ namespace LibreLancer
         public string GetAudioPath(string id)
         {
             var audio = fldata.Audio.Entries.Where((arg) => arg.Nickname.ToLowerInvariant() == id.ToLowerInvariant()).First();
-            return Data.VFS.GetPath(fldata.Freelancer.DataPath + audio.File);
+            return Data.VFS.GetPath(fldata.Freelancer.DataPath + audio.File, false);
         }
         public string GetVoicePath(string id)
         {
@@ -301,10 +307,25 @@ namespace LibreLancer
         {
             if (!resource.TextureExists("__startupscreen_1280.tga"))
             {
-                resource.AddTexture(
-                    "__startupscreen_1280.tga",
-                    Data.VFS.GetPath(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen_1280.tga")
-                );
+                if (Data.VFS.FileExists(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen_1280.tga"))
+                {
+                    resource.AddTexture(
+                        "__startupscreen_1280.tga",
+                        Data.VFS.GetPath(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen_1280.tga")
+                    );
+                } else if (Data.VFS.FileExists(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen.tga"))
+                {
+                    resource.AddTexture(
+                        "__startupscreen_1280.tga",
+                        Data.VFS.GetPath(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen.tga")
+                    );
+                }
+                else
+                {
+                    FLLog.Error("Splash", "Splash screen not found");
+                    return resource.WhiteTexture;
+                }
+
             }
             return (Texture2D)resource.FindTexture("__startupscreen_1280.tga");
         }
