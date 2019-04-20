@@ -194,6 +194,7 @@ namespace LancerEdit
             {
                 Theme.Icon(icon, color);
                 ImGui.SameLine();
+
                 if (ImGui.Selectable(label, selectedReference == reference))
                 {
                     selectedReference = reference;
@@ -254,6 +255,7 @@ namespace LancerEdit
         {
             transform = Matrix4.CreateRotationX(aleViewport.Rotation.Y) * Matrix4.CreateRotationY(aleViewport.Rotation.X);
             instance.Update(TimeSpan.FromSeconds(elapsed), transform, sparam);
+            pool.Update(TimeSpan.FromSeconds(elapsed));
         }
 
         public override void Dispose()
