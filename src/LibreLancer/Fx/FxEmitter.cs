@@ -57,21 +57,22 @@ namespace LibreLancer.Fx
 		}
         protected void SpawnParticle(int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4 transform, float sparam, float globaltime)
 		{
-			instance.Particles[idx].Active = true;
-			instance.Particles[idx].Emitter = reference;
-			instance.Particles[idx].Appearance = reference.Paired[0];
-			instance.Particles[idx].TimeAlive = 0f;
-			instance.Particles[idx].LifeSpan = InitLifeSpan.GetValue(sparam, 0f);
-            instance.Particles[idx].Orientation = Quaternion.Identity;
+			instance.Pool.Particles[idx].Active = true;
+            instance.Pool.Particles[idx].Instance = instance;
+			instance.Pool.Particles[idx].Emitter = reference;
+			instance.Pool.Particles[idx].Appearance = reference.Paired[0];
+			instance.Pool.Particles[idx].TimeAlive = 0f;
+			instance.Pool.Particles[idx].LifeSpan = InitLifeSpan.GetValue(sparam, 0f);
+            instance.Pool.Particles[idx].Orientation = Quaternion.Identity;
             SetParticle(idx, reference, instance, ref transform, sparam, globaltime);
             if (reference.Paired[0].Parent == null)
             {
-                instance.Particles[idx].Position = VectorMath.Transform(
-                    instance.Particles[idx].Position, transform);
-                var len = instance.Particles[idx].Normal.Length;
-                var nr = instance.Particles[idx].Normal.Normalized();
+                instance.Pool.Particles[idx].Position = VectorMath.Transform(
+                instance.Pool.Particles[idx].Position, transform);
+                var len = instance.Pool.Particles[idx].Normal.Length;
+                var nr = instance.Pool.Particles[idx].Normal.Normalized();
                 var transformed = (transform * new Vector4(nr, 0)).Xyz.Normalized();
-                instance.Particles[idx].Normal = transformed * len;
+                instance.Pool.Particles[idx].Normal = transformed * len;
             }
 		}
         protected virtual void SetParticle(int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4 transform, float sparam, float globaltime)
@@ -106,6 +107,8 @@ namespace LibreLancer.Fx
 		public override void Update(NodeReference reference, ParticleEffectInstance instance, TimeSpan delta, ref Matrix4 transform, float sparam)
 		{
 			if (reference.Paired.Count == 0) return;
+            if (NodeLifeSpan < instance.GlobalTime) return;
+            if (reference.Paired[0].Node.NodeLifeSpan < instance.GlobalTime) return;
             var maxCount = 1000;
 			//var maxCount = MaxParticles == null ? int.MaxValue : (int)Math.Ceiling(MaxParticles.GetValue(sparam, 0f));
 			var freq = Frequency == null ? 0f : Frequency.GetValue(sparam, 0f);
@@ -138,7 +141,7 @@ namespace LibreLancer.Fx
 						state.ParticleCount++;
                         SpawnParticle(idx, reference, instance, ref transform, sparam, (float)instance.GlobalTime);
                         var app = (FxAppearance)reference.Paired[0].Node;
-						app.OnParticleSpawned(idx,instance.Particles[idx].Appearance,instance);
+						app.OnParticleSpawned(idx,instance.Pool.Particles[idx].Appearance,instance);
 					}
 				}
 			}

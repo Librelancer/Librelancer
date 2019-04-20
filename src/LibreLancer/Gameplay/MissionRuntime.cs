@@ -143,6 +143,13 @@ namespace LibreLancer
                         gameplay.player.Transform = Matrix4.CreateTranslation(act.Entry[0].ToSingle(), act.Entry[1].ToSingle(), act.Entry[2].ToSingle());
                         //last param seems to always be one?
                         break;
+                    case TriggerActions.Act_LightFuse:
+                        var fuse = session.Game.GameData.GetFuse(act.Entry[1].ToString());
+                        var gameObj = gameplay.world.GetObject(act.Entry[0].ToString());
+                        var fzr = new FuseRunnerComponent(gameObj) { Fuse = fuse };
+                        gameObj.Components.Add(fzr);
+                        fzr.Run();
+                        break;
                     case TriggerActions.Act_PlayMusic:
                         session.Game.Sound.PlayMusic(act.Entry[3].ToString());
                         break;

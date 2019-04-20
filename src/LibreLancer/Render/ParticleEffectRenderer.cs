@@ -27,8 +27,10 @@ namespace LibreLancer
             if (Active && dist < (20000 * 20000))
             {
                 sys.AddObject(this);
+                fx.Pool = sys.FxPool;
                 return true;
             }
+            fx.Pool = null;
             return false;
         }
 		Matrix4 tr;

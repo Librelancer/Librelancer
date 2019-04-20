@@ -405,6 +405,9 @@
     <Compile Include="Utf\Audio\VoiceUtf.cs" />
     <Compile Include="GameData\Market\ShipPackage.cs" />
     <Compile Include="GameData\Market\SoldShip.cs" />
+    <Compile Include="GameData\FuseResources.cs" />
+    <Compile Include="Gameplay\Components\FuseRunnerComponent.cs" />
+    <Compile Include="Fx\ParticleEffectPool.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

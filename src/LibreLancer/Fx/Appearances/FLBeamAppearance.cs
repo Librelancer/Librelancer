@@ -54,7 +54,7 @@ namespace LibreLancer.Fx
                     indices[ptCount++] = points[i].ParticleIndex;
 			}
             if (ptCount < 2) return;
-            for (int i = 0; i < ptCount; i++) particles[i] = instance.Particles[indices[i]];
+            for (int i = 0; i < ptCount; i++) particles[i] = instance.Pool.Particles[indices[i]];
             for (int i = 1; i < ptCount; i++) {
                 if (particles[i - 1].TimeAlive > particles[i].TimeAlive)
                     Console.WriteLine("bad order");
@@ -62,7 +62,7 @@ namespace LibreLancer.Fx
             var node_tr = GetAttachment(reference, transform);
 			Texture2D tex;
 			Vector2 tl, tr, bl, br;
-			HandleTexture(res, globalTime, sparam, ref instance.Particles[indices[0]], out tex, out tl, out tr, out bl, out br);
+			HandleTexture(res, globalTime, sparam, ref instance.Pool.Particles[indices[0]], out tex, out tl, out tr, out bl, out br);
 			//Sorting hack kinda
 			var z = RenderHelpers.GetZ(billboards.Camera.Position, node_tr.Transform(Vector3.Zero));
 			for (int j = 0; j < 2; j++) //two planes
@@ -73,9 +73,9 @@ namespace LibreLancer.Fx
 
 				for (int i = 0; i < ptCount; i++)
 				{
-					var pos = node_tr.Transform(instance.Particles[indices[i]].Position);
+					var pos = node_tr.Transform(instance.Pool.Particles[indices[i]].Position);
 					if (i + 1 < ptCount) {
-						var pos2 = node_tr.Transform(instance.Particles[indices[i + 1]].Position);
+						var pos2 = node_tr.Transform(instance.Pool.Particles[indices[i + 1]].Position);
 						var forward = (pos2 - pos).Normalized();
 						var toCamera = (billboards.Camera.Position - pos).Normalized();
 						var up = Vector3.Cross(toCamera, forward);
@@ -88,7 +88,7 @@ namespace LibreLancer.Fx
 							dir = right;
 						}
 					}
-					var time = instance.Particles[indices[i]].TimeAlive / instance.Particles[indices[i]].LifeSpan;
+					var time = instance.Pool.Particles[indices[i]].TimeAlive / instance.Pool.Particles[indices[i]].LifeSpan;
 					var w = Width.GetValue(sparam, time);
 					poly.AddPoint(
 						pos + (dir * w / 2),

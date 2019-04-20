@@ -1130,6 +1130,22 @@ namespace LibreLancer
             }
         }
 
+        public GameData.FuseResources GetFuse(string fusename)
+        {
+            var fz = fldata.Fuses.Fuses[fusename];
+            var fuse = new GameData.FuseResources() { Fuse = fz };
+            foreach (var act in fz.Actions)
+            {
+                var fza = (act as Data.Fuses.FuseStartEffect);
+                if(fza != null)
+                {
+                    if(!fuse.Fx.ContainsKey(fza.Effect))
+                        fuse.Fx[fza.Effect] = GetEffect(fza.Effect);
+                }
+            }
+            return fuse;
+        }
+
         public bool HasEffect(string effectName)
         {
             return fldata.Effects.FindEffect(effectName) != null || fldata.Effects.FindVisEffect(effectName) != null;
@@ -1148,6 +1164,7 @@ namespace LibreLancer
                 FLLog.Error("Fx", "Can't find fx " + effectName);
                 return null;
             }
+            if (visfx == null) return null;
             foreach (var texfile in visfx.Textures)
             {
                 var path = Data.VFS.GetPath(fldata.Freelancer.DataPath + texfile);

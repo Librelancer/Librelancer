@@ -20,6 +20,7 @@ namespace LancerEdit
         Billboards billboards;
         PolylineRender polyline;
         PhysicsDebugRenderer debug;
+        ParticleEffectPool pool;
         //Tab
         string name;
         ParticleLibrary plib;
@@ -31,6 +32,7 @@ namespace LancerEdit
         public AleViewer(string title, string name, AleFile ale, MainWindow main)
         {
             plib = new ParticleLibrary(main.Resources, ale);
+            pool = new ParticleEffectPool();
             effectNames = new string[plib.Effects.Count];
             for (int i = 0; i < effectNames.Length; i++)
                 effectNames[i] = string.Format("{0} (0x{1:X})", plib.Effects[i].Name, plib.Effects[i].CRC);
@@ -52,6 +54,7 @@ namespace LancerEdit
         {
             selectedReference = null;
             instance = new ParticleEffectInstance(plib.Effects[index]);
+            instance.Pool = pool;
             instance.Resources = plib.Resources;
         }
 
@@ -212,6 +215,7 @@ namespace LancerEdit
             billboards.Begin(cam, buffer);
             debug.StartFrame(cam, rstate);
             instance.Draw(polyline, billboards, debug, transform, sparam);
+            pool.Draw(polyline, billboards, debug);
             polyline.FrameEnd();
             billboards.End();
             buffer.DrawOpaque(rstate);

@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using LibreLancer.GameData;
 using LibreLancer.Utf.Cmp;
+using LibreLancer.Fx;
+    
 namespace LibreLancer
 {
 	//Responsible for rendering the GameWorld.
@@ -40,6 +42,7 @@ namespace LibreLancer
 		public PhysicsDebugRenderer DebugRenderer;
 		public PolylineRender Polyline;
 		public SystemLighting SystemLighting = new SystemLighting();
+        public ParticleEffectPool FxPool = new ParticleEffectPool();
 		ResourceManager cache;
 		RenderState rstate;
 		Game game;
@@ -162,7 +165,7 @@ namespace LibreLancer
 		{
 			foreach (var model in StarSphereModels)
 				model.Update(camera, elapsed, TimeSpan.FromSeconds(game.TotalTime));
-
+            FxPool.Update(elapsed);
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Update(camera);
 			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Update(elapsed);
 		}
@@ -378,6 +381,7 @@ namespace LibreLancer
 			}
 			//Actual Drawing
 			foreach (var obj in objects) obj.Draw(camera, commands, SystemLighting, nr);
+            FxPool.Draw(Polyline, billboards, DebugRenderer);
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(cache, SystemLighting, commands, nr);
 			nebulae.NewFrame();
 			if (nr == null)

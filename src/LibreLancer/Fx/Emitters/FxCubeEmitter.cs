@@ -58,8 +58,8 @@ namespace LibreLancer.Fx
                 n = rotate * n;
             }
 			var pr = pos;
-			instance.Particles[idx].Position = pr;
-			instance.Particles [idx].Normal = n * Pressure.GetValue (sparam, 0);
+			instance.Pool.Particles[idx].Position = pr;
+			instance.Pool.Particles [idx].Normal = n * Pressure.GetValue (sparam, 0);
 		}
 
         //Different direction to FxCubeEmitter

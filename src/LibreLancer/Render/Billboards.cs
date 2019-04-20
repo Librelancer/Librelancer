@@ -668,5 +668,5 @@ namespace LibreLancer
             lastIndexBasic = 0;
             lastIndexRect = 0;
 		}
-	}
+    }
 }

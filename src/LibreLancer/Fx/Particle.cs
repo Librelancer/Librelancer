@@ -16,6 +16,7 @@ namespace LibreLancer.Fx
         public Quaternion Orientation;
 		public NodeReference Appearance;
 		public NodeReference Emitter;
+        public ParticleEffectInstance Instance;
 	}
 }
 
