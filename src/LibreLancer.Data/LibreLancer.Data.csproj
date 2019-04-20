@@ -217,6 +217,9 @@
     <Compile Include="Missions\TriggerInitState.cs" />
     <Compile Include="ContentDll.cs" />
     <Compile Include="Audio\VoiceIni.cs" />
+    <Compile Include="Fuses\FuseIni.cs" />
+    <Compile Include="Fuses\Fuse.cs" />
+    <Compile Include="Fuses\FuseAction.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />
@@ -239,6 +242,7 @@
     <Folder Include="Universe\" />
     <Folder Include="Save\" />
     <Folder Include="Missions\" />
+    <Folder Include="Fuses\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

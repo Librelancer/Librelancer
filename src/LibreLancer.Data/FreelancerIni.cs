@@ -31,7 +31,9 @@ namespace LibreLancer.Data
 		public List<string> AsteroidPaths { get; private set; }
 		public List<string> RichFontPaths { get; private set; }
 		public List<string> PetalDbPaths { get; private set; }
-		public string StarsPath { get; private set; }
+        public List<string> FusePaths { get; private set;  }
+
+        public string StarsPath { get; private set; }
 		public string BodypartsPath { get; private set; }
 		public string CostumesPath { get; private set; }
 		public string EffectShapesPath { get; private set; }
@@ -70,6 +72,7 @@ namespace LibreLancer.Data
 			StartupMovies = new List<string>();
             GoodsPaths = new List<string>();
             MarketsPaths = new List<string>();
+            FusePaths = new List<string>();
 
             bool extNoNavmaps = false;
             bool extHideFac = false;
@@ -193,6 +196,9 @@ namespace LibreLancer.Data
                             break;
                         case "markets":
                             MarketsPaths.Add(DataPath + e[0].ToString());
+                            break;
+                        case "fuses":
+                            FusePaths.Add(DataPath + e[0].ToString());
                             break;
 						}
 					}

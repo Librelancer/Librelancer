@@ -16,7 +16,8 @@ using LibreLancer.Data.Ships;
 using LibreLancer.Data.Audio;
 using LibreLancer.Data.Effects;
 using LibreLancer.Data.Goods;
-
+using LibreLancer.Data.Fuses;
+    
 namespace LibreLancer.Data
 {
 	public class FreelancerData
@@ -27,6 +28,7 @@ namespace LibreLancer.Data
 		//Data
 		public InfocardManager Infocards;
 		public EffectsIni Effects;
+        public FuseIni Fuses;
 		public EquipmentIni Equipment;
 		public LoadoutsIni Loadouts;
 		public SolararchIni Solar;
@@ -146,6 +148,10 @@ namespace LibreLancer.Data
                 BaseNavBar = new BaseNavBarIni();
                 //mbases.ini
                 MBases = new MBasesIni();
+                //fuses
+                Fuses = new FuseIni();
+                foreach (var fi in Freelancer.FusePaths)
+                    Fuses.AddFuseIni(fi);
             });
             tMisc.Start();
             tSolar.Start();
