@@ -1198,6 +1198,8 @@ namespace LibreLancer
             equip.GlowColor = lt.GlowColor ?? equip.Color;
             equip.BulbSize = lt.BulbSize ?? 1f;
             equip.GlowSize = lt.GlowSize ?? 1f;
+            equip.AlwaysOn = lt.AlwaysOn ?? true;
+            equip.DockingLight = lt.DockingLight ?? false;
             if (lt.AvgDelay != null)
             {
                 equip.Animated = true;

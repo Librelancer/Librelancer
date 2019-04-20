@@ -199,7 +199,8 @@ namespace LibreLancer
 			Attachment = hp;
 			if (equip is LightEquipment)
 			{
-				RenderComponent = new LightEquipRenderer((LightEquipment)equip);
+                var lq = (LightEquipment)equip;
+                RenderComponent = new LightEquipRenderer(lq) { LightOn = !lq.DockingLight };
 			}
 			if (equip is EffectEquipment)
 			{

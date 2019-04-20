@@ -13,6 +13,7 @@ namespace LibreLancer
         Vector3 pos;
         SystemRenderer sys;
         LightEquipment equip;
+        public bool LightOn = true;
         static Random rnd = new Random();
         public LightEquipRenderer(LightEquipment e)
         {
@@ -78,7 +79,7 @@ namespace LibreLancer
         Color3f colorGlow;
         public override void Update(TimeSpan time, Vector3 position, Matrix4 transform)
         {
-            if (sys == null)
+            if (!LightOn || sys == null)
                 return;
             pos = position;
             if (equip.Animated)
@@ -106,6 +107,7 @@ namespace LibreLancer
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
         {
             var visible = (
+                LightOn && 
                 VectorMath.DistanceSquared(camera.Position, pos) < CULL &&
                 camera.Frustum.Intersects(new BoundingSphere(pos, equip.BulbSize * 3))
             );

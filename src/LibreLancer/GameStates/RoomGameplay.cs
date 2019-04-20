@@ -46,10 +46,10 @@ namespace LibreLancer
 					tophotspots.Add(hp);
             var rm = virtualRoom ?? currentRoom.Nickname;
             SetActiveHotspot(rm);
+            this.virtualRoom = virtualRoom;
             hud = new ScriptedHud(new LuaAPI(this), false, Game);
             hud.OnEntered += Hud_OnTextEntry;
             hud.Init();
-			this.virtualRoom = virtualRoom;
 			Game.Keyboard.TextInput += Game_TextInput;
 			Game.Keyboard.KeyDown += Keyboard_KeyDown;
 			cursor = Game.ResourceManager.GetCursor("arrow");
@@ -98,10 +98,10 @@ namespace LibreLancer
             {
                 var list = new Neo.IronLua.LuaTable();
                 var icons = g.Game.GameData.GetBaseNavbarIcons();
-                if (g.virtualRoom == null &&
-                    g.currentRoom.Nickname.Equals("cityscape",StringComparison.OrdinalIgnoreCase) ||
+                if (string.IsNullOrEmpty(g.virtualRoom) &&
+                    (g.currentRoom.Nickname.Equals("cityscape",StringComparison.OrdinalIgnoreCase) ||
                     g.currentRoom.Nickname.Equals("deck",StringComparison.OrdinalIgnoreCase) ||
-                    g.currentRoom.Nickname.Equals("planetscape", StringComparison.OrdinalIgnoreCase)) 
+                    g.currentRoom.Nickname.Equals("planetscape", StringComparison.OrdinalIgnoreCase))) 
                 {
                     var mn = (dynamic)(new Neo.IronLua.LuaTable());
                     mn.action = LAUNCH_ACTION;
