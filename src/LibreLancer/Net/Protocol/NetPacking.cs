@@ -11,7 +11,7 @@ namespace LibreLancer
 
         const float UNIT_MIN = -0.707107f;
         const float UNIT_MAX = 0.707107f;
-		public static void WriteQuaternion(Lidgren.Network.NetOutgoingMessage om, Quaternion q)
+		public static void Write(this Lidgren.Network.NetOutgoingMessage om, Quaternion q)
 		{
 			var maxIndex = 0;
 			var maxValue = float.MinValue;
@@ -67,7 +67,7 @@ namespace LibreLancer
             om.WritePadBits();
 		}
 
-		public static Quaternion ReadQuaternion(Lidgren.Network.NetIncomingMessage im)
+		public static Quaternion ReadQuaternion(this Lidgren.Network.NetIncomingMessage im)
 		{
             var maxIndex = im.ReadRangedInteger(0, 3);
 
@@ -84,21 +84,18 @@ namespace LibreLancer
 				return new Quaternion(a, b, d, c);
 			return new Quaternion(a, b, c, d);
 		}
+            
 
-		public static void WriteDirection(Lidgren.Network.NetOutgoingMessage om, Vector3 vec)
+		public static void Write(this Lidgren.Network.NetOutgoingMessage om, Vector3 vec)
 		{
-			om.Write((short)(vec.X * short.MaxValue));
-			om.Write((short)(vec.Y * short.MaxValue));
-			om.Write((short)(vec.Z * short.MaxValue));
+            om.Write(vec.X);
+            om.Write(vec.Y);
+            om.Write(vec.Z);
 		}
 
-		public static Vector3 ReadDirection(Lidgren.Network.NetIncomingMessage om)
-		{
-			return new Vector3(
-				(float)om.ReadInt16() / short.MaxValue,
-				(float)om.ReadInt16() / short.MaxValue,
-				(float)om.ReadInt16() / short.MaxValue
-			);
-		}
-	}
+        public static Vector3 ReadVector3(this Lidgren.Network.NetIncomingMessage im)
+        {
+            return new Vector3(im.ReadFloat(), im.ReadFloat(), im.ReadFloat());
+        }
+    }
 }

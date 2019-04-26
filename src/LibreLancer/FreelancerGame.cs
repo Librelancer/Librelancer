@@ -118,7 +118,10 @@ namespace LibreLancer
 		protected override void Cleanup()
 		{
             if (currentState != null)
+            {
+                currentState.Exiting();
                 currentState.Unregister();
+            }
 			Audio.Music.Stop ();
 			Audio.Dispose ();
 			Screenshots.Stop();

@@ -120,15 +120,24 @@ namespace LibreLancer
 								FLLog.Info("Lidgren", "Remote hail: " + im.SenderConnection.RemoteHailMessage.ReadString());
 								BeginAuthentication(NetServer, im.SenderConnection);
 							}
-							NetServer.Recycle(im);
+                            else if (status == NetConnectionStatus.Disconnected)
+                            {
+                                FLLog.Info("Lidgren", im.SenderEndPoint.ToString() + " disconnected");
+                                if (im.SenderConnection.Tag is NetPlayer)
+                                    ((NetPlayer)im.SenderConnection.Tag).Disconnected();
+                            }
+                            NetServer.Recycle(im);
 							break;
 						case NetIncomingMessageType.Data:
-							var kind = (PacketKind)im.ReadByte();
+                            var pkt = im.ReadPacket();
+                            FLLog.Debug("Network", "Packet of type " + pkt.GetType().ToString());
 							if (im.SenderConnection.Tag == TagConnecting)
 							{
-								if (kind == PacketKind.Authentication)
+                                if (pkt is AuthenticationReplyPacket)
 								{
-                                    im.SenderConnection.Disconnect("boilerplate reason from server");
+                                    var auth = (AuthenticationReplyPacket)pkt;
+
+                                    //im.SenderConnection.Disconnect("boilerplate reason from server");
                                     /*
 									var authkind = (AuthenticationKind)im.ReadByte();
 									var guid = new Guid(im.ReadBytes(16));
@@ -137,34 +146,40 @@ namespace LibreLancer
 									var p = new NetPlayer(im.SenderConnection, this, guid);
 									im.SenderConnection.Tag = p;
 									AsyncManager.RunTask(() => p.DoAuthSuccess());*/
+
+                                    var p = new NetPlayer(im.SenderConnection, this, auth.Guid);
+                                    im.SenderConnection.Tag = p;
+                                    AsyncManager.RunTask(() => p.DoAuthSuccess());
 								}
 								else
 								{
 									im.SenderConnection.Disconnect("Invalid Packet");
 								}
-							}
-							else
+                                NetServer.Recycle(im);
+
+                            }
+                            else
 							{
-								var player = (NetPlayer)im.SenderConnection.Tag;
-								AsyncManager.RunTask(() => player.ProcessPacket(im, kind));
-							}
- 							break;
+                                var player = (NetPlayer)im.SenderConnection.Tag;
+								AsyncManager.RunTask(() => player.ProcessPacket(pkt));
+                                NetServer.Recycle(im);
+
+                            }
+                            break;
 					}
 				}
 				Thread.Sleep(1); //Reduce CPU load
 			}
 			Database.Dispose();
 		}
-
-        void UpdatePlayerPosition()
-        {
             
-        }
 		void BeginAuthentication(NetServer server, NetConnection connection)
 		{
 			var msg = server.CreateMessage();
-			msg.Write((byte)PacketKind.Authentication);
-			msg.Write((byte)AuthenticationKind.GUID);
+            msg.Write(new AuthenticationPacket()
+            {
+                Type = AuthenticationKind.GUID
+            });
 			server.SendMessage(msg, connection, NetDeliveryMethod.ReliableOrdered);
 			connection.Tag = TagConnecting;
 		}

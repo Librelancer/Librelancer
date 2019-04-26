@@ -17,6 +17,7 @@ namespace LibreLancer
 		IUIThread mainThread;
 		Thread networkThread;
 		NetClient client;
+        public GameSession Session;
 		public event Action<LocalServerInfo> ServerFound;
 		public event Action<CharacterSelectInfo> CharacterSelection;
         public event Action<int> OpenNewCharacter;
@@ -25,9 +26,10 @@ namespace LibreLancer
 
 		public Guid UUID;
 
-		public GameClient(IUIThread mainThread)
+		public GameClient(IUIThread mainThread, GameSession session)
 		{
 			this.mainThread = mainThread;
+            Session = session;
 		}
 
 		public void Start()
@@ -44,6 +46,8 @@ namespace LibreLancer
 			networkThread.Join();
 		}
 
+        public bool Connected => client.ConnectionStatus == NetConnectionStatus.Connected;
+
 		public void Dispose()
 		{
 			if (running) Stop();
@@ -58,7 +62,25 @@ namespace LibreLancer
 			}
 		}
 
-		public void DiscoverGlobalPeers()
+        public void SendReliablePacket(IPacket pkt)
+        {
+            var msg = client.CreateMessage();
+            msg.Write(pkt);
+            client.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
+        }
+
+        public void SendPositionUpdate(Vector3 vec, Quaternion q)
+        {
+            var msg = client.CreateMessage();
+            msg.Write(new PositionUpdatePacket()
+            {
+                Position = vec,
+                Orientation = q
+            });
+            client.SendMessage(msg, NetDeliveryMethod.UnreliableSequenced);
+        }
+
+        public void DiscoverGlobalPeers()
 		{
 			//HTTP?
 		}
@@ -73,21 +95,6 @@ namespace LibreLancer
 			client.Connect(endPoint, message);
 		}
 
-		public void Authenticate(string token)
-		{
-			var response = client.CreateMessage();
-			response.Write((byte)PacketKind.Authentication);
-			response.Write((byte)AuthenticationKind.Token);
-			response.Write(token);
-			client.SendMessage(response, NetDeliveryMethod.ReliableOrdered);
-		}
-
-		public void RequestCharacterCreate()
-		{
-			var om = client.CreateMessage();
-			om.Write((byte)PacketKind.NewCharacter);
-			client.SendMessage(om, NetDeliveryMethod.ReliableOrdered);
-		}
         Stopwatch sw;
         List<LocalServerInfo> srvinfo = new List<LocalServerInfo>();
 
@@ -150,26 +157,28 @@ namespace LibreLancer
 								}
 								break;
 							case NetIncomingMessageType.Data:
-								var kind = (PacketKind)im.ReadByte();
-								if (connecting)
+                                var pkt = im.ReadPacket();
+                            FLLog.Debug("Network", "packet of type " + pkt.GetType());
+
+                            if (connecting)
 								{
-									if (kind == PacketKind.Authentication)
+									if (pkt is AuthenticationPacket)
 									{
+                                        var auth = (AuthenticationPacket)pkt;
 										FLLog.Info("Net", "Authentication Packet Received");
-										var authkind = (AuthenticationKind)im.ReadByte();
-										if (authkind == AuthenticationKind.Token)
+										if (auth.Type == AuthenticationKind.Token)
 										{
 											FLLog.Info("Net", "Token");
 											AuthenticationRequired(im.ReadString());
 										}
-										else if (authkind == AuthenticationKind.GUID)
+										else if (auth.Type == AuthenticationKind.GUID)
 										{
 											FLLog.Info("Net", "GUID");
 											var response = client.CreateMessage();
-											response.Write((byte)PacketKind.Authentication);
-											response.Write((byte)AuthenticationKind.GUID);
-											var arr = UUID.ToByteArray();
-											foreach (var b in arr) response.Write(b);
+                                            response.Write(new AuthenticationReplyPacket()
+                                            {
+                                                Guid = UUID
+                                            });
 											client.SendMessage(response, NetDeliveryMethod.ReliableOrdered);
 										}
 										else
@@ -177,29 +186,24 @@ namespace LibreLancer
 											client.Shutdown("Invalid Packet");
 										}
 									}
-									else if (kind == PacketKind.AuthenticationSuccess)
+									else if (pkt is BaseEnterPacket)
 									{
-										connecting = false;
-										var inf = new CharacterSelectInfo();
-										inf.ServerNews = im.ReadString();
-										mainThread.QueueUIThread(() => CharacterSelection(inf));
-									}
-									else
-									{
-										client.Shutdown("Invalid Packet");
-									}
-									break;
+                                    mainThread.QueueUIThread(() =>
+                                    {
+                                        Session.PlayerBase = ((BaseEnterPacket)pkt).Base;
+                                        Session.Start();
+                                    });
+                                    connecting = false;
+                                    }
+
 								}
-								switch (kind)
-								{
-									case PacketKind.NewCharacter:
-                                        if(im.ReadByte() == 1) {
-                                            var credits = im.ReadInt32();
-                                            OpenNewCharacter(credits);
-                                        }
-										break;
-								}
-								break;
+                                else
+                                {
+                                    mainThread.QueueUIThread(() => {
+                                        Session.HandlePacket(pkt);
+                                    });
+                                }
+                            break;
 						}
 					/*}
 					catch (Exception)

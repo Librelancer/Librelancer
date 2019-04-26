@@ -20,6 +20,7 @@ namespace LibreLancer
 		public Vector3 PlayerPosition;
 		public Matrix3 PlayerOrientation;
         public int MissionNum;
+        public GameClient Client;
 
 		public GameSession(FreelancerGame g)
 		{
@@ -72,8 +73,18 @@ namespace LibreLancer
             if (PlayerBase != null)
                 Game.ChangeState(new RoomGameplay(Game, this, PlayerBase));
             else
-                Game.ChangeState(new SpaceGameplay(Game, this));
+            {
+                worldReady = false;
+                toAdd = new List<GameObject>();
+                gp = new SpaceGameplay(Game, this);
+                Game.ChangeState(gp);
+            }
         }
+
+        SpaceGameplay gp;
+        bool worldReady = false;
+        List<GameObject> toAdd = new List<GameObject>();
+        Dictionary<int, GameObject> objects = new Dictionary<int, GameObject>();
 
         string forcedLand = null;
         public bool Update(SpaceGameplay gameplay, TimeSpan elapsed)
@@ -86,9 +97,23 @@ namespace LibreLancer
                 Game.ChangeState(new RoomGameplay(Game, this, forcedLand));
                 return true;
             }
+            if(Client != null) 
+            {
+                var gt = gp.player.GetTransform();
+                Client.SendPositionUpdate(gt.Transform(Vector3.Zero),
+                    gt.ExtractRotation());
+            }
+            
             return false;
         }
 
+        public void WorldReady()
+        {
+            worldReady = true;
+            foreach (var obj in toAdd)
+                gp.world.Objects.Add(obj);
+            toAdd = new List<GameObject>();
+        }
         public void JumpTo(string system, string exitpos)
 		{
 			//Find object
@@ -103,29 +128,76 @@ namespace LibreLancer
 			Game.ChangeState(new SpaceGameplay(Game, this));
 		}
 
+        public void HandlePacket(IPacket pkt)
+        {
+            switch(pkt)
+            {
+                case SpawnPlayerPacket p:
+                    PlayerBase = null;
+                    PlayerSystem = p.System;
+                    PlayerPosition = p.Position;
+                    PlayerOrientation = Matrix3.CreateFromQuaternion(p.Orientation);
+                    Start();
+                    break;
+                case SpawnObjectPacket p:
+                    var shp = Game.GameData.GetShip("li_elite");
+                    //Set up player object + camera
+                    var newobj = new GameObject(shp.Drawable, Game.ResourceManager, false);
+                    newobj.Transform = Matrix4.CreateFromQuaternion(p.Orientation) *
+                        Matrix4.CreateTranslation(p.Position);
+                    objects.Add(p.ID, newobj);
+                    if (worldReady)
+                        gp.world.Objects.Add(newobj);
+                    else
+                        toAdd.Add(newobj);
+                    break;
+                case ObjectUpdatePacket p:
+                    var obj = objects[p.ID];
+                    obj.Transform = Matrix4.CreateFromQuaternion(p.Orientation) *
+                        Matrix4.CreateTranslation(p.Position);
+                    break;
+                case DespawnObjectPacket p:
+                    var despawn = objects[p.ID];
+                    if(worldReady)
+                        gp.world.Objects.Remove(despawn);
+                    else
+                        toAdd.Remove(despawn);
+                    objects.Remove(p.ID);
+                    break;
+            }
+        }
+
         public void LaunchFrom(string _base)
         {
-            var b = Game.GameData.GetBase(_base);
-            var sys = Game.GameData.GetSystem(b.System);
-            var obj = sys.Objects.FirstOrDefault((o) =>
+            if (Client != null)
             {
-                return (o.Dock != null &&
-                    o.Dock.Kind == DockKinds.Base &&
-                    o.Dock.Target.Equals(_base, StringComparison.OrdinalIgnoreCase));
-            });
-            PlayerSystem = b.System;
-            PlayerOrientation = Matrix3.Identity;
-            PlayerPosition = Vector3.Zero;
-            if (obj == null) {
-                FLLog.Error("Base", "Can't find object in " + sys + " docking to " + b);
+                Client.SendReliablePacket(new LaunchPacket());
             }
             else
             {
-                PlayerPosition = obj.Position;
-                PlayerOrientation = obj.Rotation == null ? Matrix3.Identity : new Matrix3(obj.Rotation.Value);
-                PlayerPosition = Vector3.Transform(new Vector3(0, 0, 500), PlayerOrientation) + obj.Position; //TODO: This is bad
+                var b = Game.GameData.GetBase(_base);
+                var sys = Game.GameData.GetSystem(b.System);
+                var obj = sys.Objects.FirstOrDefault((o) =>
+                {
+                    return (o.Dock != null &&
+                        o.Dock.Kind == DockKinds.Base &&
+                        o.Dock.Target.Equals(_base, StringComparison.OrdinalIgnoreCase));
+                });
+                PlayerSystem = b.System;
+                PlayerOrientation = Matrix3.Identity;
+                PlayerPosition = Vector3.Zero;
+                if (obj == null)
+                {
+                    FLLog.Error("Base", "Can't find object in " + sys + " docking to " + b);
+                }
+                else
+                {
+                    PlayerPosition = obj.Position;
+                    PlayerOrientation = obj.Rotation == null ? Matrix3.Identity : new Matrix3(obj.Rotation.Value);
+                    PlayerPosition = Vector3.Transform(new Vector3(0, 0, 500), PlayerOrientation) + obj.Position; //TODO: This is bad
+                }
+                Game.ChangeState(new SpaceGameplay(Game, this));
             }
-            Game.ChangeState(new SpaceGameplay(Game, this));
         }
 
         public void ForceLand(string str)
@@ -153,5 +225,12 @@ namespace LibreLancer
 			}
 		}
 
-	}
+        public void OnExit()
+        {
+            if(Client != null)
+            {
+                Client.Dispose();
+            }
+        }
+    }
 }

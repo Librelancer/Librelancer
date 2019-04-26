@@ -336,7 +336,7 @@
     <Compile Include="Net\Protocol\AuthenticationKind.cs" />
     <Compile Include="Net\Protocol\CharacterSelectInfo.cs" />
     <Compile Include="Net\Protocol\NetPacking.cs" />
-    <Compile Include="Net\Protocol\PacketKind.cs" />
+    <Compile Include="Net\Protocol\Packets.cs" />
     <Compile Include="Net\Server\PlayerAccount.cs" />
     <Compile Include="Net\Server\GameServer.cs" />
     <Compile Include="Net\Server\ServerDatabase.cs" />

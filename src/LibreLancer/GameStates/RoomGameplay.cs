@@ -262,5 +262,10 @@ namespace LibreLancer
             cursor.Draw(Game.Renderer2D, Game.Mouse);
             Game.Renderer2D.Finish();
 		}
-	}
+
+        public override void Exiting()
+        {
+            session.OnExit();
+        }
+    }
 }

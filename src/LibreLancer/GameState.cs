@@ -21,6 +21,9 @@ namespace LibreLancer
 		public virtual void Unregister()
 		{
 		}
+        public virtual void Exiting()
+        {
+        }
 
         protected void FadeIn(double delay, double time)
         {

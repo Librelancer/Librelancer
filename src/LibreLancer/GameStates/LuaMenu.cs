@@ -41,6 +41,7 @@ namespace LibreLancer
             {
                 state.FadeOut(0.2, () =>
                 {
+                    if (client != null) client.Dispose();
                     var session = new GameSession(state.Game);
                     session.LoadFromPath(Data.VFS.GetPath("EXE\\newplayer.fl"));
                     session.Start();
@@ -57,18 +58,23 @@ namespace LibreLancer
             public bool canconnect() => serverList.Selection >= 0;
             public void connectserver()
             {
-
+                client.Connect(serverList.Servers[serverList.Selection].EndPoint);
             }
             public void refreshservers()
             {
                 serverList.Servers.Clear();
                 serverList.Selection = -1;
                 if (client != null) client.Dispose();
-                client = new GameClient(state.Game);
+                client = new GameClient(state.Game, new GameSession(state.Game));
+                client.Session.Client = client;
                 client.ServerFound += Client_ServerFound;
                 client.Start();
                 client.UUID = state.Game.Config.UUID.Value;
                 client.DiscoverLocalPeers();
+            }
+            public void stopmp()
+            {
+                if (client != null) client.Dispose();
             }
             void Client_ServerFound(LocalServerInfo obj)
             {
@@ -77,9 +83,7 @@ namespace LibreLancer
 
             internal void _Dispose() //shouldn't be accessible from lua?
             {
-                if (client != null) {
-                    client.Dispose();
-                }
+                if(client != null) client.Dispose();
             }
 
             public void exit() => state.ui.Leave(() => state.FadeOut(0.2, () => state.Game.Exit()));
@@ -131,11 +135,15 @@ namespace LibreLancer
         }
 #endif
 
+        public override void Exiting()
+        {
+            api._Dispose();
+        }
+
         public override void Unregister()
         {
             ui.Dispose();
             scene.Dispose();
-            api._Dispose();
 #if DEBUG
             Game.Keyboard.KeyDown -= Keyboard_KeyDown;
 #endif

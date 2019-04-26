@@ -101,7 +101,7 @@ Mouse Flight: {10}
             sysrender = new SystemRenderer(camera, Game.GameData, Game.ResourceManager, Game);
             world = new GameWorld(sysrender);
             world.LoadSystem(sys, Game.ResourceManager);
-
+            session.WorldReady();
             world.Objects.Add(player);
             world.RenderUpdate += World_RenderUpdate;
             world.PhysicsUpdate += World_PhysicsUpdate;
@@ -613,5 +613,11 @@ Mouse Flight: {10}
             DoFade(delta);
 			Game.Renderer2D.Finish();
 		}
-	}
+
+        public override void Exiting()
+        {
+            session.OnExit();
+        }
+
+    }
 }
