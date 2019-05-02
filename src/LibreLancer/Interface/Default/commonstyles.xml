@@ -52,7 +52,7 @@
         <Size height="4%" ratio="6"/>
         <Model path="//INTERFACE/HUD/hud_nnbox7.cmp" transform="0.0 0.0 7.2 50.2"/>
     </Style>
-        <Style id="chatbox">
+    <Style id="chatbox">
         <Size height="7.4%" ratio="7"/>
         <Background color="rgba(26,26,102,0.5)"/>
         <Border color="lightgreen"/>

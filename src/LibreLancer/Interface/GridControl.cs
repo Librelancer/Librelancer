@@ -18,7 +18,7 @@ namespace LibreLancer
         string[] columnTitles;
         Func<Rectangle> getRect;
         List<GridHitRect> children = new List<GridHitRect>();
-        XmlUIManager manager;
+        XmlUIScene scene;
         IGridContent content;
         int rowCount;
 
@@ -28,21 +28,21 @@ namespace LibreLancer
         public Color4 TextColor = new Color4(160, 196, 210, 255);
         public Color4 BorderColor = new Color4(160, 196, 210, 255);
 
-        public GridControl(XmlUIManager manager, float[] dividerPositions, string[] columnTitles, Func<Rectangle> getRect, IGridContent content, int rowCount)
+        public GridControl(XmlUIScene scene, float[] dividerPositions, string[] columnTitles, Func<Rectangle> getRect, IGridContent content, int rowCount)
         {
             this.dividerPositions = dividerPositions;
             this.getRect = getRect;
             this.rowCount = rowCount;
             this.content = content;
             this.columnTitles = columnTitles;
-            this.manager = manager;
+            this.scene = scene;
             for (int i = -1; i < dividerPositions.Length; i++)
             {
                 for (int j = 0; j < rowCount; j++)
                     children.Add(new GridHitRect(j, i, this));
             }
-            headerFont = manager.Game.Fonts.GetSystemFont("Agency FB");
-            contentFont = manager.Game.Fonts.GetSystemFont("Arial Unicode MS");
+            headerFont = scene.Manager.Game.Fonts.GetSystemFont("Agency FB");
+            contentFont = scene.Manager.Game.Fonts.GetSystemFont("Arial Unicode MS");
         }
 
         class GridHitRect
@@ -91,7 +91,7 @@ namespace LibreLancer
         public void Update()
         {
             var rect = getRect();
-            var mouse = manager.Game.Mouse;
+            var mouse = scene.Manager.Game.Mouse;
             if (!mouse.IsButtonDown(MouseButtons.Left))
             {
                 dragging = -1;
@@ -143,7 +143,7 @@ namespace LibreLancer
         {
             foreach (var c in children)
             {
-                if (c.GetHitRectangle().Contains(manager.Game.Mouse.X, manager.Game.Mouse.Y))
+                if (c.GetHitRectangle().Contains(scene.MouseX, scene.MouseY))
                     return c;
             }
             return null;
@@ -157,12 +157,12 @@ namespace LibreLancer
             //Draw Lines
             for (int i = 0; i < rowCount; i++)
             {
-                manager.Game.Renderer2D.DrawLine(BorderColor, new Vector2(rect.X, rect.Y + rowSize * i), new Vector2(rect.X + rect.Width, rect.Y + rowSize * i));
+                scene.Renderer2D.DrawLine(BorderColor, new Vector2(rect.X, rect.Y + rowSize * i), new Vector2(rect.X + rect.Width, rect.Y + rowSize * i));
             }
-            manager.Game.Renderer2D.DrawLine(BorderColor, new Vector2(rect.X, rect.Y + rowSize * rowCount), new Vector2(rect.X + rect.Width, rect.Y + rowSize * rowCount));
+            scene.Renderer2D.DrawLine(BorderColor, new Vector2(rect.X, rect.Y + rowSize * rowCount), new Vector2(rect.X + rect.Width, rect.Y + rowSize * rowCount));
             for (int i = 0; i < dividerPositions.Length; i++)
             {
-                manager.Game.Renderer2D.DrawLine(
+                scene.Renderer2D.DrawLine(
                     TextColor,
                     new Vector2(rect.X + dividerPositions[i] * rect.Width, rect.Y),
                     new Vector2(rect.X + dividerPositions[i] * rect.Width, rect.Y + rect.Height)
@@ -205,13 +205,13 @@ namespace LibreLancer
 
         void DrawShadowedText(Font font, float sz, string text, float x, float y, Color4 c)
         {
-            manager.Game.Renderer2D.DrawString(font, sz, text, x + 2, y + 2, Color4.Black);
-            manager.Game.Renderer2D.DrawString(font, sz, text, x, y, c);
+            scene.Renderer2D.DrawString(font, sz, text, x + 2, y + 2, Color4.Black);
+            scene.Renderer2D.DrawString(font, sz, text, x, y, c);
         }
 
         void DrawTextCentered(Font font, float sz, string text, Rectangle rect, Color4 c)
         {
-            var size = manager.Game.Renderer2D.MeasureString(font, sz, text);
+            var size = scene.Renderer2D.MeasureString(font, sz, text);
             var pos = new Vector2(
                 rect.X + (rect.Width / 2f - size.X / 2),
                 rect.Y + (rect.Height / 2f - size.Y / 2)

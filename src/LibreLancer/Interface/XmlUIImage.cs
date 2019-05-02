@@ -9,16 +9,16 @@ namespace LibreLancer
     {
         Texture2D texture;
 
-        public XmlUIImage(XInt.Image img, XmlUIManager manager) : base(manager)
+        public XmlUIImage(XInt.Image img, XmlUIScene scene) : base(scene)
         {
-            texture = ImageLib.Generic.FromFile(manager.Game.GameData.ResolveDataPath(img.Path.Substring(2)));
+            texture = ImageLib.Generic.FromFile(scene.Manager.Game.GameData.ResolveDataPath(img.Path.Substring(2)));
         }
 
         protected override void DrawInternal(TimeSpan delta)
         {
-            Manager.Game.Renderer2D.Start(Manager.Game.Width, Manager.Game.Height);
-            Manager.Game.Renderer2D.DrawImageStretched(texture, new Rectangle(0, 0, Manager.Game.Width, Manager.Game.Height), Color4.White, true);
-            Manager.Game.Renderer2D.Finish();
+            Scene.Renderer2D.Start(Scene.GWidth, Scene.GHeight);
+            Scene.Renderer2D.DrawImageStretched(texture, new Rectangle(0, 0, Scene.GWidth, Scene.GHeight), Color4.White, true);
+            Scene.Renderer2D.Finish();
             base.DrawInternal(delta);
         }
     }

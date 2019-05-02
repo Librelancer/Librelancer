@@ -9,28 +9,28 @@ namespace LibreLancer
     {
         public string ID;
         public bool Visible = true;
-        public XmlUIManager Manager;
+        public XmlUIScene Scene;
         public UIAnimation Animation;
         public XInt.Positionable Positioning;
 
 
         public Vector2 CalculatePosition()
         {
-            var r = new Rectangle(0, 0, Manager.Game.Width, Manager.Game.Height);
+            var r = new Rectangle(0, 0, Scene.GWidth, Scene.GHeight);
             var sz = CalculateSize();
             float h = sz.Y, w = sz.X;
 
-            if(Positioning.Aspect == "4/3") {
+            if (Positioning.Aspect == "4/3") {
                 float scaleX = 1;
-                float screenAspect = Manager.Game.Width / (float)Manager.Game.Height;
+                float screenAspect = Scene.GWidth / (float)Scene.GHeight;
                 float uiAspect = 4f / 3f;
                 if (screenAspect > uiAspect)
                     scaleX = uiAspect / screenAspect;
-                var newX = Manager.Game.Width / 2f - (Manager.Game.Width * scaleX / 2f);
+                var newX = Scene.GWidth / 2f - (Scene.GWidth * scaleX / 2f);
                 r.X = (int)newX;
-                r.Width = (int)(Manager.Game.Width * scaleX);
+                r.Width = (int)(Scene.GWidth * scaleX);
             }
-            switch(Positioning.Anchor) {
+            switch (Positioning.Anchor) {
                 case XInt.Anchor.topleft:
                     return new Vector2(
                         r.X + (r.Height * Positioning.X),
@@ -65,9 +65,9 @@ namespace LibreLancer
                     throw new Exception("Bad anchor");
             }
         }
-        public XmlUIElement(XmlUIManager manager)
+        public XmlUIElement(XmlUIScene scene)
         {
-            this.Manager = manager;
+            this.Scene = scene;
             Lua = new LuaAPI(this);
         }
         public LuaAPI Lua;
@@ -87,13 +87,13 @@ namespace LibreLancer
             {
                 e.Animation = new FlyInLeft(e.CalculatePosition(), start, duration) { From = -e.CalculateSize().X };
                 e.Animation.Begin();
-                e.Manager.AnimationFinishTimer = Math.Max(e.Manager.AnimationFinishTimer, start + duration);
+                e.Scene.AnimationFinishTimer = Math.Max(e.Scene.AnimationFinishTimer, start + duration);
             }
             public void flyout(float start, float duration)
             {
                 e.Animation = new FlyOutLeft(e.CalculatePosition(), start, duration) { To = -e.CalculateSize().X };
                 e.Animation.Begin();
-                e.Manager.AnimationFinishTimer = Math.Max(e.Manager.AnimationFinishTimer, start + duration);
+                e.Scene.AnimationFinishTimer = Math.Max(e.Scene.AnimationFinishTimer, start + duration);
             }
             public void hide()
             {
@@ -104,15 +104,15 @@ namespace LibreLancer
                 e.Visible = true;
             }
         }
-        public void Update(TimeSpan delta)
+        public void Update(TimeSpan delta, bool updateInput)
         {
-            if (Visible) UpdateInternal(delta);
+            if (Visible) UpdateInternal(delta, updateInput);
         }
         public void Draw(TimeSpan delta)
         {
             if (Visible) DrawInternal(delta);
         }
-        protected virtual void UpdateInternal(TimeSpan delta)
+        protected virtual void UpdateInternal(TimeSpan delta, bool updateInput)
         {
             if (Animation != null && Animation.Running)
                 Animation.Update(delta.TotalSeconds);
@@ -121,6 +121,7 @@ namespace LibreLancer
         public virtual void OnMouseUp() { }
         protected virtual void DrawInternal(TimeSpan delta) { }
         public virtual Vector2 CalculateSize() { return Vector2.Zero; }
-
+        public virtual void OnTextEntered(string s) { }
+        public virtual void OnBackspace() { }
     }
 }

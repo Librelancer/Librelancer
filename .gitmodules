@@ -9,7 +9,7 @@
 	url = https://github.com/rds1983/StbSharp
 [submodule "extern/lidgren-network-gen3"]
 	path = extern/lidgren-network-gen3
-	url = https://github.com/lidgren/lidgren-network-gen3
+	url = https://github.com/CallumDev/lidgren-network-gen3
 [submodule "extern/ImGui.NET"]
 	path = extern/ImGui.NET
 	url = https://github.com/mellinoe/ImGui.NET

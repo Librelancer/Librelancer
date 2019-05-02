@@ -236,10 +236,21 @@ namespace LibreLancer
             [XmlAttribute("height")]
             public string HeightText { get; set; }
             float? height;
+            [XmlIgnore]
             public float Height {
                 get {
                     if (height == null) height = Parser.Percentage(HeightText);
                     return height.Value;
+                }
+            }
+            [XmlAttribute("width")]
+            public string WidthText { get; set; }
+            float? width;
+            [XmlIgnore]
+            public float Width {
+                get {
+                    if (width == null) width = Parser.Percentage(WidthText);
+                    return width.Value;
                 }
             }
             [XmlAttribute("ratio")]
@@ -303,6 +314,7 @@ namespace LibreLancer
             [XmlElement("ServerList", Type = typeof(XInt.ServerList))]
             [XmlElement("Image", Type = typeof(XInt.Image))]
             [XmlElement("ChatBox", Type = typeof(XInt.ChatBox))]
+            [XmlElement("TextBox", Type = typeof(XInt.TextBox))]
             public object[] Items;
         }
 
@@ -367,7 +379,13 @@ namespace LibreLancer
             [XmlAttribute("displayarea")]
             public string DisplayArea { get; set; }
         }
-
+        public class TextBox : Positionable
+        {
+            [XmlAttribute("style")]
+            public string Style { get; set; }
+            [XmlAttribute("displayarea")]
+            public string DisplayArea { get; set; }
+        }
         public class Button : Positionable
         {
             [XmlAttribute("onclick")]

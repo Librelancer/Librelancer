@@ -39,12 +39,12 @@ namespace LibreLancer
         };
         public List<LocalServerInfo> Servers = new List<LocalServerInfo>();
 
-        public XmlUIServerList(XInt.ServerList sl, XInt.Style style, XmlUIManager manager) : base(style,manager,false)
+        public XmlUIServerList(XInt.ServerList sl, XInt.Style style, XmlUIScene scene) : base(style,scene,false)
         {
             Positioning = sl;
             ID = sl.ID;
             Lua = new ServerListAPI(this);
-            grid = new GridControl(manager, dividerPositions, columnTitles, GetGridRect, new ServerListContent(this), NUM_ROWS);
+            grid = new GridControl(scene, dividerPositions, columnTitles, GetGridRect, new ServerListContent(this), NUM_ROWS);
         }
 
         public override void OnMouseDown() => grid.OnMouseDown();
@@ -80,7 +80,7 @@ namespace LibreLancer
                     case 0:
                         return srv.Name;
                     case 1:
-                        return srv.EndPoint.Address.ToString();
+                        return AddressString(srv.EndPoint.Address);
                     case 2:
                         return "NO";
                     case 3:
@@ -95,6 +95,14 @@ namespace LibreLancer
                 }
                 return null;
             }
+        }
+
+        static string AddressString(System.Net.IPAddress addr)
+        {
+            if (addr.IsIPv4MappedToIPv6)
+                return addr.MapToIPv4().ToString();
+            else
+                return addr.ToString();
         }
 
         public class ServerListAPI : PanelAPI 
@@ -119,18 +127,19 @@ namespace LibreLancer
             return new Rectangle((int)pos.X, (int)pos.Y, (int)sz.X, (int)sz.Y);
         }
 
-        protected override void UpdateInternal(TimeSpan delta)
+        protected override void UpdateInternal(TimeSpan delta, bool updateInput)
         {
-            base.UpdateInternal(delta);
-            grid.Update();
+            base.UpdateInternal(delta, updateInput);
+            if(updateInput)
+                grid.Update();
         }
 
         protected override void DrawInternal(TimeSpan delta)
         {
             base.DrawInternal(delta);
-            Manager.Game.Renderer2D.Start(Manager.Game.Width, Manager.Game.Height);
+            Scene.Renderer2D.Start(Scene.GWidth, Scene.GHeight);
             grid.Draw();
-            Manager.Game.Renderer2D.Finish();
+            Scene.Renderer2D.Finish();
         }
     }
 }

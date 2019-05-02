@@ -60,6 +60,10 @@ namespace LibreLancer
             {
                 client.Connect(serverList.Servers[serverList.Selection].EndPoint);
             }
+            public void directconnect(string str)
+            {
+                client.Connect(str);
+            }
             public void refreshservers()
             {
                 serverList.Servers.Clear();

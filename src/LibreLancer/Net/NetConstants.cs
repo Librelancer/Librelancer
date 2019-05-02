@@ -8,6 +8,7 @@ namespace LibreLancer
 	public static class NetConstants
 	{
 		public const int DEFAULT_PORT = 43443;
+        public const uint PING_MAGIC = 0xBACAFEBA;
 		public const string DEFAULT_APP_IDENT = "Librelancer";
 	}
 }

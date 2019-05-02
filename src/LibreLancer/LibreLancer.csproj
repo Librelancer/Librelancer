@@ -396,7 +396,6 @@
     <Compile Include="GameStates\LoadingScreen.cs" />
     <Compile Include="Utf\Dfm\DfmConstructs.cs" />
     <Compile Include="Interface\XmlUIServerList.cs" />
-    <Compile Include="Net\AsyncPing.cs" />
     <Compile Include="Thn\ThnSound.cs" />
     <Compile Include="Thn\Events\StartSoundRunner.cs" />
     <Compile Include="Thn\ThnAudioProps.cs" />
@@ -408,6 +407,7 @@
     <Compile Include="GameData\FuseResources.cs" />
     <Compile Include="Gameplay\Components\FuseRunnerComponent.cs" />
     <Compile Include="Fx\ParticleEffectPool.cs" />
+    <Compile Include="Interface\XmlUITextBox.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

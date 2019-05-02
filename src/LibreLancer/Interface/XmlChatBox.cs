@@ -18,15 +18,15 @@ namespace LibreLancer
         Font boldFont;
         TextElement elem;
 
-        public XmlChatBox(XInt.ChatBox chat, XInt.Style style, XmlUIManager man) : base(style,man)
+        public XmlChatBox(XInt.ChatBox chat, XInt.Style style, XmlUIScene scn) : base(style,scn)
         {
             Positioning = chat;
             ID = chat.ID;
             ChatBox = chat;
             Lua = new LuaChatBox(this);
             renderText = false;
-            font = man.Game.Fonts.GetSystemFont("Arial Unicode MS");
-            boldFont = man.Game.Fonts.GetSystemFont("Arial Unicode MS", FontStyles.Bold);
+            font = scn.Manager.Game.Fonts.GetSystemFont("Arial Unicode MS");
+            boldFont = scn.Manager.Game.Fonts.GetSystemFont("Arial Unicode MS", FontStyles.Bold);
             elem = Texts.Where((x) => x.ID == chat.DisplayArea).First();
             Visible = false;
         }
@@ -47,17 +47,17 @@ namespace LibreLancer
             var container = new Rectangle((int)p.X, (int)p.Y, (int)sz.X, (int)sz.Y);
             var r = elem.GetRectangle(container);
             var fontSize = TextElement.GetTextSize(r.Height / 3.2f);
-            var measured = Manager.Game.Renderer2D.MeasureString(boldFont, fontSize, CurrentEntry);
-            Manager.Game.Renderer2D.Start(Manager.Game.Width, Manager.Game.Height);
-            Manager.Game.Renderer2D.DrawWithClip(r, () =>
+            var measured =  Scene.Renderer2D.MeasureString(boldFont, fontSize, CurrentEntry);
+            Scene.Renderer2D.Start(Scene.GWidth, Scene.GHeight);
+            Scene.Renderer2D.DrawWithClip(r, () =>
             {
-                Manager.Game.Renderer2D.DrawStringBaseline(boldFont, fontSize, CurrentEntry, r.X + 3, r.Y + 1, r.X + 3, Color4.Black, false);
-                Manager.Game.Renderer2D.DrawStringBaseline(boldFont, fontSize, CurrentEntry, r.X + 2, r.Y + 1, r.X + 2, elem.Style.Color, false);
+                Scene.Renderer2D.DrawStringBaseline(boldFont, fontSize, CurrentEntry, r.X + 3, r.Y + 1, r.X + 3, Color4.Black, false);
+                Scene.Renderer2D.DrawStringBaseline(boldFont, fontSize, CurrentEntry, r.X + 2, r.Y + 1, r.X + 2, elem.Style.Color, false);
                 int a;
                 int dY = 0;
                 var str = string.Join("\n",
                                       Infocards.InfocardDisplay.WrapText(
-                                          Manager.Game.Renderer2D,
+                                            Scene.Renderer2D,
                                           font,
                                           (int)fontSize,
                                           CurrentText,
@@ -66,10 +66,10 @@ namespace LibreLancer
                                           out a,
                                           ref dY)
                                      );
-                Manager.Game.Renderer2D.DrawStringBaseline(font, fontSize, str, r.X + 3 + measured.X, r.Y + 1, r.X + 3, Color4.Black, false);
-                Manager.Game.Renderer2D.DrawStringBaseline(font, fontSize, str, r.X + 2 + measured.X, r.Y + 1, r.X + 2, elem.Style.Color, false);
+                Scene.Renderer2D.DrawStringBaseline(font, fontSize, str, r.X + 3 + measured.X, r.Y + 1, r.X + 3, Color4.Black, false);
+                Scene.Renderer2D.DrawStringBaseline(font, fontSize, str, r.X + 2 + measured.X, r.Y + 1, r.X + 2, elem.Style.Color, false);
             });
-            Manager.Game.Renderer2D.Finish();
+            Scene.Renderer2D.Finish();
         }
 
         class LuaChatBox : LuaAPI

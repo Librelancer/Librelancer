@@ -28,7 +28,7 @@ namespace LibreLancer
             }
         }
 
-        public XmlUIButton(XmlUIManager manager, XInt.Button button, XInt.Style style) : base(style,manager)
+        public XmlUIButton(XmlUIScene scene, XInt.Button button, XInt.Style style) : base(style,scene)
         {
             Button = button;
             Positioning = button;
@@ -43,33 +43,33 @@ namespace LibreLancer
         }
         
         bool lastDown = false;
-        protected override void UpdateInternal(TimeSpan delta)
+        protected override void UpdateInternal(TimeSpan delta, bool updateInput)
         {
-            base.UpdateInternal(delta);
+            base.UpdateInternal(delta, updateInput);
             if(Texts.Count > 0 && !Enabled) {
                 Texts[0].Text = Button.Text;
                 Texts[0].ColorOverride = Color4.Gray;
             }
             if ((Animation != null && Animation.Running) || !Enabled) return;
 
-            var h = Manager.Game.Height * Style.Size.Height;
+            var h = Scene.GHeight * Style.Size.Height;
             var w = h * Style.Size.Ratio;
             var pos = CalculatePosition();
             var r = new Rectangle((int)pos.X, (int)pos.Y, (int)w, (int)h);
             hoverStyle.Reset();
-            if (r.Contains(Manager.Game.Mouse.X, Manager.Game.Mouse.Y))
+            if (updateInput && r.Contains(Scene.MouseX, Scene.MouseY))
             {
-                if (!lastDown && Manager.Game.Mouse.IsButtonDown(MouseButtons.Left))
+                if (!lastDown && Scene.MouseDown(MouseButtons.Left))
                 {
                     if (!string.IsNullOrEmpty(Button.OnClick))
-                        Manager.Call(Button.OnClick);
+                        Scene.Call(Button.OnClick);
                 }
                 if(hoverChunk != null)
-                    LuaStyleEnvironment.Do(hoverChunk, hoverStyle, (float)Manager.Game.TotalTime);
+                    LuaStyleEnvironment.Do(hoverChunk, hoverStyle, (float)Scene.Manager.Game.TotalTime);
             }
             modelColor = hoverStyle.ModelColor;
             modelRotate = hoverStyle.Rotation;
-            lastDown = Manager.Game.Mouse.IsButtonDown(MouseButtons.Left);
+            lastDown = Scene.MouseDown(MouseButtons.Left);
             if(Texts.Count > 0) {
                 Texts[0].Text = Button.Text;
                 Texts[0].ColorOverride = hoverStyle.TextColor;

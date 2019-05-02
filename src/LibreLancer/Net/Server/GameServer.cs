@@ -73,6 +73,7 @@ namespace LibreLancer
 			var netconf = new NetPeerConfiguration(AppIdentifier);
 			netconf.EnableMessageType(NetIncomingMessageType.DiscoveryRequest);
 			netconf.EnableMessageType(NetIncomingMessageType.ConnectionApproval);
+            netconf.EnableMessageType(NetIncomingMessageType.UnconnectedData);
 			netconf.Port = Port;
 			netconf.MaximumConnections = 200;
 			NetServer = new NetServer(netconf);
@@ -109,6 +110,21 @@ namespace LibreLancer
 							NetServer.SendDiscoveryResponse(dresp, im.SenderEndPoint);
 							NetServer.Recycle(im);
 							break;
+                        case NetIncomingMessageType.UnconnectedData:
+                            //Respond to pings
+                            try
+                            {
+                                if(im.ReadUInt32() == NetConstants.PING_MAGIC)
+                                {
+                                    var om = NetServer.CreateMessage();
+                                    om.Write(NetConstants.PING_MAGIC);
+                                    NetServer.SendUnconnectedMessage(om, im.SenderEndPoint);
+                                }
+                            }
+                            catch (Exception)
+                            {
+                            }
+                            break;
 						case NetIncomingMessageType.StatusChanged:
 							NetConnectionStatus status = (NetConnectionStatus)im.ReadByte();
 
@@ -168,7 +184,7 @@ namespace LibreLancer
                             break;
 					}
 				}
-				Thread.Sleep(1); //Reduce CPU load
+				Thread.Sleep(0); //Reduce CPU load
 			}
 			Database.Dispose();
 		}

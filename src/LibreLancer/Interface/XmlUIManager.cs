@@ -49,19 +49,67 @@ namespace LibreLancer
         }
     }
 
+    public class XmlUIScene : IDisposable
+    {
+        public List<XmlUIElement> Elements = new List<XmlUIElement>();
+        internal List<XmlUIElement> toadd = new List<XmlUIElement>();
+        public Lua lua;
+        public dynamic _g;
+        public LuaGlobalPortable env;
+        public double AnimationFinishTimer;
+        public XmlUIManager Manager;
+        //Convenience
+        public Renderer2D Renderer2D => Manager.Game.Renderer2D;
+        public int GWidth => Manager.Game.Width;
+        public int GHeight => Manager.Game.Height;
+        public int MouseX => Manager.Game.Mouse.X;
+        public int MouseY => Manager.Game.Mouse.Y;
+        public bool MouseDown(MouseButtons buttons) => Manager.Game.Mouse.IsButtonDown(buttons);
+        public XmlUITextBox Focus;
+        public void Call(string s)
+        {
+            env.DoChunk(s, "$internal");
+        }
+        public XmlUIScene(XmlUIManager manager)
+        {
+            Manager = manager;
+        }
+        public void Dispose()
+        {
+            lua.Dispose();
+        }
+        public string afteranimation_lua;
+        public Action afteranimation_action;
+        public void After()
+        {
+            if (afteranimation_lua != null)
+            {
+                env.DoChunk(afteranimation_lua, "$afteranimation");
+                afteranimation_lua = null;
+            }
+            if (afteranimation_action != null)
+            {
+                afteranimation_action();
+                afteranimation_action = null;
+            }
+        }
+    }
+
     public class XmlUIManager : IDisposable
     {
         public FreelancerGame Game;
 
         XInterface xml;
         List<XInt.Style> styles = new List<XInt.Style>();
-        Lua lua;
-        LuaGlobalPortable env;
-        dynamic _g;
-        public List<XmlUIElement> Elements = new List<XmlUIElement>();
-        List<XmlUIElement> toadd = new List<XmlUIElement>();
+        public Stack<XmlUIScene> Scenes = new Stack<XmlUIScene>();
+        public List<XmlUIElement> Elements
+        {
+            get
+            {
+                return Scenes.Peek().Elements;
+            }
+        }
         public Font Font;
-        public double AnimationFinishTimer;
 
         string apiname;
         object api;
@@ -80,10 +128,29 @@ namespace LibreLancer
             LoadScene(xml.DefaultScene);
             game.Mouse.MouseDown += Mouse_MouseDown;
             game.Mouse.MouseUp += Mouse_MouseUp;
+            game.Keyboard.TextInput += Keyboard_TextInput;
+            game.Keyboard.KeyDown += Keyboard_KeyDown;
         }
 
         void Mouse_MouseDown(MouseEventArgs e) { if(e.Buttons == MouseButtons.Left) foreach(var el in Elements) el.OnMouseDown(); }
         void Mouse_MouseUp(MouseEventArgs e) { if(e.Buttons == MouseButtons.Left) foreach (var el in Elements) el.OnMouseUp(); }
+
+        void Keyboard_TextInput(string text)
+        {
+            foreach (var e in Elements)
+                e.OnTextEntered(text);
+        }
+
+        void Keyboard_KeyDown(KeyEventArgs e)
+        {
+            if(e.Key == Keys.Backspace ||
+                e.Key == Keys.KeypadBackspace)
+            foreach(var k in Elements)
+            {
+                k.OnBackspace();
+            }
+        }
+
 
         void DoStyles(XInterface x)
         {
@@ -94,65 +161,93 @@ namespace LibreLancer
                     DoStyles(XInterface.Load(Game.GameData.GetInterfaceXml(inc.File)));
             }
         }
+
         void LoadScene(string id)
         {
-            if (lua != null) lua.Dispose();
-            Elements = new List<XmlUIElement>();
-            lua = new Lua();
-            env = lua.CreateEnvironment();
-            env.DoChunk("events = {}", "$internal");
-            env.Add(apiname, api);
-            env.Add("dom", new LuaDom(this));
-            env.Add("sound", new LuaSound(this));
-            LuaStyleEnvironment.RegisterFuncs(env);
-            _g = (dynamic)env;
+            stackChanged = true;
+            var scene = new XmlUIScene(this);
+            Scenes.Push(scene);
+            scene.lua = new Lua();
+            scene.env = scene.lua.CreateEnvironment();
+            scene.env.DoChunk("events = {}", "$internal");
+            scene.env.Add(apiname, api);
+            scene.env.Add("dom", new LuaDom(this, scene));
+            scene.env.Add("sound", new LuaSound(this));
+            LuaStyleEnvironment.RegisterFuncs(scene.env);
+            scene._g = (dynamic)scene.env;
             var scn = xml.Scenes.Where((x) => x.ID == id).First();
             if (scn.Scripts != null)
                 foreach (var script in scn.Scripts)
-                    env.DoChunk(script, "$xml");
+                    scene.env.DoChunk(script, "$xml");
             foreach (var item in scn.Items)
             {
                 if (item is XInt.Button)
                 {
                     var btn = (XInt.Button)item;
-                    Elements.Add(new XmlUIButton(this, btn, styles.Where((x) => x.ID == btn.Style).First()));
+                    Elements.Add(new XmlUIButton(scene, btn, styles.Where((x) => x.ID == btn.Style).First()));
                 }
                 else if (item is XInt.Image)
                 {
-                    Elements.Add(new XmlUIImage((XInt.Image)item, this));
+                    Elements.Add(new XmlUIImage((XInt.Image)item, scene));
                 }
                 else if (item is XInt.ServerList)
                 {
                     var sl = (XInt.ServerList)item;
-                    Elements.Add(new XmlUIServerList(sl, styles.Where((x) => x.ID == sl.Style).First(), this));
+                    Elements.Add(new XmlUIServerList(sl, styles.Where((x) => x.ID == sl.Style).First(), scene));
                 }
-                else if (item is XInt.Panel)
+                else if (item is XInt.TextBox)
                 {
-                    var pnl = (XInt.Panel)item;
-                    Elements.Add(new XmlUIPanel(pnl, styles.Where((x) => x.ID == pnl.Style).First(), this));
+                    var tx = (XInt.TextBox)item;
+                    Elements.Add(new XmlUITextBox(tx, styles.Where((x) => x.ID == tx.Style).First(), scene));
                 }
                 else if (item is XInt.ChatBox)
                 {
                     var cb = (XInt.ChatBox)item;
-                    Elements.Add(new XmlChatBox(cb, styles.Where((x) => x.ID == cb.Style).First(), this));
+                    Elements.Add(new XmlChatBox(cb, styles.Where((x) => x.ID == cb.Style).First(), scene));
+                }
+                else if (item is XInt.Panel)
+                {
+                    var pnl = (XInt.Panel)item;
+                    Elements.Add(new XmlUIPanel(pnl, styles.Where((x) => x.ID == pnl.Style).First(), scene));
                 }
 
+               
             }
         }
+
         void SwapIn(string id)
+        {
+            Scenes.Pop();
+            LoadScene(id);
+            OnConstruct();
+            Enter();
+        }
+
+        void StackNew(string id)
         {
             LoadScene(id);
             OnConstruct();
             Enter();
         }
+
+        void StackPop()
+        {
+            stackChanged = true;
+            var scn = Scenes.Peek();
+            scn.Dispose();
+            Scenes.Pop();
+        }
+
         public void OnConstruct()
         {
-            if (_g.events["onconstruct"] != null)
-                _g.events.onconstruct();
-            foreach (var ctrl in toadd)
-                Elements.Add(ctrl);
-            toadd.Clear();
+            var scn = Scenes.Peek();
+            if (scn._g.events["onconstruct"] != null)
+                scn._g.events.onconstruct();
+            foreach (var ctrl in scn.toadd)
+                scn.Elements.Add(ctrl);
+            scn.toadd.Clear();
         }
+
         Dictionary<string, SoundData> sounds = new Dictionary<string, SoundData>();
         void PlaySound(string name)
         {
@@ -165,32 +260,49 @@ namespace LibreLancer
             }
             Game.Audio.PlaySound(dat);
         }
+
         class LuaSound
         {
             XmlUIManager manager;
             public LuaSound(XmlUIManager manager) => this.manager = manager;
             public void play(string id) => manager.PlaySound(id);
         }
-        string afteranimation_lua;
-        Action afteranimation_action;
+
         class LuaDom
         {
             XmlUIManager manager;
-            public LuaDom(XmlUIManager manager) => this.manager = manager;
+            XmlUIScene scn;
+            public LuaDom(XmlUIManager manager, XmlUIScene scn)
+            {
+                this.manager = manager;
+                this.scn = scn;
+            }
             public XmlUIElement.LuaAPI element(string id)
             {
-                return manager.Elements.Where((x) => x.ID == id).First().Lua;
+                return scn.Elements.Where((x) => x.ID == id).First().Lua;
             }
             public void afteranimation(string snippet)
             {
-                manager.afteranimation_lua = snippet;
+                scn.afteranimation_lua = snippet;
             }
             public void changeto(string id)
             {
                 manager.Leave();
-                manager.afteranimation_action = () =>
+                scn.afteranimation_action = () =>
                 {
                     manager.SwapIn(id);
+                };
+            }
+            public void dialog(string id)
+            {
+                manager.StackNew(id);
+            }
+            public void close(string id)
+            {
+                manager.Leave();
+                scn.afteranimation_action = () =>
+                {
+                    manager.StackPop();
                 };
             }
             public XmlUIButton.LuaAPI addbutton(dynamic dn)
@@ -220,85 +332,101 @@ namespace LibreLancer
                     }
                     style.Models = mdlxml.ToArray();
                 }
-                var result = new XmlUIButton(manager, btn, style);
-                manager.toadd.Add(result);
+                var result = new XmlUIButton(scn, btn, style);
+                scn.toadd.Add(result);
                 return result.Lua;
             }
         }
 
         public dynamic Events {
             get {
-                return _g.events;
+                var scn = Scenes.Peek();
+                return scn._g.events;
             }
         }
 
         public void TableInsert(LuaTable table, object o)
         {
-            _g.table.insert(table, o);
+            var scn = Scenes.Peek();
+            scn._g.table.insert(table, o);
         }
 
         public void Enter()
         {
-            if (_g.events["onentry"] != null)
-                _g.events.onentry();
+            var scn = Scenes.Peek();
+            if (scn._g.events["onentry"] != null)
+                scn._g.events.onentry();
         }
 
         public void Leave()
         {
-            if (_g.events["onleave"] != null)
-                _g.events.onleave();
+            var scn = Scenes.Peek();
+            if (scn._g.events["onleave"] != null)
+                scn._g.events.onleave();
         }
         public void Leave(Action after)
         {
-            afteranimation_action = after;
-            if (_g.events["onleave"] != null)
-                _g.events.onleave();
+            var scn = Scenes.Peek();
+            scn.afteranimation_action = after;
+            if (scn._g.events["onleave"] != null)
+                scn._g.events.onleave();
         }
-        public void Call(string s)
-        {
-            env.DoChunk(s, "$internal");
-        }
-        void After()
-        {
-            if (afteranimation_lua != null)
-            {
-                env.DoChunk(afteranimation_lua, "$afteranimation");
-                afteranimation_lua = null;
-            }
-            if (afteranimation_action != null)
-            {
-                afteranimation_action();
-                afteranimation_action = null;
-            }
-        }
+
+        bool stackChanged = false;
+        bool modifiedTextInput = false;
         public void Update(TimeSpan delta)
         {
-            if(AnimationFinishTimer > 0) {
-                AnimationFinishTimer -= delta.TotalSeconds;
-                if (AnimationFinishTimer <= 0)
-                    After();
-            } else {
-                After();
+            stackChanged = false;
+            var cscn = Scenes.Peek();
+            foreach (var scene in Scenes)
+            {
+                if (scene.AnimationFinishTimer > 0)
+                {
+                    scene.AnimationFinishTimer -= delta.TotalSeconds;
+                    if (scene.AnimationFinishTimer <= 0)
+                        scene.After();
+                }
+                else
+                {
+                    scene.After();
+                }
+                if (scene._g.events["onupdate"] != null)
+                    scene._g.events.onupdate();
+                foreach (var item in scene.Elements)
+                    item.Update(delta, scene == cscn);
+                foreach (var item in scene.toadd)
+                    scene.Elements.Add(item);
+                scene.toadd.Clear();
+                if (stackChanged) return;
             }
-            if (_g.events["onupdate"] != null)
-                _g.events.onupdate();
-            foreach (var elem in Elements)
-                elem.Update(delta);
-            foreach (var elem in toadd)
-                Elements.Add(elem);
-            toadd.Clear();
+            if (cscn.Focus != null)
+            {
+                Game.EnableTextInput();
+                modifiedTextInput = true;
+            }
+            else if (modifiedTextInput)
+            {
+                Game.DisableTextInput();
+            }
         }
 
         public void Draw(TimeSpan delta)
         {
             Game.RenderState.DepthEnabled = false;
-            foreach (var elem in Elements)
-                elem.Draw(delta);
+            foreach (var scn in Scenes.Reverse())
+            {
+                foreach (var elem in scn.Elements)
+                    elem.Draw(delta);
+            }
         }
 
         public void Dispose()
         {
-            lua.Dispose();
+            Game.Mouse.MouseDown -= Mouse_MouseDown;
+            Game.Mouse.MouseUp -= Mouse_MouseUp;
+            Game.Keyboard.KeyUp -= Keyboard_KeyDown;
+            Game.Keyboard.TextInput -= Keyboard_TextInput;
+            foreach (var scene in Scenes) scene.Dispose();
             foreach (var v in sounds.Values)
                 v.Dispose();
         }
