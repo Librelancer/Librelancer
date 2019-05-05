@@ -9,11 +9,8 @@
         <Text id="lbl" x="0.2%" y="0.2%" width="99.6%" height="99.6%" color="rgba(160,196,210,255)" shadow="black"/>
     </Style>
     <Scene id="loading">
-        <Script><![CDATA[
-           function events.onconstruct()
-                dom:element('loadingbar'):text('lbl'):value('LOADING')
-           end
-        ]]></Script>
-        <Panel x="0%" y="47%" anchor="top" aspect="4/3" id="loadingbar" style="loadingbar"/>
+        <Panel x="0%" y="47%" anchor="top" aspect="4/3" id="loadingbar" style="loadingbar">
+            <Text id="lbl" value="LOADING"/>
+        </Panel>
     </Scene>
 </XInterface>

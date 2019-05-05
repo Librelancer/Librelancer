@@ -195,6 +195,11 @@ namespace LibreLancer
                     var sl = (XInt.ServerList)item;
                     Elements.Add(new XmlUIServerList(sl, styles.Where((x) => x.ID == sl.Style).First(), scene));
                 }
+                else if (item is XInt.CharacterList)
+                {
+                    var cl = (XInt.CharacterList)item;
+                    Elements.Add(new XmlUICharacterList(cl, styles.Where(x => x.ID == cl.Style).First(), scene));
+                }
                 else if (item is XInt.TextBox)
                 {
                     var tx = (XInt.TextBox)item;
@@ -246,6 +251,23 @@ namespace LibreLancer
             foreach (var ctrl in scn.toadd)
                 scn.Elements.Add(ctrl);
             scn.toadd.Clear();
+        }
+
+        public void CallEvent(string ev)
+        {
+            dynamic evmethod = null;
+            foreach(var scn in Scenes)
+            {
+                if(scn._g["events"] != null)
+                {
+                    if (scn._g.events[ev] != null)
+                    {
+                        evmethod = scn._g.events[ev];
+                        break;
+                    }
+                }
+            }
+            evmethod?.Invoke();
         }
 
         Dictionary<string, SoundData> sounds = new Dictionary<string, SoundData>();
@@ -304,6 +326,10 @@ namespace LibreLancer
                 {
                     manager.StackPop();
                 };
+            }
+            public float globaltime()
+            {
+                return (float)manager.Game.TotalTime;
             }
             public XmlUIButton.LuaAPI addbutton(dynamic dn)
             {

@@ -118,6 +118,11 @@ namespace LibreLancer
                 Srv.descriptionPanel = d;
                 Srv.descriptionText = id;
             }
+
+            public bool anyselected()
+            {
+                return Srv._selected != -1;
+            }
         }
 
         Rectangle GetGridRect()

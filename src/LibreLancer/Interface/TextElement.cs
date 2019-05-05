@@ -43,8 +43,7 @@ namespace LibreLancer
                     var tSize = (int)GetTextSize(textR.Height / (float)Style.Lines);
                     int a;
                     int dY = 0;
-                    var str = string.Join("\n",
-                                          Infocards.InfocardDisplay.WrapText(
+                    var wrapped = string.Join("\n", Infocards.InfocardDisplay.WrapText(
                                               manager.Game.Renderer2D,
                                               manager.Font,
                                               tSize,
@@ -52,9 +51,8 @@ namespace LibreLancer
                                               textR.Width - 2,
                                               0,
                                               out a,
-                                              ref dY)
-                                         );
-                    DrawShadowedText(manager, manager.Font, tSize, s, textR.X, textR.Y, ColorOverride ?? Style.Color, Style.Shadow);
+                                              ref dY));
+                    DrawShadowedText(manager, manager.Font, tSize, wrapped, textR.X, textR.Y, ColorOverride ?? Style.Color, Style.Shadow);
                 }
                 else if(Style.Align == XInt.Align.Baseline)
                 {

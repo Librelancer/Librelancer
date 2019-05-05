@@ -36,6 +36,11 @@ namespace LibreLancer
         {
             Register<AuthenticationPacket>(AuthenticationPacket.Read);
             Register<AuthenticationReplyPacket>(AuthenticationReplyPacket.Read);
+            Register<OpenCharacterListPacket>(OpenCharacterListPacket.Read);
+            Register<NewCharacterDBPacket>(NewCharacterDBPacket.Read);
+            Register<CharacterListActionPacket>(CharacterListActionPacket.Read);
+            Register<CharacterListActionResponsePacket>(CharacterListActionResponsePacket.Read);
+            Register<AddCharacterPacket>(AddCharacterPacket.Read);
             Register<PositionUpdatePacket>(PositionUpdatePacket.Read);
             Register<SpawnObjectPacket>(SpawnObjectPacket.Read);
             Register<ObjectUpdatePacket>(ObjectUpdatePacket.Read);

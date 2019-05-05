@@ -47,6 +47,7 @@ namespace LibreLancer
                     session.Start();
                 });
             });
+
             public void loadgame() {}
             GameClient client;
             XmlUIServerList serverList;
@@ -64,14 +65,19 @@ namespace LibreLancer
             {
                 client.Connect(str);
             }
+            public void disconnect()
+            {
+                if (client != null) client.Dispose();
+            }
             public void refreshservers()
             {
                 serverList.Servers.Clear();
                 serverList.Selection = -1;
                 if (client != null) client.Dispose();
-                client = new GameClient(state.Game, new GameSession(state.Game));
+                client = new GameClient(state.Game, new GameSession(state.Game) { ExtraPackets = HandlePackets });
                 client.Session.Client = client;
                 client.ServerFound += Client_ServerFound;
+                client.CharacterSelection += Client_CharacterSelection;
                 client.Start();
                 client.UUID = state.Game.Config.UUID.Value;
                 client.DiscoverLocalPeers();
@@ -80,6 +86,84 @@ namespace LibreLancer
             {
                 if (client != null) client.Dispose();
             }
+
+            CharacterSelectInfo cinfo;
+            void Client_CharacterSelection(CharacterSelectInfo obj)
+            {
+                cinfo = obj;
+                state.ui.CallEvent("characterlist");
+            }
+
+            NewCharacterDBPacket characterDB;
+            XmlUICharacterList charlist;
+            public void opennewcharacter()
+            {
+                if (characterDB == null)
+                {
+                    client.SendReliablePacket(new CharacterListActionPacket()
+                    {
+                        Action = CharacterListAction.RequestCharacterDB
+                    });
+                }
+                else
+                    state.ui.CallEvent("newcharacter");
+            }
+
+            public void newcharacter(string name, int index)
+            {
+                client.SendReliablePacket(new CharacterListActionPacket()
+                {
+                    Action = CharacterListAction.CreateNewCharacter,
+                    StringArg = name,
+                    IntArg = index
+                });
+            }
+
+            public string servernews()
+            {
+                if (cinfo != null) return cinfo.ServerNews;
+                else return "";
+            }
+            public string servername()
+            {
+                if (cinfo != null) return cinfo.ServerName;
+                else return "";
+            }
+            public string serverdescription()
+            {
+                if (cinfo != null) return cinfo.ServerDescription;
+                else return "";
+            }
+
+            public void loadcharacter()
+            {
+                client.SendReliablePacket(new CharacterListActionPacket()
+                {
+                    Action = CharacterListAction.SelectCharacter,
+                    IntArg = 0
+                });
+            }
+
+            public void docharacterlist(XmlUICharacterList.CharacterListLua lua)
+            {
+                charlist = lua.CharList;
+                charlist.Info = cinfo;
+            }
+
+            void HandlePackets(IPacket pkt)
+            {
+                switch(pkt)
+                {
+                    case NewCharacterDBPacket db:
+                        characterDB = db;
+                        state.ui.CallEvent("newcharacter");
+                        break;
+                    case AddCharacterPacket ac:
+                        cinfo.Characters.Add(ac.Character);
+                        break;
+                }
+            }
+
             void Client_ServerFound(LocalServerInfo obj)
             {
                 serverList.Servers.Add(obj);

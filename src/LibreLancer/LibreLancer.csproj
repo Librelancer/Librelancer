@@ -408,6 +408,8 @@
     <Compile Include="Gameplay\Components\FuseRunnerComponent.cs" />
     <Compile Include="Fx\ParticleEffectPool.cs" />
     <Compile Include="Interface\XmlUITextBox.cs" />
+    <Compile Include="Net\Protocol\Packets.CharacterList.cs" />
+    <Compile Include="Interface\XmlUICharacterList.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

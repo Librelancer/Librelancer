@@ -20,7 +20,6 @@ namespace LibreLancer
         public GameSession Session;
         public event Action<LocalServerInfo> ServerFound;
         public event Action<CharacterSelectInfo> CharacterSelection;
-        public event Action<int> OpenNewCharacter;
         public event Action<string> Disconnected;
         public event Action<string> AuthenticationRequired;
 
@@ -274,16 +273,14 @@ namespace LibreLancer
                                             client.Shutdown("Invalid Packet");
                                         }
                                     }
-                                    else if (pkt is BaseEnterPacket)
+                                    else if (pkt is OpenCharacterListPacket)
                                     {
                                         mainThread.QueueUIThread(() =>
                                         {
-                                            Session.PlayerBase = ((BaseEnterPacket)pkt).Base;
-                                            Session.Start();
+                                            CharacterSelection(((OpenCharacterListPacket)pkt).Info);
                                         });
                                         connecting = false;
                                     }
-
                                 }
                                 else
                                 {

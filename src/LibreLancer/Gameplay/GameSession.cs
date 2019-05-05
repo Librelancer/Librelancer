@@ -128,6 +128,8 @@ namespace LibreLancer
 			Game.ChangeState(new SpaceGameplay(Game, this));
 		}
 
+        public Action<IPacket> ExtraPackets;
+
         public void HandlePacket(IPacket pkt)
         {
             switch(pkt)
@@ -137,6 +139,10 @@ namespace LibreLancer
                     PlayerSystem = p.System;
                     PlayerPosition = p.Position;
                     PlayerOrientation = Matrix3.CreateFromQuaternion(p.Orientation);
+                    Start();
+                    break;
+                case BaseEnterPacket b:
+                    PlayerBase = b.Base;
                     Start();
                     break;
                 case SpawnObjectPacket p:
@@ -164,8 +170,13 @@ namespace LibreLancer
                         toAdd.Remove(despawn);
                     objects.Remove(p.ID);
                     break;
+                default:
+                    if (ExtraPackets != null) ExtraPackets(pkt);
+                    else FLLog.Error("Network", "Unknown packet type " + pkt.GetType().ToString());
+                    break;
             }
         }
+
 
         public void LaunchFrom(string _base)
         {

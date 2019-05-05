@@ -315,6 +315,7 @@ namespace LibreLancer
             [XmlElement("Image", Type = typeof(XInt.Image))]
             [XmlElement("ChatBox", Type = typeof(XInt.ChatBox))]
             [XmlElement("TextBox", Type = typeof(XInt.TextBox))]
+            [XmlElement("CharacterList", Type = typeof(XInt.CharacterList))]
             public object[] Items;
         }
 
@@ -368,6 +369,18 @@ namespace LibreLancer
         {
             [XmlAttribute("style")]
             public string Style { get; set; }
+            [XmlElement("Text")]
+            public PanelText[] Text { get; set; }
+        }
+        public class PanelText
+        {
+            [XmlAttribute("id")]
+            public string Item { get; set; }
+            [XmlAttribute("value")]
+            public string Value { get; set; }
+        }
+        public class CharacterList : Panel
+        {
         }
         public class ServerList : Panel
         {

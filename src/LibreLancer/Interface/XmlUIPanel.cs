@@ -37,6 +37,14 @@ namespace LibreLancer
         {
             Positioning = pnl;
             ID = pnl.ID;
+            if(pnl.Text != null)
+            {
+                foreach(var t in pnl.Text)
+                {
+                    var f = Texts.FirstOrDefault(x => x.ID == t.Item);
+                    if (f != null) f.Text = t.Value;
+                }
+            }
         }
 
         public class PanelAPI : LuaAPI

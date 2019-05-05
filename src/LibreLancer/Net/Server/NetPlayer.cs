@@ -36,11 +36,18 @@ namespace LibreLancer
 		{
 			try
 			{
-                Base = "li01_01_base";
                 var m = server.NetServer.CreateMessage();
-                m.Write(new BaseEnterPacket() { Base = Base });
+                m.Write(new OpenCharacterListPacket()
+                {
+                    Info = new CharacterSelectInfo()
+                    {
+                        ServerName = server.ServerName,
+                        ServerDescription = server.ServerDescription,
+                        ServerNews = server.ServerNews,
+                        Characters = new List<SelectableCharacter>()
+                    }
+                });
                 server.NetServer.SendMessage(m, connection, NetDeliveryMethod.ReliableOrdered);
-			
 			}
 			catch (Exception ex)
 			{
@@ -81,6 +88,9 @@ namespace LibreLancer
 		{
             switch(packet)
             {
+                case CharacterListActionPacket c:
+                    ListAction(c);
+                    break;
                 case LaunchPacket l:
                     Launch();
                     break;
@@ -93,6 +103,53 @@ namespace LibreLancer
             }
         }
 
+        void ListAction(CharacterListActionPacket pkt)
+        {
+            switch(pkt.Action)
+            {
+                case CharacterListAction.RequestCharacterDB:
+                    {
+                        var m = server.NetServer.CreateMessage();
+                        m.Write(new NewCharacterDBPacket()
+                        {
+                            Factions = server.GameData.Ini.NewCharDB.Factions,
+                            Packages = server.GameData.Ini.NewCharDB.Packages,
+                            Pilots = server.GameData.Ini.NewCharDB.Pilots
+                        });
+                        server.NetServer.SendMessage(m, connection, NetDeliveryMethod.ReliableOrdered);
+                        break;
+                    }
+                case CharacterListAction.SelectCharacter:
+                    {
+                        var m = server.NetServer.CreateMessage();
+                        Base = "li01_01_base";
+                        m.Write(new BaseEnterPacket()
+                        {
+                            Base = "li01_01_base"
+                        });
+                        server.NetServer.SendMessage(m, connection, NetDeliveryMethod.ReliableOrdered);
+                        break;
+                    }
+                case CharacterListAction.CreateNewCharacter:
+                    {
+                        var m = server.NetServer.CreateMessage();
+                        m.Write(new AddCharacterPacket()
+                        {
+                            Character = new SelectableCharacter()
+                            {
+                                Name = pkt.StringArg,
+                                Funds = 2000,
+                                Location = "New York",
+                                Rank = 1,
+                                Ship = "Defender"
+                            }
+                        });
+                        server.NetServer.SendMessage(m, connection, NetDeliveryMethod.ReliableOrdered);
+                        break;
+                    }
+            }
+        }
+
         public void Despawn(NetPlayer player)
         {
             var m = server.NetServer.CreateMessage();
@@ -100,7 +157,9 @@ namespace LibreLancer
             {
                 ID = player.ID
             });
-        }
+
+       }
+
 
         public void Disconnected()
         {
