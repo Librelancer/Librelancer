@@ -83,9 +83,6 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="MySql.Data">
-      <HintPath>..\packages\MySql.Data.6.9.10\lib\net45\MySql.Data.dll</HintPath>
-    </Reference>
     <Reference Include="Neo.Lua.Desktop">
       <HintPath>..\packages\NeoLua.1.2.25\lib\net45\Neo.Lua.Desktop.dll</HintPath>
     </Reference>

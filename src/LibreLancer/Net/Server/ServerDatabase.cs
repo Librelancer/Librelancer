@@ -6,8 +6,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.IO;
-using MySql.Data.MySqlClient;
-using MySql.Data.Types;
+
 namespace LibreLancer
 {
 	public class ServerDatabase : IDisposable
