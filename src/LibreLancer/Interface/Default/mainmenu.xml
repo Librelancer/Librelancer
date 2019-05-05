@@ -76,7 +76,7 @@
         <Button x="6.68%" y="25.8%" aspect="4/3" id="newgame" style="menubutton" text="NEW GAME" onclick="menu:newgame()"/>
         <Button x="6.68%" y="38.1%" aspect="4/3" id="loadgame" style="menubutton" text="LOAD GAME" onclick="menu:loadgame()"/>
         <Button x="6.68%" y="51%" aspect="4/3" id="multiplayer" style="menubutton" text="MULTIPLAYER" onclick="dom:changeto('multiplayer')"/>
-        <Button x="6.68%" y="63%" aspect="4/3" id="settings" style="menubutton" text="SETTINGS" onclick="dom:changeto('characterlist')"/>
+        <Button x="6.68%" y="63%" aspect="4/3" id="settings" style="menubutton" text="SETTINGS" onclick="dom:changeto('options')"/>
         <Button x="6.68%" y="75.8%" aspect="4/3" id="exit" style="menubutton" text="EXIT" onclick="menu:exit()"/>
     </Scene>
     <!--UI relating to server selection-->
