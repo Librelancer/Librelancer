@@ -32,6 +32,7 @@ namespace LibreLancer.Data
 		public List<string> RichFontPaths { get; private set; }
 		public List<string> PetalDbPaths { get; private set; }
         public List<string> FusePaths { get; private set;  }
+        public List<string> NewCharDBPaths { get; private set;  }
 
         public string StarsPath { get; private set; }
 		public string BodypartsPath { get; private set; }
@@ -73,6 +74,7 @@ namespace LibreLancer.Data
             GoodsPaths = new List<string>();
             MarketsPaths = new List<string>();
             FusePaths = new List<string>();
+            NewCharDBPaths = new List<string>();
 
             bool extNoNavmaps = false;
             bool extHideFac = false;
@@ -199,6 +201,9 @@ namespace LibreLancer.Data
                             break;
                         case "fuses":
                             FusePaths.Add(DataPath + e[0].ToString());
+                            break;
+                        case "newchardb":
+                            NewCharDBPaths.Add(DataPath + e[0].ToString());
                             break;
 						}
 					}

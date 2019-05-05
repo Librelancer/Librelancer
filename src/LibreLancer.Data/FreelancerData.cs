@@ -17,6 +17,7 @@ using LibreLancer.Data.Audio;
 using LibreLancer.Data.Effects;
 using LibreLancer.Data.Goods;
 using LibreLancer.Data.Fuses;
+using LibreLancer.Data.NewCharDB;
     
 namespace LibreLancer.Data
 {
@@ -49,7 +50,9 @@ namespace LibreLancer.Data
 		public HudIni Hud;
 		public BaseNavBarIni BaseNavBar;
 		public MBasesIni MBases;
+        public NewCharDBIni NewCharDB;
         public ContentDll ContentDll;
+
         public string DataVersion;
 		public bool Loaded = false;
 
@@ -152,6 +155,10 @@ namespace LibreLancer.Data
                 Fuses = new FuseIni();
                 foreach (var fi in Freelancer.FusePaths)
                     Fuses.AddFuseIni(fi);
+                //newchardb
+                NewCharDB = new NewCharDBIni();
+                foreach (var nc in Freelancer.NewCharDBPaths)
+                    NewCharDB.AddNewCharDBIni(nc);
             });
             tMisc.Start();
             tSolar.Start();

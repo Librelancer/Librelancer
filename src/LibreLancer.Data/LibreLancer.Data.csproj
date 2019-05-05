@@ -220,6 +220,10 @@
     <Compile Include="Fuses\FuseIni.cs" />
     <Compile Include="Fuses\Fuse.cs" />
     <Compile Include="Fuses\FuseAction.cs" />
+    <Compile Include="NewCharDB\NewCharDBIni.cs" />
+    <Compile Include="NewCharDB\NewCharPackage.cs" />
+    <Compile Include="NewCharDB\NewCharPilot.cs" />
+    <Compile Include="NewCharDB\NewCharFaction.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />
@@ -243,6 +247,7 @@
     <Folder Include="Save\" />
     <Folder Include="Missions\" />
     <Folder Include="Fuses\" />
+    <Folder Include="NewCharDB\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
