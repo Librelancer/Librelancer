@@ -108,6 +108,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Versioning", "Versioning", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{F1160AA9-1BA5-488D-8B64-DFD22D0DAFAE}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		..\LICENSE = ..\LICENSE
 		..\README.md = ..\README.md
 		Shader Readme.txt = Shader Readme.txt
