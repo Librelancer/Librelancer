@@ -32,6 +32,29 @@ namespace LibreLancer.ImUI
             return retval;
         }
 
+        /// <summary>
+        /// Button that can be disabled
+        /// </summary>
+        /// <param name="text">Text.</param>
+        /// <param name="enabled">If set to <c>true</c> enabled.</param>
+        public static bool Button(string text, bool enabled)
+        {
+            if (!enabled)
+            {
+                var style = ImGui.GetStyle();
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, style.Colors[(int)ImGuiCol.Button]);
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, style.Colors[(int)ImGuiCol.Button]);
+                ImGui.PushStyleColor(ImGuiCol.Text, style.Colors[(int)ImGuiCol.TextDisabled]);
+                ImGui.Button(text);
+                ImGui.PopStyleColor();
+                ImGui.PopStyleColor();
+                ImGui.PopStyleColor();
+                return false;
+            }
+            else
+                return ImGui.Button(text);
+        }
+
         const int ImDrawCornerFlags_All = 0xF;
         public static unsafe void ToastText(string text, Color4 background, Color4 foreground)
         {

@@ -176,7 +176,22 @@ namespace LancerEdit
             }, ImGuiWindowFlags.AlwaysAutoResize);
             popups.AddPopup("New Hardpoint", NewHardpoint, ImGuiWindowFlags.AlwaysAutoResize);
         }
-       
+        //For warnings
+        bool _isDirtyHp = false;
+        public void OnDirtyHp()
+        {
+            if (_isDirtyHp) return;
+            _isDirtyHp = true;
+            parent.DirtyCountHp++;
+        }
+        bool _isDirtyPart = false;
+        public void OnDirtyPart()
+        {
+            if (_isDirtyPart) return;
+            _isDirtyPart = true;
+            parent.DirtyCountPart++;
+        }
+
         public override void SetActiveTab(MainWindow win)
         {
             win.ActiveTab = parent;
@@ -646,7 +661,7 @@ namespace LancerEdit
                     ImGui.Separator();
                 }
             }
-            if (ImGui.Button("Apply Hardpoints"))
+            if (ImGuiExt.Button("Apply Hardpoints", _isDirtyHp))
             {
                 if (drawable is CmpFile)
                 {
@@ -661,11 +676,21 @@ namespace LancerEdit
                 {
                     hprefs.Nodes[0].HardpointsToNodes(((ModelFile)drawable).Hardpoints);
                 }
+                if(_isDirtyHp)
+                {
+                    _isDirtyHp = false;
+                    parent.DirtyCountHp--;
+                }
                 popups.OpenPopup("Apply Complete");
             }
-            if ((drawable is CmpFile) && ((CmpFile)drawable).Parts.Count > 1 && ImGui.Button("Apply Parts"))
+            if ((drawable is CmpFile) && ((CmpFile)drawable).Parts.Count > 1 && ImGuiExt.Button("Apply Parts", _isDirtyPart))
             {
                 WriteConstructs();
+                if(_isDirtyPart)
+                {
+                    _isDirtyPart = false;
+                    parent.DirtyCountPart--;
+                }
                 popups.OpenPopup("Apply Complete##Parts");
             }
             if (ImGuiExt.ToggleButton("Filter", doFilter)) doFilter = !doFilter;
@@ -775,7 +800,10 @@ namespace LancerEdit
 
         public override void Dispose()
         {
-            if(surs != null)
+            if (_isDirtyPart) parent.DirtyCountPart--;
+            if (_isDirtyHp) parent.DirtyCountHp--;
+
+            if (surs != null)
             {
                 foreach(var s in surs)
                 {

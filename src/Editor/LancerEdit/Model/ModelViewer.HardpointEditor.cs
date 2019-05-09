@@ -230,6 +230,7 @@ namespace LancerEdit
                         rev.Axis = new Vector3(HPaxisX, HPaxisY, HPaxisZ);
                     }
                     hpEditOpen = false;
+                    OnDirtyHp();
                 }
                 ImGui.SameLine();
                 if (ImGui.Button("Cancel"))

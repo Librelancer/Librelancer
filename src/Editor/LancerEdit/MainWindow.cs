@@ -206,18 +206,30 @@ namespace LancerEdit
 				{
 					if (Theme.IconMenuItem(string.Format("Save '{0}'", ActiveTab.DocumentName), "save", Color4.White, true))
 					{
-                        var f = FileDialog.Save(UtfFilters);
-						if (f != null)
-						{
-							ActiveTab.DocumentName = System.IO.Path.GetFileName(f);
-                            ActiveTab.UpdateTitle();
-                            string errText = "";
-                            if(!ActiveTab.Utf.Save(f, ref errText)) {
-                                openError = true;
-                                if (errorText == null) errorText = new TextBuffer();
-                                errorText.SetText(errText);
+                        var at = ActiveTab;
+                        Action save = () =>
+                        {
+                            var f = FileDialog.Save(UtfFilters);
+                            if (f != null)
+                            {
+                                at.DocumentName = System.IO.Path.GetFileName(f);
+                                at.UpdateTitle();
+                                string errText = "";
+                                if (!at.Utf.Save(f, ref errText))
+                                {
+                                    openError = true;
+                                    if (errorText == null) errorText = new TextBuffer();
+                                    errorText.SetText(errText);
+                                }
                             }
-						}
+                        };
+                        if (at.DirtyCountHp > 0 || at.DirtyCountPart > 0)
+                        {
+                            Confirm("This model has unapplied changes. Continue?", save);
+                        }
+                        else
+                            save();
+
 					}
 				}
 				if (Theme.IconMenuItem("Quit", "quit", Color4.White, true))
@@ -323,7 +335,26 @@ namespace LancerEdit
                 if (finishLoading) ImGui.CloseCurrentPopup();
                 ImGui.EndPopup();
             }
-			var menu_height = ImGui.GetWindowSize().Y;
+            //Confirmation
+            if (doConfirm)
+            {
+                ImGui.OpenPopup("Confirm?##mainwindow");
+                doConfirm = false;
+            }
+            pOpen = true;
+            if (ImGui.BeginPopupModal("Confirm?##mainwindow", ref pOpen, ImGuiWindowFlags.AlwaysAutoResize))
+            {
+                ImGui.Text(confirmText);
+                if (ImGui.Button("Yes"))
+                {
+                    confirmAction();
+                    ImGui.CloseCurrentPopup();
+                }
+                ImGui.SameLine();
+                if (ImGui.Button("No")) ImGui.CloseCurrentPopup();
+                ImGui.EndPopup();
+            }
+            var menu_height = ImGui.GetWindowSize().Y;
 			ImGui.EndMainMenuBar();
 			var size = (Vector2)ImGui.GetIO().DisplaySize;
 			size.Y -= menu_height;
@@ -437,6 +468,17 @@ namespace LancerEdit
             }
             toAdd.Clear();
 		}
+        string confirmText;
+        bool doConfirm = false;
+        Action confirmAction;
+
+        void Confirm(string text, Action action)
+        {
+            doConfirm = true;
+            confirmAction = action;
+            confirmText = text;
+        }
+
         void CenterText(string text)
         {
             ImGui.Dummy(new Vector2(1));

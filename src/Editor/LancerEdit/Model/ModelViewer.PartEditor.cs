@@ -15,7 +15,7 @@ namespace LancerEdit
         List<HardpointEditor> partEditors = new List<HardpointEditor>();
         void AddPartEditor(AbstractConstruct p)
         {
-            partEditors.Add(new HardpointEditor(p));
+            partEditors.Add(new HardpointEditor(p,this));
         }
 
         void PartEditor()
@@ -116,9 +116,11 @@ namespace LancerEdit
                 return editingPart != null;
             }
         }
-        public HardpointEditor(AbstractConstruct part)
+        ModelViewer mv;
+        public HardpointEditor(AbstractConstruct part, ModelViewer mv)
         {
             editingPart = part;
+            this.mv = mv;
         }
         AbstractConstruct editingPart = null;
 
@@ -278,6 +280,7 @@ namespace LancerEdit
                         sphere.Min3 = min3;
                         sphere.Max3 = max3;
                     }
+                    mv.OnDirtyPart();
                 }
                 ImGui.SameLine();
                 if (ImGui.Button("Cancel")) partEditorOpen = false;
