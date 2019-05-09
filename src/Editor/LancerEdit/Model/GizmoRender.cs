@@ -41,6 +41,10 @@ namespace LancerEdit
 
         public static void AddGizmoArc(Matrix4 tr, float min, float max)
         {
+            //angle magic for display
+            float a = -max, b = -min;
+            max = b; min = a;
+
             //Setup
             float baseSize = 0.33f * Scale;
             float arrowSize = 0.62f * Scale;
@@ -53,14 +57,14 @@ namespace LancerEdit
             var innerRadius = radius - width * 0.5f;
             var outerRadius = radius + width * 0.5f;
 
-            var notchRadius = outerRadius * 1.13f;
+            var notchRadius = outerRadius + width;
            
-            var x = Math.Cos(min);
-            var y = Math.Sin(min);
+            var x = Math.Sin(min);
+            var y = Math.Cos(min);
 
             //First Notch
-            var notch_inner = VectorMath.Transform(new Vector3((float)y * outerRadius, arrowOffset, -arrowLength - (float)x * outerRadius), tr);
-            var notch_outer = VectorMath.Transform(new Vector3((float)y * notchRadius, arrowOffset, -arrowLength - (float)x * notchRadius), tr);
+            var notch_inner = VectorMath.Transform(new Vector3((float)x * outerRadius, arrowOffset, -(float)y * outerRadius), tr);
+            var notch_outer = VectorMath.Transform(new Vector3((float)x * notchRadius, arrowOffset, -(float)y * notchRadius), tr);
             AddPoint(notch_inner, Color4.Yellow);
             AddPoint(notch_outer, Color4.Yellow);
 
@@ -69,12 +73,12 @@ namespace LancerEdit
             for (int i = 1; i < segments; i++)
             {
                 float theta = (length * i) / segments;
-                var x2 = Math.Cos(min + theta);
-                var y2 = Math.Sin(min + theta);
-                var p1_inner = VectorMath.Transform(new Vector3((float)y * innerRadius, arrowOffset, -arrowLength - (float)x * innerRadius), tr);
-                var p1_outer = VectorMath.Transform(new Vector3((float)y * outerRadius, arrowOffset, -arrowLength - (float)x * outerRadius), tr);
-                var p2_inner = VectorMath.Transform(new Vector3((float)y2 * innerRadius, arrowOffset, -arrowLength - (float)x2 * innerRadius), tr);
-                var p2_outer = VectorMath.Transform(new Vector3((float)y2 * outerRadius, arrowOffset, -arrowLength - (float)x2 * outerRadius), tr);
+                var x2 = Math.Sin(min + theta);
+                var y2 = Math.Cos(min + theta);
+                var p1_inner = VectorMath.Transform(new Vector3((float)x * innerRadius, arrowOffset, -(float)y * innerRadius), tr);
+                var p1_outer = VectorMath.Transform(new Vector3((float)x * outerRadius, arrowOffset, -(float)y * outerRadius), tr);
+                var p2_inner = VectorMath.Transform(new Vector3((float)x2 * innerRadius, arrowOffset, -(float)y2 * innerRadius), tr);
+                var p2_outer = VectorMath.Transform(new Vector3((float)x2 * outerRadius, arrowOffset, -(float)y2 * outerRadius), tr);
                 //Draw quad
                 AddPoint(p1_inner, Color4.Yellow);
                 AddPoint(p1_outer, Color4.Yellow);
@@ -85,13 +89,13 @@ namespace LancerEdit
                 AddPoint(p2_inner, Color4.Yellow);
                 AddPoint(p1_inner, Color4.Yellow);
                 //Next
-                x = x2;
                 y = y2;
+                x = x2;
             }
 
             //Second notch
-            notch_inner = VectorMath.Transform(new Vector3((float)y * outerRadius, arrowOffset, -arrowLength - (float)x * outerRadius), tr);
-            notch_outer = VectorMath.Transform(new Vector3((float)y * notchRadius, arrowOffset, -arrowLength - (float)x * notchRadius), tr);
+            notch_inner = VectorMath.Transform(new Vector3((float)x * outerRadius, arrowOffset, -(float)y * outerRadius), tr);
+            notch_outer = VectorMath.Transform(new Vector3((float)x * notchRadius, arrowOffset, -(float)y * notchRadius), tr);
             AddPoint(notch_inner, Color4.Yellow);
             AddPoint(notch_outer, Color4.Yellow);
         }
