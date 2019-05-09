@@ -108,7 +108,7 @@ namespace LancerEdit
         };
         static Vector3 vM(float x, float y, float z) => new Vector3(x, z, -y);
 
-        public static void AddGizmo(Matrix4 tr)
+        public static void AddGizmo(Matrix4 tr, Color4 color)
         {
             float baseSize = 0.33f * Scale;
             float arrowSize = 0.62f * Scale;
@@ -123,7 +123,7 @@ namespace LancerEdit
                 vM(0, 0, arrowOffset + arrowSize), vM(arrowSize, 0, arrowOffset),
                 vM(0, 0, arrowOffset - arrowSize), vM(0, -arrowSize, arrowOffset)
             };
-            AddTriangleMesh(tr, vertices, gizmoIndices, Color4.LightPink);
+            AddTriangleMesh(tr, vertices, gizmoIndices, color);
         }
 
 

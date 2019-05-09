@@ -374,8 +374,6 @@ namespace LancerEdit
                 if (tr.Enabled || tr.Override != null)
                 {
                     var transform = tr.Override ?? tr.Definition.Transform;
-                    //highlight edited cube
-
                     //arc
                     if(tr.Definition is RevoluteHardpointDefinition) {
                         var rev = (RevoluteHardpointDefinition)tr.Definition;
@@ -383,8 +381,8 @@ namespace LancerEdit
                         var max = tr.Override == null ? rev.Max : tr.EditingMax;
                         GizmoRender.AddGizmoArc(transform * (tr.Parent == null ? Matrix4.Identity : tr.Parent.Transform) * matrix, min,max);
                     }
-                    //
-                    GizmoRender.AddGizmo(transform * (tr.Parent == null ? Matrix4.Identity : tr.Parent.Transform) * matrix);
+                    //draw (red for editing, light pink for normal)
+                    GizmoRender.AddGizmo(transform * (tr.Parent == null ? Matrix4.Identity : tr.Parent.Transform) * matrix, tr.Override != null ? Color4.Red : Color4.LightPink);
                 }
             }
             GizmoRender.RenderGizmos(cam, rstate);
