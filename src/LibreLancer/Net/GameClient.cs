@@ -210,8 +210,8 @@ namespace LibreLancer
                                     foreach (var info in srvinfo)
                                     {
                                         if (info.EndPoint.Equals(im.SenderEndPoint))
-                                        {
-                                            var t = (long)(NetTime.Now * 1000);
+                                        { 
+                                            var t = (long)(im.ReceiveTime * 1000);
                                             info.Ping = (int)(t - info.LastPingTime);
                                             if (info.Ping < 0) info.Ping = 0;
                                         }
