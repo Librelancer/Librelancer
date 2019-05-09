@@ -50,7 +50,7 @@
       <Project>{C7A37830-B878-4008-A988-D7294D47F44D}</Project>
       <Name>LibreLancer.Base</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\LibreLancer.Compatibility\LibreLancer.Compatibility.csproj">
+    <ProjectReference Include="..\..\LibreLancer.Data\LibreLancer.Data.csproj">
       <Project>{F89CC613-0C7A-4936-9D79-86CBBF26593E}</Project>
       <Name>LibreLancer.Data</Name>
     </ProjectReference>
