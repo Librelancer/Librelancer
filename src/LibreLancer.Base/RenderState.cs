@@ -62,6 +62,9 @@ namespace LibreLancer
         public int MaxAnisotropy {
             get; private set;
         }
+        public int MaxSamples {
+            get; private set;
+        }
         int _anisotropyLevel = 0;
         public int AnisotropyLevel {
             get {
@@ -81,7 +84,7 @@ namespace LibreLancer
             }
             return levels.ToArray();
         }
-		public bool DepthWrite
+        public bool DepthWrite
 		{
 			get
 			{
@@ -195,6 +198,9 @@ namespace LibreLancer
             GL.GenVertexArrays(1, out NullVAO);
 			Instance = this;
 			PreferredFilterLevel = TextureFiltering.Trilinear;
+            int ms;
+            GL.GetIntegerv(GL.GL_MAX_SAMPLES, out ms);
+            MaxSamples = ms;
             if(GLExtensions.Anisotropy) {
                 int af;
                 GL.GetIntegerv(GL.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, out af);
@@ -233,10 +239,6 @@ namespace LibreLancer
 
 			if (wireframeDirty) {
 				GL.PolygonMode (GL.GL_FRONT_AND_BACK, isWireframe ? GL.GL_LINE : GL.GL_FILL);
-				if (isWireframe)
-					GL.LineWidth(1.7f);
-				else
-					GL.LineWidth(1);
 				wireframeDirty = false;
 			}
 

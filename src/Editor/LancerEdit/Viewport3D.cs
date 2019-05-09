@@ -14,8 +14,10 @@ namespace LancerEdit
         RenderState rstate;
         ViewportManager vps;
         int rw = -1, rh = -1;
+        int mrw = -1, mrh = -1, msamples = 0;
         int rid;
         public RenderTarget2D RenderTarget;
+        MultisampleTarget msaa;
         public Vector3 DefaultOffset = new Vector3(0, 0, 200);
 
         public float ModelScale = 0.25f;
@@ -31,7 +33,7 @@ namespace LancerEdit
 
         public int RenderWidth { get { return rw; }}
         public int RenderHeight { get { return rh; }}
-
+        
         MainWindow mw;
         public Viewport3D(MainWindow mw) 
         {
@@ -66,8 +68,23 @@ namespace LancerEdit
                 rw = renderWidth;
                 rh = renderHeight;
             }
+            if (mw.MSAA != 0 && ((mrw != rw) || (mrh != rh) || (msamples != mw.MSAA)))
+            {
+                if (msaa != null) msaa.Dispose();
+                msaa = new MultisampleTarget(rw, rh, mw.MSAA);
+
+            } else if(msaa != null)
+            {
+                msaa.Dispose();
+                mrw = mrh = -1;
+                msamples = 0;
+                msaa = null;
+            }
             cc = rstate.ClearColor;
-            RenderTarget.BindFramebuffer();
+            if (mw.MSAA != 0)
+                msaa.Bind();
+            else
+                RenderTarget.BindFramebuffer();
             vps.Push(0, 0, rw, rh);
             rstate.Cull = true;
             rstate.DepthEnabled = true;
@@ -79,6 +96,8 @@ namespace LancerEdit
         {
             vps.Pop();
             RenderTarget2D.ClearBinding();
+            if (mw.MSAA != 0)
+                msaa.BlitToRenderTarget(RenderTarget);
             rstate.ClearColor = cc;
             rstate.DepthEnabled = false;
             rstate.BlendMode = BlendMode.Normal;

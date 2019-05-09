@@ -261,13 +261,13 @@ namespace LancerEdit
             matnode.Children = new List<LUtfNode>();
             matnode.Children.Add(new LUtfNode() { Name = "Type", Parent = matnode, Data = Encoding.ASCII.GetBytes("DcDt") });
             matnode.Children.Add(new LUtfNode() { Name = "Dc", Parent = matnode, Data = UnsafeHelpers.CastArray(matColors[i % matColors.Length]) });
-            matnode.Children.Add(new LUtfNode() { Name = "Dt_name", Parent = matnode, Data = Encoding.ASCII.GetBytes(name + ".tex.dds") });
+            matnode.Children.Add(new LUtfNode() { Name = "Dt_name", Parent = matnode, Data = Encoding.ASCII.GetBytes(name + ".dds") });
             matnode.Children.Add(new LUtfNode() { Name = "Dt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
             return matnode;
         }
         static LUtfNode DefaultTextureNode(LUtfNode parent, string name)
         {
-            var texnode = new LUtfNode() { Name = name + ".tex.dds", Parent = parent };
+            var texnode = new LUtfNode() { Name = name + ".dds", Parent = parent };
             texnode.Children = new List<LUtfNode>();
             var d = new byte[DefaultTexture.Data.Length];
             Buffer.BlockCopy(DefaultTexture.Data, 0, d, 0, DefaultTexture.Data.Length);

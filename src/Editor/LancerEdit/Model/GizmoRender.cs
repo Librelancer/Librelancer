@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using LibreLancer;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
@@ -10,56 +11,13 @@ namespace LancerEdit
 {
     static class GizmoRender
     {
-        public const int MAX_GIZMOS = 400;
-
-        static readonly ushort[] idxcube = new ushort[] {
-            0, 1, 2,
-            2, 3, 0,
-            // top
-            1, 5, 6,
-            6, 2, 1,
-            // back
-            7, 6, 5,
-            5, 4, 7,
-            // bottom
-            4, 0, 3,
-            3, 7, 4,
-            // left
-            4, 5, 1,
-            1, 0, 4,
-            // right
-            3, 2, 6,
-            6, 7, 3,
-        };
-
-        static readonly Vector3[] vertcube = new Vector3[] {
-                // front
-                new Vector3(-1.0f, -1.0f,  1.0f),
-                new Vector3(1.0f, -1.0f,  1.0f),
-                new Vector3(1.0f,  1.0f,  1.0f),
-                new Vector3(-1.0f,  1.0f,  1.0f),
-                // back
-                new Vector3(-1.0f, -1.0f, -1.0f),
-                new Vector3(1.0f, -1.0f, -1.0f),
-                new Vector3(1.0f,  1.0f, -1.0f),
-                new Vector3(-1.0f,  1.0f, -1.0f),
-        };
-
-        public const float LINE_LENGTH = 2.7f;
-        public const float CUBE_SIZE = 0.3f;
-        public const float ARC_SIZE = 3.24f;
+        public const int MAX_LINES = 3000;
+        public static float Scale = 1;
         //Render State
-        public static float Scale = 1f;
-        public static Color4 CubeColor = Color4.Purple;
-        public static float CubeAlpha = 0.3f;
 
         static Material gizmoMaterial;
         static VertexPositionColor[] lines;
-        static VertexPositionColor[] tris;
         static VertexBuffer lineBuffer;
-        static VertexBuffer triBuffer;
-        static ElementBuffer triElems;
-        static int vertexCountC = 0;
         static int vertexCountL = 0;
 
         static bool inited = false;
@@ -67,21 +25,8 @@ namespace LancerEdit
         {
             if (inited) return;
             inited = true;
-            lines = new VertexPositionColor[MAX_GIZMOS * 6];
-            tris = new VertexPositionColor[MAX_GIZMOS * 8];
-            lineBuffer = new VertexBuffer(typeof(VertexPositionColor), MAX_GIZMOS * 6, true);
-            ushort[] indices = new ushort[MAX_GIZMOS * idxcube.Length];
-            for (int i = 0; i < MAX_GIZMOS; i++)
-            {
-                for (int j = 0; j < idxcube.Length; j++)
-                {
-                    indices[i * idxcube.Length + j] = (ushort)(idxcube[j] + (8 * i));
-                }
-            }
-            triBuffer = new VertexBuffer(typeof(VertexPositionColor), MAX_GIZMOS * 8, true);
-            triElems = new ElementBuffer(MAX_GIZMOS * idxcube.Length);
-            triElems.SetData(indices);
-            triBuffer.SetElementBuffer(triElems);
+            lines = new VertexPositionColor[MAX_LINES * 2];
+            lineBuffer = new VertexBuffer(typeof(VertexPositionColor), MAX_LINES * 2, true);
 
             gizmoMaterial = new Material(res);
             gizmoMaterial.Dc = Color4.White;
@@ -91,68 +36,100 @@ namespace LancerEdit
 
         public static void Begin()
         {
-            vertexCountC = vertexCountL = 0;
+            vertexCountL = 0;
         }
-
-        //We're working with rather small values here, making this too big
-        //messes with floating point.
-        const int ARC_SEGMENTS = 16;
 
         public static void AddGizmoArc(Matrix4 tr, float min, float max)
         {
+            //Setup
+            float baseSize = 0.33f * Scale;
+            float arrowSize = 0.62f * Scale;
+            float arrowLength = arrowSize * 3;
+            float arrowOffset = (baseSize > 0) ? baseSize + arrowSize : 0;
+
             var length = max - min;
-            AddPoint(VectorMath.Transform(Vector3.Zero, tr), Color4.Yellow);
-            var r = ARC_SIZE * Scale;
-            var x = r * Math.Cos(min);
-            var y = r * Math.Sin(min);
-            int segments = ARC_SEGMENTS;
-            if (length > Math.PI) segments *= 2; //Double when size of arc is sufficent
-            for (int i = 0; i < segments; i++)
+            var width = arrowLength * 0.125f;
+            var radius = arrowLength + width * 2f;
+            var innerRadius = radius - width * 0.5f;
+            var outerRadius = radius + width * 0.5f;
+
+            var notchRadius = outerRadius * 1.13f;
+           
+            var x = Math.Cos(min);
+            var y = Math.Sin(min);
+
+            //First Notch
+            var notch_inner = VectorMath.Transform(new Vector3((float)y * outerRadius, arrowOffset, -arrowLength - (float)x * outerRadius), tr);
+            var notch_outer = VectorMath.Transform(new Vector3((float)y * notchRadius, arrowOffset, -arrowLength - (float)x * notchRadius), tr);
+            AddPoint(notch_inner, Color4.Yellow);
+            AddPoint(notch_outer, Color4.Yellow);
+
+            int segments = (int)Math.Ceiling(length / MathHelper.DegreesToRadians(11.25f));
+            if (segments <= 1) segments = 2;
+            for (int i = 1; i < segments; i++)
             {
                 float theta = (length * i) / segments;
-                x = r * Math.Cos(min + theta);
-                y = r * Math.Sin(min + theta);
-                AddPoint(VectorMath.Transform(new Vector3(
-                    (float)y,0,-(float)x
-                ), tr), Color4.Yellow);
-                AddPoint(VectorMath.Transform(new Vector3(
-                    (float)y,0,-(float)x
-               ), tr), Color4.Yellow);
+                var x2 = Math.Cos(min + theta);
+                var y2 = Math.Sin(min + theta);
+                var p1_inner = VectorMath.Transform(new Vector3((float)y * innerRadius, arrowOffset, -arrowLength - (float)x * innerRadius), tr);
+                var p1_outer = VectorMath.Transform(new Vector3((float)y * outerRadius, arrowOffset, -arrowLength - (float)x * outerRadius), tr);
+                var p2_inner = VectorMath.Transform(new Vector3((float)y2 * innerRadius, arrowOffset, -arrowLength - (float)x2 * innerRadius), tr);
+                var p2_outer = VectorMath.Transform(new Vector3((float)y2 * outerRadius, arrowOffset, -arrowLength - (float)x2 * outerRadius), tr);
+                //Draw quad
+                AddPoint(p1_inner, Color4.Yellow);
+                AddPoint(p1_outer, Color4.Yellow);
+                AddPoint(p1_outer, Color4.Yellow);
+                AddPoint(p2_outer, Color4.Yellow);
+                AddPoint(p2_outer, Color4.Yellow);
+                AddPoint(p2_inner, Color4.Yellow);
+                AddPoint(p2_inner, Color4.Yellow);
+                AddPoint(p1_inner, Color4.Yellow);
+                //Next
+                x = x2;
+                y = y2;
             }
-            AddPoint(VectorMath.Transform(Vector3.Zero, tr), Color4.Yellow);
+
+            //Second notch
+            notch_inner = VectorMath.Transform(new Vector3((float)y * outerRadius, arrowOffset, -arrowLength - (float)x * outerRadius), tr);
+            notch_outer = VectorMath.Transform(new Vector3((float)y * notchRadius, arrowOffset, -arrowLength - (float)x * notchRadius), tr);
+            AddPoint(notch_inner, Color4.Yellow);
+            AddPoint(notch_outer, Color4.Yellow);
         }
-        public static void AddGizmo(Matrix4 tr, bool cube = true, bool lines = true)
+
+        static readonly int[] gizmoIndices =
         {
-            if (lines)
+            0,1,2, 0,2,3, 0,3,4, 0,4,1, 1,5,2, 2,5,3, 3,5,4, 
+            4,5,1, 6,7,8, 6,8,9, 6,9,10, 6,10,7, 7,11,8,
+            8,11,9,9,11,10,10,11,7
+        };
+        static Vector3 vM(float x, float y, float z) => new Vector3(x, z, -y);
+
+        public static void AddGizmo(Matrix4 tr)
+        {
+            float baseSize = 0.33f * Scale;
+            float arrowSize = 0.62f * Scale;
+            float arrowLength = arrowSize * 3;
+            float arrowOffset = (baseSize > 0) ? baseSize + arrowSize : 0;
+            var vertices = new Vector3[]
             {
-                //X
-                AddPoint(VectorMath.Transform(Vector3.Zero, tr), Color4.Red);
-                AddPoint(VectorMath.Transform(Vector3.UnitX * LINE_LENGTH * Scale, tr), Color4.Red);
-                //Y
-                AddPoint(VectorMath.Transform(Vector3.Zero, tr), Color4.Green);
-                AddPoint(VectorMath.Transform(Vector3.UnitY * LINE_LENGTH * Scale, tr), Color4.Green);
-                //Z
-                AddPoint(VectorMath.Transform(Vector3.Zero, tr), Color4.Blue);
-                AddPoint(VectorMath.Transform(-Vector3.UnitZ * LINE_LENGTH * Scale, tr), Color4.Blue);
-            }
-            //Cube
-            if (cube)
-                AddCube(ref tr, CubeColor);
+                vM(0,0, baseSize), vM(-baseSize, -baseSize, 0),
+                vM(baseSize, -baseSize, 0), vM(baseSize, baseSize, 0),
+                vM(-baseSize, baseSize, 0), vM(0,0,0),
+                vM(0, arrowLength, arrowOffset), vM(-arrowSize, 0, arrowOffset),
+                vM(0, 0, arrowOffset + arrowSize), vM(arrowSize, 0, arrowOffset),
+                vM(0, 0, arrowOffset - arrowSize), vM(0, -arrowSize, arrowOffset)
+            };
+            AddTriangleMesh(tr, vertices, gizmoIndices, Color4.LightPink);
         }
+
 
         public static void RenderGizmos(ICamera cam, RenderState rstate)
         {
             rstate.DepthEnabled = true;
-            triBuffer.SetData(tris, vertexCountC);
             lineBuffer.SetData(lines, vertexCountL);
             gizmoMaterial.Update(cam);
             var r = (BasicMaterial)gizmoMaterial.Render;
             r.World = Matrix4.Identity;
-            //Cubes
-            r.AlphaEnabled = true;
-            rstate.Cull = true;
-            r.Use(rstate, lines[0], ref Lighting.Empty);
-            triBuffer.Draw(PrimitiveTypes.TriangleList, (idxcube.Length * (vertexCountC / 8)) / 3);
             //Lines
             r.AlphaEnabled = false;
             rstate.Cull = false;
@@ -160,18 +137,20 @@ namespace LancerEdit
             lineBuffer.Draw(PrimitiveTypes.LineList, vertexCountL / 2);
         }
 
+        static void AddTriangleMesh(Matrix4 mat, Vector3[] positions, int[] indices, Color4 color)
+        {
+            for(int i = 1; i < indices.Length; i++)
+            {
+                var p1 = positions[indices[i - 1]];
+                var p2 = positions[indices[i]];
+                AddPoint(mat.Transform(p1), color);
+                AddPoint(mat.Transform(p2), color);
+            }
+        }
+
         static void AddPoint(Vector3 pos, Color4 col)
         {
             lines[vertexCountL++] = new VertexPositionColor(pos, col);
-        }
-
-        static void AddCube(ref Matrix4 mat, Color4 col)
-        {
-            col.A = CubeAlpha;
-            foreach (var vert in vertcube)
-                tris[vertexCountC++] = new VertexPositionColor(
-                    VectorMath.Transform(vert * CUBE_SIZE * Scale, mat),
-                    col);
         }
     }
 }

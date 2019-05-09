@@ -55,7 +55,24 @@ namespace LibreLancer
 			GL.BlitFramebuffer(0, 0, Width, Height, 0, 0, Width, Height, GL.GL_COLOR_BUFFER_BIT, GL.GL_NEAREST);
 		}
 
-		public void Dispose()
+        public void BlitToRenderTarget(RenderTarget2D rTarget)
+        {
+            GL.Disable(GL.GL_MULTISAMPLE);
+            //Unbind everything
+            GL.BindFramebuffer(GL.GL_FRAMEBUFFER, 0);
+            //read from our fbo
+            GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, fbo);
+            //draw to the fbo
+            GL.BindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, rTarget.FBO);
+            GL.DrawBuffer(GL.GL_COLOR_ATTACHMENT0);
+            //blit
+            GL.BlitFramebuffer(0, 0, Width, Height, 0, 0, Width, Height, GL.GL_COLOR_BUFFER_BIT, GL.GL_NEAREST);
+            //reset state
+            GL.BindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0);
+            GL.DrawBuffer(GL.GL_BACK);
+        }
+
+        public void Dispose()
 		{
 			RenderTarget2D.ClearBinding();
 			GL.DeleteFramebuffer(fbo);

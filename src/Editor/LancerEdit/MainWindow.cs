@@ -50,6 +50,10 @@ namespace LancerEdit
         FileDialogFilters ColladaFilters = new FileDialogFilters(
             new FileFilter("Collada Files", "dae")
         );
+        public int MSAA = 0;
+        int[] msaaLevels;
+        string[] msaaStrings = { "None", "2x MSAA", "4x MSAA", "8x MSAA", "16x MSAA", "32x MSAA" };
+        int cMsaa = 0;
         public MainWindow() : base(800,600,false)
 		{
             Version = "LancerEdit " + Platform.GetInformationalVersion<MainWindow>();
@@ -88,6 +92,13 @@ namespace LancerEdit
                     texturefilters.Add(string.Format("Anisotropic {0}x", lvl));
                 }
             }
+            var msaa = new List<int> { 0 };
+            int a = 2;
+            while(a <= RenderState.MaxSamples) {
+                msaa.Add(a);
+                a *= 2;
+            }
+            msaaLevels = msaa.ToArray();
             filters = texturefilters.ToArray();
 			Resources = new ResourceManager(this);
 			Commands = new CommandBuffer();
@@ -413,6 +424,8 @@ namespace LancerEdit
                             break;
                     }
                 }
+                ImGui.Combo("Antialiasing", ref cMsaa, msaaStrings, Math.Min(msaaLevels.Length, msaaStrings.Length));
+                MSAA = msaaLevels[cMsaa];
                 ImGui.End();
             }
 			ImGui.PopFont();

@@ -136,8 +136,9 @@ namespace LibreLancer
 
         public const int GL_RENDERER = 0x1F01;
         public const int GL_VERSION = 0x1F02;
+        public const int GL_MAX_SAMPLES = 0x8D57;
 
-		public const int GL_WRITE_ONLY = 0x88B9;
+        public const int GL_WRITE_ONLY = 0x88B9;
 		public const int GL_READ_WRITE = 0x88BA;
 
 		public const int GL_SHADER_STORAGE_BARRIER_BIT = 0x00002000;

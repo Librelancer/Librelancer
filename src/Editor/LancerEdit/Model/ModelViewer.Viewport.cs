@@ -320,47 +320,9 @@ namespace LancerEdit
                 RenderSurs(cam);
             //Draw hardpoints
             DrawHardpoints(cam);
-            if (drawSkeleton) DrawSkeleton(cam);
+           // if (drawSkeleton) DrawSkeleton(cam);
         }
 
-        void DrawSkeleton(ICamera cam)
-        {
-            var matrix = GetModelMatrix();
-            GizmoRender.Scale = gizmoScale;
-            GizmoRender.Begin();
-            var df = (DF.DfmFile)drawable;
-            foreach(var c in df.Constructs.Constructs)
-            {
-                var b1 = c.BoneA;
-                var b2 = c.BoneB;
-                if (string.IsNullOrEmpty(c.BoneB))
-                {
-                    b2 = c.ParentName;
-                    b1 = c.BoneA;
-                }
-                var conMat = c.Rotation * Matrix4.CreateTranslation(c.Origin);
-                DF.Bone bone1 = null;
-                DF.Bone bone2 = null;
-                foreach(var k in df.Parts.Values)
-                {
-                    if (k.objectName == b1) bone1 = k.Bone;
-                    if (k.objectName == b2) bone2 = k.Bone;
-                }
-                if (bone1 == null || bone2 == null) continue;
-                GizmoRender.AddGizmo(bone2.BoneToRoot * bone1.BoneToRoot * conMat * matrix);
-            }
-            /*foreach(var b in df.Bones.Values)
-            {
-                var tr = b.BoneToRoot;
-                tr.Transpose();
-                if (b.Construct != null)
-                    tr *= b.Construct.Transform;
-                tr *= matrix;
-               
-                GizmoRender.AddGizmo(tr, true, true);
-            }*/
-            GizmoRender.RenderGizmos(cam, rstate);
-        }
 
         Matrix4 GetModelMatrix()
         {
@@ -413,13 +375,7 @@ namespace LancerEdit
                 {
                     var transform = tr.Override ?? tr.Definition.Transform;
                     //highlight edited cube
-                    if(tr.Override != null) {
-                        GizmoRender.CubeColor = Color4.CornflowerBlue;
-                        GizmoRender.CubeAlpha = 0.5f;
-                    } else {
-                        GizmoRender.CubeColor = Color4.Purple;
-                        GizmoRender.CubeAlpha = 0.3f;
-                    }
+
                     //arc
                     if(tr.Definition is RevoluteHardpointDefinition) {
                         var rev = (RevoluteHardpointDefinition)tr.Definition;
