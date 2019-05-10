@@ -100,7 +100,28 @@ namespace LibreLancer.Infocards
 		}
 
 		//Main Parsing
-		public static Infocard Parse(string input)
+        public static Infocard Parse(string input)
+        {
+            try
+            {
+                return ParseInternal(input);
+            }
+            catch (Exception)
+            {
+                FLLog.Error("RDL", "Failed to parse infocard");
+                return new Infocard()
+                {
+                    Nodes = new List<InfocardNode>()
+                    {
+                        new InfocardTextNode() { Contents = "PARSE FAILED" },
+                        new InfocardParagraphNode(),
+                        new InfocardParagraphNode(),
+                        new InfocardTextNode() { Contents = input }
+                    }
+                };
+            }
+        }
+        static Infocard ParseInternal(string input)
 		{
             if (input == null)
                 return new Infocard() { Nodes = new List<InfocardNode>() { new InfocardTextNode() { Contents = "IDS??" } } };
