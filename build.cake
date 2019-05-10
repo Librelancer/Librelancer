@@ -1,12 +1,13 @@
-#addin nuget:?package=Cake.Git
-#addin nuget:?package=Cake.CMake
-#addin nuget:?package=Cake.FileHelpers
-#addin nuget:?package=SharpZipLib
-#addin nuget:?package=Cake.Compression
+#addin nuget:?package=Cake.Git&version=0.19.0
+#addin nuget:?package=Cake.CMake&version=0.2.2
+#addin nuget:?package=Cake.FileHelpers&version=3.2.0
+#addin nuget:?package=SharpZipLib&version=1.1.0
+#addin nuget:?package=Cake.Compression&version=0.2.3
 
 var target = Argument("target", "Build");
 var versionSetting = Argument("assemblyversion","git");
 var configuration = Argument("configuration","Release");
+var vsversion = Argument("vsversion","2017");
 var prefix = Argument("prefix","/usr/local/");
 var destdir = Argument("destdir", (string)null);
 bool CheckCommand_Unix(string cmd) => (StartProcess("/bin/sh", new ProcessSettings() { Arguments = string.Format("-c 'command -v {0}'",cmd) }) == 0);
@@ -58,22 +59,39 @@ Task("BuildNatives")
 		if(!DirectoryExists("bin/Release/x86")) CreateDirectory("bin/Release/x86");
 		if(!DirectoryExists("bin/Release/x64")) CreateDirectory("bin/Release/x64");
 		//x86 build first!
-		CMake(".", new CMakeSettings() {
-			OutputPath = "obj/x86",
-			Generator = "Visual Studio 15 2017"
-		});
+		if(vsversion == "2017") {
+			CMake(".", new CMakeSettings() {
+				OutputPath = "obj/x86",
+				Generator = "Visual Studio 15 2017"
+			});
+		} else if (vsversion == "2019") {
+			CMake(".", new CMakeSettings() {
+				OutputPath = "obj/x86",
+				Generator = "Visual Studio 16 2019",
+				Platform = "Win32"
+			});
+		}
+		var toolVersion = (vsversion == "2017") ? MSBuildToolVersion.VS2017 : MSBuildToolVersion.VS2019;
 		MSBuild("./obj/x86/librelancernatives.sln", new MSBuildSettings() {
-			MaxCpuCount = 0, Configuration = "Release", ToolVersion = MSBuildToolVersion.VS2017
+			MaxCpuCount = 0, Configuration = "Release", ToolVersion = toolVersion
 		});
 		CopyFiles("./obj/x86/binaries/*.dll", "./bin/Debug/x86/");
 		CopyFiles("./obj/x86/binaries/*.dll", "./bin/Release/x86/");
 		//Then x64
-		CMake(".", new CMakeSettings() {
-			OutputPath = "obj/x64",
-			Generator = "Visual Studio 15 2017 Win64"
-		});
+		if(vsversion == "2017") {
+			CMake(".", new CMakeSettings() {
+				OutputPath = "obj/x64",
+				Generator = "Visual Studio 15 2017 Win64"
+			});
+		} else if (vsversion == "2019") {
+			CMake(".", new CMakeSettings() {
+				OutputPath = "obj/x64",
+				Generator = "Visual Studio 16 2019",
+				Platform = "x64"
+			});
+		}
 		MSBuild("./obj/x64/librelancernatives.sln", new MSBuildSettings() {
-			MaxCpuCount = 0, Configuration = "Release", ToolVersion = MSBuildToolVersion.VS2017
+			MaxCpuCount = 0, Configuration = "Release", ToolVersion = toolVersion
 		});
 		CopyFiles("./obj/x64/binaries/*.dll", "./bin/Debug/x64/");
 		CopyFiles("./obj/x64/binaries/*.dll", "./bin/Release/x64/");
