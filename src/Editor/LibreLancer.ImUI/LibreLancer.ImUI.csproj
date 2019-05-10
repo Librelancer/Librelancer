@@ -51,6 +51,7 @@
     <Compile Include="..\..\CommonVersion.cs">
       <Link>Properties\CommonVersion.cs</Link>
     </Compile>
+    <Compile Include="ListClipper.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="checkerboard.png" />

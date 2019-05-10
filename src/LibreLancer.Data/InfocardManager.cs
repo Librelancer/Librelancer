@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using LibreLancer.Dll;
 using Newtonsoft.Json;
@@ -27,13 +28,20 @@ namespace LibreLancer.Data
 				i++;
 			}
 		}
+
 		public InfocardManager(Dictionary<int, string> strings, Dictionary<int, string> infocards)
 		{
 			this.strings = strings;
 			this.infocards = infocards;
 		}
 
-		public void ExportStrings(string filename)
+        public InfocardManager(string stringsJson, string infocardsJson)
+        {
+            strings = JsonConvert.DeserializeObject<Dictionary<int, string>>(stringsJson);
+            infocards = JsonConvert.DeserializeObject<Dictionary<int, string>>(infocardsJson);
+        }
+
+        public void ExportStrings(string filename)
 		{
 			using (var writer = new StreamWriter(filename))
 			{
@@ -48,6 +56,9 @@ namespace LibreLancer.Data
 				writer.Write(JsonConvert.SerializeObject(infocards, Formatting.Indented));
 			}
 		}
+
+        public IEnumerable<int> StringIds => strings.Keys.OrderBy(x => x);
+        public IEnumerable<int> InfocardIds => infocards.Keys.OrderBy(x => x);
 
         List<int> missingStrings = new List<int>();
 		public string GetStringResource(int id)

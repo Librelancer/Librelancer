@@ -90,9 +90,7 @@ namespace LibreLancer.Data
 				Dacom = new DacomIni ();
 			if (Freelancer.JsonResources != null)
 			{
-				var strs = JsonConvert.DeserializeObject<Dictionary<int, string>>(File.ReadAllText(VFS.GetPath("EXE\\" + Freelancer.JsonResources.Item1)));
-				var ifcs = JsonConvert.DeserializeObject<Dictionary<int, string>>(File.ReadAllText(VFS.GetPath("EXE\\" + Freelancer.JsonResources.Item2)));
-				Infocards = new InfocardManager(strs, ifcs);
+                Infocards = new InfocardManager(File.ReadAllText(Freelancer.JsonResources.Item1), File.ReadAllText(Freelancer.JsonResources.Item2));
 			}
 			else
 			{

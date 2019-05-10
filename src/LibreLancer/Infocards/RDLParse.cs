@@ -102,7 +102,9 @@ namespace LibreLancer.Infocards
 		//Main Parsing
 		public static Infocard Parse(string input)
 		{
-			var nodes = new List<InfocardNode>();
+            if (input == null)
+                return new Infocard() { Nodes = new List<InfocardNode>() { new InfocardTextNode() { Contents = "IDS??" } } };
+            var nodes = new List<InfocardNode>();
 			var current = new InfocardTextNode();
 			using (var reader = XmlReader.Create(new StringReader(input)))
 			{

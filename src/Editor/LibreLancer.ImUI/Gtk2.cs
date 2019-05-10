@@ -87,7 +87,7 @@ namespace LibreLancer.ImUI
                 var f = gtk_file_filter_new();
                 gtk_file_filter_set_name(f, managed.Name);
                 foreach (var ext in managed.Extensions)
-                    gtk_file_filter_add_pattern(f, "*." + ext);
+                    gtk_file_filter_add_pattern(f, ext.Contains(".") ? ext : "*." + ext);
                 gtk_file_chooser_add_filter(dlg, f);
             }
             //Add wildcards

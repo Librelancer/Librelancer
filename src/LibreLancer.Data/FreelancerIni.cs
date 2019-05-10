@@ -4,8 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using LibreLancer.Ini;
 using LibreLancer.Dll;
+    
 namespace LibreLancer.Data
 {
 	public class FreelancerIni : IniFile
@@ -59,7 +62,9 @@ namespace LibreLancer.Data
             "fc_kn_grp",
             "fc_ln_grp"
         };
-        public FreelancerIni ()
+        public FreelancerIni() : this("EXE\\freelancer.ini") { }
+
+        public FreelancerIni (string path)
 		{
 			EquipmentPaths = new List<string> ();
 			LoadoutPaths = new List<string> ();
@@ -81,7 +86,19 @@ namespace LibreLancer.Data
             NoNavmapSystems = new List<string>(NoNavmaps);
             HiddenFactions = new List<string>(NoShowFactions);
 
-			foreach (Section s in ParseFile("EXE\\freelancer.ini")) {
+            //For DLL resolving (skip VFS for editor usage)
+            var fullPath = VFS.GetPath(path);
+            var directory = Path.GetDirectoryName(fullPath);
+            var dirFiles = Directory.GetFiles(directory).Select(a => Path.GetFileName(a));
+            Func<string, string> resolveFileEXE = (x) =>
+            {
+                if (File.Exists(Path.Combine(directory, x))) return Path.Combine(directory, x);
+                var res = dirFiles.FirstOrDefault(y => y.Equals(x, StringComparison.OrdinalIgnoreCase));
+                if (res != null) return Path.Combine(directory, res);
+                return null;
+            };
+
+            foreach (Section s in ParseFile(fullPath)) {
 				switch (s.Name.ToLowerInvariant ()) {
 				case "freelancer":
 					foreach (Entry e in s) {
@@ -95,17 +112,24 @@ namespace LibreLancer.Data
 					}
 					break;
 				case "jsonresources":
-					JsonResources = new Tuple<string, string>(s[0][0].ToString(), s[0][1].ToString());
+					JsonResources = new Tuple<string, string>(resolveFileEXE(s[0][0].ToString()), resolveFileEXE(s[0][1].ToString()));
 					break;
 				case "resources":
-					Resources = new List<DllFile> ();
-					//NOTE: Freelancer hardcodes resources.dll
-					Resources.Add (new DllFile ("EXE\\resources.dll"));
+                    Resources = new List<DllFile> ();
+                    //NOTE: Freelancer hardcodes resources.dll
+                    string pathStr;
+                    if ((pathStr = resolveFileEXE("resources.dll")) != null)
+                        Resources.Add(new DllFile(pathStr));
+                    else
+                        FLLog.Warning("Dll", "resources.dll not found");
 					foreach (Entry e in s)
 					{
 						if (e.Name.ToLowerInvariant () != "dll")
 							continue;
-						Resources.Add (new DllFile ("EXE\\" + e [0]));
+                        if ((pathStr = resolveFileEXE(e[0].ToString())) != null)
+                            Resources.Add(new DllFile(pathStr));
+                        else
+                            FLLog.Warning("Dll", e[0].ToString());
 					}
 					break;
 				case "startup":

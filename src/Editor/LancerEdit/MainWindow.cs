@@ -23,6 +23,8 @@ namespace LancerEdit
 		public ViewportManager Viewport;
 		public CommandBuffer Commands; //This is a huge object - only have one
 		public MaterialMap MaterialMap;
+        public Renderer2D Renderer2D;
+        public FontManager Fonts;
         public string Version;
         TextBuffer logBuffer;
         StringBuilder logText = new StringBuilder();
@@ -49,6 +51,9 @@ namespace LancerEdit
         );
         FileDialogFilters ColladaFilters = new FileDialogFilters(
             new FileFilter("Collada Files", "dae")
+        );
+        FileDialogFilters FreelancerIniFilter = new FileDialogFilters(
+            new FileFilter("Freelancer.ini","freelancer.ini")
         );
         public int MSAA = 0;
         int[] msaaLevels;
@@ -122,6 +127,12 @@ namespace LancerEdit
             if(InitOpenFile != null)
                 foreach(var f in InitOpenFile) 
                     OpenFile(f);
+
+            Renderer2D = new Renderer2D(RenderState);
+            Services.Add(Renderer2D);
+            Fonts = new FontManager(this);
+            Fonts.ConstructDefaultFonts();
+            Services.Add(Fonts);
         }
 
         void Keyboard_KeyDown(KeyEventArgs e)
@@ -276,7 +287,14 @@ namespace LancerEdit
                         }).Start();
                     }
                 }
-				ImGui.EndMenu();
+                if(ImGui.MenuItem("Infocard Browser"))
+                {
+                    string input;
+                    if((input = FileDialog.Open(FreelancerIniFilter)) != null) {
+                        AddTab(new InfocardBrowserTab(input, this));
+                    }
+                }
+                ImGui.EndMenu();
 			}
 			if (ImGui.BeginMenu("Help"))
 			{

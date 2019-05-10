@@ -76,6 +76,8 @@
     <Compile Include="Model\Parts.cs" />
     <Compile Include="Model\ModelViewer.HardpointEditor.cs" />
     <Compile Include="Model\ModelViewer.PartEditor.cs" />
+    <Compile Include="InfocardBrowserTab.cs" />
+    <Compile Include="InfocardControl.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">

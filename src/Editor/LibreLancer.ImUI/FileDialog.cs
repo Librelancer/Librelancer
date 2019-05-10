@@ -149,7 +149,10 @@ namespace LibreLancer.ImUI
                     first = false;
                 builder.Append(f.Name);
                 builder.Append(" (");
-                var exts = string.Join(";",f.Extensions.Select((x) => "*." + x));
+                var exts = string.Join(";",f.Extensions.Select((x) => {
+                    if (x.Contains(".")) return x;
+                    else return "*." + x;
+                }));
                 builder.Append(exts).Append(")|").Append(exts);
             }
             builder.Append("|All files (*.*)|*.*");
