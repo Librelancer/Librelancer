@@ -348,7 +348,7 @@ namespace LancerEdit
             //
             if(ImGui.Button("Reset Camera (Ctrl+R)"))
             {
-                modelViewport.ResetControls();
+                ResetCamera();
             }
             ImGui.SameLine();
             //

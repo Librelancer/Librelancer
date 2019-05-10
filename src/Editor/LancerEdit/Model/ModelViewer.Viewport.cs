@@ -25,9 +25,7 @@ namespace LancerEdit
         {
             modelViewport = new Viewport3D(_window);
             modelViewport.MarginH = 60;
-            modelViewport.DefaultOffset =
-            modelViewport.CameraOffset = new Vector3(0, 0, drawable.GetRadius() * 2);
-            modelViewport.ModelScale = drawable.GetRadius() / 2.6f;
+            ResetCamera();
             previewViewport = new Viewport3D(_window);
             imageViewport = new Viewport3D(_window);
 
@@ -64,6 +62,14 @@ namespace LancerEdit
             lighting.Lights.SourceEnabled[1] = true;
             lighting.NumberOfTilesX = -1;
             GizmoRender.Init(res);
+        }
+
+        void ResetCamera()
+        {
+            modelViewport.ResetControls();
+            modelViewport.DefaultOffset =
+            modelViewport.CameraOffset = new Vector3(0, 0, drawable.GetRadius() * 2);
+            modelViewport.ModelScale = drawable.GetRadius() / 2.6f;
         }
 
         List<SurModel> surs;
