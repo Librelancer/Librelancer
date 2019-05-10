@@ -51,7 +51,7 @@ namespace LibreLancer
             v.Bold = GetSystemFont("Agency FB", FontStyles.Bold);
             v.Italic = GetSystemFont("Agency FB", FontStyles.Italic);
             v.BoldItalic = GetSystemFont("Agency FB", FontStyles.Bold | FontStyles.Italic);
-            v.Size = 14;
+            v.Size = 16;
             infocardFonts.Add(-1, v);
             _loaded = true;
         }

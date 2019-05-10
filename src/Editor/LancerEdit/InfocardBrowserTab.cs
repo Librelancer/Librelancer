@@ -113,7 +113,7 @@ namespace LancerEdit
                 {
                     ImGui.Text(infocardsIds[currentInfocard].ToString());
                     ImGui.BeginChild("##display");
-                    display.Draw(ImGui.GetWindowWidth() - 5);
+                    display.Draw(ImGui.GetWindowWidth() - 15);
                     ImGui.EndChild();
                 }
             }

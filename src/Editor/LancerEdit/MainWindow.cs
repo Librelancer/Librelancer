@@ -287,7 +287,7 @@ namespace LancerEdit
                         }).Start();
                     }
                 }
-                if(ImGui.MenuItem("Infocard Browser"))
+                if(Theme.IconMenuItem("Infocard Browser","browse",Color4.White,true))
                 {
                     string input;
                     if((input = FileDialog.Open(FreelancerIniFilter)) != null) {
