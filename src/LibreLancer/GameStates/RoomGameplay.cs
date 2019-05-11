@@ -201,6 +201,7 @@ namespace LibreLancer
 				Game.Sound.PlayMusic(currentRoom.Music);
 			}
             var shp = Game.GameData.GetShip(session.PlayerShip);
+            shp.LoadResources();
             var PlayerShip = new GameObject(shp.Drawable, Game.ResourceManager);
             PlayerShip.PhysicsComponent = null;
 
@@ -230,6 +231,7 @@ namespace LibreLancer
                     continue;
                 }
                 var toSellShip = Game.GameData.GetShip(ships[i]);
+                toSellShip.LoadResources();
                 //Set up player object + camera
                 var obj = new GameObject(toSellShip.Drawable, Game.ResourceManager) { Parent = marker.Object };
                 obj.PhysicsComponent = null;

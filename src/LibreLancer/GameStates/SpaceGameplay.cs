@@ -61,6 +61,7 @@ Mouse Flight: {10}
         void FinishLoad()
         {
             var shp = Game.GameData.GetShip(session.PlayerShip);
+            shp.LoadResources();
             //Set up player object + camera
             player = new GameObject(shp.Drawable, Game.ResourceManager, false);
             control = new ShipControlComponent(player);
@@ -607,7 +608,7 @@ Mouse Flight: {10}
                     else
                         sel_obj = selected.Name;
                 }
-                DebugDrawing.DrawShadowedText(Game.Renderer2D, font, 16, string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Id, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, moffset.X, moffset.Y, mouseFlight), 5, 5);
+                DebugDrawing.DrawShadowedText(Game.Renderer2D, font, 16, string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Nickname, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, moffset.X, moffset.Y, mouseFlight), 5, 5);
                 current_cur.Draw(Game.Renderer2D, Game.Mouse);
             }
             DoFade(delta);

@@ -191,7 +191,7 @@ C# Memory Usage: {5}
                     
                     ImGui.Begin("##debugWindow", ImGuiWindowFlags.NoTitleBar | 
                                       ImGuiWindowFlags.NoMove | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoBringToFrontOnFocus);
-                    ImGui.Text(string.Format(DEBUG_TEXT, curSystem.Name, curSystem.Id,
+                    ImGui.Text(string.Format(DEBUG_TEXT, curSystem.Name, curSystem.Nickname,
                                             camera.Position.X, camera.Position.Y, camera.Position.Z,
                                              DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), (int)Math.Round(RenderFrequency), VertexBuffer.TotalDrawcalls, VertexBuffer.TotalBuffers));
                     ImGui.End();

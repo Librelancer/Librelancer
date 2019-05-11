@@ -13,7 +13,7 @@ namespace LibreLancer
 		public DateTime Registered;
 		public DateTime LastVisit;
 		public string Email;
-        public List<ListedCharacter> Characters = new List<ListedCharacter>();
+        public List<ServerCharacter> Characters = new List<ServerCharacter>();
 		public PlayerAccount()
 		{
 		}

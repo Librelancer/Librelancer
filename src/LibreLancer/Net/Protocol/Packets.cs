@@ -82,13 +82,16 @@ namespace LibreLancer
         public string System;
         public Vector3 Position;
         public Quaternion Orientation;
+        public NetShipLoadout Ship;
+
         public static object Read(NetIncomingMessage message)
         {
             return new SpawnPlayerPacket()
             {
                 System = message.ReadString(),
                 Position = message.ReadVector3(),
-                Orientation = message.ReadQuaternion()
+                Orientation = message.ReadQuaternion(),
+                Ship = NetShipLoadout.Read(message)
             };
         }
         public void WriteContents(NetOutgoingMessage message)
@@ -96,19 +99,23 @@ namespace LibreLancer
             message.Write(System);
             message.Write(Position);
             message.Write(Orientation);
+            Ship.Write(message);
         }
     }
 
     public class BaseEnterPacket : IPacket
     {
         public string Base;
+        public NetShipLoadout Ship;
         public static object Read(NetIncomingMessage message)
         {
-            return new BaseEnterPacket() { Base = message.ReadString() };
+            return new BaseEnterPacket() { Base = message.ReadString(),
+                Ship = NetShipLoadout.Read(message) };
         }
         public void WriteContents(NetOutgoingMessage message)
         {
             message.Write(Base);
+            Ship.Write(message);
         }
     }
 
@@ -118,6 +125,7 @@ namespace LibreLancer
         public string Name;
         public Vector3 Position;
         public Quaternion Orientation;
+        public NetShipLoadout Loadout;
 
         public static object Read(NetIncomingMessage message)
         {
@@ -126,7 +134,8 @@ namespace LibreLancer
                 ID = message.ReadInt32(),
                 Name = message.ReadString(),
                 Position = message.ReadVector3(),
-                Orientation = message.ReadQuaternion()
+                Orientation = message.ReadQuaternion(),
+                Loadout = NetShipLoadout.Read(message)
             };
         }
         public void WriteContents(NetOutgoingMessage message)
@@ -135,6 +144,47 @@ namespace LibreLancer
             message.Write(Name);
             message.Write(Position);
             message.Write(Orientation);
+            Loadout.Write(message);
+        }
+    }
+
+    public class NetShipEquip
+    {
+        public uint HardpointCRC;
+        public uint EquipCRC;
+        public byte Health;
+        public NetShipEquip(uint hardpoint, uint crc, byte health)
+        {
+            HardpointCRC = hardpoint;
+            EquipCRC = crc;
+            Health = health;
+        }
+    }
+
+    public class NetShipLoadout
+    {
+        public uint ShipCRC;
+        public List<NetShipEquip> Equipment;
+        public static NetShipLoadout Read(NetIncomingMessage message)
+        {
+            var s = new NetShipLoadout();
+            s.ShipCRC = message.ReadUInt32();
+            var equipCount = (int)message.ReadVariableUInt32();
+            s.Equipment = new List<NetShipEquip>(equipCount);
+            for(int i = 0; i < equipCount; i++) {
+                s.Equipment.Add(new NetShipEquip(message.ReadUInt32(), message.ReadUInt32(), message.ReadByte()));
+            }
+            return s;
+        }
+        public void Write(NetOutgoingMessage message)
+        {
+            message.Write(ShipCRC);
+            message.WriteVariableUInt32((uint)Equipment.Count);
+            foreach(var equip in Equipment) {
+                message.Write(equip.HardpointCRC);
+                message.Write(equip.EquipCRC);
+                message.Write(equip.Health);
+            }
         }
     }
 

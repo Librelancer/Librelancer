@@ -8,6 +8,9 @@ namespace LibreLancer.GameData
 	public class Ship
 	{
 		public string Nickname;
+        public int NameIds;
+        public int Infocard;
+        public uint CRC;
 		public IDrawable Drawable;
 		public Vector3 SteeringTorque;
 		public Vector3 AngularDrag;
@@ -17,7 +20,18 @@ namespace LibreLancer.GameData
 		public float CruiseSpeed;
 
         public Vector3 ChaseOffset;
-		public Ship ()
+
+        internal Action LoadResAction;
+        public void LoadResources()
+        {
+            if (LoadResAction != null)
+            {
+                LoadResAction();
+                LoadResAction = null;
+            }
+        }
+
+        public Ship ()
 		{
 		}
 	}

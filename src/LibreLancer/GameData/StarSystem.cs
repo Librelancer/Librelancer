@@ -8,7 +8,7 @@ namespace LibreLancer.GameData
 {
 	public class StarSystem
 	{
-		public string Id;
+		public string Nickname;
         public int Infocard;
 		public string Name;
 		//Background

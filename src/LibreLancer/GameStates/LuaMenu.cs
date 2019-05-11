@@ -91,9 +91,16 @@ namespace LibreLancer
             void Client_CharacterSelection(CharacterSelectInfo obj)
             {
                 cinfo = obj;
+                foreach (var info in cinfo.Characters)
+                    ResolveNicknames(info);
                 state.ui.CallEvent("characterlist");
             }
 
+            void ResolveNicknames(SelectableCharacter c)
+            {
+                c.Ship = state.Game.GameData.GetString(state.Game.GameData.GetShip(c.Ship).NameIds);
+                c.Location = state.Game.GameData.GetSystem(c.Location).Name;
+            }
             NewCharacterDBPacket characterDB;
             XmlUICharacterList charlist;
             public void opennewcharacter()
@@ -159,6 +166,7 @@ namespace LibreLancer
                         state.ui.CallEvent("newcharacter");
                         break;
                     case AddCharacterPacket ac:
+                        ResolveNicknames(ac.Character);
                         cinfo.Characters.Add(ac.Character);
                         break;
                 }

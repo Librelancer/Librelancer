@@ -11,6 +11,7 @@ namespace LibreLancer.GameData.Items
 		{
 		}
         public string Nickname;
+        public uint CRC;
         public float[] LODRanges;
         public string HPChild;
         internal Action LoadResAction;

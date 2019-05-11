@@ -127,6 +127,7 @@ namespace LibreLancer
                         case "spaceship":
                             getHpMount = true;
                             var sh = game.GameData.GetShip(kv.Value.Template);
+                            sh.LoadResources();
                             drawable = sh.Drawable;
                             break;
                         case "prop":
@@ -140,6 +141,7 @@ namespace LibreLancer
                             break;
                         case "equipment":
                             var eq = game.GameData.GetEquipment(kv.Value.Template);
+                            eq.LoadResources();
                             drawable = eq.GetDrawable();
                             break;
                         case "asteroid":

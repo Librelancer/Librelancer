@@ -8,13 +8,77 @@ using System.Linq;
 using Lidgren.Network;
 namespace LibreLancer
 {
-	public class NetPlayer
+    public class NetCharacter
+    {
+        public string Name;
+        public string Base;
+        public long Credits;
+        public GameData.Ship Ship;
+        public List<NetEquipment> Equipment;
+
+        GameDataManager gData;
+        public static NetCharacter FromDb(ServerCharacter character, GameDataManager gameData)
+        {
+            var nc = new NetCharacter();
+            nc.Name = character.Name;
+            nc.gData = gameData;
+            nc.Base = character.Base;
+            nc.Ship = gameData.GetShip(character.Ship);
+            nc.Credits = character.Credits;
+            nc.Equipment = new List<NetEquipment>(character.Equipment.Count);
+            foreach(var equip in character.Equipment)
+            {
+                nc.Equipment.Add(new NetEquipment()
+                {
+                    Hardpoint = equip.Hardpoint,
+                    Equipment = gameData.GetEquipment(equip.Equipment),
+                    Health = equip.Health
+                });
+            }
+            return nc;
+        }
+
+        public NetShipLoadout EncodeLoadout()
+        {
+            var sl = new NetShipLoadout();
+            sl.ShipCRC = Ship.CRC;
+            sl.Equipment = new List<NetShipEquip>(Equipment.Count);
+            foreach(var equip in Equipment) {
+                sl.Equipment.Add(new NetShipEquip(
+                CrcTool.FLModelCrc(equip.Hardpoint),
+                    equip.Equipment.CRC,
+                (byte)(equip.Health * 255f))); 
+            }
+            return sl;
+        }
+
+        public SelectableCharacter ToSelectable()
+        {
+            var selectable = new SelectableCharacter();
+            selectable.Rank = 1;
+            selectable.Ship = Ship.Nickname;
+            selectable.Name = Name;
+            selectable.Funds = Credits;
+            selectable.Location = gData.GetBase(Base).System;
+            return selectable;
+        }
+
+    }
+
+    public class NetEquipment
+    {
+        public string Hardpoint;
+        public GameData.Items.Equipment Equipment;
+        public float Health;
+    }
+
+    public class NetPlayer
 	{
 		NetConnection connection;
 		GameServer server;
 		Guid playerGuid;
-		PlayerAccount account;
-
+		public NetCharacter Character;
+        public PlayerAccount Account;
         public string Name = "Player";
         public string System;
         public string Base;
@@ -23,6 +87,7 @@ namespace LibreLancer
         public int ID = 0;
 
         static int _gid = 0;
+
 
 		public NetPlayer(NetConnection conn, GameServer server, Guid playerGuid)
 		{
@@ -36,6 +101,7 @@ namespace LibreLancer
 		{
 			try
 			{
+                Account = new PlayerAccount();
                 var m = server.NetServer.CreateMessage();
                 m.Write(new OpenCharacterListPacket()
                 {
@@ -78,7 +144,8 @@ namespace LibreLancer
                 ID = p.ID,
                 Name = p.Name,
                 Position = p.Position,
-                Orientation = p.Orientation
+                Orientation = p.Orientation,
+                Loadout = p.Character.EncodeLoadout()
             });
             server.NetServer.SendMessage(m, connection, NetDeliveryMethod.ReliableOrdered);
         }
@@ -122,10 +189,13 @@ namespace LibreLancer
                 case CharacterListAction.SelectCharacter:
                     {
                         var m = server.NetServer.CreateMessage();
-                        Base = "li01_01_base";
+                        var sc = Account.Characters[pkt.IntArg];
+                        Character = NetCharacter.FromDb(sc, server.GameData);
+                        Base = Character.Base;
                         m.Write(new BaseEnterPacket()
                         {
-                            Base = "li01_01_base"
+                            Base = Character.Base,
+                            Ship = Character.EncodeLoadout()
                         });
                         server.NetServer.SendMessage(m, connection, NetDeliveryMethod.ReliableOrdered);
                         break;
@@ -133,16 +203,18 @@ namespace LibreLancer
                 case CharacterListAction.CreateNewCharacter:
                     {
                         var m = server.NetServer.CreateMessage();
+                        var ac = new ServerCharacter()
+                        {
+                            Name = pkt.StringArg,
+                            Base = "li01_01_base",
+                            Credits = 2000,
+                            ID = 0,
+                            Ship = "ge_fighter"
+                        };
+                        Account.Characters.Add(ac);
                         m.Write(new AddCharacterPacket()
                         {
-                            Character = new SelectableCharacter()
-                            {
-                                Name = pkt.StringArg,
-                                Funds = 2000,
-                                Location = "New York",
-                                Rank = 1,
-                                Ship = "Defender"
-                            }
+                            Character = NetCharacter.FromDb(ac, server.GameData).ToSelectable()
                         });
                         server.NetServer.SendMessage(m, connection, NetDeliveryMethod.ReliableOrdered);
                         break;
@@ -204,7 +276,8 @@ namespace LibreLancer
             {
                 System = System,
                 Position = Position,
-                Orientation = Orientation
+                Orientation = Orientation,
+                Ship = Character.EncodeLoadout()
             });
             server.NetServer.SendMessage(msg, connection, NetDeliveryMethod.ReliableOrdered);
             foreach(var p in GetPlayers())

@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using LibreLancer.Utf.Cmp;
 
 namespace LibreLancer
 {
@@ -130,6 +131,42 @@ namespace LibreLancer
 
         public Action<IPacket> ExtraPackets;
 
+        static IEnumerable<string> HardpointList(IDrawable dr)
+        {
+            if(dr is ModelFile)
+            {
+                var mdl = (ModelFile)dr;
+                foreach (var hp in mdl.Hardpoints)
+                    yield return hp.Name;
+            }
+            else if (dr is CmpFile)
+            {
+                var cmp = (CmpFile)dr;
+                foreach(var model in cmp.Models.Values)
+                {
+                    foreach (var hp in model.Hardpoints)
+                        yield return hp.Name;
+                }
+            }
+        }
+
+        void SetSelfLoadout(NetShipLoadout ld)
+        {
+            var sh = Game.GameData.GetShip((int)ld.ShipCRC);
+            sh.LoadResources();
+            PlayerShip = sh.Nickname;
+            var hpcrcs = new Dictionary<uint, string>();
+            foreach (var hp in HardpointList(sh.Drawable))
+                hpcrcs.Add(CrcTool.FLModelCrc(hp), hp);
+            MountedEquipment = new Dictionary<string, string>();
+            foreach(var eq in ld.Equipment) {
+                MountedEquipment.Add(
+                    hpcrcs[eq.HardpointCRC],
+                    Game.GameData.GetEquipment(eq.EquipCRC).Nickname
+                );
+            }
+        }
+
         public void HandlePacket(IPacket pkt)
         {
             switch(pkt)
@@ -139,14 +176,17 @@ namespace LibreLancer
                     PlayerSystem = p.System;
                     PlayerPosition = p.Position;
                     PlayerOrientation = Matrix3.CreateFromQuaternion(p.Orientation);
+                    SetSelfLoadout(p.Ship);
                     Start();
                     break;
                 case BaseEnterPacket b:
                     PlayerBase = b.Base;
+                    SetSelfLoadout(b.Ship);
                     Start();
                     break;
                 case SpawnObjectPacket p:
-                    var shp = Game.GameData.GetShip("li_elite");
+                    var shp = Game.GameData.GetShip((int)p.Loadout.ShipCRC);
+                    shp.LoadResources();
                     //Set up player object + camera
                     var newobj = new GameObject(shp.Drawable, Game.ResourceManager, false);
                     newobj.Transform = Matrix4.CreateFromQuaternion(p.Orientation) *

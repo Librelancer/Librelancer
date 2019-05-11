@@ -69,7 +69,7 @@ namespace LibreLancer
 			FLLog.Info("Server","Loading Game Data...");
 			GameData.LoadData();
 			FLLog.Info("Server","Finished Loading Game Data");
-			Database = new ServerDatabase(DbConnectionString, GameData);
+			Database = new ServerDatabase(DbConnectionString);
 			var netconf = new NetPeerConfiguration(AppIdentifier);
 			netconf.EnableMessageType(NetIncomingMessageType.DiscoveryRequest);
 			netconf.EnableMessageType(NetIncomingMessageType.ConnectionApproval);

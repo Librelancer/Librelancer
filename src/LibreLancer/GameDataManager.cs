@@ -199,6 +199,7 @@ namespace LibreLancer
             fldata.LoadData();
             FLLog.Info("Game", "Initing Tables");
             var introbases = InitBases().ToArray();
+            InitShips();
             InitEquipment();
             InitGoods();
             InitMarkets();
@@ -360,6 +361,7 @@ namespace LibreLancer
         public IEnumerable<string> ListBases() => bases.Keys;
 
         Dictionary<string, GameData.Items.Equipment> equipments = new Dictionary<string, GameData.Items.Equipment>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<uint, GameData.Items.Equipment> equipmentHashes = new Dictionary<uint, GameData.Items.Equipment>();
         void InitEquipment()
         {
             FLLog.Info("Game", "Initing " + fldata.Equipment.Equip.Count + " equipments");
@@ -437,9 +439,11 @@ namespace LibreLancer
                     };
                 }
                 equip.Nickname = val.Nickname;
+                equip.CRC = CrcTool.FLModelCrc(equip.Nickname);
                 equip.HPChild = val.HPChild;
                 equip.LODRanges = val.LODRanges;
                 equipments[equip.Nickname] = equip;
+                equipmentHashes[equip.CRC] = equip;
             }
             fldata.Equipment = null; //Free memory
         }
@@ -467,7 +471,7 @@ namespace LibreLancer
                 sys.AmbientColor = inisys.AmbientColor ?? Color4.White;
                 sys.Name = GetString(inisys.IdsName);
                 sys.Infocard = inisys.IdsInfo;
-                sys.Id = inisys.Nickname;
+                sys.Nickname = inisys.Nickname;
                 sys.BackgroundColor = inisys.SpaceColor ?? Color4.Black;
                 sys.MusicSpace = inisys.MusicSpace;
                 sys.FarClip = inisys.SpaceFarClip ?? 20000f;
@@ -602,7 +606,7 @@ namespace LibreLancer
                         sys.Nebulae.Add(GetNebula(sys, nbl));
                     }
                 }
-                systems.Add(sys.Id, sys);
+                systems.Add(sys.Nickname, sys);
             }
         }
         public IEnumerator<object> LoadSystemResources(GameData.StarSystem sys)
@@ -717,7 +721,7 @@ namespace LibreLancer
                 foreach (var excz in ast.ExclusionZones)
                 {
                     if(excz.Exclusion == null) {
-                        FLLog.Error("System", "Exclusion zone " + excz.ExclusionName + " zone does not exist in " + sys.Id);
+                        FLLog.Error("System", "Exclusion zone " + excz.ExclusionName + " zone does not exist in " + sys.Nickname);
                         continue;
                     }
                     var e = new GameData.ExclusionZone();
@@ -913,26 +917,40 @@ namespace LibreLancer
         }
         public GameData.Ship GetShip(int crc)
         {
-            return GetShip(fldata.Ships.Ships.FirstOrDefault((x) => CrcTool.FLModelCrc(x.Nickname) == crc));
+            return shipHashes[(uint)crc];
         }
         public GameData.Ship GetShip(string nickname)
         {
-            return GetShip(fldata.Ships.GetShip(nickname));
+            return ships[nickname];
         }
-        GameData.Ship GetShip(Data.Ships.Ship Data)
+
+        Dictionary<string, GameData.Ship> ships = new Dictionary<string, GameData.Ship>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<uint, GameData.Ship> shipHashes = new Dictionary<uint, GameData.Ship>();
+        void InitShips()
         {
-            var ship = new GameData.Ship();
-            foreach (var matlib in Data.MaterialLibraries)
-                resource.LoadResourceFile(ResolveDataPath(matlib));
-            ship.Drawable = resource.GetDrawable(ResolveDataPath(Data.DaArchetypeName));
-            ship.Mass = Data.Mass;
-            ship.AngularDrag = Data.AngularDrag;
-            ship.RotationInertia = Data.RotationInertia;
-            ship.SteeringTorque = Data.SteeringTorque;
-            ship.CruiseSpeed = 300;
-            ship.StrafeForce = Data.StrafeForce;
-            ship.ChaseOffset = Data.CameraOffset;
-            return ship;
+            FLLog.Info("Game", "Initing " + fldata.Ships.Ships.Count + " ships");
+            foreach (var orig in fldata.Ships.Ships)
+            {
+                var ship = new GameData.Ship();
+                ship.LoadResAction = () => {
+                    foreach (var matlib in orig.MaterialLibraries)
+                        resource.LoadResourceFile(ResolveDataPath(matlib));
+                    ship.Drawable = resource.GetDrawable(ResolveDataPath(orig.DaArchetypeName));
+                };
+                ship.Mass = orig.Mass;
+                ship.AngularDrag = orig.AngularDrag;
+                ship.RotationInertia = orig.RotationInertia;
+                ship.SteeringTorque = orig.SteeringTorque;
+                ship.CruiseSpeed = 300;
+                ship.StrafeForce = orig.StrafeForce;
+                ship.ChaseOffset = orig.CameraOffset;
+                ship.Nickname = orig.Nickname;
+                ship.NameIds = orig.IdsName;
+                ship.CRC = CrcTool.FLModelCrc(ship.Nickname);
+                ships.Add(ship.Nickname, ship);
+                shipHashes.Add(ship.CRC, ship);
+            }
+            fldata.Ships = null; //free memory
         }
 
         public IDrawable GetSolar(string solar)
@@ -1111,6 +1129,13 @@ namespace LibreLancer
         {
             GameData.Items.Equipment eq;
             equipments.TryGetValue(id, out eq); //Should throw error, but we don't parse all equipment yet
+            return eq;
+        }
+
+        public GameData.Items.Equipment GetEquipment(uint crc)
+        {
+            GameData.Items.Equipment eq;
+            equipmentHashes.TryGetValue(crc, out eq);
             return eq;
         }
 
