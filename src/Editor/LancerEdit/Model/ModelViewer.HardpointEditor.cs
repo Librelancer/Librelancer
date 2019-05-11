@@ -27,6 +27,7 @@ namespace LancerEdit
                 var gz = gizmos.Where((x) => x.Definition == hpDelete).First();
                 if (hpDelete == hpEditing) hpEditing = null;
                 gizmos.Remove(gz);
+                OnDirtyHp();
                 ImGui.CloseCurrentPopup();
             }
             ImGui.SameLine();
@@ -130,6 +131,7 @@ namespace LancerEdit
                     else def = new RevoluteHardpointDefinition(txt);
                     gizmos.Add(new HardpointGizmo(def, addConstruct));
                     addTo.Add(def);
+                    OnDirtyHp();
                     ImGui.CloseCurrentPopup();
                 }
             }
