@@ -158,7 +158,7 @@ namespace LibreLancer
                     }
                     else
                     {
-                        obj.Object = new GameObject(drawable, game.ResourceManager, false);
+                        obj.Object = new GameObject(drawable, game.ResourceManager, true, false);
                         obj.Object.Name = kv.Value.Name;
                         obj.Object.PhysicsComponent = null; //Jitter seems to interfere with directly setting orientation
                         if (getHpMount)

@@ -55,7 +55,7 @@ namespace LibreLancer
 		public AnimationComponent AnimationComponent;
 		public SystemObject SystemObject;
 
-		public GameObject(Archetype arch, ResourceManager res, bool staticpos = false)
+		public GameObject(Archetype arch, ResourceManager res, bool draw = true, bool staticpos = false)
 		{
 			isstatic = staticpos;
 			if (arch is Archs.Sun)
@@ -68,21 +68,21 @@ namespace LibreLancer
 			}
 			else
 			{
-				InitWithDrawable(arch.Drawable, res, staticpos);
+				InitWithDrawable(arch.Drawable, res, draw, staticpos);
 			}
 		}
 		public GameObject()
 		{
 
 		}
-		public GameObject(IDrawable drawable, ResourceManager res, bool staticpos = false)
+		public GameObject(IDrawable drawable, ResourceManager res, bool draw = true, bool staticpos = false)
 		{
 			isstatic = false;
-			InitWithDrawable(drawable, res, staticpos);
+			InitWithDrawable(drawable, res, draw, staticpos);
 		}
-        public GameObject(Ship ship, ResourceManager res)
+        public GameObject(Ship ship, ResourceManager res, bool draw = true)
         {
-            InitWithDrawable(ship.Drawable, res, false);
+            InitWithDrawable(ship.Drawable, res, draw, false);
             PhysicsComponent.Mass = ship.Mass;
             PhysicsComponent.Inertia = ship.RotationInertia;
         }
@@ -114,7 +114,7 @@ namespace LibreLancer
                 {
                     var tr = p.GetTransform(GetTransform());
                     CmpParts.RemoveAt(i);
-                    var obj = new GameObject(p.Model, Resources, false);
+                    var obj = new GameObject(p.Model, Resources, RenderComponent != null, false);
                     obj.Transform = tr;
                     obj.World = World;
                     obj.World.Objects.Add(obj);
@@ -139,7 +139,7 @@ namespace LibreLancer
             return null;
         }
         public ResourceManager Resources;
-        void InitWithDrawable(IDrawable drawable, ResourceManager res, bool staticpos, bool havePhys = true)
+        void InitWithDrawable(IDrawable drawable, ResourceManager res, bool draw, bool staticpos, bool havePhys = true)
 		{
 			Resources = res;
 			dr = drawable;
@@ -187,36 +187,40 @@ namespace LibreLancer
                 Components.Add(phys);
             }
 			PopulateHardpoints(dr);
-			if (isCmp)
-                RenderComponent = new ModelRenderer(CmpParts, (dr as CmpFile)) { Name = name };
-			else
-                RenderComponent = new ModelRenderer(dr) { Name = name };
+            if (draw)
+            {
+                if (isCmp)
+                    RenderComponent = new ModelRenderer(CmpParts, (dr as CmpFile)) { Name = name };
+                else
+                    RenderComponent = new ModelRenderer(dr) { Name = name };
+            }
 		}
 
 		public GameObject(Equipment equip, Hardpoint hp, GameObject parent)
 		{
 			Parent = parent;
 			Attachment = hp;
+            bool draw = parent.RenderComponent != null;
 			if (equip is LightEquipment)
 			{
                 var lq = (LightEquipment)equip;
-                RenderComponent = new LightEquipRenderer(lq) { LightOn = !lq.DockingLight };
+                if(draw) RenderComponent = new LightEquipRenderer(lq) { LightOn = !lq.DockingLight };
 			}
 			if (equip is EffectEquipment)
 			{
-				RenderComponent = new ParticleEffectRenderer(((EffectEquipment)equip).Particles);
+				if(draw) RenderComponent = new ParticleEffectRenderer(((EffectEquipment)equip).Particles);
                 Components.Add(new UpdateSParamComponent(this));
 			}
 			if (equip is ThrusterEquipment)
 			{
 				var th = (ThrusterEquipment)equip;
-				InitWithDrawable(th.Model, parent.Resources, false, false);
+				InitWithDrawable(th.Model, parent.Resources, draw, false, false);
 				Components.Add(new ThrusterComponent(this, th));
 			}
             if (equip is GunEquipment)
             {
                 var gn = (GunEquipment)equip;
-                InitWithDrawable(gn.Model, parent.Resources,false, false);
+                InitWithDrawable(gn.Model, parent.Resources, draw, false, false);
                 Components.Add(new WeaponComponent(this, gn));
             }
             if (equip.LODRanges != null && RenderComponent != null) RenderComponent.LODRanges = equip.LODRanges;

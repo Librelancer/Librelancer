@@ -16,7 +16,7 @@ namespace SystemViewer
     {
         public ViewportManager Viewport;
         public GameDataManager GameData;
-        public ResourceManager Resources;
+        public GameResourceManager Resources;
         public Billboards Billboards;
         public NebulaVertices Nebulae;
         public Renderer2D Renderer2D;
@@ -41,7 +41,7 @@ namespace SystemViewer
             Viewport.Push(0, 0, 800, 600);
             Billboards = new Billboards();
             Nebulae = new NebulaVertices();
-            Resources = new ResourceManager(this);
+            Resources = new GameResourceManager(this);
             Renderer2D = new Renderer2D(this.RenderState);
 
             Services.Add(Billboards);

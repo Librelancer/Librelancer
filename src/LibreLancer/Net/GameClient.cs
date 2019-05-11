@@ -246,7 +246,6 @@ namespace LibreLancer
                                 break;
                             case NetIncomingMessageType.Data:
                                 var pkt = im.ReadPacket();
-                                FLLog.Debug("Network", "packet of type " + pkt.GetType());
                                 if (connecting)
                                 {
                                     if (pkt is AuthenticationPacket)

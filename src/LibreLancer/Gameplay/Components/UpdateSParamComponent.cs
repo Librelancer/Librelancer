@@ -15,6 +15,7 @@ namespace LibreLancer
         }
         public override void Update(TimeSpan time)
         {
+            if (Parent.RenderComponent == null) return;
             float sparam = 0;
             EngineComponent eng;
             if (Parent.Parent != null)

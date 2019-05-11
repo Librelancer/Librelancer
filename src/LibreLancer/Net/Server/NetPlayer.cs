@@ -84,6 +84,7 @@ namespace LibreLancer
         public string Base;
         public Vector3 Position;
         public Quaternion Orientation;
+        public ServerWorld World;
         public int ID = 0;
 
         static int _gid = 0;
@@ -162,10 +163,7 @@ namespace LibreLancer
                     Launch();
                     break;
                 case PositionUpdatePacket p:
-                    Position = p.Position;
-                    Orientation = p.Orientation;
-                    foreach (var n in GetPlayers())
-                        n.UpdatePosition(this);
+                    World.PositionUpdate(this, p.Position, p.Orientation);
                     break;
             }
         }
@@ -229,63 +227,50 @@ namespace LibreLancer
             {
                 ID = player.ID
             });
-
-       }
-
+        }
 
         public void Disconnected()
         {
-            foreach (var p in GetPlayers())
-                p.Despawn(this);
-        }
-
-        IEnumerable<NetPlayer> GetPlayers() {
-            return server.NetServer.Connections.Where(
-                x => x.Tag != this &&
-                (x.Tag is NetPlayer) &&
-                ((NetPlayer)x.Tag).System.Equals(System, StringComparison.OrdinalIgnoreCase))
-                .Select(x => (NetPlayer)x.Tag);
+            if (World != null) World.RemovePlayer(this);
         }
 
         void Launch()
         {
             var b = server.GameData.GetBase(Base);
             var sys = server.GameData.GetSystem(b.System);
-            var obj = sys.Objects.FirstOrDefault((o) =>
+            server.RequestWorld(sys, (world) =>
             {
-                return (o.Dock != null &&
-                    o.Dock.Kind == DockKinds.Base &&
-                    o.Dock.Target.Equals(Base, StringComparison.OrdinalIgnoreCase));
+                this.World = world;
+                var obj = sys.Objects.FirstOrDefault((o) =>
+                {
+                    return (o.Dock != null &&
+                        o.Dock.Kind == DockKinds.Base &&
+                        o.Dock.Target.Equals(Base, StringComparison.OrdinalIgnoreCase));
+                });
+                System = b.System;
+                Orientation = Quaternion.Identity;
+                Position = Vector3.Zero;
+                if (obj == null)
+                {
+                    FLLog.Error("Base", "Can't find object in " + sys + " docking to " + b);
+                }
+                else
+                {
+                    Position = obj.Position;
+                    Orientation = (obj.Rotation == null ? Matrix3.Identity : new Matrix3(obj.Rotation.Value)).ExtractRotation();
+                    Position = Vector3.Transform(new Vector3(0, 0, 500), Orientation) + obj.Position; //TODO: This is bad
+                }
+                var msg = server.NetServer.CreateMessage();
+                msg.Write(new SpawnPlayerPacket()
+                {
+                    System = System,
+                    Position = Position,
+                    Orientation = Orientation,
+                    Ship = Character.EncodeLoadout()
+                });
+                server.NetServer.SendMessage(msg, connection, NetDeliveryMethod.ReliableOrdered);
+                world.SpawnPlayer(this, Position, Orientation);
             });
-            System = b.System;
-            Orientation = Quaternion.Identity;
-            Position = Vector3.Zero;
-            if (obj == null)
-            {
-                FLLog.Error("Base", "Can't find object in " + sys + " docking to " + b);
-            }
-            else
-            {
-                Position = obj.Position;
-                Orientation = (obj.Rotation == null ? Matrix3.Identity : new Matrix3(obj.Rotation.Value)).ExtractRotation();
-                Position = Vector3.Transform(new Vector3(0, 0, 500), Orientation) + obj.Position; //TODO: This is bad
-            }
-
-            var msg = server.NetServer.CreateMessage();
-            msg.Write(new SpawnPlayerPacket()
-            {
-                System = System,
-                Position = Position,
-                Orientation = Orientation,
-                Ship = Character.EncodeLoadout()
-            });
-            server.NetServer.SendMessage(msg, connection, NetDeliveryMethod.ReliableOrdered);
-            foreach(var p in GetPlayers())
-            {
-                SpawnPlayer(p);
-                p.SpawnPlayer(this);
-            }
-
         }
 
     }

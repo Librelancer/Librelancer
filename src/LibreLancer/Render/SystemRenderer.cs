@@ -86,7 +86,7 @@ namespace LibreLancer
             }
         }
 
-		public SystemRenderer(ICamera camera, GameDataManager data, ResourceManager rescache, Game game)
+		public SystemRenderer(ICamera camera, GameDataManager data, GameResourceManager rescache, Game game)
 		{
 			this.camera = camera;			
 			AsteroidFields = new List<AsteroidFieldRenderer>();
@@ -94,7 +94,7 @@ namespace LibreLancer
 			StarSphereModels = new IDrawable[0];
 			Polyline = new PolylineRender(commands);
 			cache = rescache;
-			rstate = cache.Game.RenderState;
+			rstate = rescache.Game.RenderState;
 			this.game = game;
             gconfig = game.GetService<GameConfig>();
             billboards = game.GetService<Billboards>();

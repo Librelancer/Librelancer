@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
 using Lidgren.Network;
@@ -22,6 +23,7 @@ namespace LibreLancer
 		public string DbConnectionString;
 		public GameDataManager GameData;
 		public ServerDatabase Database;
+        public ServerResourceManager Resources;
 
 		volatile bool running = false;
 		Thread netThread;
@@ -30,7 +32,8 @@ namespace LibreLancer
 
 		public GameServer(string fldir)
 		{
-			GameData = new GameDataManager(fldir, null);	
+            Resources = new ServerResourceManager();
+			GameData = new GameDataManager(fldir, Resources);	
 		}
 
 		public void Start()
@@ -44,23 +47,51 @@ namespace LibreLancer
             netThread.Start();
 		}
 
-		void GameThread()
+
+        Dictionary<GameData.StarSystem, ServerWorld> worlds = new Dictionary<GameData.StarSystem, ServerWorld>();
+        List<GameData.StarSystem> availableWorlds = new List<GameData.StarSystem>();
+        ConcurrentQueue<Action> worldRequests = new ConcurrentQueue<Action>();
+
+        public void RequestWorld(GameData.StarSystem system, Action<ServerWorld> spunUp)
+        {
+            lock(availableWorlds)
+            {
+                if (availableWorlds.Contains(system)) { spunUp(worlds[system]); return; }
+            }
+            worldRequests.Enqueue(() =>
+            {
+                var world = new ServerWorld(system, this);
+                FLLog.Info("Server", "Spun up " + system.Nickname + " (" + system.Name + ")");
+                worlds.Add(system, world);
+                lock (availableWorlds)
+                {
+                    availableWorlds.Add(system);
+                }
+                spunUp(world);
+            });
+        }
+
+        void GameThread()
 		{
 			Stopwatch sw = Stopwatch.StartNew();
 			double lastTime = 0;
 			while (running)
 			{
-				//Start Loop
-				var time = sw.Elapsed.TotalMilliseconds;
-				var elapsed = (time - lastTime) / 1000f;
-				//Update
-
-				//Sleep
-				var endTime = sw.Elapsed.TotalMilliseconds;
-				var sleepTime = (int)((1 / 60f * 1000) - (endTime - time));
-				if (sleepTime > 0)
-					Thread.Sleep(sleepTime);
-				lastTime = endTime;
+                Action a;
+                if (worldRequests.Count > 0 && worldRequests.TryDequeue(out a))
+                    a();
+                //Start Loop
+                var time = sw.Elapsed.TotalMilliseconds;
+                var elapsed = (time - lastTime);
+                if (elapsed < 1) continue;
+                elapsed /= 1000f;
+                lastTime = time;
+                //Update
+                foreach(var world in worlds.Values) {
+                    world.Update(TimeSpan.FromSeconds(elapsed));
+                }
+                //Sleep
+                Thread.Sleep(0);
 			}
 		}
 
@@ -146,7 +177,6 @@ namespace LibreLancer
 							break;
 						case NetIncomingMessageType.Data:
                             var pkt = im.ReadPacket();
-                            FLLog.Debug("Network", "Packet of type " + pkt.GetType().ToString());
 							if (im.SenderConnection.Tag == TagConnecting)
 							{
                                 if (pkt is AuthenticationReplyPacket)

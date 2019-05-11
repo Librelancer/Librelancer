@@ -112,7 +112,9 @@ namespace LibreLancer
         {
             worldReady = true;
             foreach (var obj in toAdd)
+            {
                 gp.world.Objects.Add(obj);
+            }
             toAdd = new List<GameObject>();
         }
         public void JumpTo(string system, string exitpos)
@@ -188,19 +190,22 @@ namespace LibreLancer
                     var shp = Game.GameData.GetShip((int)p.Loadout.ShipCRC);
                     shp.LoadResources();
                     //Set up player object + camera
-                    var newobj = new GameObject(shp.Drawable, Game.ResourceManager, false);
+                    var newobj = new GameObject(shp, Game.ResourceManager);
+                    newobj.Name = "NetPlayer " + p.ID;
                     newobj.Transform = Matrix4.CreateFromQuaternion(p.Orientation) *
                         Matrix4.CreateTranslation(p.Position);
                     objects.Add(p.ID, newobj);
                     if (worldReady)
+                    {
                         gp.world.Objects.Add(newobj);
+                    }
                     else
                         toAdd.Add(newobj);
                     break;
                 case ObjectUpdatePacket p:
                     var obj = objects[p.ID];
                     obj.Transform = Matrix4.CreateFromQuaternion(p.Orientation) *
-                        Matrix4.CreateTranslation(p.Position);
+                    Matrix4.CreateTranslation(p.Position);
                     break;
                 case DespawnObjectPacket p:
                     var despawn = objects[p.ID];

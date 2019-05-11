@@ -63,7 +63,7 @@ Mouse Flight: {10}
             var shp = Game.GameData.GetShip(session.PlayerShip);
             shp.LoadResources();
             //Set up player object + camera
-            player = new GameObject(shp.Drawable, Game.ResourceManager, false);
+            player = new GameObject(shp.Drawable, Game.ResourceManager, true, false);
             control = new ShipControlComponent(player);
             control.Ship = shp;
             player.Components.Add(control);

@@ -15,11 +15,13 @@ namespace LibreLancer
         public Data.FreelancerData Ini => fldata;
         Data.FreelancerData fldata;
         ResourceManager resource;
+        GameResourceManager glResource;
         List<GameData.IntroScene> IntroScenes;
 
         public GameDataManager(string path, ResourceManager resman)
         {
             resource = resman;
+            glResource = (resource as GameResourceManager);
             Data.VFS.Init(path);
             var flini = new Data.FreelancerIni();
             fldata = new Data.FreelancerData(flini);
@@ -224,9 +226,9 @@ namespace LibreLancer
                     }
                 }
             }
-            if (resource != null)
+            if (glResource != null)
             {
-                resource.AddPreload(
+                glResource.AddPreload(
                     fldata.EffectShapes.Files.Select(txmfile => Data.VFS.GetPath(fldata.Freelancer.DataPath + txmfile))
                 );
                 foreach (var shape in fldata.EffectShapes.Shapes)
@@ -237,7 +239,7 @@ namespace LibreLancer
                         Nickname = shape.Value.ShapeName,
                         Dimensions = shape.Value.Dimensions
                     };
-                    resource.AddShape(shape.Key, s);
+                    glResource.AddShape(shape.Key, s);
                 }
             }
             fldata.Universe = null; //Free universe ini!
@@ -259,7 +261,7 @@ namespace LibreLancer
                 cur.Hotspot = lc.Hotspot;
                 cur.Dimensions = shape.Dimensions;
                 cur.Texture = fldata.Mouse.TextureName;
-                resource.AddCursor(cur, cur.Nickname);
+                glResource.AddCursor(cur, cur.Nickname);
             }
         }
         public Data.Audio.AudioEntry GetAudioEntry(string id)
@@ -306,17 +308,17 @@ namespace LibreLancer
         }
         public Texture2D GetSplashScreen()
         {
-            if (!resource.TextureExists("__startupscreen_1280.tga"))
+            if (!glResource.TextureExists("__startupscreen_1280.tga"))
             {
                 if (Data.VFS.FileExists(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen_1280.tga"))
                 {
-                    resource.AddTexture(
+                    glResource.AddTexture(
                         "__startupscreen_1280.tga",
                         Data.VFS.GetPath(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen_1280.tga")
                     );
                 } else if (Data.VFS.FileExists(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen.tga"))
                 {
-                    resource.AddTexture(
+                    glResource.AddTexture(
                         "__startupscreen_1280.tga",
                         Data.VFS.GetPath(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen.tga")
                     );
@@ -332,9 +334,9 @@ namespace LibreLancer
         }
         public Texture2D GetFreelancerLogo()
         {
-            if (!resource.TextureExists("__freelancerlogo.tga"))
+            if (!glResource.TextureExists("__freelancerlogo.tga"))
             {
-                resource.AddTexture(
+                glResource.AddTexture(
                     "__freelancerlogo.tga",
                     Data.VFS.GetPath(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga")
                 );

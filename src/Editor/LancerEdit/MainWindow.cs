@@ -16,7 +16,7 @@ namespace LancerEdit
 	{
 		ImGuiHelper guiHelper;
 		public AudioManager Audio;
-		public ResourceManager Resources;
+		public GameResourceManager Resources;
 		public Billboards Billboards;
 		public PolylineRender Polyline;
 		public PhysicsDebugRenderer DebugRender;
@@ -105,7 +105,7 @@ namespace LancerEdit
             }
             msaaLevels = msaa.ToArray();
             filters = texturefilters.ToArray();
-			Resources = new ResourceManager(this);
+			Resources = new GameResourceManager(this);
 			Commands = new CommandBuffer();
 			Billboards = new Billboards();
 			Polyline = new PolylineRender(Commands);

@@ -16,7 +16,7 @@ namespace LibreLancer
 		public AudioManager Audio;
 		public FontManager Fonts;
 		public SoundManager Sound;
-		public ResourceManager ResourceManager;
+		public GameResourceManager ResourceManager;
 		public Renderer2D Renderer2D;
 		public Billboards Billboards;
 		public NebulaVertices Nebulae;
@@ -67,7 +67,7 @@ namespace LibreLancer
 			FLLog.Info("Platform", Platform.RunningOS.ToString() + (IntPtr.Size == 4 ? " 32-bit" : " 64-bit"));
 			FLLog.Info("Available Threads", Environment.ProcessorCount.ToString());
 			//Cache
-			ResourceManager = new ResourceManager(this);
+			ResourceManager = new GameResourceManager(this);
 			//Init Audio
 			FLLog.Info("Audio", "Initialising Audio");
 			Audio = new AudioManager(this);

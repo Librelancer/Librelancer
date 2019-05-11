@@ -11,10 +11,72 @@ using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Dfm;
 using LibreLancer.Vertices;
 using LibreLancer.Primitives;
+using LibreLancer.Fx;
+
 namespace LibreLancer
 {
-	//TODO: Allow for disposing and all that Jazz
-	public class ResourceManager : ILibFile
+    //TODO: Allow for disposing and all that Jazz
+    public abstract class ResourceManager : ILibFile
+    {
+        public abstract void AllocateVertices<T>(T[] vertices, ushort[] indices, out int startIndex, out int baseVertex, out VertexBuffer vbo, out IndexResourceHandle index) where T : struct;
+        public abstract QuadSphere GetQuadSphere(int slices);
+        public abstract OpenCylinder GetOpenCylinder(int slices);
+        public abstract Dictionary<string, Texture> TextureDictionary { get; }
+        public abstract Dictionary<uint, Material> MaterialDictionary { get; }
+
+        public Material DefaultMaterial;
+        public Texture2D NullTexture;
+        public Texture2D WhiteTexture;
+        public const string NullTextureName = "$$LIBRELANCER.Null";
+        public const string WhiteTextureName = "$$LIBRELANCER.White";
+
+        public abstract Texture FindTexture(string name);
+        public abstract Material FindMaterial(uint materialId);
+        public abstract VMeshData FindMesh(uint vMeshLibId);
+        public abstract IDrawable GetDrawable(string filename);
+        public abstract void LoadResourceFile(string filename);
+        public abstract Fx.ParticleLibrary GetParticleLibrary(string filename);
+
+        public abstract bool TryGetShape(string name, out TextureShape shape);
+        public abstract bool TryGetFrameAnimation(string name, out TexFrameAnimation anim);
+    }
+
+    public class ServerResourceManager : ResourceManager
+    {
+        Dictionary<string, IDrawable> drawables = new Dictionary<string, IDrawable>(StringComparer.OrdinalIgnoreCase);
+
+        public override Dictionary<string, Texture> TextureDictionary => throw new InvalidOperationException();
+        public override Dictionary<uint, Material> MaterialDictionary => throw new InvalidOperationException();
+
+        public override void AllocateVertices<T>(T[] vertices, ushort[] indices, out int startIndex, out int baseVertex, out VertexBuffer vbo, out IndexResourceHandle index)
+        {
+            throw new InvalidOperationException();
+        }
+
+        public override OpenCylinder GetOpenCylinder(int slices) => throw new InvalidOperationException();
+        public override ParticleLibrary GetParticleLibrary(string filename) => throw new InvalidOperationException();
+        public override QuadSphere GetQuadSphere(int slices) => throw new InvalidOperationException();
+        public override Material FindMaterial(uint materialId) => throw new InvalidOperationException();
+        public override VMeshData FindMesh(uint vMeshLibId) => throw new InvalidOperationException();
+        public override Texture FindTexture(string name) => throw new InvalidOperationException();
+
+        public override bool TryGetShape(string name, out TextureShape shape) => throw new InvalidOperationException();
+        public override bool TryGetFrameAnimation(string name, out TexFrameAnimation anim) => throw new InvalidOperationException();
+
+        public override IDrawable GetDrawable(string filename)
+        {
+            IDrawable drawable;
+            if (!drawables.TryGetValue(filename, out drawable))
+            {
+                drawable = Utf.UtfLoader.LoadDrawable(filename, this);
+                drawables.Add(filename, drawable);
+            }
+            return drawable;
+        }
+
+        public override void LoadResourceFile(string filename) { }
+    }
+    public class GameResourceManager : ResourceManager
 	{
 		public Game Game;
 
@@ -46,7 +108,7 @@ namespace LibreLancer
 
         T[] As<T>(object input) => (T[])input;
 
-        public void AllocateVertices<T>(T[] vertices, ushort[] indices, out int startIndex, out int baseVertex, out VertexBuffer vbo, out IndexResourceHandle index) where T: struct
+        public override void AllocateVertices<T>(T[] vertices, ushort[] indices, out int startIndex, out int baseVertex, out VertexBuffer vbo, out IndexResourceHandle index)
         {
             vbo = null;
             index = null;
@@ -72,7 +134,7 @@ namespace LibreLancer
             }
         }
 
-        public QuadSphere GetQuadSphere(int slices) {
+        public override QuadSphere GetQuadSphere(int slices) {
             QuadSphere sph;
             if(!quadSpheres.TryGetValue(slices, out sph)) {
                 sph = new QuadSphere(slices);
@@ -81,7 +143,7 @@ namespace LibreLancer
             return sph;
         }
 
-        public OpenCylinder GetOpenCylinder(int slices)
+        public override OpenCylinder GetOpenCylinder(int slices)
         {
             OpenCylinder cyl;
             if (!cylinders.TryGetValue(slices, out cyl))
@@ -91,33 +153,29 @@ namespace LibreLancer
             }
             return cyl;
         }
-        public Dictionary<string, Texture> TextureDictionary
+        public override Dictionary<string, Texture> TextureDictionary
 		{
 			get
 			{
 				return textures;
 			}
 		}
-		public Dictionary<uint, Material> MaterialDictionary
+		public override Dictionary<uint, Material> MaterialDictionary
 		{
 			get
 			{
 				return materials;
 			}
 		}
-		public ResourceManager(Game g) : this()
+		public GameResourceManager(Game g) : this()
 		{
 			Game = g;
 			DefaultMaterial = new Material(this);
 			DefaultMaterial.Name = "$LL_DefaultMaterialName";
 		}
 
-		public Material DefaultMaterial;
-		public Texture2D NullTexture;
-		public Texture2D WhiteTexture;
-		public const string NullTextureName = "$$LIBRELANCER.Null";
-		public const string WhiteTextureName = "$$LIBRELANCER.White";
-		public ResourceManager()
+		
+		public GameResourceManager()
 		{
 			NullTexture = new Texture2D(1, 1, false, SurfaceFormat.Color);
 			NullTexture.SetData(new byte[] { 0xFF, 0xFF, 0xFF, 0x0 });
@@ -150,12 +208,12 @@ namespace LibreLancer
 		{
 			shapes.Add(name, shape);
 		}
-		public bool TryGetShape(string name, out TextureShape shape)
+		public override bool TryGetShape(string name, out TextureShape shape)
 		{
 			return shapes.TryGetValue(name, out shape);
 		}
 
-		public bool TryGetFrameAnimation(string name, out TexFrameAnimation anim)
+		public override bool TryGetFrameAnimation(string name, out TexFrameAnimation anim)
 		{
 			return frameanims.TryGetValue(name, out anim);
 		}
@@ -192,7 +250,7 @@ namespace LibreLancer
 			}
 		}
 
-		public Texture FindTexture (string name)
+		public override Texture FindTexture (string name)
 		{
 			if (name == NullTextureName)
 				return NullTexture;
@@ -211,7 +269,7 @@ namespace LibreLancer
             return outtex;
 		}
 
-		public Material FindMaterial (uint materialId)
+		public override Material FindMaterial (uint materialId)
 		{
 			Material m = null;
 			materials.TryGetValue (materialId, out m);
@@ -220,7 +278,7 @@ namespace LibreLancer
 
      
 
-        public VMeshData FindMesh (uint vMeshLibId)
+        public override VMeshData FindMesh (uint vMeshLibId)
 		{
             VMeshData vms;
             meshes.TryGetValue(vMeshLibId, out vms);
@@ -265,7 +323,7 @@ namespace LibreLancer
 			foreach (var key in removeMats) materials.Remove(key);
 		}
 
-        public Fx.ParticleLibrary GetParticleLibrary(string filename)
+        public override Fx.ParticleLibrary GetParticleLibrary(string filename)
         {
             Fx.ParticleLibrary lib;
             if (!particlelibs.TryGetValue(filename, out lib))
@@ -278,7 +336,7 @@ namespace LibreLancer
         }
 
 
-        public void LoadResourceFile(string filename)
+        public override void LoadResourceFile(string filename)
 		{
             var fn = filename.ToLowerInvariant();
             if (!loadedResFiles.Contains(fn))
@@ -344,7 +402,7 @@ namespace LibreLancer
 					meshes.Add (kv.Key, kv.Value);
 			}
 		}
-		public IDrawable GetDrawable(string filename)
+		public override IDrawable GetDrawable(string filename)
 		{
 			IDrawable drawable;
 			if (!drawables.TryGetValue(filename, out drawable))

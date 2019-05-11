@@ -22,13 +22,16 @@ namespace LibreLancer
 
 		public GameWorld(SystemRenderer render)
 		{
-			Renderer = render;
-            render.World = this;
             Physics = new PhysicsWorld();
-            Renderer.PhysicsHook = () =>
+            if (render != null)
             {
-                Physics.DrawWorld();
-            };
+                Renderer = render;
+                render.World = this;
+                Renderer.PhysicsHook = () =>
+                {
+                    Physics.DrawWorld();
+                };
+            }
             Physics.FixedUpdate += FixedUpdate;
             Projectiles = new ProjectileManager(this);
 		}
@@ -38,14 +41,14 @@ namespace LibreLancer
             foreach (var g in Objects)
                 g.Unregister(Physics);
 
-            Renderer.StarSystem = sys;
+            if(Renderer != null) Renderer.StarSystem = sys;
            
             Objects = new List<GameObject>();
-            Objects.Add((new GameObject() { Nickname = "projectiles", RenderComponent = new ProjectileRenderer(Projectiles) }));
+            if(Renderer != null) Objects.Add((new GameObject() { Nickname = "projectiles", RenderComponent = new ProjectileRenderer(Projectiles) }));
 
             foreach (var obj in sys.Objects)
             {
-                var g = new GameObject(obj.Archetype, res, true);
+                var g = new GameObject(obj.Archetype, res, Renderer != null, true);
                 g.Name = obj.DisplayName;
                 g.Nickname = obj.Nickname;
                 g.Transform = (obj.Rotation ?? Matrix4.Identity) * Matrix4.CreateTranslation(obj.Position);
@@ -72,6 +75,7 @@ namespace LibreLancer
             }
             foreach (var field in sys.AsteroidFields)
             {
+                field.LoadResources(); //Not guaranteed by the system renderer
                 var g = new GameObject();
                 g.Resources = res;
                 g.World = this;
@@ -113,7 +117,7 @@ namespace LibreLancer
 				Objects[i].Update(t);
 			if (RenderUpdate != null)
 				RenderUpdate(t);
-			Renderer.Update(t);
+			if(Renderer != null) Renderer.Update(t);
 		}
 
 		public event Action<GameObject, GameMessageKind> MessageBroadcasted;

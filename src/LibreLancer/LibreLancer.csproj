@@ -407,6 +407,7 @@
     <Compile Include="Interface\XmlUITextBox.cs" />
     <Compile Include="Net\Protocol\Packets.CharacterList.cs" />
     <Compile Include="Interface\XmlUICharacterList.cs" />
+    <Compile Include="Gameplay\ServerWorld.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
