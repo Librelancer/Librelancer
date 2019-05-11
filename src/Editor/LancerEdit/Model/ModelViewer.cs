@@ -474,6 +474,7 @@ namespace LancerEdit
                         };
                         fix.Reset();
                         ReplaceConstruct(con, fix);
+                        OnDirtyPart();
                     }
                     if(!(con.Con is RevConstruct) && Theme.IconMenuItem("Rev","rev",Color4.LightCoral,true)) {
                         var rev = new RevConstruct(cmp.Constructs)
@@ -484,6 +485,7 @@ namespace LancerEdit
                             Rotation = con.Con.Rotation
                         };
                         ReplaceConstruct(con, rev);
+                        OnDirtyPart();
                     }
                     if(!(con.Con is PrisConstruct) && Theme.IconMenuItem("Pris","pris",Color4.LightPink,true)) {
                         var pris = new PrisConstruct(cmp.Constructs)
@@ -494,6 +496,7 @@ namespace LancerEdit
                             Rotation = con.Con.Rotation
                         };
                         ReplaceConstruct(con, pris);
+                        OnDirtyPart();
                     }
                     if(!(con.Con is SphereConstruct) && Theme.IconMenuItem("Sphere","sphere",Color4.LightGreen,true)) {
                         var sphere = new SphereConstruct(cmp.Constructs)
@@ -504,6 +507,7 @@ namespace LancerEdit
                             Rotation = con.Con.Rotation
                         };
                         ReplaceConstruct(con, sphere);
+                        OnDirtyPart();
                     }
                     ImGui.EndMenu();
                 }
