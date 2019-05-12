@@ -203,9 +203,8 @@ namespace LibreLancer
                         toAdd.Add(newobj);
                     break;
                 case ObjectUpdatePacket p:
-                    var obj = objects[p.ID];
-                    obj.Transform = Matrix4.CreateFromQuaternion(p.Orientation) *
-                    Matrix4.CreateTranslation(p.Position);
+                    foreach (var update in p.Updates)
+                        UpdateObject(update);
                     break;
                 case DespawnObjectPacket p:
                     var despawn = objects[p.ID];
@@ -222,6 +221,14 @@ namespace LibreLancer
             }
         }
 
+        void UpdateObject(PackedShipUpdate update)
+        {
+            var obj = objects[update.ID];
+            var tr = obj.GetTransform();
+            var pos = update.HasPosition ? update.Position : tr.Transform(Vector3.Zero);
+            var rot = update.HasOrientation ? update.Orientation : tr.ExtractRotation();
+            obj.Transform = Matrix4.CreateFromQuaternion(rot) * Matrix4.CreateTranslation(pos);
+        }
 
         public void LaunchFrom(string _base)
         {

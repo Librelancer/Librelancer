@@ -93,11 +93,22 @@ namespace LibreLancer
             }
             foreach (var player in Players)
             {
+                List<PackedShipUpdate> ps = new List<PackedShipUpdate>();
                 foreach (var otherPlayer in Players)
                 {
                     if (otherPlayer.Key == player.Key) continue;
-                    otherPlayer.Key.UpdatePosition(player.Key);
+                    var update = new PackedShipUpdate();
+                    update.ID = otherPlayer.Key.ID;
+                    update.HasPosition = true;
+                    update.Position = otherPlayer.Key.Position;
+                    update.HasOrientation = true;
+                    update.Orientation = otherPlayer.Key.Orientation;
+                    ps.Add(update);
                 }
+                player.Key.SendUpdate(new ObjectUpdatePacket()
+                {
+                    Updates = ps.ToArray()
+                });
             }
         }
     }

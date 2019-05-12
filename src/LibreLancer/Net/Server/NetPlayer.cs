@@ -125,15 +125,10 @@ namespace LibreLancer
 
 		}
 
-        public void UpdatePosition(NetPlayer p)
+        public void SendUpdate(ObjectUpdatePacket update)
         {
             var m = server.NetServer.CreateMessage();
-            m.Write(new ObjectUpdatePacket()
-            {
-                ID = p.ID,
-                Position = p.Position,
-                Orientation = p.Orientation
-            });
+            m.Write(update);
             server.NetServer.SendMessage(m, connection, NetDeliveryMethod.UnreliableSequenced);
         }
 

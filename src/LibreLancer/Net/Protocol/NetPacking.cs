@@ -97,5 +97,22 @@ namespace LibreLancer
         {
             return new Vector3(im.ReadFloat(), im.ReadFloat(), im.ReadFloat());
         }
+
+        static float WrapMinMax(float x, float min, float max)
+        {
+            var m = max - min;
+            var y = (x - min);
+            return min + (m + y % m) % m;
+        }
+        const float ANGLE_MIN = (float)(-2 * Math.PI);
+        const float ANGLE_MAX = (float)(2 * Math.PI);
+        public static void WriteRadiansQuantized(this Lidgren.Network.NetOutgoingMessage om, float angle)
+        {
+            om.WriteRangedSingle(WrapMinMax(angle, ANGLE_MIN, ANGLE_MAX), ANGLE_MIN, ANGLE_MAX, 16);
+        }
+        public static float ReadRadiansQuantized(this Lidgren.Network.NetIncomingMessage im)
+        {
+            return im.ReadRangedSingle(ANGLE_MIN, ANGLE_MAX, 16);
+        }
     }
 }
