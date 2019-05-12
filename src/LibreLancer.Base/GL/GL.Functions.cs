@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using LibreLancer.GLDelegates;
 
 namespace LibreLancer
@@ -315,6 +316,7 @@ namespace LibreLancer
         }
         public static void Load(Func<string,Type,Delegate> getprocaddress)
         {
+            tid = Thread.CurrentThread.ManagedThreadId;
             errors = new Dictionary<int, string>();
             errors.Add(0x0500, "Invalid Enum");
             errors.Add(0x0501, "Invalid Value");
@@ -382,10 +384,13 @@ namespace LibreLancer
 		[MapsTo("glGetError")]
 		static GetError GetError;
 
+        static int tid;
 		public static void CheckErrors()
 		{
             if (ErrorChecking)
             {
+                if (Thread.CurrentThread.ManagedThreadId != tid)
+                    throw new InvalidOperationException("Called GL off the main thread");
                 var err = GetError();
                 if (err != 0)
                 {
