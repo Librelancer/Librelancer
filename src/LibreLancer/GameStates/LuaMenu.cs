@@ -63,7 +63,8 @@ namespace LibreLancer
             }
             public void directconnect(string str)
             {
-                client.Connect(str);
+                if (!client.Connect(str))
+                    state.ui.CallEvent("lookupfailed");
             }
             public void disconnect()
             {
@@ -78,10 +79,20 @@ namespace LibreLancer
                 client.Session.Client = client;
                 client.ServerFound += Client_ServerFound;
                 client.CharacterSelection += Client_CharacterSelection;
+                client.Disconnected += Client_Disconnected;
                 client.Start();
                 client.UUID = state.Game.Config.UUID.Value;
                 client.DiscoverLocalPeers();
             }
+
+            void Client_Disconnected(string obj)
+            {
+                //Throw an error somehow
+                state.ui.CallEvent("disconnected");
+                refreshservers();
+            }
+
+
             public void stopmp()
             {
                 if (client != null) client.Dispose();

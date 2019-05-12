@@ -216,6 +216,7 @@ namespace LibreLancer
 				}
 				Thread.Sleep(0); //Reduce CPU load
 			}
+            NetServer.Shutdown("Shutdown");
 			Database.Dispose();
 		}
             

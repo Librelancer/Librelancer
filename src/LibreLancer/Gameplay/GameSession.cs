@@ -288,6 +288,11 @@ namespace LibreLancer
 			}
 		}
 
+        public void Disconnected()
+        {
+            Game.ChangeState(new LuaMenu(Game));
+        }
+
         public void OnExit()
         {
             if(Client != null)

@@ -245,8 +245,13 @@ namespace LibreLancer
             fldata.Universe = null; //Free universe ini!
             GC.Collect(); //We produced a crapload of garbage
         }
+
+        bool cursorsDone = false;
         public void PopulateCursors()
         {
+            if (cursorsDone) return;
+            cursorsDone = true;
+
             resource.LoadResourceFile(
                 Data.VFS.GetPath(fldata.Freelancer.DataPath + fldata.Mouse.TxmFile)
             );

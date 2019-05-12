@@ -94,15 +94,16 @@ namespace LibreLancer
             client.Connect(endPoint, message);
         }
 
-        public void Connect(string str)
+        public bool Connect(string str)
         {
             IPEndPoint ep;
             if (ParseEP(str, out ep))
             {
                 Connect(ep);
+                return true;
             }
             else
-                throw new Exception("Lookup failed");
+                return false;
         }
 
         static bool ParseEP(string str, out IPEndPoint endpoint)
@@ -240,8 +241,18 @@ namespace LibreLancer
                                 var status = (NetConnectionStatus)im.ReadByte();
                                 if (status == NetConnectionStatus.Disconnected)
                                 {
-                                    connecting = false;
-                                    Disconnected(im.ReadString());
+                                    FLLog.Info("Net", "Disconnected");
+                                    if (connecting)
+                                    {
+                                        connecting = false;
+                                        var reason = im.ReadString();
+                                        mainThread.QueueUIThread(() => Disconnected(reason));
+                                    }
+                                    else
+                                    {
+                                        mainThread.QueueUIThread(() => Session.Disconnected());
+                                    }
+                                    running = false;
                                 }
                                 break;
                             case NetIncomingMessageType.Data:
