@@ -573,7 +573,7 @@ namespace LibreLancer
 
         int lastDatHash = -1;
 		int datindex = 0;
-        int lastIndexBasic = -1;
+        int lastIndexBasic = 0;
         //
         int indexCountBasic = 0;
         int fillCountBasic = 0;
@@ -584,7 +584,6 @@ namespace LibreLancer
         
         public void AddIndices(int index)
         {
-            if (lastIndexBasic == -1) lastIndexBasic = fillCountBasic;
             var dat = rendat[index];
             if (dat.Index2 != 0)
             {
@@ -603,7 +602,6 @@ namespace LibreLancer
 
 		public void AddCustomIndices(int idxStart)
 		{
-            if (lastIndexBasic == -1) lastIndexBasic = fillCountBasic;
             indicesBasic[fillCountBasic++] = (ushort)idxStart;
 			indicesBasic[fillCountBasic++] = (ushort)(idxStart + 1);
 			indicesBasic[fillCountBasic++] = (ushort)(idxStart + 2);
@@ -714,7 +712,7 @@ namespace LibreLancer
 				return;
 			}
             if (rendat[datindex].RenderKind == RenderKind.Rect) throw new InvalidOperationException();
-            DrawCommands(rs, lastIndexBasic, indexCountBasic / 3);
+            DrawCommands(rs, lastIndexBasic, indexCountBasic);
             lastIndexBasic += indexCountBasic;
             indexCountBasic = 0;
 		}
@@ -735,7 +733,7 @@ namespace LibreLancer
             vboRect.SetData(verticesRect, vertexCountRect);
 			_frameStart = true;
             _iboFilled = false;
-            lastIndexBasic = -1;
+            lastIndexBasic = fillCountBasic;
 		}
     }
 }
