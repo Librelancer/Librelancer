@@ -215,7 +215,7 @@ namespace LancerEdit
             polyline.SetCamera(cam);
             billboards.Begin(cam, buffer);
             debug.StartFrame(cam, rstate);
-            instance.Draw(polyline, billboards, debug, transform, sparam);
+            instance.Draw(transform, sparam);
             pool.Draw(polyline, billboards, debug);
             polyline.FrameEnd();
             billboards.End();
