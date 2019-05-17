@@ -48,7 +48,7 @@ namespace LancerEdit
             Title = "Infocard Browser##" + Unique;
         }
 
-
+        int id = 0;
         public override void Draw()
         {
             ImGui.Columns(2, "cols", true);
@@ -56,32 +56,31 @@ namespace LancerEdit
             if (ImGuiExt.ToggleButton("Strings", showStrings)) showStrings = true;
             ImGui.SameLine();
             if (ImGuiExt.ToggleButton("Infocards", !showStrings)) showStrings = false;
-            ImGui.Separator();
-            //list
-            ImGui.BeginChild("##list");
-            if(showStrings)
-            {
-                stringClipper.Begin(stringsIds.Length);
-                while (stringClipper.Step())
+            ImGui.SameLine();
+            ImGui.PushItemWidth(140);
+            ImGui.InputInt("##id", ref id, 0, 0);
+            ImGui.PopItemWidth();
+            ImGui.SameLine();
+            int gotoItem = -1;
+            if(ImGui.Button("Go")) {
+                if(showStrings)
                 {
-                    for (int i = stringClipper.DisplayStart; i < stringClipper.DisplayEnd; i++)
+                    for(int i = 0; i < stringsIds.Length; i++)
                     {
-                        if (ImGui.Selectable(stringsIds[i] + "##" + i, currentString == i))
-                        {
+                        if(id == stringsIds[i]) {
+                            gotoItem = i;
                             currentString = i;
                             txt.SetText(manager.GetStringResource(stringsIds[i]));
                         }
                     }
                 }
-                stringClipper.End();
-            } else {
-                infocardClipper.Begin(infocardsIds.Length);
-                while (infocardClipper.Step())
+                else
                 {
-                    for (int i = infocardClipper.DisplayStart; i < infocardClipper.DisplayEnd; i++)
+                    for (int i = 0; i < infocardsIds.Length; i++)
                     {
-                        if (ImGui.Selectable(infocardsIds[i] + "##" + i, currentInfocard == i))
+                        if (id == infocardsIds[i])
                         {
+                            gotoItem = i;
                             currentInfocard = i;
                             if (display == null)
                             {
@@ -94,7 +93,68 @@ namespace LancerEdit
                         }
                     }
                 }
-                infocardClipper.End();
+            }
+            ImGui.Separator();
+            //list
+            ImGui.BeginChild("##list");
+            if(showStrings)
+            {
+                if (gotoItem == -1)
+                {
+                    stringClipper.Begin(stringsIds.Length);
+                    while (stringClipper.Step())
+                    {
+                        for (int i = stringClipper.DisplayStart; i < stringClipper.DisplayEnd; i++)
+                        {
+                            if (ImGui.Selectable(stringsIds[i] + "##" + i, currentString == i))
+                            {
+                                currentString = i;
+                                txt.SetText(manager.GetStringResource(stringsIds[i]));
+                            }
+                        }
+                    }
+                    stringClipper.End();
+                }
+                else
+                {
+                    for(int i = 0; i < stringsIds.Length; i++)
+                    {
+                        ImGui.Selectable(stringsIds[i] + "##" + i, currentString == i);
+                        if (currentString == i) ImGui.SetScrollHere();
+                    }
+                }
+            } else {
+                if (gotoItem == -1)
+                {
+                    infocardClipper.Begin(infocardsIds.Length);
+                    while (infocardClipper.Step())
+                    {
+                        for (int i = infocardClipper.DisplayStart; i < infocardClipper.DisplayEnd; i++)
+                        {
+                            if (ImGui.Selectable(infocardsIds[i] + "##" + i, currentInfocard == i))
+                            {
+                                currentInfocard = i;
+                                if (display == null)
+                                {
+                                    display = new InfocardControl(win, RDLParse.Parse(manager.GetXmlResource(infocardsIds[currentInfocard])), 100);
+                                }
+                                else
+                                {
+                                    display.SetInfocard(RDLParse.Parse(manager.GetXmlResource(infocardsIds[currentInfocard])));
+                                }
+                            }
+                        }
+                    }
+                    infocardClipper.End();
+                }
+                else
+                {
+                    for (int i = 0; i < infocardsIds.Length; i++)
+                    {
+                        ImGui.Selectable(infocardsIds[i] + "##" + i, currentInfocard == i);
+                        if (currentInfocard == i) ImGui.SetScrollHere();
+                    }
+                }
             }
             ImGui.EndChild();
             ImGui.NextColumn();
