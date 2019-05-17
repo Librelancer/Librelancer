@@ -47,7 +47,7 @@ namespace LibreLancer.Fx
 			return pt4.Xyz;
 		}
 
-		public override void Draw(ref Particle particle, float lasttime, float globaltime, NodeReference reference, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
+		public override void Draw(ref Particle particle, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectPool pool, ref Matrix4 transform, float sparam)
 		{
 			var time = particle.TimeAlive / particle.LifeSpan;
             var node_tr = GetAttachment(reference, transform);
@@ -68,7 +68,9 @@ namespace LibreLancer.Fx
 			var p2 = node_tr.Transform(src_pos + (particle.Normal  * 20));
             //var n = (p2 - p).Normalized();
             var n = (transform * new Vector4(particle.Normal.Normalized(), 0)).Xyz.Normalized();
-			billboards.DrawRectAppearance(
+			pool.DrawRect(
+                particle.Instance,
+                this,
 				tex,
 				p,
 				new Vector2(l, w) * sc * 0.5f,
@@ -78,9 +80,7 @@ namespace LibreLancer.Fx
 				bl,
 				br,
 				n,
-                Rotate == null ? 0f : MathHelper.DegreesToRadians(Rotate.GetValue(sparam, time)),
-				SortLayers.OBJECT,
-				BlendInfo
+                Rotate == null ? 0f : MathHelper.DegreesToRadians(Rotate.GetValue(sparam, time))
 			);
 			if (DrawNormals)
 			{

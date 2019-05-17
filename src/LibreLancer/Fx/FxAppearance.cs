@@ -14,7 +14,7 @@ namespace LibreLancer.Fx
 		public FxAppearance (AlchemyNode ale) : base(ale)
 		{
 		}
-		public virtual void Draw(ref Particle particle, float lasttime, float globaltime, NodeReference reference, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
+		public virtual void Draw(ref Particle particle, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectPool pool, ref Matrix4 transform, float sparam)
 		{
 			
 		}
@@ -31,7 +31,7 @@ namespace LibreLancer.Fx
             int idx = -1;
             var pr = reference;
             while(pr != null && !pr.IsAttachmentNode) {
-                if(pr.Node.Transform.HasTransform) {
+                if(pr.Node.Transform.HasTransform && pr.Node.Transform.Animates) {
                     idx++;
                     transforms[idx] = pr.Node.Transform;
                 }

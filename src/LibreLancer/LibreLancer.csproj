@@ -90,6 +90,9 @@
       <HintPath>..\packages\NeoLua.1.2.25\lib\net45\Neo.Lua.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Serialization" />
+    <Reference Include="System.ValueTuple">
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConvertData.cs" />

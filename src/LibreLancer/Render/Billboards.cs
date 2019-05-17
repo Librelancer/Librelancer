@@ -84,6 +84,7 @@ namespace LibreLancer
 			public ushort Index3;
 			public ushort Index4;
 			public ushort Index5;
+
 			public RenderData(Texture tex, BlendMode blend, RenderKind kind, ushort idxStart)
 			{
 				Texture = tex;
@@ -96,7 +97,18 @@ namespace LibreLancer
 				Index4 = (ushort)(idxStart + 3);
 				Index5 = (ushort)(idxStart + 2);
 			}
-			public static RenderData CreateTri(Texture tex, BlendMode blend, ushort idxStart)
+
+            public RenderData(Texture tex, BlendMode blend, RenderKind kind, ushort idxStart, ushort idxCount)
+            {
+                Texture = tex;
+                BlendMode = blend;
+                RenderKind = kind;
+                Index0 = idxStart;
+                Index1 = idxCount;
+                Index2 = Index3 = Index4 = Index5 = 0;
+            }
+
+            public static RenderData CreateTri(Texture tex, BlendMode blend, ushort idxStart)
 			{
 				var d = new RenderData ();
 				d.Texture = tex;
@@ -139,7 +151,7 @@ namespace LibreLancer
 		{
 			camera = cam;
 			billboardCount = vertexCountBasic = indexCountBasic = 0;
-            vertexCountRect = indexCountRect = 0;
+            vertexCountRect =  0;
 			buffer = cmd;
 		}
         public Shader GetShader(string shader)
@@ -296,8 +308,31 @@ namespace LibreLancer
 			};
 		}
 
-		public void DrawRectAppearance(
-			Texture2D texture,
+        public int AddBasic(
+            Vector3 Position,
+            Vector2 size,
+            Color4 color,
+            Vector2 topleft,
+            Vector2 topright,
+            Vector2 bottomleft,
+            Vector2 bottomright,
+            float angle
+        )
+        {
+            int vc = vertexCountBasic;
+            CreateBillboard(
+                Position,
+                size,
+                color,
+                angle,
+                topleft,
+                topright,
+                bottomleft,
+                bottomright
+            );
+            return vc;
+        }
+        public int AddRectAppearance(
 			Vector3 Position,
 			Vector2 size,
 			Color4 color,
@@ -306,9 +341,7 @@ namespace LibreLancer
 			Vector2 bottomleft,
 			Vector2 bottomright,
 			Vector3 normal,
-			float angle,
-			int layer,
-			BlendMode blend = BlendMode.Normal
+			float angle
 		)
 		{
 			var up = normal;
@@ -316,14 +349,8 @@ namespace LibreLancer
 			var right = Vector3.Cross(toCamera, up);
 			up.Normalize();
 			right.Normalize();
-			rendat[billboardCount] = new RenderData(
-				texture,
-				blend,
-                RenderKind.Basic,
-				(ushort)vertexCountBasic
-			);
-			//construct points then billboard them?
-			CreateBillboard(
+            int vc = vertexCountBasic;
+            CreateBillboard(
 				Position,
 				size,
 				color,
@@ -335,19 +362,71 @@ namespace LibreLancer
 				right,
 				up
 			);
-			var z = RenderHelpers.GetZ(camera.Position, Position);
-			buffer.AddCommand(
-				this,
-				rendat[billboardCount].GetHashCode(),
-				billboardCount,
-				layer,
-				z
-			);
-			billboardCount++;
+            return vc;
 		}
 
-		public void DrawPerspective(
-			Texture2D texture,
+        public void CommandRect(Texture2D texture, BlendMode blend, int[] starts, int startLength, Vector3 pos)
+        {
+            var startIdx = fillCountRect;
+            for (int i = 0; i < startLength; i++)
+            {
+                var idxStart = (ushort)starts[i];
+                indicesRect[fillCountRect++] = idxStart;
+                indicesRect[fillCountRect++] = (ushort)(idxStart + 1);
+                indicesRect[fillCountRect++] = (ushort)(idxStart + 2);
+                indicesRect[fillCountRect++] = (ushort)(idxStart + 1);
+                indicesRect[fillCountRect++] = (ushort)(idxStart + 3);
+                indicesRect[fillCountRect++] = (ushort)(idxStart + 2);
+            }
+            rendat[billboardCount] = new RenderData(
+                texture,
+                blend,
+                RenderKind.Rect,
+                (ushort)startIdx,
+                (ushort)(fillCountRect - startIdx)
+            );
+            var z = RenderHelpers.GetZ(camera.Position, pos);
+            buffer.AddCommand(
+                this,
+                rendat[billboardCount].GetHashCode(),
+                billboardCount,
+                SortLayers.OBJECT,
+                z
+            );
+            billboardCount++;
+        }
+        public void CommandBasic(Texture2D texture, BlendMode blend, int[] starts, int startLength, Vector3 pos)
+        {
+            var startIdx = fillCountBasic;
+            for (int i = 0; i < startLength; i++)
+            {
+                var idxStart = (ushort)starts[i];
+                indicesBasic[fillCountBasic++] = idxStart;
+                indicesBasic[fillCountBasic++] = (ushort)(idxStart + 1);
+                indicesBasic[fillCountBasic++] = (ushort)(idxStart + 2);
+                indicesBasic[fillCountBasic++] = (ushort)(idxStart + 1);
+                indicesBasic[fillCountBasic++] = (ushort)(idxStart + 3);
+                indicesBasic[fillCountBasic++] = (ushort)(idxStart + 2);
+            }
+            rendat[billboardCount] = new RenderData(
+                texture,
+                blend,
+                RenderKind.Basic,
+                (ushort)startIdx,
+                (ushort)(fillCountBasic - startIdx)
+            );
+            var z = RenderHelpers.GetZ(camera.Position, pos);
+            buffer.AddCommand(
+                this,
+                rendat[billboardCount].GetHashCode(),
+                billboardCount,
+                SortLayers.OBJECT,
+                z
+            );
+            billboardCount++;
+        }
+
+        public int AddPerspective(
 			Vector3 pos,
             Matrix4 world,
 			Vector2 size,
@@ -357,9 +436,7 @@ namespace LibreLancer
 			Vector2 bottomleft,
 			Vector2 bottomright,
 			Vector3 normal,
-			float angle,
-			int layer,
-			BlendMode blend = BlendMode.Normal
+			float angle
 		)
 		{
             var upref = Vector3.UnitY;
@@ -379,13 +456,7 @@ namespace LibreLancer
                 up = c * srcright - s * srcup;
                 right = s * srcright + c * srcup;
             }
-			rendat[billboardCount] = new RenderData(
-				texture,
-				blend,
-                RenderKind.Rect,
-				(ushort)vertexCountRect
-			);
-            //
+            int retVal = vertexCountRect;
             var sz = 0.5f * size;
             verticesRect[vertexCountRect++] = new VertexPositionColorTexture(
                 VectorMath.Transform(
@@ -400,14 +471,14 @@ namespace LibreLancer
                ),
                color,
                topleft
-           );
+            );
             verticesRect[vertexCountRect++] = new VertexPositionColorTexture(
                VectorMath.Transform(
                    pos - right * sz.X + up * sz.Y, world
                ),
                color,
                bottomright
-           );
+            );
             verticesRect[vertexCountRect++] = new VertexPositionColorTexture(
                VectorMath.Transform(
                    pos + right * sz.X + up * sz.Y, world
@@ -416,15 +487,7 @@ namespace LibreLancer
                topright
             );
             //
-			var z = RenderHelpers.GetZ(camera.Position, pos);
-			buffer.AddCommand(
-				this,
-				rendat[billboardCount].GetHashCode(),
-				billboardCount,
-				layer,
-				z
-			);
-			billboardCount++;
+            return retVal;
 		}
 
 		public void DrawTri(
@@ -511,19 +574,19 @@ namespace LibreLancer
         int lastDatHash = -1;
 		int datindex = 0;
         int lastIndexBasic = 0;
-        int lastIndexRect = 0;
         //
         int indexCountBasic = 0;
         int fillCountBasic = 0;
         int vertexCountBasic = 0;
         //
-        int indexCountRect = 0;
         int fillCountRect = 0;
         int vertexCountRect = 0;
+        
         public void AddIndices(int index)
         {
+            if (lastIndexBasic == 0) lastIndexBasic = fillCountBasic;
             var dat = rendat[index];
-            if (dat.RenderKind == RenderKind.Basic)
+            if (dat.Index2 != 0)
             {
                 indicesBasic[fillCountBasic++] = dat.Index0;
                 indicesBasic[fillCountBasic++] = dat.Index1;
@@ -533,16 +596,6 @@ namespace LibreLancer
                     indicesBasic[fillCountBasic++] = dat.Index3;
                     indicesBasic[fillCountBasic++] = dat.Index4;
                     indicesBasic[fillCountBasic++] = dat.Index5;
-                }
-            } else {
-                indicesRect[fillCountRect++] = dat.Index0;
-                indicesRect[fillCountRect++] = dat.Index1;
-                indicesRect[fillCountRect++] = dat.Index2;
-                if (!dat.Tri)
-                {
-                    indicesRect[fillCountRect++] = dat.Index3;
-                    indicesRect[fillCountRect++] = dat.Index4;
-                    indicesRect[fillCountRect++] = dat.Index5;
                 }
             }
             _iboFilled = false;
@@ -595,10 +648,24 @@ namespace LibreLancer
 			datindex = index;
 			var dat = rendat[index];
             if (rendat[index].RenderKind == RenderKind.Basic)
-                indexCountBasic += dat.Tri ? 3 : 6;
+            {
+                var lastIdxB = lastIndexBasic;
+                if (rendat[index].Index2 == 0) 
+                {
+                    FlushCommands(rs);
+                    DrawCommands(rs, dat.Index0, dat.Index1);
+                }
+                else
+                {
+                    indexCountBasic += dat.Tri ? 3 : 6;
+                }
+            }
             else
-                indexCountRect += dat.Tri ? 3 : 6;
-		}
+            {
+                FlushCommands(rs);
+                DrawCommands(rs, dat.Index0, dat.Index1);
+            }
+        }
 
 		public void FillIbo()
 		{
@@ -612,41 +679,44 @@ namespace LibreLancer
             }
 		}
 
-		bool _frameStart = true;
+        void DrawCommands(RenderState rs, int start, int count)
+        {
+            rs.Cull = false;
+            rs.BlendMode = rendat[datindex].BlendMode;
+            var rect = rendat[datindex].RenderKind == RenderKind.Rect;
+            if (_frameStart)
+            {
+                var v = camera.View;
+                var vp = camera.ViewProjection;
+                shaderBasic.SetView(ref v);
+                shaderBasic.SetViewProjection(ref vp);
+                shaderRect.SetView(ref v);
+                shaderRect.SetViewProjection(ref vp);
+                _frameStart = false;
+            }
+            rendat[datindex].Texture.BindTo(0);
+            (rect ? shaderRect : shaderBasic).UseProgram();
+            if (rect)
+                vboRect.Draw(PrimitiveTypes.TriangleList, 0, start, count / 3);
+            else
+                vboBasic.Draw(PrimitiveTypes.TriangleList, 0, start, count / 3);
+            rs.Cull = true;
+            lastDatHash = -1;
+        }
+
+        bool _frameStart = true;
 		public void FlushCommands(RenderState rs)
 		{
             FillIbo();
-			if (indexCountBasic == 0 && indexCountRect == 0)
+			if (indexCountBasic == 0)
 			{
 				lastDatHash = -1;
 				return;
 			}
-			rs.Cull = false;
-			rs.BlendMode = rendat[datindex].BlendMode;
-            var rect = rendat[datindex].RenderKind == RenderKind.Rect;
-			if (_frameStart)
-			{
-				var v = camera.View;
-				var vp = camera.ViewProjection;
-				shaderBasic.SetView(ref v);
-				shaderBasic.SetViewProjection(ref vp);
-                shaderRect.SetView(ref v);
-                shaderRect.SetViewProjection(ref vp);
-				_frameStart = false;
-			}
-			rendat[datindex].Texture.BindTo(0);
-            (rect ? shaderRect : shaderBasic).UseProgram();
-            if(rect) {
-                vboRect.Draw(PrimitiveTypes.TriangleList, 0, lastIndexRect, indexCountRect / 3);
-                lastIndexRect += indexCountRect;
-                indexCountRect = 0;
-            } else {
-                vboBasic.Draw(PrimitiveTypes.TriangleList, 0, lastIndexBasic, indexCountBasic / 3);
-                lastIndexBasic += indexCountBasic;
-                indexCountBasic = 0;
-            }
-			rs.Cull = true;
-			lastDatHash = -1;
+            if (rendat[datindex].RenderKind == RenderKind.Rect) throw new InvalidOperationException();
+            DrawCommands(rs, lastIndexBasic, indexCountBasic / 3);
+            lastIndexBasic += indexCountBasic;
+            indexCountBasic = 0;
 		}
 		[StructLayout(LayoutKind.Explicit)]
 		struct SplitInt
@@ -666,7 +736,6 @@ namespace LibreLancer
 			_frameStart = true;
             _iboFilled = false;
             lastIndexBasic = 0;
-            lastIndexRect = 0;
 		}
     }
 }

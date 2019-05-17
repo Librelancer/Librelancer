@@ -52,9 +52,11 @@ namespace LibreLancer.Fx
         public double LastTime => lasttime;
 
         double lasttime = 0;
+        public Vector3 Position = Vector3.Zero;
         public void Update(TimeSpan delta, Matrix4 transform, float sparam)
         {
             if (Pool == null) return;
+            Position = transform.Transform(Vector3.Zero);
             lasttime = globaltime;
             globaltime += delta.TotalSeconds;
             //Line buffers

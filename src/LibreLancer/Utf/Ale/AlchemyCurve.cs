@@ -15,7 +15,11 @@ namespace LibreLancer.Utf.Ale
 		public LoopFlags Flags;
 		public List<CurveKeyframe> Keyframes;
 
-		public float GetValue(float time) {
+        public bool Animates
+        {
+            get { return Keyframes != null && Keyframes.Count != 1; }
+        }
+        public float GetValue(float time) {
 			if (Keyframes == null)
 				return Value;
 			if (Keyframes.Count == 1)

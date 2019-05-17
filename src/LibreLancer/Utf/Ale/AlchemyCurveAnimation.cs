@@ -40,7 +40,15 @@ namespace LibreLancer.Utf.Ale
 			}
 		}
 
-		public float GetValue(float sparam, float time)
+        public bool Animates
+        {
+            get
+            {
+                return !(Items.Count == 1 && !Items[0].Animates);
+            }
+        }
+
+        public float GetValue(float sparam, float time)
 		{
 			//1 item, 1 value
 			if (Items.Count == 1) {
