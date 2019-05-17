@@ -39,34 +39,48 @@ namespace LibreLancer.Utf
                 FLLog.Error("Utf", file + " is not valid IDrawable");
 			return dr;
 		}
-		public static void LoadResourceNode(IntermediateNode root, ILibFile library, out MatFile materials, out TxmFile textures, out Vms.VmsFile vms)
+		public static bool LoadResourceNode(IntermediateNode root, ILibFile library, out MatFile materials, out TxmFile textures, out Vms.VmsFile vms)
 		{
-			materials = null;
+            try
+            {
+                foreach (Node node in root)
+                {
+                    switch (node.Name.ToLowerInvariant())
+                    {
+                        case "material library":
+                            IntermediateNode materialLibraryNode = node as IntermediateNode;
+                            materials = new MatFile(materialLibraryNode, library);
+                            break;
+                        case "texture library":
+                            IntermediateNode textureLibraryNode = node as IntermediateNode;
+                            try
+                            {
+                                textures = new TxmFile(textureLibraryNode);
+                            }
+                            catch (Exception ex)
+                            {
+                                FLLog.Error("Utf", ex.Message);
+                            }
+                            break;
+                        case "vmeshlibrary":
+                            IntermediateNode vmsnode = node as IntermediateNode;
+                            vms = new Vms.VmsFile(vmsnode, library);
+                            break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                FLLog.Error("Resources", "Error loading resources: " + ex.Message + "\n" + ex.StackTrace);
+                materials = null;
+                textures = null;
+                vms = null;
+                return false;
+            }
+            materials = null;
 			textures = null;
 			vms = null;
-			foreach (Node node in root)
-			{
-				switch (node.Name.ToLowerInvariant())
-				{
-					case "material library":
-						IntermediateNode materialLibraryNode = node as IntermediateNode;
-						materials = new MatFile(materialLibraryNode, library);
-						break;
-					case "texture library":
-						IntermediateNode textureLibraryNode = node as IntermediateNode;
-                        try {
-                            textures = new TxmFile(textureLibraryNode);
-                        }
-                        catch (Exception ex) {
-                            FLLog.Error("Utf", ex.Message);
-                        }
-                        break;
-					case "vmeshlibrary":
-						IntermediateNode vmsnode = node as IntermediateNode;
-						vms = new Vms.VmsFile(vmsnode, library);
-						break;
-				}
-			}
+            return true;
 		}
 		public static void LoadResourceFile(string file, ILibFile library, out MatFile materials, out TxmFile textures, out Vms.VmsFile vms)
 		{
