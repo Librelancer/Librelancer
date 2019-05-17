@@ -157,7 +157,7 @@ namespace LancerEdit
             var enabled = instance.NodeEnabled(selectedReference);
             var wasEnabled = enabled;
             ImGui.Checkbox("Enabled", ref enabled);
-            if (enabled != wasEnabled) instance.EnableStates[selectedReference] = enabled;
+            if (enabled != wasEnabled) instance.SetNodeEnabled(selectedReference, enabled);
             //Normals?
 
             //Textures?
