@@ -30,11 +30,11 @@ namespace LibreLancer.Fx
 			}
 		}
 
-		protected virtual float GetSpread(Random rand, float sparam, float time)
+		protected virtual float GetSpread(float sparam, float time)
 		{
 			var s_min = MathHelper.DegreesToRadians(MinSpread.GetValue(sparam, 0));
 			var s_max = MathHelper.DegreesToRadians(MaxSpread.GetValue(sparam, 0));
-			return rand.NextFloat(s_min, s_max);
+			return FxRandom.NextFloat(s_min, s_max);
 		}
 
         protected override void SetParticle(int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4 transform, float sparam, float globaltime)
@@ -42,11 +42,11 @@ namespace LibreLancer.Fx
 			var r_min = MinRadius.GetValue(sparam, 0);
 			var r_max = MaxRadius.GetValue(sparam, 0);
 
-			var radius = instance.Random.NextFloat(r_min, r_max);
+			var radius = FxRandom.NextFloat(r_min, r_max);
 			float s_min = MathHelper.DegreesToRadians(MinSpread.GetValue(sparam, 0));
 			float s_max = MathHelper.DegreesToRadians(MaxSpread.GetValue(sparam, 0));
 
-			var n = RandomInCone(instance.Random, s_min, s_max);
+			var n = RandomInCone(s_min, s_max);
             Vector3 translate;
             Quaternion rotate;
             if (DoTransform(reference, sparam, globaltime, out translate, out rotate))
@@ -60,15 +60,15 @@ namespace LibreLancer.Fx
 		}
 
 		//Different direction to FxCubeEmitter
-        static Vector3 RandomInCone(Random r, float minspread, float maxspread)
+        static Vector3 RandomInCone(float minspread, float maxspread)
 		{
 			var direction = Vector3.UnitY;
             var axis = Vector3.UnitX;
 
-			var angle = r.NextFloat(minspread, maxspread);
+			var angle = FxRandom.NextFloat(minspread, maxspread);
 			var rotation = Quaternion.FromAxisAngle(axis, angle);
 			Vector3 output = rotation * direction;
-			var random = r.NextFloat(-MathHelper.Pi, MathHelper.Pi);
+			var random = FxRandom.NextFloat(-MathHelper.Pi, MathHelper.Pi);
 			rotation = Quaternion.FromAxisAngle(direction, random);
 			output = rotation * output;
 			return output;

@@ -34,7 +34,6 @@ namespace LibreLancer.Fx
                 if (Particles[i].TimeAlive >= Particles[i].LifeSpan)
                 {
                     Particles[i].Active = false;
-                    Particles[i].Instance.EmitStates[Particles[i].Emitter].ParticleCount--;
                     Particles[i].Instance = null;
                     FreeParticles.Enqueue(i);
                     continue;
@@ -147,7 +146,7 @@ namespace LibreLancer.Fx
             Vector3 normal,
             float angle)
         {
-            if (countParticle <= MAX_PARTICLES) return;
+            if (countParticle >= MAX_PARTICLES) return;
             var idx = GetAppFxIdx(instance, appearance);
             var start = currentBillboards.AddPerspective(pos, world, size, color, topleft, topright, bottomleft, bottomright, normal, angle);
             draws[countParticle++] = new ParticleDraw()
@@ -172,7 +171,7 @@ namespace LibreLancer.Fx
             float angle
         )
         {
-            if (countParticle <= MAX_PARTICLES) return;
+            if (countParticle >= MAX_PARTICLES) return;
             var idx = GetAppFxIdx(instance, appearance);
             int start = currentBillboards.AddBasic(Position, size, color, topleft, topright, bottomleft, bottomright, angle);
             draws[countParticle++] = new ParticleDraw()
@@ -198,7 +197,7 @@ namespace LibreLancer.Fx
             float angle
         )
         {
-            if (countParticle <= MAX_PARTICLES) return;
+            if (countParticle >= MAX_PARTICLES) return;
             var idx = GetAppFxIdx(instance, appearance);
             int start = currentBillboards.AddRectAppearance(Position, size, color, topleft, topright, bottomleft, bottomright, normal, angle);
             draws[countParticle++] = new ParticleDraw()

@@ -5,29 +5,37 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+
 namespace LibreLancer.Fx
 {
+    public static class FxRandom
+    {
+        static int seed = Environment.TickCount;
+        static readonly ThreadLocal<Random> random =
+            new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref seed)));
+        public static float NextFloat(float min, float max) => random.Value.NextFloat(min, max);
+    }
+
     public class ParticleEffectInstance
     {
         public ParticleEffectPool Pool;
-        public Random Random = new Random();
-        public class EmitterState
-        {
-            public int ParticleCount = 0;
-            public double SpawnTimer = 0f;
-        }
 
         public const int PARTICLES_PER_EMITTER = 1024;
         public ParticleEffect Effect;
         public ResourceManager Resources;
-        public Dictionary<NodeReference, EmitterState> EmitStates = new Dictionary<NodeReference, EmitterState>();
+
+        public double[] SpawnTimers;
+        bool[] enableStates;
         public Dictionary<NodeReference, LineBuffer> BeamAppearances = new Dictionary<NodeReference, LineBuffer>();
-        public Dictionary<NodeReference, bool> EnableStates = new Dictionary<NodeReference, bool>();
         double globaltime = 0;
         public double GlobalTime => globaltime;
 
         public ParticleEffectInstance(ParticleEffect fx)
         {
+            SpawnTimers = new double[fx.EmitterCount];
+            enableStates = new bool[fx.References.Count];
+            for (int i = 0; i < fx.References.Count; i++) enableStates[i] = true;
             Effect = fx;
             foreach (var node in fx.References)
             {
@@ -42,11 +50,7 @@ namespace LibreLancer.Fx
         {
             globaltime = 0;
             Pool.KillAll(this);
-            foreach (var state in EmitStates)
-            {
-                state.Value.SpawnTimer = 0;
-                state.Value.ParticleCount = 0;
-            }
+            for (int i = 0; i < SpawnTimers.Length; i++) SpawnTimers[i] = 0;
         }
 
         public double LastTime => lasttime;
@@ -79,25 +83,10 @@ namespace LibreLancer.Fx
             }
         }
 
-        public EmitterState GetEmitterState(NodeReference emitter)
-        {
-            EmitterState es;
-            if (!EmitStates.TryGetValue(emitter, out es))
-            {
-                es = new EmitterState();
-                EmitStates.Add(emitter, es);
-            }
-            return es;
-        }
-
         public int GetNextFreeParticle() => Pool.GetFreeParticle();
 
-        public bool NodeEnabled(NodeReference node)
-        {
-            bool val;
-            if (!EnableStates.TryGetValue(node, out val)) return true;
-            return val;
-        }
+        public bool NodeEnabled(NodeReference node) => enableStates[node.Index];
+        public void SetNodeEnabled(NodeReference node, bool enabled) => enableStates[node.Index] = enabled;
 
         public Matrix4 DrawTransform;
         public float DrawSParam;

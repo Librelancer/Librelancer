@@ -14,5 +14,7 @@ namespace LibreLancer.Fx
 		public List<NodeReference> Children = new List<NodeReference>();
 		public List<NodeReference> Paired = new List<NodeReference>();
 		public bool IsAttachmentNode; //UTF Flag 1
+        public int Index;
+        public int EmitterIndex;
 	}
 }

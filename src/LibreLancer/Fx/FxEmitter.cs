@@ -53,7 +53,6 @@ namespace LibreLancer.Fx
                 SpawnParticle(idx, reference, instance, ref transform, sparam, 0);
 				j++;
 			}
-			instance.GetEmitterState(reference).ParticleCount = j;
 		}
         protected void SpawnParticle(int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4 transform, float sparam, float globaltime)
 		{
@@ -109,15 +108,9 @@ namespace LibreLancer.Fx
 			if (reference.Paired.Count == 0) return;
             if (NodeLifeSpan < instance.GlobalTime) return;
             if (reference.Paired[0].Node.NodeLifeSpan < instance.GlobalTime) return;
-            var maxCount = 1000;
 			//var maxCount = MaxParticles == null ? int.MaxValue : (int)Math.Ceiling(MaxParticles.GetValue(sparam, 0f));
 			var freq = Frequency == null ? 0f : Frequency.GetValue(sparam, 0f);
 			var spawnMs = freq <= 0 ? 0 : 1 / (double)freq;
-			var state = instance.GetEmitterState(reference);
-			if (state.ParticleCount >= maxCount)
-			{
-				return;
-			}
             int j = 0;
 			if (spawnMs > 0)
 			{
@@ -125,24 +118,20 @@ namespace LibreLancer.Fx
 				var dt = Math.Min(delta.TotalSeconds, 1); //don't go crazy during debug pauses
 				while (true)
 				{
-					if (state.SpawnTimer < dt) {
-						dt -= state.SpawnTimer;
-						state.SpawnTimer = spawnMs;
+					if (instance.SpawnTimers[reference.EmitterIndex] < dt) {
+                        dt -= instance.SpawnTimers[reference.EmitterIndex];
+						instance.SpawnTimers[reference.EmitterIndex] = spawnMs;
 					} else {
-						state.SpawnTimer -= dt;
+						instance.SpawnTimers[reference.EmitterIndex] -= dt;
 						break;
 					}
-					if (state.ParticleCount + 1 <= maxCount)
-					{
-						var idx = instance.GetNextFreeParticle();
-						if (idx == -1)
-							return;
-                        j++;
-						state.ParticleCount++;
-                        SpawnParticle(idx, reference, instance, ref transform, sparam, (float)instance.GlobalTime);
-                        var app = (FxAppearance)reference.Paired[0].Node;
-						app.OnParticleSpawned(idx,instance.Pool.Particles[idx].Appearance,instance);
-					}
+					var idx = instance.GetNextFreeParticle();
+					if (idx == -1)
+					    return;
+                    j++;
+                    SpawnParticle(idx, reference, instance, ref transform, sparam, (float)instance.GlobalTime);
+                    var app = (FxAppearance)reference.Paired[0].Node;
+                    app.OnParticleSpawned(idx,instance.Pool.Particles[idx].Appearance,instance);
 				}
 			}
 		}

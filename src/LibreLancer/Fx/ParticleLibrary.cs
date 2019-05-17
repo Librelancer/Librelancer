@@ -55,8 +55,15 @@ namespace LibreLancer.Fx
 					var n2 = nodesByIndex[pair.Item2];
 					n1.Paired.Add(n2);
 				}
+                int emitterIndex = 0;
 				fx.References = new List<NodeReference>(nodesByIndex.Values);
-				Effects.Add(fx);
+                for(int i = 0; i < fx.References.Count; i++) {
+                    fx.References[i].Index = i;
+                    fx.References[i].EmitterIndex = emitterIndex;
+                    if (fx.References[i].Node is FxEmitter) emitterIndex++;
+                }
+                fx.EmitterCount = emitterIndex;
+                Effects.Add(fx);
 			}
 		}
 		static FxNode NodeFromAle(AlchemyNode ale)

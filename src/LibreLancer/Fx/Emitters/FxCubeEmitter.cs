@@ -43,11 +43,11 @@ namespace LibreLancer.Fx
 			float s_max = MathHelper.DegreesToRadians (MaxSpread.GetValue (sparam, 0));
 
 			var pos = new Vector3 (
-				          instance.Random.NextFloat (-w, w),
-				          instance.Random.NextFloat (-h, h),
-				          instance.Random.NextFloat (-d, d)
+				          FxRandom.NextFloat (-w, w),
+				          FxRandom.NextFloat (-h, h),
+				          FxRandom.NextFloat (-d, d)
 			          );
-			var n = RandomInCone(instance.Random, s_min, s_max);
+			var n = RandomInCone(s_min, s_max);
             //var tr = Transform.GetMatrix(sparam, globaltime);
             //var tr = Matrix4.Identity;
             //n = (tr * new Vector4(n.Normalized(), 0)).Xyz.Normalized();
@@ -63,28 +63,28 @@ namespace LibreLancer.Fx
 		}
 
         //Different direction to FxCubeEmitter
-        static Vector3 RandomInCone(Random r, float minspread, float maxspread)
+        static Vector3 RandomInCone(float minspread, float maxspread)
         {
             return Vector3.UnitY;
             var direction = Vector3.UnitY;
             var axis = Vector3.UnitZ;
 
-            var angle = r.NextFloat(minspread, maxspread);
+            var angle = FxRandom.NextFloat(minspread, maxspread);
             var rotation = Quaternion.FromAxisAngle(axis, angle);
             Vector3 output = rotation * direction;
-            var random = r.NextFloat(-MathHelper.Pi, MathHelper.Pi);
+            var random = FxRandom.NextFloat(-MathHelper.Pi, MathHelper.Pi);
             rotation = Quaternion.FromAxisAngle(direction, random);
             output = rotation * output;
             return output;
         }
 
-        static Vector3 RandomCube(Random r, float minspread, float maxspread)
+        static Vector3 RandomCube(float minspread, float maxspread)
 		{
 			//(sqrt(1 - z^2) * cosϕ, sqrt(1 - z^2) * sinϕ, z)
             var halfspread = maxspread / 2;
 
-			float z = r.NextFloat((float)Math.Cos(halfspread), 1 - (minspread / 2));
-			float t = r.NextFloat(0, (float)(Math.PI * 2));
+			float z = FxRandom.NextFloat((float)Math.Cos(halfspread), 1 - (minspread / 2));
+			float t = FxRandom.NextFloat(0, (float)(Math.PI * 2));
             return new Vector3(
                 (float)(Math.Sqrt(1 - z * z) * Math.Cos(t)),
                 (float)(Math.Sqrt(1 - z * z) * Math.Sin(t)),

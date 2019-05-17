@@ -29,12 +29,12 @@ namespace LibreLancer.Fx
 			var r_min = MinRadius.GetValue(sparam, 0);
 			var r_max = MaxRadius.GetValue(sparam, 0);
 
-			var radius = instance.Random.NextFloat(r_min, r_max);
+			var radius = FxRandom.NextFloat(r_min, r_max);
 
 			var p = new Vector3(
-				instance.Random.NextFloat(-1, 1),
-				instance.Random.NextFloat(-1, 1),
-				instance.Random.NextFloat(-1, 1)
+				FxRandom.NextFloat(-1, 1),
+				FxRandom.NextFloat(-1, 1),
+				FxRandom.NextFloat(-1, 1)
 			);
 			p.Normalize();
 			var n = p;
