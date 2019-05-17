@@ -41,6 +41,9 @@ namespace LibreLancer.Utf
 		}
 		public static bool LoadResourceNode(IntermediateNode root, ILibFile library, out MatFile materials, out TxmFile textures, out Vms.VmsFile vms)
 		{
+            materials = null;
+            textures = null;
+            vms = null;
             try
             {
                 foreach (Node node in root)
@@ -77,9 +80,6 @@ namespace LibreLancer.Utf
                 vms = null;
                 return false;
             }
-            materials = null;
-			textures = null;
-			vms = null;
             return true;
 		}
 		public static void LoadResourceFile(string file, ILibFile library, out MatFile materials, out TxmFile textures, out Vms.VmsFile vms)
