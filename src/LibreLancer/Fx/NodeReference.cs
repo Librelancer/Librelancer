@@ -16,5 +16,6 @@ namespace LibreLancer.Fx
 		public bool IsAttachmentNode; //UTF Flag 1
         public int Index;
         public int EmitterIndex;
+        public int BeamIndex;
 	}
 }

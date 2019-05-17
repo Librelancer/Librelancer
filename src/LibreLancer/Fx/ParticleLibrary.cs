@@ -56,13 +56,17 @@ namespace LibreLancer.Fx
 					n1.Paired.Add(n2);
 				}
                 int emitterIndex = 0;
+                int beamIndex = 0;
 				fx.References = new List<NodeReference>(nodesByIndex.Values);
                 for(int i = 0; i < fx.References.Count; i++) {
                     fx.References[i].Index = i;
                     fx.References[i].EmitterIndex = emitterIndex;
+                    fx.References[i].BeamIndex = beamIndex;
                     if (fx.References[i].Node is FxEmitter) emitterIndex++;
+                    if (fx.References[i].Node is FLBeamAppearance) beamIndex++;
                 }
                 fx.EmitterCount = emitterIndex;
+                fx.BeamCount = beamIndex;
                 Effects.Add(fx);
 			}
 		}

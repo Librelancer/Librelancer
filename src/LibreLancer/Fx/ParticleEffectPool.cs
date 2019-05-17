@@ -70,22 +70,34 @@ namespace LibreLancer.Fx
         int countParticle = 0;
         ParticleDraw[] draws = new ParticleDraw[MAX_PARTICLES];
         int[] starts = new int[MAX_PARTICLES];
-        
+        ParticleEffectInstance[] beams = new ParticleEffectInstance[1024];
         public void Draw(PolylineRender polyline, Billboards billboards, PhysicsDebugRenderer debug)
         {
             countApp = countParticle = 0;
             currentBillboards = billboards;
-
+            int beamPtr = 0;
             for (int i = 0; i < Particles.Length; i++)
             {
                 if (!Particles[i].Active)
                     continue;
                 var inst = Particles[i].Instance;
+                inst.Pool = this; //HACK
                 if(inst.NodeEnabled(Particles[i].Appearance))
                 {
                     var app = (FxAppearance)Particles[i].Appearance.Node;
+                    //check for beams
+                    if(app is FLBeamAppearance) {
+                        bool append = true;
+                        for(int j = 0; j < beamPtr; j++)
+                        {
+                            if (beams[j] == inst) { append = false; break; }
+                        }
+                        if (append)
+                            beams[beamPtr++] = inst;
+                    }
+                    //draw
                     app.Debug = debug;
-                    app.Draw(ref Particles[i], (float)inst.LastTime, (float)inst.GlobalTime, Particles[i].Appearance, inst.Resources, this, ref inst.DrawTransform, inst.DrawSParam);
+                    app.Draw(ref Particles[i], i, (float)inst.LastTime, (float)inst.GlobalTime, Particles[i].Appearance, inst.Resources, inst, ref inst.DrawTransform, inst.DrawSParam);
                 }
             }
             //Batching :D
@@ -118,8 +130,14 @@ namespace LibreLancer.Fx
                 currTex = draws[i].Texture;
                 starts[startsIdx++] = draws[i].StartVertex;
             }
+            for(int i = 0; i < beamPtr; i++)
+            {
+                beams[i].DrawBeams(polyline, debug, beams[i].DrawTransform, beams[i].DrawSParam);
+            }
+
         }
 
+        public ICamera Camera => currentBillboards.Camera;
 
         int GetAppFxIdx(ParticleEffectInstance instance, FxAppearance a)
         {

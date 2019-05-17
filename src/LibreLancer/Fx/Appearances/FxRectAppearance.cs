@@ -47,9 +47,9 @@ namespace LibreLancer.Fx
 			return pt4.Xyz;
 		}
 
-		public override void Draw(ref Particle particle, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectPool pool, ref Matrix4 transform, float sparam)
-		{
-			var time = particle.TimeAlive / particle.LifeSpan;
+        public override void Draw(ref Particle particle, int pidx, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+        {
+            var time = particle.TimeAlive / particle.LifeSpan;
             var node_tr = GetAttachment(reference, transform);
 			var src_pos = particle.Position;
 			var l = Length.GetValue(sparam, time);
@@ -68,7 +68,7 @@ namespace LibreLancer.Fx
 			var p2 = node_tr.Transform(src_pos + (particle.Normal  * 20));
             //var n = (p2 - p).Normalized();
             var n = (transform * new Vector4(particle.Normal.Normalized(), 0)).Xyz.Normalized();
-			pool.DrawRect(
+			instance.Pool.DrawRect(
                 particle.Instance,
                 this,
 				tex,

@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using LibreLancer.Utf.Ale;
 namespace LibreLancer.Fx
 {
@@ -29,55 +30,59 @@ namespace LibreLancer.Fx
 			}
 		}
 
-		public override void Draw(ref Particle particle, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectPool pool, ref Matrix4 transform, float sparam)
-		{
-			//Empty on purpose. Individual particles don't draw
-		}
-
-		public unsafe void DrawBeamApp(PolylineRender poly, LineBuffer points, float globalTime, NodeReference reference, ParticleEffectInstance instance, ResourceManager res, Billboards billboards, ref Matrix4 transform, float sparam)
-		{
-			//TODO: Cross-plane not showing
-			//TODO: In some cases particles are going backwards? (Broken emitter or LineBuffer)
-			//TODO: See if z sorting can be better for Polyline
-			//TODO: Implement FLBeamAppearance properties
-			if (points.Count() < 2)
-				return;
-            //Get only active indices, alloc on stack for 0 GC pressure
-            //int* indices = stackalloc int[512]; 
-            var indices = new int[512];
-            var particles = new Particle[512];
-            for (int i = 0; i < 512; i++) indices[i] = -1;
-			int ptCount = 0;
-            for (int i = 0; i < points.Count(); i++)
-			{
-                if (points[i].Active)
-                    indices[ptCount++] = points[i].ParticleIndex;
-			}
-            if (ptCount < 2) return;
-            for (int i = 0; i < ptCount; i++) particles[i] = instance.Pool.Particles[indices[i]];
-            for (int i = 1; i < ptCount; i++) {
-                if (particles[i - 1].TimeAlive > particles[i].TimeAlive)
-                    Console.WriteLine("bad order");
+        public override void Draw(ref Particle particle, int pidx, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+        {
+            //Transform and add 
+            Vector3 deltap;
+            Quaternion deltaq;
+            if (DoTransform(reference, sparam, lasttime, globaltime, out deltap, out deltaq))
+            {
+                particle.Position += deltap;
+                particle.Orientation *= deltaq;
             }
+            var beam = instance.Beams[reference.BeamIndex];
+            if (beam.ParticleCount >= BeamParticles.MAX_PARTICLES) return;
+            beam.ParticleIndices[beam.ParticleCount++] = pidx;
+        }
+
+        class LifetimeComparer : IComparer<int>
+        {
+            public readonly static LifetimeComparer Instance = new LifetimeComparer();
+            public Particle[] Particles;
+            public int Compare(int x, int y)
+            {
+                return Particles[x].LifeSpan.CompareTo(Particles[y].LifeSpan);
+            }
+        }
+
+        public void DrawBeamApp(PolylineRender poly, float globalTime, NodeReference reference, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+		{
+            //get particles!
+            var beam = instance.Beams[reference.BeamIndex];
+            if (beam.ParticleCount < 2) { beam.ParticleCount = 0;  return; }
+            LifetimeComparer.Instance.Particles = instance.Pool.Particles;
+            Array.Sort(beam.ParticleIndices, 0, beam.ParticleCount, LifetimeComparer.Instance);
+            //draw
             var node_tr = GetAttachment(reference, transform);
 			Texture2D tex;
 			Vector2 tl, tr, bl, br;
-			HandleTexture(res, globalTime, sparam, ref instance.Pool.Particles[indices[0]], out tex, out tl, out tr, out bl, out br);
+            var res = instance.Resources;
+			HandleTexture(res, globalTime, sparam, ref instance.Pool.Particles[beam.ParticleIndices[0]], out tex, out tl, out tr, out bl, out br);
 			//Sorting hack kinda
-			var z = RenderHelpers.GetZ(billboards.Camera.Position, node_tr.Transform(Vector3.Zero));
+			var z = RenderHelpers.GetZ(instance.Pool.Camera.Position, node_tr.Transform(Vector3.Zero));
 			for (int j = 0; j < 2; j++) //two planes
 			{
 				poly.StartLine(tex, BlendInfo);
 				bool odd = true;
 				Vector3 dir = Vector3.Zero;
 
-				for (int i = 0; i < ptCount; i++)
+				for (int i = 0; i < beam.ParticleCount; i++)
 				{
-					var pos = node_tr.Transform(instance.Pool.Particles[indices[i]].Position);
-					if (i + 1 < ptCount) {
-						var pos2 = node_tr.Transform(instance.Pool.Particles[indices[i + 1]].Position);
+					var pos = node_tr.Transform(instance.Pool.Particles[beam.ParticleIndices[i]].Position);
+					if (i + 1 < beam.ParticleCount) {
+						var pos2 = node_tr.Transform(instance.Pool.Particles[beam.ParticleIndices[i + 1]].Position);
 						var forward = (pos2 - pos).Normalized();
-						var toCamera = (billboards.Camera.Position - pos).Normalized();
+						var toCamera = (instance.Pool.Camera.Position - pos).Normalized();
 						var up = Vector3.Cross(toCamera, forward);
 						up.Normalize();
 						dir = up;
@@ -88,7 +93,7 @@ namespace LibreLancer.Fx
 							dir = right;
 						}
 					}
-					var time = instance.Pool.Particles[indices[i]].TimeAlive / instance.Pool.Particles[indices[i]].LifeSpan;
+					var time = instance.Pool.Particles[beam.ParticleIndices[i]].TimeAlive / instance.Pool.Particles[beam.ParticleIndices[i]].LifeSpan;
 					var w = Width.GetValue(sparam, time);
 					poly.AddPoint(
 						pos + (dir * w / 2),
@@ -104,11 +109,7 @@ namespace LibreLancer.Fx
 				}
 				poly.FinishLine(z);
 			}
-		}
-
-		public override void OnParticleSpawned(int idx, NodeReference reference, ParticleEffectInstance instance)
-		{
-			instance.BeamAppearances[reference].Push(new LinePointer() { ParticleIndex = idx, Active = true });
+            beam.ParticleCount = 0;
 		}
 	}
 }

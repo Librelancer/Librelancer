@@ -10,9 +10,9 @@ namespace LibreLancer.Fx
 	{
 		public FxPerpAppearance(AlchemyNode ale) : base(ale) { }
 
-		public override void Draw(ref Particle particle, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectPool pool, ref Matrix4 transform, float sparam)
-		{
-			var time = particle.TimeAlive / particle.LifeSpan;
+        public override void Draw(ref Particle particle, int pidx, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+        {
+            var time = particle.TimeAlive / particle.LifeSpan;
             var node_tr = GetAttachment(reference, transform);
 			Texture2D tex;
 			Vector2 tl, tr, bl, br;
@@ -23,7 +23,7 @@ namespace LibreLancer.Fx
             particle.Orientation = q;
             var mat = Matrix4.CreateFromQuaternion(q);
             var n = (transform * new Vector4(particle.Normal.Normalized(), 0)).Xyz.Normalized();
-			pool.DrawPerspective(
+			instance.Pool.DrawPerspective(
                 particle.Instance,
                 this,
 				tex,

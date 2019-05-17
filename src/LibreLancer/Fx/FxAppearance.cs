@@ -14,10 +14,10 @@ namespace LibreLancer.Fx
 		public FxAppearance (AlchemyNode ale) : base(ale)
 		{
 		}
-		public virtual void Draw(ref Particle particle, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectPool pool, ref Matrix4 transform, float sparam)
-		{
-			
-		}
+        public virtual void Draw(ref Particle particle, int pidx, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+        {
+
+        }
 		public virtual void OnParticleSpawned(int idx, NodeReference reference, ParticleEffectInstance instance)
 		{
 		}

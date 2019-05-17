@@ -573,7 +573,7 @@ namespace LibreLancer
 
         int lastDatHash = -1;
 		int datindex = 0;
-        int lastIndexBasic = 0;
+        int lastIndexBasic = -1;
         //
         int indexCountBasic = 0;
         int fillCountBasic = 0;
@@ -584,7 +584,7 @@ namespace LibreLancer
         
         public void AddIndices(int index)
         {
-            if (lastIndexBasic == 0) lastIndexBasic = fillCountBasic;
+            if (lastIndexBasic == -1) lastIndexBasic = fillCountBasic;
             var dat = rendat[index];
             if (dat.Index2 != 0)
             {
@@ -603,7 +603,8 @@ namespace LibreLancer
 
 		public void AddCustomIndices(int idxStart)
 		{
-			indicesBasic[fillCountBasic++] = (ushort)idxStart;
+            if (lastIndexBasic == -1) lastIndexBasic = fillCountBasic;
+            indicesBasic[fillCountBasic++] = (ushort)idxStart;
 			indicesBasic[fillCountBasic++] = (ushort)(idxStart + 1);
 			indicesBasic[fillCountBasic++] = (ushort)(idxStart + 2);
 			indicesBasic[fillCountBasic++] = (ushort)(idxStart + 1);
@@ -649,7 +650,6 @@ namespace LibreLancer
 			var dat = rendat[index];
             if (rendat[index].RenderKind == RenderKind.Basic)
             {
-                var lastIdxB = lastIndexBasic;
                 if (rendat[index].Index2 == 0) 
                 {
                     FlushCommands(rs);
@@ -735,7 +735,7 @@ namespace LibreLancer
             vboRect.SetData(verticesRect, vertexCountRect);
 			_frameStart = true;
             _iboFilled = false;
-            lastIndexBasic = 0;
+            lastIndexBasic = -1;
 		}
     }
 }

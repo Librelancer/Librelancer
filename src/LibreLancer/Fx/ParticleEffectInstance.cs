@@ -17,17 +17,24 @@ namespace LibreLancer.Fx
         public static float NextFloat(float min, float max) => random.Value.NextFloat(min, max);
     }
 
+    public class BeamParticles
+    {
+        public NodeReference Node;
+        public FLBeamAppearance BeamApp => (FLBeamAppearance)Node.Node;
+        public const int MAX_PARTICLES = 768;
+        public int[] ParticleIndices = new int[MAX_PARTICLES];
+        public int ParticleCount = 0;
+    }
+
     public class ParticleEffectInstance
     {
         public ParticleEffectPool Pool;
-
-        public const int PARTICLES_PER_EMITTER = 1024;
         public ParticleEffect Effect;
         public ResourceManager Resources;
 
         public double[] SpawnTimers;
+        public BeamParticles[] Beams;
         bool[] enableStates;
-        public Dictionary<NodeReference, LineBuffer> BeamAppearances = new Dictionary<NodeReference, LineBuffer>();
         double globaltime = 0;
         public double GlobalTime => globaltime;
 
@@ -35,14 +42,16 @@ namespace LibreLancer.Fx
         {
             SpawnTimers = new double[fx.EmitterCount];
             enableStates = new bool[fx.References.Count];
+            if(fx.BeamCount > 0)
+            {
+                Beams = new BeamParticles[fx.BeamCount];
+                for (int i = 0; i < Beams.Length; i++) Beams[i] = new BeamParticles();
+            }
             for (int i = 0; i < fx.References.Count; i++) enableStates[i] = true;
             Effect = fx;
             foreach (var node in fx.References)
             {
-                if (node.Node is FLBeamAppearance)
-                {
-                    BeamAppearances.Add(node, new LineBuffer(512));
-                }
+                if (node.Node is FLBeamAppearance) Beams[node.BeamIndex].Node = node;
             }
         }
 
@@ -63,15 +72,6 @@ namespace LibreLancer.Fx
             Position = transform.Transform(Vector3.Zero);
             lasttime = globaltime;
             globaltime += delta.TotalSeconds;
-            //Line buffers
-            foreach (var buf in BeamAppearances.Values)
-            {
-                for (int i = 0; i < buf.Count(); i++)
-                {
-                    if (buf[i].ParticleIndex >= 0 && (!Pool.Particles[buf[i].ParticleIndex].Active || Pool.Particles[buf[i].ParticleIndex].Instance != this))
-                        buf[i] = new LinePointer() { Active = false, ParticleIndex = -1 };
-                }
-            }
             //Update Emitters
             for (int i = 0; i < Effect.References.Count; i++)
             {
@@ -88,21 +88,24 @@ namespace LibreLancer.Fx
         public bool NodeEnabled(NodeReference node) => enableStates[node.Index];
         public void SetNodeEnabled(NodeReference node, bool enabled) => enableStates[node.Index] = enabled;
 
-        public Matrix4 DrawTransform;
-        public float DrawSParam;
-        public void Draw(PolylineRender polyline, Billboards billboards, PhysicsDebugRenderer debug, Matrix4 transform, float sparam)
+        public void Draw(Matrix4 transform, float sparam)
         {
             DrawTransform = transform;
-            DrawSParam = sparam;
-            if (Pool == null) return;
-            DrawTransform = transform;
-            DrawSParam = sparam;
-            foreach (var kv in BeamAppearances)
+            DrawSParam = sparam; 
+        }
+        
+        public Matrix4 DrawTransform;
+        public float DrawSParam;
+        public void DrawBeams(PolylineRender polyline, PhysicsDebugRenderer debug, Matrix4 transform, float sparam)
+        {
+            if (Beams != null)
             {
-                if (NodeEnabled(kv.Key))
+                foreach (var kv in Beams)
                 {
-                    var app = (FLBeamAppearance)kv.Key.Node;
-                    app.DrawBeamApp(polyline, kv.Value, (float)globaltime, kv.Key, this, Effect.ResourceManager, billboards, ref transform, sparam);
+                    if (NodeEnabled(kv.Node))
+                    {
+                        kv.BeamApp.DrawBeamApp(polyline, (float)globaltime, kv.Node, this, ref transform, sparam);
+                    }
                 }
             }
         }

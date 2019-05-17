@@ -304,7 +304,6 @@
     <Compile Include="Gameplay\Components\ThrusterComponent.cs" />
     <Compile Include="GameData\Items\ThrusterEquipment.cs" />
     <Compile Include="AttachedEffect.cs" />
-    <Compile Include="Fx\LineBuffer.cs" />
     <Compile Include="Render\PolylineRender.cs" />
     <Compile Include="GameStates\RoomGameplay.cs" />
     <Compile Include="GameData\BaseRoom.cs" />

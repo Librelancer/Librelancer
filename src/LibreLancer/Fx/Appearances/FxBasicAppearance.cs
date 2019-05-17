@@ -77,9 +77,9 @@ namespace LibreLancer.Fx
 			}
 		}
 
-		public override void Draw(ref Particle particle, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectPool pool, ref Matrix4 transform, float sparam)
-		{
-			var time = particle.TimeAlive / particle.LifeSpan;
+        public override void Draw(ref Particle particle, int pidx, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+        {
+            var time = particle.TimeAlive / particle.LifeSpan;
             var node_tr = GetAttachment(reference, transform);
 
             Vector3 deltap;
@@ -94,7 +94,7 @@ namespace LibreLancer.Fx
 			HandleTexture(res, sparam, globaltime, ref particle, out tex, out tl, out tr, out bl, out br);
 			var c = Color.GetValue(sparam, time);
 			var a = Alpha.GetValue(sparam, time);
-			pool.DrawBasic(
+			instance.Pool.DrawBasic(
                 particle.Instance,
                 this,
 				tex,

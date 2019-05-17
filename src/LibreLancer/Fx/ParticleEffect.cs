@@ -16,6 +16,7 @@ namespace LibreLancer.Fx
 
 		public List<NodeReference> References = new List<NodeReference>();
         public int EmitterCount;
+        public int BeamCount;
 
 		public ParticleEffect (ParticleLibrary lib)
 		{
