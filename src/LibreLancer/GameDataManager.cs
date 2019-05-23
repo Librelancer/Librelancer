@@ -5,7 +5,9 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading;
 using LibreLancer.Fx;
 using LibreLancer.Utf.Ale;
 namespace LibreLancer
@@ -196,6 +198,22 @@ namespace LibreLancer
         Dictionary<string, GameData.Base> bases;
         Dictionary<string, GameData.Market.ShipPackage> shipPackages = new Dictionary<string, GameData.Market.ShipPackage>();
 
+        ConcurrentQueue<Action> loadActions = new ConcurrentQueue<Action>();
+        volatile bool initing = false;
+        void AsyncLoadThread()
+        {
+            while(initing || loadActions.Count > 0)
+            {
+                Action a;
+                if (loadActions.TryDequeue(out a)) a();
+                Thread.Sleep(0);
+            }
+        }
+        void AsyncAction(Action a)
+        {
+            loadActions.Enqueue(a);
+        }
+
         public void LoadData()
         {
             fldata.LoadData();
@@ -205,7 +223,13 @@ namespace LibreLancer
             InitEquipment();
             InitGoods();
             InitMarkets();
+            initing = true;
+            var thread = new Thread(AsyncLoadThread);
+            thread.Start();
             InitSystems();
+            initing = false;
+            FLLog.Info("Game", "Waiting on threads");
+            thread.Join();
             FLLog.Info("Game", "Loading intro scenes");
             IntroScenes = new List<GameData.IntroScene>();
             foreach (var b in introbases)
@@ -598,21 +622,25 @@ namespace LibreLancer
                                 throw new NotImplementedException();
                         }
                         sys.Zones.Add(z);
+                        sys.ZoneDict[z.Nickname] = z;
                     }
-                if (inisys.Asteroids != null)
+                AsyncAction(() =>
                 {
-                    foreach (var ast in inisys.Asteroids)
+                    if (inisys.Asteroids != null)
                     {
-                        sys.AsteroidFields.Add(GetAsteroidField(sys, ast));
+                        foreach (var ast in inisys.Asteroids)
+                        {
+                            sys.AsteroidFields.Add(GetAsteroidField(sys, ast));
+                        }
                     }
-                }
-                if (inisys.Nebulae != null)
-                {
-                    foreach (var nbl in inisys.Nebulae)
+                    if (inisys.Nebulae != null)
                     {
-                        sys.Nebulae.Add(GetNebula(sys, nbl));
+                        foreach (var nbl in inisys.Nebulae)
+                        {
+                            sys.Nebulae.Add(GetNebula(sys, nbl));
+                        }
                     }
-                }
+                });
                 systems.Add(sys.Nickname, sys);
             }
         }
@@ -663,28 +691,46 @@ namespace LibreLancer
             while (iterator.MoveNext()) { }
         }
 
-        Dictionary<string, Data.Universe.TexturePanels> tpanels = new Dictionary<string, Data.Universe.TexturePanels>();
-        Data.Universe.TexturePanels TexturePanelFile(string f)
+        class CachedTexturePanels
         {
-            Data.Universe.TexturePanels pnl;
+            public int ID;
+            public Data.Universe.TexturePanels P;
+            public string[] ResourceFiles;
+        }
+
+        Dictionary<string, CachedTexturePanels> tpanels = new Dictionary<string, CachedTexturePanels>(StringComparer.OrdinalIgnoreCase);
+        int tpId = 0;
+        CachedTexturePanels TexturePanelFile(string f)
+        {
+            CachedTexturePanels pnl;
             if (!tpanels.TryGetValue(f, out pnl))
             {
-                pnl = new Data.Universe.TexturePanels(f);
+                pnl = new CachedTexturePanels() { ID = tpId++, P = new Data.Universe.TexturePanels(f) };
+                pnl.ResourceFiles = pnl.P.Files.Select((x) => Data.VFS.GetPath(fldata.Freelancer.DataPath + x)).ToArray();
+                tpanels.Add(f, pnl);
             }
             return pnl;
         }
+
         GameData.AsteroidField GetAsteroidField(GameData.StarSystem sys, Data.Universe.AsteroidField ast)
         {
             var a = new GameData.AsteroidField();
-            a.Zone = sys.Zones.Where((z) => z.Nickname.ToLower() == ast.ZoneName.ToLower()).First();
-            Data.Universe.TexturePanels panels = null;
+            a.Zone = sys.ZoneDict[ast.ZoneName];
+            var panels = new Data.Universe.TexturePanels();
             if (ast.TexturePanels != null)
             {
                 foreach (var f in ast.TexturePanels.Files)
                 {
-                    panels = TexturePanelFile(f);
-                    foreach (var txmfile in panels.Files)
-                        sys.ResourceFiles.Add(Data.VFS.GetPath(fldata.Freelancer.DataPath + txmfile));
+                    var pnlref = TexturePanelFile(f);
+                    var pf = pnlref.P;
+                    panels.TextureShapes.AddRange(pf.TextureShapes);
+                    foreach (var sh in pf.Shapes)
+                        panels.Shapes[sh.Key] = sh.Value;
+                    if (!sys.TexturePanelFiles.Contains(pnlref.ID))
+                    {
+                        sys.TexturePanelFiles.Add(pnlref.ID);
+                        sys.ResourceFiles.AddRange(pnlref.ResourceFiles);
+                    }
                 }
             }
             if (ast.Band != null)
@@ -727,17 +773,16 @@ namespace LibreLancer
             {
                 foreach (var excz in ast.ExclusionZones)
                 {
-                    if(excz.Exclusion == null) {
+                    if(!sys.ZoneDict.ContainsKey(excz.ExclusionName)) {
                         FLLog.Error("System", "Exclusion zone " + excz.ExclusionName + " zone does not exist in " + sys.Nickname);
                         continue;
                     }
                     var e = new GameData.ExclusionZone();
-                    e.Zone = sys.Zones.Where((z) => z.Nickname.Equals(excz.ExclusionName,StringComparison.OrdinalIgnoreCase)).First();
+                    e.Zone = sys.ZoneDict[excz.ExclusionName];
                     //e.FogFar = excz.FogFar ?? n.FogRange.Y;
                     if (excz.ZoneShellPath != null)
                     {
-                        var pth = Data.VFS.GetPath(fldata.Freelancer.DataPath + excz.ZoneShellPath);
-                        e.ShellPath = pth;
+                        e.ShellPath = excz.ZoneShellPath;
                         e.ShellTint = excz.Tint ?? Color3f.White;
                         e.ShellScalar = excz.ShellScalar ?? 1f;
                         e.ShellMaxAlpha = excz.MaxAlpha ?? 1f;
@@ -785,7 +830,7 @@ namespace LibreLancer
                 }
                 foreach (var e in a.ExclusionZones)
                 {
-                    if (e.ShellPath != null) e.Shell = resource.GetDrawable(e.ShellPath);
+                    if (e.ShellPath != null) e.Shell = resource.GetDrawable(Data.VFS.GetPath(fldata.Freelancer.DataPath + e.ShellPath));
                 }
             };
             return a;
@@ -793,10 +838,21 @@ namespace LibreLancer
         public GameData.Nebula GetNebula(GameData.StarSystem sys, Data.Universe.Nebula nbl)
         {
             var n = new GameData.Nebula();
-            n.Zone = sys.Zones.Where((z) => z.Nickname.ToLower() == nbl.ZoneName.ToLower()).First();
-            var panels = TexturePanelFile(nbl.TexturePanels.Files[0]);
-            foreach (var txmfile in panels.Files)
-                sys.ResourceFiles.Add(Data.VFS.GetPath(fldata.Freelancer.DataPath + txmfile));
+            n.Zone = sys.ZoneDict[nbl.ZoneName];
+            var panels = new Data.Universe.TexturePanels();
+            foreach(var f in nbl.TexturePanels.Files)
+            {
+                var pnlref = TexturePanelFile(f);
+                var pf = pnlref.P;
+                panels.TextureShapes.AddRange(pf.TextureShapes);
+                foreach (var sh in pf.Shapes)
+                    panels.Shapes[sh.Key] = sh.Value;
+                if (!sys.TexturePanelFiles.Contains(pnlref.ID))
+                {
+                    sys.TexturePanelFiles.Add(pnlref.ID);
+                    sys.ResourceFiles.AddRange(pnlref.ResourceFiles);
+                }
+            }
             n.ExteriorFill = nbl.ExteriorFillShape;
             n.ExteriorColor = nbl.ExteriorColor ?? Color4.White;
             n.FogColor = nbl.FogColor ?? Color4.Black;
@@ -877,12 +933,11 @@ namespace LibreLancer
                 {
                     if (excz.Exclusion == null) continue;
                     var e = new GameData.ExclusionZone();
-                    e.Zone = sys.Zones.Where((z) => z.Nickname.ToLower() == excz.Exclusion.Nickname.ToLower()).First();
+                    e.Zone = sys.ZoneDict[excz.ExclusionName];
                     e.FogFar = excz.FogFar ?? n.FogRange.Y;
                     if (excz.ZoneShellPath != null)
                     {
-                        var pth = Data.VFS.GetPath(fldata.Freelancer.DataPath + excz.ZoneShellPath);
-                        e.ShellPath = pth;
+                        e.ShellPath = excz.ZoneShellPath;
                         e.ShellTint = excz.Tint ?? Color3f.White;
                         e.ShellScalar = excz.ShellScalar ?? 1f;
                         e.ShellMaxAlpha = excz.MaxAlpha ?? 1f;
@@ -916,7 +971,7 @@ namespace LibreLancer
             {
                 foreach (var ex in n.ExclusionZones)
                 {
-                    if (ex.ShellPath != null) ex.Shell = resource.GetDrawable(ex.ShellPath);
+                    if (ex.ShellPath != null) ex.Shell = resource.GetDrawable(Data.VFS.GetPath(fldata.Freelancer.DataPath + ex.ShellPath));
                 }
             };
 

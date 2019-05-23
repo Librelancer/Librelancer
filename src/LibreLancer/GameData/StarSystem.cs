@@ -28,6 +28,7 @@ namespace LibreLancer.GameData
 		public List<AsteroidField> AsteroidFields = new List<AsteroidField>();
 		//Zones
 		public List<Zone> Zones = new List<Zone>();
+        public Dictionary<string, Zone> ZoneDict = new Dictionary<string, Zone>(StringComparer.OrdinalIgnoreCase);
 		//Music
 		public string MusicSpace;
 		//Clipping
@@ -44,7 +45,8 @@ namespace LibreLancer.GameData
         }
 
         public List<string> ResourceFiles = new List<string>();
-
+        //Optimisation
+        public List<int> TexturePanelFiles = new List<int>();
         public StarSystem ()
 		{
 		}

@@ -104,13 +104,13 @@ namespace LibreLancer.Physics
         {
             if (disposed) throw new ObjectDisposedException("PhysicsWorld");
             accumulatedTime += elapsed.TotalSeconds;
-            while(accumulatedTime > TIMESTEP) {
+            while(accumulatedTime >= TIMESTEP) {
                 FixedUpdate?.Invoke(TimeSpan.FromSeconds(TIMESTEP));
                 if (disposed) return; //Alllow delete within FixedUpdate. Hacky but works
-                btWorld.StepSimulation(TIMESTEP, 1, TIMESTEP);
+                btWorld.StepSimulation(TIMESTEP, 0, TIMESTEP);
                 accumulatedTime -= TIMESTEP;
             }
-            foreach(var obj in dynamicObjects) {
+            foreach (var obj in dynamicObjects) {
                 obj.UpdateProperties();
                 obj.RigidBody.Activate(true);
             }

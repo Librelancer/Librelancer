@@ -16,7 +16,15 @@ namespace LibreLancer.Data.Universe
 		public List<string> TextureShapes { get; private set; }
 		public Dictionary<string,TextureShape> Shapes { get; private set; }
 
-		public TexturePanels(string filename)
+        public TexturePanels()
+        {
+            Files = new List<string>();
+            TextureShapes = new List<string>();
+            Shapes = new Dictionary<string, TextureShape>();
+        }
+
+        string shapeTexName = "";
+        public TexturePanels(string filename)
 		{
 			var parsed = ParseFile (filename);
 
@@ -25,13 +33,41 @@ namespace LibreLancer.Data.Universe
 			TextureShapes = new List<string>();
 			foreach (var s in parsed)
 			{
-				if (s.Name.ToUpperInvariant() != "TEXTURE")
-					throw new Exception("Invalid section " + s.Name + " in " + filename);
-				Add(s);
+                switch(s.Name.ToLowerInvariant())
+                {
+                    case "shape":
+                        var sh = FromSection<Shape>(s);
+                        Shapes[sh.name] =
+                        new TextureShape(
+                            shapeTexName,
+                            sh.name,
+                            new RectangleF(sh.x, sh.y, sh.w, sh.h)
+                        );
+                        break;
+                    case "texture":
+                        Add(s);
+                        break;
+                    default:
+                        FLLog.Error("Ini", "Invalid section " + s.Name + " in " + s.File);
+                        break;
+                }
 			}
 		}
 
-		void Add(Section section)
+        class Shape
+        {
+            [Entry("x")]
+            public float x;
+            [Entry("y")]
+            public float y;
+            [Entry("w")]
+            public float w;
+            [Entry("h")]
+            public float h;
+            [Entry("name")]
+            public string name;
+        }
+        void Add(Section section)
 		{
 			
 			string current_texname = null;
@@ -52,12 +88,12 @@ namespace LibreLancer.Data.Universe
 					current_texname = e [0].ToString ();
 					break;
 				case "tex_shape":
-						Shapes.Add(e[0].ToString(),
-									new TextureShape(
-									e[0].ToString(),
-									e[0].ToString(),
-									new RectangleF(0, 0, 1, 1)
-								));
+					Shapes[e[0].ToString()] =
+					new TextureShape(
+					    e[0].ToString(),
+					    e[0].ToString(),
+					    new RectangleF(0, 0, 1, 1)
+					);
 					break;
 				case "shape_name":
 					if (e.Count != 1)
@@ -86,7 +122,12 @@ namespace LibreLancer.Data.Universe
 					));
 					i++;
 					break;
-				default: throw new Exception("Invalid Entry in " + section.Name + ": " + e.Name);
+                    case "name":
+                        shapeTexName = e[0].ToString();
+                        break;
+                    default:
+                        FLLog.Warning("Ini", "Invalid entry " + e.Name + " in " + e.File);
+                    break;
 				}
 			}
 		}
