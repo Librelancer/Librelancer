@@ -155,6 +155,7 @@ namespace LibreLancer.Fx
                 if(Particles[i].Instance == instance)
                 {
                     Particles[i].Active = false;
+                    Particles[i].Instance.ParticleCounts[Particles[i].Emitter.EmitterIndex]--;
                     Particles[i].Instance = null;
                     FreeParticles.Enqueue(i);
                 }

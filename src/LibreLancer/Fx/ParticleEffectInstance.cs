@@ -33,6 +33,7 @@ namespace LibreLancer.Fx
         public ResourceManager Resources;
 
         public double[] SpawnTimers;
+        public int[] ParticleCounts;
         public BeamParticles[] Beams;
         bool[] enableStates;
         double globaltime = 0;
@@ -41,6 +42,7 @@ namespace LibreLancer.Fx
         public ParticleEffectInstance(ParticleEffect fx)
         {
             SpawnTimers = new double[fx.EmitterCount];
+            ParticleCounts = new int[fx.EmitterCount];
             enableStates = new bool[fx.References.Count];
             if(fx.BeamCount > 0)
             {
@@ -60,6 +62,7 @@ namespace LibreLancer.Fx
             globaltime = 0;
             Pool.KillAll(this);
             for (int i = 0; i < SpawnTimers.Length; i++) SpawnTimers[i] = 0;
+            for (int i = 0; i < ParticleCounts.Length; i++) ParticleCounts[i] = 0;
         }
 
         public double LastTime => lasttime;

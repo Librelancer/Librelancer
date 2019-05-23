@@ -108,10 +108,11 @@ namespace LibreLancer.Fx
 			if (reference.Paired.Count == 0) return;
             if (NodeLifeSpan < instance.GlobalTime) return;
             if (reference.Paired[0].Node.NodeLifeSpan < instance.GlobalTime) return;
-			//var maxCount = MaxParticles == null ? int.MaxValue : (int)Math.Ceiling(MaxParticles.GetValue(sparam, 0f));
-			var freq = Frequency == null ? 0f : Frequency.GetValue(sparam, 0f);
+			var maxCount = MaxParticles == null ? int.MaxValue : (int)Math.Ceiling(MaxParticles.GetValue(sparam, (float)instance.GlobalTime));
+			var freq = Frequency == null ? 0f : Frequency.GetValue(sparam, (float)instance.GlobalTime);
 			var spawnMs = freq <= 0 ? 0 : 1 / (double)freq;
             int j = 0;
+            var count = instance.ParticleCounts[reference.EmitterIndex];
 			if (spawnMs > 0)
 			{
 				//Spawn lots of particles
@@ -125,15 +126,20 @@ namespace LibreLancer.Fx
 						instance.SpawnTimers[reference.EmitterIndex] -= dt;
 						break;
 					}
-					var idx = instance.GetNextFreeParticle();
-					if (idx == -1)
-					    return;
-                    j++;
-                    SpawnParticle(idx, reference, instance, ref transform, sparam, (float)instance.GlobalTime);
-                    var app = (FxAppearance)reference.Paired[0].Node;
-                    app.OnParticleSpawned(idx,instance.Pool.Particles[idx].Appearance,instance);
+                    if (count < maxCount)
+                    {
+                        var idx = instance.GetNextFreeParticle();
+                        if (idx == -1)
+                            return;
+                        j++;
+                        SpawnParticle(idx, reference, instance, ref transform, sparam, (float)instance.GlobalTime);
+                        var app = (FxAppearance)reference.Paired[0].Node;
+                        app.OnParticleSpawned(idx, instance.Pool.Particles[idx].Appearance, instance);
+                        count++;
+                    }
 				}
 			}
+            instance.ParticleCounts[reference.EmitterIndex] = count;
 		}
 	}
 }
