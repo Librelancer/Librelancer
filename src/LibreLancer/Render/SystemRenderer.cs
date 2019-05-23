@@ -43,7 +43,7 @@ namespace LibreLancer
         public Action PhysicsHook;
 		public PolylineRender Polyline;
 		public SystemLighting SystemLighting = new SystemLighting();
-        public ParticleEffectPool FxPool = new ParticleEffectPool();
+        public ParticleEffectPool FxPool;
 		ResourceManager cache;
 		RenderState rstate;
 		Game game;
@@ -93,6 +93,7 @@ namespace LibreLancer
 			Nebulae = new List<NebulaRenderer>();
 			StarSphereModels = new IDrawable[0];
 			Polyline = new PolylineRender(commands);
+            FxPool = new ParticleEffectPool(commands);
 			cache = rescache;
 			rstate = rescache.Game.RenderState;
 			this.game = game;
@@ -382,7 +383,7 @@ namespace LibreLancer
 			}
 			//Actual Drawing
 			foreach (var obj in objects) obj.Draw(camera, commands, SystemLighting, nr);
-            FxPool.Draw(Polyline, billboards, DebugRenderer);
+            FxPool.Draw(camera, Polyline, resman, DebugRenderer);
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(cache, SystemLighting, commands, nr);
 			nebulae.NewFrame();
 			if (nr == null)
@@ -417,6 +418,7 @@ namespace LibreLancer
 			if (msaa != null) msaa.Dispose();
 			if (depthMap != null) depthMap.Dispose();
 			Polyline.Dispose();
+            FxPool.Dispose();
 			DebugRenderer.Dispose();
 		}
 	}

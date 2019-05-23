@@ -456,6 +456,7 @@
     <EmbeddedResource Include="Interface\Default\commonstyles.xml" />
     <EmbeddedResource Include="Interface\Default\baseside.xml" />
     <EmbeddedResource Include="Interface\Default\loading.xml" />
+    <EmbeddedResource Include="Shaders\Particle.vs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

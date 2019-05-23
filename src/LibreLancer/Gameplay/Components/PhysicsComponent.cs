@@ -33,12 +33,24 @@ namespace LibreLancer
             cp.Body.Impulse(initialforce);
             parent.Components.Add(cp);
         }
-            
+
+        bool partRemoved = false;
         public void DisablePart(Utf.Cmp.Part part)
         {
             sur.RemovePart(part);
-            sur.FinishUpdatePart();
+            partRemoved = true;
         }
+
+        public override void FixedUpdate(TimeSpan time)
+        {
+            if(partRemoved)
+            {
+                sur.FinishUpdatePart();
+                partRemoved = true;
+            }
+            base.FixedUpdate(time);
+        }
+
         public override void Register(PhysicsWorld physics)
         {
             if (pworld == physics) return;

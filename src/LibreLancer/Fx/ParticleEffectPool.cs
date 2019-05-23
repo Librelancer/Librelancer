@@ -4,27 +4,131 @@
     
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using LibreLancer.Fx;
+using LibreLancer.Vertices;
 
 namespace LibreLancer.Fx
 {
-    public class ParticleEffectPool
+    public class ParticleEffectPool : IDisposable
     {
-        public const int MAX_PARTICLES = 20000;
-        public Particle[] Particles = new Particle[MAX_PARTICLES];
+        //Limits
+        const int MAX_PARTICLES = 20000;
+        //How many will render at once
+        const int MAX_APP_NODES = 2048;
+        const int MAX_BEAMS = 512;
+        const int MAX_APP_PARTICLES = 5000;
 
+        public Particle[] Particles = new Particle[MAX_PARTICLES];
         public Queue<int> FreeParticles = new Queue<int>();
 
-        public ParticleEffectPool()
+        ElementBuffer ibo;
+        VertexBuffer vbo;
+        ParticleVertex[] vertices = new ParticleVertex[MAX_PARTICLES * 4];
+        CommandBuffer cmd;
+
+        ShaderVariables basicShader;
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct ParticleVertex : IVertexType
         {
+            public Vector3 Position;
+            public Color4 Color;
+            public Vector2 TextureCoordinate;
+            public Vector3 Dimensions;
+            public Vector3 Right;
+            public Vector3 Up;
+            public VertexDeclaration GetVertexDeclaration()
+            {
+                return new VertexDeclaration(
+                    sizeof(float) * 3 + sizeof(float) * 4 + sizeof(float) * 2 + sizeof(float) * 3 * 3,
+                    new VertexElement(VertexSlots.Position, 3, VertexElementType.Float, false, 0),
+                    new VertexElement(VertexSlots.Color, 4, VertexElementType.Float, false, sizeof(float) * 3),
+                    new VertexElement(VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 7),
+                    new VertexElement(VertexSlots.Dimensions, 3, VertexElementType.Float, false, sizeof(float) * 9),
+                    new VertexElement(VertexSlots.Right, 3, VertexElementType.Float, false, sizeof(float) * 12),
+                    new VertexElement(VertexSlots.Up, 3, VertexElementType.Float, false, sizeof(float) * 15)
+                );
+            }
+        }
+
+        void CreateQuad(ref int count, Vector3 position, Vector2 size, Color4 color, float angle, Vector2 topleft, Vector2 topright, Vector2 bottomleft, Vector2 bottomright, Vector3 src_right, Vector3 src_up)
+        {
+            var sz1 = new Vector3(size.X * -0.5f, size.Y * -0.5f, angle);
+            var sz2 = new Vector3(size.X * 0.5f, size.Y * -0.5f, angle);
+            var sz3 = new Vector3(size.X * -0.5f, size.Y * 0.5f, angle);
+            var sz4 = new Vector3(size.X * 0.5f, size.Y * 0.5f, angle);
+            vertices[count++] = new ParticleVertex()
+            {
+                Position = position,
+                Color = color,
+                TextureCoordinate = bottomleft,
+                Dimensions = sz1,
+                Right = src_right,
+                Up = src_up
+            };
+            vertices[count++] = new ParticleVertex()
+            {
+                Position = position,
+                Color = color,
+                TextureCoordinate = topleft,
+                Dimensions = sz2,
+                Right = src_right,
+                Up = src_up
+            };
+            vertices[count++] = new ParticleVertex()
+            {
+                Position = position,
+                Color = color,
+                TextureCoordinate = bottomright,
+                Dimensions = sz3,
+                Right = src_right,
+                Up = src_up
+            };
+            vertices[count++] = new ParticleVertex()
+            {
+                Position = position,
+                Color = color,
+                TextureCoordinate = topright,
+                Dimensions = sz4,
+                Right = src_right,
+                Up = src_up
+            };
+        }
+        public ParticleEffectPool(CommandBuffer commands)
+        {
+            cmd = commands;
+            //Free particles (is this efficient?)
             for(int i = 0; i < MAX_PARTICLES; i++)
             {
                 FreeParticles.Enqueue(i);
             }
+            //Set up vertices
+            vbo = new VertexBuffer(typeof(ParticleVertex), MAX_PARTICLES * 4, true);
+            //Indices
+            ibo = new ElementBuffer(MAX_PARTICLES * 6);
+            ushort[] indices = new ushort[MAX_PARTICLES * 6];
+            int iptr = 0;
+            for (int i = 0; i < (MAX_PARTICLES * 4); i += 4)
+            {
+                //Triangle 1
+                indices[iptr++] = (ushort)i;
+                indices[iptr++] = (ushort)(i + 1);
+                indices[iptr++] = (ushort)(i + 2);
+                //Triangle 2
+                indices[iptr++] = (ushort)(i + 1);
+                indices[iptr++] = (ushort)(i + 3);
+                indices[iptr++] = (ushort)(i + 2);
+            }
+            ibo.SetData(indices);
+            vbo.SetElementBuffer(ibo);
+            basicShader = ShaderCache.Get("Particle.vs", "Billboard.frag");
         }
 
+        int maxActive = 0;
         public void Update(TimeSpan delta)
         {
+            maxActive = 0;
             for (int i = 0; i < Particles.Length; i++)
             {
                 if (!Particles[i].Active)
@@ -38,6 +142,7 @@ namespace LibreLancer.Fx
                     FreeParticles.Enqueue(i);
                     continue;
                 }
+                maxActive = Math.Max(maxActive, i);
             }
         }
 
@@ -59,24 +164,38 @@ namespace LibreLancer.Fx
         public int GetFreeParticle()
         {
             if (FreeParticles.Count > 0)
-                return FreeParticles.Dequeue();
+            {
+                var p = FreeParticles.Dequeue();
+                maxActive = Math.Max(p, maxActive);
+                return p;
+            }
             else
                 return -1;
         }
 
-        Billboards currentBillboards;
-        int countApp = 0;
-        (ParticleEffectInstance i, FxAppearance a)[] appearances = new (ParticleEffectInstance i, FxAppearance a)[1024];
-        int countParticle = 0;
-        ParticleDraw[] draws = new ParticleDraw[MAX_PARTICLES];
-        int[] starts = new int[MAX_PARTICLES];
-        ParticleEffectInstance[] beams = new ParticleEffectInstance[1024];
-        public void Draw(PolylineRender polyline, Billboards billboards, PhysicsDebugRenderer debug)
+        struct BufferInfo
         {
-            countApp = countParticle = 0;
-            currentBillboards = billboards;
+            public int Start;
+            public int Count;
+            public int Current;
+        }
+
+        //Drawing info
+        (ParticleEffectInstance i, FxAppearance a)[] appearances = new (ParticleEffectInstance i, FxAppearance a)[MAX_APP_NODES];
+        ParticleEffectInstance[] beams = new ParticleEffectInstance[MAX_BEAMS];
+        BufferInfo[] bufspace = new BufferInfo[MAX_APP_NODES];
+        int countApp = 0;
+        ICamera camera;
+
+        public ICamera Camera => camera;
+
+        public void Draw(ICamera camera, PolylineRender polyline, ResourceManager res, PhysicsDebugRenderer debug)
+        {
+            this.camera = camera;
+            countApp = 0;
             int beamPtr = 0;
-            for (int i = 0; i < Particles.Length; i++)
+            //Generate list of active nodes
+            for (int i = 0; i < maxActive; i++)
             {
                 if (!Particles[i].Active)
                     continue;
@@ -94,57 +213,135 @@ namespace LibreLancer.Fx
                         }
                         if (append)
                             beams[beamPtr++] = inst;
+                    } else if (app is FxParticleAppearance || app is FxMeshAppearance)
+                    {
+                        //FxParticleAppearance/FxMeshAppearance does not
+                        //render with vertices
                     }
-                    //draw
+                    else { //getindex
+                        var idx = GetAppFxIdx(inst, app);
+                        if (idx != -1) {
+                            bufspace[idx].Count++;
+                            if (bufspace[idx].Count >= MAX_APP_PARTICLES) bufspace[idx].Count = MAX_APP_PARTICLES;
+                        }
+                    }
+                }
+            }
+            if (countApp <= 0) return; //No particles no drawing!
+
+            for(int i = 1; i < countApp; i++) {
+                bufspace[i].Start = (bufspace[i - 1].Start + bufspace[i - 1].Count);
+                bufspace[i].Current = bufspace[i].Start * 4;
+            }
+            int maxVbo = (bufspace[countApp - 1].Start + bufspace[countApp - 1].Count) * 4;
+            //Fill buffers
+            for (int i = 0; i < maxActive; i++)
+            {
+                if (!Particles[i].Active)
+                    continue;
+                var inst = Particles[i].Instance;
+                if (inst.NodeEnabled(Particles[i].Appearance))
+                {
+                    var app = (FxAppearance)Particles[i].Appearance.Node;
                     app.Debug = debug;
                     app.Draw(ref Particles[i], i, (float)inst.LastTime, (float)inst.GlobalTime, Particles[i].Appearance, inst.Resources, inst, ref inst.DrawTransform, inst.DrawSParam);
                 }
             }
-            //Batching :D
-            Array.Sort(draws, 0, countParticle);
-            int currIdx = -1;
-            int startsIdx = 0;
-            Texture2D currTex = null;
-            for(int i = 0; i < countParticle; i++)
+            //Set shader params early
+            var view = camera.View;
+            var vp = camera.ViewProjection;
+            basicShader.SetViewProjection(ref vp);
+            //Draw buffers
+            int basicCount = 0;
+
+            for (int i = 0; i < countApp; i++)
             {
-                if((currIdx != -1 && draws[i].AppearanceIdx != currIdx) ||
-                    (currTex != null && draws[i].Texture != currTex))
+                //Get Variables
+                var ni = appearances[i];
+                var pos = ni.i.DrawTransform.Transform(Vector3.Zero);
+                var z = RenderHelpers.GetZ(camera.Position, pos);
+                var startIndex = bufspace[i].Start * 6;
+                var primCount = bufspace[i].Count * 2;
+                //Draw
+                Texture2D texture;
+                switch(ni.a)
                 {
-                    if (startsIdx == 0) continue;
-                    if(currTex == null)
-                    {
-                        startsIdx = 0; continue;
-                    }
-                    var app = appearances[currIdx].a;
-                    var inst = appearances[currIdx].i;
-                    var p = (FxBasicAppearance)app;
-                    if (app is FxPerpAppearance) {
-                        billboards.CommandRect(currTex, p.BlendInfo, starts, startsIdx, inst.Position);
-                    }
-                    else {
-                        billboards.CommandBasic(currTex, p.BlendInfo, starts, startsIdx, inst.Position);
-                    }
-                    startsIdx = 0;
+                    case FxPerpAppearance perp:
+                        perp.GetTexture2D(res, out texture);
+                        if (texture == null) throw new InvalidOperationException("texture null");
+                        cmd.AddCommand(
+                            basicShader.Shader,
+                            SetupShader,
+                            EnableCull,
+                            Matrix4.Identity,
+                            new RenderUserData() { Texture = texture, Float = (float)perp.BlendInfo },
+                            vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount, true,
+                            SortLayers.OBJECT, z
+                        );
+                        basicCount += primCount / 2;
+                        break;
+                    case FxRectAppearance rect:
+                        rect.GetTexture2D(res, out texture);
+                        if (texture == null) throw new InvalidOperationException("texture null");
+                        cmd.AddCommand(
+                            basicShader.Shader,
+                            SetupShader,
+                            EnableCull,
+                            Matrix4.Identity,
+                            new RenderUserData() { Texture = texture, Float = (float)rect.BlendInfo },
+                            vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount, true,
+                            SortLayers.OBJECT, z
+                        );
+                        basicCount += primCount / 2;
+                        break;
+                    case FxOrientedAppearance orient:
+                        break;
+                    case FxBasicAppearance basic:
+                        basic.GetTexture2D(res, out texture);
+                        if (texture == null) throw new InvalidOperationException("texture null");
+                        cmd.AddCommand(
+                            basicShader.Shader,
+                            SetupShader,
+                            EnableCull,
+                            Matrix4.Identity,
+                            new RenderUserData() { Texture = texture, Float = (float)basic.BlendInfo },
+                            vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount, true,
+                            SortLayers.OBJECT, z
+                        );
+                        basicCount += primCount / 2;
+                        break;
+                    default:
+                        throw new InvalidOperationException(ni.a.GetType().Name);
                 }
-                currIdx = draws[i].AppearanceIdx;
-                currTex = draws[i].Texture;
-                starts[startsIdx++] = draws[i].StartVertex;
+                //Clear
+                bufspace[i] = new BufferInfo();
             }
-            for(int i = 0; i < beamPtr; i++)
+            //Draw beams!
+            for (int i = 0; i < beamPtr; i++)
             {
                 beams[i].DrawBeams(polyline, debug, beams[i].DrawTransform, beams[i].DrawSParam);
             }
-
+            //Upload to vbo
+            vbo.SetData(vertices, maxVbo);
         }
 
-        public ICamera Camera => currentBillboards.Camera;
-
+        static void SetupShader(Shader shdr, RenderState res, ref RenderCommand cmd)
+        {
+            cmd.UserData.Texture.BindTo(0);
+            res.BlendMode = (BlendMode)cmd.UserData.Float;
+            res.Cull = false;
+        }
+        static void EnableCull(RenderState rs)
+        {
+            rs.Cull = true;
+        }
         int GetAppFxIdx(ParticleEffectInstance instance, FxAppearance a)
         {
             var item = (instance, a);
             for(int i = 0; i < countApp; i++) {
                 if (appearances[i].Equals(item)) return i;
             }
+            if (countApp + 1 >= MAX_APP_NODES) return -1;
             appearances[countApp] = item;
             return countApp++;
         }
@@ -164,21 +361,22 @@ namespace LibreLancer.Fx
             Vector3 normal,
             float angle)
         {
-            if (countParticle >= MAX_PARTICLES) return;
             var idx = GetAppFxIdx(instance, appearance);
-            var start = currentBillboards.AddPerspective(pos, world, size, color, topleft, topright, bottomleft, bottomright, normal, angle);
-            draws[countParticle++] = new ParticleDraw()
-            {
-                Texture = texture,
-                AppearanceIdx = idx,
-                StartVertex = start
-            };
+            if (bufspace[idx].Current == (bufspace[idx].Start + bufspace[idx].Count) * 4) return;
+            var right = Vector3.Cross(normal, Vector3.UnitY);
+            var up = Vector3.Cross(right, normal);
+            up.Normalize();
+            right.Normalize();
+            CreateQuad(
+                ref bufspace[idx].Current,
+                pos, size, color, angle, topleft, topright, bottomleft, bottomright,
+                right, up
+            );
         }
 
         public void DrawBasic(
             ParticleEffectInstance instance,
             FxBasicAppearance appearance,
-            Texture2D texture,
             Vector3 Position,
             Vector2 size,
             Color4 color,
@@ -189,15 +387,13 @@ namespace LibreLancer.Fx
             float angle
         )
         {
-            if (countParticle >= MAX_PARTICLES) return;
             var idx = GetAppFxIdx(instance, appearance);
-            int start = currentBillboards.AddBasic(Position, size, color, topleft, topright, bottomleft, bottomright, angle);
-            draws[countParticle++] = new ParticleDraw()
-            {
-                Texture = texture,
-                AppearanceIdx = idx,
-                StartVertex = start
-            };
+            if (bufspace[idx].Current == (bufspace[idx].Start + bufspace[idx].Count) * 4) return;
+            CreateQuad(
+                ref bufspace[idx].Current, 
+                Position, size, color, angle, topleft, topright, bottomleft, bottomright,
+                camera.View.GetRight(), camera.View.GetUp()
+            );
         }
 
         public void DrawRect(
@@ -215,27 +411,22 @@ namespace LibreLancer.Fx
             float angle
         )
         {
-            if (countParticle >= MAX_PARTICLES) return;
             var idx = GetAppFxIdx(instance, appearance);
-            int start = currentBillboards.AddRectAppearance(Position, size, color, topleft, topright, bottomleft, bottomright, normal, angle);
-            draws[countParticle++] = new ParticleDraw()
-            {
-                Texture = texture,
-                AppearanceIdx = idx,
-                StartVertex = start
-            };
+            if (bufspace[idx].Current == (bufspace[idx].Start + bufspace[idx].Count) * 4) return;
+            var up = normal;
+            var toCamera = (camera.Position - Position).Normalized();
+            var right = Vector3.Cross(toCamera, up);
+            CreateQuad(
+                ref bufspace[idx].Current,
+                Position, size, color, angle, topleft, topright, bottomleft, bottomright,
+                right, up
+            );
         }
 
-        struct ParticleDraw : IComparable<ParticleDraw>
+        public void Dispose()
         {
-            public Texture2D Texture;
-            public int AppearanceIdx;
-            public int StartVertex;
-
-            public int CompareTo(ParticleDraw other)
-            {
-                return AppearanceIdx.CompareTo(other.AppearanceIdx);
-            }
+            vbo.Dispose();
+            ibo.Dispose();
         }
     }
 }

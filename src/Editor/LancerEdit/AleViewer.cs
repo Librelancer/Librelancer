@@ -17,10 +17,10 @@ namespace LancerEdit
         Viewport3D aleViewport;
         RenderState rstate;
         CommandBuffer buffer;
-        Billboards billboards;
         PolylineRender polyline;
         PhysicsDebugRenderer debug;
         ParticleEffectPool pool;
+        ResourceManager res;
         //Tab
         string name;
         ParticleLibrary plib;
@@ -32,7 +32,8 @@ namespace LancerEdit
         public AleViewer(string title, string name, AleFile ale, MainWindow main)
         {
             plib = new ParticleLibrary(main.Resources, ale);
-            pool = new ParticleEffectPool();
+            res = main.Resources;
+            pool = new ParticleEffectPool(main.Commands);
             effectNames = new string[plib.Effects.Count];
             for (int i = 0; i < effectNames.Length; i++)
                 effectNames[i] = string.Format("{0} (0x{1:X})", plib.Effects[i].Name, plib.Effects[i].CRC);
@@ -44,7 +45,6 @@ namespace LancerEdit
             aleViewport.CameraOffset = new Vector3(0, 0, 200);
             aleViewport.ModelScale = 25;
             buffer = main.Commands;
-            billboards = main.Billboards;
             polyline = main.Polyline;
             debug = main.DebugRender;
             SetupRender(0);
@@ -213,12 +213,10 @@ namespace LancerEdit
             cam.Update(renderWidth, renderHeight, aleViewport.CameraOffset, to, rot);
             buffer.StartFrame(rstate);
             polyline.SetCamera(cam);
-            billboards.Begin(cam, buffer);
             debug.StartFrame(cam, rstate);
             instance.Draw(transform, sparam);
-            pool.Draw(polyline, billboards, debug);
+            pool.Draw(cam, polyline, res, debug);
             polyline.FrameEnd();
-            billboards.End();
             buffer.DrawOpaque(rstate);
             rstate.DepthWrite = false;
             buffer.DrawTransparent(rstate);
@@ -261,6 +259,7 @@ namespace LancerEdit
         public override void Dispose()
         {
             aleViewport.Dispose();
+            pool.Dispose();
         }
     }
 }

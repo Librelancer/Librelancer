@@ -97,7 +97,6 @@ namespace LibreLancer.Fx
 			instance.Pool.DrawBasic(
                 particle.Instance,
                 this,
-				tex,
 				p,
 				new Vector2(Size.GetValue(sparam, time)) * 2,
 				new Color4(c, a),
@@ -113,7 +112,45 @@ namespace LibreLancer.Fx
 		TexFrameAnimation _frame;
 		Texture2D _tex2D;
 
-		protected void HandleTexture(
+        public void GetTexture2D(ResourceManager res,out Texture2D tex2d)
+        {
+            if (Texture == null)
+            {
+                tex2d = res.NullTexture;
+                return;
+            }
+            //Get the Texture2D
+            if (_tex == null && _frame == null && _tex2D != null)
+            {
+                if (_tex2D == null || _tex2D.IsDisposed)
+                    _tex2D = res.FindTexture(Texture) as Texture2D;
+                tex2d = _tex2D;
+            }
+            else if (_tex == null)
+            {
+                if (res.TryGetShape(Texture, out _tex))
+                    _tex2D = (Texture2D)res.FindTexture(_tex.Texture);
+                else if (res.TryGetFrameAnimation(Texture, out _frame))
+                {
+                    _tex2D = res.FindTexture(Texture + "_0") as Texture2D;
+                }
+                else
+                {
+                    _tex2D = res.FindTexture(Texture) as Texture2D;
+                }
+            }
+            if (_tex2D == null || _tex2D.IsDisposed)
+            {
+                if (_frame == null)
+                    _tex2D = res.FindTexture(_tex == null ? Texture : _tex.Texture) as Texture2D;
+                else
+                    _tex2D = res.FindTexture(Texture + "_0") as Texture2D;
+            }
+            tex2d = _tex2D;
+            if (tex2d == null) tex2d = (Texture2D)res.FindTexture(ResourceManager.WhiteTextureName);
+        }
+
+        protected void HandleTexture(
 			ResourceManager res,
 			float globaltime,
 			float sparam, 
@@ -130,39 +167,8 @@ namespace LibreLancer.Fx
 			tr = new Vector2(1, 0);
 			bl = new Vector2(0, 1);
 			br = new Vector2(1, 1);
-			if (Texture == null) {
-				tex2d = res.NullTexture;
-				return;
-			}
-			//Get the Texture2D
-			if (_tex == null && _frame == null && _tex2D != null)
-			{
-				if (_tex2D == null || _tex2D.IsDisposed)
-					_tex2D = res.FindTexture(Texture) as Texture2D;
-				tex2d = _tex2D;
-			}
-			else if (_tex == null)
-			{
-				if (res.TryGetShape(Texture, out _tex))
-					_tex2D = (Texture2D)res.FindTexture(_tex.Texture);
-				else if (res.TryGetFrameAnimation(Texture, out _frame))
-				{
-					_tex2D = res.FindTexture(Texture + "_0") as Texture2D;
-				}
-				else
-				{
-					_tex2D = res.FindTexture(Texture) as Texture2D;
-				}
-			}
-			if (_tex2D == null || _tex2D.IsDisposed)
-			{
-				if (_frame == null)
-					_tex2D = res.FindTexture(_tex == null ? Texture : _tex.Texture) as Texture2D;
-				else
-					_tex2D = res.FindTexture(Texture + "_0") as Texture2D;
-			}
-			tex2d = _tex2D;
-			if (tex2d == null) tex2d = (Texture2D)res.FindTexture(ResourceManager.WhiteTextureName);
+            //Get texture
+            GetTexture2D(res, out tex2d);
 			//Shape?
 			if (_tex != null)
 			{
@@ -190,7 +196,6 @@ namespace LibreLancer.Fx
 				bl = new Vector2(rect.X, rect.Y + rect.Height);
 				br = new Vector2(rect.X + rect.Width, rect.Y + rect.Height);
 			}
-
 			//Flip
 			if (FlipHorizontal)
 			{

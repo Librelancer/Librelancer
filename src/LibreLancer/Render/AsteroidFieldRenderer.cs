@@ -22,7 +22,6 @@ namespace LibreLancer
         Matrix4 bandTransform;
         OpenCylinder bandCylinder;
         Matrix4 vp;
-        Matrix4 bandNormal;
         static ShaderVariables bandShader;
         static int _bsTexture;
         static int _bsCameraPosition;
@@ -88,9 +87,6 @@ namespace LibreLancer
                 Matrix4.CreateTranslation(field.Zone.Position)
             );
             bandCylinder = sys.ResourceManager.GetOpenCylinder(SIDES);
-            bandNormal = bandTransform;
-            bandNormal.Invert();
-            bandNormal.Transpose();
         }
 
         List<VertexPositionNormalDiffuseTexture> verts;
@@ -457,7 +453,6 @@ namespace LibreLancer
                                 Color = field.Band.ColorShift,
                                 Camera = _camera,
                                 Texture = tex,
-                                Matrix2 = bandNormal
                             },
                             bandCylinder.VertexBuffer,
                             PrimitiveTypes.TriangleList,
@@ -478,7 +473,10 @@ namespace LibreLancer
             bandShader.SetWorld(ref command.World);
             var vp = command.UserData.Camera.ViewProjection;
             bandShader.SetViewProjection(ref vp);
-            bandShader.SetNormalMatrix(ref command.UserData.Matrix2);
+            var normal = command.World;
+            normal.Invert();
+            normal.Transpose();
+            bandShader.SetNormalMatrix(ref normal);
             shader.SetInteger(_bsTexture, 0);
             shader.SetVector3(_bsCameraPosition, command.UserData.Camera.Position);
             shader.SetColor4(_bsColorShift, command.UserData.Color);
