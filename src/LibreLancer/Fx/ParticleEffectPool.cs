@@ -13,7 +13,7 @@ namespace LibreLancer.Fx
     public class ParticleEffectPool : IDisposable
     {
         //Limits
-        const int MAX_PARTICLES = 20000;
+        const int MAX_PARTICLES = 40000;
         //How many will render at once
         const int MAX_APP_NODES = 2048;
         const int MAX_BEAMS = 512;
