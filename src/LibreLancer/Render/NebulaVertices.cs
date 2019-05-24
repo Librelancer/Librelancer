@@ -8,7 +8,7 @@ using LibreLancer.Vertices;
 
 namespace LibreLancer
 {
-	public class NebulaVertices
+	public unsafe class NebulaVertices
 	{
 		const int MAX_QUADS = 3000; //1000 plane slices
 		Shader shader;
@@ -16,17 +16,16 @@ namespace LibreLancer
 		ElementBuffer el;
 		int currentVerts = 0;
 		int currentIndex = 0;
-		VertexPositionTexture[] verts;
+		VertexPositionTexture* verts;
 		static int _viewproj;
 		static int _world;
 		static int _tint;
 		static int _texture;
 		public NebulaVertices()
 		{
-			verts = new VertexPositionTexture[MAX_QUADS * 4];
 			var indices = new ushort[MAX_QUADS * 6];
 			int iptr = 0;
-			for (int i = 0; i < verts.Length; i += 4)
+			for (int i = 0; i < (MAX_QUADS * 4); i += 4)
 			{
 				/* Triangle 1 */
 				indices[iptr++] = (ushort)i;
@@ -37,7 +36,7 @@ namespace LibreLancer
 				indices[iptr++] = (ushort)(i + 3);
 				indices[iptr++] = (ushort)(i + 2);
 			}
-			vbo = new VertexBuffer(typeof(VertexPositionTexture), verts.Length, true);
+			vbo = new VertexBuffer(typeof(VertexPositionTexture), (MAX_QUADS * 4), true);
 			el = new ElementBuffer(indices.Length);
 			el.SetData(indices);
 			vbo.SetElementBuffer(el);
@@ -109,11 +108,12 @@ namespace LibreLancer
 		}
 		public void SetData()
 		{
-			vbo.SetData(verts, currentVerts);
+            vbo.EndStreaming(currentVerts);
 		}
 		public void NewFrame()
 		{
 			lastIndex = currentIndex = currentVerts = 0;
+            verts = (VertexPositionTexture*)vbo.BeginStreaming();
 		}
 	}
 }
