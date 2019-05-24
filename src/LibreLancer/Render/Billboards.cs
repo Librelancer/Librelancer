@@ -7,14 +7,14 @@ using System.Runtime.InteropServices;
 using LibreLancer.Vertices;
 namespace LibreLancer
 {
-	public class Billboards
+	public unsafe class Billboards
 	{
 		const int MAX_BILLBOARDS = 5000;
 
         RenderData[] rendat;
         //Basic
         ShaderVariables shaderBasic;
-        BillboardVert[] verticesBasic;
+        BillboardVert* verticesBasic;
         VertexBuffer vboBasic;
         ElementBuffer iboBasic;
         ushort[] indicesBasic = new ushort[MAX_BILLBOARDS * 6];
@@ -26,7 +26,6 @@ namespace LibreLancer
 				"Billboard.frag"
 			);
 			shaderBasic.Shader.SetInteger(shaderBasic.Shader.GetLocation("tex0"), 0);
-			verticesBasic = new BillboardVert[MAX_BILLBOARDS * 4];
 			rendat = new RenderData[MAX_BILLBOARDS];
 			vboBasic = new VertexBuffer(typeof(BillboardVert), MAX_BILLBOARDS * 4, true);
 			iboBasic = new ElementBuffer(MAX_BILLBOARDS * 6, true);
@@ -96,6 +95,7 @@ namespace LibreLancer
 			camera = cam;
 			billboardCount = vertexCountBasic = indexCountBasic = 0;
 			buffer = cmd;
+            verticesBasic = (BillboardVert*)vboBasic.BeginStreaming();
 		}
         public Shader GetShader(string shader)
         {
@@ -428,7 +428,7 @@ namespace LibreLancer
 
 		public void End()
 		{
-			vboBasic.SetData(verticesBasic, vertexCountBasic);
+            vboBasic.EndStreaming(vertexCountBasic);
 			_frameStart = true;
             _iboFilled = false;
             lastIndexBasic = fillCountBasic;

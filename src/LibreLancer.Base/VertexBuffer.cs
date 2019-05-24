@@ -19,7 +19,9 @@ namespace LibreLancer
         public int VertexCount { get; private set; }
         uint VBO;
 		uint VAO;
-		public bool HasElements = false;
+        bool streaming;
+        int size;
+        public bool HasElements = false;
 		Type type;
 		VertexDeclaration decl;
 		IVertexType vertextype;
@@ -41,6 +43,7 @@ namespace LibreLancer
             TotalBuffers++;
             VBO = GL.GenBuffer();
 			var usageHint = isStream ? GL.GL_STREAM_DRAW : GL.GL_STATIC_DRAW;
+            streaming = isStream;
             this.type = type;
             try
             {
@@ -55,6 +58,7 @@ namespace LibreLancer
             GLBind.VertexArray(VAO);
             GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
 			GL.BufferData (GL.GL_ARRAY_BUFFER, (IntPtr)(length * decl.Stride), IntPtr.Zero, usageHint);
+            size = length;
 			decl.SetPointers ();
 			VertexCount = length;
         }
@@ -63,11 +67,13 @@ namespace LibreLancer
         {
             this.decl = decl;
             VBO = GL.GenBuffer();
+            streaming = isStream;
             var usageHint = isStream ? GL.GL_STREAM_DRAW : GL.GL_STATIC_DRAW;
             GL.GenVertexArrays(1, out VAO);
             GLBind.VertexArray(VAO);
             GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
             GL.BufferData(GL.GL_ARRAY_BUFFER, (IntPtr)(length * decl.Stride), IntPtr.Zero, usageHint);
+            size = length;
             decl.SetPointers();
             VertexCount = length;
         }
@@ -98,6 +104,48 @@ namespace LibreLancer
 				baseVertex);
 			TotalDrawcalls++;
 		}
+
+        const int STREAM_FLAGS = GL.GL_MAP_WRITE_BIT | GL.GL_MAP_INVALIDATE_BUFFER_BIT | GL.GL_MAP_UNSYNCHRONIZED_BIT;
+        public IntPtr BeginStreaming()
+        {
+            if (!streaming) throw new InvalidOperationException("not streaming buffer");
+            if(GLExtensions.DSA)
+            {
+                return GL.MapNamedBufferRange(VBO, IntPtr.Zero, (IntPtr)(size * decl.Stride), STREAM_FLAGS);
+            } 
+            else if (GL.GLES)
+            {
+                throw new NotImplementedException(); 
+                //For if I ever do ANGLE again
+                //This is apparently an extension in GLES 2
+                //Not sure about WebGL, maybe needs to be emulated?
+            }
+            else
+            {
+                Bind();
+                return GL.MapBufferRange(GL.GL_ARRAY_BUFFER, IntPtr.Zero, (IntPtr)(size * decl.Stride), STREAM_FLAGS);
+            }
+        }
+
+        //Count is for if emulation is required
+        public void EndStreaming(int count)
+        {
+            if (!streaming) throw new InvalidOperationException("not streaming buffer");
+            if (GLExtensions.DSA)
+            {
+                GL.UnmapNamedBuffer(VBO);
+            }
+            else if (GL.GLES)
+            {
+                throw new NotImplementedException();
+            }
+            else
+            {
+                Bind();
+                GL.UnmapBuffer(GL.GL_ARRAY_BUFFER);
+            }
+        }
+
         internal void Bind()
         {
             GLBind.VertexArray(VAO);

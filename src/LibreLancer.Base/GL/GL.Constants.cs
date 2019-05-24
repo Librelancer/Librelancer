@@ -142,6 +142,11 @@ namespace LibreLancer
 		public const int GL_READ_WRITE = 0x88BA;
 
 		public const int GL_SHADER_STORAGE_BARRIER_BIT = 0x00002000;
+
+        public const int GL_MAP_READ_BIT = 0x0001;
+        public const int GL_MAP_WRITE_BIT = 0x0002;
+        public const int GL_MAP_INVALIDATE_BUFFER_BIT = 0x0008;
+        public const int GL_MAP_UNSYNCHRONIZED_BIT = 0x0020;
     }
 }
 

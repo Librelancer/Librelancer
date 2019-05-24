@@ -155,10 +155,16 @@ namespace LibreLancer.GLDelegates
     public delegate void DrawBuffers(int n, IntPtr bufs);
 	[SuppressUnmanagedCodeSecurity]
 	public delegate void DrawBuffer(int buf);
+    [SuppressUnmanagedCodeSecurity]
+    public delegate IntPtr MapBuffer(uint target, uint access);
 	[SuppressUnmanagedCodeSecurity]
-	public delegate IntPtr MapBuffer(uint target, uint access);
+	public delegate IntPtr MapBufferRange(uint target, IntPtr offset, IntPtr length, uint access);
+    [SuppressUnmanagedCodeSecurity]
+    public delegate IntPtr MapNamedBufferRange(uint buffer, IntPtr offset, IntPtr length, uint access);
 	[SuppressUnmanagedCodeSecurity]
 	public delegate bool UnmapBuffer(uint target);
+    [SuppressUnmanagedCodeSecurity]
+    public delegate bool UnmapNamedBuffer(uint target);
 	[SuppressUnmanagedCodeSecurity]
 	public delegate void BindBufferBase(uint target, uint index, uint buffer);
 	[SuppressUnmanagedCodeSecurity]

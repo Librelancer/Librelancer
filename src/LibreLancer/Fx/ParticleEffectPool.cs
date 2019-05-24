@@ -10,7 +10,7 @@ using LibreLancer.Vertices;
 
 namespace LibreLancer.Fx
 {
-    public class ParticleEffectPool : IDisposable
+    public unsafe class ParticleEffectPool : IDisposable
     {
         //Limits
         const int MAX_PARTICLES = 40000;
@@ -24,7 +24,8 @@ namespace LibreLancer.Fx
 
         ElementBuffer ibo;
         VertexBuffer vbo;
-        ParticleVertex[] vertices = new ParticleVertex[MAX_PARTICLES * 4];
+        //ParticleVertex[] vertices = new ParticleVertex[MAX_PARTICLES * 4];
+        ParticleVertex* vertices;
         CommandBuffer cmd;
 
         ShaderVariables basicShader;
@@ -229,13 +230,13 @@ namespace LibreLancer.Fx
                 }
             }
             if (countApp <= 0) return; //No particles no drawing!
-
-            for(int i = 1; i < countApp; i++) {
+            for (int i = 1; i < countApp; i++) {
                 bufspace[i].Start = (bufspace[i - 1].Start + bufspace[i - 1].Count);
                 bufspace[i].Current = bufspace[i].Start * 4;
             }
             int maxVbo = (bufspace[countApp - 1].Start + bufspace[countApp - 1].Count) * 4;
-            //Fill buffers
+            //Fill buffer
+            vertices = (ParticleVertex*)vbo.BeginStreaming();
             for (int i = 0; i < maxActive; i++)
             {
                 if (!Particles[i].Active)
@@ -248,13 +249,13 @@ namespace LibreLancer.Fx
                     app.Draw(ref Particles[i], i, (float)inst.LastTime, (float)inst.GlobalTime, Particles[i].Appearance, inst.Resources, inst, ref inst.DrawTransform, inst.DrawSParam);
                 }
             }
-            //Set shader params early
+            vbo.EndStreaming(maxVbo);
+            //Set shader params early + upload data
             var view = camera.View;
             var vp = camera.ViewProjection;
             basicShader.SetViewProjection(ref vp);
             //Draw buffers
             int basicCount = 0;
-
             for (int i = 0; i < countApp; i++)
             {
                 //Get Variables
@@ -322,8 +323,6 @@ namespace LibreLancer.Fx
             {
                 beams[i].DrawBeams(polyline, debug, beams[i].DrawTransform, beams[i].DrawSParam);
             }
-            //Upload to vbo
-            vbo.SetData(vertices, maxVbo);
         }
 
         static void SetupShader(Shader shdr, RenderState res, ref RenderCommand cmd)

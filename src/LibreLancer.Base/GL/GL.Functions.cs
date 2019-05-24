@@ -227,10 +227,16 @@ namespace LibreLancer
 		}
 		[MapsTo("glDrawBuffer")]
 		public static DrawBuffer DrawBuffer;
-		[MapsTo("glMapBuffer")]
-		public static MapBuffer MapBuffer;
+        [MapsTo("glMapBuffer")]
+        public static MapBuffer MapBuffer;
+		[MapsTo("glMapBufferRange")]
+		public static MapBufferRange MapBufferRange;
+        [MapsTo("glMapNamedBufferRange")]
+        public static MapNamedBufferRange MapNamedBufferRange;
 		[MapsTo("glUnmapBuffer")]
 		public static UnmapBuffer UnmapBuffer;
+        [MapsTo("glUnmapNamedBuffer")]
+        public static UnmapNamedBuffer UnmapNamedBuffer;
 		[MapsTo("glBindBufferBase")]
 		public static BindBufferBase BindBufferBase;
 		[MapsTo("glMemoryBarrier")]

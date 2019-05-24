@@ -35,6 +35,7 @@ namespace LibreLancer
                 {
                     PopulateExtensions();
                     _anisotropy = ExtensionList.Contains("GL_EXT_texture_filter_anisotropic");
+                    if (_anisotropy.Value) FLLog.Info("OpenGL", "Anisotropy available");
                 }
                 return _anisotropy.Value;
             }
@@ -50,12 +51,30 @@ namespace LibreLancer
 				{
 					PopulateExtensions();
 					_features430 = ExtensionList.Contains("GL_ARB_shader_storage_buffer_object");
-				}
-				return _features430.Value;
+                    if (_features430.Value) FLLog.Info("OpenGL", "SSBO available");
+                }
+                return _features430.Value;
 			}
 		}
+
+        static bool? _directStateAccess;
+        public static bool DSA
+        {
+            get
+            {
+                if (GL.GLES) return false;
+                if(_directStateAccess == null)
+                {
+                    PopulateExtensions();
+                    _directStateAccess = ExtensionList.Contains("GL_ARB_direct_state_access");
+                    if (_directStateAccess.Value) FLLog.Info("OpenGL", "DSA available");
+                }
+                return _directStateAccess.Value;
+            }
+        }
+
         //Global method for checking extensions. Called upon GraphicsDevice creation
-		public static void PopulateExtensions()
+        public static void PopulateExtensions()
 		{
 			if (ExtensionList != null)
 				return;
