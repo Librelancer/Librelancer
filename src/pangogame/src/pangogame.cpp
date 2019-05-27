@@ -56,7 +56,7 @@ PGRenderContext *pg_createcontext(
 
 void pg_getglyph(PGRenderContext *ctx, CachedGlyph *outGlyph, uint32_t codePoint, uint32_t pangoFontHash, FT_Face face)
 {
-	auto gres = ctx->glyphs.find(GLYPHMAP_KEY(pangoFontHash,codePoint));
+	std::map<uint64_t,CachedGlyph>::iterator gres = ctx->glyphs.find(GLYPHMAP_KEY(pangoFontHash,codePoint));
 	if(gres != ctx->glyphs.end()) {
 		*outGlyph = gres->second;
 		return;
