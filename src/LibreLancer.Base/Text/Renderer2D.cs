@@ -118,7 +118,18 @@ namespace LibreLancer
 			dot.SetData (new byte[] { 255 });
 		}
 
-		public Point MeasureString(Font font, float size, string str)
+        public RichTextEngine CreateRichTextEngine()
+        {
+            if(Platform.RunningOS == OS.Linux)
+            {
+                return new Text.Pango.PangoText(this);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+        public Point MeasureString(Font font, float size, string str)
 		{
 			if (str == "") //skip empty str
 				return new Point (0, 0);
@@ -392,7 +403,7 @@ namespace LibreLancer
 
 		public void Draw(Texture2D tex, Rectangle source, Rectangle dest, Color4 color, BlendMode mode = BlendMode.Normal, bool flip = false)
 		{
-			DrawQuad(imgShader, tex, source, dest, color, mode, flip);
+			DrawQuad(tex.Format == SurfaceFormat.R8 ? textShader : imgShader, tex, source, dest, color, mode, flip);
 		}
 
 		public void FillTriangle(Vector2 point1, Vector2 point2, Vector2 point3, Color4 color)

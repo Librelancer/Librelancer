@@ -188,6 +188,8 @@
     <Compile Include="Dialogs\CrashWindow.cs" />
     <Compile Include="Dialogs\DialogPlatform.cs" />
     <Compile Include="Dialogs\SWF.cs" />
+    <Compile Include="Text\Pango\PangoText.cs" />
+    <Compile Include="Text\RichTextEngine.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -223,5 +225,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Dialogs\" />
+    <Folder Include="Text\Pango\" />
   </ItemGroup>
 </Project>

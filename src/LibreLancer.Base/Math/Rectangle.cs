@@ -3,9 +3,11 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Runtime.InteropServices;
 
 namespace LibreLancer
 {
+    [StructLayout(LayoutKind.Sequential)]
     public struct Rectangle
     {
         public int X;

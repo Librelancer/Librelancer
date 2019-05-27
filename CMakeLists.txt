@@ -19,7 +19,9 @@ if(MSVC_IDE)
 endif()
 add_subdirectory(src/cimgui_ext cimgui)
 add_subdirectory(src/lancerdecode lancerdecode)
+add_subdirectory(src/pangogame pangogame)
 add_subdirectory(extern/BulletSharpPInvoke/libbulletc bulletc)
+
 # nvtt has different project structure
 # binary handled by nuget for windows
 if(NOT WIN32)
