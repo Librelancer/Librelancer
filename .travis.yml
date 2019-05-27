@@ -1,4 +1,6 @@
 language: csharp
+before_install:
+ - sudo apt-get install -y libpango1.0-dev
 addons:
   apt:
     sources:
