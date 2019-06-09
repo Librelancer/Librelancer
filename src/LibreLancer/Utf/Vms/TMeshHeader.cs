@@ -210,6 +210,7 @@ namespace LibreLancer.Utf.Vms
 
 			var m = Material;
             if (m == null) m = materialLibrary.FindMaterial(0);
+            if (m == null) return;
 			if (m.Render.IsTransparent)
 				return;
             if (m.Render.DoubleSided)

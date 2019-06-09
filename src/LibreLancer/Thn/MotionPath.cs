@@ -48,7 +48,10 @@ namespace LibreLancer
 		}
 
 		List<Vector3> points = new List<Vector3>();
+        Vector3[] tangents;
 		List<Quaternion> quaternions = new List<Quaternion>();
+
+        Matrix4 coefficients;
 		public MotionPath(string pathdescriptor)
 		{
 			//Abuse the Lua runtime to parse the path descriptor for us
@@ -63,79 +66,95 @@ namespace LibreLancer
 				hasOrientation = false;
 			}
 			//Construct path
-
 			for (int i = 1; i < path.Capacity; i++) {
 				if (hasOrientation && i % 2 == 0)
 					quaternions.Add(GetQuat(path[i]));
 				else
 					points.Add(GetVec(path[i]));
 			}
-			if (points.Count > 2)
+            if(loop) {
+                points.Add(points[0]);
+                quaternions.Add(quaternions[0]);
+            }
+
+
+            if (points.Count > 2)
 				curve = true;
+            //
+            if (curve)
+            {
+                coefficients = new Matrix4(
+                    2, -2, 1, 1,
+                    -3, 3, -2, -1,
+                    0, 0, 1, 0,
+                    1, 0, 0, 0
+                );
+                CalculateTangents();
+            }
 		}
 		bool curve = false;
 
+        void CalculateTangents()
+        {
+            tangents = new Vector3[points.Count];
+            for(int i = 0; i < points.Count; i++)
+            {
+                if (i == 0)
+                {
+                    if (loop)
+                        tangents[i] = 0.5f * (points[1] - points[points.Count - 2]);
+                    else
+                        tangents[i] = 0.5f * (points[1] - points[points.Count - 1]);
+                }
+                else if (i == points.Count - 1)
+                {
+                    if (loop)
+                        tangents[i] = tangents[0];
+                    else
+                        tangents[i] = 0.5f * (points[i] - points[i - 1]);
+                }
+                else
+                    tangents[i] = 0.5f * (points[i + 1] - points[i - 1]);
+            }
+        }
 
-		const int DEGREE = 3;
-		const int BASEFUNCRANGEINT = 2;
+        Vector3 interpolate(float t)
+        {
+            float seg = t * (points.Count - 1);
+            int segIdx = (int)seg;
+            t = seg - segIdx;
+            return interpolate(segIdx, t);
+        }
+        Vector3 interpolate(int index, float t)
+        {
+            if ((index + 1) >= points.Count) return points[points.Count - 1];
 
-		float CubicBasis(float x)
+            float t2, t3;
+            t2 = t * t;
+            t3 = t2 * t;
+            var powers = new Vector4(t3, t2, t, 1);
+            var point1 = points[index];
+            var point2 = points[index + 1];
+            var tan1 = tangents[index];
+            var tan2 = tangents[index + 1];
+
+            var pt = new Matrix4(
+                point1.X,point1.Y,point1.Z,1,
+                point2.X,point2.Y,point2.Z,1,
+                tan1.X,tan1.Y,tan1.Z,1,
+                tan2.Z,tan2.Y,tan2.Z,1
+            );
+
+            var ret = powers * coefficients * pt;
+            return ret.Xyz;
+        }
+        public Vector3 GetPosition(float t)
 		{
-			if (-1 <= x && x < 0)
-			{
-				return 2.0f / 3.0f + (-1.0f - x / 2.0f) * x * x;
-			}
-			else if (1 <= x && x <= 2)
-			{
-				return 4.0f / 3.0f + x * (-2.0f + (1.0f - x / 6.0f) * x);
-			}
-			else if (-2 <= x && x < -1)
-			{
-				return 4.0f / 3.0f + x * (2.0f + (1.0f + x / 6.0f) * x);
-			}
-			else if (0 <= x && x < 1)
-			{
-				return 2.0f / 3.0f + (-1.0f + x / 2.0f) * x * x;
-			}
-			else
-			{
-				return 0;
-			}
-		}
-
-		int seqAt<T>(int n, IList<T> list)
-		{
-			var margin = DEGREE + 1;
-			if (n < margin)
-				return 0;
-			if (list.Count + margin <= n)
-				return list.Count - 1;
-			return n - margin;
-		}
-
-		float seqX(int n) => points[seqAt(n, points)].X;
-
-		float seqY(int n) => points[seqAt(n, points)].Y;
-
-		float seqZ(int n) => points[seqAt(n, points)].Z;
-
-		float getInterpol(Func<int, float> seq, float t)
-		{
-			var tInt = (int)Math.Floor(t);
-			float result = 0;
-			for (int i = tInt - BASEFUNCRANGEINT; i <= tInt + BASEFUNCRANGEINT; i++) {
-				result += seq(i) * CubicBasis(t - i);
-			}
-			return result;
-		}
-
-		public Vector3 GetPosition(float t)
-		{
-			t = MathHelper.Clamp(t, 0, 1);
+            if (t >= 1) return points[points.Count - 1];
+            if (t <= 0) return points[0];
 			if (curve)
 			{
-				t = t * ((DEGREE + 1) * 2 + points.Count);
-				return new Vector3(getInterpol(seqX, t), getInterpol(seqY, t), getInterpol(seqZ, t));
+                return interpolate(t);
 			}
 			else
 			{

@@ -72,7 +72,8 @@ namespace LibreLancer
 					//Advanced spotlight cull
 					if ((l.Kind == LightKind.Spotlight) && SpotlightTest(ref l, c, r))
 						continue;
-                    if ((lc + 1) > MAX_LIGHTS) throw new Exception("Too many lights!");
+                    //if ((lc + 1) > MAX_LIGHTS) throw new Exception("Too many lights!");
+                    if ((lc + 1) > MAX_LIGHTS) break;
                     lc++;
                     lights.Lights.SourceEnabled[i] = true;
 				}

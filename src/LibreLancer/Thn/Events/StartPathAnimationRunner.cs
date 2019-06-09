@@ -63,23 +63,24 @@ namespace LibreLancer
             {
                 float pct = MathHelper.Lerp(StartPercent, StopPercent, t);
                 var path = Path.Entity.Path;
-                var pos = path.GetPosition(pct);
+                var mat = Path.Rotate * Matrix4.CreateTranslation(Path.Translate);
+                var pos = mat.Transform(path.GetPosition(pct));
                 if ((Flags & AttachFlags.LookAt) == AttachFlags.LookAt)
                 {
-                    var orient = Matrix4.CreateFromQuaternion(LookRotation(path.GetDirection(pct, StartPercent > StopPercent), Vector3.UnitY));
+                    var orient = Matrix4.CreateFromQuaternion(LookRotation(path.GetDirection(pct, StartPercent > StopPercent), Vector3.UnitY)) * Path.Rotate;
                     if ((Flags & AttachFlags.Position) == AttachFlags.Position)
-                        SetPositionOrientation(pos + Path.Translate, orient);
+                        SetPositionOrientation(pos, orient);
                     else
                         SetOrientation(orient);
                 }
                 else if ((Flags & AttachFlags.Orientation) == AttachFlags.Orientation)
                 {
                     if ((Flags & AttachFlags.Position) == AttachFlags.Position)
-                        SetPosition(pos + Path.Translate);
+                        SetPosition(pos);
                 }
                 else if ((Flags & AttachFlags.Position) == AttachFlags.Position)
                 {
-                    SetPosition(pos + Path.Translate);
+                    SetPosition(pos);
                 }
             }
 
