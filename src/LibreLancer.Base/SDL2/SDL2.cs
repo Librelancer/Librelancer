@@ -3388,6 +3388,7 @@ namespace LibreLancer
 			SDL_KEYUP,
 			SDL_TEXTEDITING,
 			SDL_TEXTINPUT,
+            SDL_KEYMAPCHANGED,
 
 			/* Mouse events */
 			SDL_MOUSEMOTION = 		0x400,

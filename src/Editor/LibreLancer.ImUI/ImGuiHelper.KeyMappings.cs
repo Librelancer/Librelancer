@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using LibreLancer;
 using ImGuiNET;
 namespace LibreLancer.ImUI
@@ -34,9 +35,15 @@ namespace LibreLancer.ImUI
 		static List<Keys> mappedKeys;
 		static ImGuiHelper()
 		{
-			mappedKeys = new List<Keys>(_mappedKeys);
+            KeyboardLayoutChanged();
 		}
-		static void SetKeyMappings()
+
+        public static void KeyboardLayoutChanged()
+        {
+            mappedKeys = new List<Keys>(_mappedKeys.Select(x => x.Map()));
+        }
+
+        static void SetKeyMappings()
 		{
 			var io = ImGui.GetIO();
 			io.KeyMap[(int)ImGuiKey.Tab] = 0;

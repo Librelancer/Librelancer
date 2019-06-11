@@ -422,14 +422,17 @@ namespace LibreLancer
                             }
                         case SDL.SDL_EventType.SDL_KEYDOWN:
                             {
-                                Keyboard.OnKeyDown((Keys)e.key.keysym.sym, (KeyModifiers)e.key.keysym.mod, e.key.repeat != 0);
+                                Keyboard.OnKeyDown((Keys)e.key.keysym.scancode, (KeyModifiers)e.key.keysym.mod, e.key.repeat != 0);
                                 break;
                             }
                         case SDL.SDL_EventType.SDL_KEYUP:
                             {
-                                Keyboard.OnKeyUp((Keys)e.key.keysym.sym, (KeyModifiers)e.key.keysym.mod);
+                                Keyboard.OnKeyUp((Keys)e.key.keysym.scancode, (KeyModifiers)e.key.keysym.mod);
                                 break;
                             }
+                        case SDL.SDL_EventType.SDL_KEYMAPCHANGED:
+                            KeysExtensions.ResetKeyNames();
+                            break;
                         case SDL.SDL_EventType.SDL_WINDOWEVENT:
                             if (e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
                             {
