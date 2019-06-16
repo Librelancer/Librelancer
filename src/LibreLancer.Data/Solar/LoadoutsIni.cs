@@ -22,7 +22,11 @@ namespace LibreLancer.Data.Solar
 				{
                     case "loadout":
                         var l = new Loadout(s, gdata);
-                        Loadouts[l.Nickname] = l;
+                        if(string.IsNullOrEmpty(l.Nickname))
+                        {
+                            FLLog.Error("Loadouts", "Loadout without name at " + s.File + ":" + s.Line);
+                        } else
+                            Loadouts[l.Nickname] = l;
 					break;
 				default:
 					throw new Exception("Invalid Section in " + path + ": " + s.Name);

@@ -87,6 +87,7 @@ namespace LibreLancer.Ini
                 string[] parts = new string[3];
                 while (!reader.EndOfStream)
                 {
+                    currentLine++;
                     string line = reader.ReadLine().Trim();
 
                     if (string.IsNullOrWhiteSpace(line)
@@ -180,7 +181,6 @@ namespace LibreLancer.Ini
                     
 
                     }
-                    currentLine++;
                 }
             }
             if (currentSection != null) yield return currentSection;

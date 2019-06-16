@@ -42,8 +42,10 @@ namespace LibreLancer.Data
 		{
 			Npc = e[0].ToString();
 			StandMarker = e[1].ToString();
-			Script = e[2].ToString();
-			Action = e[3].ToString();
+            if(e.Count > 2)
+			    Script = e[2].ToString();
+            if(e.Count > 3)
+			    Action = e[3].ToString();
 		}
 	}
 }
