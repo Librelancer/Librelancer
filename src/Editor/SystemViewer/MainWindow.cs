@@ -28,6 +28,7 @@ namespace SystemViewer
         DebugCamera camera;
         LibreLancer.GameData.StarSystem curSystem;
         FontManager fontMan;
+        bool vSync = true;
         public MainWindow() : base(800,600,false)
         {
             FLLog.UIThread = this;
@@ -180,6 +181,11 @@ C# Memory Usage: {5}
                 if (ImGui.MenuItem("Debug Text", "", showDebug, true)) showDebug = !showDebug;
                 if (ImGui.MenuItem("Wireframe", "", wireFrame, true)) wireFrame = !wireFrame;
                 if (ImGui.MenuItem("Infocard", "", infocardOpen, true)) infocardOpen = !infocardOpen;
+                if(ImGui.MenuItem("VSync", "", vSync, true))
+                {
+                    vSync = !vSync;
+                    SetVSync(vSync);
+                }
                 ImGui.EndMenu();
             }
             var h = ImGui.GetWindowHeight();
