@@ -70,9 +70,9 @@ namespace LibreLancer.ImUI
 			else if (Platform.RunningOS == OS.Linux)
 			{
                 if (kdialog)
-                    return KDialogOpen();
+                    return KDialogOpen(filters);
                 else if (parentWindow != IntPtr.Zero)
-                    return Gtk2.GtkOpen(parentWindow,filters);
+                    return Gtk2.GtkOpen(parentWindow, filters);
                 else
                     return Gtk3.GtkOpen(filters);
 			}
@@ -95,7 +95,7 @@ namespace LibreLancer.ImUI
                 return result;
             } else if (Platform.RunningOS == OS.Linux) {
                 if (kdialog)
-                    throw new NotImplementedException();
+                    return KDialogChooseFolder();
                 else if (parentWindow != IntPtr.Zero)
                     return Gtk2.GtkFolder(parentWindow);
                 else
@@ -125,9 +125,9 @@ namespace LibreLancer.ImUI
 			else if (Platform.RunningOS == OS.Linux)
 			{
                 if (kdialog)
-                    return KDialogSave();
+                    return KDialogSave(filters);
                 else if (parentWindow != IntPtr.Zero)
-                    return Gtk2.GtkSave(parentWindow,filters);
+                    return Gtk2.GtkSave(parentWindow, filters);
                 else
                     return Gtk3.GtkSave(filters);
 			}
@@ -212,21 +212,51 @@ namespace LibreLancer.ImUI
                 return null;
         }
 
+        static string KDialogFilter(FileDialogFilters filters)
+        {
+            if (filters == null) return "";
+            var builder = new StringBuilder();
+            bool first = true;
+            foreach (var f in filters.Filters)
+            {
+                if (!first)
+                    builder.Append("|");
+                else
+                    first = false;
+                builder.Append(f.Name);
+                builder.Append(" (");
+                var exts = string.Join(" ", f.Extensions.Select((x) =>
+                {
+                    if (x.Contains(".")) return x;
+                    else return "*." + x;
+                }));
+                builder.Append(exts).Append(")");
+            }
+            builder.Append("|All Files (*.*)");
+            return builder.ToString();
+        }
+
         static string lastSave = "";
-        static string KDialogSave()
+        static string KDialogSave(FileDialogFilters filters)
         {
             if (string.IsNullOrEmpty(lastSave))
                 lastSave = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            var ret = KDialogProcess(string.Format("--getsavefilename \"{0}\"", lastSave));
+            var ret = KDialogProcess(string.Format("--getsavefilename \"{0}\" '{1}'", lastSave, KDialogFilter(filters)));
             lastSave = ret ?? lastSave;
             return ret;
         }
+
+        static string KDialogChooseFolder()
+        {
+            return KDialogProcess("--getexistingdirectory");
+        }
+
         static string lastOpen = "";
-        static string KDialogOpen()
+        static string KDialogOpen(FileDialogFilters filters)
         {
             if (String.IsNullOrEmpty(lastOpen))
                 lastOpen = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            var ret = KDialogProcess(string.Format("--getopenfilename \"{0}\"", lastOpen));
+            var ret = KDialogProcess(string.Format("--getopenfilename \"{0}\" '{1}'", lastOpen, KDialogFilter(filters)));
             lastOpen = ret ?? lastOpen;
             return ret;
         }
