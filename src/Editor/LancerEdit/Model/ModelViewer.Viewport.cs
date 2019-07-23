@@ -396,6 +396,7 @@ namespace LancerEdit
 
         void DrawSimple(ICamera cam, bool wireFrame)
         {
+            if (hiddenModels.Count > 0) return;
             Material mat = null;
             var matrix = Matrix4.Identity;
             if (isStarsphere)
@@ -443,6 +444,7 @@ namespace LancerEdit
                 {
                     var part = cmp.Parts[i];
                     if (part.Camera != null) continue;
+                    if (hiddenModels.Contains(part.Model)) continue;
                     Material mat;
                     if (!partMaterials.TryGetValue(i, out mat))
                     {
@@ -465,6 +467,7 @@ namespace LancerEdit
                 {
                     foreach (var part in cmp.Parts)
                     {
+                        if (hiddenModels.Contains(part.Model)) continue;
                         if (part.Camera == null)
                             part.DrawBufferLevel(
                                 GetLevel(part.Model.Switch2, part.Model.Levels.Length - 1),
@@ -476,7 +479,8 @@ namespace LancerEdit
                 {
                     foreach (var part in cmp.Parts)
                     {
-                        if(part.Camera == null)
+                        if (hiddenModels.Contains(part.Model)) continue;
+                        if (part.Camera == null)
                         part.DrawBufferLevel(
                                 GetLevel(part.Model.Switch2, part.Model.Levels.Length - 1),
                                 buffer, matrix, ref Lighting.Empty
@@ -489,6 +493,7 @@ namespace LancerEdit
                 normalsDebugMaterial.Update(cam);
                 foreach (var part in cmp.Parts)
                 {
+                    if (hiddenModels.Contains(part.Model)) continue;
                     if (part.Camera == null)
                         part.DrawBufferLevel(
                             GetLevel(part.Model.Switch2, part.Model.Levels.Length - 1),

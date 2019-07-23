@@ -433,11 +433,20 @@ namespace LancerEdit
                 icon = "rev";
                 color = Color4.LightCoral;
             }
+            bool mdlVisible = true;
+            if(cn.Model != null)
+                mdlVisible = !hiddenModels.Contains(cn.Model);
+            if (!mdlVisible)
+            {
+                var disabledColor = ImGui.GetStyle().Colors[(int)ImGuiCol.TextDisabled];
+                ImGui.PushStyleColor(ImGuiCol.Text, disabledColor);
+            }
             if (ImGui.TreeNodeEx(ImGuiExt.Pad(n), tflags))
             {
+                if (!mdlVisible) ImGui.PopStyleColor();
                 if (ImGui.IsItemClicked(0))
                     selectedNode = cn;
-                ConstructContext(cn);
+                ConstructContext(cn, mdlVisible);
                 Theme.RenderTreeIcon(n, icon, color);
                 foreach (var child in cn.Nodes)
                     DoConstructNode(child);
@@ -449,20 +458,34 @@ namespace LancerEdit
             }
             else
             {
+                if (!mdlVisible) ImGui.PopStyleColor();
                 if (ImGui.IsItemClicked(0))
                     selectedNode = cn;
-                ConstructContext(cn);
+                ConstructContext(cn, mdlVisible);
                 Theme.RenderTreeIcon(n, icon, color);
-
             }
         }
 
-        void ConstructContext(ConstructNode con)
+        void ConstructContext(ConstructNode con, bool mdlVisible)
         {
             if (ImGui.IsItemClicked(1))
                 ImGui.OpenPopup(con.Con.ChildName + "_context");
             if(ImGui.BeginPopupContextItem(con.Con.ChildName + "_context")) {
-                if(Theme.BeginIconMenu("Change To","change",Color4.White)) {
+                if (con.Model != null)
+                {
+                    //Visibility of model (this is bad)
+                    bool visibleVar = mdlVisible;
+                    Theme.IconMenuToggle("Visible", "eye", Color4.White, ref visibleVar, true);
+                    if(visibleVar != mdlVisible)
+                    {
+                        if (visibleVar)
+                            hiddenModels.Remove(con.Model);
+                        else
+                            hiddenModels.Add(con.Model);
+                    }
+                }
+
+                if (Theme.BeginIconMenu("Change To","change",Color4.White)) {
                     var cmp = (CmpFile)drawable;
                     if(!(con.Con is FixConstruct) && Theme.IconMenuItem("Fix","fix",Color4.LightYellow,true)) {
                         var fix = new FixConstruct(cmp.Constructs)
@@ -521,8 +544,10 @@ namespace LancerEdit
         {
 
         }
+        List<ModelFile> hiddenModels = new List<ModelFile>();
         void DoModel(ModelFile mdl, AbstractConstruct con)
         {
+            //Hardpoints
             bool open = ImGui.TreeNode(ImGuiExt.Pad("Hardpoints"));
             var act = NewHpMenu(mdl.Path);
             switch(act) {
@@ -718,18 +743,48 @@ namespace LancerEdit
                                          MathHelper.RadiansToDegrees(euler.Z)));
                 ImGui.Separator();
             }
+
+            var rootVisible = !hiddenModels.Contains(rootModel);
+            if (!rootVisible)
+            {
+                var col = ImGui.GetStyle().Colors[(int)ImGuiCol.TextDisabled];
+                ImGui.PushStyleColor(ImGuiCol.Text, col);
+            }
             if (ImGui.TreeNodeEx(ImGuiExt.Pad("Root"), ImGuiTreeNodeFlags.DefaultOpen))
             {
+                if (!rootVisible) ImGui.PopStyleColor();
+                RootModelContext(rootVisible);
                 Theme.RenderTreeIcon("Root", "tree", Color4.DarkGreen);
                 foreach (var n in cons)
                     DoConstructNode(n);
-                if (!(drawable is SphFile)) DoModel(rootModel,null);
+                if (!(drawable is SphFile)) DoModel(rootModel, null);
                 ImGui.TreePop();
             }
-            else
+            else {
+                if (!rootVisible) ImGui.PopStyleColor();
+                RootModelContext(rootVisible);
                 Theme.RenderTreeIcon("Root", "tree", Color4.DarkGreen);
+            }
         }
 
+        void RootModelContext(bool rootVisible)
+        {
+            if (rootModel != null && ImGui.IsItemClicked(1))
+                ImGui.OpenPopup(Unique + "_mdl_rootpopup");
+            if (ImGui.BeginPopupContextItem(Unique + "_mdl_rootpopup"))
+            {
+                bool visibleVar = rootVisible;
+                Theme.IconMenuToggle("Visible", "eye", Color4.White, ref visibleVar, true);
+                if (visibleVar != rootVisible)
+                {
+                    if (visibleVar)
+                        hiddenModels.Remove(rootModel);
+                    else
+                        hiddenModels.Add(rootModel);
+                }
+                ImGui.EndPopup();
+            }
+        }
         void AnimationPanel()
         {
             var anm = ((CmpFile)drawable).Animation;
