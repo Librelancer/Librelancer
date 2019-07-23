@@ -1264,17 +1264,28 @@ namespace LibreLancer
             result.Z = v.Z / v.W;
         }
 
-		#endregion
+        #endregion
 
-		#region MinMax
+        #region SignedAngle
 
-		/// <summary>
-		/// Gets a vector with the minimum x,y and z values of both vectors.
-		/// </summary>
-		/// <param name="value1">The first value.</param>
-		/// <param name="value2">The second value.</param>
-		/// <param name="result">A vector with the minimum x,y and z values of both vectors.</param>
-		public static void Min(ref Vector3 value1, ref Vector3 value2, out Vector3 result)
+        public static float SignedAngle(Vector3 v1, Vector3 v2, Vector3 reference)
+        {
+            var c = Vector3.Cross(v1, v2);
+            var angle = (float)Math.Atan2(c.Length, Vector3.Dot(v1, v2));
+            return Vector3.Dot(c, reference) < 0 ? -angle : angle;
+        }
+
+        #endregion
+
+        #region MinMax
+
+        /// <summary>
+        /// Gets a vector with the minimum x,y and z values of both vectors.
+        /// </summary>
+        /// <param name="value1">The first value.</param>
+        /// <param name="value2">The second value.</param>
+        /// <param name="result">A vector with the minimum x,y and z values of both vectors.</param>
+        public static void Min(ref Vector3 value1, ref Vector3 value2, out Vector3 result)
 		{
 			result.X = (value1.X < value2.X) ? value1.X : value2.X;
 			result.Y = (value1.Y < value2.Y) ? value1.Y : value2.Y;

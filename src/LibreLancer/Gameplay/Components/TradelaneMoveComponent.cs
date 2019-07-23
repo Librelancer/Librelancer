@@ -22,7 +22,7 @@ namespace LibreLancer
 			var tgt = Parent.GetWorld().GetObject(lane == "HpRightLane" ? cmp.Action.Target : cmp.Action.TargetLeft);
 			if (tgt == null)
 			{
-				var ctrl = Parent.GetComponent<ShipControlComponent>();
+				var ctrl = Parent.GetComponent<ShipPhysicsComponent>();
 				ctrl.EnginePower = 0.4f;
 				ctrl.Active = true;
 				Parent.Components.Remove(this);

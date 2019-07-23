@@ -1006,6 +1006,9 @@ namespace LibreLancer
                 ship.CruiseSpeed = 300;
                 ship.StrafeForce = orig.StrafeForce;
                 ship.ChaseOffset = orig.CameraOffset;
+                ship.CameraHorizontalTurnAngle = orig.CameraHorizontalTurnAngle;
+                ship.CameraVerticalTurnUpAngle = orig.CameraVerticalTurnUpAngle;
+                ship.CameraVerticalTurnDownAngle = orig.CameraVerticalTurnDownAngle;
                 ship.Nickname = orig.Nickname;
                 ship.NameIds = orig.IdsName;
                 ship.CRC = CrcTool.FLModelCrc(ship.Nickname);

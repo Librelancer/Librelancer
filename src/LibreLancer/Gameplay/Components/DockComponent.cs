@@ -67,7 +67,7 @@ namespace LibreLancer
 			var can = CanDock(obj);
 			if (can && Action.Kind == DockKinds.Tradelane)
 			{
-				var control = obj.GetComponent<ShipControlComponent>();
+				var control = obj.GetComponent<ShipPhysicsComponent>();
 				control.Active = false;
 				var movement = new TradelaneMoveComponent(obj, Parent, tlHP);
 				obj.Components.Add(movement);

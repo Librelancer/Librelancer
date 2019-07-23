@@ -8,27 +8,6 @@ namespace LibreLancer
     [ThnEventRunner(EventTypes.StartPathAnimation)]
     public class StartPathAnimationRunner : IThnEventRunner
     {
-        static void OrthoNormalize(ref Vector3 normal, ref Vector3 tangent)
-        {
-            normal.Normalize();
-            var proj = normal * Vector3.Dot(tangent, normal);
-            tangent = tangent - proj;
-            tangent.Normalize();
-        }
-
-        static Quaternion LookRotation(Vector3 direction, Vector3 up)
-        {
-            var forward = direction.Normalized();
-            OrthoNormalize(ref up, ref forward);
-            var right = Vector3.Cross(up, forward);
-            var ret = new Quaternion();
-            ret.W = (float)Math.Sqrt(1 + right.X + up.Y + forward.Z) * 0.5f;
-            float w4_recip = 1f / (4f * ret.W);
-            ret.X = (up.Z - forward.Y) * w4_recip;
-            ret.Y = (forward.X - right.Z) * w4_recip;
-            ret.Z = (right.Y - up.X) * w4_recip;
-            return ret;
-        }
         abstract class PathAnimationBase : IThnRoutine
         {
             public float Duration;
@@ -67,7 +46,7 @@ namespace LibreLancer
                 var pos = mat.Transform(path.GetPosition(pct));
                 if ((Flags & AttachFlags.LookAt) == AttachFlags.LookAt)
                 {
-                    var orient = Matrix4.CreateFromQuaternion(LookRotation(path.GetDirection(pct, StartPercent > StopPercent), Vector3.UnitY)) * Path.Rotate;
+                    var orient = Matrix4.CreateFromQuaternion(Quaternion.LookRotation(path.GetDirection(pct, StartPercent > StopPercent), Vector3.UnitY)) * Path.Rotate;
                     if ((Flags & AttachFlags.Position) == AttachFlags.Position)
                         SetPositionOrientation(pos, orient);
                     else

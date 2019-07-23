@@ -17,8 +17,10 @@ Camera Position: (X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00})
 C# Memory Usage: {5}
 Velocity: {6}
 Selected Object: {7}
-Mouse Position: {8} {9}
-Mouse Flight: {10}
+Pitch: {8:0.00}
+Yaw: {9:0.00}
+Roll: {10:0.00}
+Mouse Flight: {11}
 ";
 		private const float ROTATION_SPEED = 1f;
 		GameData.StarSystem sys;
@@ -32,7 +34,8 @@ Mouse Flight: {10}
 		bool textEntry = false;
 		string currentText = "";
 		public GameObject player;
-		ShipControlComponent control;
+		ShipPhysicsComponent control;
+        ShipInputComponent shipInput;
         WeaponControlComponent weapons;
 		PowerCoreComponent powerCore;
 		public float Velocity = 0f;
@@ -47,13 +50,23 @@ Mouse Flight: {10}
         bool loading = true;
         LoadingScreen loader;
         public Cutscene Thn;
+        DebugGraph pyw;
 		public SpaceGameplay(FreelancerGame g, GameSession session) : base(g)
 		{
 			FLLog.Info("Game", "Entering system " + session.PlayerSystem);
             g.ResourceManager.ClearTextures(); //Do before loading things
             this.session = session;
             font = Game.Fonts.GetSystemFont("Agency FB");
-
+            #if false
+            pyw = new DebugGraph();
+            pyw.AddLine(Color4.Red, 240, -1, 1);
+            pyw.AddLine(Color4.Green, 240, -1, 1);
+            pyw.AddLine(Color4.Blue, 240, -1, 1);
+            pyw.X = 850;
+            pyw.Y = 10;
+            pyw.Width = 170;
+            pyw.Height = 124;
+            #endif
             sys = g.GameData.GetSystem(session.PlayerSystem);
             loader = new LoadingScreen(g, g.GameData.LoadSystemResources(sys));
 		}
@@ -64,8 +77,10 @@ Mouse Flight: {10}
             shp.LoadResources();
             //Set up player object + camera
             player = new GameObject(shp.Drawable, Game.ResourceManager, true, false);
-            control = new ShipControlComponent(player);
+            control = new ShipPhysicsComponent(player);
             control.Ship = shp;
+            shipInput = new ShipInputComponent(player);
+            player.Components.Add(shipInput);
             player.Components.Add(control);
             weapons = new WeaponControlComponent(player);
             player.Components.Add(weapons);
@@ -95,8 +110,14 @@ Mouse Flight: {10}
             camera.ChasePosition = session.PlayerPosition;
             camera.ChaseOrientation = player.Transform.ClearTranslation();
             var offset = shp.ChaseOffset;
-
+            
             camera.DesiredPositionOffset = offset;
+            if (shp.CameraHorizontalTurnAngle > 0)
+                camera.HorizontalTurnAngle = shp.CameraHorizontalTurnAngle;
+            if (shp.CameraVerticalTurnUpAngle > 0)
+                camera.VerticalTurnUpAngle = shp.CameraVerticalTurnUpAngle;
+            if (shp.CameraVerticalTurnDownAngle > 0)
+                camera.VerticalTurnDownAngle = shp.CameraVerticalTurnDownAngle;
             camera.Reset();
 
             sysrender = new SystemRenderer(camera, Game.GameData, Game.ResourceManager, Game);
@@ -204,7 +225,7 @@ Mouse Flight: {10}
 			}
 			else
 			{
-				if (e.Key == Keys.L)
+                if (e.Key == Keys.L)
 				{
 					Game.Screenshots.TakeScreenshot();
 				}
@@ -273,13 +294,7 @@ Mouse Flight: {10}
 
 		void World_RenderUpdate(TimeSpan delta)
 		{
-            //Has to be here or glitches
-            if (!Game.Keyboard.IsKeyDown(Keys.U))
-            {
-                camera.ChasePosition = player.PhysicsComponent.Body.Position;
-                camera.ChaseOrientation = player.PhysicsComponent.Body.Transform.ClearTranslation();
-            }
-			camera.Update(delta);
+
 		}
 
         bool newHud = false;
@@ -336,7 +351,16 @@ Mouse Flight: {10}
 			control.EngineState = cruise ? EngineStates.Cruise : EngineStates.Standard;
             if(Thn == null || !Thn.Running)
 			    ProcessInput(delta);
-		}
+#if false
+            pyw.PlotPoint(0, control.PlayerPitch);
+            pyw.PlotPoint(1, control.PlayerYaw);
+            pyw.PlotPoint(2, control.Roll);
+#endif
+            //Has to be here or glitches
+            camera.ChasePosition = player.PhysicsComponent.Body.Position;
+            camera.ChaseOrientation = player.PhysicsComponent.Body.Transform.ClearTranslation();
+            camera.Update(delta);
+        }
 
 		bool mouseFlight = false;
 
@@ -381,29 +405,24 @@ Mouse Flight: {10}
         }
 
 
-        Vector2 moffset = Vector2.Zero;
 		const float ACCEL = 85;
 		GameObject selected;
 		void ProcessInput(TimeSpan delta)
 		{
-			moffset = (new Vector2(Game.Mouse.X, Game.Mouse.Y) - new Vector2(Game.Width / 2, Game.Height / 2));
-			moffset *= new Vector2(1f / Game.Width, 1f / Game.Height);
-			moffset *= 2;
-
 			input.Update();
 
 			if (!hud.TextEntry)
 			{
 				if (input.ActionDown(InputAction.ID_THROTTLEUP))
 				{
-                    control.EnginePower += (float)(delta.TotalSeconds);
-					control.EnginePower = MathHelper.Clamp(control.EnginePower, 0, 1);
+                    shipInput.Throttle += (float)(delta.TotalSeconds);
+					shipInput.Throttle = MathHelper.Clamp(shipInput.Throttle, 0, 1);
 				}
 
 				else if (input.ActionDown(InputAction.ID_THROTTLEDOWN))
 				{
-                    control.EnginePower -= (float)(delta.TotalSeconds);
-                    control.EnginePower = MathHelper.Clamp(control.EnginePower, 0, 1);
+                    shipInput.Throttle -= (float)(delta.TotalSeconds);
+                    shipInput.Throttle = MathHelper.Clamp(shipInput.Throttle, 0, 1);
 				}
 			}
 
@@ -414,34 +433,34 @@ Mouse Flight: {10}
 				if (input.ActionDown(InputAction.ID_STRAFERIGHT)) strafe |= StrafeControls.Right;
 				if (input.ActionDown(InputAction.ID_STRAFEUP)) strafe |= StrafeControls.Up;
 				if (input.ActionDown(InputAction.ID_STRAFEDOWN)) strafe |= StrafeControls.Down;
-			}
+            }
 
 			var pc = player.PhysicsComponent;
-			if (Game.Mouse.IsButtonDown(MouseButtons.Left) || mouseFlight)
+            shipInput.Viewport = new Vector2(Game.Width, Game.Height);
+            shipInput.Camera = camera;
+            if (Game.Mouse.IsButtonDown(MouseButtons.Left) || mouseFlight)
 			{
-				control.PlayerPitch = -moffset.Y;
-				control.PlayerYaw = -moffset.X;
-
                 var mX = Game.Mouse.X;
                 var mY = Game.Mouse.Y;
                 camera.MousePosition = new Vector2(
                     mX, Game.Height - mY
                 );
+                shipInput.MouseFlight = true;
+                shipInput.MousePosition = new Vector2(mX, mY);
                 camera.MouseFlight = true;
             }
 			else
 			{
-				control.PlayerPitch = control.PlayerYaw = 0;
+                shipInput.MouseFlight = false;
                 camera.MouseFlight = false;
 			}
-
 			control.CurrentStrafe = strafe;
 			//control.EnginePower = Velocity / MAX_VELOCITY;
 			var obj = GetSelection(Game.Mouse.X, Game.Mouse.Y);
 			current_cur = obj == null ? cur_arrow : cur_reticle;
 			
-            var ep = UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0.25f), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
-            var tgt = UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0f), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
+            var ep = VectorMath.UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0.25f), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
+            var tgt = VectorMath.UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0f), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
             var dir = (tgt - ep).Normalized();
             var dir2 = new Matrix3(player.PhysicsComponent.Body.Transform.ClearTranslation()) * Vector3.UnitZ;
             tgt += dir * 750;
@@ -460,8 +479,8 @@ Mouse Flight: {10}
 		{
 			var vp = new Vector2(Game.Width, Game.Height);
 
-			var start = UnProject(new Vector3(x, y, 0f), camera.Projection, camera.View, vp);
-			var end = UnProject(new Vector3(x, y, 1f), camera.Projection, camera.View, vp);
+			var start = VectorMath.UnProject(new Vector3(x, y, 0f), camera.Projection, camera.View, vp);
+			var end = VectorMath.UnProject(new Vector3(x, y, 1f), camera.Projection, camera.View, vp);
 			var dir = end;
 
 			PhysicsObject rb;
@@ -557,31 +576,6 @@ Mouse Flight: {10}
 			return aSquared < rSquared;
 		}
 
-		static Vector3 UnProject(Vector3 mouse, Matrix4 projection, Matrix4 view, Vector2 viewport)
-		{
-			Vector4 vec;
-
-			vec.X = 2.0f * mouse.X / (float)viewport.X - 1;
-			vec.Y = -(2.0f * mouse.Y / (float)viewport.Y - 1);
-			vec.Z = mouse.Z;
-			vec.W = 1.0f;
-
-			Matrix4 viewInv = Matrix4.Invert(view);
-			Matrix4 projInv = Matrix4.Invert(projection);
-
-			Vector4.Transform(ref vec, ref projInv, out vec);
-			Vector4.Transform(ref vec, ref viewInv, out vec);
-
-			if (vec.W > 0.000001f || vec.W < -0.000001f)
-			{
-				vec.X /= vec.W;
-				vec.Y /= vec.W;
-				vec.Z /= vec.W;
-			}
-
-			return vec.Xyz;
-		}
-
 		//RigidBody debugDrawBody;
 		public override void Draw(TimeSpan delta)
 		{
@@ -608,7 +602,8 @@ Mouse Flight: {10}
                     else
                         sel_obj = selected.Name;
                 }
-                DebugDrawing.DrawShadowedText(Game.Renderer2D, font, 16, string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Nickname, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, moffset.X, moffset.Y, mouseFlight), 5, 5);
+                DebugDrawing.DrawShadowedText(Game.Renderer2D, font, 16, string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Nickname, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, control.PlayerPitch, control.PlayerYaw, control.Roll, mouseFlight), 5, 5);
+                //pyw.Draw(Game.Renderer2D);
                 current_cur.Draw(Game.Renderer2D, Game.Mouse);
             }
             DoFade(delta);

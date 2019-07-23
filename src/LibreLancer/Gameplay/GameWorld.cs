@@ -105,12 +105,12 @@ namespace LibreLancer
         void FixedUpdate(TimeSpan timespan)
         {
             Projectiles.FixedUpdate(timespan);
-            if (PhysicsUpdate != null) PhysicsUpdate(timespan);
             for (int i = 0; i < Objects.Count; i++)
                 Objects[i].FixedUpdate(timespan);
+            if (PhysicsUpdate != null) PhysicsUpdate(timespan);
         }
 
-		public void Update(TimeSpan t)
+        public void Update(TimeSpan t)
 		{
             Physics.Step(t);
 			for (int i = 0; i < Objects.Count; i++)

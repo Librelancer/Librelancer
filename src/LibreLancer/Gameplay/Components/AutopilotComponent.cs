@@ -37,7 +37,7 @@ namespace LibreLancer
 
 		public override void FixedUpdate(TimeSpan time)
 		{
-			var control = Parent.GetComponent<ShipControlComponent>();
+			var control = Parent.GetComponent<ShipPhysicsComponent>();
 			if (control == null) return;
 			control.Pitch = control.Yaw = 0;
 			if (CurrentBehaviour == AutopilotBehaviours.None)

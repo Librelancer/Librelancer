@@ -20,6 +20,9 @@ namespace LibreLancer.GameData
 		public float CruiseSpeed;
 
         public Vector3 ChaseOffset;
+        public float CameraHorizontalTurnAngle;
+        public float CameraVerticalTurnUpAngle;
+        public float CameraVerticalTurnDownAngle;
 
         internal Action LoadResAction;
         public void LoadResources()

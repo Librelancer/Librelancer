@@ -21,6 +21,7 @@ namespace LibreLancer
 
 		public double Update(double setpoint, double actual, double timeFrame)
 		{
+            if (double.IsNaN(integral) || double.IsNaN(lastError)) Reset();
 			double present = setpoint - actual;
 			integral += present * timeFrame;
 			double deriv = (present - lastError) / timeFrame;

@@ -297,7 +297,7 @@
     <Compile Include="Thn\MotionPath.cs" />
     <Compile Include="Render\ShaderCaps.cs" />
     <Compile Include="Render\Materials\NomadMaterial.cs" />
-    <Compile Include="Gameplay\Components\ShipControlComponent.cs" />
+    <Compile Include="Gameplay\Components\ShipPhysicsComponent.cs" />
     <Compile Include="InputManager.cs" />
     <Compile Include="InputAction.cs" />
     <Compile Include="Gameplay\Components\PowerCoreComponent.cs" />
@@ -410,6 +410,7 @@
     <Compile Include="Net\Protocol\Packets.CharacterList.cs" />
     <Compile Include="Interface\XmlUICharacterList.cs" />
     <Compile Include="Gameplay\ServerWorld.cs" />
+    <Compile Include="Gameplay\Components\ShipInputComponent.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

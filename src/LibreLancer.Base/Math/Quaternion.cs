@@ -615,6 +615,32 @@ namespace LibreLancer
 			return FromAxisAngle(rotAxis, rotAngle);
 		}
 
+        #region LookRotation
+
+        static void OrthoNormalize(ref Vector3 normal, ref Vector3 tangent)
+        {
+            normal.Normalize();
+            var proj = normal * Vector3.Dot(tangent, normal);
+            tangent = tangent - proj;
+            tangent.Normalize();
+        }
+
+        public static Quaternion LookRotation(Vector3 lookAt, Vector3 upDirection)
+        {
+            var forward = lookAt;
+            var up = upDirection;
+            OrthoNormalize(ref forward, ref up);
+            var right = Vector3.Cross(up, forward);
+            var ret = new Quaternion();
+            ret.W = (float)Math.Sqrt(1 + right.X + up.Y + forward.Z) * 0.5f;
+            float w4_recip = 1f / (4f * ret.W);
+            ret.X = (up.Z - forward.Y) * w4_recip;
+            ret.Y = (forward.X - right.Z) * w4_recip;
+            ret.Z = (right.Y - up.X) * w4_recip;
+            return ret;
+        }
+
+        #endregion
 
         #region FromMatrix
 
