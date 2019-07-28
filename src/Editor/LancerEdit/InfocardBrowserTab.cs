@@ -84,11 +84,11 @@ namespace LancerEdit
                             currentInfocard = i;
                             if (display == null)
                             {
-                                display = new InfocardControl(win, RDLParse.Parse(manager.GetXmlResource(infocardsIds[currentInfocard])), 100);
+                                display = new InfocardControl(win, RDLParse.Parse(manager.GetXmlResource(infocardsIds[currentInfocard]), win.Fonts), 100);
                             }
                             else
                             {
-                                display.SetInfocard(RDLParse.Parse(manager.GetXmlResource(infocardsIds[currentInfocard])));
+                                display.SetInfocard(RDLParse.Parse(manager.GetXmlResource(infocardsIds[currentInfocard]), win.Fonts));
                             }
                         }
                     }
@@ -136,11 +136,11 @@ namespace LancerEdit
                                 currentInfocard = i;
                                 if (display == null)
                                 {
-                                    display = new InfocardControl(win, RDLParse.Parse(manager.GetXmlResource(infocardsIds[currentInfocard])), 100);
+                                    display = new InfocardControl(win, RDLParse.Parse(manager.GetXmlResource(infocardsIds[currentInfocard]), win.Fonts), 100);
                                 }
                                 else
                                 {
-                                    display.SetInfocard(RDLParse.Parse(manager.GetXmlResource(infocardsIds[currentInfocard])));
+                                    display.SetInfocard(RDLParse.Parse(manager.GetXmlResource(infocardsIds[currentInfocard]), win.Fonts));
                                 }
                             }
                         }

@@ -20,6 +20,7 @@ namespace SystemViewer
         public Billboards Billboards;
         public NebulaVertices Nebulae;
         public Renderer2D Renderer2D;
+        public RichTextEngine RichText;
 
         private const float ROTATION_SPEED = 1f;
 
@@ -44,7 +45,7 @@ namespace SystemViewer
             Nebulae = new NebulaVertices();
             Resources = new GameResourceManager(this);
             Renderer2D = new Renderer2D(this.RenderState);
-
+            RichText = Renderer2D.CreateRichTextEngine();
             Services.Add(Billboards);
             Services.Add(Nebulae);
             Services.Add(Resources);
@@ -234,7 +235,7 @@ C# Memory Usage: {5}
                         camera.Zoom = 5000;
                         Resources.ClearTextures();
                         curSystem = GameData.GetSystem(systems[sysIndex]);
-                        systemInfocard = GameData.GetInfocard(curSystem.Infocard);
+                        systemInfocard = GameData.GetInfocard(curSystem.Infocard, fontMan);
                         if (icard != null) icard.SetInfocard(systemInfocard);
                         GameData.LoadAllSystem(curSystem);
                         world.LoadSystem(curSystem, Resources);
@@ -282,7 +283,7 @@ C# Memory Usage: {5}
             systems = GameData.ListSystems().OrderBy(x => x).ToArray();
             Resources.ClearTextures();
             curSystem = GameData.GetSystem(systems[0]);
-            systemInfocard = GameData.GetInfocard(curSystem.Infocard);
+            systemInfocard = GameData.GetInfocard(curSystem.Infocard, fontMan);
             GameData.LoadAllSystem(curSystem);
             world.LoadSystem(curSystem, Resources);
         }

@@ -11,23 +11,25 @@ namespace SystemViewer
 {
     public class InfocardControl : IDisposable
     {
-        InfocardDisplay icard;
+        BuiltRichText icard;
         MainWindow window;
         RenderTarget2D renderTarget;
         int renderWidth = -1, renderHeight = -1, rid = -1;
         public InfocardControl(MainWindow win, Infocard infocard, float initWidth)
         {
             window = win;
-            icard = new InfocardDisplay(win, new Rectangle(0, 0, (int)initWidth, int.MaxValue), infocard);
-            icard.FontScale = 0.8f;
+            icard = win.RichText.BuildText(infocard.Nodes, (int)initWidth, 0.8f);
+            //icard = new InfocardDisplay(win, new Rectangle(0, 0, (int)initWidth, int.MaxValue), infocard);
+            //icard.FontScale = 0.8f;
         }
         public void SetInfocard(Infocard infocard)
         {
-            icard.SetInfocard(infocard);
+            icard.Dispose();
+            icard = window.RichText.BuildText(infocard.Nodes, renderWidth > 0 ? renderWidth : 400, 0.8f);
         }
         public void Draw(float width)
         {
-            icard.SetRectangle(new Rectangle(0, 0, (int)width, int.MaxValue));
+            icard.Recalculate(width);
 
             if (icard.Height != renderHeight || (int)width != renderWidth)
             {
@@ -48,7 +50,7 @@ namespace SystemViewer
             window.RenderState.ClearAll();
             window.RenderState.ClearColor = cc;
             window.Renderer2D.Start(renderWidth, renderHeight);
-            icard.Draw(window.Renderer2D);
+            window.RichText.RenderText(icard, 0, 0);
             window.Renderer2D.Finish();
             RenderTarget2D.ClearBinding();
             window.Viewport.Pop();

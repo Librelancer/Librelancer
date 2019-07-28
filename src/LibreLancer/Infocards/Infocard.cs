@@ -9,15 +9,15 @@ namespace LibreLancer.Infocards
 {
 	public class Infocard
 	{
-		public List<InfocardNode> Nodes;
+		public List<RichTextNode> Nodes;
 
 		public string ExtractText()
 		{
 			var b = new StringBuilder();
 			foreach (var n in Nodes)
 			{
-				if (n is InfocardParagraphNode) b.AppendLine();
-				if (n is InfocardTextNode) b.Append((n as InfocardTextNode).Contents);
+				if (n is RichTextParagraphNode) b.AppendLine();
+				if (n is RichTextTextNode) b.Append((n as RichTextTextNode).Contents);
 			}
 			return b.ToString();
 		}

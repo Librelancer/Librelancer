@@ -19,6 +19,34 @@ G_DEFINE_TYPE(CacheRenderer, cacherenderer, PANGO_TYPE_RENDERER);
 #define TYPE_CACHERENDERER (cacherenderer_get_type())
 #define CACHERENDERER(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), TYPE_CACHERENDERER, CacheRenderer))
 
+void doDrawRectangle(PangoRenderer* renderer, PangoRenderPart part, int x, int y, int width, int height)
+{
+	CacheRenderer* ren = CACHERENDERER(renderer);
+	
+	PangoColor* fg = pango_renderer_get_color(renderer, PANGO_RENDER_PART_FOREGROUND);
+	float red = !fg ? 0.0f : fg->red / 65536.0f;
+	float green = !fg ? 0.0f : fg->green / 65536.0f;
+	float blue = !fg ? 0.0f : fg->blue / 65536.0f;
+	//create empty run to put rectangle in
+	PGRun r;
+	r.tex = NULL;
+	r.quads = NULL;
+	stb_arr_push(ren->built->runs, r);
+	//reference
+	PGRun* run = &ren->built->runs[stb_arr_len(ren->built->runs)-1];
+	//quad
+	PGQuad q;
+	q.dstX = PANGO_PIXELS(x);
+	q.dstY = PANGO_PIXELS(y);
+	q.dstW = PANGO_PIXELS(width);
+	q.dstH = PANGO_PIXELS(height);
+	q.r = red;
+	q.g = green;
+	q.b = blue;
+	q.a = 1;
+	stb_arr_push(run->quads, q);
+}
+
 void doDrawGlyphs(PangoRenderer* renderer, PangoFont* font, PangoGlyphString* glyphs, int px, int py)
 {
 	CacheRenderer* ren = CACHERENDERER(renderer);
@@ -117,24 +145,51 @@ void cacherenderer_class_init(CacheRendererClass* klass)
 	_pangoClass = (GObjectClass*)(g_type_class_peek_parent(klass));
 	object_class->finalize = cacherenderer_finalize;
 	renderer_class->draw_glyphs = &doDrawGlyphs;
+	renderer_class->draw_rectangle = &doDrawRectangle;
 }
 
-PGBuiltText *pg_pango_render(PGRenderContext *ctx, PangoLayout *layout)
+PGBuiltText *pg_pango_constructtext(PGRenderContext *ctx, PangoLayout **layouts, int layoutCount)
+{
+	PGBuiltText *built = (PGBuiltText*)malloc(sizeof(PGBuiltText));
+	built->layouts = layouts;
+	built->layoutCount = layoutCount;
+	built->ctx = ctx;
+	built->runs = NULL;
+	pg_pango_calculatetext(built);
+	return built;
+}
+
+void pg_pango_calculatetext(PGBuiltText *text)
 {
 	CacheRenderer* doRenderer = (CacheRenderer*)g_object_new(TYPE_CACHERENDERER, 0);
-	doRenderer->ctx = ctx;
-	PGBuiltText *built = (PGBuiltText*)malloc(sizeof(PGBuiltText));
-	built->runs = NULL;
-	doRenderer->built = built;
-	pango_renderer_draw_layout(
-		PANGO_RENDERER(doRenderer),
-		layout,
-		0, 0
-	);
-	built->runCount = stb_arr_len(built->runs);
-	for(int i = 0; i < built->runCount; i++) {
-		built->runs[i].quadCount = stb_arr_len(built->runs[i].quads);
+	doRenderer->ctx = text->ctx;
+	doRenderer->built = text;
+	if(text->runs) 
+	{
+		for(int i = 0; i < text->runCount; i++)
+		{			
+			stb_arr_free(text->runs[i].quads);
+		}
+		stb_arr_free(text->runs);
+		text->runs = NULL;
+	}
+	int yOffset = 0;
+	for(int i = 0; i < text->layoutCount; i++) {
+		PangoLayout *layout = text->layouts[i];
+		pango_renderer_draw_layout(
+			PANGO_RENDERER(doRenderer),
+			layout,
+			0, yOffset
+		);
+		PangoRectangle ink;
+		PangoRectangle logical;
+		pango_layout_get_extents(layout, &ink, &logical);
+		yOffset += logical.height;
+	}
+	text->height = yOffset / PANGO_SCALE;
+	text->runCount = stb_arr_len(text->runs);
+	for(int i = 0; i < text->runCount; i++) {
+		text->runs[i].quadCount = stb_arr_len(text->runs[i].quads);
 	}
 	g_object_unref(doRenderer);
-	return built;
 }

@@ -86,24 +86,49 @@ void pg_getglyph(PGRenderContext *ctx, CachedGlyph *outGlyph, uint32_t codePoint
 	ctx->currentX += rendered.width;
 }
 
-
-PGBuiltText *pg_buildtext(PGRenderContext* ctx, const char *markup, int width)
+static PangoAlignment convert_alignment(PGAlign alignment)
 {
-	PangoLayout *layout = pango_layout_new(ctx->pangoContext);
-	pango_layout_set_markup(layout, markup, -1);
-	pango_layout_set_width(layout, width * PANGO_SCALE);
-	
-	PangoFontDescription *font = pango_font_description_new();
-	pango_font_description_set_family(font, "sans");
-	pango_font_description_set_size(font, 12 * PANGO_SCALE);
-	pango_layout_set_font_description(layout, font);
-	pango_font_description_free(font);
-	PGBuiltText *built = pg_pango_render(ctx, layout);
-	g_object_unref(layout);
-	
+	if(alignment == PGAlign_Left)
+		return PANGO_ALIGN_LEFT;
+	if(alignment == PGAlign_Right)
+		return PANGO_ALIGN_RIGHT;
+	return PANGO_ALIGN_CENTER;
+}
+
+PGBuiltText *pg_buildtext(PGRenderContext* ctx, char **markups, PGAlign* aligns, int paragraphCount, int width)
+{
+	printf("creating with width %d\n",width);
+	PangoLayout **layouts = (PangoLayout**)malloc(sizeof(PangoLayout**) * paragraphCount);
+	for(int i = 0; i < paragraphCount; i++) {
+		PangoLayout *layout = pango_layout_new(ctx->pangoContext);
+		pango_layout_set_markup(layout, markups[i], -1);
+		pango_layout_set_width(layout, width * PANGO_SCALE);
+		pango_layout_set_alignment(layout, convert_alignment(aligns[i]));
+		PangoFontDescription *font = pango_font_description_new();
+		pango_font_description_set_family(font, "sans");
+		pango_font_description_set_size(font, 12 * PANGO_SCALE);
+		pango_layout_set_font_description(layout, font);
+		pango_font_description_free(font);
+		layouts[i] = layout;
+	}
+	PGBuiltText *built = pg_pango_constructtext(ctx, layouts, paragraphCount);
 	return built;
 }
 
+void pg_updatewidth(PGBuiltText *text, int width)
+{
+	printf("updating width to %d\n", width);
+	for(int i = 0; i < text->layoutCount; i++) {
+		PangoLayout *layout = text->layouts[i];
+		pango_layout_set_width(layout, width * PANGO_SCALE);
+	}
+	pg_pango_calculatetext(text);
+}
+
+int pg_getheight(PGBuiltText *text)
+{
+	return text->height;
+}
 
 void pg_drawtext(PGRenderContext* ctx, PGBuiltText *text)
 {
@@ -125,6 +150,11 @@ void pg_destroytext(PGBuiltText *text)
 		stb_arr_free(text->runs[i].quads);
 	}
 	stb_arr_free(text->runs);
+	for(int i = 0; i < text->layoutCount; i++)
+	{
+		g_object_unref(text->layouts[i]);
+	}
+	free(text->layouts);
 	free(text);
 }
 

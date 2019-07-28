@@ -3,9 +3,9 @@
 // LICENSE, which is part of this source code package
 
 using System;
-namespace LibreLancer.Infocards
+namespace LibreLancer
 {
-	public abstract class InfocardNode
+	public abstract class RichTextNode
 	{
 	}
 }

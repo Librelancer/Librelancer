@@ -4,14 +4,15 @@
 
 using System;
 
-namespace LibreLancer.Infocards
+namespace LibreLancer
 {
-	public class InfocardTextNode : InfocardNode
+	public class RichTextTextNode : RichTextNode
 	{
 		public bool Bold;
 		public bool Italic;
 		public bool Underline;
-		public int FontIndex;
+        public string FontName;
+        public float FontSize;
 		public Color4 Color = Color4.White;
 		public TextAlignment Alignment;
 		public string Contents;

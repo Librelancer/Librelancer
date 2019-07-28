@@ -32,10 +32,15 @@ typedef struct {
 
 struct _PGBuiltText {
 	PGRun* runs;
+	PGRenderContext* ctx;
 	int runCount;
+	PangoLayout **layouts;
+	int layoutCount;
+	int height;
 };
 
 void pg_getglyph(PGRenderContext *ctx, CachedGlyph *outGlyph, uint32_t codePoint, uint32_t pangoFontHash, FT_Face face);
-PGBuiltText *pg_pango_render(PGRenderContext *ctx, PangoLayout *layout);
+PGBuiltText *pg_pango_constructtext(PGRenderContext *ctx, PangoLayout **layouts, int layoutCount);
+void pg_pango_calculatetext(PGBuiltText *text);
 
 #endif 

@@ -56,7 +56,7 @@ namespace LibreLancer
                 int a;
                 int dY = 0;
                 var str = string.Join("\n",
-                                      Infocards.InfocardDisplay.WrapText(
+                                      TextUtils.WrapText(
                                             Scene.Renderer2D,
                                           font,
                                           (int)fontSize,

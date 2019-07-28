@@ -224,10 +224,6 @@
     <Compile Include="Fx\ParticleEffectInstance.cs" />
     <Compile Include="Infocards\Infocard.cs" />
     <Compile Include="Infocards\RDLParse.cs" />
-    <Compile Include="Infocards\TextAlignment.cs" />
-    <Compile Include="Infocards\InfocardNode.cs" />
-    <Compile Include="Infocards\InfocardTextNode.cs" />
-    <Compile Include="Infocards\InfocardParagraphNode.cs" />
     <Compile Include="Render\NebulaVertices.cs" />
     <Compile Include="GameData\ZoneSphere.cs" />
     <Compile Include="PrimitiveMath.cs" />
@@ -282,7 +278,6 @@
     <Compile Include="Utf\Anm\ObjectMap.cs" />
     <Compile Include="Utf\Anm\JointMap.cs" />
     <Compile Include="GameData\Items\AnimationEquipment.cs" />
-    <Compile Include="Infocards\InfocardDisplay.cs" />
     <Compile Include="FontManager.cs" />
     <Compile Include="Utf\Cmp\MaterialAnimCollection.cs" />
     <Compile Include="Utf\Cmp\MaterialAnim.cs" />
@@ -411,6 +406,7 @@
     <Compile Include="Interface\XmlUICharacterList.cs" />
     <Compile Include="Gameplay\ServerWorld.cs" />
     <Compile Include="Gameplay\Components\ShipInputComponent.cs" />
+    <Compile Include="Interface\TextUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

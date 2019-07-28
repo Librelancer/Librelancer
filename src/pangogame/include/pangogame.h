@@ -26,6 +26,12 @@ typedef struct _PGQuad {
 
 typedef struct _PGTexturePrivate PGTexturePrivate;
 
+typedef enum {
+	PGAlign_Left = 0,
+	PGAlign_Right = 1,
+	PGAlign_Center = 2
+} PGAlign;
+
 typedef struct _PGTexture {
 	void* userdata;
 } PGTexture;
@@ -48,8 +54,10 @@ PGRenderContext *pg_createcontext(
 	PGDrawCallback draw
 );
 
-PGBuiltText *pg_buildtext(PGRenderContext* ctx, const char *markup, int width);
+PGBuiltText *pg_buildtext(PGRenderContext* ctx, char **markups, PGAlign* aligns, int paragraphCount, int width);
 void pg_drawtext(PGRenderContext* ctx, PGBuiltText *text);
+void pg_updatewidth(PGBuiltText *text, int width);
+int pg_getheight(PGBuiltText *text);
 void pg_destroytext(PGBuiltText *text);
 void pg_destroycontext(PGRenderContext *ctx);
 

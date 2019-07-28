@@ -24,6 +24,7 @@ namespace LancerEdit
 		public CommandBuffer Commands; //This is a huge object - only have one
 		public MaterialMap MaterialMap;
         public Renderer2D Renderer2D;
+        public RichTextEngine RichText;
         public FontManager Fonts;
         public string Version;
         TextBuffer logBuffer;
@@ -129,6 +130,7 @@ namespace LancerEdit
                     OpenFile(f);
 
             Renderer2D = new Renderer2D(RenderState);
+            RichText = Renderer2D.CreateRichTextEngine();
             Services.Add(Renderer2D);
             Fonts = new FontManager(this);
             Fonts.ConstructDefaultFonts();

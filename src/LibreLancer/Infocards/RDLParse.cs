@@ -86,47 +86,51 @@ namespace LibreLancer.Infocards
 				return (uint)int.Parse(str);
 		}
 
-		static InfocardTextNode CopyAttributes(InfocardTextNode src)
+		static RichTextTextNode CopyAttributes(RichTextTextNode src)
 		{
-			return new InfocardTextNode()
+			return new RichTextTextNode()
 			{
 				Bold = src.Bold,
 				Italic = src.Italic,
 				Underline = src.Underline,
-				FontIndex = src.FontIndex,
+				FontName = src.FontName,
+                FontSize = src.FontSize,
 				Color = src.Color,
 				Alignment = src.Alignment
 			};
 		}
 
 		//Main Parsing
-        public static Infocard Parse(string input)
+        public static Infocard Parse(string input, FontManager fonts)
         {
             try
             {
-                return ParseInternal(input);
+                return ParseInternal(input, fonts);
             }
             catch (Exception)
             {
                 FLLog.Error("RDL", "Failed to parse infocard");
                 return new Infocard()
                 {
-                    Nodes = new List<InfocardNode>()
+                    Nodes = new List<RichTextNode>()
                     {
-                        new InfocardTextNode() { Contents = "PARSE FAILED" },
-                        new InfocardParagraphNode(),
-                        new InfocardParagraphNode(),
-                        new InfocardTextNode() { Contents = input }
+                        new RichTextTextNode() { Contents = "PARSE FAILED" },
+                        new RichTextParagraphNode(),
+                        new RichTextParagraphNode(),
+                        new RichTextTextNode() { Contents = input }
                     }
                 };
             }
         }
-        static Infocard ParseInternal(string input)
+        static Infocard ParseInternal(string input, FontManager fonts)
 		{
             if (input == null)
-                return new Infocard() { Nodes = new List<InfocardNode>() { new InfocardTextNode() { Contents = "IDS??" } } };
-            var nodes = new List<InfocardNode>();
-			var current = new InfocardTextNode();
+                return new Infocard() { Nodes = new List<RichTextNode>() { new RichTextTextNode() { Contents = "IDS??" } } };
+            var nodes = new List<RichTextNode>();
+			var current = new RichTextTextNode();
+            var fn = fonts.GetInfocardFont(-1); //default font
+            current.FontName = fn.FontName;
+            current.FontSize = fn.FontSize;
 			using (var reader = XmlReader.Create(new StringReader(input)))
 			{
 				while (reader.Read())
@@ -151,7 +155,7 @@ namespace LibreLancer.Infocards
 							switch (elemname)
 							{
 								case "PARA":
-									nodes.Add(new InfocardParagraphNode());
+									nodes.Add(new RichTextParagraphNode());
 									break;
 								case "JUST":
 									TextAlignment v;
@@ -159,7 +163,7 @@ namespace LibreLancer.Infocards
 										current.Alignment = v;
 									break;
 								case "TRA":
-									ParseTextRenderAttributes(attrs, current);
+                                    ParseTextRenderAttributes(attrs, current, fonts);
 									break;
 								case "TEXT":
 									break;
@@ -178,7 +182,7 @@ namespace LibreLancer.Infocards
 			return new Infocard() { Nodes = nodes };
 		}
 
-		static void ParseTextRenderAttributes(Dictionary<string, string> attrs, InfocardTextNode node)
+		static void ParseTextRenderAttributes(Dictionary<string, string> attrs, RichTextTextNode node, FontManager fonts)
 		{
 			uint data = 0;
 			uint mask = 0;
@@ -256,11 +260,19 @@ namespace LibreLancer.Infocards
 			else if ((mask & TRA_italic) != 0)
 				node.Italic = (data & TRA_italic) != 0;
 
-			if ((def & TRA_font) != 0)
-				node.FontIndex = 0;
-			else if ((data & TRA_font) != 0)
-				node.FontIndex = (int)(data & TRA_font);
-
+            if ((def & TRA_font) != 0)
+            {
+                var d = fonts.GetInfocardFont(-1);
+                node.FontName = d.FontName;
+                node.FontSize = d.FontSize;
+                //node.FontIndex = 0;
+            }
+            else if ((data & TRA_font) != 0)
+            {
+                var d = fonts.GetInfocardFont((int)(data & TRA_font));
+                node.FontName = d.FontName;
+                node.FontSize = d.FontSize;
+            }
 			if ((def & TRA_underline) != 0)
 				node.Underline = false;
 			else if ((data & TRA_underline) != 0)

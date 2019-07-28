@@ -4,13 +4,13 @@
 
 
 using System;
-namespace LibreLancer.Infocards
+namespace LibreLancer
 {
 	public enum TextAlignment
 	{
-		Left,
-		Right,
-		Center
+		Left = 0,
+		Right = 1,
+		Center = 2
 	}
 }
 

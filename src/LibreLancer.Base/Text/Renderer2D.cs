@@ -39,7 +39,7 @@ namespace LibreLancer
 		uniform sampler2D tex;
 		void main()
 		{
-			float alpha = texture(tex, out_texcoord).r;
+			float alpha = pow(texture(tex, out_texcoord).r, 1.0 / 1.45);
 			out_color = vec4(blendColor.xyz, blendColor.a * alpha);
 		}
 		";
@@ -120,15 +120,14 @@ namespace LibreLancer
 
         public RichTextEngine CreateRichTextEngine()
         {
-            if(Platform.RunningOS == OS.Linux)
-            {
+            if (Platform.RunningOS == OS.Linux)
                 return new Text.Pango.PangoText(this);
-            }
+            else if (Platform.RunningOS == OS.Windows)
+                return new Text.DirectWrite.DirectWriteText(this);
             else
-            {
                 throw new NotImplementedException();
-            }
         }
+
         public Point MeasureString(Font font, float size, string str)
 		{
 			if (str == "") //skip empty str

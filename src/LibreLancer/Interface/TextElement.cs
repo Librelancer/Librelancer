@@ -43,7 +43,7 @@ namespace LibreLancer
                     var tSize = (int)GetTextSize(textR.Height / (float)Style.Lines);
                     int a;
                     int dY = 0;
-                    var wrapped = string.Join("\n", Infocards.InfocardDisplay.WrapText(
+                    var wrapped = string.Join("\n", TextUtils.WrapText(
                                               manager.Game.Renderer2D,
                                               manager.Font,
                                               tSize,
