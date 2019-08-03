@@ -38,6 +38,7 @@ namespace LancerEdit
 #endif
             mw = new MainWindow() { InitOpenFile = args };
             mw.Run();
+            mw.Config.Save();
 #if !DEBUG
             }
             catch(Exception ex)

@@ -68,10 +68,10 @@ namespace LancerEdit
                 rw = renderWidth;
                 rh = renderHeight;
             }
-            if (mw.MSAA != 0 && ((mrw != rw) || (mrh != rh) || (msamples != mw.MSAA)))
+            if (mw.Config.MSAA != 0 && ((mrw != rw) || (mrh != rh) || (msamples != mw.Config.MSAA)))
             {
                 if (msaa != null) msaa.Dispose();
-                msaa = new MultisampleTarget(rw, rh, mw.MSAA);
+                msaa = new MultisampleTarget(rw, rh, mw.Config.MSAA);
 
             } else if(msaa != null)
             {
@@ -81,7 +81,7 @@ namespace LancerEdit
                 msaa = null;
             }
             cc = rstate.ClearColor;
-            if (mw.MSAA != 0)
+            if (mw.Config.MSAA != 0)
                 msaa.Bind();
             else
                 RenderTarget.BindFramebuffer();
@@ -96,7 +96,7 @@ namespace LancerEdit
         {
             vps.Pop();
             RenderTarget2D.ClearBinding();
-            if (mw.MSAA != 0)
+            if (mw.Config.MSAA != 0)
                 msaa.BlitToRenderTarget(RenderTarget);
             rstate.ClearColor = cc;
             rstate.DepthEnabled = false;
@@ -111,52 +111,133 @@ namespace LancerEdit
                                   Vector4.One, Vector4.One);
                 if (ImGui.IsItemHovered(ImGuiHoveredFlags.None))
                 {
-                    var io = ImGui.GetIO();
-                    if (ImGui.IsMouseDragging(0, 1f))
+                    switch(mw.Config.CameraMode)
                     {
-                        var delta = (Vector2)ImGui.GetMouseDragDelta(0, 1f);
-                        ImGui.ResetMouseDragDelta(0);
-                        var rotmat = Matrix4.CreateRotationX(CameraRotation.Y) *
-                            Matrix4.CreateRotationY(CameraRotation.X);
-                        if (ImGui.IsMouseDown(1))
-                        {
-                            //LMB + RMB - Move up and down
-                            ImGui.ResetMouseDragDelta(1);
-                            var y = rotmat.Transform(Vector3.UnitY);
-                            CameraOffset += y * (delta.Y * ModelScale / 52f);
-                        }
-                        else
-                        {
-                            var z = rotmat.Transform(Vector3.UnitZ);
-                            var x = rotmat.Transform(Vector3.UnitX);
-
-                            CameraOffset += x * (delta.X * ModelScale / 52f);
-                            CameraOffset -= z * (delta.Y * ModelScale / 44f);
-                        }
+                        case CameraModes.Default:
+                            DefaultControls();
+                            break;
+                        case CameraModes.Orbit:
+                            OrbitControls();
+                            break;
                     }
-                    else if (ImGui.IsMouseDragging(1, 1f))
-                    {
-                        var delta = (Vector2)ImGui.GetMouseDragDelta(1, 1f);
-                        ImGui.ResetMouseDragDelta(1);
-                        if (io.KeyCtrl)
-                        {
-                            //CTRL + RMB - Rotate Model
-                            Rotation += (delta / 100) * new Vector2(1, -1);
-                        }
-                        else
-                        {
-                            //RMB - Rotate viewport camera
-                            CameraRotation -= (delta / 100);
-                            KeyboardControls();
-                        }
-                    }
-                    else if (io.MouseDown[1])
-                        KeyboardControls();
                 }
             }
         }
 
-        void KeyboardControls()
+        float GotoRadius => ModelScale * 5.2f;
+
+        public void GoTop()
+        {
+            Rotation = new Vector2(0, 0.5f * (float)Math.PI);
+            CameraOffset = new Vector3(0, 0, GotoRadius * 1.1f);
+        }
+
+        public void GoBottom()
+        {
+            Rotation = new Vector2(0, -0.5f * (float)Math.PI);
+            CameraOffset = new Vector3(0, 0, GotoRadius * 1.1f);
+        }
+
+        public void GoLeft()
+        {
+            CameraRotation = Vector2.Zero;
+            CameraOffset = new Vector3(0, 0, GotoRadius);
+            Rotation = new Vector2(0.5f * (float)Math.PI, 0);
+        }
+
+        public void GoRight()
+        {
+            CameraRotation = Vector2.Zero;
+            CameraOffset = new Vector3(0, 0, GotoRadius);
+            Rotation = new Vector2(-0.5f * (float)Math.PI, 0);
+        }
+
+        public void GoFront()
+        {
+            CameraRotation = Vector2.Zero;
+            CameraOffset = new Vector3(0, 0, GotoRadius);
+            Rotation = new Vector2((float)-Math.PI, 0);
+        }
+
+        public void GoBack()
+        {
+            CameraRotation = Vector2.Zero;
+            CameraOffset = new Vector3(0, 0, GotoRadius);
+            Rotation = Vector2.Zero;
+        }
+
+        void OrbitControls()
+        {
+            var io = ImGui.GetIO();
+            CameraRotation = Vector2.Zero;
+            CameraOffset.X = CameraOffset.Y = 0;
+            if (ImGui.IsMouseDragging(0, 1f))
+            {
+                var delta = (Vector2)ImGui.GetMouseDragDelta(0, 1f);
+                ImGui.ResetMouseDragDelta(0);
+                Rotation += (delta / 100) * new Vector2(1, -1);
+            }
+            else if (ImGui.IsMouseDragging(1, 1f))
+            {
+                var delta = (Vector2)ImGui.GetMouseDragDelta(1, 1f);
+                ImGui.ResetMouseDragDelta(1);
+                var mouseZoomStep = ModelScale / 56f;
+                CameraOffset.Z -= delta.Y * mouseZoomStep;
+            }
+            float wheel = ImGui.GetIO().MouseWheel;
+            var zoomStep = ModelScale * 1.05f;
+            if (io.KeyShift)
+                CameraOffset.Z -= wheel * (2 * zoomStep);
+            else
+                CameraOffset.Z -= wheel * zoomStep;
+            if (CameraOffset.Z < 0) CameraOffset.Z = 0;
+        }
+
+        void DefaultControls()
+        {
+            var io = ImGui.GetIO();
+            if (ImGui.IsMouseDragging(0, 1f))
+            {
+                var delta = (Vector2)ImGui.GetMouseDragDelta(0, 1f);
+                ImGui.ResetMouseDragDelta(0);
+                var rotmat = Matrix4.CreateRotationX(CameraRotation.Y) *
+                    Matrix4.CreateRotationY(CameraRotation.X);
+                if (ImGui.IsMouseDown(1))
+                {
+                    //LMB + RMB - Move up and down
+                    ImGui.ResetMouseDragDelta(1);
+                    var y = rotmat.Transform(Vector3.UnitY);
+                    CameraOffset += y * (delta.Y * ModelScale / 52f);
+                }
+                else
+                {
+                    var z = rotmat.Transform(Vector3.UnitZ);
+                    var x = rotmat.Transform(Vector3.UnitX);
+
+                    CameraOffset += x * (delta.X * ModelScale / 52f);
+                    CameraOffset -= z * (delta.Y * ModelScale / 44f);
+                }
+            }
+            else if (ImGui.IsMouseDragging(1, 1f))
+            {
+                var delta = (Vector2)ImGui.GetMouseDragDelta(1, 1f);
+                ImGui.ResetMouseDragDelta(1);
+                if (io.KeyCtrl)
+                {
+                    //CTRL + RMB - Rotate Model
+                    Rotation += (delta / 100) * new Vector2(1, -1);
+                }
+                else
+                {
+                    //RMB - Rotate viewport camera
+                    CameraRotation -= (delta / 100);
+                    DefaultKeyboardControls();
+                }
+            }
+            else if (io.MouseDown[1])
+                DefaultKeyboardControls();
+        }
+        void DefaultKeyboardControls()
         {
             var rotmat = Matrix4.CreateRotationX(CameraRotation.Y) *
                             Matrix4.CreateRotationY(CameraRotation.X);

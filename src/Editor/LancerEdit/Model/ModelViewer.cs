@@ -371,7 +371,39 @@ namespace LancerEdit
                 ImGui.PopItemWidth();
             }
             ImGui.EndChild();
+
+            if(_window.Config.ViewButtons)
+            {
+                ImGui.SetNextWindowPos(new Vector2(_window.Width - viewButtonsWidth, 90));
+                ImGui.Begin("viewButtons#" + Unique, ImGuiWindowFlags.AlwaysAutoResize |
+                ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove);
+                ImGui.Dummy(new Vector2(120, 2));
+                ImGui.Columns(2, "##border", false);
+                if (ImGui.Button("Top", new Vector2(55, 0)))
+                    modelViewport.GoTop();
+                ImGui.NextColumn();
+                if (ImGui.Button("Bottom", new Vector2(55, 0)))
+                    modelViewport.GoBottom();
+                ImGui.NextColumn();
+                if (ImGui.Button("Left", new Vector2(55, 0)))
+                    modelViewport.GoLeft();
+                ImGui.NextColumn();
+                if (ImGui.Button("Right", new Vector2(55, 0)))
+                    modelViewport.GoRight();
+                ImGui.NextColumn();
+                if (ImGui.Button("Front", new Vector2(55, 0)))
+                    modelViewport.GoFront();
+                ImGui.NextColumn();
+                if (ImGui.Button("Back", new Vector2(55, -1)))
+                    modelViewport.GoBack();
+                viewButtonsWidth = ImGui.GetWindowWidth() + 60;
+                ImGui.End();
+            }
         }
+        float viewButtonsWidth = 100;
+
+
+
 
         class HardpointGizmo
         {

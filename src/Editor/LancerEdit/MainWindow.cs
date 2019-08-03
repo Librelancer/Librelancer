@@ -56,12 +56,15 @@ namespace LancerEdit
         FileDialogFilters FreelancerIniFilter = new FileDialogFilters(
             new FileFilter("Freelancer.ini","freelancer.ini")
         );
-        public int MSAA = 0;
         int[] msaaLevels;
         string[] msaaStrings = { "None", "2x MSAA", "4x MSAA", "8x MSAA", "16x MSAA", "32x MSAA" };
         int cMsaa = 0;
+        string[] cameraModes;
+
+        public EditorConfiguration Config;
         public MainWindow() : base(800,600,false)
 		{
+
             Version = "LancerEdit " + Platform.GetInformationalVersion<MainWindow>();
 			MaterialMap = new MaterialMap();
 			MaterialMap.AddRegex(new LibreLancer.Ini.StringKeyValue("^nomad.*$", "NomadMaterialNoBendy"));
@@ -81,6 +84,7 @@ namespace LancerEdit
                     Bell.Play();
                 }
             };
+            Config = EditorConfiguration.Load();
             logBuffer = new TextBuffer(32768);
 		}
         double errorTimer = 0;
@@ -91,21 +95,7 @@ namespace LancerEdit
 			Audio = new AudioManager(this);
             FileDialog.RegisterParent(this);
 			Viewport = new ViewportManager(RenderState);
-            var texturefilters = new List<string>(defaultFilters);
-            if (RenderState.MaxAnisotropy > 0) {
-                anisotropyLevels = RenderState.GetAnisotropyLevels();
-                foreach(var lvl in anisotropyLevels) {
-                    texturefilters.Add(string.Format("Anisotropic {0}x", lvl));
-                }
-            }
-            var msaa = new List<int> { 0 };
-            int a = 2;
-            while(a <= RenderState.MaxSamples) {
-                msaa.Add(a);
-                a *= 2;
-            }
-            msaaLevels = msaa.ToArray();
-            filters = texturefilters.ToArray();
+            InitOptions();
 			Resources = new GameResourceManager(this);
 			Commands = new CommandBuffer();
 			Billboards = new Billboards();
@@ -135,6 +125,49 @@ namespace LancerEdit
             Fonts = new FontManager(this);
             Fonts.ConstructDefaultFonts();
             Services.Add(Fonts);
+        }
+
+        void InitOptions()
+        {
+            var texturefilters = new List<string>(defaultFilters);
+            if (RenderState.MaxAnisotropy > 0)
+            {
+                anisotropyLevels = RenderState.GetAnisotropyLevels();
+                foreach (var lvl in anisotropyLevels)
+                {
+                    texturefilters.Add(string.Format("Anisotropic {0}x", lvl));
+                }
+            }
+            var msaa = new List<int> { 0 };
+            int a = 2;
+            while (a <= RenderState.MaxSamples)
+            {
+                msaa.Add(a);
+                a *= 2;
+            }
+            msaaLevels = msaa.ToArray();
+            switch (Config.MSAA)
+            {
+                case 2:
+                    cMsaa = 1;
+                    break;
+                case 4:
+                    cMsaa = 2;
+                    break;
+                case 8:
+                    cMsaa = 3;
+                    break;
+                case 16:
+                    cMsaa = 4;
+                    break;
+                case 32:
+                    cMsaa = 5;
+                    break;
+            }
+            filters = texturefilters.ToArray();
+            cFilter = Config.TextureFilter;
+            SetTexFilter();
+            cameraModes = Enum.GetNames(typeof(CameraModes));
         }
 
         void Keyboard_KeyDown(KeyEventArgs e)
@@ -459,24 +492,15 @@ namespace LancerEdit
                 var pastC = cFilter;
                 ImGui.Combo("Texture Filter", ref cFilter, filters, filters.Length);
                 if(cFilter != pastC) {
-                    switch(cFilter) {
-                        case 0:
-                            RenderState.PreferredFilterLevel = TextureFiltering.Linear;
-                            break;
-                        case 1:
-                            RenderState.PreferredFilterLevel = TextureFiltering.Bilinear;
-                            break;
-                        case 2:
-                            RenderState.PreferredFilterLevel = TextureFiltering.Trilinear;
-                            break;
-                        default:
-                            RenderState.AnisotropyLevel = anisotropyLevels[cFilter - 3];
-                            RenderState.PreferredFilterLevel = TextureFiltering.Anisotropic;
-                            break;
-                    }
+                    SetTexFilter();
+                    Config.TextureFilter = cFilter;
                 }
                 ImGui.Combo("Antialiasing", ref cMsaa, msaaStrings, Math.Min(msaaLevels.Length, msaaStrings.Length));
-                MSAA = msaaLevels[cMsaa];
+                Config.MSAA = msaaLevels[cMsaa];
+                int cm = (int)Config.CameraMode;
+                ImGui.Combo("Camera Mode", ref cm, cameraModes, cameraModes.Length);
+                Config.CameraMode = (CameraModes)cm;
+                ImGui.Checkbox("View Buttons", ref Config.ViewButtons);
                 ImGui.End();
             }
 			ImGui.PopFont();
@@ -488,6 +512,27 @@ namespace LancerEdit
             }
             toAdd.Clear();
 		}
+
+        void SetTexFilter()
+        {
+            switch (cFilter)
+            {
+                case 0:
+                    RenderState.PreferredFilterLevel = TextureFiltering.Linear;
+                    break;
+                case 1:
+                    RenderState.PreferredFilterLevel = TextureFiltering.Bilinear;
+                    break;
+                case 2:
+                    RenderState.PreferredFilterLevel = TextureFiltering.Trilinear;
+                    break;
+                default:
+                    RenderState.AnisotropyLevel = anisotropyLevels[cFilter - 3];
+                    RenderState.PreferredFilterLevel = TextureFiltering.Anisotropic;
+                    break;
+            }
+        }
+
         string confirmText;
         bool doConfirm = false;
         Action confirmAction;
