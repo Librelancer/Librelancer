@@ -141,7 +141,7 @@ namespace LibreLancer
             horizontal = HorizontalTurnAngle * mouseScreenX;
             vertical = (mouseScreenY < 0.0f) ? VerticalTurnUpAngle * mouseScreenY : VerticalTurnDownAngle * mouseScreenY;
 
-            lookAhead = DampS(lookAhead, Quaternion.FromEulerAngles(MathHelper.DegreesToRadians(-vertical), MathHelper.DegreesToRadians(horizontal), 0), SmoothSpeed, (float)delta.TotalSeconds);
+            lookAhead = DampS(lookAhead, Quaternion.FromEulerAngles(MathHelper.DegreesToRadians(vertical), MathHelper.DegreesToRadians(horizontal), 0), SmoothSpeed, (float)delta.TotalSeconds);
         }
 
         void UpdateRotateTarget(TimeSpan delta)
@@ -171,19 +171,16 @@ namespace LibreLancer
             var lookAheadTransform = Matrix4.CreateFromQuaternion(lookAhead); //LookAhead Rig
             var camTransform = Matrix4.CreateTranslation(DesiredPositionOffset);
 
-            Vector3 lookaheadPosition = ChasePosition + ChaseOrientation.Transform(Vector3.Forward * 100);
-
+            Vector3 lookAheadPosition = ChasePosition + ChaseOrientation.Transform(Vector3.Forward * 100);
             var lookAheadStack = lookAheadTransform * rigTransform;
             var lookAheadRigUp = CalcDir(ref lookAheadStack, Vector3.Up);
 
-            var dir = lookaheadPosition - ChasePosition;
-            var cr = Quaternion.LookRotation(dir.Normalized(), lookAheadRigUp);
-            var camRotation = Matrix4.CreateFromQuaternion(Quaternion.LookRotation(lookaheadPosition - ChasePosition, lookAheadRigUp));
             var transformStack = camTransform * lookAheadTransform * rigTransform;
-            //var tr = camRotation * Matrix4.CreateTranslation(transformStack.Transform(Vector3.Zero));
+            var camRotation = Matrix4.CreateFromQuaternion(Quaternion.LookRotation(ChasePosition - lookAheadPosition, lookAheadRigUp));
+            var tr = camRotation * Matrix4.CreateTranslation(transformStack.Transform(Vector3.Zero));
 
             //TODO: Finish with lookahead rig. there's some maths that go crazy there but it's needed to get this to work at all
-            var tr = transformStack;
+            //var tr = transformStack;
             var v = tr;
             CameraUp = CalcDir(ref tr, Vector3.Up);
             Position = v.Transform(Vector3.Zero);
