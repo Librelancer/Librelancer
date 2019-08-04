@@ -17,5 +17,10 @@ namespace LibreLancer.Fx
         public int Index;
         public int EmitterIndex;
         public int BeamIndex;
-	}
+
+        public override string ToString()
+        {
+            return string.Format("*({0} {1})", Node.Name, Node.NodeName);
+        }
+    }
 }

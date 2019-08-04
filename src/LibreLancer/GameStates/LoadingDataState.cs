@@ -59,9 +59,9 @@ namespace LibreLancer
             Shaders("DepthPrepass_AlphaTest.vs", "DepthPrepass_AlphaTest.frag");
             Shaders("physicsdebug.vs", "physicsdebug.frag");
             Shaders("AsteroidBand.vs", "AsteroidBand.frag");
-            Shaders("Billboard.vs", "sun_radial.frag");
-            Shaders("Billboard.vs", "sun_spine.frag");
-            Shaders("Billboard.vs", "nebula_extpuff.frag");
+            Shaders("sun.vs", "sun_radial.frag");
+            Shaders("sun.vs", "sun_spine.frag");
+            Shaders("sun.vs", "nebula_extpuff.frag");
         }
 
         void Shaders(string vert, string frag, params ShaderCaps[] caps)

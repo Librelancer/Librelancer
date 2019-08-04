@@ -21,7 +21,8 @@ namespace LibreLancer
         ResourceManager resman;
         Billboards billboards;
 		List<ExteriorPuff> Exterior = new List<ExteriorPuff>();
-		public NebulaRenderer(Nebula n, ICamera c, Game g)
+        SystemRenderer sysr;
+		public NebulaRenderer(Nebula n, ICamera c, Game g, SystemRenderer sysr)
 		{
 			Nebula = n;
 			camera = c;
@@ -30,6 +31,7 @@ namespace LibreLancer
             render2D = g.GetService<Renderer2D>();
             resman = g.GetService<ResourceManager>();
             billboards = g.GetService<Billboards>();
+            this.sysr = sysr;
 			rand = new Random();
 			if (n.HasInteriorClouds)
 			{
@@ -243,7 +245,7 @@ namespace LibreLancer
 			bool inside = Nebula.Zone.Shape.ContainsPoint(camera.Position);
 			if (!inside || !FogTransitioned())
 				RenderFill(buffer, inside);
-			DrawPuffRing(inside);
+			DrawPuffRing(inside, buffer);
 			if (inside)
 			{
 				var ex = GetExclusion(camera.Position);
@@ -287,22 +289,64 @@ namespace LibreLancer
 			l0.Update(camera, TimeSpan.Zero);
 			l0.DrawBuffer(buffer, world, ref Lighting.Empty, null);
 		}
-        static Shader _puffringsh;
+        static ShaderVariables _puffringsh;
 		static int _ptex0;
-		static int _pfogcolor;
 		static int _pfogfactor;
-        Shader GetPuffShader(Billboards bl)
+
+        Shader GetPuffShader()
         {
 			if (_puffringsh == null)
 			{
-				_puffringsh = bl.GetShader("nebula_extpuff.frag");
-				_ptex0 = _puffringsh.GetLocation("tex0");
-				_pfogcolor = _puffringsh.GetLocation("FogColor");
-				_pfogfactor = _puffringsh.GetLocation("FogFactor");
+                _puffringsh = ShaderCache.Get("sun.vs", "nebula_extpuff.frag");
+				_ptex0 = _puffringsh.Shader.GetLocation("tex0");
+				_pfogfactor = _puffringsh.Shader.GetLocation("FogFactor");
 			}
-            return _puffringsh;
+            return _puffringsh.Shader;
         }
-		void DrawPuffRing(bool inside)
+
+        void AddPuffQuad(List<VertexBillboardColor2> vx, Vector3 pos, Vector2 size, Color4 c1, Color4 c2,
+            Vector2 tl,Vector2 tr, Vector2 bl, Vector2 br)
+        {
+            vx.Add(new VertexBillboardColor2(
+                pos, -0.5f * size.X, -0.5f * size.Y, 0,
+                c1, c2,
+                new Vector2(0, 0)
+            ));
+            vx.Add(new VertexBillboardColor2(
+                pos, 0.5f * size.X, -0.5f * size.Y, 0,
+                c1, c2,
+                new Vector2(1, 0)
+            ));
+            vx.Add(new VertexBillboardColor2(
+                pos, -0.5f * size.X, 0.5f * size.Y, 0,
+                c1, c2,
+                new Vector2(0, 1)
+            ));
+            vx.Add(new VertexBillboardColor2(
+                pos, 0.5f * size.X, 0.5f * size.Y, 0,
+                c1, c2,
+                new Vector2(1, 1)
+            ));
+        }
+
+        int puffId = 0;
+        VertexBillboardColor2[] puffVertices;
+        int GetPuffsIdx()
+        {
+            return sysr.StaticBillboards.DoVertices(ref puffId, puffVertices);
+        }
+        static ShaderAction puffSetup = SetupPuffShader;
+        static void SetupPuffShader(Shader sh, RenderState rs, ref RenderCommand dat)
+        {
+            sh.SetInteger(_ptex0, 0);
+            dat.UserData.Texture.BindTo(0);
+            sh.SetFloat(_pfogfactor, dat.UserData.Float);
+            rs.BlendMode = BlendMode.Normal;
+            rs.Cull = false;
+        }
+        static Action<RenderState> puffCleanup = (x) => x.Cull = true;
+
+        void DrawPuffRing(bool inside, CommandBuffer buffer)
 		{
             /* Skip rendering puff rings */
             if(!inside) {
@@ -322,46 +366,44 @@ namespace LibreLancer
             /* Actually Render */
 			var sd = 1 - MathHelper.Clamp(Nebula.Zone.Shape.ScaledDistance(camera.Position), 0f, 1f);
 			var factor = MathHelper.Clamp(sd / Nebula.Zone.EdgeFraction, 0, 1);
-
+            int idx = GetPuffsIdx();
+            string lastTex = null;
+            Texture2D tex = null;
+            var sh = GetPuffShader();
+            _puffringsh.SetView(camera);
+            _puffringsh.SetViewProjection(camera);
 			for (int i = 0; i < Exterior.Count; i++)
 			{
 				var p = Exterior[i];
-				var tex = resman.FindTexture(p.Shape.Texture);
-				billboards.DrawCustomShader(
-					GetPuffShader(billboards),
-					_setupPuffDelegate,
-					new RenderUserData() { Texture = tex, Color = Nebula.FogColor, Float = factor },
-					p.Position,
-					p.Size,
-					Nebula.ExteriorColor,
-					new Vector2(p.Shape.Dimensions.X, p.Shape.Dimensions.Y),
-					new Vector2(p.Shape.Dimensions.X + p.Shape.Dimensions.Width, p.Shape.Dimensions.Y),
-					new Vector2(p.Shape.Dimensions.X, p.Shape.Dimensions.Y + p.Shape.Dimensions.Height),
-					new Vector2(p.Shape.Dimensions.X + p.Shape.Dimensions.Width, p.Shape.Dimensions.Y + p.Shape.Dimensions.Height),
-					0,
-					inside ? SortLayers.NEBULA_INSIDE : SortLayers.NEBULA_NORMAL
-				);
+                if (p.Texture == null)
+                {
+                    lastTex = null;
+                    tex = resman.NullTexture;
+                }
+                else if (lastTex != p.Texture)
+                {
+                    tex = (Texture2D)resman.FindTexture(p.Texture);
+                    lastTex = p.Texture;
+                }
+                buffer.AddCommand(sh, puffSetup, puffCleanup, Matrix4.Identity,
+                    new RenderUserData() { Texture = tex, Float = factor }, sysr.StaticBillboards.VertexBuffer,
+                    PrimitiveTypes.TriangleList, idx, 2, true, inside ? SortLayers.NEBULA_INSIDE : SortLayers.NEBULA_NORMAL,
+                    RenderHelpers.GetZ(camera.Position, p.Position));
+                idx += 6;
 			}
-		}
-
-		static ShaderAction _setupPuffDelegate = SetupPuffShader;
-		static void SetupPuffShader(Shader sh, RenderState rs, ref RenderCommand dat)
-		{
-			sh.SetInteger(_ptex0, 0);
-			dat.UserData.Texture.BindTo(0);
-			sh.SetColor4(_pfogcolor, dat.UserData.Color);
-			sh.SetFloat(_pfogfactor, dat.UserData.Float);
 		}
 
 		void GenerateExteriorPuffs()
 		{
 			var rn = new Random(1001);
-			GeneratePuffRing(0.25f , rn);
-			GeneratePuffRing(0.5f, rn);
-			GeneratePuffRing(0.75f, rn);
+            var verts = new List<VertexBillboardColor2>();
+            GeneratePuffRing(0.25f, rn, verts);
+            GeneratePuffRing(0.5f, rn, verts);
+			GeneratePuffRing(0.75f, rn, verts);
+            puffVertices = verts.ToArray();
 		}
 
-		void GeneratePuffRing(float ypct, Random rn)
+		void GeneratePuffRing(float ypct, Random rn, List<VertexBillboardColor2> verts)
 		{
 			Vector3 sz = Vector3.Zero;
 			//Only render ellipsoid and sphere exteriors
@@ -377,31 +419,35 @@ namespace LibreLancer
 			double delta_angle = (2 * Math.PI) / puffcount;
 			for (int i = 0; i < puffcount; i++)
 			{
-				var puff = new ExteriorPuff();
 				var y = rn.NextFloat(
 					yval - (sz.Y * Nebula.ExteriorMoveBitPercent),
 					yval + (sz.Y * Nebula.ExteriorMoveBitPercent)
 				);
 				var pos = PrimitiveMath.GetPointOnRadius(sz, y, (float)current_angle);
-				puff.Position = Nebula.Zone.Position + new Vector3(pos.X, pos.Y - (sz.Y / 2), pos.Z);
+				var puffPos = Nebula.Zone.Position + new Vector3(pos.X, pos.Y - (sz.Y / 2), pos.Z);
 				var radius = rn.NextFloat(
 					Nebula.ExteriorBitRadius * (1 - Nebula.ExteriorBitRandomVariation),
 					Nebula.ExteriorBitRadius * (1 + Nebula.ExteriorBitRandomVariation)
 				);
-				puff.Size = new Vector2(radius * 2);
-				puff.Shape = Nebula.ExteriorCloudShapes.GetNext();
-				Exterior.Add(puff);
+                var puffSize = new Vector2(radius * 2);
+                var shape = Nebula.ExteriorCloudShapes.GetNext();
+                AddPuffQuad(verts, puffPos, puffSize, Nebula.ExteriorColor, Nebula.FogColor,
+                    new Vector2(shape.Dimensions.X, shape.Dimensions.Y),
+                    new Vector2(shape.Dimensions.X + shape.Dimensions.Width, shape.Dimensions.Y),
+                    new Vector2(shape.Dimensions.X, shape.Dimensions.Y + shape.Dimensions.Height),
+                    new Vector2(shape.Dimensions.X + shape.Dimensions.Width, shape.Dimensions.Y + shape.Dimensions.Height)
+                );
+                Exterior.Add(new ExteriorPuff() { Position = puffPos, Texture = shape.Texture });
 				current_angle += delta_angle;
 			}
 		}
-		struct ExteriorPuff
-		{
-			public Vector3 Position;
-			public Vector2 Size;
-			public CloudShape Shape;
-		}
 
-		struct InteriorPuff
+        struct ExteriorPuff
+        {
+            public Vector3 Position;
+            public string Texture;
+        }
+        struct InteriorPuff
 		{
 			public bool Spawned;
 			public Vector3 Position;

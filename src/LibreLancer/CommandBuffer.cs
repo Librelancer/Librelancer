@@ -176,25 +176,9 @@ namespace LibreLancer
 				Z = z
 			};
 		}
-		public void AddCommand(Billboards billboards, Shader shader, ShaderAction setup, RenderUserData userData, int indexStart, int layer, float z)
-		{
-			Transparents[transparentCommand++] = new RenderCommand()
-			{
-				CmdType = RenderCmdType.BillboardCustom,
-				Source = billboards,
-				ShaderSetup = setup,
-				UserData = userData,
-				Index = indexStart,
-				Cleanup = shader,
-				SortLayer = layer,
-				Z = z
-			};
-		}
+
 		public void DrawOpaque(RenderState state)
 		{
-            //_sorted = false;
-            //_filled = false;
-            //AsyncManager.RunTask (_transparentSort);
             SortTransparent();
             FillBillboards();
 		}
@@ -226,11 +210,6 @@ namespace LibreLancer
 					var bb = (Billboards)Transparents[cmdptr[i]].Source;
 					bb.AddIndices(Transparents[cmdptr[i]].Index);
 				}
-				if (Transparents[cmdptr[i]].CmdType == RenderCmdType.BillboardCustom)
-				{
-					var bb = (Billboards)Transparents[cmdptr[i]].Source;
-					bb.AddCustomIndices(Transparents[cmdptr[i]].Index);
-				}
 			}
 		}
 
@@ -241,7 +220,7 @@ namespace LibreLancer
 		  	Billboards lastbb = null;
 			for (int i = transparentCommand - 1; i >= 0; i--)
 			{
-				if (lastbb != null && Transparents[cmdptr[i]].CmdType != RenderCmdType.Billboard && Transparents[cmdptr[i]].CmdType != RenderCmdType.BillboardCustom)
+				if (lastbb != null && Transparents[cmdptr[i]].CmdType != RenderCmdType.Billboard)
 				{
 					lastbb.FlushCommands(state);
 					lastbb = null;
@@ -276,8 +255,7 @@ namespace LibreLancer
 		Material,
         MaterialFade,
 		Shader,
-		Billboard,
-		BillboardCustom
+		Billboard
 	}
 	public struct RenderCommand
 	{
@@ -358,12 +336,7 @@ namespace LibreLancer
 			else if (CmdType == RenderCmdType.Billboard)
 			{
 				var Billboards = (Billboards)Source;
-				Billboards.RenderStandard(Index, Hash, state);
-			}
-			else if (CmdType == RenderCmdType.BillboardCustom)
-			{
-				var billboards = (Billboards)Source;
-				billboards.RenderCustom(state, (Shader)Cleanup, ShaderSetup, ref this);
+				Billboards.Render(Index, Hash, state);
 			}
 		}
 	}

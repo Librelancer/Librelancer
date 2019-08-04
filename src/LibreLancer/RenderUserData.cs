@@ -9,7 +9,6 @@ namespace LibreLancer
 	{
 		public ICamera Camera;
 		public Color4 Color;
-		public Color4 Color2;
 		public Texture Texture;
 		public float Float;
 	}

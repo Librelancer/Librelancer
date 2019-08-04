@@ -97,52 +97,6 @@ namespace LibreLancer
 			buffer = cmd;
             verticesBasic = (BillboardVert*)vboBasic.BeginStreaming();
 		}
-        public Shader GetShader(string shader)
-        {
-            return ShaderCache.Get(
-                "Billboard.vs",
-                shader
-            ).Shader;
-        }
-
-		public void DrawCustomShader(
-			Shader shader,
-			ShaderAction setup,
-			RenderUserData userData,
-			Vector3 Position,
-			Vector2 size,
-			Color4 color,
-			Vector2 topleft,
-			Vector2 topright,
-			Vector2 bottomleft,
-			Vector2 bottomright,
-			float angle,
-			int layer,
-			float z = float.NegativeInfinity
-		)
-		{
-			int vc = vertexCountBasic;
-			CreateBillboard(
-				Position,
-				size,
-				color,
-				angle,
-				topleft,
-				topright,
-				bottomleft,
-				bottomright
-			);
-			buffer.AddCommand(
-				this,
-				shader,
-				setup,
-				userData,
-				vc,
-				layer,
-				float.IsNegativeInfinity(z) ? RenderHelpers.GetZ(Matrix4.Identity, camera.Position, Position) : z
-			);
-
-		}
 
 		/* Some pre-calculated values */
 		const float cos120 = -0.5000001f;
@@ -323,46 +277,8 @@ namespace LibreLancer
             _iboFilled = false;
         }
 
-		public void AddCustomIndices(int idxStart)
-		{
-            indicesBasic[fillCountBasic++] = (ushort)idxStart;
-			indicesBasic[fillCountBasic++] = (ushort)(idxStart + 1);
-			indicesBasic[fillCountBasic++] = (ushort)(idxStart + 2);
-			indicesBasic[fillCountBasic++] = (ushort)(idxStart + 1);
-			indicesBasic[fillCountBasic++] = (ushort)(idxStart + 3);
-			indicesBasic[fillCountBasic++] = (ushort)(idxStart + 2);
-			_iboFilled = false;
-		}
-
-		public void RenderCustom(RenderState rs, Shader shdr, ShaderAction customAction, ref RenderCommand cmd)
-		{
-			FlushCommands(rs);
-			//Setup shader default state
-			rs.Cull = false;
-			rs.BlendMode = BlendMode.Normal;
-			var splt = new SplitInt() { I = shdr.UserTag };
-			if (shdr.UserTag == 0)
-			{
-				splt.A = (short)shdr.GetLocation("View");
-				splt.B = (short)shdr.GetLocation("ViewProjection");
-				shdr.UserTag = splt.I;
-			}
-			var view = camera.View;
-			shdr.SetMatrix(splt.A, ref view);
-			var vp = camera.ViewProjection;
-			shdr.SetMatrix(splt.B, ref vp);
-			//User-defined
-			customAction(shdr, rs, ref cmd);
-			//Draw
-			vboBasic.Draw(PrimitiveTypes.TriangleList, 0, lastIndexBasic, 2);
-			//Set stuff
-			rs.Cull = true;
-			lastDatHash = -1;
-			lastIndexBasic += 6;
-		}
-
         bool _iboFilled = false;
-		public void RenderStandard(int index, int hash, RenderState rs)
+		public void Render(int index, int hash, RenderState rs)
 		{
 			if (hash != lastDatHash && lastDatHash != -1)
 				FlushCommands(rs);
@@ -384,6 +300,7 @@ namespace LibreLancer
 
         void DrawCommands(RenderState rs, int start, int count)
         {
+            shaderBasic.UseProgram();
             rs.Cull = false;
 
             rs.BlendMode = rendat[datindex].BlendMode;

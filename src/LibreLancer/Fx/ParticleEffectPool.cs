@@ -20,7 +20,7 @@ namespace LibreLancer.Fx
         const int MAX_APP_PARTICLES = 5000;
 
         public Particle[] Particles = new Particle[MAX_PARTICLES];
-        public Queue<int> FreeParticles = new Queue<int>();
+        public Stack<int> FreeParticles = new Stack<int>();
 
         ElementBuffer ibo;
         VertexBuffer vbo;
@@ -100,9 +100,9 @@ namespace LibreLancer.Fx
         {
             cmd = commands;
             //Free particles (is this efficient?)
-            for(int i = 0; i < MAX_PARTICLES; i++)
+            for(int i = MAX_PARTICLES - 1; i >= 0; i--)
             {
-                FreeParticles.Enqueue(i);
+                FreeParticles.Push(i);
             }
             //Set up vertices
             vbo = new VertexBuffer(typeof(ParticleVertex), MAX_PARTICLES * 4, true);
@@ -139,8 +139,9 @@ namespace LibreLancer.Fx
                 if (Particles[i].TimeAlive >= Particles[i].LifeSpan)
                 {
                     Particles[i].Active = false;
+                    Particles[i].Instance.ParticleCounts[Particles[i].Emitter.EmitterIndex]--;
                     Particles[i].Instance = null;
-                    FreeParticles.Enqueue(i);
+                    FreeParticles.Push(i);
                     continue;
                 }
                 maxActive = Math.Max(maxActive, i);
@@ -158,7 +159,7 @@ namespace LibreLancer.Fx
                     Particles[i].Active = false;
                     Particles[i].Instance.ParticleCounts[Particles[i].Emitter.EmitterIndex]--;
                     Particles[i].Instance = null;
-                    FreeParticles.Enqueue(i);
+                    FreeParticles.Push(i);
                 }
             }
         }
@@ -167,7 +168,7 @@ namespace LibreLancer.Fx
         {
             if (FreeParticles.Count > 0)
             {
-                var p = FreeParticles.Dequeue();
+                var p = FreeParticles.Pop();
                 maxActive = Math.Max(p, maxActive);
                 return p;
             }

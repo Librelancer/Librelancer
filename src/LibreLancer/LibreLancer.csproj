@@ -407,6 +407,7 @@
     <Compile Include="Gameplay\ServerWorld.cs" />
     <Compile Include="Gameplay\Components\ShipInputComponent.cs" />
     <Compile Include="Interface\TextUtils.cs" />
+    <Compile Include="Render\StaticBillboards.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -454,6 +455,7 @@
     <EmbeddedResource Include="Interface\Default\baseside.xml" />
     <EmbeddedResource Include="Interface\Default\loading.xml" />
     <EmbeddedResource Include="Shaders\Particle.vs" />
+    <EmbeddedResource Include="Shaders\sun.vs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

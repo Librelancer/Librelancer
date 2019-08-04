@@ -8,6 +8,7 @@ namespace LibreLancer
 	public class ShaderVariables
 	{
 		int viewPosition;
+        int projectionPosition;
 		int viewProjectionPosition;
 		int worldPosition;
 		int normalMatrixPosition;
@@ -51,6 +52,7 @@ namespace LibreLancer
 
 			viewPosition = sh.GetLocation("View");
 			viewProjectionPosition = sh.GetLocation("ViewProjection");
+            projectionPosition = sh.GetLocation("Projection");
 			worldPosition = sh.GetLocation("World");
 			normalMatrixPosition = sh.GetLocation("NormalMatrix");
 
@@ -125,6 +127,7 @@ namespace LibreLancer
         ICamera _camera;
         long _vframeNumber;
         long _vpframeNumber;
+        long _pframeNumber;
 
         public void SetView(ICamera camera)
         {
@@ -135,6 +138,17 @@ namespace LibreLancer
             var v = camera.View;
             if (viewPosition != -1)
                 shader.SetMatrix(viewPosition, ref v);
+        }
+
+        public void SetProjection(ICamera camera)
+        {
+            if (camera == _camera && camera.FrameNumber == _pframeNumber)
+                return;
+            _camera = camera;
+            _pframeNumber = camera.FrameNumber;
+            var v = camera.Projection;
+            if (projectionPosition != -1)
+                shader.SetMatrix(projectionPosition, ref v);
         }
 
         public void SetViewProjection(ICamera camera)

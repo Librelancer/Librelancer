@@ -44,6 +44,7 @@ namespace LibreLancer
 		public PolylineRender Polyline;
 		public SystemLighting SystemLighting = new SystemLighting();
         public ParticleEffectPool FxPool;
+        public StaticBillboards StaticBillboards = new StaticBillboards();
 		ResourceManager cache;
 		RenderState rstate;
 		Game game;
@@ -153,7 +154,7 @@ namespace LibreLancer
 			{
 				foreach (var n in system.Nebulae)
 				{
-					Nebulae.Add(new NebulaRenderer(n, camera, Game));
+					Nebulae.Add(new NebulaRenderer(n, camera, Game, this));
 				}
 			}
 
@@ -420,6 +421,7 @@ namespace LibreLancer
 			Polyline.Dispose();
             FxPool.Dispose();
 			DebugRenderer.Dispose();
+            StaticBillboards.Dispose();
 		}
 	}
 }

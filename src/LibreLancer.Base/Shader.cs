@@ -51,6 +51,7 @@ namespace LibreLancer
             GL.BindAttribLocation(programID, VertexSlots.Position, "vertex_position");
             GL.BindAttribLocation(programID, VertexSlots.Normal, "vertex_normal");
             GL.BindAttribLocation(programID, VertexSlots.Color, "vertex_color");
+            GL.BindAttribLocation(programID, VertexSlots.Color2, "vertex_color2");
             GL.BindAttribLocation(programID, VertexSlots.Texture1, "vertex_texture1");
 			GL.BindAttribLocation (programID, VertexSlots.Texture2, "vertex_texture2");
 			GL.BindAttribLocation (programID, VertexSlots.Dimensions, "vertex_dimensions");

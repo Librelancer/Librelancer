@@ -18,10 +18,12 @@ namespace LibreLancer
             if (effect == null) return;
 			fx = new ParticleEffectInstance(effect);
 		}
+        Vector3 cameraPos;
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
         {
             if (fx == null) return false;
             this.sys = sys;
+            cameraPos = camera.Position;
             dist = VectorMath.DistanceSquared(pos, camera.Position);
             fx.Resources = sys.ResourceManager;
             if (Active && dist < (20000 * 20000))
@@ -35,13 +37,14 @@ namespace LibreLancer
         }
 		Matrix4 tr;
 		Vector3 pos;
-		float dist = 0;
+        float dist = float.MaxValue;
 		const float CULL_DISTANCE = 20000;
 		const float CULL = CULL_DISTANCE * CULL_DISTANCE;
 		public override void Update(TimeSpan time, Vector3 position, Matrix4 transform)
 		{
             if (fx == null) return;
 			pos = position;
+            dist = VectorMath.DistanceSquared(position, cameraPos);
 			if (Active && dist < CULL)
 			{
 				tr = transform;
