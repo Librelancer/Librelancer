@@ -97,7 +97,6 @@ static PangoAlignment convert_alignment(PGAlign alignment)
 
 PGBuiltText *pg_buildtext(PGRenderContext* ctx, char **markups, PGAlign* aligns, int paragraphCount, int width)
 {
-	printf("creating with width %d\n",width);
 	PangoLayout **layouts = (PangoLayout**)malloc(sizeof(PangoLayout**) * paragraphCount);
 	for(int i = 0; i < paragraphCount; i++) {
 		PangoLayout *layout = pango_layout_new(ctx->pangoContext);
@@ -117,7 +116,6 @@ PGBuiltText *pg_buildtext(PGRenderContext* ctx, char **markups, PGAlign* aligns,
 
 void pg_updatewidth(PGBuiltText *text, int width)
 {
-	printf("updating width to %d\n", width);
 	for(int i = 0; i < text->layoutCount; i++) {
 		PangoLayout *layout = text->layouts[i];
 		pango_layout_set_width(layout, width * PANGO_SCALE);

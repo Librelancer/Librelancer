@@ -9,7 +9,7 @@ using LibreLancer.Vertices;
 
 namespace LibreLancer
 {
-	public class Renderer2D : IDisposable
+	public unsafe class Renderer2D : IDisposable
 	{
 		const int MAX_GLYPHS = 256; //256 rendered glyphs per drawcall
 		const int MAX_VERT = MAX_GLYPHS * 4;
@@ -85,7 +85,7 @@ namespace LibreLancer
 		RenderState rs;
 		VertexBuffer vbo;
 		ElementBuffer el;
-		Vertex2D[] vertices;
+        Vertex2D* vertices;
 		Shader textShader;
 		Shader imgShader;
 		Texture2D dot;
@@ -100,7 +100,7 @@ namespace LibreLancer
 			vbo = new VertexBuffer (typeof(Vertex2D), MAX_VERT, true);
 			el = new ElementBuffer (MAX_INDEX);
 			var indices = new ushort[MAX_INDEX];
-			vertices = new Vertex2D[MAX_VERT];
+			//vertices = new Vertex2D[MAX_VERT];
 			int iptr = 0;
 			for (int i = 0; i < MAX_VERT; i += 4) {
 				/* Triangle 1 */
@@ -123,9 +123,15 @@ namespace LibreLancer
             if (Platform.RunningOS == OS.Linux)
                 return new Text.Pango.PangoText(this);
             else if (Platform.RunningOS == OS.Windows)
-                return new Text.DirectWrite.DirectWriteText(this);
+                //Different method
+                //So we don't have to load SharpDX on linux
+                return DWriteEngine(); 
             else
                 throw new NotImplementedException();
+        }
+        RichTextEngine DWriteEngine()
+        {
+            return new Text.DirectWrite.DirectWriteText(this);
         }
 
         public Point MeasureString(Font font, float size, string str)
@@ -188,6 +194,7 @@ namespace LibreLancer
 			textShader.SetMatrix (textShader.GetLocation("modelviewproj"), ref mat);
 			imgShader.SetMatrix (imgShader.GetLocation("modelviewproj"), ref mat);
 			currentMode = BlendMode.Normal;
+            vertices = (Vertex2D*)vbo.BeginStreaming();
 		}
 
 		public void DrawWithClip(Rectangle clip, Action drawfunc)
@@ -516,6 +523,7 @@ namespace LibreLancer
 			if (!active)
 				throw new InvalidOperationException ("TextRenderer.Start() must be called before TextRenderer.Finish()");
 			Flush ();
+            vbo.EndStreaming(0);
 			active = false;
 		}
 
@@ -528,10 +536,12 @@ namespace LibreLancer
 			rs.DepthEnabled = false;
 			currentTexture.BindTo (0);
 			currentShader.UseProgram ();
-			vbo.SetData (vertices, vertexCount);
-			vbo.Draw (PrimitiveTypes.TriangleList, primitiveCount);
 
-			vertexCount = 0;
+            //vbo.SetData (vertices, vertexCount);
+            vbo.EndStreaming(vertexCount);
+			vbo.Draw (PrimitiveTypes.TriangleList, primitiveCount);
+            vertices = (Vertex2D*)vbo.BeginStreaming();
+            vertexCount = 0;
 			primitiveCount = 0;
 			currentTexture = null;
 			rs.Cull = true;

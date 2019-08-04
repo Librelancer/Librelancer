@@ -105,7 +105,7 @@ namespace LibreLancer
 			TotalDrawcalls++;
 		}
 
-        const int STREAM_FLAGS = GL.GL_MAP_WRITE_BIT | GL.GL_MAP_INVALIDATE_BUFFER_BIT | GL.GL_MAP_UNSYNCHRONIZED_BIT;
+        const int STREAM_FLAGS = GL.GL_MAP_WRITE_BIT | GL.GL_MAP_INVALIDATE_BUFFER_BIT;
         public IntPtr BeginStreaming()
         {
             if (!streaming) throw new InvalidOperationException("not streaming buffer");
