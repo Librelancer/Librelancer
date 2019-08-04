@@ -123,6 +123,7 @@ namespace LibreLancer
             else
             {
                 Bind();
+                GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
                 return GL.MapBufferRange(GL.GL_ARRAY_BUFFER, IntPtr.Zero, (IntPtr)(size * decl.Stride), STREAM_FLAGS);
             }
         }
@@ -142,6 +143,7 @@ namespace LibreLancer
             else
             {
                 Bind();
+                GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
                 GL.UnmapBuffer(GL.GL_ARRAY_BUFFER);
             }
         }
