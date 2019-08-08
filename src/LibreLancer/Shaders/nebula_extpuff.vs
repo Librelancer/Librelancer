@@ -11,7 +11,7 @@ out vec4 outercolor;
 
 uniform mat4 View;
 uniform mat4 ViewProjection;
-uniform vec2 SizeMultiplier;
+
 
 void main()
 {
@@ -26,13 +26,12 @@ void main()
         View[1][1],
         View[2][1]
     );
-    vec2 dimensions = SizeMultiplier * vertex_dimensions.xy;
     //Billboard calculation
     float s = sin(vertex_dimensions.z);
     float c = cos(vertex_dimensions.z);
     vec3 up = c * srcRight - s * srcUp;
     vec3 right = s * srcRight + c * srcUp;
-    vec3 pos = vertex_position + (right * dimensions.x) + (up * dimensions.y);
+    vec3 pos = vertex_position + (right * vertex_dimensions.x) + (up * vertex_dimensions.y);
     gl_Position = ViewProjection * vec4(pos, 1);
     //pass-through to fragment
     uv = vertex_texture1;

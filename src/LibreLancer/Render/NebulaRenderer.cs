@@ -297,7 +297,7 @@ namespace LibreLancer
         {
 			if (_puffringsh == null)
 			{
-                _puffringsh = ShaderCache.Get("sun.vs", "nebula_extpuff.frag");
+                _puffringsh = ShaderCache.Get("nebula_extpuff.vs", "nebula_extpuff.frag");
 				_ptex0 = _puffringsh.Shader.GetLocation("tex0");
 				_pfogfactor = _puffringsh.Shader.GetLocation("FogFactor");
 			}

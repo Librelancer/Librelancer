@@ -61,7 +61,7 @@ namespace LibreLancer
             Shaders("AsteroidBand.vs", "AsteroidBand.frag");
             Shaders("sun.vs", "sun_radial.frag");
             Shaders("sun.vs", "sun_spine.frag");
-            Shaders("sun.vs", "nebula_extpuff.frag");
+            Shaders("nebula_extpuff.vs", "nebula_extpuff.frag");
         }
 
         void Shaders(string vert, string frag, params ShaderCaps[] caps)

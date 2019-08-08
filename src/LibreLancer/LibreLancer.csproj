@@ -456,6 +456,7 @@
     <EmbeddedResource Include="Interface\Default\loading.xml" />
     <EmbeddedResource Include="Shaders\Particle.vs" />
     <EmbeddedResource Include="Shaders\sun.vs" />
+    <EmbeddedResource Include="Shaders\nebula_extpuff.vs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

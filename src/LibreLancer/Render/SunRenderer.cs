@@ -97,6 +97,9 @@ namespace LibreLancer
         static ShaderVariables spineShader;
         static int radialTex0;
         static int spineTex0;
+        static int radialSize;
+        static int spineSize;
+        static int radialAlpha;
         static ShaderAction RadialSetup = (Shader shdr, RenderState res, ref RenderCommand cmd) =>
         {
             if (cmd.UserData.Float == 0)
@@ -104,6 +107,8 @@ namespace LibreLancer
             else
                 res.BlendMode = BlendMode.Normal;
             shdr.SetInteger(radialTex0, 0);
+            shdr.SetVector2(radialSize, new Vector2(cmd.UserData.Color.R));
+            shdr.SetFloat(radialAlpha, cmd.UserData.Color.G);
             cmd.UserData.Texture.BindTo(0);
             res.Cull = false;
         };
@@ -111,6 +116,7 @@ namespace LibreLancer
         {
             res.BlendMode = BlendMode.Normal;
             shdr.SetInteger(spineTex0, 0);
+            shdr.SetVector2(spineSize, Vector2.One);
             cmd.UserData.Texture.BindTo(0);
             res.Cull = false;
         };
@@ -126,18 +132,21 @@ namespace LibreLancer
             float z = RenderHelpers.GetZ(Matrix4.Identity, camera.Position, pos);
             if (z > 900000) // Reduce artefacts from fast Z-sort calculation. This'll probably cause issues somewhere else
                 z = 900000;
-            //var dist_scale = nr != null ? nr.Nebula.SunBurnthroughScale : 1; // TODO: Modify this based on nebula burn-through.
-            //var alpha = nr != null ? nr.Nebula.SunBurnthroughIntensity : 1;
-            //var glow_scale = dist_scale * Sun.GlowScale;
+            var dist_scale = nr != null ? nr.Nebula.SunBurnthroughScale : 1;
+            var alpha = nr != null ? nr.Nebula.SunBurnthroughIntensity : 1;
+
             if (radialShader == null)
             {
                 radialShader = ShaderCache.Get("sun.vs", "sun_radial.frag");
                 radialTex0 = radialShader.Shader.GetLocation("tex0");
+                radialSize = radialShader.Shader.GetLocation("SizeMultiplier");
+                radialAlpha = radialShader.Shader.GetLocation("outerAlpha");
             }
             if (spineShader == null)
             {
                 spineShader = ShaderCache.Get("sun.vs", "sun_spine.frag");
                 spineTex0 = spineShader.Shader.GetLocation("tex0");
+                spineSize = spineShader.Shader.GetLocation("SizeMultiplier");
             } 
             radialShader.SetViewProjection(camera);
             radialShader.SetView(camera);
@@ -151,7 +160,7 @@ namespace LibreLancer
                 //draw center
                 var cr = (Texture2D)sysr.ResourceManager.FindTexture(Sun.CenterSprite);
                 commands.AddCommand(radialShader.Shader, RadialSetup, Cleanup, Matrix4.Identity,
-                new RenderUserData() { Float = 0, Texture = cr }, sysr.StaticBillboards.VertexBuffer, PrimitiveTypes.TriangleList,
+                new RenderUserData() { Float = 0, Color = new Color4(dist_scale,alpha,0,0), Texture = cr }, sysr.StaticBillboards.VertexBuffer, PrimitiveTypes.TriangleList,
                 idx, 2, true, SortLayers.SUN, z);
                 //next
                 idx += 6;
@@ -159,7 +168,7 @@ namespace LibreLancer
             //draw glow
             var gr = (Texture2D)sysr.ResourceManager.FindTexture(Sun.GlowSprite);
             commands.AddCommand(radialShader.Shader, RadialSetup, Cleanup, Matrix4.Identity,
-                new RenderUserData() { Float = 1, Texture = gr }, sysr.StaticBillboards.VertexBuffer, PrimitiveTypes.TriangleList,
+                new RenderUserData() { Float = 1, Color = new Color4(dist_scale, alpha, 0, 0), Texture = gr }, sysr.StaticBillboards.VertexBuffer, PrimitiveTypes.TriangleList,
                 idx, 2, true, SortLayers.SUN, z + 108f);
             //next
             idx += 6;
