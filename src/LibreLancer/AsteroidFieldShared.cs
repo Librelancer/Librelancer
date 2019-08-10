@@ -60,10 +60,15 @@ namespace LibreLancer
 				return false;
 			//integer hash
 			var u = (uint*)&cubePos;
-			var h = hash (u [0]) ^ hash (u [1]) ^ hash (u [2]);
-			//get float
-			test_value = constructFloat(h);
-			return test_value < empty_frequency;
+            uint h = hash(u[0]);
+            unchecked
+            {
+                h = (3 * h) + hash(u[1]);
+                h = (7 * h) + hash(u[2]);
+            }
+            //get float
+            test_value = constructFloat(h);
+			return test_value > empty_frequency;
 		}
 		//return a float between [0,1] for a hash
 		static unsafe float constructFloat(uint m)
@@ -78,12 +83,15 @@ namespace LibreLancer
 		//simple hash function
 		static uint hash(uint x)
 		{
-			x += (x << 10);
-			x ^= (x >> 6);
-			x += (x << 3);
-			x ^= (x >> 11);
-			x += (x << 15);
-			return x;
+            unchecked
+            {
+                x += (x << 10);
+                x ^= (x >> 6);
+                x += (x << 3);
+                x ^= (x >> 11);
+                x += (x << 15);
+                return x;
+            }
 		}
 	}
 }
