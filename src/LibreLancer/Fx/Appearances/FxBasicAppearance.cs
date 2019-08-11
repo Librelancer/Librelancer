@@ -189,12 +189,14 @@ namespace LibreLancer.Fx
 					frame = Animation.GetValue(sparam, particle.TimeAlive / particle.LifeSpan);
 				}
 				frame = MathHelper.Clamp(frame, 0, 1);
-				var frameNo = (int)Math.Floor(frame / _frame.FrameCount);
+                var frameNo = (int)Math.Floor((_frame.FrameCount - 1) * frame);
 				var rect = _frame.Frames[frameNo];
-				tl = new Vector2(rect.X, rect.Y);
-				tr = new Vector2(rect.X + rect.Width, rect.Y);
-				bl = new Vector2(rect.X, rect.Y + rect.Height);
-				br = new Vector2(rect.X + rect.Width, rect.Y + rect.Height);
+                var uv1 = new Vector2(rect.UV1.X, 1 - rect.UV1.Y);
+                var uv2 = new Vector2(rect.UV2.X, 1 - rect.UV2.Y);
+                tl = uv1;
+                tr = new Vector2(uv2.X, uv1.Y);
+                bl = new Vector2(uv1.X, uv2.Y);
+                br = uv2;
 			}
 			//Flip
 			if (FlipHorizontal)

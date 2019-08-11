@@ -23,7 +23,7 @@ namespace LibreLancer
         public abstract OpenCylinder GetOpenCylinder(int slices);
         public abstract Dictionary<string, Texture> TextureDictionary { get; }
         public abstract Dictionary<uint, Material> MaterialDictionary { get; }
-
+        public abstract Dictionary<string, TexFrameAnimation> AnimationDictionary { get; }
         public Material DefaultMaterial;
         public Texture2D NullTexture;
         public Texture2D WhiteTexture;
@@ -47,6 +47,7 @@ namespace LibreLancer
 
         public override Dictionary<string, Texture> TextureDictionary => throw new InvalidOperationException();
         public override Dictionary<uint, Material> MaterialDictionary => throw new InvalidOperationException();
+        public override Dictionary<string, TexFrameAnimation> AnimationDictionary => throw new InvalidOperationException();
 
         public override void AllocateVertices<T>(T[] vertices, ushort[] indices, out int startIndex, out int baseVertex, out VertexBuffer vbo, out IndexResourceHandle index)
         {
@@ -167,7 +168,9 @@ namespace LibreLancer
 				return materials;
 			}
 		}
-		public GameResourceManager(Game g) : this()
+        public override Dictionary<string, TexFrameAnimation> AnimationDictionary => frameanims;
+
+        public GameResourceManager(Game g) : this()
 		{
 			Game = g;
 			DefaultMaterial = new Material(this);

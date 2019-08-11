@@ -6,6 +6,7 @@ using System;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ImUI;
+using LibreLancer.Utf.Mat;
 namespace LancerEdit
 {
     public class TextureViewer : EditorTab
@@ -14,22 +15,40 @@ namespace LancerEdit
         Texture2D tex;
         bool checkerboard = true;
         bool dispose;
-        public TextureViewer(string title, Texture2D tex, bool disposeTex = true)
+        TexFrameAnimation anim;
+        public TextureViewer(string title, Texture2D tex, TexFrameAnimation anim, bool disposeTex = true)
         {
             this.tex = tex;
             this.tid = ImGuiHelper.RegisterTexture(tex);
             Title = title;
             dispose = disposeTex;
+            this.anim = anim;
+
         }
+
+        int frame = 0;
+
         float zoom = 100;
         public override void Draw()
         {
             ImGui.Text("Zoom: ");
             ImGui.SameLine();
+            ImGui.PushItemWidth(120);
             ImGui.SliderFloat("", ref zoom, 10, 800, "%.0f%%", 1);
+            ImGui.PopItemWidth();
             ImGui.SameLine();
+            if (anim != null)
+            {
+                ImGui.PushItemWidth(80);
+                ImGui.InputInt("Frame Number", ref frame, 1, 1);
+                if (frame <= 0) frame = 0;
+                if (frame >= anim.FrameCount) frame = anim.FrameCount - 1;
+                ImGui.PopItemWidth();
+                ImGui.SameLine();
+            }
             ImGui.Checkbox("Checkerboard", ref checkerboard);
             ImGui.SameLine();
+
             bool doOpen = ImGui.Button("Info");
             if (doOpen)
                 ImGui.OpenPopup("Info##" + Unique);
@@ -75,7 +94,15 @@ namespace LancerEdit
                 ImGui.Dummy(new Vector2((w / 2) - (sz.X / 2), 5));
                 ImGui.SameLine();
             }
-            ImGui.Image((IntPtr)tid, sz, new Vector2(0,1), new Vector2(1, 0),
+            var tl = new Vector2(0, 1);
+            var br = new Vector2(1, 0);
+            if(anim != null)
+            {
+                var f = anim.Frames[frame];
+                tl = new Vector2(f.UV1.X, 1 - f.UV1.Y);
+                br = new Vector2(f.UV2.X, 1 - f.UV2.Y);
+            }
+            ImGui.Image((IntPtr)tid, sz, tl,br,
                         Vector4.One, Vector4.Zero);
           
             ImGui.EndChild();

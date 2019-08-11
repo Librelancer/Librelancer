@@ -10,7 +10,7 @@ namespace LibreLancer.Utf.Mat
 		public int TextureCount = 1;
 		public int FrameCount = 0;
 		public float FPS;
-		public RectangleF[] Frames;
+		public TexFrame[] Frames;
 		public TexFrameAnimation(IntermediateNode node)
 		{
 			foreach (var child in node)
@@ -31,16 +31,17 @@ namespace LibreLancer.Utf.Mat
 						break;
 					case "frame rects":
 						var floats = leaf.SingleArrayData;
-						if (floats.Length % 4 != 0)
+						if (floats.Length % 5 != 0)
 							throw new Exception("Incorrect frame data for Texture Animation");
-						Frames = new RectangleF[floats.Length / 4];
+						Frames = new TexFrame[floats.Length / 5];
 						for (int i = 0; i < Frames.Length; i++)
 						{
-							Frames[i] = new RectangleF(
-								floats[i * 4],
-								floats[i * 4 + 1],
-								floats[i * 4 + 2],
-								floats[i * 4 + 3]
+							Frames[i] = new TexFrame(
+								(int)floats[i * 5],
+								floats[i * 5 + 1],
+								floats[i * 5 + 2],
+								floats[i * 5 + 3],
+                                floats[i * 5 + 4]
 							);
 						}
 						break;
@@ -48,4 +49,17 @@ namespace LibreLancer.Utf.Mat
 			}
 		}
 	}
+
+    public struct TexFrame
+    {
+        public int TextureIndex;
+        public Vector2 UV1;
+        public Vector2 UV2;
+        public TexFrame(int idx, float u1, float v1, float u2, float v2)
+        {
+            TextureIndex = idx;
+            UV1 = new Vector2(u1, v1);
+            UV2 = new Vector2(u2, v2);
+        }
+    }
 }

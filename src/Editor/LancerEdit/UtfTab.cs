@@ -395,7 +395,7 @@ namespace LancerEdit
                             tex = LibreLancer.ImageLib.Generic.FromStream(stream);
                         }
                         var title = string.Format("{0} ({1})", selectedNode.Name, Title);
-                        var tab = new TextureViewer(title, tex);
+                        var tab = new TextureViewer(title, tex, null);
                         main.AddTab(tab);
                     }
                     catch (Exception ex)

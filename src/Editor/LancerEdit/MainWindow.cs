@@ -299,7 +299,7 @@ namespace LancerEdit
                
 				if (Theme.IconMenuItem("Resources","resources",Color4.White,true))
 				{
-					AddTab(new ResourcesTab(Resources, MissingResources, ReferencedMaterials, ReferencedTextures));
+					AddTab(new ResourcesTab(this, Resources, MissingResources, ReferencedMaterials, ReferencedTextures));
 				}
                 if(Theme.IconMenuItem("Import Collada","import",Color4.White,true))
                 {

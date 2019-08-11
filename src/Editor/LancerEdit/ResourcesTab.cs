@@ -14,9 +14,11 @@ namespace LancerEdit
         List<MissingReference> missing;
         List<uint> referencedMats;
         List<string> referencedTex;
-        public ResourcesTab(ResourceManager res, List<MissingReference> missing, List<uint> referencedMats, List<string> referencedTex)
+        MainWindow win;
+        public ResourcesTab(MainWindow window, ResourceManager res, List<MissingReference> missing, List<uint> referencedMats, List<string> referencedTex)
         {
             this.res = res;
+            this.win = window;
             this.missing = missing;
             this.referencedMats = referencedMats;
             this.referencedTex = referencedTex;
@@ -45,7 +47,19 @@ namespace LancerEdit
                 }
                 ImGui.TextColored(col, "Texture");
                 ImGui.NextColumn();
-                ImGui.TextColored(col, t.Key);
+                SelectableColored(col, t.Key);
+                ContextView(t.Key, () =>
+                {
+                    if (t.Value is Texture2D)
+                    {
+                        var title = string.Format("{0} (Texture)", t.Key);
+                        win.AddTab(new TextureViewer(title, (Texture2D)t.Value, null, false));
+                    }
+                    else
+                    {
+                        FLLog.Error("Texture", "Tried to view non-2D texture");
+                    }
+                });
                 ImGui.NextColumn();
             }
 
@@ -57,6 +71,18 @@ namespace LancerEdit
                 ImGui.TextColored(col, string.Format("{0} (0x{1:X})", m.Value.Name, m.Key));
                 ImGui.NextColumn();
             }
+            foreach(var m in res.AnimationDictionary)
+            {
+                ImGui.Text("Animated Texture");
+                ImGui.NextColumn();
+                ImGui.Selectable(m.Key);
+                ContextView(m.Key, () =>
+                {
+                    var title = string.Format("{0} (Animation)", m.Key);
+                    win.AddTab(new TextureViewer(title, (Texture2D)res.FindTexture(m.Key + "_0"), m.Value, false));
+                });
+                ImGui.NextColumn();
+            }
             foreach (var ln in missing)
             {
                 ImGui.TextColored(new Vector4(1, 0, 0, 1), "Missing");
@@ -65,6 +91,22 @@ namespace LancerEdit
                 ImGui.NextColumn();
             }
             ImGui.Columns(1, null, false);
+        }
+        static void SelectableColored(Vector4 col, string label)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Text, col);
+            ImGui.Selectable(label);
+            ImGui.PopStyleColor();
+        }
+        void ContextView(string name, Action onView)
+        {
+            if (ImGui.IsItemClicked(1))
+                ImGui.OpenPopup(name);
+            if(ImGui.BeginPopupContextItem(name))
+            {
+                if (ImGui.MenuItem("View")) onView();
+                ImGui.EndPopup();
+            }
         }
     }
 }
