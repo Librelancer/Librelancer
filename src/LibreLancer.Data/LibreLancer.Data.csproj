@@ -224,6 +224,8 @@
     <Compile Include="NewCharDB\NewCharPackage.cs" />
     <Compile Include="NewCharDB\NewCharPilot.cs" />
     <Compile Include="NewCharDB\NewCharFaction.cs" />
+    <Compile Include="Effects\EffectType.cs" />
+    <Compile Include="Effects\EffectLOD.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

@@ -11,6 +11,7 @@ namespace LibreLancer.Ini
         public bool MinMax = false;
         public bool Multiline = false;
         public bool Presence = false;
+        public bool Required = false;
 
         public EntryAttribute(string name)
         {

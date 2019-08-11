@@ -24,5 +24,29 @@ namespace LibreLancer.Data.Solar
         public float HitPts;
         [Entry("separable", Presence=true)]
         public bool Separable;
-	}
+        [Entry("root_health_proxy")]
+        public bool RootHealthProxy;
+        [Entry("parent_impulse")]
+        public float ParentImpulse;
+        //TODO: See how many of these are valid in vanilla
+        [Entry("group_dmg_hp")]
+        public string GroupDmgHp;
+        [Entry("group_dmg_obj")]
+        public string GroupDmgObj;
+        [Entry("dmg_hp")]
+        public string DmgHp;
+        [Entry("dmg_obj")]
+        public string DmgObj;
+
+        bool HandleEntry(Entry e)
+        {
+            if (e.Name.Equals("fuse", StringComparison.InvariantCultureIgnoreCase))
+            {
+                //TODO
+                //fuse = fuse_docking_ring, 0.000000, 1
+                return true;
+            }
+            return false;
+        }
+    }
 }

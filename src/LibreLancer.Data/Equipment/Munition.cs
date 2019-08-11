@@ -17,14 +17,39 @@ namespace LibreLancer.Data.Equipment
         public float EnergyDamage;
         [Entry("force_gun_ori")]
         public bool ForceGunOri;
-        [Entry("mass")]
-        public float Mass;
-        [Entry("volume")]
-        public float Volume;
         [Entry("weapon_type")]
         public string WeaponType;
         [Entry("lifetime")]
         public float Lifetime;
-
+        [Entry("one_shot_sound")]
+        public string OneShotSound;
+        [Entry("detonation_dist")]
+        public float DetonationDist;
+        [Entry("motor")]
+        public string Motor;
+        [Entry("seeker")]
+        public string Seeker;
+        [Entry("seeker_range")]
+        public float SeekerRange;
+        [Entry("seeker_fov_deg")]
+        public float SeekerFovDeg;
+        [Entry("max_angular_velocity")]
+        public float MaxAngularVelocity;
+        [Entry("time_to_lock")]
+        public float TimeToLock;
+        [Entry("hp_trail_parent")]
+        public string HpTrailParent;
+        [Entry("hp_type")]
+        public string HpType;
+        [Entry("explosion_arch")]
+        public string ExplosionArch;
+        [Entry("munition_hit_effect")]
+        public string MunitionHitEffect;
+        [Entry("loot_appearance")]
+        public string LootAppearance;
+        [Entry("units_per_container")]
+        public int UnitsPerContainer;
+        [Entry("cruise_disruptor")]
+        public bool CruiseDisruptor;
     }
 }

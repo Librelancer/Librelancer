@@ -19,7 +19,7 @@ namespace LibreLancer.Data.Equipment
         [Entry("lodranges")]
         public float[] LODRanges;
         [Entry("hp_child")]
-        public string HPChild { get; private set; }
+        public string HPChild;
         [Entry("ids_name")]
         public int IdsName = -1;
         [Entry("ids_info")]
@@ -28,5 +28,21 @@ namespace LibreLancer.Data.Equipment
         public bool Lootable;
         [Entry("hit_pts")]
         public int Hitpoints;
+        [Entry("mass")]
+        public float Mass;
+        [Entry("volume")]
+        public float Volume;
+        [Entry("parent_impulse")]
+        public float ParentImpulse;
+        [Entry("child_impulse")]
+        public float ChildImpulse;
+        [Entry("toughness")]
+        public float Toughness;
+        [Entry("explosion_resistance")]
+        public float ExplosionResistance;
+        [Entry("separation_explosion")]
+        public string SeparationExplosion;
+        [Entry("debris_type")]
+        public string DebrisType;
     }
 }

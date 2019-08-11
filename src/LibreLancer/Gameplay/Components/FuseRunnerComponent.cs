@@ -37,15 +37,18 @@ namespace LibreLancer
                 {
                     var fxact = ((FuseStartEffect)act);
                     if (Fuse.Fx[fxact.Effect] == null) continue;
-                    var hp = Parent.GetHardpoint(fxact.Hardpoint);
-                    var fxobj = new GameObject()
+                    foreach (var fxhp in fxact.Hardpoints)
                     {
-                        Parent = Parent,
-                        Attachment = hp,
-                        RenderComponent = new ParticleEffectRenderer(Fuse.Fx[fxact.Effect])
-                    };
-                    Parent.ForceRenderCheck.Add(fxobj.RenderComponent);
-                    Parent.Children.Add(fxobj);
+                        var hp = Parent.GetHardpoint(fxhp);
+                        var fxobj = new GameObject()
+                        {
+                            Parent = Parent,
+                            Attachment = hp,
+                            RenderComponent = new ParticleEffectRenderer(Fuse.Fx[fxact.Effect])
+                        };
+                        Parent.ForceRenderCheck.Add(fxobj.RenderComponent);
+                        Parent.Children.Add(fxobj);
+                    }
                 }
                 else if (act is FuseDestroyGroup)
                 {

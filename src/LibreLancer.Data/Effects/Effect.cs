@@ -20,6 +20,14 @@ namespace LibreLancer.Data.Effects
         [Entry("snd_effect")]
         public string SndEffect;
         [Entry("type")]
-        public string Type;
+        public string Type; //Valid?
+        [Entry("effect_type")]
+        public string EffectType;
+        [Entry("lgt_effect")]
+        public string LgtEffect;
+        [Entry("lgt_range_scale")]
+        public float LgtRangeScale;
+        [Entry("lgt_radius")]
+        public float LgtRadius;
 	}
 }

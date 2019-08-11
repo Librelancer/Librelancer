@@ -10,5 +10,7 @@ namespace LibreLancer.Data.Equipment
 	{
         [Entry("particles")]
 		public string Particles;
+        [Entry("use_throttle")]
+        public bool UseThrottle;
 	}
 }

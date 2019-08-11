@@ -9,7 +9,7 @@ namespace LibreLancer.Data.Goods
 {
     public class BaseGood
     {
-        [Entry("base")]
+        [Entry("base", Required = true)]
         public string Base;
 
         public List<MarketGood> MarketGoods = new List<MarketGood>();

@@ -20,7 +20,17 @@ namespace LibreLancer.Data
 		public Vector2 Hotspot = Vector2.Zero;
         [Entry("color")]
 		public Color4 Color = Color4.White;
-        [Entry("anim")] //TODO: mouse.ini cursor anim
-		public string Shape;
-	}
+		
+        public string Shape;
+        bool HandleEntry(Entry e)
+        {
+            if(e.Name.Equals("anim", StringComparison.OrdinalIgnoreCase))
+            {
+                Shape = e[0].ToString();
+                //figure out following 2 int components
+                return true;
+            }
+            return false;
+        }
+    }
 }

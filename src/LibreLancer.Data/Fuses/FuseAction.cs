@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
     
 using System;
+using System.Collections.Generic;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Fuses
 {
@@ -15,8 +16,10 @@ namespace LibreLancer.Data.Fuses
     {
         [Entry("effect")]
         public string Effect;
-        [Entry("hardpoint")]
-        public string Hardpoint;
+        [Entry("hardpoint", Multiline = true)]
+        public List<string> Hardpoints = new List<string>();
+        [Entry("attached")]
+        public bool Attached;
         [Entry("pos_offset")]
         public Vector3 PosOffset;
         [Entry("ori_offset")]

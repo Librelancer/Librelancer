@@ -18,5 +18,21 @@ namespace LibreLancer.Data.Equipment
         public float RefireDelay;
         [Entry("projectile_archetype")]
         public string ProjectileArchetype;
+        [Entry("flash_particle_name")]
+        public string FlashParticleName;
+        [Entry("flash_radius")]
+        public float FlashRadius;
+        [Entry("auto_turret")]
+        public bool AutoTurret;
+        [Entry("light_anim")]
+        public string LightAnim;
+        [Entry("damage_per_fire")]
+        public float DamagePerFire;
+        [Entry("use_animation")]
+        public string UseAnimation;
+        [Entry("hp_gun_type")]
+        public string HpGunType;
+        [Entry("dry_fire_sound")]
+        public string DryFireSound;
     }
 }

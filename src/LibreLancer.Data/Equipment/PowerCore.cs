@@ -8,10 +8,6 @@ namespace LibreLancer.Data.Equipment
 {
 	public class PowerCore : AbstractEquipment
 	{
-        [Entry("volume")]
-        public int Volume;
-        [Entry("mass")]
-        public int Mass;
         [Entry("capacity")]
         public int Capacity;
         [Entry("charge_rate")]

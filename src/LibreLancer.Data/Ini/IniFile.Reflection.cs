@@ -7,6 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Collections;
+
 namespace LibreLancer.Ini
 {
     //Class for constructing ini through Reflection
@@ -16,6 +18,7 @@ namespace LibreLancer.Ini
         {
             public Type Type;
             public List<ReflectionField> Fields = new List<ReflectionField>();
+            public ulong RequiredFields = 0;
             public MethodInfo HandleEntry;
         }
 
@@ -53,8 +56,10 @@ namespace LibreLancer.Ini
                 foreach (var field in t.GetFields(F_CLASSMEMBERS))
                 {
                     var attrs = field.GetCustomAttributes<EntryAttribute>();
-                    foreach (var a in attrs)
+                    foreach (var a in attrs) {
                         info.Fields.Add(new ReflectionField() { Attr = a, Field = field });
+                        if (a.Required) info.RequiredFields |= (1ul << (info.Fields.Count - 1));
+                    }
                 }
                 //This should never be tripped
                 if (info.Fields.Count > 64) throw new Exception("Too many fields!! Edit bitmask code & raise limit");
@@ -119,6 +124,7 @@ namespace LibreLancer.Ini
         {
             var obj = Activator.CreateInstance(type.Type);
             ulong bitmask = 0;
+            ulong requiredBits = type.RequiredFields;
             foreach (var e in s)
             {
                 //Find entry
@@ -151,6 +157,7 @@ namespace LibreLancer.Ini
                     }
                     bitmask |= 1ul << idx;
                 }
+                requiredBits &= ~(1ul << idx);
                 var ftype = field.Field.FieldType;
                 Type nType;
                 if ((nType = Nullable.GetUnderlyingType(ftype)) != null) {
@@ -254,7 +261,19 @@ namespace LibreLancer.Ini
                     }
                 }
             }
-            return obj;
+            if(requiredBits != 0)
+            {
+                //These sections crash the game if they don't have required fields
+                //So don't let them be added to lists
+                for(int i = 0; i < 64; i++) {
+                    if ((requiredBits & (1ul << i)) != 0)
+                    {
+                        FLLog.Error("Ini", string.Format("Missing required field {0}{1}", type.Fields[i].Attr.Name, FormatLine(s.File, s.Line, s.Name)));
+                    }
+                }
+                return null;
+            } else
+                return obj;
         }
 
         public void ParseAndFill(string filename, MemoryStream stream)
@@ -269,13 +288,16 @@ namespace LibreLancer.Ini
                     continue;
                 }
                 var parsed = GetFromSection(section, tgt.Type);
-                if (tgt.Add != null)
+                if (parsed != null)
                 {
-                    var list = tgt.Field.GetValue(this);
-                    tgt.Add.Invoke(list, new object[] { parsed });
+                    if (tgt.Add != null)
+                    {
+                        var list = tgt.Field.GetValue(this);
+                        tgt.Add.Invoke(list, new object[] { parsed });
+                    }
+                    else
+                        tgt.Field.SetValue(this, parsed);
                 }
-                else
-                    tgt.Field.SetValue(this, parsed);
             }
 
         }
@@ -291,15 +313,17 @@ namespace LibreLancer.Ini
                     continue;
                 }
                 var parsed = GetFromSection(section, tgt.Type);
-                if (tgt.Add != null)
+                if (parsed != null)
                 {
-                    var list = tgt.Field.GetValue(this);
-                    tgt.Add.Invoke(list, new object[] { parsed });
+                    if (tgt.Add != null)
+                    {
+                        var list = tgt.Field.GetValue(this);
+                        tgt.Add.Invoke(list, new object[] { parsed });
+                    }
+                    else
+                        tgt.Field.SetValue(this, parsed);
                 }
-                else
-                    tgt.Field.SetValue(this, parsed);
             }
-
         }
     }
 }
