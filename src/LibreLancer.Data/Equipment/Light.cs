@@ -134,7 +134,26 @@ namespace LibreLancer.Data.Equipment
 			}
 		}
 
-		public Light(Section section, FreelancerData gdata)
+        private Vector3? emitAttenuation;
+        public Vector3? EmitAttenuation
+        {
+            get
+            {
+                if (emitAttenuation == null && Inherit != null) emitAttenuation = Inherit.EmitAttenuation;
+                return emitAttenuation;
+            }
+        }
+
+        private float? emitRange;
+        public float? EmitRange
+        {
+            get
+            {
+                if (emitRange == null && Inherit != null) emitRange = Inherit.EmitRange;
+                return emitRange;
+            }
+        }
+        public Light(Section section, FreelancerData gdata)
 		{
 			foreach (Entry e in section)
 			{
@@ -208,6 +227,16 @@ namespace LibreLancer.Data.Equipment
 						if (blinkDuration != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
 						blinkDuration = e[0].ToSingle();
 						break;
+                    case "emit_range":
+                        if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+                        if (emitRange != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+                        emitRange = e[0].ToSingle();
+                        break;
+                    case "emit_attenuation":
+                        if (e.Count != 3) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
+                        if (emitAttenuation != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+                        emitAttenuation = new Vector3(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle());
+                        break;
 					case "shape":
 						FLLog.Error("Light", "custom shape not implemented");
 						break;

@@ -112,16 +112,18 @@ namespace LibreLancer
                 camera.Frustum.Intersects(new BoundingSphere(pos, equip.BulbSize * 3))
             );
             this.sys = sys;
-            if(visible) {
+            bool showLight = !equip.Animated || !lt_on;
+            if (equip.EmitRange > 0 && showLight && camera.Frustum.Intersects(new BoundingSphere(pos, equip.EmitRange)))
+            {
+                sys.PointLightDX(pos, equip.EmitRange, new Color4(equip.GlowColor, 1), equip.EmitAttenuation);
+            }
+            if (visible) {
                 sys.AddObject(this);
                 return true;
             } else {
                 return false;
             }
-            /*if (lt_on && camera.Frustum.Intersects(new BoundingSphere(pos, 100)))
-			{
-				sys.PointLightDX(pos, 50, new Color4(equip.GlowColor, 1), new Vector3(1, 0.01f, 0.000055f));
-			}*/ //TODO: Configurable
+
         }
     }
 }

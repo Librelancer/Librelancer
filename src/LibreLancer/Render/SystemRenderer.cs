@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using LibreLancer.GameData;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Fx;
-    
+
 namespace LibreLancer
 {
 	//Responsible for rendering the GameWorld.
@@ -35,7 +35,7 @@ namespace LibreLancer
 		
 		//Global Renderer Options
 		public float LODMultiplier = 2;
-		public bool ExtraLights = false; //See comments in Draw() before enabling
+		public bool ExtraLights = true; //See comments in Draw() before enabling
 
 		public IDrawable[] StarSphereModels;
 		public Matrix4[] StarSphereWorlds;
@@ -87,30 +87,30 @@ namespace LibreLancer
             }
         }
 
-		public SystemRenderer(ICamera camera, GameDataManager data, GameResourceManager rescache, Game game)
-		{
-			this.camera = camera;			
-			AsteroidFields = new List<AsteroidFieldRenderer>();
-			Nebulae = new List<NebulaRenderer>();
-			StarSphereModels = new IDrawable[0];
-			Polyline = new PolylineRender(commands);
+        public SystemRenderer(ICamera camera, GameDataManager data, GameResourceManager rescache, Game game)
+        {
+            this.camera = camera;
+            AsteroidFields = new List<AsteroidFieldRenderer>();
+            Nebulae = new List<NebulaRenderer>();
+            StarSphereModels = new IDrawable[0];
+            Polyline = new PolylineRender(commands);
             FxPool = new ParticleEffectPool(commands);
-			cache = rescache;
-			rstate = rescache.Game.RenderState;
-			this.game = game;
+            cache = rescache;
+            rstate = rescache.Game.RenderState;
+            this.game = game;
             gconfig = game.GetService<GameConfig>();
             billboards = game.GetService<Billboards>();
             resman = game.GetService<ResourceManager>();
             nebulae = game.GetService<NebulaVertices>();
-			dot = (Texture2D)rescache.FindTexture(ResourceManager.WhiteTextureName);
-			DebugRenderer = new PhysicsDebugRenderer();
+            dot = (Texture2D)rescache.FindTexture(ResourceManager.WhiteTextureName);
+            DebugRenderer = new PhysicsDebugRenderer();
 
-			if (GLExtensions.Features430)
-			{
-				pointLightBuffer = new ShaderStorageBuffer(MAX_POINTS * (16 * sizeof(float)));
-				if(pointLightCull == null)
-					pointLightCull = new ComputeShader(Resources.LoadString("LibreLancer.Shaders.lightingcull.glcompute"));
-			}
+            if (GLExtensions.Features430)
+            {
+                pointLightBuffer = new ShaderStorageBuffer(MAX_POINTS * (16 * sizeof(float)));
+                if (pointLightCull == null)
+                    pointLightCull = new ComputeShader(Resources.LoadString("LibreLancer.Shaders.lightingcull.glcompute"));
+            }
 		}
 
 		void LoadSystem(StarSystem system)
@@ -309,12 +309,9 @@ namespace LibreLancer
 			if (GLExtensions.Features430 && ExtraLights)
 			{
 				//Forward+ heck yeah!
-				//ISSUES: Z prepass here doesn't work - gives blank texture  (investigate DepthMap.cs)
 				//(WORKED AROUND) Lights being culled too aggressively - Pittsburgh planet light, intro_planet_chunks
-				//Z test - cull transparent and opaque differently (opaqueLightBuffer enable)
-				//Optimisation work needs to be done
-				//When these are fixed this can be enabled by default
-				//Copy lights into buffer
+				//Z test doesn't seem to be working (commented out in shader)
+                //May need optimisation
 				int plc = pointLights.Count;
 				using (var h = pointLightBuffer.Map()) {
 					var ptr = (PointLight*)h.Handle;
@@ -322,7 +319,6 @@ namespace LibreLancer
 					{
 						ptr[i] = pointLights[i];
 					}
-					//Does the rest of the buffer need to be cleared?
 				}
 				pointLights.Clear();
 				//Setup Visible Buffers
@@ -350,7 +346,6 @@ namespace LibreLancer
 				rstate.ClearDepth();
 				rstate.DepthFunction = DepthFunction.Less;
                 foreach (var obj in objects) obj.DepthPrepass(camera, rstate);
-				//for (int i = 0; i < Objects.Count; i++) if (Objects[i].Visible) Objects[i].DepthPrepass(camera, rstate);
 				rstate.DepthFunction = DepthFunction.LessEqual;
 				RenderTarget2D.ClearBinding();
 				if (gconfig.MSAASamples > 0) msaa.Bind();
@@ -409,7 +404,7 @@ namespace LibreLancer
 			{
 				msaa.BlitToScreen();
 			}
-			rstate.DepthEnabled = true;
+            rstate.DepthEnabled = true;
 		}
 
 		public void Dispose()

@@ -1290,6 +1290,8 @@ namespace LibreLancer
             equip.GlowSize = lt.GlowSize ?? 1f;
             equip.AlwaysOn = lt.AlwaysOn ?? true;
             equip.DockingLight = lt.DockingLight ?? false;
+            equip.EmitRange = lt.EmitRange ?? 0;
+            equip.EmitAttenuation = lt.EmitAttenuation ?? new Vector3(1, 0.01f, 0.000055f);
             if (lt.AvgDelay != null)
             {
                 equip.Animated = true;

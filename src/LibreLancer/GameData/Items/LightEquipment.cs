@@ -17,6 +17,8 @@ namespace LibreLancer.GameData.Items
 		public float BlinkDuration;
         public bool AlwaysOn;
         public bool DockingLight;
+        public float EmitRange;
+        public Vector3 EmitAttenuation;
 	}
 }
 
