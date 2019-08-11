@@ -22,8 +22,12 @@ namespace LibreLancer.Fx
             var q = particle.Orientation * Transform.GetDeltaRotation(sparam, lasttime, globaltime);
             particle.Orientation = q;
             var mat = Matrix4.CreateFromQuaternion(q);
-            var n = (transform * new Vector4(particle.Normal.Normalized(), 0)).Xyz.Normalized();
-			instance.Pool.DrawPerspective(
+            //TODO: why doesn't this work?
+            //var n = (transform * new Vector4(particle.Normal.Normalized(), 0)).Xyz.Normalized();
+            var p = VectorMath.Transform(particle.Position, transform);
+            var p2 = VectorMath.Transform(particle.Position + particle.Normal, transform);
+            var n = (p - p2).Normalized();
+            instance.Pool.DrawPerspective(
                 particle.Instance,
                 this,
 				tex,
@@ -41,7 +45,7 @@ namespace LibreLancer.Fx
 
 			if (DrawNormals)
 			{
-				//Debug.DrawLine(p - (n * 100), p + (n * 100));
+				Debug.DrawLine(p - (n * 100), p + (n * 100));
 			}
 		}
 	}
