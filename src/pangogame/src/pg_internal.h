@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <limits.h>
 #include <pango/pango-layout.h>
+#include <pango/pango-renderer.h>
 #include <pango/pango-font.h>
 #include <pango/pangoft2.h>
 

@@ -45,6 +45,7 @@ namespace LibreLancer.Data
 		public TexturePanels EffectShapes;
 		public MouseIni Mouse;
 		public AsteroidArchIni Asteroids;
+        public FontsIni Fonts;
 		public RichFontsIni RichFonts;
 		public PetalDbIni PetalDb;
 		public HudIni Hud;
@@ -138,6 +139,9 @@ namespace LibreLancer.Data
                 RichFonts = new RichFontsIni();
                 foreach (var rf in Freelancer.RichFontPaths)
                     RichFonts.AddRichFontsIni(rf);
+                Fonts = new FontsIni();
+                foreach (var f in Freelancer.FontPaths)
+                    Fonts.AddFontsIni(f);
                 //PetalDb
                 PetalDb = new PetalDbIni();
                 foreach (var pt in Freelancer.PetalDbPaths)

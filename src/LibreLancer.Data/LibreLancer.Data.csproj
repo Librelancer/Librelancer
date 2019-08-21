@@ -226,6 +226,8 @@
     <Compile Include="NewCharDB\NewCharFaction.cs" />
     <Compile Include="Effects\EffectType.cs" />
     <Compile Include="Effects\EffectLOD.cs" />
+    <Compile Include="FontsIni.cs" />
+    <Compile Include="UIFont.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

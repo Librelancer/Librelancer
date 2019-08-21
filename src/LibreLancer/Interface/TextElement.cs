@@ -29,8 +29,11 @@ namespace LibreLancer
                 );
             return textR;
         }
+
+        Font _font;
         public void Draw(XmlUIManager manager, Rectangle r)
         {
+            if (_font == null) _font = manager.GetFont(Style.Font);
             var s = Text;
             if(!string.IsNullOrEmpty(s)) {
                 var textR = GetRectangle(r);
@@ -45,31 +48,31 @@ namespace LibreLancer
                     int dY = 0;
                     var wrapped = string.Join("\n", TextUtils.WrapText(
                                               manager.Game.Renderer2D,
-                                              manager.Font,
+                                              _font,
                                               tSize,
                                               s,
                                               textR.Width - 2,
                                               0,
                                               out a,
                                               ref dY));
-                    DrawShadowedText(manager, manager.Font, tSize, wrapped, textR.X, textR.Y, ColorOverride ?? Style.Color, Style.Shadow);
+                    DrawShadowedText(manager, _font, tSize, wrapped, textR.X, textR.Y, ColorOverride ?? Style.Color, Style.Shadow);
                 }
                 else if(Style.Align == XInt.Align.Baseline)
                 {
                     var sz = GetTextSize(textR.Height);
-                    var size = manager.Game.Renderer2D.MeasureString(manager.Font, sz, s);
+                    var size = manager.Game.Renderer2D.MeasureString(_font, sz, s);
                     var pos = new Vector2(
                         textR.X + (textR.Width / 2f - size.X / 2),
-                        textR.Y + (textR.Height / 2f - manager.Font.LineHeight(sz) / 2)
+                        textR.Y + (textR.Height / 2f - _font.LineHeight(sz) / 2)
                     );
                     if(Style.Shadow != null) {
-                        manager.Game.Renderer2D.DrawStringBaseline(manager.Font, sz, s, pos.X + 2, pos.Y + 2, pos.X, Style.Shadow.Value);
+                        manager.Game.Renderer2D.DrawStringBaseline(_font, sz, s, pos.X + 2, pos.Y + 2, pos.X, Style.Shadow.Value);
                     }
-                    manager.Game.Renderer2D.DrawStringBaseline(manager.Font, sz, s, pos.X, pos.Y, pos.X, ColorOverride ?? Style.Color);
+                    manager.Game.Renderer2D.DrawStringBaseline(_font, sz, s, pos.X, pos.Y, pos.X, ColorOverride ?? Style.Color);
                 }
                 else
                 {
-                    DrawTextCentered(manager, manager.Font, GetTextSize(textR.Height), s, textR, ColorOverride ?? Style.Color, Style.Shadow);
+                    DrawTextCentered(manager, _font, GetTextSize(textR.Height), s, textR, ColorOverride ?? Style.Color, Style.Shadow);
                 }
             }
             ColorOverride = null;

@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using LibreLancer.Platforms;
@@ -57,6 +58,15 @@ namespace LibreLancer
 		{
 			return RunningPlatform.GetFallbackFace(library, cp);
 		}
+
+        static List<string> loadedTtf = new List<string>();
+        public static void AddTtfFile(string file)
+        {
+            if (loadedTtf.Contains(file)) return;
+            if (!File.Exists(file)) throw new FileNotFoundException(file);
+            loadedTtf.Add(file);
+            RunningPlatform.AddTtfFile(file);
+        }
 
         public static string GetInformationalVersion<T>()
         {

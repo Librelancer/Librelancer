@@ -54,6 +54,7 @@ namespace LibreLancer
 			Game.Keyboard.KeyDown += Keyboard_KeyDown;
 			cursor = Game.ResourceManager.GetCursor("arrow");
             FadeIn(0.8, 1.7);
+            debugFont = Game.Fonts.GetSystemFont("Agency FB");
 		}
         void SetActiveHotspot(string rm)
         {
@@ -250,7 +251,7 @@ namespace LibreLancer
             hud.Update(delta);
         }
 
-       
+        Font debugFont;
 		public override void Draw(TimeSpan delta)
 		{
             RenderMaterial.VertexLighting = true;
@@ -259,7 +260,7 @@ namespace LibreLancer
             hud.Draw(delta);
 			Game.Renderer2D.Start(Game.Width, Game.Height);
             DoFade(delta);
-            Game.Renderer2D.DrawString(hud.UI.Font, 15, "Room: " + currentRoom.Nickname + "\n" + "Virtual: " +
+            Game.Renderer2D.DrawString(debugFont, 15, "Room: " + currentRoom.Nickname + "\n" + "Virtual: " +
                 (virtualRoom ?? "NONE"), new Vector2(5, 5), Color4.White);
             cursor.Draw(Game.Renderer2D, Game.Mouse);
             Game.Renderer2D.Finish();

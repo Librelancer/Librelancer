@@ -229,6 +229,9 @@ namespace LibreLancer
 
             [XmlAttribute("align")]
             public Align Align { get; set; }
+
+            [XmlAttribute("font")]
+            public string Font { get; set; } = "$Normal";
         }
       
         public class StyleSize

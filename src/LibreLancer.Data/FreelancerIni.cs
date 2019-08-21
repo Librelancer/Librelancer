@@ -33,7 +33,8 @@ namespace LibreLancer.Data
 		public List<string> EffectPaths { get; private set; }
 		public List<string> AsteroidPaths { get; private set; }
 		public List<string> RichFontPaths { get; private set; }
-		public List<string> PetalDbPaths { get; private set; }
+        public List<string> FontPaths { get; private set;  }
+        public List<string> PetalDbPaths { get; private set; }
         public List<string> FusePaths { get; private set;  }
         public List<string> NewCharDBPaths { get; private set;  }
 
@@ -74,6 +75,7 @@ namespace LibreLancer.Data
 			EffectPaths = new List<string>();
 			AsteroidPaths = new List<string> ();
 			RichFontPaths = new List<string>();
+            FontPaths = new List<string>();
 			PetalDbPaths = new List<string>();
 			StartupMovies = new List<string>();
             GoodsPaths = new List<string>();
@@ -199,6 +201,9 @@ namespace LibreLancer.Data
 						case "rich_fonts":
 							RichFontPaths.Add(DataPath + e[0].ToString());
 							break;
+                        case "fonts":
+                            FontPaths.Add(DataPath + e[0].ToString());
+                            break;
 						case "igraph":
 							GraphPaths.Add(DataPath + e[0].ToString());
 							break;

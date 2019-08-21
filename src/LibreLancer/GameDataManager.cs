@@ -214,6 +214,13 @@ namespace LibreLancer
             loadActions.Enqueue(a);
         }
 
+        public void LoadFonts()
+        {
+            foreach(var f in fldata.Fonts.FontFiles) {
+                Platform.AddTtfFile(ResolveDataPath(f));
+            }
+        }
+
         public void LoadData()
         {
             fldata.LoadData();

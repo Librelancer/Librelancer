@@ -64,6 +64,11 @@ namespace LibreLancer.Platforms
 			//return font
 			return fc;
 		}
-	}
+
+        public void AddTtfFile(string file)
+        {
+            //Not implemented
+        }
+    }
 }
 

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using SharpFont;
 using FontConfigSharp;
+using System.Runtime.InteropServices;
 namespace LibreLancer.Platforms
 {
 	class LinuxPlatform : IPlatform
@@ -15,6 +16,7 @@ namespace LibreLancer.Platforms
 		public LinuxPlatform()
 		{
 			fcconfig = Fc.InitLoadConfigAndFonts ();
+            fcconfig.SetCurrent();
 		}
 
 		public bool IsDirCaseSensitive (string directory)
@@ -100,6 +102,17 @@ namespace LibreLancer.Platforms
 			//This shouldn't be thrown since fontconfig substitutes, but have this just in case
 			throw new Exception ("Font not found: " + face);
 		}
-	}
+
+        //TODO: This is a wrapper around FontConfig, add to FontConfigSharp
+        [DllImport("pangogame")]
+        static extern void pg_addttfglobal(IntPtr file);
+
+        public void AddTtfFile(string file)
+        {
+            var str = UnsafeHelpers.StringToHGlobalUTF8(file);
+            pg_addttfglobal(str);
+            Marshal.FreeHGlobal(str);
+        }
+    }
 }
 

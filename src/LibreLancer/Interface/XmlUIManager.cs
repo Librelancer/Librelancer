@@ -109,7 +109,19 @@ namespace LibreLancer
                 return Scenes.Peek().Elements;
             }
         }
-        public Font Font;
+        Font defaultFont;
+        Dictionary<string, Font> uiFonts = new Dictionary<string, Font>(StringComparer.OrdinalIgnoreCase);
+        public Font GetFont(string name)
+        {
+            if (name[0] == '$')
+            {
+                Font font;
+                if (!uiFonts.TryGetValue(name.Substring(1), out font)) return defaultFont;
+                return font;
+            }
+            else
+                return Game.Fonts.GetSystemFont(name);
+        }
 
         string apiname;
         object api;
@@ -120,7 +132,11 @@ namespace LibreLancer
             this.apiname = apiname;
             this.api = api;
             xml = XInterface.Load(src);
-            Font = game.Fonts.GetSystemFont("Agency FB");
+            defaultFont = game.Fonts.GetSystemFont("Arial");
+            foreach(var fnt in game.GameData.Ini.Fonts.UIFonts)
+            {
+                uiFonts.Add(fnt.Nickname, game.Fonts.GetSystemFont(fnt.Font));
+            }
             if (xml.ResourceFiles != null)
                 foreach (var file in xml.ResourceFiles)
                     game.ResourceManager.LoadResourceFile(game.GameData.ResolveDataPath(file.Substring(2)));

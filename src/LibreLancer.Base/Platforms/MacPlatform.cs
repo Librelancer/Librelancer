@@ -141,6 +141,11 @@ namespace LibreLancer.Platforms
 			Cocoa.SendVoid (autoreleasePool, Selector.Release);
 			return path;
 		}
-	}
+
+        public void AddTtfFile(string path)
+        {
+            //Not implemented
+        }
+    }
 }
 

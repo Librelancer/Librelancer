@@ -11,6 +11,7 @@ namespace LibreLancer.Platforms
 		bool IsDirCaseSensitive(string directory);
 		Face LoadSystemFace(Library library, string face, ref FontStyles style);
 		Face GetFallbackFace(Library library, uint cp);
+        void AddTtfFile(string path);
 	}
 }
 

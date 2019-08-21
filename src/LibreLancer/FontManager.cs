@@ -51,6 +51,7 @@ namespace LibreLancer
 
         public void LoadFontsFromGameData(GameDataManager gd)
 		{
+            gd.LoadFonts();
             infocardFonts = new Dictionary<int, FontDescription>();
 
             var v = new FontDescription() { FontName = "Agency FB", FontSize = 16 };

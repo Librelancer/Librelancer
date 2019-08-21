@@ -138,7 +138,8 @@ void pg_drawtext(PGRenderContext* ctx, PGBuiltText *text)
 void pg_addttfglobal(const char *filename)
 {
 	const FcChar8 *file = (const FcChar8 *)filename;
-	FcConfigAppFontAddFile(FcConfigGetCurrent(), file);
+	if(!FcConfigAppFontAddFile(NULL, file))
+		printf("font add for %s failed\n");
 }
 
 void pg_destroytext(PGBuiltText *text)
