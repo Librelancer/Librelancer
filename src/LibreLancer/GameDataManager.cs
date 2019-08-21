@@ -243,6 +243,7 @@ namespace LibreLancer
                         foreach (var p in room.SceneScripts)
                         {
                             var path = Data.VFS.GetPath(fldata.Freelancer.DataPath + p);
+                            isc.ThnName = path;
                             isc.Scripts.Add(new ThnScript(path));
                         }
                         isc.Music = room.Music;

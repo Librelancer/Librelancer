@@ -24,6 +24,7 @@ namespace LibreLancer
             intro = g.GameData.GetIntroScene();
             scene = new Cutscene(intro.Scripts, Game);
             scene.Update(TimeSpan.FromSeconds(1f / 60f)); //Do all the setup events - smoother entrance
+            FLLog.Info("Thn", "Playing " + intro.ThnName);
             cur = g.ResourceManager.GetCursor("arrow");
             GC.Collect(); //crap
             g.Sound.PlayMusic(intro.Music);

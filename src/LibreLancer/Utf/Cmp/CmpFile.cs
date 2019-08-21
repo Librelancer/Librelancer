@@ -40,6 +40,15 @@ namespace LibreLancer.Utf.Cmp
 
         public IEnumerable<Part> ModelParts() => Parts.Where(x => x.Camera == null);
 
+        public Part GetRootPart()
+        {
+            foreach (var part in Parts)
+            {
+                if (part.ObjectName.Equals("Root", StringComparison.OrdinalIgnoreCase)) return part;
+            }
+            return null;
+        }
+
         public CmpFile(IntermediateNode rootnode, ILibFile additionalLibrary)
         {
             this.additionalLibrary = additionalLibrary;

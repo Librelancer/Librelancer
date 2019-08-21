@@ -286,18 +286,22 @@ namespace LibreLancer
                 }
                 AddEntities(thn);
 			}
-
-			evs.Sort((x, y) => x.Time.CompareTo(y.Time));
+            //work around SET_CAMERA not being called in disco (match vanilla behaviour)
+            var firstCamera = Objects.Values.Where(x => x.Camera != null).FirstOrDefault();
+            if(firstCamera != null) {
+                camera.Transform = firstCamera.Camera;
+            }
+            evs.Sort((x, y) => x.Time.CompareTo(y.Time));
 			foreach (var item in evs)
 				events.Enqueue(item);
-			//Add starspheres in the right order
-			layers.Sort((x, y) => x.Item3.CompareTo(y.Item3));
-			Renderer.StarSphereModels = new IDrawable[layers.Count];
-			Renderer.StarSphereWorlds = new Matrix4[layers.Count];
-			for (int i = 0; i < layers.Count; i++)
+            //Add starspheres in the right order
+            var sorted = ((IEnumerable<Tuple<IDrawable, Matrix4, int>>)layers).Reverse().OrderBy(x => x.Item3).ToArray();
+			Renderer.StarSphereModels = new IDrawable[sorted.Length];
+			Renderer.StarSphereWorlds = new Matrix4[sorted.Length];
+			for (int i = 0; i < sorted.Length; i++)
 			{
-				Renderer.StarSphereModels[i] = layers[i].Item1;
-				Renderer.StarSphereWorlds[i] = layers[i].Item2;
+				Renderer.StarSphereModels[i] = sorted[i].Item1;
+				Renderer.StarSphereWorlds[i] = sorted[i].Item2;
 			}
 			//Add objects to the renderer
 			World.RegisterAll();

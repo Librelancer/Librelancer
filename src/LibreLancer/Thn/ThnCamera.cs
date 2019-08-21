@@ -25,7 +25,7 @@ namespace LibreLancer
 
 		public void Update()
 		{
-			var fovy = Transform.FovH * Transform.AspectRatio;
+            var fovy = Transform.FovH * Transform.AspectRatio;
 			//TODO: Tweak clip plane some more - isn't quite right
 			//NOTE: near clip plane can't be too small or it causes z-fighting
 			projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovy), Transform.AspectRatio, Transform.Znear, Transform.Zfar);
