@@ -23,6 +23,13 @@ namespace LancerEdit
         }
         public static List<HpEntry> Fix = new List<HpEntry>();
         public static List<HpEntry> Rev = new List<HpEntry>();
+
+        public static IEnumerable<HpEntry> All()
+        {
+            foreach (var e in Fix) yield return e;
+            foreach (var e in Rev) yield return e;
+        }
+
         static void AddFix(string name, HpNaming n, string icon, Color4 c)
         {
             Fix.Add(new HpEntry() { Name = name, Autoname = n, Icon = icon, Color = c });

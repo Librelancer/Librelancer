@@ -595,6 +595,7 @@ namespace LancerEdit
             Theme.RenderTreeIcon("Hardpoints", "hardpoint", Color4.CornflowerBlue);
             if (open)
             {
+                List<Action> addActions = new List<Action>();
                 foreach (var hp in mdl.Hardpoints)
                 {
                     if(doFilter) {
@@ -632,12 +633,86 @@ namespace LancerEdit
                         popups.OpenPopup("Confirm Delete");
                     }
                     if (action == ContextActions.Edit) hpEditing = hp;
+                    if(action == ContextActions.MirrorX) {
+                        var newHp = MakeDuplicate(GetDupName(hp.Name), hp);
+                        //do mirroring
+                        newHp.Position.X = -newHp.Position.X;
+                        newHp.Orientation *= new Matrix4(
+                            -1, 0, 0, 0,
+                            0, 1, 0, 0,
+                            0, 0, 1, 0,
+                            0, 0, 0, 1
+                        );
+                        //add
+                        addActions.Add(() =>
+                        {
+                            mdl.Hardpoints.Add(newHp);
+                            gizmos.Add(new HardpointGizmo(newHp, gz.Parent));
+                            OnDirtyHp();
+                        });
+                    }
+                    if(action == ContextActions.MirrorY) {
+                        var newHp = MakeDuplicate(GetDupName(hp.Name), hp);
+                        //do mirroring
+                        newHp.Position.Y = -newHp.Position.Y;
+                        newHp.Orientation *= new Matrix4(
+                            1, 0, 0, 0,
+                            0, -1, 0, 0,
+                            0, 0, 1, 0,
+                            0, 0, 0, 1
+                        );
+                        //add
+                        addActions.Add(() =>
+                        {
+                            mdl.Hardpoints.Add(newHp);
+                            gizmos.Add(new HardpointGizmo(newHp, gz.Parent));
+                            OnDirtyHp();
+                        });
+                    }
+                    if(action == ContextActions.MirrorZ) {
+                        var newHp = MakeDuplicate(GetDupName(hp.Name), hp);
+                        //do mirroring
+                        newHp.Position.Z = -newHp.Position.Z;
+                        newHp.Orientation *= new Matrix4(
+                            1, 0, 0, 0,
+                            0, 1, 0, 0,
+                            0, 0, -1, 0,
+                            0, 0, 0, 1
+                        );
+                        //add
+                        addActions.Add(() =>
+                        {
+                            mdl.Hardpoints.Add(newHp);
+                            gizmos.Add(new HardpointGizmo(newHp, gz.Parent));
+                            OnDirtyHp();
+                        });
+                    }
                 }
+                foreach (var action in addActions) action();
                 ImGui.TreePop();
             }
         }
+        HardpointDefinition MakeDuplicate(string name, HardpointDefinition src)
+        {
+            if(src is FixedHardpointDefinition)
+            {
+                return new FixedHardpointDefinition(name) { Position = src.Position, Orientation = src.Orientation };
+            }
+            else if (src is RevoluteHardpointDefinition)
+            {
+                var revSrc = (RevoluteHardpointDefinition)src;
+                return new RevoluteHardpointDefinition(name)
+                {
+                    Position = src.Position,
+                    Orientation = src.Orientation,
+                    Min = revSrc.Min,
+                    Max = revSrc.Max
+                };
+            }
+            return null;
+        }
         enum ContextActions {
-            None, NewFixed,NewRevolute,Edit,Delete
+            None, NewFixed,NewRevolute,Edit,Delete,MirrorX,MirrorY, MirrorZ
         }
         ContextActions NewHpMenu(string n)
         {
@@ -660,6 +735,13 @@ namespace LancerEdit
             if(ImGui.BeginPopupContextItem(n + "_HardpointEditCtx")) {
                 if(Theme.IconMenuItem("Edit","edit",Color4.White,true)) return ContextActions.Edit;
                 if(Theme.IconMenuItem("Delete","delete",Color4.White,true)) return ContextActions.Delete;
+                if(Theme.BeginIconMenu("Duplicate", "duplicate", Color4.White))
+                {
+                    if (Theme.IconMenuItem("Mirror X", "axis_x", Color4.Red, true)) return ContextActions.MirrorX;
+                    if (Theme.IconMenuItem("Mirror Y", "axis_y", Color4.LightGreen, true)) return ContextActions.MirrorY;
+                    if (Theme.IconMenuItem("Mirror Z", "axis_z", Color4.LightBlue, true)) return ContextActions.MirrorZ;
+                    ImGui.EndMenu();
+                }
                 ImGui.EndPopup();
             }
             return ContextActions.None;

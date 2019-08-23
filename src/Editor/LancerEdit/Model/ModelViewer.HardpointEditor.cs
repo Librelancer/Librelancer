@@ -41,6 +41,32 @@ namespace LancerEdit
             ImGui.Text("Min was bigger than max, swapped.");
             if (ImGui.Button("Ok")) ImGui.CloseCurrentPopup();
         }
+        string GetDupName(string name)
+        {
+            foreach(var hp in HardpointInformation.All())
+            {
+                if(name.StartsWith(hp.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (hp.Autoname == HpNaming.None)
+                        return GetCopyName(name);
+                    else if (hp.Autoname == HpNaming.Letter)
+                        return (hp.Name + GetHpLettering(hp.Name));
+                    else if (hp.Autoname == HpNaming.Number)
+                        return (hp.Name + GetHpNumbering(hp.Name).ToString("00"));
+                }
+            }
+            return GetCopyName(name);
+        }
+        string GetCopyName(string name)
+        {
+            var src = name + "_Copy";
+            foreach(var gz in gizmos)
+            {
+                if (gz.Definition.Name.Equals(src, StringComparison.OrdinalIgnoreCase))
+                    return GetCopyName(src);
+            }
+            return src;
+        }
         int GetHpNumbering(string name)
         {
             int val = 0;
