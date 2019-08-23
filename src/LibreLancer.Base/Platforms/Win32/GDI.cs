@@ -8,6 +8,8 @@ namespace LibreLancer.Platforms.Win32
 {
 	static class GDI
 	{
+        public const uint GDI_ERROR = uint.MaxValue;
+
 		[DllImport("gdi32.dll")]
 		public static extern uint GetFontData (IntPtr hdc, uint dwTable, uint dwOffset, IntPtr lpvBuffer, uint cbData);
 		//dwTable 0 for whole font
