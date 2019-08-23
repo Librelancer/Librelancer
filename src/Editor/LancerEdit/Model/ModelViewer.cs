@@ -10,6 +10,7 @@ using LibreLancer.ImUI;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf;
+using Anm = LibreLancer.Utf.Anm;
 using DF = LibreLancer.Utf.Dfm;
 using ImGuiNET;
 namespace LancerEdit
@@ -915,25 +916,21 @@ namespace LancerEdit
         }
 
         bool drawSkeleton = false;
+        Anm.AnmFile anmFile;
         void SkeletonPanel()
         {
-            ImGui.Text("Remove #if DEBUG when working");
-            ImGui.Separator();
-            ImGui.Checkbox("Draw Skeleton", ref drawSkeleton);
-            var dfm = ((DF.DfmFile)drawable);
-            foreach(var c in ((DF.DfmFile)drawable).Constructs.Constructs)
+            if(ImGui.Button("Open Anm")) {
+                var file = FileDialog.Open();
+                if (file == null) return;
+                anmFile = new Anm.AnmFile(file);
+            }
+            if(anmFile != null)
             {
                 ImGui.Separator();
-                ImGui.Text("Parent: " + c.ParentName);
-                ImGui.Text("Bone A: " + c.BoneA);
-                var b = dfm.Parts.Values.FirstOrDefault(x => x.objectName == c.BoneA);
-                if (b != null)
-                    ImGui.Text("  BoneToRoot: " + b.Bone.BoneToRoot.Transform(Vector3.Zero));
-                ImGui.Text("Bone B: " + c.BoneB);
-                b = dfm.Parts.Values.FirstOrDefault(x => x.objectName == c.BoneB);
-                if (b != null)
-                    ImGui.Text("  BoneToRoot: " + b.Bone.BoneToRoot.Transform(Vector3.Zero));
-                ImGui.Text("Joint Translate: " + c.Origin);
+                foreach(var script in anmFile.Scripts)
+                {
+                    if (ImGui.Button(script.Key)) skinning.SetPose(script.Value);
+                }
             }
         }
 

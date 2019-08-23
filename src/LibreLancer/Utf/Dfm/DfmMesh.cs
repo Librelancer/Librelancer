@@ -154,7 +154,28 @@ namespace LibreLancer.Utf.Dfm
 			List<DfmVertex> vertices = new List<DfmVertex>();
 			for (int i = 0; i < PointIndices.Length; i++)
 			{
-				vertices.Add(new DfmVertex(Points[PointIndices[i]], VertexNormals[PointIndices[i]], UV0[UV0Indices[i]], PointBoneFirst[PointIndices[i]], PointBoneCount[PointIndices[i]]));
+                var first = PointBoneFirst[PointIndices[i]];
+                var count = PointBoneCount[PointIndices[i]];
+                int id1 = 0, id2 = 0, id3 = 0, id4 = 0;
+                var weights = new Vector4(1, 0, 0, 0);
+                if(count > 0) {
+                    id1 = BoneIdChain[first];
+                    weights.X = BoneWeightChain[first];
+                }
+                if (count > 1) {
+                    id2 = BoneIdChain[first + 1];
+                    weights.Y = BoneWeightChain[first + 1];
+                }
+                if (count > 2) {
+                    id3 = BoneIdChain[first + 2];
+                    weights.Z = BoneWeightChain[first + 2];
+                }
+                if (count > 3) {
+                    id4 = BoneIdChain[first + 3];
+                    weights.W = BoneWeightChain[first + 3];
+                }
+                if (count > 4) throw new NotImplementedException();
+                vertices.Add(new DfmVertex(Points[PointIndices[i]], VertexNormals[PointIndices[i]], UV0[UV0Indices[i]], weights, id1, id2, id3, id4));
 			}
 
 			vertexBuffer = new VertexBuffer(typeof(DfmVertex), vertices.Count);

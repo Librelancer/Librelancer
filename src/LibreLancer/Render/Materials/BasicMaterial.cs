@@ -36,10 +36,21 @@ namespace LibreLancer
 		static ShaderVariables[] sh_posTexture = new ShaderVariables[ShaderCapsExtensions.N_SHADERCAPS];
 		static ShaderVariables[] sh_pos = new ShaderVariables[ShaderCapsExtensions.N_SHADERCAPS];
         static ShaderVariables[] sh_posColor = new ShaderVariables[ShaderCapsExtensions.N_SHADERCAPS];
+        static ShaderVariables[] sh_dfm = new ShaderVariables[ShaderCapsExtensions.N_SHADERCAPS];
 		static ShaderVariables GetShader(IVertexType vertextype, ShaderCaps caps)
 		{
 			var i = caps.GetIndex();
-			if (vertextype is VertexPositionNormalTexture || vertextype is Utf.Dfm.DfmVertex ||
+            if(vertextype is Utf.Dfm.DfmVertex) { 
+                if(sh_dfm[i] == null) {
+                    sh_dfm[i] = ShaderCache.Get(
+                        "Basic_Skinned.vs",
+                        "Basic_Fragment.frag",
+                        caps);
+                    sh_dfm[i].SetSkinningEnabled(false);
+                }
+                return sh_dfm[i];
+            }
+            if (vertextype is VertexPositionNormalTexture ||
                vertextype is VertexPositionNormal)
 			{
 				if (sh_posNormalTexture[i] == null)
@@ -107,7 +118,25 @@ namespace LibreLancer
         {
             lastShader.SetFlipNormal(FlipNormals);
         }
-		public override void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights)
+
+        public override void SetSkinningData(Matrix4[] bones, ref Lighting lights)
+        {
+            ShaderCaps caps = ShaderCaps.None;
+            if (VertexLighting) caps |= ShaderCaps.VertexLighting;
+            if (HasSpotlight(ref lights)) caps |= ShaderCaps.Spotlight;
+            if (EtEnabled) caps |= ShaderCaps.EtEnabled;
+            if (Fade) caps |= ShaderCaps.FadeEnabled;
+            var sh = GetShader(new Utf.Dfm.DfmVertex(), caps);
+            sh.SetSkinningEnabled(true);
+            var loc = sh.Shader.GetLocation("Bones");
+            if(loc != -1)
+            {
+                for (int i = 0; i < bones.Length; i++)
+                    sh.Shader.SetMatrix(loc + i, ref bones[i]);
+            }
+        }
+
+        public override void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights)
 		{
 			if (Camera == null)
 				return;

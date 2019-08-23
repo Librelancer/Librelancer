@@ -8,7 +8,6 @@ using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
 namespace LibreLancer
 {
-
 	public abstract class RenderMaterial
 	{
         public static bool VertexLighting = false;
@@ -20,7 +19,8 @@ namespace LibreLancer
 		public bool Fade = false;
 		public float FadeNear = 0;
 		public float FadeFar = 0;
-		public abstract void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights);
+        public virtual void SetSkinningData(Matrix4[] bones, ref Lighting lights) { }
+        public abstract void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights);
         public virtual void UpdateFlipNormals() {} //Optimisation
 		public abstract bool IsTransparent { get; }
         public virtual bool DisableCull {  get { return false; } }

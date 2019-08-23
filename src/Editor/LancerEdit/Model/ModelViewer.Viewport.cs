@@ -18,6 +18,7 @@ namespace LancerEdit
         Viewport3D modelViewport;
         Viewport3D previewViewport;
         Viewport3D imageViewport;
+        CharacterSkinning skinning;
 
         float gizmoScale;
         const float RADIUS_ONE = 21.916825f;
@@ -61,6 +62,8 @@ namespace LancerEdit
             lighting.Lights.SourceEnabled[0] = true;
             lighting.Lights.SourceEnabled[1] = true;
             lighting.NumberOfTilesX = -1;
+            if (drawable is DF.DfmFile)
+                skinning = new CharacterSkinning((DF.DfmFile)drawable);
             GizmoRender.Init(res);
         }
 
@@ -397,6 +400,7 @@ namespace LancerEdit
         void DrawSimple(ICamera cam, bool wireFrame)
         {
             if (hiddenModels.Count > 0) return;
+            if (skinning != null) skinning.Update();
             Material mat = null;
             var matrix = Matrix4.Identity;
             if (isStarsphere)

@@ -57,8 +57,8 @@ namespace LibreLancer
 			GL.BindAttribLocation (programID, VertexSlots.Dimensions, "vertex_dimensions");
 			GL.BindAttribLocation (programID, VertexSlots.Right, "vertex_right");
 			GL.BindAttribLocation (programID, VertexSlots.Up, "vertex_up");
-			GL.BindAttribLocation(programID, VertexSlots.BoneFirst, "vertex_bonefirst");
-			GL.BindAttribLocation(programID, VertexSlots.BoneCount, "vertex_bonecount");
+			GL.BindAttribLocation(programID, VertexSlots.BoneWeights, "vertex_boneweights");
+			GL.BindAttribLocation(programID, VertexSlots.BoneIds, "vertex_boneids");
 			//Fragment Outputs
 
             GL.LinkProgram(programID);

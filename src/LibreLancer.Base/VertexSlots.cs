@@ -20,8 +20,8 @@ namespace LibreLancer
 		public const int Dimensions = 5;
 		public const int Right = 6;
 		public const int Up = 7;
-		public const int BoneFirst = 8;
-		public const int BoneCount = 9;
+		public const int BoneIds = 8;
+		public const int BoneWeights = 9;
         public const int Color2 = 10;
     }
 }

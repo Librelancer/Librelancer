@@ -30,6 +30,7 @@ namespace LibreLancer.Utf.Dfm
 
 		public Dictionary<int, DfmPart> Parts { get; private set; }
 		public Dictionary<string, Bone> Bones { get; private set; }
+        public List<Bone> BoneList = new List<Bone>();
 		public DfmConstructs Constructs { get; private set; }
 
 		public IEnumerable<DfmHardpoint> GetHardpoints()

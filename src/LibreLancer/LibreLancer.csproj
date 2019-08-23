@@ -408,6 +408,7 @@
     <Compile Include="Gameplay\Components\ShipInputComponent.cs" />
     <Compile Include="Interface\TextUtils.cs" />
     <Compile Include="Render\StaticBillboards.cs" />
+    <Compile Include="Render\CharacterSkinning.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
@@ -457,6 +458,7 @@
     <EmbeddedResource Include="Shaders\Particle.vs" />
     <EmbeddedResource Include="Shaders\sun.vs" />
     <EmbeddedResource Include="Shaders\nebula_extpuff.vs" />
+    <EmbeddedResource Include="Shaders\Basic_Skinned.vs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">

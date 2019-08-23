@@ -25,7 +25,7 @@ namespace LibreLancer.Utf.Anm
 						else throw new Exception("Multiple child name nodes in channel root");
 						break;
 					case "channel":
-						if (Channel == null) Channel = new Channel((node as IntermediateNode), false);
+						if (Channel == null) Channel = new Channel((node as IntermediateNode));
 						else throw new Exception("Multiple data nodes in channel root");
 						break;
 				}

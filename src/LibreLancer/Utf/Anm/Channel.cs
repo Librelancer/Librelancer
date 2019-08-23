@@ -18,7 +18,7 @@ namespace LibreLancer.Utf.Anm
 
 		public Frame[] Frames { get; private set; }
 
-		public Channel(IntermediateNode root, bool objectmap)
+		public Channel(IntermediateNode root)
 		{
 			byte[] frameBytes = new byte[0];
 
@@ -41,12 +41,14 @@ namespace LibreLancer.Utf.Anm
 				}
 			}
 
-			Frames = new Frame[FrameCount];
+            FrameType frameType = FrameType.Float;
+            if((ChannelType & 0xC0) == 0xC0) frameType = FrameType.IK;
+            Frames = new Frame[FrameCount];
 			using (BinaryReader reader = new BinaryReader(new MemoryStream(frameBytes)))
 			{
 				for (int i = 0; i < FrameCount; i++)
 				{
-					Frames[i] = new Frame(reader, Interval == -1, objectmap);
+					Frames[i] = new Frame(reader, Interval == -1, frameType);
 				}
 			}
 		}
