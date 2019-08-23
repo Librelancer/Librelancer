@@ -44,12 +44,23 @@ namespace LibreLancer
 			_parentCmp = parent;
 		}
 
+        double spinX;
+        double spinY;
+        double spinZ;
 		public override void Update(TimeSpan elapsed, Vector3 position, Matrix4 transform)
 		{
 			if (sysr == null)
 				return;
 			World = transform;
-			if (Nebula == null || pos != position && sysr != null)
+            if(Spin != Vector3.Zero) {
+                spinX += elapsed.TotalSeconds * Spin.X;
+                if (spinX > (2 * Math.PI)) spinX -= 2 * Math.PI;
+                spinY += elapsed.TotalSeconds * Spin.Y;
+                if (spinY > (2 * Math.PI)) spinX -= 2 * Math.PI;
+                spinZ += elapsed.TotalSeconds * Spin.Z;
+                if (spinZ > (2 * Math.PI)) spinZ -= 2 * Math.PI;
+            }
+            if (Nebula == null || pos != position && sysr != null)
 			{
 				pos = position;
 				Nebula = sysr.ObjectInNebula(position);
@@ -352,11 +363,18 @@ namespace LibreLancer
 					}
 				}
 			} else if (Sph != null) {
-				Sph.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
+                Matrix4 w = World;
+                if(Spin != Vector3.Zero)
+                {
+                    w = (Matrix4.CreateRotationX((float)spinX) *
+                        Matrix4.CreateRotationY((float)spinY) *
+                        Matrix4.CreateRotationZ((float)spinZ)) * World;
+                }
+                Sph.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
 				var l = RenderHelpers.ApplyLights(lights, LightGroup, pos, Sph.Radius, nr, LitAmbient, LitDynamic, NoFog);
 				var r = Sph.Radius + l.FogRange.Y;
 				if(l.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, pos) <= (r * r))
-					Sph.DrawBuffer(commands, World, ref l);
+					Sph.DrawBuffer(commands, w, ref l);
 			}
 		}
 	}

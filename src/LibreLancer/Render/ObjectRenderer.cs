@@ -18,6 +18,7 @@ namespace LibreLancer
 		public float[] LODRanges;
         public bool InheritCull = true;
         public int CurrentLevel = 0;
+        public Vector3 Spin = Vector3.Zero;
 
 		public virtual bool OutOfView(ICamera camera)
 		{

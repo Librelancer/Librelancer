@@ -1064,6 +1064,7 @@ namespace LibreLancer
             obj.Nickname = o.Nickname;
             obj.DisplayName = GetString(o.IdsName);
             obj.Position = o.Pos.Value;
+            obj.Spin = o.Spin ?? Vector3.Zero;
             if (o.DockWith != null)
             {
                 obj.Dock = new DockAction() { Kind = DockKinds.Base, Target = o.DockWith };

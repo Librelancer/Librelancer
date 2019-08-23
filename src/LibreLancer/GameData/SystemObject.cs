@@ -13,6 +13,7 @@ namespace LibreLancer.GameData
 		public string DisplayName;
 		public Archetype Archetype;
 		public Vector3 Position = Vector3.Zero;
+        public Vector3 Spin = Vector3.Zero;
 		public Matrix4? Rotation;
 		public Dictionary<string, Equipment> Loadout = new Dictionary<string, Equipment>();
 		public List<Equipment> LoadoutNoHardpoint = new List<Equipment>();

@@ -56,7 +56,15 @@ namespace LibreLancer
                 g.StaticPosition = obj.Position;
                 g.World = this;
                 g.CollisionGroups = obj.Archetype.CollisionGroups;
-                if (g.RenderComponent != null) g.RenderComponent.LODRanges = obj.Archetype.LODRanges;
+                if (g.RenderComponent != null)
+                {
+                    g.RenderComponent.LODRanges = obj.Archetype.LODRanges;
+                    if (g.RenderComponent is ModelRenderer &&
+                        ((ModelRenderer)g.RenderComponent).Sph != null &&
+                        obj.Spin != Vector3.Zero) {
+                        g.RenderComponent.Spin = obj.Spin;
+                    }
+                }
                 if (obj.Dock != null)
                 {
                     if (obj.Archetype.DockSpheres.Count > 0) //Dock with no DockSphere?
