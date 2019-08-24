@@ -56,7 +56,7 @@ namespace LibreLancer
                 spinX += elapsed.TotalSeconds * Spin.X;
                 if (spinX > (2 * Math.PI)) spinX -= 2 * Math.PI;
                 spinY += elapsed.TotalSeconds * Spin.Y;
-                if (spinY > (2 * Math.PI)) spinX -= 2 * Math.PI;
+                if (spinY > (2 * Math.PI)) spinY -= 2 * Math.PI;
                 spinZ += elapsed.TotalSeconds * Spin.Z;
                 if (spinZ > (2 * Math.PI)) spinZ -= 2 * Math.PI;
             }
