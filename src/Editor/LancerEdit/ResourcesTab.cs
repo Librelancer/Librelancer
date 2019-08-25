@@ -73,9 +73,10 @@ namespace LancerEdit
             }
             foreach(var m in res.AnimationDictionary)
             {
-                ImGui.Text("Animated Texture");
+                var col = referencedTex.Contains(m.Key) ? tcolor : new Vector4(0.6f, 0.6f, 0.6f, 1f);
+                ImGui.TextColored(col, "Animated Texture");
                 ImGui.NextColumn();
-                ImGui.Selectable(m.Key);
+                SelectableColored(col, m.Key);
                 ContextView(m.Key, () =>
                 {
                     var title = string.Format("{0} (Animation)", m.Key);

@@ -8,6 +8,7 @@ using LibreLancer;
 using LibreLancer.ImUI;
 using LibreLancer.Fx;
 using LibreLancer.Utf.Ale;
+using LibreLancer.Utf.Mat;
 using ImGuiNET;
 namespace LancerEdit
 {
@@ -37,7 +38,7 @@ namespace LancerEdit
             effectNames = new string[plib.Effects.Count];
             for (int i = 0; i < effectNames.Length; i++)
                 effectNames[i] = string.Format("{0} (0x{1:X})", plib.Effects[i].Name, plib.Effects[i].CRC);
-            Title = title;
+            Title = title + "##" + Unique;
             this.name = name;
             this.rstate = main.RenderState;
             aleViewport = new Viewport3D(main);
@@ -233,7 +234,9 @@ namespace LancerEdit
                     var node = reference.Node;
                     var fx = (FxBasicAppearance)reference.Node;
                     if (fx.Texture != null && !ResourceDetection.HasTexture(texrefs, fx.Texture)) texrefs.Add(fx.Texture);
-                    if (fx.Texture != null && plib.Resources.FindTexture(fx.Texture) == null)
+                    TexFrameAnimation texFrame;
+                    if (fx.Texture != null &&  plib.Resources.FindTexture(fx.Texture) == null && 
+                        !plib.Resources.TryGetFrameAnimation(fx.Texture, out texFrame))
                     {
                         var str = "Texture: " + fx.Texture; //TODO: This is wrong - handle properly
                         if (!ResourceDetection.HasMissing(missing, str)) missing.Add(new MissingReference(

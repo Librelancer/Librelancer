@@ -214,7 +214,7 @@ namespace LancerEdit
                         ale = null;
                     }
                     if (ale != null)
-                        main.AddTab(new AleViewer("Ale Viewer (" + Title + ")", Title, ale, main));
+                        main.AddTab(new AleViewer("Ale Viewer (" + FixName(Title) + ")", Title, ale, main));
                 }
                 ImGui.EndPopup();
             }
@@ -394,7 +394,7 @@ namespace LancerEdit
                         {
                             tex = LibreLancer.ImageLib.Generic.FromStream(stream);
                         }
-                        var title = string.Format("{0} ({1})", selectedNode.Name, Title);
+                        var title = string.Format("{0} ({1})", selectedNode.Name, FixName(Title));
                         var tab = new TextureViewer(title, tex, null);
                         main.AddTab(tab);
                     }
