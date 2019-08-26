@@ -22,12 +22,5 @@ namespace LancerEdit
             win.ActiveTab = null;
         }
         public virtual void OnHotkey(Hotkeys hk) {}
-
-        protected string FixName(string name)
-        {
-            var idx = name.IndexOf('#');
-            if (idx != -1) return name.Substring(0, idx);
-            return name;
-        }
     }
 }

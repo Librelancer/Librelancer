@@ -435,9 +435,9 @@ namespace LancerEdit
                 ImGuiExt.SplitterV(2f, ref h1, ref h2, 8, 8, -1);
                 h1 = totalH - h2 - 24f;
                 if (tabs.Count > 0) h1 -= 20f;
-                ImGui.BeginChild("###tabcontent" + (selected != null ? selected.Title : ""),new Vector2(-1,h1),false,ImGuiWindowFlags.None);
+                ImGui.BeginChild("###tabcontent" + (selected != null ? selected.RenderTitle : ""),new Vector2(-1,h1),false,ImGuiWindowFlags.None);
             } else
-                ImGui.BeginChild("###tabcontent" + (selected != null ? selected.Title : ""));
+                ImGui.BeginChild("###tabcontent" + (selected != null ? selected.RenderTitle : ""));
             if (selected != null)
             {
                 selected.Draw();

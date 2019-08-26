@@ -74,9 +74,9 @@ namespace LancerEdit
         bool doFilter = false;
         string currentFilter;
         bool hasVWire = false;
-        public ModelViewer(string title, string name, IDrawable drawable, MainWindow win, UtfTab parent, ModelNodes hprefs)
+        public ModelViewer(string name, IDrawable drawable, MainWindow win, UtfTab parent, ModelNodes hprefs)
         {
-            Title = title;
+            Title = string.Format("Model Viewer ({0})",name);
             Name = name;
             this.drawable = drawable;
             this.parent = parent;
@@ -446,7 +446,7 @@ namespace LancerEdit
         }
         void DoConstructNode(ConstructNode cn)
         {
-            var n = string.Format("{0} ({1})", cn.Con.ChildName, ConType(cn.Con));
+            var n = ImGuiExt.IDSafe(string.Format("{0} ({1})", cn.Con.ChildName, ConType(cn.Con)));
             var tflags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
             if (selectedNode == cn) tflags |= ImGuiTreeNodeFlags.Selected;
             var icon = "fix";
@@ -625,7 +625,7 @@ namespace LancerEdit
                         gz.Enabled = !gz.Enabled;
                     }
                     ImGui.SameLine();
-                    ImGui.Selectable(hp.Name);
+                    ImGui.Selectable(ImGuiExt.IDSafe(hp.Name));
                     var action = EditDeleteHpMenu(mdl.Path + hp.Name);
                     if (action == ContextActions.Delete)
                     {
@@ -906,7 +906,7 @@ namespace LancerEdit
             int j = 0;
             foreach (var sc in anm.Scripts)
             {
-                if (ImGui.Button(sc.Key + "###" + j++))
+                if (ImGui.Button(ImGuiExt.IDWithExtra(sc.Key, j++)))
                 {
                     animator.StartAnimation(sc.Key, false);
                 }

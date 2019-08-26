@@ -38,7 +38,7 @@ namespace LibreLancer.ImUI
             float totalWidth = 0;
             foreach(var sztab in tabs)
             {
-                totalWidth += ImGui.CalcTextSize(sztab.Title).X;
+                totalWidth += ImGui.CalcTextSize(sztab.RenderTitle).X;
                 totalWidth += 28 + style.ItemSpacing.X;
             }
             var winSize = new Vector2(windowWidth, lineheight);
@@ -55,7 +55,7 @@ namespace LibreLancer.ImUI
                 //do button
                 if(i > 0) ImGui.SameLine(0, 15);
                 ImGui.PushID(i);
-                var title = tabs[i].Title.Split(new string[] { "##" }, StringSplitOptions.None)[0];
+                var title = tabs[i].RenderTitle.Split(new string[] { "##" }, StringSplitOptions.None)[0];
                 var textSz = ImGui.CalcTextSize(title).X;
                 var size = new Vector2(textSz, lineheight);
                 //Selection and hover

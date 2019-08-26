@@ -79,6 +79,15 @@ namespace LibreLancer.ImUI
             }
         }
 
+        public const char ReplacementHash = '\uE884';
+        public static string IDSafe(string str)
+        {
+            if (str.IndexOf('#') == -1) return str;
+            return str.Replace('#', ReplacementHash);
+        }
+        public static string IDWithExtra(string str, string extra) => string.Format("{0}##{1}", IDSafe(str), extra);
+        public static string IDWithExtra(string str, object extra) => IDWithExtra(str, extra.ToString());
+
         public static unsafe uint GetUint(Color4 color)
         {
             uint a = 0;

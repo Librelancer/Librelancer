@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.ImUI;
 namespace LancerEdit
 {
     public class ResourcesTab : EditorTab
@@ -47,7 +48,7 @@ namespace LancerEdit
                 }
                 ImGui.TextColored(col, "Texture");
                 ImGui.NextColumn();
-                SelectableColored(col, t.Key);
+                SelectableColored(col, ImGuiExt.IDSafe(t.Key));
                 ContextView(t.Key, () =>
                 {
                     if (t.Value is Texture2D)
@@ -68,7 +69,7 @@ namespace LancerEdit
                 var col = referencedMats.Contains(m.Key) ? tcolor : new Vector4(0.6f, 0.6f, 0.6f, 1f);
                 ImGui.TextColored(col, "Material");
                 ImGui.NextColumn();
-                ImGui.TextColored(col, string.Format("{0} (0x{1:X})", m.Value.Name, m.Key));
+                ImGui.TextColored(col, ImGuiExt.IDSafe(string.Format("{0} (0x{1:X})", m.Value.Name, m.Key)));
                 ImGui.NextColumn();
             }
             foreach(var m in res.AnimationDictionary)
@@ -76,7 +77,7 @@ namespace LancerEdit
                 var col = referencedTex.Contains(m.Key) ? tcolor : new Vector4(0.6f, 0.6f, 0.6f, 1f);
                 ImGui.TextColored(col, "Animated Texture");
                 ImGui.NextColumn();
-                SelectableColored(col, m.Key);
+                SelectableColored(col, ImGuiExt.IDSafe(m.Key));
                 ContextView(m.Key, () =>
                 {
                     var title = string.Format("{0} (Animation)", m.Key);

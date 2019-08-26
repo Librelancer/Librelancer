@@ -30,7 +30,7 @@ namespace LancerEdit
 
         float sparam = 1;
         string[] effectNames;
-        public AleViewer(string title, string name, AleFile ale, MainWindow main)
+        public AleViewer(string name, AleFile ale, MainWindow main)
         {
             plib = new ParticleLibrary(main.Resources, ale);
             res = main.Resources;
@@ -38,7 +38,7 @@ namespace LancerEdit
             effectNames = new string[plib.Effects.Count];
             for (int i = 0; i < effectNames.Length; i++)
                 effectNames[i] = string.Format("{0} (0x{1:X})", plib.Effects[i].Name, plib.Effects[i].CRC);
-            Title = title + "##" + Unique;
+            Title = string.Format("Ale Viewer ({0})", name);
             this.name = name;
             this.rstate = main.RenderState;
             aleViewport = new Viewport3D(main);
@@ -173,7 +173,7 @@ namespace LancerEdit
             if (reference.IsAttachmentNode)
                 label = string.Format("Attachment##{0}", idx);
             else
-                label = string.Format("{0}##{1}", reference.Node.NodeName, idx);
+                label = ImGuiExt.IDWithExtra(reference.Node.NodeName, idx);
             ImGui.PushStyleColor(ImGuiCol.Text, col);
             string icon;
             Color4 color;

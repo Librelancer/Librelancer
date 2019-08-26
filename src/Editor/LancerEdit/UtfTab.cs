@@ -25,14 +25,14 @@ namespace LancerEdit
             this.main = main;
             Utf = utf;
             DocumentName = title;
-            Title = string.Format("{0}##{1}",title,Unique);
+            Title = title;
             text = new TextBuffer();
             main.Resources.AddResources(utf.Export(), Unique.ToString());
             RegisterPopups();
         }
         public void UpdateTitle()
         {
-            Title = string.Format("{0}##{1}", DocumentName, Unique);
+            Title = DocumentName;
         }
         public override void SetActiveTab(MainWindow win)
         {
@@ -154,7 +154,7 @@ namespace LancerEdit
                     catch (Exception ex) { ErrorPopup("Could not open as model\n" + ex.Message + "\n" + ex.StackTrace); drawable = null; }
                     if (drawable != null)
                     {
-                        main.AddTab(new ModelViewer("Model Viewer (" + DocumentName + ")", DocumentName, drawable, main, this,hpn));
+                        main.AddTab(new ModelViewer(DocumentName, drawable, main, this,hpn));
                     }
                 }
                 if(ImGui.MenuItem("Export Collada"))
@@ -214,7 +214,7 @@ namespace LancerEdit
                         ale = null;
                     }
                     if (ale != null)
-                        main.AddTab(new AleViewer("Ale Viewer (" + FixName(Title) + ")", Title, ale, main));
+                        main.AddTab(new AleViewer(Title, ale, main));
                 }
                 ImGui.EndPopup();
             }
@@ -394,7 +394,7 @@ namespace LancerEdit
                         {
                             tex = LibreLancer.ImageLib.Generic.FromStream(stream);
                         }
-                        var title = string.Format("{0} ({1})", selectedNode.Name, FixName(Title));
+                        var title = string.Format("{0} ({1})", selectedNode.Name, Title);
                         var tab = new TextureViewer(title, tex, null);
                         main.AddTab(tab);
                     }
@@ -712,7 +712,7 @@ namespace LancerEdit
 
         void DoNode(LUtfNode node, LUtfNode parent, int idx)
         {
-            string id = node.Name + "##" + parent.Name + idx;
+            string id = ImGuiExt.IDWithExtra(node.Name, parent.Name + idx);
             if (node.Children != null)
             {
                 var flags = selectedNode == node ? ImGuiTreeNodeFlags.Selected | tflags : tflags;

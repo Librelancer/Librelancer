@@ -29,6 +29,10 @@
 #pragma GCC diagnostic ignored "-Wunused-function"          // warning: 'xxxx' defined but not used
 #endif
 
+//CallumDev: use this to be able to render # characters without modifying core
+//imgui code to change the ID calculation
+#define REPLACEMENT_HASH (0xE884)
+
 namespace 
 {
     // Glyph metrics:
@@ -173,6 +177,9 @@ namespace
 
     bool FreeTypeFont::CalcGlyphInfo(uint32_t codepoint, GlyphInfo &glyph_info, FT_Glyph& ft_glyph, FT_BitmapGlyph& ft_bitmap)
     {
+		if(codepoint == REPLACEMENT_HASH) //For IDSafe function
+			codepoint = 0x23; //Hash
+		
         uint32_t glyph_index = FT_Get_Char_Index(FreetypeFace, codepoint);
         FT_Error error = FT_Load_Glyph(FreetypeFace, glyph_index, FreetypeLoadFlags);
         if (error)

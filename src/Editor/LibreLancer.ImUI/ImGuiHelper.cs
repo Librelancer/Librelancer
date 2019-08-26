@@ -93,6 +93,12 @@ namespace LibreLancer.ImUI
         IntPtr context;
 		public static ImFontPtr Noto;
 		public static ImFontPtr Default;
+
+        //Not shown in current version of ImGui.NET,
+        //can probably remove when I update the dependencies
+        [DllImport("cimgui")]
+        static extern IntPtr ImFontConfig_ImFontConfig();
+
 		public unsafe ImGuiHelper(Game game)
 		{
 			this.game = game;
@@ -102,18 +108,40 @@ namespace LibreLancer.ImUI
             context = ImGui.CreateContext();
             ImGui.SetCurrentContext(context);
             SetKeyMappings();
-
             var io = ImGui.GetIO();
             io.WantSaveIniSettings = false;
             io.NativePtr->IniFilename = (byte*)0; //disable ini!!
-            Default = io.Fonts.AddFontDefault();
+            var fontConfigA = new ImFontConfigPtr(ImFontConfig_ImFontConfig());
+            var fontConfigB = new ImFontConfigPtr(ImFontConfig_ImFontConfig());
+            ushort[] glyphRangesFull = new ushort[]
+            {
+                0x0020, 0x00FF, //Basic Latin + Latin Supplement,
+                0x0400, 0x052F, //Cyrillic + Cyrillic Supplement
+                0x2DE0, 0x2DFF, //Cyrillic Extended-A
+                0xA640, 0xA69F, //Cyrillic Extended-B
+                ImGuiExt.ReplacementHash, ImGuiExt.ReplacementHash,
+                0
+            };
+            var rangesPtrFull = Marshal.AllocHGlobal(sizeof(short) * glyphRangesFull.Length);
+            for (int i = 0; i < glyphRangesFull.Length; i++) ((ushort*)rangesPtrFull)[i] = glyphRangesFull[i];
+            ushort[] glyphRangesLatin = new ushort[]
+            {
+                0x0020, 0x00FF, //Basic Latin + Latin Supplement
+                ImGuiExt.ReplacementHash, ImGuiExt.ReplacementHash,
+                0
+            };
+            var rangesPtrLatin = Marshal.AllocHGlobal(sizeof(short) * glyphRangesLatin.Length);
+            for (int i = 0; i < glyphRangesLatin.Length; i++) ((ushort*)rangesPtrLatin)[i] = glyphRangesLatin[i];
+            fontConfigA.GlyphRanges = rangesPtrLatin;
+            fontConfigB.GlyphRanges = rangesPtrFull;
+            Default = io.Fonts.AddFontDefault(fontConfigA);
 			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.Roboto-Medium.ttf"))
 			{
 				var ttf = new byte[stream.Length];
 				stream.Read(ttf, 0, ttf.Length);
 				ttfPtr = Marshal.AllocHGlobal(ttf.Length);
 				Marshal.Copy(ttf, 0, ttfPtr, ttf.Length);
-				Noto = io.Fonts.AddFontFromMemoryTTF(ttfPtr, ttf.Length, 15);
+                Noto = io.Fonts.AddFontFromMemoryTTF(ttfPtr, ttf.Length, 15, fontConfigB);
 			}
 			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.checkerboard.png"))
 			{
