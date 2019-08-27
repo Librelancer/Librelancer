@@ -42,7 +42,11 @@ namespace LibreLancer
                 foreach(var t in pnl.Text)
                 {
                     var f = Texts.FirstOrDefault(x => x.ID == t.Item);
-                    if (f != null) f.Text = t.Value;
+                    if (f != null)
+                    {
+                        var txt = scene.Manager.GetString(t.Strid, t.InfocardId, t.Value);
+                        if (txt != null) f.Text = txt;
+                    }
                 }
             }
         }

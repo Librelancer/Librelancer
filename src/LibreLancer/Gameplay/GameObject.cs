@@ -325,16 +325,18 @@ namespace LibreLancer
 		{
             if (RenderComponent != null)
 			{
-				var tr = GetTransform();
-				RenderComponent.Update(time, isstatic ? StaticPosition : tr.Transform(Vector3.Zero), tr);
-			}
+                if (Parent == null || Parent.RenderUpdate(this)) {
+                    var tr = GetTransform();
+                    RenderComponent.Update(time, isstatic ? StaticPosition : tr.Transform(Vector3.Zero), tr);
+                }
+            }
 			for (int i = 0; i < Children.Count; i++)
 				Children[i].Update(time);
 			for (int i = 0; i < Components.Count; i++)
 				Components[i].Update(time);
 		}
-
-		public void FixedUpdate(TimeSpan time)
+        
+        public void FixedUpdate(TimeSpan time)
 		{
 			for (int i = 0; i < Children.Count; i++)
 				Children[i].FixedUpdate(time);
@@ -362,6 +364,11 @@ namespace LibreLancer
 			return World;
 		}
 
+        protected bool RenderUpdate(GameObject child)
+        {
+            if (ForceRenderCheck.Contains(child.RenderComponent)) return true;
+            return RenderComponent == null || RenderComponent.CurrentLevel == 0 || !child.RenderComponent.InheritCull;
+        }
         public void PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
         {
             if(RenderComponent == null || RenderComponent.PrepareRender(camera,nr,sys))

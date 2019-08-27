@@ -314,6 +314,13 @@ namespace LibreLancer
         {
             return Data.VFS.GetPath(fldata.Freelancer.DataPath + "\\AUDIO\\" + id + ".utf");
         }
+
+        public string GetInfocardText(int id, FontManager fonts)
+        {
+            var res = fldata.Infocards.GetXmlResource(id);
+            if (res == null) return null;
+            return Infocards.RDLParse.Parse(res, fonts).ExtractText();
+        }
         public Infocards.Infocard GetInfocard(int id, FontManager fonts)
         {
             return Infocards.RDLParse.Parse(fldata.Infocards.GetXmlResource(id), fonts);

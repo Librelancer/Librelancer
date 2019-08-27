@@ -158,8 +158,12 @@ namespace LibreLancer
 		public static Uniform2f Uniform2f;
 		[MapsTo("glUniform3f")]
 		public static Uniform3f Uniform3f;
+        [MapsTo("glUniform3fv")] 
+        public static Uniform3fv Uniform3fv;
 		[MapsTo("glUniform4f")]
 		public static Uniform4f Uniform4f;
+        [MapsTo("glUniform4fv")] 
+        public static Uniform4fv Uniform4fv;
         [MapsTo("glUniform4i")]
         public static Uniform4i Uniform4i;
 		[MapsTo("glUniformMatrix4fv")]

@@ -6,12 +6,16 @@ uniform ivec4 LightingParameters;
 #define FogMode (LightingParameters.z)
 #define NumberOfTilesX (LightingParameters.w)
 
-uniform vec4 LightsPos[MAX_LIGHTS];
-uniform vec4 LightsColorRange[MAX_LIGHTS]; //xyz: color, w: range
-uniform vec3 LightsAttenuation[MAX_LIGHTS];
+#define LightsPos(x) (LightData[(x) * 3])
+#define LightsColorRange(x) (LightData[(x) * 3 + 1])
+#define LightsAttenuation(x) (LightData[(x) * 3 + 2].xyz)
+
+uniform vec4 LightData[MAX_LIGHTS * 3];
+
 #ifdef SPOTLIGHT
-uniform vec3 SpotlightParams[MAX_LIGHTS]; //x: falloff. y: cos(theta/2), z: cos(phi/2)
-uniform vec3 LightsDir[MAX_LIGHTS];
+#define SpotlightParams(x) (SpotlightData[(x) * 2].xyz)
+#define LightsDir(x) (SpotlightData[(x) * 2 + 1].xyz)
+uniform vec4 SpotlightData[MAX_LIGHTS * 2];
 #endif
 uniform vec4 AmbientColor;
 uniform vec4 FogColor;
@@ -85,24 +89,24 @@ void light_vert(vec3 position, vec4 view_position, vec3 normal)
         float attenuation;
         //LightsPos[i].w is the type of light
         //0: directional, 1: point, 2: pointattencurve
-        if (LightsPos[i].w == 0.0) { 
-            //directional light: LightsPos[i].xyz is direction
-            surfaceToLight = normalize(-LightsPos[i].xyz);
+        if (LightsPos(i).w == 0.0) { 
+            //directional light: LightsPos(i).xyz is direction
+            surfaceToLight = normalize(-LightsPos(i).xyz);
             attenuation = 1.;
         } else { 
             //point light
-            surfaceToLight = normalize(LightsPos[i].xyz - position);
-            float distanceToLight = length(LightsPos[i].xyz - position);
-            vec3 curve = LightsAttenuation[i];
+            surfaceToLight = normalize(LightsPos(i).xyz - position);
+            float distanceToLight = length(LightsPos(i).xyz - position);
+            vec3 curve = LightsAttenuation(i);
             float atten0 = attenuation = 1.0 / (curve.x + curve.y * distanceToLight + curve.z * (distanceToLight * distanceToLight));
-            float atten1 = fquadratic(distanceToLight / max(LightsColorRange[i].w,1.),curve);
-            attenuation = mix(atten0, atten1, LightsPos[i].w - 1.0); //choose correct attenuation
+            float atten1 = fquadratic(distanceToLight / max(LightsColorRange(i).w,1.),curve);
+            attenuation = mix(atten0, atten1, LightsPos(i).w - 1.0); //choose correct attenuation
             #ifdef SPOTLIGHT
-            if(SpotlightParams[i].x > 0.0) { //It's a spotlight
-                float NdotL = max(dot(n, LightsDir[i]), 0.0);
+            if(SpotlightParams(i).x > 0.0) { //It's a spotlight
+                float NdotL = max(dot(n, LightsDir(i)), 0.0);
                 if(NdotL > 0.0) {
-                    float rho = dot(surfaceToLight, -LightsDir[i]);
-                    attenuation *= pow(clamp((rho - SpotlightParams[i].z) / (SpotlightParams[i].y - SpotlightParams[i].z),0.,1.), SpotlightParams[i].x);
+                    float rho = dot(surfaceToLight, -LightsDir(i));
+                    attenuation *= pow(clamp((rho - SpotlightParams(i).z) / (SpotlightParams(i).y - SpotlightParams(i).z),0.,1.), SpotlightParams(i).x);
                 } else {
                     attenuation = 0.0;
                 }
@@ -112,7 +116,7 @@ void light_vert(vec3 position, vec4 view_position, vec3 normal)
         }
         //color calculation
         float diffuseCoefficient = max(dot(n, surfaceToLight), 0.0);
-        vec3 diffuse = diffuseCoefficient * LightsColorRange[i].xyz;
+        vec3 diffuse = diffuseCoefficient * LightsColorRange(i).xyz;
         color += attenuation * diffuse;
     }
     diffuse_term = color;
@@ -164,24 +168,24 @@ vec4 light(vec4 ac, vec4 ec, vec4 dc, vec4 tex, vec3 position, vec4 view_positio
         float attenuation;
         //LightsPos[i].w is the type of light
         //0: directional, 1: point, 2: pointattencurve
-        if (LightsPos[i].w == 0.0) { 
+        if (LightsPos(i).w == 0.0) { 
             //directional light: LightsPos[i].xyz is direction
-            surfaceToLight = normalize(-LightsPos[i].xyz);
+            surfaceToLight = normalize(-LightsPos(i).xyz);
             attenuation = 1.;
         } else { 
             //point light
-            surfaceToLight = normalize(LightsPos[i].xyz - position);
-            float distanceToLight = length(LightsPos[i].xyz - position);
-            vec3 curve = LightsAttenuation[i];
+            surfaceToLight = normalize(LightsPos(i).xyz - position);
+            float distanceToLight = length(LightsPos(i).xyz - position);
+            vec3 curve = LightsAttenuation(i);
             float atten0 = attenuation = 1.0 / (curve.x + curve.y * distanceToLight + curve.z * (distanceToLight * distanceToLight));
-            float atten1 = fquadratic(distanceToLight / max(LightsColorRange[i].w,1.),curve);
-            attenuation = mix(atten0, atten1, LightsPos[i].w - 1.0); //choose correct attenuation
+            float atten1 = fquadratic(distanceToLight / max(LightsColorRange(i).w,1.),curve);
+            attenuation = mix(atten0, atten1, LightsPos(i).w - 1.0); //choose correct attenuation
             #ifdef SPOTLIGHT
-            if(SpotlightParams[i].x > 0.0) { //It's a spotlight
-                float NdotL = max(dot(n, LightsDir[i]), 0.0);
+            if(SpotlightParams(i).x > 0.0) { //It's a spotlight
+                float NdotL = max(dot(n, LightsDir(i)), 0.0);
                 if(NdotL > 0.0) {
-                    float rho = dot(surfaceToLight, -LightsDir[i]);
-                    attenuation *= pow(clamp((rho - SpotlightParams[i].z) / (SpotlightParams[i].y - SpotlightParams[i].z),0.,1.), SpotlightParams[i].x);
+                    float rho = dot(surfaceToLight, -LightsDir(i));
+                    attenuation *= pow(clamp((rho - SpotlightParams(i).z) / (SpotlightParams(i).y - SpotlightParams(i).z),0.,1.), SpotlightParams(i).x);
                 } else {
                     attenuation = 0.0;
                 }
@@ -191,7 +195,7 @@ vec4 light(vec4 ac, vec4 ec, vec4 dc, vec4 tex, vec3 position, vec4 view_positio
         }
         //color calculation
         float diffuseCoefficient = max(dot(n, surfaceToLight), 0.0);
-        vec3 diffuse = diffuseCoefficient * dc.rgb * LightsColorRange[i].xyz;
+        vec3 diffuse = diffuseCoefficient * dc.rgb * LightsColorRange(i).xyz;
         color += attenuation * diffuse;
     }
     #ifdef FEATURES430

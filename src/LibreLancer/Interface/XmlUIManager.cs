@@ -123,6 +123,15 @@ namespace LibreLancer
                 return Game.Fonts.GetSystemFont(name);
         }
 
+        public string GetString(int strid, int infoid, string fallback)
+        {
+            string text;
+            if (!string.IsNullOrEmpty(text = Game.GameData.GetString(strid)))
+                return text;
+            if (!string.IsNullOrEmpty(text = Game.GameData.GetInfocardText(infoid, Game.Fonts)))
+                return text;
+            return fallback;
+        }
         string apiname;
         object api;
 

@@ -145,6 +145,17 @@ namespace LibreLancer
 			}
 		}
 
+        public unsafe void SetVector4Array(int loc, Vector4 *values, int count)
+        {
+            GLBind.UseProgram(programID);
+            GL.Uniform4fv(loc, count, (IntPtr) values);
+        }
+
+        public unsafe void SetVector3Array(int loc, Vector3* values, int count)
+        {
+            GLBind.UseProgram(programID);
+            GL.Uniform3fv(loc, count, (IntPtr) values);
+        }
         public void SetVector4i(int loc, Vector4i value, int index = 0)
         {
             GLBind.UseProgram(programID);

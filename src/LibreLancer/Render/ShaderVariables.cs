@@ -31,11 +31,8 @@ namespace LibreLancer
 
 		int lightParametersPosition;
 		int ambientColorPosition;
-		int lightsPosPosition;
-		int lightsColorRangePosition;
-		int lightsAttenuationPosition;
-		int lightsDirPosition;
-		int spotlightParamsPosition;
+		int lightsPosition;
+        int spotlightParamsPosition;
 
 		int fogColorPosition;
 		int fogRangePosition;
@@ -75,11 +72,8 @@ namespace LibreLancer
 
 			lightParametersPosition = sh.GetLocation("LightingParameters");
 			ambientColorPosition = sh.GetLocation("AmbientColor");
-			lightsPosPosition = sh.GetLocation("LightsPos");
-			lightsColorRangePosition = sh.GetLocation("LightsColorRange");
-			lightsAttenuationPosition = sh.GetLocation("LightsAttenuation");
-			lightsDirPosition = sh.GetLocation("LightsDir");
-			spotlightParamsPosition = sh.GetLocation("SpotlightParams");
+            lightsPosition = sh.GetLocation("LightData");
+			spotlightParamsPosition = sh.GetLocation("SpotlightData");
 
 			fogColorPosition = sh.GetLocation("FogColor");
 			fogRangePosition = sh.GetLocation("FogRange");
@@ -279,32 +273,15 @@ namespace LibreLancer
 				shader.SetColor4(ambientColorPosition, ambient);
 		}
 
-		public void SetLightsPos(int index, Vector4 pos)
-		{
-			if (lightsPosPosition != -1)
-				shader.SetVector4(lightsPosPosition, pos, index);
-		}
-
-		public void SetLightsColorRange(int index, Vector4 colorrange)
-		{
-			if (lightsColorRangePosition != -1)
-				shader.SetVector4(lightsColorRangePosition , colorrange, index);
-		}
-
-		public void SetLightsAttenuation(int index, Vector3 attenuation)
-		{
-			if (lightsAttenuationPosition != -1)
-				shader.SetVector3(lightsAttenuationPosition, attenuation, index);
-		}
-		public void SetLightsDir(int index, Vector3 dir)
-		{
-			if (lightsDirPosition != -1)
-				shader.SetVector3(lightsDirPosition, dir, index);
-		}
-		public void SetSpotlightParams(int index, Vector3 param)
+		public unsafe void SetLightData(Vector4 *positions, int count)
+        {
+            if (lightsPosition != -1)
+                shader.SetVector4Array(lightsPosition, positions, count);
+        }
+        public unsafe void SetSpotlightData(Vector4* param, int count)
 		{
 			if (spotlightParamsPosition != -1)
-				shader.SetVector3(spotlightParamsPosition, param, index);
+				shader.SetVector4Array(spotlightParamsPosition, param, count);
 		}
 
 		public void SetFogColor(Color4 color)

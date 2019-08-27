@@ -339,8 +339,10 @@ namespace LibreLancer.Fx
         int GetAppFxIdx(ParticleEffectInstance instance, FxAppearance a)
         {
             var item = (instance, a);
-            for(int i = 0; i < countApp; i++) {
-                if (appearances[i].Equals(item)) return i;
+            //Equals() is slower for us here
+            for(int i = 0; i < countApp; i++)
+            {
+                if (appearances[i].a == a && appearances[i].i == instance) return i;
             }
             if (countApp + 1 >= MAX_APP_NODES) return -1;
             appearances[countApp] = item;

@@ -381,6 +381,10 @@ namespace LibreLancer
             public string Item { get; set; }
             [XmlAttribute("value")]
             public string Value { get; set; }
+            [XmlAttribute("strid")]
+            public int Strid { get; set; }
+            [XmlAttribute("infocardid")]
+            public int InfocardId { get; set; }
         }
         public class CharacterList : Panel
         {
@@ -410,6 +414,10 @@ namespace LibreLancer
             public string Style { get; set; }
             [XmlAttribute("text")]
             public string Text { get; set; }
+            [XmlAttribute("strid")]
+            public int Strid { get; set; }
+            [XmlAttribute("infocardid")]
+            public int InfocardId { get; set; }
         }
 
         public class Image

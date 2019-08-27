@@ -58,6 +58,7 @@ namespace LibreLancer
 		}
 		protected override void Load()
         {
+            Thread.CurrentThread.Name = "FreelancerGame UIThread";
 			//Move to stop _TSGetMainThread error on OSX
 			MinimumWindowSize = new Point(640, 480);
 			SetVSync(Config.VSync);

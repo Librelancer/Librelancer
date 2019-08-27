@@ -38,7 +38,10 @@ namespace LibreLancer
                     style.HoverStyle, "buttonHover", new Neo.IronLua.LuaCompileOptions()
                 );
             }
-
+            if(Texts.Count > 0) {
+                Texts[0].Text = scene.Manager.GetString(button.Strid, button.InfocardId, button.Text);
+                Texts[0].ColorOverride = hoverStyle.TextColor;
+            }
             ID = button.ID;
         }
         
@@ -70,10 +73,6 @@ namespace LibreLancer
             modelColor = hoverStyle.ModelColor;
             modelRotate = hoverStyle.Rotation;
             lastDown = Scene.MouseDown(MouseButtons.Left);
-            if(Texts.Count > 0) {
-                Texts[0].Text = Button.Text;
-                Texts[0].ColorOverride = hoverStyle.TextColor;
-            }
         }
     }
 }

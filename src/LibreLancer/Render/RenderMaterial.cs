@@ -59,57 +59,90 @@ namespace LibreLancer
 
 		public abstract void ApplyDepthPrepass(RenderState rstate);
 
-        static void SetLight(ShaderVariables shader, bool hasSpotlight, int i, ref RenderLight lt)
+        private const int MAX_SET_LIGHTS = 10;
+
+        struct PackedLight
         {
-            float kind = 0;
-            if (lt.Kind == LightKind.Point || lt.Kind == LightKind.Spotlight)
-                kind = 1;
-            else if (lt.Kind == LightKind.PointAttenCurve)
-                kind = 2;
-            shader.SetLightsPos(i, new Vector4(lt.Kind == LightKind.Directional ? lt.Direction : lt.Position, kind));
-            shader.SetLightsColorRange(i, new Vector4(lt.Color.R, lt.Color.G, lt.Color.B, lt.Range));
-            shader.SetLightsAttenuation(i, lt.Attenuation);
-            if (hasSpotlight)
-            {
-                if (lt.Kind == LightKind.Spotlight)
-                {
-                    shader.SetLightsDir(i, lt.Direction);
-                    shader.SetSpotlightParams(i, new Vector3(lt.Falloff, (float)(Math.Cos(lt.Theta / 2.0)), (float)(Math.Cos(lt.Phi / 2.0))));
-                }
-                else if (lt.Kind == LightKind.Point || lt.Kind == LightKind.PointAttenCurve)
-                {
-                    shader.SetSpotlightParams(i, Vector3.Zero);
-                }
-            }
+            public Vector4 Position;
+            public Vector4 ColorRange;
+            public Vector4 Attenuation;
         }
-		public static void SetLights(ShaderVariables shader, ref Lighting lights)
+        struct PackedSpotlight
+        {
+            public Vector4 Direction;
+            public Vector4 SpotlightParams;
+        }
+		public static unsafe void SetLights(ShaderVariables shader, ref Lighting lighting)
 		{
-            if (!lights.Enabled) {
+            if (!lighting.Enabled) {
                 shader.SetLightParameters(new Vector4i(0, 0, 0, -1));
                 return;
             }
-            shader.SetAmbientColor(new Color4(lights.Ambient,1));
-			bool hasSpotlight = HasSpotlight(ref lights);
-            int count = 0;
-            if(lights.Lights.SourceLighting != null) {
-                for (int i = 0; i < lights.Lights.SourceLighting.Lights.Count; i++)
+            shader.SetAmbientColor(new Color4(lighting.Ambient,1));
+			bool hasSpotlight = HasSpotlight(ref lighting);
+            //Prepare shader array (TODO: make faster?)
+            PackedSpotlight* spots = stackalloc PackedSpotlight[MAX_SET_LIGHTS];
+            PackedLight* pLights = stackalloc PackedLight[MAX_SET_LIGHTS];
+            int lightCount = 0;
+            if(lighting.Lights.SourceLighting != null) {
+                for (int i = 0; i < lighting.Lights.SourceLighting.Lights.Count; i++)
                 {
-                    if (lights.Lights.SourceEnabled[i])
-                        SetLight(shader, hasSpotlight, count++, ref lights.Lights.SourceLighting.Lights[i].Light);
+                    if (lighting.Lights.SourceEnabled[i])
+                    {
+                        var lt = lighting.Lights.SourceLighting.Lights[i].Light;
+                        float kind = 0;
+                        if (lt.Kind == LightKind.Point || lt.Kind == LightKind.Spotlight)
+                            kind = 1;
+                        else if (lt.Kind == LightKind.PointAttenCurve)
+                            kind = 2;
+                        if (lightCount + 1 >= MAX_SET_LIGHTS) throw new Exception("Internal too many lights");
+                        pLights[lightCount].Position = new Vector4(lt.Kind == LightKind.Directional ? lt.Direction : lt.Position, kind);
+                        pLights[lightCount].ColorRange = new Vector4(lt.Color.R, lt.Color.G, lt.Color.B, lt.Range);
+                        pLights[lightCount].Attenuation = new Vector4(lt.Attenuation, 0);
+                        if (hasSpotlight && lt.Kind == LightKind.Spotlight)
+                        {
+                            spots[lightCount].Direction = new Vector4(lt.Direction, 1);
+                            spots[lightCount].SpotlightParams = new Vector4(lt.Falloff, (float) (Math.Cos(lt.Theta / 2.0)), (float) (Math.Cos(lt.Phi / 2.0)), 1);
+                        }
+
+                        lightCount++;
+                    }
                 }
             }
-            if (lights.Lights.NebulaCount == 1)
-                SetLight(shader, hasSpotlight, count++, ref lights.Lights.Nebula0);
-            shader.SetLightParameters(new Vector4i(1, count, (int)lights.FogMode, lights.NumberOfTilesX));
-			if (lights.FogMode == FogModes.Linear)
+            if (lighting.Lights.NebulaCount == 1)
+            {
+                if (lightCount + 1 >= MAX_SET_LIGHTS) throw new Exception("Internal too many lights");
+                var lt = lighting.Lights.Nebula0;
+                float kind = 0;
+                if (lt.Kind == LightKind.Point || lt.Kind == LightKind.Spotlight)
+                    kind = 1;
+                else if (lt.Kind == LightKind.PointAttenCurve)
+                    kind = 2;
+                if (lightCount + 1 >= MAX_SET_LIGHTS) throw new Exception("Internal too many lights");
+                pLights[lightCount].Position = new Vector4(lt.Kind == LightKind.Directional ? lt.Direction : lt.Position, kind);
+                pLights[lightCount].ColorRange = new Vector4(lt.Color.R, lt.Color.G, lt.Color.B, lt.Range);
+                pLights[lightCount].Attenuation = new Vector4(lt.Attenuation, 0);
+                if (hasSpotlight && lt.Kind == LightKind.Spotlight)
+                {
+                    spots[lightCount].Direction = new Vector4(lt.Direction, 1);
+                    spots[lightCount].SpotlightParams = new Vector4(lt.Falloff, (float) (Math.Cos(lt.Theta / 2.0)), (float) (Math.Cos(lt.Phi / 2.0)), 1);
+                }
+                lightCount++;
+            }
+            //Upload!
+            shader.SetLightData((Vector4*)pLights, lightCount * 3);
+            if(hasSpotlight)
+                shader.SetSpotlightData((Vector4*)spots, lightCount * 2);
+            shader.SetLightParameters(new Vector4i(1, lightCount, (int)lighting.FogMode, lighting.NumberOfTilesX));
+            if (lighting.FogMode == FogModes.Linear)
 			{
-				shader.SetFogColor(new Color4(lights.FogColor,1));
-				shader.SetFogRange(lights.FogRange);
+				shader.SetFogColor(new Color4(lighting.FogColor,1));
+				shader.SetFogRange(lighting.FogRange);
 			}
-			else if (lights.FogMode == FogModes.Exp || lights.FogMode == FogModes.Exp2)
+			else if (lighting.FogMode == FogModes.Exp || lighting.FogMode == FogModes.Exp2)
 			{
-				shader.SetFogColor(new Color4(lights.FogColor,1));
-				shader.SetFogRange(new Vector2(lights.FogRange.X, 0));
+				shader.SetFogColor(new Color4(lighting.FogColor,1));
+				shader.SetFogRange(new Vector2(lighting.FogRange.X, 0));
 			}
 		}
 
