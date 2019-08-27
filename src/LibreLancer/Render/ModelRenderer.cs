@@ -213,12 +213,20 @@ namespace LibreLancer
 			else if (Sph != null)
 			{
 				Sph.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
-				Sph.DepthPrepass(rstate, World);
+				Sph.DepthPrepass(rstate, _worldSph);
 			}
 		}
 
+        Matrix4 _worldSph;
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
 		{
+            _worldSph = World;
+            if(Spin != Vector3.Zero)
+            {
+                _worldSph = (Matrix4.CreateRotationX((float)spinX) *
+                     Matrix4.CreateRotationY((float)spinY) *
+                     Matrix4.CreateRotationZ((float)spinZ)) * World;
+            }
             this.sysr = sys;
 			if (Nebula != null && nr != Nebula)
 			{
@@ -363,18 +371,11 @@ namespace LibreLancer
 					}
 				}
 			} else if (Sph != null) {
-                Matrix4 w = World;
-                if(Spin != Vector3.Zero)
-                {
-                    w = (Matrix4.CreateRotationX((float)spinX) *
-                        Matrix4.CreateRotationY((float)spinY) *
-                        Matrix4.CreateRotationZ((float)spinZ)) * World;
-                }
                 Sph.Update(camera, TimeSpan.Zero, TimeSpan.FromSeconds(sysr.Game.TotalTime));
 				var l = RenderHelpers.ApplyLights(lights, LightGroup, pos, Sph.Radius, nr, LitAmbient, LitDynamic, NoFog);
 				var r = Sph.Radius + l.FogRange.Y;
 				if(l.FogMode != FogModes.Linear || VectorMath.DistanceSquared(camera.Position, pos) <= (r * r))
-					Sph.DrawBuffer(commands, w, ref l);
+					Sph.DrawBuffer(commands, _worldSph, ref l);
 			}
 		}
 	}

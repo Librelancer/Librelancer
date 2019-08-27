@@ -200,7 +200,7 @@ namespace LibreLancer.Utf.Mat
 			if (SideMaterials.Length < 6)
 				return;
 			var transform = Matrix4.CreateScale(Radius) * world;
-			for (int i = 0; i < 6; i++)
+            for (int i = 0; i < 6; i++)
 			{
 				if (SideMaterials[i].Render.IsTransparent) continue;
 				int start, count;
@@ -208,7 +208,7 @@ namespace LibreLancer.Utf.Mat
 				sphere.GetDrawParameters(faces[i], out start, out count, out pos);
 				SideMaterials[i].Render.Camera = _camera;
 				SideMaterials[i].Render.World = transform;
-				SideMaterials[i].Render.ApplyDepthPrepass(rstate);
+                SideMaterials[i].Render.ApplyDepthPrepass(rstate);
 				sphere.VertexBuffer.Draw(PrimitiveTypes.TriangleList, 0, start, count);
 			}
 		}
@@ -220,7 +220,9 @@ namespace LibreLancer.Utf.Mat
 			{
 				for (int i = 0; i < SideMaterials.Length; i++)
 					if (SideMaterials[i] != null && !SideMaterials[i].Loaded) SideMaterials[i].Loaded = false;
-				for (int i = 0; i < 6; i++)
+                
+                var transform = Matrix4.CreateScale(Radius) * world;
+                for (int i = 0; i < 6; i++)
 				{
 					int start, count;
 					Vector3 pos;
@@ -229,7 +231,6 @@ namespace LibreLancer.Utf.Mat
 					var mat = SideMaterials[i] ?? defaultMaterial;
 					mat = overrideMat ?? mat;
                     mat.Render.Camera = _camera;
-					var transform = Matrix4.CreateScale(Radius) * world;
 					buffer.AddCommand(
 						mat.Render,
 						null,
@@ -252,7 +253,7 @@ namespace LibreLancer.Utf.Mat
 						if (SideMaterials[6] == null) return;
 					}
 					var mat = (AtmosphereMaterial)SideMaterials[6].Render;
-					var transform = Matrix4.CreateScale(Radius * mat.Scale) * world;
+					var transform2 = Matrix4.CreateScale(Radius * mat.Scale) * world;
 					for (int i = 0; i < 6; i++)
 					{
 						int start, count;
@@ -262,7 +263,7 @@ namespace LibreLancer.Utf.Mat
 						buffer.AddCommand(
 							SideMaterials[6].Render,
 							null,
-							transform,
+							transform2,
 							lighting,
 							sphere.VertexBuffer,
 							PrimitiveTypes.TriangleList,

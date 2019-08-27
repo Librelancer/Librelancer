@@ -34,8 +34,8 @@ namespace LibreLancer
 		}
 		
 		//Global Renderer Options
-		public float LODMultiplier = 2;
-		public bool ExtraLights = true; //See comments in Draw() before enabling
+		public float LODMultiplier = 1.3f;
+		public bool ExtraLights = false; //See comments in Draw() before enabling
 
 		public IDrawable[] StarSphereModels;
 		public Matrix4[] StarSphereWorlds;
@@ -387,6 +387,7 @@ namespace LibreLancer
 				rstate.DepthFunction = DepthFunction.LessEqual;
                 rstate.ColorWrite = true;
 			}
+
 			//Actual Drawing
 			foreach (var obj in objects) obj.Draw(camera, commands, SystemLighting, nr);
             FxPool.Draw(camera, Polyline, resman, DebugRenderer);
@@ -405,7 +406,7 @@ namespace LibreLancer
 			rstate.DepthEnabled = true;
 			commands.DrawOpaque(rstate);
 			//Transparent Pass
-			rstate.DepthWrite = false;
+            rstate.DepthWrite = false;
 			commands.DrawTransparent(rstate);
 			rstate.DepthWrite = true;
             PhysicsHook?.Invoke();
