@@ -51,7 +51,7 @@ namespace LancerEdit
             Autodetect();
             foreach (var obj in output)
                 DoMats(obj);
-            Title = string.Format("Collada Importer ({0})##{1}", fname,Unique);
+            Title = string.Format("Collada Importer ({0})", fname);
             modelNameDefault = Path.GetFileNameWithoutExtension(fname);
             modelNameBuffer.SetText(modelNameDefault);
             this.win = win;
