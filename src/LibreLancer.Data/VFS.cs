@@ -15,7 +15,8 @@ namespace LibreLancer.Data
     {
         static string FreelancerDirectory;
         static bool CaseSensitive;
-        static Dictionary<string, string[]> fileDict;
+        
+        static Dictionary<string, (string, string[])> fileDict;
         public static void Init(string fldir)
         {
             FreelancerDirectory = Path.GetFullPath(fldir).TrimEnd('\\', '/');
@@ -24,7 +25,7 @@ namespace LibreLancer.Data
             {
                 //Provide a fast lookup for files in the directory. Don't follow symlinks
                 FLLog.Info("VFS", "Case-Sensitive: Path translation enabled (will impact performance)");
-                fileDict = new Dictionary<string, string[]>(StringComparer.CurrentCultureIgnoreCase);
+                fileDict = new Dictionary<string, (string, string[])>(StringComparer.CurrentCultureIgnoreCase);
                 WalkDir(FreelancerDirectory);
             }
             else
@@ -33,9 +34,9 @@ namespace LibreLancer.Data
 
         static void WalkDir(string dir)
         {
-            var f = Directory.GetFiles(dir, "*", SearchOption.TopDirectoryOnly);
+            var f = Directory.EnumerateFiles(dir).Select(x => Path.GetFileName(x)).ToArray();
             if (f.Length != 0)
-                fileDict.Add(dir.Substring(FreelancerDirectory.Length), f);
+                fileDict.Add(dir.Substring(FreelancerDirectory.Length), (dir,f));
             var dinfo = new DirectoryInfo(dir);
             foreach (var directory in dinfo.GetDirectories())
             {
@@ -64,7 +65,7 @@ namespace LibreLancer.Data
             {
                 var p = Path.GetFullPath(Path.Combine(FreelancerDirectory, filename.Replace('\\',Path.DirectorySeparatorChar)));
                 if (File.Exists(p)) return p;
-                string[] files;
+                (string, string[]) files;
                 var dirname = Path.GetDirectoryName(p);
                 if (!fileDict.TryGetValue(dirname.Substring(FreelancerDirectory.Length), out files))
                 {
@@ -73,13 +74,14 @@ namespace LibreLancer.Data
                     else
                         return "VFS:FileMissing";
                 }
-                var retval = files.FirstOrDefault(x => x.Equals(p, StringComparison.CurrentCultureIgnoreCase));
+                var fname = Path.GetFileName(p);
+                var retval = files.Item2.FirstOrDefault(x => x.Equals(fname, StringComparison.CurrentCultureIgnoreCase));
                 if (retval == null)
                 {
                     if (throwOnError) throw new FileNotFoundException(filename);
                     return "VFS:FileMissing";
                 }
-                return retval;
+                return Path.Combine(files.Item1, retval);
             }
             return Path.Combine(FreelancerDirectory, filename.Replace('\\', Path.DirectorySeparatorChar));
         }
