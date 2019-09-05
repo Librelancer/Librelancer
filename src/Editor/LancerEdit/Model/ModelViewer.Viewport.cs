@@ -11,6 +11,8 @@ using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
 using DF = LibreLancer.Utf.Dfm;
 using ImGuiNET;
+using LibreLancer.Physics.Sur;
+
 namespace LancerEdit
 {
     public partial class ModelViewer
@@ -118,23 +120,23 @@ namespace LancerEdit
             }
             else
             {
-                Dictionary<uint, SurModel> crcLookup = new Dictionary<uint, SurModel>();
-                foreach (var part in ((CmpFile)drawable).Parts) crcLookup.Add(CrcTool.FLModelCrc(part.ObjectName), new SurModel() { Part = part });
-                foreach (var part in ((CmpFile)drawable).Parts)
+                Dictionary<Part, SurPart> surParts;
+                var surHierarchy = ((CmpFile) drawable).ToSurHierarchy(out surParts);
+                surfile.FillMeshHierarchy(surHierarchy);
+                foreach (var kv in surParts)
                 {
-                    var crc = CrcTool.FLModelCrc(part.ObjectName);
-                    foreach (var msh in surfile.GetMesh(crc, false)) AddVertices(crcLookup[msh.ParentCrc], msh);
-                    foreach (var hp in part.Model.Hardpoints)
+                    var mdl = new SurModel() {Part = kv.Key};
+                    foreach (var hp in kv.Key.Model.Hardpoints)
                     {
-                        crc = CrcTool.FLModelCrc(hp.Name);
-                        Color4 c = surHardpoint;
-                        if (hp.Name.Equals("hpmount", StringComparison.OrdinalIgnoreCase))
-                            c = surShield;
+                        var crc = CrcTool.FLModelCrc(hp.Name);
                         if (surfile.HardpointIds.Contains(crc))
-                            surs.Add(GetSurModel(surfile.GetMesh(crc, true), null, c));
+                            surs.Add(GetSurModel(surfile.GetMesh(crc, true), kv.Key, surHardpoint));
                     }
-                }
-                foreach(var mdl in crcLookup.Values) {
+                    if (kv.Value.DisplayMeshes != null)
+                    {
+                        foreach (var msh in kv.Value.DisplayMeshes)
+                            AddVertices(mdl, msh);
+                    }
                     mdl.Vertices = new VertexBuffer(typeof(VertexPositionColor), mdl.BuildVertices.Count);
                     mdl.Vertices.SetData(mdl.BuildVertices.ToArray());
                     mdl.BuildVertices = null;
@@ -189,6 +191,7 @@ namespace LancerEdit
                 mat.Camera = cam;
                 if (mdl.Part != null) mat.World = mdl.Part.GetTransform(world);
                 else mat.World = world;
+                mat.World = world;
                 mat.Use(rstate, new VertexPositionColor(), ref Lighting.Empty);
                 foreach (var dc in mdl.Draws)
                     mdl.Vertices.Draw(PrimitiveTypes.TriangleList, dc.BaseVertex, dc.Start, dc.Count);

@@ -254,7 +254,7 @@ namespace LancerEdit
         {
             ImGuiNative.igBeginGroup();
             if(!(drawable is DF.DfmFile))
-                TabButton("Hierachy", 0);
+                TabButton("Hierarchy", 0);
             if (drawable is CmpFile && ((CmpFile)drawable).Animation != null)
                 TabButton("Animations", 1);
 #if DEBUG
@@ -289,7 +289,7 @@ namespace LancerEdit
                     firstTab = false;
                 }
                 ImGui.BeginChild("##tabchild");
-                if (openTabs[0]) HierachyPanel();
+                if (openTabs[0]) HierarchyPanel();
                 if (openTabs[1]) AnimationPanel();
                 if (openTabs[2]) SkeletonPanel();
                 if (openTabs[3]) RenderPanel();
@@ -773,7 +773,7 @@ namespace LancerEdit
         string surname;
         bool surShowHull = true;
         bool surShowHps = true;
-        void HierachyPanel()
+        void HierarchyPanel()
         {
             if(!(drawable is DF.DfmFile) && !(drawable is SphFile))
             {

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using BulletSharp;
 using BM = BulletSharp.Math;
 namespace LibreLancer.Physics.Sur
@@ -19,6 +20,68 @@ namespace LibreLancer.Physics.Sur
         public IEnumerable<uint> MeshIds => surfaces.Keys;
         public List<uint> HardpointIds = new List<uint>();
 
+        public void FillMeshHierarchy(SurPart part)
+        {
+            Surface sfc;
+            if (surfaces.TryGetValue(part.Hash, out sfc))
+            {
+                foreach (var group in sfc.Groups)
+                {
+                    //Find a list to add the geometry to
+                    List<ConvexMesh> hull = null;
+                    Matrix4 transform = Matrix4.Identity;
+                    if (group.MeshID == part.Hash && !part.ParentSet)
+                    {
+                        if (part.DisplayMeshes == null) part.DisplayMeshes = new List<ConvexMesh>();
+                        hull = part.DisplayMeshes;
+                    }
+                    else
+                    {
+                        var child = IterateChildren(part).FirstOrDefault((x) => x.Hash == group.MeshID);
+                        if (child != null)
+                        {
+                            if (part.DisplayMeshes == null) part.DisplayMeshes = new List<ConvexMesh>();
+                            hull = part.DisplayMeshes;
+                            //Parent has hull
+                            child.ParentSet = true;
+                        }
+                    }
+                    if (hull != null)
+                    {
+                        //Fill the geometry
+                        var verts = new List<Vector3>();
+                        foreach (var v in sfc.Vertices)
+                            verts.Add(VectorMath.Transform(v.Point.Cast(), transform));
+                        var indices = new List<int>();
+                        if (group.VertexArrayOffset != 0)
+                            throw new Exception("tgroupheader vertexarrayoffset wrong");
+                        foreach (var tri in group.Triangles)
+                        {
+                            indices.Add(tri.Vertices[0].Vertex);
+                            indices.Add(tri.Vertices[1].Vertex);
+                            indices.Add(tri.Vertices[2].Vertex);
+                        }
+                        hull.Add(new ConvexMesh() {Indices = indices.ToArray(), Vertices = verts.ToArray()});
+                    }
+                }
+            }
+            //Go through children
+            if(part.Children != null)
+                foreach (var c in part.Children)
+                    FillMeshHierarchy(c);
+        }
+
+        IEnumerable<SurPart> IterateChildren(SurPart parent)
+        {
+            if (parent.Children != null)
+            {
+                foreach (var p in parent.Children)
+                {
+                    yield return p;
+                    foreach (var c in IterateChildren(p)) yield return c;
+                }
+            }
+        }
         //For editor display. HACK: Horribly inefficient
         public ConvexMesh[] GetMesh(uint meshId, bool hardpoint)
         {
@@ -47,7 +110,7 @@ namespace LibreLancer.Physics.Sur
             }
             return hull.ToArray();
         }
-
+        
         //I'm assuming this gives me some sort of workable mesh
         public ConvexTriangleMeshShape[] GetShape(uint meshId)
 		{
