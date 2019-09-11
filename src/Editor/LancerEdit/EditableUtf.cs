@@ -288,6 +288,7 @@ namespace LancerEdit
 	public class LUtfNode
 	{
 		public string Name;
+        public string ResolvedName;
 		public List<LUtfNode> Children;
 		public LUtfNode Parent;
 		public byte[] Data;

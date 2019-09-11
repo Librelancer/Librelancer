@@ -232,6 +232,7 @@
     <Compile Include="Effects\EffectLOD.cs" />
     <Compile Include="FontsIni.cs" />
     <Compile Include="UIFont.cs" />
+    <Compile Include="Voices\VoicesIni.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

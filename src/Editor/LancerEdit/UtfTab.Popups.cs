@@ -250,8 +250,10 @@ namespace LancerEdit
                 var n = text.GetText().Trim();
                 if (n.Length == 0)
                     ErrorPopup("Node name cannot be empty");
-                else
+                else  {
                     renameNode.Name = text.GetText();
+                    renameNode.ResolvedName = null;
+                }
                 ImGui.CloseCurrentPopup();
             }
             ImGui.SameLine();

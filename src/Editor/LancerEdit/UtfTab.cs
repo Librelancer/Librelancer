@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.IO;
+using System.Xml.Serialization.Configuration;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ImUI;
@@ -215,6 +217,28 @@ namespace LancerEdit
                     }
                     if (ale != null)
                         main.AddTab(new AleViewer(Title, ale, main));
+                }
+
+                if (ImGui.MenuItem("Resolve Audio Hashes"))
+                {
+                    var folder = FileDialog.ChooseFolder();
+                    if (folder != null)
+                    {
+                        var idtable = new IDTable(folder);
+                        foreach (var n in Utf.Root.IterateAll())
+                        {
+                            if (n.Name.StartsWith("0x"))
+                            {
+                                uint v;
+                                if (uint.TryParse(n.Name.Substring(2),NumberStyles.HexNumber, CultureInfo.InvariantCulture , out v))
+                                {
+                                    idtable.UtfNicknameTable.TryGetValue(v, out n.ResolvedName);
+                                    Console.WriteLine(n.ResolvedName ?? "null");
+                                }
+                            } else
+                                n.ResolvedName = null;
+                        }
+                    }
                 }
                 ImGui.EndPopup();
             }
@@ -721,6 +745,11 @@ namespace LancerEdit
                 {
                     selectedNode = node;
                 }
+                if (node.ResolvedName != null)
+                {
+                    ImGui.SameLine();
+                    ImGui.TextDisabled("(" + ImGuiExt.IDSafe(node.ResolvedName) + ")");
+                }
                 ImGui.PushID(id);
                 DoNodeMenu(id, node, parent);
                 ImGui.PopID();
@@ -749,6 +778,11 @@ namespace LancerEdit
                 if (ImGui.Selectable(id, ref selected))
                 {
                     selectedNode = node;
+                }
+                if (node.ResolvedName != null)
+                {
+                    ImGui.SameLine();
+                    ImGui.TextDisabled("(" + ImGuiExt.IDSafe(node.ResolvedName) + ")");
                 }
                 DoNodeMenu(id, node, parent);
             }
