@@ -39,13 +39,23 @@ namespace LibreLancer.Media
 				{
 					using (var mem = new MemoryStream())
 					{
-						snd.Data.CopyTo(mem);
+						CopyStreams(snd.Data, mem);
 						data = mem.GetBuffer();
 					}
 				}
 				Al.BufferData(ID, snd.Format, data, data.Length, snd.Frequency);
                 Al.CheckErrors();
             }
+        }
+
+        //HACK: Decoder Stream returns true for CanSeek, so .NET CopyTo method tries to get
+        //length
+        static void CopyStreams(Stream source, Stream dest)
+        {
+            byte[] buffer = new byte[8192];
+            int amount;
+            while ((amount = source.Read(buffer, 0, 8192)) != 0)
+                dest.Write(buffer, 0, amount);
         }
 
 		public void Dispose()
