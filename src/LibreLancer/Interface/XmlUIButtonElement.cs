@@ -72,6 +72,10 @@ namespace LibreLancer
             }
             modelColor = hoverStyle.ModelColor;
             modelRotate = hoverStyle.Rotation;
+            if (Enabled && Texts.Count > 0 && hoverStyle.TextColor != null) {
+                Texts[0].ColorOverride = hoverStyle.TextColor;
+            } else if (Enabled && Texts.Count > 0)
+                Texts[0].ColorOverride = null;
             lastDown = Scene.MouseDown(MouseButtons.Left);
         }
     }

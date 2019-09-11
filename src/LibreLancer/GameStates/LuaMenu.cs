@@ -12,11 +12,12 @@ namespace LibreLancer
         IntroScene intro;
         Cutscene scene;
         Cursor cur;
-        LuaAPI api;
+        MenuAPI api;
         public LuaMenu(FreelancerGame g) : base(g)
         {
-            api = new LuaAPI(this);
-            ui = new XmlUIManager(g, "menu", api, g.GameData.GetInterfaceXml("mainmenu"));
+            api = new MenuAPI(this);
+            ui = new XmlUIManager(g, g.GameData.GetInterfaceXml("mainmenu"), new LuaAPI("game", api),
+                new LuaAPI("options", new OptionsAPI(this)));
             ui.OnConstruct();
             ui.Enter();
             g.GameData.PopulateCursors();
@@ -34,10 +35,22 @@ namespace LibreLancer
             FadeIn(0.1, 0.3);
         }
 
-        class LuaAPI
+        class OptionsAPI
+        {
+            private LuaMenu state;
+            public OptionsAPI(LuaMenu m) => state = m;
+            public bool get_vsync() => state.Game.Config.VSync;
+            public void set_vsync(bool value)
+            {
+                state.Game.Config.VSync = value;
+                state.Game.Config.Save();
+                state.Game.SetVSync(value);
+            }
+        }
+        class MenuAPI
         {
             LuaMenu state;
-            public LuaAPI(LuaMenu m) => state = m;
+            public MenuAPI(LuaMenu m) => state = m;
             public void newgame() => state.ui.Leave(() =>
             {
                 state.FadeOut(0.2, () =>
@@ -216,8 +229,9 @@ namespace LibreLancer
 #if DEBUG
             if(newUI) {
                 api._Dispose();
-                api = new LuaAPI(this);
-                ui = new XmlUIManager(Game, "menu", api, Game.GameData.GetInterfaceXml("mainmenu"));
+                api = new MenuAPI(this);
+                ui = new XmlUIManager(Game, Game.GameData.GetInterfaceXml("mainmenu"), new LuaAPI("game", api),
+                    new LuaAPI("options", new OptionsAPI(this)));
                 ui.OnConstruct();
                 ui.Enter();
                 newUI = false;

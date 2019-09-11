@@ -49,8 +49,8 @@
                     ratio = 1.2,
                     scissor = scissor,
                     models = {
-                        { path = maneuver.inactivemodel, transform = "0.0 0.0 70.0 77.0" },
-                        { path = maneuver.activemodel, transform = mdltr }
+                        { id = 'inactive', path = maneuver.inactivemodel, transform = "0.0 0.0 70.0 77.0" },
+                        { id = 'active', path = maneuver.activemodel, transform = mdltr }
                     },
                     onclick = "navclick('" .. maneuver.action .. "')"
                 })
@@ -74,16 +74,18 @@
         function setnav(action)
             for k, button in pairs(navs) do
                 if k == action then
-                    button:modelindex(1)
+                    button:parts('active'):show()
+                    button:parts('inactive'):hide()
                 else
-                    button:modelindex(0)
+                    button:parts('inactive'):show()
+                    button:parts('active'):hide()
                 end
             end
         end
         function events.onupdate()
             -- Number Box
             local n = dom:element('nums')
-            local tleft = n:text('left')
+            local tleft = n:parts('left')
             local pct = game:thrustpct()
             if pct < 20 then
                 tleft:color(red)
@@ -91,9 +93,9 @@
             tleft:value(pct .. '%')
             local speed = game:speed()
             if speed > 1000 then
-                n:text('right'):value('---')
+                n:parts('right'):value('---')
             else
-                n:text('right'):value(game:speed())
+                n:parts('right'):value(game:speed())
             end
             -- Other stuff below
         end

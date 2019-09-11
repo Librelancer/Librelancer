@@ -14,7 +14,7 @@ namespace LibreLancer
 
         public ScriptedHud(object api, bool space, FreelancerGame game)
         {
-            UI = new XmlUIManager(game, "game", api, game.GameData.GetInterfaceXml(space ? "hud" : "baseside"));
+            UI = new XmlUIManager(game, game.GameData.GetInterfaceXml(space ? "hud" : "baseside"), new LuaAPI("game", api));
         }
 
         public void Init()

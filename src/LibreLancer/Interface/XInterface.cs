@@ -47,12 +47,12 @@ namespace LibreLancer
             public string ID { get; set; }
             [XmlAttribute("scissor")]
             public bool Scissor { get; set; }
-            [XmlElement("Model")]
-            public Model[] Models { get; set; }
+            [XmlElement("Model", typeof(Model))]
+            [XmlElement("Text", typeof(StyleText))]
+            [XmlElement("Rectangle", typeof(StyleRectangle))]
+            public StyleDrawElement[] DrawElements { get; set; }
             [XmlElement("Size")]
             public StyleSize Size { get; set; }
-            [XmlElement("Text")]
-            public StyleText[] Texts { get; set; }
             [XmlElement("Background")]
             public StyleBackground Background { get; set; }
             [XmlElement("Border")]
@@ -134,14 +134,27 @@ namespace LibreLancer
             [XmlEnum("baseline")]
             Baseline
         }
-        public class StyleText
+
+        public class StyleDrawElement
+        {
+            
+            [XmlAttribute("id")]
+            public string ID { get; set; }
+
+            [XmlAttribute("enabled")] 
+            public bool Enabled { get; set; } = true;
+        }
+
+        public class StyleSizeableElement : StyleDrawElement
         {
             [XmlAttribute("x")]
             public string XText { get; set;  }
             float? x;
             [XmlIgnore]
             public float X {
-                get {
+                get
+                {
+                    if (string.IsNullOrEmpty(XText)) return 0;
                     if (x == null) x = Parser.Percentage(XText);
                     return x.Value;
                 }
@@ -154,6 +167,7 @@ namespace LibreLancer
             {
                 get
                 {
+                    if (string.IsNullOrEmpty(YText)) return 0;
                     if (y == null) y = Parser.Percentage(YText);
                     return y.Value;
                 }
@@ -182,6 +196,9 @@ namespace LibreLancer
                     return height.Value;
                 }
             }
+        }
+        public class StyleText : StyleSizeableElement
+        {
 
             [XmlAttribute("color")]
             public string ColorText { get; set; }
@@ -220,9 +237,6 @@ namespace LibreLancer
                     return shadow.Value;
                 }
             }
-
-            [XmlAttribute("id")]
-            public string ID { get; set; }
 
             [XmlAttribute("lines")]
             public int Lines { get; set; }
@@ -275,7 +289,7 @@ namespace LibreLancer
                 }
             }
         }
-        public class Model
+        public class Model : StyleDrawElement
         {
             [XmlAttribute("path")]
             public string Path { get; set; }
@@ -304,6 +318,32 @@ namespace LibreLancer
             }
         }
 
+        public class StyleRectangle : StyleSizeableElement
+        {
+            [XmlAttribute("bordercolor")]
+            public string BorderColorText { get; set; }
+            Color4? bordercolor;
+            [XmlIgnore]
+            public Color4? BorderColor {
+                get {
+                    if (string.IsNullOrEmpty(BorderColorText)) return null;
+                    if (bordercolor == null) bordercolor = Parser.Color(BorderColorText);
+                    return bordercolor.Value;
+                }
+            }
+            [XmlAttribute("color")]
+            public string ColorText { get; set; }
+            Color4? color;
+            [XmlIgnore]
+            public Color4? Color {
+                get {
+                    if (string.IsNullOrEmpty(ColorText)) return null;
+                    if (color == null) color = Parser.Color(ColorText);
+                    return color.Value;
+                }
+            }
+            
+        }
         public class Scene
         {
             [XmlAttribute("id")]

@@ -51,6 +51,20 @@
         <Model path="//INTERFACE/INTRO/OBJECTS/front_serverselect_info.cmp" transform="0.0 0.0 2.9 16.6"/>
         <Text id="description" x="3%" y="8%" width="90%" height="90%" color="rgba(160,196,210,255)" shadow="black" lines="4"/>
     </Style>
+    <Style id="optioncheck">
+        <Size height="4%" ratio="5"/>
+        <Rectangle x="1.5%" width="20.1%" height="100%" color="black"/>
+        <Model id="check" enabled="false" path="//INTERFACE/NEURONET/INVENTORY/check.3db" transform= "-0.77 0.0 13 72"/>
+        <Text x="23%" y="10%" width="76%" height="80%" color="rgba(160,196,210,255)" shadow="black"/>
+        <Rectangle id="border" x="1.5%" width="20.1%" height="100%" bordercolor="rgba(160,196,210,255)"/>
+        <HoverStyle>
+            e:textcolor(mixcolor(math.abs(math.cos(9 * time)), "yellow", "rgba(160,196,210,255)"))
+        </HoverStyle>
+    </Style>
+    <Style id="optionsframe">
+        <Size height="85%" ratio="1"/>
+        <Model path="//INTERFACE/NEURONET/INVENTORY/front_options_box.cmp" transform="0 0 2.13 3.8"/>
+    </Style>
     <DefaultScene>menu</DefaultScene>
     <Scene id="menu">
         <Script><![CDATA[
@@ -247,17 +261,48 @@
     <!--UI relating to options-->
     <Scene id="options">
         <Script><![CDATA[
+        local checks = {}
         function events.onentry()
             sound:play('ui_motion_swish')
             dom:element('exit'):flyin(0,0.6)
             dom:afteranimation("sound:play('ui_window_open')")
+            setchecked('vsync', options:get_vsync())
         end
         function events.onleave()
             sound:play('ui_motion_swish')
             dom:element('exit'):flyout(0,0.6)
         end
+        function setchecked(id, value)
+            checks[id] = value
+            if checks[id] then
+                dom:element(id):parts('check'):show()
+            else
+                dom:element(id):parts('check'):hide()
+            end
+        end
+        -- Checkbox implementation
+        function handlecheck(id, func)
+            if checks[id] ~= nil then
+                checks[id] = (not checks[id])
+            else
+                checks[id] = true
+            end
+            if checks[id] then
+                dom:element(id):parts('check'):show()
+                func(true)
+            else
+                dom:element(id):parts('check'):hide()
+                func(false)
+            end
+        end
+        -- Events
+        function check_vsync(checked)
+            options:set_vsync(checked)
+        end
         ]]></Script>
         <Image path="//INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga"/>
         <Button x="4%" y="13.8%" aspect="4/3" id="exit" style="menubutton" text="BACK" onclick="dom:changeto('menu')"/>
+        <Panel x="42%" y = "12.8%" aspect="4/3" style="optionsframe"/>
+        <Button x="70%" y="25%" aspect="4/3" text="VSync" id="vsync" style="optioncheck" onclick="handlecheck('vsync', check_vsync)"/>
     </Scene>
 </XInterface>

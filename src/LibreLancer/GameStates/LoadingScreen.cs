@@ -16,7 +16,7 @@ namespace LibreLancer
         {
             this.game = game;
             this.loader = loader;
-            manager = new XmlUIManager(game, "game", null, game.GameData.GetInterfaceXml("loading"));
+            manager = new XmlUIManager(game,game.GameData.GetInterfaceXml("loading"), null);
             manager.OnConstruct();
         }
         public bool Update(TimeSpan delta)

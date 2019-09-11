@@ -12,12 +12,11 @@ namespace LibreLancer
         public Func<string> Binding;
         public XInt.StyleText Style;
         public Color4? ColorOverride;
-        public LuaAPI Lua;
+
         public TextElement(XInt.StyleText style)
         {
             ID = style.ID;
             Style = style;
-            Lua = new LuaAPI(this);
         }
         public Rectangle GetRectangle(Rectangle r)
         {
@@ -76,24 +75,6 @@ namespace LibreLancer
                 }
             }
             ColorOverride = null;
-        }
-
-
-        public class LuaAPI
-        {
-            TextElement elem;
-            public LuaAPI(TextElement e)
-            {
-                elem = e;
-            }
-            public void value(string t)
-            {
-                elem.Text = t;
-            }
-            public void color(Color4 c)
-            {
-                elem.ColorOverride = c;
-            }
         }
 
         public static float GetTextSize(float px)

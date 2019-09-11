@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Configuration;
 using Neo.IronLua;
 using LibreLancer.Media;
 namespace LibreLancer
@@ -95,6 +96,21 @@ namespace LibreLancer
         }
     }
 
+    public class LuaAPI
+    {
+        public string ApiName;
+        public object Api;
+
+        public LuaAPI()
+        {
+        }
+
+        public LuaAPI(string name, object api)
+        {
+            ApiName = name;
+            Api = api;
+        }
+    }
     public class XmlUIManager : IDisposable
     {
         public FreelancerGame Game;
@@ -132,14 +148,14 @@ namespace LibreLancer
                 return text;
             return fallback;
         }
-        string apiname;
-        object api;
 
-        public XmlUIManager(FreelancerGame game, string apiname, object api, string src)
+        private LuaAPI[] apis;
+
+        public XmlUIManager(FreelancerGame game, string src, params LuaAPI [] apis)
+        
         {
             Game = game;
-            this.apiname = apiname;
-            this.api = api;
+            this.apis = apis;
             xml = XInterface.Load(src);
             defaultFont = game.Fonts.GetSystemFont("Arial");
             foreach(var fnt in game.GameData.Ini.Fonts.UIFonts)
@@ -156,6 +172,7 @@ namespace LibreLancer
             game.Keyboard.TextInput += Keyboard_TextInput;
             game.Keyboard.KeyDown += Keyboard_KeyDown;
         }
+        
 
         void Mouse_MouseDown(MouseEventArgs e) { if(e.Buttons == MouseButtons.Left) foreach(var el in Elements) el.OnMouseDown(); }
         void Mouse_MouseUp(MouseEventArgs e) { if(e.Buttons == MouseButtons.Left) foreach (var el in Elements) el.OnMouseUp(); }
@@ -195,7 +212,12 @@ namespace LibreLancer
             scene.lua = new Lua();
             scene.env = scene.lua.CreateEnvironment();
             scene.env.DoChunk("events = {}", "$internal");
-            scene.env.Add(apiname, api);
+            if (apis != null)
+            {
+                foreach (var api in apis)
+                    scene.env.Add(api.ApiName, api.Api);
+            }
+
             scene.env.Add("dom", new LuaDom(this, scene));
             scene.env.Add("sound", new LuaSound(this));
             LuaStyleEnvironment.RegisterFuncs(scene.env);
@@ -203,7 +225,18 @@ namespace LibreLancer
             var scn = xml.Scenes.Where((x) => x.ID == id).First();
             if (scn.Scripts != null)
                 foreach (var script in scn.Scripts)
-                    scene.env.DoChunk(script, "$xml");
+                {
+                    try
+                    {
+                        scene.env.DoChunk(script, "$SCENE:" + scn.ID);
+                    }
+                    catch (LuaParseException e)
+                    {
+                        //Better exception message to the console when this crashes
+                        throw new Exception(string.Format("Lua Error: {0} at {1}:{2}:{3}", e.Message, e.FileName, e.Line, e.Column));
+                    }
+                }
+
             foreach (var item in scn.Items)
             {
                 if (item is XInt.Button)
@@ -371,17 +404,18 @@ namespace LibreLancer
                 if (dn["background"] != null) style.Background = new XInt.StyleBackground() { ColorText = dn.background };
                 style.HoverStyle = dn.hoverstyle;
                 if (dn["models"] != null) {
-                    var mdlxml = new List<XInt.Model>();
+                    var mdlxml = new List<XInt.StyleDrawElement>();
                     foreach(var kv in dn.models) {
                         var mdl = kv.Value;
                         mdlxml.Add(new XInt.Model()
                         {
+                            ID = mdl.id,
                             Path = mdl.path,
                             TransformString = mdl.transform,
                             ColorText = mdl.color
                         });
                     }
-                    style.Models = mdlxml.ToArray();
+                    style.DrawElements = mdlxml.ToArray();
                 }
                 var result = new XmlUIButton(scn, btn, style);
                 scn.toadd.Add(result);
