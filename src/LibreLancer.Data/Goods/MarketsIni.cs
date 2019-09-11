@@ -13,6 +13,6 @@ namespace LibreLancer.Data.Goods
         [Section("basegood")]
         public List<BaseGood> BaseGoods = new List<BaseGood>();
 
-        public void AddMarketsIni(string filename) => ParseAndFill(filename);
+        public void AddMarketsIni(string filename, FileSystem vfs) => ParseAndFill(filename, vfs);
     }
 }

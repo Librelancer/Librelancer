@@ -24,7 +24,7 @@ namespace LibreLancer.Data.Universe
 
             List<Section> baseSections = new List<Section>();
             List<Section> systemSections = new List<Section>();
-			foreach (Section s in ParseFile(path))
+			foreach (Section s in ParseFile(path, freelancerIni.VFS))
 			{
 				switch (s.Name.ToLowerInvariant())
 				{

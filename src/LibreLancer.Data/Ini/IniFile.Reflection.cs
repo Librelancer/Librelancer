@@ -301,10 +301,10 @@ namespace LibreLancer.Ini
             }
 
         }
-        public void ParseAndFill(string filename)
+        public void ParseAndFill(string filename, LibreLancer.Data.FileSystem vfs)
         {
             var sections = GetContainerInfo(this.GetType());
-            foreach (var section in ParseFile(filename))
+            foreach (var section in ParseFile(filename, vfs))
             {
                 var tgt = sections.FirstOrDefault((x) => x.Name.Equals(section.Name, StringComparison.InvariantCultureIgnoreCase));
                 if (tgt == null)

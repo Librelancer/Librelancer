@@ -13,9 +13,9 @@ namespace LibreLancer.Data
 		public string TextureName;
 		public List<MouseShape> Shapes = new List<MouseShape>();
 		public List<Cursor> Cursors = new List<Cursor>();
-		public MouseIni(string filename)
+		public MouseIni(string filename, FileSystem vfs)
 		{
-			foreach (Section s in ParseFile(filename))
+			foreach (Section s in ParseFile(filename, vfs))
 			{
 				switch (s.Name.ToLowerInvariant())
 				{

@@ -12,6 +12,6 @@ namespace LibreLancer.Data.Goods
         [Section("good")]
         public List<Good> Goods = new List<Good>();
 
-        public void AddGoodsIni(string filename) => ParseAndFill(filename);
+        public void AddGoodsIni(string filename, FileSystem vfs) => ParseAndFill(filename, vfs);
     }
 }

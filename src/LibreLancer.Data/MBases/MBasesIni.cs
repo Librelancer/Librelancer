@@ -12,9 +12,9 @@ namespace LibreLancer.Data
 	{
         public Dictionary<string, MBase> Bases = new Dictionary<string, MBase>(StringComparer.OrdinalIgnoreCase);
 		int i;
-		public MBasesIni()
+		public MBasesIni(FileSystem vfs)
 		{
-            var sections = ParseFile("DATA\\MISSIONS\\mbases.ini").ToArray();
+            var sections = ParseFile("DATA\\MISSIONS\\mbases.ini", vfs).ToArray();
 			for (i = 0; i < sections.Length; i++) {
 				if (sections[i].Name.ToLowerInvariant() == "mbase")
 				{

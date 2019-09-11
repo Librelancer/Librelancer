@@ -10,6 +10,8 @@ using System.Linq;
 using System.Threading;
 using LibreLancer.Fx;
 using LibreLancer.Utf.Ale;
+using FileSystem = LibreLancer.Data.FileSystem;
+
 namespace LibreLancer
 {
     public class GameDataManager
@@ -19,14 +21,14 @@ namespace LibreLancer
         ResourceManager resource;
         GameResourceManager glResource;
         List<GameData.IntroScene> IntroScenes;
-
+        public FileSystem VFS;
         public GameDataManager(string path, ResourceManager resman)
         {
             resource = resman;
             glResource = (resource as GameResourceManager);
-            Data.VFS.Init(path);
-            var flini = new Data.FreelancerIni();
-            fldata = new Data.FreelancerData(flini);
+            VFS = FileSystem.FromFolder(path);
+            var flini = new Data.FreelancerIni(VFS);
+            fldata = new Data.FreelancerData(flini, VFS);
         }
         public string DataVersion => fldata.DataVersion;
         public string GetInterfaceXml(string id)
@@ -48,7 +50,7 @@ namespace LibreLancer
         }
         public string ResolveDataPath(string input)
         {
-            return Data.VFS.GetPath(fldata.Freelancer.DataPath + input);
+            return VFS.Resolve(fldata.Freelancer.DataPath + input);
         }
 
         public Dictionary<string, string> GetBaseNavbarIcons()
@@ -61,7 +63,7 @@ namespace LibreLancer
             var movies = new List<string>();
             foreach (var file in fldata.Freelancer.StartupMovies)
             {
-                movies.Add(Data.VFS.GetPath(fldata.Freelancer.DataPath + file));
+                movies.Add(ResolveDataPath(file));
             }
             return movies;
         }
@@ -93,17 +95,17 @@ namespace LibreLancer
                     nr.PlayerShipPlacement = room.PlayerShipPlacement;
                     nr.ForSaleShipPlacements = room.ForShipSalePlacements;
                     nr.InitAction = () =>
-                     {
-                         foreach (var path in room.SceneScripts)
-                             nr.ThnPaths.Add(Data.VFS.GetPath(fldata.Freelancer.DataPath + path));
+                    {
+                        foreach (var path in room.SceneScripts)
+                            nr.ThnPaths.Add(ResolveDataPath(path));
                          if (room.LandingScript != null)
-                             nr.LandScript = Data.VFS.GetPath(fldata.Freelancer.DataPath + room.LandingScript);
+                             nr.LandScript = ResolveDataPath(room.LandingScript);
                          if (room.StartScript != null)
-                             nr.StartScript = Data.VFS.GetPath(fldata.Freelancer.DataPath + room.StartScript);
+                             nr.StartScript = ResolveDataPath(room.StartScript);
                          if (room.LaunchingScript != null)
-                             nr.LaunchScript = Data.VFS.GetPath(fldata.Freelancer.DataPath + room.LaunchingScript);
+                             nr.LaunchScript = ResolveDataPath(room.LaunchingScript);
                          if (room.GoodscartScript != null)
-                             nr.GoodscartScript = Data.VFS.GetPath(fldata.Freelancer.DataPath + room.GoodscartScript);
+                             nr.GoodscartScript = ResolveDataPath(room.GoodscartScript);
                      };
                     nr.Hotspots = new List<GameData.BaseHotspot>();
                     foreach (var hp in room.Hotspots)
@@ -249,7 +251,7 @@ namespace LibreLancer
                         isc.Scripts = new List<ThnScript>();
                         foreach (var p in room.SceneScripts)
                         {
-                            var path = Data.VFS.GetPath(fldata.Freelancer.DataPath + p);
+                            var path = ResolveDataPath(p);
                             isc.ThnName = path;
                             isc.Scripts.Add(new ThnScript(path));
                         }
@@ -261,7 +263,7 @@ namespace LibreLancer
             if (glResource != null)
             {
                 glResource.AddPreload(
-                    fldata.EffectShapes.Files.Select(txmfile => Data.VFS.GetPath(fldata.Freelancer.DataPath + txmfile))
+                    fldata.EffectShapes.Files.Select(txmfile => ResolveDataPath(txmfile))
                 );
                 foreach (var shape in fldata.EffectShapes.Shapes)
                 {
@@ -285,7 +287,7 @@ namespace LibreLancer
             cursorsDone = true;
 
             resource.LoadResourceFile(
-                Data.VFS.GetPath(fldata.Freelancer.DataPath + fldata.Mouse.TxmFile)
+                ResolveDataPath(fldata.Mouse.TxmFile)
             );
             foreach (var lc in fldata.Mouse.Cursors)
             {
@@ -308,11 +310,11 @@ namespace LibreLancer
         public string GetAudioPath(string id)
         {
             var audio = fldata.Audio.Entries.Where((arg) => arg.Nickname.ToLowerInvariant() == id.ToLowerInvariant()).First();
-            return Data.VFS.GetPath(fldata.Freelancer.DataPath + audio.File, false);
+            return VFS.Resolve(fldata.Freelancer.DataPath + audio.File, false);
         }
         public string GetVoicePath(string id)
         {
-            return Data.VFS.GetPath(fldata.Freelancer.DataPath + "\\AUDIO\\" + id + ".utf");
+            return ResolveDataPath("AUDIO\\" + id + ".utf");
         }
 
         public string GetInfocardText(int id, FontManager fonts)
@@ -344,27 +346,27 @@ namespace LibreLancer
 #endif
         public void LoadHardcodedFiles()
         {
-            resource.LoadResourceFile(Data.VFS.GetPath(fldata.Freelancer.DataPath + "INTERFACE/interface.generic.vms"));
+            resource.LoadResourceFile(ResolveDataPath("INTERFACE/interface.generic.vms"));
         }
         public IDrawable GetMenuButton()
         {
-            return resource.GetDrawable(Data.VFS.GetPath(fldata.Freelancer.DataPath + "INTERFACE/INTRO/OBJECTS/front_button.cmp"));
+            return resource.GetDrawable(ResolveDataPath("INTERFACE/INTRO/OBJECTS/front_button.cmp"));
         }
         public Texture2D GetSplashScreen()
         {
             if (!glResource.TextureExists("__startupscreen_1280.tga"))
             {
-                if (Data.VFS.FileExists(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen_1280.tga"))
+                if (VFS.FileExists(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen_1280.tga"))
                 {
                     glResource.AddTexture(
                         "__startupscreen_1280.tga",
-                        Data.VFS.GetPath(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen_1280.tga")
+                        ResolveDataPath("INTERFACE/INTRO/IMAGES/startupscreen_1280.tga")
                     );
-                } else if (Data.VFS.FileExists(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen.tga"))
+                } else if (VFS.FileExists(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen.tga"))
                 {
                     glResource.AddTexture(
                         "__startupscreen_1280.tga",
-                        Data.VFS.GetPath(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen.tga")
+                        ResolveDataPath(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen.tga")
                     );
                 }
                 else
@@ -382,7 +384,7 @@ namespace LibreLancer
             {
                 glResource.AddTexture(
                     "__freelancerlogo.tga",
-                    Data.VFS.GetPath(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga")
+                    ResolveDataPath("INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga")
                 );
             }
             return (Texture2D)resource.FindTexture("__freelancerlogo.tga");
@@ -664,7 +666,7 @@ namespace LibreLancer
             if (fldata.Stars != null)
             {
                 foreach (var txmfile in fldata.Stars.TextureFiles)
-                    resource.LoadResourceFile(Data.VFS.GetPath(fldata.Freelancer.DataPath + txmfile));
+                    resource.LoadResourceFile(ResolveDataPath(txmfile));
             }
             yield return null;
             sys.LoadStarspheres();
@@ -720,8 +722,8 @@ namespace LibreLancer
             CachedTexturePanels pnl;
             if (!tpanels.TryGetValue(f, out pnl))
             {
-                pnl = new CachedTexturePanels() { ID = tpId++, P = new Data.Universe.TexturePanels(f) };
-                pnl.ResourceFiles = pnl.P.Files.Select((x) => Data.VFS.GetPath(fldata.Freelancer.DataPath + x)).ToArray();
+                pnl = new CachedTexturePanels() { ID = tpId++, P = new Data.Universe.TexturePanels(f, VFS) };
+                pnl.ResourceFiles = pnl.P.Files.Select(ResolveDataPath).ToArray();
                 tpanels.Add(f, pnl);
             }
             return pnl;
@@ -840,12 +842,12 @@ namespace LibreLancer
                 foreach (var c in a.Cube)
                 {
                     var arch = fldata.Asteroids.FindAsteroid(c.Archetype);
-                    resource.LoadResourceFile(Data.VFS.GetPath(fldata.Freelancer.DataPath + arch.MaterialLibrary));
-                    c.Drawable = resource.GetDrawable(Data.VFS.GetPath(fldata.Freelancer.DataPath + arch.DaArchetype));
+                    resource.LoadResourceFile(ResolveDataPath(arch.MaterialLibrary));
+                    c.Drawable = resource.GetDrawable(ResolveDataPath(arch.DaArchetype));
                 }
                 foreach (var e in a.ExclusionZones)
                 {
-                    if (e.ShellPath != null) e.Shell = resource.GetDrawable(Data.VFS.GetPath(fldata.Freelancer.DataPath + e.ShellPath));
+                    if (e.ShellPath != null) e.Shell = resource.GetDrawable(ResolveDataPath(e.ShellPath));
                 }
             };
             return a;
@@ -986,7 +988,7 @@ namespace LibreLancer
             {
                 foreach (var ex in n.ExclusionZones)
                 {
-                    if (ex.ShellPath != null) ex.Shell = resource.GetDrawable(Data.VFS.GetPath(fldata.Freelancer.DataPath + ex.ShellPath));
+                    if (ex.ShellPath != null) ex.Shell = resource.GetDrawable(ResolveDataPath(ex.ShellPath));
                 }
             };
 
@@ -1278,10 +1280,10 @@ namespace LibreLancer
             if (visfx == null) return null;
             foreach (var texfile in visfx.Textures)
             {
-                var path = Data.VFS.GetPath(fldata.Freelancer.DataPath + texfile);
+                var path = ResolveDataPath(texfile);
                 resource.LoadResourceFile(path);
             }
-            var alepath = Data.VFS.GetPath(fldata.Freelancer.DataPath + visfx.AlchemyPath);
+            var alepath = ResolveDataPath(visfx.AlchemyPath);
             var lib = resource.GetParticleLibrary(alepath);
             return lib.FindEffect((uint)visfx.EffectCrc);
         }

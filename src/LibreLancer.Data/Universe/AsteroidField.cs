@@ -30,7 +30,7 @@ namespace LibreLancer.Data.Universe
 			DynamicAsteroids = new List<DynamicAsteroids>();
 			LootableZones = new List<LootableZone>();
 
-			foreach (Section s in ParseFile(data.Freelancer.DataPath + file))
+			foreach (Section s in ParseFile(data.Freelancer.DataPath + file, data.VFS))
 			{
 				switch (s.Name.ToLowerInvariant())
 				{

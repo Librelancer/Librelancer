@@ -16,7 +16,7 @@ namespace LibreLancer
         public LuaMenu(FreelancerGame g) : base(g)
         {
             api = new MenuAPI(this);
-            ui = new XmlUIManager(g, g.GameData.GetInterfaceXml("mainmenu"), new LuaAPI("game", api),
+            ui = new XmlUIManager(g, g.GameData.GetInterfaceXml("mainmenu"), new LuaAPI("menu", api),
                 new LuaAPI("options", new OptionsAPI(this)));
             ui.OnConstruct();
             ui.Enter();
@@ -57,7 +57,7 @@ namespace LibreLancer
                 {
                     if (client != null) client.Dispose();
                     var session = new GameSession(state.Game);
-                    session.LoadFromPath(Data.VFS.GetPath("EXE\\newplayer.fl"));
+                    session.LoadFromPath(state.Game.GameData.VFS.Resolve("EXE\\newplayer.fl"));
                     session.Start();
                 });
             });

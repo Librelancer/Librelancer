@@ -11,9 +11,9 @@ namespace LibreLancer.Data.Solar
 	public class AsteroidArchIni : IniFile
 	{
 		public List<Asteroid> Asteroids = new List<Asteroid> ();
-		public void AddFile (string path)
+		public void AddFile (string path, FileSystem vfs)
 		{
-			foreach (var s in ParseFile(path)) {
+			foreach (var s in ParseFile(path, vfs)) {
 				switch (s.Name.ToLowerInvariant ()) {
 				case "asteroid":
 				case "asteroidmine":

@@ -23,7 +23,7 @@ namespace LibreLancer.Data.Effects
         [Section("effectlod")]
         public List<EffectLOD> EffectLODs = new List<EffectLOD>();
 
-        public void AddIni(string ini) => ParseAndFill(ini);
+        public void AddIni(string ini, FileSystem vfs) => ParseAndFill(ini, vfs);
 
 		public Effect FindEffect(string nickname)
 		{

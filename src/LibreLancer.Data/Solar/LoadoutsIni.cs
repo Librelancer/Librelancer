@@ -16,7 +16,7 @@ namespace LibreLancer.Data.Solar
 
 		public void AddLoadoutsIni(string path, FreelancerData gdata)
 		{
-			foreach (Section s in ParseFile(path))
+			foreach (Section s in ParseFile(path, gdata.VFS))
 			{
 				switch (s.Name.ToLowerInvariant())
 				{

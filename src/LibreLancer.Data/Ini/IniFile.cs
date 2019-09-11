@@ -185,17 +185,29 @@ namespace LibreLancer.Ini
             }
             if (currentSection != null) yield return currentSection;
         }
-		protected IEnumerable<Section> ParseFile(string path, bool allowmaps = false)
+		protected IEnumerable<Section> ParseFile(string path, FileSystem vfs, bool allowmaps = false)
 		{
 			if (path == null) throw new ArgumentNullException("path");
-			if (!path.ToLowerInvariant().EndsWith(".ini"))
+			if (!path.EndsWith(".ini", StringComparison.OrdinalIgnoreCase))
 				path = path + ".ini";
             using (var stream = new MemoryStream())
             {
                 //Don't wait on I/O for yield return
-                using (Stream file = VFS.Open(path)) {
-                    file.CopyTo(stream);
+                if (vfs == null)
+                {
+                    using (Stream file = File.OpenRead(path))
+                    {
+                        file.CopyTo(stream);
+                    }
                 }
+                else
+                {
+                    using (Stream file = vfs.Open(path))
+                    {
+                        file.CopyTo(stream);
+                    }
+                }
+
                 foreach (var s in ParseFile(path, stream, allowmaps)) yield return s;
             }
 		}

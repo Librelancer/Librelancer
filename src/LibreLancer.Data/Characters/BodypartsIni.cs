@@ -20,7 +20,7 @@ namespace LibreLancer.Data.Characters
 			Bodyparts = new List<Bodypart>();
 			Accessories = new List<Accessory>();
 
-			foreach (Section s in ParseFile(path))
+			foreach (Section s in ParseFile(path, gdata.VFS))
 			{
 				switch (s.Name.ToLowerInvariant())
 				{

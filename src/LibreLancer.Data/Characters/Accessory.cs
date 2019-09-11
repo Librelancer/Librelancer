@@ -31,7 +31,7 @@ namespace LibreLancer.Data.Characters
 						throw new Exception ("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 					if (MeshPath != null)
 						throw new Exception ("Duplicate " + e.Name + " Entry in " + s.Name);
-                    MeshPath = VFS.GetPath(GameData.Freelancer.DataPath + e[0].ToString(), false); //Fix demo crash
+                    MeshPath = gdata.VFS.Resolve(GameData.Freelancer.DataPath + e[0].ToString(), false) ?? e[0].ToString(); //Fix demo crash
 					break;
 				case "hardpoint":
 					// TODO: Accessory hardpoint

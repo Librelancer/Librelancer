@@ -19,9 +19,9 @@ namespace LibreLancer.Data.Solar
         public List<Spines> Spines = new List<Spines>();
         public List<string> TextureFiles = new List<string>();
 
-		public StararchIni(string path)
+		public StararchIni(string path, FileSystem vfs)
 		{
-			foreach (Section s in ParseFile(path))
+			foreach (Section s in ParseFile(path, vfs))
 			{
 				switch (s.Name.ToLowerInvariant())
 				{

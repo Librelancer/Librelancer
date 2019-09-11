@@ -17,6 +17,6 @@ namespace LibreLancer.Data.NewCharDB
         [Section("pilot")]
         public List<NewCharPilot> Pilots = new List<NewCharPilot>();
 
-        public void AddNewCharDBIni(string path) => ParseAndFill(path);
+        public void AddNewCharDBIni(string path, FileSystem vfs) => ParseAndFill(path, vfs);
     }
 }

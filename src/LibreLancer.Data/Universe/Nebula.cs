@@ -62,7 +62,7 @@ namespace LibreLancer.Data.Universe
 			NebulaLights = new List<NebulaLight>();
 
 
-			foreach (Section s in ParseFile(data.Freelancer.DataPath + file))
+			foreach (Section s in ParseFile(data.Freelancer.DataPath + file, data.VFS))
 			{
 				switch (s.Name.ToLowerInvariant())
 				{

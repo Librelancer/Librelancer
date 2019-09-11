@@ -14,15 +14,25 @@ namespace LibreLancer.Dll
 		public string Name;
 		ManagedDllProvider provider;
 
-        public DllFile(string path)
+        public DllFile(string path, FileSystem vfs)
         {
 			
             if (path == null) 
 				throw new ArgumentNullException("path");
 			Name = Path.GetFileName (path);
-            using (var file = VFS.Open(path))
+            if (vfs == null)
             {
-                provider = new ManagedDllProvider(file);
+                using (var file = File.OpenRead(path))
+                {
+                    provider = new ManagedDllProvider(file);
+                }
+            }
+            else
+            {
+                using (var file = vfs.Open(path))
+                {
+                    provider = new ManagedDllProvider(file);
+                }
             }
         }
 

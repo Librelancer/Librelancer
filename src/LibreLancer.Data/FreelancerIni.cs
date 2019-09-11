@@ -65,9 +65,9 @@ namespace LibreLancer.Data
             "fc_kn_grp",
             "fc_ln_grp"
         };
-        public FreelancerIni() : this("EXE\\freelancer.ini") { }
+        public FreelancerIni(FileSystem vfs) : this("EXE\\freelancer.ini", vfs) { }
 
-        public FreelancerIni (string path)
+        public FreelancerIni (string path, FileSystem vfs)
 		{
 			EquipmentPaths = new List<string> ();
 			LoadoutPaths = new List<string> ();
@@ -91,7 +91,7 @@ namespace LibreLancer.Data
             HiddenFactions = new List<string>(NoShowFactions);
 
             //For DLL resolving (skip VFS for editor usage)
-            var fullPath = VFS.GetPath(path);
+            var fullPath = vfs == null ? path : vfs.Resolve(path);
             var directory = Path.GetDirectoryName(fullPath);
             var dirFiles = Directory.GetFiles(directory).Select(a => Path.GetFileName(a));
             Func<string, string> resolveFileEXE = (x) =>
@@ -102,7 +102,7 @@ namespace LibreLancer.Data
                 return null;
             };
 
-            foreach (Section s in ParseFile(fullPath)) {
+            foreach (Section s in ParseFile(fullPath, vfs)) {
 				switch (s.Name.ToLowerInvariant ()) {
 				case "freelancer":
 					foreach (Entry e in s) {
@@ -123,7 +123,7 @@ namespace LibreLancer.Data
                     //NOTE: Freelancer hardcodes resources.dll
                     string pathStr;
                     if ((pathStr = resolveFileEXE("resources.dll")) != null)
-                        Resources.Add(new DllFile(pathStr));
+                        Resources.Add(new DllFile(pathStr, vfs));
                     else
                         FLLog.Warning("Dll", "resources.dll not found");
 					foreach (Entry e in s)
@@ -131,7 +131,7 @@ namespace LibreLancer.Data
 						if (e.Name.ToLowerInvariant () != "dll")
 							continue;
                         if ((pathStr = resolveFileEXE(e[0].ToString())) != null)
-                            Resources.Add(new DllFile(pathStr));
+                            Resources.Add(new DllFile(pathStr, vfs));
                         else
                             FLLog.Warning("Dll", e[0].ToString());
 					}

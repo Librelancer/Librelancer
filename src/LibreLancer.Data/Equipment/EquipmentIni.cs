@@ -22,7 +22,7 @@ namespace LibreLancer.Data.Equipment
 
 		public void AddEquipmentIni(string path, FreelancerData data)
 		{
-			foreach (Section s in ParseFile(path))
+			foreach (Section s in ParseFile(path, data.VFS))
 			{
 				switch (s.Name.ToLowerInvariant())
 				{

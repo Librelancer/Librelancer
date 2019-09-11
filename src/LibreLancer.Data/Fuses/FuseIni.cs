@@ -10,10 +10,10 @@ namespace LibreLancer.Data.Fuses
     {
         public Dictionary<string, Fuse> Fuses = new Dictionary<string, Fuse>(StringComparer.OrdinalIgnoreCase);
 
-        public void AddFuseIni(string path)
+        public void AddFuseIni(string path, FileSystem vfs)
         {
             Fuse current = null;
-            foreach(var section in ParseFile(path)) 
+            foreach(var section in ParseFile(path, vfs)) 
             { 
                 switch(section.Name.ToLowerInvariant())
                 {

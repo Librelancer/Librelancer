@@ -29,9 +29,9 @@ namespace LibreLancer.Data.Missions
         [Section("ObjList")]
         public List<ObjList> ObjLists = new List<ObjList>();
 
-        public MissionIni(string path)
+        public MissionIni(string path, FileSystem vfs)
         {
-            ParseAndFill(path);
+            ParseAndFill(path, vfs);
         }
     }
     public class MissionInfo

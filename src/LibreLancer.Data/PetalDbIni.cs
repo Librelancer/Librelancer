@@ -13,9 +13,9 @@ namespace LibreLancer.Data
 		public Dictionary<string, string> Props = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, string> Carts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-		public void AddFile(string path)
+		public void AddFile(string path, FileSystem vfs)
 		{
-			foreach (var section in ParseFile(path))
+			foreach (var section in ParseFile(path, vfs))
 			{
 				if (!section.Name.Equals("objecttable", StringComparison.OrdinalIgnoreCase))
 					throw new Exception("Unexpected section in PetalDB " + section);

@@ -31,7 +31,7 @@ namespace LibreLancer.Data.Characters
 						throw new Exception ("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 					if (MeshPath != null)
 						throw new Exception ("Duplicate " + e.Name + " Entry in " + s.Name);
-                    MeshPath = VFS.GetPath(gdata.Freelancer.DataPath + e[0].ToString(), false); //Fix crash in demo
+                    MeshPath = gdata.VFS.Resolve(gdata.Freelancer.DataPath + e[0].ToString(), false) ?? e[0].ToString(); //Fix crash in demo
 					break;
 				default: throw new Exception("Invalid Entry in " + s.Name + ": " + e.Name);
 				}

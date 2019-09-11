@@ -125,7 +125,7 @@ namespace LibreLancer.Data.Universe
 				return;
 			}
 			
-			foreach (Section s in ParseFile(GameData.Freelancer.DataPath + "universe\\" + file))
+			foreach (Section s in ParseFile(GameData.Freelancer.DataPath + "universe\\" + file, GameData.VFS))
 			{
 				switch (s.Name.ToLowerInvariant())
 				{
@@ -291,18 +291,18 @@ namespace LibreLancer.Data.Universe
 								throw new Exception ("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (BackgroundBasicStarsPath != null)
 								throw new Exception ("Duplicate " + e.Name + " Entry in " + s.Name);
-							BackgroundBasicStarsPath = VFS.GetPath (GameData.Freelancer.DataPath + e [0].ToString ());
+							BackgroundBasicStarsPath = GameData.VFS.Resolve (GameData.Freelancer.DataPath + e [0].ToString ());
 							break;
 						case "complex_stars":
 							if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (BackgroundComplexStarsPath != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
-							BackgroundComplexStarsPath = VFS.GetPath (GameData.Freelancer.DataPath + e [0].ToString ());
+							BackgroundComplexStarsPath = GameData.VFS.Resolve (GameData.Freelancer.DataPath + e [0].ToString ());
 							break;
 						case "nebulae":
 							if (e.Count != 1)
 								throw new Exception ("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
-							string temp = VFS.GetPath (GameData.Freelancer.DataPath + e[0].ToString(), false);
-							if (BackgroundNebulaePath != null && BackgroundNebulaePath != temp)
+							string temp = GameData.VFS.Resolve (GameData.Freelancer.DataPath + e[0].ToString());
+							if (temp != null && BackgroundNebulaePath != null && BackgroundNebulaePath != temp)
 								throw new Exception ("Duplicate " + e.Name + " Entry in " + s.Name);
 							BackgroundNebulaePath = temp;
 							break;

@@ -19,7 +19,7 @@ namespace LibreLancer.Data.Characters
 		{
 			Costumes = new List<Costume>();
 
-			foreach (Section s in ParseFile(path))
+			foreach (Section s in ParseFile(path, gdata.VFS))
 			{
 				switch (s.Name.ToLowerInvariant())
 				{

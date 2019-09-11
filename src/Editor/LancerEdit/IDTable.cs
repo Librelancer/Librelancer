@@ -16,11 +16,11 @@ namespace LancerEdit
         public IDTable(string fldir)
         {
             UtfNicknameTable = new Dictionary<uint, string>();
-            VFS.Init(fldir);
-            var flini = new FreelancerIni();
+            var fs = FileSystem.FromFolder(fldir, true);
+            var flini = new FreelancerIni(fs);
             var voices = new VoicesIni();
             foreach(var path in flini.VoicePaths)
-                voices.AddVoicesIni(path);
+                voices.AddVoicesIni(path, fs);
             foreach (var voice in voices.Voices.Values)
             {
                 foreach (var msg in voice.Messages)

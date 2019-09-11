@@ -15,13 +15,13 @@ namespace LibreLancer.Data.Voices
         {
             [Entry("nickname")] public string Nickname;
             [Entry("extend")] public string Extend;
-            [Entry("script")] public string Script;
+            [Entry("script", Multiline = true)] public List<string> Scripts = new List<string>();
         }
 
-        public void AddVoicesIni(string path)
+        public void AddVoicesIni(string path, FileSystem vfs)
         {
             Voice currentVoice = null;
-            foreach (var section in ParseFile(path))
+            foreach (var section in ParseFile(path, vfs))
             {
                 switch (section.Name.ToLowerInvariant())
                 {
@@ -33,7 +33,7 @@ namespace LibreLancer.Data.Voices
                             currentVoice = new Voice() { Nickname = name };
                             Voices.Add(name, currentVoice);
                         }
-                        currentVoice.Script = s.Script ?? currentVoice.Script;
+                        currentVoice.Scripts.AddRange(s.Scripts);
                         break;
                     case "sound":
                         if (currentVoice == null)
@@ -51,7 +51,7 @@ namespace LibreLancer.Data.Voices
     public class Voice
     {
         public string Nickname;
-        public string Script;
+        public List<string> Scripts = new List<string>();
         public List<VoiceMessage> Messages = new List<VoiceMessage>();
     }
 

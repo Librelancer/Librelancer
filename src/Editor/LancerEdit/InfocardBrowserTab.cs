@@ -34,7 +34,7 @@ namespace LancerEdit
         public InfocardBrowserTab(string flini, MainWindow win)
         {
             this.win = win;
-            var ini = new FreelancerIni(flini);
+            var ini = new FreelancerIni(flini, null);
             if (ini.JsonResources != null)
                 manager = new InfocardManager(File.ReadAllText(ini.JsonResources.Item1), File.ReadAllText(ini.JsonResources.Item2));
             else
@@ -45,7 +45,7 @@ namespace LancerEdit
 
             stringClipper = new ListClipper(stringsIds.Length);
             infocardClipper = new ListClipper(infocardsIds.Length);
-            Title = "Infocard Browser##" + Unique;
+            Title = "Infocard Browser";
         }
 
         int id = 0;

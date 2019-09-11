@@ -17,7 +17,7 @@ namespace LibreLancer.Data.Ships
 		}
 		public void AddShiparchIni(string path, FreelancerData fldata)
 		{
-			foreach (Section s in ParseFile(path)) {
+			foreach (Section s in ParseFile(path, fldata.VFS)) {
                 if (s.Name.ToLowerInvariant() == "ship")
                     Ships.Add(FromSection<Ship>(s));
 			}

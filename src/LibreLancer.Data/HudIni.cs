@@ -15,9 +15,9 @@ namespace LibreLancer.Data
 		public HudIni()
 		{
 		}
-		public void AddIni(string path)
+		public void AddIni(string path, FileSystem vfs)
 		{
-			foreach (var section in ParseFile(path))
+			foreach (var section in ParseFile(path, vfs))
 			{
 				switch (section.Name.ToLowerInvariant())
 				{

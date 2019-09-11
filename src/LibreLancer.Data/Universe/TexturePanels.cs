@@ -24,9 +24,9 @@ namespace LibreLancer.Data.Universe
         }
 
         string shapeTexName = "";
-        public TexturePanels(string filename)
+        public TexturePanels(string filename, FileSystem vfs)
 		{
-			var parsed = ParseFile (filename);
+			var parsed = ParseFile (filename, vfs);
 
             Shapes = new Dictionary<string, TextureShape>(StringComparer.InvariantCultureIgnoreCase);
 			Files = new List<string>();

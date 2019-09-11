@@ -48,9 +48,9 @@ namespace LibreLancer.Data.Universe
 				default: throw new Exception("Invalid Entry in " + section.Name + ": " + e.Name);
 				}
 			}
-            if (VFS.FileExists(data.Freelancer.DataPath + file))
+            if (data.VFS.FileExists(data.Freelancer.DataPath + file))
             {
-                foreach (Section s in ParseFile(data.Freelancer.DataPath + file))
+                foreach (Section s in ParseFile(data.Freelancer.DataPath + file, data.VFS))
                 {
                     switch (s.Name.ToLowerInvariant())
                     {

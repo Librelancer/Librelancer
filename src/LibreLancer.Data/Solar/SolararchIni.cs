@@ -17,7 +17,7 @@ namespace LibreLancer.Data.Solar
         {
             //Solars = new List<Archetype>();
             Archetype current = null;
-            foreach (Section s in ParseFile(path))
+            foreach (Section s in ParseFile(path, gameData.VFS))
             {
                 switch (s.Name.ToLowerInvariant())
                 {

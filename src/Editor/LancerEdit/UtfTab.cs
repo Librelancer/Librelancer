@@ -233,7 +233,6 @@ namespace LancerEdit
                                 if (uint.TryParse(n.Name.Substring(2),NumberStyles.HexNumber, CultureInfo.InvariantCulture , out v))
                                 {
                                     idtable.UtfNicknameTable.TryGetValue(v, out n.ResolvedName);
-                                    Console.WriteLine(n.ResolvedName ?? "null");
                                 }
                             } else
                                 n.ResolvedName = null;
