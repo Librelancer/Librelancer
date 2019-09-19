@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Diagnostics;
 using System.IO;
 namespace LibreLancer.Media
 {
@@ -210,17 +211,24 @@ namespace LibreLancer.Media
 			if (ID == uint.MaxValue)
 				throw new ObjectDisposedException("StreamingSource");
 		}
+
+        private bool _disposing = false;
 		public void Dispose()
-		{
-			Stop();
-			manager.RunActionBlocking(() => manager.streamingSources.Enqueue(ID));
-			sound.Dispose();
-			ID = uint.MaxValue;
-		}
+        {
+            if (ID != uint.MaxValue)
+            {
+                Stop();
+                manager.RunActionBlocking(() => manager.streamingSources.Enqueue(ID));
+                sound.Dispose();
+                ID = uint.MaxValue;
+            }
+            else
+                FLLog.Error("StreamingSource", "Trying to dispose several times");
+        }
 
 		internal void OnStopped()
-		{
-			if (Stopped != null)
+        {
+            if (Stopped != null)
 			{
 				manager.UIThread.QueueUIThread(() => Stopped(this, EventArgs.Empty));
 			}

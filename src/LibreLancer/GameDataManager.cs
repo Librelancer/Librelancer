@@ -91,6 +91,7 @@ namespace LibreLancer
                 {
                     var nr = new GameData.BaseRoom();
                     nr.Music = room.Music;
+                    nr.MusicOneShot = room.MusicOneShot;
                     nr.ThnPaths = new List<string>();
                     nr.PlayerShipPlacement = room.PlayerShipPlacement;
                     nr.ForSaleShipPlacements = room.ForShipSalePlacements;

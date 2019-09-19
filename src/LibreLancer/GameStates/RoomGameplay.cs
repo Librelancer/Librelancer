@@ -199,7 +199,7 @@ namespace LibreLancer
 			}
 			else
 			{
-				Game.Sound.PlayMusic(currentRoom.Music);
+				Game.Sound.PlayMusic(currentRoom.Music, currentRoom.MusicOneShot);
 			}
             var shp = Game.GameData.GetShip(session.PlayerShip);
             shp.LoadResources();

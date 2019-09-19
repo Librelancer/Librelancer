@@ -14,7 +14,8 @@ namespace LibreLancer.Data.Universe
 		FreelancerData GameData;
 		public string Nickname { get; private set; }
 		public string Music { get; private set; }
-		public List<string> SceneScripts { get; private set; }
+        public bool MusicOneShot { get; private set; }
+        public List<string> SceneScripts { get; private set; }
         public List<string> ForShipSalePlacements { get; private set; }
         public List<RoomHotspot> Hotspots { get; private set; }
 		public string Camera { get; private set; }
@@ -74,7 +75,12 @@ namespace LibreLancer.Data.Universe
                             foreach (Entry e in s)
                             {
                                 if (e.Name.ToLowerInvariant() == "music")
+                                {
                                     Music = e[0].ToString();
+                                    if (e.Count > 1 && e[1].ToString()
+                                            .Equals("oneshot", StringComparison.OrdinalIgnoreCase))
+                                        MusicOneShot = true;
+                                }
                             }
                             break;
                         case "camera":

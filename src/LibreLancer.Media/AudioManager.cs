@@ -133,6 +133,7 @@ namespace LibreLancer.Media
 					if (item.Stopped != null)
 						item.OnStopped();
 				}
+                toRemove.Clear();
 				Thread.Sleep (5);
 			}
 			//Delete context

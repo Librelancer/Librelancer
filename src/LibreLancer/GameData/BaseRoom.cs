@@ -15,6 +15,7 @@ namespace LibreLancer.GameData
         public List<string> ForSaleShipPlacements;
 		public List<BaseNpc> Npcs = new List<BaseNpc>();
 		public string Music;
+        public bool MusicOneShot;
 		public string PlayerShipPlacement;
         public string StartScript;
         public string LandScript;

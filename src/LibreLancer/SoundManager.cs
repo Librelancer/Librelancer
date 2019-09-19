@@ -73,12 +73,12 @@ namespace LibreLancer
             sn.LoadStream(new MemoryStream(file));
             audio.PlaySound(sn, false, 1, -1, -1, null, sn, onEnd);
         }
-        public void PlayMusic(string name)
+        public void PlayMusic(string name, bool oneshot = false)
 		{
             var path = data.GetAudioPath(name);
             if (File.Exists(path))
             {
-                audio.Music.Play(path, true);
+                audio.Music.Play(path, !oneshot);
             }
             else
             {
