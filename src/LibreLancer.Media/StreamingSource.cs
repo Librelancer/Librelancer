@@ -30,7 +30,7 @@ namespace LibreLancer.Media
 				{
 					manager.Actions.Enqueue(() =>
 					{
-						Al.alSourcef(ID, Al.AL_GAIN, _volume);
+						Al.alSourcef(ID, Al.AL_GAIN, ALUtils.LinearToAlGain(_volume));
 					});
 				}
 			}

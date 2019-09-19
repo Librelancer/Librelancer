@@ -82,7 +82,8 @@ namespace LibreLancer.Media
 			IntPtr dev = Alc.alcOpenDevice(null);
 			IntPtr ctx = Alc.alcCreateContext(dev, IntPtr.Zero);
 			Alc.alcMakeContextCurrent(ctx);
-			for (int i = 0; i < MAX_SOURCES; i++)
+            Al.alListenerf(Al.AL_GAIN, ALUtils.LinearToAlGain(_masterVolume));
+            for (int i = 0; i < MAX_SOURCES; i++)
 			{
 				freeSources.Enqueue(Al.GenSource());
 			}
@@ -163,7 +164,20 @@ namespace LibreLancer.Media
             toAdd.Enqueue(new SoundInstance(src) { Dispose = data });
         }
 
-		public SoundInstance PlaySound(SoundData data, bool loop = false, float volume = 1f, float minD = -1, float maxD = -1, Vector3? posv = null, SoundData dispose = null, Action onFinish = null)
+        private float _masterVolume = 1.0f;
+
+        public float MasterVolume
+        {
+            get { return _masterVolume; }
+            set
+            {
+                _masterVolume = value;
+                if(Ready)
+                    Al.alListenerf(Al.AL_GAIN, ALUtils.LinearToAlGain(_masterVolume));
+            }
+        }
+
+        public SoundInstance PlaySound(SoundData data, bool loop = false, float volume = 1f, float minD = -1, float maxD = -1, Vector3? posv = null, SoundData dispose = null, Action onFinish = null)
 		{
 			uint src;
 			if (!AllocateSource(out src)) return null;

@@ -45,11 +45,18 @@ namespace LibreLancer
 		{
 			//DO NOT RUN CODE HERE. IT CAUSES THE STUPIDEST CRASH ON OSX KNOWN TO MAN
 			_cfg = config;
+            _cfg.Saved += CfgOnSaved;
 			ScreenshotSave += FreelancerGame_ScreenshotSave;
             Utf.Mat.TextureData.Bitch = true;
         }
 
-		public void ChangeState(GameState state)
+        private void CfgOnSaved(GameConfig config)
+        {
+            Audio.MasterVolume = config.MasterVolume;
+            Audio.Music.Volume = config.MusicVolume;
+        }
+
+        public void ChangeState(GameState state)
 		{
             Audio.StopAllSfx();
 			if (currentState != null)
@@ -72,8 +79,8 @@ namespace LibreLancer
 			//Init Audio
 			FLLog.Info("Audio", "Initialising Audio");
 			Audio = new AudioManager(this);
-			if (_cfg.MuteMusic)
-				Audio.Music.Volume = 0f;
+            Audio.MasterVolume = _cfg.MasterVolume;
+            Audio.Music.Volume = _cfg.MusicVolume;
 			//Load data
 			FLLog.Info("Game", "Loading game data");
 			GameData = new GameDataManager(_cfg.FreelancerPath, ResourceManager);

@@ -11,8 +11,9 @@ namespace LibreLancer
 	public class GameConfig
 	{
 		public string FreelancerPath;
-		public bool MuteMusic = false;
-		public bool IntroMovies = true;
+        public float MasterVolume = 1.0f;
+        public float MusicVolume = 1.0f;
+        public bool IntroMovies = true;
 		public int BufferWidth = 1024;
 		public int BufferHeight = 768;
 		public int MSAASamples = 0;
@@ -86,14 +87,17 @@ namespace LibreLancer
 		}
 
 		public void Save()
-		{
-			var xml = new XmlSerializer(typeof(GameConfig));
+        {
+            Saved?.Invoke(this);
+            var xml = new XmlSerializer(typeof(GameConfig));
 			using (var writer = new StreamWriter(filePath()))
 			{
 				xml.Serialize(writer, this);
 			}
 		}
 
+        public event Action<GameConfig> Saved;
+        
 		static string DefaultConfigPath()
 		{
 			return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "librelancer.xml");

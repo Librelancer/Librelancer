@@ -18,7 +18,8 @@ namespace Launcher
         NumericMaskedTextBox<int> bufferWidth;
         NumericMaskedTextBox<int> bufferHeight;
         CheckBox skipIntroMovies;
-        CheckBox muteMusic;
+        Slider masterVolume;
+        Slider musicVolume;
         CheckBox vsync;
         public MainWindow()
         {
@@ -31,7 +32,7 @@ namespace Launcher
             freelancerPath = new TextBox() { Text = config.FreelancerPath };
             var flpath = new TableLayout() { Padding = 2, Spacing = new Size(2, 0) };
             flpath.Rows.Add(new TableRow(
-                new Label() { Text = "Freelancer Directory:" },
+                new Label() { Text = "Freelancer Directory:", VerticalAlignment = VerticalAlignment.Center },
                 new TableCell(freelancerPath,true), 
                 new Button(FolderBrowse) {  Text = ".." }
                 ));
@@ -41,9 +42,9 @@ namespace Launcher
             bufferHeight = new NumericMaskedTextBox<int>() { Value = config.BufferHeight };
             var res = new TableLayout() { Padding = 2, Spacing = new Size(2, 0) };
             res.Rows.Add(new TableRow(
-            new Label() { Text = "Resolution:" },
+            new Label() { Text = "Resolution:", VerticalAlignment = VerticalAlignment.Center },
                 new TableCell(bufferWidth) { ScaleWidth = true },
-            new Label() { Text = "x" },
+            new Label() { Text = "x", VerticalAlignment = VerticalAlignment.Center },
                 new TableCell(bufferHeight) { ScaleWidth = true }));
             layout.Rows.Add(res);
             //Options
@@ -56,8 +57,26 @@ namespace Launcher
             else
                 skipIntroMovies.Checked = !config.IntroMovies;
             layout.Rows.Add(skipIntroMovies);
-            muteMusic = new CheckBox() { Text = "Mute Music", Checked = config.MuteMusic };
-            layout.Rows.Add(muteMusic);
+            masterVolume = new Slider()
+            {
+                MinValue =  0, MaxValue = 1000, Value = (int)(config.MasterVolume * 1000),
+                Orientation = Orientation.Horizontal, TickFrequency = 0, SnapToTick = false, 
+                Style = "volslider"
+            };
+            var layoutMaster = new TableLayout(
+                new TableRow(new Label() {Text = "Master Volume: ", VerticalAlignment = VerticalAlignment.Center}, masterVolume)
+            );
+            layout.Rows.Add(layoutMaster);
+            musicVolume = new Slider()
+            {
+                MinValue =  0, MaxValue = 1000, Value = (int)(config.MusicVolume * 1000),
+                Orientation = Orientation.Horizontal, TickFrequency = 0,  SnapToTick = false,
+                Style = "volslider"
+            };
+            var layoutMusic = new TableLayout(
+                new TableRow(new Label() {Text = "Music Volume: ",  VerticalAlignment = VerticalAlignment.Center}, musicVolume)
+            );
+            layout.Rows.Add(layoutMusic);
             vsync = new CheckBox() { Text = "VSync", Checked = config.VSync };
             layout.Rows.Add(vsync);
             //Spacer
@@ -87,7 +106,8 @@ namespace Launcher
             {
                 config.FreelancerPath = freelancerPath.Text;
                 config.IntroMovies = !skipIntroMovies.Checked.Value;
-                config.MuteMusic = muteMusic.Checked.Value;
+                config.MasterVolume = masterVolume.Value / 1000f;
+                config.MusicVolume = musicVolume.Value / 1000f;
                 config.VSync = vsync.Checked.Value;
                 config.BufferWidth = bufferWidth.Value;
                 config.BufferHeight = bufferHeight.Value;

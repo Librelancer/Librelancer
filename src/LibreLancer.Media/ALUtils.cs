@@ -30,6 +30,17 @@ namespace LibreLancer.Media
 			}
 			throw new NotSupportedException(bits + "-bit data");
 		}
-	}
+
+        public static float LinearToAlGain(float linear)
+        {
+            if(linear <= 0) return float.MinValue;
+            return (float) Math.Pow(MathHelper.Clamp(linear, 0, 1), 2);
+        }
+
+        public static float DbToAlGain(float db)
+        {
+            return (float) ((db > -100.0f) ? Math.Pow(10.0f, db / 20.0f) : float.MinValue);
+        }
+    }
 }
 

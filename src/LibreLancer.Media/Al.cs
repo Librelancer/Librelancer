@@ -64,6 +64,9 @@ namespace LibreLancer.Media
         public static extern void alListener3f(int param, float value1, float value2, float value3);
 
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void alListenerf(int param, float value);
+        
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
         public static extern void alSourcef(uint sid, int param, float value);
 
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
