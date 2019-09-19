@@ -126,6 +126,8 @@ ld_pcmstream_t mp3_getstream(ld_stream_t stream, int decodeChannels, int decodeR
 	retsound->dataSize = -1;
 	if(userdata->dec.channels == 2) {
 		retsound->format = LDFORMAT_STEREO16;
+		//RIFF fact chunk needs channels
+		if(totalSamples != -1) userdata->totalSamples = (totalSamples * 2);
 	} else {
 		retsound->format = LDFORMAT_MONO16;
 	}
