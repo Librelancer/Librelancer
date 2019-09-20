@@ -192,7 +192,8 @@ namespace LibreLancer
                     GameData.Market.ShipPackage sp;
                     if (shipPackages.TryGetValue(gd.Good, out sp))
                     {
-                        b.SoldShips.Add(new GameData.Market.SoldShip() { Package = sp });
+                        if(gd.Min != 0 || gd.Max != 0) //Vanilla adds disabled ships ??? (why)
+                            b.SoldShips.Add(new GameData.Market.SoldShip() { Package = sp });
                     }
                 }
             }
