@@ -80,10 +80,14 @@ namespace LibreLancer.Media
             err = OnError;
             ld_errorlog_register(err);
         }
-
+        
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate IntPtr ReadFn(byte* buffer, IntPtr size1, IntPtr size2, ld_stream* stream);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate int SeekFn(ld_stream* stream, int offset, LdSeek seek);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate int TellFn(ld_stream* stream);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate void CloseFn(ld_stream* stream);
 
         [DllImport("lancerdecode", CallingConvention = CallingConvention.Cdecl)]
