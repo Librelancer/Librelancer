@@ -22,6 +22,13 @@ namespace LibreLancer
             public LoadedSoundPtr Next;
             public LoadedSoundPtr Previous;
             public LoadedSound Sound;
+
+            public override string ToString()
+            {
+                string nextStr = Next == null ? "null" : Next.Sound.Name;
+                string prevStr = Previous == null ? "null" : Previous.Sound.Name;
+                return $"{prevStr} -> {Sound.Name} -> {nextStr}";
+            }
         }
         private LoadedSoundPtr lruHead;
         private LoadedSoundPtr lruTail;
@@ -62,10 +69,16 @@ namespace LibreLancer
         {
             LoadedSoundPtr ptr = lruTail;
             while (ptr.Sound != snd)
+            {
                 ptr = ptr.Previous;
+            }
+
             if (ptr == lruTail) return;
             if (ptr == lruHead)
+            {
+                lruHead = ptr.Next;
                 ptr.Next.Previous = null;
+            }
             else
             {
                 ptr.Next.Previous = ptr.Previous;
