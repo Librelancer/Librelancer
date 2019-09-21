@@ -18,8 +18,8 @@ namespace LibreLancer
 
         ShipPhysicsComponent physics;
 
-        public PIDController PitchControl = new PIDController() { P = 5 };
-        public PIDController YawControl = new PIDController() { P = 40 };
+        public PIDController PitchControl = new PIDController() { P = 3.5f };
+        public PIDController YawControl = new PIDController() { P = 3.5f };
         public PIDController RollControl = new PIDController() { P = 4f };
         public override void FixedUpdate(TimeSpan time)
         {
