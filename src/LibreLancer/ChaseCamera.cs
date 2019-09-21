@@ -183,6 +183,7 @@ namespace LibreLancer
             //var tr = transformStack;
             var v = tr;
             CameraUp = CalcDir(ref tr, Vector3.Up);
+            CameraForward = CalcDir(ref tr, Vector3.Forward);
             Position = v.Transform(Vector3.Zero);
             v.Invert();
             View = v;
@@ -197,6 +198,8 @@ namespace LibreLancer
             return (v1 - v0).Normalized();
         }
         public Vector3 CameraUp;
+
+        public Vector3 CameraForward;
         //Stable way of interpolating quaternions with variable timestep
         static Quaternion DampS(Quaternion a, Quaternion b, float lambda, float dt)
         {

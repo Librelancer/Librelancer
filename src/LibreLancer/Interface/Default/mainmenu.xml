@@ -75,7 +75,6 @@
             dom:element('multiplayer'):flyin(0.1,0.6)
             dom:element('settings'):flyin(0.15,0.6)
             dom:element('exit'):flyin(0.2,0.6)
-            dom:afteranimation("sound:play('ui_window_open')")
         end
         function events.onleave()
             sound:play('ui_motion_swish')
@@ -85,13 +84,16 @@
             dom:element('loadgame'):flyout(0.15,0.6)
             dom:element('newgame'):flyout(0.2,0.6)
         end
+        function rollover()
+            sound:play('ui_rollover')
+        end
         ]]></Script>
         <Image path="//INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga"/>
-        <Button x="6.68%" y="25.8%" aspect="4/3" id="newgame" style="menubutton" strid="1268" onclick="menu:newgame()"/>
-        <Button x="6.68%" y="38.1%" aspect="4/3" id="loadgame" style="menubutton" strid="1269" onclick="menu:loadgame()"/>
-        <Button x="6.68%" y="51%" aspect="4/3" id="multiplayer" style="menubutton" strid="1270" onclick="dom:changeto('multiplayer')"/>
-        <Button x="6.68%" y="63%" aspect="4/3" id="settings" style="menubutton" strid="1272" onclick="dom:changeto('options')"/>
-        <Button x="6.68%" y="75.8%" aspect="4/3" id="exit" style="menubutton" strid="1273" onclick="menu:exit()"/>
+        <Button x="6.68%" y="25.8%" aspect="4/3" id="newgame" style="menubutton" strid="1268" onenter="rollover()" onclick="menu:newgame()"/>
+        <Button x="6.68%" y="38.1%" aspect="4/3" id="loadgame" style="menubutton" strid="1269" onenter="rollover()" onclick="menu:loadgame()"/>
+        <Button x="6.68%" y="51%" aspect="4/3" id="multiplayer" style="menubutton" strid="1270" onenter="rollover()" onclick="dom:changeto('multiplayer')"/>
+        <Button x="6.68%" y="63%" aspect="4/3" id="settings" style="menubutton" strid="1272" onenter="rollover()" onclick="dom:changeto('options')"/>
+        <Button x="6.68%" y="75.8%" aspect="4/3" id="exit" style="menubutton" strid="1273" onenter="rollover()" onclick="menu:exit()"/>
     </Scene>
     <!--UI relating to server selection-->
     <Scene id="multiplayer">

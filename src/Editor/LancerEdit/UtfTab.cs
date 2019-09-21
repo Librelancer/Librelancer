@@ -431,7 +431,7 @@ namespace LancerEdit
                     var data = main.Audio.AllocateData();
                     using (var stream = new MemoryStream(selectedNode.Data))
                     {
-                        main.Audio.PlaySound(stream);
+                        main.Audio.PlayStream(stream);
                     }
                 }
                 if (ImGui.Button("Import Data"))

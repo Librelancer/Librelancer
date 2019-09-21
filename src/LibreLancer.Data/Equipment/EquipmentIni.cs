@@ -65,6 +65,7 @@ namespace LibreLancer.Data.Equipment
 				case "shield":
 					break;
 				case "engine":
+                    Equip.Add(FromSection<Engine>(s));
 					break;
 				case "thruster":
                     Equip.Add(FromSection<Thruster>(s));

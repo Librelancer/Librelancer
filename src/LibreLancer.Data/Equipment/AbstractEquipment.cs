@@ -44,5 +44,7 @@ namespace LibreLancer.Data.Equipment
         public string SeparationExplosion;
         [Entry("debris_type")]
         public string DebrisType;
+        [Entry("indestructible")]
+        public bool Indestructible;
     }
 }

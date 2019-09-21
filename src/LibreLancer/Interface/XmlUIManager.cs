@@ -328,17 +328,9 @@ namespace LibreLancer
             evmethod?.Invoke();
         }
 
-        Dictionary<string, SoundData> sounds = new Dictionary<string, SoundData>();
         void PlaySound(string name)
         {
-            SoundData dat;
-            if (!sounds.TryGetValue(name, out dat))
-            {
-                dat = Game.Audio.AllocateData();
-                dat.LoadFile(Game.GameData.GetAudioPath(name));
-                sounds.Add(name, dat);
-            }
-            Game.Audio.PlaySound(dat);
+            Game.Sound.PlaySound(name);
         }
 
         class LuaSound
@@ -512,8 +504,6 @@ namespace LibreLancer
             Game.Keyboard.KeyUp -= Keyboard_KeyDown;
             Game.Keyboard.TextInput -= Keyboard_TextInput;
             foreach (var scene in Scenes) scene.Dispose();
-            foreach (var v in sounds.Values)
-                v.Dispose();
         }
     }
 }

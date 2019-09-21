@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer.Physics;
+
 namespace LibreLancer
 {
 	public class SpaceGameplay : GameState
@@ -97,13 +98,25 @@ Mouse Flight: {11}
                 FLLog.Error("Ship", "Mass < 0");
             }
             player.Nickname = "player";
-            foreach (var equipment in session.MountedEquipment)
+            foreach (var equipment in session.Mounts)
             {
-                var equip = Game.GameData.GetEquipment(equipment.Value);
+                var equip = Game.GameData.GetEquipment(equipment.Item);
                 if (equip == null) continue;
                 equip.LoadResources();
-                var obj = new GameObject(equip, player.GetHardpoint(equipment.Key), player);
-                player.Children.Add(obj);
+                if (equip is GameData.Items.EngineEquipment eng)
+                {
+                    var comp = new EngineComponent(player, eng, FlGame);
+                    player.Components.Add(comp);
+                }
+                else if (equip is GameData.Items.PowerEquipment pwr)
+                {
+                    
+                }
+                else
+                {
+                    var obj = new GameObject(equip, player.GetHardpoint(equipment.Hardpoint), player);
+                    player.Children.Add(obj);
+                }
             }
 
             camera = new ChaseCamera(Game.Viewport);
@@ -127,9 +140,6 @@ Mouse Flight: {11}
             world.Objects.Add(player);
             world.RenderUpdate += World_RenderUpdate;
             world.PhysicsUpdate += World_PhysicsUpdate;
-            var eng = new GameData.Items.Engine() { FireEffect = "gf_li_smallengine02_fire", LinearDrag = 600, MaxForce = 48000 };
-            player.Components.Add((ecpt = new EngineComponent(player, eng, Game)));
-            ecpt.Speed = 0;
             player.Register(world.Physics);
             Game.Sound.PlayMusic(sys.MusicSpace);
             Game.Keyboard.TextInput += G_Keyboard_TextInput;
@@ -386,6 +396,7 @@ Mouse Flight: {11}
             camera.ChasePosition = player.PhysicsComponent.Body.Position;
             camera.ChaseOrientation = player.PhysicsComponent.Body.Transform.ClearTranslation();
             camera.Update(delta);
+            Game.Sound.SetListenerParams(camera.Position, camera.CameraForward, camera.CameraUp);
         }
 
 		bool mouseFlight = false;

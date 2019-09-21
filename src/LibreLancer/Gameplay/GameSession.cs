@@ -5,16 +5,32 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
+using LibreLancer.Data.Save;
+using LibreLancer.GameData.Items;
 using LibreLancer.Utf.Cmp;
 
 namespace LibreLancer
 {
-	public class GameSession
+
+    public class EquipMount
+    {
+        public string Hardpoint;
+        public string Item;
+
+        public EquipMount(string hp, string item)
+        {
+            Hardpoint = hp;
+            Item = item;
+        }
+    }
+
+    public class GameSession
 	{
         public long Credits;
 		public string PlayerShip;
 		public List<string> PlayerComponents = new List<string>();
-		public Dictionary<string, string> MountedEquipment = new Dictionary<string, string>();
+        public List<EquipMount> Mounts = new List<EquipMount>();
 		public FreelancerGame Game;
 		public string PlayerSystem;
 		public string PlayerBase;
@@ -32,13 +48,13 @@ namespace LibreLancer
 			PlayerSystem = "li01";
 			PlayerPosition = new Vector3(-31000, 0, -26755);
 			PlayerOrientation = Matrix3.Identity;
-			MountedEquipment.Add("hpthruster01", "ge_s_thruster_02");
-            MountedEquipment.Add("hpweapon01", "li_gun01_mark01");
-            MountedEquipment.Add("hpweapon02", "li_gun01_mark01");
-            MountedEquipment.Add("hpweapon03", "li_gun01_mark01");
-            MountedEquipment.Add("hpweapon04", "li_gun01_mark01");
-            MountedEquipment.Add("HpContrail01", "contrail01");
-            MountedEquipment.Add("HpContrail02", "contrail01");
+            Mounts.Add(new EquipMount("hpthruster01", "ge_s_thruster_02"));
+            Mounts.Add(new EquipMount("hpweapon01", "li_gun01_mark01"));
+            Mounts.Add(new EquipMount("hpweapon02", "li_gun01_mark01"));
+            Mounts.Add(new EquipMount("hpweapon03", "li_gun01_mark01"));
+            Mounts.Add(new EquipMount("hpweapon04", "li_gun01_mark01"));
+            Mounts.Add(new EquipMount("HpContrail01", "contrail01"));
+            Mounts.Add(new EquipMount("HpContrail02", "contrail01"));
         }
         
         public void LoadFromPath(string path)
@@ -54,12 +70,18 @@ namespace LibreLancer
                 PlayerShip = sg.Player.ShipArchetype;
             else
                 PlayerShip = Game.GameData.GetShip(sg.Player.ShipArchetypeCrc).Nickname;
-            
-            MountedEquipment = new Dictionary<string, string>();
-            foreach(var eq in sg.Player.Equip)
+            Mounts = new List<EquipMount>();
+            foreach (var eq in sg.Player.Equip)
             {
-                if (eq.Hardpoint != null && eq.EquipName != null)
-                    MountedEquipment.Add(eq.Hardpoint, eq.EquipName);
+                var hp = eq.Hardpoint;
+                string eqn = eq.EquipName;
+                if (eq.EquipName == null)
+                {
+                    var obj = Game.GameData.GetEquipment(eq.EquipHash);
+                    if (obj != null) eqn = obj.Nickname;
+                }
+                if(eqn != null) //We don't implement all equipment yet so errors would be useless
+                    Mounts.Add(new EquipMount(hp, eqn));
             }
         }
 
@@ -160,12 +182,12 @@ namespace LibreLancer
             var hpcrcs = new Dictionary<uint, string>();
             foreach (var hp in HardpointList(sh.Drawable))
                 hpcrcs.Add(CrcTool.FLModelCrc(hp), hp);
-            MountedEquipment = new Dictionary<string, string>();
+            Mounts = new List<EquipMount>();
             foreach(var eq in ld.Equipment) {
-                MountedEquipment.Add(
+                Mounts.Add(new EquipMount(
                     hpcrcs[eq.HardpointCRC],
                     Game.GameData.GetEquipment(eq.EquipCRC).Nickname
-                );
+                ));
             }
         }
 

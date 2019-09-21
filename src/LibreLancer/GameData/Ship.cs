@@ -37,6 +37,8 @@ namespace LibreLancer.GameData
         public Ship ()
 		{
 		}
-	}
+
+        public override string ToString() => Nickname;
+    }
 }
 

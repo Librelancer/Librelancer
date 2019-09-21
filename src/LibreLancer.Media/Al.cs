@@ -17,7 +17,8 @@ namespace LibreLancer.Media
         public const int AL_POSITION = 0x1004;
         public const int AL_VELOCITY = 0x1006;
         public const int AL_LOOPING = 0x1007;
-
+        public const int AL_ORIENTATION = 0x100F;
+        
         public const int AL_REFERENCE_DISTANCE = 0x1020;
         public const int AL_MAX_DISTANCE = 0x1023;
 
@@ -63,6 +64,9 @@ namespace LibreLancer.Media
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
         public static extern void alListener3f(int param, float value1, float value2, float value3);
 
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void alListenerfv(int param, IntPtr values);
+        
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
         public static extern void alListenerf(int param, float value);
         

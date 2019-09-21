@@ -5,13 +5,8 @@
 using System;
 namespace LibreLancer.GameData.Items
 {
-	public class Engine : Equipment
-	{
-		public string FireEffect;
-		public float MaxForce;
-		public float LinearDrag;
-		public Engine()
-		{
-		}
-	}
+	public class EngineEquipment : Equipment
+    {
+        public Data.Equipment.Engine Def;
+    }
 }

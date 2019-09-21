@@ -164,12 +164,14 @@ namespace LibreLancer
                             if (loadout != null)
                             {
                                 session.PlayerShip = act.Entry[0].ToString();
-                                session.MountedEquipment = new Dictionary<string, string>();
+                                session.Mounts = new List<EquipMount>();
                                 foreach(var equip in loadout.Equip)
                                 {
-                                    if (equip.Key.StartsWith("__noHardpoint")) continue;
                                     if (equip.Value == null) continue;
-                                    session.MountedEquipment.Add(equip.Key, equip.Value);
+                                    var hp = equip.Key.StartsWith("__noHardpoint")
+                                        ? null
+                                        : equip.Key;
+                                    session.Mounts.Add(new EquipMount(hp, equip.Value));
                                 }
                             }
                            

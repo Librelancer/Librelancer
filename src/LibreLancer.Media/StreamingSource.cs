@@ -17,20 +17,20 @@ namespace LibreLancer.Media
 		bool playing = false;
 		public EventHandler Stopped;
 
-		float _volume = 1f;
-		public float Volume
+		float _gain = 1f;
+		public float Gain
 		{
 			get
 			{
-				return _volume;
+				return _gain;
 			} set
 			{
-				_volume = value;
+				_gain = value;
 				if (playing)
 				{
 					manager.Actions.Enqueue(() =>
 					{
-						Al.alSourcef(ID, Al.AL_GAIN, ALUtils.LinearToAlGain(_volume));
+						Al.alSourcef(ID, Al.AL_GAIN, _gain);
 					});
 				}
 			}
@@ -86,7 +86,7 @@ namespace LibreLancer.Media
 				}
 			}
 			BufferAllocator.Free(bytes);
-			Al.alSourcef(ID, Al.AL_GAIN, _volume);
+			Al.alSourcef(ID, Al.AL_GAIN, _gain);
 			Al.alSourcePlay(ID);
 			Al.CheckErrors();
 			manager.activeStreamers.Add(this);

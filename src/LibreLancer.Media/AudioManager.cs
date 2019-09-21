@@ -151,7 +151,7 @@ namespace LibreLancer.Media
                 sfxInstances.Clear();
             });
         }
-        public void PlaySound(Stream stream, float volume = 1f)
+        public void PlayStream(Stream stream, float volume = 1f)
 		{
 			uint src;
 			if (!AllocateSource(out src)) return;
@@ -160,8 +160,8 @@ namespace LibreLancer.Media
 			Al.alSourcei(src, Al.AL_BUFFER, (int)data.ID);
 			Al.alSourcef(src, Al.AL_GAIN, volume);
             Al.alSourcei(src, Al.AL_LOOPING, 0);
-			Al.alSourcePlay(src);
-            toAdd.Enqueue(new SoundInstance(src) { Dispose = data });
+            Al.alSourcePlay(src);
+            toAdd.Enqueue(new SoundInstance(src, this) { Dispose = data });
         }
 
         private float _masterVolume = 1.0f;
@@ -177,12 +177,29 @@ namespace LibreLancer.Media
             }
         }
 
-        public SoundInstance PlaySound(SoundData data, bool loop = false, float volume = 1f, float minD = -1, float maxD = -1, Vector3? posv = null, SoundData dispose = null, Action onFinish = null)
+        private float _sfxVolumeValue = 1.0f;
+        private float _sfxVolumeGain = 1.0f;
+
+        public float SfxVolume
+        {
+            get => _sfxVolumeValue;
+            set
+            {
+                _sfxVolumeValue = value;
+                _sfxVolumeGain = ALUtils.LinearToAlGain(SfxVolume);
+            }
+        }
+
+        internal float GetVolume(SoundType type)
+        {
+            return _sfxVolumeGain;
+        }
+        public SoundInstance PlaySound(SoundData data, bool loop = false, float attenuation = 0f, float minD = -1, float maxD = -1, Vector3? posv = null, SoundData dispose = null, Action onFinish = null)
 		{
 			uint src;
 			if (!AllocateSource(out src)) return null;
 			Al.alSourcei(src, Al.AL_BUFFER, (int)data.ID);
-			Al.alSourcef(src, Al.AL_GAIN, volume);
+			Al.alSourcef(src, Al.AL_GAIN, _sfxVolumeValue * ALUtils.DbToAlGain(attenuation));
             Al.alSourcei(src, Al.AL_LOOPING, loop ? 1 : 0);
             if(posv != null)
             {
@@ -200,8 +217,13 @@ namespace LibreLancer.Media
                 Al.alSourcef(src, Al.AL_REFERENCE_DISTANCE, minD);
                 Al.alSourcef(src, Al.AL_MAX_DISTANCE, maxD);
             }
+            else
+            {
+                Al.alSourcef(src, Al.AL_REFERENCE_DISTANCE, 0);
+                Al.alSourcef(src, Al.AL_MAX_DISTANCE, float.MaxValue);
+            }
             Al.alSourcePlay(src);
-            var inst = new SoundInstance(src) { Dispose = dispose, OnFinish = onFinish };
+            var inst = new SoundInstance(src, this) { Dispose = dispose, OnFinish = onFinish };
             toAdd.Enqueue(inst);
             return inst;
 		}
@@ -211,6 +233,14 @@ namespace LibreLancer.Media
             Al.alListener3f(Al.AL_POSITION, pos.X, pos.Y, pos.Z);
         }
 
+        public unsafe void SetListenerOrientation(Vector3 forward, Vector3 up)
+        {
+            Vector3* ori = stackalloc Vector3[2];
+            ori[0] = forward;
+            ori[1] = up;
+            Al.alListenerfv(Al.AL_ORIENTATION, (IntPtr)ori);
+        }
+        
         public void Dispose()
 		{
 			running = false;

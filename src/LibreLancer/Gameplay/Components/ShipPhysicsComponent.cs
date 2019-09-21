@@ -56,8 +56,8 @@ namespace LibreLancer
             if (engine == null) return;
             if (power == null) return;
             //Drag = -linearDrag * Velocity
-            var drag = -engine.Engine.LinearDrag * Parent.PhysicsComponent.Body.LinearVelocity;
-            var engine_force = EnginePower * engine.Engine.MaxForce;
+            var drag = -engine.Engine.Def.LinearDrag * Parent.PhysicsComponent.Body.LinearVelocity;
+            var engine_force = EnginePower * engine.Engine.Def.MaxForce;
             power.CurrentThrustCapacity += power.ThrustChargeRate * (float)(time.TotalSeconds);
             power.CurrentThrustCapacity = MathHelper.Clamp(power.CurrentThrustCapacity, 0, power.ThrustCapacity);
             foreach (var thruster in Parent.GetChildComponents<ThrusterComponent>())
@@ -77,7 +77,7 @@ namespace LibreLancer
             }
             if (EngineState == EngineStates.Cruise)
             { //Cruise has entirely different force calculation
-                engine_force = Ship.CruiseSpeed * engine.Engine.LinearDrag;
+                engine_force = Ship.CruiseSpeed * engine.Engine.Def.LinearDrag;
                 //Set fx sparam. TODO: This is poorly named
                 engine.Speed = 1.0f;
             }

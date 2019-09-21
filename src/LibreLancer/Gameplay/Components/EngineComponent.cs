@@ -10,13 +10,15 @@ namespace LibreLancer
 {
 	public class EngineComponent : GameComponent
 	{
-		public Engine Engine;
+		public EngineEquipment Engine;
 		public float Speed = 1f;
 		List<AttachedEffect> fireFx = new List<AttachedEffect>();
+        private AttachedSound rumble;
+        private AttachedSound character;
 		GameObject parent;
-		public EngineComponent(GameObject parent, Engine engine, FreelancerGame game) : base(parent)
+		public EngineComponent(GameObject parent, EngineEquipment engine, FreelancerGame game) : base(parent)
 		{
-			var fx = game.GameData.GetEffect(engine.FireEffect);
+			var fx = game.GameData.GetEffect(engine.Def.FlameEffect);
 			var hps = parent.GetHardpoints();
 			foreach (var hp in hps)
 			{
@@ -28,11 +30,34 @@ namespace LibreLancer
 			}
 			this.parent = parent;
 			Engine = engine;
-		}
+            rumble = new AttachedSound(game.Sound)
+            {
+                Active = true, Sound = engine.Def.RumbleSound
+            };
+            character = new AttachedSound(game.Sound)
+            {
+                Active = true, Sound = engine.Def.CharacterLoopSound
+            };
+        }
+
+        float PitchFromRange(Vector2 range)
+        {
+            if (range == Vector2.Zero) return 1;
+            return 1.0f + MathHelper.Lerp(range.X, range.Y, Speed) / 100f;
+        }
 		public override void Update(TimeSpan time)
-		{
+        {
+            var tr = parent.GetTransform();
+            var pos = tr.Transform(Vector3.Zero);
+            rumble.Position = pos;
+            rumble.Pitch = PitchFromRange(Engine.Def.RumblePitchRange);
+            rumble.Update();
+            character.Position = pos;
+            character.Pitch = PitchFromRange(Engine.Def.CharacterPitchRange);
+            character.Update();
 			for (int i = 0; i < fireFx.Count; i++)
 				fireFx[i].Update(parent, time, Speed);
+            
 		}
 		public override void Register(Physics.PhysicsWorld physics)
 		{
@@ -43,7 +68,9 @@ namespace LibreLancer
 		{
             for (int i = 0; i < fireFx.Count; i++)
                 Parent.ForceRenderCheck.Remove(fireFx[i].Effect);
-		}
+            rumble.Kill();
+            character.Kill();
+        }
 
 	}
 }

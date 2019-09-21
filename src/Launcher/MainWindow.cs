@@ -20,6 +20,7 @@ namespace Launcher
         CheckBox skipIntroMovies;
         Slider masterVolume;
         Slider musicVolume;
+        Slider sfxVolume;
         CheckBox vsync;
         public MainWindow()
         {
@@ -67,6 +68,16 @@ namespace Launcher
                 new TableRow(new Label() {Text = "Master Volume: ", VerticalAlignment = VerticalAlignment.Center}, masterVolume)
             );
             layout.Rows.Add(layoutMaster);
+            sfxVolume = new Slider()
+            {
+                MinValue =  0, MaxValue = 1000, Value = (int)(config.SfxVolume * 1000),
+                Orientation = Orientation.Horizontal, TickFrequency = 0, SnapToTick = false, 
+                Style = "volslider"
+            };
+            var layoutSfx = new TableLayout(
+                new TableRow(new Label() {Text = "Sfx Volume: ", VerticalAlignment = VerticalAlignment.Center}, sfxVolume)
+            );
+            layout.Rows.Add(layoutSfx);
             musicVolume = new Slider()
             {
                 MinValue =  0, MaxValue = 1000, Value = (int)(config.MusicVolume * 1000),
@@ -108,6 +119,7 @@ namespace Launcher
                 config.IntroMovies = !skipIntroMovies.Checked.Value;
                 config.MasterVolume = masterVolume.Value / 1000f;
                 config.MusicVolume = musicVolume.Value / 1000f;
+                config.SfxVolume = sfxVolume.Value / 1000f;
                 config.VSync = vsync.Checked.Value;
                 config.BufferWidth = bufferWidth.Value;
                 config.BufferHeight = bufferHeight.Value;

@@ -248,6 +248,7 @@
     <Compile Include="ALUtils.cs" />
     <Compile Include="Alc.cs" />
     <Compile Include="Al.cs" />
+    <Compile Include="SoundType.cs" />
     <Compile Include="VideoPlayer.cs" />
     <Compile Include="VideoPlayerInternal.cs" />
     <Compile Include="VideoPlayerMpv.cs" />

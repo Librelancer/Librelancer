@@ -40,7 +40,7 @@ namespace LibreLancer.Media
 					using (var mem = new MemoryStream())
 					{
 						CopyStreams(snd.Data, mem);
-						data = mem.GetBuffer();
+                        data = mem.ToArray();
 					}
 				}
 				Al.BufferData(ID, snd.Format, data, data.Length, snd.Frequency);

@@ -102,6 +102,8 @@
     <Compile Include="IDrawable.cs" />
     <Compile Include="ILibFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sounds\AttachedSound.cs" />
+    <Compile Include="Sounds\SoundManager.cs" />
     <Compile Include="Utf\AbstractConstruct.cs" />
     <Compile Include="Utf\Anm\AnmFile.cs" />
     <Compile Include="Utf\Anm\Channel.cs" />
@@ -230,7 +232,6 @@
     <Compile Include="Render\Materials\IllumDetailMapMaterial.cs" />
     <Compile Include="WeightedRandomCollection.cs" />
     <Compile Include="GameData\IntroScene.cs" />
-    <Compile Include="SoundManager.cs" />
     <Compile Include="Thn\ThnEntity.cs" />
     <Compile Include="Thn\ThnEvent.cs" />
     <Compile Include="GameStates\IntroMovie.cs" />
@@ -259,7 +260,7 @@
     <Compile Include="Gameplay\GameComponent.cs" />
     <Compile Include="Gameplay\Hardpoint.cs" />
     <Compile Include="Gameplay\Components\EngineComponent.cs" />
-    <Compile Include="GameData\Items\Engine.cs" />
+    <Compile Include="GameData\Items\EngineEquipment.cs" />
     <Compile Include="GameData\Items\EffectEquipment.cs" />
     <Compile Include="Render\ParticleEffectRenderer.cs" />
     <Compile Include="Fx\BlendMap.cs" />

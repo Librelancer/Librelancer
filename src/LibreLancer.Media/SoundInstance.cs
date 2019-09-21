@@ -12,14 +12,17 @@ namespace LibreLancer.Media
         internal SoundData Dispose;
         internal Action OnFinish;
         internal uint ID;
-        internal SoundInstance(uint id)
+        private AudioManager man;
+        internal SoundInstance(uint id, AudioManager manager)
         {
+            man = manager;
             ID = id;
         }
-        public void SetGain(float gain)
+        public void SetAttenuation(float attenuation)
         {
-            if(Active)
-                Al.alSourcef(ID, Al.AL_GAIN, gain);
+            if (Active) {
+                Al.alSourcef(ID, Al.AL_GAIN, ALUtils.DbToAlGain(attenuation) * man.GetVolume(SoundType.Sfx));
+            }
             Al.CheckErrors();
         }
         public void SetPosition(Vector3 pos)
@@ -39,6 +42,14 @@ namespace LibreLancer.Media
                 Al.alSource3f(ID, Al.AL_VELOCITY, pos.X, pos.Y, pos.Z);
             Al.CheckErrors();
         }
+
+        public void SetPitch(float pitch)
+        {
+            if(Active)
+                Al.alSourcef(ID, Al.AL_PITCH, pitch);
+            Al.CheckErrors();
+        }
+        
         public void Stop()
         {
             if (Active)

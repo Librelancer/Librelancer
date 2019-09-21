@@ -349,7 +349,9 @@ namespace LibreLancer
             if (Running)
             {
                 var pos = camera.Transform.Position;
-                game.Sound.SetListenerParams(pos);
+                var forward = camera.Transform.Orientation.Transform(Vector3.Forward);
+                var up = camera.Transform.Orientation.Transform(Vector3.Up);
+                game.Sound.SetListenerParams(pos, forward, up);
             }
 		}
 		public void _Update(TimeSpan delta)

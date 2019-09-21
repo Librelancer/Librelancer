@@ -401,7 +401,9 @@ namespace LibreLancer
 		}
 
 		public Hardpoint GetHardpoint(string hpname)
-		{
+        {
+            if (hpname == null) 
+                return null;
             Hardpoint tryget;
             if (hardpoints.TryGetValue(hpname, out tryget)) return tryget;
             return null;

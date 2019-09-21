@@ -450,6 +450,8 @@ namespace LibreLancer
         {
             [XmlAttribute("onclick")]
             public string OnClick { get; set; }
+            [XmlAttribute("onenter")]
+            public string OnEnter { get; set; }
             [XmlAttribute("style")]
             public string Style { get; set; }
             [XmlAttribute("text")]

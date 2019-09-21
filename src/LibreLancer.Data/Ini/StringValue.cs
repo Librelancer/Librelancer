@@ -45,8 +45,10 @@ namespace LibreLancer.Ini
 		public int ToInt32()
 		{
 			int result;
+            uint result2;
 			if (int.TryParse(value, out result)) return result;
-			else return -1;
+			else if (uint.TryParse(value, out result2)) return (int) result2;
+            else return -1;
 		}
 
         public long ToInt64()

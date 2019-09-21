@@ -96,11 +96,17 @@ namespace LibreLancer
 			data = gameData;
 			this.audio = audio;
 		}
-        public void SetListenerParams(Vector3 position)
+
+        private Vector3 listenerPosition = Vector3.Zero;
+        public Vector3 ListenerPosition => listenerPosition;
+        public void SetListenerParams(Vector3 position, Vector3 forward, Vector3 up)
         {
+            listenerPosition = position;
             audio.SetListenerPosition(position);
+            audio.SetListenerOrientation(forward, up);
         }
-        
+
+        public Data.Audio.AudioEntry GetEntry(string name) => data.GetAudioEntry(name);
         
         public void LoadSound(string name)
         {
@@ -123,13 +129,13 @@ namespace LibreLancer
             }
             AddLoaded(loaded);
         }
-        public SoundInstance PlaySound(string name, bool loop = false, float gain = 1, float mind = -1, float maxd = -1, Vector3? pos = null)
+        public SoundInstance PlaySound(string name, bool loop = false, float attenuation = 0, float mind = -1, float maxd = -1, Vector3? pos = null)
         {
             if (!loadedSounds.ContainsKey(name)) LoadSound(name);
             var snd = loadedSounds[name];
             Used(snd); //bring to front of cache
             if (snd.Data == null) return null;
-            return audio.PlaySound(snd.Data, loop, gain, mind, maxd, pos);
+            return audio.PlaySound(snd.Data, loop, attenuation, mind, maxd, pos);
         }
         public void PlayVoiceLine(string voice, uint hash, Action onEnd)
         {
@@ -144,14 +150,15 @@ namespace LibreLancer
             var file = v.AudioFiles[hash];
             var sn = audio.AllocateData();
             sn.LoadStream(new MemoryStream(file));
-            audio.PlaySound(sn, false, 1, -1, -1, null, sn, onEnd);
+            audio.PlaySound(sn, false, 0, -1, -1, null, sn, onEnd);
         }
         public void PlayMusic(string name, bool oneshot = false)
-		{
+        {
+            var entry = data.GetAudioEntry(name);
             var path = data.GetAudioPath(name);
             if (File.Exists(path))
             {
-                audio.Music.Play(path, !oneshot);
+                audio.Music.Play(path, entry.Attenuation, !oneshot);
             }
             else
             {

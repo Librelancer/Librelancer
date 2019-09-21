@@ -11,32 +11,39 @@ namespace LibreLancer.Media
 		AudioManager dev;
 		StreamingSource sound;
 		float _volume = 1.0f;
+        private float attenuation = 0;
 		public float Volume
 		{
 			get {
 				return _volume;
 			} set {
 				_volume = value;
-				if (sound != null)
-					sound.Volume = value;
-			}
+                if(sound != null)
+                    UpdateGain();
+            }
 		}
 		internal MusicPlayer (AudioManager adev)
 		{
 			dev = adev;
 		}
 
-		public void Play(string filename, bool loop = false)
+		public void Play(string filename, float attenuation = 0, bool loop = false)
 		{
 			Stop();
 			var stream = File.OpenRead(filename);
 			var data = SoundLoader.Open(stream);
 			sound = dev.CreateStreaming(data);
-			sound.Volume = Volume;
-			sound.Stopped += Sound_Stopped;
+            sound.Stopped += Sound_Stopped;
+            this.attenuation = attenuation;
+            UpdateGain();
 			sound.Begin(loop);
 		}
 
+        void UpdateGain()
+        {
+            sound.Gain = ALUtils.LinearToAlGain(_volume) * ALUtils.DbToAlGain(attenuation);
+        }
+        
 		public void Stop()
 		{
 			if (sound != null)

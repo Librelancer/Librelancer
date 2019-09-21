@@ -488,8 +488,11 @@ namespace LibreLancer
                         eqp.Model = resource.GetDrawable(ResolveDataPath(th.DaArchetype));
                     };
                 }
+
+                if (val is Data.Equipment.Engine deng)
+                    equip = new GameData.Items.EngineEquipment() {Def = deng};
                 equip.Nickname = val.Nickname;
-                equip.CRC = CrcTool.FLModelCrc(equip.Nickname);
+                equip.CRC = FLHash.CreateID(equip.Nickname);
                 equip.HPChild = val.HPChild;
                 equip.LODRanges = val.LODRanges;
                 equipments[equip.Nickname] = equip;
@@ -1030,7 +1033,7 @@ namespace LibreLancer
                 ship.CameraVerticalTurnDownAngle = orig.CameraVerticalTurnDownAngle;
                 ship.Nickname = orig.Nickname;
                 ship.NameIds = orig.IdsName;
-                ship.CRC = CrcTool.FLModelCrc(ship.Nickname);
+                ship.CRC = FLHash.CreateID(ship.Nickname);
                 ships.Add(ship.Nickname, ship);
                 shipHashes.Add(ship.CRC, ship);
             }

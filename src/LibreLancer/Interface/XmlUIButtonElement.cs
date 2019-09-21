@@ -46,6 +46,7 @@ namespace LibreLancer
         }
         
         bool lastDown = false;
+        bool lastInside = false;
         protected override void UpdateInternal(TimeSpan delta, bool updateInput)
         {
             base.UpdateInternal(delta, updateInput);
@@ -62,6 +63,11 @@ namespace LibreLancer
             hoverStyle.Reset();
             if (updateInput && r.Contains(Scene.MouseX, Scene.MouseY))
             {
+                if (!lastInside) {
+                    if(!string.IsNullOrEmpty(Button.OnEnter))
+                        Scene.Call(Button.OnEnter);
+                }
+                lastInside = true;
                 if (!lastDown && Scene.MouseDown(MouseButtons.Left))
                 {
                     if (!string.IsNullOrEmpty(Button.OnClick))
@@ -70,6 +76,8 @@ namespace LibreLancer
                 if(hoverChunk != null)
                     LuaStyleEnvironment.Do(hoverChunk, hoverStyle, (float)Scene.Manager.Game.TotalTime);
             }
+            else
+                lastInside = false;
             modelColor = hoverStyle.ModelColor;
             modelRotate = hoverStyle.Rotation;
             if (Enabled && Texts.Count > 0 && hoverStyle.TextColor != null) {

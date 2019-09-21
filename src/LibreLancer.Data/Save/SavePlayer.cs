@@ -146,10 +146,9 @@ namespace LibreLancer.Data.Save
                     Cargo.Add(new PlayerCargo(e));
                     return true;
                 case "ship_archetype":
-                    if (e[0] is StringValue)
+                    ShipArchetypeCrc = e[0].ToInt32();
+                    if(ShipArchetypeCrc == -1)
                         ShipArchetype = e[0].ToString();
-                    else
-                        ShipArchetypeCrc = e[0].ToInt32();
                     return true;
                 case "visit":
                     return true;
