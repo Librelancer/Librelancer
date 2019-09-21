@@ -28,7 +28,7 @@ namespace LibreLancer
         public void Play(bool loop)
         {
             lastTranslate = Object.Translate;
-            Instance = man.PlaySound(SoundName, loop, AlVolume(Attenuation), 
+            Instance = man.PlaySound(SoundName, loop, Attenuation, 
                 Props.Dmin, Props.Dmax, Spatial ? (Vector3?)Object.Translate : null);
         }
         Vector3 lastTranslate;
@@ -40,10 +40,6 @@ namespace LibreLancer
                 Instance.SetPosition(Object.Translate);
                 lastTranslate = Object.Translate;
             }
-        }
-        public static float AlVolume(float atten)
-        {
-            return MathHelper.Clamp(1 - (Math.Abs(atten) / 1000), 0, 1);
         }
     }
 }
