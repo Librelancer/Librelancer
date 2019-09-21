@@ -396,7 +396,7 @@ Mouse Flight: {11}
             camera.ChasePosition = player.PhysicsComponent.Body.Position;
             camera.ChaseOrientation = player.PhysicsComponent.Body.Transform.ClearTranslation();
             camera.Update(delta);
-            Game.Sound.SetListenerParams(camera.Position, camera.CameraForward, camera.CameraUp);
+            Game.Sound.UpdateListener(delta, camera.Position, camera.CameraForward, camera.CameraUp);
         }
 
 		bool mouseFlight = false;

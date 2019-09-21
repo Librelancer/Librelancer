@@ -99,8 +99,9 @@ namespace LibreLancer
 
         private Vector3 listenerPosition = Vector3.Zero;
         public Vector3 ListenerPosition => listenerPosition;
-        public void SetListenerParams(Vector3 position, Vector3 forward, Vector3 up)
+        public void UpdateListener(TimeSpan delta, Vector3 position, Vector3 forward, Vector3 up)
         {
+            audio.SetListenerVelocity((position - listenerPosition) / (float)delta.TotalSeconds);
             listenerPosition = position;
             audio.SetListenerPosition(position);
             audio.SetListenerOrientation(forward, up);

@@ -36,6 +36,7 @@ namespace LibreLancer
         {
             if(Spatial && Instance != null)
             {
+                Instance.SetVelocity((Object.Translate - lastTranslate) * (float) delta);
                 Instance.SetPosition(Object.Translate);
                 lastTranslate = Object.Translate;
             }

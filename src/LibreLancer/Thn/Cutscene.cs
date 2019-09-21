@@ -346,16 +346,16 @@ namespace LibreLancer
 					break;
 				}
 			}
+        }
+		public void _Update(TimeSpan delta)
+		{
             if (Running)
             {
                 var pos = camera.Transform.Position;
                 var forward = camera.Transform.Orientation.Transform(Vector3.Forward);
                 var up = camera.Transform.Orientation.Transform(Vector3.Up);
-                game.Sound.SetListenerParams(pos, forward, up);
+                game.Sound.UpdateListener(delta, pos, forward, up);
             }
-		}
-		public void _Update(TimeSpan delta)
-		{
 			currentTime += delta.TotalSeconds;
 			for (int i = (Coroutines.Count - 1); i >= 0; i--)
 			{
