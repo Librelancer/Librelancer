@@ -25,5 +25,19 @@ namespace LibreLancer
 		public virtual void Unregister(PhysicsWorld physics)
 		{
 		}
+
+        protected SoundManager GetSoundManager()
+        {
+            if(Parent.GetWorld().Renderer != null)
+                return Parent.GetWorld().Renderer.Game.GetService<SoundManager>();
+            return null;
+        }
+
+        protected GameDataManager GetGameData()
+        {
+            if(Parent.GetWorld().Renderer != null)
+                return Parent.GetWorld().Renderer.Game.GetService<GameDataManager>();
+            return null;
+        }
 	}
 }

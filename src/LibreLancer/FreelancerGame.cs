@@ -90,6 +90,7 @@ namespace LibreLancer
             {
                 GameData.LoadData();
                 Sound = new SoundManager(GameData, Audio);
+                Services.Add(Sound);
                 FLLog.Info("Game", "Finished loading game data");
                 InitialLoadComplete = true;
             });
@@ -110,6 +111,7 @@ namespace LibreLancer
             Services.Add(Renderer2D);
             Services.Add(Config);
             Services.Add(Fonts);
+            Services.Add(GameData);
 
 			if (useintromovies && IntroMovies.Count > 0)
 				ChangeState(new IntroMovie(this, 0));

@@ -19,6 +19,16 @@ namespace LibreLancer.GameData.Items
         public bool DockingLight;
         public float EmitRange;
         public Vector3 EmitAttenuation;
-	}
+        
+        static LightEquipment() => EquipmentObjectManager.RegisterType<LightEquipment>(AddEquipment);
+
+        private static GameObject AddEquipment(GameObject parent, ResourceManager res, string hardpoint, Equipment equip)
+        {
+            var lq = (LightEquipment)equip;
+            var obj = new GameObject();
+            obj.RenderComponent = new LightEquipRenderer(lq) { LightOn = !lq.DockingLight };
+            return obj;
+        }
+    }
 }
 

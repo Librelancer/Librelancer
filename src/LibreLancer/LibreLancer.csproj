@@ -99,6 +99,7 @@
     <Compile Include="CrcTool.cs" />
     <Compile Include="Exceptions\InvalidFreelancerDirectory.cs" />
     <Compile Include="FreelancerGame.cs" />
+    <Compile Include="Gameplay\EquipmentObjectManager.cs" />
     <Compile Include="IDrawable.cs" />
     <Compile Include="ILibFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

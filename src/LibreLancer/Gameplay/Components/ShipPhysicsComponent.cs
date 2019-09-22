@@ -58,8 +58,8 @@ namespace LibreLancer
             //Drag = -linearDrag * Velocity
             var drag = -engine.Engine.Def.LinearDrag * Parent.PhysicsComponent.Body.LinearVelocity;
             var engine_force = EnginePower * engine.Engine.Def.MaxForce;
-            power.CurrentThrustCapacity += power.ThrustChargeRate * (float)(time.TotalSeconds);
-            power.CurrentThrustCapacity = MathHelper.Clamp(power.CurrentThrustCapacity, 0, power.ThrustCapacity);
+            power.CurrentThrustCapacity += power.Equip.ThrustChargeRate * (float)(time.TotalSeconds);
+            power.CurrentThrustCapacity = MathHelper.Clamp(power.CurrentThrustCapacity, 0, power.Equip.ThrustCapacity);
             foreach (var thruster in Parent.GetChildComponents<ThrusterComponent>())
             {
                 thruster.Enabled = false;
@@ -71,7 +71,7 @@ namespace LibreLancer
                     engine_force += thruster.Equip.Force;
                     thruster.Enabled = true;
                     power.CurrentThrustCapacity -= (float)(thruster.Equip.Drain * time.TotalSeconds);
-                    power.CurrentThrustCapacity = MathHelper.Clamp(power.CurrentThrustCapacity, 0, power.ThrustCapacity);
+                    power.CurrentThrustCapacity = MathHelper.Clamp(power.CurrentThrustCapacity, 0, power.Equip.ThrustCapacity);
                     if (power.CurrentThrustCapacity == 0) ThrustEnabled = false;
                 }
             }

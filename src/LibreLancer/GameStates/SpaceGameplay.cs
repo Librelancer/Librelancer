@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.GameData.Items;
 using LibreLancer.Physics;
 
 namespace LibreLancer
@@ -85,12 +86,6 @@ Mouse Flight: {11}
             player.Components.Add(control);
             weapons = new WeaponControlComponent(player);
             player.Components.Add(weapons);
-            powerCore = new PowerCoreComponent(player)
-            {
-                ThrustCapacity = 1000,
-                ThrustChargeRate = 100
-            };
-            player.Components.Add(powerCore);
             player.Transform = new Matrix4(session.PlayerOrientation) * Matrix4.CreateTranslation(session.PlayerPosition);
             player.PhysicsComponent.Mass = shp.Mass;
             if(shp.Mass < 0)
@@ -103,22 +98,10 @@ Mouse Flight: {11}
                 var equip = Game.GameData.GetEquipment(equipment.Item);
                 if (equip == null) continue;
                 equip.LoadResources();
-                if (equip is GameData.Items.EngineEquipment eng)
-                {
-                    var comp = new EngineComponent(player, eng, FlGame);
-                    player.Components.Add(comp);
-                }
-                else if (equip is GameData.Items.PowerEquipment pwr)
-                {
-                    
-                }
-                else
-                {
-                    var obj = new GameObject(equip, player.GetHardpoint(equipment.Hardpoint), player);
-                    player.Children.Add(obj);
-                }
+                EquipmentObjectManager.InstantiateEquipment(player, Game.ResourceManager, equipment.Hardpoint, equip);
             }
-
+            powerCore = player.GetComponent<PowerCoreComponent>();
+            if (powerCore == null) throw new Exception("Player launched without a powercore equipped!");
             camera = new ChaseCamera(Game.Viewport);
             camera.ChasePosition = session.PlayerPosition;
             camera.ChaseOrientation = player.Transform.ClearTranslation();
@@ -137,6 +120,7 @@ Mouse Flight: {11}
             world = new GameWorld(sysrender);
             world.LoadSystem(sys, Game.ResourceManager);
             session.WorldReady();
+            player.World = world;
             world.Objects.Add(player);
             world.RenderUpdate += World_RenderUpdate;
             world.PhysicsUpdate += World_PhysicsUpdate;
@@ -184,7 +168,7 @@ Mouse Flight: {11}
                 return list;
             }
             public bool setmaneuver(string e) => g.ManeuverSelect(e);
-            public int thrustpct() => ((int)(g.powerCore.CurrentThrustCapacity / g.powerCore.ThrustCapacity * 100));
+            public int thrustpct() => ((int)(g.powerCore.CurrentThrustCapacity / g.powerCore.Equip.ThrustCapacity * 100));
             public int speed() => ((int)g.player.PhysicsComponent.Body.LinearVelocity.Length);
             public bool multiplayer() => false;
         }

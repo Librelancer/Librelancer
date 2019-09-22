@@ -16,28 +16,13 @@ namespace LibreLancer
         private AttachedSound rumble;
         private AttachedSound character;
 		GameObject parent;
-		public EngineComponent(GameObject parent, EngineEquipment engine, FreelancerGame game) : base(parent)
+		public EngineComponent(GameObject parent, EngineEquipment engine) : base(parent)
 		{
-			var fx = game.GameData.GetEffect(engine.Def.FlameEffect);
-			var hps = parent.GetHardpoints();
-			foreach (var hp in hps)
-			{
-				if (!hp.Name.Equals("hpengineglow", StringComparison.OrdinalIgnoreCase) &&
-				    hp.Name.StartsWith("hpengine", StringComparison.OrdinalIgnoreCase))
-				{
-					fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(fx)));
-				}
-			}
+			//var fx = game.GameData.GetEffect(engine.Def.FlameEffect);
+			
 			this.parent = parent;
 			Engine = engine;
-            rumble = new AttachedSound(game.Sound)
-            {
-                Active = true, Sound = engine.Def.RumbleSound
-            };
-            character = new AttachedSound(game.Sound)
-            {
-                Active = true, Sound = engine.Def.CharacterLoopSound
-            };
+           
         }
 
         float PitchFromRange(Vector2 range)
@@ -49,21 +34,51 @@ namespace LibreLancer
         {
             var tr = parent.GetTransform();
             var pos = tr.Transform(Vector3.Zero);
-            rumble.Position = pos;
-            rumble.Pitch = PitchFromRange(Engine.Def.RumblePitchRange);
-            rumble.Update();
-            character.Position = pos;
-            character.Pitch = PitchFromRange(Engine.Def.CharacterPitchRange);
-            character.Update();
-			for (int i = 0; i < fireFx.Count; i++)
+            if (rumble != null)
+            {
+                rumble.Position = pos;
+                rumble.Pitch = PitchFromRange(Engine.Def.RumblePitchRange);
+                rumble.Update();
+                character.Position = pos;
+                character.Pitch = PitchFromRange(Engine.Def.CharacterPitchRange);
+                character.Update();
+            }
+            for (int i = 0; i < fireFx.Count; i++)
 				fireFx[i].Update(parent, time, Speed);
             
 		}
 		public override void Register(Physics.PhysicsWorld physics)
-		{
-            for (int i = 0; i < fireFx.Count; i++)
-                Parent.ForceRenderCheck.Add(fireFx[i].Effect);
-		}
+        {
+            GameDataManager gameData;
+            if ((gameData = GetGameData()) != null)
+            {
+                var hps = parent.GetHardpoints();
+                foreach (var hp in hps)
+                {
+                    if (!hp.Name.Equals("hpengineglow", StringComparison.OrdinalIgnoreCase) &&
+                        hp.Name.StartsWith("hpengine", StringComparison.OrdinalIgnoreCase))
+                    {
+                        fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(gameData.GetEffect(Engine.Def.FlameEffect))));
+                    }
+                }
+
+                for (int i = 0; i < fireFx.Count; i++)
+                    Parent.ForceRenderCheck.Add(fireFx[i].Effect);
+            }
+
+            SoundManager sound;
+            if ((sound = GetSoundManager()) != null)
+            {
+                rumble = new AttachedSound(sound)
+                {
+                    Active = true, Sound = Engine.Def.RumbleSound
+                };
+                character = new AttachedSound(sound)
+                {
+                    Active = true, Sound = Engine.Def.CharacterLoopSound
+                };
+            }
+        }
 		public override void Unregister(Physics.PhysicsWorld physics)
 		{
             for (int i = 0; i < fireFx.Count; i++)

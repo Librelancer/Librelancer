@@ -39,5 +39,5 @@ namespace LibreLancer
 			for (int i = 0; i < fireFx.Count; i++)
                 Parent.ForceRenderCheck.Remove(fireFx[i].Effect);
 		}
-	}
+    }
 }

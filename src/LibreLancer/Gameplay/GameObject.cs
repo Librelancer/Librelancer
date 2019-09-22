@@ -55,6 +55,12 @@ namespace LibreLancer
 		public AnimationComponent AnimationComponent;
 		public SystemObject SystemObject;
 
+        public bool IsStatic => isstatic;
+        /// <summary>
+        /// Don't call unless you're absolutely sure what you're doing!
+        /// </summary>
+        /// <param name="val">Sets a static position for the object (only works properly before Register())</param>
+        public void SetStatic(bool val) => isstatic = val;
 		public GameObject(Archetype arch, ResourceManager res, bool draw = true, bool staticpos = false)
 		{
 			isstatic = staticpos;
@@ -75,6 +81,13 @@ namespace LibreLancer
 		{
 
 		}
+        public static GameObject WithModel(IDrawable drawable, ResourceManager res)
+        {
+            var go = new GameObject();
+            go.isstatic = false;
+            go.InitWithDrawable(drawable, res, true, false, false);
+            return go;
+        }
 		public GameObject(IDrawable drawable, ResourceManager res, bool draw = true, bool staticpos = false)
 		{
 			isstatic = false;
@@ -196,82 +209,11 @@ namespace LibreLancer
             }
 		}
 
-		public GameObject(Equipment equip, Hardpoint hp, GameObject parent)
-		{
-			Parent = parent;
-			Attachment = hp;
-            bool draw = parent.RenderComponent != null;
-			if (equip is LightEquipment)
-			{
-                var lq = (LightEquipment)equip;
-                if(draw) RenderComponent = new LightEquipRenderer(lq) { LightOn = !lq.DockingLight };
-			}
-			if (equip is EffectEquipment)
-			{
-				if(draw) RenderComponent = new ParticleEffectRenderer(((EffectEquipment)equip).Particles);
-                Components.Add(new UpdateSParamComponent(this));
-			}
-			if (equip is ThrusterEquipment)
-			{
-				var th = (ThrusterEquipment)equip;
-				InitWithDrawable(th.Model, parent.Resources, draw, false, false);
-				Components.Add(new ThrusterComponent(this, th));
-			}
-            if (equip is GunEquipment)
-            {
-                var gn = (GunEquipment)equip;
-                InitWithDrawable(gn.Model, parent.Resources, draw, false, false);
-                Components.Add(new WeaponComponent(this, gn));
-            }
-            if (equip.LODRanges != null && RenderComponent != null) RenderComponent.LODRanges = equip.LODRanges;
-            if(equip.HPChild != null) {
-                if (hardpoints.TryGetValue(equip.HPChild, out Hardpoint hpchild))
-                {
-                    Transform = hpchild.Transform.Inverted();
-                }
-            }
-            if(RenderComponent is ModelRenderer &&
-                parent.RenderComponent != null
-              )
-            {
-                if (parent.RenderComponent.LODRanges != null)
-                {
-                    RenderComponent.InheritCull = true;
-                }
-                else if (parent.RenderComponent is ModelRenderer)
-                {
-                    var mr = (ModelRenderer)parent.RenderComponent;
-                    if (mr.Model != null && mr.Model.Switch2 != null)
-                        RenderComponent.InheritCull = true;
-                    if(mr.CmpParts != null)
-                    {
-                        Part parentPart = null;
-                        if (hp.parent != null)
-                            parentPart = mr.CmpParts.Find((o) => o.ObjectName == hp.parent.ChildName);
-                        else
-                            parentPart = mr.CmpParts.Find((o) => o.ObjectName == "Root");
-                        if (parentPart.Model.Switch2 != null)
-                            RenderComponent.InheritCull = true;
-                    }
-                }
-            }
-            //Optimisation: Don't re-calculate transforms every frame for static objects
-            if(parent.isstatic && (hp == null || hp.IsStatic))
-            {
-                Transform = GetTransform();
-                isstatic = true;
-                StaticPosition = Transform.Transform(Vector3.Zero);
-            }
-		}
-
-		public void SetLoadout(Dictionary<string, Equipment> equipment, List<Equipment> nohp)
+        public void SetLoadout(Dictionary<string, Equipment> equipment, List<Equipment> nohp)
 		{
 			foreach (var k in equipment.Keys)
-			{
-				var hp = GetHardpoint(k);
-				Children.Add(new GameObject(equipment[k], hp, this));
-			}
-			foreach (var eq in nohp)
+                EquipmentObjectManager.InstantiateEquipment(this, Resources, k, equipment[k]);
+            foreach (var eq in nohp)
 			{
 				if (eq is AnimationEquipment)
 				{

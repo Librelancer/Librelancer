@@ -12,5 +12,14 @@ namespace LibreLancer.GameData.Items
 		public EffectEquipment()
 		{
 		}
-	}
+        static EffectEquipment() => EquipmentObjectManager.RegisterType<EffectEquipment>(AddEquipment);
+
+        static GameObject AddEquipment(GameObject parent, ResourceManager res, string hardpoint, Equipment equip)
+        {
+            var obj = new GameObject();
+            obj.RenderComponent = new ParticleEffectRenderer(((EffectEquipment)equip).Particles);
+            obj.Components.Add(new UpdateSParamComponent(obj));
+            return obj;
+        }
+    }
 }

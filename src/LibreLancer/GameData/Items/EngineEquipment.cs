@@ -7,6 +7,12 @@ namespace LibreLancer.GameData.Items
 {
 	public class EngineEquipment : Equipment
     {
+        static EngineEquipment() => EquipmentObjectManager.RegisterType<EngineEquipment>(AddEquipment);
+        static GameObject AddEquipment(GameObject parent, ResourceManager res, string hardpoint, Equipment equip)
+        {
+            parent.Components.Add(new EngineComponent(parent, (EngineEquipment)equip));
+            return null;
+        }
         public Data.Equipment.Engine Def;
     }
 }

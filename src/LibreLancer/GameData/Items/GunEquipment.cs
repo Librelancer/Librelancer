@@ -15,5 +15,14 @@ namespace LibreLancer.GameData.Items
         {
             return Model;
         }
+
+        static GunEquipment() => EquipmentObjectManager.RegisterType<GunEquipment>(AddEquipment);
+        static GameObject AddEquipment(GameObject parent, ResourceManager res, string hardpoint, Equipment equip)
+        {
+            var gn = (GunEquipment) equip;
+            var child = GameObject.WithModel(gn.Model, res);
+            child.Components.Add(new WeaponComponent(child, gn));
+            return child;
+        }
     }
 }

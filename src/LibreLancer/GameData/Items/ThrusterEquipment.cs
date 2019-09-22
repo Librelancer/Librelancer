@@ -21,5 +21,15 @@ namespace LibreLancer.GameData.Items
 		public ThrusterEquipment()
 		{
 		}
-	}
+        
+        static ThrusterEquipment() => EquipmentObjectManager.RegisterType<ThrusterEquipment>(AddEquipment);
+
+        static GameObject AddEquipment(GameObject parent, ResourceManager res, string hardpoint, Equipment equip)
+        {
+            var th = (ThrusterEquipment)equip;
+            var obj = GameObject.WithModel(th.Model, parent.Resources);
+            obj.Components.Add(new ThrusterComponent(obj, th));
+            return obj;
+        }
+    }
 }

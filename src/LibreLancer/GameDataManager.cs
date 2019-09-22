@@ -436,6 +436,7 @@ namespace LibreLancer
                 {
                     var pc = (val as Data.Equipment.PowerCore);
                     var eqp = new GameData.Items.PowerEquipment();
+                    eqp.Def = pc;
                     equip = eqp;
                     equip.LoadResAction = () =>
                     {

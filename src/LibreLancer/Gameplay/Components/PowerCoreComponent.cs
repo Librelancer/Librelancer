@@ -3,18 +3,18 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using LibreLancer.Data.Equipment;
+
 namespace LibreLancer
 {
 	public class PowerCoreComponent : GameComponent
-	{
-		public float Capacity;
-		public float ChargeRate;
-		public float ThrustCapacity;
-		public float ThrustChargeRate;
-		public float CurrentCapacity;
-		public float CurrentThrustCapacity;
-		public PowerCoreComponent(GameObject parent) : base(parent)
-		{
-		}
+    {
+        public PowerCore Equip;
+        public float CurrentThrustCapacity;
+		public PowerCoreComponent(PowerCore equip, GameObject parent) : base(parent)
+        {
+            this.Equip = equip;
+            CurrentThrustCapacity = Equip.ThrustCapacity;
+        }
 	}
 }
