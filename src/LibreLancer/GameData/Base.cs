@@ -14,6 +14,14 @@ namespace LibreLancer.GameData
 		public BaseRoom StartRoom;
 		public List<BaseRoom> Rooms = new List<BaseRoom>();
         public List<SoldShip> SoldShips = new List<SoldShip>();
+        
+        public string TerrainTiny;
+        public string TerrainSml;
+        public string TerrainMdm;
+        public string TerrainLrg;
+        public string TerrainDyna1;
+        public string TerrainDyna2;
+        
 		public Base()
 		{
 		}

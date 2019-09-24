@@ -87,6 +87,12 @@ namespace LibreLancer
                 fldata.MBases.Bases.TryGetValue(inibase.Nickname, out mbase);
                 var b = new GameData.Base();
                 b.System = inibase.System;
+                b.TerrainTiny = inibase.TerrainTiny;
+                b.TerrainSml = inibase.TerrainSml;
+                b.TerrainMdm = inibase.TerrainMdm;
+                b.TerrainLrg = inibase.TerrainLrg;
+                b.TerrainDyna1 = inibase.TerrainDyna1;
+                b.TerrainDyna2 = inibase.TerrainDyna2;
                 foreach (var room in inibase.Rooms)
                 {
                     var nr = new GameData.BaseRoom();

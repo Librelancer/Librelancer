@@ -65,6 +65,7 @@ namespace LibreLancer
 		public SystemRenderer Renderer;
 
 		ThnCamera camera;
+        ThnScriptContext scriptContext;
         public ICamera CameraHandle => camera;
         bool spawnObjects = true;
         public bool Running => currentTime < totalDuration;
@@ -97,10 +98,10 @@ namespace LibreLancer
                 obj.Translate = kv.Value.Position ?? Vector3.Zero;
                 obj.Rotate = kv.Value.RotationMatrix ?? Matrix4.Identity;
                 //PlayerShip object
-                if (spawnObjects && playerShip != null && kv.Value.Type == EntityTypes.Compound &&
+                if (spawnObjects  && scriptContext.PlayerShip != null && kv.Value.Type == EntityTypes.Compound &&
                 kv.Value.Template.Equals("playership", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    obj.Object = playerShip;
+                    obj.Object = scriptContext.PlayerShip;
                     obj.Object.RenderComponent.LitDynamic = (kv.Value.ObjectFlags & ThnObjectFlags.LitDynamic) == ThnObjectFlags.LitDynamic;
                     obj.Object.RenderComponent.LitAmbient = (kv.Value.ObjectFlags & ThnObjectFlags.LitAmbient) == ThnObjectFlags.LitAmbient;
                     obj.Object.RenderComponent.NoFog = kv.Value.NoFog;
@@ -108,11 +109,17 @@ namespace LibreLancer
                     obj.Entity = kv.Value;
                     Vector3 transform = kv.Value.Position ?? Vector3.Zero;
                     obj.Object.Transform = (kv.Value.RotationMatrix ?? Matrix4.Identity) * Matrix4.CreateTranslation(transform);
-                    obj.HpMount = playerShip.GetHardpoint("HpMount");
+                    obj.HpMount = scriptContext.PlayerShip.GetHardpoint("HpMount");
                     World.Objects.Add(obj.Object);
                     Objects.Add(kv.Key, obj);
                     continue;
                 }
+
+                var template = kv.Value.Template;
+                string replacement;
+                if (scriptContext != null &&
+                    scriptContext.Substitutions.TryGetValue(kv.Value.Template, out replacement))
+                    template = replacement;
                 if (spawnObjects && kv.Value.Type == EntityTypes.Compound)
                 {
                     bool getHpMount = false;
@@ -121,26 +128,26 @@ namespace LibreLancer
                     switch (kv.Value.MeshCategory.ToLowerInvariant())
                     {
                         case "solar":
-                            drawable = game.GameData.GetSolar(kv.Value.Template);
+                            drawable = game.GameData.GetSolar(template);
                             break;
                         case "ship":
                         case "spaceship":
                             getHpMount = true;
-                            var sh = game.GameData.GetShip(kv.Value.Template);
+                            var sh = game.GameData.GetShip(template);
                             sh.LoadResources();
                             drawable = sh.Drawable;
                             break;
                         case "prop":
-                            drawable = game.GameData.GetProp(kv.Value.Template);
+                            drawable = game.GameData.GetProp(template);
                             break;
                         case "room":
-                            drawable = game.GameData.GetRoom(kv.Value.Template);
+                            drawable = game.GameData.GetRoom(template);
                             break;
                         case "equipment cart":
-                            drawable = game.GameData.GetCart(kv.Value.Template);
+                            drawable = game.GameData.GetCart(template);
                             break;
                         case "equipment":
-                            var eq = game.GameData.GetEquipment(kv.Value.Template);
+                            var eq = game.GameData.GetEquipment(template);
                             eq.LoadResources();
                             drawable = eq.GetDrawable();
                             break;
@@ -239,7 +246,6 @@ namespace LibreLancer
         }
 
         bool hasScene = false;
-        GameObject playerShip;
         FreelancerGame game;
         List<Tuple<IDrawable, Matrix4, int>> layers = new List<Tuple<IDrawable, Matrix4, int>>();
 
@@ -266,18 +272,17 @@ namespace LibreLancer
                 events.Enqueue(item);
         }
 
-        public Cutscene(IEnumerable<ThnScript> scripts, FreelancerGame game, GameObject playerShip = null)
+        public Cutscene(ThnScriptContext context, FreelancerGame game)
 		{
-            this.playerShip = playerShip;
             this.game = game;
-
+            scriptContext = context;
 			camera = new ThnCamera(game.Viewport);
 
 			Renderer = new SystemRenderer(camera, game.GameData, game.ResourceManager, game);
 			World = new GameWorld(Renderer);
 			//thn = script;
 			var evs = new List<ThnEvent>();
-			foreach (var thn in scripts)
+			foreach (var thn in context.Scripts)
 			{
                 totalDuration = Math.Max(totalDuration, thn.Duration);
                 foreach (var ev in thn.Events) {

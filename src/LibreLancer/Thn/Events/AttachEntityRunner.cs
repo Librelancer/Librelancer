@@ -3,6 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using LibreLancer.Thorn;
+
 namespace LibreLancer
 {
     [ThnEventRunner(EventTypes.AttachEntity)]
@@ -74,11 +76,9 @@ namespace LibreLancer
             }
             var targetType = ThnEnum.Check<TargetTypes>(ev.Properties["target_type"]);
             var flags = AttachFlags.Position | AttachFlags.Orientation;
-            Vector3 offset;
             object tmp;
             if (ev.Properties.TryGetValue("flags", out tmp))
                 flags = ThnEnum.Check<AttachFlags>(tmp);
-            ev.Properties.TryGetVector3("offset", out offset);
             //Attach GameObjects to eachother
             GameObject part = null;
             string tgt_part;
@@ -97,6 +97,9 @@ namespace LibreLancer
                 part.Parent = objB.Object;
                 part.Attachment = hp;
             }
+            Vector3 offset = Vector3.Zero;
+            if (ev.Properties.TryGetValue("offset", out tmp))
+                offset = ((LuaTable) tmp).ToVector3();
             cs.Coroutines.Add(new AttachRoutine()
             {
                 Duration = ev.Duration,
@@ -105,7 +108,8 @@ namespace LibreLancer
                 Part = part,
                 Position = ((flags & AttachFlags.Position) == AttachFlags.Position),
                 Orientation = ((flags & AttachFlags.Orientation) == AttachFlags.Orientation),
-                LookAt = ((flags & AttachFlags.LookAt) == AttachFlags.LookAt)
+                LookAt = ((flags & AttachFlags.LookAt) == AttachFlags.LookAt),
+                Offset = offset
             });
         }
     }
