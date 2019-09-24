@@ -249,10 +249,35 @@ namespace LibreLancer
             }
         }
 #if DEBUG
+        void LoadSpecific(int index)
+        {
+            intro = Game.GameData.GetIntroSceneSpecific(index);
+            scene.Dispose();
+            scene = new Cutscene(intro.Scripts, Game);
+            scene.Update(TimeSpan.FromSeconds(1f / 60f)); //Do all the setup events - smoother entrance
+            Game.Sound.PlayMusic(intro.Music);
+        }
+        
         void Keyboard_KeyDown(KeyEventArgs e)
         {
             if(e.Key == Keys.F5) {
                 newUI = true;
+            }
+
+            if ((e.Modifiers & KeyModifiers.LeftControl) == KeyModifiers.LeftControl)
+            {
+                switch (e.Key)
+                {
+                    case Keys.D1:
+                        LoadSpecific(0);
+                        break;
+                    case Keys.D2:
+                        LoadSpecific(1);
+                        break;
+                    case Keys.D3:
+                        LoadSpecific(2);
+                        break;
+                }
             }
         }
 #endif

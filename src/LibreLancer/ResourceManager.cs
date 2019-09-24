@@ -27,9 +27,10 @@ namespace LibreLancer
         public Material DefaultMaterial;
         public Texture2D NullTexture;
         public Texture2D WhiteTexture;
+        public Texture2D GreyTexture;
         public const string NullTextureName = "$$LIBRELANCER.Null";
         public const string WhiteTextureName = "$$LIBRELANCER.White";
-
+        public const string GreyTextureName = "$$LIBRELANCER.Grey";
         public abstract Texture FindTexture(string name);
         public abstract Material FindMaterial(uint materialId);
         public abstract VMeshData FindMesh(uint vMeshLibId);
@@ -185,6 +186,9 @@ namespace LibreLancer
 
 			WhiteTexture = new Texture2D(1, 1, false, SurfaceFormat.Color);
 			WhiteTexture.SetData(new byte[] { 0xFF, 0xFF, 0xFF, 0xFF });
+            
+            GreyTexture = new Texture2D(1,1, false, SurfaceFormat.Color);
+            GreyTexture.SetData(new byte[] { 128, 128, 128, 0xFF});
 		}
 
 		public void Preload()
@@ -259,6 +263,8 @@ namespace LibreLancer
 				return NullTexture;
 			if (name == WhiteTextureName)
 				return WhiteTexture;
+            if (name == GreyTextureName)
+                return GreyTexture;
             Texture outtex;
 			if (!textures.TryGetValue(name, out outtex))
 				return null;
