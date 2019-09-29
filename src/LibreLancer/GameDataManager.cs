@@ -86,6 +86,7 @@ namespace LibreLancer
                 Data.MBase mbase;
                 fldata.MBases.Bases.TryGetValue(inibase.Nickname, out mbase);
                 var b = new GameData.Base();
+                b.Nickname = inibase.Nickname;
                 b.System = inibase.System;
                 b.TerrainTiny = inibase.TerrainTiny;
                 b.TerrainSml = inibase.TerrainSml;
@@ -520,6 +521,8 @@ namespace LibreLancer
             return q;
         }
         Dictionary<string, GameData.StarSystem> systems = new Dictionary<string, GameData.StarSystem>(StringComparer.OrdinalIgnoreCase);
+
+        public IEnumerable<GameData.StarSystem> AllSystems => systems.Values;
         void InitSystems()
         {
             FLLog.Info("Game", "Initing " + fldata.Universe.Systems.Count + " systems");
@@ -528,6 +531,7 @@ namespace LibreLancer
                 if (inisys.MultiUniverse) continue; //Skip multiuniverse for now
                 FLLog.Info("System", inisys.Nickname);
                 var sys = new GameData.StarSystem();
+                sys.UniversePosition = inisys.Pos ?? Vector2.Zero;
                 sys.AmbientColor = inisys.AmbientColor ?? Color4.White;
                 sys.Name = GetString(inisys.IdsName);
                 sys.Infocard = inisys.IdsInfo;
@@ -535,6 +539,7 @@ namespace LibreLancer
                 sys.BackgroundColor = inisys.SpaceColor ?? Color4.Black;
                 sys.MusicSpace = inisys.MusicSpace;
                 sys.FarClip = inisys.SpaceFarClip ?? 20000f;
+                
                 sys.StarspheresAction = () =>
                 {
                     if (inisys.BackgroundBasicStarsPath != null)

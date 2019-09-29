@@ -5,8 +5,10 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using LibreLancer;
 using LibreLancer.Dialogs;
+
 namespace lancer
 {
     class MainClass
@@ -30,7 +32,7 @@ namespace lancer
             domain.UnhandledException += (object sender, UnhandledExceptionEventArgs e) => {
                 var ex = (Exception)(e.ExceptionObject);
                 CrashWindow.Run("Uh-oh!", "Librelancer has crashed. See the log for more information.", 
-                ex.Message + "\n" + ex.StackTrace);
+                FormatException(ex));
             };
             try {
 #endif
@@ -45,9 +47,23 @@ namespace lancer
             catch (Exception ex)
             {
                 try { flgame.Crashed();  } catch { }
-                CrashWindow.Run("Uh-oh!", "Librelancer has crashed. See the log for more information.", ex.Message + "\n" + ex.StackTrace);
+                CrashWindow.Run("Uh-oh!", "Librelancer has crashed. See the log for more information.", FormatException(ex));
             }
 #endif
+        }
+
+        static string FormatException(Exception ex)
+        {
+            var builder = new StringBuilder();
+            builder.AppendLine(ex.Message);
+            builder.AppendLine(ex.StackTrace);
+            Exception ex2 = ex;
+            while ((ex2 = ex2.InnerException) != null)
+            {
+                builder.AppendLine($"Inner: {ex2.Message}");
+                builder.AppendLine(ex2.StackTrace);
+            }
+            return builder.ToString();
         }
     }
 }

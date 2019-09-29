@@ -9,12 +9,14 @@ namespace LibreLancer
 {
     public class ScriptedHud : IDisposable
     {
+        public bool Enabled = true;
         public XmlUIManager UI;
         XmlChatBox chatbox;
 
         public ScriptedHud(object api, bool space, FreelancerGame game)
         {
-            UI = new XmlUIManager(game, game.GameData.GetInterfaceXml(space ? "hud" : "baseside"), new LuaAPI("game", api));
+            UI = new XmlUIManager(game, game.GameData.GetInterfaceXml(space ? "hud" : "baseside"),
+                new LuaAPI("game", api));
         }
 
         public void Init()
@@ -22,13 +24,22 @@ namespace LibreLancer
             UI.OnConstruct();
             chatbox = UI.Elements.OfType<XmlChatBox>().First();
         }
+
         public void SetManeuver(string action)
         {
             if (UI.Events["onnavchange"] != null)
                 UI.Events.onnavchange(action);
         }
-        public void Update(TimeSpan delta) => UI.Update(delta);
-        public void Draw(TimeSpan delta) => UI.Draw(delta);
+
+        public void Update(TimeSpan delta)
+        {
+            if (Enabled) UI.Update(delta);
+        }
+
+        public void Draw(TimeSpan delta)
+        {
+            if(Enabled) UI.Draw(delta);
+        }
         public void Dispose() => UI.Dispose();
 
         public bool TextEntry
@@ -38,6 +49,7 @@ namespace LibreLancer
         }
         public void OnTextEntry(string e)
         {
+            if(Enabled)
             chatbox.AppendText(e);
         }
 
@@ -45,6 +57,7 @@ namespace LibreLancer
 
         public void TextEntryKeyPress(Keys k)
         {
+            if (!Enabled) return;
             if (k == Keys.Enter)
             {
                 TextEntry = false;

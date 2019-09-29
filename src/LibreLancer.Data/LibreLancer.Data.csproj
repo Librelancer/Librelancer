@@ -68,6 +68,7 @@
   <ItemGroup>
     <Compile Include="Equipment\Engine.cs" />
     <Compile Include="FileSystem.cs" />
+    <Compile Include="Missions\StoryCutsceneIni.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Ini\BooleanValue.cs" />
     <Compile Include="Ini\Entry.cs" />

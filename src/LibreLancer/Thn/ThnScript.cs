@@ -47,7 +47,7 @@ namespace LibreLancer
 			ThnEnv.Add("MOTION_PATH", EntityTypes.MotionPath);
 			ThnEnv.Add("DEFORMABLE", EntityTypes.Deformable);
 			ThnEnv.Add("SOUND", EntityTypes.Sound);
-			//FogModes
+            //FogModes
 			ThnEnv.Add("F_NONE", FogModes.None);
 			ThnEnv.Add("F_EXP2", FogModes.Exp2);
 			ThnEnv.Add("F_EXP", FogModes.Exp);
@@ -67,6 +67,7 @@ namespace LibreLancer
 			ThnEnv.Add("START_AUDIO_PROP_ANIM", EventTypes.StartAudioPropAnim);
             ThnEnv.Add("START_FLR_HEIGHT_ANIM", EventTypes.StartFloorHeightAnim);
 			ThnEnv.Add("CONNECT_HARDPOINTS", EventTypes.ConnectHardpoints);
+            ThnEnv.Add("START_IK", EventTypes.StartIK);
 			//Axis
 			ThnEnv.Add("X_AXIS", Vector3.UnitX);
 			ThnEnv.Add("Y_AXIS", Vector3.UnitY);

@@ -29,6 +29,8 @@ namespace LibreLancer.Fx
 		static BlendMap()
 		{
 			Add(5, 2, BlendMode.Additive);
+            Add(5, 10, BlendMode.SrcAlphaInvDestColor);
+            Add(9, 3, BlendMode.DestColorSrcColor);
 			Add(5, 6, BlendMode.Normal);
 			Add(2, 4, BlendMode.OneInvSrcColor);
 		}

@@ -9,7 +9,8 @@ using LibreLancer.GameData.Market;
 namespace LibreLancer.GameData
 {
 	public class Base
-	{
+    {
+        public string Nickname;
         public string System;
 		public BaseRoom StartRoom;
 		public List<BaseRoom> Rooms = new List<BaseRoom>();

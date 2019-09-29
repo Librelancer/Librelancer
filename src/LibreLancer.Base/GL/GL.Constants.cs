@@ -133,6 +133,9 @@ namespace LibreLancer
 
 		public const int GL_UNPACK_ALIGNMENT = 0x0CF5;
 		public const int GL_ONE_MINUS_SRC_COLOR = 0x0301;
+        public const int GL_ONE_MINUS_DST_COLOR = 0x0307;
+        public const int GL_DST_COLOR = 0x0306;
+        public const int GL_SRC_COLOR = 0x0300;
 
         public const int GL_RENDERER = 0x1F01;
         public const int GL_VERSION = 0x1F02;

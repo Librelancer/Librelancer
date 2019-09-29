@@ -157,6 +157,9 @@ namespace LibreLancer
                         var thn = new ThnScript(gameplay.FlGame.GameData.ResolveDataPath(act.Entry[0].ToString()));
                         gameplay.Thn = new Cutscene(new ThnScript[] { thn }, gameplay);
                         break;
+                    case TriggerActions.Act_AddRTC:
+                        session.AddRTC(act.Entry[0].ToString());
+                        break;
                     case TriggerActions.Act_SetShipAndLoadout:
                         if(!act.Entry[0].ToString().Equals("none", StringComparison.OrdinalIgnoreCase))
                         {

@@ -21,7 +21,8 @@ namespace LibreLancer
 		StartSound,
 		StartAudioPropAnim,
 		ConnectHardpoints,
-        StartFloorHeightAnim
+        StartFloorHeightAnim,
+        StartIK
 	}
 }
 

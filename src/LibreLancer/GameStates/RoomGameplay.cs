@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.GameData;
 using LibreLancer.Utf.Dfm;
+using LibreLancer.Data.Missions;
+
 namespace LibreLancer
 {
 	public class RoomGameplay : GameState
@@ -32,7 +34,7 @@ namespace LibreLancer
 		Cursor cursor;
 		string virtualRoom;
         List<BaseHotspot> tophotspots;
-		public RoomGameplay(FreelancerGame g, GameSession session, string newBase, BaseRoom room = null, string virtualRoom = null) : base(g)
+        public RoomGameplay(FreelancerGame g, GameSession session, string newBase, BaseRoom room = null, string virtualRoom = null) : base(g)
 		{
             this.session = session;
 			baseId = newBase;
@@ -119,7 +121,47 @@ namespace LibreLancer
 			hud.Dispose();
 			scene.Dispose();
 		}
+        
+        List<StoryCutsceneIni> processedCutscenes = new List<StoryCutsceneIni>();
 
+        bool GotCutscene()
+        {
+            foreach (var ct in session.ActiveCutscenes)
+            {
+                if (ct.Encounters.Count != 1) continue;
+                if (!ct.Encounters[0].Autoplay) continue;
+                var n = ct.Encounters[0].Location;
+                if (n[0].Equals(currentBase.Nickname, StringComparison.OrdinalIgnoreCase) &&
+                    n[1].Equals(currentRoom.Nickname, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        void ProcessCutscenes()
+        {
+            foreach (var ct in session.ActiveCutscenes)
+            {
+                if (processedCutscenes.Contains(ct)) continue;
+                if (ct.Encounters.Count != 1) continue;
+                if (!ct.Encounters[0].Autoplay) continue;
+                var n = ct.Encounters[0].Location;
+                if (n[0].Equals(currentBase.Nickname, StringComparison.OrdinalIgnoreCase) &&
+                    n[1].Equals(currentRoom.Nickname, StringComparison.OrdinalIgnoreCase))
+                {
+                    processedCutscenes.Add(ct);
+                    hud.Enabled = false;
+                    var script = new ThnScript(session.Game.GameData.ResolveDataPath(ct.Encounters[0].Action));
+                    scene.RunScript(script, () =>
+                    {
+                        hud.Enabled = true;
+                        session.ActiveCutscenes.Remove(ct);
+                    });
+                }
+            }
+
+        }
 
         void Hud_OnManeuverSelected(string arg)
         {
@@ -205,7 +247,7 @@ namespace LibreLancer
             shp.LoadResources();
             var PlayerShip = new GameObject(shp.Drawable, Game.ResourceManager);
             PlayerShip.PhysicsComponent = null;
-            var ctx = new ThnScriptContext(currentRoom.OpenScripts());
+            var ctx = new ThnScriptContext(currentRoom.OpenScripts(!GotCutscene()));
             ctx.PlayerShip = PlayerShip;
             if(currentBase.TerrainTiny != null) ctx.Substitutions.Add("$terrain_tiny", currentBase.TerrainTiny);
             if(currentBase.TerrainSml != null) ctx.Substitutions.Add("$terrain_sml", currentBase.TerrainSml);
@@ -253,6 +295,7 @@ namespace LibreLancer
 
 		public override void Update(TimeSpan delta)
 		{
+            ProcessCutscenes();
 			if(scene != null)
 				scene.Update(delta);
             hud.Update(delta);

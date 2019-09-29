@@ -135,6 +135,7 @@ C# Memory Usage: {5}
         int sysIndexLoaded = 0;
         bool wireFrame = false;
         bool infocardOpen = true;
+        bool universeOpen = true;
         InfocardControl icard;
         Infocard systemInfocard;
         protected override void Draw(double elapsed)
@@ -182,6 +183,7 @@ C# Memory Usage: {5}
                 if (ImGui.MenuItem("Debug Text", "", showDebug, true)) showDebug = !showDebug;
                 if (ImGui.MenuItem("Wireframe", "", wireFrame, true)) wireFrame = !wireFrame;
                 if (ImGui.MenuItem("Infocard", "", infocardOpen, true)) infocardOpen = !infocardOpen;
+                if (ImGui.MenuItem("Universe Map", "", universeOpen, true)) universeOpen = !universeOpen;
                 if(ImGui.MenuItem("VSync", "", vSync, true))
                 {
                     vSync = !vSync;
@@ -219,6 +221,29 @@ C# Memory Usage: {5}
                     }
                     ImGui.End();
                 }
+
+                if (universeOpen)
+                {
+                    if (ImGui.Begin("Universe Map", ref universeOpen))
+                    {
+                        var szX = Math.Max(20, ImGui.GetWindowWidth());
+                        var szY = Math.Max(20, ImGui.GetWindowHeight());
+                        string result = UniverseMap.Draw(universeBackgroundRegistered,GameData, (int)szX, (int)szY);
+                        if (result != null)
+                        {
+                            for (int i = 0; i < systems.Length; i++)
+                            {
+                                if (result.Equals(systems[i], StringComparison.OrdinalIgnoreCase))
+                                {
+                                    sysIndex = i;
+                                    ChangeSystem();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    ImGui.End();
+                }
             }
             //dialogs must be children of window or ImGui default "Debug" window appears
             if(openChangeSystem) {
@@ -229,19 +254,7 @@ C# Memory Usage: {5}
             if(ImGui.BeginPopupModal("Change System",ref popupopen, ImGuiWindowFlags.AlwaysAutoResize)) {
                 ImGui.Combo("System", ref sysIndex, systems, systems.Length);
                 if(ImGui.Button("Ok")) {
-                    if (sysIndex != sysIndexLoaded) {
-                        camera.UpdateProjection();
-                        camera.Free = false;
-                        camera.Zoom = 5000;
-                        Resources.ClearTextures();
-                        curSystem = GameData.GetSystem(systems[sysIndex]);
-                        systemInfocard = GameData.GetInfocard(curSystem.Infocard, fontMan);
-                        if (icard != null) icard.SetInfocard(systemInfocard);
-                        GameData.LoadAllSystem(curSystem);
-                        world.LoadSystem(curSystem, Resources);
-                        sysIndexLoaded = sysIndex;
-
-                    }
+                    ChangeSystem();
                     ImGui.CloseCurrentPopup();
                 }
                 ImGui.SameLine();
@@ -265,6 +278,29 @@ C# Memory Usage: {5}
             ImGui.PopFont();
             guiHelper.Render(RenderState);
         }
+
+        void ChangeSystem()
+        {
+            if (sysIndex != sysIndexLoaded) {
+                camera.UpdateProjection();
+                camera.Free = false;
+                camera.Zoom = 5000;
+                Resources.ClearTextures();
+                if(universeBackgroundTex != null)
+                    ImGuiHelper.DeregisterTexture(universeBackgroundTex);
+                universeBackgroundTex = (Resources.FindTexture("fancymap.tga") as Texture2D);
+                if (universeBackgroundTex != null)
+                    universeBackgroundRegistered = ImGuiHelper.RegisterTexture(universeBackgroundTex);
+                else
+                    universeBackgroundRegistered = -1;
+                curSystem = GameData.GetSystem(systems[sysIndex]);
+                systemInfocard = GameData.GetInfocard(curSystem.Infocard, fontMan);
+                if (icard != null) icard.SetInfocard(systemInfocard);
+                GameData.LoadAllSystem(curSystem);
+                world.LoadSystem(curSystem, Resources);
+                sysIndexLoaded = sysIndex;
+            }
+        }
         protected override void OnResize()
         {
             if(camera != null) {
@@ -272,6 +308,9 @@ C# Memory Usage: {5}
                 camera.UpdateProjection();
             }
         }
+
+        private Texture2D universeBackgroundTex;
+        private int universeBackgroundRegistered;
         void OnLoadComplete()
         {
             fontMan.LoadFontsFromGameData(GameData);
@@ -282,6 +321,12 @@ C# Memory Usage: {5}
             world = new GameWorld(renderer);
             systems = GameData.ListSystems().OrderBy(x => x).ToArray();
             Resources.ClearTextures();
+            Resources.LoadResourceFile(GameData.ResolveDataPath("INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_prettymap.3db"));
+            universeBackgroundTex = (Resources.FindTexture("fancymap.tga") as Texture2D);
+            if (universeBackgroundTex != null)
+                universeBackgroundRegistered = ImGuiHelper.RegisterTexture(universeBackgroundTex);
+            else
+                universeBackgroundRegistered = -1;
             curSystem = GameData.GetSystem(systems[0]);
             systemInfocard = GameData.GetInfocard(curSystem.Infocard, fontMan);
             GameData.LoadAllSystem(curSystem);

@@ -7,7 +7,9 @@ using LibreLancer.Thorn;
 namespace LibreLancer
 {
 	public class ThnEvent
-	{
+    {
+        public Action CustomAction; //Called when a script is done
+        
 		public float Duration;
 		public double EventTime;
         public double TimeOffset;

@@ -21,12 +21,12 @@ namespace LibreLancer.GameData
         public string LandScript;
         public string LaunchScript;
         public string GoodscartScript;
-		public IEnumerable<ThnScript> OpenScripts()
+		public IEnumerable<ThnScript> OpenScripts(bool landScript)
 		{
 			foreach (var p in ThnPaths) yield return new ThnScript(p);
             if (StartScript != null) yield return new ThnScript(StartScript);
             if (GoodscartScript != null) yield return new ThnScript(GoodscartScript);
-            if (LandScript != null) yield return new ThnScript(LandScript);
+            if (LandScript != null && landScript) yield return new ThnScript(LandScript);
 		}
         internal Action InitAction;
         public void InitForDisplay()

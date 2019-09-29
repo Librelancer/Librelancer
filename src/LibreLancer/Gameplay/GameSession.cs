@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
+using LibreLancer.Data.Missions;
 using LibreLancer.Data.Save;
 using LibreLancer.GameData.Items;
 using LibreLancer.Utf.Cmp;
@@ -25,12 +26,14 @@ namespace LibreLancer
         }
     }
 
+
     public class GameSession
 	{
         public long Credits;
 		public string PlayerShip;
 		public List<string> PlayerComponents = new List<string>();
         public List<EquipMount> Mounts = new List<EquipMount>();
+        public List<StoryCutsceneIni> ActiveCutscenes = new List<StoryCutsceneIni>();
 		public FreelancerGame Game;
 		public string PlayerSystem;
 		public string PlayerBase;
@@ -56,7 +59,12 @@ namespace LibreLancer
             Mounts.Add(new EquipMount("HpContrail01", "contrail01"));
             Mounts.Add(new EquipMount("HpContrail02", "contrail01"));
         }
-        
+
+        public void AddRTC(string path)
+        {
+            var rtc = new Data.Missions.StoryCutsceneIni(Game.GameData.Ini.Freelancer.DataPath + path, Game.GameData.VFS);
+            ActiveCutscenes.Add(rtc);
+        }
         public void LoadFromPath(string path)
         {
             var sg = Data.Save.SaveGame.FromFile(path);

@@ -12,14 +12,21 @@ namespace LibreLancer
         public void Process(ThnEvent ev, Cutscene cs)
         {
             if (ev.Targets.Capacity == 0) return;
-            ThnObject objA;
-            if (!cs.Objects.TryGetValue((string)ev.Targets[0], out objA))
+            ThnObject objZero;
+            ThnObject objMove;
+            if (!cs.Objects.TryGetValue((string)ev.Targets[ev.Targets.Capacity - 1], out objMove))
+            {
+                FLLog.Error("Thn", "Object does not exist " + (string)ev.Targets[ev.Targets.Capacity - 1]);
+                return;
+            }
+            if (!cs.Objects.TryGetValue((string)ev.Targets[0], out objZero))
             {
                 FLLog.Error("Thn", "Object does not exist " + (string)ev.Targets[0]);
                 return;
             }
-            if (ev.Targets.Capacity == 1)
+            if (ev.Targets.Capacity >= 1)
             {
+                
                 var props = (LuaTable)ev.Properties["spatialprops"];
                 Quaternion? q_orient = null;
                 Vector3 pos;
@@ -37,8 +44,8 @@ namespace LibreLancer
                 bool hasPos = props.TryGetVector3("pos", out pos);
                 if (ev.Duration < float.Epsilon)
                 {
-                    if (hasPos) objA.Translate = pos;
-                    if (q_orient != null) objA.Rotate = Matrix4.CreateFromQuaternion(q_orient.Value);
+                    if (hasPos) objMove.Translate = pos;
+                    if (q_orient != null) objMove.Rotate = Matrix4.CreateFromQuaternion(q_orient.Value);
                 }
                 else
                 {
@@ -48,22 +55,16 @@ namespace LibreLancer
                         HasQuat = q_orient != null,
                         EndPos = pos,
                         EndQuat = q_orient ?? Quaternion.Identity,
-                        This = objA
+                        This = objMove
                     });
                 }
             }
-            else
+            if(ev.Targets.Capacity > 1)
             {
-                ThnObject objB;
-                if (!cs.Objects.TryGetValue((string)ev.Targets[1], out objB))
-                {
-                    FLLog.Error("Thn", "Object does not exist " + (string)ev.Targets[1]);
-                    return;
-                }
                 if(ev.Duration < float.Epsilon)
                 {
-                    objA.Translate = objB.Translate;
-                    objA.Rotate = objB.Rotate;
+                    objZero.Translate = objMove.Translate;
+                    objZero.Rotate = objMove.Rotate;
                 }
                 else
                 {
@@ -72,8 +73,8 @@ namespace LibreLancer
                         Duration = ev.Duration,
                         HasPos = true,
                         HasQuat = true,
-                        This = objA,
-                        Follow = objB
+                        This = objZero,
+                        Follow = objMove
                     });
                 }
             }

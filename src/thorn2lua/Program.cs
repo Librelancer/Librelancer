@@ -117,6 +117,8 @@ namespace thorn2lua
             LuaTable.EnumReverse.Add("ConnectHardpoints", "CONNECT_HARDPOINTS");
             ThnEnv.Add("START_FLR_HEIGHT_ANIM", EventTypes.StartFloorHeightAnim);
             LuaTable.EnumReverse.Add("StartFloorHeightAnim", "START_FLR_HEIGHT_ANIM");
+            ThnEnv.Add("START_IK", EventTypes.StartIK);
+            LuaTable.EnumReverse.Add("StartIK","START_IK");
             //Axis
             ThnEnv.Add("X_AXIS", Vector3.UnitX);
             ThnEnv.Add("Y_AXIS", Vector3.UnitY);

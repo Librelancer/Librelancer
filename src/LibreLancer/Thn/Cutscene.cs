@@ -312,7 +312,7 @@ namespace LibreLancer
 			World.RegisterAll();
 		}
 
-        public void RunScript(ThnScript thn)
+        public void RunScript(ThnScript thn, Action onFinish = null)
         {
             AddEntities(thn);
             var evArr = events.ToArray();
@@ -322,10 +322,19 @@ namespace LibreLancer
                 ev.TimeOffset = currentTime;
                 evsNew.Add(ev);
             }
+            if (onFinish != null)
+            {
+                evsNew.Add(new ThnEvent()
+                {
+                    TimeOffset = thn.Duration,
+                    CustomAction = onFinish
+                });
+            }
             evsNew.Sort((x, y) => x.Time.CompareTo(y.Time));
             events = new Queue<ThnEvent>();
             foreach (var item in evsNew)
                 events.Enqueue(item);
+            
         }
 
         double accumTime = 0;
@@ -388,6 +397,11 @@ namespace LibreLancer
 
 		void ProcessEvent(ThnEvent ev)
 		{
+            if (ev.CustomAction != null)
+            {
+                ev.CustomAction();
+                return;
+            }
             if(ev.Type == EventTypes.SetCamera)
                 ProcessSetCamera(ev);
             else if (ev.Type == EventTypes.StartPSys)

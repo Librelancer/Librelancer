@@ -285,16 +285,19 @@ namespace LibreLancer
 				for (int i = 0; i < StarSphereModels.Length; i++)
 				{
 					Matrix4 ssworld = Matrix4.CreateTranslation(camera.Position);
+                    
+                    Vector3 center = Vector3.Zero;
 
 					if (StarSphereWorlds != null) ssworld = StarSphereWorlds[i] * ssworld;
                     else if (StarSphereModels[i] is CmpFile)
                     {
                         var cmp = (CmpFile)StarSphereModels[i];
-                        ssworld = Matrix4.CreateTranslation(cmp.GetRootPart().Model.Levels[0].Center) * ssworld;
+                        center = -cmp.GetRootPart().Model.Levels[0].Center;
+                        //ssworld = Matrix4.CreateTranslation(-cmp.GetRootPart().Model.Levels[0].Center) * ssworld;
                     } else if (StarSphereModels[i] is ModelFile)
                     {
                         var mdl = (ModelFile)StarSphereModels[i];
-                        ssworld = Matrix4.CreateTranslation(mdl.Levels[0].Center) * ssworld;
+                        //ssworld = Matrix4.CreateTranslation(-mdl.Levels[0].Center) * ssworld;
                     }
                     StarSphereModels[i].Draw(rstate, ssworld, Lighting.Empty);
 				}
