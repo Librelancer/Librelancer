@@ -30,7 +30,7 @@ namespace LibreLancer.Media
 				{
 					manager.Actions.Enqueue(() =>
 					{
-						Al.alSourcef(ID, Al.AL_GAIN, _gain);
+						Al.alSourcef(ID, Al.AL_GAIN, ALUtils.ClampVolume(_gain));
 					});
 				}
 			}
@@ -86,7 +86,7 @@ namespace LibreLancer.Media
 				}
 			}
 			BufferAllocator.Free(bytes);
-			Al.alSourcef(ID, Al.AL_GAIN, _gain);
+			Al.alSourcef(ID, Al.AL_GAIN, ALUtils.ClampVolume(_gain));
 			Al.alSourcePlay(ID);
 			Al.CheckErrors();
 			manager.activeStreamers.Add(this);

@@ -21,7 +21,7 @@ namespace LibreLancer.Media
         public void SetAttenuation(float attenuation)
         {
             if (Active) {
-                Al.alSourcef(ID, Al.AL_GAIN, ALUtils.DbToAlGain(attenuation) * man.GetVolume(SoundType.Sfx));
+                Al.alSourcef(ID, Al.AL_GAIN, ALUtils.ClampVolume(ALUtils.DbToAlGain(attenuation) * man.GetVolume(SoundType.Sfx)));
             }
             Al.CheckErrors();
         }

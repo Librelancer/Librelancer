@@ -50,7 +50,8 @@ namespace LibreLancer
             if (Instance == null)
             {
                 Instance = manager.PlaySound(Sound, true, Entry.Attenuation, -1, -1, Position);
-                Instance.SetPitch(Pitch);
+                if(Instance != null)
+                    Instance.SetPitch(Pitch);
             }
         }
         void EnsureStopped()

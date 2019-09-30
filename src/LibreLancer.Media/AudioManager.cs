@@ -194,35 +194,50 @@ namespace LibreLancer.Media
         {
             return _sfxVolumeGain;
         }
+
+
         public SoundInstance PlaySound(SoundData data, bool loop = false, float attenuation = 0f, float minD = -1, float maxD = -1, Vector3? posv = null, SoundData dispose = null, Action onFinish = null)
 		{
 			uint src;
 			if (!AllocateSource(out src)) return null;
 			Al.alSourcei(src, Al.AL_BUFFER, (int)data.ID);
-			Al.alSourcef(src, Al.AL_GAIN, _sfxVolumeValue * ALUtils.DbToAlGain(attenuation));
+            Al.CheckErrors();
+            Al.alSourcef(src, Al.AL_GAIN, ALUtils.ClampVolume(_sfxVolumeValue * ALUtils.DbToAlGain(attenuation)));
+            Al.CheckErrors();
             Al.alSourcei(src, Al.AL_LOOPING, loop ? 1 : 0);
+            Al.CheckErrors();
+
             if(posv != null)
             {
                 Al.alSourcei(src, Al.AL_SOURCE_RELATIVE, 0);
+                Al.CheckErrors();
                 var pos = posv.Value;
                 Al.alSource3f(src, Al.AL_POSITION, pos.X, pos.Y, pos.Z);
+                Al.CheckErrors();
             }
             else
             {
                 Al.alSourcei(src, Al.AL_SOURCE_RELATIVE, 1);
+                Al.CheckErrors();
                 Al.alSource3f(src, Al.AL_POSITION, 0, 0, 0);
+                Al.CheckErrors();
             }
             if (minD != -1 && maxD != -1)
             {
                 Al.alSourcef(src, Al.AL_REFERENCE_DISTANCE, minD);
+                Al.CheckErrors();
                 Al.alSourcef(src, Al.AL_MAX_DISTANCE, maxD);
+                Al.CheckErrors();
             }
             else
             {
                 Al.alSourcef(src, Al.AL_REFERENCE_DISTANCE, 0);
+                Al.CheckErrors();
                 Al.alSourcef(src, Al.AL_MAX_DISTANCE, float.MaxValue);
+                Al.CheckErrors();
             }
             Al.alSourcePlay(src);
+            Al.CheckErrors();
             var inst = new SoundInstance(src, this) { Dispose = dispose, OnFinish = onFinish };
             toAdd.Enqueue(inst);
             return inst;
@@ -231,11 +246,13 @@ namespace LibreLancer.Media
         public void SetListenerPosition(Vector3 pos)
         {
             Al.alListener3f(Al.AL_POSITION, pos.X, pos.Y, pos.Z);
+            Al.CheckErrors();
         }
 
         public void SetListenerVelocity(Vector3 pos)
         {
             Al.alListener3f(Al.AL_VELOCITY, pos.X, pos.Y, pos.Z);
+            Al.CheckErrors();
         }
 
         public unsafe void SetListenerOrientation(Vector3 forward, Vector3 up)
@@ -244,6 +261,7 @@ namespace LibreLancer.Media
             ori[0] = forward;
             ori[1] = up;
             Al.alListenerfv(Al.AL_ORIENTATION, (IntPtr)ori);
+            Al.CheckErrors();
         }
         
         public void Dispose()
