@@ -21,6 +21,7 @@ namespace LibreLancer
         public Vector3 LightDir;
         public Hardpoint HpMount;
         public ThnSound Sound;
+        public bool Animating = false;
         public void Update()
         {
             if (Object != null)
@@ -128,31 +129,31 @@ namespace LibreLancer
                     switch (kv.Value.MeshCategory.ToLowerInvariant())
                     {
                         case "solar":
-                            drawable = game.GameData.GetSolar(template);
+                            drawable = gameData.GetSolar(template);
                             break;
                         case "ship":
                         case "spaceship":
                             getHpMount = true;
-                            var sh = game.GameData.GetShip(template);
+                            var sh = gameData.GetShip(template);
                             sh.LoadResources();
                             drawable = sh.Drawable;
                             break;
                         case "prop":
-                            drawable = game.GameData.GetProp(template);
+                            drawable = gameData.GetProp(template);
                             break;
                         case "room":
-                            drawable = game.GameData.GetRoom(template);
+                            drawable = gameData.GetRoom(template);
                             break;
                         case "equipment cart":
-                            drawable = game.GameData.GetCart(template);
+                            drawable = gameData.GetCart(template);
                             break;
                         case "equipment":
-                            var eq = game.GameData.GetEquipment(template);
+                            var eq = gameData.GetEquipment(template);
                             eq.LoadResources();
                             drawable = eq.GetDrawable();
                             break;
                         case "asteroid":
-                            drawable = game.GameData.GetAsteroid(kv.Value.Template);
+                            drawable = gameData.GetAsteroid(kv.Value.Template);
                             break;
                         default:
                             throw new NotImplementedException("Mesh Category " + kv.Value.MeshCategory);
@@ -165,7 +166,7 @@ namespace LibreLancer
                     }
                     else
                     {
-                        obj.Object = new GameObject(drawable, game.ResourceManager, true, false);
+                        obj.Object = new GameObject(drawable, game.GetService<ResourceManager>(), true, false);
                         obj.Object.Name = kv.Value.Name;
                         obj.Object.PhysicsComponent = null; //Jitter seems to interfere with directly setting orientation
                         if (getHpMount)
@@ -181,7 +182,7 @@ namespace LibreLancer
                 }
                 else if (kv.Value.Type == EntityTypes.PSys)
                 {
-                    var fx = game.GameData.GetEffect(kv.Value.Template);
+                    var fx = gameData.GetEffect(kv.Value.Template);
                     obj.Object = new GameObject();
                     obj.Object.RenderComponent = new ParticleEffectRenderer(fx) { Active = false };
                 }
@@ -230,7 +231,7 @@ namespace LibreLancer
                 }
                 else if (kv.Value.Type == EntityTypes.Sound)
                 {
-                    obj.Sound = new ThnSound(kv.Value.Template, game.Sound, kv.Value.AudioProps, obj);
+                    obj.Sound = new ThnSound(kv.Value.Template, game.GetService<SoundManager>(), kv.Value.AudioProps, obj);
                     obj.Sound.Spatial = (kv.Value.ObjectFlags & ThnObjectFlags.Spatial) == ThnObjectFlags.Spatial;
 
                 }
@@ -246,15 +247,17 @@ namespace LibreLancer
         }
 
         bool hasScene = false;
-        FreelancerGame game;
+        Game game;
+        private GameDataManager gameData;
         List<Tuple<IDrawable, Matrix4, int>> layers = new List<Tuple<IDrawable, Matrix4, int>>();
 
         public Cutscene(IEnumerable<ThnScript> scripts, SpaceGameplay gameplay)
         {
             this.game = gameplay.FlGame;
+            this.gameData = gameplay.FlGame.GameData;
             World = gameplay.world;
             spawnObjects = false;
-            camera = new ThnCamera(game.Viewport);
+            camera = new ThnCamera(gameplay.FlGame.Viewport);
             //thn = script;
             var evs = new List<ThnEvent>();
             foreach (var thn in scripts)
@@ -272,13 +275,14 @@ namespace LibreLancer
                 events.Enqueue(item);
         }
 
-        public Cutscene(ThnScriptContext context, FreelancerGame game)
+        public Cutscene(ThnScriptContext context, GameDataManager gameData, Viewport viewport, Game game)
 		{
             this.game = game;
+            this.gameData = gameData;
             scriptContext = context;
-			camera = new ThnCamera(game.Viewport);
+			camera = new ThnCamera(viewport);
 
-			Renderer = new SystemRenderer(camera, game.GameData, game.ResourceManager, game);
+			Renderer = new SystemRenderer(camera, gameData, game.GetService<GameResourceManager>(), game);
 			World = new GameWorld(Renderer);
 			//thn = script;
 			var evs = new List<ThnEvent>();
@@ -362,13 +366,14 @@ namespace LibreLancer
 			}
         }
 		public void _Update(TimeSpan delta)
-		{
+        {
+            var sound = game.GetService<SoundManager>();
             if (Running)
             {
                 var pos = camera.Transform.Position;
                 var forward = camera.Transform.Orientation.Transform(Vector3.Forward);
                 var up = camera.Transform.Orientation.Transform(Vector3.Up);
-                game.Sound.UpdateListener(delta, pos, forward, up);
+                sound.UpdateListener(delta, pos, forward, up);
             }
 			currentTime += delta.TotalSeconds;
 			for (int i = (Coroutines.Count - 1); i >= 0; i--)
@@ -421,7 +426,6 @@ namespace LibreLancer
 			var cam = Objects[name];
 			camera.Transform = cam.Camera;
 		}
-
 		void ProcessSetCamera(ThnEvent ev)
 		{
 			SetCamera((string)ev.Targets[1]);

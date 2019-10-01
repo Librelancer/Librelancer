@@ -17,8 +17,11 @@ namespace LibreLancer
             public Vector3 Offset;
             public ThnObject Parent;
             public GameObject Part;
+            public Quaternion LastRotate;
             public bool Position;
             public bool Orientation;
+            public bool OrientationRelative;
+            public bool EntityRelative;
             public bool LookAt;
             Func<Vector3> lookFunc;
             double t = 0;
@@ -32,6 +35,14 @@ namespace LibreLancer
                     if (Position) translate = tr.ExtractTranslation();
                     if (Orientation) rotate = Matrix4.CreateFromQuaternion(tr.ExtractRotation());
                 }
+                if (Orientation && OrientationRelative)
+                {
+                    var qCurrent = rotate.ExtractRotation();
+                    var diff = qCurrent * LastRotate.Inverted();
+                    var qChild = Child.Rotate.ExtractRotation();
+                    rotate = Matrix4.CreateFromQuaternion(qChild * diff);
+                    LastRotate = qCurrent;
+                }
                 t += delta;
                 if (LookAt)
                 {
@@ -42,13 +53,15 @@ namespace LibreLancer
                     }
                     if (Child.Camera != null) Child.Camera.LookAt = lookFunc;
                 }
-                else
-                if (Child.Camera != null) Child.Camera.LookAt = null;
-                
+
                 if (t > Duration)
-                    if (LookAt) Child.Camera.LookAt = null;
+                    if (LookAt && Child.Camera != null) Child.Camera.LookAt = null;
                 if(Offset != Vector3.Zero) { //TODO: This can be optimised
-                    var tr = rotate * Matrix4.CreateTranslation(translate) * Matrix4.CreateTranslation(Offset);
+                    var off = Offset;
+                    if (EntityRelative) {
+                        off = Offset * new Matrix3(rotate);
+                    }
+                    var tr = rotate * Matrix4.CreateTranslation(translate) * Matrix4.CreateTranslation(off);
                     translate = tr.ExtractTranslation();
                     rotate = Matrix4.CreateFromQuaternion(tr.ExtractRotation());
                 }
@@ -56,10 +69,10 @@ namespace LibreLancer
                     Child.Translate = translate;
                 if (Orientation)
                     Child.Rotate = rotate;
-                return true;
+                return (t <= Duration);
             }
         }
-
+        
         public void Process(ThnEvent ev, Cutscene cs)
         {
             ThnObject objA;
@@ -116,6 +129,15 @@ namespace LibreLancer
             Vector3 offset = Vector3.Zero;
             if (ev.Properties.TryGetValue("offset", out tmp))
                 offset = ((LuaTable) tmp).ToVector3();
+            Quaternion lastRotate = Quaternion.Identity;
+            if ((flags & AttachFlags.Orientation) == AttachFlags.Orientation &&
+                (flags & AttachFlags.OrientationRelative) == AttachFlags.OrientationRelative)
+            {
+                if (part != null)
+                    lastRotate = part.GetTransform().ExtractRotation();
+                else
+                    lastRotate = objB.Rotate.ExtractRotation();
+            }
             cs.Coroutines.Add(new AttachRoutine()
             {
                 Duration = ev.Duration,
@@ -124,7 +146,10 @@ namespace LibreLancer
                 Part = part,
                 Position = ((flags & AttachFlags.Position) == AttachFlags.Position),
                 Orientation = ((flags & AttachFlags.Orientation) == AttachFlags.Orientation),
+                OrientationRelative = ((flags & AttachFlags.OrientationRelative) == AttachFlags.OrientationRelative),
+                EntityRelative = ((flags & AttachFlags.EntityRelative) == AttachFlags.EntityRelative),
                 LookAt = ((flags & AttachFlags.LookAt) == AttachFlags.LookAt),
+                LastRotate = lastRotate,
                 Offset = offset
             });
         }

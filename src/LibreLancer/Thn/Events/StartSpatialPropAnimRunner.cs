@@ -9,73 +9,109 @@ namespace LibreLancer
     [ThnEventRunner(EventTypes.StartSpatialPropAnim)]
     public class StartSpatialPropAnimRunner : IThnEventRunner
     {
+        class AxisRotation
+        {
+            public Matrix4 OriginalRotate;
+            public Vector3 Axis;
+            public float Degrees;
+
+            public float GetRads(float pct)
+            {
+                var degs = MathHelper.Lerp(0, Degrees, pct);
+                return MathHelper.DegreesToRadians(-degs);
+            }
+        }
         public void Process(ThnEvent ev, Cutscene cs)
         {
             if (ev.Targets.Capacity == 0) return;
-            ThnObject objZero;
-            ThnObject objMove;
-            if (!cs.Objects.TryGetValue((string)ev.Targets[ev.Targets.Capacity - 1], out objMove))
-            {
-                FLLog.Error("Thn", "Object does not exist " + (string)ev.Targets[ev.Targets.Capacity - 1]);
-                return;
-            }
-            if (!cs.Objects.TryGetValue((string)ev.Targets[0], out objZero))
+            ThnObject objA;
+            
+            if (!cs.Objects.TryGetValue((string)ev.Targets[0], out objA))
             {
                 FLLog.Error("Thn", "Object does not exist " + (string)ev.Targets[0]);
                 return;
             }
+
+            bool hasPos = false;
+            Quaternion? q_orient = null;
             if (ev.Targets.Capacity >= 1)
             {
-                
-                var props = (LuaTable)ev.Properties["spatialprops"];
-                Quaternion? q_orient = null;
+
+                var props = (LuaTable) ev.Properties["spatialprops"];
                 Vector3 pos;
                 object tmp;
                 if (props.TryGetValue("q_orient", out tmp))
                 {
-                    var tb = (LuaTable)tmp;
-                    q_orient = new Quaternion((float)tb[1], (float)tb[2], (float)tb[3], (float)tb[0]);
+                    var tb = (LuaTable) tmp;
+                    q_orient = new Quaternion((float) tb[1], (float) tb[2], (float) tb[3], (float) tb[0]);
                 }
+
                 if (props.TryGetValue("orient", out tmp))
                 {
-                    var orient = ThnScript.GetMatrix((LuaTable)tmp);
+                    var orient = ThnScript.GetMatrix((LuaTable) tmp);
                     q_orient = orient.ExtractRotation();
                 }
-                bool hasPos = props.TryGetVector3("pos", out pos);
-                if (ev.Duration < float.Epsilon)
+
+                AxisRotation axisRotation = null;
+                if (props.TryGetValue("axisrot", out tmp))
                 {
-                    if (hasPos) objMove.Translate = pos;
-                    if (q_orient != null) objMove.Rotate = Matrix4.CreateFromQuaternion(q_orient.Value);
+                    var axisRot_Table = (LuaTable) tmp;
+                    axisRotation = new AxisRotation();
+                    if (!axisRot_Table.TryGetVector3(1, out axisRotation.Axis)) {
+                        FLLog.Error("Thn", "invalid axisrot");
+                        return;
+                    }
+                    axisRotation.Axis = Vector3.TransformNormal(axisRotation.Axis, objA.Rotate);
+                    axisRotation.Degrees = (float) axisRot_Table[0];
+                    axisRotation.OriginalRotate = objA.Rotate;
                 }
-                else
+                
+                hasPos = props.TryGetVector3("pos", out pos);
+                if(ev.Targets.Capacity > 1)
                 {
-                    cs.Coroutines.Add(new StaticSpatialRoutine() { 
-                        Duration = ev.Duration,
-                        HasPos = hasPos,
-                        HasQuat = q_orient != null,
-                        EndPos = pos,
-                        EndQuat = q_orient ?? Quaternion.Identity,
-                        This = objMove
-                    });
-                }
-            }
-            if(ev.Targets.Capacity > 1)
-            {
-                if(ev.Duration < float.Epsilon)
-                {
-                    objZero.Translate = objMove.Translate;
-                    objZero.Rotate = objMove.Rotate;
-                }
-                else
-                {
-                    cs.Coroutines.Add(new FollowSpatialRoutine()
+                    ThnObject objB;
+                    if (!cs.Objects.TryGetValue((string)ev.Targets[1], out objB))
                     {
-                        Duration = ev.Duration,
-                        HasPos = true,
-                        HasQuat = true,
-                        This = objZero,
-                        Follow = objMove
-                    });
+                        FLLog.Error("Thn", "Object does not exist " + (string)ev.Targets[1]);
+                        return;
+                    }
+                    if(ev.Duration < float.Epsilon)
+                    {
+                        objA.Translate = objA.Translate;
+                        objA.Rotate = objA.Rotate;
+                    }
+                    else
+                    {
+                        cs.Coroutines.Add(new FollowSpatialRoutine()
+                        {
+                            Duration = ev.Duration,
+                            HasPos = hasPos,
+                            HasQuat = q_orient != null,
+                            This = objA,
+                            Follow = objB
+                        });
+                    }
+                }
+                else
+                {
+                    if (ev.Duration < float.Epsilon)
+                    {
+                        if (hasPos) objA.Translate = pos;
+                        if (q_orient != null) objA.Rotate = Matrix4.CreateFromQuaternion(q_orient.Value);
+                    }
+                    else
+                    {
+                        cs.Coroutines.Add(new StaticSpatialRoutine()
+                        {
+                            Duration = ev.Duration,
+                            HasPos = hasPos,
+                            HasQuat = q_orient != null,
+                            EndPos = pos,
+                            EndQuat = q_orient ?? Quaternion.Identity,
+                            This = objA,
+                            AxisRot = axisRotation
+                        });
+                    }
                 }
             }
 
@@ -86,14 +122,21 @@ namespace LibreLancer
             public double Time;
             public bool HasPos;
             public bool HasQuat;
+            public AxisRotation AxisRot;
             public ThnObject This;
 
             public bool Run(Cutscene cs, double delta)
             {
                 Time += delta;
                 Time = MathHelper.Clamp(Time, 0, Duration);
+                
                 if (HasPos) This.Translate = GetPosition(delta);
                 if (HasQuat) This.Rotate = Matrix4.CreateFromQuaternion(GetOrientation(delta));
+                if (AxisRot != null)
+                {
+                    This.Rotate = AxisRot.OriginalRotate *
+                                  Matrix4.CreateFromAxisAngle(AxisRot.Axis, AxisRot.GetRads((float) (Time / Duration)));
+                }
                 return Time != Duration;
             }
 
@@ -112,7 +155,7 @@ namespace LibreLancer
                 var end = QEnd();
                 if (Time == Duration) return end;
                 var pct = (float)(delta / (Duration - Time));
-                if (pct > 1) pct = 1;
+                if (pct >= 1) return end;
                 return Quaternion.Slerp(This.Rotate.ExtractRotation(), end, pct);
             }
             protected abstract Quaternion QEnd();

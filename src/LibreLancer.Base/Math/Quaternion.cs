@@ -240,21 +240,20 @@ namespace LibreLancer
         }
 
         /// <summary>
-        /// Reverses the rotation angle of this Quaterniond.
+        /// Inverts this quaternion
         /// </summary>
         public void Invert()
         {
-            W = -W;
+            Invert(ref this, out this);
         }
 
         /// <summary>
-        /// Returns a copy of this Quaterniond with its rotation angle reversed.
+        /// Returns a copy of this quaternion, inverted.
         /// </summary>
         public Quaternion Inverted()
         {
-            var q = this;
-            q.Invert();
-            return q;
+            Invert(ref this, out Quaternion result);
+            return result;
         }
 
         #region public void Normalize()

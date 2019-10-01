@@ -99,6 +99,23 @@ namespace LibreLancer.Thorn
 			}
 			return false;
 		}
+        public bool TryGetVector3(int idx, out Vector3 val)
+        {
+            if (arrayStorage == null)
+                return TryGetVector3(idx.ToString(), out val);
+            if (arrayStorage[idx] is LuaTable l)
+            {
+                val = l.ToVector3();
+                return true;
+            }
+            if (arrayStorage[idx] is Vector3 v)
+            {
+                val = v;
+                return true;
+            }
+            val = Vector3.Zero;
+            return false;
+        }
         public static Dictionary<string, string> EnumReverse;
         static string FNice(float f) => f.ToString("0.##########################");
         static string Rev(string s)

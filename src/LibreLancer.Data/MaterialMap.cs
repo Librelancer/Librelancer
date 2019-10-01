@@ -21,7 +21,7 @@ namespace LibreLancer
 		public MaterialMap()
 		{
 			if (_instance != null)
-				throw new Exception ("Only one MaterialMap can be made");
+				FLLog.Warning("MaterialMap", "Switching global material map. TODO make instance");
 			_instance = this;
 		}
 		class MapEntry

@@ -97,6 +97,15 @@ namespace LibreLancer
 			this.audio = audio;
 		}
 
+        public SoundManager(AudioManager audio)
+        {
+            this.audio = audio;
+        }
+
+        public void SetGameData(GameDataManager data)
+        {
+            this.data = data;
+        }
         private Vector3 listenerPosition = Vector3.Zero;
         public Vector3 ListenerPosition => listenerPosition;
         public void UpdateListener(TimeSpan delta, Vector3 position, Vector3 forward, Vector3 up)

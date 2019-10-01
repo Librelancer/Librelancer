@@ -255,7 +255,7 @@ namespace LibreLancer
             if(currentBase.TerrainLrg != null) ctx.Substitutions.Add("$terrain_lrg", currentBase.TerrainLrg);
             if(currentBase.TerrainDyna1 != null) ctx.Substitutions.Add("$terrain_dyna_01", currentBase.TerrainDyna1);
             if(currentBase.TerrainDyna2 != null) ctx.Substitutions.Add("$terrain_dyna_02", currentBase.TerrainDyna2);
-            scene = new Cutscene(ctx, Game);
+            scene = new Cutscene(ctx, Game.GameData, Game.Viewport, Game);
 			if (currentRoom.Camera != null) scene.SetCamera(currentRoom.Camera);
 			foreach (var npc in currentRoom.Npcs)
 			{
