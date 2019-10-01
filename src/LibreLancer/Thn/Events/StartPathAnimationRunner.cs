@@ -13,6 +13,7 @@ namespace LibreLancer
             public float Duration;
             public float StartPercent;
             public float StopPercent;
+            public Vector3 Offset;
             public AttachFlags Flags;
             public ParameterCurve Curve;
             public ThnObject Path;
@@ -43,7 +44,7 @@ namespace LibreLancer
                 float pct = MathHelper.Lerp(StartPercent, StopPercent, t);
                 var path = Path.Entity.Path;
                 var mat = Path.Rotate * Matrix4.CreateTranslation(Path.Translate);
-                var pos = mat.Transform(path.GetPosition(pct));
+                var pos = mat.Transform(path.GetPosition(pct) + Offset);
                 if ((Flags & AttachFlags.LookAt) == AttachFlags.LookAt)
                 {
                     var orient = Matrix4.CreateFromQuaternion(Quaternion.LookRotation(path.GetDirection(pct, StartPercent > StopPercent), Vector3.UnitY)) * Path.Rotate;
@@ -54,6 +55,8 @@ namespace LibreLancer
                 }
                 else if ((Flags & AttachFlags.Orientation) == AttachFlags.Orientation)
                 {
+                    var orient = Path.Rotate * Matrix4.CreateFromQuaternion(path.GetOrientation(pct));
+                    SetOrientation(orient);
                     if ((Flags & AttachFlags.Position) == AttachFlags.Position)
                         SetPosition(pos);
                 }
@@ -95,6 +98,8 @@ namespace LibreLancer
             var start = (float)ev.Properties["start_percent"];
             var stop = (float)ev.Properties["stop_percent"];
             var flags = ThnEnum.Check<AttachFlags>(ev.Properties["flags"]);
+            var offset = Vector3.Zero;
+            ev.Properties.TryGetVector3("offset", out offset);
             cs.Coroutines.Add(new ObjectPathAnimation()
             {
                 Duration = ev.Duration,
@@ -103,6 +108,7 @@ namespace LibreLancer
                 Flags = flags,
                 Curve = ev.ParamCurve,
                 Path = path,
+                Offset = offset,
                 Object = obj
             });
         }

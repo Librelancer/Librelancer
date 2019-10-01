@@ -32,7 +32,7 @@ namespace LibreLancer
 			Vector3 originalTarget = Vector3.Forward;
 			Vector3 rotatedTarget = Transform.Orientation.Transform(originalTarget);
             Vector3 target = Transform.LookAt == null ? Position + rotatedTarget : Transform.LookAt();
-			Vector3 upVector = Transform.Orientation.Transform(Vector3.Up);
+			Vector3 upVector = Transform.LookAt == null ? Transform.Orientation.Transform(Vector3.Up) : Vector3.Up;
 			view = Matrix4.LookAt(Position, target, upVector);
 			frameNo++;
 			viewProjection = view * projection;
