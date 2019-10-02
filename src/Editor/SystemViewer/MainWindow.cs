@@ -45,6 +45,7 @@ namespace SystemViewer
             Nebulae = new NebulaVertices();
             Resources = new GameResourceManager(this);
             Renderer2D = new Renderer2D(this.RenderState);
+            RichText = Renderer2D.CreateRichTextEngine();
             Services.Add(Billboards);
             Services.Add(Nebulae);
             Services.Add(Resources);
