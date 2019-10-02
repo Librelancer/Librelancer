@@ -1,15 +1,6 @@
 language: csharp
 before_install:
  - sudo apt-get install -y libpango1.0-dev
-addons:
-  apt:
-    sources:
-    - deadsnakes
-    - ubuntu-toolchain-r-test
-    packages:
-    - gcc-4.9
-    - g++-4.9
-    - cmake
 script:
  - ./build.sh --target=LinuxDaily
 deploy:
