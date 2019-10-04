@@ -289,7 +289,7 @@ namespace LancerEdit
             }
             //Process geometry
             foreach(var item in msh.Items) {
-                if(!(item is CL.triangles || item is CL.polylist)) {
+                if(!(item is CL.triangles || item is CL.polylist || item is CL.polygons)) {
                     FLLog.Warning("Collada", "Ignoring " + item.GetType().Name + " element.");
                 }
             }
