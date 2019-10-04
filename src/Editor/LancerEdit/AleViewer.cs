@@ -86,7 +86,7 @@ namespace LancerEdit
         {
             bool doTabs = false;
             foreach (var t in openTabs) if (t) { doTabs = true; break; }
-            var contentw = ImGui.GetContentRegionAvailWidth();
+            var contentw = ImGui.GetWindowContentRegionWidth();
             if (doTabs)
             {
                 ImGui.Columns(2, "##alecolumns", true);

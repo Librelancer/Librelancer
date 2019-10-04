@@ -120,7 +120,7 @@ namespace LancerEdit
                     for(int i = 0; i < stringsIds.Length; i++)
                     {
                         ImGui.Selectable(stringsIds[i] + "##" + i, currentString == i);
-                        if (currentString == i) ImGui.SetScrollHere();
+                        if (currentString == i) ImGui.SetScrollHereY();
                     }
                 }
             } else {
@@ -152,7 +152,7 @@ namespace LancerEdit
                     for (int i = 0; i < infocardsIds.Length; i++)
                     {
                         ImGui.Selectable(infocardsIds[i] + "##" + i, currentInfocard == i);
-                        if (currentInfocard == i) ImGui.SetScrollHere();
+                        if (currentInfocard == i) ImGui.SetScrollHereY();
                     }
                 }
             }

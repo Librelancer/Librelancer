@@ -50,7 +50,11 @@ namespace LibreLancer.ImUI
             SetColor(ImGuiCol.MenuBarBg, RGBA(66, 67, 69, 255));
             SetColor(ImGuiCol.ScrollbarBg, RGBA(51, 64, 77, 153));
             SetColor(ImGuiCol.Button, RGBA(128, 128, 128, 88));
-
+            
+            SetColor(ImGuiCol.TabActive, RGBA(95, 97, 98, 255));
+            SetColor(ImGuiCol.TabHovered, RGBA(66, 133, 190, 255));
+            SetColor(ImGuiCol.Tab, RGBA(56, 57, 58, 255));
+            
             using(var stream = typeof(Theme).Assembly.GetManifestResourceStream("LibreLancer.ImUI.icons.png")) {
                 iconTexture = Generic.FromStream(stream);
                 iconId = ImGuiHelper.RegisterTexture(iconTexture);

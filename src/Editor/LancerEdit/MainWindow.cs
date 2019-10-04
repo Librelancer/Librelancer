@@ -446,7 +446,6 @@ namespace LancerEdit
             else
                 ActiveTab = null;
             ImGui.EndChild();
-            TabHandler.DrawTabDrag(tabs);
             if(showLog) {
                 ImGui.BeginChild("###log", new Vector2(-1, h2), false, ImGuiWindowFlags.None);
                 ImGui.Text("Log");

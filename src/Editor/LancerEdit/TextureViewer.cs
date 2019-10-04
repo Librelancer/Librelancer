@@ -53,7 +53,7 @@ namespace LancerEdit
             if (doOpen)
                 ImGui.OpenPopup("Info##" + Unique);
             ImGui.Separator();
-            var w = ImGui.GetContentRegionAvailWidth();
+            var w = ImGui.GetWindowContentRegionWidth();
             zoom = (int)zoom;
             var scale = zoom / 100;
             var sz = new Vector2(tex.Width, tex.Height) * scale;

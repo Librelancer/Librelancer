@@ -12,8 +12,7 @@ namespace LibreLancer.ImUI
         ImGuiListClipper *clipper;
         public ListClipper(int itemsCount, float itemsHeight = -1)
         {
-            clipper = (ImGuiListClipper*)Marshal.AllocHGlobal(Marshal.SizeOf(typeof(ImGuiListClipper)));
-            ImGuiNative.ImGuiListClipper_ImGuiListClipper(clipper, itemsCount, itemsHeight);
+            clipper = ImGuiNative.ImGuiListClipper_ImGuiListClipper(itemsCount, itemsHeight);
         }
 
         public void Begin(int itemsCount, float itemsHeight = -1)
@@ -34,7 +33,7 @@ namespace LibreLancer.ImUI
 
         public void Dispose()
         {
-            Marshal.FreeHGlobal((IntPtr)clipper);
+            ImGuiNative.ImGuiListClipper_destroy(clipper);
         }
     }
 }

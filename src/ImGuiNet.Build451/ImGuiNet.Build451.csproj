@@ -205,36 +205,6 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <Compile Include="LibrelancerShim\Vector2.cs" />
-    <Compile Include="LibrelancerShim\Vector3.cs" />
-    <Compile Include="LibrelancerShim\Vector4.cs" />
-    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\ImDrawData.Manual.cs">
-      <Link>ImDrawData.Manual.cs</Link>
-    </Compile>
-    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\ImDrawList.Manual.cs">
-      <Link>ImDrawList.Manual.cs</Link>
-    </Compile>
-    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\ImGui.Manual.cs">
-      <Link>ImGui.Manual.cs</Link>
-    </Compile>
-    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\ImGuiSizeCallback.cs">
-      <Link>ImGuiSizeCallback.cs</Link>
-    </Compile>
-    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\ImGuiTextEditCallback.cs">
-      <Link>ImGuiTextEditCallback.cs</Link>
-    </Compile>
-    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\ImVector.cs">
-      <Link>ImVector.cs</Link>
-    </Compile>
-    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Pair.cs">
-      <Link>Pair.cs</Link>
-    </Compile>
-    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\CustomRect.gen.cs">
-      <Link>Generated\CustomRect.gen.cs</Link>
-    </Compile>
-    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\GlyphRangesBuilder.gen.cs">
-      <Link>Generated\GlyphRangesBuilder.gen.cs</Link>
-    </Compile>
     <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImColor.gen.cs">
       <Link>Generated\ImColor.gen.cs</Link>
     </Compile>
@@ -256,6 +226,9 @@
     <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImDrawListFlags.gen.cs">
       <Link>Generated\ImDrawListFlags.gen.cs</Link>
     </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImDrawListSplitter.gen.cs">
+      <Link>Generated\ImDrawListSplitter.gen.cs</Link>
+    </Compile>
     <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImDrawVert.gen.cs">
       <Link>Generated\ImDrawVert.gen.cs</Link>
     </Compile>
@@ -265,6 +238,9 @@
     <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImFontAtlas.gen.cs">
       <Link>Generated\ImFontAtlas.gen.cs</Link>
     </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImFontAtlasCustomRect.gen.cs">
+      <Link>Generated\ImFontAtlasCustomRect.gen.cs</Link>
+    </Compile>
     <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImFontAtlasFlags.gen.cs">
       <Link>Generated\ImFontAtlasFlags.gen.cs</Link>
     </Compile>
@@ -273,6 +249,9 @@
     </Compile>
     <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImFontGlyph.gen.cs">
       <Link>Generated\ImFontGlyph.gen.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImFontGlyphRangesBuilder.gen.cs">
+      <Link>Generated\ImFontGlyphRangesBuilder.gen.cs</Link>
     </Compile>
     <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImGui.gen.cs">
       <Link>Generated\ImGui.gen.cs</Link>
@@ -310,14 +289,14 @@
     <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImGuiHoveredFlags.gen.cs">
       <Link>Generated\ImGuiHoveredFlags.gen.cs</Link>
     </Compile>
-    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImGuiIO.gen.cs">
-      <Link>Generated\ImGuiIO.gen.cs</Link>
-    </Compile>
     <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImGuiInputTextCallbackData.gen.cs">
       <Link>Generated\ImGuiInputTextCallbackData.gen.cs</Link>
     </Compile>
     <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImGuiInputTextFlags.gen.cs">
       <Link>Generated\ImGuiInputTextFlags.gen.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImGuiIO.gen.cs">
+      <Link>Generated\ImGuiIO.gen.cs</Link>
     </Compile>
     <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImGuiKey.gen.cs">
       <Link>Generated\ImGuiKey.gen.cs</Link>
@@ -355,11 +334,20 @@
     <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImGuiStyleVar.gen.cs">
       <Link>Generated\ImGuiStyleVar.gen.cs</Link>
     </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImGuiTabBarFlags.gen.cs">
+      <Link>Generated\ImGuiTabBarFlags.gen.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImGuiTabItemFlags.gen.cs">
+      <Link>Generated\ImGuiTabItemFlags.gen.cs</Link>
+    </Compile>
     <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImGuiTextBuffer.gen.cs">
       <Link>Generated\ImGuiTextBuffer.gen.cs</Link>
     </Compile>
     <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImGuiTextFilter.gen.cs">
       <Link>Generated\ImGuiTextFilter.gen.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImGuiTextRange.gen.cs">
+      <Link>Generated\ImGuiTextRange.gen.cs</Link>
     </Compile>
     <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImGuiTreeNodeFlags.gen.cs">
       <Link>Generated\ImGuiTreeNodeFlags.gen.cs</Link>
@@ -367,19 +355,44 @@
     <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\ImGuiWindowFlags.gen.cs">
       <Link>Generated\ImGuiWindowFlags.gen.cs</Link>
     </Compile>
-    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Generated\TextRange.gen.cs">
-      <Link>Generated\TextRange.gen.cs</Link>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\ImDrawData.Manual.cs">
+      <Link>ImDrawData.Manual.cs</Link>
     </Compile>
-    <Compile Include="Patched\RangeAccessor.cs" />
-    <Compile Include="Patched\Util.cs" />
-    <Compile Include="Patched\NullTerminatedString.cs" />
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\ImDrawList.Manual.cs">
+      <Link>ImDrawList.Manual.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\ImGui.Manual.cs">
+      <Link>ImGui.Manual.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\ImGuiSizeCallback.cs">
+      <Link>ImGuiSizeCallback.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\ImGuiTextEditCallback.cs">
+      <Link>ImGuiTextEditCallback.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\ImVector.cs">
+      <Link>ImVector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\NullTerminatedString.cs">
+      <Link>NullTerminatedString.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Pair.cs">
+      <Link>Pair.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\RangeAccessor.cs">
+      <Link>RangeAccessor.cs</Link>
+    </Compile>
+    <Compile Include="..\..\extern\ImGui.NET\src\ImGui.NET\Util.cs">
+      <Link>Util.cs</Link>
+    </Compile>
+    <Compile Include="LibrelancerShim\Polyfill.cs" />
+    <Compile Include="LibrelancerShim\Vector2.cs" />
+    <Compile Include="LibrelancerShim\Vector3.cs" />
+    <Compile Include="LibrelancerShim\Vector4.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="Generated\dummy.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Patched\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
