@@ -294,31 +294,50 @@ namespace LancerEdit
                 }
             }
             int totalTriangles = 0;
-            foreach(var item in msh.Items.Where(x => x is CL.triangles || x is CL.polylist)) {
-                if(item is CL.triangles) {
+            foreach(var item in msh.Items.Where(x => x is CL.triangles || x is CL.polylist || x is CL.polygons)) {
+                if(item is CL.triangles)
                     totalTriangles += (int)((CL.triangles)item).count;
-                } else {
-                    totalTriangles += (int)((CL.polylist)item).count;
-                }
+                else if (item is CL.polylist plist)
+                        totalTriangles += (int)plist.count;
+                else
+                    totalTriangles += (int)((CL.polygons)item).count;
             }
             if(totalTriangles > 21845) {
                 throw new Exception(string.Format(
-                    "Overflow!\nCollada geometry {0} has {1} triangles\nVMeshData haslimit of 21845",
+                    "Overflow!\nCollada geometry {0} has {1} triangles\nVMeshData has limit of 21845",
                     string.IsNullOrEmpty(geo.name) ? geo.id : geo.name,
                     totalTriangles));
             }
-            foreach(var item in msh.Items.Where(x => x is CL.triangles || x is CL.polylist)) {
+            foreach(var item in msh.Items.Where(x => x is CL.triangles || x is CL.polylist || x is CL.polygons)) {
                 CL.InputLocalOffset[] inputs;
                 int[] pRefs;
-                int triangleCount;
+                int indexCount;
                 string material;
                 if(item is CL.triangles) {
                     var triangles = (CL.triangles)item;
-                    triangleCount = (int)(triangles.count * 3);
+                    indexCount = (int)(triangles.count * 3);
                     pRefs = IntArray(triangles.p);
                     inputs = triangles.input;
                     material = triangles.material;
-                } else {
+                } else if (item is CL.polygons polygons)
+                {
+                    indexCount = (int)(polygons.count * 3);
+                    int j = 0;
+                    pRefs = new int[indexCount];
+                    foreach (var arr in polygons.Items)
+                    {
+                        if(!(arr is string)) throw new Exception("Polygons: ph element unsupported");
+                        var ints = IntArray((string) arr);
+                        if (ints.Length != 3)
+                            throw new Exception("Polygons: non-triangle geometry not supported");
+                        pRefs[j] = ints[0];
+                        pRefs[j + 1] = ints[1];
+                        pRefs[j + 2] = ints[2];
+                        j += 3;
+                    }
+                    inputs = polygons.input;
+                    material = polygons.material;
+                } else  {
                     var plist = (CL.polylist)item;
                     pRefs = IntArray(plist.p);
                     foreach(var c in IntArray(plist.vcount)) {
@@ -328,9 +347,9 @@ namespace LancerEdit
                     }
                     material = plist.material;
                     inputs = plist.input;
-                    triangleCount = (int)(plist.count * 3);
+                    indexCount = (int)(plist.count * 3);
                 }
-                if (triangleCount == 0) continue; //Skip empty
+                if (indexCount == 0) continue; //Skip empty
                 //Blender workaround #1 - their stuff is crap
                 if(!string.IsNullOrEmpty(material) && isBlender && material.EndsWith("-material",StringComparison.InvariantCulture)) {
                     material = material.Substring(0, material.Length - 9);
@@ -418,7 +437,7 @@ namespace LancerEdit
                     }
                 }
                 int vertexOffset = vertices.Count;
-                for (int i = 0; i <  triangleCount; i++) {
+                for (int i = 0; i <  indexCount; i++) {
                     int idx = i * pStride;
                     var vert = new VertexPositionNormalDiffuseTextureTwo(
                         VecAxis(up, sourceXYZ.GetXYZ(pRefs[idx + offXYZ])),
