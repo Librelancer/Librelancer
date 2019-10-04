@@ -13,26 +13,31 @@ namespace LibreLancer.ImUI
     {
         public static void TabLabels(List<DockTab> tabs, ref DockTab selected)
         {
-            var flags = ImGuiTabBarFlags.Reorderable | ImGuiTabBarFlags.FittingPolicyScroll |
-                        ImGuiTabBarFlags.AutoSelectNewTabs;
-            if (tabs.Count > 0) flags |= ImGuiTabBarFlags.TabListPopupButton;
-            ImGui.BeginTabBar("##tabbar", flags);
-            for (int i = 0; i < tabs.Count; i++)
+            if (tabs.Count > 0)
             {
-                bool isTabOpen = true;
-                if (ImGui.BeginTabItem(tabs[i].RenderTitle, ref isTabOpen, ImGuiTabItemFlags.None))
+                var flags = ImGuiTabBarFlags.Reorderable | ImGuiTabBarFlags.FittingPolicyScroll |
+                            ImGuiTabBarFlags.AutoSelectNewTabs | ImGuiTabBarFlags.TabListPopupButton;
+                ImGui.BeginTabBar("##tabbar", flags);
+                for (int i = 0; i < tabs.Count; i++)
                 {
-                    if (!isTabOpen)
+                    bool isTabOpen = true;
+                    if (ImGui.BeginTabItem(tabs[i].RenderTitle, ref isTabOpen, ImGuiTabItemFlags.None))
                     {
-                        tabs[i].Dispose();
-                        tabs.RemoveAt(i);
-                        selected = null;
-                    } else
-                        selected = tabs[i];
-                    ImGui.EndTabItem();
+                        if (!isTabOpen)
+                        {
+                            tabs[i].Dispose();
+                            tabs.RemoveAt(i);
+                            selected = null;
+                        }
+                        else
+                            selected = tabs[i];
+
+                        ImGui.EndTabItem();
+                    }
                 }
+
+                ImGui.EndTabBar();
             }
-            ImGui.EndTabBar();
         }
         [StructLayout(LayoutKind.Sequential)]
         struct ImFontGlyph
