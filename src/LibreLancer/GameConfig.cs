@@ -5,6 +5,7 @@
 using LibreLancer.Exceptions;
 using System;
 using System.IO;
+using System.Linq;
 using System.Xml.Serialization;
 namespace LibreLancer
 {
@@ -40,14 +41,19 @@ namespace LibreLancer
 		Func<string> filePath;
 
 		public static bool CheckFLDirectory(string dir)
-		{
-			if (!Directory.Exists(Path.Combine(dir, "EXE")) || 
-			    !Directory.Exists(Path.Combine(dir, "DATA")))
-			{
-				return false;
-			}
-			return true;
-		}
+        {
+            if (!Directory.Exists(dir)) return false;
+            bool exeExists = false;
+            bool dataExists = false;
+            foreach (var child in Directory.GetDirectories(dir).Select(Path.GetFileName))
+            {
+                if (child.Equals("exe", StringComparison.OrdinalIgnoreCase))
+                    exeExists = true;
+                if (child.Equals("data", StringComparison.OrdinalIgnoreCase))
+                    dataExists = true;
+            }
+            return exeExists && dataExists;
+        }
 
         public void Validate()
         {
