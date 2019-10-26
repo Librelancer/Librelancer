@@ -64,6 +64,7 @@ namespace LibreLancer.Utf.Anm
                     frameType = FrameType.VecWithQuat;
                     break;
                 case BIT_VEC | BIT_NORM:
+                case BIT_VEC | 0x40:  //special case normal? unsure
                     frameType = FrameType.VecWithNormal;
                     break;
             }
