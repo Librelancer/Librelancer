@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Neo.IronLua;
 
 namespace LibreLancer.Utf.Anm
 {
@@ -13,14 +14,19 @@ namespace LibreLancer.Utf.Anm
     {
         Matrix,
         Float,
-        IK
+        Normal,
+        Vector3,
+        Quaternion,
+        VecWithQuat
     }
     public class Frame
     {
         public float? Time { get; private set; }
 		public float JointValue { get; private set; }
-        public Vector3 IKValue { get; private set; }
+        public Vector3 NormalValue { get; private set; }
         public Matrix4 ObjectValue { get; private set; }
+        public Vector3 VectorValue { get; private set; }
+        public Quaternion QuatValue { get; private set; }
 		public Frame(BinaryReader reader, bool time, FrameType type)
         {
             if (time) Time = reader.ReadSingle();
@@ -28,13 +34,34 @@ namespace LibreLancer.Utf.Anm
 			{
 				ObjectValue = ConvertData.ToMatrix3x3(reader);
 			}
-            else if(type == FrameType.IK)
+            else if(type == FrameType.Normal)
             {
-                IKValue = new Vector3(
+                NormalValue = new Vector3(
                     reader.ReadInt16() / 32767f,
                     reader.ReadInt16() / 32767f,
                     reader.ReadInt16() / 32767f
                 );
+            }
+            else if (type == FrameType.Vector3)
+            {
+                VectorValue = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+            }
+            else if (type == FrameType.Quaternion)
+            {
+                float w = reader.ReadSingle();
+                float x = reader.ReadSingle();
+                float y = reader.ReadSingle();
+                float z = reader.ReadSingle();
+                QuatValue = new Quaternion(x,y,z,w);
+            }
+            else if (type == FrameType.VecWithQuat)
+            {
+                VectorValue = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                float w = reader.ReadSingle();
+                float x = reader.ReadSingle();
+                float y = reader.ReadSingle();
+                float z = reader.ReadSingle();
+                QuatValue = new Quaternion(x,y,z,w);
             }
             else
 			{

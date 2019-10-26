@@ -12,12 +12,19 @@ namespace LibreLancer.Utf.Anm
 {
 	public class Channel
 	{
+        
 		public int FrameCount { get; private set; }
 		public float Interval { get; private set; }
 		public int ChannelType { get; private set; }
 
+        public FrameType InterpretedType { get; private set; }
 		public Frame[] Frames { get; private set; }
 
+        private const int BIT_NORM = 128;
+        private const int BIT_FLOAT = 0x1;
+        private const int BIT_VEC = 0x2;
+        private const int BIT_QUAT = 0x4;
+        
 		public Channel(IntermediateNode root)
 		{
 			byte[] frameBytes = new byte[0];
@@ -42,7 +49,22 @@ namespace LibreLancer.Utf.Anm
 			}
 
             FrameType frameType = FrameType.Float;
-            if((ChannelType & 0xC0) == 0xC0) frameType = FrameType.IK;
+            switch (ChannelType)
+            {
+                case BIT_NORM:
+                    frameType = FrameType.Normal;
+                    break;
+                case BIT_VEC:
+                    frameType = FrameType.Vector3;
+                    break;
+                case BIT_QUAT:
+                    frameType = FrameType.Quaternion;
+                    break;
+                case BIT_VEC | BIT_QUAT:
+                    frameType = FrameType.VecWithQuat;
+                    break;
+            }
+            InterpretedType = frameType;
             Frames = new Frame[FrameCount];
 			using (BinaryReader reader = new BinaryReader(new MemoryStream(frameBytes)))
 			{

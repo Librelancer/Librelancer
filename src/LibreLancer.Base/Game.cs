@@ -372,8 +372,14 @@ namespace LibreLancer
             double elapsed = 0;
             SDL.SDL_Event e;
             SDL.SDL_StopTextInput();
+            MouseButtons doRelease = 0;
             while (running)
             {
+                //This allows for press/release in same frame to have
+                //button down for one frame, e.g. trackpoint middle click on Linux/libinput.
+                MouseButtons pressedThisFrame = 0;
+                Mouse.Buttons &= ~doRelease;
+                doRelease = 0;
                 //Pump message queue
                 while (SDL.SDL_PollEvent(out e) != 0)
                 {
@@ -398,6 +404,7 @@ namespace LibreLancer
                                 Mouse.Y = e.button.y;
                                 var btn = GetMouseButton(e.button.button);
                                 Mouse.Buttons |= btn;
+                                pressedThisFrame |= btn;
                                 Mouse.OnMouseDown(btn);
                                 break;
                             }
@@ -406,7 +413,10 @@ namespace LibreLancer
                                 Mouse.X = e.button.x;
                                 Mouse.Y = e.button.y;
                                 var btn = GetMouseButton(e.button.button);
-                                Mouse.Buttons &= ~btn;
+                                if ((pressedThisFrame & btn) == btn)
+                                    doRelease |= btn;
+                                else
+                                    Mouse.Buttons &= ~btn;
                                 Mouse.OnMouseUp(btn);
                                 break;
                             }

@@ -39,7 +39,12 @@ namespace LancerEdit
 			return new LL.IntermediateNode("/", children);
 		}
 
-		LL.Node ExportNode(LUtfNode n)
+        public static LL.IntermediateNode NodeToEngine(LUtfNode node)
+        {
+            return ExportNode(node) as LL.IntermediateNode;
+        }
+        
+		static LL.Node ExportNode(LUtfNode n)
 		{
 			if (n.Data != null)
 				return new LL.LeafNode(n.Name, n.Data);

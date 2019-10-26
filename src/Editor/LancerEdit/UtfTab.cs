@@ -22,6 +22,7 @@ namespace LancerEdit
         LUtfNode selectedNode = null;
         MainWindow main;
         PopupManager popups = new PopupManager();
+        List<JointMapView> jointViews = new List<JointMapView>();
         public UtfTab(MainWindow main, EditableUtf utf, string title)
         {
             this.main = main;
@@ -297,6 +298,16 @@ namespace LancerEdit
                             });
                         ImGui.EndPopup();
                     }
+
+                    if (selectedNode.Name.StartsWith("joint map", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (ImGui.Button("View Joint Map"))
+                        {
+                            JointMapView jmv;
+                            if((jmv = JointMapView.Create(selectedNode)) != null)
+                                jointViews.Add(jmv);
+                        };
+                    }
                 }
             }
             else if (selectedNode.Data != null)
@@ -518,6 +529,13 @@ namespace LancerEdit
                     ImGui.EndPopup();
                 }
             }
+
+            var removeJmv = new List<JointMapView>();
+            foreach (var jm in jointViews)
+            {
+                if(!jm.Draw()) removeJmv.Add(jm);
+            }
+            foreach (var jmv in removeJmv) jointViews.Remove(jmv);
             ImGui.EndChild();
         }
 
