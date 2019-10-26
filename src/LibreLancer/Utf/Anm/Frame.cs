@@ -17,7 +17,8 @@ namespace LibreLancer.Utf.Anm
         Normal,
         Vector3,
         Quaternion,
-        VecWithQuat
+        VecWithQuat,
+        VecWithNormal
     }
     public class Frame
     {
@@ -62,6 +63,15 @@ namespace LibreLancer.Utf.Anm
                 float y = reader.ReadSingle();
                 float z = reader.ReadSingle();
                 QuatValue = new Quaternion(x,y,z,w);
+            }
+            else if (type == FrameType.VecWithNormal)
+            {
+                VectorValue = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                NormalValue = new Vector3(
+                    reader.ReadInt16() / 32767f,
+                    reader.ReadInt16() / 32767f,
+                    reader.ReadInt16() / 32767f
+                );
             }
             else
 			{

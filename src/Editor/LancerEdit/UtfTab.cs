@@ -308,6 +308,16 @@ namespace LancerEdit
                                 jointViews.Add(jmv);
                         };
                     }
+                    
+                    if (selectedNode.Name.StartsWith("object map", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (ImGui.Button("View Object Map"))
+                        {
+                            JointMapView jmv;
+                            if((jmv = JointMapView.Create(selectedNode)) != null)
+                                jointViews.Add(jmv);
+                        };
+                    }
                 }
             }
             else if (selectedNode.Data != null)

@@ -43,8 +43,15 @@ namespace LancerEdit
             ImGui.SetNextWindowSize(new Vector2(420,420), ImGuiCond.FirstUseEver);
             if (ImGui.Begin(ImGuiExt.IDWithExtra($"{name}: {scriptName}", unique), ref open))
             {
-                ImGui.Text($"Parent Name: {map.ParentName}");
-                ImGui.Text($"Child Name: {map.ChildName}");
+                if (string.IsNullOrEmpty(map.ChildName))
+                {
+                    ImGui.Text($"Target: {map.ParentName}");
+                }
+                else
+                {
+                    ImGui.Text($"Parent Name: {map.ParentName}");
+                    ImGui.Text($"Child Name: {map.ChildName}");
+                }
                 ImGui.Text($"Interval: {map.Channel.Interval}");
                 ImGui.Text($"Frame Count: {map.Channel.FrameCount}");
                 ImGui.Text($"Type: {map.Channel.InterpretedType} (0x{map.Channel.ChannelType.ToString("x")})");
@@ -80,6 +87,9 @@ namespace LancerEdit
                             break;
                         case FrameType.VecWithQuat:
                             ImGui.Text($"{frame.VectorValue} {frame.QuatValue}");
+                            break;
+                        case FrameType.VecWithNormal:
+                            ImGui.Text($"V:{frame.VectorValue} N:{frame.NormalValue}");
                             break;
                     }
                     ImGui.NextColumn();
