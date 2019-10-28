@@ -214,15 +214,16 @@ namespace LibreLancer.ImUI
 			return id;
 		}
 
-        private int renderFrames = 6;
-        public bool DoRender()
+        private double renderTimer = 0.47;
+        private const double RENDER_TIME = 0.47;
+        public bool DoRender(double elapsed)
         {
             if (game.Focused && game.EventsThisFrame || animating)
-                renderFrames = 6;
+                renderTimer = RENDER_TIME;
             animating = false;
-            renderFrames--;
-            if (renderFrames <= 0) renderFrames = 0;
-            return renderFrames != 0;
+            renderTimer -= elapsed;
+            if (renderTimer <= 0) renderTimer = 0;
+            return renderTimer != 0;
         }
 
         private static bool animating = false;
@@ -276,6 +277,7 @@ namespace LibreLancer.ImUI
             game.TextInputEnabled = io.WantCaptureKeyboard;
 			//TODO: Mouse Wheel
 			ImGui.NewFrame();
+            
 		}
 
 		public void Render(RenderState rstate)
