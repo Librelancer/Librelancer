@@ -92,7 +92,8 @@ namespace LancerEdit
 		{
 			Title = "LancerEdit";
 			guiHelper = new ImGuiHelper(this);
-			Audio = new AudioManager(this);
+            guiHelper.PauseWhenUnfocused = Config.PauseWhenUnfocused;
+            Audio = new AudioManager(this);
             FileDialog.RegisterParent(this);
 			Viewport = new ViewportManager(RenderState);
             InitOptions();
@@ -200,7 +201,8 @@ namespace LancerEdit
 			toAdd.Add(tab);
 		}
 		protected override void Update(double elapsed)
-		{
+        {
+            if (!guiHelper.DoUpdate()) return;
 			foreach (var tab in tabs)
 				tab.Update(elapsed);
             if (errorTimer > 0) errorTimer -= elapsed;
@@ -222,9 +224,15 @@ namespace LancerEdit
         float h1 = 200, h2 = 200;
         Vector2 errorWindowSize = Vector2.Zero;
         public double TimeStep;
+        private RenderTarget2D lastFrame;
 		protected override void Draw(double elapsed)
         {
-            if (!guiHelper.DoRender(elapsed)) return;
+            if (!guiHelper.DoRender(elapsed))
+            {
+                if (lastFrame != null) lastFrame.BlitToScreen();
+                return;
+            }
+            
             TimeStep = elapsed;
 			Viewport.Replace(0, 0, Width, Height);
 			RenderState.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
@@ -501,10 +509,22 @@ namespace LancerEdit
                 ImGui.Combo("Camera Mode", ref cm, cameraModes, cameraModes.Length);
                 Config.CameraMode = (CameraModes)cm;
                 ImGui.Checkbox("View Buttons", ref Config.ViewButtons);
+                ImGui.Checkbox("Pause When Unfocused", ref Config.PauseWhenUnfocused);
+                guiHelper.PauseWhenUnfocused = Config.PauseWhenUnfocused;
                 ImGui.End();
             }
 			ImGui.PopFont();
+            if (lastFrame == null ||
+                lastFrame.Width != Width ||
+                lastFrame.Height != Height)
+            {
+                if (lastFrame != null) lastFrame.Dispose();
+                lastFrame = new RenderTarget2D(Width, Height);
+            }
+            lastFrame.BindFramebuffer();
 			guiHelper.Render(RenderState);
+            RenderTarget2D.ClearBinding();
+            lastFrame.BlitToScreen();
             foreach (var tab in toAdd)
             {
                 tabs.Add(tab);

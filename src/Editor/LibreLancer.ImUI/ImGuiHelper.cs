@@ -214,15 +214,21 @@ namespace LibreLancer.ImUI
 			return id;
 		}
 
+        public bool PauseWhenUnfocused = false;
         private double renderTimer = 0.47;
         private const double RENDER_TIME = 0.47;
         public bool DoRender(double elapsed)
         {
-            if (game.Focused && game.EventsThisFrame || animating)
+            if (game.EventsThisFrame || (animating && !(PauseWhenUnfocused && !game.Focused)))
                 renderTimer = RENDER_TIME;
             animating = false;
             renderTimer -= elapsed;
             if (renderTimer <= 0) renderTimer = 0;
+            return renderTimer != 0;
+        }
+
+        public bool DoUpdate()
+        {
             return renderTimer != 0;
         }
 

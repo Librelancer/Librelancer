@@ -20,7 +20,8 @@ namespace LancerEdit
         public int TextureFilter;
         public CameraModes CameraMode;
         public bool ViewButtons;
-
+        public bool PauseWhenUnfocused = true;
+        
         public void Save()
         {
             using(var s = File.Create(configPath))

@@ -35,6 +35,14 @@ namespace LibreLancer
 		{
 			GL.BindFramebuffer(GL.GL_FRAMEBUFFER, FBO);
 		}
+
+        public void BlitToScreen()
+        {
+            GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, FBO);
+            GL.BindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0);
+            GL.BlitFramebuffer(0, 0, Width, Height, 0, 0, Width, Height, GL.GL_COLOR_BUFFER_BIT, GL.GL_LINEAR);
+            GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, 0);
+        }
 		public override void Dispose ()
 		{
 			GL.DeleteFramebuffer (FBO);

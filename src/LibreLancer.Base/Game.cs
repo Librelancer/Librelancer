@@ -294,7 +294,6 @@ namespace LibreLancer
                     SDL.SDL_SetWindowMinimumSize(windowptr, value.X, value.Y);
             }
         }
-        
         public bool Focused { get; private set; }
         public bool EventsThisFrame { get; private set; }
         public event Action WillClose;
