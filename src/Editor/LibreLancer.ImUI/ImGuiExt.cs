@@ -97,7 +97,14 @@ namespace LibreLancer.ImUI
             ptr[3] = (byte)(color.A * 255);
             return a;
         }
+
+        public static bool Spinner(string label, float radius, int thickness, uint color)
+        {
+            ImGuiHelper.AnimatingElement();
+            return _Spinner(label, radius, thickness, color);
+        }
+        
         [DllImport("cimgui", EntryPoint = "igExtSpinner", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool Spinner(string label, float radius, int thickness, uint color);
+        static extern bool _Spinner(string label, float radius, int thickness, uint color);
 	}
 }

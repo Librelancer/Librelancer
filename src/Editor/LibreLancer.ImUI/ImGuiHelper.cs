@@ -214,7 +214,20 @@ namespace LibreLancer.ImUI
 			return id;
 		}
 
-		public static void DeregisterTexture(Texture2D tex)
+        private int renderFrames = 6;
+        public bool DoRender()
+        {
+            if (game.Focused && game.EventsThisFrame || animating)
+                renderFrames = 6;
+            animating = false;
+            renderFrames--;
+            if (renderFrames <= 0) renderFrames = 0;
+            return renderFrames != 0;
+        }
+
+        private static bool animating = false;
+        public static void AnimatingElement() => animating = true;
+        public static void DeregisterTexture(Texture2D tex)
 		{
 			var id = textureIds[tex];
 			textureIds.Remove(tex);

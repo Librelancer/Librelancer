@@ -51,6 +51,7 @@ namespace LancerEdit
         Color4 cc;
         public void Begin(int fixWidth = -1, int fixHeight = -1)
         {
+            ImGuiHelper.AnimatingElement();
             var renderWidth = Math.Max(120, (int)ImGui.GetWindowWidth() - MarginW);
             var renderHeight = Math.Max(120, (int)ImGui.GetWindowHeight() - MarginH);
             if (fixWidth > 0) renderWidth = fixWidth;

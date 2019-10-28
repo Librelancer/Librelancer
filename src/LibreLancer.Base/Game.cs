@@ -294,7 +294,9 @@ namespace LibreLancer
                     SDL.SDL_SetWindowMinimumSize(windowptr, value.X, value.Y);
             }
         }
-
+        
+        public bool Focused { get; private set; }
+        public bool EventsThisFrame { get; private set; }
         public event Action WillClose;
         public void Run()
         {
@@ -375,6 +377,13 @@ namespace LibreLancer
             MouseButtons doRelease = 0;
             while (running)
             {
+                //Window State
+                var winFlags = (SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(sdlWin);
+                Focused = (winFlags & SDL.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS) ==
+                          SDL.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS ||
+                          (winFlags & SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS) ==
+                          SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS;
+                EventsThisFrame = false;
                 //This allows for press/release in same frame to have
                 //button down for one frame, e.g. trackpoint middle click on Linux/libinput.
                 MouseButtons pressedThisFrame = 0;
@@ -383,6 +392,7 @@ namespace LibreLancer
                 //Pump message queue
                 while (SDL.SDL_PollEvent(out e) != 0)
                 {
+                    EventsThisFrame = true;
                     switch (e.type)
                     {
                         case SDL.SDL_EventType.SDL_QUIT:

@@ -223,7 +223,8 @@ namespace LancerEdit
         Vector2 errorWindowSize = Vector2.Zero;
         public double TimeStep;
 		protected override void Draw(double elapsed)
-		{
+        {
+            if (!guiHelper.DoRender()) return;
             TimeStep = elapsed;
 			Viewport.Replace(0, 0, Width, Height);
 			RenderState.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
