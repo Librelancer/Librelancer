@@ -227,6 +227,10 @@ namespace LancerEdit
         private RenderTarget2D lastFrame;
 		protected override void Draw(double elapsed)
         {
+            //Yield so that it doesn't completely hog a core
+            //Works around certain nVidia configurations on Win32
+            Thread.Sleep(2); 
+            //Don't process all the imgui stuff when it isn't needed
             if (!guiHelper.DoRender(elapsed))
             {
                 if (lastFrame != null) lastFrame.BlitToScreen();
