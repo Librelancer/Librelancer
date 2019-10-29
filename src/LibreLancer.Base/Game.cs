@@ -294,6 +294,12 @@ namespace LibreLancer
                     SDL.SDL_SetWindowMinimumSize(windowptr, value.X, value.Y);
             }
         }
+
+        private bool waitForEvent = false;
+        public void WaitForEvent()
+        {
+            waitForEvent = true;
+        }
         public bool Focused { get; private set; }
         public bool EventsThisFrame { get; private set; }
         public event Action WillClose;
@@ -371,7 +377,7 @@ namespace LibreLancer
             timer.Start();
             double last = 0;
             double elapsed = 0;
-            SDL.SDL_Event e;
+            SDL.SDL_Event e = new SDL.SDL_Event();
             SDL.SDL_StopTextInput();
             MouseButtons doRelease = 0;
             while (running)
@@ -388,9 +394,19 @@ namespace LibreLancer
                 MouseButtons pressedThisFrame = 0;
                 Mouse.Buttons &= ~doRelease;
                 doRelease = 0;
+                bool eventWaited = false;
+                if (waitForEvent)
+                {                        
+                    waitForEvent = false;
+                    if (SDL.SDL_WaitEventTimeout(out e, 2000) != 0)
+                    {
+                        eventWaited = true;
+                    }
+                }
                 //Pump message queue
-                while (SDL.SDL_PollEvent(out e) != 0)
+                while (eventWaited || SDL.SDL_PollEvent(out e) != 0)
                 {
+                    eventWaited = false;
                     EventsThisFrame = true;
                     switch (e.type)
                     {
@@ -468,7 +484,7 @@ namespace LibreLancer
                             }
                     }
                 }
-
+                
                 //Do game things
                 if (!running)
                     break;
@@ -504,7 +520,6 @@ namespace LibreLancer
             Cleanup();
             SDL.SDL_Quit();
         }
-
         protected virtual void OnResize()
         {
         }

@@ -225,18 +225,17 @@ namespace LancerEdit
         Vector2 errorWindowSize = Vector2.Zero;
         public double TimeStep;
         private RenderTarget2D lastFrame;
+        private int kk = 0;
 		protected override void Draw(double elapsed)
         {
-            //Yield so that it doesn't completely hog a core
-            //Works around certain nVidia configurations on Win32
-            Thread.Sleep(2); 
+            Console.WriteLine("draw {0}", kk++);
             //Don't process all the imgui stuff when it isn't needed
             if (!guiHelper.DoRender(elapsed))
             {
                 if (lastFrame != null) lastFrame.BlitToScreen();
+                WaitForEvent(); //Yield like a regular GUI program
                 return;
             }
-            
             TimeStep = elapsed;
 			Viewport.Replace(0, 0, Width, Height);
 			RenderState.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
