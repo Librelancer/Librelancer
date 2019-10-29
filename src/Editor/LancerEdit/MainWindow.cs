@@ -176,6 +176,9 @@ namespace LancerEdit
             var mods = e.Modifiers;
             mods &= ~KeyModifiers.Numlock;
             mods &= ~KeyModifiers.Capslock;
+            if ((mods == KeyModifiers.LeftControl || mods == KeyModifiers.RightControl) && e.Key == Keys.S) {
+                if (ActiveTab != null) Save();
+            }
             if((mods == KeyModifiers.LeftControl || mods == KeyModifiers.RightControl) && e.Key == Keys.D) {
                 if (selected != null) ((EditorTab)selected).OnHotkey(Hotkeys.Deselect);
             }
