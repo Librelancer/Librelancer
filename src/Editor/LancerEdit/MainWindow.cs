@@ -213,6 +213,7 @@ namespace LancerEdit
             if (f != null && System.IO.File.Exists(f) && DetectFileType.Detect(f) == FileType.Utf)
             {
                 var t = new UtfTab(this, new EditableUtf(f), System.IO.Path.GetFileName(f));
+                t.FilePath = f;
                 ActiveTab = t;
                 AddTab(t);
             }
@@ -257,36 +258,18 @@ namespace LancerEdit
 				if (ActiveTab == null)
 				{
 					Theme.IconMenuItem("Save", "save", Color4.LightGray, false);
-				}
+                    Theme.IconMenuItem("Save As", "saveas", Color4.LightGray, false);
+                }
 				else
 				{
-					if (Theme.IconMenuItem(string.Format("Save '{0}'", ActiveTab.DocumentName), "save", Color4.White, true))
-					{
-                        var at = ActiveTab;
-                        Action save = () =>
-                        {
-                            var f = FileDialog.Save(UtfFilters);
-                            if (f != null)
-                            {
-                                at.DocumentName = System.IO.Path.GetFileName(f);
-                                at.UpdateTitle();
-                                string errText = "";
-                                if (!at.Utf.Save(f, ref errText))
-                                {
-                                    openError = true;
-                                    if (errorText == null) errorText = new TextBuffer();
-                                    errorText.SetText(errText);
-                                }
-                            }
-                        };
-                        if (at.DirtyCountHp > 0 || at.DirtyCountPart > 0)
-                        {
-                            Confirm("This model has unapplied changes. Continue?", save);
-                        }
-                        else
-                            save();
-
-					}
+					if (Theme.IconMenuItem(string.Format("Save '{0}'", ActiveTab.DocumentName), "saveas", Color4.White, true))
+                    {
+                        Save();
+                    }
+                    if (Theme.IconMenuItem("Save As", "saveas", Color4.White, true))
+                    {
+                        SaveAs();
+                    }
 				}
 				if (Theme.IconMenuItem("Quit", "quit", Color4.White, true))
 				{
@@ -534,6 +517,64 @@ namespace LancerEdit
             toAdd.Clear();
 		}
 
+        void Save()
+        {
+            var at = ActiveTab;
+            Action save = () =>
+            {
+                if (!string.IsNullOrEmpty(at.FilePath))
+                {
+                    string errText = "";
+                    if (!at.Utf.Save(at.FilePath, ref errText))
+                    {
+                        openError = true;
+                        if (errorText == null) errorText = new TextBuffer();
+                        errorText.SetText(errText);
+                    }
+                }
+                else
+                    RunSaveDialog(at);
+            };
+            if (at.DirtyCountHp > 0 || at.DirtyCountPart > 0)
+            {
+                Confirm("This model has unapplied changes. Continue?", save);
+            }
+            else
+                save();
+        }
+
+        void SaveAs()
+        {
+            var at = ActiveTab;
+            Action save = () =>  RunSaveDialog(at);
+            if (at.DirtyCountHp > 0 || at.DirtyCountPart > 0)
+            {
+                Confirm("This model has unapplied changes. Continue?", save);
+            }
+            else
+                save();
+        }
+
+        void RunSaveDialog(UtfTab at)
+        {
+            var f = FileDialog.Save(UtfFilters);
+            if (f != null)
+            {
+                string errText = "";
+                if (!at.Utf.Save(f, ref errText))
+                {
+                    openError = true;
+                    if (errorText == null) errorText = new TextBuffer();
+                    errorText.SetText(errText);
+                }
+                else
+                {
+                    at.DocumentName = System.IO.Path.GetFileName(f);
+                    at.UpdateTitle();
+                    at.FilePath = f;
+                }
+            }
+        }
         void SetTexFilter()
         {
             switch (cFilter)

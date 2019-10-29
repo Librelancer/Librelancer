@@ -16,6 +16,7 @@ namespace LancerEdit
 {
     public partial class UtfTab : EditorTab
     {
+        public string FilePath = null;
         public int DirtyCountHp = 0;
         public int DirtyCountPart = 0;
         public EditableUtf Utf;
