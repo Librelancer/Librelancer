@@ -225,10 +225,8 @@ namespace LancerEdit
         Vector2 errorWindowSize = Vector2.Zero;
         public double TimeStep;
         private RenderTarget2D lastFrame;
-        private int kk = 0;
 		protected override void Draw(double elapsed)
         {
-            Console.WriteLine("draw {0}", kk++);
             //Don't process all the imgui stuff when it isn't needed
             if (!guiHelper.DoRender(elapsed))
             {
