@@ -23,18 +23,27 @@ uniform bool SkinningEnabled;
 
 void main()
 {
-    mat4 boneTransform =
-        Bones[int(vertex_boneids[0])] * vertex_boneweights[0] +
-        Bones[int(vertex_boneids[1])] * vertex_boneweights[1] +
-        Bones[int(vertex_boneids[2])] * vertex_boneweights[2] +
-        Bones[int(vertex_boneids[3])] * vertex_boneweights[3];
-    vec3 skinnedPos = (boneTransform * vec4(vertex_position,1)).xyz;    
-    if(!SkinningEnabled) skinnedPos = vertex_position;
+    vec4 pos4 = vec4(vertex_position, 1.0);
+    vec3 skinnedPos =
+        (vertex_boneweights[0] * (Bones[int(vertex_boneids[0])] * pos4) + 
+        vertex_boneweights[1] * (Bones[int(vertex_boneids[1])] * pos4) + 
+        vertex_boneweights[2] * (Bones[int(vertex_boneids[2])] * pos4) + 
+        vertex_boneweights[3] * (Bones[int(vertex_boneids[3])] * pos4)).xyz;
+    vec4 norm4 = vec4(vertex_normal, 0.0);
+    vec3 skinnedNormal =
+            (vertex_boneweights[0] * (Bones[int(vertex_boneids[0])] * norm4) + 
+            vertex_boneweights[1] * (Bones[int(vertex_boneids[1])] * norm4) + 
+            vertex_boneweights[2] * (Bones[int(vertex_boneids[2])] * norm4) + 
+            vertex_boneweights[3] * (Bones[int(vertex_boneids[3])] * norm4)).xyz;
+    if(!SkinningEnabled) {
+        skinnedPos = vertex_position;
+        skinnedNormal = vertex_normal;
+    }
     vec4 pos = (ViewProjection * World) * vec4(skinnedPos, 1);
     gl_Position = pos;
     world_position = (World * vec4(skinnedPos,1)).xyz;
     view_position = (View * World) * vec4(skinnedPos,1);
-    out_normal = (NormalMatrix * vec4(vertex_normal,0)).xyz * FlipNormal;
+    out_normal = (NormalMatrix * vec4(skinnedNormal,0)).xyz * FlipNormal;
     out_texcoord = vec2(
         (vertex_texture1.x + MaterialAnim.x) * MaterialAnim.z, 
         1. - (vertex_texture1.y + MaterialAnim.y) * MaterialAnim.w

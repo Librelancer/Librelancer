@@ -919,6 +919,7 @@ namespace LancerEdit
         Anm.AnmFile anmFile;
         void SkeletonPanel()
         {
+            ImGui.Checkbox("Draw Skeleton", ref drawSkeleton);
             if(ImGui.Button("Open Anm")) {
                 var file = FileDialog.Open();
                 if (file == null) return;

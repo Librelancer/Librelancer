@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Utf.Dfm;
 using LibreLancer.Utf.Anm;
 namespace LibreLancer
@@ -35,7 +36,7 @@ namespace LibreLancer
             for(int i = 0; i < dfm.Parts.Count; i++)
             {
                 var bone = dfm.Parts[i].Bone;
-                boneMatrices[i] = bone.BoneToRoot;
+                boneMatrices[i] = Matrix4.Identity;
             }
         }
 

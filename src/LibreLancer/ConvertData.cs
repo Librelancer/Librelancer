@@ -160,26 +160,9 @@ namespace LibreLancer
 
         public static Matrix4 ToMatrix4x3(BinaryReader reader)
         {
-            Matrix4 result = Matrix4.Identity;
-
-            result.M11 = reader.ReadSingle();
-            result.M21 = reader.ReadSingle();
-            result.M31 = reader.ReadSingle();
-            result.M41 = 0;
-            result.M12 = reader.ReadSingle();
-            result.M22 = reader.ReadSingle();
-            result.M32 = reader.ReadSingle();
-            result.M42 = 0;
-            result.M13 = reader.ReadSingle();
-            result.M23 = reader.ReadSingle();
-            result.M33 = reader.ReadSingle();
-            result.M43 = 0;
-            result.M14 = reader.ReadSingle();
-            result.M24 = reader.ReadSingle();
-            result.M34 = reader.ReadSingle();
-            result.M44 = 1;
-
-            return result;
+            var mat3 = ToMatrix3x3(reader);
+            mat3.Transpose();
+            return Matrix4.CreateTranslation(-ToVector3(reader)) * mat3;
         }
 
         public static Color4 ToColor(byte[] data)

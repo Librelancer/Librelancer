@@ -18,6 +18,7 @@ namespace LibreLancer.Utf.Anm
 		public int ChannelType { get; private set; }
 
         public FrameType InterpretedType { get; private set; }
+        public QuaternionMethod QuaternionMethod { get; private set; }
 		public Frame[] Frames { get; private set; }
 
         private const int BIT_NORM = 128;
@@ -47,12 +48,13 @@ namespace LibreLancer.Utf.Anm
 					default: throw new Exception("Invalid node in " + root.Name + ": " + channelSubNode.Name);
 				}
 			}
-
             FrameType frameType = FrameType.Float;
+            QuaternionMethod = QuaternionMethod.Full;
             switch (ChannelType)
             {
                 case BIT_NORM:
-                    frameType = FrameType.Normal;
+                    frameType = FrameType.Quaternion;
+                    QuaternionMethod = QuaternionMethod.HalfAngle;
                     break;
                 case BIT_VEC:
                     frameType = FrameType.Vector3;
@@ -65,7 +67,8 @@ namespace LibreLancer.Utf.Anm
                     break;
                 case BIT_VEC | BIT_NORM:
                 case BIT_VEC | 0x40:  //special case normal? unsure
-                    frameType = FrameType.VecWithNormal;
+                    frameType = FrameType.VecWithQuat;
+                    QuaternionMethod = QuaternionMethod.HalfAngle;
                     break;
             }
             InterpretedType = frameType;
@@ -73,9 +76,9 @@ namespace LibreLancer.Utf.Anm
 			using (BinaryReader reader = new BinaryReader(new MemoryStream(frameBytes)))
 			{
 				for (int i = 0; i < FrameCount; i++)
-				{
-					Frames[i] = new Frame(reader, Interval == -1, frameType);
-				}
+                {
+                    Frames[i] = new Frame(reader, Interval == -1, frameType, QuaternionMethod);
+                }
 			}
 		}
 	}

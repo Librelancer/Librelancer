@@ -332,10 +332,23 @@ namespace LancerEdit
                 RenderSurs(cam);
             //Draw hardpoints
             DrawHardpoints(cam);
-           // if (drawSkeleton) DrawSkeleton(cam);
+            if (drawSkeleton) DrawSkeleton(cam);
         }
 
 
+        void DrawSkeleton(ICamera cam)
+        {
+            var matrix = GetModelMatrix();
+            GizmoRender.Scale = gizmoScale;
+            GizmoRender.Begin();
+
+            var dfm = (DF.DfmFile) drawable;
+            foreach (var b in dfm.Bones)
+            {
+                GizmoRender.AddGizmo(b.Value.BoneToRoot * matrix, Color4.Green);
+            }
+            GizmoRender.RenderGizmos(cam, rstate);
+        }
         Matrix4 GetModelMatrix()
         {
             return Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);

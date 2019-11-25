@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Net.Mime;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ImUI;
@@ -55,6 +56,11 @@ namespace LancerEdit
                 ImGui.Text($"Interval: {map.Channel.Interval}");
                 ImGui.Text($"Frame Count: {map.Channel.FrameCount}");
                 ImGui.Text($"Type: {map.Channel.InterpretedType} (0x{map.Channel.ChannelType.ToString("x")})");
+                if (map.Channel.InterpretedType == FrameType.Quaternion ||
+                    map.Channel.InterpretedType == FrameType.VecWithQuat)
+                {
+                    ImGui.Text($"Quaternion Storage: {map.Channel.QuaternionMethod}");
+                }
                 ImGui.Separator();
                 ImGui.BeginChild("##values");
                 ImGui.Columns(2);
@@ -76,9 +82,6 @@ namespace LancerEdit
                         case FrameType.Float:
                             ImGui.Text(frame.JointValue.ToString());
                             break;
-                        case FrameType.Normal:
-                            ImGui.Text(frame.NormalValue.ToString());
-                            break;
                         case FrameType.Vector3:
                             ImGui.Text(frame.VectorValue.ToString());
                             break;
@@ -87,9 +90,6 @@ namespace LancerEdit
                             break;
                         case FrameType.VecWithQuat:
                             ImGui.Text($"{frame.VectorValue} {frame.QuatValue}");
-                            break;
-                        case FrameType.VecWithNormal:
-                            ImGui.Text($"V:{frame.VectorValue} N:{frame.NormalValue}");
                             break;
                     }
                     ImGui.NextColumn();
