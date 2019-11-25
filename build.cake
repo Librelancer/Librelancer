@@ -10,6 +10,8 @@ var configuration = Argument("configuration","Release");
 var vsversion = Argument("vsversion","2017");
 var prefix = Argument("prefix","/usr/local/");
 var destdir = Argument("destdir", (string)null);
+var parallel = Argument("parallel", -1);
+
 bool CheckCommand_Unix(string cmd) => (StartProcess("/bin/sh", new ProcessSettings() { Arguments = string.Format("-c 'command -v {0}'",cmd) }) == 0);
 
 string GitLogTip_Shell()
@@ -103,7 +105,9 @@ Task("BuildNatives")
 			Options = new []{ "-DCMAKE_INSTALL_PREFIX=" + prefix }
 		});
 		int code;
-		if((code = StartProcess("make", new ProcessSettings() { WorkingDirectory = "obj" })) != 0)
+		string j = "";
+		if(parallel > -1) j = "-j" + parallel;
+		if((code = StartProcess("make", new ProcessSettings() { WorkingDirectory = "obj", Arguments = j })) != 0)
 			throw new Exception("Make exited with error code " + code);
 		CopyFiles("obj/binaries/*","./bin/Debug/");
 		CopyFiles("obj/binaries/*","./bin/Release/");
