@@ -150,7 +150,7 @@ namespace LibreLancer.Utf.Dfm
 				default:
 					if (node.Name.EndsWith(".3db", StringComparison.OrdinalIgnoreCase))
 					{
-						Bone b = new Bone(node as IntermediateNode);
+						Bone b = new Bone(node.Name, node as IntermediateNode);
 						Bones.Add(node.Name, b);
 					}
 					else throw new Exception("Invalid Node in dfm root: " + node.Name);

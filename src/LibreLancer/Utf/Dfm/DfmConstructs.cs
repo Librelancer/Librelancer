@@ -31,8 +31,7 @@ namespace LibreLancer.Utf.Dfm
     public class DfmConstruct
     {
         public string ParentName;
-        public string BoneA;
-        public string BoneB;
+        public string ChildName;
         public Vector3 Origin;
         public Matrix4 Rotation;
         public DfmConstruct(BinaryReader reader)
@@ -46,14 +45,9 @@ namespace LibreLancer.Utf.Dfm
             for (int i = 22; i < 64; i++) buffer[i] = 0;
 
             ln = 24;
-            reader.Read(buffer, 0, 24);
+            reader.Read(buffer, 0, 64);
             for(int i = 0; i < 64; i++) if(buffer[i] == 0) { ln = i;  break; }
-            BoneA = Encoding.ASCII.GetString(buffer, 0, ln);
-
-            ln = 40;
-            reader.Read(buffer, 0, 40);
-            for(int i = 0; i < 40; i++) if(buffer[i] == 0) { ln = i;  break; }
-            BoneB = Encoding.ASCII.GetString(buffer, 0, ln);
+            ChildName = Encoding.ASCII.GetString(buffer, 0, ln);
 
             Origin = ConvertData.ToVector3(reader);
         }

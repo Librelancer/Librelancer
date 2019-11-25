@@ -229,6 +229,8 @@ namespace LancerEdit
         {
             if (animator != null)
                 animator.Update(TimeSpan.FromSeconds(elapsed));
+            if (skinning != null) skinning.Update(TimeSpan.FromSeconds(elapsed));
+
             if (newErrorTimer > 0) newErrorTimer -= elapsed;
         }
         Vector2 rotation = Vector2.Zero;

@@ -416,7 +416,6 @@ namespace LancerEdit
         void DrawSimple(ICamera cam, bool wireFrame)
         {
             if (hiddenModels.Count > 0) return;
-            if (skinning != null) skinning.Update();
             Material mat = null;
             var matrix = Matrix4.Identity;
             if (isStarsphere)

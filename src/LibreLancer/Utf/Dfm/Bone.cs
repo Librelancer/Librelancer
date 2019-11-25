@@ -19,8 +19,10 @@ namespace LibreLancer.Utf.Dfm
 		protected Matrix4 transform = Matrix4.Identity;
 		public Matrix4 Transform { get { return transform; } }
 
-		public Bone(IntermediateNode node)
-		{
+        public string Name;
+		public Bone(string name, IntermediateNode node)
+        {
+            Name = name;
 			Hardpoints = new List<HardpointDefinition>();
 
 			foreach (Node subNode in node)
