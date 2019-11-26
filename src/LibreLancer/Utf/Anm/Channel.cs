@@ -19,8 +19,79 @@ namespace LibreLancer.Utf.Anm
 
         public FrameType InterpretedType { get; private set; }
         public QuaternionMethod QuaternionMethod { get; private set; }
-		public Frame[] Frames { get; private set; }
 
+        public float[] Times { get; private set; }
+        public Vector3[] Positions { get; private set; }
+        public float[] Angles { get; private set; }
+        public Quaternion[] Quaternions { get; private set; }
+
+        public bool HasPosition => Positions != null;
+        public bool HasOrientation => Quaternions != null;
+        public bool HasAngle => Angles != null;
+
+
+        int GetIndex(float time, out float t0, out float t1)
+        {
+            if (Times != null)
+            {
+                for (int i = 0; i < Times.Length - 1; i++)
+                {
+                    if (Times[i + 1] >= time)
+                    {
+                        t0 = Times[i];
+                        t1 = Times[i + 1];
+                        return i;
+                    }
+                }
+                t0 = t1 = 0;
+                return Times.Length - 1;
+            }
+            var idx = MathHelper.Clamp((int) Math.Floor(time / Interval), 0, FrameCount - 1);
+            t0 = idx * Interval;
+            t1 = (idx + 1) * Interval;
+            return idx;
+        }
+
+        public float Duration
+        {
+            get
+            {
+                if (Times != null) return Times[Times.Length - 1];
+                return Interval * FrameCount;
+            }
+        }
+        
+        public Vector3 PositionAtTime(float time)
+        {
+            var idx = GetIndex(time, out float t0, out float t1);
+            if (idx == FrameCount - 1) return Positions[FrameCount - 1];
+            var a = Positions[idx];
+            var b = Positions[idx + 1];
+            var blend = (time - t0) / (t1 - t0);
+            return a + ((b - a) * blend);
+        }
+
+        public Quaternion QuaternionAtTime(float time)
+        {
+            var idx = GetIndex(time, out float t0, out float t1);
+            if (idx == FrameCount - 1) return Quaternions[FrameCount - 1];
+            var a = Quaternions[idx];
+            var b = Quaternions[idx + 1];
+            return Quaternion.Slerp(a, b, (time - t0) / (t1 - t0));
+        }
+
+        public float AngleAtTime(float time)
+        {
+            var idx = GetIndex(time, out float t0, out float t1);
+            if (idx == FrameCount - 1) return Angles[FrameCount - 1];
+            var a = Angles[idx];
+            var b = Angles[idx + 1];
+            var dist = Math.Abs(b - a);
+            if (Math.Abs(t1 - t0) < 0.5f && dist > 1f) return b;
+            var blend = (time - t0) / (t1 - t0);
+            return MathHelper.Lerp(a, b, blend);
+        }
+        
         private const int BIT_NORM = 128;
         private const int BIT_FLOAT = 0x1;
         private const int BIT_VEC = 0x2;
@@ -55,31 +126,92 @@ namespace LibreLancer.Utf.Anm
                 case BIT_NORM:
                     frameType = FrameType.Quaternion;
                     QuaternionMethod = QuaternionMethod.HalfAngle;
+                    Quaternions = new Quaternion[FrameCount];
                     break;
                 case BIT_VEC:
                     frameType = FrameType.Vector3;
+                    Positions = new Vector3[FrameCount];
                     break;
                 case BIT_QUAT:
                     frameType = FrameType.Quaternion;
+                    Quaternions = new Quaternion[FrameCount];
                     break;
                 case BIT_VEC | BIT_QUAT:
                     frameType = FrameType.VecWithQuat;
+                    Positions = new Vector3[FrameCount];
+                    Quaternions = new Quaternion[FrameCount];
                     break;
                 case BIT_VEC | BIT_NORM:
                 case BIT_VEC | 0x40:  //special case normal? unsure
                     frameType = FrameType.VecWithQuat;
                     QuaternionMethod = QuaternionMethod.HalfAngle;
+                    Positions = new Vector3[FrameCount];
+                    Quaternions = new Quaternion[FrameCount];
+                    break;
+                default:
+                    Angles = new float[FrameCount];
                     break;
             }
             InterpretedType = frameType;
-            Frames = new Frame[FrameCount];
+            if (Interval == -1) Times = new float[FrameCount];
 			using (BinaryReader reader = new BinaryReader(new MemoryStream(frameBytes)))
 			{
 				for (int i = 0; i < FrameCount; i++)
                 {
-                    Frames[i] = new Frame(reader, Interval == -1, frameType, QuaternionMethod);
+                    if (Interval == -1) Times[i] = reader.ReadSingle();
+                    switch (frameType)
+                    {
+                        case FrameType.Vector3:
+                            Positions[i] = PosVec(reader);
+                            break;
+                        case FrameType.VecWithQuat:
+                            Positions[i] = PosVec(reader);
+                            Quaternions[i] = ReadQuaternion(reader, QuaternionMethod);
+                            break;
+                        case FrameType.Quaternion:
+                            Quaternions[i] = ReadQuaternion(reader, QuaternionMethod);
+                            break;
+                        case FrameType.Float:
+                            Angles[i] = reader.ReadSingle();
+                            break;
+                    }
                 }
 			}
 		}
+
+        static Vector3 PosVec(BinaryReader reader)
+        {
+            return new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+        }
+        
+        static Quaternion ReadQuaternion(BinaryReader reader, QuaternionMethod method)
+        {
+            if (method == QuaternionMethod.Full)
+            {
+                float w = reader.ReadSingle();
+                float x = reader.ReadSingle();
+                float y = reader.ReadSingle();
+                float z = reader.ReadSingle();
+                return new Quaternion(x,y,z,w);
+            }
+            else if (method == QuaternionMethod.HalfAngle)
+            {
+                var ha = new Vector3(
+                    reader.ReadInt16() / 32767f,
+                    reader.ReadInt16() / 32767f,
+                    reader.ReadInt16() / 32767f
+                );
+                return InvHalfAngle(ha);
+            }
+            else
+                throw new InvalidOperationException();
+        }
+
+        static Quaternion InvHalfAngle(Vector3 p)
+        {
+            var d = Vector3.Dot(p, p);
+            var s = (float) Math.Sqrt(2.0f - d);
+            return new Quaternion(p * s, 1.0f - d);
+        }
 	}
 }

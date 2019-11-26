@@ -280,7 +280,7 @@ namespace LancerEdit
                 cam = lookAtCam;
             }
             _window.DebugRender.StartFrame(cam, rstate);
-
+            if(drawable is DF.DfmFile) ((DF.DfmFile)drawable).SetSkinning(skinning);
             drawable.Update(cam, TimeSpan.Zero, TimeSpan.FromSeconds(_window.TotalTime));
             if (viewMode != M_NONE)
             {

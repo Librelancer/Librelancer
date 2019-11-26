@@ -134,6 +134,10 @@ namespace LibreLancer.GLDelegates
     public delegate void Uniform4i(int location, int v0, int v1, int v2, int v3);
     [SuppressUnmanagedCodeSecurity]
     public delegate void UniformMatrix4fv(int location, int count, bool transpose, ref Matrix4 value);
+    [SuppressUnmanagedCodeSecurity]
+    public delegate void UniformBlockBinding(uint program, uint uniformBlockIndex, uint uniformBlockBinding);
+    [SuppressUnmanagedCodeSecurity]
+    public delegate int GetUniformBlockIndex(uint program, string name);
     //Buffers
     [SuppressUnmanagedCodeSecurity]
     public delegate void GenBuffers(int n, out uint buffers);
@@ -141,6 +145,8 @@ namespace LibreLancer.GLDelegates
     public delegate void DeleteBuffers(int n, ref uint id);
     [SuppressUnmanagedCodeSecurity]
     public delegate void BindBuffer(int target, uint id);
+    [SuppressUnmanagedCodeSecurity]
+    public delegate void BindBufferRange(int target, uint index, uint buffer, IntPtr offset, IntPtr size);
     [SuppressUnmanagedCodeSecurity]
     public delegate void BufferData(int target, IntPtr size, IntPtr data, int usage);
     [SuppressUnmanagedCodeSecurity]

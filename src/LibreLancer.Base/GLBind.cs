@@ -51,6 +51,16 @@ namespace LibreLancer
 				GL.BindVertexArray (vao);
 			}
 		}
+
+        private static uint bound_ubo = 0;
+        public static void UniformBuffer(uint ubo)
+        {
+            if (bound_ubo != ubo)
+            {
+                bound_ubo = ubo;
+                GL.BindBuffer(GL.GL_UNIFORM_BUFFER, ubo);
+            }
+        }
 	}
 }
 

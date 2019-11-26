@@ -76,7 +76,7 @@ namespace LibreLancer.Utf.Dfm
 			if (ready) Material.Update(camera);
 		}
 
-		public void DrawBuffer(CommandBuffer buffer, VertexBuffer vbo, int vertexCount, Matrix4 world, Lighting lights, Material overrideMat)
+		public void DrawBuffer(CharacterSkinning skinning, CommandBuffer buffer, VertexBuffer vbo, int vertexCount, Matrix4 world, Lighting lights, Material overrideMat)
 		{
 			buffer.AddCommand(
 				(overrideMat ?? Material).Render,
@@ -89,7 +89,8 @@ namespace LibreLancer.Utf.Dfm
 				StartIndex,
 				TriangleStripIndices.Length - 2,
 				SortLayers.OPAQUE,
-				0
+				0,
+                skinning
 			);
 		}
 

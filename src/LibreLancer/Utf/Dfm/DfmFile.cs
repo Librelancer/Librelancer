@@ -215,6 +215,10 @@ namespace LibreLancer.Utf.Dfm
 			Levels[0].DrawBuffer(buffer, world, light,overrideMat);		
 		}
 
+        public void SetSkinning(CharacterSkinning skinning)
+        {
+            Levels[0].SetSkinning(skinning);
+        }
         //HACK: dfm can't have radius without skinning
         float radius = -1;
 		public float GetRadius()

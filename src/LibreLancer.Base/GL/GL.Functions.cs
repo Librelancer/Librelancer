@@ -168,6 +168,10 @@ namespace LibreLancer
         public static Uniform4i Uniform4i;
 		[MapsTo("glUniformMatrix4fv")]
 		public static UniformMatrix4fv UniformMatrix4fv;
+        [MapsTo("glUniformBlockBinding")] 
+        public static UniformBlockBinding UniformBlockBinding;
+        [MapsTo("glGetUniformBlockIndex")] 
+        public static GetUniformBlockIndex GetUniformBlockIndex;
 		[MapsTo("glLinkProgram")]
 		public static LinkProgram LinkProgram;
 		[MapsTo("glUseProgram")]
@@ -202,6 +206,8 @@ namespace LibreLancer
 		}
 		[MapsTo("glBindBuffer")]
 		public static BindBuffer BindBuffer;
+        [MapsTo("glBindBufferRange")] 
+        public static BindBufferRange BindBufferRange;
 		[MapsTo("glBufferData")]
 		public static BufferData BufferData;
 		[MapsTo("glBufferSubData")]

@@ -215,10 +215,15 @@ namespace LibreLancer.Utf.Dfm
 		{
 			foreach (FaceGroup faceGroup in FaceGroups)
 			{
-                faceGroup.DrawBuffer(buffer, vertexBuffer, vertexBuffer.VertexCount, world, light, overrideMat);
+                faceGroup.DrawBuffer(skinning, buffer, vertexBuffer, vertexBuffer.VertexCount, world, light, overrideMat);
 			}
 		}
 
+        private CharacterSkinning skinning;
+        public void SetSkinning(CharacterSkinning skinning)
+        {
+            this.skinning = skinning;
+        }
 		public void Draw(RenderState rstate, Matrix4 world, Lighting lights)
 		{
 			if (ready)

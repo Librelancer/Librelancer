@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Numerics;
 using LibreLancer.Utf.Dfm;
@@ -20,12 +21,14 @@ namespace LibreLancer
             public string Name;
             public BoneInstance Parent;
             public Matrix4 InvBindPose;
-            public Matrix4 ZeroState = Matrix4.Identity;
+            public Matrix4 OriginalRotation = Matrix4.Identity;
+            public Vector3 Origin = Vector3.Zero;
+            
             public Quaternion Rotation = Quaternion.Identity;
-
+            public Vector3 Translation = Vector3.Zero;
             public Matrix4 LocalTransform()
             {
-                var mine = Matrix4.CreateFromQuaternion(Rotation) * ZeroState;
+                var mine = Matrix4.CreateFromQuaternion(Rotation)  * (OriginalRotation * Matrix4.CreateTranslation(Translation + Origin));
                 if (Parent != null)
                     mine *= Parent.LocalTransform();
                 return mine;
@@ -37,28 +40,22 @@ namespace LibreLancer
             }
         }
         Dictionary<string, BoneInstance> boneInstances = new Dictionary<string, BoneInstance>();
-        
+
+        public UniformBuffer BonesBuffer;
         public CharacterSkinning(DfmFile dfm)
         {
             this.dfm = dfm;
-            boneMatrices = new Matrix4[dfm.Bones.Count];
-            instanceArray = new BoneInstance[dfm.Bones.Count];
-            int i = 0;
-            var boneFiles = new Dictionary<string, BoneInstance>();
-            foreach (var bone in dfm.Bones)
+            int length = (dfm.Parts.Keys.Max() + 1);
+            boneMatrices = new Matrix4[length];
+            instanceArray = new BoneInstance[length];
+            
+            foreach (var kv in dfm.Parts)
             {
                 var inst = new BoneInstance();
-                inst.Name = bone.Key;
-                inst.InvBindPose = bone.Value.BoneToRoot.Inverted();
-                boneMatrices[i] = Matrix4.Identity;
-                instanceArray[i++] = inst;
-                boneFiles.Add(bone.Key, inst);
-            }
-
-            foreach (var con in dfm.Parts.Values)
-            {
-                var objName = con.objectName;
-                boneInstances.Add(objName, boneFiles[con.Bone.Name]);
+                inst.Name = kv.Value.objectName;
+                inst.InvBindPose = kv.Value.Bone.BoneToRoot.Inverted();
+                instanceArray[kv.Key] = inst;
+                boneInstances.Add(inst.Name, inst);
             }
 
             foreach (var con in dfm.Constructs.Constructs)
@@ -70,8 +67,14 @@ namespace LibreLancer
                     var parent = boneInstances[con.ParentName];
                     inst.Parent = parent;
                 }
-                inst.ZeroState = con.Rotation * Matrix4.CreateTranslation(con.Origin);
+
+                inst.OriginalRotation = con.Rotation;
+                inst.Origin = con.Origin;
             }
+            for (int j = 0; j < boneMatrices.Length; j++)
+                boneMatrices[j] = Matrix4.Identity;
+            BonesBuffer = new UniformBuffer(200, 64, typeof(Matrix4));
+            BonesBuffer.SetData(boneMatrices);
         }
         bool hasPose = false;
         //HACK: Dfms could have transparency
@@ -81,20 +84,11 @@ namespace LibreLancer
         {
             if (!boneInstances.ContainsKey(jm.ChildName)) return;
             var joint = boneInstances[jm.ChildName];
-            double t = totalTime;
-            float t1 = 0;
-            for (int i = 0; i < jm.Channel.Frames.Length - 1; i++)
-            {
-                var t0 = jm.Channel.Frames[i].Time ?? (jm.Channel.Interval * i);
-                t1 = jm.Channel.Frames[i + 1].Time ?? (jm.Channel.Interval * (i + 1));
-                var v1 = jm.Channel.Frames[i].QuatValue;
-                var v2 = jm.Channel.Frames[i + 1].QuatValue;
-                if (t >= t0 && t <= t1)
-                {
-                    var blend = (totalTime - t0) / (t1 - t0);
-                    joint.Rotation = Quaternion.Slerp(v1, v2, (float) blend);
-                }
-            }
+            var t = (float) totalTime;
+            if (jm.Channel.HasOrientation)
+                joint.Rotation = jm.Channel.QuaternionAtTime(t);
+            if (jm.Channel.HasPosition)
+                joint.Translation = jm.Channel.PositionAtTime(t);
         }
 
         private Script curScript;
@@ -106,14 +100,11 @@ namespace LibreLancer
             {
                 ProcessJointMap(jm);
             }
-
             for (int i = 0; i < boneMatrices.Length; i++)
             {
-                boneMatrices[i] = instanceArray[i].BoneMatrix();
+                if(instanceArray[i] != null) boneMatrices[i] = instanceArray[i].BoneMatrix();
             }
-            var mesh = dfm.Levels[0];
-            foreach (var fg in mesh.FaceGroups)
-                fg.Material.Render.SetSkinningData(boneMatrices, ref Lighting.Empty);
+            BonesBuffer.SetData(boneMatrices);
         }
 
         public void SetPose(Script anmScript)
@@ -122,7 +113,5 @@ namespace LibreLancer
             curScript = anmScript;
             totalTime = 0;
         }
-
-
     }
 }

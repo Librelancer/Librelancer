@@ -65,7 +65,7 @@ namespace LancerEdit
                 ImGui.BeginChild("##values");
                 ImGui.Columns(2);
                 float iT = 0;
-                foreach (var frame in map.Channel.Frames)
+                for(int i = 0; i < map.Channel.FrameCount; i++)
                 {
                     float t = 0;
                     if (map.Channel.Interval > 0)
@@ -74,22 +74,22 @@ namespace LancerEdit
                         iT += map.Channel.Interval;
                     }
                     else
-                        t = frame.Time.Value;
+                        t = map.Channel.Times[i];
                     ImGui.Text(t.ToString());
                     ImGui.NextColumn();
                     switch (map.Channel.InterpretedType)
                     {
                         case FrameType.Float:
-                            ImGui.Text(frame.JointValue.ToString());
+                            ImGui.Text(map.Channel.Angles[i].ToString());
                             break;
                         case FrameType.Vector3:
-                            ImGui.Text(frame.VectorValue.ToString());
+                            ImGui.Text(map.Channel.Positions[i].ToString());
                             break;
                         case FrameType.Quaternion:
-                            ImGui.Text(frame.QuatValue.ToString());
+                            ImGui.Text(map.Channel.Quaternions[i].ToString());
                             break;
                         case FrameType.VecWithQuat:
-                            ImGui.Text($"{frame.VectorValue} {frame.QuatValue}");
+                            ImGui.Text($"{map.Channel.Positions[i]} {map.Channel.Quaternions[i]}");
                             break;
                     }
                     ImGui.NextColumn();

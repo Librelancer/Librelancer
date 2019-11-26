@@ -107,6 +107,7 @@
     <Compile Include="Texture.cs" />
     <Compile Include="Texture2D.cs" />
     <Compile Include="TextureCube.cs" />
+    <Compile Include="UniformBuffer.cs" />
     <Compile Include="VectorMath.cs" />
     <Compile Include="VertexBuffer.cs" />
     <Compile Include="VertexSlots.cs" />

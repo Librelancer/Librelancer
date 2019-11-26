@@ -103,37 +103,12 @@ namespace LibreLancer
 			//looping?
 			if (jm.Channel.Interval == -1)
 			{
-				var duration = jm.Channel.Frames[jm.Channel.FrameCount - 1].Time.Value;
-				if (!loop && t >= duration)
+				if (!loop && t >= jm.Channel.Duration)
 					return true;
 				else
-					t = t % duration;
+					t = t % jm.Channel.Duration;
 			}
-			float t1 = 0;
-			for (int i = 0; i < jm.Channel.Frames.Length - 1; i++)
-			{
-				var t0 = jm.Channel.Frames[i].Time ?? (jm.Channel.Interval * i);
-				t1 = jm.Channel.Frames[i + 1].Time ?? (jm.Channel.Interval * (i + 1));
-				var v1 = jm.Channel.Frames[i].JointValue;
-				var v2 = jm.Channel.Frames[i + 1].JointValue;
-				if (t >= t0 && t <= t1)
-				{
-					var dist = Math.Abs(v2 - v1);
-					if (Math.Abs(t1 - t0) < 0.5f && dist > 1f)
-					{
-						//Deal with the horrible rotation scripts
-						//Disable interpolation between e.g.  3.137246 to -3.13287
-						//Don't remove this or things go crazy ~ Callum
-						joint.Update((float)v2);
-					}
-					else
-					{
-						var x = (t - t0) / (t1 - t0);
-						var val = v1 + (v2 - v1) * x;
-						joint.Update((float)val);
-					}
-				}
-			}
+			joint.Update(jm.Channel.AngleAtTime((float)t));
 			return false;
 		}
 	}

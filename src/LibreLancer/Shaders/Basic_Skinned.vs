@@ -17,24 +17,29 @@ uniform mat4x4 View;
 uniform mat4x4 ViewProjection;
 uniform mat4x4 NormalMatrix;
 uniform vec4 MaterialAnim;
-uniform mat4x4 Bones[50];
+
 uniform float FlipNormal;
 uniform bool SkinningEnabled;
+
+layout(std140) uniform Bones 
+{
+    mat4 BoneMats[200];
+};
 
 void main()
 {
     vec4 pos4 = vec4(vertex_position, 1.0);
     vec3 skinnedPos =
-        (vertex_boneweights[0] * (Bones[int(vertex_boneids[0])] * pos4) + 
-        vertex_boneweights[1] * (Bones[int(vertex_boneids[1])] * pos4) + 
-        vertex_boneweights[2] * (Bones[int(vertex_boneids[2])] * pos4) + 
-        vertex_boneweights[3] * (Bones[int(vertex_boneids[3])] * pos4)).xyz;
+        (vertex_boneweights[0] * (BoneMats[int(vertex_boneids[0])] * pos4) + 
+        vertex_boneweights[1] * (BoneMats[int(vertex_boneids[1])] * pos4) + 
+        vertex_boneweights[2] * (BoneMats[int(vertex_boneids[2])] * pos4) + 
+        vertex_boneweights[3] * (BoneMats[int(vertex_boneids[3])] * pos4)).xyz;
     vec4 norm4 = vec4(vertex_normal, 0.0);
     vec3 skinnedNormal =
-            (vertex_boneweights[0] * (Bones[int(vertex_boneids[0])] * norm4) + 
-            vertex_boneweights[1] * (Bones[int(vertex_boneids[1])] * norm4) + 
-            vertex_boneweights[2] * (Bones[int(vertex_boneids[2])] * norm4) + 
-            vertex_boneweights[3] * (Bones[int(vertex_boneids[3])] * norm4)).xyz;
+            (vertex_boneweights[0] * (BoneMats[int(vertex_boneids[0])] * norm4) + 
+            vertex_boneweights[1] * (BoneMats[int(vertex_boneids[1])] * norm4) + 
+            vertex_boneweights[2] * (BoneMats[int(vertex_boneids[2])] * norm4) + 
+            vertex_boneweights[3] * (BoneMats[int(vertex_boneids[3])] * norm4)).xyz;
     if(!SkinningEnabled) {
         skinnedPos = vertex_position;
         skinnedNormal = vertex_normal;

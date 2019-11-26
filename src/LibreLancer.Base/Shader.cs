@@ -9,7 +9,7 @@ namespace LibreLancer
 {
     public class Shader
     {
-        const int MAX_UNIFORM_LOC = 128;
+        const int MAX_UNIFORM_LOC = 256;
         uint programID = 0;
         Dictionary<string, int> progLocations = new Dictionary<string, int>();
         int[] cachedObjects = new int[MAX_UNIFORM_LOC];
@@ -71,7 +71,8 @@ namespace LibreLancer
 
 		public int UserTag = 0;
 		bool NeedUpdate(int loc, int hash)
-		{
+        {
+            if (loc < 0) return false;
             return cachedObjects[loc] != hash;
 		}
 
@@ -188,6 +189,17 @@ namespace LibreLancer
 			}
 		}
 
+        private Dictionary<string, int> uniformBlocks = new Dictionary<string, int>();
+        public void UniformBlockBinding(string uniformBlock, int index)
+        {
+            int block;
+            if (!uniformBlocks.TryGetValue(uniformBlock, out block))
+            {
+                block = GL.GetUniformBlockIndex(programID, uniformBlock);
+                uniformBlocks.Add(uniformBlock, block);
+            }
+            GL.UniformBlockBinding(programID, (uint) block, (uint) index);
+        }
         public void UseProgram()
         {
             GLBind.UseProgram(programID);

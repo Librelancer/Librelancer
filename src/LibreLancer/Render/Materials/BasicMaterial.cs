@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Utf.Dfm;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
 
@@ -119,23 +120,6 @@ namespace LibreLancer
             lastShader.SetFlipNormal(FlipNormals);
         }
 
-        public override void SetSkinningData(Matrix4[] bones, ref Lighting lights)
-        {
-            ShaderCaps caps = ShaderCaps.None;
-            if (VertexLighting) caps |= ShaderCaps.VertexLighting;
-            if (HasSpotlight(ref lights)) caps |= ShaderCaps.Spotlight;
-            if (EtEnabled) caps |= ShaderCaps.EtEnabled;
-            if (Fade) caps |= ShaderCaps.FadeEnabled;
-            var sh = GetShader(new Utf.Dfm.DfmVertex(), caps);
-            sh.SetSkinningEnabled(true);
-            var loc = sh.Shader.GetLocation("Bones");
-            if(loc != -1)
-            {
-                for (int i = 0; i < bones.Length; i++)
-                    sh.Shader.SetMatrix(loc + i, ref bones[i]);
-            }
-        }
-
         public override void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights)
 		{
 			if (Camera == null)
@@ -192,7 +176,14 @@ namespace LibreLancer
 				shader.SetMaterialAnim(new Vector4(0, 0, 1, 1));
 			}
 			shader.SetFlipNormal(FlipNormals);
-			//Ec
+            if (Bones != null && vertextype is DfmVertex) {
+                shader.Shader.UniformBlockBinding("Bones", 1);
+                shader.SetSkinningEnabled(true);
+                Bones.BindTo(1);
+            }
+            else
+                shader.SetSkinningEnabled(false);
+            //Ec
 			shader.SetEc(Ec);
 			//EtSampler
 			if (EtEnabled)

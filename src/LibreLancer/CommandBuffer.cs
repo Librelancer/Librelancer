@@ -30,7 +30,7 @@ namespace LibreLancer
 			_transparentSort = SortTransparent;
             this.rstate = rstate;
 		}
-		public void AddCommand(RenderMaterial material, MaterialAnim anim, Matrix4 world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, int layer, float z = 0)
+		public void AddCommand(RenderMaterial material, MaterialAnim anim, Matrix4 world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, int layer, float z = 0, CharacterSkinning skinning = null)
 		{
 			if (material.IsTransparent)
 			{
@@ -65,7 +65,8 @@ namespace LibreLancer
                     rstate.CullFace = CullFaces.Back;
                     material.FlipNormals = false;
                 }
-			}
+                material.Bones = skinning?.BonesBuffer;
+            }
 		}
 		//TODO: Implement MaterialAnim for asteroids
 		public unsafe void AddCommandFade(RenderMaterial material, Matrix4 world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, int layer, Vector2 fadeParams, float z = 0)
