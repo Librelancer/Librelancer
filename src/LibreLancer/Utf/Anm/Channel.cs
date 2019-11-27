@@ -124,11 +124,13 @@ namespace LibreLancer.Utf.Anm
             switch (ChannelType)
             {
                 case BIT_NORM:
+                case 0x40:
                     frameType = FrameType.Quaternion;
                     QuaternionMethod = QuaternionMethod.HalfAngle;
                     Quaternions = new Quaternion[FrameCount];
                     break;
                 case BIT_VEC:
+                case 0x22:
                     frameType = FrameType.Vector3;
                     Positions = new Vector3[FrameCount];
                     break;
