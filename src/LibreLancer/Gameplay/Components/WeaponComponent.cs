@@ -66,7 +66,8 @@ namespace LibreLancer
                     current += delta;
                     if (current >= target) current = target;
                 }
-                barrel.Update(target);
+
+                barrel.Update(target, Quaternion.Identity);
             }
         }
 

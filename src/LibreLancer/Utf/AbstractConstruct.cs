@@ -81,6 +81,6 @@ namespace LibreLancer.Utf
             return matrix;
         }
         public abstract void Reset();
-        public abstract void Update(float distance);
+        public abstract void Update(float distance, Quaternion quat);
     }
 }

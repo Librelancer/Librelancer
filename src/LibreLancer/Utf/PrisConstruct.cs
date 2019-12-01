@@ -45,7 +45,7 @@ namespace LibreLancer.Utf
         {
             currentTransform = Matrix4.Identity;
         }
-        public override void Update(float distance)
+        public override void Update(float distance, Quaternion quat)
         {
 			Vector3 currentTranslation = AxisTranslation * MathHelper.Clamp(distance, Min, Max);
             currentTransform = Matrix4.CreateTranslation(currentTranslation);

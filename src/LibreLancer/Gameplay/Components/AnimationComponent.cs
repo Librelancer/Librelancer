@@ -108,7 +108,12 @@ namespace LibreLancer
 				else
 					t = t % jm.Channel.Duration;
 			}
-			joint.Update(jm.Channel.AngleAtTime((float)t));
+
+            float angle = 0;
+            if (jm.Channel.HasAngle) angle = jm.Channel.AngleAtTime((float) t);
+            var quat = Quaternion.Identity;
+            if (jm.Channel.HasOrientation) quat = jm.Channel.QuaternionAtTime((float) t);
+            joint.Update(angle, quat);
 			return false;
 		}
 	}

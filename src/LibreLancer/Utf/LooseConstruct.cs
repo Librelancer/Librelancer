@@ -27,7 +27,7 @@ namespace LibreLancer.Utf
         public override void Reset()
         {
         }
-        public override void Update(float distance)
+        public override void Update(float distance, Quaternion quat)
         {
             throw new NotImplementedException();
         }

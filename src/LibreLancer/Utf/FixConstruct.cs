@@ -38,7 +38,7 @@ namespace LibreLancer.Utf
         {
             fixtransform = Rotation * Matrix4.CreateTranslation(Origin);
         }
-        public override void Update(float distance)
+        public override void Update(float distance, Quaternion quat)
         {
             throw new NotImplementedException();
         }

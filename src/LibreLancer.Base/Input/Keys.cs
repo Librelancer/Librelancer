@@ -294,12 +294,12 @@ namespace LibreLancer
             SDLK_3, SDLK_4, SDLK_5, SDLK_6, SDLK_7, SDLK_8, SDLK_9, SDLK_0,SDLK_RETURN,SDLK_ESCAPE,
             SDLK_BACKSPACE, SDLK_TAB, SDLK_SPACE, SDLK_MINUS, SDLK_EQUALS, SDLK_LEFTBRACKET, SDLK_RIGHTBRACKET,
             SDLK_BACKSLASH, SDLK_HASH, SDLK_SEMICOLON, SDLK_QUOTE, SDLK_BACKQUOTE, SDLK_COMMA, SDLK_PERIOD,
-            SDLK_SLASH, SDLK_F1, SDLK_F2, SDLK_F3, SDLK_F4, SDLK_F5, SDLK_F6, SDLK_F7, SDLK_F8, SDLK_F9,
+            SDLK_SLASH, SDLK_CAPSLOCK, SDLK_F1, SDLK_F2, SDLK_F3, SDLK_F4, SDLK_F5, SDLK_F6, SDLK_F7, SDLK_F8, SDLK_F9,
             SDLK_F10, SDLK_F11, SDLK_F12, SDLK_PRINTSCREEN, SDLK_SCROLLLOCK, SDLK_PAUSE, SDLK_INSERT, SDLK_HOME,
-            SDLK_PAGEUP, SDLK_DELETE, SDLK_END, SDLK_PAGEDOWN, SDLK_RIGHT, SDLK_END, SDLK_DOWN, SDLK_UP, SDLK_NUMLOCKCLEAR,
-            SDLK_KP_DIVIDE, SDLK_KP_MULTIPLY, SDLK_KP_MINUS, SDLK_KP_PLUS, SDLK_KP_ENTER, SDLK_KP_0, SDLK_KP_1,
+            SDLK_PAGEUP, SDLK_DELETE, SDLK_END, SDLK_PAGEDOWN, SDLK_RIGHT, SDLK_LEFT, SDLK_DOWN, SDLK_UP, SDLK_NUMLOCKCLEAR,
+            SDLK_KP_DIVIDE, SDLK_KP_MULTIPLY, SDLK_KP_MINUS, SDLK_KP_PLUS, SDLK_KP_ENTER, SDLK_KP_1,
             SDLK_KP_2, SDLK_KP_3, SDLK_KP_4, SDLK_KP_5, SDLK_KP_6, SDLK_KP_7, SDLK_KP_8, SDLK_KP_9, SDLK_KP_0,
-            SDLK_KP_ENTER
+            SDLK_KP_PERIOD
         };
         /// <summary>
         /// Interprets the key as a keycode and returns the current Keys for the layout
@@ -308,6 +308,7 @@ namespace LibreLancer
         /// <param name="input">The symbol to map</param>
         public static Keys Map(this Keys input)
         {
+            var mp = defaultMapping[(int) input];
             return (Keys)SDL.SDL_GetScancodeFromKey(defaultMapping[(int)input]);
         }
         internal static void ResetKeyNames() //Keyboard layout changed

@@ -19,7 +19,9 @@ namespace LibreLancer.Utf
         public float Min3 { get; set; }
         public float Max3 { get; set; }
 
-        public override Matrix4 Transform { get { return internalGetTransform(Rotation * Matrix4.CreateTranslation(Origin + Offset)); } }
+        public override Matrix4 Transform { get { return internalGetTransform(quatRot * Rotation * Matrix4.CreateTranslation(Origin + Offset)); } }
+        
+        private Matrix4 quatRot = Matrix4.Identity;
 
         public SphereConstruct(ConstructCollection constructs) : base(constructs) {}
 
@@ -52,10 +54,11 @@ namespace LibreLancer.Utf
 		}
         public override void Reset()
         {
+            quatRot = Matrix4.Identity;
         }
-        public override void Update(float distance)
+        public override void Update(float distance, Quaternion quat)
         {
-            //throw new NotImplementedException();
+            quatRot = Matrix4.CreateFromQuaternion(quat);
         }
     }
 }

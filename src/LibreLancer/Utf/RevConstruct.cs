@@ -47,7 +47,7 @@ namespace LibreLancer.Utf
             currentTransform = Matrix4.Identity;
         }
         public float Current = 0;
-        public override void Update(float distance)
+        public override void Update(float distance, Quaternion quat)
         {
             Current = MathHelper.Clamp(distance, Min, Max);
 			currentTransform = Matrix4.CreateFromAxisAngle(AxisRotation, Current);
