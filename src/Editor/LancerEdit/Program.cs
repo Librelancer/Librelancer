@@ -25,6 +25,7 @@ namespace LancerEdit
                 SetDllDirectory(fullpath);
             }
             if (!Platform.CheckDependencies()) return;
+            ColladaSupport.InitXML();
             MainWindow mw = null;
 #if !DEBUG
             var domain = AppDomain.CurrentDomain;

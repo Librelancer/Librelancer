@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
 using System.IO;
+using System.Threading;
 using System.Xml.Serialization;
 using CL = Collada141;
 using LibreLancer;
@@ -162,9 +163,34 @@ namespace LancerEdit
             }
         }
     }
+
     public class ColladaSupport
     {
-        public static XmlSerializer XML = new XmlSerializer(typeof(CL.COLLADA));
+        //This is explicitly initialised in a background thread
+        //Because instantiating this object takes >1 second
+        public static XmlSerializer XML
+        {
+            get
+            {
+                if (!initing) throw new InvalidOperationException("Not inited");
+                while(!inited) Thread.Sleep(0);
+                return _xml;
+            }
+        }
+        private static XmlSerializer _xml;
+        private static bool initing = false;
+        private static volatile bool inited = false;
+        public static void InitXML()
+        {
+            if (initing) return;
+            initing = true;
+            new Thread(() =>
+            {
+                _xml = new XmlSerializer(typeof(CL.COLLADA));
+                FLLog.Info("Collada", "Xml support loaded");
+                inited = true; 
+            }).Start();
+        }
         public static List<ColladaObject> Parse(string filename)
         {
             CL.COLLADA dae;
