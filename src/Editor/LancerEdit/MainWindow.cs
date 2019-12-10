@@ -229,10 +229,11 @@ namespace LancerEdit
         Vector2 errorWindowSize = Vector2.Zero;
         public double TimeStep;
         private RenderTarget2D lastFrame;
+        private bool colladaLoading = false;
 		protected override void Draw(double elapsed)
         {
             //Don't process all the imgui stuff when it isn't needed
-            if (!guiHelper.DoRender(elapsed))
+            if (!colladaLoading && !guiHelper.DoRender(elapsed))
             {
                 if (lastFrame != null) lastFrame.BlitToScreen();
                 WaitForEvent(); //Yield like a regular GUI program
@@ -303,6 +304,7 @@ namespace LancerEdit
                     if((input = FileDialog.Open(ColladaFilters)) != null) {
                         openLoading = true;
                         finishLoading = false;
+                        colladaLoading = true;
                         new Thread(() =>
                         {
                             List<ColladaObject> dae = null;
@@ -617,7 +619,9 @@ namespace LancerEdit
             ImGui.SameLine(Math.Max((win / 2f) - (txt / 2f),0));
             ImGui.Text(text);
         }
-        void FinishColladaLoad(List<ColladaObject> dae, string tabName) {
+        void FinishColladaLoad(List<ColladaObject> dae, string tabName)
+        {
+            colladaLoading = false;
             finishLoading = true;
             AddTab(new ColladaTab(dae, tabName, this));
         }
