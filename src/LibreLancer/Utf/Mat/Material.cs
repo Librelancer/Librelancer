@@ -209,6 +209,7 @@ namespace LibreLancer.Utf.Mat
 			type = MaterialMap.Instance.Get(node.Name.ToLowerInvariant()) ?? type;
 
 			if (type == "HighGlassMaterial" || 
+                type == "GlassMaterial" ||
 			    type == "HUDAnimMaterial" || 
 			    type == "HUDIconMaterial" ||
 			    type == "PlanetWaterMaterial")
