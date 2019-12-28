@@ -125,7 +125,7 @@ namespace LibreLancer.Data.Universe
 						break;
 					case "archetype":
 						if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-						if (archetypeName != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
+						if (archetypeName != null) FLLog.Warning("Universe", "Duplicate " + e.Name + " Entry in " + section.Name);
 						archetypeName = e[0].ToString();
 						break;
 					case "star":

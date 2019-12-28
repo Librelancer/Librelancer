@@ -18,7 +18,7 @@ namespace LibreLancer.GameData
 		public float FillDist { get; private set; }
 		public void SetFillDist(int fillDist)
 		{
-			FillDist = fillDist * FILLDIST_MULTIPLIER;
+			FillDist = fillDist;
 		}
 		public float EmptyCubeFrequency;
 		public int BillboardCount;
@@ -29,7 +29,8 @@ namespace LibreLancer.GameData
 		public Color3f BillboardTint;
 
 		//Multiplier hardcoded in Freelancer's common.dll
-		const float FILLDIST_MULTIPLIER = 1.74f;
+        //This is for near_field, not for rendering
+		//const float FILLDIST_MULTIPLIER = 1.74f;
 
         public Action LoadResAction;
         public void LoadResources()

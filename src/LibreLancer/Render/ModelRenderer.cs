@@ -237,7 +237,11 @@ namespace LibreLancer
 			{
 				var maxd = LODRanges[LODRanges.Length - 1] * sysr.LODMultiplier;
 				maxd *= maxd;
-                if (dsq > maxd) return false;
+                if (dsq > maxd)
+                {
+                    CurrentLevel = -1;
+                    return false;
+                }
 			}
 			if (Model != null)
 			{

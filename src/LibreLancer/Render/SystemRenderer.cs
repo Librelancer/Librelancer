@@ -258,7 +258,7 @@ namespace LibreLancer
 			}
             //Async calcs
             objects = new List<ObjectRenderer>(250);
-            for (int i = 0; i < World.Objects.Count; i += 16)
+            /*for (int i = 0; i < World.Objects.Count; i += 16)
 			{
 				JThreads.Instance.AddTask((o) =>
 				{
@@ -266,7 +266,11 @@ namespace LibreLancer
 					for (int j = 0; j < 16 && ((j + offset) < World.Objects.Count); j++) World.Objects[j + offset].PrepareRender(camera, nr, this);
 				}, i);
 			}
-			JThreads.Instance.BeginExecute();
+			JThreads.Instance.BeginExecute();*/
+            for (int i = 0; i < World.Objects.Count; i++)
+            {
+                World.Objects[i].PrepareRender(camera, nr, this);
+            }
 			if (transitioned)
 			{
 				//Fully in fog. Skip Starsphere
@@ -318,7 +322,7 @@ namespace LibreLancer
 			//Clear depth buffer for game objects
 			rstate.ClearDepth();
 			billboards.Begin(camera, commands);
-			JThreads.Instance.FinishExecute(); //Make sure visibility calculations are complete						  
+			//JThreads.Instance.FinishExecute(); //Make sure visibility calculations are complete						  
 			if (GLExtensions.Features430 && ExtraLights)
 			{
 				//Forward+ heck yeah!

@@ -54,7 +54,7 @@ namespace LibreLancer
                 astbillboards = new AsteroidBillboard[field.BillboardCount];
             rdist += field.FillDist;
             renderDistSq = rdist * rdist;
-            cubes = new CalculatedCube[1000];
+            cubes = new CalculatedCube[4000];
             _asteroidsCalculation = CalculateAsteroids;
             if (field.Cube.Count > 0)
             {
@@ -294,6 +294,20 @@ namespace LibreLancer
         CalculatedCube[] cubes;
         void CalculateAsteroids()
         {
+            try
+            {
+                CalculateAsteroidsTask();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            
+        }
+
+        void CalculateAsteroidsTask()
+        {
             Vector3 position;
             BoundingFrustum frustum;
             lock (_camera) {
@@ -332,6 +346,7 @@ namespace LibreLancer
             }
             _asteroidsCalculated = true;
         }
+        
         volatile int ZfrustumCulled = 0;
         volatile int ZexistCulled = 0;
         volatile int ZshapeCulled = 0;

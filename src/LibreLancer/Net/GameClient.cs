@@ -172,6 +172,7 @@ namespace LibreLancer
             sw = Stopwatch.StartNew();
             var conf = new NetPeerConfiguration(NetConstants.DEFAULT_APP_IDENT);
             conf.EnableMessageType(NetIncomingMessageType.UnconnectedData);
+            conf.DualStack = true;
             client = new NetClient(conf);
             client.Start();
             NetIncomingMessage im;

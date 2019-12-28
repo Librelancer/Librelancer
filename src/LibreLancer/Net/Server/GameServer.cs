@@ -105,6 +105,7 @@ namespace LibreLancer
 			netconf.EnableMessageType(NetIncomingMessageType.DiscoveryRequest);
 			netconf.EnableMessageType(NetIncomingMessageType.ConnectionApproval);
             netconf.EnableMessageType(NetIncomingMessageType.UnconnectedData);
+            netconf.DualStack = true;
 			netconf.Port = Port;
 			netconf.MaximumConnections = 200;
 			NetServer = new NetServer(netconf);
