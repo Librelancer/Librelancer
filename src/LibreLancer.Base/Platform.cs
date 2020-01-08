@@ -59,6 +59,11 @@ namespace LibreLancer
 			return RunningPlatform.GetFallbackFace(library, cp);
 		}
 
+        public static byte[] GetMonospaceBytes()
+        {
+            return RunningPlatform.GetMonospaceBytes();
+        }
+
         static List<string> loadedTtf = new List<string>();
         public static void AddTtfFile(string file)
         {

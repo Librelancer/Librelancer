@@ -12,6 +12,7 @@ namespace LibreLancer.Platforms
 		Face LoadSystemFace(Library library, string face, ref FontStyles style);
 		Face GetFallbackFace(Library library, uint cp);
         void AddTtfFile(string path);
-	}
+        byte[] GetMonospaceBytes();
+    }
 }
 

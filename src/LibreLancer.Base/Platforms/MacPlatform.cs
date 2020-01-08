@@ -6,6 +6,7 @@ using System;
 using System.Runtime.InteropServices;
 using SharpFont;
 using LibreLancer.Platforms.Mac;
+
 namespace LibreLancer.Platforms
 {
 	class MacPlatform : IPlatform
@@ -141,6 +142,12 @@ namespace LibreLancer.Platforms
 			Cocoa.SendVoid (autoreleasePool, Selector.Release);
 			return path;
 		}
+
+        public byte[] GetMonospaceBytes()
+        {
+            var str = GetFontPath("Monaco", FontStyles.Regular);
+            return System.IO.File.ReadAllBytes(str);
+        }
 
         public void AddTtfFile(string path)
         {

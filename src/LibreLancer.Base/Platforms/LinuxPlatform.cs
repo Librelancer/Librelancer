@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using SharpFont;
 using FontConfigSharp;
 using System.Runtime.InteropServices;
+
 namespace LibreLancer.Platforms
 {
 	class LinuxPlatform : IPlatform
@@ -112,6 +113,24 @@ namespace LibreLancer.Platforms
             var str = UnsafeHelpers.StringToHGlobalUTF8(file);
             pg_addttfglobal(str);
             Marshal.FreeHGlobal(str);
+        }
+
+        public byte[] GetMonospaceBytes()
+        {
+            string file = null;
+            using (var pat = FcPattern.FromFamilyName ("monospace")) {
+                //Match normally
+                pat.ConfigSubstitute(fcconfig, FcMatchKind.Pattern);
+                pat.DefaultSubstitute();
+                FcResult result;
+                using (var font = pat.Match (fcconfig, out result)) {
+                    if (font.GetString (Fc.FC_FILE, 0, ref file) == FcResult.Match)
+                    {
+                        return System.IO.File.ReadAllBytes(file);
+                    }
+                }
+            }
+            throw new Exception("No system monospace font found");
         }
     }
 }

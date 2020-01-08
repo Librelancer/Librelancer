@@ -58,6 +58,8 @@ namespace LibreLancer
             GLBind.VertexArray(VAO);
             GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
 			GL.BufferData (GL.GL_ARRAY_BUFFER, (IntPtr)(length * decl.Stride), IntPtr.Zero, usageHint);
+            if(isStream)
+                buffer = Marshal.AllocHGlobal(length * decl.Stride);
             size = length;
 			decl.SetPointers ();
 			VertexCount = length;
@@ -106,46 +108,21 @@ namespace LibreLancer
 		}
 
         const int STREAM_FLAGS = GL.GL_MAP_WRITE_BIT | GL.GL_MAP_INVALIDATE_BUFFER_BIT;
+        private IntPtr buffer;
         public IntPtr BeginStreaming()
         {
             if (!streaming) throw new InvalidOperationException("not streaming buffer");
-            if(GLExtensions.DSA)
-            {
-                return GL.MapNamedBufferRange(VBO, IntPtr.Zero, (IntPtr)(size * decl.Stride), STREAM_FLAGS);
-            } 
-            else if (GL.GLES)
-            {
-                throw new NotImplementedException(); 
-                //For if I ever do ANGLE again
-                //This is apparently an extension in GLES 2
-                //Not sure about WebGL, maybe needs to be emulated?
-            }
-            else
-            {
-                Bind();
-                GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
-                return GL.MapBufferRange(GL.GL_ARRAY_BUFFER, IntPtr.Zero, (IntPtr)(size * decl.Stride), STREAM_FLAGS);
-            }
+            return buffer;
         }
 
         //Count is for if emulation is required
         public void EndStreaming(int count)
         {
             if (!streaming) throw new InvalidOperationException("not streaming buffer");
-            if (GLExtensions.DSA)
-            {
-                GL.UnmapNamedBuffer(VBO);
-            }
-            else if (GL.GLES)
-            {
-                throw new NotImplementedException();
-            }
-            else
-            {
-                Bind();
-                GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
-                GL.UnmapBuffer(GL.GL_ARRAY_BUFFER);
-            }
+            if (count == 0) return;
+            GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
+            GL.BufferData(GL.GL_ARRAY_BUFFER, (IntPtr)(size * decl.Stride), IntPtr.Zero, GL.GL_STREAM_DRAW);
+            GL.BufferSubData(GL.GL_ARRAY_BUFFER, IntPtr.Zero, (IntPtr) (count * decl.Stride), buffer);
         }
 
         internal void Bind()
@@ -216,6 +193,8 @@ namespace LibreLancer
         public void Dispose()
         {
             TotalBuffers--;
+            if(streaming)
+                Marshal.FreeHGlobal(buffer);
             GL.DeleteBuffer(VBO);
 			GL.DeleteVertexArray (VAO);
             GLBind.VertexArray(0);

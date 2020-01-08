@@ -388,6 +388,13 @@ namespace LibreLancer
 			DrawQuad(textShader, mask, src, dst, color, BlendMode.Normal);
 		}
 
+        static Vector2 Transform2D(Matrix3 matrix, Vector2 vec)
+        {
+            var v3 = (matrix * new Vector3(vec.X, vec.Y, 1));
+            return v3.Xy / v3.Z;
+        }
+       
+        
 		public void DrawImageStretched(Texture2D tex, Rectangle dest, Color4 color, bool flip = false)
 		{
 			DrawQuad (
@@ -455,6 +462,33 @@ namespace LibreLancer
 			primitiveCount += 2;
 
 		}
+
+        public void DrawTriangle(Texture2D tex, Vector2 pa, Vector2 pb, Vector2 pc, Vector2 uva, Vector2 uvb,
+            Vector2 uvc, Color4 color)
+        {
+            if (currentShader != null && currentShader != imgShader) Flush();
+            if (currentMode != BlendMode.Normal) Flush();
+            if (currentTexture != null && currentTexture != tex) Flush();
+            if ((primitiveCount + 2) * 3 >= MAX_INDEX || (vertexCount + 4) >= MAX_VERT) Flush ();
+			
+            currentTexture = tex;
+            currentShader = imgShader;
+            currentMode = BlendMode.Normal;
+            
+            vertices[vertexCount++] = new Vertex2D(
+                pa, uva, color
+                );
+            vertices[vertexCount++] = new Vertex2D(
+                pb, uvb, color
+            );
+            vertices[vertexCount++] = new Vertex2D(
+                pc, uvc, color
+            );
+            vertices[vertexCount++] = new Vertex2D(
+                pc, uvc, color
+            );
+            primitiveCount += 2;
+        }
 		void DrawQuad(Shader shader, Texture2D tex, Rectangle source, Rectangle dest, Color4 color, BlendMode mode, bool flip = false)
 		{
 			if (currentShader != null && currentShader != shader)
@@ -523,7 +557,7 @@ namespace LibreLancer
 			if (!active)
 				throw new InvalidOperationException ("TextRenderer.Start() must be called before TextRenderer.Finish()");
 			Flush ();
-            vbo.EndStreaming(0);
+            //vbo.EndStreaming(0);
 			active = false;
 		}
 
@@ -538,6 +572,9 @@ namespace LibreLancer
 			currentShader.UseProgram ();
 
             //vbo.SetData (vertices, vertexCount);
+            var verts = new Vertex2D[vertexCount];
+            for (int i = 0; i < vertexCount; i++)
+                verts[i] = vertices[i];
             vbo.EndStreaming(vertexCount);
 			vbo.Draw (PrimitiveTypes.TriangleList, primitiveCount);
             vertices = (Vertex2D*)vbo.BeginStreaming();

@@ -20,6 +20,16 @@ namespace LibreLancer
 			Width = w;
 			Height = h;
 		}
+        
+        public bool Contains(float x, float y)
+        {
+            return (
+                x >= X &&
+                x <= (X + Width) &&
+                y >= Y &&
+                y <= (Y + Height)
+            );
+        }
 	}
 }
 

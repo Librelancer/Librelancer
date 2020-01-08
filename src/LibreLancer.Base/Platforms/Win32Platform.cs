@@ -91,6 +91,15 @@ namespace LibreLancer.Platforms
 			return fc;
 		}
 
+        public byte[] GetMonospaceBytes()
+        {
+            byte[] buffer;
+            if (GdiOpenFace("Consolas", FontStyles.Regular, out buffer)) return buffer;
+            if (GdiOpenFace("Courier New", FontStyles.Regular, out buffer)) return buffer;
+            if (GdiOpenFace("Arial", FontStyles.Regular, out buffer)) return buffer;
+            throw new Exception("No system monospace font");
+        }
+
         public void AddTtfFile(string file)
         {
             //Not implemented
