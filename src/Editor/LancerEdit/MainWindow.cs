@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -64,7 +64,6 @@ namespace LancerEdit
         public EditorConfiguration Config;
         public MainWindow() : base(800,600,false)
 		{
-
             Version = "LancerEdit " + Platform.GetInformationalVersion<MainWindow>();
 			MaterialMap = new MaterialMap();
 			MaterialMap.AddRegex(new LibreLancer.Ini.StringKeyValue("^nomad.*$", "NomadMaterialNoBendy"));

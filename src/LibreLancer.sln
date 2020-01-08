@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer", "LibreLancer\LibreLancer.csproj", "{C1D53477-0117-48EF-A13D-A0225F0F50CA}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -123,8 +123,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThnPlayer", "Editor\ThnPlayer\ThnPlayer.csproj", "{A7708BB5-9D67-4082-8CD7-619149EBB591}"
 EndProject
 Global
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\extern\SharpFont\Source\SharpFontShared\SharpFontShared.projitems*{c293db32-fa42-486d-b128-5a12522fae4e}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -216,6 +216,9 @@ Global
 		{A7708BB5-9D67-4082-8CD7-619149EBB591}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A7708BB5-9D67-4082-8CD7-619149EBB591}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{38B159EB-CF44-4A4F-948A-E238D7FAE28E} = {953F895D-0AAD-4427-B912-71215C04BEFD}
 		{81A8703E-031C-422C-804B-34B3BAF834A6} = {953F895D-0AAD-4427-B912-71215C04BEFD}
@@ -227,5 +230,8 @@ Global
 		{76FDED5B-2C12-453E-B499-CB669E55AD5B} = {6CED24D8-885B-4ACC-8EC2-71A5629CB0C9}
 		{C293DB32-FA42-486D-B128-5A12522FAE4E} = {6CED24D8-885B-4ACC-8EC2-71A5629CB0C9}
 		{A7708BB5-9D67-4082-8CD7-619149EBB591} = {953F895D-0AAD-4427-B912-71215C04BEFD}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F0DBA334-A181-4598-A5A7-357B34200D46}
 	EndGlobalSection
 EndGlobal
