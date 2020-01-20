@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -53,18 +53,17 @@ namespace LancerEdit
             RenderTarget2D.ClearBinding();
             window.Viewport.Pop();
 
-            //ImGui. Base off ImageButton so we can get input for selection later
-            var style = ImGui.GetStyle();
-            var btn = style.Colors[(int)ImGuiCol.Button];
-            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, btn);
-            ImGui.PushStyleColor(ImGuiCol.ButtonActive, btn);
-            ImGui.ImageButton((IntPtr)rid, new Vector2(renderWidth, icard.Height),
-                                 new Vector2(0, 1), new Vector2(1, 0),
-                                 0,
-                                 Vector4.Zero, Vector4.One);
-            ImGui.PopStyleColor();
-            ImGui.PopStyleColor();
-            //Somehow keep track of selection? (idk if InfocardDisplay should do this)
+            var cPos = (Vector2)ImGui.GetCursorPos();
+            var wPos = (Vector2)ImGui.GetWindowPos();
+            var scrPos = -ImGui.GetScrollY();
+            var mOffset = cPos + wPos + new Vector2(0, scrPos);
+            var drawList = ImGui.GetWindowDrawList();
+            drawList.AddImage((IntPtr)rid,
+                new Vector2((int)mOffset.X, (int)mOffset.Y),
+                new Vector2((int)(mOffset.X + renderWidth), (int)(mOffset.Y + icard.Height)),
+                new Vector2(0, 1), new Vector2(1, 0));
+
+            ImGui.InvisibleButton("##infocardbutton", new System.Numerics.Vector2(renderWidth, icard.Height));
         }
         public void Dispose()
         {

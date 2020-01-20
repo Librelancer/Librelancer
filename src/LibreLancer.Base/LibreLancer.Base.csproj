@@ -107,6 +107,10 @@
     <Compile Include="Texture.cs" />
     <Compile Include="Texture2D.cs" />
     <Compile Include="TextureCube.cs" />
+    <Compile Include="Text\DirectWrite\CustomFontLoader.cs" />
+    <Compile Include="Text\DirectWrite\CustomFontFileEnumerator.cs" />
+    <Compile Include="Text\DirectWrite\FontCollectionExtensions.cs" />
+    <Compile Include="Text\DirectWrite\MemoryFontStream.cs" />
     <Compile Include="UniformBuffer.cs" />
     <Compile Include="VectorMath.cs" />
     <Compile Include="VertexBuffer.cs" />
@@ -239,9 +243,5 @@
     <None Include="SSE\README.txt" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Dialogs\" />
-    <Folder Include="Text\Pango\" />
-    <Folder Include="Text\DirectWrite\" />
-  </ItemGroup>
+  <ItemGroup />
 </Project>

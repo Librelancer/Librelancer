@@ -74,12 +74,21 @@ namespace LibreLancer.Text.DirectWrite
     {
         Factory dwFactory;
         public DirectWriteTextRenderer Renderer;
+        public FontCollection customCollection;
+        CustomFontLoader customLoader;
         Renderer2D render2d;
         public DirectWriteText(Renderer2D r2d)
         {
             dwFactory = new Factory();
-            Renderer = new DirectWriteTextRenderer(dwFactory);
+            Renderer = new DirectWriteTextRenderer(dwFactory, this);
             render2d = r2d;
+            CreateCustomCollection();
+        }
+
+        void CreateCustomCollection()
+        {
+            customLoader = new CustomFontLoader(dwFactory);
+            customCollection = new FontCollection(dwFactory, customLoader, customLoader.Key);
         }
 
         DWrite.TextAlignment CastAlignment(TextAlignment t)
@@ -94,6 +103,7 @@ namespace LibreLancer.Text.DirectWrite
 
         public override BuiltRichText BuildText(IList<RichTextNode> nodes, int width, float sizeMultiplier = 1)
         {
+            if (!customLoader.Valid) CreateCustomCollection();
             var paragraphs = new List<List<RichTextNode>>();
             paragraphs.Add(new List<RichTextNode>());
             int first = 0;
@@ -149,6 +159,9 @@ namespace LibreLancer.Text.DirectWrite
                     if (text.Underline) layout.SetUnderline(true, range);
                     if (!string.IsNullOrEmpty(text.FontName))
                     {
+                        if(customCollection.FindFamilyName(text.FontName, out int _)) {
+                            layout.SetFontCollection(customCollection, range);
+                        }
                         layout.SetFontFamilyName(text.FontName, range);
                         lastFont = text.FontName;
                     }
@@ -211,7 +224,8 @@ namespace LibreLancer.Text.DirectWrite
         int maxLineHeight = 0;
         int bytesPerPixel;
         IntPtr bmBits;
-        public DirectWriteTextRenderer(DWrite.Factory dWriteFactory)
+        DirectWriteText engine;
+        public DirectWriteTextRenderer(DWrite.Factory dWriteFactory, DirectWriteText engine)
         {
             renderTarget = dWriteFactory.GdiInterop.CreateBitmapRenderTarget(IntPtr.Zero, MAX_GLYPH_SIZE, MAX_GLYPH_SIZE);
             renderTarget.PixelsPerDip = 1f;
@@ -223,7 +237,8 @@ namespace LibreLancer.Text.DirectWrite
             bytesPerPixel = dib.dsBm.bmBitsPixel / 8;
             bmBits = dib.dsBm.bmBits;
             fontCollection = dWriteFactory.GetSystemFontCollection(false);
-            renderParams = new RenderingParams(dWriteFactory, 1.2f, 0, 0, PixelGeometry.Flat, RenderingMode.Default);
+            renderParams = new RenderingParams(dWriteFactory, 1.2f, 0, 0, PixelGeometry.Flat, RenderingMode.NaturalSymmetric);
+            this.engine = engine;
             pages.Add(new Texture2D(TEXT_PAGE_SIZE, TEXT_PAGE_SIZE, false, SurfaceFormat.Color));
         }
 
@@ -257,9 +272,16 @@ namespace LibreLancer.Text.DirectWrite
             public int OffsetX;
             public int OffsetY;
         }
+        DWrite.Font GetFont(FontFace face)
+        {
+            DWrite.Font result;
+            if (engine.customCollection.GetFontFromFontFace(face, out result))
+                return result;
+            return fontCollection.GetFontFromFontFace(face);
+        }
         uint FontHash(FontFace face, float size)
         {
-            var font = fontCollection.GetFontFromFontFace(face);
+            var font = GetFont(face);
             var name = font.FontFamily.FamilyNames.GetString(0);
             var name2 = font.FaceNames.GetString(0);
             unchecked
@@ -319,7 +341,7 @@ namespace LibreLancer.Text.DirectWrite
                         var destP = (y * r.Width * 4) + (x * 4);
                         var pixel = srcData[(top + y) * bytesPerPixel * MAX_GLYPH_SIZE + (left + x) * bytesPerPixel];
                         data[destP] = data[destP + 1] = data[destP + 2] = 255;
-                        data[destP + 3] = pixel;
+                        data[destP + 3] = (byte)(Math.Pow(pixel / 255.0, 1.0 / 1.45) * 255.0);
                     }
                 }
                 //

@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -64,13 +64,15 @@ namespace LibreLancer
             return RunningPlatform.GetMonospaceBytes();
         }
 
-        static List<string> loadedTtf = new List<string>();
+        internal static List<string> LoadedTTFs = new List<string>();
+        internal static event Action FontLoaded;
         public static void AddTtfFile(string file)
         {
-            if (loadedTtf.Contains(file)) return;
+            if (LoadedTTFs.Contains(file)) return;
             if (!File.Exists(file)) throw new FileNotFoundException(file);
-            loadedTtf.Add(file);
+            LoadedTTFs.Add(file);
             RunningPlatform.AddTtfFile(file);
+            FontLoaded?.Invoke();
         }
 
         public static string GetInformationalVersion<T>()
