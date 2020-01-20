@@ -17,7 +17,8 @@ PACKAGES_CONFIG=$TOOLS_DIR/packages.config
 PACKAGES_CONFIG_MD5=$TOOLS_DIR/packages.config.md5sum
 ADDINS_PACKAGES_CONFIG=$ADDINS_DIR/packages.config
 MODULES_PACKAGES_CONFIG=$MODULES_DIR/packages.config
-
+# Dependency Check (Librelancer)
+$SCRIPT_DIR/scripts/monocheck || { echo >&2 "ERROR: Dependency check failed."; exit 1; }
 # Define md5sum or md5 depending on Linux/OSX
 MD5_EXE=
 if [[ "$(uname -s)" == "Darwin" ]]; then
