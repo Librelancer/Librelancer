@@ -258,7 +258,8 @@ namespace LibreLancer
 		}
 
 		public override Texture FindTexture (string name)
-		{
+        {
+            if (name == null) return null;
 			if (name == NullTextureName)
 				return NullTexture;
 			if (name == WhiteTextureName)

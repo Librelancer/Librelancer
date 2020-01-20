@@ -33,6 +33,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ColorTextEdit.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="FileDialog.cs" />
     <Compile Include="Gtk2.cs" />

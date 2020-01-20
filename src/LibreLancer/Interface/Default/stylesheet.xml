@@ -1,0 +1,59 @@
+<Stylesheet>
+	<ButtonStyle Width="162" Height="43" Name="menubutton" MouseEnterSound="ui_rollover">
+		<ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="16" FontFamily="Agency FB">
+			<ButtonAppearance.Background>
+				<DisplayModel model="fullbutton_animating"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover TextColor="text_hover"/>
+	</ButtonStyle>
+	<ScrollbarStyle Width="16" TrackMarginY="4" ButtonMarginX="2">
+		<ScrollbarStyle.UpButton Height="12">
+			<ButtonStyle.Normal>
+				<ButtonAppearance.Background>
+					<DisplayImage image="sliderarrow_up" tint="text"/>
+				</ButtonAppearance.Background>
+			</ButtonStyle.Normal>
+			<ButtonStyle.Hover>
+				<ButtonAppearance.Background>
+					<DisplayImage image="sliderarrow_up" tint="slow_blue_yellow"/>
+				</ButtonAppearance.Background>
+			</ButtonStyle.Hover>
+		</ScrollbarStyle.UpButton>
+		<ScrollbarStyle.DownButton Height="12">
+			<ButtonStyle.Normal>
+				<ButtonAppearance.Background>
+					<DisplayImage image="sliderarrow_down" tint="text"/>
+				</ButtonAppearance.Background>
+			</ButtonStyle.Normal>
+			<ButtonStyle.Hover>
+				<ButtonAppearance.Background>
+					<DisplayImage image="sliderarrow_down" tint="slow_blue_yellow"/>
+				</ButtonAppearance.Background>
+			</ButtonStyle.Hover>
+		</ScrollbarStyle.DownButton>
+		<ScrollbarStyle.TrackArea>
+			<DisplayRectangle color="text" WidthPx="1"/>
+		</ScrollbarStyle.TrackArea>
+		<ScrollbarStyle.Thumb Height="32">
+			<ButtonStyle.Normal>
+				<ButtonAppearance.Background>
+					<DisplayImage image="slider_middle" tint="text"/>
+				</ButtonAppearance.Background>
+			</ButtonStyle.Normal>
+			<ButtonStyle.Hover>
+				<ButtonAppearance.Background>
+					<DisplayImage image="slider_middle" tint="slow_blue_yellow"/>
+				</ButtonAppearance.Background>
+			</ButtonStyle.Hover>
+		</ScrollbarStyle.Thumb>
+	</ScrollbarStyle>
+</Stylesheet>
+
+
+
+
+
+
+
+

@@ -1,130 +1,41 @@
-﻿<?xml version="1.0" encoding="UTF-8" ?>
-<XInterface>
-    <ResourceFile>//INTERFACE/interface.generic.vms</ResourceFile>
-    <Include file="commonstyles"/>
-    <Style id="navbox1">
-        <Size height="9.4%" ratio="5.05"/>
-        <Model path="//INTERFACE/HUD/hud_maneuverbox1.cmp" transform="0.0 0.15 12.9 55.0"/>
-    </Style>
-    <Style id="navbox2">
-        <Size height="9.4%" ratio="5.05"/>
-        <Model path="//INTERFACE/HUD/hud_maneuverbox2.cmp" transform="0.0 0.15 12.9 55.0"/>
-    </Style>
-    <Style id="navbox3">
-        <Size height="9.4%" ratio="5.05"/>
-        <Model path="//INTERFACE/HUD/hud_maneuverbox3.cmp" transform="0.0 0.15 12.9 55.0"/>
-    </Style>
-    <Style id="navbox5">
-        <Size height="9.4%" ratio="5.05"/>
-        <Model path="//INTERFACE/HUD/hud_maneuverbox5.cmp" transform="0.0 0.15 12.9 55.0"/>
-    </Style>
-     <Style id="actionbox">
-        <Size height="7.6%" ratio="2.6"/>
-        <Model path="//INTERFACE/HUD/hud_maneuverbox1.cmp" transform="0.0 0.15 12.9 55.0"/>
-    </Style>
-    <DefaultScene>main</DefaultScene>
-    <Scene id="main">
-        <Script><![CDATA[
-            function events.onconstruct()
-                local boxes = {
-                    'navbox1', 'navbox2', 'navbox3', 'navbox4', 'navbox5'
-                }
-                for _, box in pairs(boxes) do
-                    dom:element(box):hide()
-                end
-                local pct = 0
-                local btns = game:buttons()
-                local cnt = #btns
-                local actionpct = 0
-                if cnt == 1 then
-                    dom:element('navbox1'):show()
-                elseif cnt == 2 then
-                    dom:element('navbox2'):show()
-                    pct = -4.5
-                elseif cnt == 3 then
-                    dom:element('navbox3'):show()
-                    pct = -10
-                elseif cnt == 4 then
-                    dom:element('navbox4'):show()
-                    pct = -13.5
-                elseif cnt == 5 then
-                    dom:element('navbox5'):show()
-                    pct = -18
-                end
-                local active = game:activebutton()
-                for _, button in pairs(btns) do
-                    local col = "white"
-                    local hover = 'e:modelcolor(mixcolor(math.abs(math.cos(9 * time)), "yellow", "rgba(160,196,210,255)"))'
-                    if button.action == active then
-                        col = "yellow"
-                        hover = ""
-                        dom:element('actionbox'):setpos(pct / 100, 0.087)
-                        actionpct = pct
-                    end
-                    local b = dom:addbutton({
-                    anchor = "top",
-                    y = "0.1%",
-                    x = (pct .. '%'),
-                    height = "8%",
-                    ratio = 1.2,
-                    models = {
-                        { path = button.model, transform = "0.0 0.0 30.0 35.0", color = col },
-                    },
-                    onclick = "navclick('" .. button.action .. "')",
-                    hoverstyle = hover
-                    })
-                    pct = pct + 9.5
-                end
-            
-                local actions = game:actions()
-                cnt = #actions
-                if cnt == 0 then
-                    dom:element('actionbox'):hide()
-                else
-                    for _, button in pairs(actions) do
-                    local col = "white"
-                    local hover = 'e:modelcolor(mixcolor(math.abs(math.cos(9 * time)), "yellow", "rgba(160,196,210,255)"))'
-                    local b = dom:addbutton({
-                        anchor = "top",
-                        y = "8%",
-                        x = (actionpct .. '%'),
-                        height = "7%",
-                        ratio = 1.2,
-                        models = {
-                            { path = button.model, transform = "0.0 0.0 30.0 35.0", color = col },
-                        },
-                        onclick = "navclick('" .. button.action .. "')",
-                        hoverstyle = hover
-                        })
-                    end
-                end
-                
-                if game:multiplayer() then
-                    dom:element('nnbox5'):hide()
-                else
-                    dom:element('nnbox7'):hide()
-                end
-            end
+<Scene ScriptFile="baseside.lua">
+	<!-- Managed by navbox.lua -->
+	<Panel ID="actionbox1" Y="42" Anchor="TopCenter" Width="33" Height="31" X="-80.4" Visible="true">
+		<Panel.Background>
+			<DisplayModel model="actionbox1"/>
+		</Panel.Background>
+	</Panel>
+	<Panel ID="actionbox2" Y="42" Anchor="TopCenter" Width="58" Height="31" X="-74.4" Visible="false">
+		<Panel.Background>
+			<DisplayModel model="actionbox2"/>
+		</Panel.Background>
+	</Panel>
+	<Panel ID="actionbox3" Y="42" Anchor="TopCenter" Width="37" Height="31" X="-80.4" Visible="false">
+		<Panel.Background>
+			<DisplayModel model="actionbox3"/>
+		</Panel.Background>
+	</Panel>
+	<Panel ID="navbox1"/>
+	<Panel ID="navbox2"/>
+	<Panel ID="navbox3"/>
+	<Panel ID="navbox5" Anchor="TopCenter" Y="-10" Width="260" Height="52.12" Visible="true">
+		<Panel.Background>
+			<DisplayModel model="navbox5"/>
+		</Panel.Background>
+	</Panel>
+	<Panel ID="navbox4" Anchor="TopCenter" Y="-10" Width="225" Height="52.12" Visible="false">
+		<Panel.Background>
+			<DisplayModel model="navbox4"/>
+		</Panel.Background>
+	</Panel>
+    <!-- neuralnet here-->
+</Scene>
 
-            function navclick(action)
-                game:navclick(action)
-            end
-        ]]></Script>
-        <Panel anchor="top" id="actionbox" style="actionbox" x="-18%" y="8.7%"/>
-        <Panel anchor="top" id="navbox1" style="navbox1"/>
-        <Panel anchor="top" id="navbox2" style="navbox2"/>
-        <Panel anchor="top" id="navbox3" style="navbox3"/>
-        <Panel anchor="top" id="navbox4" style="navbox4"/>
-        <Panel anchor="top" id="navbox5" style="navbox5"/>
-        <Panel anchor="topright" id="nnbox5" style="nnbox5"/>
-        <Panel anchor="topright" id="nnbox7" style="nnbox7"/>
-        <!-- Neural net buttons -->
-        <Button x="2.1%" y="0.7%" anchor="topright" style="nninfo"/>
-        <Button x="8.1%" y="0.7%" anchor="topright" style="nnplayerstatus"/>
-        <Button x="11.5%" y="0.7%" anchor="topright" style="nninventory"/>
-        <Button x="16.5%" y="0.7%" anchor="topright" style="nnmap"/>
-        <Button x="22%" y="0.7%" anchor="topright" style="nnstorystar"/>
-        <!-- ChatBox. Hardcoded for first instance to be used. -->
-        <ChatBox anchor="bottom" y="9%" style="chatbox" displayarea="main"/>    
-    </Scene>
-</XInterface>
+
+
+
+
+
+
+
+

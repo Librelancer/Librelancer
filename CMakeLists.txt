@@ -26,4 +26,5 @@ add_subdirectory(extern/BulletSharpPInvoke/libbulletc bulletc)
 # binary handled by nuget for windows
 if(NOT WIN32)
 	add_subdirectory(src/nvtt_shared nvttso)
+    add_subdirectory(src/lua53 lua53)
 endif()

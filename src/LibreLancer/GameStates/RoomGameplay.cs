@@ -8,6 +8,7 @@ using System.Linq;
 using LibreLancer.GameData;
 using LibreLancer.Utf.Dfm;
 using LibreLancer.Data.Missions;
+using LibreLancer.Interface;
 
 namespace LibreLancer
 {
@@ -27,7 +28,9 @@ namespace LibreLancer
 		Base currentBase;
 		BaseRoom currentRoom;
 		Cutscene scene;
-		ScriptedHud hud;
+        private UiContext ui;
+        private UiWidget widget;
+        
 		GameSession session;
 		string baseId;
         string active;
@@ -49,10 +52,10 @@ namespace LibreLancer
             var rm = virtualRoom ?? currentRoom.Nickname;
             SetActiveHotspot(rm);
             this.virtualRoom = virtualRoom;
-            hud = new ScriptedHud(new LuaAPI(this), false, Game);
-            hud.OnEntered += Hud_OnTextEntry;
-            hud.Init();
-			Game.Keyboard.TextInput += Game_TextInput;
+            ui = new UiContext(Game);
+            ui.GameApi = new BaseUiApi(this);
+            widget = ui.CreateAll("baseside.xml");
+            Game.Keyboard.TextInput += Game_TextInput;
 			Game.Keyboard.KeyDown += Keyboard_KeyDown;
 			cursor = Game.ResourceManager.GetCursor("arrow");
             FadeIn(0.8, 1.7);
@@ -74,51 +77,46 @@ namespace LibreLancer
             }
         }
 
-        class LuaAPI
+        class BaseUiApi : UiApi
         {
             RoomGameplay g;
-            public LuaAPI(RoomGameplay g) => this.g = g;
-            public bool multiplayer() => false;
-            public void navclick(string item) => g.Hud_OnManeuverSelected(item);
-            public string activebutton() => g.active;
-            public Neo.IronLua.LuaTable buttons()
+            public BaseUiApi(RoomGameplay g) => this.g = g;
+            public bool IsMultiplayer() => false;
+            public void HotspotPressed(string item) => g.Hud_OnManeuverSelected(item);
+            public string ActiveNavbarButton() => g.active;
+
+            public NavbarButtonInfo[] GetNavbarButtons()
             {
-                var list = new Neo.IronLua.LuaTable();
-                var icons = g.Game.GameData.GetBaseNavbarIcons();
-                foreach (var btn in g.tophotspots) {
-                    var mn = (dynamic)(new Neo.IronLua.LuaTable());
-                    mn.action = btn.Name;
-                    string hack = null;
-                    if (!icons.ContainsKey(btn.SetVirtualRoom ?? btn.Room))
-                        hack = "Cityscape"; //HACK: This probably means FL doesn't determine icons based on room name
-                    var icn = icons[hack ?? btn.SetVirtualRoom ?? btn.Room];
-                    mn.model = "//" + icn;
-                    g.hud.UI.TableInsert(list, mn);
-                }
-                return list;
-            }
-            public Neo.IronLua.LuaTable actions()
-            {
-                var list = new Neo.IronLua.LuaTable();
-                var icons = g.Game.GameData.GetBaseNavbarIcons();
-                if (string.IsNullOrEmpty(g.virtualRoom) &&
-                    (g.currentRoom.Nickname.Equals("cityscape",StringComparison.OrdinalIgnoreCase) ||
-                    g.currentRoom.Nickname.Equals("deck",StringComparison.OrdinalIgnoreCase) ||
-                    g.currentRoom.Nickname.Equals("planetscape", StringComparison.OrdinalIgnoreCase))) 
+                var buttons = new NavbarButtonInfo[g.tophotspots.Count];
+                for (int i = 0; i < buttons.Length; i++)
                 {
-                    var mn = (dynamic)(new Neo.IronLua.LuaTable());
-                    mn.action = LAUNCH_ACTION;
-                    mn.model = "//" + icons["IDS_HOTSPOT_LAUNCH"];
-                    g.hud.UI.TableInsert(list, mn);
+                    buttons[i] = new NavbarButtonInfo(
+                        g.tophotspots[i].Name, 
+                        g.tophotspots[i].SetVirtualRoom ?? g.tophotspots[i].Room
+                    );
                 }
-                return list;
+
+                return buttons;
+            }
+
+            public NavbarButtonInfo[] GetActionButtons()
+            {
+                var actions = new List<NavbarButtonInfo>();
+                if (string.IsNullOrEmpty(g.virtualRoom) &&
+                    (g.currentRoom.Nickname.Equals("cityscape", StringComparison.OrdinalIgnoreCase) ||
+                     g.currentRoom.Nickname.Equals("deck", StringComparison.OrdinalIgnoreCase) ||
+                     g.currentRoom.Nickname.Equals("planetscape", StringComparison.OrdinalIgnoreCase)))
+                {
+                    actions.Add(new NavbarButtonInfo(LAUNCH_ACTION, "IDS_HOTSPOT_LAUNCH"));
+                }
+                return actions.ToArray();
             }
         }
 		public override void Unregister()
 		{
 			Game.Keyboard.TextInput -= Game_TextInput;
 			Game.Keyboard.KeyDown -= Keyboard_KeyDown;
-			hud.Dispose();
+            ui.Unhook();
 			scene.Dispose();
 		}
         
@@ -151,11 +149,11 @@ namespace LibreLancer
                     n[1].Equals(currentRoom.Nickname, StringComparison.OrdinalIgnoreCase))
                 {
                     processedCutscenes.Add(ct);
-                    hud.Enabled = false;
+                    widget.Visible = false;
                     var script = new ThnScript(session.Game.GameData.ResolveDataPath(ct.Encounters[0].Action));
                     scene.RunScript(script, () =>
                     {
-                        hud.Enabled = true;
+                        widget.Visible = true;
                         session.ActiveCutscenes.Remove(ct);
                     });
                 }
@@ -190,12 +188,12 @@ namespace LibreLancer
 
 		void Keyboard_KeyDown(KeyEventArgs e)
 		{
-			if (hud.TextEntry)
+			/*if (hud.TextEntry)
 			{
 				hud.TextEntryKeyPress(e.Key);
 				if (hud.TextEntry == false) Game.DisableTextInput();
 			}
-			else
+			else*/
 			{
 				if (e.Key == Keys.L)
 				{
@@ -211,24 +209,20 @@ namespace LibreLancer
 				}
 				if (e.Key == Keys.Enter)
 				{
-					hud.TextEntry = true;
-					Game.EnableTextInput();
+					//hud.TextEntry = true;
+					//Game.EnableTextInput();
 				}
 			}
 		}
 
 		void Game_TextInput(string text)
 		{
-			hud.OnTextEntry(text);
+			//hud.OnTextEntry(text);
 		}
 		void Hud_OnTextEntry(string obj)
 		{
             if(obj == "launch") {
                 scene.RunScript(new ThnScript(currentRoom.LaunchScript));
-            } else if (obj == "reload") {
-                hud = new ScriptedHud(new LuaAPI(this), false, Game);
-                hud.OnEntered += Hud_OnTextEntry;
-                hud.Init();
             }
             session.ProcessConsoleCommand(obj);
 		}
@@ -298,7 +292,7 @@ namespace LibreLancer
             ProcessCutscenes();
 			if(scene != null)
 				scene.Update(delta);
-            hud.Update(delta);
+            ui.Update(Game);
         }
 
         Font debugFont;
@@ -307,7 +301,7 @@ namespace LibreLancer
             RenderMaterial.VertexLighting = true;
             if (scene != null)
 				scene.Draw();
-            hud.Draw(delta);
+            ui.RenderWidget();
 			Game.Renderer2D.Start(Game.Width, Game.Height);
             DoFade(delta);
             Game.Renderer2D.DrawString(debugFont, 15, "Room: " + currentRoom.Nickname + "\n" + "Virtual: " +

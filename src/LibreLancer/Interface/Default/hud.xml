@@ -1,120 +1,63 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-<XInterface>
-    <ResourceFile>//INTERFACE/interface.generic.vms</ResourceFile>
-    <Include file="commonstyles"/>
-    <Style id="contactlist">
-        <Size height="30.25%" ratio="1.17"/>
-        <Model path="//INTERFACE/HUD/hud_target.cmp" transform="0.025 0.0 8.1 9.3"/>
-    </Style>
-    <Style id="shipinfo">
-        <Size height="30.25%" ratio="1.17"/>
-        <Model path="//INTERFACE/HUD/hud_shipinfo.cmp" transform="-0.025 0.0 8.1 9.3"/>
-    </Style>
-    <Style id="numberbox">
-        <Size height="5.1%" ratio="8.8"/>
-        <Model path="//INTERFACE/HUD/hud_numberboxes.cmp" transform="0.05 -0.05 5.85 53.0"/>
-        <Text x="6.3%" y="31.2%" width="13.6%" height="56%" id="left" color="rgba(160,196,210,255)" shadow="black" align="baseline"/>
-        <Text x="85%" y="31.2%" width="13.6%" height="56%" id="right" color="rgba(160,196,210,255)" shadow="black" align="baseline"/>
-    </Style>
-    <Style id="gaugecontainer">
-        <Size height="5.24%" ratio="5.2"/>
-        <Model path="//INTERFACE/HUD/hud_guagewindow.cmp" transform="0.06 -0.05 10.0 52.0"/>
-    </Style>
+<Scene ScriptFile="hud.lua">
+	<!--<ImageFile Width="640" Height="480" Anchor="Center" Path="DATA/freelancer_21.jpg" tint="magenta"/>-->
+	<Panel Anchor="BottomLeft" Height="145.2" Width="169.88">
+		<Panel.Background>
+			<DisplayModel model="contactlistbox"/>
+		</Panel.Background>
+	</Panel>
+	<Panel Anchor="BottomRight" Height="145.2" Width="169.88">
+		<Panel.Background>
+			<DisplayModel model="shipinfobox"/>
+		</Panel.Background>
+	</Panel>
+	<Panel Anchor="BottomCenter" Height="27" Width="131" X="4" Y="-5">
+		<Panel.Background>
+			<DisplayModel model="gaugecontainer"/>
+		</Panel.Background>
+		<Gauge ID="powergauge" Anchor="TopCenter" Width="100" Height="4.5" Y="3.5" PercentFilled="1">
+			<Gauge.Fill>
+				<DisplayModel model="powergauge"/>
+			</Gauge.Fill>
+		</Gauge>
+		<Gauge ID="shieldgauge" Anchor="TopCenter" Width="100" Height="4.5" Y="10" PercentFilled="1">
+			<Gauge.Fill>
+				<DisplayModel model="shieldgauge"/>
+			</Gauge.Fill>
+		</Gauge>
+		<Gauge ID="hullgauge" Anchor="TopCenter" Width="100" Height="4.5" Y="15" PercentFilled="1">
+			<Gauge.Fill>
+				<DisplayModel model="hullgauge"/>
+			</Gauge.Fill>
+		</Gauge>
+	</Panel>
+	<Panel Anchor="BottomCenter" Height="25" Width="212" Y="-6" X="4">
+		<Panel.Background>
+			<DisplayModel model="numberboxes"/>
+		</Panel.Background>
+		<TextBlock Height="18" Width="26" X="8" Y="1" Font="Agency FB" Text="100%" TextColor="text"/>
+		<TextBlock Anchor="TopRight" Height="18" Width="26" X="10" Y="1" Font="Agency FB" Text="80" TextColor="text"/>
+	</Panel>
+	<!-- Managed by navbox.lua -->
+	<Panel ID="actionbox1" Y="42" Anchor="TopCenter" Width="33" Height="31" X="-80.4" Visible="false">
+		<Panel.Background>
+			<DisplayModel model="actionbox1"/>
+		</Panel.Background>
+	</Panel>
+	<Panel ID="actionbox2"/>
+	<Panel ID="actionbox3"/>
+	<Panel ID="navbox1"/>
+	<Panel ID="navbox2"/>
+	<Panel ID="navbox3"/>
+	<Panel ID="navbox5"/>
+	<Panel ID="navbox4" Anchor="TopCenter" Y="-10" Width="225" Height="52.12" Visible="true">
+		<Panel.Background>
+			<DisplayModel model="navbox4"/>
+		</Panel.Background>
+	</Panel>
+    <!-- neuralnet here-->
+</Scene>
 
-    <DefaultScene>main</DefaultScene>
-    <Scene id="main">
-        <Script><![CDATA[
-        -- Keep parsed colour for speed
-        red = color("red")
-        navs = {}
 
-        function events.onconstruct()
-            local mns = game:maneuvers()
-            local pct = -16
-            for _, maneuver in pairs(mns) do
-                -- MNVR_dock.3db has different dimensions to the other buttons
-                -- This can be removed in modded versions
-                local mdltr = "0.0 0.0 70.0 77.0"
-                local scissor = false
-                if string.match(maneuver.activemodel, "MNVR_dock.3db") then
-                    mdltr = "0.0 -0.032 69.0 77.0"
-                    scissor = true
-                end
-            
-                local b = dom:addbutton({
-                    anchor = "top",
-                    y = "0.1%",
-                    x = (pct .. '%'),
-                    height = "7.1%",
-                    ratio = 1.2,
-                    scissor = scissor,
-                    models = {
-                        { id = 'inactive', path = maneuver.inactivemodel, transform = "0.0 0.0 70.0 77.0" },
-                        { id = 'active', path = maneuver.activemodel, transform = mdltr }
-                    },
-                    onclick = "navclick('" .. maneuver.action .. "')"
-                })
-                navs[maneuver.action] = b
-                pct = pct + 10.5
-            end
-            if game:multiplayer() then
-                dom:element('nnbox5'):hide()
-            else
-                dom:element('nnbox7'):hide()
-            end
-        end
-        function events.onnavchange(action)
-            setnav(action)
-        end
-        function navclick(action)
-            if game:setmaneuver(action) then
-                setnav(action)
-            end
-        end
-        function setnav(action)
-            for k, button in pairs(navs) do
-                if k == action then
-                    button:parts('active'):show()
-                    button:parts('inactive'):hide()
-                else
-                    button:parts('inactive'):show()
-                    button:parts('active'):hide()
-                end
-            end
-        end
-        function events.onupdate()
-            -- Number Box
-            local n = dom:element('nums')
-            local tleft = n:parts('left')
-            local pct = game:thrustpct()
-            if pct < 20 then
-                tleft:color(red)
-            end
-            tleft:value(pct .. '%')
-            local speed = game:speed()
-            if speed > 1000 then
-                n:parts('right'):value('---')
-            else
-                n:parts('right'):value(game:speed())
-            end
-            -- Other stuff below
-        end
-        ]]></Script>
-        <!-- Windows -->
-        <Panel anchor="bottomleft" style="contactlist"/>
-        <Panel anchor="bottomright" style="shipinfo"/>
-        <Panel id="nums" anchor="bottom" style="numberbox"/>
-        <Panel anchor="bottom" style="gaugecontainer"/>
-        <Panel anchor="top" style="navbox4"/>
-        <Panel anchor="topright" id="nnbox5" style="nnbox5"/>
-        <Panel anchor="topright" id="nnbox7" style="nnbox7"/>
-        <!-- Neural net buttons -->
-        <Button x="2.1%" y="0.7%" anchor="topright" style="nninfo"/>
-        <Button x="8.1%" y="0.7%" anchor="topright" style="nnplayerstatus"/>
-        <Button x="11.5%" y="0.7%" anchor="topright" style="nninventory"/>
-        <Button x="16.5%" y="0.7%" anchor="topright" style="nnmap"/>
-        <Button x="22%" y="0.7%" anchor="topright" style="nnstorystar"/>
-        <!-- ChatBox. Hardcoded for first instance to be used. -->
-        <ChatBox anchor="bottom" y="9%" style="chatbox" displayarea="main"/>
-    </Scene>
-</XInterface>
+
+
+

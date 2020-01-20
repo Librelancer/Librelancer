@@ -4,11 +4,13 @@
 
 using System;
 using LibreLancer.GameData;
+using LibreLancer.Interface;
 namespace LibreLancer
 {
     public class LuaMenu : GameState
     {
-        XmlUIManager ui;
+        UiContext ui;
+        private UiWidget widget;
         IntroScene intro;
         Cutscene scene;
         Cursor cur;
@@ -16,10 +18,9 @@ namespace LibreLancer
         public LuaMenu(FreelancerGame g) : base(g)
         {
             api = new MenuAPI(this);
-            ui = new XmlUIManager(g, g.GameData.GetInterfaceXml("mainmenu"), new LuaAPI("menu", api),
-                new LuaAPI("options", new OptionsAPI(this)));
-            ui.OnConstruct();
-            ui.Enter();
+            ui = new UiContext(g);
+            ui.GameApi = new MenuAPI(this);
+            widget = ui.CreateAll("mainmenu.xml");
             g.GameData.PopulateCursors();
             g.CursorKind = CursorKind.None;
             intro = g.GameData.GetIntroScene();
@@ -34,35 +35,21 @@ namespace LibreLancer
 #endif
             FadeIn(0.1, 0.3);
         }
-
-        class OptionsAPI
-        {
-            private LuaMenu state;
-            public OptionsAPI(LuaMenu m) => state = m;
-            public bool get_vsync() => state.Game.Config.VSync;
-            public void set_vsync(bool value)
-            {
-                state.Game.Config.VSync = value;
-                state.Game.Config.Save();
-                state.Game.SetVSync(value);
-            }
-        }
-        class MenuAPI
+        class MenuAPI : UiApi
         {
             LuaMenu state;
             public MenuAPI(LuaMenu m) => state = m;
-            public void newgame() => state.ui.Leave(() =>
+            public override void NewGame()
             {
                 state.FadeOut(0.2, () =>
                 {
-                    if (client != null) client.Dispose();
                     var session = new GameSession(state.Game);
                     session.LoadFromPath(state.Game.GameData.VFS.Resolve("EXE\\newplayer.fl"));
                     session.Start();
                 });
-            });
+            }
 
-            public void loadgame() {}
+            /*public void loadgame() {}
             GameClient client;
             XmlUIServerList serverList;
             public void doserverlist(XmlUIServerList.ServerListAPI slist)
@@ -205,16 +192,16 @@ namespace LibreLancer
             internal void _Dispose() //shouldn't be accessible from lua?
             {
                 if(client != null) client.Dispose();
-            }
+            }*/
 
-            public void exit() => state.ui.Leave(() => state.FadeOut(0.2, () => state.Game.Exit()));
+            public override void Exit() => state.FadeOut(0.2, () => state.Game.Exit());
         }
 
         public override void Draw(TimeSpan delta) 
         {
             RenderMaterial.VertexLighting = true;
             scene.Draw();
-            ui.Draw(delta);
+            ui.RenderWidget();
             Game.Renderer2D.Start(Game.Width, Game.Height);
             DoFade(delta);
             cur.Draw(Game.Renderer2D, Game.Mouse);
@@ -226,27 +213,8 @@ namespace LibreLancer
         bool newUI = false;
         public override void Update(TimeSpan delta)
         {
-#if DEBUG
-            if(newUI) {
-                api._Dispose();
-                api = new MenuAPI(this);
-                ui = new XmlUIManager(Game, Game.GameData.GetInterfaceXml("mainmenu"), new LuaAPI("game", api),
-                    new LuaAPI("options", new OptionsAPI(this)));
-                ui.OnConstruct();
-                ui.Enter();
-                newUI = false;
-            }
-#endif
-            if (uframe < 8)
-            { //Allows animations to play correctly
-                uframe++;
-                ui.Update(TimeSpan.Zero);
-            }
-            else
-            {
-                ui.Update(delta);
-                scene.Update(delta);
-            }
+            ui.Update(Game);
+            scene.Update(delta);
         }
 #if DEBUG
         void LoadSpecific(int index)
@@ -260,10 +228,6 @@ namespace LibreLancer
         
         void Keyboard_KeyDown(KeyEventArgs e)
         {
-            if(e.Key == Keys.F5) {
-                newUI = true;
-            }
-
             if ((e.Modifiers & KeyModifiers.LeftControl) == KeyModifiers.LeftControl)
             {
                 switch (e.Key)
@@ -284,12 +248,12 @@ namespace LibreLancer
 
         public override void Exiting()
         {
-            api._Dispose();
         }
 
         public override void Unregister()
         {
-            ui.Dispose();
+            widget.Dispose();
+            ui.Unhook();
             scene.Dispose();
 #if DEBUG
             Game.Keyboard.KeyDown -= Keyboard_KeyDown;

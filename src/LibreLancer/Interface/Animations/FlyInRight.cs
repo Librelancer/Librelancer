@@ -6,7 +6,7 @@ using System;
 
 namespace LibreLancer
 {
-	public class FlyInRight : UIAnimation
+	public class FlyInRight : UiAnimation
 	{
 		Vector2 finalPos;
 

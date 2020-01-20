@@ -187,7 +187,7 @@ namespace LibreLancer.ImUI
 
         static bool HasKDialog()
         {
-            var p = Process.Start("bash", "-c 'command -v kdialog'");
+            var p = Process.Start("bash", "-c 'command -v kdialog >/dev/null 2>&1'");
             p.WaitForExit();
             return p.ExitCode == 0;
         }

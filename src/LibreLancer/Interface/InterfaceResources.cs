@@ -1,0 +1,133 @@
+// MIT License - Copyright (c) Callum McGing
+// This file is subject to the terms and conditions defined in
+// LICENSE, which is part of this source code package
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
+using LibreLancer;
+
+namespace LibreLancer.Interface
+{
+    public class InterfaceResources
+    {
+        [XmlElement("Color")] public List<InterfaceColor> Colors = new List<InterfaceColor>();
+        [XmlElement("Model")] public List<InterfaceModel> Models = new List<InterfaceModel>();
+        [XmlElement("Image")] public List<InterfaceImage> Images = new List<InterfaceImage>();
+        [XmlElement("LibraryFile")] public List<string> LibraryFiles = new List<string>();
+
+        private static XmlSerializer _serializer = new XmlSerializer(typeof(InterfaceResources));
+
+        public string ToXml()
+        {
+            var settings = new XmlWriterSettings();
+            settings.OmitXmlDeclaration = true;
+            settings.Indent = true;
+            using (StringWriter sw = new StringWriter())
+            using (XmlWriter writer = XmlWriter.Create(sw, settings))
+            {
+                var xmlns = new XmlSerializerNamespaces();
+                xmlns.Add(string.Empty, string.Empty);
+                _serializer.Serialize(writer, this, xmlns);
+                return sw.ToString();
+            }
+        }
+
+        public static InterfaceResources FromXml(string xml)
+        {
+            using (var reader = new StringReader(xml))
+            {
+                return (InterfaceResources) _serializer.Deserialize(reader);
+            }
+        }
+
+        public static InterfaceResources FromFile(string file)
+        {
+            using (var stream = File.OpenRead(file))
+            {
+                return (InterfaceResources) _serializer.Deserialize(stream);
+            }
+        }
+    }
+
+    public class InterfaceColor
+    {
+        public static readonly InterfaceColor White = new InterfaceColor() {Color = Color4.White};
+
+        public string Name;
+        public Color4 Color;
+        public InterfaceColorAnimation Animation;
+
+        public Color4 GetColor(TimeSpan time)
+        {
+            if (Animation != null)
+            {
+                var x = time.TotalSeconds;
+                var factor = (float) Math.Abs(Math.Sin(Math.PI * x * Animation.Speed));
+                return new Color4(
+                    MathHelper.Lerp(Animation.Color1.R, Animation.Color2.R, factor),
+                    MathHelper.Lerp(Animation.Color1.G, Animation.Color2.G, factor),
+                    MathHelper.Lerp(Animation.Color1.B, Animation.Color2.B, factor),
+                    MathHelper.Lerp(Animation.Color1.A, Animation.Color2.A, factor)
+                );
+            }
+            else
+                return Color;
+        }
+    }
+
+    public enum InterfaceImageKind
+    {
+        Normal,
+        Triangle,
+        Quad
+    }
+    public class InterfaceImage
+    {
+        [XmlAttribute("name")] public string Name;
+        [XmlAttribute("texname")] public string TexName;
+        [XmlAttribute("texpath")] public string TexPath;
+        [XmlAttribute("type")] public InterfaceImageKind Type;
+        [XmlAttribute("flip")] public bool Flip;
+        [XmlElement("TexCoords")] public InterfacePoints TexCoords = new InterfacePoints();
+        [XmlElement("DisplayCoords")] public InterfacePoints DisplayCoords = new InterfacePoints();
+    }
+
+    public class InterfacePoints
+    {
+        //Top left
+        public float X0;
+        public float Y0;
+        //Top right
+        public float X1 = 1;
+        public float Y1;
+        //Bottom left
+        public float X2;
+        public float Y2 = 1;
+        //Bottom right
+        public float X3 = 1;
+        public float Y3 = 1;
+    }
+    
+    
+    public class InterfaceColorAnimation
+    {
+        public Color4 Color1 = Color4.White;
+        public Color4 Color2 = Color4.White;
+        public float Speed = 1f;
+    }
+
+    [UiLoadable]
+    public class InterfaceModel
+    {
+        [XmlAttribute("name")] public string Name;
+        [XmlAttribute("path")] public string Path;
+        [XmlAttribute("x")] public float X;
+        [XmlAttribute("y")] public float Y;
+        [XmlAttribute("xscale")] public float XScale = 1;
+        [XmlAttribute("yscale")] public float YScale = 1;
+    }
+}

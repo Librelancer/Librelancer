@@ -2,7 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-#include "cimgui_spinner.h"
+#include "cimgui_ext.h"
 #include "imgui.h"
 #include "imgui_internal.h"
 #include <cmath>

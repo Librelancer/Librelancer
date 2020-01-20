@@ -32,6 +32,21 @@ namespace LibreLancer
             Matrix = Matrix4.CreateScale(sX, sY, 1) * Matrix4.CreateTranslation(tX, tY, 0);
         }
 
+        public void CreateTransform(int gWidth, int gHeight, Rectangle r)
+        {
+            if (w == gWidth && h == gHeight && rect == r)
+                return;
+            w = gWidth;
+            h = gHeight;
+            rect = r;
+            float gX = (float)gWidth / 2;
+            float gY = (float)gHeight / 2;
+            var tX = (r.X + (r.Width / 2) - gX) / gX;
+            var tY = (gY - r.Y - (r.Height / 2)) / gY;
+            var sX = r.Width / (float)(gWidth);
+            var sY = r.Height / (float)(gHeight);
+            Matrix = Matrix4.CreateScale(sX, sY, 1) * Matrix4.CreateTranslation(tX, tY, 0);
+        }
         Matrix4 ICamera.ViewProjection => Matrix;
 
         Matrix4 ICamera.Projection => Matrix4.Identity;

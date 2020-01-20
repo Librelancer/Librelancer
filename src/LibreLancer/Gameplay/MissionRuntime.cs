@@ -38,6 +38,20 @@ namespace LibreLancer
             CheckMissionScript(gameplay);
         }
 
+        public void EnsureLoaded()
+        {
+            foreach (var tr in msn.Triggers)
+            {
+                foreach (var act in tr.Actions)
+                {
+                    if(act.Type == TriggerActions.Act_PlaySoundEffect)
+                        session.Game.Sound.LoadSound(act.Entry[0].ToString());
+                    if(act.Type == TriggerActions.Act_LightFuse)
+                        session.Game.GameData.GetFuse(act.Entry[1].ToString());
+                }
+            }
+        }
+
         //Implement just enough of the mission script to get the player to a base from
         //FP7_system in vanilla, and set the loadout on disco
         BitArray triggered;

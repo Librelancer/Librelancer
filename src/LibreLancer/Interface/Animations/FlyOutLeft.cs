@@ -6,7 +6,7 @@ using System;
 
 namespace LibreLancer
 {
-	public class FlyOutLeft : UIAnimation
+	public class FlyOutLeft : UiAnimation
 	{
 		Vector2 finalPos;
         public float To = -2;
@@ -18,6 +18,13 @@ namespace LibreLancer
             Remain = true;
 		}
 
+        public override void SetWidgetPosition(Vector2 pos)
+        {
+            finalPos = pos;
+            if (Time <= Start) CurrentPosition.X = finalPos.X;
+            CurrentPosition.Y = finalPos.Y;
+            FinalPositionSet = new Vector2(To, finalPos.Y);
+        }
 		protected override void Run(double currentTime)
 		{
 			CurrentPosition.X = Utf.Ale.AlchemyEasing.Ease(

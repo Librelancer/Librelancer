@@ -1,0 +1,221 @@
+<InterfaceResources>
+  <Color>
+    <Name>text_hover</Name>
+    <Color>
+      <R>1</R>
+      <G>0.9285713</G>
+      <B>0</B>
+      <A>1</A>
+    </Color>
+    <Animation>
+      <Color1>
+        <R>1</R>
+        <G>0.9285713</G>
+        <B>0</B>
+        <A>1</A>
+      </Color1>
+      <Color2>
+        <R>0.627451</R>
+        <G>0.768627465</G>
+        <B>0.8235294</B>
+        <A>1</A>
+      </Color2>
+      <Speed>3</Speed>
+    </Animation>
+  </Color>
+  <Color>
+    <Name>text</Name>
+    <Color>
+      <R>0.627451</R>
+      <G>0.768627465</G>
+      <B>0.8235294</B>
+      <A>1</A>
+    </Color>
+  </Color>
+  <Color>
+    <Name>slow_blue_yellow</Name>
+    <Color>
+      <R>1</R>
+      <G>1</G>
+      <B>1</B>
+      <A>1</A>
+    </Color>
+    <Animation>
+      <Color1>
+        <R>1</R>
+        <G>0.929411769</G>
+        <B>0</B>
+        <A>1</A>
+      </Color1>
+      <Color2>
+        <R>0.627451</R>
+        <G>0.831372559</G>
+        <B>0.7607843</B>
+        <A>1</A>
+      </Color2>
+      <Speed>0.6</Speed>
+    </Animation>
+  </Color>
+  <Color>
+    <Name>white_hover</Name>
+    <Color>
+      <R>1</R>
+      <G>0.929411769</G>
+      <B>0</B>
+      <A>1</A>
+    </Color>
+    <Animation>
+      <Color1>
+        <R>1</R>
+        <G>0.929411769</G>
+        <B>0</B>
+        <A>1</A>
+      </Color1>
+      <Color2>
+        <R>1</R>
+        <G>1</G>
+        <B>1</B>
+        <A>1</A>
+      </Color2>
+      <Speed>1.2</Speed>
+    </Animation>
+  </Color>
+  <Model name="fullbutton_animating" path="DATA/INTERFACE/NEURONET/INVENTORY/front_button.cmp" x="0" y="0" xscale="7.8" yscale="31" />
+  <Model name="hullgauge" path="DATA/INTERFACE/HUD/hud_hullgauge.3db" x="0" y="0" xscale="11.7" yscale="249" />
+  <Model name="shieldgauge" path="DATA/INTERFACE/HUD/hud_shieldgauge.3db" x="0" y="0" xscale="11.7" yscale="249" />
+  <Model name="powergauge" path="DATA/INTERFACE/HUD/hud_energygauge.3db" x="0" y="0" xscale="11.7" yscale="249" />
+  <Model name="nn_info.3db" path="DATA/INTERFACE/NEURONET/ICONS/nn_info.3db" x="0" y="0" xscale="55" yscale="56" />
+  <Model name="nn_playerstatus.3db" path="DATA/INTERFACE/NEURONET/ICONS/nn_playerstatus.3db" x="0" y="0" xscale="124" yscale="52" />
+  <Model name="nn_map.3db" path="DATA/INTERFACE/NEURONET/ICONS/nn_map.3db" x="0" y="0" xscale="48.5" yscale="48.5" />
+  <Model name="nn_chat.3db" path="DATA/INTERFACE/NEURONET/ICONS/nn_chat.3db" x="0.05" y="0" xscale="56" yscale="55" />
+  <Model name="nn_storystar.3db" path="DATA/INTERFACE/NEURONET/ICONS/nn_storystar.3db" x="0" y="0" xscale="53" yscale="53" />
+  <Model name="xbutton" path="DATA/INTERFACE/TEXTOFFER/x.3db" x="0" y="0" xscale="77" yscale="86" />
+  <Model name="errorexplanation.cmp" path="DATA/INTERFACE/NEURONET/errorexplanation.cmp" x="0" y="-0.025" xscale="1.75" yscale="4.9" />
+  <Model name="framewithdipdown" path="DATA/INTERFACE/INTRO/OBJECTS/multi_attentionreq'd.cmp" x="0" y="0" xscale="3.89" yscale="4.9" />
+  <Model name="navbox1" path="DATA/INTERFACE/HUD/hud_maneuverbox1.cmp" x="0" y="0" xscale="36.4" yscale="57.5" />
+  <Model name="navbox2" path="DATA/INTERFACE/HUD/hud_maneuverbox2.cmp" x="0" y="-0.12" xscale="21" yscale="52" />
+  <Model name="navbox3" path="DATA/INTERFACE/HUD/hud_maneuverbox3.cmp" x="0" y="-0.05" xscale="16" yscale="52" />
+  <Model name="navbox4" path="DATA/INTERFACE/HUD/hud_maneuverbox4.cmp" x="0" y="-0.1" xscale="12.9" yscale="52" />
+  <Model name="navbox5" path="DATA/INTERFACE/HUD/hud_maneuverbox5.cmp" x="0" y="-0.12" xscale="11.15" yscale="52" />
+  <Model name="contactlistbox" path="DATA/INTERFACE/HUD/hud_target.cmp" x="0.028" y="0" xscale="8.1" yscale="9.3" />
+  <Model name="shipinfobox" path="DATA/INTERFACE/HUD/hud_shipinfo.cmp" x="-0.025" y="0" xscale="8.1" yscale="9.3" />
+  <Model name="numberboxes" path="DATA/INTERFACE/HUD/hud_numberboxes.cmp" x="0" y="0.28" xscale="5.88" yscale="51" />
+  <Model name="gaugecontainer" path="DATA/INTERFACE/HUD/hud_guagewindow.cmp" x="0" y="0.11" xscale="9.8" yscale="45.8" />
+  <Model name="front_loadingbar.cmp" path="DATA/INTERFACE/INTRO/OBJECTS/front_loadingbar.cmp" x="0" y="0" xscale="3" yscale="3" />
+  <Model name="actionbox1" path="DATA/INTERFACE/BASESIDE/city_maneuvertab1.cmp" x="0" y="0" xscale="37.5" yscale="39.2" />
+  <Model name="actionbox2" path="DATA/INTERFACE/BASESIDE/city_maneuvertab2.cmp" x="0" y="0" xscale="21.1" yscale="39.2" />
+  <Model name="actionbox3" path="DATA/INTERFACE/BASESIDE/city_maneuvertab3.cmp" x="0" y="0" xscale="14.8" yscale="39.2" />
+  <Model name="hud_mnvrwarp.3db" path="DATA/INTERFACE/HUD/hud_mnvrwarp.3db" x="0" y="0" xscale="70" yscale="70" />
+  <Image name="sliderarrow_up" texname="HUD_sliderarrow" type="Triangle" flip="false">
+    <TexCoords>
+      <X0>0.0864197537</X0>
+      <Y0>0.06995885</Y0>
+      <X1>0.930041134</X1>
+      <Y1>0.0781893</Y1>
+      <X2>0.934156358</X2>
+      <Y2>0.9259259</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>1</Y0>
+      <X1>0.5</X1>
+      <Y1>0</Y1>
+      <X2>1</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
+  </Image>
+  <Image name="sliderarrow_down" texname="HUD_sliderarrow" type="Triangle" flip="false">
+    <TexCoords>
+      <X0>0.0864197537</X0>
+      <Y0>0.06995885</Y0>
+      <X1>0.930041134</X1>
+      <Y1>0.0781893</Y1>
+      <X2>0.934156358</X2>
+      <Y2>0.9259259</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>0.5</X1>
+      <Y1>1</Y1>
+      <X2>1</X2>
+      <Y2>0</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
+  </Image>
+  <Image name="sliderarrow_left" texname="HUD_sliderarrow" type="Triangle" flip="false">
+    <TexCoords>
+      <X0>0.0864197537</X0>
+      <Y0>0.06995885</Y0>
+      <X1>0.930041134</X1>
+      <Y1>0.0781893</Y1>
+      <X2>0.934156358</X2>
+      <Y2>0.9259259</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>1</X0>
+      <Y0>1</Y0>
+      <X1>0</X1>
+      <Y1>0.5</Y1>
+      <X2>1</X2>
+      <Y2>0</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
+  </Image>
+  <Image name="sliderarrow_right" texname="HUD_sliderarrow" type="Triangle" flip="false">
+    <TexCoords>
+      <X0>0.0864197537</X0>
+      <Y0>0.06995885</Y0>
+      <X1>0.930041134</X1>
+      <Y1>0.0781893</Y1>
+      <X2>0.934156358</X2>
+      <Y2>0.9259259</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>1</Y0>
+      <X1>1</X1>
+      <Y1>0.5</Y1>
+      <X2>0</X2>
+      <Y2>0</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
+  </Image>
+  <Image name="slider_middle" texname="HUD_slidertexmid" type="Normal" flip="false">
+    <TexCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
+  </Image>
+  <LibraryFile>DATA/INTERFACE/interface.generic.vms</LibraryFile>
+  <LibraryFile>DATA/INTERFACE/UI/uitextures.txm</LibraryFile>
+</InterfaceResources>

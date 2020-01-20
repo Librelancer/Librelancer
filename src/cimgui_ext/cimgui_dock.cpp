@@ -3,7 +3,7 @@
 // LICENSE, which is part of this source code package
 
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "cimgui_dock.h"
+#include "cimgui_ext.h"
 #include "imgui.h"
 #include "imgui_internal.h"
 IGEXPORT void *igFontFindGlyph(void *font, unsigned short c)

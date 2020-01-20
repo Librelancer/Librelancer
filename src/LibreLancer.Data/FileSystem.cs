@@ -130,8 +130,16 @@ namespace LibreLancer.Data
                         if (!found) return null;
                     }
                 }
-                //Find file
+                //Find if it is a directory
                 var finaldir = builder.ToString();
+                if (Directory.Exists(Path.Combine(finaldir, split[split.Length - 1]))) return builder.Append(split[split.Length - 1]).ToString();
+                foreach (var dir in Directory.GetDirectories(finaldir))
+                {
+                    var nm = Path.GetFileNameWithoutExtension(dir);
+                    if (nm.Equals(split[split.Length - 1], StringComparison.OrdinalIgnoreCase))
+                        return Path.Combine(finaldir, nm);
+                }
+                //Find file
                 if (File.Exists(Path.Combine(finaldir, split[split.Length - 1])))
                     return builder.Append(split[split.Length - 1]).ToString();
                 var tofind = split[split.Length - 1].ToLowerInvariant();
@@ -175,16 +183,21 @@ namespace LibreLancer.Data
             }
         }
         
-        void WalkDir(string dir)
+        void WalkDir(string dir, bool recurse = true)
         {
             var f = Directory.EnumerateFiles(dir).Select(x => Path.GetFileName(x)).ToArray();
             if (f.Length != 0)
                 fileDict.Add(dir.Substring(baseFolder.Length), (dir,f));
             var dinfo = new DirectoryInfo(dir);
-            foreach (var directory in dinfo.GetDirectories())
+            if (recurse)
             {
-                if(!directory.Attributes.HasFlag(FileAttributes.ReparsePoint))
-                    WalkDir(directory.FullName);
+                foreach (var directory in dinfo.GetDirectories())
+                {
+                    if (!directory.Attributes.HasFlag(FileAttributes.ReparsePoint))
+                        WalkDir(directory.FullName);
+                    else
+                        WalkDir(directory.FullName, false);
+                }
             }
         }
         public Stream Open(string filename)
@@ -200,12 +213,28 @@ namespace LibreLancer.Data
             {
                 var p = Path.GetFullPath(Path.Combine(baseFolder, filename.Replace('\\',Path.DirectorySeparatorChar)));
                 if (File.Exists(p)) return p;
+                if (Directory.Exists(p)) return p;
                 (string, string[]) files;
                 var dirname = Path.GetDirectoryName(p);
+                if (p[p.Length - 4] != '.')
+                {
+                    var fullPath = p.Substring(baseFolder.Length).TrimEnd('\\', Path.DirectorySeparatorChar);
+                    foreach (var d in fileDict)
+                    {
+                        if (d.Key.Equals(fullPath, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return d.Value.Item1;
+                        }
+                    }
+                }
                 if (!fileDict.TryGetValue(dirname.Substring(baseFolder.Length), out files)) return null; 
                 var fname = Path.GetFileName(p);
                 var retval = files.Item2.FirstOrDefault(x => x.Equals(fname, StringComparison.CurrentCultureIgnoreCase));
-                if (retval == null) return null;
+
+                if (retval == null)
+                {
+                    return null;
+                }
                 return Path.Combine(files.Item1, retval);
             }
             var path = Path.Combine(baseFolder, filename.Replace('\\', Path.DirectorySeparatorChar));

@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using LibreLancer.Fx;
+using LibreLancer.GameData;
 using LibreLancer.Utf.Ale;
 using FileSystem = LibreLancer.Data.FileSystem;
 
@@ -400,6 +401,7 @@ namespace LibreLancer
         }
         public IEnumerable<Maneuver> GetManeuvers()
         {
+            var p = fldata.Freelancer.DataPath.Replace('\\', Path.DirectorySeparatorChar);
             foreach (var m in fldata.Hud.Maneuvers)
             {
                 yield return new Maneuver()
@@ -407,8 +409,8 @@ namespace LibreLancer
                     Action = m.Action,
                     InfocardA = fldata.Infocards.GetStringResource(m.InfocardA),
                     InfocardB = fldata.Infocards.GetStringResource(m.InfocardB),
-                    ActiveModel = m.ActiveModel,
-                    InactiveModel = m.InactiveModel
+                    ActiveModel = Path.Combine(p,m.ActiveModel),
+                    InactiveModel = Path.Combine(p,m.InactiveModel)
                 };
             }
         }
@@ -1260,18 +1262,27 @@ namespace LibreLancer
             }
         }
 
-        public GameData.FuseResources GetFuse(string fusename)
+        private Dictionary<string, FuseResources> fuses =
+            new Dictionary<string, FuseResources>(StringComparer.OrdinalIgnoreCase);
+
+        public FuseResources GetFuse(string fusename)
         {
-            var fz = fldata.Fuses.Fuses[fusename];
-            var fuse = new GameData.FuseResources() { Fuse = fz };
-            foreach (var act in fz.Actions)
+            FuseResources fuse;
+            if (!fuses.TryGetValue(fusename, out fuse))
             {
-                var fza = (act as Data.Fuses.FuseStartEffect);
-                if(fza != null)
+                var fz = fldata.Fuses.Fuses[fusename];
+                fuse = new GameData.FuseResources() {Fuse = fz};
+                foreach (var act in fz.Actions)
                 {
-                    if(!fuse.Fx.ContainsKey(fza.Effect))
-                        fuse.Fx[fza.Effect] = GetEffect(fza.Effect);
+                    var fza = (act as Data.Fuses.FuseStartEffect);
+                    if (fza != null)
+                    {
+                        if (!fuse.Fx.ContainsKey(fza.Effect))
+                            fuse.Fx[fza.Effect] = GetEffect(fza.Effect);
+                    }
                 }
+
+                fuses.Add(fusename, fuse);
             }
             return fuse;
         }

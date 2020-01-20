@@ -86,7 +86,7 @@ namespace LancerEdit
             };
             Config = EditorConfiguration.Load();
             logBuffer = new TextBuffer(32768);
-		}
+        }
         double errorTimer = 0;
 		protected override void Load()
 		{

@@ -73,6 +73,14 @@
     <Optimize>false</Optimize>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="KeraLua, Version=1.0.22.0, Culture=neutral, PublicKeyToken=6a194c04b9c89217">
+      <HintPath>..\packages\KeraLua.1.0.22\lib\net45\KeraLua.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NLua, Version=1.4.26.0, Culture=neutral, PublicKeyToken=6a194c04b9c89217">
+      <HintPath>..\packages\NLua.1.4.26\lib\net45\NLua.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -83,12 +91,6 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="Neo.Lua.Desktop">
-      <HintPath>..\packages\NeoLua.1.2.25\lib\net45\Neo.Lua.Desktop.dll</HintPath>
-    </Reference>
-    <Reference Include="Neo.Lua">
-      <HintPath>..\packages\NeoLua.1.2.25\lib\net45\Neo.Lua.dll</HintPath>
-    </Reference>
     <Reference Include="System.Xml.Serialization" />
     <Reference Include="System.ValueTuple">
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
@@ -100,8 +102,40 @@
     <Compile Include="Exceptions\InvalidFreelancerDirectory.cs" />
     <Compile Include="FreelancerGame.cs" />
     <Compile Include="Gameplay\EquipmentObjectManager.cs" />
+    <Compile Include="GameStates\UiApi.cs" />
     <Compile Include="IDrawable.cs" />
     <Compile Include="ILibFile.cs" />
+    <Compile Include="Interface\Attributes\UiContentAttribute.cs" />
+    <Compile Include="Interface\Attributes\UiIgnoreAttribute.cs" />
+    <Compile Include="Interface\Attributes\UiLoadableAttribute.cs" />
+    <Compile Include="Interface\Container.cs" />
+    <Compile Include="Interface\Containers\Panel.cs" />
+    <Compile Include="Interface\Containers\Scrollable.cs" />
+    <Compile Include="Interface\Enums\AnchorKind.cs" />
+    <Compile Include="Interface\Enums\HorizontalAlignment.cs" />
+    <Compile Include="Interface\Enums\VerticalAlignment.cs" />
+    <Compile Include="Interface\InterfaceResources.cs" />
+    <Compile Include="Interface\MultiScene.cs" />
+    <Compile Include="Interface\NavbarButtonInfo.cs" />
+    <Compile Include="Interface\Rendering\DisplayColor.cs" />
+    <Compile Include="Interface\Rendering\DisplayImage.cs" />
+    <Compile Include="Interface\Rendering\DisplayModel.cs" />
+    <Compile Include="Interface\Rendering\DisplayRectangle.cs" />
+    <Compile Include="Interface\Rendering\UiRenderable.cs" />
+    <Compile Include="Interface\Scene.cs" />
+    <Compile Include="Interface\Scene.LuaCode.cs" />
+    <Compile Include="Interface\Stylesheet.cs" />
+    <Compile Include="Interface\UiContext.cs" />
+    <Compile Include="Interface\UiRecreateHandle.cs" />
+    <Compile Include="Interface\UiWidget.cs" />
+    <Compile Include="Interface\UiXmlLoader.cs" />
+    <Compile Include="Interface\UiXmlReflection.cs" />
+    <Compile Include="Interface\Widgets\Button.cs" />
+    <Compile Include="Interface\Widgets\ChatBox.cs" />
+    <Compile Include="Interface\Widgets\Gauge.cs" />
+    <Compile Include="Interface\Widgets\ImageFile.cs" />
+    <Compile Include="Interface\Widgets\Internal\Scrollbar.cs" />
+    <Compile Include="Interface\Widgets\TextBlock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sounds\AttachedSound.cs" />
     <Compile Include="Sounds\SoundManager.cs" />
@@ -188,7 +222,7 @@
     <Compile Include="Render\ICamera.cs" />
     <Compile Include="Easings.cs" />
     <Compile Include="Render\IdentityCamera.cs" />
-    <Compile Include="Interface\UIAnimation.cs" />
+    <Compile Include="Interface\UiAnimation.cs" />
     <Compile Include="Thn\ThnScript.cs" />
     <Compile Include="GameData\Nebula.cs" />
     <Compile Include="GameData\Zone.cs" />
@@ -352,17 +386,8 @@
     <Compile Include="LightBitfield.cs" />
     <Compile Include="Gameplay\Components\UpdateSParamComponent.cs" />
     <Compile Include="GameStates\LuaMenu.cs" />
-    <Compile Include="Interface\XInterface.cs" />
-    <Compile Include="Interface\XmlUIManager.cs" />
-    <Compile Include="Interface\XInterface.Parsing.cs" />
-    <Compile Include="Interface\XmlUIButtonElement.cs" />
-    <Compile Include="Interface\XmlUIElement.cs" />
-    <Compile Include="Interface\XmlUIImage.cs" />
+    <Compile Include="Interface\Parser.cs" />
     <Compile Include="Interface\MatrixCamera.cs" />
-    <Compile Include="Interface\XmlUIPanel.cs" />
-    <Compile Include="Interface\TextElement.cs" />
-    <Compile Include="Interface\XmlChatBox.cs" />
-    <Compile Include="Interface\ScriptedHud.cs" />
     <Compile Include="Render\FOVUtil.cs" />
     <Compile Include="Interface\Maneuver.cs" />
     <Compile Include="VertexResource.cs" />
@@ -392,7 +417,6 @@
     <Compile Include="Utf\Cmp\CmpCameraInfo.cs" />
     <Compile Include="GameStates\LoadingScreen.cs" />
     <Compile Include="Utf\Dfm\DfmConstructs.cs" />
-    <Compile Include="Interface\XmlUIServerList.cs" />
     <Compile Include="Thn\ThnSound.cs" />
     <Compile Include="Thn\Events\StartSoundRunner.cs" />
     <Compile Include="Thn\ThnAudioProps.cs" />
@@ -404,12 +428,9 @@
     <Compile Include="GameData\FuseResources.cs" />
     <Compile Include="Gameplay\Components\FuseRunnerComponent.cs" />
     <Compile Include="Fx\ParticleEffectPool.cs" />
-    <Compile Include="Interface\XmlUITextBox.cs" />
     <Compile Include="Net\Protocol\Packets.CharacterList.cs" />
-    <Compile Include="Interface\XmlUICharacterList.cs" />
     <Compile Include="Gameplay\ServerWorld.cs" />
     <Compile Include="Gameplay\Components\ShipInputComponent.cs" />
-    <Compile Include="Interface\TextUtils.cs" />
     <Compile Include="Render\StaticBillboards.cs" />
     <Compile Include="Render\CharacterSkinning.cs" />
   </ItemGroup>
@@ -453,11 +474,6 @@
     <EmbeddedResource Include="Shaders\Normals_PositionNormal.vs" />
     <EmbeddedResource Include="Shaders\Normals.frag" />
     <EmbeddedResource Include="Shaders\Basic_PositionColor.vs" />
-    <EmbeddedResource Include="Interface\Default\mainmenu.xml" />
-    <EmbeddedResource Include="Interface\Default\hud.xml" />
-    <EmbeddedResource Include="Interface\Default\commonstyles.xml" />
-    <EmbeddedResource Include="Interface\Default\baseside.xml" />
-    <EmbeddedResource Include="Interface\Default\loading.xml" />
     <EmbeddedResource Include="Shaders\Particle.vs" />
     <EmbeddedResource Include="Shaders\sun.vs" />
     <EmbeddedResource Include="Shaders\nebula_extpuff.vs" />
@@ -500,7 +516,21 @@
   </Target>
   <Target Name="AfterBuild">
   </Target>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Interface\Default\baseside.lua" />
+    <EmbeddedResource Include="Interface\Default\baseside.xml" />
+    <EmbeddedResource Include="Interface\Default\hud.lua" />
+    <EmbeddedResource Include="Interface\Default\hud.xml" />
+    <EmbeddedResource Include="Interface\Default\loading.xml" />
+    <EmbeddedResource Include="Interface\Default\mainmenu.lua" />
+    <EmbeddedResource Include="Interface\Default\mainmenu.xml" />
+    <EmbeddedResource Include="Interface\Default\modal.lua" />
+    <EmbeddedResource Include="Interface\Default\modal.xml" />
+    <EmbeddedResource Include="Interface\Default\navbox.lua" />
+    <EmbeddedResource Include="Interface\Default\options.lua" />
+    <EmbeddedResource Include="Interface\Default\resources.xml" />
+    <EmbeddedResource Include="Interface\Default\stylesheet.xml" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="Utf\Ale\AleCrc.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -516,4 +546,14 @@
     <Folder Include="Utf\Audio\" />
     <Folder Include="GameData\Market\" />
   </ItemGroup>
+  <PropertyGroup>
+    <ShouldIncludeNativeLua>False</ShouldIncludeNativeLua>
+  </PropertyGroup>
+  <Import Project="..\packages\KeraLua.1.0.22\build\net45\KeraLua.targets" Condition="Exists('..\packages\KeraLua.1.0.22\build\net45\KeraLua.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\KeraLua.1.0.22\build\net45\KeraLua.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KeraLua.1.0.22\build\net45\KeraLua.targets'))" />
+  </Target>
 </Project>

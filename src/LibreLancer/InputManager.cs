@@ -25,7 +25,7 @@ namespace LibreLancer
 			actions.Add(new InputAction(InputAction.ID_TOGGLECRUISE, "Toggle Cruise", true, Keys.W, KeyModifiers.LeftShift));
 			actions.Add(new InputAction(InputAction.ID_CANCEL, "Cancel", true, Keys.Escape));
 			actions.Add(new InputAction(InputAction.ID_TOGGLEMOUSEFLIGHT, "Toggle Mouse Flight", true, Keys.Space));
-			game.Keyboard.KeyDown += Keyboard_KeyDown;
+            game.Keyboard.KeyDown += Keyboard_KeyDown;
 			game.Keyboard.KeyUp += Keyboard_KeyUp;
 			this.game = game;
 		}

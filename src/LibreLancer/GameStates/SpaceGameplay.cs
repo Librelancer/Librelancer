@@ -4,7 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using LibreLancer.GameData.Items;
+using LibreLancer.Interface;
 using LibreLancer.Physics;
 
 namespace LibreLancer
@@ -45,7 +47,6 @@ Mouse Flight: {11}
 		Cursor cur_arrow;
 		Cursor cur_reticle;
 		Cursor current_cur;
-        ScriptedHud hud;
 		EngineComponent ecpt;
 		InputManager input;
 		GameSession session;
@@ -53,6 +54,8 @@ Mouse Flight: {11}
         LoadingScreen loader;
         public Cutscene Thn;
         DebugGraph pyw;
+        private UiContext ui;
+        private UiWidget widget;
 		public SpaceGameplay(FreelancerGame g, GameSession session) : base(g)
 		{
 			FLLog.Info("Game", "Entering system " + session.PlayerSystem);
@@ -71,7 +74,10 @@ Mouse Flight: {11}
             #endif
             sys = g.GameData.GetSystem(session.PlayerSystem);
             loader = new LoadingScreen(g, g.GameData.LoadSystemResources(sys));
-		}
+            ui = new UiContext(g);
+            ui.GameApi = new LuaAPI(this);
+            widget = ui.CreateAll("hud.xml");
+        }
 
         void FinishLoad()
         {
@@ -143,7 +149,6 @@ Mouse Flight: {11}
             player.Components.Add(pilotcomponent);
             player.World = world;
             world.MessageBroadcasted += World_MessageBroadcasted;
-            ConstructHud();
             FadeIn(0.5, 0.5);
         }
         class LuaAPI
@@ -153,31 +158,21 @@ Mouse Flight: {11}
             {
                 this.g = gameplay;   
             }
-            public Neo.IronLua.LuaTable maneuvers()
+            public Maneuver[] GetManeuvers()
             {
-                var list = new Neo.IronLua.LuaTable();
-                foreach(var maneuver in g.Game.GameData.GetManeuvers()) {
-                    var mn = (dynamic)(new Neo.IronLua.LuaTable());
-                    mn.action = maneuver.Action;
-                    mn.activemodel = "//" + maneuver.ActiveModel;
-                    mn.inactivemodel = "//" + maneuver.InactiveModel;
-                    mn.infocarda = maneuver.InfocardA;
-                    mn.infocardb = maneuver.InfocardB;
-                    g.hud.UI.TableInsert(list, mn);
-                }
-                return list;
+                return g.Game.GameData.GetManeuvers().ToArray();
             }
-            public bool setmaneuver(string e) => g.ManeuverSelect(e);
-            public int thrustpct() => ((int)(g.powerCore.CurrentThrustCapacity / g.powerCore.Equip.ThrustCapacity * 100));
-            public int speed() => ((int)g.player.PhysicsComponent.Body.LinearVelocity.Length);
-            public bool multiplayer() => false;
+            public bool SelectManeuver(string e) => g.ManeuverSelect(e);
+            public int ThrustPercent() => ((int)(g.powerCore.CurrentThrustCapacity / g.powerCore.Equip.ThrustCapacity * 100));
+            public int Speed() => ((int)g.player.PhysicsComponent.Body.LinearVelocity.Length);
         }
 		void World_MessageBroadcasted(GameObject sender, GameMessageKind kind)
 		{
 			switch (kind)
 			{
 				case GameMessageKind.ManeuverFinished:
-					hud.SetManeuver("FreeFlight");
+                    
+					//hud.SetManeuver("FreeFlight");
 					break;
 			}
 		}
@@ -205,14 +200,15 @@ Mouse Flight: {11}
 			Game.Keyboard.TextInput -= Game_TextInput;
 			Game.Keyboard.KeyDown -= Keyboard_KeyDown;
 			input.Dispose();
-			hud.Dispose();
+            ui.Unhook();
+			//hud.Dispose();
 			sysrender.Dispose();
             world.Dispose();
 		}
 
 		void Keyboard_KeyDown(KeyEventArgs e)
 		{
-			if (hud.TextEntry)
+			/*if (hud.TextEntry)
 			{
 				hud.TextEntryKeyPress(e.Key);
 				if (hud.TextEntry == false) Game.DisableTextInput();
@@ -228,12 +224,12 @@ Mouse Flight: {11}
 					hud.TextEntry = true;
 					Game.EnableTextInput();
 				}
-			}
+			}*/
 		}
 
 		void Game_TextInput(string text)
 		{
-			hud.OnTextEntry(text);
+			//hud.OnTextEntry(text);
 		}
 
 		bool dogoto = false;
@@ -316,16 +312,6 @@ Mouse Flight: {11}
 		{
 
 		}
-
-        bool newHud = false;
-        void ConstructHud()
-        {
-            hud = new ScriptedHud(new LuaAPI(this), true, Game);
-            hud.OnEntered += Hud_OnTextEntry;
-            hud.Init();
-            hud.SetManeuver("FreeFlight");
-        }
-
         public override void OnResize()
         {
             camera.Viewport = Game.Viewport;
@@ -346,13 +332,8 @@ Mouse Flight: {11}
                 return;
             }
             if (session.Update(this, delta)) return;
-            if (newHud) {
-                hud.Dispose();
-                ConstructHud();
-                newHud = false;
-            }
-            if(ShowHud && (Thn == null || !Thn.Running))
-                hud.Update(delta);
+            if (ShowHud && (Thn == null || !Thn.Running))
+                ui.Update(Game);
             if (Thn != null && Thn.Running)
             {
                 Thn.Update(delta);
@@ -386,7 +367,7 @@ Mouse Flight: {11}
 
 		void Input_ToggleActivated(int id)
 		{
-			if (hud.TextEntry) return;
+			//if (hud.TextEntry) return;
 			switch (id)
 			{
 				case InputAction.ID_TOGGLECRUISE:
@@ -431,8 +412,8 @@ Mouse Flight: {11}
 		{
 			input.Update();
 
-			if (!hud.TextEntry)
-			{
+			//if (!hud.TextEntry)
+            //{
 				if (input.ActionDown(InputAction.ID_THROTTLEUP))
 				{
                     shipInput.Throttle += (float)(delta.TotalSeconds);
@@ -444,16 +425,16 @@ Mouse Flight: {11}
                     shipInput.Throttle -= (float)(delta.TotalSeconds);
                     shipInput.Throttle = MathHelper.Clamp(shipInput.Throttle, 0, 1);
 				}
-			}
+			//}
 
 			StrafeControls strafe = StrafeControls.None;
-			if (!hud.TextEntry)
-			{
+			//if (!hud.TextEntry)
+			//{
 				if (input.ActionDown(InputAction.ID_STRAFELEFT)) strafe |= StrafeControls.Left;
 				if (input.ActionDown(InputAction.ID_STRAFERIGHT)) strafe |= StrafeControls.Right;
 				if (input.ActionDown(InputAction.ID_STRAFEUP)) strafe |= StrafeControls.Up;
 				if (input.ActionDown(InputAction.ID_STRAFEDOWN)) strafe |= StrafeControls.Down;
-            }
+            //}
 
 			var pc = player.PhysicsComponent;
             shipInput.Viewport = new Vector2(Game.Width, Game.Height);
@@ -612,8 +593,8 @@ Mouse Flight: {11}
             if ((Thn == null || !Thn.Running)) //HACK: Cutscene also updates the listener so we don't do it if one is running
                 Game.Sound.UpdateListener(delta, camera.Position, camera.CameraForward, camera.CameraUp);
 
-            if((Thn == null || !Thn.Running) && ShowHud)
-                hud.Draw(delta);
+            if ((Thn == null || !Thn.Running) && ShowHud)
+                ui.RenderWidget();
 			Game.Renderer2D.Start(Game.Width, Game.Height);
             if ((Thn == null || !Thn.Running) && ShowHud)
             {

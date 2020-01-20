@@ -4,7 +4,7 @@
 
 #include "imgui.h"
 #include "imgui_freetype.h"
-#include "cimgui_freetype.h"
+#include "cimgui_ext.h"
 #include "ftshim.h"
 
 static bool functionsLoaded = false;

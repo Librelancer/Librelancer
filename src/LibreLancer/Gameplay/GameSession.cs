@@ -99,6 +99,7 @@ namespace LibreLancer
         {
             if(MissionNum != 0 && (MissionNum - 1) < Game.GameData.Ini.Missions.Count) {
                 msnrun = new MissionRuntime(Game.GameData.Ini.Missions[MissionNum - 1], this);
+                msnrun.EnsureLoaded();
             }
 
             if (PlayerBase != null)

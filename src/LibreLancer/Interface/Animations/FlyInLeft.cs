@@ -6,7 +6,7 @@ using System;
 
 namespace LibreLancer
 {
-	public class FlyInLeft : UIAnimation
+	public class FlyInLeft : UiAnimation
 	{
 		Vector2 finalPos;
         public float From = -2;
@@ -16,7 +16,13 @@ namespace LibreLancer
 			CurrentPosition.Y = finalPos.Y;
 		}
 
-		protected override void Run (double currentTime)
+        public override void SetWidgetPosition(Vector2 pos)
+        {
+            finalPos = pos;
+            CurrentPosition.Y = finalPos.Y;
+        }
+
+        protected override void Run (double currentTime)
 		{
 			CurrentPosition.X = (float)Easings.Circular.EaseOut (
 				currentTime, 

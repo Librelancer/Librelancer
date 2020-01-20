@@ -93,7 +93,8 @@ namespace LibreLancer.ImUI
         IntPtr context;
 		public static ImFontPtr Noto;
 		public static ImFontPtr Default;
-
+        public static ImFontPtr SystemMonospace;
+        
         //Not shown in current version of ImGui.NET,
         //can probably remove when I update the dependencies
         [DllImport("cimgui")]
@@ -113,6 +114,7 @@ namespace LibreLancer.ImUI
             io.NativePtr->IniFilename = (byte*)0; //disable ini!!
             var fontConfigA = new ImFontConfigPtr(ImFontConfig_ImFontConfig());
             var fontConfigB = new ImFontConfigPtr(ImFontConfig_ImFontConfig());
+            var fontConfigC = new ImFontConfigPtr(ImFontConfig_ImFontConfig());
             ushort[] glyphRangesFull = new ushort[]
             {
                 0x0020, 0x00FF, //Basic Latin + Latin Supplement,
@@ -134,6 +136,7 @@ namespace LibreLancer.ImUI
             for (int i = 0; i < glyphRangesLatin.Length; i++) ((ushort*)rangesPtrLatin)[i] = glyphRangesLatin[i];
             fontConfigA.GlyphRanges = rangesPtrLatin;
             fontConfigB.GlyphRanges = rangesPtrFull;
+            fontConfigC.GlyphRanges = rangesPtrFull;
             Default = io.Fonts.AddFontDefault(fontConfigA);
 			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.Roboto-Medium.ttf"))
 			{
@@ -148,6 +151,11 @@ namespace LibreLancer.ImUI
 				checkerboard = LibreLancer.ImageLib.Generic.FromStream(stream);
 				CheckerboardId = RegisterTexture(checkerboard);
 			}
+            var monospace = Platform.GetMonospaceBytes();
+            fixed (byte* mmPtr = monospace)
+            {
+                SystemMonospace = io.Fonts.AddFontFromMemoryTTF((IntPtr) mmPtr, monospace.Length, 16, fontConfigC);
+            }
             ImGuiExt.BuildFontAtlas((IntPtr)io.Fonts.NativePtr);
             byte* fontBytes;
             int fontWidth, fontHeight;
