@@ -11,6 +11,11 @@ namespace LibreLancer
     {
         public void Process(ThnEvent ev, Cutscene cs)
         {
+            if (!cs.Objects.ContainsKey((string) ev.Targets[0]))
+            {
+                FLLog.Error("Thn", $"Entity {ev.Targets[0]} does not exist");
+                return;
+            }
             var obj = cs.Objects[(string)ev.Targets[0]];
             var ren = ((ParticleEffectRenderer)obj.Object.RenderComponent);
             var props = (LuaTable)ev.Properties["psysprops"];

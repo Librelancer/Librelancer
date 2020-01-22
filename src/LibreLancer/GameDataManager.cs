@@ -1100,7 +1100,16 @@ namespace LibreLancer
 
         public IDrawable GetProp(string prop)
         {
-            return resource.GetDrawable(ResolveDataPath(fldata.PetalDb.Props[prop]));
+            string f;
+            if (fldata.PetalDb.Props.TryGetValue(prop, out f))
+            {
+                return resource.GetDrawable(ResolveDataPath(f));
+            }
+            else
+            {
+                FLLog.Error("PetalDb", "No prop exists: " + prop);
+                return null;
+            }
         }
 
         public IDrawable GetCart(string cart)

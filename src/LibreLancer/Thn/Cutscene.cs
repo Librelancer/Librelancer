@@ -476,6 +476,11 @@ namespace LibreLancer
 
 		void ProcessStartPSys(ThnEvent ev)
 		{
+            if (!Objects.ContainsKey((string) ev.Targets[0]))
+            {
+                FLLog.Error("Thn", "Entity " + ev.Targets[0].ToString()+ " does not exist");
+                return;
+            }
 			var obj = Objects[(string)ev.Targets[0]];
             var r = (ParticleEffectRenderer)obj.Object.RenderComponent;
             r.Active = true;
