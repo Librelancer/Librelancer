@@ -50,14 +50,14 @@ namespace LibreLancer.Utf.Cmp
 
         private int endMesh;
 
-        public VMeshRef(byte[] data, ILibFile vMeshLibrary)
+        public VMeshRef(ArraySegment<byte> data, ILibFile vMeshLibrary)
         {
             if (data == null) throw new ArgumentNullException("data");
             if (vMeshLibrary == null) throw new ArgumentNullException("vMeshLibrary");
 
             this.vMeshLibrary = vMeshLibrary;
 
-            using (BinaryReader reader = new BinaryReader(new MemoryStream(data)))
+            using (BinaryReader reader = new BinaryReader(data.GetReadStream()))
             {
                 mesh = null;
 

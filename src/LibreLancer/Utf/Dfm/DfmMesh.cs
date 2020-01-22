@@ -175,7 +175,9 @@ namespace LibreLancer.Utf.Dfm
                     weights.W = BoneWeightChain[first + 3];
                 }
                 if (count > 4) throw new NotImplementedException();
-                vertices.Add(new DfmVertex(Points[PointIndices[i]], VertexNormals[PointIndices[i]], UV0[UV0Indices[i]], weights, id1, id2, id3, id4));
+                var uv = UV0[UV0Indices[i]];
+                uv.Y = 1 - uv.Y;
+                vertices.Add(new DfmVertex(Points[PointIndices[i]], VertexNormals[PointIndices[i]], uv, weights, id1, id2, id3, id4));
 			}
 
 			vertexBuffer = new VertexBuffer(typeof(DfmVertex), vertices.Count);
@@ -219,8 +221,8 @@ namespace LibreLancer.Utf.Dfm
 			}
 		}
 
-        private CharacterSkinning skinning;
-        public void SetSkinning(CharacterSkinning skinning)
+        private DfmSkinning skinning;
+        public void SetSkinning(DfmSkinning skinning)
         {
             this.skinning = skinning;
         }

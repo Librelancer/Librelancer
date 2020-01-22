@@ -22,13 +22,13 @@ namespace LibreLancer
             GL.BufferData(GL.GL_UNIFORM_BUFFER, new IntPtr(size * stride), IntPtr.Zero, GL.GL_STREAM_DRAW);
         }
         
-        public void SetData<T>(T[] array, int length = -1) where T : struct
+        public void SetData<T>(T[] array, int start = 0, int length = -1) where T : struct
         {
             if (typeof(T) != storageType) throw new InvalidOperationException();
             var len = length < 0 ? array.Length : length;
             GLBind.UniformBuffer(ID);
             var handle = GCHandle.Alloc (array, GCHandleType.Pinned);
-            GL.BufferSubData (GL.GL_UNIFORM_BUFFER, IntPtr.Zero, (IntPtr)(len * stride), handle.AddrOfPinnedObject());
+            GL.BufferSubData (GL.GL_UNIFORM_BUFFER, (IntPtr)(start * stride), (IntPtr)(len * stride), handle.AddrOfPinnedObject());
             handle.Free();
         }
 

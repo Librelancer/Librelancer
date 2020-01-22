@@ -33,7 +33,7 @@ namespace LibreLancer.Utf.Dfm
                         BoneToRoot = (subNode as LeafNode).MatrixData4x3.Value;
 					break;
 				case "lod bits":
-					LodBits = (subNode as LeafNode).ByteArrayData[0];
+                    LodBits = (subNode as LeafNode).DataSegment.AtIndex(0);
 					break;
 				case "hardpoints":
 					IntermediateNode hardpointsNode = subNode as IntermediateNode;

@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using LibreLancer.Thorn;
+using LibreLancer.Utf.Dfm;
 
 namespace LibreLancer
 {
@@ -26,6 +27,15 @@ namespace LibreLancer
         {
             if (Object != null)
             {
+                if (Object.RenderComponent is CharacterRenderer charRen)
+                {
+                    if (charRen.Skeleton.ApplyRootMotion)
+                    {
+                        Rotate = Matrix4.CreateFromQuaternion(charRen.Skeleton.RootMotion.ExtractRotation());
+                        Translate = charRen.Skeleton.RootMotion.Transform(Vector3.Zero);
+                    }
+                    Translate.Y = charRen.Skeleton.FloorHeight + charRen.Skeleton.RootHeight;
+                }
                 if(HpMount == null)
                     Object.Transform = Rotate * Matrix4.CreateTranslation(Translate);
                 else {
@@ -158,11 +168,10 @@ namespace LibreLancer
                         default:
                             throw new NotImplementedException("Mesh Category " + kv.Value.MeshCategory);
                     }
-                    if (kv.Value.UserFlag != 0)
-                    {
+                    
+                    if (kv.Value.UserFlag != 0)  {
                         //This is a starsphere
-                        var transform = (kv.Value.RotationMatrix ?? Matrix4.Identity) * Matrix4.CreateTranslation(kv.Value.Position ?? Vector3.Zero);
-                        layers.Add(new Tuple<IDrawable, Matrix4, int>(drawable, transform, kv.Value.SortGroup));
+                        layers.Add(new Tuple<IDrawable, ThnObject>(drawable, obj));
                     }
                     else
                     {
@@ -222,6 +231,8 @@ namespace LibreLancer
                     obj.Camera.Orientation = kv.Value.RotationMatrix ?? Matrix4.Identity;
                     obj.Camera.FovH = kv.Value.FovH ?? obj.Camera.FovH;
                     obj.Camera.AspectRatio = kv.Value.HVAspect ?? obj.Camera.AspectRatio;
+                    if (kv.Value.NearPlane != null) obj.Camera.Znear = kv.Value.NearPlane.Value;
+                    if (kv.Value.FarPlane != null) obj.Camera.Zfar = kv.Value.FarPlane.Value;
                 }
                 else if (kv.Value.Type == EntityTypes.Marker)
                 {
@@ -229,11 +240,22 @@ namespace LibreLancer
                     obj.Object.Name = "Marker";
                     obj.Object.Nickname = "";
                 }
+                else if (kv.Value.Type == EntityTypes.Deformable)
+                {
+                    obj.Object = new GameObject();
+                    gameData.GetCostume(template, out DfmFile body, out DfmFile head, out DfmFile leftHand, out DfmFile rightHand);
+                    var skel = new DfmSkeletonManager(body, head, leftHand, rightHand);
+                    Vector3 transform = kv.Value.Position ?? Vector3.Zero;
+                    skel.SetOriginalTransform((kv.Value.RotationMatrix ?? Matrix4.Identity) * Matrix4.CreateTranslation(transform));
+                    obj.Object.RenderComponent = new CharacterRenderer(skel);
+                    var anmComponent = new AnimationComponent(obj.Object, gameData.GetCharacterAnimations());
+                    obj.Object.AnimationComponent = anmComponent;
+                    obj.Object.Components.Add(anmComponent);
+                }
                 else if (kv.Value.Type == EntityTypes.Sound)
                 {
                     obj.Sound = new ThnSound(kv.Value.Template, game.GetService<SoundManager>(), kv.Value.AudioProps, obj);
                     obj.Sound.Spatial = (kv.Value.ObjectFlags & ThnObjectFlags.Spatial) == ThnObjectFlags.Spatial;
-
                 }
                 if (obj.Object != null)
                 {
@@ -249,7 +271,7 @@ namespace LibreLancer
         bool hasScene = false;
         Game game;
         private GameDataManager gameData;
-        List<Tuple<IDrawable, Matrix4, int>> layers = new List<Tuple<IDrawable, Matrix4, int>>();
+        List<Tuple<IDrawable, ThnObject>> layers = new List<Tuple<IDrawable, ThnObject>>();
 
         public Cutscene(IEnumerable<ThnScript> scripts, SpaceGameplay gameplay)
         {
@@ -304,18 +326,38 @@ namespace LibreLancer
 			foreach (var item in evs)
 				events.Enqueue(item);
             //Add starspheres in the right order
-            var sorted = ((IEnumerable<Tuple<IDrawable, Matrix4, int>>)layers).Reverse().OrderBy(x => x.Item3).ToArray();
+            var sorted = ((IEnumerable<Tuple<IDrawable, ThnObject>>)layers).Reverse().OrderBy(x => x.Item2.Entity.SortGroup).ToArray();
 			Renderer.StarSphereModels = new IDrawable[sorted.Length];
 			Renderer.StarSphereWorlds = new Matrix4[sorted.Length];
+            Renderer.StarSphereLightings = new Lighting[sorted.Length];
+            starSphereObjects = new ThnObject[sorted.Length];
 			for (int i = 0; i < sorted.Length; i++)
 			{
 				Renderer.StarSphereModels[i] = sorted[i].Item1;
-				Renderer.StarSphereWorlds[i] = sorted[i].Item2;
-			}
+                Renderer.StarSphereWorlds[i] = sorted[i].Item2.Rotate * Matrix4.CreateTranslation(sorted[i].Item2.Translate);
+                Renderer.StarSphereLightings[i] = Lighting.Empty;
+                starSphereObjects[i] = sorted[i].Item2;
+            }
 			//Add objects to the renderer
 			World.RegisterAll();
 		}
 
+        private ThnObject[] starSphereObjects;
+
+        void UpdateStarsphere()
+        {
+            for (int i = 0; i < starSphereObjects.Length; i++)
+            {
+                Renderer.StarSphereWorlds[i] = starSphereObjects[i].Rotate * Matrix4.CreateTranslation(starSphereObjects[i].Translate);
+                var ldynamic = (starSphereObjects[i].Entity.ObjectFlags & ThnObjectFlags.LitDynamic) == ThnObjectFlags.LitDynamic;
+                var lambient = (starSphereObjects[i].Entity.ObjectFlags & ThnObjectFlags.LitAmbient) == ThnObjectFlags.LitAmbient;
+                var nofog = starSphereObjects[i].Entity.NoFog;
+                Renderer.StarSphereLightings[i] = RenderHelpers.ApplyLights(Renderer.SystemLighting,
+                    starSphereObjects[i].Entity.LightGroup, Vector3.Zero, float.MaxValue, null,
+                    lambient, ldynamic, nofog);
+            }
+        }
+        
         public void RunScript(ThnScript thn, Action onFinish = null)
         {
             AddEntities(thn);
@@ -396,7 +438,8 @@ namespace LibreLancer
 		}
 
 		public void Draw()
-		{
+        {
+            UpdateStarsphere();
 			Renderer.Draw();
 		}
 

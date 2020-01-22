@@ -166,6 +166,15 @@ namespace LibreLancer.Interface
             base.Render(context, parentRectangle);
         }
 
+        public override void ScriptedEvent(string ev, params object[] param)
+        {
+            var p = new object[param.Length + 1];
+            p[0] = ev;
+            for (int i = 0; i < param.Length; i++)
+                p[i + 1] = param[i];
+            CallEvent?.Call(p);
+        }
+
         static void LogString(string s)
         {
             FLLog.Info("Lua", s);

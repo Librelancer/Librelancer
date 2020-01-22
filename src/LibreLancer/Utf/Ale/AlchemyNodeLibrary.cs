@@ -26,7 +26,7 @@ namespace LibreLancer.Utf.Ale
 		public List<AlchemyNode> Nodes = new List<AlchemyNode> ();
 		public AlchemyNodeLibrary (LeafNode utfleaf)
 		{
-			using (var reader = new BinaryReader (new MemoryStream (utfleaf.ByteArrayData))) {
+			using (var reader = new BinaryReader (utfleaf.DataSegment.GetReadStream())) {
 				Version = reader.ReadSingle ();
 				int nodeCount = reader.ReadInt32 ();
 				for (int nc = 0; nc < nodeCount; nc++) {

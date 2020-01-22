@@ -366,7 +366,8 @@ namespace LibreLancer.Interface
             if (modals.Count > 0) return modals.Peek().Widget;
             return baseWidget;
         }
-        
+
+        public void ChatboxEvent() =>   GetActive()?.ScriptedEvent("Chatbox");
         public void OnMouseDown() => GetActive()?.OnMouseDown(this, GetRectangle());
         public void OnMouseUp() => GetActive()?.OnMouseUp(this, GetRectangle());
         public void OnMouseClick() => GetActive()?.OnMouseClick(this, GetRectangle());

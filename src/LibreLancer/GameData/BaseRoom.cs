@@ -24,7 +24,7 @@ namespace LibreLancer.GameData
 		public IEnumerable<ThnScript> OpenScripts(bool landScript)
 		{
 			foreach (var p in ThnPaths) yield return new ThnScript(p);
-            if (StartScript != null) yield return new ThnScript(StartScript);
+            //if (StartScript != null) yield return new ThnScript(StartScript);
             if (GoodscartScript != null) yield return new ThnScript(GoodscartScript);
             if (LandScript != null && landScript) yield return new ThnScript(LandScript);
 		}

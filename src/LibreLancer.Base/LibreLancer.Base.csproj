@@ -87,6 +87,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArraySegmentHelper.cs" />
     <Compile Include="Bounds\BoundingBox.cs" />
     <Compile Include="Bounds\BoundingFrustum.cs" />
     <Compile Include="Bounds\BoundingSphere.cs" />

@@ -160,6 +160,8 @@ namespace LibreLancer.Interface
                     break;
             }
         }
+        
+        public virtual void ScriptedEvent(string ev, params object[] param) { }
         public virtual void OnMouseDown(UiContext context, RectangleF parentRectangle) { }
         public virtual void OnMouseClick(UiContext context, RectangleF parentRectangle) { }
         public virtual void OnMouseUp(UiContext context, RectangleF parentRectangle) { }

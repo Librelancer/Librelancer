@@ -5,12 +5,29 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 
 namespace LibreLancer.Utf.Anm
 {
     public class AnmFile : UtfFile
     {
+        //Optimisation to avoid some copying
+        public static void ParseToTable(Dictionary<string, Script> table, string path)
+        {
+            var anm = new AnmFile();
+            anm.Scripts = table;
+            foreach (IntermediateNode node in parseFile(path))
+            {
+                switch (node.Name.ToLowerInvariant())
+                {
+                    case "animation":
+                        anm.Load(node, null);
+                        break;
+                    default: throw new Exception("Invalid Node in anm root: " + node.Name);
+                }
+            }
+        }
         public Dictionary<string, Script> Scripts { get; private set; }
 
         public AnmFile(string path)
@@ -20,36 +37,38 @@ namespace LibreLancer.Utf.Anm
                 switch (node.Name.ToLowerInvariant())
                 {
                     case "animation":
-                        load(node, null);
+                        Load(node, null);
                         break;
                     default: throw new Exception("Invalid Node in anm root: " + node.Name);
                 }
             }
         }
 
-        public AnmFile(IntermediateNode root, ConstructCollection constructs)
+        public AnmFile()
         {
-            load(root, constructs);
+            Scripts = new Dictionary<string, Script>(StringComparer.OrdinalIgnoreCase);
         }
 
-        private void load(IntermediateNode root, ConstructCollection constructs)
+        public AnmFile(IntermediateNode root, ConstructCollection constructs)
         {
-            Scripts = new Dictionary<string, Script>();
-
-			foreach (Node node in root)
+            Load(root, constructs);
+        }
+        public AnmFile(Stream stream)
+        {
+            var utf = parseFile("stream", stream);
+            Load(utf, null);
+        }
+        void Load(IntermediateNode root, ConstructCollection constructs)
+        {
+            if(Scripts == null) Scripts = new Dictionary<string, Script>(root.Count, StringComparer.OrdinalIgnoreCase);
+            foreach (Node node in root)
             {
-                switch (node.Name.ToLowerInvariant())
+                if (node.Name.Equals("script", StringComparison.OrdinalIgnoreCase))
                 {
-                    case "script":
-						foreach (IntermediateNode scNode in (IntermediateNode)node)
-                        {
-                            Scripts.Add(scNode.Name, new Script(scNode, constructs));
-                        }
-                        break;
-					case "anim_credits":
-						//TODO: What is this?
-						break;
-                    default: throw new Exception("Invalid node in " + root.Name + ": " + node.Name);
+                    foreach (IntermediateNode scNode in (IntermediateNode)node)
+                    {
+                        Scripts[scNode.Name] = new Script(scNode, constructs);
+                    }
                 }
             }
         }

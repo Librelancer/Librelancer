@@ -227,6 +227,7 @@ namespace LibreLancer.ImUI
         private const double RENDER_TIME = 0.47;
         public bool DoRender(double elapsed)
         {
+            if (elapsed > 0.05) elapsed = 0;
             if (game.EventsThisFrame || (animating && !(PauseWhenUnfocused && !game.Focused)))
                 renderTimer = RENDER_TIME;
             animating = false;
@@ -235,6 +236,10 @@ namespace LibreLancer.ImUI
             return renderTimer != 0;
         }
 
+        public void ResetRenderTimer()
+        {
+            renderTimer = RENDER_TIME;
+        }
         public bool DoUpdate()
         {
             return renderTimer != 0;

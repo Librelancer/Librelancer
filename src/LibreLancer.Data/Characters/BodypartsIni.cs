@@ -12,11 +12,13 @@ namespace LibreLancer.Data.Characters
 {
 	public class BodypartsIni : IniFile
 	{
-		public List<Bodypart> Bodyparts { get; private set; }
+        public List<string> Animations { get; private set; }
+        public List<Bodypart> Bodyparts { get; private set; }
 		public List<Accessory> Accessories { get; private set; }
 
 		public BodypartsIni(string path, FreelancerData gdata)
-		{
+        {
+            Animations = new List<string>();
 			Bodyparts = new List<Bodypart>();
 			Accessories = new List<Accessory>();
 
@@ -26,6 +28,10 @@ namespace LibreLancer.Data.Characters
 				{
 				case "animations":
 					// TODO: Bodyparts Animations
+                    foreach (var e in s)
+                    {
+                        Animations.Add(e[0].ToString());
+                    }
 					break;
 				case "detailswitchtable":
 					// TODO: Bodyparts DetailSwitchTable

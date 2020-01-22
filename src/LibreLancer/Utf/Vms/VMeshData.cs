@@ -55,14 +55,14 @@ namespace LibreLancer.Utf.Vms
         public VertexBuffer VertexBuffer { get { return _vertexBuffer; } }
 		string vmsname;
 
-		public VMeshData(byte[] data, ILibFile materialLibrary, string name)
+		public VMeshData(ArraySegment<byte> data, ILibFile materialLibrary, string name)
         {
             if (data == null) throw new ArgumentNullException("data");
             if (materialLibrary == null) throw new ArgumentNullException("materialLibrary");
 			vmsname = name;
             ready = false;
 
-            using (BinaryReader reader = new BinaryReader(new MemoryStream(data)))
+            using (BinaryReader reader = new BinaryReader(data.GetReadStream()))
             {
 
                 // Read the data header.

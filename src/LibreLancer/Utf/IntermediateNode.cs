@@ -18,7 +18,7 @@ namespace LibreLancer.Utf
 			this.children = children;
 		}
 
-        public IntermediateNode(int peerOffset, string name, BinaryReader reader, string stringBlock, byte[] dataBlock)
+        public IntermediateNode(int peerOffset, string name, BinaryReader reader, StringBlock stringBlock, byte[] dataBlock)
             : base(peerOffset, name)
         {
             if (reader == null) throw new ArgumentNullException("reader");

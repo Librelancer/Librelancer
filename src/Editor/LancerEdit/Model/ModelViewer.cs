@@ -229,8 +229,9 @@ namespace LancerEdit
         {
             if (animator != null)
                 animator.Update(TimeSpan.FromSeconds(elapsed));
-            if (skinning != null) skinning.Update(TimeSpan.FromSeconds(elapsed));
-
+            if (skel != null) {
+                skel.UpdateScripts(TimeSpan.FromSeconds(elapsed));
+            }
             if (newErrorTimer > 0) newErrorTimer -= elapsed;
         }
         Vector2 rotation = Vector2.Zero;
@@ -259,10 +260,8 @@ namespace LancerEdit
                 TabButton("Hierarchy", 0);
             if (drawable is CmpFile && ((CmpFile)drawable).Animation != null)
                 TabButton("Animations", 1);
-#if DEBUG
             if (drawable is DF.DfmFile)
                 TabButton("Skeleton", 2);
-#endif
             TabButton("Render", 3);
             ImGuiNative.igEndGroup();
             ImGui.SameLine();
@@ -932,7 +931,7 @@ namespace LancerEdit
                 ImGui.Separator();
                 foreach(var script in anmFile.Scripts)
                 {
-                    if (ImGui.Button(script.Key)) skinning.SetPose(script.Value);
+                    if (ImGui.Button(script.Key)) skel.StartScript(script.Value);
                 }
             }
         }

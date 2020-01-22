@@ -16,7 +16,7 @@ namespace LibreLancer.Utf.Ale
 
 		public ALEffectLib (LeafNode node)
 		{
-			using (var reader = new BinaryReader (new MemoryStream (node.ByteArrayData))) {
+			using (var reader = new BinaryReader (node.DataSegment.GetReadStream())) {
 				Version = reader.ReadSingle ();
 				var effectCount = reader.ReadInt32 ();
 				Effects = new List<ALEffect> (effectCount);

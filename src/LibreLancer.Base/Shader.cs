@@ -9,7 +9,7 @@ namespace LibreLancer
 {
     public class Shader
     {
-        const int MAX_UNIFORM_LOC = 256;
+        const int MAX_UNIFORM_LOC = 280;
         uint programID = 0;
         Dictionary<string, int> progLocations = new Dictionary<string, int>();
         int[] cachedObjects = new int[MAX_UNIFORM_LOC];

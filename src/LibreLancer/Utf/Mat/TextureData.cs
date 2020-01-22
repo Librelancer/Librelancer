@@ -15,15 +15,15 @@ namespace LibreLancer.Utf.Mat
 
 		private string type;
 		private string texname;
-		private byte[] data;
-		public Texture Texture { get; private set; }
+        private ArraySegment<byte>? data;
+        public Texture Texture { get; private set; }
 		Dictionary<int, byte[]> levels;
 
 		public TextureData (LeafNode node, string texname, bool isTgaMips)
 		{
 			this.type = node.Name;
 			this.texname = texname;
-			this.data = node.ByteArrayData;
+            this.data = node.DataSegment;
 			if (isTgaMips)
 				levels = new Dictionary<int, byte[]>();
 		}
@@ -35,8 +35,9 @@ namespace LibreLancer.Utf.Mat
 
 		public void Initialize ()
 		{
-			if (data != null && Texture == null) {
-				using (Stream stream = new MemoryStream (data)) {
+			if (data != null && Texture == null)
+            {
+				using (Stream stream = data.Value.GetReadStream()) {
 					if (type.Equals ("mips", StringComparison.OrdinalIgnoreCase)) {
                         Texture = ImageLib.DDS.FromStream(stream);
 					} else if (type.StartsWith ("mip", StringComparison.OrdinalIgnoreCase)) {;

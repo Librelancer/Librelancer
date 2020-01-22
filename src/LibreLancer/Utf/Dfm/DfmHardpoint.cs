@@ -8,7 +8,7 @@ namespace LibreLancer.Utf.Dfm
 	public class DfmHardpoint
 	{
 		public DfmFile File;
-		public Bone Bone;
+		public DfmPart Part;
 		public Cmp.HardpointDefinition Hp;
 		public DfmHardpoint()
 		{

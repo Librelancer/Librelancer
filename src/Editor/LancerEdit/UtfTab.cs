@@ -31,7 +31,11 @@ namespace LancerEdit
             DocumentName = title;
             Title = title;
             text = new TextBuffer();
-            main.Resources.AddResources(utf.Export(), Unique.ToString());
+            if (utf.Source != null)
+            {
+                main.Resources.AddResources(utf.Source, Unique.ToString());
+                utf.Source = null;
+            }
             RegisterPopups();
         }
         public void UpdateTitle()
@@ -503,7 +507,7 @@ namespace LancerEdit
                             LibreLancer.Utf.Vms.VMeshData dat = null;
                             try
                             {
-                                dat = new LibreLancer.Utf.Vms.VMeshData(selectedNode.Data, new EmptyLib(), "");
+                                dat = new LibreLancer.Utf.Vms.VMeshData(new ArraySegment<byte>(selectedNode.Data), new EmptyLib(), "");
                             }
                             catch (Exception ex)
                             {

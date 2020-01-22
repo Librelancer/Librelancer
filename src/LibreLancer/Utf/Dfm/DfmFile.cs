@@ -35,10 +35,10 @@ namespace LibreLancer.Utf.Dfm
 
 		public IEnumerable<DfmHardpoint> GetHardpoints()
 		{
-			foreach (var b in Bones)
+			foreach (var b in Parts)
 			{
-				foreach (var hp in b.Value.Hardpoints)
-					yield return new DfmHardpoint() { Bone = b.Value, Hp = hp };
+				foreach (var hp in b.Value.Bone.Hardpoints)
+					yield return new DfmHardpoint() { Part = b.Value, Hp = hp };
 			}
 		}
 
@@ -215,7 +215,7 @@ namespace LibreLancer.Utf.Dfm
 			Levels[0].DrawBuffer(buffer, world, light,overrideMat);		
 		}
 
-        public void SetSkinning(CharacterSkinning skinning)
+        public void SetSkinning(DfmSkinning skinning)
         {
             Levels[0].SetSkinning(skinning);
         }

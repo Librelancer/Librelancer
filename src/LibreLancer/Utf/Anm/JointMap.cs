@@ -6,12 +6,14 @@ using System;
 namespace LibreLancer.Utf.Anm
 {
 	public class JointMap
-	{
+    {
+        public string NodeName;
 		public string ParentName;
 		public string ChildName;
 		public Channel Channel;
 		public JointMap(IntermediateNode root)
-		{
+        {
+            NodeName = root.Name;
 			foreach (Node node in root)
 			{
 				switch (node.Name.ToLowerInvariant())

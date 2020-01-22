@@ -188,12 +188,11 @@ namespace LibreLancer
 
 		void Keyboard_KeyDown(KeyEventArgs e)
 		{
-			/*if (hud.TextEntry)
+			if (ui.KeyboardGrabbed)
 			{
-				hud.TextEntryKeyPress(e.Key);
-				if (hud.TextEntry == false) Game.DisableTextInput();
+				ui.OnKeyDown(e.Key);
 			}
-			else*/
+			else
 			{
 				if (e.Key == Keys.L)
 				{
@@ -208,10 +207,9 @@ namespace LibreLancer
 					}
 				}
 				if (e.Key == Keys.Enter)
-				{
-					//hud.TextEntry = true;
-					//Game.EnableTextInput();
-				}
+                {
+                    ui.ChatboxEvent();
+                }
 			}
 		}
 
@@ -228,7 +226,8 @@ namespace LibreLancer
 		}
 
 		void SwitchToRoom()
-		{
+        {
+            session.RoomEntered(virtualRoom ?? currentRoom.Nickname, currentBase.Nickname);
 			if (currentRoom.Music == null)
 			{
 				Game.Sound.StopMusic();
@@ -251,7 +250,7 @@ namespace LibreLancer
             if(currentBase.TerrainDyna2 != null) ctx.Substitutions.Add("$terrain_dyna_02", currentBase.TerrainDyna2);
             scene = new Cutscene(ctx, Game.GameData, Game.Viewport, Game);
 			if (currentRoom.Camera != null) scene.SetCamera(currentRoom.Camera);
-			foreach (var npc in currentRoom.Npcs)
+			/*foreach (var npc in currentRoom.Npcs)
 			{
 				var obj = scene.Objects[npc.StandingPlace];
 				var child = new GameObject();
@@ -264,7 +263,7 @@ namespace LibreLancer
                 child.Register(scene.World.Physics);
 				child.Transform = Matrix4.CreateTranslation(0, 3, 0);
 				obj.Object.Children.Add(child);
-			}
+			}*/
             var ships = currentBase.SoldShips.Select(x => x.Package.Ship).ToArray();
             for(int i = 0; (i < ships.Length && i < currentRoom.ForSaleShipPlacements.Count); i++)
             {
@@ -293,6 +292,10 @@ namespace LibreLancer
 			if(scene != null)
 				scene.Update(delta);
             ui.Update(Game);
+            if (ui.KeyboardGrabbed)
+                Game.EnableTextInput();
+            else
+                Game.DisableTextInput();
         }
 
         Font debugFont;

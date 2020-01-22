@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LibreLancer;
+
 namespace LibreLancer.Interface
 {
     [UiLoadable]
@@ -80,6 +81,12 @@ namespace LibreLancer.Interface
         {
             SetActiveScene();
             _activeScene?.OnMouseDown(context, parentRectangle);
+        }
+
+        public override void ScriptedEvent(string ev, params object[] param)
+        {
+            SetActiveScene();
+            _activeScene?.ScriptedEvent(ev, param);
         }
 
         public override void OnMouseUp(UiContext context, RectangleF parentRectangle)

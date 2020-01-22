@@ -21,6 +21,8 @@ namespace LibreLancer
 		public Matrix4? RotationMatrix;
 		public float? FovH;
 		public float? HVAspect;
+        public float? NearPlane;
+        public float? FarPlane;
 		public ThnLightProps LightProps;
         public ThnAudioProps AudioProps;
 		public MotionPath Path;

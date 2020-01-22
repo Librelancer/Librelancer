@@ -25,8 +25,8 @@ namespace LibreLancer.Utf.Cmp
             {
                 throw new Exception("Invalid VMeshWire node");
             }
-            var wiredata = ((LeafNode)node[0]).ByteArrayData;
-            ReadWireData(wiredata);
+
+            ReadWireData(((LeafNode) node[0]).DataSegment);
         }
 
         public void Initialize(ILibFile res)
@@ -54,14 +54,14 @@ namespace LibreLancer.Utf.Cmp
         }
 
         const int HEADER_SIZE = 16;
-        unsafe void ReadWireData(byte[] array)
+        unsafe void ReadWireData(ArraySegment<byte> data)
         {
-            if (array.Length < HEADER_SIZE)
+            if (data.Count < HEADER_SIZE)
                 throw new Exception("Invalid VWireData Node (size<HEADER_SIZE)");
-            fixed(byte* b = array)
+            fixed(byte* b = data.Array)
             {
-                var pInt = (uint*)b;
-                var pShort = (ushort*)b;
+                var pInt = (uint*)(&b[data.Offset]);
+                var pShort = (ushort*)(&b[data.Offset]);
                 //
                 if (pInt[0] != HEADER_SIZE) throw new Exception("Invalid VWireData Node (header size != 16)");
                 MeshCRC = pInt[1];
@@ -69,7 +69,7 @@ namespace LibreLancer.Utf.Cmp
                 NumVertices = pShort[5];
                 NumIndices = pShort[6];
                 MaxVertex = pShort[7];
-                if (array.Length - HEADER_SIZE < (NumIndices * 2)) throw new Exception("Invalid VWireData Node (insufficient data for NumIndices)");
+                if (data.Count - HEADER_SIZE < (NumIndices * 2)) throw new Exception("Invalid VWireData Node (insufficient data for NumIndices)");
                 Indices = new ushort[NumIndices];
                 for(int i = 0; i < NumIndices; i++)
                 {

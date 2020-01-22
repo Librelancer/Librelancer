@@ -10,6 +10,7 @@ namespace LibreLancer.Utf.Anm
 {
     public class Script
     {
+        public bool HasRootHeight { get; private set; }
         public float RootHeight { get; private set; }
 		public List<ObjectMap> ObjectMaps { get; private set; }
 		public List<JointMap> JointMaps { get; private set; }
@@ -20,11 +21,15 @@ namespace LibreLancer.Utf.Anm
 			JointMaps = new List<JointMap>();
             foreach (Node node in root)
             {
-				if (node.Name.Equals("root height", StringComparison.OrdinalIgnoreCase)) RootHeight = (node as LeafNode).SingleData.Value;
+                if (node.Name.Equals("root height", StringComparison.OrdinalIgnoreCase))
+                {
+                    HasRootHeight = true;
+                    RootHeight = (node as LeafNode).SingleData.Value;
+                }
 				else if (node.Name.StartsWith("object map", StringComparison.OrdinalIgnoreCase))
 					ObjectMaps.Add(new ObjectMap(node as IntermediateNode));
 				else if (node.Name.StartsWith("joint map", StringComparison.OrdinalIgnoreCase))
-					JointMaps.Add(new JointMap(node as IntermediateNode));
+                    JointMaps.Add(new JointMap(node as IntermediateNode));
                 else throw new Exception("Invalid Node in script root: " + node.Name);
             }
         }

@@ -13,6 +13,7 @@ namespace LibreLancer
 
 		Matrix4 view;
 		Matrix4 projection;
+        private Matrix4 ogProjection;
 		Matrix4 viewProjection;
 		BoundingFrustum frustum;
 		Viewport viewport;
@@ -23,12 +24,28 @@ namespace LibreLancer
 			Update();
 		}
 
+        public void DefaultZ()
+        {
+            var fovy = Transform.FovH * Transform.AspectRatio;
+            projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovy), Transform.AspectRatio,
+                2.5f, 1000000f);
+            viewProjection = view * projection;
+            frameNo++;
+        }
+        public void CameraZ()
+        {
+            projection = ogProjection;
+            viewProjection = view * projection;
+            frameNo++;
+        }
+        
 		public void Update()
 		{
             var fovy = Transform.FovH * Transform.AspectRatio;
 			//TODO: Tweak clip plane some more - isn't quite right
 			//NOTE: near clip plane can't be too small or it causes z-fighting
 			projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovy), Transform.AspectRatio, Transform.Znear, Transform.Zfar);
+            ogProjection = projection;
 			Vector3 originalTarget = Vector3.Forward;
 			Vector3 rotatedTarget = Transform.Orientation.Transform(originalTarget);
             Vector3 target = Transform.LookAt == null ? Position + rotatedTarget : Transform.LookAt();

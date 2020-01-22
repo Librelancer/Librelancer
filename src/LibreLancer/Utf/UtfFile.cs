@@ -18,11 +18,15 @@ namespace LibreLancer.Utf
         protected static IntermediateNode parseFile(string path)
         {
             if (path == null) throw new ArgumentNullException("path");
+            return parseFile(path, File.OpenRead(path));
+        }
+        protected static IntermediateNode parseFile(string path, Stream stream)
+        {
             byte[] nodeBlock;
             string stringBlock;
             byte[] dataBlock;
 
-			using (BinaryReader reader = new BinaryReader(File.OpenRead(path)))
+			using (BinaryReader reader = new BinaryReader(stream))
             {
                 byte[] buffer = new byte[TAG_LEN];
                 reader.Read(buffer, 0, TAG_LEN);
@@ -80,7 +84,7 @@ namespace LibreLancer.Utf
 
             using (BinaryReader reader = new BinaryReader(new MemoryStream(nodeBlock)))
             {
-                root = Node.FromStream(reader, 0, stringBlock, dataBlock) as IntermediateNode;
+                root = Node.FromStream(reader, 0, new StringBlock(stringBlock), dataBlock) as IntermediateNode;
                 if (root == null)
                     throw new FileContentException(UtfFile.FILE_TYPE, "The root node doesn't have any child nodes.");
             }

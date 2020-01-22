@@ -20,7 +20,7 @@ namespace LancerEdit
         Viewport3D modelViewport;
         Viewport3D previewViewport;
         Viewport3D imageViewport;
-        CharacterSkinning skinning;
+        private DfmSkeletonManager skel;
 
         float gizmoScale;
         const float RADIUS_ONE = 21.916825f;
@@ -65,7 +65,7 @@ namespace LancerEdit
             lighting.Lights.SourceEnabled[1] = true;
             lighting.NumberOfTilesX = -1;
             if (drawable is DF.DfmFile)
-                skinning = new CharacterSkinning((DF.DfmFile)drawable);
+                skel = new DfmSkeletonManager((DF.DfmFile)drawable);
             GizmoRender.Init(res);
         }
 
@@ -280,7 +280,11 @@ namespace LancerEdit
                 cam = lookAtCam;
             }
             _window.DebugRender.StartFrame(cam, rstate);
-            if(drawable is DF.DfmFile) ((DF.DfmFile)drawable).SetSkinning(skinning);
+            if (drawable is DF.DfmFile)
+            {
+                skel.UploadBoneData(buffer.BonesBuffer);
+                ((DF.DfmFile)drawable).SetSkinning(skel.BodySkinning);
+            }
             drawable.Update(cam, TimeSpan.Zero, TimeSpan.FromSeconds(_window.TotalTime));
             if (viewMode != M_NONE)
             {

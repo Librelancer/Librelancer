@@ -12,7 +12,8 @@ namespace LibreLancer
 		public abstract void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr);
 		public virtual void DepthPrepass(ICamera camera, RenderState rstate) { }
 		//Rendering Parameters
-		public bool LitAmbient = true;
+        public int LightGroup = 0;
+        public bool LitAmbient = true;
 		public bool LitDynamic = true;
 		public bool NoFog = false;
 		public float[] LODRanges;

@@ -11,6 +11,8 @@ using System.Threading;
 using LibreLancer.Fx;
 using LibreLancer.GameData;
 using LibreLancer.Utf.Ale;
+using LibreLancer.Utf.Anm;
+using LibreLancer.Utf.Dfm;
 using FileSystem = LibreLancer.Data.FileSystem;
 
 namespace LibreLancer
@@ -75,6 +77,29 @@ namespace LibreLancer
         public GameData.Base GetBase(string id)
         {
             return bases[id];
+        }
+
+        private AnmFile characterAnimations;
+        public AnmFile GetCharacterAnimations()
+        {
+            if (characterAnimations == null)
+            {
+                characterAnimations = new AnmFile();
+                foreach (var file in fldata.Bodyparts.Animations)
+                {
+                    AnmFile.ParseToTable(characterAnimations.Scripts, ResolveDataPath(file));
+                }
+            }
+            return characterAnimations;
+        }
+        public bool GetCostume(string costume, out DfmFile body, out DfmFile head, out DfmFile leftHand, out DfmFile rightHand)
+        {
+            var cs = fldata.Costumes.FindCostume(costume);
+            head = (DfmFile)resource.GetDrawable(VFS.Resolve(cs.Head.MeshPath));
+            body = (DfmFile) resource.GetDrawable(VFS.Resolve(cs.Body.MeshPath));
+            leftHand = (DfmFile) resource.GetDrawable(VFS.Resolve(cs.LeftHand.MeshPath));
+            rightHand = (DfmFile) resource.GetDrawable(VFS.Resolve(cs.RightHand.MeshPath));
+            return true;
         }
         IEnumerable<Data.Universe.Base> InitBases()
         {
@@ -236,6 +261,8 @@ namespace LibreLancer
         public void LoadData()
         {
             fldata.LoadData();
+            FLLog.Info("Game", "Loading Character Animations");
+            GetCharacterAnimations();
             FLLog.Info("Game", "Initing Tables");
             var introbases = InitBases().ToArray();
             InitShips();

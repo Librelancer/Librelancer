@@ -46,7 +46,8 @@ namespace LibreLancer
                 FLLog.Debug("Sounds", "Evicting sound");
                 //Evict oldest and reuse ptr object
                 var h = lruHead;
-                h.Sound.Data.Dispose();
+                if(h.Sound.Data != null)
+                    h.Sound.Data.Dispose();
                 loadedSounds.Remove(h.Sound.Name);
                 lruHead = h.Next;
                 ptr = h;

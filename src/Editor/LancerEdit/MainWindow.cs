@@ -218,6 +218,7 @@ namespace LancerEdit
                 t.FilePath = f;
                 ActiveTab = t;
                 AddTab(t);
+                guiHelper.ResetRenderTimer();
             }
         }
         DockTab selected;

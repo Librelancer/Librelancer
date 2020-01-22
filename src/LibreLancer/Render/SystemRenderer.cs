@@ -39,6 +39,7 @@ namespace LibreLancer
 
 		public IDrawable[] StarSphereModels;
 		public Matrix4[] StarSphereWorlds;
+        public Lighting[] StarSphereLightings;
 		public PhysicsDebugRenderer DebugRenderer;
         public Action PhysicsHook;
 		public PolylineRender Polyline;
@@ -286,6 +287,7 @@ namespace LibreLancer
 					rstate.ClearColor = starSystem.BackgroundColor;
 				rstate.ClearAll();
 				//Starsphere
+                if(camera is ThnCamera thn) thn.DefaultZ();
 				for (int i = 0; i < StarSphereModels.Length; i++)
 				{
 					Matrix4 ssworld = Matrix4.CreateTranslation(camera.Position);
@@ -293,6 +295,8 @@ namespace LibreLancer
                     Vector3 center = Vector3.Zero;
 
 					if (StarSphereWorlds != null) ssworld = StarSphereWorlds[i] * ssworld;
+                    var lighting = Lighting.Empty;
+                    if (StarSphereLightings != null) lighting = StarSphereLightings[i];
                     else if (StarSphereModels[i] is CmpFile)
                     {
                         var cmp = (CmpFile)StarSphereModels[i];
@@ -303,8 +307,9 @@ namespace LibreLancer
                         var mdl = (ModelFile)StarSphereModels[i];
                         //ssworld = Matrix4.CreateTranslation(-mdl.Levels[0].Center) * ssworld;
                     }
-                    StarSphereModels[i].Draw(rstate, ssworld, Lighting.Empty);
-				}
+                    StarSphereModels[i].Draw(rstate, ssworld, lighting);
+                }
+                if (camera is ThnCamera thn2) thn2.CameraZ();
 				//Render fog transition: if any
 				if (nr != null)
 				{

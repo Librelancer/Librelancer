@@ -65,6 +65,11 @@ namespace LibreLancer
             var rtc = new Data.Missions.StoryCutsceneIni(Game.GameData.Ini.Freelancer.DataPath + path, Game.GameData.VFS);
             ActiveCutscenes.Add(rtc);
         }
+
+        public void RoomEntered(string room, string bse)
+        {
+            msnrun?.EnterLocation(room, bse);
+        }
         public void LoadFromPath(string path)
         {
             var sg = Data.Save.SaveGame.FromFile(path);

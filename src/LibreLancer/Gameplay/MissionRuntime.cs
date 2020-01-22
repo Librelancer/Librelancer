@@ -69,8 +69,16 @@ namespace LibreLancer
                     DoTrigger(i, gameplay);
             }
         }
+
+        public void EnterLocation(string room, string bse)
+        {
+            locsEntered.Add(new Tuple<string, string>(room, bse));
+            CheckMissionScript(null);
+        }
+        
         Dictionary<string, MissionTimer> timers = new Dictionary<string, MissionTimer>();
         List<string> finishedLines = new List<string>();
+        List<Tuple<string,string>> locsEntered = new List<Tuple<string, string>>();
         bool CheckConditions(MissionTrigger tr)
         {
             bool cndSatisfied = true;
@@ -100,6 +108,26 @@ namespace LibreLancer
                         timers.Add(tr.Nickname, t);
                     }
                     if (t.T < cnd.Entry[0].ToSingle())
+                    {
+                        cndSatisfied = false;
+                        break;
+                    }
+                }
+                else if (cnd.Type == TriggerConditions.Cnd_LocEnter)
+                {
+                    var room = cnd.Entry[0].ToString();
+                    var bse = cnd.Entry[1].ToString();
+                    bool entered = false;
+                    foreach (var c in locsEntered)
+                    {
+                        if (c.Item1.Equals(room, StringComparison.OrdinalIgnoreCase) &&
+                            c.Item2.Equals(bse, StringComparison.OrdinalIgnoreCase))
+                        {
+                            entered = true;
+                            break;
+                        }
+                    }
+                    if (!entered)
                     {
                         cndSatisfied = false;
                         break;

@@ -179,7 +179,7 @@ namespace LibreLancer
             if (Bones != null && vertextype is DfmVertex) {
                 shader.Shader.UniformBlockBinding("Bones", 1);
                 shader.SetSkinningEnabled(true);
-                Bones.BindTo(1);
+                Bones.BindTo(1, BufferOffset, 200);
             }
             else
                 shader.SetSkinningEnabled(false);

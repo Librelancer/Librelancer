@@ -33,6 +33,12 @@ namespace LibreLancer
         }
 		public void StartAnimation(string animationName, bool loop = true)
 		{
+            if (Parent.RenderComponent is CharacterRenderer characterRenderer)
+            {
+                if (anm.Scripts.TryGetValue(animationName, out Script sc))
+                    characterRenderer.Skeleton.StartScript(sc);
+                return;
+            }
 			if (anm.Scripts.ContainsKey(animationName))
 			{
 				var sc = anm.Scripts[animationName];
@@ -59,6 +65,11 @@ namespace LibreLancer
 		double totalTime = 0;
 		public override void Update(TimeSpan time)
 		{
+            if (Parent.RenderComponent is CharacterRenderer characterRenderer)
+            {
+                characterRenderer.Skeleton.UpdateScripts(time);
+                return;
+            }
             if (constructs == null) constructs = Parent.CmpConstructs;
 			totalTime += time.TotalSeconds;
 			int c = animations.Count;

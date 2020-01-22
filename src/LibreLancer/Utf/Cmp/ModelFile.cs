@@ -102,7 +102,7 @@ namespace LibreLancer.Utf.Cmp
                             if (vMeshPartNode.Count == 1)
                             {
                                 LeafNode vMeshRefNode = vMeshPartNode[0] as LeafNode;
-                                lvls.Add(0, new VMeshRef(vMeshRefNode.ByteArrayData, this));
+                                lvls.Add(0, new VMeshRef(vMeshRefNode.DataSegment, this));
                             }
                             else throw new Exception("Invalid VMeshPart: More than one child or zero elements");
                         }
@@ -125,7 +125,7 @@ namespace LibreLancer.Utf.Cmp
                                     if (vMeshPartNode.Count == 1)
                                     {
                                         LeafNode vMeshRefNode = vMeshPartNode[0] as LeafNode;
-                                        lvls.Add(level, new VMeshRef(vMeshRefNode.ByteArrayData, this));
+                                        lvls.Add(level, new VMeshRef(vMeshRefNode.DataSegment, this));
                                     }
                                     else throw new Exception("Invalid VMeshPart: More than one child or zero elements");
                                 }

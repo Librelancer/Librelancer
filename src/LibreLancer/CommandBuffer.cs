@@ -23,6 +23,13 @@ namespace LibreLancer
 		int transparentCommand = 0;
 		Action _transparentSort;
         RenderState rstate;
+        public UniformBuffer BonesBuffer;
+
+        public CommandBuffer()
+        {
+            //TODO: This needs to be managed a lot better, leaks memory right now
+            BonesBuffer = new UniformBuffer(800, 64, typeof(Matrix4));
+        }
         public void StartFrame(RenderState rstate)
 		{
 			currentCommand = 0;
@@ -30,7 +37,7 @@ namespace LibreLancer
 			_transparentSort = SortTransparent;
             this.rstate = rstate;
 		}
-		public void AddCommand(RenderMaterial material, MaterialAnim anim, Matrix4 world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, int layer, float z = 0, CharacterSkinning skinning = null)
+		public void AddCommand(RenderMaterial material, MaterialAnim anim, Matrix4 world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, int layer, float z = 0, DfmSkinning skinning = null)
 		{
 			if (material.IsTransparent)
 			{
@@ -52,6 +59,15 @@ namespace LibreLancer
 			}
 			else
 			{
+                if (skinning != null)
+                {
+                    material.Bones = BonesBuffer;
+                    material.BufferOffset = skinning.BufferOffset;
+                }
+                else
+                {
+                    material.Bones = null;
+                }
                 material.MaterialAnim = anim;
                 material.World = world;
                 material.Use(rstate, buffer.VertexType, ref lights);
@@ -65,7 +81,6 @@ namespace LibreLancer
                     rstate.CullFace = CullFaces.Back;
                     material.FlipNormals = false;
                 }
-                material.Bones = skinning?.BonesBuffer;
             }
 		}
 		//TODO: Implement MaterialAnim for asteroids

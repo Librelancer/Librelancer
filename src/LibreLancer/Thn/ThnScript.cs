@@ -278,6 +278,14 @@ namespace LibreLancer
 				{
 					e.HVAspect = (float)o;
 				}
+                if (cameraprops.TryGetValue("nearplane", out o))
+                {
+                    e.NearPlane = (float) o;
+                }
+                if (cameraprops.TryGetValue("farplane", out o))
+                {
+                    e.FarPlane = (float) o;
+                }
 			}
 			if (table.TryGetValue("lightprops", out o))
 			{

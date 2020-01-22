@@ -23,7 +23,7 @@ namespace LibreLancer.Utf
         {
             this.Name = name;
         }
-        public static Node FromStream(BinaryReader reader, int offset, string stringBlock, byte[] dataBlock)
+        public static Node FromStream(BinaryReader reader, int offset, StringBlock stringBlock, byte[] dataBlock)
         {
             if (reader == null) throw new ArgumentNullException("reader");
             if (stringBlock == null) throw new ArgumentNullException("stringBlock");
@@ -33,7 +33,7 @@ namespace LibreLancer.Utf
 
             int peerOffset = reader.ReadInt32();
             int nameOffset = reader.ReadInt32();
-            string name = stringBlock.Substring(nameOffset, stringBlock.IndexOf('\0', nameOffset) - nameOffset);
+            string name = stringBlock.GetString(nameOffset);
 
             NodeFlags flags = (NodeFlags)reader.ReadInt32();
             if ((flags & NodeFlags.Intermediate) == NodeFlags.Intermediate)

@@ -14,7 +14,7 @@ namespace LancerEdit
 	public class EditableUtf : LL.UtfFile
 	{
 		public LUtfNode Root;
-
+        public LL.IntermediateNode Source;
 		public EditableUtf()
 		{
 			Root = new LUtfNode();
@@ -23,14 +23,15 @@ namespace LancerEdit
 		}
 
 		public EditableUtf(string filename) : this()
-		{
-			foreach (var node in parseFile(filename))
+        {
+            Source = parseFile(filename);
+			foreach (var node in Source)
 			{
 				Root.Children.Add(ConvertNode(node, Root));
 			}
 		}
 
-		//Produce an engine-int4ernal representation of the nodes
+		//Produce an engine-internal representation of the nodes
 		public LL.IntermediateNode Export()
 		{
 			var children = new List<LL.Node>();

@@ -16,7 +16,7 @@ namespace LibreLancer.Utf
         {
             foreach (LeafNode conNode in root)
             {
-                using (BinaryReader reader = new BinaryReader(new MemoryStream(conNode.ByteArrayData)))
+                using (BinaryReader reader = new BinaryReader(conNode.DataSegment.GetReadStream()))
                 {
                     switch (conNode.Name.ToLowerInvariant())
                     {

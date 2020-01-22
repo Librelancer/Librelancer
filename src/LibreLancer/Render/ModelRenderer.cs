@@ -17,7 +17,6 @@ namespace LibreLancer
 		public CmpFile Cmp { get; private set; }
 		public DfmFile Dfm { get; private set; }
 		public List<Part> CmpParts { get; private set; }
-		public int LightGroup = 0;
 		CmpFile _parentCmp;
 		public SphFile Sph { get; private set; }
 		public NebulaRenderer Nebula;

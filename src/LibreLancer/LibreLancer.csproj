@@ -82,7 +82,15 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
+      <HintPath>..\packages\System.Buffers.4.4.0\lib\netstandard1.1\System.Buffers.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.2\lib\netstandard1.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -137,6 +145,8 @@
     <Compile Include="Interface\Widgets\Internal\Scrollbar.cs" />
     <Compile Include="Interface\Widgets\TextBlock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Render\BoneInstance.cs" />
+    <Compile Include="Render\DfmSkeletonManager.cs" />
     <Compile Include="Sounds\AttachedSound.cs" />
     <Compile Include="Sounds\SoundManager.cs" />
     <Compile Include="Thn\ThnScriptContext.cs" />
@@ -167,6 +177,7 @@
     <Compile Include="Utf\PrisConstruct.cs" />
     <Compile Include="Utf\RevConstruct.cs" />
     <Compile Include="Utf\SphereConstruct.cs" />
+    <Compile Include="Utf\StringBlock.cs" />
     <Compile Include="Utf\UtfFile.cs" />
     <Compile Include="Utf\Vms\D3DFVF.cs" />
     <Compile Include="Utf\Vms\TMeshHeader.cs" />
@@ -432,7 +443,7 @@
     <Compile Include="Gameplay\ServerWorld.cs" />
     <Compile Include="Gameplay\Components\ShipInputComponent.cs" />
     <Compile Include="Render\StaticBillboards.cs" />
-    <Compile Include="Render\CharacterSkinning.cs" />
+    <Compile Include="Render\DfmSkinning.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />

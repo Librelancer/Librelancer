@@ -20,6 +20,7 @@ namespace LibreLancer
 		public float FadeNear = 0;
 		public float FadeFar = 0;
         public UniformBuffer Bones;
+        public int BufferOffset;
         public abstract void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights);
         public virtual void UpdateFlipNormals() {} //Optimisation
 		public abstract bool IsTransparent { get; }

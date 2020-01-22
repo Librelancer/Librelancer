@@ -11,9 +11,8 @@ using System.IO;
 namespace LibreLancer.Utf.Anm
 {
 	public class Channel
-	{
-        
-		public int FrameCount { get; private set; }
+    {
+        public int FrameCount { get; private set; }
 		public float Interval { get; private set; }
 		public int ChannelType { get; private set; }
 
@@ -28,7 +27,7 @@ namespace LibreLancer.Utf.Anm
         public bool HasPosition => Positions != null;
         public bool HasOrientation => Quaternions != null;
         public bool HasAngle => Angles != null;
-
+        
 
         int GetIndex(float time, out float t0, out float t1)
         {
@@ -96,25 +95,31 @@ namespace LibreLancer.Utf.Anm
         private const int BIT_FLOAT = 0x1;
         private const int BIT_VEC = 0x2;
         private const int BIT_QUAT = 0x4;
-        
+
+        unsafe void ReadHeader(LeafNode node)
+        {
+            if (node.DataSegment.Count < 12) throw new Exception("Anm Header malformed");
+            fixed (byte* bytes = node.DataSegment.Array)
+            {
+                FrameCount = *(int*) (&bytes[node.DataSegment.Offset]);
+                Interval = *(float*) (&bytes[node.DataSegment.Offset + 4]);
+                ChannelType = *(int*) (&bytes[node.DataSegment.Offset + 8]);
+            }
+        }
 		public Channel(IntermediateNode root)
 		{
-			byte[] frameBytes = new byte[0];
-
+            //Avoid allocating extra arrays
+            ArraySegment<byte> data = new ArraySegment<byte>();
+            //Fetch from nodes
 			foreach (LeafNode channelSubNode in root)
 			{
 				switch (channelSubNode.Name.ToLowerInvariant())
 				{
 					case "header":
-						using (BinaryReader reader = new BinaryReader(new MemoryStream(channelSubNode.ByteArrayData)))
-						{
-							FrameCount = reader.ReadInt32();
-							Interval = reader.ReadSingle();
-							ChannelType = reader.ReadInt32();
-						}
+						ReadHeader(channelSubNode);
 						break;
 					case "frames":
-						frameBytes = channelSubNode.ByteArrayData;
+						data = channelSubNode.DataSegment;
 						break;
 					default: throw new Exception("Invalid node in " + root.Name + ": " + channelSubNode.Name);
 				}
@@ -124,6 +129,7 @@ namespace LibreLancer.Utf.Anm
             switch (ChannelType)
             {
                 case BIT_NORM:
+                case 0x50:
                 case 0x40:
                     frameType = FrameType.Quaternion;
                     QuaternionMethod = QuaternionMethod.HalfAngle;
@@ -156,7 +162,7 @@ namespace LibreLancer.Utf.Anm
             }
             InterpretedType = frameType;
             if (Interval == -1) Times = new float[FrameCount];
-			using (BinaryReader reader = new BinaryReader(new MemoryStream(frameBytes)))
+			using (BinaryReader reader = new BinaryReader(data.GetReadStream()))
 			{
 				for (int i = 0; i < FrameCount; i++)
                 {

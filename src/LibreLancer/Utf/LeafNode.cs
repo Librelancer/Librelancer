@@ -6,68 +6,72 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using LibreLancer.Utf.Cmp;
 
 namespace LibreLancer.Utf
 {
     public class LeafNode : Node
     {
-        private byte[] data;
+        private byte[] dataArray;
+        private int dataStart;
+        private int dataLength;
 
         public bool PossibleCompression { get; private set; }
 
-        public byte[] ByteArrayData { get { return data; } }
+        public ArraySegment<byte> DataSegment => new ArraySegment<byte>(dataArray, dataStart, dataLength);
+        /// <summary>
+        /// Returns a COPY of the data. Use LeafNode.DataSegment where possible
+        /// </summary>
+        public byte[] ByteArrayData
+        {
+            get
+            {
+                var result = new byte[dataLength];
+                Buffer.BlockCopy(dataArray, dataStart, result, 0, dataLength);
+                return result;
+            }
+        }
 
         public int? Int32Data
         {
             get
             {
-                if (data.Length % sizeof(int) == 0) return BitConverter.ToInt32(data, 0);
+                if (dataLength % sizeof(int) == 0) return BitConverter.ToInt32(dataArray, dataStart);
                 else return null;
             }
         }
 
-        public int[] Int32ArrayData
+        public unsafe int[] Int32ArrayData
         {
             get
             {
-                List<int> result = new List<int>();
-
-                using (BinaryReader reader = new BinaryReader(new MemoryStream(data)))
+                var result = new int[dataLength / sizeof(int)];
+                int len = result.Length * sizeof(int);
+                fixed (byte* pinnedSrc = dataArray)
                 {
-                    while (reader.BaseStream.Position <= reader.BaseStream.Length - sizeof(int))
+                    fixed (int* pinnedDst = result)
                     {
-                        result.Add(reader.ReadInt32());
+                        Buffer.MemoryCopy((&pinnedSrc[dataStart]), pinnedDst, len, len);
                     }
                 }
-
-                return result.ToArray();
+                return result;
             }
         }
 
-        public ushort? UInt16Data
+        public unsafe ushort[] UInt16ArrayData
         {
             get
             {
-                if (data.Length == sizeof(ushort)) return BitConverter.ToUInt16(data, 0);
-                else return null;
-            }
-        }
-
-        public ushort[] UInt16ArrayData
-        {
-            get
-            {
-                List<ushort> result = new List<ushort>();
-
-                using (BinaryReader reader = new BinaryReader(new MemoryStream(data)))
+                var result = new ushort[dataLength / sizeof(ushort)];
+                int len = result.Length * sizeof(ushort);
+                fixed (byte* pinnedSrc = dataArray)
                 {
-                    while (reader.BaseStream.Position <= reader.BaseStream.Length - sizeof(ushort))
+                    fixed (ushort* pinnedDst = result)
                     {
-                        result.Add(reader.ReadUInt16());
+                        Buffer.MemoryCopy((&pinnedSrc[dataStart]), pinnedDst, len, len);
                     }
                 }
-
-                return result.ToArray();
+                return result;
             }
         }
 
@@ -75,26 +79,25 @@ namespace LibreLancer.Utf
         {
             get
             {
-                if (data.Length % sizeof(float) == 0) return BitConverter.ToSingle(data, 0);
+                if (dataLength % sizeof(float) == 0) return BitConverter.ToSingle(dataArray, dataStart);
                 else return null;
             }
         }
 
-        public float[] SingleArrayData
+        public unsafe float[] SingleArrayData
         {
             get
             {
-                List<float> result = new List<float>();
-
-                using (BinaryReader reader = new BinaryReader(new MemoryStream(data)))
+                var result = new float[dataLength / sizeof(float)];
+                int len = result.Length * sizeof(float);
+                fixed (byte* pinnedSrc = dataArray)
                 {
-                    while (reader.BaseStream.Position <= reader.BaseStream.Length - sizeof(float))
+                    fixed (float* pinnedDst = result)
                     {
-                        result.Add(reader.ReadSingle());
+                        Buffer.MemoryCopy((&pinnedSrc[dataStart]), pinnedDst, len, len);
                     }
                 }
-
-                return result.ToArray();
+                return result;
             }
         }
 
@@ -102,24 +105,39 @@ namespace LibreLancer.Utf
         {
             get
             {
-                return Encoding.ASCII.GetString(data).TrimEnd('\0');
+                return Encoding.ASCII.GetString(dataArray,dataStart,dataLength).TrimEnd('\0');
             }
         }
 
-        public Vector2? Vector2Data
+        public unsafe Vector2? Vector2Data
         {
             get
             {
-                if (data.Length == sizeof(float) * 2) return ConvertData.ToVector2(data);
+                if (dataLength == sizeof(float) * 2)
+                {
+                    fixed (byte* pinnedData = dataArray)
+                    {
+                        return *(Vector2*) (&pinnedData[dataStart]);
+                    }
+                }
                 else return null;
             }
         }
 
-        public Vector2[] Vector2ArrayData
+        public unsafe Vector2[] Vector2ArrayData
         {
             get
             {
-                return ConvertData.ToVector2Array(data);
+                var result = new Vector2[dataLength / (sizeof(float) * 2)];
+                int len = result.Length * (sizeof(float) * 2);
+                fixed (byte* pinnedSrc = dataArray)
+                {
+                    fixed (Vector2* pinnedDst = result)
+                    {
+                        Buffer.MemoryCopy((&pinnedSrc[dataStart]), pinnedDst, len, len);
+                    }
+                }
+                return result;
             }
         }
 
@@ -127,24 +145,18 @@ namespace LibreLancer.Utf
         {
             get
             {
-                if (data.Length == sizeof(float) * 3) return ConvertData.ToVector3(data);
+                if (dataLength == sizeof(float) * 3) return ConvertData.ToVector3(dataArray, dataStart);
                 else return null;
             }
         }
 
-        public Vector3[] Vector3ArrayData
-        {
-            get
-            {
-                return ConvertData.ToVector3Array(data);
-            }
-        }
+        public Vector3[] Vector3ArrayData => ConvertData.ToVector3Array(dataArray, dataStart, dataLength);
 
         public Matrix4? MatrixData3x3
         {
             get
             {
-                if (data.Length == sizeof(float) * 9) return ConvertData.ToMatrix3x3(data);
+                if (dataLength == sizeof(float) * 9) return ConvertData.ToMatrix3x3(dataArray, dataStart);
                 else return null;
             }
         }
@@ -153,7 +165,7 @@ namespace LibreLancer.Utf
         {
             get
             {
-                if (data.Length == sizeof(float) * 12) return ConvertData.ToMatrix4x3(data);
+                if (dataLength == sizeof(float) * 12) return ConvertData.ToMatrix4x3(dataArray, dataStart);
                 else return null;
             }
         }
@@ -162,15 +174,19 @@ namespace LibreLancer.Utf
         {
             get
             {
-                if (data.Length == sizeof(float) * 3) return ConvertData.ToColor(data);
+                if (dataLength == sizeof(float) * 3) return ConvertData.ToColor(dataArray, dataStart);
                 else return null;
             }
         }
 
 		public LeafNode(string name, byte[] data) : base(name)
 		{
-			this.data = data;
-		}
+			this.dataArray = data;
+            dataStart = 0;
+            dataLength = data.Length;
+        }
+
+        private static readonly byte[] empty = new byte[0];
 
         public LeafNode(int peerOffset, string name, BinaryReader reader, byte[] dataBlock)
             : base(peerOffset, name)
@@ -186,17 +202,13 @@ namespace LibreLancer.Utf
             //int allocatedSize = reader.ReadInt32();
             reader.BaseStream.Seek(sizeof(int), SeekOrigin.Current);
 
+            this.dataStart = dataOffset;
+            
             int size = reader.ReadInt32();
-            if (size == 0) data = new byte[0];
-            else
-            {
-                data = new byte[size];
-                Array.Copy(dataBlock, dataOffset, data, 0, size);
-            }
-
             int size2 = reader.ReadInt32();
+            dataArray = dataBlock;
             PossibleCompression = size != size2;
-
+            this.dataLength = size;
             //int timestamp1 = reader.ReadInt32();
             //int timestamp2 = reader.ReadInt32();
             //int timestamp3 = reader.ReadInt32();
@@ -204,7 +216,7 @@ namespace LibreLancer.Utf
 
         public override string ToString()
         {
-            return "{Leaf: " + base.ToString() + ", Data: " + data.Length + "B}";
+            return "{Leaf: " + base.ToString() + ", Data: " + dataStart + ": " + dataLength + "B}";
         }
     }
 }
