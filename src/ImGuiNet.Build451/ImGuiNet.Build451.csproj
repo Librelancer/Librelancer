@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>ImGuiNet.Build451</RootNamespace>
     <AssemblyName>ImGuiNet</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
