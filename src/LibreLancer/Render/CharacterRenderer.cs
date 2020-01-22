@@ -21,16 +21,14 @@ namespace LibreLancer
         public override void Update(TimeSpan time, Vector3 position, Matrix4 transform)
         {
             this.transform = transform;
-            Skeleton.SetOriginalTransform(transform);
         }
         public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
         {
-            Skeleton.GetTransforms(this.transform, 
+            Skeleton.GetTransforms(transform, 
                 out var headTransform, 
                 out var leftTransform, 
                 out var rightTransform
                 );
-            var transform = this.transform;
             Skeleton.UploadBoneData(commands.BonesBuffer);
             var lighting = RenderHelpers.ApplyLights(
                 lights, LightGroup, 

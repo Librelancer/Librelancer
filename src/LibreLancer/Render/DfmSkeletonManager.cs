@@ -54,15 +54,35 @@ namespace LibreLancer
         }
 
         //Used for object maps
-        public bool ApplyRootMotion = false;
-        public Matrix4 RootMotion = Matrix4.Identity;
+        public bool ApplyRootMotion => _rootMotionInstance != null;
+        public Vector3 RootTranslation => _rootMotionInstance.RootTranslation;
+
+        public Vector3 RootTranslationOrigin
+        {
+            get => _rootMotionInstance.RootTranslationOrigin;
+            set => _rootMotionInstance.RootTranslationOrigin = value;
+        }
+
+        public Quaternion RootRotation => _rootMotionInstance.RootRotation;
+
+        public Quaternion RootRotationOrigin
+        {
+            get => _rootMotionInstance.RootRotationOrigin;
+            set => _rootMotionInstance.RootRotationOrigin = value;
+        }
+
+        private ScriptInstance _rootMotionInstance;
         class ScriptInstance
         {
             public double T;
+            public float Duration;
             public List<ObjectMap> ObjectMaps = new List<ObjectMap>();
             public List<ResolvedJoint> Joints = new List<ResolvedJoint>();
             public DfmSkeletonManager Parent;
-            public Matrix4 OriginalMatrix;
+            public Vector3 RootTranslation;
+            public Vector3 RootTranslationOrigin;
+            public Quaternion RootRotation = Quaternion.Identity;
+            public Quaternion RootRotationOrigin = Quaternion.Identity;
             public bool RunScript(TimeSpan delta)
             {
                 T += delta.TotalSeconds;
@@ -71,10 +91,12 @@ namespace LibreLancer
                 foreach (var j in Joints)
                 {
                     var ch = j.JointMap.Channel;
+                    var cht = ft;
+                    if (Duration > 0) cht = ft % ch.Duration;
                     if (ch.HasOrientation)
-                        j.Bone.Rotation = ch.QuaternionAtTime(ft);
+                        j.Bone.Rotation = ch.QuaternionAtTime(cht);
                     if (ch.HasPosition)
-                        j.Bone.Translation = ch.PositionAtTime(ft);
+                        j.Bone.Translation = ch.PositionAtTime(cht);
                     if (ft < ch.Duration)
                         running = true;
                 }
@@ -84,19 +106,37 @@ namespace LibreLancer
                     if (!o.ParentName.Equals("Root", StringComparison.OrdinalIgnoreCase)) continue;
                     Vector3 translate = Vector3.Zero;
                     Quaternion rotate = Quaternion.Identity;
-                    if (o.Channel.HasPosition)
+                    var cht = ft;
+                    if (Duration > 0)
                     {
-                        translate = o.Channel.PositionAtTime(ft);
+                        cht = ft % o.Channel.Duration;
+                        if (ft > o.Channel.Duration && (Math.Abs(o.Channel.Duration - cht) < 0.001))
+                            cht = 0;
                     }
-                    if (o.Channel.HasOrientation)
+                    if (o.Channel.HasPosition) translate = o.Channel.PositionAtTime(cht);
+                    if (o.Channel.HasOrientation) rotate = o.Channel.QuaternionAtTime(cht);
+                    if (Duration > 0)
                     {
-                        rotate = o.Channel.QuaternionAtTime(ft);
+                        var timesPassed = (int)Math.Floor(ft / o.Channel.Duration);
+                        if (timesPassed > 0)
+                        {
+                            var trOne = Vector3.Zero;
+                            Quaternion qOne;
+                            if (o.Channel.HasPosition) trOne = o.Channel.PositionAtTime(o.Channel.Duration);
+                            if (o.Channel.HasOrientation) qOne = o.Channel.QuaternionAtTime(o.Channel.Duration);
+                            for (int i = 0; i < timesPassed; i++) {
+                                translate += trOne;
+                            }
+                        }
                     }
-                    Parent.ApplyRootMotion = true;
-                    Parent.RootMotion = Matrix4.CreateFromQuaternion(rotate) * Matrix4.CreateTranslation(translate) * OriginalMatrix;
+                    RootTranslation = translate;
+                    RootRotation = rotate;
+                    Parent._rootMotionInstance = this;
                 }
-               
-                return running;
+                if (Duration > 0)
+                    return T < Duration;
+                else
+                    return running;
             }
         }
 
@@ -122,12 +162,6 @@ namespace LibreLancer
             ConnectBones();
         }
 
-        private Matrix4 original;
-        public void SetOriginalTransform(Matrix4 mat)
-        {
-            original = mat;
-        }
-        
         void ConnectBones()
         {
             if (Head != null)
@@ -157,7 +191,7 @@ namespace LibreLancer
         
         public void UpdateScripts(TimeSpan delta)
         {
-            ApplyRootMotion = false;
+            _rootMotionInstance = null;
             List<ScriptInstance> toRemove = new List<ScriptInstance>();
             foreach (var sc in RunningScripts)
             {
@@ -200,12 +234,12 @@ namespace LibreLancer
                 rightHand = source;
         }
         
-        public void StartScript(Script anmScript)
+        public void StartScript(Script anmScript, float duration)
         {
             if(anmScript.HasRootHeight) RootHeight = anmScript.RootHeight;
             var inst = new ScriptInstance();
+            inst.Duration = duration;
             inst.ObjectMaps = anmScript.ObjectMaps;
-            inst.OriginalMatrix = original;
             inst.Parent = this;
             foreach (var jm in anmScript.JointMaps)
             {

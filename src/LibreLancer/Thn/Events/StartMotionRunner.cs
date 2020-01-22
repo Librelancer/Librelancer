@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+
 namespace LibreLancer
 {
     [ThnEventRunner(EventTypes.StartMotion)]
@@ -16,6 +17,12 @@ namespace LibreLancer
             {
                 start_time = (float) of;
             }
+
+            float duration = 0;
+            if (ev.Properties.TryGetValue("duration", out object of2))
+            {
+                duration = (float) of2;
+            }
             var obj = cs.Objects[(string)ev.Targets[0]];
             if (obj.Object != null && obj.Object.AnimationComponent != null) //Check if object has Cmp animation
             {
@@ -28,15 +35,17 @@ namespace LibreLancer
                         loop = false; //Play once?
                     }
                 }
-                if(start_time <= 0)
-                    obj.Object.AnimationComponent.StartAnimation((string)ev.Properties["animation"], loop);
+
+                if (start_time <= 0)
+                    obj.Object.AnimationComponent.StartAnimation((string) ev.Properties["animation"], loop, duration);
                 else
                 {
                     cs.Coroutines.Add(new WaitStartAnimRoutine()
                     {
                         WaitTime = start_time,
+                        Duration = duration,
                         Component = obj.Object.AnimationComponent,
-                        Animation = (string)ev.Properties["animation"]
+                        Animation = (string) ev.Properties["animation"]
                     });
                 }
             }
@@ -47,13 +56,14 @@ namespace LibreLancer
             public AnimationComponent Component;
             public string Animation;
             public double WaitTime;
+            public float Duration;
 
             public bool Run(Cutscene cs, double delta)
             {
                 WaitTime -= delta;
                 if (WaitTime < delta)
                 {
-                    Component.StartAnimation(Animation);
+                    Component.StartAnimation(Animation, false, Duration);
                     return false;
                 }
                 return true;

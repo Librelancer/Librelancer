@@ -31,12 +31,12 @@ namespace LibreLancer
             anm = animation;
             this.constructs = constructs;
         }
-		public void StartAnimation(string animationName, bool loop = true)
+		public void StartAnimation(string animationName, bool loop = true, float duration = 0)
 		{
             if (Parent.RenderComponent is CharacterRenderer characterRenderer)
             {
                 if (anm.Scripts.TryGetValue(animationName, out Script sc))
-                    characterRenderer.Skeleton.StartScript(sc);
+                    characterRenderer.Skeleton.StartScript(sc, duration);
                 return;
             }
 			if (anm.Scripts.ContainsKey(animationName))

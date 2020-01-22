@@ -31,8 +31,12 @@ namespace LibreLancer
                 {
                     if (charRen.Skeleton.ApplyRootMotion)
                     {
-                        Rotate = Matrix4.CreateFromQuaternion(charRen.Skeleton.RootMotion.ExtractRotation());
-                        Translate = charRen.Skeleton.RootMotion.Transform(Vector3.Zero);
+                        var newTranslate = charRen.Skeleton.RootTranslation - charRen.Skeleton.RootTranslationOrigin;
+                        var newRotate = charRen.Skeleton.RootRotation * charRen.Skeleton.RootRotationOrigin;
+                        charRen.Skeleton.RootRotationOrigin = charRen.Skeleton.RootRotation.Inverted();
+                        charRen.Skeleton.RootTranslationOrigin = charRen.Skeleton.RootTranslation;
+                        Rotate = Matrix4.CreateFromQuaternion(newRotate) * Rotate;
+                        Translate += Rotate.Transform(newTranslate);
                     }
                     Translate.Y = charRen.Skeleton.FloorHeight + charRen.Skeleton.RootHeight;
                 }
@@ -245,8 +249,6 @@ namespace LibreLancer
                     obj.Object = new GameObject();
                     gameData.GetCostume(template, out DfmFile body, out DfmFile head, out DfmFile leftHand, out DfmFile rightHand);
                     var skel = new DfmSkeletonManager(body, head, leftHand, rightHand);
-                    Vector3 transform = kv.Value.Position ?? Vector3.Zero;
-                    skel.SetOriginalTransform((kv.Value.RotationMatrix ?? Matrix4.Identity) * Matrix4.CreateTranslation(transform));
                     obj.Object.RenderComponent = new CharacterRenderer(skel);
                     var anmComponent = new AnimationComponent(obj.Object, gameData.GetCharacterAnimations());
                     obj.Object.AnimationComponent = anmComponent;
