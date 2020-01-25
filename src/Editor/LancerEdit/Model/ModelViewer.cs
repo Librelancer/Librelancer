@@ -931,7 +931,7 @@ namespace LancerEdit
                 ImGui.Separator();
                 foreach(var script in anmFile.Scripts)
                 {
-                    if (ImGui.Button(script.Key)) skel.StartScript(script.Value, 0);
+                    if (ImGui.Button(script.Key)) skel.StartScript(script.Value, 0, 1, 0);
                 }
             }
         }

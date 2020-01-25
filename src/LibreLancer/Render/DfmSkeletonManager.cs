@@ -75,7 +75,11 @@ namespace LibreLancer
         class ScriptInstance
         {
             public double T;
+            public float StartTime;
+            public float TimeScale;
             public float Duration;
+            public bool Loop;
+            
             public List<ObjectMap> ObjectMaps = new List<ObjectMap>();
             public List<ResolvedJoint> Joints = new List<ResolvedJoint>();
             public DfmSkeletonManager Parent;
@@ -86,13 +90,13 @@ namespace LibreLancer
             public bool RunScript(TimeSpan delta)
             {
                 T += delta.TotalSeconds;
-                var ft = (float) T;
+                var ft = (float) (T * TimeScale) + StartTime;
                 bool running = false;
                 foreach (var j in Joints)
                 {
                     var ch = j.JointMap.Channel;
                     var cht = ft;
-                    if (Duration > 0) cht = ft % ch.Duration;
+                    if (Duration > 0 && Loop) cht = ft % ch.Duration;
                     if (ch.HasOrientation)
                         j.Bone.Rotation = ch.QuaternionAtTime(cht);
                     if (ch.HasPosition)
@@ -107,7 +111,7 @@ namespace LibreLancer
                     Vector3 translate = Vector3.Zero;
                     Quaternion rotate = Quaternion.Identity;
                     var cht = ft;
-                    if (Duration > 0)
+                    if (Duration > 0 && Loop)
                     {
                         cht = ft % o.Channel.Duration;
                         if (ft > o.Channel.Duration && (Math.Abs(o.Channel.Duration - cht) < 0.001))
@@ -115,7 +119,7 @@ namespace LibreLancer
                     }
                     if (o.Channel.HasPosition) translate = o.Channel.PositionAtTime(cht);
                     if (o.Channel.HasOrientation) rotate = o.Channel.QuaternionAtTime(cht);
-                    if (Duration > 0)
+                    if (Duration > 0 && Loop)
                     {
                         var timesPassed = (int)Math.Floor(ft / o.Channel.Duration);
                         if (timesPassed > 0)
@@ -234,12 +238,15 @@ namespace LibreLancer
                 rightHand = source;
         }
         
-        public void StartScript(Script anmScript, float duration)
+        public void StartScript(Script anmScript, float start_time, float time_scale, float duration, bool loop = false)
         {
             if(anmScript.HasRootHeight) RootHeight = anmScript.RootHeight;
             var inst = new ScriptInstance();
+            inst.StartTime = start_time;
+            inst.TimeScale = time_scale;
             inst.Duration = duration;
             inst.ObjectMaps = anmScript.ObjectMaps;
+            inst.Loop = loop;
             inst.Parent = this;
             foreach (var jm in anmScript.JointMaps)
             {

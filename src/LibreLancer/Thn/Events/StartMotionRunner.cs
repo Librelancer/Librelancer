@@ -13,62 +13,32 @@ namespace LibreLancer
         {
             //How to tie this in with .anm files?
             float start_time = 0;
-            if (ev.Properties.TryGetValue("start_time", out object of))
-            {
-                start_time = (float) of;
-            }
-
             float duration = 0;
-            if (ev.Properties.TryGetValue("duration", out object of2))
-            {
-                duration = (float) of2;
-            }
+            float time_scale = 1;
+
+            if (ev.Properties.TryGetValue("start_time", out object of)) start_time = (float) of;
+            if (ev.Properties.TryGetValue("time_scale", out of)) time_scale = (float) of;
+            if (ev.Properties.TryGetValue("duration", out of)) duration = (float) of;
+            
             var obj = cs.Objects[(string)ev.Targets[0]];
             if (obj.Object != null && obj.Object.AnimationComponent != null) //Check if object has Cmp animation
             {
                 object o;
-                bool loop = true;
+                bool loop = false;
                 if (ev.Properties.TryGetValue("event_flags", out o))
                 {
-                    if (((int)(float)o) == 3)
+                    if (((int)(float)o) == 2)
                     {
-                        loop = false; //Play once?
+                        loop = true; //Play once?
                     }
                 }
-
-                if (start_time <= 0)
-                    obj.Object.AnimationComponent.StartAnimation((string) ev.Properties["animation"], loop, duration);
-                else
-                {
-                    cs.Coroutines.Add(new WaitStartAnimRoutine()
-                    {
-                        WaitTime = start_time,
-                        Duration = duration,
-                        Component = obj.Object.AnimationComponent,
-                        Animation = (string) ev.Properties["animation"]
-                    });
-                }
+                obj.Object.AnimationComponent.StartAnimation(
+                    (string) ev.Properties["animation"], 
+                    loop,
+                    start_time,
+                    time_scale,
+                    duration);
             }
         }
-
-        class WaitStartAnimRoutine : IThnRoutine
-        {
-            public AnimationComponent Component;
-            public string Animation;
-            public double WaitTime;
-            public float Duration;
-
-            public bool Run(Cutscene cs, double delta)
-            {
-                WaitTime -= delta;
-                if (WaitTime < delta)
-                {
-                    Component.StartAnimation(Animation, false, Duration);
-                    return false;
-                }
-                return true;
-            }
-        }
-
     }
 }

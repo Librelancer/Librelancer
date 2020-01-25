@@ -12,12 +12,10 @@ namespace LibreLancer.Utf.Anm
 {
     public enum FrameType
     {
-        Matrix,
         Float,
         Vector3,
         Quaternion,
         VecWithQuat
-        
     }
     public enum QuaternionMethod
     {
