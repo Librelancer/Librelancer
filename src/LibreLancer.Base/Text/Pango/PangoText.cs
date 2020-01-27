@@ -186,7 +186,7 @@ namespace LibreLancer.Text.Pango
                     if (text.Underline) builder.Append("single\" ");
                     else builder.Append("none\" ");
                     builder.Append("size=\"");
-                    builder.Append((int)(text.FontSize * 1024));
+                    builder.Append((int)(text.FontSize * sizeMultiplier * 1024));
                     builder.Append("\" font_family=\"");
                     builder.Append(text.FontName);
                     builder.Append("\">");

@@ -39,7 +39,7 @@ namespace LibreLancer
 		uniform sampler2D tex;
 		void main()
 		{
-			float alpha = pow(texture(tex, out_texcoord).r, 1.0 / 1.45);
+			float alpha = pow(texture(tex, out_texcoord).r, 1.0 / 2.2);
 			out_color = vec4(blendColor.xyz, blendColor.a * alpha);
 		}
 		";

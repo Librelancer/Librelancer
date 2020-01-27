@@ -101,11 +101,11 @@ namespace LibreLancer.Infocards
 		}
 
 		//Main Parsing
-        public static Infocard Parse(string input, FontManager fonts)
+        public static Infocard Parse(string input, FontManager fonts, int defaultFont = 0)
         {
             try
             {
-                return ParseInternal(input, fonts);
+                return ParseInternal(input, fonts, defaultFont);
             }
             catch (Exception)
             {
@@ -122,13 +122,13 @@ namespace LibreLancer.Infocards
                 };
             }
         }
-        static Infocard ParseInternal(string input, FontManager fonts)
+        static Infocard ParseInternal(string input, FontManager fonts, int defaultFont)
 		{
             if (input == null)
                 return new Infocard() { Nodes = new List<RichTextNode>() { new RichTextTextNode() { Contents = "IDS??" } } };
             var nodes = new List<RichTextNode>();
 			var current = new RichTextTextNode();
-            var fn = fonts.GetInfocardFont(-1); //default font
+            var fn = fonts.GetInfocardFont(defaultFont); //default font
             current.FontName = fn.FontName;
             current.FontSize = fn.FontSize;
 			using (var reader = XmlReader.Create(new StringReader(input)))
@@ -163,7 +163,7 @@ namespace LibreLancer.Infocards
 										current.Alignment = v;
 									break;
 								case "TRA":
-                                    ParseTextRenderAttributes(attrs, current, fonts);
+                                    ParseTextRenderAttributes(attrs, current, fonts, defaultFont);
 									break;
 								case "TEXT":
 									break;
@@ -182,7 +182,7 @@ namespace LibreLancer.Infocards
 			return new Infocard() { Nodes = nodes };
 		}
 
-		static void ParseTextRenderAttributes(Dictionary<string, string> attrs, RichTextTextNode node, FontManager fonts)
+		static void ParseTextRenderAttributes(Dictionary<string, string> attrs, RichTextTextNode node, FontManager fonts, int defaultFont)
 		{
 			uint data = 0;
 			uint mask = 0;
@@ -262,7 +262,7 @@ namespace LibreLancer.Infocards
 
             if ((def & TRA_font) != 0)
             {
-                var d = fonts.GetInfocardFont(-1);
+                var d = fonts.GetInfocardFont(defaultFont);
                 node.FontName = d.FontName;
                 node.FontSize = d.FontSize;
                 //node.FontIndex = 0;
@@ -275,7 +275,7 @@ namespace LibreLancer.Infocards
             }
 			if ((def & TRA_underline) != 0)
 				node.Underline = false;
-			else if ((data & TRA_underline) != 0)
+			else if ((mask & TRA_underline) != 0)
 				node.Underline = (data & TRA_underline) != 0;
 
 			if ((def & TRA_color) != 0)

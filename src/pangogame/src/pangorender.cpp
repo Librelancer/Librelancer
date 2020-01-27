@@ -5,6 +5,7 @@
 #include "pg_internal.h"
 #include "stb.h"
 
+
 struct CacheRenderer {
 	PangoRenderer parent;
 	PGRenderContext *ctx;
@@ -59,7 +60,6 @@ void doDrawGlyphs(PangoRenderer* renderer, PangoFont* font, PangoGlyphString* gl
 	PangoFontDescription* desc = pango_font_describe(font);
 	uint32_t fontHash = (uint32_t)pango_font_description_hash(desc);
 	pango_font_description_free(desc);
-	
 	FT_Face face = pango_fc_font_lock_face((PangoFcFont*) font);
 	
 	PangoGlyphUnit layoutX = px;
@@ -88,7 +88,7 @@ void doDrawGlyphs(PangoRenderer* renderer, PangoFont* font, PangoGlyphString* gl
 		}
 
 		CachedGlyph cached;
-		pg_getglyph(ren->ctx, &cached, glyph, fontHash, face);
+		pg_getglyph(ren->ctx, &cached, glyph, fontHash, face, font);
 		
 		PGRun *run = NULL;
 		for(int j = 0; j < stb_arr_len(ren->built->runs); j++) {

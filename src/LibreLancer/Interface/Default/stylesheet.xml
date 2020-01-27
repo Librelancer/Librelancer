@@ -1,6 +1,6 @@
 <Stylesheet>
 	<ButtonStyle Width="162" Height="43" Name="menubutton" MouseEnterSound="ui_rollover">
-		<ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="16" FontFamily="Agency FB">
+		<ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="16" FontFamily="$ButtonText">
 			<ButtonAppearance.Background>
 				<DisplayModel model="fullbutton_animating"/>
 			</ButtonAppearance.Background>
@@ -49,6 +49,8 @@
 		</ScrollbarStyle.Thumb>
 	</ScrollbarStyle>
 </Stylesheet>
+
+
 
 
 

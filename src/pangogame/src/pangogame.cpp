@@ -5,6 +5,8 @@
 #include <map>
 #include "pg_internal.h"
 #include "stb.h"
+#include FT_SYNTHESIS_H
+#include <fontconfig/fontconfig.h>
 
 #define PG_MAX(x,y) (x) < (y) ? y : x
 
@@ -54,14 +56,26 @@ PGRenderContext *pg_createcontext(
 
 #define GLYPHMAP_KEY(x,y) (((uint64_t)(x) << 32) | ((uint64_t)(y)))
 
-void pg_getglyph(PGRenderContext *ctx, CachedGlyph *outGlyph, uint32_t codePoint, uint32_t pangoFontHash, FT_Face face)
+void pg_getglyph(PGRenderContext *ctx, CachedGlyph *outGlyph, uint32_t codePoint, uint32_t pangoFontHash, FT_Face face, PangoFont* pango)
 {
+	//Fetch synthesized props
+	GValue patternprop = G_VALUE_INIT;
+	g_value_init(&patternprop, G_TYPE_POINTER);
+	g_object_get_property(G_OBJECT(pango), "pattern", &patternprop);
+	FcPattern *pattern = (FcPattern*)g_value_get_pointer(&patternprop);
+	FcBool embolden = false;
+	if(FcPatternGetBool(pattern, FC_EMBOLDEN, 0, &embolden) != FcResultMatch)
+		embolden = FcFalse;
+	//Render Glyph
 	std::map<uint64_t,CachedGlyph>::iterator gres = ctx->glyphs.find(GLYPHMAP_KEY(pangoFontHash,codePoint));
 	if(gres != ctx->glyphs.end()) {
 		*outGlyph = gres->second;
 		return;
 	}
 	FT_Load_Glyph(face, codePoint, FT_LOAD_TARGET_LIGHT);
+	if(embolden) {
+		FT_GlyphSlot_Embolden(face->glyph);
+	}
 	FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
 	FT_Bitmap rendered = face->glyph->bitmap;
 	if(ctx->currentX + rendered.width > PG_TEXTURE_SIZE) {

@@ -54,10 +54,7 @@ namespace LibreLancer.Interface
         }
         public Font GetFont(string fontName)
         {
-            if (fontName[0] == '$')
-            {
-                
-            }
+            if (fontName[0] == '$') fontName = Fonts.ResolveNickname(fontName.Substring(1));
             return Fonts.GetSystemFont(fontName);
         }
 

@@ -60,6 +60,9 @@ namespace LibreLancer.Data
         public IEnumerable<int> StringIds => strings.Keys.OrderBy(x => x);
         public IEnumerable<int> InfocardIds => infocards.Keys.OrderBy(x => x);
 
+        public IEnumerable<KeyValuePair<int, string>> AllStrings => strings;
+        public IEnumerable<KeyValuePair<int, string>> AllXml => infocards;
+
         List<int> missingStrings = new List<int>();
 		public string GetStringResource(int id)
 		{

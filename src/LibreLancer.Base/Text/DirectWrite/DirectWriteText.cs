@@ -142,7 +142,7 @@ namespace LibreLancer.Text.DirectWrite
                     new TextFormat(
                     dwFactory, 
                     string.IsNullOrEmpty(lastFont) ? "Arial" : lastFont,
-                    lastSize > 0 ? lastSize : 12
+                    lastSize > 0 ? lastSize : (16 * sizeMultiplier)
                     ), 
                     width,
                     float.MaxValue
@@ -167,8 +167,8 @@ namespace LibreLancer.Text.DirectWrite
                     }
                     if (text.FontSize > 0)
                     {
-                        layout.SetFontSize(text.FontSize, range);
-                        lastSize = text.FontSize;
+                        layout.SetFontSize(text.FontSize * sizeMultiplier, range);
+                        lastSize = text.FontSize * sizeMultiplier;
                     }
                     layout.SetDrawingEffect(new ColorDrawingEffect(text.Color), range);
                     startIdx += text.Contents.Length;

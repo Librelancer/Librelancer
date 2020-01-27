@@ -132,6 +132,7 @@ namespace InterfaceEdit
                 Context.Infocards = new InfocardManager(flIni.JsonResources.Item1, flIni.JsonResources.Item2);
             else if (flIni.Resources != null)
                 Context.Infocards = new InfocardManager(flIni.Resources);
+            Fonts.LoadFontsFromIni(flIni, Context.FileSystem);
             Context.DataPath = flIni.DataPath;
             resourceEditor = new ResourceWindow(this, Context);
             resourceEditor.IsOpen = true;

@@ -18,12 +18,12 @@ namespace LancerEdit
         public InfocardControl(MainWindow win, Infocard infocard, float initWidth)
         {
             window = win;
-            icard = win.RichText.BuildText(infocard.Nodes, (int)initWidth, 0.8f);
+            icard = win.RichText.BuildText(infocard.Nodes, (int)initWidth, 0.7f);
         }
         public void SetInfocard(Infocard infocard)
         {
             icard.Dispose();
-            icard = window.RichText.BuildText(infocard.Nodes, renderWidth > 0 ? renderWidth : 400, 0.8f);
+            icard = window.RichText.BuildText(infocard.Nodes, renderWidth > 0 ? renderWidth : 400, 0.7f);
         }
         public void Draw(float width)
         {
