@@ -4,7 +4,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using SharpFont;
 using LibreLancer.Vertices;
 
 namespace LibreLancer
@@ -81,7 +80,6 @@ namespace LibreLancer
 			}
 		}
 		
-		internal Library FT;
 		RenderState rs;
 		VertexBuffer vbo;
 		ElementBuffer el;
@@ -92,7 +90,6 @@ namespace LibreLancer
 		public Renderer2D (RenderState rstate)
 		{
 			rs = rstate;
-            FT = new Library();
 			textShader = new Shader (vertex_source, text_fragment_source);
 			textShader.SetInteger (textShader.GetLocation("tex"), 0);
 			imgShader = new Shader (vertex_source, img_fragment_source);
@@ -118,65 +115,39 @@ namespace LibreLancer
 			dot.SetData (new byte[] { 255 });
 		}
 
+        private RichTextEngine richText;
         public RichTextEngine CreateRichTextEngine()
         {
-            if (Platform.RunningOS == OS.Linux)
-                return new Text.Pango.PangoText(this);
-            else if (Platform.RunningOS == OS.Windows)
-                //Different method
-                //So we don't have to load SharpDX on linux
-                return DWriteEngine(); 
-            else
-                throw new NotImplementedException();
+            if (richText == null)
+            {
+                if (Platform.RunningOS == OS.Linux)
+                    richText = new Text.Pango.PangoText(this);
+                else if (Platform.RunningOS == OS.Windows)
+                    //Different method
+                    //So we don't have to load SharpDX on linux
+                    richText = DWriteEngine();
+                else
+                    throw new NotImplementedException();
+            }
+            return richText;
         }
         RichTextEngine DWriteEngine()
         {
             return new Text.DirectWrite.DirectWriteText(this);
         }
 
-        public Point MeasureString(Font font, float size, string str)
+        public Point MeasureString(string fontName, float size, string str)
 		{
 			if (str == "") //skip empty str
 				return new Point (0, 0);
-			var iter = new CodepointIterator (str);
-			float maxX = 0;
-			float maxY = 0;
-			float penX = 0, penY = 0;
-			var glyphs = font.GetGlyphs(size);
-			bool set = false;
+            return CreateRichTextEngine().MeasureString(fontName, size, str);
+        }
 
-			while (iter.Iterate ()) {
-				uint c = iter.Codepoint;
-                if (c == (uint)'\r') //Skip CR in windows CRLF combo
-                {
-                    continue;
-                }
-				if (c == (uint)'\n') {
-					penY += glyphs.LineHeight;
-					penX = 0;
-					maxY = 0;
-					continue;
-				}
-				var glyph = glyphs.GetGlyph (c);
-				if (glyph.Render) {
-					penX += glyph.HorizontalAdvance;
-					penY += glyph.AdvanceY;
-				} else {
-					penX += glyph.AdvanceX;
-					penY += glyph.AdvanceY;
-				}
-				if (glyph.Kerning && iter.Index < iter.Count - 1) {
-					var g2 = glyphs.GetGlyph (iter.PeekNext ());
-					if (!set) { set = true; font.Face.SetCharSize(0, glyphs.Size, 0, 96); }
-					var kerning = font.Face.GetKerning (glyph.CharIndex, g2.CharIndex, KerningMode.Default);
-					penX += (float)kerning.X;
-				}
-				maxX = Math.Max (maxX, penX);
-				maxY = Math.Max (maxY, glyph.Rectangle.Height);
-			}
-			return new Point ((int)maxX, (int)(penY + maxY));
-		}
-
+        public float LineHeight(string fontName, float size)
+        {
+            return CreateRichTextEngine().LineHeight(fontName, size);
+        }
+        
 		bool active = false;
 		int vertexCount = 0;
 		int primitiveCount = 0;
@@ -209,127 +180,20 @@ namespace LibreLancer
             rs.ScissorEnabled = false;
 		}
 
-		public void DrawString(Font font, float size, string str, Vector2 vec, Color4 color)
-		{
-			DrawString (font, size, str, vec.X, vec.Y, color);
-		}
+		public void DrawString(string fontName, float size, string str, Vector2 vec, Color4 color)
+        {
+            DrawStringBaseline(fontName, size, str, vec.X, vec.Y, vec.X, color);
+        }
 
-		public void DrawStringBaseline(Font font, float size, string text, float x, float y, float start_x, Color4 color, bool underline = false)
+		public void DrawStringBaseline(string fontName, float size, string text, float x, float y, float start_x, Color4 color, bool underline = false)
 		{
 			if (!active)
 				throw new InvalidOperationException("Renderer2D.Start() must be called before Renderer2D.DrawString");
 			if (text == "") //skip empty str
 				return;
-			float dy = y;
-			int start = 0;
-			float dX = x;
-			var lh = font.LineHeight(size);
-			for (int i = 0; i < text.Length; i++)
-			{
-				if (text[i] == '\n')
-				{
-					DrawStringInternal(font, size, text, start, i, dX, dy, color, underline, true);
-					dX = start_x;
-					dy += lh;
-					i++;
-					start = i;
-				}
-			}
-			if (start < text.Length)
-			{
-				DrawStringInternal(font, size, text, start, text.Length, dX, dy, color, underline, true);
-			}
-		}
-
-		public void DrawString(Font font, float size, string text, float x, float y, Color4 color, bool underline = false)
-		{
-			if (!active)
-				throw new InvalidOperationException ("Renderer2D.Start() must be called before Renderer2D.DrawString");
-			if (text == "") //skip empty str
-				return;
-			float dy = y;
-            int start = 0;
-			var lh = font.LineHeight(size);
-            for(int i = 0; i < text.Length; i++)
-            {
-                if(text[i] == '\n')
-                {
-                    DrawStringInternal(font, size, text, start, i, x, dy, color, underline, false);
-					dy += lh;
-                    i++;
-                    start = i;
-                }
-            }
-            if(start < text.Length)
-            {
-                DrawStringInternal(font, size, text, start, text.Length, x, dy, color, underline, false);
-            }
-		}
-
-
-		void DrawStringInternal(Font font, float size, string str, int start, int end, float x, float y, Color4 color, bool underline, bool baseline)
-		{
-			int maxHeight = 0;
-			var glyphs = font.GetGlyphs(size);
-			if (!baseline)
-			{
-				var measureIter = new CodepointIterator(str, start, end);
-				while (measureIter.Iterate())
-				{
-					uint c = measureIter.Codepoint;
-					var glyph = glyphs.GetGlyph(c);
-					maxHeight = Math.Max(maxHeight, glyph.Rectangle.Height);
-				}
-			}
-			var asc = glyphs.Ascender;
-			var iter = new CodepointIterator (str, start, end);
-			float penX = x, penY = y;
-			bool set = false;
-			while (iter.Iterate ()) {
-				uint c = iter.Codepoint;
-                if(c == (uint)'\r') //Skip CR from CRLF
-                {
-                    continue;
-                }
-				var glyph = glyphs.GetGlyph (c);
-				if (glyph.Render) {
-					int py = baseline ? (int)penY + asc - glyph.YOffset : (int)penY + maxHeight - glyph.YOffset;
-					var dst = new Rectangle (
-						(int)penX + glyph.XOffset,
-						py,
-						glyph.Rectangle.Width,
-						glyph.Rectangle.Height
-					);
-					DrawQuad (
-						textShader,
-						glyph.Texture,
-						glyph.Rectangle,
-						dst,
-						color,
-						BlendMode.Normal
-					);
-					penX += glyph.HorizontalAdvance;
-					//penY += glyph.AdvanceY;
-				} else {
-					penX += glyph.AdvanceX;
-					//penY += glyph.AdvanceY;
-				}
-				if (glyph.Kerning && iter.Index < iter.Count - 1) {
-					var g2 = glyphs.GetGlyph (iter.PeekNext ());
-					if (!set) { set = true; font.Face.SetCharSize(0, glyphs.Size, 0, 96); }
-					var kerning = font.Face.GetKerning (glyph.CharIndex, g2.CharIndex, KerningMode.Default);
-					penX += (float)kerning.X;
-				}
-			}
-			if (underline)
-			{
-				//TODO: This is probably not the proper way to draw underline, but it seems to work for now
-				float width = penX - x;
-				var ypos = asc + 2;
-				FillRectangle(new Rectangle((int)x, (int)y + ypos, (int)width, 1), color);
-			}
-		}
-		public void FillRectangle(Rectangle rect, Color4 color)
+            CreateRichTextEngine().DrawStringBaseline(fontName, size, text, x, y, start_x, color, underline);
+        }
+        public void FillRectangle(Rectangle rect, Color4 color)
 		{
 			DrawQuad(textShader, dot, new Rectangle(0,0,1,1), rect, color, BlendMode.Normal);
 		}
@@ -570,8 +434,6 @@ namespace LibreLancer
 			rs.DepthEnabled = false;
 			currentTexture.BindTo (0);
 			currentShader.UseProgram ();
-
-            //vbo.SetData (vertices, vertexCount);
             var verts = new Vertex2D[vertexCount];
             for (int i = 0; i < vertexCount; i++)
                 verts[i] = vertices[i];
@@ -588,8 +450,6 @@ namespace LibreLancer
 		{
 			el.Dispose ();
 			vbo.Dispose ();
-			FT.Dispose ();
 		}
 	}
 }
-

@@ -17,35 +17,9 @@ namespace LibreLancer
 
     public class FontManager
 	{
-		struct FKey
-		{
-			public string Name;
-			public FontStyles Style;
-		}
-		Dictionary<FKey, Font> systemFonts = new Dictionary<FKey, Font>();
-		public Font GetSystemFont(string name, FontStyles style = FontStyles.Regular)
-		{
-            if(ren2d == null) ren2d = game.GetService<Renderer2D>();
-            var k = new FKey() { Name = name, Style = style };
-			Font fnt;
-			if (!systemFonts.TryGetValue(k, out fnt))
-			{
-				fnt = Font.FromSystemFont(ren2d, name, style);
-				systemFonts.Add(k, fnt);
-			}
-			return fnt;
-		}
-
-		bool _loaded = false;
-		Game game;
-        Renderer2D ren2d;
-		Dictionary<int, FontDescription> infocardFonts = new Dictionary<int, FontDescription>();
+        bool _loaded = false;
+        Dictionary<int, FontDescription> infocardFonts = new Dictionary<int, FontDescription>();
         private Dictionary<string, string> nicknames;
-        public FontManager(Game game)
-		{
-			this.game = game;
-		}
-
         public void ConstructDefaultFonts()
         {
             var v = new FontDescription() { FontName = "Arial", FontSize = 16 };
@@ -101,6 +75,7 @@ namespace LibreLancer
 
         public FontDescription GetInfocardFont (int index)
         {
+            if (!_loaded) throw new InvalidOperationException("FontManager not initialized");
             FontDescription desc;
             if (!infocardFonts.TryGetValue(index, out desc))
                 return infocardFonts[-1];

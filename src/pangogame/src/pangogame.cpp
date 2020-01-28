@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 #include <map>
+#include <string.h>
 #include "pg_internal.h"
 #include "stb.h"
 #include FT_SYNTHESIS_H
@@ -134,7 +135,7 @@ void pg_updatewidth(PGBuiltText *text, int width)
 		PangoLayout *layout = text->layouts[i];
 		pango_layout_set_width(layout, width * PANGO_SCALE);
 	}
-	pg_pango_calculatetext(text);
+	pg_pango_calculatetext(text, NULL);
 }
 
 int pg_getheight(PGBuiltText *text)
@@ -148,12 +149,90 @@ void pg_drawtext(PGRenderContext* ctx, PGBuiltText *text)
 		ctx->drawCb(text->runs[i].quads, text->runs[i].tex, text->runs[i].quadCount);
 	}
 }
+void pg_drawstring(PGRenderContext* ctx, const char *str, const char* fontName, float fontSize, int indent, int underline, float r, float g, float b, float a)
+{
+    //Layout
+    PangoLayout *layout = pango_layout_new(ctx->pangoContext);
+    pango_layout_set_indent(layout, indent * PANGO_SCALE);
+    pango_layout_set_text(layout, str, strlen(str));
+    PangoFontDescription *font = pango_font_description_new();
+    pango_font_description_set_family(font, fontName);
+    pango_font_description_set_size(font, (int)(fontSize * PANGO_SCALE));
+    pango_layout_set_font_description(layout, font);
+    pango_font_description_free(font);
+    if(underline) {
+        PangoAttrList *attrList = pango_attr_list_new();
+        PangoAttribute *attribute = pango_attr_underline_new(PANGO_UNDERLINE_SINGLE);
+        pango_attr_list_insert(attrList, attribute);
+        pango_layout_set_attributes(layout, attrList);
+        pango_attr_list_unref(attrList);
+    }
+    //Calculate
+    PGBuiltText built;
+    built.layouts = &layout;
+    built.layoutCount = 1;
+    built.ctx = ctx;
+    built.runs = NULL;
+    float color[4] = { r, g, b, a };
+    pg_pango_calculatetext(&built, color);
+    //Draw
+    pg_drawtext(ctx, &built);
+    //Free
+    for(int i = 0; i < built.runCount; i++)
+	{
+		stb_arr_free(built.runs[i].quads);
+	}
+	stb_arr_free(built.runs);
+	g_object_unref(layout);
+}
+
+void pg_measurestring(PGRenderContext* ctx, const char* str, const char* fontName, float fontSize, float *width, float *height)
+{
+    PangoLayout *layout = pango_layout_new(ctx->pangoContext);
+    pango_layout_set_text(layout, str, strlen(str));
+    PangoFontDescription *font = pango_font_description_new();
+    pango_font_description_set_family(font, fontName);
+    pango_font_description_set_size(font, (int)(fontSize * PANGO_SCALE));
+    pango_layout_set_font_description(layout, font);
+    pango_font_description_free(font);
+    PangoRectangle ink;
+	PangoRectangle logical;
+	pango_layout_get_extents(layout, &ink, &logical);
+    *width = (float)(logical.width / PANGO_SCALE);
+    *height = (float)(logical.height / PANGO_SCALE);
+    g_object_unref(layout);
+}
+
+float pg_lineheight(PGRenderContext* ctx, const char* fontName, float fontSize)
+{
+    PangoFontDescription *desc = pango_font_description_new();
+    pango_font_description_set_family(desc, fontName);
+    pango_font_description_set_size(desc, (int)(fontSize * PANGO_SCALE));
+    PangoFont *font = pango_context_load_font(ctx->pangoContext, desc);
+    pango_font_description_free(desc);
+    if(!font) return 0;
+#if PANGO_VERSION_CHECK(1,44,0)
+if(pango_version() >= PANGO_VERSION_ENCODE(1,44,0)) {    
+    PangoFontMetrics *metrics = pango_font_get_metrics(font, NULL);
+    float retval = (float)(pango_font_metrics_get_height(metrics) / PANGO_SCALE);
+    g_object_unref(font);
+} else {
+#endif
+    FT_Face face = pango_fc_font_lock_face((PangoFcFont*) font);
+    float retval = (face->size->metrics.height / 64.0f);
+    pango_fc_font_unlock_face((PangoFcFont*) font);
+    g_object_unref(font);
+    return retval;
+#if PANGO_VERSION_CHECK(1,44,0)
+}
+#endif
+}
 
 void pg_addttfglobal(const char *filename)
 {
 	const FcChar8 *file = (const FcChar8 *)filename;
 	if(!FcConfigAppFontAddFile(NULL, file))
-		printf("font add for %s failed\n");
+		printf("font add for %s failed\n", filename);
 }
 
 void pg_destroytext(PGBuiltText *text)

@@ -68,6 +68,16 @@ namespace LibreLancer.Text.Pango
         [DllImport("pangogame")]
         static extern IntPtr pg_drawtext(IntPtr ctx, IntPtr text);
 
+        [DllImport("pangogame")]
+        static extern void pg_drawstring(IntPtr ctx, IntPtr str, IntPtr fontName, float fontSize, int indent, int underline, float r, float g, float b, float a);
+
+        [DllImport("pangogame")]
+        static extern void pg_measurestring(IntPtr ctx, IntPtr str, IntPtr fontName, float fontSize, out float width,
+            out float height);
+
+        [DllImport("pangogame")]
+        static extern float pg_lineheight(IntPtr ctx, IntPtr fontName, float fontSize);
+        
         delegate void PGDrawCallback(PGQuad* quads, PGTexture* texture, int count);
         delegate void PGAllocateTextureCallback(PGTexture* texture, int width, int height);
         delegate void PGUpdateTextureCallback(PGTexture* texture, IntPtr buffer, int x, int y, int width, int height);
@@ -225,6 +235,36 @@ namespace LibreLancer.Text.Pango
             pg_drawtext(ctx, ((PangoBuiltText)txt).Handle);
         }
 
+        public override void DrawStringBaseline(string fontName, float size, string text, float x, float y, float start_x, Color4 color, bool underline = false)
+        {
+            var pixels = size * (96.0f / 72.0f);
+            drawX = (int)(start_x);
+            drawY = (int)y;
+            int indent = (int) (x - start_x);
+            var textPtr = UnsafeHelpers.StringToHGlobalUTF8(text);
+            var fontPtr = UnsafeHelpers.StringToHGlobalUTF8(fontName);
+            pg_drawstring(ctx, textPtr, fontPtr, pixels, indent, underline ? 1 : 0, color.R, color.G, color.B, color.A);
+            Marshal.FreeHGlobal(textPtr);
+            Marshal.FreeHGlobal(fontPtr);
+        }
+
+        public override Point MeasureString(string fontName, float size, string text)
+        {
+            var textPtr = UnsafeHelpers.StringToHGlobalUTF8(text);
+            var fontPtr = UnsafeHelpers.StringToHGlobalUTF8(fontName);
+            pg_measurestring(ctx, textPtr, fontPtr, size * (96.0f / 72.0f), out var width, out var height);
+            Marshal.FreeHGlobal(textPtr);
+            Marshal.FreeHGlobal(fontPtr);
+            return new Point((int)width, (int)height);
+        }
+
+        public override float LineHeight(string fontName, float size)
+        {
+            var fontPtr = UnsafeHelpers.StringToHGlobalUTF8(fontName);
+            var retval = pg_lineheight(ctx, fontPtr, size * (96.0f / 72.0f));
+            Marshal.FreeHGlobal(fontPtr);
+            return retval;
+        }
         public override void Dispose()
         {
         }

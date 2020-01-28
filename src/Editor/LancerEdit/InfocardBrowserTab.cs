@@ -37,7 +37,7 @@ namespace LancerEdit
         {
             this.win = win;
             var ini = new FreelancerIni(flini, null);
-            fonts = new FontManager(win);
+            fonts = new FontManager();
             var rootFolder = Path.Combine(Path.GetDirectoryName(flini), "../");
             var vfs = FileSystem.FromFolder(rootFolder, true);
             fonts.LoadFontsFromIni(ini, vfs);

@@ -32,7 +32,7 @@ namespace InterfaceEdit
             Viewport = new ViewportManager(RenderState);
             Viewport.Push(0,0,Width,Height);
             new MaterialMap();
-            Fonts = new FontManager(this);
+            Fonts = new FontManager();
         }
 
         List<DockTab> tabs = new List<DockTab>();

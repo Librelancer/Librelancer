@@ -34,7 +34,6 @@ Mouse Flight: {11}
 		PhysicsDebugRenderer debugphysics;
 		SystemRenderer sysrender;
 		bool wireframe = false;
-		Font font;
 		bool textEntry = false;
 		string currentText = "";
 		public GameObject player;
@@ -61,7 +60,6 @@ Mouse Flight: {11}
 			FLLog.Info("Game", "Entering system " + session.PlayerSystem);
             g.ResourceManager.ClearTextures(); //Do before loading things
             this.session = session;
-            font = Game.Fonts.GetSystemFont("Agency FB");
             #if false
             pyw = new DebugGraph();
             pyw.AddLine(Color4.Red, 240, -1, 1);
@@ -606,7 +604,7 @@ Mouse Flight: {11}
                     else
                         sel_obj = selected.Name;
                 }
-                DebugDrawing.DrawShadowedText(Game.Renderer2D, font, 16, string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Nickname, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, control.PlayerPitch, control.PlayerYaw, control.Roll, mouseFlight), 5, 5);
+                DebugDrawing.DrawShadowedText(Game.Renderer2D, 16, string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Nickname, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, control.PlayerPitch, control.PlayerYaw, control.Roll, mouseFlight), 5, 5);
                 //pyw.Draw(Game.Renderer2D);
                 current_cur.Draw(Game.Renderer2D, Game.Mouse);
             }

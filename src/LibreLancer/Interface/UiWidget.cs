@@ -54,7 +54,7 @@ namespace LibreLancer.Interface
             context.Mode2D();
             var fnt = context.GetFont(font);
             var size = context.TextSize(textSize);
-            var lineHeight = fnt.LineHeight(size);
+            var lineHeight = context.Renderer2D.LineHeight(fnt, size);
             var drawRect = context.PointsToPixels(myRectangle);
             float drawX, drawY;
             switch (horizontalAlign) {

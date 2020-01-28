@@ -3,14 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using SharpFont;
+
 namespace LibreLancer.Platforms
 {
 	interface IPlatform
 	{
 		bool IsDirCaseSensitive(string directory);
-		Face LoadSystemFace(Library library, string face, ref FontStyles style);
-		Face GetFallbackFace(Library library, uint cp);
         void AddTtfFile(string path);
         byte[] GetMonospaceBytes();
     }

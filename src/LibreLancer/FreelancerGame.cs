@@ -98,7 +98,7 @@ namespace LibreLancer
             GameDataLoaderThread.Start();
             //
             Renderer2D = new Renderer2D(RenderState);
-			Fonts = new FontManager(this);
+            Fonts = new FontManager();
 			Billboards = new Billboards ();
 			Nebulae = new NebulaVertices();
 			ViewportManager = new ViewportManager (RenderState);

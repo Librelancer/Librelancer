@@ -50,7 +50,7 @@ namespace SystemViewer
             Services.Add(Nebulae);
             Services.Add(Resources);
             Services.Add(Renderer2D);
-            fontMan = new FontManager(this);
+            fontMan = new FontManager();
             fontMan.ConstructDefaultFonts();
             Services.Add(fontMan);
             Services.Add(new GameConfig());

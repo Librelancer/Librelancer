@@ -8,7 +8,6 @@ using System.IO;
 using System.Reflection;
 using LibreLancer.Platforms;
 using LibreLancer.Dialogs;
-using SharpFont;
 
 namespace LibreLancer
 {
@@ -26,15 +25,15 @@ namespace LibreLancer
 				    & Directory.Exists ("/Users")
 				    & Directory.Exists ("/Volumes")) {
 					RunningOS = OS.Mac;
-					RunningPlatform = new MacPlatform ();
-				} else {
+                    throw new NotImplementedException("macOS");
+                } else {
 					RunningOS = OS.Linux;
 					RunningPlatform = new LinuxPlatform ();
 				}
 				break;
 			case PlatformID.MacOSX:
 				RunningOS = OS.Mac;
-				RunningPlatform = new MacPlatform ();
+                throw new NotImplementedException("macOS");
 				break;
 			default:
 				RunningOS = OS.Windows;
@@ -42,21 +41,9 @@ namespace LibreLancer
 				break;
 			}
 		}
-
-
-		public static bool IsDirCaseSensitive (string directory)
+        public static bool IsDirCaseSensitive (string directory)
 		{
 			return RunningPlatform.IsDirCaseSensitive (directory);
-		}
-
-		public static Face LoadSystemFace (Library library, string face, ref FontStyles style)
-		{
-			return RunningPlatform.LoadSystemFace(library, face, ref style);
-		}
-
-		public static Face GetFallbackFace(Library library, uint cp)
-		{
-			return RunningPlatform.GetFallbackFace(library, cp);
 		}
 
         public static byte[] GetMonospaceBytes()

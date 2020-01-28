@@ -11,7 +11,11 @@ namespace LibreLancer
         public abstract void Dispose();
         public abstract void RenderText(BuiltRichText txt, int x, int y);
         public abstract BuiltRichText BuildText(IList<RichTextNode> nodes, int width, float sizeMultiplier = 1f);
+        public virtual void DrawStringBaseline(string fontName, float size, string text, float x, float y, float start_x, Color4 color, bool underline = false) { }
+        public virtual Point MeasureString(string fontName, float size, string text) => Point.Zero;
+        public virtual float LineHeight(string fontName, float size) => 0;
     }
+    
     public abstract class BuiltRichText : IDisposable
     {
         public abstract void Recalculate(float width);

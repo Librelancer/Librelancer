@@ -7,17 +7,17 @@ namespace LibreLancer
 {
 	public static class DebugDrawing
 	{
-		public static void DrawShadowedText(Renderer2D trender, Font font, float size, string text, float x, float y, Color4? col = null)
+		public static void DrawShadowedText(Renderer2D trender, float size, string text, float x, float y, Color4? col = null)
 		{
-			trender.DrawString(font,
+			trender.DrawString("Arial",
 			                   size,
 				text,
-				x + 2, y + 2,
+				new Vector2(x,y) + new Vector2(2), 
 				Color4.Black);
-			trender.DrawString(font,
+			trender.DrawString("Arial",
 			                   size,
 				text,
-				x, y,
+				new Vector2(x,y), 
 				col ?? Color4.White);
 		}
 

@@ -10,6 +10,9 @@ struct CacheRenderer {
 	PangoRenderer parent;
 	PGRenderContext *ctx;
 	PGBuiltText *built;
+    int colorset;
+    float red, green, blue;
+    float alpha;
 };
 
 struct CacheRendererClass {
@@ -23,11 +26,17 @@ G_DEFINE_TYPE(CacheRenderer, cacherenderer, PANGO_TYPE_RENDERER);
 void doDrawRectangle(PangoRenderer* renderer, PangoRenderPart part, int x, int y, int width, int height)
 {
 	CacheRenderer* ren = CACHERENDERER(renderer);
-	
-	PangoColor* fg = pango_renderer_get_color(renderer, PANGO_RENDER_PART_FOREGROUND);
-	float red = !fg ? 0.0f : fg->red / 65536.0f;
-	float green = !fg ? 0.0f : fg->green / 65536.0f;
-	float blue = !fg ? 0.0f : fg->blue / 65536.0f;
+    float red, green, blue;
+    if(ren->colorset) {
+        red = ren->red;
+        green = ren->green;
+        blue = ren->blue;
+    } else {
+        PangoColor* fg = pango_renderer_get_color(renderer, PANGO_RENDER_PART_FOREGROUND);
+        red = !fg ? 0.0f : fg->red / 65536.0f;
+        green = !fg ? 0.0f : fg->green / 65536.0f;
+        blue = !fg ? 0.0f : fg->blue / 65536.0f;
+    }
 	//create empty run to put rectangle in
 	PGRun r;
 	r.tex = NULL;
@@ -44,18 +53,24 @@ void doDrawRectangle(PangoRenderer* renderer, PangoRenderPart part, int x, int y
 	q.r = red;
 	q.g = green;
 	q.b = blue;
-	q.a = 1;
+	q.a = ren->alpha;
 	stb_arr_push(run->quads, q);
 }
 
 void doDrawGlyphs(PangoRenderer* renderer, PangoFont* font, PangoGlyphString* glyphs, int px, int py)
 {
 	CacheRenderer* ren = CACHERENDERER(renderer);
-	
-	PangoColor* fg = pango_renderer_get_color(renderer, PANGO_RENDER_PART_FOREGROUND);
-	float red = !fg ? 0.0f : fg->red / 65536.0f;
-	float green = !fg ? 0.0f : fg->green / 65536.0f;
-	float blue = !fg ? 0.0f : fg->blue / 65536.0f;
+	float red, green, blue;
+    if(ren->colorset) {
+        red = ren->red;
+        green = ren->green;
+        blue = ren->blue;
+    } else {
+        PangoColor* fg = pango_renderer_get_color(renderer, PANGO_RENDER_PART_FOREGROUND);
+        red = !fg ? 0.0f : fg->red / 65536.0f;
+        green = !fg ? 0.0f : fg->green / 65536.0f;
+        blue = !fg ? 0.0f : fg->blue / 65536.0f;
+    }
 
 	PangoFontDescription* desc = pango_font_describe(font);
 	uint32_t fontHash = (uint32_t)pango_font_description_hash(desc);
@@ -155,15 +170,25 @@ PGBuiltText *pg_pango_constructtext(PGRenderContext *ctx, PangoLayout **layouts,
 	built->layoutCount = layoutCount;
 	built->ctx = ctx;
 	built->runs = NULL;
-	pg_pango_calculatetext(built);
+	pg_pango_calculatetext(built, NULL);
 	return built;
 }
 
-void pg_pango_calculatetext(PGBuiltText *text)
+void pg_pango_calculatetext(PGBuiltText *text, float *color)
 {
 	CacheRenderer* doRenderer = (CacheRenderer*)g_object_new(TYPE_CACHERENDERER, 0);
 	doRenderer->ctx = text->ctx;
 	doRenderer->built = text;
+    doRenderer->alpha = 1;
+    if(color) {
+        doRenderer->colorset = 1;
+        doRenderer->red = color[0];
+        doRenderer->green = color[1];
+        doRenderer->blue = color[2];
+        doRenderer->alpha = color[3];
+    }
+    else
+        doRenderer->colorset = 0;
 	if(text->runs) 
 	{
 		for(int i = 0; i < text->runCount; i++)

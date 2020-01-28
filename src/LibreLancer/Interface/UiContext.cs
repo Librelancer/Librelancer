@@ -52,10 +52,10 @@ namespace LibreLancer.Interface
             var p = DataPath.Replace('\\', Path.DirectorySeparatorChar);
             return Path.Combine(p, NavbarIcons[icon]);
         }
-        public Font GetFont(string fontName)
+        public string GetFont(string fontName)
         {
             if (fontName[0] == '$') fontName = Fonts.ResolveNickname(fontName.Substring(1));
-            return Fonts.GetSystemFont(fontName);
+            return fontName;
         }
 
         public InterfaceColor GetColor(string color)

@@ -42,6 +42,6 @@ struct _PGBuiltText {
 
 void pg_getglyph(PGRenderContext *ctx, CachedGlyph *outGlyph, uint32_t codePoint, uint32_t pangoFontHash, FT_Face face, PangoFont *pango);
 PGBuiltText *pg_pango_constructtext(PGRenderContext *ctx, PangoLayout **layouts, int layoutCount);
-void pg_pango_calculatetext(PGBuiltText *text);
+void pg_pango_calculatetext(PGBuiltText *text, float* color);
 
 #endif 

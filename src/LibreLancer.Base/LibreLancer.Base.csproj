@@ -136,17 +136,7 @@
     <Compile Include="Platforms\IPlatform.cs" />
     <Compile Include="Platforms\LinuxPlatform.cs" />
     <Compile Include="Platforms\Win32Platform.cs" />
-    <Compile Include="Platforms\MacPlatform.cs" />
     <Compile Include="Platforms\Win32\GDI.cs" />
-    <Compile Include="Platforms\Mac\CGFloat.cs" />
-    <Compile Include="Platforms\Mac\Class.cs" />
-    <Compile Include="Platforms\Mac\Cocoa.cs" />
-    <Compile Include="Platforms\Mac\CoreText.cs" />
-    <Compile Include="Platforms\Mac\NS.cs" />
-    <Compile Include="Platforms\Mac\Selector.cs" />
-    <Compile Include="Text\Font.cs" />
-    <Compile Include="Text\CodepointIterator.cs" />
-    <Compile Include="Text\GlyphInfo.cs" />
     <Compile Include="Text\Renderer2D.cs" />
     <Compile Include="HSLColor.cs" />
     <Compile Include="Math\MathHelper.cs" />
@@ -184,7 +174,6 @@
     <Compile Include="DepthBuffer.cs" />
     <Compile Include="TextureFiltering.cs" />
     <Compile Include="MultisampleTarget.cs" />
-    <Compile Include="Text\FontStyles.cs" />
     <Compile Include="CullFaces.cs" />
     <Compile Include="SSE\SSEMath.cs">
       <DependentUpon>SSEMath.tt</DependentUpon>
@@ -224,10 +213,6 @@
     <ProjectReference Include="..\..\extern\FontConfigSharp\FontConfigSharp\FontConfigSharp.csproj">
       <Project>{CBBDC35F-DCA3-453C-A9E3-29EE7E43DE85}</Project>
       <Name>FontConfigSharp</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\SharpFont.BuildNoConfig\SharpFont.csproj">
-      <Project>{C293DB32-FA42-486D-B128-5A12522FAE4E}</Project>
-      <Name>SharpFont</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

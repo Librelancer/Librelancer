@@ -122,7 +122,7 @@ namespace LancerEdit
             Renderer2D = new Renderer2D(RenderState);
             RichText = Renderer2D.CreateRichTextEngine();
             Services.Add(Renderer2D);
-            Fonts = new FontManager(this);
+            Fonts = new FontManager();
             Fonts.ConstructDefaultFonts();
             Services.Add(Fonts);
         }
