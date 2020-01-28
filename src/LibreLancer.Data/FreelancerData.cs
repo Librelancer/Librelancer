@@ -21,44 +21,44 @@ using LibreLancer.Data.NewCharDB;
     
 namespace LibreLancer.Data
 {
-	public class FreelancerData
-	{
-		//Config
-		public DacomIni Dacom;
-		public FreelancerIni Freelancer;
+    public class FreelancerData
+    {
+        //Config
+        public DacomIni Dacom;
+        public FreelancerIni Freelancer;
         public FileSystem VFS;
-		//Data
-		public InfocardManager Infocards;
-		public EffectsIni Effects;
+        //Data
+        public InfocardManager Infocards;
+        public EffectsIni Effects;
         public FuseIni Fuses;
-		public EquipmentIni Equipment;
-		public LoadoutsIni Loadouts;
-		public SolararchIni Solar;
-		public StararchIni Stars;
-		public BodypartsIni Bodyparts;
-		public CostumesIni Costumes;
-		public UniverseIni Universe;
-		public ShiparchIni Ships;
-		public AudioIni Audio;
+        public EquipmentIni Equipment;
+        public LoadoutsIni Loadouts;
+        public SolararchIni Solar;
+        public StararchIni Stars;
+        public BodypartsIni Bodyparts;
+        public CostumesIni Costumes;
+        public UniverseIni Universe;
+        public ShiparchIni Ships;
+        public AudioIni Audio;
         public GoodsIni Goods;
         public MarketsIni Markets;
-		public GraphIni Graphs;
-		public TexturePanels EffectShapes;
-		public MouseIni Mouse;
-		public AsteroidArchIni Asteroids;
+        public GraphIni Graphs;
+        public TexturePanels EffectShapes;
+        public MouseIni Mouse;
+        public AsteroidArchIni Asteroids;
         public FontsIni Fonts;
-		public RichFontsIni RichFonts;
-		public PetalDbIni PetalDb;
-		public HudIni Hud;
-		public BaseNavBarIni BaseNavBar;
-		public MBasesIni MBases;
+        public RichFontsIni RichFonts;
+        public PetalDbIni PetalDb;
+        public HudIni Hud;
+        public BaseNavBarIni BaseNavBar;
+        public MBasesIni MBases;
         public NewCharDBIni NewCharDB;
         public ContentDll ContentDll;
 
         public string DataVersion;
-		public bool Loaded = false;
+        public bool Loaded = false;
 
-		public bool LoadDacom = true;
+        public bool LoadDacom = true;
 
         public List<Missions.MissionIni> Missions = new List<Missions.MissionIni>();
         static readonly string[] missionFiles = new string[]
@@ -80,93 +80,78 @@ namespace LibreLancer.Data
         };
 
         public FreelancerData (FreelancerIni fli, FileSystem vfs)
-		{
-			Freelancer = fli;
+        {
+            Freelancer = fli;
             VFS = vfs;
         }
 
-		public void LoadData()
-		{
-			if (Loaded)
-				return;
-			if(LoadDacom)
-				Dacom = new DacomIni (VFS);
-			if (Freelancer.JsonResources != null)
-			{
+        public void LoadData()
+        {
+            if (Loaded)
+                return;
+            if(LoadDacom)
+                Dacom = new DacomIni (VFS);
+            if (Freelancer.JsonResources != null)
+            {
                 Infocards = new InfocardManager(File.ReadAllText(Freelancer.JsonResources.Item1), File.ReadAllText(Freelancer.JsonResources.Item2));
-			}
-			else
-			{
-				Infocards = new InfocardManager(Freelancer.Resources);
-			}
-            //Build Universe
-            var tSolar = new Thread(() =>
+            }
+            else
             {
-                //Equipment
-                Equipment = new EquipmentIni();
-                foreach (var eq in Freelancer.EquipmentPaths)
-                    Equipment.AddEquipmentIni(eq, this);
-                Solar = new SolararchIni(Freelancer.SolarPath, this);
-                if (Freelancer.StarsPath != null)
-                    Stars = new StararchIni(Freelancer.StarsPath, VFS);
-                else
-                    Stars = new StararchIni("DATA\\SOLAR\\stararch.ini", VFS);
-                Asteroids = new AsteroidArchIni();
-                foreach (var ast in Freelancer.AsteroidPaths)
-                    Asteroids.AddFile(ast, VFS);
-                Loadouts = new LoadoutsIni();
-                foreach (var lo in Freelancer.LoadoutPaths)
-                    Loadouts.AddLoadoutsIni(lo, this);
-            });
-            var tUniverse = new Thread(() =>
-            {
-                Universe = new UniverseIni(Freelancer.UniversePath, this);
-            });
-            //Misc
-            var tMisc = new Thread(() =>
-            {
-                //Graphs
-                Graphs = new GraphIni();
-                foreach (var g in Freelancer.GraphPaths)
-                    Graphs.AddGraphIni(g, VFS);
-                //Shapes
-                EffectShapes = new TexturePanels(Freelancer.EffectShapesPath, VFS);
-                //Effects
-                Effects = new EffectsIni();
-                foreach (var fx in Freelancer.EffectPaths)
-                    Effects.AddIni(fx, VFS);
-                //Mouse
-                Mouse = new MouseIni(Freelancer.DataPath + "//mouse.ini", VFS);
-                //Fonts
-                RichFonts = new RichFontsIni();
-                foreach (var rf in Freelancer.RichFontPaths)
-                    RichFonts.AddRichFontsIni(rf, VFS);
-                Fonts = new FontsIni();
-                foreach (var f in Freelancer.FontPaths)
-                    Fonts.AddFontsIni(f, VFS);
-                //PetalDb
-                PetalDb = new PetalDbIni();
-                foreach (var pt in Freelancer.PetalDbPaths)
-                    PetalDb.AddFile(pt, VFS);
-                //Hud
-                Hud = new HudIni();
-                Hud.AddIni(Freelancer.HudPath, VFS);
-                //navbar.ini
-                BaseNavBar = new BaseNavBarIni(VFS);
-                //mbases.ini
-                MBases = new MBasesIni(VFS);
-                //fuses
-                Fuses = new FuseIni();
-                foreach (var fi in Freelancer.FusePaths)
-                    Fuses.AddFuseIni(fi, VFS);
-                //newchardb
-                NewCharDB = new NewCharDBIni();
-                foreach (var nc in Freelancer.NewCharDBPaths)
-                    NewCharDB.AddNewCharDBIni(nc, VFS);
-            });
-            tMisc.Start();
-            tSolar.Start();
-            tUniverse.Start();
+                Infocards = new InfocardManager(Freelancer.Resources);
+            }
+            Equipment = new EquipmentIni();
+            foreach (var eq in Freelancer.EquipmentPaths)
+                Equipment.AddEquipmentIni(eq, this);
+            Solar = new SolararchIni(Freelancer.SolarPath, this);
+            if (Freelancer.StarsPath != null)
+                Stars = new StararchIni(Freelancer.StarsPath, VFS);
+            else
+                Stars = new StararchIni("DATA\\SOLAR\\stararch.ini", VFS);
+            Asteroids = new AsteroidArchIni();
+            foreach (var ast in Freelancer.AsteroidPaths)
+                Asteroids.AddFile(ast, VFS);
+            Loadouts = new LoadoutsIni();
+            foreach (var lo in Freelancer.LoadoutPaths)
+                Loadouts.AddLoadoutsIni(lo, this);
+            Universe = new UniverseIni(Freelancer.UniversePath, this);
+            //Graphs
+            Graphs = new GraphIni();
+            foreach (var g in Freelancer.GraphPaths)
+                Graphs.AddGraphIni(g, VFS);
+            //Shapes
+            EffectShapes = new TexturePanels(Freelancer.EffectShapesPath, VFS);
+            //Effects
+            Effects = new EffectsIni();
+            foreach (var fx in Freelancer.EffectPaths)
+                Effects.AddIni(fx, VFS);
+            //Mouse
+            Mouse = new MouseIni(Freelancer.DataPath + "/mouse.ini", VFS);
+            //Fonts
+            RichFonts = new RichFontsIni();
+            foreach (var rf in Freelancer.RichFontPaths)
+                RichFonts.AddRichFontsIni(rf, VFS);
+            Fonts = new FontsIni();
+            foreach (var f in Freelancer.FontPaths)
+                Fonts.AddFontsIni(f, VFS);
+            //PetalDb
+            PetalDb = new PetalDbIni();
+            foreach (var pt in Freelancer.PetalDbPaths)
+                PetalDb.AddFile(pt, VFS);
+            //Hud
+            Hud = new HudIni();
+            Hud.AddIni(Freelancer.HudPath, VFS);
+            //navbar.ini
+            BaseNavBar = new BaseNavBarIni(VFS);
+            //mbases.ini
+            MBases = new MBasesIni(VFS);
+            //fuses
+            Fuses = new FuseIni();
+            foreach (var fi in Freelancer.FusePaths)
+                Fuses.AddFuseIni(fi, VFS);
+            //newchardb
+            NewCharDB = new NewCharDBIni();
+            foreach (var nc in Freelancer.NewCharDBPaths)
+                NewCharDB.AddNewCharDBIni(nc, VFS);
             Bodyparts = new BodypartsIni(Freelancer.BodypartsPath, this);
             Costumes = new CostumesIni(Freelancer.CostumesPath, this);
             Audio = new AudioIni();
@@ -189,15 +174,11 @@ namespace LibreLancer.Data
             ContentDll = new ContentDll();
             if (VFS.FileExists("DLLS\\BIN\\content.dll"))
                 ContentDll.Load(VFS.Resolve("DLLS\\BIN\\content.dll"));
-            tSolar.Join();
-            tMisc.Join();
-            tUniverse.Join();
             if (!string.IsNullOrEmpty(Freelancer.DataVersion))
                 DataVersion = Freelancer.DataVersion;
             else
                 DataVersion = "FL-1";
             Loaded = true;
-		}
-	}
+        }
+    }
 }
-

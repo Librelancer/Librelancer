@@ -51,16 +51,11 @@ namespace LibreLancer.Data.Universe
 				default: throw new Exception("Invalid Section in " + path + ": " + s.Name);
 				}
 			}
-            Parallel.ForEach(baseSections, (section) =>
-            {
-                var b = new Base(section, freelancerIni);
-                lock (Bases) Bases.Add(b);
-            });
-            Parallel.ForEach(systemSections, (section) =>
-            {
-                var s = new StarSystem(this, section, freelancerIni);
-                lock (Systems) Systems.Add(s);
-            });
+
+            foreach (var b in baseSections)
+                Bases.Add(new Base(b, freelancerIni));
+            foreach(var s in systemSections)
+                Systems.Add(new StarSystem(this, s, freelancerIni));
         }
 
 		public Base FindBase(string nickname)

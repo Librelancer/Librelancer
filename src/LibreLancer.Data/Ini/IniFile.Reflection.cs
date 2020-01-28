@@ -8,16 +8,30 @@ using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Collections;
+using LibreLancer.Data;
 
 namespace LibreLancer.Ini
 {
     //Class for constructing ini through Reflection
     public abstract partial class IniFile
     {
+        static uint HashLC(string s)
+        {
+            uint num = 0x811c9dc5;
+            for (int i = 0; i < s.Length; i++)
+            {
+                var c = (int) s[i];
+                if ((c >= 65 && c <= 90))
+                    c ^= (1 << 5);
+                num = ((uint)c ^ num) * 0x1000193;
+            }
+            return num;
+        }
         class ReflectionInfo
         {
             public Type Type;
             public List<ReflectionField> Fields = new List<ReflectionField>();
+            public uint[] FieldHashes;
             public ulong RequiredFields = 0;
             public MethodInfo HandleEntry;
         }
@@ -25,9 +39,27 @@ namespace LibreLancer.Ini
         class ReflectionSection
         {
             public string Name;
+            public string[] Delimiters;
             public MethodInfo Add;
             public FieldInfo Field;
             public ReflectionInfo Type;
+        }
+
+        class ContainerClass
+        {
+            public ReflectionSection[] Sections;
+            public uint[] SectionHashes;
+
+            public ReflectionSection GetSection(string s)
+            {
+                var hash = HashLC(s);
+                for (int i = 0; i < SectionHashes.Length; i++)
+                {
+                    if (SectionHashes[i] == hash && Sections[i].Name.Equals(s, StringComparison.OrdinalIgnoreCase))
+                        return Sections[i];
+                }
+                return null;
+            }
         }
 
         class ReflectionField
@@ -36,7 +68,7 @@ namespace LibreLancer.Ini
             public FieldInfo Field;
         }
 
-        static Dictionary<Type, List<ReflectionSection>> containerclasses = new Dictionary<Type, List<ReflectionSection>>();
+        static Dictionary<Type, ContainerClass> containerclasses = new Dictionary<Type, ContainerClass>();
         static Dictionary<Type, ReflectionInfo> sectionclasses = new Dictionary<Type, ReflectionInfo>();
         static string FormatLine(string file, int line) => string.Format(" at {0}, line {1}", file, line);
         static string FormatLine(string file, int line, string section) => string.Format(" at section {2}: {0}, line {1}", file, line, section);
@@ -63,6 +95,10 @@ namespace LibreLancer.Ini
                 }
                 //This should never be tripped
                 if (info.Fields.Count > 64) throw new Exception("Too many fields!! Edit bitmask code & raise limit");
+                info.FieldHashes = new uint[info.Fields.Count];
+                for (int i = 0; i < info.Fields.Count; i++) {
+                    info.FieldHashes[i] = HashLC(info.Fields[i].Attr.Name);
+                }
                 foreach (var mthd in t.GetMethods(F_CLASSMEMBERS))
                 {
                     if (mthd.Name == "HandleEntry")
@@ -76,32 +112,49 @@ namespace LibreLancer.Ini
             }
         }
 
-        static List<ReflectionSection> GetContainerInfo(Type t)
+        static ContainerClass GetContainerInfo(Type t)
         {
             lock (_cLock)
             {
-                List<ReflectionSection> sections;
-                if (containerclasses.TryGetValue(t, out sections)) return sections;
-                sections = new List<ReflectionSection>();
+                ContainerClass cinfo;
+                if (containerclasses.TryGetValue(t, out cinfo)) return cinfo;
+                cinfo = new ContainerClass();
+                var sections = new List<ReflectionSection>();
                 foreach (var field in t.GetFields(F_CLASSMEMBERS))
                 {
-                    var attr = field.GetCustomAttributes<SectionAttribute>().FirstOrDefault();
-                    if (attr == null) continue;
-                    var s = new ReflectionSection() { Name = attr.Name };
-                    var fieldType = field.FieldType;
-                    //Handle lists
-                    if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>))
+                    foreach (var attr in field.GetCustomAttributes<SectionAttribute>())
                     {
-                        s.Add = fieldType.GetMethod("Add", F_CLASSMEMBERS);
-                        if (s.Add == null) throw new Exception();
-                        fieldType = fieldType.GetGenericArguments()[0]; // use this...
+                        var s = new ReflectionSection() {Name = attr.Name};
+                        var fieldType = field.FieldType;
+                        //Handle lists
+                        if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>))
+                        {
+                            s.Add = fieldType.GetMethod("Add", F_CLASSMEMBERS);
+                            if (s.Add == null) throw new Exception();
+                            fieldType = fieldType.GetGenericArguments()[0]; // use this...
+                        }
+                        if (attr.Type != null)
+                            s.Type = GetSectionInfo(attr.Type);
+                        else
+                            s.Type = GetSectionInfo(fieldType);
+                        s.Field = field;
+                        s.Delimiters = attr.Delimiters;
+                        sections.Add(s);
                     }
-                    s.Type = GetSectionInfo(fieldType);
-                    s.Field = field;
+                }
+                foreach (var attr in t.GetCustomAttributes<SelfSectionAttribute>())
+                {
+                    var s = new ReflectionSection() {Name = attr.Name};
+                    s.Type = GetSectionInfo(t);
                     sections.Add(s);
                 }
-                containerclasses.Add(t, sections);
-                return sections;
+
+                cinfo.Sections = sections.ToArray();
+                cinfo.SectionHashes = new uint[cinfo.Sections.Length];
+                for (int i = 0; i < cinfo.SectionHashes.Length; i++) {
+                    cinfo.SectionHashes[i] = HashLC(cinfo.Sections[i].Name);
+                }
+                return cinfo;
             }
         }
 
@@ -109,6 +162,12 @@ namespace LibreLancer.Ini
         {
             return (T)GetFromSection(s, GetSectionInfo(typeof(T)));
         }
+
+        protected void SelfFromSection(Section s)
+        {
+            GetFromSection(s, GetSectionInfo(GetType()), this);
+        }
+        protected virtual void OnSelfFilled(string datapath, FileSystem vfs) {}
 
         static bool ComponentCheck(int c, Section s, Entry e, int min = -1)
         {
@@ -120,18 +179,20 @@ namespace LibreLancer.Ini
             FLLog.Error("Ini", "Not enough components for " + e.Name + FormatLine(e.File, e.Line, s.Name));
             return false;
         }
-        static object GetFromSection(Section s, ReflectionInfo type)
+        static object GetFromSection(Section s, ReflectionInfo type, object obj = null, string datapath = null, FileSystem vfs = null)
         {
-            var obj = Activator.CreateInstance(type.Type);
+            if(obj == null) obj = Activator.CreateInstance(type.Type);
             ulong bitmask = 0;
             ulong requiredBits = type.RequiredFields;
             foreach (var e in s)
             {
                 //Find entry
+                var eHash = HashLC(e.Name);
                 int idx = -1;
                 for (int i = 0; i < type.Fields.Count; i++)
                 {
-                    if (type.Fields[i].Attr.Name.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase))
+                    if (eHash == type.FieldHashes[i] &&
+                        type.Fields[i].Attr.Name.Equals(e.Name, StringComparison.OrdinalIgnoreCase))
                     {
                         idx = i;
                         break;
@@ -187,7 +248,31 @@ namespace LibreLancer.Ini
                 }
                 else if (ftype == typeof(Vector3))
                 {
-                    if (ComponentCheck(3, s, e)) field.Field.SetValue(obj, new Vector3(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle()));
+                    if(e.Count == 1 && e[0].ToSingle() == 0)
+                        field.Field.SetValue(obj, Vector3.Zero);
+                    else if (field.Attr.Mode == Vec3Mode.None) {
+                        if (ComponentCheck(3, s, e)) field.Field.SetValue(obj, new Vector3(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle()));
+                    } else if (ComponentCheck(3, s, e, 1))
+                    {
+                        if (field.Attr.Mode == Vec3Mode.Size)
+                        {
+                            if(e.Count == 1)
+                                field.Field.SetValue(obj, new Vector3(e[0].ToSingle()));
+                            else if(e.Count == 2)
+                                field.Field.SetValue(obj, new Vector3(e[0].ToSingle(), e[1].ToSingle(), 0));
+                            else
+                                field.Field.SetValue(obj, new Vector3(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle()));
+                        }
+                        else
+                        {
+                            //optional components
+                            var v3 = Vector3.Zero;
+                            v3.X = e[0].ToSingle();
+                            if (e.Count > 1) v3.Y = e[1].ToSingle();
+                            if (e.Count > 2) v3.Z = e[2].ToSingle();
+                            field.Field.SetValue(obj, v3);
+                        }
+                    }
                 }
                 else if(ftype == typeof(Quaternion))
                 {
@@ -237,12 +322,29 @@ namespace LibreLancer.Ini
                         field.Field.SetValue(obj, floats);
                     }
                 }
+                else if (ftype == typeof(int[]))
+                {
+                    if(ComponentCheck(int.MaxValue,s,e,1)) {
+                        var ints = new int[e.Count];
+                        for (int i = 0; i < e.Count; i++) ints[i] = e[i].ToInt32();
+                        field.Field.SetValue(obj, ints);
+                    }
+                }
                 else if (ftype == typeof(string[]))
                 {
                     if (ComponentCheck(int.MaxValue, s, e, 1)) {
                         var strings = new string[e.Count];
                         for (int i = 0; i < e.Count; i++) strings[i] = e[i].ToString();
                         field.Field.SetValue(obj, strings);
+                    }
+                }
+                else if (ftype == typeof(List<string[]>))
+                {
+                    if (ComponentCheck(int.MaxValue, s, e, 1)) {
+                        var strings = new string[e.Count];
+                        for (int i = 0; i < e.Count; i++) strings[i] = e[i].ToString();
+                        var lst = (List<string[]>)field.Field.GetValue(obj);
+                        lst.Add(strings);
                     }
                 }
                 else if (ftype.IsEnum)
@@ -252,9 +354,9 @@ namespace LibreLancer.Ini
                         //TryParse requires generics, wrap in exception handler
                         try
                         {
-                            field.Field.SetValue(obj, Enum.Parse(field.Field.FieldType, e[0].ToString(), true));
+                            field.Field.SetValue(obj, Enum.Parse(ftype, e[0].ToString(), true));
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
                             FLLog.Error("Ini", "Invalid value for enum " + e[0].ToString() + FormatLine(e.File, e.Line, s.Name));
                         }
@@ -272,58 +374,112 @@ namespace LibreLancer.Ini
                     }
                 }
                 return null;
-            } else
+            }
+            else
+            {
+                if (datapath != null && obj is IniFile ini)
+                    ini.OnSelfFilled(datapath, vfs);
                 return obj;
+            }
         }
 
         public void ParseAndFill(string filename, MemoryStream stream)
         {
-            var sections = GetContainerInfo(this.GetType());
+            var sections = GetContainerInfo(GetType());
             foreach (var section in ParseFile(filename, stream))
             {
-                var tgt = sections.FirstOrDefault((x) => x.Name.Equals(section.Name, StringComparison.InvariantCultureIgnoreCase));
-                if (tgt == null)
-                {
-                    FLLog.Warning("Ini", "Unknown section " + section.Name + FormatLine(section.File, section.Line));
-                    continue;
-                }
-                var parsed = GetFromSection(section, tgt.Type);
-                if (parsed != null)
-                {
-                    if (tgt.Add != null)
-                    {
-                        var list = tgt.Field.GetValue(this);
-                        tgt.Add.Invoke(list, new object[] { parsed });
-                    }
-                    else
-                        tgt.Field.SetValue(this, parsed);
-                }
+                ProcessSection(section, sections);
             }
 
         }
-        public void ParseAndFill(string filename, LibreLancer.Data.FileSystem vfs)
+
+        public void ParseAndFill(string filename, string datapath, LibreLancer.Data.FileSystem vfs)
         {
-            var sections = GetContainerInfo(this.GetType());
+            var sections = GetContainerInfo(GetType());
             foreach (var section in ParseFile(filename, vfs))
             {
-                var tgt = sections.FirstOrDefault((x) => x.Name.Equals(section.Name, StringComparison.InvariantCultureIgnoreCase));
-                if (tgt == null)
+                ProcessSection(section, sections, datapath, vfs);
+            }
+        }
+
+        public void ParseAndFill(string filename, LibreLancer.Data.FileSystem vfs)
+        {
+            var sections = GetContainerInfo(GetType());
+            foreach (var section in ParseFile(filename, vfs))
+            {
+                ProcessSection(section, sections);
+            }
+        }
+        
+        void ProcessSection(Section section, ContainerClass sections, string datapath = null, FileSystem vfs = null)
+        {
+            var tgt = sections.GetSection(section.Name);
+            if (tgt == null)
+            {
+                FLLog.Warning("Ini", "Unknown section " + section.Name + FormatLine(section.File, section.Line));
+                return;
+            }
+            if (tgt.Field == null)
+            {
+                GetFromSection(section, tgt.Type, this);
+            }
+            else
+            {
+                if (tgt.Delimiters != null)
                 {
-                    FLLog.Warning("Ini", "Unknown section " + section.Name + FormatLine(section.File, section.Line));
-                    continue;
-                }
-                var parsed = GetFromSection(section, tgt.Type);
-                if (parsed != null)
-                {
-                    if (tgt.Add != null)
+                    foreach (var ch in Chunk(tgt.Delimiters, section))
                     {
-                        var list = tgt.Field.GetValue(this);
-                        tgt.Add.Invoke(list, new object[] { parsed });
+                        var childObject = GetFromSection(ch, tgt.Type, null, datapath, vfs);
+                        if (childObject != null) {
+                            var list = tgt.Field.GetValue(this);
+                            tgt.Add.Invoke(list, new object[] {childObject});
+                        }
                     }
-                    else
-                        tgt.Field.SetValue(this, parsed);
+                }
+                else
+                {
+                    var parsed = GetFromSection(section, tgt.Type, null, datapath, vfs);
+                    if (parsed != null)
+                    {
+                        if (tgt.Add != null)
+                        {
+                            var list = tgt.Field.GetValue(this);
+                            tgt.Add.Invoke(list, new object[] {parsed});
+                        }
+                        else
+                            tgt.Field.SetValue(this, parsed);
+                    }
                 }
             }
+        }
+
+        static bool HasIgnoreCase(string[] array, string value)
+        {
+            for(int i = 0; i < array.Length; i++)
+                if (array[i].Equals(value, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            return false;
+        }
+        static IEnumerable<Section> Chunk(string[] delimiters, Section parent)
+        {
+            Section currentSection = null;
+            foreach (var e in parent) {
+                if (HasIgnoreCase(delimiters, e.Name))
+                {
+                    if (currentSection != null)
+                        yield return currentSection;
+                    currentSection = new Section(parent.Name)
+                    {
+                        File = parent.File,
+                        Line = parent.Line
+                    };
+                }
+                if (currentSection != null)
+                    currentSection.Add(e);
+                else
+                    FLLog.Warning("Ini", $"Entry without object '{e.Name}' {FormatLine(e.File, e.Line, parent.Name)}");
+            }
+            if (currentSection != null) yield return currentSection;
         }
     }
 }

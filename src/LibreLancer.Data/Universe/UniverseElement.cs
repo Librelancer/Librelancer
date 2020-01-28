@@ -10,10 +10,12 @@ namespace LibreLancer.Data.Universe
 	public abstract class UniverseElement : IniFile
 	{
 		protected FreelancerData GameData;
-
-		public string Nickname { get; protected set; }
-		public int IdsName { get; protected set; }
-		public string Name { get; protected set; }
+        [Entry("nickname")]
+        public string Nickname;
+        [Entry("strid_name")]
+        public int IdsName;
+        [Entry("name")]
+        public string Name;
 
 		public UniverseElement(FreelancerData data) {
 			GameData = data;

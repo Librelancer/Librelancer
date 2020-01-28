@@ -13,6 +13,7 @@ using LibreLancer.GameData;
 using LibreLancer.Utf.Ale;
 using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Dfm;
+using Archetype = LibreLancer.Data.Archetype;
 using FileSystem = LibreLancer.Data.FileSystem;
 
 namespace LibreLancer
@@ -250,14 +251,6 @@ namespace LibreLancer
         {
             loadActions.Enqueue(a);
         }
-
-        public void LoadFonts()
-        {
-            foreach(var f in fldata.Fonts.FontFiles) {
-                Platform.AddTtfFile(ResolveDataPath(f));
-            }
-        }
-
         public void LoadData()
         {
             fldata.LoadData();
@@ -561,11 +554,11 @@ namespace LibreLancer
                 FLLog.Info("System", inisys.Nickname);
                 var sys = new GameData.StarSystem();
                 sys.UniversePosition = inisys.Pos ?? Vector2.Zero;
-                sys.AmbientColor = inisys.AmbientColor ?? Color4.White;
+                sys.AmbientColor = inisys.AmbientColor;
                 sys.Name = GetString(inisys.IdsName);
                 sys.Infocard = inisys.IdsInfo;
                 sys.Nickname = inisys.Nickname;
-                sys.BackgroundColor = inisys.SpaceColor ?? Color4.Black;
+                sys.BackgroundColor = inisys.SpaceColor;
                 sys.MusicSpace = inisys.MusicSpace;
                 sys.FarClip = inisys.SpaceFarClip ?? 20000f;
                 
@@ -575,7 +568,7 @@ namespace LibreLancer
                     {
                         try
                         {
-                            sys.StarsBasic = resource.GetDrawable(inisys.BackgroundBasicStarsPath);
+                            sys.StarsBasic = resource.GetDrawable(ResolveDataPath(inisys.BackgroundBasicStarsPath));
                         }
                         catch (Exception)
                         {
@@ -585,12 +578,12 @@ namespace LibreLancer
                     }
                     if (inisys.BackgroundComplexStarsPath != null)
                     {
-                        sys.StarsComplex = resource.GetDrawable(inisys.BackgroundComplexStarsPath);
+                        sys.StarsComplex = resource.GetDrawable(ResolveDataPath(inisys.BackgroundComplexStarsPath));
                     }
 
                     if (inisys.BackgroundNebulaePath != null)
                     {
-                        sys.StarsNebula = resource.GetDrawable(inisys.BackgroundNebulaePath);
+                        sys.StarsNebula = resource.GetDrawable(ResolveDataPath(inisys.BackgroundNebulaePath));
                     }
                 };
                 if (inisys.LightSources != null)
@@ -784,7 +777,7 @@ namespace LibreLancer
             {
                 foreach (var f in ast.TexturePanels.Files)
                 {
-                    var pnlref = TexturePanelFile(f);
+                    var pnlref = TexturePanelFile(ResolveDataPath(f));
                     var pf = pnlref.P;
                     panels.TextureShapes.AddRange(pf.TextureShapes);
                     foreach (var sh in pf.Shapes)
@@ -836,12 +829,15 @@ namespace LibreLancer
             {
                 foreach (var excz in ast.ExclusionZones)
                 {
-                    if(!sys.ZoneDict.ContainsKey(excz.ExclusionName)) {
-                        FLLog.Error("System", "Exclusion zone " + excz.ExclusionName + " zone does not exist in " + sys.Nickname);
+                    Zone zone;
+                    if (!sys.ZoneDict.TryGetValue(excz.ZoneName, out zone))
+                    {
+                        FLLog.Error("System", "Exclusion zone " + excz.ZoneName + " zone does not exist in " + sys.Nickname);
                         continue;
                     }
+
                     var e = new GameData.ExclusionZone();
-                    e.Zone = sys.ZoneDict[excz.ExclusionName];
+                    e.Zone = zone;
                     //e.FogFar = excz.FogFar ?? n.FogRange.Y;
                     if (excz.ZoneShellPath != null)
                     {
@@ -905,7 +901,7 @@ namespace LibreLancer
             var panels = new Data.Universe.TexturePanels();
             foreach(var f in nbl.TexturePanels.Files)
             {
-                var pnlref = TexturePanelFile(f);
+                var pnlref = TexturePanelFile(ResolveDataPath(f));
                 var pf = pnlref.P;
                 panels.TextureShapes.AddRange(pf.TextureShapes);
                 foreach (var sh in pf.Shapes)
@@ -916,11 +912,11 @@ namespace LibreLancer
                     sys.ResourceFiles.AddRange(pnlref.ResourceFiles);
                 }
             }
-            n.ExteriorFill = nbl.ExteriorFillShape;
-            n.ExteriorColor = nbl.ExteriorColor ?? Color4.White;
-            n.FogColor = nbl.FogColor ?? Color4.Black;
-            n.FogEnabled = (nbl.FogEnabled ?? 0) != 0;
-            n.FogRange = new Vector2(nbl.FogNear ?? 0, nbl.FogDistance ?? 0);
+            n.ExteriorFill = nbl.Exterior.FillShape;
+            n.ExteriorColor = nbl.Exterior.Color ?? Color4.White;
+            n.FogColor = nbl.Fog.Color;
+            n.FogEnabled = (nbl.Fog.Enabled != 0);
+            n.FogRange = new Vector2(nbl.Fog.Near, nbl.Fog.Distance);
             n.SunBurnthroughScale = n.SunBurnthroughIntensity = 1f;
             if (nbl.NebulaLights != null && nbl.NebulaLights.Count > 0)
             {
@@ -928,13 +924,14 @@ namespace LibreLancer
                 n.SunBurnthroughScale = nbl.NebulaLights[0].SunBurnthroughScaler ?? 1f;
                 n.SunBurnthroughIntensity = nbl.NebulaLights[0].SunBurnthroughIntensity ?? 1f;
             }
-            if (nbl.CloudsPuffShape != null)
+            if (nbl.Clouds.Count > 0)
             {
+                var clds = nbl.Clouds[0];
                 n.HasInteriorClouds = true;
-                GameData.CloudShape[] shapes = new GameData.CloudShape[nbl.CloudsPuffShape.Count];
+                GameData.CloudShape[] shapes = new GameData.CloudShape[clds.PuffShape.Count];
                 for (int i = 0; i < shapes.Length; i++)
                 {
-                    var name = nbl.CloudsPuffShape[i];
+                    var name = clds.PuffShape[i];
                     if (!panels.Shapes.ContainsKey(name))
                     {
                         FLLog.Error("Nebula", "Shape " + name + " does not exist in " + nbl.TexturePanels.Files[0]);
@@ -949,24 +946,24 @@ namespace LibreLancer
                 }
                 n.InteriorCloudShapes = new WeightedRandomCollection<GameData.CloudShape>(
                     shapes,
-                    nbl.CloudsPuffWeights.ToArray()
+                    clds.PuffWeights
                 );
-                n.InteriorCloudColorA = nbl.CloudsPuffColorA.Value;
-                n.InteriorCloudColorB = nbl.CloudsPuffColorB.Value;
-                n.InteriorCloudRadius = nbl.CloudsPuffRadius.Value;
-                n.InteriorCloudCount = nbl.CloudsPuffCount.Value;
-                n.InteriorCloudMaxDistance = nbl.CloudsMaxDistance.Value;
-                n.InteriorCloudMaxAlpha = nbl.CloudsPuffMaxAlpha ?? 1f;
-                n.InteriorCloudFadeDistance = nbl.CloudsNearFadeDistance.Value;
-                n.InteriorCloudDrift = nbl.CloudsPuffDrift.Value;
+                n.InteriorCloudColorA = clds.PuffColorA.Value;
+                n.InteriorCloudColorB = clds.PuffColorB.Value;
+                n.InteriorCloudRadius = clds.PuffRadius.Value;
+                n.InteriorCloudCount = clds.PuffCount.Value;
+                n.InteriorCloudMaxDistance = clds.MaxDistance.Value;
+                n.InteriorCloudMaxAlpha = clds.PuffMaxAlpha ?? 1f;
+                n.InteriorCloudFadeDistance = clds.NearFadeDistance.Value;
+                n.InteriorCloudDrift = clds.PuffDrift.Value;
             }
-            if (nbl.ExteriorShape != null)
+            if (nbl.Exterior != null && nbl.Exterior.Shape != null)
             {
                 n.HasExteriorBits = true;
-                GameData.CloudShape[] shapes = new GameData.CloudShape[nbl.ExteriorShape.Count];
+                GameData.CloudShape[] shapes = new GameData.CloudShape[nbl.Exterior.Shape.Count];
                 for (int i = 0; i < shapes.Length; i++)
                 {
-                    var name = nbl.ExteriorShape[i];
+                    var name = nbl.Exterior.Shape[i];
                     if (!panels.Shapes.ContainsKey(name))
                     {
                         FLLog.Error("Nebula", "Shape " + name + " does not exist in " + nbl.TexturePanels.Files[0]);
@@ -981,22 +978,28 @@ namespace LibreLancer
                 }
                 n.ExteriorCloudShapes = new WeightedRandomCollection<GameData.CloudShape>(
                     shapes,
-                    nbl.ExteriorShapeWeights.ToArray()
+                    nbl.Exterior.ShapeWeights
                 );
-                n.ExteriorMinBits = nbl.ExteriorMinBits.Value;
-                n.ExteriorMaxBits = nbl.ExteriorMaxBits.Value;
-                n.ExteriorBitRadius = nbl.ExteriorBitRadius.Value;
-                n.ExteriorBitRandomVariation = nbl.ExteriorBitRadiusRandomVariation ?? 0;
-                n.ExteriorMoveBitPercent = nbl.ExteriorMoveBitPercent ?? 0;
+                n.ExteriorMinBits = nbl.Exterior.MinBits.Value;
+                n.ExteriorMaxBits = nbl.Exterior.MaxBits.Value;
+                n.ExteriorBitRadius = nbl.Exterior.BitRadius.Value;
+                n.ExteriorBitRandomVariation = nbl.Exterior.BitRadiusRandomVariation ?? 0;
+                n.ExteriorMoveBitPercent = nbl.Exterior.MoveBitPercent ?? 0;
             }
             if (nbl.ExclusionZones != null)
             {
                 n.ExclusionZones = new List<GameData.ExclusionZone>();
                 foreach (var excz in nbl.ExclusionZones)
                 {
-                    if (excz.Exclusion == null) continue;
+                    
+                    Zone zone;
+                    if (!sys.ZoneDict.TryGetValue(excz.ZoneName, out zone))
+                    {
+                        FLLog.Error("System", "Exclusion zone " + excz.ZoneName + " zone does not exist in " + sys.Nickname);
+                        continue;
+                    }
                     var e = new GameData.ExclusionZone();
-                    e.Zone = sys.ZoneDict[excz.ExclusionName];
+                    e.Zone = zone;
                     e.FogFar = excz.FogFar ?? n.FogRange.Y;
                     if (excz.ZoneShellPath != null)
                     {
@@ -1008,27 +1011,27 @@ namespace LibreLancer
                     n.ExclusionZones.Add(e);
                 }
             }
-            if (nbl.BackgroundLightningDuration != null)
+            if (nbl.BackgroundLightning != null)
             {
                 n.BackgroundLightning = true;
-                n.BackgroundLightningDuration = nbl.BackgroundLightningDuration.Value;
-                n.BackgroundLightningColor = nbl.BackgroundLightningColor.Value;
-                n.BackgroundLightningGap = nbl.BackgroundLightningGap.Value;
+                n.BackgroundLightningDuration = nbl.BackgroundLightning.Duration;
+                n.BackgroundLightningColor = nbl.BackgroundLightning.Color;
+                n.BackgroundLightningGap = nbl.BackgroundLightning.Gap;
             }
-            if (nbl.DynamicLightningDuration != null)
+            if (nbl.DynamicLightning != null)
             {
                 n.DynamicLightning = true;
-                n.DynamicLightningGap = nbl.DynamicLightningGap.Value;
-                n.DynamicLightningColor = nbl.DynamicLightningColor.Value;
-                n.DynamicLightningDuration = nbl.DynamicLightningDuration.Value;
+                n.DynamicLightningGap = nbl.DynamicLightning.Gap;
+                n.DynamicLightningColor = nbl.DynamicLightning.Color;
+                n.DynamicLightningDuration = nbl.DynamicLightning.Duration;
             }
-            if (nbl.CloudsLightningDuration != null)
+            if (nbl.Clouds.Count > 0 && nbl.Clouds[0].LightningDuration != null)
             {
                 n.CloudLightning = true;
-                n.CloudLightningDuration = nbl.CloudsLightningDuration.Value;
-                n.CloudLightningColor = nbl.CloudsLightningColor.Value;
-                n.CloudLightningGap = nbl.CloudsLightningGap.Value;
-                n.CloudLightningIntensity = nbl.CloudsLightningIntensity.Value;
+                n.CloudLightningDuration = nbl.Clouds[0].LightningDuration.Value;
+                n.CloudLightningColor = nbl.Clouds[0].LightningColor.Value;
+                n.CloudLightningGap = nbl.Clouds[0].LightningGap.Value;
+                n.CloudLightningIntensity = nbl.Clouds[0].LightningIntensity.Value;
             }
             n.LoadResAction = () =>
             {
@@ -1144,16 +1147,18 @@ namespace LibreLancer
                     Matrix4.CreateRotationY(MathHelper.DegreesToRadians(o.Rotate.Value.Y)) *
                     Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(o.Rotate.Value.Z));
             }
+
+            var arch = fldata.Solar.Solars[o.Archetype];
             //Load resource files
             obj.LoadResAction = () =>
             {
-                var drawable = resource.GetDrawable(ResolveDataPath(o.Archetype.DaArchetypeName));
-                foreach (var path in o.Archetype.MaterialPaths)
+                var drawable = resource.GetDrawable(ResolveDataPath(arch.DaArchetypeName));
+                foreach (var path in arch.MaterialPaths)
                     resource.LoadResourceFile(ResolveDataPath(path));
                 obj.Archetype.Drawable = drawable;
             };
             //Construct archetype
-            if (o.Archetype.Type == Data.Solar.ArchetypeType.sun)
+            if (arch.Type == Data.Solar.ArchetypeType.sun)
             {
                 if (o.Star != null) //Not sure what to do if there's no star?
                 {
@@ -1196,7 +1201,7 @@ namespace LibreLancer
             else
             {
                 obj.Archetype = new GameData.Archetype();
-                foreach (var dockSphere in o.Archetype.DockingSpheres)
+                foreach (var dockSphere in arch.DockingSpheres)
                 {
                     obj.Archetype.DockSpheres.Add(new GameData.DockSphere()
                     {
@@ -1206,12 +1211,12 @@ namespace LibreLancer
                         Script = dockSphere.Script
                     });
                 }
-                if (o.Archetype.OpenAnim != null)
+                if (arch.OpenAnim != null)
                 {
                     foreach (var sph in obj.Archetype.DockSpheres)
-                        sph.Script = sph.Script ?? o.Archetype.OpenAnim;
+                        sph.Script = sph.Script ?? arch.OpenAnim;
                 }
-                if (o.Archetype.Type == Data.Solar.ArchetypeType.tradelane_ring)
+                if (arch.Type == Data.Solar.ArchetypeType.tradelane_ring)
                 {
                     obj.Archetype.DockSpheres.Add(new GameData.DockSphere()
                     {
@@ -1232,18 +1237,18 @@ namespace LibreLancer
                         TargetLeft = o.PrevRing
                     };
                 }
-                if(o.Archetype.CollisionGroups.Count > 0)
+                if(arch.CollisionGroups.Count > 0)
                 {
-                    obj.Archetype.CollisionGroups = o.Archetype.CollisionGroups.ToArray();
+                    obj.Archetype.CollisionGroups = arch.CollisionGroups.ToArray();
                 }
             }
             if (obj.Archetype != null)
             {
-                obj.Archetype.ArchetypeName = o.Archetype.GetType().Name;
-                obj.Archetype.LODRanges = o.Archetype.LODRanges;
+                obj.Archetype.ArchetypeName = arch.GetType().Name;
+                obj.Archetype.LODRanges = arch.LODRanges;
             }
-            var ld = fldata.Loadouts.FindLoadout(o.LoadoutName);
-            var archld = fldata.Loadouts.FindLoadout(o.Archetype.LoadoutName);
+            var ld = fldata.Loadouts.FindLoadout(o.Loadout);
+            var archld = fldata.Loadouts.FindLoadout(arch.LoadoutName);
             if (ld != null) ProcessLoadout(ld, obj);
             if (archld != null) ProcessLoadout(archld, obj);
             return obj;

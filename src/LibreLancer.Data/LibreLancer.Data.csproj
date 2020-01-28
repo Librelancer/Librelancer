@@ -68,6 +68,7 @@
   <ItemGroup>
     <Compile Include="Equipment\Engine.cs" />
     <Compile Include="FileSystem.cs" />
+    <Compile Include="Ini\SelfSectionAttribute.cs" />
     <Compile Include="Missions\StoryCutsceneIni.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Ini\BooleanValue.cs" />
@@ -164,7 +165,13 @@
     <Compile Include="Universe\LootableZone.cs" />
     <Compile Include="Universe\NamedObject.cs" />
     <Compile Include="Universe\Nebula.cs" />
+    <Compile Include="Universe\NebulaBackgroundLightning.cs" />
+    <Compile Include="Universe\NebulaClouds.cs" />
+    <Compile Include="Universe\NebulaDynamicLightning.cs" />
+    <Compile Include="Universe\NebulaExterior.cs" />
+    <Compile Include="Universe\NebulaFog.cs" />
     <Compile Include="Universe\NebulaLight.cs" />
+    <Compile Include="Universe\ObjectProperties.cs" />
     <Compile Include="Universe\Room.cs" />
     <Compile Include="Universe\StarSystem.cs" />
     <Compile Include="Universe\SystemObject.cs" />

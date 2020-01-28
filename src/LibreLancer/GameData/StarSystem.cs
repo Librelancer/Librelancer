@@ -19,7 +19,7 @@ namespace LibreLancer.GameData
 		public IDrawable StarsComplex;
 		public IDrawable StarsNebula;
 		//Lighting
-		public Color4 AmbientColor;
+        public Color4 AmbientColor = Color4.Black;
 		public List<RenderLight> LightSources = new List<RenderLight>();
 		//Objects
 		public List<SystemObject> Objects = new List<SystemObject>();

@@ -13,23 +13,9 @@ namespace LibreLancer.Data.Universe
 {
 	public class EncounterParameter
 	{
-		/*
-[EncounterParameters]
-nickname = tradelane_armored_prisoner
-filename = missions\encounters\tradelane_armored_prisoner.ini
-         */
-
-		public EncounterParameter(Section section)
-		{
-			/*if (section == null) throw new ArgumentNullException("section");
-
-            foreach (Entry e in section)
-            {
-                switch (e.Name.ToLowerInvariant())
-                {
-                    //TODO
-                }
-            }*/
-		}
+        bool HandleEntry(Entry e)
+        {
+            return true;
+        }
 	}
 }

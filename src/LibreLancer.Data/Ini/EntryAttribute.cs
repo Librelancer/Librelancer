@@ -5,6 +5,7 @@
 using System;
 namespace LibreLancer.Ini
 {
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
     public class EntryAttribute : Attribute
     {
         public string Name;
@@ -12,10 +13,18 @@ namespace LibreLancer.Ini
         public bool Multiline = false;
         public bool Presence = false;
         public bool Required = false;
-
+        public Vec3Mode Mode = Vec3Mode.None;
         public EntryAttribute(string name)
         {
             Name = name;
         }
+    }
+
+    [Flags]
+    public enum Vec3Mode
+    {
+        None = 0,
+        Size = 1,
+        OptionalComponents = 2
     }
 }

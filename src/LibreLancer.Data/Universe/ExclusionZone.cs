@@ -2,45 +2,36 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using LibreLancer.Ini;
+
 namespace LibreLancer.Data.Universe
 {
 	public class ExclusionZone
-	{
-		private StarSystem parent;
-
-		private string exclusionName;
-		private Zone exclusion;
-		public Zone Exclusion
-		{
-			get
-			{
-				if (exclusion == null) exclusion = parent.FindZone(exclusionName);
-				return exclusion;
-			}
-		}
-        public string ExclusionName
-        {
-            get
-            {
-                return exclusionName;
-            }
-        }
-        public float? FogFar { get; set; }
-		public float? FogNear { get; set; }
-		public float? ShellScalar { get; set; }
-		public float? MaxAlpha { get; set; }
-		public Color4? Color { get; set; }
-		public Color3f? Tint { get; set; }
-		public int? ExcludeBillboards { get; set; }
-		public int? ExcludeDynamicAsteroids { get; set; }
-		public float? EmptyCubeFrequency { get; set; }
-		public int? BillboardCount { get; set; }
-		public string ZoneShellPath { get; set; }
-
-		public ExclusionZone(StarSystem parent, string exclusion)
-		{
-			this.parent = parent;
-			this.exclusionName = exclusion;
-		}
-	}
+    {
+        [Entry("exclude")] 
+        [Entry("exclusion")]
+        public string ZoneName;
+        [Entry("fog_far")] 
+        public float? FogFar;
+        [Entry("fog_near")] 
+        public float? FogNear;
+        [Entry("shell_scalar")] 
+        public float? ShellScalar;
+        [Entry("max_alpha")] 
+        public float? MaxAlpha;
+        [Entry("color")] 
+        public Color4? Color;
+        [Entry("exclusion_tint")] 
+        public Color3f? Tint;
+        [Entry("exclude_billboards")] 
+        public int? ExcludeBillboards;
+        [Entry("exclude_dynamic_asteroids")] 
+        public int? ExcludeDynamicAsteroids;
+        [Entry("empty_cube_frequency")] 
+        public float? EmptyCubeFrequency;
+        [Entry("billboard_count")] 
+        public int? BillboardCount;
+        [Entry("zone_shell")]
+        public string ZoneShellPath;
+    }
 }
