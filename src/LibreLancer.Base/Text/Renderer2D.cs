@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -138,13 +138,14 @@ namespace LibreLancer
 
         public Point MeasureString(string fontName, float size, string str)
 		{
-			if (str == "") //skip empty str
+			if (str == "" || size < 1) //skip empty str
 				return new Point (0, 0);
             return CreateRichTextEngine().MeasureString(fontName, size, str);
         }
 
         public float LineHeight(string fontName, float size)
         {
+            if (size < 1) return 0;
             return CreateRichTextEngine().LineHeight(fontName, size);
         }
         
@@ -189,7 +190,7 @@ namespace LibreLancer
 		{
 			if (!active)
 				throw new InvalidOperationException("Renderer2D.Start() must be called before Renderer2D.DrawString");
-			if (text == "") //skip empty str
+			if (text == "" || size < 1) //skip empty str
 				return;
             CreateRichTextEngine().DrawStringBaseline(fontName, size, text, x, y, start_x, color, underline);
         }

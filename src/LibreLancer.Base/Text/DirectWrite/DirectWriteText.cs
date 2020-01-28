@@ -186,6 +186,72 @@ namespace LibreLancer.Text.DirectWrite
 
         }
 
+        TextFormat GetFormat(string fontName, float fontSize)
+        {
+            FontCollection collection = dwFactory.GetSystemFontCollection(false);
+            if (customCollection.FindFamilyName(fontName, out int _)) collection = customCollection;
+            return new TextFormat(dwFactory, fontName, collection, FontWeight.Normal, FontStyle.Normal, FontStretch.Normal, fontSize);
+        }
+
+        class Indent : InlineObject
+        {
+            public float X;
+            public Indent(float x)
+            { 
+                X = x; 
+            }
+            public InlineObjectMetrics Metrics => new InlineObjectMetrics() { Width = X };
+            public OverhangMetrics OverhangMetrics => new OverhangMetrics();
+            public IDisposable Shadow { get; set; }
+            public void Dispose(){}
+            public void Draw(object clientDrawingContext, TextRenderer renderer, float originX, float originY, bool isSideways, bool isRightToLeft, ComObject clientDrawingEffect){}
+            public void GetBreakConditions(out BreakCondition breakConditionBefore, out BreakCondition breakConditionAfter){
+                breakConditionBefore = BreakCondition.CanBreak;
+                breakConditionAfter = BreakCondition.CanBreak;
+            }
+        }
+
+        float ConvertSize(float size)
+        {
+            return size / 72 * 96;
+        }
+        public override void DrawStringBaseline(string fontName, float size, string text, float x, float y, float start_x, Color4 color, bool underline = false)
+        {
+            using (var layout = new TextLayout(dwFactory, text, GetFormat(fontName, ConvertSize(size)), float.MaxValue, float.MaxValue))
+            {
+                var indent = (x - start_x);
+                if(Math.Abs(indent) > 0.001f) {
+                    layout.SetInlineObject(new Indent(indent), new TextRange(0, 0));
+                }
+                layout.SetDrawingEffect(new ColorDrawingEffect(color), new TextRange(0, text.Length));
+                layout.Draw(Renderer, 0, 0);
+                foreach(var q in Renderer.Quads) {
+                    var d = q.Destination;
+                    d.X += (int)start_x;
+                    d.Y += (int)y;
+                    if (q.Texture == null)
+                        render2d.FillRectangle(d, q.Color);
+                    else
+                        render2d.Draw(q.Texture, q.Source, d, q.Color);
+                }
+                Renderer.Quads = new List<DrawQuad>();
+            }
+        }
+        public override float LineHeight(string fontName, float size)
+        {
+            using (var layout = new TextLayout(dwFactory, "", GetFormat(fontName, ConvertSize(size)), float.MaxValue, float.MaxValue))
+            {
+                return layout.Metrics.Height;
+            }
+        }
+        public override Point MeasureString(string fontName, float size, string text)
+        {
+            using (var layout = new TextLayout(dwFactory, text, GetFormat(fontName, ConvertSize(size)), float.MaxValue, float.MaxValue))
+            {
+                var metrics = layout.Metrics;
+                return new Point((int)metrics.WidthIncludingTrailingWhitespace, (int)metrics.Height);
+            }
+        }
         public override void RenderText(BuiltRichText txt, int x, int y)
         {
             var dw = (DirectWriteBuiltText)txt;
