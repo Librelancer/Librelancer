@@ -105,7 +105,14 @@ namespace LibreLancer.Utf
         {
             get
             {
-                return Encoding.ASCII.GetString(dataArray,dataStart,dataLength).TrimEnd('\0');
+                int len = dataLength;
+                for (int i = 0; i < dataLength; i++)  {
+                    if (dataArray[dataStart + i] == 0) {
+                        len = i;
+                        break;
+                    }
+                }
+                return Encoding.ASCII.GetString(dataArray, dataStart, len);
             }
         }
 

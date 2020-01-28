@@ -14,25 +14,16 @@ namespace LibreLancer.Utf.Anm
 		public ObjectMap(IntermediateNode root)
         {
             NodeName = root.Name;
-			foreach (Node node in root)
-			{
-				switch (node.Name.ToLowerInvariant())
-				{
-					case "parent name":
-						if (ParentName == null) ParentName = (node as LeafNode).StringData;
-						else throw new Exception("Multiple parent name nodes in channel root");
-						break;
-					case "child name":
-						if (ChildName == null) ChildName = (node as LeafNode).StringData;
-						else throw new Exception("Multiple child name nodes in channel root");
-						break;
-					case "channel":
-						if (Channel == null) Channel = new Channel((node as IntermediateNode));
-						else throw new Exception("Multiple data nodes in channel root");
-						break;
-				}
-			}
+            foreach (Node node in root)
+                {
+                    if (node.Name.Equals("parent name", StringComparison.OrdinalIgnoreCase))
+                        ParentName = (node as LeafNode).StringData;
+                    else if (node.Name.Equals("child name", StringComparison.OrdinalIgnoreCase))
+                        ChildName = (node as LeafNode).StringData;
+                    else if (node.Name.Equals("channel", StringComparison.OrdinalIgnoreCase))
+                        Channel = new Channel(node as IntermediateNode);
+                }
 
-		}
+        }
 	}
 }

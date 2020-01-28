@@ -254,17 +254,20 @@ namespace LibreLancer
         public void LoadData()
         {
             fldata.LoadData();
-            FLLog.Info("Game", "Loading Character Animations");
-            GetCharacterAnimations();
+            AsyncAction(() =>
+            {
+                FLLog.Info("Game", "Loading Character Animations");
+                GetCharacterAnimations();
+            });
+            initing = true;
+            var thread = new Thread(AsyncLoadThread);
+            thread.Start();
             FLLog.Info("Game", "Initing Tables");
             var introbases = InitBases().ToArray();
             InitShips();
             InitEquipment();
             InitGoods();
             InitMarkets();
-            initing = true;
-            var thread = new Thread(AsyncLoadThread);
-            thread.Start();
             InitSystems();
             initing = false;
             FLLog.Info("Game", "Waiting on threads");
