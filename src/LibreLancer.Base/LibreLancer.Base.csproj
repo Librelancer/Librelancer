@@ -1,233 +1,44 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+  <ImportGroup>
+    <Import Project="../CommonVersion.props"/>
+  </ImportGroup>
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{C7A37830-B878-4008-A988-D7294D47F44D}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LibreLancer</RootNamespace>
-    <AssemblyName>LibreLancer.Base</AssemblyName>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>..\..\bin\Debug</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>..\..\bin\Release</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug-OSX|AnyCPU' ">
-    <Optimize>false</Optimize>
-    <OutputPath>..\..\bin\Debug-OSX</OutputPath>
-    <WarningLevel>4</WarningLevel>
-    <DebugSymbols>true</DebugSymbols>
-    <DefineConstants>DEBUG;OSX</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x64\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug-OSX|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x64\Debug-OSX\</OutputPath>
-    <DefineConstants>DEBUG;OSX</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PlatformTarget>x64</PlatformTarget>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-    <Reference Include="SharpDX">
-      <HintPath>..\packages\SharpDX.3.0.2\lib\net45\SharpDX.dll</HintPath>
-    </Reference>
-    <Reference Include="SharpDX.DXGI">
-      <HintPath>..\packages\SharpDX.DXGI.3.0.2\lib\net45\SharpDX.DXGI.dll</HintPath>
-    </Reference>
-    <Reference Include="SharpDX.Direct2D1">
-      <HintPath>..\packages\SharpDX.Direct2D1.3.0.2\lib\net45\SharpDX.Direct2D1.dll</HintPath>
-    </Reference>
+    <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
+    <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\External\FontConfigSharp_Core\FontConfigSharp_Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="LibreLancer.Base.dll.config" />
+    <Content Include="LibreLancer.Base.dll.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <None Remove="LibreLancer.Media.dll.config" />
+    <Content Include="LibreLancer.Media.dll.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ArraySegmentHelper.cs" />
-    <Compile Include="Bounds\BoundingBox.cs" />
-    <Compile Include="Bounds\BoundingFrustum.cs" />
-    <Compile Include="Bounds\BoundingSphere.cs" />
-    <Compile Include="Bounds\ContainmentType.cs" />
-    <Compile Include="Bounds\Plane.cs" />
-    <Compile Include="Bounds\PlaneIntersectionType.cs" />
-    <Compile Include="Bounds\Ray.cs" />
-    <Compile Include="CubeMapFace.cs" />
-    <Compile Include="ElementBuffer.cs" />
-    <Compile Include="GLExtensions.cs" />
-    <Compile Include="PrimitiveTypes.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Shader.cs" />
-    <Compile Include="SSE\AsmMethodAttribute.cs" />
-    <Compile Include="SSE\SSEMath.Runtime.cs" />
-    <Compile Include="SurfaceFormat.cs" />
-    <Compile Include="SurfaceFormatExtensions.cs" />
-    <Compile Include="Texture.cs" />
-    <Compile Include="Texture2D.cs" />
-    <Compile Include="TextureCube.cs" />
-    <Compile Include="Text\DirectWrite\CustomFontLoader.cs" />
-    <Compile Include="Text\DirectWrite\CustomFontFileEnumerator.cs" />
-    <Compile Include="Text\DirectWrite\FontCollectionExtensions.cs" />
-    <Compile Include="Text\DirectWrite\MemoryFontStream.cs" />
-    <Compile Include="UniformBuffer.cs" />
-    <Compile Include="VectorMath.cs" />
-    <Compile Include="VertexBuffer.cs" />
-    <Compile Include="VertexSlots.cs" />
-    <Compile Include="Vertices\IVertexType.cs" />
-    <Compile Include="Vertices\VertexPosition.cs" />
-    <Compile Include="Vertices\VertexPositionColor.cs" />
-    <Compile Include="Vertices\VertexPositionColorTexture.cs" />
-    <Compile Include="Vertices\VertexPositionNormal.cs" />
-    <Compile Include="Vertices\VertexPositionNormalDiffuseTextureTwo.cs" />
-    <Compile Include="Vertices\VertexPositionNormalTexture.cs" />
-    <Compile Include="Vertices\VertexPositionNormalTextureTangentBinormal.cs" />
-    <Compile Include="Vertices\VertexPositionNormalTextureTwo.cs" />
-    <Compile Include="Vertices\VertexPositionTexture.cs" />
-    <Compile Include="IUIThread.cs" />
-    <Compile Include="GLBind.cs" />
-    <Compile Include="RenderTarget2D.cs" />
-    <Compile Include="FLLog.cs" />
-    <Compile Include="Platform.cs" />
-    <Compile Include="RenderState.cs" />
-    <Compile Include="BlendMode.cs" />
-    <Compile Include="Platforms\IPlatform.cs" />
-    <Compile Include="Platforms\LinuxPlatform.cs" />
-    <Compile Include="Platforms\Win32Platform.cs" />
-    <Compile Include="Platforms\Win32\GDI.cs" />
-    <Compile Include="Text\Renderer2D.cs" />
-    <Compile Include="HSLColor.cs" />
-    <Compile Include="Math\MathHelper.cs" />
-    <Compile Include="Math\Matrix3.cs" />
-    <Compile Include="Math\Matrix4.cs" />
-    <Compile Include="Math\Quaternion.cs" />
-    <Compile Include="Math\Vector2.cs" />
-    <Compile Include="Math\Vector3.cs" />
-    <Compile Include="Math\Vector4.cs" />
-    <Compile Include="Math\Point.cs" />
-    <Compile Include="Math\Rectangle.cs" />
-    <Compile Include="Math\RectangleF.cs" />
-    <Compile Include="Math\Color3f.cs" />
-    <Compile Include="Math\Color4b.cs" />
-    <Compile Include="Math\Color4.cs" />
-    <Compile Include="GL\GL.Functions.cs" />
-    <Compile Include="GL\GL.Constants.cs" />
-    <Compile Include="GL\GLDelegates.cs" />
-    <Compile Include="SDL2\SDL2.cs" />
-    <Compile Include="Vertices\VertexDeclaration.cs" />
-    <Compile Include="Vertices\VertexElement.cs" />
-    <Compile Include="Vertices\VertexElementType.cs" />
-    <Compile Include="Game.cs" />
-    <Compile Include="SDL2\LPUtf8StrMarshaler.cs" />
-    <Compile Include="Input\Mouse.cs" />
-    <Compile Include="Input\Keyboard.cs" />
-    <Compile Include="Input\KeyEventArgs.cs" />
-    <Compile Include="Input\KeyModifiers.cs" />
-    <Compile Include="Input\Keys.cs" />
-    <Compile Include="Input\MouseButtons.cs" />
-    <Compile Include="Input\MouseEventArgs.cs" />
-    <Compile Include="WrapMode.cs" />
-    <Compile Include="Vertices\VertexPositionNormalDiffuseTexture.cs" />
-    <Compile Include="Primitives\QuadSphere.cs" />
-    <Compile Include="DepthBuffer.cs" />
-    <Compile Include="TextureFiltering.cs" />
-    <Compile Include="MultisampleTarget.cs" />
-    <Compile Include="CullFaces.cs" />
-    <Compile Include="SSE\SSEMath.cs">
-      <DependentUpon>SSEMath.tt</DependentUpon>
-    </Compile>
-    <Compile Include="ComputeShader.cs" />
-    <Compile Include="ShaderStorageBuffer.cs" />
-    <Compile Include="DepthMap.cs" />
-    <Compile Include="BinaryReaderExtensions.cs" />
-    <Compile Include="Math\Vector4i.cs" />
-    <Compile Include="CursorKind.cs" />
-    <Compile Include="UnsafeHelpers.cs" />
-    <Compile Include="..\CommonVersion.cs">
-      <Link>Properties\CommonVersion.cs</Link>
-    </Compile>
-    <Compile Include="Primitives\OpenCylinder.cs" />
-    <Compile Include="Dialogs\CrashWindow.cs" />
-    <Compile Include="Dialogs\DialogPlatform.cs" />
-    <Compile Include="Dialogs\SWF.cs" />
-    <Compile Include="Text\Pango\PangoText.cs" />
-    <Compile Include="Text\RichTextEngine.cs" />
-    <Compile Include="Text\RichTextNode.cs" />
-    <Compile Include="Text\RichTextParagraphNode.cs" />
-    <Compile Include="Text\RichTextTextNode.cs" />
-    <Compile Include="Text\TextAlignment.cs" />
-    <Compile Include="Text\DirectWrite\DirectWriteText.cs" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
-  <ItemGroup />
-  <ItemGroup>
-    <ProjectReference Include="..\..\extern\FontConfigSharp\FontConfigSharp\FontConfigSharp.csproj">
-      <Project>{CBBDC35F-DCA3-453C-A9E3-29EE7E43DE85}</Project>
-      <Name>FontConfigSharp</Name>
-    </ProjectReference>
+    <Content Include="..\..\bin\natives\**\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
-    <None Include="SSE\multiply_matrix_x86.S" />
-    <None Include="SSE\multiply_matrix_windows.S" />
-    <None Include="SSE\multiply_matrix_unix.S" />
-    <None Include="SSE\sources.txt" />
-    <None Include="SSE\SSEMath.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>SSEMath.cs</LastGenOutput>
-    </None>
-    <None Include="SSE\matrix_invert.c" />
-    <None Include="SSE\embedding.h" />
-    <None Include="SSE\README.txt" />
-    <None Include="packages.config" />
+    <Folder Include="Properties" />
   </ItemGroup>
-  <ItemGroup />
 </Project>

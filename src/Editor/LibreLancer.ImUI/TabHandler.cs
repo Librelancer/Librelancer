@@ -63,7 +63,7 @@ namespace LibreLancer.ImUI
 
             var textSize = ImGui.CalcTextSize(text);
             float pad = style.FramePadding.X;
-            var pos = ImGui.GetCursorScreenPos() + new Vector2(pad, textSize.X + pad);
+            var pos = (Vector2)ImGui.GetCursorScreenPos() + new Vector2(pad, textSize.X + pad);
             ImGui.PushStyleColor(ImGuiCol.Button, color);
             ImGui.PushID(text);
             bool ret = ImGui.Button("", new Vector2(textSize.Y + pad * 2,

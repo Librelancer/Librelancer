@@ -21,7 +21,7 @@ tools/**
 
 # Visual Studio
 *.suo
-src/CommonVersion.cs
+src/CommonVersion.props
 *.pdb
 *.exp
 *.iobj

@@ -40,12 +40,18 @@ namespace LibreLancer
 				RunningPlatform = new Win32Platform ();
 				break;
 			}
+            RegisterDllMap(typeof(Platform).Assembly);
 		}
         public static bool IsDirCaseSensitive (string directory)
 		{
 			return RunningPlatform.IsDirCaseSensitive (directory);
 		}
 
+        public static void RegisterDllMap(Assembly assembly)
+        {
+            if(RunningOS == OS.Linux)
+                DllMap.Register(assembly);
+        }
         public static byte[] GetMonospaceBytes()
         {
             return RunningPlatform.GetMonospaceBytes();

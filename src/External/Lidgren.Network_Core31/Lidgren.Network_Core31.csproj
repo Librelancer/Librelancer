@@ -1,0 +1,220 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\Encryption\NetAESEncryption.cs">
+        <Link>Encryption\NetAESEncryption.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\Encryption\NetBlockEncryptionBase.cs">
+        <Link>Encryption\NetBlockEncryptionBase.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\Encryption\NetCryptoProviderBase.cs">
+        <Link>Encryption\NetCryptoProviderBase.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\Encryption\NetCryptoProviderEncryption.cs">
+        <Link>Encryption\NetCryptoProviderEncryption.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\Encryption\NetDESEncryption.cs">
+        <Link>Encryption\NetDESEncryption.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\Encryption\NetEncryption.cs">
+        <Link>Encryption\NetEncryption.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\Encryption\NetRC2Encryption.cs">
+        <Link>Encryption\NetRC2Encryption.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\Encryption\NetTripleDESEncryption.cs">
+        <Link>Encryption\NetTripleDESEncryption.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\Encryption\NetXorEncryption.cs">
+        <Link>Encryption\NetXorEncryption.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\Encryption\NetXteaEncryption.cs">
+        <Link>Encryption\NetXteaEncryption.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NamespaceDoc.cs">
+        <Link>NamespaceDoc.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetBigInteger.cs">
+        <Link>NetBigInteger.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetBitVector.cs">
+        <Link>NetBitVector.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetBitWriter.cs">
+        <Link>NetBitWriter.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetBuffer.cs">
+        <Link>NetBuffer.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetBuffer.Peek.cs">
+        <Link>NetBuffer.Peek.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetBuffer.Read.cs">
+        <Link>NetBuffer.Read.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetBuffer.Read.Reflection.cs">
+        <Link>NetBuffer.Read.Reflection.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetBuffer.Write.cs">
+        <Link>NetBuffer.Write.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetBuffer.Write.Reflection.cs">
+        <Link>NetBuffer.Write.Reflection.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetClient.cs">
+        <Link>NetClient.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetConnection.cs">
+        <Link>NetConnection.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetConnection.Handshake.cs">
+        <Link>NetConnection.Handshake.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetConnection.Latency.cs">
+        <Link>NetConnection.Latency.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetConnection.MTU.cs">
+        <Link>NetConnection.MTU.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetConnectionStatistics.cs">
+        <Link>NetConnectionStatistics.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetConnectionStatus.cs">
+        <Link>NetConnectionStatus.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetConstants.cs">
+        <Link>NetConstants.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetDeliveryMethod.cs">
+        <Link>NetDeliveryMethod.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetException.cs">
+        <Link>NetException.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetFragmentationHelper.cs">
+        <Link>NetFragmentationHelper.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetFragmentationInfo.cs">
+        <Link>NetFragmentationInfo.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetIncomingMessage.cs">
+        <Link>NetIncomingMessage.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetIncomingMessageType.cs">
+        <Link>NetIncomingMessageType.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetMessageType.cs">
+        <Link>NetMessageType.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetNatIntroduction.cs">
+        <Link>NetNatIntroduction.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetOutgoingMessage.cs">
+        <Link>NetOutgoingMessage.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetPeer.cs">
+        <Link>NetPeer.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetPeer.Discovery.cs">
+        <Link>NetPeer.Discovery.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetPeer.Fragmentation.cs">
+        <Link>NetPeer.Fragmentation.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetPeer.Internal.cs">
+        <Link>NetPeer.Internal.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetPeer.LatencySimulation.cs">
+        <Link>NetPeer.LatencySimulation.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetPeer.Logging.cs">
+        <Link>NetPeer.Logging.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetPeer.MessagePools.cs">
+        <Link>NetPeer.MessagePools.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetPeer.Send.cs">
+        <Link>NetPeer.Send.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetPeerConfiguration.cs">
+        <Link>NetPeerConfiguration.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetPeerStatistics.cs">
+        <Link>NetPeerStatistics.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetPeerStatus.cs">
+        <Link>NetPeerStatus.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetQueue.cs">
+        <Link>NetQueue.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetRandom.cs">
+        <Link>NetRandom.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetRandom.Implementations.cs">
+        <Link>NetRandom.Implementations.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetRandomSeed.cs">
+        <Link>NetRandomSeed.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetReceiverChannelBase.cs">
+        <Link>NetReceiverChannelBase.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetReliableOrderedReceiver.cs">
+        <Link>NetReliableOrderedReceiver.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetReliableSenderChannel.cs">
+        <Link>NetReliableSenderChannel.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetReliableSequencedReceiver.cs">
+        <Link>NetReliableSequencedReceiver.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetReliableUnorderedReceiver.cs">
+        <Link>NetReliableUnorderedReceiver.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetSenderChannelBase.cs">
+        <Link>NetSenderChannelBase.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetSendResult.cs">
+        <Link>NetSendResult.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetServer.cs">
+        <Link>NetServer.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetSRP.cs">
+        <Link>NetSRP.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetStoredReliableMessage.cs">
+        <Link>NetStoredReliableMessage.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetTime.cs">
+        <Link>NetTime.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetTuple.cs">
+        <Link>NetTuple.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetUnreliableSenderChannel.cs">
+        <Link>NetUnreliableSenderChannel.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetUnreliableSequencedReceiver.cs">
+        <Link>NetUnreliableSequencedReceiver.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetUnreliableUnorderedReceiver.cs">
+        <Link>NetUnreliableUnorderedReceiver.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetUPnP.cs">
+        <Link>NetUPnP.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\NetUtility.cs">
+        <Link>NetUtility.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\lidgren-network-gen3\Lidgren.Network\Platform\PlatformWin32.cs">
+        <Link>PlatformWin32.cs</Link>
+      </Compile>
+    </ItemGroup>
+
+</Project>

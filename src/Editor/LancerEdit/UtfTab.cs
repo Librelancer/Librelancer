@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.IO;
-using System.Xml.Serialization.Configuration;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ImUI;

@@ -193,7 +193,7 @@ namespace LibreLancer.Text.DirectWrite
             return new TextFormat(dwFactory, fontName, collection, FontWeight.Normal, FontStyle.Normal, FontStretch.Normal, fontSize);
         }
 
-        class Indent : InlineObject
+        class Indent : ComObject, InlineObject
         {
             public float X;
             public Indent(float x)

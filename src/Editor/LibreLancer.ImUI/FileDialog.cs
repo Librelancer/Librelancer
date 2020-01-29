@@ -187,7 +187,12 @@ namespace LibreLancer.ImUI
 
         static bool HasKDialog()
         {
-            var p = Process.Start("bash", "-c 'command -v kdialog >/dev/null 2>&1'");
+            var startInfo = new ProcessStartInfo("/usr/bin/bash")
+            {
+                UseShellExecute = false,
+                Arguments = " -c \"command -v kdialog >/dev/null 2>&1\""
+            };
+            var p = Process.Start(startInfo);
             p.WaitForExit();
             return p.ExitCode == 0;
         }
@@ -195,7 +200,7 @@ namespace LibreLancer.ImUI
         static string KDialogProcess(string s)
         {
             if (parentWindow != IntPtr.Zero) 
-                s = string.Format("--attach {0} {1}", parentWindow, s);
+                s = string.Format(" --attach {0} {1}", parentWindow, s);
             var pinf = new ProcessStartInfo("kdialog", s);
             pinf.RedirectStandardOutput = true;
             pinf.UseShellExecute = false;
@@ -241,7 +246,7 @@ namespace LibreLancer.ImUI
         {
             if (string.IsNullOrEmpty(lastSave))
                 lastSave = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            var ret = KDialogProcess(string.Format("--getsavefilename \"{0}\" '{1}'", lastSave, KDialogFilter(filters)));
+            var ret = KDialogProcess(string.Format("--getsavefilename \"{0}\" \"{1}\"", lastSave, KDialogFilter(filters)));
             lastSave = ret ?? lastSave;
             return ret;
         }

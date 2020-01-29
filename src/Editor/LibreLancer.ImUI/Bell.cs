@@ -65,11 +65,15 @@ namespace LibreLancer.ImUI
             }).Start();
         }
 
+        [DllImport("winmm.dll", SetLastError=true)]
+        static extern bool PlaySound(string pszSound, IntPtr hmod, uint fdwSound);
+        private const uint SND_ASYNC = 0x0001;
+        
         public static void Play()
         {
             if (Platform.RunningOS == OS.Windows)
             {
-                System.Media.SystemSounds.Asterisk.Play();
+                PlaySound("Asterisk", IntPtr.Zero, SND_ASYNC);
             }
             else if (Platform.RunningOS == OS.Linux)
             {

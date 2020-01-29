@@ -29,8 +29,13 @@ namespace LibreLancer.Media
 		public MusicPlayer Music { get; private set; }
 
 		internal IUIThread UIThread;
+        static AudioManager()
+        {
+            Platform.RegisterDllMap(typeof(AudioManager).Assembly);
+        }
 		public AudioManager(IUIThread uithread)
 		{
+            
 			Music = new MusicPlayer(this);
 			this.UIThread = uithread;
 			Thread AudioThread = new Thread (new ThreadStart (UpdateThread));

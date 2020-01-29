@@ -34,7 +34,7 @@ namespace LibreLancer.ImageLib
 			using (var writer = new BinaryWriter(File.Create(filename)))
 			{
 				writer.Write(PNG_SIGNATURE);
-				WriteChunk("IHDR", writer, (chnk) =>
+				/**WriteChunk("IHDR", writer, (chnk) =>
 				{
 					chnk.WriteInt32BE(width);
 					chnk.WriteInt32BE(height);
@@ -49,7 +49,7 @@ namespace LibreLancer.ImageLib
 					//zlib header
 					//deflate compression
 					byte[] buf = new byte[width * 4];
-					var compress = new zlib.ZOutputStream(chnk.BaseStream, 3);
+                    var compress = new ICSharpCode.SharpZipLib..ZOutputStream(chnk.BaseStream, 3);
 					//First line
 					compress.WriteByte((byte)0);
 					for (int x = 0; x < width * 4; x++)
@@ -65,7 +65,7 @@ namespace LibreLancer.ImageLib
 						compress.Write(buf, 0, buf.Length);
 					}
 					compress.finish();
-				});
+				});*/
 				writer.Write(IEND);
 			}
 		}

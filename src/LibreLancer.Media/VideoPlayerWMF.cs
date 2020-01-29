@@ -9,6 +9,7 @@ using SharpDX.MediaFoundation;
 using SharpDX.Win32;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -113,6 +114,19 @@ namespace LibreLancer.Media
             }
         }
         MFCallback cb;
+
+        delegate void SinkActivateMethod(MediaType iMFMediaTypeRef,
+            SampleGrabberSinkCallback iMFSampleGrabberSinkCallbackRef, out Activate iActivateOut);
+        private static SinkActivateMethod MFCreateSampleGrabberSinkActivate;
+        static void GetMethods()
+        {
+            if (MFCreateSampleGrabberSinkActivate != null)
+            {
+                var mi = typeof(MediaFactory).GetMethod("MFCreateSampleGrabberSinkActivate",
+                    BindingFlags.Static | BindingFlags.NonPublic);
+                MFCreateSampleGrabberSinkActivate = (SinkActivateMethod)mi.CreateDelegate(typeof(SinkActivateMethod));
+            }
+        }
         public override void PlayFile(string filename)
         {
             //Load the file
@@ -120,7 +134,7 @@ namespace LibreLancer.Media
             {
                 var resolver = new SourceResolver();
                 ObjectType otype;
-                ComObject source = resolver.CreateObjectFromURL(filename, SourceResolverFlags.MediaSource, null, out otype);
+                var source = new ComObject(resolver.CreateObjectFromURL(filename, SourceResolverFlags.MediaSource, null, out otype));
                 mediaSource = source.QueryInterface<MediaSource>();
                 resolver.Dispose();
                 source.Dispose();
@@ -162,8 +176,8 @@ namespace LibreLancer.Media
 
                         // Specify that we want the data to come in as RGB32.
                         mt.Set(MediaTypeAttributeKeys.Subtype, new Guid("00000016-0000-0010-8000-00AA00389B71"));
-
-                        MediaFactory.CreateSampleGrabberSinkActivate(mt, videoSampler, out activate);
+                        GetMethods();
+                        MFCreateSampleGrabberSinkActivate(mt, videoSampler, out activate);
                         outputNode.Object = activate;
                     }
 
@@ -241,7 +255,7 @@ namespace LibreLancer.Media
             {
             }
         }
-        class MFCallback : IAsyncCallback
+        class MFCallback : ComObject, IAsyncCallback
         {
             MediaSession _session;
             VideoPlayerWMF _player;

@@ -998,6 +998,15 @@ namespace LibreLancer
 
         #region Operators
 
+        public static implicit operator System.Numerics.Vector2(Vector2 self)
+        {
+            return new System.Numerics.Vector2(self.X, self.Y);
+        }
+
+        public static implicit operator Vector2(System.Numerics.Vector2 self)
+        {
+            return new Vector2(self.X, self.Y);
+        }
         /// <summary>
         /// Adds the specified instances.
         /// </summary>

@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Compile Include="..\..\..\extern\FontConfigSharp\FontConfigSharp\Fc.cs">
+        <Link>Fc.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\FontConfigSharp\FontConfigSharp\FcCharSet.cs">
+        <Link>FcCharSet.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\FontConfigSharp\FontConfigSharp\FcConfig.cs">
+        <Link>FcConfig.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\FontConfigSharp\FontConfigSharp\FcFontSet.cs">
+        <Link>FcFontSet.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\FontConfigSharp\FontConfigSharp\FcMatchKind.cs">
+        <Link>FcMatchKind.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\FontConfigSharp\FontConfigSharp\FcObjectSet.cs">
+        <Link>FcObjectSet.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\FontConfigSharp\FontConfigSharp\FcPattern.cs">
+        <Link>FcPattern.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\FontConfigSharp\FontConfigSharp\FcResult.cs">
+        <Link>FcResult.cs</Link>
+      </Compile>
+      <Compile Include="..\..\..\extern\FontConfigSharp\FontConfigSharp\Native.cs">
+        <Link>Native.cs</Link>
+      </Compile>
+    </ItemGroup>
+
+</Project>

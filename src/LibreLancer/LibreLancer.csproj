@@ -1,570 +1,150 @@
-﻿<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+  <ImportGroup>
+    <Import Project="../CommonVersion.props"/>
+  </ImportGroup>
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{C1D53477-0117-48EF-A13D-A0225F0F50CA}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LibreLancer</RootNamespace>
-    <AssemblyName>LibreLancer</AssemblyName>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>..\..\bin\Debug</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <UseVSHostingProcess>true</UseVSHostingProcess>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>..\..\bin\Release</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug-OSX|AnyCPU' ">
-    <Optimize>false</Optimize>
-    <OutputPath>..\..\bin\Debug-OSX</OutputPath>
-    <WarningLevel>4</WarningLevel>
-    <DebugSymbols>true</DebugSymbols>
-    <DefineConstants>DEBUG;OSX</DefineConstants>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x64\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <WarningLevel>4</WarningLevel>
-    <Optimize>false</Optimize>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug-OSX|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x64\Debug-OSX\</OutputPath>
-    <DefineConstants>DEBUG;OSX</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PlatformTarget>x64</PlatformTarget>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <WarningLevel>4</WarningLevel>
-    <Optimize>false</Optimize>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="KeraLua, Version=1.0.22.0, Culture=neutral, PublicKeyToken=6a194c04b9c89217">
-      <HintPath>..\packages\KeraLua.1.0.22\lib\net45\KeraLua.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="NLua, Version=1.4.26.0, Culture=neutral, PublicKeyToken=6a194c04b9c89217">
-      <HintPath>..\packages\NLua.1.4.26\lib\net45\NLua.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Buffers, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
-      <HintPath>..\packages\System.Buffers.4.4.0\lib\netstandard1.1\System.Buffers.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Core" />
-    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.2\lib\netstandard1.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Xml.Serialization" />
-    <Reference Include="System.ValueTuple">
-      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\External\Lidgren.Network_Core31\Lidgren.Network_Core31.csproj" />
+    <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj" />
+    <ProjectReference Include="..\LibreLancer.Data\LibreLancer.Data.csproj" />
+    <ProjectReference Include="..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj" />
+    <ProjectReference Include="..\LibreLancer.Media\LibreLancer.Media.csproj" />
+    <ProjectReference Include="..\LibreLancer.Physics\LibreLancer.Physics.csproj" />
+    <ProjectReference Include="..\LibreLancer.Thorn\LibreLancer.Thorn.csproj" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="ConvertData.cs" />
-    <Compile Include="CrcTool.cs" />
-    <Compile Include="Exceptions\InvalidFreelancerDirectory.cs" />
-    <Compile Include="FreelancerGame.cs" />
-    <Compile Include="Gameplay\EquipmentObjectManager.cs" />
-    <Compile Include="GameStates\UiApi.cs" />
-    <Compile Include="IDrawable.cs" />
-    <Compile Include="ILibFile.cs" />
-    <Compile Include="Interface\Attributes\UiContentAttribute.cs" />
-    <Compile Include="Interface\Attributes\UiIgnoreAttribute.cs" />
-    <Compile Include="Interface\Attributes\UiLoadableAttribute.cs" />
-    <Compile Include="Interface\Container.cs" />
-    <Compile Include="Interface\Containers\Panel.cs" />
-    <Compile Include="Interface\Containers\Scrollable.cs" />
-    <Compile Include="Interface\Enums\AnchorKind.cs" />
-    <Compile Include="Interface\Enums\HorizontalAlignment.cs" />
-    <Compile Include="Interface\Enums\VerticalAlignment.cs" />
-    <Compile Include="Interface\InterfaceResources.cs" />
-    <Compile Include="Interface\MultiScene.cs" />
-    <Compile Include="Interface\NavbarButtonInfo.cs" />
-    <Compile Include="Interface\Rendering\DisplayColor.cs" />
-    <Compile Include="Interface\Rendering\DisplayImage.cs" />
-    <Compile Include="Interface\Rendering\DisplayModel.cs" />
-    <Compile Include="Interface\Rendering\DisplayRectangle.cs" />
-    <Compile Include="Interface\Rendering\UiRenderable.cs" />
-    <Compile Include="Interface\Scene.cs" />
-    <Compile Include="Interface\Scene.LuaCode.cs" />
-    <Compile Include="Interface\Stylesheet.cs" />
-    <Compile Include="Interface\UiContext.cs" />
-    <Compile Include="Interface\UiRecreateHandle.cs" />
-    <Compile Include="Interface\UiWidget.cs" />
-    <Compile Include="Interface\UiXmlLoader.cs" />
-    <Compile Include="Interface\UiXmlReflection.cs" />
-    <Compile Include="Interface\Widgets\Button.cs" />
-    <Compile Include="Interface\Widgets\ChatBox.cs" />
-    <Compile Include="Interface\Widgets\Gauge.cs" />
-    <Compile Include="Interface\Widgets\ImageFile.cs" />
-    <Compile Include="Interface\Widgets\Internal\Scrollbar.cs" />
-    <Compile Include="Interface\Widgets\TextBlock.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Render\BoneInstance.cs" />
-    <Compile Include="Render\DfmSkeletonManager.cs" />
-    <Compile Include="Sounds\AttachedSound.cs" />
-    <Compile Include="Sounds\SoundManager.cs" />
-    <Compile Include="Thn\ThnScriptContext.cs" />
-    <Compile Include="Utf\AbstractConstruct.cs" />
-    <Compile Include="Utf\Anm\AnmFile.cs" />
-    <Compile Include="Utf\Anm\Channel.cs" />
-    <Compile Include="Utf\Anm\Frame.cs" />
-    <Compile Include="Utf\Anm\Script.cs" />
-    <Compile Include="Utf\Cmp\CmpFile.cs" />
-    <Compile Include="Utf\Cmp\FixedHardpointDefinition.cs" />
-    <Compile Include="Utf\Cmp\HardpointDefinition.cs" />
-    <Compile Include="Utf\Cmp\ModelFile.cs" />
-    <Compile Include="Utf\Cmp\Part.cs" />
-    <Compile Include="Utf\Cmp\RevoluteHardpointDefinition.cs" />
-    <Compile Include="Utf\Cmp\VMeshRef.cs" />
-    <Compile Include="Utf\ConstructCollection.cs" />
-    <Compile Include="Utf\FixConstruct.cs" />
-    <Compile Include="Utf\IntermediateNode.cs" />
-    <Compile Include="Utf\LeafNode.cs" />
-    <Compile Include="Utf\LooseConstruct.cs" />
-    <Compile Include="Utf\Mat\Material.cs" />
-    <Compile Include="Utf\Mat\MatFile.cs" />
-    <Compile Include="Utf\Mat\SphFile.cs" />
-    <Compile Include="Utf\Mat\TextureData.cs" />
-    <Compile Include="Utf\Mat\TxmFile.cs" />
-    <Compile Include="Utf\Node.cs" />
-    <Compile Include="Utf\NodeFlags.cs" />
-    <Compile Include="Utf\PrisConstruct.cs" />
-    <Compile Include="Utf\RevConstruct.cs" />
-    <Compile Include="Utf\SphereConstruct.cs" />
-    <Compile Include="Utf\StringBlock.cs" />
-    <Compile Include="Utf\UtfFile.cs" />
-    <Compile Include="Utf\Vms\D3DFVF.cs" />
-    <Compile Include="Utf\Vms\TMeshHeader.cs" />
-    <Compile Include="Utf\Vms\VMeshData.cs" />
-    <Compile Include="Render\RenderMaterial.cs" />
-    <Compile Include="Render\Lighting.cs" />
-    <Compile Include="Render\RenderLight.cs" />
-    <Compile Include="Utf\Dfm\Bone.cs" />
-    <Compile Include="Utf\Dfm\DfmPart.cs" />
-    <Compile Include="Utf\Dfm\DfmMesh.cs" />
-    <Compile Include="Utf\Dfm\FaceGroup.cs" />
-    <Compile Include="Utf\Dfm\DfmFile.cs" />
-    <Compile Include="GameConfig.cs" />
-    <Compile Include="GameState.cs" />
-    <Compile Include="Render\SystemRenderer.cs" />
-    <Compile Include="Viewport.cs" />
-    <Compile Include="Render\ModelRenderer.cs" />
-    <Compile Include="Render\SunRenderer.cs" />
-    <Compile Include="Render\Materials\BasicMaterial.cs" />
-    <Compile Include="Render\Materials\NebulaMaterial.cs" />
-    <Compile Include="ViewportManager.cs" />
-    <Compile Include="Render\Materials\AtmosphereMaterial.cs" />
-    <Compile Include="Render\Materials\Masked2DetailMapMaterial.cs" />
-    <Compile Include="Render\Materials\DetailMap2Dm1Msk2PassMaterial.cs" />
-    <Compile Include="Render\Materials\DetailMapMaterial.cs" />
-    <Compile Include="Render\ShaderCache.cs" />
-    <Compile Include="Render\NebulaRenderer.cs" />
-    <Compile Include="GameData\StarSystem.cs" />
-    <Compile Include="GameDataManager.cs" />
-    <Compile Include="ResourceManager.cs" />
-    <Compile Include="GameData\SystemObject.cs" />
-    <Compile Include="GameData\Archetype.cs" />
-    <Compile Include="GameData\Archetypes\Sun.cs" />
-    <Compile Include="GameData\Ship.cs" />
-    <Compile Include="Utf\Ale\AleFile.cs" />
-    <Compile Include="Utf\Ale\ALEffectLib.cs" />
-    <Compile Include="Utf\Ale\AlchemyNodeLibrary.cs" />
-    <Compile Include="Utf\Ale\ALEffect.cs" />
-    <Compile Include="Utf\Ale\AleParameter.cs" />
-    <Compile Include="Utf\Ale\AlchemyNode.cs" />
-    <Compile Include="Utf\Ale\AlchemyFloats.cs" />
-    <Compile Include="Utf\Ale\AlchemyColors.cs" />
-    <Compile Include="Utf\Ale\AleCrc.cs">
-      <DependentUpon>AleCrc.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Utf\Ale\AlchemyTransform.cs" />
-    <Compile Include="Utf\Ale\AlchemyColorAnimation.cs" />
-    <Compile Include="Utf\Ale\AlchemyFloatAnimation.cs" />
-    <Compile Include="Utf\Ale\AlchemyCurveAnimation.cs" />
-    <Compile Include="Utf\Ale\CurveKeyframe.cs" />
-    <Compile Include="Utf\Mat\SamplerFlags.cs" />
-    <Compile Include="Utf\Ale\AlchemyNodeRef.cs" />
-    <Compile Include="Render\ICamera.cs" />
-    <Compile Include="Easings.cs" />
-    <Compile Include="Render\IdentityCamera.cs" />
-    <Compile Include="Interface\UiAnimation.cs" />
-    <Compile Include="Thn\ThnScript.cs" />
-    <Compile Include="GameData\Nebula.cs" />
-    <Compile Include="GameData\Zone.cs" />
-    <Compile Include="GameData\ZoneShape.cs" />
-    <Compile Include="GameData\ZoneEllipsoid.cs" />
-    <Compile Include="Render\Billboards.cs" />
-    <Compile Include="ChaseCamera.cs" />
-    <Compile Include="MathExtensions.cs" />
-    <Compile Include="Fx\FxNode.cs" />
-    <Compile Include="Fx\FxEmitter.cs" />
-    <Compile Include="Fx\FxAppearance.cs" />
-    <Compile Include="Fx\Appearances\FLBeamAppearance.cs" />
-    <Compile Include="Fx\Appearances\FxBasicAppearance.cs" />
-    <Compile Include="Fx\Appearances\FxOrientedAppearance.cs" />
-    <Compile Include="Fx\Appearances\FxParticleAppearance.cs" />
-    <Compile Include="Fx\Appearances\FxPerpAppearance.cs" />
-    <Compile Include="Fx\Appearances\FxRectAppearance.cs" />
-    <Compile Include="Fx\Emitters\FxCubeEmitter.cs" />
-    <Compile Include="Fx\Emitters\FxSphereEmitter.cs" />
-    <Compile Include="Fx\Emitters\FxConeEmitter.cs" />
-    <Compile Include="Fx\FxField.cs" />
-    <Compile Include="Fx\Fields\FxRadialField.cs" />
-    <Compile Include="Fx\Fields\FxGravityField.cs" />
-    <Compile Include="Fx\Fields\FxCollideField.cs" />
-    <Compile Include="Fx\Fields\FxTurbulenceField.cs" />
-    <Compile Include="Fx\Fields\FxAirField.cs" />
-    <Compile Include="Fx\Fields\FLDustField.cs" />
-    <Compile Include="Fx\Fields\FLBeamField.cs" />
-    <Compile Include="Utf\Ale\AlchemyEasing.cs" />
-    <Compile Include="Utf\Ale\LoopFlags.cs" />
-    <Compile Include="Utf\Ale\AlchemyCurve.cs" />
-    <Compile Include="CubicBezier.cs" />
-    <Compile Include="Utf\Ale\AlchemyBlending.cs" />
-    <Compile Include="Fx\Particle.cs" />
-    <Compile Include="Fx\ParticleLibrary.cs" />
-    <Compile Include="Fx\ParticleEffect.cs" />
-    <Compile Include="Fx\ParticleEffectInstance.cs" />
-    <Compile Include="Infocards\Infocard.cs" />
-    <Compile Include="Infocards\RDLParse.cs" />
-    <Compile Include="Render\NebulaVertices.cs" />
-    <Compile Include="GameData\ZoneSphere.cs" />
-    <Compile Include="PrimitiveMath.cs" />
-    <Compile Include="Render\Materials\IllumDetailMapMaterial.cs" />
-    <Compile Include="WeightedRandomCollection.cs" />
-    <Compile Include="GameData\IntroScene.cs" />
-    <Compile Include="Thn\ThnEntity.cs" />
-    <Compile Include="Thn\ThnEvent.cs" />
-    <Compile Include="GameStates\IntroMovie.cs" />
-    <Compile Include="GameStates\LoadingDataState.cs" />
-    <Compile Include="CommandBuffer.cs" />
-    <Compile Include="RenderUserData.cs" />
-    <Compile Include="GameData\Spine.cs" />
-    <Compile Include="RandomExtensions.cs" />
-    <Compile Include="Render\LightKind.cs" />
-    <Compile Include="GameData\AsteroidBand.cs" />
-    <Compile Include="GameData\AsteroidField.cs" />
-    <Compile Include="Render\AsteroidFieldRenderer.cs" />
-    <Compile Include="Render\RenderHelpers.cs" />
-    <Compile Include="ApproximateCurve.cs" />
-    <Compile Include="GameData\ExclusionZone.cs" />
-    <Compile Include="Render\SortLayers.cs" />
-    <Compile Include="Render\ObjectRenderer.cs" />
-    <Compile Include="GameData\Items\LightEquipment.cs" />
-    <Compile Include="GameData\Items\Equipment.cs" />
-    <Compile Include="TextureShape.cs" />
-    <Compile Include="Render\LightEquipRenderer.cs" />
-    <Compile Include="GameStates\SpaceGameplay.cs" />
-    <Compile Include="Render\PhysicsDebugRenderer.cs" />
-    <Compile Include="Gameplay\GameWorld.cs" />
-    <Compile Include="Gameplay\GameObject.cs" />
-    <Compile Include="Gameplay\GameComponent.cs" />
-    <Compile Include="Gameplay\Hardpoint.cs" />
-    <Compile Include="Gameplay\Components\EngineComponent.cs" />
-    <Compile Include="GameData\Items\EngineEquipment.cs" />
-    <Compile Include="GameData\Items\EffectEquipment.cs" />
-    <Compile Include="Render\ParticleEffectRenderer.cs" />
-    <Compile Include="Fx\BlendMap.cs" />
-    <Compile Include="Utf\Mat\TexFrameAnimation.cs" />
-    <Compile Include="ScreenshotManager.cs" />
-    <Compile Include="Cursor.cs" />
-    <Compile Include="GameData\StaticAsteroid.cs" />
-    <Compile Include="AsteroidFieldShared.cs" />
-    <Compile Include="GameData\ZoneBox.cs" />
-    <Compile Include="GameData\ZoneCylinder.cs" />
-    <Compile Include="AsyncManager.cs" />
-    <Compile Include="Render\ShaderVariables.cs" />
-    <Compile Include="GameData\ZoneRing.cs" />
-    <Compile Include="GameData\AsteroidCubeRotation.cs" />
-    <Compile Include="Gameplay\Components\AnimationComponent.cs" />
-    <Compile Include="Utf\Anm\ObjectMap.cs" />
-    <Compile Include="Utf\Anm\JointMap.cs" />
-    <Compile Include="GameData\Items\AnimationEquipment.cs" />
-    <Compile Include="FontManager.cs" />
-    <Compile Include="Utf\Cmp\MaterialAnimCollection.cs" />
-    <Compile Include="Utf\Cmp\MaterialAnim.cs" />
-    <Compile Include="Render\DynamicLight.cs" />
-    <Compile Include="Render\SystemLighting.cs" />
-    <Compile Include="Thn\ThnLightProps.cs" />
-    <Compile Include="Thn\Cutscene.cs" />
-    <Compile Include="Thn\ThnCamera.cs" />
-    <Compile Include="Thn\ThnCameraTransform.cs" />
-    <Compile Include="Fx\Appearances\FxMeshAppearance.cs" />
-    <Compile Include="Thn\ParameterCurve.cs" />
-    <Compile Include="Thn\MotionPath.cs" />
-    <Compile Include="Render\ShaderCaps.cs" />
-    <Compile Include="Render\Materials\NomadMaterial.cs" />
-    <Compile Include="Gameplay\Components\ShipPhysicsComponent.cs" />
-    <Compile Include="InputManager.cs" />
-    <Compile Include="InputAction.cs" />
-    <Compile Include="Gameplay\Components\PowerCoreComponent.cs" />
-    <Compile Include="Gameplay\Components\ThrusterComponent.cs" />
-    <Compile Include="GameData\Items\ThrusterEquipment.cs" />
-    <Compile Include="AttachedEffect.cs" />
-    <Compile Include="Render\PolylineRender.cs" />
-    <Compile Include="GameStates\RoomGameplay.cs" />
-    <Compile Include="GameData\BaseRoom.cs" />
-    <Compile Include="GameData\Base.cs" />
-    <Compile Include="Gameplay\Components\DockComponent.cs" />
-    <Compile Include="GameData\Items\PowerEquipment.cs" />
-    <Compile Include="Interface\DebugDrawing.cs" />
-    <Compile Include="Gameplay\GameSession.cs" />
-    <Compile Include="Utf\Dfm\DfmVertex.cs" />
-    <Compile Include="Render\CharacterRenderer.cs" />
-    <Compile Include="Utf\Dfm\DfmHardpoint.cs" />
-    <Compile Include="Gameplay\PIDController.cs" />
-    <Compile Include="CircularBuffer.cs" />
-    <Compile Include="Interface\DebugGraph.cs" />
-    <Compile Include="Gameplay\Components\AutopilotComponent.cs" />
-    <Compile Include="GameData\DockSphere.cs" />
-    <Compile Include="GameData\DockAction.cs" />
-    <Compile Include="Gameplay\Components\TradelaneMoveComponent.cs" />
-    <Compile Include="Gameplay\GameMessageKind.cs" />
-    <Compile Include="Gameplay\Components\AsteroidFieldComponent.cs" />
-    <Compile Include="Net\NetConstants.cs" />
-    <Compile Include="Net\GameClient.cs" />
-    <Compile Include="Net\LocalServerInfo.cs" />
-    <Compile Include="Interface\Animations\FlyInRight.cs" />
-    <Compile Include="Interface\Animations\FlyInLeft.cs" />
-    <Compile Include="Interface\Animations\FlyOutLeft.cs" />
-    <Compile Include="Interface\GridControl.cs" />
-    <Compile Include="Resources.cs" />
-    <Compile Include="Net\Protocol\AuthenticationKind.cs" />
-    <Compile Include="Net\Protocol\CharacterSelectInfo.cs" />
-    <Compile Include="Net\Protocol\NetPacking.cs" />
-    <Compile Include="Net\Protocol\Packets.cs" />
-    <Compile Include="Net\Server\PlayerAccount.cs" />
-    <Compile Include="Net\Server\GameServer.cs" />
-    <Compile Include="Net\Server\ServerDatabase.cs" />
-    <Compile Include="Net\Server\NetPlayer.cs" />
-    <Compile Include="Net\Server\ServerCharacter.cs" />
-    <Compile Include="Render\PointLight.cs" />
-    <Compile Include="Utf\UtfLoader.cs" />
-    <Compile Include="Render\Materials\NormalDebugMaterial.cs" />
-    <Compile Include="Fx\NodeReference.cs" />
-    <Compile Include="Gameplay\Components\WeaponControlComponent.cs" />
-    <Compile Include="Gameplay\Components\WeaponComponent.cs" />
-    <Compile Include="GameData\Items\GunEquipment.cs" />
-    <Compile Include="Gameplay\Components\PhysicsComponent.cs" />
-    <Compile Include="JThreads.cs" />
-    <Compile Include="Utf\Vms\VmsFile.cs" />
-    <Compile Include="LightBitfield.cs" />
-    <Compile Include="Gameplay\Components\UpdateSParamComponent.cs" />
-    <Compile Include="GameStates\LuaMenu.cs" />
-    <Compile Include="Interface\Parser.cs" />
-    <Compile Include="Interface\MatrixCamera.cs" />
-    <Compile Include="Render\FOVUtil.cs" />
-    <Compile Include="Interface\Maneuver.cs" />
-    <Compile Include="VertexResource.cs" />
-    <Compile Include="..\CommonVersion.cs">
-      <Link>Properties\CommonVersion.cs</Link>
-    </Compile>
-    <Compile Include="Utf\Cmp\VMeshWire.cs" />
-    <Compile Include="Thn\Enums\AttachFlags.cs" />
-    <Compile Include="Thn\Enums\EntityTypes.cs" />
-    <Compile Include="Thn\Enums\SoundFlags.cs" />
-    <Compile Include="Thn\Enums\EventTypes.cs" />
-    <Compile Include="Thn\Enums\ThnObjectFlags.cs" />
-    <Compile Include="Thn\Enums\LightTypes.cs" />
-    <Compile Include="Thn\Enums\FogModes.cs" />
-    <Compile Include="Thn\Enums\TargetTypes.cs" />
-    <Compile Include="Thn\ThnEnum.cs" />
-    <Compile Include="Thn\Events\ThnEventRunner.cs" />
-    <Compile Include="Thn\Events\AttachEntityRunner.cs" />
-    <Compile Include="Thn\Events\StartFogPropAnimRunner.cs" />
-    <Compile Include="Thn\Events\StartPathAnimationRunner.cs" />
-    <Compile Include="Thn\Events\StartPSysPropAnimRunner.cs" />
-    <Compile Include="Thn\Events\StartSpatialPropAnimRunner.cs" />
-    <Compile Include="Thn\Events\StartMotionRunner.cs" />
-    <Compile Include="Gameplay\ProjectileManager.cs" />
-    <Compile Include="GameData\Items\MunitionEquip.cs" />
-    <Compile Include="Render\ProjectileRenderer.cs" />
-    <Compile Include="Utf\Cmp\CmpCameraInfo.cs" />
-    <Compile Include="GameStates\LoadingScreen.cs" />
-    <Compile Include="Utf\Dfm\DfmConstructs.cs" />
-    <Compile Include="Thn\ThnSound.cs" />
-    <Compile Include="Thn\Events\StartSoundRunner.cs" />
-    <Compile Include="Thn\ThnAudioProps.cs" />
-    <Compile Include="Gameplay\MissionRuntime.cs" />
-    <Compile Include="FLHash.cs" />
-    <Compile Include="Utf\Audio\VoiceUtf.cs" />
-    <Compile Include="GameData\Market\ShipPackage.cs" />
-    <Compile Include="GameData\Market\SoldShip.cs" />
-    <Compile Include="GameData\FuseResources.cs" />
-    <Compile Include="Gameplay\Components\FuseRunnerComponent.cs" />
-    <Compile Include="Fx\ParticleEffectPool.cs" />
-    <Compile Include="Net\Protocol\Packets.CharacterList.cs" />
-    <Compile Include="Gameplay\ServerWorld.cs" />
-    <Compile Include="Gameplay\Components\ShipInputComponent.cs" />
-    <Compile Include="Render\StaticBillboards.cs" />
-    <Compile Include="Render\DfmSkinning.cs" />
+    <PackageReference Include="NLua" Version="1.4.27" />
   </ItemGroup>
+
   <ItemGroup>
-    <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
-    <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.vs" />
-    <EmbeddedResource Include="Shaders\Basic_PositionNormalColorTexture.vs" />
-    <EmbeddedResource Include="Shaders\Nebula_PositionColorTexture.frag" />
-    <EmbeddedResource Include="Shaders\Basic_PositionNormalTextureTwo.vs" />
-    <EmbeddedResource Include="Shaders\Masked2DetailMapMaterial.frag" />
-    <EmbeddedResource Include="Shaders\PositionTextureFlip.vs" />
-    <EmbeddedResource Include="Shaders\DetailMap2Dm1Msk2PassMaterial.frag" />
-    <EmbeddedResource Include="Shaders\DetailMapMaterial.frag" />
-    <EmbeddedResource Include="Shaders\AtmosphereMaterial_PositionTexture.frag" />
-    <EmbeddedResource Include="Shaders\Atmosphere.vs" />
-    <EmbeddedResource Include="Shaders\Billboard.vs" />
-    <EmbeddedResource Include="Shaders\Billboard.frag" />
-    <EmbeddedResource Include="Shaders\NebulaInterior.frag" />
-    <EmbeddedResource Include="Shaders\IllumDetailMapMaterial.frag" />
-    <EmbeddedResource Include="Shaders\sun_radial.frag" />
-    <EmbeddedResource Include="Shaders\sun_spine.frag" />
-    <EmbeddedResource Include="Shaders\PositionColorTexture.vs" />
-    <EmbeddedResource Include="Shaders\lighting.inc" />
-    <EmbeddedResource Include="Shaders\AsteroidBand.vs" />
+    <Folder Include="Properties" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Shaders\AsteroidBand.frag" />
     <EmbeddedResource Include="Shaders\AsteroidBand.frag" />
-    <EmbeddedResource Include="Shaders\Basic_PositionTexture.vs" />
-    <EmbeddedResource Include="Shaders\nebula_extpuff.frag" />
-    <EmbeddedResource Include="Shaders\blend_overlay.inc" />
-    <EmbeddedResource Include="Shaders\NebulaInterior.vs" />
-    <EmbeddedResource Include="Shaders\physicsdebug.frag" />
-    <EmbeddedResource Include="Shaders\physicsdebug.vs" />
-    <EmbeddedResource Include="Shaders\gauge_mask.png" />
-    <EmbeddedResource Include="Shaders\NomadMaterial.frag" />
-    <EmbeddedResource Include="Shaders\Nomad_PositionNormalTexture.vs" />
-    <EmbeddedResource Include="Shaders\Polyline.vs" />
-    <EmbeddedResource Include="Shaders\DepthPrepass_Normal.vs" />
-    <EmbeddedResource Include="Shaders\DepthPrepass_Normal.frag" />
-    <EmbeddedResource Include="Shaders\DepthPrepass_AlphaTest.vs" />
-    <EmbeddedResource Include="Shaders\DepthPrepass_AlphaTest.frag" />
-    <EmbeddedResource Include="Shaders\lightingcull.glcompute" />
-    <EmbeddedResource Include="Shaders\Normals_PositionNormal.vs" />
-    <EmbeddedResource Include="Shaders\Normals.frag" />
+    <None Remove="Shaders\AsteroidBand.vs" />
+    <EmbeddedResource Include="Shaders\AsteroidBand.vs" />
+    <None Remove="Shaders\Atmosphere.vs" />
+    <EmbeddedResource Include="Shaders\Atmosphere.vs" />
+    <None Remove="Shaders\AtmosphereMaterial_PositionTexture.frag" />
+    <EmbeddedResource Include="Shaders\AtmosphereMaterial_PositionTexture.frag" />
+    <None Remove="Shaders\Basic_Fragment.frag" />
+    <EmbeddedResource Include="Shaders\Basic_Fragment.frag" />
+    <None Remove="Shaders\Basic_PositionColor.vs" />
     <EmbeddedResource Include="Shaders\Basic_PositionColor.vs" />
-    <EmbeddedResource Include="Shaders\Particle.vs" />
-    <EmbeddedResource Include="Shaders\sun.vs" />
-    <EmbeddedResource Include="Shaders\nebula_extpuff.vs" />
+    <None Remove="Shaders\Basic_PositionNormalColorTexture.vs" />
+    <EmbeddedResource Include="Shaders\Basic_PositionNormalColorTexture.vs" />
+    <None Remove="Shaders\Basic_PositionNormalTexture.vs" />
+    <EmbeddedResource Include="Shaders\Basic_PositionNormalTexture.vs" />
+    <None Remove="Shaders\Basic_PositionNormalTextureTwo.vs" />
+    <EmbeddedResource Include="Shaders\Basic_PositionNormalTextureTwo.vs" />
+    <None Remove="Shaders\Basic_PositionTexture.vs" />
+    <EmbeddedResource Include="Shaders\Basic_PositionTexture.vs" />
+    <None Remove="Shaders\Basic_Skinned.vs" />
     <EmbeddedResource Include="Shaders\Basic_Skinned.vs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj">
-      <Project>{C7A37830-B878-4008-A988-D7294D47F44D}</Project>
-      <Name>LibreLancer.Base</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\LibreLancer.Media\LibreLancer.Media.csproj">
-      <Project>{38F87B47-C903-477A-A9A3-6AD1A2CE1C09}</Project>
-      <Name>LibreLancer.Media</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\LibreLancer.Thorn\LibreLancer.Thorn.csproj">
-      <Project>{1D0655D3-D4BC-4155-B180-ABD09FF47BD2}</Project>
-      <Name>LibreLancer.Thorn</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj">
-      <Project>{6967FE1C-5953-4416-889C-FF10AE1F7DD1}</Project>
-      <Name>LibreLancer.ImageLib</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\extern\lidgren-network-gen3\Lidgren.Network\Lidgren.Network.csproj">
-      <Project>{49BA1C69-6104-41AC-A5D8-B54FA9F696E8}</Project>
-      <Name>Lidgren.Network</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\LibreLancer.Physics\LibreLancer.Physics.csproj">
-      <Project>{C2ACC8B3-1805-45D2-B32B-CCBA545AA09F}</Project>
-      <Name>LibreLancer.Physics</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\LibreLancer.Data\LibreLancer.Data.csproj">
-      <Project>{F89CC613-0C7A-4936-9D79-86CBBF26593E}</Project>
-      <Name>LibreLancer.Data</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.   -->
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  <ItemGroup>
+    <None Remove="Shaders\Billboard.frag" />
+    <EmbeddedResource Include="Shaders\Billboard.frag" />
+    <None Remove="Shaders\Billboard.vs" />
+    <EmbeddedResource Include="Shaders\Billboard.vs" />
+    <None Remove="Shaders\blend_overlay.inc" />
+    <EmbeddedResource Include="Shaders\blend_overlay.inc" />
+    <None Remove="Shaders\DepthPrepass_AlphaTest.frag" />
+    <EmbeddedResource Include="Shaders\DepthPrepass_AlphaTest.frag" />
+    <None Remove="Shaders\DepthPrepass_AlphaTest.vs" />
+    <EmbeddedResource Include="Shaders\DepthPrepass_AlphaTest.vs" />
+    <None Remove="Shaders\DepthPrepass_Normal.frag" />
+    <EmbeddedResource Include="Shaders\DepthPrepass_Normal.frag" />
+    <None Remove="Shaders\DepthPrepass_Normal.vs" />
+    <EmbeddedResource Include="Shaders\DepthPrepass_Normal.vs" />
+    <None Remove="Shaders\DetailMap2Dm1Msk2PassMaterial.frag" />
+    <EmbeddedResource Include="Shaders\DetailMap2Dm1Msk2PassMaterial.frag" />
+    <None Remove="Shaders\DetailMapMaterial.frag" />
+    <EmbeddedResource Include="Shaders\DetailMapMaterial.frag" />
+    <None Remove="Shaders\gauge_mask.png" />
+    <EmbeddedResource Include="Shaders\gauge_mask.png" />
+    <None Remove="Shaders\IllumDetailMapMaterial.frag" />
+    <EmbeddedResource Include="Shaders\IllumDetailMapMaterial.frag" />
+    <None Remove="Shaders\lighting.inc" />
+    <EmbeddedResource Include="Shaders\lighting.inc" />
+    <None Remove="Shaders\lightingcull.glcompute" />
+    <EmbeddedResource Include="Shaders\lightingcull.glcompute" />
+    <None Remove="Shaders\Masked2DetailMapMaterial.frag" />
+    <EmbeddedResource Include="Shaders\Masked2DetailMapMaterial.frag" />
+    <None Remove="Shaders\nebula_extpuff.frag" />
+    <EmbeddedResource Include="Shaders\nebula_extpuff.frag" />
+    <None Remove="Shaders\nebula_extpuff.vs" />
+    <EmbeddedResource Include="Shaders\nebula_extpuff.vs" />
+    <None Remove="Shaders\Nebula_PositionColorTexture.frag" />
+    <EmbeddedResource Include="Shaders\Nebula_PositionColorTexture.frag" />
+    <None Remove="Shaders\NebulaInterior.frag" />
+    <EmbeddedResource Include="Shaders\NebulaInterior.frag" />
+    <None Remove="Shaders\NebulaInterior.vs" />
+    <EmbeddedResource Include="Shaders\NebulaInterior.vs" />
+    <None Remove="Shaders\Nomad_PositionNormalTexture.vs" />
+    <EmbeddedResource Include="Shaders\Nomad_PositionNormalTexture.vs" />
+    <None Remove="Shaders\NomadMaterial.frag" />
+    <EmbeddedResource Include="Shaders\NomadMaterial.frag" />
+    <None Remove="Shaders\Normals.frag" />
+    <EmbeddedResource Include="Shaders\Normals.frag" />
+    <None Remove="Shaders\Normals_PositionNormal.vs" />
+    <EmbeddedResource Include="Shaders\Normals_PositionNormal.vs" />
+    <None Remove="Shaders\Particle.vs" />
+    <EmbeddedResource Include="Shaders\Particle.vs" />
+    <None Remove="Shaders\physicsdebug.frag" />
+    <EmbeddedResource Include="Shaders\physicsdebug.frag" />
+    <None Remove="Shaders\physicsdebug.vs" />
+    <EmbeddedResource Include="Shaders\physicsdebug.vs" />
+    <None Remove="Shaders\Polyline.vs" />
+    <EmbeddedResource Include="Shaders\Polyline.vs" />
+    <None Remove="Shaders\PositionColorTexture.vs" />
+    <EmbeddedResource Include="Shaders\PositionColorTexture.vs" />
+    <None Remove="Shaders\PositionTextureFlip.vs" />
+    <EmbeddedResource Include="Shaders\PositionTextureFlip.vs" />
+    <None Remove="Shaders\sun.vs" />
+    <EmbeddedResource Include="Shaders\sun.vs" />
+    <None Remove="Shaders\sun_radial.frag" />
+    <EmbeddedResource Include="Shaders\sun_radial.frag" />
+    <None Remove="Shaders\sun_spine.frag" />
+    <EmbeddedResource Include="Shaders\sun_spine.frag" />
+    <None Remove="Interface\Default\baseside.lua" />
     <EmbeddedResource Include="Interface\Default\baseside.lua" />
+    <None Remove="Interface\Default\baseside.xml" />
     <EmbeddedResource Include="Interface\Default\baseside.xml" />
+    <None Remove="Interface\Default\hud.lua" />
     <EmbeddedResource Include="Interface\Default\hud.lua" />
-    <EmbeddedResource Include="Interface\Default\hud.xml" />
+    <None Remove="Interface\Default\loading.xml" />
     <EmbeddedResource Include="Interface\Default\loading.xml" />
+    <None Remove="Interface\Default\hud.xml" />
+    <EmbeddedResource Include="Interface\Default\hud.xml" />
+    <None Remove="Interface\Default\mainmenu.lua" />
     <EmbeddedResource Include="Interface\Default\mainmenu.lua" />
+    <None Remove="Interface\Default\mainmenu.xml" />
     <EmbeddedResource Include="Interface\Default\mainmenu.xml" />
+    <None Remove="Interface\Default\modal.lua" />
     <EmbeddedResource Include="Interface\Default\modal.lua" />
+    <None Remove="Interface\Default\modal.xml" />
     <EmbeddedResource Include="Interface\Default\modal.xml" />
+    <None Remove="Interface\Default\navbox.lua" />
     <EmbeddedResource Include="Interface\Default\navbox.lua" />
+    <None Remove="Interface\Default\options.lua" />
     <EmbeddedResource Include="Interface\Default\options.lua" />
+    <None Remove="Interface\Default\resources.xml" />
     <EmbeddedResource Include="Interface\Default\resources.xml" />
+    <None Remove="Interface\Default\stylesheet.xml" />
     <EmbeddedResource Include="Interface\Default\stylesheet.xml" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Utf\Ale\AleCrc.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>AleCrc.cs</LastGenOutput>
-    </None>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup />
-  <ItemGroup>
-    <Folder Include="Interface\Default\" />
-    <Folder Include="Thn\Enums\" />
-    <Folder Include="Thn\Events\" />
-    <Folder Include="Utf\Audio\" />
-    <Folder Include="GameData\Market\" />
-  </ItemGroup>
-  <PropertyGroup>
-    <ShouldIncludeNativeLua>False</ShouldIncludeNativeLua>
-  </PropertyGroup>
-  <Import Project="..\packages\KeraLua.1.0.22\build\net45\KeraLua.targets" Condition="Exists('..\packages\KeraLua.1.0.22\build\net45\KeraLua.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\KeraLua.1.0.22\build\net45\KeraLua.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KeraLua.1.0.22\build\net45\KeraLua.targets'))" />
-  </Target>
+
 </Project>

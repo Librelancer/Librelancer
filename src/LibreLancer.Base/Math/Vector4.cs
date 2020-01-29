@@ -1441,6 +1441,15 @@ namespace LibreLancer
 
         #region Operators
 
+        public static implicit operator System.Numerics.Vector4(Vector4 self)
+        {
+            return new System.Numerics.Vector4(self.X, self.Y, self.Z, self.W);
+        }
+
+        public static implicit operator Vector4(System.Numerics.Vector4 self)
+        {
+            return new Vector4(self.X, self.Y, self.Z, self.W);
+        }
         /// <summary>
         /// Adds two instances.
         /// </summary>

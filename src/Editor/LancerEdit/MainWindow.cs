@@ -105,14 +105,14 @@ namespace LancerEdit
             Keyboard.KeyDown += Keyboard_KeyDown;
 
             //TODO: Icon-setting code very messy
-            int w, h, c;
+            /*int w, h, c;
             var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("LancerEdit.reactor_64.png");
             var bytes = new byte[stream.Length];
             stream.Read(bytes, 0, (int)stream.Length);
             StbSharp.Stb.stbi_set_flip_vertically_on_load(0);
             var img = StbSharp.Stb.stbi_load_from_memory(bytes, out w, out h, out c, StbSharp.Stb.STBI_rgb_alpha);
             StbSharp.Stb.stbi_set_flip_vertically_on_load(1);
-            SetWindowIcon(w, h, img);
+            SetWindowIcon(w, h, img);*/
 
             //Open passed in files!
             if(InitOpenFile != null)

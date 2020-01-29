@@ -5,9 +5,12 @@
 using System;
 using System.IO;
 using Eto.Forms;
-using Eto.GtkSharp.Forms.Controls;
 using LibreLancer;
 using LibreLancer.Dialogs;
+#if LINUX
+using Eto.GtkSharp.Forms.Controls;
+#endif
+
 namespace Launcher
 {
     static class Program
@@ -20,8 +23,7 @@ namespace Launcher
         static void Main(string[] args)
         {
             if (!WindowsChecks()) return;
-            if (Platform.RunningOS == OS.Linux)
-                GtkStyles.FixSliders();
+            GtkStyles.Apply();
             new Application().Run(new MainWindow());
         }
 
@@ -42,6 +44,14 @@ namespace Launcher
 
     static class GtkStyles
     {
+
+        public static void Apply()
+        {
+#if LINUX
+            FixSliders();
+#endif
+        }
+#if LINUX
         public static void FixSliders()
         {
             Eto.Style.Add<SliderHandler>("volslider", widget =>
@@ -49,5 +59,6 @@ namespace Launcher
                     ((Gtk.HScale) widget.Control.Child).DrawValue = false;
                 });
         }
+#endif
     }
 }

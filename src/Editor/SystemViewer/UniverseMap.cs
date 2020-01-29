@@ -16,8 +16,8 @@ namespace SystemViewer
             if (imageId != -1)
             {
                 var wpos = (Vector2)ImGui.GetWindowPos();
-                var a = wpos +  ImGui.GetWindowContentRegionMin();
-                var b = wpos +  ImGui.GetWindowContentRegionMax();
+                var a = wpos +  (Vector2)ImGui.GetWindowContentRegionMin();
+                var b = wpos +  (Vector2)ImGui.GetWindowContentRegionMax();
                 var drawList = ImGui.GetWindowDrawList();
                 drawList.AddImage((IntPtr) imageId, a, b, new Vector2(0, 1), new Vector2(1, 0));
             }

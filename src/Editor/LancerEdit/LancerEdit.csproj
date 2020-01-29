@@ -1,140 +1,39 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{38B159EB-CF44-4A4F-948A-E238D7FAE28E}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
-    <RootNamespace>LancerEdit</RootNamespace>
-    <AssemblyName>LancerEdit</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <ApplicationIcon>..\..\..\editoricons\appicon\reactor.ico</ApplicationIcon>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>..\..\..\bin\Debug</OutputPath>
-    <DefineConstants>DEBUG;</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <ConsolePause>false</ConsolePause>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <Optimize>true</Optimize>
-    <OutputPath>..\..\..\bin\Release</OutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <ConsolePause>false</ConsolePause>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="TeximpNet">
-      <HintPath>..\..\packages\TeximpNet.1.2.0\lib\net40\TeximpNet.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Xml.Serialization" />
-    <Reference Include="System.Xml" />
+    <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj" />
+    <ProjectReference Include="..\..\LibreLancer.Data\LibreLancer.Data.csproj" />
+    <ProjectReference Include="..\..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj" />
+    <ProjectReference Include="..\..\LibreLancer.Media\LibreLancer.Media.csproj" />
+    <ProjectReference Include="..\..\LibreLancer\LibreLancer.csproj" />
+    <ProjectReference Include="..\LibreLancer.ImUI\LibreLancer.ImUI.csproj" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="IDTable.cs" />
-    <Compile Include="JointMapView.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="MainWindow.cs" />
-    <Compile Include="DetectFileType.cs" />
-    <Compile Include="EditableUtf.cs" />
-    <Compile Include="UtfTab.cs" />
-    <Compile Include="TextureViewer.cs" />
-    <Compile Include="DataEditors.cs" />
-    <Compile Include="ResourcesTab.cs" />
-    <Compile Include="MissingReference.cs" />
-    <Compile Include="AleViewer.cs" />
-    <Compile Include="ResourceDetection.cs" />
-    <Compile Include="LookAtCamera.cs" />
-    <Compile Include="TextureImport.cs" />
-    <Compile Include="AleViewer.Icons.cs" />
-    <Compile Include="UtfTab.Popups.cs" />
-    <Compile Include="Model\EmptyLib.cs" />
-    <Compile Include="Model\GizmoRender.cs" />
-    <Compile Include="Model\ColladaSupport.cs" />
-    <Compile Include="Model\ColladaTab.cs" />
-    <Compile Include="Model\ModelViewer.cs" />
-    <Compile Include="Model\ModelViewer.Viewport.cs" />
-    <Compile Include="EditorTab.cs" />
-    <Compile Include="Viewport3D.cs" />
-    <Compile Include="DefaultTexture.cs" />
-    <Compile Include="Model\ModelNodes.cs" />
-    <Compile Include="Model\HardpointInformation.cs" />
-    <Compile Include="Model\ColladaExport.cs" />
-    <Compile Include="Model\DumpObject.cs" />
-    <Compile Include="..\..\CommonVersion.cs">
-      <Link>Properties\CommonVersion.cs</Link>
+    <Compile Include="..\..\..\extern\Collada141\collada_schema_1_4_1_ms.cs">
+      <Link>collada_schema_1_4_1_ms.cs</Link>
     </Compile>
-    <Compile Include="Model\Parts.cs" />
-    <Compile Include="Model\ModelViewer.HardpointEditor.cs" />
-    <Compile Include="Model\ModelViewer.PartEditor.cs" />
-    <Compile Include="InfocardBrowserTab.cs" />
-    <Compile Include="InfocardControl.cs" />
-    <Compile Include="EditorConfiguration.cs" />
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj">
-      <Project>{C7A37830-B878-4008-A988-D7294D47F44D}</Project>
-      <Name>LibreLancer.Base</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\ImGuiNet.Build451\ImGuiNet.Build451.csproj">
-      <Project>{D24DBB87-1E3D-4080-ABFB-B21CBDDACD87}</Project>
-      <Name>ImGuiNet.Build451</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\LibreLancer\LibreLancer.csproj">
-      <Project>{C1D53477-0117-48EF-A13D-A0225F0F50CA}</Project>
-      <Name>LibreLancer</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\LibreLancer.Media\LibreLancer.Media.csproj">
-      <Project>{38F87B47-C903-477A-A9A3-6AD1A2CE1C09}</Project>
-      <Name>LibreLancer.Media</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj">
-      <Project>{6967FE1C-5953-4416-889C-FF10AE1F7DD1}</Project>
-      <Name>LibreLancer.ImageLib</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\extern\Collada141\Collada141.csproj">
-      <Project>{7895D6CA-28F4-47D0-8C57-03B4D05DF9F6}</Project>
-      <Name>Collada141</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\LibreLancer.ImUI\LibreLancer.ImUI.csproj">
-      <Project>{81A8703E-031C-422C-804B-34B3BAF834A6}</Project>
-      <Name>LibreLancer.ImUI</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\LibreLancer.Data\LibreLancer.Data.csproj">
-      <Project>{F89CC613-0C7A-4936-9D79-86CBBF26593E}</Project>
-      <Name>LibreLancer.Data</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\LibreLancer.Physics\LibreLancer.Physics.csproj">
-      <Project>{C2ACC8B3-1805-45D2-B32B-CCBA545AA09F}</Project>
-      <Name>LibreLancer.Physics</Name>
-    </ProjectReference>
+    <Folder Include="Properties" />
   </ItemGroup>
-  <ItemGroup />
+
   <ItemGroup>
-    <None Include="packages.config" />
-    <None Include="LancerEdit.targets" />
+    <PackageReference Include="TeximpNet" Version="1.4.1" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Model\" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="defaulttexture.dds" />
-    <EmbeddedResource Include="..\..\..\editoricons\appicon\reactor_64.png">
-      <Link>reactor_64.png</Link>
-    </EmbeddedResource>
-  </ItemGroup>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\..\packages\TeximpNet.1.2.0\build\TeximpNet.targets" Condition="Exists('..\..\packages\TeximpNet.1.2.0\build\TeximpNet.targets')" />
-  <Import Project="$(MSBuildProjectDirectory)\LancerEdit.targets" />
+
 </Project>
