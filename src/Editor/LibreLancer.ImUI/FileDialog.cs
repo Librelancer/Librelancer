@@ -186,7 +186,7 @@ namespace LibreLancer.ImUI
         {
             if (String.IsNullOrEmpty(lastOpen))
                 lastOpen = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            var ret = KDialogProcess(string.Format("--getopenfilename \"{0}\" '{1}'", lastOpen, KDialogFilter(filters)));
+            var ret = KDialogProcess(string.Format("--getopenfilename \"{0}\" \"{1}\"", lastOpen, KDialogFilter(filters)));
             lastOpen = ret ?? lastOpen;
             return ret;
         }
