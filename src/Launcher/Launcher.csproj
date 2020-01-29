@@ -4,7 +4,9 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
-
+  <PropertyGroup>
+    <RestoreAdditionalProjectSources>https://www.myget.org/F/eto/api/v3/index.json</RestoreAdditionalProjectSources>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Eto.Forms" Version="2.5.0-rc.5" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
