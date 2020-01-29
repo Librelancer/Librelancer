@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -470,8 +470,10 @@ namespace LibreLancer
 		{
 			var cam = Objects[name];
 			camera.Transform = cam.Camera;
-		}
-		void ProcessSetCamera(ThnEvent ev)
+            var sound = game.GetService<SoundManager>();
+            sound.ResetListenerVelocity();
+        }
+        void ProcessSetCamera(ThnEvent ev)
 		{
 			SetCamera((string)ev.Targets[1]);
 		}

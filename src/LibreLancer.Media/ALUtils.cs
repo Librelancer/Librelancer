@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -34,7 +34,9 @@ namespace LibreLancer.Media
         public static float LinearToAlGain(float linear)
         {
             if(linear <= 0) return float.MinValue;
-            return (float) Math.Pow(MathHelper.Clamp(linear, 0, 1), 2);
+            var pow =  (float) Math.Pow(MathHelper.Clamp(linear, 0, 1), 2);
+            Console.WriteLine(pow);
+            return pow;
         }
         
         public static float ClampVolume(float v) => MathHelper.Clamp(v, 0.0001f, 1f);

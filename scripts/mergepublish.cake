@@ -9,8 +9,22 @@ void CopyFilesRecursively (DirectoryInfo source, DirectoryInfo target) {
     }
 }
 
-void MergePublish(string sourceDir, string outputDir)
+void DeleteFilesGlob(string dir, params string[] globs)
 {
+	var inf = new DirectoryInfo(dir);
+	foreach(var glob in globs) {
+		foreach(var f in inf.GetFiles(glob)) {
+			f.Delete();
+		}
+	}
+}
+
+void MergePublish(string sourceDir, string outputDir, string rid)
+{
+
+var splitRID = rid.Split('-');
+var win32 = splitRID[0].ToLowerInvariant() == "win7";
+var arch = splitRID[splitRID.Length - 1].ToLowerInvariant();
 
 Func<string, string> CalculateMD5 = (filename) =>
 {
@@ -51,14 +65,17 @@ foreach(var dir in new DirectoryInfo(sourceDir).GetDirectories()) {
     CopyFilesRecursively(dir, output);
 }
 Information("Cleaning");
-foreach(var f in output.GetFiles("*.pdb"))
-    f.Delete();
-foreach(var f in output.GetFiles("*.json"))
-    f.Delete();
-if(IO.File.Exists(IO.Path.Combine(outputDir, "createdump")))
-    IO.File.Delete(IO.Path.Combine(outputDir, "createdump"));
-if(IO.File.Exists(IO.Path.Combine(outputDir, "SOS_README.md")))
-    IO.File.Delete(IO.Path.Combine(outputDir, "SOS_README.md"));
+
+DeleteFilesGlob(outputDir,
+	"*.pdb",
+	"*.json",
+	"createdump",
+	"SOS_README.md"
+);
+
+if(!win32 || arch == "x64") EnsureDirDeleted(PathCombine(outputDir, "x86"));
+if(!win32 || arch =="x86") EnsureDirDeleted(PathCombine(outputDir, "x64"));
+	
 Information("Publish Complete");
 }
 

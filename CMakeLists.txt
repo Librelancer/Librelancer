@@ -21,10 +21,13 @@ add_subdirectory(src/cimgui_ext cimgui)
 add_subdirectory(src/lancerdecode lancerdecode)
 add_subdirectory(src/pangogame pangogame)
 add_subdirectory(extern/BulletSharpPInvoke/libbulletc bulletc)
-
+if (WIN32)
+  add_subdirectory(src/win32dialogs win32dialogs)
+endif()
 # nvtt has different project structure
 # binary handled by nuget for windows
 if(NOT WIN32)
 	add_subdirectory(src/nvtt_shared nvttso)
     add_subdirectory(src/lua53 lua53)
 endif()
+

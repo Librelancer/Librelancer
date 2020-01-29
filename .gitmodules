@@ -35,3 +35,6 @@
 	path = extern/lua
 	url = https://github.com/lua/lua
 	branch = v5.3
+[submodule "extern/nativefiledialog"]
+	path = extern/nativefiledialog
+	url = https://github.com/mlabbe/nativefiledialog

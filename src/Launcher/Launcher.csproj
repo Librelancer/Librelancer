@@ -1,28 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
-  <PropertyGroup>
-    <RestoreAdditionalProjectSources>https://www.myget.org/F/eto/api/v3/index.json</RestoreAdditionalProjectSources>
-  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="Eto.Forms" Version="2.5.0-rc.5" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(OS)' == 'Windows'">
-    <PackageReference Include="Eto.Platform.Wpf" Version="2.5.0-rc.5" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(OS)' != 'Windows'">
-    <PackageReference Include="Eto.Platform.Gtk" Version="2.5.0-rc.5" />
-  </ItemGroup>
-  <PropertyGroup Condition="'$(OS)' != 'Windows'">
-    <DefineConstants>LINUX</DefineConstants>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj" />
-    <ProjectReference Include="..\LibreLancer\LibreLancer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,6 +16,12 @@
   <ItemGroup>
     <None Remove="WMPMessage.txt" />
     <EmbeddedResource Include="WMPMessage.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Editor\LibreLancer.ImUI\LibreLancer.ImUI.csproj" />
+    <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj" />
+    <ProjectReference Include="..\LibreLancer\LibreLancer.csproj" />
   </ItemGroup>
 
 </Project>

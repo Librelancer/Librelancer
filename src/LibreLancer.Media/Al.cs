@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -61,8 +61,16 @@ namespace LibreLancer.Media
 			return b;
 		}
 
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alListener3f(int param, float value1, float value2, float value3);
+        //[DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        //public static extern void alListener3f(int param, float value1, float value2, float value3);
+        public static unsafe void alListener3f(int param, float value1, float value2, float value3)
+        {
+            float* floats = stackalloc float[3];
+            floats[0] = value1;
+            floats[1] = value2;
+            floats[2] = value3;
+            alListenerfv(param, (IntPtr)floats);
+        }
 
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
         public static extern void alListenerfv(int param, IntPtr values);

@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -87,7 +87,8 @@ namespace LibreLancer.Media
 			IntPtr dev = Alc.alcOpenDevice(null);
 			IntPtr ctx = Alc.alcCreateContext(dev, IntPtr.Zero);
 			Alc.alcMakeContextCurrent(ctx);
-            Al.alListenerf(Al.AL_GAIN, ALUtils.LinearToAlGain(_masterVolume));
+            Al.alListenerf(Al.AL_GAIN, ALUtils.ClampVolume(ALUtils.LinearToAlGain(_masterVolume)));
+            Al.CheckErrors();
             for (int i = 0; i < MAX_SOURCES; i++)
 			{
 				freeSources.Enqueue(Al.GenSource());

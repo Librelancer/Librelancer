@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -65,7 +65,7 @@ namespace LibreLancer
 		double totalTime = 0;
 		public override void Update(TimeSpan time)
 		{
-            if (Parent.RenderComponent is CharacterRenderer characterRenderer)
+            if (Parent != null && Parent.RenderComponent is CharacterRenderer characterRenderer)
             {
                 characterRenderer.Skeleton.UpdateScripts(time);
                 return;

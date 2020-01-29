@@ -1,5 +1,6 @@
 # Folders
 obj/
+out/
 [Bb]in/
 [Dd]ebug/
 [Rr]elease/
@@ -22,6 +23,7 @@ tools/**
 # Visual Studio
 *.suo
 src/CommonVersion.props
+launchSettings.json
 *.pdb
 *.exp
 *.iobj

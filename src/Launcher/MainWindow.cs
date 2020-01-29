@@ -1,170 +1,166 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
 using System;
 using System.Diagnostics;
 using System.IO;
-using Eto.Forms;
-using Eto.Drawing;
+using LibreLancer;
 using LibreLancer.Exceptions;
+using LibreLancer.ImUI;
+using ImGuiNET;
 
 namespace Launcher
 {
-    public class MainWindow : Form
+    class MainWindow : Game
     {
-        LibreLancer.GameConfig config;
-        TextBox freelancerPath;
-        NumericMaskedTextBox<int> bufferWidth;
-        NumericMaskedTextBox<int> bufferHeight;
-        CheckBox skipIntroMovies;
-        Slider masterVolume;
-        Slider musicVolume;
-        Slider sfxVolume;
-        CheckBox vsync;
-        public MainWindow()
+        ImGuiHelper imGui;
+        ViewportManager Viewport;
+        Renderer2D Renderer2D;
+        public MainWindow() : base(500, 300, false)
         {
-            config = LibreLancer.GameConfig.Create();
-            Title = "Librelancer";
-            var wrap = new TableLayout();
-            wrap.Rows.Add(new TableRow(new HeaderBar()));
-            var layout = new TableLayout();
-            //Freelancer Path
-            freelancerPath = new TextBox() { Text = config.FreelancerPath };
-            var flpath = new TableLayout() { Padding = 2, Spacing = new Size(2, 0) };
-            flpath.Rows.Add(new TableRow(
-                new Label() { Text = "Freelancer Directory:", VerticalAlignment = VerticalAlignment.Center },
-                new TableCell(freelancerPath,true), 
-                new Button(FolderBrowse) {  Text = ".." }
-                ));
-            layout.Rows.Add(flpath);
-            //Width & Height
-            bufferWidth = new NumericMaskedTextBox<int>() { Value = config.BufferWidth };
-            bufferHeight = new NumericMaskedTextBox<int>() { Value = config.BufferHeight };
-            var res = new TableLayout() { Padding = 2, Spacing = new Size(2, 0) };
-            res.Rows.Add(new TableRow(
-            new Label() { Text = "Resolution:", VerticalAlignment = VerticalAlignment.Center },
-                new TableCell(bufferWidth) { ScaleWidth = true },
-            new Label() { Text = "x", VerticalAlignment = VerticalAlignment.Center },
-                new TableCell(bufferHeight) { ScaleWidth = true }));
-            layout.Rows.Add(res);
-            //Options
-            skipIntroMovies = new CheckBox() { Text = "Skip Intro Movies" };
-            if (Program.introForceDisable)
-            {
-                skipIntroMovies.Enabled = false;
-                skipIntroMovies.Checked = true;
-            }
-            else
-                skipIntroMovies.Checked = !config.IntroMovies;
-            layout.Rows.Add(skipIntroMovies);
-            masterVolume = new Slider()
-            {
-                MinValue =  0, MaxValue = 1000, Value = (int)(config.MasterVolume * 1000),
-                Orientation = Orientation.Horizontal, TickFrequency = 0, SnapToTick = false, 
-                Style = "volslider"
-            };
-            var layoutMaster = new TableLayout(
-                new TableRow(new Label() {Text = "Master Volume: ", VerticalAlignment = VerticalAlignment.Center}, masterVolume)
-            );
-            layout.Rows.Add(layoutMaster);
-            sfxVolume = new Slider()
-            {
-                MinValue =  0, MaxValue = 1000, Value = (int)(config.SfxVolume * 1000),
-                Orientation = Orientation.Horizontal, TickFrequency = 0, SnapToTick = false, 
-                Style = "volslider"
-            };
-            var layoutSfx = new TableLayout(
-                new TableRow(new Label() {Text = "Sfx Volume: ", VerticalAlignment = VerticalAlignment.Center}, sfxVolume)
-            );
-            layout.Rows.Add(layoutSfx);
-            musicVolume = new Slider()
-            {
-                MinValue =  0, MaxValue = 1000, Value = (int)(config.MusicVolume * 1000),
-                Orientation = Orientation.Horizontal, TickFrequency = 0,  SnapToTick = false,
-                Style = "volslider"
-            };
-            var layoutMusic = new TableLayout(
-                new TableRow(new Label() {Text = "Music Volume: ",  VerticalAlignment = VerticalAlignment.Center}, musicVolume)
-            );
-            layout.Rows.Add(layoutMusic);
-            vsync = new CheckBox() { Text = "VSync", Checked = config.VSync };
-            layout.Rows.Add(vsync);
-            //Spacer
-            layout.Rows.Add(new TableRow() { ScaleHeight = true });
-            //Launch
-            var end = new TableLayout() { Padding = 2, Spacing = new Size(2, 0) };
-            end.Rows.Add(new TableRow(new TableCell() { ScaleWidth = true }, new Button(LaunchClicked) { Text = "Launch" }));
-            layout.Rows.Add(end);
-            wrap.Rows.Add(new TableRow(layout) { ScaleHeight = true });
-            Content = wrap;
+
         }
-        void FolderBrowse(object sender, EventArgs e)
+        GameConfig config;
+        protected override void Load()
         {
-            using(var dlg = new SelectFolderDialog())
+            Title = "Librelancer";
+            imGui = new ImGuiHelper(this);
+            Renderer2D = new Renderer2D(RenderState);
+            Viewport = new ViewportManager(RenderState);
+            Viewport.Push(0, 0, Width, Height);
+            FileDialog.RegisterParent(this);
+            freelancerFolder = new TextBuffer(512);
+            config = GameConfig.Create();
+            freelancerFolder.SetText(config.FreelancerPath);
+            resolutionX = config.BufferWidth;
+            resolutionY = config.BufferHeight;
+            vsync = config.VSync;
+            skipIntroMovies = !config.IntroMovies;
+            if (Program.introForceDisable) skipIntroMovies = true;
+        }
+        int resolutionX = 640;
+        int resolutionY = 480;
+        bool vsync;
+        bool skipIntroMovies;
+        float masterVolume;
+        float musicVolume;
+        float sfxVolume;
+        TextBuffer freelancerFolder;
+        protected override void Draw(double elapsed)
+        {
+            Viewport.Replace(0, 0, Width, Height);
+            RenderState.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
+            RenderState.ClearAll();
+            imGui.NewFrame(elapsed);
+            Renderer2D.Start(Width, Height);
+            Renderer2D.DrawString("Arial", 16, "Librelancer", new Vector2(8), Color4.Black);
+            Renderer2D.DrawString("Arial", 16, "Librelancer", new Vector2(6), Color4.White);
+            var startY = Renderer2D.LineHeight("Arial", 16) + 8;
+            Renderer2D.Finish();
+            ImGui.PushFont(ImGuiHelper.Noto);
+            var size = (Vector2)ImGui.GetIO().DisplaySize;
+            ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - startY), ImGuiCond.Always);
+            ImGui.SetNextWindowPos(new Vector2(0, startY), ImGuiCond.Always, Vector2.Zero);
+            bool childopened = true;
+            ImGui.Begin("screen", ref childopened,
+                ImGuiWindowFlags.NoTitleBar |
+                ImGuiWindowFlags.NoSavedSettings |
+                ImGuiWindowFlags.NoBringToFrontOnFocus |
+                ImGuiWindowFlags.NoMove |
+                ImGuiWindowFlags.NoResize | 
+                ImGuiWindowFlags.NoBackground);
+            if (ImGui.BeginPopupModal("Error", ref openError, ImGuiWindowFlags.AlwaysAutoResize))
             {
-                if (Directory.Exists(freelancerPath.Text))
-                    dlg.Directory = freelancerPath.Text;
-                if(dlg.ShowDialog(this) == DialogResult.Ok)
+                ImGui.Text(errorText);
+                if (ImGui.Button("Ok")) ImGui.CloseCurrentPopup();
+                ImGui.EndPopup();
+            }
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text("Freelancer Directory: ");
+            ImGui.SameLine();
+            freelancerFolder.InputText("##folder", ImGuiInputTextFlags.None, 280);
+            ImGui.SameLine();
+            if (ImGui.Button("..."))
+            {
+                string newFolder;
+                if ((newFolder = FileDialog.ChooseFolder()) != null)
                 {
-                    freelancerPath.Text = dlg.Directory;
+                    freelancerFolder.SetText(newFolder);
                 }
             }
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text("Resolution: ");
+            ImGui.SameLine();
+            ImGui.PushItemWidth(130);
+            ImGui.InputInt("##resX", ref resolutionX, 0, 0);
+            resolutionX = MathHelper.Clamp(resolutionX, 600, 16384);
+            ImGui.SameLine();
+            ImGui.Text("x");
+            ImGui.SameLine();
+            ImGui.InputInt("##resY", ref resolutionY, 0, 0);
+            resolutionY = MathHelper.Clamp(resolutionY, 400, 16384);
+            ImGui.PopItemWidth();
+            SoundSlider("Master Volume: ", ref masterVolume);
+            SoundSlider("Music Volume: ", ref musicVolume);
+            SoundSlider("Sfx Volume: ", ref sfxVolume);
+            ImGui.Checkbox("VSync", ref vsync);
+            if (Program.introForceDisable)
+                ImGui.Text("Intro Movies Disabled");
+            else
+                ImGui.Checkbox("Skip Intro Movies", ref skipIntroMovies);
+            ImGui.Dummy(new Vector2(16));
+            ImGui.Dummy(new Vector2(1));
+            ImGui.SameLine(ImGui.GetWindowWidth() - 70);
+            if (ImGui.Button("Launch")) LaunchClicked();
+            ImGui.End();
+            ImGui.PopFont();
+            imGui.Render(RenderState);
         }
-        void LaunchClicked(object sender, EventArgs e)
+
+        string errorText = "";
+        bool openError = false;
+        void LaunchClicked()
         {
             try
             {
-                config.FreelancerPath = freelancerPath.Text;
-                config.IntroMovies = !skipIntroMovies.Checked.Value;
-                config.MasterVolume = masterVolume.Value / 1000f;
-                config.MusicVolume = musicVolume.Value / 1000f;
-                config.SfxVolume = sfxVolume.Value / 1000f;
-                config.VSync = vsync.Checked.Value;
-                config.BufferWidth = bufferWidth.Value;
-                config.BufferHeight = bufferHeight.Value;
+                config.FreelancerPath = freelancerFolder.GetText();
+                config.IntroMovies = !skipIntroMovies;
+                config.MasterVolume = masterVolume;
+                config.MusicVolume = musicVolume;
+                config.SfxVolume = sfxVolume;
+                config.VSync = vsync;
+                config.BufferWidth = resolutionX;
+                config.BufferHeight = resolutionY;
                 config.Validate();
             }
             catch (InvalidFreelancerDirectory)
             {
-                MessageBox.Show(this, "Not a valid Freelancer directory", MessageBoxType.Error);
+                ImGui.OpenPopup("Error");
+                openError = true;
+                errorText = "Invalid Freelancer Directory";
                 return;
             }
             catch (Exception)
             {
-                MessageBox.Show(this, "Invalid configuration", MessageBoxType.Error);
+                ImGui.OpenPopup("Error");
+                openError = true;
+                errorText = "Invalid Configuration";
                 return;
             }
             config.Save();
-            Environment.CurrentDirectory = Path.GetDirectoryName(typeof(MainWindow).Assembly.Location);
-            if (LibreLancer.Platform.RunningOS == LibreLancer.OS.Windows)
-                Process.Start("lancer.exe");
-            else
-                Process.Start("mono", "lancer.exe");
-            Close();
+            var p = Path.GetDirectoryName(typeof(MainWindow).Assembly.Location);
+            Process.Start(Path.Combine(p, "lancer"));
+            Exit();
         }
-    }
-
-    class HeaderBar : Drawable
-    {
-        public HeaderBar()
+        static void SoundSlider(string text, ref float flt)
         {
-            var font = new Font(SystemFont.Bold, 14);
-            var h = (int)font.MeasureString("Librelancer").Height;
-            Height = h + 10;
-            MinimumSize = new Size(0, h + 10);
-            
-            font.Dispose();
-        }
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            var brsh = new LinearGradientBrush(Color.Parse("#0072ff"), Color.Parse("#00c6ff"), new PointF(0, 0), new PointF(ClientSize.Width, 0));
-            e.Graphics.FillRectangle(brsh, new RectangleF(0, 0, this.ClientSize.Width, this.ClientSize.Height));
-            var fnt = new Font(SystemFont.Bold, 14);
-            e.Graphics.DrawText(fnt, Colors.Black, new PointF(7, 7), "Librelancer");
-            e.Graphics.DrawText(fnt, Colors.White, new PointF(5, 5), "Librelancer");
-            fnt.Dispose();
-            brsh.Dispose();
+            ImGui.PushID(text);
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text(text);
+            ImGui.SameLine();
+            ImGui.SliderFloat("##slider", ref flt, 0, 1);
+            ImGui.PopID();
         }
     }
 }

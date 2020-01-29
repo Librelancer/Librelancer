@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -109,9 +109,25 @@ namespace LibreLancer
         }
         private Vector3 listenerPosition = Vector3.Zero;
         public Vector3 ListenerPosition => listenerPosition;
+
+        bool resetListener = false;
+        public void ResetListenerVelocity()
+        {
+            resetListener = true;
+        }
         public void UpdateListener(TimeSpan delta, Vector3 position, Vector3 forward, Vector3 up)
         {
-            audio.SetListenerVelocity((position - listenerPosition) / (float)delta.TotalSeconds);
+            if (resetListener)
+            {
+                audio.SetListenerVelocity(Vector3.Zero);
+                resetListener = false;
+            }
+            else
+            {
+                var v = (position - listenerPosition) / (float)delta.TotalSeconds;
+                if (v.Length > 8000) v = Vector3.Zero;
+                audio.SetListenerVelocity(v);
+            }
             listenerPosition = position;
             audio.SetListenerPosition(position);
             audio.SetListenerOrientation(forward, up);

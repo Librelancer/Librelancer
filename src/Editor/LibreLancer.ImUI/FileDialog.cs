@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -34,16 +34,7 @@ namespace LibreLancer.ImUI
         static IntPtr parentWindow;
         public static void RegisterParent(Game game)
         {
-			if (Platform.RunningOS == OS.Windows)
-			{
-				IntPtr ptr;
-				if ((ptr = game.GetHwnd()) == IntPtr.Zero) return;
-				LoadSwf();
-				var t = winforms.GetType("System.Windows.Forms.Control");
-				var method = t.GetMethod("FromHandle", BindingFlags.Public | BindingFlags.Static);
-				parentForm = method.Invoke(null, new object[] { ptr });
-			}
-            else
+			if(Platform.RunningOS != OS.Windows)
             {
                 kdialog = HasKDialog();
                 game.GetX11Info(out IntPtr _, out parentWindow);
@@ -54,18 +45,10 @@ namespace LibreLancer.ImUI
 		{
 			if (Platform.RunningOS == OS.Windows)
 			{
-				string result = null;
-				using (var ofd = NewObj("System.Windows.Forms.OpenFileDialog"))
-				{
-                    if (parentForm != null) ofd.Parent = parentForm;
-                    if (filters != null) ofd.Filter = SwfFilter(filters);
-					if (ofd.ShowDialog() == SwfOk())
-					{
-						result = ofd.FileName;
-					}
-				}
-				WinformsDoEvents();
-				return result;
+                if (Win32.Win32OpenDialog(Win32.ConvertFilters(filters), null, out string result))
+                    return result;
+                else
+                    return null;
 			}
 			else if (Platform.RunningOS == OS.Linux)
 			{
@@ -86,13 +69,10 @@ namespace LibreLancer.ImUI
         public static string ChooseFolder()
         {
             if(Platform.RunningOS == OS.Windows) {
-                string result = null;
-                using (var fbd = NewObj("System.Windows.Forms.FolderBrowserDialog")) {
-                    if (parentForm != null) fbd.Parent = parentForm;
-                    if (fbd.ShowDialog() == SwfOk() && !string.IsNullOrEmpty(fbd.SelectedPath))
-                        result = fbd.SelectedPath;
-                }
-                return result;
+                if (Win32.Win32PickFolder(null, out string result))
+                    return result;
+                else
+                    return null;
             } else if (Platform.RunningOS == OS.Linux) {
                 if (kdialog)
                     return KDialogChooseFolder();
@@ -109,18 +89,10 @@ namespace LibreLancer.ImUI
 		{
 			if (Platform.RunningOS == OS.Windows)
 			{
-				string result = null;
-				using (var sfd = NewObj("System.Windows.Forms.SaveFileDialog"))
-				{
-                    if (parentForm != null) sfd.Parent = parentForm;
-                    if (filters != null) sfd.Filter = SwfFilter(filters);
-                    if (sfd.ShowDialog() == SwfOk())
-					{
-						result = sfd.FileName;
-					}
-				}
-				WinformsDoEvents();
-				return result;
+                if (Win32.Win32SaveDialog(Win32.ConvertFilters(filters), null, out string result))
+                    return result;
+                else
+                    return null;
 			}
 			else if (Platform.RunningOS == OS.Linux)
 			{
@@ -136,53 +108,6 @@ namespace LibreLancer.ImUI
 				//Mac
 				throw new NotImplementedException();
 			}
-		}
-
-        static string SwfFilter(FileDialogFilters filters)
-        {
-            var builder = new StringBuilder();
-            bool first = true;
-            foreach(var f in filters.Filters) {
-                if (!first)
-                    builder.Append("|");
-                else
-                    first = false;
-                builder.Append(f.Name);
-                builder.Append(" (");
-                var exts = string.Join(";",f.Extensions.Select((x) => {
-                    if (x.Contains(".")) return x;
-                    else return "*." + x;
-                }));
-                builder.Append(exts).Append(")|").Append(exts);
-            }
-            builder.Append("|All files (*.*)|*.*");
-            return builder.ToString();
-        }
-        const string WINFORMS_NAME = "System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
-        static Assembly winforms;
-        static void LoadSwf()
-        {
-            if (winforms == null)
-                winforms = Assembly.Load(WINFORMS_NAME);
-        }
-		static dynamic NewObj(string type)
-		{
-            LoadSwf();
-			return Activator.CreateInstance(winforms.GetType(type));
-		}
-
-		static dynamic SwfOk()
-		{
-            LoadSwf();
-			var type = winforms.GetType("System.Windows.Forms.DialogResult");
-			return Enum.Parse(type, "OK");
-		}
-		static void WinformsDoEvents()
-		{
-            LoadSwf();
-			var t = winforms.GetType("System.Windows.Forms.Application");
-			var method = t.GetMethod("DoEvents", BindingFlags.Public | BindingFlags.Static);
-			method.Invoke(null, null);
 		}
 
         static bool HasKDialog()

@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -147,6 +147,7 @@ Mouse Flight: {11}
             player.Components.Add(pilotcomponent);
             player.World = world;
             world.MessageBroadcasted += World_MessageBroadcasted;
+            Game.Sound.ResetListenerVelocity();
             FadeIn(0.5, 0.5);
         }
         class LuaAPI
