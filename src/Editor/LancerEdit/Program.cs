@@ -15,8 +15,6 @@ namespace LancerEdit
 		{
             ColladaSupport.InitXML();
             MainWindow mw = null;
-
-            CrashWindow.Run("Librelancer", "Hello World!", "Details");
             AppHandler.Run(() =>
             {
                 mw = new MainWindow() { InitOpenFile = args };
