@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 namespace LibreLancer.Dialogs
 {
@@ -21,8 +22,30 @@ namespace LibreLancer.Dialogs
             {
                 Win32CrashDialog(title, message, details);
             }
+            else if (DialogPlatform.Backend == DialogPlatform.SDL)
+            {
+                SDL.SDL_ShowSimpleMessageBox(SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, title,
+                    message + "\n\n" + details, IntPtr.Zero);
+            }
+            else
+                ShellDialog(title, message, details);
         }
 
-       
+        static void ShellDialog(string title, string message, string details)
+        {
+            string args = DialogPlatform.Backend == DialogPlatform.ZENITY
+                ? $"--text-info --title=\"{title}\""
+                : $"--title \"{title}\" --textbox -";
+            var pinfo = new ProcessStartInfo(DialogPlatform.Backend == DialogPlatform.ZENITY ? "zenity" : "kdialog",
+                args);
+            pinfo.UseShellExecute = false;
+            pinfo.RedirectStandardInput = true;
+            var p = Process.Start(pinfo);
+            p.StandardInput.WriteLine(message);
+            p.StandardInput.WriteLine();
+            p.StandardInput.Write(details);
+            p.StandardInput.Close();
+            p.WaitForExit();
+        }
     }
 }

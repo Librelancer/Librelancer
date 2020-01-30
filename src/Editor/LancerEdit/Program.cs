@@ -4,6 +4,7 @@
 
 using System;
 using LibreLancer;
+using LibreLancer.Dialogs;
 
 namespace LancerEdit
 {
@@ -15,6 +16,7 @@ namespace LancerEdit
             ColladaSupport.InitXML();
             MainWindow mw = null;
 
+            CrashWindow.Run("Librelancer", "Hello World!", "Details");
             AppHandler.Run(() =>
             {
                 mw = new MainWindow() { InitOpenFile = args };
