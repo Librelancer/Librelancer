@@ -91,7 +91,6 @@ namespace LancerEdit
         public override void Draw()
         {
             SearchDialog();
-            ImGui.Columns(2, "cols", true);
             //strings vs infocards
             if (ImGuiExt.ToggleButton("Strings", showStrings)) showStrings = true;
             ImGui.SameLine();
@@ -120,6 +119,7 @@ namespace LancerEdit
                 else SearchInfocards();
             }
             ImGui.Separator();
+            ImGui.Columns(2, "cols", true);
             //list
             ImGui.BeginChild("##list");
             if(showStrings)

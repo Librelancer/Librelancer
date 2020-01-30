@@ -24,12 +24,14 @@ Download daily builds from https://librelancer.net/downloads.html
 **Prerequisites:**
 
 * 64-bit Windows 7 or newer
-* .NET Framework 4.6+
-* Visual Studio 2017
+* Visual Studio 2019 with:
+* * .NET Core 3.1 SDK
+* *  Desktop C++ Development Workflow
 * [CMake](https://cmake.org/)
 
 **Steps:**
-1. Clone this repository with all submodules (Visual Studio 2017, Git bash, etc.)
+
+1. Clone this repository with all submodules (Visual Studio's Team Explorer, Git bash, etc.)
 2. Run `build.ps1` in Powershell. (Can be launched from cmd by `powershell -File .\build.ps1`)
 
 Powershell security issues can be troubleshooted [here](https://cakebuild.net/docs/tutorials/powershell-security).
@@ -38,17 +40,20 @@ Powershell security issues can be troubleshooted [here](https://cakebuild.net/do
 
 
 ### Linux
-*Note for Ubuntu/Debian users: the official mono package must be installed as outlined [here](http://www.mono-project.com/docs/getting-started/install/linux/#debian-ubuntu-and-derivatives). The packages in the regular repositories are broken.*
 
 **Prerequisites:**
-* Mono 5.x+
+
+* mono
+* .NET Core 3.1 SDK
 * SDL2
 * OpenAL
 * gcc and g++
 * CMake
-* Freetype
+* Pango
+
 
 **Steps:**
+
 1. Clone this repository with `git clone --recursive https://github.com/Librelancer/Librelancer`
 2. Run `build.sh`
 
