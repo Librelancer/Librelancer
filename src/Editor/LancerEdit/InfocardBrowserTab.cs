@@ -87,7 +87,7 @@ namespace LancerEdit
 
         private int gotoItem = -1;
         int id = 0;
-
+        
         public override void Draw()
         {
             SearchDialog();
@@ -111,7 +111,6 @@ namespace LancerEdit
                     GotoInfocard();
                 }
             }
-
             ImGui.SameLine();
             if (ImGui.Button("Search..."))
             {
@@ -205,7 +204,6 @@ namespace LancerEdit
                 }
             }
         }
-
         private bool isSearchInfocards;
         private bool searchWholeWord = false;
         private bool searchCaseSensitive = false;
@@ -230,7 +228,6 @@ namespace LancerEdit
             searchBuffer.Clear();
             doOpenSearch = true;
         }
-
         private const int MAX_PREV_LEN = 50;
         string EllipseIfNeeded(string s)
         {
@@ -240,8 +237,47 @@ namespace LancerEdit
             }
             return s;
         }
-
         private bool searchDlgOpen = false;
+        private bool searchResultsOpen = false;
+        void SearchResults()
+        {
+            ImGui.Begin(ImGuiExt.IDWithExtra("Search", Unique), ref searchResultsOpen, ImGuiWindowFlags.AlwaysAutoResize);
+            ImGui.Text(resultTitle);
+            ImGui.BeginChild("##results", new Vector2(200,200), true);
+            for(int i = 0; i < searchResults.Length; i++)
+            {
+                if (ImGui.Selectable(searchResults[i].ToString()))
+                {
+                    id = searchResults[i];
+                    if (isSearchInfocards) GotoInfocard();
+                    else GotoString();
+                    ImGui.CloseCurrentPopup();
+                }
+                if (ImGui.IsItemHovered())
+                {
+                    if (isSearchInfocards)
+                    {
+                        if (searchStringPreviews[i] == null)
+                        {
+                            try
+                            {
+                                searchStringPreviews[i] =
+                                    EllipseIfNeeded(RDLParse.Parse(searchStrings[i], fonts).ExtractText());
+                            }
+                            catch (Exception)
+                            {
+                                searchStringPreviews[i] = EllipseIfNeeded(searchStrings[i]);
+                            }
+                        }
+                        ImGui.SetTooltip(searchStringPreviews[i]);
+                    }
+                    else
+                        ImGui.SetTooltip(EllipseIfNeeded(searchStrings[i]));    
+                }
+            }
+            ImGui.EndChild();
+            ImGui.End();
+        }
         void SearchDialog()
         {
             if (doOpenSearch)
@@ -249,6 +285,11 @@ namespace LancerEdit
                 ImGui.OpenPopup(ImGuiExt.IDWithExtra("Search", Unique));
                 doOpenSearch = false;
                 searchDlgOpen = true;
+                searchResultsOpen = false;
+            }
+            if (searchResultsOpen)
+            {
+                SearchResults();
             }
             if (ImGui.BeginPopupModal(ImGuiExt.IDWithExtra("Search", Unique), ref searchDlgOpen, ImGuiWindowFlags.AlwaysAutoResize))
             {
@@ -256,43 +297,9 @@ namespace LancerEdit
                 else if (dialogState == 1) SearchStatus();
                 else
                 {
-                    ImGui.Text(resultTitle);
-                    ImGui.BeginChild("##results", new Vector2(200,200), true);
-                    for(int i = 0; i < searchResults.Length; i++)
-                    {
-                        if (ImGui.Selectable(searchResults[i].ToString()))
-                        {
-                            id = searchResults[i];
-                            if (isSearchInfocards) GotoInfocard();
-                            else GotoString();
-                            ImGui.CloseCurrentPopup();
-                        }
-                        if (ImGui.IsItemHovered())
-                        {
-                            if (isSearchInfocards)
-                            {
-                                if (searchStringPreviews[i] == null)
-                                {
-                                    try
-                                    {
-                                        searchStringPreviews[i] =
-                                            EllipseIfNeeded(RDLParse.Parse(searchStrings[i], fonts).ExtractText());
-                                    }
-                                    catch (Exception)
-                                    {
-                                        searchStringPreviews[i] = EllipseIfNeeded(searchStrings[i]);
-                                    }
-                                }
-                                ImGui.SetTooltip(searchStringPreviews[i]);
-                            }
-                            else
-                                ImGui.SetTooltip(EllipseIfNeeded(searchStrings[i]));    
-                        }
-                    }
-
-                    ImGui.EndChild();
+                    searchResultsOpen = true;
+                    ImGui.CloseCurrentPopup();
                 }
-
                 ImGui.EndPopup();
             }
         }
