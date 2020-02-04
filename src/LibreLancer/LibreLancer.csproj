@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ImportGroup>
-    <Import Project="../CommonVersion.props"/>
+    <Import Project="../CommonVersion.props" />
   </ImportGroup>
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -145,6 +145,9 @@
     <EmbeddedResource Include="Interface\Default\resources.xml" />
     <None Remove="Interface\Default\stylesheet.xml" />
     <EmbeddedResource Include="Interface\Default\stylesheet.xml" />
+    <None Remove="Shaders\Projectile.frag" />
+    <None Remove="Shaders\Projectile.vs" />
+    <EmbeddedResource Include="Shaders\Projectile.vs" />
   </ItemGroup>
 
 </Project>

@@ -45,6 +45,7 @@ namespace LibreLancer
 		public PolylineRender Polyline;
 		public SystemLighting SystemLighting = new SystemLighting();
         public ParticleEffectPool FxPool;
+        public BeamsBuffer Beams;
         public StaticBillboards StaticBillboards = new StaticBillboards();
 		ResourceManager cache;
 		RenderState rstate;
@@ -105,7 +106,7 @@ namespace LibreLancer
             nebulae = game.GetService<NebulaVertices>();
             dot = (Texture2D)rescache.FindTexture(ResourceManager.WhiteTextureName);
             DebugRenderer = new PhysicsDebugRenderer();
-
+            Beams = new BeamsBuffer();
             if (GLExtensions.Features430)
             {
                 pointLightBuffer = new ShaderStorageBuffer(MAX_POINTS * (16 * sizeof(float)));
@@ -401,7 +402,9 @@ namespace LibreLancer
 			}
 
 			//Actual Drawing
+            Beams.Begin(commands, resman, camera);
 			foreach (var obj in objects) obj.Draw(camera, commands, SystemLighting, nr);
+            Beams.End();
             FxPool.Draw(camera, Polyline, resman, DebugRenderer);
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(cache, SystemLighting, commands, nr);
 			nebulae.NewFrame();
@@ -440,7 +443,8 @@ namespace LibreLancer
             FxPool.Dispose();
 			DebugRenderer.Dispose();
             StaticBillboards.Dispose();
-		}
+            Beams.Dispose();
+        }
 	}
 }
 

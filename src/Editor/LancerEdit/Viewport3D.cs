@@ -44,9 +44,8 @@ namespace LancerEdit
 
         public void ResetControls()
         {
-            CameraOffset = Vector3.Zero;
+            CameraOffset = DefaultOffset;
             Rotation = CameraRotation = Vector2.Zero;
-            
         }
         Color4 cc;
         public void Begin(int fixWidth = -1, int fixHeight = -1)

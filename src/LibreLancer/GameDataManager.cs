@@ -488,7 +488,7 @@ namespace LibreLancer
                     var mequip = new GameData.Items.MunitionEquip()
                     {
                         Def = mn,
-                        ConstEffect_Beam = fldata.Effects.BeamSpears.FirstOrDefault((x) => x.Nickname.Equals(visbeam, StringComparison.OrdinalIgnoreCase)),
+                        ConstEffect_Spear = fldata.Effects.BeamSpears.FirstOrDefault((x) => x.Nickname.Equals(visbeam, StringComparison.OrdinalIgnoreCase)),
                         ConstEffect_Bolt = fldata.Effects.BeamBolts.FirstOrDefault((x) => x.Nickname.Equals(visbeam, StringComparison.OrdinalIgnoreCase))
                     };
                     var eqp = new GameData.Items.GunEquipment()

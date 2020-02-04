@@ -327,6 +327,11 @@ namespace LancerEdit
                         AddTab(new InfocardBrowserTab(input, this));
                     }
                 }
+                if (ImGui.MenuItem("Projectile Viewer"))
+                {
+                    if(ProjectileViewer.Create(this, out var pj))
+                        tabs.Add(pj);
+                }
                 ImGui.EndMenu();
 			}
 			if (ImGui.BeginMenu("Help"))

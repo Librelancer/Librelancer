@@ -5,7 +5,7 @@ namespace LibreLancer.GameData.Items
     {
         public Data.Equipment.Munition Def;
         //Fx Stuff
-        public Data.Effects.BeamSpear ConstEffect_Beam;
+        public Data.Effects.BeamSpear ConstEffect_Spear;
         public Data.Effects.BeamBolt ConstEffect_Bolt;
     }
 }
