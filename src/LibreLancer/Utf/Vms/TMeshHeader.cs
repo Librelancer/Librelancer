@@ -100,7 +100,7 @@ namespace LibreLancer.Utf.Vms
 		public void Draw(RenderState rstate, VertexBuffer buff, int startVertex, int startIndex, Matrix4 world, Lighting light, MaterialAnimCollection mc)
         {
             if (MaterialCrc == 0) return;
-
+            if (primitiveCount <= 0) return;
 			if (lastmc != mc)
 			{
 				if (mc != null)
@@ -169,6 +169,7 @@ namespace LibreLancer.Utf.Vms
 		public void DrawBuffer(CommandBuffer buffer, VMeshData data, int vertexOffset, ushort startVertex, int startIndex, Matrix4 world, ref Lighting light, MaterialAnimCollection mc, Material overrideMat = null)
 		{
             if (MaterialCrc == 0) return;
+            if (primitiveCount <= 0) return;
 
 			var mat = Material;
 			if (mat == null)
@@ -207,6 +208,7 @@ namespace LibreLancer.Utf.Vms
 		public void DepthPrepass(RenderState rstate, VMeshData data, int startVertex, int startIndex, Matrix4 world, MaterialAnimCollection mc)
 		{
             if (MaterialCrc == 0) return;
+            if (primitiveCount <= 0) return;
 
 			var m = Material;
             if (m == null) m = materialLibrary.FindMaterial(0);

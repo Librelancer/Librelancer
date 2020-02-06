@@ -28,9 +28,16 @@ namespace LibreLancer.Utf.Mat
 
         private void setTextures(IntermediateNode textureLibraryNode)
         {
-            foreach (IntermediateNode textureNode in textureLibraryNode)
+            foreach (Node tnode in textureLibraryNode)
             {
-				LeafNode child = null;
+                var textureNode = tnode as IntermediateNode;
+                if (tnode is LeafNode)
+                {
+                    if(!tnode.Name.Equals("texture count", StringComparison.OrdinalIgnoreCase))
+                        FLLog.Warning("Txm", "Skipping invalid node " + tnode.Name);
+                    continue;
+                }
+                LeafNode child = null;
 				bool isTexture = true;
 				bool isTgaMips = false;
 				if (textureNode.Count == 1)

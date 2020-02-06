@@ -80,6 +80,9 @@ namespace LibreLancer.Utf.Vms
                 for (int count = 0; count < MeshCount; count++)
                 {
                     TMeshHeader item = new TMeshHeader(reader, triangleStartOffset, materialLibrary);
+                    if (item.NumRefVertices < 3) {
+                        FLLog.Warning("Vms", $"{name} mesh {count} references 0 triangles");
+                    }
                     triangleStartOffset += item.NumRefVertices;
                     Meshes.Add(item);
                 }
