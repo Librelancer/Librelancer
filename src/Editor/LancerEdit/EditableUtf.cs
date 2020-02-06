@@ -132,9 +132,7 @@ namespace LancerEdit
             //Check for invalid UTF
             foreach (var node in Root.IterateAll())
             {
-                if(node.Children == null && node.Data == null ||
-                   node.Children != null && node.Children.Count == 0 ||
-                   node.Data != null && node.Data.Length == 0)
+                if(node.Children == null && node.Data == null)
                 {
                     error = string.Format("{0} is empty. Can't write UTF",GetUtfPath(node));
                     return false;
