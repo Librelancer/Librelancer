@@ -28,6 +28,7 @@ namespace InterfaceEdit
         public bool HasCommodityTraderAction = false;
         public bool HasEquipmentDealerAction = false;
         public int ActiveHotspotIndex = 0;
+        
 
         public NavbarButtonInfo[] GetNavbarButtons()
         {
@@ -56,16 +57,18 @@ namespace InterfaceEdit
         public Maneuver[] GetManeuvers() => ManeuverData;
         public string GetActiveManeuver() => "FreeFlight";
 
-        public Dictionary<string, bool> GetManeuversEnabled()
+        public LuaCompatibleDictionary<string, bool> GetManeuversEnabled()
         {
-            var dict = new Dictionary<string, bool>();
-            dict["FreeFlight"] = true;
-            dict["Goto"] = true;
-            dict["Dock"] = true;
-            dict["Formation"] = false;
+            var dict = new LuaCompatibleDictionary<string, bool>();
+            dict.Set("FreeFlight", true);
+            dict.Set("Goto", true);
+            dict.Set("Dock", true);
+            dict.Set("Formation", false);
             return dict;
         }
-            
+
+        public int ThrustPercent() => 100;
+        public int Speed() => 80;
         public void HotspotPressed(string hotspot)
         {
             

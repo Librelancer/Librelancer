@@ -20,9 +20,11 @@ namespace LibreLancer.Text.DirectWrite
     class ColorDrawingEffect : ComObject
     {
         public Color4 Color { get; set; }
-        public ColorDrawingEffect(Color4 color)
+        public TextShadow Shadow { get; set; }
+        public ColorDrawingEffect(Color4 color, TextShadow shadow)
         {
             Color = color;
+            Shadow = shadow;
         }
     }
 
@@ -170,7 +172,7 @@ namespace LibreLancer.Text.DirectWrite
                         layout.SetFontSize(text.FontSize * sizeMultiplier, range);
                         lastSize = text.FontSize * sizeMultiplier;
                     }
-                    layout.SetDrawingEffect(new ColorDrawingEffect(text.Color), range);
+                    layout.SetDrawingEffect(new ColorDrawingEffect(text.Color, text.Shadow), range);
                     startIdx += text.Contents.Length;
                 }
                 layouts.Add(layout);
@@ -215,7 +217,7 @@ namespace LibreLancer.Text.DirectWrite
         {
             return size / 72 * 96;
         }
-        public override void DrawStringBaseline(string fontName, float size, string text, float x, float y, float start_x, Color4 color, bool underline = false)
+        public override void DrawStringBaseline(string fontName, float size, string text, float x, float y, float start_x, Color4 color, bool underline = false, TextShadow shadow = default)
         {
             using (var layout = new TextLayout(dwFactory, text, GetFormat(fontName, ConvertSize(size)), float.MaxValue, float.MaxValue))
             {
@@ -223,7 +225,7 @@ namespace LibreLancer.Text.DirectWrite
                 if(Math.Abs(indent) > 0.001f) {
                     layout.SetInlineObject(new Indent(indent), new TextRange(0, 0));
                 }
-                layout.SetDrawingEffect(new ColorDrawingEffect(color), new TextRange(0, text.Length));
+                layout.SetDrawingEffect(new ColorDrawingEffect(color, shadow), new TextRange(0, text.Length));
                 layout.Draw(Renderer, 0, 0);
                 foreach(var q in Renderer.Quads) {
                     var d = q.Destination;
@@ -454,11 +456,31 @@ namespace LibreLancer.Text.DirectWrite
             var positionY = (float)Math.Floor(baselineOriginY + 0.5f);
 
             Color4 brushColor = Color4.White;
-            if (clientDrawingEffect != null && clientDrawingEffect is ColorDrawingEffect)
-                brushColor = (clientDrawingEffect as ColorDrawingEffect).Color;
+            TextShadow shadow = new TextShadow();
+            if (clientDrawingEffect != null && clientDrawingEffect is ColorDrawingEffect colorFx)
+            {
+                brushColor = colorFx.Color;
+                shadow = colorFx.Shadow;
+            }
+
             for (int i = 0; i < glyphRun.Indices.Length; i++)
             {
                 var glyph = GetGlyph(fHash, glyphRun.FontFace, glyphRun.Indices[i], glyphRun.FontSize);
+                if (shadow.Enabled)
+                {
+                    Quads.Add(new DrawQuad()
+                    {
+                        Texture = glyph.Texture,
+                        Source = glyph.Rectangle,
+                        Destination = new Rectangle(
+                            (int)(glyph.OffsetX + positionX + 2),
+                            (int)(glyph.OffsetY + positionY + 2),
+                            glyph.Rectangle.Width,
+                            glyph.Rectangle.Height
+                        ),
+                        Color = shadow.Color
+                    });
+                }
                 var q = new DrawQuad()
                 {
                     Texture = glyph.Texture,
@@ -485,8 +507,20 @@ namespace LibreLancer.Text.DirectWrite
             )
         {
             Color4 brushColor = Color4.White;
-            if (clientDrawingEffect != null && clientDrawingEffect is ColorDrawingEffect)
-                brushColor = (clientDrawingEffect as ColorDrawingEffect).Color;
+            TextShadow shadow = new TextShadow();
+            if (clientDrawingEffect != null && clientDrawingEffect is ColorDrawingEffect colorFx) {
+                brushColor = colorFx.Color;
+                shadow = colorFx.Shadow;
+            }
+            if (shadow.Enabled)
+            {
+                Quads.Add(new DrawQuad()
+                {
+                    Texture = null,
+                    Color = shadow.Color,
+                    Destination = new Rectangle((int)baselineOriginX + 2, (int)(baselineOriginY + underline.Offset + 2), (int)Math.Ceiling(underline.Width), (int)Math.Ceiling(underline.Thickness))
+                });
+            }
             Quads.Add(new DrawQuad()
             {
                 Texture = null,

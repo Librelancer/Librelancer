@@ -186,13 +186,13 @@ namespace LibreLancer
             DrawStringBaseline(fontName, size, str, vec.X, vec.Y, vec.X, color);
         }
 
-		public void DrawStringBaseline(string fontName, float size, string text, float x, float y, float start_x, Color4 color, bool underline = false)
+		public void DrawStringBaseline(string fontName, float size, string text, float x, float y, float start_x, Color4 color, bool underline = false, TextShadow shadow = default)
 		{
 			if (!active)
 				throw new InvalidOperationException("Renderer2D.Start() must be called before Renderer2D.DrawString");
 			if (text == "" || size < 1) //skip empty str
 				return;
-            CreateRichTextEngine().DrawStringBaseline(fontName, size, text, x, y, start_x, color, underline);
+            CreateRichTextEngine().DrawStringBaseline(fontName, size, text, x, y, start_x, color, underline, shadow);
         }
         public void FillRectangle(Rectangle rect, Color4 color)
 		{

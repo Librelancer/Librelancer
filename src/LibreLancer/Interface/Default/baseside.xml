@@ -29,7 +29,16 @@
 		</Panel.Background>
 	</Panel>
     <!-- neuralnet here-->
+    <ChatBox Anchor="BottomCenter" Y="50" Width="250" Height="60" ID="chatbox">
+        <ChatBox.Background>
+            <DisplayColor color="rgba(0,0,255,0.25)"/>
+        </ChatBox.Background>
+        <ChatBox.Border>
+        	<DisplayRectangle color="green"/>
+        </ChatBox.Border>
+    </ChatBox>
 </Scene>
+
 
 
 

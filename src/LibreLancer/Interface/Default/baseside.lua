@@ -82,7 +82,12 @@ for index, action in ipairs(actions) do
 	end)
 	navbox.PositionAction(obj, actionbox, index)
 end
-
+GetElement('chatbox').TextEntered:Add(function (text)
+    Game:TextEntered(text)
+end)
+function Events.Chatbox()
+	GetElement('chatbox').Visible = true
+end
 
 
 

@@ -30,6 +30,8 @@ namespace LibreLancer
                 y <= (Y + Height)
             );
         }
-	}
+
+        public static explicit operator Rectangle(RectangleF src) => new Rectangle((int)src.X, (int)src.Y, (int)src.Width, (int)src.Height);
+    }
 }
 

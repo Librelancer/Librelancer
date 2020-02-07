@@ -85,21 +85,20 @@ namespace LibreLancer.Interface
                     drawY = drawRect.Y + (drawRect.Height / 2) - lineHeight / 2;
                     break;
             }
+
+            var shadow = new TextShadow();
+            if (shadowColor != null) shadow = new TextShadow(shadowColor.Color);
             if (clip)
             {
                 context.Renderer2D.DrawWithClip(drawRect,
                     () =>
                     {
-                        if(shadowColor != null)
-                            context.Renderer2D.DrawStringBaseline(fnt, size, text, drawX + 1, drawY + 1, drawX + 1, shadowColor.Color);
-                        context.Renderer2D.DrawStringBaseline(fnt, size, text, drawX, drawY, drawX, color);
+                        context.Renderer2D.DrawStringBaseline(fnt, size, text, drawX, drawY, drawX, color, false, shadow);
                     });
             }
             else
             {
-                if(shadowColor != null)
-                    context.Renderer2D.DrawStringBaseline(fnt, size, text, drawX + 1, drawY + 1, drawX + 1, shadowColor.Color);
-                context.Renderer2D.DrawStringBaseline(fnt, size, text, drawX, drawY, drawX, color);
+                context.Renderer2D.DrawStringBaseline(fnt, size, text, drawX, drawY, drawX, color, false, shadow);
             }
         }
         public abstract void Render(UiContext context, RectangleF parentRectangle);

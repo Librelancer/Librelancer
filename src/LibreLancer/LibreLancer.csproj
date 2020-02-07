@@ -25,10 +25,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NLua" Version="1.4.27" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Properties" />
   </ItemGroup>
 
@@ -148,6 +144,10 @@
     <None Remove="Shaders\Projectile.frag" />
     <None Remove="Shaders\Projectile.vs" />
     <EmbeddedResource Include="Shaders\Projectile.vs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NLua" Version="1.4.29" />
   </ItemGroup>
 
 </Project>

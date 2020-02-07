@@ -59,7 +59,7 @@ function UpdateManeuverState()
 	local maneuversEnabled = Game:GetManeuversEnabled()
 	for action, button in pairs(ManeuverButtons) do
 		button.Selected = (activeManeuver == action)
-		button.Enabled = maneuversEnabled[action]
+		button.Enabled = maneuversEnabled:Get(action)
 	end
 end
 
@@ -89,7 +89,18 @@ for index, button in ipairs(btns) do
 end
 UpdateManeuverState()
 
+function Events.Update()
+    UpdateManeuverState()
+    GetElement('speedText').Text = Game:Speed() .. ""
+    GetElement('thrustText').Text = Game:ThrustPercent() .. "%"
+end
 
+GetElement('chatbox').TextEntered:Add(function (text)
+    Game:TextEntered(text)
+end)
+function Events.Chatbox()
+	GetElement('chatbox').Visible = true
+end
 
 
 

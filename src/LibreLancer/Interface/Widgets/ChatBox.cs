@@ -8,12 +8,12 @@ namespace LibreLancer.Interface
     [UiLoadable]
     public class ChatBox : UiWidget
     {
-        public UiRenderable Background { get; set; }
         public event Action<string> TextEntered;
         public string CurrentEntry = "Console->";
         public string CurrentText = "";
         public int MaxChars = 100;
-
+        public float FontSize { get; set; } = 12f;
+        
         public ChatBox() : base()
         {
             Visible = false;
@@ -23,8 +23,41 @@ namespace LibreLancer.Interface
         {
             if (!Visible) return;
             context.SetTextFocus(this);
+            var rect = GetMyRectangle(context, parentRectangle);
+            Background?.Draw(context, rect);
+            DrawText(context, rect);
+            Border?.Draw(context, rect);
         }
 
+        void DrawText(UiContext context, RectangleF myRect)
+        {
+            var sizeF = context.TextSize(FontSize);
+            var node0 = new RichTextTextNode()
+            {
+                Contents = CurrentEntry, FontName = "Arial", FontSize = sizeF, Color = Color4.Green, Shadow = new TextShadow(Color4.Black)
+            };
+            var node1 = new RichTextTextNode()
+            {
+                Contents = CurrentText, FontName = "Arial", FontSize = sizeF, Shadow = new TextShadow(Color4.Black)
+            };
+            context.Mode2D();
+            var rtf = context.Renderer2D.CreateRichTextEngine();
+            var rect = context.PointsToPixels(myRect);
+            var built = rtf.BuildText(new[] {node0, node1}, (int) rect.Width - 4, 1f);
+            context.Renderer2D.DrawWithClip(rect, () =>
+            { 
+                rtf.RenderText(built, (int)rect.X + 2, (int)rect.Y + 2);
+            });
+            built.Dispose();
+        }
+        RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
+        {
+            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
+            Update(context, myPos);
+            myPos = AnimatedPosition(myPos);
+            var myRect = new RectangleF(myPos.X,myPos.Y, Width, Height);
+            return myRect;
+        }
         public override void OnKeyDown(Keys key)
         {
             if (key == Keys.Enter)
@@ -32,6 +65,12 @@ namespace LibreLancer.Interface
                 if(!string.IsNullOrWhiteSpace(CurrentText)) TextEntered?.Invoke(CurrentText);
                 CurrentText = "";
                 Visible = false;
+            }
+
+            if (key == Keys.Backspace)
+            {
+                if(CurrentText.Length > 0)
+                    CurrentText = CurrentText.Substring(0, CurrentText.Length - 1);
             }
         }
         

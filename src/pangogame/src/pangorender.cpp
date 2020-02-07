@@ -25,6 +25,7 @@ G_DEFINE_TYPE(CacheRenderer, cacherenderer, PANGO_TYPE_RENDERER);
 
 void doDrawRectangle(PangoRenderer* renderer, PangoRenderPart part, int x, int y, int width, int height)
 {
+    if(part == PANGO_RENDER_PART_BACKGROUND) return; //background is repurposed as text shadow
 	CacheRenderer* ren = CACHERENDERER(renderer);
     float red, green, blue;
     if(ren->colorset) {
@@ -44,7 +45,24 @@ void doDrawRectangle(PangoRenderer* renderer, PangoRenderPart part, int x, int y
 	stb_arr_push(ren->built->runs, r);
 	//reference
 	PGRun* run = &ren->built->runs[stb_arr_len(ren->built->runs)-1];
-	//quad
+	//shadow quad
+    PangoColor *shadow = pango_renderer_get_color(renderer, PANGO_RENDER_PART_BACKGROUND);
+    if(shadow) {
+        float shR = shadow->red / 65536.0f;
+        float shG = shadow->green / 65536.0f;
+        float shB = shadow->blue / 65536.0f;
+        PGQuad shQ;
+        shQ.dstX = PANGO_PIXELS(x) + 2;
+        shQ.dstY = PANGO_PIXELS(y) + 2;
+        shQ.dstW = PANGO_PIXELS(width);
+        shQ.dstH = PANGO_PIXELS(height);
+        shQ.r = shR;
+        shQ.g = shG;
+        shQ.b = shB;
+        shQ.a = ren->alpha;
+        stb_arr_push(run->quads, shQ);
+    }
+    //color quad
 	PGQuad q;
 	q.dstX = PANGO_PIXELS(x);
 	q.dstY = PANGO_PIXELS(y);
@@ -71,7 +89,13 @@ void doDrawGlyphs(PangoRenderer* renderer, PangoFont* font, PangoGlyphString* gl
         green = !fg ? 0.0f : fg->green / 65536.0f;
         blue = !fg ? 0.0f : fg->blue / 65536.0f;
     }
-
+    PangoColor *shadow = pango_renderer_get_color(renderer, PANGO_RENDER_PART_BACKGROUND);
+    float shR, shG, shB;
+    if(shadow) {
+        shR = shadow->red / 65536.0f;
+        shG = shadow->green / 65536.0f;
+        shB = shadow->blue / 65536.0f;
+    }
 	PangoFontDescription* desc = pango_font_describe(font);
 	uint32_t fontHash = (uint32_t)pango_font_description_hash(desc);
 	pango_font_description_free(desc);
@@ -120,6 +144,22 @@ void doDrawGlyphs(PangoRenderer* renderer, PangoFont* font, PangoGlyphString* gl
 			stb_arr_push(ren->built->runs, r2);
 			run = &ren->built->runs[stb_arr_len(ren->built->runs)-1];
 		}
+		if(shadow) {
+            PGQuad shQ;
+            shQ.srcX = cached.srcX;
+            shQ.srcY = cached.srcY;
+            shQ.srcW = cached.srcW;
+            shQ.srcH = cached.srcH;
+            shQ.dstX = PANGO_PIXELS(layoutX + gi->geometry.x_offset) + cached.offsetLeft + 2;
+            shQ.dstY = PANGO_PIXELS(layoutY + gi->geometry.y_offset) - cached.offsetTop + 2;
+            shQ.dstW = cached.srcW;
+            shQ.dstH = cached.srcH;
+            shQ.r = shR;
+            shQ.g = shG;
+            shQ.b = shB;
+            shQ.a = ren->alpha;
+            stb_arr_push(run->quads, shQ);
+        }
 		PGQuad q;
 		q.srcX = cached.srcX;
 		q.srcY = cached.srcY;
@@ -132,7 +172,7 @@ void doDrawGlyphs(PangoRenderer* renderer, PangoFont* font, PangoGlyphString* gl
 		q.r = red;
 		q.g = green;
 		q.b = blue;
-		q.a = 1;
+		q.a = ren->alpha;
 		stb_arr_push(run->quads, q);
 		layoutX += gi->geometry.width;
 	}

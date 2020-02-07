@@ -97,7 +97,6 @@ namespace LibreLancer
 
                 return buttons;
             }
-
             public NavbarButtonInfo[] GetActionButtons()
             {
                 var actions = new List<NavbarButtonInfo>();
@@ -109,6 +108,10 @@ namespace LibreLancer
                     actions.Add(new NavbarButtonInfo(LAUNCH_ACTION, "IDS_HOTSPOT_LAUNCH"));
                 }
                 return actions.ToArray();
+            }
+            public void TextEntered(string text)
+            {
+                g.Hud_OnTextEntry(text);
             }
         }
 		public override void Unregister()
@@ -214,7 +217,7 @@ namespace LibreLancer
 
 		void Game_TextInput(string text)
 		{
-			//hud.OnTextEntry(text);
+            ui.OnTextEntry(text);
 		}
 		void Hud_OnTextEntry(string obj)
 		{

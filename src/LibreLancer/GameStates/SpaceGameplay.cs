@@ -3,18 +3,15 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using LibreLancer.GameData.Items;
 using LibreLancer.Interface;
 using LibreLancer.Physics;
 
 namespace LibreLancer
 {
 	public class SpaceGameplay : GameState
-	{
-
-		const string DEMO_TEXT =
+    {
+        const string DEMO_TEXT =
 @"GAMEPLAY DEMO
 {3} ({4})
 Camera Position: (X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00})
@@ -55,6 +52,7 @@ Mouse Flight: {11}
         DebugGraph pyw;
         private UiContext ui;
         private UiWidget widget;
+        private LuaAPI uiApi;
 		public SpaceGameplay(FreelancerGame g, GameSession session) : base(g)
 		{
 			FLLog.Info("Game", "Entering system " + session.PlayerSystem);
@@ -73,7 +71,7 @@ Mouse Flight: {11}
             sys = g.GameData.GetSystem(session.PlayerSystem);
             loader = new LoadingScreen(g, g.GameData.LoadSystemResources(sys));
             ui = new UiContext(g);
-            ui.GameApi = new LuaAPI(this);
+            ui.GameApi = uiApi = new LuaAPI(this);
             widget = ui.CreateAll("hud.xml");
         }
 
@@ -130,7 +128,6 @@ Mouse Flight: {11}
             world.PhysicsUpdate += World_PhysicsUpdate;
             player.Register(world.Physics);
             Game.Sound.PlayMusic(sys.MusicSpace);
-            Game.Keyboard.TextInput += G_Keyboard_TextInput;
             debugphysics = new PhysicsDebugRenderer();
             //world.Physics.EnableWireframes(debugphysics);
             cur_arrow = Game.ResourceManager.GetCursor("cross");
@@ -161,7 +158,35 @@ Mouse Flight: {11}
             {
                 return g.Game.GameData.GetManeuvers().ToArray();
             }
-            public bool SelectManeuver(string e) => g.ManeuverSelect(e);
+
+            private string activeManeuver = "FreeFlight";
+            public string GetActiveManeuver() => activeManeuver;
+            public LuaCompatibleDictionary<string, bool> GetManeuversEnabled()
+            {
+                var dict = new LuaCompatibleDictionary<string, bool>();
+                dict.Set("FreeFlight", true);
+                dict.Set("Goto", g.selected != null);
+                dict.Set("Dock", g.selected?.GetComponent<DockComponent>() != null);
+                dict.Set("Formation", false);
+                return dict;
+            }
+            public void HotspotPressed(string e)
+            {
+                if (g.ManeuverSelect(e))
+                {
+                    activeManeuver = e;
+                }
+            }
+
+            public void TextEntered(string text)
+            {
+                g.Hud_OnTextEntry(text);
+            }
+
+            internal void SetManeuver(string m)
+            {
+                activeManeuver = m;
+            }
             public int ThrustPercent() => ((int)(g.powerCore.CurrentThrustCapacity / g.powerCore.Equip.ThrustCapacity * 100));
             public int Speed() => ((int)g.player.PhysicsComponent.Body.LinearVelocity.Length);
         }
@@ -170,18 +195,12 @@ Mouse Flight: {11}
 			switch (kind)
 			{
 				case GameMessageKind.ManeuverFinished:
-                    
-					//hud.SetManeuver("FreeFlight");
+                    uiApi.SetManeuver("FreeFlight");
 					break;
 			}
 		}
 
-		void Pilotcomponent_GotoComplete()
-		{
-			Console.WriteLine("Went to object!");
-		}
-
-		void Pilotcomponent_DockComplete(DockAction action)
+        void Pilotcomponent_DockComplete(DockAction action)
 		{
 			pilotcomponent.CurrentBehaviour = AutopilotBehaviours.None;
 			if (action.Kind == DockKinds.Base)
@@ -207,28 +226,19 @@ Mouse Flight: {11}
 
 		void Keyboard_KeyDown(KeyEventArgs e)
 		{
-			/*if (hud.TextEntry)
-			{
-				hud.TextEntryKeyPress(e.Key);
-				if (hud.TextEntry == false) Game.DisableTextInput();
-			}
-			else
-			{
-                if (e.Key == Keys.L)
-				{
-					Game.Screenshots.TakeScreenshot();
-				}
-				if (e.Key == Keys.Enter)
-				{
-					hud.TextEntry = true;
-					Game.EnableTextInput();
-				}
-			}*/
-		}
+            if (ui.KeyboardGrabbed)
+            {
+                ui.OnKeyDown(e.Key);
+            }
+            else
+            {
+                if(e.Key == Keys.Enter) ui.ChatboxEvent();
+            }
+        }
 
 		void Game_TextInput(string text)
 		{
-			//hud.OnTextEntry(text);
+			ui.OnTextEntry(text);
 		}
 
 		bool dogoto = false;
@@ -333,6 +343,10 @@ Mouse Flight: {11}
             if (session.Update(this, delta)) return;
             if (ShowHud && (Thn == null || !Thn.Running))
                 ui.Update(Game);
+            if(ui.KeyboardGrabbed)
+                Game.EnableTextInput();
+            else
+                Game.DisableTextInput();
             if (Thn != null && Thn.Running)
             {
                 Thn.Update(delta);
@@ -366,7 +380,7 @@ Mouse Flight: {11}
 
 		void Input_ToggleActivated(int id)
 		{
-			//if (hud.TextEntry) return;
+			if (ui.KeyboardGrabbed) return;
 			switch (id)
 			{
 				case InputAction.ID_TOGGLECRUISE:
@@ -383,16 +397,10 @@ Mouse Flight: {11}
 
 		void Input_ToggleUp(int obj)
 		{
-			if (obj == InputAction.ID_THRUST)
+            if (ui.KeyboardGrabbed) return;
+            if (obj == InputAction.ID_THRUST)
 				control.ThrustEnabled = false;
 		}
-
-		void G_Keyboard_TextInput(string text)
-		{
-			if (textEntry)
-				currentText += text;
-
-        }
 
         double lastDown = -1000;
 
@@ -411,8 +419,8 @@ Mouse Flight: {11}
 		{
 			input.Update();
 
-			//if (!hud.TextEntry)
-            //{
+			if (!ui.KeyboardGrabbed)
+            {
 				if (input.ActionDown(InputAction.ID_THROTTLEUP))
 				{
                     shipInput.Throttle += (float)(delta.TotalSeconds);
@@ -424,16 +432,16 @@ Mouse Flight: {11}
                     shipInput.Throttle -= (float)(delta.TotalSeconds);
                     shipInput.Throttle = MathHelper.Clamp(shipInput.Throttle, 0, 1);
 				}
-			//}
+			}
 
 			StrafeControls strafe = StrafeControls.None;
-			//if (!hud.TextEntry)
-			//{
+            if (!ui.KeyboardGrabbed)
+			{
 				if (input.ActionDown(InputAction.ID_STRAFELEFT)) strafe |= StrafeControls.Left;
 				if (input.ActionDown(InputAction.ID_STRAFERIGHT)) strafe |= StrafeControls.Right;
 				if (input.ActionDown(InputAction.ID_STRAFEUP)) strafe |= StrafeControls.Up;
 				if (input.ActionDown(InputAction.ID_STRAFEDOWN)) strafe |= StrafeControls.Down;
-            //}
+            }
 
 			var pc = player.PhysicsComponent;
             shipInput.Viewport = new Vector2(Game.Width, Game.Height);

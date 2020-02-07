@@ -34,8 +34,8 @@
 		<Panel.Background>
 			<DisplayModel model="numberboxes"/>
 		</Panel.Background>
-		<TextBlock Height="18" Width="26" X="8" Y="1" Font="Agency FB" Text="100%" TextColor="text"/>
-		<TextBlock Anchor="TopRight" Height="18" Width="26" X="10" Y="1" Font="Agency FB" Text="80" TextColor="text"/>
+		<TextBlock ID="thrustText" Height="18" Width="26" X="8" Y="1" Font="Agency FB" Text="100%" TextColor="text"/>
+		<TextBlock ID="speedText" Anchor="TopRight" Height="18" Width="26" X="10" Y="1" Font="Agency FB" Text="80" TextColor="text"/>
 	</Panel>
 	<!-- Managed by navbox.lua -->
 	<Panel ID="actionbox1" Y="42" Anchor="TopCenter" Width="33" Height="31" X="-80.4" Visible="false">
@@ -55,7 +55,17 @@
 		</Panel.Background>
 	</Panel>
     <!-- neuralnet here-->
+    <ChatBox Anchor="BottomCenter" Y="50" Width="250" Height="60" ID="chatbox">
+        <ChatBox.Background>
+            <DisplayColor color="rgba(0,0,255,0.25)"/>
+        </ChatBox.Background>
+        <ChatBox.Border>
+        	<DisplayRectangle color="green"/>
+        </ChatBox.Border>
+    </ChatBox>
 </Scene>
+
+
 
 
 

@@ -86,6 +86,7 @@ namespace LibreLancer.Interface
                 RunSandboxed = (LuaFunction) lua["RunSandboxed"];
                 CallEvent = (LuaFunction) lua["CallEvent"];
                 RunSandboxed.Call(context.ReadAllText(ScriptFile), ScriptFile);
+                lua.DoString("collectgarbage()");
             }
             catch (LuaScriptException lse)
             {
@@ -162,6 +163,7 @@ namespace LibreLancer.Interface
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
             DoTimers(context.GlobalTime);
+            ScriptedEvent("Update");
             Background?.Draw(context, parentRectangle);
             base.Render(context, parentRectangle);
         }
@@ -174,7 +176,7 @@ namespace LibreLancer.Interface
                 p[i + 1] = param[i];
             CallEvent?.Call(p);
         }
-
+        
         static void LogString(string s)
         {
             FLLog.Info("Lua", s);

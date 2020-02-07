@@ -69,7 +69,8 @@ namespace LibreLancer.Text.Pango
         static extern IntPtr pg_drawtext(IntPtr ctx, IntPtr text);
 
         [DllImport("pangogame")]
-        static extern void pg_drawstring(IntPtr ctx, IntPtr str, IntPtr fontName, float fontSize, int indent, int underline, float r, float g, float b, float a);
+        static extern void pg_drawstring(IntPtr ctx, IntPtr str, IntPtr fontName, float fontSize, int indent,
+            int underline, float r, float g, float b, float a, Color4* shadow);
 
         [DllImport("pangogame")]
         static extern void pg_measurestring(IntPtr ctx, IntPtr str, IntPtr fontName, float fontSize, out float width,
@@ -188,6 +189,14 @@ namespace LibreLancer.Text.Pango
                         builder.Append("font_weight=\"bold\" ");
                     else
                         builder.Append("font_weight=\"normal\" ");
+                    if (text.Shadow.Enabled)
+                    {
+                        builder.Append("bgcolor=\"#");
+                        builder.Append(((int)(text.Shadow.Color.R * 255f)).ToString("X2"));
+                        builder.Append(((int)(text.Shadow.Color.G * 255f)).ToString("X2"));
+                        builder.Append(((int)(text.Shadow.Color.B * 255f)).ToString("X2"));
+                        builder.Append("\" ");
+                    }
                     builder.Append("fgcolor=\"#");
                     builder.Append(((int)(text.Color.R * 255f)).ToString("X2"));
                     builder.Append(((int)(text.Color.G * 255f)).ToString("X2"));
@@ -235,7 +244,7 @@ namespace LibreLancer.Text.Pango
             pg_drawtext(ctx, ((PangoBuiltText)txt).Handle);
         }
 
-        public override void DrawStringBaseline(string fontName, float size, string text, float x, float y, float start_x, Color4 color, bool underline = false)
+        public override void DrawStringBaseline(string fontName, float size, string text, float x, float y, float start_x, Color4 color, bool underline = false, TextShadow shadow = default)
         {
             var pixels = size * (96.0f / 72.0f);
             drawX = (int)(start_x);
@@ -243,7 +252,7 @@ namespace LibreLancer.Text.Pango
             int indent = (int) (x - start_x);
             var textPtr = UnsafeHelpers.StringToHGlobalUTF8(text);
             var fontPtr = UnsafeHelpers.StringToHGlobalUTF8(fontName);
-            pg_drawstring(ctx, textPtr, fontPtr, pixels, indent, underline ? 1 : 0, color.R, color.G, color.B, color.A);
+            pg_drawstring(ctx, textPtr, fontPtr, pixels, indent, underline ? 1 : 0, color.R, color.G, color.B, color.A, shadow.Enabled ? &shadow.Color : (Color4*)0);
             Marshal.FreeHGlobal(textPtr);
             Marshal.FreeHGlobal(fontPtr);
         }

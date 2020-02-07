@@ -149,7 +149,8 @@ void pg_drawtext(PGRenderContext* ctx, PGBuiltText *text)
 		ctx->drawCb(text->runs[i].quads, text->runs[i].tex, text->runs[i].quadCount);
 	}
 }
-void pg_drawstring(PGRenderContext* ctx, const char *str, const char* fontName, float fontSize, int indent, int underline, float r, float g, float b, float a)
+#define MulColor(x) ((guint16)((x) * 65535))
+void pg_drawstring(PGRenderContext* ctx, const char *str, const char* fontName, float fontSize, int indent, int underline, float r, float g, float b, float a, float *shadow)
 {
     //Layout
     PangoLayout *layout = pango_layout_new(ctx->pangoContext);
@@ -160,13 +161,21 @@ void pg_drawstring(PGRenderContext* ctx, const char *str, const char* fontName, 
     pango_font_description_set_size(font, (int)(fontSize * PANGO_SCALE));
     pango_layout_set_font_description(layout, font);
     pango_font_description_free(font);
+    PangoAttrList *attrList = pango_attr_list_new();
     if(underline) {
-        PangoAttrList *attrList = pango_attr_list_new();
         PangoAttribute *attribute = pango_attr_underline_new(PANGO_UNDERLINE_SINGLE);
         pango_attr_list_insert(attrList, attribute);
-        pango_layout_set_attributes(layout, attrList);
-        pango_attr_list_unref(attrList);
     }
+    if(shadow) {
+        PangoAttribute *attribute = pango_attr_background_new(
+            MulColor(shadow[0]),
+            MulColor(shadow[1]),
+            MulColor(shadow[2])
+        );
+        pango_attr_list_insert(attrList, attribute);
+    }
+    pango_layout_set_attributes(layout, attrList);
+    pango_attr_list_unref(attrList);
     //Calculate
     PGBuiltText built;
     built.layouts = &layout;
