@@ -30,28 +30,17 @@ namespace LibreLancer
 		}
 		";
 
-		const string text_fragment_source = @"
+        const string img_fragment_source = @"
 		#version 140
 		in vec2 out_texcoord;
 		in vec4 blendColor;
 		out vec4 out_color;
 		uniform sampler2D tex;
+        uniform float blend;
 		void main()
 		{
-			float alpha = pow(texture(tex, out_texcoord).r, 1.0 / 2.2);
-			out_color = vec4(blendColor.xyz, blendColor.a * alpha);
-		}
-		";
-		
-		const string img_fragment_source = @"
-		#version 140
-		in vec2 out_texcoord;
-		in vec4 blendColor;
-		out vec4 out_color;
-		uniform sampler2D tex;
-		void main()
-		{
-			vec4 src = texture(tex, out_texcoord);
+            vec4 src = texture(tex, out_texcoord);
+            src = mix(src, vec4(1,1,1, src.r), blend);
 			out_color = src * blendColor;
 		}
 		";
@@ -84,16 +73,15 @@ namespace LibreLancer
 		VertexBuffer vbo;
 		ElementBuffer el;
         Vertex2D* vertices;
-		Shader textShader;
 		Shader imgShader;
 		Texture2D dot;
+        private int blendLocation;
 		public Renderer2D (RenderState rstate)
 		{
 			rs = rstate;
-			textShader = new Shader (vertex_source, text_fragment_source);
-			textShader.SetInteger (textShader.GetLocation("tex"), 0);
-			imgShader = new Shader (vertex_source, img_fragment_source);
+            imgShader = new Shader (vertex_source, img_fragment_source);
 			imgShader.SetInteger (imgShader.GetLocation("tex"), 0);
+            blendLocation = imgShader.GetLocation("blend");
 			vbo = new VertexBuffer (typeof(Vertex2D), MAX_VERT, true);
 			el = new ElementBuffer (MAX_INDEX);
 			var indices = new ushort[MAX_INDEX];
@@ -153,7 +141,6 @@ namespace LibreLancer
 		int vertexCount = 0;
 		int primitiveCount = 0;
 		Texture2D currentTexture = null;
-		Shader currentShader = null;
 		BlendMode currentMode = BlendMode.Normal;
 		int vpHeight;
 		public void Start(int vpWidth, int vpHeight)
@@ -163,7 +150,6 @@ namespace LibreLancer
 			active = true;
 			this.vpHeight = vpHeight;
 			var mat = Matrix4.CreateOrthographicOffCenter (0, vpWidth, vpHeight, 0, 0, 1);
-			textShader.SetMatrix (textShader.GetLocation("modelviewproj"), ref mat);
 			imgShader.SetMatrix (imgShader.GetLocation("modelviewproj"), ref mat);
 			currentMode = BlendMode.Normal;
             vertices = (Vertex2D*)vbo.BeginStreaming();
@@ -196,16 +182,14 @@ namespace LibreLancer
         }
         public void FillRectangle(Rectangle rect, Color4 color)
 		{
-			DrawQuad(textShader, dot, new Rectangle(0,0,1,1), rect, color, BlendMode.Normal);
+			DrawQuad(dot, new Rectangle(0,0,1,1), rect, color, BlendMode.Normal);
 		}
 		public void DrawLine(Color4 color, Vector2 start, Vector2 end)
 		{
-			if (currentShader != null && currentShader != textShader) Flush();
 			if (currentMode != BlendMode.Normal) Flush();
 			if (currentTexture != null && currentTexture != dot) Flush();
 			if ((primitiveCount + 2) * 3 >= MAX_INDEX || (vertexCount + 4) >= MAX_VERT) Flush();
 
-			currentShader = textShader;
 			currentTexture = dot;
 			currentMode = BlendMode.Normal;
 
@@ -248,22 +232,9 @@ namespace LibreLancer
 			FillRectangle(new Rectangle(rect.X + rect.Width - width, rect.Y, width, rect.Height), color);
 		}
 
-		public void FillRectangleMask(Texture2D mask, Rectangle src, Rectangle dst, Color4 color)
-		{
-			DrawQuad(textShader, mask, src, dst, color, BlendMode.Normal);
-		}
-
-        static Vector2 Transform2D(Matrix3 matrix, Vector2 vec)
-        {
-            var v3 = (matrix * new Vector3(vec.X, vec.Y, 1));
-            return v3.Xy / v3.Z;
-        }
-       
-        
-		public void DrawImageStretched(Texture2D tex, Rectangle dest, Color4 color, bool flip = false)
+        public void DrawImageStretched(Texture2D tex, Rectangle dest, Color4 color, bool flip = false)
 		{
 			DrawQuad (
-				imgShader,
 				tex,
 				new Rectangle (0, 0, tex.Width, tex.Height),
 				dest,
@@ -281,16 +252,12 @@ namespace LibreLancer
 
 		public void Draw(Texture2D tex, Rectangle source, Rectangle dest, Color4 color, BlendMode mode = BlendMode.Normal, bool flip = false)
 		{
-			DrawQuad(tex.Format == SurfaceFormat.R8 ? textShader : imgShader, tex, source, dest, color, mode, flip);
+			DrawQuad(tex, source, dest, color, mode, flip);
 		}
 
 		public void FillTriangle(Vector2 point1, Vector2 point2, Vector2 point3, Color4 color)
 		{
-			if (currentShader != null && currentShader != textShader)
-			{
-				Flush();
-			}
-			if (currentMode != BlendMode.Normal)
+            if (currentMode != BlendMode.Normal)
 			{
 				Flush();
 			}
@@ -301,7 +268,6 @@ namespace LibreLancer
 			if ((primitiveCount + 2) * 3 >= MAX_INDEX || (vertexCount + 4) >= MAX_VERT)
 				Flush();
 			currentTexture = dot;
-			currentShader = textShader;
 			currentMode = BlendMode.Normal;
 			vertices[vertexCount++] = new Vertex2D(
 				point1,
@@ -331,13 +297,11 @@ namespace LibreLancer
         public void DrawTriangle(Texture2D tex, Vector2 pa, Vector2 pb, Vector2 pc, Vector2 uva, Vector2 uvb,
             Vector2 uvc, Color4 color)
         {
-            if (currentShader != null && currentShader != imgShader) Flush();
             if (currentMode != BlendMode.Normal) Flush();
             if (currentTexture != null && currentTexture != tex) Flush();
             if ((primitiveCount + 2) * 3 >= MAX_INDEX || (vertexCount + 4) >= MAX_VERT) Flush ();
 			
             currentTexture = tex;
-            currentShader = imgShader;
             currentMode = BlendMode.Normal;
             
             vertices[vertexCount++] = new Vertex2D(
@@ -354,13 +318,9 @@ namespace LibreLancer
             );
             primitiveCount += 2;
         }
-		void DrawQuad(Shader shader, Texture2D tex, Rectangle source, Rectangle dest, Color4 color, BlendMode mode, bool flip = false)
+		void DrawQuad(Texture2D tex, Rectangle source, Rectangle dest, Color4 color, BlendMode mode, bool flip = false)
 		{
-			if (currentShader != null && currentShader != shader)
-			{
-				Flush();
-			}
-			if (currentMode != mode) {
+            if (currentMode != mode) {
 				Flush();
 			}
 			if (currentTexture != null && currentTexture != tex) {
@@ -370,7 +330,6 @@ namespace LibreLancer
 				Flush ();
 			
 			currentTexture = tex;
-			currentShader = shader;
 			currentMode = mode;
 
 			float x = (float)dest.X;
@@ -422,7 +381,6 @@ namespace LibreLancer
 			if (!active)
 				throw new InvalidOperationException ("TextRenderer.Start() must be called before TextRenderer.Finish()");
 			Flush ();
-            //vbo.EndStreaming(0);
 			active = false;
 		}
 
@@ -434,7 +392,10 @@ namespace LibreLancer
 			rs.BlendMode = currentMode;
 			rs.DepthEnabled = false;
 			currentTexture.BindTo (0);
-			currentShader.UseProgram ();
+            if(currentTexture.Format == SurfaceFormat.R8)
+                imgShader.SetFloat(blendLocation, 1f);
+            else
+                imgShader.SetFloat(blendLocation, 0f);
             var verts = new Vertex2D[vertexCount];
             for (int i = 0; i < vertexCount; i++)
                 verts[i] = vertices[i];

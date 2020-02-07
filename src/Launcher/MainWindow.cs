@@ -37,6 +37,9 @@ namespace Launcher
             resolutionY = config.BufferHeight;
             vsync = config.VSync;
             skipIntroMovies = !config.IntroMovies;
+            masterVolume = config.MasterVolume;
+            musicVolume = config.MusicVolume;
+            sfxVolume = config.SfxVolume;
             if (Program.introForceDisable) skipIntroMovies = true;
         }
         int resolutionX = 640;

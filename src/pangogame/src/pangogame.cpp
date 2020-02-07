@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 #include <map>
+#include <math.h>
 #include <string.h>
 #include "pg_internal.h"
 #include "stb.h"
@@ -57,6 +58,15 @@ PGRenderContext *pg_createcontext(
 
 #define GLYPHMAP_KEY(x,y) (((uint64_t)(x) << 32) | ((uint64_t)(y)))
 
+#define PG_CLAMP(in, min, max) ((in) < (min) ? (min) : (in) > (max) ? (max) : (in))
+
+static uint8_t pg_gamma(uint8_t px)
+{
+    float C_srgb = (float)px / (float)255.0;
+    float C_lin_3 = powf(C_srgb, 1.0 / 2.2);
+    int32_t g = PG_CLAMP((int)(C_lin_3 * 255.0), 0, 255);
+    return (uint8_t)g;
+}
 void pg_getglyph(PGRenderContext *ctx, CachedGlyph *outGlyph, uint32_t codePoint, uint32_t pangoFontHash, FT_Face face, PangoFont* pango)
 {
 	//Fetch synthesized props
@@ -88,6 +98,9 @@ void pg_getglyph(PGRenderContext *ctx, CachedGlyph *outGlyph, uint32_t codePoint
 	}
 	ctx->lineMax = PG_MAX(ctx->lineMax, rendered.rows);
 	PGTexture *tex = ctx->pages[ctx->curTex - 1];
+    for(int i = 0; i < rendered.width * rendered.rows; i++) {
+        rendered.buffer[i] = pg_gamma(rendered.buffer[i]);
+    }
 	ctx->updateCb(tex, rendered.buffer, ctx->currentX, ctx->currentY, rendered.width, rendered.rows);
 	//create glyph
 	outGlyph->tex = tex;
