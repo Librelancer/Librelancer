@@ -12,6 +12,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using LibreLancer.GLDelegates;
 
+#pragma warning disable 0649
 namespace LibreLancer
 {
 	public static partial class GL
@@ -431,4 +432,4 @@ namespace LibreLancer
 
 	}
 }
-
+#pragma warning restore 0649

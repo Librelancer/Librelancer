@@ -205,7 +205,6 @@ namespace LibreLancer.Text.DirectWrite
             public InlineObjectMetrics Metrics => new InlineObjectMetrics() { Width = X };
             public OverhangMetrics OverhangMetrics => new OverhangMetrics();
             public IDisposable Shadow { get; set; }
-            public void Dispose(){}
             public void Draw(object clientDrawingContext, TextRenderer renderer, float originX, float originY, bool isSideways, bool isRightToLeft, ComObject clientDrawingEffect){}
             public void GetBreakConditions(out BreakCondition breakConditionBefore, out BreakCondition breakConditionAfter){
                 breakConditionBefore = BreakCondition.CanBreak;

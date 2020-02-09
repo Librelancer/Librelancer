@@ -118,7 +118,7 @@ namespace LibreLancer.Interface
                 }
                 return loadedFiles[file];
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return null;
             }

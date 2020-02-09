@@ -77,8 +77,8 @@ namespace LibreLancer
                     }
                     if(ev.Duration < float.Epsilon)
                     {
-                        objA.Translate = objA.Translate;
-                        objA.Rotate = objA.Rotate;
+                        objA.Translate = objB.Translate;
+                        objA.Rotate = objB.Rotate;
                     }
                     else
                     {

@@ -59,6 +59,18 @@ namespace LibreLancer
 		{
 			return a.X != b.X || a.Y != b.Y || a.Width != b.Width || a.Height != b.Height;
 		}
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hc = X;
+                hc = hc * 314159 + Y;
+                hc = hc * 314159 + Width;
+                hc = hc * 314159 + Height;
+                return hc;
+            }
+        }
     }
 }
 

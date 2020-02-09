@@ -12,7 +12,6 @@ namespace LibreLancer.Interface
         public UiRenderable Fill { get; set; }
         public float PercentFilled { get; set; }
 
-        private ButtonAppearance style;
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
             if (!Visible) return;

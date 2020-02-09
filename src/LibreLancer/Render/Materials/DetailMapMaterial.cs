@@ -22,11 +22,14 @@ namespace LibreLancer
         static ShaderVariables sh_posNormalTexture;
 		static ShaderVariables GetShader(IVertexType vertextype) {
 			if (vertextype is VertexPositionNormalTexture) {
-                if(sh_posNormalTexture == null)
-				return ShaderCache.Get (
-					"PositionTextureFlip.vs",
-					"DetailMapMaterial.frag"
-				);
+                if (sh_posNormalTexture == null)
+                {
+                    sh_posNormalTexture = ShaderCache.Get(
+                        "PositionTextureFlip.vs",
+                        "DetailMapMaterial.frag"
+                    );
+                }
+
                 return sh_posNormalTexture;
 			}
 			throw new NotImplementedException ();

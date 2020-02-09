@@ -24,10 +24,8 @@ namespace ThnPlayer
         public Renderer2D Renderer2D;
         public SoundManager Sounds;
         public AudioManager Audio;
-        private const float ROTATION_SPEED = 1f;
         ImGuiHelper guiHelper;
         FontManager fontMan;
-        bool vSync = true;
         public MainWindow() : base(1024,768,false)
         {
             FLLog.UIThread = this;

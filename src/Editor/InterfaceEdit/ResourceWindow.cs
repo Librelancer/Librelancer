@@ -205,7 +205,6 @@ namespace InterfaceEdit
             string newfile;
             if ((newfile = modelSelector.Draw()) != null)
             {
-                int i = 1;
                 var name = Path.GetFileName(newfile);
                 resources.Models.Add(new InterfaceModel()
                 {
@@ -381,11 +380,7 @@ namespace InterfaceEdit
             mainWindow.RenderState.Cull = true;
             DrawViewport();
         }
-
-        private bool showOrigin = true;
-
-        private int pointEditingA = 0;
-        private int pointEditingB = 0;
+        
         void DoImagePreview(InterfaceImage mdl)
         {
             if (foundTexture == null)

@@ -29,7 +29,6 @@ namespace LibreLancer.ImUI
     }
 	public  class FileDialog
 	{
-        static dynamic parentForm;
         static bool kdialog;
         static IntPtr parentWindow;
         public static void RegisterParent(Game game)

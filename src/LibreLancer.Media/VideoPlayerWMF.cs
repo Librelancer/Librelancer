@@ -263,12 +263,9 @@ namespace LibreLancer.Media
             {
                 this._session = _session;
                 _player = player;
+                Disposed += (sender, args) => disposed = true;
             }
             bool disposed = false;
-            public void Dispose()
-            {
-                disposed = true;
-            }
 
             public IDisposable Shadow { get; set; }
             public void Invoke(AsyncResult asyncResultRef)

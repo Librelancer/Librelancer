@@ -31,6 +31,7 @@ using System;
 using System.Runtime.InteropServices;
 #endregion
 
+#pragma warning disable 0649
 namespace LibreLancer
 {
 	/// <summary>
@@ -6067,3 +6068,4 @@ namespace LibreLancer
 		#endregion
 	}
 }
+#pragma warning restore 0649

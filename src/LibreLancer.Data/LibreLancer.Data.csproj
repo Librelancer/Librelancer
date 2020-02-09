@@ -1,9 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ImportGroup>
-    <Import Project="../CommonVersion.props"/>
+    <Import Project="../CommonVersion.props" />
   </ImportGroup>
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <NoWarn>1701;1702;0649</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <NoWarn>1701;1702;0649</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

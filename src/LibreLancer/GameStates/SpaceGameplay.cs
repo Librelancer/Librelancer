@@ -285,7 +285,7 @@ Mouse Flight: {11}
                 y = float.Parse(floats[1]);
                 z = float.Parse(floats[2]);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return;
             }

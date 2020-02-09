@@ -35,7 +35,6 @@ namespace LibreLancer
 			case PlatformID.MacOSX:
 				RunningOS = OS.Mac;
                 throw new NotImplementedException("macOS");
-				break;
 			default:
 				RunningOS = OS.Windows;
 				RunningPlatform = new Win32Platform ();

@@ -21,8 +21,8 @@ namespace LibreLancer.Vertices
 			Diffuse = diffuse;
 			TextureCoordinate = texcoord;
 		}
-
-		public VertexDeclaration GetVertexDeclaration()
+        
+        public VertexDeclaration GetVertexDeclaration()
 		{
 			return new VertexDeclaration(
 				sizeof(float) * 3 + + sizeof(float) * 3 + sizeof(int) + sizeof(float) * 2,
@@ -32,22 +32,36 @@ namespace LibreLancer.Vertices
 				new VertexElement(VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 7)
 			);
 		}
-
-		public static bool operator ==(VertexPositionNormalDiffuseTexture left, VertexPositionNormalDiffuseTexture right)
+        
+        public static bool operator ==(VertexPositionNormalDiffuseTexture left, VertexPositionNormalDiffuseTexture right)
 		{
 			return left.Position == right.Position &&
 					   left.Normal == right.Normal &&
 					   left.Diffuse == right.Diffuse &&
 					   left.TextureCoordinate == right.TextureCoordinate;
 		}
-
-		public static bool operator !=(VertexPositionNormalDiffuseTexture left, VertexPositionNormalDiffuseTexture right)
+        public static bool operator !=(VertexPositionNormalDiffuseTexture left, VertexPositionNormalDiffuseTexture right)
 		{
 			return left.Position != right.Position ||
 					   left.Normal != right.Normal ||
 					   left.Diffuse != right.Diffuse ||
 					   left.TextureCoordinate != right.TextureCoordinate;
 		}
-	}
+        
+        public override bool Equals(object obj)
+        {
+            if (obj is VertexPositionNormalDiffuseTexture other)
+                return other == this;
+            return false;
+        }
+        
+        public override unsafe int GetHashCode()
+        {
+            fixed (VertexPositionNormalDiffuseTexture* self = &this)
+            {
+                return FNV1A.Hash((IntPtr) self, sizeof(float) * 8);
+            }
+        }
+    }
 }
 

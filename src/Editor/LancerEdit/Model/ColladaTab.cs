@@ -350,7 +350,6 @@ namespace LancerEdit
             _openError = true;
             _errorText = text;
         }
-        float collada_h1 = 200, collada_h2 = 200;
         public override void Draw()
         {
             ImGui.Text("Tree");

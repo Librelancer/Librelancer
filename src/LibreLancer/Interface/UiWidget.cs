@@ -110,7 +110,6 @@ namespace LibreLancer.Interface
 
         protected UiAnimation CurrentAnimation;
         private TimeSpan lastTime = TimeSpan.FromSeconds(0);
-        private TimeSpan startAnimationTime;
         protected void Update(UiContext context, Vector2 myPos)
         {
             TimeSpan delta;

@@ -212,7 +212,6 @@ namespace LibreLancer.Media
 				throw new ObjectDisposedException("StreamingSource");
 		}
 
-        private bool _disposing = false;
 		public void Dispose()
         {
             if (ID != uint.MaxValue)

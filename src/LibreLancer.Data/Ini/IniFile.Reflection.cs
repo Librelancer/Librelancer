@@ -356,7 +356,7 @@ namespace LibreLancer.Ini
                         {
                             field.Field.SetValue(obj, Enum.Parse(ftype, e[0].ToString(), true));
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
                             FLLog.Error("Ini", "Invalid value for enum " + e[0].ToString() + FormatLine(e.File, e.Line, s.Name));
                         }

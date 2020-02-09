@@ -38,7 +38,6 @@ namespace LibreLancer.Interface
             {
                 var mat = (BasicMaterial)vms.Meshes[i].Material?.Render;
                 if (mat == null) continue;
-                bool found = false;
                 if (mats.Any(x => x.Mat == mat)) continue;
                 mats.Add(new ModifiedMaterial() {Mat = mat, Dc = mat.Dc, Dt = mat.DtSampler});
             }
