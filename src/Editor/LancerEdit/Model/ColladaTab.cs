@@ -358,8 +358,9 @@ namespace LancerEdit
             {
                 EditableUtf utf;
                 if (Finish(out utf))
-                    win.AddTab(new UtfTab(win, utf, "Untitled"));
-                else {
+                    win.AddTab(new UtfTab(win, utf, "Untitled", true));
+                else
+                {
                     ErrorPopup("Invalid UTF Structure:\nMore than one root node.");
                 }
             }

@@ -23,13 +23,16 @@ namespace LancerEdit
         MainWindow main;
         PopupManager popups = new PopupManager();
         List<JointMapView> jointViews = new List<JointMapView>();
-        public UtfTab(MainWindow main, EditableUtf utf, string title)
+        //generated parameter is used for utf generated internally, like from the collada exporter
+        //saves a bunch of copies when opening a large UTF from disk
+        public UtfTab(MainWindow main, EditableUtf utf, string title, bool generated = false)
         {
             this.main = main;
             Utf = utf;
             DocumentName = title;
             Title = title;
             text = new TextBuffer();
+            if(generated) utf.Source = utf.Export();
             if (utf.Source != null)
             {
                 main.Resources.AddResources(utf.Source, Unique.ToString());
