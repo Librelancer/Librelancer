@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
@@ -31,7 +32,12 @@ namespace LancerEdit
         public int TriCount;
         public int StartVertex;
         public int EndVertex;
-        public string Material;
+        public ColladaMaterial Material;
+    }
+    public class ColladaMaterial
+    {
+        public string Name;
+        public Color4 Dc;
     }
     public class ColladaSpline
     {
@@ -126,7 +132,8 @@ namespace LancerEdit
                     //this error shouldn't ever throw
                     if (startTri != dc.StartIndex) throw new Exception("Invalid start index");
                     //write TMeshHeader
-                    writer.Write(CrcTool.FLModelCrc(dc.Material));
+                    var crc = dc.Material != null ? CrcTool.FLModelCrc(dc.Material.Name) : 0;
+                    writer.Write(crc);
                     writer.Write((ushort)dc.StartVertex);
                     writer.Write((ushort)dc.EndVertex);
                     writer.Write((ushort)(dc.TriCount * 3)); //NumRefVertices
@@ -200,18 +207,8 @@ namespace LancerEdit
             //Get libraries
             var geometrylib = dae.Items.OfType<CL.library_geometries>().First();
             var scenelib = dae.Items.OfType<CL.library_visual_scenes>().First();
-            //Bad workaround - we aren't fully resolving materials yet
-            //Use implementation detail of blender/lanceredit to remove -material suffix
-            bool isBlender = false;
-            if (dae.asset.contributor != null &&
-              dae.asset.contributor.Length > 0)
-            {
-                var t = dae.asset.contributor[0].authoring_tool;
-                if (!string.IsNullOrEmpty(t) &&
-                  (t.StartsWith("blender", StringComparison.InvariantCultureIgnoreCase) ||
-                   t.StartsWith("lanceredit", StringComparison.InvariantCultureIgnoreCase)))
-                    isBlender = true;
-            }
+            var matlib = dae.Items.FirstOfType<CL.library_materials>();
+            var fxlib = dae.Items.FirstOfType<CL.library_effects>();
             //Get main scene
             var urlscn = CheckURI(dae.scene.instance_visual_scene.url);
             var scene = scenelib.visual_scene.Where((x) => x.id == urlscn).First();
@@ -219,12 +216,12 @@ namespace LancerEdit
             var up = dae.asset.up_axis;
             var objs = new List<ColladaObject>();
             foreach(var node in scene.node) {
-                objs.Add(ProcessNode(up, geometrylib, node,isBlender));
+                objs.Add(ProcessNode(up, geometrylib, node,matlib, fxlib));
             }
             return objs;
         }
 
-        static ColladaObject ProcessNode(CL.UpAxisType up, CL.library_geometries geom, CL.node n, bool isBlender)
+        static ColladaObject ProcessNode(CL.UpAxisType up, CL.library_geometries geom, CL.node n, CL.library_materials matlib, CL.library_effects fxlib)
         {
             var obj = new ColladaObject();
             obj.Name = n.name;
@@ -235,7 +232,7 @@ namespace LancerEdit
                 var uri = CheckURI(n.instance_geometry[0].url);
                 var g = geom.geometry.Where((x) => x.id == uri).First();
                 if(g.Item is CL.mesh) {
-                    obj.Geometry = GetGeometry(up, g, isBlender);
+                    obj.Geometry = GetGeometry(up, g, matlib, fxlib);
                 } else if (g.Item is CL.spline) {
                     obj.Spline = GetSpline(up, g);
                 }
@@ -254,7 +251,7 @@ namespace LancerEdit
             }
             if(n.node1 != null && n.node1.Length > 0) {
                 foreach(var node in n.node1) {
-                    obj.Children.Add(ProcessNode(up, geom, node,isBlender));
+                    obj.Children.Add(ProcessNode(up, geom, node,matlib, fxlib));
                 }
             }
             return obj;
@@ -290,7 +287,65 @@ namespace LancerEdit
         const string SEM_COLOR = "COLOR";
         const string SEM_NORMAL = "NORMAL";
         const string SEM_TEXCOORD = "TEXCOORD";
-        static ColladaGeometry GetGeometry(CL.UpAxisType up, CL.geometry geo, bool isBlender)
+
+        static void SetDc(ColladaMaterial material, CL.common_color_or_texture_type obj)
+        {
+            if (obj == null) return;
+            if (obj.Item is CL.common_color_or_texture_typeColor col)
+            {
+                TryParseColor(col.Text, out material.Dc);
+            }
+            if (obj.Item is CL.common_color_or_texture_typeTexture tex)
+            {
+                material.Dc = Color4.White;
+                FLLog.Warning("Collada", "Not Implemented: Diffuse texture import");
+            }
+        }
+      
+        static ColladaMaterial ParseMaterial(string name, CL.library_materials matlib, CL.library_effects fxlib)
+        {
+            if(matlib == null) return new ColladaMaterial()
+            {
+                Dc = Color4.Red,
+                Name = name
+            };
+            var src = matlib.material.FirstOrDefault(mat => mat.id.Equals(name, StringComparison.InvariantCulture));
+            if (src == null)
+                return new ColladaMaterial()
+                {
+                    Dc = Color4.Red,
+                    Name = name
+                };
+            var output = new ColladaMaterial() {Dc = Color4.Red};
+            output.Name = string.IsNullOrWhiteSpace(src.name) ? name : src.name;
+            if (src.instance_effect == null) return output;
+            if (fxlib == null) return output;
+            var fx = fxlib.effect.FirstOrDefault(fx =>
+                fx.id.Equals(CheckURI(src.instance_effect.url), StringComparison.InvariantCulture));
+            if (fx != null)
+            {
+                var profile = fx.Items.FirstOfType<CL.effectFx_profile_abstractProfile_COMMON>();
+                if (profile == null) return output;
+                if (profile.technique == null) return output;
+                switch (profile.technique.Item)
+                {
+                    case CL.effectFx_profile_abstractProfile_COMMONTechniquePhong phong:
+                        SetDc(output, phong.diffuse);
+                        break;
+                    case CL.effectFx_profile_abstractProfile_COMMONTechniqueBlinn blinn:
+                        SetDc(output, blinn.diffuse);
+                        break;
+                    case CL.effectFx_profile_abstractProfile_COMMONTechniqueConstant constant:
+                        output.Dc = Color4.White;
+                        break;
+                    case CL.effectFx_profile_abstractProfile_COMMONTechniqueLambert lambert:
+                        SetDc(output, lambert.diffuse);
+                        break;
+                }
+            }
+            return output;
+        }
+        static ColladaGeometry GetGeometry(CL.UpAxisType up, CL.geometry geo, CL.library_materials matlib, CL.library_effects fxlib)
         {
             var conv = new ColladaGeometry() { FVF = D3DFVF.XYZ };
             conv.Name = string.IsNullOrEmpty(geo.name) ? geo.id : geo.name;
@@ -338,13 +393,14 @@ namespace LancerEdit
                 CL.InputLocalOffset[] inputs;
                 int[] pRefs;
                 int indexCount;
-                string material;
+                string materialRef;
+                ColladaMaterial material;
                 if(item is CL.triangles) {
                     var triangles = (CL.triangles)item;
                     indexCount = (int)(triangles.count * 3);
                     pRefs = IntArray(triangles.p);
                     inputs = triangles.input;
-                    material = triangles.material;
+                    materialRef = triangles.material;
                 } else if (item is CL.polygons polygons)
                 {
                     indexCount = (int)(polygons.count * 3);
@@ -362,7 +418,7 @@ namespace LancerEdit
                         j += 3;
                     }
                     inputs = polygons.input;
-                    material = polygons.material;
+                    materialRef = polygons.material;
                 } else  {
                     var plist = (CL.polylist)item;
                     pRefs = IntArray(plist.p);
@@ -371,15 +427,12 @@ namespace LancerEdit
                             throw new Exception("Polylist: non-triangle geometry");
                         }
                     }
-                    material = plist.material;
+                    materialRef = plist.material;
                     inputs = plist.input;
                     indexCount = (int)(plist.count * 3);
                 }
                 if (indexCount == 0) continue; //Skip empty
-                //Blender workaround #1 - their stuff is crap
-                if(!string.IsNullOrEmpty(material) && isBlender && material.EndsWith("-material",StringComparison.InvariantCulture)) {
-                    material = material.Substring(0, material.Length - 9);
-                }
+                material = ParseMaterial(materialRef, matlib, fxlib);
                 int pStride = 0;
                 foreach (var input in inputs)
                     pStride = Math.Max((int)input.offset, pStride);
@@ -491,7 +544,7 @@ namespace LancerEdit
                     StartVertex = vertexOffset,
                     EndVertex = vertices.Count - 1,
                     TriCount = (indices.Count - startIdx) / 3,
-                    Material = string.IsNullOrEmpty(material) ? (geo.name + "_mat" + placeHolderIdx++) : material
+                    Material = material
                 });
             }
             conv.Indices = indices.ToArray();
@@ -635,5 +688,24 @@ namespace LancerEdit
         static float[] FloatArray(string s) => Tokens(s).Select((x) => float.Parse(x, CultureInfo.InvariantCulture)).ToArray();
         static int[] IntArray(string s) => Tokens(s).Select((x) => int.Parse(x, CultureInfo.InvariantCulture)).ToArray();
         static float[] FloatArray(dynamic arr) => FloatArray(arr.Text);
+
+        static bool TryParseColor(string s, out Color4 col)
+        {
+            col = Color4.White;
+            try
+            {
+                var floats = FloatArray(s);
+                if (floats.Length != 3 && floats.Length != 4) return false;
+                col.R = floats[0];
+                col.G = floats[1];
+                col.B = floats[2];
+                if (floats.Length > 3) col.A = floats[3];
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
     }
 }

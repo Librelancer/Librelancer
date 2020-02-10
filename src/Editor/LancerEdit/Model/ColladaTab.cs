@@ -61,7 +61,7 @@ namespace LancerEdit
             foreach(var lod in mdl.LODs) {
                 for (int i = 0; i < lod.Geometry.Drawcalls.Length; i++) {
                     var buf = new TextBuffer(256);
-                    buf.SetText(lod.Geometry.Drawcalls[i].Material);
+                    buf.SetText(lod.Geometry.Drawcalls[i].Material.Name);
                     mdl.Materials.Add(new MaterialName()
                     {
                         Geometry = lod.Geometry,
@@ -134,7 +134,7 @@ namespace LancerEdit
         void ApplyMatNames(OutModel model)
         {
             foreach(var mat in model.Materials) {
-                mat.Geometry.Drawcalls[mat.Drawcall].Material = mat.Name.GetText();
+                mat.Geometry.Drawcalls[mat.Drawcall].Material.Name = mat.Name.GetText();
             }
             foreach(var child in model.Children) {
                 ApplyMatNames(child);
@@ -181,8 +181,9 @@ namespace LancerEdit
                     cons.Children.Add(trs);
                     cmpnd.Children.Add(cons);
                 }
-                if(generateMaterials) {
-                    List<string> materials = new List<string>();
+                if(generateMaterials)
+                {
+                    List<ColladaMaterial> materials = new List<ColladaMaterial>();
                     foreach (var mdl in output)
                         IterateMaterials(materials, mdl);
                     var mats = new LUtfNode() { Name = "material library", Parent = utf.Root };
@@ -193,7 +194,7 @@ namespace LancerEdit
                     var txms = new LUtfNode() { Name = "texture library", Parent = utf.Root };
                     txms.Children = new List<LUtfNode>();
                     foreach (var mat in materials)
-                        txms.Children.Add(DefaultTextureNode(txms,mat));
+                        txms.Children.Add(DefaultTextureNode(txms,mat.Name));
                     utf.Root.Children.Add(mats);
                     utf.Root.Children.Add(txms);
                 }
@@ -247,21 +248,14 @@ namespace LancerEdit
             foreach (var child in model.Children)
                 ExportModels(mdlName, root, suffix, vms, child);
         }
-        static readonly float[][] matColors =  {
-            new float[]{ 1, 0, 0 },
-            new float[]{ 0, 1, 0 },
-            new float[]{ 0, 0, 1 },
-            new float[]{ 1, 1, 1 },
-            new float[]{ 1, 1, 0 },
-            new float[]{ 0, 1, 1 }
-        };
-        static LUtfNode DefaultMaterialNode(LUtfNode parent, string name, int i)
+        static LUtfNode DefaultMaterialNode(LUtfNode parent, ColladaMaterial mat, int i)
         {
-            var matnode = new LUtfNode() { Name = name, Parent = parent };
+            var matnode = new LUtfNode() { Name = mat.Name, Parent = parent };
             matnode.Children = new List<LUtfNode>();
             matnode.Children.Add(new LUtfNode() { Name = "Type", Parent = matnode, Data = Encoding.ASCII.GetBytes("DcDt") });
-            matnode.Children.Add(new LUtfNode() { Name = "Dc", Parent = matnode, Data = UnsafeHelpers.CastArray(matColors[i % matColors.Length]) });
-            matnode.Children.Add(new LUtfNode() { Name = "Dt_name", Parent = matnode, Data = Encoding.ASCII.GetBytes(name + ".dds") });
+            var arr = new float[] {mat.Dc.R, mat.Dc.G, mat.Dc.B};
+            matnode.Children.Add(new LUtfNode() { Name = "Dc", Parent = matnode, Data = UnsafeHelpers.CastArray(arr) });
+            matnode.Children.Add(new LUtfNode() { Name = "Dt_name", Parent = matnode, Data = Encoding.ASCII.GetBytes(mat.Name + ".dds") });
             matnode.Children.Add(new LUtfNode() { Name = "Dt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
             return matnode;
         }
@@ -275,11 +269,19 @@ namespace LancerEdit
             return texnode;
         }
 
-        static void IterateMaterials(List<string> materials, OutModel mdl)
+        static bool HasMat(List<ColladaMaterial> materials, ColladaMaterial m)
+        {
+            foreach (var m2 in materials)
+            {
+                if (m2.Name == m.Name) return true;
+            }
+            return false;
+        }
+        static void IterateMaterials(List<ColladaMaterial> materials, OutModel mdl)
         {
             foreach (var lod in mdl.LODs)
                 foreach (var dc in lod.Geometry.Drawcalls)
-                    if (dc.Material != "NullMaterial" && !materials.Contains(dc.Material))
+                    if (dc.Material != null && !HasMat(materials, dc.Material))
                         materials.Add(dc.Material);
             foreach (var child in mdl.Children)
                 IterateMaterials(materials, child);
