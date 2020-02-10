@@ -43,4 +43,10 @@
     <EmbeddedResource Include="defaulttexture.dds" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\..\editoricons\appicon\reactor_64.png">
+      <Link>reactor_64.png</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

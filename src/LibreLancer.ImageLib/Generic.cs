@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using LibreLancer.GLDelegates;
 using StbImageSharp;
 namespace LibreLancer.ImageLib
 {
@@ -15,6 +16,33 @@ namespace LibreLancer.ImageLib
                 return FromStream (stream);
             }
         }
+
+        public struct LoadResult
+        {
+            public int Width;
+            public int Height;
+            public byte[] Data;
+        }
+
+        public static LoadResult BytesFromStream(Stream stream, bool flip = false)
+        {
+            int len = (int)stream.Length;
+            byte[] b = new byte[len];
+            int pos = 0;
+            int r = 0;
+            while ((r = stream.Read(b, pos, len - pos)) > 0)
+            {
+                pos += r;
+            }
+            /* stb_image it */
+            StbImage.stbi_set_flip_vertically_on_load(flip ? 1 : 0);
+            ImageResult image = ImageResult.FromMemory(b, ColorComponents.RedGreenBlueAlpha);
+            return new LoadResult()
+            {
+                Width = image.Width, Height = image.Height, Data = image.Data
+            };
+        }
+        
         public static unsafe Texture2D FromStream(Stream stream)
         {
             if (DDS.StreamIsDDS (stream)) {
