@@ -611,13 +611,19 @@ namespace LibreLancer
         }
         public void EnableTextInput()
         {
-            SDL.SDL_StartTextInput();
-            textInputEnabled = true;
+            if (!textInputEnabled)
+            {
+                SDL.SDL_StartTextInput();
+                textInputEnabled = true;
+            }
         }
         public void DisableTextInput()
         {
-            SDL.SDL_StopTextInput();
-            textInputEnabled = false;
+            if (textInputEnabled)
+            {
+                SDL.SDL_StopTextInput();
+                textInputEnabled = false;
+            }
         }
         public void Exit()
         {
