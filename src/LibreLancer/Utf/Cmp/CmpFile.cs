@@ -182,6 +182,7 @@ namespace LibreLancer.Utf.Cmp
 			foreach (var part in Parts)
 			{
                 if (part.Camera != null) continue;
+                if (part.Model.Levels.Length <= 0) continue;
 				var r = part.Model.GetRadius();
 				float d = 0;
 				if(part.Construct != null)

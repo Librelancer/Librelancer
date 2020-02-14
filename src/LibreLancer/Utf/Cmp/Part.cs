@@ -127,6 +127,7 @@ namespace LibreLancer.Utf.Cmp
             if (Camera != null) return;
             Matrix4 transform = world;
             if (Construct != null) transform = Construct.Transform * world;
+            if (Model.Levels.Length <= 0) return;
             Model.DrawBufferLevel(Model.Levels[level], buffer, transform, ref light, overrideMat);
         }
 

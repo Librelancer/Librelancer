@@ -41,7 +41,6 @@ namespace LibreLancer.ImUI
         public static void KeyboardLayoutChanged()
         {
             mappedKeys = new List<Keys>(_mappedKeys.Select(x => x.Map()));
-            Console.WriteLine();
         }
 
         static void SetKeyMappings()

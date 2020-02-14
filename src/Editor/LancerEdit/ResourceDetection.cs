@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using LibreLancer;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
@@ -43,7 +44,8 @@ namespace LancerEdit
 			}
 		}
 		static void DetectResourcesModel(ModelFile mdl, string mdlname, ResourceManager res, List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
-		{
+        {
+            if (mdl.Levels.Length <= 0) return;
 			var lvl = mdl.Levels[0];
 			for (int i = lvl.StartMesh; i < (lvl.StartMesh + lvl.MeshCount); i++)
 			{

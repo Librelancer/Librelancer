@@ -122,10 +122,15 @@ namespace LibreLancer.Utf.Cmp
                                     if (!int.TryParse(levelNode.Name.Substring(5), out level)) throw new Exception("Invalid Level: Missing index");
 
                                     IntermediateNode vMeshPartNode = levelNode[0] as IntermediateNode;
+                                    
                                     if (vMeshPartNode.Count == 1)
                                     {
                                         LeafNode vMeshRefNode = vMeshPartNode[0] as LeafNode;
-                                        lvls.Add(level, new VMeshRef(vMeshRefNode.DataSegment, this));
+                                        if (vMeshRefNode != null && vMeshRefNode.Name.Equals("vmeshref",
+                                                StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            lvls.Add(level, new VMeshRef(vMeshRefNode.DataSegment, this));
+                                        }
                                     }
                                     else throw new Exception("Invalid VMeshPart: More than one child or zero elements");
                                 }
@@ -200,9 +205,12 @@ namespace LibreLancer.Utf.Cmp
             }
         }
 		public float GetRadius()
-		{
-			return Levels[0].Radius;
-		}
+        {
+            if (Levels.Length > 0)
+                return Levels[0].Radius;
+            else
+                return 0;
+        }
 		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, ref Lighting light, Material overrideMat = null)
 		{
 			if (ready)
