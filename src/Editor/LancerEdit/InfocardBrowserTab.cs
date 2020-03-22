@@ -73,6 +73,7 @@ namespace LancerEdit
                 {
                     gotoItem = i;
                     currentInfocard = i;
+                    currentXml = manager.GetXmlResource(infocardsIds[currentInfocard]);
                     if (display == null)
                     {
                         display = new InfocardControl(win, RDLParse.Parse(manager.GetXmlResource(infocardsIds[currentInfocard]), fonts), 100);
@@ -91,6 +92,7 @@ namespace LancerEdit
         public override void Draw()
         {
             SearchDialog();
+            InfocardXmlDialog();
             //strings vs infocards
             if (ImGuiExt.ToggleButton("Strings", showStrings)) showStrings = true;
             ImGui.SameLine();
@@ -159,6 +161,7 @@ namespace LancerEdit
                             if (ImGui.Selectable(infocardsIds[i] + "##" + i, currentInfocard == i))
                             {
                                 currentInfocard = i;
+                                currentXml = manager.GetXmlResource(infocardsIds[currentInfocard]);
                                 if (display == null)
                                 {
                                     display = new InfocardControl(win, RDLParse.Parse(manager.GetXmlResource(infocardsIds[currentInfocard]), fonts), 100);
@@ -197,7 +200,18 @@ namespace LancerEdit
             {
                 if(currentInfocard != -1)
                 {
+                    ImGui.AlignTextToFramePadding();
                     ImGui.Text(infocardsIds[currentInfocard].ToString());
+                    ImGui.SameLine();
+                    if (ImGui.Button("View Xml"))
+                    {
+                        doOpenXml = true;
+                    }
+                    ImGui.SameLine();
+                    if (ImGui.Button("Copy Text"))
+                    {
+                        win.SetClipboardText(display.InfocardText);
+                    }
                     ImGui.BeginChild("##display");
                     display.Draw(ImGui.GetWindowWidth() - 15);
                     ImGui.EndChild();
@@ -277,6 +291,36 @@ namespace LancerEdit
             }
             ImGui.EndChild();
             ImGui.End();
+        }
+
+        private bool doOpenXml = false;
+        private bool xmlDlgOpen = false;
+        private string currentXml = null;
+        
+        void InfocardXmlDialog()
+        {
+            if (doOpenXml)
+            {
+                ImGui.OpenPopup(ImGuiExt.IDWithExtra("Xml", Unique));
+                doOpenXml = false;
+                xmlDlgOpen = true;
+            }
+
+            if (ImGui.BeginPopupModal(ImGuiExt.IDWithExtra("Xml", Unique), ref xmlDlgOpen,
+                ImGuiWindowFlags.AlwaysAutoResize))
+            {
+                if (ImGui.Button("Copy To Clipboard"))
+                {
+                    win.SetClipboardText(currentXml);
+                }
+
+                ImGui.PushFont(ImGuiHelper.SystemMonospace);
+                ImGui.InputTextMultiline("##xml", ref currentXml, UInt32.MaxValue, new Vector2(400),
+                    ImGuiInputTextFlags.ReadOnly);
+                ImGui.PopFont();
+                ImGui.EndPopup();
+            }
+            
         }
         void SearchDialog()
         {

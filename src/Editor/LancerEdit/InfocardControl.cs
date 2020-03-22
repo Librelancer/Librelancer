@@ -15,6 +15,7 @@ namespace LancerEdit
         MainWindow window;
         RenderTarget2D renderTarget;
         int renderWidth = -1, renderHeight = -1, rid = -1;
+        public string InfocardText { get; private set; }
         public InfocardControl(MainWindow win, Infocard infocard, float initWidth)
         {
             window = win;
@@ -23,6 +24,7 @@ namespace LancerEdit
         public void SetInfocard(Infocard infocard)
         {
             icard.Dispose();
+            InfocardText = infocard.ExtractText();
             icard = window.RichText.BuildText(infocard.Nodes, renderWidth > 0 ? renderWidth : 400, 0.7f);
         }
         public void Draw(float width)
