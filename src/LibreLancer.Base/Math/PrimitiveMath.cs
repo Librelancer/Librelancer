@@ -24,16 +24,7 @@ namespace LibreLancer
 		}
 		public static Vector3 GetPointOnRadius(Vector3 size, float y, float angle)
 		{
-			/*float x0 = (float)Math.Sin(angle);
-			float z0 = (float)Math.Cos(angle);
-
-			float scalefactor = 1 - (y / size.Y);
-
-			float x = x0 * size.X * scalefactor;
-			float z = z0 * size.X * scalefactor;
-			return new Vector3(x, y, z);*/
-
-			//sphere:
+            //sphere:
 			//r = sqrt(R^2 - y^2)
 			var y_rel = y - (size.Y / 2);
 			var r = Math.Sqrt(size.Y * size.Y - y_rel * y_rel);

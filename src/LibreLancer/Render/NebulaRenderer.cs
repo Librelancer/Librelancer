@@ -272,23 +272,27 @@ namespace LibreLancer
 				return;
 			sz *= (1 / ex.Shell.GetRadius());
 			var world = Matrix4.CreateScale(ex.ShellScalar * sz) * ex.Zone.RotationMatrix * Matrix4.CreateTranslation(ex.Zone.Position);
-			var shell = (ModelFile)ex.Shell;
+			//var shell = (ModelFile)ex.Shell;
 			//Calculate Alpha
 			var alpha = ex.ShellMaxAlpha * CalculateTransition(ex.Zone);
 			//Set all render materials. We don't want LOD for this Mesh.
-			var l0 = shell.Levels[0];
-			for (int i = l0.StartMesh; (i < l0.StartMesh + l0.MeshCount); i++)
-			{
-				var mat = (BasicMaterial)l0.Mesh.Meshes[i].Material.Render;
-				mat.Oc = alpha;
-				mat.OcEnabled = true;
-				mat.AlphaEnabled = true;
-				mat.Dc = new Color4(ex.ShellTint, 1) * (Nebula.AmbientColor ?? Color4.White);
-			}
-			//Render
-			l0.Update(camera, TimeSpan.Zero);
-			l0.DrawBuffer(buffer, world, ref Lighting.Empty, null);
-		}
+            foreach (var pt in ex.Shell.AllParts)
+            {
+                foreach (var dc in pt.Mesh.Levels[0])
+                {
+                    var mat = dc.GetMaterial(resman)?.Render;
+                    if (mat is BasicMaterial basic)
+                    {
+                        basic.Oc = alpha;
+                        basic.OcEnabled = true;
+                        basic.AlphaEnabled = true;
+                        basic.Dc = new Color4(ex.ShellTint, alpha) * (Nebula.AmbientColor ?? Color4.White);
+                    }
+                }
+            }
+            ex.Shell.Update(camera, TimeSpan.Zero, resman);
+            ex.Shell.DrawBuffer(0, buffer, resman, world, ref Lighting.Empty);
+        }
         static ShaderVariables _puffringsh;
 		static int _ptex0;
 		static int _pfogfactor;

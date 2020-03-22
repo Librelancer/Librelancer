@@ -9,7 +9,7 @@ namespace LibreLancer
 {
     public class ServerWorld
     {
-        public Dictionary<NetPlayer, GameObject> Players = new Dictionary<NetPlayer, GameObject>();
+        public Dictionary<Player, GameObject> Players = new Dictionary<Player, GameObject>();
         ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
         public GameWorld GameWorld;
         public GameServer Server;
@@ -24,7 +24,7 @@ namespace LibreLancer
             GameWorld.LoadSystem(system, server.Resources);
         }
 
-        public void SpawnPlayer(NetPlayer player, Vector3 position, Quaternion orientation)
+        public void SpawnPlayer(Player player, Vector3 position, Quaternion orientation)
         {
             actions.Enqueue(() =>
             {
@@ -40,7 +40,7 @@ namespace LibreLancer
             });
         }
 
-        public void RemovePlayer(NetPlayer player)
+        public void RemovePlayer(Player player)
         {
             actions.Enqueue(() =>
             {
@@ -53,7 +53,7 @@ namespace LibreLancer
             });
         }
 
-        public void PositionUpdate(NetPlayer player, Vector3 position, Quaternion orientation)
+        public void PositionUpdate(Player player, Vector3 position, Quaternion orientation)
         {
             actions.Enqueue(() =>
             {

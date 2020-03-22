@@ -37,7 +37,7 @@ namespace LibreLancer
 		public float LODMultiplier = 1.3f;
 		public bool ExtraLights = false; //See comments in Draw() before enabling
 
-		public IDrawable[] StarSphereModels;
+		public RigidModel[] StarSphereModels;
 		public Matrix4[] StarSphereWorlds;
         public Lighting[] StarSphereLightings;
 		public PhysicsDebugRenderer DebugRenderer;
@@ -94,7 +94,7 @@ namespace LibreLancer
             this.camera = camera;
             AsteroidFields = new List<AsteroidFieldRenderer>();
             Nebulae = new List<NebulaRenderer>();
-            StarSphereModels = new IDrawable[0];
+            StarSphereModels = new RigidModel[0];
             Polyline = new PolylineRender(commands);
             FxPool = new ParticleEffectPool(commands);
             cache = rescache;
@@ -121,7 +121,7 @@ namespace LibreLancer
 
 			if (StarSphereModels != null)
 			{
-				StarSphereModels = new CmpFile[0];
+				StarSphereModels = new RigidModel[0];
 			}
 
 			if (AsteroidFields != null)
@@ -130,15 +130,15 @@ namespace LibreLancer
 			//Load new system
 			starSystem = system;
 
-			List<IDrawable> starSphereRenderData = new List<IDrawable>();
+			List<RigidModel> starSphereRenderData = new List<RigidModel>();
 			if (system.StarsBasic != null)
-				starSphereRenderData.Add(system.StarsBasic);
+				starSphereRenderData.Add((system.StarsBasic as IRigidModelFile).CreateRigidModel(true));
 
-			if (system.StarsComplex != null)
-				starSphereRenderData.Add(system.StarsComplex);
+            if (system.StarsComplex != null)
+                starSphereRenderData.Add((system.StarsComplex as IRigidModelFile).CreateRigidModel(true));
 
-			if (system.StarsNebula != null)
-				starSphereRenderData.Add(system.StarsNebula);
+            if (system.StarsNebula != null)
+                starSphereRenderData.Add((system.StarsNebula as IRigidModelFile).CreateRigidModel(true));
 
 			StarSphereModels = starSphereRenderData.ToArray();
 
@@ -167,9 +167,9 @@ namespace LibreLancer
 		}
 
 		public void Update(TimeSpan elapsed)
-		{
-			foreach (var model in StarSphereModels)
-				model.Update(camera, elapsed, TimeSpan.FromSeconds(game.TotalTime));
+        {
+            foreach (var model in StarSphereModels)
+                model.Update(camera, TimeSpan.FromSeconds(game.TotalTime), resman);
             FxPool.Update(elapsed);
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Update(camera);
 			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Update(elapsed);
@@ -293,22 +293,10 @@ namespace LibreLancer
 				{
 					Matrix4 ssworld = Matrix4.CreateTranslation(camera.Position);
                     
-                    Vector3 center = Vector3.Zero;
-
 					if (StarSphereWorlds != null) ssworld = StarSphereWorlds[i] * ssworld;
                     var lighting = Lighting.Empty;
                     if (StarSphereLightings != null) lighting = StarSphereLightings[i];
-                    else if (StarSphereModels[i] is CmpFile)
-                    {
-                        var cmp = (CmpFile)StarSphereModels[i];
-                        center = -cmp.GetRootPart().Model.Levels[0].Center;
-                        //ssworld = Matrix4.CreateTranslation(-cmp.GetRootPart().Model.Levels[0].Center) * ssworld;
-                    } else if (StarSphereModels[i] is ModelFile)
-                    {
-                        var mdl = (ModelFile)StarSphereModels[i];
-                        //ssworld = Matrix4.CreateTranslation(-mdl.Levels[0].Center) * ssworld;
-                    }
-                    StarSphereModels[i].Draw(rstate, ssworld, lighting);
+                    StarSphereModels[i].DrawImmediate(rstate, resman, ssworld, ref lighting);
                 }
                 if (camera is ThnCamera thn2) thn2.CameraZ();
 				//Render fog transition: if any

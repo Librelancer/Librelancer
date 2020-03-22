@@ -10,17 +10,12 @@ namespace LibreLancer.GameData.Items
 	public class PowerEquipment : Equipment
     {
         public Data.Equipment.PowerCore Def;
-		public IDrawable Model;
-		public override IDrawable GetDrawable()
-		{
-			return Model;
-		}
-		public PowerEquipment()
+        public PowerEquipment()
 		{
 		}
         static PowerEquipment() => EquipmentObjectManager.RegisterType<PowerEquipment>(AddEquipment);
 
-        static GameObject AddEquipment(GameObject parent, ResourceManager res, string hardpoint, Equipment equip)
+        static GameObject AddEquipment(GameObject parent, ResourceManager res, bool draw, string hardpoint, Equipment equip)
         {
             var pc = new PowerCoreComponent(((PowerEquipment)equip).Def, parent);
             parent.Components.Add(pc);

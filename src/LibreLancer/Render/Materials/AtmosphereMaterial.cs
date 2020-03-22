@@ -39,14 +39,15 @@ namespace LibreLancer
 			sh.SetDc(Dc);
 			sh.SetOc(Alpha);
 			sh.SetTileRate(Fade);
-			sh.SetWorld(ref World);
+            var w = Matrix4.CreateScale(Scale) * World;
+            sh.SetWorld(ref w);
 			sh.SetView(Camera);
 			sh.SetViewProjection(Camera);
 			sh.SetDtSampler(0);
             if (GetTexture(0, DtSampler) == null)
                 sh.SetOc(0);
 			BindTexture(rstate, 0, DtSampler, 0, DtFlags);
-			var normalmat = World;
+			var normalmat = w;
 			normalmat.Invert();
 			normalmat.Normalize();
 			SetLights(sh, ref lights);

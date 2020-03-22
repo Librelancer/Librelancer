@@ -58,7 +58,7 @@ namespace LibreLancer
                     if (!hp.Name.Equals("hpengineglow", StringComparison.OrdinalIgnoreCase) &&
                         hp.Name.StartsWith("hpengine", StringComparison.OrdinalIgnoreCase))
                     {
-                        fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(gameData.GetEffect(Engine.Def.FlameEffect))));
+                        //fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(gameData.GetEffect(Engine.Def.FlameEffect))));
                     }
                 }
 

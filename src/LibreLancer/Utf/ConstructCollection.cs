@@ -21,19 +21,19 @@ namespace LibreLancer.Utf
                     switch (conNode.Name.ToLowerInvariant())
                     {
                         case "fix":
-                             while (reader.BaseStream.Position < reader.BaseStream.Length) constructs.Add(new FixConstruct(reader, this));
+                             while (reader.BaseStream.Position < reader.BaseStream.Length) constructs.Add(new FixConstruct(reader));
                             break;
                         case "loose":
-                            while (reader.BaseStream.Position < reader.BaseStream.Length) constructs.Add(new LooseConstruct(reader, this));
+                            while (reader.BaseStream.Position < reader.BaseStream.Length) constructs.Add(new LooseConstruct(reader));
                             break;
                         case "rev":
-                            while (reader.BaseStream.Position < reader.BaseStream.Length) constructs.Add(new RevConstruct(reader, this));
+                            while (reader.BaseStream.Position < reader.BaseStream.Length) constructs.Add(new RevConstruct(reader));
                             break;
                         case "pris":
-                            while (reader.BaseStream.Position < reader.BaseStream.Length) constructs.Add(new PrisConstruct(reader, this));
+                            while (reader.BaseStream.Position < reader.BaseStream.Length) constructs.Add(new PrisConstruct(reader));
                             break;
                         case "sphere":
-                            while (reader.BaseStream.Position < reader.BaseStream.Length) constructs.Add(new SphereConstruct(reader, this));
+                            while (reader.BaseStream.Position < reader.BaseStream.Length) constructs.Add(new SphereConstruct(reader));
                             break;
                         default: throw new Exception("Invalid node in " + root.Name + ": " + conNode.Name);
                     }
@@ -45,7 +45,7 @@ namespace LibreLancer.Utf
 		{
 			var newcol = new ConstructCollection();
 			foreach (var c in constructs) {
-				newcol.constructs.Add(c.Clone(newcol));
+				newcol.constructs.Add(c.Clone());
 			}
 			return newcol;
 		}
@@ -59,14 +59,6 @@ namespace LibreLancer.Utf
             }
             return null;
         }
-
-        public void ClearParents()
-        {
-            foreach(var con in constructs) {
-                con.ClearParent();
-            }
-        }
-
 
         public int IndexOf(AbstractConstruct item)
         {

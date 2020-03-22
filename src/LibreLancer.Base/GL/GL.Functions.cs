@@ -29,7 +29,7 @@ namespace LibreLancer
 		[MapsTo("glClear")]
 		public static Clear Clear;
 		[MapsTo("glViewport")]
-		public static Viewport Viewport;
+		public static GLDelegates.Viewport Viewport;
 		[MapsTo("glBlendFunc")]
 		public static BlendFunc BlendFunc;
 		[MapsTo("glScissor")]

@@ -14,33 +14,27 @@ namespace LibreLancer.Interface
     }
     public class MaterialModification
     {
-        public static List<ModifiedMaterial> Setup(IDrawable drawable)
+        public static List<ModifiedMaterial> Setup(RigidModel model, ResourceManager res)
         {
             var mats = new List<ModifiedMaterial>();
-            if (drawable is ModelFile model)
+            foreach (var p in model.AllParts)
             {
-                ModifyMaterialsFor3db(model, mats);
+                if (p.Mesh == null) continue;
+                foreach (var l in p.Mesh.Levels)
+                {
+                    if (l == null) continue;
+                    foreach (var dc in l)
+                    {
+                        var mat = dc.GetMaterial(res)?.Render;
+                        if (mat is BasicMaterial bm)
+                        {
+                            if (mats.Any(x => x.Mat == bm)) continue;
+                            mats.Add(new ModifiedMaterial() {Mat = bm, Dc = bm.Dc, Dt = bm.DtSampler});
+                        }
+                    }
+                }
             }
-            else if (drawable is CmpFile cmp)
-            {
-                foreach (var child in cmp.Models.Values)
-                    ModifyMaterialsFor3db(child, mats);
-            }
-
             return mats;
-        }
-        static void ModifyMaterialsFor3db(ModelFile mfile, List<ModifiedMaterial> mats)
-        {
-            var l0 = mfile.Levels[0];
-            var vms = l0.Mesh;
-            //Save Mesh material state
-            for (int i = l0.StartMesh; i < l0.StartMesh + l0.MeshCount; i++)
-            {
-                var mat = (BasicMaterial)vms.Meshes[i].Material?.Render;
-                if (mat == null) continue;
-                if (mats.Any(x => x.Mat == mat)) continue;
-                mats.Add(new ModifiedMaterial() {Mat = mat, Dc = mat.Dc, Dt = mat.DtSampler});
-            }
         }
     }
     
@@ -49,7 +43,7 @@ namespace LibreLancer.Interface
     {
         public InterfaceModel Model { get; set; }
         public InterfaceColor Tint { get; set; }
-        private IDrawable drawable;
+        private RigidModel model;
         private bool loadable = true;
         private List<ModifiedMaterial> mats;
         public override void Render(UiContext context, RectangleF clientRectangle)
@@ -62,14 +56,15 @@ namespace LibreLancer.Interface
                             Matrix4.CreateTranslation(Model.X, Model.Y, 0);
             context.MatrixCam.CreateTransform((int)context.ViewportWidth, (int)context.ViewportHeight, rect);
             context.RenderState.Cull = false;
-            drawable.Update(context.MatrixCam, TimeSpan.Zero, context.GlobalTime);
+            model.UpdateTransform();
+            model.Update(context.MatrixCam, context.GlobalTime, context.ResourceManager);
             if (Tint != null)
             {
                 var color = Tint.GetColor(context.GlobalTime);
                 for (int i = 0; i < mats.Count; i++)
                     mats[i].Mat.Dc = color;
             }
-            drawable.Draw(context.RenderState, transform, Lighting.Empty);
+            model.DrawImmediate(context.RenderState, context.ResourceManager, transform, ref Lighting.Empty);
             if (Tint != null)
             {
                 for (int i = 0; i < mats.Count; i++)
@@ -83,16 +78,16 @@ namespace LibreLancer.Interface
         bool CanRender(UiContext context)
         {
             if (!loadable) return false;
-            if (drawable == null)
+            if (model == null)
             {
-                drawable = context.GetDrawable(Model.Path);
-                if (drawable == null)
+                model = context.GetModel(Model.Path);
+                if (model == null)
                 {
                     loadable = false;
                     return false;
                 }
                 if (Tint != null)
-                    mats = MaterialModification.Setup(drawable);
+                    mats = MaterialModification.Setup(model, context.ResourceManager);
             }
             return true;
         }

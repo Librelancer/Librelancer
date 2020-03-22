@@ -214,7 +214,7 @@ namespace LibreLancer
 
 		public void SetViewport(int x, int y, int w, int h)
 		{
-			GL.Viewport(x,y,w,h);
+            GL.Viewport(x,y,w,h);
             scissorVpChanged = true;
             vpHeight = h;
 		}

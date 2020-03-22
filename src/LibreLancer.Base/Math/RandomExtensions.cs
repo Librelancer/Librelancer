@@ -5,7 +5,7 @@
 using System;
 namespace LibreLancer
 {
-	static class RandomExtensions
+	public static class RandomExtensions
 	{
 		public static float NextFloat(this Random rnd, float min, float max)
 		{

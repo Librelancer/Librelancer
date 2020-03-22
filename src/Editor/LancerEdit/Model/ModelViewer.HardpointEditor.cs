@@ -15,16 +15,16 @@ namespace LancerEdit
 {
     public partial class ModelViewer
     {
-        HardpointDefinition hpEditing;
-        HardpointDefinition hpDelete;
-        List<HardpointDefinition> hpDeleteFrom;
+        Hardpoint hpEditing;
+        Hardpoint hpDelete;
+        List<Hardpoint> hpDeleteFrom;
         void ConfirmDelete(PopupData data)
         {
             ImGui.Text(string.Format("Are you sure you wish to delete '{0}'?", hpDelete.Name));
             if (ImGui.Button("Yes"))
             {
                 hpDeleteFrom.Remove(hpDelete);
-                var gz = gizmos.Where((x) => x.Definition == hpDelete).First();
+                var gz = gizmos.Where((x) => x.Hardpoint == hpDelete).First();
                 if (hpDelete == hpEditing) hpEditing = null;
                 gizmos.Remove(gz);
                 OnDirtyHp();
@@ -62,7 +62,7 @@ namespace LancerEdit
             var src = name + "_Copy";
             foreach(var gz in gizmos)
             {
-                if (gz.Definition.Name.Equals(src, StringComparison.OrdinalIgnoreCase))
+                if (gz.Hardpoint.Definition.Name.Equals(src, StringComparison.OrdinalIgnoreCase))
                     return GetCopyName(src);
             }
             return src;
@@ -72,10 +72,10 @@ namespace LancerEdit
             int val = 0;
             foreach (var gz in gizmos)
             {
-                if (gz.Definition.Name.StartsWith(name, StringComparison.OrdinalIgnoreCase))
+                if (gz.Hardpoint.Definition.Name.StartsWith(name, StringComparison.OrdinalIgnoreCase))
                 {
                     int a;
-                    if (int.TryParse(gz.Definition.Name.Substring(name.Length), out a))
+                    if (int.TryParse(gz.Hardpoint.Definition.Name.Substring(name.Length), out a))
                     {
                         val = Math.Max(a, val);
                     }
@@ -88,11 +88,11 @@ namespace LancerEdit
             int letter = (int)'`';
             foreach (var gz in gizmos)
             {
-                if (gz.Definition.Name.StartsWith(name, StringComparison.OrdinalIgnoreCase))
+                if (gz.Hardpoint.Definition.Name.StartsWith(name, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (gz.Definition.Name.Length > name.Length)
+                    if (gz.Hardpoint.Definition.Name.Length > name.Length)
                     {
-                        letter = Math.Max(char.ToLowerInvariant(gz.Definition.Name[name.Length]), letter);
+                        letter = Math.Max(char.ToLowerInvariant(gz.Hardpoint.Definition.Name[name.Length]), letter);
                     }
                 }
             }
@@ -100,8 +100,7 @@ namespace LancerEdit
         }
         TextBuffer newHpBuffer = new TextBuffer(256);
         bool newIsFixed = false;
-        List<HardpointDefinition> addTo;
-        AbstractConstruct addConstruct;
+        private RigidModelPart addTo;
         double newErrorTimer = 0;
         void NewHardpoint(PopupData data)
         {
@@ -148,15 +147,15 @@ namespace LancerEdit
                 {
                     return;
                 }
-                if (gizmos.Any((x) => x.Definition.Name.Equals(txt, StringComparison.OrdinalIgnoreCase)))
+                if (gizmos.Any((x) => x.Hardpoint.Definition.Name.Equals(txt, StringComparison.OrdinalIgnoreCase)))
                     newErrorTimer = 6;
                 else
                 {
                     HardpointDefinition def;
                     if (newIsFixed) def = new FixedHardpointDefinition(txt);
                     else def = new RevoluteHardpointDefinition(txt);
-                    gizmos.Add(new HardpointGizmo(def, addConstruct));
-                    addTo.Add(def);
+                    gizmos.Add(new HardpointGizmo(new Hardpoint(def, addTo), addTo));
+                    addTo.Hardpoints.Add(new Hardpoint(def, addTo));
                     OnDirtyHp();
                     ImGui.CloseCurrentPopup();
                 }
@@ -175,16 +174,17 @@ namespace LancerEdit
         float HPmin, HPmax;
         void SetHardpointValues()
         {
-            HPx = hpEditing.Position.X;
-            HPy = hpEditing.Position.Y;
-            HPz = hpEditing.Position.Z;
-            var euler = hpEditing.Orientation.GetEulerDegrees();
+            var hp = hpEditing.Definition;
+            HPx = hp.Position.X;
+            HPy = hp.Position.Y;
+            HPz = hp.Position.Z;
+            var euler = hp.Orientation.GetEulerDegrees();
             HPpitch = euler.X;
             HPyaw = euler.Y;
             HProll = euler.Z;
-            if (hpEditing is RevoluteHardpointDefinition)
+            if (hp is RevoluteHardpointDefinition)
             {
-                var rev = (RevoluteHardpointDefinition)hpEditing;
+                var rev = (RevoluteHardpointDefinition)hp;
                 HPmin = MathHelper.RadiansToDegrees(rev.Min);
                 HPmax = MathHelper.RadiansToDegrees(rev.Max);
                 HPaxisX = rev.Axis.X;
@@ -202,7 +202,7 @@ namespace LancerEdit
             }
             if (hpEditing != null && hpEditOpen == false)
             {
-                editingGizmo = gizmos.First((x) => x.Definition == hpEditing);
+                editingGizmo = gizmos.First((x) => x.Hardpoint == hpEditing);
                 hpEditOpen = true;
                 hpFirst = true;
                 SetHardpointValues();
@@ -237,15 +237,16 @@ namespace LancerEdit
                 }
                 if (ImGui.Button("Apply"))
                 {
-                    hpEditing.Position = new Vector3(HPx, HPy, HPz);
-                    hpEditing.Orientation = Matrix4.CreateFromEulerAngles(
+                    var hp = hpEditing.Definition;
+                    hp.Position = new Vector3(HPx, HPy, HPz);
+                    hp.Orientation = Matrix4.CreateFromEulerAngles(
                         MathHelper.DegreesToRadians((double)HPpitch),
                         MathHelper.DegreesToRadians((double)HPyaw),
                         MathHelper.DegreesToRadians((double)HProll)
                     );
                     if (!isFix)
                     {
-                        var rev = (RevoluteHardpointDefinition)hpEditing;
+                        var rev = (RevoluteHardpointDefinition)hp;
                         if(HPmin > HPmax)
                         {
                             var t = HPmin;

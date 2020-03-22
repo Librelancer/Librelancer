@@ -29,7 +29,6 @@ namespace LibreLancer
 			var max = points[points.Length - 1].X;
 			for (int i = 0; i < points.Length; i++)
 				points[i].X /= max;
-			//Build function with Math.NET
 			double[] x = new double[points.Length];
 			double[] y = new double[points.Length];
 			for (int i = 0; i < points.Length; i++)

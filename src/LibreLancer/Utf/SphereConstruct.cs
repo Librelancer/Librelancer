@@ -11,7 +11,7 @@ namespace LibreLancer.Utf
 {
     public class SphereConstruct : AbstractConstruct
     {
-		public Vector3 Offset { get; set; }
+        public Vector3 Offset { get; set; }
         public float Min1 { get; set; }
         public float Max1 { get; set; }
         public float Min2 { get; set; }
@@ -19,14 +19,19 @@ namespace LibreLancer.Utf
         public float Min3 { get; set; }
         public float Max3 { get; set; }
 
-        public override Matrix4 Transform { get { return internalGetTransform(quatRot * Rotation * Matrix4.CreateTranslation(Origin + Offset)); } }
-        
+        public override Matrix4 LocalTransform
+        {
+            get { return internalGetTransform(quatRot * Rotation * Matrix4.CreateTranslation(Origin + Offset)); }
+        }
+
         private Matrix4 quatRot = Matrix4.Identity;
 
-        public SphereConstruct(ConstructCollection constructs) : base(constructs) {}
+        public SphereConstruct()
+        {
+        }
 
-        public SphereConstruct(BinaryReader reader, ConstructCollection constructs)
-            : base(reader, constructs)
+        public SphereConstruct(BinaryReader reader)
+            : base(reader)
         {
             Offset = ConvertData.ToVector3(reader);
             Rotation = ConvertData.ToMatrix3x3(reader);
@@ -39,10 +44,9 @@ namespace LibreLancer.Utf
             Max3 = reader.ReadSingle();
         }
 		protected SphereConstruct(SphereConstruct cf) : base(cf) { }
-		public override AbstractConstruct Clone(ConstructCollection newcol)
+		public override AbstractConstruct Clone()
 		{
 			var newc = new SphereConstruct(this);
-			newc.constructs = newcol;
 			newc.Offset = Offset;
 			newc.Min1 = Min1;
 			newc.Min2 = Min2;

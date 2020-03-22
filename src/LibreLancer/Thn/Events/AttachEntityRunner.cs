@@ -112,18 +112,19 @@ namespace LibreLancer
             }
             if (targetType == TargetTypes.Part && !string.IsNullOrEmpty(tgt_part))
             {
-                if (objB.Object == null || objB.Object.CmpConstructs == null)
+                if (objB.Object == null || objB.Object.RigidModel == null || objB.Object.RigidModel.Parts == null)
                 {
-                    FLLog.Error("Thn", "Could not get hardpoints on " + objB.Name);
+                    FLLog.Error("Thn", "Could not get parts on " + objB.Name);
                 }
                 else
                 {
-                    var hp = new Hardpoint(null,
-                        objB.Object.CmpConstructs.Find(ev.Properties["target_part"]
-                            .ToString())); //Create a dummy hardpoint to attach to
-                    part = new GameObject();
-                    part.Parent = objB.Object;
-                    part.Attachment = hp;
+                    if (objB.Object.RigidModel.Parts.TryGetValue((string)ev.Properties["target_part"], out var tgtpart))
+                    {
+                        var hp = new Hardpoint(null, tgtpart);
+                        part = new GameObject();
+                        part.Parent = objB.Object;
+                        part.Attachment = hp;
+                    }
                 }
             }
             Vector3 offset = Vector3.Zero;

@@ -11,7 +11,7 @@ namespace LibreLancer.GameData
         public int NameIds;
         public int Infocard;
         public uint CRC;
-		public IDrawable Drawable;
+		public ResolvedModel ModelFile;
 		public Vector3 SteeringTorque;
 		public Vector3 AngularDrag;
 		public Vector3 RotationInertia;
@@ -23,16 +23,6 @@ namespace LibreLancer.GameData
         public float CameraHorizontalTurnAngle;
         public float CameraVerticalTurnUpAngle;
         public float CameraVerticalTurnDownAngle;
-
-        internal Action LoadResAction;
-        public void LoadResources()
-        {
-            if (LoadResAction != null)
-            {
-                LoadResAction();
-                LoadResAction = null;
-            }
-        }
 
         public Ship ()
 		{

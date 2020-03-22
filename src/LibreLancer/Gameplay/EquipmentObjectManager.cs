@@ -12,7 +12,7 @@ namespace LibreLancer
     /// <summary>
     /// Return a GameObject only if you add one to the parent
     /// </summary>
-    public delegate GameObject MountEquipmentHandler(GameObject parent, ResourceManager res, string hardpoint, Equipment equip);
+    public delegate GameObject MountEquipmentHandler(GameObject parent, ResourceManager res, bool draw, string hardpoint, Equipment equip);
     public class EquipmentObjectManager
     {
         static Dictionary<Type, MountEquipmentHandler> handlers = new Dictionary<Type, MountEquipmentHandler>();
@@ -20,9 +20,9 @@ namespace LibreLancer
         {
             handlers.Add(typeof(T), handler);
         }
-        public static void InstantiateEquipment(GameObject parent, ResourceManager res, string hardpoint, Equipment equip)
+        public static void InstantiateEquipment(GameObject parent, ResourceManager res, bool draw, string hardpoint, Equipment equip)
         {
-            var obj = handlers[equip.GetType()](parent, res, hardpoint, equip);
+            var obj = handlers[equip.GetType()](parent, res, draw, hardpoint, equip);
             //Do setup of child attachment, hardpoint, lod inheriting, static position etc.
             if (obj != null)
             {
@@ -47,18 +47,18 @@ namespace LibreLancer
                     else if (parent.RenderComponent is ModelRenderer)
                     {
                         var mr = (ModelRenderer)parent.RenderComponent;
-                        if (mr.Model != null && mr.Model.Switch2 != null)
-                           obj. RenderComponent.InheritCull = true;
-                        if(mr.CmpParts != null)
-                        {
-                            Part parentPart = null;
+                        //if (mr.Model.Mesh != null && mr.Model.Switch2 != null)
+                         //  obj. RenderComponent.InheritCull = true;
+                        //if(mr.CmpParts != null)
+                        //{
+                            /*Part parentPart = null;
                             if (hp.parent != null)
                                 parentPart = mr.CmpParts.Find((o) => o.ObjectName == hp.parent.ChildName);
                             else
                                 parentPart = mr.CmpParts.Find((o) => o.ObjectName == "Root");
                             if (parentPart.Model.Switch2 != null)
-                                obj.RenderComponent.InheritCull = true;
-                        }
+                                obj.RenderComponent.InheritCull = true;*/
+                        //}
                     }
                 }
                 //Optimisation: Don't re-calculate transforms every frame for static objects

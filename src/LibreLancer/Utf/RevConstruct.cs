@@ -16,12 +16,11 @@ namespace LibreLancer.Utf
 
         private Matrix4 currentTransform = Matrix4.Identity;
 
-		public override Matrix4 Transform { get { return internalGetTransform((Rotation * currentTransform) * Matrix4.CreateTranslation(Origin + Offset)); } }
+		public override Matrix4 LocalTransform { get { return internalGetTransform((Rotation * currentTransform) * Matrix4.CreateTranslation(Origin + Offset)); } }
 
-        public RevConstruct(ConstructCollection constructs) : base(constructs) {}
+        public RevConstruct() : base() {}
 
-        public RevConstruct(BinaryReader reader, ConstructCollection constructs)
-            : base(reader, constructs)
+        public RevConstruct(BinaryReader reader) : base(reader)
         {
             Offset = ConvertData.ToVector3(reader);
             Rotation = ConvertData.ToMatrix3x3(reader);
@@ -32,14 +31,13 @@ namespace LibreLancer.Utf
         }
 
 		protected RevConstruct(RevConstruct cf) : base(cf) { }
-		public override AbstractConstruct Clone(ConstructCollection newcol)
+		public override AbstractConstruct Clone()
 		{
 			var newc = new RevConstruct(this);
 			newc.Offset = Offset;
 			newc.AxisRotation = AxisRotation;
 			newc.Min = Min;
 			newc.Max = Max;
-			newc.constructs = newcol;
 			return newc;
 		}
         public override void Reset()

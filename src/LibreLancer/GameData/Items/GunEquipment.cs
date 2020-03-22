@@ -9,18 +9,12 @@ namespace LibreLancer.GameData.Items
     {
         public Data.Equipment.Gun Def;
         public MunitionEquip Munition;
-        public IDrawable Model;
-      
-        public override IDrawable GetDrawable()
-        {
-            return Model;
-        }
 
         static GunEquipment() => EquipmentObjectManager.RegisterType<GunEquipment>(AddEquipment);
-        static GameObject AddEquipment(GameObject parent, ResourceManager res, string hardpoint, Equipment equip)
+        static GameObject AddEquipment(GameObject parent, ResourceManager res, bool draw, string hardpoint, Equipment equip)
         {
             var gn = (GunEquipment) equip;
-            var child = GameObject.WithModel(gn.Model, res);
+            var child = GameObject.WithModel(gn.ModelFile, draw, res);
             child.Components.Add(new WeaponComponent(child, gn));
             return child;
         }

@@ -14,19 +14,7 @@ namespace LibreLancer.GameData.Items
         public uint CRC;
         public float[] LODRanges;
         public string HPChild;
-        internal Action LoadResAction;
-        public void LoadResources()
-        {
-            if(LoadResAction!= null)
-            {
-                LoadResAction();
-                LoadResAction = null;
-            }
-        }
-        public virtual IDrawable GetDrawable()
-		{
-			throw new NotImplementedException();
-		}
+        public ResolvedModel ModelFile;
 	}
 }
 

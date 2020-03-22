@@ -31,8 +31,13 @@ namespace LancerEdit
             ResetCamera();
             previewViewport = new Viewport3D(_window);
             imageViewport = new Viewport3D(_window);
-
-            gizmoScale = drawable.GetRadius() / RADIUS_ONE;
+            gizmoScale = 5;
+            if (vmsModel != null) {
+                gizmoScale = vmsModel.GetRadius() / RADIUS_ONE;
+            }
+            else if (drawable is DF.DfmFile dfm) {
+                gizmoScale = dfm.GetRadius() / RADIUS_ONE;
+            }
             wireframeMaterial3db = new Material(res);
             wireframeMaterial3db.Dc = Color4.White;
             wireframeMaterial3db.DtName = ResourceManager.WhiteTextureName;
@@ -72,9 +77,20 @@ namespace LancerEdit
         void ResetCamera()
         {
             modelViewport.ResetControls();
-            modelViewport.DefaultOffset =
-            modelViewport.CameraOffset = new Vector3(0, 0, drawable.GetRadius() * 2);
-            modelViewport.ModelScale = drawable.GetRadius() / 2.6f;
+            if (vmsModel != null)
+            {
+                modelViewport.DefaultOffset =
+                    modelViewport.CameraOffset = new Vector3(0, 0, vmsModel.GetRadius() * 2);
+                modelViewport.ModelScale = vmsModel.GetRadius() / 2.6f;
+
+            }
+            else
+            {
+                var rad = (drawable as DF.DfmFile).GetRadius();
+                modelViewport.CameraOffset = modelViewport.DefaultOffset = new Vector3(0,0, rad  * 2);
+                modelViewport.ModelScale = rad / 2.6f;
+            }
+
         }
 
         List<SurModel> surs;
@@ -189,8 +205,7 @@ namespace LancerEdit
                 if (mdl.Hardpoint && !surShowHps) continue;
                 if (!mdl.Hardpoint && !surShowHull) continue;
                 mat.Camera = cam;
-                if (mdl.Part != null) mat.World = mdl.Part.GetTransform(world);
-                else mat.World = world;
+                mat.World = world;
                 mat.World = world;
                 mat.Use(rstate, new VertexPositionColor(), ref Lighting.Empty);
                 foreach (var dc in mdl.Draws)
@@ -264,7 +279,8 @@ namespace LancerEdit
                 var vp = new Viewport(0, 0, renderWidth, renderHeight);
                 tcam = new ThnCamera(vp);
                 tcam.Transform.AspectRatio = renderWidth / (float)renderHeight;
-                var tr = cameraPart.GetTransform(Matrix4.Identity);
+                var tr = Matrix4.Identity;
+                //var tr = cameraPart.GetTransform(Matrix4.Identity);
                 tcam.Transform.Orientation = Matrix4.CreateFromQuaternion(tr.ExtractRotation());
                 tcam.Transform.Position = tr.Transform(Vector3.Zero);
                 znear = cameraPart.Camera.Znear;
@@ -280,12 +296,16 @@ namespace LancerEdit
                 cam = lookAtCam;
             }
             _window.DebugRender.StartFrame(cam, rstate);
-            if (drawable is DF.DfmFile)
+            if (drawable is DF.DfmFile dfm)
             {
                 skel.UploadBoneData(buffer.BonesBuffer);
-                ((DF.DfmFile)drawable).SetSkinning(skel.BodySkinning);
+                dfm.SetSkinning(skel.BodySkinning);
+                dfm.Update(cam, TimeSpan.Zero, TimeSpan.FromSeconds(_window.TotalTime));
             }
-            drawable.Update(cam, TimeSpan.Zero, TimeSpan.FromSeconds(_window.TotalTime));
+            if (vmsModel != null) {
+                vmsModel.UpdateTransform();
+                vmsModel.Update(cam, TimeSpan.FromSeconds(_window.TotalTime), _window.Resources);
+            }
             if (viewMode != M_NONE)
             {
                 int drawCount = doCockpitCam ? 2 : 1;
@@ -299,10 +319,7 @@ namespace LancerEdit
                         tcam.frameNo = fR++;
                         tcam.Update();
                     }
-                    if (drawable is CmpFile)
-                        DrawCmp(cam, false);
-                    else
-                        DrawSimple(cam, false);
+                    DrawSimple(cam, false);
                     buffer.DrawOpaque(rstate);
                     rstate.DepthWrite = false;
                     buffer.DrawTransparent(rstate);
@@ -314,21 +331,12 @@ namespace LancerEdit
                 buffer.StartFrame(rstate);
                 GL.PolygonOffset(1, 1);
                 rstate.Wireframe = true;
-                if (drawable is CmpFile)
-                    DrawCmp(cam, true);
-                else
-                    DrawSimple(cam, true);
+                DrawSimple(cam, true);
                 GL.PolygonOffset(0, 0);
                 buffer.DrawOpaque(rstate);
                 rstate.Wireframe = false;
             }
-            if(drawVMeshWire)
-            {
-                if (drawable is CmpFile)
-                    WireCmp();
-                else if (drawable is ModelFile)
-                    Wire3db();
-            }
+            if (drawVMeshWire) DrawWires();
             //Draw VMeshWire (if used)
             _window.DebugRender.Render();
             //Draw Sur
@@ -338,8 +346,7 @@ namespace LancerEdit
             DrawHardpoints(cam);
             if (drawSkeleton) DrawSkeleton(cam);
         }
-
-
+        
         void DrawSkeleton(ICamera cam)
         {
             var matrix = GetModelMatrix();
@@ -362,21 +369,17 @@ namespace LancerEdit
         {
 
         }
-        void WireCmp()
+
+        void DrawWires()
         {
-            var cmp = (CmpFile)drawable;
             var matrix = GetModelMatrix();
-            foreach (var part in cmp.Parts)
+            foreach (var part in vmsModel.AllParts)
             {
-                if(part.Model.VMeshWire != null) DrawVMeshWire(part.Model.VMeshWire, part.GetTransform(matrix));
+                if (part.Wireframe != null)
+                {
+                    DrawVMeshWire(part.Wireframe, part.LocalTransform * matrix);
+                }
             }
-        }
-        void Wire3db()
-        {
-            var model = (ModelFile)drawable;
-            if (model.VMeshWire == null) return;
-            var matrix = GetModelMatrix();
-            DrawVMeshWire(model.VMeshWire, matrix);
         }
         void DrawVMeshWire(VMeshWire wires, Matrix4 mat)
         {
@@ -397,135 +400,84 @@ namespace LancerEdit
             var matrix = GetModelMatrix();
             GizmoRender.Scale = gizmoScale;
             GizmoRender.Begin();
-          
             foreach (var tr in gizmos)
             {
                 if (tr.Enabled || tr.Override != null)
                 {
-                    var transform = tr.Override ?? tr.Definition.Transform;
+                    var transform = tr.Override ?? tr.Hardpoint.Transform;
                     //arc
-                    if(tr.Definition is RevoluteHardpointDefinition) {
-                        var rev = (RevoluteHardpointDefinition)tr.Definition;
+                    if(tr.Hardpoint.Definition is RevoluteHardpointDefinition) {
+                        var rev = (RevoluteHardpointDefinition)tr.Hardpoint.Definition;
                         var min = tr.Override == null ? rev.Min : tr.EditingMin;
                         var max = tr.Override == null ? rev.Max : tr.EditingMax;
-                        GizmoRender.AddGizmoArc(transform * (tr.Parent == null ? Matrix4.Identity : tr.Parent.Transform) * matrix, min,max);
+                        GizmoRender.AddGizmoArc(transform * (tr.Parent == null ? Matrix4.Identity : tr.Parent.LocalTransform) * matrix, min,max);
                     }
                     //draw (red for editing, light pink for normal)
-                    GizmoRender.AddGizmo(transform * (tr.Parent == null ? Matrix4.Identity : tr.Parent.Transform) * matrix, tr.Override != null ? Color4.Red : Color4.LightPink);
+                    GizmoRender.AddGizmo(transform * (tr.Parent == null ? Matrix4.Identity : tr.Parent.LocalTransform) * matrix, tr.Override != null ? Color4.Red : Color4.LightPink);
                 }
             }
             GizmoRender.RenderGizmos(cam, rstate);
         }
+        
+        private int jColors = 0;
 
         void DrawSimple(ICamera cam, bool wireFrame)
         {
-            if (hiddenModels.Count > 0) return;
             Material mat = null;
             var matrix = Matrix4.Identity;
             if (isStarsphere)
                 matrix = Matrix4.CreateTranslation(cam.Position);
             else
                 matrix = GetModelMatrix();
-            if (wireFrame || viewMode == M_FLAT)
-            {
-                mat = wireframeMaterial3db;
-                mat.Update(cam);
-            }
-            else if (viewMode == M_NORMALS)
+            if (viewMode == M_NORMALS)
             {
                 mat = normalsDebugMaterial;
                 mat.Update(cam);
             }
-                       
-            ModelFile mdl = drawable as ModelFile;
-            if (viewMode == M_LIT)
-            {
-                if (mdl != null)
-                    mdl.DrawBufferLevel(mdl.Levels[GetLevel(mdl.Switch2, mdl.Levels.Length - 1)], buffer, matrix, ref lighting);
-                else
-                    drawable.DrawBuffer(buffer, matrix, ref lighting, mat);
-            }
-            else
-            {
-                if (mdl != null)
-                    mdl.DrawBufferLevel(mdl.Levels[GetLevel(mdl.Switch2, mdl.Levels.Length - 1)], buffer, matrix, ref Lighting.Empty, mat);
-                else
-                    drawable.DrawBuffer(buffer, matrix, ref Lighting.Empty, mat);
-            }
-        }
-
-        int jColors = 0;
-        void DrawCmp(ICamera cam, bool wireFrame)
-        {
-            var matrix = GetModelMatrix();
-            if (isStarsphere)
-                matrix = Matrix4.CreateTranslation(cam.Position);
-            var cmp = (CmpFile)drawable;
-            if (wireFrame || viewMode == M_FLAT)
-            {
-                for (int i = 0; i < cmp.Parts.Count; i++)
-                {
-                    var part = cmp.Parts[i];
-                    if (part.Camera != null) continue;
-                    if (hiddenModels.Contains(part.Model)) continue;
-                    Material mat;
-                    if (!partMaterials.TryGetValue(i, out mat))
-                    {
-                        mat = new Material(res);
-                        mat.DtName = ResourceManager.WhiteTextureName;
-                        mat.Dc = initialCmpColors[jColors++];
-                        if (jColors >= initialCmpColors.Length) jColors = 0;
-                        partMaterials.Add(i, mat);
-                    }
-                    mat.Update(cam);
-                    part.DrawBufferLevel(
-                        GetLevel(part.Model.Switch2, part.Model.Levels.Length - 1),
-                        buffer, matrix, ref Lighting.Empty, mat
-                    );
-                }
-            }
-            else if (viewMode == M_TEXTURED || viewMode == M_LIT)
+            if (drawable is DF.DfmFile dfm)
             {
                 if (viewMode == M_LIT)
                 {
-                    foreach (var part in cmp.Parts)
-                    {
-                        if (hiddenModels.Contains(part.Model)) continue;
-                        if (part.Camera == null)
-                            part.DrawBufferLevel(
-                                GetLevel(part.Model.Switch2, part.Model.Levels.Length - 1),
-                                buffer, matrix, ref lighting
-                            );
-                    }
+                    dfm.DrawBuffer(buffer, matrix, ref lighting);
                 }
                 else
                 {
-                    foreach (var part in cmp.Parts)
-                    {
-                        if (hiddenModels.Contains(part.Model)) continue;
-                        if (part.Camera == null)
-                        part.DrawBufferLevel(
-                                GetLevel(part.Model.Switch2, part.Model.Levels.Length - 1),
-                                buffer, matrix, ref Lighting.Empty
-                        );
-                    }
+                    dfm.DrawBuffer(buffer, matrix, ref Lighting.Empty, mat);
                 }
             }
             else
             {
-                normalsDebugMaterial.Update(cam);
-                foreach (var part in cmp.Parts)
+                if (wireFrame || viewMode == M_FLAT)
                 {
-                    if (hiddenModels.Contains(part.Model)) continue;
-                    if (part.Camera == null)
-                        part.DrawBufferLevel(
-                            GetLevel(part.Model.Switch2, part.Model.Levels.Length - 1),
-                            buffer, matrix, ref Lighting.Empty, normalsDebugMaterial
-                        );
+                    for (int i = 0; i < vmsModel.AllParts.Length; i++)
+                    {
+                        var part = vmsModel.AllParts[i];
+                        if (part.Mesh == null) continue;
+                        if (!part.Active) continue;
+                        if (!partMaterials.TryGetValue(i, out mat))
+                        {
+                            mat = new Material(res);
+                            mat.DtName = ResourceManager.WhiteTextureName;
+                            mat.Dc = initialCmpColors[jColors++];
+                            if (jColors >= initialCmpColors.Length) jColors = 0;
+                            partMaterials.Add(i, mat);
+                        }
+
+                        mat.Update(cam);
+                        part.Mesh.DrawBuffer(0, _window.Resources, buffer, part.LocalTransform * matrix,
+                            ref Lighting.Empty,
+                            null, mat);
+                    }
+                }
+                else if (viewMode == M_LIT)
+                {
+                    vmsModel.DrawBuffer(0, buffer, _window.Resources, matrix, ref lighting);
+                }
+                else
+                {
+                    vmsModel.DrawBuffer(0, buffer, _window.Resources, matrix, ref Lighting.Empty, mat);
                 }
             }
         }
-
-
     }
 }

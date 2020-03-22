@@ -7,12 +7,13 @@ using LibreLancer.Utf;
 using LibreLancer.Utf.Cmp;
 namespace LibreLancer
 {
-	public class Hardpoint
-	{
-		Matrix4 transform;
-		public AbstractConstruct parent;
-		public string Name;
+    public class Hardpoint
+    {
+        Matrix4 transform;
+        public RigidModelPart Parent;
+        public string Name;
         public RevoluteHardpointDefinition Revolute;
+        public HardpointDefinition Definition;
         public float CurrentRevolution;
         Matrix4 rotation = Matrix4.Identity;
         public void Revolve(float val)
@@ -21,51 +22,48 @@ namespace LibreLancer
             CurrentRevolution = clamped;
             rotation = Matrix4.CreateFromAxisAngle(Revolute.Axis, clamped);
         }
-		public Hardpoint(HardpointDefinition def, AbstractConstruct parent)
-		{
-			this.parent = parent;
-			if (def != null)
-				this.transform = def.Transform;
-			else
-				this.transform = Matrix4.Identity;
-			Name = def == null ? "Dummy Hardpoint" : def.Name;
+        public Hardpoint(HardpointDefinition def, RigidModelPart parent)
+        {
+            Parent = parent;
+            Definition = def;
+            if(Definition == null) Definition = new FixedHardpointDefinition("dummy");
+            Name = def == null ? "Dummy Hardpoint" : def.Name;
             Revolute = def as RevoluteHardpointDefinition;
             IsStatic = parent is FixConstruct && def is FixedHardpointDefinition;
-		}
+        }
         public bool IsStatic { get; private set; }
 
         public Matrix4 HpTransformInfo
         {
             get {
-                return transform;
+                return Definition.Transform;
             }
         }
         public Matrix4 TransformNoRotate
         {
             get
             {
-                if (parent != null)
-                    return transform * parent.Transform;
+                if (Parent != null)
+                    return Definition.Transform * Parent.LocalTransform;
                 else
-                    return transform;
+                    return Definition.Transform;
             }
         }
 
-		public Matrix4 Transform
-		{
-			get
-			{
-                var tr = (rotation * transform);
-				if (parent != null)
-					return tr * parent.Transform;
-				else
-					return tr;
-			}
-		}
-		public override string ToString()
-		{
-			return string.Format("[{0}, IsStatic={1}]", Name, IsStatic);
-		}
-	}
+        public Matrix4 Transform
+        {
+            get
+            {
+                var tr = (rotation * Definition.Transform);
+                if (Parent != null)
+                    return tr * Parent.LocalTransform;
+                else
+                    return tr;
+            }
+        }
+        public override string ToString()
+        {
+            return string.Format("[{0}, IsStatic={1}]", Name, IsStatic);
+        }
+    }
 }
-

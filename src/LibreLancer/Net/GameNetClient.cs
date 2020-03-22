@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
@@ -10,33 +11,29 @@ using System.Threading;
 using Lidgren.Network;
 namespace LibreLancer
 {
-    public class GameClient : IDisposable
+    public class GameNetClient : IPacketConnection
     {
         bool running = false;
-
         IUIThread mainThread;
         Thread networkThread;
         NetClient client;
-        public GameSession Session;
         public event Action<LocalServerInfo> ServerFound;
-        public event Action<CharacterSelectInfo> CharacterSelection;
-        public event Action<string> Disconnected;
         public event Action<string> AuthenticationRequired;
-
+        public event Action<string> Disconnected;
         public Guid UUID;
-
-        public GameClient(IUIThread mainThread, GameSession session)
-        {
-            this.mainThread = mainThread;
-            Session = session;
-        }
-
+        ConcurrentQueue<IPacket> packets = new ConcurrentQueue<IPacket>();
+        
         public void Start()
         {
             running = true;
             networkThread = new Thread(NetworkThread);
             networkThread.Name = "NetClient";
             networkThread.Start();
+        }
+
+        public GameNetClient(IUIThread mainThread)
+        {
+            this.mainThread = mainThread;
         }
 
         public void Stop()
@@ -47,7 +44,7 @@ namespace LibreLancer
 
         public bool Connected => client.ConnectionStatus == NetConnectionStatus.Connected;
 
-        public void Dispose()
+        public void Shutdown()
         {
             if (running) Stop();
         }
@@ -59,24 +56,6 @@ namespace LibreLancer
                 while (client == null || client.Status != NetPeerStatus.Running) Thread.Sleep(0);
                 client.DiscoverLocalPeers(NetConstants.DEFAULT_PORT);
             }
-        }
-
-        public void SendReliablePacket(IPacket pkt)
-        {
-            var msg = client.CreateMessage();
-            msg.Write(pkt);
-            client.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
-        }
-
-        public void SendPositionUpdate(Vector3 vec, Quaternion q)
-        {
-            var msg = client.CreateMessage();
-            msg.Write(new PositionUpdatePacket()
-            {
-                Position = vec,
-                Orientation = q
-            });
-            client.SendMessage(msg, NetDeliveryMethod.UnreliableSequenced);
         }
 
         public void DiscoverGlobalPeers()
@@ -145,6 +124,7 @@ namespace LibreLancer
             }
             return false;
         }
+
         static bool TryResolve(string str, out IPAddress addr)
         {
             addr = IPAddress.None;
@@ -176,7 +156,6 @@ namespace LibreLancer
             client = new NetClient(conf);
             client.Start();
             NetIncomingMessage im;
-
             while (running)
             {
                 //ping servers
@@ -235,7 +214,7 @@ namespace LibreLancer
                                     om.Write(NetConstants.PING_MAGIC);
                                     client.SendUnconnectedMessage(om, info.EndPoint);
                                     lock (srvinfo) srvinfo.Add(info);
-                                    mainThread.QueueUIThread(() => ServerFound(info));
+                                    mainThread.QueueUIThread(() => ServerFound?.Invoke(info));
                                 }
                                 break;
                             case NetIncomingMessageType.StatusChanged:
@@ -243,16 +222,8 @@ namespace LibreLancer
                                 if (status == NetConnectionStatus.Disconnected)
                                 {
                                     FLLog.Info("Net", "Disconnected");
-                                    if (connecting)
-                                    {
-                                        connecting = false;
-                                        var reason = im.ReadString();
-                                        mainThread.QueueUIThread(() => Disconnected(reason));
-                                    }
-                                    else
-                                    {
-                                        mainThread.QueueUIThread(() => Session.Disconnected());
-                                    }
+                                    var reason = im.ReadString();
+                                    mainThread.QueueUIThread(() => Disconnected?.Invoke(reason)); 
                                     running = false;
                                 }
                                 break;
@@ -262,12 +233,13 @@ namespace LibreLancer
                                 {
                                     if (pkt is AuthenticationPacket)
                                     {
-                                        var auth = (AuthenticationPacket)pkt;
+                                        var auth = (AuthenticationPacket) pkt;
                                         FLLog.Info("Net", "Authentication Packet Received");
                                         if (auth.Type == AuthenticationKind.Token)
                                         {
                                             FLLog.Info("Net", "Token");
-                                            AuthenticationRequired(im.ReadString());
+                                            var str = im.ReadString();
+                                            mainThread.QueueUIThread(() => AuthenticationRequired(str));
                                         }
                                         else if (auth.Type == AuthenticationKind.GUID)
                                         {
@@ -275,30 +247,23 @@ namespace LibreLancer
                                             var response = client.CreateMessage();
                                             response.Write(new AuthenticationReplyPacket()
                                             {
-                                                Guid = UUID
+                                                Guid = this.UUID
                                             });
                                             client.SendMessage(response, NetDeliveryMethod.ReliableOrdered);
                                         }
-                                        else
-                                        {
-                                            client.Shutdown("Invalid Packet");
-                                        }
                                     }
-                                    else if (pkt is OpenCharacterListPacket)
+                                    else if (pkt is LoginSuccessPacket)
                                     {
-                                        mainThread.QueueUIThread(() =>
-                                        {
-                                            CharacterSelection(((OpenCharacterListPacket)pkt).Info);
-                                        });
                                         connecting = false;
+                                    }
+                                    else
+                                    {
+                                        client.Disconnect("Invalid Packet");
                                     }
                                 }
                                 else
                                 {
-                                    mainThread.QueueUIThread(() =>
-                                    {
-                                        Session.HandlePacket(pkt);
-                                    });
+                                    packets.Enqueue(pkt);
                                 }
                                 break;
                         }
@@ -314,6 +279,22 @@ namespace LibreLancer
             }
             FLLog.Info("Lidgren", "Client shutdown");
             client.Shutdown("Shutdown");
+        }
+
+        public void SendPacket(IPacket packet, NetDeliveryMethod method)
+        {
+            var msg = client.CreateMessage();
+            msg.Write(packet);
+            client.SendMessage(msg, method);
+        }
+        public bool PollPacket(out IPacket packet)
+        {
+            packet = null;
+            if (!packets.IsEmpty)
+            {
+                return packets.TryDequeue(out packet);
+            }
+            return false;
         }
     }
 }

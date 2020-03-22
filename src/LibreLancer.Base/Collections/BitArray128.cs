@@ -5,7 +5,7 @@
 using System;
 namespace LibreLancer
 {
-    public struct LightBitfield
+    public struct BitArray128
     {
         public static int Capacity = 128;
         long a;

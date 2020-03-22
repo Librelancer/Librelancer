@@ -192,7 +192,7 @@ namespace InterfaceEdit
         }
 
         private int _selModelIndex = -1;
-        private IDrawable drawable;
+        private RigidModel drawable;
         public void ModelTab()
         {
             ImGui.BeginChild("##tabinner");
@@ -218,7 +218,7 @@ namespace InterfaceEdit
                 if (ImGui.Selectable(ImGuiExt.IDWithExtra(resources.Models[i].Name, i.ToString()), _selModelIndex == i))
                 {
                     _selModelIndex = i;
-                    drawable = context.GetDrawable(resources.Models[i].Path);
+                    drawable = context.GetModel(resources.Models[i].Path);
                     modelName.SetText(resources.Models[i].Name);
                 }
             }
@@ -374,9 +374,9 @@ namespace InterfaceEdit
                             Matrix4.CreateTranslation(mdl.X, mdl.Y, 0);
             var mcam = new MatrixCamera(Matrix4.Identity);
             mcam.CreateTransform(rtX, rtY, rectangle);
-            drawable.Update(mcam, TimeSpan.Zero, TimeSpan.FromSeconds(mainWindow.TotalTime));
+            drawable.Update(mcam, TimeSpan.FromSeconds(mainWindow.TotalTime), context.ResourceManager);
             mainWindow.RenderState.Cull = false;
-            drawable.Draw(mainWindow.RenderState, transform, Lighting.Empty);
+            drawable.DrawImmediate(mainWindow.RenderState, context.ResourceManager, transform, ref Lighting.Empty);
             mainWindow.RenderState.Cull = true;
             DrawViewport();
         }

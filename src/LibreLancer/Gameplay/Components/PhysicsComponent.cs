@@ -20,12 +20,12 @@ namespace LibreLancer
         public PhysicsComponent(GameObject parent) : base(parent)
         {
         }
-        public void ChildDebris(GameObject parent, Utf.Cmp.Part part, float mass, Vector3 initialforce)
+        public void ChildDebris(GameObject parent, RigidModelPart part, float mass, Vector3 initialforce)
         {
             var cp = new PhysicsComponent(parent) { 
                 SurPath = this.SurPath,
                 Mass = mass,
-                plainCrc = CrcTool.FLModelCrc(part.ObjectName),
+                plainCrc = CrcTool.FLModelCrc(part.Name),
             };
             DisablePart(part);
             parent.PhysicsComponent = cp;
@@ -35,7 +35,7 @@ namespace LibreLancer
         }
 
         bool partRemoved = false;
-        public void DisablePart(Utf.Cmp.Part part)
+        public void DisablePart(RigidModelPart part)
         {
             sur.RemovePart(part);
             partRemoved = true;
@@ -62,15 +62,15 @@ namespace LibreLancer
                 var mr = (ModelRenderer)Parent.RenderComponent;
                 sur = new SurCollider(SurPath);
                 cld = sur;
-                if(mr.Model != null) {
+                if(Parent.RigidModel.From3db) {
                     sur.AddPart(plainCrc, Matrix4.Identity, null);
                 } else {
-                    foreach(var part in Parent.CmpParts) {
-                        var crc = CrcTool.FLModelCrc(part.ObjectName);
+                    foreach(var part in Parent.RigidModel.AllParts) {
+                        var crc = CrcTool.FLModelCrc(part.Name);
                         if (part.Construct == null)
                             sur.AddPart(crc, Matrix4.Identity, part);
                         else
-                            sur.AddPart(crc, part.Construct.Transform, part);
+                            sur.AddPart(crc, part.LocalTransform, part);
                     }
                 }
             }
@@ -85,11 +85,11 @@ namespace LibreLancer
 
         public void UpdateParts()
         {
-            if (Parent.CmpParts == null) return;
+            if (Parent.RigidModel == null) return;
             if (Body == null) return;
-            foreach(var part in Parent.CmpParts) {
+            foreach(var part in Parent.RigidModel.AllParts) {
                 if (part.Construct != null)
-                    sur.UpdatePart(part, part.Construct.Transform);
+                    sur.UpdatePart(part, part.LocalTransform);
             }
             sur.FinishUpdatePart();
         }

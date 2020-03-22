@@ -22,9 +22,9 @@ namespace LancerEdit
         public LUtfNode Node;
         public LUtfNode HardpointsNode;
 
-        public void HardpointsToNodes(List<HardpointDefinition> hps)
+        public void HardpointsToNodes(List<Hardpoint> hardpoints)
         {
-            if(hps.Count == 0) {
+            if(hardpoints.Count == 0) {
                 if(HardpointsNode != null) {
                     Node.Children.Remove(HardpointsNode);
                     HardpointsNode = null;
@@ -38,6 +38,7 @@ namespace LancerEdit
             HardpointsNode.Children = new List<LUtfNode>();
             LUtfNode fix = null;
             LUtfNode rev = null;
+            var hps = hardpoints.Select(x => x.Definition);
             if(hps.Any((x) => x is FixedHardpointDefinition)) {
                 fix = new LUtfNode() { Name = "Fixed", Parent = Node };
                 fix.Children = new List<LUtfNode>();

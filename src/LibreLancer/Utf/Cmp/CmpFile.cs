@@ -17,7 +17,7 @@ namespace LibreLancer.Utf.Cmp
     /// <summary>
     /// Represents a UTF Compound File (.cmp)
     /// </summary>
-    public class CmpFile : UtfFile, IDrawable, ILibFile
+    public class CmpFile : UtfFile, IRigidModelFile, ILibFile
     {
         private ILibFile additionalLibrary;
 
@@ -163,43 +163,7 @@ namespace LibreLancer.Utf.Cmp
         {
             foreach (var part in Parts) part.Initialize(cache);
         }
-
-        public void Resized()
-        {
-            for (int i = 0; i < Parts.Count; i++) Parts[i].Resized();
-        }
-
-		public void Update(ICamera camera, TimeSpan delta, TimeSpan totalTime)
-		{
-			if (MaterialAnim != null)
-				MaterialAnim.Update((float)totalTime.TotalSeconds);
-            foreach (var part in Parts) part.Update(camera, delta, totalTime);
-        }
-
-		public float GetRadius()
-		{
-			float max = float.MinValue;
-			foreach (var part in Parts)
-			{
-                if (part.Camera != null) continue;
-                if (part.Model.Levels.Length <= 0) continue;
-				var r = part.Model.GetRadius();
-				float d = 0;
-				if(part.Construct != null)
-					d = part.Construct.Transform.Transform(part.Model.Levels[0].Center).Length;
-				max = Math.Max(max, r + d);
-			}
-			return max;
-		}
-		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, ref Lighting light, Material overrideMat = null)
-		{
-			for (int i = 0; i < Parts.Count; i++) Parts[i].DrawBuffer(buffer, world, ref light, overrideMat);
-		}
-		public void Draw(RenderState rstate, Matrix4 world, Lighting light)
-        {
-            for (int i = 0; i < Parts.Count; i++) Parts[i].Draw(rstate, world, light);
-        }
-
+        
         public Texture FindTexture(string name)
         {
            	return additionalLibrary.FindTexture(name);
@@ -210,6 +174,7 @@ namespace LibreLancer.Utf.Cmp
            	return additionalLibrary.FindMaterial(materialId);
         }
 
+        
         public VMeshData FindMesh(uint vMeshLibId)
         {
             if (VMeshLibrary != null)
@@ -221,6 +186,43 @@ namespace LibreLancer.Utf.Cmp
             return null;
         }
 
+        public RigidModel CreateRigidModel(bool drawable)
+        {
+            var mdl = new RigidModel() {Path = Path};
+            mdl.Parts = new Dictionary<string, RigidModelPart>(StringComparer.OrdinalIgnoreCase);
+            var rp = GetRootPart();
+            List<RigidModelPart> allParts = new List<RigidModelPart>();
+            foreach (var p in Parts)
+            {
+                var mdlPart = p.Model.CreatePart(drawable);
+                mdlPart.Name = p.ObjectName;
+                mdlPart.Path = p.FileName;
+                if (p.Construct != null)
+                {
+                    mdlPart.Construct = p.Construct.Clone();
+                }
+                mdlPart.Children = new List<RigidModelPart>();
+                allParts.Add(mdlPart);
+            }
+            foreach (var p in allParts)
+            {
+                mdl.Parts.Add(p.Name, p);
+                if (p.Construct != null)
+                {
+                    var parent = allParts.First(x =>
+                        x.Name.Equals(p.Construct.ParentName, StringComparison.OrdinalIgnoreCase));
+                    parent.Children.Add(p);
+                }
+                else
+                    mdl.Root = p;
+            }
+            mdl.AllParts = allParts.ToArray();
+            mdl.MaterialAnims = MaterialAnim;
+            mdl.Animation = Animation;
+            mdl.UpdateTransform();
+            return mdl;
+        }
+        
         public SurPart ToSurHierarchy(out Dictionary<Part, SurPart> surParts)
         {
             surParts = new Dictionary<Part, SurPart>();

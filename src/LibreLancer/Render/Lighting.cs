@@ -37,7 +37,7 @@ namespace LibreLancer
         [StructLayout(LayoutKind.Sequential)]
         public unsafe struct LightsArray
         {
-            public LightBitfield SourceEnabled;
+            public BitArray128 SourceEnabled;
             public SystemLighting SourceLighting;
             public int NebulaCount;
             public RenderLight Nebula0;

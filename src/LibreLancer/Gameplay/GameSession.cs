@@ -3,17 +3,13 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using LibreLancer.Data.Missions;
-using LibreLancer.Data.Save;
-using LibreLancer.GameData.Items;
 using LibreLancer.Utf.Cmp;
+using Lidgren.Network;
 
 namespace LibreLancer
 {
-
     public class EquipMount
     {
         public string Hardpoint;
@@ -39,25 +35,12 @@ namespace LibreLancer
 		public string PlayerBase;
 		public Vector3 PlayerPosition;
 		public Matrix3 PlayerOrientation;
-        public int MissionNum;
-        public GameClient Client;
 
-		public GameSession(FreelancerGame g)
+        private IPacketConnection connection;
+		public GameSession(FreelancerGame g, IPacketConnection connection)
 		{
 			Game = g;
-            Credits = 2000;
-			PlayerShip = "li_elite";
-            PlayerBase = "li01_01_base";
-			PlayerSystem = "li01";
-			PlayerPosition = new Vector3(-31000, 0, -26755);
-			PlayerOrientation = Matrix3.Identity;
-            Mounts.Add(new EquipMount("hpthruster01", "ge_s_thruster_02"));
-            Mounts.Add(new EquipMount("hpweapon01", "li_gun01_mark01"));
-            Mounts.Add(new EquipMount("hpweapon02", "li_gun01_mark01"));
-            Mounts.Add(new EquipMount("hpweapon03", "li_gun01_mark01"));
-            Mounts.Add(new EquipMount("hpweapon04", "li_gun01_mark01"));
-            Mounts.Add(new EquipMount("HpContrail01", "contrail01"));
-            Mounts.Add(new EquipMount("HpContrail02", "contrail01"));
+            this.connection = connection;
         }
 
         public void AddRTC(string path)
@@ -68,53 +51,24 @@ namespace LibreLancer
 
         public void RoomEntered(string room, string bse)
         {
-            msnrun?.EnterLocation(room, bse);
-        }
-        public void LoadFromPath(string path)
-        {
-            var sg = Data.Save.SaveGame.FromFile(path);
-            PlayerPosition = sg.Player.Position;
-            PlayerSystem = sg.Player.System;
-            PlayerBase = sg.Player.Base;
-            Credits = sg.Player.Money;
-            MissionNum = sg.StoryInfo?.MissionNum ?? 0;
-            if (Game.GameData.Ini.ContentDll.AlwaysMission13) MissionNum = 14;
-            if (sg.Player.ShipArchetype != null)
-                PlayerShip = sg.Player.ShipArchetype;
-            else
-                PlayerShip = Game.GameData.GetShip(sg.Player.ShipArchetypeCrc).Nickname;
-            Mounts = new List<EquipMount>();
-            foreach (var eq in sg.Player.Equip)
-            {
-                var hp = eq.Hardpoint;
-                string eqn = eq.EquipName;
-                if (eq.EquipName == null)
-                {
-                    var obj = Game.GameData.GetEquipment(eq.EquipHash);
-                    if (obj != null) eqn = obj.Nickname;
-                }
-                if(eqn != null) //We don't implement all equipment yet so errors would be useless
-                    Mounts.Add(new EquipMount(hp, eqn));
-            }
+            
         }
 
-        MissionRuntime msnrun;
-
-        public void Start()
+        private bool hasChanged = false;
+        void SceneChangeRequired()
         {
-            if(MissionNum != 0 && (MissionNum - 1) < Game.GameData.Ini.Missions.Count) {
-                msnrun = new MissionRuntime(Game.GameData.Ini.Missions[MissionNum - 1], this);
-                msnrun.EnsureLoaded();
-            }
-
             if (PlayerBase != null)
+            {
                 Game.ChangeState(new RoomGameplay(Game, this, PlayerBase));
+                hasChanged = true;
+            }
             else
             {
                 worldReady = false;
                 toAdd = new List<GameObject>();
                 gp = new SpaceGameplay(Game, this);
                 Game.ChangeState(gp);
+                hasChanged = true;
             }
         }
 
@@ -123,25 +77,27 @@ namespace LibreLancer
         List<GameObject> toAdd = new List<GameObject>();
         Dictionary<int, GameObject> objects = new Dictionary<int, GameObject>();
 
-        string forcedLand = null;
-        public bool Update(SpaceGameplay gameplay, TimeSpan elapsed)
+        public bool Update()
         {
-            forcedLand = null;
-            if (msnrun != null)
-                msnrun.Update(gameplay, elapsed);
-            if(forcedLand != null)
-            {
-                Game.ChangeState(new RoomGameplay(Game, this, forcedLand));
-                return true;
-            }
-            if(Client != null) 
-            {
-                var gt = gp.player.GetTransform();
-                Client.SendPositionUpdate(gt.Transform(Vector3.Zero),
-                    gt.ExtractRotation());
-            }
-            
-            return false;
+            hasChanged = false;
+            UpdatePackets();
+            return hasChanged;
+        }
+
+        Queue<Action<SpaceGameplay>> gameplayActions = new Queue<Action<SpaceGameplay>>();
+        private Queue<Action> audioActions = new Queue<Action>();
+
+        void UpdateAudio()
+        {
+            while (audioActions.TryDequeue(out var act))
+                act();
+        }
+        
+        public void GameplayUpdate(SpaceGameplay gp)
+        {
+            UpdateAudio();
+            while (gameplayActions.TryDequeue(out var act))
+                act(gp);
         }
 
         public void WorldReady()
@@ -153,19 +109,6 @@ namespace LibreLancer
             }
             toAdd = new List<GameObject>();
         }
-        public void JumpTo(string system, string exitpos)
-		{
-			//Find object
-			var sys = Game.GameData.GetSystem(system);
-			var ep = exitpos.ToLowerInvariant();
-			var obj = sys.Objects.Where((o) => o.Nickname.ToLowerInvariant() == ep).First();
-			//Setup player
-			PlayerSystem = system;
-			PlayerOrientation = obj.Rotation == null ? Matrix3.Identity : new Matrix3(obj.Rotation.Value);
-			PlayerPosition = Vector3.Transform(new Vector3(0, 0, 500), PlayerOrientation) + obj.Position; //TODO: This is bad
-			//Switch
-			Game.ChangeState(new SpaceGameplay(Game, this));
-		}
 
         public Action<IPacket> ExtraPackets;
 
@@ -191,40 +134,112 @@ namespace LibreLancer
         void SetSelfLoadout(NetShipLoadout ld)
         {
             var sh = Game.GameData.GetShip((int)ld.ShipCRC);
-            sh.LoadResources();
             PlayerShip = sh.Nickname;
             var hpcrcs = new Dictionary<uint, string>();
-            foreach (var hp in HardpointList(sh.Drawable))
+            foreach (var hp in HardpointList(sh.ModelFile.LoadFile(Game.ResourceManager)))
                 hpcrcs.Add(CrcTool.FLModelCrc(hp), hp);
             Mounts = new List<EquipMount>();
-            foreach(var eq in ld.Equipment) {
+            foreach (var eq in ld.Equipment)
+            {
+                string hp;
+                if (eq.HardpointCRC == 0)
+                    hp = null;
+                else
+                    hp = hpcrcs[eq.HardpointCRC];
                 Mounts.Add(new EquipMount(
-                    hpcrcs[eq.HardpointCRC],
+                    hp,
                     Game.GameData.GetEquipment(eq.EquipCRC).Nickname
                 ));
             }
         }
 
+        //Use only for Single Player
+        //Works because the data is already loaded,
+        //and this is really only waiting for the embedded server to start
+        public void WaitStart()
+        {
+            IPacket packet;
+            bool started = false;
+            while (!started)
+            {
+                while (connection.PollPacket(out packet))
+                {
+                    HandlePacket(packet);
+                    if (packet is BaseEnterPacket || packet is SpawnPlayerPacket)
+                        started = true;
+                }
+                Game.Yield();
+            }
+        }
+
+        void AddGameplayAction(Action<SpaceGameplay> gp)
+        {
+            gameplayActions.Enqueue(gp);
+        }
+
+        void PlaySound(string sound) => audioActions.Enqueue(() => Game.Sound.PlaySound(sound));
+        void PlayMusic(string music) => audioActions.Enqueue(() => Game.Sound.PlayMusic(music));
+
+        void RunDialog(NetDlgLine[] lines, int index = 0)
+        {
+            if (index >= lines.Length) return;
+            Game.Sound.PlayVoiceLine(lines[index].Voice, lines[index].Hash, () =>
+            {
+                connection.SendPacket(new LineSpokenPacket() { Hash = lines[index].Hash }, NetDeliveryMethod.ReliableOrdered);
+                RunDialog(lines, index + 1);
+            });
+        }
+        
+        void UpdatePackets()
+        {
+            IPacket packet;
+            while (connection.PollPacket(out packet))
+            {
+                HandlePacket(packet);
+            }
+        }
         public void HandlePacket(IPacket pkt)
         {
+            if(!(pkt is ObjectUpdatePacket))
+                FLLog.Debug("Client", "Got packet of type " + pkt.GetType());
             switch(pkt)
             {
+                case CallThornPacket ct:
+                    AddGameplayAction(gp => {
+                        var thn = new ThnScript(Game.GameData.ResolveDataPath(ct.Thorn));
+                        gp.Thn = new Cutscene(new ThnScript[] { thn }, gp);
+                    });
+                    break;
+                case AddRTCPacket rtc:
+                    AddRTC(rtc.RTC);
+                    break;
+                case MsnDialogPacket msndlg:
+                    AddGameplayAction(gp =>
+                    {
+                        RunDialog(msndlg.Lines);
+                    });
+                    break;
+                case PlaySoundPacket psnd:
+                    PlaySound(psnd.Sound);
+                    break;
+                case PlayMusicPacket mus:
+                    PlayMusic(mus.Music);
+                    break;
                 case SpawnPlayerPacket p:
                     PlayerBase = null;
                     PlayerSystem = p.System;
                     PlayerPosition = p.Position;
                     PlayerOrientation = Matrix3.CreateFromQuaternion(p.Orientation);
                     SetSelfLoadout(p.Ship);
-                    Start();
+                    SceneChangeRequired();
                     break;
                 case BaseEnterPacket b:
                     PlayerBase = b.Base;
                     SetSelfLoadout(b.Ship);
-                    Start();
+                    SceneChangeRequired();
                     break;
                 case SpawnObjectPacket p:
                     var shp = Game.GameData.GetShip((int)p.Loadout.ShipCRC);
-                    shp.LoadResources();
                     //Set up player object + camera
                     var newobj = new GameObject(shp, Game.ResourceManager);
                     newobj.Name = "NetPlayer " + p.ID;
@@ -266,62 +281,14 @@ namespace LibreLancer
             obj.Transform = Matrix4.CreateFromQuaternion(rot) * Matrix4.CreateTranslation(pos);
         }
 
-        public void LaunchFrom(string _base)
+        public void Launch()
         {
-            if (Client != null)
-            {
-                Client.SendReliablePacket(new LaunchPacket());
-            }
-            else
-            {
-                var b = Game.GameData.GetBase(_base);
-                var sys = Game.GameData.GetSystem(b.System);
-                var obj = sys.Objects.FirstOrDefault((o) =>
-                {
-                    return (o.Dock != null &&
-                        o.Dock.Kind == DockKinds.Base &&
-                        o.Dock.Target.Equals(_base, StringComparison.OrdinalIgnoreCase));
-                });
-                PlayerSystem = b.System;
-                PlayerOrientation = Matrix3.Identity;
-                PlayerPosition = Vector3.Zero;
-                if (obj == null)
-                {
-                    FLLog.Error("Base", "Can't find object in " + sys + " docking to " + b);
-                }
-                else
-                {
-                    PlayerPosition = obj.Position;
-                    PlayerOrientation = obj.Rotation == null ? Matrix3.Identity : new Matrix3(obj.Rotation.Value);
-                    PlayerPosition = Vector3.Transform(new Vector3(0, 0, 500), PlayerOrientation) + obj.Position; //TODO: This is bad
-                }
-                Game.ChangeState(new SpaceGameplay(Game, this));
-            }
+            connection.SendPacket(new LaunchPacket(), NetDeliveryMethod.ReliableOrdered);
         }
-
-        public void ForceLand(string str)
-        {
-            forcedLand = str;
-        }
-
+        
         public void ProcessConsoleCommand(string str)
 		{
-			var split = str.Split(' ');
-            if (split.Length < 2) return;
-            switch (split[0])
-            {
-                case "base":
-                    Game.ChangeState(new RoomGameplay(Game, this, split[1]));
-                    break;
-                case "play":
-                    Game.Sound.PlaySound(split[1]);
-                    break;
-                case "cash":
-                    long l;
-                    if (long.TryParse(split[1], out l))
-                        Credits = l;
-                    break;
-			}
+			//TODO: Chat 
 		}
 
         public void Disconnected()
@@ -331,10 +298,7 @@ namespace LibreLancer
 
         public void OnExit()
         {
-            if(Client != null)
-            {
-                Client.Dispose();
-            }
+            connection.Shutdown();
         }
     }
 }

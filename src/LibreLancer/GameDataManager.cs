@@ -265,6 +265,7 @@ namespace LibreLancer
             FLLog.Info("Game", "Initing Tables");
             var introbases = InitBases().ToArray();
             InitShips();
+            InitArchetypes();
             InitEquipment();
             InitGoods();
             InitMarkets();
@@ -469,13 +470,8 @@ namespace LibreLancer
                     var pc = (val as Data.Equipment.PowerCore);
                     var eqp = new GameData.Items.PowerEquipment();
                     eqp.Def = pc;
+                    eqp.ModelFile = ResolveDrawable(pc.MaterialLibrary, pc.DaArchetype);
                     equip = eqp;
-                    equip.LoadResAction = () =>
-                    {
-                        if (pc.MaterialLibrary != null)
-                            resource.LoadResourceFile(ResolveDataPath(pc.MaterialLibrary));
-                        var drawable = resource.GetDrawable(ResolveDataPath(pc.DaArchetype));
-                    };
                 }
                 if (val is Data.Equipment.Gun)
                 {
@@ -497,12 +493,7 @@ namespace LibreLancer
                         Def = gn
                     };
                     equip = eqp;
-                    equip.LoadResAction = () =>
-                    {
-                        if (gn.MaterialLibrary != null)
-                            resource.LoadResourceFile(ResolveDataPath(gn.MaterialLibrary));
-                        eqp.Model = resource.GetDrawable(ResolveDataPath(gn.DaArchetype));
-                    };
+                    equip.ModelFile = ResolveDrawable(gn.MaterialLibrary, gn.DaArchetype);
                 }
                 if (val is Data.Equipment.Thruster)
                 {
@@ -514,12 +505,8 @@ namespace LibreLancer
                         HpParticles = th.HpParticles
                     };
                     equip = eqp;
-                    equip.LoadResAction = () =>
-                    {
-                        eqp.Particles = GetEffect(th.Particles);
-                        resource.LoadResourceFile(ResolveDataPath(th.MaterialLibrary));
-                        eqp.Model = resource.GetDrawable(ResolveDataPath(th.DaArchetype));
-                    };
+                    eqp.Particles = GetEffect(th.Particles);
+                    equip.ModelFile = ResolveDrawable(th.MaterialLibrary, th.DaArchetype);
                 }
 
                 if (val is Data.Equipment.Engine deng)
@@ -716,7 +703,7 @@ namespace LibreLancer
             long a = 0;
             foreach (var obj in sys.Objects)
             {
-                obj.LoadResources();
+                //obj.Archetype.ModelFile.LoadFile();
                 if (a % 3 == 0) yield return null;
                 a++;
             }
@@ -892,7 +879,9 @@ namespace LibreLancer
                 }
                 foreach (var e in a.ExclusionZones)
                 {
-                    if (e.ShellPath != null) e.Shell = resource.GetDrawable(ResolveDataPath(e.ShellPath));
+                    if (e.ShellPath != null)
+                        e.Shell = (resource.GetDrawable(ResolveDataPath(e.ShellPath)) as IRigidModelFile)
+                            .CreateRigidModel(glResource != null);
                 }
             };
             return a;
@@ -1040,7 +1029,7 @@ namespace LibreLancer
             {
                 foreach (var ex in n.ExclusionZones)
                 {
-                    if (ex.ShellPath != null) ex.Shell = resource.GetDrawable(ResolveDataPath(ex.ShellPath));
+                    if (ex.ShellPath != null) ex.Shell = (resource.GetDrawable(ResolveDataPath(ex.ShellPath)) as IRigidModelFile).CreateRigidModel(glResource != null);
                 }
             };
 
@@ -1056,18 +1045,37 @@ namespace LibreLancer
         }
 
         Dictionary<string, GameData.Ship> ships = new Dictionary<string, GameData.Ship>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, GameData.Archetype> archetypes = new Dictionary<string, GameData.Archetype>(StringComparer.OrdinalIgnoreCase);
         Dictionary<uint, GameData.Ship> shipHashes = new Dictionary<uint, GameData.Ship>();
+        ResolvedModel ResolveDrawable(IEnumerable<string> libs, string file)
+        {
+            var mdl = new ResolvedModel() {
+                ModelFile = ResolveDataPath(file)
+            };
+            if (libs != null)
+            {
+                mdl.LibraryFiles = libs.Select(x => ResolveDataPath(x)).ToArray();
+            }
+            return mdl;
+        }
+
+        ResolvedModel ResolveDrawable(string libs, string file)
+        {
+            var mdl = new ResolvedModel() {
+                ModelFile = ResolveDataPath(file)
+            };
+            if (!string.IsNullOrEmpty(libs))
+                mdl.LibraryFiles = new[] {ResolveDataPath(libs)};
+            return mdl;
+        }
+        
         void InitShips()
         {
             FLLog.Info("Game", "Initing " + fldata.Ships.Ships.Count + " ships");
             foreach (var orig in fldata.Ships.Ships)
             {
                 var ship = new GameData.Ship();
-                ship.LoadResAction = () => {
-                    foreach (var matlib in orig.MaterialLibraries)
-                        resource.LoadResourceFile(ResolveDataPath(matlib));
-                    ship.Drawable = resource.GetDrawable(ResolveDataPath(orig.DaArchetypeName));
-                };
+                ship.ModelFile = ResolveDrawable(orig.MaterialLibraries, orig.DaArchetypeName);
                 ship.Mass = orig.Mass;
                 ship.AngularDrag = orig.AngularDrag;
                 ship.RotationInertia = orig.RotationInertia;
@@ -1087,14 +1095,59 @@ namespace LibreLancer
             fldata.Ships = null; //free memory
         }
 
+        void InitArchetypes()
+        {
+            FLLog.Info("Game", "Initing " + fldata.Solar.Solars.Count + " archetypes");
+            foreach (var ax in fldata.Solar.Solars)
+            {
+                var arch = ax.Value;
+                var obj = new GameData.Archetype();
+                obj.Type = arch.Type;
+                obj.LoadoutName = arch.LoadoutName;
+                foreach (var dockSphere in arch.DockingSpheres)
+                {
+                    obj.DockSpheres.Add(new GameData.DockSphere()
+                    {
+                        Name = dockSphere.Name,
+                        Hardpoint = dockSphere.Hardpoint,
+                        Radius = dockSphere.Radius,
+                        Script = dockSphere.Script
+                    });
+                }
+                if (arch.OpenAnim != null)
+                {
+                    foreach (var sph in obj.DockSpheres)
+                        sph.Script = sph.Script ?? arch.OpenAnim;
+                }
+                if (arch.Type == Data.Solar.ArchetypeType.tradelane_ring)
+                {
+                    obj.DockSpheres.Add(new GameData.DockSphere()
+                    {
+                        Name = "tradelane",
+                        Hardpoint = "HpRightLane",
+                        Radius = 30
+                    });
+                    obj.DockSpheres.Add(new GameData.DockSphere()
+                    {
+                        Name = "tradelane",
+                        Hardpoint = "HpLeftLane",
+                        Radius = 30
+                    });
+                }
+                if(arch.CollisionGroups.Count > 0)
+                {
+                    obj.CollisionGroups = arch.CollisionGroups.ToArray();
+                }
+                obj.ArchetypeName = arch.GetType().Name;
+                obj.LODRanges = arch.LODRanges;
+                obj.ModelFile = ResolveDrawable(arch.MaterialPaths, arch.DaArchetypeName);
+                archetypes.Add(ax.Key, obj);
+            }
+        }
+        
         public IDrawable GetSolar(string solar)
         {
-            var archetype = fldata.Solar.FindSolar(solar);
-            //Load archetype references
-            foreach (var path in archetype.MaterialPaths)
-                resource.LoadResourceFile(ResolveDataPath(path));
-            //Get drawable
-            return resource.GetDrawable(ResolveDataPath(archetype.DaArchetypeName));
+            return archetypes[solar].ModelFile.LoadFile(resource);
         }
 
         public IDrawable GetAsteroid(string asteroid)
@@ -1150,18 +1203,8 @@ namespace LibreLancer
                     Matrix4.CreateRotationY(MathHelper.DegreesToRadians(o.Rotate.Value.Y)) *
                     Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(o.Rotate.Value.Z));
             }
-
-            var arch = fldata.Solar.Solars[o.Archetype];
-            //Load resource files
-            obj.LoadResAction = () =>
-            {
-                var drawable = resource.GetDrawable(ResolveDataPath(arch.DaArchetypeName));
-                foreach (var path in arch.MaterialPaths)
-                    resource.LoadResourceFile(ResolveDataPath(path));
-                obj.Archetype.Drawable = drawable;
-            };
-            //Construct archetype
-            if (arch.Type == Data.Solar.ArchetypeType.sun)
+            obj.Archetype = archetypes[o.Archetype];
+            if (obj.Archetype.Type == Data.Solar.ArchetypeType.sun)
             {
                 if (o.Star != null) //Not sure what to do if there's no star?
                 {
@@ -1203,36 +1246,8 @@ namespace LibreLancer
             }
             else
             {
-                obj.Archetype = new GameData.Archetype();
-                foreach (var dockSphere in arch.DockingSpheres)
+                if (obj.Archetype.Type == Data.Solar.ArchetypeType.tradelane_ring)
                 {
-                    obj.Archetype.DockSpheres.Add(new GameData.DockSphere()
-                    {
-                        Name = dockSphere.Name,
-                        Hardpoint = dockSphere.Hardpoint,
-                        Radius = dockSphere.Radius,
-                        Script = dockSphere.Script
-                    });
-                }
-                if (arch.OpenAnim != null)
-                {
-                    foreach (var sph in obj.Archetype.DockSpheres)
-                        sph.Script = sph.Script ?? arch.OpenAnim;
-                }
-                if (arch.Type == Data.Solar.ArchetypeType.tradelane_ring)
-                {
-                    obj.Archetype.DockSpheres.Add(new GameData.DockSphere()
-                    {
-                        Name = "tradelane",
-                        Hardpoint = "HpRightLane",
-                        Radius = 30
-                    });
-                    obj.Archetype.DockSpheres.Add(new GameData.DockSphere()
-                    {
-                        Name = "tradelane",
-                        Hardpoint = "HpLeftLane",
-                        Radius = 30
-                    });
                     obj.Dock = new DockAction()
                     {
                         Kind = DockKinds.Tradelane,
@@ -1240,36 +1255,16 @@ namespace LibreLancer
                         TargetLeft = o.PrevRing
                     };
                 }
-                if(arch.CollisionGroups.Count > 0)
-                {
-                    obj.Archetype.CollisionGroups = arch.CollisionGroups.ToArray();
-                }
-            }
-            if (obj.Archetype != null)
-            {
-                obj.Archetype.ArchetypeName = arch.GetType().Name;
-                obj.Archetype.LODRanges = arch.LODRanges;
             }
             var ld = fldata.Loadouts.FindLoadout(o.Loadout);
-            var archld = fldata.Loadouts.FindLoadout(arch.LoadoutName);
+            var archld = fldata.Loadouts.FindLoadout(obj.Archetype.LoadoutName);
             if (ld != null) ProcessLoadout(ld, obj);
             if (archld != null) ProcessLoadout(archld, obj);
             return obj;
         }
 
         //Used to spawn objects within mission scripts
-        public GameData.Archetype GetSolarArchetype(string id)
-        {
-            var fl = fldata.Solar.FindSolar(id);
-            foreach (var path in fl.MaterialPaths)
-                resource.LoadResourceFile(ResolveDataPath(path));
-            var arch = new GameData.Archetype();
-            arch.Drawable = resource.GetDrawable(ResolveDataPath(fl.DaArchetypeName));
-            arch.LODRanges = fl.LODRanges;
-            arch.ArchetypeName = fl.GetType().Name;
-            if (fl.CollisionGroups.Count > 0) arch.CollisionGroups = fl.CollisionGroups.ToArray();
-            return arch;
-        }
+        public GameData.Archetype GetSolarArchetype(string id) => archetypes[id];
 
         public GameData.Items.Equipment GetEquipment(string id)
         {
@@ -1322,7 +1317,7 @@ namespace LibreLancer
                     if (fza != null)
                     {
                         if (!fuse.Fx.ContainsKey(fza.Effect))
-                            fuse.Fx[fza.Effect] = GetEffect(fza.Effect);
+                            fuse.Fx[fza.Effect] = GetEffect(fza.Effect).GetEffect(resource);
                     }
                 }
 
@@ -1336,7 +1331,7 @@ namespace LibreLancer
             return fldata.Effects.FindEffect(effectName) != null || fldata.Effects.FindVisEffect(effectName) != null;
         }
 
-        public ParticleEffect GetEffect(string effectName)
+        public ResolvedFx GetEffect(string effectName)
         {
             var effect = fldata.Effects.FindEffect(effectName);
             Data.Effects.VisEffect visfx;
@@ -1350,22 +1345,19 @@ namespace LibreLancer
                 return null;
             }
             if (visfx == null) return null;
-            foreach (var texfile in visfx.Textures)
+            return new ResolvedFx()
             {
-                var path = ResolveDataPath(texfile);
-                resource.LoadResourceFile(path);
-            }
-            var alepath = ResolveDataPath(visfx.AlchemyPath);
-            var lib = resource.GetParticleLibrary(alepath);
-            return lib.FindEffect((uint)visfx.EffectCrc);
+                AlePath = ResolveDataPath(visfx.AlchemyPath),
+                VisFxCrc = (uint)visfx.EffectCrc,
+                LibraryFiles = visfx.Textures.Select(ResolveDataPath).ToArray()
+            };
         }
 
         GameData.Items.EffectEquipment GetAttachedFx(Data.Equipment.AttachedFx fx)
         {
-            var equip = new GameData.Items.EffectEquipment();
-            equip.LoadResAction = () =>
+            var equip = new GameData.Items.EffectEquipment()
             {
-                equip.Particles = GetEffect(fx.Particles);
+                Particles = GetEffect(fx.Particles)
             };
             return equip;
         }

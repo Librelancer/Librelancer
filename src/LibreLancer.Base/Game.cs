@@ -295,6 +295,17 @@ namespace LibreLancer
             }
         }
 
+        public void Yield()
+        {
+            if (Thread.CurrentThread.ManagedThreadId == mythread)
+            {
+                Action work;
+                while (actions.TryDequeue(out work))
+                    work();
+            }
+            Thread.Sleep(0);
+        }
+        
         private bool waitForEvent = false;
         public void WaitForEvent()
         {

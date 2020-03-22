@@ -19,7 +19,7 @@ namespace LibreLancer
 			{
 				if (!hp.Name.Equals(Equip.HpParticles, StringComparison.OrdinalIgnoreCase))
 				{
-					fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(Equip.Particles)));
+					//fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(Equip.Particles)));
 				}
 			}
 		}

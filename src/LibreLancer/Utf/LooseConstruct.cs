@@ -8,20 +8,19 @@ namespace LibreLancer.Utf
 {
     public class LooseConstruct : AbstractConstruct
     {
-        public override Matrix4 Transform { get { return internalGetTransform(Rotation * Matrix4.CreateTranslation(Origin)); } }
+        public override Matrix4 LocalTransform { get { return internalGetTransform(Rotation * Matrix4.CreateTranslation(Origin)); } }
 
-        public LooseConstruct(BinaryReader reader, ConstructCollection constructs)
-            : base(reader, constructs)
+        public LooseConstruct(BinaryReader reader)
+            : base(reader)
         {
             Rotation = ConvertData.ToMatrix3x3(reader);
         }
 
 		protected LooseConstruct(LooseConstruct cf) : base(cf) { }
 
-		public override AbstractConstruct Clone(ConstructCollection newcol)
+		public override AbstractConstruct Clone()
 		{
 			var newc = new LooseConstruct(this);
-			newc.constructs = constructs;
 			return newc;
 		}
         public override void Reset()

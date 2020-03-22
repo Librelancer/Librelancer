@@ -76,6 +76,7 @@ namespace LibreLancer
             var c = im.ReadRangedSingle(UNIT_MIN, UNIT_MAX, BITS_COMPONENT);
 			var d = (float)Math.Sqrt(1f - (a * a + b * b + c * c));
             im.ReadPadBits();
+            Quaternion q;
 			if (maxIndex == 0)
 				return new Quaternion(d, a, b, c);
 			if (maxIndex == 1)

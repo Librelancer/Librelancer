@@ -172,7 +172,6 @@ namespace LibreLancer.Utf.Vms
 			}
 			if (VertexBuffer != null)
 			{
-				//Don't upload vmeshdata a million times to ram.
 				return;
 			}
             Diffuse = null;

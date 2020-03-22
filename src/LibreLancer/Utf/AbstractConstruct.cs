@@ -12,30 +12,23 @@ namespace LibreLancer.Utf
     public abstract class AbstractConstruct
     {
         const int STR_LENGTH = 64;
-        protected ConstructCollection constructs;
-
         public string ParentName { get; set; }
         public string ChildName { get; set; }
         public Vector3 Origin { get; set; }
         public Matrix4 Rotation { get; set; }
 
-        public abstract Matrix4 Transform { get; }
-		bool parentExists = true;
+        public abstract Matrix4 LocalTransform { get; }
 
         public Matrix4? OverrideTransform;
 
-        protected AbstractConstruct(ConstructCollection constructs)
+        protected AbstractConstruct()
         {
-            this.constructs = constructs;
         }
 
-        protected AbstractConstruct(BinaryReader reader, ConstructCollection constructs)
+        protected AbstractConstruct(BinaryReader reader)
         {
             if (reader == null) throw new ArgumentNullException("reader");
-            if (constructs == null) throw new ArgumentNullException("construct");
-
-            this.constructs = constructs;
-
+            
             byte[] buffer = new byte[STR_LENGTH];
 
             reader.Read(buffer, 0, STR_LENGTH);
@@ -56,28 +49,13 @@ namespace LibreLancer.Utf
 			Origin = cloneFrom.Origin;
 			Rotation = cloneFrom.Rotation;
 		}
-        public void ClearParent()
-        {
-            parent = null;
-            parentExists = true;
-        }
-		public abstract AbstractConstruct Clone(ConstructCollection newcol);
 
-		AbstractConstruct parent;
+        public abstract AbstractConstruct Clone();
+
         protected Matrix4 internalGetTransform(Matrix4 matrix)
         {
             if (OverrideTransform != null)
                 matrix = OverrideTransform.Value;
-			if (parentExists)
-			{
-				if(parent == null)
-					parent = constructs.Find(ParentName);
-				if (parent != null)
-					matrix = matrix * parent.Transform;
-				else
-					parentExists = false;
-			}
-
             return matrix;
         }
         public abstract void Reset();

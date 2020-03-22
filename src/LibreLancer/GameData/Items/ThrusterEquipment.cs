@@ -8,26 +8,21 @@ namespace LibreLancer.GameData.Items
 {
 	public class ThrusterEquipment : Equipment
 	{
-		public IDrawable Model;
-		public ParticleEffect Particles;
+		public ResolvedFx Particles;
 		public string HpParticles;
 		public float Force;
 		public float Drain;
-
-		public override IDrawable GetDrawable()
-		{
-			return Model;
-		}
+        
 		public ThrusterEquipment()
 		{
 		}
         
         static ThrusterEquipment() => EquipmentObjectManager.RegisterType<ThrusterEquipment>(AddEquipment);
 
-        static GameObject AddEquipment(GameObject parent, ResourceManager res, string hardpoint, Equipment equip)
+        static GameObject AddEquipment(GameObject parent, ResourceManager res, bool draw, string hardpoint, Equipment equip)
         {
             var th = (ThrusterEquipment)equip;
-            var obj = GameObject.WithModel(th.Model, parent.Resources);
+            var obj = GameObject.WithModel(th.ModelFile, draw, parent.Resources);
             obj.Components.Add(new ThrusterComponent(obj, th));
             return obj;
         }

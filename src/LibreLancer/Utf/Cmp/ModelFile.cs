@@ -14,14 +14,12 @@ namespace LibreLancer.Utf.Cmp
     /// <summary>
     /// Represents a UTF Model File (.3db)
     /// </summary>
-    public class ModelFile : UtfFile, IDrawable, ILibFile
+    public class ModelFile : UtfFile, IRigidModelFile, ILibFile
     {
         //private RenderTools.Camera camera;
         private ILibFile additionalLibrary;
         private bool ready;
-
         public string Path { get; set; }
-
         public VmsFile VMeshLibrary { get; private set; }
         public MatFile MaterialLibrary { get; private set; }
         public TxmFile TextureLibrary { get; private set; }
@@ -184,88 +182,46 @@ namespace LibreLancer.Utf.Cmp
             ready = Levels.Length > 0;
             if(VMeshWire != null) VMeshWire.Initialize(this);
         }
-
-        public void Resized()
+        public RigidModelPart CreatePart(bool drawable)
         {
-            if (ready)
+            var p = new RigidModelPart  { Path = Path };
+            if (Levels.Length > 0 && Levels[0] != null)
             {
-                Levels[0].Resized();
-                //foreach (VMeshRef level in Levels.Values) level.DeviceReset();
-            }
-        }
-
-		public void Update(ICamera camera, TimeSpan delta, TimeSpan totalTime)
-        {
-            if (ready)
-            {
-				if (MaterialAnim != null)
-					MaterialAnim.Update((float)totalTime.TotalSeconds);
-				//Levels[0].Update(camera, delta);
-                for(int i = 0; i < Levels.Length; i++) Levels[i].Update(camera, delta);
-            }
-        }
-		public float GetRadius()
-        {
-            if (Levels.Length > 0)
-                return Levels[0].Radius;
-            else
-                return 0;
-        }
-		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, ref Lighting light, Material overrideMat = null)
-		{
-			if (ready)
-			{
-				var ma = MaterialAnim;
-				if (ma == null && additionalLibrary is CmpFile)
-					ma = ((CmpFile)additionalLibrary).MaterialAnim;
-				Levels[0].DrawBuffer(buffer, world, ref light, ma, overrideMat);
-			}
-		}
-
-        public void DrawBufferLevel(VMeshRef level, CommandBuffer buffer, Matrix4 world, ref Lighting light, Material overrideMat = null)
-        {
-            if (ready)
-            {
-                var ma = MaterialAnim;
-                if (ma == null && additionalLibrary is CmpFile)
-                    ma = ((CmpFile)additionalLibrary).MaterialAnim;
-                level.DrawBuffer(buffer, world, ref light, ma, overrideMat);
-            }
-        }
-
-		public void DepthPrepassLevel(VMeshRef level, RenderState rstate, Matrix4 world)
-		{
-			if (ready)
-			{
-				var ma = MaterialAnim;
-				if (ma == null && additionalLibrary is CmpFile)
-					ma = ((CmpFile)additionalLibrary).MaterialAnim;
-				level.DepthPrepass(rstate, world, ma);
-			}
-		}
-
-		public void Draw(RenderState rstate, Matrix4 world, Lighting light)
-        {
-			if (ready) {
-				var ma = MaterialAnim;
-				if (ma == null && additionalLibrary is CmpFile)
-					ma = ((CmpFile)additionalLibrary).MaterialAnim;
-				Levels [0].Draw (rstate, world, light, ma);
-
-				/*Matrix tworld = Transform * world;
-                float cameraDistance = Vector3.Distance(tworld.Translation, camera.Position);
-
-                for (int i = 0; i < Switch2.Length; i++)
+                p.Mesh = new VisualMesh();
+                if (drawable)
                 {
-                    if (cameraDistance <= Switch2[i])
+                    p.Mesh.Levels = new MeshDrawcall[Levels.Length][];
+                    for (int i = 0; i < Levels.Length; i++)
                     {
-                        if (Levels.ContainsKey(i)) Levels[i].Draw(tworld);
-                        break;
+                        if (Levels[i] != null) p.Mesh.Levels[i] = Levels[i].GetDrawcalls();
                     }
-                }*/
-			}
+                }
+                else
+                {
+                    p.Mesh.Levels = new MeshDrawcall[0][];
+                }
+                p.Mesh.Radius = Levels[0].Radius;
+                p.Mesh.Center = Levels[0].Center;
+                p.Mesh.BoundingBox = Levels[0].BoundingBox;
+                p.Mesh.Switch2 = Switch2;
+            }
+            p.Hardpoints = new List<Hardpoint>(Hardpoints.Count);
+            for (int i = 0; i < Hardpoints.Count; i++)
+                p.Hardpoints.Add(new Hardpoint(Hardpoints[i], p));
+            p.Wireframe = VMeshWire;
+            return p;
         }
-
+        public RigidModel CreateRigidModel(bool drawable)
+        {
+            var model = new RigidModel();
+            model.Root = CreatePart(drawable);
+            model.Root.Name = "Root";
+            model.From3db = true;
+            model.AllParts = new[] { model.Root };
+            model.Path = Path;
+            model.MaterialAnims = MaterialAnim;
+            return model;
+        }
         public Texture FindTexture(string name)
         {
             return additionalLibrary.FindTexture(name);

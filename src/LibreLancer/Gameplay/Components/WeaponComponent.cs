@@ -50,9 +50,9 @@ namespace LibreLancer
             }
             //TODO: Finding barrel construct properly?
             Utf.RevConstruct barrel = null;
-            foreach (var construct in Parent.CmpConstructs)
-                if (construct is Utf.RevConstruct)
-                    barrel = (Utf.RevConstruct)construct;
+            foreach (var mdl in Parent.RigidModel.AllParts)
+                if (mdl.Construct is Utf.RevConstruct revCon)
+                    barrel = revCon;
             if(barrel != null) {
                 var target = -localProper.Y * (float)Math.PI;
                 var current = barrel.Current;
@@ -68,6 +68,7 @@ namespace LibreLancer
                 }
 
                 barrel.Update(target, Quaternion.Identity);
+                Parent.RigidModel.UpdateTransform();
             }
         }
 

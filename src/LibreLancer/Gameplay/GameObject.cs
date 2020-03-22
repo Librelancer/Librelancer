@@ -43,8 +43,6 @@ namespace LibreLancer
 		bool isstatic = false;
 		public Vector3 StaticPosition;
 		IDrawable dr;
-		public ConstructCollection CmpConstructs;
-		public List<Part> CmpParts = new List<Part>();
 		Dictionary<string, Hardpoint> hardpoints = new Dictionary<string, Hardpoint>(StringComparer.OrdinalIgnoreCase);
 		//Components
 		public List<GameObject> Children = new List<GameObject>();
@@ -54,7 +52,7 @@ namespace LibreLancer
 		public PhysicsComponent PhysicsComponent;
 		public AnimationComponent AnimationComponent;
 		public SystemObject SystemObject;
-
+        public RigidModel RigidModel;
         public bool IsStatic => isstatic;
         /// <summary>
         /// Don't call unless you're absolutely sure what you're doing!
@@ -67,25 +65,21 @@ namespace LibreLancer
 			if (arch is Archs.Sun)
 			{
 				RenderComponent = new SunRenderer((Archs.Sun)arch);
-				//TODO: You can't collide with a sun
-				//PhysicsComponent = new RigidBody(new SphereShape((((Archs.Sun)arch).Radius)));
-				//PhysicsComponent.IsStatic = true;
-				//PhysicsComponent.Tag = this;
-			}
+            }
 			else
 			{
-				InitWithDrawable(arch.Drawable, res, draw, staticpos);
+				InitWithDrawable(arch.ModelFile.LoadFile(res), res, draw, staticpos);
 			}
 		}
 		public GameObject()
 		{
 
 		}
-        public static GameObject WithModel(IDrawable drawable, ResourceManager res)
+        public static GameObject WithModel(ResolvedModel modelFile, bool draw, ResourceManager res)
         {
             var go = new GameObject();
             go.isstatic = false;
-            go.InitWithDrawable(drawable, res, true, false, false);
+            go.InitWithDrawable(modelFile.LoadFile(res), res, draw, false, false);
             return go;
         }
 		public GameObject(IDrawable drawable, ResourceManager res, bool draw = true, bool staticpos = false)
@@ -95,59 +89,70 @@ namespace LibreLancer
 		}
         public GameObject(Ship ship, ResourceManager res, bool draw = true)
         {
-            InitWithDrawable(ship.Drawable, res, draw, false);
+            InitWithDrawable(ship.ModelFile.LoadFile(res), res, draw, false);
             PhysicsComponent.Mass = ship.Mass;
             PhysicsComponent.Inertia = ship.RotationInertia;
+        }
+
+        public GameObject(string name, RigidModel model, ResourceManager res)
+        {
+            RigidModel = model;
+            Resources = res;
+            PopulateHardpoints();
+            if (RigidModel != null)
+            {
+                RenderComponent = new ModelRenderer(RigidModel) { Name = name };
+            }
         }
 		public void UpdateCollision()
 		{
 			if (PhysicsComponent == null) return;
             PhysicsComponent.UpdateParts();
 		}
+        
         public void DisableCmpPart(string part)
         {
-            if (CmpParts == null) return;
-            for (int i = 0; i < CmpParts.Count; i++)
+            if(RigidModel != null && RigidModel.Parts.TryGetValue(part, out var p))
             {
-                if (CmpParts[i].ObjectName.Equals(part, StringComparison.OrdinalIgnoreCase))
-                {
-                    PhysicsComponent.DisablePart(CmpParts[i]);
-                    CmpParts.RemoveAt(i);
-                    return;
-                }
+                p.Active = false;
+                PhysicsComponent.DisablePart(p);
             }
         }
+        
         public GameObject SpawnDebris(string part)
         {
-            if (CmpParts == null) return null;
-            for (int i = 0; i < CmpParts.Count; i++)
+            if (RigidModel != null && RigidModel.Parts.TryGetValue(part, out var srcpart))
             {
-                var p = CmpParts[i];
-                if (p.ObjectName.Equals(part, StringComparison.OrdinalIgnoreCase))
+                var newpart = srcpart.Clone();
+                var newmodel = new RigidModel()
                 {
-                    var tr = p.GetTransform(GetTransform());
-                    CmpParts.RemoveAt(i);
-                    var obj = new GameObject(p.Model, Resources, RenderComponent != null, false);
-                    obj.Transform = tr;
-                    obj.World = World;
-                    obj.World.Objects.Add(obj);
-                    var pos0 = GetTransform().Transform(Vector3.Zero);
-                    var pos2 = p.GetTransform(GetTransform()).Transform(Vector3.Zero);
-                    var vec = (pos2 - pos0).Normalized();
-                    var initialforce = 100f;
-                    var mass = 50f;
-                    if(CollisionGroups != null)
+                    Root = newpart,
+                    AllParts = new[] { newpart },
+                    MaterialAnims = RigidModel.MaterialAnims,
+                    Path = newpart.Path,
+                };
+                srcpart.Active = false;
+                var tr = srcpart.LocalTransform * GetTransform();
+                var obj = new GameObject($"{Name}$debris-{part}", newmodel, Resources);
+                obj.Transform = tr;
+                obj.World = World;
+                obj.World.Objects.Add(obj);
+                var pos0 = GetTransform().Transform(Vector3.Zero);
+                var pos1 = tr.Transform(Vector3.Zero);
+                var vec = (pos1 - pos0).Normalized();
+                var initialforce = 100f;
+                var mass = 50f;
+                if (CollisionGroups != null)
+                {
+                    var cg = CollisionGroups.FirstOrDefault(x =>
+                        x.obj.Equals(part, StringComparison.OrdinalIgnoreCase));
+                    if (cg != null)
                     {
-                        var cg = CollisionGroups.FirstOrDefault(x => x.obj.Equals(part, StringComparison.OrdinalIgnoreCase));
-                        if(cg != null)
-                        {
-                            mass = cg.Mass;
-                            initialforce = cg.ChildImpulse;
-                        }
+                        mass = cg.Mass;
+                        initialforce = cg.ChildImpulse;
                     }
-                    PhysicsComponent.ChildDebris(obj, p, mass,  vec * initialforce);
-                    return obj;
                 }
+                PhysicsComponent.ChildDebris(obj, srcpart, mass, vec * initialforce);
             }
             return null;
         }
@@ -159,60 +164,44 @@ namespace LibreLancer
             PhysicsComponent phys = null;
 			bool isCmp = false;
             string name = "";
+            if(draw) drawable.Initialize(res);
 			if (dr is SphFile)
 			{
 				var radius = ((SphFile)dr).Radius;
                 phys = new PhysicsComponent(this) { SphereRadius = radius };
                 name = ((SphFile)dr).SideMaterialNames[0];
-			}
-			else if (dr is ModelFile)
+                RigidModel = ((SphFile) dr).CreateRigidModel(draw);
+            }
+			else if (dr is IRigidModelFile mdl)
 			{
-				var mdl = dr as ModelFile;
-				var path = Path.ChangeExtension(mdl.Path, "sur");
-                name = Path.GetFileNameWithoutExtension(mdl.Path);
+				//var mdl = dr as ModelFile;
+                RigidModel = mdl.CreateRigidModel(draw);
+				var path = Path.ChangeExtension(RigidModel.Path, "sur");
+                name = Path.GetFileNameWithoutExtension(RigidModel.Path);
                 if (File.Exists(path))
                     phys = new PhysicsComponent(this) { SurPath = path };
+                if (RigidModel.Animation != null)
+                {
+                    AnimationComponent = new AnimationComponent(this, RigidModel.Animation);
+                    Components.Add(AnimationComponent);
+                }
 			}
-			else if (dr is CmpFile)
-			{
-				isCmp = true;
-				var cmp = dr as CmpFile;
-				CmpParts = new List<Part>();
-				CmpConstructs = cmp.Constructs.CloneAll();
-				foreach (var part in cmp.Parts)
-				{
-					CmpParts.Add(part.Clone(CmpConstructs));
-				}
-				if (cmp.Animation != null)
-				{
-					AnimationComponent = new AnimationComponent(this, cmp.Animation);
-					Components.Add(AnimationComponent);
-				}
-				var path = Path.ChangeExtension(cmp.Path, "sur");
-                name = Path.GetFileNameWithoutExtension(cmp.Path);
-                if (File.Exists(path))
-                    phys = new PhysicsComponent(this) { SurPath = path };
-			}
-
             if (havePhys && phys != null)
             {
                 PhysicsComponent = phys;
                 Components.Add(phys);
             }
-			PopulateHardpoints(dr);
-            if (draw)
+            PopulateHardpoints();
+            if (draw && RigidModel != null)
             {
-                if (isCmp)
-                    RenderComponent = new ModelRenderer(CmpParts, (dr as CmpFile)) { Name = name };
-                else
-                    RenderComponent = new ModelRenderer(dr) { Name = name };
+                RenderComponent = new ModelRenderer(RigidModel) { Name = name };
             }
 		}
 
         public void SetLoadout(Dictionary<string, Equipment> equipment, List<Equipment> nohp)
 		{
 			foreach (var k in equipment.Keys)
-                EquipmentObjectManager.InstantiateEquipment(this, Resources, k, equipment[k]);
+                EquipmentObjectManager.InstantiateEquipment(this, Resources, RenderComponent != null, k, equipment[k]);
             foreach (var eq in nohp)
 			{
 				if (eq is AnimationEquipment)
@@ -225,26 +214,18 @@ namespace LibreLancer
 		}
 
 
-		void PopulateHardpoints(IDrawable drawable, AbstractConstruct transform = null)
-		{
-			if (drawable is CmpFile)
-			{
-				foreach (var part in CmpParts)
-				{
-					PopulateHardpoints(part.Model, part.Construct);
-				}
-			}
-			else if (drawable is ModelFile)
-			{
-				var model = (ModelFile)drawable;
-				foreach (var hpdef in model.Hardpoints)
-				{
-					//Workaround broken models
-					if(!hardpoints.ContainsKey(hpdef.Name))
-						hardpoints.Add(hpdef.Name, new Hardpoint(hpdef, transform));
-				}
-			}
-		}
+		void PopulateHardpoints()
+        {
+            if (RigidModel == null) return;
+            foreach (var part in RigidModel.AllParts)
+            {
+                foreach (var hp in part.Hardpoints)
+                {
+                    if(!hardpoints.ContainsKey(hp.Definition.Name))
+                        hardpoints.Add(hp.Definition.Name, hp);
+                }
+            }
+        }
 
 		public T GetComponent<T>() where T : GameComponent
 		{
@@ -280,7 +261,7 @@ namespace LibreLancer
         
         public void FixedUpdate(TimeSpan time)
 		{
-			for (int i = 0; i < Children.Count; i++)
+			for ( int i = 0; i < Children.Count; i++)
 				Children[i].FixedUpdate(time);
 			for (int i = 0; i < Components.Count; i++)
 				Components[i].FixedUpdate(time);

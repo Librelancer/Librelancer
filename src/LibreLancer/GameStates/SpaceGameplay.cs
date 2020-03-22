@@ -78,9 +78,8 @@ Mouse Flight: {11}
         void FinishLoad()
         {
             var shp = Game.GameData.GetShip(session.PlayerShip);
-            shp.LoadResources();
             //Set up player object + camera
-            player = new GameObject(shp.Drawable, Game.ResourceManager, true, false);
+            player = new GameObject(shp.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager, true, false);
             control = new ShipPhysicsComponent(player);
             control.Ship = shp;
             shipInput = new ShipInputComponent(player);
@@ -99,8 +98,7 @@ Mouse Flight: {11}
             {
                 var equip = Game.GameData.GetEquipment(equipment.Item);
                 if (equip == null) continue;
-                equip.LoadResources();
-                EquipmentObjectManager.InstantiateEquipment(player, Game.ResourceManager, equipment.Hardpoint, equip);
+                EquipmentObjectManager.InstantiateEquipment(player, Game.ResourceManager, true, equipment.Hardpoint, equip);
             }
             powerCore = player.GetComponent<PowerCoreComponent>();
             if (powerCore == null) throw new Exception("Player launched without a powercore equipped!");
@@ -209,7 +207,7 @@ Mouse Flight: {11}
 			}
 			else if(action.Kind == DockKinds.Jump)
 			{
-				session.JumpTo(action.Target, action.Exit);
+				//session.JumpTo(action.Target, action.Exit);
 			}
 		}
 
@@ -340,7 +338,8 @@ Mouse Flight: {11}
                 }
                 return;
             }
-            if (session.Update(this, delta)) return;
+            session.GameplayUpdate(this);
+            if (session.Update()) return;
             if (ShowHud && (Thn == null || !Thn.Running))
                 ui.Update(Game);
             if(ui.KeyboardGrabbed)

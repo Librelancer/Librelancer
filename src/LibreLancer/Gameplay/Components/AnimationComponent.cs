@@ -19,21 +19,21 @@ namespace LibreLancer
 		}
 
 		AnmFile anm;
-        ConstructCollection constructs;
+        private RigidModel rm;
 		List<ActiveAnimation> animations = new List<ActiveAnimation>();
 		public AnimationComponent(GameObject parent, AnmFile animation) : base(parent)
 		{
 			anm = animation;
 		}
 
-        public AnimationComponent(ConstructCollection constructs, AnmFile animation) : base(null)
+        public AnimationComponent(RigidModel rm, AnmFile animation) : base(null)
         {
+            this.rm = rm;
             anm = animation;
-            this.constructs = constructs;
         }
 		public void StartAnimation(string animationName, bool loop = true, float start_time = 0, float time_scale = 1, float duration = 0)
 		{
-            if (Parent.RenderComponent is CharacterRenderer characterRenderer)
+            if (Parent?.RenderComponent is CharacterRenderer characterRenderer)
             {
                 if (anm.Scripts.TryGetValue(animationName, out Script sc))
                     characterRenderer.Skeleton.StartScript(sc, start_time, time_scale, duration, loop);
@@ -51,7 +51,15 @@ namespace LibreLancer
         public void ResetAnimations()
         {
             animations.Clear();
-            foreach(var c in constructs) c.Reset();
+            if (Parent != null)
+            {
+                foreach (var p in Parent.RigidModel.AllParts) p.Construct?.Reset();
+                Parent.RigidModel.UpdateTransform();
+            } else if (rm != null)
+            {
+                foreach (var p in rm.AllParts) p.Construct?.Reset();
+                rm.UpdateTransform();
+            }
         }
 
         public bool HasAnimation(string animationName)
@@ -70,7 +78,6 @@ namespace LibreLancer
                 characterRenderer.Skeleton.UpdateScripts(time);
                 return;
             }
-            if (constructs == null) constructs = Parent.CmpConstructs;
 			totalTime += time.TotalSeconds;
 			int c = animations.Count;
 			for (int i = animations.Count - 1; i >= 0; i--)
@@ -82,9 +89,13 @@ namespace LibreLancer
 					animations.RemoveAt(i);
 				}
 			}
-			if (c > 0 && Parent != null)
-				Parent.UpdateCollision();
-		}
+            if (c > 0 && Parent != null)
+            {
+                Parent.RigidModel.UpdateTransform();
+                Parent.UpdateCollision();
+            }
+            if (c > 0) rm?.UpdateTransform();
+        }
 
 		bool ProcessAnimation(ActiveAnimation a)
 		{
@@ -108,8 +119,9 @@ namespace LibreLancer
 		}
 
 		bool ProcessJointMap(JointMap jm, double startTime, bool loop)
-		{
-			var joint = constructs.Find(jm.ChildName);
+        {
+            var mdl = Parent == null ? rm : Parent.RigidModel;
+            var joint = mdl.Parts[jm.ChildName].Construct;
 			double t = totalTime - startTime;
 			//looping?
 			if (jm.Channel.Interval == -1)

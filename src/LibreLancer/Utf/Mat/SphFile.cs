@@ -17,7 +17,7 @@ namespace LibreLancer.Utf.Mat
     /// <summary>
     /// Represents a UTF Sphere File (.sph)
     /// </summary>
-    public class SphFile : UtfFile, IDrawable
+    public class SphFile : UtfFile, IRigidModelFile
     {
         private QuadSphere sphere;
 		
@@ -156,30 +156,7 @@ namespace LibreLancer.Utf.Mat
                 ready = true;
             }
         }
-
-        public void Resized()
-        {
-            if (ready)
-            {
-				
-                //planetEffect.SetParameter ("Projection", camera.Projection);
-                //updatePlanetTexture = true;
-            }
-        }
-        ICamera _camera;
-		public void Update(ICamera camera, TimeSpan delta, TimeSpan totalTime)
-        {
-            if (ready)
-            {
-                _camera = camera;
-				if (SideMaterials.Length > 6) {
-					//var mat = (AtmosphereMaterial)SideMaterials [6].Render;
-					//mat.Projection = camera.Projection;
-					//mat.CameraPosition = camera.Position;
-				}
-            }
-        }
-		static CubeMapFace[] faces = new CubeMapFace[] {
+        static CubeMapFace[] faces = new CubeMapFace[] {
 			CubeMapFace.PositiveZ,
 			CubeMapFace.PositiveX,
 			CubeMapFace.NegativeZ,
@@ -187,97 +164,60 @@ namespace LibreLancer.Utf.Mat
 			CubeMapFace.PositiveY,
 			CubeMapFace.NegativeY
 		};
-		public float GetRadius()
-		{
-			return Radius;
-		}
-		public void Draw(RenderState rstate, Matrix4 world, Lighting lights)
+        
+        public RigidModel CreateRigidModel(bool drawable)
         {
-			throw new NotImplementedException();
-        }
-		public void DepthPrepass(RenderState rstate, Matrix4 world)
-		{
-			if (SideMaterials.Length < 6)
-				return;
-			var transform = Matrix4.CreateScale(Radius) * world;
-            for (int i = 0; i < 6; i++)
-			{
-				if (SideMaterials[i].Render.IsTransparent) continue;
-				int start, count;
-				Vector3 pos;
-				sphere.GetDrawParameters(faces[i], out start, out count, out pos);
-				SideMaterials[i].Render.Camera = _camera;
-				SideMaterials[i].Render.World = transform;
-                SideMaterials[i].Render.ApplyDepthPrepass(rstate);
-				sphere.VertexBuffer.Draw(PrimitiveTypes.TriangleList, 0, start, count);
-			}
-		}
-		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, ref Lighting lighting, Material overrideMat = null)
-		{
-			if (SideMaterials.Length < 6)
-				return;
-			if (ready)
-			{
-				for (int i = 0; i < SideMaterials.Length; i++)
-					if (SideMaterials[i] != null && !SideMaterials[i].Loaded) SideMaterials[i].Loaded = false;
-                
-                var transform = Matrix4.CreateScale(Radius) * world;
+            var model = new RigidModel();
+            var part = new RigidModelPart();
+            var dcs = new List<MeshDrawcall>();
+            var scale = Matrix4.CreateScale(Radius);
+            if (drawable)
+            {
                 for (int i = 0; i < 6; i++)
-				{
-					int start, count;
-					Vector3 pos;
-					sphere.GetDrawParameters(faces[i], out start, out count, out pos);
-					if(SideMaterials[i] == null) SideMaterials[i] = library.FindMaterial(CrcTool.FLModelCrc(sideMaterialNames[i]));
-					var mat = SideMaterials[i] ?? defaultMaterial;
-					mat = overrideMat ?? mat;
-                    mat.Render.Camera = _camera;
-					buffer.AddCommand(
-						mat.Render,
-						null,
-						transform,
-						lighting,
-						sphere.VertexBuffer,
-						PrimitiveTypes.TriangleList,
-						0,
-						start,
-						count,
-						SortLayers.OBJECT
-					);
-				}
-				//Draw atmosphere
-				if (SideMaterials.Length > 6 && overrideMat == null)
-				{
-					if (SideMaterials[6] == null)
-					{
-						SideMaterials[6] = library.FindMaterial(CrcTool.FLModelCrc(sideMaterialNames[6]));
-						if (SideMaterials[6] == null) return;
-					}
-					var mat = (AtmosphereMaterial)SideMaterials[6].Render;
-					var transform2 = Matrix4.CreateScale(Radius * mat.Scale) * world;
-					for (int i = 0; i < 6; i++)
-					{
-						int start, count;
-						Vector3 pos;
-						sphere.GetDrawParameters(faces[i], out start, out count, out pos);
-						SideMaterials[6].Render.Camera = _camera;
-						buffer.AddCommand(
-							SideMaterials[6].Render,
-							null,
-							transform2,
-							lighting,
-							sphere.VertexBuffer,
-							PrimitiveTypes.TriangleList,
-							0,
-							start,
-							count,
-							SortLayers.OBJECT,
-							RenderHelpers.GetZ(transform, _camera.Position, pos)
-						);
-					}
-				}
-			}
-			else
-				throw new Exception();
-		}
+                {
+                    int start, count;
+                    Vector3 pos;
+                    sphere.GetDrawParameters(faces[i], out start, out count, out pos);
+                    var dc = new MeshDrawcall();
+                    dc.Buffer = sphere.VertexBuffer;
+                    dc.MaterialCrc = CrcTool.FLModelCrc(sideMaterialNames[i]);
+                    dc.BaseVertex = 0;
+                    dc.StartIndex = start;
+                    dc.PrimitiveCount = count;
+                    dc.HasScale = true;
+                    dc.Scale = scale;
+                    dcs.Add(dc);
+                }
+
+                if (SideMaterials.Length > 6)
+                {
+                    var crc = CrcTool.FLModelCrc(sideMaterialNames[6]);
+                    for (int i = 0; i < 6; i++)
+                    {
+                        int start, count;
+                        Vector3 pos;
+                        sphere.GetDrawParameters(faces[i], out start, out count, out pos);
+                        var dc = new MeshDrawcall();
+                        dc.Buffer = sphere.VertexBuffer;
+                        dc.MaterialCrc = crc;
+                        dc.BaseVertex = 0;
+                        dc.StartIndex = start;
+                        dc.PrimitiveCount = count;
+                        dc.HasScale = true;
+                        dc.Scale = scale;
+                        dcs.Add(dc);
+                    }
+                }
+            }
+            var vmesh = new VisualMesh();
+            vmesh.Radius = Radius;
+            vmesh.BoundingBox = BoundingBox.CreateFromSphere(new BoundingSphere(Vector3.Zero, Radius));
+            vmesh.Levels = new[] {dcs.ToArray()};
+            part.Hardpoints = new List<Hardpoint>();
+            part.Mesh = vmesh;
+            model.Root = part;
+            model.AllParts = new[] {part};
+            return model;
+        }
     }
 }

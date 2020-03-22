@@ -171,12 +171,12 @@ namespace LibreLancer.Interface
             }
         }
 
-        public IDrawable GetDrawable(string path)
+        public RigidModel GetModel(string path)
         {
-            if (string.IsNullOrEmpty(path)) return null;
+            if(string.IsNullOrEmpty(path)) return null;
             try
             {
-                return ResourceManager.GetDrawable(FileSystem.Resolve(path));
+                return ((IRigidModelFile) ResourceManager.GetDrawable(FileSystem.Resolve(path))).CreateRigidModel(true);
             }
             catch (Exception e)
             {
@@ -184,7 +184,7 @@ namespace LibreLancer.Interface
                 return null;
             }
         }
-        
+
         public Vector2 AnchorPosition(RectangleF parent, AnchorKind anchor, float x, float y, float width, float height)
         {
             float resolveX = 0;

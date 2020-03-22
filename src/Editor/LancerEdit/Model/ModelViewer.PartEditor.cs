@@ -32,14 +32,14 @@ namespace LancerEdit
 
         void WriteConstructs()
         {
-            var cmp = (CmpFile)drawable;
             FixConstructor fix = null;
             RevConstructor rev = null;
             PrisConstructor pris = null;
             SphereConstructor sphere = null;
 
-            foreach (var con in cmp.Constructs)
+            foreach (var p in vmsModel.AllParts)
             {
+                var con = p.Construct;
                 if (con is FixConstruct)
                 {
                     if (fix == null) fix = new FixConstructor();
@@ -84,30 +84,7 @@ namespace LancerEdit
                 });
             }
         }
-        void ReplaceConstruct(ConstructNode c, AbstractConstruct newc)
-        {
-            
-            var cmp = (CmpFile)drawable;
-            foreach(var part in cmp.Parts)
-            {
-                if (part.Construct == c.Con)
-                    part.UpdateConstruct(newc);
-            }
-            for (int i = 0; i < cmp.Constructs.Count; i++)
-            {
-                if (cmp.Constructs[i] == c.Con)
-                {
-                    cmp.Constructs[i] = newc;
-                    break;
-                }
-            }
-            foreach(var gz in gizmos) {
-                if (gz.Parent == c.Con) gz.Parent = newc;
-            }
-            if (addConstruct == c.Con) addConstruct = newc;
-            c.Con = newc;
-            cmp.Constructs.ClearParents();
-        }
+       
     }
     class HardpointEditor
     {

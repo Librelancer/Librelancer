@@ -10,7 +10,7 @@ namespace LibreLancer.GameData
 		public Zone Zone;
         //Shell
         public string ShellPath;
-		public IDrawable Shell;
+		public RigidModel Shell;
 		public Color3f ShellTint;
 		public float ShellMaxAlpha;
 		public float ShellScalar;

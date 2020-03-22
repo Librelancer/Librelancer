@@ -135,6 +135,7 @@ namespace LibreLancer
                 if (scriptContext != null &&
                     scriptContext.Substitutions.TryGetValue(kv.Value.Template, out replacement))
                     template = replacement;
+                var resman = game.GetService<ResourceManager>();
                 if (spawnObjects && kv.Value.Type == EntityTypes.Compound)
                 {
                     bool getHpMount = false;
@@ -149,8 +150,7 @@ namespace LibreLancer
                         case "spaceship":
                             getHpMount = true;
                             var sh = gameData.GetShip(template);
-                            sh.LoadResources();
-                            drawable = sh.Drawable;
+                            drawable = sh.ModelFile.LoadFile(resman);
                             break;
                         case "prop":
                             drawable = gameData.GetProp(template);
@@ -163,8 +163,7 @@ namespace LibreLancer
                             break;
                         case "equipment":
                             var eq = gameData.GetEquipment(template);
-                            eq.LoadResources();
-                            drawable = eq.GetDrawable();
+                            drawable = eq.ModelFile.LoadFile(resman);
                             break;
                         case "asteroid":
                             drawable = gameData.GetAsteroid(kv.Value.Template);
@@ -172,7 +171,7 @@ namespace LibreLancer
                         default:
                             throw new NotImplementedException("Mesh Category " + kv.Value.MeshCategory);
                     }
-                    
+                    drawable?.Initialize(resman);
                     if (kv.Value.UserFlag != 0)  {
                         //This is a starsphere
                         layers.Add(new Tuple<IDrawable, ThnObject>(drawable, obj));
@@ -197,7 +196,7 @@ namespace LibreLancer
                 {
                     var fx = gameData.GetEffect(kv.Value.Template);
                     obj.Object = new GameObject();
-                    obj.Object.RenderComponent = new ParticleEffectRenderer(fx) { Active = false };
+                    obj.Object.RenderComponent = new ParticleEffectRenderer(fx.GetEffect(resman)) { Active = false };
                 }
                 else if (kv.Value.Type == EntityTypes.Scene)
                 {
@@ -329,13 +328,13 @@ namespace LibreLancer
 				events.Enqueue(item);
             //Add starspheres in the right order
             var sorted = ((IEnumerable<Tuple<IDrawable, ThnObject>>)layers).Reverse().OrderBy(x => x.Item2.Entity.SortGroup).ToArray();
-			Renderer.StarSphereModels = new IDrawable[sorted.Length];
+			Renderer.StarSphereModels = new RigidModel[sorted.Length];
 			Renderer.StarSphereWorlds = new Matrix4[sorted.Length];
             Renderer.StarSphereLightings = new Lighting[sorted.Length];
             starSphereObjects = new ThnObject[sorted.Length];
 			for (int i = 0; i < sorted.Length; i++)
 			{
-				Renderer.StarSphereModels[i] = sorted[i].Item1;
+				Renderer.StarSphereModels[i] = (sorted[i].Item1 as IRigidModelFile).CreateRigidModel(true);
                 Renderer.StarSphereWorlds[i] = sorted[i].Item2.Rotate * Matrix4.CreateTranslation(sorted[i].Item2.Translate);
                 Renderer.StarSphereLightings[i] = Lighting.Empty;
                 starSphereObjects[i] = sorted[i].Item2;

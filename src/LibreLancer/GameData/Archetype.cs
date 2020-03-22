@@ -7,10 +7,12 @@ using System.Collections.Generic;
 namespace LibreLancer.GameData
 {
 	public class Archetype
-	{
-		public IDrawable Drawable;
+    {
+        public ResolvedModel ModelFile;
 		//HACK: remove later
 		public string ArchetypeName;
+        public string LoadoutName;
+        public Data.Solar.ArchetypeType Type;
 		public List<DockSphere> DockSpheres = new List<DockSphere>();
 		public float[] LODRanges;
         public Data.Solar.CollisionGroup[] CollisionGroups;

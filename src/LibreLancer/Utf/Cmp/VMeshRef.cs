@@ -129,27 +129,53 @@ namespace LibreLancer.Utf.Cmp
                 }
                 if (!needsOptimize) counts = null;
             }
-
         }
 
-        public void Resized()
-        {
-            if (ready) Mesh.DeviceReset(StartMesh, endMesh);
-        }
-
-		public void Update(ICamera camera, TimeSpan delta)
+        public void Update(ICamera camera, TimeSpan delta)
         {
             if (ready) Mesh.Update(camera, StartMesh, endMesh);
         }
-
-		public float GetRadius()
-		{
-			return Radius;
-		}
-
-		public void Draw(RenderState rstate, Matrix4 world, Lighting light, MaterialAnimCollection mc)
+        
+        public MeshDrawcall[] GetDrawcalls()
         {
-            if (ready) Mesh.Draw(rstate, StartMesh, endMesh, StartVertex, world, light, mc);
+            if(needsOptimize) Optimize();
+            List<MeshDrawcall> dcs = new List<MeshDrawcall>();
+            if (optimized != null)
+            {
+                foreach (var dc in optimized.Optimized)
+                {
+                    dcs.Add(new MeshDrawcall()
+                    {
+                        MaterialCrc = dc.MaterialCrc,
+                        BaseVertex = dc.VertexOffset,
+                        Buffer = Mesh.VertexBuffer,
+                        StartIndex = dc.StartIndex,
+                        PrimitiveCount = dc.PrimitiveCount
+                    });
+                }
+                foreach (var index in optimized.NormalDraw)
+                    AddFromVMesh(dcs, index);
+            }
+            else
+            {
+                for (int i = StartMesh; i < endMesh; i++)
+                    AddFromVMesh(dcs, i);
+            }
+            return dcs.ToArray();
+        }
+        void AddFromVMesh(List<MeshDrawcall> drawCalls, int index)
+        {
+            var m = Mesh.Meshes[index];
+            if (m.MaterialCrc == 0 || m.NumRefVertices < 3) return;
+            var dc = new MeshDrawcall
+            {
+                Buffer = Mesh.VertexBuffer,
+                BaseVertex = Mesh.VertexOffset + m.StartVertex + StartVertex,
+                StartIndex = Mesh.IndexOffset + m.TriangleStart,
+                PrimitiveCount = m.NumRefVertices / 3,
+                MaterialCrc = m.MaterialCrc
+            };
+            drawCalls.Add(dc);
         }
 
         class OptimizedDrawcall
@@ -234,67 +260,6 @@ namespace LibreLancer.Utf.Cmp
                 optimized.Optimized = dcs.ToArray();
             }
         }
-
-        public void DrawBuffer(CommandBuffer buffer, Matrix4 world, ref Lighting light, MaterialAnimCollection mc, Material overrideMat = null)
-		{
-            if (ready) {
-                if(needsOptimize)
-                    Optimize();
-                if(optimized != null)
-                {
-                    for(int i = 0; i < optimized.Optimized.Length; i++)
-                    {
-                        var m = optimized.Optimized[i].Material;
-                        if (m == null) m = vMeshLibrary.FindMaterial(0);
-                        MaterialAnim ma = null;
-                        if(mc != null) mc.Anims.TryGetValue(m.Name, out ma);
-                        buffer.AddCommand(
-                            m.Render,
-                            ma,
-                            world,
-                            light,
-                            Mesh.VertexBuffer,
-                            PrimitiveTypes.TriangleList,
-                            optimized.Optimized[i].VertexOffset,
-                            optimized.Optimized[i].StartIndex,
-                            optimized.Optimized[i].PrimitiveCount,
-                            SortLayers.OBJECT,
-                            0
-                        );
-                    }
-                    for (int i = 0; i < optimized.NormalDraw.Length; i++)
-                    {
-                        Mesh.Meshes[optimized.NormalDraw[i]].DrawBuffer(buffer, Mesh, Mesh.VertexOffset, StartVertex, Mesh.IndexOffset, world, ref light, mc, overrideMat);
-                    }
-
-                } else
-                    Mesh.DrawBuffer(buffer, StartMesh, endMesh, StartVertex, world, ref light, Center, mc, overrideMat);
-            }
-		}
-
-		public void DepthPrepass(RenderState rstate, Matrix4 world, MaterialAnimCollection mc)
-		{
-            if (ready)
-            {
-                if (needsOptimize)
-                    Optimize();
-                if (optimized != null)
-                {
-                    for (int i = 0; i < optimized.Optimized.Length; i++)
-                    {
-                        var m = optimized.Optimized[i].Material;
-                        if (m == null) m = vMeshLibrary.FindMaterial(0);
-                        m.Render.World = world;
-                        m.Render.ApplyDepthPrepass(rstate);
-                        Mesh.VertexBuffer.Draw(PrimitiveTypes.TriangleList, optimized.Optimized[i].VertexOffset, optimized.Optimized[i].StartIndex, optimized.Optimized[i].PrimitiveCount);
-                    }
-                    for (int i = 0; i < optimized.NormalDraw.Length; i++)
-                        Mesh.Meshes[optimized.NormalDraw[i]].DepthPrepass(rstate, Mesh, StartVertex + Mesh.VertexOffset, Mesh.IndexOffset, world, mc);
-                }
-                else
-                    Mesh.DepthPrepass(rstate, StartMesh, endMesh, StartVertex, world, mc);
-            }
-		}
 
         public override string ToString()
         {

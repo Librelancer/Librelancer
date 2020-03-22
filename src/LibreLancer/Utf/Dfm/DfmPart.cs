@@ -16,21 +16,8 @@ namespace LibreLancer.Utf.Dfm
 	public class DfmPart
 	{
 		private Dictionary<string, Bone> bones;
-		private ConstructCollection constructs;
-
-		public string objectName;
-		private AbstractConstruct construct;
-		public AbstractConstruct Construct
-		{
-			get
-			{
-                //if (construct == null) construct = constructs.Find(objectName);
-                //return construct;
-                return null;
-			}
-		}
-
-		private string fileName;
+        public string objectName;
+        private string fileName;
 		private Bone bone;
 		public Bone Bone
 		{
@@ -48,15 +35,5 @@ namespace LibreLancer.Utf.Dfm
 			this.objectName = objectName;
 			this.fileName = fileName;
 		}
-
-		public void Update(Matrix4 world)
-		{
-			Matrix4 transform = world;
-			if (Construct != null)
-			{
-				transform = Construct.Transform * world;
-			}
-			Bone.Update(transform);
-		}
-	}
+    }
 }

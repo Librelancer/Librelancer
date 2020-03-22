@@ -43,9 +43,10 @@ namespace LibreLancer
             {
                 state.FadeOut(0.2, () =>
                 {
-                    var session = new GameSession(state.Game);
-                    session.LoadFromPath(state.Game.GameData.VFS.Resolve("EXE\\newplayer.fl"));
-                    session.Start();
+                    var embeddedServer = new EmbeddedServer(state.Game.GameData);
+                    var session = new GameSession(state.Game, embeddedServer);
+                    embeddedServer.StartFromSave(state.Game.GameData.VFS.Resolve("EXE\\newplayer.fl"));
+                    session.WaitStart();
                 });
             }
 

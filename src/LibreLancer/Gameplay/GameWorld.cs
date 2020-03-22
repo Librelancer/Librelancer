@@ -59,9 +59,7 @@ namespace LibreLancer
                 if (g.RenderComponent != null)
                 {
                     g.RenderComponent.LODRanges = obj.Archetype.LODRanges;
-                    if (g.RenderComponent is ModelRenderer &&
-                        ((ModelRenderer)g.RenderComponent).Sph != null &&
-                        obj.Spin != Vector3.Zero) {
+                    if (g.RenderComponent is ModelRenderer && obj.Spin != Vector3.Zero) {
                         g.RenderComponent.Spin = obj.Spin;
                     }
                 }

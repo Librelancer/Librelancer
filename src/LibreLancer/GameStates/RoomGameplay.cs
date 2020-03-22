@@ -170,7 +170,7 @@ namespace LibreLancer
             {
                 if(arg == LAUNCH_ACTION) {
                     FLLog.Info("Base", "Launch!");
-                    session.LaunchFrom(baseId);
+                    session.Launch();
                     return;
                 }
 
@@ -239,8 +239,7 @@ namespace LibreLancer
 				Game.Sound.PlayMusic(currentRoom.Music, currentRoom.MusicOneShot);
 			}
             var shp = Game.GameData.GetShip(session.PlayerShip);
-            shp.LoadResources();
-            var PlayerShip = new GameObject(shp.Drawable, Game.ResourceManager);
+            var PlayerShip = new GameObject(shp.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager);
             PlayerShip.PhysicsComponent = null;
             var ctx = new ThnScriptContext(currentRoom.OpenScripts(!GotCutscene()));
             ctx.PlayerShip = PlayerShip;
@@ -276,9 +275,8 @@ namespace LibreLancer
                     continue;
                 }
                 var toSellShip = Game.GameData.GetShip(ships[i]);
-                toSellShip.LoadResources();
                 //Set up player object + camera
-                var obj = new GameObject(toSellShip.Drawable, Game.ResourceManager) { Parent = marker.Object };
+                var obj = new GameObject(toSellShip.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager) { Parent = marker.Object };
                 obj.PhysicsComponent = null;
                 marker.Object.Children.Add(obj);
                 if(obj.HardpointExists("HpMount"))
@@ -289,7 +287,8 @@ namespace LibreLancer
         }
 
 		public override void Update(TimeSpan delta)
-		{
+        {
+            session.Update();
             ProcessCutscenes();
 			if(scene != null)
 				scene.Update(delta);

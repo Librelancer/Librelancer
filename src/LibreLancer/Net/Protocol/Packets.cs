@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using Lidgren.Network;
+using LibreLancer.Data.Missions;
+
 namespace LibreLancer
 {
     public interface IPacket
@@ -23,34 +25,59 @@ namespace LibreLancer
 
         public static void Write(this NetOutgoingMessage message, IPacket p)
         {
-            message.Write((byte)packetTypes.IndexOf(p.GetType()));
+            message.WriteVariableUInt32((uint)packetTypes.IndexOf(p.GetType()));
             p.WriteContents(message);
         }
 
         public static IPacket ReadPacket(this NetIncomingMessage message)
         {
-            return (IPacket)parsers[message.ReadByte()](message);
+            return (IPacket)parsers[(int)message.ReadVariableUInt32()](message);
         }
 
         static Packets()
         {
+            //Authentication
             Register<AuthenticationPacket>(AuthenticationPacket.Read);
             Register<AuthenticationReplyPacket>(AuthenticationReplyPacket.Read);
+            Register<LoginSuccessPacket>(LoginSuccessPacket.Read);
+            //Menu
             Register<OpenCharacterListPacket>(OpenCharacterListPacket.Read);
             Register<NewCharacterDBPacket>(NewCharacterDBPacket.Read);
             Register<CharacterListActionPacket>(CharacterListActionPacket.Read);
             Register<CharacterListActionResponsePacket>(CharacterListActionResponsePacket.Read);
             Register<AddCharacterPacket>(AddCharacterPacket.Read);
+            //Scene
+            Register<SpawnPlayerPacket>(SpawnPlayerPacket.Read);
+            Register<BaseEnterPacket>(BaseEnterPacket.Read);
+            //Base-side
+            Register<AddRTCPacket>(AddRTCPacket.Read);
+            Register<LaunchPacket>(LaunchPacket.Read);
+            //Space
             Register<PositionUpdatePacket>(PositionUpdatePacket.Read);
             Register<SpawnObjectPacket>(SpawnObjectPacket.Read);
             Register<ObjectUpdatePacket>(ObjectUpdatePacket.Read);
             Register<DespawnObjectPacket>(DespawnObjectPacket.Read);
-            Register<LaunchPacket>(LaunchPacket.Read);
-            Register<SpawnPlayerPacket>(SpawnPlayerPacket.Read);
-            Register<BaseEnterPacket>(BaseEnterPacket.Read);
+            Register<CallThornPacket>(CallThornPacket.Read);
+            //Server->Client Generic Commands
+            Register<PlaySoundPacket>(PlaySoundPacket.Read);
+            Register<PlayMusicPacket>(PlayMusicPacket.Read);
+            //Client->Server Respones
+            
+            
         }
     }
 
+    public class LoginSuccessPacket : IPacket
+    {
+        public static object Read(NetIncomingMessage message)
+        {
+            return new LoginSuccessPacket();
+        }
+
+        public void WriteContents(NetOutgoingMessage msg)
+        {
+        }
+    }
     public class AuthenticationPacket : IPacket
     {
         public AuthenticationKind Type;
@@ -393,4 +420,101 @@ namespace LibreLancer
         }
     }
 
+    public class PlaySoundPacket : IPacket
+    {
+        public string Sound;
+        public static object Read(NetIncomingMessage message)
+        {
+            return new PlaySoundPacket() {Sound = message.ReadString()};
+        }
+        public void WriteContents(NetOutgoingMessage msg)
+        {
+            msg.Write(Sound);
+        }
+    }
+    
+    public class PlayMusicPacket : IPacket
+    {
+        public string Music;
+        public static object Read(NetIncomingMessage message)
+        {
+            return new PlayMusicPacket() { Music = message.ReadString()};
+        }
+        public void WriteContents(NetOutgoingMessage msg)
+        {
+            msg.Write(Music);
+        }
+    }
+
+    public class AddRTCPacket : IPacket
+    {
+        public string RTC;
+
+        public static object Read(NetIncomingMessage message)
+        {
+            return new AddRTCPacket() {RTC = message.ReadString()};
+        }
+        public void WriteContents(NetOutgoingMessage msg)
+        {
+            msg.Write(RTC);
+        }
+    }
+
+    public class CallThornPacket : IPacket
+    {
+        public string Thorn;
+        public static object Read(NetIncomingMessage message)
+        {
+            return new CallThornPacket() { Thorn = message.ReadString() };
+        }
+        public void WriteContents(NetOutgoingMessage msg)
+        {
+            msg.Write(Thorn);
+        }
+    }
+
+    public class NetDlgLine
+    {
+        public string Voice;
+        public uint Hash;
+    }
+    
+    public class MsnDialogPacket : IPacket
+    {
+        public NetDlgLine[] Lines;
+        public static object Read(NetIncomingMessage message)
+        {
+            var pk = new MsnDialogPacket() { Lines = new NetDlgLine[message.ReadVariableInt32()] };
+            for (int i = 0; i < pk.Lines.Length; i++)
+            {
+                pk.Lines[i] = new NetDlgLine() {
+                    Voice = message.ReadString(),
+                    Hash = message.ReadUInt32()
+                };
+            }
+
+            return pk;
+        }
+        public void WriteContents(NetOutgoingMessage msg) {
+            msg.WriteVariableInt32(Lines.Length);
+            foreach (var ln in Lines)
+            {
+                msg.Write(ln.Voice);
+                msg.Write(ln.Hash);
+            }
+        }
+    }
+
+    public class LineSpokenPacket : IPacket
+    {
+        public uint Hash;
+        public static object Read(NetIncomingMessage message)
+        {
+            return new LineSpokenPacket() { Hash = message.ReadUInt32() };
+        }
+        public void WriteContents(NetOutgoingMessage msg)
+        {
+            msg.Write(Hash);
+        }
+    }
 }

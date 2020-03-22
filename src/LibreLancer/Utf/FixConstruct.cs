@@ -12,25 +12,24 @@ namespace LibreLancer.Utf
     public class FixConstruct : AbstractConstruct
     {
 		Matrix4 fixtransform;
-        public override Matrix4 Transform { get { return internalGetTransform(fixtransform); } }
+        public override Matrix4 LocalTransform { get { return internalGetTransform(fixtransform); } }
 
-        public FixConstruct(ConstructCollection constructs) : base(constructs)
+        public FixConstruct(ConstructCollection constructs) : base()
         {
 
         }
 
-        public FixConstruct(BinaryReader reader, ConstructCollection constructs)
-            : base(reader, constructs)
+        public FixConstruct(BinaryReader reader)
+            : base(reader)
         {
             Rotation = ConvertData.ToMatrix3x3(reader);
 			fixtransform = Rotation * Matrix4.CreateTranslation(Origin);
         }
 
 		protected FixConstruct(FixConstruct cf) : base(cf) { }
-		public override AbstractConstruct Clone(ConstructCollection newcol)
+		public override AbstractConstruct Clone()
 		{
 			var newc = new FixConstruct(this);
-			newc.constructs = newcol;
 			newc.fixtransform = fixtransform;
 			return newc;
 		}

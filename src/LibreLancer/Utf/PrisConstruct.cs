@@ -16,12 +16,12 @@ namespace LibreLancer.Utf
 
         private Matrix4 currentTransform = Matrix4.Identity;
 
-        public override Matrix4 Transform { get { return internalGetTransform(Rotation * currentTransform * Matrix4.CreateTranslation(Origin + Offset)); } }
+        public override Matrix4 LocalTransform { get { return internalGetTransform(Rotation * currentTransform * Matrix4.CreateTranslation(Origin + Offset)); } }
 
-        public PrisConstruct(ConstructCollection constructs) : base(constructs) {}
+        public PrisConstruct() : base() {}
 
-        public PrisConstruct(BinaryReader reader, ConstructCollection constructs)
-            : base(reader, constructs)
+        public PrisConstruct(BinaryReader reader)
+            : base(reader)
         {
             Offset = ConvertData.ToVector3(reader);
             Rotation = ConvertData.ToMatrix3x3(reader);
@@ -31,10 +31,9 @@ namespace LibreLancer.Utf
             Max = reader.ReadSingle();
         }
 		protected PrisConstruct(PrisConstruct cloneFrom) : base(cloneFrom) { }
-		public override AbstractConstruct Clone(ConstructCollection newcol)
+		public override AbstractConstruct Clone()
 		{
 			var newc = new PrisConstruct(this);
-			newc.constructs = newcol;
 			newc.Offset = Offset;
 			newc.AxisTranslation = AxisTranslation;
 			newc.Min = Min;

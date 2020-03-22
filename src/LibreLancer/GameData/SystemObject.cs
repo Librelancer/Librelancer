@@ -18,19 +18,6 @@ namespace LibreLancer.GameData
 		public Dictionary<string, Equipment> Loadout = new Dictionary<string, Equipment>();
 		public List<Equipment> LoadoutNoHardpoint = new List<Equipment>();
 		public DockAction Dock;
-
-        internal Action LoadResAction;
-        public void LoadResources()
-        {
-            if(LoadResAction != null)
-            {
-                LoadResAction();
-                LoadResAction = null;
-            }
-            foreach (var eq in Loadout.Values) eq.LoadResources();
-            foreach (var eq in LoadoutNoHardpoint) eq.LoadResources();
-        }
-
         public SystemObject ()
 		{
 		}

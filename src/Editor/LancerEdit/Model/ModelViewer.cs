@@ -74,6 +74,9 @@ namespace LancerEdit
         bool doFilter = false;
         string currentFilter;
         bool hasVWire = false;
+
+        private RigidModel vmsModel;
+        
         public ModelViewer(string name, IDrawable drawable, MainWindow win, UtfTab parent, ModelNodes hprefs)
         {
             Title = string.Format("Model Viewer ({0})",name);
@@ -86,58 +89,16 @@ namespace LancerEdit
             res = win.Resources;
             buffer = win.Commands;
             _window = win;
-            SetupViewport();
-
             if (drawable is CmpFile)
             {
                 //Setup Editor UI for constructs + hardpoints
-                var cmp = (CmpFile)drawable;
-                foreach (var p in cmp.Parts)
-                {
-                    if (p.Camera != null) continue;
-                    if (p.Model.VMeshWire != null) hasVWire = true;
-                    foreach (var hp in p.Model.Hardpoints)
-                    {
-                        gizmos.Add(new HardpointGizmo(hp, p.Construct));
-                    }
-                }
-                if (cmp.Animation != null)
-                    animator = new AnimationComponent(cmp.Constructs, cmp.Animation);
-                foreach (var p in cmp.Parts)
-                {
-                    if (p.Construct == null) rootModel = p.Model;
-                }
-                var q = new Queue<AbstractConstruct>();
-                foreach (var c in cmp.Constructs)
-                {
-                    if (c.ParentName == "Root" || string.IsNullOrEmpty(c.ParentName))
-                    {
-                        cons.Add(GetNodeCmp(cmp, c));
-                    }
-                    else
-                    {
-                        if (cmp.Constructs.Find(c.ParentName) != null)
-                            q.Enqueue(c);
-                        else
-                        {
-                            conOrphan.Add(c);
-                        }
-                    }
-                }
-                while (q.Count > 0)
-                {
-                    var c = q.Dequeue();
-                    if (!PlaceNode(cons, c))
-                        q.Enqueue(c);
-                }
+                vmsModel = (drawable as CmpFile).CreateRigidModel(true);
+                animator = new AnimationComponent(vmsModel, (drawable as CmpFile).Animation);
                 int maxLevels = 0;
-                foreach (var p in cmp.Parts)
+                foreach (var p in vmsModel.AllParts)
                 {
-                    if (p.Camera != null) continue;
-                    maxLevels = Math.Max(maxLevels, p.Model.Levels.Length - 1);
-                    if (p.Model.Switch2 != null)
-                        for (int i = 0; i < p.Model.Switch2.Length - 1; i++)
-                            maxDistance = Math.Max(maxDistance, p.Model.Switch2[i]);
+                    if (p.Mesh != null && p.Mesh.Levels != null)
+                        maxLevels = Math.Max(maxLevels, p.Mesh.Levels.Length);
                 }
                 levels = new string[maxLevels + 1];
                 for (int i = 0; i <= maxLevels; i++)
@@ -145,21 +106,28 @@ namespace LancerEdit
             }
             else if (drawable is ModelFile)
             {
-                var mdl = (ModelFile)drawable;
-                if (mdl.VMeshWire != null) hasVWire = true;
-                rootModel = mdl;
-                foreach (var hp in mdl.Hardpoints)
-                {
-                    gizmos.Add(new HardpointGizmo(hp, null));
-                }
-
-                levels = new string[mdl.Levels.Length];
-                for (int i = 0; i < mdl.Levels.Length; i++)
+                vmsModel = (drawable as ModelFile).CreateRigidModel(true);
+                levels = new string[vmsModel.AllParts[0].Mesh.Levels.Length];
+                for (int i = 0; i < levels.Length; i++)
                     levels[i] = i.ToString();
-                if (mdl.Switch2 != null)
-                    for (int i = 0; i < mdl.Switch2.Length - 1; i++)
-                        maxDistance = Math.Max(maxDistance, mdl.Switch2[i]);
             }
+            else if (drawable is SphFile)
+            {
+                levels = new string[] {"0"};
+                vmsModel = (drawable as SphFile).CreateRigidModel(true);
+            }
+            if (vmsModel != null)
+            {
+                foreach (var p in vmsModel.AllParts)
+                {
+                    foreach (var hp in p.Hardpoints)
+                    {
+                        gizmos.Add(new HardpointGizmo(hp, p));
+                    }
+                    if(p.Wireframe != null) hasVWire = true;
+                }
+            }
+            SetupViewport();
             maxDistance += 50;
 
             popups = new PopupManager();
@@ -197,34 +165,6 @@ namespace LancerEdit
         {
             win.ActiveTab = parent;
         }
-        ConstructNode GetNodeCmp(CmpFile c, AbstractConstruct con)
-        {
-            var node = new ConstructNode() { Con = con };
-            foreach (var p in c.Parts)
-                if (p.Construct == con) {
-                    node.Camera = p.Camera;
-                    if(node.Camera == null) node.Model = p.Model;
-                    else if (p.ObjectName.Equals("cockpit cam", StringComparison.OrdinalIgnoreCase)) {
-                        cameraPart = p;
-                    }
-                }
-            return node;
-        }
-        bool PlaceNode(List<ConstructNode> n, AbstractConstruct con)
-        {
-            foreach (var node in n)
-            {
-                if (node.Con.ChildName == con.ParentName)
-                {
-                    node.Nodes.Add(GetNodeCmp((CmpFile)drawable, con));
-                    return true;
-                }
-                if (PlaceNode(node.Nodes, con))
-                    return true;
-            }
-            return false;
-        }
-
         public override void Update(double elapsed)
         {
             if (animator != null)
@@ -256,7 +196,7 @@ namespace LancerEdit
         void TabButtons()
         {
             ImGuiNative.igBeginGroup();
-            if(!(drawable is DF.DfmFile))
+            if(drawable is CmpFile || drawable is ModelFile)
                 TabButton("Hierarchy", 0);
             if (drawable is CmpFile && ((CmpFile)drawable).Animation != null)
                 TabButton("Animations", 1);
@@ -328,8 +268,11 @@ namespace LancerEdit
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Background");
             ImGui.SameLine();
-            ImGui.Checkbox("Starsphere", ref isStarsphere);
-            ImGui.SameLine();
+            if (vmsModel != null)
+            {
+                ImGui.Checkbox("Starsphere", ref isStarsphere);
+                ImGui.SameLine();
+            }
             if (hasVWire)
             {
                 ImGui.Checkbox("VMeshWire", ref drawVMeshWire);
@@ -403,38 +346,24 @@ namespace LancerEdit
             }
         }
         float viewButtonsWidth = 100;
-
-
-
-
+        
         class HardpointGizmo
         {
-            public HardpointDefinition Definition;
-            public AbstractConstruct Parent;
+            public Hardpoint Hardpoint;
+            public RigidModelPart Parent;
             public bool Enabled;
             public Matrix4? Override = null;
             public float EditingMin;
             public float EditingMax;
-            public HardpointGizmo(HardpointDefinition def, AbstractConstruct parent)
+            public HardpointGizmo(Hardpoint hp, RigidModelPart parent)
             {
-                Definition = def;
+                Hardpoint = hp;
                 Parent = parent;
                 Enabled = false;
             }
         }
 
-        class ConstructNode
-        {
-            public AbstractConstruct Con;
-            public List<ConstructNode> Nodes = new List<ConstructNode>();
-            public ModelFile Model;
-            public CmpCameraInfo Camera;
-        }
-
-        List<ConstructNode> cons = new List<ConstructNode>();
-        ModelFile rootModel;
-        List<AbstractConstruct> conOrphan = new List<AbstractConstruct>();
-        ConstructNode selectedNode = null;
+        RigidModelPart selectedNode = null;
         public static string ConType(AbstractConstruct construct)
         {
             var type = "???";
@@ -445,31 +374,29 @@ namespace LancerEdit
             if (construct is SphereConstruct) type = "Sphere";
             return type;
         }
-        void DoConstructNode(ConstructNode cn)
+        void DoConstructNode(RigidModelPart cn)
         {
-            var n = ImGuiExt.IDSafe(string.Format("{0} ({1})", cn.Con.ChildName, ConType(cn.Con)));
+            var n = ImGuiExt.IDSafe(string.Format("{0} ({1})", cn.Construct.ChildName, ConType(cn.Construct)));
             var tflags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
             if (selectedNode == cn) tflags |= ImGuiTreeNodeFlags.Selected;
             var icon = "fix";
             var color = Color4.LightYellow;
-            if (cn.Con is PrisConstruct)
+            if (cn.Construct is PrisConstruct)
             {
                 icon = "pris";
                 color = Color4.LightPink;
             }
-            if (cn.Con is SphereConstruct)
+            if (cn.Construct is SphereConstruct)
             {
                 icon = "sphere";
                 color = Color4.LightGreen;
             }
-            if (cn.Con is RevConstruct)
+            if (cn.Construct is RevConstruct)
             {
                 icon = "rev";
                 color = Color4.LightCoral;
             }
-            bool mdlVisible = true;
-            if(cn.Model != null)
-                mdlVisible = !hiddenModels.Contains(cn.Model);
+            bool mdlVisible = cn.Active;
             if (!mdlVisible)
             {
                 var disabledColor = ImGui.GetStyle().Colors[(int)ImGuiCol.TextDisabled];
@@ -482,12 +409,13 @@ namespace LancerEdit
                     selectedNode = cn;
                 ConstructContext(cn, mdlVisible);
                 Theme.RenderTreeIcon(n, icon, color);
-                foreach (var child in cn.Nodes)
-                    DoConstructNode(child);
-                if (cn.Camera != null)
-                    DoCamera(cn.Camera, cn.Con);
-                else
-                    DoModel(cn.Model, cn.Con);
+                if (cn.Children != null)
+                {
+                    foreach (var child in cn.Children)
+                        DoConstructNode(child);
+                }
+
+                DoModel(cn);
                 ImGui.TreePop();
             }
             else
@@ -500,76 +428,73 @@ namespace LancerEdit
             }
         }
 
-        void ConstructContext(ConstructNode con, bool mdlVisible)
+        void ConstructContext(RigidModelPart con, bool mdlVisible)
         {
             if (ImGui.IsItemClicked(1))
-                ImGui.OpenPopup(con.Con.ChildName + "_context");
-            if(ImGui.BeginPopupContextItem(con.Con.ChildName + "_context")) {
-                if (con.Model != null)
+                ImGui.OpenPopup(con.Construct.ChildName + "_context");
+            if(ImGui.BeginPopupContextItem(con.Construct.ChildName + "_context")) {
+                if (con.Mesh != null)
                 {
                     //Visibility of model (this is bad)
                     bool visibleVar = mdlVisible;
                     Theme.IconMenuToggle("Visible", "eye", Color4.White, ref visibleVar, true);
                     if(visibleVar != mdlVisible)
                     {
-                        if (visibleVar)
-                            hiddenModels.Remove(con.Model);
-                        else
-                            hiddenModels.Add(con.Model);
+                        con.Active = visibleVar;
                     }
                 }
-
                 if (Theme.BeginIconMenu("Change To","change",Color4.White)) {
                     var cmp = (CmpFile)drawable;
-                    if(!(con.Con is FixConstruct) && Theme.IconMenuItem("Fix","fix",Color4.LightYellow,true)) {
+                    if(!(con.Construct is FixConstruct) && Theme.IconMenuItem("Fix","fix",Color4.LightYellow,true)) {
                         var fix = new FixConstruct(cmp.Constructs)
                         {
-                            ParentName = con.Con.ParentName,
-                            ChildName = con.Con.ChildName,
-                            Origin = con.Con.Origin,
-                            Rotation = con.Con.Rotation
+                            ParentName = con.Construct.ParentName,
+                            ChildName = con.Construct.ChildName,
+                            Origin = con.Construct.Origin,
+                            Rotation = con.Construct.Rotation
                         };
                         fix.Reset();
-                        ReplaceConstruct(con, fix);
+                        con.Construct = fix;
                         OnDirtyPart();
                     }
-                    if(!(con.Con is RevConstruct) && Theme.IconMenuItem("Rev","rev",Color4.LightCoral,true)) {
-                        var rev = new RevConstruct(cmp.Constructs)
+                    if(!(con.Construct is RevConstruct) && Theme.IconMenuItem("Rev","rev",Color4.LightCoral,true)) {
+                        var rev = new RevConstruct()
                         {
-                            ParentName = con.Con.ParentName,
-                            ChildName = con.Con.ChildName,
-                            Origin = con.Con.Origin,
-                            Rotation = con.Con.Rotation
+                            ParentName = con.Construct.ParentName,
+                            ChildName = con.Construct.ChildName,
+                            Origin = con.Construct.Origin,
+                            Rotation = con.Construct.Rotation
                         };
-                        ReplaceConstruct(con, rev);
+                        con.Construct = rev;
                         OnDirtyPart();
                     }
-                    if(!(con.Con is PrisConstruct) && Theme.IconMenuItem("Pris","pris",Color4.LightPink,true)) {
-                        var pris = new PrisConstruct(cmp.Constructs)
+                    if(!(con.Construct is PrisConstruct) && Theme.IconMenuItem("Pris","pris",Color4.LightPink,true)) {
+                        var pris = new PrisConstruct()
                         {
-                            ParentName = con.Con.ParentName,
-                            ChildName = con.Con.ChildName,
-                            Origin = con.Con.Origin,
-                            Rotation = con.Con.Rotation
+                            ParentName = con.Construct.ParentName,
+                            ChildName = con.Construct.ChildName,
+                            Origin = con.Construct.Origin,
+                            Rotation = con.Construct.Rotation
                         };
-                        ReplaceConstruct(con, pris);
+                        con.Construct = pris;
                         OnDirtyPart();
                     }
-                    if(!(con.Con is SphereConstruct) && Theme.IconMenuItem("Sphere","sphere",Color4.LightGreen,true)) {
-                        var sphere = new SphereConstruct(cmp.Constructs)
+                    if(!(con.Construct is SphereConstruct) && Theme.IconMenuItem("Sphere","sphere",Color4.LightGreen,true)) {
+                        var sphere = new SphereConstruct()
                         {
-                            ParentName = con.Con.ParentName,
-                            ChildName = con.Con.ChildName,
-                            Origin = con.Con.Origin,
-                            Rotation = con.Con.Rotation
+                            ParentName = con.Construct.ParentName,
+                            ChildName = con.Construct.ChildName,
+                            Origin = con.Construct.Origin,
+                            Rotation = con.Construct.Rotation
                         };
-                        ReplaceConstruct(con, sphere);
+                        con.Construct = sphere;
                         OnDirtyPart();
                     }
                     ImGui.EndMenu();
                 }
-                if(Theme.IconMenuItem("Edit","edit",Color4.White,true)) {
-                    AddPartEditor(con.Con);
+                if(Theme.IconMenuItem("Edit","edit",Color4.White,true))
+                {
+                    AddPartEditor(con.Construct);
                 }
                 ImGui.EndPopup();
             }
@@ -578,18 +503,17 @@ namespace LancerEdit
         {
 
         }
-        List<ModelFile> hiddenModels = new List<ModelFile>();
-        void DoModel(ModelFile mdl, AbstractConstruct con)
+        
+        void DoModel(RigidModelPart part)
         {
             //Hardpoints
             bool open = ImGui.TreeNode(ImGuiExt.Pad("Hardpoints"));
-            var act = NewHpMenu(mdl.Path);
+            var act = NewHpMenu(part.Path);
             switch(act) {
                 case ContextActions.NewFixed:
                 case ContextActions.NewRevolute:
                     newIsFixed = act == ContextActions.NewFixed;
-                    addTo = mdl.Hardpoints;
-                    addConstruct = con;
+                    addTo = part;
                     newHpBuffer.Clear();
                     popups.OpenPopup("New Hardpoint");
                     break;
@@ -598,7 +522,7 @@ namespace LancerEdit
             if (open)
             {
                 List<Action> addActions = new List<Action>();
-                foreach (var hp in mdl.Hardpoints)
+                foreach (var hp in part.Hardpoints)
                 {
                     if(doFilter) {
                         if (hp.Name.IndexOf(currentFilter,StringComparison.OrdinalIgnoreCase) == -1) continue;
@@ -606,13 +530,13 @@ namespace LancerEdit
                     HardpointGizmo gz = null;
                     foreach (var gizmo in gizmos)
                     {
-                        if (gizmo.Definition == hp)
+                        if (gizmo.Hardpoint == hp)
                         {
                             gz = gizmo;
                             break;
                         }
                     }
-                    if (hp is RevoluteHardpointDefinition)
+                    if (hp.Definition is RevoluteHardpointDefinition)
                     {
                         Theme.Icon("rev", Color4.LightSeaGreen);
                     }
@@ -627,19 +551,19 @@ namespace LancerEdit
                     }
                     ImGui.SameLine();
                     ImGui.Selectable(ImGuiExt.IDSafe(hp.Name));
-                    var action = EditDeleteHpMenu(mdl.Path + hp.Name);
+                    var action = EditDeleteHpMenu(part.Path + hp.Name);
                     if (action == ContextActions.Delete)
                     {
                         hpDelete = hp;
-                        hpDeleteFrom = mdl.Hardpoints;
+                        hpDeleteFrom = part.Hardpoints;
                         popups.OpenPopup("Confirm Delete");
                     }
                     if (action == ContextActions.Edit) hpEditing = hp;
                     if(action == ContextActions.MirrorX) {
                         var newHp = MakeDuplicate(GetDupName(hp.Name), hp);
                         //do mirroring
-                        newHp.Position.X = -newHp.Position.X;
-                        newHp.Orientation *= new Matrix4(
+                        newHp.Definition.Position.X = -newHp.Definition.Position.X;
+                        newHp.Definition.Orientation *= new Matrix4(
                             -1, 0, 0, 0,
                             0, 1, 0, 0,
                             0, 0, 1, 0,
@@ -648,7 +572,7 @@ namespace LancerEdit
                         //add
                         addActions.Add(() =>
                         {
-                            mdl.Hardpoints.Add(newHp);
+                            part.Hardpoints.Add(newHp);
                             gizmos.Add(new HardpointGizmo(newHp, gz.Parent));
                             OnDirtyHp();
                         });
@@ -656,8 +580,8 @@ namespace LancerEdit
                     if(action == ContextActions.MirrorY) {
                         var newHp = MakeDuplicate(GetDupName(hp.Name), hp);
                         //do mirroring
-                        newHp.Position.Y = -newHp.Position.Y;
-                        newHp.Orientation *= new Matrix4(
+                        newHp.Definition.Position.Y = -newHp.Definition.Position.Y;
+                        newHp.Definition.Orientation *= new Matrix4(
                             1, 0, 0, 0,
                             0, -1, 0, 0,
                             0, 0, 1, 0,
@@ -666,7 +590,7 @@ namespace LancerEdit
                         //add
                         addActions.Add(() =>
                         {
-                            mdl.Hardpoints.Add(newHp);
+                            part.Hardpoints.Add(newHp);
                             gizmos.Add(new HardpointGizmo(newHp, gz.Parent));
                             OnDirtyHp();
                         });
@@ -674,8 +598,8 @@ namespace LancerEdit
                     if(action == ContextActions.MirrorZ) {
                         var newHp = MakeDuplicate(GetDupName(hp.Name), hp);
                         //do mirroring
-                        newHp.Position.Z = -newHp.Position.Z;
-                        newHp.Orientation *= new Matrix4(
+                        newHp.Definition.Position.Z = -newHp.Definition.Position.Z;
+                        newHp.Definition.Orientation *= new Matrix4(
                             1, 0, 0, 0,
                             0, 1, 0, 0,
                             0, 0, -1, 0,
@@ -684,7 +608,7 @@ namespace LancerEdit
                         //add
                         addActions.Add(() =>
                         {
-                            mdl.Hardpoints.Add(newHp);
+                            part.Hardpoints.Add(newHp);
                             gizmos.Add(new HardpointGizmo(newHp, gz.Parent));
                             OnDirtyHp();
                         });
@@ -694,7 +618,12 @@ namespace LancerEdit
                 ImGui.TreePop();
             }
         }
-        HardpointDefinition MakeDuplicate(string name, HardpointDefinition src)
+
+        Hardpoint MakeDuplicate(string name, Hardpoint src)
+        {
+            return new Hardpoint(DupDef(name, src.Definition), src.Parent);
+        }
+        HardpointDefinition DupDef(string name, HardpointDefinition src)
         {
             if(src is FixedHardpointDefinition)
             {
@@ -808,18 +737,17 @@ namespace LancerEdit
             }
             if (ImGuiExt.Button("Apply Hardpoints", _isDirtyHp))
             {
-                if (drawable is CmpFile)
+                if (drawable is ModelFile)
                 {
-                    var cmp = (CmpFile)drawable;
-                    foreach (var kv in cmp.Models)
+                    hprefs.Nodes[0].HardpointsToNodes(vmsModel.Root.Hardpoints);
+                } 
+                else if (drawable is CmpFile)
+                {
+                    foreach (var mdl in vmsModel.AllParts)
                     {
-                        var node = hprefs.Nodes.Where((x) => x.Name == kv.Key).First();
-                        node.HardpointsToNodes(kv.Value.Hardpoints);
+                        var node = hprefs.Nodes.First((x) => x.Name == mdl.Path);
+                        node.HardpointsToNodes(mdl.Hardpoints);
                     }
-                }
-                else if (drawable is ModelFile)
-                {
-                    hprefs.Nodes[0].HardpointsToNodes(((ModelFile)drawable).Hardpoints);
                 }
                 if(_isDirtyHp)
                 {
@@ -828,7 +756,7 @@ namespace LancerEdit
                 }
                 popups.OpenPopup("Apply Complete");
             }
-            if ((drawable is CmpFile) && ((CmpFile)drawable).Parts.Count > 1 && ImGuiExt.Button("Apply Parts", _isDirtyPart))
+            if (vmsModel.AllParts.Length > 1 && ImGuiExt.Button("Apply Parts", _isDirtyPart))
             {
                 WriteConstructs();
                 if(_isDirtyPart)
@@ -849,10 +777,10 @@ namespace LancerEdit
             ImGui.Separator();
             if (selectedNode != null)
             {
-                ImGui.Text(selectedNode.Con.ChildName);
-                ImGui.Text(selectedNode.Con.GetType().Name);
-                ImGui.Text("Origin: " + selectedNode.Con.Origin.ToString());
-                var euler = selectedNode.Con.Rotation.GetEuler();
+                ImGui.Text(selectedNode.Construct.ChildName);
+                ImGui.Text(selectedNode.Construct.GetType().Name);
+                ImGui.Text("Origin: " + selectedNode.Construct.Origin.ToString());
+                var euler = selectedNode.Construct.Rotation.GetEuler();
                 ImGui.Text(string.Format("Rotation: (Pitch {0:0.000}, Yaw {1:0.000}, Roll {2:0.000})",
                                         MathHelper.RadiansToDegrees(euler.X),
                                         MathHelper.RadiansToDegrees(euler.Y),
@@ -860,47 +788,46 @@ namespace LancerEdit
                 ImGui.Separator();
             }
 
-            var rootVisible = !hiddenModels.Contains(rootModel);
-            if (!rootVisible)
+            if (!vmsModel.Root.Active)
             {
                 var col = ImGui.GetStyle().Colors[(int)ImGuiCol.TextDisabled];
                 ImGui.PushStyleColor(ImGuiCol.Text, col);
             }
             if (ImGui.TreeNodeEx(ImGuiExt.Pad("Root"), ImGuiTreeNodeFlags.DefaultOpen))
             {
-                if (!rootVisible) ImGui.PopStyleColor();
-                RootModelContext(rootVisible);
+                if (!vmsModel.Root.Active) ImGui.PopStyleColor();
+                RootModelContext(vmsModel.Root.Active);
                 Theme.RenderTreeIcon("Root", "tree", Color4.DarkGreen);
-                foreach (var n in cons)
-                    DoConstructNode(n);
-                if (!(drawable is SphFile)) DoModel(rootModel, null);
+                if (vmsModel.Root.Children != null)
+                {
+                    foreach (var n in vmsModel.Root.Children)
+                        DoConstructNode(n);
+                }
+
+                DoModel(vmsModel.Root);
+                //if (!(drawable is SphFile)) DoModel(rootModel, null);
                 ImGui.TreePop();
             }
             else {
-                if (!rootVisible) ImGui.PopStyleColor();
-                RootModelContext(rootVisible);
+                if (!vmsModel.Root.Active) ImGui.PopStyleColor();
+                RootModelContext(vmsModel.Root.Active);
                 Theme.RenderTreeIcon("Root", "tree", Color4.DarkGreen);
             }
         }
 
         void RootModelContext(bool rootVisible)
         {
-            if (rootModel != null && ImGui.IsItemClicked(1))
+            if (vmsModel.Root != null && ImGui.IsItemClicked(1))
                 ImGui.OpenPopup(Unique + "_mdl_rootpopup");
             if (ImGui.BeginPopupContextItem(Unique + "_mdl_rootpopup"))
             {
                 bool visibleVar = rootVisible;
                 Theme.IconMenuToggle("Visible", "eye", Color4.White, ref visibleVar, true);
-                if (visibleVar != rootVisible)
-                {
-                    if (visibleVar)
-                        hiddenModels.Remove(rootModel);
-                    else
-                        hiddenModels.Add(rootModel);
-                }
+                if (visibleVar != rootVisible) vmsModel.Root.Active = visibleVar;
                 ImGui.EndPopup();
             }
         }
+        
         void AnimationPanel()
         {
             var anm = ((CmpFile)drawable).Animation;
