@@ -17,6 +17,10 @@ namespace LancerEdit
 {
     public partial class ModelViewer
 	{
+        Color4 backgroundBottom = Color4.Black; 
+        Color4 backgroundTop = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
+        bool gradientBackground = false;
+        
         Viewport3D modelViewport;
         Viewport3D previewViewport;
         Viewport3D imageViewport;
@@ -219,7 +223,7 @@ namespace LancerEdit
 
         void DoViewport()
         {
-            modelViewport.Background = background;
+            modelViewport.Background = backgroundTop;
             modelViewport.Begin();
             DrawGL(modelViewport.RenderWidth, modelViewport.RenderHeight);
             modelViewport.End();
@@ -228,7 +232,7 @@ namespace LancerEdit
 
         void DoPreview(int width, int height)
         {
-            previewViewport.Background = renderBackground ? background : Color4.Black;
+            previewViewport.Background = renderBackground ? backgroundTop : Color4.Black;
             previewViewport.Begin(width, height);
             DrawGL(width, height);
             previewViewport.End();
@@ -246,7 +250,7 @@ namespace LancerEdit
                 FLLog.Info("Exception Info", ex.Message + "\n" + ex.StackTrace);
                 return;
             }
-            imageViewport.Background = renderBackground ? background : Color4.TransparentBlack;
+            imageViewport.Background = renderBackground ? backgroundTop : Color4.TransparentBlack;
             imageViewport.Begin(imageWidth, imageHeight);
             DrawGL(imageWidth, imageHeight);
             imageViewport.End(false);
@@ -264,6 +268,12 @@ namespace LancerEdit
         long fR = 0;
         void DrawGL(int renderWidth, int renderHeight)
         {
+            if (gradientBackground)
+            {
+                _window.Renderer2D.Start(renderWidth, renderHeight);
+                _window.Renderer2D.DrawVerticalGradient(new Rectangle(0,0,renderWidth,renderHeight), backgroundTop, backgroundBottom);
+                _window.Renderer2D.Finish();
+            }
             ICamera cam;
             //Draw Model
             var lookAtCam = new LookAtCamera();

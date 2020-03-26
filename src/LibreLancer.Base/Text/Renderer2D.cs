@@ -184,14 +184,23 @@ namespace LibreLancer
 		{
 			DrawQuad(dot, new Rectangle(0,0,1,1), rect, color, BlendMode.Normal);
 		}
+        
+        void Prepare(BlendMode mode, Texture2D tex)
+        {
+            if (currentMode != mode ||
+                (currentTexture != null && currentTexture != tex) ||
+                (primitiveCount + 2) * 3 >= MAX_INDEX ||
+                (vertexCount + 4) >= MAX_VERT)
+            {
+                Flush();
+            }
+            currentTexture = tex;
+            currentMode = mode;
+        }
+        
 		public void DrawLine(Color4 color, Vector2 start, Vector2 end)
 		{
-			if (currentMode != BlendMode.Normal) Flush();
-			if (currentTexture != null && currentTexture != dot) Flush();
-			if ((primitiveCount + 2) * 3 >= MAX_INDEX || (vertexCount + 4) >= MAX_VERT) Flush();
-
-			currentTexture = dot;
-			currentMode = BlendMode.Normal;
+			Prepare(BlendMode.Normal, dot);
 
 			var edge = end - start;
 			var angle = (float)Math.Atan2(edge.Y, edge.X);
@@ -257,18 +266,8 @@ namespace LibreLancer
 
 		public void FillTriangle(Vector2 point1, Vector2 point2, Vector2 point3, Color4 color)
 		{
-            if (currentMode != BlendMode.Normal)
-			{
-				Flush();
-			}
-			if (currentTexture != null && currentTexture != dot)
-			{
-				Flush();
-			}
-			if ((primitiveCount + 2) * 3 >= MAX_INDEX || (vertexCount + 4) >= MAX_VERT)
-				Flush();
-			currentTexture = dot;
-			currentMode = BlendMode.Normal;
+            Prepare(BlendMode.Normal, dot);
+          
 			vertices[vertexCount++] = new Vertex2D(
 				point1,
 				Vector2.Zero,
@@ -297,13 +296,8 @@ namespace LibreLancer
         public void DrawTriangle(Texture2D tex, Vector2 pa, Vector2 pb, Vector2 pc, Vector2 uva, Vector2 uvb,
             Vector2 uvc, Color4 color)
         {
-            if (currentMode != BlendMode.Normal) Flush();
-            if (currentTexture != null && currentTexture != tex) Flush();
-            if ((primitiveCount + 2) * 3 >= MAX_INDEX || (vertexCount + 4) >= MAX_VERT) Flush ();
-			
-            currentTexture = tex;
-            currentMode = BlendMode.Normal;
-            
+            Prepare(BlendMode.Normal, tex);
+
             vertices[vertexCount++] = new Vertex2D(
                 pa, uva, color
                 );
@@ -318,19 +312,40 @@ namespace LibreLancer
             );
             primitiveCount += 2;
         }
-		void DrawQuad(Texture2D tex, Rectangle source, Rectangle dest, Color4 color, BlendMode mode, bool flip = false)
+
+        public void DrawVerticalGradient(Rectangle rect, Color4 top, Color4 bottom)
+        {
+            Prepare(BlendMode.Normal, dot);
+            var x = (float) rect.X;
+            var y = (float) rect.Y;
+            var w = (float) rect.Width;
+            var h = (float) rect.Height;
+            vertices[vertexCount++] = new Vertex2D(
+                new Vector2(x,y),
+                Vector2.Zero,
+                top
+            );
+            vertices[vertexCount++] = new Vertex2D(
+                new Vector2(x + w, y),
+                Vector2.Zero,
+                top
+            );
+            vertices[vertexCount++] = new Vertex2D(
+                new Vector2(x, y + h), 
+                Vector2.Zero,
+                bottom
+            );
+            vertices[vertexCount++] = new Vertex2D(
+                new Vector2(x + w, y + h),
+                Vector2.Zero,
+                bottom
+             );
+            primitiveCount += 2;
+        }
+
+        void DrawQuad(Texture2D tex, Rectangle source, Rectangle dest, Color4 color, BlendMode mode, bool flip = false)
 		{
-            if (currentMode != mode) {
-				Flush();
-			}
-			if (currentTexture != null && currentTexture != tex) {
-				Flush ();
-			}
-			if ((primitiveCount + 2) * 3 >= MAX_INDEX || (vertexCount + 4) >= MAX_VERT)
-				Flush ();
-			
-			currentTexture = tex;
-			currentMode = mode;
+            Prepare(mode, tex);
 
 			float x = (float)dest.X;
 			float y = (float)dest.Y;

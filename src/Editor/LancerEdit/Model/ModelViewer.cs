@@ -176,10 +176,10 @@ namespace LancerEdit
         }
         Vector2 rotation = Vector2.Zero;
         bool firstTab = true;
-        Color4 background = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
         System.Numerics.Vector3 editCol;
-
-        bool[] openTabs = new bool[] { false, false, false, false };
+        System.Numerics.Vector3 editCol2;
+        private bool editGrad;
+         bool[] openTabs = new bool[] { false, false, false, false };
         void TabButton(string name, int idx)
         {
             if (TabHandler.VerticalTab(name, openTabs[idx]))
@@ -239,19 +239,29 @@ namespace LancerEdit
             }
             TabButtons();
             ImGui.BeginChild("##main");
-            if (ImGui.ColorButton("Background Color", new Vector4(background.R, background.G, background.B, 1),
-                                ImGuiColorEditFlags.NoAlpha, new Vector2(22, 22)))
+            if (ViewerControls.GradientButton("Background", backgroundTop, backgroundBottom, new Vector2(22), _window.Viewport, gradientBackground))
             {
                 ImGui.OpenPopup("Background Color###" + Unique);
-                editCol = new System.Numerics.Vector3(background.R, background.G, background.B);
+                editCol = new System.Numerics.Vector3(backgroundTop.R, backgroundTop.G, backgroundTop.B);
+                editCol2 = new System.Numerics.Vector3(backgroundBottom.R, backgroundBottom.G, backgroundBottom.B);
+                editGrad = gradientBackground;
             }
             bool wOpen = true;
             if (ImGui.BeginPopupModal("Background Color###" + Unique, ref wOpen, ImGuiWindowFlags.AlwaysAutoResize))
             {
-                ImGui.ColorPicker3("###a", ref editCol);
+                ImGui.Checkbox("Gradient", ref editGrad);
+                
+                ImGui.ColorPicker3(editGrad ? "Top###a" : "###a", ref editCol);
+                if (editGrad)
+                {
+                    ImGui.SameLine();
+                    ImGui.ColorPicker3("Bottom###b", ref editCol2);
+                }
                 if (ImGui.Button("OK"))
                 {
-                    background = new Color4(editCol.X, editCol.Y, editCol.Z, 1);
+                    backgroundTop = new Color4(editCol.X, editCol.Y, editCol.Z, 1);
+                    backgroundBottom = new Color4(editCol2.X, editCol2.Y, editCol2.Z, 1);
+                    gradientBackground = editGrad;
                     ImGui.CloseCurrentPopup();
                 }
                 ImGui.SameLine();
@@ -259,6 +269,7 @@ namespace LancerEdit
                 {
                     var def = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
                     editCol = new System.Numerics.Vector3(def.R, def.G, def.B);
+                    editGrad = false;
                 }
                 ImGui.SameLine();
                 if (ImGui.Button("Cancel")) ImGui.CloseCurrentPopup();
