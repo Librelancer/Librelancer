@@ -274,6 +274,8 @@ namespace LancerEdit
                 _window.Renderer2D.DrawVerticalGradient(new Rectangle(0,0,renderWidth,renderHeight), backgroundTop, backgroundBottom);
                 _window.Renderer2D.Finish();
             }
+            rstate.DepthEnabled = true;
+            rstate.Cull = true;
             ICamera cam;
             //Draw Model
             var lookAtCam = new LookAtCamera();
