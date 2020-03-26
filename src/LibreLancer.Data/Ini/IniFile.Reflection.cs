@@ -70,8 +70,22 @@ namespace LibreLancer.Ini
 
         static Dictionary<Type, ContainerClass> containerclasses = new Dictionary<Type, ContainerClass>();
         static Dictionary<Type, ReflectionInfo> sectionclasses = new Dictionary<Type, ReflectionInfo>();
-        static string FormatLine(string file, int line) => string.Format(" at {0}, line {1}", file, line);
-        static string FormatLine(string file, int line, string section) => string.Format(" at section {2}: {0}, line {1}", file, line, section);
+
+        static string FormatLine(string file, int line)
+        {
+            if (line >= 0)
+                return $" at {file}, line {line}";
+            else
+                return $" in {file} (line not available)";
+        }
+
+        static string FormatLine(string file, int line, string section)
+        {
+            if (line >= 0)
+                return $" at section {section}: {file}, line {line}";
+            else
+                return $" in section {section}: {file} (line not available)";
+        }
 
         const BindingFlags F_CLASSMEMBERS = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 

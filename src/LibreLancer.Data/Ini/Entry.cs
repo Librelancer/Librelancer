@@ -19,15 +19,16 @@ namespace LibreLancer.Ini
 
 		private List<IValue> values;
 
-        public string File = "BINI";
+        public string File = "[Null]";
         public int Line = -1;
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string")]
-		public Entry(BinaryReader reader, string stringBlock)
+		public Entry(string file, BinaryReader reader, string stringBlock)
 		{
 			if (reader == null) throw new ArgumentNullException("reader");
 			if (stringBlock == null) throw new ArgumentNullException("stringBlock");
-
+            
+            File = file;
 			short nameOffset = reader.ReadInt16();
 			Name = stringBlock.Substring(nameOffset, stringBlock.IndexOf('\0', nameOffset) - nameOffset);
 

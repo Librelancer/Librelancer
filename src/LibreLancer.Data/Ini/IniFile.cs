@@ -75,7 +75,7 @@ namespace LibreLancer.Ini
                 string stringBlock = Encoding.ASCII.GetString(buffer);
 
                 reader.BaseStream.Seek(sectionBlockOffset, SeekOrigin.Begin);
-                while (reader.BaseStream.Position < stringBlockOffset) yield return new Section(reader, stringBlock);
+                while (reader.BaseStream.Position < stringBlockOffset) yield return new Section(path, reader, stringBlock);
             }
             else // Text Ini
             {

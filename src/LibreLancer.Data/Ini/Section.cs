@@ -15,17 +15,19 @@ namespace LibreLancer.Ini
 	{
 		public string Name { get; private set; }
 
-        public string File;
-        public int Line;
+        public string File = "[Null]";
+        public int Line = -1;
 
 		private List<Entry> entries;
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string")]
-		public Section(BinaryReader reader, string stringBlock)
+		public Section(string file, BinaryReader reader, string stringBlock)
 		{
 			if (reader == null) throw new ArgumentNullException("reader");
 			if (stringBlock == null) throw new ArgumentNullException("stringBlock");
 
+            File = file;
+            
 			short nameOffset = reader.ReadInt16();
 			Name = stringBlock.Substring(nameOffset, stringBlock.IndexOf('\0', nameOffset) - nameOffset);
 
@@ -33,7 +35,7 @@ namespace LibreLancer.Ini
 			entries = new List<Entry>(count);
 
 			for (int i = 0; i < count; i++)
-				entries.Add(new Entry(reader, stringBlock));
+				entries.Add(new Entry(file, reader, stringBlock));
 		}
 
 		public Section(string name)
