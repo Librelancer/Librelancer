@@ -31,6 +31,12 @@ namespace LancerEdit
             return false;
         }
 
+        private int cameraMode = 0;
+        private static readonly DropdownOption[] camModes= new[]
+        {
+            new DropdownOption("Arcball", "sphere", CameraModes.Arcball),
+            new DropdownOption("Walkthrough", "man", CameraModes.Walkthrough),
+        };
         private FileSystem vfs;
         private EffectsIni effects;
         private EquipmentIni equipment;
@@ -65,6 +71,7 @@ namespace LancerEdit
             viewport.Background = Color4.Black;
             viewport.DefaultOffset = viewport.CameraOffset = new Vector3(0,0,20);
             viewport.ModelScale = 10f;
+            viewport.ResetControls();
             fxPool = new ParticleEffectPool(mw.Commands);
             beams = new BeamsBuffer();
         }
@@ -95,13 +102,20 @@ namespace LancerEdit
             ImGui.EndChild();
             ImGui.NextColumn();
             ImGui.BeginChild("##rendering");
+            ViewerControls.DropdownButton("Camera Mode", ref cameraMode, camModes);
+            viewport.Mode = (CameraModes) camModes[cameraMode].Tag;
+            ImGui.SameLine();
+            if (ImGui.Button("Reset Camera (Ctrl+R)"))
+                viewport.ResetControls();
             viewport.Begin();
             Matrix4 rot = Matrix4.CreateRotationX(viewport.CameraRotation.Y) *
                           Matrix4.CreateRotationY(viewport.CameraRotation.X);
-            var dirRot = Matrix4.CreateRotationX(viewport.Rotation.Y) * Matrix4.CreateRotationY(viewport.Rotation.X);
+            var dirRot = Matrix4.CreateRotationX(viewport.ModelRotation.Y) * Matrix4.CreateRotationY(viewport.ModelRotation.X);
             var norm = Vector4.Transform(new Vector4(Vector3.Forward, 0), dirRot).Xyz;
             var dir = rot.Transform(Vector3.Forward);
             var to = viewport.CameraOffset + (dir * 10);
+            if (viewport.Mode == CameraModes.Arcball)
+                to = Vector3.Zero;
             camera.Update(viewport.RenderWidth, viewport.RenderHeight, viewport.CameraOffset, to, rot);
             mw.Commands.StartFrame(mw.RenderState);
             beams.Begin(mw.Commands, mw.Resources, camera);

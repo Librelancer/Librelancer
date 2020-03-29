@@ -194,6 +194,7 @@ namespace LibreLancer.Utf.Cmp
             List<RigidModelPart> allParts = new List<RigidModelPart>();
             foreach (var p in Parts)
             {
+                if (p.Camera != null) continue;
                 var mdlPart = p.Model.CreatePart(drawable);
                 mdlPart.Name = p.ObjectName;
                 mdlPart.Path = p.FileName;

@@ -22,6 +22,12 @@ namespace LancerEdit
         PhysicsDebugRenderer debug;
         ParticleEffectPool pool;
         ResourceManager res;
+        private int cameraMode = 0;
+        private static readonly DropdownOption[] camModes= new[]
+        {
+            new DropdownOption("Arcball", "sphere", CameraModes.Arcball),
+            new DropdownOption("Walkthrough", "man", CameraModes.Walkthrough),
+        };
         //Tab
         string name;
         ParticleLibrary plib;
@@ -45,6 +51,7 @@ namespace LancerEdit
             aleViewport.DefaultOffset = 
             aleViewport.CameraOffset = new Vector3(0, 0, 200);
             aleViewport.ModelScale = 25;
+            aleViewport.ResetControls();;
             buffer = main.Commands;
             polyline = main.Polyline;
             debug = main.DebugRender;
@@ -117,7 +124,13 @@ namespace LancerEdit
             //Display + Camera controls
             aleViewport.End();
             //Action Bar
-            if (ImGui.Button("Reset"))
+            ViewerControls.DropdownButton("Camera Mode", ref cameraMode, camModes);
+            aleViewport.Mode = (CameraModes) camModes[cameraMode].Tag;
+            ImGui.SameLine();
+            if (ImGui.Button("Reset Camera (Ctrl+R)"))
+                aleViewport.ResetControls();
+            ImGui.SameLine();
+            if (ImGui.Button("Reset Fx"))
             {
                 instance.Reset();
             }
@@ -211,6 +224,8 @@ namespace LancerEdit
                 Matrix4.CreateRotationY(aleViewport.CameraRotation.X);
             var dir = rot.Transform(Vector3.Forward);
             var to = aleViewport.CameraOffset + (dir * 10);
+            if (aleViewport.Mode == CameraModes.Arcball)
+                to = Vector3.Zero;
             cam.Update(renderWidth, renderHeight, aleViewport.CameraOffset, to, rot);
             buffer.StartFrame(rstate);
             polyline.SetCamera(cam);
@@ -254,7 +269,7 @@ namespace LancerEdit
         Matrix4 transform = Matrix4.Identity;
         public override void Update(double elapsed)
         {
-            transform = Matrix4.CreateRotationX(aleViewport.Rotation.Y) * Matrix4.CreateRotationY(aleViewport.Rotation.X);
+            transform = Matrix4.CreateRotationX(aleViewport.ModelRotation.Y) * Matrix4.CreateRotationY(aleViewport.ModelRotation.X);
             instance.Update(TimeSpan.FromSeconds(elapsed), transform, sparam);
             pool.Update(TimeSpan.FromSeconds(elapsed));
         }

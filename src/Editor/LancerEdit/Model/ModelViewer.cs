@@ -25,17 +25,29 @@ namespace LancerEdit
         ResourceManager res;
         public string Name;
         int viewMode = 0;
-        static readonly string[] viewModes = new string[] {
-            "Textured",
-            "Lit",
-            "Flat",
-            "Normals",
-            "None"
+        private static readonly DropdownOption[] viewModes = new[]
+        {
+            new DropdownOption("Textured", "fieldcollide"),
+            new DropdownOption("Lit", "lit"),
+            new DropdownOption("Flat", "flat"),
+            new DropdownOption("Normals", "dummy"),
+            new DropdownOption("None", "viewnone")
         };
-
+        private static readonly DropdownOption[] camModesNormal = new[]
+        {
+            new DropdownOption("Arcball", "sphere", CameraModes.Arcball),
+            new DropdownOption("Walkthrough", "man", CameraModes.Walkthrough),
+            new DropdownOption("Starsphere", "starsphere", CameraModes.Starsphere),
+        };
+        private static readonly DropdownOption[] camModesCockpit = new[]
+        {
+            new DropdownOption("Arcball", "sphere", CameraModes.Arcball),
+            new DropdownOption("Walkthrough", "man", CameraModes.Walkthrough),
+            new DropdownOption("Cockpit", "screen", CameraModes.Cockpit),
+        };
+        bool doBackground = true;
         bool doWireframe = false;
         bool drawVMeshWire = false;
-        bool isStarsphere = false;
 
         const int M_TEXTURED = 0;
         const int M_LIT = 1;
@@ -70,7 +82,6 @@ namespace LancerEdit
         ModelNodes hprefs;
         TextBuffer filterText = new TextBuffer(128);
         Part cameraPart;
-        bool doCockpitCam = false;
         bool doFilter = false;
         string currentFilter;
         bool hasVWire = false;
@@ -99,6 +110,12 @@ namespace LancerEdit
                 {
                     if (p.Mesh != null && p.Mesh.Levels != null)
                         maxLevels = Math.Max(maxLevels, p.Mesh.Levels.Length);
+                }
+                foreach (var cmpPart in (drawable as CmpFile).Parts) {
+                    if (cmpPart.Camera != null) {
+                        cameraPart = cmpPart;
+                        break;
+                    }   
                 }
                 levels = new string[maxLevels + 1];
                 for (int i = 0; i <= maxLevels; i++)
@@ -176,10 +193,7 @@ namespace LancerEdit
         }
         Vector2 rotation = Vector2.Zero;
         bool firstTab = true;
-        System.Numerics.Vector3 editCol;
-        System.Numerics.Vector3 editCol2;
-        private bool editGrad;
-         bool[] openTabs = new bool[] { false, false, false, false };
+        bool[] openTabs = new bool[] { false, false, false, false };
         void TabButton(string name, int idx)
         {
             if (TabHandler.VerticalTab(name, openTabs[idx]))
@@ -211,7 +225,9 @@ namespace LancerEdit
         {
             if (hk == Hotkeys.Deselect) selectedNode = null;
             if (hk == Hotkeys.ResetViewport) modelViewport.ResetControls();
+            if (hk == Hotkeys.ToggleGrid) showGrid = !showGrid;
         }
+        int selectedCam = 0;
 
         public override void Draw()
         {
@@ -239,49 +255,13 @@ namespace LancerEdit
             }
             TabButtons();
             ImGui.BeginChild("##main");
-            if (ViewerControls.GradientButton("Background", backgroundTop, backgroundBottom, new Vector2(22), _window.Viewport, gradientBackground))
-            {
-                ImGui.OpenPopup("Background Color###" + Unique);
-                editCol = new System.Numerics.Vector3(backgroundTop.R, backgroundTop.G, backgroundTop.B);
-                editCol2 = new System.Numerics.Vector3(backgroundBottom.R, backgroundBottom.G, backgroundBottom.B);
-                editGrad = gradientBackground;
-            }
-            bool wOpen = true;
-            if (ImGui.BeginPopupModal("Background Color###" + Unique, ref wOpen, ImGuiWindowFlags.AlwaysAutoResize))
-            {
-                ImGui.Checkbox("Gradient", ref editGrad);
-                
-                ImGui.ColorPicker3(editGrad ? "Top###a" : "###a", ref editCol);
-                if (editGrad)
-                {
-                    ImGui.SameLine();
-                    ImGui.ColorPicker3("Bottom###b", ref editCol2);
-                }
-                if (ImGui.Button("OK"))
-                {
-                    backgroundTop = new Color4(editCol.X, editCol.Y, editCol.Z, 1);
-                    backgroundBottom = new Color4(editCol2.X, editCol2.Y, editCol2.Z, 1);
-                    gradientBackground = editGrad;
-                    ImGui.CloseCurrentPopup();
-                }
-                ImGui.SameLine();
-                if (ImGui.Button("Default"))
-                {
-                    var def = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
-                    editCol = new System.Numerics.Vector3(def.R, def.G, def.B);
-                    editGrad = false;
-                }
-                ImGui.SameLine();
-                if (ImGui.Button("Cancel")) ImGui.CloseCurrentPopup();
-                ImGui.EndPopup();
-            }
+            ViewerControls.DropdownButton("View Mode", ref viewMode, viewModes);
             ImGui.SameLine();
-            ImGui.AlignTextToFramePadding();
-            ImGui.Text("Background");
+            ImGui.Checkbox("Background", ref doBackground);
             ImGui.SameLine();
-            if (vmsModel != null)
+            if (!(drawable is SphFile)) //Grid too small for planets lol
             {
-                ImGui.Checkbox("Starsphere", ref isStarsphere);
+                ImGui.Checkbox("Grid", ref showGrid);
                 ImGui.SameLine();
             }
             if (hasVWire)
@@ -289,19 +269,13 @@ namespace LancerEdit
                 ImGui.Checkbox("VMeshWire", ref drawVMeshWire);
                 ImGui.SameLine();
             }
-            if(cameraPart != null) {
-                ImGui.Checkbox("Cockpit Cam", ref doCockpitCam);
-                ImGui.SameLine();
-            }
             ImGui.Checkbox("Wireframe", ref doWireframe);
-            ImGui.SameLine();
-            ImGui.Text("View Mode:");
-            ImGui.SameLine();
-            ImGui.PushItemWidth(-1);
-            ImGui.Combo("##modes", ref viewMode, viewModes, viewModes.Length);
-            ImGui.PopItemWidth();
             DoViewport();
             //
+            var camModes = (cameraPart != null) ? camModesCockpit : camModesNormal;
+            ViewerControls.DropdownButton("Camera Mode", ref selectedCam, camModes);
+            modelViewport.Mode = (CameraModes) (camModes[selectedCam].Tag);
+            ImGui.SameLine();
             if(ImGui.Button("Reset Camera (Ctrl+R)"))
             {
                 ResetCamera();

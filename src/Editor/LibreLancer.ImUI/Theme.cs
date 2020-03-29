@@ -101,8 +101,15 @@ namespace LibreLancer.ImUI
             ImGui.PopID();
             return ret;
         }
+        
+        public static void TinyTriangle(float x, float y)
+        {
+            var draw = ImGui.GetWindowDrawList();
+            var cen = new Vector2(x, y) + (Vector2)ImGui.GetWindowPos();
+            draw.AddTriangleFilled(cen + new Vector2(2f, -2f), cen + new Vector2(-2f, 2f),cen + new Vector2(2f, 2f), 
+                0xFFFFFFFF);
+        }
 
-      
         const string MENU_PADDING = "        ";
         const string MENU_NEST_PADDING  = "          ";
 

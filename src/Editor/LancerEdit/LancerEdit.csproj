@@ -41,6 +41,7 @@
   <ItemGroup>
     <None Remove="defaulttexture.dds" />
     <EmbeddedResource Include="defaulttexture.dds" />
+    <None Remove="grid.dds" />
   </ItemGroup>
 
   <ItemGroup>

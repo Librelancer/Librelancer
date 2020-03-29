@@ -25,6 +25,7 @@ SOFTWARE.
 using System;
 using System.Runtime.InteropServices;
 using System.Xml.Serialization;
+using Microsoft.VisualBasic.CompilerServices;
 
 namespace LibreLancer
 {
@@ -1666,6 +1667,10 @@ namespace LibreLancer
 
         #endregion
 
+        public static implicit operator System.Numerics.Vector3(Vector3 self)
+        {
+            return new System.Numerics.Vector3(self.X, self.Y, self.Z);
+        }
         #region IEquatable<Vector3> Members
 
         /// <summary>Indicates whether the current vector is equal to another vector.</summary>

@@ -10,17 +10,22 @@ namespace LancerEdit
 {
     public enum CameraModes
     {
-        Default,
-        Orbit
+        Arcball,
+        Walkthrough,
+        Starsphere,
+        Cockpit
     }
 
     public class EditorConfiguration
     {
         public int MSAA;
         public int TextureFilter;
-        public CameraModes CameraMode;
         public bool ViewButtons;
         public bool PauseWhenUnfocused = true;
+        public Color4 Background = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
+        public Color4 Background2 = Color4.Black;
+        public bool BackgroundGradient = false;
+        public Color4 GridColor = Color4.CornflowerBlue;
         
         public void Save()
         {

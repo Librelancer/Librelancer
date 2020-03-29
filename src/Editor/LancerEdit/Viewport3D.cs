@@ -21,7 +21,7 @@ namespace LancerEdit
         public Vector3 DefaultOffset = new Vector3(0, 0, 200);
 
         public float ModelScale = 0.25f;
-        public Vector2 Rotation = Vector2.Zero;
+        public Vector2 ModelRotation = Vector2.Zero;
         public Vector2 CameraRotation = Vector2.Zero;
         public int MarginH = 40;
         public int MarginW = 15;
@@ -30,7 +30,7 @@ namespace LancerEdit
 
         public Vector3 CameraOffset = Vector3.Zero;
         public Color4 Background = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
-
+        public CameraModes Mode = CameraModes.Arcball;
         public int RenderWidth { get { return rw; }}
         public int RenderHeight { get { return rh; }}
         
@@ -42,10 +42,14 @@ namespace LancerEdit
             vps = mw.Viewport;
         }
 
+        private float zoom;
+        private Vector2 orbitPan;
         public void ResetControls()
         {
             CameraOffset = DefaultOffset;
-            Rotation = CameraRotation = Vector2.Zero;
+            zoom = DefaultOffset.Z;
+            orbitPan = Vector2.Zero;
+            ModelRotation = CameraRotation = Vector2.Zero;
         }
         Color4 cc;
         public void Begin(int fixWidth = -1, int fixHeight = -1)
@@ -109,15 +113,20 @@ namespace LancerEdit
                                   new Vector2(0,1), new Vector2(1,0),
                                   0,
                                   Vector4.One, Vector4.One);
+                if (Mode == CameraModes.Cockpit) ModelRotation = Vector2.Zero;
+                if (Mode == CameraModes.Arcball) ArcballUpdate();
                 if (ImGui.IsItemHovered(ImGuiHoveredFlags.None))
                 {
-                    switch(mw.Config.CameraMode)
+                    switch(Mode)
                     {
-                        case CameraModes.Default:
-                            DefaultControls();
+                        case CameraModes.Walkthrough:
+                            WalkthroughControls();
                             break;
-                        case CameraModes.Orbit:
-                            OrbitControls();
+                        case CameraModes.Starsphere:
+                            StarsphereControls();
+                            break;
+                        case CameraModes.Arcball:
+                            ArcballControls();
                             break;
                     }
                 }
@@ -128,72 +137,109 @@ namespace LancerEdit
 
         public void GoTop()
         {
-            Rotation = new Vector2(0, 0.5f * (float)Math.PI);
-            CameraOffset = new Vector3(0, 0, GotoRadius * 1.1f);
+            if (Mode == CameraModes.Starsphere || Mode == CameraModes.Cockpit) return;
+            ResetControls();
+            orbitPan = new Vector2(0, (float) -Math.PI + 0.03f);
+            ArcballUpdate();
+            if (Mode == CameraModes.Walkthrough)
+                CameraRotation = new Vector2(0, (float) (-0.5 * Math.PI));
         }
 
         public void GoBottom()
         {
-            Rotation = new Vector2(0, -0.5f * (float)Math.PI);
-            CameraOffset = new Vector3(0, 0, GotoRadius * 1.1f);
+            if (Mode == CameraModes.Starsphere || Mode == CameraModes.Cockpit) return;
+            ResetControls();
+            orbitPan = new Vector2(0,  (float)Math.PI - 0.03f);
+            ArcballUpdate();
+            if(Mode == CameraModes.Walkthrough)
+                CameraRotation = new Vector2(0, (float)(0.5 * Math.PI));
         }
 
         public void GoLeft()
         {
-            CameraRotation = Vector2.Zero;
-            CameraOffset = new Vector3(0, 0, GotoRadius);
-            Rotation = new Vector2(0.5f * (float)Math.PI, 0);
+            if (Mode == CameraModes.Starsphere || Mode == CameraModes.Cockpit) return;
+            ResetControls();
+            orbitPan = new Vector2((float) (0.5 * Math.PI), 0);
+            ArcballUpdate();
+            if(Mode == CameraModes.Walkthrough)
+                CameraRotation = new Vector2((float) (-0.5f * Math.PI), 0);
         }
 
         public void GoRight()
         {
-            CameraRotation = Vector2.Zero;
-            CameraOffset = new Vector3(0, 0, GotoRadius);
-            Rotation = new Vector2(-0.5f * (float)Math.PI, 0);
+            if (Mode == CameraModes.Starsphere || Mode == CameraModes.Cockpit) return;
+            ResetControls();
+            orbitPan = new Vector2((float) (-0.5 * Math.PI), 0);
+            ArcballUpdate();
+            if(Mode == CameraModes.Walkthrough)
+                CameraRotation = new Vector2((float) (0.5f * Math.PI), 0);
         }
 
         public void GoFront()
         {
-            CameraRotation = Vector2.Zero;
-            CameraOffset = new Vector3(0, 0, GotoRadius);
-            Rotation = new Vector2((float)-Math.PI, 0);
+            if (Mode == CameraModes.Starsphere || Mode == CameraModes.Cockpit) return;
+            ResetControls();
+            orbitPan = new Vector2((float)(Math.PI), 0);
+            ArcballUpdate();
+            if(Mode == CameraModes.Walkthrough)
+                CameraRotation = new Vector2((float) (-Math.PI), 0);
         }
 
         public void GoBack()
         {
-            CameraRotation = Vector2.Zero;
-            CameraOffset = new Vector3(0, 0, GotoRadius);
-            Rotation = Vector2.Zero;
+            if (Mode == CameraModes.Starsphere || Mode == CameraModes.Cockpit) return;
+            ResetControls();
         }
 
-        void OrbitControls()
+        void ArcballUpdate()
+        {
+            orbitPan.Y = MathHelper.Clamp(orbitPan.Y,-MathHelper.PiOver2 + 0.02f, MathHelper.PiOver2 - 0.02f);
+            var mat = System.Numerics.Matrix4x4.CreateFromYawPitchRoll(-orbitPan.X, orbitPan.Y, 0);
+            var res = System.Numerics.Vector3.Transform(new System.Numerics.Vector3(0, 0, zoom), mat);
+            CameraRotation = Vector2.Zero;
+            CameraOffset = new Vector3(res.X, res.Y, res.Z);
+        }
+        void ArcballControls()
         {
             var io = ImGui.GetIO();
-            CameraRotation = Vector2.Zero;
-            CameraOffset.X = CameraOffset.Y = 0;
             if (ImGui.IsMouseDragging(0, 1f))
             {
                 var delta = (Vector2)ImGui.GetMouseDragDelta(0, 1f);
                 ImGui.ResetMouseDragDelta(0);
-                Rotation += (delta / 100) * new Vector2(1, -1);
+                if (io.KeyCtrl)
+                    ModelRotation += (delta / 100) * new Vector2(1, -1);
+                else
+                    orbitPan += (delta / 100) * new Vector2(1, -1);
             }
             else if (ImGui.IsMouseDragging(1, 1f))
             {
                 var delta = (Vector2)ImGui.GetMouseDragDelta(1, 1f);
                 ImGui.ResetMouseDragDelta(1);
                 var mouseZoomStep = ModelScale / 56f;
-                CameraOffset.Z -= delta.Y * mouseZoomStep;
+                zoom -= delta.Y * mouseZoomStep;
             }
             float wheel = ImGui.GetIO().MouseWheel;
             var zoomStep = ModelScale * 1.05f;
             if (io.KeyShift)
-                CameraOffset.Z -= wheel * (2 * zoomStep);
+                zoom -= wheel * (2 * zoomStep);
             else
-                CameraOffset.Z -= wheel * zoomStep;
-            if (CameraOffset.Z < 0) CameraOffset.Z = 0;
+                zoom -= wheel * zoomStep;
+            if (zoom < 0) zoom = 0;
         }
 
-        void DefaultControls()
+        void StarsphereControls()
+        {
+            //Only rotate camera
+            if (ImGui.IsMouseDragging(0, 1f))
+            {
+                var delta = (Vector2)ImGui.GetMouseDragDelta(0, 1f);
+                ImGui.ResetMouseDragDelta(0);
+                //LMB - Rotate viewport camera
+                CameraRotation -= (delta / 100);
+            }
+        }
+
+        void WalkthroughControls()
         {
             var io = ImGui.GetIO();
             if (ImGui.IsMouseDragging(0, 1f))
@@ -225,19 +271,19 @@ namespace LancerEdit
                 if (io.KeyCtrl)
                 {
                     //CTRL + RMB - Rotate Model
-                    Rotation += (delta / 100) * new Vector2(1, -1);
+                    ModelRotation += (delta / 100) * new Vector2(1, -1);
                 }
                 else
                 {
                     //RMB - Rotate viewport camera
                     CameraRotation -= (delta / 100);
-                    DefaultKeyboardControls();
+                    WalkthroughKeyboardControls();
                 }
             }
             else if (io.MouseDown[1])
-                DefaultKeyboardControls();
+                WalkthroughKeyboardControls();
         }
-        void DefaultKeyboardControls()
+        void WalkthroughKeyboardControls()
         {
             var rotmat = Matrix4.CreateRotationX(CameraRotation.Y) *
                             Matrix4.CreateRotationY(CameraRotation.X);

@@ -14,7 +14,7 @@ namespace LancerEdit
 {
 	public class MainWindow : Game
 	{
-		ImGuiHelper guiHelper;
+		public ImGuiHelper guiHelper;
 		public AudioManager Audio;
 		public GameResourceManager Resources;
 		public Billboards Billboards;
@@ -29,14 +29,10 @@ namespace LancerEdit
         public string Version;
         TextBuffer logBuffer;
         StringBuilder logText = new StringBuilder();
-        static readonly string[] defaultFilters = {
-            "Linear", "Bilinear", "Trilinear"
-        };
+      
         bool openError = false;
         bool finishLoading = false;
-        string[] filters;
-        int[] anisotropyLevels;
-        int cFilter = 2;
+
         FileDialogFilters UtfFilters = new FileDialogFilters(
             new FileFilter("All Utf Files","utf","cmp","3db","dfm","vms","sph","mat","txm","ale","anm"),
             new FileFilter("Utf Files","utf"),
@@ -56,12 +52,10 @@ namespace LancerEdit
         FileDialogFilters FreelancerIniFilter = new FileDialogFilters(
             new FileFilter("Freelancer.ini","freelancer.ini")
         );
-        int[] msaaLevels;
-        string[] msaaStrings = { "None", "2x MSAA", "4x MSAA", "8x MSAA", "16x MSAA", "32x MSAA" };
-        int cMsaa = 0;
-        string[] cameraModes;
+       
 
         public EditorConfiguration Config;
+        OptionsWindow options;
         public MainWindow() : base(800,600,false)
 		{
             Version = "LancerEdit " + Platform.GetInformationalVersion<MainWindow>();
@@ -95,8 +89,8 @@ namespace LancerEdit
             Audio = new AudioManager(this);
             FileDialog.RegisterParent(this);
 			Viewport = new ViewportManager(RenderState);
-            InitOptions();
-			Resources = new GameResourceManager(this);
+            options = new OptionsWindow(this);
+            Resources = new GameResourceManager(this);
 			Commands = new CommandBuffer();
 			Billboards = new Billboards();
 			Polyline = new PolylineRender(Commands);
@@ -121,49 +115,6 @@ namespace LancerEdit
             Services.Add(Fonts);
         }
 
-        void InitOptions()
-        {
-            var texturefilters = new List<string>(defaultFilters);
-            if (RenderState.MaxAnisotropy > 0)
-            {
-                anisotropyLevels = RenderState.GetAnisotropyLevels();
-                foreach (var lvl in anisotropyLevels)
-                {
-                    texturefilters.Add(string.Format("Anisotropic {0}x", lvl));
-                }
-            }
-            var msaa = new List<int> { 0 };
-            int a = 2;
-            while (a <= RenderState.MaxSamples)
-            {
-                msaa.Add(a);
-                a *= 2;
-            }
-            msaaLevels = msaa.ToArray();
-            switch (Config.MSAA)
-            {
-                case 2:
-                    cMsaa = 1;
-                    break;
-                case 4:
-                    cMsaa = 2;
-                    break;
-                case 8:
-                    cMsaa = 3;
-                    break;
-                case 16:
-                    cMsaa = 4;
-                    break;
-                case 32:
-                    cMsaa = 5;
-                    break;
-            }
-            filters = texturefilters.ToArray();
-            cFilter = Config.TextureFilter;
-            SetTexFilter();
-            cameraModes = Enum.GetNames(typeof(CameraModes));
-        }
-
         void Keyboard_KeyDown(KeyEventArgs e)
         {
             var mods = e.Modifiers;
@@ -177,6 +128,9 @@ namespace LancerEdit
             }
             if((mods == KeyModifiers.LeftControl || mods == KeyModifiers.RightControl) && e.Key == Keys.R) {
                 if (selected != null) ((EditorTab)selected).OnHotkey(Hotkeys.ResetViewport);
+            }
+            if((mods == KeyModifiers.LeftControl || mods == KeyModifiers.RightControl) && e.Key == Keys.G) {
+                if (selected != null) ((EditorTab)selected).OnHotkey(Hotkeys.ToggleGrid);
             }
         }
 
@@ -218,7 +172,6 @@ namespace LancerEdit
         DockTab selected;
         TextBuffer errorText;
         bool showLog = false;
-        bool showOptions = false;
         float h1 = 200, h2 = 200;
         Vector2 errorWindowSize = Vector2.Zero;
         public double TimeStep;
@@ -285,7 +238,7 @@ namespace LancerEdit
 			{
                 if(Theme.IconMenuItem("Options","options",Color4.White,true))
                 {
-                    showOptions = true;
+                    options.Show();
                 }
                
 				if (Theme.IconMenuItem("Resources","resources",Color4.White,true))
@@ -339,6 +292,8 @@ namespace LancerEdit
 				}
 				ImGui.EndMenu();
 			}
+
+            options.Draw();
 			if (openAbout)
 			{
 				ImGui.OpenPopup("About");
@@ -471,7 +426,12 @@ namespace LancerEdit
 			else { updateTime++; }
 			string activename = ActiveTab == null ? "None" : ActiveTab.DocumentName;
 			string utfpath = ActiveTab == null ? "None" : ActiveTab.GetUtfPath();
-			ImGui.Text(string.Format("FPS: {0} | {1} Materials | {2} Textures | Active: {3} - {4}",
+            #if DEBUG
+            const string statusFormat = "FPS: {0} | {1} Materials | {2} Textures | Active: {3} - {4}";
+            #else
+            const string statusFormat = "{1} Materials | {2} Textures | Active: {3} - {4}";
+            #endif
+			ImGui.Text(string.Format(statusFormat,
 									 (int)Math.Round(frequency),
 									 Resources.MaterialDictionary.Count,
 									 Resources.TextureDictionary.Count,
@@ -483,25 +443,7 @@ namespace LancerEdit
                                    new Color4(21, 21, 22, 128),
                                    Color4.Red);
             }
-            if(showOptions) {
-                ImGui.Begin("Options", ref showOptions, ImGuiWindowFlags.AlwaysAutoResize);
-                var pastC = cFilter;
-                ImGui.Combo("Texture Filter", ref cFilter, filters, filters.Length);
-                if(cFilter != pastC) {
-                    SetTexFilter();
-                    Config.TextureFilter = cFilter;
-                }
-                ImGui.Combo("Antialiasing", ref cMsaa, msaaStrings, Math.Min(msaaLevels.Length, msaaStrings.Length));
-                Config.MSAA = msaaLevels[cMsaa];
-                int cm = (int)Config.CameraMode;
-                ImGui.Combo("Camera Mode", ref cm, cameraModes, cameraModes.Length);
-                Config.CameraMode = (CameraModes)cm;
-                ImGui.Checkbox("View Buttons", ref Config.ViewButtons);
-                ImGui.Checkbox("Pause When Unfocused", ref Config.PauseWhenUnfocused);
-                guiHelper.PauseWhenUnfocused = Config.PauseWhenUnfocused;
-                ImGui.End();
-            }
-			ImGui.PopFont();
+            ImGui.PopFont();
             if (lastFrame == null ||
                 lastFrame.Width != Width ||
                 lastFrame.Height != Height)
@@ -579,25 +521,7 @@ namespace LancerEdit
                 }
             }
         }
-        void SetTexFilter()
-        {
-            switch (cFilter)
-            {
-                case 0:
-                    RenderState.PreferredFilterLevel = TextureFiltering.Linear;
-                    break;
-                case 1:
-                    RenderState.PreferredFilterLevel = TextureFiltering.Bilinear;
-                    break;
-                case 2:
-                    RenderState.PreferredFilterLevel = TextureFiltering.Trilinear;
-                    break;
-                default:
-                    RenderState.AnisotropyLevel = anisotropyLevels[cFilter - 3];
-                    RenderState.PreferredFilterLevel = TextureFiltering.Anisotropic;
-                    break;
-            }
-        }
+         
 
         string confirmText;
         bool doConfirm = false;

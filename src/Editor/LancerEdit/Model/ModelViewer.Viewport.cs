@@ -17,10 +17,7 @@ namespace LancerEdit
 {
     public partial class ModelViewer
 	{
-        Color4 backgroundBottom = Color4.Black; 
-        Color4 backgroundTop = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
-        bool gradientBackground = false;
-        
+        bool showGrid = false;
         Viewport3D modelViewport;
         Viewport3D previewViewport;
         Viewport3D imageViewport;
@@ -80,7 +77,6 @@ namespace LancerEdit
 
         void ResetCamera()
         {
-            modelViewport.ResetControls();
             if (vmsModel != null)
             {
                 modelViewport.DefaultOffset =
@@ -94,7 +90,7 @@ namespace LancerEdit
                 modelViewport.CameraOffset = modelViewport.DefaultOffset = new Vector3(0,0, rad  * 2);
                 modelViewport.ModelScale = rad / 2.6f;
             }
-
+            modelViewport.ResetControls();
         }
 
         List<SurModel> surs;
@@ -223,18 +219,18 @@ namespace LancerEdit
 
         void DoViewport()
         {
-            modelViewport.Background = backgroundTop;
+            modelViewport.Background = doBackground ? _window.Config.Background : Color4.Black;
             modelViewport.Begin();
-            DrawGL(modelViewport.RenderWidth, modelViewport.RenderHeight);
+            DrawGL(modelViewport.RenderWidth, modelViewport.RenderHeight, true);
             modelViewport.End();
-            rotation = modelViewport.Rotation;
+            rotation = modelViewport.ModelRotation;
         }
 
         void DoPreview(int width, int height)
         {
-            previewViewport.Background = renderBackground ? backgroundTop : Color4.Black;
+            previewViewport.Background = renderBackground ? _window.Config.Background : Color4.Black;
             previewViewport.Begin(width, height);
-            DrawGL(width, height);
+            DrawGL(width, height, false);
             previewViewport.End();
         }
 
@@ -250,9 +246,9 @@ namespace LancerEdit
                 FLLog.Info("Exception Info", ex.Message + "\n" + ex.StackTrace);
                 return;
             }
-            imageViewport.Background = renderBackground ? backgroundTop : Color4.TransparentBlack;
+            imageViewport.Background = renderBackground ? _window.Config.Background : Color4.TransparentBlack;
             imageViewport.Begin(imageWidth, imageHeight);
-            DrawGL(imageWidth, imageHeight);
+            DrawGL(imageWidth, imageHeight, false);
             imageViewport.End(false);
             byte[] data = new byte[imageWidth * imageHeight * 4];
             imageViewport.RenderTarget.GetData(data);
@@ -266,12 +262,12 @@ namespace LancerEdit
         }
 
         long fR = 0;
-        void DrawGL(int renderWidth, int renderHeight)
+        void DrawGL(int renderWidth, int renderHeight, bool viewport)
         {
-            if (gradientBackground)
+            if (_window.Config.BackgroundGradient && viewport && doBackground)
             {
                 _window.Renderer2D.Start(renderWidth, renderHeight);
-                _window.Renderer2D.DrawVerticalGradient(new Rectangle(0,0,renderWidth,renderHeight), backgroundTop, backgroundBottom);
+                _window.Renderer2D.DrawVerticalGradient(new Rectangle(0,0,renderWidth,renderHeight), _window.Config.Background, _window.Config.Background2);
                 _window.Renderer2D.Finish();
             }
             rstate.DepthEnabled = true;
@@ -283,16 +279,22 @@ namespace LancerEdit
                 Matrix4.CreateRotationY(modelViewport.CameraRotation.X);
             var dir = rot.Transform(Vector3.Forward);
             var to = modelViewport.CameraOffset + (dir * 10);
+            if (modelViewport.Mode == CameraModes.Arcball) to = Vector3.Zero;
             lookAtCam.Update(renderWidth, renderHeight, modelViewport.CameraOffset, to, rot);
             ThnCamera tcam = null;
             float znear = 0;
             float zfar = 0;
-            if(doCockpitCam) {
+            if(modelViewport.Mode == CameraModes.Cockpit) {
                 var vp = new Viewport(0, 0, renderWidth, renderHeight);
                 tcam = new ThnCamera(vp);
                 tcam.Transform.AspectRatio = renderWidth / (float)renderHeight;
                 var tr = Matrix4.Identity;
-                //var tr = cameraPart.GetTransform(Matrix4.Identity);
+                if (!string.IsNullOrEmpty(cameraPart.Construct?.ParentName))
+                {
+                    tr = cameraPart.Construct.LocalTransform *
+                         vmsModel.Parts[cameraPart.Construct.ParentName].LocalTransform;
+                } else if(cameraPart.Construct != null)
+                    tr = cameraPart.Construct.LocalTransform;
                 tcam.Transform.Orientation = Matrix4.CreateFromQuaternion(tr.ExtractRotation());
                 tcam.Transform.Position = tr.Transform(Vector3.Zero);
                 znear = cameraPart.Camera.Znear;
@@ -307,6 +309,12 @@ namespace LancerEdit
             else {
                 cam = lookAtCam;
             }
+            if (showGrid && viewport && 
+                !(drawable is SphFile) &&
+                modelViewport.Mode != CameraModes.Starsphere)
+            {
+                GridRender.Draw(rstate, cam, _window.Config.GridColor);
+            }
             _window.DebugRender.StartFrame(cam, rstate);
             if (drawable is DF.DfmFile dfm)
             {
@@ -320,7 +328,7 @@ namespace LancerEdit
             }
             if (viewMode != M_NONE)
             {
-                int drawCount = doCockpitCam ? 2 : 1;
+                int drawCount = (modelViewport.Mode == CameraModes.Cockpit) ? 2 : 1;
                 for (int i = 0; i < drawCount; i++)
                 {
                     buffer.StartFrame(rstate);
@@ -437,7 +445,7 @@ namespace LancerEdit
         {
             Material mat = null;
             var matrix = Matrix4.Identity;
-            if (isStarsphere)
+            if (modelViewport.Mode == CameraModes.Starsphere)
                 matrix = Matrix4.CreateTranslation(cam.Position);
             else
                 matrix = GetModelMatrix();

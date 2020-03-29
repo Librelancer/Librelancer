@@ -10,7 +10,8 @@ namespace LancerEdit
     public enum Hotkeys
     {
         Deselect,
-        ResetViewport
+        ResetViewport,
+        ToggleGrid
     }
     public abstract class EditorTab : DockTab
     {

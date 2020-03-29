@@ -1468,5 +1468,10 @@ namespace LibreLancer
 				left.A * right.A
 			);
 		}
+
+        public static implicit operator System.Numerics.Vector4(Color4 self)
+        {
+            return new System.Numerics.Vector4(self.R, self.G, self.B, self.A);
+        }
     }
 }
