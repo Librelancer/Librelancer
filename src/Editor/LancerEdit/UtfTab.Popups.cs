@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ImUI;
@@ -191,16 +192,16 @@ namespace LancerEdit
         }
 
         bool pickcolor4 = false;
-        System.Numerics.Vector4 color4;
-        System.Numerics.Vector3 color3;
+        Vector4 color4;
+        Vector3 color3;
         unsafe void ColorPicker(PopupData data)
         {
             bool old4 = pickcolor4;
             ImGui.Checkbox("Alpha?", ref pickcolor4);
             if (old4 != pickcolor4)
             {
-                if (old4 == false) color4 = new System.Numerics.Vector4(color3.X, color3.Y, color3.Z, 1);
-                if (old4 == true) color3 = new System.Numerics.Vector3(color4.X, color4.Y, color4.Z);
+                if (old4 == false) color4 = new Vector4(color3.X, color3.Y, color3.Z, 1);
+                if (old4 == true) color3 = new Vector3(color4.X, color4.Y, color4.Z);
             }
             ImGui.Separator();
             if (pickcolor4)
@@ -216,7 +217,7 @@ namespace LancerEdit
                     var bytes = new byte[16];
                     fixed (byte* ptr = bytes)
                     {
-                        var f = (System.Numerics.Vector4*)ptr;
+                        var f = (Vector4*)ptr;
                         f[0] = color4;
                     }
                     selectedNode.Data = bytes;
@@ -226,7 +227,7 @@ namespace LancerEdit
                     var bytes = new byte[12];
                     fixed (byte* ptr = bytes)
                     {
-                        var f = (System.Numerics.Vector3*)ptr;
+                        var f = (Vector3*)ptr;
                         f[0] = color3;
                     }
                     selectedNode.Data = bytes;

@@ -30,8 +30,7 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.Serialization;
+using System.Numerics;
 
 namespace LibreLancer
 {

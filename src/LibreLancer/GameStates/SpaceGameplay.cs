@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using LibreLancer.Interface;
 using LibreLancer.Physics;
 
@@ -87,7 +88,7 @@ Mouse Flight: {11}
             player.Components.Add(control);
             weapons = new WeaponControlComponent(player);
             player.Components.Add(weapons);
-            player.Transform = new Matrix4(session.PlayerOrientation) * Matrix4.CreateTranslation(session.PlayerPosition);
+            player.Transform = session.PlayerOrientation * Matrix4x4.CreateTranslation(session.PlayerPosition);
             player.PhysicsComponent.Mass = shp.Mass;
             if(shp.Mass < 0)
             {
@@ -186,7 +187,7 @@ Mouse Flight: {11}
                 activeManeuver = m;
             }
             public int ThrustPercent() => ((int)(g.powerCore.CurrentThrustCapacity / g.powerCore.Equip.ThrustCapacity * 100));
-            public int Speed() => ((int)g.player.PhysicsComponent.Body.LinearVelocity.Length);
+            public int Speed() => ((int)g.player.PhysicsComponent.Body.LinearVelocity.Length());
         }
 		void World_MessageBroadcasted(GameObject sender, GameMessageKind kind)
 		{
@@ -287,7 +288,7 @@ Mouse Flight: {11}
             {
                 return;
             }
-            player.PhysicsComponent.Body.SetTransform(Matrix4.CreateTranslation(x,y,z));
+            player.PhysicsComponent.Body.SetTransform(Matrix4x4.CreateTranslation(x,y,z));
         }
 		bool ManeuverSelect(string e)
 		{
@@ -466,11 +467,9 @@ Mouse Flight: {11}
 			var obj = GetSelection(Game.Mouse.X, Game.Mouse.Y);
 			current_cur = obj == null ? cur_arrow : cur_reticle;
 			
-            var ep = VectorMath.UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0.25f), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
-            var tgt = VectorMath.UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0f), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
+            var ep = Vector3Ex.UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0.25f), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
+            var tgt = Vector3Ex.UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0f), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
             var dir = (tgt - ep).Normalized();
-            var dir2 = new Matrix3(player.PhysicsComponent.Body.Transform.ClearTranslation()) * Vector3.UnitZ;
-            tgt += dir * 750;
             weapons.AimPoint = tgt;
 
             if(!Game.Mouse.IsButtonDown(MouseButtons.Left) && Game.TotalTime - lastDown < 0.25)
@@ -486,8 +485,8 @@ Mouse Flight: {11}
 		{
 			var vp = new Vector2(Game.Width, Game.Height);
 
-			var start = VectorMath.UnProject(new Vector3(x, y, 0f), camera.Projection, camera.View, vp);
-			var end = VectorMath.UnProject(new Vector3(x, y, 1f), camera.Projection, camera.View, vp);
+			var start = Vector3Ex.UnProject(new Vector3(x, y, 0f), camera.Projection, camera.View, vp);
+			var end = Vector3Ex.UnProject(new Vector3(x, y, 1f), camera.Projection, camera.View, vp);
 			var dir = end;
 
 			PhysicsObject rb;
@@ -517,7 +516,7 @@ Mouse Flight: {11}
 					var sph = (SphereCollider)rb.Collider;
 					if (SphereRayIntersect(rayOrigin, direction, maxDist, rb.Position, sph.Radius))
 					{
-						var nd = VectorMath.DistanceSquared(rb.Position, camera.Position);
+						var nd = Vector3.DistanceSquared(rb.Position, camera.Position);
 						if (nd < dist)
 						{
 							dist = nd;
@@ -533,7 +532,7 @@ Mouse Flight: {11}
 					/*if (tag == null || tag.CmpParts.Count == 0)
 					{
 						//Single part
-						var nd = VectorMath.DistanceSquared(rb.Position, camera.Position);
+						var nd = Vector3.DistanceSquared(rb.Position, camera.Position);
 						if (nd < dist)
 						{
 							dist = nd;
@@ -553,7 +552,7 @@ Mouse Flight: {11}
 							if (bb.RayIntersect(ref rayOrigin, ref jitterDir))
 							{
 								
-								var nd = VectorMath.DistanceSquared(rb.Position, camera.Position);
+								var nd = Vector3.DistanceSquared(rb.Position, camera.Position);
 								if (nd < dist)
 								{
 									dist = nd;
@@ -570,7 +569,7 @@ Mouse Flight: {11}
 
 		static bool SphereRayIntersect(Vector3 rayOrigin, Vector3 d, float maxdistance, Vector3 centre, float radius)
 		{
-			var dist = VectorMath.DistanceSquared(rayOrigin, centre);
+			var dist = Vector3.DistanceSquared(rayOrigin, centre);
 			if (dist > (maxdistance - radius) * (maxdistance - radius)) return false;
 			//Ray start offset from sphere centre
 			var p = rayOrigin - centre;

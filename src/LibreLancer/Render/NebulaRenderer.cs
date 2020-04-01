@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer.GameData;
-using LibreLancer.Utf.Cmp;
+using System.Numerics;
 using LibreLancer.Vertices;
 
 namespace LibreLancer
@@ -91,7 +91,7 @@ namespace LibreLancer
 					for (int i = 0; i < Nebula.InteriorCloudCount; i++)
 					{
 						if (!puffsinterior[i].Spawned ||
-							VectorMath.Distance(puffsinterior[i].Position, camera.Position) > Nebula.InteriorCloudMaxDistance)
+							Vector3.Distance(puffsinterior[i].Position, camera.Position) > Nebula.InteriorCloudMaxDistance)
 						{
 							puffsinterior[i].Color = GetPuffColor();
 							puffsinterior[i].Shape = Nebula.InteriorCloudShapes.GetNext();
@@ -271,7 +271,7 @@ namespace LibreLancer
 			else
 				return;
 			sz *= (1 / ex.Shell.GetRadius());
-			var world = Matrix4.CreateScale(ex.ShellScalar * sz) * ex.Zone.RotationMatrix * Matrix4.CreateTranslation(ex.Zone.Position);
+			var world = Matrix4x4.CreateScale(ex.ShellScalar * sz) * ex.Zone.RotationMatrix * Matrix4x4.CreateTranslation(ex.Zone.Position);
 			//var shell = (ModelFile)ex.Shell;
 			//Calculate Alpha
 			var alpha = ex.ShellMaxAlpha * CalculateTransition(ex.Zone);
@@ -389,7 +389,7 @@ namespace LibreLancer
                     tex = (Texture2D)resman.FindTexture(p.Texture);
                     lastTex = p.Texture;
                 }
-                buffer.AddCommand(sh, puffSetup, puffCleanup, Matrix4.Identity,
+                buffer.AddCommand(sh, puffSetup, puffCleanup, Matrix4x4.Identity,
                     new RenderUserData() { Texture = tex, Float = factor }, sysr.StaticBillboards.VertexBuffer,
                     PrimitiveTypes.TriangleList, idx, 2, true, inside ? SortLayers.NEBULA_INSIDE : SortLayers.NEBULA_NORMAL,
                     RenderHelpers.GetZ(camera.Position, p.Position));
@@ -469,7 +469,7 @@ namespace LibreLancer
 				{
 					if (!puffsinterior[i].Spawned)
 						continue;
-					var distance = VectorMath.Distance(puffsinterior[i].Position, camera.Position);
+					var distance = Vector3.Distance(puffsinterior[i].Position, camera.Position);
 					var alpha = Nebula.InteriorCloudMaxAlpha;
 					if (distance > Nebula.InteriorCloudFadeDistance.X && distance < Nebula.InteriorCloudFadeDistance.Y)
 					{
@@ -624,7 +624,7 @@ namespace LibreLancer
 					tl, tr, bl, br
 				);
 			}
-			var transform = Matrix4.CreateScale(sz) * Nebula.Zone.RotationMatrix * Matrix4.CreateTranslation(p);
+			var transform = Matrix4x4.CreateScale(sz) * Nebula.Zone.RotationMatrix * Matrix4x4.CreateTranslation(p);
 			nverts.Draw(
 				buffer,
 				camera,

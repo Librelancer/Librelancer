@@ -4,6 +4,7 @@
 // Thanks to @Varon for his unity Catmull-Rom interpolation + explanations
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using LibreLancer.Thorn;
 namespace LibreLancer
 {
@@ -135,7 +136,7 @@ namespace LibreLancer
             if (t <= 0) return startPoint;
             if(!curve)
             {
-                float dist = VectorMath.Distance(startPoint, endPoint);
+                float dist = Vector3.Distance(startPoint, endPoint);
                 var direction = (endPoint - startPoint).Normalized();
                 return startPoint + (direction * (dist * t));
             }
@@ -206,9 +207,9 @@ namespace LibreLancer
         }
 
         static CubicPolynomial CRCentripedal(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float tau = 0.5f) {
-            float dt0 = (float)Math.Pow((p0 - p1).LengthSquared, tau);
-            float dt1 = (float)Math.Pow((p1 - p2).LengthSquared, tau);
-            float dt2 = (float)Math.Pow((p2 - p3).LengthSquared, tau);
+            float dt0 = (float)Math.Pow((p0 - p1).LengthSquared(), tau);
+            float dt1 = (float)Math.Pow((p1 - p2).LengthSquared(), tau);
+            float dt2 = (float)Math.Pow((p2 - p3).LengthSquared(), tau);
 
             // safety check for repeated points
             if (dt1 < 1e-4f) {
@@ -265,7 +266,7 @@ namespace LibreLancer
                 for (int i = 0; i < detail; i++) {
                     t += increment;
                     Vector3 to = ValueAt(t);
-                    dist += VectorMath.Distance(prev, to);
+                    dist += Vector3.Distance(prev, to);
                     prev = to;
                 }
                 return dist;

@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Utf.Ale;
 namespace LibreLancer.Fx
 {
@@ -24,19 +25,19 @@ namespace LibreLancer.Fx
 			}
 		}
 
-        public override void Draw(ref Particle particle, int pidx, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+        public override void Draw(ref Particle particle, int pidx, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam)
         {
             var time = particle.TimeAlive / particle.LifeSpan;
             var node_tr = GetAttachment(reference, transform);
 
-			var p = node_tr.Transform(particle.Position);
+            var p = Vector3.Transform(particle.Position, node_tr);
 			Texture2D tex;
 			Vector2 tl, tr, bl, br;
 			HandleTexture(res, globaltime, sparam, ref particle, out tex, out tl, out tr, out bl, out br);
 			var c = Color.GetValue(sparam, time);
 			var a = Alpha.GetValue(sparam, time);
 
-			var p2 = node_tr.Transform(particle.Position + particle.Normal);
+            var p2 = Vector3.Transform(particle.Position + particle.Normal, node_tr);
 			//var n = (p - p2).Normalized();
 			var n = Vector3.UnitZ;
 

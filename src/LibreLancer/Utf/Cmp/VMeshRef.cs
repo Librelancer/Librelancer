@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 
 using LibreLancer.Utf.Vms;
 using LibreLancer.Utf.Mat;
@@ -131,11 +132,6 @@ namespace LibreLancer.Utf.Cmp
             }
         }
 
-        public void Update(ICamera camera, TimeSpan delta)
-        {
-            if (ready) Mesh.Update(camera, StartMesh, endMesh);
-        }
-        
         public MeshDrawcall[] GetDrawcalls()
         {
             if(needsOptimize) Optimize();

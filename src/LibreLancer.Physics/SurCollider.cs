@@ -5,9 +5,11 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Numerics;
 using BulletSharp;
 using BM = BulletSharp.Math;
 using LibreLancer.Physics.Sur;
+
 namespace LibreLancer.Physics
 {
     public class SurCollider : Collider
@@ -44,7 +46,7 @@ namespace LibreLancer.Physics
         List<CollisionPart> children = new List<CollisionPart>();
 
         int currentIndex = 0;
-        public void AddPart(uint meshId, Matrix4 localTransform, object tag, int suridx = 0)
+        public void AddPart(uint meshId, Matrix4x4 localTransform, object tag, int suridx = 0)
         {
             var sur = surs[suridx];
             if (!sur.HasShape(meshId)) return;
@@ -63,7 +65,7 @@ namespace LibreLancer.Physics
             surs.Add(GetSur(path));
             return surs.Count - 1;
         }
-        public void UpdatePart(object tag, Matrix4 localTransform)
+        public void UpdatePart(object tag, Matrix4x4 localTransform)
         {
             var tr = localTransform.Cast();
             foreach (var part in children)
@@ -106,7 +108,7 @@ namespace LibreLancer.Physics
             btCompound.RecalculateLocalAabb();
         }
 
-        public IEnumerable<BoundingBox> GetBoxes(Matrix4 transform)
+        public IEnumerable<BoundingBox> GetBoxes(Matrix4x4 transform)
         {
             foreach(var shape in btCompound.ChildList) {
                 BM.Vector3 min, max;
@@ -119,7 +121,7 @@ namespace LibreLancer.Physics
             public object Tag;
             public int Index = 0;
             public int Count = 0;
-            public Matrix4 CurrentTransform;
+            public Matrix4x4 CurrentTransform;
         }
     }
 

@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Numerics;
 using LibreLancer;
 using LibreLancer.ImUI;
 using LibreLancer.Interface;
@@ -140,7 +141,7 @@ namespace InterfaceEdit
 
         void ColorPickerSimple(InterfaceColor clr)
         {
-            var v4 = new System.Numerics.Vector4(clr.Color.R, clr.Color.G, clr.Color.B, clr.Color.A);
+            var v4 = (Vector4) clr.Color;
             ImGui.BeginChild("##limiter", new Vector2(250, 235), false);
             ImGui.ColorPicker4("##colorpicker", ref v4, ImGuiColorEditFlags.None);
             ImGui.EndChild();
@@ -149,22 +150,22 @@ namespace InterfaceEdit
         void ColorPickerAnimated(InterfaceColor clr)
         {
             var current = clr.GetColor(TimeSpan.FromSeconds(mainWindow.TotalTime));
-            ImGui.ColorButton("##preview", new Vector4(current.R, current.G, current.B, current.A));
+            ImGui.ColorButton("##preview", current);
             ImGui.Text("Speed: ");
             ImGui.SameLine();
             ImGui.InputFloat("##speed", ref clr.Animation.Speed, 0, 0);
             ImGui.Text("Color 1");
-            var v4 = new System.Numerics.Vector4(clr.Animation.Color1.R, clr.Animation.Color1.G, clr.Animation.Color1.B, clr.Animation.Color1.A);
+            var v4 = (Vector4) clr.Animation.Color1;
             ImGui.BeginChild("##limiter", new Vector2(250, 235), false);
             ImGui.ColorPicker4("##colorpicker", ref v4, ImGuiColorEditFlags.None);
             ImGui.EndChild();
-            clr.Animation.Color1 = new Color4(v4.X, v4.Y, v4.Z, v4.W);
-            v4 = new System.Numerics.Vector4(clr.Animation.Color2.R, clr.Animation.Color2.G, clr.Animation.Color2.B, clr.Animation.Color2.A);
+            clr.Animation.Color1 = v4;
+            v4 = clr.Animation.Color2;
             ImGui.Text("Color 2");
             ImGui.BeginChild("##limiter2", new Vector2(250, 235), false);
             ImGui.ColorPicker4("##colorpicker", ref v4, ImGuiColorEditFlags.None);
             ImGui.EndChild();
-            clr.Animation.Color2 = new Color4(v4.X, v4.Y, v4.Z, v4.W);
+            clr.Animation.Color2 = v4;
         }
         public void LibraryFilesTab()
         {
@@ -370,9 +371,9 @@ namespace InterfaceEdit
             context.Renderer2D.Start(rtX, rtY);
             context.Renderer2D.FillRectangle(rectangle, Color4.CornflowerBlue);
             context.Renderer2D.Finish();
-            var transform = Matrix4.CreateScale(mdl.XScale, mdl.YScale, 1) *
-                            Matrix4.CreateTranslation(mdl.X, mdl.Y, 0);
-            var mcam = new MatrixCamera(Matrix4.Identity);
+            var transform = Matrix4x4.CreateScale(mdl.XScale, mdl.YScale, 1) *
+                            Matrix4x4.CreateTranslation(mdl.X, mdl.Y, 0);
+            var mcam = new MatrixCamera(Matrix4x4.Identity);
             mcam.CreateTransform(rtX, rtY, rectangle);
             drawable.Update(mcam, TimeSpan.FromSeconds(mainWindow.TotalTime), context.ResourceManager);
             mainWindow.RenderState.Cull = false;
@@ -385,7 +386,7 @@ namespace InterfaceEdit
         {
             if (foundTexture == null)
             {
-                ImGui.TextColored(new Vector4(1, 0, 0, 1), "Texture not found");
+                ImGui.TextColored(Color4.Red, "Texture not found");
                 return;
             }
 

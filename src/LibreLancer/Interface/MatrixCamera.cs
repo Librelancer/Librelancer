@@ -3,13 +3,15 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
+
 namespace LibreLancer
 {
     public class MatrixCamera : ICamera
     {
-        public Matrix4 Matrix;
+        public Matrix4x4 Matrix;
 
-        public MatrixCamera(Matrix4 vp)
+        public MatrixCamera(Matrix4x4 vp)
         {
             this.Matrix = vp;
         }
@@ -29,7 +31,7 @@ namespace LibreLancer
             var tY = (gY - r.Y - (r.Height / 2)) / gY;
             var sX = r.Width / (float)(game.Width);
             var sY = r.Height / (float)(game.Height);
-            Matrix = Matrix4.CreateScale(sX, sY, 1) * Matrix4.CreateTranslation(tX, tY, 0);
+            Matrix = Matrix4x4.CreateScale(sX, sY, 1) * Matrix4x4.CreateTranslation(tX, tY, 0);
         }
 
         public void CreateTransform(int gWidth, int gHeight, Rectangle r)
@@ -45,13 +47,13 @@ namespace LibreLancer
             var tY = (gY - r.Y - (r.Height / 2)) / gY;
             var sX = r.Width / (float)(gWidth);
             var sY = r.Height / (float)(gHeight);
-            Matrix = Matrix4.CreateScale(sX, sY, 1) * Matrix4.CreateTranslation(tX, tY, 0);
+            Matrix = Matrix4x4.CreateScale(sX, sY, 1) * Matrix4x4.CreateTranslation(tX, tY, 0);
         }
-        Matrix4 ICamera.ViewProjection => Matrix;
+        Matrix4x4 ICamera.ViewProjection => Matrix;
 
-        Matrix4 ICamera.Projection => Matrix4.Identity;
+        Matrix4x4 ICamera.Projection => Matrix4x4.Identity;
 
-        Matrix4 ICamera.View => Matrix4.Identity;
+        Matrix4x4 ICamera.View => Matrix4x4.Identity;
 
         Vector3 ICamera.Position => Vector3.Zero;
 

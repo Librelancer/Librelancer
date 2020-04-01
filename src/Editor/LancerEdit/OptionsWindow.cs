@@ -7,7 +7,6 @@ using System.Numerics;
 using LibreLancer;
 using LibreLancer.ImUI;
 using ImGuiNET;
-using Vector2 = LibreLancer.Vector2;
 
 namespace LancerEdit
 {
@@ -101,8 +100,8 @@ namespace LancerEdit
             windowOpen = true;
         }
 
-        System.Numerics.Vector3 editCol;
-        System.Numerics.Vector3 editCol2;
+        Vector3 editCol;
+        Vector3 editCol2;
         private bool editGrad;
         public void Draw()
         {
@@ -122,8 +121,8 @@ namespace LancerEdit
                 if (ViewerControls.GradientButton("Viewport Background", config.Background, config.Background2, new Vector2(22), vps, config.BackgroundGradient))
                 {
                     ImGui.OpenPopup("Viewport Background");
-                    editCol = new System.Numerics.Vector3(config.Background.R, config.Background.G, config.Background.B);
-                    editCol2 = new System.Numerics.Vector3(config.Background2.R, config.Background2.G, config.Background2.B);
+                    editCol = new Vector3(config.Background.R, config.Background.G, config.Background.B);
+                    editCol2 = new Vector3(config.Background2.R, config.Background2.G, config.Background2.B);
                     editGrad = config.BackgroundGradient;
                 }
                 ImGui.SameLine();
@@ -151,7 +150,7 @@ namespace LancerEdit
                     if (ImGui.Button("Default"))
                     {
                         var def = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
-                        editCol = new System.Numerics.Vector3(def.R, def.G, def.B);
+                        editCol = new Vector3(def.R, def.G, def.B);
                         editGrad = false;
                     }
                     ImGui.SameLine();
@@ -161,7 +160,7 @@ namespace LancerEdit
                 if(ImGui.ColorButton("Grid Color", config.GridColor, ImGuiColorEditFlags.NoAlpha, new Vector2(22)))
                 {
                     ImGui.OpenPopup("Grid Color");
-                    editCol = new System.Numerics.Vector3(config.GridColor.R, config.GridColor.G, config.GridColor.B);
+                    editCol = new Vector3(config.GridColor.R, config.GridColor.G, config.GridColor.B);
                 }
                 ImGui.SameLine();
                 ImGui.AlignTextToFramePadding();
@@ -178,7 +177,7 @@ namespace LancerEdit
                     if (ImGui.Button("Default"))
                     {
                         var def = Color4.CornflowerBlue;
-                        editCol = new System.Numerics.Vector3(def.R, def.G, def.B);
+                        editCol = new Vector3(def.R, def.G, def.B);
                         editGrad = false;
                     }
                     ImGui.EndPopup();

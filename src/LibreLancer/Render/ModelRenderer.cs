@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using System.Collections.Generic;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
@@ -12,7 +13,7 @@ namespace LibreLancer
 {
 	public class ModelRenderer : ObjectRenderer
 	{
-		public Matrix4 World { get; private set; }
+		public Matrix4x4 World { get; private set; }
 		public RigidModel Model { get; private set; }
         
 		public NebulaRenderer Nebula;
@@ -29,7 +30,7 @@ namespace LibreLancer
         double spinX;
         double spinY;
         double spinZ;
-		public override void Update(TimeSpan elapsed, Vector3 position, Matrix4 transform)
+		public override void Update(TimeSpan elapsed, Vector3 position, Matrix4x4 transform)
 		{
 			if (sysr == null)
 				return;
@@ -52,7 +53,7 @@ namespace LibreLancer
         int GetLevel(RigidModelPart file, Vector3 center, Vector3 camera)
 		{
 			float[] ranges = LODRanges ?? file.Mesh.Switch2;
-			var dsq = VectorMath.DistanceSquared(center, camera);
+			var dsq = Vector3.DistanceSquared(center, camera);
             if (ranges == null) {
                 CurrentLevel = 0;
                 return 0;
@@ -80,7 +81,7 @@ namespace LibreLancer
                 {
                     if (!part.Active) continue;
                     if (part.Mesh == null) continue;
-                    var center = VectorMath.Transform(part.Mesh.Center, part.LocalTransform * World);
+                    var center = Vector3.Transform(part.Mesh.Center, part.LocalTransform * World);
                     var lvl = GetLevel(part, center, camera.Position);
                     if (lvl != -1)
                     {
@@ -97,22 +98,22 @@ namespace LibreLancer
             
         }
 
-        Matrix4 _worldSph;
+        Matrix4x4 _worldSph;
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
 		{
             _worldSph = World;
             if(Spin != Vector3.Zero)
             {
-                _worldSph = (Matrix4.CreateRotationX((float)spinX) *
-                     Matrix4.CreateRotationY((float)spinY) *
-                     Matrix4.CreateRotationZ((float)spinZ)) * World;
+                _worldSph = (Matrix4x4.CreateRotationX((float)spinX) *
+                     Matrix4x4.CreateRotationY((float)spinY) *
+                     Matrix4x4.CreateRotationZ((float)spinZ)) * World;
             }
             this.sysr = sys;
 			if (Nebula != null && nr != Nebula)
 			{
                 return false;
 			}
-			var dsq = VectorMath.DistanceSquared(pos, camera.Position);
+			var dsq = Vector3.DistanceSquared(pos, camera.Position);
 			if (LODRanges != null) //Fastest cull
 			{
 				var maxd = LODRanges[LODRanges.Length - 1] * sysr.LODMultiplier;
@@ -128,7 +129,7 @@ namespace LibreLancer
                 foreach (var part in Model.AllParts)
                 { 
                     if(!part.Active || part.Mesh == null) continue;
-                    var center = VectorMath.Transform(part.Mesh.Center, part.LocalTransform * World);
+                    var center = Vector3.Transform(part.Mesh.Center, part.LocalTransform * World);
                     var lvl = GetLevel(part, center, camera.Position);
                     if (lvl != -1)
                     {
@@ -152,14 +153,14 @@ namespace LibreLancer
                     if (part.Mesh == null) continue;
                     if (!part.Active) continue;
                     var w = part.LocalTransform * World;
-                    var center = VectorMath.Transform(part.Mesh.Center, w);
+                    var center = Vector3.Transform(part.Mesh.Center, w);
                     var lvl = GetLevel(part, center, camera.Position);
                     if (lvl == -1) continue;
                     var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, part.GetRadius(), nr,
                         LitAmbient, LitDynamic, NoFog);
                     var r = part.GetRadius() + lighting.FogRange.Y;
                     if (lighting.FogMode != FogModes.Linear ||
-                        VectorMath.DistanceSquared(camera.Position, center) <= (r * r)) {
+                        Vector3.DistanceSquared(camera.Position, center) <= (r * r)) {
                         part.Mesh.DrawBuffer(lvl, sysr.ResourceManager, commands, w, ref lighting, Model.MaterialAnims);
                     }
                 }

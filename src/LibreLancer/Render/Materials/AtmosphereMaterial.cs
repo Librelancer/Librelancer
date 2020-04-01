@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
 namespace LibreLancer
@@ -39,7 +40,7 @@ namespace LibreLancer
 			sh.SetDc(Dc);
 			sh.SetOc(Alpha);
 			sh.SetTileRate(Fade);
-            var w = Matrix4.CreateScale(Scale) * World;
+            var w = Matrix4x4.CreateScale(Scale) * World;
             sh.SetWorld(ref w);
 			sh.SetView(Camera);
 			sh.SetViewProjection(Camera);
@@ -48,13 +49,13 @@ namespace LibreLancer
                 sh.SetOc(0);
 			BindTexture(rstate, 0, DtSampler, 0, DtFlags);
 			var normalmat = w;
-			normalmat.Invert();
-			normalmat.Normalize();
+            Matrix4x4.Invert(normalmat, out normalmat);
+            normalmat = Matrix4x4.Transpose(normalmat);
 			SetLights(sh, ref lights);
 			sh.SetNormalMatrix(ref normalmat);
 			sh.UseProgram ();
 		}
-		
+
 		public override void ApplyDepthPrepass(RenderState rstate)
 		{
 			throw new InvalidOperationException();

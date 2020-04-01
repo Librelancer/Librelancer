@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Utf.Ale;
 namespace LibreLancer.Fx
 {
@@ -10,7 +11,7 @@ namespace LibreLancer.Fx
 	{
 		public FxPerpAppearance(AlchemyNode ale) : base(ale) { }
 
-        public override void Draw(ref Particle particle, int pidx, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+        public override void Draw(ref Particle particle, int pidx, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam)
         {
             var time = particle.TimeAlive / particle.LifeSpan;
             var node_tr = GetAttachment(reference, transform);
@@ -21,17 +22,15 @@ namespace LibreLancer.Fx
 			var a = Alpha.GetValue(sparam, time);
             var q = particle.Orientation * Transform.GetDeltaRotation(sparam, lasttime, globaltime);
             particle.Orientation = q;
-            var mat = Matrix4.CreateFromQuaternion(q);
-            //TODO: why doesn't this work?
-            //var n = (transform * new Vector4(particle.Normal.Normalized(), 0)).Xyz.Normalized();
-            var p = VectorMath.Transform(particle.Position, transform);
-            var p2 = VectorMath.Transform(particle.Position + particle.Normal, transform);
+            var mat = Matrix4x4.CreateFromQuaternion(q);
+            var p = Vector3.Transform(particle.Position, transform);
+            var p2 = Vector3.Transform(particle.Position + particle.Normal, transform);
             var n = (p - p2).Normalized();
             instance.Pool.DrawPerspective(
                 particle.Instance,
                 this,
 				tex,
-                VectorMath.Transform(particle.Position,transform),
+                Vector3.Transform(particle.Position,transform),
                 mat,
 				new Vector2(Size.GetValue(sparam, time)),
 				new Color4(c, a),

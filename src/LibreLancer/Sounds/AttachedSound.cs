@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Data.Audio;
 using LibreLancer.Media;
 
@@ -31,7 +32,7 @@ namespace LibreLancer
                 Entry = manager.GetEntry(Sound);
             if (Active)
             {
-                if (Entry.Range.Y > 0 && (VectorMath.Distance(manager.ListenerPosition, Position) > Entry.Range.Y))
+                if (Entry.Range.Y > 0 && (Vector3.Distance(manager.ListenerPosition, Position) > Entry.Range.Y))
                     EnsureStopped();
                 else
                     TryMakeActive();

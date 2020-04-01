@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using LibreLancer;
 using LibreLancer.ImUI;
 using LibreLancer.Utf.Cmp;
@@ -337,7 +338,7 @@ namespace LancerEdit
             public Hardpoint Hardpoint;
             public RigidModelPart Parent;
             public bool Enabled;
-            public Matrix4? Override = null;
+            public Matrix4x4? Override = null;
             public float EditingMin;
             public float EditingMax;
             public HardpointGizmo(Hardpoint hp, RigidModelPart parent)
@@ -548,7 +549,7 @@ namespace LancerEdit
                         var newHp = MakeDuplicate(GetDupName(hp.Name), hp);
                         //do mirroring
                         newHp.Definition.Position.X = -newHp.Definition.Position.X;
-                        newHp.Definition.Orientation *= new Matrix4(
+                        newHp.Definition.Orientation *= new Matrix4x4(
                             -1, 0, 0, 0,
                             0, 1, 0, 0,
                             0, 0, 1, 0,
@@ -566,7 +567,7 @@ namespace LancerEdit
                         var newHp = MakeDuplicate(GetDupName(hp.Name), hp);
                         //do mirroring
                         newHp.Definition.Position.Y = -newHp.Definition.Position.Y;
-                        newHp.Definition.Orientation *= new Matrix4(
+                        newHp.Definition.Orientation *= new Matrix4x4(
                             1, 0, 0, 0,
                             0, -1, 0, 0,
                             0, 0, 1, 0,
@@ -584,7 +585,7 @@ namespace LancerEdit
                         var newHp = MakeDuplicate(GetDupName(hp.Name), hp);
                         //do mirroring
                         newHp.Definition.Position.Z = -newHp.Definition.Position.Z;
-                        newHp.Definition.Orientation *= new Matrix4(
+                        newHp.Definition.Orientation *= new Matrix4x4(
                             1, 0, 0, 0,
                             0, 1, 0, 0,
                             0, 0, -1, 0,

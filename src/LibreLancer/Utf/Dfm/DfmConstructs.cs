@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Text;
 using System.IO;
     
@@ -33,7 +34,7 @@ namespace LibreLancer.Utf.Dfm
         public string ParentName;
         public string ChildName;
         public Vector3 Origin;
-        public Matrix4 Rotation;
+        public Matrix4x4 Rotation;
         public DfmConstruct(BinaryReader reader)
         {
             int ln = 64;

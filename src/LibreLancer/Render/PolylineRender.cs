@@ -3,7 +3,9 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Vertices;
+
 namespace LibreLancer
 {
 	public class PolylineRender : IDisposable
@@ -74,7 +76,7 @@ namespace LibreLancer
 				shader.Shader,
 				Setup,
 				Cleanup,
-				Matrix4.Identity,
+				Matrix4x4.Identity,
 				new RenderUserData() { Texture = texture, Camera = camera, Float = (float)(int)blend },
 				vbo,
 				PrimitiveTypes.TriangleStrip,

@@ -3,7 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Net.Mime;
+using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ImUI;

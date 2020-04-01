@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using System.Linq;
 using System.Collections.Generic;
 namespace LibreLancer
@@ -50,9 +51,9 @@ namespace LibreLancer
 		{
             var rad = obj.PhysicsComponent.Body.Collider.Radius;
 			foreach (var hps in GetDockHardpoints(obj.PhysicsComponent.Body.Position))
-			{
-				var targetPos = (hps.Transform * Parent.GetTransform()).Transform(Vector3.Zero);
-				var dist = (targetPos - obj.PhysicsComponent.Body.Position).Length;
+            {
+                var targetPos = Vector3.Transform(Vector3.Zero, hps.Transform * Parent.GetTransform());
+				var dist = (targetPos - obj.PhysicsComponent.Body.Position).Length();
 				if (dist < 20 + rad)
 				{
 					TriggerAnimation();
@@ -78,8 +79,8 @@ namespace LibreLancer
 		public bool CanDock(GameObject obj)
 		{
 			var hp = Parent.GetHardpoint(tlHP ?? DockHardpoint);
-			var targetPos = (hp.Transform * Parent.GetTransform()).Transform(Vector3.Zero);
-			if ((targetPos - obj.PhysicsComponent.Body.Position).Length < (TriggerRadius * 2 + obj.PhysicsComponent.Body.Collider.Radius))
+			var targetPos = Vector3.Transform(Vector3.Zero, hp.Transform * Parent.GetTransform());
+			if ((targetPos - obj.PhysicsComponent.Body.Position).Length() < (TriggerRadius * 2 + obj.PhysicsComponent.Body.Collider.Radius))
 			{
 				return true;
 			}

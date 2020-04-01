@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using LibreLancer.Vertices;
 
@@ -149,7 +150,7 @@ namespace LibreLancer
 				throw new InvalidOperationException ("Renderer2D.Start() called without calling Renderer2D.Finish()");
 			active = true;
 			this.vpHeight = vpHeight;
-			var mat = Matrix4.CreateOrthographicOffCenter (0, vpWidth, vpHeight, 0, 0, 1);
+			var mat = Matrix4x4.CreateOrthographicOffCenter (0, vpWidth, vpHeight, 0, 0, 1);
 			imgShader.SetMatrix (imgShader.GetLocation("modelviewproj"), ref mat);
 			currentMode = BlendMode.Normal;
             vertices = (Vertex2D*)vbo.BeginStreaming();
@@ -208,7 +209,7 @@ namespace LibreLancer
 			var cos = (float)Math.Cos(angle);
 			var x = start.X;
 			var y = start.Y;
-			var w = edge.Length;
+			var w = edge.Length();
 
 			vertices[vertexCount++] = new Vertex2D(
 				new Vector2(x,y),

@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using System.Collections.Generic;
 using ImGuiNET;
 using LibreLancer;
@@ -212,26 +213,26 @@ namespace LancerEdit
                         ImGui.InputFloat("Max3", ref max3, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
                     ImGui.Separator();
                 }
-                var jointPreview = Matrix4.Identity;
+                var jointPreview = Matrix4x4.Identity;
                 if(editingPart is RevConstruct) {
-                    jointPreview = Matrix4.CreateFromAxisAngle(
+                    jointPreview = Matrix4x4.CreateFromAxisAngle(
                     new Vector3(partAxX, partAxY, partAxZ),
                         MathHelper.DegreesToRadians(partPreview));
                 } else if (editingPart is PrisConstruct) {
                     var translate = new Vector3(partAxX, partAxY, partAxZ).Normalized() * partPreview;
-                    jointPreview = Matrix4.CreateTranslation(translate);
+                    jointPreview = Matrix4x4.CreateTranslation(translate);
                 }
-                editingPart.OverrideTransform = Matrix4.CreateFromEulerAngles(
-                MathHelper.DegreesToRadians((double)partPitch),
-                MathHelper.DegreesToRadians((double)partYaw),
-                MathHelper.DegreesToRadians((double)partRoll)) * jointPreview *
-                    Matrix4.CreateTranslation(new Vector3(partX, partY, partZ) + new Vector3(partOX, partOY, partOZ));
+                editingPart.OverrideTransform = Matrix4x4.CreateFromYawPitchRoll(
+                MathHelper.DegreesToRadians(partPitch),
+                MathHelper.DegreesToRadians(partYaw),
+                MathHelper.DegreesToRadians(partRoll)) * jointPreview *
+                    Matrix4x4.CreateTranslation(new Vector3(partX, partY, partZ) + new Vector3(partOX, partOY, partOZ));
                 if(ImGui.Button("Apply")) {
                     editingPart.Origin = new Vector3(partX, partY, partZ);
-                    editingPart.Rotation = Matrix4.CreateFromEulerAngles(
-                        MathHelper.DegreesToRadians((double)partPitch),
-                        MathHelper.DegreesToRadians((double)partYaw),
-                        MathHelper.DegreesToRadians((double)partRoll)
+                    editingPart.Rotation = Matrix4x4.CreateFromYawPitchRoll(
+                        MathHelper.DegreesToRadians(partYaw),
+                        MathHelper.DegreesToRadians(partPitch),
+                        MathHelper.DegreesToRadians(partRoll)
                     );
                     if(editingPart is RevConstruct) {
                         var rev = (RevConstruct)editingPart;

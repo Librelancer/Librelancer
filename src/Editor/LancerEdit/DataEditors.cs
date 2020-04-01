@@ -3,7 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using LibreLancer;
+using System.Numerics;
 using ImGuiNET;
 namespace LancerEdit
 {

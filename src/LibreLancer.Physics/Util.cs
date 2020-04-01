@@ -3,21 +3,23 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using BM = BulletSharp.Math;
+
 namespace LibreLancer.Physics
 {
     unsafe static class Util
     {
-        public static BM.Matrix Cast(this Matrix4 mat)
+        public static BM.Matrix Cast(this Matrix4x4 mat)
         {
             var output = new BM.Matrix();
-            *(Matrix4*)&output = mat;
+            *(Matrix4x4*)&output = mat;
             return output;
         }
 
-        public static Matrix4 Cast(this BM.Matrix mat)
+        public static Matrix4x4 Cast(this BM.Matrix mat)
         {
-            var output = new Matrix4();
+            var output = new Matrix4x4();
             *(BM.Matrix*)&output = mat;
             return output;
         }

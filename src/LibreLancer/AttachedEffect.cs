@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 namespace LibreLancer
 {
 	class AttachedEffect
@@ -19,7 +20,7 @@ namespace LibreLancer
 		{
 			Effect.SParam = sparam;
 			var world = Attachment.Transform * parent.GetTransform();
-			Effect.Update(time, world.Transform(Vector3.Zero), world);
+			Effect.Update(time, Vector3.Transform(Vector3.Zero, world), world);
 		}
 	}
 }

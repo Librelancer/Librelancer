@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using LibreLancer;
-using LibreLancer.Utf.Cmp;
+using System.Numerics;
 
 namespace LibreLancer.Interface
 {
@@ -52,8 +51,8 @@ namespace LibreLancer.Interface
             if (!CanRender(context)) return;
             context.Mode3D();
             var rect = context.PointsToPixels(clientRectangle);
-            var transform = Matrix4.CreateScale(Model.XScale, Model.YScale, 1) *
-                            Matrix4.CreateTranslation(Model.X, Model.Y, 0);
+            var transform = Matrix4x4.CreateScale(Model.XScale, Model.YScale, 1) *
+                            Matrix4x4.CreateTranslation(Model.X, Model.Y, 0);
             context.MatrixCam.CreateTransform((int)context.ViewportWidth, (int)context.ViewportHeight, rect);
             context.RenderState.Cull = false;
             model.UpdateTransform();

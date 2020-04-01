@@ -6,6 +6,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Numerics;
 
 namespace LibreLancer.Utf
 {
@@ -15,11 +16,11 @@ namespace LibreLancer.Utf
         public string ParentName { get; set; }
         public string ChildName { get; set; }
         public Vector3 Origin { get; set; }
-        public Matrix4 Rotation { get; set; }
+        public Matrix4x4 Rotation { get; set; }
 
-        public abstract Matrix4 LocalTransform { get; }
+        public abstract Matrix4x4 LocalTransform { get; }
 
-        public Matrix4? OverrideTransform;
+        public Matrix4x4? OverrideTransform;
 
         protected AbstractConstruct()
         {
@@ -52,7 +53,7 @@ namespace LibreLancer.Utf
 
         public abstract AbstractConstruct Clone();
 
-        protected Matrix4 internalGetTransform(Matrix4 matrix)
+        protected Matrix4x4 internalGetTransform(Matrix4x4 matrix)
         {
             if (OverrideTransform != null)
                 matrix = OverrideTransform.Value;

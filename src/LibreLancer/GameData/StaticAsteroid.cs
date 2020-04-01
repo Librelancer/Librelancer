@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 
 namespace LibreLancer.GameData
 {
@@ -11,7 +12,7 @@ namespace LibreLancer.GameData
 		public IDrawable Drawable;
 		public Vector3 Rotation;
 		public Vector3 Position;
-		public Matrix4 RotationMatrix;
+		public Matrix4x4 RotationMatrix;
 		public string Info;
         public string Archetype;
 	}

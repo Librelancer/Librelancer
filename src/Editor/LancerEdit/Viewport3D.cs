@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer;
 using LibreLancer.ImUI;
 using ImGuiNET;
@@ -195,7 +196,7 @@ namespace LancerEdit
         {
             orbitPan.Y = MathHelper.Clamp(orbitPan.Y,-MathHelper.PiOver2 + 0.02f, MathHelper.PiOver2 - 0.02f);
             var mat = System.Numerics.Matrix4x4.CreateFromYawPitchRoll(-orbitPan.X, orbitPan.Y, 0);
-            var res = System.Numerics.Vector3.Transform(new System.Numerics.Vector3(0, 0, zoom), mat);
+            var res = Vector3.Transform(new Vector3(0, 0, zoom), mat);
             CameraRotation = Vector2.Zero;
             CameraOffset = new Vector3(res.X, res.Y, res.Z);
         }
@@ -246,19 +247,19 @@ namespace LancerEdit
             {
                 var delta = (Vector2)ImGui.GetMouseDragDelta(0, 1f);
                 ImGui.ResetMouseDragDelta(0);
-                var rotmat = Matrix4.CreateRotationX(CameraRotation.Y) *
-                    Matrix4.CreateRotationY(CameraRotation.X);
+                var rotmat = Matrix4x4.CreateRotationX(CameraRotation.Y) *
+                    Matrix4x4.CreateRotationY(CameraRotation.X);
                 if (ImGui.IsMouseDown(1))
                 {
                     //LMB + RMB - Move up and down
                     ImGui.ResetMouseDragDelta(1);
-                    var y = rotmat.Transform(Vector3.UnitY);
+                    var y = Vector3.Transform(Vector3.UnitY, rotmat);
                     CameraOffset += y * (delta.Y * ModelScale / 52f);
                 }
                 else
                 {
-                    var z = rotmat.Transform(Vector3.UnitZ);
-                    var x = rotmat.Transform(Vector3.UnitX);
+                    var z = Vector3.Transform(Vector3.UnitZ,rotmat);
+                    var x = Vector3.Transform(Vector3.UnitX, rotmat);
 
                     CameraOffset += x * (delta.X * ModelScale / 52f);
                     CameraOffset -= z * (delta.Y * ModelScale / 44f);
@@ -285,36 +286,36 @@ namespace LancerEdit
         }
         void WalkthroughKeyboardControls()
         {
-            var rotmat = Matrix4.CreateRotationX(CameraRotation.Y) *
-                            Matrix4.CreateRotationY(CameraRotation.X);
+            var rotmat = Matrix4x4.CreateRotationX(CameraRotation.Y) *
+                            Matrix4x4.CreateRotationY(CameraRotation.X);
             if (mw.Keyboard.IsKeyDown(Keys.W))
             {
-                var z = rotmat.Transform(-Vector3.UnitZ);
+                var z = Vector3.Transform(-Vector3.UnitZ, rotmat);
                 CameraOffset += z * (float)mw.TimeStep * ModelScale;
             }
             else if (mw.Keyboard.IsKeyDown(Keys.S))
             {
-                var z = rotmat.Transform(Vector3.UnitZ);
+                var z = Vector3.Transform(Vector3.UnitZ, rotmat);
                 CameraOffset += z * (float)mw.TimeStep * ModelScale;
             }
             if (mw.Keyboard.IsKeyDown(Keys.A))
             {
-                var x = rotmat.Transform(Vector3.UnitX);
+                var x = Vector3.Transform(Vector3.UnitX, rotmat);
                 CameraOffset += x * (float)mw.TimeStep * ModelScale;
             }
             else if (mw.Keyboard.IsKeyDown(Keys.D))
             {
-                var x = rotmat.Transform(-Vector3.UnitX);
+                var x = Vector3.Transform(-Vector3.UnitX, rotmat);
                 CameraOffset += x * (float)mw.TimeStep * ModelScale;
             }
             if (mw.Keyboard.IsKeyDown(Keys.E))
             {
-                var y = rotmat.Transform(Vector3.UnitY);
+                var y = Vector3.Transform(Vector3.UnitY, rotmat);
                 CameraOffset += y * (float)mw.TimeStep * ModelScale;
             }
             else if (mw.Keyboard.IsKeyDown(Keys.Q))
             {
-                var y = rotmat.Transform(-Vector3.UnitY);
+                var y = Vector3.Transform(-Vector3.UnitY, rotmat);
                 CameraOffset += y * (float)mw.TimeStep * ModelScale;
             }
         }

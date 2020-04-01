@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using LibreLancer;
 using LibreLancer.ImUI;
 using LibreLancer.Fx;
@@ -220,9 +221,9 @@ namespace LancerEdit
         void DrawGL(int renderWidth, int renderHeight)
         {
             var cam = new LookAtCamera();
-            Matrix4 rot = Matrix4.CreateRotationX(aleViewport.CameraRotation.Y) *
-                Matrix4.CreateRotationY(aleViewport.CameraRotation.X);
-            var dir = rot.Transform(Vector3.Forward);
+            Matrix4x4 rot = Matrix4x4.CreateRotationX(aleViewport.CameraRotation.Y) *
+                Matrix4x4.CreateRotationY(aleViewport.CameraRotation.X);
+            var dir = Vector3.Transform(-Vector3.UnitZ, rot);
             var to = aleViewport.CameraOffset + (dir * 10);
             if (aleViewport.Mode == CameraModes.Arcball)
                 to = Vector3.Zero;
@@ -266,10 +267,10 @@ namespace LancerEdit
             if (hk == Hotkeys.ResetViewport) aleViewport.ResetControls();
         }
 
-        Matrix4 transform = Matrix4.Identity;
+        Matrix4x4 transform = Matrix4x4.Identity;
         public override void Update(double elapsed)
         {
-            transform = Matrix4.CreateRotationX(aleViewport.ModelRotation.Y) * Matrix4.CreateRotationY(aleViewport.ModelRotation.X);
+            transform = Matrix4x4.CreateRotationX(aleViewport.ModelRotation.Y) * Matrix4x4.CreateRotationY(aleViewport.ModelRotation.X);
             instance.Update(TimeSpan.FromSeconds(elapsed), transform, sparam);
             pool.Update(TimeSpan.FromSeconds(elapsed));
         }

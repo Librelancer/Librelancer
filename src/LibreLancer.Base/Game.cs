@@ -7,9 +7,11 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Numerics;
 using System.Threading;
 using System.Text;
 using System.Runtime.InteropServices;
+
 namespace LibreLancer
 {
     public delegate void ScreenshotSaveHandler(string filename, int width, int height, byte[] data);
@@ -319,7 +321,6 @@ namespace LibreLancer
             FLLog.Info("Engine", "Version: " + Platform.GetInformationalVersion<Game>());
             //TODO: This makes i5-7200U on mesa 18 faster, but this should probably be a configurable option
             Environment.SetEnvironmentVariable("mesa_glthread", "true");
-            SSEMath.Load();
             if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) != 0)
             {
                 FLLog.Error("SDL", "SDL_Init failed, exiting.");

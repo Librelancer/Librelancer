@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using System.Collections.Generic;
 using LibreLancer.Data.Missions;
 using LibreLancer.Utf.Cmp;
@@ -34,7 +35,7 @@ namespace LibreLancer
 		public string PlayerSystem;
 		public string PlayerBase;
 		public Vector3 PlayerPosition;
-		public Matrix3 PlayerOrientation;
+		public Matrix4x4 PlayerOrientation;
 
         private IPacketConnection connection;
 		public GameSession(FreelancerGame g, IPacketConnection connection)
@@ -229,7 +230,7 @@ namespace LibreLancer
                     PlayerBase = null;
                     PlayerSystem = p.System;
                     PlayerPosition = p.Position;
-                    PlayerOrientation = Matrix3.CreateFromQuaternion(p.Orientation);
+                    PlayerOrientation = Matrix4x4.CreateFromQuaternion(p.Orientation);
                     SetSelfLoadout(p.Ship);
                     SceneChangeRequired();
                     break;
@@ -243,8 +244,8 @@ namespace LibreLancer
                     //Set up player object + camera
                     var newobj = new GameObject(shp, Game.ResourceManager);
                     newobj.Name = "NetPlayer " + p.ID;
-                    newobj.Transform = Matrix4.CreateFromQuaternion(p.Orientation) *
-                        Matrix4.CreateTranslation(p.Position);
+                    newobj.Transform = Matrix4x4.CreateFromQuaternion(p.Orientation) *
+                        Matrix4x4.CreateTranslation(p.Position);
                     objects.Add(p.ID, newobj);
                     if (worldReady)
                     {
@@ -276,9 +277,9 @@ namespace LibreLancer
         {
             var obj = objects[update.ID];
             var tr = obj.GetTransform();
-            var pos = update.HasPosition ? update.Position : tr.Transform(Vector3.Zero);
+            var pos = update.HasPosition ? update.Position : Vector3.Transform(Vector3.Zero, tr);
             var rot = update.HasOrientation ? update.Orientation : tr.ExtractRotation();
-            obj.Transform = Matrix4.CreateFromQuaternion(rot) * Matrix4.CreateTranslation(pos);
+            obj.Transform = Matrix4x4.CreateFromQuaternion(rot) * Matrix4x4.CreateTranslation(pos);
         }
 
         public void Launch()

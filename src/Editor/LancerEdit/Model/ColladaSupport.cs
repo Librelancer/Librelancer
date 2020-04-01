@@ -3,7 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Collections;
+using System.Numerics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
@@ -20,7 +20,7 @@ namespace LancerEdit
     {
         public string Name;
         public string ID;
-        public Matrix4 Transform;
+        public Matrix4x4 Transform;
         public ColladaGeometry Geometry;
         public ColladaSpline Spline;
         public List<ColladaObject> Children = new List<ColladaObject>();
@@ -78,8 +78,8 @@ namespace LancerEdit
             Max = new Vector3(maxX, maxY, maxZ);
             Center = new Vector3(avgX, avgY, avgZ) / Vertices.Length;
             Radius = Math.Max(
-                VectorMath.Distance(Center, Min),
-                VectorMath.Distance(Center, Max)
+                Vector3.Distance(Center, Min),
+                Vector3.Distance(Center, Max)
             );
         }
         public byte[] VMeshRef(string nodename)
@@ -241,7 +241,7 @@ namespace LancerEdit
                 var tr = n.Items.OfType<CL.matrix>().First();
                 obj.Transform = GetMatrix(up,tr.Text);
             } else {
-                Matrix4 mat = Matrix4.Identity;
+                Matrix4x4 mat = Matrix4x4.Identity;
                 foreach(var item in n.Items) {
                     if(item is CL.TargetableFloat3) {
                         //var float3 = 
@@ -634,19 +634,19 @@ namespace LancerEdit
             }
         }
 
-        static Matrix4 GetMatrix(CL.UpAxisType ax, string text)
+        static Matrix4x4 GetMatrix(CL.UpAxisType ax, string text)
         {
             var floats = FloatArray(text);
-            Matrix4 mat;
+            Matrix4x4 mat;
             if (floats.Length == 16)
-                mat = new Matrix4(
+                mat = new Matrix4x4(
                     floats[0], floats[4], floats[8], floats[12],
                     floats[1], floats[5], floats[9], floats[13],
                     floats[2], floats[6], floats[10], floats[14],
                     floats[3], floats[7], floats[11], floats[15]
                 );
             else if (floats.Length == 9)
-                mat = new Matrix4(
+                mat = new Matrix4x4(
                     floats[0], floats[1], floats[2], 0,
                     floats[3], floats[4], floats[5], 0,
                     floats[6], floats[7], floats[8], 0,
@@ -656,14 +656,14 @@ namespace LancerEdit
                 throw new Exception("Invalid Matrix: " + floats.Length + " elements");
             if (ax == CL.UpAxisType.Z_UP)
             {
-                var translation = mat.ExtractTranslation();
-                translation = translation.Xzy * new Vector3(1, 1, -1);
+                var translation = mat.Translation;
+                translation = new Vector3(translation.X, translation.Z, translation.Y) * new Vector3(1, 1, -1);
 
                 var rotq = mat.ExtractRotation();
-                var rot = Matrix4.CreateFromQuaternion(
+                var rot = Matrix4x4.CreateFromQuaternion(
                     new Quaternion(rotq.X,rotq.Z, -rotq.Y, rotq.W)
                 );
-                return rot * Matrix4.CreateTranslation(translation);
+                return rot * Matrix4x4.CreateTranslation(translation);
             }
             else if (ax == CL.UpAxisType.Y_UP)
                 return mat;
@@ -673,7 +673,7 @@ namespace LancerEdit
         static Vector3 VecAxis(CL.UpAxisType ax, Vector3 vec)
         {
             if (ax == CL.UpAxisType.Z_UP)
-                return vec.Xzy * new Vector3(1, 1, -1);
+                return new Vector3(vec.X, vec.Z, vec.Y) * new Vector3(1, 1, -1);
             else if (ax == CL.UpAxisType.Y_UP)
                 return vec;
             else

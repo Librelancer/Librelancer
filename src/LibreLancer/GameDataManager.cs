@@ -7,6 +7,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using LibreLancer.Fx;
 using LibreLancer.GameData;
@@ -611,12 +612,12 @@ namespace LibreLancer
                         {
                             var r = zne.Rotate.Value;
 
-                            var qx = Quaternion.FromEulerAngles(
-                                MathHelper.DegreesToRadians(r.X),
+                            var qx = Quaternion.CreateFromYawPitchRoll(
                                 MathHelper.DegreesToRadians(r.Y),
+                                MathHelper.DegreesToRadians(r.X),
                                 MathHelper.DegreesToRadians(r.Z)
                             );
-                            z.RotationMatrix = Matrix4.CreateFromQuaternion(qx);
+                            z.RotationMatrix = Matrix4x4.CreateFromQuaternion(qx);
                             z.RotationAngles = new Vector3(
                                 MathHelper.DegreesToRadians(r.X),
                                 MathHelper.DegreesToRadians(r.Y),
@@ -625,7 +626,7 @@ namespace LibreLancer
                         }
                         else
                         {
-                            z.RotationMatrix = Matrix4.Identity;
+                            z.RotationMatrix = Matrix4x4.Identity;
                             z.RotationAngles = Vector3.Zero;
                         }
                         switch (zne.Shape.Value)
@@ -809,9 +810,9 @@ namespace LibreLancer
                     Archetype = c.Name
                 };
                 sta.RotationMatrix =
-                    Matrix4.CreateRotationX(MathHelper.DegreesToRadians(c.Rotation.X)) *
-                    Matrix4.CreateRotationY(MathHelper.DegreesToRadians(c.Rotation.Y)) *
-                    Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(c.Rotation.Z));
+                    Matrix4x4.CreateRotationX(MathHelper.DegreesToRadians(c.Rotation.X)) *
+                    Matrix4x4.CreateRotationY(MathHelper.DegreesToRadians(c.Rotation.Y)) *
+                    Matrix4x4.CreateRotationZ(MathHelper.DegreesToRadians(c.Rotation.Z));
                 a.Cube.Add(sta);
             }
             a.ExclusionZones = new List<GameData.ExclusionZone>();
@@ -1199,9 +1200,9 @@ namespace LibreLancer
             if (o.Rotate != null)
             {
                 obj.Rotation =
-                    Matrix4.CreateRotationX(MathHelper.DegreesToRadians(o.Rotate.Value.X)) *
-                    Matrix4.CreateRotationY(MathHelper.DegreesToRadians(o.Rotate.Value.Y)) *
-                    Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(o.Rotate.Value.Z));
+                    Matrix4x4.CreateRotationX(MathHelper.DegreesToRadians(o.Rotate.Value.X)) *
+                    Matrix4x4.CreateRotationY(MathHelper.DegreesToRadians(o.Rotate.Value.Y)) *
+                    Matrix4x4.CreateRotationZ(MathHelper.DegreesToRadians(o.Rotate.Value.Z));
             }
             obj.Archetype = archetypes[o.Archetype];
             if (obj.Archetype.Type == Data.Solar.ArchetypeType.sun)

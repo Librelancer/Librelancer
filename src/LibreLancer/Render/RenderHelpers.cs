@@ -3,20 +3,21 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.GameData;
 namespace LibreLancer
 {
 	public static class RenderHelpers
 	{
         const int MAX_LIGHTS = 8;
-		public static float GetZ(Matrix4 world, Vector3 cameraPosition, Vector3 vec)
+		public static float GetZ(Matrix4x4 world, Vector3 cameraPosition, Vector3 vec)
 		{
-			var res =  VectorMath.DistanceSquared(world.Transform(vec), cameraPosition);
+			var res =  Vector3.DistanceSquared(Vector3.Transform(vec,world), cameraPosition);
 			return res;
 		}
 		public static float GetZ(Vector3 cameraPosition, Vector3 vec)
 		{
-			var res = VectorMath.DistanceSquared(vec, cameraPosition);
+			var res = Vector3.DistanceSquared(vec, cameraPosition);
 			return res;
 		}
 		public static Lighting ApplyLights(SystemLighting src, int lightGroup, Vector3 c, float r, NebulaRenderer nebula, bool lambient = true, bool ldynamic = true, bool nofog = false)
@@ -64,7 +65,7 @@ namespace LibreLancer
 					var l = src.Lights[i].Light;
 					var r2 = r + l.Range;
 					//l.Kind > 0 - test if not directional
-					if (l.Kind > 0 && VectorMath.DistanceSquared(l.Position, c) > (r2 * r2))
+					if (l.Kind > 0 && Vector3.DistanceSquared(l.Position, c) > (r2 * r2))
 						continue;
 					//Advanced spotlight cull
 					if ((l.Kind == LightKind.Spotlight) && SpotlightTest(ref l, c, r))
@@ -105,7 +106,7 @@ namespace LibreLancer
 		static bool SpotlightTest(ref RenderLight light, Vector3 objPos, float objRadius)
 		{
 			var V = objPos - light.Position;
-			var VLenSq = V.LengthSquared;
+			var VLenSq = V.LengthSquared();
 			var V1len = Vector3.Dot(V, light.Direction);
 			var distClosestPoint = (float)(Math.Cos(light.Phi) * Math.Sqrt(VLenSq - V1len * V1len) - V1len * Math.Sin(light.Phi));
 			var angleCull = distClosestPoint > objRadius;

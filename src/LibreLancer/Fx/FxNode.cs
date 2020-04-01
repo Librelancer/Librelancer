@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Utf.Ale;
 
 namespace LibreLancer.Fx
@@ -33,20 +34,20 @@ namespace LibreLancer.Fx
 			}
 		}
 
-        protected static Matrix4 GetAttachment(NodeReference reference, Matrix4 attachment)
+        protected static Matrix4x4 GetAttachment(NodeReference reference, Matrix4x4 attachment)
 		{
 			if (reference.IsAttachmentNode) {
                 return attachment;
 			}
 			else if (reference.Parent == null) {
-				return Matrix4.Identity;
+				return Matrix4x4.Identity;
 			}
 			else {
                 return GetAttachment(reference.Parent, attachment);
 			}
 		}
 
-		public virtual void Update(NodeReference reference, ParticleEffectInstance instance, TimeSpan delta, ref Matrix4 transform, float sparam)
+		public virtual void Update(NodeReference reference, ParticleEffectInstance instance, TimeSpan delta, ref Matrix4x4 transform, float sparam)
 		{
 		}
 

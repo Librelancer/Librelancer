@@ -26,9 +26,7 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Xml.Serialization;
+using System.Numerics;
 
 namespace LibreLancer
 {
@@ -1469,9 +1467,14 @@ namespace LibreLancer
 			);
 		}
 
-        public static implicit operator System.Numerics.Vector4(Color4 self)
+        public static implicit operator Vector4(Color4 self)
         {
-            return new System.Numerics.Vector4(self.R, self.G, self.B, self.A);
+            return new Vector4(self.R, self.G, self.B, self.A);
+        }
+
+        public static implicit operator Color4(Vector4 vec)
+        {
+            return new Color4(vec.X, vec.Y, vec.Z, vec.W);
         }
     }
 }

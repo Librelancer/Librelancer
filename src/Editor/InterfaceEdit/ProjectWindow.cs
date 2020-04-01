@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using ImGuiNET;
-using LibreLancer;
+using System.Numerics;
 using LibreLancer.ImUI;
 
 namespace InterfaceEdit

@@ -3,6 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
+
 namespace LibreLancer
 {
 	public class ShaderVariables
@@ -112,14 +114,14 @@ namespace LibreLancer
                 shader.SetInteger(skinningEnabledPosition, skinningEnabled ? 1 : 0);
         }
 
-        public void SetView(ref Matrix4 view)
+        public void SetView(ref Matrix4x4 view)
 		{
 			if (viewPosition != -1)
 				shader.SetMatrix(viewPosition, ref view);
             _camera = null;
 		}
 
-		public void SetViewProjection(ref Matrix4 viewProjection)
+		public void SetViewProjection(ref Matrix4x4 viewProjection)
 		{
 			if (viewProjectionPosition != -1)
 				shader.SetMatrix(viewProjectionPosition, ref viewProjection);
@@ -165,13 +167,13 @@ namespace LibreLancer
                 shader.SetMatrix(viewProjectionPosition, ref vp);
         }
 
-		public void SetWorld(ref Matrix4 world)
+		public void SetWorld(ref Matrix4x4 world)
 		{
 			if (worldPosition != -1)
 				shader.SetMatrix(worldPosition, ref world);
 		}
 
-		public void SetNormalMatrix(ref Matrix4 normal)
+		public void SetNormalMatrix(ref Matrix4x4 normal)
 		{
 			if (normalMatrixPosition != -1)
 				shader.SetMatrix(normalMatrixPosition, ref normal);

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 using LibreLancer.Utf.Dfm;
 using LibreLancer.Utf.Cmp;
@@ -14,7 +15,7 @@ namespace LibreLancer
     public class DfmSkinning
     {
         DfmFile dfm;
-        Matrix4[] boneMatrices;
+        Matrix4x4[] boneMatrices;
         private BoneInstance[] instanceArray;
         List<BoneInstance> starts = new List<BoneInstance>();
         public Dictionary<string, BoneInstance> Bones = new Dictionary<string, BoneInstance>(StringComparer.OrdinalIgnoreCase);
@@ -23,14 +24,14 @@ namespace LibreLancer
         {
             this.dfm = dfm;
             int length = (dfm.Parts.Keys.Max() + 1);
-            boneMatrices = new Matrix4[length];
+            boneMatrices = new Matrix4x4[length];
             instanceArray = new BoneInstance[length];
             
             foreach (var kv in dfm.Parts)
             {
                 var inst = new BoneInstance();
                 inst.Name = kv.Value.objectName;
-                inst.InvBindPose = kv.Value.Bone.BoneToRoot.Inverted();
+                Matrix4x4.Invert(kv.Value.Bone.BoneToRoot, out inst.InvBindPose);
                 inst.BoneMatrix = inst.InvBindPose;
                 instanceArray[kv.Key] = inst;
                 Bones.Add(inst.Name, inst);
@@ -54,7 +55,7 @@ namespace LibreLancer
                 if(b.Parent == null) starts.Add(b);
             }
             for (int j = 0; j < boneMatrices.Length; j++)
-                boneMatrices[j] = Matrix4.Identity;
+                boneMatrices[j] = Matrix4x4.Identity;
         }
 
         public bool GetHardpoint(string hp, out HardpointDefinition def, out BoneInstance bone)
@@ -74,7 +75,7 @@ namespace LibreLancer
         public void SetBoneData(UniformBuffer bonesBuffer, ref int offset)
         {
             for(int i = 0; i < starts.Count; i++)
-                starts[i].Update(Matrix4.Identity);
+                starts[i].Update(Matrix4x4.Identity);
             for (int i = 0; i < boneMatrices.Length; i++)
             {
                 if (instanceArray[i] != null) boneMatrices[i] = instanceArray[i].BoneMatrix;

@@ -3,7 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using LibreLancer.Utf.Ale;
+using System.Numerics;
 using LibreLancer.GameData.Items;
 namespace LibreLancer
 {
@@ -77,7 +77,7 @@ namespace LibreLancer
         bool lt_on = true;
         Color3f colorBulb;
         Color3f colorGlow;
-        public override void Update(TimeSpan time, Vector3 position, Matrix4 transform)
+        public override void Update(TimeSpan time, Vector3 position, Matrix4x4 transform)
         {
             if (!LightOn || sys == null)
                 return;
@@ -108,7 +108,7 @@ namespace LibreLancer
         {
             var visible = (
                 LightOn && 
-                VectorMath.DistanceSquared(camera.Position, pos) < CULL &&
+                Vector3.DistanceSquared(camera.Position, pos) < CULL &&
                 camera.Frustum.Intersects(new BoundingSphere(pos, equip.BulbSize * 3))
             );
             this.sys = sys;

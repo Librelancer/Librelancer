@@ -3,24 +3,25 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Cmp;
 namespace LibreLancer
 {
     public class Hardpoint
     {
-        Matrix4 transform;
+        Matrix4x4 transform;
         public RigidModelPart Parent;
         public string Name;
         public RevoluteHardpointDefinition Revolute;
         public HardpointDefinition Definition;
         public float CurrentRevolution;
-        Matrix4 rotation = Matrix4.Identity;
+        Matrix4x4 rotation = Matrix4x4.Identity;
         public void Revolve(float val)
         {
             var clamped = MathHelper.Clamp(val, Revolute.Min, Revolute.Max);
             CurrentRevolution = clamped;
-            rotation = Matrix4.CreateFromAxisAngle(Revolute.Axis, clamped);
+            rotation = Matrix4x4.CreateFromAxisAngle(Revolute.Axis, clamped);
         }
         public Hardpoint(HardpointDefinition def, RigidModelPart parent)
         {
@@ -33,13 +34,13 @@ namespace LibreLancer
         }
         public bool IsStatic { get; private set; }
 
-        public Matrix4 HpTransformInfo
+        public Matrix4x4 HpTransformInfo
         {
             get {
                 return Definition.Transform;
             }
         }
-        public Matrix4 TransformNoRotate
+        public Matrix4x4 TransformNoRotate
         {
             get
             {
@@ -50,7 +51,7 @@ namespace LibreLancer
             }
         }
 
-        public Matrix4 Transform
+        public Matrix4x4 Transform
         {
             get
             {

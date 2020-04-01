@@ -4,7 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using LibreLancer.GameData.Items;
+
 namespace LibreLancer.GameData
 {
 	public class SystemObject
@@ -14,7 +16,7 @@ namespace LibreLancer.GameData
 		public Archetype Archetype;
 		public Vector3 Position = Vector3.Zero;
         public Vector3 Spin = Vector3.Zero;
-		public Matrix4? Rotation;
+		public Matrix4x4? Rotation;
 		public Dictionary<string, Equipment> Loadout = new Dictionary<string, Equipment>();
 		public List<Equipment> LoadoutNoHardpoint = new List<Equipment>();
 		public DockAction Dock;

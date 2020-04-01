@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
+
 namespace LibreLancer.GameData
 {
 	public class AsteroidField

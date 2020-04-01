@@ -4,6 +4,8 @@
 
 using System;
 using System.IO;
+using System.Numerics;
+
 namespace LibreLancer.Utf.Ale
 {
 	public class AlchemyTransform
@@ -76,9 +78,9 @@ namespace LibreLancer.Utf.Ale
             var x = RotatePitch.GetValue(sparam, t);
             var y = RotateYaw.GetValue(sparam, t);
             var z = RotateRoll.GetValue(sparam, t);
-            return Quaternion.FromEulerAngles(
-                MathHelper.DegreesToRadians(x),
+            return Quaternion.CreateFromYawPitchRoll(
                 MathHelper.DegreesToRadians(y),
+                MathHelper.DegreesToRadians(x),
                 MathHelper.DegreesToRadians(z)
             );
         }
@@ -95,9 +97,9 @@ namespace LibreLancer.Utf.Ale
             var y2 = RotateYaw.GetValue(sparam, t2);
             var z2 = RotateRoll.GetValue(sparam, t2);
 
-            return Quaternion.FromEulerAngles(
-                MathHelper.DegreesToRadians(x2 - x1), 
+            return Quaternion.CreateFromYawPitchRoll(
                 MathHelper.DegreesToRadians(y2 - y1),
+                MathHelper.DegreesToRadians(x2 - x1), 
                 MathHelper.DegreesToRadians(z2 - z1)
             );
         }

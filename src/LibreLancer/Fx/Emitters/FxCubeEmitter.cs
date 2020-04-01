@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Utf.Ale;
 namespace LibreLancer.Fx
 {
@@ -34,7 +35,7 @@ namespace LibreLancer.Fx
 			}	
 		}
 
-        protected override void SetParticle (int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4 transform, float sparam, float globaltime)
+        protected override void SetParticle (int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam, float globaltime)
 		{
 			float w = Width.GetValue (sparam, 0) / 2;
 			float h = Height.GetValue (sparam, 0) / 2;
@@ -48,14 +49,11 @@ namespace LibreLancer.Fx
 				          FxRandom.NextFloat (-d, d)
 			          );
 			var n = RandomInCone(s_min, s_max);
-            //var tr = Transform.GetMatrix(sparam, globaltime);
-            //var tr = Matrix4.Identity;
-            //n = (tr * new Vector4(n.Normalized(), 0)).Xyz.Normalized();
             Vector3 translate;
             Quaternion rotate;
             if(DoTransform(reference, sparam, globaltime, out translate, out rotate)) {
                 pos += translate;
-                n = rotate * n;
+                n = Vector3.Transform(n, rotate);
             }
 			var pr = pos;
 			instance.Pool.Particles[idx].Position = pr;
@@ -70,11 +68,11 @@ namespace LibreLancer.Fx
             var axis = Vector3.UnitZ;
 
             var angle = FxRandom.NextFloat(minspread, maxspread);
-            var rotation = Quaternion.FromAxisAngle(axis, angle);
-            Vector3 output = rotation * direction;
+            var rotation = Quaternion.CreateFromAxisAngle(axis, angle);
+            Vector3 output = Vector3.Transform(direction, rotation);
             var random = FxRandom.NextFloat(-MathHelper.Pi, MathHelper.Pi);
-            rotation = Quaternion.FromAxisAngle(direction, random);
-            output = rotation * output;
+            rotation = Quaternion.CreateFromAxisAngle(direction, random);
+            output = Vector3.Transform(output, rotation);
             return output;
         }
 

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using LibreLancer.Thorn;
 namespace LibreLancer
 {
@@ -159,7 +160,7 @@ namespace LibreLancer
 
 
 
-		public static Matrix4 GetMatrix(LuaTable orient)
+		public static Matrix4x4 GetMatrix(LuaTable orient)
 		{
 			var m11 = (float)((LuaTable)orient[0])[0];
 			var m12 = (float)((LuaTable)orient[0])[1];
@@ -172,7 +173,7 @@ namespace LibreLancer
 			var m31 = (float)((LuaTable)orient[2])[0];
 			var m32 = (float)((LuaTable)orient[2])[1];
 			var m33 = (float)((LuaTable)orient[2])[2];
-			return new Matrix4(
+			return new Matrix4x4(
 				m11, m12, m13, 0,
 				m21, m22, m23, 0,
 				m31, m32, m33, 0,

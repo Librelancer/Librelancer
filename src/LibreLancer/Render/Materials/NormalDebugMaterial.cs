@@ -3,9 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Collections.Generic;
+using System.Numerics;
 using LibreLancer.Vertices;
-using LibreLancer.Utf.Mat;
 
 namespace LibreLancer
 {
@@ -36,9 +35,9 @@ namespace LibreLancer
 			rstate.BlendMode = BlendMode.Opaque;
 			sh.SetViewProjection(Camera);
 			//Dt
-			var normalMatrix = World;
-			normalMatrix.Invert();
-			normalMatrix.Transpose();
+            var normalMatrix = World;
+            Matrix4x4.Invert(normalMatrix, out normalMatrix);
+            normalMatrix = Matrix4x4.Transpose(normalMatrix);
 			sh.SetWorld(ref World);
 			sh.SetNormalMatrix(ref normalMatrix);
 			sh.UseProgram();

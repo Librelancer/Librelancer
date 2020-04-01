@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Numerics;
 using System.Linq;
 using LibreLancer.ImageLib;
 using ImGuiNET;

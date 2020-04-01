@@ -5,9 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using LibreLancer.GameData.Items;
 using Lidgren.Network;
+
 namespace LibreLancer
 {
     public class Player
@@ -272,7 +274,7 @@ namespace LibreLancer
                 else
                 {
                     Position = obj.Position;
-                    Orientation = (obj.Rotation == null ? Matrix3.Identity : new Matrix3(obj.Rotation.Value)).ExtractRotation();
+                    Orientation = (obj.Rotation ?? Matrix4x4.Identity).ExtractRotation();
                     Position = Vector3.Transform(new Vector3(0, 0, 500), Orientation) + obj.Position; //TODO: This is bad
                 }
                 client.SendPacket(new SpawnPlayerPacket()

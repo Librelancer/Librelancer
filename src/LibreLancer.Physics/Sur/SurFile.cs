@@ -6,8 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using BulletSharp;
 using BM = BulletSharp.Math;
+
 namespace LibreLancer.Physics.Sur
 {
 	//TODO: Sur reader is VERY incomplete & undocumented
@@ -29,7 +31,7 @@ namespace LibreLancer.Physics.Sur
                 {
                     //Find a list to add the geometry to
                     List<ConvexMesh> hull = null;
-                    Matrix4 transform = Matrix4.Identity;
+                    Matrix4x4 transform = Matrix4x4.Identity;
                     if (group.MeshID == part.Hash && !part.ParentSet)
                     {
                         if (part.DisplayMeshes == null) part.DisplayMeshes = new List<ConvexMesh>();
@@ -51,7 +53,7 @@ namespace LibreLancer.Physics.Sur
                         //Fill the geometry
                         var verts = new List<Vector3>();
                         foreach (var v in sfc.Vertices)
-                            verts.Add(VectorMath.Transform(v.Point.Cast(), transform));
+                            verts.Add(Vector3.Transform(v.Point.Cast(), transform));
                         var indices = new List<int>();
                         if (group.VertexArrayOffset != 0)
                             throw new Exception("tgroupheader vertexarrayoffset wrong");

@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using LibreLancer;
 using LibreLancer.Data;
@@ -108,11 +109,11 @@ namespace LancerEdit
             if (ImGui.Button("Reset Camera (Ctrl+R)"))
                 viewport.ResetControls();
             viewport.Begin();
-            Matrix4 rot = Matrix4.CreateRotationX(viewport.CameraRotation.Y) *
-                          Matrix4.CreateRotationY(viewport.CameraRotation.X);
-            var dirRot = Matrix4.CreateRotationX(viewport.ModelRotation.Y) * Matrix4.CreateRotationY(viewport.ModelRotation.X);
-            var norm = Vector4.Transform(new Vector4(Vector3.Forward, 0), dirRot).Xyz;
-            var dir = rot.Transform(Vector3.Forward);
+            Matrix4x4 rot = Matrix4x4.CreateRotationX(viewport.CameraRotation.Y) *
+                          Matrix4x4.CreateRotationY(viewport.CameraRotation.X);
+            var dirRot = Matrix4x4.CreateRotationX(viewport.ModelRotation.Y) * Matrix4x4.CreateRotationY(viewport.ModelRotation.X);
+            var norm = Vector3.TransformNormal(-Vector3.UnitZ, dirRot);
+            var dir = Vector3.Transform(-Vector3.UnitZ, rot);
             var to = viewport.CameraOffset + (dir * 10);
             if (viewport.Mode == CameraModes.Arcball)
                 to = Vector3.Zero;

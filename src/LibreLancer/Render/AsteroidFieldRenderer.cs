@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Numerics;
 using LibreLancer.GameData;
 using LibreLancer.Primitives;
 using LibreLancer.Utf.Cmp;
@@ -19,9 +19,9 @@ namespace LibreLancer
 
         AsteroidField field;
         bool renderBand = false;
-        Matrix4 bandTransform;
+        Matrix4x4 bandTransform;
         OpenCylinder bandCylinder;
-        Matrix4 vp;
+        Matrix4x4 vp;
         static ShaderVariables bandShader;
         static int _bsTexture;
         static int _bsCameraPosition;
@@ -78,13 +78,14 @@ namespace LibreLancer
                 sz = ((ZoneEllipsoid)field.Zone.Shape).Size;
             else
                 return;
-            sz.Xz -= new Vector2(field.Band.OffsetDistance);
+            sz.X -= field.Band.OffsetDistance;
+            sz.Z -= field.Band.OffsetDistance;
             lightingRadius = Math.Max(sz.X, sz.Z);
             renderBand = true;
             bandTransform = (
-                Matrix4.CreateScale(sz.X, field.Band.Height / 2, sz.Z) * 
+                Matrix4x4.CreateScale(sz.X, field.Band.Height / 2, sz.Z) * 
                 field.Zone.RotationMatrix * 
-                Matrix4.CreateTranslation(field.Zone.Position)
+                Matrix4x4.CreateTranslation(field.Zone.Position)
             );
             bandCylinder = sys.ResourceManager.GetOpenCylinder(SIDES);
         }
@@ -161,10 +162,10 @@ namespace LibreLancer
             var model = ast.Drawable as ModelFile;
             var l0 = model.Levels[0];
             var vertType = l0.Mesh.VertexBuffer.VertexType.GetType();
-            var transform = ast.RotationMatrix * Matrix4.CreateTranslation(ast.Position * field.CubeSize);
+            var transform = ast.RotationMatrix * Matrix4x4.CreateTranslation(ast.Position * field.CubeSize);
             var norm = transform;
-            norm.Invert();
-            norm.Transpose();
+            Matrix4x4.Invert(norm, out norm);
+            norm = Matrix4x4.Transpose(norm);
             int vertOffset = verts.Count;
             for (int i = 0; i < l0.Mesh.VertexCount; i++) {
                 VertexPositionNormalDiffuseTexture vert;
@@ -203,8 +204,8 @@ namespace LibreLancer
                 {
                     throw new NotImplementedException("Asteroids: " + vertType.FullName);
                 }
-                vert.Position = VectorMath.Transform(vert.Position, transform);
-                vert.Normal = (norm * new Vector4(vert.Normal, 0)).Xyz;
+                vert.Position = Vector3.Transform(vert.Position, transform);
+                vert.Normal = Vector3.TransformNormal(vert.Normal, norm);
                 verts.Add(vert);
             }
             for (int i = l0.StartMesh; i < l0.StartMesh + l0.MeshCount; i++)
@@ -239,7 +240,7 @@ namespace LibreLancer
             _camera = camera;
             //for (int i = 0; i < field.Cube.Count; i++)
                 //field.Cube [i].Drawable.Update (camera, TimeSpan.Zero);
-            if (field.Cube.Count > 0 && VectorMath.DistanceSquared (cameraPos, field.Zone.Position) <= renderDistSq) {
+            if (field.Cube.Count > 0 && Vector3.DistanceSquared (cameraPos, field.Zone.Position) <= renderDistSq) {
                 _asteroidsCalculated = false;
                 cubeCount = 0;
                 AsyncManager.RunTask (_asteroidsCalculation);
@@ -285,8 +286,8 @@ namespace LibreLancer
         struct CalculatedCube
         {
             public Vector3 pos;
-            public Matrix4 tr;
-            public CalculatedCube(Vector3 p, Matrix4 r) { pos = p; tr = r; }
+            public Matrix4x4 tr;
+            public CalculatedCube(Vector3 p, Matrix4x4 r) { pos = p; tr = r; }
         }
         Action _asteroidsCalculation;
         volatile bool _asteroidsCalculated = false;
@@ -340,7 +341,7 @@ namespace LibreLancer
                         if (GetExclusionZone(center) != null) {
                             continue;
                         }
-                        cubes[cubeCount++] = new CalculatedCube(center, field.CubeRotation.GetRotation(tval) * Matrix4.CreateTranslation(center));
+                        cubes[cubeCount++] = new CalculatedCube(center, field.CubeRotation.GetRotation(tval) * Matrix4x4.CreateTranslation(center));
                     }
                 }
             }
@@ -364,7 +365,7 @@ namespace LibreLancer
             if (_camera == null)
                 return;
             //Asteroids!
-            if (VectorMath.DistanceSquared (cameraPos, field.Zone.Position) <= renderDistSq) {
+            if (Vector3.DistanceSquared (cameraPos, field.Zone.Position) <= renderDistSq) {
                 float fadeNear = field.FillDist * 0.9f;
                 float fadeFar = field.FillDist;
                 if (field.Cube.Count > 0)
@@ -384,7 +385,7 @@ namespace LibreLancer
                         for (int i = 0; i < cubeDrawCalls.Count; i++)
                         {
                             var dc = cubeDrawCalls[i];
-                            if (VectorMath.DistanceSquared(center, cameraPos) < (fadeNear * fadeNear))
+                            if (Vector3.DistanceSquared(center, cameraPos) < (fadeNear * fadeNear))
                             { //TODO: Accurately determine whether or not a cube has fading
                             }
                             buffer.AddCommandFade(
@@ -413,7 +414,7 @@ namespace LibreLancer
                         if (!astbillboards [i].Inited) {
                             astbillboards [i].Spawn (this);
                         }
-                        var dSq = VectorMath.DistanceSquared (cameraPos, astbillboards [i].Position);
+                        var dSq = Vector3.DistanceSquared (cameraPos, astbillboards [i].Position);
                         if (dSq > fillDistSq)
                             astbillboards [i].Spawn (this);
                         if (astbillboards [i].Visible) {
@@ -452,9 +453,9 @@ namespace LibreLancer
                 {
                     var p = bandCylinder.GetSidePosition(i);
                     var zcoord = RenderHelpers.GetZ(bandTransform, cameraPos, p);
-                    p = bandTransform.Transform(p);
+                    p = Vector3.Transform(p, bandTransform);
                     var lt = RenderHelpers.ApplyLights(lighting, 0, p, lightingRadius, nr);
-                    if (lt.FogMode != FogModes.Linear || VectorMath.DistanceSquared(cameraPos, p) <= (lightingRadius + lt.FogRange.Y) * (lightingRadius + lt.FogRange.Y))
+                    if (lt.FogMode != FogModes.Linear || Vector3.DistanceSquared(cameraPos, p) <= (lightingRadius + lt.FogRange.Y) * (lightingRadius + lt.FogRange.Y))
                     {
                         buffer.AddCommand(
                             bandShader.Shader,
@@ -489,8 +490,8 @@ namespace LibreLancer
             var vp = command.UserData.Camera.ViewProjection;
             bandShader.SetViewProjection(ref vp);
             var normal = command.World;
-            normal.Invert();
-            normal.Transpose();
+            Matrix4x4.Invert(normal, out normal);
+            normal = Matrix4x4.Transpose(normal);
             bandShader.SetNormalMatrix(ref normal);
             shader.SetInteger(_bsTexture, 0);
             shader.SetVector3(_bsCameraPosition, command.UserData.Camera.Position);

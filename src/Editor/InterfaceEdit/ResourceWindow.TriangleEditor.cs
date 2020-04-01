@@ -5,6 +5,7 @@
 using System;
 using ImGuiNET;
 using LibreLancer;
+using System.Numerics;
 using LibreLancer.ImUI;
 using LibreLancer.Interface;
 

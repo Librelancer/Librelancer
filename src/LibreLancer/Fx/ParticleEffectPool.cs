@@ -4,6 +4,7 @@
     
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using LibreLancer.Fx;
 using LibreLancer.Vertices;
@@ -261,7 +262,7 @@ namespace LibreLancer.Fx
             {
                 //Get Variables
                 var ni = appearances[i];
-                var pos = ni.i.DrawTransform.Transform(Vector3.Zero);
+                var pos = Vector3.Transform(Vector3.Zero, ni.i.DrawTransform);
                 var z = RenderHelpers.GetZ(camera.Position, pos);
                 var startIndex = bufspace[i].Start * 6;
                 var primCount = bufspace[i].Count * 2;
@@ -276,7 +277,7 @@ namespace LibreLancer.Fx
                             basicShader.Shader,
                             SetupShader,
                             EnableCull,
-                            Matrix4.Identity,
+                            Matrix4x4.Identity,
                             new RenderUserData() { Texture = texture, Float = (float)perp.BlendInfo },
                             vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount, true,
                             SortLayers.OBJECT, z
@@ -290,7 +291,7 @@ namespace LibreLancer.Fx
                             basicShader.Shader,
                             SetupShader,
                             EnableCull,
-                            Matrix4.Identity,
+                            Matrix4x4.Identity,
                             new RenderUserData() { Texture = texture, Float = (float)rect.BlendInfo },
                             vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount, true,
                             SortLayers.OBJECT, z
@@ -306,7 +307,7 @@ namespace LibreLancer.Fx
                             basicShader.Shader,
                             SetupShader,
                             EnableCull,
-                            Matrix4.Identity,
+                            Matrix4x4.Identity,
                             new RenderUserData() { Texture = texture, Float = (float)basic.BlendInfo },
                             vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount, true,
                             SortLayers.OBJECT, z
@@ -354,7 +355,7 @@ namespace LibreLancer.Fx
             FxBasicAppearance appearance,
             Texture2D texture,
             Vector3 pos,
-            Matrix4 world,
+            Matrix4x4 world,
             Vector2 size,
             Color4 color,
             Vector2 topleft,

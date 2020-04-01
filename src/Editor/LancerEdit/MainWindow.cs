@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using System.Text;
 using System.Threading;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ using LibreLancer;
 using LibreLancer.ImUI;
 using LibreLancer.Media;
 using ImGuiNET;
+
 namespace LancerEdit
 {
 	public class MainWindow : Game
@@ -361,7 +363,7 @@ namespace LancerEdit
             }
             var menu_height = ImGui.GetWindowSize().Y;
 			ImGui.EndMainMenuBar();
-			var size = (Vector2)ImGui.GetIO().DisplaySize;
+			var size = ImGui.GetIO().DisplaySize;
 			size.Y -= menu_height;
 			//Window
 			MissingResources.Clear();

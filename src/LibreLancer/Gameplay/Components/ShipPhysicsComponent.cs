@@ -3,6 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
+
 namespace LibreLancer
 {
 	[Flags]
@@ -92,19 +94,19 @@ namespace LibreLancer
             {
                 if ((CurrentStrafe & StrafeControls.Left) == StrafeControls.Left)
                 {
-                    strafe -= Vector3.Left; // Subtraction intentional
+                    strafe += Vector3.UnitX; // Addition intentional
                 }
                 else if ((CurrentStrafe & StrafeControls.Right) == StrafeControls.Right)
                 {
-                    strafe -= Vector3.Right; // Subtraction intentional
+                    strafe -= Vector3.UnitX; // Subtraction intentional
                 }
                 if ((CurrentStrafe & StrafeControls.Up) == StrafeControls.Up)
                 {
-                    strafe += Vector3.Up;
+                    strafe += Vector3.UnitY;
                 }
                 else if ((CurrentStrafe & StrafeControls.Down) == StrafeControls.Down)
                 {
-                    strafe += Vector3.Down;
+                    strafe += Vector3.UnitY;
                 }
                 if (strafe != Vector3.Zero)
                 {
@@ -117,7 +119,7 @@ namespace LibreLancer
             var totalForce = (
                 drag +
                 strafe +
-                (Parent.PhysicsComponent.Body.RotateVector(Vector3.Forward) * engine_force)
+                (Parent.PhysicsComponent.Body.RotateVector(-Vector3.UnitZ) * engine_force)
             );
             Parent.PhysicsComponent.Body.AddForce(totalForce);
             //steer
@@ -139,7 +141,7 @@ namespace LibreLancer
         }
 
         //Specific decomposition for roll
-        static void DecomposeOrientation(Matrix4 mx, out double xPitch, out double yYaw, out double zRoll)
+        static void DecomposeOrientation(Matrix4x4 mx, out double xPitch, out double yYaw, out double zRoll)
         {
             xPitch = Math.Asin(-mx.M32);
             double threshold = 0.001; // Hardcoded constant – burn him, he’s a witch

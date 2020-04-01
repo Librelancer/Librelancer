@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 using LibreLancer;
 using LibreLancer.Exceptions;
 using LibreLancer.ImUI;

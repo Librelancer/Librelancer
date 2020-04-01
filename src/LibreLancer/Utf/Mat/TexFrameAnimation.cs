@@ -3,6 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
+
 namespace LibreLancer.Utf.Mat
 {
 	public class TexFrameAnimation

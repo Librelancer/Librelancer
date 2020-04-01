@@ -6,7 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-
+using System.Numerics;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
@@ -166,11 +166,7 @@ namespace LibreLancer.Utf.Vms
 
 		public void Initialize(ushort startMesh, int endMesh, ResourceManager cache)
 		{
-			for (ushort i = startMesh; i < endMesh; i++)
-			{
-				Meshes[i].Initialize(cache);
-			}
-			if (VertexBuffer != null)
+            if (VertexBuffer != null)
 			{
 				return;
 			}
@@ -212,64 +208,8 @@ namespace LibreLancer.Utf.Vms
                     VertexBuffer.SetData<VertexPositionNormalTextureTangentBinormal>(verticesVertexPositionNormalTextureTangentBinormal);
                     break;*/
             }
-
         }
-
-        public void DeviceReset(ushort startMesh, int endMesh)
-        {
-            if (ready)
-            {
-                for (ushort i = startMesh; i < endMesh; i++)
-                {
-                    Meshes[i].DeviceReset();
-                }
-            }
-        }
-		ICamera camera;
-        public void Update(ICamera camera, ushort startMesh, int endMesh)
-        {
-            if (ready)
-            {
-				this.camera = camera;
-                for (ushort i = startMesh; i < endMesh; i++)
-                {
-                    Meshes[i].Update(camera);
-                }
-            }
-        }
-
-		public void Draw(RenderState rstate, ushort startMesh, int endMesh, ushort startVertex, Matrix4 world, Lighting light, MaterialAnimCollection mc)
-        {
-            if (ready)
-			{
-                for (ushort i = startMesh; i < endMesh; i++)
-                {
-					Meshes [i].Draw (rstate, VertexBuffer, startVertex + VertexOffset, IndexOffset, world, light, mc);
-                }
-            }
-        }
-		public void DrawBuffer(CommandBuffer buff, ushort startMesh, int endMesh, ushort startVertex, Matrix4 world, ref Lighting light, Vector3 center, MaterialAnimCollection mc, Material overrideMat = null)
-		{
-			if (ready)
-			{
-				for (ushort i = startMesh; i < endMesh; i++)
-				{
-					Meshes[i].DrawBuffer(buff, this, VertexOffset, startVertex, IndexOffset, world, ref light, mc, overrideMat);
-				}
-			}
-		}
-
-		public void DepthPrepass(RenderState rstate, ushort startMesh, int endMesh, ushort startVertex, Matrix4 world, MaterialAnimCollection mc)
-		{
-			if (ready)
-			{
-				for (ushort i = startMesh; i < endMesh; i++)
-				{
-					Meshes[i].DepthPrepass(rstate, this, startVertex + VertexOffset, IndexOffset, world, mc);
-				}
-			}
-		}
-
+        
         public override string ToString()
         {
             return FlexibleVertexFormat.ToString();

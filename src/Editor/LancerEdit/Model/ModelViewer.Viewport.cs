@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using System.Linq;
 using System.Collections.Generic;
 using LibreLancer;
@@ -206,7 +207,6 @@ namespace LancerEdit
                 if (!mdl.Hardpoint && !surShowHull) continue;
                 mat.Camera = cam;
                 mat.World = world;
-                mat.World = world;
                 mat.Use(rstate, new VertexPositionColor(), ref Lighting.Empty);
                 foreach (var dc in mdl.Draws)
                     mdl.Vertices.Draw(PrimitiveTypes.TriangleList, dc.BaseVertex, dc.Start, dc.Count);
@@ -275,9 +275,9 @@ namespace LancerEdit
             ICamera cam;
             //Draw Model
             var lookAtCam = new LookAtCamera();
-            Matrix4 rot = Matrix4.CreateRotationX(modelViewport.CameraRotation.Y) *
-                Matrix4.CreateRotationY(modelViewport.CameraRotation.X);
-            var dir = rot.Transform(Vector3.Forward);
+            var rot = Matrix4x4.CreateRotationX(modelViewport.CameraRotation.Y) *
+                Matrix4x4.CreateRotationY(modelViewport.CameraRotation.X);
+            var dir = Vector3.Transform(-Vector3.UnitZ,rot);
             var to = modelViewport.CameraOffset + (dir * 10);
             if (modelViewport.Mode == CameraModes.Arcball) to = Vector3.Zero;
             lookAtCam.Update(renderWidth, renderHeight, modelViewport.CameraOffset, to, rot);
@@ -288,15 +288,15 @@ namespace LancerEdit
                 var vp = new Viewport(0, 0, renderWidth, renderHeight);
                 tcam = new ThnCamera(vp);
                 tcam.Transform.AspectRatio = renderWidth / (float)renderHeight;
-                var tr = Matrix4.Identity;
+                var tr = Matrix4x4.Identity;
                 if (!string.IsNullOrEmpty(cameraPart.Construct?.ParentName))
                 {
                     tr = cameraPart.Construct.LocalTransform *
                          vmsModel.Parts[cameraPart.Construct.ParentName].LocalTransform;
                 } else if(cameraPart.Construct != null)
                     tr = cameraPart.Construct.LocalTransform;
-                tcam.Transform.Orientation = Matrix4.CreateFromQuaternion(tr.ExtractRotation());
-                tcam.Transform.Position = tr.Transform(Vector3.Zero);
+                tcam.Transform.Orientation = Matrix4x4.CreateFromQuaternion(tr.ExtractRotation());
+                tcam.Transform.Position = Vector3.Transform(Vector3.Zero, tr);
                 znear = cameraPart.Camera.Znear;
                 zfar = cameraPart.Camera.Zfar;
                 tcam.Transform.Znear = 0.001f;
@@ -380,9 +380,9 @@ namespace LancerEdit
             }
             GizmoRender.RenderGizmos(cam, rstate);
         }
-        Matrix4 GetModelMatrix()
+        Matrix4x4 GetModelMatrix()
         {
-            return Matrix4.CreateRotationX(rotation.Y) * Matrix4.CreateRotationY(rotation.X);
+            return Matrix4x4.CreateRotationX(rotation.Y) * Matrix4x4.CreateRotationY(rotation.X);
         }
                 
         void ResetViewport()
@@ -401,15 +401,15 @@ namespace LancerEdit
                 }
             }
         }
-        void DrawVMeshWire(VMeshWire wires, Matrix4 mat)
+        void DrawVMeshWire(VMeshWire wires, Matrix4x4 mat)
         {
             var c = _window.DebugRender.Color;
             _window.DebugRender.Color = Color4.White;
             for (int i = 0; i < wires.Lines.Length / 2; i++)
             {
                 _window.DebugRender.DrawLine(
-                    mat.Transform(wires.Lines[i * 2]),
-                    mat.Transform(wires.Lines[i * 2 + 1])
+                    Vector3.Transform(wires.Lines[i * 2],mat),
+                    Vector3.Transform(wires.Lines[i * 2 + 1],mat)
                 );
             }
             _window.DebugRender.Color = c;
@@ -430,10 +430,10 @@ namespace LancerEdit
                         var rev = (RevoluteHardpointDefinition)tr.Hardpoint.Definition;
                         var min = tr.Override == null ? rev.Min : tr.EditingMin;
                         var max = tr.Override == null ? rev.Max : tr.EditingMax;
-                        GizmoRender.AddGizmoArc(transform * (tr.Parent == null ? Matrix4.Identity : tr.Parent.LocalTransform) * matrix, min,max);
+                        GizmoRender.AddGizmoArc(transform * (tr.Parent == null ? Matrix4x4.Identity : tr.Parent.LocalTransform) * matrix, min,max);
                     }
                     //draw (red for editing, light pink for normal)
-                    GizmoRender.AddGizmo(transform * (tr.Parent == null ? Matrix4.Identity : tr.Parent.LocalTransform) * matrix, tr.Override != null ? Color4.Red : Color4.LightPink);
+                    GizmoRender.AddGizmo(transform * (tr.Parent == null ? Matrix4x4.Identity : tr.Parent.LocalTransform) * matrix, tr.Override != null ? Color4.Red : Color4.LightPink);
                 }
             }
             GizmoRender.RenderGizmos(cam, rstate);
@@ -444,9 +444,9 @@ namespace LancerEdit
         void DrawSimple(ICamera cam, bool wireFrame)
         {
             Material mat = null;
-            var matrix = Matrix4.Identity;
+            var matrix = Matrix4x4.Identity;
             if (modelViewport.Mode == CameraModes.Starsphere)
-                matrix = Matrix4.CreateTranslation(cam.Position);
+                matrix = Matrix4x4.CreateTranslation(cam.Position);
             else
                 matrix = GetModelMatrix();
             if (viewMode == M_NORMALS)

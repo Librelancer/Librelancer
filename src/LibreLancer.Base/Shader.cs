@@ -4,7 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.InteropServices;
+
 namespace LibreLancer
 {
     public class Shader
@@ -81,7 +83,7 @@ namespace LibreLancer
 			return GL.GetUniformLocation(programID, name);
 		}
 
-		void SetMatrixInternal(int loc, ref Matrix4 mat)
+		void SetMatrixInternal(int loc, ref Matrix4x4 mat)
 		{
 			//var hash = mat.GetHashCode();
 			//if (NeedUpdate(loc, hash))
@@ -93,7 +95,7 @@ namespace LibreLancer
 			//}
 		}
 
-        public void SetMatrix(int loc, ref Matrix4 mat)
+        public void SetMatrix(int loc, ref Matrix4x4 mat)
         {
             GLBind.UseProgram(programID);
 			SetMatrixInternal(loc, ref mat);

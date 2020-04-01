@@ -79,10 +79,6 @@ namespace LibreLancer.ImUI
             {
                 PlayCanberra();
             }
-            else if (Platform.RunningOS == OS.Mac)
-            {
-                System.Diagnostics.Process.Start("osascript", "-e 'beep");
-            }
         }
     }
 }

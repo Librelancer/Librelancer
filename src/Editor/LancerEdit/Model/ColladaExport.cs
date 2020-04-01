@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Numerics;
 using System.IO;
 using System.Linq;
 
@@ -66,7 +67,7 @@ namespace LancerEdit
             }).ToArray();
             var nodes = new List<CL.node>();
             for (int i = 0; i < exported.Geometries.Count; i++) {
-                nodes.Add(exported.GetNode(i, Matrix4.Identity, mdl.Path));
+                nodes.Add(exported.GetNode(i, Matrix4x4.Identity, mdl.Path));
             }
             vscene.node = nodes.ToArray();
             dae.Items = new object[] { efx, mats, geos, scenes };
@@ -75,7 +76,7 @@ namespace LancerEdit
         }
         class InputModel
         {
-            public Matrix4 Transform;
+            public Matrix4x4 Transform;
             public string Con;
             public ModelFile Model;
             public List<InputModel> Children = new List<InputModel>();
@@ -91,7 +92,7 @@ namespace LancerEdit
                 if (p.Construct == null) {
                     rootModel = new InputModel()
                     {
-                        Transform = Matrix4.Identity,
+                        Transform = Matrix4x4.Identity,
                         Model = p.Model,
                         Con = "Root"
                     };
@@ -111,7 +112,7 @@ namespace LancerEdit
                     if(part.Construct.ParentName == mdl.Con) {
                         var child = new InputModel()
                         {
-                            Transform = part.Construct.Rotation * Matrix4.CreateTranslation(part.Construct.Origin),
+                            Transform = part.Construct.Rotation * Matrix4x4.CreateTranslation(part.Construct.Origin),
                             Model = part.Model,
                             Con = part.Construct.ChildName
                         };
@@ -256,7 +257,7 @@ namespace LancerEdit
                 }
                 return materials.ToArray();
             }
-            string MatrixText(Matrix4 t)
+            string MatrixText(Matrix4x4 t)
             {
                 var floats = new float[] {
                     t.M11, t.M21, t.M31, t.M41,
@@ -266,7 +267,7 @@ namespace LancerEdit
                 };
                 return string.Join(" ", floats.Select((x) => x.ToString(CultureInfo.InvariantCulture)));
             }
-            public CL.node GetNode(int index, Matrix4 transform, string name)
+            public CL.node GetNode(int index, Matrix4x4 transform, string name)
             {
                 var n = new CL.node();
                 if (index != 0)
@@ -315,7 +316,7 @@ namespace LancerEdit
                 int idxC = 1;
                 positions = CreateSource(
                     geo.name + "-positions",
-                    (k) => new Vector4(processed.Vertices[k].Position),
+                    (k) => new Vector4(processed.Vertices[k].Position, 0),
                     3, processed.Vertices.Length);
                 mesh.vertices = new CL.vertices()
                 {
@@ -329,7 +330,7 @@ namespace LancerEdit
                 if((processed.FVF & D3DFVF.NORMAL) == D3DFVF.NORMAL) {
                     normals = CreateSource(
                         geo.name + "-normals",
-                        (k) => new Vector4(processed.Vertices[k].Normal),
+                        (k) => new Vector4(processed.Vertices[k].Normal,0),
                         3,processed.Vertices.Length);
                     sources.Add(normals);
                     idxC++;
@@ -355,7 +356,7 @@ namespace LancerEdit
                 if(doTex1) {
                     tex1 = CreateSource(
                         geo.name + "-tex1",
-                        (k) => new Vector4(processed.Vertices[k].TextureCoordinate),
+                        (k) => new Vector4(processed.Vertices[k].TextureCoordinate,0,0),
                         2, processed.Vertices.Length);
                     sources.Add(tex1);
                     idxC++;
@@ -363,7 +364,7 @@ namespace LancerEdit
                 if(doTex2) {
                     tex2 = CreateSource(
                         geo.name + "-tex2",
-                        (k) => new Vector4(processed.Vertices[k].TextureCoordinateTwo),
+                        (k) => new Vector4(processed.Vertices[k].TextureCoordinateTwo ,0,0),
                         2, processed.Vertices.Length);
                     sources.Add(tex2);
                     idxC++;

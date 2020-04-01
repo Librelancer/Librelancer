@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 namespace LibreLancer
@@ -36,7 +37,7 @@ namespace LibreLancer
                 var obj = new GameObject() { World = GameWorld };
                 GameWorld.Objects.Add(obj);
                 Players[player] = obj;
-                Players[player].Transform = Matrix4.CreateFromQuaternion(orientation) * Matrix4.CreateTranslation(position);
+                Players[player].Transform = Matrix4x4.CreateFromQuaternion(orientation) * Matrix4x4.CreateTranslation(position);
             });
         }
 
@@ -57,7 +58,7 @@ namespace LibreLancer
         {
             actions.Enqueue(() =>
             {
-                Players[player].Transform = Matrix4.CreateFromQuaternion(orientation) * Matrix4.CreateTranslation(position);
+                Players[player].Transform = Matrix4x4.CreateFromQuaternion(orientation) * Matrix4x4.CreateTranslation(position);
             });
         }
 
@@ -88,7 +89,7 @@ namespace LibreLancer
             foreach(var player in Players)
             {
                 var tr = player.Value.GetTransform();
-                player.Key.Position = tr.Transform(Vector3.Zero);
+                player.Key.Position = Vector3.Transform(Vector3.Zero, tr);
                 player.Key.Orientation = tr.ExtractRotation();
             }
             foreach (var player in Players)

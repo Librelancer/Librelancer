@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using System.Collections.Generic;
 using LibreLancer.Utf.Ale;
 namespace LibreLancer.Fx
@@ -30,7 +31,7 @@ namespace LibreLancer.Fx
 			}
 		}
 
-        public override void Draw(ref Particle particle, int pidx, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+        public override void Draw(ref Particle particle, int pidx, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam)
         {
             //Transform and add 
             Vector3 deltap;
@@ -55,7 +56,7 @@ namespace LibreLancer.Fx
             }
         }
 
-        public void DrawBeamApp(PolylineRender poly, float globalTime, NodeReference reference, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+        public void DrawBeamApp(PolylineRender poly, float globalTime, NodeReference reference, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam)
 		{
             //get particles!
             var beam = instance.Beams[reference.BeamIndex];
@@ -69,7 +70,7 @@ namespace LibreLancer.Fx
             var res = instance.Resources;
 			HandleTexture(res, globalTime, sparam, ref instance.Pool.Particles[beam.ParticleIndices[0]], out tex, out tl, out tr, out bl, out br);
 			//Sorting hack kinda
-			var z = RenderHelpers.GetZ(instance.Pool.Camera.Position, node_tr.Transform(Vector3.Zero));
+			var z = RenderHelpers.GetZ(instance.Pool.Camera.Position, Vector3.Transform(Vector3.Zero, node_tr));
 			for (int j = 0; j < 2; j++) //two planes
 			{
 				poly.StartLine(tex, BlendInfo);
@@ -78,9 +79,9 @@ namespace LibreLancer.Fx
 
 				for (int i = 0; i < beam.ParticleCount; i++)
 				{
-					var pos = node_tr.Transform(instance.Pool.Particles[beam.ParticleIndices[i]].Position);
+					var pos = Vector3.Transform(instance.Pool.Particles[beam.ParticleIndices[i]].Position, node_tr);
 					if (i + 1 < beam.ParticleCount) {
-						var pos2 = node_tr.Transform(instance.Pool.Particles[beam.ParticleIndices[i + 1]].Position);
+						var pos2 = Vector3.Transform(instance.Pool.Particles[beam.ParticleIndices[i + 1]].Position, node_tr);
 						var forward = (pos2 - pos).Normalized();
 						var toCamera = (instance.Pool.Camera.Position - pos).Normalized();
 						var up = Vector3.Cross(toCamera, forward);

@@ -3,7 +3,9 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Utf.Vms;
+
 namespace LibreLancer.Utf.Cmp
 {
     public class VMeshWire

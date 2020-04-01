@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 
 namespace LibreLancer.GameData
 {
@@ -29,7 +30,7 @@ namespace LibreLancer.GameData
 		}
 		public override float ScaledDistance(Vector3 point)
 		{
-			return VectorMath.Distance(Zone.Position, point) / Radius;
+			return Vector3.Distance(Zone.Position, point) / Radius;
 		}
 		public override Vector3 RandomPoint (Func<float> randfunc)
 		{

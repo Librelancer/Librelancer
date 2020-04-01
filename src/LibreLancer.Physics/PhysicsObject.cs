@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using BulletSharp;
 using BM = BulletSharp.Math;
 namespace LibreLancer.Physics
@@ -19,7 +20,7 @@ namespace LibreLancer.Physics
             Collider = col;
         }
 
-        public Matrix4 Transform
+        public Matrix4x4 Transform
         {
             get { return RigidBody.WorldTransform.Cast();  }
         }
@@ -29,17 +30,17 @@ namespace LibreLancer.Physics
             get; private set;
         }
 
-        public void SetTransform(Matrix4 transform)
+        public void SetTransform(Matrix4x4 transform)
         {
             RigidBody.WorldTransform = transform.Cast();
-            Position = VectorMath.Transform(Vector3.Zero, Transform);
+            Position = Vector3.Transform(Vector3.Zero, Transform);
         }
 
         public Vector3 AngularVelocity
         {
             get {
                 var ang = RigidBody.AngularVelocity.Cast();
-                if (ang.LengthSquared < float.Epsilon) return Vector3.Zero;
+                if (ang.LengthSquared() < float.Epsilon) return Vector3.Zero;
                 return ang;
             } set {
                 RigidBody.AngularVelocity = value.Cast();
@@ -65,7 +66,7 @@ namespace LibreLancer.Physics
 
         public Vector3 RotateVector(Vector3 src)
         {
-            return VectorMath.Transform(src, RigidBody.WorldTransform.Cast().ClearTranslation());
+            return Vector3.Transform(src, RigidBody.WorldTransform.Cast().ClearTranslation());
         }
 
         public void SetDamping(float linearDamping, float angularDamping)
@@ -75,7 +76,7 @@ namespace LibreLancer.Physics
 
         public void AddForce(Vector3 force)
         {
-            if (force.LengthSquared > float.Epsilon)
+            if (force.LengthSquared() > float.Epsilon)
             {
                 RigidBody.Activate(true);
                 RigidBody.ApplyForce(force.Cast(), BM.Vector3.Zero);
@@ -83,7 +84,7 @@ namespace LibreLancer.Physics
         }
         public void Impulse(Vector3 force)
         {
-            if(force.LengthSquared > float.Epsilon)
+            if(force.LengthSquared() > float.Epsilon)
             {
                 RigidBody.Activate(true);
                 RigidBody.ApplyImpulse(force.Cast(), BM.Vector3.Zero);
@@ -91,7 +92,7 @@ namespace LibreLancer.Physics
         }
         public void AddTorque(Vector3 torque)
         {
-            if (torque.LengthSquared > float.Epsilon)
+            if (torque.LengthSquared() > float.Epsilon)
             {
                 RigidBody.Activate(true);
                 RigidBody.ApplyTorque(torque.Cast());
@@ -100,7 +101,7 @@ namespace LibreLancer.Physics
 
         internal void UpdateProperties()
         {
-            Position = VectorMath.Transform(Vector3.Zero, Transform);
+            Position = Vector3.Transform(Vector3.Zero, Transform);
         }
     }
 }

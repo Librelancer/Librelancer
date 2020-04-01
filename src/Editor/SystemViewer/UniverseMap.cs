@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer;
 using ImGuiNET;
 
@@ -12,12 +13,12 @@ namespace SystemViewer
     {
         public static string Draw(int imageId, GameDataManager gameData, int width, int height)
         {
-            var crmin = (Vector2) ImGui.GetWindowContentRegionMin();
+            var crmin = ImGui.GetWindowContentRegionMin();
             if (imageId != -1)
             {
-                var wpos = (Vector2)ImGui.GetWindowPos();
-                var a = wpos +  (Vector2)ImGui.GetWindowContentRegionMin();
-                var b = wpos +  (Vector2)ImGui.GetWindowContentRegionMax();
+                var wpos = ImGui.GetWindowPos();
+                var a = wpos +  ImGui.GetWindowContentRegionMin();
+                var b = wpos +  ImGui.GetWindowContentRegionMax();
                 var drawList = ImGui.GetWindowDrawList();
                 drawList.AddImage((IntPtr) imageId, a, b, new Vector2(0, 1), new Vector2(1, 0));
             }

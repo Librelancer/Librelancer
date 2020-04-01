@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Utf.Anm;
@@ -17,8 +18,8 @@ namespace LibreLancer
 			this.Skeleton = skeleton;
 		}
 
-		Matrix4 transform;
-        public override void Update(TimeSpan time, Vector3 position, Matrix4 transform)
+		Matrix4x4 transform;
+        public override void Update(TimeSpan time, Vector3 position, Matrix4x4 transform)
         {
             this.transform = transform;
         }
@@ -32,7 +33,7 @@ namespace LibreLancer
             Skeleton.UploadBoneData(commands.BonesBuffer);
             var lighting = RenderHelpers.ApplyLights(
                 lights, LightGroup, 
-                transform.Transform(Vector3.Zero), float.MaxValue, nr,
+                Vector3.Transform(Vector3.Zero, transform), float.MaxValue, nr,
                 LitAmbient, LitDynamic, NoFog
                 );
             Skeleton.Body.SetSkinning(Skeleton.BodySkinning);

@@ -3,6 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
+
 namespace LibreLancer
 {
 	public class ThnEntity
@@ -18,7 +20,7 @@ namespace LibreLancer
 		public int UserFlag;
 		public string MeshCategory;
 		public Vector3? Position;
-		public Matrix4? RotationMatrix;
+		public Matrix4x4? RotationMatrix;
 		public float? FovH;
 		public float? HVAspect;
         public float? NearPlane;

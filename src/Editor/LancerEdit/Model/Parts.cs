@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using System.Text;
 using System.IO;
 using LibreLancer;
@@ -60,10 +61,10 @@ namespace LancerEdit
     }
     class FixConstructor : PartNodeConstructor 
     { 
-        public void Add(string parentName, string objectName, Matrix4 transform)
+        public void Add(string parentName, string objectName, Matrix4x4 transform)
         {
-            var origin = transform.ExtractTranslation();
-            var rotate = Matrix4.CreateFromQuaternion(transform.ExtractRotation());
+            var origin = transform.Translation;
+            var rotate = Matrix4x4.CreateFromQuaternion(transform.ExtractRotation());
             StartAdd(parentName, objectName, origin);
             WriteMatrix3x3(rotate);
         }
@@ -100,7 +101,7 @@ namespace LancerEdit
             writer.Write(origin.Y);
             writer.Write(origin.Z);
         }
-        protected void WriteMatrix3x3(Matrix4 mat)
+        protected void WriteMatrix3x3(Matrix4x4 mat)
         {
             writer.Write(mat.M11);
             writer.Write(mat.M21);

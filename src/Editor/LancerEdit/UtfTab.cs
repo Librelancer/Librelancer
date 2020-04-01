@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Numerics;
 using System.IO;
 using ImGuiNET;
 using LibreLancer;
@@ -412,12 +413,12 @@ namespace LancerEdit
                         if (len < 3)
                         {
                             pickcolor4 = true;
-                            color4 = new System.Numerics.Vector4(0, 0, 0, 1);
+                            color4 = Color4.Black;
                         }
                         else if (len == 3)
                         {
                             pickcolor4 = false;
-                            color3 = new System.Numerics.Vector3(
+                            color3 = new Vector3(
                                 BitConverter.ToSingle(selectedNode.Data, 0),
                                 BitConverter.ToSingle(selectedNode.Data, 4),
                                 BitConverter.ToSingle(selectedNode.Data, 8));
@@ -425,7 +426,7 @@ namespace LancerEdit
                         else if (len > 3)
                         {
                             pickcolor4 = true;
-                            color4 = new System.Numerics.Vector4(
+                            color4 = new Vector4(
                                 BitConverter.ToSingle(selectedNode.Data, 0),
                                 BitConverter.ToSingle(selectedNode.Data, 4),
                                 BitConverter.ToSingle(selectedNode.Data, 8),

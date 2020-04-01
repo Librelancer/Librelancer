@@ -5,9 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
+using System.Numerics;
 using LibreLancer.Utf.Mat;
 
 namespace LibreLancer.Utf.Dfm
@@ -203,21 +201,16 @@ namespace LibreLancer.Utf.Dfm
 			ready = true;
 		}
 
-		public void Resized()
-		{
-			if (ready) foreach (FaceGroup faceGroup in FaceGroups) faceGroup.Resized();
-		}
-
-		public void Update(ICamera camera, TimeSpan delta)
+        public void Update(ICamera camera, TimeSpan delta)
 		{
 			if (ready) foreach (FaceGroup faceGroup in FaceGroups) faceGroup.Update (camera);
 		}
 
-		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, Lighting light, Material overrideMat = null)
+		public void DrawBuffer(CommandBuffer buffer, Matrix4x4 world, Lighting light, Material overrideMat = null)
 		{
 			foreach (FaceGroup faceGroup in FaceGroups)
 			{
-                faceGroup.DrawBuffer(skinning, buffer, vertexBuffer, vertexBuffer.VertexCount, world, light, overrideMat);
+                faceGroup.DrawBuffer(skinning, buffer, vertexBuffer, world, light, overrideMat);
 			}
 		}
 
@@ -226,15 +219,5 @@ namespace LibreLancer.Utf.Dfm
         {
             this.skinning = skinning;
         }
-		public void Draw(RenderState rstate, Matrix4 world, Lighting lights)
-		{
-			if (ready)
-			{
-				foreach (FaceGroup faceGroup in FaceGroups)
-				{
-					faceGroup.Draw (rstate, vertexBuffer, vertexBuffer.VertexCount, world, lights);
-				}
-			}
-		}
-	}
+    }
 }

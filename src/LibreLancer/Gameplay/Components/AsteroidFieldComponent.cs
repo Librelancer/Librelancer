@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using System.Collections.Generic;
 using System.IO;
 using LibreLancer.Utf.Cmp;
@@ -38,7 +39,7 @@ namespace LibreLancer
                             indexes.Add(path, idx);
                         }
                     }
-                    shape.AddPart(0, asteroid.RotationMatrix * Matrix4.CreateTranslation(asteroid.Position * field.CubeSize), null, idx);
+                    shape.AddPart(0, asteroid.RotationMatrix * Matrix4x4.CreateTranslation(asteroid.Position * field.CubeSize), null, idx);
 				}
 				else
 				{
@@ -94,12 +95,12 @@ namespace LibreLancer
 			var world = Parent.GetWorld();
 			var player = world.GetObject("player");
 			if (player == null) return;
-			if (VectorMath.DistanceSquared(player.PhysicsComponent.Body.Position, Field.Zone.Position) > activateDist) return;
+			if (Vector3.DistanceSquared(player.PhysicsComponent.Body.Position, Field.Zone.Position) > activateDist) return;
 			var cds = (Field.CubeSize + COLLIDE_DISTANCE);
 			cds *= cds;
 			for (int i = bodies.Count - 1; i >= 0; i--)
 			{
-				var distance = VectorMath.DistanceSquared(player.PhysicsComponent.Body.Position, bodies[i].Position);
+				var distance = Vector3.DistanceSquared(player.PhysicsComponent.Body.Position, bodies[i].Position);
 				if (distance > cds)
 				{
                     world.Physics.RemoveObject(bodies[i]);
@@ -119,7 +120,7 @@ namespace LibreLancer
 						var center = close + new Vector3(x * Field.CubeSize, y * Field.CubeSize, z * Field.CubeSize);
 						if (!Field.Zone.Shape.ContainsPoint(center))
 							continue;
-						if (VectorMath.DistanceSquared(player.PhysicsComponent.Body.Position, center) > cds)
+						if (Vector3.DistanceSquared(player.PhysicsComponent.Body.Position, center) > cds)
 							continue;
 						float tval;
 						if (!AsteroidFieldShared.CubeExists(center, Field.EmptyCubeFrequency, out tval))
@@ -129,7 +130,7 @@ namespace LibreLancer
 						bool create = true;
 						for (int i = 0; i < bodies.Count; i++)
 						{
-							if ((bodies[i].Position - center).LengthFast < 3)
+							if ((bodies[i].Position - center).LengthSquared() < 4)
 							{
 								create = false;
 								break;
@@ -137,7 +138,7 @@ namespace LibreLancer
 						}
 						if (create)
 						{
-                            var transform = Field.CubeRotation.GetRotation(tval) * Matrix4.CreateTranslation(center);
+                            var transform = Field.CubeRotation.GetRotation(tval) * Matrix4x4.CreateTranslation(center);
                             var body = phys.AddStaticObject(transform, shape);
                             bodies.Add(body);
 						}

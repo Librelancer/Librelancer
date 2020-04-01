@@ -4,6 +4,7 @@
 
 
 using System;
+using System.Numerics;
 using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Universe

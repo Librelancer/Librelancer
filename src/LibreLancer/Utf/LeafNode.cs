@@ -3,10 +3,10 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using LibreLancer.Utf.Cmp;
+using System.Numerics;
+
 
 namespace LibreLancer.Utf
 {
@@ -159,7 +159,7 @@ namespace LibreLancer.Utf
 
         public Vector3[] Vector3ArrayData => ConvertData.ToVector3Array(dataArray, dataStart, dataLength);
 
-        public Matrix4? MatrixData3x3
+        public Matrix4x4? MatrixData3x3
         {
             get
             {
@@ -168,7 +168,7 @@ namespace LibreLancer.Utf
             }
         }
 
-        public Matrix4? MatrixData4x3
+        public Matrix4x4? MatrixData4x3
         {
             get
             {

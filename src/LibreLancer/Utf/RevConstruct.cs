@@ -4,6 +4,8 @@
 
 using System;
 using System.IO;
+using System.Numerics;
+
 
 namespace LibreLancer.Utf
 {
@@ -14,9 +16,9 @@ namespace LibreLancer.Utf
         public float Min { get; set; }
         public float Max { get; set; }
 
-        private Matrix4 currentTransform = Matrix4.Identity;
+        private Matrix4x4 currentTransform = Matrix4x4.Identity;
 
-		public override Matrix4 LocalTransform { get { return internalGetTransform((Rotation * currentTransform) * Matrix4.CreateTranslation(Origin + Offset)); } }
+		public override Matrix4x4 LocalTransform { get { return internalGetTransform((Rotation * currentTransform) * Matrix4x4.CreateTranslation(Origin + Offset)); } }
 
         public RevConstruct() : base() {}
 
@@ -42,13 +44,13 @@ namespace LibreLancer.Utf
 		}
         public override void Reset()
         {
-            currentTransform = Matrix4.Identity;
+            currentTransform = Matrix4x4.Identity;
         }
         public float Current = 0;
         public override void Update(float distance, Quaternion quat)
         {
             Current = MathHelper.Clamp(distance, Min, Max);
-			currentTransform = Matrix4.CreateFromAxisAngle(AxisRotation, Current);
+			currentTransform = Matrix4x4.CreateFromAxisAngle(AxisRotation, Current);
         }
     }
 }

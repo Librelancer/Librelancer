@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.Utf.Cmp;
@@ -239,10 +239,10 @@ namespace LancerEdit
                 {
                     var hp = hpEditing.Definition;
                     hp.Position = new Vector3(HPx, HPy, HPz);
-                    hp.Orientation = Matrix4.CreateFromEulerAngles(
-                        MathHelper.DegreesToRadians((double)HPpitch),
-                        MathHelper.DegreesToRadians((double)HPyaw),
-                        MathHelper.DegreesToRadians((double)HProll)
+                    hp.Orientation = Matrix4x4.CreateFromYawPitchRoll(
+                        MathHelper.DegreesToRadians(HPyaw),
+                        MathHelper.DegreesToRadians(HPpitch),
+                        MathHelper.DegreesToRadians(HProll)
                     );
                     if (!isFix)
                     {
@@ -266,11 +266,11 @@ namespace LancerEdit
                 {
                     hpEditOpen = false;
                 }
-                editingGizmo.Override = Matrix4.CreateFromEulerAngles(
-                            MathHelper.DegreesToRadians((double)HPpitch),
-                            MathHelper.DegreesToRadians((double)HPyaw),
-                            MathHelper.DegreesToRadians((double)HProll)
-                        ) * Matrix4.CreateTranslation(HPx, HPy, HPz);
+                editingGizmo.Override = Matrix4x4.CreateFromYawPitchRoll(
+                            MathHelper.DegreesToRadians(HPyaw),
+                            MathHelper.DegreesToRadians(HPpitch),
+                            MathHelper.DegreesToRadians(HProll)
+                        ) * Matrix4x4.CreateTranslation(HPx, HPy, HPz);
                 editingGizmo.EditingMin = MathHelper.DegreesToRadians(HPmin);
                 editingGizmo.EditingMax = MathHelper.DegreesToRadians(HPmax);
                 ImGui.End();

@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Vertices;
 using LibreLancer.Data.Effects;
 
@@ -134,14 +135,14 @@ namespace LibreLancer
             bufferSpear.EndStreaming(vertexCountSpear);
             if (vertexCountSpear > 0)
             {
-                commands.AddCommand(shader.Shader, SetupShader, EnableCull, Matrix4.Identity, new RenderUserData(),
+                commands.AddCommand(shader.Shader, SetupShader, EnableCull, Matrix4x4.Identity, new RenderUserData(),
                     bufferSpear,
                     PrimitiveTypes.TriangleList, 0, vertexCountSpear, true, SortLayers.OBJECT);
                 vertexCountSpear = 0;
             }
             if (boltCount > 0)
             {
-                commands.AddCommand(shader.Shader, SetupShader, EnableCull, Matrix4.Identity, new RenderUserData(),
+                commands.AddCommand(shader.Shader, SetupShader, EnableCull, Matrix4x4.Identity, new RenderUserData(),
                     bufferBolt,
                     PrimitiveTypes.TriangleList, 0, boltCount * 20, true, SortLayers.OBJECT);
                 vertexCountBolt = 0;
@@ -174,7 +175,7 @@ namespace LibreLancer
         {
             //Head
             CoordsFromTexture(spear.HeadTexture, out var tl, out var tr, out var bl, out var br, out var mid);
-            var right = Vector3.Cross(normal, Vector3.Up);
+            var right = Vector3.Cross(normal, Vector3.UnitY);
             right.Normalize();
             var up = Vector3.Cross(right, normal);
             up.Normalize();

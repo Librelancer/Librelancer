@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ImUI;
@@ -34,7 +35,7 @@ namespace LancerEdit
             ImGui.Text("Reference");
             ImGui.Separator();
             ImGui.NextColumn();
-            var tcolor = (Vector4)ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
+            var tcolor = ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
             foreach (var t in res.TextureDictionary)
             {
                 var col = new Vector4(0.6f, 0.6f, 0.6f, 1f);
@@ -87,9 +88,9 @@ namespace LancerEdit
             }
             foreach (var ln in missing)
             {
-                ImGui.TextColored(new Vector4(1, 0, 0, 1), "Missing");
+                ImGui.TextColored(Color4.Red, "Missing");
                 ImGui.NextColumn();
-                ImGui.TextColored(new Vector4(1, 0, 0, 1), string.Format("{0} (Ref {1})", ln.Missing, ln.Reference));
+                ImGui.TextColored(Color4.Red, string.Format("{0} (Ref {1})", ln.Missing, ln.Reference));
                 ImGui.NextColumn();
             }
             ImGui.Columns(1, null, false);

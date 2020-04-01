@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using System.Collections.Generic;
 using LibreLancer.GameData;
 using LibreLancer.Physics;
@@ -51,7 +52,7 @@ namespace LibreLancer
                 var g = new GameObject(obj.Archetype, res, Renderer != null, true);
                 g.Name = obj.DisplayName;
                 g.Nickname = obj.Nickname;
-                g.Transform = (obj.Rotation ?? Matrix4.Identity) * Matrix4.CreateTranslation(obj.Position);
+                g.Transform = (obj.Rotation ?? Matrix4x4.Identity) * Matrix4x4.CreateTranslation(obj.Position);
                 g.SetLoadout(obj.Loadout, obj.LoadoutNoHardpoint);
                 g.StaticPosition = obj.Position;
                 g.World = this;

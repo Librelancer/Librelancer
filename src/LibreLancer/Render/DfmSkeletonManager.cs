@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Dfm;
@@ -185,10 +186,10 @@ namespace LibreLancer
             }
         }
         //A - attaching object, B - attaching to
-        Matrix4 GetAttachmentTransform(HardpointDefinition hpA, BoneInstance boneA, HardpointDefinition hpB, BoneInstance boneB)
+        Matrix4x4 GetAttachmentTransform(HardpointDefinition hpA, BoneInstance boneA, HardpointDefinition hpB, BoneInstance boneB)
         {
             var child = hpA.Transform * boneA.LocalTransform();
-            child.Invert();
+            Matrix4x4.Invert(child, out child);
             var parent = hpB.Transform * boneB.LocalTransform();
             return child * parent;
         }
@@ -222,7 +223,7 @@ namespace LibreLancer
             }
         }
 
-        public void GetTransforms(Matrix4 source, out Matrix4 head, out Matrix4 leftHand, out Matrix4 rightHand)
+        public void GetTransforms(Matrix4x4 source, out Matrix4x4 head, out Matrix4x4 leftHand, out Matrix4x4 rightHand)
         {
             if (Head != null)
                 head = GetAttachmentTransform(HeadBodyHp, HeadBodyBone, BodyHeadHp, BodyHeadBone) * source;

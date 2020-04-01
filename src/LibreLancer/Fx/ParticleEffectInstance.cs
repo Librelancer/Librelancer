@@ -3,8 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Numerics;
 using System.Threading;
 
 namespace LibreLancer.Fx
@@ -69,10 +68,10 @@ namespace LibreLancer.Fx
 
         double lasttime = 0;
         public Vector3 Position = Vector3.Zero;
-        public void Update(TimeSpan delta, Matrix4 transform, float sparam)
+        public void Update(TimeSpan delta, Matrix4x4 transform, float sparam)
         {
             if (Pool == null) return;
-            Position = transform.Transform(Vector3.Zero);
+            Position = Vector3.Transform(Vector3.Zero, transform);
             lasttime = globaltime;
             globaltime += delta.TotalSeconds;
             //Update Emitters
@@ -91,15 +90,15 @@ namespace LibreLancer.Fx
         public bool NodeEnabled(NodeReference node) => enableStates[node.Index];
         public void SetNodeEnabled(NodeReference node, bool enabled) => enableStates[node.Index] = enabled;
 
-        public void Draw(Matrix4 transform, float sparam)
+        public void Draw(Matrix4x4 transform, float sparam)
         {
             DrawTransform = transform;
             DrawSParam = sparam; 
         }
         
-        public Matrix4 DrawTransform;
+        public Matrix4x4 DrawTransform;
         public float DrawSParam;
-        public void DrawBeams(PolylineRender polyline, PhysicsDebugRenderer debug, Matrix4 transform, float sparam)
+        public void DrawBeams(PolylineRender polyline, PhysicsDebugRenderer debug, Matrix4x4 transform, float sparam)
         {
             if (Beams != null)
             {

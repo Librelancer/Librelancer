@@ -4,8 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using Lidgren.Network;
-using LibreLancer.Data.Missions;
 
 namespace LibreLancer
 {

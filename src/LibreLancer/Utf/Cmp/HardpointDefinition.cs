@@ -3,12 +3,14 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
+
 namespace LibreLancer.Utf.Cmp
 {
     public abstract class HardpointDefinition
     {
         public string Name { get; private set; }
-        public Matrix4 Orientation;
+        public Matrix4x4 Orientation;
         public Vector3 Position;
 
         public HardpointDefinition(IntermediateNode root)
@@ -16,13 +18,13 @@ namespace LibreLancer.Utf.Cmp
             if (root == null) throw new ArgumentNullException("root");
 
             Name = root.Name;
-			Orientation = Matrix4.Identity;
+			Orientation = Matrix4x4.Identity;
 			Position = Vector3.Zero;
         }
         public HardpointDefinition(string name)
         {
             Name = name;
-            Orientation = Matrix4.Identity;
+            Orientation = Matrix4x4.Identity;
             Position = Vector3.Zero;
         }
         protected bool parentNode(LeafNode node)
@@ -49,11 +51,11 @@ namespace LibreLancer.Utf.Cmp
             return true;
         }
 
-		public virtual Matrix4 Transform
+		public virtual Matrix4x4 Transform
 		{
 			get
 			{
-				return Orientation * Matrix4.CreateTranslation(Position);
+				return Orientation * Matrix4x4.CreateTranslation(Position);
 			}	
 		}
     }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using LibreLancer.GameData.Archetypes;
 
 namespace LibreLancer
@@ -47,7 +48,7 @@ namespace LibreLancer
             ));
         }
 
-        public override void Update(TimeSpan elapsed, Vector3 position, Matrix4 transform)
+        public override void Update(TimeSpan elapsed, Vector3 position, Matrix4x4 transform)
 		{
 			pos = position;
             if (vertices == null) { CreateVertices(); }
@@ -129,7 +130,7 @@ namespace LibreLancer
         {
             if (sysr == null || vertices == null)
                 return;
-            float z = RenderHelpers.GetZ(Matrix4.Identity, camera.Position, pos);
+            float z = RenderHelpers.GetZ(Matrix4x4.Identity, camera.Position, pos);
             if (z > 900000) // Reduce artefacts from fast Z-sort calculation. This'll probably cause issues somewhere else
                 z = 900000;
             var dist_scale = nr != null ? nr.Nebula.SunBurnthroughScale : 1;
@@ -159,7 +160,7 @@ namespace LibreLancer
             {
                 //draw center
                 var cr = (Texture2D)sysr.ResourceManager.FindTexture(Sun.CenterSprite);
-                commands.AddCommand(radialShader.Shader, RadialSetup, Cleanup, Matrix4.Identity,
+                commands.AddCommand(radialShader.Shader, RadialSetup, Cleanup, Matrix4x4.Identity,
                 new RenderUserData() { Float = 0, Color = new Color4(dist_scale,alpha,0,0), Texture = cr }, sysr.StaticBillboards.VertexBuffer, PrimitiveTypes.TriangleList,
                 idx, 2, true, SortLayers.SUN, z);
                 //next
@@ -167,7 +168,7 @@ namespace LibreLancer
             }
             //draw glow
             var gr = (Texture2D)sysr.ResourceManager.FindTexture(Sun.GlowSprite);
-            commands.AddCommand(radialShader.Shader, RadialSetup, Cleanup, Matrix4.Identity,
+            commands.AddCommand(radialShader.Shader, RadialSetup, Cleanup, Matrix4x4.Identity,
                 new RenderUserData() { Float = 1, Color = new Color4(dist_scale, alpha, 0, 0), Texture = gr }, sysr.StaticBillboards.VertexBuffer, PrimitiveTypes.TriangleList,
                 idx, 2, true, SortLayers.SUN, z + 108f);
             //next
@@ -176,7 +177,7 @@ namespace LibreLancer
             if(Sun.SpinesSprite != null && nr == null)
             {
                 var spinetex = (Texture2D)sysr.ResourceManager.FindTexture(Sun.SpinesSprite);
-                commands.AddCommand(spineShader.Shader, SpineSetup, Cleanup, Matrix4.Identity,
+                commands.AddCommand(spineShader.Shader, SpineSetup, Cleanup, Matrix4x4.Identity,
                     new RenderUserData() { Texture = spinetex }, sysr.StaticBillboards.VertexBuffer, PrimitiveTypes.TriangleList,
                     idx, 2 * Sun.Spines.Count, true, SortLayers.SUN, z + 1112f);
             }

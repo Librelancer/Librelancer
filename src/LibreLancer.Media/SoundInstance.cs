@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 using System;
+using System.Numerics;
 using System.Threading;
 
 namespace LibreLancer.Media

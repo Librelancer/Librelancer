@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 namespace LibreLancer
 {
     public class ShipInputComponent : GameComponent
@@ -30,8 +31,8 @@ namespace LibreLancer
             if (MouseFlight)
             {
                 //Calculate turning direction
-                var ep = VectorMath.UnProject(new Vector3(MousePosition.X, MousePosition.Y, 0.25f), Camera.Projection, Camera.View, Viewport);
-                var tgt = VectorMath.UnProject(new Vector3(MousePosition.X, MousePosition.Y, 0f), Camera.Projection, Camera.View, Viewport);
+                var ep = Vector3Ex.UnProject(new Vector3(MousePosition.X, MousePosition.Y, 0.25f), Camera.Projection, Camera.View, Viewport);
+                var tgt = Vector3Ex.UnProject(new Vector3(MousePosition.X, MousePosition.Y, 0f), Camera.Projection, Camera.View, Viewport);
                 var dir = (tgt - ep).Normalized();
                 var gotoPos = Camera.Position + (dir * 1000);
                 //Turn
@@ -65,10 +66,9 @@ namespace LibreLancer
             bankInfluence *= Throttle;
             float bankTarget = MathHelper.DegreesToRadians(-(bankInfluence * BankLimit));
             var tr = Parent.PhysicsComponent.Body.Transform;
-            var transformUp = CalcDir(ref tr, Vector3.Up);
-            var transformForward = CalcDir(ref tr, Vector3.Forward);
-
-            float signedAngle = Vector3.SignedAngle(transformUp, upVector, transformForward);
+            var transformUp = CalcDir(ref tr, Vector3.UnitY);
+            var transformForward = CalcDir(ref tr, -Vector3.UnitZ);
+            float signedAngle = Vector3Ex.SignedAngle(transformUp, upVector, transformForward);
             float bankError = (signedAngle - bankTarget) * 0.1f;
 
             physics.Roll = (float)MathHelper.Clamp(RollControl.Update(bankTarget * 0.5f, signedAngle * 0.5f, dt), -1, 1);
@@ -76,10 +76,10 @@ namespace LibreLancer
         }
 
         //My math lib seems to be lacking at the moment
-        Vector3 CalcDir(ref Matrix4 mat, Vector3 v)
+        Vector3 CalcDir(ref Matrix4x4 mat, Vector3 v)
         {
-            var v0 = mat.Transform(Vector3.Zero);
-            var v1 = mat.Transform(v);
+            var v0 = Vector3.Transform(Vector3.Zero, mat);
+            var v1 = Vector3.Transform(v, mat);
             return (v1 - v0).Normalized();
         }
 

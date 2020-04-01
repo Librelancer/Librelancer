@@ -5,14 +5,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.IO;
 
 namespace LibreLancer.Utf
 {
     public class FixConstruct : AbstractConstruct
     {
-		Matrix4 fixtransform;
-        public override Matrix4 LocalTransform { get { return internalGetTransform(fixtransform); } }
+		Matrix4x4 fixtransform;
+        public override Matrix4x4 LocalTransform { get { return internalGetTransform(fixtransform); } }
 
         public FixConstruct(ConstructCollection constructs) : base()
         {
@@ -23,7 +24,7 @@ namespace LibreLancer.Utf
             : base(reader)
         {
             Rotation = ConvertData.ToMatrix3x3(reader);
-			fixtransform = Rotation * Matrix4.CreateTranslation(Origin);
+			fixtransform = Rotation * Matrix4x4.CreateTranslation(Origin);
         }
 
 		protected FixConstruct(FixConstruct cf) : base(cf) { }
@@ -35,7 +36,7 @@ namespace LibreLancer.Utf
 		}
         public override void Reset()
         {
-            fixtransform = Rotation * Matrix4.CreateTranslation(Origin);
+            fixtransform = Rotation * Matrix4x4.CreateTranslation(Origin);
         }
         public override void Update(float distance, Quaternion quat)
         {

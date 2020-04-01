@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Mat;
@@ -15,7 +16,7 @@ namespace LibreLancer
     {
         public VertexBuffer Buffer;
         public bool HasScale;
-        public Matrix4 Scale;
+        public Matrix4x4 Scale;
         public int StartIndex;
         public int PrimitiveCount;
         public int BaseVertex;
@@ -65,7 +66,7 @@ namespace LibreLancer
                 }
             }
         }
-        public void DrawBuffer(int level, ResourceManager res, CommandBuffer buffer, Matrix4 world, ref Lighting lights, MaterialAnimCollection mc, Material overrideMat = null)
+        public void DrawBuffer(int level, ResourceManager res, CommandBuffer buffer, Matrix4x4 world, ref Lighting lights, MaterialAnimCollection mc, Material overrideMat = null)
         {
             if (Levels == null || Levels.Length < level) return;
             var l = Levels[level];
@@ -84,7 +85,7 @@ namespace LibreLancer
                 float z = 0;
                 if (mat.Render.IsTransparent)
                     z = RenderHelpers.GetZ(world, mat.Render.Camera.Position, Center);
-                Matrix4 tr = world;
+                Matrix4x4 tr = world;
                 if (dc.HasScale)
                     tr = dc.Scale * world;
                 buffer.AddCommand(mat.Render,
@@ -101,7 +102,7 @@ namespace LibreLancer
             }
         }
 
-        public void DrawImmediate(int level, ResourceManager res, RenderState renderState, Matrix4 world, ref Lighting lights, MaterialAnimCollection mc, Material overrideMat = null)
+        public void DrawImmediate(int level, ResourceManager res, RenderState renderState, Matrix4x4 world, ref Lighting lights, MaterialAnimCollection mc, Material overrideMat = null)
         {
             if (Levels == null || Levels.Length < level) return;
             var l = Levels[level];
@@ -117,7 +118,7 @@ namespace LibreLancer
                     if (mat != null) ma = dc.GetMaterialAnim(mc);
                     else mat = res.DefaultMaterial;
                 }
-                Matrix4 tr = world;
+                Matrix4x4 tr = world;
                 if (dc.HasScale)
                     tr = dc.Scale * world;
                 mat.Render.World = tr;
@@ -138,8 +139,8 @@ namespace LibreLancer
         public List<Hardpoint> Hardpoints;
         public AbstractConstruct Construct;
         
-        private Matrix4 localTransform = Matrix4.Identity;
-        public Matrix4 LocalTransform => localTransform;
+        private Matrix4x4 localTransform = Matrix4x4.Identity;
+        public Matrix4x4 LocalTransform => localTransform;
 
         public RigidModelPart Clone(bool withChildren = false)
         {
@@ -166,7 +167,7 @@ namespace LibreLancer
             if (Mesh == null) return 0;
             return Mesh.Radius;
         }
-        public void UpdateTransform(Matrix4 parent)
+        public void UpdateTransform(Matrix4x4 parent)
         {
             if (Construct != null)
                 localTransform = Construct.LocalTransform * parent;
@@ -194,7 +195,7 @@ namespace LibreLancer
         public Dictionary<string, RigidModelPart> Parts;
         public void UpdateTransform()
         {
-            Root?.UpdateTransform(Matrix4.Identity);
+            Root?.UpdateTransform(Matrix4x4.Identity);
         }
         public void Update(ICamera camera, TimeSpan globalTime, ResourceManager res)
         {
@@ -211,14 +212,14 @@ namespace LibreLancer
             {
                 var p = AllParts[i];
                 if (p.Mesh == null) continue;
-                var d = p.LocalTransform.Transform(p.Mesh.Center).Length;
+                var d = Vector3.Transform(p.Mesh.Center, p.LocalTransform).Length();
                 var r = p.GetRadius();
                 f = Math.Max(f, d + r);
             }
             return f;
         }
 
-        public void DrawImmediate(RenderState rstate, ResourceManager res, Matrix4 world, ref Lighting lights, Material overrideMat = null)
+        public void DrawImmediate(RenderState rstate, ResourceManager res, Matrix4x4 world, ref Lighting lights, Material overrideMat = null)
         {
             for (int i = 0; i < AllParts.Length; i++)
             {
@@ -230,7 +231,7 @@ namespace LibreLancer
             }
         }
 
-        public void DrawBuffer(int level, CommandBuffer buffer, ResourceManager res, Matrix4 world, ref Lighting lights, Material overrideMat = null)
+        public void DrawBuffer(int level, CommandBuffer buffer, ResourceManager res, Matrix4x4 world, ref Lighting lights, Material overrideMat = null)
         {
             for (int i = 0; i < AllParts.Length; i++)
             {

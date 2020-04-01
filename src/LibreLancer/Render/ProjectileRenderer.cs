@@ -3,6 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
+
 namespace LibreLancer
 {
     //Renders vis_beam
@@ -35,7 +37,7 @@ namespace LibreLancer
         {
             return false;
         }
-        public override void Update(TimeSpan time, Vector3 position, Matrix4 transform)
+        public override void Update(TimeSpan time, Vector3 position, Matrix4x4 transform)
         {
         }
         public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)

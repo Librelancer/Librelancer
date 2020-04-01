@@ -3,6 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
+
 namespace LibreLancer
 {
 	public class IdentityCamera : ICamera
@@ -30,14 +32,14 @@ namespace LibreLancer
             }
         }
 
-		public Matrix4 ViewProjection {
+		public Matrix4x4 ViewProjection {
 			get {
 				float screenAspect = game.Width / (float)game.Height;
 				float uiAspect = 4f / 3f;
 				if (screenAspect > uiAspect)
-					return Matrix4.CreateScale(uiAspect / screenAspect, 1, 1);
+					return Matrix4x4.CreateScale(uiAspect / screenAspect, 1, 1);
 
-				return Matrix4.Identity;
+				return Matrix4x4.Identity;
 			}
 		}
 
@@ -59,14 +61,14 @@ namespace LibreLancer
 			return new Vector2(x, y * scaleY);
 		}
 
-		public Matrix4 View {
+		public Matrix4x4 View {
 			get {
-				return Matrix4.Identity;
+				return Matrix4x4.Identity;
 			}
 		}
-		public Matrix4 Projection {
+		public Matrix4x4 Projection {
 			get {
-				return Matrix4.Identity;
+				return Matrix4x4.Identity;
 			}
 		}
 		public Vector3 Position {
@@ -76,7 +78,7 @@ namespace LibreLancer
 		}
 		public BoundingFrustum Frustum {
 			get {
-				return new BoundingFrustum (Matrix4.Identity);
+				return new BoundingFrustum (Matrix4x4.Identity);
 			}
 		}
 	}

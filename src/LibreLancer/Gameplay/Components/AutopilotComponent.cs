@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using System.Linq;
 namespace LibreLancer
 {
@@ -50,7 +51,7 @@ namespace LibreLancer
 			float maxSpeed = 1f;
 			if (CurrentBehaviour == AutopilotBehaviours.Goto)
 			{
-				targetPoint = TargetObject.PhysicsComponent == null ? TargetObject.GetTransform().Transform(Vector3.Zero) : TargetObject.PhysicsComponent.Body.Position;
+				targetPoint = TargetObject.PhysicsComponent == null ? Vector3.Transform(Vector3.Zero,TargetObject.GetTransform()) : TargetObject.PhysicsComponent.Body.Position;
 				ResetDockState();
 			}
 			else
@@ -65,7 +66,7 @@ namespace LibreLancer
 				}
 				var hp = docking.GetDockHardpoints(Parent.PhysicsComponent.Body.Position).Skip(lastTargetHp).First();
 				radius = 5;
-				targetPoint = (hp.Transform * TargetObject.GetTransform()).Transform(Vector3.Zero);
+                targetPoint = Vector3.Transform(Vector3.Zero, hp.Transform * TargetObject.GetTransform());
 				if (lastTargetHp > 0) maxSpeed = 0.3f;
 				if (lastTargetHp == 2) radius = docking.TriggerRadius;
 				if (!hasTriggeredAnimation && docking.TryTriggerAnimation(Parent)) hasTriggeredAnimation = true;
@@ -74,13 +75,13 @@ namespace LibreLancer
 					ResetDockState();
 					DockComplete(docking.Action);
 				}
-				var d2 = (targetPoint - Parent.PhysicsComponent.Body.Position).Length;
+				var d2 = (targetPoint - Parent.PhysicsComponent.Body.Position).Length();
 				if (d2 < 80) maxSpeed = 0.3f;
 			}
             //Bring ship to within 40 metres of target
             var targetRadius = TargetObject.PhysicsComponent.Body.Collider.Radius;
             var myRadius = Parent.PhysicsComponent.Body.Collider.Radius;
-			var distance = (targetPoint - Parent.PhysicsComponent.Body.Position).Length;
+			var distance = (targetPoint - Parent.PhysicsComponent.Body.Position).Length();
 
 			var distrad = radius < 0 ? (targetRadius + myRadius + 40) : radius + myRadius;
 			bool distanceSatisfied =  distrad >= distance;

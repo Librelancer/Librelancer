@@ -30,9 +30,7 @@ SOFTWARE.
 #endregion License
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.InteropServices;
+using System.Numerics;
 using System.Text;
 
 namespace LibreLancer
@@ -41,7 +39,7 @@ namespace LibreLancer
     {
         #region Private Fields
 
-        private Matrix4 matrix;
+        private Matrix4x4 matrix;
         private readonly Vector3[] corners = new Vector3[CornerCount];
         private readonly Plane[] planes = new Plane[PlaneCount];
 
@@ -55,7 +53,7 @@ namespace LibreLancer
 
         #region Public Constructors
 
-        public BoundingFrustum(Matrix4 value)
+        public BoundingFrustum(Matrix4x4 value)
         {
             this.matrix = value;
             this.CreatePlanes();
@@ -67,7 +65,7 @@ namespace LibreLancer
 
         #region Public Properties
 
-        public Matrix4 Matrix4
+        public Matrix4x4 Matrix4x4
         {
             get { return this.matrix; }
             set
@@ -367,25 +365,14 @@ namespace LibreLancer
             Vector3 v1, v2, v3;
             Vector3 cross;
             
-            Vector3.Cross(ref b.Normal, ref c.Normal, out cross);
-            
-            float f;
-            Vector3.Dot(ref a.Normal, ref cross, out f);
+            cross = Vector3.Cross(b.Normal, c.Normal);
+
+            float f = Vector3.Dot(a.Normal, cross);
             f *= -1.0f;
-            
-            Vector3.Cross(ref b.Normal, ref c.Normal, out cross);
-            Vector3.Multiply(ref cross, a.D, out v1);
-            //v1 = (a.D * (Vector3.Cross(b.Normal, c.Normal)));
-            
-            
-            Vector3.Cross(ref c.Normal, ref a.Normal, out cross);
-            Vector3.Multiply(ref cross, b.D, out v2);
-            //v2 = (b.D * (Vector3.Cross(c.Normal, a.Normal)));
-            
-            
-            Vector3.Cross(ref a.Normal, ref b.Normal, out cross);
-            Vector3.Multiply(ref cross, c.D, out v3);
-            //v3 = (c.D * (Vector3.Cross(a.Normal, b.Normal)));
+
+            v1 = (a.D * (Vector3.Cross(b.Normal, c.Normal)));
+            v2 = (b.D * (Vector3.Cross(c.Normal, a.Normal)));
+            v3 = (c.D * (Vector3.Cross(a.Normal, b.Normal)));
             
             result.X = (v1.X + v2.X + v3.X) / f;
             result.Y = (v1.Y + v2.Y + v3.Y) / f;
@@ -394,7 +381,7 @@ namespace LibreLancer
         
         private void NormalizePlane(ref Plane p)
         {
-            float factor = 1f / p.Normal.Length;
+            float factor = 1f / p.Normal.Length();
             p.Normal.X *= factor;
             p.Normal.Y *= factor;
             p.Normal.Z *= factor;

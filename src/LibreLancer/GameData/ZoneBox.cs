@@ -3,21 +3,22 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 
 namespace LibreLancer.GameData
 {
 	public class ZoneBox : ZoneShape
 	{
 		public Vector3 Size;
-		Matrix4 R;
+		Matrix4x4 R;
 		Vector3 transformedPos;
 		public ZoneBox (Zone zone, float x, float y, float z) : base(zone)
 		{
 			Size = new Vector3 (x, y, z);
 			R = zone.RotationMatrix;
-			R.Transpose();
-			transformedPos = R.Transform(zone.Position);
-		}
+            R = Matrix4x4.Transpose(R);
+            transformedPos = Vector3.Transform(zone.Position, R);
+        }
 		public override bool Intersects(BoundingBox box)
 		{
 			var min = Zone.Position - (Size / 2);
@@ -28,7 +29,7 @@ namespace LibreLancer.GameData
 		public override bool ContainsPoint(Vector3 point)
 		{
 			//transform point
-			point = R.Transform(point) - transformedPos;
+			point = Vector3.Transform(point,R) - transformedPos;
 			//test
 			var min = -(Size * 0.5f);
 			var max = (Size * 0.5f);
@@ -42,7 +43,7 @@ namespace LibreLancer.GameData
 		public override float ScaledDistance(Vector3 point)
 		{
 			var max = Math.Max(Math.Max(Size.X, Size.Y), Size.Z);
-			return VectorMath.Distance(transformedPos, point) / max;
+			return Vector3.Distance(transformedPos, point) / max;
 		}
 		public override Vector3 RandomPoint (Func<float> randfunc)
 		{

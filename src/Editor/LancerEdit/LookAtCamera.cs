@@ -3,36 +3,37 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer;
 namespace LancerEdit
 {
     public class LookAtCamera : ICamera
     {
-        Matrix4 view;
-        Matrix4 projection;
-        Matrix4 vp;
+        Matrix4x4 view;
+        Matrix4x4 projection;
+        Matrix4x4 vp;
         Vector3 pos;
-        public void Update(float vw, float vh, Vector3 from, Vector3 to, Matrix4? rot = null)
+        public void Update(float vw, float vh, Vector3 from, Vector3 to, Matrix4x4? rot = null)
         {
             pos = from;
-            projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(50), vw / vh, 0.1f, 300000);
-            var up = (rot ?? Matrix4.Identity).Transform(Vector3.Up);
-            view = Matrix4.LookAt(from, to, up);
+            projection = Matrix4x4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(50), vw / vh, 0.1f, 300000);
+            var up = Vector3.Transform(Vector3.UnitY, rot ?? Matrix4x4.Identity);
+            view = Matrix4x4.CreateLookAt(from, to, up);
             vp = view * projection;
         }
-        public Matrix4 ViewProjection {
+        public Matrix4x4 ViewProjection {
             get {
                 return vp;
             }
         }
 
-        public Matrix4 Projection {
+        public Matrix4x4 Projection {
             get {
                 return projection;
             }
         }
 
-        public Matrix4 View {
+        public Matrix4x4 View {
             get {
                 return view;
             }

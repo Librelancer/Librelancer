@@ -3,8 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Linq;
-
+using System.Numerics;
 using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Universe

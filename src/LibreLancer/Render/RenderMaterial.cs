@@ -3,16 +3,18 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
+
 namespace LibreLancer
 {
 	public abstract class RenderMaterial
 	{
         public static bool VertexLighting = false;
 		public MaterialAnim MaterialAnim;
-		public Matrix4 World = Matrix4.Identity;
+		public Matrix4x4 World = Matrix4x4.Identity;
 		public bool FlipNormals = false;
 		public ICamera Camera;
 		public ILibFile Library;

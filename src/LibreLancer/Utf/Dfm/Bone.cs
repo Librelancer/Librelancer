@@ -5,19 +5,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using LibreLancer.Utf.Cmp;
 
 namespace LibreLancer.Utf.Dfm
 {
 	public class Bone
 	{
-		//public AbstractConstruct Construct { get; set; }
-		public Matrix4 BoneToRoot { get; private set; }
+		public Matrix4x4 BoneToRoot { get; private set; }
 		public byte LodBits { get; private set; }
 		public List<HardpointDefinition> Hardpoints { get; private set; }
-
-		protected Matrix4 transform = Matrix4.Identity;
-		public Matrix4 Transform { get { return transform; } }
 
         public string Name;
 		public Bone(string name, IntermediateNode node)
@@ -57,10 +54,5 @@ namespace LibreLancer.Utf.Dfm
 				}
 			}
 		}
-
-		public void Update(Matrix4 world)
-		{
-			transform = world * BoneToRoot;
-		}
-	}
+    }
 }

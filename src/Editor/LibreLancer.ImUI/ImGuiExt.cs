@@ -3,7 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using LibreLancer;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using ImGuiNET;
 namespace LibreLancer.ImUI
@@ -57,8 +57,8 @@ namespace LibreLancer.ImUI
 
         public static unsafe void ToastText(string text, Color4 background, Color4 foreground)
         {
-            var displaySize = (Vector2)(ImGui.GetIO().DisplaySize);
-            var textSize = (Vector2)ImGui.CalcTextSize(text);
+            var displaySize = ImGui.GetIO().DisplaySize;
+            var textSize = ImGui.CalcTextSize(text);
             var drawlist = ImGuiNative.igGetForegroundDrawList();
             var textbytes = System.Text.Encoding.UTF8.GetBytes(text);
             ImGuiNative.ImDrawList_AddRectFilled(

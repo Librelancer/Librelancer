@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Vms;
 
@@ -165,19 +166,7 @@ namespace LibreLancer.Utf.Dfm
 			if (Levels.ContainsKey (0))
 				Levels [0].Initialize (cache);
 		}
-
-		public void Resized()
-		{
-			Levels[0].Resized();
-		}
-
-
-		public void Draw(RenderState rstate, Matrix4 world, Lighting lights)
-		{
-			Levels [0].Draw (rstate, world, lights);
-		}
-
-		public Texture FindTexture(string name)
+        public Texture FindTexture(string name)
 		{
 			//if (TextureLibrary != null)
 			//{
@@ -210,7 +199,7 @@ namespace LibreLancer.Utf.Dfm
 			Levels[0].Update(camera, delta);
 		}
 
-		public void DrawBuffer(CommandBuffer buffer, Matrix4 world, ref Lighting light, Material overrideMat = null)
+		public void DrawBuffer(CommandBuffer buffer, Matrix4x4 world, ref Lighting light, Material overrideMat = null)
 		{
 			Levels[0].DrawBuffer(buffer, world, light,overrideMat);		
 		}
@@ -229,7 +218,7 @@ namespace LibreLancer.Utf.Dfm
                 float max = 0;
                 foreach (var p in msh.Points)
                 {
-                    max = Math.Max(max, p.Length);
+                    max = Math.Max(max, p.Length());
                 }
                 radius = max;
             }

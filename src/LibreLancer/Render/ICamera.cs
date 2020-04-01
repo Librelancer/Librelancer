@@ -3,13 +3,15 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
+
 namespace LibreLancer
 {
 	public interface ICamera
 	{
-		Matrix4 ViewProjection { get; }
-		Matrix4 Projection { get; }
-		Matrix4 View { get; }
+		Matrix4x4 ViewProjection { get; }
+		Matrix4x4 Projection { get; }
+		Matrix4x4 View { get; }
 		Vector3 Position { get; }
 		BoundingFrustum Frustum { get; }
         long FrameNumber { get; }

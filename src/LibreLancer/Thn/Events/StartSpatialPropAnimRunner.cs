@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Thorn;
 namespace LibreLancer
 {
@@ -11,7 +12,7 @@ namespace LibreLancer
     {
         class AxisRotation
         {
-            public Matrix4 OriginalRotate;
+            public Matrix4x4 OriginalRotate;
             public Vector3 Axis;
             public float Degrees;
 
@@ -97,7 +98,7 @@ namespace LibreLancer
                     if (ev.Duration < float.Epsilon)
                     {
                         if (hasPos) objA.Translate = pos;
-                        if (q_orient != null) objA.Rotate = Matrix4.CreateFromQuaternion(q_orient.Value);
+                        if (q_orient != null) objA.Rotate = Matrix4x4.CreateFromQuaternion(q_orient.Value);
                     }
                     else
                     {
@@ -131,11 +132,11 @@ namespace LibreLancer
                 Time = MathHelper.Clamp(Time, 0, Duration);
                 
                 if (HasPos) This.Translate = GetPosition(delta);
-                if (HasQuat) This.Rotate = Matrix4.CreateFromQuaternion(GetOrientation(delta));
+                if (HasQuat) This.Rotate = Matrix4x4.CreateFromQuaternion(GetOrientation(delta));
                 if (AxisRot != null)
                 {
                     This.Rotate = AxisRot.OriginalRotate *
-                                  Matrix4.CreateFromAxisAngle(AxisRot.Axis, AxisRot.GetRads((float) (Time / Duration)));
+                                  Matrix4x4.CreateFromAxisAngle(AxisRot.Axis, AxisRot.GetRads((float) (Time / Duration)));
                 }
                 return Time != Duration;
             }
@@ -144,7 +145,7 @@ namespace LibreLancer
             {
                 var end = PosEnd();
                 if (Time == Duration) return end;
-                var len = (end - This.Translate).Length;
+                var len = (end - This.Translate).Length();
                 var dir = (end - This.Translate).Normalized();
                 var pct = (float)(delta / (Duration - Time));
                 if (pct > 1) pct = 1;

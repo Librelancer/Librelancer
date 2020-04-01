@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using ImGuiNET;

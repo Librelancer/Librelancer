@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 
 namespace LibreLancer
 {
@@ -29,17 +30,17 @@ namespace LibreLancer
 			var g = corner + new Vector3 (sz.X, -sz.Y, -sz.Z);
 			var h = corner + new Vector3 (-sz.X, -sz.Y, -sz.Z);
 
-			float d2 = VectorMath.DistanceSquared (cameraPos, a);
+			float d2 = Vector3.DistanceSquared (cameraPos, a);
 			float temp;
 			Vector3 result = a;
 
-			if ((temp = VectorMath.DistanceSquared (cameraPos, b)) < d2) { d2 = temp; result = b; }
-			if ((temp = VectorMath.DistanceSquared (cameraPos, c)) < d2) { d2 = temp; result = c; }
-			if ((temp = VectorMath.DistanceSquared (cameraPos, d)) < d2) { d2 = temp; result = d; }
-			if ((temp = VectorMath.DistanceSquared (cameraPos, e)) < d2) { d2 = temp; result = e; }
-			if ((temp = VectorMath.DistanceSquared (cameraPos, f)) < d2) { d2 = temp; result = f; }
-			if ((temp = VectorMath.DistanceSquared (cameraPos, g)) < d2) { d2 = temp; result = g; }
-			if ((temp = VectorMath.DistanceSquared (cameraPos, h)) < d2) { d2 = temp; result = h; }
+			if ((temp = Vector3.DistanceSquared (cameraPos, b)) < d2) { d2 = temp; result = b; }
+			if ((temp = Vector3.DistanceSquared (cameraPos, c)) < d2) { d2 = temp; result = c; }
+			if ((temp = Vector3.DistanceSquared (cameraPos, d)) < d2) { d2 = temp; result = d; }
+			if ((temp = Vector3.DistanceSquared (cameraPos, e)) < d2) { d2 = temp; result = e; }
+			if ((temp = Vector3.DistanceSquared (cameraPos, f)) < d2) { d2 = temp; result = f; }
+			if ((temp = Vector3.DistanceSquared (cameraPos, g)) < d2) { d2 = temp; result = g; }
+			if ((temp = Vector3.DistanceSquared (cameraPos, h)) < d2) { d2 = temp; result = h; }
 
 			return result;
 		}

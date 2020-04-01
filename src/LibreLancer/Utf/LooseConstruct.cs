@@ -4,11 +4,13 @@
 
 using System;
 using System.IO;
+using System.Numerics;
+
 namespace LibreLancer.Utf
 {
     public class LooseConstruct : AbstractConstruct
     {
-        public override Matrix4 LocalTransform { get { return internalGetTransform(Rotation * Matrix4.CreateTranslation(Origin)); } }
+        public override Matrix4x4 LocalTransform { get { return internalGetTransform(Rotation * Matrix4x4.CreateTranslation(Origin)); } }
 
         public LooseConstruct(BinaryReader reader)
             : base(reader)

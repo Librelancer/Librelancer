@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.IO;
 
 namespace LibreLancer.Utf
@@ -19,12 +20,12 @@ namespace LibreLancer.Utf
         public float Min3 { get; set; }
         public float Max3 { get; set; }
 
-        public override Matrix4 LocalTransform
+        public override Matrix4x4 LocalTransform
         {
-            get { return internalGetTransform(quatRot * Rotation * Matrix4.CreateTranslation(Origin + Offset)); }
+            get { return internalGetTransform(quatRot * Rotation * Matrix4x4.CreateTranslation(Origin + Offset)); }
         }
 
-        private Matrix4 quatRot = Matrix4.Identity;
+        private Matrix4x4 quatRot = Matrix4x4.Identity;
 
         public SphereConstruct()
         {
@@ -58,11 +59,11 @@ namespace LibreLancer.Utf
 		}
         public override void Reset()
         {
-            quatRot = Matrix4.Identity;
+            quatRot = Matrix4x4.Identity;
         }
         public override void Update(float distance, Quaternion quat)
         {
-            quatRot = Matrix4.CreateFromQuaternion(quat);
+            quatRot = Matrix4x4.CreateFromQuaternion(quat);
         }
     }
 }

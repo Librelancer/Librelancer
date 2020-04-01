@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using LibreLancer;
+using System.Numerics;
 using LibreLancer.Data;
 
 namespace LibreLancer.Interface
@@ -23,7 +23,7 @@ namespace LibreLancer.Interface
         //Rendering
         public RenderState RenderState;
         public Renderer2D Renderer2D;
-        public MatrixCamera MatrixCam = new MatrixCamera(Matrix4.Identity);
+        public MatrixCamera MatrixCam = new MatrixCamera(Matrix4x4.Identity);
         //Data
         public string DataPath;
         public GameResourceManager ResourceManager;

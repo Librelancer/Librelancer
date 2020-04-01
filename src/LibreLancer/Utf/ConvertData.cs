@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.CompilerServices;
+using System.Numerics;
 
 
 namespace LibreLancer
@@ -48,12 +48,12 @@ namespace LibreLancer
             return result;
         }
 
-        public static Matrix4 ToMatrix3x3(byte[] data, int start = 0)
+        public static Matrix4x4 ToMatrix3x3(byte[] data, int start = 0)
         {
             fixed (byte* pinned = data)
             {
                 var floats = (float*) (&pinned[start]);
-                var result = Matrix4.Identity;
+                var result = Matrix4x4.Identity;
                 result.M11 = floats[0];
                 result.M21 = floats[1];
                 result.M31 = floats[2];
@@ -74,9 +74,9 @@ namespace LibreLancer
             }
         }
 
-        public static Matrix4 ToMatrix3x3(BinaryReader reader)
+        public static Matrix4x4 ToMatrix3x3(BinaryReader reader)
         {
-            Matrix4 result = Matrix4.Identity;
+            Matrix4x4 result = Matrix4x4.Identity;
 
             result.M11 = reader.ReadSingle();
             result.M21 = reader.ReadSingle();
@@ -98,11 +98,11 @@ namespace LibreLancer
             return result;
         }
 
-        public static Matrix4 ToMatrix4x3(byte[] data, int start = 0)
+        public static Matrix4x4 ToMatrix4x3(byte[] data, int start = 0)
         {
             var mat3 = ToMatrix3x3(data, start);
-            mat3.Transpose();
-            return Matrix4.CreateTranslation(-ToVector3(data, start + sizeof(float) * 9)) * mat3;
+            mat3 =  Matrix4x4.Transpose(mat3);
+            return Matrix4x4.CreateTranslation(-ToVector3(data, start + sizeof(float) * 9)) * mat3;
         }
 
         public static Color4 ToColor(byte[] data, int start = 0)

@@ -3,7 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Collections.Generic;
+using System.Numerics;
 using LibreLancer.Utf.Dfm;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
@@ -194,9 +194,9 @@ namespace LibreLancer
 			//Set lights
 			SetLights(shader, ref lights);
 			var normalMatrix = World;
-			normalMatrix.Invert();
-			normalMatrix.Transpose();
-			shader.SetNormalMatrix(ref normalMatrix);
+            Matrix4x4.Invert(normalMatrix, out normalMatrix);
+            normalMatrix = Matrix4x4.Transpose(normalMatrix);
+            shader.SetNormalMatrix(ref normalMatrix);
 			shader.UseProgram();
 		}
 

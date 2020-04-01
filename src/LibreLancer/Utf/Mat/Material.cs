@@ -5,7 +5,8 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer.Utf;
+using System.Numerics;
+
 
 namespace LibreLancer.Utf.Mat
 {
@@ -484,18 +485,8 @@ namespace LibreLancer.Utf.Mat
 				}
 			}
 		}
-
-		public void Resized()
+        public void Update(ICamera camera)
 		{
-			//if (effect != null)
-			//effect.SetParameter ("Projection", camera.Projection);
-		}
-
-		Matrix4 ViewProjection = Matrix4.Identity;
-
-		public void Update(ICamera camera)
-		{
-			ViewProjection = camera.ViewProjection;
             if (Render != null)
                 Render.Camera = camera;
 		}

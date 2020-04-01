@@ -3,7 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Collections.Generic;
+using System.Numerics;
 using LibreLancer;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
@@ -39,7 +39,7 @@ namespace LancerEdit
             vertexCountL = 0;
         }
 
-        public static void AddGizmoArc(Matrix4 tr, float min, float max)
+        public static void AddGizmoArc(Matrix4x4 tr, float min, float max)
         {
             //angle magic for display
             float a = -max, b = -min;
@@ -63,8 +63,8 @@ namespace LancerEdit
             var y = Math.Cos(min);
 
             //First Notch
-            var notch_inner = VectorMath.Transform(new Vector3((float)x * outerRadius, arrowOffset, -(float)y * outerRadius), tr);
-            var notch_outer = VectorMath.Transform(new Vector3((float)x * notchRadius, arrowOffset, -(float)y * notchRadius), tr);
+            var notch_inner = Vector3.Transform(new Vector3((float)x * outerRadius, arrowOffset, -(float)y * outerRadius), tr);
+            var notch_outer = Vector3.Transform(new Vector3((float)x * notchRadius, arrowOffset, -(float)y * notchRadius), tr);
             AddPoint(notch_inner, Color4.Yellow);
             AddPoint(notch_outer, Color4.Yellow);
 
@@ -75,10 +75,10 @@ namespace LancerEdit
                 float theta = (length * i) / segments;
                 var x2 = Math.Sin(min + theta);
                 var y2 = Math.Cos(min + theta);
-                var p1_inner = VectorMath.Transform(new Vector3((float)x * innerRadius, arrowOffset, -(float)y * innerRadius), tr);
-                var p1_outer = VectorMath.Transform(new Vector3((float)x * outerRadius, arrowOffset, -(float)y * outerRadius), tr);
-                var p2_inner = VectorMath.Transform(new Vector3((float)x2 * innerRadius, arrowOffset, -(float)y2 * innerRadius), tr);
-                var p2_outer = VectorMath.Transform(new Vector3((float)x2 * outerRadius, arrowOffset, -(float)y2 * outerRadius), tr);
+                var p1_inner = Vector3.Transform(new Vector3((float)x * innerRadius, arrowOffset, -(float)y * innerRadius), tr);
+                var p1_outer = Vector3.Transform(new Vector3((float)x * outerRadius, arrowOffset, -(float)y * outerRadius), tr);
+                var p2_inner = Vector3.Transform(new Vector3((float)x2 * innerRadius, arrowOffset, -(float)y2 * innerRadius), tr);
+                var p2_outer = Vector3.Transform(new Vector3((float)x2 * outerRadius, arrowOffset, -(float)y2 * outerRadius), tr);
                 //Draw quad
                 AddPoint(p1_inner, Color4.Yellow);
                 AddPoint(p1_outer, Color4.Yellow);
@@ -94,8 +94,8 @@ namespace LancerEdit
             }
 
             //Second notch
-            notch_inner = VectorMath.Transform(new Vector3((float)x * outerRadius, arrowOffset, -(float)y * outerRadius), tr);
-            notch_outer = VectorMath.Transform(new Vector3((float)x * notchRadius, arrowOffset, -(float)y * notchRadius), tr);
+            notch_inner = Vector3.Transform(new Vector3((float)x * outerRadius, arrowOffset, -(float)y * outerRadius), tr);
+            notch_outer = Vector3.Transform(new Vector3((float)x * notchRadius, arrowOffset, -(float)y * notchRadius), tr);
             AddPoint(notch_inner, Color4.Yellow);
             AddPoint(notch_outer, Color4.Yellow);
         }
@@ -108,7 +108,7 @@ namespace LancerEdit
         };
         static Vector3 vM(float x, float y, float z) => new Vector3(x, z, -y);
 
-        public static void AddGizmo(Matrix4 tr, Color4 color)
+        public static void AddGizmo(Matrix4x4 tr, Color4 color)
         {
             float baseSize = 0.33f * Scale;
             float arrowSize = 0.62f * Scale;
@@ -133,7 +133,7 @@ namespace LancerEdit
             lineBuffer.SetData(lines, vertexCountL);
             gizmoMaterial.Update(cam);
             var r = (BasicMaterial)gizmoMaterial.Render;
-            r.World = Matrix4.Identity;
+            r.World = Matrix4x4.Identity;
             //Lines
             r.AlphaEnabled = false;
             rstate.Cull = false;
@@ -141,14 +141,14 @@ namespace LancerEdit
             lineBuffer.Draw(PrimitiveTypes.LineList, vertexCountL / 2);
         }
 
-        static void AddTriangleMesh(Matrix4 mat, Vector3[] positions, int[] indices, Color4 color)
+        static void AddTriangleMesh(Matrix4x4 mat, Vector3[] positions, int[] indices, Color4 color)
         {
             for(int i = 1; i < indices.Length; i++)
             {
                 var p1 = positions[indices[i - 1]];
                 var p2 = positions[indices[i]];
-                AddPoint(mat.Transform(p1), color);
-                AddPoint(mat.Transform(p2), color);
+                AddPoint(Vector3.Transform(p1, mat), color);
+                AddPoint(Vector3.Transform(p2, mat), color);
             }
         }
 

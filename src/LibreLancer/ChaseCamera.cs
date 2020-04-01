@@ -3,6 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
+
 namespace LibreLancer
 {
     //Based on camera rigs from https://github.com/brihernandez/FreelancerFlightExample
@@ -23,7 +25,7 @@ namespace LibreLancer
 		Viewport _vp;
 
 		public Vector3 ChasePosition { get; set; }
-		public Matrix4 ChaseOrientation { get; set; }
+		public Matrix4x4 ChaseOrientation { get; set; }
 
         public float HorizontalTurnAngle = 15f;
         public float VerticalTurnUpAngle = 5f;
@@ -33,9 +35,9 @@ namespace LibreLancer
         public Vector3 DesiredPositionOffset = new Vector3(0, 4f, 28f);
 
         //Camera Values
-		public Matrix4 Projection { get; private set; }
-		public Matrix4 View { get; private set; }
-		Matrix4 viewprojection;
+		public Matrix4x4 Projection { get; private set; }
+		public Matrix4x4 View { get; private set; }
+		Matrix4x4 viewprojection;
 		bool _vpdirty = true;
 		public BoundingFrustum _frustum = null;
 		public BoundingFrustum Frustum
@@ -57,7 +59,7 @@ namespace LibreLancer
 			_vpdirty = false;
 		}
 
-		public Matrix4 ViewProjection
+		public Matrix4x4 ViewProjection
 		{
 			get
 			{
@@ -99,7 +101,7 @@ namespace LibreLancer
         public void UpdateProjection()
 		{
             const float defaultFOV = 50;
-			Projection = Matrix4.CreatePerspectiveFieldOfView(FOVUtil.CalcFovx(defaultFOV, Viewport.AspectRatio), Viewport.AspectRatio, 3f, 10000000f);
+			Projection = Matrix4x4.CreatePerspectiveFieldOfView(FOVUtil.CalcFovx(defaultFOV, Viewport.AspectRatio), Viewport.AspectRatio, 3f, 10000000f);
 		}
 
         public void UpdateFrameNumber(long f)
@@ -141,18 +143,18 @@ namespace LibreLancer
             horizontal = HorizontalTurnAngle * mouseScreenX;
             vertical = (mouseScreenY < 0.0f) ? VerticalTurnUpAngle * mouseScreenY : VerticalTurnDownAngle * mouseScreenY;
 
-            lookAhead = DampS(lookAhead, Quaternion.FromEulerAngles(MathHelper.DegreesToRadians(vertical), MathHelper.DegreesToRadians(horizontal), 0), SmoothSpeed, (float)delta.TotalSeconds);
+            lookAhead = DampS(lookAhead, Quaternion.CreateFromYawPitchRoll(MathHelper.DegreesToRadians(horizontal), MathHelper.DegreesToRadians(vertical), 0), SmoothSpeed, (float)delta.TotalSeconds);
         }
 
         void UpdateRotateTarget(TimeSpan delta)
         {
             if (MouseFlight)
             {
-                var mat = Matrix4.CreateFromQuaternion(rigRotate);
-                var transformUp = CalcDir(ref mat, Vector3.Up);
+                var mat = Matrix4x4.CreateFromQuaternion(rigRotate);
+                var transformUp = CalcDir(ref mat, Vector3.UnitY);
                 var orient = ChaseOrientation;
-                var shipFwd = CalcDir(ref orient, Vector3.Backward);
-                targetRigRotate = Quaternion.LookRotation(shipFwd, transformUp);
+                var shipFwd = CalcDir(ref orient, Vector3.UnitZ);
+                targetRigRotate = QuaternionEx.LookRotation(shipFwd, transformUp);
             }
             else
                 targetRigRotate = ChaseOrientation.ExtractRotation();
@@ -167,34 +169,34 @@ namespace LibreLancer
             rigRotate = DampS(rigRotate, targetRigRotate, SmoothSpeed, (float)delta.TotalSeconds);
             UpdateLookAhead(delta);
 
-            var rigTransform = Matrix4.CreateFromQuaternion(rigRotate) * Matrix4.CreateTranslation(ChasePosition); //Camera Rig
-            var lookAheadTransform = Matrix4.CreateFromQuaternion(lookAhead); //LookAhead Rig
-            var camTransform = Matrix4.CreateTranslation(DesiredPositionOffset);
-
-            Vector3 lookAheadPosition = ChasePosition + ChaseOrientation.Transform(Vector3.Forward * 100);
+            var rigTransform = Matrix4x4.CreateFromQuaternion(rigRotate) * Matrix4x4.CreateTranslation(ChasePosition); //Camera Rig
+            var lookAheadTransform = Matrix4x4.CreateFromQuaternion(lookAhead); //LookAhead Rig
+            var camTransform = Matrix4x4.CreateTranslation(DesiredPositionOffset);
+            
+            Vector3 lookAheadPosition = ChasePosition + Vector3.Transform(-Vector3.UnitZ * 100, ChaseOrientation);
             var lookAheadStack = lookAheadTransform * rigTransform;
-            var lookAheadRigUp = CalcDir(ref lookAheadStack, Vector3.Up);
+            var lookAheadRigUp = CalcDir(ref lookAheadStack, Vector3.UnitY);
 
             var transformStack = camTransform * lookAheadTransform * rigTransform;
-            var camRotation = Matrix4.CreateFromQuaternion(Quaternion.LookRotation(ChasePosition - lookAheadPosition, lookAheadRigUp));
-            var tr = camRotation * Matrix4.CreateTranslation(transformStack.Transform(Vector3.Zero));
+            var camRotation = Matrix4x4.CreateFromQuaternion(QuaternionEx.LookRotation(ChasePosition - lookAheadPosition, lookAheadRigUp));
+            var tr = camRotation * Matrix4x4.CreateTranslation(Vector3.Transform(Vector3.Zero, transformStack));
 
             //TODO: Finish with lookahead rig. there's some maths that go crazy there but it's needed to get this to work at all
             //var tr = transformStack;
             var v = tr;
-            CameraUp = CalcDir(ref tr, Vector3.Up);
-            CameraForward = CalcDir(ref tr, Vector3.Forward);
-            Position = v.Transform(Vector3.Zero);
-            v.Invert();
+            CameraUp = CalcDir(ref tr, Vector3.UnitY);
+            CameraForward = CalcDir(ref tr, -Vector3.UnitZ);
+            Position = Vector3.Transform(Vector3.Zero, tr);
+            Matrix4x4.Invert(v, out v);
             View = v;
             
             _vpdirty = true;
 		}
 
-        Vector3 CalcDir(ref Matrix4 mat, Vector3 v)
+        Vector3 CalcDir(ref Matrix4x4 mat, Vector3 v)
         {
-            var v0 = mat.Transform(Vector3.Zero);
-            var v1 = mat.Transform(v);
+            var v0 = Vector3.Transform(Vector3.Zero, mat);
+            var v1 = Vector3.Transform(v, mat);
             return (v1 - v0).Normalized();
         }
         public Vector3 CameraUp;

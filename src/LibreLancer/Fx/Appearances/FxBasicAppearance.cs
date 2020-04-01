@@ -3,8 +3,10 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Utf.Ale;
 using LibreLancer.Utf.Mat;
+
 namespace LibreLancer.Fx
 {
 	public class FxBasicAppearance : FxAppearance
@@ -77,7 +79,7 @@ namespace LibreLancer.Fx
 			}
 		}
 
-        public override void Draw(ref Particle particle, int pidx, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+        public override void Draw(ref Particle particle, int pidx, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam)
         {
             var time = particle.TimeAlive / particle.LifeSpan;
             var node_tr = GetAttachment(reference, transform);
@@ -88,7 +90,7 @@ namespace LibreLancer.Fx
                 particle.Position += deltap;
                 particle.Orientation *= deltaq;
             }
-			var p = node_tr.Transform(particle.Orientation * particle.Position);
+			var p = Vector3.Transform(Vector3.Transform(particle.Position, particle.Orientation), node_tr);
 			Texture2D tex;
 			Vector2 tl, tr, bl, br;
 			HandleTexture(res, sparam, globaltime, ref particle, out tex, out tl, out tr, out bl, out br);

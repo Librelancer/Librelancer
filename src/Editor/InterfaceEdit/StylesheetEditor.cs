@@ -45,7 +45,7 @@ namespace InterfaceEdit
         public override void Draw()
         {
             if (!validXml) {
-                ImGui.TextColored(new Vector4(1,0,0,1), exceptionText);
+                ImGui.TextColored(Color4.Red, exceptionText);
             }
             textEditor.Render("##stylesheeteditor");
             if (textEditor.TextChanged()) TextChanged();

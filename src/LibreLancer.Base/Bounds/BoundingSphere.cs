@@ -31,8 +31,7 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.ComponentModel;
-using System.Runtime.Serialization;
+using System.Numerics;
 
 namespace LibreLancer
 {
@@ -61,17 +60,17 @@ namespace LibreLancer
 
         #region Public Methods
 
-        public BoundingSphere Transform(Matrix4 matrix)
+        public BoundingSphere Transform(Matrix4x4 matrix)
         {
             BoundingSphere sphere = new BoundingSphere();
-            sphere.Center = VectorMath.Transform(this.Center, matrix);
+            sphere.Center = Vector3.Transform(this.Center, matrix);
             sphere.Radius = this.Radius * ((float)Math.Sqrt((double)Math.Max(((matrix.M11 * matrix.M11) + (matrix.M12 * matrix.M12)) + (matrix.M13 * matrix.M13), Math.Max(((matrix.M21 * matrix.M21) + (matrix.M22 * matrix.M22)) + (matrix.M23 * matrix.M23), ((matrix.M31 * matrix.M31) + (matrix.M32 * matrix.M32)) + (matrix.M33 * matrix.M33)))));
             return sphere;
         }
 
-        public void Transform(ref Matrix4 matrix, out BoundingSphere result)
+        public void Transform(ref Matrix4x4 matrix, out BoundingSphere result)
         {
-            result.Center = VectorMath.Transform(this.Center, matrix);
+            result.Center = Vector3.Transform(this.Center, matrix);
             result.Radius = this.Radius * ((float)Math.Sqrt((double)Math.Max(((matrix.M11 * matrix.M11) + (matrix.M12 * matrix.M12)) + (matrix.M13 * matrix.M13), Math.Max(((matrix.M21 * matrix.M21) + (matrix.M22 * matrix.M22)) + (matrix.M23 * matrix.M23), ((matrix.M31 * matrix.M31) + (matrix.M32 * matrix.M32)) + (matrix.M33 * matrix.M33)))));
         }
 
@@ -155,7 +154,7 @@ namespace LibreLancer
 
         public ContainmentType Contains(BoundingSphere sphere)
         {
-            float val = VectorMath.Distance(sphere.Center, Center);
+            float val = Vector3.Distance(sphere.Center, Center);
 
             if (val > sphere.Radius + Radius)
                 return ContainmentType.Disjoint;
@@ -174,7 +173,7 @@ namespace LibreLancer
 
         public ContainmentType Contains(Vector3 point)
         {
-            float distance = VectorMath.Distance(point, Center);
+            float distance = Vector3.Distance(point, Center);
 
             if (distance > this.Radius)
                 return ContainmentType.Disjoint;
@@ -198,7 +197,7 @@ namespace LibreLancer
                                          (box.Min.Z + box.Max.Z) / 2.0f);
 
             // Find the distance between the center and one of the corners of the box.
-            float radius = VectorMath.Distance(center, box.Max);
+            float radius = Vector3.Distance(center, box.Max);
 
             return new BoundingSphere(center, radius);
         }
@@ -234,7 +233,7 @@ namespace LibreLancer
             // Calculate the radius of the needed sphere (it equals the distance between the center and the point further away).
             foreach (Vector3 v in points)
             {
-                float distance = ((Vector3)(v - center)).Length;
+                float distance = ((Vector3)(v - center)).Length();
                 
                 if (distance > radius)
                     radius = distance;
@@ -246,7 +245,7 @@ namespace LibreLancer
         public static BoundingSphere CreateMerged(BoundingSphere original, BoundingSphere additional)
         {
             Vector3 ocenterToaCenter = Vector3.Subtract(additional.Center, original.Center);
-            float distance = ocenterToaCenter.Length;
+            float distance = ocenterToaCenter.Length();
             if (distance <= original.Radius + additional.Radius)//intersect
             {
                 if (distance <= original.Radius - additional.Radius)//original contain additional
@@ -258,7 +257,7 @@ namespace LibreLancer
             //else find center of new sphere and radius
             float leftRadius = Math.Max(original.Radius - distance, additional.Radius);
             float Rightradius = Math.Max(original.Radius + distance, additional.Radius);
-            ocenterToaCenter = ocenterToaCenter + (((leftRadius - Rightradius) / (2 * ocenterToaCenter.Length)) * ocenterToaCenter);//oCenterToResultCenter
+            ocenterToaCenter = ocenterToaCenter + (((leftRadius - Rightradius) / (2 * ocenterToaCenter.Length())) * ocenterToaCenter);//oCenterToResultCenter
             
             BoundingSphere result = new BoundingSphere();
             result.Center = original.Center + ocenterToaCenter;
@@ -311,7 +310,7 @@ namespace LibreLancer
 
         public bool Intersects(BoundingSphere sphere)
         {
-            float val = VectorMath.Distance(sphere.Center, Center);
+            float val = Vector3.Distance(sphere.Center, Center);
 			if (val > sphere.Radius + Radius)
 				return false;
 			return true;
@@ -332,9 +331,7 @@ namespace LibreLancer
 
         public void Intersects(ref Plane plane, out PlaneIntersectionType result)
         {
-            var distance = default(float);
-            // TODO: we might want to inline this for performance reasons
-            Vector3.Dot(ref plane.Normal, ref this.Center, out distance);
+            var distance = Vector3.Dot(plane.Normal, Center);
             distance += plane.D;
             if (distance > this.Radius)
                 result = PlaneIntersectionType.Front;

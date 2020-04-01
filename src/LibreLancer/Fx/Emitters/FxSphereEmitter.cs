@@ -3,7 +3,9 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Utf.Ale;
+
 namespace LibreLancer.Fx
 {
 	public class FxSphereEmitter : FxEmitter
@@ -24,7 +26,7 @@ namespace LibreLancer.Fx
 			}
 		}
 
-        protected override void SetParticle(int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4 transform, float sparam, float globaltime)
+        protected override void SetParticle(int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam, float globaltime)
 		{
 			var r_min = MinRadius.GetValue(sparam, 0);
 			var r_max = MaxRadius.GetValue(sparam, 0);
@@ -42,7 +44,7 @@ namespace LibreLancer.Fx
             Quaternion rotate;
             if (DoTransform(reference, sparam, globaltime, out translate, out rotate)) {
                 p += translate;
-                n = rotate * n;
+                n = Vector3.Transform(n, rotate);
             }
 			n *= Pressure.GetValue(sparam, 0);
 			var pr = p * radius;

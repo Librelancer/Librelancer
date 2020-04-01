@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using BulletSharp;
 using BM = BulletSharp.Math;
+
 namespace LibreLancer.Physics
 {
     public delegate void FixedUpdateHandler(TimeSpan elapsed);
@@ -55,7 +57,7 @@ namespace LibreLancer.Physics
         {
             btWorld.DebugDrawWorld();
         }
-        public PhysicsObject AddStaticObject(Matrix4 transform, Collider col)
+        public PhysicsObject AddStaticObject(Matrix4x4 transform, Collider col)
         {
             using(var rbInfo = new RigidBodyConstructionInfo(0, 
                                                              new DefaultMotionState(transform.Cast()), 
@@ -71,7 +73,7 @@ namespace LibreLancer.Physics
             }
         }
 
-        public PhysicsObject AddDynamicObject(float mass, Matrix4 transform, Collider col, Vector3? inertia = null) {
+        public PhysicsObject AddDynamicObject(float mass, Matrix4x4 transform, Collider col, Vector3? inertia = null) {
             if(mass < float.Epsilon) {
                 throw new Exception("Mass must be non-zero");
             }

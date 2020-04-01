@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using LibreLancer.GameData.Items;
 namespace LibreLancer
 {
@@ -29,8 +30,8 @@ namespace LibreLancer
             //Parent is the gun itself rotated
             var beforeRotate = hp.TransformNoRotate * Parent.Parent.GetTransform();
             //Inverse Transform
-            beforeRotate.Invert();
-            var local = beforeRotate.Transform(point);
+            Matrix4x4.Invert(beforeRotate, out beforeRotate);
+            var local = Vector3.Transform(point, beforeRotate);
             var localProper = local.Normalized();
             var rads = MathHelper.DegreesToRadians(Object.Def.TurnRate);
             var delta = (float)(time.TotalSeconds * rads);
@@ -86,8 +87,9 @@ namespace LibreLancer
                 toSpawn = projectiles.GetData(Object);
             }
             var tr = (Parent.Attachment.Transform * Parent.Parent.GetTransform());
-            for (int i = 0; i < hpfires.Length; i++) {
-                var pos = (hpfires[i].Transform * tr).Transform(Vector3.Zero);
+            for (int i = 0; i < hpfires.Length; i++)
+            {
+                var pos = Vector3.Transform(Vector3.Zero, hpfires[i].Transform * tr);
                 var heading = (pos - point).Normalized();
                 projectiles.SpawnProjectile(toSpawn, pos, heading);
             }

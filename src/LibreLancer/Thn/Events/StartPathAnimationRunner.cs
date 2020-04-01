@@ -3,6 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
+
 namespace LibreLancer
 {
     [ThnEventRunner(EventTypes.StartPathAnimation)]
@@ -43,11 +45,11 @@ namespace LibreLancer
             {
                 float pct = MathHelper.Lerp(StartPercent, StopPercent, t);
                 var path = Path.Entity.Path;
-                var mat = Path.Rotate * Matrix4.CreateTranslation(Path.Translate);
-                var pos = mat.Transform(path.GetPosition(pct) + Offset);
+                var mat = Path.Rotate * Matrix4x4.CreateTranslation(Path.Translate);
+                var pos = Vector3.Transform(path.GetPosition(pct) + Offset, mat);
                 if ((Flags & AttachFlags.LookAt) == AttachFlags.LookAt)
                 {
-                    var orient = Matrix4.CreateFromQuaternion(Quaternion.LookRotation(path.GetDirection(pct, StartPercent > StopPercent), Vector3.UnitY)) * Path.Rotate;
+                    var orient = Matrix4x4.CreateFromQuaternion(QuaternionEx.LookRotation(path.GetDirection(pct, StartPercent > StopPercent), Vector3.UnitY)) * Path.Rotate;
                     if ((Flags & AttachFlags.Position) == AttachFlags.Position)
                         SetPositionOrientation(pos, orient);
                     else
@@ -55,7 +57,7 @@ namespace LibreLancer
                 }
                 else if ((Flags & AttachFlags.Orientation) == AttachFlags.Orientation)
                 {
-                    var orient = Path.Rotate * Matrix4.CreateFromQuaternion(path.GetOrientation(pct));
+                    var orient = Path.Rotate * Matrix4x4.CreateFromQuaternion(path.GetOrientation(pct));
                     SetOrientation(orient);
                     if ((Flags & AttachFlags.Position) == AttachFlags.Position)
                         SetPosition(pos);
@@ -67,8 +69,8 @@ namespace LibreLancer
             }
 
             protected abstract void SetPosition(Vector3 pos);
-            protected abstract void SetPositionOrientation(Vector3 pos, Matrix4 orient);
-            protected abstract void SetOrientation(Matrix4 orient);
+            protected abstract void SetPositionOrientation(Vector3 pos, Matrix4x4 orient);
+            protected abstract void SetOrientation(Matrix4x4 orient);
         }
 
         class ObjectPathAnimation : PathAnimationBase
@@ -79,12 +81,12 @@ namespace LibreLancer
             {
                 Object.Translate = pos;
             }
-            protected override void SetPositionOrientation(Vector3 pos, Matrix4 orient)
+            protected override void SetPositionOrientation(Vector3 pos, Matrix4x4 orient)
             {
                 Object.Translate = pos;
                 Object.Rotate = orient;
             }
-            protected override void SetOrientation(Matrix4 orient)
+            protected override void SetOrientation(Matrix4x4 orient)
             {
                 Object.Rotate = orient;
             }

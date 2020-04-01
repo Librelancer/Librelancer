@@ -3,6 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
+
 namespace LibreLancer
 {
 	public class ComputeShader
@@ -43,7 +45,7 @@ namespace LibreLancer
 			GL.Uniform2i(GL.GetUniformLocation(ID, name), pt.X, pt.Y);
 		}
 
-		public void UniformMatrix4fv(string name, ref Matrix4 mat)
+		public void UniformMatrix4fv(string name, ref Matrix4x4 mat)
 		{
 			GLBind.UseProgram(ID);
 			GL.UniformMatrix4fv(GL.GetUniformLocation(ID, name), 1, false, ref mat);

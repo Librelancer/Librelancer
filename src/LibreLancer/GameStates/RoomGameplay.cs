@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Linq;
 using LibreLancer.GameData;
 using LibreLancer.Utf.Dfm;
@@ -281,7 +282,8 @@ namespace LibreLancer
                 marker.Object.Children.Add(obj);
                 if(obj.HardpointExists("HpMount"))
                 {
-                    obj.Transform = obj.GetHardpoint("HpMount").Transform.Inverted();
+                    Matrix4x4.Invert(obj.GetHardpoint("HpMount").Transform, out var tr);
+                    obj.Transform = tr;
                 }
             }
         }

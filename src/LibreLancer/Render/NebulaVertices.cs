@@ -4,6 +4,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Numerics;
 using LibreLancer.Vertices;
 
 namespace LibreLancer
@@ -65,7 +66,7 @@ namespace LibreLancer
 			verts[currentVerts++] = v4;
 		}
 		int lastIndex = 0;
-		public void Draw(CommandBuffer buffer, ICamera camera, Texture texture, Color4 color, Matrix4 world, bool inside)
+		public void Draw(CommandBuffer buffer, ICamera camera, Texture texture, Color4 color, Matrix4x4 world, bool inside)
 		{
             if(texture == null) {
                 lastIndex = currentIndex;

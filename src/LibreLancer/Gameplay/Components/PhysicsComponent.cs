@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Physics;
 namespace LibreLancer
 {
@@ -63,12 +64,12 @@ namespace LibreLancer
                 sur = new SurCollider(SurPath);
                 cld = sur;
                 if(Parent.RigidModel.From3db) {
-                    sur.AddPart(plainCrc, Matrix4.Identity, null);
+                    sur.AddPart(plainCrc, Matrix4x4.Identity, null);
                 } else {
                     foreach(var part in Parent.RigidModel.AllParts) {
                         var crc = CrcTool.FLModelCrc(part.Name);
                         if (part.Construct == null)
-                            sur.AddPart(crc, Matrix4.Identity, part);
+                            sur.AddPart(crc, Matrix4x4.Identity, part);
                         else
                             sur.AddPart(crc, part.LocalTransform, part);
                     }

@@ -4,6 +4,8 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
+
 namespace LibreLancer
 {
 	public class TradelaneMoveComponent : GameComponent
@@ -33,9 +35,9 @@ namespace LibreLancer
 			if (eng != null) eng.Speed = 0.9f;
 
 			var tgtcmp = tgt.GetComponent<DockComponent>();
-			var targetPoint = (tgt.GetHardpoint(lane).Transform * tgt.GetTransform()).Transform(Vector3.Zero);
+            var targetPoint = Vector3.Transform(Vector3.Zero, tgt.GetHardpoint(lane).Transform * tgt.GetTransform());
 			var direction = targetPoint - Parent.PhysicsComponent.Body.Position;
-			var distance = direction.Length;
+			var distance = direction.Length();
 			if (distance < 200)
 			{
 				currenttradelane = tgt;
@@ -45,10 +47,10 @@ namespace LibreLancer
 			Parent.PhysicsComponent.Body.LinearVelocity = direction * 2500;
 
 			//var currRot = Quaternion.FromMatrix(Parent.PhysicsComponent.Body.Transform.ClearTranslation());
-			var targetRot = Quaternion.LookAt(Parent.PhysicsComponent.Body.Position, targetPoint);
+			var targetRot = QuaternionEx.LookAt(Parent.PhysicsComponent.Body.Position, targetPoint);
             //var slerped = Quaternion.Slerp(currRot, targetRot, 0.02f); //TODO: Slerp doesn't work?
-            Parent.PhysicsComponent.Body.SetTransform(new Matrix4(Matrix3.CreateFromQuaternion(targetRot)) *
-                                                      Matrix4.CreateTranslation(Parent.PhysicsComponent.Body.Position));
+            Parent.PhysicsComponent.Body.SetTransform(Matrix4x4.CreateFromQuaternion(targetRot) *
+                                                      Matrix4x4.CreateTranslation(Parent.PhysicsComponent.Body.Position));
 		}
 
 	}

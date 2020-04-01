@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Universe

@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 namespace LibreLancer.Utf.Dfm
 {
 	public class DfmHardpoint
@@ -10,13 +11,5 @@ namespace LibreLancer.Utf.Dfm
 		public DfmFile File;
 		public DfmPart Part;
 		public Cmp.HardpointDefinition Hp;
-		public DfmHardpoint()
-		{
-		}
-		public Matrix4 GetTransform(Matrix4 world)
-		{
-            return Matrix4.Identity;
-			//return Hp.Transform * Bone.Construct.Transform * world;
-		}
-	}
+    }
 }

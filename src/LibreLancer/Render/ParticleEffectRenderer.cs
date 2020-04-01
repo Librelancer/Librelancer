@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Fx;
 
 namespace LibreLancer
@@ -24,7 +25,7 @@ namespace LibreLancer
             if (fx == null) return false;
             this.sys = sys;
             cameraPos = camera.Position;
-            dist = VectorMath.DistanceSquared(pos, camera.Position);
+            dist = Vector3.DistanceSquared(pos, camera.Position);
             fx.Resources = sys.ResourceManager;
             if (Active && dist < (20000 * 20000))
             {
@@ -35,16 +36,16 @@ namespace LibreLancer
             fx.Pool = null;
             return false;
         }
-		Matrix4 tr;
+		Matrix4x4 tr;
 		Vector3 pos;
         float dist = float.MaxValue;
 		const float CULL_DISTANCE = 20000;
 		const float CULL = CULL_DISTANCE * CULL_DISTANCE;
-		public override void Update(TimeSpan time, Vector3 position, Matrix4 transform)
+		public override void Update(TimeSpan time, Vector3 position, Matrix4x4 transform)
 		{
             if (fx == null) return;
 			pos = position;
-            dist = VectorMath.DistanceSquared(position, cameraPos);
+            dist = Vector3.DistanceSquared(position, cameraPos);
 			if (Active && dist < CULL)
 			{
 				tr = transform;

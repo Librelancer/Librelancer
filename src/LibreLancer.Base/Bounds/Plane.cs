@@ -26,8 +26,7 @@ SOFTWARE.
 #endregion License
 
 using System;
-using System.ComponentModel;
-using System.Runtime.Serialization;
+using System.Numerics;
 
 namespace LibreLancer
 {

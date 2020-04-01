@@ -5,8 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using LibreLancer.Utf.Mat;
+using System.Numerics;
 using LibreLancer.Utf.Vms;
 
 using LibreLancer.Primitives;
@@ -170,7 +169,7 @@ namespace LibreLancer.Utf.Mat
             var model = new RigidModel();
             var part = new RigidModelPart();
             var dcs = new List<MeshDrawcall>();
-            var scale = Matrix4.CreateScale(Radius);
+            var scale = Matrix4x4.CreateScale(Radius);
             if (drawable)
             {
                 for (int i = 0; i < 6; i++)

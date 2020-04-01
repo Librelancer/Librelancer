@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Linq;
 using System.Threading;
 using LibreLancer;
@@ -88,19 +89,19 @@ namespace SystemViewer
             }
             if (Keyboard.IsKeyDown(Keys.W))
             {
-                camera.MoveVector = Vector3.Forward;
+                camera.MoveVector = -Vector3.UnitZ;
             }
             if (Keyboard.IsKeyDown(Keys.S))
             {
-                camera.MoveVector = Vector3.Backward;
+                camera.MoveVector = Vector3.UnitZ;
             }
             if (Keyboard.IsKeyDown(Keys.A))
             {
-                camera.MoveVector = Vector3.Left;
+                camera.MoveVector = -Vector3.UnitX;
             }
             if (Keyboard.IsKeyDown(Keys.D))
             {
-                camera.MoveVector = Vector3.Right;
+                camera.MoveVector = Vector3.UnitX;
             }
             if (Keyboard.IsKeyDown(Keys.D1))
             {

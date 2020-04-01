@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Vertices;
 
 namespace LibreLancer.Primitives
@@ -32,12 +33,12 @@ namespace LibreLancer.Primitives
                 var normal = GetCircleVector(i, slices);
                 //generate vertices
                 vertices[vptr++] = new VertexPositionNormalTexture(
-                    normal * radius + Vector3.Up * height,
+                    normal * radius + Vector3.UnitY * height,
                     normal,
                     new Vector2(i, 1)
                 );
                 vertices[vptr++] = new VertexPositionNormalTexture(
-                    normal * radius + Vector3.Down * height,
+                    normal * radius - Vector3.UnitY * height,
                     normal,
                     new Vector2(i, 0)
                 );
@@ -54,12 +55,12 @@ namespace LibreLancer.Primitives
             var last = GetCircleVector(slices, slices);
 
             vertices[vptr++] = new VertexPositionNormalTexture(
-                last * radius + Vector3.Up * height,
+                last * radius + Vector3.UnitY * height,
                 last,
                 new Vector2(slices, 1)
             );
             vertices[vptr++] = new VertexPositionNormalTexture(
-                last * radius + Vector3.Down * height,
+                last * radius - Vector3.UnitY * height,
                 last,
                 new Vector2(slices, 0)
             );

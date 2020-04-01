@@ -3,6 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
+
 namespace LibreLancer
 {
 	public class ThnCamera : ICamera
@@ -11,10 +13,10 @@ namespace LibreLancer
 
 		public ThnCameraTransform Transform = new ThnCameraTransform();
 
-		Matrix4 view;
-		Matrix4 projection;
-        private Matrix4 ogProjection;
-		Matrix4 viewProjection;
+		Matrix4x4 view;
+		Matrix4x4 projection;
+        private Matrix4x4 ogProjection;
+		Matrix4x4 viewProjection;
 		BoundingFrustum frustum;
 		Viewport viewport;
 
@@ -27,7 +29,7 @@ namespace LibreLancer
         public void DefaultZ()
         {
             var fovy = Transform.FovH * Transform.AspectRatio;
-            projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovy), Transform.AspectRatio,
+            projection = Matrix4x4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovy), Transform.AspectRatio,
                 2.5f, 1000000f);
             viewProjection = view * projection;
             frameNo++;
@@ -44,13 +46,13 @@ namespace LibreLancer
             var fovy = Transform.FovH * Transform.AspectRatio;
 			//TODO: Tweak clip plane some more - isn't quite right
 			//NOTE: near clip plane can't be too small or it causes z-fighting
-			projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovy), Transform.AspectRatio, Transform.Znear, Transform.Zfar);
+			projection = Matrix4x4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovy), Transform.AspectRatio, Transform.Znear, Transform.Zfar);
             ogProjection = projection;
-			Vector3 originalTarget = Vector3.Forward;
-			Vector3 rotatedTarget = Transform.Orientation.Transform(originalTarget);
+			Vector3 originalTarget = -Vector3.UnitZ;
+            Vector3 rotatedTarget = Vector3.Transform(originalTarget, Transform.Orientation);
             Vector3 target = Transform.LookAt == null ? Position + rotatedTarget : Transform.LookAt();
-			Vector3 upVector = Transform.LookAt == null ? Transform.Orientation.Transform(Vector3.Up) : Vector3.Up;
-			view = Matrix4.LookAt(Position, target, upVector);
+			Vector3 upVector = Transform.LookAt == null ? Vector3.Transform(Vector3.UnitY, Transform.Orientation) : Vector3.UnitY;
+			view = Matrix4x4.CreateLookAt(Position, target, upVector);
 			frameNo++;
 			viewProjection = view * projection;
 			frustum = new BoundingFrustum(viewProjection);
@@ -80,7 +82,7 @@ namespace LibreLancer
 			}
 		}
 
-		public Matrix4 Projection
+		public Matrix4x4 Projection
 		{
 			get
 			{
@@ -88,7 +90,7 @@ namespace LibreLancer
 			}
 		}
 
-		public Matrix4 View
+		public Matrix4x4 View
 		{
 			get
 			{
@@ -96,7 +98,7 @@ namespace LibreLancer
 			}
 		}
 
-		public Matrix4 ViewProjection
+		public Matrix4x4 ViewProjection
 		{
 			get
 			{

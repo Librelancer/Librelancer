@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer.GameData;
+using System.Numerics;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Fx;
 
@@ -38,7 +39,7 @@ namespace LibreLancer
 		public bool ExtraLights = false; //See comments in Draw() before enabling
 
 		public RigidModel[] StarSphereModels;
-		public Matrix4[] StarSphereWorlds;
+		public Matrix4x4[] StarSphereWorlds;
         public Lighting[] StarSphereLightings;
 		public PhysicsDebugRenderer DebugRenderer;
         public Action PhysicsHook;
@@ -291,7 +292,7 @@ namespace LibreLancer
                 if(camera is ThnCamera thn) thn.DefaultZ();
 				for (int i = 0; i < StarSphereModels.Length; i++)
 				{
-					Matrix4 ssworld = Matrix4.CreateTranslation(camera.Position);
+					Matrix4x4 ssworld = Matrix4x4.CreateTranslation(camera.Position);
                     
 					if (StarSphereWorlds != null) ssworld = StarSphereWorlds[i] * ssworld;
                     var lighting = Lighting.Empty;
@@ -371,7 +372,7 @@ namespace LibreLancer
 				pointLightCull.Uniform1i("windowHeight", Game.Height);
 				var v = camera.View;
 				var p = camera.Projection;
-				p.Invert();
+                Matrix4x4.Invert(p, out p);
 				pointLightCull.UniformMatrix4fv("viewMatrix", ref v);
 				pointLightCull.UniformMatrix4fv("invProjection", ref p);
 				GL.MemoryBarrier(GL.GL_SHADER_STORAGE_BARRIER_BIT); //I don't think these need to be here - confirm then remove?

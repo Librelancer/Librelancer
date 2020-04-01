@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using System.Threading;
 
 namespace LibreLancer.GameData
@@ -10,15 +11,15 @@ namespace LibreLancer.GameData
 	public class ZoneEllipsoid : ZoneShape
 	{
 		public Vector3 Size;
-		Matrix4 R;
+		Matrix4x4 R;
 		Vector3 transformedPos;
 		static readonly ThreadLocal<Vector3[]> cornerbuf = new ThreadLocal<Vector3[]>(() => new Vector3[8]);
 		public ZoneEllipsoid (Zone zone, float x, float y, float z) : base(zone)
 		{
 			Size = new Vector3 (x, y, z);
 			R = zone.RotationMatrix;
-			R.Transpose();
-			transformedPos = R.Transform(zone.Position);
+			R = Matrix4x4.Transpose(R);
+            transformedPos = Vector3.Transform(zone.Position, R);
 		}
 		public override bool Intersects(BoundingBox box)
 		{
@@ -34,7 +35,7 @@ namespace LibreLancer.GameData
 		public override bool ContainsPoint(Vector3 point)
 		{
 			//Transform point
-			point = R.Transform(point) - transformedPos;
+            point = Vector3.Transform(point, R) - transformedPos;
 			//Test
 			return PrimitiveMath.EllipsoidContains(Vector3.Zero, Size, point);
 		}

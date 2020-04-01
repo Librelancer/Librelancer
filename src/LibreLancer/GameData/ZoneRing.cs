@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 
 namespace LibreLancer.GameData
 {
@@ -24,10 +25,10 @@ namespace LibreLancer.GameData
 			//Define the cylinder
 			pt1 = Zone.Position - new Vector3(0, Height / 2, 0);
 			pt2 = Zone.Position + new Vector3(0, Height / 2, 0);
-			pt1 = Zone.RotationMatrix.Transform(pt1);
-			pt2 = Zone.RotationMatrix.Transform(pt2);
-			//Calculate values
-			length_sq = VectorMath.DistanceSquared(pt1, pt2);
+            pt1 = Vector3.Transform(pt1, Zone.RotationMatrix);
+            pt2 = Vector3.Transform(pt2, Zone.RotationMatrix);
+            //Calculate values
+			length_sq = Vector3.DistanceSquared(pt1, pt2);
 			radius_sq = OuterRadius * OuterRadius;
 			radius_inner_sq = InnerRadius * InnerRadius;
 		}

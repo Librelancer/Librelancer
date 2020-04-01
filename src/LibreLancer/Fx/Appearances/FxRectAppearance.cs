@@ -3,7 +3,9 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Utf.Ale;
+
 namespace LibreLancer.Fx
 {
 	public class FxRectAppearance : FxBasicAppearance
@@ -42,12 +44,10 @@ namespace LibreLancer.Fx
 		Vector3 Project(Billboards billboards, Vector3 pt)
 		{
 			var mvp = billboards.Camera.ViewProjection;
-			var pt4 = (mvp * new Vector4(pt, 1));
-			pt4 /= pt4.W;
-			return pt4.Xyz;
-		}
+            return Vector3.Transform(pt, mvp).Normalized();
+        }
 
-        public override void Draw(ref Particle particle, int pidx, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+        public override void Draw(ref Particle particle, int pidx, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam)
         {
             var time = particle.TimeAlive / particle.LifeSpan;
             var node_tr = GetAttachment(reference, transform);
@@ -59,15 +59,15 @@ namespace LibreLancer.Fx
 				var nd = particle.Normal.Normalized();
 				src_pos += nd * (l * sc * 0.25f);
 			}
-			var p = node_tr.Transform(src_pos);
+			var p = Vector3.Transform(src_pos, node_tr);
 			Texture2D tex;
 			Vector2 tl, tr, bl, br;
 			HandleTexture(res, globaltime, sparam, ref particle, out tex, out tl, out tr, out bl, out br);
 			var c = Color.GetValue(sparam, time);
 			var a = Alpha.GetValue(sparam, time);
-			var p2 = node_tr.Transform(src_pos + (particle.Normal  * 20));
+            var p2 = Vector3.Transform(src_pos + (particle.Normal * 20), node_tr);
             //var n = (p2 - p).Normalized();
-            var n = (transform * new Vector4(particle.Normal.Normalized(), 0)).Xyz.Normalized();
+            var n = Vector3.TransformNormal(particle.Normal, transform).Normalized();
 			instance.Pool.DrawRect(
                 particle.Instance,
                 this,

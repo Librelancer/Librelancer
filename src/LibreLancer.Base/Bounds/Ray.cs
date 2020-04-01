@@ -26,8 +26,7 @@ SOFTWARE.
 #endregion License
 
 using System;
-using System.ComponentModel;
-using System.Runtime.Serialization;
+using System.Numerics;
 
 namespace LibreLancer
 {
@@ -216,7 +215,7 @@ namespace LibreLancer
             // Find the vector between where the ray starts the the sphere's centre
             Vector3 difference = sphere.Center - this.Position;
 
-            float differenceLengthSquared = difference.LengthSquared;
+            float differenceLengthSquared = difference.LengthSquared();
             float sphereRadiusSquared = sphere.Radius * sphere.Radius;
 
             float distanceAlongRay;
@@ -229,7 +228,7 @@ namespace LibreLancer
                 return;
             }
 
-            Vector3.Dot(ref this.Direction, ref difference, out distanceAlongRay);
+            distanceAlongRay = Vector3.Dot(this.Direction, difference);
             // If the ray is pointing away from the sphere then we don't ever intersect
             if (distanceAlongRay < 0)
             {

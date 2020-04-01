@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
 namespace LibreLancer
@@ -56,9 +57,9 @@ namespace LibreLancer
 			sh.SetDmSampler(1);
 			BindTexture (rstate, 1, DmSampler, 1, DmFlags);
 			SetLights(sh, ref lights);
-			var normalMatrix = World;
-			normalMatrix.Invert();
-			normalMatrix.Transpose();
+            var normalMatrix = World;
+            Matrix4x4.Invert(normalMatrix, out normalMatrix);
+            normalMatrix = Matrix4x4.Transpose(normalMatrix);
 			sh.SetNormalMatrix(ref normalMatrix);
 			sh.UseProgram ();
 		}

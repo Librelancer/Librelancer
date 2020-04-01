@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Utf.Ale;
 namespace LibreLancer.Fx
 {
@@ -42,7 +43,7 @@ namespace LibreLancer.Fx
 			}
 		}
 
-		public void SpawnInitialParticles(NodeReference reference, ParticleEffectInstance instance, ref Matrix4 transform, float sparam)
+		public void SpawnInitialParticles(NodeReference reference, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam)
 		{
 			int j = 0;
 			for (int i = 0; i < InitialParticles; i--)
@@ -54,7 +55,7 @@ namespace LibreLancer.Fx
 				j++;
 			}
 		}
-        protected void SpawnParticle(int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4 transform, float sparam, float globaltime)
+        protected void SpawnParticle(int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam, float globaltime)
 		{
 			instance.Pool.Particles[idx].Active = true;
             instance.Pool.Particles[idx].Instance = instance;
@@ -66,15 +67,15 @@ namespace LibreLancer.Fx
             SetParticle(idx, reference, instance, ref transform, sparam, globaltime);
             if (reference.Paired[0].Parent == null)
             {
-                instance.Pool.Particles[idx].Position = VectorMath.Transform(
+                instance.Pool.Particles[idx].Position = Vector3.Transform(
                 instance.Pool.Particles[idx].Position, transform);
-                var len = instance.Pool.Particles[idx].Normal.Length;
+                var len = instance.Pool.Particles[idx].Normal.Length();
                 var nr = instance.Pool.Particles[idx].Normal.Normalized();
-                var transformed = (transform * new Vector4(nr, 0)).Xyz.Normalized();
+                var transformed = Vector3.TransformNormal(nr, transform).Normalized();
                 instance.Pool.Particles[idx].Normal = transformed * len;
             }
 		}
-        protected virtual void SetParticle(int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4 transform, float sparam, float globaltime)
+        protected virtual void SetParticle(int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam, float globaltime)
 		{
 			
 		}
@@ -103,7 +104,7 @@ namespace LibreLancer.Fx
             return idx != -1;
         }
 
-		public override void Update(NodeReference reference, ParticleEffectInstance instance, TimeSpan delta, ref Matrix4 transform, float sparam)
+		public override void Update(NodeReference reference, ParticleEffectInstance instance, TimeSpan delta, ref Matrix4x4 transform, float sparam)
 		{
 			if (reference.Paired.Count == 0) return;
             if (NodeLifeSpan < instance.GlobalTime) return;

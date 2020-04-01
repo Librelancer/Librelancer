@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using System.Collections.Generic;
 using LibreLancer.GameData.Items;
 using LibreLancer.Utf.Cmp;
@@ -33,8 +34,11 @@ namespace LibreLancer
                 if(equip.HPChild != null)
                 {
                     Hardpoint hpChild = obj.GetHardpoint(equip.HPChild);
-                    if(hpChild != null)
-                        obj.Transform = hpChild.Transform.Inverted();
+                    if (hpChild != null)
+                    {
+                        Matrix4x4.Invert(hpChild.Transform, out var invTr);
+                        obj.Transform = invTr;
+                    }
                 }
                 var hp = parent.GetHardpoint(hardpoint);
                 obj.Attachment = hp;
@@ -66,7 +70,7 @@ namespace LibreLancer
                 {
                     obj.Transform = obj.GetTransform();
                     obj.SetStatic(true);
-                    obj.StaticPosition = obj.Transform.Transform(Vector3.Zero);
+                    obj.StaticPosition = Vector3.Transform(Vector3.Zero, obj.Transform);
                 }
             }
         }

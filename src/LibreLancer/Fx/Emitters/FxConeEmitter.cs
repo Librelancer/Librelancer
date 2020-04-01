@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Utf.Ale;
 namespace LibreLancer.Fx
 {
@@ -37,7 +38,7 @@ namespace LibreLancer.Fx
 			return FxRandom.NextFloat(s_min, s_max);
 		}
 
-        protected override void SetParticle(int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4 transform, float sparam, float globaltime)
+        protected override void SetParticle(int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam, float globaltime)
 		{
 			var r_min = MinRadius.GetValue(sparam, 0);
 			var r_max = MaxRadius.GetValue(sparam, 0);
@@ -51,7 +52,7 @@ namespace LibreLancer.Fx
             Quaternion rotate;
             if (DoTransform(reference, sparam, globaltime, out translate, out rotate))
             {
-                n = rotate * n;
+                n = Vector3.Transform(n, rotate);
             }
             var p = n * radius + translate;
 			n *= Pressure.GetValue(sparam, 0);
@@ -66,11 +67,11 @@ namespace LibreLancer.Fx
             var axis = Vector3.UnitX;
 
 			var angle = FxRandom.NextFloat(minspread, maxspread);
-			var rotation = Quaternion.FromAxisAngle(axis, angle);
-			Vector3 output = rotation * direction;
+			var rotation = Quaternion.CreateFromAxisAngle(axis, angle);
+            Vector3 output = Vector3.Transform(direction, rotation);
 			var random = FxRandom.NextFloat(-MathHelper.Pi, MathHelper.Pi);
-			rotation = Quaternion.FromAxisAngle(direction, random);
-			output = rotation * output;
+			rotation = Quaternion.CreateFromAxisAngle(direction, random);
+            output = Vector3.Transform(output, rotation);
 			return output;
 		}
 	}

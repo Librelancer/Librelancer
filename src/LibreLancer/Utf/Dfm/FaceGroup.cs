@@ -4,12 +4,8 @@
 
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
+using System.Numerics;
 using LibreLancer.Utf.Mat;
-using LibreLancer.Utf.Vms;
 
 namespace LibreLancer.Utf.Dfm
 {
@@ -66,17 +62,13 @@ namespace LibreLancer.Utf.Dfm
 			ready = true;
 		}
 
-		public void Resized()
-		{
-			if (ready) Material.Resized();
-		}
 
 		public void Update(ICamera camera)
 		{
 			if (ready) Material.Update(camera);
 		}
 
-		public void DrawBuffer(DfmSkinning skinning, CommandBuffer buffer, VertexBuffer vbo, int vertexCount, Matrix4 world, Lighting lights, Material overrideMat)
+		public void DrawBuffer(DfmSkinning skinning, CommandBuffer buffer, VertexBuffer vbo, Matrix4x4 world, Lighting lights, Material overrideMat)
 		{
 			buffer.AddCommand(
 				(overrideMat ?? Material).Render,
@@ -93,17 +85,5 @@ namespace LibreLancer.Utf.Dfm
                 skinning
 			);
 		}
-
-		public void Draw(RenderState rstate, VertexBuffer vbo, int vertexCount, Matrix4 world, Lighting lights)
-		{
-			if (ready)
-			{
-				//vbo.SetElementBuffer(triangleStripIndexBuffer);
-				//Material.Render.World = world;
-				//Material.Render.Use (rstate, vbo.VertexType, lights);
-				//vbo.Draw (PrimitiveTypes.TriangleStrip, 0, vertexCount, TriangleStripIndices.Length - 2);
-				//Material.Draw(D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX1, PrimitiveTypes.TriangleStrip, 0, vertexCount, 0, TriangleStripIndices.Length - 2, ambient, lights, world);
-			}
-		}
-	}
+    }
 }

@@ -4,11 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.IO;
 using System.Text;
 using ImGuiNET;
 using LibreLancer;
-using LibreLancer.Vertices;
 using LibreLancer.ImUI;
 
 namespace LancerEdit
@@ -210,7 +210,7 @@ namespace LancerEdit
             if(mdl.Transform == true) {
                 fix.Add(parentName, mdl.Name, mdl.Def.Transform);
             } else {
-                fix.Add(parentName, mdl.Name, Matrix4.Identity);
+                fix.Add(parentName, mdl.Name, Matrix4x4.Identity);
             }
             foreach (var child in mdl.Children)
                 ProcessConstruct(mdl.Name, child, cmpnd, fix, suffix, ref index);

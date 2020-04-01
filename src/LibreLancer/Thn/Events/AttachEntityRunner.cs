@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer.Thorn;
 
 namespace LibreLancer
@@ -28,19 +29,19 @@ namespace LibreLancer
             public bool Run(Cutscene cs, double delta)
             {
                 Vector3 translate = Parent.Translate;
-                Matrix4 rotate = Parent.Rotate;
+                Matrix4x4 rotate = Parent.Rotate;
                 if (Part != null && (Position || Orientation))
                 {
                     var tr = Part.GetTransform();
-                    if (Position) translate = tr.ExtractTranslation();
-                    if (Orientation) rotate = Matrix4.CreateFromQuaternion(tr.ExtractRotation());
+                    if (Position) translate = tr.Translation;
+                    if (Orientation) rotate = Matrix4x4.CreateFromQuaternion(tr.ExtractRotation());
                 }
                 if (Orientation && OrientationRelative)
                 {
                     var qCurrent = rotate.ExtractRotation();
-                    var diff = qCurrent * LastRotate.Inverted();
+                    var diff = qCurrent * Quaternion.Inverse(LastRotate);
                     var qChild = Child.Rotate.ExtractRotation();
-                    rotate = Matrix4.CreateFromQuaternion(qChild * diff);
+                    rotate = Matrix4x4.CreateFromQuaternion(qChild * diff);
                     LastRotate = qCurrent;
                 }
                 t += delta;
@@ -48,7 +49,7 @@ namespace LibreLancer
                 {
                     if (lookFunc == null)
                     {
-                        if (Part != null) lookFunc = () => Part.Transform.Transform(Vector3.Zero) + Offset;
+                        if (Part != null) lookFunc = () => Vector3.Transform(Vector3.Zero, Part.Transform) + Offset;
                         else lookFunc = () => Parent.Translate + Offset;
                     }
                     if (Child.Camera != null) Child.Camera.LookAt = lookFunc;
@@ -58,12 +59,13 @@ namespace LibreLancer
                     if (LookAt && Child.Camera != null) Child.Camera.LookAt = null;
                 if(Offset != Vector3.Zero) { //TODO: This can be optimised
                     var off = Offset;
-                    if (EntityRelative) {
-                        off = Offset * new Matrix3(rotate);
+                    if (EntityRelative)
+                    {
+                        off = Vector3.Transform(Offset, rotate.ExtractRotation());
                     }
-                    var tr = rotate * Matrix4.CreateTranslation(translate) * Matrix4.CreateTranslation(off);
-                    translate = tr.ExtractTranslation();
-                    rotate = Matrix4.CreateFromQuaternion(tr.ExtractRotation());
+                    var tr = rotate * Matrix4x4.CreateTranslation(translate) * Matrix4x4.CreateTranslation(off);
+                    translate = tr.Translation;
+                    rotate = Matrix4x4.CreateFromQuaternion(tr.ExtractRotation());
                 }
                 if (Position)
                     Child.Translate = translate;

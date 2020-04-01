@@ -4,11 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using LibreLancer.Vertices;
 using ImGuiNET;
+
 namespace LibreLancer.ImUI
 {
 	public partial class ImGuiHelper
@@ -365,7 +366,7 @@ namespace LibreLancer.ImUI
             //Render
             draw_data.ScaleClipRects(io.DisplayFramebufferScale);
 
-			var mat = Matrix4.CreateOrthographicOffCenter(0, game.Width, game.Height, 0, 0, 1);
+			var mat = Matrix4x4.CreateOrthographicOffCenter(0, game.Width, game.Height, 0, 0, 1);
 			Shader lastShader = textShader;
 			textShader.SetMatrix(textShader.GetLocation("modelviewproj"), ref mat);
 			textShader.SetInteger(textShader.GetLocation("tex"), 0);

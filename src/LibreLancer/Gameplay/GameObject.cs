@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
@@ -22,8 +23,8 @@ namespace LibreLancer
 		public string Name;
 		public string Nickname;
 		public Hardpoint Attachment;
-		Matrix4 _transform = Matrix4.Identity;
-		public Matrix4 Transform
+		Matrix4x4 _transform = Matrix4x4.Identity;
+		public Matrix4x4 Transform
 		{
 			get
 			{
@@ -137,8 +138,8 @@ namespace LibreLancer
                 obj.Transform = tr;
                 obj.World = World;
                 obj.World.Objects.Add(obj);
-                var pos0 = GetTransform().Transform(Vector3.Zero);
-                var pos1 = tr.Transform(Vector3.Zero);
+                var pos0 = Vector3.Transform(Vector3.Zero, GetTransform());
+                var pos1 = Vector3.Transform(Vector3.Zero, tr);
                 var vec = (pos1 - pos0).Normalized();
                 var initialforce = 100f;
                 var mass = 50f;
@@ -250,7 +251,7 @@ namespace LibreLancer
 			{
                 if (Parent == null || Parent.RenderUpdate(this)) {
                     var tr = GetTransform();
-                    RenderComponent.Update(time, isstatic ? StaticPosition : tr.Transform(Vector3.Zero), tr);
+                    RenderComponent.Update(time, isstatic ? StaticPosition : Vector3.Transform(Vector3.Zero, tr), tr);
                 }
             }
 			for (int i = 0; i < Children.Count; i++)
@@ -335,8 +336,8 @@ namespace LibreLancer
 		public Vector3 InverseTransformPoint(Vector3 input)
 		{
 			var tf = GetTransform();
-			tf.Invert();
-			return VectorMath.Transform(input, tf);
+            Matrix4x4.Invert(tf, out tf);
+			return Vector3.Transform(input, tf);
 		}
 
 		public IEnumerable<Hardpoint> GetHardpoints()
@@ -344,7 +345,7 @@ namespace LibreLancer
 			return hardpoints.Values;
 		}
 
-		public Matrix4 GetTransform()
+		public Matrix4x4 GetTransform()
 		{
 			if (isstatic)
 				return Transform;

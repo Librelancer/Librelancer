@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Numerics;
 using LibreLancer.Media;
 using LibreLancer.Utf.Audio;
 namespace LibreLancer
@@ -125,7 +126,7 @@ namespace LibreLancer
             else
             {
                 var v = (position - listenerPosition) / (float)delta.TotalSeconds;
-                if (v.Length > 8000) v = Vector3.Zero;
+                if (v.Length() > 8000) v = Vector3.Zero;
                 audio.SetListenerVelocity(v);
             }
             listenerPosition = position;

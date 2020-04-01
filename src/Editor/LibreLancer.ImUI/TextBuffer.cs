@@ -4,6 +4,7 @@
 
 using System;
 using System.Text;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using ImGuiNET;
 using LibreLancer;

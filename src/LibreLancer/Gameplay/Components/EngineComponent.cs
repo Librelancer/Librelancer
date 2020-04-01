@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using System.Collections.Generic;
 using LibreLancer.GameData.Items;
 using LibreLancer.Fx;
@@ -33,7 +34,7 @@ namespace LibreLancer
 		public override void Update(TimeSpan time)
         {
             var tr = parent.GetTransform();
-            var pos = tr.Transform(Vector3.Zero);
+            var pos = Vector3.Transform(Vector3.Zero,tr);
             if (rumble != null)
             {
                 rumble.Position = pos;
