@@ -35,7 +35,6 @@ namespace LibreLancer.Media
         {
             if(linear <= 0) return float.MinValue;
             var pow =  (float) Math.Pow(MathHelper.Clamp(linear, 0, 1), 2);
-            Console.WriteLine(pow);
             return pow;
         }
         
