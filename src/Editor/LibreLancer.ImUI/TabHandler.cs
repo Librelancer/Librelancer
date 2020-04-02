@@ -24,17 +24,16 @@ namespace LibreLancer.ImUI
                     bool isTabOpen = true;
                     if (ImGui.BeginTabItem(tabs[i].RenderTitle, ref isTabOpen, ImGuiTabItemFlags.None))
                     {
-                        if (!isTabOpen)
-                        {
-                            tabs[i].Dispose();
-                            tabs.RemoveAt(i);
-                            selected = null;
-                        }
-                        else
-                            selected = tabs[i];
-
                         ImGui.EndTabItem();
                     }
+                    if (!isTabOpen)
+                    {
+                        tabs[i].Dispose();
+                        tabs.RemoveAt(i);
+                        selected = null;
+                    }
+                    else
+                        selected = tabs[i];
                 }
 
                 ImGui.EndTabBar();
