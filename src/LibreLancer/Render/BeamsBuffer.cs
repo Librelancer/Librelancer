@@ -124,7 +124,7 @@ namespace LibreLancer
             this.res = res;
             shader.SetViewProjection(cam);
             verticesSpear = (VertexPositionColorTexture*)bufferSpear.BeginStreaming();
-            verticesSpear = (VertexPositionColorTexture*) bufferBolt.BeginStreaming();
+            verticesBolt = (VertexPositionColorTexture*) bufferBolt.BeginStreaming();
         }
 
         private static Texture2D code_beam;
@@ -133,6 +133,7 @@ namespace LibreLancer
             if(code_beam == null || code_beam.IsDisposed)
                 code_beam = (Texture2D) res.FindTexture("code_beam");
             bufferSpear.EndStreaming(vertexCountSpear);
+            bufferBolt.EndStreaming(vertexCountBolt);
             if (vertexCountSpear > 0)
             {
                 commands.AddCommand(shader.Shader, SetupShader, EnableCull, Matrix4x4.Identity, new RenderUserData(),
