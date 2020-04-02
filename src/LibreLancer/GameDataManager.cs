@@ -58,6 +58,13 @@ namespace LibreLancer
             return VFS.Resolve(fldata.Freelancer.DataPath + input);
         }
 
+        string ResolveDataNoExcept(string input)
+        {
+            var v =  VFS.Resolve(fldata.Freelancer.DataPath + input, false);
+            if(v == null) FLLog.Error("GameData", $"File {fldata.Freelancer.DataPath}{input} not found");
+            return v;
+        }
+
         public Dictionary<string, string> GetBaseNavbarIcons()
         {
             return fldata.BaseNavBar.Navbar;
@@ -478,6 +485,11 @@ namespace LibreLancer
                 {
                     var gn = (val as Data.Equipment.Gun);
                     var mn = fldata.Equipment.Munitions.FirstOrDefault((x) => x.Nickname.Equals(gn.ProjectileArchetype, StringComparison.OrdinalIgnoreCase));
+                    if (mn == null)
+                    {
+                        FLLog.Error("Equipment", $"Munition {gn.ProjectileArchetype} not found (Gun {gn.Nickname})");
+                        continue;
+                    }
                     var effect = fldata.Effects.FindEffect(mn.ConstEffect);
                     string visbeam;
                     if (effect == null) visbeam = "";
@@ -1051,11 +1063,12 @@ namespace LibreLancer
         ResolvedModel ResolveDrawable(IEnumerable<string> libs, string file)
         {
             var mdl = new ResolvedModel() {
-                ModelFile = ResolveDataPath(file)
+                ModelFile = ResolveDataNoExcept(file)
             };
+            if (mdl.ModelFile == null) return null;
             if (libs != null)
             {
-                mdl.LibraryFiles = libs.Select(x => ResolveDataPath(x)).ToArray();
+                mdl.LibraryFiles = libs.Select(x => ResolveDataNoExcept(x)).Where(x => x != null).ToArray();
             }
             return mdl;
         }
@@ -1063,10 +1076,14 @@ namespace LibreLancer
         ResolvedModel ResolveDrawable(string libs, string file)
         {
             var mdl = new ResolvedModel() {
-                ModelFile = ResolveDataPath(file)
+                ModelFile = ResolveDataNoExcept(file)
             };
+            if (mdl.ModelFile == null) return null;
             if (!string.IsNullOrEmpty(libs))
-                mdl.LibraryFiles = new[] {ResolveDataPath(libs)};
+            {
+                mdl.LibraryFiles = new[] {ResolveDataNoExcept(libs)};
+                if (mdl.LibraryFiles[0] == null) mdl.LibraryFiles = new string[0];
+            }
             return mdl;
         }
         
@@ -1342,15 +1359,17 @@ namespace LibreLancer
                 visfx = fldata.Effects.FindVisEffect(effect.VisEffect);
             if (effect == null && visfx == null)
             {
-                FLLog.Error("Fx", "Can't find fx " + effectName);
+                FLLog.Error("Fx", $"Can't find fx '{effectName}'");
                 return null;
             }
             if (visfx == null) return null;
+            var alepath = ResolveDataNoExcept(visfx.AlchemyPath);
+            if (alepath == null) return null;
             return new ResolvedFx()
             {
-                AlePath = ResolveDataPath(visfx.AlchemyPath),
+                AlePath = alepath,
                 VisFxCrc = (uint)visfx.EffectCrc,
-                LibraryFiles = visfx.Textures.Select(ResolveDataPath).ToArray()
+                LibraryFiles = visfx.Textures.Select(ResolveDataNoExcept).Where(x => x != null).ToArray()
             };
         }
 

@@ -88,12 +88,7 @@ namespace LibreLancer.Utf.Mat
 				return sideMaterialNames;
 			}
 		}
-
-		public SphFile(string path, ILibFile materialLibrary) : this(parseFile(path), materialLibrary)
-		{
-
-		}
-		public SphFile(IntermediateNode root, ILibFile library)
+        public SphFile(IntermediateNode root, ILibFile library, string path = "/")
         {
             if (root == null) throw new ArgumentNullException("root");
             if (library == null) throw new ArgumentNullException("materialLibrary");
@@ -144,17 +139,23 @@ namespace LibreLancer.Utf.Mat
 						break;
 				}
 			}
+
+            if (sideMaterialNames.Count < 6)
+            {
+                FLLog.Warning("Sph", $"Sph {path} does not contain all 6 sides and will not render");
+            }
         }
 		Material defaultMaterial;
 		public void Initialize(ResourceManager cache)
         {
-            if (sideMaterialNames.Count >= 6)
-			{
+            if (SideMaterials.Length >= 6)
+            {
                 sphere = cache.GetQuadSphere(48);
-				defaultMaterial = cache.DefaultMaterial;
+                defaultMaterial = cache.DefaultMaterial;
                 ready = true;
             }
         }
+        
         static CubeMapFace[] faces = new CubeMapFace[] {
 			CubeMapFace.PositiveZ,
 			CubeMapFace.PositiveX,
@@ -170,7 +171,7 @@ namespace LibreLancer.Utf.Mat
             var part = new RigidModelPart();
             var dcs = new List<MeshDrawcall>();
             var scale = Matrix4x4.CreateScale(Radius);
-            if (drawable)
+            if (drawable && SideMaterials.Length >= 6)
             {
                 for (int i = 0; i < 6; i++)
                 {

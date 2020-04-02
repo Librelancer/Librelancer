@@ -10,14 +10,14 @@ namespace LibreLancer.Utf
 {
 	public class UtfLoader : UtfFile
 	{
-		public static IDrawable GetDrawable(IntermediateNode root, ILibFile resources)
+		public static IDrawable GetDrawable(IntermediateNode root, ILibFile resources, string path = "/")
 		{
 			bool cmpnd = false;
 			bool multilevel = false;
 			foreach (var node in root)
 			{
 				var l = node.Name.ToLowerInvariant();
-				if (l == "sphere") return new SphFile(root, resources);
+                if (l == "sphere") return new SphFile(root, resources, path);
 				if (l == "vmeshpart") return new ModelFile(root, resources);
 				if (l == "cmpnd") cmpnd = true;
 				if (l == "multilevel") multilevel = true;
@@ -32,7 +32,7 @@ namespace LibreLancer.Utf
 		public static IDrawable LoadDrawable(string file, ILibFile resources)
 		{
 			var root = parseFile(file);
-			var dr = GetDrawable(root, resources);
+            var dr = GetDrawable(root, resources, file);
 			if (dr is ModelFile) ((ModelFile)dr).Path = file;
 			if (dr is CmpFile) ((CmpFile)dr).Path = file;
             if (dr == null)
