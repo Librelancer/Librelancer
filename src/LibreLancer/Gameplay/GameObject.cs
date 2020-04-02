@@ -165,7 +165,7 @@ namespace LibreLancer
             PhysicsComponent phys = null;
 			bool isCmp = false;
             string name = "";
-            if(draw) drawable.Initialize(res);
+            if(draw) drawable?.Initialize(res);
 			if (dr is SphFile)
 			{
 				var radius = ((SphFile)dr).Radius;

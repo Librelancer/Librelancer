@@ -185,12 +185,17 @@ namespace LibreLancer
                         if (getHpMount)
                             obj.HpMount = obj.Object.GetHardpoint("HpMount");
                         var r = (ModelRenderer)obj.Object.RenderComponent;
-                        r.LightGroup = kv.Value.LightGroup;
-                        r.LitDynamic = (kv.Value.ObjectFlags & ThnObjectFlags.LitDynamic) == ThnObjectFlags.LitDynamic;
-                        r.LitAmbient = (kv.Value.ObjectFlags & ThnObjectFlags.LitAmbient) == ThnObjectFlags.LitAmbient;
-                        //HIDDEN just seems to be an editor flag?
-                        //r.Hidden = (kv.Value.ObjectFlags & ThnObjectFlags.Hidden) == ThnObjectFlags.Hidden;
-                        r.NoFog = kv.Value.NoFog;
+                        if (r != null)
+                        {
+                            r.LightGroup = kv.Value.LightGroup;
+                            r.LitDynamic = (kv.Value.ObjectFlags & ThnObjectFlags.LitDynamic) ==
+                                           ThnObjectFlags.LitDynamic;
+                            r.LitAmbient = (kv.Value.ObjectFlags & ThnObjectFlags.LitAmbient) ==
+                                           ThnObjectFlags.LitAmbient;
+                            //HIDDEN just seems to be an editor flag?
+                            //r.Hidden = (kv.Value.ObjectFlags & ThnObjectFlags.Hidden) == ThnObjectFlags.Hidden;
+                            r.NoFog = kv.Value.NoFog;
+                        }
                     }
                 }
                 else if (kv.Value.Type == EntityTypes.PSys)
