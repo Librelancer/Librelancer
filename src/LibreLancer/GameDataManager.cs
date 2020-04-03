@@ -619,7 +619,8 @@ namespace LibreLancer
                         var z = new GameData.Zone();
                         z.Nickname = zne.Nickname;
                         z.EdgeFraction = zne.EdgeFraction ?? 0.25f;
-                        z.Position = zne.Pos.Value;
+                        z.Position = zne.Pos ?? Vector3.Zero;
+                        if(zne.Pos == null) FLLog.Warning("Zone", $"Zone {zne.Nickname} in {inisys.Nickname} has no position");
                         if (zne.Rotate != null)
                         {
                             var r = zne.Rotate.Value;
@@ -721,12 +722,12 @@ namespace LibreLancer
                 a++;
             }
 
-            foreach (var ast in sys.AsteroidFields)
+            /*foreach (var ast in sys.AsteroidFields)
             {
                 ast.LoadResources();
                 if (a % 3 == 0) yield return null;
                 a++;
-            }
+            }*/
 
             foreach (var nb in sys.Nebulae)
             {
@@ -821,6 +822,8 @@ namespace LibreLancer
                     Info = c.Info,
                     Archetype = c.Name
                 };
+                var arch = fldata.Asteroids.FindAsteroid(c.Name);
+                sta.Drawable = ResolveDrawable(arch.MaterialLibrary, arch.DaArchetype);
                 sta.RotationMatrix =
                     Matrix4x4.CreateRotationX(MathHelper.DegreesToRadians(c.Rotation.X)) *
                     Matrix4x4.CreateRotationY(MathHelper.DegreesToRadians(c.Rotation.Y)) *
@@ -882,21 +885,6 @@ namespace LibreLancer
                 a.BillboardSize = ast.AsteroidBillboards.Size.Value;
                 a.BillboardTint = new Color3f(ast.AsteroidBillboards.ColorShift ?? Vector3.One);
             }
-            a.LoadResAction = () =>
-            {
-                foreach (var c in a.Cube)
-                {
-                    var arch = fldata.Asteroids.FindAsteroid(c.Archetype);
-                    resource.LoadResourceFile(ResolveDataPath(arch.MaterialLibrary));
-                    c.Drawable = resource.GetDrawable(ResolveDataPath(arch.DaArchetype));
-                }
-                foreach (var e in a.ExclusionZones)
-                {
-                    if (e.ShellPath != null)
-                        e.Shell = (resource.GetDrawable(ResolveDataPath(e.ShellPath)) as IRigidModelFile)
-                            .CreateRigidModel(glResource != null);
-                }
-            };
             return a;
         }
         public GameData.Nebula GetNebula(GameData.StarSystem sys, Data.Universe.Nebula nbl)
@@ -1038,13 +1026,10 @@ namespace LibreLancer
                 n.CloudLightningGap = nbl.Clouds[0].LightningGap.Value;
                 n.CloudLightningIntensity = nbl.Clouds[0].LightningIntensity.Value;
             }
-            n.LoadResAction = () =>
+            foreach (var ex in n.ExclusionZones)
             {
-                foreach (var ex in n.ExclusionZones)
-                {
-                    if (ex.ShellPath != null) ex.Shell = (resource.GetDrawable(ResolveDataPath(ex.ShellPath)) as IRigidModelFile).CreateRigidModel(glResource != null);
-                }
-            };
+                if (ex.ShellPath != null) ex.Shell = ResolveDrawable("", ex.ShellPath);
+            }
 
             return n;
         }

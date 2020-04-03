@@ -9,7 +9,7 @@ namespace LibreLancer.GameData
 {
 	public class StaticAsteroid
 	{
-		public IDrawable Drawable;
+		public ResolvedModel Drawable;
 		public Vector3 Rotation;
 		public Vector3 Position;
 		public Matrix4x4 RotationMatrix;

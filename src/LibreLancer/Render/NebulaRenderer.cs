@@ -262,6 +262,12 @@ namespace LibreLancer
 		{
 			if (ex.Shell == null)
 				return;
+            if (ex.ShellModel == null)
+            {
+                var file = (IRigidModelFile) ex.Shell.LoadFile(resman);
+                file.Initialize(resman);
+                ex.ShellModel = file.CreateRigidModel(true);
+            }
 			Vector3 sz = Vector3.Zero;
 			//Only render ellipsoid and sphere exteriors
 			if (Nebula.Zone.Shape is ZoneEllipsoid)
@@ -270,13 +276,13 @@ namespace LibreLancer
 				sz = new Vector3(((ZoneSphere)Nebula.Zone.Shape).Radius);
 			else
 				return;
-			sz *= (1 / ex.Shell.GetRadius());
+			sz *= (1 / ex.ShellModel.GetRadius());
 			var world = Matrix4x4.CreateScale(ex.ShellScalar * sz) * ex.Zone.RotationMatrix * Matrix4x4.CreateTranslation(ex.Zone.Position);
 			//var shell = (ModelFile)ex.Shell;
 			//Calculate Alpha
 			var alpha = ex.ShellMaxAlpha * CalculateTransition(ex.Zone);
 			//Set all render materials. We don't want LOD for this Mesh.
-            foreach (var pt in ex.Shell.AllParts)
+            foreach (var pt in ex.ShellModel.AllParts)
             {
                 foreach (var dc in pt.Mesh.Levels[0])
                 {
@@ -290,8 +296,8 @@ namespace LibreLancer
                     }
                 }
             }
-            ex.Shell.Update(camera, TimeSpan.Zero, resman);
-            ex.Shell.DrawBuffer(0, buffer, resman, world, ref Lighting.Empty);
+            ex.ShellModel.Update(camera, TimeSpan.Zero, resman);
+            ex.ShellModel.DrawBuffer(0, buffer, resman, world, ref Lighting.Empty);
         }
         static ShaderVariables _puffringsh;
 		static int _ptex0;

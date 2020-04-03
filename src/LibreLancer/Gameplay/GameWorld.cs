@@ -82,7 +82,6 @@ namespace LibreLancer
             }
             foreach (var field in sys.AsteroidFields)
             {
-                field.LoadResources(); //Not guaranteed by the system renderer
                 var g = new GameObject();
                 g.Resources = res;
                 g.World = this;

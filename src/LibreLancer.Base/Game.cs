@@ -237,6 +237,8 @@ namespace LibreLancer
             }
         }
 
+        public bool IsUiThread() =>  Thread.CurrentThread.ManagedThreadId == mythread;
+        
         string _screenshotpath;
         bool _screenshot;
         public void Screenshot(string filename)

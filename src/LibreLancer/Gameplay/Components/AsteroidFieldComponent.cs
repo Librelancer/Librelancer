@@ -22,9 +22,8 @@ namespace LibreLancer
             //var shapes = new List<CompoundSurShape.TransformedShape>();
             Dictionary<string, int> indexes = new Dictionary<string, int>();
 			foreach (var asteroid in Field.Cube)
-			{
-				var mdl = asteroid.Drawable as ModelFile;
-				var path = Path.ChangeExtension(mdl.Path, "sur");
+            {
+				var path = Path.ChangeExtension(asteroid.Drawable.ModelFile, "sur");
 				if (File.Exists(path))
 				{
                     int idx;

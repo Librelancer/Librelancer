@@ -114,7 +114,9 @@ namespace LibreLancer
             {
                 foreach (var ast in field.Cube)
                 {
-                    var l0 = (ast.Drawable as ModelFile).Levels[0];
+                    var f = (ModelFile) ast.Drawable.LoadFile(sys.ResourceManager);
+                    f.Initialize(sys.ResourceManager);
+                    var l0 = f.Levels[0];
                     for (int i = l0.StartMesh; i < l0.StartMesh + l0.MeshCount; i++)
                     {
                         var m = l0.Mesh.Meshes[i].Material;
@@ -134,7 +136,9 @@ namespace LibreLancer
             }
             else
             {
-                var msh = (field.Cube[0].Drawable as ModelFile).Levels[0];
+                var f = (ModelFile) field.Cube[0].Drawable.LoadFile(sys.ResourceManager);
+                f.Initialize(sys.ResourceManager);
+                var msh = f.Levels[0];
                 mats.Add(msh.Mesh.Meshes[msh.StartMesh].Material);
             }
             //Create the draw calls
@@ -159,7 +163,8 @@ namespace LibreLancer
 
         void AddAsteroidToBuffer(StaticAsteroid ast, Material mat, bool singleMat)
         {
-            var model = ast.Drawable as ModelFile;
+            var model = (ModelFile) ast.Drawable.LoadFile(sys.ResourceManager);
+            model.Initialize(sys.ResourceManager);
             var l0 = model.Levels[0];
             var vertType = l0.Mesh.VertexBuffer.VertexType.GetType();
             var transform = ast.RotationMatrix * Matrix4x4.CreateTranslation(ast.Position * field.CubeSize);

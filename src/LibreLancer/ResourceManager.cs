@@ -112,6 +112,7 @@ namespace LibreLancer
 
         public override void AllocateVertices<T>(T[] vertices, ushort[] indices, out int startIndex, out int baseVertex, out VertexBuffer vbo, out IndexResourceHandle index)
         {
+            if (!Game.IsUiThread()) throw new InvalidOperationException();
             vbo = null;
             index = null;
             startIndex = baseVertex = -1;

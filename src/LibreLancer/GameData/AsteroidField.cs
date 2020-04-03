@@ -33,16 +33,6 @@ namespace LibreLancer.GameData
 		//Multiplier hardcoded in Freelancer's common.dll
         //This is for near_field, not for rendering
 		//const float FILLDIST_MULTIPLIER = 1.74f;
-
-        public Action LoadResAction;
-        public void LoadResources()
-        {
-            if(LoadResAction != null)
-            {
-                LoadResAction();
-                LoadResAction = null;
-            }
-        }
     }
 }
 
