@@ -143,6 +143,7 @@ namespace LibreLancer.Media
                 catch (SharpDXException)
                 {
                     mediaSource = null;
+                    FLLog.Error("VideoPlayerWMF", "QueryInterface failed on Media Foundation");
                 }
                 resolver.Dispose();
                 source.Dispose();
