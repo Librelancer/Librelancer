@@ -13,17 +13,26 @@ namespace LibreLancer
         static extern bool SetDllDirectory(string directory);
         public static void Run(Action action, Action onCrash = null)
         {
+            string errorMessage =  "Librelancer has crashed. See the log for more information.";
             if (Platform.RunningOS == OS.Windows)
             {
                 string bindir = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);
                 var fullpath = Path.Combine(bindir, IntPtr.Size == 8 ? "x64" : "x86");
                 SetDllDirectory(fullpath);
+                //Setup Spew
+                var spewFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Librelancer");
+                if (!Directory.Exists(spewFolder)) Directory.CreateDirectory(spewFolder);
+                string spewFilename = Assembly.GetCallingAssembly().FullName + ".log.txt";
+                var spewPath = Path.Combine(spewFolder, spewFilename);
+                FLLog.CreateSpewFile(spewPath);
+                errorMessage += "\n" + spewPath;
             }
 #if !DEBUG
             var domain = AppDomain.CurrentDomain;
             domain.UnhandledException += (object sender, UnhandledExceptionEventArgs e) => {
                 var ex = (Exception)(e.ExceptionObject);
-                CrashWindow.Run("Uh-oh!", "Librelancer has crashed. See the log for more information.",
+
+                CrashWindow.Run("Uh-oh!", errorMessage,
                 FormatException(ex));
             };
             try
@@ -36,7 +45,7 @@ namespace LibreLancer
             catch (Exception ex)
             {
                 try { onCrash?.Invoke(); } catch { }
-                CrashWindow.Run("Uh-oh!", "Librelancer has crashed. See the log for more information.", FormatException(ex));
+                CrashWindow.Run("Uh-oh!", errorMessage, FormatException(ex));
             }
 
 #endif

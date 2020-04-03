@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 
 //High performance console output - nonblocking + colour coded
+//Can output to a file simultaneously
 namespace LibreLancer
 {
 	public enum LogSeverity {
@@ -48,6 +50,9 @@ namespace LibreLancer
 			NonblockWrite(newC, string.Format("[{0}] {1}: {2}", severity, component, message),severity);
 		}
 
+        private static object spewLock = new object();
+        private static StreamWriter spewFile;
+        
 		struct NonblockingWrite
 		{
             public LogSeverity Severity;
@@ -83,6 +88,10 @@ namespace LibreLancer
 					 }
 					 else
 						 Console.WriteLine(q.Value);
+                     lock (spewLock)
+                     {
+                         spewFile?.WriteLine(q.Value);
+                     }
 				 }
 	 		});
 			thread.IsBackground = true;
@@ -90,6 +99,16 @@ namespace LibreLancer
 
             thread.Start();
 		}
+
+        public static void CreateSpewFile(string filename)
+        {
+            lock (spewLock)
+            {
+                spewFile = new StreamWriter(File.Create(filename));
+                spewFile.AutoFlush = true;
+            }
+        }
+
         static void NonblockWrite(ConsoleColor color, string message,LogSeverity severity)
 		{
 			m_Queue.Add(new NonblockingWrite() { Color = color, Value = message, Severity = severity });
