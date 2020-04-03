@@ -11,7 +11,7 @@ namespace LibreLancer
 {
 	public class GameConfig
 	{
-		public string FreelancerPath;
+		public string FreelancerPath = "";
         public float MasterVolume = 1.0f;
         public float SfxVolume = 1.0f;
         public float MusicVolume = 1.0f;
