@@ -135,9 +135,21 @@ namespace LibreLancer.Media
                 var resolver = new SourceResolver();
                 ObjectType otype;
                 var source = new ComObject(resolver.CreateObjectFromURL(filename, SourceResolverFlags.MediaSource, null, out otype));
-                mediaSource = source.QueryInterface<MediaSource>();
+                try
+                {
+                    // Sometimes throws HRESULT: [0x80004002], Module: [General], ApiCode: [E_NOINTERFACE/No such interface supported], Message: No such interface supported. Bug?
+                    mediaSource = source.QueryInterface<MediaSource>();
+                }
+                catch (SharpDXException)
+                {
+                    mediaSource = null;
+                }
                 resolver.Dispose();
                 source.Dispose();
+            }
+            if (mediaSource is null)
+            {
+                return;
             }
 
             PresentationDescriptor presDesc;
