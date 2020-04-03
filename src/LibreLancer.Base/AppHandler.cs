@@ -24,8 +24,8 @@ namespace LibreLancer
                 if (!Directory.Exists(spewFolder)) Directory.CreateDirectory(spewFolder);
                 string spewFilename = Assembly.GetCallingAssembly().FullName + ".log.txt";
                 var spewPath = Path.Combine(spewFolder, spewFilename);
-                FLLog.CreateSpewFile(spewPath);
-                errorMessage += "\n" + spewPath;
+                if (FLLog.CreateSpewFile(spewPath)) errorMessage += "\n" + spewPath;
+                else errorMessage += "\n(Log file could not be created).";
             }
 #if !DEBUG
             var domain = AppDomain.CurrentDomain;
