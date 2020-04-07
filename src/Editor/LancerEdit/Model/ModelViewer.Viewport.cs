@@ -408,7 +408,7 @@ namespace LancerEdit
             {
                 if (tr.Enabled || tr.Override != null)
                 {
-                    var transform = tr.Override ?? tr.Hardpoint.Transform;
+                    var transform = tr.Override ?? tr.Hardpoint.HpTransformInfo;
                     //arc
                     if(tr.Hardpoint.Definition is RevoluteHardpointDefinition) {
                         var rev = (RevoluteHardpointDefinition)tr.Hardpoint.Definition;
