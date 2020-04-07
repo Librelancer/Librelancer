@@ -42,8 +42,12 @@ namespace LibreLancer.ImUI
                     p.DoOpen = false;
                 }
                 bool open = true;
-                if(ImGui.BeginPopupModal(p.Title, ref open,p.Flags)) {
-                   
+                bool beginval;
+                if (!p.Data.NoClose)
+                    beginval = ImGui.BeginPopupModal(p.Title, ref open, p.Flags);
+                else
+                    beginval = ImGuiExt.BeginModalNoClose(p.Title, p.Flags);
+                if(beginval) {
                     p.DrawAction(p.Data);
                     if (p.Data.First)
                         p.Data.First = false;
@@ -58,5 +62,6 @@ namespace LibreLancer.ImUI
     {
         public bool DoFocus;
         public bool First;
+        public bool NoClose;
     }
 }

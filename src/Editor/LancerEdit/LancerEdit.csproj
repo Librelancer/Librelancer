@@ -35,10 +35,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="TeximpNet" Version="1.4.1" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="defaulttexture.dds" />
     <EmbeddedResource Include="defaulttexture.dds" />
     <None Remove="grid.dds" />

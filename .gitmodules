@@ -22,9 +22,6 @@
 [submodule "extern/BulletSharpPInvoke"]
 	path = extern/BulletSharpPInvoke
 	url = https://github.com/AndresTraks/BulletSharpPInvoke
-[submodule "extern/nvidia-texture-tools"]
-	path = extern/nvidia-texture-tools
-	url = https://github.com/castano/nvidia-texture-tools
 [submodule "extern/Collada141"]
 	path = extern/Collada141
 	url = https://github.com/Librelancer/Collada141
@@ -38,3 +35,6 @@
 [submodule "extern/nativefiledialog"]
 	path = extern/nativefiledialog
 	url = https://github.com/mlabbe/nativefiledialog
+[submodule "extern/crunch"]
+	path = extern/crunch
+	url = https://github.com/DaemonEngine/crunch

@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Text;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using ImGuiNET;
@@ -20,7 +21,33 @@ namespace LibreLancer.ImUI
         {
             return PADDING + s;
         }
-
+        public static unsafe bool BeginModalNoClose(string name, ImGuiWindowFlags flags)
+        {
+            byte* native_name;
+            int name_byteCount = 0;
+            if (name != null)
+            {
+                name_byteCount = Encoding.UTF8.GetByteCount(name);
+                if (name_byteCount > Util.StackAllocationSizeLimit)
+                {
+                    native_name = Util.Allocate(name_byteCount + 1);
+                }
+                else
+                {
+                    byte* native_name_stackBytes = stackalloc byte[name_byteCount + 1];
+                    native_name = native_name_stackBytes;
+                }
+                int native_name_offset = Util.GetUtf8(name, native_name, name_byteCount);
+                native_name[native_name_offset] = 0;
+            }
+            else { native_name = null; }
+            byte ret = ImGuiNative.igBeginPopupModal(native_name, (byte*)0, flags);
+            if (name_byteCount > Util.StackAllocationSizeLimit)
+            {
+                Util.Free(native_name);
+            }
+            return ret != 0;
+        }
         public static bool ToggleButton(string text, bool v)
         {
             if (v) {

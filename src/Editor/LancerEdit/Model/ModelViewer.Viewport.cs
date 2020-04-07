@@ -236,29 +236,13 @@ namespace LancerEdit
 
         unsafe void RenderImage(string output)
         {
-            try
-            {
-                TextureImport.LoadLibraries();
-            }
-            catch (Exception ex)
-            {
-                FLLog.Error("Render", "Could not load FreeImage");
-                FLLog.Info("Exception Info", ex.Message + "\n" + ex.StackTrace);
-                return;
-            }
             imageViewport.Background = renderBackground ? _window.Config.Background : Color4.TransparentBlack;
             imageViewport.Begin(imageWidth, imageHeight);
             DrawGL(imageWidth, imageHeight, false);
             imageViewport.End(false);
             byte[] data = new byte[imageWidth * imageHeight * 4];
             imageViewport.RenderTarget.GetData(data);
-            using (var sfc = new TeximpNet.Surface(imageWidth, imageHeight, true))
-            {
-                byte* sfcData = (byte*)sfc.DataPtr;
-                for (int i = 0; i < data.Length; i++) sfcData[i] = data[i];
-                sfc.SaveToFile(TeximpNet.ImageFormat.PNG, output);
-            }
-
+            LibreLancer.ImageLib.PNG.Save(output, imageWidth, imageHeight, data);
         }
 
         long fR = 0;

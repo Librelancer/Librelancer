@@ -58,7 +58,6 @@ namespace LancerEdit
             zoom = (int)zoom;
             var scale = zoom / 100;
             var sz = new Vector2(tex.Width, tex.Height) * scale;
-            ImGuiNative.igSetNextWindowContentSize(new Vector2(sz.X, 0));
             bool isOpen = true;
             if (ImGui.BeginPopupModal("Info##" + Unique, ref isOpen, ImGuiWindowFlags.AlwaysAutoResize))
             {
@@ -68,6 +67,7 @@ namespace LancerEdit
                 ImGui.Text("Mipmaps: " + ((tex.LevelCount > 1) ? "Yes" : "No"));
                 ImGui.EndPopup();
             }
+            ImGuiNative.igSetNextWindowContentSize(new Vector2(sz.X, 0));
             ImGui.BeginChild("##scroll", new Vector2(-1), false, ImGuiWindowFlags.HorizontalScrollbar);
             var pos = ImGui.GetCursorScreenPos();
             var windowH = ImGui.GetWindowHeight();

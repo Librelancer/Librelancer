@@ -40,19 +40,20 @@ namespace LancerEdit
         string[] mipmapOptions = new string[] {
             "None",
             "Box",
-            "Bicubic",
-            "Bilinear",
-            "B-Spline",
-            "Catmull-Rom",
-            "Lanczos3"
+            "Tent",
+            "Lanczos4",
+            "Mitchell",
+            "Kaiser",
         };
-        int mipmapOption = 6;
+        int mipmapOption = 3;
         bool compressSlow = false;
         bool texFlip = false;
         void TexImportDialog(PopupData data)
         {
             if (teximportprev == null)
             { //processing
+                ImGuiExt.Spinner("##spinner", 10, 2, ImGuiNative.igGetColorU32(ImGuiCol.ButtonHovered, 1));
+                ImGui.SameLine();
                 ImGui.Text("Processing...");
                 if (!texImportWaiting)
                 {
@@ -75,6 +76,7 @@ namespace LancerEdit
             }
             else
             {
+                data.NoClose = false;
                 ImGui.Image((IntPtr)teximportid, new Vector2(64, 64),
                             new Vector2(0, 1), new Vector2(1, 0), Vector4.One, Vector4.Zero);
                 ImGui.Text(string.Format("Dimensions: {0}x{1}", teximportprev.Width, teximportprev.Height));
@@ -88,6 +90,7 @@ namespace LancerEdit
                     teximportprev.Dispose();
                     teximportprev = null;
                     texImportWaiting = true;
+                    data.NoClose = true;
                     new System.Threading.Thread(() =>
                     {
                         var format = DDSFormat.Uncompressed;
@@ -112,19 +115,16 @@ namespace LancerEdit
                                 mipm = MipmapMethod.Box;
                                 break;
                             case 2:
-                                mipm = MipmapMethod.Bicubic;
+                                mipm = MipmapMethod.Tent;
                                 break;
                             case 3:
-                                mipm = MipmapMethod.Bilinear;
+                                mipm = MipmapMethod.Lanczos4;
                                 break;
                             case 4:
-                                mipm = MipmapMethod.Bspline;
+                                mipm = MipmapMethod.Mitchell;
                                 break;
                             case 5:
-                                mipm = MipmapMethod.CatmullRom;
-                                break;
-                            case 6:
-                                mipm = MipmapMethod.Lanczos3;
+                                mipm = MipmapMethod.Kaiser;
                                 break;
                         }
                         if (mipm == MipmapMethod.None && format == DDSFormat.Uncompressed)
