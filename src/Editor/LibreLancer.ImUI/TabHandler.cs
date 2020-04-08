@@ -7,6 +7,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using System.Text;
 using ImGuiNET;
 namespace LibreLancer.ImUI
 {
@@ -22,17 +23,19 @@ namespace LibreLancer.ImUI
                 for (int i = 0; i < tabs.Count; i++)
                 {
                     bool isTabOpen = true;
+                    bool selectedThis = false;
                     if (ImGui.BeginTabItem(tabs[i].RenderTitle, ref isTabOpen, ImGuiTabItemFlags.None))
                     {
+                        selectedThis = true;
                         ImGui.EndTabItem();
                     }
                     if (!isTabOpen)
                     {
+                        if(selected == tabs[i]) selected = null;
                         tabs[i].Dispose();
                         tabs.RemoveAt(i);
-                        selected = null;
                     }
-                    else
+                    else if (selectedThis)
                         selected = tabs[i];
                 }
 
