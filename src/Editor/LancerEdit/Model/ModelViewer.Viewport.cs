@@ -424,7 +424,7 @@ namespace LancerEdit
         }
         
         private int jColors = 0;
-
+        
         void DrawSimple(ICamera cam, bool wireFrame)
         {
             Material mat = null;
@@ -468,18 +468,25 @@ namespace LancerEdit
                         }
 
                         mat.Update(cam);
-                        part.Mesh.DrawBuffer(0, _window.Resources, buffer, part.LocalTransform * matrix,
+                        var lvl = GetLevel(part.Mesh.Switch2);
+                        part.Mesh.DrawBuffer(lvl, _window.Resources, buffer, part.LocalTransform * matrix,
                             ref Lighting.Empty,
                             null, mat);
                     }
                 }
                 else if (viewMode == M_LIT)
                 {
-                    vmsModel.DrawBuffer(0, buffer, _window.Resources, matrix, ref lighting);
+                    if (useDistance)
+                        vmsModel.DrawBufferSwitch2(levelDistance, buffer, _window.Resources, matrix, ref lighting);
+                    else
+                        vmsModel.DrawBuffer(level, buffer, _window.Resources, matrix, ref lighting);
                 }
                 else
                 {
-                    vmsModel.DrawBuffer(0, buffer, _window.Resources, matrix, ref Lighting.Empty, mat);
+                    if(useDistance)
+                        vmsModel.DrawBufferSwitch2(levelDistance, buffer, _window.Resources, matrix, ref lighting);
+                    else
+                        vmsModel.DrawBuffer(level, buffer, _window.Resources, matrix, ref Lighting.Empty, mat);
                 }
             }
         }

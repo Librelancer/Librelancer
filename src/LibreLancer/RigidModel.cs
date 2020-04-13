@@ -68,7 +68,7 @@ namespace LibreLancer
         }
         public void DrawBuffer(int level, ResourceManager res, CommandBuffer buffer, Matrix4x4 world, ref Lighting lights, MaterialAnimCollection mc, Material overrideMat = null)
         {
-            if (Levels == null || Levels.Length < level) return;
+            if (Levels == null || Levels.Length <= level) return;
             var l = Levels[level];
             if (l == null) return;
             for (int i = 0; i < l.Length; i++)
@@ -122,6 +122,7 @@ namespace LibreLancer
                 if (dc.HasScale)
                     tr = dc.Scale * world;
                 mat.Render.World = tr;
+                mat.Render.MaterialAnim = ma;
                 mat.Render.Use(renderState, dc.Buffer.VertexType, ref lights);
                 dc.Buffer.Draw(PrimitiveTypes.TriangleList, dc.BaseVertex, dc.StartIndex, dc.PrimitiveCount);
             }
@@ -239,6 +240,29 @@ namespace LibreLancer
                 {
                     var w = AllParts[i].LocalTransform * world;
                     AllParts[i].Mesh.DrawBuffer(level, res, buffer, w, ref lights, MaterialAnims, overrideMat);
+                }
+            }
+        }
+
+        static int GetLevel(float[] switch2, float levelDistance)
+        {
+            if (switch2 == null) return 0;
+            for (int i = 0; i < switch2.Length; i++)
+            {
+                if (levelDistance <= switch2[i])
+                    return i;
+            }
+            return int.MaxValue;
+        }
+        
+        public void DrawBufferSwitch2(float dist, CommandBuffer buffer, ResourceManager res, Matrix4x4 world, ref Lighting lights, Material overrideMat = null)
+        {
+            for (int i = 0; i < AllParts.Length; i++)
+            {
+                if (AllParts[i].Active && AllParts[i].Mesh != null)
+                {
+                    var w = AllParts[i].LocalTransform * world;
+                    AllParts[i].Mesh.DrawBuffer(GetLevel(AllParts[i].Mesh.Switch2, dist), res, buffer, w, ref lights, MaterialAnims, overrideMat);
                 }
             }
         }

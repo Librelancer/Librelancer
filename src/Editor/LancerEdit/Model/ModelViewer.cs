@@ -110,7 +110,13 @@ namespace LancerEdit
                 foreach (var p in vmsModel.AllParts)
                 {
                     if (p.Mesh != null && p.Mesh.Levels != null)
+                    {
                         maxLevels = Math.Max(maxLevels, p.Mesh.Levels.Length);
+                        if(p.Mesh.Switch2 != null)
+                            foreach (var d in p.Mesh.Switch2)
+                                maxDistance = Math.Max(d, maxDistance);
+                    }
+                    
                 }
                 foreach (var cmpPart in (drawable as CmpFile).Parts) {
                     if (cmpPart.Camera != null) {
@@ -118,8 +124,8 @@ namespace LancerEdit
                         break;
                     }   
                 }
-                levels = new string[maxLevels + 1];
-                for (int i = 0; i <= maxLevels; i++)
+                levels = new string[maxLevels];
+                for (int i = 0; i < maxLevels; i++)
                     levels[i] = i.ToString();
             }
             else if (drawable is ModelFile)
@@ -128,6 +134,11 @@ namespace LancerEdit
                 levels = new string[vmsModel.AllParts[0].Mesh.Levels.Length];
                 for (int i = 0; i < levels.Length; i++)
                     levels[i] = i.ToString();
+                if (vmsModel.Root.Mesh.Switch2 != null)
+                {
+                    foreach (var d in vmsModel.Root.Mesh.Switch2)
+                        maxDistance = Math.Max(d, maxDistance);
+                }
             }
             else if (drawable is SphFile)
             {
@@ -668,7 +679,7 @@ namespace LancerEdit
         float levelDistance = 0;
         float maxDistance;
         bool useDistance = false;
-        int GetLevel(float[] switch2, int maxLevel)
+        int GetLevel(float[] switch2)
         {
             if (useDistance)
             {
@@ -676,14 +687,11 @@ namespace LancerEdit
                 for (int i = 0; i < switch2.Length; i++)
                 {
                     if (levelDistance <= switch2[i])
-                        return Math.Min(i, maxLevel);
+                        return i;
                 }
-                return maxLevel;
+                return int.MaxValue;
             }
-            else
-            {
-                return Math.Min(level, maxLevel);
-            }
+            return level;
         }
 
         string surname;
