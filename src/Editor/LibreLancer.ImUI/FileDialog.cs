@@ -111,7 +111,7 @@ namespace LibreLancer.ImUI
 
         static bool HasKDialog()
         {
-            var startInfo = new ProcessStartInfo("/usr/bin/bash")
+            var startInfo = new ProcessStartInfo("/bin/sh")
             {
                 UseShellExecute = false,
                 Arguments = " -c \"command -v kdialog >/dev/null 2>&1\""

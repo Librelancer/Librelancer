@@ -28,7 +28,7 @@ namespace LibreLancer.Dialogs
         
         static bool HasCommand(string cmd)
         {
-            var startInfo = new ProcessStartInfo("/usr/bin/bash")
+            var startInfo = new ProcessStartInfo("/bin/sh")
             {
                 UseShellExecute = false,
                 Arguments = $" -c \"command -v {cmd} >/dev/null 2>&1\""
