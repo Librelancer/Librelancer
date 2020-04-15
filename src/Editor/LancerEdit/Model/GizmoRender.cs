@@ -11,7 +11,7 @@ namespace LancerEdit
 {
     static class GizmoRender
     {
-        public const int MAX_LINES = 3000;
+        public const int MAX_LINES = 40000;
         public static float Scale = 1;
         //Render State
 
