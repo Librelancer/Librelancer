@@ -9,6 +9,7 @@
 #include "stb.h"
 #include FT_SYNTHESIS_H
 #include <fontconfig/fontconfig.h>
+#include <pango/pango-utils.h>
 
 #define PG_MAX(x,y) (x) < (y) ? y : x
 
