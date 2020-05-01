@@ -246,6 +246,7 @@ namespace LibreLancer.Text.Pango
 
         public override void DrawStringBaseline(string fontName, float size, string text, float x, float y, float start_x, Color4 color, bool underline = false, TextShadow shadow = default)
         {
+            if(string.IsNullOrEmpty(fontName)) throw new InvalidOperationException("fontName null");
             var pixels = size * (96.0f / 72.0f);
             drawX = (int)(start_x);
             drawY = (int)y;
@@ -259,6 +260,7 @@ namespace LibreLancer.Text.Pango
 
         public override Point MeasureString(string fontName, float size, string text)
         {
+            if(string.IsNullOrEmpty(fontName)) throw new InvalidOperationException("fontName null");
             var textPtr = UnsafeHelpers.StringToHGlobalUTF8(text);
             var fontPtr = UnsafeHelpers.StringToHGlobalUTF8(fontName);
             pg_measurestring(ctx, textPtr, fontPtr, size * (96.0f / 72.0f), out var width, out var height);
@@ -269,6 +271,7 @@ namespace LibreLancer.Text.Pango
 
         public override float LineHeight(string fontName, float size)
         {
+            if(string.IsNullOrEmpty(fontName)) throw new InvalidOperationException("LineHeight fontName cannot be null");
             var fontPtr = UnsafeHelpers.StringToHGlobalUTF8(fontName);
             var retval = pg_lineheight(ctx, fontPtr, size * (96.0f / 72.0f));
             Marshal.FreeHGlobal(fontPtr);

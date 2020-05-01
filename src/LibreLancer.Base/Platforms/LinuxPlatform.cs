@@ -30,6 +30,7 @@ namespace LibreLancer.Platforms
 
         public void AddTtfFile(string file)
         {
+            if(string.IsNullOrEmpty(file)) throw new InvalidOperationException();
             var str = UnsafeHelpers.StringToHGlobalUTF8(file);
             pg_addttfglobal(str);
             Marshal.FreeHGlobal(str);

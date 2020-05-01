@@ -239,6 +239,7 @@ if(pango_version() >= PANGO_VERSION_ENCODE(1,44,0)) {
     PangoFontMetrics *metrics = pango_font_get_metrics(font, NULL);
     float retval = (float)(pango_font_metrics_get_height(metrics) / PANGO_SCALE);
     g_object_unref(font);
+    return retval;
 } else {
 #endif
     FT_Face face = pango_fc_font_lock_face((PangoFcFont*) font);
