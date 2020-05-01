@@ -211,7 +211,7 @@ namespace LancerEdit
             {
                 hpFirst = false;
                 ImGui.Text(hpEditing.Name);
-                bool isFix = hpEditing is FixedHardpointDefinition;
+                bool isFix = hpEditing.Definition is FixedHardpointDefinition;
                 ImGui.Text("Type: " + (isFix ? "Fixed" : "Revolute"));
                 if (ImGui.Button("Reset")) SetHardpointValues();
                 ImGui.Separator();
