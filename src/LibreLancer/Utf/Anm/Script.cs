@@ -30,7 +30,10 @@ namespace LibreLancer.Utf.Anm
 					ObjectMaps.Add(new ObjectMap(node as IntermediateNode));
 				else if (node.Name.StartsWith("joint map", StringComparison.OrdinalIgnoreCase))
                     JointMaps.Add(new JointMap(node as IntermediateNode));
-                else throw new Exception("Invalid Node in script root: " + node.Name);
+                else
+                {
+                    FLLog.Warning("Anm", $"{root.Name}: invalid node {node.Name}, possible broken animation?");
+                }
             }
         }
     }
