@@ -828,9 +828,17 @@ namespace LancerEdit
             int j = 0;
             foreach (var sc in anm.Scripts)
             {
+                var popup = $"{sc.Key}$Popup{j}";
                 if (ImGui.Button(ImGuiExt.IDWithExtra(sc.Key, j++)))
                 {
                     animator.StartAnimation(sc.Key, false);
+                }
+                if (ImGui.IsItemClicked(1))
+                    ImGui.OpenPopup(popup);
+                if (ImGui.BeginPopupContextItem(popup))
+                {
+                    if(ImGui.MenuItem("Copy Nickname")) _window.SetClipboardText(sc.Key);
+                    ImGui.EndPopup();
                 }
             }
             ImGui.Separator();
@@ -852,7 +860,15 @@ namespace LancerEdit
                 ImGui.Separator();
                 foreach(var script in anmFile.Scripts)
                 {
+                    var popup = $"{script.Key}Popup";
                     if (ImGui.Button(script.Key)) skel.StartScript(script.Value, 0, 1, 0);
+                    if (ImGui.IsItemClicked(1))
+                        ImGui.OpenPopup(popup);
+                    if (ImGui.BeginPopupContextItem(popup))
+                    {
+                        if(ImGui.MenuItem("Copy Nickname")) _window.SetClipboardText(script.Key);
+                        ImGui.EndPopup();
+                    }
                 }
             }
         }
