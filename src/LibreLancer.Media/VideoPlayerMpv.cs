@@ -28,7 +28,7 @@ namespace LibreLancer.Media
 		}
 		public override Texture2D GetTexture()
 		{
-			return framebuffer;
+			return framebuffer.Texture;
 		}
 		bool firstDraw = true;
 		public override void Draw(RenderState rstate)
@@ -45,16 +45,17 @@ namespace LibreLancer.Media
 			if (disposed)
 				return;
 			game.UnbindAll();
-			RenderTarget2D.ClearBinding();
+            rstate.RenderTarget = null;
 			game.TrashGLState();
 			if (firstDraw)
 			{
 				firstDraw = false;
-				framebuffer.BindFramebuffer();
+                rstate.RenderTarget = framebuffer;
 				rstate.ClearColor = Color4.Black;
 				rstate.ClearAll();
-				RenderTarget2D.ClearBinding();
-			}
+                rstate.RenderTarget = null;
+                rstate.Apply();
+            }
 			if (doDraw)
 			{
 				rstate.Cull = false;

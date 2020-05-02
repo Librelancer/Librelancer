@@ -15,14 +15,14 @@ namespace InterfaceEdit
     public partial class ResourceWindow
     {
         InterfaceResources resources;
-        private UiContext context;
+        private UiData context;
         private MainWindow mainWindow;
         TextBuffer colorName = new TextBuffer();
         TextBuffer modelName = new TextBuffer();
         private FileSelector librarySelector;
         private FileSelector modelSelector;
         
-        public ResourceWindow(MainWindow mainWindow, UiContext context)
+        public ResourceWindow(MainWindow mainWindow, UiData context)
         {
             this.resources = context.Resources;
             this.context = context;
@@ -335,13 +335,13 @@ namespace InterfaceEdit
                 rtY = szY;
                 if (renderTarget != null)
                 {
-                    ImGuiHelper.DeregisterTexture(renderTarget);
+                    ImGuiHelper.DeregisterTexture(renderTarget.Texture);
                     renderTarget.Dispose();
                 }
                 renderTarget = new RenderTarget2D(rtX, rtY);
-                renderTargetImage = ImGuiHelper.RegisterTexture(renderTarget);
+                renderTargetImage = ImGuiHelper.RegisterTexture(renderTarget.Texture);
             }
-            renderTarget.BindFramebuffer();
+            mainWindow.RenderState.RenderTarget = renderTarget;
             mainWindow.Viewport.Push(0,0,rtX,rtY);
             mainWindow.RenderState.ClearColor = Color4.Black;
             mainWindow.RenderState.ClearAll();
@@ -350,7 +350,7 @@ namespace InterfaceEdit
         void DrawViewport()
         {
             mainWindow.Viewport.Pop();
-            RenderTarget2D.ClearBinding();
+            mainWindow.RenderState.RenderTarget = null;
             var cPos = ImGui.GetCursorPos();
             ImGui.Image((IntPtr) renderTargetImage, new Vector2(rtX, rtY), new Vector2(0, 1), new Vector2(1, 0));
             ImGui.SetCursorPos(cPos);
@@ -368,9 +368,9 @@ namespace InterfaceEdit
             BindViewport(szX, szY);
             //Do drawing
             var rectangle = new Rectangle(5, 5, rtX - 10, rtY - 10);
-            context.Renderer2D.Start(rtX, rtY);
-            context.Renderer2D.FillRectangle(rectangle, Color4.CornflowerBlue);
-            context.Renderer2D.Finish();
+            mainWindow.Renderer2D.Start(rtX, rtY);
+            mainWindow.Renderer2D.FillRectangle(rectangle, Color4.CornflowerBlue);
+            mainWindow.Renderer2D.Finish();
             var transform = Matrix4x4.CreateScale(mdl.XScale, mdl.YScale, 1) *
                             Matrix4x4.CreateTranslation(mdl.X, mdl.Y, 0);
             var mcam = new MatrixCamera(Matrix4x4.Identity);

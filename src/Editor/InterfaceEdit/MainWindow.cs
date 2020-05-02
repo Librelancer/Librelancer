@@ -40,9 +40,9 @@ namespace InterfaceEdit
         private DockTab selected = null;
         private ResourceWindow resourceEditor;
         private ProjectWindow projectWindow;
-        public UiContext Context;
+        public UiData UiData;
         public FontManager Fonts;
-        TestingApi api = new TestingApi();
+        public TestingApi TestApi = new TestingApi();
 
 
         protected override void Update(double elapsed)
@@ -72,46 +72,43 @@ namespace InterfaceEdit
 
         void NewGui(string folder)
         {
-            Context = new UiContext();
-            Context.FlDirectory = folder;
-            Context.ResourceManager = new GameResourceManager(this);
-            Context.Renderer2D = this.Renderer2D;
-            Context.FileSystem = FileSystem.FromFolder(folder);
-            Context.RenderState = RenderState;
-            Context.Fonts = Fonts;
-            Context.GameApi = api;
-            var flIni = new FreelancerIni(Context.FileSystem);
+            UiData = new UiData();
+            UiData.FlDirectory = folder;
+            UiData.ResourceManager = new GameResourceManager(this);
+            UiData.FileSystem = FileSystem.FromFolder(folder);
+            UiData.Fonts = Fonts;
+            var flIni = new FreelancerIni(UiData.FileSystem);
             if (flIni.XInterfacePath != null)
             {
-                XmlFolder = Context.FileSystem.Resolve(flIni.XInterfacePath);
-                if (!Context.FileSystem.FileExists(Path.Combine(flIni.XInterfacePath, "resources.xml")))
+                XmlFolder = UiData.FileSystem.Resolve(flIni.XInterfacePath);
+                if (!UiData.FileSystem.FileExists(Path.Combine(flIni.XInterfacePath, "resources.xml")))
                     WriteBlankFiles();
             }
             else
             {
-                var dataPath = Context.FileSystem.Resolve(flIni.DataPath);
+                var dataPath = UiData.FileSystem.Resolve(flIni.DataPath);
                 XmlFolder = Path.Combine(dataPath, "XmlUi");
                 Directory.CreateDirectory(XmlFolder);
                 WriteBlankFiles();
-                var flIniPath = Context.FileSystem.Resolve("EXE\\freelancer.ini");
+                var flIniPath = UiData.FileSystem.Resolve("EXE\\freelancer.ini");
                 var flIniText = File.ReadAllText(flIniPath);
                 File.WriteAllText(flIniPath, $"{flIniText}\n\n[Extended]\nxinterface = XmlUi");
             }
-            Context.OpenFolder(flIni.XInterfacePath);
+            UiData.OpenFolder(flIni.XInterfacePath);
             try
             {
-                var navbarIni = new LibreLancer.Data.BaseNavBarIni(Context.FileSystem);
-                Context.NavbarIcons = navbarIni.Navbar;
+                var navbarIni = new LibreLancer.Data.BaseNavBarIni(UiData.FileSystem);
+                UiData.NavbarIcons = navbarIni.Navbar;
             }
             catch (Exception)
             {
-                Context.NavbarIcons = null;
+                UiData.NavbarIcons = null;
             }
 
             try
             {
                 var hud = new HudIni();
-                hud.AddIni(flIni.HudPath, Context.FileSystem);
+                hud.AddIni(flIni.HudPath, UiData.FileSystem);
                 var maneuvers = new List<Maneuver>();
                 var p = flIni.DataPath.Replace('\\', Path.DirectorySeparatorChar);
                 foreach (var m in hud.Maneuvers)
@@ -123,26 +120,26 @@ namespace InterfaceEdit
                         InactiveModel = Path.Combine(p,m.InactiveModel)
                     });
                 }
-                api.ManeuverData = maneuvers.ToArray();
+                TestApi.ManeuverData = maneuvers.ToArray();
             }
             catch (Exception)
             {
-                api.ManeuverData = null;
+                TestApi.ManeuverData = null;
             }
             if (flIni.JsonResources != null)
-                Context.Infocards = new InfocardManager(flIni.JsonResources.Item1, flIni.JsonResources.Item2);
+                UiData.Infocards = new InfocardManager(flIni.JsonResources.Item1, flIni.JsonResources.Item2);
             else if (flIni.Resources != null)
-                Context.Infocards = new InfocardManager(flIni.Resources);
-            Fonts.LoadFontsFromIni(flIni, Context.FileSystem);
-            Context.DataPath = flIni.DataPath;
-            resourceEditor = new ResourceWindow(this, Context);
+                UiData.Infocards = new InfocardManager(flIni.Resources);
+            Fonts.LoadFontsFromIni(flIni, UiData.FileSystem);
+            UiData.DataPath = flIni.DataPath;
+            resourceEditor = new ResourceWindow(this, UiData);
             resourceEditor.IsOpen = true;
             projectWindow = new ProjectWindow(XmlFolder, this);
             projectWindow.IsOpen = true;
-            tabs.Add(new StylesheetEditor(XmlFolder, Context));
+            tabs.Add(new StylesheetEditor(XmlFolder, UiData));
         }
         
-        public void WriteResources() => File.WriteAllText(Path.Combine(XmlFolder, "resources.xml"), Context.Resources.ToXml());
+        public void WriteResources() => File.WriteAllText(Path.Combine(XmlFolder, "resources.xml"), UiData.Resources.ToXml());
 
         protected override void Draw(double elapsed)
         {
@@ -185,34 +182,34 @@ namespace InterfaceEdit
             {
                 if (ImGui.BeginMenu("Base Icons"))
                 {
-                    ImGui.MenuItem("Bar", "", ref api.HasBar);
-                    ImGui.MenuItem("Trader", "", ref api.HasTrader);
-                    ImGui.MenuItem("Equipment", "", ref api.HasEquip);
-                    ImGui.MenuItem("Ship Dealer", "", ref api.HasShipDealer);
+                    ImGui.MenuItem("Bar", "", ref TestApi.HasBar);
+                    ImGui.MenuItem("Trader", "", ref TestApi.HasTrader);
+                    ImGui.MenuItem("Equipment", "", ref TestApi.HasEquip);
+                    ImGui.MenuItem("Ship Dealer", "", ref TestApi.HasShipDealer);
                     ImGui.EndMenu();
                 }
                 if (ImGui.BeginMenu("Active Room"))
                 {
-                    var rooms = api.GetNavbarButtons();
+                    var rooms = TestApi.GetNavbarButtons();
                     for (int i = 0; i < rooms.Length; i++)
                     {
-                        if (ImGui.MenuItem(rooms[i].IconName + "##" + i, "", api.ActiveHotspotIndex == i))
-                            api.ActiveHotspotIndex = i;
+                        if (ImGui.MenuItem(rooms[i].IconName + "##" + i, "", TestApi.ActiveHotspotIndex == i))
+                            TestApi.ActiveHotspotIndex = i;
                     }
                     ImGui.EndMenu();
                 }
                 
                 if (ImGui.BeginMenu("Room Actions"))
                 {
-                    ImGui.MenuItem("Launch", "", ref api.HasLaunchAction) ;
-                    ImGui.MenuItem("Repair", "", ref api.HasRepairAction);
-                    ImGui.MenuItem("Missions", "", ref api.HasMissionVendor);
-                    ImGui.MenuItem("News", "", ref api.HasNewsAction);
+                    ImGui.MenuItem("Launch", "", ref TestApi.HasLaunchAction) ;
+                    ImGui.MenuItem("Repair", "", ref TestApi.HasRepairAction);
+                    ImGui.MenuItem("Missions", "", ref TestApi.HasMissionVendor);
+                    ImGui.MenuItem("News", "", ref TestApi.HasNewsAction);
                     ImGui.EndMenu();
                 }
                 ImGui.EndMenu();
             }
-            if (Context != null && ImGui.BeginMenu("View"))
+            if (UiData != null && ImGui.BeginMenu("View"))
             {
                 ImGui.MenuItem("Project", "", ref projectWindow.IsOpen);
                 ImGui.MenuItem("Resources", "", ref resourceEditor.IsOpen);
@@ -233,8 +230,6 @@ namespace InterfaceEdit
                 ImGuiWindowFlags.NoResize);
             var prevSel = selected;
             TabHandler.TabLabels(tabs, ref selected);
-            if (prevSel != selected && selected is DesignerTab des)
-                des.SwitchedTo();
             ImGui.BeginChild("##tabcontent");
             if (selected != null) selected.Draw();
             ImGui.EndChild();

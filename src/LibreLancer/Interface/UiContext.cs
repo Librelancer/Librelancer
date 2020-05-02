@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Data;
@@ -25,67 +24,34 @@ namespace LibreLancer.Interface
         public Renderer2D Renderer2D;
         public MatrixCamera MatrixCam = new MatrixCamera(Matrix4x4.Identity);
         //Data
-        public string DataPath;
-        public GameResourceManager ResourceManager;
-        public InfocardManager Infocards;
-        public FontManager Fonts;
-        public FileSystem FileSystem;
-        public Dictionary<string,string> NavbarIcons;
-        public SoundManager Sounds;
+        public UiData Data;
         //Ui
-        public Stylesheet Stylesheet;
-        public UiXmlLoader XmlLoader;
-        public InterfaceResources Resources;
-        public string XInterfacePath;
         public object GameApi;
-        //Editor-only
-        public string FlDirectory;
         //State
         private bool mode2d = false;
         private FreelancerGame game;
-        public UiContext()
+        public UiContext(UiData data)
         {
-        }
-
-        public string GetNavbarIconPath(string icon)
-        {
-            var p = DataPath.Replace('\\', Path.DirectorySeparatorChar);
-            return Path.Combine(p, NavbarIcons[icon]);
-        }
-        public string GetFont(string fontName)
-        {
-            if (fontName[0] == '$') fontName = Fonts.ResolveNickname(fontName.Substring(1));
-            return fontName;
-        }
-
-        public InterfaceColor GetColor(string color)
-        {
-            var clr = Resources.Colors.FirstOrDefault(x => x.Name.Equals(color, StringComparison.OrdinalIgnoreCase));
-            return clr ?? new InterfaceColor() {
-                Color = Parser.Color(color)
-            };
+            Data = data;
         }
         
-        public UiContext(FreelancerGame game)
+        public UiContext(FreelancerGame game, string file)
         {
             Renderer2D = game.Renderer2D;
             RenderState = game.RenderState;
-            ResourceManager = game.ResourceManager;
-            FileSystem = game.GameData.VFS;
-            Infocards = game.GameData.Ini.Infocards;
-            Fonts = game.Fonts;
-            NavbarIcons = game.GameData.GetBaseNavbarIcons();
-            Sounds = game.Sound;
-            DataPath = game.GameData.Ini.Freelancer.DataPath;
-            if (!string.IsNullOrWhiteSpace(game.GameData.Ini.Freelancer.XInterfacePath))
-                OpenFolder(game.GameData.Ini.Freelancer.XInterfacePath);
-            else
-                OpenDefault();
+            Data = new UiData(game);
             this.game = game;
             game.Mouse.MouseDown += MouseOnMouseDown;
             game.Mouse.MouseUp += MouseOnMouseUp;
+            var w = Data.LoadXml(file);
+            w.ApplyStylesheet(Data.Stylesheet);
+            SetWidget(w);
         }
 
+        public void Start()
+        {
+            baseWidget.EnableScripting(this, null);
+        }
         private void MouseOnMouseUp(MouseEventArgs e)
         {
             if ((e.Buttons & MouseButtons.Left) == MouseButtons.Left)
@@ -98,91 +64,6 @@ namespace LibreLancer.Interface
         private void MouseOnMouseDown(MouseEventArgs e)
         {
             if ((e.Buttons & MouseButtons.Left) == MouseButtons.Left) OnMouseDown();
-        }
-
-        public void OpenFolder(string xinterfacePath)
-        {
-            XInterfacePath = xinterfacePath;
-            ReadResourcesAndStylesheet();
-        }
-
-        Dictionary<string, Texture2D> loadedFiles = new Dictionary<string,Texture2D>();
-        public Texture2D GetTextureFile(string filename)
-        {
-            try
-            {
-                var file = FileSystem.Resolve(filename);
-                if (!loadedFiles.ContainsKey(file))
-                {
-                    loadedFiles.Add(file, LibreLancer.ImageLib.Generic.FromFile(file));
-                }
-                return loadedFiles[file];
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-        
-        public void OpenDefault()
-        {
-            XInterfacePath = null;
-            ReadResourcesAndStylesheet();
-        }
-
-        void ReadResourcesAndStylesheet()
-        {
-            Resources = InterfaceResources.FromXml(ReadAllText("resources.xml"));
-            XmlLoader = new UiXmlLoader(Resources);
-            Stylesheet = (Stylesheet) XmlLoader.FromString(ReadAllText("stylesheet.xml"), null);
-            LoadLibraries();
-        }
-        
-        public string ReadAllText(string file)
-        {
-            if (!string.IsNullOrEmpty(XInterfacePath))
-            {
-                var path = FileSystem.Resolve(Path.Combine(XInterfacePath, file));
-                return File.ReadAllText(path);
-            }
-            else
-            {
-                using (var reader =
-                    new StreamReader(
-                        typeof(UiContext).Assembly.GetManifestResourceStream($"LibreLancer.Interface.Default.{file}")))
-                {
-                    return reader.ReadToEnd();
-                }
-            }
-        }
-
-        public UiWidget LoadXml(string file)
-        {
-            var widget = (UiWidget) XmlLoader.FromString(ReadAllText(file), null);
-            widget.ApplyStylesheet(Stylesheet);
-            return widget;
-        }
-
-        public void LoadLibraries()
-        {
-            foreach (var file in Resources.LibraryFiles)
-            {
-                ResourceManager.LoadResourceFile(FileSystem.Resolve(file));
-            }
-        }
-
-        public RigidModel GetModel(string path)
-        {
-            if(string.IsNullOrEmpty(path)) return null;
-            try
-            {
-                return ((IRigidModelFile) ResourceManager.GetDrawable(FileSystem.Resolve(path))).CreateRigidModel(true);
-            }
-            catch (Exception e)
-            {
-                FLLog.Error("UiContext",$"{e.Message}\n{e.StackTrace}");
-                return null;
-            }
         }
 
         public Vector2 AnchorPosition(RectangleF parent, AnchorKind anchor, float x, float y, float width, float height)
@@ -248,12 +129,6 @@ namespace LibreLancer.Interface
             var ratio = ViewportHeight / 480;
             return new Rectangle((int)(points.X * ratio), (int)(points.Y * ratio), (int)(points.Width * ratio), (int)(points.Height * ratio));
         }
-
-        public float GetScreenWidth()
-        {
-            var aspect = ViewportWidth / ViewportHeight;
-            return 480 * aspect;
-        }
         public float TextSize(float inputPoints)
         {
             var ratio = ViewportHeight / 480;
@@ -261,7 +136,6 @@ namespace LibreLancer.Interface
             return (int)Math.Floor(pixels);
         }
         
-
         public void Mode2D()
         {
             if (mode2d) return;
@@ -301,42 +175,20 @@ namespace LibreLancer.Interface
                 game.Mouse.MouseDown -= MouseOnMouseDown;
             }
         }
-        public UiWidget CreateAll(string file)
-        {
-            var w = LoadXml(file);
-            w.ApplyStylesheet(Stylesheet);
-            w.EnableScripting(this, null);
-            SetWidget(w);
-            return w;
-        }
         RectangleF GetRectangle() => new RectangleF(0,0, 480 * (ViewportWidth / ViewportHeight), 480);
 
         private UiWidget baseWidget;
         Stack<ModalState> modals = new Stack<ModalState>();
-        private UiFullState fullState;
-        public UiFullState SetWidget(UiWidget widget)
+        public void SetWidget(UiWidget widget)
         {
             foreach (var m in modals)
                 m.Widget.Dispose();
             modals = new Stack<ModalState>();
             baseWidget = widget;
-            fullState = new UiFullState() {
-                Widget = baseWidget,
-                Modals = modals
-            };
-            return fullState;
         }
-
-        public void SetFullState(UiFullState ctx)
-        {
-            modals = ctx.Modals;
-            baseWidget = ctx.Widget;
-            fullState = ctx;
-        }
-
         public void OpenModal(string name, string modalData, Action<string> onClose)
         {
-            var item = LoadXml(name);
+            var item = Data.LoadXml(name);
             item.EnableScripting(this, modalData);
             modals.Push(new ModalState() {
                 Widget = item, OnClose = onClose
@@ -357,6 +209,11 @@ namespace LibreLancer.Interface
             
         }
         
+        class ModalState
+        {
+            public UiWidget Widget;
+            public Action<string> OnClose;
+        }
         UiWidget GetActive()
         {
             if (baseWidget == null) return null;
@@ -365,6 +222,10 @@ namespace LibreLancer.Interface
         }
 
         public void ChatboxEvent() =>   GetActive()?.ScriptedEvent("Chatbox");
+        public void Event(string ev)
+        {
+            GetActive()?.ScriptedEvent(ev);
+        }
         public void OnMouseDown() => GetActive()?.OnMouseDown(this, GetRectangle());
         public void OnMouseUp() => GetActive()?.OnMouseUp(this, GetRectangle());
         public void OnMouseClick() => GetActive()?.OnMouseClick(this, GetRectangle());
@@ -393,16 +254,5 @@ namespace LibreLancer.Interface
                 Renderer2D.Finish();
             RenderState.DepthEnabled = true;
         }
-    }
-
-    class ModalState
-    {
-        public UiWidget Widget;
-        public Action<string> OnClose;
-    }
-    public class UiFullState
-    {
-        internal UiWidget Widget;
-        internal Stack<ModalState> Modals;
     }
 }

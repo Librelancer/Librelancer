@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Numerics;
 using LibreLancer;
 
@@ -48,12 +49,13 @@ namespace LibreLancer.Interface
          )
         {
             if (string.IsNullOrEmpty(text)) return;
+            if (myRectangle.Width <= 1 || myRectangle.Height <= 1) return;
             if (string.IsNullOrEmpty(font)) font = "$Normal";
             if (textSize <= 0) textSize = 10;
             var color = (textColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
             if (color.A < float.Epsilon) return;
             context.Mode2D();
-            var fnt = context.GetFont(font);
+            var fnt = context.Data.GetFont(font);
             var size = context.TextSize(textSize);
             var lineHeight = context.Renderer2D.LineHeight(fnt, size);
             var drawRect = context.PointsToPixels(myRectangle);
@@ -111,8 +113,10 @@ namespace LibreLancer.Interface
 
         protected UiAnimation CurrentAnimation;
         private TimeSpan lastTime = TimeSpan.FromSeconds(0);
+        private float aspectRatio = 1;
         protected void Update(UiContext context, Vector2 myPos)
         {
+            aspectRatio = context.ViewportWidth / context.ViewportHeight;
             TimeSpan delta;
             if (lastTime == TimeSpan.FromSeconds(0))
                 delta = TimeSpan.FromSeconds(0);
@@ -121,7 +125,7 @@ namespace LibreLancer.Interface
             lastTime = context.GlobalTime;
             if (CurrentAnimation != null) {
                 CurrentAnimation.SetWidgetPosition(myPos);
-                CurrentAnimation.Update(delta.TotalSeconds);
+                CurrentAnimation.Update(delta.TotalSeconds, aspectRatio);
                 if (!CurrentAnimation.Running)
                 {
                     if (CurrentAnimation.FinalPositionSet.HasValue)
@@ -149,13 +153,33 @@ namespace LibreLancer.Interface
                     var left = new FlyInLeft(Vector2.Zero, offsetTime, duration);
                     left.From = -GetDimensions().X - 10;
                     CurrentAnimation = left;
-                    CurrentAnimation.Begin();
+                    CurrentAnimation.Begin(aspectRatio);
+                    break;
+                case "flyinright":
+                    var right = new FlyInRight(Vector2.Zero, offsetTime, duration);
+                    CurrentAnimation = right;
+                    CurrentAnimation.Begin(aspectRatio);
                     break;
                 case "flyoutleft":
                     var outleft = new FlyOutLeft(Vector2.Zero, offsetTime, duration);
                     outleft.To = -GetDimensions().X - 10;
                     CurrentAnimation = outleft;
-                    CurrentAnimation.Begin();
+                    CurrentAnimation.Begin(aspectRatio);
+                    break;
+                case "flyoutright":
+                    var outright = new FlyOutRight(Vector2.Zero, aspectRatio, Width, offsetTime, duration);
+                    CurrentAnimation = outright;
+                    CurrentAnimation.Begin(aspectRatio);
+                    break;
+                case "flyinbottom":
+                    var inbottom = new FlyInBottom(Vector2.Zero, offsetTime, duration);
+                    CurrentAnimation = inbottom;
+                    CurrentAnimation.Begin(aspectRatio);
+                    break;
+                case "flyoutbottom":
+                    var outbottom = new FlyOutBottom(Vector2.Zero, offsetTime, duration);
+                    CurrentAnimation = outbottom;
+                    CurrentAnimation.Begin(aspectRatio);
                     break;
             }
         }

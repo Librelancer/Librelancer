@@ -243,7 +243,7 @@ namespace LibreLancer
 						msaa.Dispose();
 					msaa = new MultisampleTarget(Game.Width, Game.Height, gconfig.MSAASamples);
 				}
-				msaa.Bind();
+                rstate.RenderTarget = msaa;
 			}
 			NebulaRenderer nr = CheckNebulae(); //are we in a nebula?
 
@@ -359,8 +359,8 @@ namespace LibreLancer
 				rstate.DepthFunction = DepthFunction.Less;
                 foreach (var obj in objects) obj.DepthPrepass(camera, rstate);
 				rstate.DepthFunction = DepthFunction.LessEqual;
-				RenderTarget2D.ClearBinding();
-				if (gconfig.MSAASamples > 0) msaa.Bind();
+                rstate.RenderTarget = null;
+                if (gconfig.MSAASamples > 0) rstate.RenderTarget = msaa;
 				//Run compute shader
 				pointLightBuffer.BindIndex(0);
 				transparentLightBuffer.BindIndex(1);
@@ -418,6 +418,7 @@ namespace LibreLancer
 			if (gconfig.MSAASamples > 0)
 			{
 				msaa.BlitToScreen();
+                rstate.RenderTarget = null;
 			}
             rstate.DepthEnabled = true;
 		}

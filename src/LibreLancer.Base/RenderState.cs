@@ -139,6 +139,9 @@ namespace LibreLancer
         public bool ScissorEnabled { get => scissorEnabled; set => scissorEnabled = value; }
         public Rectangle ScissorRectangle { get => scissorRect; set => scissorRect = value; }
 
+        private RenderTarget currentRenderTarget;
+        public RenderTarget RenderTarget { get; set; }
+
         CullFaces requestedCull = CullFaces.Back;
 		CullFaces cullFace = CullFaces.Back;
 		public CullFaces CullFace
@@ -232,6 +235,12 @@ namespace LibreLancer
 		}
 		public void Apply()
 		{
+            if (RenderTarget != currentRenderTarget)
+            {
+                currentRenderTarget = RenderTarget;
+                if (RenderTarget != null) RenderTarget.BindFramebuffer();
+                else LibreLancer.RenderTarget.ClearBinding();
+            }
 			if (clearDirty) {
 				GL.ClearColor (clearColor.R, clearColor.G, clearColor.B, clearColor.A);
 				clearDirty = false;

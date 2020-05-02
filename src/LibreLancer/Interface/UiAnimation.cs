@@ -23,29 +23,30 @@ namespace LibreLancer
 			Duration = duration;
 		}
 
-		public void Update(double delta)
+		public void Update(double delta, float aspectRatio)
 		{
 			Time += delta;
 			if (Time >= (Start + Duration)) {
 				Running = false;
 				return;
 			}
-			if (Time >= Start)
-				Run (Time - Start);
-		}
+
+            if (Time >= Start)
+                Run(Time - Start, aspectRatio);
+        }
 
         public virtual void SetWidgetPosition(Vector2 pos)
         {
         }
 
-        protected abstract void Run (double currentTime);
+        protected abstract void Run(double currentTime, float aspectRatio);
 
-		public virtual void Begin()
+		public virtual void Begin(float aspectRatio)
 		{
 			Time = 0;
 			Running = true;
-			Run(0);
-		}
+            Run(0, aspectRatio);
+        }
 	}
 }
 

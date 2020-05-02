@@ -14,12 +14,12 @@ namespace InterfaceEdit
     public class StylesheetEditor : SaveableTab
     {
         private Stylesheet currentStylesheet;
-        private UiContext uiContext;
+        private UiData uiContext;
         private string path;
         private ColorTextEdit textEditor;
         private bool validXml = false;
         private string exceptionText = "Error: Nothing typed yet";
-        public StylesheetEditor(string xmlFolder, UiContext context)
+        public StylesheetEditor(string xmlFolder, UiData context)
         {
             Title = "Stylesheet";
             textEditor = new ColorTextEdit();

@@ -58,15 +58,15 @@ namespace LibreLancer.Interface
                 }
                 return;
             }
-            if(string.IsNullOrWhiteSpace(ActiveScene)) {
+            if(string.IsNullOrWhiteSpace(ActiveScene)) { 
                 _activeScene = null;
                 return;
             }
             _activeScene = Scenes.FirstOrDefault(x => x.ID.Equals(ActiveScene, StringComparison.OrdinalIgnoreCase));
-            _activeScene.Reset();
+            _activeScene?.Reset();
             if (scriptingEnabled)
             {
-                _activeScene.EnableScripting(scriptingContext, modalData);
+                _activeScene?.EnableScripting(scriptingContext, modalData);
                 lastScriptingEnabled = true;
             }
         }

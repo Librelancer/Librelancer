@@ -6,6 +6,7 @@
 			</ButtonAppearance.Background>
 		</ButtonStyle.Normal>
 		<ButtonStyle.Hover TextColor="text_hover"/>
+        <ButtonStyle.Disabled TextColor="#666"/>
 	</ButtonStyle>
 	<ScrollbarStyle Width="16" TrackMarginY="4" ButtonMarginX="2">
 		<ScrollbarStyle.UpButton Height="12">

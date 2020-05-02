@@ -8,6 +8,26 @@ using System.Collections.Generic;
 
 namespace InterfaceEdit
 {
+    public class TestServerList : ITableData
+    {
+        public int Count => 5;
+        public int Selected { get; set; } = -1;
+        public string GetContentString(int row, string column)
+        {
+            return "A";
+        }
+
+        public string CurrentDescription()
+        {
+            if (Selected < 0) return "";
+            return "Server Description";
+        }
+
+        public bool ValidSelection()
+        {
+            return Selected > -1;
+        }
+    }
     public class TestingApi
     {
         static readonly NavbarButtonInfo cityscape = new NavbarButtonInfo("IDS_HOTSPOT_EXIT", "Cityscape");
@@ -28,8 +48,23 @@ namespace InterfaceEdit
         public bool HasCommodityTraderAction = false;
         public bool HasEquipmentDealerAction = false;
         public int ActiveHotspotIndex = 0;
-        
 
+        TestServerList serverList = new TestServerList();
+        public TestServerList ServerList() => serverList;
+
+
+        public void ConnectSelection()
+        {
+        }
+
+        public void StartNetworking()
+        {
+        }
+
+        public void StopNetworking()
+        {
+        }
+        
         public NavbarButtonInfo[] GetNavbarButtons()
         {
             var l = new List<NavbarButtonInfo>();

@@ -107,6 +107,7 @@ namespace LibreLancer
         {
             try
             {
+                FLLog.Info("Server", "Account logged in");
                 client.SendPacket(new LoginSuccessPacket(), NetDeliveryMethod.ReliableOrdered);
                 Account = new PlayerAccount();
                 client.SendPacket(new OpenCharacterListPacket()

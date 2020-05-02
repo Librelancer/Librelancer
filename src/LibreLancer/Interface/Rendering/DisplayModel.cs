@@ -56,14 +56,14 @@ namespace LibreLancer.Interface
             context.MatrixCam.CreateTransform((int)context.ViewportWidth, (int)context.ViewportHeight, rect);
             context.RenderState.Cull = false;
             model.UpdateTransform();
-            model.Update(context.MatrixCam, context.GlobalTime, context.ResourceManager);
+            model.Update(context.MatrixCam, context.GlobalTime, context.Data.ResourceManager);
             if (Tint != null)
             {
                 var color = Tint.GetColor(context.GlobalTime);
                 for (int i = 0; i < mats.Count; i++)
                     mats[i].Mat.Dc = color;
             }
-            model.DrawImmediate(context.RenderState, context.ResourceManager, transform, ref Lighting.Empty);
+            model.DrawImmediate(context.RenderState, context.Data.ResourceManager, transform, ref Lighting.Empty);
             if (Tint != null)
             {
                 for (int i = 0; i < mats.Count; i++)
@@ -79,14 +79,14 @@ namespace LibreLancer.Interface
             if (!loadable) return false;
             if (model == null)
             {
-                model = context.GetModel(Model.Path);
+                model = context.Data.GetModel(Model.Path);
                 if (model == null)
                 {
                     loadable = false;
                     return false;
                 }
                 if (Tint != null)
-                    mats = MaterialModification.Setup(model, context.ResourceManager);
+                    mats = MaterialModification.Setup(model, context.Data.ResourceManager);
             }
             return true;
         }

@@ -3,6 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using LibreLancer.GameData;
 using LibreLancer.Interface;
 namespace LibreLancer
@@ -18,9 +20,9 @@ namespace LibreLancer
         public LuaMenu(FreelancerGame g) : base(g)
         {
             api = new MenuAPI(this);
-            ui = new UiContext(g);
+            ui = new UiContext(g, "mainmenu.xml");
             ui.GameApi = new MenuAPI(this);
-            widget = ui.CreateAll("mainmenu.xml");
+            ui.Start();
             g.GameData.PopulateCursors();
             g.CursorKind = CursorKind.None;
             intro = g.GameData.GetIntroScene();
@@ -34,6 +36,53 @@ namespace LibreLancer
             g.Keyboard.KeyDown += Keyboard_KeyDown;
 #endif
             FadeIn(0.1, 0.3);
+        }
+
+        class ServerList : ITableData
+        {
+            public List<LocalServerInfo> Servers = new List<LocalServerInfo>();
+            public int Count => Servers.Count;
+            public int Selected { get; set; } = -1;
+            public string GetContentString(int row, string column)
+            {
+                if (row < 0 || row > Count || string.IsNullOrEmpty(column)) return null;
+                switch (column.ToLowerInvariant())
+                {
+                    case "name":
+                        return Servers[row].Name;
+                    case "ip":
+                        var addr = Servers[row].EndPoint.Address;
+                        if (addr.IsIPv4MappedToIPv6)
+                            return addr.MapToIPv4().ToString();
+                        return addr.ToString();
+                    case "visit":
+                        return "NO";
+                    case "ping":
+                        return Servers[row].Ping.ToString();
+                    case "players":
+                        return $"{Servers[row].CurrentPlayers}/{Servers[row].MaxPlayers}";
+                    case "version":
+                        return Servers[row].DataVersion;
+                    case "lan":
+                        return "YES";
+                    default:
+                        return null;
+                }
+            }
+            public string CurrentDescription()
+            {
+                if (Selected < 0 || Selected >= Count) return "";
+                return Servers[Selected].Description;
+            }
+            public bool ValidSelection()
+            {
+                return (Selected >= 0 && Selected < Count);
+            }
+            public void Reset()
+            {
+                Selected = -1;
+                Servers = new List<LocalServerInfo>();
+            }
         }
         class MenuAPI : UiApi
         {
@@ -50,6 +99,50 @@ namespace LibreLancer
                 });
             }
 
+            internal void _Update()
+            {
+                if (netClient == null) return;
+                while (netClient.PollPacket(out var pkt))
+                {
+                    switch (pkt)
+                    {
+                        case OpenCharacterListPacket oclist:
+                            this.cselInfo = oclist.Info;
+                            state.ui.Event("CharacterList");
+                            break;
+                    }
+                }
+            }
+            private GameNetClient netClient;
+            ServerList serverList = new ServerList();
+            private CharacterSelectInfo cselInfo;
+
+            public CharacterSelectInfo CharacterSelectInfo() => cselInfo;
+            public ServerList ServerList() => serverList;
+            public void StartNetworking()
+            {
+                StopNetworking();
+                netClient = new GameNetClient(state.Game);
+                netClient.ServerFound += info => serverList.Servers.Add(info);
+                netClient.Start();
+                RefreshServers();
+            }
+            public void RefreshServers()
+            {
+                serverList.Reset();
+                netClient.DiscoverLocalPeers();
+            }
+
+            public void ConnectSelection()
+            {
+                netClient.Connect(serverList.Servers[serverList.Selected].EndPoint);
+            }
+            
+            public void StopNetworking()
+            {
+                netClient?.Shutdown();
+                netClient = null;
+            }
             /*public void loadgame() {}
             GameClient client;
             XmlUIServerList serverList;
@@ -216,6 +309,7 @@ namespace LibreLancer
         {
             ui.Update(Game);
             scene.Update(delta);
+            api._Update();
         }
 #if DEBUG
         void LoadSpecific(int index)

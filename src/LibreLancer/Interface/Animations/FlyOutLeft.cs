@@ -26,7 +26,7 @@ namespace LibreLancer
             CurrentPosition.Y = finalPos.Y;
             FinalPositionSet = new Vector2(To, finalPos.Y);
         }
-		protected override void Run(double currentTime)
+		protected override void Run(double currentTime, float aspectRatio)
 		{
 			CurrentPosition.X = Utf.Ale.AlchemyEasing.Ease(
 				Utf.Ale.EasingTypes.EaseOut,

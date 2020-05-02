@@ -232,15 +232,15 @@ namespace LibreLancer.ImUI
         {
             var target = new RenderTarget2D(128,128);
             var r2d = game.GetService<Renderer2D>();
-            target.BindFramebuffer();
+            game.RenderState.RenderTarget = target;
             vps.Push(0, 0, 128, 128);
             r2d.Start(128, 128);
             r2d.DrawVerticalGradient(new Rectangle(0,0,128,128), top, bottom);
             r2d.Finish();
             vps.Pop();
-            RenderTarget2D.ClearBinding();
+            game.RenderState.RenderTarget = null;
             toFree.Add(target);
-            return RegisterTexture(target);
+            return RegisterTexture(target.Texture);
         }
 
         public bool PauseWhenUnfocused = false;
@@ -320,16 +320,16 @@ namespace LibreLancer.ImUI
             
 		}
 
-        List<Texture2D> toFree = new List<Texture2D>();
+        List<RenderTarget2D> toFree = new List<RenderTarget2D>();
 		public void Render(RenderState rstate)
 		{
 			ImGui.Render();
             RenderImDrawData(ImGui.GetDrawData(), rstate);
             foreach (var tex in toFree) {
-                DeregisterTexture(tex);
+                DeregisterTexture(tex.Texture);
                 tex.Dispose();
             }
-            toFree = new List<Texture2D>();
+            toFree = new List<RenderTarget2D>();
 		}
 
 		VertexBuffer vbo;

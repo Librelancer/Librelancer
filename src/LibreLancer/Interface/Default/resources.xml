@@ -16,7 +16,7 @@
       </Color1>
       <Color2>
         <R>0.627451</R>
-        <G>0.768627465</G>
+        <G>0.76862746</G>
         <B>0.8235294</B>
         <A>1</A>
       </Color2>
@@ -27,7 +27,7 @@
     <Name>text</Name>
     <Color>
       <R>0.627451</R>
-      <G>0.768627465</G>
+      <G>0.76862746</G>
       <B>0.8235294</B>
       <A>1</A>
     </Color>
@@ -43,13 +43,13 @@
     <Animation>
       <Color1>
         <R>1</R>
-        <G>0.929411769</G>
+        <G>0.92941177</G>
         <B>0</B>
         <A>1</A>
       </Color1>
       <Color2>
         <R>0.627451</R>
-        <G>0.831372559</G>
+        <G>0.83137256</G>
         <B>0.7607843</B>
         <A>1</A>
       </Color2>
@@ -60,14 +60,14 @@
     <Name>white_hover</Name>
     <Color>
       <R>1</R>
-      <G>0.929411769</G>
+      <G>0.92941177</G>
       <B>0</B>
       <A>1</A>
     </Color>
     <Animation>
       <Color1>
         <R>1</R>
-        <G>0.929411769</G>
+        <G>0.92941177</G>
         <B>0</B>
         <A>1</A>
       </Color1>
@@ -106,13 +106,17 @@
   <Model name="actionbox2" path="DATA/INTERFACE/BASESIDE/city_maneuvertab2.cmp" x="0" y="0" xscale="21.1" yscale="39.2" />
   <Model name="actionbox3" path="DATA/INTERFACE/BASESIDE/city_maneuvertab3.cmp" x="0" y="0" xscale="14.8" yscale="39.2" />
   <Model name="hud_mnvrwarp.3db" path="DATA/INTERFACE/HUD/hud_mnvrwarp.3db" x="0" y="0" xscale="70" yscale="70" />
+  <Model name="front_serverselect" path="DATA/INTERFACE/INTRO/OBJECTS/front_serverselect.cmp" x="0" y="0" xscale="2.045" yscale="4.7" />
+  <Model name="front_serverselect_info" path="DATA/INTERFACE/INTRO/OBJECTS/front_serverselect_info.cmp" x="0" y="0" xscale="2.87" yscale="16.55" />
+  <Model name="front_characselectbox" path="DATA/INTERFACE/INTRO/OBJECTS/front_characselectbox.cmp" x="0" y="0" xscale="2.38" yscale="3.75" />
+  <Model name="front_infowindow" path="DATA/INTERFACE/INTRO/OBJECTS/front_infowindow.cmp" x="0" y="0" xscale="7.5" yscale="10.1" />
   <Image name="sliderarrow_up" texname="HUD_sliderarrow" type="Triangle" flip="false">
     <TexCoords>
-      <X0>0.0864197537</X0>
+      <X0>0.086419754</X0>
       <Y0>0.06995885</Y0>
-      <X1>0.930041134</X1>
+      <X1>0.93004113</X1>
       <Y1>0.0781893</Y1>
-      <X2>0.934156358</X2>
+      <X2>0.93415636</X2>
       <Y2>0.9259259</Y2>
       <X3>1</X3>
       <Y3>1</Y3>
@@ -130,11 +134,11 @@
   </Image>
   <Image name="sliderarrow_down" texname="HUD_sliderarrow" type="Triangle" flip="false">
     <TexCoords>
-      <X0>0.0864197537</X0>
+      <X0>0.086419754</X0>
       <Y0>0.06995885</Y0>
-      <X1>0.930041134</X1>
+      <X1>0.93004113</X1>
       <Y1>0.0781893</Y1>
-      <X2>0.934156358</X2>
+      <X2>0.93415636</X2>
       <Y2>0.9259259</Y2>
       <X3>1</X3>
       <Y3>1</Y3>
@@ -152,11 +156,11 @@
   </Image>
   <Image name="sliderarrow_left" texname="HUD_sliderarrow" type="Triangle" flip="false">
     <TexCoords>
-      <X0>0.0864197537</X0>
+      <X0>0.086419754</X0>
       <Y0>0.06995885</Y0>
-      <X1>0.930041134</X1>
+      <X1>0.93004113</X1>
       <Y1>0.0781893</Y1>
-      <X2>0.934156358</X2>
+      <X2>0.93415636</X2>
       <Y2>0.9259259</Y2>
       <X3>1</X3>
       <Y3>1</Y3>
@@ -174,11 +178,11 @@
   </Image>
   <Image name="sliderarrow_right" texname="HUD_sliderarrow" type="Triangle" flip="false">
     <TexCoords>
-      <X0>0.0864197537</X0>
+      <X0>0.086419754</X0>
       <Y0>0.06995885</Y0>
-      <X1>0.930041134</X1>
+      <X1>0.93004113</X1>
       <Y1>0.0781893</Y1>
-      <X2>0.934156358</X2>
+      <X2>0.93415636</X2>
       <Y2>0.9259259</Y2>
       <X3>1</X3>
       <Y3>1</Y3>

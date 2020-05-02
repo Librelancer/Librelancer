@@ -453,9 +453,9 @@ namespace LancerEdit
                 if (lastFrame != null) lastFrame.Dispose();
                 lastFrame = new RenderTarget2D(Width, Height);
             }
-            lastFrame.BindFramebuffer();
+            RenderState.RenderTarget = lastFrame;
 			guiHelper.Render(RenderState);
-            RenderTarget2D.ClearBinding();
+            RenderState.RenderTarget = null;
             lastFrame.BlitToScreen();
             foreach (var tab in toAdd)
             {

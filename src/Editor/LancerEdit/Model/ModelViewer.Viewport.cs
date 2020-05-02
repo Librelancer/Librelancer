@@ -241,7 +241,7 @@ namespace LancerEdit
             DrawGL(imageWidth, imageHeight, false);
             imageViewport.End(false);
             byte[] data = new byte[imageWidth * imageHeight * 4];
-            imageViewport.RenderTarget.GetData(data);
+            imageViewport.RenderTarget.Texture.GetData(data);
             LibreLancer.ImageLib.PNG.Save(output, imageWidth, imageHeight, data);
         }
 

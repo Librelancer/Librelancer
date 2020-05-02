@@ -23,7 +23,7 @@ namespace LibreLancer
             CurrentPosition.Y = finalPos.Y;
         }
 
-        protected override void Run (double currentTime)
+        protected override void Run (double currentTime, float aspectRatio)
 		{
 			CurrentPosition.X = (float)Easings.Circular.EaseOut (
 				currentTime, 

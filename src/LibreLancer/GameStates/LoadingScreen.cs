@@ -18,8 +18,7 @@ namespace LibreLancer
         {
             this.game = game;
             this.loader = loader;
-            ui = new UiContext(game);
-            ui.CreateAll("loading.xml");
+            ui = new UiContext(game, "loading.xml");
         }
 
         private int fCount = 0;

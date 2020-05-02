@@ -6,16 +6,16 @@ using System;
 
 namespace LibreLancer
 {
-	public class RenderTarget2D : Texture2D
+	public class RenderTarget2D : RenderTarget
 	{
 		public uint FBO;
-		public DepthBuffer DepthBuffer;
-		public static void ClearBinding()
-		{
-			GL.BindFramebuffer(GL.GL_FRAMEBUFFER, 0);
-		}
-		public RenderTarget2D (int width, int height) : base( width, height)
-		{
+		public DepthBuffer DepthBuffer { get; private set; }
+		public Texture2D Texture { get; private set; }
+        public int Width => Texture.Width;
+        public int Height => Texture.Height;
+		public RenderTarget2D (int width, int height)
+        {
+            Texture = new Texture2D(width, height);
 			//generate the FBO
 			FBO = GL.GenFramebuffer ();
 			GL.BindFramebuffer (GL.GL_FRAMEBUFFER, FBO);
@@ -27,11 +27,11 @@ namespace LibreLancer
 			//bind the texture
 			GL.FramebufferTexture2D (GL.GL_FRAMEBUFFER, 
 				GL.GL_COLOR_ATTACHMENT0, 
-				GL.GL_TEXTURE_2D, ID, 0);
+				GL.GL_TEXTURE_2D, Texture.ID, 0);
 			//unbind the FBO
 			GL.BindFramebuffer (GL.GL_FRAMEBUFFER, 0);
 		}
-		public void BindFramebuffer()
+		internal override void BindFramebuffer()
 		{
 			GL.BindFramebuffer(GL.GL_FRAMEBUFFER, FBO);
 		}
@@ -47,8 +47,8 @@ namespace LibreLancer
 		{
 			GL.DeleteFramebuffer (FBO);
 			DepthBuffer.Dispose();
-			base.Dispose ();
-		}
+            Texture.Dispose();
+        }
 	}
 }
 

@@ -16,9 +16,23 @@ namespace LibreLancer.Interface
         public string Style { get; set; }
         public float TextSize { get; set; }
         public string FontFamily { get; set; }
-        public string Text { get; set; }
-        public int Strid { get; set; }
-        public int InfoId { get; set; }
+        
+        InfoTextAccessor txtAccess = new InfoTextAccessor();
+        public string Text
+        {
+            get => txtAccess.Text;
+            set => txtAccess.Text = value;
+        }
+        public int Strid
+        {
+            get => txtAccess.Strid;
+            set => txtAccess.Strid = value;
+        }
+        public int InfoId
+        {
+            get => txtAccess.InfoId;
+            set => txtAccess.InfoId = value;
+        }
         public string MouseEnterSound { get; set; }
         public string MouseDownSound { get; set; }
         public HorizontalAlignment HorizontalAlignment { get; set; }
@@ -35,32 +49,9 @@ namespace LibreLancer.Interface
         }
 
         private bool lastFrameMouseInside = false;
+        string GetText(UiContext context) => txtAccess.GetText(context);
 
-        private string _idsText = null;
-        private bool _idsTried = false;
-        string GetText(UiContext context)
-        {
-            if (Strid == 0 && InfoId == 0) return Text;
-            if (context.Infocards == null) return Text;
-            if (_idsText != null) return _idsText;
-            if (_idsTried) return Text;
-            if (Strid != 0) {
-                _idsTried = true;
-                _idsText = context.Infocards.GetStringResource(Strid);
-                if (!string.IsNullOrEmpty(_idsText)) return _idsText;
-            }
-            if (InfoId != 0) {
-                _idsTried = true;
-                var xml = context.Infocards.GetXmlResource(InfoId);
-                if (xml == null) return Text;
-                var icard = Infocards.RDLParse.Parse(xml, context.Fonts);
-                _idsText = icard.ExtractText();
-                return _idsText;
-            }
-            return Text;
-        }
 
-        
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
             if (!Visible) return;

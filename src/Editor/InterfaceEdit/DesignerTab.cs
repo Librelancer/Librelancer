@@ -19,6 +19,7 @@ namespace InterfaceEdit
         private ColorTextEdit xmlEditor;
         private MainWindow mainWindow;
         private UiWidget widget;
+        private UiContext context;
         private List<XmlObjectMap> objectMaps;
         private string savePath;
         public DesignerTab(string text, string path, MainWindow mainWindow)
@@ -28,6 +29,10 @@ namespace InterfaceEdit
             savePath = path;
             xmlEditor = new ColorTextEdit();
             xmlEditor.SetText(text);
+            context = new UiContext(mainWindow.UiData);
+            context.Renderer2D = mainWindow.Renderer2D;
+            context.RenderState = mainWindow.RenderState;
+            context.GameApi = mainWindow.TestApi;
             TextChanged();
         }
         
@@ -124,7 +129,7 @@ namespace InterfaceEdit
                 if (ImGui.Button("Play"))
                 {
                     xmlEditor.SetReadOnly(true);
-                    widget.EnableScripting(mainWindow.Context, null);
+                    widget.EnableScripting(context, null);
                     statePlaying = true;
                 }
             }
@@ -156,27 +161,28 @@ namespace InterfaceEdit
                 rtY = szY;
                 if (renderTarget != null)
                 {
-                    ImGuiHelper.DeregisterTexture(renderTarget);
+                    ImGuiHelper.DeregisterTexture(renderTarget.Texture);
                     renderTarget.Dispose();
                 }
                 renderTarget = new RenderTarget2D(rtX, rtY);
-                renderTargetImage = ImGuiHelper.RegisterTexture(renderTarget);
+                renderTargetImage = ImGuiHelper.RegisterTexture(renderTarget.Texture);
             }
-            renderTarget.BindFramebuffer();
+
+            mainWindow.RenderState.RenderTarget = renderTarget;
             mainWindow.Viewport.Push(0,0,rtX,rtY);
             mainWindow.RenderState.ClearColor = Color4.Black;
             mainWindow.RenderState.ClearAll();
             //Do drawing
             if (widget != null)
             {
-                mainWindow.Context.GlobalTime = TimeSpan.FromSeconds(mainWindow.TotalTime);
-                mainWindow.Context.ViewportWidth = rtX;
-                mainWindow.Context.ViewportHeight = rtY;
-                mainWindow.Context.RenderWidget();
+                context.GlobalTime = TimeSpan.FromSeconds(mainWindow.TotalTime);
+                context.ViewportWidth = rtX;
+                context.ViewportHeight = rtY;
+                context.RenderWidget();
             }
             //
             mainWindow.Viewport.Pop();
-            RenderTarget2D.ClearBinding();
+            mainWindow.RenderState.RenderTarget = null;
             //We don't use ImageButton because we need to be specific about sizing
             var cPos = ImGui.GetCursorPos();
             ImGui.Image((IntPtr) renderTargetImage, new Vector2(rtX, rtY), new Vector2(0, 1), new Vector2(1, 0));
@@ -187,32 +193,27 @@ namespace InterfaceEdit
             ImGui.InvisibleButton("##renderThing", new Vector2(rtX, rtY));
             if (ImGui.IsItemHovered())
             {
-                mainWindow.Context.Update(null, TimeSpan.FromSeconds(mainWindow.TotalTime), mX, mY, false);
-                if(ImGui.IsItemClicked(0)) mainWindow.Context.OnMouseClick();
+                context.Update(null, TimeSpan.FromSeconds(mainWindow.TotalTime), mX, mY, false);
+                if(ImGui.IsItemClicked(0)) context.OnMouseClick();
                 var isDown = ImGui.IsMouseDown(0);
-                if (lastDown && !isDown) mainWindow.Context.OnMouseUp();
-                if (isDown && !lastDown) mainWindow.Context.OnMouseDown();
+                if (lastDown && !isDown) context.OnMouseUp();
+                if (isDown && !lastDown) context.OnMouseDown();
+                context.MouseLeftDown = isDown;
                 lastDown = isDown;
             }
             else {
-                mainWindow.Context.Update(null, TimeSpan.FromSeconds(mainWindow.TotalTime), 0, 0, false);
+                context.Update(null, TimeSpan.FromSeconds(mainWindow.TotalTime), 0, 0, false);
+                context.MouseLeftDown = false;
                 if (lastDown)
                 {
                     lastDown = false;
-                    mainWindow.Context.OnMouseUp();
+                    context.OnMouseUp();
                 }
             }
         }
 
         private bool statePlaying = false;
-        
-        public void SwitchedTo()
-        {
-            if (validXml) {
-                mainWindow.Context.SetFullState(uiState);
-            }
-        }
-        
+
         void DoProperties()
         {
             propertyGrid.SetEditingObject(editingObject);
@@ -268,7 +269,6 @@ namespace InterfaceEdit
         }
 
         private string exceptionText = "Nothing typed yet";
-        private UiFullState uiState;
         void TextChanged()
         {
             var text = xmlEditor.GetText();
@@ -283,9 +283,9 @@ namespace InterfaceEdit
             try
             {
                 objectMaps = new List<XmlObjectMap>();
-                widget = (UiWidget) mainWindow.Context.XmlLoader.FromString(text, objectMaps);
-                if(mainWindow.Context.Stylesheet != null) widget.ApplyStylesheet(mainWindow.Context.Stylesheet);
-                uiState = mainWindow.Context.SetWidget(widget);
+                widget = (UiWidget) mainWindow.UiData.XmlLoader.FromString(text, objectMaps);
+                if(mainWindow.UiData.Stylesheet != null) widget.ApplyStylesheet(mainWindow.UiData.Stylesheet); 
+                context.SetWidget(widget);
                 validXml = true;
             }
             catch (Exception ex)
@@ -298,7 +298,7 @@ namespace InterfaceEdit
         {
             if (renderTarget != null)
             {
-                ImGuiHelper.DeregisterTexture(renderTarget);
+                ImGuiHelper.DeregisterTexture(renderTarget.Texture);
                 renderTarget.Dispose();
             }
             xmlEditor.Dispose();

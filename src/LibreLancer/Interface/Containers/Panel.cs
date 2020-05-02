@@ -7,11 +7,18 @@ namespace LibreLancer.Interface
     [UiLoadable]
     public class Panel : Container
     {
+        RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
+        {
+            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
+            Update(context, myPos);
+            myPos = AnimatedPosition(myPos);
+            var myRect = new RectangleF(myPos.X,myPos.Y, Width, Height);
+            return myRect;
+        }
         public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
         {
             if (!Visible) return;
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-            var myRectangle = new RectangleF(myPos.X, myPos.Y, Width, Height);
+            var myRectangle = GetMyRectangle(context, parentRectangle);
             foreach(var child in Children)
                 child.OnMouseClick(context, myRectangle);
         }
@@ -19,8 +26,7 @@ namespace LibreLancer.Interface
         public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
         {
             if (!Visible) return;
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-            var myRectangle = new RectangleF(myPos.X, myPos.Y, Width, Height);
+            var myRectangle = GetMyRectangle(context, parentRectangle);
             foreach(var child in Children)
                 child.OnMouseDown(context, myRectangle);
         }
@@ -28,17 +34,15 @@ namespace LibreLancer.Interface
         public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
         {
             if (!Visible) return;
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-            var myRectangle = new RectangleF(myPos.X, myPos.Y, Width, Height);
+            var myRectangle = GetMyRectangle(context, parentRectangle);
             foreach(var child in Children)
-                child.OnMouseDown(context, myRectangle);
+                child.OnMouseUp(context, myRectangle);
         }
 
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
             if (!Visible) return;
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-            var myRectangle = new RectangleF(myPos.X, myPos.Y, Width, Height);
+            var myRectangle = GetMyRectangle(context, parentRectangle);
             Background?.Draw(context, myRectangle);
             foreach(var child in Children)
                 child.Render(context, myRectangle);

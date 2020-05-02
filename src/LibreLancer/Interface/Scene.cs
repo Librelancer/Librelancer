@@ -55,7 +55,7 @@ namespace LibreLancer.Interface
                 lua.LoadCLRPackage();
                 lua["LogString"] = (Action<string>) LogString;
                 lua["LogError"] = (Action<string>) LogError;
-                lua["ReadAllText"] = (Func<string,string>)context.ReadAllText;
+                lua["ReadAllText"] = (Func<string,string>)context.Data.ReadAllText;
                 lua.DoString(LUA_SANDBOX);
                 if (!string.IsNullOrEmpty(modalData))
                 {
@@ -80,12 +80,13 @@ namespace LibreLancer.Interface
                 Env["GetScene"] = (Func<Scene>) (() => this);
                 Env["PlaySound"] = (Action<string>) context.PlaySound;
                 Env["Game"] = context.GameApi;
-                Env["Color"] = (Func<string,InterfaceColor>)context.GetColor;
-                Env["GetNavbarIconPath"] = (Func<string, string>) context.GetNavbarIconPath;
+                Env["Color"] = (Func<string,InterfaceColor>)context.Data.GetColor;
+                Env["GetNavbarIconPath"] = (Func<string, string>) context.Data.GetNavbarIconPath;
                 Env["SwitchTo"] = (Action<string>) (SwitchTo);
+                Env["SceneID"] = (Func<string>) (() => ID);
                 RunSandboxed = (LuaFunction) lua["RunSandboxed"];
                 CallEvent = (LuaFunction) lua["CallEvent"];
-                RunSandboxed.Call(context.ReadAllText(ScriptFile), ScriptFile);
+                RunSandboxed.Call(context.Data.ReadAllText(ScriptFile), ScriptFile);
                 lua.DoString("collectgarbage()");
             }
             catch (LuaScriptException lse)

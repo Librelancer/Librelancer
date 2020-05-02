@@ -5,7 +5,7 @@
 using System;
 namespace LibreLancer
 {
-	public class MultisampleTarget : IDisposable
+	public class MultisampleTarget : RenderTarget
 	{
 		uint texID;
 		uint fbo;
@@ -30,13 +30,10 @@ namespace LibreLancer
 			GL.FramebufferRenderbuffer(GL.GL_FRAMEBUFFER,
 				GL.GL_DEPTH_ATTACHMENT,
 				GL.GL_RENDERBUFFER, depthID);
-
-			int status = GL.CheckFramebufferStatus(GL.GL_FRAMEBUFFER);
+            int status = GL.CheckFramebufferStatus(GL.GL_FRAMEBUFFER);
 			GL.BindFramebuffer(GL.GL_FRAMEBUFFER, 0);
-
-		}
-
-		public void Bind()
+        }
+        internal override void BindFramebuffer()
 		{
 			GL.BindFramebuffer(GL.GL_FRAMEBUFFER, fbo);
 			GL.Enable(GL.GL_MULTISAMPLE);
@@ -72,10 +69,9 @@ namespace LibreLancer
             GL.DrawBuffer(GL.GL_BACK);
         }
 
-        public void Dispose()
+        public override void Dispose()
 		{
-			RenderTarget2D.ClearBinding();
-			GL.DeleteFramebuffer(fbo);
+            GL.DeleteFramebuffer(fbo);
 			GL.DeleteRenderbuffer(depthID);
 			GL.DeleteTexture(texID);
 		}

@@ -65,11 +65,11 @@ namespace LancerEdit
             {
                 if (RenderTarget != null)
                 {
-                    ImGuiHelper.DeregisterTexture(RenderTarget);
+                    ImGuiHelper.DeregisterTexture(RenderTarget.Texture);
                     RenderTarget.Dispose();
                 }
                 RenderTarget = new RenderTarget2D(renderWidth, renderHeight);
-                rid = ImGuiHelper.RegisterTexture(RenderTarget);
+                rid = ImGuiHelper.RegisterTexture(RenderTarget.Texture);
                 rw = renderWidth;
                 rh = renderHeight;
             }
@@ -87,9 +87,9 @@ namespace LancerEdit
             }
             cc = rstate.ClearColor;
             if (mw.Config.MSAA != 0)
-                msaa.Bind();
+                rstate.RenderTarget = msaa;
             else
-                RenderTarget.BindFramebuffer();
+                rstate.RenderTarget = RenderTarget;
             vps.Push(0, 0, rw, rh);
             rstate.Cull = true;
             rstate.DepthEnabled = true;
@@ -100,7 +100,7 @@ namespace LancerEdit
         public void End(bool view = true)
         {
             vps.Pop();
-            RenderTarget2D.ClearBinding();
+            rstate.RenderTarget = null;
             if (mw.Config.MSAA != 0)
                 msaa.BlitToRenderTarget(RenderTarget);
             rstate.ClearColor = cc;
@@ -322,7 +322,7 @@ namespace LancerEdit
         public void Dispose()
         {
             if(RenderTarget != null) {
-                ImGuiHelper.DeregisterTexture(RenderTarget);
+                ImGuiHelper.DeregisterTexture(RenderTarget.Texture);
                 RenderTarget.Dispose();
             }
         }

@@ -38,13 +38,14 @@ namespace SystemViewer
                 renderHeight = (int)icard.Height;
                 if (renderTarget != null)
                 {
-                    ImGuiHelper.DeregisterTexture(renderTarget);
+                    ImGuiHelper.DeregisterTexture(renderTarget.Texture);
                     renderTarget.Dispose();
                 }
                 renderTarget = new RenderTarget2D(renderWidth, renderHeight);
-                rid = ImGuiHelper.RegisterTexture(renderTarget);
+                rid = ImGuiHelper.RegisterTexture(renderTarget.Texture);
             }
-            renderTarget.BindFramebuffer();
+
+            window.RenderState.RenderTarget = renderTarget;
             window.Viewport.Push(0, 0, renderWidth, renderHeight);
             var cc = window.RenderState.ClearColor;
             window.RenderState.ClearColor = Color4.Transparent;
@@ -53,7 +54,7 @@ namespace SystemViewer
             window.Renderer2D.Start(renderWidth, renderHeight);
             window.RichText.RenderText(icard, 0, 0);
             window.Renderer2D.Finish();
-            RenderTarget2D.ClearBinding();
+            window.RenderState.RenderTarget = null;
             window.Viewport.Pop();
 
             //ImGui. Base off ImageButton so we can get input for selection later

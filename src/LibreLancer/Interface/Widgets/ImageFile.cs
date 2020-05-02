@@ -26,7 +26,7 @@ namespace LibreLancer.Interface
                Background.Draw(context, myRectangle);
            if (!loaded)
            {
-               texture = context.GetTextureFile(Path);
+               texture = context.Data.GetTextureFile(Path);
                loaded = true;
            }
            if (texture != null)

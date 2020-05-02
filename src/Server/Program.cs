@@ -18,12 +18,18 @@ namespace Server
 	class MainClass
 	{
 		public static int Main(string[] args)
-		{
-			if (args.Length > 1 && args[0] == "--makeconfig")
+        {
+            if (args.Length > 0 && args[0] == "--makeconfig")
 			{
 				MakeConfig();
 				return 0;
 			}
+
+            if (!File.Exists("librelancerserver.config.json"))
+            {
+                Console.Error.WriteLine("Can't find librelancerserver.config.json");
+                return 2;
+            }
 			var config = JSON.Deserialize<Config>(File.ReadAllText("librelancerserver.config.json"));
 			var srv = new GameServer(config.freelancer_path);
 			srv.DbConnectionString = config.dbconnectionstring;
