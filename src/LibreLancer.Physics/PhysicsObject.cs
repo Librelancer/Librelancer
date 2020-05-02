@@ -20,18 +20,13 @@ namespace LibreLancer.Physics
             Collider = col;
         }
 
-        public Matrix4x4 Transform
-        {
-            get { return RigidBody.WorldTransform.Cast();  }
-        }
+        public Matrix4x4 Transform { get; private set; }
 
-        public Vector3 Position
-        {
-            get; private set;
-        }
+        public Vector3 Position { get; private set; }
 
         public void SetTransform(Matrix4x4 transform)
         {
+            Transform = transform;
             RigidBody.WorldTransform = transform.Cast();
             Position = Vector3.Transform(Vector3.Zero, Transform);
         }
@@ -101,6 +96,7 @@ namespace LibreLancer.Physics
 
         internal void UpdateProperties()
         {
+            Transform = RigidBody.WorldTransform.Cast();
             Position = Vector3.Transform(Vector3.Zero, Transform);
         }
     }
