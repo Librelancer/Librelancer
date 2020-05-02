@@ -37,7 +37,7 @@ namespace LibreLancer
                         charRen.Skeleton.RootRotationOrigin = Quaternion.Inverse(charRen.Skeleton.RootRotation);
                         charRen.Skeleton.RootTranslationOrigin = charRen.Skeleton.RootTranslation;
                         Rotate = Matrix4x4.CreateFromQuaternion(newRotate) * Rotate;
-                        Translate += Vector3.Transform(newTranslate, newRotate);
+                        Translate += Vector3.Transform(newTranslate, Rotate);
                     }
                     Translate.Y = charRen.Skeleton.FloorHeight + charRen.Skeleton.RootHeight;
                 }
@@ -474,6 +474,7 @@ namespace LibreLancer
   		public void SetCamera(string name)
 		{
 			var cam = Objects[name];
+            camera.Object = cam;
 			camera.Transform = cam.Camera;
             var sound = game.GetService<SoundManager>();
             sound.ResetListenerVelocity();

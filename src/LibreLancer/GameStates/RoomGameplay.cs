@@ -30,7 +30,6 @@ namespace LibreLancer
 		BaseRoom currentRoom;
 		Cutscene scene;
         private UiContext ui;
-        private UiWidget widget;
         
 		GameSession session;
 		string baseId;
@@ -152,12 +151,12 @@ namespace LibreLancer
                     n[1].Equals(currentRoom.Nickname, StringComparison.OrdinalIgnoreCase))
                 {
                     processedCutscenes.Add(ct);
-                    widget.Visible = false;
+                    ui.Visible = false;
                     var script = new ThnScript(session.Game.GameData.ResolveDataPath(ct.Encounters[0].Action));
                     scene.RunScript(script, () =>
                     {
-                        widget.Visible = true;
-                        session.ActiveCutscenes.Remove(ct);
+                        ui.Visible = true;
+                        session.FinishCutscene(ct);
                     });
                 }
             }

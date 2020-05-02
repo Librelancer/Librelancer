@@ -163,6 +163,7 @@ namespace LibreLancer.Interface
         {
             ViewportWidth = game.Width;
             ViewportHeight = game.Height;
+            if(Visible)
             Update(baseWidget, TimeSpan.FromSeconds(game.TotalTime),
                 game.Mouse.X, game.Mouse.Y, game.Mouse.IsButtonDown(MouseButtons.Left));
         }
@@ -215,8 +216,11 @@ namespace LibreLancer.Interface
             public UiWidget Widget;
             public Action<string> OnClose;
         }
+
+        public bool Visible = true;
         UiWidget GetActive()
         {
+            if(!Visible) return null;
             if (baseWidget == null) return null;
             if (modals.Count > 0) return modals.Peek().Widget;
             return baseWidget;
@@ -242,7 +246,11 @@ namespace LibreLancer.Interface
         public void OnTextEntry(string text) => textFocusWidget?.OnTextInput(text);
         public void RenderWidget()
         {
-            if (baseWidget == null) return;
+            if (baseWidget == null || !Visible)
+            {
+                textFocusWidget = null;
+                return;
+            }
             textFocusWidget = null;
             RenderState.DepthEnabled = false;
             mode2d = false;

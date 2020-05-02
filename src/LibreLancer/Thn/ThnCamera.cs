@@ -10,7 +10,7 @@ namespace LibreLancer
 	public class ThnCamera : ICamera
 	{
 		public long frameNo = 0;
-
+        public ThnObject Object;
 		public ThnCameraTransform Transform = new ThnCameraTransform();
 
 		Matrix4x4 view;

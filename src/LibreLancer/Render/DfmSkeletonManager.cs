@@ -75,6 +75,7 @@ namespace LibreLancer
         private ScriptInstance _rootMotionInstance;
         class ScriptInstance
         {
+            public string Name;
             public double T;
             public float StartTime;
             public float TimeScale;
@@ -114,26 +115,22 @@ namespace LibreLancer
                     var cht = ft;
                     if (Duration > 0 && Loop)
                     {
-                        cht = ft % o.Channel.Duration;
-                        if (ft > o.Channel.Duration && (Math.Abs(o.Channel.Duration - cht) < 0.001))
-                            cht = 0;
-                    }
-                    if (o.Channel.HasPosition) translate = o.Channel.PositionAtTime(cht);
-                    if (o.Channel.HasOrientation) rotate = o.Channel.QuaternionAtTime(cht);
-                    if (Duration > 0 && Loop)
-                    {
-                        var timesPassed = (int)Math.Floor(ft / o.Channel.Duration);
-                        if (timesPassed > 0)
+                        var trOne = Vector3.Zero;
+                        Quaternion qOne = Quaternion.Identity;
+                        if (o.Channel.HasPosition) trOne = o.Channel.PositionAtTime(o.Channel.Duration);
+                        if (o.Channel.HasOrientation) qOne = o.Channel.QuaternionAtTime(o.Channel.Duration);
+                        int hangDetect = 0;
+                        while (cht > o.Channel.Duration)
                         {
-                            var trOne = Vector3.Zero;
-                            Quaternion qOne;
-                            if (o.Channel.HasPosition) trOne = o.Channel.PositionAtTime(o.Channel.Duration);
-                            if (o.Channel.HasOrientation) qOne = o.Channel.QuaternionAtTime(o.Channel.Duration);
-                            for (int i = 0; i < timesPassed; i++) {
-                                translate += trOne;
-                            }
+                            translate += trOne;
+                            rotate *= qOne;
+                            cht -= o.Channel.Duration;
+                            if (hangDetect++ > 10000)
+                                throw new Exception($"Hang in root object map code: broke {Name}");
                         }
                     }
+                    if (o.Channel.HasPosition) translate += o.Channel.PositionAtTime(cht);
+                    if (o.Channel.HasOrientation) rotate *= o.Channel.QuaternionAtTime(cht);
                     RootTranslation = translate;
                     RootRotation = rotate;
                     Parent._rootMotionInstance = this;
@@ -243,6 +240,7 @@ namespace LibreLancer
         {
             if(anmScript.HasRootHeight) RootHeight = anmScript.RootHeight;
             var inst = new ScriptInstance();
+            inst.Name = anmScript.Name;
             inst.StartTime = start_time;
             inst.TimeScale = time_scale;
             inst.Duration = duration;

@@ -146,6 +146,7 @@ namespace LibreLancer
                 var end = PosEnd();
                 if (Time == Duration) return end;
                 var len = (end - This.Translate).Length();
+                if (len <= float.Epsilon) return end;
                 var dir = (end - This.Translate).Normalized();
                 var pct = (float)(delta / (Duration - Time));
                 if (pct > 1) pct = 1;

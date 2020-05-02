@@ -41,6 +41,26 @@ namespace LibreLancer
         {
             msnRuntime?.Update(elapsed);
         }
+
+        List<string> rtcs = new List<string>();
+        public void AddRTC(string rtc)
+        {
+            lock (rtcs)
+            {
+                rtcs.Add(rtc);
+                client.SendPacket(new UpdateRTCPacket() { RTCs = rtcs.ToArray()}, NetDeliveryMethod.ReliableOrdered);
+            }
+        }
+
+        public void RemoveRTC(string rtc)
+        {
+            lock (rtcs)
+            {
+                rtcs.Remove(rtc);
+                client.SendPacket(new UpdateRTCPacket() { RTCs = rtcs.ToArray()}, NetDeliveryMethod.ReliableOrdered);
+            }
+        }
+        
         public void OpenSaveGame(Data.Save.SaveGame sg)
         {
             Orientation = Quaternion.Identity;
@@ -72,11 +92,15 @@ namespace LibreLancer
             }
             if (Base != null)
             {
-                client.SendPacket(new BaseEnterPacket()
+                lock (rtcs)
                 {
-                    Base = Base,
-                    Ship = Character.EncodeLoadout()
-                }, NetDeliveryMethod.ReliableOrdered);
+                    client.SendPacket(new BaseEnterPacket()
+                    {
+                        Base = Base,
+                        Ship = Character.EncodeLoadout(),
+                        RTCs = rtcs.ToArray()
+                    }, NetDeliveryMethod.ReliableOrdered);
+                }
             }
             else
             {
@@ -158,8 +182,14 @@ namespace LibreLancer
                 case LaunchPacket l:
                     Launch();
                     break;
+                case EnterLocationPacket lc:
+                    msnRuntime?.EnterLocation(lc.Room, lc.Base);
+                    break;
                 case PositionUpdatePacket p:
                     World.PositionUpdate(this, p.Position, p.Orientation);
+                    break;
+                case RTCCompletePacket cp:
+                    RemoveRTC(cp.RTC);
                     break;
                 case LineSpokenPacket lp:
                     msnRuntime?.LineFinished(lp.Hash);
@@ -220,7 +250,8 @@ namespace LibreLancer
             client.SendPacket(new BaseEnterPacket()
             {
                 Base = Base,
-                Ship = Character.EncodeLoadout()
+                Ship = Character.EncodeLoadout(),
+                RTCs = rtcs.ToArray()
             }, NetDeliveryMethod.ReliableOrdered);
         }
         public void Despawn(Player player)

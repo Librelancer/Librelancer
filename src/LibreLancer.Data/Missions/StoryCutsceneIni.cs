@@ -17,6 +17,7 @@ namespace LibreLancer.Data.Missions
         [Section("Char")]
         public List<StoryChar> Chars = new List<StoryChar>();
 
+        public string RefPath; //Used for engine: Hacky
         public StoryCutsceneIni(string path, FileSystem vfs)
         {
             ParseAndFill(path, vfs);

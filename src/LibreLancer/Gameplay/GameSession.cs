@@ -44,15 +44,28 @@ namespace LibreLancer
             this.connection = connection;
         }
 
-        public void AddRTC(string path)
+        public void AddRTC(string[] paths)
         {
-            var rtc = new Data.Missions.StoryCutsceneIni(Game.GameData.Ini.Freelancer.DataPath + path, Game.GameData.VFS);
-            ActiveCutscenes.Add(rtc);
+            ActiveCutscenes = new List<StoryCutsceneIni>();
+            foreach (var path in paths)
+            {
+                var rtc = new Data.Missions.StoryCutsceneIni(Game.GameData.Ini.Freelancer.DataPath + path,
+                    Game.GameData.VFS);
+                rtc.RefPath = path;
+                ActiveCutscenes.Add(rtc);
+            }
+        }
+
+        public void FinishCutscene(StoryCutsceneIni cutscene)
+        {
+            ActiveCutscenes.Remove(cutscene);
+            connection.SendPacket(new RTCCompletePacket() {RTC = cutscene.RefPath},
+                NetDeliveryMethod.ReliableSequenced);
         }
 
         public void RoomEntered(string room, string bse)
         {
-            
+            connection.SendPacket(new EnterLocationPacket() { Base = bse, Room = room}, NetDeliveryMethod.ReliableOrdered);
         }
 
         private bool hasChanged = false;
@@ -211,8 +224,8 @@ namespace LibreLancer
                         gp.Thn = new Cutscene(new ThnScript[] { thn }, gp);
                     });
                     break;
-                case AddRTCPacket rtc:
-                    AddRTC(rtc.RTC);
+                case UpdateRTCPacket rtc:
+                    AddRTC(rtc.RTCs);
                     break;
                 case MsnDialogPacket msndlg:
                     AddGameplayAction(gp =>
@@ -238,6 +251,7 @@ namespace LibreLancer
                     PlayerBase = b.Base;
                     SetSelfLoadout(b.Ship);
                     SceneChangeRequired();
+                    AddRTC(b.RTCs);
                     break;
                 case SpawnObjectPacket p:
                     var shp = Game.GameData.GetShip((int)p.Loadout.ShipCRC);

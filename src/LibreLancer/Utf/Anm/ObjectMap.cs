@@ -3,27 +3,28 @@
 // LICENSE, which is part of this source code package
 
 using System;
+
 namespace LibreLancer.Utf.Anm
 {
-	public class ObjectMap
+    public class ObjectMap
     {
         public string NodeName;
-		public string ParentName;
-		public string ChildName;
-		public Channel Channel;
-		public ObjectMap(IntermediateNode root)
+        public string ParentName;
+        public string ChildName;
+        public Channel Channel;
+
+        public ObjectMap(IntermediateNode root)
         {
             NodeName = root.Name;
             foreach (Node node in root)
-                {
-                    if (node.Name.Equals("parent name", StringComparison.OrdinalIgnoreCase))
-                        ParentName = (node as LeafNode).StringData;
-                    else if (node.Name.Equals("child name", StringComparison.OrdinalIgnoreCase))
-                        ChildName = (node as LeafNode).StringData;
-                    else if (node.Name.Equals("channel", StringComparison.OrdinalIgnoreCase))
-                        Channel = new Channel(node as IntermediateNode);
-                }
-
+            {
+                if (node.Name.Equals("parent name", StringComparison.OrdinalIgnoreCase))
+                    ParentName = (node as LeafNode).StringData;
+                else if (node.Name.Equals("child name", StringComparison.OrdinalIgnoreCase))
+                    ChildName = (node as LeafNode).StringData;
+                else if (node.Name.Equals("channel", StringComparison.OrdinalIgnoreCase))
+                    Channel = new Channel(node as IntermediateNode);
+            }
         }
-	}
+    }
 }

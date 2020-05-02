@@ -123,7 +123,7 @@ namespace LibreLancer.Utf.Anm
             get
             {
                 if (Times != null) return Times[FrameCount - 1];
-                return Interval * FrameCount;
+                return Math.Max(Interval * (FrameCount - 1), 0);
             }
         }
         
@@ -215,6 +215,9 @@ namespace LibreLancer.Utf.Anm
                     QuaternionMethod = QuaternionMethod.HalfAngle;
                     vec = true;
                     comp = true;
+                    break;
+                case 144:
+                    stride += 6; //0x90 - unimplemented 6 byte data (another quaternion?)
                     break;
                 default:
                     floats = true;

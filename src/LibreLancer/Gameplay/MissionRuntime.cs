@@ -37,7 +37,6 @@ namespace LibreLancer
                 {
                     t.Value.T += elapsed.TotalSeconds;
                 }
-
                 CheckMissionScript();
             }
         }
@@ -82,6 +81,14 @@ namespace LibreLancer
                 CheckMissionScript();
             }
         }
+
+        public void FinishRTC(string rtc)
+        {
+            lock (_msnLock)
+            {
+                CheckMissionScript();
+            }
+        }
         
         Dictionary<string, MissionTimer> timers = new Dictionary<string, MissionTimer>();
         List<string> finishedLines = new List<string>();
@@ -105,6 +112,10 @@ namespace LibreLancer
                         cndSatisfied = false;
                         break;
                     }
+                }
+                else if (cnd.Type == TriggerConditions.Cnd_RTCDone)
+                {
+                    
                 }
                 else if (cnd.Type == TriggerConditions.Cnd_Timer)
                 {
@@ -178,7 +189,6 @@ namespace LibreLancer
                         break;
                     case TriggerActions.Act_ForceLand:
                         player.ForceLand(act.Entry[0].ToString());
-                        //session.ForceLand(act.Entry[0].ToString());
                         break;
                     case TriggerActions.Act_AdjAcct:
                         //session.Credits += act.Entry[0].ToInt32();
@@ -207,7 +217,7 @@ namespace LibreLancer
                         player.CallThorn(act.Entry[0].ToString());
                         break;
                     case TriggerActions.Act_AddRTC:
-                        //session.AddRTC(act.Entry[0].ToString());
+                        player.AddRTC(act.Entry[0].ToString());
                         break;
                     case TriggerActions.Act_SetShipAndLoadout:
                         /*if(!act.Entry[0].ToString().Equals("none", StringComparison.OrdinalIgnoreCase))

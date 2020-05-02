@@ -10,6 +10,7 @@ namespace LibreLancer.Utf.Anm
 {
     public class Script
     {
+        public string Name { get; private set; }
         public bool HasRootHeight { get; private set; }
         public float RootHeight { get; private set; }
 		public List<ObjectMap> ObjectMaps { get; private set; }
@@ -17,6 +18,7 @@ namespace LibreLancer.Utf.Anm
 
         public Script(IntermediateNode root, ConstructCollection constructs)
         {
+            Name = root.Name;
 			ObjectMaps = new List<ObjectMap>();
 			JointMaps = new List<JointMap>();
             foreach (Node node in root)

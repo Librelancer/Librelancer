@@ -50,7 +50,6 @@ namespace LibreLancer
             Register<SpawnPlayerPacket>(SpawnPlayerPacket.Read);
             Register<BaseEnterPacket>(BaseEnterPacket.Read);
             //Base-side
-            Register<AddRTCPacket>(AddRTCPacket.Read);
             Register<LaunchPacket>(LaunchPacket.Read);
             //Space
             Register<PositionUpdatePacket>(PositionUpdatePacket.Read);
@@ -61,9 +60,10 @@ namespace LibreLancer
             //Server->Client Generic Commands
             Register<PlaySoundPacket>(PlaySoundPacket.Read);
             Register<PlayMusicPacket>(PlayMusicPacket.Read);
-            //Client->Server Respones
-            
-            
+            Register<UpdateRTCPacket>(UpdateRTCPacket.Read);
+            //Client->Server Responses
+            Register<EnterLocationPacket>(EnterLocationPacket.Read);
+            Register<RTCCompletePacket>(RTCCompletePacket.Read);
         }
     }
 
@@ -134,16 +134,51 @@ namespace LibreLancer
     {
         public string Base;
         public NetShipLoadout Ship;
+        public string[] RTCs;
         public static object Read(NetIncomingMessage message)
         {
-            return new BaseEnterPacket() { Base = message.ReadString(),
-                Ship = NetShipLoadout.Read(message) };
+            return new BaseEnterPacket()
+            {
+                Base = message.ReadString(),
+                Ship = NetShipLoadout.Read(message), RTCs = message.ReadStringArray()
+            };
         }
         public void WriteContents(NetOutgoingMessage message)
         {
             message.Write(Base);
             Ship.Write(message);
+            message.Write(RTCs);
         }
+    }
+
+    public class EnterLocationPacket : IPacket
+    {
+        public string Base;
+        public string Room;
+        public static object Read(NetIncomingMessage message)
+        {
+            return new EnterLocationPacket() {Base = message.ReadString(), Room = message.ReadString()};
+        }
+        public void WriteContents(NetOutgoingMessage msg)
+        {
+            msg.Write(Base);
+            msg.Write(Room);
+        }
+    }
+
+    public class UpdateRTCPacket : IPacket
+    {
+        public string[] RTCs;
+        public static object Read(NetIncomingMessage message) =>
+            new UpdateRTCPacket() {RTCs = message.ReadStringArray()};
+        public void WriteContents(NetOutgoingMessage msg) => msg.Write(RTCs);
+    }
+
+    public class RTCCompletePacket : IPacket
+    {
+        public string RTC;
+        public static object Read(NetIncomingMessage message) => new RTCCompletePacket() {RTC = message.ReadString()};
+        public void WriteContents(NetOutgoingMessage msg) => msg.Write(RTC);
     }
 
     public class SpawnObjectPacket : IPacket
@@ -443,20 +478,6 @@ namespace LibreLancer
         public void WriteContents(NetOutgoingMessage msg)
         {
             msg.Write(Music);
-        }
-    }
-
-    public class AddRTCPacket : IPacket
-    {
-        public string RTC;
-
-        public static object Read(NetIncomingMessage message)
-        {
-            return new AddRTCPacket() {RTC = message.ReadString()};
-        }
-        public void WriteContents(NetOutgoingMessage msg)
-        {
-            msg.Write(RTC);
         }
     }
 

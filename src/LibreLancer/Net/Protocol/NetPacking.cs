@@ -117,5 +117,26 @@ namespace LibreLancer
         {
             return im.ReadRangedSingle(ANGLE_MIN, ANGLE_MAX, 16);
         }
+
+        public static void Write(this Lidgren.Network.NetOutgoingMessage om, string[] array)
+        {
+            if (array == null)
+            {
+                om.WriteVariableUInt32(0);
+            }
+            else
+            {
+                om.WriteVariableUInt32((uint)array.Length);
+                foreach(var s in array) om.Write(s);
+            }
+        }
+
+        public static string[] ReadStringArray(this Lidgren.Network.NetIncomingMessage im)
+        {
+            var strs = new string[(int) im.ReadVariableUInt32()];
+            for (int i = 0; i < strs.Length; i++)
+                strs[i] = im.ReadString();
+            return strs;
+        }
     }
 }
