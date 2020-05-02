@@ -25,20 +25,22 @@ namespace LibreLancer
 		Action _transparentSort;
         RenderState rstate;
         public UniformBuffer BonesBuffer;
-
+        public WorldMatrixBuffer WorldBuffer;
         public CommandBuffer()
         {
             //TODO: This needs to be managed a lot better, leaks memory right now
             BonesBuffer = new UniformBuffer(800, 64, typeof(Matrix4x4));
+            WorldBuffer = new WorldMatrixBuffer();
         }
         public void StartFrame(RenderState rstate)
 		{
 			currentCommand = 0;
 			transparentCommand = 0;
 			_transparentSort = SortTransparent;
+            WorldBuffer.Reset();
             this.rstate = rstate;
 		}
-		public void AddCommand(RenderMaterial material, MaterialAnim anim, Matrix4x4 world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, int layer, float z = 0, DfmSkinning skinning = null)
+		public void AddCommand(RenderMaterial material, MaterialAnim anim, WorldMatrixHandle world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, int layer, float z = 0, DfmSkinning skinning = null)
 		{
 			if (material.IsTransparent)
 			{
@@ -85,7 +87,7 @@ namespace LibreLancer
             }
 		}
 		//TODO: Implement MaterialAnim for asteroids
-		public unsafe void AddCommandFade(RenderMaterial material, Matrix4x4 world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, int layer, Vector2 fadeParams, float z = 0)
+		public unsafe void AddCommandFade(RenderMaterial material, WorldMatrixHandle world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, int layer, Vector2 fadeParams, float z = 0)
 		{
 			Transparents[transparentCommand++] = new RenderCommand()
 			{
@@ -104,7 +106,7 @@ namespace LibreLancer
 				Z = z
 			};
 		}
-		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, Matrix4x4 world, Lighting lt, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0)
+		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, WorldMatrixHandle world, Lighting lt, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0)
 		{
 			if (transparent)
 			{
@@ -130,7 +132,7 @@ namespace LibreLancer
                 throw new InvalidOperationException();
 			}
 		}
-		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, Matrix4x4 world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0)
+		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, WorldMatrixHandle world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0)
 		{
 			if (transparent)
 			{
@@ -155,7 +157,7 @@ namespace LibreLancer
                 throw new InvalidOperationException();
 			}
 		}
-		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, Matrix4x4 world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, bool transparent, int layer, float z = 0)
+		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, WorldMatrixHandle world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, bool transparent, int layer, float z = 0)
 		{
 			if (transparent)
 			{
@@ -278,7 +280,7 @@ namespace LibreLancer
 	{
 		public PrimitiveTypes Primitive;
 		public object Source;
-		public Matrix4x4 World;
+        public WorldMatrixHandle World;
 		public RenderUserData UserData;
 		public ShaderAction ShaderSetup;
 		public object Cleanup;

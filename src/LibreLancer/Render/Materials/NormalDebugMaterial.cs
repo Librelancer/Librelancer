@@ -35,12 +35,8 @@ namespace LibreLancer
 			rstate.BlendMode = BlendMode.Opaque;
 			sh.SetViewProjection(Camera);
 			//Dt
-            var normalMatrix = World;
-            Matrix4x4.Invert(normalMatrix, out normalMatrix);
-            normalMatrix = Matrix4x4.Transpose(normalMatrix);
-			sh.SetWorld(ref World);
-			sh.SetNormalMatrix(ref normalMatrix);
-			sh.UseProgram();
+            sh.SetWorld(World);
+            sh.UseProgram();
 		}
 
 		public override void ApplyDepthPrepass(RenderState rstate)

@@ -141,7 +141,7 @@ namespace LibreLancer
 			}
 			var shader = GetShader(vertextype, caps);
             lastShader = shader;
-			shader.SetWorld(ref World);
+			shader.SetWorld(World);
 			shader.SetView(Camera);
 			shader.SetViewProjection(Camera);
 			//Dt
@@ -193,11 +193,7 @@ namespace LibreLancer
 			}
 			//Set lights
 			SetLights(shader, ref lights);
-			var normalMatrix = World;
-            Matrix4x4.Invert(normalMatrix, out normalMatrix);
-            normalMatrix = Matrix4x4.Transpose(normalMatrix);
-            shader.SetNormalMatrix(ref normalMatrix);
-			shader.UseProgram();
+            shader.UseProgram();
 		}
 
 		public override void ApplyDepthPrepass(RenderState rstate)
@@ -206,7 +202,7 @@ namespace LibreLancer
             //TODO: This is screwy - Re-do DXT1 test if need be for perf
 			var shader = AlphaTestPrepassShader;
             BindTexture(rstate, 0, DtSampler, 0, DtFlags, ResourceManager.WhiteTextureName);
-			shader.SetWorld(ref World);
+			shader.SetWorld(World);
 			shader.SetViewProjection(Camera);
 			shader.UseProgram();
 		}

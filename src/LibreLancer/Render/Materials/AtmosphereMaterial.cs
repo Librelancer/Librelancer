@@ -31,7 +31,7 @@ namespace LibreLancer
 			throw new NotImplementedException ();
 		}
 
-		public override void Use (RenderState rstate, IVertexType vertextype, ref Lighting lights)
+		public override unsafe void Use (RenderState rstate, IVertexType vertextype, ref Lighting lights)
 		{
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Normal;
@@ -40,8 +40,7 @@ namespace LibreLancer
 			sh.SetDc(Dc);
 			sh.SetOc(Alpha);
 			sh.SetTileRate(Fade);
-            var w = Matrix4x4.CreateScale(Scale) * World;
-            sh.SetWorld(ref w);
+            var w = Matrix4x4.CreateScale(Scale) * World.Source[0];
 			sh.SetView(Camera);
 			sh.SetViewProjection(Camera);
 			sh.SetDtSampler(0);
@@ -52,8 +51,8 @@ namespace LibreLancer
             Matrix4x4.Invert(normalmat, out normalmat);
             normalmat = Matrix4x4.Transpose(normalmat);
 			SetLights(sh, ref lights);
-			sh.SetNormalMatrix(ref normalmat);
-			sh.UseProgram ();
+            sh.SetWorld(ref w, ref normalmat);
+            sh.UseProgram ();
 		}
 
 		public override void ApplyDepthPrepass(RenderState rstate)

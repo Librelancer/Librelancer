@@ -73,11 +73,12 @@ namespace LibreLancer
                 return;
             }
 			var z = RenderHelpers.GetZ(world, camera.Position, Vector3.Zero);
+            var worldHandle = buffer.WorldBuffer.SubmitMatrix(ref world);
 			buffer.AddCommand(
 				shader,
 				shaderDelegate,
 				resetDelegate,
-				world,
+				worldHandle,
 				new RenderUserData() { Color = color, Camera = camera, Texture = texture },
 				vbo,
 				PrimitiveTypes.TriangleList,
@@ -91,13 +92,13 @@ namespace LibreLancer
 			lastIndex = currentIndex;
 		}
 		static ShaderAction shaderDelegate = ShaderSetup;
-		static void ShaderSetup(Shader shader, RenderState state, ref RenderCommand command)
+		static unsafe void ShaderSetup(Shader shader, RenderState state, ref RenderCommand command)
 		{
 			state.Cull = false;
 			state.BlendMode = BlendMode.Normal;
 			var vp = command.UserData.Camera.ViewProjection;
 			shader.SetMatrix(_viewproj, ref vp);
-			shader.SetMatrix(_world, ref command.World);
+			shader.SetMatrix(_world, (IntPtr)command.World.Source);
 			shader.SetColor4(_tint, command.UserData.Color);
 			shader.SetInteger(_texture, 0);
 			command.UserData.Texture.BindTo(0);

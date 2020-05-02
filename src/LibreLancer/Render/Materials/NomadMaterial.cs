@@ -65,7 +65,7 @@ namespace LibreLancer
 		{
 			rstate.BlendMode = BlendMode.Normal;
 			var shader = GetShader(vertextype);
-			shader.SetWorld(ref World);
+			shader.SetWorld(World);
 			shader.SetView(Camera);
 			shader.SetViewProjection(Camera);
 			//Colors

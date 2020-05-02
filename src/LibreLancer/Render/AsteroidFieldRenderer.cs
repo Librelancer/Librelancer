@@ -395,7 +395,7 @@ namespace LibreLancer
                             }
                             buffer.AddCommandFade(
                                 dc.Material.Render,
-                                cubes[j].tr,
+                                buffer.WorldBuffer.SubmitMatrix(ref cubes[j].tr),
                                 lt,
                                 cube_vbo,
                                 PrimitiveTypes.TriangleList,
@@ -454,6 +454,7 @@ namespace LibreLancer
                 if (!_camera.Frustum.Intersects(new BoundingSphere(field.Zone.Position, lightingRadius)))
                     return;
                 var tex = (Texture2D)res.FindTexture(field.Band.Shape);
+                var bandHandle = buffer.WorldBuffer.SubmitMatrix(ref bandTransform);
                 for (int i = 0; i < SIDES; i++)
                 {
                     var p = bandCylinder.GetSidePosition(i);
@@ -466,7 +467,7 @@ namespace LibreLancer
                             bandShader.Shader,
                             bandShaderDelegate,
                             bandShaderCleanup,
-                            bandTransform,
+                            bandHandle,
                             lt,
                             new RenderUserData()
                             {
@@ -491,13 +492,9 @@ namespace LibreLancer
         static ShaderAction bandShaderDelegate = BandShaderSetup;
         static void BandShaderSetup(Shader shader, RenderState state, ref RenderCommand command)
         {
-            bandShader.SetWorld(ref command.World);
+            bandShader.SetWorld(command.World);
             var vp = command.UserData.Camera.ViewProjection;
             bandShader.SetViewProjection(ref vp);
-            var normal = command.World;
-            Matrix4x4.Invert(normal, out normal);
-            normal = Matrix4x4.Transpose(normal);
-            bandShader.SetNormalMatrix(ref normal);
             shader.SetInteger(_bsTexture, 0);
             shader.SetVector3(_bsCameraPosition, command.UserData.Camera.Position);
             shader.SetColor4(_bsColorShift, command.UserData.Color);

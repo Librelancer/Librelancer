@@ -45,11 +45,14 @@ namespace LibreLancer
 			GL.Uniform2i(GL.GetUniformLocation(ID, name), pt.X, pt.Y);
 		}
 
-		public void UniformMatrix4fv(string name, ref Matrix4x4 mat)
+		public unsafe void UniformMatrix4fv(string name, ref Matrix4x4 mat)
 		{
 			GLBind.UseProgram(ID);
-			GL.UniformMatrix4fv(GL.GetUniformLocation(ID, name), 1, false, ref mat);
-		}
+            fixed (Matrix4x4* ptr = &mat)
+            {
+                GL.UniformMatrix4fv(GL.GetUniformLocation(ID, name), 1, false, (IntPtr)ptr);
+            }
+        }
 
 		public void Dispatch(uint groupsX, uint groupsY, uint groupsZ)
 		{

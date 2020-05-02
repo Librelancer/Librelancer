@@ -277,7 +277,7 @@ namespace LibreLancer.Fx
                             basicShader.Shader,
                             SetupShader,
                             EnableCull,
-                            Matrix4x4.Identity,
+                            cmd.WorldBuffer.Identity,
                             new RenderUserData() { Texture = texture, Float = (float)perp.BlendInfo },
                             vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount, true,
                             SortLayers.OBJECT, z
@@ -291,7 +291,7 @@ namespace LibreLancer.Fx
                             basicShader.Shader,
                             SetupShader,
                             EnableCull,
-                            Matrix4x4.Identity,
+                            cmd.WorldBuffer.Identity,
                             new RenderUserData() { Texture = texture, Float = (float)rect.BlendInfo },
                             vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount, true,
                             SortLayers.OBJECT, z
@@ -307,7 +307,7 @@ namespace LibreLancer.Fx
                             basicShader.Shader,
                             SetupShader,
                             EnableCull,
-                            Matrix4x4.Identity,
+                            cmd.WorldBuffer.Identity,
                             new RenderUserData() { Texture = texture, Float = (float)basic.BlendInfo },
                             vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount, true,
                             SortLayers.OBJECT, z

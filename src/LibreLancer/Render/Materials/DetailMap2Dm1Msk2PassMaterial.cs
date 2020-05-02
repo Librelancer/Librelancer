@@ -42,7 +42,7 @@ namespace LibreLancer
 			rstate.BlendMode = BlendMode.Opaque;
 
 			ShaderVariables sh = GetShader (vertextype);
-			sh.SetWorld (ref World);
+			sh.SetWorld (World);
 			sh.SetViewProjection (Camera);
 			sh.SetView (Camera);
 			sh.SetAc(Ac);
@@ -55,17 +55,13 @@ namespace LibreLancer
 			sh.SetDm1Sampler(1);
             BindTexture(rstate, 1, Dm1Sampler, 1, Dm1Flags, ResourceManager.GreyTextureName);
 			SetLights(sh, ref lights);
-            var normalMatrix = World;
-            Matrix4x4.Invert(normalMatrix, out normalMatrix);
-            normalMatrix = Matrix4x4.Transpose(normalMatrix);
-			sh.SetNormalMatrix(ref normalMatrix);
-			sh.UseProgram ();
+            sh.UseProgram ();
 		}
 
 		public override void ApplyDepthPrepass(RenderState rstate)
 		{
 			rstate.BlendMode = BlendMode.Normal;
-			NormalPrepassShader.SetWorld(ref World);
+			NormalPrepassShader.SetWorld(World);
 			NormalPrepassShader.SetViewProjection(Camera);
 			NormalPrepassShader.UseProgram();
 		}

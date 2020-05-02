@@ -136,14 +136,14 @@ namespace LibreLancer
             bufferBolt.EndStreaming(vertexCountBolt);
             if (vertexCountSpear > 0)
             {
-                commands.AddCommand(shader.Shader, SetupShader, EnableCull, Matrix4x4.Identity, new RenderUserData(),
+                commands.AddCommand(shader.Shader, SetupShader, EnableCull, commands.WorldBuffer.Identity, new RenderUserData(),
                     bufferSpear,
                     PrimitiveTypes.TriangleList, 0, vertexCountSpear, true, SortLayers.OBJECT);
                 vertexCountSpear = 0;
             }
             if (boltCount > 0)
             {
-                commands.AddCommand(shader.Shader, SetupShader, EnableCull, Matrix4x4.Identity, new RenderUserData(),
+                commands.AddCommand(shader.Shader, SetupShader, EnableCull, commands.WorldBuffer.Identity, new RenderUserData(),
                     bufferBolt,
                     PrimitiveTypes.TriangleList, 0, boltCount * 20, true, SortLayers.OBJECT);
                 vertexCountBolt = 0;

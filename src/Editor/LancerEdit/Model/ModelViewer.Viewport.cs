@@ -192,10 +192,15 @@ namespace LancerEdit
             return mdl;
         }
 
-        void RenderSurs(ICamera cam)
+        unsafe void RenderSurs(ICamera cam)
         {
             var mat = wireframeMaterial3db.Render;
             var world = GetModelMatrix();
+            var whandle = new WorldMatrixHandle()
+            {
+                ID = (ulong)Environment.TickCount,
+                Source = &world,
+            };
             rstate.Cull = false;
             rstate.DepthWrite = false;
             var bm = ((BasicMaterial)mat);
@@ -206,7 +211,7 @@ namespace LancerEdit
                 if (mdl.Hardpoint && !surShowHps) continue;
                 if (!mdl.Hardpoint && !surShowHull) continue;
                 mat.Camera = cam;
-                mat.World = world;
+                mat.World = whandle;
                 mat.Use(rstate, new VertexPositionColor(), ref Lighting.Empty);
                 foreach (var dc in mdl.Draws)
                     mdl.Vertices.Draw(PrimitiveTypes.TriangleList, dc.BaseVertex, dc.Start, dc.Count);

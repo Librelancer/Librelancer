@@ -71,7 +71,7 @@ namespace LibreLancer
 			}
         }
 
-		public int UserTag = 0;
+		public ulong UserTag = 0;
 		bool NeedUpdate(int loc, int hash)
         {
             if (loc < 0) return false;
@@ -82,23 +82,19 @@ namespace LibreLancer
 		{
 			return GL.GetUniformLocation(programID, name);
 		}
-
-		void SetMatrixInternal(int loc, ref Matrix4x4 mat)
-		{
-			//var hash = mat.GetHashCode();
-			//if (NeedUpdate(loc, hash))
-			//{
-			//var handle = GCHandle.Alloc(mat, GCHandleType.Pinned);
-			GL.UniformMatrix4fv(loc, 1, false, ref mat);
-				//handle.Free();
-			//	cachedObjects[loc] = hash;
-			//}
-		}
-
-        public void SetMatrix(int loc, ref Matrix4x4 mat)
+        
+        public unsafe void SetMatrix(int loc, ref Matrix4x4 mat)
         {
             GLBind.UseProgram(programID);
-			SetMatrixInternal(loc, ref mat);
+            fixed (Matrix4x4* ptr = &mat) {
+                GL.UniformMatrix4fv(loc, 1, false, (IntPtr)ptr);
+            }
+        }
+
+        public void SetMatrix(int loc, IntPtr mat)
+        {
+            GLBind.UseProgram(programID);
+            GL.UniformMatrix4fv(loc, 1, false, mat);
         }
 
 		public void SetInteger(int loc, int value, int index = 0)

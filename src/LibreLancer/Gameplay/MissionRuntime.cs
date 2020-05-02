@@ -20,7 +20,7 @@ namespace LibreLancer
 
         Player player;
         MissionIni msn;
-
+        object _msnLock = new object();
         public MissionRuntime(MissionIni msn, Player player)
         {
             this.msn = msn;
@@ -31,11 +31,15 @@ namespace LibreLancer
 
         public void Update(TimeSpan elapsed)
         {
-            foreach (var t in timers)
+            lock (_msnLock)
             {
-                t.Value.T += elapsed.TotalSeconds;
+                foreach (var t in timers)
+                {
+                    t.Value.T += elapsed.TotalSeconds;
+                }
+
+                CheckMissionScript();
             }
-            CheckMissionScript();
         }
 
         public void EnsureLoaded()
@@ -72,8 +76,11 @@ namespace LibreLancer
 
         public void EnterLocation(string room, string bse)
         {
-            locsEntered.Add(new Tuple<string, string>(room, bse));
-            CheckMissionScript();
+            lock (_msnLock)
+            {
+                locsEntered.Add(new Tuple<string, string>(room, bse));
+                CheckMissionScript();
+            }
         }
         
         Dictionary<string, MissionTimer> timers = new Dictionary<string, MissionTimer>();

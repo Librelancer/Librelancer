@@ -133,7 +133,6 @@ namespace LancerEdit
             lineBuffer.SetData(lines, vertexCountL);
             gizmoMaterial.Update(cam);
             var r = (BasicMaterial)gizmoMaterial.Render;
-            r.World = Matrix4x4.Identity;
             //Lines
             r.AlphaEnabled = false;
             rstate.Cull = false;

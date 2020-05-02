@@ -14,7 +14,7 @@ namespace LibreLancer
 	{
         public static bool VertexLighting = false;
 		public MaterialAnim MaterialAnim;
-		public Matrix4x4 World = Matrix4x4.Identity;
+		public WorldMatrixHandle World = new WorldMatrixHandle();
 		public bool FlipNormals = false;
 		public ICamera Camera;
 		public ILibFile Library;

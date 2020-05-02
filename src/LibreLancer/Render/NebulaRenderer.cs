@@ -395,7 +395,7 @@ namespace LibreLancer
                     tex = (Texture2D)resman.FindTexture(p.Texture);
                     lastTex = p.Texture;
                 }
-                buffer.AddCommand(sh, puffSetup, puffCleanup, Matrix4x4.Identity,
+                buffer.AddCommand(sh, puffSetup, puffCleanup, buffer.WorldBuffer.Identity,
                     new RenderUserData() { Texture = tex, Float = factor }, sysr.StaticBillboards.VertexBuffer,
                     PrimitiveTypes.TriangleList, idx, 2, true, inside ? SortLayers.NEBULA_INSIDE : SortLayers.NEBULA_NORMAL,
                     RenderHelpers.GetZ(camera.Position, p.Position));

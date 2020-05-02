@@ -160,7 +160,7 @@ namespace LibreLancer
             {
                 //draw center
                 var cr = (Texture2D)sysr.ResourceManager.FindTexture(Sun.CenterSprite);
-                commands.AddCommand(radialShader.Shader, RadialSetup, Cleanup, Matrix4x4.Identity,
+                commands.AddCommand(radialShader.Shader, RadialSetup, Cleanup, commands.WorldBuffer.Identity,
                 new RenderUserData() { Float = 0, Color = new Color4(dist_scale,alpha,0,0), Texture = cr }, sysr.StaticBillboards.VertexBuffer, PrimitiveTypes.TriangleList,
                 idx, 2, true, SortLayers.SUN, z);
                 //next
@@ -168,7 +168,7 @@ namespace LibreLancer
             }
             //draw glow
             var gr = (Texture2D)sysr.ResourceManager.FindTexture(Sun.GlowSprite);
-            commands.AddCommand(radialShader.Shader, RadialSetup, Cleanup, Matrix4x4.Identity,
+            commands.AddCommand(radialShader.Shader, RadialSetup, Cleanup, commands.WorldBuffer.Identity,
                 new RenderUserData() { Float = 1, Color = new Color4(dist_scale, alpha, 0, 0), Texture = gr }, sysr.StaticBillboards.VertexBuffer, PrimitiveTypes.TriangleList,
                 idx, 2, true, SortLayers.SUN, z + 108f);
             //next
@@ -177,7 +177,7 @@ namespace LibreLancer
             if(Sun.SpinesSprite != null && nr == null)
             {
                 var spinetex = (Texture2D)sysr.ResourceManager.FindTexture(Sun.SpinesSprite);
-                commands.AddCommand(spineShader.Shader, SpineSetup, Cleanup, Matrix4x4.Identity,
+                commands.AddCommand(spineShader.Shader, SpineSetup, Cleanup, commands.WorldBuffer.Identity,
                     new RenderUserData() { Texture = spinetex }, sysr.StaticBillboards.VertexBuffer, PrimitiveTypes.TriangleList,
                     idx, 2 * Sun.Spines.Count, true, SortLayers.SUN, z + 1112f);
             }

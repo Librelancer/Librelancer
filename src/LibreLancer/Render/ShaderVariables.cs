@@ -4,6 +4,8 @@
 
 using System;
 using System.Numerics;
+using BulletSharp.Math;
+using Vector4 = System.Numerics.Vector4;
 
 namespace LibreLancer
 {
@@ -90,17 +92,7 @@ namespace LibreLancer
 		{
 			shader.UseProgram();
 		}
-
-		public int UserTag
-		{
-			get {
-				return shader.UserTag;
-			} set {
-				shader.UserTag = value;
-			}
-		}
-
-		public Shader Shader
+        public Shader Shader
 		{
 			get
 			{
@@ -167,19 +159,34 @@ namespace LibreLancer
                 shader.SetMatrix(viewProjectionPosition, ref vp);
         }
 
-		public void SetWorld(ref Matrix4x4 world)
+		public unsafe void SetWorld(WorldMatrixHandle world)
 		{
-			if (worldPosition != -1)
-				shader.SetMatrix(worldPosition, ref world);
-		}
-
-		public void SetNormalMatrix(ref Matrix4x4 normal)
-		{
-			if (normalMatrixPosition != -1)
-				shader.SetMatrix(normalMatrixPosition, ref normal);
-		}
-
-		public void SetAc(Color4 ac)
+            if (world.Source == (Matrix4x4*) 0)
+            {
+                var id = Matrix4x4.Identity;
+                if (worldPosition != -1)
+                    shader.SetMatrix(worldPosition, ref id);
+                if (normalMatrixPosition != -1)
+                    shader.SetMatrix(normalMatrixPosition, ref id);
+            }
+            else if (shader.UserTag != world.ID)
+            {
+                shader.UserTag = world.ID;
+                if (worldPosition != -1)
+                    shader.SetMatrix(worldPosition, (IntPtr) world.Source);
+                if (normalMatrixPosition != -1)
+                    shader.SetMatrix(normalMatrixPosition, (IntPtr) (&world.Source[1]));
+            }
+        }
+        public void SetWorld(ref Matrix4x4 world, ref Matrix4x4 normal)
+        {
+            shader.UserTag = 0;
+            if (worldPosition != -1)
+                shader.SetMatrix(worldPosition, ref world);
+            if (normalMatrixPosition != -1)
+                shader.SetMatrix(normalMatrixPosition, ref normal);
+        }
+        public void SetAc(Color4 ac)
 		{
 			if (acPosition != -1)
 				shader.SetColor4(acPosition, ac);

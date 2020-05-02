@@ -167,10 +167,11 @@ namespace LibreLancer.Interface
                 game.Mouse.X, game.Mouse.Y, game.Mouse.IsButtonDown(MouseButtons.Left));
         }
 
-        public void Unhook()
+        public void Dispose()
         {
             if (game != null)
             {
+                baseWidget.Dispose();
                 game.Mouse.MouseUp -= MouseOnMouseUp;
                 game.Mouse.MouseDown -= MouseOnMouseDown;
             }
@@ -206,7 +207,7 @@ namespace LibreLancer.Interface
 
         public void PlaySound(string sound)
         {
-            
+            Data.Sounds?.PlaySound(sound);
         }
         
         class ModalState

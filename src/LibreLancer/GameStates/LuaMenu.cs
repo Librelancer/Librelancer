@@ -347,8 +347,7 @@ namespace LibreLancer
 
         public override void Unregister()
         {
-            widget.Dispose();
-            ui.Unhook();
+            ui.Dispose();
             scene.Dispose();
 #if DEBUG
             Game.Keyboard.KeyDown -= Keyboard_KeyDown;

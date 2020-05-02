@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Numerics;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Anm;
@@ -71,6 +72,7 @@ namespace LibreLancer
             if (Levels == null || Levels.Length <= level) return;
             var l = Levels[level];
             if (l == null) return;
+            WorldMatrixHandle wm = buffer.WorldBuffer.SubmitMatrix(ref world);
             for (int i = 0; i < l.Length; i++)
             {
                 var dc = l[i];
@@ -85,12 +87,15 @@ namespace LibreLancer
                 float z = 0;
                 if (mat.Render.IsTransparent)
                     z = RenderHelpers.GetZ(world, mat.Render.Camera.Position, Center);
-                Matrix4x4 tr = world;
+                WorldMatrixHandle worldHandle = wm;
                 if (dc.HasScale)
-                    tr = dc.Scale * world;
+                {
+                    Matrix4x4 tr = dc.Scale * world;
+                    worldHandle = buffer.WorldBuffer.SubmitMatrix(ref tr); 
+                }
                 buffer.AddCommand(mat.Render,
                     ma,
-                    tr,
+                    worldHandle,
                     lights,
                     dc.Buffer,
                     PrimitiveTypes.TriangleList,
@@ -102,11 +107,22 @@ namespace LibreLancer
             }
         }
 
-        public void DrawImmediate(int level, ResourceManager res, RenderState renderState, Matrix4x4 world, ref Lighting lights, MaterialAnimCollection mc, Material overrideMat = null)
+        [StructLayout(LayoutKind.Sequential)]
+        struct Mat4Source
+        {
+            public Matrix4x4 World;
+            public Matrix4x4 Normal;
+        }
+        public unsafe void DrawImmediate(int level, ResourceManager res, RenderState renderState, Matrix4x4 world, ref Lighting lights, MaterialAnimCollection mc, Material overrideMat = null)
         {
             if (Levels == null || Levels.Length < level) return;
             var l = Levels[level];
             if (l == null) return;
+            Mat4Source src;
+            Mat4Source world2;
+            src.World = world;
+            Matrix4x4.Invert(world, out src.Normal);
+            src.Normal = Matrix4x4.Transpose(src.Normal);
             for (int i = 0; i < l.Length; i++)
             {
                 var dc = l[i];
@@ -118,13 +134,26 @@ namespace LibreLancer
                     if (mat != null) ma = dc.GetMaterialAnim(mc);
                     else mat = res.DefaultMaterial;
                 }
+
+                WorldMatrixHandle handle;
+                handle.Source = (Matrix4x4*) &src;
+                handle.ID = (ulong) handle.Source + (ulong)i  * 37 + (ulong)dc.MaterialCrc * 13 + (ulong)dc.PrimitiveCount * 37;
+                if (dc.HasScale)
+                {
+                    world2.World = dc.Scale * world;
+                    Matrix4x4.Invert(world2.World, out world2.Normal);
+                    world2.Normal = Matrix4x4.Transpose(world2.Normal);
+                    handle.Source = (Matrix4x4*) &world2;
+                    handle.ID = (ulong) handle.Source + (ulong)i  * 37 + (ulong)dc.MaterialCrc * 13 + (ulong)dc.PrimitiveCount * 37;
+                }
                 Matrix4x4 tr = world;
                 if (dc.HasScale)
                     tr = dc.Scale * world;
-                mat.Render.World = tr;
+                mat.Render.World = handle;
                 mat.Render.MaterialAnim = ma;
                 mat.Render.Use(renderState, dc.Buffer.VertexType, ref lights);
                 dc.Buffer.Draw(PrimitiveTypes.TriangleList, dc.BaseVertex, dc.StartIndex, dc.PrimitiveCount);
+                
             }
         }
     }

@@ -76,7 +76,7 @@ namespace LibreLancer
 				shader.Shader,
 				Setup,
 				Cleanup,
-				Matrix4x4.Identity,
+				buffer.WorldBuffer.Identity,
 				new RenderUserData() { Texture = texture, Camera = camera, Float = (float)(int)blend },
 				vbo,
 				PrimitiveTypes.TriangleStrip,
