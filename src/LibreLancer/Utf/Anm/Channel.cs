@@ -72,9 +72,9 @@ namespace LibreLancer.Utf.Anm
                 }
             }
         }
-        class CompressedAccessor : QuaternionAccessor
+        class CompressedAccessor0x40 : QuaternionAccessor
         {
-            internal CompressedAccessor(Channel ch, int offset) : base(ch, offset) {}
+            internal CompressedAccessor0x40(Channel ch, int offset) : base(ch, offset) {}
             protected override unsafe Quaternion Get(int index)
             {
                 fixed (byte* ptr = C.channelData)
@@ -91,8 +91,40 @@ namespace LibreLancer.Utf.Anm
             static Quaternion InvHalfAngle(Vector3 p)
             {
                 var d = Vector3.Dot(p, p);
-                var s = (float) Math.Sqrt(2.0f - d);
-                return new Quaternion(p * s, 1.0f - d);
+                var s = (float) Math.Sqrt(1.0f - d);
+                var q = new Quaternion(p * s, 1.0f - d);
+                return Quaternion.Normalize(q);
+            }
+        }
+        
+        class CompressedAccessor0x80 : QuaternionAccessor
+        {
+            internal CompressedAccessor0x80(Channel ch, int offset) : base(ch, offset) {}
+            protected override unsafe Quaternion Get(int index)
+            {
+                fixed (byte* ptr = C.channelData)
+                {
+                    short* sh = (short*) (&ptr[GetOffset(index)]);
+                    var ha = new Vector3(
+                    sh[0] / 32767f,
+                    sh[1] / 32767f,
+                    sh[2] / 32767f
+                    );
+                    return HarmonicMean(ha);
+                }
+            }
+            //Convert quantized from stream (basic harmonic mean, half-angle & cayley composition)
+            private const float qhm3m2xSQ2 = 0.1715729f; //3 - 2 * sqrt 2
+            private const float qhm4xSQ2m1 = 1.656854f; //4 * ((sqrt 2) - 1)
+            static Quaternion HarmonicMean(Vector3 p)
+            {
+                var d = Vector3.Dot(p, p) * qhm3m2xSQ2;
+                var b = (1.0f - d) * qhm4xSQ2m1;
+                var c = 1.0f / (1 + 2 * d + d * d);
+                return new Quaternion(
+                    p * b * c,
+                    (1.0f + d * (d - 6.0f)) * c
+                );
             }
         }
         
@@ -195,8 +227,12 @@ namespace LibreLancer.Utf.Anm
             {
                 case BIT_NORM:
                 case 0x50:
+                    comp = true;
+                    QuaternionMethod = QuaternionMethod.HalfAngle80;
+                    break;
                 case 0x40:
                     comp = true;
+                    QuaternionMethod = QuaternionMethod.HalfAngle40;
                     break;
                 case BIT_VEC:
                 case 0x22:
@@ -210,9 +246,12 @@ namespace LibreLancer.Utf.Anm
                     quat = true;
                     break;
                 case BIT_VEC | BIT_NORM:
-                case BIT_VEC | 0x40:  //special case normal? unsure
-                    frameType = FrameType.VecWithQuat;
-                    QuaternionMethod = QuaternionMethod.HalfAngle;
+                    QuaternionMethod = QuaternionMethod.HalfAngle80;
+                    vec = true;
+                    comp = true;
+                    break;
+                case BIT_VEC | 0x40:
+                    QuaternionMethod = QuaternionMethod.HalfAngle40;
                     vec = true;
                     comp = true;
                     break;
@@ -223,6 +262,18 @@ namespace LibreLancer.Utf.Anm
                     floats = true;
                     break;
             }
+            
+            if (vec && quat || vec && comp)
+            {
+                frameType = FrameType.VecWithQuat;
+            } else if (vec)
+            {
+                frameType = FrameType.Vector3;
+            } else if (quat || comp)
+            {
+                frameType = FrameType.Quaternion;
+            }
+            
             InterpretedType = frameType;
             if (Interval == -1) {
                 Times = new FloatAccessor(this, 0);
@@ -236,14 +287,18 @@ namespace LibreLancer.Utf.Anm
                 Quaternions = new QuaternionAccessor(this, stride);
                 stride += 16;
             }
-            if (comp) {
-                Quaternions = new CompressedAccessor(this, stride);
+            if (comp)
+            {
+                if (QuaternionMethod == QuaternionMethod.HalfAngle40)
+                    Quaternions = new CompressedAccessor0x40(this, stride);
+                else
+                    Quaternions = new CompressedAccessor0x80(this, stride);
                 stride += 6;
             }
             if (floats) {
                 Angles = new FloatAccessor(this,  stride);
                 stride += 4;
             }
-		}
+        }
     }
 }
