@@ -19,8 +19,10 @@ namespace LibreLancer.Utf.Anm
     }
     public enum QuaternionMethod
     {
+        None,
         Full,
-        HalfAngle40,
-        HalfAngle80
+        Compressed0x40,
+        Compressed0x80,
+        Empty
     }
 }
