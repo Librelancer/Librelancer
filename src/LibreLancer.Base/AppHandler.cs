@@ -22,7 +22,7 @@ namespace LibreLancer
                 //Setup Spew
                 var spewFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Librelancer");
                 if (!Directory.Exists(spewFolder)) Directory.CreateDirectory(spewFolder);
-                string spewFilename = Assembly.GetCallingAssembly().FullName + ".log.txt";
+                string spewFilename = Assembly.GetCallingAssembly().GetName().Name + ".log.txt";
                 var spewPath = Path.Combine(spewFolder, spewFilename);
                 if (FLLog.CreateSpewFile(spewPath)) errorMessage += "\n" + spewPath;
                 else errorMessage += "\n(Log file could not be created).";
