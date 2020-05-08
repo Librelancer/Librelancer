@@ -6,6 +6,7 @@
 
 #load scripts/helpers.cake
 #load scripts/mergepublish.cake
+#load scripts/patchedpublish.cake
 
 var target = Argument("target", "BuildSdk");
 var versionSetting = Argument("assemblyversion","git");
@@ -120,14 +121,7 @@ void FullBuild(string rid, bool sdk)
     var binDir = sdk ? "./bin/librelancer-sdk-" : "./bin/librelancer-";
     foreach(var proj in projs) {
         var name = System.IO.Path.GetFileName(proj);
-        var publishSettings = new DotNetCorePublishSettings
-        {
-            Configuration = "Release",
-            OutputDirectory = objDir + rid + "/" + name,
-            SelfContained = true,
-            Runtime = rid
-        };
-        DotNetCorePublish(proj, publishSettings);
+        PatchedPublish(proj, objDir + rid + "/" + name, rid);
 	}
 	MergePublish(objDir + rid, binDir + rid, rid);
 }

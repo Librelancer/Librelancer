@@ -153,8 +153,7 @@ namespace Launcher
                 return;
             }
             config.Save();
-            var p = Path.GetDirectoryName(typeof(MainWindow).Assembly.Location);
-            Process.Start(Path.Combine(p, "lancer"));
+            Process.Start(Path.Combine(GetBasePath(), "lancer"));
             Exit();
         }
         static void SoundSlider(string text, ref float flt)
@@ -165,6 +164,12 @@ namespace Launcher
             ImGui.SameLine();
             ImGui.SliderFloat("##slider", ref flt, 0, 1);
             ImGui.PopID();
+        }
+        
+        private string GetBasePath()
+        {
+            using var processModule = Process.GetCurrentProcess().MainModule;
+            return Path.GetDirectoryName(processModule?.FileName);
         }
     }
 }

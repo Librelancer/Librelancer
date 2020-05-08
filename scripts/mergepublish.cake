@@ -9,15 +9,6 @@ void CopyFilesRecursively (DirectoryInfo source, DirectoryInfo target) {
     }
 }
 
-void DeleteFilesGlob(string dir, params string[] globs)
-{
-	var inf = new DirectoryInfo(dir);
-	foreach(var glob in globs) {
-		foreach(var f in inf.GetFiles(glob)) {
-			f.Delete();
-		}
-	}
-}
 
 void MergePublish(string sourceDir, string outputDir, string rid)
 {
@@ -43,8 +34,8 @@ var hashes = new Dictionary<string,string>();
 bool valid = true;
 foreach(var dir in IO.Directory.GetDirectories(sourceDir)) {
     Information($"Validating {dir}");
-    foreach(var file in IO.Directory.GetFiles(dir)) {
-        var fname = IO.Path.GetFileName(file);
+    foreach(var file in IO.Directory.GetFiles(dir,"*", IO.SearchOption.AllDirectories)) {
+        var fname = file.Substring(dir.Length);
         var md5 = CalculateMD5(file);
         if(hashes.TryGetValue(fname, out string oldmd5)) {
             if(oldmd5 != md5) {
@@ -64,14 +55,6 @@ foreach(var dir in new DirectoryInfo(sourceDir).GetDirectories()) {
     Information($"Copying {dir}");
     CopyFilesRecursively(dir, output);
 }
-Information("Cleaning");
-
-DeleteFilesGlob(outputDir,
-	"*.pdb",
-	"*.json",
-	"createdump",
-	"SOS_README.md"
-);
 
 if(!win32 || arch == "x64") EnsureDirDeleted(PathCombine(outputDir, "x86"));
 if(!win32 || arch =="x86") EnsureDirDeleted(PathCombine(outputDir, "x64"));
