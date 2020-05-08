@@ -21,13 +21,8 @@
     <ProjectReference Include="..\..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj" />
     <ProjectReference Include="..\..\LibreLancer.Media\LibreLancer.Media.csproj" />
     <ProjectReference Include="..\..\LibreLancer\LibreLancer.csproj" />
+    <ProjectReference Include="..\LibreLancer.ContentEdit\LibreLancer.ContentEdit.csproj" />
     <ProjectReference Include="..\LibreLancer.ImUI\LibreLancer.ImUI.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\..\..\extern\Collada141\collada_schema_1_4_1_ms.cs">
-      <Link>collada_schema_1_4_1_ms.cs</Link>
-    </Compile>
   </ItemGroup>
 
   <ItemGroup>

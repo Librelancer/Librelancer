@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-namespace LancerEdit
+namespace LibreLancer.ContentEdit
 {
     enum CrnglueFormat
     {

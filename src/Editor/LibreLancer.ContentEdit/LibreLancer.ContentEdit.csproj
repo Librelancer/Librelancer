@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj" />
+      <ProjectReference Include="..\..\LibreLancer.Data\LibreLancer.Data.csproj" />
+      <ProjectReference Include="..\..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj" />
+      <ProjectReference Include="..\..\LibreLancer\LibreLancer.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Include="..\..\..\extern\Collada141\collada_schema_1_4_1_ms.cs">
+        <Link>collada_schema_1_4_1_ms.cs</Link>
+      </Compile>
+    </ItemGroup>
+
+</Project>

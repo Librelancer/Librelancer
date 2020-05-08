@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using LibreLancer;
+using LibreLancer.ContentEdit;
 using LibreLancer.Utf.Cmp;
 
 namespace LancerEdit

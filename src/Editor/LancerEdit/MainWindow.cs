@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Collections.Generic;
 using LibreLancer;
+using LibreLancer.ContentEdit;
 using LibreLancer.ImUI;
 using LibreLancer.Media;
 using ImGuiNET;

@@ -5,6 +5,8 @@
 using System;
 using System.Numerics;
 using ImGuiNET;
+using LibreLancer.ContentEdit;
+
 namespace LancerEdit
 {
 	public unsafe class DataEditors

@@ -7,8 +7,10 @@ using System.Numerics;
 using System.Collections.Generic;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.ContentEdit;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Cmp;
+
 namespace LancerEdit
 {
     public partial class ModelViewer

@@ -10,6 +10,7 @@ using System.Text;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ImUI;
+using LibreLancer.ContentEdit;
 
 namespace LancerEdit
 {

@@ -11,10 +11,9 @@ using System.IO;
 using System.Threading;
 using System.Xml.Serialization;
 using CL = Collada141;
-using LibreLancer;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Vms;
-namespace LancerEdit
+namespace LibreLancer.ContentEdit
 {
     public class ColladaObject
     {

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using LibreLancer.ImageLib;
 
-namespace LancerEdit
+namespace LibreLancer.ContentEdit
 {
     public enum DDSFormat
     {

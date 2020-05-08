@@ -6,6 +6,7 @@ using System;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.ContentEdit;
 using LibreLancer.ImUI;
 using LibreLancer.Utf.Anm;
 

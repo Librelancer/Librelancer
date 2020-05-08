@@ -9,7 +9,7 @@ using LL = LibreLancer.Utf;
 using System.IO;
 using System.Text;
 
-namespace LancerEdit
+namespace LibreLancer.ContentEdit
 {
 	public class EditableUtf : LL.UtfFile
 	{

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.ContentEdit;
 using LibreLancer.ImUI;
 namespace LancerEdit
 {

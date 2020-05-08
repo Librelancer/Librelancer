@@ -4,6 +4,7 @@
 
 using System;
 using LibreLancer;
+using LibreLancer.ContentEdit;
 using LibreLancer.Dialogs;
 
 namespace LancerEdit

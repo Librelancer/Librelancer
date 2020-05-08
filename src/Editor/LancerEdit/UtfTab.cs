@@ -12,6 +12,8 @@ using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ImUI;
 using LibreLancer.Utf.Ale;
+using LibreLancer.ContentEdit;
+
 namespace LancerEdit
 {
     public partial class UtfTab : EditorTab

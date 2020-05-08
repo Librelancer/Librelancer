@@ -7,7 +7,7 @@
 #load scripts/helpers.cake
 #load scripts/mergepublish.cake
 
-var target = Argument("target", "Build");
+var target = Argument("target", "BuildSdk");
 var versionSetting = Argument("assemblyversion","git");
 var configuration = Argument("configuration","Release");
 var prefix = Argument("prefix","/usr/local/");
@@ -85,7 +85,7 @@ Task("BuildNatives")
 
 });
 
-string[] publishProjects = {
+string[] sdkProjects = {
     "src/lancer/lancer.csproj",
     "src/Server/Server.csproj",
     "src/thorn2lua/thorn2lua.csproj",
@@ -93,7 +93,14 @@ string[] publishProjects = {
     "src/Editor/LancerEdit/LancerEdit.csproj",
     "src/Editor/SystemViewer/SystemViewer.csproj",
     "src/Editor/ThnPlayer/ThnPlayer.csproj",
+    "src/Editor/lleditscript/lleditscript.csproj",
 	"src/Launcher/Launcher.csproj"
+};
+
+string[] engineProjects = {
+    "src/lancer/lancer.csproj",
+	"src/Launcher/Launcher.csproj",
+	"src/Server/Server.csproj"
 };
 
 
@@ -101,24 +108,30 @@ void Clean(string rid)
 {
     DotNetCoreClean("./src/LibreLancer.sln");
     EnsureDirDeleted("./obj/projs-" + rid);
+    EnsureDirDeleted("./obj/projs-sdk-" + rid);
     EnsureDirDeleted("./bin/librelancer-" + rid);
+    EnsureDirDeleted("./bin/librelancer-sdk-" + rid);
 }
 
-void FullBuild(string rid)
+void FullBuild(string rid, bool sdk)
 {
-    foreach(var proj in publishProjects) {
+    var projs = sdk ? sdkProjects : engineProjects;
+    var objDir = sdk ? "./obj/projs-sdk-" : "./obj/projs-";
+    var binDir = sdk ? "./bin/librelancer-sdk-" : "./bin/librelancer-";
+    foreach(var proj in projs) {
         var name = System.IO.Path.GetFileName(proj);
         var publishSettings = new DotNetCorePublishSettings
         {
             Configuration = "Release",
-            OutputDirectory = "./obj/projs-" + rid + "/" + name,
+            OutputDirectory = objDir + rid + "/" + name,
             SelfContained = true,
             Runtime = rid
         };
         DotNetCorePublish(proj, publishSettings);
 	}
-	MergePublish("./obj/projs-" + rid, "./bin/librelancer-" + rid, rid);
+	MergePublish(objDir + rid, binDir + rid, rid);
 }
+
 Task("Clean")
   .Does(() =>
 {
@@ -129,29 +142,42 @@ Task("Clean")
         Clean(GetLinuxRid());
 });
 
-Task("Build")
+Task("BuildEngine")
 	  .IsDependentOn("GenerateVersion")
       .IsDependentOn("BuildNatives")
-	  .Does(() =>
+      .Does(() =>
 {
-	//Restore NuGet packages
+    //Restore NuGet packages
 	DotNetCoreRestore("./src/LibreLancer.sln");
 	//Build C#
 	if(IsRunningOnWindows()) {
-        FullBuild("win7-x86");
-        FullBuild("win7-x64");
+        FullBuild("win7-x86", false);
+        FullBuild("win7-x64", false);
 	} else
-        FullBuild(GetLinuxRid());
+        FullBuild(GetLinuxRid(), false);
+});
+
+Task("BuildSdk")
+	  .IsDependentOn("BuildEngine")
+	  .Does(() =>
+{
+	//Build C#
+	if(IsRunningOnWindows()) {
+        FullBuild("win7-x86", true);
+        FullBuild("win7-x64", true);
+	} else
+        FullBuild(GetLinuxRid(), true);
 });
 
 
 Task("LinuxDaily")
-    .IsDependentOn("Build")
+    .IsDependentOn("BuildSdk")
     .Does(() =>
 {
 	if(!DirectoryExists("packaging/packages")) CreateDirectory("packaging/packages");
 	var lastCommit = GitLogTip_Shell();
 	Information("Compressing");
+	//Engine
 	var name = "librelancer-" + lastCommit.Substring(0,7) + "-ubuntu-amd64";
 	if(DirectoryExists("packaging/packages/" + name))
 		CleanDirectories("packaging/packages/" + name);
@@ -160,9 +186,22 @@ Task("LinuxDaily")
 	CopyFiles("bin/librelancer-" + GetLinuxRid() + "/*","packaging/packages/" + name);
 	GZipCompress("packaging/packages/",
 				"packaging/packages/librelancer-daily-ubuntu-amd64.tar.gz", 
-				GetFiles("packaging/packages/" + name + "/*")
+				GetFiles("packaging/packages/" + name + "/*"), 9
 	);
 	DeleteDirectory("packaging/packages/" + name, recursive:true);
+	//Sdk 
+	name = "librelancer-sdk-" + lastCommit.Substring(0,7) + "-ubuntu-amd64";
+	if(DirectoryExists("packaging/packages/" + name))
+		CleanDirectories("packaging/packages/" + name);
+	else
+		CreateDirectory("packaging/packages/" + name);
+	CopyFiles("bin/librelancer-sdk-" + GetLinuxRid() + "/*","packaging/packages/" + name);
+	GZipCompress("packaging/packages/",
+				"packaging/packages/librelancer-sdk-daily-ubuntu-amd64.tar.gz", 
+				GetFiles("packaging/packages/" + name + "/*"), 9
+	);
+	DeleteDirectory("packaging/packages/" + name, recursive:true);
+	//Timestamp
 	var unixTime = (long)((DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds);
 	FileWriteText("packaging/packages/timestamp",unixTime.ToString());
 });

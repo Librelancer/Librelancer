@@ -7,7 +7,7 @@ using LibreLancer;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Vms;
 
-namespace LancerEdit
+namespace LibreLancer.ContentEdit
 {
     //Empty class for constructing VMeshData etc. for dumping
     public class EmptyLib : ILibFile

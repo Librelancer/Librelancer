@@ -10,12 +10,11 @@ using System.IO;
 using System.Linq;
 
 using CL = Collada141;
-using LibreLancer;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Vms;
 
-namespace LancerEdit
+namespace LibreLancer.ContentEdit
 {
     public class ColladaExport
     {

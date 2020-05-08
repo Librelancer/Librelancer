@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Linq;
 
-namespace LancerEdit
+namespace LibreLancer.ContentEdit
 {
     static class EnumerableExtensions
     {
