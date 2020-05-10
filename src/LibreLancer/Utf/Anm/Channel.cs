@@ -264,7 +264,7 @@ namespace LibreLancer.Utf.Anm
             }
             if ((ChannelType & 0x4) == 0x4)
             {
-                vec = true;
+                quat = true;
                 Quaternions = new QuaternionAccessor(this, stride);
                 stride += 16;
                 QuaternionMethod = QuaternionMethod.Full;
