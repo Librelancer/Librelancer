@@ -45,7 +45,7 @@ namespace LibreLancer.ContentEdit
         public static EditableUtf Generate(string iconName, LUtfNode textureNode)
         {
             var modelFile = new EditableUtf();
-            var unique = new Random().Next(100,999);
+            var unique = IdSalt.New();
             string textureName = $"data.icon.{iconName}.{unique}.tga";
             string materialName = $"data.icon.{iconName}.{unique}";
             string meshName = $"data.icon.{iconName}.lod0-{unique}.vms";
