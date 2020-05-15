@@ -319,6 +319,15 @@ namespace LibreLancer.ImUI
 			ImGui.NewFrame();
             
 		}
+        //These are required as FBOs with 1 - SrcAlpha will end up with alpha != 1
+        public static void DisableAlpha()
+        {
+            ImGui.GetWindowDrawList().AddCallback((IntPtr)1, (IntPtr)BlendMode.Opaque);
+        }
+        public static void EnableAlpha()
+        {
+            ImGui.GetWindowDrawList().AddCallback((IntPtr) 1, (IntPtr) BlendMode.Normal);
+        }
 
         List<RenderTarget2D> toFree = new List<RenderTarget2D>();
 		public void Render(RenderState rstate)
@@ -415,6 +424,11 @@ namespace LibreLancer.ImUI
 				for (int cmd_i = 0; cmd_i < cmd_list.CmdBuffer.Size; cmd_i++)
 				{
                     var pcmd = cmd_list.CmdBuffer[cmd_i];
+                    if (pcmd.UserCallback != IntPtr.Zero)
+                    {
+                        rstate.BlendMode = (BlendMode)pcmd.UserCallbackData;
+                        continue;
+                    }
 					//TODO: Do something with pcmd->UserCallback ??
 					var tid = pcmd.TextureId.ToInt32();
 					Texture2D tex;

@@ -490,6 +490,8 @@ namespace LancerEdit
                 lastFrame = new RenderTarget2D(Width, Height);
             }
             RenderState.RenderTarget = lastFrame;
+            RenderState.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
+            RenderState.ClearAll();
 			guiHelper.Render(RenderState);
             RenderState.RenderTarget = null;
             lastFrame.BlitToScreen();

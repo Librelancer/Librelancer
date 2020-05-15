@@ -110,10 +110,12 @@ namespace LancerEdit
             //Viewport Control
             if (view)
             {
+                ImGuiHelper.DisableAlpha();
                 ImGui.ImageButton((IntPtr)rid, new Vector2(rw, rh),
                                   new Vector2(0,1), new Vector2(1,0),
                                   0,
-                                  Vector4.One, Vector4.One);
+                                  Color4.Black, Color4.White);
+                ImGuiHelper.EnableAlpha();
                 if (Mode == CameraModes.Cockpit) ModelRotation = Vector2.Zero;
                 if (Mode == CameraModes.Arcball) ArcballUpdate();
                 if (ImGui.IsItemHovered(ImGuiHoveredFlags.None))
