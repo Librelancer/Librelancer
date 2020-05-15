@@ -334,5 +334,11 @@ namespace LibreLancer
 		{
 			return value1 + (value2 - value1) * amount;
 		}
+
+        public static bool IsPowerOfTwo(int x)
+        {
+            if (x == 0) return false;
+            return (x & (x - 1)) == 0;
+        }
     }
 }

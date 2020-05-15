@@ -588,13 +588,16 @@ namespace LancerEdit
         void ColladaError(Exception ex)          
         {
             FinishLoadingSpinner();
-            if (errorText != null) errorText.Dispose();
-            var str = "Import Error:\n" + ex.Message + "\n" + ex.StackTrace;
-            if(errorText == null)
-                errorText = new TextBuffer();
-            errorText.SetText(str);
+            ErrorDialog("Import Error:\n" + ex.Message + "\n" + ex.StackTrace);
+        }
+
+        public void ErrorDialog(string text)
+        {
+            errorText?.Dispose();
+            errorText = new TextBuffer();
+            errorText.SetText(text);
             openError = true;
-         }
+        }
         protected override void OnDrop(string file)
         {
             if (DetectFileType.Detect(file) == FileType.Utf)

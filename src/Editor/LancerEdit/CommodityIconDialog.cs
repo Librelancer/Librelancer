@@ -11,7 +11,6 @@ using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.ImUI;
-using LibreLancer.ImageLib;
 
 namespace LancerEdit
 {
@@ -25,7 +24,7 @@ namespace LancerEdit
         private bool error = false;
         private MainWindow win;
         private bool doOpen = false;
-        private bool imageIsDDS = false;
+        private TexLoadType loadType;
         public CommodityIconDialog(MainWindow win)
         {
             this.win = win;
@@ -39,11 +38,17 @@ namespace LancerEdit
             {
                 ImGuiHelper.DeregisterTexture(teximportprev);
                 teximportprev.Dispose();
+                teximportprev = null;
             }
-            teximportprev = Generic.FromFile(filename);
-            using (var stream = File.OpenRead(filename))
+            var src = TextureImport.OpenFile(filename);
+            loadType = src.Type;
+            teximportprev = src.Texture;
+            if (loadType == TexLoadType.ErrorLoad ||
+                loadType == TexLoadType.ErrorNonSquare ||
+                loadType == TexLoadType.ErrorNonPowerOfTwo)
             {
-                imageIsDDS = DDS.StreamIsDDS(stream);
+                win.ErrorDialog(TextureImport.LoadErrorString(loadType, filename));
+                return;
             }
             teximportid = ImGuiHelper.RegisterTexture(teximportprev);
             doOpen = true;
@@ -62,7 +67,7 @@ namespace LancerEdit
                 ImGui.Image((IntPtr)teximportid, new Vector2(64, 64),
                     new Vector2(0, 1), new Vector2(1, 0), Vector4.One, Vector4.Zero);
                 ImGui.Text(string.Format("Dimensions: {0}x{1}", teximportprev.Width, teximportprev.Height));
-                if (imageIsDDS)
+                if (loadType == TexLoadType.DDS)
                 {
                     ImGui.Text("Input file is .dds");
                 } else
@@ -82,18 +87,18 @@ namespace LancerEdit
                         {
                             win.StartLoadingSpinner();
                             EditableUtf utf;
-                            if (imageIsDDS)
+                            if (loadType == TexLoadType.DDS)
                             {
                                 var node = new LUtfNode() { Children = new List<LUtfNode>()};
                                 node.Children.Add(new LUtfNode()
                                     {Name = "MIPS", Parent = node, Data = File.ReadAllBytes(texFilename)});
-                                utf = UiIconGenerator.Generate(iconName, node);
+                                utf = UiIconGenerator.Generate(iconName, node, teximportprev.Format == SurfaceFormat.Dxt5);
                             }
                             else
                             {
                                 utf = compress
-                                    ? UiIconGenerator.CompressedFromFile(iconName, texFilename)
-                                    : UiIconGenerator.UncompressedFromFile(iconName, texFilename);
+                                    ? UiIconGenerator.CompressedFromFile(iconName, texFilename, loadType == TexLoadType.Alpha)
+                                    : UiIconGenerator.UncompressedFromFile(iconName, texFilename, loadType == TexLoadType.Alpha);
                             }
                             win.QueueUIThread(() =>
                             {

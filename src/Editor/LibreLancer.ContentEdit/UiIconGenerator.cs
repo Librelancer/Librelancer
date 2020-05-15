@@ -24,25 +24,25 @@ namespace LibreLancer.ContentEdit
             0, 1, 2, 0, 2, 3
         };
 
-        public static EditableUtf UncompressedFromFile(string iconName, string filename)
+        public static EditableUtf UncompressedFromFile(string iconName, string filename, bool alpha)
         {
             var texNode = new LUtfNode() { Children = new List<LUtfNode>()};
             texNode.Children.Add(new LUtfNode() { Name = "MIP0", Data = TextureImport.TGANoMipmap(filename, true)});
-            return Generate(iconName, texNode);
+            return Generate(iconName, texNode, alpha);
         }
 
-        public static EditableUtf CompressedFromFile(string iconName, string filename)
+        public static EditableUtf CompressedFromFile(string iconName, string filename, bool alpha)
         {
             var ddsNode = new LUtfNode() {Children = new List<LUtfNode>()};
             ddsNode.Children.Add(new LUtfNode()
             {
                 Name = "MIPS",
-                Data = TextureImport.CreateDDS(filename, DDSFormat.DXT5, MipmapMethod.None, true, true)
+                Data = TextureImport.CreateDDS(filename, alpha ? DDSFormat.DXT5 : DDSFormat.DXT1, MipmapMethod.None, true, true)
             });
-            return Generate(iconName, ddsNode);
+            return Generate(iconName, ddsNode, alpha);
         }
         
-        public static EditableUtf Generate(string iconName, LUtfNode textureNode)
+        public static EditableUtf Generate(string iconName, LUtfNode textureNode, bool alpha)
         {
             var modelFile = new EditableUtf();
             var unique = IdSalt.New();
@@ -103,7 +103,7 @@ namespace LibreLancer.ContentEdit
             {
                 Name = "Type",
                 Parent = material,
-                Data = Encoding.ASCII.GetBytes("DcDt")
+                Data = Encoding.ASCII.GetBytes(alpha ? "DcDtOcOt" : "DcDt")
             });
             material.Children.Add(new LUtfNode()
             {

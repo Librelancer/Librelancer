@@ -26,8 +26,86 @@ namespace LibreLancer.ContentEdit
         Mitchell = CrnglueMipmaps.MITCHELL,
         Kaiser = CrnglueMipmaps.KAISER
     }
+
+    public enum TexLoadType
+    {
+        DDS,
+        Opaque,
+        Alpha,
+        ErrorNonSquare,
+        ErrorLoad,
+        ErrorNonPowerOfTwo
+    }
+    public class AnalyzedTexture
+    {
+        public TexLoadType Type;
+        public Texture2D Texture;
+    }
+    
     public class TextureImport
     {
+        public static string LoadErrorString(TexLoadType type, string filename)
+        {
+            switch (type)
+            {
+                case TexLoadType.ErrorLoad: return $"Could not load file {filename}";
+                case TexLoadType.ErrorNonSquare: return $"Dimensions of {filename} are not square";
+                case TexLoadType.ErrorNonPowerOfTwo: return $"Dimensions of {filename} are not powers of two";
+                default: throw new InvalidOperationException();
+            }
+        }
+        public static AnalyzedTexture OpenFile(string input)
+        {
+            try
+            {
+                using (var file = File.OpenRead(input))
+                {
+                    if (DDS.StreamIsDDS(file))
+                    {
+                        return new AnalyzedTexture()
+                        {
+                            Type = TexLoadType.DDS,
+                            Texture = (Texture2D)DDS.FromStream(file)
+                        };
+                    }
+                }
+                Generic.LoadResult lr;
+                using (var file = File.OpenRead(input))
+                {
+                    lr = Generic.BytesFromStream(file);
+                }
+                if (lr.Width != lr.Height)
+                    return new AnalyzedTexture() {Type = TexLoadType.ErrorNonSquare};
+               if(!MathHelper.IsPowerOfTwo(lr.Width) ||
+                  !MathHelper.IsPowerOfTwo(lr.Height))
+                   return new AnalyzedTexture() { Type = TexLoadType.ErrorNonPowerOfTwo};
+               bool opaque = true;
+               //Swap channels + check alpha
+               for (int i = 0; i < lr.Data.Length; i += 4)
+               {
+                   var R = lr.Data[i];
+                   var B = lr.Data[i + 2];
+                   var A = lr.Data[i + 3];
+                   lr.Data[i + 2] = R;
+                   lr.Data[i] = B;
+                   if (A != 255)
+                   {
+                       opaque = false;
+                   }
+               }
+               var tex = new Texture2D(lr.Width, lr.Height);
+               tex.SetData(lr.Data);
+               return new AnalyzedTexture()
+               {
+                   Type = opaque ? TexLoadType.Opaque : TexLoadType.Alpha,
+                   Texture = tex
+               };
+            }
+            catch (Exception e)
+            {
+                return new AnalyzedTexture() {Type = TexLoadType.ErrorLoad};
+            }
+        }
         static Generic.LoadResult ReadFile(string input, bool flip)
         {
             using (var file = File.OpenRead(input))

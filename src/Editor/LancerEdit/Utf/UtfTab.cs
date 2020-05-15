@@ -564,26 +564,25 @@ namespace LancerEdit
             string path;
             if ((path = FileDialog.Open()) != null)
             {
-                bool isDDS;
-                using (var stream = File.OpenRead(path))
+                var src = TextureImport.OpenFile(path);
+                if (src.Type == TexLoadType.ErrorLoad ||
+                    src.Type == TexLoadType.ErrorNonSquare ||
+                    src.Type == TexLoadType.ErrorNonPowerOfTwo)
                 {
-                    isDDS = LibreLancer.ImageLib.DDS.StreamIsDDS(stream);
-                }
-                if(isDDS) {
+                    main.ErrorDialog(TextureImport.LoadErrorString(src.Type, path));
+                } 
+                else if (src.Type == TexLoadType.DDS)
+                {
+                    src.Texture.Dispose();
                     selectedNode.Children = null;
                     selectedNode.Data = File.ReadAllBytes(path);
-                } else {
-                    try
-                    {
-                        teximportprev = LibreLancer.ImageLib.Generic.FromFile(path);
-                        teximportpath = path;
-                        teximportid = ImGuiHelper.RegisterTexture(teximportprev);
-                        popups.OpenPopup("Texture Import");
-                    }
-                    catch (Exception)
-                    {
-                        ErrorPopup("Could not open file as image");
-                    }
+                }
+                else
+                {
+                    teximportprev = src.Texture;
+                    teximportpath = path;
+                    teximportid = ImGuiHelper.RegisterTexture(teximportprev);
+                    popups.OpenPopup("Texture Import");
                 }
             }
         }
