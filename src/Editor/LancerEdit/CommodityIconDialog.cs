@@ -59,13 +59,17 @@ namespace LancerEdit
             if (doOpen)
             {
                 ImGui.OpenPopup("New Commodity Icon");
-                ImGui.SetNextWindowSize(new Vector2(275,200), ImGuiCond.FirstUseEver);
+                ImGui.SetNextWindowSize(new Vector2(275,275), ImGuiCond.FirstUseEver);
                 doOpen = false;
             }
-            if (ImGui.BeginPopupModal("New Commodity Icon"))
+            bool pOpen = true;
+            if (ImGui.BeginPopupModal("New Commodity Icon", ref pOpen, ImGuiWindowFlags.NoResize))
             {
-                ImGui.Image((IntPtr)teximportid, new Vector2(64, 64),
-                    new Vector2(0, 1), new Vector2(1, 0), Vector4.One, Vector4.Zero);
+                var w = ImGui.GetWindowContentRegionWidth();
+                ImGui.Dummy(new Vector2(w / 2 - 64 - 4, 1));
+                ImGui.SameLine();
+                ImGui.Image((IntPtr)teximportid, new Vector2(128, 128),
+                    new Vector2(0, 0), new Vector2(1, 1), Vector4.One, Vector4.Zero);
                 ImGui.Text(string.Format("Dimensions: {0}x{1}", teximportprev.Width, teximportprev.Height));
                 if (loadType == TexLoadType.DDS)
                 {
