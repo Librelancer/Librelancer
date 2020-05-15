@@ -52,7 +52,14 @@ namespace LibreLancer.ContentEdit
                 writer.Write((ushort)height);
                 writer.Write((byte)32); //32 bpp RGBA
                 writer.Write((byte)0); //descriptor
-                writer.Write(data);
+                for (int i = 0; i < data.Length; i += 4)
+                {
+                    //BGRA storage
+                    writer.Write(data[i + 2]);
+                    writer.Write(data[i + 1]);
+                    writer.Write(data[i]);
+                    writer.Write(data[i + 3]);
+                }
                 return stream.ToArray();
             }
         }

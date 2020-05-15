@@ -55,8 +55,9 @@ namespace LancerEdit
         FileDialogFilters FreelancerIniFilter = new FileDialogFilters(
             new FileFilter("Freelancer.ini","freelancer.ini")
         );
-       
-
+        FileDialogFilters ImageFilter = new FileDialogFilters(
+            new FileFilter("Images", "bmp", "png", "tga", "dds", "jpg", "jpeg")
+        );
         public EditorConfiguration Config;
         OptionsWindow options;
         public MainWindow() : base(800,600,false)
@@ -116,6 +117,7 @@ namespace LancerEdit
             Fonts = new FontManager();
             Fonts.ConstructDefaultFonts();
             Services.Add(Fonts);
+            gen3dbDlg = new CommodityIconDialog(this);
         }
 
         void Keyboard_KeyDown(KeyEventArgs e)
@@ -149,6 +151,7 @@ namespace LancerEdit
 		public UtfTab ActiveTab;
 		double frequency = 0;
 		int updateTime = 10;
+        CommodityIconDialog gen3dbDlg;
 		public void AddTab(DockTab tab)
 		{
 			toAdd.Add(tab);
@@ -179,11 +182,32 @@ namespace LancerEdit
         Vector2 errorWindowSize = Vector2.Zero;
         public double TimeStep;
         private RenderTarget2D lastFrame;
-        private bool colladaLoading = false;
+        private bool loadingSpinnerActive = false;
+        bool openLoading = false;
+        
+        public void StartLoadingSpinner()
+        {
+            QueueUIThread(() =>
+            {
+                openLoading = true;
+                finishLoading = false;
+                loadingSpinnerActive = true;
+            });
+        }
+
+        public void FinishLoadingSpinner()
+        {
+            QueueUIThread(() =>
+            {
+                loadingSpinnerActive = false;
+                finishLoading = true;
+            });
+        }
+        
 		protected override void Draw(double elapsed)
         {
             //Don't process all the imgui stuff when it isn't needed
-            if (!colladaLoading && !guiHelper.DoRender(elapsed))
+            if (!loadingSpinnerActive && !guiHelper.DoRender(elapsed))
             {
                 if (lastFrame != null) lastFrame.BlitToScreen();
                 WaitForEvent(); //Yield like a regular GUI program
@@ -231,7 +255,6 @@ namespace LancerEdit
 				}
 				ImGui.EndMenu();
 			}
-            bool openLoading = false;
             if (ImGui.BeginMenu("View"))
             {
                 Theme.IconMenuToggle("Log", "log", Color4.White, ref showLog, true);
@@ -251,10 +274,9 @@ namespace LancerEdit
                 if(Theme.IconMenuItem("Import Collada","import",Color4.White,true))
                 {
                     string input;
-                    if((input = FileDialog.Open(ColladaFilters)) != null) {
-                        openLoading = true;
-                        finishLoading = false;
-                        colladaLoading = true;
+                    if((input = FileDialog.Open(ColladaFilters)) != null)
+                    {
+                        StartLoadingSpinner();
                         new Thread(() =>
                         {
                             List<ColladaObject> dae = null;
@@ -268,6 +290,13 @@ namespace LancerEdit
                                 EnsureUIThread(() => ColladaError(ex));
                             }
                         }).Start();
+                    }
+                }
+                if (Theme.IconMenuItem("Generate Icon", "genicon", Color4.White, true))
+                {
+                    string input;
+                    if ((input = FileDialog.Open(ImageFilter)) != null) {
+                        gen3dbDlg.Open(input);
                     }
                 }
                 if(Theme.IconMenuItem("Infocard Browser","browse",Color4.White,true))
@@ -307,7 +336,12 @@ namespace LancerEdit
                 ImGui.OpenPopup("Error");
                 openError = false;
             }
-            if (openLoading) ImGui.OpenPopup("Processing");
+
+            if (openLoading)
+            {
+                ImGui.OpenPopup("Processing");
+                openLoading = false;
+            }
             bool pOpen = true;
 
             if (ImGui.BeginPopupModal("Error", ref pOpen, ImGuiWindowFlags.AlwaysAutoResize))
@@ -411,6 +445,7 @@ namespace LancerEdit
                 ImGui.EndChild();
             }
             ImGui.End();
+            gen3dbDlg.Draw();
 			//Status bar
 			ImGui.SetNextWindowSize(new Vector2(size.X, 25f), ImGuiCond.Always);
 			ImGui.SetNextWindowPos(new Vector2(0, size.Y - 6f), ImGuiCond.Always, Vector2.Zero);
@@ -465,7 +500,7 @@ namespace LancerEdit
             }
             toAdd.Clear();
 		}
-
+        
         void Save()
         {
             var at = ActiveTab;
@@ -547,13 +582,12 @@ namespace LancerEdit
         }
         void FinishColladaLoad(List<ColladaObject> dae, string tabName)
         {
-            colladaLoading = false;
-            finishLoading = true;
+           FinishLoadingSpinner();
             AddTab(new ColladaTab(dae, tabName, this));
         }
         void ColladaError(Exception ex)          
         {
-            finishLoading = true;
+            FinishLoadingSpinner();
             if (errorText != null) errorText.Dispose();
             var str = "Import Error:\n" + ex.Message + "\n" + ex.StackTrace;
             if(errorText == null)
