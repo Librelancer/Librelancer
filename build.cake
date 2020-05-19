@@ -119,11 +119,18 @@ void FullBuild(string rid, bool sdk)
     var projs = sdk ? sdkProjects : engineProjects;
     var objDir = sdk ? "./obj/projs-sdk-" : "./obj/projs-";
     var binDir = sdk ? "./bin/librelancer-sdk-" : "./bin/librelancer-";
+    var outdir = binDir + rid;
     foreach(var proj in projs) {
         var name = System.IO.Path.GetFileName(proj);
         PatchedPublish(proj, objDir + rid + "/" + name, rid);
 	}
 	MergePublish(objDir + rid, binDir + rid, rid);
+	CopyFiles("Credits.txt", outdir);
+	if(IsRunningOnWindows()) {
+        CopyFiles("deps/openal-soft-license.txt", outdir);
+        CopyFiles("deps/openal-soft-sourceurl.txt", outdir);
+	}
+	CopyFiles("LICENSE", outdir);
 }
 
 Task("Clean")
