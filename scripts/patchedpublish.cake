@@ -31,6 +31,13 @@ void PatchedPublish(string proj, string outputDirectory, string rid)
         "createdump",
         "SOS_README.md"
     );
+    //TODO: Fix this msbuild side
+    if(rid == "win7-x86") {
+        IO.Directory.Delete(IO.Path.Combine(publishDir,"x64"));
+    }
+    if(rid == "win7-x64") {
+        IO.Directory.Delete(IO.Path.Combine(publishDir,"x86"));
+    }
     //Move the AppHost
     var apphostName = IO.Path.GetFileNameWithoutExtension(proj);
     var origName = apphostName + ".dll";
