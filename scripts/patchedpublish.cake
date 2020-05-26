@@ -33,10 +33,10 @@ void PatchedPublish(string proj, string outputDirectory, string rid)
     );
     //TODO: Fix this msbuild side
     if(rid == "win7-x86") {
-        IO.Directory.Delete(IO.Path.Combine(publishDir,"x64"));
+        IO.Directory.Delete(IO.Path.Combine(publishDir,"x64"), true);
     }
     if(rid == "win7-x64") {
-        IO.Directory.Delete(IO.Path.Combine(publishDir,"x86"));
+        IO.Directory.Delete(IO.Path.Combine(publishDir,"x86"), true);
     }
     //Move the AppHost
     var apphostName = IO.Path.GetFileNameWithoutExtension(proj);
