@@ -52,6 +52,14 @@ namespace LibreLancer
 			}
 		}
 
+        public BlendMode GetBlendMode(int index)
+        {
+            return rendat[index].BlendMode;
+        }
+        public uint GetTextureID(int index)
+        {
+            return rendat[index].Texture.ID;
+        }
 		struct RenderData
 		{
 			public Texture Texture;
@@ -81,7 +89,8 @@ namespace LibreLancer
 				}
 			}
 		}
-		public ICamera Camera
+        
+        public ICamera Camera
 		{
 			get
 			{
@@ -288,6 +297,8 @@ namespace LibreLancer
             var dat = rendat[index];
             indexCountBasic += dat.Triangle == 1 ? 3 : 6;
         }
+
+     
 
 		public void FillIbo()
 		{

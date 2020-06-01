@@ -66,22 +66,19 @@ namespace LibreLancer.Data
         [Entry("nomad")]
         public bool Nomad;
 
-        protected bool HandleEntry(Entry e)
+        [Entry("docking_sphere", Multiline = true)]
+        void HandleDockingSphere(Entry e)
         {
-            if(e.Name.Equals("docking_sphere", StringComparison.InvariantCultureIgnoreCase)) {
-                string scr = e.Count == 4 ? e[3].ToString() : null;
-                DockingSpheres.Add(new DockSphere() { Name = e[0].ToString(), Hardpoint = e[1].ToString(), Radius = e[2].ToInt32(), Script = scr });
-                return true;
-            }
-            switch(e.Name.ToLowerInvariant())
-            {
-                case "animated_textures":
-                case "surface_hit_effects":
-                case "fuse":
-                case "shield_link":
-                    return true;
-            }
-            return false;
+            string scr = e.Count == 4 ? e[3].ToString() : null;
+            DockingSpheres.Add(new DockSphere() { Name = e[0].ToString(), Hardpoint = e[1].ToString(), Radius = e[2].ToInt32(), Script = scr });
         }
-	}
+
+        [Entry("animated_textures")]
+        [Entry("surface_hit_effects")]
+        [Entry("fuse", Multiline = true)]
+        [Entry("shield_link")]
+        void Noop(Entry e)
+        {
+        }
+    }
 }

@@ -45,118 +45,99 @@ namespace LibreLancer.Data.Save
         }
     }
 
-   
+
     public class SavePlayer
     {
-        [Entry("descrip_strid")]
-        public int DescripStrid;
-        [Entry("description")]
-        public string Description;
+        [Entry("descrip_strid")] public int DescripStrid;
+
+        [Entry("description")] public string Description;
+
         //HandleEntry (tstamp)
         public DateTime? TimeStamp;
+
         //HandleEntry (name)
         public string Name;
-        [Entry("rank")]
-        public string Rank;
+        [Entry("rank")] public string Rank;
 
-        [Entry("money")]
-        public long Money;
+        [Entry("money")] public long Money;
 
-        [Entry("num_kills")]
-        public int NumKills;
-        [Entry("num_misn_successes")]
-        public int NumMissionSuccesses;
-        [Entry("num_misn_failures")]
-        public int NumMissionFailures;
+        [Entry("num_kills")] public int NumKills;
+        [Entry("num_misn_successes")] public int NumMissionSuccesses;
+        [Entry("num_misn_failures")] public int NumMissionFailures;
 
         //HandleEntry(house)
         public List<SaveRep> House = new List<SaveRep>();
 
-        [Entry("voice")]
-        public string Voice;
-        [Entry("costume")]
-        public string Costume;
-        [Entry("com_costume")]
-        public string ComCostume;
-        [Entry("com_body")]
-        public int ComBody;
-        [Entry("com_head")]
-        public int ComHead;
-        [Entry("com_lefthand")]
-        public int ComLeftHand;
-        [Entry("com_righthand")]
-        public int ComRightHand;
-        [Entry("body")]
-        public int Body;
-        [Entry("head")]
-        public int Head;
-        [Entry("lefthand")]
-        public int LeftHand;
-        [Entry("righthand")]
-        public int RightHand;
+        [Entry("voice")] public string Voice;
+        [Entry("costume")] public string Costume;
+        [Entry("com_costume")] public string ComCostume;
+        [Entry("com_body")] public int ComBody;
+        [Entry("com_head")] public int ComHead;
+        [Entry("com_lefthand")] public int ComLeftHand;
+        [Entry("com_righthand")] public int ComRightHand;
+        [Entry("body")] public int Body;
+        [Entry("head")] public int Head;
+        [Entry("lefthand")] public int LeftHand;
+        [Entry("righthand")] public int RightHand;
 
-        [Entry("system")]
-        public string System;
-        [Entry("base")]
-        public string Base;
-        [Entry("pos")]
-        public Vector3 Position;
-        [Entry("rotate")]
-        public Vector3 Rotate;
+        [Entry("system")] public string System;
+        [Entry("base")] public string Base;
+        [Entry("pos")] public Vector3 Position;
+        [Entry("rotate")] public Vector3 Rotate;
 
         public int ShipArchetypeCrc;
         public string ShipArchetype;
 
         //HandleEntry(equip)
         public List<PlayerEquipment> Equip = new List<PlayerEquipment>();
+
         //HandleEntry(cargo)
         public List<PlayerCargo> Cargo = new List<PlayerCargo>();
         //HandleEntry(visit)
 
 
-        [Entry("interface")]
-        public int Interface;
+        [Entry("interface")] public int Interface;
 
-        bool HandleEntry(Entry e)
+
+        [Entry("house", Multiline = true)]
+        void HandleHouse(Entry e) => House.Add(new SaveRep(e));
+
+        [Entry("log")]
+        [Entry("visit")]
+        void Noop(Entry e)
         {
-            switch(e.Name.ToLowerInvariant())
-            {
-                case "house":
-                    House.Add(new SaveRep(e));
-                    return true;
-                case "log":
-                    return true;
-                case "tstamp":
-                    TimeStamp = DateTime.FromFileTime(e[0].ToInt64() << 32 | e[1].ToInt64());
-                    return true;
-                case "name":
-                    try
-                    {
-                        var bytes = SplitInGroups(e[0].ToString(), 2).Select(x => byte.Parse(x, NumberStyles.HexNumber)).ToArray();
-                        Name = Encoding.BigEndianUnicode.GetString(bytes);
-                    }
-                    catch (Exception)
-                    {
-                        Name = e[0].ToString();
-                    }
-                    return true;
-                case "equip":
-                    Equip.Add(new PlayerEquipment(e));
-                    return true;
-                case "cargo":
-                    Cargo.Add(new PlayerCargo(e));
-                    return true;
-                case "ship_archetype":
-                    ShipArchetypeCrc = e[0].ToInt32();
-                    if(ShipArchetypeCrc == -1)
-                        ShipArchetype = e[0].ToString();
-                    return true;
-                case "visit":
-                    return true;
-            }
-            return false;
         }
 
+        [Entry("tstamp")]
+        void HandleTimestamp(Entry e) => TimeStamp = DateTime.FromFileTime(e[0].ToInt64() << 32 | e[1].ToInt64());
+
+        [Entry("name")]
+        void HandleName(Entry e)
+        {
+            try
+            {
+                var bytes = SplitInGroups(e[0].ToString(), 2).Select(x => byte.Parse(x, NumberStyles.HexNumber)).ToArray();
+                Name = Encoding.BigEndianUnicode.GetString(bytes);
+            }
+            catch (Exception)
+            {
+                Name = e[0].ToString();
+            }
+        }
+
+        [Entry("equip", Multiline = true)]
+        void HandleEquip(Entry e) => Equip.Add(new PlayerEquipment(e));
+
+        [Entry("cargo", Multiline = true)]
+        void HandleCargo(Entry e) => Cargo.Add(new PlayerCargo(e));
+
+        [Entry("ship_archetype")]
+        void HandleShipArchetype(Entry e)
+        {
+            ShipArchetypeCrc = e[0].ToInt32();
+            if(ShipArchetypeCrc == -1)
+                ShipArchetype = e[0].ToString();
+        }
         static IEnumerable<string> SplitInGroups(string original, int size)
         {
             var p = 0;

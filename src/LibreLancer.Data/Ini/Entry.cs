@@ -23,14 +23,14 @@ namespace LibreLancer.Ini
         public int Line = -1;
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string")]
-		public Entry(string file, BinaryReader reader, string stringBlock)
+		public Entry(string file, BinaryReader reader, BiniStringBlock stringBlock)
 		{
 			if (reader == null) throw new ArgumentNullException("reader");
 			if (stringBlock == null) throw new ArgumentNullException("stringBlock");
             
             File = file;
 			short nameOffset = reader.ReadInt16();
-			Name = stringBlock.Substring(nameOffset, stringBlock.IndexOf('\0', nameOffset) - nameOffset);
+            Name = stringBlock.Get(nameOffset);
 
 			byte count = reader.ReadByte();
 			values = new List<IValue>(count);

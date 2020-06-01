@@ -11,10 +11,7 @@ namespace LibreLancer
 		public const int NEBULA_INSIDE = 0;
 		public const int SUN = 1;
 		public const int OBJECT = 1;
-		public const int LIGHT_SHINE = 0;
-		public const int LIGHT_BULB = 1;
-
-		public const int OPAQUE = int.MaxValue;
+        public const int OPAQUE = int.MaxValue;
 	}
 }
 

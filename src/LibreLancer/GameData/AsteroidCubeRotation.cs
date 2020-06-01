@@ -13,6 +13,13 @@ namespace LibreLancer.GameData
 		public static readonly Vector4 Default_AxisY = new Vector4(0, 90, 180, 270);
 		public static readonly Vector4 Default_AxisZ = new Vector4(0, 90, 180, 270);
 
+        public static readonly AsteroidCubeRotation Default;
+
+        static AsteroidCubeRotation()
+        {
+            Default = new AsteroidCubeRotation(Default_AxisX, Default_AxisY, Default_AxisZ);
+        }
+        
         bool dirty = true;
 		public Vector4 AxisX
 		{
@@ -60,7 +67,18 @@ namespace LibreLancer.GameData
         Matrix4x4 m3;
         Matrix4x4 m4;
 
-		public Matrix4x4 GetRotation(float param)
+        public AsteroidCubeRotation()
+        {
+        }
+
+        public AsteroidCubeRotation(Vector4 x, Vector4 y, Vector4 z)
+        {
+            axisx = x;
+            axisy = y;
+            axisz = z;
+        }
+
+        public Matrix4x4 GetRotation(float param)
 		{
             if (dirty)
             {

@@ -263,10 +263,20 @@ namespace LibreLancer
 		{
 			if (cmds[x].SortLayer > cmds[y].SortLayer)
 				return -1;
-			else if (cmds[x].SortLayer < cmds[y].SortLayer)
+			if (cmds[x].SortLayer < cmds[y].SortLayer)
 				return 1;
-			else
-				return cmds[x].Z.CompareTo(cmds[y].Z);
+			if (cmds[x].CmdType == RenderCmdType.Billboard && 
+                     cmds[y].CmdType == RenderCmdType.Billboard)
+            {
+                var b = (Billboards)cmds[x].Source;
+                //Batch additive billboards (lights)
+                if (b.GetBlendMode(cmds[x].Index) == BlendMode.Additive &&
+                    b.GetBlendMode(cmds[y].Index) == BlendMode.Additive)
+                {
+                    return b.GetTextureID(cmds[x].Index).CompareTo(b.GetTextureID(cmds[y].Index));
+                }
+            }
+            return cmds[x].Z.CompareTo(cmds[y].Z);
 		}
 	}
 	public enum RenderCmdType : byte

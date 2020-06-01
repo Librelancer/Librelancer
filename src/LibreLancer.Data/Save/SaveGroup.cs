@@ -14,14 +14,7 @@ namespace LibreLancer.Data.Save
 
         public List<SaveRep> Rep = new List<SaveRep>();
 
-        bool HandleEntry(Entry e)
-        {
-            if(e.Name.Equals("rep", StringComparison.OrdinalIgnoreCase))
-            {
-                Rep.Add(new SaveRep(e));
-                return true;
-            }
-            return false;
-        }
+        [Entry("rep", Multiline = true)]
+        void HandleRep(Entry e) => Rep.Add(new SaveRep(e));
     }
 }

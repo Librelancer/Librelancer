@@ -1,10 +1,9 @@
-﻿// MIT License - Copyright (c) Malte Rupprecht, Callum McGing
+﻿// MIT License - Copyright (c) Malte Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using LibreLancer.Ini;
 
@@ -12,94 +11,41 @@ namespace LibreLancer.Data.Equipment
 {
 	public class EquipmentIni : IniFile
 	{
-		public List<AbstractEquipment> Equip { get; private set; }
-        public List<Munition> Munitions { get; private set; }
-        public EquipmentIni()
+        [Section("light", typeof(Light))]
+        [Section("power", typeof(PowerCore))]
+        [Section("scanner", typeof(Scanner))]
+        [Section("tractor", typeof(Tractor))]
+        [Section("lootcrate", typeof(LootCrate))]
+        [Section("repairkit", typeof(RepairKit))]
+        [Section("countermeasure", typeof(Countermeasure))]
+        [Section("countermeasuredropper", typeof(CountermeasureDropper))]
+        [Section("shieldbattery", typeof(ShieldBattery))]
+        [Section("armor", typeof(Armor))]
+        [Section("cargopod", typeof(CargoPod))]
+        [Section("commodity", typeof(Commodity))]
+        [Section("tradelane", typeof(Tradelane))]
+        [Section("internalfx", typeof(InternalFx))]
+        [Section("attachedfx", typeof(AttachedFx))]
+        [Section("shieldgenerator", typeof(ShieldGenerator))]
+        [Section("shield", typeof(Shield))]
+        [Section("engine", typeof(Engine))]
+        [Section("thruster", typeof(Thruster))]
+        [Section("cloakingdevice", typeof(CloakingDevice))]
+        [Section("gun", typeof(Gun))]
+        [Section("minedropper", typeof(MineDropper))]
+        [Section("lod", typeof(Lod), Child = true)] //Attaches to parents
+		public List<AbstractEquipment> Equip = new List<AbstractEquipment>();
+        [Section("munition")]
+        public List<Munition> Munitions = new List<Munition>();
+        [Section("motor")]
+        public List<Motor> Motors = new List<Motor>();
+        [Section("explosion")]
+        public List<Explosion> Explosions = new List<Explosion>();
+        [Section("mine")]
+        public List<Mine> Mines = new List<Mine>();
+        public void AddEquipmentIni(string path, FreelancerData data)
 		{
-			Equip = new List<AbstractEquipment>();
-            Munitions = new List<Munition>();
-		}
-
-		public void AddEquipmentIni(string path, FreelancerData data)
-		{
-			foreach (Section s in ParseFile(path, data.VFS))
-			{
-				switch (s.Name.ToLowerInvariant())
-				{
-				case "light":
-					Equip.Add(new Light(s, data));
-					break;
-				case "power":
-                    Equip.Add(FromSection<PowerCore>(s));
-					break;
-				case "scanner":
-					break;
-				case "tractor":
-					break;
-				case "lootcrate":
-					break;
-				case "repairkit":
-					break;
-				case "countermeasure":
-					break;
-				case "countermeasuredropper":
-					break;
-				case "shieldbattery":
-					break;
-				case "armor":
-					break;
-				case "cargopod":
-					break;
-				case "commodity":
-					break;
-				case "tradelane":
-					break;
-				case "internalfx":
-                    Equip.Add(FromSection<InternalFx>(s));
-					break;
-				case "attachedfx":
-                    Equip.Add(FromSection<AttachedFx>(s));
-					break;
-				case "shieldgenerator":
-					break;
-				case "shield":
-					break;
-				case "engine":
-                    Equip.Add(FromSection<Engine>(s));
-					break;
-				case "thruster":
-                    Equip.Add(FromSection<Thruster>(s));
-					break;
-				case "cloakingdevice":
-					break;
-				case "motor":
-					break;
-				case "explosion":
-					break;
-				case "munition":
-                    Munitions.Add(FromSection<Munition>(s));
-					break;
-				case "gun":
-                    Equip.Add(FromSection<Gun>(s));
-					break;
-				case "mine":
-					break;
-				case "minedropper":
-					break;
-				case "lod":
-					break;
-					default: FLLog.Error("Equipment Ini", "Invalid Section in " + path + ": " + s.Name); break;
-				}
-			}
-		}
-
-		public AbstractEquipment FindEquipment(string nickname)
-		{
-			IEnumerable<AbstractEquipment> candidates = from AbstractEquipment s in Equip where s.Nickname.Equals(nickname, StringComparison.OrdinalIgnoreCase) select s;
-			int count = candidates.Count<AbstractEquipment>();
-			if (count == 1) return candidates.First<AbstractEquipment>();
-			else if (count == 0) return null;
-			else throw new Exception(count + " AbstractEquipments with nickname " + nickname);
-		}
-	}
+            ParseAndFill(path, data.VFS);
+        }
+    }
 }

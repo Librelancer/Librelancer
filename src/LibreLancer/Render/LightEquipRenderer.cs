@@ -54,7 +54,7 @@ namespace LibreLancer
                 new Vector2(shineshape.Dimensions.X, shineshape.Dimensions.Y + shineshape.Dimensions.Height),
                 new Vector2(shineshape.Dimensions.X + shineshape.Dimensions.Width, shineshape.Dimensions.Y + shineshape.Dimensions.Height),
                 0,
-                SortLayers.LIGHT_SHINE,
+                SortLayers.OBJECT,
                 BlendMode.Additive
             );
             sys.Billboards.Draw(
@@ -67,7 +67,7 @@ namespace LibreLancer
                 new Vector2(bulbshape.Dimensions.X, bulbshape.Dimensions.Y + bulbshape.Dimensions.Height),
                 new Vector2(bulbshape.Dimensions.X + bulbshape.Dimensions.Width, bulbshape.Dimensions.Y + bulbshape.Dimensions.Height),
                 0,
-                SortLayers.LIGHT_BULB,
+                SortLayers.OBJECT,
                 BlendMode.Additive
             );
 

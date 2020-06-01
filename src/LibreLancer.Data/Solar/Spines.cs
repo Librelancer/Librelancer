@@ -21,16 +21,8 @@ namespace LibreLancer.Data.Solar
 		public int MaxRadius;
 		public List<Spine> Items = new List<Spine>();
 
-        //Custom construction for spine objects
-        bool HandleEntry(Entry e)
-        {
-            if(e.Name.Equals("spine", StringComparison.InvariantCultureIgnoreCase))
-            {
-                Items.Add(new Spine(e));
-                return true;
-            }
-            return false;
-        }
-	}
+        [Entry("spine", Multiline = true)]
+        void HandleSpine(Entry e) => Items.Add(new Spine(e));
+    }
 }
 

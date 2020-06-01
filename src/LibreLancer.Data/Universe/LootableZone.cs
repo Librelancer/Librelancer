@@ -3,18 +3,21 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-
+using System.Numerics;
 using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Universe
 {
-	public class LootableZone
-	{
-        bool HandleEntry(Entry e)
-        {
-            return true;
-        }
+    public class LootableZone
+    {
+        [Entry("zone")] public string Zone;
+        [Entry("asteroid_loot_container")] public string AsteroidLootContainer;
+        [Entry("asteroid_loot_commodity")] public string AsteroidLootCommodity;
+        [Entry("dynamic_loot_container")] public string DynamicLootContainer;
+        [Entry("dynamic_loot_commodity")] public string DynamicLootCommodity;
+        [Entry("asteroid_loot_count")] public Vector2 AsteroidLootCount;
+        [Entry("dynamic_loot_count")] public Vector2 DynamicLootCount;
+        [Entry("asteroid_loot_difficulty")] public float AsteroidLootDifficulty;
+        [Entry("dynamic_loot_difficulty")] public float DynamicLootDifficulty;
     }
 }

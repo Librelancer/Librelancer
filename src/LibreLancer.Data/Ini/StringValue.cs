@@ -13,14 +13,14 @@ namespace LibreLancer.Ini
 		private string value;
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string")]
-		public StringValue(BinaryReader reader, string stringBlock)
+		public StringValue(BinaryReader reader, BiniStringBlock stringBlock)
 		{
 			if (reader == null) throw new ArgumentNullException("reader");
 			if (stringBlock == null) throw new ArgumentNullException("stringBlock");
 
 			this.valuePointer = reader.ReadInt32();
-			this.value = stringBlock.Substring((int)valuePointer, stringBlock.IndexOf('\0', (int)valuePointer) - (int)valuePointer);
-		}
+            this.value = stringBlock.Get(valuePointer);
+        }
 
 		public StringValue(string value)
 		{

@@ -93,6 +93,7 @@ namespace LibreLancer
                     Matrix4x4 tr = dc.Scale * world;
                     worldHandle = buffer.WorldBuffer.SubmitMatrix(ref tr); 
                 }
+                
                 buffer.AddCommand(mat.Render,
                     ma,
                     worldHandle,
@@ -102,7 +103,8 @@ namespace LibreLancer
                     dc.BaseVertex,
                     dc.StartIndex,
                     dc.PrimitiveCount,
-                    SortLayers.OBJECT
+                    SortLayers.OBJECT,
+                    z
                 );
             }
         }

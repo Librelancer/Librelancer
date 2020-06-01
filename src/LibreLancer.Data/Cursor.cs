@@ -21,17 +21,13 @@ namespace LibreLancer.Data
 		public Vector2 Hotspot = Vector2.Zero;
         [Entry("color")]
 		public Color4 Color = Color4.White;
-		
-        public string Shape;
-        bool HandleEntry(Entry e)
+
+        [Entry("anim")]
+        void HandleAnim(Entry e)
         {
-            if(e.Name.Equals("anim", StringComparison.OrdinalIgnoreCase))
-            {
-                Shape = e[0].ToString();
-                //figure out following 2 int components
-                return true;
-            }
-            return false;
+            //TODO: Incomplete parse
+            Shape = e[0].ToString();
         }
+        public string Shape;
     }
 }

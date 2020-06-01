@@ -30,8 +30,10 @@ namespace LibreLancer.Ini
         class ReflectionInfo
         {
             public Type Type;
+            public bool IsChildSection;
             public List<ReflectionField> Fields = new List<ReflectionField>();
             public uint[] FieldHashes;
+            public List<ReflectionSection> ChildSections = new List<ReflectionSection>();
             public ulong RequiredFields = 0;
             public MethodInfo HandleEntry;
         }
@@ -41,8 +43,11 @@ namespace LibreLancer.Ini
             public string Name;
             public string[] Delimiters;
             public MethodInfo Add;
+            public PropertyInfo Count;
+            public MethodInfo Get;
             public FieldInfo Field;
             public ReflectionInfo Type;
+            public bool AttachToParent;
         }
 
         class ContainerClass
@@ -66,6 +71,7 @@ namespace LibreLancer.Ini
         {
             public EntryAttribute Attr;
             public FieldInfo Field;
+            public MethodInfo Method;
         }
 
         static Dictionary<Type, ContainerClass> containerclasses = new Dictionary<Type, ContainerClass>();
@@ -106,6 +112,35 @@ namespace LibreLancer.Ini
                         info.Fields.Add(new ReflectionField() { Attr = a, Field = field });
                         if (a.Required) info.RequiredFields |= (1ul << (info.Fields.Count - 1));
                     }
+                    foreach (var attr in field.GetCustomAttributes<SectionAttribute>())
+                    {
+                        if(!attr.Child) continue;
+                        var fieldType = field.FieldType;
+                        //Handle lists
+                        if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>))
+                        {
+                            var s = new ReflectionSection() {Name = attr.Name};
+                            s.Add = fieldType.GetMethod("Add", F_CLASSMEMBERS);
+                            s.Count = fieldType.GetProperty("Count", F_CLASSMEMBERS);
+                            s.Get = fieldType.GetMethod("get_Item", F_CLASSMEMBERS);
+                            s.Field = field;
+                            if (s.Add == null) throw new Exception();
+                            info.ChildSections.Add(s);
+                        }
+                        else
+                        {
+                            throw new Exception("Child sections can only be lists");
+                        }
+                    }
+                    
+                }
+                foreach (var method in t.GetMethods(F_CLASSMEMBERS))
+                {
+                    var attrs = method.GetCustomAttributes<EntryAttribute>();
+                    foreach (var a in attrs) {
+                        info.Fields.Add(new ReflectionField() { Attr = a, Method = method });
+                        if (a.Required) info.RequiredFields |= (1ul << (info.Fields.Count - 1));
+                    }
                 }
                 //This should never be tripped
                 if (info.Fields.Count > 64) throw new Exception("Too many fields!! Edit bitmask code & raise limit");
@@ -139,18 +174,27 @@ namespace LibreLancer.Ini
                     foreach (var attr in field.GetCustomAttributes<SectionAttribute>())
                     {
                         var s = new ReflectionSection() {Name = attr.Name};
+                        s.AttachToParent = attr.Child;
                         var fieldType = field.FieldType;
                         //Handle lists
                         if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>))
                         {
                             s.Add = fieldType.GetMethod("Add", F_CLASSMEMBERS);
+                            s.Count = fieldType.GetProperty("Count", F_CLASSMEMBERS);
+                            s.Get = fieldType.GetMethod("get_Item", F_CLASSMEMBERS);
                             if (s.Add == null) throw new Exception();
                             fieldType = fieldType.GetGenericArguments()[0]; // use this...
                         }
                         if (attr.Type != null)
                             s.Type = GetSectionInfo(attr.Type);
                         else
+                        {
+                            if (fieldType.IsAbstract) {
+                                throw new Exception(t.Name + " section " + attr.Name + " inits abstract class " + fieldType.Name);
+                            }
                             s.Type = GetSectionInfo(fieldType);
+                        }
+
                         s.Field = field;
                         s.Delimiters = attr.Delimiters;
                         sections.Add(s);
@@ -212,7 +256,7 @@ namespace LibreLancer.Ini
                         break;
                     }
                 }
-                //Special Handling
+                //Special Handling: Use sparingly
                 if (idx == -1)
                 {
                     bool handled = false;
@@ -233,6 +277,13 @@ namespace LibreLancer.Ini
                     bitmask |= 1ul << idx;
                 }
                 requiredBits &= ~(1ul << idx);
+                //Handle by method
+                if (field.Method != null)
+                {
+                    field.Method.Invoke(obj, new object[] { e });
+                    continue;
+                }
+                //Handle by type
                 var ftype = field.Field.FieldType;
                 Type nType;
                 if ((nType = Nullable.GetUnderlyingType(ftype)) != null) {
@@ -292,6 +343,10 @@ namespace LibreLancer.Ini
                 {
                     if (ComponentCheck(4, s, e)) field.Field.SetValue(obj, new Quaternion(e[1].ToSingle(), e[2].ToSingle(), e[3].ToSingle(), e[0].ToSingle()));
                 }
+                else if(ftype == typeof(Vector4))
+                {
+                    if (ComponentCheck(4, s, e)) field.Field.SetValue(obj, new Vector4(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle(), e[3].ToSingle()));
+                }
                 else if (ftype == typeof(Vector2))
                 {
                     if (e.Count == 1 && field.Attr.MinMax)
@@ -312,7 +367,7 @@ namespace LibreLancer.Ini
                 }
                 else if (ftype == typeof(Color3f))
                 {
-                    if (ComponentCheck(3, s, e)) field.Field.SetValue(obj, new Color3f(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle()));
+                    if (ComponentCheck(3, s, e)) field.Field.SetValue(obj, new Color3f(e[0].ToSingle() / 255f, e[1].ToSingle() / 255f, e[2].ToSingle() / 255f));
                 }
                 else if (ftype == typeof(List<string>))
                 {
@@ -458,7 +513,35 @@ namespace LibreLancer.Ini
                         if (tgt.Add != null)
                         {
                             var list = tgt.Field.GetValue(this);
-                            tgt.Add.Invoke(list, new object[] {parsed});
+                            if (tgt.AttachToParent)
+                            {
+                                var count = (int)tgt.Count.GetValue(list);
+                                if (count <= 0) {
+                                    FLLog.Warning("Ini", $"Section {section.Name} has no parent {FormatLine(section.File, section.Line)}");
+                                    return;
+                                }
+                                var parent = tgt.Get.Invoke(list, new object[] { count - 1 });
+                                bool success = false;
+                                var parentInfo = GetSectionInfo(parent.GetType());
+                                foreach (var cs in parentInfo.ChildSections) {
+                                    if (cs.Name.Equals(section.Name, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        var ls2 = cs.Field.GetValue(parent);
+                                        cs.Add.Invoke(ls2, new object[] {parsed});
+                                        success = true;
+                                        break;
+                                    }       
+                                }
+                                if (!success)
+                                {
+                                    FLLog.Warning("Ini",
+                                        $"Type {parentInfo.GetType().Name} does not accept child section {section.Name} {FormatLine(section.File, section.Line)}");
+                                }
+                            }
+                            else
+                            {
+                                tgt.Add.Invoke(list, new object[] {parsed});
+                            }
                         }
                         else
                             tgt.Field.SetValue(this, parsed);

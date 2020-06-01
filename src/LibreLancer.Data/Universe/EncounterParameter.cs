@@ -12,10 +12,8 @@ using LibreLancer.Ini;
 namespace LibreLancer.Data.Universe
 {
 	public class EncounterParameter
-	{
-        bool HandleEntry(Entry e)
-        {
-            return true;
-        }
-	}
+    {
+        [Entry("nickname")] public string Nickname;
+        [Entry("filename")] public string Filename;
+    }
 }

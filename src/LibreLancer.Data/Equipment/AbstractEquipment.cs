@@ -3,7 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
-
+using System.Collections.Generic;
 using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Equipment
@@ -14,8 +14,8 @@ namespace LibreLancer.Data.Equipment
         public string Nickname;
         [Entry("da_archetype")]
         public string DaArchetype;
-        [Entry("material_library")]
-        public string MaterialLibrary;
+        [Entry("material_library", Multiline = true)]
+        public List<string> MaterialLibrary = new List<string>();
         [Entry("lodranges")]
         public float[] LODRanges;
         [Entry("hp_child")]
@@ -46,5 +46,8 @@ namespace LibreLancer.Data.Equipment
         public string DebrisType;
         [Entry("indestructible")]
         public bool Indestructible;
+        
+        [Section("lod", Child = true)]
+        public List<Lod> LodInfo = new List<Lod>();
     }
 }

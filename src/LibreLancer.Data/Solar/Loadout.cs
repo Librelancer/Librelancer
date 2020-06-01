@@ -12,58 +12,28 @@ using LibreLancer.Data.Equipment;
 namespace LibreLancer.Data.Solar
 {
 	public class Loadout
-	{
-		public string Nickname { get; private set; }
-		public Archetype Archetype { get; private set; }
+    {
+        [Entry("nickname")] public string Nickname;
 
-		public Dictionary<string, string> Equip { get; private set; }
+        [Entry("archetype")] public string Archetype;
+        
+        [Entry("cargo", Multiline = true)]
+        [Entry("hull", Multiline = true)]
+        [Entry("addon", Multiline = true)]
+        [Entry("hull_damage", Multiline = true)]
+        void Noop(Entry e)
+        {
+            
+        }
 
-		public Loadout(Section section, FreelancerData freelancerIni)
-		{
-			if (section == null) throw new ArgumentNullException("section");
-
-			//Equip = new List<Equip>();
-			Equip = new Dictionary<string, string>();
-
-			int emptyHp = 1;
-			foreach (Entry e in section)
-			{
-				switch (e.Name.ToLowerInvariant())
-				{
-				case "nickname":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (Nickname != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					Nickname = e[0].ToString();
-					break;
-				case "archetype":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (Archetype != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					Archetype = freelancerIni.Solar.FindSolar(e[0].ToString());
-					break;
-				case "equip":
-					//if (e.Count < 1 || e.Count > 2) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count); //TODO: Reverse-engineer this properly
-					//HACK: Come up with a proper way of handling this
-					string key = e.Count == 2 ? e[1].ToString() : "__noHardpoint" + (emptyHp++).ToString("d2");
-						if (e.Count == 2 && e[1].ToString().Trim() == "") key = "__noHardpoint" + (emptyHp++).ToString("d2");
-                        if (!Equip.ContainsKey(key)) Equip.Add(key, e[0].ToString());
-					break;
-				case "cargo":
-					// TODO: Loadout cargo
-					break;
-				case "hull":
-					// TODO: Loadout hull?
-					break;
-				case "addon":
-					// TODO: Loadout addon?
-					break;
-                case "hull_damage":
-                        //TODO: Is this real or a disco bug?
-                    break;
-				default:
-					FLLog.Error("Loadout","Invalid Entry in " + section.Name + ": " + e.Name);
-                    break;
-				}
-			}
-		}
-	}
+        public Dictionary<string, string> Equip = new Dictionary<string, string>();
+        private int emptyHp = 1;
+        [Entry("equip", Multiline = true)]
+        void HandleEquip(Entry e)
+        {
+            string key = e.Count == 2 ? e[1].ToString() : "__noHardpoint" + (emptyHp++).ToString("d2");
+            if (e.Count == 2 && e[1].ToString().Trim() == "") key = "__noHardpoint" + (emptyHp++).ToString("d2");
+            if (!Equip.ContainsKey(key)) Equip.Add(key, e[0].ToString());
+        }
+    }
 }

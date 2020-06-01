@@ -4,6 +4,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Lidgren.Network;
 
 namespace LibreLancer
@@ -142,7 +143,7 @@ namespace LibreLancer
                                         var p = new Player(new RemotePacketClient(im.SenderConnection, NetServer),
                                             game, auth.Guid);
                                         im.SenderConnection.Tag = p;
-                                        AsyncManager.RunTask(() => p.DoAuthSuccess());
+                                        Task.Run(() => p.DoAuthSuccess());
                                         lock (game.ConnectedPlayers)
                                         {
                                             game.ConnectedPlayers.Add(p);
@@ -157,7 +158,7 @@ namespace LibreLancer
                                 else
                                 {
                                     var player = (Player) im.SenderConnection.Tag;
-                                    AsyncManager.RunTask(() => player.ProcessPacket(pkt));
+                                    Task.Run(() => player.ProcessPacket(pkt));
                                     NetServer.Recycle(im);
                                 }
                             }

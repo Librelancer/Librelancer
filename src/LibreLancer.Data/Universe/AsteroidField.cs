@@ -15,9 +15,13 @@ namespace LibreLancer.Data.Universe
         [Section("field")]
         public Field Field;
         
+        [Entry("xaxis_rotation")]
         public Vector4? Cube_RotationX;
+        [Entry("yaxis_rotation")]
         public Vector4? Cube_RotationY;
+        [Entry("zaxis_rotation")]
         public Vector4? Cube_RotationZ;
+        
         public List<CubeAsteroid> Cube = new List<CubeAsteroid>();
         
         [Section("band")] 
@@ -33,27 +37,7 @@ namespace LibreLancer.Data.Universe
         [Section("lootablezone")]
 		public List<LootableZone> LootableZones = new List<LootableZone>();
 
-        bool HandleEntry(Entry e)
-        {
-            if (e.Name.Equals("xaxis_rotation", StringComparison.OrdinalIgnoreCase))
-            {
-                Cube_RotationX = new Vector4(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle(), e[3].ToSingle());
-                return true;
-            } else if (e.Name.Equals("yaxis_rotation", StringComparison.OrdinalIgnoreCase))
-            {
-                Cube_RotationY = new Vector4(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle(), e[3].ToSingle());
-                return true;
-            } else if (e.Name.Equals("zaxis_rotation", StringComparison.OrdinalIgnoreCase))
-            {
-                Cube_RotationZ = new Vector4(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle(), e[3].ToSingle());
-                return true;
-            } else if (e.Name.Equals("asteroid"))
-            {
-                Cube.Add(new CubeAsteroid(e));
-                return true;
-            }
-
-            return false;
-        }
+        [Entry("asteroid", Multiline = true)]
+        void HandleAsteroid(Entry e) => Cube.Add(new CubeAsteroid(e));
     }
 }

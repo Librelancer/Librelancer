@@ -24,13 +24,9 @@ namespace LibreLancer.Data.Save
         [Entry("locked_gate", Multiline = true)]
         public List<int> LockedGates = new List<int>();
 
-        bool HandleEntry(Entry e)
+        [Entry("vnpc", Multiline = true)]
+        void Noop(Entry e)
         {
-            if(e.Name.Equals("vnpc", StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-            return false;
         }
     }
 }

@@ -14,15 +14,9 @@ namespace LibreLancer.Data.Missions
         public string System;
 
         public List<DialogLine> Lines = new List<DialogLine>();
-        bool HandleEntry(Entry e)
-        {
-            if (e.Name.Equals("line", StringComparison.OrdinalIgnoreCase))
-            {
-                Lines.Add(new DialogLine() { Source = e[0].ToString(), Target = e[1].ToString(), Line = e[2].ToString() });
-                return true;
-            }
-            return false;
-        }
+
+        [Entry("line", Multiline = true)]
+        void HandleLine(Entry e) => Lines.Add(new DialogLine() { Source = e[0].ToString(), Target = e[1].ToString(), Line = e[2].ToString() });
     }
     public class DialogLine
     {

@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 using LibreLancer.Data.Equipment;
@@ -99,78 +100,138 @@ namespace LibreLancer.Data
             {
                 Infocards = new InfocardManager(Freelancer.Resources);
             }
-            Equipment = new EquipmentIni();
-            foreach (var eq in Freelancer.EquipmentPaths)
-                Equipment.AddEquipmentIni(eq, this);
-            Solar = new SolararchIni(Freelancer.SolarPath, this);
-            if (Freelancer.StarsPath != null)
-                Stars = new StararchIni(Freelancer.StarsPath, VFS);
-            else
-                Stars = new StararchIni("DATA\\SOLAR\\stararch.ini", VFS);
-            Asteroids = new AsteroidArchIni();
-            foreach (var ast in Freelancer.AsteroidPaths)
-                Asteroids.AddFile(ast, VFS);
-            Loadouts = new LoadoutsIni();
-            foreach (var lo in Freelancer.LoadoutPaths)
-                Loadouts.AddLoadoutsIni(lo, this);
-            Universe = new UniverseIni(Freelancer.UniversePath, this);
-            //Graphs
-            Graphs = new GraphIni();
-            foreach (var g in Freelancer.GraphPaths)
-                Graphs.AddGraphIni(g, VFS);
-            //Shapes
-            EffectShapes = new TexturePanels(Freelancer.EffectShapesPath, VFS);
-            //Effects
-            Effects = new EffectsIni();
-            foreach (var fx in Freelancer.EffectPaths)
-                Effects.AddIni(fx, VFS);
-            //Mouse
-            Mouse = new MouseIni(Freelancer.DataPath + "/mouse.ini", VFS);
-            //Fonts
-            RichFonts = new RichFontsIni();
-            foreach (var rf in Freelancer.RichFontPaths)
-                RichFonts.AddRichFontsIni(rf, VFS);
-            Fonts = new FontsIni();
-            foreach (var f in Freelancer.FontPaths)
-                Fonts.AddFontsIni(f, VFS);
-            //PetalDb
-            PetalDb = new PetalDbIni();
-            foreach (var pt in Freelancer.PetalDbPaths)
-                PetalDb.AddFile(pt, VFS);
-            //Hud
-            Hud = new HudIni();
-            Hud.AddIni(Freelancer.HudPath, VFS);
-            //navbar.ini
-            BaseNavBar = new BaseNavBarIni(VFS);
-            //mbases.ini
-            MBases = new MBasesIni(VFS);
-            //fuses
-            Fuses = new FuseIni();
-            foreach (var fi in Freelancer.FusePaths)
-                Fuses.AddFuseIni(fi, VFS);
-            //newchardb
-            NewCharDB = new NewCharDBIni();
-            foreach (var nc in Freelancer.NewCharDBPaths)
-                NewCharDB.AddNewCharDBIni(nc, VFS);
-            Bodyparts = new BodypartsIni(Freelancer.BodypartsPath, this);
-            Costumes = new CostumesIni(Freelancer.CostumesPath, this);
-            Audio = new AudioIni();
-            foreach (var snd in Freelancer.SoundPaths)
-                Audio.AddIni(snd, VFS);
-            Ships = new ShiparchIni();
-            foreach (var shp in Freelancer.ShiparchPaths)
-                Ships.AddShiparchIni(shp, this);
-            Goods = new GoodsIni();
-            foreach (var gd in Freelancer.GoodsPaths)
-                Goods.AddGoodsIni(gd, VFS);
-            Markets = new MarketsIni();
-            foreach (var mkt in Freelancer.MarketsPaths)
-                Markets.AddMarketsIni(mkt, VFS);
-            foreach(var msn in missionFiles)
+
+            var t1 = Task.Run(() =>
             {
-                if (VFS.FileExists(Freelancer.DataPath + msn))
-                    Missions.Add(new Data.Missions.MissionIni(Freelancer.DataPath + msn, VFS));
-            }
+                Equipment = new EquipmentIni();
+                foreach (var eq in Freelancer.EquipmentPaths)
+                    Equipment.AddEquipmentIni(eq, this);
+            });
+            var t2 = Task.Run(() =>
+            {
+                Solar = new SolararchIni(Freelancer.SolarPath, this);
+                if (Freelancer.StarsPath != null)
+                    Stars = new StararchIni(Freelancer.StarsPath, VFS);
+                else
+                    Stars = new StararchIni("DATA\\SOLAR\\stararch.ini", VFS);
+            });
+            var t3 = Task.Run(() =>
+            {
+                Asteroids = new AsteroidArchIni();
+                foreach (var ast in Freelancer.AsteroidPaths)
+                    Asteroids.AddFile(ast, VFS);
+            });
+            var t4 = Task.Run(() =>
+            {
+                Loadouts = new LoadoutsIni();
+                foreach (var lo in Freelancer.LoadoutPaths)
+                    Loadouts.AddLoadoutsIni(lo, this);
+            });
+            var t5 = Task.Run(() =>
+            {
+                Universe = new UniverseIni(Freelancer.UniversePath, this);
+            });
+            //Graphs
+            var t6 = Task.Run(() =>
+            {
+                Graphs = new GraphIni();
+                foreach (var g in Freelancer.GraphPaths)
+                    Graphs.AddGraphIni(g, VFS);
+            });
+            //Shapes
+            var t7 = Task.Run(() =>
+            {
+                EffectShapes = new TexturePanels(Freelancer.EffectShapesPath, VFS);
+            });
+            //Effects
+            var t8 = Task.Run(() =>
+            {
+                Effects = new EffectsIni();
+                foreach (var fx in Freelancer.EffectPaths)
+                    Effects.AddIni(fx, VFS);
+            });
+            var t9 = Task.Run(() =>
+            {
+                //Mouse
+                Mouse = new MouseIni(Freelancer.DataPath + "/mouse.ini", VFS);
+                //Fonts
+                RichFonts = new RichFontsIni();
+                foreach (var rf in Freelancer.RichFontPaths)
+                    RichFonts.AddRichFontsIni(rf, VFS);
+                Fonts = new FontsIni();
+                foreach (var f in Freelancer.FontPaths)
+                    Fonts.AddFontsIni(f, VFS);
+            });
+            var t10 = Task.Run(() =>
+            {
+                //PetalDb
+                PetalDb = new PetalDbIni();
+                foreach (var pt in Freelancer.PetalDbPaths)
+                    PetalDb.AddFile(pt, VFS);
+            });
+            var t11 = Task.Run(() =>
+            {
+                //Hud
+                Hud = new HudIni();
+                Hud.AddIni(Freelancer.HudPath, VFS);
+                //navbar.ini
+                BaseNavBar = new BaseNavBarIni(VFS);
+            });
+            var t12 = Task.Run(() =>
+            {
+                //mbases.ini
+                MBases = new MBasesIni(VFS);
+            });
+            var t14 = Task.Run(() =>
+            {
+                Fuses = new FuseIni();
+                foreach (var fi in Freelancer.FusePaths)
+                    Fuses.AddFuseIni(fi, VFS);
+            });
+            //newchardb
+            var t15 = Task.Run(() =>
+            {
+                NewCharDB = new NewCharDBIni();
+                foreach (var nc in Freelancer.NewCharDBPaths)
+                    NewCharDB.AddNewCharDBIni(nc, VFS);
+            });
+            var t16 = Task.Run(() =>
+            {
+                Bodyparts = new BodypartsIni(Freelancer.BodypartsPath, this);
+                Costumes = new CostumesIni(Freelancer.CostumesPath, this);
+            });
+            var t18 = Task.Run(() =>
+            {
+                Audio = new AudioIni();
+                foreach (var snd in Freelancer.SoundPaths)
+                    Audio.AddIni(snd, VFS);
+            });
+            var t19 = Task.Run(() =>
+            {
+                Ships = new ShiparchIni();
+                foreach (var shp in Freelancer.ShiparchPaths)
+                    Ships.AddShiparchIni(shp, this);
+            });
+            var t20 = Task.Run(() =>
+            {
+                Goods = new GoodsIni();
+                foreach (var gd in Freelancer.GoodsPaths)
+                    Goods.AddGoodsIni(gd, VFS);
+            });
+            var t21 = Task.Run(() =>
+            {
+                Markets = new MarketsIni();
+                foreach (var mkt in Freelancer.MarketsPaths)
+                    Markets.AddMarketsIni(mkt, VFS);
+            });
+            var t22 = Task.Run(() =>
+            {
+                foreach (var msn in missionFiles)
+                {
+                    if (VFS.FileExists(Freelancer.DataPath + msn))
+                        Missions.Add(new Data.Missions.MissionIni(Freelancer.DataPath + msn, VFS));
+                }
+            });
             ContentDll = new ContentDll();
             if (VFS.FileExists("DLLS\\BIN\\content.dll"))
                 ContentDll.Load(VFS.Resolve("DLLS\\BIN\\content.dll"));
@@ -178,6 +239,8 @@ namespace LibreLancer.Data
                 DataVersion = Freelancer.DataVersion;
             else
                 DataVersion = "FL-1";
+            //Yes I screwed up the numbering
+            Task.WaitAll(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t14, t15, t16, t18, t19, t20, t21, t22);
             Loaded = true;
         }
     }

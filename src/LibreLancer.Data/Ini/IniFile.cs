@@ -72,7 +72,7 @@ namespace LibreLancer.Ini
                 reader.BaseStream.Seek(stringBlockOffset, SeekOrigin.Begin);
                 Array.Resize<byte>(ref buffer, (int)(reader.BaseStream.Length - stringBlockOffset));
                 reader.Read(buffer, 0, buffer.Length);
-                string stringBlock = Encoding.ASCII.GetString(buffer);
+                var stringBlock = new BiniStringBlock(Encoding.ASCII.GetString(buffer));
 
                 reader.BaseStream.Seek(sectionBlockOffset, SeekOrigin.Begin);
                 while (reader.BaseStream.Position < stringBlockOffset) yield return new Section(path, reader, stringBlock);

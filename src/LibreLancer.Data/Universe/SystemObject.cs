@@ -79,19 +79,12 @@ namespace LibreLancer.Data.Universe
         [Entry("parent")] 
         public string Parent;
 
-        bool HandleEntry(Entry e)
-        {
-            if (e.Name.Equals("goto", StringComparison.OrdinalIgnoreCase))
-            {
-                Goto = new JumpReference(e[0].ToString(), e[1].ToString(), e[2].ToString());
-                return true;
-            }
+        [Entry("goto")]
+        void HandleGoto(Entry e) => Goto = new JumpReference(e[0].ToString(), e[1].ToString(), e[2].ToString());
 
-            if (e.Name.Equals("ring", StringComparison.OrdinalIgnoreCase))
-            {
-                return true; //TODO
-            }
-            return false;
+        [Entry("ring")]
+        void HandleRing(Entry e)
+        { //No-op
         }
     }
 }

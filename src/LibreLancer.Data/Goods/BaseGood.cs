@@ -13,15 +13,8 @@ namespace LibreLancer.Data.Goods
         public string Base;
 
         public List<MarketGood> MarketGoods = new List<MarketGood>();
-        
-        bool HandleEntry(Entry e)
-        {
-            if (e.Name.Equals("marketgood", StringComparison.InvariantCultureIgnoreCase))
-            {
-                MarketGoods.Add(new MarketGood(e));
-                return true;
-            }
-            return false;
-        }
+
+        [Entry("marketgood", Multiline = true)]
+        void HandleMarketGood(Entry e) => MarketGoods.Add(new MarketGood(e));
     }
 }

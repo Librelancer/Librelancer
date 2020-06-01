@@ -35,17 +35,13 @@ namespace LibreLancer.Data.Missions
         public string InitObjectives;
         public List<MissionShipCargo> Cargo = new List<MissionShipCargo>();
 
-        bool HandleEntry(Entry e)
+        [Entry("cargo", Multiline = true)]
+        void ParseCargo(Entry e)
         {
-            if(e.Name.Equals("cargo",StringComparison.OrdinalIgnoreCase))
+            Cargo.Add(new MissionShipCargo()
             {
-                Cargo.Add(new MissionShipCargo()
-                {
-                    Cargo = e[0].ToString(), Count = e[1].ToInt32()
-                });
-                return true;
-            }
-            return false;
+                Cargo = e[0].ToString(), Count = e[1].ToInt32()
+            });
         }
     }
     public class MissionShipCargo

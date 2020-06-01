@@ -55,21 +55,19 @@ namespace LibreLancer.Data.Goods
         public string FreeAmmoName;
         public int FreeAmmoCount;
 
-        bool HandleEntry(Entry e)
+        [Entry("addon", Multiline = true)]
+        void HandleAddon(Entry e)
         {
-            if(e.Name.Equals("addon",StringComparison.InvariantCultureIgnoreCase))
-            {
-                int amt = 1;
-                if (e.Count > 2) amt = e[2].ToInt32();
-                Addons.Add(new GoodAddon() { Equipment = e[0].ToString(), Hardpoint = e[1].ToString(), Amount = amt });
-                return true;
-            } else if (e.Name.Equals("free_ammo", StringComparison.InvariantCultureIgnoreCase))
-            {
-                FreeAmmoName = e[0].ToString();
-                FreeAmmoCount = e[1].ToInt32();
-                return true;
-            }
-            return false;
+            int amt = 1;
+            if (e.Count > 2) amt = e[2].ToInt32();
+            Addons.Add(new GoodAddon() { Equipment = e[0].ToString(), Hardpoint = e[1].ToString(), Amount = amt });
+        }
+
+        [Entry("free_ammo")]
+        void HandleFreeAmmo(Entry e)
+        {
+            FreeAmmoName = e[0].ToString();
+            FreeAmmoCount = e[1].ToInt32();
         }
     }
     public class GoodAddon

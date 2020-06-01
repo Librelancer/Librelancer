@@ -9,12 +9,11 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
-using LibreLancer.Fx;
+using System.Threading.Tasks;
+using LibreLancer.Data.Solar;
 using LibreLancer.GameData;
-using LibreLancer.Utf.Ale;
 using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Dfm;
-using Archetype = LibreLancer.Data.Archetype;
 using FileSystem = LibreLancer.Data.FileSystem;
 
 namespace LibreLancer
@@ -244,20 +243,13 @@ namespace LibreLancer
         Dictionary<string, GameData.Base> bases;
         Dictionary<string, GameData.Market.ShipPackage> shipPackages = new Dictionary<string, GameData.Market.ShipPackage>();
 
-        ConcurrentQueue<Action> loadActions = new ConcurrentQueue<Action>();
-        volatile bool initing = false;
-        void AsyncLoadThread()
+        private List<Task> asyncTasks = new List<Task>();
+        void AsyncAction(Action a) =>  asyncTasks.Add(Task.Run(a));
+
+        void WaitTasks()
         {
-            while(initing || loadActions.Count > 0)
-            {
-                Action a;
-                if (loadActions.TryDequeue(out a)) a();
-                Thread.Sleep(0);
-            }
-        }
-        void AsyncAction(Action a)
-        {
-            loadActions.Enqueue(a);
+            Task.WaitAll(asyncTasks.ToArray());
+            asyncTasks = new List<Task>();
         }
         public void LoadData()
         {
@@ -267,9 +259,6 @@ namespace LibreLancer
                 FLLog.Info("Game", "Loading Character Animations");
                 GetCharacterAnimations();
             });
-            initing = true;
-            var thread = new Thread(AsyncLoadThread);
-            thread.Start();
             FLLog.Info("Game", "Initing Tables");
             var introbases = InitBases().ToArray();
             InitShips();
@@ -278,9 +267,6 @@ namespace LibreLancer
             InitGoods();
             InitMarkets();
             InitSystems();
-            initing = false;
-            FLLog.Info("Game", "Waiting on threads");
-            thread.Join();
             FLLog.Info("Game", "Loading intro scenes");
             IntroScenes = new List<GameData.IntroScene>();
             foreach (var b in introbases)
@@ -318,6 +304,8 @@ namespace LibreLancer
                     glResource.AddShape(shape.Key, s);
                 }
             }
+            FLLog.Info("Game", "Waiting on threads");
+            WaitTasks();
             fldata.Universe = null; //Free universe ini!
             GC.Collect(); //We produced a crapload of garbage
         }
@@ -456,12 +444,13 @@ namespace LibreLancer
         void InitEquipment()
         {
             FLLog.Info("Game", "Initing " + fldata.Equipment.Equip.Count + " equipments");
+            Dictionary<string, LightInheritHelper> lights = new Dictionary<string, LightInheritHelper>(StringComparer.OrdinalIgnoreCase);
             foreach (var val in fldata.Equipment.Equip)
             {
                 GameData.Items.Equipment equip = null;
-                if (val is Data.Equipment.Light)
+                if (val is Data.Equipment.Light l)
                 {
-                    equip = GetLight((Data.Equipment.Light)val);
+                    lights.Add(val.Nickname, new LightInheritHelper(l));
                 }
                 else if (val is Data.Equipment.InternalFx)
                 {
@@ -524,12 +513,31 @@ namespace LibreLancer
 
                 if (val is Data.Equipment.Engine deng)
                     equip = new GameData.Items.EngineEquipment() {Def = deng};
+                if(equip == null) 
+                    continue;
                 equip.Nickname = val.Nickname;
                 equip.CRC = FLHash.CreateID(equip.Nickname);
                 equip.HPChild = val.HPChild;
                 equip.LODRanges = val.LODRanges;
                 equipments[equip.Nickname] = equip;
                 equipmentHashes[equip.CRC] = equip;
+            }
+            //Resolve light inheritance
+            foreach (var lt in lights.Values)
+            {
+                if (!string.IsNullOrWhiteSpace(lt.InheritName))
+                {
+                    if (!lights.TryGetValue(lt.InheritName, out lt.Inherit))
+                        FLLog.Error("Light", $"Light not found {lt.InheritName}");
+                }
+            }
+            foreach (var lt in lights.Values)
+            {
+                var eq = GetLight(lt);
+                eq.Nickname = lt.Nickname;
+                eq.CRC = FLHash.CreateID(eq.Nickname);
+                equipments[eq.Nickname] = eq;
+                equipmentHashes[eq.CRC] = eq;
             }
             fldata.Equipment = null; //Free memory
         }
@@ -551,6 +559,9 @@ namespace LibreLancer
         void InitSystems()
         {
             FLLog.Info("Game", "Initing " + fldata.Universe.Systems.Count + " systems");
+            _solarLoadouts = new Dictionary<string, Loadout>();
+            foreach (var l in fldata.Loadouts.Loadouts)
+                _solarLoadouts[l.Nickname] = l;
             foreach (var inisys in fldata.Universe.Systems)
             {
                 if (inisys.MultiUniverse) continue; //Skip multiuniverse for now
@@ -760,16 +771,20 @@ namespace LibreLancer
 
         Dictionary<string, CachedTexturePanels> tpanels = new Dictionary<string, CachedTexturePanels>(StringComparer.OrdinalIgnoreCase);
         int tpId = 0;
+        private object tPanelsLock = new object();
         CachedTexturePanels TexturePanelFile(string f)
         {
-            CachedTexturePanels pnl;
-            if (!tpanels.TryGetValue(f, out pnl))
+            lock (tPanelsLock)
             {
-                pnl = new CachedTexturePanels() { ID = tpId++, P = new Data.Universe.TexturePanels(f, VFS) };
-                pnl.ResourceFiles = pnl.P.Files.Select(ResolveDataPath).ToArray();
-                tpanels.Add(f, pnl);
+                CachedTexturePanels pnl;
+                if (!tpanels.TryGetValue(f, out pnl))
+                {
+                    pnl = new CachedTexturePanels() {ID = tpId++, P = new Data.Universe.TexturePanels(f, VFS)};
+                    pnl.ResourceFiles = pnl.P.Files.Select(ResolveDataPath).ToArray();
+                    tpanels.Add(f, pnl);
+                }
+                return pnl;
             }
-            return pnl;
         }
 
         GameData.AsteroidField GetAsteroidField(GameData.StarSystem sys, Data.Universe.AsteroidField ast)
@@ -1184,6 +1199,13 @@ namespace LibreLancer
             return resource.GetDrawable(ResolveDataPath(fldata.PetalDb.Rooms[room]));
         }
 
+        Dictionary<string, Data.Solar.Loadout> _solarLoadouts = new Dictionary<string, Data.Solar.Loadout>(StringComparer.OrdinalIgnoreCase);
+        Loadout GetLoadout(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return null;
+            _solarLoadouts.TryGetValue(key, out var ld);
+            return ld;
+        }
         public GameData.SystemObject GetSystemObject(Data.Universe.SystemObject o)
         {
             var obj = new GameData.SystemObject();
@@ -1259,12 +1281,14 @@ namespace LibreLancer
                     };
                 }
             }
-            var ld = fldata.Loadouts.FindLoadout(o.Loadout);
-            var archld = fldata.Loadouts.FindLoadout(obj.Archetype.LoadoutName);
+
+            var ld = GetLoadout(o.Loadout);
+            var archld = GetLoadout(obj.Archetype.LoadoutName);
             if (ld != null) ProcessLoadout(ld, obj);
             if (archld != null) ProcessLoadout(archld, obj);
             return obj;
         }
+
 
         //Used to spawn objects within mission scripts
         public GameData.Archetype GetSolarArchetype(string id) => archetypes[id];
@@ -1367,7 +1391,7 @@ namespace LibreLancer
             return equip;
         }
 
-        GameData.Items.LightEquipment GetLight(Data.Equipment.Light lt)
+        GameData.Items.LightEquipment GetLight(LightInheritHelper lt)
         {
             var equip = new GameData.Items.LightEquipment();
             equip.Color = lt.Color ?? Color3f.White;

@@ -8,6 +8,7 @@ using System.Numerics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using LibreLancer.Data;
 using LibreLancer.ImUI;
 using LibreLancer;
@@ -371,7 +372,7 @@ namespace LancerEdit
                     
                     if (isSearchInfocards)
                     {
-                        AsyncManager.RunTask(() =>
+                        Task.Run(() =>
                         {
                             var results = new List<int>();
                             var resStrings = new List<string>();
@@ -391,7 +392,7 @@ namespace LancerEdit
                     }
                     else
                     {
-                        AsyncManager.RunTask(() =>
+                        Task.Run(() =>
                         {
                             var results = new List<int>();
                             var resStrings = new List<string>();

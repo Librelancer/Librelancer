@@ -11,10 +11,11 @@ namespace LibreLancer.Ini
         public string Name;
         public string[] Delimiters;
         public Type Type;
+        public bool Child;
         public SectionAttribute(string name, Type type = null)
         {
             Name = name;
-            Type = null;
+            Type = type;
         }
     }
 }

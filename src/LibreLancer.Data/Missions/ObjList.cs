@@ -13,6 +13,8 @@ namespace LibreLancer.Data.Missions
         [Entry("system")]
         public string System;
         public List<ObjCmd> Commands = new List<ObjCmd>();
+        
+        
         bool HandleEntry(Entry e)
         {
             ObjListCommands c;

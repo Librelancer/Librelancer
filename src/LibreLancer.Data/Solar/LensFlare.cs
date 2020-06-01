@@ -18,10 +18,10 @@ namespace LibreLancer.Data.Solar
 		public int MaxRadius;
 
         //Don't know what to do with bead entry yet, but it is valid
-        bool HandleEntry(Entry e)
+        [Entry("bead", Multiline = true)]
+        void Noop(Entry e)
         {
-            return e.Name.Equals("bead", StringComparison.InvariantCultureIgnoreCase);
         }
-	}
+    }
 }
 
