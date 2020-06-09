@@ -91,6 +91,7 @@ namespace LancerEdit
         
         public ModelViewer(string name, IDrawable drawable, MainWindow win, UtfTab parent, ModelNodes hprefs)
         {
+            LibreLancer.Shaders.AllShaders.Compile();
             Title = string.Format("Model Viewer ({0})",name);
             Name = name;
             this.drawable = drawable;

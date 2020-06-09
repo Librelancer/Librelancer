@@ -48,7 +48,14 @@ namespace LibreLancer.Interface
         public string GetNavbarIconPath(string icon)
         {
             var p = DataPath.Replace('\\', Path.DirectorySeparatorChar);
-            return Path.Combine(p, NavbarIcons[icon]);
+            string ic;
+            if (!NavbarIcons.TryGetValue(icon, out ic))
+            {
+                FLLog.Warning("Interface", $"Could not find icon {icon}");
+                ic = NavbarIcons.Values.First();
+            }
+
+            return Path.Combine(p, ic);
         }
         public string GetFont(string fontName)
         {

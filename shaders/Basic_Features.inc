@@ -1,0 +1,5 @@
+@feature ALPHATEST_ENABLED
+@feature VERTEX_LIGHTING
+@feature ET_ENABLED
+@feature FADE_ENABLED
+

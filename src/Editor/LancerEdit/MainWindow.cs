@@ -88,7 +88,7 @@ namespace LancerEdit
 		protected override void Load()
 		{
 			Title = "LancerEdit";
-			guiHelper = new ImGuiHelper(this);
+            guiHelper = new ImGuiHelper(this);
             guiHelper.PauseWhenUnfocused = Config.PauseWhenUnfocused;
             Audio = new AudioManager(this);
             FileDialog.RegisterParent(this);
@@ -99,7 +99,7 @@ namespace LancerEdit
 			Billboards = new Billboards();
 			Polyline = new PolylineRender(Commands);
 			DebugRender = new PhysicsDebugRenderer();
-			Viewport.Push(0, 0, 800, 600);
+            Viewport.Push(0, 0, 800, 600);
             Keyboard.KeyDown += Keyboard_KeyDown;
             //TODO: Icon-setting code very messy
             using (var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("LancerEdit.reactor_64.png"))

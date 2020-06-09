@@ -299,15 +299,15 @@ namespace LibreLancer
             ex.ShellModel.Update(camera, TimeSpan.Zero, resman);
             ex.ShellModel.DrawBuffer(0, buffer, resman, world, ref Lighting.Empty);
         }
-        static ShaderVariables _puffringsh;
+        static Shaders.ShaderVariables _puffringsh;
 		static int _ptex0;
 		static int _pfogfactor;
 
         Shader GetPuffShader()
         {
 			if (_puffringsh == null)
-			{
-                _puffringsh = ShaderCache.Get("nebula_extpuff.vs", "nebula_extpuff.frag");
+            {
+                _puffringsh = Shaders.NebulaExtPuff.Get();
 				_ptex0 = _puffringsh.Shader.GetLocation("tex0");
 				_pfogfactor = _puffringsh.Shader.GetLocation("FogFactor");
 			}

@@ -19,23 +19,12 @@ namespace LibreLancer
 		public float Fade; //TODO: This is unimplemented in shader. Higher values seem to make the effect more intense?
 		public float Scale;
 
-		ShaderVariables GetShader(IVertexType vertextype)
-		{
-			if (vertextype is VertexPositionNormalTexture)
-			{
-				return ShaderCache.Get(
-					"Atmosphere.vs",
-					"AtmosphereMaterial_PositionTexture.frag"
-				);
-			}
-			throw new NotImplementedException ();
-		}
 
 		public override unsafe void Use (RenderState rstate, IVertexType vertextype, ref Lighting lights)
 		{
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Normal;
-			var sh = GetShader (vertextype);
+            var sh = Shaders.Atmosphere.Get();
 			sh.SetAc(Ac);
 			sh.SetDc(Dc);
 			sh.SetOc(Alpha);

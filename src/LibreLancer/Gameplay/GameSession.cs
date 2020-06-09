@@ -302,9 +302,9 @@ namespace LibreLancer
         }
         
         public void ProcessConsoleCommand(string str)
-		{
-			//TODO: Chat 
-		}
+        {
+            connection.SendPacket(new ConsoleCommandPacket() {Command = str}, NetDeliveryMethod.ReliableOrdered);
+        }
 
         public void Disconnected()
         {

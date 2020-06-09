@@ -15,10 +15,10 @@ namespace LibreLancer
 		VertexBuffer linebuffer;
 		int lineVertices = 0;
 
-		ShaderVariables shader;
+		Shaders.ShaderVariables shader;
 		public PhysicsDebugRenderer()
-		{
-			shader = ShaderCache.Get("physicsdebug.vs", "physicsdebug.frag");
+        {
+            shader = Shaders.PhysicsDebug.Get();
 			linebuffer = new VertexBuffer(typeof(VertexPositionColor), MAX_LINES * 2, true);
 		}
 

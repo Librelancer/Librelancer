@@ -14,16 +14,13 @@ namespace LibreLancer
 
 		VertexPositionColorTexture[] vertices = new VertexPositionColorTexture[MAX_VERTICES];
 		VertexBuffer vbo;
-		static ShaderVariables shader;
+        private static Shaders.ShaderVariables shader;
 		CommandBuffer buffer;
 		public PolylineRender(CommandBuffer buffer)
 		{
 			if (shader == null)
-			{
-				shader = ShaderCache.Get(
-					"Polyline.vs",
-					"Billboard.frag"
-				);
+            {
+                shader = Shaders.Polyline.Get();
 				shader.Shader.SetInteger(shader.Shader.GetLocation("tex0"), 0);
 			}
 			vbo = new VertexBuffer(typeof(VertexPositionColorTexture), MAX_VERTICES, true);

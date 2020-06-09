@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using LibreLancer.Shaders;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
 namespace LibreLancer
@@ -18,15 +19,9 @@ namespace LibreLancer
 		{
 			switch (vtype.GetType ().Name) {
 			case "VertexPositionNormalDiffuseTexture":
-				return ShaderCache.Get (
-					"PositionColorTexture.vs",
-					"Nebula_PositionColorTexture.frag"
-				);
+                return Shaders.NebulaMaterial.Get(ShaderFeatures.VERTEX_DIFFUSE);
 			case "VertexPositionNormalTexture":
-				return ShaderCache.Get(
-					"PositionTextureFlip.vs",
-					"Nebula_PositionColorTexture.frag"
-				);
+                return Shaders.NebulaMaterial.Get();
 			default:
 				throw new NotImplementedException ();
 			}
@@ -51,13 +46,7 @@ namespace LibreLancer
 			throw new InvalidOperationException();
 		}
 
-		public override bool IsTransparent
-		{
-			get
-			{
-				return true;
-			}
-		}
-	}
+		public override bool IsTransparent => true;
+    }
 }
 

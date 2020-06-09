@@ -194,9 +194,18 @@ namespace LibreLancer
                 case LineSpokenPacket lp:
                     msnRuntime?.LineFinished(lp.Hash);
                     break;
+                case ConsoleCommandPacket cmd:
+                    HandleConsoleCommand(cmd.Command);
+                    break;
             }
         }
 
+        public void HandleConsoleCommand(string cmd)
+        {
+            if (cmd.StartsWith("base", StringComparison.OrdinalIgnoreCase)) {
+                ForceLand(cmd.Substring(4).Trim());
+            }
+        }
         void ListAction(CharacterListActionPacket pkt)
         {
             switch(pkt.Action)
@@ -246,6 +255,7 @@ namespace LibreLancer
         public void ForceLand(string target)
         {
             World?.RemovePlayer(this);
+            World = null;
             Base = target;
             client.SendPacket(new BaseEnterPacket()
             {

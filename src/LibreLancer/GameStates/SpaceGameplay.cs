@@ -243,53 +243,10 @@ Mouse Flight: {11}
 		bool dogoto = false;
 		AutopilotComponent pilotcomponent = null;
 		void Hud_OnTextEntry(string obj)
-		{
-            obj = obj.Trim();
-            int firstWhiteSpace = obj.IndexOf(' ');
-            if (firstWhiteSpace == -1)
-            {
-                //one word commands
-                switch (obj.ToLowerInvariant())
-                {
-                    default:
-                        session.ProcessConsoleCommand(obj);
-                        break;
-                }
-                
-            }
-            else
-            {
-                var firstWord = obj.Substring(0, firstWhiteSpace);
-                var args = obj.Substring(firstWhiteSpace);
-                switch (firstWord.ToLowerInvariant())
-                {
-                    case "jump":
-                        JumpCommand(args);
-                        break;
-                    default:
-                        session.ProcessConsoleCommand(obj);
-                        break;
-                }
-            }
-            
-		}
-
-        void JumpCommand(string args)
         {
-            var floats = args.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries);
-            float x, y, z;
-            try
-            {
-                x = float.Parse(floats[0]);
-                y = float.Parse(floats[1]);
-                z = float.Parse(floats[2]);
-            }
-            catch (Exception)
-            {
-                return;
-            }
-            player.PhysicsComponent.Body.SetTransform(Matrix4x4.CreateTranslation(x,y,z));
+            session.ProcessConsoleCommand(obj);
         }
+
 		bool ManeuverSelect(string e)
 		{
 			switch (e)

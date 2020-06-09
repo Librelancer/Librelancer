@@ -25,26 +25,7 @@ namespace LibreLancer
 		public NomadMaterial()
 		{
 		}
-
-		static ShaderVariables sh_one;
-		static ShaderVariables sh_two;
-		static ShaderVariables GetShader(IVertexType vertexType)
-		{
-			if (vertexType is VertexPositionNormalTextureTwo)
-			{
-				if (sh_two == null)
-					sh_two = ShaderCache.Get("Basic_PositionNormalTextureTwo.vs", "NomadMaterial.frag");
-				return sh_two;
-			}
-			else if (vertexType is VertexPositionNormalTexture)
-			{
-				if (sh_one == null)
-					sh_one = ShaderCache.Get("Nomad_PositionNormalTexture.vs", "NomadMaterial.frag");
-				return sh_one;
-			}
-			throw new NotImplementedException(vertexType.GetType().Name);
-		}
-
+        
 
 		public override void ApplyDepthPrepass(RenderState rstate)
 		{
@@ -64,7 +45,7 @@ namespace LibreLancer
         public override void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights)
 		{
 			rstate.BlendMode = BlendMode.Normal;
-			var shader = GetShader(vertextype);
+            var shader = Shaders.Nomad.Get();
 			shader.SetWorld(World);
 			shader.SetView(Camera);
 			shader.SetViewProjection(Camera);

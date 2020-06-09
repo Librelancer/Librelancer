@@ -94,8 +94,8 @@ namespace LibreLancer
             return true;
         }
 
-        static ShaderVariables radialShader;
-        static ShaderVariables spineShader;
+        static Shaders.ShaderVariables radialShader;
+        static Shaders.ShaderVariables spineShader;
         static int radialTex0;
         static int spineTex0;
         static int radialSize;
@@ -138,14 +138,14 @@ namespace LibreLancer
 
             if (radialShader == null)
             {
-                radialShader = ShaderCache.Get("sun.vs", "sun_radial.frag");
+                radialShader = Shaders.SunRadial.Get();
                 radialTex0 = radialShader.Shader.GetLocation("tex0");
                 radialSize = radialShader.Shader.GetLocation("SizeMultiplier");
                 radialAlpha = radialShader.Shader.GetLocation("outerAlpha");
             }
             if (spineShader == null)
             {
-                spineShader = ShaderCache.Get("sun.vs", "sun_spine.frag");
+                spineShader = Shaders.SunSpine.Get();
                 spineTex0 = spineShader.Shader.GetLocation("tex0");
                 spineSize = spineShader.Shader.GetLocation("SizeMultiplier");
             } 

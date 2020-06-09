@@ -29,7 +29,7 @@ namespace LibreLancer.Fx
         ParticleVertex* vertices;
         CommandBuffer cmd;
 
-        ShaderVariables basicShader;
+        Shaders.ShaderVariables basicShader;
 
         [StructLayout(LayoutKind.Sequential)]
         struct ParticleVertex : IVertexType
@@ -124,7 +124,7 @@ namespace LibreLancer.Fx
             }
             ibo.SetData(indices);
             vbo.SetElementBuffer(ibo);
-            basicShader = ShaderCache.Get("Particle.vs", "Billboard.frag");
+            basicShader = Shaders.Particle.Get();
         }
 
         int maxActive = 0;

@@ -367,7 +367,17 @@ namespace LibreLancer.Ini
                 }
                 else if (ftype == typeof(Color3f))
                 {
-                    if (ComponentCheck(3, s, e)) field.Field.SetValue(obj, new Color3f(e[0].ToSingle() / 255f, e[1].ToSingle() / 255f, e[2].ToSingle() / 255f));
+                    if (ComponentCheck(3, s, e))
+                    {
+                        if (field.Attr.FloatColor)
+                        {
+                            field.Field.SetValue(obj, new Color3f(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle()));
+                        }
+                        else
+                        {
+                            field.Field.SetValue(obj, new Color3f(e[0].ToSingle() / 255f, e[1].ToSingle() / 255f, e[2].ToSingle() / 255f));
+                        }
+                    }
                 }
                 else if (ftype == typeof(List<string>))
                 {

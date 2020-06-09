@@ -31,7 +31,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Interface\Default\*.xml" />
     <EmbeddedResource Include="Interface\Default\*.lua" />
-    <EmbeddedResource Include="Shaders\*.*" />
+    <EmbeddedResource Include="Shaders\lightingcull.glcompute" />
   </ItemGroup>
 
   <ItemGroup>

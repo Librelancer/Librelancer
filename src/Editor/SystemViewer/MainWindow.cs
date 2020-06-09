@@ -38,6 +38,7 @@ namespace SystemViewer
         protected override void Load()
         {
             Title = "System Viewer";
+            LibreLancer.Shaders.AllShaders.Compile();
             guiHelper = new ImGuiHelper(this);
             FileDialog.RegisterParent(this);
             Viewport = new ViewportManager(this.RenderState);

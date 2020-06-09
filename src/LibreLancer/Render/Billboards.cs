@@ -14,18 +14,15 @@ namespace LibreLancer
 
         RenderData[] rendat;
         //Basic
-        ShaderVariables shaderBasic;
+        Shaders.ShaderVariables shaderBasic;
         BillboardVert* verticesBasic;
         VertexBuffer vboBasic;
         ElementBuffer iboBasic;
         ushort[] indicesBasic = new ushort[MAX_BILLBOARDS * 6];
 
 		public Billboards()
-		{
-			shaderBasic = ShaderCache.Get(
-				"Billboard.vs",
-				"Billboard.frag"
-			);
+        {
+            shaderBasic = Shaders.Billboard.Get();
 			shaderBasic.Shader.SetInteger(shaderBasic.Shader.GetLocation("tex0"), 0);
 			rendat = new RenderData[MAX_BILLBOARDS];
 			vboBasic = new VertexBuffer(typeof(BillboardVert), MAX_BILLBOARDS * 4, true);

@@ -14,9 +14,9 @@ namespace LibreLancer.Data.Solar
 		public string Shape;
         [Entry("scale")]
 		public int Scale;
-        [Entry("inner_color")]
+        [Entry("inner_color", FloatColor=true)]
 		public Color3f InnerColor;
-        [Entry("outer_color")]
+        [Entry("outer_color", FloatColor=true)]
 		public Color3f OuterColor;
 	}
 }

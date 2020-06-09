@@ -13,6 +13,7 @@ namespace LibreLancer.Ini
         public bool Multiline = false;
         public bool Presence = false;
         public bool Required = false;
+        public bool FloatColor = false;
         public Vec3Mode Mode = Vec3Mode.None;
         public EntryAttribute(string name)
         {

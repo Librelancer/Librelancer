@@ -34,6 +34,7 @@ namespace InterfaceEdit
             Viewport.Push(0,0,Width,Height);
             new MaterialMap();
             Fonts = new FontManager();
+            LibreLancer.Shaders.AllShaders.Compile();
         }
 
         List<DockTab> tabs = new List<DockTab>();

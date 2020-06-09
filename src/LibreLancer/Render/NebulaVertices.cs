@@ -41,7 +41,7 @@ namespace LibreLancer
 			el = new ElementBuffer(indices.Length);
 			el.SetData(indices);
 			vbo.SetElementBuffer(el);
-			shader = ShaderCache.Get("NebulaInterior.vs", "NebulaInterior.frag").Shader;
+			shader = Shaders.NebulaInterior.Get().Shader;
 			_viewproj = shader.GetLocation("ViewProjection");
 			_world = shader.GetLocation("World");
 			_tint = shader.GetLocation("Tint");

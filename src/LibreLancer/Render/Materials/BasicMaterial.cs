@@ -7,7 +7,7 @@ using System.Numerics;
 using LibreLancer.Utf.Dfm;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
-
+using LibreLancer.Shaders;
 
 namespace LibreLancer
 {
@@ -30,89 +30,25 @@ namespace LibreLancer
 		{
 			Type = type;
 		}
-
-		static ShaderVariables[] sh_posNormalTexture = new ShaderVariables[ShaderCapsExtensions.N_SHADERCAPS];
-		static ShaderVariables[] sh_posNormalTextureTwo = new ShaderVariables[ShaderCapsExtensions.N_SHADERCAPS];
-		static ShaderVariables[] sh_posNormalColorTexture = new ShaderVariables[ShaderCapsExtensions.N_SHADERCAPS];
-		static ShaderVariables[] sh_posTexture = new ShaderVariables[ShaderCapsExtensions.N_SHADERCAPS];
-		static ShaderVariables[] sh_pos = new ShaderVariables[ShaderCapsExtensions.N_SHADERCAPS];
-        static ShaderVariables[] sh_posColor = new ShaderVariables[ShaderCapsExtensions.N_SHADERCAPS];
-        static ShaderVariables[] sh_dfm = new ShaderVariables[ShaderCapsExtensions.N_SHADERCAPS];
-		static ShaderVariables GetShader(IVertexType vertextype, ShaderCaps caps)
-		{
-			var i = caps.GetIndex();
-            if(vertextype is Utf.Dfm.DfmVertex) { 
-                if(sh_dfm[i] == null) {
-                    sh_dfm[i] = ShaderCache.Get(
-                        "Basic_Skinned.vs",
-                        "Basic_Fragment.frag",
-                        caps);
-                    sh_dfm[i].SetSkinningEnabled(false);
-                }
-                return sh_dfm[i];
-            }
+        
+		static ShaderVariables GetShader(IVertexType vertextype, ShaderFeatures caps)
+        {
+            if (vertextype is Utf.Dfm.DfmVertex)
+                return Basic_Skinned.Get(caps);
             if (vertextype is VertexPositionNormalTexture ||
-               vertextype is VertexPositionNormal)
-			{
-				if (sh_posNormalTexture[i] == null)
-					sh_posNormalTexture[i] = ShaderCache.Get(
-						"Basic_PositionNormalTexture.vs",
-						"Basic_Fragment.frag",
-						caps
-					);
-				return sh_posNormalTexture[i];
-			}
+                    vertextype is VertexPositionNormal)
+                return Basic_PositionNormalTexture.Get(caps);
 			if (vertextype is VertexPositionNormalTextureTwo)
-			{
-				if (sh_posNormalTextureTwo[i] == null)
-					sh_posNormalTextureTwo[i] = ShaderCache.Get(
-						"Basic_PositionNormalTextureTwo.vs",
-						"Basic_Fragment.frag",
-						caps
-					);
-				return sh_posNormalTextureTwo[i];
-			}
-			if (vertextype is VertexPositionNormalDiffuseTexture)
-			{
-				if (sh_posNormalColorTexture[i] == null)
-					sh_posNormalColorTexture[i] = ShaderCache.Get(
-						"Basic_PositionNormalColorTexture.vs",
-						"Basic_Fragment.frag",
-						caps
-					);
-				return sh_posNormalColorTexture[i];
-			}
-			if (vertextype is VertexPositionTexture)
-			{
-				if (sh_posTexture[i] == null)
-					sh_posTexture[i] = ShaderCache.Get(
-						"Basic_PositionTexture.vs",
-						"Basic_Fragment.frag",
-						caps
-					);
-				return sh_posTexture[i];
-			}
-			if (vertextype is VertexPosition)
-			{
-				if (sh_pos[i] == null)
-					sh_pos[i] = ShaderCache.Get(
-						"Basic_PositionTexture.vs",
-						"Basic_Fragment.frag",
-						caps
-					);
-				return sh_pos[i];
-			}
+                return Basic_PositionNormalTextureTwo.Get(caps);
+            if (vertextype is VertexPositionNormalDiffuseTexture)
+                return Basic_PositionNormalColorTexture.Get(caps);
+            if (vertextype is VertexPositionTexture)
+                return Basic_PositionTexture.Get(caps);
+            if (vertextype is VertexPosition)
+                return Basic_PositionTexture.Get(caps);
             if(vertextype is VertexPositionColor)
-            {
-                if (sh_posColor[i] == null)
-                    sh_posColor[i] = ShaderCache.Get(
-                        "Basic_PositionColor.vs",
-                        "Basic_Fragment.frag",
-                        caps
-                    );
-                return sh_posColor[i];
-            }
-			throw new NotImplementedException(vertextype.GetType().Name);
+                return Basic_PositionColor.Get(caps);
+            throw new NotImplementedException(vertextype.GetType().Name);
 		}
         ShaderVariables lastShader;
         public override void UpdateFlipNormals()
@@ -124,21 +60,20 @@ namespace LibreLancer
 		{
 			if (Camera == null)
 				return;
-			ShaderCaps caps = ShaderCaps.None;
-            if (VertexLighting) caps |= ShaderCaps.VertexLighting;
-			if (HasSpotlight(ref lights)) caps |= ShaderCaps.Spotlight;
-			if (EtEnabled) caps |= ShaderCaps.EtEnabled;
-			if (Fade) caps |= ShaderCaps.FadeEnabled;
+			ShaderFeatures caps = ShaderFeatures.None;
+            if (VertexLighting) caps |= ShaderFeatures.VERTEX_LIGHTING;
+            if (EtEnabled) caps |= ShaderFeatures.ET_ENABLED;
+            if (Fade) caps |= ShaderFeatures.FADE_ENABLED;
             var dxt1 = GetDxt1();
             if (dxt1)
-			{
-				caps |= ShaderCaps.AlphaTestEnabled; 
+            {
+                caps |= ShaderFeatures.ALPHATEST_ENABLED;
                 //Shitty way of dealing with alpha_mask
                 //FL has a lot of DXT1 textures that aren't part of alpha_mask
                 //so this brings overall performance down.
                 //Don't change any of this stuff unless you can verify it works
                 //in all places! (Check Li01 shipyards, Bw10 tradelanes)
-			}
+            }
 			var shader = GetShader(vertextype, caps);
             lastShader = shader;
 			shader.SetWorld(World);
@@ -200,7 +135,7 @@ namespace LibreLancer
 		{
 			rstate.BlendMode = BlendMode.Normal;
             //TODO: This is screwy - Re-do DXT1 test if need be for perf
-			var shader = AlphaTestPrepassShader;
+			var shader = DepthPass_AlphaTest.Get();
             BindTexture(rstate, 0, DtSampler, 0, DtFlags, ResourceManager.WhiteTextureName);
 			shader.SetWorld(World);
 			shader.SetViewProjection(Camera);

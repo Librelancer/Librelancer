@@ -10,25 +10,19 @@ namespace LibreLancer
 {
 	public class NormalDebugMaterial : RenderMaterial
 	{
-        static ShaderVariables shader;
-        static ShaderVariables shader_null;
-		public override void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights)
+        public override void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights)
 		{
-            ShaderVariables sh;
+            Shaders.ShaderVariables sh;
             //These things don't have normals
             if (vertextype is VertexPositionColorTexture ||
             vertextype is VertexPosition ||
                 vertextype is VertexPositionColor || vertextype is VertexPositionTexture)
             {
-                if (shader_null == null)
-                    shader_null = ShaderCache.Get("Normals_Position.vs", "Normals.frag");
-                sh = shader_null;
+                sh = Shaders.DepthPass_Normal.Get();
             }
             else
             {
-                if (shader == null)
-                    shader = ShaderCache.Get("Normals_PositionNormal.vs", "Normals.frag");
-                sh = shader;
+                sh = Shaders.Normals.Get();
             }
 			if (Camera == null)
 				return;

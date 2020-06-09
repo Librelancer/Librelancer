@@ -17,7 +17,7 @@ namespace LibreLancer
         private VertexBuffer bufferBolt;
         private CommandBuffer commands;
         private ResourceManager res;
-        private ShaderVariables shader;
+        private Shaders.ShaderVariables shader;
 
         /*
          * BeamSpear Indices
@@ -102,7 +102,7 @@ namespace LibreLancer
             var el2 = new ElementBuffer(idx2.Length);
             el2.SetData(idx2);
             bufferBolt.SetElementBuffer(el2);
-            shader = ShaderCache.Get("Projectile.vs", "Billboard.frag");
+            shader = Shaders.Projectile.Get();
             shader.Shader.SetInteger(shader.Shader.GetLocation("tex0"), 0);
         }
 

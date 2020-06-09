@@ -20,28 +20,13 @@ namespace LibreLancer
 		public string DtSampler;
 		public SamplerFlags DtFlags;
 
-        static ShaderVariables sh_posNormalTexture;
-		static ShaderVariables GetShader(IVertexType vertextype) {
-			if (vertextype is VertexPositionNormalTexture) {
-                if (sh_posNormalTexture == null)
-                {
-                    sh_posNormalTexture = ShaderCache.Get(
-                        "PositionTextureFlip.vs",
-                        "DetailMapMaterial.frag"
-                    );
-                }
-
-                return sh_posNormalTexture;
-			}
-			throw new NotImplementedException ();
-		}
 
 		public override void Use (RenderState rstate, IVertexType vertextype, ref Lighting lights)
 		{
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Opaque;
 
-			ShaderVariables sh = GetShader (vertextype);
+            var sh = Shaders.DetailMapMaterial.Get();
 			sh.SetWorld (World);
             sh.SetView(Camera);
             sh.SetViewProjection(Camera);
@@ -63,9 +48,10 @@ namespace LibreLancer
 		public override void ApplyDepthPrepass(RenderState rstate)
 		{
 			rstate.BlendMode = BlendMode.Normal;
-			NormalPrepassShader.SetWorld(World);
-			NormalPrepassShader.SetViewProjection(Camera);
-			NormalPrepassShader.UseProgram();
+            var sh = Shaders.DepthPass_Normal.Get();
+            sh.SetWorld(World);
+            sh.SetViewProjection(Camera);
+            sh.UseProgram();
 		}
 
 		public override bool IsTransparent

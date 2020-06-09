@@ -57,6 +57,8 @@ namespace LibreLancer
             Register<ObjectUpdatePacket>(ObjectUpdatePacket.Read);
             Register<DespawnObjectPacket>(DespawnObjectPacket.Read);
             Register<CallThornPacket>(CallThornPacket.Read);
+            //Chat
+            Register<ConsoleCommandPacket>(ConsoleCommandPacket.Read);
             //Server->Client Generic Commands
             Register<PlaySoundPacket>(PlaySoundPacket.Read);
             Register<PlayMusicPacket>(PlayMusicPacket.Read);
@@ -478,6 +480,19 @@ namespace LibreLancer
         public void WriteContents(NetOutgoingMessage msg)
         {
             msg.Write(Music);
+        }
+    }
+
+    public class ConsoleCommandPacket : IPacket
+    {
+        public string Command;
+        public static object Read(NetIncomingMessage message)
+        {
+            return new ConsoleCommandPacket() {Command = message.ReadString()};
+        }
+        public void WriteContents(NetOutgoingMessage msg)
+        {
+            msg.Write(Command);
         }
     }
 

@@ -24,7 +24,7 @@ namespace LibreLancer
         Matrix4x4 bandTransform;
         OpenCylinder bandCylinder;
         Matrix4x4 vp;
-        static ShaderVariables bandShader;
+        static Shaders.ShaderVariables bandShader;
         static int _bsTexture;
         static int _bsCameraPosition;
         static int _bsColorShift;
@@ -73,7 +73,7 @@ namespace LibreLancer
                 return;
             if (bandShader == null)
             {
-                bandShader = ShaderCache.Get("AsteroidBand.vs", "AsteroidBand.frag");
+                bandShader = Shaders.AsteroidBand.Get();
                 _bsTexture = bandShader.Shader.GetLocation("Texture");
                 _bsCameraPosition = bandShader.Shader.GetLocation("CameraPosition");
                 _bsColorShift = bandShader.Shader.GetLocation("ColorShift");
