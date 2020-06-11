@@ -195,33 +195,34 @@ Task("LinuxDaily")
     .IsDependentOn("BuildSdk")
     .Does(() =>
 {
-	if(!DirectoryExists("packaging/packages")) CreateDirectory("packaging/packages");
+	if(!DirectoryExists("packaging/packages/a")) CreateDirectory("packaging/packages/a");
+	if(!DirectoryExists("packging/packages/b")) CreateDirectory("packaging/packages/b");
 	var lastCommit = GitLogTip_Shell();
 	Information("Compressing");
 	//Engine
 	var name = "librelancer-" + lastCommit.Substring(0,7) + "-ubuntu-amd64";
-	if(DirectoryExists("packaging/packages/" + name))
-		CleanDirectories("packaging/packages/" + name);
-	else
-		CreateDirectory("packaging/packages/" + name);
-	CopyFiles("bin/librelancer-" + GetLinuxRid() + "/*","packaging/packages/" + name);
-	GZipCompress("packaging/packages/",
+    CleanDirectories("packaging/packages/a");
+	CopyDirectory("bin/librelancer-" + GetLinuxRid(),"packaging/packages/a/" + name);
+	GZipCompress("packaging/packages/a",
 				"packaging/packages/librelancer-daily-ubuntu-amd64.tar.gz", 
-				GetFiles("packaging/packages/" + name + "/*"), 9
+				9
 	);
-	DeleteDirectory("packaging/packages/" + name, recursive:true);
+	DeleteDirectory("packaging/packages/a", new DeleteDirectorySettings {
+        Recursive = true,
+        Force = true
+    });
 	//Sdk 
 	name = "librelancer-sdk-" + lastCommit.Substring(0,7) + "-ubuntu-amd64";
-	if(DirectoryExists("packaging/packages/" + name))
-		CleanDirectories("packaging/packages/" + name);
-	else
-		CreateDirectory("packaging/packages/" + name);
-	CopyFiles("bin/librelancer-sdk-" + GetLinuxRid() + "/*","packaging/packages/" + name);
-	GZipCompress("packaging/packages/",
+    CleanDirectories("packaging/packages/b");
+	CopyDirectory("bin/librelancer-sdk-" + GetLinuxRid(),"packaging/packages/b/" + name);
+	GZipCompress("packaging/packages/b",
 				"packaging/packages/librelancer-sdk-daily-ubuntu-amd64.tar.gz", 
-				GetFiles("packaging/packages/" + name + "/*"), 9
+				 9
 	);
-	DeleteDirectory("packaging/packages/" + name, recursive:true);
+	DeleteDirectory("packaging/packages/b", new DeleteDirectorySettings {
+        Recursive = true,
+        Force = true
+    });
 	//Timestamp
 	var unixTime = (long)((DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds);
 	FileWriteText("packaging/packages/timestamp",unixTime.ToString());
