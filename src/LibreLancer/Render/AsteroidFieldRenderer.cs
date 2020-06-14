@@ -568,6 +568,7 @@ namespace LibreLancer
             return 0;
         }
         static ShaderAction bandShaderDelegate = BandShaderSetup;
+        private static int bkf = 0;
         static void BandShaderSetup(Shader shader, RenderState state, ref RenderCommand command)
         {
             bandShader.SetWorld(command.World);
@@ -577,7 +578,7 @@ namespace LibreLancer
             shader.SetVector3(_bsCameraPosition, command.UserData.Camera.Position);
             shader.SetColor4(_bsColorShift, command.UserData.Color);
             shader.SetFloat(_bsTextureAspect, command.UserData.Float);
-            RenderMaterial.SetLights(bandShader, ref command.Lights);
+            RenderMaterial.SetLights(bandShader, ref command.Lights, bkf++);
             command.UserData.Texture.BindTo(0);
             shader.UseProgram();
             state.BlendMode = BlendMode.Normal;

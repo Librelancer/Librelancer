@@ -127,7 +127,7 @@ namespace LibreLancer
 				BindTexture(rstate, 1, EtSampler, 1, EtFlags, ResourceManager.NullTextureName);
 			}
 			//Set lights
-			SetLights(shader, ref lights);
+            SetLights(shader, ref lights, Camera.FrameNumber);
             shader.UseProgram();
 		}
 

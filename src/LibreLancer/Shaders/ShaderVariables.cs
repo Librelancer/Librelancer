@@ -135,6 +135,28 @@ namespace LibreLancer.Shaders
                 shader.SetMatrix(viewPosition, ref v);
         }
 
+        private int lightId;
+        private long lightFrame;
+        private int nebulaId;
+        private BitArray128 lightsEnabled;
+        private int ltcnt;
+        public bool NeedLightData(ref Lighting lights, long frameNumber, out int lightCount)
+        {
+            var retval = lights.Lights.SourceLighting.ID != lightId ||
+                   lightFrame != frameNumber ||
+                   nebulaId != lights.Lights.NebulaCount ||
+                   lightsEnabled != lights.Lights.SourceEnabled;
+            lightCount = retval ? 0 : ltcnt;
+            return retval;
+        }
+        public void UpdateLightDataCheck(ref Lighting lights, long frameNumber, int lightCount)
+        {
+            lightId = lights.Lights.SourceLighting.ID;
+            lightFrame = frameNumber;
+            lightsEnabled = lights.Lights.SourceEnabled;
+            nebulaId = lights.Lights.NebulaCount;
+            ltcnt = lightCount;
+        }
         public void SetProjection(ICamera camera)
         {
             if (camera == _camera && camera.FrameNumber == _pframeNumber)

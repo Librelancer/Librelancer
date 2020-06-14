@@ -41,5 +41,28 @@ namespace LibreLancer
                 }
             }
         }
+        public static bool operator ==(BitArray128 a, BitArray128 b)
+        {
+            return a.a == b.a && a.b == b.b;
+        }
+
+        public static bool operator !=(BitArray128 a, BitArray128 b)
+        {
+            return a.a != b.a || a.b != b.b;
+        }
+        public bool Equals(BitArray128 other)
+        {
+            return a == other.a && b == other.b;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is BitArray128 other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(a, b);
+        }
     }
 }

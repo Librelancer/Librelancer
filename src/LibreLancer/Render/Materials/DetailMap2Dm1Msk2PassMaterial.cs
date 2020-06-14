@@ -41,7 +41,7 @@ namespace LibreLancer
 			BindTexture (rstate ,0, DtSampler, 0, DtFlags);
 			sh.SetDm1Sampler(1);
             BindTexture(rstate, 1, Dm1Sampler, 1, Dm1Flags, ResourceManager.GreyTextureName);
-			SetLights(sh, ref lights);
+			SetLights(sh, ref lights, Camera.FrameNumber);
             sh.UseProgram ();
 		}
 

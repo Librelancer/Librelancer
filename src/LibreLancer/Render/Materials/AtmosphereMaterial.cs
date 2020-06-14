@@ -39,7 +39,7 @@ namespace LibreLancer
 			var normalmat = w;
             Matrix4x4.Invert(normalmat, out normalmat);
             normalmat = Matrix4x4.Transpose(normalmat);
-			SetLights(sh, ref lights);
+			SetLights(sh, ref lights, Camera.FrameNumber);
             sh.SetWorld(ref w, ref normalmat);
             sh.UseProgram ();
 		}

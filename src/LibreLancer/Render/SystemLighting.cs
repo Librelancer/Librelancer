@@ -9,6 +9,7 @@ namespace LibreLancer
 {
 	public class SystemLighting
 	{
+        public int ID = Environment.TickCount;
 		public Color4 Ambient = Color4.Black;
 		public List<DynamicLight> Lights = new List<DynamicLight>();
 		public FogModes FogMode = FogModes.None;
