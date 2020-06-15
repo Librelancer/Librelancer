@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using LibreLancer.GameData;
 using System.Numerics;
 using LibreLancer.Utf.Cmp;
@@ -175,6 +176,13 @@ namespace LibreLancer
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Update(camera);
 			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Update(elapsed);
 		}
+
+        private Vector3[] debugPoints = new Vector3[0];
+        public void UseDebugPoints(List<Vector3> list)
+        {
+            this.debugPoints = list.ToArray();
+            list.Clear();
+        }
 
 		public NebulaRenderer ObjectInNebula(Vector3 position)
 		{
@@ -414,6 +422,19 @@ namespace LibreLancer
 			commands.DrawTransparent(rstate);
 			rstate.DepthWrite = true;
             PhysicsHook?.Invoke();
+            foreach (var point in debugPoints)
+            {
+                var lX = point + new Vector3(5, 0, 0);
+                var lmX = point + new Vector3(-5, 0, 0);
+                var lY = point + new Vector3(0, -5, 0);
+                var lmY = point + new Vector3(0, 5, 0);
+                var lZ = point + new Vector3(0, 0, 5);
+                var lmZ = point + new Vector3(0, 0, -5);
+                DebugRenderer.DrawLine(lX, lmX);
+                DebugRenderer.DrawLine(lY, lmY);
+                DebugRenderer.DrawLine(lZ, lmZ);
+            }
+            debugPoints = new Vector3[0];
 			DebugRenderer.Render();
 			if (gconfig.MSAASamples > 0)
 			{

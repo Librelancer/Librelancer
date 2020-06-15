@@ -24,19 +24,34 @@ namespace LibreLancer
             if (CurrentCooldown < 0) CurrentCooldown = 0;
         }
 
+        void DrawDebugPoints()
+        {
+            if (projectiles == null) {
+                hpfires = Parent.GetHardpoints().Where((x) => x.Name.StartsWith("hpfire", StringComparison.CurrentCultureIgnoreCase)).ToArray();
+                projectiles = Parent.GetWorld().Projectiles;
+                toSpawn = projectiles.GetData(Object);
+            }
+            var tr = (Parent.Attachment.Transform * Parent.Parent.GetTransform());
+            for (int i = 0; i < hpfires.Length; i++)
+            {
+                var pos = Vector3.Transform(Vector3.Zero, hpfires[i].Transform * tr);
+                Parent.Parent.World.DrawDebug(pos);
+            }
+        }
         public void AimTowards(Vector3 point, TimeSpan time)
         {
+            DrawDebugPoints();
             var hp = Parent.Attachment;
             //Parent is the gun itself rotated
-            var beforeRotate = hp.TransformNoRotate * Parent.Parent.GetTransform();
+            var br = hp.TransformNoRotate * Parent.Parent.GetTransform();
             //Inverse Transform
-            Matrix4x4.Invert(beforeRotate, out beforeRotate);
-            var local = Vector3.Transform(point, beforeRotate);
+            Matrix4x4.Invert(br, out var beforeRotate);
+            var local = TransformGL(point, beforeRotate);
             var localProper = local.Normalized();
             var rads = MathHelper.DegreesToRadians(Object.Def.TurnRate);
             var delta = (float)(time.TotalSeconds * rads);
             if(hp.Revolute != null) {
-                var target = localProper.X * (float)Math.PI;
+                var target = -localProper.X * (float)Math.PI;
                 var current = Parent.Attachment.CurrentRevolution;
 
                 if(current > target) {
@@ -55,7 +70,7 @@ namespace LibreLancer
                 if (mdl.Construct is Utf.RevConstruct revCon)
                     barrel = revCon;
             if(barrel != null) {
-                var target = -localProper.Y * (float)Math.PI;
+                var target = localProper.Y * (float)Math.PI;
                 var current = barrel.Current;
                 if (current > target)
                 {
@@ -71,6 +86,14 @@ namespace LibreLancer
                 barrel.Update(target, Quaternion.Identity);
                 Parent.RigidModel.UpdateTransform();
             }
+        }
+        
+        static Vector3 TransformGL(Vector3 position, Matrix4x4 matrix)
+        {
+            return new Vector3(
+                position.X * matrix.M11 + position.Y * matrix.M21 + position.Z * matrix.M31 + matrix.M41,
+                position.X * matrix.M12 + position.Y * matrix.M22 + position.Z * matrix.M32 + matrix.M42,
+                position.X * matrix.M13 + position.Y * matrix.M23 + position.Z * matrix.M33 + matrix.M43);
         }
 
 
@@ -90,7 +113,7 @@ namespace LibreLancer
             for (int i = 0; i < hpfires.Length; i++)
             {
                 var pos = Vector3.Transform(Vector3.Zero, hpfires[i].Transform * tr);
-                var heading = (pos - point).Normalized();
+                var heading = (point - pos).Normalized();
                 projectiles.SpawnProjectile(toSpawn, pos, heading);
             }
             CurrentCooldown = Object.Def.RefireDelay;

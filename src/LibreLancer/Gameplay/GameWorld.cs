@@ -91,7 +91,18 @@ namespace LibreLancer
             }
             GC.Collect();
         }
-
+#if DEBUG
+        public List<Vector3> DebugPoints = new List<Vector3>();
+        public bool RenderDebugPoints = false;
+        public void DrawDebug(Vector3 point)
+        {
+            if(RenderDebugPoints)
+                DebugPoints.Add(point);
+        }
+        #else
+        public void DrawDebug(Vector3 point) {}
+#endif
+        
 		public GameObject GetObject(string nickname)
 		{
 			if (nickname == null) return null;
@@ -121,9 +132,14 @@ namespace LibreLancer
             Physics.Step(t);
 			for (int i = 0; i < Objects.Count; i++)
 				Objects[i].Update(t);
-			if (RenderUpdate != null)
-				RenderUpdate(t);
-			if(Renderer != null) Renderer.Update(t);
+            RenderUpdate?.Invoke(t);
+            if (Renderer != null)
+            {
+                #if DEBUG
+                Renderer.UseDebugPoints(DebugPoints);
+                #endif
+                Renderer.Update(t);
+            }
 		}
 
 		public event Action<GameObject, GameMessageKind> MessageBroadcasted;

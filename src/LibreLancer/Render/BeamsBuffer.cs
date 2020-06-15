@@ -81,23 +81,25 @@ namespace LibreLancer
             10, 14, 5
         };
         //TODO: Finish BeamBolt
-        static ushort[] ConstructIndices(ushort[] source, int count)
+        static ushort[] ConstructIndices(ushort[] source, int vcount, int count)
         {
             var indices = new ushort[source.Length * count];
             int j = 0;
-            for (int i = 0; i < (count * source.Length); i+= source.Length) {
-                for (int k = 0; k < source.Length; k++) indices[j++] = (ushort) (i + source[k]);
+            for (int i = 0; i < count; i++)
+            {
+                var vOff = vcount * i;
+                for (int k = 0; k < source.Length; k++) indices[j++] = (ushort) (vOff + source[k]);
             }
             return indices;
         }
         public BeamsBuffer()
         {
-            var idx1 = ConstructIndices(spearIndices, MAX_BEAMS);
+            var idx1 = ConstructIndices(spearIndices, 12, MAX_BEAMS);
             bufferSpear = new VertexBuffer(typeof(VertexPositionColorTexture), MAX_BEAMS * 12, true);
             var el1 = new ElementBuffer(idx1.Length);
             el1.SetData(idx1);
             bufferSpear.SetElementBuffer(el1);
-            var idx2 = ConstructIndices(boltIndices, MAX_BEAMS);
+            var idx2 = ConstructIndices(boltIndices, 17, MAX_BEAMS);
             bufferBolt = new VertexBuffer(typeof(VertexPositionColorTexture), MAX_BEAMS * 17, true);
             var el2 = new ElementBuffer(idx2.Length);
             el2.SetData(idx2);
@@ -118,6 +120,8 @@ namespace LibreLancer
         private int vertexCountSpear = 0;
         private int vertexCountBolt = 0;
         private int boltCount = 0;
+        private int spearCount = 0;
+        private bool begun = false;
         public void Begin(CommandBuffer commands, ResourceManager res, ICamera cam)
         {
             this.commands = commands;
@@ -125,11 +129,15 @@ namespace LibreLancer
             shader.SetViewProjection(cam);
             verticesSpear = (VertexPositionColorTexture*)bufferSpear.BeginStreaming();
             verticesBolt = (VertexPositionColorTexture*) bufferBolt.BeginStreaming();
+            if(begun) throw new InvalidOperationException();
+            begun = true;
         }
 
         private static Texture2D code_beam;
         public void End()
         {
+            if(!begun) throw new InvalidOperationException();
+            begun = false;
             if(code_beam == null || code_beam.IsDisposed)
                 code_beam = (Texture2D) res.FindTexture("code_beam");
             bufferSpear.EndStreaming(vertexCountSpear);
@@ -138,7 +146,8 @@ namespace LibreLancer
             {
                 commands.AddCommand(shader.Shader, SetupShader, EnableCull, commands.WorldBuffer.Identity, new RenderUserData(),
                     bufferSpear,
-                    PrimitiveTypes.TriangleList, 0, vertexCountSpear, true, SortLayers.OBJECT);
+                    PrimitiveTypes.TriangleList, 0, spearCount * 12, true, SortLayers.OBJECT);
+                spearCount = 0;
                 vertexCountSpear = 0;
             }
             if (boltCount > 0)
@@ -165,7 +174,7 @@ namespace LibreLancer
 
         public void AddBeamBolt(Vector3 p, Vector3 normal, BeamBolt bolt)
         {
-            boltCount++;
+            //boltCount++;
             //Head
             CoordsFromTexture(bolt.HeadTexture, out var tl, out var tr, out var bl, out var br, out var mid);
 
@@ -174,6 +183,7 @@ namespace LibreLancer
         }
         public void AddBeamSpear(Vector3 p, Vector3 normal, BeamSpear spear)
         {
+            if(!begun) throw new InvalidOperationException();
             //Head
             CoordsFromTexture(spear.HeadTexture, out var tl, out var tr, out var bl, out var br, out var mid);
             var right = Vector3.Cross(normal, Vector3.UnitY);
@@ -210,6 +220,7 @@ namespace LibreLancer
             //Trail
             verticesSpear[vertexCountSpear++] =
                 new VertexPositionColorTexture(p - (normal * spear.TailLength), spear.TailColor, tr);
+            spearCount++;
         }
 
         static void CoordsFromTexture(string tex, out Vector2 tl, out Vector2 tr, out Vector2 bl, out Vector2 br, out Vector2 mid)

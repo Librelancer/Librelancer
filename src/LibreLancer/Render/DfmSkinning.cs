@@ -83,6 +83,7 @@ namespace LibreLancer
             BufferOffset = offset;
             bonesBuffer.SetData(boneMatrices, offset);
             offset += boneMatrices.Length;
+            offset = bonesBuffer.GetAlignedIndex(offset);
         }
     }
 }

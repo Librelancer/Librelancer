@@ -72,7 +72,7 @@ namespace LibreLancer
                 return _directStateAccess.Value;
             }
         }
-
+        
         //Global method for checking extensions. Called upon GraphicsDevice creation
         public static void PopulateExtensions()
 		{

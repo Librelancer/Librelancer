@@ -25,6 +25,7 @@ namespace LibreLancer
             for(int i = 0; i < Projectiles.Length; i++) {
                 if (!Projectiles[i].Alive) continue;
                 Projectiles[i].Position += (Projectiles[i].Normal * tFloat);
+                world.DrawDebug(Projectiles[i].Position);
                 Projectiles[i].Time += tFloat;
                 if(Projectiles[i].Time >= Projectiles[i].Data.Lifetime) {
                     Projectiles[i].Alive = false;

@@ -18,6 +18,7 @@ namespace LibreLancer
         {
             if (AimPoint != Vector3.Zero)
             {
+                Parent.World.DrawDebug(AimPoint);
                 foreach (var wp in Parent.GetChildComponents<WeaponComponent>())
                 {
                     wp.AimTowards(AimPoint, time);
