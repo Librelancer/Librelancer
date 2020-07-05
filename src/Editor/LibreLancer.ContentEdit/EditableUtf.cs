@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using LL = LibreLancer.Utf;
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 
 namespace LibreLancer.ContentEdit
@@ -127,9 +128,9 @@ namespace LibreLancer.ContentEdit
             return path;
         }
 		//Write the nodes out to a file
-        public bool Save(string filename, ref string error)
-		{
-            //Check for invalid UTF
+
+        public bool Save(string filename, int version, ref string error)
+        {
             foreach (var node in Root.IterateAll())
             {
                 if(node.Children == null && node.Data == null)
@@ -138,7 +139,199 @@ namespace LibreLancer.ContentEdit
                     return false;
                 }
             }
-			Dictionary<string, int> stringOffsets = new Dictionary<string, int>();
+            if (version == 0)
+                return SaveV1(filename, ref error);
+            else
+                return SaveV2(filename, ref error);
+        }
+
+        static byte[] CompressDeflate(byte[] input)
+        {
+            using (var mem = new MemoryStream())
+            {
+                using (var comp = new DeflateStream(mem, CompressionLevel.Optimal, true))
+                {
+                    comp.Write(input);
+                }
+                return mem.ToArray();
+            }
+        }
+        
+        bool SaveV2(string filename, ref string error)
+        {
+            Dictionary<string, int> stringOffsets = new Dictionary<string, int>();
+            Dictionary<LUtfNode, int> dataOffsets = new Dictionary<LUtfNode, int>();
+            List<string> strings = new List<string>();
+            using (var writer = new BinaryWriter(File.Create(filename)))
+            {
+                int currentDataOffset = 0;
+                int bytesSaved = 0;
+                List<SmallData> smallDatas = new List<SmallData>();
+                int nodeCount = 0;
+                foreach (var node in Root.IterateAll())
+                {
+                    nodeCount++;
+                    if(!strings.Contains(node.Name)) strings.Add(node.Name);
+                    if (node.Data != null)
+                    {
+                        node.Write = node.Data.Length > 8;
+                        if (node.Data.Length > 8 && node.Data.Length <= 64)
+                        {
+                            var small = new SmallData(node.Data);
+                            int idx = -1;
+                            for (int i = 0; i < smallDatas.Count; i++) {
+                                if(smallDatas[i].Match(ref small)) {
+                                    idx = i;
+                                    break;
+                                }
+                            }
+                            if(idx == -1) {
+                                small.Offset = currentDataOffset;
+                                smallDatas.Add(small);
+                                dataOffsets.Add(node, currentDataOffset);
+                                currentDataOffset += node.Data.Length;
+                            } else {
+                                node.Write = false;
+                                bytesSaved += smallDatas[idx].Length;
+                                dataOffsets.Add(node, smallDatas[idx].Offset);
+                            }
+                        } else if (node.Data.Length > 8)
+                        {
+                            dataOffsets.Add(node, currentDataOffset);
+                            if (node.Data.Length > 128)
+                            {
+                                var compressed = CompressDeflate(node.Data);
+                                if (compressed.Length < (node.Data.Length * 0.9))
+                                {
+                                    node.CompressedData = compressed;
+                                    currentDataOffset += node.CompressedData.Length;
+                                } 
+                                else
+                                {
+                                    currentDataOffset += node.Data.Length;
+                                }
+                            }
+                            else
+                            {
+                                currentDataOffset += node.Data.Length;
+                            }
+                        }
+                    }
+                }
+                //string block
+                byte[] stringBlock;
+                using (var mem = new MemoryStream())
+                {
+                    foreach (var str in strings)
+                    {
+                        stringOffsets.Add(str, (int)mem.Position);
+                        var strx = str;
+                        if (strx == "/")
+                            strx = "\\";
+                        var strb = Encoding.UTF8.GetBytes(strx);
+                        mem.Write(BitConverter.GetBytes((short) strb.Length));
+                        mem.Write(strb, 0, strb.Length);
+                    }
+                    strings = null;
+                    stringBlock = mem.ToArray();
+                }
+                ushort flags = 0;
+                var stringsComp = CompressDeflate(stringBlock);
+                if (stringsComp.Length < (stringBlock.Length / 2))
+                {
+                    flags = 0x1; //deflate compress strings
+                    stringBlock = stringsComp;
+                }
+                //sig
+                writer.Write((byte)'X');
+                writer.Write((byte)'U');
+                writer.Write((byte)'T');
+                writer.Write((byte)'F');
+                //v1
+                writer.Write((byte) 1);
+                //no flags
+                writer.Write(flags);
+                //sizes
+                writer.Write(stringBlock.Length);
+                writer.Write(nodeCount * 17);
+                writer.Write(currentDataOffset);
+                //write strings
+                writer.Write(stringBlock);
+                stringBlock = null;
+                //node block
+                int index = 0;
+                WriteNodeV2(Root, writer, stringOffsets, dataOffsets, ref index, true);
+                //data block
+                foreach (var node in Root.IterateAll())
+                {
+                    if (node.Write && node.Data != null)
+                    {
+                        writer.Write(node.CompressedData ?? node.Data);
+                        node.CompressedData = null;
+                    }
+                }
+            }
+            return true;
+        }
+
+        static void WriteNodeV2(LUtfNode node, BinaryWriter writer, Dictionary<string, int> strOff,
+            Dictionary<LUtfNode, int> datOff, ref int myIdx, bool last)
+        {
+            writer.Write(strOff[node.Name]); //nameOffset
+            if (node.Data != null)
+            {
+                myIdx++;
+                if (!last)
+                    writer.Write(myIdx);
+                else
+                    writer.Write((uint) 0);
+                if (node.CompressedData != null)
+                {
+                    writer.Write((byte) 10); //Type 10: compressed deflate
+                    writer.Write(datOff[node]);
+                    writer.Write(node.CompressedData.Length);
+                }
+                else if (node.Data.Length > 8)
+                {
+                    writer.Write((byte) 1); //Type 1: Data Offset + Size
+                    writer.Write(datOff[node]);
+                    writer.Write(node.Data.Length);
+                }
+                else
+                {
+                    writer.Write((byte)(node.Data.Length + 1)); //Type 2-9: Embedded Data
+                    writer.Write(node.Data);
+                    for (int i = node.Data.Length; i < 8; i++)
+                    {
+                        writer.Write((byte) 0); //padding
+                    }
+                }
+            }
+            else
+            {
+                long indexPos = writer.BaseStream.Position;
+                writer.Write((uint) 0); //sibling index
+                writer.Write((byte) 0); //folder
+                myIdx++;
+                writer.Write(myIdx);
+                writer.Write((uint) 0); //padding
+                for (int i = 0; i < node.Children.Count; i++)
+                {
+                    WriteNodeV2(node.Children[i], writer, strOff, datOff,ref myIdx, i == (node.Children.Count - 1));
+                }
+                if (!last)
+                {
+                    //write sibling index
+                    var mPos = writer.BaseStream.Position;
+                    writer.BaseStream.Seek(indexPos, SeekOrigin.Begin);
+                    writer.Write(myIdx);
+                    writer.BaseStream.Seek(mPos, SeekOrigin.Begin);
+                }
+            }
+        }
+        bool SaveV1(string filename, ref string error)
+		{
+            Dictionary<string, int> stringOffsets = new Dictionary<string, int>();
 			Dictionary<LUtfNode, int> dataOffsets = new Dictionary<LUtfNode, int>();
 			List<string> strings = new List<string>();
 			using (var writer = new BinaryWriter(File.Create(filename)))
@@ -303,7 +496,8 @@ namespace LibreLancer.ContentEdit
 		public List<LUtfNode> Children;
 		public LUtfNode Parent;
 		public byte[] Data;
-        public bool Write = true;
+        internal byte[] CompressedData;
+        internal bool Write = true;
 
 		public IEnumerable<LUtfNode> IterateAll()
 		{

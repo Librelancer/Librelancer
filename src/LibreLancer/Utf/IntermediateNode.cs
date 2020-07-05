@@ -18,6 +18,25 @@ namespace LibreLancer.Utf
 			this.children = children;
 		}
 
+        internal static IntermediateNode IntermediateV2(int siblingIndex, string name, BinaryReader reader,
+            StringBlock stringBlock, byte[] dataBlock)
+        {
+            var childIndex = reader.ReadInt32();
+            var children = new List<Node>();
+            if (childIndex > 0)
+            {
+                int next = childIndex;
+                do
+                {
+                    if(children.Count > 500000) throw new Exception("Node overflow. Broken XUTF?");
+                    Node n = Node.FromStreamV2(reader, next, stringBlock, dataBlock);
+                    children.Add(n);
+                    next = n.PeerOffset;
+                } while (next > 0);
+            }
+            return new IntermediateNode(name, children) { PeerOffset = siblingIndex };
+        }
+
         public IntermediateNode(int peerOffset, string name, BinaryReader reader, StringBlock stringBlock, byte[] dataBlock)
             : base(peerOffset, name)
         {
@@ -34,6 +53,7 @@ namespace LibreLancer.Utf
                 int next = childOffset;
                 do
                 {
+                    if(children.Count > 500000) throw new Exception("Node overflow. Broken UTF?");
                     Node n = Node.FromStream(reader, next, stringBlock, dataBlock);
                     children.Add(n);
                     next = n.PeerOffset;

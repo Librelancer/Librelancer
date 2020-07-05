@@ -1,0 +1,59 @@
+XUTF
+All values are little endian
+
+HEADER (19 bytes)
+=====
+
+fourCC signature = "XUTF"
+byte version = 1
+ushort flags
+    0x1 - String Block is Deflate Compressed
+    Others - Reserved
+uint32 string block length
+uint32 node block length
+uint32 data block length
+
+
+STRING BLOCK
+======
+
+Immediately after header. 
+Block of length-prefixed (in bytes) UTF8 strings
+Whole block compressed using 
+
+ushort length
+byte[length] utf8data
+
+NODE BLOCK
+=====
+
+Immediately after string block.
+Struct size: 17 bytes Fixed.
+Calculate offset of node data with: (19 + string block length + index * 17)
+Embedded data padded out to full 8 bytes on write
+
+uint32 nameOffset
+uint32 siblingIndex
+byte enum nodetype
+    0 - Folder
+    1 - File (Data Offset/Size)
+    2-9 - File (Embedded Data 1-8 bytes in size)
+    10 - Deflate Compressed File (Data Offset/Size)
+    11-255 - Reserved
+union {
+    uint32 childIndex
+    uint32 dataOffset
+    uint32 embeddedData
+}
+union {
+    uint32 padding
+    uint32 dataSize
+    uint32 embeddedData2
+}
+
+
+DATA BLOCK
+=====
+
+Immediately after node block
+Binary blob

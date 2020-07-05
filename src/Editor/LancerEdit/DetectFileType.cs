@@ -18,7 +18,8 @@ namespace LancerEdit
 			using (var reader = new BinaryReader(File.OpenRead(filename)))
 			{
 				var str = System.Text.Encoding.ASCII.GetString(reader.ReadBytes(4));
-				if (str == "UTF ") if (reader.ReadInt32() == 257) return FileType.Utf;
+				if (str == "UTF " && reader.ReadInt32() == 257) return FileType.Utf;
+                if (str == "XUTF" && reader.ReadByte() == 1) return FileType.Utf;
 				return FileType.Ini;
 			}
 		}

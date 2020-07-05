@@ -9,8 +9,8 @@ namespace LibreLancer.Utf
 {
     public abstract class Node
     {
-        public int PeerOffset { get; private set; }
-        public string Name { get; private set; }
+        public int PeerOffset;
+        public string Name;
 
         protected Node(int peerOffset, string name)
         {
@@ -22,6 +22,21 @@ namespace LibreLancer.Utf
         protected Node(string name)
         {
             this.Name = name;
+        }
+
+        public static Node FromStreamV2(BinaryReader reader, int index, StringBlock stringBlock, byte[] dataBlock)
+        {
+            reader.BaseStream.Seek(index * 17, SeekOrigin.Begin);
+            var nameOffset = reader.ReadInt32();
+            var siblingIndex = reader.ReadInt32();
+            var name = stringBlock.GetString(nameOffset);
+            var type = reader.ReadByte();
+            if (type == 0)
+                return IntermediateNode.IntermediateV2(siblingIndex, name, reader, stringBlock, dataBlock);
+            else
+            {
+                return LeafNode.LeafV2(siblingIndex, name, reader, type, dataBlock);
+            }
         }
         public static Node FromStream(BinaryReader reader, int offset, StringBlock stringBlock, byte[] dataBlock)
         {

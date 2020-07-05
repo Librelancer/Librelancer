@@ -5,6 +5,7 @@
 
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 
 namespace LibreLancer.Utf
@@ -20,10 +21,48 @@ namespace LibreLancer.Utf
             if (path == null) throw new ArgumentNullException("path");
             return parseFile(path, File.OpenRead(path));
         }
+
+        protected static IntermediateNode ParseV2(string path, BinaryReader reader)
+        {
+            byte ver = reader.ReadByte();
+            if (ver != 1)
+                throw new FileVersionException(path, "XUTF", ver, 1);
+            var flags = reader.ReadUInt16();
+            bool stringsCompressed = (flags & 0x1) == 0x1; //0x1 if deflate compressed string table
+            uint stringBlockLength = reader.ReadUInt32();
+            uint nodeBlockLength = reader.ReadUInt32();
+            uint dataBlockLength = reader.ReadUInt32();
+            var stringBlock = reader.ReadBytes((int)stringBlockLength);
+            //Decompress strings
+            if (stringsCompressed)
+            {
+                using (var output = new MemoryStream())
+                {
+                    using (var mem = new MemoryStream(stringBlock))
+                    {
+                        using (var deflate = new DeflateStream(mem, CompressionMode.Decompress, true))
+                        {
+                            deflate.CopyTo(output);
+                        }
+                    }
+                    stringBlock = output.ToArray();
+                }
+            }
+            //Node block
+            var nodeBlock = reader.ReadBytes((int) nodeBlockLength);
+            var dataBlock = reader.ReadBytes((int) dataBlockLength);
+            using (BinaryReader nodeReader = new BinaryReader(new MemoryStream(nodeBlock)))
+            {
+                var root = Node.FromStreamV2(nodeReader, 0, new StringBlock(stringBlock, true), dataBlock) as IntermediateNode;
+                if (root == null)
+                    throw new FileContentException(UtfFile.FILE_TYPE, "The root node doesn't have any child nodes.");
+                return root;
+            }
+        }
         protected static IntermediateNode parseFile(string path, Stream stream)
         {
             byte[] nodeBlock;
-            string stringBlock;
+            byte[] stringBlock;
             byte[] dataBlock;
 
 			using (BinaryReader reader = new BinaryReader(stream))
@@ -31,6 +70,10 @@ namespace LibreLancer.Utf
                 byte[] buffer = new byte[TAG_LEN];
                 reader.Read(buffer, 0, TAG_LEN);
                 string fileType = Encoding.ASCII.GetString(buffer);
+                if (fileType == "XUTF")
+                {
+                    return ParseV2(path, reader);
+                }
                 if (fileType != FILE_TYPE)
                     throw new FileFormatException(path, fileType, FILE_TYPE);
 
@@ -73,7 +116,7 @@ namespace LibreLancer.Utf
                 Array.Resize<byte>(ref buffer, stringBlockSize);
                 reader.BaseStream.Seek(stringBlockOffset, SeekOrigin.Begin);
                 reader.Read(buffer, 0, stringBlockSize);
-                stringBlock = Encoding.ASCII.GetString(buffer);
+                stringBlock = buffer;
 
                 dataBlock = new byte[(int)(reader.BaseStream.Length - dataBlockOffset)];
                 reader.BaseStream.Seek(dataBlockOffset, SeekOrigin.Begin);
@@ -84,12 +127,14 @@ namespace LibreLancer.Utf
 
             using (BinaryReader reader = new BinaryReader(new MemoryStream(nodeBlock)))
             {
-                root = Node.FromStream(reader, 0, new StringBlock(stringBlock), dataBlock) as IntermediateNode;
+                root = Node.FromStream(reader, 0, new StringBlock(stringBlock, false), dataBlock) as IntermediateNode;
                 if (root == null)
                     throw new FileContentException(UtfFile.FILE_TYPE, "The root node doesn't have any child nodes.");
             }
 
             return root;
         }
+        
+        
     }
 }

@@ -511,7 +511,7 @@ namespace LancerEdit
                 if (!string.IsNullOrEmpty(at.FilePath))
                 {
                     string errText = "";
-                    if (!at.Utf.Save(at.FilePath, ref errText))
+                    if (!at.Utf.Save(at.FilePath, 0, ref errText))
                     {
                         openError = true;
                         if (errorText == null) errorText = new TextBuffer();
@@ -547,7 +547,7 @@ namespace LancerEdit
             if (f != null)
             {
                 string errText = "";
-                if (!at.Utf.Save(f, ref errText))
+                if (!at.Utf.Save(f, 0, ref errText))
                 {
                     openError = true;
                     if (errorText == null) errorText = new TextBuffer();

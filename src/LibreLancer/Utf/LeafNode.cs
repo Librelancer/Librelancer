@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 using System.Numerics;
 
@@ -193,8 +194,50 @@ namespace LibreLancer.Utf
             dataLength = data.Length;
         }
 
+        public LeafNode(string name, byte[] data, int start, int len) : base(name)
+        {
+            this.dataArray = data;
+            dataStart = start;
+            dataLength = len;
+        }
+
         private static readonly byte[] empty = new byte[0];
 
+        internal static LeafNode LeafV2(int siblingIndex, string name, BinaryReader reader, byte type, byte[] dataBlock)
+        {
+            if (type == 10) //Compressed
+            {
+                int start = reader.ReadInt32();
+                int len = reader.ReadInt32();
+                using (var input = new MemoryStream(dataBlock, start, len, false))
+                {
+                    using (var output = new MemoryStream())
+                    {
+                        using (var deflate = new DeflateStream(input, CompressionMode.Decompress, true))
+                        {
+                            deflate.CopyTo(output);
+                        }
+                        return new LeafNode(name, output.ToArray()) {PeerOffset = siblingIndex};
+                    }
+                }
+            } 
+            else if (type == 1) //Raw
+            {
+                int start = reader.ReadInt32();
+                int len = reader.ReadInt32();
+                return new LeafNode(name, dataBlock, start, len) { PeerOffset = siblingIndex };
+            } 
+            else if (type >= 2 && type <= 9) //Embedded
+            {
+                var dataLen = (type - 1);
+                var data = reader.ReadBytes(dataLen);
+                return new LeafNode(name, data) { PeerOffset = siblingIndex };
+            }
+            else
+            {
+                throw new Exception("Invalid node type!");
+            }
+        }
         public LeafNode(int peerOffset, string name, BinaryReader reader, byte[] dataBlock)
             : base(peerOffset, name)
         {
