@@ -29,29 +29,44 @@ namespace LibreLancer
         {
             totalTime = 0;
             fadeDelay = delay;
+            fadeFirstFrame = true;
             fadeTime = fadeDuration = time;
             fading = true;
         }
         protected void FadeOut(double time, Action toDo)
         {
             fadeTime = fadeDuration = time;
+            fadeFirstFrame = true;
             fadeIn = false;
             fading = true;
             fadeDone = toDo;
         }
 
         bool fading = false;
+        private bool fadeFirstFrame = true;
         bool fadeIn = true;
         double fadeDelay;
         double fadeTime;
         double fadeDuration;
         double totalTime = 0;
+        private int hitchCount = 0;
         Action fadeDone;
         protected void DoFade(TimeSpan delta)
         {
-            if (delta.TotalSeconds < 0.5) totalTime += delta.TotalSeconds; //Avoid frame hitching
             if (fading)
             {
+                if (delta.TotalSeconds < 0.1 || hitchCount >= 6)
+                {
+                    if (!fadeFirstFrame)
+                        totalTime += delta.TotalSeconds; //Avoid frame hitching
+                    else
+                        delta = TimeSpan.Zero;
+                    fadeFirstFrame = false;
+                } else {
+                    //don't freeze entirely
+                    hitchCount++;
+                    delta = TimeSpan.Zero;
+                }
                 var alpha = (float)(fadeTime / fadeDuration);
                 if (alpha < 0) alpha = 0;
                 if (!fadeIn) alpha = (1 - alpha);
