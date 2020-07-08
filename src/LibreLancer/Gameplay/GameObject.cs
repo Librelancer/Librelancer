@@ -22,6 +22,8 @@ namespace LibreLancer
 		//Object data
 		public string Name;
 		public string Nickname;
+        public string ArchetypeName;
+        public int NetID;
 		public Hardpoint Attachment;
 		Matrix4x4 _transform = Matrix4x4.Identity;
 		public Matrix4x4 Transform
@@ -95,14 +97,28 @@ namespace LibreLancer
             PhysicsComponent.Inertia = ship.RotationInertia;
         }
 
-        public GameObject(string name, RigidModel model, ResourceManager res)
+        public GameObject(string name, RigidModel model, ResourceManager res, string partName, float mass, bool draw)
         {
             RigidModel = model;
             Resources = res;
             PopulateHardpoints();
-            if (RigidModel != null)
+            if (draw && RigidModel != null)
             {
                 RenderComponent = new ModelRenderer(RigidModel) { Name = name };
+            }
+            var path = Path.ChangeExtension(RigidModel.Path, "sur");
+            name = Path.GetFileNameWithoutExtension(RigidModel.Path);
+            uint plainCrc = 0;
+            if (!string.IsNullOrEmpty(partName)) plainCrc = CrcTool.FLModelCrc(partName);
+            if (File.Exists(path))
+            {
+                PhysicsComponent = new PhysicsComponent(this)
+                {
+                    SurPath = path,
+                    Mass = mass,
+                    PlainCrc = plainCrc
+                };
+                Components.Add(PhysicsComponent);
             }
         }
 		public void UpdateCollision()
@@ -117,27 +133,19 @@ namespace LibreLancer
             {
                 p.Active = false;
                 PhysicsComponent.DisablePart(p);
+                World?.Server?.PartDisabled(this, part);
             }
         }
         
-        public GameObject SpawnDebris(string part)
+        public void SpawnDebris(string part)
         {
+            if (World?.Server == null) {
+                throw new Exception("Server-only code");
+            }
             if (RigidModel != null && RigidModel.Parts.TryGetValue(part, out var srcpart))
             {
-                var newpart = srcpart.Clone();
-                var newmodel = new RigidModel()
-                {
-                    Root = newpart,
-                    AllParts = new[] { newpart },
-                    MaterialAnims = RigidModel.MaterialAnims,
-                    Path = newpart.Path,
-                };
-                srcpart.Active = false;
+                DisableCmpPart(part);
                 var tr = srcpart.LocalTransform * GetTransform();
-                var obj = new GameObject($"{Name}$debris-{part}", newmodel, Resources);
-                obj.Transform = tr;
-                obj.World = World;
-                obj.World.Objects.Add(obj);
                 var pos0 = Vector3.Transform(Vector3.Zero, GetTransform());
                 var pos1 = Vector3.Transform(Vector3.Zero, tr);
                 var vec = (pos1 - pos0).Normalized();
@@ -153,9 +161,8 @@ namespace LibreLancer
                         initialforce = cg.ChildImpulse;
                     }
                 }
-                PhysicsComponent.ChildDebris(obj, srcpart, mass, vec * initialforce);
+                World.Server.SpawnDebris(ArchetypeName, part, tr, mass, vec * initialforce);
             }
-            return null;
         }
         public ResourceManager Resources;
         void InitWithDrawable(IDrawable drawable, ResourceManager res, bool draw, bool staticpos, bool havePhys = true)

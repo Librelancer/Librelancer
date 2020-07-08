@@ -44,9 +44,9 @@ Mouse Flight: {11}
 		Cursor cur_arrow;
 		Cursor cur_reticle;
 		Cursor current_cur;
-		EngineComponent ecpt;
+		CEngineComponent ecpt;
 		InputManager input;
-		GameSession session;
+		CGameSession session;
         bool loading = true;
         LoadingScreen loader;
         public Cutscene Thn;
@@ -54,21 +54,11 @@ Mouse Flight: {11}
         private UiContext ui;
         private UiWidget widget;
         private LuaAPI uiApi;
-		public SpaceGameplay(FreelancerGame g, GameSession session) : base(g)
+		public SpaceGameplay(FreelancerGame g, CGameSession session) : base(g)
 		{
 			FLLog.Info("Game", "Entering system " + session.PlayerSystem);
             g.ResourceManager.ClearTextures(); //Do before loading things
             this.session = session;
-            #if false
-            pyw = new DebugGraph();
-            pyw.AddLine(Color4.Red, 240, -1, 1);
-            pyw.AddLine(Color4.Green, 240, -1, 1);
-            pyw.AddLine(Color4.Blue, 240, -1, 1);
-            pyw.X = 850;
-            pyw.Y = 10;
-            pyw.Width = 170;
-            pyw.Height = 124;
-            #endif
             sys = g.GameData.GetSystem(session.PlayerSystem);
             loader = new LoadingScreen(g, g.GameData.LoadSystemResources(sys));
             ui = new UiContext(g, "hud.xml");

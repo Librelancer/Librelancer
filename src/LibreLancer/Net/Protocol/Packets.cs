@@ -5,35 +5,46 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using Lidgren.Network;
+using LiteNetLib;
+using LiteNetLib.Utils;
 
 namespace LibreLancer
 {
     public interface IPacket
     {
-        void WriteContents(NetOutgoingMessage msg);
+        void WriteContents(NetDataWriter msg);
     }
+
     public static class Packets
     {
-        static List<Func<NetIncomingMessage, object>> parsers = new List<Func<NetIncomingMessage,object>>();
+        static List<Func<NetPacketReader, object>> parsers = new List<Func<NetPacketReader,object>>();
         static List<Type> packetTypes = new List<Type>();
-        public static void Register<T>(Func<NetIncomingMessage,object> parser) where T : IPacket
+        public static void Register<T>(Func<NetPacketReader,object> parser) where T : IPacket
         {
             packetTypes.Add(typeof(T));
             parsers.Add(parser);
         }
 
-        public static void Write(this NetOutgoingMessage message, IPacket p)
+        public static void Write(NetDataWriter message, IPacket p)
         {
-            message.WriteVariableUInt32((uint)packetTypes.IndexOf(p.GetType()));
+            var pkt = packetTypes.IndexOf(p.GetType());
+            if(pkt == -1) throw new Exception($"Packet type not registered {p.GetType().Name}");
+            message.PutVariableUInt32((uint) pkt);
             p.WriteContents(message);
         }
 
-        public static IPacket ReadPacket(this NetIncomingMessage message)
-        {
-            return (IPacket)parsers[(int)message.ReadVariableUInt32()](message);
+        public static IPacket Read(NetPacketReader message)
+        { 
+            return (IPacket)parsers[(int)message.GetVariableUInt32()](message);
         }
 
+        #if DEBUG
+        public static void CheckRegistered(IPacket p)
+        {
+            var idx = packetTypes.IndexOf(p.GetType());
+            if(idx == -1) throw new Exception($"Packet type not registered {p.GetType().Name}");
+        }
+        #endif
         static Packets()
         {
             //Authentication
@@ -54,7 +65,10 @@ namespace LibreLancer
             //Space
             Register<PositionUpdatePacket>(PositionUpdatePacket.Read);
             Register<SpawnObjectPacket>(SpawnObjectPacket.Read);
+            Register<SpawnDebrisPacket>(SpawnDebrisPacket.Read);
             Register<ObjectUpdatePacket>(ObjectUpdatePacket.Read);
+            Register<SpawnSolarPacket>(SpawnSolarPacket.Read);
+            Register<DestroyPartPacket>(DestroyPartPacket.Read);
             Register<DespawnObjectPacket>(DespawnObjectPacket.Read);
             Register<CallThornPacket>(CallThornPacket.Read);
             //Chat
@@ -63,7 +77,9 @@ namespace LibreLancer
             Register<PlaySoundPacket>(PlaySoundPacket.Read);
             Register<PlayMusicPacket>(PlayMusicPacket.Read);
             Register<UpdateRTCPacket>(UpdateRTCPacket.Read);
+            Register<MsnDialogPacket>(MsnDialogPacket.Read);
             //Client->Server Responses
+            Register<LineSpokenPacket>(LineSpokenPacket.Read);
             Register<EnterLocationPacket>(EnterLocationPacket.Read);
             Register<RTCCompletePacket>(RTCCompletePacket.Read);
         }
@@ -71,39 +87,40 @@ namespace LibreLancer
 
     public class LoginSuccessPacket : IPacket
     {
-        public static object Read(NetIncomingMessage message)
+        public static object Read(NetPacketReader message)
         {
             return new LoginSuccessPacket();
         }
 
-        public void WriteContents(NetOutgoingMessage msg)
+        public void WriteContents(NetDataWriter msg)
         {
         }
     }
     public class AuthenticationPacket : IPacket
     {
         public AuthenticationKind Type;
-        public static AuthenticationPacket Read(NetIncomingMessage message)
+        public static AuthenticationPacket Read(NetPacketReader message)
         {
-            return new AuthenticationPacket() { Type = (AuthenticationKind)message.ReadByte() };
+            return new AuthenticationPacket() { Type = (AuthenticationKind)message.GetByte() };
         }
-        public void WriteContents(NetOutgoingMessage message)
+        public void WriteContents(NetDataWriter message)
         {
-            message.Write((byte)Type);
+            message.Put((byte)Type);
         }
     }
 
     public class AuthenticationReplyPacket : IPacket
     {
         public Guid Guid;
-        public static AuthenticationReplyPacket Read(NetIncomingMessage message)
+        public static AuthenticationReplyPacket Read(NetPacketReader message)
         {
-            return new AuthenticationReplyPacket() { Guid = new Guid(message.ReadBytes(16)) };
+            return new AuthenticationReplyPacket() { Guid = new Guid(message.GetBytes(16)) };
         }
-        public void WriteContents(NetOutgoingMessage message)
+        public void WriteContents(NetDataWriter message)
         {
-            message.Write(Guid.ToByteArray());
+            message.Put(Guid.ToByteArray());
         }
+
     }
 
     public class SpawnPlayerPacket : IPacket
@@ -113,22 +130,64 @@ namespace LibreLancer
         public Quaternion Orientation;
         public NetShipLoadout Ship;
 
-        public static object Read(NetIncomingMessage message)
+        public static object Read(NetPacketReader message)
         {
             return new SpawnPlayerPacket()
             {
-                System = message.ReadString(),
-                Position = message.ReadVector3(),
-                Orientation = message.ReadQuaternion(),
+                System = message.GetString(),
+                Position = message.GetVector3(),
+                Orientation = message.GetQuaternion(),
                 Ship = NetShipLoadout.Read(message)
             };
         }
-        public void WriteContents(NetOutgoingMessage message)
+        public void WriteContents(NetDataWriter message)
         {
-            message.Write(System);
-            message.Write(Position);
-            message.Write(Orientation);
-            Ship.Write(message);
+            message.Put(System);
+            message.Put(Position);
+            message.Put(Orientation);
+            Ship.Put(message);
+        }
+    }
+
+    public class SolarInfo
+    {
+        public int ID;
+        public string Archetype;
+        public Vector3 Position;
+        public Quaternion Orientation;
+        public static SolarInfo Read(NetPacketReader message)
+        {
+            return new SolarInfo
+            {
+                ID = message.GetInt(),
+                Archetype = message.GetString(),
+                Position = message.GetVector3(),
+                Orientation = message.GetQuaternion()
+            };
+        }
+        public void Write(NetDataWriter message)
+        {
+            message.Put(ID);
+            message.Put(Archetype);
+            message.Put(Position);
+            message.Put(Orientation);
+        }
+    }
+    public class SpawnSolarPacket : IPacket
+    {
+        public List<SolarInfo> Solars;
+        public static object Read(NetPacketReader message)
+        {
+            var count = message.GetVariableUInt32();
+            var solars = new List<SolarInfo>((int)count);
+            for (int i = 0; i < count; i++)
+                solars.Add(SolarInfo.Read(message));
+            return new SpawnSolarPacket() {Solars = solars};
+        }
+        public void WriteContents(NetDataWriter message)
+        {
+            message.PutVariableUInt32((uint)Solars.Count);
+            foreach (var si in Solars) si.Write(message);
         }
     }
 
@@ -137,19 +196,19 @@ namespace LibreLancer
         public string Base;
         public NetShipLoadout Ship;
         public string[] RTCs;
-        public static object Read(NetIncomingMessage message)
+        public static object Read(NetPacketReader message)
         {
             return new BaseEnterPacket()
             {
-                Base = message.ReadString(),
-                Ship = NetShipLoadout.Read(message), RTCs = message.ReadStringArray()
+                Base = message.GetString(),
+                Ship = NetShipLoadout.Read(message), RTCs = message.GetStringArray()
             };
         }
-        public void WriteContents(NetOutgoingMessage message)
+        public void WriteContents(NetDataWriter message)
         {
-            message.Write(Base);
-            Ship.Write(message);
-            message.Write(RTCs);
+            message.Put(Base);
+            Ship.Put(message);
+            message.PutArray(RTCs);
         }
     }
 
@@ -157,32 +216,88 @@ namespace LibreLancer
     {
         public string Base;
         public string Room;
-        public static object Read(NetIncomingMessage message)
+        public static object Read(NetPacketReader message)
         {
-            return new EnterLocationPacket() {Base = message.ReadString(), Room = message.ReadString()};
+            return new EnterLocationPacket() {Base = message.GetString(), Room = message.GetString()};
         }
-        public void WriteContents(NetOutgoingMessage msg)
+        public void WriteContents(NetDataWriter msg)
         {
-            msg.Write(Base);
-            msg.Write(Room);
+            msg.Put(Base);
+            msg.Put(Room);
         }
     }
 
     public class UpdateRTCPacket : IPacket
     {
         public string[] RTCs;
-        public static object Read(NetIncomingMessage message) =>
-            new UpdateRTCPacket() {RTCs = message.ReadStringArray()};
-        public void WriteContents(NetOutgoingMessage msg) => msg.Write(RTCs);
+        public static object Read(NetPacketReader message) =>
+            new UpdateRTCPacket() {RTCs = message.GetStringArray()};
+        public void WriteContents(NetDataWriter msg) => msg.PutArray(RTCs);
     }
 
     public class RTCCompletePacket : IPacket
     {
         public string RTC;
-        public static object Read(NetIncomingMessage message) => new RTCCompletePacket() {RTC = message.ReadString()};
-        public void WriteContents(NetOutgoingMessage msg) => msg.Write(RTC);
+        public static object Read(NetPacketReader message) => new RTCCompletePacket() {RTC = message.GetString()};
+        public void WriteContents(NetDataWriter msg) => msg.Put(RTC);
     }
 
+    public class DestroyPartPacket : IPacket
+    {
+        public byte IDType;
+        public int ID;
+        public string PartName;
+
+        public static object Read(NetPacketReader message)
+        {
+            return new DestroyPartPacket()
+            {
+                IDType = message.GetByte(),
+                ID = message.GetInt(),
+                PartName = message.GetString()
+            };
+        }
+
+        public void WriteContents(NetDataWriter message)
+        {
+            message.Put(IDType);
+            message.Put(ID);
+            message.Put(PartName);
+        }
+    }
+
+    public class SpawnDebrisPacket : IPacket
+    {
+        public int ID;
+        public string Archetype;
+        public string Part;
+        public Vector3 Position;
+        public Quaternion Orientation;
+        public float Mass;
+
+        public static object Read(NetPacketReader message)
+        {
+            return new SpawnDebrisPacket()
+            {
+                ID = message.GetInt(),
+                Archetype = message.GetString(),
+                Part = message.GetString(),
+                Position = message.GetVector3(),
+                Orientation = message.GetQuaternion(),
+                Mass = message.GetFloat()
+            };
+        }
+
+        public void WriteContents(NetDataWriter message)
+        {
+            message.Put(ID);
+            message.Put(Archetype);
+            message.Put(Part);
+            message.Put(Position);
+            message.Put(Orientation);
+            message.Put(Mass);
+        }
+    }
     public class SpawnObjectPacket : IPacket
     {
         public int ID;
@@ -191,24 +306,24 @@ namespace LibreLancer
         public Quaternion Orientation;
         public NetShipLoadout Loadout;
 
-        public static object Read(NetIncomingMessage message)
+        public static object Read(NetPacketReader message)
         {
             return new SpawnObjectPacket()
             {
-                ID = message.ReadInt32(),
-                Name = message.ReadString(),
-                Position = message.ReadVector3(),
-                Orientation = message.ReadQuaternion(),
+                ID = message.GetInt(),
+                Name = message.GetString(),
+                Position = message.GetVector3(),
+                Orientation = message.GetQuaternion(),
                 Loadout = NetShipLoadout.Read(message)
             };
         }
-        public void WriteContents(NetOutgoingMessage message)
+        public void WriteContents(NetDataWriter message)
         {
-            message.Write(ID);
-            message.Write(Name);
-            message.Write(Position);
-            message.Write(Orientation);
-            Loadout.Write(message);
+            message.Put(ID);
+            message.Put(Name);
+            message.Put(Position);
+            message.Put(Orientation);
+            Loadout.Put(message);
         }
     }
 
@@ -229,45 +344,55 @@ namespace LibreLancer
     {
         public uint ShipCRC;
         public List<NetShipEquip> Equipment;
-        public static NetShipLoadout Read(NetIncomingMessage message)
+        public static NetShipLoadout Read(NetPacketReader message)
         {
             var s = new NetShipLoadout();
-            s.ShipCRC = message.ReadUInt32();
-            var equipCount = (int)message.ReadVariableUInt32();
+            s.ShipCRC = message.GetUInt();
+            var equipCount = (int)message.GetVariableUInt32();
             s.Equipment = new List<NetShipEquip>(equipCount);
             for(int i = 0; i < equipCount; i++) {
-                s.Equipment.Add(new NetShipEquip(message.ReadUInt32(), message.ReadUInt32(), message.ReadByte()));
+                s.Equipment.Add(new NetShipEquip(message.GetUInt(), message.GetUInt(), message.GetByte()));
             }
             return s;
         }
-        public void Write(NetOutgoingMessage message)
+        public void Put(NetDataWriter message)
         {
-            message.Write(ShipCRC);
-            message.WriteVariableUInt32((uint)Equipment.Count);
+            message.Put(ShipCRC);
+            message.PutVariableUInt32((uint)Equipment.Count);
             foreach(var equip in Equipment) {
-                message.Write(equip.HardpointCRC);
-                message.Write(equip.EquipCRC);
-                message.Write(equip.Health);
+                message.Put(equip.HardpointCRC);
+                message.Put(equip.EquipCRC);
+                message.Put(equip.Health);
             }
         }
     }
 
     public class ObjectUpdatePacket : IPacket
     {
+        public uint Tick;
         public PackedShipUpdate[] Updates;
-        public static object Read(NetIncomingMessage message)
+        public const int UpdateLimit = byte.MaxValue;
+        public static object Read(NetPacketReader message)
         {
             var p = new ObjectUpdatePacket();
-            p.Updates = new PackedShipUpdate[message.ReadVariableUInt32()];
-            for (int i = 0; i < p.Updates.Length; i++)
-                p.Updates[i] = PackedShipUpdate.ReadFrom(message);
+            p.Tick = message.GetUInt();
+            var pack = new BitReader(message.GetRemainingBytes(), 0);
+            var updateCount = pack.GetUInt(8);
+            p.Updates = new PackedShipUpdate[updateCount];
+            for(int i = 0; i < p.Updates.Length; i++)
+                p.Updates[i] = PackedShipUpdate.ReadFrom(ref pack);
             return p;
         }
-        public void WriteContents(NetOutgoingMessage message)
+        public void WriteContents(NetDataWriter message)
         {
-            message.WriteVariableUInt32((uint)Updates.Length);
+            message.Put(Tick);
+            var writer = new BitWriter();
+            if(Updates.Length > 255)
+                throw new Exception("Too many updates for net packet");
+            writer.PutUInt((uint) Updates.Length, 8);
             foreach (var p in Updates)
-                p.WriteTo(message);
+                p.WriteTo (ref writer);
+            writer.WriteToPacket(message);
         }
     }
 
@@ -275,16 +400,16 @@ namespace LibreLancer
     {
         public float AnglePitch;
         public float AngleRot;
-        public void ReadIn(NetIncomingMessage message)
+        public void ReadIn(ref BitReader message)
         {
-            AnglePitch = message.ReadRadiansQuantized();
-            AngleRot = message.ReadRadiansQuantized();
+            AnglePitch = message.GetRadiansQuantized();
+            AngleRot = message.GetRadiansQuantized();
         }
-        public void WriteTo(NetOutgoingMessage message)
+        public void WriteTo(ref BitWriter message)
         {
             //2 bytes each
-            message.WriteRadiansQuantized(AnglePitch);
-            message.WriteRadiansQuantized(AngleRot);
+            message.PutRadiansQuantized(AnglePitch);
+            message.PutRadiansQuantized(AngleRot);
         }
     }
 
@@ -325,99 +450,95 @@ namespace LibreLancer
         //Guns
         public GunOrient[] GunOrients; //4 bytes each (half floats)
 
-        public void WriteTo(NetOutgoingMessage message)
+        public void WriteTo(ref BitWriter message)
         {
-            message.Write(ID);
-            message.Write(Hidden);
+            message.PutInt(ID);
+            message.PutBool(Hidden);
             if(Hidden)
             {
-                message.WritePadBits();
                 return;
             }
-            message.WriteRangedInteger(0, 3, (int)CruiseThrust); //2 bits
-            message.Write(HasPosition);
-            message.Write(HasOrientation);
-            message.Write(HasHealth);
-            message.Write(HasGuns);
-            message.Write(DockingLights);
+            message.PutUInt((uint)CruiseThrust, 2); //2 bits
+            message.PutBool(HasPosition);
+            message.PutBool(HasOrientation);
+            message.PutBool(HasHealth);
+            message.PutBool(HasGuns);
+            message.PutBool(DockingLights);
             if (HasPosition)
             {
-                message.Write(Position);
-                message.Write(EngineThrottlePct);
+                message.PutVector3(Position);
+                message.PutByte(EngineThrottlePct);
             }
             if(HasOrientation) 
-                message.Write(Orientation);
+                message.PutQuaternion(Orientation);
             if (CruiseThrust == CruiseThrustState.CruiseCharging)
-                message.Write(CruiseChargePct);
+                message.PutByte(CruiseChargePct);
             if(HasHealth) 
             {
-                message.Write(HasShield);
-                message.Write(HasHull);
-                message.Write(HasParts);
+                message.PutBool(HasShield);
+                message.PutBool(HasHull);
+                message.PutBool(HasParts);
                 if(HasParts)
                 {
-                    message.Write((byte)Parts.Length);
+                    message.PutByte((byte)Parts.Length);
                     for(int i = 0; i < Parts.Length; i++) {
-                        message.WriteRangedInteger(Parts[i], 0, 7); //3 bits
+                        message.PutUInt(Parts[i], 3);
                     }
-                    message.WritePadBits();
                 }
-                if (HasShield) message.Write(ShieldHp); //4 bytes
-                if (HasHull) message.Write(HullHp); //4 bytes
+                if (HasShield) message.PutInt(ShieldHp); //4 bytes
+                if (HasHull) message.PutInt(HullHp); //4 bytes
             }
             if(HasGuns) 
             {
-                message.Write((byte)GunOrients.Length);
+                message.PutByte((byte)GunOrients.Length);
                 foreach (var g in GunOrients)
-                    g.WriteTo(message);
+                    g.WriteTo(ref message);
             }
         }
-        public static PackedShipUpdate ReadFrom(NetIncomingMessage message)
+        public static PackedShipUpdate ReadFrom(ref BitReader message)
         {
             var p = new PackedShipUpdate();
-            p.ID = message.ReadInt32();
-            p.Hidden = message.ReadBoolean();
+            p.ID = (int)message.GetUInt(32);
+            p.Hidden = message.GetBool();
             if(p.Hidden)
             {
-                message.ReadPadBits();
                 return p;
             }
-            p.CruiseThrust = (CruiseThrustState)message.ReadRangedInteger(0, 3);
-            p.HasPosition = message.ReadBoolean();
-            p.HasOrientation = message.ReadBoolean();
-            p.HasHealth = message.ReadBoolean();
-            p.HasGuns = message.ReadBoolean();
-            p.DockingLights = message.ReadBoolean();
+            p.CruiseThrust = (CruiseThrustState)message.GetUInt(2);
+            p.HasPosition = message.GetBool();
+            p.HasOrientation = message.GetBool();
+            p.HasHealth = message.GetBool();
+            p.HasGuns = message.GetBool();
+            p.DockingLights = message.GetBool();
             if(p.HasPosition)
             {
-                p.Position = message.ReadVector3();
-                p.EngineThrottlePct = message.ReadByte();
+                p.Position = message.GetVector3();
+                p.EngineThrottlePct = message.GetByte();
             }
             if(p.HasOrientation)
-                p.Orientation = message.ReadQuaternion();
+                p.Orientation = message.GetQuaternion();
             if (p.CruiseThrust == CruiseThrustState.CruiseCharging)
-                p.CruiseChargePct = message.ReadByte();
+                p.CruiseChargePct = message.GetByte();
             if(p.HasHealth)
             {
-                p.HasShield = message.ReadBoolean();
-                p.HasHull = message.ReadBoolean();
-                p.HasParts = message.ReadBoolean();
+                p.HasShield = message.GetBool();
+                p.HasHull = message.GetBool();
+                p.HasParts = message.GetBool();
                 if(p.HasParts) {
-                    p.Parts = new byte[message.ReadByte()];
+                    p.Parts = new byte[message.GetByte()];
                     for(int i = 0; i < p.Parts.Length; i++)
                     {
-                        p.Parts[i] = (byte)message.ReadRangedInteger(0, 7); //3 bits
+                        p.Parts[i] = (byte)message.GetUInt(3);
                     }
-                    message.ReadPadBits();
                 }
-                if (p.HasShield) p.ShieldHp = message.ReadInt32();
-                if (p.HasHull) p.HullHp = message.ReadInt32();
+                if (p.HasShield) p.ShieldHp = message.GetInt();
+                if (p.HasHull) p.HullHp = message.GetInt();
             }
             if (p.HasGuns)
             {
-                p.GunOrients = new GunOrient[message.ReadByte()];
+                p.GunOrients = new GunOrient[message.GetByte()];
                 for (int i = 0; i < p.GunOrients.Length; i++) {
-                    p.GunOrients[i].ReadIn(message);
+                    p.GunOrients[i].ReadIn(ref message);
                 }
             }
             return p;
@@ -427,14 +548,14 @@ namespace LibreLancer
     public class DespawnObjectPacket : IPacket
     {
         public int ID;
-        public static object Read(NetIncomingMessage message) => new DespawnObjectPacket() { ID = message.ReadInt32() };
-        public void WriteContents(NetOutgoingMessage message) => message.Write(ID);
+        public static object Read(NetPacketReader message) => new DespawnObjectPacket() { ID = message.GetInt() };
+        public void WriteContents(NetDataWriter message) => message.Put(ID);
     }
 
     public class LaunchPacket : IPacket
     {
-        public static object Read(NetIncomingMessage message) => new LaunchPacket();
-        public void WriteContents(NetOutgoingMessage message) { }
+        public static object Read(NetPacketReader message) => new LaunchPacket();
+        public void WriteContents(NetDataWriter message) { }
     }
 
     public class PositionUpdatePacket : IPacket
@@ -442,70 +563,70 @@ namespace LibreLancer
         public Vector3 Position;
         public Quaternion Orientation;
 
-        public static object Read(NetIncomingMessage message)
+        public static object Read(NetPacketReader message)
         {
             return new PositionUpdatePacket()
             {
-                Position = message.ReadVector3(),
-                Orientation = message.ReadQuaternion()
+                Position = message.GetVector3(),
+                Orientation = message.GetQuaternion()
             };
         }
-        public void WriteContents(NetOutgoingMessage msg)
+        public void WriteContents(NetDataWriter msg)
         {
-            msg.Write(Position);
-            msg.Write(Orientation);
+            msg.Put(Position);
+            msg.Put(Orientation);
         }
     }
 
     public class PlaySoundPacket : IPacket
     {
         public string Sound;
-        public static object Read(NetIncomingMessage message)
+        public static object Read(NetPacketReader message)
         {
-            return new PlaySoundPacket() {Sound = message.ReadString()};
+            return new PlaySoundPacket() {Sound = message.GetString()};
         }
-        public void WriteContents(NetOutgoingMessage msg)
+        public void WriteContents(NetDataWriter msg)
         {
-            msg.Write(Sound);
+            msg.Put(Sound);
         }
     }
     
     public class PlayMusicPacket : IPacket
     {
         public string Music;
-        public static object Read(NetIncomingMessage message)
+        public static object Read(NetPacketReader message)
         {
-            return new PlayMusicPacket() { Music = message.ReadString()};
+            return new PlayMusicPacket() { Music = message.GetString()};
         }
-        public void WriteContents(NetOutgoingMessage msg)
+        public void WriteContents(NetDataWriter msg)
         {
-            msg.Write(Music);
+            msg.Put(Music);
         }
     }
 
     public class ConsoleCommandPacket : IPacket
     {
         public string Command;
-        public static object Read(NetIncomingMessage message)
+        public static object Read(NetPacketReader message)
         {
-            return new ConsoleCommandPacket() {Command = message.ReadString()};
+            return new ConsoleCommandPacket() {Command = message.GetString()};
         }
-        public void WriteContents(NetOutgoingMessage msg)
+        public void WriteContents(NetDataWriter msg)
         {
-            msg.Write(Command);
+            msg.Put(Command);
         }
     }
 
     public class CallThornPacket : IPacket
     {
         public string Thorn;
-        public static object Read(NetIncomingMessage message)
+        public static object Read(NetPacketReader message)
         {
-            return new CallThornPacket() { Thorn = message.ReadString() };
+            return new CallThornPacket() { Thorn = message.GetString() };
         }
-        public void WriteContents(NetOutgoingMessage msg)
+        public void WriteContents(NetDataWriter msg)
         {
-            msg.Write(Thorn);
+            msg.Put(Thorn);
         }
     }
 
@@ -518,25 +639,25 @@ namespace LibreLancer
     public class MsnDialogPacket : IPacket
     {
         public NetDlgLine[] Lines;
-        public static object Read(NetIncomingMessage message)
+        public static object Read(NetPacketReader message)
         {
-            var pk = new MsnDialogPacket() { Lines = new NetDlgLine[message.ReadVariableInt32()] };
+            var pk = new MsnDialogPacket() { Lines = new NetDlgLine[(int)message.GetVariableUInt32()] };
             for (int i = 0; i < pk.Lines.Length; i++)
             {
                 pk.Lines[i] = new NetDlgLine() {
-                    Voice = message.ReadString(),
-                    Hash = message.ReadUInt32()
+                    Voice = message.GetString(),
+                    Hash = message.GetUInt()
                 };
             }
 
             return pk;
         }
-        public void WriteContents(NetOutgoingMessage msg) {
-            msg.WriteVariableInt32(Lines.Length);
+        public void WriteContents(NetDataWriter msg) {
+            msg.PutVariableUInt32((uint)Lines.Length);
             foreach (var ln in Lines)
             {
-                msg.Write(ln.Voice);
-                msg.Write(ln.Hash);
+                msg.Put(ln.Voice);
+                msg.Put(ln.Hash);
             }
         }
     }
@@ -544,13 +665,13 @@ namespace LibreLancer
     public class LineSpokenPacket : IPacket
     {
         public uint Hash;
-        public static object Read(NetIncomingMessage message)
+        public static object Read(NetPacketReader message)
         {
-            return new LineSpokenPacket() { Hash = message.ReadUInt32() };
+            return new LineSpokenPacket() { Hash = message.GetUInt() };
         }
-        public void WriteContents(NetOutgoingMessage msg)
+        public void WriteContents(NetDataWriter msg)
         {
-            msg.Write(Hash);
+            msg.Put(Hash);
         }
     }
 }

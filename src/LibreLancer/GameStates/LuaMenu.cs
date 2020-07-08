@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using LibreLancer.GameData;
 using LibreLancer.Interface;
+using LiteNetLib;
+
 namespace LibreLancer
 {
     public class LuaMenu : GameState
@@ -21,7 +23,7 @@ namespace LibreLancer
         {
             api = new MenuAPI(this);
             ui = new UiContext(g, "mainmenu.xml");
-            ui.GameApi = new MenuAPI(this);
+            ui.GameApi = api;
             ui.Start();
             g.GameData.PopulateCursors();
             g.CursorKind = CursorKind.None;
@@ -32,10 +34,22 @@ namespace LibreLancer
             cur = g.ResourceManager.GetCursor("arrow");
             GC.Collect(); //crap
             g.Sound.PlayMusic(intro.Music);
+            g.Keyboard.KeyDown += UiKeyDown;
+            g.Keyboard.TextInput += UiTextInput;
 #if DEBUG
             g.Keyboard.KeyDown += Keyboard_KeyDown;
 #endif
             FadeIn(0.1, 0.3);
+        }
+
+        private void UiTextInput(string text)
+        {
+            ui.OnTextEntry(text);
+        }
+
+        private void UiKeyDown(KeyEventArgs e)
+        {
+            ui.OnKeyDown(e.Key);
         }
 
         class ServerList : ITableData
@@ -93,12 +107,17 @@ namespace LibreLancer
                 state.FadeOut(0.2, () =>
                 {
                     var embeddedServer = new EmbeddedServer(state.Game.GameData);
-                    var session = new GameSession(state.Game, embeddedServer);
+                    var session = new CGameSession(state.Game, embeddedServer);
                     embeddedServer.StartFromSave(state.Game.GameData.VFS.Resolve("EXE\\newplayer.fl"));
-                    session.WaitStart();
+                    state.Game.ChangeState(new NetWaitState(session, state.Game));
                 });
             }
 
+            void ResolveNicknames(SelectableCharacter c)
+            {
+                c.Ship = state.Game.GameData.GetString(state.Game.GameData.GetShip(c.Ship).NameIds);
+                c.Location = state.Game.GameData.GetSystem(c.Location).Name;
+            }
             internal void _Update()
             {
                 if (netClient == null) return;
@@ -107,8 +126,18 @@ namespace LibreLancer
                     switch (pkt)
                     {
                         case OpenCharacterListPacket oclist:
+                            FLLog.Info("Net", "Opening Character List");
                             this.cselInfo = oclist.Info;
+                            foreach (var sc in oclist.Info.Characters)
+                                ResolveNicknames(sc);
                             state.ui.Event("CharacterList");
+                            break;
+                        case AddCharacterPacket ac:
+                            ResolveNicknames(ac.Character);
+                            cselInfo.Characters.Add(ac.Character);
+                            break;
+                        case NewCharacterDBPacket ncdb:
+                            state.ui.Event("OpenNewCharacter");
                             break;
                     }
                 }
@@ -117,16 +146,50 @@ namespace LibreLancer
             ServerList serverList = new ServerList();
             private CharacterSelectInfo cselInfo;
 
-            public CharacterSelectInfo CharacterSelectInfo() => cselInfo;
+            public CharacterSelectInfo CharacterList() => cselInfo;
             public ServerList ServerList() => serverList;
             public void StartNetworking()
             {
                 StopNetworking();
                 netClient = new GameNetClient(state.Game);
                 netClient.ServerFound += info => serverList.Servers.Add(info);
+                netClient.Disconnected += NetClientOnDisconnected;
                 netClient.Start();
                 RefreshServers();
             }
+
+            public void RequestNewCharacter()
+            {
+                netClient.SendPacket(new CharacterListActionPacket()
+                {
+                    Action = CharacterListAction.RequestCharacterDB
+                }, DeliveryMethod.ReliableOrdered);
+            }
+
+            public void LoadCharacter()
+            {
+                netClient.SendPacket(new CharacterListActionPacket()
+                {
+                    Action = CharacterListAction.SelectCharacter,
+                    IntArg = cselInfo.Selected
+                }, DeliveryMethod.ReliableOrdered);
+                var session = new CGameSession(state.Game, netClient);
+                netClient.Disconnected += (str) => session.Disconnected();
+                netClient.Disconnected -= NetClientOnDisconnected;
+                netClient = null;
+                state.FadeOut(0.2, () =>
+                {
+                    state.Game.ChangeState(new NetWaitState(session, state.Game));
+                });
+            }
+
+            private void NetClientOnDisconnected(string obj)
+            {
+                netClient?.Shutdown();
+                netClient = null;
+                state.ui.Event("Disconnect");
+            }
+
             public void RefreshServers()
             {
                 serverList.Reset();
@@ -136,6 +199,16 @@ namespace LibreLancer
             public void ConnectSelection()
             {
                 netClient.Connect(serverList.Servers[serverList.Selected].EndPoint);
+            }
+
+            public void NewCharacter(string name, int index)
+            {
+                netClient.SendPacket(new CharacterListActionPacket()
+                {
+                    Action = CharacterListAction.CreateNewCharacter,
+                    StringArg =  name,
+                    IntArg = index
+                }, DeliveryMethod.ReliableOrdered);
             }
             
             public void StopNetworking()
@@ -308,6 +381,7 @@ namespace LibreLancer
         public override void Update(TimeSpan delta)
         {
             ui.Update(Game);
+            Game.TextInputEnabled = ui.KeyboardGrabbed;
             scene.Update(delta);
             api._Update();
         }
@@ -343,12 +417,15 @@ namespace LibreLancer
 
         public override void Exiting()
         {
+            api.StopNetworking(); //Disconnect
         }
 
         public override void Unregister()
         {
             ui.Dispose();
             scene.Dispose();
+            Game.Keyboard.KeyDown -= UiKeyDown;
+            Game.Keyboard.TextInput -= UiTextInput;
 #if DEBUG
             Game.Keyboard.KeyDown -= Keyboard_KeyDown;
 #endif

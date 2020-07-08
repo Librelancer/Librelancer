@@ -12,11 +12,11 @@ using LibreLancer.Physics;
 namespace LibreLancer
 {
 	//Generates rigidbodies the player can hit for asteroid fields
-	public class AsteroidFieldComponent : GameComponent
+	public class CAsteroidFieldComponent : GameComponent
 	{
 		public AsteroidField Field;
         SurCollider shape;
-		public AsteroidFieldComponent(AsteroidField field, GameObject parent) : base(parent)
+		public CAsteroidFieldComponent(AsteroidField field, GameObject parent) : base(parent)
 		{
 			Field = field;
             //var shapes = new List<CompoundSurShape.TransformedShape>();

@@ -16,7 +16,7 @@ namespace LibreLancer
         public float SphereRadius = -1;
         Collider collider;
         SurCollider sur;
-        uint plainCrc = 0;
+        public uint PlainCrc = 0;
         PhysicsWorld pworld;
         public PhysicsComponent(GameObject parent) : base(parent)
         {
@@ -26,7 +26,7 @@ namespace LibreLancer
             var cp = new PhysicsComponent(parent) { 
                 SurPath = this.SurPath,
                 Mass = mass,
-                plainCrc = CrcTool.FLModelCrc(part.Name),
+                PlainCrc = CrcTool.FLModelCrc(part.Name),
             };
             DisablePart(part);
             parent.PhysicsComponent = cp;
@@ -34,6 +34,7 @@ namespace LibreLancer
             cp.Body.Impulse(initialforce);
             parent.Components.Add(cp);
         }
+        
 
         bool partRemoved = false;
         public void DisablePart(RigidModelPart part)
@@ -64,7 +65,7 @@ namespace LibreLancer
                 sur = new SurCollider(SurPath);
                 cld = sur;
                 if(Parent.RigidModel.From3db) {
-                    sur.AddPart(plainCrc, Matrix4x4.Identity, null);
+                    sur.AddPart(PlainCrc, Matrix4x4.Identity, null);
                 } else {
                     foreach(var part in Parent.RigidModel.AllParts) {
                         var crc = CrcTool.FLModelCrc(part.Name);

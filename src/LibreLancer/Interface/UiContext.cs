@@ -168,6 +168,11 @@ namespace LibreLancer.Interface
                 game.Mouse.X, game.Mouse.Y, game.Mouse.IsButtonDown(MouseButtons.Left));
         }
 
+        public void OnFocus()
+        {
+            baseWidget.UnFocus();
+        }
+
         public void Dispose()
         {
             if (game != null)

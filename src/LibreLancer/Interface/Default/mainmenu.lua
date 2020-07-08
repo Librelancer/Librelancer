@@ -27,7 +27,7 @@ function MainMenu.Init()
 		end)
 	end)
 	GetElement('loadgame').Clicked:Add(function ()
-
+        
 	end)
 	GetElement('multiplayer').Clicked:Add(function ()
 		MainMenu.ExitAnimation(function ()
@@ -67,6 +67,10 @@ function Multiplayer.Init()
     Game:StartNetworking()
 end
 
+function Multiplayer.Disconnect()
+    OpenModal('modal.xml', { Title = "Error", Content = "You were disconnected from the server" }, nil)
+end
+
 function Multiplayer.ExitAnimation(f)
     GetElement('animgroupA'):Animate('flyoutleft', 0, 0.8)
     GetElement('animgroupB'):Animate('flyoutright', 0, 0.8)    
@@ -88,7 +92,54 @@ end
 local CharacterList = {}
 
 function CharacterList.Init()
+    -- Set Data
+    GetElement('listtable'):SetData(Game:CharacterList())
+    --Animating in
+    -- Buttons
+    GetElement('newchar').Clicked:Add(function()
+        Game:RequestNewCharacter()
+    end)
+    GetElement('loadchar').Clicked:Add(function()
+        Game:LoadCharacter()
+    end)
+    GetElement('serverlist').Clicked:Add(function()
+        CharacterList.ExitAnimation(function()
+            Game:StopNetworking()
+            SwitchTo('multiplayer')
+        end)
+    end)
+    GetElement('mainmenu').Clicked:Add(function()
+        CharacterList.ExitAnimation(function() 
+            Game:StopNetworking()
+            SwitchTo('mainmenu')
+        end)
+    end)
+end
 
+function CharacterList.OpenNewCharacter()
+    OpenModal('newcharacter.xml', {}, CharacterList.NewCharResult)
+end
+
+function CharacterList.NewCharResult(result)
+    if result['Result'] ~= 'ok' then return end
+    Game:NewCharacter(result.Name, result.Index)
+end
+
+function CharacterList.Update()
+    local cl = Game:CharacterList()
+    GetElement('loadchar').Enabled = cl:ValidSelection()
+    GetElement('deletechar').Enabled = cl:ValidSelection()
+end
+
+function CharacterList.Disconnect()
+    OpenModal('modal.xml', { Title = "Error", Content = "You were disconnected from the server" }, nil)
+    CharacterList.ExitAnimation(function() 
+        SwitchTo('mainmenu')
+    end)
+end
+
+function CharacterList.ExitAnimation(f)
+    f()
 end
 
 local Options = {}
@@ -105,7 +156,6 @@ function Options.Init()
 	GetElement('return').Clicked:Add(function()
 		SwitchTo('mainmenu')
 	end)
-
 end
 
 local Scenes = {
@@ -128,3 +178,5 @@ end
 
 SceneEvent('Update')
 SceneEvent('CharacterList')
+SceneEvent('OpenNewCharacter')
+SceneEvent('Disconnect')

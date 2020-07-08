@@ -4,16 +4,29 @@
 
 using System;
 using System.Collections.Concurrent;
-using Lidgren.Network;
+using LiteNetLib;
 
 namespace LibreLancer
 {
     public class LocalPacketClient : IPacketClient
     {
         public ConcurrentQueue<IPacket> Packets = new ConcurrentQueue<IPacket>();
-        public void SendPacket(IPacket packet, NetDeliveryMethod method)
+        public void SendPacket(IPacket packet, DeliveryMethod method)
         {
+            #if DEBUG
+            LibreLancer.Packets.CheckRegistered(packet);
+            #endif
             Packets.Enqueue(packet);
+        }
+
+        public void SendPacketWithEvent(IPacket packet, Action onAck, DeliveryMethod method)
+        {
+            if(method == DeliveryMethod.Unreliable) throw new ArgumentException();
+            #if DEBUG
+            LibreLancer.Packets.CheckRegistered(packet);
+            #endif
+            Packets.Enqueue(packet);
+            onAck();
         }
     }
 }

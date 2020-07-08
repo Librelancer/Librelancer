@@ -31,7 +31,7 @@ namespace LibreLancer
 				Parent.World.BroadcastMessage(Parent, GameMessageKind.ManeuverFinished);
 				return;
 			}
-			var eng = Parent.GetComponent<EngineComponent>();
+			var eng = Parent.GetComponent<CEngineComponent>();
 			if (eng != null) eng.Speed = 0.9f;
 
 			var tgtcmp = tgt.GetComponent<DockComponent>();

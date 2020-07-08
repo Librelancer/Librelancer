@@ -89,6 +89,12 @@ namespace LibreLancer
                 CheckMissionScript();
             }
         }
+
+        private bool enteredSpace = false;
+        public void EnteredSpace()
+        {
+            enteredSpace = true;
+        }
         
         Dictionary<string, MissionTimer> timers = new Dictionary<string, MissionTimer>();
         List<string> finishedLines = new List<string>();
@@ -99,10 +105,17 @@ namespace LibreLancer
             foreach (var cnd in tr.Conditions)
             {
                 if (cnd.Type == TriggerConditions.Cnd_True ||
-                    cnd.Type == TriggerConditions.Cnd_SpaceEnter ||
                     cnd.Type == TriggerConditions.Cnd_BaseEnter ||
                     cnd.Type == TriggerConditions.Cnd_SpaceExit)
                     cndSatisfied = true;
+                else if (cnd.Type == TriggerConditions.Cnd_SpaceEnter)
+                {
+                    if (!enteredSpace)
+                    {
+                        if(player.World == null)
+                            cndSatisfied = false;
+                    }
+                }
                 else if (cnd.Type == TriggerConditions.Cnd_CommComplete)
                 {
                     if (finishedLines.Contains(cnd.Entry[0].ToString()))
@@ -159,7 +172,6 @@ namespace LibreLancer
             }
             return cndSatisfied;
         }
-        Dictionary<string, GameObject> spawned = new Dictionary<string, GameObject>();
         void DoTrigger(int i)
         {
             active[i] = true;
@@ -194,7 +206,7 @@ namespace LibreLancer
                         //session.Credits += act.Entry[0].ToInt32();
                         break;
                     case TriggerActions.Act_SpawnSolar:
-                        //SpawnSolar(act.Entry[0].ToString(), gameplay.world);
+                        SpawnSolar(act.Entry[0].ToString(), player);
                         break;
                     case TriggerActions.Act_StartDialog:
                         RunDialog(msn.Dialogs.First((x) => x.Nickname.Equals(act.Entry[0].ToString(), StringComparison.OrdinalIgnoreCase)));
@@ -204,11 +216,14 @@ namespace LibreLancer
                         //last param seems to always be one?
                         break;
                     case TriggerActions.Act_LightFuse:
-                        //var fuse = session.Game.GameData.GetFuse(act.Entry[1].ToString());
-                        //var gameObj = gameplay.world.GetObject(act.Entry[0].ToString());
-                        //var fzr = new FuseRunnerComponent(gameObj) { Fuse = fuse };
-                        //gameObj.Components.Add(fzr);
-                        //fzr.Run();
+                        player.WorldAction(() =>
+                        {
+                            var fuse = player.World.Server.GameData.GetFuse(act.Entry[1].ToString());
+                            var gameObj = player.World.GameWorld.GetObject(act.Entry[0].ToString());
+                            var fzr = new SFuseRunnerComponent(gameObj) { Fuse = fuse };
+                            gameObj.Components.Add(fzr);
+                            fzr.Run();
+                        });
                         break;
                     case TriggerActions.Act_PlayMusic:
                         player.PlayMusic(act.Entry[3].ToString());
@@ -286,20 +301,11 @@ namespace LibreLancer
             }
             player.PlayDialog(netdlg);
         }
-        void SpawnSolar(string solarname, GameWorld world)
+        void SpawnSolar(string solarname, Player p)
         {
-            /*var sol = msn.Solars.First(x => x.Nickname.Equals(solarname, StringComparison.OrdinalIgnoreCase));
-            var arch = session.Game.GameData.GetSolarArchetype(sol.Archetype);
-
-            var gameobj = new GameObject(arch, session.Game.ResourceManager, true);
-            gameobj.StaticPosition = sol.Position;
-            gameobj.Transform = Matrix4.CreateFromQuaternion(sol.Orientation) * Matrix4.CreateTranslation(sol.Position);
-            gameobj.Nickname = sol.Nickname;
-            gameobj.World = world;
-            gameobj.Register(world.Physics);
-            gameobj.CollisionGroups = arch.CollisionGroups;
-            world.Objects.Add(gameobj);
-            spawned.Add(solarname, gameobj);*/
+            var sol = msn.Solars.First(x => x.Nickname.Equals(solarname, StringComparison.OrdinalIgnoreCase));
+            var arch = sol.Archetype;
+            p.WorldAction(() => { p.World.SpawnSolar(sol.Nickname, arch, sol.Loadout, sol.Position, sol.Orientation); });
         }
     }
 }

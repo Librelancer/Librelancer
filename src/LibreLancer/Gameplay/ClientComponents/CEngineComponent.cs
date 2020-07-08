@@ -9,7 +9,7 @@ using LibreLancer.GameData.Items;
 using LibreLancer.Fx;
 namespace LibreLancer
 {
-	public class EngineComponent : GameComponent
+	public class CEngineComponent : GameComponent
 	{
 		public EngineEquipment Engine;
 		public float Speed = 1f;
@@ -17,7 +17,7 @@ namespace LibreLancer
         private AttachedSound rumble;
         private AttachedSound character;
 		GameObject parent;
-		public EngineComponent(GameObject parent, EngineEquipment engine) : base(parent)
+		public CEngineComponent(GameObject parent, EngineEquipment engine) : base(parent)
 		{
 			//var fx = game.GameData.GetEffect(engine.Def.FlameEffect);
 			

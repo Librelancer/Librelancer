@@ -4,7 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using Lidgren.Network;
+using LiteNetLib;
+using LiteNetLib.Utils;
 using LibreLancer.Data.NewCharDB;
 
 namespace LibreLancer
@@ -14,44 +15,44 @@ namespace LibreLancer
         public List<NewCharFaction> Factions;
         public List<NewCharPackage> Packages;
         public List<NewCharPilot> Pilots;
-        public static NewCharacterDBPacket Read(NetIncomingMessage message)
+        public static NewCharacterDBPacket Read(NetPacketReader message)
         {
-            var facCount = message.ReadVariableInt32();
+            var facCount = (int)message.GetVariableUInt32();
             var factions = new List<NewCharFaction>(facCount);
             for (int i = 0; i < facCount; i++)
             {
                 factions.Add(new NewCharFaction() {
-                    Nickname = message.ReadString(),
-                    RepGroup = message.ReadString(),
-                    Base = message.ReadString(),
-                    Package = message.ReadString(),
-                    Pilot = message.ReadString()
+                    Nickname = message.GetString(),
+                    RepGroup = message.GetString(),
+                    Base = message.GetString(),
+                    Package = message.GetString(),
+                    Pilot = message.GetString()
                 });
             }
-            var pkgCount = message.ReadVariableInt32();
+            var pkgCount = (int)message.GetVariableUInt32();
             var packages = new List<NewCharPackage>(pkgCount);
             for (int i = 0; i < pkgCount; i++)
             {
                 packages.Add(new NewCharPackage() {
-                    Nickname = message.ReadString(),
-                    StridName = message.ReadInt32(),
-                    StridDesc = message.ReadInt32(),
-                    Ship = message.ReadString(),
-                    Loadout = message.ReadString(),
-                    Money = message.ReadInt64()
+                    Nickname = message.GetString(),
+                    StridName = message.GetInt(),
+                    StridDesc = message.GetInt(),
+                    Ship = message.GetString(),
+                    Loadout = message.GetString(),
+                    Money = message.GetLong()
                 });
             }
-            var pilotCount = message.ReadVariableInt32();
+            var pilotCount = (int)message.GetVariableUInt32();
             var pilots = new List<NewCharPilot>(pilotCount);
             for (int i = 0; i < pilotCount; i++)
             {
                 pilots.Add(new NewCharPilot() {
-                    Nickname = message.ReadString(),
-                    Body = message.ReadString(),
-                    Comm = message.ReadString(),
-                    Voice = message.ReadString(),
-                    BodyAnim = message.ReadString(),
-                    CommAnim = new string[] { message.ReadString(), message.ReadString() }
+                    Nickname = message.GetString(),
+                    Body = message.GetString(),
+                    Comm = message.GetString(),
+                    Voice = message.GetString(),
+                    BodyAnim = message.GetString(),
+                    CommAnim = new string[] { message.GetString(), message.GetString() }
                 });
             }
             return new NewCharacterDBPacket() {
@@ -61,34 +62,34 @@ namespace LibreLancer
             };
         }
 
-        public void WriteContents(NetOutgoingMessage message)
+        public void WriteContents(NetDataWriter message)
         {
-            message.WriteVariableInt32(Factions.Count);
+            message.PutVariableUInt32((uint)Factions.Count);
             foreach(var f in Factions) {
-                message.Write(f.Nickname);
-                message.Write(f.RepGroup);
-                message.Write(f.Base);
-                message.Write(f.Package);
-                message.Write(f.Pilot);
+                message.Put(f.Nickname);
+                message.Put(f.RepGroup);
+                message.Put(f.Base);
+                message.Put(f.Package);
+                message.Put(f.Pilot);
             }
-            message.WriteVariableInt32(Packages.Count);
+            message.PutVariableUInt32((uint)Packages.Count);
             foreach(var p in Packages) {
-                message.Write(p.Nickname);
-                message.Write(p.StridName);
-                message.Write(p.StridDesc);
-                message.Write(p.Ship);
-                message.Write(p.Loadout);
-                message.Write(p.Money);
+                message.Put(p.Nickname);
+                message.Put(p.StridName);
+                message.Put(p.StridDesc);
+                message.Put(p.Ship);
+                message.Put(p.Loadout);
+                message.Put(p.Money);
             }
-            message.WriteVariableInt32(Pilots.Count);
+            message.PutVariableUInt32((uint)Pilots.Count);
             foreach(var p in Pilots) {
-                message.Write(p.Nickname);
-                message.Write(p.Body);
-                message.Write(p.Comm);
-                message.Write(p.Voice);
-                message.Write(p.BodyAnim);
-                message.Write(p.CommAnim[0]);
-                message.Write(p.CommAnim[1]);
+                message.Put(p.Nickname);
+                message.Put(p.Body);
+                message.Put(p.Comm);
+                message.Put(p.Voice);
+                message.Put(p.BodyAnim);
+                message.Put(p.CommAnim[0]);
+                message.Put(p.CommAnim[1]);
             }
         }
     }
@@ -105,33 +106,33 @@ namespace LibreLancer
         public string StringArg;
         public int IntArg;
 
-        public static CharacterListActionPacket Read(NetIncomingMessage message)
+        public static CharacterListActionPacket Read(NetPacketReader message)
         {
             var cla = new CharacterListActionPacket();
-            cla.Action = (CharacterListAction)message.ReadByte();
+            cla.Action = (CharacterListAction)message.GetByte();
             switch(cla.Action)
             {
                 case CharacterListAction.SelectCharacter:
-                    cla.IntArg = message.ReadVariableInt32();
+                    cla.IntArg = (int)message.GetVariableUInt32();
                     break;
                 case CharacterListAction.CreateNewCharacter:
-                    cla.IntArg = message.ReadVariableInt32();
-                    cla.StringArg = message.ReadString();
+                    cla.IntArg = (int)message.GetVariableUInt32();
+                    cla.StringArg = message.GetString();
                     break;
             }
             return cla;
         }
-        public void WriteContents(NetOutgoingMessage message)
+        public void WriteContents(NetDataWriter message)
         {
-            message.Write((byte)Action);
+            message.Put((byte)Action);
             switch(Action)
             {
                 case CharacterListAction.SelectCharacter:
-                    message.WriteVariableInt32(IntArg);
+                    message.PutVariableUInt32((uint)IntArg);
                     break;
                 case CharacterListAction.CreateNewCharacter:
-                    message.WriteVariableInt32(IntArg);
-                    message.Write(StringArg);
+                    message.PutVariableUInt32((uint)IntArg);
+                    message.Put(StringArg);
                     break;
             }
         }
@@ -140,80 +141,80 @@ namespace LibreLancer
     {
         public bool Success;
         public string FailReason;
-        public static CharacterListActionResponsePacket Read(NetIncomingMessage message)
+        public static CharacterListActionResponsePacket Read(NetPacketReader message)
         {
             var p = new CharacterListActionResponsePacket();
-            p.Success = message.ReadByte() != 0;
-            if (!p.Success) p.FailReason = message.ReadString();
+            p.Success = message.GetByte() != 0;
+            if (!p.Success) p.FailReason = message.GetString();
             return p;
         }
-        public void WriteContents(NetOutgoingMessage message)
+        public void WriteContents(NetDataWriter message)
         {
-            message.Write(Success ? (byte)1 : (byte)0);
-            if (!Success) message.Write(FailReason);
+            message.Put(Success ? (byte)1 : (byte)0);
+            if (!Success) message.Put(FailReason);
         }
     }
     public class OpenCharacterListPacket : IPacket
     {
         public CharacterSelectInfo Info;
-        public static OpenCharacterListPacket Read(NetIncomingMessage message)
+        public static OpenCharacterListPacket Read(NetPacketReader message)
         {
             var oc = new OpenCharacterListPacket();
             oc.Info = new CharacterSelectInfo();
-            oc.Info.ServerName = message.ReadString();
-            oc.Info.ServerDescription = message.ReadString();
-            oc.Info.ServerNews = message.ReadString();
-            var charCount = message.ReadVariableInt32();
+            oc.Info.ServerName = message.GetString();
+            oc.Info.ServerDescription = message.GetString();
+            oc.Info.ServerNews = message.GetString();
+            var charCount = (int)message.GetVariableUInt32();
             oc.Info.Characters = new List<SelectableCharacter>(charCount);
             for(int i = 0; i < charCount; i++)
             {
                 var c = new SelectableCharacter();
-                c.Name = message.ReadString();
-                c.Rank = message.ReadVariableInt32();
-                c.Funds = message.ReadInt64();
-                c.Ship = message.ReadString();
-                c.Location = message.ReadString();
+                c.Name = message.GetString();
+                c.Rank = (int)message.GetVariableUInt32();
+                c.Funds = message.GetLong();
+                c.Ship = message.GetString();
+                c.Location = message.GetString();
                 oc.Info.Characters.Add(c);
             }
             return oc;
         }
-        public void WriteContents(NetOutgoingMessage message)
+        public void WriteContents(NetDataWriter message)
         {
-            message.Write(Info.ServerName);
-            message.Write(Info.ServerDescription);
-            message.Write(Info.ServerNews);
-            message.WriteVariableInt32(Info.Characters.Count);
+            message.Put(Info.ServerName);
+            message.Put(Info.ServerDescription);
+            message.Put(Info.ServerNews);
+            message.PutVariableUInt32((uint)Info.Characters.Count);
             foreach(var c in Info.Characters)
             {
-                message.Write(c.Name);
-                message.WriteVariableInt32(c.Rank);
-                message.Write(c.Funds);
-                message.Write(c.Ship);
-                message.Write(c.Location);
+                message.Put(c.Name);
+                message.PutVariableUInt32((uint)c.Rank);
+                message.Put(c.Funds);
+                message.Put(c.Ship);
+                message.Put(c.Location);
             }
         }
     }
     public class AddCharacterPacket : IPacket
     {
         public SelectableCharacter Character;
-        public static AddCharacterPacket Read(NetIncomingMessage message)
+        public static AddCharacterPacket Read(NetPacketReader message)
         {
             var ac = new AddCharacterPacket();
             ac.Character = new SelectableCharacter();
-            ac.Character.Name = message.ReadString();
-            ac.Character.Rank = message.ReadVariableInt32();
-            ac.Character.Funds = message.ReadInt64();
-            ac.Character.Ship = message.ReadString();
-            ac.Character.Location = message.ReadString();
+            ac.Character.Name = message.GetString();
+            ac.Character.Rank = (int)message.GetVariableUInt32();
+            ac.Character.Funds = message.GetLong();
+            ac.Character.Ship = message.GetString();
+            ac.Character.Location = message.GetString();
             return ac;
         }
-        public void WriteContents(NetOutgoingMessage message)
+        public void WriteContents(NetDataWriter message)
         {
-            message.Write(Character.Name);
-            message.WriteVariableInt32(Character.Rank);
-            message.Write(Character.Funds);
-            message.Write(Character.Ship);
-            message.Write(Character.Location);
+            message.Put(Character.Name);
+            message.PutVariableUInt32((uint)Character.Rank);
+            message.Put(Character.Funds);
+            message.Put(Character.Ship);
+            message.Put(Character.Location);
         }
     }
 }

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
+using LibreLancer.Data.Fuses;
 using LibreLancer.Data.Solar;
 using LibreLancer.GameData;
 using LibreLancer.Utf.Anm;
@@ -726,27 +727,21 @@ namespace LibreLancer
             sys.LoadStarspheres();
             yield return null;
             long a = 0;
-            foreach (var obj in sys.Objects)
+            if (glResource != null)
             {
-                //obj.Archetype.ModelFile.LoadFile();
-                if (a % 3 == 0) yield return null;
-                a++;
+                foreach (var obj in sys.Objects)
+                {
+                    obj.Archetype.ModelFile?.LoadFile(glResource);
+                    if (a % 3 == 0) yield return null;
+                    a++;
+                }
             }
-
-            /*foreach (var ast in sys.AsteroidFields)
-            {
-                ast.LoadResources();
-                if (a % 3 == 0) yield return null;
-                a++;
-            }*/
-
             foreach (var nb in sys.Nebulae)
             {
                 nb.LoadResources();
                 if (a % 3 == 0) yield return null;
                 a++;
             }
-
             foreach (var resfile in sys.ResourceFiles)
             {
                 resource.LoadResourceFile(resfile);
@@ -1340,11 +1335,10 @@ namespace LibreLancer
                 fuse = new GameData.FuseResources() {Fuse = fz};
                 foreach (var act in fz.Actions)
                 {
-                    var fza = (act as Data.Fuses.FuseStartEffect);
-                    if (fza != null)
+                    if (act is FuseStartEffect fza)
                     {
-                        if (!fuse.Fx.ContainsKey(fza.Effect))
-                            fuse.Fx[fza.Effect] = GetEffect(fza.Effect).GetEffect(resource);
+                        //if (!fuse.Fx.ContainsKey(fza.Effect))
+                            //fuse.Fx[fza.Effect] = GetEffect(fza.Effect).GetEffect(resource);
                     }
                 }
 

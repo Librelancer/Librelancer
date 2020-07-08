@@ -9,6 +9,7 @@ namespace LibreLancer
 	public class LocalServerInfo
 	{
 		public string Name;
+        public int Unique;
 		public string Description;
         public string DataVersion;
 		public int CurrentPlayers;

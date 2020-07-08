@@ -15,6 +15,8 @@ namespace LibreLancer
 		public SystemRenderer Renderer;
         public ProjectileManager Projectiles;
 
+        public ServerWorld Server;
+
 		public List<GameObject> Objects = new List<GameObject>();
 		public delegate void RenderUpdateHandler(TimeSpan delta);
 		public event RenderUpdateHandler RenderUpdate;
@@ -85,7 +87,7 @@ namespace LibreLancer
                 var g = new GameObject();
                 g.Resources = res;
                 g.World = this;
-                g.Components.Add(new AsteroidFieldComponent(field, g));
+                g.Components.Add(new CAsteroidFieldComponent(field, g));
                 Objects.Add(g);
                 g.Register(Physics);
             }

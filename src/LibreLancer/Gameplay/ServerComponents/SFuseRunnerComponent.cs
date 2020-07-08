@@ -9,12 +9,12 @@ using LibreLancer.GameData;
 using LibreLancer.Data.Fuses;
 namespace LibreLancer
 {
-    public class FuseRunnerComponent : GameComponent
+    public class SFuseRunnerComponent : GameComponent
     {
         public FuseResources Fuse;
         public bool Running = false;
         public double T = 0;
-        public FuseRunnerComponent(GameObject parent) : base(parent)
+        public SFuseRunnerComponent(GameObject parent) : base(parent)
         {
         }
 
@@ -35,7 +35,7 @@ namespace LibreLancer
                 actions.Dequeue();
                 if (act is FuseStartEffect)
                 {
-                    var fxact = ((FuseStartEffect)act);
+                    /*var fxact = ((FuseStartEffect)act);
                     if (Fuse.Fx[fxact.Effect] == null) continue;
                     foreach (var fxhp in fxact.Hardpoints)
                     {
@@ -48,7 +48,7 @@ namespace LibreLancer
                         };
                         Parent.ForceRenderCheck.Add(fxobj.RenderComponent);
                         Parent.Children.Add(fxobj);
-                    }
+                    }*/
                 }
                 else if (act is FuseDestroyGroup)
                 {
@@ -59,12 +59,12 @@ namespace LibreLancer
                     } 
                     else if (dst.Fate == FusePartFate.debris)
                     {
-                        var f = Parent.SpawnDebris(dst.GroupName);
+                        Parent.SpawnDebris(dst.GroupName);
                     }
                 }
                 else if (act is FuseDestroyHpAttachment)
                 {
-
+                    
                 }
                 else if (act is FuseImpulse)
                 {

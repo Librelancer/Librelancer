@@ -6,12 +6,12 @@ using System;
 using System.Collections.Generic;
 namespace LibreLancer
 {
-	public class ThrusterComponent : GameComponent
+	public class CThrusterComponent : GameComponent
 	{
 		public GameData.Items.ThrusterEquipment Equip;
 		public bool Enabled;
 		List<AttachedEffect> fireFx = new List<AttachedEffect>();
-		public ThrusterComponent(GameObject parent, GameData.Items.ThrusterEquipment equip) : base(parent)
+		public CThrusterComponent(GameObject parent, GameData.Items.ThrusterEquipment equip) : base(parent)
 		{
 			Equip = equip;
 			var hps = parent.GetHardpoints();

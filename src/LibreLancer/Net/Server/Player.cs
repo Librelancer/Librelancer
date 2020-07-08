@@ -8,13 +8,13 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using LibreLancer.GameData.Items;
-using Lidgren.Network;
+using LiteNetLib;
 
 namespace LibreLancer
 {
     public class Player
     {
-        private IPacketClient client;
+        public IPacketClient Client;
         GameServer game;
         Guid playerGuid;
         public NetCharacter Character;
@@ -31,7 +31,7 @@ namespace LibreLancer
 
         public Player(IPacketClient client, GameServer game, Guid playerGuid)
         {
-            this.client = client;
+            this.Client = client;
             this.game = game;
             this.playerGuid = playerGuid;
             ID = Interlocked.Increment(ref _gid);
@@ -40,6 +40,11 @@ namespace LibreLancer
         public void UpdateMissionRuntime(TimeSpan elapsed)
         {
             msnRuntime?.Update(elapsed);
+            if (World != null)
+            {
+                while (worldActions.Count > 0)
+                    worldActions.Dequeue()();
+            }
         }
 
         List<string> rtcs = new List<string>();
@@ -48,7 +53,7 @@ namespace LibreLancer
             lock (rtcs)
             {
                 rtcs.Add(rtc);
-                client.SendPacket(new UpdateRTCPacket() { RTCs = rtcs.ToArray()}, NetDeliveryMethod.ReliableOrdered);
+                Client.SendPacket(new UpdateRTCPacket() { RTCs = rtcs.ToArray()}, DeliveryMethod.ReliableOrdered);
             }
         }
 
@@ -57,7 +62,7 @@ namespace LibreLancer
             lock (rtcs)
             {
                 rtcs.Remove(rtc);
-                client.SendPacket(new UpdateRTCPacket() { RTCs = rtcs.ToArray()}, NetDeliveryMethod.ReliableOrdered);
+                Client.SendPacket(new UpdateRTCPacket() { RTCs = rtcs.ToArray()}, DeliveryMethod.ReliableOrdered);
             }
         }
         
@@ -94,12 +99,12 @@ namespace LibreLancer
             {
                 lock (rtcs)
                 {
-                    client.SendPacket(new BaseEnterPacket()
+                    Client.SendPacket(new BaseEnterPacket()
                     {
                         Base = Base,
                         Ship = Character.EncodeLoadout(),
                         RTCs = rtcs.ToArray()
-                    }, NetDeliveryMethod.ReliableOrdered);
+                    }, DeliveryMethod.ReliableOrdered);
                 }
             }
             else
@@ -108,13 +113,13 @@ namespace LibreLancer
                 game.RequestWorld(sys, (world) =>
                 {
                     World = world; 
-                    client.SendPacket(new SpawnPlayerPacket()
+                    Client.SendPacket(new SpawnPlayerPacket()
                     {
                         System = System,
                         Position = Position,
                         Orientation = Orientation,
                         Ship = Character.EncodeLoadout()
-                    }, NetDeliveryMethod.ReliableOrdered);
+                    }, DeliveryMethod.ReliableOrdered);
                     world.SpawnPlayer(this, Position, Orientation);
                 });
             }
@@ -127,14 +132,20 @@ namespace LibreLancer
             }
         }
 
+        private Queue<Action> worldActions = new Queue<Action>();
+        public void WorldAction(Action a)
+        {
+            worldActions.Enqueue(a);
+        }
+
         public void DoAuthSuccess()
         {
             try
             {
                 FLLog.Info("Server", "Account logged in");
-                client.SendPacket(new LoginSuccessPacket(), NetDeliveryMethod.ReliableOrdered);
+                Client.SendPacket(new LoginSuccessPacket(), DeliveryMethod.ReliableOrdered);
                 Account = new PlayerAccount();
-                client.SendPacket(new OpenCharacterListPacket()
+                Client.SendPacket(new OpenCharacterListPacket()
                 {
                     Info = new CharacterSelectInfo()
                     {
@@ -143,7 +154,7 @@ namespace LibreLancer
                         ServerNews = game.ServerNews,
                         Characters = new List<SelectableCharacter>()
                     }
-                }, NetDeliveryMethod.ReliableOrdered);
+                }, DeliveryMethod.ReliableOrdered);
             }
             catch (Exception ex)
             {
@@ -155,22 +166,47 @@ namespace LibreLancer
 
         public void SendUpdate(ObjectUpdatePacket update)
         {
-            client.SendPacket(update, NetDeliveryMethod.UnreliableSequenced);
+            Client.SendPacket(update, DeliveryMethod.Sequenced);
         }
 
         public void SpawnPlayer(Player p)
         {
-            client.SendPacket(new SpawnObjectPacket()
+            Client.SendPacket(new SpawnObjectPacket()
             {
                 ID = p.ID,
                 Name = p.Name,
                 Position = p.Position,
                 Orientation = p.Orientation,
                 Loadout = p.Character.EncodeLoadout()
-            }, NetDeliveryMethod.ReliableOrdered);
+            }, DeliveryMethod.ReliableOrdered);
         }
 
-
+        public void SendSolars(Dictionary<string, GameObject> solars)
+        {
+            var pkt = new SpawnSolarPacket() {Solars = new List<SolarInfo>()};
+            foreach (var solar in solars)
+            {
+                var tr = solar.Value.GetTransform();
+                pkt.Solars.Add(new SolarInfo()
+                {
+                    ID = solar.Value.NetID,
+                    Archetype = solar.Value.ArchetypeName,
+                    Position = Vector3.Transform(Vector3.Zero, tr),
+                    Orientation = tr.ExtractRotation()
+                });
+            }
+            Client.SendPacket(pkt, DeliveryMethod.ReliableOrdered);
+        }
+        
+        public void SendDestroyPart(int id, string part)
+        {
+            Client.SendPacket(new DestroyPartPacket()
+            {
+                ID = id,
+                PartName = part
+            }, DeliveryMethod.ReliableOrdered);
+        }
+        
         public void ProcessPacket(IPacket packet)
         {
             FLLog.Info("Server", "Got packet of type " + packet.GetType());
@@ -212,12 +248,12 @@ namespace LibreLancer
             {
                 case CharacterListAction.RequestCharacterDB:
                 {
-                    client.SendPacket(new NewCharacterDBPacket()
+                    Client.SendPacket(new NewCharacterDBPacket()
                     {
                         Factions = game.GameData.Ini.NewCharDB.Factions,
                         Packages = game.GameData.Ini.NewCharDB.Packages,
                         Pilots = game.GameData.Ini.NewCharDB.Pilots
-                    }, NetDeliveryMethod.ReliableOrdered);
+                    }, DeliveryMethod.ReliableOrdered);
                     break;
                 }
                 case CharacterListAction.SelectCharacter:
@@ -225,11 +261,11 @@ namespace LibreLancer
                     var sc = Account.Characters[pkt.IntArg];
                     Character = NetCharacter.FromDb(sc, game.GameData);
                     Base = Character.Base;
-                    client.SendPacket(new BaseEnterPacket()
+                    Client.SendPacket(new BaseEnterPacket()
                     {
                         Base = Character.Base,
                         Ship = Character.EncodeLoadout()
-                    }, NetDeliveryMethod.ReliableOrdered);
+                    }, DeliveryMethod.ReliableOrdered);
                     break;
                 }
                 case CharacterListAction.CreateNewCharacter:
@@ -242,31 +278,55 @@ namespace LibreLancer
                         ID = 0,
                         Ship = "ge_fighter"
                     };
+                    ac.Equipment.Add(new ServerEquipment()
+                    {
+                        Equipment = "ge_gf1_engine_01",
+                        Hardpoint = "", Health = 1
+                    });
+                    ac.Equipment.Add(new ServerEquipment()
+                        {
+                            Equipment = "ge_fighter_power01",
+                            Hardpoint = "", Health = 1
+                        }
+                    );
                     Account.Characters.Add(ac);
-                    client.SendPacket(new AddCharacterPacket()
+                    Client.SendPacket(new AddCharacterPacket()
                     {
                         Character = NetCharacter.FromDb(ac, game.GameData).ToSelectable()
-                    }, NetDeliveryMethod.ReliableOrdered);
+                    }, DeliveryMethod.ReliableOrdered);
                     break;
-                }
+            }
             }
         }
 
+        public void SpawnDebris(int id, string archetype, string part, Matrix4x4 tr, float mass)
+        {
+            Client.SendPacket(new SpawnDebrisPacket()
+            {
+                ID = id,
+                Archetype =  archetype,
+                Part = part,
+                Mass = mass,
+                Orientation =  tr.ExtractRotation(),
+                Position = Vector3.Transform(Vector3.Zero, tr)
+            }, DeliveryMethod.ReliableUnordered);
+        }
         public void ForceLand(string target)
         {
             World?.RemovePlayer(this);
             World = null;
             Base = target;
-            client.SendPacket(new BaseEnterPacket()
+            Client.SendPacket(new BaseEnterPacket()
             {
                 Base = Base,
                 Ship = Character.EncodeLoadout(),
                 RTCs = rtcs.ToArray()
-            }, NetDeliveryMethod.ReliableOrdered);
+            }, DeliveryMethod.ReliableOrdered);
         }
-        public void Despawn(Player player)
+        
+        public void Despawn(int objId)
         {
-            client.SendPacket(new DespawnObjectPacket() { ID = player.ID }, NetDeliveryMethod.ReliableOrdered);
+            Client.SendPacket(new DespawnObjectPacket() { ID = objId }, DeliveryMethod.ReliableOrdered);
         }
         
         public void Disconnected()
@@ -276,21 +336,21 @@ namespace LibreLancer
         
         public void PlaySound(string sound)
         {
-            client.SendPacket(new PlaySoundPacket() { Sound = sound }, NetDeliveryMethod.ReliableOrdered);
+            Client.SendPacket(new PlaySoundPacket() { Sound = sound }, DeliveryMethod.ReliableOrdered);
         }
 
         public void PlayMusic(string music)
         {
-            client.SendPacket(new PlayMusicPacket() {Music = music }, NetDeliveryMethod.ReliableOrdered);
+            Client.SendPacket(new PlayMusicPacket() {Music = music }, DeliveryMethod.ReliableOrdered);
         }
 
         public void PlayDialog(NetDlgLine[] dialog)
         {
-            client.SendPacket(new MsnDialogPacket() { Lines = dialog }, NetDeliveryMethod.ReliableOrdered);
+            Client.SendPacket(new MsnDialogPacket() { Lines = dialog }, DeliveryMethod.ReliableOrdered);
         }
         public void CallThorn(string thorn)
         {
-            client.SendPacket(new CallThornPacket() { Thorn = thorn }, NetDeliveryMethod.ReliableOrdered);
+            Client.SendPacket(new CallThornPacket() { Thorn = thorn }, DeliveryMethod.ReliableOrdered);
         }
         
         void Launch()
@@ -319,14 +379,15 @@ namespace LibreLancer
                     Orientation = (obj.Rotation ?? Matrix4x4.Identity).ExtractRotation();
                     Position = Vector3.Transform(new Vector3(0, 0, 500), Orientation) + obj.Position; //TODO: This is bad
                 }
-                client.SendPacket(new SpawnPlayerPacket()
+                Client.SendPacket(new SpawnPlayerPacket()
                 {
                     System = System,
                     Position = Position,
                     Orientation = Orientation,
                     Ship = Character.EncodeLoadout()
-                }, NetDeliveryMethod.ReliableOrdered);
+                }, DeliveryMethod.ReliableOrdered);
                 world.SpawnPlayer(this, Position, Orientation);
+                msnRuntime?.EnteredSpace();
             });
         }
     }

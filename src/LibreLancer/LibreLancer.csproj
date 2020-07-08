@@ -15,7 +15,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\External\Lidgren.Network_Core31\Lidgren.Network_Core31.csproj" />
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj" />
     <ProjectReference Include="..\LibreLancer.Data\LibreLancer.Data.csproj" />
     <ProjectReference Include="..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj" />
@@ -35,6 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="LiteNetLib" Version="0.9.2.2" />
     <PackageReference Include="NLua" Version="1.4.29" />
   </ItemGroup>
 

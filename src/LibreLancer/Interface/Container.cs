@@ -19,6 +19,12 @@ namespace LibreLancer.Interface
                 child.Render(context, parentRectangle);
         }
 
+        public override void UnFocus()
+        {
+            foreach (var child in Children)
+                child.UnFocus();
+        }
+
         public override void ApplyStylesheet(Stylesheet sheet)
         {
             foreach(var child in Children)

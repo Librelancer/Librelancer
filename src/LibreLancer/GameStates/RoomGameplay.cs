@@ -31,13 +31,13 @@ namespace LibreLancer
 		Cutscene scene;
         private UiContext ui;
         
-		GameSession session;
+		CGameSession session;
 		string baseId;
         string active;
 		Cursor cursor;
 		string virtualRoom;
         List<BaseHotspot> tophotspots;
-        public RoomGameplay(FreelancerGame g, GameSession session, string newBase, BaseRoom room = null, string virtualRoom = null) : base(g)
+        public RoomGameplay(FreelancerGame g, CGameSession session, string newBase, BaseRoom room = null, string virtualRoom = null) : base(g)
 		{
             this.session = session;
 			baseId = newBase;

@@ -51,7 +51,7 @@ namespace LibreLancer
         {
             if (!Active) return;
             //Component checks
-            var engine = Parent.GetComponent<EngineComponent>(); //Get mounted engine
+            var engine = Parent.GetComponent<CEngineComponent>(); //Get mounted engine
             var power = Parent.GetComponent<PowerCoreComponent>();
             if (Parent.PhysicsComponent == null) return;
             if (Parent.PhysicsComponent.Body == null) return;
@@ -62,13 +62,13 @@ namespace LibreLancer
             var engine_force = EnginePower * engine.Engine.Def.MaxForce;
             power.CurrentThrustCapacity += power.Equip.ThrustChargeRate * (float)(time.TotalSeconds);
             power.CurrentThrustCapacity = MathHelper.Clamp(power.CurrentThrustCapacity, 0, power.Equip.ThrustCapacity);
-            foreach (var thruster in Parent.GetChildComponents<ThrusterComponent>())
+            foreach (var thruster in Parent.GetChildComponents<CThrusterComponent>())
             {
                 thruster.Enabled = false;
             }
             if (ThrustEnabled)
             {
-                foreach (var thruster in Parent.GetChildComponents<ThrusterComponent>())
+                foreach (var thruster in Parent.GetChildComponents<CThrusterComponent>())
                 {
                     engine_force += thruster.Equip.Force;
                     thruster.Enabled = true;

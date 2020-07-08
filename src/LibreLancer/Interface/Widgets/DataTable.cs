@@ -11,6 +11,7 @@ namespace LibreLancer.Interface
         int Count { get; }
         int Selected { get; set; }
         string GetContentString(int row, string column);
+        bool ValidSelection();
     }
     
     [UiLoadable]

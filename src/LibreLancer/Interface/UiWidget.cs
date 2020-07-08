@@ -110,6 +110,9 @@ namespace LibreLancer.Interface
         {
             
         }
+        public virtual void UnFocus()
+        {
+        }
 
         protected UiAnimation CurrentAnimation;
         private TimeSpan lastTime = TimeSpan.FromSeconds(0);

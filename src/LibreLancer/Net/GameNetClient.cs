@@ -7,8 +7,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading;
-using Lidgren.Network;
+using LiteNetLib;
+using LiteNetLib.Utils;
+
 namespace LibreLancer
 {
     public class GameNetClient : IPacketConnection
@@ -16,7 +19,9 @@ namespace LibreLancer
         bool running = false;
         IUIThread mainThread;
         Thread networkThread;
-        NetClient client;
+        private NetManager client;
+        public string AppIdentifier = LNetConst.DEFAULT_APP_IDENT;
+        
         public event Action<LocalServerInfo> ServerFound;
         public event Action<string> AuthenticationRequired;
         public event Action<string> Disconnected;
@@ -25,6 +30,7 @@ namespace LibreLancer
         
         public void Start()
         {
+            if(running) throw new InvalidOperationException();
             running = true;
             networkThread = new Thread(NetworkThread);
             networkThread.Name = "NetClient";
@@ -38,11 +44,13 @@ namespace LibreLancer
 
         public void Stop()
         {
+            if(!running) throw new InvalidOperationException();
             running = false;
             networkThread.Join();
         }
 
-        public bool Connected => client.ConnectionStatus == NetConnectionStatus.Connected;
+        public bool Connected =>
+            (client?.FirstPeer != null && client.FirstPeer.ConnectionState == ConnectionState.Connected);
 
         public void Shutdown()
         {
@@ -53,8 +61,10 @@ namespace LibreLancer
         {
             if (running)
             {
-                while (client == null || client.Status != NetPeerStatus.Running) Thread.Sleep(0);
-                client.DiscoverLocalPeers(NetConstants.DEFAULT_PORT);
+                while (client == null || !client.IsRunning) Thread.Sleep(0);
+                var dw = new NetDataWriter();
+                dw.Put(LNetConst.BROADCAST_KEY);
+                client.SendBroadcast(dw, LNetConst.DEFAULT_PORT);
             }
         }
 
@@ -66,11 +76,11 @@ namespace LibreLancer
         bool connecting = true;
         public void Connect(IPEndPoint endPoint)
         {
+            if(!running) throw new InvalidOperationException();
             lock (srvinfo) srvinfo.Clear();
             connecting = true;
-            var message = client.CreateMessage();
-            message.Write("Hello World!");
-            client.Connect(endPoint, message);
+            while (client == null || !client.IsRunning) Thread.Sleep(0);
+            client.Connect(endPoint, AppIdentifier);
         }
 
         public bool Connect(string str)
@@ -91,7 +101,7 @@ namespace LibreLancer
             IPAddress ip;
             if (IPAddress.TryParse(str, out ip))
             {
-                endpoint = new IPEndPoint(ip, NetConstants.DEFAULT_PORT);
+                endpoint = new IPEndPoint(ip, LNetConst.DEFAULT_PORT);
                 return true;
             }
             if (str.Contains(":"))
@@ -119,7 +129,7 @@ namespace LibreLancer
             }
             if (TryResolve(str, out ip))
             {
-                endpoint = new IPEndPoint(ip, NetConstants.DEFAULT_PORT);
+                endpoint = new IPEndPoint(ip, LNetConst.DEFAULT_PORT);
                 return true;
             }
             return false;
@@ -150,12 +160,123 @@ namespace LibreLancer
         void NetworkThread()
         {
             sw = Stopwatch.StartNew();
-            var conf = new NetPeerConfiguration(NetConstants.DEFAULT_APP_IDENT);
-            conf.EnableMessageType(NetIncomingMessageType.UnconnectedData);
-            conf.DualStack = true;
-            client = new NetClient(conf);
+            var listener = new EventBasedNetListener();
+            client = new NetManager(listener)
+            {
+                UnconnectedMessagesEnabled = true,
+                IPv6Enabled = true,
+                NatPunchEnabled = true
+            };
+            listener.NetworkReceiveUnconnectedEvent += (remote, msg, type) =>
+            {
+                if (type == UnconnectedMessageType.Broadcast) return;
+                if (msg.GetInt() == 0) {
+                    lock (srvinfo)
+                    {
+                        foreach (var info in srvinfo)
+                        {
+                            if (info.EndPoint.Equals(remote))
+                            {
+                                var t = sw.ElapsedMilliseconds;
+                                info.Ping = (int)(t - info.LastPingTime);
+                                if (info.Ping < 0) info.Ping = 0;
+                            }
+                        }
+                    }
+                }
+                else if (ServerFound != null)
+                {
+                    var info = new LocalServerInfo();
+                    info.EndPoint = remote;
+                    info.Unique = msg.GetInt();
+                    info.Name = msg.GetString();
+                    info.Description = msg.GetString();
+                    info.DataVersion = msg.GetString();
+                    info.CurrentPlayers = msg.GetInt();
+                    info.MaxPlayers = msg.GetInt();
+                    info.LastPingTime = sw.ElapsedMilliseconds;
+                    NetDataWriter writer = new NetDataWriter();
+                    writer.Put(LNetConst.PING_MAGIC);
+                    client.SendUnconnectedMessage(writer, remote);
+                    lock (srvinfo)
+                    {
+                        bool add = true;
+                        for (int i = 0; i < srvinfo.Count; i++)
+                        {
+                            if (srvinfo[i].Unique == info.Unique)
+                            {
+                                add = false;
+                                //Prefer IPv6
+                                if(srvinfo[i].EndPoint.AddressFamily != AddressFamily.InterNetwork &&
+                                   info.EndPoint.AddressFamily == AddressFamily.InterNetwork)
+                                    srvinfo[i].EndPoint = info.EndPoint;
+                                break;
+                            }
+                        }
+                        if (add) {
+                            srvinfo.Add(info);
+                            mainThread.QueueUIThread(() => ServerFound?.Invoke(info));
+                        }
+                    }
+                }
+                msg.Recycle();
+            };
+            listener.NetworkReceiveEvent += (peer, reader, method) =>
+            {
+                try
+                {
+                    var packetCount = reader.GetByte(); //reliable packets can be merged
+                    if (packetCount > 1)
+                        FLLog.Debug("Net", $"Received {packetCount} merged packets");
+                    for (int i = 0; i < packetCount; i++)
+                    {
+                        var pkt = Packets.Read(reader);
+                        if (connecting)
+                        {
+                            if (pkt is AuthenticationPacket)
+                            {
+                                var auth = (AuthenticationPacket) pkt;
+                                FLLog.Info("Net", "Authentication Packet Received");
+                                if (auth.Type == AuthenticationKind.Token)
+                                {
+                                    FLLog.Info("Net", "Token");
+                                    var str = reader.GetString();
+                                    mainThread.QueueUIThread(() => AuthenticationRequired(str));
+                                }
+                                else if (auth.Type == AuthenticationKind.GUID)
+                                {
+                                    FLLog.Info("Net", "GUID");
+                                    SendPacket(new AuthenticationReplyPacket() {Guid = this.UUID},
+                                        DeliveryMethod.ReliableOrdered);
+                                }
+                            }
+                            else if (pkt is LoginSuccessPacket)
+                            {
+                                FLLog.Info("Client", "Login success");
+                                connecting = false;
+                            }
+                            else
+                            {
+                                client.DisconnectAll();
+                            }
+                        }
+                        else
+                        {
+                            packets.Enqueue(pkt);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    FLLog.Error("Client", "Error reading packet");
+                    client.DisconnectAll();
+                }
+            };
+            listener.PeerDisconnectedEvent += (peer, info) =>
+            {
+                mainThread.QueueUIThread(() => { Disconnected?.Invoke(info.Reason.ToString()); });
+            };
             client.Start();
-            NetIncomingMessage im;
             while (running)
             {
                 //ping servers
@@ -163,129 +284,29 @@ namespace LibreLancer
                 {
                     foreach (var inf in srvinfo)
                     {
-                        var nowMs = (long)(NetTime.Now * 1000);
-                        if (nowMs - inf.LastPingTime > 600)
+                        var nowMs = sw.ElapsedMilliseconds;
+                        if (nowMs - inf.LastPingTime > 2000) //ping every 2 seconds?
                         {
                             inf.LastPingTime = nowMs;
-                            var om = client.CreateMessage();
-                            om.Write(NetConstants.PING_MAGIC);
+                            var om = new NetDataWriter();
+                            om.Put(LNetConst.PING_MAGIC);
                             client.SendUnconnectedMessage(om, inf.EndPoint);
                         }
                     }
                 }
-                while ((im = client.ReadMessage()) != null)
-                {
-                    try
-                    {
-                        switch (im.MessageType)
-                        {
-                            case NetIncomingMessageType.DebugMessage:
-                            case NetIncomingMessageType.ErrorMessage:
-                            case NetIncomingMessageType.WarningMessage:
-                            case NetIncomingMessageType.VerboseDebugMessage:
-                                FLLog.Info("Lidgren", im.ReadString());
-                                break;
-                            case NetIncomingMessageType.UnconnectedData:
-                                lock (srvinfo)
-                                {
-                                    foreach (var info in srvinfo)
-                                    {
-                                        if (info.EndPoint.Equals(im.SenderEndPoint))
-                                        { 
-                                            var t = (long)(im.ReceiveTime * 1000);
-                                            info.Ping = (int)(t - info.LastPingTime);
-                                            if (info.Ping < 0) info.Ping = 0;
-                                        }
-                                    }
-                                }
-                                break;
-                            case NetIncomingMessageType.DiscoveryResponse:
-                                if (ServerFound != null)
-                                {
-                                    var info = new LocalServerInfo();
-                                    info.EndPoint = im.SenderEndPoint;
-                                    info.Name = im.ReadString();
-                                    info.Description = im.ReadString();
-                                    info.DataVersion = im.ReadString();
-                                    info.CurrentPlayers = im.ReadInt32();
-                                    info.MaxPlayers = im.ReadInt32();
-                                    info.LastPingTime = sw.ElapsedMilliseconds;
-                                    var om = client.CreateMessage();
-                                    om.Write(NetConstants.PING_MAGIC);
-                                    client.SendUnconnectedMessage(om, info.EndPoint);
-                                    lock (srvinfo) srvinfo.Add(info);
-                                    mainThread.QueueUIThread(() => ServerFound?.Invoke(info));
-                                }
-                                break;
-                            case NetIncomingMessageType.StatusChanged:
-                                var status = (NetConnectionStatus)im.ReadByte();
-                                if (status == NetConnectionStatus.Disconnected)
-                                {
-                                    FLLog.Info("Net", "Disconnected");
-                                    var reason = im.ReadString();
-                                    mainThread.QueueUIThread(() => Disconnected?.Invoke(reason)); 
-                                    running = false;
-                                }
-                                break;
-                            case NetIncomingMessageType.Data:
-                                var pkt = im.ReadPacket();
-                                if (connecting)
-                                {
-                                    if (pkt is AuthenticationPacket)
-                                    {
-                                        var auth = (AuthenticationPacket) pkt;
-                                        FLLog.Info("Net", "Authentication Packet Received");
-                                        if (auth.Type == AuthenticationKind.Token)
-                                        {
-                                            FLLog.Info("Net", "Token");
-                                            var str = im.ReadString();
-                                            mainThread.QueueUIThread(() => AuthenticationRequired(str));
-                                        }
-                                        else if (auth.Type == AuthenticationKind.GUID)
-                                        {
-                                            FLLog.Info("Net", "GUID");
-                                            var response = client.CreateMessage();
-                                            response.Write(new AuthenticationReplyPacket()
-                                            {
-                                                Guid = this.UUID
-                                            });
-                                            client.SendMessage(response, NetDeliveryMethod.ReliableOrdered);
-                                        }
-                                    }
-                                    else if (pkt is LoginSuccessPacket)
-                                    {
-                                        connecting = false;
-                                    }
-                                    else
-                                    {
-                                        client.Disconnect("Invalid Packet");
-                                    }
-                                }
-                                else
-                                {
-                                    packets.Enqueue(pkt);
-                                }
-                                break;
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        FLLog.Error("Net", "Error reading message of type " + im.MessageType.ToString());
-                        throw;
-                    }
-                    client.Recycle(im);
-                }
+                //events
+                client.PollEvents();
                 Thread.Sleep(1);
             }
-            FLLog.Info("Lidgren", "Client shutdown");
-            client.Shutdown("Shutdown");
+            client.DisconnectAll();
+            client.Stop();
         }
 
-        public void SendPacket(IPacket packet, NetDeliveryMethod method)
+        public void SendPacket(IPacket packet, DeliveryMethod method)
         {
-            var msg = client.CreateMessage();
-            msg.Write(packet);
-            client.SendMessage(msg, method);
+            var om = new NetDataWriter();
+            Packets.Write(om, packet);
+            client.SendToAll(om, method);
         }
         public bool PollPacket(out IPacket packet)
         {

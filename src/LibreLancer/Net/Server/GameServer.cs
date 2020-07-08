@@ -7,6 +7,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
+using LibreLancer.GameData;
 
 namespace LibreLancer
 {
@@ -116,8 +118,28 @@ namespace LibreLancer
                 lastTime = time;
                 //Update
                 LocalPlayer?.UpdateMissionRuntime(TimeSpan.FromSeconds(elapsed));
-                foreach(var world in worlds.Values) {
-                    world.Update(TimeSpan.FromSeconds(elapsed));
+                ConcurrentBag<StarSystem> toSpinDown = new ConcurrentBag<StarSystem>();
+                Parallel.ForEach(worlds, (world) =>
+                {
+                    if(!world.Value.Update(TimeSpan.FromSeconds(elapsed)))
+                        toSpinDown.Add(world.Key);
+                });
+                //Remove
+                if (toSpinDown.Count > 0)
+                {
+                    lock (availableWorlds) 
+                    {
+                        foreach (var w in toSpinDown)
+                        {
+                            if (worlds[w].PlayerCount <= 0)
+                            {
+                                worlds[w].Finish();
+                                availableWorlds.Remove(w);
+                                worlds.Remove(w);
+                                FLLog.Info("Server", $"Shut down world {w.Nickname} ({w.Name})");
+                            }
+                        }
+                    }
                 }
                 //Sleep
                 Thread.Sleep(0);

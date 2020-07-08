@@ -8,19 +8,19 @@ using LibreLancer.GameData.Items;
 using LibreLancer.Fx;
 namespace LibreLancer
 {
-    public class UpdateSParamComponent : GameComponent
+    public class CUpdateSParamComponent : GameComponent
     {
-        public UpdateSParamComponent(GameObject parent) : base(parent)
+        public CUpdateSParamComponent(GameObject parent) : base(parent)
         {
         }
         public override void Update(TimeSpan time)
         {
             if (Parent.RenderComponent == null) return;
             float sparam = 0;
-            EngineComponent eng;
+            CEngineComponent eng;
             if (Parent.Parent != null)
             {
-                if ((eng = Parent.Parent.GetComponent<EngineComponent>()) != null)
+                if ((eng = Parent.Parent.GetComponent<CEngineComponent>()) != null)
                 {
                     sparam = eng.Speed;
                 }

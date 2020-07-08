@@ -7,7 +7,7 @@ using System.Numerics;
 using System.Collections.Generic;
 using LibreLancer.Data.Missions;
 using LibreLancer.Utf.Cmp;
-using Lidgren.Network;
+using LiteNetLib;
 
 namespace LibreLancer
 {
@@ -24,7 +24,7 @@ namespace LibreLancer
     }
 
 
-    public class GameSession
+    public class CGameSession
 	{
         public long Credits;
 		public string PlayerShip;
@@ -38,7 +38,7 @@ namespace LibreLancer
 		public Matrix4x4 PlayerOrientation;
 
         private IPacketConnection connection;
-		public GameSession(FreelancerGame g, IPacketConnection connection)
+		public CGameSession(FreelancerGame g, IPacketConnection connection)
 		{
 			Game = g;
             this.connection = connection;
@@ -49,8 +49,7 @@ namespace LibreLancer
             ActiveCutscenes = new List<StoryCutsceneIni>();
             foreach (var path in paths)
             {
-                var rtc = new Data.Missions.StoryCutsceneIni(Game.GameData.Ini.Freelancer.DataPath + path,
-                    Game.GameData.VFS);
+                var rtc = new StoryCutsceneIni(Game.GameData.Ini.Freelancer.DataPath + path, Game.GameData.VFS);
                 rtc.RefPath = path;
                 ActiveCutscenes.Add(rtc);
             }
@@ -60,17 +59,19 @@ namespace LibreLancer
         {
             ActiveCutscenes.Remove(cutscene);
             connection.SendPacket(new RTCCompletePacket() {RTC = cutscene.RefPath},
-                NetDeliveryMethod.ReliableSequenced);
+                DeliveryMethod.ReliableSequenced);
         }
 
         public void RoomEntered(string room, string bse)
         {
-            connection.SendPacket(new EnterLocationPacket() { Base = bse, Room = room}, NetDeliveryMethod.ReliableOrdered);
+            connection.SendPacket(new EnterLocationPacket() { Base = bse, Room = room}, DeliveryMethod.ReliableOrdered);
         }
 
         private bool hasChanged = false;
         void SceneChangeRequired()
         {
+            gameplayActions.Clear();
+            objects = new Dictionary<int, GameObject>();
             if (PlayerBase != null)
             {
                 Game.ChangeState(new RoomGameplay(Game, this, PlayerBase));
@@ -78,8 +79,6 @@ namespace LibreLancer
             }
             else
             {
-                worldReady = false;
-                toAdd = new List<GameObject>();
                 gp = new SpaceGameplay(Game, this);
                 Game.ChangeState(gp);
                 hasChanged = true;
@@ -87,8 +86,6 @@ namespace LibreLancer
         }
 
         SpaceGameplay gp;
-        bool worldReady = false;
-        List<GameObject> toAdd = new List<GameObject>();
         Dictionary<int, GameObject> objects = new Dictionary<int, GameObject>();
 
         public bool Update()
@@ -98,7 +95,7 @@ namespace LibreLancer
             return hasChanged;
         }
 
-        Queue<Action<SpaceGameplay>> gameplayActions = new Queue<Action<SpaceGameplay>>();
+        Queue<Action> gameplayActions = new Queue<Action>();
         private Queue<Action> audioActions = new Queue<Action>();
 
         void UpdateAudio()
@@ -111,17 +108,22 @@ namespace LibreLancer
         {
             UpdateAudio();
             while (gameplayActions.TryDequeue(out var act))
-                act(gp);
+                act();
+            var player = gp.world.GetObject("player");
+            var tr = player.GetTransform();
+            var pos = Vector3.Transform(Vector3.Zero, tr);
+            var orient = tr.ExtractRotation();
+            connection.SendPacket(new PositionUpdatePacket()
+            {
+                Position =  pos,
+                Orientation = orient
+            }, DeliveryMethod.Sequenced);
         }
 
         public void WorldReady()
         {
-            worldReady = true;
-            foreach (var obj in toAdd)
-            {
-                gp.world.Objects.Add(obj);
-            }
-            toAdd = new List<GameObject>();
+            while (gameplayActions.TryDequeue(out var act))
+                act();
         }
 
         public Action<IPacket> ExtraPackets;
@@ -170,11 +172,11 @@ namespace LibreLancer
         //Use only for Single Player
         //Works because the data is already loaded,
         //and this is really only waiting for the embedded server to start
+        private bool started = false;
         public void WaitStart()
         {
             IPacket packet;
-            bool started = false;
-            while (!started)
+            if (!started)
             {
                 while (connection.PollPacket(out packet))
                 {
@@ -182,14 +184,10 @@ namespace LibreLancer
                     if (packet is BaseEnterPacket || packet is SpawnPlayerPacket)
                         started = true;
                 }
-                Game.Yield();
             }
         }
 
-        void AddGameplayAction(Action<SpaceGameplay> gp)
-        {
-            gameplayActions.Enqueue(gp);
-        }
+        void RunSync(Action gp) => gameplayActions.Enqueue(gp);
 
         void PlaySound(string sound) => audioActions.Enqueue(() => Game.Sound.PlaySound(sound));
         void PlayMusic(string music) => audioActions.Enqueue(() => Game.Sound.PlayMusic(music));
@@ -199,7 +197,7 @@ namespace LibreLancer
             if (index >= lines.Length) return;
             Game.Sound.PlayVoiceLine(lines[index].Voice, lines[index].Hash, () =>
             {
-                connection.SendPacket(new LineSpokenPacket() { Hash = lines[index].Hash }, NetDeliveryMethod.ReliableOrdered);
+                connection.SendPacket(new LineSpokenPacket() { Hash = lines[index].Hash }, DeliveryMethod.ReliableOrdered);
                 RunDialog(lines, index + 1);
             });
         }
@@ -219,7 +217,7 @@ namespace LibreLancer
             switch(pkt)
             {
                 case CallThornPacket ct:
-                    AddGameplayAction(gp => {
+                    RunSync(() => {
                         var thn = new ThnScript(Game.GameData.ResolveDataPath(ct.Thorn));
                         gp.Thn = new Cutscene(new ThnScript[] { thn }, gp);
                     });
@@ -228,8 +226,7 @@ namespace LibreLancer
                     AddRTC(rtc.RTCs);
                     break;
                 case MsnDialogPacket msndlg:
-                    AddGameplayAction(gp =>
-                    {
+                    RunSync(() => {
                         RunDialog(msndlg.Lines);
                     });
                     break;
@@ -253,32 +250,87 @@ namespace LibreLancer
                     SceneChangeRequired();
                     AddRTC(b.RTCs);
                     break;
-                case SpawnObjectPacket p:
-                    var shp = Game.GameData.GetShip((int)p.Loadout.ShipCRC);
-                    //Set up player object + camera
-                    var newobj = new GameObject(shp, Game.ResourceManager);
-                    newobj.Name = "NetPlayer " + p.ID;
-                    newobj.Transform = Matrix4x4.CreateFromQuaternion(p.Orientation) *
-                        Matrix4x4.CreateTranslation(p.Position);
-                    objects.Add(p.ID, newobj);
-                    if (worldReady)
+                case SpawnSolarPacket solar:
+                    RunSync(() =>
                     {
+                        foreach (var si in solar.Solars)
+                        {
+                            if (!objects.ContainsKey(si.ID))
+                            {
+                                var arch = Game.GameData.GetSolarArchetype(si.Archetype);
+                                var go = new GameObject(arch, Game.ResourceManager, true);
+                                go.StaticPosition = si.Position;
+                                go.Transform = Matrix4x4.CreateFromQuaternion(si.Orientation) *
+                                               Matrix4x4.CreateTranslation(si.Position);
+                                go.Nickname = $"$Solar{si.ID}";
+                                go.World = gp.world;
+                                go.Register(go.World.Physics);
+                                go.CollisionGroups = arch.CollisionGroups;
+                                FLLog.Debug("Client", $"Spawning object {si.ID}");
+                                gp.world.Objects.Add(go);
+                                objects.Add(si.ID, go);
+                            }
+                        }
+                    });
+                    break;
+                case DestroyPartPacket p:
+                    RunSync(() =>
+                    {
+                        objects[p.ID].DisableCmpPart(p.PartName);
+                    });
+                    break;
+                case SpawnDebrisPacket p:
+                    RunSync(() =>
+                    {
+                        var arch = Game.GameData.GetSolarArchetype(p.Archetype);
+                        var mdl =
+                            ((IRigidModelFile) arch.ModelFile.LoadFile(Game.ResourceManager)).CreateRigidModel(true);
+                        var newpart = mdl.Parts[p.Part].Clone();
+                        var newmodel = new RigidModel()
+                        {
+                            Root = newpart,
+                            AllParts = new[] { newpart },
+                            MaterialAnims = mdl.MaterialAnims,
+                            Path = mdl.Path,
+                        };
+                        var go = new GameObject($"debris{p.ID}", newmodel, Game.ResourceManager, p.Part, p.Mass, true);
+                        go.Transform = Matrix4x4.CreateFromQuaternion(p.Orientation) *
+                                       Matrix4x4.CreateTranslation(p.Position);
+                        go.World = gp.world;
+                        go.Register(go.World.Physics);
+                        gp.world.Objects.Add(go);
+                        objects.Add(p.ID, go);
+                    });
+                    break;
+                case SpawnObjectPacket p:
+                    RunSync(() =>
+                    {
+                        var shp = Game.GameData.GetShip((int) p.Loadout.ShipCRC);
+                        //Set up player object + camera
+                        var newobj = new GameObject(shp, Game.ResourceManager);
+                        newobj.Name = "NetPlayer " + p.ID;
+                        newobj.Transform = Matrix4x4.CreateFromQuaternion(p.Orientation) *
+                                           Matrix4x4.CreateTranslation(p.Position);
+                        if(connection is GameNetClient) 
+                            newobj.Components.Add(new CNetPositionComponent(newobj));
+                        objects.Add(p.ID, newobj);
                         gp.world.Objects.Add(newobj);
-                    }
-                    else
-                        toAdd.Add(newobj);
+                    });
                     break;
                 case ObjectUpdatePacket p:
-                    foreach (var update in p.Updates)
-                        UpdateObject(update);
+                    RunSync(() =>
+                    {
+                        foreach (var update in p.Updates)
+                            UpdateObject(p.Tick, update);
+                    });
                     break;
                 case DespawnObjectPacket p:
-                    var despawn = objects[p.ID];
-                    if(worldReady)
+                    RunSync(() =>
+                    {
+                        var despawn = objects[p.ID];
                         gp.world.Objects.Remove(despawn);
-                    else
-                        toAdd.Remove(despawn);
-                    objects.Remove(p.ID);
+                        objects.Remove(p.ID);
+                    });
                     break;
                 default:
                     if (ExtraPackets != null) ExtraPackets(pkt);
@@ -287,24 +339,30 @@ namespace LibreLancer
             }
         }
 
-        void UpdateObject(PackedShipUpdate update)
+        void UpdateObject(uint tick, PackedShipUpdate update)
         {
+            if (!objects.ContainsKey(update.ID)) return;
             var obj = objects[update.ID];
-            var tr = obj.GetTransform();
-            var pos = update.HasPosition ? update.Position : Vector3.Transform(Vector3.Zero, tr);
-            var rot = update.HasOrientation ? update.Orientation : tr.ExtractRotation();
-            obj.Transform = Matrix4x4.CreateFromQuaternion(rot) * Matrix4x4.CreateTranslation(pos);
+            //Component only present in multiplayer
+            var netPos = obj.GetComponent<CNetPositionComponent>();
+            if (netPos != null)
+            {
+                if(update.HasPosition) netPos.QueuePosition(tick, update.Position);
+                if(update.HasOrientation) netPos.QueueOrientation(tick, update.Orientation);
+            }
+            else
+            {
+                var tr = obj.GetTransform();
+                var pos = update.HasPosition ? update.Position : Vector3.Transform(Vector3.Zero, tr);
+                var rot = update.HasOrientation ? update.Orientation : tr.ExtractRotation();
+                obj.Transform = Matrix4x4.CreateFromQuaternion(rot) * Matrix4x4.CreateTranslation(pos);
+            }
         }
 
-        public void Launch()
-        {
-            connection.SendPacket(new LaunchPacket(), NetDeliveryMethod.ReliableOrdered);
-        }
+        public void Launch() => connection.SendPacket(new LaunchPacket(), DeliveryMethod.ReliableOrdered);
         
-        public void ProcessConsoleCommand(string str)
-        {
-            connection.SendPacket(new ConsoleCommandPacket() {Command = str}, NetDeliveryMethod.ReliableOrdered);
-        }
+        public void ProcessConsoleCommand(string str) => connection.SendPacket(new ConsoleCommandPacket() {Command = str}, DeliveryMethod.ReliableOrdered);
+        
 
         public void Disconnected()
         {

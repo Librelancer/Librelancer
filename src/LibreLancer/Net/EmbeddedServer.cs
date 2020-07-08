@@ -3,7 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using Lidgren.Network;
+using LiteNetLib;
 
 namespace LibreLancer
 {
@@ -27,8 +27,11 @@ namespace LibreLancer
             Server.LocalPlayer.OpenSaveGame(sg);
         }
         
-        public void SendPacket(IPacket packet, NetDeliveryMethod method)
+        public void SendPacket(IPacket packet, DeliveryMethod method)
         {
+            #if DEBUG
+            Packets.CheckRegistered(packet);
+            #endif
             Server.OnLocalPacket(packet);
         }
 

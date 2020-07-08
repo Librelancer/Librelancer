@@ -3,9 +3,11 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Lidgren.Network;
+using LiteNetLib;
+using LiteNetLib.Utils;
 
 namespace LibreLancer
 {
@@ -14,13 +16,13 @@ namespace LibreLancer
         private GameServer game;
 		static readonly object TagConnecting = new object();
 
-        public int Port = NetConstants.DEFAULT_PORT;
-		public string AppIdentifier = NetConstants.DEFAULT_APP_IDENT;
+        public int Port = LNetConst.DEFAULT_PORT;
+        public int MaxConnections = 200;
+        public string AppIdentifier = LNetConst.DEFAULT_APP_IDENT;
         
         private bool running = false;
 		Thread netThread;
-		Thread gameThread;
-		public NetServer NetServer;
+		public NetManager Server;
 
 		public GameListener(GameServer srv)
         {
@@ -37,155 +39,154 @@ namespace LibreLancer
 
         void NetThread()
         {
-            var netconf = new NetPeerConfiguration(AppIdentifier);
-            netconf.EnableMessageType(NetIncomingMessageType.DiscoveryRequest);
-            netconf.EnableMessageType(NetIncomingMessageType.ConnectionApproval);
-            netconf.EnableMessageType(NetIncomingMessageType.UnconnectedData);
-            netconf.DualStack = true;
-            netconf.Port = Port;
-            netconf.MaximumConnections = 200;
-            NetServer = new NetServer(netconf);
-            NetServer.Start();
-            FLLog.Info("Server", "Listening on port " + Port);
-            NetIncomingMessage im;
-            while (running)
+            EventBasedNetListener listener = new EventBasedNetListener();
+            int unique = Environment.TickCount;
+            listener.ConnectionRequestEvent += request =>
             {
-                while ((im = NetServer.ReadMessage()) != null)
+                if (Server.ConnectedPeersCount > MaxConnections) request.Reject();
+                else request.AcceptIfKey(AppIdentifier);
+            };
+            listener.PeerConnectedEvent += peer =>
+            {
+                FLLog.Info("Server", $"Connected: {peer.EndPoint}");
+                BeginAuthentication(peer);
+            };
+            listener.PeerDisconnectedEvent += (peer, info) =>
+            {
+                FLLog.Info("Server", $"Disconnected: {peer.EndPoint}");
+                if (peer.Tag is Player player)
                 {
-                    switch (im.MessageType)
+                    player.Disconnected();
+                    lock (game.ConnectedPlayers)
                     {
-                        case NetIncomingMessageType.DebugMessage:
-                        case NetIncomingMessageType.ErrorMessage:
-                        case NetIncomingMessageType.WarningMessage:
-                        case NetIncomingMessageType.VerboseDebugMessage:
-                            FLLog.Info("Lidgren", im.ReadString());
-                            NetServer.Recycle(im);
-                            break;
-                        case NetIncomingMessageType.ConnectionApproval:
-                            //Ban IP?
-                            im.SenderConnection.Approve();
-                            NetServer.Recycle(im);
-                            break;
-                        case NetIncomingMessageType.DiscoveryRequest:
-                            NetOutgoingMessage dresp = NetServer.CreateMessage();
-                            //Include Server Data
-                            dresp.Write(game.ServerName);
-                            dresp.Write(game.ServerDescription);
-                            dresp.Write(game.GameData.DataVersion);
-                            dresp.Write(NetServer.ConnectionsCount);
-                            dresp.Write(NetServer.Configuration.MaximumConnections);
-                            //Send off
-                            NetServer.SendDiscoveryResponse(dresp, im.SenderEndPoint);
-                            NetServer.Recycle(im);
-                            break;
-                        case NetIncomingMessageType.UnconnectedData:
-                            //Respond to pings
-                            try
-                            {
-                                if (im.ReadUInt32() == NetConstants.PING_MAGIC)
-                                {
-                                    var om = NetServer.CreateMessage();
-                                    om.Write(NetConstants.PING_MAGIC);
-                                    NetServer.SendUnconnectedMessage(om, im.SenderEndPoint);
-                                }
-                            }
-                            finally
-                            {
-                                NetServer.Recycle(im);
-                            }
-                            break;
-                        case NetIncomingMessageType.StatusChanged:
-                            NetConnectionStatus status = (NetConnectionStatus) im.ReadByte();
-                            string reason = im.ReadString();
-                            FLLog.Info("Lidgren",
-                                NetUtility.ToHexString(im.SenderConnection.RemoteUniqueIdentifier) + " " + status +
-                                ": " + reason);
-                            if (status == NetConnectionStatus.Connected)
-                            {
-                                FLLog.Info("Lidgren",
-                                    "Remote hail: " + im.SenderConnection.RemoteHailMessage.ReadString());
-                                BeginAuthentication(NetServer, im.SenderConnection);
-                            }
-                            else if (status == NetConnectionStatus.Disconnected)
-                            {
-                                FLLog.Info("Lidgren", im.SenderEndPoint.ToString() + " disconnected");
-                                if (im.SenderConnection.Tag is Player player)
-                                {
-                                    player.Disconnected();
-                                    lock (game.ConnectedPlayers)
-                                    {
-                                        game.ConnectedPlayers.Remove(player);
-                                    }
-                                }
-                            }
-                            NetServer.Recycle(im);
-                            break;
-                        case NetIncomingMessageType.Data:
-                            IPacket pkt;
-                            try
-                            {
-                                pkt = im.ReadPacket();
-                            }
-                            catch (Exception)
-                            {
-                                pkt = null;
-                                im.SenderConnection.Disconnect("Malformed Packet");
-                                if (im.SenderConnection.Tag is Player)
-                                    ((Player) im.SenderConnection.Tag).Disconnected();
-                            }
-                            if (pkt != null)
-                            {
-                                if (im.SenderConnection.Tag == TagConnecting)
-                                {
-                                    if (pkt is AuthenticationReplyPacket)
-                                    {
-                                        var auth = (AuthenticationReplyPacket) pkt;
-                                        var p = new Player(new RemotePacketClient(im.SenderConnection, NetServer),
-                                            game, auth.Guid);
-                                        im.SenderConnection.Tag = p;
-                                        Task.Run(() => p.DoAuthSuccess());
-                                        lock (game.ConnectedPlayers)
-                                        {
-                                            game.ConnectedPlayers.Add(p);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        im.SenderConnection.Disconnect("Invalid Packet");
-                                    }
-                                    NetServer.Recycle(im);
-                                }
-                                else
-                                {
-                                    var player = (Player) im.SenderConnection.Tag;
-                                    Task.Run(() => player.ProcessPacket(pkt));
-                                    NetServer.Recycle(im);
-                                }
-                            }
-                            break;
+                        game.ConnectedPlayers.Remove(player);
                     }
                 }
-                Thread.Sleep(0); //Reduce CPU load
+            };
+            listener.NetworkReceiveUnconnectedEvent += (point, reader, type) =>
+            {
+                try
+                {
+                    if (type == UnconnectedMessageType.Broadcast)
+                    {
+                        if (!reader.TryGetString(out string str)) return;
+                        if (str != LNetConst.BROADCAST_KEY) return;
+                        var dw = new NetDataWriter();
+                        dw.Put((int) 1);
+                        dw.Put(unique);
+                        dw.Put(game.ServerName);
+                        dw.Put(game.ServerDescription);
+                        dw.Put(game.GameData.DataVersion);
+                        dw.Put(Server.ConnectedPeersCount);
+                        dw.Put(MaxConnections);
+                        Server.SendUnconnectedMessage(dw, point);
+
+                    } else if (type == UnconnectedMessageType.BasicMessage)
+                    {
+                        if (!reader.TryGetUInt(out uint magic)) return;
+                        if (magic != LNetConst.PING_MAGIC) return;
+                        var dw = new NetDataWriter();
+                        dw.Put((int) 0);
+                        Server.SendUnconnectedMessage(dw, point);
+                    }
+                }
+                finally
+                {
+                    reader.Recycle();
+                }
+            };
+            listener.NetworkReceiveEvent += (peer, reader, method) =>
+            {
+                try
+                {
+                    var pkt = Packets.Read(reader);
+                    if (peer.Tag == TagConnecting)
+                    {
+                        if (pkt is AuthenticationReplyPacket)
+                        {
+                            var auth = (AuthenticationReplyPacket) pkt;
+                            var p = new Player(new RemotePacketClient(peer),
+                                game, auth.Guid);
+                            peer.Tag = p;
+                            Task.Run(() => p.DoAuthSuccess());
+                            lock (game.ConnectedPlayers)
+                            {
+                                game.ConnectedPlayers.Add(p);
+                            }
+                        }
+                        else
+                        {
+                            var dw = new NetDataWriter();
+                            dw.Put("Invalid packet");
+                            peer.Disconnect(dw);
+                        }
+                    }
+                    else
+                    {
+                        var player = (Player) peer.Tag;
+                        Task.Run(() => player.ProcessPacket(pkt));
+                    }
+                }
+                catch (Exception)
+                {
+                    var dw = new NetDataWriter();
+                    dw.Put("Packet processing error");
+                    peer.Disconnect(dw);
+                    if (peer.Tag is Player p)
+                        p.Disconnected();
+                }
+                finally
+                {
+                    reader.Recycle();
+                }
+            };
+            listener.DeliveryEvent += (peer, data) =>
+            {
+                if (data is Action onAck)
+                    onAck();
+            };
+            Server = new NetManager(listener);
+            Server.IPv6Enabled = true;
+            Server.UnconnectedMessagesEnabled = true;
+            Server.BroadcastReceiveEnabled = true;
+            Server.Start(Port);
+            FLLog.Info("Server", "Listening on port " + Port);
+            var sw = Stopwatch.StartNew();
+            var last = TimeSpan.Zero;
+            while (running)
+            {
+                Server.PollEvents();
+                var e = sw.Elapsed;
+                var ts = e - last;
+                last = e;
+                foreach (var p in Server.ConnectedPeerList)
+                {
+                    if (p.Tag is Player player)
+                    {
+                        (player.Client as RemotePacketClient)?.Update(ts);
+                    }
+                }
+                Thread.Sleep(0); //Reduce load
             }
-            NetServer.Shutdown("Shutdown");
+            Server.Stop();
         }
 
-        void BeginAuthentication(NetServer server, NetConnection connection)
-		{
-			var msg = server.CreateMessage();
-            msg.Write(new AuthenticationPacket()
+        void BeginAuthentication(NetPeer peer)
+        {
+            var msg = new NetDataWriter();
+            msg.Put((byte)1);
+            Packets.Write(msg, new AuthenticationPacket()
             {
                 Type = AuthenticationKind.GUID
             });
-			server.SendMessage(msg, connection, NetDeliveryMethod.ReliableOrdered);
-			connection.Tag = TagConnecting;
+            peer.Send(msg, DeliveryMethod.ReliableOrdered);
+			peer.Tag = TagConnecting;
 		}
 
 		public void Stop()
 		{
 			running = false;
 			netThread.Join();
-			gameThread.Join();
 		}
 	}
 }
