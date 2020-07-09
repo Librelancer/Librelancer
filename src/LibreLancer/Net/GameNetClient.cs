@@ -247,7 +247,7 @@ namespace LibreLancer
                                 {
                                     FLLog.Info("Net", "GUID");
                                     SendPacket(new AuthenticationReplyPacket() {Guid = this.UUID},
-                                        DeliveryMethod.ReliableOrdered);
+                                        PacketDeliveryMethod.ReliableOrdered);
                                 }
                             }
                             else if (pkt is LoginSuccessPacket)
@@ -302,11 +302,12 @@ namespace LibreLancer
             client.Stop();
         }
 
-        public void SendPacket(IPacket packet, DeliveryMethod method)
+        public void SendPacket(IPacket packet, PacketDeliveryMethod method)
         {
             var om = new NetDataWriter();
             Packets.Write(om, packet);
-            client.SendToAll(om, method);
+            method.ToLiteNetLib(out DeliveryMethod mt, out byte ch);
+            client.FirstPeer?.Send(om, ch, mt);
         }
         public bool PollPacket(out IPacket packet)
         {

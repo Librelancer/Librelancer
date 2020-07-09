@@ -14,9 +14,10 @@ namespace LibreLancer
         public NetPeer Client;
         Queue<IPacket> reliableSend = new Queue<IPacket>();
         object reliableLock = new object();
-        public void SendPacket(IPacket packet, DeliveryMethod method)
+        public void SendPacket(IPacket packet, PacketDeliveryMethod method)
         {
-            if (method == DeliveryMethod.ReliableOrdered)
+            method.ToLiteNetLib(out DeliveryMethod mt, out byte ch);
+            if (mt == DeliveryMethod.ReliableOrdered)
             {
                 lock (reliableLock)
                 {
@@ -28,7 +29,7 @@ namespace LibreLancer
                 var m = new NetDataWriter();
                 m.Put((byte)1);
                 Packets.Write(m, packet);
-                Client.Send(m, method);
+                Client.Send(m, ch, mt);
             }
         }
 
@@ -60,13 +61,13 @@ namespace LibreLancer
         }
         
 
-        public void SendPacketWithEvent(IPacket packet, Action onAck, DeliveryMethod method)
+        public void SendPacketWithEvent(IPacket packet, Action onAck, PacketDeliveryMethod method)
         {
-            if(method == DeliveryMethod.Unreliable) throw new ArgumentException();
             var m = new NetDataWriter();
             m.Put((byte) 1);
             Packets.Write(m, packet);
-            Client.SendWithDeliveryEvent(m, 0, method, onAck);
+            method.ToLiteNetLib(out var mtd, out var channel);
+            Client.SendWithDeliveryEvent(m, channel, mtd, onAck);
         }
 
         public RemotePacketClient(NetPeer client)

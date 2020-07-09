@@ -59,12 +59,12 @@ namespace LibreLancer
         {
             ActiveCutscenes.Remove(cutscene);
             connection.SendPacket(new RTCCompletePacket() {RTC = cutscene.RefPath},
-                DeliveryMethod.ReliableSequenced);
+                PacketDeliveryMethod.ReliableOrdered);
         }
 
         public void RoomEntered(string room, string bse)
         {
-            connection.SendPacket(new EnterLocationPacket() { Base = bse, Room = room}, DeliveryMethod.ReliableOrdered);
+            connection.SendPacket(new EnterLocationPacket() { Base = bse, Room = room}, PacketDeliveryMethod.ReliableOrdered);
         }
 
         private bool hasChanged = false;
@@ -117,7 +117,7 @@ namespace LibreLancer
             {
                 Position =  pos,
                 Orientation = orient
-            }, DeliveryMethod.Sequenced);
+            }, PacketDeliveryMethod.SequenceB);
         }
 
         public void WorldReady()
@@ -197,7 +197,7 @@ namespace LibreLancer
             if (index >= lines.Length) return;
             Game.Sound.PlayVoiceLine(lines[index].Voice, lines[index].Hash, () =>
             {
-                connection.SendPacket(new LineSpokenPacket() { Hash = lines[index].Hash }, DeliveryMethod.ReliableOrdered);
+                connection.SendPacket(new LineSpokenPacket() { Hash = lines[index].Hash }, PacketDeliveryMethod.ReliableOrdered);
                 RunDialog(lines, index + 1);
             });
         }
@@ -359,9 +359,9 @@ namespace LibreLancer
             }
         }
 
-        public void Launch() => connection.SendPacket(new LaunchPacket(), DeliveryMethod.ReliableOrdered);
+        public void Launch() => connection.SendPacket(new LaunchPacket(), PacketDeliveryMethod.ReliableOrdered);
         
-        public void ProcessConsoleCommand(string str) => connection.SendPacket(new ConsoleCommandPacket() {Command = str}, DeliveryMethod.ReliableOrdered);
+        public void ProcessConsoleCommand(string str) => connection.SendPacket(new ConsoleCommandPacket() {Command = str}, PacketDeliveryMethod.ReliableOrdered);
         
 
         public void Disconnected()

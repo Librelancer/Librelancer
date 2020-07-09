@@ -163,7 +163,7 @@ namespace LibreLancer
                 netClient.SendPacket(new CharacterListActionPacket()
                 {
                     Action = CharacterListAction.RequestCharacterDB
-                }, DeliveryMethod.ReliableOrdered);
+                }, PacketDeliveryMethod.ReliableOrdered);
             }
 
             public void LoadCharacter()
@@ -172,7 +172,7 @@ namespace LibreLancer
                 {
                     Action = CharacterListAction.SelectCharacter,
                     IntArg = cselInfo.Selected
-                }, DeliveryMethod.ReliableOrdered);
+                }, PacketDeliveryMethod.ReliableOrdered);
                 var session = new CGameSession(state.Game, netClient);
                 netClient.Disconnected += (str) => session.Disconnected();
                 netClient.Disconnected -= NetClientOnDisconnected;
@@ -208,7 +208,7 @@ namespace LibreLancer
                     Action = CharacterListAction.CreateNewCharacter,
                     StringArg =  name,
                     IntArg = index
-                }, DeliveryMethod.ReliableOrdered);
+                }, PacketDeliveryMethod.ReliableOrdered);
             }
             
             public void StopNetworking()

@@ -27,7 +27,7 @@ namespace LibreLancer
             Server.LocalPlayer.OpenSaveGame(sg);
         }
         
-        public void SendPacket(IPacket packet, DeliveryMethod method)
+        public void SendPacket(IPacket packet, PacketDeliveryMethod method)
         {
             #if DEBUG
             Packets.CheckRegistered(packet);

@@ -11,7 +11,7 @@ namespace LibreLancer
     public class LocalPacketClient : IPacketClient
     {
         public ConcurrentQueue<IPacket> Packets = new ConcurrentQueue<IPacket>();
-        public void SendPacket(IPacket packet, DeliveryMethod method)
+        public void SendPacket(IPacket packet, PacketDeliveryMethod method)
         {
             #if DEBUG
             LibreLancer.Packets.CheckRegistered(packet);
@@ -19,9 +19,8 @@ namespace LibreLancer
             Packets.Enqueue(packet);
         }
 
-        public void SendPacketWithEvent(IPacket packet, Action onAck, DeliveryMethod method)
+        public void SendPacketWithEvent(IPacket packet, Action onAck, PacketDeliveryMethod method)
         {
-            if(method == DeliveryMethod.Unreliable) throw new ArgumentException();
             #if DEBUG
             LibreLancer.Packets.CheckRegistered(packet);
             #endif

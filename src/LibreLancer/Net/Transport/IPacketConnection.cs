@@ -7,7 +7,7 @@ namespace LibreLancer
 {
     public interface IPacketConnection
     {
-        void SendPacket(IPacket packet, DeliveryMethod method);
+        void SendPacket(IPacket packet, PacketDeliveryMethod method);
         bool PollPacket(out IPacket packet);
         void Shutdown();
     }
