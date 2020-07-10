@@ -1,13 +1,20 @@
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace LibreLancer.Entities.Character
 {
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations.Schema;
 
     using LibreLancer.Entities.Abstract;
 
     public class Character : BaseEntity
     {
+        public Character()
+        {
+            this.Reputations = new HashSet<Reputation>();
+            this.VisitEntries = new HashSet<VisitEntry>();
+            this.Cargo = new HashSet<CargoItem>();
+            this.Equipment = new HashSet<EquipmentEntity>();
+        }
+
         public string Name { get; set; }
 
         public uint Rank { get; set; }
@@ -31,6 +38,12 @@ namespace LibreLancer.Entities.Character
 
         // Current ship archetype
         public string Ship { get; set; }
+
+        // Current faction affiliation
+        public string Affiliation { get; set; }
+
+        // If locked cannot faction affiliation cannot change
+        public bool AffiliationLocked { get; set; }
 
         // Description of the character set
         public string Description { get; set; }
@@ -65,7 +78,7 @@ namespace LibreLancer.Entities.Character
 
         public virtual ICollection<CargoItem> Cargo { get; set; }
 
-        public ulong AccountId { get; set; }
+        public long AccountId { get; set; }
 
         [ForeignKey("AccountId")]
         // This Character has one account
