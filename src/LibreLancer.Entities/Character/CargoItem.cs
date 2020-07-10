@@ -1,6 +1,8 @@
 namespace LibreLancer.Entities.Character
 {
-    public class CargoItem
+    using LibreLancer.Entities.Abstract;
+
+    public class CargoItem : BaseEntity
     {
         // The nickname of the item. 
         public string ItemName { get; set; }

@@ -1,11 +1,16 @@
-using System;
-using System.Collections.Generic;
-using LibreLancer.Entities.Abstract;
-
 namespace LibreLancer.Entities.Character
 {
+    using System;
+    using System.Collections.Generic;
+    using LibreLancer.Entities.Abstract;
+
     public class Account : BaseEntity
     {
+        public Account()
+        {
+            this.Characters = new HashSet<Character>();
+        }
+
         // Login identifier
         public Guid AccountIdentifier { get; set; }
 
