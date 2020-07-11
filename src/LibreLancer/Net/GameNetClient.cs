@@ -32,6 +32,7 @@ namespace LibreLancer
         {
             if(running) throw new InvalidOperationException();
             running = true;
+            networkThread?.Join();
             networkThread = new Thread(NetworkThread);
             networkThread.Name = "NetClient";
             networkThread.Start();
@@ -46,7 +47,6 @@ namespace LibreLancer
         {
             if(!running) throw new InvalidOperationException();
             running = false;
-            networkThread.Join();
         }
 
         public bool Connected =>

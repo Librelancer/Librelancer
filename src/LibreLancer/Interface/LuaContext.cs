@@ -169,7 +169,6 @@ namespace LibreLancer.Interface
         }
         public void CallEvent(string ev, params object[] p)
         {
-            FLLog.Debug("Lua", "callevent");
             var args = new[] {(object) ev}.Concat(p).ToArray();
             script.Call(_callevent, args);
         }
