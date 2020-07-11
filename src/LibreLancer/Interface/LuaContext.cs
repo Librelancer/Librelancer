@@ -38,6 +38,10 @@ namespace LibreLancer.Interface
             script.Globals["AnchorKind"] = UserData.CreateStatic<AnchorKind>();
             baseCode = Compile(script, null, DEFAULT_LUA, "LuaContext.LuaCode");
         }
+        public static void RegisterType<T>()
+        {
+            UserData.RegisterType<T>(InteropAccessMode.LazyOptimized);
+        }
 
         static byte[] Compile(Script sc, Table globalTable, string code, string name)
         {
@@ -199,7 +203,6 @@ namespace LibreLancer.Interface
             }
             public override object LoadFile(string file, Table globalContext)
             {
-                Console.WriteLine("looking for " + file);
                 return context.Data.ReadAllText(file);
             }
             public override string ResolveModuleName(string modname, Table globalContext)

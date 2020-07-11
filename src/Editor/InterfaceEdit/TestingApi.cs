@@ -30,6 +30,11 @@ namespace InterfaceEdit
     }
     public class TestingApi
     {
+        static TestingApi()
+        {
+            LuaContext.RegisterType<TestingApi>();
+            LuaContext.RegisterType<TestServerList>();
+        }
         static readonly NavbarButtonInfo cityscape = new NavbarButtonInfo("IDS_HOTSPOT_EXIT", "Cityscape");
         static readonly NavbarButtonInfo bar = new NavbarButtonInfo("IDS_HOTSPOT_BAR", "Bar");
         static readonly NavbarButtonInfo trader = new NavbarButtonInfo("IDS_HOTSPOT_COMMODITYTRADER_ROOM", "Trader");
