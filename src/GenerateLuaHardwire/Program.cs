@@ -3,7 +3,6 @@ using System.IO;
 using System.Reflection;
 using LibreLancer;
 using MoonSharp.Interpreter;
-using MoonSharp.Interpreter.Serialization;
 using MoonSharp.Hardwire;
 using MoonSharp.Hardwire.Languages;
 

@@ -40,4 +40,4 @@
 	url = https://github.com/DaemonEngine/crunch
 [submodule "extern/moonsharp"]
 	path = extern/moonsharp
-	url = https://github.com/moonsharp-devs/moonsharp
+	url = https://github.com/Librelancer/moonsharp

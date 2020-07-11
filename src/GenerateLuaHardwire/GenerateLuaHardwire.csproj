@@ -6,75 +6,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="MoonSharp" Version="2.0.0" />
-      <PackageReference Include="System.CodeDom" Version="4.7.0" />
-    </ItemGroup>
-
-    <ItemGroup>
+      <ProjectReference Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\MoonSharp.Hardwire.csproj" />
+      <ProjectReference Include="..\..\extern\moonsharp\src\MoonSharp.Interpreter\MoonSharp.Interpreter.csproj" />
       <ProjectReference Include="..\LibreLancer\LibreLancer.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Compile Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\Generators\ArrayMemberDescriptorGenerator.cs">
-        <Link>MoonSharp.Hardwire\Generators\ArrayMemberDescriptorGenerator.cs</Link>
-      </Compile>
-      <Compile Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\Generators\Base\AssignableMemberDescriptorGeneratorBase.cs">
-        <Link>MoonSharp.Hardwire\Generators\Base\AssignableMemberDescriptorGeneratorBase.cs</Link>
-      </Compile>
-      <Compile Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\Generators\DynValueMemberDescriptorGenerator.cs">
-        <Link>MoonSharp.Hardwire\Generators\DynValueMemberDescriptorGenerator.cs</Link>
-      </Compile>
-      <Compile Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\Generators\FieldMemberDescriptorGenerator.cs">
-        <Link>MoonSharp.Hardwire\Generators\FieldMemberDescriptorGenerator.cs</Link>
-      </Compile>
-      <Compile Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\Generators\MethodMemberDescriptorGenerator.cs">
-        <Link>MoonSharp.Hardwire\Generators\MethodMemberDescriptorGenerator.cs</Link>
-      </Compile>
-      <Compile Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\Generators\NullGenerator.cs">
-        <Link>MoonSharp.Hardwire\Generators\NullGenerator.cs</Link>
-      </Compile>
-      <Compile Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\Generators\OverloadedMethodMemberDescriptorGenerator.cs">
-        <Link>MoonSharp.Hardwire\Generators\OverloadedMethodMemberDescriptorGenerator.cs</Link>
-      </Compile>
-      <Compile Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\Generators\PropertyMemberDescriptorGenerator.cs">
-        <Link>MoonSharp.Hardwire\Generators\PropertyMemberDescriptorGenerator.cs</Link>
-      </Compile>
-      <Compile Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\Generators\StandardUserDataDescriptorGenerator.cs">
-        <Link>MoonSharp.Hardwire\Generators\StandardUserDataDescriptorGenerator.cs</Link>
-      </Compile>
-      <Compile Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\Generators\ValueTypeDefaultCtorMemberDescriptorGenerator.cs">
-        <Link>MoonSharp.Hardwire\Generators\ValueTypeDefaultCtorMemberDescriptorGenerator.cs</Link>
-      </Compile>
-      <Compile Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\HardwireCodeGenerationContext.cs">
-        <Link>MoonSharp.Hardwire\HardwireCodeGenerationContext.cs</Link>
-      </Compile>
-      <Compile Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\HardwireGenerator.cs">
-        <Link>MoonSharp.Hardwire\HardwireGenerator.cs</Link>
-      </Compile>
-      <Compile Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\HardwireGeneratorRegistry.cs">
-        <Link>MoonSharp.Hardwire\HardwireGeneratorRegistry.cs</Link>
-      </Compile>
-      <Compile Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\ICodeGenerationLogger.cs">
-        <Link>MoonSharp.Hardwire\ICodeGenerationLogger.cs</Link>
-      </Compile>
-      <Compile Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\IHardwireGenerator.cs">
-        <Link>MoonSharp.Hardwire\IHardwireGenerator.cs</Link>
-      </Compile>
-      <Compile Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\Languages\CSharpHardwireCodeGenerationLanguage.cs">
-        <Link>MoonSharp.Hardwire\Languages\CSharpHardwireCodeGenerationLanguage.cs</Link>
-      </Compile>
-      <Compile Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\Languages\HardwireCodeGenerationLanguage.cs">
-        <Link>MoonSharp.Hardwire\Languages\HardwireCodeGenerationLanguage.cs</Link>
-      </Compile>
-      <Compile Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\Languages\VbHardwireCodeGenerationLanguage.cs">
-        <Link>MoonSharp.Hardwire\Languages\VbHardwireCodeGenerationLanguage.cs</Link>
-      </Compile>
-      <Compile Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\Utils\GeneratorUtilities.cs">
-        <Link>MoonSharp.Hardwire\Utils\GeneratorUtilities.cs</Link>
-      </Compile>
-      <Compile Include="..\..\extern\moonsharp\src\MoonSharp.Hardwire\Utils\HardwireParameterDescriptor.cs">
-        <Link>MoonSharp.Hardwire\Utils\HardwireParameterDescriptor.cs</Link>
-      </Compile>
     </ItemGroup>
 
 </Project>
