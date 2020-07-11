@@ -4,7 +4,7 @@ end
 if ModalData['Content'] ~= nil then
     GetElement('content').Text = ModalData.Content
 end
-GetElement('close').Clicked:Add(function()
+GetElement('close'):AddClicked(function()
 	CloseModal({ Result = 'ok' })
 end)
 

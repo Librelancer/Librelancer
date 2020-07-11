@@ -3,8 +3,8 @@ function OnTryCreate(name)
 end
 --Focus text entry on open
 GetElement('content'):SetFocus()
-GetElement('content').TextEntered:Add(OnTryCreate)
+GetElement('content'):OnTextEntered(OnTryCreate)
 --Button events
-GetElement('close').Clicked:Add(function()
+GetElement('close'):AddClicked(function()
 	CloseModal({ Result = 'cancel' })
 end)
