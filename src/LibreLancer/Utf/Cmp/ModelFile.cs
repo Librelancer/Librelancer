@@ -193,7 +193,7 @@ namespace LibreLancer.Utf.Cmp
                     p.Mesh.Levels = new MeshDrawcall[Levels.Length][];
                     for (int i = 0; i < Levels.Length; i++)
                     {
-                        if (Levels[i] != null) p.Mesh.Levels[i] = Levels[i].GetDrawcalls();
+                        if (Levels[i] != null && Levels[i].MeshCrc != 0) p.Mesh.Levels[i] = Levels[i].GetDrawcalls();
                     }
                 }
                 else
