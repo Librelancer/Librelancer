@@ -9,6 +9,7 @@ namespace LibreLancer.Interface
         [UiContent]
         public List<DisplayElement> Elements { get; set; } = new List<DisplayElement>();
 
+        public void AddElement(DisplayElement el) => Elements.Add(el);
         public void Draw(UiContext context, RectangleF rectangle)
         {
             foreach(var e in Elements) e.Render(context, rectangle);

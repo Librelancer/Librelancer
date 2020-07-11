@@ -7,7 +7,7 @@ function ModelRenderable(model, tint)
 	if tint ~= nil then
 		modelElem.Tint = tint
 	end
-	renderable.Elements:Add(modelElem)
+	renderable:AddElement(modelElem)
 	
 	return renderable
 end
@@ -74,18 +74,18 @@ local activeIDS = 0
 for index, button in ipairs(btns) do
 	local obj = HudButton(button.ActiveModel, button.InactiveModel)
 	ManeuverButtons[button.Action] = obj
-	obj.Anchor = AnchorKind('TopCenter')
+	obj.Anchor = AnchorKind.TopCenter
 	obj.X = locX
 	locX = locX + navbox.XSpacing + 10
 	obj.Y = navbox.OffsetY
 	if button.Action ~= activeids then
-		obj.Clicked:Add(function()
+		obj:OnClick(function()
 			Game:HotspotPressed(button.Action)
 		end)
 	else
 		activeIDS = index
 	end
-	container.Children:Add(obj)
+	container:AddChild(obj)
 end
 UpdateManeuverState()
 
@@ -95,7 +95,7 @@ function Events.Update()
     GetElement('thrustText').Text = Game:ThrustPercent() .. "%"
 end
 
-GetElement('chatbox').TextEntered:Add(function (text)
+GetElement('chatbox'):OnTextEntered(function (text)
     Game:TextEntered(text)
 end)
 function Events.Chatbox()

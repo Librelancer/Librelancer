@@ -8,7 +8,14 @@ namespace LibreLancer.Interface
     [UiLoadable]
     public class ChatBox : UiWidget
     {
-        public event Action<string> TextEntered;
+        event Action<string> TextEntered;
+        public void OnTextEntered(MoonSharp.Interpreter.Closure handler)
+        {
+            TextEntered += (s) =>
+            {
+                handler.Call(s);
+            };
+        }
         public string CurrentEntry = "Console->";
         public string CurrentText = "";
         public int MaxChars = 100;

@@ -136,7 +136,8 @@ Mouse Flight: {11}
             Game.Sound.ResetListenerVelocity();
             FadeIn(0.5, 0.5);
         }
-        class LuaAPI
+        [MoonSharp.Interpreter.MoonSharpUserData]
+        public class LuaAPI
         {
             SpaceGameplay g;
             public LuaAPI(SpaceGameplay gameplay)

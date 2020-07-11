@@ -5,7 +5,8 @@
 using System;
 namespace LibreLancer
 {
-	public class Maneuver
+    [MoonSharp.Interpreter.MoonSharpUserData]
+    public class Maneuver
 	{
 		public string Action;
 		public string InfocardA;

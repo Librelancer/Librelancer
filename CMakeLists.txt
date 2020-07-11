@@ -18,9 +18,3 @@ add_subdirectory(src/bulletc_build bulletc)
 if (WIN32)
   add_subdirectory(src/win32dialogs win32dialogs)
 endif()
-# lua has different project structure
-# binary handled by nuget for windows
-if(NOT WIN32)
-    add_subdirectory(src/lua53 lua53)
-endif()
-

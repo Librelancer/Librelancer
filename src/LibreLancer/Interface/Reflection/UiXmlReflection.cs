@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using LibreLancer;
 
-namespace LibreLancer.Interface
+namespace LibreLancer.Interface.Reflection
 {
     public static class UiXmlReflection
     {

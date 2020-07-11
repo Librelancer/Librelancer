@@ -51,8 +51,8 @@ namespace LibreLancer
         {
             ui.OnKeyDown(e.Key);
         }
-
-        class ServerList : ITableData
+        [MoonSharp.Interpreter.MoonSharpUserData]
+        public class ServerList : ITableData
         {
             public List<LocalServerInfo> Servers = new List<LocalServerInfo>();
             public int Count => Servers.Count;
@@ -98,7 +98,8 @@ namespace LibreLancer
                 Servers = new List<LocalServerInfo>();
             }
         }
-        class MenuAPI : UiApi
+        [MoonSharp.Interpreter.MoonSharpUserData]
+        public class MenuAPI : UiApi
         {
             LuaMenu state;
             public MenuAPI(LuaMenu m) => state = m;

@@ -85,11 +85,11 @@ namespace LibreLancer
             go.InitWithDrawable(modelFile.LoadFile(res), res, draw, false, false);
             return go;
         }
-		public GameObject(IDrawable drawable, ResourceManager res, bool draw = true, bool staticpos = false)
+		public GameObject(IDrawable drawable, ResourceManager res, bool draw = true, bool staticpos = false, bool phys = true)
 		{
 			isstatic = false;
-			InitWithDrawable(drawable, res, draw, staticpos);
-		}
+            InitWithDrawable(drawable, res, draw, staticpos, phys);
+        }
         public GameObject(Ship ship, ResourceManager res, bool draw = true)
         {
             InitWithDrawable(ship.ModelFile.LoadFile(res), res, draw, false);
@@ -261,7 +261,7 @@ namespace LibreLancer
                     RenderComponent.Update(time, isstatic ? StaticPosition : Vector3.Transform(Vector3.Zero, tr), tr);
                 }
             }
-			for (int i = 0; i < Children.Count; i++)
+            for (int i = 0; i < Children.Count; i++)
 				Children[i].Update(time);
 			for (int i = 0; i < Components.Count; i++)
 				Components[i].Update(time);
@@ -269,7 +269,7 @@ namespace LibreLancer
         
         public void FixedUpdate(TimeSpan time)
 		{
-			for ( int i = 0; i < Children.Count; i++)
+			for (int i = 0; i < Children.Count; i++)
 				Children[i].FixedUpdate(time);
 			for (int i = 0; i < Components.Count; i++)
 				Components[i].FixedUpdate(time);

@@ -4,10 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
-using LibreLancer;
-using NLua;
-using NLua.Exceptions;
 
 namespace LibreLancer.Interface
 {
@@ -15,7 +13,6 @@ namespace LibreLancer.Interface
     public partial class Scene : Container
     {
         private string _switchTo = null;
-        private Lua lua;
         
         [UiIgnore]
         public string SwitchToResult
@@ -30,112 +27,33 @@ namespace LibreLancer.Interface
         internal UiRecreateHandle RecreateHandle { get; set; }
         public string ScriptFile { get; set; }
 
-        public LuaTable Env;
-        private LuaFunction RunSandboxed;
-        private LuaFunction CallEvent;
         private List<LuaTimer> timers = new List<LuaTimer>();
         class LuaTimer
         {
             public TimeSpan Time;
-            public LuaFunction Function;
+            public object Function;
         }
         public void Reset()
         {
-            DeleteLua();
-            RecreateHandle.Refill();
+            RecreateHandle.Refill(this);
             ApplyStyles();
         }
+
+        private LuaContext lua;
+
         public override void EnableScripting(UiContext context, string modalData)
         {
-            try
-            {
-                DeleteLua();
-                lua = new Lua();
-                lua.State.Encoding = Encoding.UTF8;
-                lua.LoadCLRPackage();
-                lua["LogString"] = (Action<string>) LogString;
-                lua["LogError"] = (Action<string>) LogError;
-                lua["ReadAllText"] = (Func<string,string>)context.Data.ReadAllText;
-                lua.DoString(LUA_SANDBOX);
-                if (!string.IsNullOrEmpty(modalData))
-                {
-                    ((LuaFunction) lua["DeserializeToEnv"]).Call("ModalData", modalData);
-                }
-                Env = (LuaTable) lua["Env"];
-                Env["GetElement"] = (Func<string, UiWidget>) GetElement;
-                Env["NewObject"] = (Func<string, object>) UiXmlReflection.Instantiate;
-                Env["OpenModal"] = (Action<string, object, LuaFunction>) ((xml, data, function) =>
-                {
-                    OpenModal(context, xml, data, function);
-                });
-                Env["CloseModal"] = (Action<object>) ((table) =>
-                {
-                    CloseModal(context, table);
-                });
-                Env["Timer"] = (Action<float, LuaFunction>)((timer, func) =>
-                {
-                    timers.Add(new LuaTimer() { Time = TimeSpan.FromSeconds(timer), Function = func});
-                });
-                Env["ApplyStyles"] = (Action) ApplyStyles;
-                Env["GetScene"] = (Func<Scene>) (() => this);
-                Env["PlaySound"] = (Action<string>) context.PlaySound;
-                Env["Game"] = context.GameApi;
-                Env["Color"] = (Func<string,InterfaceColor>)context.Data.GetColor;
-                Env["GetNavbarIconPath"] = (Func<string, string>) context.Data.GetNavbarIconPath;
-                Env["SwitchTo"] = (Action<string>) (SwitchTo);
-                Env["SceneID"] = (Func<string>) (() => ID);
-                RunSandboxed = (LuaFunction) lua["RunSandboxed"];
-                CallEvent = (LuaFunction) lua["CallEvent"];
-                RunSandboxed.Call(context.Data.ReadAllText(ScriptFile), ScriptFile);
-                lua.DoString("collectgarbage()");
-            }
-            catch (LuaScriptException lse)
-            {
-                FLLog.Error("Lua", lse.ToString());
-            }
-            catch (LuaException le)
-            {
-                FLLog.Error("Lua", le.ToString());
-            }
-            catch (Exception e)
-            {
-                FLLog.Error("Lua", $"{e.GetType()}\n{e.Message}\n{e.StackTrace}");
-                lua?.Dispose();
-                lua = null;
-            }
+            DeleteLua();
+            lua = new LuaContext(context, this);
+            if (!string.IsNullOrEmpty(modalData))
+                lua.Assign("ModalData", modalData);
+            lua.Scene = this;
+            lua.DoFile(ScriptFile);
         }
-        
-        void CloseModal(UiContext context, object table)
+
+        public void Timer(float timer, object func)
         {
-            string modalData = null;
-            if (table != null) {
-                modalData = (string)(
-                    ((LuaFunction)lua["Serialize"]).Call(table)[0]
-                );
-            }
-            context.CloseModal(modalData);
-        }
-        void OpenModal(UiContext context, string xml, object table, LuaFunction function)
-        {
-            string modalData = null;
-            if (table != null) {
-                modalData = (string)(
-                    ((LuaFunction)lua["Serialize"]).Call(table)[0]
-                );
-            }
-            Action<string> onClose = null;
-            if (function != null)
-            {
-                onClose = (x) =>
-                {
-                    object argument = null;
-                    if (!string.IsNullOrEmpty(x)) {
-                        argument = ((LuaFunction) lua["Deserialize"]).Call(x)[0];
-                    }
-                    function.Call(argument);
-                };
-            }
-            context.OpenModal(xml, modalData, onClose);
+            timers.Add(new LuaTimer() { Time = TimeSpan.FromSeconds(timer), Function = func});
         }
 
         private TimeSpan lastTime;
@@ -155,7 +73,7 @@ namespace LibreLancer.Interface
                 t.Time -= delta;
                 if (t.Time <= TimeSpan.Zero)
                 {
-                    t.Function.Call();
+                    lua.Invoke(t.Function);
                     timers.RemoveAt(i);
                 }
             }
@@ -171,24 +89,12 @@ namespace LibreLancer.Interface
 
         public override void ScriptedEvent(string ev, params object[] param)
         {
-            var p = new object[param.Length + 1];
-            p[0] = ev;
-            for (int i = 0; i < param.Length; i++)
-                p[i + 1] = param[i];
-            CallEvent?.Call(p);
+            lua?.CallEvent(ev, param);
         }
         
-        static void LogString(string s)
-        {
-            FLLog.Info("Lua", s);
-        }
-
-        static void LogError(object o)
-        {
-            FLLog.Error("Lua", o.ToString());
-        }
+       
         private Stylesheet currentSheet;
-        void ApplyStyles()
+        public void ApplyStyles()
         {
             if(currentSheet != null) ApplyStylesheet(currentSheet);
         }

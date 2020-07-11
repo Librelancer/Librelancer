@@ -209,7 +209,6 @@ namespace LibreLancer
         
         public void ProcessPacket(IPacket packet)
         {
-            FLLog.Info("Server", "Got packet of type " + packet.GetType());
             switch(packet)
             {
                 case CharacterListActionPacket c:

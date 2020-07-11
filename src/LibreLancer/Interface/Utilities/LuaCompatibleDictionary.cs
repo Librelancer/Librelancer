@@ -8,6 +8,7 @@ namespace LibreLancer.Interface
 {
     //This class exists to provide the Get method
     //Using indexers with NLua is glacial so this stops that from happening
+    [MoonSharp.Interpreter.MoonSharpUserData]
     public class LuaCompatibleDictionary<TKey, TValue>
     {
         public Dictionary<TKey, TValue> Storage = new Dictionary<TKey, TValue>();

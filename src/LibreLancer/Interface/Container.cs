@@ -18,7 +18,10 @@ namespace LibreLancer.Interface
             foreach(var child in Children)
                 child.Render(context, parentRectangle);
         }
-
+        public void AddChild(UiWidget child)
+        {
+            Children.Add(child);
+        }
         public override void UnFocus()
         {
             foreach (var child in Children)

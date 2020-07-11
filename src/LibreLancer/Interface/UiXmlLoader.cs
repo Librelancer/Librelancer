@@ -10,7 +10,8 @@ using System.Linq;
 using System.Reflection;
 using System.Xml;
 using System.Xml.Linq;
-
+using LibreLancer.Interface.Reflection;
+using SharpDX.Direct2D1;
 
 namespace LibreLancer.Interface
 {
@@ -21,6 +22,9 @@ namespace LibreLancer.Interface
         public XElement Element;
         public object Object;
     }
+
+    
+    
     public class UiXmlLoader
     {
         public InterfaceResources Resources;
@@ -30,17 +34,20 @@ namespace LibreLancer.Interface
             Resources = res;
         }
         
-        static bool PrimitiveList(XElement element, IList list, Type type)
+        static bool PrimitiveList(PropertyInfo property, XElement element, Type type, out UiPrimitiveList list)
         {
+            list = null;
             if (!type.IsEnum && !type.IsPrimitive || type != typeof(string)) return false;
+            var values = new List<object>();
             foreach (var child in element.Elements())
             {
                 var value = child.Value;
                 if (type.IsEnum)
-                    list.Add(Enum.Parse(type, value, true));
+                    values.Add(Enum.Parse(type, value, true));
                 else
-                    list.Add(Convert.ChangeType(value, type, CultureInfo.InvariantCulture));
+                    values.Add(Convert.ChangeType(value, type, CultureInfo.InvariantCulture));
             }
+            list = new UiPrimitiveList(property, values.ToArray());
             return true;
         }
 
@@ -57,10 +64,13 @@ namespace LibreLancer.Interface
         }
 
 
-        static bool PrimitiveDictionary(XElement element, IDictionary dictionary, Type keyType, Type valueType)
+        static bool PrimitiveDictionary(XElement element, PropertyInfo p, Type keyType, Type valueType, out UiPrimitiveDictionary primdict)
         {
+            primdict = null;
             if(!CheckKeyType(keyType)) throw new InvalidCastException();
             if (!valueType.IsEnum && !valueType.IsPrimitive || valueType != typeof(string)) return false;
+            List<object> keys = new List<object>();
+            List<object> values = new List<object>();
             foreach (var child in element.Elements())
             {
                 object value;
@@ -70,8 +80,10 @@ namespace LibreLancer.Interface
                     value = Enum.Parse(valueType, valueStr, true);
                 else
                     value = Convert.ChangeType(valueStr, valueType, CultureInfo.InvariantCulture);
-                dictionary[key] = value;
+                keys.Add(key);
+                values.Add(value);
             }
+            primdict = new UiPrimitiveDictionary(p, keys.ToArray(), values.ToArray());
             return true;
         }
 
@@ -92,44 +104,8 @@ namespace LibreLancer.Interface
             return obj;
         }
 
-        internal void ReinitObject(object obj, XElement el)
+        public UiLoadedObject ParseObject(Type objType, XElement el, List<XmlObjectMap> objectMaps)
         {
-            UiXmlReflection.GetProperties(
-                obj.GetType(), out _, out _, out var contentProperty, out _);
-            if (contentProperty != null)
-            {
-                var list = contentProperty.GetValue(obj) as IList;
-                list?.Clear();
-            }
-            FillObject(obj, el, null);
-        }
-        
-        public void FillObject(object obj, XElement el, List<XmlObjectMap> objectMaps)
-        {
-            UiXmlReflection.GetProperties(
-                obj.GetType(), 
-                out Dictionary<string,PropertyInfo> elements,
-                out Dictionary<string,PropertyInfo> attributes,
-                out PropertyInfo contentProperty,
-                out PropertyInfo reinitProperty
-                );
-            if (reinitProperty != null)
-            {
-                var handle = new UiRecreateHandle() {
-                    Element = el, Object = obj, Loader = this
-                };
-                reinitProperty.SetValue(obj, handle);
-            }
-            if (objectMaps != null) {
-                var li = (IXmlLineInfo)el;
-                objectMaps.Add(new XmlObjectMap()
-                {
-                    Line = li.LineNumber,
-                    Column = li.LinePosition,
-                    Element = el,
-                    Object =  obj
-                });
-            }
             Dictionary<string,InterfaceColor> interfaceColors = new Dictionary<string, InterfaceColor>();
             Dictionary<string,InterfaceModel> interfaceModels = new Dictionary<string, InterfaceModel>();
             Dictionary<string,InterfaceImage> interfaceImages = new Dictionary<string, InterfaceImage>();
@@ -139,6 +115,47 @@ namespace LibreLancer.Interface
                 interfaceModels.Add(clr.Name, clr);
             foreach(var clr in Resources.Images)
                 interfaceImages.Add(clr.Name, clr);
+            return ParseObjectInternal(objType, el, objectMaps, interfaceColors, interfaceModels, interfaceImages);
+        }
+        UiLoadedObject ParseObjectInternal(
+            Type objType, 
+            XElement el, 
+            List<XmlObjectMap> objectMaps,
+            Dictionary<string,InterfaceColor> interfaceColors,
+            Dictionary<string,InterfaceModel> interfaceModels,
+            Dictionary<string,InterfaceImage> interfaceImages
+         )
+        {
+            UiXmlReflection.GetProperties(
+                objType, 
+                out Dictionary<string,PropertyInfo> elements,
+                out Dictionary<string,PropertyInfo> attributes,
+                out PropertyInfo contentProperty,
+                out PropertyInfo reinitProperty
+            );
+            var result = new UiLoadedObject(objType);
+            List<UiLoadedObject> contentObjects = null;
+            bool isContentList = false;
+            if (contentProperty != null)
+            {
+                isContentList = Activator.CreateInstance(contentProperty.PropertyType) is IList;
+                if(isContentList) contentObjects = new List<UiLoadedObject>();
+            }
+            
+            if (reinitProperty != null) {
+                result.Setters.Add(new UiSimpleProperty(reinitProperty, new UiRecreateHandle(result)));
+            }
+            if (objectMaps != null)
+            {
+                var li = (IXmlLineInfo)el;
+                objectMaps.Add(new XmlObjectMap()
+                {
+                    Line = li.LineNumber,
+                    Column = li.LinePosition,
+                    Element = el,
+                    Object =  result
+                });
+            }
             foreach (var attr in el.Attributes())
             {
                 var pname = attr.Name.ToString();
@@ -170,14 +187,13 @@ namespace LibreLancer.Interface
                         value = attr.Value;
                     else
                         value = Convert.ChangeType(attr.Value, ptype, CultureInfo.InvariantCulture);
-                    property.SetValue(obj, value);
+                    result.Setters.Add(new UiSimpleProperty(property, value));
                 }
                 else
                 {
                     //Throw error?
                 }
             }
-            
             foreach (var child in el.Elements())
             {
                 var childName = child.Name.ToString();
@@ -190,59 +206,66 @@ namespace LibreLancer.Interface
                 }
                 if (property != null)
                 {
-                    var v = property.GetValue(obj);
+                    var v = Activator.CreateInstance(property.PropertyType);
                     if (v is IList list)
                     {
                         var listType = property.PropertyType.GenericTypeArguments[0];
-                        if (!PrimitiveList(child, list, listType))
+                        if (PrimitiveList(property, child, listType, out var primlist))
                         {
+                            result.Setters.Add(primlist);
+                        }
+                        else
+                        {
+                            var objs = new List<UiLoadedObject>();
                             foreach (var itemXml in child.Elements())
                             {
-                                var item = Activator.CreateInstance(listType);
-                                FillObject(item, itemXml, objectMaps);
-                                list.Add(item);
+                                var nt = UiXmlReflection.Instantiate(itemXml.Name.ToString()).GetType();
+                                objs.Add(ParseObjectInternal(nt, itemXml, objectMaps, interfaceColors, interfaceModels, interfaceImages));
                             }
+
+                            result.Setters.Add(new UiComplexList(property, objs.ToArray()));
                         }
                     } 
                     else if (v is IDictionary dict)
                     {
                         var keyType = property.PropertyType.GenericTypeArguments[0];
                         var valueType = property.PropertyType.GenericTypeArguments[1];
-                        if (!PrimitiveDictionary(child, dict, keyType, valueType))
+                        if (PrimitiveDictionary(child, property, keyType, valueType, out var primdict))
                         {
+                            result.Setters.Add(primdict);
+                        }
+                        else
+                        {
+                            var keys = new List<object>();
+                            var values = new List<UiLoadedObject>();
                             foreach (var itemXml in child.Elements())
                             {
-                                var item = Activator.CreateInstance(valueType);
-                                FillObject(item, itemXml, objectMaps);
-                                var key = GetDictionaryKey(itemXml, keyType);
-                                dict[key] = item;
+                                var nt = UiXmlReflection.Instantiate(itemXml.Name.ToString()).GetType();
+                                values.Add(ParseObjectInternal(nt, itemXml, objectMaps, interfaceColors, interfaceModels, interfaceImages));
+                                keys.Add(GetDictionaryKey(itemXml, keyType));
                             }
+                            result.Setters.Add(new UiComplexDictionary(property, keys.ToArray(), values.ToArray()));
                         }
                     }
                     else if (property.SetMethod != null)
                     {
-                        var newValue = Activator.CreateInstance(property.PropertyType);
-                        FillObject(newValue, child, objectMaps);
-                        property.SetValue(obj, newValue);
+                        var obj = ParseObjectInternal(property.PropertyType, child, objectMaps, interfaceColors,
+                            interfaceModels, interfaceImages);
+                        result.Setters.Add(new UiComplexProperty(property, obj));
                     }
                 }
                 else
                 {
                     if(contentProperty == null)
-                        throw new Exception($"{obj.GetType().FullName} lacks UiContentAttribute property");
-                    var content = UiXmlReflection.Instantiate(child.Name.ToString());
-                    FillObject(content, child, objectMaps);
-                    var containerValue = contentProperty.GetValue(obj);
-                    if (containerValue is IList list)
-                    {
-                        list.Add(content);
-                    }
+                        throw new Exception($"{objType.FullName} lacks UiContentAttribute property");
+                    var nt = UiXmlReflection.Instantiate(child.Name.ToString()).GetType();
+                    var content = ParseObjectInternal(nt, child, objectMaps, interfaceColors, interfaceModels,
+                        interfaceImages);
+                    if(isContentList)
+                        contentObjects.Add(content);
                     else
-                    {
-                        contentProperty.SetValue(obj, content);
-                    }
+                        result.Setters.Add(new UiComplexProperty(contentProperty, content));
                 }
-
                 if (objectMaps != null)
                 {
                     var nEnd = child.NodesAfterSelf().FirstOrDefault();
@@ -251,10 +274,21 @@ namespace LibreLancer.Interface
                     {
                         Line = li.LineNumber,
                         Column = li.LinePosition,
-                        Object = obj
+                        Object = result
                     });
                 }
             }
+            if (isContentList)
+            {
+                result.Setters.Add(new UiComplexList(contentProperty, contentObjects.ToArray()));
+            }
+            return result;
+        }
+        
+        public void FillObject(object obj, XElement el, List<XmlObjectMap> objectMaps)
+        {
+            var parsed = ParseObject(obj.GetType(), el, objectMaps);
+            parsed.Fill(obj, objectMaps);
         }
     }
 }

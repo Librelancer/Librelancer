@@ -8,7 +8,16 @@ namespace LibreLancer.Interface
     [UiLoadable]
     public class TextEntry : UiWidget
     {
-        public event Action<string> TextEntered;
+        event Action<string> TextEntered;
+
+        public void OnTextEntered(MoonSharp.Interpreter.Closure handler)
+        {
+            TextEntered += (s) =>
+            {
+                handler.Call(s);
+            };
+        }
+
         public string CurrentText = "";
         public int MaxChars = 100;
         public float FontSize { get; set; } = 10f;

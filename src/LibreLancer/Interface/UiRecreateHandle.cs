@@ -2,18 +2,21 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System.Xml.Linq;
+using LibreLancer.Interface.Reflection;
 
 namespace LibreLancer.Interface
 {
     internal class UiRecreateHandle
     {
-        internal UiXmlLoader Loader;
-        internal XElement Element;
-        internal object Object;
-        public void Refill()
+        internal UiLoadedObject loaded;
+
+        internal UiRecreateHandle(UiLoadedObject loaded)
         {
-            Loader.ReinitObject(Object, Element);
+            this.loaded = loaded;
+        }
+        public void Refill(object o)
+        {
+            loaded.Fill(o);
         }
     }
 }

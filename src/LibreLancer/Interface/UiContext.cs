@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Data;
@@ -27,6 +28,7 @@ namespace LibreLancer.Interface
         public UiData Data;
         //Ui
         public object GameApi;
+
         //State
         private bool mode2d = false;
         private FreelancerGame game;

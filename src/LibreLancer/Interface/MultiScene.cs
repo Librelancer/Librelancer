@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 using LibreLancer;
 
 namespace LibreLancer.Interface
@@ -62,6 +63,8 @@ namespace LibreLancer.Interface
                 _activeScene = null;
                 return;
             }
+
+            var sw = Stopwatch.StartNew();
             _activeScene = Scenes.FirstOrDefault(x => x.ID.Equals(ActiveScene, StringComparison.OrdinalIgnoreCase));
             _activeScene?.Reset();
             if (scriptingEnabled)
@@ -69,6 +72,9 @@ namespace LibreLancer.Interface
                 _activeScene?.EnableScripting(scriptingContext, modalData);
                 lastScriptingEnabled = true;
             }
+
+            sw.Stop();
+            FLLog.Info("lua", $"init took {sw.Elapsed.TotalMilliseconds}ms");
         }
         
         public override void OnMouseClick(UiContext context, RectangleF parentRectangle)

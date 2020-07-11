@@ -57,14 +57,12 @@ namespace LibreLancer
             if (running) Stop();
         }
 
+        private long localPeerRequests;
         public void DiscoverLocalPeers()
         {
             if (running)
             {
-                while (client == null || !client.IsRunning) Thread.Sleep(0);
-                var dw = new NetDataWriter();
-                dw.Put(LNetConst.BROADCAST_KEY);
-                client.SendBroadcast(dw, LNetConst.DEFAULT_PORT);
+                Interlocked.Increment(ref localPeerRequests);
             }
         }
 
@@ -279,6 +277,13 @@ namespace LibreLancer
             client.Start();
             while (running)
             {
+                if (Interlocked.Read(ref localPeerRequests) > 0)
+                {
+                    Interlocked.Decrement(ref localPeerRequests);
+                    var dw = new NetDataWriter();
+                    dw.Put(LNetConst.BROADCAST_KEY);
+                    client.SendBroadcast(dw, LNetConst.DEFAULT_PORT);
+                }
                 //ping servers
                 lock (srvinfo)
                 {

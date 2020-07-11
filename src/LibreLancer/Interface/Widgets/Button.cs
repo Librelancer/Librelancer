@@ -144,7 +144,15 @@ namespace LibreLancer.Interface
         }
 
 
-        public event Action Clicked;
+        event Action Clicked;
+
+        public void OnClick(MoonSharp.Interpreter.Closure handler)
+        {
+            Clicked += () =>
+            {
+                handler.Call();
+            };
+        }
         public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
         {
             if (!Visible) return;

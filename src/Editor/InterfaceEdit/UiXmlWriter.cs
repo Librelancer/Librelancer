@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Xml.Linq;
 using LibreLancer;
 using LibreLancer.Interface;
+using LibreLancer.Interface.Reflection;
 
 namespace InterfaceEdit
 {

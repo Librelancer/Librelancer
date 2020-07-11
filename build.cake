@@ -31,7 +31,23 @@ Task("GenerateVersion")
     );
 	Information("Version: {0}",version);
 });
-
+Task("UpdateLua")
+    .IsDependentOn("GenerateVersion")
+    .Does(() => {
+    FileWriteText(
+        "./src/LibreLancer/Interface/LuaContext_Hardwire.cs",
+        @"namespace LibreLancer.Lua
+{
+    static class LuaContext_Hardwire
+    {
+        public static void Initialize()
+        {
+        }
+    }
+}");
+    DotNetCoreRun("./src/GenerateLuaHardwire/GenerateLuaHardwire.csproj", "./src/LibreLancer/Interface/LuaContext_Hardwire.cs");
+    
+});
 Func<string,string> GetFileArgs = (glob) =>
 {
     string args = "";

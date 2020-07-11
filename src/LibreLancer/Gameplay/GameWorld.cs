@@ -23,18 +23,20 @@ namespace LibreLancer
 		public delegate void PhysicsUpdateHandler(TimeSpan delta);
 		public event PhysicsUpdateHandler PhysicsUpdate;
 
-		public GameWorld(SystemRenderer render)
+		public GameWorld(SystemRenderer render, bool initPhys = true)
 		{
+            if(initPhys)
             Physics = new PhysicsWorld();
             if (render != null)
             {
                 Renderer = render;
                 render.World = this;
-                Renderer.PhysicsHook = () =>
+                if (initPhys)
                 {
-                    Physics.DrawWorld();
-                };
+                    Renderer.PhysicsHook = () => { Physics.DrawWorld(); };
+                }
             }
+            if(initPhys)
             Physics.FixedUpdate += FixedUpdate;
             Projectiles = new ProjectileManager(this);
 		}
@@ -131,7 +133,7 @@ namespace LibreLancer
 
         public void Update(TimeSpan t)
 		{
-            Physics.Step(t);
+            Physics?.Step(t);
 			for (int i = 0; i < Objects.Count; i++)
 				Objects[i].Update(t);
             RenderUpdate?.Invoke(t);

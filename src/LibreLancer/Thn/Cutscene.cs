@@ -179,7 +179,7 @@ namespace LibreLancer
                     }
                     else
                     {
-                        obj.Object = new GameObject(drawable, game.GetService<ResourceManager>(), true, false);
+                        obj.Object = new GameObject(drawable, game.GetService<ResourceManager>(), true, false, false);
                         obj.Object.Name = kv.Value.Name;
                         obj.Object.PhysicsComponent = null; //Jitter seems to interfere with directly setting orientation
                         if (getHpMount)
@@ -312,7 +312,7 @@ namespace LibreLancer
 			camera = new ThnCamera(viewport);
 
 			Renderer = new SystemRenderer(camera, gameData, game.GetService<GameResourceManager>(), game);
-			World = new GameWorld(Renderer);
+            World = new GameWorld(Renderer, false);
 			//thn = script;
 			var evs = new List<ThnEvent>();
 			foreach (var thn in context.Scripts)

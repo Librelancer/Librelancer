@@ -5,7 +5,7 @@ function ModelRenderable(model, tint)
 	if tint ~= nil then
 		modelElem.Tint = tint
 	end
-	renderable.Elements:Add(modelElem)
+	renderable:AddElement(modelElem)
 	
 	return renderable
 end
@@ -60,29 +60,29 @@ local activeIDS = 0
 
 for index, button in ipairs(btns) do
 	local obj = NavbarButton(button.IconName, button.IDS == activeids)
-	obj.Anchor = AnchorKind('TopCenter')
+	obj.Anchor = AnchorKind.TopCenter
 	obj.X = locX
 	locX = locX + navbox.XSpacing
 	obj.Y = navbox.OffsetY
 	if button.IDS ~= activeids then
-		obj.Clicked:Add(function()
+		obj:OnClick(function()
 			Game:HotspotPressed(button.IDS)
 		end)
 	else
 		activeIDS = index
 	end
-	container.Children:Add(obj)
+	container:AddChild(obj)
 end
 
 local actionbox = navbox.GetActionBox(container, btns, actions, activeIDS)
 for index, action in ipairs(actions) do
 	local obj = NavbarAction(action.IconName)
-	obj.Clicked:Add(function()
+	obj:OnClick(function()
 		Game:HotspotPressed(action.IDS)
 	end)
 	navbox.PositionAction(obj, actionbox, index)
 end
-GetElement('chatbox').TextEntered:Add(function (text)
+GetElement('chatbox'):OnTextEntered(function (text)
     Game:TextEntered(text)
 end)
 function Events.Chatbox()

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using System.Linq;
 using LibreLancer.GameData;
@@ -76,7 +77,8 @@ namespace LibreLancer
             }
         }
 
-        class BaseUiApi : UiApi
+        [MoonSharp.Interpreter.MoonSharpUserData]
+        public class BaseUiApi : UiApi
         {
             RoomGameplay g;
             public BaseUiApi(RoomGameplay g) => this.g = g;
@@ -291,17 +293,18 @@ namespace LibreLancer
         {
             session.Update();
             ProcessCutscenes();
-			if(scene != null)
+            if(scene != null)
 				scene.Update(delta);
             ui.Update(Game);
             if (ui.KeyboardGrabbed)
                 Game.EnableTextInput();
             else
                 Game.DisableTextInput();
-        }
+        }            
+
 
 		public override void Draw(TimeSpan delta)
-		{
+        {
             RenderMaterial.VertexLighting = true;
             if (scene != null)
 				scene.Draw();
@@ -312,7 +315,7 @@ namespace LibreLancer
                 (virtualRoom ?? "NONE"), new Vector2(5, 5), Color4.White);
             cursor.Draw(Game.Renderer2D, Game.Mouse);
             Game.Renderer2D.Finish();
-		}
+        }
 
         public override void Exiting()
         {

@@ -53,6 +53,7 @@ namespace LibreLancer.Interface
         }
     }
 
+    [MoonSharp.Interpreter.MoonSharpUserData]
     public class InterfaceColor
     {
         public static readonly InterfaceColor White = new InterfaceColor() {Color = Color4.White};
@@ -85,6 +86,7 @@ namespace LibreLancer.Interface
         Triangle,
         Quad
     }
+    [MoonSharp.Interpreter.MoonSharpUserData]
     public class InterfaceImage
     {
         [XmlAttribute("name")] public string Name;
@@ -95,7 +97,7 @@ namespace LibreLancer.Interface
         [XmlElement("TexCoords")] public InterfacePoints TexCoords = new InterfacePoints();
         [XmlElement("DisplayCoords")] public InterfacePoints DisplayCoords = new InterfacePoints();
     }
-
+    [MoonSharp.Interpreter.MoonSharpUserData]
     public class InterfacePoints
     {
         //Top left
@@ -112,7 +114,7 @@ namespace LibreLancer.Interface
         public float Y3 = 1;
     }
     
-    
+    [MoonSharp.Interpreter.MoonSharpUserData]
     public class InterfaceColorAnimation
     {
         public Color4 Color1 = Color4.White;
