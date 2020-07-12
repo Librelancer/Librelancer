@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -6,15 +6,22 @@ using System;
 using System.IO;
 using LibreLancer;
 using LibreLancer.Data;
+using LibreLancer.Database;
+using LibreLancer.Entities.Character;
+using Microsoft.EntityFrameworkCore;
+
 namespace Server
 {
 	class Config
 	{
-		public string server_name;
-		public string server_description;
-		public string freelancer_path;
-		public string dbconnectionstring;
-	}
+		public string ServerName;
+		public string ServerDescription;
+		public string FreelancerPath;
+
+		public string DbConnectionString;
+        public bool UseLazyLoading;
+    }
+
 	class MainClass
 	{
 		public static int Main(string[] args)
@@ -31,12 +38,13 @@ namespace Server
                 return 2;
             }
 			var config = JSON.Deserialize<Config>(File.ReadAllText("librelancerserver.config.json"));
-			var srv = new GameServer(config.freelancer_path);
-			srv.DbConnectionString = config.dbconnectionstring;
-			srv.ServerName = config.server_name;
-			srv.ServerDescription = config.server_description;
+			var srv = new GameServer(config.FreelancerPath);
+			srv.DbConnectionString = config.DbConnectionString;
+			srv.ServerName = config.ServerName;
+			srv.ServerDescription = config.ServerDescription;
 			srv.Start();
-			bool running = true;
+
+            bool running = true;
 			while (running)
 			{
 				var cmd = Console.ReadLine();
@@ -55,15 +63,21 @@ namespace Server
 
 		static void MakeConfig()
 		{
-			var config = new Config();
+			Config config = new Config();
+            config.UseLazyLoading = true;
+
 			Console.Write("Freelancer Path: ");
-			config.freelancer_path = Console.ReadLine().Trim();
+			config.FreelancerPath = (Console.ReadLine() ?? "").Trim();
+
 			Console.Write("Db Connection String: ");
-			config.dbconnectionstring = Console.ReadLine().Trim();
+			config.DbConnectionString = (Console.ReadLine() ?? "").Trim();
+
 			Console.Write("Server Name: ");
-			config.server_name = Console.ReadLine().Trim();
+			config.ServerName = (Console.ReadLine() ?? "").Trim();
+
 			Console.Write("Server Description: ");
-			config.server_description = Console.ReadLine().Trim();
+			config.ServerDescription = (Console.ReadLine() ?? "").Trim();
+
 			File.WriteAllText("librelancerserver.config.json", JSON.Serialize(config));
 		}
 	}
