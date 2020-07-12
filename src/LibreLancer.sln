@@ -50,12 +50,15 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Database", "Librelancer.Database\LibreLancer.Database.csproj", "{BFE792B8-C255-49D2-B29C-19667017F9CD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Entities", "LibreLancer.Entities\LibreLancer.Entities.csproj", "{C8B790AF-8912-44D8-8422-6E54FC55CADF}"
+<<<<<<< HEAD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenerateLuaHardwire", "GenerateLuaHardwire\GenerateLuaHardwire.csproj", "{D9938D72-9DB6-495E-9DF7-95CAD176DB53}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoonSharp.Interpreter", "..\extern\moonsharp\src\MoonSharp.Interpreter\MoonSharp.Interpreter.csproj", "{CD7767BD-EF07-4C51-A44E-D470806EB661}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoonSharp.Hardwire", "..\extern\moonsharp\src\MoonSharp.Hardwire\MoonSharp.Hardwire.csproj", "{D4570A5D-290B-4D3D-B40C-C2E75BC3FDC8}"
+=======
+>>>>>>> 7a433706c73e1e8747d0f01a25f8dfa81707a42b
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -307,6 +310,7 @@ Global
 		{BE914D42-4FA8-4EF6-B4BE-1D9D6BA93392}.Release|x64.Build.0 = Release|Any CPU
 		{BE914D42-4FA8-4EF6-B4BE-1D9D6BA93392}.Release|x86.ActiveCfg = Release|Any CPU
 		{BE914D42-4FA8-4EF6-B4BE-1D9D6BA93392}.Release|x86.Build.0 = Release|Any CPU
+<<<<<<< HEAD
 		{D9938D72-9DB6-495E-9DF7-95CAD176DB53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D9938D72-9DB6-495E-9DF7-95CAD176DB53}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D9938D72-9DB6-495E-9DF7-95CAD176DB53}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -343,6 +347,8 @@ Global
 		{D4570A5D-290B-4D3D-B40C-C2E75BC3FDC8}.Release|x64.Build.0 = Release|Any CPU
 		{D4570A5D-290B-4D3D-B40C-C2E75BC3FDC8}.Release|x86.ActiveCfg = Release|Any CPU
 		{D4570A5D-290B-4D3D-B40C-C2E75BC3FDC8}.Release|x86.Build.0 = Release|Any CPU
+=======
+>>>>>>> 7a433706c73e1e8747d0f01a25f8dfa81707a42b
 		{BFE792B8-C255-49D2-B29C-19667017F9CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BFE792B8-C255-49D2-B29C-19667017F9CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BFE792B8-C255-49D2-B29C-19667017F9CD}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -383,6 +389,9 @@ Global
 		{BE914D42-4FA8-4EF6-B4BE-1D9D6BA93392} = {0DD85B53-3CB2-448A-AF08-7E2CEE69746E}
 		{CD7767BD-EF07-4C51-A44E-D470806EB661} = {7C43D186-1DB4-4BD2-B8C1-FDCF8619D366}
 		{D4570A5D-290B-4D3D-B40C-C2E75BC3FDC8} = {7C43D186-1DB4-4BD2-B8C1-FDCF8619D366}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {93BAD06D-C79A-48A8-9687-91EAE0EA2332}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {93BAD06D-C79A-48A8-9687-91EAE0EA2332}
