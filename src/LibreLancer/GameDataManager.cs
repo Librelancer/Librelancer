@@ -702,7 +702,9 @@ namespace LibreLancer
                     {
                         foreach (var ast in inisys.Asteroids)
                         {
-                            sys.AsteroidFields.Add(GetAsteroidField(sys, ast));
+                            var a = GetAsteroidField(sys, ast);
+                            if (ast != null)
+                                sys.AsteroidFields.Add(a);
                         }
                     }
                     if (inisys.Nebulae != null)
@@ -785,6 +787,11 @@ namespace LibreLancer
         GameData.AsteroidField GetAsteroidField(GameData.StarSystem sys, Data.Universe.AsteroidField ast)
         {
             var a = new GameData.AsteroidField();
+            if (!sys.ZoneDict.ContainsKey(ast.ZoneName))
+            {
+                FLLog.Error("System", $"{sys.Nickname}: {ast.ZoneName} zone missing in Asteroid ref");
+                return null;
+            }
             a.Zone = sys.ZoneDict[ast.ZoneName];
             var panels = new Data.Universe.TexturePanels();
             if (ast.TexturePanels != null)
