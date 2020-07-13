@@ -94,11 +94,11 @@ namespace LibreLancer
             {
                 if ((CurrentStrafe & StrafeControls.Left) == StrafeControls.Left)
                 {
-                    strafe += Vector3.UnitX; // Addition intentional
+                    strafe -= Vector3.UnitX; 
                 }
                 else if ((CurrentStrafe & StrafeControls.Right) == StrafeControls.Right)
                 {
-                    strafe -= Vector3.UnitX; // Subtraction intentional
+                    strafe += Vector3.UnitX; 
                 }
                 if ((CurrentStrafe & StrafeControls.Up) == StrafeControls.Up)
                 {
@@ -106,7 +106,7 @@ namespace LibreLancer
                 }
                 else if ((CurrentStrafe & StrafeControls.Down) == StrafeControls.Down)
                 {
-                    strafe += Vector3.UnitY;
+                    strafe -= Vector3.UnitY;
                 }
                 if (strafe != Vector3.Zero)
                 {
