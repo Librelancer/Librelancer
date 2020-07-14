@@ -36,7 +36,7 @@ end
 
 Events = {}
 function Serialize(table)
-    return 'return ' .. serializeTable(table)
+    return serializeTable(table)
 end
 function CallEvent(ev, ...)
     if Events[ev] ~= nil then

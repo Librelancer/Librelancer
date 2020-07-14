@@ -163,7 +163,8 @@ namespace LibreLancer
             {
                 UnconnectedMessagesEnabled = true,
                 IPv6Enabled = true,
-                NatPunchEnabled = true
+                NatPunchEnabled = true,
+                ChannelsCount =  3
             };
             listener.NetworkReceiveUnconnectedEvent += (remote, msg, type) =>
             {

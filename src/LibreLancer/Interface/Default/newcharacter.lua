@@ -5,6 +5,6 @@ end
 GetElement('content'):SetFocus()
 GetElement('content'):OnTextEntered(OnTryCreate)
 --Button events
-GetElement('close'):AddClicked(function()
+GetElement('close'):OnClick(function()
 	CloseModal({ Result = 'cancel' })
 end)

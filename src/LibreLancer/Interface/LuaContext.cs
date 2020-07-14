@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using LibreLancer.Interface.Reflection;
@@ -69,6 +70,7 @@ namespace LibreLancer.Interface
         }
 
         private UiContext uiContext;
+
         public LuaContext(UiContext context, Scene scene)
         {
             uiContext = context;
@@ -78,10 +80,15 @@ namespace LibreLancer.Interface
             {
                 globalTable[g] = script.Globals[g];
             }
+
             globalTable["Game"] = context.GameApi;
             //Functions
             globalTable["Funcs"] = new ContextFunctions(this);
-            RunBytes(script, globalTable, baseCode);
+            if (Debugger.IsAttached)
+            {
+                script.DoString(DEFAULT_LUA, globalTable, "LuaContext.LuaCode");
+            } else
+                RunBytes(script, globalTable, baseCode);
             _serialize = globalTable["Serialize"];
             _callevent = globalTable["CallEvent"];
         }
@@ -156,6 +163,11 @@ namespace LibreLancer.Interface
 
         public void DoFile(string filename)
         {
+            if (Debugger.IsAttached)
+            {
+                script.DoFile(filename, globalTable);
+                return;
+            }
             if (!bytes.TryGetValue(filename, out var code))
             {
                 code = Compile(script, globalTable, uiContext.Data.ReadAllText(filename), filename);
@@ -183,7 +195,7 @@ namespace LibreLancer.Interface
 
         public void Assign(string name, string val)
         {
-            script.DoString($"{name} = {val}");
+            script.DoString($"{name} = {val}", globalTable, $"{name} = {val}");
         }
 
         public void Dispose()

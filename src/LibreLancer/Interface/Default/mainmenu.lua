@@ -121,8 +121,9 @@ function CharacterList.OpenNewCharacter()
 end
 
 function CharacterList.NewCharResult(result)
-    if result['Result'] ~= 'ok' then return end
-    Game:NewCharacter(result.Name, result.Index)
+    if result['Result'] == 'ok' then
+        Game:NewCharacter(result.Name, result.Index)
+    end
 end
 
 function CharacterList.Update()

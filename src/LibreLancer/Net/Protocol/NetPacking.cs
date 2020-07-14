@@ -43,16 +43,16 @@ namespace LibreLancer
         }
 		public static void Put(this LiteNetLib.Utils.NetDataWriter om, Quaternion q)
         {
-            var pack = new BitWriter(48);
+            var pack = new BitWriter(32);
             pack.PutQuaternion(q);
-            Debug.Assert(pack.ByteLength == 6);
+            Debug.Assert(pack.ByteLength == 4);
             pack.WriteToPacket(om);
         }
 
 		public static Quaternion GetQuaternion(this LiteNetLib.Utils.NetDataReader im)
         {
-            var buf = new byte[6];
-            im.GetBytes(buf, 6);
+            var buf = new byte[4];
+            im.GetBytes(buf, 4);
             var pack = new BitReader(buf, 0);
             return pack.GetQuaternion();
         }

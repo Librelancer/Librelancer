@@ -149,6 +149,7 @@ namespace LibreLancer
             Server.IPv6Enabled = true;
             Server.UnconnectedMessagesEnabled = true;
             Server.BroadcastReceiveEnabled = true;
+            Server.ChannelsCount = 3;
             Server.Start(Port);
             FLLog.Info("Server", "Listening on port " + Port);
             var sw = Stopwatch.StartNew();

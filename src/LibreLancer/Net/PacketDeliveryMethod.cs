@@ -22,17 +22,17 @@ namespace LibreLancer
             if (self == PacketDeliveryMethod.SequenceA)
             {
                 method = DeliveryMethod.Sequenced;
-                channel = 1;
+                channel = 0;
             }
             if (self == PacketDeliveryMethod.SequenceB)
             {
                 method = DeliveryMethod.Sequenced;
-                channel = 2;
+                channel = 1;
             }
             if (self == PacketDeliveryMethod.SequenceC)
             {
                 method = DeliveryMethod.Sequenced;
-                channel = 3;
+                channel = 2;
             }
         }
     }
