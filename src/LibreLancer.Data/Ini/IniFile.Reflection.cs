@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Numerics;
 using LibreLancer.Data;
 
@@ -36,7 +37,7 @@ namespace LibreLancer.Ini
             public uint[] FieldHashes;
             public List<ReflectionSection> ChildSections = new List<ReflectionSection>();
             public ulong RequiredFields = 0;
-            public MethodInfo HandleEntry;
+            public Func<object, Entry, bool> HandleEntry;
         }
 
         class ReflectionSection
@@ -70,7 +71,8 @@ namespace LibreLancer.Ini
         {
             public EntryAttribute Attr;
             public FieldInfo Field;
-            public MethodInfo Method;
+            public Type NullableType;
+            public Action<object,Entry> Method;
         }
 
         static Dictionary<Type, ContainerClass> containerclasses = new Dictionary<Type, ContainerClass>();
@@ -97,6 +99,24 @@ namespace LibreLancer.Ini
         static object _sLock = new object();
         static object _cLock = new object();
 
+        static Func<object, Entry, bool> CompileHandleEntry(Type t, MethodInfo mi)
+        {
+            var obj = Expression.Parameter(typeof(object), "obj");
+            var e = Expression.Parameter(typeof(Entry), "e");
+            var conv = Expression.Convert(obj, t);
+            var lambda = Expression.Lambda<Func<object, Entry, bool>>(Expression.Call(conv, mi, e), obj, e);
+            return lambda.Compile();
+        }
+
+        static Action<object, Entry> CompileTypeEntry(Type t, MethodInfo mi)
+        {
+            var obj = Expression.Parameter(typeof(object), "obj");
+            var e = Expression.Parameter(typeof(Entry), "e");
+            var conv = Expression.Convert(obj, t);
+            var lambda = Expression.Lambda<Action<object, Entry>>(Expression.Call(conv, mi, e), obj, e);
+            return lambda.Compile();
+        }
+
         static ReflectionInfo GetSectionInfo(Type t)
         {
             lock (_sLock)
@@ -108,7 +128,11 @@ namespace LibreLancer.Ini
                 {
                     var attrs = field.GetCustomAttributes<EntryAttribute>();
                     foreach (var a in attrs) {
-                        info.Fields.Add(new ReflectionField() { Attr = a, Field = field });
+                        info.Fields.Add(new ReflectionField()
+                        {
+                            Attr = a, Field = field, NullableType = 
+                                Nullable.GetUnderlyingType(field.FieldType)
+                        });
                         if (a.Required) info.RequiredFields |= (1ul << (info.Fields.Count - 1));
                     }
                     foreach (var attr in field.GetCustomAttributes<SectionAttribute>())
@@ -134,7 +158,7 @@ namespace LibreLancer.Ini
                 {
                     var attrs = method.GetCustomAttributes<EntryAttribute>();
                     foreach (var a in attrs) {
-                        info.Fields.Add(new ReflectionField() { Attr = a, Method = method });
+                        info.Fields.Add(new ReflectionField() { Attr = a, Method = CompileTypeEntry(t, method) });
                         if (a.Required) info.RequiredFields |= (1ul << (info.Fields.Count - 1));
                     }
                 }
@@ -148,7 +172,7 @@ namespace LibreLancer.Ini
                 {
                     if (mthd.Name == "HandleEntry")
                     {
-                        info.HandleEntry = mthd;
+                        info.HandleEntry = CompileHandleEntry(t, mthd);
                         break;
                     }
                 }
@@ -254,7 +278,7 @@ namespace LibreLancer.Ini
                 {
                     bool handled = false;
                     if (type.HandleEntry != null)
-                        handled = (bool)type.HandleEntry.Invoke(obj, new object[] { e });
+                        handled = type.HandleEntry(obj, e);
                     if (!handled) FLLog.Warning("Ini", "Unknown entry " + e.Name + FormatLine(e.File, e.Line, s.Name));
                     continue;
                 }
@@ -273,14 +297,14 @@ namespace LibreLancer.Ini
                 //Handle by method
                 if (field.Method != null)
                 {
-                    field.Method.Invoke(obj, new object[] { e });
+                    field.Method(obj, e);
                     continue;
                 }
                 //Handle by type
                 var ftype = field.Field.FieldType;
                 Type nType;
-                if ((nType = Nullable.GetUnderlyingType(ftype)) != null) {
-                    ftype = nType;
+                if (field.NullableType != null) {
+                    ftype = field.NullableType;
                 }
                 //Fill
                 if (ftype == typeof(string))
