@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -42,10 +43,8 @@ namespace LibreLancer.Ini
         {
             public string Name;
             public string[] Delimiters;
-            public MethodInfo Add;
-            public PropertyInfo Count;
-            public MethodInfo Get;
             public FieldInfo Field;
+            public bool IsList;
             public ReflectionInfo Type;
             public bool AttachToParent;
         }
@@ -120,11 +119,8 @@ namespace LibreLancer.Ini
                         if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>))
                         {
                             var s = new ReflectionSection() {Name = attr.Name};
-                            s.Add = fieldType.GetMethod("Add", F_CLASSMEMBERS);
-                            s.Count = fieldType.GetProperty("Count", F_CLASSMEMBERS);
-                            s.Get = fieldType.GetMethod("get_Item", F_CLASSMEMBERS);
                             s.Field = field;
-                            if (s.Add == null) throw new Exception();
+                            s.IsList = true;
                             info.ChildSections.Add(s);
                         }
                         else
@@ -179,11 +175,8 @@ namespace LibreLancer.Ini
                         //Handle lists
                         if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>))
                         {
-                            s.Add = fieldType.GetMethod("Add", F_CLASSMEMBERS);
-                            s.Count = fieldType.GetProperty("Count", F_CLASSMEMBERS);
-                            s.Get = fieldType.GetMethod("get_Item", F_CLASSMEMBERS);
-                            if (s.Add == null) throw new Exception();
                             fieldType = fieldType.GetGenericArguments()[0]; // use this...
+                            s.IsList = true;
                         }
                         if (attr.Type != null)
                             s.Type = GetSectionInfo(attr.Type);
@@ -509,9 +502,10 @@ namespace LibreLancer.Ini
                     foreach (var ch in Chunk(tgt.Delimiters, section))
                     {
                         var childObject = GetFromSection(ch, tgt.Type, null, datapath, vfs);
-                        if (childObject != null) {
-                            var list = tgt.Field.GetValue(this);
-                            tgt.Add.Invoke(list, new object[] {childObject});
+                        if (childObject != null)
+                        {
+                            var list = (IList)tgt.Field.GetValue(this);
+                            list.Add(childObject);
                         }
                     }
                 }
@@ -520,24 +514,24 @@ namespace LibreLancer.Ini
                     var parsed = GetFromSection(section, tgt.Type, null, datapath, vfs);
                     if (parsed != null)
                     {
-                        if (tgt.Add != null)
+                        if (tgt.IsList)
                         {
-                            var list = tgt.Field.GetValue(this);
+                            var list = (IList)tgt.Field.GetValue(this);
                             if (tgt.AttachToParent)
                             {
-                                var count = (int)tgt.Count.GetValue(list);
+                                var count = list.Count;
                                 if (count <= 0) {
                                     FLLog.Warning("Ini", $"Section {section.Name} has no parent {FormatLine(section.File, section.Line)}");
                                     return;
                                 }
-                                var parent = tgt.Get.Invoke(list, new object[] { count - 1 });
+                                var parent = list[count - 1];
                                 bool success = false;
                                 var parentInfo = GetSectionInfo(parent.GetType());
                                 foreach (var cs in parentInfo.ChildSections) {
                                     if (cs.Name.Equals(section.Name, StringComparison.OrdinalIgnoreCase))
                                     {
-                                        var ls2 = cs.Field.GetValue(parent);
-                                        cs.Add.Invoke(ls2, new object[] {parsed});
+                                        var ls2 = (IList)cs.Field.GetValue(parent);
+                                        ls2.Add(parsed);
                                         success = true;
                                         break;
                                     }       
@@ -550,7 +544,7 @@ namespace LibreLancer.Ini
                             }
                             else
                             {
-                                tgt.Add.Invoke(list, new object[] {parsed});
+                                list.Add(parsed);
                             }
                         }
                         else
