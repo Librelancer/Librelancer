@@ -24,15 +24,24 @@ namespace LibreLancer
         {
             using (var ctx = CreateDbContext())
             {
-                
-                var acc = ctx.Accounts.FirstOrDefault(x => x.AccountIdentifier == playerGuid);
+                ctx.ChangeTracker.AutoDetectChangesEnabled = false;
+                var acc = ctx.Accounts.Where(x => x.AccountIdentifier == playerGuid)
+                    .Include(x => x.Characters)
+                    .FirstOrDefault();
                 if (acc == null)
                 {
-                    ctx.ChangeTracker.AutoDetectChangesEnabled = false;
-                    acc = new Account() {AccountIdentifier = playerGuid, CreationDate = DateTime.UtcNow};
+                    var utcnow = DateTime.UtcNow;
+                    acc = new Account()
+                    {
+                        AccountIdentifier = playerGuid,
+                        LastLogin = utcnow,
+                        CreationDate = utcnow
+                    };
                     ctx.Accounts.Add(acc);
+                    ctx.SaveChanges();
+                    return new List<SelectableCharacter>();
                 }
-                acc.LastLogin = DateTime.UtcNow;
+                ctx.Entry(acc).Property(x => x.LastLogin).CurrentValue = DateTime.UtcNow;
                 ctx.SaveChanges();
                 var res = new List<SelectableCharacter>();
                 foreach (var c in acc.Characters)
