@@ -153,6 +153,7 @@ namespace LibreLancer
             {
                 StopNetworking();
                 netClient = new GameNetClient(state.Game);
+                netClient.UUID = state.Game.Config.UUID.Value;
                 netClient.ServerFound += info => serverList.Servers.Add(info);
                 netClient.Disconnected += NetClientOnDisconnected;
                 netClient.Start();

@@ -105,13 +105,22 @@ namespace LibreLancer
                         if (pkt is AuthenticationReplyPacket)
                         {
                             var auth = (AuthenticationReplyPacket) pkt;
-                            var p = new Player(new RemotePacketClient(peer),
-                                game, auth.Guid);
-                            peer.Tag = p;
-                            Task.Run(() => p.DoAuthSuccess());
-                            lock (game.ConnectedPlayers)
+                            if (auth.Guid == Guid.Empty)
                             {
-                                game.ConnectedPlayers.Add(p);
+                                var dw = new NetDataWriter();
+                                dw.Put("bad GUID");
+                                peer.Disconnect(dw);
+                            }
+                            else
+                            {
+                                var p = new Player(new RemotePacketClient(peer),
+                                    game, auth.Guid);
+                                peer.Tag = p;
+                                Task.Run(() => p.DoAuthSuccess());
+                                lock (game.ConnectedPlayers)
+                                {
+                                    game.ConnectedPlayers.Add(p);
+                                }
                             }
                         }
                         else

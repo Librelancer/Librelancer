@@ -4,27 +4,26 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using LibreLancer;
 using LibreLancer.Data;
-using LibreLancer.Database;
-using LibreLancer.Entities.Character;
 using Microsoft.EntityFrameworkCore;
 
 namespace Server
 {
-	class Config
+	public class Config
 	{
 		public string ServerName;
 		public string ServerDescription;
 		public string FreelancerPath;
 
-		public string DbConnectionString;
+		public string DatabasePath;
         public bool UseLazyLoading;
     }
 
 	class MainClass
 	{
-		public static int Main(string[] args)
+        public static int Main(string[] args)
         {
             if (args.Length > 0 && args[0] == "--makeconfig")
 			{
@@ -38,9 +37,26 @@ namespace Server
                 return 2;
             }
 			var config = JSON.Deserialize<Config>(File.ReadAllText("librelancerserver.config.json"));
+            config.DatabasePath = Path.GetFullPath(config.DatabasePath);
 			var srv = new GameServer(config.FreelancerPath);
-			srv.DbConnectionString = config.DbConnectionString;
-			srv.ServerName = config.ServerName;
+			var ctxFactory = new SqlDesignTimeFactory(config);
+            if (!File.Exists(config.DatabasePath))
+            {
+                FLLog.Info("Server", $"Creating database file {config.DatabasePath}");
+                using (var ctx = ctxFactory.CreateDbContext(new string[0]))
+                {
+                    ctx.Database.Migrate();
+                }
+            }
+
+            using (var ctx = ctxFactory.CreateDbContext(new string[0]))
+            {
+                //Force create model early
+                FLLog.Debug("model", ctx.Model.ToString());
+            }
+            srv.DbContextFactory = ctxFactory;
+            
+            srv.ServerName = config.ServerName;
 			srv.ServerDescription = config.ServerDescription;
 			srv.Start();
 
@@ -69,8 +85,8 @@ namespace Server
 			Console.Write("Freelancer Path: ");
 			config.FreelancerPath = (Console.ReadLine() ?? "").Trim();
 
-			Console.Write("Db Connection String: ");
-			config.DbConnectionString = (Console.ReadLine() ?? "").Trim();
+			Console.Write("Db Path: ");
+			config.DatabasePath = (Console.ReadLine() ?? "").Trim();
 
 			Console.Write("Server Name: ");
 			config.ServerName = (Console.ReadLine() ?? "").Trim();

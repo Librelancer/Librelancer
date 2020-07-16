@@ -11,21 +11,23 @@ namespace Server
 {
     public class SqlDesignTimeFactory : IDesignTimeDbContextFactory<LibreLancerContext>
     {
+        private Config config;
+        public SqlDesignTimeFactory(Config config)
+        {
+            this.config = config;
+        }
+        public SqlDesignTimeFactory()
+        {
+            config = new Config();
+            config.UseLazyLoading = true;
+            config.DatabasePath =  Path.Combine(Path.GetTempPath(), "librelancer.ef.database.db");
+        }
         public LibreLancerContext CreateDbContext(string[] args)
         {
-            if (!File.Exists("librelancerserver.config.json"))
-            { 
-                Console.Error.WriteLine($"Can't find {Directory.GetCurrentDirectory()}/librelancerserver.config.json"); 
-                throw new IOException();
-            }
-
-            var config = JSON.Deserialize<Config>(File.ReadAllText("librelancerserver.config.json"));
             var optionsBuilder = new DbContextOptionsBuilder<LibreLancerContext>();
-            optionsBuilder.UseSqlite(config.DbConnectionString);
-
+            optionsBuilder.UseSqlite($"Data Source={config.DatabasePath};");
             if (config.UseLazyLoading)
                 optionsBuilder.UseLazyLoadingProxies();
-
             return new LibreLancerContext(optionsBuilder.Options);
         }
     }

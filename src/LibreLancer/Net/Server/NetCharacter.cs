@@ -15,23 +15,29 @@ namespace LibreLancer
         public GameData.Ship Ship;
         public List<NetEquipment> Equipment;
 
+        private long charId;
         GameDataManager gData;
-        public static NetCharacter FromDb(ServerCharacter character, GameDataManager gameData)
+        public static NetCharacter FromDb(long id, GameServer game)
         {
+            var character = game.Database.GetCharacter(id);
+            
             var nc = new NetCharacter();
             nc.Name = character.Name;
-            nc.gData = gameData;
+            nc.gData = game.GameData;
+            nc.charId = id;
             nc.Base = character.Base;
-            nc.Ship = gameData.GetShip(character.Ship);
-            nc.Credits = character.Credits;
+            nc.Ship = game.GameData.GetShip(character.Ship);
+            nc.Credits = character.Money;
             nc.Equipment = new List<NetEquipment>(character.Equipment.Count);
             foreach(var equip in character.Equipment)
             {
+                var resolved = game.GameData.GetEquipment(equip.EquipmentNickname);
+                if (resolved == null) continue;
                 nc.Equipment.Add(new NetEquipment()
                 {
-                    Hardpoint = equip.Hardpoint,
-                    Equipment = gameData.GetEquipment(equip.Equipment),
-                    Health = equip.Health
+                    Hardpoint = equip.EquipmentHardpoint,
+                    Equipment = resolved,
+                    Health = 1f
                 });
             }
             return nc;
@@ -54,6 +60,7 @@ namespace LibreLancer
         public SelectableCharacter ToSelectable()
         {
             var selectable = new SelectableCharacter();
+            selectable.Id = charId;
             selectable.Rank = 1;
             selectable.Ship = Ship.Nickname;
             selectable.Name = Name;

@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using LibreLancer.Ini;
 using System.IO;
+using System.Text;
+
 namespace LibreLancer.Data.Save
 {
     public class SaveGame : IniFile
@@ -28,10 +30,18 @@ namespace LibreLancer.Data.Save
         [Section("locked_gates")]
         public LockedGates LockedGates;
 
+        public static SaveGame FromString(string name, string str)
+        {
+            var sg = new SaveGame();
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(str)))
+            {
+                sg.ParseAndFill(name, stream);
+            }
+            return sg;
+        }
         public static SaveGame FromFile(string path)
         {
             var sg = new SaveGame();
-            var str = System.Text.Encoding.ASCII.GetString(FlCodec.ReadFile(path));
             using (var stream = new MemoryStream(FlCodec.ReadFile(path)))
             {
                 sg.ParseAndFill(path, stream);

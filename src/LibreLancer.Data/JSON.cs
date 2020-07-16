@@ -14,8 +14,12 @@ namespace LibreLancer.Data
 			return JsonConvert.DeserializeObject<T>(str);
 		}
 		public static string Serialize<T>(T obj)
-		{
-			return JsonConvert.SerializeObject(obj, Formatting.Indented);
+        {
+            return JsonConvert.SerializeObject(obj, new JsonSerializerSettings()
+            {
+                Formatting = Formatting.Indented,
+                ReferenceLoopHandling =  ReferenceLoopHandling.Ignore
+            });
 		}
 	}
 }

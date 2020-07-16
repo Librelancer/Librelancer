@@ -19,6 +19,8 @@ namespace LibreLancer.Database
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Sqlite things
+            modelBuilder.Entity<Character>().Property(x => x.Name).HasColumnType("TEXT COLLATE NOCASE");
             // Indexes
             modelBuilder.Entity<Account>().HasIndex(x => x.AccountIdentifier);
 

@@ -5,56 +5,101 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.IO;
+using LibreLancer.Database;
+using LibreLancer.Entities.Character;
+using Microsoft.EntityFrameworkCore;
 
 namespace LibreLancer
 {
-	public class ServerDatabase : IDisposable
-	{
-        //MySqlConnection connection;
-        List<PlayerAccount> accounts = new List<PlayerAccount>();
-		public ServerDatabase(string connectionString)
+	public class ServerDatabase
+    {
+        private GameServer server;
+		public ServerDatabase(GameServer server)
 		{
+		    this.server = server;
 		}
 
-		//TODO: Fill this in (pending Yuri's work)
-
-		//Account
-		public void CreateAccount(PlayerAccount p)
-		{
-            accounts.Add(p);
-		}
-
-		public PlayerAccount GetAccount(Guid guid)
-		{
-            return accounts.Where((x) => x.GUID == guid).FirstOrDefault();
-		}
-
-		public void AccountAccessed(PlayerAccount account)
-		{
-            account.LastVisit = DateTime.Now;
-
-		}
-		//Character
-		public IEnumerable<ServerCharacter> GetOwnedCharacters(PlayerAccount account)
-		{
-            return account.Characters;
-		}
-
-        public void AddCharacter(ServerCharacter character)
+        LibreLancerContext CreateDbContext() => server.DbContextFactory.CreateDbContext(new string[0]);
+        public List<SelectableCharacter> PlayerLogin(Guid playerGuid)
         {
-            
+            using (var ctx = CreateDbContext())
+            {
+                
+                var acc = ctx.Accounts.FirstOrDefault(x => x.AccountIdentifier == playerGuid);
+                if (acc == null)
+                {
+                    ctx.ChangeTracker.AutoDetectChangesEnabled = false;
+                    acc = new Account() {AccountIdentifier = playerGuid, CreationDate = DateTime.UtcNow};
+                    ctx.Accounts.Add(acc);
+                }
+                acc.LastLogin = DateTime.UtcNow;
+                ctx.SaveChanges();
+                var res = new List<SelectableCharacter>();
+                foreach (var c in acc.Characters)
+                {
+                    res.Add(new SelectableCharacter()
+                    {
+                        Location = c.System,
+                        Funds = c.Money,
+                        Name = c.Name,
+                        Rank = (int)c.Rank,
+                        Ship = c.Ship,
+                        Id = c.Id
+                    });
+                }
+                return res;
+            }
         }
 
-        public void AddCharacterToAccount(PlayerAccount account, ServerCharacter character)
+        public bool NameInUse(string name)
         {
-            account.Characters.Add(character);
+            using (var ctx = CreateDbContext())
+            {
+                return ctx.Characters.Any(x => x.Name == name);
+            }
+        }
+        
+        public Character GetCharacter(long id)
+        {
+            using (var ctx = CreateDbContext())
+            {
+                return ctx.Characters
+                    .Include(c => c.Equipment)
+                    .Include(c => c.Cargo)
+                    .Include(c => c.Reputations)
+                    .Include(c => c.VisitEntries)
+                    .First(c => c.Id == id);
+            }
         }
 
-
-		public void Dispose()
-		{
-
-		}
-	}
+        public void UpdateCharacter(long id, Action<Character> updateAction)
+        {
+            using (var ctx = CreateDbContext())
+            {
+                var c = ctx.Characters.First(c => c.Id == id);
+                updateAction?.Invoke(c);
+                c.UpdateDate = DateTime.UtcNow;
+                ctx.SaveChanges();
+            }
+        }
+        
+        public void AddCharacter(Guid playerGuid, Action<Character> fillCharacter)
+        {
+            using (var ctx = CreateDbContext())
+            {
+                ctx.ChangeTracker.AutoDetectChangesEnabled = false;
+                //Get account
+                var acc = ctx.Accounts.First(x => x.AccountIdentifier == playerGuid);
+                //Init object
+                var c = new Character();
+                fillCharacter(c);
+                c.UpdateDate = c.CreationDate = DateTime.UtcNow;
+                c.Account = acc;
+                //Add
+                ctx.Characters.Add(c);
+                ctx.SaveChanges();
+            }
+        }
+        
+    }
 }

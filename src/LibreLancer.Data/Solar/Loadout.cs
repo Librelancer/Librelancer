@@ -16,8 +16,11 @@ namespace LibreLancer.Data.Solar
         [Entry("nickname")] public string Nickname;
 
         [Entry("archetype")] public string Archetype;
-        
+
+        public List<LoadoutCargo> Cargo = new List<LoadoutCargo>();
         [Entry("cargo", Multiline = true)]
+        void HandleCargo(Entry e) => Cargo.Add(new LoadoutCargo(e));
+
         [Entry("hull", Multiline = true)]
         [Entry("addon", Multiline = true)]
         [Entry("hull_damage", Multiline = true)]
@@ -26,14 +29,40 @@ namespace LibreLancer.Data.Solar
             
         }
 
-        public Dictionary<string, string> Equip = new Dictionary<string, string>();
-        private int emptyHp = 1;
+        public List<LoadoutEquip> Equip = new List<LoadoutEquip>();
+
         [Entry("equip", Multiline = true)]
-        void HandleEquip(Entry e)
+        void HandleEquip(Entry e) => Equip.Add(new LoadoutEquip(e));
+    }
+
+    public class LoadoutEquip
+    {
+        public string Nickname;
+        public string Hardpoint;
+
+        public LoadoutEquip()
         {
-            string key = e.Count == 2 ? e[1].ToString() : "__noHardpoint" + (emptyHp++).ToString("d2");
-            if (e.Count == 2 && e[1].ToString().Trim() == "") key = "__noHardpoint" + (emptyHp++).ToString("d2");
-            if (!Equip.ContainsKey(key)) Equip.Add(key, e[0].ToString());
+        }
+
+        public LoadoutEquip(Entry e)
+        {
+            Nickname = e[0].ToString();
+            if (e.Count > 1)
+                Hardpoint = e[1].ToString();
+        }
+    }
+
+    public class LoadoutCargo
+    {
+        public string Nickname;
+        public int Count;
+        public LoadoutCargo(Entry e)
+        {
+            Nickname = e[0].ToString();
+            if (e.Count > 1)
+                Count = e[1].ToInt32();
+            else
+                Count = 1;
         }
     }
 }

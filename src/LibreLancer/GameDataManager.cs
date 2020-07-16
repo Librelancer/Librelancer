@@ -1311,20 +1311,17 @@ namespace LibreLancer
 
         void ProcessLoadout(Data.Solar.Loadout ld, GameData.SystemObject obj)
         {
-            foreach (var key in ld.Equip.Keys)
+            foreach (var eq in ld.Equip)
             {
-                var val = ld.Equip[key];
-                if (val == null)
-                    continue;
-                GameData.Items.Equipment equip = GetEquipment(val);
+                GameData.Items.Equipment equip = GetEquipment(eq.Nickname);
                 //if (equip is GameData.Items.GunEquipment) continue;
                 if (equip != null)
                 {
-                    if (key.StartsWith("__noHardpoint", StringComparison.Ordinal))
+                    if (string.IsNullOrEmpty(eq.Hardpoint))
                         obj.LoadoutNoHardpoint.Add(equip);
                     else
                     {
-                        if (!obj.Loadout.ContainsKey(key)) obj.Loadout.Add(key, equip);
+                        if (!obj.Loadout.ContainsKey(eq.Hardpoint)) obj.Loadout.Add(eq.Hardpoint, equip);
                     }
                 }
             }

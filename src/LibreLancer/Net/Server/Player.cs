@@ -8,27 +8,32 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using LibreLancer.GameData.Items;
-using LiteNetLib;
+using LibreLancer.Entities.Character;
 
 namespace LibreLancer
 {
     public class Player
     {
+        //ID
+        public int ID = 0;
+        static int _gid = 0;
+        //Reference
         public IPacketClient Client;
         GameServer game;
-        Guid playerGuid;
+        public ServerWorld World;
+        private MissionRuntime msnRuntime;
+        //State
         public NetCharacter Character;
-        public PlayerAccount Account;
         public string Name = "Player";
         public string System;
         public string Base;
         public Vector3 Position;
         public Quaternion Orientation;
-        public ServerWorld World;
-        private MissionRuntime msnRuntime;
-        public int ID = 0;
-        static int _gid = 0;
-
+        //Store so we can choose the correct character from the index
+        public List<SelectableCharacter> CharacterList;
+       
+        Guid playerGuid; //:)
+        
         public Player(IPacketClient client, GameServer game, Guid playerGuid)
         {
             this.Client = client;
@@ -144,7 +149,7 @@ namespace LibreLancer
             {
                 FLLog.Info("Server", "Account logged in");
                 Client.SendPacket(new LoginSuccessPacket(), PacketDeliveryMethod.ReliableOrdered);
-                Account = new PlayerAccount();
+                CharacterList = game.Database.PlayerLogin(playerGuid);
                 Client.SendPacket(new OpenCharacterListPacket()
                 {
                     Info = new CharacterSelectInfo()
@@ -152,7 +157,7 @@ namespace LibreLancer
                         ServerName = game.ServerName,
                         ServerDescription = game.ServerDescription,
                         ServerNews = game.ServerNews,
-                        Characters = new List<SelectableCharacter>()
+                        Characters = CharacterList,
                     }
                 }, PacketDeliveryMethod.ReliableOrdered);
             }
@@ -209,30 +214,39 @@ namespace LibreLancer
         
         public void ProcessPacket(IPacket packet)
         {
-            switch(packet)
+            try
             {
-                case CharacterListActionPacket c:
-                    ListAction(c);
-                    break;
-                case LaunchPacket l:
-                    Launch();
-                    break;
-                case EnterLocationPacket lc:
-                    msnRuntime?.EnterLocation(lc.Room, lc.Base);
-                    break;
-                case PositionUpdatePacket p:
-                    World.PositionUpdate(this, p.Position, p.Orientation);
-                    break;
-                case RTCCompletePacket cp:
-                    RemoveRTC(cp.RTC);
-                    break;
-                case LineSpokenPacket lp:
-                    msnRuntime?.LineFinished(lp.Hash);
-                    break;
-                case ConsoleCommandPacket cmd:
-                    HandleConsoleCommand(cmd.Command);
-                    break;
+                switch(packet)
+                {
+                    case CharacterListActionPacket c:
+                        ListAction(c);
+                        break;
+                    case LaunchPacket l:
+                        Launch();
+                        break;
+                    case EnterLocationPacket lc:
+                        msnRuntime?.EnterLocation(lc.Room, lc.Base);
+                        break;
+                    case PositionUpdatePacket p:
+                        World.PositionUpdate(this, p.Position, p.Orientation);
+                        break;
+                    case RTCCompletePacket cp:
+                        RemoveRTC(cp.RTC);
+                        break;
+                    case LineSpokenPacket lp:
+                        msnRuntime?.LineFinished(lp.Hash);
+                        break;
+                    case ConsoleCommandPacket cmd:
+                        HandleConsoleCommand(cmd.Command);
+                        break;
+                }
             }
+            catch (Exception e)
+            {
+                FLLog.Error("Exception", e.Message + "\n" + e.StackTrace);
+                //disconnect
+            }
+          
         }
 
         public void HandleConsoleCommand(string cmd)
@@ -257,8 +271,10 @@ namespace LibreLancer
                 }
                 case CharacterListAction.SelectCharacter:
                 {
-                    var sc = Account.Characters[pkt.IntArg];
-                    Character = NetCharacter.FromDb(sc, game.GameData);
+                    var sc = CharacterList[pkt.IntArg];
+                    FLLog.Info("Server", $"opening id {sc.Id}");
+                    Character = NetCharacter.FromDb(sc.Id, game);
+                    FLLog.Info("Server", $"sending packet");
                     Base = Character.Base;
                     Client.SendPacket(new BaseEnterPacket()
                     {
@@ -269,32 +285,51 @@ namespace LibreLancer
                 }
                 case CharacterListAction.CreateNewCharacter:
                 {
-                    var ac = new ServerCharacter()
+                    if (!game.Database.NameInUse(pkt.StringArg))
                     {
-                        Name = pkt.StringArg,
-                        Base = "li01_01_base",
-                        Credits = 2000,
-                        ID = 0,
-                        Ship = "ge_fighter"
-                    };
-                    ac.Equipment.Add(new ServerEquipment()
-                    {
-                        Equipment = "ge_gf1_engine_01",
-                        Hardpoint = "", Health = 1
-                    });
-                    ac.Equipment.Add(new ServerEquipment()
+                        Character ch = null;
+                        game.Database.AddCharacter(playerGuid, (db) =>
                         {
-                            Equipment = "ge_fighter_power01",
-                            Hardpoint = "", Health = 1
-                        }
-                    );
-                    Account.Characters.Add(ac);
-                    Client.SendPacket(new AddCharacterPacket()
-                    {
-                        Character = NetCharacter.FromDb(ac, game.GameData).ToSelectable()
-                    }, PacketDeliveryMethod.ReliableOrdered);
+                            ch = db;
+                            var sg = game.NewCharacter(pkt.StringArg, pkt.IntArg);
+                            db.Name = sg.Player.Name;
+                            db.Base = sg.Player.Base;
+                            db.System = sg.Player.System;
+                            db.Rank = 1;
+                            db.Costume = sg.Player.Costume;
+                            db.ComCostume = sg.Player.ComCostume;
+                            db.Money = sg.Player.Money;
+                            db.Ship = sg.Player.ShipArchetype;
+                            db.Equipment = new HashSet<EquipmentEntity>();
+                            db.Cargo = new HashSet<CargoItem>();
+                            foreach (var eq in sg.Player.Equip)
+                            {
+                                db.Equipment.Add(new EquipmentEntity()
+                                {
+                                    EquipmentNickname = eq.EquipName,
+                                    EquipmentHardpoint = eq.Hardpoint
+                                });
+                            }
+                            foreach (var cg in sg.Player.Cargo)
+                            {
+                                db.Cargo.Add(new CargoItem()
+                                {
+                                    ItemName = cg.CargoName,
+                                    ItemCount = cg.Count
+                                });
+                            }
+                        });
+                        var sel = NetCharacter.FromDb(ch.Id, game).ToSelectable();
+                        CharacterList.Add(sel);
+                        Client.SendPacket(new AddCharacterPacket()
+                        {
+                            Character = sel
+                        }, PacketDeliveryMethod.ReliableOrdered);
+                    } else {
+                        //send error
+                    }
                     break;
-            }
+                }
             }
         }
 

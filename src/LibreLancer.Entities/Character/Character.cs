@@ -23,7 +23,7 @@ namespace LibreLancer.Entities.Character
 
         public uint Rank { get; set; }
 
-        public decimal Money { get; set; }
+        public long Money { get; set; }
 
         // voice = trent_voice
         public string Voice { get; set; }
@@ -53,22 +53,22 @@ namespace LibreLancer.Entities.Character
         public string Description { get; set; }
 
         // The amount of fighters killed
-        public ulong FightersKilled { get; set; }
+        public long FightersKilled { get; set; }
 
         // The amount of Freighters/Transports killed
-        public ulong TransportsKilled { get; set; }
+        public long TransportsKilled { get; set; }
 
         // The amount of capital ships killed
-        public ulong CapitalKills { get; set; }
+        public long CapitalKills { get; set; }
 
         // The amount of players
-        public ulong PlayersKilled { get; set; }
+        public long PlayersKilled { get; set; }
 
         // The amount of Missions completed
-        public ulong MissionsCompleted { get; set; }
+        public long MissionsCompleted { get; set; }
 
         // The amount of Missions Failed
-        public ulong MissionsFailed { get; set; }
+        public long MissionsFailed { get; set; }
 
         // In vanilla, house = float, rep_group
         // Should be a subtable with that information inside of it. Playername would be the primary key.

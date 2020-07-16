@@ -6,9 +6,14 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using LibreLancer.Data.Save;
+using LibreLancer.Database;
 using LibreLancer.GameData;
+using Microsoft.EntityFrameworkCore.Design;
 
 namespace LibreLancer
 {
@@ -18,7 +23,7 @@ namespace LibreLancer
         public string ServerDescription = "Description of the server is here.";
         public string ServerNews = "News of the server goes here";
         
-        public string DbConnectionString;
+        public IDesignTimeDbContextFactory<LibreLancerContext> DbContextFactory;
         public GameDataManager GameData;
         public ServerDatabase Database;
         public ResourceManager Resources;
@@ -47,6 +52,57 @@ namespace LibreLancer
             needLoadData = false;
         }
 
+        public SaveGame NewCharacter(string name, int factionIndex)
+        {
+            var fac = GameData.Ini.NewCharDB.Factions[factionIndex];
+            var pilot = GameData.Ini.NewCharDB.Pilots.First(x =>
+                x.Nickname.Equals(fac.Pilot, StringComparison.OrdinalIgnoreCase));
+            var package = GameData.Ini.NewCharDB.Packages.First(x =>
+                x.Nickname.Equals(fac.Package, StringComparison.OrdinalIgnoreCase));
+            //TODO: initial_rep = %%FACTION%%
+            //does this have any effect in FL?
+            
+            var src = new StringBuilder(Encoding.UTF8.GetString(FlCodec.ReadFile(GameData.VFS.Resolve("EXE\\mpnewcharacter.fl"))));
+            
+            src.Replace("%%NAME%%", SavePlayer.EncodeName(name));
+            src.Replace("%%BASE_COSTUME%%", pilot.Body);
+            src.Replace("%%COMM_COSTUME%%", pilot.Comm);
+            //Changing voice breaks in vanilla (commented out in mpnewcharacter)
+            src.Replace("%%VOICE%%", pilot.Voice);
+            //TODO: pilot comm_anim (not in vanilla mpnewcharacter)
+            //TODO: pilot body_anim (not in vanilla mpnewcharacter)
+            src.Replace("%%MONEY%%", package.Money.ToString());
+            src.Replace("%%HOME_SYSTEM%%", GameData.GetBase(fac.Base).System);
+            src.Replace("%%HOME_BASE%%", fac.Base);
+
+            var pkgStr = new StringBuilder();
+            pkgStr.Append("ship_archetype = ").AppendLine(package.Ship);
+            var loadout = GameData.Ini.Loadouts.Loadouts.First(x =>
+                x.Nickname.Equals(package.Loadout, StringComparison.OrdinalIgnoreCase));
+            //do loadout
+            foreach (var x in loadout.Equip)
+            {
+                pkgStr.AppendLine(new PlayerEquipment()
+                {
+                    EquipName = x.Nickname,
+                    Hardpoint = x.Hardpoint ?? ""
+                }.ToString());
+            }
+
+            foreach (var x in loadout.Cargo)
+            {
+                pkgStr.AppendLine(new PlayerCargo()
+                {
+                    CargoName = x.Nickname,
+                    Count = x.Count
+                }.ToString());
+            }
+            //append
+            src.Replace("%%PACKAGE%%", pkgStr.ToString());
+            var initext = src.ToString();
+            return SaveGame.FromString($"mpnewcharacter: {fac.Nickname}", initext);
+        }
+        
         public void Start()
         {
             running = true;
@@ -98,8 +154,7 @@ namespace LibreLancer
                 GameData.LoadData();
                 FLLog.Info("Server", "Finished Loading Game Data");
             }
-            if(!string.IsNullOrWhiteSpace(DbConnectionString))
-                Database = new ServerDatabase(DbConnectionString);
+            Database = new ServerDatabase(this);
             Listener?.Start();
             Stopwatch sw = Stopwatch.StartNew();
             double lastTime = 0;

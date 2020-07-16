@@ -50,5 +50,6 @@ namespace LibreLancer
         public long Funds;
         public string Ship;
         public string Location;
+        public long Id; //Serverside only
     }
 }

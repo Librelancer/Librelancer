@@ -12,7 +12,7 @@ namespace LibreLancer.Entities.Character
         public string ItemName { get; set; }
 
         // The amount of the item present in the cargo hold
-        public ulong ItemCount { get; set; }
+        public long ItemCount { get; set; }
 
         // Can the item be dropped
         public bool IsMissionItem { get; set; }

@@ -17,7 +17,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\extern\moonsharp\src\MoonSharp.Interpreter\MoonSharp.Interpreter.csproj" />
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj" />
+    <ProjectReference Include="..\Librelancer.Database\LibreLancer.Database.csproj" />
     <ProjectReference Include="..\LibreLancer.Data\LibreLancer.Data.csproj" />
+    <ProjectReference Include="..\LibreLancer.Entities\LibreLancer.Entities.csproj" />
     <ProjectReference Include="..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj" />
     <ProjectReference Include="..\LibreLancer.Media\LibreLancer.Media.csproj" />
     <ProjectReference Include="..\LibreLancer.Physics\LibreLancer.Physics.csproj" />

@@ -17,7 +17,7 @@ namespace LibreLancer.Data.Save
         public uint EquipHash;
         public string EquipName;
         public string Hardpoint;
-        public string Unknown; //Either health or count, not sure
+        public float Unknown = 1; //Either health or count, not sure
         public PlayerEquipment() { }
         public PlayerEquipment(Entry e)
         {
@@ -26,15 +26,25 @@ namespace LibreLancer.Data.Save
             if (e.Count < 2) return;
             //Extra
             Hardpoint = e[1].ToString();
-            if(e.Count > 2) Unknown = e[2].ToString();
+            if (e.Count > 2) Unknown = e[2].ToSingle();
         }
+
+        public string ToString(string ename)
+        {
+            return $"{ename} = {(EquipHash != 0 ? EquipHash.ToString() : EquipName)}, {Hardpoint}, {Unknown}";
+        }
+
+        public override string ToString() => ToString("equip");
     }
 
     public class PlayerCargo
     {
+        //hash, count, percentage_health, UNK, mission_cargo
         public uint CargoHash;
         public string CargoName;
+        public float PercentageHealth = 1;
         public int Count;
+        public bool IsMissionCargo;
         //Some unknowns here
         public PlayerCargo() { }
         public PlayerCargo(Entry e)
@@ -42,7 +52,20 @@ namespace LibreLancer.Data.Save
             var s = e[0].ToString();
             if (!uint.TryParse(s, out CargoHash)) CargoName = s;
             Count = e[1].ToInt32();
+            if (e.Count > 2)
+                PercentageHealth = e[2].ToSingle();
+            if (e.Count > 4)
+                IsMissionCargo = e[4].ToBoolean();
         }
+
+        public string ToString(string ename)
+        {
+            string hStr = "";
+            if (PercentageHealth < 1) hStr = PercentageHealth.ToString(CultureInfo.InvariantCulture);
+            return $"{ename} = {(CargoHash != 0 ? CargoHash.ToString() : CargoName)}, {Count}, {hStr}, , {(IsMissionCargo ? 1 : 0)}";
+        }
+
+        public override string ToString() => ToString("cargo");
     }
 
 
@@ -102,8 +125,8 @@ namespace LibreLancer.Data.Save
         [Entry("house", Multiline = true)]
         void HandleHouse(Entry e) => House.Add(new SaveRep(e));
 
-        [Entry("log")]
-        [Entry("visit")]
+        [Entry("log", Multiline = true)]
+        [Entry("visit", Multiline =  true)]
         void Noop(Entry e)
         {
         }
@@ -123,6 +146,15 @@ namespace LibreLancer.Data.Save
             {
                 Name = e[0].ToString();
             }
+        }
+
+        public static string EncodeName(string name)
+        {
+            var bytes = Encoding.BigEndianUnicode.GetBytes(name);
+            var builder = new StringBuilder();
+            foreach (var b in bytes)
+                builder.Append(b.ToString("X2"));
+            return builder.ToString();
         }
 
         [Entry("equip", Multiline = true)]

@@ -56,7 +56,7 @@ namespace LibreLancer.Database.Migrations
                     b.Property<bool>("IsMissionItem")
                         .HasColumnType("INTEGER");
 
-                    b.Property<ulong>("ItemCount")
+                    b.Property<long>("ItemCount")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("ItemName")
@@ -90,7 +90,7 @@ namespace LibreLancer.Database.Migrations
                     b.Property<string>("Base")
                         .HasColumnType("TEXT");
 
-                    b.Property<ulong>("CapitalKills")
+                    b.Property<long>("CapitalKills")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("ComCostume")
@@ -105,22 +105,22 @@ namespace LibreLancer.Database.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("TEXT");
 
-                    b.Property<ulong>("FightersKilled")
+                    b.Property<long>("FightersKilled")
                         .HasColumnType("INTEGER");
 
-                    b.Property<ulong>("MissionsCompleted")
+                    b.Property<long>("MissionsCompleted")
                         .HasColumnType("INTEGER");
 
-                    b.Property<ulong>("MissionsFailed")
+                    b.Property<long>("MissionsFailed")
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("Money")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Money")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT COLLATE NOCASE");
 
-                    b.Property<ulong>("PlayersKilled")
+                    b.Property<long>("PlayersKilled")
                         .HasColumnType("INTEGER");
 
                     b.Property<uint>("Rank")
@@ -132,7 +132,7 @@ namespace LibreLancer.Database.Migrations
                     b.Property<string>("System")
                         .HasColumnType("TEXT");
 
-                    b.Property<ulong>("TransportsKilled")
+                    b.Property<long>("TransportsKilled")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime?>("UpdateDate")
