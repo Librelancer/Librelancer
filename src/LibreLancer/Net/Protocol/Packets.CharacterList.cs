@@ -100,6 +100,14 @@ namespace LibreLancer
         CreateNewCharacter,
         DeleteCharacter
     }
+
+    public enum CharacterListStatus : byte
+    {
+        OK,
+        ErrNameInUse,
+        ErrBadIndex,
+        ErrUnknown
+    }
     public class CharacterListActionPacket : IPacket
     {
         public CharacterListAction Action;
@@ -119,6 +127,9 @@ namespace LibreLancer
                     cla.IntArg = (int)message.GetVariableUInt32();
                     cla.StringArg = message.GetString();
                     break;
+                case CharacterListAction.DeleteCharacter:
+                    cla.IntArg = (int) message.GetVariableUInt32();
+                    break;
             }
             return cla;
         }
@@ -134,24 +145,27 @@ namespace LibreLancer
                     message.PutVariableUInt32((uint)IntArg);
                     message.Put(StringArg);
                     break;
+                case CharacterListAction.DeleteCharacter:
+                    message.PutVariableUInt32((uint)IntArg);
+                    break;
             }
         }
     }
     public class CharacterListActionResponsePacket : IPacket
     {
-        public bool Success;
-        public string FailReason;
+        public CharacterListAction Action;
+        public CharacterListStatus Status;
         public static CharacterListActionResponsePacket Read(NetPacketReader message)
         {
             var p = new CharacterListActionResponsePacket();
-            p.Success = message.GetByte() != 0;
-            if (!p.Success) p.FailReason = message.GetString();
+            p.Action = (CharacterListAction) message.GetByte();
+            p.Status = (CharacterListStatus)message.GetByte();
             return p;
         }
         public void WriteContents(NetDataWriter message)
         {
-            message.Put(Success ? (byte)1 : (byte)0);
-            if (!Success) message.Put(FailReason);
+            message.Put((byte)Action);
+            message.Put((byte) Status);
         }
     }
     public class OpenCharacterListPacket : IPacket

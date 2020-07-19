@@ -52,10 +52,15 @@ namespace Server
             using (var ctx = ctxFactory.CreateDbContext(new string[0]))
             {
                 //Force create model early
+                if (ctx.Database.GetPendingMigrations().Any())
+                {
+                    FLLog.Info("Server", "Migrating database");
+                    ctx.Database.Migrate();
+                }
                 FLLog.Debug("model", ctx.Model.ToString());
             }
-            srv.DbContextFactory = ctxFactory;
             
+            srv.DbContextFactory = ctxFactory;
             srv.ServerName = config.ServerName;
 			srv.ServerDescription = config.ServerDescription;
 			srv.Start();

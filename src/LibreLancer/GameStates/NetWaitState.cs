@@ -25,5 +25,10 @@ namespace LibreLancer
             Game.RenderState.ClearColor = Color4.Black;
             Game.RenderState.ClearAll();
         }
+
+        public override void Exiting()
+        {
+            session.OnExit();
+        }
     }
 }

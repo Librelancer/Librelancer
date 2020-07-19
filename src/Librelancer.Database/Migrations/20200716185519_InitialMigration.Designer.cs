@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LibreLancer.Database.Migrations
 {
     [DbContext(typeof(LibreLancerContext))]
-    [Migration("20200715135032_InitialMigration")]
+    [Migration("20200716185519_InitialMigration")]
     partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -238,7 +238,8 @@ namespace LibreLancer.Database.Migrations
                 {
                     b.HasOne("LibreLancer.Entities.Character.Character", null)
                         .WithMany("Cargo")
-                        .HasForeignKey("CharacterId");
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("LibreLancer.Entities.Character.Character", b =>
@@ -254,21 +255,24 @@ namespace LibreLancer.Database.Migrations
                 {
                     b.HasOne("LibreLancer.Entities.Character.Character", null)
                         .WithMany("Equipment")
-                        .HasForeignKey("CharacterId");
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("LibreLancer.Entities.Character.Reputation", b =>
                 {
                     b.HasOne("LibreLancer.Entities.Character.Character", null)
                         .WithMany("Reputations")
-                        .HasForeignKey("CharacterId");
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("LibreLancer.Entities.Character.VisitEntry", b =>
                 {
                     b.HasOne("LibreLancer.Entities.Character.Character", null)
                         .WithMany("VisitEntries")
-                        .HasForeignKey("CharacterId");
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618
         }

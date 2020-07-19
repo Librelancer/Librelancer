@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 
 //High performance console output - nonblocking + colour coded
@@ -139,6 +140,29 @@ namespace LibreLancer
 		{
 			Write (component, message, LogSeverity.Error);
 		}
+
+        public static void Exception(string component, Exception e)
+        {
+            var builder = new StringBuilder();
+            builder.AppendLine(e.Message);
+            builder.AppendLine(e.StackTrace);
+            e = e.InnerException;
+            int i = 0;
+            while (e != null)
+            {
+                if (i > 4)
+                {
+                    builder.AppendLine(">>Truncated Inner Exceptions");
+                    break;
+                }
+                builder.AppendLine("Inner:");
+                builder.AppendLine(e.Message);
+                builder.AppendLine(e.StackTrace);
+                e = e.InnerException;
+                i++;
+            }
+            Error(component, builder.ToString());
+        }
 	}
 }
 

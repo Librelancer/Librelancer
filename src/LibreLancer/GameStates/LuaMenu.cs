@@ -140,6 +140,18 @@ namespace LibreLancer
                         case NewCharacterDBPacket ncdb:
                             state.ui.Event("OpenNewCharacter");
                             break;
+                        case CharacterListActionResponsePacket cresp:
+                            switch (cresp.Action)
+                            {
+                                case CharacterListAction.DeleteCharacter:
+                                    if (cresp.Status == CharacterListStatus.OK)
+                                    {
+                                        cselInfo.Characters.RemoveAt(delIndex);
+                                        delIndex = -1;
+                                    }
+                                    break;
+                            }
+                            break;
                     }
                 }
             }
@@ -185,6 +197,17 @@ namespace LibreLancer
                 });
             }
 
+            private int delIndex = -1;
+            public void DeleteCharacter()
+            {
+                delIndex = cselInfo.Selected;
+                netClient.SendPacket(new CharacterListActionPacket()
+                {
+                    Action = CharacterListAction.DeleteCharacter,
+                    IntArg = cselInfo.Selected
+                }, PacketDeliveryMethod.ReliableOrdered);
+            }
+
             private void NetClientOnDisconnected(string obj)
             {
                 netClient?.Shutdown();
@@ -218,151 +241,6 @@ namespace LibreLancer
                 netClient?.Shutdown();
                 netClient = null;
             }
-            /*public void loadgame() {}
-            GameClient client;
-            XmlUIServerList serverList;
-            public void doserverlist(XmlUIServerList.ServerListAPI slist)
-            {
-                serverList = slist.Srv;
-                refreshservers();
-            }
-            public bool canconnect() => serverList.Selection >= 0;
-            public void connectserver()
-            {
-                client.Connect(serverList.Servers[serverList.Selection].EndPoint);
-            }
-            public void directconnect(string str)
-            {
-                if (!client.Connect(str))
-                    state.ui.CallEvent("lookupfailed");
-            }
-            public void disconnect()
-            {
-                if (client != null) client.Dispose();
-            }
-            public void refreshservers()
-            {
-                serverList.Servers.Clear();
-                serverList.Selection = -1;
-                if (client != null) client.Dispose();
-                client = new GameClient(state.Game, new GameSession(state.Game) { ExtraPackets = HandlePackets });
-                client.Session.Client = client;
-                client.ServerFound += Client_ServerFound;
-                client.CharacterSelection += Client_CharacterSelection;
-                client.Disconnected += Client_Disconnected;
-                client.Start();
-                client.UUID = state.Game.Config.UUID.Value;
-                client.DiscoverLocalPeers();
-            }
-
-            void Client_Disconnected(string obj)
-            {
-                //Throw an error somehow
-                state.ui.CallEvent("disconnected");
-                refreshservers();
-            }
-
-
-            public void stopmp()
-            {
-                if (client != null) client.Dispose();
-            }
-
-            CharacterSelectInfo cinfo;
-            void Client_CharacterSelection(CharacterSelectInfo obj)
-            {
-                cinfo = obj;
-                foreach (var info in cinfo.Characters)
-                    ResolveNicknames(info);
-                state.ui.CallEvent("characterlist");
-            }
-
-            void ResolveNicknames(SelectableCharacter c)
-            {
-                c.Ship = state.Game.GameData.GetString(state.Game.GameData.GetShip(c.Ship).NameIds);
-                c.Location = state.Game.GameData.GetSystem(c.Location).Name;
-            }
-            NewCharacterDBPacket characterDB;
-            XmlUICharacterList charlist;
-            public void opennewcharacter()
-            {
-                if (characterDB == null)
-                {
-                    client.SendReliablePacket(new CharacterListActionPacket()
-                    {
-                        Action = CharacterListAction.RequestCharacterDB
-                    });
-                }
-                else
-                    state.ui.CallEvent("newcharacter");
-            }
-
-            public void newcharacter(string name, int index)
-            {
-                client.SendReliablePacket(new CharacterListActionPacket()
-                {
-                    Action = CharacterListAction.CreateNewCharacter,
-                    StringArg = name,
-                    IntArg = index
-                });
-            }
-
-            public string servernews()
-            {
-                if (cinfo != null) return cinfo.ServerNews;
-                else return "";
-            }
-            public string servername()
-            {
-                if (cinfo != null) return cinfo.ServerName;
-                else return "";
-            }
-            public string serverdescription()
-            {
-                if (cinfo != null) return cinfo.ServerDescription;
-                else return "";
-            }
-
-            public void loadcharacter()
-            {
-                client.SendReliablePacket(new CharacterListActionPacket()
-                {
-                    Action = CharacterListAction.SelectCharacter,
-                    IntArg = 0
-                });
-            }
-
-            public void docharacterlist(XmlUICharacterList.CharacterListLua lua)
-            {
-                charlist = lua.CharList;
-                charlist.Info = cinfo;
-            }
-
-            void HandlePackets(IPacket pkt)
-            {
-                switch(pkt)
-                {
-                    case NewCharacterDBPacket db:
-                        characterDB = db;
-                        state.ui.CallEvent("newcharacter");
-                        break;
-                    case AddCharacterPacket ac:
-                        ResolveNicknames(ac.Character);
-                        cinfo.Characters.Add(ac.Character);
-                        break;
-                }
-            }
-
-            void Client_ServerFound(LocalServerInfo obj)
-            {
-                serverList.Servers.Add(obj);
-            }
-
-            internal void _Dispose() //shouldn't be accessible from lua?
-            {
-                if(client != null) client.Dispose();
-            }*/
-
             public override void Exit() => state.FadeOut(0.2, () => state.Game.Exit());
         }
 

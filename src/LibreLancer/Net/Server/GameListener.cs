@@ -133,11 +133,13 @@ namespace LibreLancer
                     else
                     {
                         var player = (Player) peer.Tag;
-                        Task.Run(() => player.ProcessPacket(pkt));
+                        //Task.Run(() => player.ProcessPacket(pkt));
+                        player.ProcessPacket(pkt);
                     }
                 }
                 catch (Exception)
                 {
+                    throw;
                     var dw = new NetDataWriter();
                     dw.Put("Packet processing error");
                     peer.Disconnect(dw);

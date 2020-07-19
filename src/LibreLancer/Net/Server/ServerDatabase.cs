@@ -60,6 +60,16 @@ namespace LibreLancer
             }
         }
 
+        public void DeleteCharacter(long characterId)
+        {
+            using (var ctx = CreateDbContext())
+            {
+                var ch = ctx.Characters.First(x => x.Id == characterId);
+                ctx.Characters.Remove(ch);
+                ctx.SaveChanges();
+            }
+        }
+
         public bool NameInUse(string name)
         {
             using (var ctx = CreateDbContext())

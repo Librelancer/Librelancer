@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 using System.Threading;
 using LibreLancer.GameData.Items;
 using LibreLancer.Entities.Character;
@@ -243,8 +244,8 @@ namespace LibreLancer
             }
             catch (Exception e)
             {
-                FLLog.Error("Exception", e.Message + "\n" + e.StackTrace);
-                //disconnect
+                FLLog.Exception("Player", e);
+                throw;
             }
           
         }
@@ -271,15 +272,38 @@ namespace LibreLancer
                 }
                 case CharacterListAction.SelectCharacter:
                 {
-                    var sc = CharacterList[pkt.IntArg];
-                    FLLog.Info("Server", $"opening id {sc.Id}");
-                    Character = NetCharacter.FromDb(sc.Id, game);
-                    FLLog.Info("Server", $"sending packet");
-                    Base = Character.Base;
-                    Client.SendPacket(new BaseEnterPacket()
+                    if (pkt.IntArg > 0 && pkt.IntArg < CharacterList.Count)
                     {
-                        Base = Character.Base,
-                        Ship = Character.EncodeLoadout()
+                        var sc = CharacterList[pkt.IntArg];
+                        FLLog.Info("Server", $"opening id {sc.Id}");
+                        Character = NetCharacter.FromDb(sc.Id, game);
+                        FLLog.Info("Server", $"sending packet");
+                        Base = Character.Base;
+                        Client.SendPacket(new BaseEnterPacket()
+                        {
+                            Base = Character.Base,
+                            Ship = Character.EncodeLoadout()
+                        }, PacketDeliveryMethod.ReliableOrdered);
+                    }
+                    else
+                    {
+                        Client.SendPacket(new CharacterListActionResponsePacket()
+                        {
+                            Action = CharacterListAction.SelectCharacter,
+                            Status = CharacterListStatus.ErrBadIndex
+                        }, PacketDeliveryMethod.ReliableOrdered);
+                    }
+                    break;
+                }
+                case CharacterListAction.DeleteCharacter:
+                {
+                    var sc = CharacterList[pkt.IntArg];
+                    game.Database.DeleteCharacter(sc.Id);
+                    CharacterList.Remove(sc);
+                    Client.SendPacket(new CharacterListActionResponsePacket()
+                    {
+                        Action = CharacterListAction.DeleteCharacter,
+                        Status = CharacterListStatus.OK
                     }, PacketDeliveryMethod.ReliableOrdered);
                     break;
                 }
@@ -325,8 +349,13 @@ namespace LibreLancer
                         {
                             Character = sel
                         }, PacketDeliveryMethod.ReliableOrdered);
-                    } else {
-                        //send error
+                    } else
+                    {
+                        Client.SendPacket(new CharacterListActionResponsePacket()
+                        {
+                            Action = CharacterListAction.CreateNewCharacter,
+                            Status = CharacterListStatus.ErrUnknown
+                        }, PacketDeliveryMethod.ReliableOrdered);
                     }
                     break;
                 }

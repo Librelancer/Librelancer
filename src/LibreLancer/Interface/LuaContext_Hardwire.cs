@@ -16599,6 +16599,8 @@ namespace LibreLancer.Lua {
                                 new MTHD_Y41TbG6gS38qCQ9i74f8peYs()}));
                 this.AddMember("ConnectSelection", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("ConnectSelection", typeof(LibreLancer.LuaMenu.MenuAPI), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_vJRgBnqohh5QgN_21lSqY5ZW()}));
+                this.AddMember("DeleteCharacter", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("DeleteCharacter", typeof(LibreLancer.LuaMenu.MenuAPI), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_1NCab2X3IiUBwVRGNAk0K765z()}));
                 this.AddMember("Equals", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("Equals", typeof(LibreLancer.LuaMenu.MenuAPI), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_SC_Ifx8atsrScpWvcitPbZlM()}));
                 this.AddMember("Exit", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("Exit", typeof(LibreLancer.LuaMenu.MenuAPI), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
@@ -16648,6 +16650,18 @@ namespace LibreLancer.Lua {
                 
                 protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
                     ((LibreLancer.LuaMenu.MenuAPI)(obj)).ConnectSelection();
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_1NCab2X3IiUBwVRGNAk0K765z : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_1NCab2X3IiUBwVRGNAk0K765z() {
+                    this.Initialize("DeleteCharacter", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.LuaMenu.MenuAPI)(obj)).DeleteCharacter();
                     return MoonSharp.Interpreter.DynValue.Void;
                 }
             }
@@ -17400,6 +17414,7 @@ namespace LibreLancer.Lua {
                                 new MTHD_O_52mifxTkXhhIu2wbSIcSGq()}));
                 this.AddMember("GetType", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("GetType", typeof(LibreLancer.SelectableCharacter), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_hfGy4XFiBfhLsw5QtqKXPP7i()}));
+                this.AddMember("Id", new FLDV_t8KgxhKp4KJijbj7sWmi3reF());
                 this.AddMember("Location", new FLDV_dUPPa9Qi313rxpzrhNhm2pBI());
                 this.AddMember("Name", new FLDV_10vluUz1AC4XEk9HZQeLIskK7());
                 this.AddMember("Rank", new FLDV_ndNVdKnU1JMqTehVICTA0_FL());
@@ -17457,6 +17472,22 @@ namespace LibreLancer.Lua {
                 
                 protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
                     return ((object)(obj)).GetType();
+                }
+            }
+            
+            private sealed class FLDV_t8KgxhKp4KJijbj7sWmi3reF : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMemberDescriptor {
+                
+                internal FLDV_t8KgxhKp4KJijbj7sWmi3reF() : 
+                        base(typeof(long), "Id", false, ((MoonSharp.Interpreter.Interop.BasicDescriptors.MemberDescriptorAccess)(3))) {
+                }
+                
+                protected override object GetValueImpl(MoonSharp.Interpreter.Script script, object obj) {
+                    return ((LibreLancer.SelectableCharacter)(obj)).Id;
+                }
+                
+                protected override void SetValueImpl(MoonSharp.Interpreter.Script script, object obj, object value) {
+                    LibreLancer.SelectableCharacter tmp = ((LibreLancer.SelectableCharacter)(obj));
+                    tmp.Id = ((long)(value));
                 }
             }
             

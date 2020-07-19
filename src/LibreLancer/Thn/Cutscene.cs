@@ -164,7 +164,7 @@ namespace LibreLancer
                             break;
                         case "equipment":
                             var eq = gameData.GetEquipment(template);
-                            drawable = eq.ModelFile.LoadFile(resman);
+                            drawable = eq?.ModelFile.LoadFile(resman);
                             break;
                         case "asteroid":
                             drawable = gameData.GetAsteroid(kv.Value.Template);

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using LibreLancer;
 using LibreLancer.ImUI;
@@ -24,6 +25,8 @@ namespace ThnPlayer
         public Renderer2D Renderer2D;
         public SoundManager Sounds;
         public AudioManager Audio;
+        public string Decompiled;
+        private bool decompiledOpen = true;
         ImGuiHelper guiHelper;
         FontManager fontMan;
         public MainWindow() : base(1024,768,false)
@@ -102,6 +105,7 @@ namespace ThnPlayer
                     var file = FileDialog.Open();
                     if (file != null)
                     {
+                        Decompiled = ThnDecompile.Decompile(file);
                         var script = new ThnScript(file);
                         var ctx = new ThnScriptContext(new[] { script });
                         cutscene = new Cutscene(ctx, GameData, new Viewport(0,0,Width,Height), this);
@@ -110,6 +114,12 @@ namespace ThnPlayer
                 if(Theme.IconMenuItem("Quit","quit",Color4.White,true)) {
                     Exit();
                 }
+                ImGui.EndMenu();
+            }
+
+            if (ImGui.BeginMenu("View"))
+            {
+                ImGui.MenuItem("Decompiled", "", ref decompiledOpen);
                 ImGui.EndMenu();
             }
             var h = ImGui.GetWindowHeight();
@@ -126,6 +136,28 @@ namespace ThnPlayer
                 ImGui.SameLine();
                 ImGui.Text("Loading");
                 ImGui.EndPopup();
+            }
+
+            if (cutscene != null)
+            {
+                if (decompiledOpen)                     
+                {
+                    ImGui.SetNextWindowSize(new Vector2(300,300), ImGuiCond.FirstUseEver);
+                    if (ImGui.Begin("Decompiled", ref decompiledOpen))
+                    {
+                        if (ImGui.Button("Copy"))
+                        {
+                            SetClipboardText(Decompiled);
+                        }
+
+                        ImGui.SetNextItemWidth(-1);
+                        var th = ImGui.GetWindowHeight() - 65;
+                        ImGui.PushFont(ImGuiHelper.SystemMonospace);
+                        ImGui.InputTextMultiline("##src", ref Decompiled, uint.MaxValue, new Vector2(0, th),
+                            ImGuiInputTextFlags.ReadOnly);
+                        ImGui.PopFont();
+                    }
+                }
             }
             ImGui.PopFont();
             guiHelper.Render(RenderState);
