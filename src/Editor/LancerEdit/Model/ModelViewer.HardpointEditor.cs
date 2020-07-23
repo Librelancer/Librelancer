@@ -154,8 +154,9 @@ namespace LancerEdit
                     HardpointDefinition def;
                     if (newIsFixed) def = new FixedHardpointDefinition(txt);
                     else def = new RevoluteHardpointDefinition(txt);
-                    gizmos.Add(new HardpointGizmo(new Hardpoint(def, addTo), addTo));
-                    addTo.Hardpoints.Add(new Hardpoint(def, addTo));
+                    var hp = new Hardpoint(def, addTo);
+                    gizmos.Add(new HardpointGizmo(hp, addTo));
+                    addTo.Hardpoints.Add(hp);
                     OnDirtyHp();
                     ImGui.CloseCurrentPopup();
                 }

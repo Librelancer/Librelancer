@@ -359,6 +359,11 @@ namespace LancerEdit
                 Parent = parent;
                 Enabled = false;
             }
+
+            public override string ToString()
+            {
+                return Hardpoint?.Name ?? "null hp";
+            }
         }
 
         RigidModelPart selectedNode = null;
@@ -533,6 +538,11 @@ namespace LancerEdit
                             gz = gizmo;
                             break;
                         }
+                    }
+
+                    if (gz == null)
+                    {
+                        throw new Exception("gizmo for hp not exist");
                     }
                     if (hp.Definition is RevoluteHardpointDefinition)
                     {
