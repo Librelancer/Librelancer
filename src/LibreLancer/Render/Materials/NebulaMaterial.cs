@@ -17,15 +17,18 @@ namespace LibreLancer
 		}
 		ShaderVariables GetShader(IVertexType vtype)
 		{
-			switch (vtype.GetType ().Name) {
-			case "VertexPositionNormalDiffuseTexture":
+            if (vtype is VertexPositionNormalDiffuseTexture ||
+                vtype is VertexPositionNormalDiffuseTextureTwo)
+            {
                 return Shaders.NebulaMaterial.Get(ShaderFeatures.VERTEX_DIFFUSE);
-			case "VertexPositionNormalTexture":
+            } 
+            if (vtype is VertexPositionNormalTexture ||
+                       vtype is VertexPositionNormalTextureTwo)
+            {
                 return Shaders.NebulaMaterial.Get();
-			default:
-				throw new NotImplementedException ();
-			}
-		}
+            }
+            throw new NotImplementedException(vtype.GetType().ToString());
+        }
 		public override void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights)
 		{
             if (Camera == null)
