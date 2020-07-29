@@ -43,6 +43,7 @@ namespace LibreLancer
             if (Instance != null)
             {
                 Instance.SetPosition(Position);
+                Instance.SetAttenuation(Attenuation);
                 Instance.SetPitch(Pitch);
             }
         }

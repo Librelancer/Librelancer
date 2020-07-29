@@ -39,5 +39,12 @@ namespace LibreLancer
                 return Parent.GetWorld().Renderer.Game.GetService<GameDataManager>();
             return null;
         }
+
+        protected ResourceManager GetResourceManager()
+        {
+            if(Parent.GetWorld().Renderer != null)
+                return Parent.GetWorld().Renderer.Game.GetService<ResourceManager>();
+            return null;
+        }
 	}
 }

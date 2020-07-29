@@ -16,14 +16,12 @@ namespace LibreLancer
 		List<AttachedEffect> fireFx = new List<AttachedEffect>();
         private AttachedSound rumble;
         private AttachedSound character;
+        private AttachedSound cruiseLoop;
 		GameObject parent;
 		public CEngineComponent(GameObject parent, EngineEquipment engine) : base(parent)
 		{
-			//var fx = game.GameData.GetEffect(engine.Def.FlameEffect);
-			
-			this.parent = parent;
+            this.parent = parent;
 			Engine = engine;
-           
         }
 
         float PitchFromRange(Vector2 range)
@@ -31,18 +29,45 @@ namespace LibreLancer
             if (range == Vector2.Zero) return 1;
             return 1.0f + MathHelper.Lerp(range.X, range.Y, Speed) / 100f;
         }
+
+        float AttenFromRange(Vector2 range)
+        {
+            if (range == Vector2.Zero) return 0;
+            return MathHelper.Lerp(range.X, range.Y, Speed);
+        }
 		public override void Update(TimeSpan time)
         {
             var tr = parent.GetTransform();
             var pos = Vector3.Transform(Vector3.Zero,tr);
             if (rumble != null)
             {
-                rumble.Position = pos;
-                rumble.Pitch = PitchFromRange(Engine.Def.RumblePitchRange);
+                if (Speed > 0.91f) {
+                    rumble.Active = false;
+                    character.Active = false;
+                }
+                else {
+                    rumble.Active = true;
+                    character.Active = true;
+                    rumble.Position = pos;
+                    rumble.Pitch = PitchFromRange(Engine.Def.RumblePitchRange);
+                    rumble.Attenuation = AttenFromRange(Engine.Def.RumbleAttenRange);
+                    character.Position = pos;
+                    character.Pitch = PitchFromRange(Engine.Def.CharacterPitchRange);
+                }
                 rumble.Update();
-                character.Position = pos;
-                character.Pitch = PitchFromRange(Engine.Def.CharacterPitchRange);
                 character.Update();
+            }
+
+            if (cruiseLoop != null)
+            {
+                if (Speed < 0.98f) {
+                    cruiseLoop.Active = false;
+                }
+                else {
+                    cruiseLoop.Active = true;
+                    cruiseLoop.Position = pos;
+                }
+                cruiseLoop.Update();
             }
             for (int i = 0; i < fireFx.Count; i++)
 				fireFx[i].Update(parent, time, Speed);
@@ -53,13 +78,16 @@ namespace LibreLancer
             GameDataManager gameData;
             if ((gameData = GetGameData()) != null)
             {
+                var resman = GetResourceManager();
                 var hps = parent.GetHardpoints();
+                var fx = gameData.GetEffect(Engine.Def.FlameEffect).GetEffect(resman);
+
                 foreach (var hp in hps)
                 {
                     if (!hp.Name.Equals("hpengineglow", StringComparison.OrdinalIgnoreCase) &&
                         hp.Name.StartsWith("hpengine", StringComparison.OrdinalIgnoreCase))
                     {
-                        //fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(gameData.GetEffect(Engine.Def.FlameEffect))));
+                        fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(fx)));
                     }
                 }
 
@@ -77,6 +105,10 @@ namespace LibreLancer
                 character = new AttachedSound(sound)
                 {
                     Active = true, Sound = Engine.Def.CharacterLoopSound
+                };
+                cruiseLoop = new AttachedSound(sound)
+                {
+                    Active = false, Sound = Engine.Def.CruiseLoopSound
                 };
             }
         }
