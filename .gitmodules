@@ -41,3 +41,6 @@
 [submodule "extern/moonsharp"]
 	path = extern/moonsharp
 	url = https://github.com/Librelancer/moonsharp
+[submodule "extern/thorncompiler"]
+	path = extern/thorncompiler
+	url = https://github.com/Librelancer/thorncompiler

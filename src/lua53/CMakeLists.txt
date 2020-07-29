@@ -1,8 +1,0 @@
-cmake_minimum_required (VERSION 2.6)
-project (lua53)
-set(CMAKE_BUILD_TYPE release) 
-file(GLOB luasources ../../extern/lua/*.c)
-if (WIN32)
-    add_definitions(-DLUA_BUILD_AS_DLL)
-endif()
-add_library(lua53 SHARED ${luasources})
