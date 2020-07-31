@@ -7,9 +7,9 @@ namespace LibreLancer
 {
 	public enum TargetTypes
 	{
-		Hardpoint,
-		Part,
-		Root
+        Root = 0,
+        Hardpoint = 1,
+		Part = 2,
 	}
 }
 

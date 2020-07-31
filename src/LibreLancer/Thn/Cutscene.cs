@@ -262,7 +262,7 @@ namespace LibreLancer
                 else if (kv.Value.Type == EntityTypes.Sound)
                 {
                     obj.Sound = new ThnSound(kv.Value.Template, game.GetService<SoundManager>(), kv.Value.AudioProps, obj);
-                    obj.Sound.Spatial = (kv.Value.ObjectFlags & ThnObjectFlags.Spatial) == ThnObjectFlags.Spatial;
+                    obj.Sound.Spatial = (kv.Value.ObjectFlags & ThnObjectFlags.SoundSpatial) == ThnObjectFlags.SoundSpatial;
                 }
                 if (obj.Object != null)
                 {

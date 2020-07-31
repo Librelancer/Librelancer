@@ -19,8 +19,9 @@ namespace LibreLancer
 			ThnEnv.Add("LIT_AMBIENT", ThnObjectFlags.LitAmbient);
 			ThnEnv.Add("HIDDEN", ThnObjectFlags.Hidden);
 			ThnEnv.Add("REFERENCE", ThnObjectFlags.Reference);
-			ThnEnv.Add("SPATIAL", ThnObjectFlags.Spatial);
+			ThnEnv.Add("SPATIAL", ThnObjectFlags.SoundSpatial);
 			//EventFlags
+            ThnEnv.Add("STREAM", SoundFlags.Stream);
 			ThnEnv.Add("LOOP", SoundFlags.Loop);
 			//LightTypes
 			ThnEnv.Add("L_DIRECT", LightTypes.Direct);
@@ -48,6 +49,9 @@ namespace LibreLancer
 			ThnEnv.Add("MOTION_PATH", EntityTypes.MotionPath);
 			ThnEnv.Add("DEFORMABLE", EntityTypes.Deformable);
 			ThnEnv.Add("SOUND", EntityTypes.Sound);
+            ThnEnv.Add("UNKNOWN_ENTITY", EntityTypes.UnknownEntity);
+            ThnEnv.Add("SUB_SCENE", EntityTypes.SubScene);
+            ThnEnv.Add("DELETED", EntityTypes.Deleted);
             //FogModes
 			ThnEnv.Add("F_NONE", FogModes.None);
 			ThnEnv.Add("F_EXP2", FogModes.Exp2);
@@ -69,7 +73,12 @@ namespace LibreLancer
             ThnEnv.Add("START_FLR_HEIGHT_ANIM", EventTypes.StartFloorHeightAnim);
 			ThnEnv.Add("CONNECT_HARDPOINTS", EventTypes.ConnectHardpoints);
             ThnEnv.Add("START_IK", EventTypes.StartIK);
-			//Axis
+            ThnEnv.Add("SUBTITLE", EventTypes.Subtitle);
+            ThnEnv.Add("START_REVERB_PROP_ANIM", EventTypes.StartReverbPropAnim);
+            ThnEnv.Add("USER_EVENT", EventTypes.UserEvent);
+            ThnEnv.Add("UNDEFINED_EVENT", EventTypes.UndefinedEvent);
+            ThnEnv.Add("START_SUB_SCENE", EventTypes.StartSubScene);
+            //Axis
 			ThnEnv.Add("X_AXIS", Vector3.UnitX);
 			ThnEnv.Add("Y_AXIS", Vector3.UnitY);
 			ThnEnv.Add("Z_AXIS", Vector3.UnitZ);
@@ -150,12 +159,12 @@ namespace LibreLancer
 				switch (val)
 				{
 					case 2:
-						return ThnObjectFlags.Spatial;
+						return ThnObjectFlags.SoundSpatial;
 					default:
 						throw new NotImplementedException();
 				}
 			}
-			return ThnEnum.FlagsReflected<ThnObjectFlags>(val);
+			return ThnEnum.Check<ThnObjectFlags>(val);
 		}
 
 

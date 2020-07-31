@@ -11,10 +11,10 @@ namespace LibreLancer
 	{
 		None = 0,
 		LitDynamic = 2,
+        SoundSpatial = 2,
 		LitAmbient = 4,
 		Hidden = 16,
-		Reference = 32,
-		Spatial = 64
-	}
+		Reference = 1
+    }
 }
 

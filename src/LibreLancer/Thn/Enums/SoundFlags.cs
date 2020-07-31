@@ -8,6 +8,7 @@ namespace LibreLancer
     [Flags]
 	public enum SoundFlags
 	{
-		Loop = 2
+        Stream = 4,
+        Loop = 8
 	}
 }

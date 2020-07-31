@@ -35,7 +35,7 @@ namespace LibreLancer
                 object tmp;
                 if (ev.Properties.TryGetValue("flags", out tmp))
                     flags = ThnEnum.Check<SoundFlags>(tmp);
-                obj.Sound.Play(flags == SoundFlags.Loop);
+                obj.Sound.Play((flags & SoundFlags.Loop) == SoundFlags.Loop);
                 cs.Coroutines.Add(new SoundRoutine() { Sound = obj.Sound, Duration = ev.Duration });
 
             }
