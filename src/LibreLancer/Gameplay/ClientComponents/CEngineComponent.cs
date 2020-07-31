@@ -39,6 +39,11 @@ namespace LibreLancer
         {
             var tr = parent.GetTransform();
             var pos = Vector3.Transform(Vector3.Zero,tr);
+            var vel = Vector3.Zero;
+            if (parent.PhysicsComponent != null)
+            {
+                vel = parent.PhysicsComponent.Body.LinearVelocity;
+            }
             if (rumble != null)
             {
                 if (Speed > 0.91f) {
@@ -53,6 +58,8 @@ namespace LibreLancer
                     rumble.Attenuation = AttenFromRange(Engine.Def.RumbleAttenRange);
                     character.Position = pos;
                     character.Pitch = PitchFromRange(Engine.Def.CharacterPitchRange);
+                    rumble.Velocity = vel;
+                    character.Velocity = vel;
                 }
                 rumble.Update();
                 character.Update();
@@ -66,6 +73,7 @@ namespace LibreLancer
                 else {
                     cruiseLoop.Active = true;
                     cruiseLoop.Position = pos;
+                    cruiseLoop.Velocity = vel;
                 }
                 cruiseLoop.Update();
             }

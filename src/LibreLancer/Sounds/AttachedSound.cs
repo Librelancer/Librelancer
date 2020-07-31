@@ -15,6 +15,7 @@ namespace LibreLancer
         public string Sound;
         public AudioEntry Entry;
         public Vector3 Position;
+        public Vector3 Velocity;
         public float Pitch = 1f;
         public float Attenuation = 0;
         public SoundInstance Instance;
@@ -43,6 +44,7 @@ namespace LibreLancer
             if (Instance != null)
             {
                 Instance.SetPosition(Position);
+                Instance.SetVelocity(Velocity);
                 Instance.SetAttenuation(Attenuation);
                 Instance.SetPitch(Pitch);
             }

@@ -116,18 +116,29 @@ namespace LibreLancer
         {
             resetListener = true;
         }
+
+        private TimeSpan accumVelTime;
+        private Vector3 lastPosVel = Vector3.Zero;
         public void UpdateListener(TimeSpan delta, Vector3 position, Vector3 forward, Vector3 up)
         {
             if (resetListener)
             {
                 audio.SetListenerVelocity(Vector3.Zero);
                 resetListener = false;
+                lastPosVel = position;
+                accumVelTime = TimeSpan.Zero;
             }
             else
             {
-                var v = (position - listenerPosition) / (float)delta.TotalSeconds;
-                if (v.Length() > 8000) v = Vector3.Zero;
-                audio.SetListenerVelocity(v);
+                accumVelTime += delta;
+                if (accumVelTime >= TimeSpan.FromSeconds(1 / 60.0))
+                {
+                    var v = (position - lastPosVel) / (float)accumVelTime.TotalSeconds;
+                    if (v.Length() > 8000) v = Vector3.Zero;
+                    accumVelTime = TimeSpan.Zero;
+                    lastPosVel = position;
+                    audio.SetListenerVelocity(v);
+                }
             }
             listenerPosition = position;
             audio.SetListenerPosition(position);

@@ -322,6 +322,8 @@ Mouse Flight: {11}
             camera.ChasePosition = player.PhysicsComponent.Body.Position;
             camera.ChaseOrientation = player.PhysicsComponent.Body.Transform.ClearTranslation();
             camera.Update(delta);
+            if ((Thn == null || !Thn.Running)) //HACK: Cutscene also updates the listener so we don't do it if one is running
+                Game.Sound.UpdateListener(delta, camera.Position, camera.CameraForward, camera.CameraUp);
         }
 
 		bool mouseFlight = false;
@@ -543,8 +545,6 @@ Mouse Flight: {11}
 
             sysrender.DebugRenderer.StartFrame(camera, Game.RenderState);
             sysrender.DebugRenderer.Render();
-            if ((Thn == null || !Thn.Running)) //HACK: Cutscene also updates the listener so we don't do it if one is running
-                Game.Sound.UpdateListener(delta, camera.Position, camera.CameraForward, camera.CameraUp);
 
             if ((Thn == null || !Thn.Running) && ShowHud)
                 ui.RenderWidget();
