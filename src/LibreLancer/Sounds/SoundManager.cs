@@ -14,94 +14,22 @@ namespace LibreLancer
 	{
 		GameDataManager data;
 		AudioManager audio;
-        
-        private Dictionary<string, LoadedSound> loadedSounds = new Dictionary<string, LoadedSound>(StringComparer.OrdinalIgnoreCase);
-        //LRU Cache Implementation
-        private const int SOUNDS_MAX = 64;
-        class LoadedSoundPtr
-        {
-            public LoadedSoundPtr Next;
-            public LoadedSoundPtr Previous;
-            public LoadedSound Sound;
 
-            public override string ToString()
-            {
-                string nextStr = Next == null ? "null" : Next.Sound.Name;
-                string prevStr = Previous == null ? "null" : Previous.Sound.Name;
-                return $"{prevStr} -> {Sound.Name} -> {nextStr}";
-            }
-        }
-        private LoadedSoundPtr lruHead;
-        private LoadedSoundPtr lruTail;
-        void AddLoaded(LoadedSound snd)
-        {
-            if (lruHead == null)
-            {
-                lruHead = lruTail = new LoadedSoundPtr() {Sound = snd};
-                loadedSounds[snd.Name] = snd;
-                return;
-            }
-            LoadedSoundPtr ptr;
-            if (loadedSounds.Count == SOUNDS_MAX)
-            {
-                FLLog.Debug("Sounds", "Evicting sound");
-                //Evict oldest and reuse ptr object
-                var h = lruHead;
-                if(h.Sound.Data != null)
-                    h.Sound.Data.Dispose();
-                loadedSounds.Remove(h.Sound.Name);
-                lruHead = h.Next;
-                ptr = h;
-                ptr.Sound = snd;
-                ptr.Next = null;
-                ptr.Previous = lruTail;
-            }
-            else
-            {
-                ptr = new LoadedSoundPtr() {
-                    Sound = snd, Previous = lruTail
-                };
-            }
-            lruTail.Next = ptr;
-            lruTail = ptr;
-            loadedSounds[snd.Name] = snd;
-        }
-        //move up to front
-        void Used(LoadedSound snd)
-        {
-            LoadedSoundPtr ptr = lruTail;
-            while (ptr.Sound != snd)
-            {
-                ptr = ptr.Previous;
-            }
-
-            if (ptr == lruTail) return;
-            if (ptr == lruHead)
-            {
-                lruHead = ptr.Next;
-                ptr.Next.Previous = null;
-            }
-            else
-            {
-                ptr.Next.Previous = ptr.Previous;
-                ptr.Previous.Next = ptr.Next;
-            }
-            ptr.Previous = lruTail;
-            ptr.Next = null;
-            lruTail.Next = ptr;
-            lruTail = ptr;
-        }
+        private LRUCache<string, LoadedSound> soundCache;
+     
 
         Dictionary<string, VoiceUtf> voiceUtfs = new Dictionary<string, VoiceUtf>();
         public SoundManager(GameDataManager gameData, AudioManager audio)
 		{
 			data = gameData;
 			this.audio = audio;
+            soundCache = new LRUCache<string, LoadedSound>(64, OnLoadSound);
 		}
 
         public SoundManager(AudioManager audio)
         {
             this.audio = audio;
+            soundCache = new LRUCache<string, LoadedSound>(64, OnLoadSound);
         }
 
         public void SetGameData(GameDataManager data)
@@ -146,10 +74,13 @@ namespace LibreLancer
         }
 
         public Data.Audio.AudioEntry GetEntry(string name) => data.GetAudioEntry(name);
-        
+
         public void LoadSound(string name)
         {
-            if (loadedSounds.ContainsKey(name)) return;
+            soundCache.Get(name);
+        }
+        LoadedSound OnLoadSound(string name)
+        {
             FLLog.Debug("Sounds", "Loading sound " + name);
             var loaded = new LoadedSound();
             loaded.Entry = data.GetAudioEntry(name);
@@ -166,13 +97,13 @@ namespace LibreLancer
                 snd.LoadFile(path);
                 loaded.Data = snd;
             }
-            AddLoaded(loaded);
+
+            return loaded;
         }
         public SoundInstance PlaySound(string name, bool loop = false, float attenuation = 0, float mind = -1, float maxd = -1, Vector3? pos = null)
         {
-            if (!loadedSounds.ContainsKey(name)) LoadSound(name);
-            var snd = loadedSounds[name];
-            Used(snd); //bring to front of cache
+            var snd = soundCache.Get(name);
+            soundCache.UsedValue(snd);
             if (snd.Data == null) return null;
             return audio.PlaySound(snd.Data, loop, attenuation, mind, maxd, pos);
         }
@@ -180,9 +111,8 @@ namespace LibreLancer
         public SoundInstance PlaySoundSlice(string name, double start_time, bool loop = false, float attenuation = 0, float mind = -1,
             float maxd = -1, Vector3? pos = null)
         {
-            if (!loadedSounds.ContainsKey(name)) LoadSound(name);
-            var snd = loadedSounds[name];
-            Used(snd);
+            var snd = soundCache.Get(name);
+            soundCache.UsedValue(snd);
             if (snd.Data == null) return null;
             var sliced = snd.Data.Slice(start_time);
             return audio.PlaySound(sliced, loop, attenuation, mind, maxd, pos, sliced);
@@ -224,11 +154,15 @@ namespace LibreLancer
 			audio.Music.Stop();
 		}
 	}
-    class LoadedSound
+    class LoadedSound : IDisposable
     {
         public string Name;
         public SoundData Data;
         public Data.Audio.AudioEntry Entry;
+        public void Dispose()
+        {
+            Data?.Dispose();
+        }
     }
 }
 
