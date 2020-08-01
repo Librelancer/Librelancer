@@ -215,7 +215,7 @@ namespace LibreLancer.Interface
 
         public void PlaySound(string sound)
         {
-            Data.Sounds?.PlaySound(sound);
+            Data.Sounds?.PlayOneShot(sound);
         }
         
         class ModalState

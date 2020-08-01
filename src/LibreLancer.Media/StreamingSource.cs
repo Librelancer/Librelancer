@@ -28,7 +28,7 @@ namespace LibreLancer.Media
 				_gain = value;
 				if (playing)
 				{
-					manager.Actions.Enqueue(() =>
+					manager.Do(() =>
 					{
 						Al.alSourcef(ID, Al.AL_GAIN, ALUtils.ClampVolume(_gain));
 					});

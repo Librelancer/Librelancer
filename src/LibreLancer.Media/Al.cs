@@ -11,16 +11,20 @@ namespace LibreLancer.Media
 		const string lib = "openal32.dll";
 
 		//CONSTANTS
+        public const int AL_CONE_INNER_ANGLE = 0x1001;
+        public const int AL_CONE_OUTER_ANGLE = 0x1002;
 		public const int AL_PITCH = 0x1003;
 		public const int AL_GAIN = 0x100A;
 		public const int AL_BUFFER = 0x1009;
         public const int AL_POSITION = 0x1004;
+        public const int AL_DIRECTION = 0x1005;
         public const int AL_VELOCITY = 0x1006;
         public const int AL_LOOPING = 0x1007;
         public const int AL_ORIENTATION = 0x100F;
-        
         public const int AL_REFERENCE_DISTANCE = 0x1020;
+        public const int AL_CONE_OUTER_GAIN = 0x1022;
         public const int AL_MAX_DISTANCE = 0x1023;
+        public const int AL_SEC_OFFSET = 0x1024;
 
         public const int AL_FORMAT_MONO8 = 0x1100;
 		public const int AL_FORMAT_MONO16 = 0x1101;
@@ -35,7 +39,6 @@ namespace LibreLancer.Media
 		public const int AL_PLAYING = 0x1012;
 		public const int AL_PAUSED = 0x1013;
 		public const int AL_STOPPED = 0x1014;
-
 		public const int AL_NO_ERROR = 0;
         //FUNCTIONS
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]

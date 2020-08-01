@@ -47,15 +47,19 @@ namespace LibreLancer
                 Instance.SetVelocity(Velocity);
                 Instance.SetAttenuation(Attenuation);
                 Instance.SetPitch(Pitch);
+                Instance.UpdateProperties();
             }
         }
         void TryMakeActive()
         {
             if (Instance == null)
             {
-                Instance = manager.PlaySound(Sound, true, Entry.Attenuation, -1, -1, Position);
-                if(Instance != null)
+                Instance = manager.GetInstance(Sound, Entry.Attenuation, -1, 1, Position);
+                if (Instance != null)
+                {
                     Instance.SetPitch(Pitch);
+                    Instance.Play(true);
+                }
             }
         }
         void EnsureStopped()
@@ -63,6 +67,7 @@ namespace LibreLancer
             if (Instance != null)
             {
                 Instance.Stop();
+                Instance.Dispose();
                 Instance = null;
             }
         }

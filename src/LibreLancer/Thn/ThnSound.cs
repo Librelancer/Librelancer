@@ -19,9 +19,10 @@ namespace LibreLancer
             Spatial = snd.Spatial;
             Instance = ms;
         }
-        public void Start()
+        public void Start(bool loop, float time_offset)
         {
             lastTranslate = Object.Translate;
+            Instance.Play(loop, time_offset / 1000f);
         }
         Vector3 lastTranslate;
         public void Update(double delta)
@@ -30,6 +31,7 @@ namespace LibreLancer
             {
                 Instance.SetVelocity((Object.Translate - lastTranslate) * (float) delta);
                 Instance.SetPosition(Object.Translate);
+                Instance.UpdateProperties();
                 lastTranslate = Object.Translate;
             }
         }
@@ -53,13 +55,13 @@ namespace LibreLancer
             }
         }
         SoundManager man;
-        public ThnSoundInstance Play(bool loop, double start_time)
+        public ThnSoundInstance CreateInstance(bool oneShot)
         {
-            var inst = man.PlaySoundSlice(SoundName, start_time, loop, Attenuation, 
-                Props.Dmin, Props.Dmax, Spatial ? (Vector3?)Object.Translate : null);
-            var ti = new ThnSoundInstance(this, inst);
-            ti.Start();
-            return ti;
+            var inst = man.GetInstance(SoundName, Attenuation, Props.Dmin, Props.Dmax,
+                Spatial ? (Vector3?) Object.Translate : null);
+            if(inst == null) return null;
+            inst.DisposeOnStop = oneShot;
+            return new ThnSoundInstance(this, inst);
         }
         
     }

@@ -189,7 +189,7 @@ namespace LibreLancer
 
         void RunSync(Action gp) => gameplayActions.Enqueue(gp);
 
-        void PlaySound(string sound) => audioActions.Enqueue(() => Game.Sound.PlaySound(sound));
+        void PlaySound(string sound) => audioActions.Enqueue(() => Game.Sound.PlayOneShot(sound));
         void PlayMusic(string music) => audioActions.Enqueue(() => Game.Sound.PlayMusic(music));
 
         void RunDialog(NetDlgLine[] lines, int index = 0)

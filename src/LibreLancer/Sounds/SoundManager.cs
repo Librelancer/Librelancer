@@ -100,22 +100,34 @@ namespace LibreLancer
 
             return loaded;
         }
-        public SoundInstance PlaySound(string name, bool loop = false, float attenuation = 0, float mind = -1, float maxd = -1, Vector3? pos = null)
+
+        public void PlayOneShot(string name)
         {
             var snd = soundCache.Get(name);
             soundCache.UsedValue(snd);
-            if (snd.Data == null) return null;
-            return audio.PlaySound(snd.Data, loop, attenuation, mind, maxd, pos);
+            if (snd.Data == null) return;
+            var inst = audio.CreateInstance(snd.Data);
+            inst.DisposeOnStop = true;
+            inst.Play();
         }
-
-        public SoundInstance PlaySoundSlice(string name, double start_time, bool loop = false, float attenuation = 0, float mind = -1,
+        public SoundInstance GetInstance(string name, float attenuation = 0, float mind = -1,
             float maxd = -1, Vector3? pos = null)
         {
             var snd = soundCache.Get(name);
             soundCache.UsedValue(snd);
             if (snd.Data == null) return null;
-            var sliced = snd.Data.Slice(start_time);
-            return audio.PlaySound(sliced, loop, attenuation, mind, maxd, pos, sliced);
+            var inst = audio.CreateInstance(snd.Data);
+            if (inst == null) return null;
+            inst.SetAttenuation(attenuation);
+            if (mind != -1 && maxd != -1)
+            {
+                inst.SetDistance(mind, maxd);
+            }
+            if (pos != null) {
+                inst.SetPosition(pos.Value);
+                inst.Set3D();
+            }
+            return inst;
         }
         public void PlayVoiceLine(string voice, uint hash, Action onEnd)
         {
@@ -130,7 +142,13 @@ namespace LibreLancer
             var file = v.AudioFiles[hash];
             var sn = audio.AllocateData();
             sn.LoadStream(new MemoryStream(file));
-            audio.PlaySound(sn, false, 0, -1, -1, null, sn, onEnd);
+            var instance = audio.CreateInstance(sn);
+            instance.DisposeOnStop = true;
+            instance.OnStop = () => {
+                sn.Dispose();
+                onEnd();
+            };
+            instance.Play();
         }
         public void PlayMusic(string name, bool oneshot = false)
         {
