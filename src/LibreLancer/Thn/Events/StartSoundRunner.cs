@@ -10,7 +10,7 @@ namespace LibreLancer
     {
         class SoundRoutine : IThnRoutine
         {
-            public ThnSound Sound;
+            public ThnSoundInstance Sound;
             public double Duration;
             double time;
             public bool Run(Cutscene cs, double delta)
@@ -35,9 +35,11 @@ namespace LibreLancer
                 object tmp;
                 if (ev.Properties.TryGetValue("flags", out tmp))
                     flags = ThnEnum.Check<SoundFlags>(tmp);
-                obj.Sound.Play((flags & SoundFlags.Loop) == SoundFlags.Loop);
-                cs.Coroutines.Add(new SoundRoutine() { Sound = obj.Sound, Duration = ev.Duration });
-
+                double start_time = 0;
+                if (ev.Properties.TryGetValue("start_time", out tmp))
+                    start_time = (double) (float) tmp;
+                var i = obj.Sound.Play((flags & SoundFlags.Loop) == SoundFlags.Loop, start_time);
+                cs.Coroutines.Add(new SoundRoutine() { Sound = i, Duration = ev.Duration });
             }
         }
     }

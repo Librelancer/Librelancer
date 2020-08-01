@@ -7,6 +7,33 @@ using System.Numerics;
 
 namespace LibreLancer
 {
+    public class ThnSoundInstance
+    {
+        public ThnObject Object;
+        public bool Spatial;
+        public Media.SoundInstance Instance;
+
+        public ThnSoundInstance(ThnSound snd, Media.SoundInstance ms)
+        {
+            Object = snd.Object;
+            Spatial = snd.Spatial;
+            Instance = ms;
+        }
+        public void Start()
+        {
+            lastTranslate = Object.Translate;
+        }
+        Vector3 lastTranslate;
+        public void Update(double delta)
+        {
+            if(Spatial && Instance != null)
+            {
+                Instance.SetVelocity((Object.Translate - lastTranslate) * (float) delta);
+                Instance.SetPosition(Object.Translate);
+                lastTranslate = Object.Translate;
+            }
+        }
+    }
     public class ThnSound
     {
         public ThnObject Object;
@@ -14,7 +41,6 @@ namespace LibreLancer
         public string SoundName;
         public float Attenuation;
         public ThnAudioProps Props;
-        public Media.SoundInstance Instance;
         public ThnSound(string soundname, SoundManager man, ThnAudioProps props, ThnObject obj)
         {
             Object = obj;
@@ -27,21 +53,14 @@ namespace LibreLancer
             }
         }
         SoundManager man;
-        public void Play(bool loop)
+        public ThnSoundInstance Play(bool loop, double start_time)
         {
-            lastTranslate = Object.Translate;
-            Instance = man.PlaySound(SoundName, loop, Attenuation, 
+            var inst = man.PlaySoundSlice(SoundName, start_time, loop, Attenuation, 
                 Props.Dmin, Props.Dmax, Spatial ? (Vector3?)Object.Translate : null);
+            var ti = new ThnSoundInstance(this, inst);
+            ti.Start();
+            return ti;
         }
-        Vector3 lastTranslate;
-        public void Update(double delta)
-        {
-            if(Spatial && Instance != null)
-            {
-                Instance.SetVelocity((Object.Translate - lastTranslate) * (float) delta);
-                Instance.SetPosition(Object.Translate);
-                lastTranslate = Object.Translate;
-            }
-        }
+        
     }
 }

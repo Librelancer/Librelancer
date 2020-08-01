@@ -176,6 +176,17 @@ namespace LibreLancer
             if (snd.Data == null) return null;
             return audio.PlaySound(snd.Data, loop, attenuation, mind, maxd, pos);
         }
+
+        public SoundInstance PlaySoundSlice(string name, double start_time, bool loop = false, float attenuation = 0, float mind = -1,
+            float maxd = -1, Vector3? pos = null)
+        {
+            if (!loadedSounds.ContainsKey(name)) LoadSound(name);
+            var snd = loadedSounds[name];
+            Used(snd);
+            if (snd.Data == null) return null;
+            var sliced = snd.Data.Slice(start_time);
+            return audio.PlaySound(sliced, loop, attenuation, mind, maxd, pos, sliced);
+        }
         public void PlayVoiceLine(string voice, uint hash, Action onEnd)
         {
             //TODO: Make this asynchronous

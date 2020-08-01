@@ -120,11 +120,12 @@ namespace LibreLancer.Media
 					int state;
 					Al.alGetSourcei(sfxInstances[i].ID, Al.AL_SOURCE_STATE, out state);
                     Al.CheckErrors();
-                    if (state != Al.AL_PLAYING)
+                    if (state == Al.AL_STOPPED)
 					{
                         sfxInstances[i].Active = false;
+                        Al.alSourcei(sfxInstances[i].ID, Al.AL_BUFFER, 0);
                         if (sfxInstances[i].Dispose != null)
-							sfxInstances[i].Dispose.Dispose();
+                            sfxInstances[i].Dispose.Dispose();
                         if (sfxInstances[i].OnFinish != null)
                             UIThread.QueueUIThread(sfxInstances[i].OnFinish);
 						freeSources.Enqueue(sfxInstances[i].ID);
