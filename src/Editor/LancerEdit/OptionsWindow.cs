@@ -27,6 +27,12 @@ namespace LancerEdit
         int[] anisotropyLevels;
         int cFilter = 2;
         private bool windowOpen = false;
+
+        private static readonly DropdownOption[] camModesNormal = new[]
+        {
+            new DropdownOption("Arcball", "sphere", CameraModes.Arcball),
+            new DropdownOption("Walkthrough", "man", CameraModes.Walkthrough)
+        };
         
         public OptionsWindow(MainWindow win)
         {
@@ -108,6 +114,10 @@ namespace LancerEdit
             if (windowOpen)
             {
                 ImGui.Begin("Options", ref windowOpen, ImGuiWindowFlags.AlwaysAutoResize);
+                ViewerControls.DropdownButton("Default Camera", ref config.DefaultCameraMode, camModesNormal);
+                ImGui.SameLine();
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text("Default Camera");
                 var pastC = cFilter;
                 ImGui.Combo("Texture Filter", ref cFilter, filters, filters.Length);
                 if(cFilter != pastC) {

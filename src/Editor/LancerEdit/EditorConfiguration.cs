@@ -26,6 +26,7 @@ namespace LancerEdit
         public Color4 Background2 = Color4.Black;
         public bool BackgroundGradient = false;
         public Color4 GridColor = Color4.CornflowerBlue;
+        public int DefaultCameraMode = 0;
         
         public void Save()
         {

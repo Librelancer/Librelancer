@@ -39,6 +39,7 @@ namespace LancerEdit
         string[] effectNames;
         public AleViewer(string name, AleFile ale, MainWindow main)
         {
+            cameraMode = main.Config.DefaultCameraMode;
             plib = new ParticleLibrary(main.Resources, ale);
             res = main.Resources;
             pool = new ParticleEffectPool(main.Commands);
