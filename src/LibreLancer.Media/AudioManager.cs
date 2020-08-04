@@ -88,8 +88,10 @@ namespace LibreLancer.Media
 		}
 
 		public SoundData AllocateData()
-		{
-			while (!Ready) { }
+        {
+            while (!Ready) {
+                Thread.Yield();
+            }
             return new SoundData(this);
         }
 

@@ -5,7 +5,7 @@
 #include "lancerdecode.h" 
 #include "formats.h"
 #include "logging.h"
-
+#include "sbuffer.h"
 #include "stb_vorbis.c"
 #define OGG_BUFFER_SIZE 32768
 
@@ -57,10 +57,9 @@ const char *stb_vorbis_strerror(int err)
 	}
 }
 
-//TODO: Create buffering ld_stream_t that reads more than 1 byte at a time
 typedef struct {
 	stb_vorbis *vorbis;
-	ld_stream_t baseStream;
+    ld_stream_t sbuffer;
 	int channels;
 } ogg_userdata_t;
 
@@ -92,7 +91,7 @@ void ogg_close(ld_stream_t stream)
 {
 	ogg_userdata_t *userdata = (ogg_userdata_t*)stream->userData;
 	stb_vorbis_close(userdata->vorbis);
-	userdata->baseStream->close(userdata->baseStream);
+    userdata->sbuffer->close(userdata->sbuffer);
 	free(userdata);
 	free(stream);
 }
@@ -101,16 +100,18 @@ void ogg_close(ld_stream_t stream)
 ld_pcmstream_t ogg_getstream(ld_stream_t stream)
 {
 	int err;
-	stb_vorbis *vorbis = stb_vorbis_open_file(stream, 0, &err, NULL);
+    ld_stream_t sbuffer = sbuffer_create(stream);
+	stb_vorbis *vorbis = stb_vorbis_open_file(sbuffer, 0, &err, NULL);
 	if(!vorbis) {
 		stream->seek(stream, 0, LDSEEK_SET);
+        sbuffer_free(sbuffer);
 		return flac_getstream(stream, 1);
 	}
 	stb_vorbis_info info = stb_vorbis_get_info(vorbis);
 	ogg_userdata_t *userdata = (ogg_userdata_t*)malloc(sizeof(ogg_userdata_t));
 	userdata->channels = info.channels;
 	userdata->vorbis = vorbis;
-	userdata->baseStream = stream;
+    userdata->sbuffer = sbuffer;
 	ld_stream_t data = ld_stream_new();
 	data->read = &ogg_read;
 	data->seek = &ogg_seek;

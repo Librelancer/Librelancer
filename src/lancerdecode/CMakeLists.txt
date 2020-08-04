@@ -9,5 +9,6 @@ add_library(lancerdecode SHARED
 	mp3.c
 	riff.c
 	stream.c
+	sbuffer.c
 	vorbis.c
 )
