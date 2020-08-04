@@ -3,12 +3,14 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Diagnostics;
+using System.Buffers;
 using System.IO;
 namespace LibreLancer.Media
 {
 	class StreamingSource : IDisposable
-	{
+    {
+        private const int POOL_BUFFER_SIZE = 4096;
+        
 		bool dataleft;
 		StreamingSound sound;
 		uint ID;
@@ -57,10 +59,10 @@ namespace LibreLancer.Media
 			}
 			dataleft = true;
 			playing = true;
-			var bytes = BufferAllocator.AllocateBytes();
+            var bytes = ArrayPool<byte>.Shared.Rent(POOL_BUFFER_SIZE);
 			for (int i = 0; i < 3; i++) {
 				var b = manager.Buffers.Dequeue();
-				int read = sound.Data.Read(bytes, 0, bytes.Length);
+				int read = sound.Data.Read(bytes, 0, POOL_BUFFER_SIZE);
 				if (read != 0)
 				{
 					Al.BufferData(b, sound.Format, bytes, read, sound.Frequency);
@@ -72,7 +74,7 @@ namespace LibreLancer.Media
 				{
 					manager.Buffers.Enqueue(b);
 				}
-				if (read < bytes.Length)
+				if (read < POOL_BUFFER_SIZE)
 				{
 					if (!looping)
 					{
@@ -85,7 +87,7 @@ namespace LibreLancer.Media
 					}
 				}
 			}
-			BufferAllocator.Free(bytes);
+			ArrayPool<byte>.Shared.Return(bytes);
 			Al.alSourcef(ID, Al.AL_GAIN, ALUtils.ClampVolume(_gain));
 			Al.alSourcePlay(ID);
 			Al.CheckErrors();
@@ -101,19 +103,19 @@ namespace LibreLancer.Media
 				int processed;
 				Al.alGetSourcei(ID, Al.AL_BUFFERS_PROCESSED, out processed);
 				Al.CheckErrors();
-				var bytes = BufferAllocator.AllocateBytes();
+                var bytes = ArrayPool<byte>.Shared.Rent(POOL_BUFFER_SIZE);
 				for (int i = 0; i < processed; i++)
 				{
 					uint buf = 0;
 					Al.alSourceUnqueueBuffers(ID, 1, ref buf);
-					int read = sound.Data.Read(bytes, 0, bytes.Length);
+					int read = sound.Data.Read(bytes, 0, POOL_BUFFER_SIZE);
 					if (read != 0)
 					{
 						Al.BufferData(buf, sound.Format, bytes, read, sound.Frequency);
 						Al.CheckErrors();
 						Al.alSourceQueueBuffers(ID, 1, ref buf);
 						Al.CheckErrors();
-						if (read < bytes.Length)
+						if (read < POOL_BUFFER_SIZE)
 						{
 							if (looping)
 							{
@@ -130,7 +132,7 @@ namespace LibreLancer.Media
 						if (looping)
 						{
 							sound.Data.Seek(0, SeekOrigin.Begin);
-							read = sound.Data.Read(bytes, 0, bytes.Length);
+							read = sound.Data.Read(bytes, 0, POOL_BUFFER_SIZE);
 							Al.BufferData(buf, sound.Format, bytes, read, sound.Frequency);
 							Al.CheckErrors();
 							Al.alSourceQueueBuffers(ID, 1, ref buf);
@@ -144,8 +146,8 @@ namespace LibreLancer.Media
 						}
 					}
 				}
-				BufferAllocator.Free(bytes);
-			}
+                ArrayPool<byte>.Shared.Return(bytes);
+            }
 			//Return buffers
 			int val;
 			Al.alGetSourcei(ID, Al.AL_SOURCE_STATE, out val);
