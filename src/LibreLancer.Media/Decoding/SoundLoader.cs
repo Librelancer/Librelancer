@@ -126,7 +126,7 @@ namespace LibreLancer.Media
 
         public override bool CanRead => true;
 
-        public override bool CanSeek => true;
+        public override bool CanSeek => false;
 
         public override bool CanWrite => false;
 

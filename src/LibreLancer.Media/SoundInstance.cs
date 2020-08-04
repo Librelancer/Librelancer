@@ -107,7 +107,8 @@ namespace LibreLancer.Media
         private SoundData data;
         internal uint ID;
         private AudioManager man;
-        
+
+        public int Priority = 0;
         internal SoundInstance(uint id, AudioManager manager, SoundData data)
         {
             man = manager;

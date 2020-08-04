@@ -6,6 +6,7 @@ namespace LibreLancer.Media
 {
     public enum SoundType
     {
-        Sfx
+        Sfx,
+        Voice
     }
 }

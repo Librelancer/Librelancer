@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.Data.Audio;
 using LibreLancer.Media;
 using LibreLancer.Utf.Audio;
 namespace LibreLancer
@@ -101,12 +102,19 @@ namespace LibreLancer
             return loaded;
         }
 
+        SoundType EntryType(string name)
+        {
+            var e = GetEntry(name);
+            if (e.Type == AudioType.Voice)
+                return SoundType.Voice;
+            return SoundType.Sfx;
+        }
         public void PlayOneShot(string name)
         {
             var snd = soundCache.Get(name);
             soundCache.UsedValue(snd);
             if (snd.Data == null) return;
-            var inst = audio.CreateInstance(snd.Data);
+            var inst = audio.CreateInstance(snd.Data, EntryType(name));
             inst.DisposeOnStop = true;
             inst.Play();
         }
@@ -116,7 +124,7 @@ namespace LibreLancer
             var snd = soundCache.Get(name);
             soundCache.UsedValue(snd);
             if (snd.Data == null) return null;
-            var inst = audio.CreateInstance(snd.Data);
+            var inst = audio.CreateInstance(snd.Data, EntryType(name));
             if (inst == null) return null;
             inst.SetAttenuation(attenuation);
             if (mind != -1 && maxd != -1)
@@ -142,7 +150,7 @@ namespace LibreLancer
             var file = v.AudioFiles[hash];
             var sn = audio.AllocateData();
             sn.LoadStream(new MemoryStream(file));
-            var instance = audio.CreateInstance(sn);
+            var instance = audio.CreateInstance(sn, SoundType.Voice);
             instance.DisposeOnStop = true;
             instance.OnStop = () => {
                 sn.Dispose();
