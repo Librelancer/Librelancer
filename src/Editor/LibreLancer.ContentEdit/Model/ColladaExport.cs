@@ -51,6 +51,7 @@ namespace LibreLancer.ContentEdit
                         technique = new CL.effectFx_profile_abstractProfile_COMMONTechnique()
                         {
                             id = "common",
+                            sid = "common",
                             Item = new CL.effectFx_profile_abstractProfile_COMMONTechniquePhong()
                             {
                                 ambient = ColladaColor("ambient",Color4.Black),
