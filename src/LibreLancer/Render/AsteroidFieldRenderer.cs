@@ -216,7 +216,8 @@ namespace LibreLancer
                 }
                 else
                 {
-                    throw new NotImplementedException("Asteroids: " + vertType.FullName);
+                   FLLog.Error("Render", "Asteroids: " + vertType.FullName + " not support");
+                   return;
                 }
                 vert.Position = Vector3.Transform(vert.Position, transform);
                 cubeRadius = Math.Max(cubeRadius, vert.Position.Length());

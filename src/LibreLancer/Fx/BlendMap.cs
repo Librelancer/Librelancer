@@ -26,10 +26,31 @@ namespace LibreLancer.Fx
 				throw new NotImplementedException("Ale Blend_Info Not Implemented: " + ale.Item1 + "," + ale.Item2);
 			return mode;
 		}
-		static BlendMap()
+        /* typedef enum D3DBLEND { 
+  D3DBLEND_ZERO             = 1,
+  D3DBLEND_ONE              = 2,
+  D3DBLEND_SRCCOLOR         = 3,
+  D3DBLEND_INVSRCCOLOR      = 4,
+  D3DBLEND_SRCALPHA         = 5,
+  D3DBLEND_INVSRCALPHA      = 6,
+  D3DBLEND_DESTALPHA        = 7,
+  D3DBLEND_INVDESTALPHA     = 8,
+  D3DBLEND_DESTCOLOR        = 9,
+  D3DBLEND_INVDESTCOLOR     = 10,
+  D3DBLEND_SRCALPHASAT      = 11,
+  D3DBLEND_BOTHSRCALPHA     = 12,
+  D3DBLEND_BOTHINVSRCALPHA  = 13,
+  D3DBLEND_BLENDFACTOR      = 14,
+  D3DBLEND_INVBLENDFACTOR   = 15,
+  D3DBLEND_SRCCOLOR2        = 16,
+  D3DBLEND_INVSRCCOLOR2     = 17,
+  D3DBLEND_FORCE_DWORD      = 0x7fffffff
+} D3DBLEND, *LPD3DBLEND; */
+        static BlendMap()
 		{
 			Add(5, 2, BlendMode.Additive);
             Add(5, 10, BlendMode.SrcAlphaInvDestColor);
+            Add(10, 5, BlendMode.InvDestColorSrcAlpha);
             Add(9, 3, BlendMode.DestColorSrcColor);
 			Add(5, 6, BlendMode.Normal);
 			Add(2, 4, BlendMode.OneInvSrcColor);

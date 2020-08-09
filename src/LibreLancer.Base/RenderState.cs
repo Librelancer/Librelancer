@@ -282,6 +282,9 @@ namespace LibreLancer
                     case BlendMode.SrcAlphaInvDestColor:
                         GL.BlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_DST_COLOR);
                         break;
+                    case BlendMode.InvDestColorSrcAlpha:
+                        GL.BlendFunc(GL.GL_ONE_MINUS_DST_COLOR, GL.GL_SRC_ALPHA);
+                        break;
                     case BlendMode.DestColorSrcColor:
                         GL.BlendFunc(GL.GL_DST_COLOR, GL.GL_SRC_COLOR);
                         break;

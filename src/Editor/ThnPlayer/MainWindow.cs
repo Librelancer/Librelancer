@@ -4,17 +4,22 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
 using LibreLancer;
 using LibreLancer.ImUI;
-using LibreLancer.Infocards;
 using ImGuiNET;
 using LibreLancer.Media;
 
 namespace ThnPlayer
 {
+    class DecompiledThn
+    {
+        public string Name;
+        public string Text;
+    }
     public class MainWindow : Game
     {
         public ViewportManager Viewport;
@@ -25,8 +30,11 @@ namespace ThnPlayer
         public Renderer2D Renderer2D;
         public SoundManager Sounds;
         public AudioManager Audio;
-        public string Decompiled;
         private bool decompiledOpen = true;
+        List<string> openFiles = new List<string>();
+
+        private DecompiledThn[] decompiled;
+        
         ImGuiHelper guiHelper;
         FontManager fontMan;
         public MainWindow() : base(1024,768,false)
@@ -56,6 +64,12 @@ namespace ThnPlayer
             fontMan.ConstructDefaultFonts();
             Services.Add(fontMan);
             Services.Add(new GameConfig());
+            Keyboard.KeyDown += KeyboardOnKeyDown;
+        }
+
+        private void KeyboardOnKeyDown(KeyEventArgs e)
+        {
+            if (e.Key == Keys.F5) Reload();
         }
 
         protected override void Cleanup()
@@ -70,6 +84,32 @@ namespace ThnPlayer
                 cutscene.Update(TimeSpan.FromSeconds(elapsed));
         }
 
+        protected override void OnDrop(string file)
+        {
+            if(isMultipleOpen)
+                openFiles.Add(file);
+        }
+
+        private bool isMultipleOpen = false;
+
+        private string[] toReload = null;
+        void Open(params string[] files)
+        {
+            Audio.ReleaseAllSfx();
+            toReload = files;
+            decompiled = files.Select(x => new DecompiledThn()
+            {
+                Name = Path.GetFileName(x),
+                Text = ThnDecompile.Decompile(x)
+            }).ToArray();
+            var ctx = new ThnScriptContext(files.Select(x => new ThnScript(x)));
+            cutscene = new Cutscene(ctx, GameData, new Viewport(0,0,Width,Height), this);
+        }
+
+        void Reload()
+        {
+            if (toReload != null) Open(toReload);
+        }
         protected override void Draw(double elapsed)
         {
             VertexBuffer.TotalDrawcalls = 0;
@@ -86,6 +126,8 @@ namespace ThnPlayer
             guiHelper.NewFrame(elapsed);
             ImGui.PushFont(ImGuiHelper.Noto);
             bool openLoad = false;
+            bool openMultiple = false;
+            isMultipleOpen = false;
             //Main Menu
             ImGui.BeginMainMenuBar();
             if(ImGui.BeginMenu("File")) {
@@ -105,11 +147,14 @@ namespace ThnPlayer
                     var file = FileDialog.Open();
                     if (file != null)
                     {
-                        Decompiled = ThnDecompile.Decompile(file);
-                        var script = new ThnScript(file);
-                        var ctx = new ThnScriptContext(new[] { script });
-                        cutscene = new Cutscene(ctx, GameData, new Viewport(0,0,Width,Height), this);
+                        Open(file);
                     }
+                }
+
+                if (Theme.IconMenuItem("Open Multiple", "open", Color4.White, GameData != null))
+                {
+                    openFiles = new List<string>();
+                    openMultiple = true;
                 }
                 if(Theme.IconMenuItem("Quit","quit",Color4.White,true)) {
                     Exit();
@@ -122,6 +167,8 @@ namespace ThnPlayer
                 ImGui.MenuItem("Decompiled", "", ref decompiledOpen);
                 ImGui.EndMenu();
             }
+
+            if (toReload != null && ImGui.MenuItem("Reload (F5)")) Reload();
             var h = ImGui.GetWindowHeight();
             ImGui.EndMainMenuBar();
             bool popupopen = true;
@@ -138,24 +185,60 @@ namespace ThnPlayer
                 ImGui.EndPopup();
             }
 
-            if (cutscene != null)
+            popupopen = true;
+            if (openMultiple)
+                ImGui.OpenPopup("Open Multiple");
+            if (ImGui.BeginPopupModal("Open Multiple", ref popupopen, ImGuiWindowFlags.AlwaysAutoResize))
+            {
+                isMultipleOpen = true;
+                if (ImGui.Button("+"))
+                {
+                    var file = FileDialog.Open();
+                    if (file != null)
+                    {
+                        openFiles.Add(file);
+                    }
+                }
+                ImGui.BeginChild("##files", new Vector2(200, 200), true, ImGuiWindowFlags.HorizontalScrollbar);
+                int j = 0;
+                foreach (var f in openFiles)
+                    ImGui.Selectable(ImGuiExt.IDWithExtra(f, j++));
+                ImGui.EndChild();
+                if (ImGuiExt.Button("Open", openFiles.Count > 0))
+                {
+                    ImGui.CloseCurrentPopup();
+                    Open(openFiles.ToArray());
+                }
+            }
+            if (decompiled != null)
             {
                 if (decompiledOpen)                     
                 {
                     ImGui.SetNextWindowSize(new Vector2(300,300), ImGuiCond.FirstUseEver);
+                    int j = 0;
                     if (ImGui.Begin("Decompiled", ref decompiledOpen))
                     {
-                        if (ImGui.Button("Copy"))
+                        ImGui.BeginTabBar("##tabs", ImGuiTabBarFlags.Reorderable);
+                        foreach (var file in decompiled)
                         {
-                            SetClipboardText(Decompiled);
-                        }
+                            var tab = ImGuiExt.IDWithExtra(file.Name, j++);
+                            if (ImGui.BeginTabItem(tab))
+                            {
+                                if (ImGui.Button("Copy"))
+                                {
+                                    SetClipboardText(file.Text);
+                                }
 
-                        ImGui.SetNextItemWidth(-1);
-                        var th = ImGui.GetWindowHeight() - 65;
-                        ImGui.PushFont(ImGuiHelper.SystemMonospace);
-                        ImGui.InputTextMultiline("##src", ref Decompiled, uint.MaxValue, new Vector2(0, th),
-                            ImGuiInputTextFlags.ReadOnly);
-                        ImGui.PopFont();
+                                ImGui.SetNextItemWidth(-1);
+                                var th = ImGui.GetWindowHeight() - 100;
+                                ImGui.PushFont(ImGuiHelper.SystemMonospace);
+                                ImGui.InputTextMultiline("##src", ref file.Text, uint.MaxValue, new Vector2(0, th),
+                                    ImGuiInputTextFlags.ReadOnly);
+                                ImGui.PopFont();
+                                ImGui.EndTabItem();
+                            }
+                        }
+                        ImGui.EndTabBar();
                     }
                 }
             }

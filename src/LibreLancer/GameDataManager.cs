@@ -104,10 +104,15 @@ namespace LibreLancer
         public bool GetCostume(string costume, out DfmFile body, out DfmFile head, out DfmFile leftHand, out DfmFile rightHand)
         {
             var cs = fldata.Costumes.FindCostume(costume);
-            head = (DfmFile)resource.GetDrawable(VFS.Resolve(cs.Head.MeshPath));
-            body = (DfmFile) resource.GetDrawable(VFS.Resolve(cs.Body.MeshPath));
-            leftHand = (DfmFile) resource.GetDrawable(VFS.Resolve(cs.LeftHand.MeshPath));
-            rightHand = (DfmFile) resource.GetDrawable(VFS.Resolve(cs.RightHand.MeshPath));
+            body = head = leftHand = rightHand = null;
+            if(cs.Head != null)
+                head = (DfmFile)resource.GetDrawable(VFS.Resolve(cs.Head.MeshPath));
+            if(cs.Body != null)
+                body = (DfmFile) resource.GetDrawable(VFS.Resolve(cs.Body.MeshPath));
+            if(cs.LeftHand != null)
+                leftHand = (DfmFile) resource.GetDrawable(VFS.Resolve(cs.LeftHand.MeshPath));
+            if(cs.RightHand != null)
+                rightHand = (DfmFile) resource.GetDrawable(VFS.Resolve(cs.RightHand.MeshPath));
             return true;
         }
         IEnumerable<Data.Universe.Base> InitBases()
@@ -711,7 +716,14 @@ namespace LibreLancer
                     {
                         foreach (var nbl in inisys.Nebulae)
                         {
-                            sys.Nebulae.Add(GetNebula(sys, nbl));
+                            if (sys.ZoneDict.ContainsKey(nbl.ZoneName))
+                            {
+                                sys.Nebulae.Add(GetNebula(sys, nbl));
+                            }
+                            else
+                            {
+                                FLLog.Error("System", $"{sys.Nickname} Nebula references missing zone {nbl.ZoneName}");
+                            }
                         }
                     }
                 });

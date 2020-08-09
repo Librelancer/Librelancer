@@ -13,6 +13,7 @@ namespace LibreLancer
 		Additive,
 		OneInvSrcColor,
         SrcAlphaInvDestColor,
+        InvDestColorSrcAlpha,
         DestColorSrcColor
 	}
 }
