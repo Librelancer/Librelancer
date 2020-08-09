@@ -175,6 +175,8 @@ namespace LibreLancer.Media
                     if (id != uint.MaxValue)
                     {
                         Al.alSourceStopv(1, ref id);
+                        Al.alSourcei(id, Al.AL_BUFFER, 0);
+                        freeSources.Enqueue(id);
                         Instances[sfx].Source = uint.MaxValue;
                     }
                     Instances[sfx].Instance?.Stopped();

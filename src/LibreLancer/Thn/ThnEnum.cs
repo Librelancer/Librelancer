@@ -13,16 +13,13 @@ namespace LibreLancer
         {
             if (o is T) return (T)o;
             if (o is string) return (T)ThnScript.ThnEnv[(string)o];
-            if (typeof(T) == typeof(bool)) return (T)(object)((float)o != 0);
-            if (Enum.GetUnderlyingType(typeof(T)) == typeof(byte)) {
-                var i = (byte)(int)(float)o;
-                return (T)(object)i;
-            }
-            else
-            {
-                var i = (int) (float) o;
-                return (T)(object)i;
-            }
+            int integer = 0;
+            if (o is float f) integer = (int) f;
+            else if (o is int i) integer = i;
+            else throw new Exception($"Unable to change type {o.GetType()} to enum");
+            if (typeof(T) == typeof(bool)) return (T)(object)(integer != 0);
+            return (T) (object) integer;
         }
+        
     }
 }
