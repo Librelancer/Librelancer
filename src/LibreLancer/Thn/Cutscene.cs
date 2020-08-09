@@ -141,37 +141,46 @@ namespace LibreLancer
                 {
                     bool getHpMount = false;
                     //Fetch model
-                    IDrawable drawable;
-                    switch (kv.Value.MeshCategory.ToLowerInvariant())
+                    IDrawable drawable = null;
+                    if (!string.IsNullOrEmpty(template))
                     {
-                        case "solar":
-                            drawable = gameData.GetSolar(template);
-                            break;
-                        case "ship":
-                        case "spaceship":
-                            getHpMount = true;
-                            var sh = gameData.GetShip(template);
-                            drawable = sh.ModelFile.LoadFile(resman);
-                            break;
-                        case "prop":
-                            drawable = gameData.GetProp(template);
-                            break;
-                        case "room":
-                            drawable = gameData.GetRoom(template);
-                            break;
-                        case "equipment cart":
-                            drawable = gameData.GetCart(template);
-                            break;
-                        case "equipment":
-                            var eq = gameData.GetEquipment(template);
-                            drawable = eq?.ModelFile.LoadFile(resman);
-                            break;
-                        case "asteroid":
-                            drawable = gameData.GetAsteroid(kv.Value.Template);
-                            break;
-                        default:
-                            throw new NotImplementedException("Mesh Category " + kv.Value.MeshCategory);
+                        switch (kv.Value.MeshCategory.ToLowerInvariant())
+                        {
+                            case "solar":
+                                drawable = gameData.GetSolar(template);
+                                break;
+                            case "ship":
+                            case "spaceship":
+                                getHpMount = true;
+                                var sh = gameData.GetShip(template);
+                                drawable = sh.ModelFile.LoadFile(resman);
+                                break;
+                            case "prop":
+                                drawable = gameData.GetProp(template);
+                                break;
+                            case "room":
+                                drawable = gameData.GetRoom(template);
+                                break;
+                            case "equipment cart":
+                                drawable = gameData.GetCart(template);
+                                break;
+                            case "equipment":
+                                var eq = gameData.GetEquipment(template);
+                                drawable = eq?.ModelFile.LoadFile(resman);
+                                break;
+                            case "asteroid":
+                                drawable = gameData.GetAsteroid(kv.Value.Template);
+                                break;
+                            default:
+                                throw new NotImplementedException("Mesh Category " + kv.Value.MeshCategory);
+                        }
                     }
+                    else
+                    {
+                        FLLog.Warning("Thn", $"object '{kv.Value.Name}' has empty template, category " +
+                                             $"'{kv.Value.MeshCategory}'");
+                    }
+
                     drawable?.Initialize(resman);
                     if (kv.Value.UserFlag != 0)  {
                         //This is a starsphere
