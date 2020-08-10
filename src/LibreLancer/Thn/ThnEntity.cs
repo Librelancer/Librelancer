@@ -27,7 +27,8 @@ namespace LibreLancer
         public float? FarPlane;
 		public ThnLightProps LightProps;
         public ThnAudioProps AudioProps;
-		public MotionPath Path;
+        public ThnDisplayText DisplayText;
+        public MotionPath Path;
 		public ThnObjectFlags ObjectFlags;
 		public bool NoFog = false;
 		public override string ToString()

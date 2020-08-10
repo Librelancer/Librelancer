@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.IO;
 using LibreLancer.GameData;
+using LibreLancer.Interface;
 using LibreLancer.Media;
 namespace LibreLancer
 {
@@ -16,6 +17,7 @@ namespace LibreLancer
 		public AudioManager Audio;
 		public FontManager Fonts;
 		public SoundManager Sound;
+        public Typewriter Typewriter;
 		public GameResourceManager ResourceManager;
 		public Renderer2D Renderer2D;
 		public Billboards Billboards;
@@ -104,7 +106,8 @@ namespace LibreLancer
 			ViewportManager = new ViewportManager (RenderState);
 			ViewportManager.Push(0, 0, Width, Height);
 			Screenshots = new ScreenshotManager(this);
-
+            Typewriter = new Typewriter(this);
+            
             Services.Add(Billboards);
             Services.Add(Nebulae);
             Services.Add(ResourceManager);
@@ -112,7 +115,9 @@ namespace LibreLancer
             Services.Add(Config);
             Services.Add(Fonts);
             Services.Add(GameData);
-
+            Services.Add(Sound);
+            Services.Add(Typewriter);
+            
 			if (useintromovies && IntroMovies.Count > 0)
 				ChangeState(new IntroMovie(this, 0));
 			else
@@ -141,7 +146,8 @@ namespace LibreLancer
 		{
 			if (currentState != null)
 				currentState.Update (TimeSpan.FromSeconds (elapsed));
-		}
+            Typewriter.Update(TimeSpan.FromSeconds(elapsed));
+        }
 
 		const double FPS_INTERVAL = 0.25;
 		double fps_updatetimer = 0;
@@ -157,6 +163,7 @@ namespace LibreLancer
 			RenderState.ClearAll ();
 			if (currentState != null)
 				currentState.Draw (TimeSpan.FromSeconds (elapsed));
+            Typewriter.Render();
 			drawCallsPerFrame = VertexBuffer.TotalDrawcalls;
 			VertexBuffer.TotalDrawcalls = 0;
 			ViewportManager.Instance.CheckViewports ();

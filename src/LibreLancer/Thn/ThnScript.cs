@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Numerics;
 using LibreLancer.Thorn;
 namespace LibreLancer
@@ -190,6 +191,17 @@ namespace LibreLancer
 			);
 		}
 
+        static float FuzzyFloat(object o)
+        {
+            if (o is float f) return f;
+            if (o is int i) return i;
+            if (o is string s)
+                return float.Parse(s, CultureInfo.InvariantCulture);
+            throw new InvalidCastException(o.ToString() + " as float");
+        }
+
+        static int FuzzyInt(object o) => (int) FuzzyFloat(o);
+
 		ThnEntity GetEntity(LuaTable table)
 		{
 			object o;
@@ -250,6 +262,14 @@ namespace LibreLancer
 				{
 					e.NoFog = ThnEnum.Check<bool>(o);
 				}
+
+                if (usrprops.TryGetValue("TextString", out o))
+                {
+                    e.DisplayText = new ThnDisplayText();
+                    e.DisplayText.TextIDS = FuzzyInt(o);
+                    if (usrprops.TryGetValue("TextStart", out o))
+                        e.DisplayText.Start = FuzzyFloat(o);
+                }
 			}
             if(table.TryGetValue("audioprops", out o))
             {

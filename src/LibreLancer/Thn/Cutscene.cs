@@ -102,6 +102,8 @@ namespace LibreLancer
                 }
             }
         }
+        
+        ThnDisplayText text;
 
         void AddEntities(ThnScript thn)
         {
@@ -218,6 +220,8 @@ namespace LibreLancer
                 }
                 else if (kv.Value.Type == EntityTypes.Scene)
                 {
+                    if(kv.Value.DisplayText != null) 
+                        text = kv.Value.DisplayText;
                     if (hasScene)
                     {
                         //throw new Exception("Thn can only have one scene");
@@ -228,6 +232,7 @@ namespace LibreLancer
                     if (amb.X == 0 && amb.Y == 0 && amb.Z == 0) continue;
                     hasScene = true;
                     Renderer.SystemLighting.Ambient = new Color4(amb.X / 255f, amb.Y / 255f, amb.Z / 255f, 1);
+                   
                 }
                 else if (kv.Value.Type == EntityTypes.Light)
                 {
@@ -426,7 +431,7 @@ namespace LibreLancer
 				}
 			}
         }
-		public void _Update(TimeSpan delta)
+        public void _Update(TimeSpan delta)
         {
             var sound = game.GetService<SoundManager>();
             if (Running)
@@ -437,7 +442,16 @@ namespace LibreLancer
                 sound.UpdateListener(delta, pos, forward, up);
             }
 			currentTime += delta.TotalSeconds;
-			for (int i = (Coroutines.Count - 1); i >= 0; i--)
+            if (text != null)
+            {
+                if (currentTime > text.Start)
+                {
+                    game.GetService<Interface.Typewriter>().PlayString(gameData.GetString(text.TextIDS));
+                    text = null;
+                }
+            }
+
+            for (int i = (Coroutines.Count - 1); i >= 0; i--)
 			{
 				if (!Coroutines[i].Run(this, delta.TotalSeconds))
 				{
@@ -460,7 +474,7 @@ namespace LibreLancer
         {
             UpdateStarsphere();
 			Renderer.Draw();
-		}
+        }
 
 		void ProcessEvent(ThnEvent ev)
 		{

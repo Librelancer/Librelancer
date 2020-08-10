@@ -11,6 +11,7 @@ using System.Threading;
 using LibreLancer;
 using LibreLancer.ImUI;
 using ImGuiNET;
+using LibreLancer.Interface;
 using LibreLancer.Media;
 
 namespace ThnPlayer
@@ -29,6 +30,7 @@ namespace ThnPlayer
         public NebulaVertices Nebulae;
         public Renderer2D Renderer2D;
         public SoundManager Sounds;
+        public Typewriter Typewriter;
         public AudioManager Audio;
         private bool decompiledOpen = true;
         List<string> openFiles = new List<string>();
@@ -64,6 +66,8 @@ namespace ThnPlayer
             fontMan.ConstructDefaultFonts();
             Services.Add(fontMan);
             Services.Add(new GameConfig());
+            Typewriter = new Typewriter(this);
+            Services.Add(Typewriter);
             Keyboard.KeyDown += KeyboardOnKeyDown;
         }
 
@@ -82,6 +86,7 @@ namespace ThnPlayer
         {
             if(cutscene != null)
                 cutscene.Update(TimeSpan.FromSeconds(elapsed));
+            Typewriter.Update(TimeSpan.FromSeconds(elapsed));
         }
 
         protected override void OnDrop(string file)
@@ -121,7 +126,8 @@ namespace ThnPlayer
             if (cutscene != null)
             {
                 cutscene.Draw();
-            }  
+            }
+            Typewriter.Render();
             //
             guiHelper.NewFrame(elapsed);
             ImGui.PushFont(ImGuiHelper.Noto);
