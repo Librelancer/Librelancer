@@ -18,7 +18,8 @@ namespace LibreLancer
             else if (o is int i) integer = i;
             else throw new Exception($"Unable to change type {o.GetType()} to enum");
             if (typeof(T) == typeof(bool)) return (T)(object)(integer != 0);
-            return (T) (object) integer;
+
+            return (T) Convert.ChangeType(integer, Enum.GetUnderlyingType(typeof(T)));
         }
         
     }
