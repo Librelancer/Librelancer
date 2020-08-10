@@ -210,8 +210,11 @@ namespace LibreLancer
                 else if (kv.Value.Type == EntityTypes.PSys)
                 {
                     var fx = gameData.GetEffect(kv.Value.Template);
-                    obj.Object = new GameObject();
-                    obj.Object.RenderComponent = new ParticleEffectRenderer(fx.GetEffect(resman)) { Active = false };
+                    if (fx != null)
+                    {
+                        obj.Object = new GameObject();
+                        obj.Object.RenderComponent = new ParticleEffectRenderer(fx.GetEffect(resman)) {Active = false};
+                    }
                 }
                 else if (kv.Value.Type == EntityTypes.Scene)
                 {
@@ -500,7 +503,12 @@ namespace LibreLancer
                 FLLog.Error("Thn", "Entity " + ev.Targets[0].ToString()+ " does not exist");
                 return;
             }
-			var obj = Objects[(string)ev.Targets[0]];
+            var obj = Objects[(string)ev.Targets[0]];
+            if (obj.Object == null)
+            {
+                FLLog.Error("Thn", "Entity " + ev.Targets[0].ToString() + " null renderer");
+                return;
+            }
             var r = (ParticleEffectRenderer)obj.Object.RenderComponent;
             r.Active = true;
             Coroutines.Add(new StopPSys() { Duration = ev.Duration, Fx = r });
