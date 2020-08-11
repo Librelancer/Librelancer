@@ -35,6 +35,7 @@ namespace LibreLancer
 				a.B * b.B
 			);
 		}
+
         public override int GetHashCode()
         {
             var value = (uint)(R * Byte.MaxValue) << 16 |
