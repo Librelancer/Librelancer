@@ -33,6 +33,7 @@ namespace LibreLancer
                     StartSParam = ren.SParam,
                     EndSParam = targetSparam,
                     Duration = ev.Duration,
+                    ParamCurve = ev.ParamCurve
                 });
             }
         }
@@ -40,6 +41,7 @@ namespace LibreLancer
         class SParamAnimation : IThnRoutine
         {
             public ParticleEffectRenderer Renderer;
+            public ParameterCurve ParamCurve;
             public float StartSParam;
             public float EndSParam;
             public double Duration;
@@ -53,6 +55,7 @@ namespace LibreLancer
                     return false;
                 }
                 var pct = (float)(time / Duration);
+                if (ParamCurve != null) pct = ParamCurve.GetValue((float) time, (float) Duration);
                 Renderer.SParam = MathHelper.Lerp(StartSParam, EndSParam, pct);
                 return true;
             }

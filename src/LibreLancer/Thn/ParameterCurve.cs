@@ -5,6 +5,7 @@
 using System;
 using System.Numerics;
 using System.Collections.Generic;
+using System.Linq;
 using LibreLancer.Thorn;
 namespace LibreLancer
 {
@@ -28,8 +29,13 @@ namespace LibreLancer
 		public PCurveType Type = PCurveType.Unknown;
 		public List<Vector4> Points;
 		public float Period;
+        public ParameterCurve() { }
 
-		public ParameterCurve() { }
+        public ParameterCurve(PCurveType type, IEnumerable<Vector4> points)
+        {
+            Type = type;
+            Points = points.ToList();
+        }
 		public ParameterCurve(LuaTable table)
 		{
 			CLSID = (string)table["CLSID"];
@@ -54,7 +60,7 @@ namespace LibreLancer
 					Type = PCurveType.Step;
 					break;
 				case "smoothpcurve":
-					Type = PCurveType.Step;
+					Type = PCurveType.Smooth;
 					break;
 				case "thornlpcurve":
 					Type = PCurveType.ThornL;
@@ -75,40 +81,71 @@ namespace LibreLancer
 			}
 		}
 
+        static float EvaluateFreeform(Vector4 pa, Vector4 pb, float time)
+        {
+            var period = (pb.X - pa.X);
+            var aval = pa.Y;
+            var bval = pb.Y;
+            var bcontrol1 = pb.Z;
+            var acontrol2 = pa.W;
+
+            var x = (time - pa.X) / period;
+            var x2 = x * x;
+            var x3 = x2 * x;
+            var _3x2 = 3 * x2;
+            var _2x3 = 2 * x3;
+            var _2x2 = 2 * x2;
+            return (_3x2 - _2x3) * bval 
+                   + (_2x3 - _3x2 + 1) * aval 
+                   + (x3 - x2) * bcontrol1 * period 
+                   + (x3 - _2x2 + x) * acontrol2 * period;
+        }
+
 		public float GetValue(float time, float duration)
 		{
-			float x = 0;
+            float x = 0;
 			var p = Period / 1000f;
 			if (p < 0)
 				x = time / duration;
 			else
 				x = (time % p) / p;
-			if (x <= 0)
-				return Points[0].Y;
-			if (x >= 1)
-				return Points[Points.Count - 1].Y;
-			//X - time, Y - value, Z - in, W - out
-			Vector4 a = Vector4.One;
-			Vector4 b = Vector4.One;
+            Vector4 a = Vector4.Zero;
+            Vector4 b = new Vector4(1,1,0,0);
+            if (Points.Count >= 2)
+            {
+                if (x <= 0)
+                    return Points[0].Y;
+                if (x >= 1)
+                    return Points[Points.Count - 1].Y;
+                //X - time, Y - value, Z - in, W - out
 
-			for (int i = 0; i < Points.Count - 1; i++)
+                for (int i = 0; i < Points.Count - 1; i++)
+                {
+                    if (x >= Points[i].X && x <= Points[i + 1].X)
+                    {
+                        a = Points[i];
+                        b = Points[i + 1];
+                    }
+                }
+            }
+
+            switch (Type)
 			{
-				if (x >= Points[i].X && x <= Points[i + 1].X)
-				{
-					a = Points[i];
-					b = Points[i + 1];
-				}
-			}
-			/*switch (Type)
-			{
-				case PCurveType.FreeForm:
-					break;
-				default:
-					throw new NotImplementedException("PCurveType " + Type.ToString());
-			}*/
-			return Utf.Ale.AlchemyEasing.Ease(Utf.Ale.EasingTypes.Linear, x, a.X, b.X, a.Y, b.Y);
-
-
-		}
+                case PCurveType.FreeForm:
+                    return EvaluateFreeform(a, b, x);
+				case PCurveType.Step:
+                    return a.Y;
+                case PCurveType.BumpIn:
+                case PCurveType.RampUp:
+                    return Utf.Ale.AlchemyEasing.Ease(Utf.Ale.EasingTypes.EaseIn, x, a.X, b.X, a.Y, b.Y);
+                case PCurveType.BumpOut:
+                case PCurveType.RampDown:
+                    return Utf.Ale.AlchemyEasing.Ease(Utf.Ale.EasingTypes.EaseOut, x, a.X, b.X, a.Y, b.Y);
+                case PCurveType.Smooth:
+                    return Utf.Ale.AlchemyEasing.Ease(Utf.Ale.EasingTypes.EaseInOut, x, a.X, b.Y, a.Y, b.Y);
+                default:
+                    return Utf.Ale.AlchemyEasing.Ease(Utf.Ale.EasingTypes.Linear, x, a.X, b.X, a.Y, b.Y);
+            }
+        }
 	}
 }
