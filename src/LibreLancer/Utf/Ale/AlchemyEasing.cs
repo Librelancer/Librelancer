@@ -16,19 +16,7 @@ namespace LibreLancer.Utf.Ale
 	}
 	public static class AlchemyEasing
 	{
-		public static Color3f EaseColor(EasingTypes type, float time, float t1, float t2, Color3f c1, Color3f c2)
-		{
-			var h1 = HSLColor.FromRGB (c1);
-			var h2 = HSLColor.FromRGB (c2);
-
-			float h = Ease (type, time, t1, t2, h1.H, h2.H);
-			float s = Ease (type, time, t1, t2, h1.S, h2.S);
-			float l = Ease (type, time, t1, t2, h1.L, h2.L);
-
-			return new HSLColor (h, s, l).ToRGB ();
-		}
-
-		public static Color3f EaseColorRGB(EasingTypes type, float time, float t1, float t2, Color3f c1, Color3f c2)
+        public static Color3f EaseColorRGB(EasingTypes type, float time, float t1, float t2, Color3f c1, Color3f c2)
 		{
 
 			float r = Ease(type, time, t1, t2, c1.R, c2.R);

@@ -93,6 +93,8 @@ namespace ThnPlayer
         {
             if(isMultipleOpen)
                 openFiles.Add(file);
+            else if (loaded)
+                Open(file);
         }
 
         private bool isMultipleOpen = false;
@@ -100,6 +102,8 @@ namespace ThnPlayer
         private string[] toReload = null;
         void Open(params string[] files)
         {
+            var lastFile = Path.GetFileName(files.Last());
+            Title = $"{lastFile} - ThnPlayer";
             Audio.ReleaseAllSfx();
             toReload = files;
             decompiled = files.Select(x => new DecompiledThn()
