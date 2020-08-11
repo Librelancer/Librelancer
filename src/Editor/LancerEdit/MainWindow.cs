@@ -311,6 +311,11 @@ namespace LancerEdit
                     if(ProjectileViewer.Create(this, out var pj))
                         tabs.Add(pj);
                 }
+
+                if (ImGui.MenuItem("ParamCurve Visualiser"))
+                {
+                    tabs.Add(new ParamCurveVis());
+                }
                 ImGui.EndMenu();
 			}
 			if (ImGui.BeginMenu("Help"))

@@ -35,6 +35,7 @@ namespace LibreLancer
         {
             Type = type;
             Points = points.ToList();
+            Period = -1;
         }
 		public ParameterCurve(LuaTable table)
 		{
