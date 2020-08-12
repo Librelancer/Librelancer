@@ -402,7 +402,7 @@ namespace LibreLancer
                 {
                     glResource.AddTexture(
                         "__startupscreen_1280.tga",
-                        ResolveDataPath(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen.tga")
+                        ResolveDataPath("INTERFACE/INTRO/IMAGES/startupscreen.tga")
                     );
                 }
                 else
