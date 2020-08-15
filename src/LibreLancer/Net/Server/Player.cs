@@ -112,6 +112,7 @@ namespace LibreLancer
                         RTCs = rtcs.ToArray()
                     }, PacketDeliveryMethod.ReliableOrdered);
                 }
+                InitStory(sg);
             }
             else
             {
@@ -127,8 +128,15 @@ namespace LibreLancer
                         Ship = Character.EncodeLoadout()
                     }, PacketDeliveryMethod.ReliableOrdered);
                     world.SpawnPlayer(this, Position, Orientation);
+                    //work around race condition where world spawns after player has been sent to a base
+                    InitStory(sg);
                 });
             }
+            
+        }
+
+        void InitStory(Data.Save.SaveGame sg)
+        {
             var missionNum = sg.StoryInfo?.MissionNum ?? 0;
             if (game.GameData.Ini.ContentDll.AlwaysMission13) missionNum = 14;
             if (missionNum != 0 && (missionNum - 1) < game.GameData.Ini.Missions.Count)
