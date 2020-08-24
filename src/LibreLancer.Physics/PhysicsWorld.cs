@@ -111,11 +111,13 @@ namespace LibreLancer.Physics
                 if (disposed) return; //Alllow delete within FixedUpdate. Hacky but works
                 btWorld.StepSimulation(TIMESTEP, 0, TIMESTEP);
                 accumulatedTime -= TIMESTEP;
+                //Update C#-side properties after each step. Creates stuttering otherwise
+                foreach (var obj in dynamicObjects) {
+                    obj.UpdateProperties();
+                    obj.RigidBody.Activate(true);
+                }
             }
-            foreach (var obj in dynamicObjects) {
-                obj.UpdateProperties();
-                obj.RigidBody.Activate(true);
-            }
+           
         }
 
         /// <summary>
