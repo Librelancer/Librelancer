@@ -103,7 +103,7 @@ namespace LancerEdit
         }
         void ContextView(string name, Action onView)
         {
-            if (ImGui.IsItemClicked(1))
+            if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
                 ImGui.OpenPopup(name);
             if(ImGui.BeginPopupContextItem(name))
             {

@@ -137,6 +137,43 @@ FT_Glyph_To_Bitmap( FT_Glyph*       the_glyph,
 {
 	return glyphToBitmap(the_glyph, render_mode, origin, destroy);
 }
+
+typedef FT_Error(*newLibPtr)(FT_Memory,FT_Library*);
+static newLibPtr newLib;
+FT_EXPORT( FT_Error )
+FT_New_Library(FT_Memory memory, FT_Library* alibrary)
+{
+    return newLib(memory,alibrary);
+}
+
+typedef FT_Error(*doneLibPtr)(FT_Library library);
+static doneLibPtr doneLib;
+
+FT_EXPORT ( FT_Error )
+FT_Done_Library( FT_Library library )
+{
+    return doneLib(library);
+}
+
+typedef void(*newModPtr)(FT_Library library);
+static newModPtr newMod;
+
+FT_EXPORT(void)
+FT_Add_Default_Modules(FT_Library library)
+{
+    newMod(library);
+}
+
+typedef FT_Error (*renderGlyphPtr)(FT_GlyphSlot slot, FT_Render_Mode render_mode);
+static renderGlyphPtr renderGlyph;
+
+FT_EXPORT ( FT_Error )
+FT_Render_Glyph ( FT_GlyphSlot slot,
+                  FT_Render_Mode render_mode )
+{
+    return renderGlyph(slot, render_mode);
+}
+
 #if (WIN32 || _WIN64)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -165,4 +202,9 @@ void igLoadFreetype(void)
 	getGlyph = (getGlyphPtr)dlsym(module, "FT_Get_Glyph");
 	glyphToBitmap = (glyphToBitmapPtr)dlsym(module, "FT_Glyph_To_Bitmap");
 	doneGlyph = (doneGlyphPtr)dlsym(module, "FT_Done_Glyph");
+    newLib = (newLibPtr)dlsym(module, "FT_New_Library");
+    doneLib = (doneLibPtr)dlsym(module, "FT_Done_Library");
+    newMod = (newModPtr)dlsym(module, "FT_Add_Default_Modules");
+    renderGlyph = (renderGlyphPtr)dlsym(module, "FT_Render_Glyph");
+    
 }

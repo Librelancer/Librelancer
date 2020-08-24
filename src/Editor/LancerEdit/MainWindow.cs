@@ -376,7 +376,7 @@ namespace LancerEdit
             pOpen = true;
             if(ImGuiExt.BeginModalNoClose("Processing", ImGuiWindowFlags.AlwaysAutoResize))
             {
-                ImGuiExt.Spinner("##spinner", 10, 2, ImGuiNative.igGetColorU32(ImGuiCol.ButtonHovered, 1));
+                ImGuiExt.Spinner("##spinner", 10, 2, ImGui.GetColorU32(ImGuiCol.ButtonHovered, 1));
                 ImGui.SameLine();
                 ImGui.Text("Processing");
                 if (finishLoading) ImGui.CloseCurrentPopup();

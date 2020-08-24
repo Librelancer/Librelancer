@@ -127,6 +127,7 @@ namespace LibreLancer
                 fldata.MBases.Bases.TryGetValue(inibase.Nickname, out mbase);
                 var b = new GameData.Base();
                 b.Nickname = inibase.Nickname;
+                b.IdsName = inibase.IdsName;
                 b.System = inibase.System;
                 b.TerrainTiny = inibase.TerrainTiny;
                 b.TerrainSml = inibase.TerrainSml;

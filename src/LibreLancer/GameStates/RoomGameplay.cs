@@ -60,7 +60,7 @@ namespace LibreLancer
 			Game.Keyboard.KeyDown += Keyboard_KeyDown;
 			cursor = Game.ResourceManager.GetCursor("arrow");
             FadeIn(0.8, 1.7);
-		}
+        }
         void SetActiveHotspot(string rm)
         {
             foreach (var hp in tophotspots) {

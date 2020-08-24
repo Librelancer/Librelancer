@@ -86,23 +86,12 @@ namespace LibreLancer.ImUI
         {
             var displaySize = ImGui.GetIO().DisplaySize;
             var textSize = ImGui.CalcTextSize(text);
-            var drawlist = ImGuiNative.igGetForegroundDrawList();
-            var textbytes = System.Text.Encoding.UTF8.GetBytes(text);
-            ImGuiNative.ImDrawList_AddRectFilled(
-                drawlist,
-                new Vector2(displaySize.X - textSize.X - 9, 2),
+            var drawlist = ImGui.GetForegroundDrawList();
+            drawlist.AddRectFilled(new Vector2(displaySize.X - textSize.X - 9, 2),
                 new Vector2(displaySize.X, textSize.Y + 9),
-                GetUint(background), 2, ImDrawCornerFlags.All
-            );
-            fixed (byte* ptr = textbytes)
-            {
-                ImGuiNative.ImDrawList_AddText(
-                    drawlist, 
-                    new Vector2(displaySize.X - textSize.X - 3,2), 
-                    GetUint(foreground), ptr, 
-                    (byte*)0
-                );
-            }
+                GetUint(background), 2, ImDrawCornerFlags.All);
+            drawlist.AddText(new Vector2(displaySize.X - textSize.X - 3, 2),
+                GetUint(foreground), text);
         }
 
         public const char ReplacementHash = '\uE884';

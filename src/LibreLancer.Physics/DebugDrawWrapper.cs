@@ -19,14 +19,14 @@ namespace LibreLancer.Physics
         DebugDrawModes drawMode = DebugDrawModes.DrawWireframe;
         public override DebugDrawModes DebugMode { get => drawMode; set => drawMode = value; }
 
-        public override void Draw3dText(ref BM.Vector3 location, string textString)
-        {
-            
-        }
-
         public override void DrawLine(ref BM.Vector3 from, ref BM.Vector3 to, ref BM.Vector3 color)
         {
             ren.DrawLine(from.Cast(), to.Cast(), new Color4(color.X, color.Y, color.Z, 1));
+        }
+
+        public override void Draw3DText(ref BM.Vector3 location, string textString)
+        {
+            
         }
 
         public override void ReportErrorWarning(string warningString)

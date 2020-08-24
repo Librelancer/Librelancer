@@ -11,6 +11,7 @@ namespace LibreLancer.GameData
 	public class Base
     {
         public string Nickname;
+        public int IdsName;
         public string System;
 		public BaseRoom StartRoom;
 		public List<BaseRoom> Rooms = new List<BaseRoom>();

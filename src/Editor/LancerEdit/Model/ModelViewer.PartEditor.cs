@@ -200,9 +200,9 @@ namespace LancerEdit
                     ImGui.SameLine();
                     ImGui.PushItemWidth(-1);
                     if (partMax > partMin)
-                        ImGui.SliderFloat("Preview", ref partPreview, partMin, partMax, "%f", 1);
+                        ImGui.SliderFloat("Preview", ref partPreview, partMin, partMax, "%f");
                     else
-                        ImGui.SliderFloat("Preview", ref partPreview, partMax, partMin, "%f", 1);
+                        ImGui.SliderFloat("Preview", ref partPreview, partMax, partMin, "%f");
                     ImGui.PopItemWidth();
                     ImGui.Separator();
                 }

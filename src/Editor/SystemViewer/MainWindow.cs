@@ -272,7 +272,7 @@ C# Memory Usage: {5}
             popupopen = true;
             if(ImGui.BeginPopupModal("Loading", ref popupopen, ImGuiWindowFlags.AlwaysAutoResize)) {
                 if (world != null) ImGui.CloseCurrentPopup();
-                ImGuiExt.Spinner("##spinner", 10, 2, ImGuiNative.igGetColorU32(ImGuiCol.ButtonHovered, 1));
+                ImGuiExt.Spinner("##spinner", 10, 2, ImGui.GetColorU32(ImGuiCol.ButtonHovered, 1));
                 ImGui.SameLine();
                 ImGui.Text("Loading");
                 ImGui.EndPopup();

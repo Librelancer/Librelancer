@@ -205,19 +205,19 @@ namespace LancerEdit
         void ArcballControls()
         {
             var io = ImGui.GetIO();
-            if (ImGui.IsMouseDragging(0, 1f))
+            if (ImGui.IsMouseDragging(ImGuiMouseButton.Left, 1f))
             {
-                var delta = (Vector2)ImGui.GetMouseDragDelta(0, 1f);
-                ImGui.ResetMouseDragDelta(0);
+                var delta = (Vector2)ImGui.GetMouseDragDelta(ImGuiMouseButton.Left, 1f);
+                ImGui.ResetMouseDragDelta(ImGuiMouseButton.Left);
                 if (io.KeyCtrl)
                     ModelRotation += (delta / 100) * new Vector2(1, -1);
                 else
                     orbitPan += (delta / 100) * new Vector2(1, -1);
             }
-            else if (ImGui.IsMouseDragging(1, 1f))
+            else if (ImGui.IsMouseDragging(ImGuiMouseButton.Right, 1f))
             {
-                var delta = (Vector2)ImGui.GetMouseDragDelta(1, 1f);
-                ImGui.ResetMouseDragDelta(1);
+                var delta = (Vector2)ImGui.GetMouseDragDelta(ImGuiMouseButton.Right, 1f);
+                ImGui.ResetMouseDragDelta(ImGuiMouseButton.Right);
                 var mouseZoomStep = ModelScale / 56f;
                 zoom -= delta.Y * mouseZoomStep;
             }
@@ -251,10 +251,10 @@ namespace LancerEdit
                 ImGui.ResetMouseDragDelta(0);
                 var rotmat = Matrix4x4.CreateRotationX(CameraRotation.Y) *
                     Matrix4x4.CreateRotationY(CameraRotation.X);
-                if (ImGui.IsMouseDown(1))
+                if (ImGui.IsMouseDown(ImGuiMouseButton.Right))
                 {
                     //LMB + RMB - Move up and down
-                    ImGui.ResetMouseDragDelta(1);
+                    ImGui.ResetMouseDragDelta(ImGuiMouseButton.Right);
                     var y = Vector3.Transform(Vector3.UnitY, rotmat);
                     CameraOffset += y * (delta.Y * ModelScale / 52f);
                 }
@@ -267,10 +267,10 @@ namespace LancerEdit
                     CameraOffset -= z * (delta.Y * ModelScale / 44f);
                 }
             }
-            else if (ImGui.IsMouseDragging(1, 1f))
+            else if (ImGui.IsMouseDragging(ImGuiMouseButton.Right, 1f))
             {
-                var delta = (Vector2)ImGui.GetMouseDragDelta(1, 1f);
-                ImGui.ResetMouseDragDelta(1);
+                var delta = (Vector2)ImGui.GetMouseDragDelta(ImGuiMouseButton.Right, 1f);
+                ImGui.ResetMouseDragDelta(ImGuiMouseButton.Right);
                 if (io.KeyCtrl)
                 {
                     //CTRL + RMB - Rotate Model

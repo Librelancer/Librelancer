@@ -306,7 +306,7 @@ namespace LancerEdit
                 ImGui.PushItemWidth(-1);
                 if (useDistance)
                 {
-                    ImGui.SliderFloat("Distance", ref levelDistance, 0, maxDistance, "%f", 1);
+                    ImGui.SliderFloat("Distance", ref levelDistance, 0, maxDistance, "%f");
                 }
                 else
                 {
@@ -434,7 +434,7 @@ namespace LancerEdit
 
         void ConstructContext(RigidModelPart con, bool mdlVisible)
         {
-            if (ImGui.IsItemClicked(1))
+            if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
                 ImGui.OpenPopup(con.Construct.ChildName + "_context");
             if(ImGui.BeginPopupContextItem(con.Construct.ChildName + "_context")) {
                 if (con.Mesh != null)
@@ -656,7 +656,7 @@ namespace LancerEdit
         }
         ContextActions NewHpMenu(string n)
         {
-            if(ImGui.IsItemClicked(1))
+            if(ImGui.IsItemClicked(ImGuiMouseButton.Right))
                 ImGui.OpenPopup(n + "_HardpointContext");
             if(ImGui.BeginPopupContextItem(n + "_HardpointContext")) {
                 if(Theme.BeginIconMenu("New","add",Color4.White)) {
@@ -670,7 +670,7 @@ namespace LancerEdit
         }
         ContextActions EditDeleteHpMenu(string n)
         {
-            if(ImGui.IsItemClicked(1))
+            if(ImGui.IsItemClicked(ImGuiMouseButton.Right))
                 ImGui.OpenPopup(n + "_HardpointEditCtx");
             if(ImGui.BeginPopupContextItem(n + "_HardpointEditCtx")) {
                 if(Theme.IconMenuItem("Edit","edit",Color4.White,true)) return ContextActions.Edit;
@@ -823,7 +823,7 @@ namespace LancerEdit
 
         void RootModelContext(bool rootVisible)
         {
-            if (vmsModel.Root != null && ImGui.IsItemClicked(1))
+            if (vmsModel.Root != null && ImGui.IsItemClicked(ImGuiMouseButton.Right))
                 ImGui.OpenPopup(Unique + "_mdl_rootpopup");
             if (ImGui.BeginPopupContextItem(Unique + "_mdl_rootpopup"))
             {
@@ -845,7 +845,7 @@ namespace LancerEdit
                 {
                     animator.StartAnimation(sc.Key, false);
                 }
-                if (ImGui.IsItemClicked(1))
+                if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
                     ImGui.OpenPopup(popup);
                 if (ImGui.BeginPopupContextItem(popup))
                 {
@@ -874,7 +874,7 @@ namespace LancerEdit
                 {
                     var popup = $"{script.Key}Popup";
                     if (ImGui.Button(script.Key)) skel.StartScript(script.Value, 0, 1, 0);
-                    if (ImGui.IsItemClicked(1))
+                    if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
                         ImGui.OpenPopup(popup);
                     if (ImGui.BeginPopupContextItem(popup))
                     {

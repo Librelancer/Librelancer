@@ -157,6 +157,7 @@ namespace LibreLancer.ImUI
             {
                 SystemMonospace = io.Fonts.AddFontFromMemoryTTF((IntPtr) mmPtr, monospace.Length, 16, fontConfigC);
             }
+
             ImGuiExt.BuildFontAtlas((IntPtr)io.Fonts.NativePtr);
             byte* fontBytes;
             int fontWidth, fontHeight;
