@@ -11,7 +11,7 @@ namespace LibreLancer
 {
 	public unsafe class Renderer2D : IDisposable
 	{
-		const int MAX_GLYPHS = 256; //256 rendered glyphs per drawcall
+		const int MAX_GLYPHS = 512; //512 rendered glyphs per drawcall
 		const int MAX_VERT = MAX_GLYPHS * 4;
 		const int MAX_INDEX = MAX_GLYPHS * 6;
 
@@ -392,15 +392,16 @@ namespace LibreLancer
 
 			primitiveCount += 2;
 		}
-		public void Finish()
-		{
-			if (!active)
-				throw new InvalidOperationException ("TextRenderer.Start() must be called before TextRenderer.Finish()");
-			Flush ();
-			active = false;
-		}
 
-		void Flush()
+        public void Finish()
+        {
+            if (!active)
+                throw new InvalidOperationException("TextRenderer.Start() must be called before TextRenderer.Finish()");
+            Flush();
+            active = false;
+        }
+
+        public void Flush()
 		{
 			if (vertexCount == 0 || primitiveCount == 0)
 				return;

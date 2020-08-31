@@ -20,6 +20,7 @@ namespace LibreLancer.GameData
 		public Dictionary<string, Equipment> Loadout = new Dictionary<string, Equipment>();
 		public List<Equipment> LoadoutNoHardpoint = new List<Equipment>();
 		public DockAction Dock;
+        public int Visit;
         public SystemObject ()
 		{
 		}

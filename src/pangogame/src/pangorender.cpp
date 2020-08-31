@@ -38,13 +38,6 @@ void doDrawRectangle(PangoRenderer* renderer, PangoRenderPart part, int x, int y
         green = !fg ? 0.0f : fg->green / 65536.0f;
         blue = !fg ? 0.0f : fg->blue / 65536.0f;
     }
-	//create empty run to put rectangle in
-	PGRun r;
-	r.tex = NULL;
-	r.quads = NULL;
-	stb_arr_push(ren->built->runs, r);
-	//reference
-	PGRun* run = &ren->built->runs[stb_arr_len(ren->built->runs)-1];
 	//shadow quad
     PangoColor *shadow = pango_renderer_get_color(renderer, PANGO_RENDER_PART_BACKGROUND);
     if(shadow) {
@@ -52,6 +45,7 @@ void doDrawRectangle(PangoRenderer* renderer, PangoRenderPart part, int x, int y
         float shG = shadow->green / 65536.0f;
         float shB = shadow->blue / 65536.0f;
         PGQuad shQ;
+        shQ.tex = NULL;
         shQ.dstX = PANGO_PIXELS(x) + 2;
         shQ.dstY = PANGO_PIXELS(y) + 2;
         shQ.dstW = PANGO_PIXELS(width);
@@ -60,10 +54,11 @@ void doDrawRectangle(PangoRenderer* renderer, PangoRenderPart part, int x, int y
         shQ.g = shG;
         shQ.b = shB;
         shQ.a = ren->alpha;
-        stb_arr_push(run->quads, shQ);
+        stb_arr_push(ren->built->quads, shQ);
     }
     //color quad
 	PGQuad q;
+    q.tex = NULL;
 	q.dstX = PANGO_PIXELS(x);
 	q.dstY = PANGO_PIXELS(y);
 	q.dstW = PANGO_PIXELS(width);
@@ -72,7 +67,57 @@ void doDrawRectangle(PangoRenderer* renderer, PangoRenderPart part, int x, int y
 	q.g = green;
 	q.b = blue;
 	q.a = ren->alpha;
-	stb_arr_push(run->quads, q);
+	stb_arr_push(ren->built->quads, q);
+}
+
+void drawGlyphRun (uint32_t fontHash, float red, float green, float blue, PangoRenderer* renderer, PangoFont* font, PangoGlyphString* glyphs, int px, int py)
+{
+    CacheRenderer* ren = CACHERENDERER(renderer);
+	FT_Face face = pango_fc_font_lock_face((PangoFcFont*) font);
+	
+	PangoGlyphUnit layoutX = px;
+	PangoGlyphUnit layoutY = py;
+
+	for(int i = 0; i < glyphs->num_glyphs; i++) {
+		PangoGlyphInfo* gi = &glyphs->glyphs[i];
+
+		if(gi->glyph & PANGO_GLYPH_UNKNOWN_FLAG) {
+			//TODO: figure out how to draw a question mark
+			continue;
+		}
+
+		unsigned int glyph = gi->glyph;
+		PangoRectangle r;
+		pango_font_get_glyph_extents(font, glyph, &r, 0);
+		pango_extents_to_pixels(&r, 0);
+		float w = r.width;
+		float h = r.height;
+		if(w <= 0.f && h ,+ 0.f) {
+			//Space
+			layoutX += gi->geometry.width;
+			continue;
+		}
+		CachedGlyph cached;
+		pg_getglyph(ren->ctx, &cached, glyph, fontHash, face, font);
+		PGQuad q;
+        q.tex = cached.tex;
+		q.srcX = cached.srcX;
+		q.srcY = cached.srcY;
+		q.srcW = cached.srcW;
+		q.srcH = cached.srcH;
+		q.dstX = PANGO_PIXELS(layoutX + gi->geometry.x_offset) + cached.offsetLeft;
+		q.dstY = PANGO_PIXELS(layoutY + gi->geometry.y_offset) - cached.offsetTop;
+		q.dstW = cached.srcW;
+		q.dstH = cached.srcH;
+		q.r = red;
+		q.g = green;
+		q.b = blue;
+		q.a = ren->alpha;
+		stb_arr_push(ren->built->quads, q);
+		layoutX += gi->geometry.width;
+	}
+	
+	pango_fc_font_unlock_face((PangoFcFont*) font);
 }
 
 void doDrawGlyphs(PangoRenderer* renderer, PangoFont* font, PangoGlyphString* glyphs, int px, int py)
@@ -89,95 +134,19 @@ void doDrawGlyphs(PangoRenderer* renderer, PangoFont* font, PangoGlyphString* gl
         green = !fg ? 0.0f : fg->green / 65536.0f;
         blue = !fg ? 0.0f : fg->blue / 65536.0f;
     }
-    PangoColor *shadow = pango_renderer_get_color(renderer, PANGO_RENDER_PART_BACKGROUND);
-    float shR, shG, shB;
-    if(shadow) {
-        shR = shadow->red / 65536.0f;
-        shG = shadow->green / 65536.0f;
-        shB = shadow->blue / 65536.0f;
-    }
+    
 	PangoFontDescription* desc = pango_font_describe(font);
 	uint32_t fontHash = (uint32_t)pango_font_description_hash(desc);
 	pango_font_description_free(desc);
-	FT_Face face = pango_fc_font_lock_face((PangoFcFont*) font);
-	
-	PangoGlyphUnit layoutX = px;
-	PangoGlyphUnit layoutY = py;
-
-	for(int i = 0; i < glyphs->num_glyphs; i++) {
-		PangoGlyphInfo* gi = &glyphs->glyphs[i];
-
-		if(gi->glyph & PANGO_GLYPH_UNKNOWN_FLAG) {
-			//TODO: figure out how to draw a question mark
-			continue;
-		}
-
-		unsigned int glyph = gi->glyph;
-		PangoRectangle r;
-
-		pango_font_get_glyph_extents(font, glyph, &r, 0);
-		pango_extents_to_pixels(&r, 0);
-		float w = r.width;
-		float h = r.height;
-
-		if(w <= 0.f && h ,+ 0.f) {
-			//Space
-			layoutX += gi->geometry.width;
-			continue;
-		}
-
-		CachedGlyph cached;
-		pg_getglyph(ren->ctx, &cached, glyph, fontHash, face, font);
-		
-		PGRun *run = NULL;
-		for(int j = 0; j < stb_arr_len(ren->built->runs); j++) {
-			if(ren->built->runs[i].tex == cached.tex) {
-				run = &ren->built->runs[j];
-				break;
-			}
-		}
-
-		if(run == NULL) {
-			PGRun r2;
-			r2.tex = cached.tex;
-			r2.quads = NULL;
-			stb_arr_push(ren->built->runs, r2);
-			run = &ren->built->runs[stb_arr_len(ren->built->runs)-1];
-		}
-		if(shadow) {
-            PGQuad shQ;
-            shQ.srcX = cached.srcX;
-            shQ.srcY = cached.srcY;
-            shQ.srcW = cached.srcW;
-            shQ.srcH = cached.srcH;
-            shQ.dstX = PANGO_PIXELS(layoutX + gi->geometry.x_offset) + cached.offsetLeft + 2;
-            shQ.dstY = PANGO_PIXELS(layoutY + gi->geometry.y_offset) - cached.offsetTop + 2;
-            shQ.dstW = cached.srcW;
-            shQ.dstH = cached.srcH;
-            shQ.r = shR;
-            shQ.g = shG;
-            shQ.b = shB;
-            shQ.a = ren->alpha;
-            stb_arr_push(run->quads, shQ);
-        }
-		PGQuad q;
-		q.srcX = cached.srcX;
-		q.srcY = cached.srcY;
-		q.srcW = cached.srcW;
-		q.srcH = cached.srcH;
-		q.dstX = PANGO_PIXELS(layoutX + gi->geometry.x_offset) + cached.offsetLeft;
-		q.dstY = PANGO_PIXELS(layoutY + gi->geometry.y_offset) - cached.offsetTop;
-		q.dstW = cached.srcW;
-		q.dstH = cached.srcH;
-		q.r = red;
-		q.g = green;
-		q.b = blue;
-		q.a = ren->alpha;
-		stb_arr_push(run->quads, q);
-		layoutX += gi->geometry.width;
-	}
-	
-	pango_fc_font_unlock_face((PangoFcFont*) font);
+    PangoColor *shadow = pango_renderer_get_color(renderer, PANGO_RENDER_PART_BACKGROUND);
+    if(shadow) {
+        float shR, shG, shB;
+        shR = shadow->red / 65536.0f;
+        shG = shadow->green / 65536.0f;
+        shB = shadow->blue / 65536.0f;
+        drawGlyphRun(fontHash, shR, shG, shB, renderer, font, glyphs, px + 2 * PANGO_SCALE, py + (2 * PANGO_SCALE));
+    }
+    drawGlyphRun(fontHash, red, green, blue, renderer, font, glyphs, px, py);
 }
 
 
@@ -209,7 +178,7 @@ PGBuiltText *pg_pango_constructtext(PGRenderContext *ctx, PangoLayout **layouts,
 	built->layouts = layouts;
 	built->layoutCount = layoutCount;
 	built->ctx = ctx;
-	built->runs = NULL;
+	built->quads = NULL;
 	pg_pango_calculatetext(built, NULL);
 	return built;
 }
@@ -229,15 +198,12 @@ void pg_pango_calculatetext(PGBuiltText *text, float *color)
     }
     else
         doRenderer->colorset = 0;
-	if(text->runs) 
+	if(text->quads) 
 	{
-		for(int i = 0; i < text->runCount; i++)
-		{			
-			stb_arr_free(text->runs[i].quads);
-		}
-		stb_arr_free(text->runs);
-		text->runs = NULL;
+		stb_arr_free(text->quads);
+		text->quads = NULL;
 	}
+	stb_arr_setsize(text->quads, text->initialLen);
 	int yOffset = 0;
 	for(int i = 0; i < text->layoutCount; i++) {
 		PangoLayout *layout = text->layouts[i];
@@ -252,9 +218,6 @@ void pg_pango_calculatetext(PGBuiltText *text, float *color)
 		yOffset += logical.height;
 	}
 	text->height = yOffset / PANGO_SCALE;
-	text->runCount = stb_arr_len(text->runs);
-	for(int i = 0; i < text->runCount; i++) {
-		text->runs[i].quadCount = stb_arr_len(text->runs[i].quads);
-	}
+	text->quadCount = stb_arr_len(text->quads);
 	g_object_unref(doRenderer);
 }

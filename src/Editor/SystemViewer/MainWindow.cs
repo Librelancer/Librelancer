@@ -29,6 +29,7 @@ namespace SystemViewer
         GameWorld world;
         DebugCamera camera;
         LibreLancer.GameData.StarSystem curSystem;
+        private SystemMap systemMap = new SystemMap();
         FontManager fontMan;
         bool vSync = true;
         public MainWindow() : base(800,600,false)
@@ -226,23 +227,40 @@ C# Memory Usage: {5}
 
                 if (universeOpen)
                 {
-                    if (ImGui.Begin("Universe Map", ref universeOpen))
+                    if (ImGui.Begin("Map", ref universeOpen))
                     {
-                        var szX = Math.Max(20, ImGui.GetWindowWidth());
-                        var szY = Math.Max(20, ImGui.GetWindowHeight());
-                        string result = UniverseMap.Draw(universeBackgroundRegistered,GameData, (int)szX, (int)szY);
-                        if (result != null)
+                        ImGui.BeginTabBar("##maptabs");
+                        if (ImGui.BeginTabItem("Universe"))
                         {
-                            for (int i = 0; i < systems.Length; i++)
+                            var szX = Math.Max(20, ImGui.GetWindowWidth());
+                            var szY = Math.Max(20, ImGui.GetWindowHeight() - 50);
+                            string result = UniverseMap.Draw(universeBackgroundRegistered, GameData, (int) szX,
+                                (int) szY, 20);
+                            if (result != null)
                             {
-                                if (result.Equals(systems[i], StringComparison.OrdinalIgnoreCase))
+                                for (int i = 0; i < systems.Length; i++)
                                 {
-                                    sysIndex = i;
-                                    ChangeSystem();
-                                    break;
+                                    if (result.Equals(systems[i], StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        sysIndex = i;
+                                        ChangeSystem();
+                                        break;
+                                    }
                                 }
                             }
+
+                            ImGui.EndTabItem();
                         }
+
+                        if (ImGui.BeginTabItem("System"))
+                        {
+                            var szX = Math.Max(20, ImGui.GetWindowWidth());
+                            var szY = Math.Max(20, ImGui.GetWindowHeight() - 70);
+                            systemMap.Draw((int)szX, (int)szY);
+                            ImGui.EndTabItem();
+                        }
+
+                        ImGui.EndTabBar();
                     }
                     ImGui.End();
                 }
@@ -300,6 +318,7 @@ C# Memory Usage: {5}
                 if (icard != null) icard.SetInfocard(systemInfocard);
                 GameData.LoadAllSystem(curSystem);
                 world.LoadSystem(curSystem, Resources);
+                systemMap.SetObjects(curSystem);
                 sysIndexLoaded = sysIndex;
             }
         }
@@ -315,6 +334,7 @@ C# Memory Usage: {5}
         private int universeBackgroundRegistered;
         void OnLoadComplete()
         {
+            systemMap.CreateContext(this);
             fontMan.LoadFontsFromGameData(GameData);
             camera = new DebugCamera(new Viewport(0, 0, Width, Height));
             camera.Zoom = 5000;
@@ -333,6 +353,7 @@ C# Memory Usage: {5}
             systemInfocard = GameData.GetInfocard(curSystem.Infocard, fontMan);
             GameData.LoadAllSystem(curSystem);
             world.LoadSystem(curSystem, Resources);
+            systemMap.SetObjects(curSystem);
         }
         void LoadData(string path)
         {

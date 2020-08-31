@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Buffers;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,8 +47,9 @@ namespace LibreLancer.Text.Pango
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    struct PGQuad
+    unsafe struct PGQuad
     {
+        public PGTexture* Texture;
         public Rectangle Source;
         public Rectangle Dest;
         public Color4 Color;
@@ -79,7 +81,7 @@ namespace LibreLancer.Text.Pango
         [DllImport("pangogame")]
         static extern float pg_lineheight(IntPtr ctx, IntPtr fontName, float fontSize);
         
-        delegate void PGDrawCallback(PGQuad* quads, PGTexture* texture, int count);
+        delegate void PGDrawCallback(PGQuad* quads, int count);
         delegate void PGAllocateTextureCallback(PGTexture* texture, int width, int height);
         delegate void PGUpdateTextureCallback(PGTexture* texture, IntPtr buffer, int x, int y, int width, int height);
 
@@ -104,26 +106,27 @@ namespace LibreLancer.Text.Pango
             );
         }
 
-        void Draw(PGQuad* quads, PGTexture *texture, int count)
+        void Draw(PGQuad* quads, int count)
         {
-            if (texture == (PGTexture*)0)
+            if (drawX == int.MaxValue)
             {
-                for (int i = 0; i < count; i++)
+                lastQuads = new PGQuad[count];
+                for (int i = 0; i < lastQuads.Length; i++)
+                    lastQuads[i] = quads[i];
+                return;
+            }
+            for (int i = 0; i < count; i++)
+            {
+                var q = quads[i];
+                q.Dest.X += drawX;
+                q.Dest.Y += drawY;
+                if (q.Texture == (PGTexture*) 0)
                 {
-                    var q = quads[i];
-                    q.Dest.X += drawX;
-                    q.Dest.Y += drawY;
                     ren.FillRectangle(q.Dest, q.Color);
                 }
-            }
-            else
-            {
-                var t = textures[(int)texture->UserData];
-                for (int i = 0; i < count; i++)
+                else
                 {
-                    var q = quads[i];
-                    q.Dest.X += drawX;
-                    q.Dest.Y += drawY;
+                    var t = textures[(int)q.Texture->UserData];
                     ren.Draw(t, q.Source, q.Dest, q.Color);
                 }
             }
@@ -244,38 +247,188 @@ namespace LibreLancer.Text.Pango
             pg_drawtext(ctx, ((PangoBuiltText)txt).Handle);
         }
 
+        PGQuad[] lastQuads;
+        // CACHES
+        // TODO: Tune these
+        struct StringResults
+        {
+            public int Hash;
+            public float Size;
+            public PGQuad[] Quads;
+        }
+        
+        struct MeasureResults
+        {
+            public string Text;
+            public int Font;
+            public float Size;
+            public Point Measured;
+            public bool IsEqual(string text, int font, float size)
+            {
+                return ReferenceEquals(Text, text) &&
+                       Math.Abs(Size - size) < 0.001f && Font == font;
+            }
+        }
+        
+        struct HeightResult
+        {
+            public int Hash;
+            public float Size;
+            public float LineHeight;
+        }
+        
+        CircularBuffer<MeasureResults> measures = new CircularBuffer<MeasureResults>(64);
+        CircularBuffer<StringResults> cachedStrings = new CircularBuffer<StringResults>(64);
+        CircularBuffer<HeightResult> lineHeights = new CircularBuffer<HeightResult>(64);
+        
+        struct StringInfo
+        {
+            public int Indent;
+            public int Underline;
+            public unsafe int MakeHash(string fontName, string text)
+            {
+                fixed (StringInfo* si = &this)
+                {
+                    return FNV1A.Hash((IntPtr) si, sizeof(StringInfo),
+                        FNV1A.Hash(text, FNV1A.Hash(fontName)));
+                }
+            }
+        }
+
+        internal ref struct UTF8ZHelper
+        {
+            private byte[] poolArray;
+            private Span<byte> bytes;
+            private Span<byte> utf8z;
+            private bool used;
+            public UTF8ZHelper(Span<byte> initialBuffer, ReadOnlySpan<char> value)
+            {
+                poolArray = null;
+                bytes = initialBuffer;
+                used = false;
+                int maxSize = Encoding.UTF8.GetMaxByteCount(value.Length) + 1;
+                if (bytes.Length < maxSize) {
+                    poolArray = ArrayPool<byte>.Shared.Rent(maxSize);
+                    bytes = new Span<byte>(poolArray);
+                }
+                int byteCount = Encoding.UTF8.GetBytes(value, bytes);
+                bytes[byteCount] = 0;
+                utf8z = bytes.Slice(0, byteCount + 1);
+            }
+
+            public Span<byte> ToUTF8Z()
+            {
+                return utf8z;
+            }
+
+            public void Dispose()
+            {
+                byte[] toReturn = poolArray;
+                if (toReturn != null)
+                {
+                    poolArray = null;
+                    ArrayPool<byte>.Shared.Return(toReturn);
+                }
+            }
+        }
+
+        
         public override void DrawStringBaseline(string fontName, float size, string text, float x, float y, float start_x, Color4 color, bool underline = false, TextShadow shadow = default)
         {
             if(string.IsNullOrEmpty(fontName)) throw new InvalidOperationException("fontName null");
             var pixels = size * (96.0f / 72.0f);
-            drawX = (int)(start_x);
-            drawY = (int)y;
+            drawX = int.MaxValue;
+            drawY = int.MaxValue;
             int indent = (int) (x - start_x);
-            var textPtr = UnsafeHelpers.StringToHGlobalUTF8(text);
-            var fontPtr = UnsafeHelpers.StringToHGlobalUTF8(fontName);
-            pg_drawstring(ctx, textPtr, fontPtr, pixels, indent, underline ? 1 : 0, color.R, color.G, color.B, color.A, shadow.Enabled ? &shadow.Color : (Color4*)0);
-            Marshal.FreeHGlobal(textPtr);
-            Marshal.FreeHGlobal(fontPtr);
+            StringInfo info = new StringInfo()
+            {
+                Indent = indent, Underline = underline ? 1 : 0
+            };
+            var hash = info.MakeHash(fontName, text);
+            PGQuad[] quads = null;
+            for (int i = 0; i < cachedStrings.Count; i++) {
+                if (cachedStrings[i].Hash == hash && Math.Abs(cachedStrings[i].Size - size) < 0.001f)
+                {
+                    quads = cachedStrings[i].Quads;
+                    break;
+                }
+            }
+            if (quads == null)
+            {
+                using var textConv = new UTF8ZHelper(stackalloc byte[256], text);
+                using var fontConv = new UTF8ZHelper(stackalloc byte[256], fontName);
+                fixed(byte *tC = &textConv.ToUTF8Z().GetPinnableReference(),
+                      tF = &fontConv.ToUTF8Z().GetPinnableReference())
+                {
+                    pg_drawstring(ctx, (IntPtr)tC, (IntPtr)tF, pixels, indent, underline ? 1 : 0, 1, 1, 1, 1, (Color4*) 0);
+                }
+                quads = lastQuads;
+                lastQuads = null;
+                cachedStrings.Enqueue(new StringResults() {Hash = hash, Size = size, Quads = quads});
+            }
+
+            drawX = (int) start_x;
+            drawY = (int) y;
+            if (shadow.Enabled)
+            {
+                for (int i = 0; i < quads.Length; i++)
+                {
+                    var q = quads[i];
+                    q.Dest.X += drawX + 2;
+                    q.Dest.Y += drawY + 2;
+                    var t = textures[(int)q.Texture->UserData];
+                    ren.Draw(t, q.Source, q.Dest, shadow.Color);
+                }
+            }
+            for (int i = 0; i < quads.Length; i++)
+            {
+                var q = quads[i];
+                q.Dest.X += drawX;
+                q.Dest.Y += drawY;
+                var t = textures[(int)q.Texture->UserData];
+                ren.Draw(t, q.Source, q.Dest, color);
+            }
         }
 
+        
         public override Point MeasureString(string fontName, float size, string text)
         {
+            if (string.IsNullOrEmpty(text)) return Point.Zero;
             if(string.IsNullOrEmpty(fontName)) throw new InvalidOperationException("fontName null");
-            var textPtr = UnsafeHelpers.StringToHGlobalUTF8(text);
-            var fontPtr = UnsafeHelpers.StringToHGlobalUTF8(fontName);
-            pg_measurestring(ctx, textPtr, fontPtr, size * (96.0f / 72.0f), out var width, out var height);
-            Marshal.FreeHGlobal(textPtr);
-            Marshal.FreeHGlobal(fontPtr);
-            return new Point((int)width, (int)height);
+            int fontHash = FNV1A.Hash(fontName);
+            for (int i = 0; i < measures.Count; i++)
+            {
+                if (measures[i].IsEqual(text, fontHash, size))
+                    return measures[i].Measured;
+            }
+            using var textConv = new UTF8ZHelper(stackalloc byte[256], text);
+            using var fontConv = new UTF8ZHelper(stackalloc byte[256], fontName);
+            fixed (byte* tC = &textConv.ToUTF8Z().GetPinnableReference(),
+                tF = &fontConv.ToUTF8Z().GetPinnableReference())
+            {
+                pg_measurestring(ctx, (IntPtr)tC, (IntPtr)tF, size * (96.0f / 72.0f), out var width, out var height);
+                var p =  new Point((int)width, (int)height);
+                measures.Enqueue(new MeasureResults() {Text = text, Font = fontHash, Size = size, Measured = p});
+                return p;
+            }
         }
-
         public override float LineHeight(string fontName, float size)
         {
             if(string.IsNullOrEmpty(fontName)) throw new InvalidOperationException("LineHeight fontName cannot be null");
-            var fontPtr = UnsafeHelpers.StringToHGlobalUTF8(fontName);
-            var retval = pg_lineheight(ctx, fontPtr, size * (96.0f / 72.0f));
-            Marshal.FreeHGlobal(fontPtr);
-            return retval;
+            int fontHash = FNV1A.Hash(fontName);
+            for (int i = 0; i < lineHeights.Count; i++)
+            {
+                if (lineHeights[i].Hash == fontHash && Math.Abs(lineHeights[i].Size - size) < 0.001f)
+                    return lineHeights[i].LineHeight;
+            }
+            using var fontConv = new UTF8ZHelper(stackalloc byte[256], fontName);
+            fixed (byte* tF = &fontConv.ToUTF8Z().GetPinnableReference())
+               
+            {
+                var retval = pg_lineheight(ctx, (IntPtr)tF, size * (96.0f / 72.0f));
+                lineHeights.Enqueue(new HeightResult() {Hash = fontHash, Size = size, LineHeight = retval});
+                return retval;
+            }
         }
         public override void Dispose()
         {

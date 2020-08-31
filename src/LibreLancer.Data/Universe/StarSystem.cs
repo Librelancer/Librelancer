@@ -30,8 +30,8 @@ namespace LibreLancer.Data.Universe
         public int Visit;
         [Entry("ids_info")]
         public int IdsInfo;
-        [Entry("navmapscale")]
-        public float NavMapScale;
+        [Entry("navmapscale")] 
+        public float NavMapScale = 1;
         [Entry("file")]
         string systemFile;
         [Entry("space_color")]

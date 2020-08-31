@@ -159,10 +159,10 @@ int pg_getheight(PGBuiltText *text)
 
 void pg_drawtext(PGRenderContext* ctx, PGBuiltText *text)
 {
-	for(int i = 0; i < text->runCount; i++) {
-		ctx->drawCb(text->runs[i].quads, text->runs[i].tex, text->runs[i].quadCount);
-	}
+    if(text->quadCount == 0) return;
+    ctx->drawCb(text->quads, text->quadCount);
 }
+
 #define MulColor(x) ((guint16)((x) * 65535))
 void pg_drawstring(PGRenderContext* ctx, const char *str, const char* fontName, float fontSize, int indent, int underline, float r, float g, float b, float a, float *shadow)
 {
@@ -195,17 +195,14 @@ void pg_drawstring(PGRenderContext* ctx, const char *str, const char* fontName, 
     built.layouts = &layout;
     built.layoutCount = 1;
     built.ctx = ctx;
-    built.runs = NULL;
+    built.quads = NULL;
+    built.initialLen = strlen(str);
     float color[4] = { r, g, b, a };
     pg_pango_calculatetext(&built, color);
     //Draw
     pg_drawtext(ctx, &built);
     //Free
-    for(int i = 0; i < built.runCount; i++)
-	{
-		stb_arr_free(built.runs[i].quads);
-	}
-	stb_arr_free(built.runs);
+	stb_arr_free(built.quads);
 	g_object_unref(layout);
 }
 
@@ -261,11 +258,7 @@ void pg_addttfglobal(const char *filename)
 
 void pg_destroytext(PGBuiltText *text)
 {
-	for(int i = 0; i < text->runCount; i++)
-	{
-		stb_arr_free(text->runs[i].quads);
-	}
-	stb_arr_free(text->runs);
+	stb_arr_free(text->quads);
 	for(int i = 0; i < text->layoutCount; i++)
 	{
 		g_object_unref(text->layouts[i]);

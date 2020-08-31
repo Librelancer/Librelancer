@@ -24,6 +24,8 @@ namespace LibreLancer.Interface
         public Stylesheet Stylesheet;
         public UiXmlLoader XmlLoader;
         public InterfaceResources Resources;
+        //TODO: Make configurable
+        public INavmapIcons NavmapIcons = new NavmapIcons();
         public string XInterfacePath;
         //Editor-only
         public string FlDirectory;

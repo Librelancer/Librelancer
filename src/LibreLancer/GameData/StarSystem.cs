@@ -36,7 +36,8 @@ namespace LibreLancer.GameData
 		public string MusicSpace;
 		//Clipping
 		public float FarClip;
-
+        //Navmap
+        public float NavMapScale;
         public Action StarspheresAction;
         public void LoadStarspheres()
         {

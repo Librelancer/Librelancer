@@ -582,7 +582,7 @@ namespace LibreLancer
                 sys.BackgroundColor = inisys.SpaceColor;
                 sys.MusicSpace = inisys.MusicSpace;
                 sys.FarClip = inisys.SpaceFarClip ?? 20000f;
-                
+                sys.NavMapScale = inisys.NavMapScale;
                 sys.StarspheresAction = () =>
                 {
                     if (inisys.BackgroundBasicStarsPath != null)
@@ -1137,6 +1137,7 @@ namespace LibreLancer
                 var obj = new GameData.Archetype();
                 obj.Type = arch.Type;
                 obj.LoadoutName = arch.LoadoutName;
+                obj.NavmapIcon = arch.ShapeName;
                 foreach (var dockSphere in arch.DockingSpheres)
                 {
                     obj.DockSpheres.Add(new GameData.DockSphere()
@@ -1225,6 +1226,7 @@ namespace LibreLancer
         {
             var obj = new GameData.SystemObject();
             obj.Nickname = o.Nickname;
+            obj.Visit = o.Visit ?? 0;
             obj.DisplayName = GetString(o.IdsName);
             obj.Position = o.Pos.Value;
             obj.Spin = o.Spin ?? Vector3.Zero;
@@ -1249,6 +1251,7 @@ namespace LibreLancer
                 if (o.Star != null) //Not sure what to do if there's no star?
                 {
                     var sun = new GameData.Archetypes.Sun();
+                    sun.Type = ArchetypeType.sun;
                     var star = fldata.Stars.FindStar(o.Star);
                     //general
                     sun.Radius = star.Radius.Value;

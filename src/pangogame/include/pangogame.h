@@ -7,9 +7,16 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+    
+typedef struct _PGTexturePrivate PGTexturePrivate;
+
+typedef struct _PGTexture {
+	void* userdata;
+} PGTexture;
 
 /** TYPES **/
 typedef struct _PGQuad {
+    PGTexture* tex;
 	int srcX;
 	int srcY;
 	int srcW;
@@ -24,7 +31,6 @@ typedef struct _PGQuad {
 	float a;
 } PGQuad;
 
-typedef struct _PGTexturePrivate PGTexturePrivate;
 
 typedef enum {
 	PGAlign_Left = 0,
@@ -32,15 +38,12 @@ typedef enum {
 	PGAlign_Center = 2
 } PGAlign;
 
-typedef struct _PGTexture {
-	void* userdata;
-} PGTexture;
 
 typedef struct _PGRenderContext PGRenderContext;
 typedef struct _PGBuiltText PGBuiltText;
 
 /** CALLBACKS **/
-typedef void (*PGDrawCallback)(PGQuad* quads, PGTexture *texture, int count);
+typedef void (*PGDrawCallback)(PGQuad* quads, int count);
 /** Implementation must set userdata variable in PGTexture **/
 typedef void (*PGAllocateTextureCallback)(PGTexture *texture, int width, int height);
 typedef void (*PGUpdateTextureCallback)(PGTexture *texture, void *buffer, int x, int y, int width, int height);

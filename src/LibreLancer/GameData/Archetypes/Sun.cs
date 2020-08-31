@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Solar;
+
 namespace LibreLancer.GameData.Archetypes
 {
 	public class Sun : Archetype
@@ -20,9 +22,17 @@ namespace LibreLancer.GameData.Archetypes
 		public string SpinesSprite;
 		public float SpinesScale;
 		public List<Spine> Spines;
-		public Sun ()
-		{
-		}
+
+        public override string NavmapIcon
+        {
+            get { return "nav_star"; }
+            set { }
+        }
+
+        public Sun ()
+        {
+            Type = ArchetypeType.sun;
+        }
 	}
 }
 

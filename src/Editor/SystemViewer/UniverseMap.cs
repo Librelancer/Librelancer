@@ -11,12 +11,12 @@ namespace SystemViewer
 {
     public class UniverseMap
     {
-        public static string Draw(int imageId, GameDataManager gameData, int width, int height)
+        public static string Draw(int imageId, GameDataManager gameData, int width, int height, int offsetY)
         {
-            var crmin = ImGui.GetWindowContentRegionMin();
+            var crmin = ImGui.GetWindowContentRegionMin() + new Vector2(0, offsetY);
             if (imageId != -1)
             {
-                var wpos = ImGui.GetWindowPos();
+                var wpos = ImGui.GetWindowPos() + new Vector2(0, offsetY);
                 var a = wpos +  ImGui.GetWindowContentRegionMin();
                 var b = wpos +  ImGui.GetWindowContentRegionMax();
                 var drawList = ImGui.GetWindowDrawList();

@@ -16,8 +16,8 @@
 #include <pango/pango-font.h>
 #include <pango/pangoft2.h>
 
-#define MAX_TEXTURES 40
-#define PG_TEXTURE_SIZE 512
+#define MAX_TEXTURES 16
+#define PG_TEXTURE_SIZE 1024
 
 typedef struct {
 	PGTexture* tex;
@@ -25,19 +25,14 @@ typedef struct {
 	int offsetLeft, offsetTop;
 } CachedGlyph;
 
-typedef struct {
-	PGTexture* tex;
-	PGQuad* quads;
-	int quadCount;
-} PGRun;
-
 struct _PGBuiltText {
-	PGRun* runs;
+	PGQuad* quads;
 	PGRenderContext* ctx;
-	int runCount;
+	int quadCount;
 	PangoLayout **layouts;
 	int layoutCount;
 	int height;
+    int initialLen;
 };
 
 void pg_getglyph(PGRenderContext *ctx, CachedGlyph *outGlyph, uint32_t codePoint, uint32_t pangoFontHash, FT_Face face, PangoFont *pango);
