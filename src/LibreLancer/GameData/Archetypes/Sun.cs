@@ -23,12 +23,6 @@ namespace LibreLancer.GameData.Archetypes
 		public float SpinesScale;
 		public List<Spine> Spines;
 
-        public override string NavmapIcon
-        {
-            get { return "nav_star"; }
-            set { }
-        }
-
         public Sun ()
         {
             Type = ArchetypeType.sun;

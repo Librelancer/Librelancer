@@ -205,7 +205,7 @@ namespace LibreLancer.ImUI
         }
 		static Dictionary<int, Texture2D> textures = new Dictionary<int, Texture2D>();
 		static Dictionary<Texture2D, int> textureIds = new Dictionary<Texture2D, int>();
-		static int nextId = 2;
+		static int nextId = 8192;
 
 		//Useful for crap like FBO resizing where textures will be thrown out a ton
 		static Queue<int> freeIds = new Queue<int>();

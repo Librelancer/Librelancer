@@ -41,20 +41,13 @@ namespace LibreLancer
             }
         }
 
-		static bool? _features430;
 		public static bool Features430
 		{
 			get
 			{
 				if (GL.GLES) return false;
-				if (_features430 == null)
-				{
-					PopulateExtensions();
-					_features430 = ExtensionList.Contains("GL_ARB_shader_storage_buffer_object");
-                    if (_features430.Value) FLLog.Info("OpenGL", "SSBO available");
-                }
-                return _features430.Value;
-			}
+                return versionInteger >= 430;
+            }
 		}
 
         static bool? _directStateAccess;
@@ -72,7 +65,8 @@ namespace LibreLancer
                 return _directStateAccess.Value;
             }
         }
-        
+
+        private static int versionInteger;
         //Global method for checking extensions. Called upon GraphicsDevice creation
         public static void PopulateExtensions()
 		{
@@ -83,6 +77,8 @@ namespace LibreLancer
 			ExtensionList = new List<string> (n);
 			for (int i = 0; i < n; i++)
 				ExtensionList.Add (GL.GetString (GL.GL_EXTENSIONS, i));
+            var versionStr = GL.GetString(GL.GL_VERSION).Trim();
+            versionInteger = int.Parse(versionStr[0].ToString()) * 100 + int.Parse(versionStr[2].ToString()) * 10;
 			FLLog.Debug("GL", "Extensions: \n" + string.Join("\n", ExtensionList));
 		}
         public static void CheckExtensions()

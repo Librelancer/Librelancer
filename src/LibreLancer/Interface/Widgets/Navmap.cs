@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Data.Solar;
 using LibreLancer.GameData;
+using SharpDX.Direct2D1;
 
 namespace LibreLancer.Interface
 {
@@ -17,6 +18,8 @@ namespace LibreLancer.Interface
             public UiRenderable Renderable;
             public string Name;
             public Vector2 XZ;
+            public float SolarRadius;
+            public bool IconZoomedOut;
         }
         List<DrawObject> objects = new List<DrawObject>();
 
@@ -28,11 +31,25 @@ namespace LibreLancer.Interface
         List<Tradelanes> tradelanes = new List<Tradelanes>();
         private float navmapscale;
         private const float GridSizeDefault = 240000;
+        private string systemName = "";
+        public LetterPosition GridLetterPosition { get; set; } = LetterPosition.Bottom;
+        public bool LetterMargin { get; set; } = false;
+
+        public bool MapBorder { get; set; } = false;
+
+        public enum LetterPosition
+        {
+            Top,
+            Bottom
+        }
+        
+        
         public void PopulateIcons(UiContext ctx, GameData.StarSystem sys)
         {
             foreach(var l in ctx.Data.NavmapIcons.Libraries())
                 ctx.Data.ResourceManager.LoadResourceFile(ctx.Data.FileSystem.Resolve(l));
             objects = new List<DrawObject>();
+            tradelanes = new List<Tradelanes>();
             navmapscale = sys.NavMapScale;
             foreach (var obj in sys.Objects)
             {
@@ -59,12 +76,9 @@ namespace LibreLancer.Interface
                     }
                 }
                 if((obj.Visit & 128) == 128) continue;
+                if ((obj.Archetype.SolarRadius <= 0)) continue;
                 UiRenderable renderable = null;
-                if (obj.Archetype.Type == ArchetypeType.planet ||
-                    obj.Archetype.Type == ArchetypeType.sun)
-                {
-                    renderable = ctx.Data.NavmapIcons.GetRenderable(obj.Archetype.NavmapIcon);
-                }
+                renderable = ctx.Data.NavmapIcons.GetSystemObject(obj.Archetype.NavmapIcon);
 
                 string nm = obj.DisplayName;
                 if (obj.Archetype.Type != ArchetypeType.planet &&
@@ -75,44 +89,90 @@ namespace LibreLancer.Interface
                 {
                     nm = null;
                 }
-                objects.Add(new DrawObject()
-                {
+                bool iconZoomOut = (
+                        obj.Archetype.Type == ArchetypeType.planet ||
+                        obj.Archetype.Type == ArchetypeType.sun ||
+                        obj.Archetype.Type == ArchetypeType.mission_satellite
+                        );
+                objects.Add(new DrawObject() {
                     Renderable = renderable,
                     Name = nm,
-                    XZ = new Vector2(obj.Position.X, obj.Position.Z)
+                    XZ = new Vector2(obj.Position.X, obj.Position.Z),
+                    SolarRadius = obj.Archetype.SolarRadius,
+                    IconZoomedOut = iconZoomOut
                 });
             }
+            systemName = sys.Name.ToUpper();
         }
-        
+
+        private static readonly string[] GRIDNUMBERS = {
+            "1", "2", "3", "4", "5", "6", "7", "8"
+        };
+
+        private readonly string[] GRIDLETTERS = {
+            "A", "B", "C", "D", "E", "F", "G", "H"
+        };
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
-            var rect = GetMyRectangle(context, parentRectangle);
+            context.Mode2D();
+            var parentRect = GetMyRectangle(context, parentRectangle);
+            var gridIdentSize = 13 * (parentRect.Height / 480);
+            var gridIdentFont = context.Data.GetFont("$NavMap800");
+            var inputRatio = 480 / context.ViewportHeight;
+            var lH = context.Renderer2D.LineHeight(gridIdentFont, context.TextSize(gridIdentSize)) * inputRatio + 3;
+            RectangleF rect = parentRect;
+            if (LetterMargin)
+            {
+                var topOffset = GridLetterPosition == LetterPosition.Top ? lH : 0;
+                rect = new RectangleF(parentRect.X + lH, parentRect.Y + topOffset, parentRect.Width - (2 * lH),
+                    parentRect.Height -
+                    (2 * lH));
+            }
+            //Draw Letters
+            var rHoriz = rect.Width / 8;
+            var rVert = rect.Height / 8;
+            for (int i = 0; i < 8; i++)
+            {
+                var renNum = GRIDNUMBERS[i];
+                var renLet = GRIDLETTERS[i];
+                var hOff = (rHoriz * i);
+                RectangleF letterRect;
+                if (GridLetterPosition == LetterPosition.Top) {
+                    letterRect = new RectangleF(rect.X + hOff, rect.Y - lH, rHoriz, lH);
+                }
+                else {
+                    letterRect = new RectangleF(rect.X + hOff, rect.Y + rect.Height + 1, rHoriz, lH);
+                }
+                DrawText(context, letterRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
+                    new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Bottom,
+                    false, renLet);
+                var vOff = (rVert * i);
+                var numRect = new RectangleF(rect.X - lH, rect.Y + vOff, lH, rVert);
+                DrawText(context, numRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
+                    new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Center,
+                    false, renNum);
+            }
             if (navmapscale == 0) return;
             var scale = new Vector2(GridSizeDefault / navmapscale);
-            var szIcon = rect.Height / 30;
-            var originIcon = new Vector2(szIcon / 2);
-            //Draw Grid
-            var screenRect = context.PointsToPixels(rect);
-            var horiz = screenRect.Width / 8f;
-            var vert = screenRect.Height / 8f;
-            context.Mode2D();
-            context.Renderer2D.FillRectangle(screenRect, new Color4(0.14f, 0, 0.14f, 1f));
-            for(int i = 0; i < 9; i++)
-            {
-                var hOff = (int) (horiz * i);
-                int yOff = (int) (vert * i);
-                context.Renderer2D.DrawLine(Color4.White, 
-                    new Vector2(screenRect.X + hOff, screenRect.Y), new Vector2(screenRect.X + hOff, screenRect.Y + screenRect.Height));
-                context.Renderer2D.DrawLine(Color4.White,
-                    new Vector2(screenRect.X, screenRect.Y + yOff), new Vector2(screenRect.X + screenRect.Width, screenRect.Y + yOff));
+            var background = context.Data.NavmapIcons.GetBackground();
+            background.DrawWithClip(context, rect, rect);
+            if (MapBorder) {
+                context.Mode2D();
+                var pRect = context.PointsToPixels(rect);
+                context.Renderer2D.DrawRectangle(pRect, Color4.White, 1);
             }
-            //prevent segfault from autocalculated size being huge. TODO: Fix in UiContext
-            var fontSize = Math.Min(context.TextSize(rect.Height / 53f), 60);
+            //System Name
+            if (!string.IsNullOrWhiteSpace(systemName))
+            {
+                var sysNameFont = context.Data.GetFont("$NavMap1600");
+                var sysNameSize = 16f * (parentRect.Height / 480);
+                DrawText(context, rect, sysNameSize, sysNameFont, InterfaceColor.White,
+                    new InterfaceColor() {Color = Color4.Black}, HorizontalAlignment.Center,
+                    VerticalAlignment.Bottom, false, systemName);
+            }
+            var fontSize = 11f * (parentRect.Height / 480);
             var font = context.Data.GetFont("$NavMap800");
             //Draw Objects
-            int stringCount = 0;
-
-            
             Vector2 WorldToMap(Vector2 a)
             {
                 var relPos = (a + (scale / 2)) / scale;
@@ -121,9 +181,11 @@ namespace LibreLancer.Interface
             foreach (var obj in objects)
             {
                 var posAbs = WorldToMap(obj.XZ);
-                if (obj.Renderable != null)
+                if (obj.Renderable != null && obj.IconZoomedOut)
                 {
-                    var objRect = new RectangleF(posAbs.X - originIcon.X, posAbs.Y - originIcon.Y, szIcon, szIcon);
+                    var szIcon = (2 * obj.SolarRadius) / scale.Y * rect.Height;
+                    var originIcon = szIcon / 2;
+                    var objRect = new RectangleF(posAbs.X - originIcon, posAbs.Y - originIcon, szIcon, szIcon);
                     obj.Renderable.Draw(context, objRect);
                 }
 

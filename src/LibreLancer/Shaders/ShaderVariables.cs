@@ -189,7 +189,7 @@ namespace LibreLancer.Shaders
                 if (normalMatrixPosition != -1)
                     shader.SetMatrix(normalMatrixPosition, ref id);
             }
-            else if (shader.UserTag != world.ID)
+            else if (world.ID == ulong.MaxValue || shader.UserTag != world.ID)
             {
                 shader.UserTag = world.ID;
                 if (worldPosition != -1)

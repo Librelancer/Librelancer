@@ -375,9 +375,13 @@ namespace InterfaceEdit
                             Matrix4x4.CreateTranslation(mdl.X, mdl.Y, 0);
             var mcam = new MatrixCamera(Matrix4x4.Identity);
             mcam.CreateTransform(rtX, rtY, rectangle);
+            
             drawable.Update(mcam, TimeSpan.FromSeconds(mainWindow.TotalTime), context.ResourceManager);
             mainWindow.RenderState.Cull = false;
+            mainWindow.RenderState.ScissorEnabled = true;
+            mainWindow.RenderState.ScissorRectangle = rectangle;
             drawable.DrawImmediate(mainWindow.RenderState, context.ResourceManager, transform, ref Lighting.Empty);
+            mainWindow.RenderState.ScissorEnabled = false;
             mainWindow.RenderState.Cull = true;
             DrawViewport();
         }

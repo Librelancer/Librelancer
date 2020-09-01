@@ -8,7 +8,8 @@ namespace LibreLancer.Interface
 {
     public interface INavmapIcons
     {
-        UiRenderable GetRenderable(string name);
+        UiRenderable GetSystemObject(string name);
+        UiRenderable GetBackground();
         IEnumerable<string> Libraries();
     }
     
@@ -52,14 +53,14 @@ namespace LibreLancer.Interface
             yield return $"{DIR}spaceobjects.mat";
             yield return "DATA/INTERFACE/interface.generic.vms";
         }
-        public UiRenderable GetRenderable(string name)
+        public UiRenderable GetSystemObject(string name)
         {
-            if (string.IsNullOrEmpty(name)) return GetRenderable("nav_depot");
+            if (string.IsNullOrEmpty(name)) return GetSystemObject("nav_depot");
             if (!renderables.TryGetValue(name, out var renderable))
             {
                 if (!models.TryGetValue(name, out var model))
                 {
-                    return GetRenderable("nav_depot");
+                    return GetSystemObject("nav_depot");
                 }
                 renderable = new UiRenderable();
                 renderable.AddElement(new DisplayModel() {
@@ -70,6 +71,23 @@ namespace LibreLancer.Interface
                 renderables.Add(name, renderable);
             }
             return renderable;
+        }
+
+        private UiRenderable background;
+        public UiRenderable GetBackground()
+        {
+            if (background == null) {
+                background = new UiRenderable();
+                background.AddElement(new DisplayModel()
+                {
+                    Model = new InterfaceModel()
+                    {
+                        Name = "model", Path = "DATA/INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/zoomedmap_liberty.3db",
+                        XScale =  4.15f, YScale = 4.15f
+                    }
+                });
+            }
+            return background;
         }
     }
 }

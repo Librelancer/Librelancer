@@ -115,6 +115,8 @@ namespace LibreLancer
             public Matrix4x4 World;
             public Matrix4x4 Normal;
         }
+
+        private ulong drawN = ulong.MaxValue;
         public unsafe void DrawImmediate(int level, ResourceManager res, RenderState renderState, Matrix4x4 world, ref Lighting lights, MaterialAnimCollection mc, Material overrideMat = null)
         {
             if (Levels == null || Levels.Length < level) return;
@@ -139,14 +141,14 @@ namespace LibreLancer
 
                 WorldMatrixHandle handle;
                 handle.Source = (Matrix4x4*) &src;
-                handle.ID = (ulong) handle.Source + (ulong)i  * 37 + (ulong)dc.MaterialCrc * 13 + (ulong)dc.PrimitiveCount * 37;
+                handle.ID = ulong.MaxValue;
                 if (dc.HasScale)
                 {
                     world2.World = dc.Scale * world;
                     Matrix4x4.Invert(world2.World, out world2.Normal);
                     world2.Normal = Matrix4x4.Transpose(world2.Normal);
                     handle.Source = (Matrix4x4*) &world2;
-                    handle.ID = (ulong) handle.Source + (ulong)i  * 37 + (ulong)dc.MaterialCrc * 13 + (ulong)dc.PrimitiveCount * 37;
+                    handle.ID = ulong.MaxValue;
                 }
                 Matrix4x4 tr = world;
                 if (dc.HasScale)

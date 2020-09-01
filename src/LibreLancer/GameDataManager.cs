@@ -1138,6 +1138,7 @@ namespace LibreLancer
                 obj.Type = arch.Type;
                 obj.LoadoutName = arch.LoadoutName;
                 obj.NavmapIcon = arch.ShapeName;
+                obj.SolarRadius = arch.SolarRadius ?? 0;
                 foreach (var dockSphere in arch.DockingSpheres)
                 {
                     obj.DockSpheres.Add(new GameData.DockSphere()
@@ -1252,6 +1253,8 @@ namespace LibreLancer
                 {
                     var sun = new GameData.Archetypes.Sun();
                     sun.Type = ArchetypeType.sun;
+                    sun.NavmapIcon = obj.Archetype.NavmapIcon;
+                    sun.SolarRadius = obj.Archetype.SolarRadius;
                     var star = fldata.Stars.FindStar(o.Star);
                     //general
                     sun.Radius = star.Radius.Value;

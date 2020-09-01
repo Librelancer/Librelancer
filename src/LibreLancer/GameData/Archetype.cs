@@ -11,12 +11,13 @@ namespace LibreLancer.GameData
         public ResolvedModel ModelFile;
 		//HACK: remove later
 		public string ArchetypeName;
-        public virtual string NavmapIcon { get; set; }
+        public string NavmapIcon;
         public string LoadoutName;
         public Data.Solar.ArchetypeType Type;
 		public List<DockSphere> DockSpheres = new List<DockSphere>();
 		public float[] LODRanges;
         public Data.Solar.CollisionGroup[] CollisionGroups;
+        public float SolarRadius;
 		public Archetype ()
 		{
 		}
