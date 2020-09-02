@@ -45,7 +45,10 @@ namespace LibreLancer.Interface
 
         bool CanRender(UiContext context)
         {
-            if (texture != null) return true;
+            if (texture != null) {
+                if(texture.IsDisposed) texture = context.Data.ResourceManager.FindTexture(Image.TexName) as Texture2D;
+                return texture != null;
+            }
             texture = context.Data.ResourceManager.FindTexture(Image.TexName) as Texture2D;
             if (texture == null) return false;
             return true;

@@ -126,6 +126,18 @@ namespace LibreLancer.Interface
             var i = (int) (points * ratio);
             return i <= 0 ? 1 : i;
         }
+
+        public RectangleF PointsToPixelsF(RectangleF points)
+        {
+            var ratio = ViewportHeight / 480;
+            return new RectangleF(points.X * ratio, points.Y * ratio, points.Width * ratio, points.Height * ratio);
+        }
+
+        public Vector2 PointsToPixelsF(Vector2 points)
+        {
+            var ratio = ViewportHeight / 480;
+            return ratio * points;
+        }
         public Rectangle PointsToPixels(RectangleF points)
         {
             var ratio = ViewportHeight / 480;

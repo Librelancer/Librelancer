@@ -23,6 +23,15 @@ namespace LibreLancer.Interface
         }
         List<DrawObject> objects = new List<DrawObject>();
 
+        class DrawZone
+        {
+            public Vector2 XZ;
+            public Vector2 Dimensions;
+            public string Texture;
+            public float Angle;
+        }
+        List<DrawZone> zones = new List<DrawZone>();
+
         struct Tradelanes
         {
             public Vector2 StartXZ;
@@ -102,6 +111,53 @@ namespace LibreLancer.Interface
                     IconZoomedOut = iconZoomOut
                 });
             }
+
+            zones = new List<DrawZone>();
+            foreach (var ast in sys.AsteroidFields)
+            {
+                if ((ast.Zone.VisitFlags & 128) == 128) continue;
+                Vector2 xz = new Vector2(ast.Zone.Position.X, ast.Zone.Position.Z);
+                Vector2 dimensions;
+                float rotSign = -1;
+                if (Math.Abs(ast.Zone.RotationAngles.X - Math.PI) < 0.001f ||
+                    Math.Abs(ast.Zone.RotationAngles.X + Math.PI) < 0.001f)
+                    rotSign = 1;
+                float angle = rotSign * ast.Zone.RotationAngles.Y;
+                if (ast.Zone.Shape is ZoneSphere sph)
+                {
+                    dimensions = new Vector2(sph.Radius * 2);
+                } else if (ast.Zone.Shape is ZoneEllipsoid elp)
+                {
+                    dimensions = new Vector2(elp.Size.X, elp.Size.Z) * 2;
+                }
+                else
+                    continue;
+
+                string tex = "";
+                if ((ast.Zone.PropertyFlags & ZonePropFlags.Badlands) == ZonePropFlags.Badlands)
+                    tex = "nav_terrain_badlands";
+                if ((ast.Zone.PropertyFlags & ZonePropFlags.Crystal) == ZonePropFlags.Crystal ||
+                    (ast.Zone.PropertyFlags & ZonePropFlags.Ice) == ZonePropFlags.Ice)
+                    tex = "nav_terrain_ice";
+                if ((ast.Zone.PropertyFlags & ZonePropFlags.Lava) == ZonePropFlags.Lava)
+                    tex = "nav_terrain_lava";
+                if ((ast.Zone.PropertyFlags & ZonePropFlags.Mines) == ZonePropFlags.Mines)
+                    tex = "nav_terrain_mines";
+                if ((ast.Zone.PropertyFlags & ZonePropFlags.Debris) == ZonePropFlags.Debris)
+                    tex = "nav_terrain_debris";
+                if ((ast.Zone.PropertyFlags & ZonePropFlags.Nomad) == ZonePropFlags.Nomad)
+                    tex = "nav_terrain_nomadast";
+                if ((ast.Zone.PropertyFlags & ZonePropFlags.Rock) == ZonePropFlags.Rock)
+                    tex = "asteroidtest";
+                if(string.IsNullOrWhiteSpace(tex)) continue;
+                zones.Add(new DrawZone()
+                {
+                    XZ = xz,
+                    Dimensions = dimensions,
+                    Texture = tex,
+                    Angle = angle
+                });
+            }
             systemName = sys.Name.ToUpper();
         }
 
@@ -161,6 +217,27 @@ namespace LibreLancer.Interface
                 var pRect = context.PointsToPixels(rect);
                 context.Renderer2D.DrawRectangle(pRect, Color4.White, 1);
             }
+            //Draw Zones
+            Vector2 WorldToMap(Vector2 a)
+            {
+                var relPos = (a + (scale / 2)) / scale;
+                return new Vector2(rect.X, rect.Y) + relPos * new Vector2(rect.Width, rect.Height);
+            }
+            foreach (var zone in zones)
+            {
+                var texture = (Texture2D) context.Data.ResourceManager.FindTexture(zone.Texture);
+                var tR = new Rectangle(0,0, 480, 480);
+                texture.SetWrapModeS(WrapMode.Repeat);
+                texture.SetWrapModeT(WrapMode.Repeat);
+                var mCenter = WorldToMap(zone.XZ);
+                var mDim = zone.Dimensions / scale * new Vector2(rect.Width, rect.Height);
+                var center = context.PointsToPixelsF(mCenter);
+                var dimensions = context.PointsToPixelsF(mDim);
+                var r2 = new RectangleF(mCenter.X - mDim.X / 2, mCenter.Y - mDim.Y / 2, rect.Width, rect.Height);
+                context.Renderer2D.EllipseMask(texture, tR, context.PointsToPixelsF(r2),
+                    center, dimensions, zone.Angle, Color4.White);
+            }
+            
             //System Name
             if (!string.IsNullOrWhiteSpace(systemName))
             {
@@ -173,11 +250,7 @@ namespace LibreLancer.Interface
             var fontSize = 11f * (parentRect.Height / 480);
             var font = context.Data.GetFont("$NavMap800");
             //Draw Objects
-            Vector2 WorldToMap(Vector2 a)
-            {
-                var relPos = (a + (scale / 2)) / scale;
-                return new Vector2(rect.X, rect.Y) + relPos * new Vector2(rect.Width, rect.Height);
-            }
+           
             foreach (var obj in objects)
             {
                 var posAbs = WorldToMap(obj.XZ);
@@ -206,6 +279,8 @@ namespace LibreLancer.Interface
                 var posB = context.PointsToPixels(WorldToMap(tl.EndXZ));
                 context.Renderer2D.DrawLine(Color4.CornflowerBlue, posA, posB);
             }
+
+           
         }
         
         RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)

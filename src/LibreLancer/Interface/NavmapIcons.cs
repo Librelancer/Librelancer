@@ -52,6 +52,8 @@ namespace LibreLancer.Interface
         {
             yield return $"{DIR}spaceobjects.mat";
             yield return "DATA/INTERFACE/interface.generic.vms";
+            yield return "DATA/INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/navmaptextures.txm";
+            yield return "DATA/INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/zoomedmap_liberty.3db";
         }
         public UiRenderable GetSystemObject(string name)
         {
@@ -78,12 +80,11 @@ namespace LibreLancer.Interface
         {
             if (background == null) {
                 background = new UiRenderable();
-                background.AddElement(new DisplayModel()
+                background.AddElement(new DisplayImage()
                 {
-                    Model = new InterfaceModel()
+                    Image = new InterfaceImage()
                     {
-                        Name = "model", Path = "DATA/INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/zoomedmap_liberty.3db",
-                        XScale =  4.15f, YScale = 4.15f
+                        TexName = "NAV_zoomedliberty.tga"
                     }
                 });
             }

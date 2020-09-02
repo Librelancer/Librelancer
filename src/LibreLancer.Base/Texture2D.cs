@@ -130,6 +130,7 @@ namespace LibreLancer
 
         public override void BindTo(int unit)
         {
+            if(IsDisposed) throw new ObjectDisposedException("Texture2D");
             GLBind.BindTexture(unit, GL.GL_TEXTURE_2D, ID);
             //Unit 4 is for creation, don't call it a trillion times
             if(unit != 4 && LevelCount > 1 && maxLevel != currentLevels) {

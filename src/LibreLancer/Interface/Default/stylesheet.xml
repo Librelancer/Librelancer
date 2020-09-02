@@ -8,6 +8,19 @@
 		<ButtonStyle.Hover TextColor="text_hover"/>
         <ButtonStyle.Disabled TextColor="#666"/>
 	</ButtonStyle>
+	<ButtonStyle Width="162" Height="36" Name="wirebutton" MouseEnterSound="ui_rollover">
+		<ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="16" FontFamily="$ButtonText">
+			<ButtonAppearance.Background>
+				<DisplayWireBorder Width="4" Color="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover TextColor="text_hover">
+			<ButtonAppearance.Background>
+				<DisplayWireBorder Width="4" Color="text_hover"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+        <ButtonStyle.Disabled TextColor="#666"/>
+	</ButtonStyle>
 	<ScrollbarStyle Width="16" TrackMarginY="4" ButtonMarginX="2">
 		<ScrollbarStyle.UpButton Height="12">
 			<ButtonStyle.Normal>
@@ -50,6 +63,7 @@
 		</ScrollbarStyle.Thumb>
 	</ScrollbarStyle>
 </Stylesheet>
+
 
 
 

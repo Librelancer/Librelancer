@@ -19,8 +19,10 @@ namespace LibreLancer
 		#version 140
 		in vec2 vertex_position;
 		in vec2 vertex_texture1;
+        in vec2 vertex_texture2;
 		in vec4 vertex_color;
 		out vec2 out_texcoord;
+        out vec2 c_pos;
 		out vec4 blendColor;
 		uniform mat4 modelviewproj;
 		void main()
@@ -28,21 +30,32 @@ namespace LibreLancer
     		gl_Position = modelviewproj * vec4(vertex_position, 0.0, 1.0);
     		blendColor = vertex_color;
     		out_texcoord = vertex_texture1;
+            c_pos = vertex_texture2;
 		}
 		";
 
         const string img_fragment_source = @"
 		#version 140
 		in vec2 out_texcoord;
+        in vec2 c_pos;
 		in vec4 blendColor;
 		out vec4 out_color;
 		uniform sampler2D tex;
         uniform float blend;
+        uniform bool circle;
 		void main()
 		{
             vec4 src = texture(tex, out_texcoord);
             src = mix(src, vec4(1,1,1, src.r), blend);
-			out_color = src * blendColor;
+            if(circle) {
+                vec2 val = c_pos - vec2(0.5);
+                float r = sqrt(dot(val,val));
+                float delta = fwidth(r);
+                float alpha = smoothstep(0.5, 0.5 - delta, r);
+                out_color = src * blendColor * vec4(1,1,1,alpha);
+            } else {
+                out_color = src * blendColor;
+            }
 		}
 		";
 		
@@ -50,22 +63,33 @@ namespace LibreLancer
 		struct Vertex2D : IVertexType {
 			public Vector2 Position;
 			public Vector2 TexCoord;
-			public Color4 Color;
+            public int CircleCoord;
+			public int Color;
 
 			public Vertex2D(Vector2 position, Vector2 texcoord, Color4 color)
 			{
 				Position = position;
 				TexCoord = texcoord;
-				Color = color;
-			}
+                CircleCoord = 0;
+                Color = color.ToAbgr();
+            }
+
+            public Vertex2D(Vector2 position, Vector2 texcoord, int circlecoord, Color4 color)
+            {
+                Position = position;
+                TexCoord = texcoord;
+                CircleCoord = circlecoord;
+                Color = color.ToAbgr();
+            }
 
 			public VertexDeclaration GetVertexDeclaration()
 			{
 				return new VertexDeclaration (
-					sizeof(float) * 2 + sizeof(float) * 2 + sizeof(float) * 4,
+					sizeof(float) * 2 + sizeof(float) * 2 + sizeof(int) + sizeof(int),
 					new VertexElement (VertexSlots.Position, 2, VertexElementType.Float, false, 0),
 					new VertexElement (VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 2),
-					new VertexElement (VertexSlots.Color, 4, VertexElementType.Float, false, sizeof(float) * 4)
+                    new VertexElement(VertexSlots.Texture2, 2, VertexElementType.UnsignedShort, false, sizeof(float) * 4),
+					new VertexElement (VertexSlots.Color, 4, VertexElementType.UnsignedByte, true, sizeof(float) * 5)
 				);
 			}
 		}
@@ -77,12 +101,14 @@ namespace LibreLancer
 		Shader imgShader;
 		Texture2D dot;
         private int blendLocation;
+        private int circleLocation;
 		public Renderer2D (RenderState rstate)
 		{
 			rs = rstate;
             imgShader = new Shader (vertex_source, img_fragment_source);
 			imgShader.SetInteger (imgShader.GetLocation("tex"), 0);
             blendLocation = imgShader.GetLocation("blend");
+            circleLocation = imgShader.GetLocation("circle");
 			vbo = new VertexBuffer (typeof(Vertex2D), MAX_VERT, true);
 			el = new ElementBuffer (MAX_INDEX);
 			var indices = new ushort[MAX_INDEX];
@@ -143,6 +169,7 @@ namespace LibreLancer
 		int primitiveCount = 0;
 		Texture2D currentTexture = null;
 		BlendMode currentMode = BlendMode.Normal;
+        private bool isCircle = false;
 		int vpHeight;
 		public void Start(int vpWidth, int vpHeight)
 		{
@@ -154,7 +181,9 @@ namespace LibreLancer
 			imgShader.SetMatrix (imgShader.GetLocation("modelviewproj"), ref mat);
 			currentMode = BlendMode.Normal;
             vertices = (Vertex2D*)vbo.BeginStreaming();
-		}
+            isCircle = false;
+            
+        }
 
 		public void DrawWithClip(Rectangle clip, Action drawfunc)
 		{
@@ -185,10 +214,118 @@ namespace LibreLancer
 		{
 			DrawQuad(dot, new Rectangle(0,0,1,1), rect, color, BlendMode.Normal);
 		}
-        
-        void Prepare(BlendMode mode, Texture2D tex)
+
+        const int C_TL = 0;
+        private const int C_TR = 1 << 16;
+        private const int C_BL = 1;
+        private const int C_BR = 1 << 16 | 1;
+
+       
+
+        public void EllipseMask(Texture2D tex, Rectangle source, RectangleF parent, Vector2 center, Vector2 dimensions, float angle, Color4 color)
+        {
+            Prepare(BlendMode.Normal, tex, true);
+
+            float x = center.X;
+            float y = center.Y;
+            float w = dimensions.X;
+            float h = dimensions.Y;
+            float dx = -dimensions.X / 2;
+            float dy = -dimensions.Y / 2;
+            
+            float srcX = (float)source.X;
+            float srcY = (float)source.Y;
+            float srcW = (float)source.Width;
+            float srcH = (float)source.Height;
+
+            
+            var cos = MathF.Cos(angle);
+            var sin = MathF.Sin(angle);
+            var tl = new Vector2(
+                x + dx * cos - dy * sin,
+                y + dx * sin + dy * cos
+            );
+            var tr = new Vector2(
+                x+(dx+w)*cos-dy*sin,
+                y+(dx+w)*sin+dy*cos
+            );
+            var bl = new Vector2(
+                x + dx * cos - (dy + h) * sin,
+                y + dx * sin + (dy + h) * cos
+            );
+            var br = new Vector2(
+                x+(dx+w)*cos-(dy+h)*sin,
+                y+(dx+w)*sin+(dy+h)*cos
+                );
+
+            Vector2 GetTexCoord(Vector2 x)
+            {
+                var rel = new Vector2(source.X, source.Y) +
+                          (x - new Vector2(parent.X, parent.Y)) /
+                          new Vector2(parent.Width, parent.Height) *
+                          new Vector2(source.Width, source.Height);
+                return rel / new Vector2(tex.Width, tex.Height);
+            }
+            
+            vertices [vertexCount++] = new Vertex2D (
+                tl, GetTexCoord(tl),
+                C_TL,
+                color
+            );
+            vertices [vertexCount++] = new Vertex2D (
+                tr, GetTexCoord(tr),
+                C_TR,
+                color
+            );
+            vertices [vertexCount++] = new Vertex2D (
+                bl, GetTexCoord(bl),
+                C_BL,
+                color
+            );
+            vertices [vertexCount++] = new Vertex2D (
+                br, GetTexCoord(br),
+                C_BR,
+                color
+            );
+
+            primitiveCount += 2;
+        }
+        public void FillRectangleColors(RectangleF rec, Color4 tl, Color4 tr, Color4 bl, Color4 br)
+        {
+            Prepare(BlendMode.Normal, dot, false);
+
+            float x = (float)rec.X;
+            float y = (float)rec.Y;
+            float w = (float)rec.Width;
+            float h = (float)rec.Height;
+            
+            vertices [vertexCount++] = new Vertex2D (
+                new Vector2 (x, y),
+                Vector2.Zero,
+                tl
+            );
+            vertices [vertexCount++] = new Vertex2D (
+                new Vector2 (x + w, y),
+                Vector2.Zero,
+                tr
+            );
+            vertices [vertexCount++] = new Vertex2D (
+                new Vector2(x, y + h),
+                Vector2.Zero,
+                bl
+            );
+            vertices [vertexCount++] = new Vertex2D (
+                new Vector2 (x + w, y + h),
+                Vector2.Zero,
+                br
+            );
+
+            primitiveCount += 2;
+        }
+        void Prepare(BlendMode mode, Texture2D tex, bool circle)
         {
             if (currentMode != mode ||
+                isCircle != circle ||
                 (currentTexture != null && currentTexture != tex) ||
                 (primitiveCount + 2) * 3 >= MAX_INDEX ||
                 (vertexCount + 4) >= MAX_VERT)
@@ -197,11 +334,12 @@ namespace LibreLancer
             }
             currentTexture = tex;
             currentMode = mode;
+            isCircle = circle;
         }
-        
-		public void DrawLine(Color4 color, Vector2 start, Vector2 end)
-		{
-			Prepare(BlendMode.Normal, dot);
+
+        public void DrawLine(Color4 color, Vector2 start, Vector2 end)
+        {
+            Prepare(BlendMode.Normal, dot, false);
 
 			var edge = end - start;
 			var angle = (float)Math.Atan2(edge.Y, edge.X);
@@ -266,8 +404,8 @@ namespace LibreLancer
 		}
 
 		public void FillTriangle(Vector2 point1, Vector2 point2, Vector2 point3, Color4 color)
-		{
-            Prepare(BlendMode.Normal, dot);
+        {
+            Prepare(BlendMode.Normal, dot, false);
           
 			vertices[vertexCount++] = new Vertex2D(
 				point1,
@@ -297,7 +435,7 @@ namespace LibreLancer
         public void DrawTriangle(Texture2D tex, Vector2 pa, Vector2 pb, Vector2 pc, Vector2 uva, Vector2 uvb,
             Vector2 uvc, Color4 color)
         {
-            Prepare(BlendMode.Normal, tex);
+            Prepare(BlendMode.Normal, tex, false);
 
             vertices[vertexCount++] = new Vertex2D(
                 pa, uva, color
@@ -316,7 +454,7 @@ namespace LibreLancer
 
         public void DrawVerticalGradient(Rectangle rect, Color4 top, Color4 bottom)
         {
-            Prepare(BlendMode.Normal, dot);
+            Prepare(BlendMode.Normal, dot, false);
             var x = (float) rect.X;
             var y = (float) rect.Y;
             var w = (float) rect.Width;
@@ -345,8 +483,8 @@ namespace LibreLancer
         }
 
         void DrawQuad(Texture2D tex, Rectangle source, Rectangle dest, Color4 color, BlendMode mode, bool flip = false)
-		{
-            Prepare(mode, tex);
+        {
+            Prepare(mode, tex, false);
 
 			float x = (float)dest.X;
 			float y = (float)dest.Y;
@@ -413,6 +551,7 @@ namespace LibreLancer
                 imgShader.SetFloat(blendLocation, 1f);
             else
                 imgShader.SetFloat(blendLocation, 0f);
+            imgShader.SetInteger(circleLocation, isCircle ? 1 : 0);
             var verts = new Vertex2D[vertexCount];
             for (int i = 0; i < vertexCount; i++)
                 verts[i] = vertices[i];

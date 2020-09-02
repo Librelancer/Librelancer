@@ -193,7 +193,7 @@ namespace LibreLancer
                     vert = new VertexPositionNormalDiffuseTexture(
                         v.Position,
                         v.Normal,
-                        (uint)Color4.White.ToArgb(),
+                        (uint)Color4.White.ToAbgr(),
                         v.TextureCoordinate);
                 }
                 else if (vertType == typeof(VertexPositionNormalTextureTwo))
@@ -202,7 +202,7 @@ namespace LibreLancer
                     vert = new VertexPositionNormalDiffuseTexture(
                         v.Position,
                         v.Normal,
-                        (uint)Color4.White.ToArgb(),
+                        (uint)Color4.White.ToAbgr(),
                         v.TextureCoordinate);
                 }
                 else if (vertType == typeof(VertexPositionNormalDiffuseTextureTwo))

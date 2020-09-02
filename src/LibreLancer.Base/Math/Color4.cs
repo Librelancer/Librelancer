@@ -105,17 +105,17 @@ namespace LibreLancer
         #region Public Members
 
         /// <summary>
-        /// Converts this color to an integer representation with 8 bits per channel.
+        /// Converts this color to an integer representation with 8 bits per channel for
+        /// use with OpenGL.
         /// </summary>
         /// <returns>A <see cref="System.Int32"/> that represents this instance.</returns>
-        /// <remarks>This method is intended only for compatibility with System.Drawing. It compresses the color into 8 bits per channel, which means color information is lost.</remarks>
-        public int ToArgb()
+        public int ToAbgr()
         {
             uint value =
                 (uint)(A * Byte.MaxValue) << 24 |
-                (uint)(R * Byte.MaxValue) << 16 |
+                (uint)(B * Byte.MaxValue) << 16 |
                 (uint)(G * Byte.MaxValue) << 8 |
-                (uint)(B * Byte.MaxValue);
+                (uint)(R * Byte.MaxValue);
 
             return unchecked((int)value);
         }
@@ -170,7 +170,7 @@ namespace LibreLancer
         /// <returns>A System.Int32 containing the hashcode of this Color4 structure.</returns>
         public override int GetHashCode()
         {
-            return ToArgb();
+            return ToAbgr();
         }
 
         /// <summary>

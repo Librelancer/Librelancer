@@ -10,7 +10,7 @@ namespace LibreLancer.Vertices
 	{
 		Float = GL.GL_FLOAT,
 		UnsignedShort = GL.GL_UNSIGNED_SHORT,
-        UnsignedByte = GL.GL_UNSIGNED_BYTE
-	}
+        UnsignedByte = GL.GL_UNSIGNED_BYTE,
+    }
 }
 

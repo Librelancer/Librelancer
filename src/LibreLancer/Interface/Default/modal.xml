@@ -8,10 +8,12 @@
 				<DisplayModel model="xbutton" tint="text"/>
 			</Button.Background>
 		</Button>
+		<Button id="ok_ok" Anchor="BottomCenter" style="wirebutton" Text="OK" Y="18" Visible="false"/>
 		<TextBlock id="title" Y="8" Anchor="TopCenter" Width="410" Height="30" Text="title"/>
 		<TextBlock id="content" Anchor="Center" Width="410" Height="30" Text="content"/>
 	</Panel>
 </Scene>
+
 
 
 

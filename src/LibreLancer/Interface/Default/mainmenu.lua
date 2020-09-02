@@ -68,7 +68,7 @@ function Multiplayer.Init()
 end
 
 function Multiplayer.Disconnect()
-    OpenModal('modal.xml', { Title = "Error", Content = "You were disconnected from the server" }, nil)
+    OpenModal('modal.xml', { Title = "Error", Content = "You were disconnected from the server", Buttons = "ok" }, nil)
 end
 
 function Multiplayer.ExitAnimation(f)
@@ -136,7 +136,7 @@ function CharacterList.Update()
 end
 
 function CharacterList.Disconnect()
-    OpenModal('modal.xml', { Title = "Error", Content = "You were disconnected from the server" }, nil)
+    OpenModal('modal.xml', { Title = "Error", Content = "You were disconnected from the server", Buttons = "ok" }, nil)
     CharacterList.ExitAnimation(function() 
         SwitchTo('mainmenu')
     end)
@@ -184,3 +184,4 @@ SceneEvent('Update')
 SceneEvent('CharacterList')
 SceneEvent('OpenNewCharacter')
 SceneEvent('Disconnect')
+
