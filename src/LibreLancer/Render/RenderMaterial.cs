@@ -148,9 +148,7 @@ namespace LibreLancer
 		{
 			if (tex == null)
 			{
-				if (nullName == null)
-					throw new Exception();
-				tex = nullName;
+                tex = nullName ?? ResourceManager.NullTextureName;
 			}
 			if (textures[cacheidx] == null || !loaded[cacheidx])
 				textures[cacheidx] = (Texture2D)Library.FindTexture(tex);
