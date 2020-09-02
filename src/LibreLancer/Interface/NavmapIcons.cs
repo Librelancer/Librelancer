@@ -34,7 +34,7 @@ namespace LibreLancer.Interface
             { "nav_tradelanering", $"{DIR}nav_tradelanering.3db" },
             { "nav_waypointcircle", $"{DIR}nav_waypointcircle.3db" },
             { "nav_waypointdiamond", $"{DIR}nav_waypointdiamond.3db" },
-            { "nav_weaponplatform", $"{DIR}nav_weaponplayform.3db" },
+            { "nav_weaponplatform", $"{DIR}nav_weaponplatform.3db" },
             { "nnm_lg_depot", $"{DIR}nnm_lg_depot.3db" },
             { "nnm_sm_depot", $"{DIR}nnm_sm_depot.3db" },
             { "nnm_sm_info_position", $"{DIR}nnm_sm_info_position.3db" },

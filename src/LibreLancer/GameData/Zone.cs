@@ -16,6 +16,8 @@ namespace LibreLancer.GameData
 		public ZoneShape Shape;
 		public float EdgeFraction;
         public ZonePropFlags PropertyFlags;
+        public Color4 PropertyFogColor;
+        public float Sort;
         public int VisitFlags;
 		public Zone ()
 		{

@@ -638,8 +638,10 @@ namespace LibreLancer
                         z.Nickname = zne.Nickname;
                         z.EdgeFraction = zne.EdgeFraction ?? 0.25f;
                         z.PropertyFlags = (ZonePropFlags) (zne.PropertyFlags ?? 0);
+                        z.PropertyFogColor = zne.PropertyFogColor ?? Color4.White;
                         z.VisitFlags = zne.Visit ?? 0;
                         z.Position = zne.Pos ?? Vector3.Zero;
+                        z.Sort = zne.Sort ?? 0;
                         if(zne.Pos == null) FLLog.Warning("Zone", $"Zone {zne.Nickname} in {inisys.Nickname} has no position");
                         if (zne.Rotate != null)
                         {

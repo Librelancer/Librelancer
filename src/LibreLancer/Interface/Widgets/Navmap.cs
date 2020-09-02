@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Data.Solar;
 using LibreLancer.GameData;
-using SharpDX.Direct2D1;
 
 namespace LibreLancer.Interface
 {
@@ -27,8 +26,10 @@ namespace LibreLancer.Interface
         {
             public Vector2 XZ;
             public Vector2 Dimensions;
+            public Color4 Tint;
             public string Texture;
             public float Angle;
+            public float Sort;
         }
         List<DrawZone> zones = new List<DrawZone>();
 
@@ -113,51 +114,64 @@ namespace LibreLancer.Interface
             }
 
             zones = new List<DrawZone>();
-            foreach (var ast in sys.AsteroidFields)
+            foreach (var zone in sys.Zones)
             {
-                if ((ast.Zone.VisitFlags & 128) == 128) continue;
-                Vector2 xz = new Vector2(ast.Zone.Position.X, ast.Zone.Position.Z);
+                if ((zone.VisitFlags & 128) == 128) continue;
+                Vector2 xz = new Vector2(zone.Position.X, zone.Position.Z);
                 Vector2 dimensions;
                 float rotSign = -1;
-                if (Math.Abs(ast.Zone.RotationAngles.X - Math.PI) < 0.001f ||
-                    Math.Abs(ast.Zone.RotationAngles.X + Math.PI) < 0.001f)
+                if (Math.Abs(zone.RotationAngles.X - Math.PI) < 0.001f ||
+                    Math.Abs(zone.RotationAngles.X + Math.PI) < 0.001f)
                     rotSign = 1;
-                float angle = rotSign * ast.Zone.RotationAngles.Y;
-                if (ast.Zone.Shape is ZoneSphere sph)
+                float angle = rotSign * zone.RotationAngles.Y;
+                if (zone.Shape is ZoneSphere sph)
                 {
                     dimensions = new Vector2(sph.Radius * 2);
-                } else if (ast.Zone.Shape is ZoneEllipsoid elp)
+                }
+                else if (zone.Shape is ZoneEllipsoid elp)
                 {
                     dimensions = new Vector2(elp.Size.X, elp.Size.Z) * 2;
                 }
                 else
                     continue;
 
-                string tex = "";
-                if ((ast.Zone.PropertyFlags & ZonePropFlags.Badlands) == ZonePropFlags.Badlands)
+                var tint = zone.PropertyFogColor;
+                string tex = null;
+                if ((zone.PropertyFlags & ZonePropFlags.Badlands) == ZonePropFlags.Badlands)
                     tex = "nav_terrain_badlands";
-                if ((ast.Zone.PropertyFlags & ZonePropFlags.Crystal) == ZonePropFlags.Crystal ||
-                    (ast.Zone.PropertyFlags & ZonePropFlags.Ice) == ZonePropFlags.Ice)
+                if ((zone.PropertyFlags & ZonePropFlags.Crystal) == ZonePropFlags.Crystal ||
+                    (zone.PropertyFlags & ZonePropFlags.Ice) == ZonePropFlags.Ice)
                     tex = "nav_terrain_ice";
-                if ((ast.Zone.PropertyFlags & ZonePropFlags.Lava) == ZonePropFlags.Lava)
+                if ((zone.PropertyFlags & ZonePropFlags.Lava) == ZonePropFlags.Lava)
                     tex = "nav_terrain_lava";
-                if ((ast.Zone.PropertyFlags & ZonePropFlags.Mines) == ZonePropFlags.Mines)
+                if ((zone.PropertyFlags & ZonePropFlags.Mines) == ZonePropFlags.Mines)
                     tex = "nav_terrain_mines";
-                if ((ast.Zone.PropertyFlags & ZonePropFlags.Debris) == ZonePropFlags.Debris)
+                if ((zone.PropertyFlags & ZonePropFlags.Debris) == ZonePropFlags.Debris)
                     tex = "nav_terrain_debris";
-                if ((ast.Zone.PropertyFlags & ZonePropFlags.Nomad) == ZonePropFlags.Nomad)
+                if ((zone.PropertyFlags & ZonePropFlags.Nomad) == ZonePropFlags.Nomad)
                     tex = "nav_terrain_nomadast";
-                if ((ast.Zone.PropertyFlags & ZonePropFlags.Rock) == ZonePropFlags.Rock)
+                if ((zone.PropertyFlags & ZonePropFlags.Rock) == ZonePropFlags.Rock)
                     tex = "asteroidtest";
-                if(string.IsNullOrWhiteSpace(tex)) continue;
+                if ((zone.PropertyFlags & ZonePropFlags.Cloud) == ZonePropFlags.Cloud)
+                    tex = "dustcloud";
+                if ((zone.PropertyFlags & ZonePropFlags.Exclusion1) == ZonePropFlags.Exclusion1 ||
+                    (zone.PropertyFlags & ZonePropFlags.Exclusion2) == ZonePropFlags.Exclusion2)
+                {
+                    tex = "";
+                    tint = new Color4(0,0,0,0.6f);
+                }
+                if (tex == null) continue;
                 zones.Add(new DrawZone()
                 {
                     XZ = xz,
                     Dimensions = dimensions,
                     Texture = tex,
-                    Angle = angle
+                    Angle = angle,
+                    Tint = tint,
+                    Sort = zone.Sort
                 });
             }
+            zones.Sort((x,y) => x.Sort.CompareTo(y.Sort));
             systemName = sys.Name.ToUpper();
         }
 
@@ -212,31 +226,41 @@ namespace LibreLancer.Interface
             var scale = new Vector2(GridSizeDefault / navmapscale);
             var background = context.Data.NavmapIcons.GetBackground();
             background.DrawWithClip(context, rect, rect);
-            if (MapBorder) {
-                context.Mode2D();
-                var pRect = context.PointsToPixels(rect);
-                context.Renderer2D.DrawRectangle(pRect, Color4.White, 1);
-            }
             //Draw Zones
             Vector2 WorldToMap(Vector2 a)
             {
                 var relPos = (a + (scale / 2)) / scale;
                 return new Vector2(rect.X, rect.Y) + relPos * new Vector2(rect.Width, rect.Height);
             }
-            foreach (var zone in zones)
+
+            //Clip without bleeding
+            var zoneclip = context.PointsToPixels(rect);
+            zoneclip.X++;
+            zoneclip.Y++;
+            zoneclip.Width -= 1;
+            zoneclip.Height -= 1;
+            if (zoneclip.Width <= 0) zoneclip.Width = 1;
+            if (zoneclip.Height <= 0) zoneclip.Height = 1;
+            //Draw zones
+            context.Renderer2D.DrawWithClip(zoneclip, () =>
             {
-                var texture = (Texture2D) context.Data.ResourceManager.FindTexture(zone.Texture);
-                var tR = new Rectangle(0,0, 480, 480);
-                texture.SetWrapModeS(WrapMode.Repeat);
-                texture.SetWrapModeT(WrapMode.Repeat);
-                var mCenter = WorldToMap(zone.XZ);
-                var mDim = zone.Dimensions / scale * new Vector2(rect.Width, rect.Height);
-                var center = context.PointsToPixelsF(mCenter);
-                var dimensions = context.PointsToPixelsF(mDim);
-                var r2 = new RectangleF(mCenter.X - mDim.X / 2, mCenter.Y - mDim.Y / 2, rect.Width, rect.Height);
-                context.Renderer2D.EllipseMask(texture, tR, context.PointsToPixelsF(r2),
-                    center, dimensions, zone.Angle, Color4.White);
-            }
+                foreach (var zone in zones)
+                {
+                    Texture2D texture = null;
+                    if (!string.IsNullOrEmpty(zone.Texture))
+                        texture = (Texture2D) context.Data.ResourceManager.FindTexture(zone.Texture);
+                    var tR = new Rectangle(0, 0, 480, 480);
+                    texture?.SetWrapModeS(WrapMode.Repeat);
+                    texture?.SetWrapModeT(WrapMode.Repeat);
+                    var mCenter = WorldToMap(zone.XZ);
+                    var mDim = zone.Dimensions / scale * new Vector2(rect.Width, rect.Height);
+                    var center = context.PointsToPixelsF(mCenter);
+                    var dimensions = context.PointsToPixelsF(mDim);
+                    var r2 = new RectangleF(mCenter.X - mDim.X / 2, mCenter.Y - mDim.Y / 2, rect.Width, rect.Height);
+                    context.Renderer2D.EllipseMask(texture, tR, context.PointsToPixelsF(r2),
+                        center, dimensions, zone.Angle, zone.Tint);
+                }
+            });
             
             //System Name
             if (!string.IsNullOrWhiteSpace(systemName))
@@ -280,6 +304,12 @@ namespace LibreLancer.Interface
                 context.Renderer2D.DrawLine(Color4.CornflowerBlue, posA, posB);
             }
 
+            //Map Border
+            if (MapBorder) {
+                context.Mode2D();
+                var pRect = context.PointsToPixels(rect);
+                context.Renderer2D.DrawRectangle(pRect, Color4.White, 1);
+            }
            
         }
         

@@ -224,6 +224,7 @@ namespace LibreLancer
 
         public void EllipseMask(Texture2D tex, Rectangle source, RectangleF parent, Vector2 center, Vector2 dimensions, float angle, Color4 color)
         {
+            tex ??= dot;
             Prepare(BlendMode.Normal, tex, true);
 
             float x = center.X;
