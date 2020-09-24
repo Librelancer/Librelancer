@@ -371,9 +371,8 @@ namespace LibreLancer
             if (glcontext == IntPtr.Zero || !GL.CheckStringSDL())
             {
                 SDL.SDL_GL_DeleteContext(glcontext);
-                if (Platform.RunningOS == OS.Windows)
-                    SDL.SDL_ShowSimpleMessageBox(SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, "Librelancer", "Failed to create OpenGL context, exiting.", IntPtr.Zero);
-                FLLog.Error("OpenGL", "Failed to create OpenGL context, exiting.");
+                Dialogs.CrashWindow.Run("Librelancer", "Failed to create OpenGL context",
+                    "Your driver or gpu does not support at least OpenGL 3.2");
                 return;
             }
             else
