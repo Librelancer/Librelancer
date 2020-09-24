@@ -85,31 +85,12 @@ Function Remove-PathVariable([string]$VariableToRemove)
 $FoundDotNetCliVersion = $null;
 if (Get-Command dotnet -ErrorAction SilentlyContinue) {
     $FoundDotNetCliVersion = dotnet --version;
+    $FoundDotNetCliVersion = [System.String]::Join('.', ($FoundDotNetCliVersion.Split(".")[0..1]));
 }
 
 if($FoundDotNetCliVersion -ne $DotNetVersion) {
-    $InstallPath = Join-Path $PSScriptRoot ".dotnet"
-    if (!(Test-Path $InstallPath)) {
-        New-Item -Path $InstallPath -ItemType Directory -Force | Out-Null;
-    }
-
-    if ($IsMacOS -or $IsLinux) {
-        $ScriptPath = Join-Path $InstallPath 'dotnet-install.sh'
-        (New-Object System.Net.WebClient).DownloadFile($DotNetUnixInstallerUri, $ScriptPath);
-        & bash $ScriptPath --version "$DotNetVersion" --install-dir "$InstallPath" --channel "$DotNetChannel" --no-path
-
-        Remove-PathVariable "$InstallPath"
-        $env:PATH = "$($InstallPath):$env:PATH"
-    }
-    else {
-        $ScriptPath = Join-Path $InstallPath 'dotnet-install.ps1'
-        (New-Object System.Net.WebClient).DownloadFile($DotNetInstallerUri, $ScriptPath);
-        & $ScriptPath -Channel $DotNetChannel -Version $DotNetVersion -InstallDir $InstallPath;
-
-        Remove-PathVariable "$InstallPath"
-        $env:PATH = "$InstallPath;$env:PATH"
-    }
-    $env:DOTNET_ROOT=$InstallPath
+    "Version $FoundDotnetCliVersion != required $DotNetVersion, exiting"
+    exit 2
 }
 
 ###########################################################################
