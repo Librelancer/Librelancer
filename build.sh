@@ -63,4 +63,4 @@ if [ "$CAKE_VERSION" != "$CAKE_INSTALLED_VERSION" ]; then
     fi
 fi
 
-(exec "$CAKE_EXE" $SCRIPT --bootstrap) && (exec "$CAKE_EXE" $SCRIPT "$@")
+(exec "$CAKE_EXE" $SCRIPT --bootstrap) && (exec "$CAKE_EXE" $SCRIPT $CAKE_ARGUMENTS)
