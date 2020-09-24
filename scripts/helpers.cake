@@ -1,4 +1,4 @@
-bool CheckCommand_Unix(string cmd) => (StartProcess("/bin/sh", new ProcessSettings() { Arguments = string.Format("-c 'command -v {0}'",cmd) }) == 0);
+bool CheckCommand_Unix(string cmd) => (StartProcess("/bin/sh", new ProcessSettings() { Arguments = string.Format("-c \"command -v {0}\"",cmd) }) == 0);
 
 string PathCombine(string a, string b) => System.IO.Path.Combine(a,b);
 

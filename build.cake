@@ -1,5 +1,5 @@
-#addin nuget:?package=Cake.Git&version=0.19.0
-#addin nuget:?package=Cake.CMake&version=0.2.2
+#addin nuget:?package=Cake.Git&version=0.22.0
+#addin nuget:?package=Cake.CMake&version=1.2.0
 #addin nuget:?package=Cake.FileHelpers&version=3.2.0
 #addin nuget:?package=SharpZipLib&version=1.1.0
 #addin nuget:?package=Cake.Compression&version=0.2.3
