@@ -237,7 +237,8 @@ namespace LibreLancer
                         msnRuntime?.EnterLocation(lc.Room, lc.Base);
                         break;
                     case PositionUpdatePacket p:
-                        World.PositionUpdate(this, p.Position, p.Orientation);
+                        //TODO: Error handling
+                        World?.PositionUpdate(this, p.Position, p.Orientation);
                         break;
                     case RTCCompletePacket cp:
                         RemoveRTC(cp.RTC);
