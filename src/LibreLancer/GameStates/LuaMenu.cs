@@ -223,7 +223,10 @@ namespace LibreLancer
 
             public void ConnectSelection()
             {
-                netClient.Connect(serverList.Servers[serverList.Selected].EndPoint);
+                if(serverList.Selected != -1)
+                {
+                    netClient.Connect(serverList.Servers[serverList.Selected].EndPoint);
+                }
             }
 
             public void NewCharacter(string name, int index)
