@@ -53,9 +53,9 @@ namespace LibreLancer
             var rm = virtualRoom ?? currentRoom.Nickname;
             SetActiveHotspot(rm);
             this.virtualRoom = virtualRoom;
-            ui = new UiContext(Game, "baseside.xml");
+            ui = Game.Ui;
             ui.GameApi = new BaseUiApi(this);
-            ui.Start();
+            ui.OpenScene("baseside");
             Game.Keyboard.TextInput += Game_TextInput;
 			Game.Keyboard.KeyDown += Keyboard_KeyDown;
 			cursor = Game.ResourceManager.GetCursor("arrow");

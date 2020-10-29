@@ -22,7 +22,6 @@ namespace LibreLancer.Interface
         public SoundManager Sounds;
         //Ui
         public Stylesheet Stylesheet;
-        public UiXmlLoader XmlLoader;
         public InterfaceResources Resources;
         //TODO: Make configurable
         public INavmapIcons NavmapIcons = new NavmapIcons();
@@ -107,21 +106,34 @@ namespace LibreLancer.Interface
         public void OpenFolder(string xinterfacePath)
         {
             XInterfacePath = xinterfacePath;
-            ReadResourcesAndStylesheet();
+            OpenResources();
         }
         
         public void OpenDefault()
         {
             XInterfacePath = null;
-            ReadResourcesAndStylesheet();
+            OpenResources();
         }
 
-        void ReadResourcesAndStylesheet()
+        void OpenResources()
         {
             Resources = InterfaceResources.FromXml(ReadAllText("resources.xml"));
-            XmlLoader = new UiXmlLoader(Resources);
-            Stylesheet = (Stylesheet) XmlLoader.FromString(ReadAllText("stylesheet.xml"), null);
             LoadLibraries();
+        }
+
+        private InterfaceTextBundle uibundle;
+
+        void ReadBundle()
+        {
+            if (uibundle == null)
+            {
+                using (var reader =
+                    new StreamReader(
+                        typeof(UiContext).Assembly.GetManifestResourceStream($"LibreLancer.Interface.Default.interface.json")))
+                {
+                    uibundle = InterfaceTextBundle.FromJSON(reader.ReadToEnd());
+                }
+            }
         }
         public string ReadAllText(string file)
         {
@@ -132,20 +144,9 @@ namespace LibreLancer.Interface
             }
             else
             {
-                using (var reader =
-                    new StreamReader(
-                        typeof(UiContext).Assembly.GetManifestResourceStream($"LibreLancer.Interface.Default.{file}")))
-                {
-                    return reader.ReadToEnd();
-                }
+                ReadBundle();
+                return uibundle.GetStringCompressed(file);
             }
-        }
-
-        public UiWidget LoadXml(string file)
-        {
-            var widget = (UiWidget) XmlLoader.FromString(ReadAllText(file), null);
-            widget.ApplyStylesheet(Stylesheet);
-            return widget;
         }
 
         public void LoadLibraries()

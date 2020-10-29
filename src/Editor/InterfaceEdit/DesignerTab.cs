@@ -29,7 +29,7 @@ namespace InterfaceEdit
             savePath = path;
             xmlEditor = new ColorTextEdit();
             xmlEditor.SetText(text);
-            context = new UiContext(mainWindow.UiData);
+            context = new UiContext(mainWindow.Project.UiData);
             context.Renderer2D = mainWindow.Renderer2D;
             context.RenderState = mainWindow.RenderState;
             context.GameApi = mainWindow.TestApi;
@@ -115,7 +115,7 @@ namespace InterfaceEdit
             ImGui.EndChild();
             //Text
             ImGui.BeginChild("###text", new Vector2(-1, h2), false, ImGuiWindowFlags.None);
-            if (statePlaying)
+            /*if (statePlaying)
             {
                 if (ImGui.Button("Stop"))
                 {
@@ -132,7 +132,7 @@ namespace InterfaceEdit
                     widget.EnableScripting(context, null);
                     statePlaying = true;
                 }
-            }
+            }*/
 
             xmlEditor.Render("##texteditor");
             if (xmlEditor.TextChanged())
@@ -283,8 +283,8 @@ namespace InterfaceEdit
             try
             {
                 objectMaps = new List<XmlObjectMap>();
-                widget = (UiWidget) mainWindow.UiData.XmlLoader.FromString(text, objectMaps);
-                if(mainWindow.UiData.Stylesheet != null) widget.ApplyStylesheet(mainWindow.UiData.Stylesheet); 
+                widget = (UiWidget) mainWindow.Project.XmlLoader.FromString(text, objectMaps);
+                if(mainWindow.Project.UiData.Stylesheet != null) widget.ApplyStylesheet(mainWindow.Project.UiData.Stylesheet); 
                 context.SetWidget(widget);
                 validXml = true;
             }

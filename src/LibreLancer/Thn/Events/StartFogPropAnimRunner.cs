@@ -35,7 +35,7 @@ namespace LibreLancer
                     var f = FogColor.Value;
                     var c2 = new Color3f(f.X / 255f, f.Y / 255f, f.Z / 255f);
                     var c1 = new Color3f(OrigFogColor.R, OrigFogColor.G, OrigFogColor.B);
-                    var cend = Utf.Ale.AlchemyEasing.EaseColorRGB(Utf.Ale.EasingTypes.Linear, amount, 0, 1, c1, c2);
+                    var cend = Easing.EaseColorRGB(EasingTypes.Linear, amount, 0, 1, c1, c2);
                     cs.Renderer.SystemLighting.FogColor = new Color4(cend, 1);
                 }
                 if (FogStart != null)

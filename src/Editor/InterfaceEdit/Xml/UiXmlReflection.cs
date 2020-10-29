@@ -16,7 +16,6 @@ namespace LibreLancer.Interface.Reflection
             public Dictionary<string, PropertyInfo> Elements = new Dictionary<string, PropertyInfo>(StringComparer.OrdinalIgnoreCase);
             public Dictionary<string, PropertyInfo> Attributes = new Dictionary<string, PropertyInfo>(StringComparer.OrdinalIgnoreCase);
             public PropertyInfo Content;
-            public PropertyInfo Reinit;
         }
         static Dictionary<Type, XmlTypeInfo> typeInfos = new Dictionary<Type, XmlTypeInfo>();
         static Dictionary<Type, object> cachedObjects = new Dictionary<Type, object>();
@@ -26,7 +25,7 @@ namespace LibreLancer.Interface.Reflection
 
         static UiXmlReflection()
         {
-            RegisterAssembly(typeof(UiXmlReflection).Assembly);    
+            RegisterAssembly(typeof(UiContext).Assembly);    
         }
         
         public static void RegisterAssembly(Assembly assembly)
@@ -90,8 +89,7 @@ namespace LibreLancer.Interface.Reflection
             Type type, 
             out Dictionary<string, PropertyInfo> elements,
             out Dictionary<string, PropertyInfo> attributes, 
-            out PropertyInfo contentProperty,
-            out PropertyInfo reinitProperty
+            out PropertyInfo contentProperty
          )
         {
             XmlTypeInfo info;
@@ -112,10 +110,6 @@ namespace LibreLancer.Interface.Reflection
                             continue;
                         info.Attributes.Add(property.Name, property);
                     }
-                    else if (ptype == typeof(UiRecreateHandle))
-                    {
-                        info.Reinit = property;
-                    }
                     else
                     {
                         if (property.GetCustomAttribute<UiContentAttribute>() != null)
@@ -129,7 +123,6 @@ namespace LibreLancer.Interface.Reflection
             elements = info.Elements;
             attributes = info.Attributes;
             contentProperty = info.Content;
-            reinitProperty = info.Reinit;
         }
     }
 }

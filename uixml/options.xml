@@ -1,0 +1,12 @@
+<Scene ID="options" ScriptFile="mainmenu.lua">
+	<ImageFile Path="DATA/uiscreens/audiooptions.png" Width="640" Height="480" Anchor="Center" Tint="magenta"/>
+ 	<ImageFile Path="DATA/INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga" Width="640" Height="480"/>
+	<Panel Width="640" Height="480" Anchor="Center">
+		<Button X="33" Y="89" Style="menubutton" ID="general" Text="GENERAL"/>
+		<Button X="33" Y="141" Style="menubutton" ID="controls" Text="CONTROLS"/>
+		<Button X="33" Y="193" Style="menubutton" ID="performance" Text="PERFORMANCE"/>
+		<Button X="33" Y="246" Style="menubutton" ID="audio" Text="AUDIO"/>
+		<Button X="33" Y="298" Style="menubutton" ID="credits" Text="CREDITS"/>
+		<Button X="33" Y="407" Style="menubutton" ID="return" Text="MAIN MENU"/>
+	</Panel>
+</Scene> 

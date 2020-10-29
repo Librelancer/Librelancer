@@ -61,9 +61,9 @@ Mouse Flight: {11}
             this.session = session;
             sys = g.GameData.GetSystem(session.PlayerSystem);
             loader = new LoadingScreen(g, g.GameData.LoadSystemResources(sys));
-            ui = new UiContext(g, "hud.xml");
+            ui = Game.Ui;
             ui.GameApi = uiApi = new LuaAPI(this);
-            ui.Start();
+            ui.OpenScene("hud");
         }
 
         void FinishLoad()

@@ -43,6 +43,9 @@ Task("UpdateLua")
         public static void Initialize()
         {
         }
+        public static void GenerateTypeTable(object o)
+        {
+        }
     }
 }");
     DotNetCoreRun("./src/GenerateLuaHardwire/GenerateLuaHardwire.csproj", "./src/LibreLancer/Interface/LuaContext_Hardwire.cs");

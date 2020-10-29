@@ -4,12 +4,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Numerics;
+using System.Text;
 using LibreLancer;
 using LibreLancer.ImUI;
 using ImGuiNET;
 using LibreLancer.Data;
+using LibreLancer.Dialogs;
 using LibreLancer.Interface;
 
 namespace InterfaceEdit
@@ -41,24 +45,10 @@ namespace InterfaceEdit
         private DockTab selected = null;
         private ResourceWindow resourceEditor;
         private ProjectWindow projectWindow;
-        public UiData UiData;
         public FontManager Fonts;
         public TestingApi TestApi = new TestingApi();
 
-
-        protected override void Update(double elapsed)
-        {
-            base.Update(elapsed);
-        }
-
-        public string XmlFolder = null;
-
-        void WriteBlankFiles()
-        {
-            var resources = new InterfaceResources();
-            File.WriteAllText(Path.Combine(XmlFolder, "resources.xml"), resources.ToXml());
-            File.WriteAllText(Path.Combine(XmlFolder, "stylesheet.xml"), "<Stylesheet></Stylesheet>");
-        }
+        public Project Project;
 
         public void OpenXml(string path)
         {
@@ -71,77 +61,19 @@ namespace InterfaceEdit
             tabs.Add(new ScriptEditor(path));
         }
 
-        void NewGui(string folder)
+        void OpenGui(string path)
         {
-            UiData = new UiData();
-            UiData.FlDirectory = folder;
-            UiData.ResourceManager = new GameResourceManager(this);
-            UiData.FileSystem = FileSystem.FromFolder(folder);
-            UiData.Fonts = Fonts;
-            var flIni = new FreelancerIni(UiData.FileSystem);
-            if (flIni.XInterfacePath != null)
-            {
-                XmlFolder = UiData.FileSystem.Resolve(flIni.XInterfacePath);
-                if (!UiData.FileSystem.FileExists(Path.Combine(flIni.XInterfacePath, "resources.xml")))
-                    WriteBlankFiles();
-            }
-            else
-            {
-                var dataPath = UiData.FileSystem.Resolve(flIni.DataPath);
-                XmlFolder = Path.Combine(dataPath, "XmlUi");
-                Directory.CreateDirectory(XmlFolder);
-                WriteBlankFiles();
-                var flIniPath = UiData.FileSystem.Resolve("EXE\\freelancer.ini");
-                var flIniText = File.ReadAllText(flIniPath);
-                File.WriteAllText(flIniPath, $"{flIniText}\n\n[Extended]\nxinterface = XmlUi");
-            }
-            UiData.OpenFolder(flIni.XInterfacePath);
-            try
-            {
-                var navbarIni = new LibreLancer.Data.BaseNavBarIni(UiData.FileSystem);
-                UiData.NavbarIcons = navbarIni.Navbar;
-            }
-            catch (Exception)
-            {
-                UiData.NavbarIcons = null;
-            }
-
-            try
-            {
-                var hud = new HudIni();
-                hud.AddIni(flIni.HudPath, UiData.FileSystem);
-                var maneuvers = new List<Maneuver>();
-                var p = flIni.DataPath.Replace('\\', Path.DirectorySeparatorChar);
-                foreach (var m in hud.Maneuvers)
-                {
-                    maneuvers.Add(new Maneuver()
-                    {
-                        Action = m.Action,
-                        ActiveModel = Path.Combine(p,m.ActiveModel),
-                        InactiveModel = Path.Combine(p,m.InactiveModel)
-                    });
-                }
-                TestApi.ManeuverData = maneuvers.ToArray();
-            }
-            catch (Exception)
-            {
-                TestApi.ManeuverData = null;
-            }
-            if (flIni.JsonResources != null)
-                UiData.Infocards = new InfocardManager(flIni.JsonResources.Item1, flIni.JsonResources.Item2);
-            else if (flIni.Resources != null)
-                UiData.Infocards = new InfocardManager(flIni.Resources);
-            Fonts.LoadFontsFromIni(flIni, UiData.FileSystem);
-            UiData.DataPath = flIni.DataPath;
-            resourceEditor = new ResourceWindow(this, UiData);
+            Project = new Project(this);
+            Project.Open(path);
+            resourceEditor = new ResourceWindow(this, Project.UiData);
             resourceEditor.IsOpen = true;
-            projectWindow = new ProjectWindow(XmlFolder, this);
+            projectWindow = new ProjectWindow(Project.XmlFolder, this);
             projectWindow.IsOpen = true;
-            tabs.Add(new StylesheetEditor(XmlFolder, UiData));
+            tabs.Add(new StylesheetEditor(Project.XmlFolder, Project.XmlLoader, Project.UiData));
         }
-        
-        public void WriteResources() => File.WriteAllText(Path.Combine(XmlFolder, "resources.xml"), UiData.Resources.ToXml());
 
+        private FileDialogFilters projectFilters =
+            new FileDialogFilters(new FileFilter("Project Files", "librelancer-uiproj"));
         protected override void Draw(double elapsed)
         {
             Viewport.Replace(0, 0, Width, Height);
@@ -152,12 +84,27 @@ namespace InterfaceEdit
             ImGui.BeginMainMenuBar();
             if (ImGui.BeginMenu("File"))
             {
+                if (Theme.IconMenuItem("New", "new", Color4.White, true))
+                {
+                    string folder;
+                    string outpath;
+                    if ((folder = FileDialog.ChooseFolder()) != null)
+                    {
+                        if ((outpath = FileDialog.Save(projectFilters)) != null)
+                        {
+                            var proj = new Project(this);
+                            proj.Create(folder, outpath);
+                            OpenGui(outpath);
+                        }
+                    }
+                }
+
                 if (Theme.IconMenuItem("Open", "open", Color4.White, true))
                 {
                     string f;
-                    if ((f = FileDialog.ChooseFolder()) != null)
+                    if ((f = FileDialog.Open(projectFilters)) != null)
                     {
-                        NewGui(f);
+                        OpenGui(f);
                     }
                 }
                 if (selected is SaveableTab saveable)
@@ -172,6 +119,28 @@ namespace InterfaceEdit
                     Theme.IconMenuItem("Save", "save", Color4.LightGray, false);
                 }
 
+                if (ImGui.MenuItem("Compile"))
+                {
+                    try
+                    {
+                        Compiler.Compile(Project.XmlFolder, Project.XmlLoader);
+                    }
+                    catch (Exception e)
+                    {
+                        var detail = new StringBuilder();
+                        detail.AppendLine(e.Message);
+                        detail.AppendLine(e.StackTrace);
+                        Exception e2 = e.InnerException;
+                        while (e2 != null)
+                        {
+                            detail.AppendLine("---");
+                            detail.AppendLine(e2.Message);
+                            detail.AppendLine(e2.StackTrace);
+                            e2 = e2.InnerException;
+                        }
+                        CrashWindow.Run("Interface Edit", "Compile Error", detail.ToString());
+                    }
+                }
                 if (Theme.IconMenuItem("Quit", "quit", Color4.White, true))
                 {
                     Exit();
@@ -210,7 +179,7 @@ namespace InterfaceEdit
                 }
                 ImGui.EndMenu();
             }
-            if (UiData != null && ImGui.BeginMenu("View"))
+            if (Project != null && ImGui.BeginMenu("View"))
             {
                 ImGui.MenuItem("Project", "", ref projectWindow.IsOpen);
                 ImGui.MenuItem("Resources", "", ref resourceEditor.IsOpen);
@@ -247,12 +216,12 @@ namespace InterfaceEdit
                 ImGuiWindowFlags.NoBringToFrontOnFocus | 
                 ImGuiWindowFlags.NoMove | 
                 ImGuiWindowFlags.NoResize);
-            ImGui.Text($"InterfaceEdit{(XmlFolder != null ? " - Editing: " : "")}{(XmlFolder ?? "")}");
+            ImGui.Text($"InterfaceEdit{(Project != null ? " - Editing: " : "")}{(Project?.ProjectFile ?? "")}");
             ImGui.End();
             //Finish Render
             ImGui.PopFont();
             guiHelper.Render(RenderState);
         }
-        
+
     }
 }

@@ -35,7 +35,7 @@ namespace LibreLancer.Utf.Ale
 				return Data [Data.Length - 1].Item2;
 			}
 			//Interpolate!
-			return AlchemyEasing.Ease(Type,time, t1, t2, v1, v2);
+			return Easing.Ease(Type,time, t1, t2, v1, v2);
 		}
 	}
 }

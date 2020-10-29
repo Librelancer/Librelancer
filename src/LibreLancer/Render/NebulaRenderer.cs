@@ -536,8 +536,8 @@ namespace LibreLancer
 		Color3f GetPuffColor()
 		{
 			var lerpval = rand.NextDouble();
-			var c = Utf.Ale.AlchemyEasing.EaseColorRGB(
-				Utf.Ale.EasingTypes.Linear,
+			var c = Easing.EaseColorRGB(
+				EasingTypes.Linear,
 				(float)lerpval,
 				0,
 				1,

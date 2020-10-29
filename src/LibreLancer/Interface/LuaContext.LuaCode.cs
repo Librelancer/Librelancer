@@ -34,6 +34,47 @@ local function serializeTable(val, name, skipnewlines, depth)
     return  tmp
 end
 
+function class(base)
+   local c = {}    -- a new class instance
+   if type(base) == 'table' then
+    -- our new class is a shallow copy of the base class!
+      for i,v in pairs(base) do
+         c[i] = v
+      end
+      c._base = base
+   end
+   -- the class will be the metatable for all its objects,
+   -- and they will look up their methods in it.
+   c.__index = c
+
+   -- expose a constructor which can be called by <classname>(<args>)
+   local mt = {}
+   mt.__call = function(class_tbl, ...)
+   local obj = {}
+   setmetatable(obj,c)
+   if class_tbl.init then
+      class_tbl.init(obj,...)
+   else 
+      -- make sure that any stuff from the base class is initialized!
+      if base and base.init then
+      base.init(obj, ...)
+      end
+   end
+   return obj
+   end
+   c.is_a = function(self, klass)
+      local m = getmetatable(self)
+      while m do 
+         if m == klass then return true end
+         m = m._base
+      end
+      return false
+   end
+   setmetatable(c, mt)
+   return c
+end
+
+
 Events = {}
 function Serialize(table)
     return serializeTable(table)
@@ -45,17 +86,8 @@ function CallEvent(ev, ...)
 end
 
 local _f = Funcs
-function GetElement(e)
-    return _f:GetElement(e)
-end
 function NewObject(o)
     return _f:NewObject(o)
-end
-function OpenModal(xml, data, func)
-    _f:OpenModal(xml,data,func)
-end
-function CloseModal(table)
-    _f:CloseModal(table)
 end
 function Timer(time, func)
     _f:Timer(time,func)
@@ -69,17 +101,20 @@ end
 function PlaySound(sound)
     _f:PlaySound(sound)
 end
-function Color(color)
-    return _f:Color(color)
+function GetColor(color)
+    return _f:GetColor(color)
+end
+function GetModel(model)
+    return _f:GetModel(model)
+end
+function GetImage(image)
+    return _f:GetImage(image)
+end
+function SetWidget(w)
+    _f:SetWidget(w)
 end
 function GetNavbarIconPath(ico)
     return _f:GetNavbarIconPath(ico)
-end
-function SwitchTo(scn)
-    return _f:SwitchTo(scn)
-end
-function SceneID()
-    return _f:SceneID()
 end
 function require(mod)
     return _f:Require(mod)

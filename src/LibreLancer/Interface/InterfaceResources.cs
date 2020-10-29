@@ -6,9 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
-using System.Xml.Schema;
 using System.Xml.Serialization;
-using LibreLancer;
 
 namespace LibreLancer.Interface
 {
@@ -77,6 +75,16 @@ namespace LibreLancer.Interface
             }
             else
                 return Color;
+        }
+
+        public override string ToString()
+        {
+            if (!string.IsNullOrEmpty(Name)) return Name;
+            var r = (int) (Color.R * 255);
+            var g = (int) (Color.G * 255);
+            var b = (int) (Color.B * 255);
+            var a = (int) (Color.A * 255);
+            return $"#{r:X2}{g:X2}{b:X2}{a:X2}";
         }
     }
 

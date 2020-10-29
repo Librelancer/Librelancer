@@ -6,40 +6,78 @@ using System;
 
 namespace LibreLancer
 {
-	public static class Easings
+    public enum EasingTypes : byte
 	{
-		/// <summary>
-		/// Equation for a circular (sqrt(1-t^2)) easing
-		/// </summary>
-		public static readonly Easing Circular = new Easing(CircEaseIn, CircEaseOut);
+        //Matches Alchemy types
+		Linear = 1,
+		EaseIn = 2,
+		EaseOut = 3,
+		EaseInOut = 4,
+		Step = 5,
+    }
+	public static class Easing
+	{
+        public static Color3f EaseColorRGB(EasingTypes type, float time, float t1, float t2, Color3f c1, Color3f c2)
+		{
 
-		static double CircEaseIn( double t, double b, double c, double d )
-		{
-			return -c * ( Math.Sqrt( 1 - ( t /= d ) * t ) - 1 ) + b;
+			float r = Ease(type, time, t1, t2, c1.R, c2.R);
+			float g = Ease(type, time, t1, t2, c1.G, c2.G);
+			float b = Ease(type, time, t1, t2, c1.B, c2.B);
+
+			return new Color3f(r, g, b);
 		}
-		static double CircEaseOut( double t, double b, double c, double d )
+
+		public static float Ease(EasingTypes type, float time, float t1, float t2, float v1, float v2)
 		{
-			return c * Math.Sqrt( 1 - ( t = t / d - 1 ) * t ) + b;
+			switch (type) {
+			case EasingTypes.Linear:
+				return Linear (time, t1, t2, v1, v2);
+			case EasingTypes.EaseIn:
+				return EaseIn (time, t1, t2, v1, v2);
+			case EasingTypes.EaseOut:
+				return EaseOut (time, t1, t2, v1, v2);
+			case EasingTypes.EaseInOut:
+				return EaseInOut (time, t1, t2, v1, v2);
+			case EasingTypes.Step:
+				return Step(time,t1,t2,v1,v2);
+            }
+			throw new InvalidOperationException ();
 		}
-	}
-	public class Easing
-	{
-		/// <summary>
-		/// An easing function
-		/// </summary>
-		/// <param name="t">Current time in seconds.</param>
-		/// <param name="b">Starting value.</param>
-		/// <param name="c">Change in value.</param>
-		/// <param name="d">Duration of animation.</param>
-		/// <returns>The correct value.</returns>
-		public delegate double EaseFunction(double t, double b, double c, double d);
-		public EaseFunction EaseIn;
-		public EaseFunction EaseOut;
-		public Easing(EaseFunction ein, EaseFunction eout)
+
+		static float Linear(float time, float t1, float t2, float v1, float v2)
 		{
-			EaseIn = ein;
-			EaseOut = eout;
+			var time_pct = (time - t1) / (t2 - t1);
+			return v1 + (v2 - v1) * time_pct;
 		}
-	}
+
+		static float EaseIn(float time, float t1, float t2, float v1, float v2)
+		{
+			var x = (time - t1) / (t2 - t1);
+			// very close approximation to cubic-bezier(0.42, 0, 1.0, 1.0)
+			var y = (float)Math.Pow(x, 1.685);
+			return v1 + (v2 - v1) * y;
+		}
+
+		static float EaseOut(float time, float t1, float t2, float v1, float v2)
+		{
+			var x = (time - t1) / (t2 - t1);
+			// very close approximation to cubic-bezier(0, 0, 0.58, 1.0)
+			var y = 1f - (float)Math.Pow (1 - x, 1.685);
+			return v1 + (v2 - v1) * y;
+		}
+
+
+		static float EaseInOut(float time, float t1, float t2, float v1, float v2)
+		{
+			var t = (time - t1) / (t2 - t1);
+			var y = t < 0.5f ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+			return v1 + (v2 - v1) * y;
+		}
+
+		static float Step(float time, float t1, float t2, float v1, float v2)
+		{
+            return v1;
+		}
+    }
 }
 

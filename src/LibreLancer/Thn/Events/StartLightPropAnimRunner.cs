@@ -86,12 +86,12 @@ namespace LibreLancer
                 if (ParamCurve != null) pct = ParamCurve.GetValue((float) time, (float) Duration);
                 if (TargetDiffuse != null)
                 {
-                    Target.Light.Color = AlchemyEasing.EaseColorRGB(EasingTypes.Linear, pct, 0, 1, Source.Color,
+                    Target.Light.Color = Easing.EaseColorRGB(EasingTypes.Linear, pct, 0, 1, Source.Color,
                         TargetDiffuse.Value);
                 }
                 if (TargetAmbient != null)
                 {
-                    Target.Light.Ambient = AlchemyEasing.EaseColorRGB(EasingTypes.Linear, pct, 0, 1, Source.Color,
+                    Target.Light.Ambient = Easing.EaseColorRGB(EasingTypes.Linear, pct, 0, 1, Source.Color,
                         TargetAmbient.Value);
                 }
                 return true;

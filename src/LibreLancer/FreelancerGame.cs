@@ -14,6 +14,7 @@ namespace LibreLancer
 	public class FreelancerGame : Game
     {
 		public GameDataManager GameData;
+        public UiContext Ui;
 		public AudioManager Audio;
 		public FontManager Fonts;
 		public SoundManager Sound;

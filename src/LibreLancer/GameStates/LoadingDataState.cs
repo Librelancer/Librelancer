@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LibreLancer.Interface;
 
 namespace LibreLancer
 {
@@ -38,6 +39,8 @@ namespace LibreLancer
                 invoked = true;
                 Game.ResourceManager.Preload();
                 Game.Fonts.LoadFontsFromGameData(Game.GameData);
+                Game.Ui = new UiContext(Game);
+                Game.Ui.LoadCode();
                 FadeOut(0.1, () =>
                 {
                     if (Game.Config.CustomState != null)

@@ -27,8 +27,20 @@ namespace LibreLancer.Interface
         //Data
         public UiData Data;
         //Ui
-        public object GameApi;
-
+        private object _gameApi;
+        public object GameApi
+        {
+            get
+            {
+                return _gameApi;
+            }
+            set
+            {
+                _gameApi = value;
+                lua?.SetGameApi(_gameApi);
+            }
+        }
+        LuaContext lua;
         //State
         private bool mode2d = false;
         private FreelancerGame game;
@@ -37,7 +49,7 @@ namespace LibreLancer.Interface
             Data = data;
         }
         
-        public UiContext(FreelancerGame game, string file)
+        public UiContext(FreelancerGame game)
         {
             Renderer2D = game.Renderer2D;
             RenderState = game.RenderState;
@@ -45,15 +57,21 @@ namespace LibreLancer.Interface
             this.game = game;
             game.Mouse.MouseDown += MouseOnMouseDown;
             game.Mouse.MouseUp += MouseOnMouseUp;
-            var w = Data.LoadXml(file);
-            w.ApplyStylesheet(Data.Stylesheet);
-            SetWidget(w);
         }
 
-        public void Start()
+        public void LoadCode()
         {
-            baseWidget.EnableScripting(this, null);
+            lua = new LuaContext(this);
+            lua.LoadMain();
         }
+
+        public void OpenScene(string scene)
+        {
+            lua.OpenScene(scene);
+        }
+        
+        
+        
         private void MouseOnMouseUp(MouseEventArgs e)
         {
             if ((e.Buttons & MouseButtons.Left) == MouseButtons.Left)
@@ -171,6 +189,7 @@ namespace LibreLancer.Interface
             MouseX = mouseX * inputRatio;
             MouseY = mouseY * inputRatio;
             MouseLeftDown = leftDown;
+            lua?.DoTimers(globalTime);
         }
 
         public void Update(FreelancerGame game)
@@ -202,6 +221,7 @@ namespace LibreLancer.Interface
         Stack<ModalState> modals = new Stack<ModalState>();
         public void SetWidget(UiWidget widget)
         {
+            widget.ApplyStylesheet(Data.Stylesheet);
             foreach (var m in modals)
                 m.Widget.Dispose();
             modals = new Stack<ModalState>();
@@ -209,11 +229,11 @@ namespace LibreLancer.Interface
         }
         public void OpenModal(string name, string modalData, Action<string> onClose)
         {
-            var item = Data.LoadXml(name);
-            item.EnableScripting(this, modalData);
-            modals.Push(new ModalState() {
-                Widget = item, OnClose = onClose
-            });
+            //var item = Data.LoadXml(name);
+            //item.EnableScripting(this, modalData);
+            //modals.Push(new ModalState() {
+            //    Widget = item, OnClose = onClose
+            //});
         }
 
         public void CloseModal(string data)
@@ -245,10 +265,10 @@ namespace LibreLancer.Interface
             return baseWidget;
         }
 
-        public void ChatboxEvent() =>   GetActive()?.ScriptedEvent("Chatbox");
+        public void ChatboxEvent() => Event("Chatbox");
         public void Event(string ev)
         {
-            GetActive()?.ScriptedEvent(ev);
+            lua.CallEvent(ev);
         }
         public void OnMouseDown() => GetActive()?.OnMouseDown(this, GetRectangle());
         public void OnMouseUp() => GetActive()?.OnMouseUp(this, GetRectangle());

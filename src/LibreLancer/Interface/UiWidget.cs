@@ -13,6 +13,7 @@ namespace LibreLancer.Interface
     public abstract class UiWidget : IDisposable
     {
         public string ID { get; set;  }
+        public string ClassName { get; set; }
         public AnchorKind Anchor { get; set; }
         public float X { get; set; }
         public float Y { get; set; }
@@ -187,7 +188,6 @@ namespace LibreLancer.Interface
             }
         }
         
-        public virtual void ScriptedEvent(string ev, params object[] param) { }
         public virtual void OnMouseDown(UiContext context, RectangleF parentRectangle) { }
         public virtual void OnMouseClick(UiContext context, RectangleF parentRectangle) { }
         public virtual void OnMouseUp(UiContext context, RectangleF parentRectangle) { }
@@ -200,7 +200,6 @@ namespace LibreLancer.Interface
             if (elementID.Equals(ID, StringComparison.OrdinalIgnoreCase)) return this;
             return null;
         }
-        public virtual void EnableScripting(UiContext context, string modalData) { }
         public virtual void Dispose()  { }
     }
 }

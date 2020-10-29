@@ -47,7 +47,7 @@ namespace LibreLancer.Utf.Ale
 			//Interpolate between SParams
 			var v1 = f1.GetValue (time);
 			var v2 = f2.GetValue (time);
-			return AlchemyEasing.Ease (Type, sparam, f1.SParam, f2.SParam, v1, v2);
+			return Easing.Ease (Type, sparam, f1.SParam, f2.SParam, v1, v2);
 		}
 		public override string ToString ()
 		{

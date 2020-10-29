@@ -1,0 +1,17 @@
+<Scene ID="mainmenu">
+ 	<ImageFile Path="DATA/INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga" Width="640" Height="480"/>
+	<Button X="33" Y="123" id="newgame" Style="menubutton" Strid="1268" Text="NEW GAME"/>
+	<Button X="33" Y="173" id="loadgame" Style="menubutton" Strid="1269" Text="LOAD GAME"/>
+	<Button X="33" Y="223" id="multiplayer" Style="menubutton" Strid="1270" Text="MULTIPLAYER"/>
+	<Button X="33" Y="273" id="options" Style="menubutton" Strid="1272" Text="OPTIONS"/>
+	<Button X="33" Y="323" id="exit" Style="menubutton" Strid="1273" Text="EXIT"/>
+    <Panel id="blank" Width="400" Height="400"/>
+</Scene>
+
+
+
+
+
+
+
+

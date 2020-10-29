@@ -87,11 +87,32 @@ namespace LibreLancer.Interface
             return true;
         }
 
+        public string StylesheetToLua(string source)
+        {
+            var elem = XElement.Parse(source);
+            var obj = UiXmlReflection.Instantiate(elem.Name.ToString());
+            if (obj.GetType() != typeof(Stylesheet)) throw new Exception();
+            var x = ParseObject(typeof(Stylesheet), elem, null);
+            return x.PrintStylesheetInit();
+        }
+
+        public (string, string) LuaClassDesigner(string xmlSource, string className)
+        {
+            var elem = XElement.Parse(xmlSource, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
+            var obj = UiXmlReflection.Instantiate(elem.Name.ToString());
+            var x = FillObject(obj, elem, null);
+            if (obj is UiWidget widget) {
+                if (!string.IsNullOrWhiteSpace(widget.ClassName)) className = widget.ClassName;
+            }
+
+            return (className, x.PrintClassInit(className, "Widget"));
+        }
+        
         public object FromString(string source, List<XmlObjectMap> objectMaps)
         {
             var elem = XElement.Parse(source, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
             var obj = UiXmlReflection.Instantiate(elem.Name.ToString());
-            FillObject(obj, elem, objectMaps);
+            var x = FillObject(obj, elem, objectMaps);
             if (objectMaps != null)
             {
                 objectMaps.Sort((a, b) =>
@@ -130,8 +151,7 @@ namespace LibreLancer.Interface
                 objType, 
                 out Dictionary<string,PropertyInfo> elements,
                 out Dictionary<string,PropertyInfo> attributes,
-                out PropertyInfo contentProperty,
-                out PropertyInfo reinitProperty
+                out PropertyInfo contentProperty
             );
             var result = new UiLoadedObject(objType);
             List<UiLoadedObject> contentObjects = null;
@@ -140,10 +160,6 @@ namespace LibreLancer.Interface
             {
                 isContentList = Activator.CreateInstance(contentProperty.PropertyType) is IList;
                 if(isContentList) contentObjects = new List<UiLoadedObject>();
-            }
-            
-            if (reinitProperty != null) {
-                result.Setters.Add(new UiSimpleProperty(reinitProperty, new UiRecreateHandle(result)));
             }
             if (objectMaps != null)
             {
@@ -285,10 +301,11 @@ namespace LibreLancer.Interface
             return result;
         }
         
-        public void FillObject(object obj, XElement el, List<XmlObjectMap> objectMaps)
+        public UiLoadedObject FillObject(object obj, XElement el, List<XmlObjectMap> objectMaps)
         {
             var parsed = ParseObject(obj.GetType(), el, objectMaps);
             parsed.Fill(obj, objectMaps);
+            return parsed;
         }
     }
 }

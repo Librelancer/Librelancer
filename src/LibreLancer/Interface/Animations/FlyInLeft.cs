@@ -24,14 +24,15 @@ namespace LibreLancer
         }
 
         protected override void Run (double currentTime, float aspectRatio)
-		{
-			CurrentPosition.X = (float)Easings.Circular.EaseOut (
-				currentTime, 
-				From,
-				Math.Abs (finalPos.X - (From)),
-				Duration
-			);
-		}
+        {
+            CurrentPosition.X = Easing.Ease(EasingTypes.EaseOut,
+                (float)currentTime,
+                0,
+                (float)Duration,
+                From,
+                finalPos.X
+            );
+        }
 	}
 }
 

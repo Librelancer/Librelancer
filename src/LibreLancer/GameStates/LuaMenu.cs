@@ -22,9 +22,9 @@ namespace LibreLancer
         public LuaMenu(FreelancerGame g) : base(g)
         {
             api = new MenuAPI(this);
-            ui = new UiContext(g, "mainmenu.xml");
+            ui = Game.Ui;
             ui.GameApi = api;
-            ui.Start();
+            ui.OpenScene("mainmenu");
             g.GameData.PopulateCursors();
             g.CursorKind = CursorKind.None;
             intro = g.GameData.GetIntroScene();

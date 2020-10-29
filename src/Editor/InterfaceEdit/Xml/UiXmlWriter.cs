@@ -20,7 +20,7 @@ namespace InterfaceEdit
             UiXmlReflection.GetProperties(obj.GetType(),
                 out var elements,
                 out var attributes,
-                out var contentProperty, out _
+                out var contentProperty
                 );
             foreach (var prop in attributes)
             {

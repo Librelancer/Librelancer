@@ -63,7 +63,7 @@ namespace LibreLancer
 
 		static float PlotY(GraphLine line, int pointIndex, float heightTrue)
 		{
-			return Utf.Ale.AlchemyEasing.Ease(Utf.Ale.EasingTypes.Linear,
+			return Easing.Ease(EasingTypes.Linear,
 									   line.Points[pointIndex],
 									   line.ValMin,
 									   line.ValMax,

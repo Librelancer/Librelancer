@@ -28,8 +28,8 @@ namespace LibreLancer
         }
         protected override void Run(double currentTime, float aspectRatio)
         {
-            CurrentPosition.Y = Utf.Ale.AlchemyEasing.Ease(
-                Utf.Ale.EasingTypes.EaseOut,
+            CurrentPosition.Y = Easing.Ease(
+                EasingTypes.EaseOut,
                 (float)currentTime,
                 0,
                 (float)Duration,

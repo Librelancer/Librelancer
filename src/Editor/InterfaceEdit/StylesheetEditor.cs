@@ -15,17 +15,19 @@ namespace InterfaceEdit
     {
         private Stylesheet currentStylesheet;
         private UiData uiContext;
+        private UiXmlLoader xml;
         private string path;
         private ColorTextEdit textEditor;
         private bool validXml = false;
         private string exceptionText = "Error: Nothing typed yet";
-        public StylesheetEditor(string xmlFolder, UiData context)
+        public StylesheetEditor(string xmlFolder, UiXmlLoader xml, UiData context)
         {
             Title = "Stylesheet";
             textEditor = new ColorTextEdit();
             uiContext = context;
             path = Path.Combine(xmlFolder, "stylesheet.xml");
             textEditor.SetText(File.ReadAllText(path));
+            this.xml = xml;
             TextChanged();
         }
 
@@ -62,7 +64,7 @@ namespace InterfaceEdit
                     exceptionText = "Error: Nothing typed yet";
                     return;
                 }
-                currentStylesheet = (Stylesheet) uiContext.XmlLoader.FromString(text, null);
+                currentStylesheet = (Stylesheet) xml.FromString(text, null);
                 validXml = true;
             }
             catch (Exception e)

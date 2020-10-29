@@ -7,24 +7,19 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using LibreLancer.Interface.Reflection;
+using LibreLancer.Lua;
 using MoonSharp.Interpreter;
 using MoonSharp.Interpreter.Loaders;
-using MoonSharp.Interpreter.Serialization;
 
 namespace LibreLancer.Interface
 {
     public partial class LuaContext : IDisposable
     {
-        public Scene Scene;
-        static Script script;
-        private static byte[] baseCode;
-        private Table globalTable;
-
-        private object _serialize;
-        private object _deserialize;
+        Script script;
+        
         private object _callevent;
-
+        private object _openscene;
+        
         static LuaContext()
         {
             UserData.DefaultAccessMode = InteropAccessMode.Hardwired;
@@ -32,67 +27,98 @@ namespace LibreLancer.Interface
             UserData.RegisterType<HorizontalAlignment>();
             UserData.RegisterType<VerticalAlignment>();
             UserData.RegisterType<AnchorKind>();
-            script = new Script(CoreModules.Preset_HardSandbox);
-            script.Options.DebugPrint = s => FLLog.Info("Lua", s);
-            script.Globals["HorizontalAlignment"] = UserData.CreateStatic<HorizontalAlignment>();
-            script.Globals["VerticalAlignment"] = UserData.CreateStatic<VerticalAlignment>();
-            script.Globals["AnchorKind"] = UserData.CreateStatic<AnchorKind>();
-            baseCode = Compile(script, null, DEFAULT_LUA, "LuaContext.LuaCode");
         }
         public static void RegisterType<T>()
         {
             UserData.RegisterType<T>(InteropAccessMode.LazyOptimized);
         }
 
-        static byte[] Compile(Script sc, Table globalTable, string code, string name)
-        {
-            DynValue v1 = sc.LoadString(code, globalTable, name);
-            using (var stream = new MemoryStream())
-            {
-                sc.Dump(v1, stream);
-                return stream.ToArray();
-            }
-        }
-
-        static void RunBytes(Script script, Table globalTable, byte[] bytes)
-        {
-            try
-            {
-                using (var stream = new MemoryStream(bytes, false)) {
-                    script.LoadStream(stream, globalTable).Function.Call();
-                }
-            }
-            catch (ScriptRuntimeException e)
-            {
-                throw new Exception(e.DecoratedMessage);
-            }
-           
-        }
-
         private UiContext uiContext;
 
-        public LuaContext(UiContext context, Scene scene)
+        public LuaContext(UiContext context)
         {
             uiContext = context;
+            script = new Script(CoreModules.Preset_HardSandbox | CoreModules.Metatables);
+            script.Options.DebugPrint = s => FLLog.Info("Lua", s);
+            script.Globals["HorizontalAlignment"] = UserData.CreateStatic<HorizontalAlignment>();
+            script.Globals["VerticalAlignment"] = UserData.CreateStatic<VerticalAlignment>();
+            script.Globals["AnchorKind"] = UserData.CreateStatic<AnchorKind>();
             script.Options.ScriptLoader = new UiScriptLoader(context);
-            globalTable = new Table(script);
+            var globalTable = script.Globals;
             foreach (var g in script.Globals.Keys)
             {
                 globalTable[g] = script.Globals[g];
             }
-
+            var typeTable = new Table(script);
+            LuaContext_Hardwire.GenerateTypeTable(typeTable);
+            globalTable["ClrTypes"] = typeTable;
             globalTable["Game"] = context.GameApi;
             //Functions
             globalTable["Funcs"] = new ContextFunctions(this);
-            if (Debugger.IsAttached)
-            {
-                script.DoString(DEFAULT_LUA, globalTable, "LuaContext.LuaCode");
-            } else
-                RunBytes(script, globalTable, baseCode);
-            _serialize = globalTable["Serialize"];
-            _callevent = globalTable["CallEvent"];
+            script.DoString(DEFAULT_LUA, null, "LuaContext.LuaCode");
         }
 
+        public void LoadMain()
+        {
+            try
+            {
+                script.DoFile("uimain.lua");
+                _callevent = script.Globals["CallEvent"];
+                _openscene = script.Globals["OpenScene"];
+                uiContext.Data.Stylesheet = script.Call(script.Globals["CreateStylesheet"]).ToObject<Stylesheet>();
+            }
+            catch (InterpreterException e)
+            {
+                throw new Exception($"{e.DecoratedMessage}", e);
+            }
+          
+        }
+
+        public void SetGameApi(object g)
+        {
+            script.Globals["Game"] = g;
+        }
+
+        public void OpenScene(string scene)
+        {
+            timers = new List<LuaTimer>();
+            script.Call(_openscene, scene);
+        }
+        
+        TimeSpan lastTime;
+        public void DoTimers(TimeSpan globalTime)
+        {
+            if (lastTime == TimeSpan.Zero)
+            {
+                lastTime = globalTime;
+                return;
+            }
+            var delta = globalTime - lastTime;
+            lastTime = globalTime;
+            for (int i = timers.Count - 1; i >= 0; i--)
+            {
+                var t = timers[i];
+                t.Time -= delta;
+                if (t.Time <= TimeSpan.Zero)
+                {
+                    script.Call(t.Function);
+                    timers.RemoveAt(i);
+                }
+            }
+        }
+
+        private List<LuaTimer> timers = new List<LuaTimer>();
+        class LuaTimer
+        {
+            public TimeSpan Time;
+            public object Function;
+        }
+        
+        public void Timer(float timer, object func)
+        {
+            timers.Add(new LuaTimer() { Time = TimeSpan.FromSeconds(timer), Function = func});
+        }
+        
         [MoonSharpUserData]
         public class ContextFunctions
         {
@@ -101,103 +127,33 @@ namespace LibreLancer.Interface
             {
                 c = lc;
             }
-            public UiWidget GetElement(string e) => c.Scene.GetElement(e);
-            public object NewObject(string obj) => UiXmlReflection.Instantiate(obj);
-            public void OpenModal(string xml, DynValue data, object function) => c.OpenModal(c.uiContext, xml, data, function);
-            public void CloseModal(DynValue table) => c.CloseModal(c.uiContext, table);
-            public void Timer(float time, object func) => c.Scene.Timer(time, func);
-            public void ApplyStyles() => c.Scene.ApplyStyles();
-            public Scene GetScene() => c.Scene;
+            //public object NewObject(string obj) => UiXmlReflection.Instantiate(obj);
+            //public void OpenModal(string xml, DynValue data, object function) => c.OpenModal(c.uiContext, xml, data, function);
+            //public void CloseModal(DynValue table) => c.CloseModal(c.uiContext, table);
+            public void Timer(float time, object func) => c.Timer(time, func);
             public void PlaySound(string snd) => c.uiContext.PlaySound(snd);
-            public InterfaceColor Color(string col) => c.uiContext.Data.GetColor(col);
+            public void SetWidget(UiWidget widget) => c.uiContext.SetWidget(widget);
+            public InterfaceColor GetColor(string col) => c.uiContext.Data.GetColor(col);
+            public InterfaceModel GetModel(string mdl) => c.uiContext.Data.Resources.Models.First(x => x.Name == mdl);
+            public InterfaceImage GetImage(string img) => c.uiContext.Data.Resources.Images.First(x => x.Name == img);
             public string GetNavbarIconPath(string ico) => c.uiContext.Data.GetNavbarIconPath(ico);
-            public void SwitchTo(string scn) => c.Scene.SwitchTo(scn);
-            public string SceneID() => c.Scene.ID;
 
             Dictionary<string,DynValue> mods = new Dictionary<string, DynValue>();
             public DynValue Require(string mod)
             {
                 if (mods.ContainsKey(mod))
                     return mods[mod];
-                var mx =  script.DoString(c.uiContext.Data.ReadAllText(mod), c.globalTable, mod);
+                var mx =  c.script.DoString(c.uiContext.Data.ReadAllText(mod + ".lua"), null, mod);
                 mods.Add(mod, mx);
                 return mx;
             }
-        }
-        void CloseModal(UiContext context, DynValue table)
-        {
-            string modalData = null;
-            if (table != null)
-            {
-                modalData = Serialize(table);
-            }
-            context.CloseModal(modalData);
-        }
-        void OpenModal(UiContext context, string xml, DynValue table, object function)
-        {
-            string modalData = null;
-            if (table != null)
-            {
-                modalData = Serialize(table);
-            }
-            Action<string> onClose = null;
-            if (function != null)
-            {
-                onClose = (x) =>
-                {
-                    DynValue argument = null;
-                    if (!string.IsNullOrEmpty(x))
-                    {
-                        argument = script.DoString("return " + x);
-                    }
-                    script.Call(function, argument);
-                };
-            }
-            context.OpenModal(xml, modalData, onClose);
-        }
-        public void Invoke(object func)
-        {
-            script.Call(func);
-        }
-        static Dictionary<string,byte[]> bytes = new Dictionary<string, byte[]>();
-
-        public void DoFile(string filename)
-        {
-            if (Debugger.IsAttached)
-            {
-                script.DoFile(filename, globalTable);
-                return;
-            }
-            if (!bytes.TryGetValue(filename, out var code))
-            {
-                code = Compile(script, globalTable, uiContext.Data.ReadAllText(filename), filename);
-                bytes.Add(filename, code);
-                try
-                {
-                    script.DoFile(filename, globalTable);
-                }
-                catch (ScriptRuntimeException e)
-                {
-                    throw new Exception(e.DecoratedMessage);
-                }
-            } else
-                RunBytes(script, globalTable, code);
         }
         public void CallEvent(string ev, params object[] p)
         {
             var args = new[] {(object) ev}.Concat(p).ToArray();
             script.Call(_callevent, args);
         }
-        string Serialize(DynValue obj)
-        {
-            return script.Call(_serialize, obj).String;
-        }
-
-        public void Assign(string name, string val)
-        {
-            script.DoString($"{name} = {val}", globalTable, $"{name} = {val}");
-        }
-
+     
         public void Dispose()
         {
         }

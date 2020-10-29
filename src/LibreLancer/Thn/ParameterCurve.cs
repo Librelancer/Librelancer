@@ -138,14 +138,14 @@ namespace LibreLancer
                     return a.Y;
                 case PCurveType.BumpIn:
                 case PCurveType.RampUp:
-                    return Utf.Ale.AlchemyEasing.Ease(Utf.Ale.EasingTypes.EaseIn, x, a.X, b.X, a.Y, b.Y);
+                    return Easing.Ease(EasingTypes.EaseIn, x, a.X, b.X, a.Y, b.Y);
                 case PCurveType.BumpOut:
                 case PCurveType.RampDown:
-                    return Utf.Ale.AlchemyEasing.Ease(Utf.Ale.EasingTypes.EaseOut, x, a.X, b.X, a.Y, b.Y);
+                    return Easing.Ease(EasingTypes.EaseOut, x, a.X, b.X, a.Y, b.Y);
                 case PCurveType.Smooth:
-                    return Utf.Ale.AlchemyEasing.Ease(Utf.Ale.EasingTypes.EaseInOut, x, a.X, b.Y, a.Y, b.Y);
+                    return Easing.Ease(EasingTypes.EaseInOut, x, a.X, b.Y, a.Y, b.Y);
                 default:
-                    return Utf.Ale.AlchemyEasing.Ease(Utf.Ale.EasingTypes.Linear, x, a.X, b.X, a.Y, b.Y);
+                    return Easing.Ease(EasingTypes.Linear, x, a.X, b.X, a.Y, b.Y);
             }
         }
 	}

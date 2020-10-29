@@ -15,10 +15,10 @@ function Navbox.PositionAction(button, actionbox, index)
 	actionbox:AddChild(button)
 end
 
-function Navbox.GetNavbox(btns)
+function Navbox.GetNavbox(w, btns)
 	local containers = { 'navbox1', 'navbox2', 'navbox3', 'navbox4', 'navbox5' }
-	for _, c in ipairs(containers) do GetElement(c).Visible = false end
-	local ctrl = GetElement(containers[#btns])
+	for _, c in ipairs(containers) do w:GetElement(c).Visible = false end
+	local ctrl = w:GetElement(containers[#btns])
 	ctrl.Visible = true
 	return ctrl
 end
@@ -29,10 +29,10 @@ local function clamp(x, min, max)
 	return x
 end
 
-function Navbox.GetActionBox(navcontainer, btns, actions, index)
+function Navbox.GetActionBox(w, navcontainer, btns, actions, index)
 	local actionbox = { }
 	local boxes = { 'actionbox1', 'actionbox2', 'actionbox3' }
-	for _, c in ipairs(boxes) do GetElement(c).Visible = false end
+	for _, c in ipairs(boxes) do w:GetElement(c).Visible = false end
 	if #actions > 0 then
 		actionbox = GetElement(boxes[#actions])
 		actionbox.Visible = true
