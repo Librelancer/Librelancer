@@ -14,9 +14,9 @@ end
 
 local function NavbarButton(hotspot, active)
 	-- State
-	local normalTint = Color('white')
+	local normalTint = GetColor('white')
 	if active == true then
-		normalTint = Color('yellow')
+		normalTint = GetColor('yellow')
 	end
 	-- Construct Appearance
 	local model = NewObject('InterfaceModel')
@@ -36,10 +36,65 @@ local function NavbarButton(hotspot, active)
 	if active == true then
 		hoverAppearance.Background = regAppearance.Background
 	else
-		hoverAppearance.Background = ModelRenderable(model, Color('white_hover'))
+		hoverAppearance.Background = ModelRenderable(model, GetColor('white_hover'))
 	end
 	style.Hover = hoverAppearance
 	-- Set Appearance
 	button:SetStyle(style)
 	return button
 end
+
+local function NavbarAction(hotspot)
+	local obj = NavbarButton(hotspot, false)
+	obj.Width = 33
+	obj.Height = 33
+	return obj
+end
+
+local navbox = require 'navbox.lua'
+
+function baseside:ctor()
+   navbox = require 'navbox.lua'
+
+    local btns = Game:GetNavbarButtons()
+    local actions = Game:GetActionButtons()
+    local activeids = Game:ActiveNavbarButton()
+    local container = navbox.GetNavbox(self.Widget, btns)
+    local locX = navbox.GetStartX(btns)
+    local activeIDS = 0
+
+    for index, button in ipairs(btns) do
+        local obj = NavbarButton(button.IconName, button.IDS == activeids)
+        obj.Anchor = AnchorKind.TopCenter
+        obj.X = locX
+        locX = locX + navbox.XSpacing
+        obj.Y = navbox.OffsetY
+        if button.IDS ~= activeids then
+            obj:OnClick(function()
+                Game:HotspotPressed(button.IDS)
+            end)
+        else
+            activeIDS = index
+        end
+        container:AddChild(obj)
+    end
+
+    local actionbox = navbox.GetActionBox(self.Widget, container, btns, actions, activeIDS)
+    for index, action in ipairs(actions) do
+        local obj = NavbarAction(action.IconName)
+        obj:OnClick(function()
+            Game:HotspotPressed(action.IDS)
+        end)
+        navbox.PositionAction(obj, actionbox, index)
+    end
+    
+    self.Elements.chatbox:OnTextEntered(function (text)
+                                            Game:TextEntered(text)
+                                        end)
+end
+
+function baseside:Chatbox()
+   self.Elements.chatbox.Visible = true 
+end
+
+

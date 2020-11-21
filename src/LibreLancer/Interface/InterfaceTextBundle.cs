@@ -23,6 +23,11 @@ namespace LibreLancer.Interface
             return writer.ToString();
         }
 
+        public bool Exists(string key)
+        {
+            return db.ContainsKey(key);
+        }
+        
         public static InterfaceTextBundle FromJSON(string text)
         {
             var reader = new StringReader(text);

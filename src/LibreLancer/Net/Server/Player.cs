@@ -281,7 +281,7 @@ namespace LibreLancer
                 }
                 case CharacterListAction.SelectCharacter:
                 {
-                    if (pkt.IntArg > 0 && pkt.IntArg < CharacterList.Count)
+                    if (pkt.IntArg >= 0 && pkt.IntArg < CharacterList.Count)
                     {
                         var sc = CharacterList[pkt.IntArg];
                         FLLog.Info("Server", $"opening id {sc.Id}");

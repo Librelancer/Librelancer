@@ -127,12 +127,11 @@ namespace LibreLancer.Interface
             {
                 c = lc;
             }
-            //public object NewObject(string obj) => UiXmlReflection.Instantiate(obj);
-            //public void OpenModal(string xml, DynValue data, object function) => c.OpenModal(c.uiContext, xml, data, function);
-            //public void CloseModal(DynValue table) => c.CloseModal(c.uiContext, table);
             public void Timer(float time, object func) => c.Timer(time, func);
             public void PlaySound(string snd) => c.uiContext.PlaySound(snd);
             public void SetWidget(UiWidget widget) => c.uiContext.SetWidget(widget);
+            public int OpenModal(UiWidget widget) => c.uiContext.OpenModal(widget);
+            public void CloseModal(int handle) => c.uiContext.CloseModal(handle);
             public InterfaceColor GetColor(string col) => c.uiContext.Data.GetColor(col);
             public InterfaceModel GetModel(string mdl) => c.uiContext.Data.Resources.Models.First(x => x.Name == mdl);
             public InterfaceImage GetImage(string img) => c.uiContext.Data.Resources.Images.First(x => x.Name == img);
@@ -143,7 +142,10 @@ namespace LibreLancer.Interface
             {
                 if (mods.ContainsKey(mod))
                     return mods[mod];
-                var mx =  c.script.DoString(c.uiContext.Data.ReadAllText(mod + ".lua"), null, mod);
+                string filename = mod;
+                if (!c.uiContext.Data.FileExists(filename))
+                    filename += ".lua";
+                var mx =  c.script.DoString(c.uiContext.Data.ReadAllText(filename), null, mod);
                 mods.Add(mod, mx);
                 return mx;
             }

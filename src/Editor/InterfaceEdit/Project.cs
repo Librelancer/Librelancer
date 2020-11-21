@@ -85,6 +85,7 @@ namespace InterfaceEdit
         {
             UiData = new UiData();
             XmlFolder = Path.GetDirectoryName(projectpath);
+            ProjectFile = projectpath;
             using (var reader = new StreamReader(File.OpenRead(projectpath)))
             {
                 var x = (ProjectXml) _xml.Deserialize(reader);

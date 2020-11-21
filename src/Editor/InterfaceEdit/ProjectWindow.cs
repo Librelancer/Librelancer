@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -66,6 +67,11 @@ namespace InterfaceEdit
         public bool IsOpen = false;
 
         private byte[] newFileBuffer = new byte[48];
+
+        public IEnumerable<string> GetClasses()
+        {
+            return files.Where(x => x.EndsWith(".xml", StringComparison.OrdinalIgnoreCase));
+        }
         public unsafe void Draw()
         {
             bool openNew = false;

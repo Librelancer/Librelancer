@@ -190,6 +190,7 @@ namespace LibreLancer.Interface
             MouseY = mouseY * inputRatio;
             MouseLeftDown = leftDown;
             lua?.DoTimers(globalTime);
+            lua?.CallEvent("Update", globalTime.TotalSeconds);
         }
 
         public void Update(FreelancerGame game)
@@ -208,40 +209,38 @@ namespace LibreLancer.Interface
 
         public void Dispose()
         {
-            if (game != null)
-            {
-                baseWidget.Dispose();
-                game.Mouse.MouseUp -= MouseOnMouseUp;
-                game.Mouse.MouseDown -= MouseOnMouseDown;
-            }
+            baseWidget = null;
         }
         RectangleF GetRectangle() => new RectangleF(0,0, 480 * (ViewportWidth / ViewportHeight), 480);
 
         private UiWidget baseWidget;
-        Stack<ModalState> modals = new Stack<ModalState>();
+        List<ModalState> modals = new List<ModalState>();
         public void SetWidget(UiWidget widget)
         {
             widget.ApplyStylesheet(Data.Stylesheet);
             foreach (var m in modals)
                 m.Widget.Dispose();
-            modals = new Stack<ModalState>();
+            modals = new List<ModalState>();
             baseWidget = widget;
         }
-        public void OpenModal(string name, string modalData, Action<string> onClose)
+
+        private int _h = 0;
+        public int OpenModal(UiWidget widget)
         {
-            //var item = Data.LoadXml(name);
-            //item.EnableScripting(this, modalData);
-            //modals.Push(new ModalState() {
-            //    Widget = item, OnClose = onClose
-            //});
+            var handle = _h++;
+            modals.Add(new ModalState() {Widget = widget, Handle = handle});
+            return handle;
         }
 
-        public void CloseModal(string data)
+        public void CloseModal(int handle)
         {
-            if (modals.Count > 0)
+            for (int i = 0; i < modals.Count; i++)
             {
-                modals.Peek().OnClose?.Invoke(data);
-                modals.Pop();
+                if (modals[i].Handle == handle)
+                {
+                    modals.RemoveAt(i);
+                    break;
+                }
             }
         }
 
@@ -253,7 +252,7 @@ namespace LibreLancer.Interface
         class ModalState
         {
             public UiWidget Widget;
-            public Action<string> OnClose;
+            public int Handle;
         }
 
         public bool Visible = true;
@@ -261,7 +260,7 @@ namespace LibreLancer.Interface
         {
             if(!Visible) return null;
             if (baseWidget == null) return null;
-            if (modals.Count > 0) return modals.Peek().Widget;
+            if (modals.Count > 0) return modals[modals.Count - 1].Widget;
             return baseWidget;
         }
 
@@ -296,7 +295,7 @@ namespace LibreLancer.Interface
             var aspect = ViewportWidth / ViewportHeight;
             var desktopRect = new RectangleF(0, 0, 480 * aspect, 480);
             baseWidget.Render(this, desktopRect);
-            foreach(var widget in modals.Reverse())
+            foreach(var widget in modals)
                 widget.Widget.Render(this, desktopRect);
             if (mode2d)
                 Renderer2D.Finish();

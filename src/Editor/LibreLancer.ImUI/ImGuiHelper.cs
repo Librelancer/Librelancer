@@ -286,7 +286,7 @@ namespace LibreLancer.ImUI
 		void Keyboard_KeyDown(KeyEventArgs e)
 		{
 			var io = ImGui.GetIO();
-			if (mappedKeys.Contains(e.Key)) io.KeysDown[(int)mappedKeys.IndexOf(e.Key)] = true;
+			io.KeysDown[(int)e.Key] = true;
 			io.KeyAlt = ((e.Modifiers & KeyModifiers.LeftAlt) == KeyModifiers.LeftAlt);
 			io.KeyCtrl = ((e.Modifiers & KeyModifiers.LeftControl) == KeyModifiers.LeftControl);
 			io.KeyShift = ((e.Modifiers & KeyModifiers.LeftShift) == KeyModifiers.LeftShift);
@@ -295,7 +295,7 @@ namespace LibreLancer.ImUI
 		void Keyboard_KeyUp(KeyEventArgs e)
 		{
 			var io = ImGui.GetIO();
-			if (mappedKeys.Contains(e.Key)) io.KeysDown[(int)mappedKeys.IndexOf(e.Key)] = false;
+            io.KeysDown[(int) e.Key] = false;
 			io.KeyAlt = ((e.Modifiers & KeyModifiers.LeftAlt) == KeyModifiers.LeftAlt);
 			io.KeyCtrl = ((e.Modifiers & KeyModifiers.LeftControl) == KeyModifiers.LeftControl);
 			io.KeyShift = ((e.Modifiers & KeyModifiers.LeftShift) == KeyModifiers.LeftShift);

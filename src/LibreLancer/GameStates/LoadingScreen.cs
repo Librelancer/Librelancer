@@ -10,22 +10,24 @@ namespace LibreLancer
     //Not a full GameState object but close enough to one
     public class LoadingScreen
     {
-        UiContext ui;
-        private UiWidget widget;
         FreelancerGame game;
         IEnumerator<object> loader;
         public LoadingScreen(FreelancerGame game, IEnumerator<object> loader)
         {
             this.game = game;
             this.loader = loader;
-            //ui = new UiContext(game, "loading.xml");
+        }
+
+        public void Init()
+        {
+            game.Ui.OpenScene("loading");
         }
 
         private int fCount = 0;
         private const int DELAY_FRAMES = 3;
         public bool Update(TimeSpan delta)
         {
-            if(fCount > DELAY_FRAMES) ui.Update(game);
+            if(fCount > DELAY_FRAMES) game.Ui.Update(game);
             double tick = game.TimerTick;
             while (game.TimerTick - tick < (1 / 30.0))
             {
@@ -39,7 +41,7 @@ namespace LibreLancer
         }
         public void Draw(TimeSpan delta)
         {
-            if(fCount > DELAY_FRAMES) ui.RenderWidget();
+            if(fCount > DELAY_FRAMES) game.Ui.RenderWidget();
         }
     }
 }

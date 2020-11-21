@@ -7,6 +7,7 @@
 		<Button X="33" Y="193" Style="menubutton" ID="performance" Text="PERFORMANCE"/>
 		<Button X="33" Y="246" Style="menubutton" ID="audio" Text="AUDIO"/>
 		<Button X="33" Y="298" Style="menubutton" ID="credits" Text="CREDITS"/>
-		<Button X="33" Y="407" Style="menubutton" ID="return" Text="MAIN MENU"/>
+		<Button X="33" Y="407" Style="menubutton" ID="goback" Text="MAIN MENU"/>
 	</Panel>
 </Scene> 
+

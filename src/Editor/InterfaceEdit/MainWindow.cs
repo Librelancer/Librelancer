@@ -25,6 +25,7 @@ namespace InterfaceEdit
         public Renderer2D Renderer2D;
         public MainWindow() : base(950,600,false)
         {
+            TestApi = new TestingApi(this);
         }
 
         protected override void Load()
@@ -46,10 +47,14 @@ namespace InterfaceEdit
         private ResourceWindow resourceEditor;
         private ProjectWindow projectWindow;
         public FontManager Fonts;
-        public TestingApi TestApi = new TestingApi();
-
+        public TestingApi TestApi;
         public Project Project;
 
+
+        public void UiEvent(string ev)
+        {
+            _playContext?.Event(ev);
+        }
         public void OpenXml(string path)
         {
             var tab = new DesignerTab(File.ReadAllText(path), path, this);
@@ -107,7 +112,7 @@ namespace InterfaceEdit
                         OpenGui(f);
                     }
                 }
-                if (selected is SaveableTab saveable)
+                if (!playing && selected is SaveableTab saveable)
                 {
                     if (Theme.IconMenuItem($"Save '{saveable.Title}'", "save", Color4.White, true))
                     {
@@ -119,27 +124,9 @@ namespace InterfaceEdit
                     Theme.IconMenuItem("Save", "save", Color4.LightGray, false);
                 }
 
-                if (ImGui.MenuItem("Compile"))
+                if (ImGui.MenuItem("Compile", Project != null && !playing))
                 {
-                    try
-                    {
-                        Compiler.Compile(Project.XmlFolder, Project.XmlLoader);
-                    }
-                    catch (Exception e)
-                    {
-                        var detail = new StringBuilder();
-                        detail.AppendLine(e.Message);
-                        detail.AppendLine(e.StackTrace);
-                        Exception e2 = e.InnerException;
-                        while (e2 != null)
-                        {
-                            detail.AppendLine("---");
-                            detail.AppendLine(e2.Message);
-                            detail.AppendLine(e2.StackTrace);
-                            e2 = e2.InnerException;
-                        }
-                        CrashWindow.Run("Interface Edit", "Compile Error", detail.ToString());
-                    }
+                    CompileProject();
                 }
                 if (Theme.IconMenuItem("Quit", "quit", Color4.White, true))
                 {
@@ -185,27 +172,48 @@ namespace InterfaceEdit
                 ImGui.MenuItem("Resources", "", ref resourceEditor.IsOpen);
                 ImGui.EndMenu();
             }
+
+            if (Project != null && !playing && ImGui.BeginMenu("Play"))
+            {
+                foreach (var file in projectWindow.GetClasses())
+                {
+                    if (ImGui.MenuItem(file))
+                    {
+                        StartPlay(Path.GetFileNameWithoutExtension(file));
+                    }
+                }
+
+                ImGui.EndMenu();
+            }
+            if (Project != null && playing && ImGui.MenuItem("Stop"))
+            {
+                playing = false;
+                _playContext = null;
+                _playData = null;
+            }
             var menu_height = ImGui.GetWindowSize().Y;
             ImGui.EndMainMenuBar();
             var size = (Vector2)ImGui.GetIO().DisplaySize;
             size.Y -= menu_height;
             ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - 25), ImGuiCond.Always);
             ImGui.SetNextWindowPos(new Vector2(0, menu_height), ImGuiCond.Always, Vector2.Zero);
-            bool childopened = true;
-            ImGui.Begin("tabwindow", ref childopened,
-                ImGuiWindowFlags.NoTitleBar |
-                ImGuiWindowFlags.NoSavedSettings |
-                ImGuiWindowFlags.NoBringToFrontOnFocus |
-                ImGuiWindowFlags.NoMove |
-                ImGuiWindowFlags.NoResize);
-            var prevSel = selected;
-            TabHandler.TabLabels(tabs, ref selected);
-            ImGui.BeginChild("##tabcontent");
-            if (selected != null) selected.Draw();
-            ImGui.EndChild();
-            ImGui.End();
-            if(resourceEditor != null) resourceEditor.Draw();
-            if (projectWindow != null) projectWindow.Draw();
+            if (playing)
+            {
+                try
+                {
+                    Player();
+                }
+                catch (Exception e)
+                {
+                    var detail = new StringBuilder();
+                    BuildExceptionString(e,detail);
+                    CrashWindow.Run("Interface Edit", "Runtime Error", detail.ToString());
+                    playing = false;
+                    _playContext = null;
+                    _playData = null;
+                }
+            }
+            else Tabs();
             //Status Bar
             ImGui.SetNextWindowSize(new Vector2(size.X, 25f), ImGuiCond.Always);
             ImGui.SetNextWindowPos(new Vector2(0, size.Y - 6f), ImGuiCond.Always, Vector2.Zero);
@@ -221,6 +229,161 @@ namespace InterfaceEdit
             //Finish Render
             ImGui.PopFont();
             guiHelper.Render(RenderState);
+        }
+
+
+        private UiData _playData;
+        private UiContext _playContext;
+        void StartPlay(string classname)
+        {
+            try
+            {
+                _playData = new UiData()
+                {
+                    Fonts = Project.UiData.Fonts,
+                    Infocards = Project.UiData.Infocards,
+                    DataPath = Project.UiData.DataPath,
+                    FileSystem = Project.UiData.FileSystem,
+                    FlDirectory = Project.UiData.FlDirectory,
+                    ResourceManager = Project.UiData.ResourceManager,
+                    NavbarIcons = Project.UiData.NavbarIcons,
+                    Resources = Project.UiData.Resources
+                };
+                _playData.SetBundle(Compiler.Compile(Project.XmlFolder, Project.XmlLoader));
+                _playContext = new UiContext(_playData)
+                {
+                    RenderState = RenderState,
+                    Renderer2D = Renderer2D
+                };
+                _playContext.GameApi = TestApi;
+                _playContext.LoadCode();
+                _playContext.OpenScene(classname);
+                playing = true;
+            }
+            catch (Exception e)
+            {
+                var detail = new StringBuilder();
+                BuildExceptionString(e,detail);
+                CrashWindow.Run("Interface Edit", "Compile Error", detail.ToString());
+            }
+        }
+        
+        void Tabs()
+        {
+            bool childopened = true;
+            ImGui.Begin("tabwindow", ref childopened,
+                ImGuiWindowFlags.NoTitleBar |
+                ImGuiWindowFlags.NoSavedSettings |
+                ImGuiWindowFlags.NoBringToFrontOnFocus |
+                ImGuiWindowFlags.NoMove |
+                ImGuiWindowFlags.NoResize);
+            var prevSel = selected;
+            TabHandler.TabLabels(tabs, ref selected);
+            ImGui.BeginChild("##tabcontent");
+            if (selected != null) selected.Draw();
+            ImGui.EndChild();
+            ImGui.End();
+            if(resourceEditor != null) resourceEditor.Draw();
+            if (projectWindow != null) projectWindow.Draw();
+        }
+
+        private int rtX = -1, rtY = -1;
+        private RenderTarget2D renderTarget;
+        private int renderTargetImage;
+        private bool lastDown = false;
+        void Player()
+        {
+            bool childopened = true;
+            ImGui.Begin("playwindow", ref childopened,
+                ImGuiWindowFlags.NoTitleBar |
+                ImGuiWindowFlags.NoSavedSettings |
+                ImGuiWindowFlags.NoBringToFrontOnFocus |
+                ImGuiWindowFlags.NoMove |
+                ImGuiWindowFlags.NoResize);
+            var szX = Math.Max((int) ImGui.GetWindowContentRegionWidth(), 32);
+            var szY = Math.Max((int) ImGui.GetWindowHeight() - 20, 32);
+            if (rtX != szX || rtY != szY)
+            {
+                rtX = szX;
+                rtY = szY;
+                if (renderTarget != null)
+                {
+                    ImGuiHelper.DeregisterTexture(renderTarget.Texture);
+                    renderTarget.Dispose();
+                }
+                renderTarget = new RenderTarget2D(rtX, rtY);
+                renderTargetImage = ImGuiHelper.RegisterTexture(renderTarget.Texture);
+            }
+            RenderState.RenderTarget = renderTarget;
+            Viewport.Push(0,0,rtX,rtY);
+            RenderState.ClearColor = Color4.Black;
+            RenderState.ClearAll();
+            //Do drawing
+            _playContext.GlobalTime = TimeSpan.FromSeconds(TotalTime);
+            _playContext.ViewportWidth = rtX;
+            _playContext.ViewportHeight = rtY;
+            _playContext.RenderWidget();
+            //
+            Viewport.Pop();
+            RenderState.RenderTarget = null;
+            //We don't use ImageButton because we need to be specific about sizing
+            var cPos = ImGui.GetCursorPos();
+            ImGui.Image((IntPtr) renderTargetImage, new Vector2(rtX, rtY), new Vector2(0, 1), new Vector2(1, 0));
+            ImGui.SetCursorPos(cPos);
+            var wPos = ImGui.GetWindowPos();
+            var mX = (int) (Mouse.X - cPos.X - wPos.X);
+            var mY = (int) (Mouse.Y - cPos.Y - wPos.Y);
+            ImGui.InvisibleButton("##renderThing", new Vector2(rtX, rtY));
+            if (ImGui.IsItemHovered())
+            {
+                _playContext.Update(null, TimeSpan.FromSeconds(TotalTime), mX, mY, false);
+                if(ImGui.IsItemClicked(0)) _playContext.OnMouseClick();
+                var isDown = ImGui.IsMouseDown(0);
+                if (lastDown && !isDown) _playContext.OnMouseUp();
+                if (isDown && !lastDown) _playContext.OnMouseDown();
+                _playContext.MouseLeftDown = isDown;
+                lastDown = isDown;
+            }
+            else {
+                _playContext.Update(null, TimeSpan.FromSeconds(TotalTime), 0, 0, false);
+                _playContext.MouseLeftDown = false;
+                if (lastDown)
+                {
+                    lastDown = false;
+                    _playContext.OnMouseUp();
+                }
+            }
+            ImGui.End();
+        }
+
+        static void BuildExceptionString(Exception e, StringBuilder detail)
+        {
+            if (e is MoonSharp.Interpreter.InterpreterException ie)
+            {
+                detail.AppendLine(ie.DecoratedMessage);
+            }
+            detail.AppendLine(e.GetType().FullName);
+            detail.AppendLine(e.Message);
+            detail.AppendLine(e.StackTrace);
+            if (e.InnerException != null)
+            {
+                detail.AppendLine("---");
+                BuildExceptionString(e.InnerException, detail);
+            }
+        }
+        private bool playing = false;
+        void CompileProject()
+        {
+            try
+            {
+                Compiler.Compile(Project.XmlFolder, Project.XmlLoader, Path.Combine(Project.XmlFolder, "out"));
+            }
+            catch (Exception e)
+            {
+                var detail = new StringBuilder();
+                BuildExceptionString(e, detail);
+                CrashWindow.Run("Interface Edit", "Compile Error", detail.ToString());
+            }
         }
 
     }

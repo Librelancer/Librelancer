@@ -9767,6 +9767,8 @@ namespace LibreLancer.Lua {
             
             internal TYPE_EJIBj98zINKiRrOltK6vUW07() : 
                     base(typeof(LibreLancer.Interface.LuaContext.ContextFunctions)) {
+                this.AddMember("CloseModal", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("CloseModal", typeof(LibreLancer.Interface.LuaContext.ContextFunctions), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_1SDEuuHURfR5PXpVRtR4xvT3Y()}));
                 this.AddMember("Equals", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("Equals", typeof(LibreLancer.Interface.LuaContext.ContextFunctions), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_1LYZ_uEroW3OkiJgCOP5ORXhq()}));
                 this.AddMember("GetColor", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("GetColor", typeof(LibreLancer.Interface.LuaContext.ContextFunctions), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
@@ -9781,6 +9783,8 @@ namespace LibreLancer.Lua {
                                 new MTHD_1K73IdqUsh5_I7ip6Lhoagwqw()}));
                 this.AddMember("GetType", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("GetType", typeof(LibreLancer.Interface.LuaContext.ContextFunctions), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_1JeQRidQLmj5oYEi5pfUs5np3()}));
+                this.AddMember("OpenModal", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OpenModal", typeof(LibreLancer.Interface.LuaContext.ContextFunctions), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_TjbLeZyiH4CMZu80htbU0wz_()}));
                 this.AddMember("PlaySound", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("PlaySound", typeof(LibreLancer.Interface.LuaContext.ContextFunctions), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_14Xm1RY9l3SzByou49ntRylhB()}));
                 this.AddMember("Require", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("Require", typeof(LibreLancer.Interface.LuaContext.ContextFunctions), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
@@ -9793,6 +9797,19 @@ namespace LibreLancer.Lua {
                                 new MTHD_QX55joi1YY3gKx0sgT94BbnB()}));
                 this.AddMember("__new", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("__new", typeof(LibreLancer.Interface.LuaContext.ContextFunctions), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_TNPv0wF3FVczWgbVDWAZwOwl()}));
+            }
+            
+            private sealed class MTHD_1SDEuuHURfR5PXpVRtR4xvT3Y : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_1SDEuuHURfR5PXpVRtR4xvT3Y() {
+                    this.Initialize("CloseModal", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("handle", typeof(int), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.LuaContext.ContextFunctions)(obj)).CloseModal(((int)(pars[0])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
             }
             
             private sealed class MTHD_1LYZ_uEroW3OkiJgCOP5ORXhq : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
@@ -9874,6 +9891,18 @@ namespace LibreLancer.Lua {
                 
                 protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
                     return ((object)(obj)).GetType();
+                }
+            }
+            
+            private sealed class MTHD_TjbLeZyiH4CMZu80htbU0wz_ : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_TjbLeZyiH4CMZu80htbU0wz_() {
+                    this.Initialize("OpenModal", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("widget", typeof(LibreLancer.Interface.UiWidget), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return ((LibreLancer.Interface.LuaContext.ContextFunctions)(obj)).OpenModal(((LibreLancer.Interface.UiWidget)(pars[0])));
                 }
             }
             

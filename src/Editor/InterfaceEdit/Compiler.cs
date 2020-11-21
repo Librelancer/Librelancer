@@ -31,6 +31,7 @@ namespace InterfaceEdit
 
         private const string BOILERPLATE = @"
 local active = {}
+local _classes = {}
 function OpenScene(s)
     local w = _classes[s]()
     SetActive(w)
@@ -40,16 +41,43 @@ function SetActive(w)
     SetWidget(w.Widget)
     CallEvent('enter')
 end
+
+function OpenModal(m)
+   if m._modalinfo ~= nil then
+        m._modalinfo.closehandle = Funcs:OpenModal(m.Widget)
+    else
+        error('Class is not modal type')
+    end 
+end
+
+local function m_modalinit(self)
+    self._modalinfo = {}
+end
+local function m_modalcallback(self, f)
+    self._modalinfo.Callback = f
+end
+local function m_close(self, ...)
+    Funcs:CloseModal(self._modalinfo.closehandle)
+    if self._modalinfo.Callback ~= nil then
+        self._modalinfo.Callback(...)
+    end
+end
+function ModalClass(c)
+    c.ModalInit = m_modalinit
+    c.ModalCallback = m_modalcallback
+    c.Close = m_close
+end
+
 function CallEvent(ev, ...)
     if active[ev] ~= nil then
-        active[ev](...)
+        active[ev](active, ...)
     end
 end
 ";
-        public static void Compile(string xmlFolder, UiXmlLoader xmlLoader, string outfolder = null)
+        public static InterfaceTextBundle Compile(string xmlFolder, UiXmlLoader xmlLoader, string outfolder = null)
         {
-            outfolder ??= Path.Combine(xmlFolder, "out");
-            Directory.CreateDirectory(outfolder);
+            if(outfolder != null)
+             Directory.CreateDirectory(outfolder);
             var bundle = new InterfaceTextBundle();
             bundle.AddStringCompressed("resources.xml", File.ReadAllText(Path.Combine(xmlFolder, "resources.xml")));
             foreach (var file in LuaFiles(xmlFolder))
@@ -61,14 +89,17 @@ end
             {
                 mainlua.AppendLine("require 'main.lua'");
             }
-            mainlua.AppendLine("local _classes = {}");
+            // uimain boilerplate
+            mainlua.AppendLine(BOILERPLATE);
+            // classes
             foreach (var file in CompileFiles(xmlFolder))
             {
                 try
                 {
                     var (classname, source) = xmlLoader.LuaClassDesigner(File.ReadAllText(file), Path.GetFileNameWithoutExtension(file));
                     bundle.AddStringCompressed(classname + ".designer.lua", source);
-                    File.WriteAllText(Path.Combine(outfolder, classname + ".designer.lua"), source);
+                    if(outfolder != null)
+                        File.WriteAllText(Path.Combine(outfolder, classname + ".designer.lua"), source);
                     mainlua.AppendLine($"require '{classname}.designer'");
                     if (File.Exists(Path.Combine(xmlFolder, classname + ".lua")))
                     {
@@ -82,12 +113,15 @@ end
                 }
                
             }
-            // uimain boilerplate
-            mainlua.AppendLine(BOILERPLATE);
-            //
+            // stylesheet
             mainlua.AppendLine(xmlLoader.StylesheetToLua(File.ReadAllText(Path.Combine(xmlFolder, "stylesheet.xml"))));
             bundle.AddStringCompressed("uimain.lua", mainlua.ToString());
-            File.WriteAllText(Path.Combine(outfolder, "interface.json"), bundle.ToJSON());
+            if (outfolder != null)
+            {
+                File.WriteAllText(Path.Combine(outfolder, "uimain.lua"), mainlua.ToString());
+                File.WriteAllText(Path.Combine(outfolder, "interface.json"), bundle.ToJSON());
+            }
+            return bundle;
         }
     }
 }

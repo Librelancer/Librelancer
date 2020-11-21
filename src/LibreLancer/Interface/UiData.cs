@@ -135,9 +135,15 @@ namespace LibreLancer.Interface
                 }
             }
         }
+
+        public void SetBundle(InterfaceTextBundle tb)
+        {
+            uibundle = tb;
+        }
+        
         public string ReadAllText(string file)
         {
-            if (!string.IsNullOrEmpty(XInterfacePath))
+            if (uibundle == null && !string.IsNullOrEmpty(XInterfacePath))
             {
                 var path = FileSystem.Resolve(Path.Combine(XInterfacePath, file));
                 return File.ReadAllText(path);
@@ -146,6 +152,20 @@ namespace LibreLancer.Interface
             {
                 ReadBundle();
                 return uibundle.GetStringCompressed(file);
+            }
+        }
+
+        public bool FileExists(string file)
+        {
+            if (!string.IsNullOrEmpty(XInterfacePath))
+            {
+                var path = FileSystem.Resolve(Path.Combine(XInterfacePath, file), false);
+                return path != null;
+            }
+            else
+            {
+                ReadBundle();
+                return uibundle.Exists(file);
             }
         }
 

@@ -129,12 +129,12 @@ namespace LibreLancer.Interface.Reflection
             printer.ElementProperty = null;
             printer.TabOut();
             printer.WriteLine("end");
-            printer.WriteLine($"function {className}:init()");
+            printer.WriteLine($"function {className}:init(...)");
             printer.TabIn();
             printer.WriteLine("self:CreateWidget()");
             printer.WriteLine("if self.ctor ~= nil then");
             printer.TabIn();
-            printer.WriteLine("self:ctor()");
+            printer.WriteLine("self:ctor(...)");
             printer.TabOut();
             printer.WriteLine("end");
             printer.TabOut();

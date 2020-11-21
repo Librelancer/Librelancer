@@ -11,7 +11,16 @@ function mainmenu:ctor()
 			Game:NewGame()
 		end)
 	end)
-
+	scn.multiplayer:OnClick(function()
+		self:ExitAnimation(function()
+			OpenScene("serverlist")
+		end)
+	end)
+	scn.options:OnClick(function()
+		self:ExitAnimation(function()
+            OpenScene("options")
+        end)
+	end)
 	scn.exit:OnClick(function()
 		self:ExitAnimation(function()
 			Game:Exit()
@@ -28,3 +37,6 @@ function mainmenu:ExitAnimation(f)
 	e.newgame:Animate('flyoutleft', 0.2, 0.6)
 	Timer(0.8, f)
 end
+
+
+

@@ -28,12 +28,31 @@ namespace InterfaceEdit
             return Selected > -1;
         }
     }
+    public class TestCharacterList : ITableData
+    {
+        public int Count => 5;
+        public int Selected { get; set; } = -1;
+        public string GetContentString(int row, string column)
+        {
+            return "A";
+        }
+
+        public string ServerName = "Server";
+        public string ServerDescription = "DESCRIPTION";
+        public string ServerNews = "Placeholder News";
+
+        public bool ValidSelection()
+        {
+            return Selected > -1;
+        }
+    }
     public class TestingApi
     {
         static TestingApi()
         {
             LuaContext.RegisterType<TestingApi>();
             LuaContext.RegisterType<TestServerList>();
+            LuaContext.RegisterType<TestCharacterList>();
         }
         static readonly NavbarButtonInfo cityscape = new NavbarButtonInfo("IDS_HOTSPOT_EXIT", "Cityscape");
         static readonly NavbarButtonInfo bar = new NavbarButtonInfo("IDS_HOTSPOT_BAR", "Bar");
@@ -107,8 +126,8 @@ namespace InterfaceEdit
             return dict;
         }
 
-        public int ThrustPercent() => 100;
-        public int Speed() => 80;
+        public int ThrustPercent() => 111;
+        public int Speed() => 67;
         public void HotspotPressed(string hotspot)
         {
             
@@ -126,7 +145,28 @@ namespace InterfaceEdit
         public void NewGame() { }
 
         public void Exit() { }
-        
 
+        private TestCharacterList clist = new TestCharacterList();
+        public TestCharacterList CharacterList()
+        {
+            return clist;
+        }
+
+        private MainWindow win;
+        public TestingApi(MainWindow win)
+        {
+            this.win = win;
+        }
+        
+        public void RequestNewCharacter()
+        {
+            win.UiEvent("OpenNewCharacter");
+        }
+        
+        
+        public void LoadCharacter(){}
+        public void DeleteCharacter() { }
+
+        public void NewCharacter(string name, int index) { }
     }
 }

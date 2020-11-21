@@ -60,14 +60,15 @@ Mouse Flight: {11}
             g.ResourceManager.ClearTextures(); //Do before loading things
             this.session = session;
             sys = g.GameData.GetSystem(session.PlayerSystem);
-            loader = new LoadingScreen(g, g.GameData.LoadSystemResources(sys));
             ui = Game.Ui;
             ui.GameApi = uiApi = new LuaAPI(this);
-            ui.OpenScene("hud");
+            loader = new LoadingScreen(g, g.GameData.LoadSystemResources(sys));
+            loader.Init();
         }
 
         void FinishLoad()
         {
+            ui.OpenScene("hud");
             var shp = Game.GameData.GetShip(session.PlayerShip);
             //Set up player object + camera
             player = new GameObject(shp.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager, true, false);

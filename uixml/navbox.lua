@@ -34,7 +34,7 @@ function Navbox.GetActionBox(w, navcontainer, btns, actions, index)
 	local boxes = { 'actionbox1', 'actionbox2', 'actionbox3' }
 	for _, c in ipairs(boxes) do w:GetElement(c).Visible = false end
 	if #actions > 0 then
-		actionbox = GetElement(boxes[#actions])
+		actionbox = w:GetElement(boxes[#actions])
 		actionbox.Visible = true
 		local minX = -(navcontainer.Width / 2) + actionbox.Width / 2 + 26
 		local maxX = (navcontainer.Width / 2) - actionbox.Width / 2 - 26
