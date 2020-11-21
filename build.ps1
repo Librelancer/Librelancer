@@ -82,14 +82,19 @@ Function Remove-PathVariable([string]$VariableToRemove)
 }
 
 # Get .NET Core CLI path if installed.
-$FoundDotNetCliVersion = $null;
+$SDKResult = "notfound";
 if (Get-Command dotnet -ErrorAction SilentlyContinue) {
-    $FoundDotNetCliVersion = dotnet --version;
-    $FoundDotNetCliVersion = [System.String]::Join('.', ($FoundDotNetCliVersion.Split(".")[0..1]));
+    $FoundDotNetCliVersion = dotnet --list-sdks;
+    Foreach($str in $FoundDotNetCliVersion.Split("\n")) {
+        $str
+        if($str.StartsWith($DotNetVersion)) {
+            $SDKResult = "found";
+        }
+    }
 }
 
-if($FoundDotNetCliVersion -ne $DotNetVersion) {
-    "Version $FoundDotnetCliVersion != required $DotNetVersion, exiting"
+if($SDKResult -eq "notfound") {
+    "Required SDK $DotNetVersion not found, exiting"
     exit 2
 }
 

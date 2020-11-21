@@ -11,10 +11,6 @@ source $SCRIPT_DIR/build.config
 # Dependency Check (Librelancer)
 $SCRIPT_DIR/scripts/monocheck || { echo >&2 "ERROR: Dependency check failed."; exit 1; }
 
-dotnet_output=$(dotnet --version 2>&1)
-
-DOTNET_MAJOR_VERSION="$(cut -d '.' -f 1 <<< "$dotnet_output")"."$(cut -d '.' -f 2 <<< "$dotnet_output")"
-
 # Define default arguments.
 SCRIPT="build.cake"
 CAKE_ARGUMENTS=()
@@ -34,9 +30,14 @@ if [ ! -d "$TOOLS_DIR" ]; then
   mkdir "$TOOLS_DIR"
 fi
 
-if [ "$DOTNET_VERSION" != "$DOTNET_MAJOR_VERSION" ]; then
-    echo Dotnet version is $DOTNET_MAJOR_VERSION
-    echo Need $DOTNET_VERSION
+ere_quote() {
+    sed 's/[][\.|$(){}?+*^]/\\&/g' <<< "$*"
+}
+DOTNET_GREP = "^`ere_quote $DOTNET_VERSION`"
+dotnet --list-sdks | grep -E $DOTNET_GREP > /dev/null
+
+if [ $? -ne 0 ]; then
+    echo SDK Version $DOTNET_VERSION was not found
     exit 2
 fi
 
