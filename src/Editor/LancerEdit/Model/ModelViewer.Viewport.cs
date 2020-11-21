@@ -226,7 +226,7 @@ namespace LancerEdit
         {
             modelViewport.Background = doBackground ? _window.Config.Background : Color4.Black;
             modelViewport.Begin();
-            DrawGL(modelViewport.RenderWidth, modelViewport.RenderHeight, true);
+            DrawGL(modelViewport.RenderWidth, modelViewport.RenderHeight, true, doBackground);
             modelViewport.End();
             rotation = modelViewport.ModelRotation;
         }
@@ -235,7 +235,7 @@ namespace LancerEdit
         {
             previewViewport.Background = renderBackground ? _window.Config.Background : Color4.Black;
             previewViewport.Begin(width, height);
-            DrawGL(width, height, false);
+            DrawGL(width, height, false, renderBackground);
             previewViewport.End();
         }
 
@@ -243,17 +243,24 @@ namespace LancerEdit
         {
             imageViewport.Background = renderBackground ? _window.Config.Background : Color4.TransparentBlack;
             imageViewport.Begin(imageWidth, imageHeight);
-            DrawGL(imageWidth, imageHeight, false);
+            DrawGL(imageWidth, imageHeight, false, renderBackground);
             imageViewport.End(false);
             byte[] data = new byte[imageWidth * imageHeight * 4];
             imageViewport.RenderTarget.Texture.GetData(data);
+            for (int i = 0; i < data.Length; i += 4)
+            {
+                //Swap channels
+                var x = data[i + 2];
+                data[i + 2] = data[i];
+                data[i] = x;
+            }
             LibreLancer.ImageLib.PNG.Save(output, imageWidth, imageHeight, data);
         }
 
         long fR = 0;
-        void DrawGL(int renderWidth, int renderHeight, bool viewport)
+        void DrawGL(int renderWidth, int renderHeight, bool viewport, bool bkgG)
         {
-            if (_window.Config.BackgroundGradient && viewport && doBackground)
+            if (_window.Config.BackgroundGradient && bkgG)
             {
                 _window.Renderer2D.Start(renderWidth, renderHeight);
                 _window.Renderer2D.DrawVerticalGradient(new Rectangle(0,0,renderWidth,renderHeight), _window.Config.Background, _window.Config.Background2);

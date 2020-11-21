@@ -11,6 +11,60 @@ using System.Text;
 
 namespace LibreLancer.ImageLib
 {
+
+    class ZlibCompress : IDisposable
+    {
+        private DeflateStream deflate;
+        private Stream outputStream;
+        
+        private const int ADLER_MOD = 0x65521;
+        private uint checksum_a = 1;
+        private uint checksum_b = 0;
+        
+        public ZlibCompress(Stream outputStream)
+        {
+            this.outputStream = outputStream;
+            //write zlib header
+            outputStream.WriteByte(0x78);
+            outputStream.WriteByte(0x9C);
+            deflate = new DeflateStream(outputStream, CompressionLevel.Optimal, true);
+        }
+        
+        public void WriteByte(byte b)
+        {
+            deflate.WriteByte(b);
+            checksum_a = (checksum_a + b) % ADLER_MOD;
+            checksum_b = (checksum_b + checksum_a) % ADLER_MOD;
+        }
+
+        public void Write(byte[] buffer, int start, int length)
+        {
+            deflate.Write(buffer, start, length);
+            for (int i = start; i < start + length; i++)
+            {
+                checksum_a = (checksum_a + buffer[i]) % ADLER_MOD;
+                checksum_b = (checksum_b + checksum_a) % ADLER_MOD;
+            }
+        }
+        public void Dispose()
+        {
+            deflate.Dispose();
+            //
+            var adler32 = (checksum_b << 16) | checksum_a;
+            var bytes = BitConverter.GetBytes(adler32);
+            if (BitConverter.IsLittleEndian)
+            {
+                for (int i = 3; i >= 0; i--)
+                    outputStream.WriteByte(bytes[i]);
+            }
+            else
+            {
+                for (int i = 0; i < 4; i++)
+                    outputStream.WriteByte(bytes[i]);
+            }
+            
+        }
+    }
 	public static partial class PNG
 	{
 		const ulong PNG_SIGNATURE = 0xA1A0A0D474E5089;
@@ -34,7 +88,7 @@ namespace LibreLancer.ImageLib
 			using (var writer = new BinaryWriter(File.Create(filename)))
 			{
 				writer.Write(PNG_SIGNATURE);
-				/**WriteChunk("IHDR", writer, (chnk) =>
+				WriteChunk("IHDR", writer, (chnk) =>
 				{
 					chnk.WriteInt32BE(width);
 					chnk.WriteInt32BE(height);
@@ -49,23 +103,24 @@ namespace LibreLancer.ImageLib
 					//zlib header
 					//deflate compression
 					byte[] buf = new byte[width * 4];
-                    var compress = new ICSharpCode.SharpZipLib..ZOutputStream(chnk.BaseStream, 3);
-					//First line
-					compress.WriteByte((byte)0);
-					for (int x = 0; x < width * 4; x++)
-					{
-						var b = data[width * (height - 1) * 4 + x];
-						compress.WriteByte(b);
-					}
-					//Filtered lines
-					for (int y = height - 2; y >= 0; y--)
-					{
-						ApplyPaeth(data, (y + 1) * width * 4, y * width * 4, width * 4, buf);
-						compress.WriteByte((byte)4); //paeth filter
-						compress.Write(buf, 0, buf.Length);
-					}
-					compress.finish();
-				});*/
+                    using (var compress = new ZlibCompress(chnk.BaseStream))
+                    {
+                        //First line
+                        compress.WriteByte((byte) 0);
+                        for (int x = 0; x < width * 4; x++)
+                        {
+                            var b = data[width * (height - 1) * 4 + x];
+                            compress.WriteByte(b);
+                        }
+                        //Filtered lines
+                        for (int y = height - 2; y >= 0; y--)
+                        {
+                            ApplyPaeth(data, (y + 1) * width * 4, y * width * 4, width * 4, buf);
+                            compress.WriteByte((byte) 4); //paeth filter
+                            compress.Write(buf, 0, buf.Length);
+                        }
+                    }
+                });
 				writer.Write(IEND);
 			}
 		}
