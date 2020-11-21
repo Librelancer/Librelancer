@@ -32,7 +32,7 @@ namespace LancerEdit
         public string Version;
         TextBuffer logBuffer;
         StringBuilder logText = new StringBuilder();
-      
+        private RecentFilesHandler recentFiles;
         bool openError = false;
         bool finishLoading = false;
 
@@ -83,6 +83,7 @@ namespace LancerEdit
             };
             Config = EditorConfiguration.Load();
             logBuffer = new TextBuffer(32768);
+            recentFiles = new RecentFilesHandler(OpenFile);
         }
         double errorTimer = 0;
 		protected override void Load()
@@ -169,6 +170,7 @@ namespace LancerEdit
             if (f != null && System.IO.File.Exists(f) && DetectFileType.Detect(f) == FileType.Utf)
             {
                 var t = new UtfTab(this, new EditableUtf(f), System.IO.Path.GetFileName(f));
+                recentFiles.FileOpened(f);
                 t.FilePath = f;
                 ActiveTab = t;
                 AddTab(t);
@@ -233,6 +235,8 @@ namespace LancerEdit
                     var f = FileDialog.Open(UtfFilters);
                     OpenFile(f);
 				}
+
+                recentFiles.Menu();
 				if (ActiveTab == null)
 				{
 					Theme.IconMenuItem("Save", "save", Color4.LightGray, false);
@@ -356,6 +360,7 @@ namespace LancerEdit
                 if (ImGui.Button("OK")) ImGui.CloseCurrentPopup();
                 ImGui.EndPopup();
             }
+            recentFiles.DrawErrors();
             pOpen = true;
 			if (ImGui.BeginPopupModal("About", ref pOpen, ImGuiWindowFlags.AlwaysAutoResize))
 			{

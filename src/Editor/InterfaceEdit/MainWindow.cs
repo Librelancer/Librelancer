@@ -23,9 +23,11 @@ namespace InterfaceEdit
         ImGuiHelper guiHelper;
         public ViewportManager Viewport;
         public Renderer2D Renderer2D;
+        private RecentFilesHandler recentFiles;
         public MainWindow() : base(950,600,false)
         {
             TestApi = new TestingApi(this);
+            recentFiles = new RecentFilesHandler(OpenGui);
         }
 
         protected override void Load()
@@ -70,6 +72,7 @@ namespace InterfaceEdit
         {
             Project = new Project(this);
             Project.Open(path);
+            recentFiles.FileOpened(path);
             resourceEditor = new ResourceWindow(this, Project.UiData);
             resourceEditor.IsOpen = true;
             projectWindow = new ProjectWindow(Project.XmlFolder, this);
@@ -112,6 +115,7 @@ namespace InterfaceEdit
                         OpenGui(f);
                     }
                 }
+                recentFiles.Menu();
                 if (!playing && selected is SaveableTab saveable)
                 {
                     if (Theme.IconMenuItem($"Save '{saveable.Title}'", "save", Color4.White, true))
@@ -226,6 +230,7 @@ namespace InterfaceEdit
                 ImGuiWindowFlags.NoResize);
             ImGui.Text($"InterfaceEdit{(Project != null ? " - Editing: " : "")}{(Project?.ProjectFile ?? "")}");
             ImGui.End();
+            recentFiles.DrawErrors();
             //Finish Render
             ImGui.PopFont();
             guiHelper.Render(RenderState);

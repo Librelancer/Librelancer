@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-      <Compile Include="..\..\..\extern\ImGui.NET\src\ImGui.NET\**\*.cs" LinkBase="ImGui.NET"/>
+      <Compile Include="..\..\..\extern\ImGui.NET\src\ImGui.NET\**\*.cs" LinkBase="ImGui.NET" />
   </ItemGroup>
 
   <ItemGroup>
