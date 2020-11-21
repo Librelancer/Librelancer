@@ -149,7 +149,7 @@ namespace LibreLancer.ImUI
 			}
 			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.checkerboard.png"))
 			{
-				checkerboard = LibreLancer.ImageLib.Generic.FromStream(stream);
+				checkerboard = (Texture2D)LibreLancer.ImageLib.Generic.FromStream(stream);
 				CheckerboardId = RegisterTexture(checkerboard);
 			}
             var monospace = Platform.GetMonospaceBytes();

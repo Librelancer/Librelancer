@@ -57,7 +57,7 @@ namespace LibreLancer.ImUI
             SetColor(ImGuiCol.Tab, RGBA(56, 57, 58, 255));
             
             using(var stream = typeof(Theme).Assembly.GetManifestResourceStream("LibreLancer.ImUI.icons.png")) {
-                iconTexture = Generic.FromStream(stream);
+                iconTexture = (Texture2D)Generic.FromStream(stream);
                 iconId = ImGuiHelper.RegisterTexture(iconTexture);
             }
             using(var reader = new StreamReader(typeof(Theme).Assembly.GetManifestResourceStream("LibreLancer.ImUI.icons.txt"))) {

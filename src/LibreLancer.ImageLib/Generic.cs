@@ -13,7 +13,7 @@ namespace LibreLancer.ImageLib
         public static Texture2D FromFile(string file)
         {
             using(var stream = File.OpenRead(file)) {
-                return FromStream (stream);
+                return (Texture2D)FromStream (stream);
             }
         }
 
@@ -43,10 +43,10 @@ namespace LibreLancer.ImageLib
             };
         }
         
-        public static unsafe Texture2D FromStream(Stream stream)
+        public static unsafe Texture FromStream(Stream stream)
         {
             if (DDS.StreamIsDDS (stream)) {
-                return (Texture2D)DDS.FromStream(stream);
+                return DDS.FromStream(stream);
             } else {
                 /* Read full stream */
                 int len = (int)stream.Length;

@@ -61,60 +61,13 @@ namespace LibreLancer
         }
 
 
-        TextureFiltering currentFiltering = TextureFiltering.Linear;
+        
         public void SetFiltering(TextureFiltering filtering)
 		{
             if (currentFiltering == filtering) return;
-            currentFiltering = filtering;
             BindTo(4);
-            if (LevelCount > 1)
-			{
-                if (GLExtensions.Anisotropy && currentFiltering != TextureFiltering.Anisotropic) { 
-                    GL.TexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAX_ANISOTROPY_EXT, 1);
-                }
-                switch (filtering)
-				{
-                    case TextureFiltering.Anisotropic:
-                        GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_LINEAR);
-                        GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
-                        if(GLExtensions.Anisotropy) {
-                            GL.TexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAX_ANISOTROPY_EXT, RenderState.Instance.AnisotropyLevel);
-                        }
-                        break;
-					case TextureFiltering.Trilinear:
-						GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_LINEAR);
-						GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
-						break;
-					case TextureFiltering.Bilinear:
-						GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST);
-						GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
-						break;
-					case TextureFiltering.Linear:
-						GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
-						GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
-						break;
-					case TextureFiltering.Nearest:
-						GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
-						GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
-						break;
-				}
-			}
-			else
-			{
-				switch (filtering)
-				{
-					case TextureFiltering.Nearest:
-						GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
-						GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
-						break;
-					default:
-						GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
-						GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
-						break;
-				}
-			}
-
-		}
+            SetTargetFiltering(GL.GL_TEXTURE_2D, filtering);
+        }
 
         public Texture2D(int width, int height) : this(width, height, false, SurfaceFormat.Color)
         {
@@ -166,17 +119,7 @@ namespace LibreLancer
 				handle.Free();
             }
         }
-		void GetMipSize(int level, out int width, out int height)
-		{
-			width = Width;
-			height = Height;
-			int i = 0;
-			while (i < level) {
-				width /= 2;
-				height /= 2;
-				i++;
-			}
-		}
+		
 		public unsafe void SetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T: struct
         {
             maxLevel = Math.Max(level, maxLevel);
@@ -184,7 +127,7 @@ namespace LibreLancer
 			if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)
             {
 				int w, h;
-				GetMipSize (level, out w, out h);
+				GetMipSize (level, Width, Height, out w, out h);
 				var handle = GCHandle.Alloc (data, GCHandleType.Pinned);
 					GL.CompressedTexImage2D (GL.GL_TEXTURE_2D, level, glInternalFormat,
 						w, h, 0,

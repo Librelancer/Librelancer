@@ -35,6 +35,7 @@ namespace LibreLancer.Shaders
             DepthPass_Normal.Compile();
             DetailMap2Dm1Msk2PassMaterial.Compile();
             DetailMapMaterial.Compile();
+            EnvMapTest.Compile();
             IllumDetailMapMaterial.Compile();
             Masked2DetailMapMaterial.Compile();
             NebulaExtPuff.Compile();

@@ -441,7 +441,7 @@ namespace LancerEdit
                 ImGui.NextColumn();
                 if (ImGui.Button("Texture Viewer"))
                 {
-                    Texture2D tex = null;
+                    Texture tex = null;
                     try
                     {
                         using (var stream = new MemoryStream(selectedNode.Data))
@@ -449,12 +449,24 @@ namespace LancerEdit
                             tex = LibreLancer.ImageLib.Generic.FromStream(stream);
                         }
                         var title = string.Format("{0} ({1})", selectedNode.Name, Title);
-                        var tab = new TextureViewer(title, tex, null);
-                        main.AddTab(tab);
+                        if (tex is Texture2D tex2d)
+                        {
+                            var tab = new TextureViewer(title, tex2d, null);
+                            main.AddTab(tab);
+                        } 
+                        else if (tex is TextureCube texcube)
+                        {
+                            var tab = new CubemapViewer(title, texcube, main);
+                            main.AddTab(tab);
+                        }
                     }
                     catch (Exception ex)
                     {
+                        #if DEBUG
+                        throw;
+                        #else
                         ErrorPopup("Node data couldn't be opened as texture:\n" + ex.Message);
+                        #endif
                     }
                 }
                 if (ImGui.Button("Play Audio"))

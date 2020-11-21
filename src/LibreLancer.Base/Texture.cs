@@ -53,6 +53,71 @@ namespace LibreLancer
 				return (int)ID;
 			}
 		}
+
+        
+        protected static void GetMipSize(int level, int inWidth, int inHeight, out int width, out int height)
+        {
+            width = inWidth;
+            height = inHeight;
+            int i = 0;
+            while (i < level) {
+                width /= 2;
+                height /= 2;
+                i++;
+            }
+        }
+        
+        protected TextureFiltering currentFiltering = TextureFiltering.Linear;
+        protected void SetTargetFiltering(int target, TextureFiltering filtering)
+        {
+            currentFiltering = filtering;
+            if (LevelCount > 1)
+			{
+                if (GLExtensions.Anisotropy && currentFiltering != TextureFiltering.Anisotropic) { 
+                    GL.TexParameterf(target, GL.GL_TEXTURE_MAX_ANISOTROPY_EXT, 1);
+                }
+                switch (filtering)
+				{
+                    case TextureFiltering.Anisotropic:
+                        GL.TexParameteri(target, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_LINEAR);
+                        GL.TexParameteri(target, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
+                        if(GLExtensions.Anisotropy) {
+                            GL.TexParameterf(target, GL.GL_TEXTURE_MAX_ANISOTROPY_EXT, RenderState.Instance.AnisotropyLevel);
+                        }
+                        break;
+					case TextureFiltering.Trilinear:
+						GL.TexParameteri(target, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_LINEAR);
+						GL.TexParameteri(target, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
+						break;
+					case TextureFiltering.Bilinear:
+						GL.TexParameteri(target, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST);
+						GL.TexParameteri(target, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
+						break;
+					case TextureFiltering.Linear:
+						GL.TexParameteri(target, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
+						GL.TexParameteri(target, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
+						break;
+					case TextureFiltering.Nearest:
+						GL.TexParameteri(target, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+						GL.TexParameteri(target, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+						break;
+				}
+			}
+			else
+			{
+				switch (filtering)
+				{
+					case TextureFiltering.Nearest:
+						GL.TexParameteri(target, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+						GL.TexParameteri(target, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+						break;
+					default:
+						GL.TexParameteri(target, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
+						GL.TexParameteri(target, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
+						break;
+				}
+			}
+        }
         public virtual void Dispose()
         {
 			GL.DeleteTexture(ID);

@@ -33,7 +33,7 @@ fi
 ere_quote() {
     sed 's/[][\.|$(){}?+*^]/\\&/g' <<< "$*"
 }
-DOTNET_GREP = "^`ere_quote $DOTNET_VERSION`"
+DOTNET_GREP="^`ere_quote $DOTNET_VERSION`"
 dotnet --list-sdks | grep -E $DOTNET_GREP > /dev/null
 
 if [ $? -ne 0 ]; then
