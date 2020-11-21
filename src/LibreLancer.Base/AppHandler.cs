@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -14,6 +15,7 @@ namespace LibreLancer
         public static void Run(Action action, Action onCrash = null)
         {
             string errorMessage =  "Librelancer has crashed. See the log for more information.";
+            Environment.SetEnvironmentVariable("ALSOFT_LOGLEVEL", "2");
             if (Platform.RunningOS == OS.Windows)
             {
                 string bindir = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);
@@ -24,6 +26,10 @@ namespace LibreLancer
                 if (!Directory.Exists(spewFolder)) Directory.CreateDirectory(spewFolder);
                 string spewFilename = Assembly.GetCallingAssembly().GetName().Name + ".log.txt";
                 var spewPath = Path.Combine(spewFolder, spewFilename);
+                string openAlFilename = Assembly.GetCallingAssembly().GetName().Name + ".openallog.txt";
+                var openalPath = Path.Combine(spewFolder, openAlFilename);
+                if(!Debugger.IsAttached)
+                    Environment.SetEnvironmentVariable("ALSOFT_LOGFILE", openalPath);
                 if (FLLog.CreateSpewFile(spewPath)) errorMessage += "\n" + spewPath;
                 else errorMessage += "\n(Log file could not be created).";
             }
