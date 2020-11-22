@@ -43,7 +43,6 @@ drmp3_bool32 seek_stream_drmp3(void *pUserData, int offset, drmp3_seek_origin or
 }
 size_t mp3_read(void* ptr, size_t size, size_t count, ld_stream_t stream)
 {
-
 	mp3_userdata_t *userdata = (mp3_userdata_t*)stream->userData;
 	int sz_bytes = (int)(size * count);
 	if((sz_bytes % 2) != 0) {
@@ -94,6 +93,7 @@ void mp3_close(ld_stream_t stream)
 ld_pcmstream_t mp3_getstream(ld_stream_t stream, int decodeChannels, int decodeRate, int trimSamples, int totalSamples)
 {
 	mp3_userdata_t *userdata = (mp3_userdata_t*)malloc(sizeof(mp3_userdata_t));
+    memset((void*)userdata, 0, sizeof(mp3_userdata_t));
     drmp3_config drconfig;
 	if(decodeRate == -1)
 		drconfig.outputSampleRate = 0;
