@@ -43,7 +43,6 @@ namespace LibreLancer.Media
 					}
 				}
                 Al.BufferData(ID, snd.Format, data, data.Length, snd.Frequency);
-                Al.CheckErrors();
             }
         }
         public void Dispose()

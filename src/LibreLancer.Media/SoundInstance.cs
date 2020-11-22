@@ -58,43 +58,33 @@ namespace LibreLancer.Media
             {
                 Al.alSourcei(src, Al.AL_SOURCE_RELATIVE, prop.Is3D ? 0 : 1);
                 Al.alSource3f(src, Al.AL_POSITION, prop.Position.X, prop.Position.Y, prop.Position.Z);
-                Al.CheckErrors();
             }
             if ((flags & FLAG_VEL) == FLAG_VEL)
             {
                 Al.alSource3f(src, Al.AL_VELOCITY, prop.Velocity.X, prop.Velocity.Y, prop.Velocity.Z);
-                Al.CheckErrors();
             }
             if ((flags & FLAG_DIRECTION) == FLAG_DIRECTION)
             {
                 Al.alSource3f(src, Al.AL_DIRECTION, prop.Direction.X, prop.Direction.Y, prop.Direction.Z);
-                Al.CheckErrors();
             }
             if ((flags & FLAG_GAIN) == FLAG_GAIN)
             {
                 Al.alSourcef(src, Al.AL_GAIN, prop.Gain);
-                Al.CheckErrors();
             }
             if ((flags & FLAG_PITCH) == FLAG_PITCH)
             {
                 Al.alSourcef(src, Al.AL_PITCH, prop.Pitch);
-                Al.CheckErrors();
             }
             if ((flags & FLAG_DIST) == FLAG_DIST)
             {
                 Al.alSourcef(src, Al.AL_REFERENCE_DISTANCE, prop.ReferenceDistance);
-                Al.CheckErrors();
                 Al.alSourcef(src, Al.AL_MAX_DISTANCE, prop.MaxDistance);
-                Al.CheckErrors();
             }
             if ((flags & FLAG_CONE) == FLAG_CONE)
             {
                 Al.alSourcef(src, Al.AL_CONE_INNER_ANGLE, prop.ConeInnerAngle);
-                Al.CheckErrors();
                 Al.alSourcef(src, Al.AL_CONE_OUTER_ANGLE, prop.ConeOuterAngle);
-                Al.CheckErrors();
                 Al.alSourcef(src, Al.AL_CONE_OUTER_GAIN, prop.ConeOuterGain);
-                Al.CheckErrors();
             }
         }
         

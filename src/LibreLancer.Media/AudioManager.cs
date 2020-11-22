@@ -102,7 +102,6 @@ namespace LibreLancer.Media
 			IntPtr dev = Alc.alcOpenDevice(null);
 			IntPtr ctx = Alc.alcCreateContext(dev, IntPtr.Zero);
 			Alc.alcMakeContextCurrent(ctx);
-            Al.CheckErrors();
             for (int i = 0; i < MAX_SOURCES; i++)
 			{
 				freeSources.Enqueue(Al.GenSource());
@@ -137,7 +136,6 @@ namespace LibreLancer.Media
                     var instance = Instances[sfxInstances[i]].Instance;
                     int state;
                     Al.alGetSourcei(src, Al.AL_SOURCE_STATE, out state);
-                    Al.CheckErrors();
                     if (state == Al.AL_STOPPED)
                     {
                         Al.alSourcei(src, Al.AL_BUFFER, 0);
@@ -291,13 +289,11 @@ namespace LibreLancer.Media
         public void SetListenerPosition(Vector3 pos)
         {
             Al.alListener3f(Al.AL_POSITION, pos.X, pos.Y, pos.Z);
-            Al.CheckErrors();
         }
 
         public void SetListenerVelocity(Vector3 pos)
         {
             Al.alListener3f(Al.AL_VELOCITY, pos.X, pos.Y, pos.Z);
-            Al.CheckErrors();
         }
 
         public unsafe void SetListenerOrientation(Vector3 forward, Vector3 up)
@@ -306,7 +302,6 @@ namespace LibreLancer.Media
             ori[0] = forward;
             ori[1] = up;
             Al.alListenerfv(Al.AL_ORIENTATION, (IntPtr)ori);
-            Al.CheckErrors();
         }
         
         public void Dispose()

@@ -152,8 +152,15 @@ namespace LibreLancer.Interface
         }
         public void CallEvent(string ev, params object[] p)
         {
-            var args = new[] {(object) ev}.Concat(p).ToArray();
-            script.Call(_callevent, args);
+            try
+            {
+                var args = new[] {(object) ev}.Concat(p).ToArray();
+                script.Call(_callevent, args);
+            }
+            catch (ScriptRuntimeException ex)
+            {
+                throw new Exception(ex.DecoratedMessage, ex);
+            }
         }
      
         public void Dispose()

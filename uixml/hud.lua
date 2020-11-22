@@ -99,6 +99,6 @@ function hud:Update()
 end
 
 function hud:Chatbox()
-   GetElement('chatbox').Visible = true 
+   self.Elements.chatbox.Visible = true 
 end
 

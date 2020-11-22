@@ -66,9 +66,7 @@ namespace LibreLancer.Media
 				if (read != 0)
 				{
 					Al.BufferData(b, sound.Format, bytes, read, sound.Frequency);
-					Al.CheckErrors();
 					Al.alSourceQueueBuffers(ID, 1, ref b);
-					Al.CheckErrors();
 				}
 				else
 				{
@@ -90,7 +88,6 @@ namespace LibreLancer.Media
 			ArrayPool<byte>.Shared.Return(bytes);
 			Al.alSourcef(ID, Al.AL_GAIN, ALUtils.ClampVolume(_gain));
 			Al.alSourcePlay(ID);
-			Al.CheckErrors();
 			manager.activeStreamers.Add(this);
 		}
 
@@ -102,7 +99,6 @@ namespace LibreLancer.Media
 			{
 				int processed;
 				Al.alGetSourcei(ID, Al.AL_BUFFERS_PROCESSED, out processed);
-				Al.CheckErrors();
                 var bytes = ArrayPool<byte>.Shared.Rent(POOL_BUFFER_SIZE);
 				for (int i = 0; i < processed; i++)
 				{
@@ -110,11 +106,9 @@ namespace LibreLancer.Media
 					Al.alSourceUnqueueBuffers(ID, 1, ref buf);
 					int read = sound.Data.Read(bytes, 0, POOL_BUFFER_SIZE);
 					if (read != 0)
-					{
+                    {
 						Al.BufferData(buf, sound.Format, bytes, read, sound.Frequency);
-						Al.CheckErrors();
 						Al.alSourceQueueBuffers(ID, 1, ref buf);
-						Al.CheckErrors();
 						if (read < POOL_BUFFER_SIZE)
 						{
 							if (looping)
@@ -134,9 +128,7 @@ namespace LibreLancer.Media
 							sound.Data.Seek(0, SeekOrigin.Begin);
 							read = sound.Data.Read(bytes, 0, POOL_BUFFER_SIZE);
 							Al.BufferData(buf, sound.Format, bytes, read, sound.Frequency);
-							Al.CheckErrors();
 							Al.alSourceQueueBuffers(ID, 1, ref buf);
-							Al.CheckErrors();
 						}
 						else
 						{
@@ -151,14 +143,12 @@ namespace LibreLancer.Media
 			//Return buffers
 			int val;
 			Al.alGetSourcei(ID, Al.AL_SOURCE_STATE, out val);
-			Al.CheckErrors();
 			if (val != Al.AL_PLAYING && val != Al.AL_PAUSED)
 			{
 				if (hadData)
 				{
 					FLLog.Warning("Audio", "Buffer underrun");
 					Al.alSourcePlay(ID);
-					Al.CheckErrors();
 				}
 				else
 				{
@@ -173,15 +163,12 @@ namespace LibreLancer.Media
 		{
 			playing = false;
 			Al.alSourceStopv(1, ref ID);
-			Al.CheckErrors();
 			int p = 0;
 			Al.alGetSourcei(ID, Al.AL_BUFFERS_PROCESSED, out p);
-			Al.CheckErrors();
 			for (int i = 0; i < p; i++)
 			{
 				uint buf = 0;
 				Al.alSourceUnqueueBuffers(ID, 1, ref buf);
-				Al.CheckErrors();
 				manager.Buffers.Enqueue(buf);
 			}
 			sound.Data.Seek(0, SeekOrigin.Begin);
