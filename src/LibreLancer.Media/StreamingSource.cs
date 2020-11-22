@@ -118,7 +118,15 @@ namespace LibreLancer.Media
 					int read = sound.Data.Read(bytes, 0, POOL_BUFFER_SIZE);
 					if (read != 0)
                     {
-						Al.BufferData(buf, sound.Format, bytes, read, sound.Frequency);
+                        try
+                        {
+                            Al.BufferData(buf, sound.Format, bytes, read, sound.Frequency);
+                        }
+                        catch (Exception)
+                        {
+                            FLLog.Error("AL", $"Error in source {info}");
+                            throw;
+                        }
 						Al.alSourceQueueBuffers(ID, 1, ref buf);
 						if (read < POOL_BUFFER_SIZE)
 						{
