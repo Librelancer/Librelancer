@@ -82,10 +82,10 @@ namespace LibreLancer.Media
             }
 		}
 
-        internal StreamingSource CreateStreaming(StreamingSound sound)
-		{
-			return new StreamingSource(this, sound, streamingSources.Dequeue());
-		}
+        internal StreamingSource CreateStreaming(StreamingSound sound, string info)
+        {
+            return new StreamingSource(this, sound, streamingSources.Dequeue(), info);
+        }
 
 		public SoundData AllocateData()
         {

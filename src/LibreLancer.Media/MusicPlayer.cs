@@ -32,7 +32,7 @@ namespace LibreLancer.Media
 			Stop();
 			var stream = File.OpenRead(filename);
 			var data = SoundLoader.Open(stream);
-			sound = dev.CreateStreaming(data);
+            sound = dev.CreateStreaming(data, filename);
             sound.Stopped += Sound_Stopped;
             this.attenuation = attenuation;
             UpdateGain();

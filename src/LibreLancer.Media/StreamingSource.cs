@@ -37,12 +37,15 @@ namespace LibreLancer.Media
 				}
 			}
 		}
-		public StreamingSource(AudioManager mgr, StreamingSound snd, uint id)
+
+        private string info;
+		public StreamingSource(AudioManager mgr, StreamingSound snd, uint id, string info)
 		{
 			manager = mgr;
 			ID = id;
 			sound = snd;
-		}
+            this.info = info;
+        }
 
 		public void Begin(bool looping)
 		{
@@ -65,8 +68,16 @@ namespace LibreLancer.Media
 				int read = sound.Data.Read(bytes, 0, POOL_BUFFER_SIZE);
 				if (read != 0)
 				{
-					Al.BufferData(b, sound.Format, bytes, read, sound.Frequency);
-					Al.alSourceQueueBuffers(ID, 1, ref b);
+                    try
+                    {
+                        Al.BufferData(b, sound.Format, bytes, read, sound.Frequency);
+                    }
+                    catch (Exception)
+                    {
+                        FLLog.Error("AL", $"Error in source {info}");
+                        throw;
+                    }
+                    Al.alSourceQueueBuffers(ID, 1, ref b);
 				}
 				else
 				{
