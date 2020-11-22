@@ -209,7 +209,6 @@ Mouse Flight: {11}
 			Game.Keyboard.TextInput -= Game_TextInput;
 			Game.Keyboard.KeyDown -= Keyboard_KeyDown;
 			input?.Dispose();
-            ui?.Dispose();
 			sysrender?.Dispose();
             world?.Dispose();
 		}

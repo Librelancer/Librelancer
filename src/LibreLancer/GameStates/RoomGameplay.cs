@@ -120,7 +120,6 @@ namespace LibreLancer
 		{
 			Game.Keyboard.TextInput -= Game_TextInput;
 			Game.Keyboard.KeyDown -= Keyboard_KeyDown;
-            ui.Dispose();
 			scene.Dispose();
 		}
         
@@ -157,6 +156,7 @@ namespace LibreLancer
                     var script = new ThnScript(session.Game.GameData.ResolveDataPath(ct.Encounters[0].Action));
                     scene.RunScript(script, () =>
                     {
+                        FLLog.Info("Thn", "Finished cutscene");
                         ui.Visible = true;
                         session.FinishCutscene(ct);
                     });
