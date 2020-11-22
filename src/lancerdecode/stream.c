@@ -32,10 +32,11 @@ size_t stream_wrapread(void* ptr, size_t size, size_t count, ld_stream_t stream)
 {
 	wrapper_data_t *data = (wrapper_data_t*)stream->userData;
 	int32_t curr = data->source->tell(data->source);
-	size = MIN((size_t)(data->len - (curr - data->offset)),size);
-	if(size <= 0)
+    int32_t sz = (int32_t)(size * count);
+	sz = MIN((int32_t)(data->len - (curr - data->offset)),sz);
+	if(sz <= 0)
 		return 0;
-	size_t read = data->source->read(ptr, size, count, data->source);
+	size_t read = data->source->read(ptr, sz, 1, data->source);
 	return read;
 }
 

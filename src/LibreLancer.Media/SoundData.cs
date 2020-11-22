@@ -24,6 +24,7 @@ namespace LibreLancer.Media
 				LoadStream(file);
 			}
 		}
+        public int DataLength { get; private set; }
         public void LoadStream(Stream stream)
 		{
 			using (var snd = SoundLoader.Open(stream))
@@ -42,6 +43,8 @@ namespace LibreLancer.Media
                         data = mem.ToArray();
 					}
 				}
+
+                DataLength = data.Length;
                 Al.BufferData(ID, snd.Format, data, data.Length, snd.Frequency);
             }
         }

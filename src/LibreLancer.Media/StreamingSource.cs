@@ -65,7 +65,7 @@ namespace LibreLancer.Media
             var bytes = ArrayPool<byte>.Shared.Rent(POOL_BUFFER_SIZE);
 			for (int i = 0; i < 3; i++) {
 				var b = manager.Buffers.Dequeue();
-				int read = sound.Data.Read(bytes, 0, POOL_BUFFER_SIZE);
+                int read = Read(bytes, sound.Data);
 				if (read != 0)
 				{
                     try
@@ -102,6 +102,24 @@ namespace LibreLancer.Media
 			manager.activeStreamers.Add(this);
 		}
 
+        int Read(byte[] buffer, Stream stream)
+        {
+            int read = stream.Read(buffer, 0, POOL_BUFFER_SIZE);
+            if (read == POOL_BUFFER_SIZE || read == 0 || read % 4 == 0) return read;
+            int r2 = stream.Read(buffer, read, read % 4);
+            if (r2 != 0) {
+                read += r2;
+            }
+            if (read % 4 != 0)
+            {
+                FLLog.Warning("Audio", $"Source {info} has unaligned decoding");
+                int remainder = read % 4;
+                for (int i = 0; i < remainder; i++)
+                    buffer[read++] = 0;
+            }
+            return read;
+        }
+
 		public bool Update()
 		{
 			bool hadData = dataleft;
@@ -115,7 +133,7 @@ namespace LibreLancer.Media
 				{
 					uint buf = 0;
 					Al.alSourceUnqueueBuffers(ID, 1, ref buf);
-					int read = sound.Data.Read(bytes, 0, POOL_BUFFER_SIZE);
+                    int read = Read(bytes, sound.Data);
 					if (read != 0)
                     {
                         try
