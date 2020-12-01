@@ -44,3 +44,6 @@
 [submodule "extern/thorncompiler"]
 	path = extern/thorncompiler
 	url = https://github.com/Librelancer/thorncompiler
+[submodule "extern/lancerdecode"]
+	path = extern/lancerdecode
+	url = https://github.com/Librelancer/lancerdecode
