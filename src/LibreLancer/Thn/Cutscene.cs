@@ -144,12 +144,13 @@ namespace LibreLancer
                     bool getHpMount = false;
                     //Fetch model
                     IDrawable drawable = null;
+                    float[] lodranges = null;
                     if (!string.IsNullOrEmpty(template))
                     {
                         switch (kv.Value.MeshCategory.ToLowerInvariant())
                         {
                             case "solar":
-                                drawable = gameData.GetSolar(template);
+                                (drawable, lodranges) = gameData.GetSolar(template);
                                 break;
                             case "ship":
                             case "spaceship":
@@ -206,6 +207,7 @@ namespace LibreLancer
                             //HIDDEN just seems to be an editor flag?
                             //r.Hidden = (kv.Value.ObjectFlags & ThnObjectFlags.Hidden) == ThnObjectFlags.Hidden;
                             r.NoFog = kv.Value.NoFog;
+                            r.LODRanges = lodranges;
                         }
                     }
                 }

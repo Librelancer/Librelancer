@@ -28,8 +28,8 @@ namespace LibreLancer
 
         public void DefaultZ()
         {
-            var fovy = Transform.FovH * Transform.AspectRatio;
-            projection = Matrix4x4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovy), Transform.AspectRatio,
+            var fovv = FovVRad(Transform.FovH, Transform.AspectRatio);
+            projection = Matrix4x4.CreatePerspectiveFieldOfView(fovv, Transform.AspectRatio,
                 2.5f, 1000000f);
             viewProjection = view * projection;
             frameNo++;
@@ -40,13 +40,19 @@ namespace LibreLancer
             viewProjection = view * projection;
             frameNo++;
         }
-        
+
+        static float FovVRad(float fovhdeg, float aspect)
+        {
+            //fovh is multiplied 2 before being converted to fovy for the projection matrix
+            var fovh = MathHelper.DegreesToRadians(2 * fovhdeg);
+            return (float) (2 * Math.Atan(Math.Tan(fovh / 2) * 1 / aspect));
+        }
 		public void Update()
-		{
-            var fovy = Transform.FovH * Transform.AspectRatio;
-			//TODO: Tweak clip plane some more - isn't quite right
+        {
+            var fovv = FovVRad(Transform.FovH, Transform.AspectRatio);
+            //TODO: Tweak clip plane some more - isn't quite right
 			//NOTE: near clip plane can't be too small or it causes z-fighting
-			projection = Matrix4x4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovy), Transform.AspectRatio, Transform.Znear, Transform.Zfar);
+			projection = Matrix4x4.CreatePerspectiveFieldOfView(fovv, Transform.AspectRatio, Transform.Znear, Transform.Zfar);
             ogProjection = projection;
 			Vector3 originalTarget = -Vector3.UnitZ;
             Vector3 rotatedTarget = Vector3.Transform(originalTarget, Transform.Orientation);

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using LibreLancer.Data.Fuses;
 using LibreLancer.Data.Solar;
 using LibreLancer.GameData;
@@ -1184,9 +1185,10 @@ namespace LibreLancer
             }
         }
         
-        public IDrawable GetSolar(string solar)
+        public (IDrawable, float[]) GetSolar(string solar)
         {
-            return archetypes[solar].ModelFile.LoadFile(resource);
+            var at = archetypes[solar];
+            return (at.ModelFile.LoadFile(resource), at.LODRanges);
         }
 
         public IDrawable GetAsteroid(string asteroid)

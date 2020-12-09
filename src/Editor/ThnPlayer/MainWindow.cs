@@ -39,9 +39,11 @@ namespace ThnPlayer
         
         ImGuiHelper guiHelper;
         FontManager fontMan;
+        private RecentFilesHandler recents;
         public MainWindow() : base(1024,768,false)
         {
             FLLog.UIThread = this;
+            recents = new RecentFilesHandler((x) => Open(x));
         }
         protected override void Load()
         {
@@ -102,6 +104,9 @@ namespace ThnPlayer
         private string[] toReload = null;
         void Open(params string[] files)
         {
+            if (files.Length == 1) {
+                recents.FileOpened(files[0]);
+            }
             var lastFile = Path.GetFileName(files.Last());
             Title = $"{lastFile} - ThnPlayer";
             Audio.ReleaseAllSfx();
@@ -160,12 +165,16 @@ namespace ThnPlayer
                         Open(file);
                     }
                 }
+                
+                if (GameData != null) recents.Menu();
+                else Theme.IconMenuItem("Open Recent", "open", Color4.White, false);
 
                 if (Theme.IconMenuItem("Open Multiple", "open", Color4.White, GameData != null))
                 {
                     openFiles = new List<string>();
                     openMultiple = true;
                 }
+                
                 if(Theme.IconMenuItem("Quit","quit",Color4.White,true)) {
                     Exit();
                 }

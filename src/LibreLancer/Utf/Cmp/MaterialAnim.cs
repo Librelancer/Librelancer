@@ -81,22 +81,27 @@ namespace LibreLancer.Utf.Cmp
 		/// <param name="totalTime">Total time (get from FreelancerGame).</param>
 		public void Update(float totalTime)
 		{
-			if (MACount != 1) //TODO: implement multi-frame MaterialAnim
-				return;
-
-			float duration = MADeltas[0];
-			float uVelocity = MADeltas[1];
-			float vVelocity = MADeltas[2];
-			float uVelocityScale = MADeltas[3];
-			float vVelocityScale = MADeltas[4];
-
-			float t = totalTime % duration;
-			uOffset = t * uVelocity;
-			vOffset = t * vVelocity;
-			uScale = 1 + (t * uVelocityScale);
-			vScale = 1 + (t * vVelocityScale);
-		}
-
-
-	}
+            uOffset = 0;
+            vOffset = 0;
+            uScale = 1;
+            vScale = 1;
+            for (int i = 0; i < MACount; i++)
+            {
+                int k = i * 5;
+                float duration = MADeltas[k];
+                float uVelocity = MADeltas[k +1];
+                float vVelocity = MADeltas[k + 2];
+                float uVelocityScale = MADeltas[k + 3];
+                float vVelocityScale = MADeltas[k + 4];
+                //loop from Beginning
+                float t = totalTime;
+                while (t > duration) t -= duration;
+                //process anim
+                uOffset += t * uVelocity;
+                vOffset += t * vVelocity;
+                uScale *= 1 + (t * uVelocityScale);
+                vScale *= 1 + (t * vVelocityScale);
+            }
+        }
+    }
 }
