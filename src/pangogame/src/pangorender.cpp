@@ -179,6 +179,7 @@ PGBuiltText *pg_pango_constructtext(PGRenderContext *ctx, PangoLayout **layouts,
 	built->layoutCount = layoutCount;
 	built->ctx = ctx;
 	built->quads = NULL;
+    built->initialLen = 0;
 	pg_pango_calculatetext(built, NULL);
 	return built;
 }
@@ -203,7 +204,8 @@ void pg_pango_calculatetext(PGBuiltText *text, float *color)
 		stb_arr_free(text->quads);
 		text->quads = NULL;
 	}
-	stb_arr_setsize(text->quads, text->initialLen);
+	if(text->initialLen > 0)
+        stb_arr_setsize(text->quads, text->initialLen);
 	int yOffset = 0;
 	for(int i = 0; i < text->layoutCount; i++) {
 		PangoLayout *layout = text->layouts[i];
