@@ -409,29 +409,16 @@ namespace LibreLancer
             
         }
 
-        double accumTime = 0;
-		const int MAX_STEPS = 8;
-		const double TIMESTEP = 1.0 / 120.0;
+        private const double TIMESTEP = 1.0 / 120.0;
+        private double accumTime = 0;
 		public void Update(TimeSpan delta)
-		{
-			int counter = 0;
-			accumTime += delta.TotalSeconds;
-
-			while (accumTime > (1.0 / 120.0))
-			{
-				_Update(TimeSpan.FromSeconds(TIMESTEP));
-
-				accumTime -= TIMESTEP;
-				counter++;
-
-				if (counter > MAX_STEPS)
-				{
-					// okay, okay... we can't keep up
-					FLLog.Warning("Thn", "Can't keep up!");
-					accumTime = 0.0f;
-					break;
-				}
-			}
+        {
+            accumTime += delta.TotalSeconds;
+            if (accumTime >= TIMESTEP)
+            {
+                _Update(TimeSpan.FromSeconds(accumTime));
+                accumTime = 0;
+            }
         }
         public void _Update(TimeSpan delta)
         {
