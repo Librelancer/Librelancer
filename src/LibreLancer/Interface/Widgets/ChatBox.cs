@@ -73,7 +73,11 @@ namespace LibreLancer.Interface
                 CurrentText = "";
                 Visible = false;
             }
-
+            if (key == Keys.Escape)
+            {
+                CurrentText = "";
+                Visible = false;
+            }
             if (key == Keys.Backspace)
             {
                 if(CurrentText.Length > 0)
