@@ -159,6 +159,7 @@ namespace LibreLancer
             }
         }
 
+        private bool didLaunch = false;
         public void Launch()
         {
             if (!string.IsNullOrEmpty(currentRoom.LaunchScript))
@@ -167,9 +168,15 @@ namespace LibreLancer
             }
             else
             {
-                FLLog.Info("Base", "Launch!");
-                session.Launch();
+                SendLaunch();
             }
+        }
+
+        void SendLaunch()
+        {
+            if (didLaunch) return;
+            session.Launch();
+            didLaunch = true;
         }
 
         void Hud_OnManeuverSelected(string arg)
@@ -205,18 +212,22 @@ namespace LibreLancer
 			}
 			else
 			{
-				if (e.Key == Keys.L)
-				{
-					Game.Screenshots.TakeScreenshot();
-				}
-				if (e.Key == Keys.B)
-				{
-					if (currentRoom.Nickname.ToLowerInvariant() != "shipdealer")
-					{
-						var rm = currentBase.Rooms.Find((o) => o.Nickname.ToLowerInvariant() == "shipdealer");
-						Game.ChangeState(new RoomGameplay(Game, session, baseId, rm));
-					}
-				}
+                if (e.Key == Keys.Escape)
+                {
+                    switch (currentState)
+                    {
+                        case ScriptState.Launch:
+                            SendLaunch();
+                            break;
+                        case ScriptState.Enter:
+                            FadeOut(0.25, () =>
+                            {
+                                RoomDoSceneScript(null, ScriptState.None);
+                                FadeIn(0.2, 0.25);
+                            });
+                            break;
+                    }
+                }
 				if (e.Key == Keys.Enter)
                 {
                     ui.ChatboxEvent();
@@ -290,8 +301,7 @@ namespace LibreLancer
                 }
                 else if (currentState == ScriptState.Launch)
                 {
-                    FLLog.Info("Base", "Launch!");
-                    session.Launch();
+                    SendLaunch();
                 } 
                 else
                 {
@@ -368,6 +378,7 @@ namespace LibreLancer
             if (sc == null) {
                 SetRoomCameraAndShip();
                 letterboxAmount = -1;
+                ui.Visible = true;
             }
             else {
                 ui.Visible = false;

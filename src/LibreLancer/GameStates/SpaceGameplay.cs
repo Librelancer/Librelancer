@@ -546,8 +546,16 @@ Mouse Flight: {11}
             sysrender.DebugRenderer.Render();
 
             if ((Thn == null || !Thn.Running) && ShowHud)
+            {
+                ui.Visible = true;
                 ui.RenderWidget();
-			Game.Renderer2D.Start(Game.Width, Game.Height);
+            }
+            else
+            {
+                ui.Visible = false;
+            }
+
+            Game.Renderer2D.Start(Game.Width, Game.Height);
             if (Thn != null && Thn.Running)
             {
                 var pct = Cutscene.LETTERBOX_HEIGHT;

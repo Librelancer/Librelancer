@@ -24,6 +24,7 @@ namespace LibreLancer
             api = new MenuAPI(this);
             ui = Game.Ui;
             ui.GameApi = api;
+            ui.Visible = true;
             ui.OpenScene("mainmenu");
             g.GameData.PopulateCursors();
             g.CursorKind = CursorKind.None;
