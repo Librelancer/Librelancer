@@ -15,6 +15,9 @@ namespace LibreLancer.Thorn
 		bool isArray = false;
 		object[] arrayStorage;
 		Dictionary<string,object> mapStorage;
+        private int arrayCount = 0;
+
+        bool SetAny() => (arrayStorage != null || mapStorage != null);
 		public LuaTable (int capacity)
 		{
 			Capacity = capacity;
@@ -37,7 +40,16 @@ namespace LibreLancer.Thorn
 			for (int i = 0; i < stuff.Length; i++) {
 				arrayStorage [i + offset] = stuff [i];
 			}
-		}
+        }
+
+        public int Count
+        {
+            get
+            {
+                if (isArray) return arrayStorage.Length;
+                return mapStorage.Count;
+            }
+        }
 
 		public void SetMap(Dictionary<string,object> stuff)
 		{
@@ -61,6 +73,7 @@ namespace LibreLancer.Thorn
 
 		public object this[object indexer] {
 			get {
+                if(!SetAny()) throw new InvalidOperationException();
 				if (isArray) {
 					return arrayStorage [(int)indexer];
 				} else {
@@ -69,6 +82,7 @@ namespace LibreLancer.Thorn
 			}
             set
             {
+                if(!SetAny()) throw new InvalidOperationException();
                 if (isArray)
                     arrayStorage[(int)indexer] = value;
                 else
@@ -78,6 +92,11 @@ namespace LibreLancer.Thorn
         public bool ContainsKey(string key) => mapStorage.ContainsKey(key);
 		public bool TryGetValue(string key, out object value)
 		{
+            if (!SetAny())
+            {
+                value = null;
+                return false;
+            }
 			return mapStorage.TryGetValue(key, out value);
 		}
 		public bool TryGetVector3(string key, out Vector3 val)

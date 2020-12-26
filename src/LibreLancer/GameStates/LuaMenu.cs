@@ -28,7 +28,8 @@ namespace LibreLancer
             g.GameData.PopulateCursors();
             g.CursorKind = CursorKind.None;
             intro = g.GameData.GetIntroScene();
-            scene = new Cutscene(new ThnScriptContext(intro.Scripts), Game.GameData, Game.Viewport, Game);
+            scene = new Cutscene(new ThnScriptContext(null), Game.GameData, Game.Viewport, Game);
+            scene.BeginScene(intro.Scripts);
             scene.Update(TimeSpan.FromSeconds(1f / 60f)); //Do all the setup events - smoother entrance
             FLLog.Info("Thn", "Playing " + intro.ThnName);
             cur = g.ResourceManager.GetCursor("arrow");
@@ -273,7 +274,7 @@ namespace LibreLancer
         {
             intro = Game.GameData.GetIntroSceneSpecific(index);
             scene.Dispose();
-            scene = new Cutscene(new ThnScriptContext(intro.Scripts), Game.GameData, Game.Viewport, Game);
+            scene.BeginScene(intro.Scripts);
             scene.Update(TimeSpan.FromSeconds(1f / 60f)); //Do all the setup events - smoother entrance
             Game.Sound.PlayMusic(intro.Music);
         }

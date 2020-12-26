@@ -8,12 +8,12 @@ namespace LibreLancer
 {
     public class ThnScriptContext
     {
-        public IEnumerable<ThnScript> Scripts;
+        public ThnScript SetScript;
         public GameObject PlayerShip;
         public Dictionary<string,string> Substitutions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        public ThnScriptContext(IEnumerable<ThnScript> scripts)
+        public ThnScriptContext(ThnScript set)
         {
-            this.Scripts = scripts;
+            SetScript = set;
         }
     }
 }

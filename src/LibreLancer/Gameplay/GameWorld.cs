@@ -156,7 +156,7 @@ namespace LibreLancer
 
         public void Dispose()
         {
-            Physics.Dispose();
+            Physics?.Dispose();
         }
 	}
 }

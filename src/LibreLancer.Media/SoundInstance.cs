@@ -238,8 +238,11 @@ namespace LibreLancer.Media
             });
         }
 
+        public bool Disposed => ID == uint.MaxValue;
+
         internal void Dispose(bool audioManager)
         {
+            
             if(ID == uint.MaxValue && !audioManager) throw new ObjectDisposedException("SoundInstance");
             if (ID == uint.MaxValue) return;
             var _id = ID;

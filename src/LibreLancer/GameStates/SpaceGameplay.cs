@@ -548,6 +548,13 @@ Mouse Flight: {11}
             if ((Thn == null || !Thn.Running) && ShowHud)
                 ui.RenderWidget();
 			Game.Renderer2D.Start(Game.Width, Game.Height);
+            if (Thn != null && Thn.Running)
+            {
+                var pct = Cutscene.LETTERBOX_HEIGHT;
+                int h = (int) (Game.Height * pct);
+                Game.Renderer2D.FillRectangle(new Rectangle(0, 0, Game.Width, h), Color4.Black);
+                Game.Renderer2D.FillRectangle(new Rectangle(0, Game.Height - h, Game.Width, h), Color4.Black);
+            }
             if ((Thn == null || !Thn.Running) && ShowHud)
             {
                 string sel_obj = "None";

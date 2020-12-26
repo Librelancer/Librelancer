@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
 using LibreLancer.Thorn;
+using LibreLancer.Thn;
 namespace LibreLancer
 {
 	public class ThnScript
@@ -121,34 +122,52 @@ namespace LibreLancer
 				var e = GetEvent(ev);
 				Events.Add(e);
 			}
-			Events.Sort((x, y) => x.EventTime.CompareTo(y.EventTime));
+			Events.Sort((x, y) => x.Time.CompareTo(y.Time));
 		}
 		ThnEvent GetEvent(LuaTable table)
 		{
-			var e = new ThnEvent();
-			e.EventTime = (float)table[0];
-			e.Type = ThnEnum.Check<EventTypes>(table[1]);
-			e.Targets = (LuaTable)table[2];
-			if (table.Capacity >= 4)
-			{
-				e.Properties = (LuaTable)table[3];
-				//Get properties common to most events
-				object tmp;
-				if (e.Properties.TryGetValue("param_curve", out tmp))
-				{
-					e.ParamCurve = new ParameterCurve((LuaTable)tmp);
-					if (e.Properties.TryGetValue("pcurve_period", out tmp))
-					{
-						e.ParamCurve.Period = (float)tmp;
-					}
-				}
-				if (e.Properties.TryGetValue("duration", out tmp))
-				{
-					e.Duration = (float)tmp;
-				}
+            var t = ThnTypes.Convert<EventTypes>(table[1]);
+            switch (t)
+            {
+                case EventTypes.SetCamera:
+                    return new SetCameraEvent(table);
+                case EventTypes.StartSound:
+                    return new StartSoundEvent(table);
+                case EventTypes.StartAudioPropAnim:
+                    return new StartAudioPropAnimEvent(table);
+                case EventTypes.StartLightPropAnim:
+                    return new StartLightPropAnimEvent(table);
+                case EventTypes.StartCameraPropAnim:
+                    return new StartCameraPropAnimEvent(table);
+                case EventTypes.StartPathAnimation:
+                    return new StartPathAnimationEvent(table);
+                case EventTypes.StartSpatialPropAnim:
+                    return new StartSpatialPropAnimEvent(table);
+                case EventTypes.AttachEntity:
+                    return new AttachEntityEvent(table);
+                case EventTypes.ConnectHardpoints:
+                    return new ConnectHardpointsEvent(table);
+                case EventTypes.StartMotion:
+                    return new StartMotionEvent(table);
+                case EventTypes.StartIK:
+                    return new StartIKEvent(table);
+                case EventTypes.StartSubScene:
+                    return new StartSubSceneEvent(table);
+                case EventTypes.StartPSys:
+                    return new StartPSysEvent(table);
+                case EventTypes.StartPSysPropAnim:
+                    return new StartPSysPropAnimEvent(table);
+                case EventTypes.StartFogPropAnim:
+                    return new StartFogPropAnimEvent(table);
+                case EventTypes.StartReverbPropAnim:
+                    return new StartReverbPropAnim(table);
+                case EventTypes.StartFloorHeightAnim:
+                    return new StartFloorHeightAnimEvent(table);
+                case EventTypes.Subtitle:
+                    return new SubtitleEvent(table);
             }
-			return e;
-		}
+            throw new ArgumentException($"event type {t}");
+        }
 		//Flags are stored differently internally between Freelancer and Librelancer
 		ThnObjectFlags ConvertFlags(EntityTypes type, LuaTable table)
 		{
@@ -165,7 +184,7 @@ namespace LibreLancer
 						throw new NotImplementedException();
 				}
 			}
-			return ThnEnum.Check<ThnObjectFlags>(val);
+			return ThnTypes.Convert<ThnObjectFlags>(val);
 		}
 
 
@@ -208,7 +227,7 @@ namespace LibreLancer
 
 			var e = new ThnEntity();
 			e.Name = (string)table["entity_name"];
-			e.Type = ThnEnum.Check<EntityTypes>(table["type"]);
+			e.Type = ThnTypes.Convert<EntityTypes>(table["type"]);
 			if (table.TryGetValue("srt_grp", out o))
 			{
 				e.SortGroup = (int)(float)table["srt_grp"];
@@ -260,7 +279,7 @@ namespace LibreLancer
 				}
 				if (usrprops.TryGetValue("nofog", out o))
 				{
-					e.NoFog = ThnEnum.Check<bool>(o);
+					e.NoFog = ThnTypes.Convert<bool>(o);
 				}
 
                 if (usrprops.TryGetValue("TextString", out o))
@@ -323,7 +342,7 @@ namespace LibreLancer
 				e.LightProps = new ThnLightProps();
 				if (lightprops.TryGetValue("on", out o))
 				{
-					e.LightProps.On = ThnEnum.Check<bool>(o);
+					e.LightProps.On = ThnTypes.Convert<bool>(o);
 				}
 				else
 					e.LightProps.On = true;
@@ -331,7 +350,7 @@ namespace LibreLancer
 				r.Position = e.Position.Value;
 				if (lightprops.TryGetValue("type", out o))
 				{
-					var tp = ThnEnum.Check<LightTypes>(o);
+					var tp = ThnTypes.Convert<LightTypes>(o);
 					if (tp == LightTypes.Point)
 						r.Kind = LightKind.Point;
 					if (tp == LightTypes.Direct)

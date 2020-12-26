@@ -10,6 +10,7 @@ namespace LibreLancer.GameData
 	{
 		public string Nickname;
 		public string Camera;
+        public string SetScript;
 		public List<string> ThnPaths;
 		public List<BaseHotspot> Hotspots;
         public List<string> ForSaleShipPlacements;
@@ -21,13 +22,23 @@ namespace LibreLancer.GameData
         public string LandScript;
         public string LaunchScript;
         public string GoodscartScript;
-		public IEnumerable<ThnScript> OpenScripts(bool landScript)
-		{
-			foreach (var p in ThnPaths) yield return new ThnScript(p);
-            //if (StartScript != null) yield return new ThnScript(StartScript);
-            if (GoodscartScript != null) yield return new ThnScript(GoodscartScript);
-            if (LandScript != null && landScript) yield return new ThnScript(LandScript);
-		}
+
+        public IEnumerable<ThnScript> OpenScene()
+        {
+            foreach (var p in ThnPaths) yield return new ThnScript(p);
+        }
+        public ThnScript OpenSet()
+        {
+            if(SetScript != null)
+                return new ThnScript(SetScript);
+            return null;
+        }
+        public ThnScript OpenGoodscart()
+        {
+            if (GoodscartScript != null) return new ThnScript(GoodscartScript);
+            return null;
+        }
+
         internal Action InitAction;
         public void InitForDisplay()
         {

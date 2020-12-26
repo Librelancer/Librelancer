@@ -146,6 +146,7 @@ namespace LibreLancer
                     nr.ForSaleShipPlacements = room.ForShipSalePlacements;
                     nr.InitAction = () =>
                     {
+                        nr.SetScript = ResolveDataPath(room.SetScript);
                         foreach (var path in room.SceneScripts)
                             nr.ThnPaths.Add(ResolveDataPath(path));
                          if (room.LandingScript != null)

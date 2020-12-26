@@ -219,7 +219,8 @@ namespace LibreLancer
                 case CallThornPacket ct:
                     RunSync(() => {
                         var thn = new ThnScript(Game.GameData.ResolveDataPath(ct.Thorn));
-                        gp.Thn = new Cutscene(new ThnScript[] { thn }, gp);
+                        gp.Thn = new Cutscene(new ThnScriptContext(null), gp);
+                        gp.Thn.BeginScene(thn);
                     });
                     break;
                 case UpdateRTCPacket rtc:

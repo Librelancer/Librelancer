@@ -38,27 +38,42 @@ namespace LibreLancer
 		Cursor cursor;
 		string virtualRoom;
         List<BaseHotspot> tophotspots;
+        private ThnScript[] sceneScripts;
+        private ThnScript waitingForFinish;
+        private StoryCutsceneIni currentCutscene;
+        private ScriptState currentState = ScriptState.None;
+
+        enum ScriptState
+        {
+            None,
+            Cutscene,
+            Enter,
+            Launch
+        }
         public RoomGameplay(FreelancerGame g, CGameSession session, string newBase, BaseRoom room = null, string virtualRoom = null) : base(g)
-		{
+        {
+            //Load room data
             this.session = session;
 			baseId = newBase;
 			currentBase = g.GameData.GetBase(newBase);
 			currentRoom = room ?? currentBase.StartRoom;
             currentRoom.InitForDisplay();
-			SwitchToRoom();
-			tophotspots = new List<BaseHotspot>();
-			foreach (var hp in currentRoom.Hotspots)
-				if (TOP_IDS.Contains(hp.Name))
-					tophotspots.Add(hp);
             var rm = virtualRoom ?? currentRoom.Nickname;
-            SetActiveHotspot(rm);
             this.virtualRoom = virtualRoom;
+            //Create user interface
+            tophotspots = new List<BaseHotspot>();
+            foreach (var hp in currentRoom.Hotspots)
+                if (TOP_IDS.Contains(hp.Name))
+                    tophotspots.Add(hp);
+            SetActiveHotspot(rm);
+            Game.Keyboard.TextInput += Game_TextInput;
+            Game.Keyboard.KeyDown += Keyboard_KeyDown;
+            cursor = Game.ResourceManager.GetCursor("arrow");
             ui = Game.Ui;
             ui.GameApi = new BaseUiApi(this);
             ui.OpenScene("baseside");
-            Game.Keyboard.TextInput += Game_TextInput;
-			Game.Keyboard.KeyDown += Keyboard_KeyDown;
-			cursor = Game.ResourceManager.GetCursor("arrow");
+            //Set up THN
+            SwitchToRoom(room == null);
             FadeIn(0.8, 1.7);
         }
         void SetActiveHotspot(string rm)
@@ -124,22 +139,6 @@ namespace LibreLancer
 		}
         
         List<StoryCutsceneIni> processedCutscenes = new List<StoryCutsceneIni>();
-
-        bool GotCutscene()
-        {
-            foreach (var ct in session.ActiveCutscenes)
-            {
-                if (ct.Encounters.Count != 1) continue;
-                if (!ct.Encounters[0].Autoplay) continue;
-                var n = ct.Encounters[0].Location;
-                if (n[0].Equals(currentBase.Nickname, StringComparison.OrdinalIgnoreCase) &&
-                    n[1].Equals(currentRoom.Nickname, StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
         void ProcessCutscenes()
         {
             foreach (var ct in session.ActiveCutscenes)
@@ -154,15 +153,23 @@ namespace LibreLancer
                     processedCutscenes.Add(ct);
                     ui.Visible = false;
                     var script = new ThnScript(session.Game.GameData.ResolveDataPath(ct.Encounters[0].Action));
-                    scene.RunScript(script, () =>
-                    {
-                        FLLog.Info("Thn", "Finished cutscene");
-                        ui.Visible = true;
-                        session.FinishCutscene(ct);
-                    });
+                    currentCutscene = ct;
+                    RoomDoSceneScript(script, ScriptState.Cutscene);
                 }
             }
+        }
 
+        public void Launch()
+        {
+            if (!string.IsNullOrEmpty(currentRoom.LaunchScript))
+            {
+                RoomDoSceneScript(new ThnScript(currentRoom.LaunchScript), ScriptState.Launch);
+            }
+            else
+            {
+                FLLog.Info("Base", "Launch!");
+                session.Launch();
+            }
         }
 
         void Hud_OnManeuverSelected(string arg)
@@ -170,9 +177,9 @@ namespace LibreLancer
             if (arg == active) return;
             Game.QueueUIThread(() => //Fixes stack trace
             {
-                if(arg == LAUNCH_ACTION) {
-                    FLLog.Info("Base", "Launch!");
-                    session.Launch();
+                if(arg == LAUNCH_ACTION)
+                {
+                    Launch();
                     return;
                 }
 
@@ -223,13 +230,11 @@ namespace LibreLancer
 		}
 		void Hud_OnTextEntry(string obj)
 		{
-            if(obj == "launch") {
-                scene.RunScript(new ThnScript(currentRoom.LaunchScript));
-            }
             session.ProcessConsoleCommand(obj);
 		}
 
-		void SwitchToRoom()
+        private GameObject playerShip;
+		void SwitchToRoom(bool dolanding)
         {
             session.RoomEntered(virtualRoom ?? currentRoom.Nickname, currentBase.Nickname);
 			if (currentRoom.Music == null)
@@ -241,10 +246,10 @@ namespace LibreLancer
 				Game.Sound.PlayMusic(currentRoom.Music, currentRoom.MusicOneShot);
 			}
             var shp = Game.GameData.GetShip(session.PlayerShip);
-            var PlayerShip = new GameObject(shp.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager);
-            PlayerShip.PhysicsComponent = null;
-            var ctx = new ThnScriptContext(currentRoom.OpenScripts(!GotCutscene()));
-            ctx.PlayerShip = PlayerShip;
+            playerShip = new GameObject(shp.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager); 
+            playerShip.PhysicsComponent = null;
+            var ctx = new ThnScriptContext(currentRoom.OpenSet());
+            ctx.PlayerShip = playerShip;
             if(currentBase.TerrainTiny != null) ctx.Substitutions.Add("$terrain_tiny", currentBase.TerrainTiny);
             if(currentBase.TerrainSml != null) ctx.Substitutions.Add("$terrain_sml", currentBase.TerrainSml);
             if(currentBase.TerrainMdm != null) ctx.Substitutions.Add("$terrain_mdm", currentBase.TerrainMdm);
@@ -252,32 +257,105 @@ namespace LibreLancer
             if(currentBase.TerrainDyna1 != null) ctx.Substitutions.Add("$terrain_dyna_01", currentBase.TerrainDyna1);
             if(currentBase.TerrainDyna2 != null) ctx.Substitutions.Add("$terrain_dyna_02", currentBase.TerrainDyna2);
             scene = new Cutscene(ctx, Game.GameData, Game.Viewport, Game);
-			if (currentRoom.Camera != null) scene.SetCamera(currentRoom.Camera);
-			/*foreach (var npc in currentRoom.Npcs)
-			{
-				var obj = scene.Objects[npc.StandingPlace];
-				var child = new GameObject();
-				child.RenderComponent = new CharacterRenderer(
-                    (DfmFile)Game.ResourceManager.GetDrawable(npc.HeadMesh),
-                    (DfmFile)Game.ResourceManager.GetDrawable(npc.BodyMesh),
-					(DfmFile)Game.ResourceManager.GetDrawable(npc.LeftHandMesh),
-                    (DfmFile)Game.ResourceManager.GetDrawable(npc.RightHandMesh)
-				);
-                child.Register(scene.World.Physics);
-				child.Transform = Matrix4.CreateTranslation(0, 3, 0);
-				obj.Object.Children.Add(child);
-			}*/
+            scene.ScriptFinished += SceneOnScriptFinished;
+            sceneScripts = currentRoom.OpenScene().ToArray();
+            if (dolanding && !string.IsNullOrEmpty(currentRoom.LandScript))
+            {
+                RoomDoSceneScript(new ThnScript(currentRoom.LandScript), ScriptState.Enter);
+            } else if (!string.IsNullOrEmpty(currentRoom.StartScript))
+            {
+                RoomDoSceneScript(new ThnScript(currentRoom.StartScript), ScriptState.Enter);
+            }
+            else
+            {
+                RoomDoSceneScript(null, ScriptState.None);
+            }
+        }
+
+        private void SceneOnScriptFinished(ThnScript obj)
+        {
+            if (waitingForFinish != null && obj == waitingForFinish)
+            {
+                if (currentCutscene != null)
+                {
+                    FadeOut(0.25, () =>
+                    {
+                        RoomDoSceneScript(null, ScriptState.None);
+                        ui.Visible = true;
+                        FLLog.Info("Thn", "Finished cutscene");
+                        session.FinishCutscene(currentCutscene);
+                        currentCutscene = null;
+                        FadeIn(0.2,0.25);
+                    });
+                }
+                else if (currentState == ScriptState.Launch)
+                {
+                    FLLog.Info("Base", "Launch!");
+                    session.Launch();
+                } 
+                else
+                {
+                    currentState = ScriptState.None;
+                    SetRoomCameraAndShip();
+                    animatingLetterbox = true;
+                }
+            }
+        }
+
+        private double letterboxAmount = 1;
+        private bool animatingLetterbox = false;
+
+        IEnumerable<ThnScript> Scripts(params IEnumerable<ThnScript>[] objects)
+        {
+            foreach (var obj in objects)
+            {
+                if (obj != null)
+                {
+                    foreach (var scn in obj)
+                        if (scn != null)
+                            yield return scn;
+                }
+            }
+        }
+
+        void SetRoomCameraAndShip()
+        {
+            if (currentRoom.Camera != null)
+                scene.SetCamera(currentRoom.Camera);
+            ThnObject shipMarker = scene.GetObject(currentRoom.PlayerShipPlacement);
+            if (shipMarker != null) {
+                if(playerShip.HardpointExists("HpMount"))
+                {
+                    Matrix4x4.Invert(playerShip.GetHardpoint("HpMount").Transform, out var tr);
+                    playerShip.Transform = tr;
+                }
+                else
+                {
+                    playerShip.Transform = Matrix4x4.Identity;
+                }
+                shipMarker.Object.Children.Add(playerShip);
+            }
+        }
+
+        private bool firstFrame = false; //Stops a desync in scene starting
+        void RoomDoSceneScript(ThnScript sc, ScriptState state)
+        {
+            firstFrame = true;
+            currentState = state;
+            if (sc == null) currentState = ScriptState.None;
+            waitingForFinish = sc;
+            scene.BeginScene(Scripts(sceneScripts, new[] { sc }));
             var ships = currentBase.SoldShips.Select(x => x.Package.Ship).ToArray();
             for(int i = 0; (i < ships.Length && i < currentRoom.ForSaleShipPlacements.Count); i++)
             {
-                ThnObject marker;
-                if(!scene.Objects.TryGetValue(currentRoom.ForSaleShipPlacements[i],out marker))
+                ThnObject marker = scene.GetObject(currentRoom.ForSaleShipPlacements[i]);
+                if(marker == null)
                 {
                     FLLog.Error("Base", "Couldn't display " + ships[i] + " on " + currentRoom.ForSaleShipPlacements[i]);
                     continue;
                 }
                 var toSellShip = Game.GameData.GetShip(ships[i]);
-                //Set up player object + camera
+                //Set up object
                 var obj = new GameObject(toSellShip.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager) { Parent = marker.Object };
                 obj.PhysicsComponent = null;
                 marker.Object.Children.Add(obj);
@@ -287,6 +365,14 @@ namespace LibreLancer
                     obj.Transform = tr;
                 }
             }
+            if (sc == null) {
+                SetRoomCameraAndShip();
+                letterboxAmount = -1;
+            }
+            else {
+                ui.Visible = false;
+                letterboxAmount = 1;
+            }
         }
 
 		public override void Update(TimeSpan delta)
@@ -294,15 +380,17 @@ namespace LibreLancer
             session.Update();
             ProcessCutscenes();
             if(scene != null)
-				scene.Update(delta);
+				scene.Update(firstFrame ? TimeSpan.Zero : delta);
+            firstFrame = false;
             ui.Update(Game);
             if (ui.KeyboardGrabbed)
                 Game.EnableTextInput();
             else
                 Game.DisableTextInput();
-        }            
+        }
 
 
+        
 		public override void Draw(TimeSpan delta)
         {
             RenderMaterial.VertexLighting = true;
@@ -311,9 +399,28 @@ namespace LibreLancer
             ui.RenderWidget();
 			Game.Renderer2D.Start(Game.Width, Game.Height);
             DoFade(delta);
+            #if DEBUG
             Game.Renderer2D.DrawString("Arial", 15, "Room: " + currentRoom.Nickname + "\n" + "Virtual: " +
                 (virtualRoom ?? "NONE"), new Vector2(5, 5), Color4.White);
-            cursor.Draw(Game.Renderer2D, Game.Mouse);
+            #endif
+            if (letterboxAmount > 0)
+            {
+                var pct = Cutscene.LETTERBOX_HEIGHT * (float) letterboxAmount;
+                int h = (int) (Game.Height * pct);
+                Game.Renderer2D.FillRectangle(new Rectangle(0, 0, Game.Width, h), Color4.Black);
+                Game.Renderer2D.FillRectangle(new Rectangle(0, Game.Height - h, Game.Width, h), Color4.Black);
+            }
+            if (animatingLetterbox)
+            {
+                letterboxAmount -= delta.TotalSeconds * 3;
+                if (letterboxAmount < 0)
+                {
+                    letterboxAmount = -1;
+                    animatingLetterbox = false;
+                    ui.Visible = true;
+                }
+            }
+            if(ui.Visible) cursor.Draw(Game.Renderer2D, Game.Mouse);
             Game.Renderer2D.Finish();
         }
 

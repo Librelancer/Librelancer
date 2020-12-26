@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -6,12 +6,11 @@ using System;
 using System.Numerics;
 using LibreLancer.Thorn;
 
-namespace LibreLancer
+namespace LibreLancer.Thn
 {
-    [ThnEventRunner(EventTypes.AttachEntity)]
-    public class AttachEntityRunner : IThnEventRunner
+    public class AttachEntityEvent : ThnEvent
     {
-        class AttachRoutine : IThnRoutine
+        class AttachEntityProcessor : ThnEventProcessor
         {
             public float Duration;
             public ThnObject Child;
@@ -26,7 +25,7 @@ namespace LibreLancer
             public bool LookAt;
             Func<Vector3> lookFunc;
             double t = 0;
-            public bool Run(Cutscene cs, double delta)
+            public override bool Run(double delta)
             {
                 Vector3 translate = Parent.Translate;
                 Matrix4x4 rotate = Parent.Rotate;
@@ -76,31 +75,43 @@ namespace LibreLancer
             }
         }
         
-        public void Process(ThnEvent ev, Cutscene cs)
+        public AttachEntityEvent() { }
+
+        public TargetTypes TargetType;
+        public AttachFlags Flags;
+        public string TargetPart;
+        public Vector3 Offset;
+        
+        public AttachEntityEvent(LuaTable table) : base(table)
         {
-            ThnObject objA;
+            if (GetProps(table, out var props))
+            {
+                GetValue(props, "target_type", out TargetType);
+                GetValue(props, "flags", out Flags, AttachFlags.Position | AttachFlags.Orientation);
+                GetValue(props, "target_part", out TargetPart);
+                GetValue(props, "offset", out Offset);
+            }
+        }
+
+        public override void Run(ThnScriptInstance instance)
+        {
+           ThnObject objA;
             ThnObject objB;
-            if(!cs.Objects.TryGetValue((string)ev.Targets[0], out objA))
+            if(!instance.Objects.TryGetValue(Targets[0], out objA))
             {
-                FLLog.Error("Thn", "Object doesn't exist " + (string)ev.Targets[0]);
+                FLLog.Error("Thn", "Object doesn't exist " + Targets[0]);
                 return;
             }
-            if(!cs.Objects.TryGetValue((string)ev.Targets[1], out objB))
+            if(!instance.Objects.TryGetValue(Targets[1], out objB))
             {
-                FLLog.Error("Thn", "Object doesn't exist " + (string)ev.Targets[1]);
+                FLLog.Error("Thn", "Object doesn't exist " + Targets[1]);
                 return;
             }
-            var targetType = ThnEnum.Check<TargetTypes>(ev.Properties["target_type"]);
-            var flags = AttachFlags.Position | AttachFlags.Orientation;
-            object tmp;
-            if (ev.Properties.TryGetValue("flags", out tmp))
-                flags = ThnEnum.Check<AttachFlags>(tmp);
+          
             //Attach GameObjects to eachother
             GameObject part = null;
             string tgt_part;
-            ev.Properties.TryGetValue("target_part", out tmp);
-            tgt_part = (tmp as string);
-            if (targetType == TargetTypes.Hardpoint && !string.IsNullOrEmpty(tgt_part))
+            if (TargetType == TargetTypes.Hardpoint && !string.IsNullOrEmpty(TargetPart))
             {
                 if (objB.Object == null)
                 {
@@ -110,10 +121,10 @@ namespace LibreLancer
                 {
                     part = new GameObject();
                     part.Parent = objB.Object;
-                    part.Attachment = objB.Object.GetHardpoint(ev.Properties["target_part"].ToString());
+                    part.Attachment = objB.Object.GetHardpoint(TargetPart);
                 }
             }
-            if (targetType == TargetTypes.Part && !string.IsNullOrEmpty(tgt_part))
+            if (TargetType == TargetTypes.Part && !string.IsNullOrEmpty(TargetPart))
             {
                 if (objB.Object == null || objB.Object.RigidModel == null || objB.Object.RigidModel.Parts == null)
                 {
@@ -121,7 +132,7 @@ namespace LibreLancer
                 }
                 else
                 {
-                    if (objB.Object.RigidModel.Parts.TryGetValue((string)ev.Properties["target_part"], out var tgtpart))
+                    if (objB.Object.RigidModel.Parts.TryGetValue(TargetPart, out var tgtpart))
                     {
                         var hp = new Hardpoint(null, tgtpart);
                         part = new GameObject();
@@ -131,28 +142,26 @@ namespace LibreLancer
                 }
             }
             Vector3 offset = Vector3.Zero;
-            if (ev.Properties.TryGetValue("offset", out tmp))
-                offset = ((LuaTable) tmp).ToVector3();
             Quaternion lastRotate = Quaternion.Identity;
-            if ((flags & AttachFlags.Orientation) == AttachFlags.Orientation &&
-                (flags & AttachFlags.OrientationRelative) == AttachFlags.OrientationRelative)
+            if ((Flags & AttachFlags.Orientation) == AttachFlags.Orientation &&
+                (Flags & AttachFlags.OrientationRelative) == AttachFlags.OrientationRelative)
             {
                 if (part != null)
                     lastRotate = part.GetTransform().ExtractRotation();
                 else
                     lastRotate = objB.Rotate.ExtractRotation();
             }
-            cs.Coroutines.Add(new AttachRoutine()
+            instance.AddProcessor(new AttachEntityProcessor()
             {
-                Duration = ev.Duration,
+                Duration = Duration,
                 Child = objA,
                 Parent = objB,
                 Part = part,
-                Position = ((flags & AttachFlags.Position) == AttachFlags.Position),
-                Orientation = ((flags & AttachFlags.Orientation) == AttachFlags.Orientation),
-                OrientationRelative = ((flags & AttachFlags.OrientationRelative) == AttachFlags.OrientationRelative),
-                EntityRelative = ((flags & AttachFlags.EntityRelative) == AttachFlags.EntityRelative),
-                LookAt = ((flags & AttachFlags.LookAt) == AttachFlags.LookAt),
+                Position = ((Flags & AttachFlags.Position) == AttachFlags.Position),
+                Orientation = ((Flags & AttachFlags.Orientation) == AttachFlags.Orientation),
+                OrientationRelative = ((Flags & AttachFlags.OrientationRelative) == AttachFlags.OrientationRelative),
+                EntityRelative = ((Flags & AttachFlags.EntityRelative) == AttachFlags.EntityRelative),
+                LookAt = ((Flags & AttachFlags.LookAt) == AttachFlags.LookAt),
                 LastRotate = lastRotate,
                 Offset = offset
             });

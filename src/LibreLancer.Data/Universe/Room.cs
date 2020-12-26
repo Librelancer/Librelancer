@@ -15,6 +15,8 @@ namespace LibreLancer.Data.Universe
 		public string Nickname { get; private set; }
 		public string Music { get; private set; }
         public bool MusicOneShot { get; private set; }
+        
+        public string SetScript { get; private set; }
         public List<string> SceneScripts { get; private set; }
         public List<string> ForShipSalePlacements { get; private set; }
         public List<RoomHotspot> Hotspots { get; private set; }
@@ -59,7 +61,7 @@ namespace LibreLancer.Data.Universe
                             foreach (Entry e in s)
                             {
                                 if (e.Name.ToLowerInvariant() == "set_script")
-                                    SceneScripts.Add(e[0].ToString());
+                                   SetScript = e[0].ToString();
                                 if (e.Name.ToLowerInvariant() == "goodscart_script")
                                     GoodscartScript = e[0].ToString();
                                 if (e.Name.ToLowerInvariant() == "scene")

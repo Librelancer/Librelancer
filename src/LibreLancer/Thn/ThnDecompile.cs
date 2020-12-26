@@ -105,11 +105,11 @@ namespace LibreLancer
             for (int ti = 0; ti < t.Capacity; ti++)
             {
                 var ent = (LuaTable)t[ti];
-                ent["type"] = ThnEnum.Check<EntityTypes>(ent["type"]);
+                ent["type"] = ThnTypes.Convert<EntityTypes>(ent["type"]);
                 if (ent.TryGetValue("lightprops", out o))
                 {
                     var lp = (LuaTable)o;
-                    if (lp.ContainsKey("type")) lp["type"] = ThnEnum.Check<LightTypes>(lp["type"]);
+                    if (lp.ContainsKey("type")) lp["type"] = ThnTypes.Convert<LightTypes>(lp["type"]);
                 }
                 if (ent.ContainsKey("flags")) ent["flags"] = ConvertFlags((EntityTypes)ent["type"], ent);
             }
@@ -118,14 +118,14 @@ namespace LibreLancer
         {
             if (!(table["flags"] is float)) return (ThnObjectFlags)table["flags"];
             var val = (int)(float)table["flags"];
-            return ThnEnum.Check<ThnObjectFlags>(val);
+            return ThnTypes.Convert<ThnObjectFlags>(val);
         }
         static void ProcessEvents(LuaTable t)
         {
             for (int ti = 0; ti < t.Capacity; ti++)
             {
                 var ev = (LuaTable)t[ti];
-                ev[1] = ThnEnum.Check<EventTypes>(ev[1]);
+                ev[1] = ThnTypes.Convert<EventTypes>(ev[1]);
                 if (ev.Capacity >= 4)
                 {
                     var props = (LuaTable)ev[3];

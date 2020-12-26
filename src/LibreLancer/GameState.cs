@@ -27,6 +27,7 @@ namespace LibreLancer
 
         protected void FadeIn(double delay, double time)
         {
+            hitchCount = 0;
             totalTime = 0;
             fadeDelay = delay;
             fadeFirstFrame = true;
@@ -35,6 +36,7 @@ namespace LibreLancer
         }
         protected void FadeOut(double time, Action toDo)
         {
+            hitchCount = 0;
             fadeTime = fadeDuration = time;
             fadeFirstFrame = true;
             fadeIn = false;

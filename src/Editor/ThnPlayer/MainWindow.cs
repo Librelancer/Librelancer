@@ -116,8 +116,9 @@ namespace ThnPlayer
                 Name = Path.GetFileName(x),
                 Text = ThnDecompile.Decompile(x)
             }).ToArray();
-            var ctx = new ThnScriptContext(files.Select(x => new ThnScript(x)));
+            var ctx = new ThnScriptContext(null);
             cutscene = new Cutscene(ctx, GameData, new Viewport(0,0,Width,Height), this);
+            cutscene.BeginScene(files.Select(x => new ThnScript(x)));
         }
 
         void Reload()
