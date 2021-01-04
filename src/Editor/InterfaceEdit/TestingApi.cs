@@ -5,6 +5,7 @@
 using LibreLancer;
 using LibreLancer.Interface;
 using System.Collections.Generic;
+using LibreLancer.Infocards;
 
 namespace InterfaceEdit
 {
@@ -75,6 +76,11 @@ namespace InterfaceEdit
 
         TestServerList serverList = new TestServerList();
         public TestServerList ServerList() => serverList;
+
+        public Infocard _Infocard;
+
+        public Infocard CurrentInfocard() => _Infocard;
+        public string CurrentInfoString() => "CURRENT INFORMATION";
 
 
         public void ConnectSelection()

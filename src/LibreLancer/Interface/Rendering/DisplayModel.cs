@@ -42,6 +42,10 @@ namespace LibreLancer.Interface
     {
         public InterfaceModel Model { get; set; }
         public InterfaceColor Tint { get; set; }
+
+        public Vector3 Rotate { get; set; }
+        public Vector3 RotateAnimation { get; set; }
+        
         private RigidModel model;
         private bool loadable = true;
         private List<ModifiedMaterial> mats;
@@ -51,7 +55,16 @@ namespace LibreLancer.Interface
             if (!CanRender(context)) return;
             context.Mode3D();
             var rect = context.PointsToPixels(clientRectangle);
+            
+            Matrix4x4 rotationMatrix = Matrix4x4.Identity;
+            var rot = Rotate + (RotateAnimation * (float)context.GlobalTime.TotalSeconds);
+            if (rot != Vector3.Zero) {
+                rotationMatrix = Matrix4x4.CreateRotationX(rot.X) *
+                      Matrix4x4.CreateRotationY(rot.Y) *
+                      Matrix4x4.CreateRotationZ(rot.Z);
+            }
             var transform = Matrix4x4.CreateScale(Model.XScale, Model.YScale, 1) *
+                            rotationMatrix *
                             Matrix4x4.CreateTranslation(Model.X, Model.Y, 0);
             context.MatrixCam.CreateTransform((int)context.ViewportWidth, (int)context.ViewportHeight, rect);
             context.RenderState.Cull = false;

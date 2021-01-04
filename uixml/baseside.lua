@@ -40,6 +40,7 @@ local function NavbarButton(hotspot, active)
 	end
 	style.Hover = hoverAppearance
 	-- Set Appearance
+	button.ID = hotspot
 	button:SetStyle(style)
 	return button
 end
@@ -91,10 +92,20 @@ function baseside:ctor()
     self.Elements.chatbox:OnTextEntered(function (text)
                                             Game:TextEntered(text)
                                         end)
+
+	self.InfoWindow = infowindow()
+
+	self.Elements.nn_info:OnClick(function()
+		self.InfoWindow:Open(self.Widget)
+	end)
 end
 
 function baseside:Chatbox()
    self.Elements.chatbox.Visible = true 
 end
+
+
+
+
 
 

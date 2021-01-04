@@ -10,6 +10,7 @@ using System.Linq;
 using LibreLancer.GameData;
 using LibreLancer.Utf.Dfm;
 using LibreLancer.Data.Missions;
+using LibreLancer.Infocards;
 using LibreLancer.Interface;
 
 namespace LibreLancer
@@ -42,7 +43,7 @@ namespace LibreLancer
         private ThnScript waitingForFinish;
         private StoryCutsceneIni currentCutscene;
         private ScriptState currentState = ScriptState.None;
-
+        private Infocard roomInfocard;
         enum ScriptState
         {
             None,
@@ -60,6 +61,22 @@ namespace LibreLancer
             currentRoom.InitForDisplay();
             var rm = virtualRoom ?? currentRoom.Nickname;
             this.virtualRoom = virtualRoom;
+            //Find infocard
+            var sys = g.GameData.GetSystem(currentBase.System);
+            var obj = sys.Objects.FirstOrDefault((o) =>
+            {
+                return o.Base?.Equals(newBase, StringComparison.OrdinalIgnoreCase) ?? false;
+            });
+            int ids = 0;
+            if (obj?.IdsInfo.Length > 0) {
+                ids = obj.IdsInfo[0];
+            }
+            roomInfocard = g.GameData.GetInfocard(ids, g.Fonts);
+            if (g.GameData.GetRelatedInfocard(ids, g.Fonts, out var ic2))
+            {
+                roomInfocard.Nodes.Add(new RichTextParagraphNode());
+                roomInfocard.Nodes.AddRange(ic2.Nodes);
+            }
             //Create user interface
             tophotspots = new List<BaseHotspot>();
             foreach (var hp in currentRoom.Hotspots)
@@ -101,6 +118,7 @@ namespace LibreLancer
             public void HotspotPressed(string item) => g.Hud_OnManeuverSelected(item);
             public string ActiveNavbarButton() => g.active;
 
+            public Infocard CurrentInfocard() => g.roomInfocard;
             public NavbarButtonInfo[] GetNavbarButtons()
             {
                 var buttons = new NavbarButtonInfo[g.tophotspots.Count];
@@ -407,7 +425,7 @@ namespace LibreLancer
             RenderMaterial.VertexLighting = true;
             if (scene != null)
 				scene.Draw();
-            ui.RenderWidget();
+            ui.RenderWidget(delta);
 			Game.Renderer2D.Start(Game.Width, Game.Height);
             DoFade(delta);
             #if DEBUG

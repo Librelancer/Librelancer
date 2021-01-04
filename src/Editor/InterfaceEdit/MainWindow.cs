@@ -78,12 +78,17 @@ namespace InterfaceEdit
             projectWindow = new ProjectWindow(Project.XmlFolder, this);
             projectWindow.IsOpen = true;
             tabs.Add(new StylesheetEditor(Project.XmlFolder, Project.XmlLoader, Project.UiData));
+            TestApi._Infocard = Project.TestingInfocard;
         }
 
         private FileDialogFilters projectFilters =
             new FileDialogFilters(new FileFilter("Project Files", "librelancer-uiproj"));
+
+        public TimeSpan RenderDelta;
         protected override void Draw(double elapsed)
         {
+            var delta = TimeSpan.FromSeconds(elapsed);
+            RenderDelta = delta;
             Viewport.Replace(0, 0, Width, Height);
             RenderState.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
             RenderState.ClearAll();
@@ -205,7 +210,7 @@ namespace InterfaceEdit
             {
                 try
                 {
-                    Player();
+                    Player(delta);
                 }
                 catch (Exception e)
                 {
@@ -296,7 +301,7 @@ namespace InterfaceEdit
         private RenderTarget2D renderTarget;
         private int renderTargetImage;
         private bool lastDown = false;
-        void Player()
+        void Player(TimeSpan delta)
         {
             bool childopened = true;
             ImGui.Begin("playwindow", ref childopened,
@@ -327,7 +332,7 @@ namespace InterfaceEdit
             _playContext.GlobalTime = TimeSpan.FromSeconds(TotalTime);
             _playContext.ViewportWidth = rtX;
             _playContext.ViewportHeight = rtY;
-            _playContext.RenderWidget();
+            _playContext.RenderWidget(delta);
             //
             Viewport.Pop();
             RenderState.RenderTarget = null;

@@ -116,17 +116,12 @@ namespace LibreLancer.Interface
         }
 
         protected UiAnimation CurrentAnimation;
-        private TimeSpan lastTime = TimeSpan.FromSeconds(0);
         private float aspectRatio = 1;
         protected void Update(UiContext context, Vector2 myPos)
         {
             aspectRatio = context.ViewportWidth / context.ViewportHeight;
-            TimeSpan delta;
-            if (lastTime == TimeSpan.FromSeconds(0))
-                delta = TimeSpan.FromSeconds(0);
-            else
-                delta = context.GlobalTime - lastTime;
-            lastTime = context.GlobalTime;
+            TimeSpan delta = context.DeltaTime;
+            callback?.Invoke(delta.TotalSeconds);
             if (CurrentAnimation != null) {
                 CurrentAnimation.SetWidgetPosition(myPos);
                 CurrentAnimation.Update(delta.TotalSeconds, aspectRatio);
@@ -139,6 +134,15 @@ namespace LibreLancer.Interface
                     CurrentAnimation = null;
                 }
             }
+        }
+
+        private event Action<double> callback;
+        public void OnUpdate(MoonSharp.Interpreter.Closure handler)
+        {
+            callback += (x) =>
+            {
+                handler.Call(x);
+            };
         }
 
         private Vector2? animSetPos;

@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -11,7 +12,6 @@ using System.Reflection;
 using System.Xml;
 using System.Xml.Linq;
 using LibreLancer.Interface.Reflection;
-using SharpDX.Direct2D1;
 
 namespace LibreLancer.Interface
 {
@@ -138,6 +138,18 @@ namespace LibreLancer.Interface
                 interfaceImages.Add(clr.Name, clr);
             return ParseObjectInternal(objType, el, objectMaps, interfaceColors, interfaceModels, interfaceImages);
         }
+
+        static Vector3 ParseVector3(string s)
+        {
+            var sp = s.Split(',');
+            if(sp.Length != 3) throw new FormatException();
+            return new Vector3(
+                float.Parse(sp[0], CultureInfo.InvariantCulture),
+                float.Parse(sp[1], CultureInfo.InvariantCulture),
+                float.Parse(sp[2], CultureInfo.InvariantCulture)
+                );
+        }
+        
         UiLoadedObject ParseObjectInternal(
             Type objType, 
             XElement el, 
@@ -182,6 +194,10 @@ namespace LibreLancer.Interface
                     var ptype = property.PropertyType;
                     if (ptype.IsEnum)
                         value = Enum.Parse(ptype, attr.Value, true);
+                    else if (ptype == typeof(Vector3))
+                    {
+                        value = ParseVector3(attr.Value);
+                    }
                     else if (ptype == typeof(InterfaceColor))
                     {
                         InterfaceColor color;

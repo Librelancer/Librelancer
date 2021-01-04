@@ -12,7 +12,22 @@ namespace LibreLancer.Interface
     {
         public float TextSize { get; set; }
         public string Font { get; set; }
-        public string Text { get; set; }
+        InfoTextAccessor txtAccess = new InfoTextAccessor();
+        public string Text
+        {
+            get => txtAccess.Text;
+            set => txtAccess.Text = value;
+        }
+        public int Strid
+        {
+            get => txtAccess.Strid;
+            set => txtAccess.Strid = value;
+        }
+        public int InfoId
+        {
+            get => txtAccess.InfoId;
+            set => txtAccess.InfoId = value;
+        }
         public HorizontalAlignment HorizontalAlignment { get; set; }
         public VerticalAlignment VerticalAlignment { get; set; }
         public InterfaceColor TextColor { get; set; }
@@ -28,10 +43,10 @@ namespace LibreLancer.Interface
                 foreach(var elem in Background.Elements)
                     elem.Render(context, myRectangle);
             }
-
-            if (!string.IsNullOrEmpty(Text))
+            var txt = txtAccess.GetText(context);
+            if (!string.IsNullOrEmpty(txt))
                 DrawText(context, myRectangle, TextSize, Font, TextColor, TextShadow, HorizontalAlignment, VerticalAlignment, Clip,
-                    Text);
+                    txt);
         }
     }
 }

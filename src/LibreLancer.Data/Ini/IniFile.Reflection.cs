@@ -410,6 +410,19 @@ namespace LibreLancer.Ini
                     else if (ComponentCheck(int.MaxValue, s, e, 1))
                         field.Field.SetValue(obj, e.Select((x) => x.ToString()).ToList());
                 }
+                else if (ftype == typeof(List<int>))
+                {
+                    bitmask &= ~(1ul << idx); //Avoid duplicate warnings
+                    if (ComponentCheck(1, s, e))
+                    {
+                        var v = (List<int>)field.Field.GetValue(obj);
+                        if (v == null) {
+                            v = new List<int>();
+                            field.Field.SetValue(obj, v);
+                        }
+                        v.Add(e[0].ToInt32());
+                    }
+                }
                 else if (ftype == typeof(float[]))
                 {
                     if(ComponentCheck(int.MaxValue,s,e,1)) {

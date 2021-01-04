@@ -256,7 +256,7 @@ C# Memory Usage: {5}
                         {
                             var szX = Math.Max(20, ImGui.GetWindowWidth());
                             var szY = Math.Max(20, ImGui.GetWindowHeight() - 70);
-                            systemMap.Draw((int)szX, (int)szY);
+                            systemMap.Draw((int) szX, (int) szY, TimeSpan.FromSeconds(elapsed));
                             ImGui.EndTabItem();
                         }
 

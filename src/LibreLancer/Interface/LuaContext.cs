@@ -7,8 +7,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using LibreLancer.Lua;
 using MoonSharp.Interpreter;
+using MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors;
 using MoonSharp.Interpreter.Loaders;
 
 namespace LibreLancer.Interface
@@ -27,6 +29,14 @@ namespace LibreLancer.Interface
             UserData.RegisterType<HorizontalAlignment>();
             UserData.RegisterType<VerticalAlignment>();
             UserData.RegisterType<AnchorKind>();
+            UserData.RegisterType(new Vector3Lua());
+        }
+
+        class Vector3Lua : HardwiredUserDataDescriptor
+        {
+            public Vector3Lua() : base(typeof(Vector3))
+            {
+            }
         }
         public static void RegisterType<T>()
         {
@@ -136,6 +146,7 @@ namespace LibreLancer.Interface
             public InterfaceModel GetModel(string mdl) => c.uiContext.Data.Resources.Models.First(x => x.Name == mdl);
             public InterfaceImage GetImage(string img) => c.uiContext.Data.Resources.Images.First(x => x.Name == img);
             public string GetNavbarIconPath(string ico) => c.uiContext.Data.GetNavbarIconPath(ico);
+            public Vector3 Vector3(float x, float y, float z) => new Vector3(x, y, z);
 
             Dictionary<string,DynValue> mods = new Dictionary<string, DynValue>();
             public DynValue Require(string mod)

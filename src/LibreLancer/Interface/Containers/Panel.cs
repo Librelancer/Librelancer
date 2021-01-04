@@ -41,6 +41,7 @@ namespace LibreLancer.Interface
 
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
+            ProcessAddChildren(context);
             if (!Visible) return;
             var myRectangle = GetMyRectangle(context, parentRectangle);
             Background?.Draw(context, myRectangle);

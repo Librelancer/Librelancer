@@ -18,6 +18,7 @@ using LibreLancer.Data.Audio;
 using LibreLancer.Data.Effects;
 using LibreLancer.Data.Goods;
 using LibreLancer.Data.Fuses;
+using LibreLancer.Data.Interface;
 using LibreLancer.Data.NewCharDB;
     
 namespace LibreLancer.Data
@@ -55,7 +56,8 @@ namespace LibreLancer.Data
         public MBasesIni MBases;
         public NewCharDBIni NewCharDB;
         public ContentDll ContentDll;
-
+        public InfocardMapIni InfocardMap;
+        
         public string DataVersion;
         public bool Loaded = false;
 
@@ -177,6 +179,11 @@ namespace LibreLancer.Data
                 Hud.AddIni(Freelancer.HudPath, VFS);
                 //navbar.ini
                 BaseNavBar = new BaseNavBarIni(VFS);
+            }));
+            tasks.Add(Task.Run(() =>
+            {
+                InfocardMap = new InfocardMapIni();
+                InfocardMap.AddMap(Freelancer.DataPath + "/INTERFACE/infocardmap.ini", VFS);
             }));
             tasks.Add(Task.Run(() =>
             {

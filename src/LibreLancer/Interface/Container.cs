@@ -14,13 +14,30 @@ namespace LibreLancer.Interface
         public List<UiWidget> Children { get; set; } = new List<UiWidget>();
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
+            ProcessAddChildren(context);
             if (!Visible) return;
             foreach(var child in Children)
                 child.Render(context, parentRectangle);
         }
+
+        protected void ProcessAddChildren(UiContext context)
+        {
+            while (addRemoves.TryDequeue(out var ac))
+                ac(context);
+        }
+        
+        Queue<Action<UiContext>> addRemoves = new Queue<Action<UiContext>>();
         public void AddChild(UiWidget child)
         {
-            Children.Add(child);
+            addRemoves.Enqueue((ctx) =>
+            {
+                child.ApplyStylesheet(ctx.Data.Stylesheet);
+                Children.Add(child);
+            });
+        }
+        public void RemoveChild(UiWidget child)
+        {
+           addRemoves.Enqueue((x) => { Children.Remove(child); });
         }
         public override void UnFocus()
         {

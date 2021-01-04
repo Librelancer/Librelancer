@@ -282,8 +282,11 @@ namespace LibreLancer.Interface
         public void OnKeyDown(Keys key) => textFocusWidget?.OnKeyDown(key);
 
         public void OnTextEntry(string text) => textFocusWidget?.OnTextInput(text);
-        public void RenderWidget()
+
+        public TimeSpan DeltaTime;
+        public void RenderWidget(TimeSpan delta)
         {
+            DeltaTime = delta;
             if (baseWidget == null || !Visible)
             {
                 textFocusWidget = null;

@@ -109,30 +109,12 @@ namespace InterfaceEdit
             h1 = totalH - h2 - 24f;
             ImGui.BeginChild("###viewport",new Vector2(-1,h1),false,ImGuiWindowFlags.None);
             if(validXml)
-                DoViewport();
+                DoViewport(mainWindow.RenderDelta);
             else
                 ImGui.Text(exceptionText);
             ImGui.EndChild();
             //Text
             ImGui.BeginChild("###text", new Vector2(-1, h2), false, ImGuiWindowFlags.None);
-            /*if (statePlaying)
-            {
-                if (ImGui.Button("Stop"))
-                {
-                    xmlEditor.SetReadOnly(false);
-                    TextChanged();
-                    statePlaying = false;
-                }
-            }
-            else
-            {
-                if (ImGui.Button("Play"))
-                {
-                    xmlEditor.SetReadOnly(true);
-                    widget.EnableScripting(context, null);
-                    statePlaying = true;
-                }
-            }*/
 
             xmlEditor.Render("##texteditor");
             if (xmlEditor.TextChanged())
@@ -151,7 +133,7 @@ namespace InterfaceEdit
         private int renderTargetImage;
         private int rtX = -1, rtY = -1;
         private bool lastDown = false;
-        void DoViewport()
+        void DoViewport(TimeSpan delta)
         {
             var szX = (int)ImGui.GetWindowContentRegionWidth();
             var szY = (int) ImGui.GetWindowHeight();
@@ -178,7 +160,7 @@ namespace InterfaceEdit
                 context.GlobalTime = TimeSpan.FromSeconds(mainWindow.TotalTime);
                 context.ViewportWidth = rtX;
                 context.ViewportHeight = rtY;
-                context.RenderWidget();
+                context.RenderWidget(delta);
             }
             //
             mainWindow.Viewport.Pop();

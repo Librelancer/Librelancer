@@ -42,7 +42,7 @@ namespace SystemViewer
 
         private RenderTarget2D rtarget;
         private int rw = -1, rh = -1, rt = -1;
-        public void Draw(int width, int height)
+        public void Draw(int width, int height, TimeSpan delta)
         {
             //Set viewport
             height -= 30;
@@ -66,7 +66,7 @@ namespace SystemViewer
             ctx.RenderState.RenderTarget = rtarget;
             ctx.RenderState.ClearColor = Color4.TransparentBlack;
             ctx.RenderState.ClearAll();
-            ctx.RenderWidget();
+            ctx.RenderWidget(delta);
             ctx.RenderState.RenderTarget = null;
             win.Viewport.Pop();
             //ImGui

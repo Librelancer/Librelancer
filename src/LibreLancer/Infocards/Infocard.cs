@@ -5,8 +5,11 @@
 using System;
 using System.Text;
 using System.Collections.Generic;
+using LibreLancer.Interface;
+
 namespace LibreLancer.Infocards
 {
+    [UiLoadable]
 	public class Infocard
 	{
 		public List<RichTextNode> Nodes;

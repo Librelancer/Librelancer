@@ -116,6 +116,9 @@ end
 function GetNavbarIconPath(ico)
     return _f:GetNavbarIconPath(ico)
 end
+function Vector3(x,y,z)
+    return _f:Vector3(x,y,z)
+end
 function require(mod)
     return _f:Require(mod)
 end

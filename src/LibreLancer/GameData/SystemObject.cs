@@ -13,6 +13,8 @@ namespace LibreLancer.GameData
 	{
 		public string Nickname;
 		public string DisplayName;
+        public int[] IdsInfo;
+        public string Base; //used for linking IdsInfo
 		public Archetype Archetype;
 		public Vector3 Position = Vector3.Zero;
         public Vector3 Spin = Vector3.Zero;

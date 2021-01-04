@@ -1,4 +1,79 @@
 <Stylesheet>
+	<!-- Generic buttons -->
+	<ButtonStyle Width="16" Height="16" Name="xbutton">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="xbutton" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="xbutton" Tint="text_hover"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+	</ButtonStyle>
+	<!-- Neuronet buttons -->
+	<ButtonStyle Width="21" Height="21" Name="nn_info">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_info.3db" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_info.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+	</ButtonStyle>
+	<ButtonStyle Name="nn_playerstatus" Width="10" Height="22">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_playerstatus.3db" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_playerstatus.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+	</ButtonStyle>
+	<ButtonStyle Name="nn_inventory" Width ="24" Height="11">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_inventory.3db" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_inventory.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+	</ButtonStyle>
+	<ButtonStyle Name="nn_map" Width="23" Height="23">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_map.3db" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_map.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+	</ButtonStyle>
+	<ButtonStyle Name="nn_storystar" Width="22" Height="22">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_storystar.3db" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_storystar.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+	</ButtonStyle>
+	<!-- Menu -->
 	<ButtonStyle Width="162" Height="43" Name="menubutton" MouseEnterSound="ui_rollover">
 		<ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="16" FontFamily="$ButtonText">
 			<ButtonAppearance.Background>
@@ -63,6 +138,10 @@
 		</ScrollbarStyle.Thumb>
 	</ScrollbarStyle>
 </Stylesheet>
+
+
+
+
 
 
 

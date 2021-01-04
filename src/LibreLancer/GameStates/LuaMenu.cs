@@ -253,7 +253,7 @@ namespace LibreLancer
         {
             RenderMaterial.VertexLighting = true;
             scene.Draw();
-            ui.RenderWidget();
+            ui.RenderWidget(delta);
             Game.Renderer2D.Start(Game.Width, Game.Height);
             DoFade(delta);
             cur.Draw(Game.Renderer2D, Game.Mouse);

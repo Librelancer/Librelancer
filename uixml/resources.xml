@@ -110,6 +110,12 @@
   <Model name="front_serverselect_info" path="DATA/INTERFACE/INTRO/OBJECTS/front_serverselect_info.cmp" x="0" y="0" xscale="2.87" yscale="16.55" />
   <Model name="front_characselectbox" path="DATA/INTERFACE/INTRO/OBJECTS/front_characselectbox.cmp" x="0" y="0" xscale="2.38" yscale="3.75" />
   <Model name="front_infowindow" path="DATA/INTERFACE/INTRO/OBJECTS/front_infowindow.cmp" x="0" y="0" xscale="7.5" yscale="10.1" />
+  <Model name="hud_nnbox5" path="DATA/INTERFACE/HUD/hud_nnbox5.cmp" x="0" y="-0.08" xscale="9.7" yscale="40" />
+  <Model name="hud_nnbox7" path="DATA/INTERFACE/HUD/hud_nnbox7.cmp" x="0" y="-0.1" xscale="7.2" yscale="41" />
+  <Model name="nn_inventory.3db" path="DATA/INTERFACE/NEURONET/ICONS/nn_inventory.3db" x="0" y="0" xscale="50" yscale="111" />
+  <Model name="conversationoffer" path="DATA/INTERFACE/TEXTOFFER/conversationoffer.cmp" x="0" y="0" xscale="2.44" yscale="3" />
+  <Model name="news_background" path="DATA/INTERFACE/NEURONET/NEWSVENDOR/news_background.cmp" x="0" y="-0.1" xscale="1.57" yscale="2.178" />
+  <Model name="hlp_window" path="DATA/INTERFACE/NEURONET/INVENTORY/hlp_window.cmp" x="0" y="0" xscale="2.62" yscale="4.18" />
   <Image name="sliderarrow_up" texname="HUD_sliderarrow" type="Triangle" flip="false">
     <TexCoords>
       <X0>0.086419754</X0>

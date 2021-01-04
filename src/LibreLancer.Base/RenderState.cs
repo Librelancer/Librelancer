@@ -324,9 +324,12 @@ namespace LibreLancer
             }
             if(scissorEnabled & (scissorVpChanged || currentScissorRect != scissorRect))
             {
-                currentScissorRect = scissorRect;
+                var cr = scissorRect;
+                if (cr.Height < 1) cr.Height = 1;
+                if (cr.Width < 1) cr.Width = 1;
+                currentScissorRect = cr;
                 scissorVpChanged = false;
-                GL.Scissor(scissorRect.X, vpHeight - scissorRect.Y - scissorRect.Height, scissorRect.Width, scissorRect.Height);
+                GL.Scissor(cr.X, vpHeight - cr.Y - cr.Height, cr.Width, cr.Height);
             }
 
         }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Xml.Serialization;
 using LibreLancer;
 using LibreLancer.Data;
+using LibreLancer.Infocards;
 using LibreLancer.Interface;
 
 namespace InterfaceEdit
@@ -16,6 +17,7 @@ namespace InterfaceEdit
         public string FlFolder;
         public string ProjectFile;
 
+        public Infocard TestingInfocard;
         private MainWindow window;
         public Project(MainWindow window)
         {
@@ -33,7 +35,7 @@ namespace InterfaceEdit
             
             var flIni = new FreelancerIni(UiData.FileSystem);
             var dataPath = UiData.FileSystem.Resolve(flIni.DataPath); 
-
+           
             try
             {
                 var navbarIni = new LibreLancer.Data.BaseNavBarIni(UiData.FileSystem);
@@ -79,6 +81,9 @@ namespace InterfaceEdit
             {
             }
             window.Fonts.LoadFontsFromIni(flIni, UiData.FileSystem);
+            //66049
+            var im = new InfocardManager(flIni.Resources);
+            TestingInfocard = RDLParse.Parse(im.GetXmlResource(66049), window.Fonts);
         }
 
         public void Open(string projectpath)

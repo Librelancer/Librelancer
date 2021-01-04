@@ -5,6 +5,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using System.Xml.Linq;
 using LibreLancer;
@@ -65,6 +66,11 @@ namespace InterfaceEdit
             if (input is InterfaceImage image)
             {
                 return image.Name;
+            }
+            if (input is Vector3 vec)
+            {
+                const string FMT = "0.##########";
+                return $"{vec.X.ToString(FMT)},{vec.Y.ToString(FMT)},{vec.Z.ToString(FMT)}";
             }
             return input;
         }

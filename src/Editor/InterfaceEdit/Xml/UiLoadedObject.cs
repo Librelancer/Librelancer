@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Collections;
@@ -238,14 +239,21 @@ namespace LibreLancer.Interface.Reflection
 
             return friendlyName?.Replace("+", ".");
         }
+
+        static string LiteralFloat(float f)
+        {
+            return f.ToString("0.###############");
+        }
         protected static object ObjToString(object o)
         {
             string valuestr = "";
             if (o is string) valuestr = ToLiteral(o.ToString());
+            else if (o is float f) valuestr = LiteralFloat(f);
             else if (o is bool b) valuestr = b ? "true" : "false";
             else if (o is InterfaceModel mdl) valuestr = $"GetModel({ToLiteral(mdl.Name)})";
             else if (o is InterfaceColor clr) valuestr = $"GetColor({ToLiteral(clr.ToString())})";
             else if (o is InterfaceImage img) valuestr = $"GetImage({ToLiteral(img.Name)})";
+            else if (o is Vector3 vec) valuestr = $"Vector3({LiteralFloat(vec.X)}, {LiteralFloat(vec.Y)}, {LiteralFloat(vec.Z)})";
             else if (o.GetType().IsEnum) valuestr = $"{o.GetType().Name}.{o}";
             else valuestr = o.ToString();
             return valuestr;

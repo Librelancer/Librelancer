@@ -3,17 +3,16 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
+using System.Numerics;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
-    public partial class Scene : Container
+    public class Scene : Container
     {
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
+            Update(context, Vector2.Zero);
             Background?.Draw(context, parentRectangle);
             base.Render(context, parentRectangle);
         }

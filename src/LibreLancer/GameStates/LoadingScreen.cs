@@ -41,7 +41,7 @@ namespace LibreLancer
         }
         public void Draw(TimeSpan delta)
         {
-            if(fCount > DELAY_FRAMES) game.Ui.RenderWidget();
+            if(fCount > DELAY_FRAMES) game.Ui.RenderWidget(delta);
         }
     }
 }

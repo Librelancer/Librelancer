@@ -548,7 +548,7 @@ Mouse Flight: {11}
             if ((Thn == null || !Thn.Running) && ShowHud)
             {
                 ui.Visible = true;
-                ui.RenderWidget();
+                ui.RenderWidget(delta);
             }
             else
             {

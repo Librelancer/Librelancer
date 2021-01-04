@@ -129,6 +129,7 @@ namespace LibreLancer
                 var b = new GameData.Base();
                 b.Nickname = inibase.Nickname;
                 b.IdsName = inibase.IdsName;
+                //inibase.
                 b.System = inibase.System;
                 b.TerrainTiny = inibase.TerrainTiny;
                 b.TerrainSml = inibase.TerrainSml;
@@ -365,6 +366,17 @@ namespace LibreLancer
         public Infocards.Infocard GetInfocard(int id, FontManager fonts)
         {
             return Infocards.RDLParse.Parse(fldata.Infocards.GetXmlResource(id), fonts);
+        }
+
+        public bool GetRelatedInfocard(int ogId, FontManager fonts, out Infocards.Infocard ic)
+        {
+            ic = null;
+            if (fldata.InfocardMap.Map.TryGetValue(ogId, out int newId))
+            {
+                ic = GetInfocard(newId, fonts);
+                return true;
+            }
+            return false;
         }
         public string GetString(int id)
         {
@@ -1238,6 +1250,8 @@ namespace LibreLancer
             obj.DisplayName = GetString(o.IdsName);
             obj.Position = o.Pos.Value;
             obj.Spin = o.Spin ?? Vector3.Zero;
+            obj.IdsInfo = o.IdsInfo.ToArray();
+            obj.Base = o.Base;
             if (o.DockWith != null)
             {
                 obj.Dock = new DockAction() { Kind = DockKinds.Base, Target = o.DockWith };

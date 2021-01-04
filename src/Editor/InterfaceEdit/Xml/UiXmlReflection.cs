@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Reflection;
 using LibreLancer;
 
@@ -104,7 +105,8 @@ namespace LibreLancer.Interface.Reflection
                     
                     if (ptype.IsPrimitive || ptype.IsEnum ||
                         ptype == typeof(string) || ptype == typeof(InterfaceColor) ||
-                        ptype ==typeof(InterfaceModel) || ptype == typeof(InterfaceImage))
+                        ptype ==typeof(InterfaceModel) || ptype == typeof(InterfaceImage) ||
+                        ptype == typeof(Vector3))
                     {
                         if (property.SetMethod == null)
                             continue;
