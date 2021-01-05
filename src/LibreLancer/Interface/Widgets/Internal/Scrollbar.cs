@@ -124,6 +124,13 @@ namespace LibreLancer.Interface
             thumb.OnMouseUp(context, track);
             dragYStart = 0;
         }
+
+        public void OnMouseWheel(float delta)
+        {
+            ScrollOffset -= Tick * 4 * delta;
+            if (ScrollOffset > 1) ScrollOffset = 1;
+            if (ScrollOffset < 0) ScrollOffset = 0;
+        }
         
     }
 }

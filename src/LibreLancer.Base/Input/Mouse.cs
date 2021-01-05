@@ -14,12 +14,11 @@ namespace LibreLancer
 		public int Y { get; internal set; }
 		public MouseButtons Buttons { get; internal set; }
 
-		public event MouseWheelEventHandler MouseWheel;
 		public event MouseEventHandler MouseMove;
 		public event MouseEventHandler MouseDown;
 		public event MouseEventHandler MouseUp;
 
-		public int MouseDelta = 0;
+		public float Wheel = 0;
 
 		internal Mouse ()
 		{
@@ -47,12 +46,7 @@ namespace LibreLancer
 				MouseUp (new MouseEventArgs (X, Y, b));
 		}
 
-		internal void OnMouseWheel(int amount)
-		{
-			MouseDelta += amount;
-			if (MouseWheel != null)
-				MouseWheel (amount);
-		}
+		
 	}
 }
 

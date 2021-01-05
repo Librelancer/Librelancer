@@ -194,6 +194,8 @@ namespace LibreLancer.Interface
         
         public virtual void OnMouseDown(UiContext context, RectangleF parentRectangle) { }
         public virtual void OnMouseClick(UiContext context, RectangleF parentRectangle) { }
+        public virtual void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta) { }
+
         public virtual void OnMouseUp(UiContext context, RectangleF parentRectangle) { }
         public virtual void OnKeyDown(Keys key) { }
         public virtual void OnTextInput(string text) { }

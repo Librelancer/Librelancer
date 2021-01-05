@@ -346,6 +346,9 @@ namespace InterfaceEdit
             ImGui.InvisibleButton("##renderThing", new Vector2(rtX, rtY));
             if (ImGui.IsItemHovered())
             {
+                if (ImGui.GetIO().MouseWheel != 0) {
+                    _playContext.OnMouseWheel(ImGui.GetIO().MouseWheel);
+                }
                 _playContext.Update(null, TimeSpan.FromSeconds(TotalTime), mX, mY, false);
                 if(ImGui.IsItemClicked(0)) _playContext.OnMouseClick();
                 var isDown = ImGui.IsMouseDown(0);

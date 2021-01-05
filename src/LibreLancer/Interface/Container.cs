@@ -71,7 +71,14 @@ namespace LibreLancer.Interface
             foreach(var child in Children)
                 child.OnMouseUp(context, parentRectangle);
         }
-        
+
+        public override void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta)
+        {
+            if (!Visible) return;
+            foreach(var child in Children)
+                child.OnMouseWheel(context, parentRectangle, delta);
+        }
+
         public override UiWidget GetElement(string elementID)
         {
             if (string.IsNullOrWhiteSpace(elementID)) return null;

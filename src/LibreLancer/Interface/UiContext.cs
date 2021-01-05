@@ -273,6 +273,8 @@ namespace LibreLancer.Interface
         public void OnMouseUp() => GetActive()?.OnMouseUp(this, GetRectangle());
         public void OnMouseClick() => GetActive()?.OnMouseClick(this, GetRectangle());
 
+        public void OnMouseWheel(float delta) => GetActive()?.OnMouseWheel(this, GetRectangle(), delta);
+
         private UiWidget textFocusWidget = null;
 
         internal void SetTextFocus(UiWidget widget) => textFocusWidget = widget;
@@ -291,6 +293,10 @@ namespace LibreLancer.Interface
             {
                 textFocusWidget = null;
                 return;
+            }
+            if (game != null && game.Mouse.Wheel != 0)
+            {
+                OnMouseWheel(game.Mouse.Wheel);   
             }
             textFocusWidget = null;
             RenderState.DepthEnabled = false;

@@ -313,8 +313,7 @@ namespace LibreLancer.ImUI
 			io.MouseDown[0] = game.Mouse.IsButtonDown(MouseButtons.Left);
 			io.MouseDown[1] = game.Mouse.IsButtonDown(MouseButtons.Right);
 			io.MouseDown[2] = game.Mouse.IsButtonDown(MouseButtons.Middle);
-			io.MouseWheel = game.Mouse.MouseDelta / 2.5f;
-			game.Mouse.MouseDelta = 0;
+            io.MouseWheel = game.Mouse.Wheel;
             game.TextInputEnabled = io.WantCaptureKeyboard;
 			//TODO: Mouse Wheel
 			ImGui.NewFrame();

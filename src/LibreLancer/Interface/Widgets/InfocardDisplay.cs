@@ -45,7 +45,8 @@ namespace LibreLancer.Interface
                     if ((int) h > myRect.Height + 2) {
                         scrollbar.ScrollOffset = 0;
                         scrollbar.ThumbSize = myRect.Height / h;
-                        scrollbar.Tick = (float)(3 * (1.0 / richText.Height));
+                        const float TICK_MAGIC = 0.2627986f;
+                        scrollbar.Tick = 0.01f * (scrollbar.ThumbSize / TICK_MAGIC);
                         scrollbarVisible = true;
                     } else {
                         scrollbarVisible = false;
@@ -78,6 +79,14 @@ namespace LibreLancer.Interface
             var myRectangle = GetMyRectangle(context, parentRectangle);
             if (Infocard != null && scrollbarVisible)
                 scrollbar.OnMouseUp(context, myRectangle);
+        }
+
+        public override void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta)
+        {
+            var myRectangle = GetMyRectangle(context, parentRectangle);
+            if (Infocard != null && scrollbarVisible &&
+                myRectangle.Contains(context.MouseX, context.MouseY))
+                scrollbar.OnMouseWheel(delta);
         }
     }
 }

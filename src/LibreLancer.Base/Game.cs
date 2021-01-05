@@ -416,6 +416,7 @@ namespace LibreLancer
                         eventWaited = true;
                     }
                 }
+                Mouse.Wheel = 0;
                 //Pump message queue
                 while (eventWaited || SDL.SDL_PollEvent(out e) != 0)
                 {
@@ -460,7 +461,7 @@ namespace LibreLancer
                             }
                         case SDL.SDL_EventType.SDL_MOUSEWHEEL:
                             {
-                                Mouse.OnMouseWheel(e.wheel.y);
+                                Mouse.Wheel += e.wheel.y;
                                 break;
                             }
                         case SDL.SDL_EventType.SDL_TEXTINPUT:
@@ -497,7 +498,7 @@ namespace LibreLancer
                             }
                     }
                 }
-                
+                Mouse.Wheel /= 2.5f;
                 //Do game things
                 if (!running)
                     break;
