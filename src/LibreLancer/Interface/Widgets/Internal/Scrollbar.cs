@@ -14,6 +14,8 @@ namespace LibreLancer.Interface
 
         public float ScrollOffset { get; set; }
         public float Tick { get; set; } = 0.1f;
+
+        public bool Smooth { get; set; }
         public float ThumbSize { get; set; } = 0.75f;
 
         private bool updateThumb = true;
@@ -83,16 +85,17 @@ namespace LibreLancer.Interface
             Style?.Background?.Draw(context, myRectangle);
             //draw buttons
             upbutton.Render(context, myRectangle);
-            if (upbutton.HeldDown && timer <= 0)
+            float tickmult = Smooth ? delta * 8 : 1;
+            if (upbutton.HeldDown && (timer <= 0 || Smooth))
             {
-                ScrollOffset -= Tick;
+                ScrollOffset -= Tick * tickmult;
                 if (ScrollOffset < 0) ScrollOffset = 0;
                 timer = 1 / 8f;
             }
             downbutton.Render(context, myRectangle);
-            if (downbutton.HeldDown && timer <= 0)
+            if (downbutton.HeldDown && (timer <= 0 || Smooth))
             {
-                ScrollOffset += Tick;
+                ScrollOffset += Tick * tickmult;
                 if (ScrollOffset > 1) ScrollOffset = 1;
                 timer = 1 / 8f;
             }

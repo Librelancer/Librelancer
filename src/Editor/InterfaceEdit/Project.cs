@@ -81,9 +81,9 @@ namespace InterfaceEdit
             {
             }
             window.Fonts.LoadFontsFromIni(flIni, UiData.FileSystem);
-            //66049
+            //unioners infocard
             var im = new InfocardManager(flIni.Resources);
-            TestingInfocard = RDLParse.Parse(im.GetXmlResource(66049), window.Fonts);
+            TestingInfocard = RDLParse.Parse(im.GetXmlResource(65546), window.Fonts);
         }
 
         public void Open(string projectpath)
