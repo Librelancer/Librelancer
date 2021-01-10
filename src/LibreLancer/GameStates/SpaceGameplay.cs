@@ -94,7 +94,7 @@ Mouse Flight: {11}
             }
             powerCore = player.GetComponent<PowerCoreComponent>();
             if (powerCore == null) throw new Exception("Player launched without a powercore equipped!");
-            camera = new ChaseCamera(Game.Viewport);
+            camera = new ChaseCamera(Game.Viewport, Game.GameData.Ini.Cameras);
             camera.ChasePosition = session.PlayerPosition;
             camera.ChaseOrientation = player.Transform.ClearTranslation();
             var offset = shp.ChaseOffset;

@@ -15,5 +15,16 @@ namespace LibreLancer
                / (4.0f / 3 / 2
               / Math.Tan(deg * Math.PI / 180))));
         }
+
+        public static float FovXToV(float fovxrad, float aspect)
+        {
+            var fovh = 2 * fovxrad;
+            return (float) (2 * Math.Atan(Math.Tan(fovh / 2) * 1 / aspect));
+        }
+        
+        public static float FovVRad(float fovhdeg, float aspect)
+        {
+            return FovXToV(MathHelper.DegreesToRadians(fovhdeg), aspect);
+        }
     }
 }

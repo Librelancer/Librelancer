@@ -23,7 +23,7 @@ namespace ThnPlayer
     }
     public class MainWindow : Game
     {
-        public ViewportManager Viewport;
+        public ViewportManager Viewports;
         public GameDataManager GameData;
         public GameResourceManager Resources;
         public Billboards Billboards;
@@ -51,8 +51,8 @@ namespace ThnPlayer
             LibreLancer.Shaders.AllShaders.Compile();
             guiHelper = new ImGuiHelper(this);
             FileDialog.RegisterParent(this);
-            Viewport = new ViewportManager(this.RenderState);
-            Viewport.Push(0, 0, 800, 600);
+            Viewports = new ViewportManager(this.RenderState);
+            Viewports.Push(0, 0, 800, 600);
             Billboards = new Billboards();
             Nebulae = new NebulaVertices();
             Resources = new GameResourceManager(this);
@@ -86,8 +86,12 @@ namespace ThnPlayer
         private Cutscene cutscene;
         protected override void Update(double elapsed)
         {
-            if(cutscene != null)
+            if (cutscene != null)
+            {
+                cutscene.UpdateViewport(new Viewport(0, 0, Width, Height));
                 cutscene.Update(TimeSpan.FromSeconds(elapsed));
+            }
+
             Typewriter.Update(TimeSpan.FromSeconds(elapsed));
         }
 
@@ -129,7 +133,7 @@ namespace ThnPlayer
         {
             VertexBuffer.TotalDrawcalls = 0;
             EnableTextInput();
-            Viewport.Replace(0, 0, Width, Height);
+            Viewports.Replace(0, 0, Width, Height);
             RenderState.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
             RenderState.ClearAll();
             //

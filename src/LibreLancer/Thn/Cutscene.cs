@@ -126,6 +126,11 @@ namespace LibreLancer
 			camera = new ThnCamera(viewport);
         }
 
+        public void UpdateViewport(Viewport vp)
+        {
+            camera?.SetViewport(vp);
+        }
+
         public void BeginScene(params ThnScript[] scene) => BeginScene((IEnumerable<ThnScript>)scene);
         public void BeginScene(IEnumerable<ThnScript> scene)
         {

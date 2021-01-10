@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Data.Cameras;
 
 namespace LibreLancer
 {
@@ -84,11 +85,13 @@ namespace LibreLancer
 			}
 		}
 
-		public ChaseCamera(Viewport viewport)
+        private CameraIni ini;
+		public ChaseCamera(Viewport viewport, CameraIni ini)
 		{
+            this.ini = ini;
 			this.Viewport = viewport;
 			ChasePosition = Vector3.Zero;
-		}
+        }
 
 		public void Reset()
 		{
@@ -100,8 +103,9 @@ namespace LibreLancer
 
         public void UpdateProjection()
 		{
-            const float defaultFOV = 50;
-			Projection = Matrix4x4.CreatePerspectiveFieldOfView(FOVUtil.CalcFovx(defaultFOV, Viewport.AspectRatio), Viewport.AspectRatio, 3f, 10000000f);
+            var aspect = Viewport.AspectRatio;
+            var fovV = FOVUtil.CalcFovx(ini.ThirdPersonCamera.FovX, aspect);
+			Projection = Matrix4x4.CreatePerspectiveFieldOfView(fovV, aspect, 3f, 10000000f);
 		}
 
         public void UpdateFrameNumber(long f)

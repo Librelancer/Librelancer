@@ -408,8 +408,10 @@ namespace LibreLancer
         {
             session.Update();
             ProcessCutscenes();
-            if(scene != null)
-				scene.Update(firstFrame ? TimeSpan.Zero : delta);
+            if (scene != null) {
+                scene.UpdateViewport(Game.Viewport);
+                scene.Update(firstFrame ? TimeSpan.Zero : delta);
+            }
             firstFrame = false;
             ui.Update(Game);
             if (ui.KeyboardGrabbed)

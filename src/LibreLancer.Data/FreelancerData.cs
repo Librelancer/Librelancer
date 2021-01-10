@@ -15,6 +15,7 @@ using LibreLancer.Data.Characters;
 using LibreLancer.Data.Universe;
 using LibreLancer.Data.Ships;
 using LibreLancer.Data.Audio;
+using LibreLancer.Data.Cameras;
 using LibreLancer.Data.Effects;
 using LibreLancer.Data.Goods;
 using LibreLancer.Data.Fuses;
@@ -30,6 +31,7 @@ namespace LibreLancer.Data
         public FreelancerIni Freelancer;
         public FileSystem VFS;
         //Data
+        public CameraIni Cameras;
         public InfocardManager Infocards;
         public EffectsIni Effects;
         public FuseIni Fuses;
@@ -239,6 +241,11 @@ namespace LibreLancer.Data
                     if (VFS.FileExists(Freelancer.DataPath + msn))
                         Missions.Add(new Data.Missions.MissionIni(Freelancer.DataPath + msn, VFS));
                 }
+            }));
+            tasks.Add(Task.Run(() =>
+            {
+                Cameras = new CameraIni();
+                Cameras.ParseAndFill(Freelancer.DataPath + "cameras.ini", VFS);
             }));
             ContentDll = new ContentDll();
             if (VFS.FileExists("DLLS\\BIN\\content.dll"))

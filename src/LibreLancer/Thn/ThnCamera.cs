@@ -26,10 +26,15 @@ namespace LibreLancer
 			Update();
 		}
 
+        public void SetViewport(Viewport vp)
+        {
+            viewport = vp;
+        }
+
         public void DefaultZ()
         {
-            var fovv = FovVRad(Transform.FovH, Transform.AspectRatio);
-            projection = Matrix4x4.CreatePerspectiveFieldOfView(fovv, Transform.AspectRatio,
+            CalcCameraProps(out float fovv, out float aspectRatio);
+            projection = Matrix4x4.CreatePerspectiveFieldOfView(fovv, aspectRatio,
                 2.5f, 1000000f);
             viewProjection = view * projection;
             frameNo++;
@@ -41,18 +46,31 @@ namespace LibreLancer
             frameNo++;
         }
 
-        static float FovVRad(float fovhdeg, float aspect)
+        
+
+        void CalcCameraProps(out float fovV, out float aspectRatio)
         {
-            //fovh is multiplied 2 before being converted to fovy for the projection matrix
-            var fovh = MathHelper.DegreesToRadians(2 * fovhdeg);
-            return (float) (2 * Math.Atan(Math.Tan(fovh / 2) * 1 / aspect));
+            float screen_ratio = (float) viewport.Width / (float) viewport.Height;
+            int hvaspect = (int) (Transform.AspectRatio * 100);
+            float ratio = Transform.AspectRatio;
+            float fovh = Transform.FovH;
+            if (hvaspect == 133) {
+                ratio = screen_ratio;
+                fovh = MathHelper.RadiansToDegrees(FOVUtil.CalcFovx(fovh, screen_ratio));
+            } else if (hvaspect == 185) {
+                ratio = (screen_ratio * 1.39f); //cinematic ratio (1.85 / 1.33)
+                fovh =  MathHelper.RadiansToDegrees(FOVUtil.CalcFovx(fovh, screen_ratio));
+            }
+            fovV = FOVUtil.FovVRad(fovh, ratio);
+            aspectRatio = ratio;
         }
+        
 		public void Update()
         {
-            var fovv = FovVRad(Transform.FovH, Transform.AspectRatio);
+            CalcCameraProps(out float fovv, out float aspectRatio);
             //TODO: Tweak clip plane some more - isn't quite right
 			//NOTE: near clip plane can't be too small or it causes z-fighting
-			projection = Matrix4x4.CreatePerspectiveFieldOfView(fovv, Transform.AspectRatio, Transform.Znear, Transform.Zfar);
+			projection = Matrix4x4.CreatePerspectiveFieldOfView(fovv, aspectRatio, Transform.Znear, Transform.Zfar);
             ogProjection = projection;
 			Vector3 originalTarget = -Vector3.UnitZ;
             Vector3 rotatedTarget = Vector3.Transform(originalTarget, Transform.Orientation);
