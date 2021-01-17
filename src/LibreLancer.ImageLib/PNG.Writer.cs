@@ -17,7 +17,7 @@ namespace LibreLancer.ImageLib
         private DeflateStream deflate;
         private Stream outputStream;
         
-        private const int ADLER_MOD = 0x65521;
+        private const int ADLER_MOD = 65521;
         private uint checksum_a = 1;
         private uint checksum_b = 0;
         
@@ -26,7 +26,7 @@ namespace LibreLancer.ImageLib
             this.outputStream = outputStream;
             //write zlib header
             outputStream.WriteByte(0x78);
-            outputStream.WriteByte(0x9C);
+            outputStream.WriteByte(0xDA);
             deflate = new DeflateStream(outputStream, CompressionLevel.Optimal, true);
         }
         
@@ -62,7 +62,6 @@ namespace LibreLancer.ImageLib
                 for (int i = 0; i < 4; i++)
                     outputStream.WriteByte(bytes[i]);
             }
-            
         }
     }
 	public static partial class PNG
