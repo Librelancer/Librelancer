@@ -95,6 +95,8 @@ namespace InterfaceEdit
         {
         }
         
+        public void PopulateNavmap(Navmap nav) {}
+        
         public NavbarButtonInfo[] GetNavbarButtons()
         {
             var l = new List<NavbarButtonInfo>();

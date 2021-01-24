@@ -175,6 +175,10 @@ namespace LibreLancer.Interface
             {
                 ResourceManager.LoadResourceFile(FileSystem.Resolve(file));
             }
+            foreach (var file in NavmapIcons.Libraries())
+            {
+                ResourceManager.LoadResourceFile(FileSystem.Resolve(file));
+            }
         }
     }
 }

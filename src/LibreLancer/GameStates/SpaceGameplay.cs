@@ -150,6 +150,12 @@ Mouse Flight: {11}
                 return g.Game.GameData.GetManeuvers().ToArray();
             }
 
+            public void PopulateNavmap(Navmap nav)
+            {
+                nav.PopulateIcons(g.ui, g.sys);
+            }
+
+
             private string activeManeuver = "FreeFlight";
             public string GetActiveManeuver() => activeManeuver;
             public LuaCompatibleDictionary<string, bool> GetManeuversEnabled()

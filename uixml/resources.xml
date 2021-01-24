@@ -116,6 +116,17 @@
   <Model name="conversationoffer" path="DATA/INTERFACE/TEXTOFFER/conversationoffer.cmp" x="0" y="0" xscale="2.44" yscale="3" />
   <Model name="news_background" path="DATA/INTERFACE/NEURONET/NEWSVENDOR/news_background.cmp" x="0" y="-0.1" xscale="1.57" yscale="2.178" />
   <Model name="hlp_window" path="DATA/INTERFACE/NEURONET/INVENTORY/hlp_window.cmp" x="0" y="0" xscale="2.62" yscale="4.18" />
+  <Model name="navmap_background" path="DATA/INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/navmap_background.cmp" x="0" y="0.03" xscale="3.23" yscale="2.91" />
+  <Model name="nav_navmap_left" path="DATA/INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_navmap_left.cmp" x="2.87" y="0.02" xscale="5.31" yscale="3.43" />
+  <Model name="nav_navmap_right" path="DATA/INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_navmap_right.cmp" x="-2.87" y="0.02" xscale="5.27" yscale="3.43" />
+  <Model name="nav_universebutton" path="DATA/INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_universebutton.3db" x="0" y="0" xscale="67" yscale="67" />
+  <Model name="nav_knownbases" path="DATA/INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_knownbases.3db" x="0" y="0" xscale="64" yscale="64" />
+  <Model name="nav_minablezonefilter" path="DATA/INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_minablezonefilter.3db" x="0" y="0" xscale="64" yscale="64" />
+  <Model name="nav_legendtoggle" path="DATA/INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_legendtoggle.3db" x="0" y="0" xscale="64" yscale="64" />
+  <Model name="nav_patrol" path="DATA/INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_patrol.3db" x="0" y="0" xscale="64" yscale="64" />
+  <Model name="nav_labels" path="DATA/INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_labels.3db" x="0" y="0" xscale="64" yscale="64" />
+  <Model name="nav_filter_political" path="DATA/INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_filter_political.3db" x="0" y="0" xscale="64" yscale="64" />
+  <Model name="nav_filter_physical" path="DATA/INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_filter_physical.3db" x="0" y="0" xscale="64" yscale="64" />
   <Image name="sliderarrow_up" texname="HUD_sliderarrow" type="Triangle" flip="false">
     <TexCoords>
       <X0>0.086419754</X0>

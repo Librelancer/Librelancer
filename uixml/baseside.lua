@@ -1,4 +1,5 @@
 require 'objects'
+require 'childwindowmanager'
 
 local function ModelRenderable(model, tint)
 	local renderable = NewObject('UiRenderable')
@@ -94,15 +95,21 @@ function baseside:ctor()
                                         end)
 
 	self.InfoWindow = infowindow()
+	self.Map = mapwindow()
+	self.Map:InitMap()
 
-	self.Elements.nn_info:OnClick(function()
-		self.InfoWindow:Open(self.Widget)
-	end)
+	self.WindowManager = childwindowmanager(self.Widget, {
+		{ self.Elements.nn_map, self.Map },
+		{ self.Elements.nn_info, self.InfoWindow }
+	})
 end
 
 function baseside:Chatbox()
    self.Elements.chatbox.Visible = true 
 end
+
+
+
 
 
 

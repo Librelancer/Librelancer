@@ -28,8 +28,9 @@ namespace LibreLancer
 		};
         const string LAUNCH_ACTION = "$LAUNCH";
 
-		Base currentBase;
-		BaseRoom currentRoom;
+		Base currentBase;        
+        private StarSystem sys;
+        BaseRoom currentRoom;
 		Cutscene scene;
         private UiContext ui;
         
@@ -51,6 +52,7 @@ namespace LibreLancer
             Enter,
             Launch
         }
+        
         public RoomGameplay(FreelancerGame g, CGameSession session, string newBase, BaseRoom room = null, string virtualRoom = null) : base(g)
         {
             //Load room data
@@ -62,7 +64,7 @@ namespace LibreLancer
             var rm = virtualRoom ?? currentRoom.Nickname;
             this.virtualRoom = virtualRoom;
             //Find infocard
-            var sys = g.GameData.GetSystem(currentBase.System);
+            sys = g.GameData.GetSystem(currentBase.System);
             var obj = sys.Objects.FirstOrDefault((o) =>
             {
                 return o.Base?.Equals(newBase, StringComparison.OrdinalIgnoreCase) ?? false;
@@ -119,6 +121,11 @@ namespace LibreLancer
             public string ActiveNavbarButton() => g.active;
 
             public Infocard CurrentInfocard() => g.roomInfocard;
+
+            public void PopulateNavmap(Navmap navmap)
+            {
+                navmap.PopulateIcons(g.ui, g.sys);
+            }
             public NavbarButtonInfo[] GetNavbarButtons()
             {
                 var buttons = new NavbarButtonInfo[g.tophotspots.Count];

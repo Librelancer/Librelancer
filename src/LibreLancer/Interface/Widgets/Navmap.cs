@@ -10,6 +10,7 @@ using LibreLancer.GameData;
 
 namespace LibreLancer.Interface
 {
+    [UiLoadable]
     public class Navmap : UiWidget
     { 
         class DrawObject
@@ -42,16 +43,11 @@ namespace LibreLancer.Interface
         private float navmapscale;
         private const float GridSizeDefault = 240000;
         private string systemName = "";
-        public LetterPosition GridLetterPosition { get; set; } = LetterPosition.Bottom;
+
         public bool LetterMargin { get; set; } = false;
 
         public bool MapBorder { get; set; } = false;
 
-        public enum LetterPosition
-        {
-            Top,
-            Bottom
-        }
         
         
         public void PopulateIcons(UiContext ctx, GameData.StarSystem sys)
@@ -193,8 +189,7 @@ namespace LibreLancer.Interface
             RectangleF rect = parentRect;
             if (LetterMargin)
             {
-                var topOffset = GridLetterPosition == LetterPosition.Top ? lH : 0;
-                rect = new RectangleF(parentRect.X + lH, parentRect.Y + topOffset, parentRect.Width - (2 * lH),
+                rect = new RectangleF(parentRect.X + lH, parentRect.Y, parentRect.Width - (2 * lH),
                     parentRect.Height -
                     (2 * lH));
             }
@@ -206,13 +201,7 @@ namespace LibreLancer.Interface
                 var renNum = GRIDNUMBERS[i];
                 var renLet = GRIDLETTERS[i];
                 var hOff = (rHoriz * i);
-                RectangleF letterRect;
-                if (GridLetterPosition == LetterPosition.Top) {
-                    letterRect = new RectangleF(rect.X + hOff, rect.Y - lH, rHoriz, lH);
-                }
-                else {
-                    letterRect = new RectangleF(rect.X + hOff, rect.Y + rect.Height + 1, rHoriz, lH);
-                }
+                RectangleF letterRect = new RectangleF(rect.X + hOff, rect.Y + rect.Height + 1, rHoriz, lH);
                 DrawText(context, letterRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
                     new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Bottom,
                     false, renLet);
@@ -222,10 +211,11 @@ namespace LibreLancer.Interface
                     new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Center,
                     false, renNum);
             }
-            if (navmapscale == 0) return;
-            var scale = new Vector2(GridSizeDefault / navmapscale);
+            
+            var scale = new Vector2(GridSizeDefault / (navmapscale == 0 ? 1 : navmapscale));
             var background = context.Data.NavmapIcons.GetBackground();
             background.DrawWithClip(context, rect, rect);
+            context.Mode2D();
             //Draw Zones
             Vector2 WorldToMap(Vector2 a)
             {

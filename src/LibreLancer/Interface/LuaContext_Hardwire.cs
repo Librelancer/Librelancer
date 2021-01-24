@@ -44,6 +44,7 @@ namespace LibreLancer.Lua {
             MoonSharp.Interpreter.UserData.RegisterType(new TYPE_oGxqDYKHIfJzwtcINbYnmwwC());
             MoonSharp.Interpreter.UserData.RegisterType(new TYPE_EJIBj98zINKiRrOltK6vUW07());
             MoonSharp.Interpreter.UserData.RegisterType(new TYPE_ZASUtO3YLCpzKaDWPNPmnEye());
+            MoonSharp.Interpreter.UserData.RegisterType(new TYPE_1Pw38AtMMDPFOaw5FJgJoJtDB());
             MoonSharp.Interpreter.UserData.RegisterType(new TYPE_iL4zR2aMDFSyxEd6wYYhEGVz());
             MoonSharp.Interpreter.UserData.RegisterType(new TYPE_BsNvAaryS9eNGMgdJ25bIRE9());
             MoonSharp.Interpreter.UserData.RegisterType(new TYPE_R9oQRsPpkfq9xyLFKaO37wtO());
@@ -465,6 +466,8 @@ namespace LibreLancer.Lua {
                                 new MTHD_M1VlgK8PJvo1APryx8smIWpb()}));
                 this.AddMember("OnMouseUp", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseUp", typeof(LibreLancer.Interface.Button), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_1IPUAjrLqZMH3jGY0L7h2aoXF()}));
+                this.AddMember("OnMouseWheel", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseWheel", typeof(LibreLancer.Interface.Button), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_RUWzclnVdJoZu92YqPxJTQnt()}));
                 this.AddMember("OnTextInput", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnTextInput", typeof(LibreLancer.Interface.Button), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_csJts5NSv9ey5eQIg_EVtRCD()}));
                 this.AddMember("OnUpdate", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnUpdate", typeof(LibreLancer.Interface.Button), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
@@ -1006,6 +1009,21 @@ namespace LibreLancer.Lua {
                 
                 protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
                     ((LibreLancer.Interface.Button)(obj)).OnMouseUp(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_RUWzclnVdJoZu92YqPxJTQnt : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_RUWzclnVdJoZu92YqPxJTQnt() {
+                    this.Initialize("OnMouseWheel", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("context", typeof(LibreLancer.Interface.UiContext), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("parentRectangle", typeof(LibreLancer.RectangleF), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("delta", typeof(float), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.UiWidget)(obj)).OnMouseWheel(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])), ((float)(pars[2])));
                     return MoonSharp.Interpreter.DynValue.Void;
                 }
             }
@@ -2909,6 +2927,8 @@ namespace LibreLancer.Lua {
                                 new MTHD__PXOVqT9ysZkfOY7dFGEqwE5()}));
                 this.AddMember("OnMouseUp", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseUp", typeof(LibreLancer.Interface.CharacterView), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_qDvciJqSoy0lTfWtesT3VbpL()}));
+                this.AddMember("OnMouseWheel", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseWheel", typeof(LibreLancer.Interface.CharacterView), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_t6QDt6VoApiyfOYJYi3QqyAG()}));
                 this.AddMember("OnTextInput", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnTextInput", typeof(LibreLancer.Interface.CharacterView), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_kg5go8ojFjMBE3e3SuXp3Ghp()}));
                 this.AddMember("OnUpdate", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnUpdate", typeof(LibreLancer.Interface.CharacterView), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
@@ -3251,6 +3271,21 @@ namespace LibreLancer.Lua {
                 
                 protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
                     ((LibreLancer.Interface.UiWidget)(obj)).OnMouseUp(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_t6QDt6VoApiyfOYJYi3QqyAG : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_t6QDt6VoApiyfOYJYi3QqyAG() {
+                    this.Initialize("OnMouseWheel", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("context", typeof(LibreLancer.Interface.UiContext), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("parentRectangle", typeof(LibreLancer.RectangleF), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("delta", typeof(float), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.UiWidget)(obj)).OnMouseWheel(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])), ((float)(pars[2])));
                     return MoonSharp.Interpreter.DynValue.Void;
                 }
             }
@@ -3736,6 +3771,8 @@ namespace LibreLancer.Lua {
                                 new MTHD_Jc5lOD4wS36xNHw2Ek13Dpto()}));
                 this.AddMember("OnMouseUp", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseUp", typeof(LibreLancer.Interface.ChatBox), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_yY0gUbF5YzbbpJBearxROdjF()}));
+                this.AddMember("OnMouseWheel", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseWheel", typeof(LibreLancer.Interface.ChatBox), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_oXbGh9lmQsfnHqg_Z1V9ov25()}));
                 this.AddMember("OnTextEntered", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnTextEntered", typeof(LibreLancer.Interface.ChatBox), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_1518Rx4NxtPClHkLm1vjmJSzZ()}));
                 this.AddMember("OnTextInput", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnTextInput", typeof(LibreLancer.Interface.ChatBox), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
@@ -4128,6 +4165,21 @@ namespace LibreLancer.Lua {
                 
                 protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
                     ((LibreLancer.Interface.UiWidget)(obj)).OnMouseUp(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_oXbGh9lmQsfnHqg_Z1V9ov25 : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_oXbGh9lmQsfnHqg_Z1V9ov25() {
+                    this.Initialize("OnMouseWheel", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("context", typeof(LibreLancer.Interface.UiContext), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("parentRectangle", typeof(LibreLancer.RectangleF), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("delta", typeof(float), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.UiWidget)(obj)).OnMouseWheel(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])), ((float)(pars[2])));
                     return MoonSharp.Interpreter.DynValue.Void;
                 }
             }
@@ -4634,6 +4686,8 @@ namespace LibreLancer.Lua {
                                 new MTHD_jpN0qIivyLQsE3IMDnWh9E4J()}));
                 this.AddMember("OnMouseUp", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseUp", typeof(LibreLancer.Interface.DataTable), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_16q9ac9GTqnFaUzk2McLaGW3U()}));
+                this.AddMember("OnMouseWheel", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseWheel", typeof(LibreLancer.Interface.DataTable), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_1IahFuQCjEv0Y3XVAE4SUCaqy()}));
                 this.AddMember("OnTextInput", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnTextInput", typeof(LibreLancer.Interface.DataTable), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_IN5j4mEsFCfRUGjtIIe7pQ9h()}));
                 this.AddMember("OnUpdate", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnUpdate", typeof(LibreLancer.Interface.DataTable), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
@@ -5210,6 +5264,21 @@ namespace LibreLancer.Lua {
                 
                 protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
                     ((LibreLancer.Interface.DataTable)(obj)).OnMouseUp(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_1IahFuQCjEv0Y3XVAE4SUCaqy : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_1IahFuQCjEv0Y3XVAE4SUCaqy() {
+                    this.Initialize("OnMouseWheel", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("context", typeof(LibreLancer.Interface.UiContext), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("parentRectangle", typeof(LibreLancer.RectangleF), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("delta", typeof(float), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.UiWidget)(obj)).OnMouseWheel(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])), ((float)(pars[2])));
                     return MoonSharp.Interpreter.DynValue.Void;
                 }
             }
@@ -7270,6 +7339,8 @@ namespace LibreLancer.Lua {
                                 new MTHD_RNrshv6bakXCe4xdKWJrqCl9()}));
                 this.AddMember("OnMouseUp", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseUp", typeof(LibreLancer.Interface.Gauge), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_b7FOH0tbFCekFZaQD2oxxh9B()}));
+                this.AddMember("OnMouseWheel", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseWheel", typeof(LibreLancer.Interface.Gauge), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_BqxF7EGfftYomI9l39PeOcKI()}));
                 this.AddMember("OnTextInput", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnTextInput", typeof(LibreLancer.Interface.Gauge), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_uxPQLlpQL2eVl6tgWsD5xQZJ()}));
                 this.AddMember("OnUpdate", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnUpdate", typeof(LibreLancer.Interface.Gauge), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
@@ -7617,6 +7688,21 @@ namespace LibreLancer.Lua {
                 
                 protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
                     ((LibreLancer.Interface.UiWidget)(obj)).OnMouseUp(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_BqxF7EGfftYomI9l39PeOcKI : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_BqxF7EGfftYomI9l39PeOcKI() {
+                    this.Initialize("OnMouseWheel", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("context", typeof(LibreLancer.Interface.UiContext), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("parentRectangle", typeof(LibreLancer.RectangleF), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("delta", typeof(float), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.UiWidget)(obj)).OnMouseWheel(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])), ((float)(pars[2])));
                     return MoonSharp.Interpreter.DynValue.Void;
                 }
             }
@@ -8141,6 +8227,8 @@ namespace LibreLancer.Lua {
                                 new MTHD_aoGiYbLXyU5YizuvQK3n8XLL()}));
                 this.AddMember("OnMouseUp", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseUp", typeof(LibreLancer.Interface.ImageFile), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_rbjHdN2LSaGZxcH01nhAPExq()}));
+                this.AddMember("OnMouseWheel", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseWheel", typeof(LibreLancer.Interface.ImageFile), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_1JrZarhpQJ0_f42DSvsoSWGXC()}));
                 this.AddMember("OnTextInput", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnTextInput", typeof(LibreLancer.Interface.ImageFile), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_1KD2gmZPXTdlGhPqj4PDa4ihy()}));
                 this.AddMember("OnUpdate", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnUpdate", typeof(LibreLancer.Interface.ImageFile), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
@@ -8513,6 +8601,21 @@ namespace LibreLancer.Lua {
                 
                 protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
                     ((LibreLancer.Interface.UiWidget)(obj)).OnMouseUp(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_1JrZarhpQJ0_f42DSvsoSWGXC : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_1JrZarhpQJ0_f42DSvsoSWGXC() {
+                    this.Initialize("OnMouseWheel", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("context", typeof(LibreLancer.Interface.UiContext), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("parentRectangle", typeof(LibreLancer.RectangleF), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("delta", typeof(float), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.UiWidget)(obj)).OnMouseWheel(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])), ((float)(pars[2])));
                     return MoonSharp.Interpreter.DynValue.Void;
                 }
             }
@@ -9102,6 +9205,8 @@ namespace LibreLancer.Lua {
                                 new MTHD_fBpbyxTmRO9gEZRcpru3wxJo()}));
                 this.AddMember("OnMouseUp", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseUp", typeof(LibreLancer.Interface.InfocardDisplay), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_16xxsAU98YFivudB3U3vIGCpZ()}));
+                this.AddMember("OnMouseWheel", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseWheel", typeof(LibreLancer.Interface.InfocardDisplay), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_rYC4Z8kdIksgf9dgtMyyQqpo()}));
                 this.AddMember("OnTextInput", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnTextInput", typeof(LibreLancer.Interface.InfocardDisplay), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_CacS8VskB5mVJwSXOxi9dyVo()}));
                 this.AddMember("OnUpdate", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnUpdate", typeof(LibreLancer.Interface.InfocardDisplay), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
@@ -9207,7 +9312,7 @@ namespace LibreLancer.Lua {
                 }
                 
                 protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
-                    ((LibreLancer.Interface.UiWidget)(obj)).ApplyStylesheet(((LibreLancer.Interface.Stylesheet)(pars[0])));
+                    ((LibreLancer.Interface.InfocardDisplay)(obj)).ApplyStylesheet(((LibreLancer.Interface.Stylesheet)(pars[0])));
                     return MoonSharp.Interpreter.DynValue.Void;
                 }
             }
@@ -9429,7 +9534,7 @@ namespace LibreLancer.Lua {
                 }
                 
                 protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
-                    ((LibreLancer.Interface.UiWidget)(obj)).OnMouseDown(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])));
+                    ((LibreLancer.Interface.InfocardDisplay)(obj)).OnMouseDown(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])));
                     return MoonSharp.Interpreter.DynValue.Void;
                 }
             }
@@ -9443,7 +9548,22 @@ namespace LibreLancer.Lua {
                 }
                 
                 protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
-                    ((LibreLancer.Interface.UiWidget)(obj)).OnMouseUp(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])));
+                    ((LibreLancer.Interface.InfocardDisplay)(obj)).OnMouseUp(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_rYC4Z8kdIksgf9dgtMyyQqpo : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_rYC4Z8kdIksgf9dgtMyyQqpo() {
+                    this.Initialize("OnMouseWheel", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("context", typeof(LibreLancer.Interface.UiContext), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("parentRectangle", typeof(LibreLancer.RectangleF), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("delta", typeof(float), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.InfocardDisplay)(obj)).OnMouseWheel(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])), ((float)(pars[2])));
                     return MoonSharp.Interpreter.DynValue.Void;
                 }
             }
@@ -11226,6 +11346,909 @@ namespace LibreLancer.Lua {
         }
         #endregion
         
+        #region Descriptor of LibreLancer.Interface.Navmap
+        // Descriptor of LibreLancer.Interface.Navmap
+        private sealed class TYPE_1Pw38AtMMDPFOaw5FJgJoJtDB : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredUserDataDescriptor {
+            
+            internal TYPE_1Pw38AtMMDPFOaw5FJgJoJtDB() : 
+                    base(typeof(LibreLancer.Interface.Navmap)) {
+                this.AddMember("Anchor", new PROP_tHRrV7lhBN1rWBRSwDrMIKu2());
+                this.AddMember("Animate", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("Animate", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_kNtZtoWKdpDb2mmuOsMLQY8()}));
+                this.AddMember("ApplyStylesheet", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("ApplyStylesheet", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_lu7TxsyudfOo24mSse0k_8Jn()}));
+                this.AddMember("Background", new PROP_pO6056bEcTiGi6WIa7xG4SLV());
+                this.AddMember("Border", new PROP_BRkyH4QVNgVPF6xpoyJaw5yA());
+                this.AddMember("ClassName", new PROP_t_b8C5A4QWQkblWiSKIZtZUG());
+                this.AddMember("Dispose", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("Dispose", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_xY1iZN6W__4205Trf2FpDzKT()}));
+                this.AddMember("Enabled", new PROP_JacDu9IU2aneaVFNAeizQeEJ());
+                this.AddMember("Equals", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("Equals", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_1HwL9sZMhoOmxRoevb4UnZPaF()}));
+                this.AddMember("GetDimensions", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("GetDimensions", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_UZgfleS0zKv6aiWULvuph9ud()}));
+                this.AddMember("GetElement", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("GetElement", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_19G5Cxfl94mACpj7WGOvuvL9U()}));
+                this.AddMember("GetHashCode", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("GetHashCode", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_Pa0xgxsGURAQzNUa_hi5Tbgp()}));
+                this.AddMember("GetType", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("GetType", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_1HFTxgBp66MDCj7yIvI9tRqij()}));
+                this.AddMember("Height", new PROP_MkdnjviemDsL12B7hvLQn_lT());
+                this.AddMember("ID", new PROP_11H5GoeVnMAxexUewV4a0E42_());
+                this.AddMember("LetterMargin", new PROP_1A9YhH03oE5rjgQDBKRe45Nhe());
+                this.AddMember("MapBorder", new PROP_K2ICkQ3xY5sAoAPaNLLlnvDw());
+                this.AddMember("OnKeyDown", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnKeyDown", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_1DQHcuG1eUWVPgOTcnXyky0Gd()}));
+                this.AddMember("OnMouseClick", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseClick", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_Y68wTTe9FC4MD6lZzg8LC3yX()}));
+                this.AddMember("OnMouseDown", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseDown", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_NMk78fTQ37HSDXIXopdz3OC0()}));
+                this.AddMember("OnMouseUp", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseUp", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_5gux6BobuHWW4aAnIy89Hfqt()}));
+                this.AddMember("OnMouseWheel", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseWheel", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_1E46YUenLXNUlN9tSo8OnUTDb()}));
+                this.AddMember("OnTextInput", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnTextInput", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_14pOeu7bUNBK1ifawFzx7K4Q5()}));
+                this.AddMember("OnUpdate", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnUpdate", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_yjDcyKTErl5rF7wClAXmyLvD()}));
+                this.AddMember("PopulateIcons", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("PopulateIcons", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_Btd57sYOaQE7LKFlBBKRBLx0()}));
+                this.AddMember("Render", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("Render", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_JVIA6EltCkfadB_e0DeC0YO9()}));
+                this.AddMember("ToString", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("ToString", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_D8sXLpuFRqBfRTPQjw7KLfJ2()}));
+                this.AddMember("UnFocus", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("UnFocus", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_1L5yeK9OwgGUWJmRqoAGYPJNI()}));
+                this.AddMember("Visible", new PROP_bL7iAl8tDWPUAx8Sihj81JNO());
+                this.AddMember("Width", new PROP_1JKR4IIUJpYhvxF_vBkoV49fO());
+                this.AddMember("X", new PROP_ITZYV_d0ZEoSHw9v0CmlbjU7());
+                this.AddMember("Y", new PROP_1qf1eJo70NKagYTnGq4gJPW_());
+                this.AddMember("__new", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("__new", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_aPDn8mNwQPK3FCzJ6f19zwqL()}));
+                this.AddMember("get_Anchor", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("get_Anchor", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_zLFGuN5bX4NGmDOVBduntzPQ()}));
+                this.AddMember("get_Background", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("get_Background", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_XMm6jVbM0YpyRyyOLpbD3pN3()}));
+                this.AddMember("get_Border", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("get_Border", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_11Wi4X3uPqF76qi3q43ThhmsQ()}));
+                this.AddMember("get_ClassName", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("get_ClassName", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_1OWoJlGylxTZzRpuO8bXYrsJv()}));
+                this.AddMember("get_Enabled", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("get_Enabled", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_D4duhvZ5fTkUm7CoSCc5Fi9v()}));
+                this.AddMember("get_Height", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("get_Height", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_PkElp1FxPRzjTTiOWGPUNfQv()}));
+                this.AddMember("get_ID", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("get_ID", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_lnkcnjhRVUQ6PrygxEAplVAp()}));
+                this.AddMember("get_LetterMargin", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("get_LetterMargin", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_DsNZpqtrQEkhWLwep72ePSti()}));
+                this.AddMember("get_MapBorder", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("get_MapBorder", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_jgC1jLqWIyQ7d6Np3r6bPvoW()}));
+                this.AddMember("get_Visible", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("get_Visible", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_rdhxKD_rOo6jjj8yHN9BAtwJ()}));
+                this.AddMember("get_Width", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("get_Width", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_1AjRGRBcQQjf_J3CYBtFREfnc()}));
+                this.AddMember("get_X", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("get_X", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_1GVUWkN973niWAhVizlWMiyFz()}));
+                this.AddMember("get_Y", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("get_Y", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_oDxOYjeSBH9PYcRbpkY19Myf()}));
+                this.AddMember("set_Anchor", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("set_Anchor", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_pRXRYYYcBWQUyuYmR07Otr1d()}));
+                this.AddMember("set_Background", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("set_Background", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_196_x9nHRpG_fICCIE3kVXXFT()}));
+                this.AddMember("set_Border", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("set_Border", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_1Ivf6w_mxsJmZBAWmlqU5tEEz()}));
+                this.AddMember("set_ClassName", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("set_ClassName", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_oIZBT87Jergwu227LdOMPszu()}));
+                this.AddMember("set_Enabled", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("set_Enabled", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_SibnNmlDLM_diW1FeilTM0MD()}));
+                this.AddMember("set_Height", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("set_Height", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_W31GhpvOKoGTEBOzRsVS_Gii()}));
+                this.AddMember("set_ID", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("set_ID", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_gwYWdsFSVBaTs6McUJUpyOD4()}));
+                this.AddMember("set_LetterMargin", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("set_LetterMargin", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_tvsT0hqTHLgx1VKmgu4Y5Z12()}));
+                this.AddMember("set_MapBorder", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("set_MapBorder", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_wFrp5xFSJ8GjEfz0dANw7fMy()}));
+                this.AddMember("set_Visible", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("set_Visible", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_1DA4_C1HRgv7KM3ag2okRt7Ch()}));
+                this.AddMember("set_Width", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("set_Width", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_9Ig6dtR0GnEtvwbvEyuaVOgj()}));
+                this.AddMember("set_X", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("set_X", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_NUx_taMigYLqV9zumzz2m9Vs()}));
+                this.AddMember("set_Y", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("set_Y", typeof(LibreLancer.Interface.Navmap), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_10GbljmabyNsAimyzhyMG1QFZ()}));
+            }
+            
+            private sealed class PROP_tHRrV7lhBN1rWBRSwDrMIKu2 : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMemberDescriptor {
+                
+                internal PROP_tHRrV7lhBN1rWBRSwDrMIKu2() : 
+                        base(typeof(LibreLancer.Interface.AnchorKind), "Anchor", false, ((MoonSharp.Interpreter.Interop.BasicDescriptors.MemberDescriptorAccess)(3))) {
+                }
+                
+                protected override object GetValueImpl(MoonSharp.Interpreter.Script script, object obj) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).Anchor;
+                }
+                
+                protected override void SetValueImpl(MoonSharp.Interpreter.Script script, object obj, object value) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.Anchor = ((LibreLancer.Interface.AnchorKind)(value));
+                }
+            }
+            
+            private sealed class MTHD_kNtZtoWKdpDb2mmuOsMLQY8 : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_kNtZtoWKdpDb2mmuOsMLQY8() {
+                    this.Initialize("Animate", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("name", typeof(string), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("offsetTime", typeof(float), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("duration", typeof(float), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.UiWidget)(obj)).Animate(((string)(pars[0])), ((float)(pars[1])), ((float)(pars[2])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_lu7TxsyudfOo24mSse0k_8Jn : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_lu7TxsyudfOo24mSse0k_8Jn() {
+                    this.Initialize("ApplyStylesheet", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("sheet", typeof(LibreLancer.Interface.Stylesheet), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.UiWidget)(obj)).ApplyStylesheet(((LibreLancer.Interface.Stylesheet)(pars[0])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class PROP_pO6056bEcTiGi6WIa7xG4SLV : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMemberDescriptor {
+                
+                internal PROP_pO6056bEcTiGi6WIa7xG4SLV() : 
+                        base(typeof(LibreLancer.Interface.UiRenderable), "Background", false, ((MoonSharp.Interpreter.Interop.BasicDescriptors.MemberDescriptorAccess)(3))) {
+                }
+                
+                protected override object GetValueImpl(MoonSharp.Interpreter.Script script, object obj) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).Background;
+                }
+                
+                protected override void SetValueImpl(MoonSharp.Interpreter.Script script, object obj, object value) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.Background = ((LibreLancer.Interface.UiRenderable)(value));
+                }
+            }
+            
+            private sealed class PROP_BRkyH4QVNgVPF6xpoyJaw5yA : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMemberDescriptor {
+                
+                internal PROP_BRkyH4QVNgVPF6xpoyJaw5yA() : 
+                        base(typeof(LibreLancer.Interface.UiRenderable), "Border", false, ((MoonSharp.Interpreter.Interop.BasicDescriptors.MemberDescriptorAccess)(3))) {
+                }
+                
+                protected override object GetValueImpl(MoonSharp.Interpreter.Script script, object obj) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).Border;
+                }
+                
+                protected override void SetValueImpl(MoonSharp.Interpreter.Script script, object obj, object value) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.Border = ((LibreLancer.Interface.UiRenderable)(value));
+                }
+            }
+            
+            private sealed class PROP_t_b8C5A4QWQkblWiSKIZtZUG : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMemberDescriptor {
+                
+                internal PROP_t_b8C5A4QWQkblWiSKIZtZUG() : 
+                        base(typeof(string), "ClassName", false, ((MoonSharp.Interpreter.Interop.BasicDescriptors.MemberDescriptorAccess)(3))) {
+                }
+                
+                protected override object GetValueImpl(MoonSharp.Interpreter.Script script, object obj) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).ClassName;
+                }
+                
+                protected override void SetValueImpl(MoonSharp.Interpreter.Script script, object obj, object value) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.ClassName = ((string)(value));
+                }
+            }
+            
+            private sealed class MTHD_xY1iZN6W__4205Trf2FpDzKT : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_xY1iZN6W__4205Trf2FpDzKT() {
+                    this.Initialize("Dispose", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.UiWidget)(obj)).Dispose();
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class PROP_JacDu9IU2aneaVFNAeizQeEJ : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMemberDescriptor {
+                
+                internal PROP_JacDu9IU2aneaVFNAeizQeEJ() : 
+                        base(typeof(bool), "Enabled", false, ((MoonSharp.Interpreter.Interop.BasicDescriptors.MemberDescriptorAccess)(3))) {
+                }
+                
+                protected override object GetValueImpl(MoonSharp.Interpreter.Script script, object obj) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).Enabled;
+                }
+                
+                protected override void SetValueImpl(MoonSharp.Interpreter.Script script, object obj, object value) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.Enabled = ((bool)(value));
+                }
+            }
+            
+            private sealed class MTHD_1HwL9sZMhoOmxRoevb4UnZPaF : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_1HwL9sZMhoOmxRoevb4UnZPaF() {
+                    this.Initialize("Equals", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("obj", typeof(object), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return ((object)(obj)).Equals(((object)(pars[0])));
+                }
+            }
+            
+            private sealed class MTHD_UZgfleS0zKv6aiWULvuph9ud : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_UZgfleS0zKv6aiWULvuph9ud() {
+                    this.Initialize("GetDimensions", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).GetDimensions();
+                }
+            }
+            
+            private sealed class MTHD_19G5Cxfl94mACpj7WGOvuvL9U : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_19G5Cxfl94mACpj7WGOvuvL9U() {
+                    this.Initialize("GetElement", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("elementID", typeof(string), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).GetElement(((string)(pars[0])));
+                }
+            }
+            
+            private sealed class MTHD_Pa0xgxsGURAQzNUa_hi5Tbgp : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_Pa0xgxsGURAQzNUa_hi5Tbgp() {
+                    this.Initialize("GetHashCode", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return ((object)(obj)).GetHashCode();
+                }
+            }
+            
+            private sealed class MTHD_1HFTxgBp66MDCj7yIvI9tRqij : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_1HFTxgBp66MDCj7yIvI9tRqij() {
+                    this.Initialize("GetType", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return ((object)(obj)).GetType();
+                }
+            }
+            
+            private sealed class PROP_MkdnjviemDsL12B7hvLQn_lT : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMemberDescriptor {
+                
+                internal PROP_MkdnjviemDsL12B7hvLQn_lT() : 
+                        base(typeof(float), "Height", false, ((MoonSharp.Interpreter.Interop.BasicDescriptors.MemberDescriptorAccess)(3))) {
+                }
+                
+                protected override object GetValueImpl(MoonSharp.Interpreter.Script script, object obj) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).Height;
+                }
+                
+                protected override void SetValueImpl(MoonSharp.Interpreter.Script script, object obj, object value) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.Height = ((float)(value));
+                }
+            }
+            
+            private sealed class PROP_11H5GoeVnMAxexUewV4a0E42_ : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMemberDescriptor {
+                
+                internal PROP_11H5GoeVnMAxexUewV4a0E42_() : 
+                        base(typeof(string), "ID", false, ((MoonSharp.Interpreter.Interop.BasicDescriptors.MemberDescriptorAccess)(3))) {
+                }
+                
+                protected override object GetValueImpl(MoonSharp.Interpreter.Script script, object obj) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).ID;
+                }
+                
+                protected override void SetValueImpl(MoonSharp.Interpreter.Script script, object obj, object value) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.ID = ((string)(value));
+                }
+            }
+            
+            private sealed class PROP_1A9YhH03oE5rjgQDBKRe45Nhe : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMemberDescriptor {
+                
+                internal PROP_1A9YhH03oE5rjgQDBKRe45Nhe() : 
+                        base(typeof(bool), "LetterMargin", false, ((MoonSharp.Interpreter.Interop.BasicDescriptors.MemberDescriptorAccess)(3))) {
+                }
+                
+                protected override object GetValueImpl(MoonSharp.Interpreter.Script script, object obj) {
+                    return ((LibreLancer.Interface.Navmap)(obj)).LetterMargin;
+                }
+                
+                protected override void SetValueImpl(MoonSharp.Interpreter.Script script, object obj, object value) {
+                    LibreLancer.Interface.Navmap tmp = ((LibreLancer.Interface.Navmap)(obj));
+                    tmp.LetterMargin = ((bool)(value));
+                }
+            }
+            
+            private sealed class PROP_K2ICkQ3xY5sAoAPaNLLlnvDw : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMemberDescriptor {
+                
+                internal PROP_K2ICkQ3xY5sAoAPaNLLlnvDw() : 
+                        base(typeof(bool), "MapBorder", false, ((MoonSharp.Interpreter.Interop.BasicDescriptors.MemberDescriptorAccess)(3))) {
+                }
+                
+                protected override object GetValueImpl(MoonSharp.Interpreter.Script script, object obj) {
+                    return ((LibreLancer.Interface.Navmap)(obj)).MapBorder;
+                }
+                
+                protected override void SetValueImpl(MoonSharp.Interpreter.Script script, object obj, object value) {
+                    LibreLancer.Interface.Navmap tmp = ((LibreLancer.Interface.Navmap)(obj));
+                    tmp.MapBorder = ((bool)(value));
+                }
+            }
+            
+            private sealed class MTHD_1DQHcuG1eUWVPgOTcnXyky0Gd : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_1DQHcuG1eUWVPgOTcnXyky0Gd() {
+                    this.Initialize("OnKeyDown", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("key", typeof(LibreLancer.Keys), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.UiWidget)(obj)).OnKeyDown(((LibreLancer.Keys)(pars[0])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_Y68wTTe9FC4MD6lZzg8LC3yX : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_Y68wTTe9FC4MD6lZzg8LC3yX() {
+                    this.Initialize("OnMouseClick", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("context", typeof(LibreLancer.Interface.UiContext), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("parentRectangle", typeof(LibreLancer.RectangleF), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.UiWidget)(obj)).OnMouseClick(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_NMk78fTQ37HSDXIXopdz3OC0 : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_NMk78fTQ37HSDXIXopdz3OC0() {
+                    this.Initialize("OnMouseDown", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("context", typeof(LibreLancer.Interface.UiContext), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("parentRectangle", typeof(LibreLancer.RectangleF), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.UiWidget)(obj)).OnMouseDown(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_5gux6BobuHWW4aAnIy89Hfqt : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_5gux6BobuHWW4aAnIy89Hfqt() {
+                    this.Initialize("OnMouseUp", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("context", typeof(LibreLancer.Interface.UiContext), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("parentRectangle", typeof(LibreLancer.RectangleF), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.UiWidget)(obj)).OnMouseUp(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_1E46YUenLXNUlN9tSo8OnUTDb : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_1E46YUenLXNUlN9tSo8OnUTDb() {
+                    this.Initialize("OnMouseWheel", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("context", typeof(LibreLancer.Interface.UiContext), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("parentRectangle", typeof(LibreLancer.RectangleF), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("delta", typeof(float), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.UiWidget)(obj)).OnMouseWheel(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])), ((float)(pars[2])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_14pOeu7bUNBK1ifawFzx7K4Q5 : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_14pOeu7bUNBK1ifawFzx7K4Q5() {
+                    this.Initialize("OnTextInput", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("text", typeof(string), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.UiWidget)(obj)).OnTextInput(((string)(pars[0])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_yjDcyKTErl5rF7wClAXmyLvD : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_yjDcyKTErl5rF7wClAXmyLvD() {
+                    this.Initialize("OnUpdate", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("handler", typeof(MoonSharp.Interpreter.Closure), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.UiWidget)(obj)).OnUpdate(((MoonSharp.Interpreter.Closure)(pars[0])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_Btd57sYOaQE7LKFlBBKRBLx0 : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_Btd57sYOaQE7LKFlBBKRBLx0() {
+                    this.Initialize("PopulateIcons", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("ctx", typeof(LibreLancer.Interface.UiContext), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("sys", typeof(LibreLancer.GameData.StarSystem), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.Navmap)(obj)).PopulateIcons(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.GameData.StarSystem)(pars[1])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_JVIA6EltCkfadB_e0DeC0YO9 : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_JVIA6EltCkfadB_e0DeC0YO9() {
+                    this.Initialize("Render", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("context", typeof(LibreLancer.Interface.UiContext), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("parentRectangle", typeof(LibreLancer.RectangleF), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.Navmap)(obj)).Render(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_D8sXLpuFRqBfRTPQjw7KLfJ2 : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_D8sXLpuFRqBfRTPQjw7KLfJ2() {
+                    this.Initialize("ToString", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return ((object)(obj)).ToString();
+                }
+            }
+            
+            private sealed class MTHD_1L5yeK9OwgGUWJmRqoAGYPJNI : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_1L5yeK9OwgGUWJmRqoAGYPJNI() {
+                    this.Initialize("UnFocus", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.UiWidget)(obj)).UnFocus();
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class PROP_bL7iAl8tDWPUAx8Sihj81JNO : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMemberDescriptor {
+                
+                internal PROP_bL7iAl8tDWPUAx8Sihj81JNO() : 
+                        base(typeof(bool), "Visible", false, ((MoonSharp.Interpreter.Interop.BasicDescriptors.MemberDescriptorAccess)(3))) {
+                }
+                
+                protected override object GetValueImpl(MoonSharp.Interpreter.Script script, object obj) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).Visible;
+                }
+                
+                protected override void SetValueImpl(MoonSharp.Interpreter.Script script, object obj, object value) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.Visible = ((bool)(value));
+                }
+            }
+            
+            private sealed class PROP_1JKR4IIUJpYhvxF_vBkoV49fO : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMemberDescriptor {
+                
+                internal PROP_1JKR4IIUJpYhvxF_vBkoV49fO() : 
+                        base(typeof(float), "Width", false, ((MoonSharp.Interpreter.Interop.BasicDescriptors.MemberDescriptorAccess)(3))) {
+                }
+                
+                protected override object GetValueImpl(MoonSharp.Interpreter.Script script, object obj) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).Width;
+                }
+                
+                protected override void SetValueImpl(MoonSharp.Interpreter.Script script, object obj, object value) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.Width = ((float)(value));
+                }
+            }
+            
+            private sealed class PROP_ITZYV_d0ZEoSHw9v0CmlbjU7 : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMemberDescriptor {
+                
+                internal PROP_ITZYV_d0ZEoSHw9v0CmlbjU7() : 
+                        base(typeof(float), "X", false, ((MoonSharp.Interpreter.Interop.BasicDescriptors.MemberDescriptorAccess)(3))) {
+                }
+                
+                protected override object GetValueImpl(MoonSharp.Interpreter.Script script, object obj) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).X;
+                }
+                
+                protected override void SetValueImpl(MoonSharp.Interpreter.Script script, object obj, object value) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.X = ((float)(value));
+                }
+            }
+            
+            private sealed class PROP_1qf1eJo70NKagYTnGq4gJPW_ : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMemberDescriptor {
+                
+                internal PROP_1qf1eJo70NKagYTnGq4gJPW_() : 
+                        base(typeof(float), "Y", false, ((MoonSharp.Interpreter.Interop.BasicDescriptors.MemberDescriptorAccess)(3))) {
+                }
+                
+                protected override object GetValueImpl(MoonSharp.Interpreter.Script script, object obj) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).Y;
+                }
+                
+                protected override void SetValueImpl(MoonSharp.Interpreter.Script script, object obj, object value) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.Y = ((float)(value));
+                }
+            }
+            
+            private sealed class MTHD_aPDn8mNwQPK3FCzJ6f19zwqL : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_aPDn8mNwQPK3FCzJ6f19zwqL() {
+                    this.Initialize(".ctor", true, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return new LibreLancer.Interface.Navmap();
+                }
+            }
+            
+            private sealed class MTHD_zLFGuN5bX4NGmDOVBduntzPQ : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_zLFGuN5bX4NGmDOVBduntzPQ() {
+                    this.Initialize("get_Anchor", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).Anchor;
+                }
+            }
+            
+            private sealed class MTHD_XMm6jVbM0YpyRyyOLpbD3pN3 : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_XMm6jVbM0YpyRyyOLpbD3pN3() {
+                    this.Initialize("get_Background", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).Background;
+                }
+            }
+            
+            private sealed class MTHD_11Wi4X3uPqF76qi3q43ThhmsQ : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_11Wi4X3uPqF76qi3q43ThhmsQ() {
+                    this.Initialize("get_Border", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).Border;
+                }
+            }
+            
+            private sealed class MTHD_1OWoJlGylxTZzRpuO8bXYrsJv : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_1OWoJlGylxTZzRpuO8bXYrsJv() {
+                    this.Initialize("get_ClassName", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).ClassName;
+                }
+            }
+            
+            private sealed class MTHD_D4duhvZ5fTkUm7CoSCc5Fi9v : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_D4duhvZ5fTkUm7CoSCc5Fi9v() {
+                    this.Initialize("get_Enabled", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).Enabled;
+                }
+            }
+            
+            private sealed class MTHD_PkElp1FxPRzjTTiOWGPUNfQv : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_PkElp1FxPRzjTTiOWGPUNfQv() {
+                    this.Initialize("get_Height", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).Height;
+                }
+            }
+            
+            private sealed class MTHD_lnkcnjhRVUQ6PrygxEAplVAp : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_lnkcnjhRVUQ6PrygxEAplVAp() {
+                    this.Initialize("get_ID", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).ID;
+                }
+            }
+            
+            private sealed class MTHD_DsNZpqtrQEkhWLwep72ePSti : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_DsNZpqtrQEkhWLwep72ePSti() {
+                    this.Initialize("get_LetterMargin", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return ((LibreLancer.Interface.Navmap)(obj)).LetterMargin;
+                }
+            }
+            
+            private sealed class MTHD_jgC1jLqWIyQ7d6Np3r6bPvoW : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_jgC1jLqWIyQ7d6Np3r6bPvoW() {
+                    this.Initialize("get_MapBorder", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return ((LibreLancer.Interface.Navmap)(obj)).MapBorder;
+                }
+            }
+            
+            private sealed class MTHD_rdhxKD_rOo6jjj8yHN9BAtwJ : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_rdhxKD_rOo6jjj8yHN9BAtwJ() {
+                    this.Initialize("get_Visible", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).Visible;
+                }
+            }
+            
+            private sealed class MTHD_1AjRGRBcQQjf_J3CYBtFREfnc : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_1AjRGRBcQQjf_J3CYBtFREfnc() {
+                    this.Initialize("get_Width", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).Width;
+                }
+            }
+            
+            private sealed class MTHD_1GVUWkN973niWAhVizlWMiyFz : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_1GVUWkN973niWAhVizlWMiyFz() {
+                    this.Initialize("get_X", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).X;
+                }
+            }
+            
+            private sealed class MTHD_oDxOYjeSBH9PYcRbpkY19Myf : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_oDxOYjeSBH9PYcRbpkY19Myf() {
+                    this.Initialize("get_Y", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[0], false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    return ((LibreLancer.Interface.UiWidget)(obj)).Y;
+                }
+            }
+            
+            private sealed class MTHD_pRXRYYYcBWQUyuYmR07Otr1d : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_pRXRYYYcBWQUyuYmR07Otr1d() {
+                    this.Initialize("set_Anchor", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("value", typeof(LibreLancer.Interface.AnchorKind), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.Anchor = ((LibreLancer.Interface.AnchorKind)(pars[0]));
+                    return null;
+                }
+            }
+            
+            private sealed class MTHD_196_x9nHRpG_fICCIE3kVXXFT : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_196_x9nHRpG_fICCIE3kVXXFT() {
+                    this.Initialize("set_Background", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("value", typeof(LibreLancer.Interface.UiRenderable), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.Background = ((LibreLancer.Interface.UiRenderable)(pars[0]));
+                    return null;
+                }
+            }
+            
+            private sealed class MTHD_1Ivf6w_mxsJmZBAWmlqU5tEEz : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_1Ivf6w_mxsJmZBAWmlqU5tEEz() {
+                    this.Initialize("set_Border", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("value", typeof(LibreLancer.Interface.UiRenderable), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.Border = ((LibreLancer.Interface.UiRenderable)(pars[0]));
+                    return null;
+                }
+            }
+            
+            private sealed class MTHD_oIZBT87Jergwu227LdOMPszu : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_oIZBT87Jergwu227LdOMPszu() {
+                    this.Initialize("set_ClassName", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("value", typeof(string), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.ClassName = ((string)(pars[0]));
+                    return null;
+                }
+            }
+            
+            private sealed class MTHD_SibnNmlDLM_diW1FeilTM0MD : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_SibnNmlDLM_diW1FeilTM0MD() {
+                    this.Initialize("set_Enabled", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("value", typeof(bool), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.Enabled = ((bool)(pars[0]));
+                    return null;
+                }
+            }
+            
+            private sealed class MTHD_W31GhpvOKoGTEBOzRsVS_Gii : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_W31GhpvOKoGTEBOzRsVS_Gii() {
+                    this.Initialize("set_Height", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("value", typeof(float), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.Height = ((float)(pars[0]));
+                    return null;
+                }
+            }
+            
+            private sealed class MTHD_gwYWdsFSVBaTs6McUJUpyOD4 : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_gwYWdsFSVBaTs6McUJUpyOD4() {
+                    this.Initialize("set_ID", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("value", typeof(string), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.ID = ((string)(pars[0]));
+                    return null;
+                }
+            }
+            
+            private sealed class MTHD_tvsT0hqTHLgx1VKmgu4Y5Z12 : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_tvsT0hqTHLgx1VKmgu4Y5Z12() {
+                    this.Initialize("set_LetterMargin", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("value", typeof(bool), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    LibreLancer.Interface.Navmap tmp = ((LibreLancer.Interface.Navmap)(obj));
+                    tmp.LetterMargin = ((bool)(pars[0]));
+                    return null;
+                }
+            }
+            
+            private sealed class MTHD_wFrp5xFSJ8GjEfz0dANw7fMy : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_wFrp5xFSJ8GjEfz0dANw7fMy() {
+                    this.Initialize("set_MapBorder", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("value", typeof(bool), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    LibreLancer.Interface.Navmap tmp = ((LibreLancer.Interface.Navmap)(obj));
+                    tmp.MapBorder = ((bool)(pars[0]));
+                    return null;
+                }
+            }
+            
+            private sealed class MTHD_1DA4_C1HRgv7KM3ag2okRt7Ch : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_1DA4_C1HRgv7KM3ag2okRt7Ch() {
+                    this.Initialize("set_Visible", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("value", typeof(bool), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.Visible = ((bool)(pars[0]));
+                    return null;
+                }
+            }
+            
+            private sealed class MTHD_9Ig6dtR0GnEtvwbvEyuaVOgj : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_9Ig6dtR0GnEtvwbvEyuaVOgj() {
+                    this.Initialize("set_Width", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("value", typeof(float), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.Width = ((float)(pars[0]));
+                    return null;
+                }
+            }
+            
+            private sealed class MTHD_NUx_taMigYLqV9zumzz2m9Vs : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_NUx_taMigYLqV9zumzz2m9Vs() {
+                    this.Initialize("set_X", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("value", typeof(float), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.X = ((float)(pars[0]));
+                    return null;
+                }
+            }
+            
+            private sealed class MTHD_10GbljmabyNsAimyzhyMG1QFZ : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_10GbljmabyNsAimyzhyMG1QFZ() {
+                    this.Initialize("set_Y", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("value", typeof(float), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    LibreLancer.Interface.UiWidget tmp = ((LibreLancer.Interface.UiWidget)(obj));
+                    tmp.Y = ((float)(pars[0]));
+                    return null;
+                }
+            }
+        }
+        #endregion
+        
         #region Descriptor of LibreLancer.Interface.Panel
         // Descriptor of LibreLancer.Interface.Panel
         private sealed class TYPE_iL4zR2aMDFSyxEd6wYYhEGVz : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredUserDataDescriptor {
@@ -11266,6 +12289,8 @@ namespace LibreLancer.Lua {
                                 new MTHD_1BCb8g1OZWGcJBwUFk97fBZDx()}));
                 this.AddMember("OnMouseUp", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseUp", typeof(LibreLancer.Interface.Panel), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_5cfD5c9f1cVndgRJaprwZJen()}));
+                this.AddMember("OnMouseWheel", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseWheel", typeof(LibreLancer.Interface.Panel), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_mzzFxWRLb0nJNjpiRcGLJaHA()}));
                 this.AddMember("OnTextInput", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnTextInput", typeof(LibreLancer.Interface.Panel), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_RZ7D9oz6f26n4yKlINUIcn2t()}));
                 this.AddMember("OnUpdate", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnUpdate", typeof(LibreLancer.Interface.Panel), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
@@ -11623,6 +12648,21 @@ namespace LibreLancer.Lua {
                 
                 protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
                     ((LibreLancer.Interface.Panel)(obj)).OnMouseUp(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_mzzFxWRLb0nJNjpiRcGLJaHA : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_mzzFxWRLb0nJNjpiRcGLJaHA() {
+                    this.Initialize("OnMouseWheel", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("context", typeof(LibreLancer.Interface.UiContext), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("parentRectangle", typeof(LibreLancer.RectangleF), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("delta", typeof(float), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.Panel)(obj)).OnMouseWheel(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])), ((float)(pars[2])));
                     return MoonSharp.Interpreter.DynValue.Void;
                 }
             }
@@ -12122,6 +13162,8 @@ namespace LibreLancer.Lua {
                                 new MTHD_RIJriW9AUVpl2jslinxaDf9N()}));
                 this.AddMember("OnMouseUp", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseUp", typeof(LibreLancer.Interface.Scene), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_u3o7a40VFP0RmVJMsIQmoPqg()}));
+                this.AddMember("OnMouseWheel", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseWheel", typeof(LibreLancer.Interface.Scene), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_Njk8IFZF7LgrVQmXX_djpfK1()}));
                 this.AddMember("OnTextInput", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnTextInput", typeof(LibreLancer.Interface.Scene), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_GYDufYXKsp0X35kMBFhIQDDE()}));
                 this.AddMember("OnUpdate", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnUpdate", typeof(LibreLancer.Interface.Scene), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
@@ -12491,6 +13533,21 @@ namespace LibreLancer.Lua {
                 
                 protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
                     ((LibreLancer.Interface.Container)(obj)).OnMouseUp(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_Njk8IFZF7LgrVQmXX_djpfK1 : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_Njk8IFZF7LgrVQmXX_djpfK1() {
+                    this.Initialize("OnMouseWheel", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("context", typeof(LibreLancer.Interface.UiContext), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("parentRectangle", typeof(LibreLancer.RectangleF), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("delta", typeof(float), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.Container)(obj)).OnMouseWheel(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])), ((float)(pars[2])));
                     return MoonSharp.Interpreter.DynValue.Void;
                 }
             }
@@ -12988,6 +14045,8 @@ namespace LibreLancer.Lua {
                                 new MTHD_1RKnGeHlS7WamQxKMCQ35FqoI()}));
                 this.AddMember("OnMouseUp", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseUp", typeof(LibreLancer.Interface.Scrollable), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_Pm3nnZsLalFvNjdikw0JKv3Z()}));
+                this.AddMember("OnMouseWheel", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseWheel", typeof(LibreLancer.Interface.Scrollable), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_7YwWOXBk7Xwc9VvRQQpRYT6X()}));
                 this.AddMember("OnTextInput", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnTextInput", typeof(LibreLancer.Interface.Scrollable), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_1RoBQj8OswcAr1Y1n0WfufxLX()}));
                 this.AddMember("OnUpdate", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnUpdate", typeof(LibreLancer.Interface.Scrollable), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
@@ -13346,6 +14405,21 @@ namespace LibreLancer.Lua {
                 
                 protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
                     ((LibreLancer.Interface.Scrollable)(obj)).OnMouseUp(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_7YwWOXBk7Xwc9VvRQQpRYT6X : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_7YwWOXBk7Xwc9VvRQQpRYT6X() {
+                    this.Initialize("OnMouseWheel", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("context", typeof(LibreLancer.Interface.UiContext), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("parentRectangle", typeof(LibreLancer.RectangleF), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("delta", typeof(float), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.Container)(obj)).OnMouseWheel(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])), ((float)(pars[2])));
                     return MoonSharp.Interpreter.DynValue.Void;
                 }
             }
@@ -14838,6 +15912,8 @@ namespace LibreLancer.Lua {
                                 new MTHD_1OHSNSTmz7wbtdL0HdrjiUSwp()}));
                 this.AddMember("OnMouseUp", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseUp", typeof(LibreLancer.Interface.TextBlock), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_n7OT_x9z9gRBzNMHzO0ka6rX()}));
+                this.AddMember("OnMouseWheel", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseWheel", typeof(LibreLancer.Interface.TextBlock), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_4pMGfeNQL5nF92VERgFqymKp()}));
                 this.AddMember("OnTextInput", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnTextInput", typeof(LibreLancer.Interface.TextBlock), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_Kdy_r_4a2NjtNcIiAFhJHn67()}));
                 this.AddMember("OnUpdate", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnUpdate", typeof(LibreLancer.Interface.TextBlock), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
@@ -15270,6 +16346,21 @@ namespace LibreLancer.Lua {
                 
                 protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
                     ((LibreLancer.Interface.UiWidget)(obj)).OnMouseUp(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_4pMGfeNQL5nF92VERgFqymKp : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_4pMGfeNQL5nF92VERgFqymKp() {
+                    this.Initialize("OnMouseWheel", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("context", typeof(LibreLancer.Interface.UiContext), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("parentRectangle", typeof(LibreLancer.RectangleF), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("delta", typeof(float), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.UiWidget)(obj)).OnMouseWheel(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])), ((float)(pars[2])));
                     return MoonSharp.Interpreter.DynValue.Void;
                 }
             }
@@ -16077,6 +17168,8 @@ namespace LibreLancer.Lua {
                                 new MTHD_zaTKgl00zqvKvX0J940icM15()}));
                 this.AddMember("OnMouseUp", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseUp", typeof(LibreLancer.Interface.TextEntry), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_1SPEmxVQhMG1ZyQn4Lc_TDY9h()}));
+                this.AddMember("OnMouseWheel", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnMouseWheel", typeof(LibreLancer.Interface.TextEntry), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_DKN9kLXje6hB7jbZ61HTUlWY()}));
                 this.AddMember("OnTextEntered", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnTextEntered", typeof(LibreLancer.Interface.TextEntry), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_TCdlZzWTAF4EPeeU6jfvLxkL()}));
                 this.AddMember("OnTextInput", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("OnTextInput", typeof(LibreLancer.Interface.TextEntry), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
@@ -16505,6 +17598,21 @@ namespace LibreLancer.Lua {
                 
                 protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
                     ((LibreLancer.Interface.UiWidget)(obj)).OnMouseUp(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_DKN9kLXje6hB7jbZ61HTUlWY : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_DKN9kLXje6hB7jbZ61HTUlWY() {
+                    this.Initialize("OnMouseWheel", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("context", typeof(LibreLancer.Interface.UiContext), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("parentRectangle", typeof(LibreLancer.RectangleF), false, null, false, false, false),
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("delta", typeof(float), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.Interface.UiWidget)(obj)).OnMouseWheel(((LibreLancer.Interface.UiContext)(pars[0])), ((LibreLancer.RectangleF)(pars[1])), ((float)(pars[2])));
                     return MoonSharp.Interpreter.DynValue.Void;
                 }
             }
@@ -17929,6 +19037,8 @@ namespace LibreLancer.Lua {
                                 new MTHD_imdOE8aXLA3ZtH2nJYOInena()}));
                 this.AddMember("NewGame", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("NewGame", typeof(LibreLancer.RoomGameplay.BaseUiApi), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_1SQtl1yxn_8nUE71cVuvMJaH4()}));
+                this.AddMember("PopulateNavmap", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("PopulateNavmap", typeof(LibreLancer.RoomGameplay.BaseUiApi), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_1MSv8Fs3LiWSBHy6ll932dluw()}));
                 this.AddMember("TextEntered", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("TextEntered", typeof(LibreLancer.RoomGameplay.BaseUiApi), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_gUfjXQmc0bKR9BTkPdhAwLBq()}));
                 this.AddMember("ToString", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("ToString", typeof(LibreLancer.RoomGameplay.BaseUiApi), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
@@ -18059,6 +19169,19 @@ namespace LibreLancer.Lua {
                 
                 protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
                     ((LibreLancer.UiApi)(obj)).NewGame();
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_1MSv8Fs3LiWSBHy6ll932dluw : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_1MSv8Fs3LiWSBHy6ll932dluw() {
+                    this.Initialize("PopulateNavmap", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("navmap", typeof(LibreLancer.Interface.Navmap), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.RoomGameplay.BaseUiApi)(obj)).PopulateNavmap(((LibreLancer.Interface.Navmap)(pars[0])));
                     return MoonSharp.Interpreter.DynValue.Void;
                 }
             }
@@ -18299,6 +19422,8 @@ namespace LibreLancer.Lua {
                                 new MTHD_GpCyuz2syw2Nm5vXjqhQyuR2()}));
                 this.AddMember("HotspotPressed", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("HotspotPressed", typeof(LibreLancer.SpaceGameplay.LuaAPI), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_1MFUPDE7UJ9bjZEIT05BHS4Y6()}));
+                this.AddMember("PopulateNavmap", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("PopulateNavmap", typeof(LibreLancer.SpaceGameplay.LuaAPI), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
+                                new MTHD_Fsjm70_9fkWsYx56YH9VxRrK()}));
                 this.AddMember("Speed", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("Speed", typeof(LibreLancer.SpaceGameplay.LuaAPI), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_uys0f8sny4O616iV4c3tz4xx()}));
                 this.AddMember("TextEntered", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("TextEntered", typeof(LibreLancer.SpaceGameplay.LuaAPI), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
@@ -18387,6 +19512,19 @@ namespace LibreLancer.Lua {
                 
                 protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
                     ((LibreLancer.SpaceGameplay.LuaAPI)(obj)).HotspotPressed(((string)(pars[0])));
+                    return MoonSharp.Interpreter.DynValue.Void;
+                }
+            }
+            
+            private sealed class MTHD_Fsjm70_9fkWsYx56YH9VxRrK : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+                
+                internal MTHD_Fsjm70_9fkWsYx56YH9VxRrK() {
+                    this.Initialize("PopulateNavmap", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("nav", typeof(LibreLancer.Interface.Navmap), false, null, false, false, false)}, false);
+                }
+                
+                protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
+                    ((LibreLancer.SpaceGameplay.LuaAPI)(obj)).PopulateNavmap(((LibreLancer.Interface.Navmap)(pars[0])));
                     return MoonSharp.Interpreter.DynValue.Void;
                 }
             }
@@ -24489,6 +25627,7 @@ namespace LibreLancer.Lua {
             table["LibreLancer_Interface_Gauge"] = typeof(LibreLancer.Interface.Gauge);
             table["LibreLancer_Interface_ImageFile"] = typeof(LibreLancer.Interface.ImageFile);
             table["LibreLancer_Interface_InfocardDisplay"] = typeof(LibreLancer.Interface.InfocardDisplay);
+            table["LibreLancer_Interface_Navmap"] = typeof(LibreLancer.Interface.Navmap);
             table["LibreLancer_Interface_TextBlock"] = typeof(LibreLancer.Interface.TextBlock);
             table["LibreLancer_Interface_TextEntry"] = typeof(LibreLancer.Interface.TextEntry);
             table["LibreLancer_Infocards_Infocard"] = typeof(LibreLancer.Infocards.Infocard);

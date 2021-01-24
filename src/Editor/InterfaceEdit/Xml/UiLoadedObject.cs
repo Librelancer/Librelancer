@@ -19,15 +19,22 @@ namespace LibreLancer.Interface.Reflection
         private int tabLevel = 0;
         private int objNameIndex = 0;
         public string ElementProperty;
+        private Queue<string> freeIdentifiers = new Queue<string>();
         public void WriteLine(string text)
         {
             for (int i = 0; i < tabLevel; i++)
                 builder.Append("    ");
             builder.AppendLine(text);
         }
-        public string GetIdentifier()
+        public (string, bool) GetIdentifier()
         {
-            return $"_obj_{objNameIndex++}";
+            if (freeIdentifiers.Count > 0)
+                return (freeIdentifiers.Dequeue(), false);
+            return ($"_o{objNameIndex++:X}", true);
+        }
+        public void FreeIdentifier(string identifier)
+        {
+            freeIdentifiers.Enqueue(identifier);
         }
         public void TabIn()
         {
@@ -317,10 +324,11 @@ namespace LibreLancer.Interface.Reflection
         protected override void SetInternal(Action<object, object> setter, object obj, List<XmlObjectMap> maps)  => setter(obj, Value.Create(maps));
         public override void Print(LuaPrinterContext printer, string parent)
         {
-            var ident = printer.GetIdentifier();
-            printer.WriteLine($"local {ident} = {TypeInitExpression(Value.Type)}");
+            var (ident, define) = printer.GetIdentifier();
+            printer.WriteLine($"{(define ? "local " : "")}{ident} = {TypeInitExpression(Value.Type)}");
             Value.PrintSetter(printer, ident);
             printer.WriteLine($"{parent}.{property.Name} = {ident}");
+            printer.FreeIdentifier(ident);
         }
     }
     class UiPrimitiveList : UiLoadedProperty
@@ -344,11 +352,12 @@ namespace LibreLancer.Interface.Reflection
 
         public override void Print(LuaPrinterContext printer, string parent)
         {
-            var ident = printer.GetIdentifier();
-            printer.WriteLine($"local {ident} = {TypeInitExpression(type)}");
+            var (ident, define) = printer.GetIdentifier();
+            printer.WriteLine($"{(define ? "local " : "")}{ident} = {TypeInitExpression(type)}");
             foreach(var obj in Values)
                 printer.WriteLine($"{ident}:Add({ObjToString(obj)}");
             printer.WriteLine($"{parent}.{property.Name} = {ident}");
+            printer.FreeIdentifier(ident);
         }
     }
 
@@ -427,14 +436,15 @@ namespace LibreLancer.Interface.Reflection
 
         public override void Print(LuaPrinterContext printer, string parent)
         {
-            var ident = printer.GetIdentifier();
-            printer.WriteLine($"local {ident} = {TypeInitExpression(type)}");
+            var (ident, define) = printer.GetIdentifier();
+            printer.WriteLine($"{(define ? "local " : "")}{ident} = {TypeInitExpression(type)}");
             foreach (var obj in Objects)
             {
-                var objIdent = printer.GetIdentifier();
-                printer.WriteLine($"local {objIdent} = {TypeInitExpression(obj.Type)}");
+                var (objIdent, objDefine) = printer.GetIdentifier();
+                printer.WriteLine($"{(objDefine ? "local " : "")}{objIdent} = {TypeInitExpression(obj.Type)}");
                 obj.PrintSetter(printer, objIdent);
                 printer.WriteLine($"{ident}:Add({objIdent})");
+                printer.FreeIdentifier(objIdent);
                 if (printer.ElementProperty != null)
                 {
                     var src = obj.Create();
@@ -445,6 +455,7 @@ namespace LibreLancer.Interface.Reflection
                 }
             }
             printer.WriteLine($"{parent}.{property.Name} = {ident}");
+            printer.FreeIdentifier(ident);
         }
     }
 }

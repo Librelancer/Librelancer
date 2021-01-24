@@ -1,0 +1,36 @@
+<Scene>
+<Panel Width="640" Height="480" Anchor="Center">
+	<Panel Anchor="Center" Width="160" Height="247" X="-214" Y="-26" ID="leftpanel" Visible="false">
+		<Panel.Background>
+			<DisplayModel model="nav_navmap_left"/>
+		</Panel.Background>
+	</Panel>
+	<Panel Anchor="Center" Width="160" Height="247" X="216" Y="-26" ID="rightpanel" Visible="false">
+		<Panel.Background>
+			<DisplayModel model="nav_navmap_right"/>
+		</Panel.Background>
+	</Panel>
+	
+	<Panel Anchor="Center" Width="263" Height="292" X="2" Y="-23" ID="background">
+		<Panel.Background>
+			<DisplayModel model="navmap_background"/>
+		</Panel.Background>
+
+		<Panel Width="263" Height="292" ID="contents">
+			<Navmap Width="232" Height="235" X="15" Y="29.5" ID="navmap"/>
+			<Button Style="nav_universebutton" X="15" Y="9" ID="universebutton"/>
+			<Button Style="nav_labels" X="35" Y="9" ID="labels"/>
+			<Button Style="nav_filter_physical" X="87" Y="9" ID="physical"/>
+			<Button Style="nav_filter_political" X="105" Y="9" ID="political"/>
+			<Button Style="nav_patrol" X="127" Y="9" ID="patrol"/>
+			<Button Style="nav_minablezonefilter" X="145" Y="9" ID="miningfilter"/>
+			<Button Style="nav_legendtoggle" X="165" Y="9" ID="legendtoggle"/>
+			<Button Style="nav_knownbases" X="183" Y="9" ID="knownbases"/>
+			<Button Style="xbutton" X="235" Y="9" Width="12" Height="12" ID="exit"/>
+		</Panel>
+	</Panel>
+</Panel>
+</Scene>
+
+
+

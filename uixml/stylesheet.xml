@@ -24,6 +24,11 @@
 				<DisplayModel model="nn_info.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
 			</ButtonAppearance.Background>
 		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_info.3db" Tint="yellow"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Selected>
 	</ButtonStyle>
 	<ButtonStyle Name="nn_playerstatus" Width="10" Height="22">
 		<ButtonStyle.Normal>
@@ -36,6 +41,11 @@
 				<DisplayModel model="nn_playerstatus.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
 			</ButtonAppearance.Background>
 		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_playerstatus.3db" Tint="yellow"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Selected>
 	</ButtonStyle>
 	<ButtonStyle Name="nn_inventory" Width ="24" Height="11">
 		<ButtonStyle.Normal>
@@ -48,6 +58,11 @@
 				<DisplayModel model="nn_inventory.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
 			</ButtonAppearance.Background>
 		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_inventory.3db" Tint="yellow"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Selected>
 	</ButtonStyle>
 	<ButtonStyle Name="nn_map" Width="23" Height="23">
 		<ButtonStyle.Normal>
@@ -60,6 +75,11 @@
 				<DisplayModel model="nn_map.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
 			</ButtonAppearance.Background>
 		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_map.3db" Tint="yellow"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Selected>
 	</ButtonStyle>
 	<ButtonStyle Name="nn_storystar" Width="22" Height="22">
 		<ButtonStyle.Normal>
@@ -72,7 +92,133 @@
 				<DisplayModel model="nn_storystar.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
 			</ButtonAppearance.Background>
 		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_storystar.3db" Tint="yellow"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Selected>
 	</ButtonStyle>
+	<!-- Navmap buttons -->
+    <ButtonStyle Name="nav_universebutton" Width="13" Height="13"> <ButtonStyle.Normal>
+        <ButtonAppearance.Background>
+            <DisplayModel model="nav_universebutton" Tint="text"/>
+        </ButtonAppearance.Background>
+        </ButtonStyle.Normal><ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_universebutton" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_universebutton" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Name="nav_knownbases" Width="13" Height="13"> <ButtonStyle.Normal>
+        <ButtonAppearance.Background>
+            <DisplayModel model="nav_knownbases" Tint="text"/>
+        </ButtonAppearance.Background>
+        </ButtonStyle.Normal><ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_knownbases" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_knownbases" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Name="nav_minablezonefilter" Width="13" Height="13"> <ButtonStyle.Normal>
+        <ButtonAppearance.Background>
+            <DisplayModel model="nav_minablezonefilter" Tint="text"/>
+        </ButtonAppearance.Background>
+        </ButtonStyle.Normal><ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_minablezonefilter" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_minablezonefilter" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Name="nav_legendtoggle" Width="13" Height="13"> <ButtonStyle.Normal>
+        <ButtonAppearance.Background>
+            <DisplayModel model="nav_legendtoggle" Tint="text"/>
+        </ButtonAppearance.Background>
+        </ButtonStyle.Normal><ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_legendtoggle" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_legendtoggle" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Name="nav_patrol" Width="13" Height="13"> <ButtonStyle.Normal>
+        <ButtonAppearance.Background>
+            <DisplayModel model="nav_patrol" Tint="text"/>
+        </ButtonAppearance.Background>
+        </ButtonStyle.Normal><ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_patrol" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_patrol" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Name="nav_labels" Width="13" Height="13"> <ButtonStyle.Normal>
+        <ButtonAppearance.Background>
+            <DisplayModel model="nav_labels" Tint="text"/>
+        </ButtonAppearance.Background>
+        </ButtonStyle.Normal><ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_labels" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_labels" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Name="nav_filter_political" Width="13" Height="13"> <ButtonStyle.Normal>
+        <ButtonAppearance.Background>
+            <DisplayModel model="nav_filter_political" Tint="text"/>
+        </ButtonAppearance.Background>
+        </ButtonStyle.Normal><ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_filter_political" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_filter_political" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Name="nav_filter_physical" Width="13" Height="13"> <ButtonStyle.Normal>
+        <ButtonAppearance.Background>
+            <DisplayModel model="nav_filter_physical" Tint="text"/>
+        </ButtonAppearance.Background>
+        </ButtonStyle.Normal><ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_filter_physical" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_filter_physical" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
 	<!-- Menu -->
 	<ButtonStyle Width="162" Height="43" Name="menubutton" MouseEnterSound="ui_rollover">
 		<ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="16" FontFamily="$ButtonText">
@@ -138,6 +284,8 @@
 		</ScrollbarStyle.Thumb>
 	</ScrollbarStyle>
 </Stylesheet>
+
+
 
 
 
