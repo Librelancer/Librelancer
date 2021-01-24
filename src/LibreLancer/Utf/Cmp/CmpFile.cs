@@ -243,6 +243,13 @@ namespace LibreLancer.Utf.Cmp
             return surParts[GetRootPart()];
         }
 
+        public void ClearResources()
+        {
+            MaterialLibrary = null;
+            TextureLibrary = null;
+            VMeshLibrary = null;
+        }
+
         public override string ToString()
         {
             return Path;

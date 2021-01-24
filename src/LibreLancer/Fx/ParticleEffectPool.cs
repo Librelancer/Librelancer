@@ -249,6 +249,7 @@ namespace LibreLancer.Fx
                     var app = (FxAppearance)Particles[i].Appearance.Node;
                     app.Debug = debug;
                     app.Draw(ref Particles[i], i, (float)inst.LastTime, (float)inst.GlobalTime, Particles[i].Appearance, inst.Resources, inst, ref inst.DrawTransform, inst.DrawSParam);
+                    app.Debug = null;
                 }
             }
             vbo.EndStreaming(maxVbo);

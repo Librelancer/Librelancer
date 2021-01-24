@@ -71,6 +71,7 @@ namespace LibreLancer
             if (!drawables.TryGetValue(filename, out drawable))
             {
                 drawable = Utf.UtfLoader.LoadDrawable(filename, this);
+                drawable.ClearResources();
                 drawables.Add(filename, drawable);
             }
             return drawable;
@@ -437,20 +438,21 @@ namespace LibreLancer
 					if (mdl.MaterialLibrary != null) AddMaterials(mdl.MaterialLibrary, filename);
 					if (mdl.TextureLibrary != null) AddTextures(mdl.TextureLibrary, filename);
 					if (mdl.VMeshLibrary != null) AddMeshes(mdl.VMeshLibrary);
-				}
+                }
 				if (drawable is DfmFile)
 				{
 					var dfm = (DfmFile)drawable;
 					if (dfm.MaterialLibrary != null) AddMaterials(dfm.MaterialLibrary, filename);
 					if (dfm.TextureLibrary != null) AddTextures(dfm.TextureLibrary, filename);
-				}
+                }
 				if (drawable is SphFile)
 				{
 					var sph = (SphFile)drawable;
 					if (sph.MaterialLibrary != null) AddMaterials(sph.MaterialLibrary, filename);
 					if (sph.TextureLibrary != null) AddTextures(sph.TextureLibrary, filename);
 					if (sph.VMeshLibrary != null) AddMeshes(sph.VMeshLibrary);
-				}
+                }
+                drawable.ClearResources();
 				drawables.Add(filename, drawable);
 			}
 			return drawable;

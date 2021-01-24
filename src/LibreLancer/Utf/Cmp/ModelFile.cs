@@ -5,7 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-
+using System.Reflection;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Vms;
 
@@ -241,6 +241,13 @@ namespace LibreLancer.Utf.Cmp
             }
             if (additionalLibrary != null) return additionalLibrary.FindMesh(vMeshLibId);
             return null;
+        }
+
+        public void ClearResources()
+        {
+            MaterialLibrary = null;
+            TextureLibrary = null;
+            VMeshLibrary = null;
         }
 
         public override string ToString()

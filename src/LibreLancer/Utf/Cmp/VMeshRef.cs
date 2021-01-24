@@ -101,7 +101,7 @@ namespace LibreLancer.Utf.Cmp
 
 		public void Initialize(ResourceManager cache)
         {
-            if (MeshCrc == 0) return;
+            if (MeshCrc == 0 || ready) return;
             Mesh.Initialize (StartMesh, endMesh, cache);
             ready = true;
             //Check if ref needs optimising

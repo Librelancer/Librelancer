@@ -29,7 +29,6 @@ Mouse Flight: {11}
 		public GameWorld world;
         public FreelancerGame FlGame => Game;
 		ChaseCamera camera;
-		PhysicsDebugRenderer debugphysics;
 		SystemRenderer sysrender;
 		bool wireframe = false;
 		bool textEntry = false;
@@ -118,7 +117,6 @@ Mouse Flight: {11}
             world.PhysicsUpdate += World_PhysicsUpdate;
             player.Register(world.Physics);
             Game.Sound.PlayMusic(sys.MusicSpace);
-            debugphysics = new PhysicsDebugRenderer();
             //world.Physics.EnableWireframes(debugphysics);
             cur_arrow = Game.ResourceManager.GetCursor("cross");
             cur_reticle = Game.ResourceManager.GetCursor("fire_neutral");
@@ -214,6 +212,7 @@ Mouse Flight: {11}
 		{
 			Game.Keyboard.TextInput -= Game_TextInput;
 			Game.Keyboard.KeyDown -= Keyboard_KeyDown;
+            Game.Mouse.MouseDown -= Mouse_MouseDown;
 			input?.Dispose();
 			sysrender?.Dispose();
             world?.Dispose();

@@ -219,5 +219,11 @@ namespace LibreLancer.Utf.Mat
             model.AllParts = new[] {part};
             return model;
         }
+
+        public void ClearResources()
+        {
+            MaterialLibrary = null;
+            TextureLibrary = null;
+        }
     }
 }
