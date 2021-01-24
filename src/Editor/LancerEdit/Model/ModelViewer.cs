@@ -199,9 +199,9 @@ namespace LancerEdit
         public override void Update(double elapsed)
         {
             if (animator != null)
-                animator.Update(TimeSpan.FromSeconds(elapsed));
+                animator.Update(elapsed);
             if (skel != null) {
-                skel.UpdateScripts(TimeSpan.FromSeconds(elapsed));
+                skel.UpdateScripts(elapsed);
             }
             if (newErrorTimer > 0) newErrorTimer -= elapsed;
         }

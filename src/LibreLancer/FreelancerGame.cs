@@ -146,8 +146,8 @@ namespace LibreLancer
 		protected override void Update (double elapsed)
 		{
 			if (currentState != null)
-				currentState.Update (TimeSpan.FromSeconds (elapsed));
-            Typewriter.Update(TimeSpan.FromSeconds(elapsed));
+				currentState.Update (elapsed);
+            Typewriter.Update(elapsed);
         }
 
 		const double FPS_INTERVAL = 0.25;
@@ -163,7 +163,7 @@ namespace LibreLancer
 			}
 			RenderState.ClearAll ();
 			if (currentState != null)
-				currentState.Draw (TimeSpan.FromSeconds (elapsed));
+				currentState.Draw (elapsed);
             Typewriter.Render();
 			drawCallsPerFrame = VertexBuffer.TotalDrawcalls;
 			VertexBuffer.TotalDrawcalls = 0;

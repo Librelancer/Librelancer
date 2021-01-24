@@ -43,7 +43,7 @@ namespace LibreLancer
             partRemoved = true;
         }
 
-        public override void FixedUpdate(TimeSpan time)
+        public override void FixedUpdate(double time)
         {
             if(partRemoved)
             {

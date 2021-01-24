@@ -77,7 +77,7 @@ namespace LibreLancer
                 Tick = ms, Orient = orient
             });
         }
-        public override void FixedUpdate(TimeSpan time)
+        public override void FixedUpdate(double time)
         {
             UpdatePosition(time);
             UpdateOrientation(time);
@@ -92,9 +92,9 @@ namespace LibreLancer
         private bool setQ = false;
         private Vector3 currentPos;
         private Quaternion currentQuat;
-        private TimeSpan posTimer;
-        private TimeSpan quatTimer;
-        void UpdatePosition(TimeSpan delta)
+        private double posTimer;
+        private double quatTimer;
+        void UpdatePosition(double delta)
         {
             if (receivedPosTime < BUFFER_MS || posBuffer.Count < 2)
             {
@@ -104,19 +104,19 @@ namespace LibreLancer
             setV = true;
             var dataA = posBuffer[0];
             var dataB = posBuffer[1];
-            var lerpTime = TimeSpan.FromMilliseconds(SeqDiff(dataB.Tick, dataA.Tick));
+            var lerpTime = SeqDiff(dataB.Tick, dataA.Tick) / 1000.0;
             var t = posTimer / lerpTime;
             currentPos = Vector3.Lerp(dataA.Pos, dataB.Pos, (float)t);
             posTimer += delta;
             if (posTimer > lerpTime)
             {
-                receivedPosTime -= lerpTime.TotalMilliseconds;
+                receivedPosTime -= (int)(lerpTime * 1000);
                 posBuffer.Dequeue();
                 posTimer -= lerpTime;
             }
         }
         
-        void UpdateOrientation(TimeSpan delta)
+        void UpdateOrientation(double delta)
         {
             if (receivedOrientTime < BUFFER_MS || orientBuffer.Count < 2)
             {
@@ -126,13 +126,13 @@ namespace LibreLancer
             setQ = true;
             var dataA = orientBuffer[0];
             var dataB = orientBuffer[1];
-            var lerpTime = TimeSpan.FromMilliseconds(SeqDiff(dataB.Tick, dataA.Tick));
+            var lerpTime = SeqDiff(dataB.Tick, dataA.Tick) / 1000.0;
             var t = quatTimer / lerpTime;
             currentQuat = Quaternion.Slerp(dataA.Orient, dataB.Orient, (float) t);
             quatTimer += delta;
             if (quatTimer > lerpTime)
             {
-                receivedOrientTime -= (int) lerpTime.TotalMilliseconds;
+                receivedOrientTime -= (int) (lerpTime * 1000);
                 orientBuffer.Dequeue();
                 quatTimer -= lerpTime;
             }

@@ -411,13 +411,13 @@ namespace LibreLancer
             }
         }
 
-		public override void Update(TimeSpan delta)
+		public override void Update(double delta)
         {
             session.Update();
             ProcessCutscenes();
             if (scene != null) {
                 scene.UpdateViewport(Game.Viewport);
-                scene.Update(firstFrame ? TimeSpan.Zero : delta);
+                scene.Update(firstFrame ? 0 : delta);
             }
             firstFrame = false;
             ui.Update(Game);
@@ -429,7 +429,7 @@ namespace LibreLancer
 
 
         
-		public override void Draw(TimeSpan delta)
+		public override void Draw(double delta)
         {
             RenderMaterial.VertexLighting = true;
             if (scene != null)
@@ -450,7 +450,7 @@ namespace LibreLancer
             }
             if (animatingLetterbox)
             {
-                letterboxAmount -= delta.TotalSeconds * 3;
+                letterboxAmount -= delta * 3;
                 if (letterboxAmount < 0)
                 {
                     letterboxAmount = -1;

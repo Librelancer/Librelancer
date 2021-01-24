@@ -42,7 +42,7 @@ namespace SystemViewer
 
         private RenderTarget2D rtarget;
         private int rw = -1, rh = -1, rt = -1;
-        public void Draw(int width, int height, TimeSpan delta)
+        public void Draw(int width, int height, double delta)
         {
             //Set viewport
             height -= 30;

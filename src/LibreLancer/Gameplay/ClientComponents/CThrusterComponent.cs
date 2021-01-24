@@ -24,7 +24,7 @@ namespace LibreLancer
 			}
 		}
 
-		public override void Update(TimeSpan time)
+		public override void Update(double time)
 		{
 			for (int i = 0; i < fireFx.Count; i++)
 				fireFx[i].Update(Parent, time, Enabled ? 1 : 0);

@@ -13,10 +13,10 @@ namespace LibreLancer
 		{
 			Parent = parent;
 		}
-		public virtual void Update(TimeSpan time)
+		public virtual void Update(double time)
 		{
 		}
-		public virtual void FixedUpdate(TimeSpan time)
+		public virtual void FixedUpdate(double time)
 		{
 		}
 		public virtual void Register(PhysicsWorld physics)

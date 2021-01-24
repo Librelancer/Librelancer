@@ -36,7 +36,7 @@ namespace LibreLancer
 			lastTargetHp = 0;
 		}
 
-		public override void FixedUpdate(TimeSpan time)
+		public override void FixedUpdate(double time)
 		{
 			var control = Parent.GetComponent<ShipPhysicsComponent>();
 			if (control == null) return;
@@ -91,7 +91,7 @@ namespace LibreLancer
 				control.EnginePower = maxSpeed;
 
 			//Orientation
-			var dt = time.TotalSeconds;
+			var dt = time;
 			var vec = Parent.InverseTransformPoint(targetPoint);
 			//normalize it
 			vec.Normalize();

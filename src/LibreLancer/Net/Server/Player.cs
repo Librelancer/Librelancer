@@ -43,7 +43,7 @@ namespace LibreLancer
             ID = Interlocked.Increment(ref _gid);
         }
 
-        public void UpdateMissionRuntime(TimeSpan elapsed)
+        public void UpdateMissionRuntime(double elapsed)
         {
             msnRuntime?.Update(elapsed);
             if (World != null)
@@ -142,7 +142,7 @@ namespace LibreLancer
             if (missionNum != 0 && (missionNum - 1) < game.GameData.Ini.Missions.Count)
             {
                 msnRuntime = new MissionRuntime(game.GameData.Ini.Missions[missionNum - 1], this);
-                msnRuntime.Update(TimeSpan.Zero);
+                msnRuntime.Update(0.0);
             }
         }
 

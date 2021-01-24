@@ -57,7 +57,7 @@ namespace LibreLancer.Interface
             var rect = context.PointsToPixels(clientRectangle);
             
             Matrix4x4 rotationMatrix = Matrix4x4.Identity;
-            var rot = Rotate + (RotateAnimation * (float)context.GlobalTime.TotalSeconds);
+            var rot = Rotate + (RotateAnimation * (float)context.GlobalTime);
             if (rot != Vector3.Zero) {
                 rotationMatrix = Matrix4x4.CreateRotationX(rot.X) *
                       Matrix4x4.CreateRotationY(rot.Y) *

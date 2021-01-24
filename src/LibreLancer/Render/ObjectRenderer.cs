@@ -10,7 +10,7 @@ namespace LibreLancer
 	public abstract class ObjectRenderer
 	{
         public string Name;
-		public abstract void Update(TimeSpan time, Vector3 position, Matrix4x4 transform);
+		public abstract void Update(double time, Vector3 position, Matrix4x4 transform);
 		public abstract void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr);
 		public virtual void DepthPrepass(ICamera camera, RenderState rstate) { }
 		//Rendering Parameters

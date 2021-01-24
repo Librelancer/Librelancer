@@ -77,14 +77,14 @@ namespace LibreLancer
         bool lt_on = true;
         Color3f colorBulb;
         Color3f colorGlow;
-        public override void Update(TimeSpan time, Vector3 position, Matrix4x4 transform)
+        public override void Update(double time, Vector3 position, Matrix4x4 transform)
         {
             if (!LightOn || sys == null)
                 return;
             pos = position;
             if (equip.Animated)
             {
-                timer -= time.TotalSeconds;
+                timer -= time;
                 if (timer < 0)
                 {
                     if (lt_on)

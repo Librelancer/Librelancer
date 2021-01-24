@@ -201,7 +201,7 @@ namespace LibreLancer.Utf.Dfm
 			ready = true;
 		}
 
-        public void Update(ICamera camera, TimeSpan delta)
+        public void Update(ICamera camera, double delta)
 		{
 			if (ready) foreach (FaceGroup faceGroup in FaceGroups) faceGroup.Update (camera);
 		}

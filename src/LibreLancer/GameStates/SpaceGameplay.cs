@@ -268,7 +268,7 @@ Mouse Flight: {11}
 			return false;
 		}
 
-		void World_RenderUpdate(TimeSpan delta)
+		void World_RenderUpdate(double delta)
 		{
 
 		}
@@ -279,7 +279,7 @@ Mouse Flight: {11}
 
         public bool ShowHud = true;
 
-        public override void Update(TimeSpan delta)
+        public override void Update(double delta)
 		{
             if(loading)
             {
@@ -312,7 +312,7 @@ Mouse Flight: {11}
 		bool cruise = false;
 		bool thrust = false;
 
-		void World_PhysicsUpdate(TimeSpan delta)
+		void World_PhysicsUpdate(double delta)
 		{
 			control.EngineState = cruise ? EngineStates.Cruise : EngineStates.Standard;
             if(Thn == null || !Thn.Running)
@@ -369,7 +369,7 @@ Mouse Flight: {11}
 
 		const float ACCEL = 85;
 		GameObject selected;
-		void ProcessInput(TimeSpan delta)
+		void ProcessInput(double delta)
 		{
 			input.Update();
 
@@ -377,13 +377,13 @@ Mouse Flight: {11}
             {
 				if (input.ActionDown(InputAction.ID_THROTTLEUP))
 				{
-                    shipInput.Throttle += (float)(delta.TotalSeconds);
+                    shipInput.Throttle += (float)(delta);
 					shipInput.Throttle = MathHelper.Clamp(shipInput.Throttle, 0, 1);
 				}
 
 				else if (input.ActionDown(InputAction.ID_THROTTLEDOWN))
 				{
-                    shipInput.Throttle -= (float)(delta.TotalSeconds);
+                    shipInput.Throttle -= (float)(delta);
                     shipInput.Throttle = MathHelper.Clamp(shipInput.Throttle, 0, 1);
 				}
 			}
@@ -537,7 +537,7 @@ Mouse Flight: {11}
 		}
 
 		//RigidBody debugDrawBody;
-		public override void Draw(TimeSpan delta)
+		public override void Draw(double delta)
 		{
             RenderMaterial.VertexLighting = false;
             if (loading)

@@ -31,7 +31,6 @@ namespace LibreLancer
             intro = g.GameData.GetIntroScene();
             scene = new Cutscene(new ThnScriptContext(null), Game.GameData, Game.Viewport, Game);
             scene.BeginScene(intro.Scripts);
-            scene.Update(TimeSpan.FromSeconds(1f / 60f)); //Do all the setup events - smoother entrance
             FLLog.Info("Thn", "Playing " + intro.ThnName);
             cur = g.ResourceManager.GetCursor("arrow");
             GC.Collect(); //crap
@@ -249,7 +248,7 @@ namespace LibreLancer
             public override void Exit() => state.FadeOut(0.2, () => state.Game.Exit());
         }
 
-        public override void Draw(TimeSpan delta) 
+        public override void Draw(double delta) 
         {
             RenderMaterial.VertexLighting = true;
             scene.Draw();
@@ -263,7 +262,7 @@ namespace LibreLancer
 
         int uframe = 0;
         bool newUI = false;
-        public override void Update(TimeSpan delta)
+        public override void Update(double delta)
         {
             ui.Update(Game);
             Game.TextInputEnabled = ui.KeyboardGrabbed;
@@ -277,7 +276,7 @@ namespace LibreLancer
             intro = Game.GameData.GetIntroSceneSpecific(index);
             scene.Dispose();
             scene.BeginScene(intro.Scripts);
-            scene.Update(TimeSpan.FromSeconds(1f / 60f)); //Do all the setup events - smoother entrance
+            scene.Update(1 / 60.0); //Do all the setup events - smoother entrance
             Game.Sound.PlayMusic(intro.Music);
         }
         

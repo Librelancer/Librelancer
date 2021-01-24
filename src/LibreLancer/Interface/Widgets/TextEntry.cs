@@ -28,8 +28,8 @@ namespace LibreLancer.Interface
 
         private bool doSetFocus = false;
         private bool hasFocus = false;
-        private TimeSpan lastChange = TimeSpan.Zero;
-        private TimeSpan blinkDuration = TimeSpan.FromSeconds(0.4);
+        private double lastChange = 0.0;
+        private double blinkDuration = 0.4;
         private bool cursorVisible = false;
         public override void Render(UiContext context, RectangleF parentRectangle)
         {

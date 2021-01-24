@@ -16,7 +16,7 @@ namespace LibreLancer
 			Effect = fx;
 			Effect.SParam = 0.9f;
 		}
-		public void Update(GameObject parent, TimeSpan time, float sparam)
+		public void Update(GameObject parent, double time, float sparam)
 		{
 			Effect.SParam = sparam;
 			var world = Attachment.Transform * parent.GetTransform();

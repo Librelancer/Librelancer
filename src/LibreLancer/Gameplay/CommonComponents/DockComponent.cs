@@ -95,7 +95,7 @@ namespace LibreLancer
 			component.StartAnimation(DockAnimation, false);
 		}
 
-		public override void Update(TimeSpan time)
+		public override void Update(double time)
 		{
 		}
 	}

@@ -198,7 +198,7 @@ namespace LibreLancer
 
             lagCounter = 0;
             //Init
-            _Update(TimeSpan.Zero);
+            _Update(0);
             running = true;
         }
         
@@ -224,22 +224,23 @@ namespace LibreLancer
         private int lagCounter = 0;
         private int LAG_LIMIT = 5;
         private const double LAG_THRESHOLD = 1 / 20.0;
-		public void Update(TimeSpan delta)
+		public void Update(double delta)
         {
-            if (lagCounter < LAG_LIMIT && delta.TotalSeconds > LAG_THRESHOLD)
+            if (lagCounter < LAG_LIMIT && delta > LAG_THRESHOLD)
             {
                 lagCounter++;
                 return;
             }
-            accumTime += delta.TotalSeconds;
+
+            accumTime += delta;
             if (accumTime >= TIMESTEP)
             {
-                _Update(TimeSpan.FromSeconds(accumTime));
+                _Update(accumTime);
                 accumTime = 0;
             }
         }
         
-        public void _Update(TimeSpan delta)
+        public void _Update(double delta)
         {
             var sound = game.GetService<SoundManager>();
             if (Running)
@@ -249,7 +250,7 @@ namespace LibreLancer
                 var up = Vector3.TransformNormal(Vector3.UnitY, camera.Transform.Orientation);
                 sound.UpdateListener(delta, pos, forward, up);
             }
-			currentTime += delta.TotalSeconds;
+			currentTime += delta;
             if (text != null)
             {
                 if (currentTime > text.Start)

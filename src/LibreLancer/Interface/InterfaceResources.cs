@@ -60,11 +60,11 @@ namespace LibreLancer.Interface
         public Color4 Color;
         public InterfaceColorAnimation Animation;
 
-        public Color4 GetColor(TimeSpan time)
+        public Color4 GetColor(double time)
         {
             if (Animation != null)
             {
-                var x = time.TotalSeconds;
+                var x = time;
                 var factor = (float) Math.Abs(Math.Sin(Math.PI * x * Animation.Speed));
                 return new Color4(
                     MathHelper.Lerp(Animation.Color1.R, Animation.Color2.R, factor),

@@ -10,7 +10,7 @@ using BM = BulletSharp.Math;
 
 namespace LibreLancer.Physics
 {
-    public delegate void FixedUpdateHandler(TimeSpan elapsed);
+    public delegate void FixedUpdateHandler(double elapsed);
     /// <summary>
     /// Creates a bullet physics world. Any object created here will be invalid upon Dispose()
     /// </summary>
@@ -101,13 +101,13 @@ namespace LibreLancer.Physics
             }
         }
         double accumulatedTime = 0;
-        const float TIMESTEP = 1 / 60f;
-        public void Step(TimeSpan elapsed)
+        private const float TIMESTEP = 1 / 60.0f;
+        public void Step(double elapsed)
         {
             if (disposed) throw new ObjectDisposedException("PhysicsWorld");
-            accumulatedTime += elapsed.TotalSeconds;
+            accumulatedTime += elapsed;
             while(accumulatedTime >= TIMESTEP) {
-                FixedUpdate?.Invoke(TimeSpan.FromSeconds(TIMESTEP));
+                FixedUpdate?.Invoke(TIMESTEP);
                 if (disposed) return; //Alllow delete within FixedUpdate. Hacky but works
                 btWorld.StepSimulation(TIMESTEP, 0, TIMESTEP);
                 accumulatedTime -= TIMESTEP;

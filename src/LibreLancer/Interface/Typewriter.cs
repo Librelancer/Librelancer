@@ -31,7 +31,7 @@ namespace LibreLancer.Interface
         {
             strings.Enqueue(str);
         }
-        public void Update(TimeSpan delta)
+        public void Update(double delta)
         {
             bool playSound = false;
             while (strings.Count > 0)
@@ -47,7 +47,7 @@ namespace LibreLancer.Interface
 
             if (currentString != null)
             {
-                time += delta.TotalSeconds;
+                time += delta;
                 if (time >= DISPLAY_MAX)
                 {
                     currentString = null;

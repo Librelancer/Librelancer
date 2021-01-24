@@ -22,7 +22,7 @@ namespace LibreLancer
         public PIDController PitchControl = new PIDController() { P = 3.5f };
         public PIDController YawControl = new PIDController() { P = 3.5f };
         public PIDController RollControl = new PIDController() { P = 4f };
-        public override void FixedUpdate(TimeSpan time)
+        public override void FixedUpdate(double time)
         {
             if (physics == null) physics = Parent.GetComponent<ShipPhysicsComponent>();
             if (Camera == null) return;
@@ -36,8 +36,8 @@ namespace LibreLancer
                 var dir = (tgt - ep).Normalized();
                 var gotoPos = Camera.Position + (dir * 1000);
                 //Turn
-                TurnTowards(gotoPos, time.TotalSeconds);
-                BankShip(Camera.CameraUp, time.TotalSeconds);
+                TurnTowards(gotoPos, time);
+                BankShip(Camera.CameraUp, time);
             }
             else
             {

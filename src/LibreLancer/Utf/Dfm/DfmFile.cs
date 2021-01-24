@@ -194,7 +194,7 @@ namespace LibreLancer.Utf.Dfm
 			return null;
 		}
 
-		public void Update(ICamera camera, TimeSpan delta, TimeSpan totalTime)
+		public void Update(ICamera camera, double delta, double totalTime)
 		{
 			Levels[0].Update(camera, delta);
 		}

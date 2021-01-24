@@ -41,7 +41,7 @@ namespace LibreLancer
         float dist = float.MaxValue;
 		const float CULL_DISTANCE = 20000;
 		const float CULL = CULL_DISTANCE * CULL_DISTANCE;
-		public override void Update(TimeSpan time, Vector3 position, Matrix4x4 transform)
+		public override void Update(double time, Vector3 position, Matrix4x4 transform)
 		{
             if (fx == null) return;
 			pos = position;

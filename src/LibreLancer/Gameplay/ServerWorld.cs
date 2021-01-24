@@ -156,9 +156,9 @@ namespace LibreLancer
             });
         }
 
-        private TimeSpan noPlayersTime;
-        private TimeSpan maxNoPlayers = TimeSpan.FromSeconds(2);
-        public bool Update(TimeSpan delta)
+        private double noPlayersTime;
+        private double maxNoPlayers = 2.0;
+        public bool Update(double delta)
         {
             //Avoid locks during Update
             Action act;
@@ -166,8 +166,8 @@ namespace LibreLancer
             //Update
             GameWorld.Update(delta);
             //Network update tick
-            current += delta.TotalSeconds;
-            tickTime += delta.TotalSeconds;
+            current += delta;
+            tickTime += delta;
             if (tickTime > (LNetConst.MAX_TICK_MS / 1000.0))
                 tickTime -= (LNetConst.MAX_TICK_MS / 1000.0);
             var tick = (uint) (tickTime * 1000.0);
@@ -181,8 +181,9 @@ namespace LibreLancer
                 noPlayersTime += delta;
                 return (noPlayersTime < maxNoPlayers);
             }
-            else {
-                noPlayersTime = TimeSpan.Zero;
+            else
+            {
+                noPlayersTime = 0;
                 return true;
             }
         }
@@ -190,7 +191,7 @@ namespace LibreLancer
         const double UPDATE_RATE = 1 / 25.0;
         double current = 0;
         private double tickTime = 0;
-        void GameWorld_PhysicsUpdate(TimeSpan delta)
+        void GameWorld_PhysicsUpdate(double delta)
         {
             SendPositionUpdates(false, 0); //Send single player updates (more)
         }

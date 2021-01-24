@@ -65,18 +65,18 @@ namespace LibreLancer.Interface
             }
         }
 
-        private TimeSpan lastTime = TimeSpan.Zero;
+        private double lastTime = 0;
         private float timer = 1 / 8f;
         public void Render(UiContext context, RectangleF parent)
         {
             float delta = 0;
-            if (lastTime == TimeSpan.Zero) {
+            if (lastTime == 0) {
                 lastTime = context.GlobalTime;
             }
             else {
                 var newTime = context.GlobalTime - lastTime;
                 lastTime = context.GlobalTime;
-                delta = (float) newTime.TotalSeconds;
+                delta = (float) newTime;
                 timer -= delta;
             }
             timer = MathHelper.Clamp(timer, 0, 100);

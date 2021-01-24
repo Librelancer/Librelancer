@@ -62,9 +62,9 @@ namespace SystemViewer
         {
             if(world != null) {
                 ProcessInput(elapsed);
-                camera.Update(TimeSpan.FromSeconds(elapsed));
+                camera.Update(elapsed);
                 camera.Free = true;
-                world.Update(TimeSpan.FromSeconds(elapsed));
+                world.Update(elapsed);
             }
         }
         void ProcessInput(double delta)
@@ -256,7 +256,7 @@ C# Memory Usage: {5}
                         {
                             var szX = Math.Max(20, ImGui.GetWindowWidth());
                             var szY = Math.Max(20, ImGui.GetWindowHeight() - 70);
-                            systemMap.Draw((int) szX, (int) szY, TimeSpan.FromSeconds(elapsed));
+                            systemMap.Draw((int) szX, (int) szY, elapsed);
                             ImGui.EndTabItem();
                         }
 

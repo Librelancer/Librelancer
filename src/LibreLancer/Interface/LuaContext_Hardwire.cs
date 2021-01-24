@@ -10019,7 +10019,7 @@ namespace LibreLancer.Lua {
                 this.AddMember("Equals", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("Equals", typeof(LibreLancer.Interface.InterfaceColor), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_zAWXegKqPIeFrVPB1yvlBkGa()}));
                 this.AddMember("GetColor", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("GetColor", typeof(LibreLancer.Interface.InterfaceColor), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
-                                new MTHD_1JRuJNGcnjPAlzeqG4pMfofY1()}));
+                                new MTHD_1I7FymJAMC5USdMi2mWXYFzsV()}));
                 this.AddMember("GetHashCode", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("GetHashCode", typeof(LibreLancer.Interface.InterfaceColor), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
                                 new MTHD_AQZIo8LF5aMhnjpZbgwI07wa()}));
                 this.AddMember("GetType", new MoonSharp.Interpreter.Interop.OverloadedMethodMemberDescriptor("GetType", typeof(LibreLancer.Interface.InterfaceColor), new MoonSharp.Interpreter.Interop.BasicDescriptors.IOverloadableMemberDescriptor[] {
@@ -10076,15 +10076,15 @@ namespace LibreLancer.Lua {
                 }
             }
             
-            private sealed class MTHD_1JRuJNGcnjPAlzeqG4pMfofY1 : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
+            private sealed class MTHD_1I7FymJAMC5USdMi2mWXYFzsV : MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors.HardwiredMethodMemberDescriptor {
                 
-                internal MTHD_1JRuJNGcnjPAlzeqG4pMfofY1() {
+                internal MTHD_1I7FymJAMC5USdMi2mWXYFzsV() {
                     this.Initialize("GetColor", false, new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor[] {
-                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("time", typeof(System.TimeSpan), false, null, false, false, false)}, false);
+                                new MoonSharp.Interpreter.Interop.BasicDescriptors.ParameterDescriptor("time", typeof(double), false, null, false, false, false)}, false);
                 }
                 
                 protected override object Invoke(MoonSharp.Interpreter.Script script, object obj, object[] pars, int argscount) {
-                    return ((LibreLancer.Interface.InterfaceColor)(obj)).GetColor(((System.TimeSpan)(pars[0])));
+                    return ((LibreLancer.Interface.InterfaceColor)(obj)).GetColor(((double)(pars[0])));
                 }
             }
             

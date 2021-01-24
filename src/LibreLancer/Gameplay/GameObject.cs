@@ -252,7 +252,7 @@ namespace LibreLancer
 			}
 		}
 
-		public void Update(TimeSpan time)
+		public void Update(double time)
 		{
             if (RenderComponent != null)
 			{
@@ -267,7 +267,7 @@ namespace LibreLancer
 				Components[i].Update(time);
 		}
         
-        public void FixedUpdate(TimeSpan time)
+        public void FixedUpdate(double time)
 		{
 			for (int i = 0; i < Children.Count; i++)
 				Children[i].FixedUpdate(time);

@@ -29,13 +29,13 @@ namespace LibreLancer
             active = new BitArray(msn.Triggers.Count);
         }
 
-        public void Update(TimeSpan elapsed)
+        public void Update(double elapsed)
         {
             lock (_msnLock)
             {
                 foreach (var t in timers)
                 {
-                    t.Value.T += elapsed.TotalSeconds;
+                    t.Value.T += elapsed;
                 }
                 CheckMissionScript();
             }

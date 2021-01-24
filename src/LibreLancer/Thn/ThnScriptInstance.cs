@@ -232,17 +232,17 @@ namespace LibreLancer
         }
 
         Queue<ThnEvent> delaySoundEvents = new Queue<ThnEvent>();
-        public void Update(TimeSpan delta)
+        public void Update(double delta)
         {
             if (CurrentTime > Duration) return;
-            CurrentTime += delta.TotalSeconds;
+            CurrentTime += delta;
             //Don't run sound on T=0 exactly to avoid desync
             while(delaySoundEvents.Count > 0 && CurrentTime > 0)
                 delaySoundEvents.Dequeue().Run(this);
             while (events.Count > 0 && events.Peek().Time <= CurrentTime)
             {
                 var ev = events.Dequeue();
-                if (delta.TotalSeconds <= 0 && (ev is StartSoundEvent || ev is StartAudioPropAnimEvent))
+                if (delta <= 0 && (ev is StartSoundEvent || ev is StartAudioPropAnimEvent))
                 {
                     delaySoundEvents.Enqueue(ev);
                 }
@@ -253,7 +253,7 @@ namespace LibreLancer
             }
             for (int i = (processors.Count - 1); i >= 0; i--)
             {
-                if (!processors[i].Run(delta.TotalSeconds))
+                if (!processors[i].Run(delta))
                 {
                     processors.RemoveAt(i);
                     i--;

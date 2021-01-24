@@ -18,9 +18,9 @@ namespace LibreLancer
         public ServerWorld Server;
 
 		public List<GameObject> Objects = new List<GameObject>();
-		public delegate void RenderUpdateHandler(TimeSpan delta);
+		public delegate void RenderUpdateHandler(double delta);
 		public event RenderUpdateHandler RenderUpdate;
-		public delegate void PhysicsUpdateHandler(TimeSpan delta);
+		public delegate void PhysicsUpdateHandler(double delta);
 		public event PhysicsUpdateHandler PhysicsUpdate;
 
 		public GameWorld(SystemRenderer render, bool initPhys = true)
@@ -123,15 +123,15 @@ namespace LibreLancer
 				obj.Register(Physics);
 		}
 
-        void FixedUpdate(TimeSpan timespan)
+        void FixedUpdate(double time)
         {
-            Projectiles.FixedUpdate(timespan);
+            Projectiles.FixedUpdate(time);
             for (int i = 0; i < Objects.Count; i++)
-                Objects[i].FixedUpdate(timespan);
-            if (PhysicsUpdate != null) PhysicsUpdate(timespan);
+                Objects[i].FixedUpdate(time);
+            if (PhysicsUpdate != null) PhysicsUpdate(time);
         }
 
-        public void Update(TimeSpan t)
+        public void Update(double t)
 		{
             Physics?.Step(t);
 			for (int i = 0; i < Objects.Count; i++)

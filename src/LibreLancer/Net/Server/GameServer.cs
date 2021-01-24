@@ -172,11 +172,11 @@ namespace LibreLancer
                 elapsed /= 1000f;
                 lastTime = time;
                 //Update
-                LocalPlayer?.UpdateMissionRuntime(TimeSpan.FromSeconds(elapsed));
+                LocalPlayer?.UpdateMissionRuntime(elapsed);
                 ConcurrentBag<StarSystem> toSpinDown = new ConcurrentBag<StarSystem>();
                 Parallel.ForEach(worlds, (world) =>
                 {
-                    if(!world.Value.Update(TimeSpan.FromSeconds(elapsed)))
+                    if(!world.Value.Update(elapsed))
                         toSpinDown.Add(world.Key);
                 });
                 //Remove

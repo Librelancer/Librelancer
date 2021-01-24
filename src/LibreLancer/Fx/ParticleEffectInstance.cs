@@ -68,12 +68,12 @@ namespace LibreLancer.Fx
 
         double lasttime = 0;
         public Vector3 Position = Vector3.Zero;
-        public void Update(TimeSpan delta, Matrix4x4 transform, float sparam)
+        public void Update(double delta, Matrix4x4 transform, float sparam)
         {
             if (Pool == null) return;
             Position = Vector3.Transform(Vector3.Zero, transform);
             lasttime = globaltime;
-            globaltime += delta.TotalSeconds;
+            globaltime += delta;
             //Update Emitters
             for (int i = 0; i < Effect.References.Count; i++)
             {

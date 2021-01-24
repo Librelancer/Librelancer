@@ -19,7 +19,7 @@ namespace LibreLancer
 		}
 
 		Matrix4x4 transform;
-        public override void Update(TimeSpan time, Vector3 position, Matrix4x4 transform)
+        public override void Update(double time, Vector3 position, Matrix4x4 transform)
         {
             this.transform = transform;
         }
@@ -37,24 +37,24 @@ namespace LibreLancer
                 LitAmbient, LitDynamic, NoFog
                 );
             Skeleton.Body.SetSkinning(Skeleton.BodySkinning);
-            Skeleton.Body.Update(camera, TimeSpan.Zero, TimeSpan.Zero);
+            Skeleton.Body.Update(camera, 0.0, 0.0);
             Skeleton.Body.DrawBuffer(commands, transform, ref lighting);
             if (Skeleton.Head != null)
             {
                 Skeleton.Head.SetSkinning(Skeleton.HeadSkinning);
-                Skeleton.Head.Update(camera, TimeSpan.Zero, TimeSpan.Zero);
+                Skeleton.Head.Update(camera, 0.0, 0.0);
                 Skeleton.Head.DrawBuffer(commands, headTransform, ref lighting);
             }
             if (Skeleton.LeftHand != null)
             {
                 Skeleton.LeftHand.SetSkinning(Skeleton.LeftHandSkinning);
-                Skeleton.LeftHand.Update(camera, TimeSpan.Zero, TimeSpan.Zero);
+                Skeleton.LeftHand.Update(camera, 0.0, 0.0);
                 Skeleton.LeftHand.DrawBuffer(commands, leftTransform, ref lighting);
             }
             if (Skeleton.RightHand != null)
             {
                 Skeleton.RightHand.SetSkinning(Skeleton.RightHandSkinning);
-                Skeleton.RightHand.Update(camera, TimeSpan.Zero, TimeSpan.Zero);
+                Skeleton.RightHand.Update(camera, 0.0, 0.0);
                 Skeleton.RightHand.DrawBuffer(commands, rightTransform, ref lighting);
             }
         }

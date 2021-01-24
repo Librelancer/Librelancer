@@ -316,11 +316,11 @@ namespace LancerEdit
             {
                 skel.UploadBoneData(buffer.BonesBuffer);
                 dfm.SetSkinning(skel.BodySkinning);
-                dfm.Update(cam, TimeSpan.Zero, TimeSpan.FromSeconds(_window.TotalTime));
+                dfm.Update(cam, 0, _window.TotalTime);
             }
             if (vmsModel != null) {
                 vmsModel.UpdateTransform();
-                vmsModel.Update(cam, TimeSpan.FromSeconds(_window.TotalTime), _window.Resources);
+                vmsModel.Update(cam, _window.TotalTime, _window.Resources);
             }
             if (viewMode != M_NONE)
             {

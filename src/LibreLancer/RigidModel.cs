@@ -231,9 +231,9 @@ namespace LibreLancer
         {
             Root?.UpdateTransform(Matrix4x4.Identity);
         }
-        public void Update(ICamera camera, TimeSpan globalTime, ResourceManager res)
+        public void Update(ICamera camera, double globalTime, ResourceManager res)
         {
-            MaterialAnims?.Update((float)globalTime.TotalSeconds);
+            MaterialAnims?.Update((float)globalTime);
             for (int i = 0; i < AllParts.Length; i++) AllParts[i].Mesh?.UpdateCamera(camera, res);
         }
         

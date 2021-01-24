@@ -149,7 +149,7 @@ namespace InterfaceEdit
         }
         void ColorPickerAnimated(InterfaceColor clr)
         {
-            var current = clr.GetColor(TimeSpan.FromSeconds(mainWindow.TotalTime));
+            var current = clr.GetColor(mainWindow.TotalTime);
             ImGui.ColorButton("##preview", current);
             ImGui.Text("Speed: ");
             ImGui.SameLine();
@@ -376,7 +376,7 @@ namespace InterfaceEdit
             var mcam = new MatrixCamera(Matrix4x4.Identity);
             mcam.CreateTransform(rtX, rtY, rectangle);
             
-            drawable.Update(mcam, TimeSpan.FromSeconds(mainWindow.TotalTime), context.ResourceManager);
+            drawable.Update(mcam, mainWindow.TotalTime, context.ResourceManager);
             mainWindow.RenderState.Cull = false;
             mainWindow.RenderState.ScissorEnabled = true;
             mainWindow.RenderState.ScissorRectangle = rectangle;

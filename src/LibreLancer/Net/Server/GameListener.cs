@@ -164,11 +164,11 @@ namespace LibreLancer
             Server.Start(Port);
             FLLog.Info("Server", "Listening on port " + Port);
             var sw = Stopwatch.StartNew();
-            var last = TimeSpan.Zero;
+            var last = 0.0;
             while (running)
             {
                 Server.PollEvents();
-                var e = sw.Elapsed;
+                var e = sw.Elapsed.TotalSeconds;
                 var ts = e - last;
                 last = e;
                 foreach (var p in Server.ConnectedPeerList)

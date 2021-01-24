@@ -19,7 +19,7 @@ namespace LibreLancer
 		}
         bool shadersCompiled = false;
         int xCnt = 0;
-        public override void Draw(TimeSpan delta)
+        public override void Draw(double delta)
 		{
             xCnt++;
 			Game.Renderer2D.Start(Game.Width, Game.Height);
@@ -32,7 +32,7 @@ namespace LibreLancer
                 shadersCompiled = true;
             }
         }
-		public override void Update(TimeSpan delta)
+		public override void Update(double delta)
 		{
             if (Game.InitialLoadComplete && !invoked)
             {

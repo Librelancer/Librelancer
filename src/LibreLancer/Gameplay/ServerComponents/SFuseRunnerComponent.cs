@@ -26,9 +26,9 @@ namespace LibreLancer
             T = 0;
         }
 
-        public override void Update(TimeSpan time)
+        public override void Update(double time)
         {
-            T += time.TotalSeconds;
+            T += time;
             FuseAction act;
             while(actions.Count > 0 && (act = actions.Peek()).AtT <= T)
             {

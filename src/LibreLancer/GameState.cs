@@ -13,8 +13,8 @@ namespace LibreLancer
 		{
 			Game = game;
 		}
-		public abstract void Update(TimeSpan delta);
-		public abstract void Draw(TimeSpan delta);
+		public abstract void Update(double delta);
+		public abstract void Draw(double delta);
         public virtual void OnResize()
         {
         }
@@ -53,27 +53,27 @@ namespace LibreLancer
         double totalTime = 0;
         private int hitchCount = 0;
         Action fadeDone;
-        protected void DoFade(TimeSpan delta)
+        protected void DoFade(double delta)
         {
             if (fading)
             {
-                if (delta.TotalSeconds < 0.1 || hitchCount >= 6)
+                if (delta < 0.1 || hitchCount >= 6)
                 {
                     if (!fadeFirstFrame)
-                        totalTime += delta.TotalSeconds; //Avoid frame hitching
+                        totalTime += delta; //Avoid frame hitching
                     else
-                        delta = TimeSpan.Zero;
+                        delta = 0;
                     fadeFirstFrame = false;
                 } else {
                     //don't freeze entirely
                     hitchCount++;
-                    delta = TimeSpan.Zero;
+                    delta = 0;
                 }
                 var alpha = (float)(fadeTime / fadeDuration);
                 if (alpha < 0) alpha = 0;
                 if (!fadeIn) alpha = (1 - alpha);
                 Game.Renderer2D.FillRectangle(new Rectangle(0, 0, Game.Width, Game.Height), new Color4(0, 0, 0, alpha));
-                if (totalTime > fadeDelay) fadeTime -= delta.TotalSeconds; //Delay fade in
+                if (totalTime > fadeDelay) fadeTime -= delta; //Delay fade in
                 if (fadeTime < -0.25f) //negative allows last frame
                 {
                     fadeDone?.Invoke();

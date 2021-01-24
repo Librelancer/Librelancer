@@ -84,10 +84,10 @@ namespace InterfaceEdit
         private FileDialogFilters projectFilters =
             new FileDialogFilters(new FileFilter("Project Files", "librelancer-uiproj"));
 
-        public TimeSpan RenderDelta;
+        public double RenderDelta;
         protected override void Draw(double elapsed)
         {
-            var delta = TimeSpan.FromSeconds(elapsed);
+            var delta = elapsed;
             RenderDelta = delta;
             Viewport.Replace(0, 0, Width, Height);
             RenderState.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
@@ -301,7 +301,7 @@ namespace InterfaceEdit
         private RenderTarget2D renderTarget;
         private int renderTargetImage;
         private bool lastDown = false;
-        void Player(TimeSpan delta)
+        void Player(double delta)
         {
             bool childopened = true;
             ImGui.Begin("playwindow", ref childopened,
@@ -329,7 +329,7 @@ namespace InterfaceEdit
             RenderState.ClearColor = Color4.Black;
             RenderState.ClearAll();
             //Do drawing
-            _playContext.GlobalTime = TimeSpan.FromSeconds(TotalTime);
+            _playContext.GlobalTime = TotalTime;
             _playContext.ViewportWidth = rtX;
             _playContext.ViewportHeight = rtY;
             _playContext.RenderWidget(delta);
@@ -349,7 +349,7 @@ namespace InterfaceEdit
                 if (ImGui.GetIO().MouseWheel != 0) {
                     _playContext.OnMouseWheel(ImGui.GetIO().MouseWheel);
                 }
-                _playContext.Update(null, TimeSpan.FromSeconds(TotalTime), mX, mY, false);
+                _playContext.Update(null, TotalTime, mX, mY, false);
                 if(ImGui.IsItemClicked(0)) _playContext.OnMouseClick();
                 var isDown = ImGui.IsMouseDown(0);
                 if (lastDown && !isDown) _playContext.OnMouseUp();
@@ -358,7 +358,7 @@ namespace InterfaceEdit
                 lastDown = isDown;
             }
             else {
-                _playContext.Update(null, TimeSpan.FromSeconds(TotalTime), 0, 0, false);
+                _playContext.Update(null, TotalTime, 0, 0, false);
                 _playContext.MouseLeftDown = false;
                 if (lastDown)
                 {

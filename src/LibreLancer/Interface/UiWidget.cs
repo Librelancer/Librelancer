@@ -120,11 +120,11 @@ namespace LibreLancer.Interface
         protected void Update(UiContext context, Vector2 myPos)
         {
             aspectRatio = context.ViewportWidth / context.ViewportHeight;
-            TimeSpan delta = context.DeltaTime;
-            callback?.Invoke(delta.TotalSeconds);
+            double delta = context.DeltaTime;
+            callback?.Invoke(delta);
             if (CurrentAnimation != null) {
                 CurrentAnimation.SetWidgetPosition(myPos);
-                CurrentAnimation.Update(delta.TotalSeconds, aspectRatio);
+                CurrentAnimation.Update(delta, aspectRatio);
                 if (!CurrentAnimation.Running)
                 {
                     if (CurrentAnimation.FinalPositionSet.HasValue)

@@ -95,10 +95,10 @@ namespace LibreLancer.Interface
             script.Call(_openscene, scene);
         }
         
-        TimeSpan lastTime;
-        public void DoTimers(TimeSpan globalTime)
+        double lastTime;
+        public void DoTimers(double globalTime)
         {
-            if (lastTime == TimeSpan.Zero)
+            if (lastTime == 0)
             {
                 lastTime = globalTime;
                 return;
@@ -109,7 +109,7 @@ namespace LibreLancer.Interface
             {
                 var t = timers[i];
                 t.Time -= delta;
-                if (t.Time <= TimeSpan.Zero)
+                if (t.Time <= 0)
                 {
                     script.Call(t.Function);
                     timers.RemoveAt(i);
@@ -120,13 +120,13 @@ namespace LibreLancer.Interface
         private List<LuaTimer> timers = new List<LuaTimer>();
         class LuaTimer
         {
-            public TimeSpan Time;
+            public double Time;
             public object Function;
         }
         
         public void Timer(float timer, object func)
         {
-            timers.Add(new LuaTimer() { Time = TimeSpan.FromSeconds(timer), Function = func});
+            timers.Add(new LuaTimer() { Time = timer, Function = func});
         }
         
         [MoonSharpUserData]

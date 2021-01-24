@@ -97,7 +97,7 @@ namespace LibreLancer
 		{
             lookAhead = Quaternion.Identity;
             rigRotate = Quaternion.Identity;
-            UpdateRotateTarget(TimeSpan.Zero);
+            UpdateRotateTarget(0);
             rigRotate = targetRigRotate;
 		}
 
@@ -131,7 +131,7 @@ namespace LibreLancer
         long fnum = 0;
         public bool MouseFlight = true;
 
-        void UpdateLookAhead(TimeSpan delta)
+        void UpdateLookAhead(double delta)
         {
             // Normalize screen positions so that the range is -1 to 1. Makes the math easier.
             var mouseScreenX = (MousePosition.X - (Viewport.Width * 0.5f)) / (Viewport.Width * 0.5f);
@@ -147,10 +147,10 @@ namespace LibreLancer
             horizontal = HorizontalTurnAngle * mouseScreenX;
             vertical = (mouseScreenY < 0.0f) ? VerticalTurnUpAngle * mouseScreenY : VerticalTurnDownAngle * mouseScreenY;
 
-            lookAhead = DampS(lookAhead, Quaternion.CreateFromYawPitchRoll(MathHelper.DegreesToRadians(horizontal), MathHelper.DegreesToRadians(vertical), 0), SmoothSpeed, (float)delta.TotalSeconds);
+            lookAhead = DampS(lookAhead, Quaternion.CreateFromYawPitchRoll(MathHelper.DegreesToRadians(horizontal), MathHelper.DegreesToRadians(vertical), 0), SmoothSpeed, (float)delta);
         }
 
-        void UpdateRotateTarget(TimeSpan delta)
+        void UpdateRotateTarget(double delta)
         {
             if (MouseFlight)
             {
@@ -164,13 +164,13 @@ namespace LibreLancer
                 targetRigRotate = ChaseOrientation.ExtractRotation();
         }
 
-        public void Update(TimeSpan delta)
+        public void Update(double delta)
 		{
             fnum++;
 
 
             UpdateRotateTarget(delta);
-            rigRotate = DampS(rigRotate, targetRigRotate, SmoothSpeed, (float)delta.TotalSeconds);
+            rigRotate = DampS(rigRotate, targetRigRotate, SmoothSpeed, (float)delta);
             UpdateLookAhead(delta);
 
             var rigTransform = Matrix4x4.CreateFromQuaternion(rigRotate) * Matrix4x4.CreateTranslation(ChasePosition); //Camera Rig

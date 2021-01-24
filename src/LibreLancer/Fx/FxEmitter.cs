@@ -104,7 +104,7 @@ namespace LibreLancer.Fx
             return idx != -1;
         }
 
-		public override void Update(NodeReference reference, ParticleEffectInstance instance, TimeSpan delta, ref Matrix4x4 transform, float sparam)
+		public override void Update(NodeReference reference, ParticleEffectInstance instance, double delta, ref Matrix4x4 transform, float sparam)
 		{
 			if (reference.Paired.Count == 0) return;
             if (NodeLifeSpan < instance.GlobalTime) return;
@@ -117,7 +117,7 @@ namespace LibreLancer.Fx
 			if (spawnMs > 0)
 			{
 				//Spawn lots of particles
-				var dt = Math.Min(delta.TotalSeconds, 1); //don't go crazy during debug pauses
+				var dt = Math.Min(delta, 1); //don't go crazy during debug pauses
 				while (true)
 				{
 					if (instance.SpawnTimers[reference.EmitterIndex] < dt) {

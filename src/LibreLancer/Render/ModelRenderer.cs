@@ -30,17 +30,17 @@ namespace LibreLancer
         double spinX;
         double spinY;
         double spinZ;
-		public override void Update(TimeSpan elapsed, Vector3 position, Matrix4x4 transform)
+		public override void Update(double elapsed, Vector3 position, Matrix4x4 transform)
 		{
 			if (sysr == null)
 				return;
 			World = transform;
             if(Spin != Vector3.Zero) {
-                spinX += elapsed.TotalSeconds * Spin.X;
+                spinX += elapsed * Spin.X;
                 if (spinX > (2 * Math.PI)) spinX -= 2 * Math.PI;
-                spinY += elapsed.TotalSeconds * Spin.Y;
+                spinY += elapsed * Spin.Y;
                 if (spinY > (2 * Math.PI)) spinY -= 2 * Math.PI;
-                spinZ += elapsed.TotalSeconds * Spin.Z;
+                spinZ += elapsed * Spin.Z;
                 if (spinZ > (2 * Math.PI)) spinZ -= 2 * Math.PI;
             }
             if (Nebula == null || pos != position && sysr != null)
@@ -147,7 +147,7 @@ namespace LibreLancer
 		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
             if (Model != null) {
-                Model.Update(camera, TimeSpan.FromSeconds(sysr.Game.TotalTime), sysr.ResourceManager);
+                Model.Update(camera, sysr.Game.TotalTime, sysr.ResourceManager);
                 foreach (var part in Model.AllParts)
                 {
                     if (part.Mesh == null) continue;

@@ -47,7 +47,7 @@ namespace LibreLancer
             Active = true;
         }
         //TODO: Engine Kill
-        public override void FixedUpdate(TimeSpan time)
+        public override void FixedUpdate(double time)
         {
             if (!Active) return;
             //Component checks
@@ -60,7 +60,7 @@ namespace LibreLancer
             //Drag = -linearDrag * Velocity
             var drag = -engine.Engine.Def.LinearDrag * Parent.PhysicsComponent.Body.LinearVelocity;
             var engine_force = EnginePower * engine.Engine.Def.MaxForce;
-            power.CurrentThrustCapacity += power.Equip.ThrustChargeRate * (float)(time.TotalSeconds);
+            power.CurrentThrustCapacity += power.Equip.ThrustChargeRate * (float)(time);
             power.CurrentThrustCapacity = MathHelper.Clamp(power.CurrentThrustCapacity, 0, power.Equip.ThrustCapacity);
             foreach (var thruster in Parent.GetChildComponents<CThrusterComponent>())
             {
@@ -72,7 +72,7 @@ namespace LibreLancer
                 {
                     engine_force += thruster.Equip.Force;
                     thruster.Enabled = true;
-                    power.CurrentThrustCapacity -= (float)(thruster.Equip.Drain * time.TotalSeconds);
+                    power.CurrentThrustCapacity -= (float)(thruster.Equip.Drain * time);
                     power.CurrentThrustCapacity = MathHelper.Clamp(power.CurrentThrustCapacity, 0, power.Equip.ThrustCapacity);
                     if (power.CurrentThrustCapacity == 0) ThrustEnabled = false;
                 }
@@ -130,7 +130,7 @@ namespace LibreLancer
             double pitch, yaw, roll;
             DecomposeOrientation(Parent.PhysicsComponent.Body.Transform, out pitch, out yaw, out roll);
             if (Math.Abs(PlayerPitch) < float.Epsilon && Math.Abs(PlayerYaw) < float.Epsilon)
-                steerControl.Z = MathHelper.Clamp((float)rollPID.Update(0, roll, (float)time.TotalSeconds), -0.5f, 0.5f);
+                steerControl.Z = MathHelper.Clamp((float)rollPID.Update(0, roll, (float)time), -0.5f, 0.5f);
             else
                 rollPID.Reset();
 

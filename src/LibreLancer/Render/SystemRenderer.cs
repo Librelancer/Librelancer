@@ -168,10 +168,10 @@ namespace LibreLancer
 				SystemLighting.Lights.Add(new DynamicLight() { Light = lt });
 		}
 
-		public void Update(TimeSpan elapsed)
+		public void Update(double elapsed)
         {
             foreach (var model in StarSphereModels)
-                model.Update(camera, TimeSpan.FromSeconds(game.TotalTime), resman);
+                model.Update(camera, game.TotalTime, resman);
             FxPool.Update(elapsed);
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Update(camera);
 			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Update(elapsed);

@@ -37,7 +37,7 @@ namespace LibreLancer
         {
             return false;
         }
-        public override void Update(TimeSpan time, Vector3 position, Matrix4x4 transform)
+        public override void Update(double time, Vector3 position, Matrix4x4 transform)
         {
         }
         public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)

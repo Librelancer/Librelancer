@@ -89,9 +89,9 @@ namespace LibreLancer
             public Vector3 RootTranslationOrigin;
             public Quaternion RootRotation = Quaternion.Identity;
             public Quaternion RootRotationOrigin = Quaternion.Identity;
-            public bool RunScript(TimeSpan delta)
+            public bool RunScript(double delta)
             {
-                T += delta.TotalSeconds;
+                T += delta;
                 var ft = (float) (T * TimeScale) + StartTime;
                 bool running = false;
                 foreach (var j in Joints)
@@ -191,7 +191,7 @@ namespace LibreLancer
             return child * parent;
         }
         
-        public void UpdateScripts(TimeSpan delta)
+        public void UpdateScripts(double delta)
         {
             _rootMotionInstance = null;
             List<ScriptInstance> toRemove = new List<ScriptInstance>();

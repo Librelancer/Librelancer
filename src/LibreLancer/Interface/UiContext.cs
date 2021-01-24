@@ -19,7 +19,7 @@ namespace LibreLancer.Interface
         public float MouseX;
         public float MouseY;
         public bool MouseLeftDown;
-        public TimeSpan GlobalTime;
+        public double GlobalTime;
         //Rendering
         public RenderState RenderState;
         public Renderer2D Renderer2D;
@@ -182,7 +182,7 @@ namespace LibreLancer.Interface
             mode2d = false;
         }
         
-        public void Update(UiWidget widget, TimeSpan globalTime, int mouseX, int mouseY, bool leftDown)
+        public void Update(UiWidget widget, double globalTime, int mouseX, int mouseY, bool leftDown)
         {
             GlobalTime = globalTime;
             var inputRatio = 480 / ViewportHeight;
@@ -190,7 +190,7 @@ namespace LibreLancer.Interface
             MouseY = mouseY * inputRatio;
             MouseLeftDown = leftDown;
             lua?.DoTimers(globalTime);
-            lua?.CallEvent("Update", globalTime.TotalSeconds);
+            lua?.CallEvent("Update", globalTime);
         }
 
         public void Update(FreelancerGame game)
@@ -198,7 +198,7 @@ namespace LibreLancer.Interface
             ViewportWidth = game.Width;
             ViewportHeight = game.Height;
             if(Visible)
-            Update(baseWidget, TimeSpan.FromSeconds(game.TotalTime),
+            Update(baseWidget, game.TotalTime,
                 game.Mouse.X, game.Mouse.Y, game.Mouse.IsButtonDown(MouseButtons.Left));
         }
 
@@ -285,8 +285,8 @@ namespace LibreLancer.Interface
 
         public void OnTextEntry(string text) => textFocusWidget?.OnTextInput(text);
 
-        public TimeSpan DeltaTime;
-        public void RenderWidget(TimeSpan delta)
+        public double DeltaTime;
+        public void RenderWidget(double delta)
         {
             DeltaTime = delta;
             if (baseWidget == null || !Visible)

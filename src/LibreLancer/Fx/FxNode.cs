@@ -47,7 +47,7 @@ namespace LibreLancer.Fx
 			}
 		}
 
-		public virtual void Update(NodeReference reference, ParticleEffectInstance instance, TimeSpan delta, ref Matrix4x4 transform, float sparam)
+		public virtual void Update(NodeReference reference, ParticleEffectInstance instance, double delta, ref Matrix4x4 transform, float sparam)
 		{
 		}
 

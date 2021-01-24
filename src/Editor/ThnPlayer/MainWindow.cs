@@ -89,10 +89,10 @@ namespace ThnPlayer
             if (cutscene != null)
             {
                 cutscene.UpdateViewport(new Viewport(0, 0, Width, Height));
-                cutscene.Update(TimeSpan.FromSeconds(elapsed));
+                cutscene.Update(elapsed);
             }
 
-            Typewriter.Update(TimeSpan.FromSeconds(elapsed));
+            Typewriter.Update(elapsed);
         }
 
         protected override void OnDrop(string file)

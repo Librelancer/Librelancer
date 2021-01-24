@@ -14,7 +14,7 @@ namespace LibreLancer
         {
         }
 
-        public override void FixedUpdate(TimeSpan time)
+        public override void FixedUpdate(double time)
         {
             if (AimPoint != Vector3.Zero)
             {

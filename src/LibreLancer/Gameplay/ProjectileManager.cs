@@ -19,9 +19,9 @@ namespace LibreLancer
             this.world = world;
         }
 
-        public void FixedUpdate(TimeSpan time)
+        public void FixedUpdate(double time)
         {
-            var tFloat = (float)time.TotalSeconds;
+            var tFloat = (float)time;
             for(int i = 0; i < Projectiles.Length; i++) {
                 if (!Projectiles[i].Alive) continue;
                 Projectiles[i].Position += (Projectiles[i].Normal * tFloat);

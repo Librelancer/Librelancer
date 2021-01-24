@@ -18,9 +18,9 @@ namespace LibreLancer
             Object = def;
         }
 
-        public override void FixedUpdate(TimeSpan time)
+        public override void FixedUpdate(double time)
         {
-            CurrentCooldown -= time.TotalSeconds;
+            CurrentCooldown -= time;
             if (CurrentCooldown < 0) CurrentCooldown = 0;
         }
 
@@ -38,7 +38,7 @@ namespace LibreLancer
                 Parent.Parent.World.DrawDebug(pos);
             }
         }
-        public void AimTowards(Vector3 point, TimeSpan time)
+        public void AimTowards(Vector3 point, double time)
         {
             DrawDebugPoints();
             var hp = Parent.Attachment;
@@ -49,7 +49,7 @@ namespace LibreLancer
             var local = TransformGL(point, beforeRotate);
             var localProper = local.Normalized();
             var rads = MathHelper.DegreesToRadians(Object.Def.TurnRate);
-            var delta = (float)(time.TotalSeconds * rads);
+            var delta = (float)(time * rads);
             if(hp.Revolute != null) {
                 var target = -localProper.X * (float)Math.PI;
                 var current = Parent.Attachment.CurrentRevolution;

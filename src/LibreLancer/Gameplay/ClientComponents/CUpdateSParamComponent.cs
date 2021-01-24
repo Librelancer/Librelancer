@@ -13,7 +13,7 @@ namespace LibreLancer
         public CUpdateSParamComponent(GameObject parent) : base(parent)
         {
         }
-        public override void Update(TimeSpan time)
+        public override void Update(double time)
         {
             if (Parent.RenderComponent == null) return;
             float sparam = 0;

@@ -26,7 +26,7 @@ namespace LibreLancer
             }
 		}
 
-		public override void Draw(TimeSpan delta)
+		public override void Draw(double delta)
 		{
 			if (idx != int.MaxValue)
 			{
@@ -62,7 +62,7 @@ namespace LibreLancer
 				Game.ChangeState(new IntroMovie(Game, idx + 1));
 		}
 
-		public override void Update(TimeSpan delta)
+		public override void Update(double delta)
 		{
 			
 		}

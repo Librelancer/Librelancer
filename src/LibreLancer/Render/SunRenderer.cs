@@ -48,7 +48,7 @@ namespace LibreLancer
             ));
         }
 
-        public override void Update(TimeSpan elapsed, Vector3 position, Matrix4x4 transform)
+        public override void Update(double elapsed, Vector3 position, Matrix4x4 transform)
 		{
 			pos = position;
             if (vertices == null) { CreateVertices(); }

@@ -15,12 +15,12 @@ namespace LibreLancer
             this.session = session;
         }
 
-        public override void Update(TimeSpan delta)
+        public override void Update(double delta)
         {
             session.WaitStart();
         }
 
-        public override void Draw(TimeSpan delta)
+        public override void Draw(double delta)
         {
             Game.RenderState.ClearColor = Color4.Black;
             Game.RenderState.ClearAll();

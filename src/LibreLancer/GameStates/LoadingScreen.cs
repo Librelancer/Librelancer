@@ -25,7 +25,7 @@ namespace LibreLancer
 
         private int fCount = 0;
         private const int DELAY_FRAMES = 3;
-        public bool Update(TimeSpan delta)
+        public bool Update(double delta)
         {
             if(fCount > DELAY_FRAMES) game.Ui.Update(game);
             double tick = game.TimerTick;
@@ -39,7 +39,7 @@ namespace LibreLancer
             fCount++;
             return false;
         }
-        public void Draw(TimeSpan delta)
+        public void Draw(double delta)
         {
             if(fCount > DELAY_FRAMES) game.Ui.RenderWidget(delta);
         }

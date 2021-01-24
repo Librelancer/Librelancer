@@ -85,7 +85,7 @@ namespace LibreLancer
 
         long fnum;
 
-		public void Update(TimeSpan delta)
+		public void Update(double delta)
 		{
             fnum++;
             if (Free)
@@ -93,7 +93,7 @@ namespace LibreLancer
 				Matrix4x4 rotationMatrix = Matrix4x4.CreateRotationX(Rotation.Y) * Matrix4x4.CreateRotationY(Rotation.X);
 
                 var rotatedVector = Vector3.Transform(MoveVector, rotationMatrix);
-				Position += (float)(delta.TotalSeconds * MoveSpeed) * rotatedVector;
+				Position += (float)(delta * MoveSpeed) * rotatedVector;
 
 				Vector3 originalTarget = -Vector3.UnitZ;
                 Vector3 rotatedTarget = Vector3.Transform(originalTarget, rotationMatrix);

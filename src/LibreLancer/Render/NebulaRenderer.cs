@@ -79,7 +79,7 @@ namespace LibreLancer
 				return Nebula.FogColor;
 		}
 
-		public void Update(TimeSpan elapsed)
+		public void Update(double elapsed)
 		{
 			if (Nebula.Zone.Shape.ContainsPoint(camera.Position))
 			{
@@ -99,7 +99,7 @@ namespace LibreLancer
 							puffsinterior[i].Spawned = true;
 							puffsinterior[i].Velocity = RandomDirection() * Nebula.InteriorCloudDrift;
 						}
-						puffsinterior[i].Position += puffsinterior[i].Velocity * (float)elapsed.TotalSeconds;
+						puffsinterior[i].Position += puffsinterior[i].Velocity * (float)elapsed;
 					}
 				}
 			}
@@ -107,12 +107,12 @@ namespace LibreLancer
 
 		double bckLightningTimer = 0.0;
 		bool bckLightningActive = false;
-		void UpdateBackgroundLightning(TimeSpan elapsed)
+		void UpdateBackgroundLightning(double elapsed)
 		{
             //Vanilla St03 has lightning but with 0 duration
 			if (!Nebula.BackgroundLightning || Nebula.BackgroundLightningDuration == 0)
 				return;
-			bckLightningTimer -= elapsed.TotalSeconds;
+			bckLightningTimer -= elapsed;
 			if (bckLightningActive == false)
 			{
 				if (bckLightningTimer <= 0.0)
@@ -134,11 +134,11 @@ namespace LibreLancer
 		double dynLightningTimer = 0.0;
 		bool dynLightningActive = false;
 		Vector3 dynamicLightningPos = Vector3.Zero;
-		void UpdateDynamicLightning(TimeSpan elapsed)
+		void UpdateDynamicLightning(double elapsed)
 		{
 			if (!Nebula.DynamicLightning)
 				return;
-			dynLightningTimer -= elapsed.TotalSeconds;
+			dynLightningTimer -= elapsed;
 			if (dynLightningActive == false)
 			{
 				if (dynLightningTimer <= 0.0)
@@ -161,11 +161,11 @@ namespace LibreLancer
 
 		double cldLightningTimer = 0.0;
 		bool cldLightningActive = false;
-		void UpdateCloudLightning(TimeSpan elapsed)
+		void UpdateCloudLightning(double elapsed)
 		{
 			if (!Nebula.CloudLightning)
 				return;
-			cldLightningTimer -= elapsed.TotalSeconds;
+			cldLightningTimer -= elapsed;
 			if (cldLightningActive == false)
 			{
 				if (cldLightningTimer <= 0.0)
@@ -296,7 +296,7 @@ namespace LibreLancer
                     }
                 }
             }
-            ex.ShellModel.Update(camera, TimeSpan.Zero, resman);
+            ex.ShellModel.Update(camera, 0.0, resman);
             ex.ShellModel.DrawBuffer(0, buffer, resman, world, ref Lighting.Empty);
         }
         static Shaders.ShaderVariables _puffringsh;

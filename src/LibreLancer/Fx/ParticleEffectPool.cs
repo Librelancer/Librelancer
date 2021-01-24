@@ -128,15 +128,15 @@ namespace LibreLancer.Fx
         }
 
         int maxActive = 0;
-        public void Update(TimeSpan delta)
+        public void Update(double delta)
         {
             maxActive = 0;
             for (int i = 0; i < Particles.Length; i++)
             {
                 if (!Particles[i].Active)
                     continue;
-                Particles[i].Position += Particles[i].Normal * (float)delta.TotalSeconds;
-                Particles[i].TimeAlive += (float)delta.TotalSeconds;
+                Particles[i].Position += Particles[i].Normal * (float)delta;
+                Particles[i].TimeAlive += (float)delta;
                 if (Particles[i].TimeAlive >= Particles[i].LifeSpan)
                 {
                     Particles[i].Active = false;

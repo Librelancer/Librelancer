@@ -33,12 +33,12 @@ namespace LibreLancer
             }
         }
 
-        private TimeSpan sendTime = TimeSpan.FromSeconds(1 / 66.0);
-        private TimeSpan elapsed = TimeSpan.Zero;
-        public void Update(TimeSpan t)
+        private double sendTime = 1 / 66.0;
+        private double elapsed = 0.0;
+        public void Update(double t)
         {
             elapsed -= t;
-            if (elapsed <= TimeSpan.Zero)
+            if (elapsed <= 0.0)
             {
                 elapsed = sendTime;
                 lock (reliableSend)

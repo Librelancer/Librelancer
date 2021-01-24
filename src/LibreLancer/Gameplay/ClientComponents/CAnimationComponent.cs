@@ -72,14 +72,14 @@ namespace LibreLancer
 		public event Action<string> AnimationCompleted;
 
 		double totalTime = 0;
-		public override void Update(TimeSpan time)
+		public override void Update(double time)
 		{
             if (Parent != null && Parent.RenderComponent is CharacterRenderer characterRenderer)
             {
                 characterRenderer.Skeleton.UpdateScripts(time);
                 return;
             }
-			totalTime += time.TotalSeconds;
+			totalTime += time;
 			int c = animations.Count;
 			for (int i = animations.Count - 1; i >= 0; i--)
 			{

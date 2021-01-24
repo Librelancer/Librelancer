@@ -272,8 +272,8 @@ namespace LancerEdit
         public override void Update(double elapsed)
         {
             transform = Matrix4x4.CreateRotationX(aleViewport.ModelRotation.Y) * Matrix4x4.CreateRotationY(aleViewport.ModelRotation.X);
-            instance.Update(TimeSpan.FromSeconds(elapsed), transform, sparam);
-            pool.Update(TimeSpan.FromSeconds(elapsed));
+            instance.Update(elapsed, transform, sparam);
+            pool.Update(elapsed);
         }
 
         public override void Dispose()
