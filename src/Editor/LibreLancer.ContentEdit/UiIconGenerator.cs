@@ -12,26 +12,42 @@ using Vert = LibreLancer.Vertices.VertexPositionNormalDiffuseTextureTwo;
 
 namespace LibreLancer.ContentEdit
 {
+    public enum IconType
+    {
+        Commodity,
+        Ship
+    }
     public static class UiIconGenerator
     {
-        private static Vert[] vertices = {
+        private static Vert[] vertices_commodity = {
             new Vert(new Vector3(-0.030086353f, -0.03651117f,-7.872152E-08f), Vector3.UnitZ, 0, new Vector2(0.00050f,0.99950f), Vector2.Zero),
             new Vert(new Vector3(0.040959664f, -0.03651117f,-7.872152E-08f), Vector3.UnitZ, 0, new Vector2(0.99950f,0.99950f), Vector2.Zero),
             new Vert(new Vector3(0.040959664f, 0.031633444f,-7.82092E-08f), Vector3.UnitZ, 0, new Vector2(0.99950f,0.00050f), Vector2.Zero),
             new Vert(new Vector3(-0.030086353f, 0.031633433f,-7.82092E-08f), Vector3.UnitZ, 0, new Vector2(0.00050f,0.00050f), Vector2.Zero),
         };
-        private static ushort[] indices = {
+        private static ushort[] indices_commodity = {
             0, 1, 2, 0, 2, 3
         };
+        
+        private static Vert[] vertices_ship = {
+            new Vert(new Vector3(0.035522994f, -0.03407232f,-9.134134E-08f), Vector3.UnitZ, 0, new Vector2(0.99950f,0.99950f), Vector2.Zero),
+            new Vert(new Vector3(0.035522994f, 0.034072317f,-9.0829026E-08f), Vector3.UnitZ, 0, new Vector2(0.99950f,0.00050f), Vector2.Zero),
+            new Vert(new Vector3(-0.035523042f, -0.03407232f,-9.134134E-08f), Vector3.UnitZ, 0, new Vector2(0.00050f,0.99950f), Vector2.Zero),
+            new Vert(new Vector3(-0.035523042f, 0.034072302f,-9.082902E-08f), Vector3.UnitZ, 0, new Vector2(0.00050f,0.00050f), Vector2.Zero),
+        };
 
-        public static EditableUtf UncompressedFromFile(string iconName, string filename, bool alpha)
+        private static ushort[] indices_ship = {
+            0, 1, 2, 1, 3, 2
+        };
+
+        public static EditableUtf UncompressedFromFile(IconType type, string iconName, string filename, bool alpha)
         {
             var texNode = new LUtfNode() { Children = new List<LUtfNode>()};
             texNode.Children.Add(new LUtfNode() { Name = "MIP0", Data = TextureImport.TGANoMipmap(filename, true)});
-            return Generate(iconName, texNode, alpha);
+            return Generate(type, iconName, texNode, alpha);
         }
 
-        public static EditableUtf CompressedFromFile(string iconName, string filename, bool alpha)
+        public static EditableUtf CompressedFromFile(IconType type, string iconName, string filename, bool alpha)
         {
             var ddsNode = new LUtfNode() {Children = new List<LUtfNode>()};
             ddsNode.Children.Add(new LUtfNode()
@@ -39,10 +55,10 @@ namespace LibreLancer.ContentEdit
                 Name = "MIPS",
                 Data = TextureImport.CreateDDS(filename, alpha ? DDSFormat.DXT5 : DDSFormat.DXT1, MipmapMethod.None, true, true)
             });
-            return Generate(iconName, ddsNode, alpha);
+            return Generate(type, iconName, ddsNode, alpha);
         }
         
-        public static EditableUtf Generate(string iconName, LUtfNode textureNode, bool alpha)
+        public static EditableUtf Generate(IconType type, string iconName, LUtfNode textureNode, bool alpha)
         {
             var modelFile = new EditableUtf();
             var unique = IdSalt.New();
@@ -51,8 +67,8 @@ namespace LibreLancer.ContentEdit
             string meshName = $"data.icon.{iconName}.lod0-{unique}.vms";
             //VMeshLibrary
             var geom = new ColladaGeometry();
-            geom.Vertices = vertices;
-            geom.Indices = indices;
+            geom.Vertices = type == IconType.Commodity ? vertices_commodity : vertices_ship;
+            geom.Indices = type == IconType.Commodity ? indices_commodity : indices_ship;
             geom.FVF = D3DFVF.NORMAL | D3DFVF.XYZ | D3DFVF.TEX1;
             geom.Drawcalls = new[]
             {

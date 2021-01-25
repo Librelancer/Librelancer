@@ -42,6 +42,19 @@ namespace SystemViewer
 
         private RenderTarget2D rtarget;
         private int rw = -1, rh = -1, rt = -1;
+
+        static bool NavButton(string icon, string tooltip, bool selected)
+        {
+            if (selected) {
+                ImGui.PushStyleColor(ImGuiCol.Button, ImGui.GetStyle().Colors[(int)ImGuiCol.ButtonActive]);
+            }
+            var ret = Theme.IconButton(icon, icon, Color4.White);
+            if(selected) ImGui.PopStyleColor();
+            if (ImGui.IsItemHovered()) {
+                ImGui.SetTooltip(tooltip);
+            }
+            return ret;
+        }
         public void Draw(int width, int height, double delta)
         {
             //Set viewport
@@ -70,9 +83,24 @@ namespace SystemViewer
             ctx.RenderState.RenderTarget = null;
             win.Viewport.Pop();
             //ImGui
-            ImGui.Button("x##a");
+            //TODO: Implement in Navmap then add buttons
+            /*
+            NavButton("nav_labels", "Show Labels", true);
             ImGui.SameLine();
-            ImGui.Button("x##b");
+            ImGui.Dummy(new Vector2(72, 16)); //padding
+            ImGui.SameLine();
+            NavButton("nav_physical", "Physical Map", false);
+            ImGui.SameLine();
+            NavButton("nav_political", "Political Map", false);
+            ImGui.SameLine();
+            NavButton("nav_patrol", "Patrol Paths", false);
+            ImGui.SameLine();
+            NavButton("nav_mining", "Mining Zones", false);
+            ImGui.SameLine();
+            NavButton("nav_legend", "Legend", false);
+            ImGui.SameLine();
+            NavButton("nav_knownbases", "Known Bases", false);
+            */
             var cpos = ImGui.GetCursorPos();
             ImGui.Image((IntPtr)rt, new Vector2(width, height), new Vector2(0,1), new Vector2(1,0),
             Color4.White);
