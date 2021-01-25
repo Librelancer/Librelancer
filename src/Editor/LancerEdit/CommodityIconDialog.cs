@@ -25,13 +25,14 @@ namespace LancerEdit
         private MainWindow win;
         private bool doOpen = false;
         private TexLoadType loadType;
+        private bool tmp;
         public CommodityIconDialog(MainWindow win)
         {
             this.win = win;
         }
-        public void Open(string filename)
+        public void Open(string filename, string icoName = null, bool tmp = false)
         {
-            iconName = Path.GetFileNameWithoutExtension(filename);
+            iconName = icoName ?? Path.GetFileNameWithoutExtension(filename);
             texFilename = filename;
             error = false;
             if (teximportprev != null)
@@ -40,6 +41,7 @@ namespace LancerEdit
                 teximportprev.Dispose();
                 teximportprev = null;
             }
+
             var src = TextureImport.OpenFile(filename);
             loadType = src.Type;
             teximportprev = src.Texture;
@@ -52,6 +54,7 @@ namespace LancerEdit
             }
             teximportid = ImGuiHelper.RegisterTexture(teximportprev);
             doOpen = true;
+            this.tmp = tmp;
         }
 
         private static readonly string[] TYPES = {
@@ -129,6 +132,12 @@ namespace LancerEdit
                     ImGui.CloseCurrentPopup();
                 }
                 ImGui.EndPopup();
+            }
+            else {
+                if (tmp) {
+                    File.Delete(texFilename);
+                    tmp = false;
+                }
             }
         }
     }

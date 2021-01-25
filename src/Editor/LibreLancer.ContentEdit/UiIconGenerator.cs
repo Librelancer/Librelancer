@@ -30,10 +30,10 @@ namespace LibreLancer.ContentEdit
         };
         
         private static Vert[] vertices_ship = {
-            new Vert(new Vector3(0.035522994f, -0.03407232f,-9.134134E-08f), Vector3.UnitZ, 0, new Vector2(0.99950f,0.99950f), Vector2.Zero),
-            new Vert(new Vector3(0.035522994f, 0.034072317f,-9.0829026E-08f), Vector3.UnitZ, 0, new Vector2(0.99950f,0.00050f), Vector2.Zero),
-            new Vert(new Vector3(-0.035523042f, -0.03407232f,-9.134134E-08f), Vector3.UnitZ, 0, new Vector2(0.00050f,0.99950f), Vector2.Zero),
-            new Vert(new Vector3(-0.035523042f, 0.034072302f,-9.082902E-08f), Vector3.UnitZ, 0, new Vector2(0.00050f,0.00050f), Vector2.Zero),
+            new Vert(new Vector3(0.035523012f, -0.03407232f,-1.1246429E-07f), Vector3.UnitZ, 0, new Vector2(0.99950f,0.99950f), Vector2.Zero),
+            new Vert(new Vector3(0.035523012f, 0.034072332f,-1.1195198E-07f), Vector3.UnitZ, 0, new Vector2(0.99950f,0.00050f), Vector2.Zero),
+            new Vert(new Vector3(-0.035523023f, -0.03407232f,-1.1246429E-07f), Vector3.UnitZ, 0, new Vector2(0.00050f,0.99950f), Vector2.Zero),
+            new Vert(new Vector3(-0.035523023f, 0.034072317f,-1.1195196E-07f), Vector3.UnitZ, 0, new Vector2(0.00050f,0.00050f), Vector2.Zero),
         };
 
         private static ushort[] indices_ship = {

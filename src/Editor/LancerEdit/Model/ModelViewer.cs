@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using LibreLancer;
@@ -900,7 +901,7 @@ namespace LancerEdit
             var rpanelWidth = ImGui.GetWindowWidth() - 15;
             int rpanelHeight = Math.Min((int)(rpanelWidth * ((float)h / (float)w)), 4096);
             DoPreview((int)rpanelWidth, rpanelHeight);
-            if (ImGui.Button("Export"))
+            if (ImGui.Button("Export PNG"))
             {
                 if(imageWidth < 16 || imageHeight < 16)
                 {
@@ -911,6 +912,19 @@ namespace LancerEdit
                     string output;
                     if((output = FileDialog.Save(pngFilters)) != null)
                         RenderImage(output);
+                }
+            }
+
+            if (ImGui.Button("Create Icon"))
+            {
+                if(imageWidth < 16 || imageHeight < 16) {
+                    FLLog.Error("Export", "Image minimum size is 16x16");
+                }
+                else
+                {
+                    var tmpFile = Path.GetTempFileName();
+                    RenderImage(tmpFile);
+                    _window.Make3dbDlg.Open(tmpFile, parent.DocumentName, true);
                 }
             }
         }

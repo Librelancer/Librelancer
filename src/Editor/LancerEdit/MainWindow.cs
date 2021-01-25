@@ -118,7 +118,7 @@ namespace LancerEdit
             Fonts = new FontManager();
             Fonts.ConstructDefaultFonts();
             Services.Add(Fonts);
-            gen3dbDlg = new CommodityIconDialog(this);
+            Make3dbDlg = new CommodityIconDialog(this);
         }
 
         void Keyboard_KeyDown(KeyEventArgs e)
@@ -152,7 +152,7 @@ namespace LancerEdit
 		public UtfTab ActiveTab;
 		double frequency = 0;
 		int updateTime = 10;
-        CommodityIconDialog gen3dbDlg;
+        public CommodityIconDialog Make3dbDlg;
 		public void AddTab(DockTab tab)
 		{
 			toAdd.Add(tab);
@@ -300,7 +300,7 @@ namespace LancerEdit
                 {
                     string input;
                     if ((input = FileDialog.Open(ImageFilter)) != null) {
-                        gen3dbDlg.Open(input);
+                        Make3dbDlg.Open(input);
                     }
                 }
                 if(Theme.IconMenuItem("Infocard Browser","browse",Color4.White,true))
@@ -455,7 +455,7 @@ namespace LancerEdit
                 ImGui.EndChild();
             }
             ImGui.End();
-            gen3dbDlg.Draw();
+            Make3dbDlg.Draw();
 			//Status bar
 			ImGui.SetNextWindowSize(new Vector2(size.X, 25f), ImGuiCond.Always);
 			ImGui.SetNextWindowPos(new Vector2(0, size.Y - 6f), ImGuiCond.Always, Vector2.Zero);
