@@ -385,7 +385,7 @@ namespace LancerEdit
                 ImGui.SameLine(ImGui.GetWindowWidth() / 2 - 64);
                 Theme.Icon("reactor_128", Color4.White);
                 CenterText(Version);
-				CenterText("Callum McGing 2018-2020");
+				CenterText("Callum McGing 2018-2021");
                 ImGui.Separator();
                 CenterText("Icons from Icons8: https://icons8.com/");
                 CenterText("Icons from komorra: https://opengameart.org/content/kmr-editor-icon-set");
