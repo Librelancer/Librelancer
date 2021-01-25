@@ -2,6 +2,7 @@
 using System.IO;
 using System.Security;
 using Markdig;
+using Markdig.Syntax.Inlines;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
@@ -90,10 +91,22 @@ namespace DocumentationMSBuild
                 return reader.ReadToEnd();
             }
         }
-        
+
+        static string FixUrl(LinkInline link)
+        {
+            if (link.IsImage || link.IsAutoLink) return link.Url;
+            if (link.Url.EndsWith(".md")) {
+                return Path.ChangeExtension(link.Url, ".html");
+            }
+            return link.Url;
+        }
         void Convert(string infile, string outfile)
         {
-            var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().UseBootstrap().Build();
+            var pipeline = new MarkdownPipelineBuilder()
+                .UseAdvancedExtensions()
+                .UseBootstrap()
+                .UseUrlRewriter(FixUrl)
+                .Build();
             var input = File.ReadAllText(infile);
             input = input.Replace("$(VERSION)", VersionString);
             var innerHTML = Markdown.ToHtml(input, pipeline);
