@@ -322,7 +322,8 @@ namespace LibreLancer
         {
             FLLog.Info("Engine", "Version: " + Platform.GetInformationalVersion<Game>());
             //TODO: This makes i5-7200U on mesa 18 faster, but this should probably be a configurable option
-            Environment.SetEnvironmentVariable("mesa_glthread", "true");
+            bool setMesaThread = string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("mesa_glthread"));
+            if(setMesaThread) Environment.SetEnvironmentVariable("mesa_glthread", "true");
             if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) != 0)
             {
                 FLLog.Error("SDL", "SDL_Init failed, exiting.");
@@ -384,6 +385,8 @@ namespace LibreLancer
             //Init game state
             RenderState = new RenderState();
             Load();
+            //kill the value we set so it doesn't crash child processes
+            if(setMesaThread) Environment.SetEnvironmentVariable("mesa_glthread",null); 
             //Start game
             running = true;
             timer = new Stopwatch();

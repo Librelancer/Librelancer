@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <OutDir>$(MSBuildThisFileDirectory)bin</OutDir>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Markdig" Version="0.23.0" />
+      <PackageReference Include="Microsoft.Build.Framework" Version="16.8.0" />
+      <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.8.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="template.html" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="assets\**\*" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="..\..\..\editoricons\appicon\reactor.ico">
+        <Link>assets/reactor.ico</Link>
+      </EmbeddedResource>
+      <Content Include="assets\main.css" />
+      <Content Include="assets\reset.css" />
+    </ItemGroup>
+    
+</Project>

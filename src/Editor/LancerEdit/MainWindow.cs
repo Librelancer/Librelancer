@@ -7,6 +7,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading;
 using System.Collections.Generic;
+using System.IO;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.ImUI;
@@ -322,10 +323,26 @@ namespace LancerEdit
                 }
                 ImGui.EndMenu();
 			}
+            if (ImGui.BeginMenu("Window"))
+            {
+                if (ImGui.MenuItem("Close All Tabs", tabs.Count > 0))
+                {
+                    Confirm("Are you sure you want to close all tabs?", () =>
+                    {
+                        selected = null;
+                        foreach (var t in tabs) t.Dispose();
+                        tabs.Clear();
+                    });
+                }
+                ImGui.EndMenu();
+            }
 			if (ImGui.BeginMenu("Help"))
 			{
-                if(Theme.IconMenuItem("Topics","help",Color4.White,true)) {
-                    Shell.OpenCommand("https://wiki.librelancer.net/lanceredit:lanceredit");
+                if(Theme.IconMenuItem("Topics","help",Color4.White,true))
+                {
+                    var selfPath = Path.GetDirectoryName(typeof(MainWindow).Assembly.Location);
+                    var helpFile = Path.Combine(selfPath, "Docs", "index.html");
+                    Shell.OpenCommand(helpFile);
                 }
 				if (Theme.IconMenuItem("About","about",Color4.White,true))
 				{
@@ -335,6 +352,7 @@ namespace LancerEdit
 			}
 
             options.Draw();
+
 			if (openAbout)
 			{
 				ImGui.OpenPopup("About");
