@@ -201,6 +201,8 @@ Task("BuildSdk")
 	  .IsDependentOn("BuildEngine")
 	  .Does(() =>
 {
+    //Build MSBuild tasks
+    DotNetCoreBuild("./src/Editor/DocumentationMSBuild/DocumentationMSBuild.csproj");
 	//Build C#
 	if(IsRunningOnWindows()) {
         FullBuild("win7-x86", true);
