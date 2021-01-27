@@ -26,6 +26,21 @@ if ([string]::IsNullOrEmpty($CakeVersion) -or [string]::IsNullOrEmpty($DotNetVer
     exit 1
 }
 
+$TestSubmodulePath = Join-Path $PSScriptRoot "extern/thorncompiler/CMakeLists.txt"
+if (!(Test-Path $TestSubmodulePath)) {
+    if (Get-Command git -ErrorAction SilentlyContinue) {
+        "WARNING: Submodules not present. Attempting to clone."
+        git submodule update --init --recursive
+        if ($LastExitCode -ne 0) {
+            "ERROR: Submodules not present and unable to clone"
+            exit 1
+        }
+    } else {
+        "ERROR: Submodules not present and unable to clone"
+        exit 1
+    }
+}
+
 # Make sure tools folder exists
 $ToolPath = Join-Path $PSScriptRoot "tools"
 if (!(Test-Path $ToolPath)) {
@@ -86,7 +101,6 @@ $SDKResult = "notfound";
 if (Get-Command dotnet -ErrorAction SilentlyContinue) {
     $FoundDotNetCliVersion = dotnet --list-sdks;
     Foreach($str in $FoundDotNetCliVersion.Split("\n")) {
-        $str
         if($str.StartsWith($DotNetVersion)) {
             $SDKResult = "found";
         }
