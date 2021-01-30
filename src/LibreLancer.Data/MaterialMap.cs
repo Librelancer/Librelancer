@@ -53,6 +53,11 @@ namespace LibreLancer
 		{
 			regexmaps.Add (new MapEntry(new Regex (kv.Key), kv.Value));
 		}
+
+        public void AddRegex(string k, string v)
+        {
+            AddRegex(new StringKeyValue(k, v));
+        }
 		public void AddMap(string k, string v)
 		{
 			maps.Add (k, v);

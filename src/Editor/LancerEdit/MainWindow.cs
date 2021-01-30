@@ -88,7 +88,8 @@ namespace LancerEdit
         }
         double errorTimer = 0;
 		protected override void Load()
-		{
+        {
+            DefaultMaterialMap.Init();
 			Title = "LancerEdit";
             guiHelper = new ImGuiHelper(this);
             guiHelper.PauseWhenUnfocused = Config.PauseWhenUnfocused;
