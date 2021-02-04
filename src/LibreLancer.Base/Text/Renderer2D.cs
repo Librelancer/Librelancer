@@ -16,7 +16,7 @@ namespace LibreLancer
 		const int MAX_INDEX = MAX_GLYPHS * 6;
 
 		const string vertex_source = @"
-		#version 140
+		#version {0}
 		in vec2 vertex_position;
 		in vec2 vertex_texture1;
         in vec2 vertex_texture2;
@@ -35,7 +35,7 @@ namespace LibreLancer
 		";
 
         const string img_fragment_source = @"
-		#version 140
+		#version {0}
 		in vec2 out_texcoord;
         in vec2 c_pos;
 		in vec4 blendColor;
@@ -46,13 +46,13 @@ namespace LibreLancer
 		void main()
 		{
             vec4 src = texture(tex, out_texcoord);
-            src = mix(src, vec4(1,1,1, src.r), blend);
+            src = mix(src, vec4(1.0,1.0,1.0, src.r), blend);
             if(circle) {
                 vec2 val = c_pos - vec2(0.5);
                 float r = sqrt(dot(val,val));
                 float delta = fwidth(r);
                 float alpha = smoothstep(0.5, 0.5 - delta, r);
-                out_color = src * blendColor * vec4(1,1,1,alpha);
+                out_color = src * blendColor * vec4(1.0,1.0,1.0,alpha);
             } else {
                 out_color = src * blendColor;
             }
@@ -105,7 +105,8 @@ namespace LibreLancer
 		public Renderer2D (RenderState rstate)
 		{
 			rs = rstate;
-            imgShader = new Shader (vertex_source, img_fragment_source);
+            string glslVer = GL.GLES ? "320 es\nprecision mediump float;" : "140";
+            imgShader = new Shader (vertex_source.Replace("{0}", glslVer), img_fragment_source.Replace("{0}", glslVer));
 			imgShader.SetInteger (imgShader.GetLocation("tex"), 0);
             blendLocation = imgShader.GetLocation("blend");
             circleLocation = imgShader.GetLocation("circle");

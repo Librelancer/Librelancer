@@ -41,7 +41,7 @@ namespace LibreLancer.ImUI
 			}
 		}
 		const string vertex_source = @"
-		#version 140
+		#version {0}
 		in vec2 vertex_position;
 		in vec2 vertex_texture1;
 		in vec4 vertex_color;
@@ -57,7 +57,7 @@ namespace LibreLancer.ImUI
 		";
 
 		const string text_fragment_source = @"
-		#version 140
+		#version {0}
 		in vec2 out_texcoord;
 		in vec4 blendColor;
 		out vec4 out_color;
@@ -65,13 +65,13 @@ namespace LibreLancer.ImUI
 		void main()
 		{
 			float alpha = texture(tex, out_texcoord).r;
-            if(out_texcoord.x > 3) alpha = 1;
+            if(out_texcoord.x > 3.0) alpha = 1.0;
 			out_color = vec4(blendColor.xyz, blendColor.a * alpha);
 		}
 		";
 
 		const string color_fragment_source = @"
-		#version 140
+		#version {0}
 		in vec2 out_texcoord;
 		in vec4 blendColor;
 		out vec4 out_color;
@@ -170,8 +170,9 @@ namespace LibreLancer.ImUI
 			fontTexture.SetFiltering(TextureFiltering.Linear);
 			io.Fonts.SetTexID((IntPtr)FONT_TEXTURE_ID);
 			io.Fonts.ClearTexData();
-			textShader = new Shader(vertex_source, text_fragment_source);
-			colorShader = new Shader(vertex_source, color_fragment_source);
+            string glslVer = GL.GLES ? "300 es\nprecision mediump float;" : "140";
+			textShader = new Shader(vertex_source.Replace("{0}", glslVer), text_fragment_source.Replace("{0}", glslVer));
+			colorShader = new Shader(vertex_source.Replace("{0}", glslVer), color_fragment_source.Replace("{0}", glslVer));
 			dot = new Texture2D(1, 1, false, SurfaceFormat.Color);
 			var c = new Color4b[] { Color4b.White };
 			dot.SetData(c);

@@ -19,7 +19,10 @@ namespace LibreLancer
 			Height = height;
 			texID = GL.GenTexture();
 			GLBind.BindTexture(0, GL.GL_TEXTURE_2D_MULTISAMPLE, texID);
-			GL.TexImage2DMultisample(GL.GL_TEXTURE_2D_MULTISAMPLE, samples, GL.GL_RGBA, width, height, true);
+            if(GL.GLES)
+                GL.TexStorage2DMultisample(GL.GL_TEXTURE_2D_MULTISAMPLE, samples, GL.GL_RGBA8, width, height, true);
+            else
+			    GL.TexImage2DMultisample(GL.GL_TEXTURE_2D_MULTISAMPLE, samples, GL.GL_RGBA, width, height, true);
 			depthID = GL.GenRenderbuffer();
 			GL.BindRenderbuffer(GL.GL_RENDERBUFFER, depthID);
 			GL.RenderbufferStorageMultisample(GL.GL_RENDERBUFFER, samples, GL.GL_DEPTH_COMPONENT24, width, height);
@@ -36,11 +39,11 @@ namespace LibreLancer
         internal override void BindFramebuffer()
 		{
 			GL.BindFramebuffer(GL.GL_FRAMEBUFFER, fbo);
-			GL.Enable(GL.GL_MULTISAMPLE);
+			if(!GL.GLES) GL.Enable(GL.GL_MULTISAMPLE);
 		}
 		public void BlitToScreen()
 		{
-			GL.Disable(GL.GL_MULTISAMPLE);
+            if(!GL.GLES) GL.Disable(GL.GL_MULTISAMPLE);
 			//Unbind everything
 			GL.BindFramebuffer(GL.GL_FRAMEBUFFER, 0);
 			//read from our fbo
@@ -54,7 +57,7 @@ namespace LibreLancer
 
         public void BlitToRenderTarget(RenderTarget2D rTarget)
         {
-            GL.Disable(GL.GL_MULTISAMPLE);
+            if (!GL.GLES) GL.Disable(GL.GL_MULTISAMPLE);
             //Unbind everything
             GL.BindFramebuffer(GL.GL_FRAMEBUFFER, 0);
             //read from our fbo

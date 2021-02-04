@@ -23,7 +23,7 @@ namespace LancerEdit
         private static int viewProj;
         private static int gridColor;
         private static int gridScale;
-        private const string VertexShader = @"#version 140
+        private const string VertexShader = @"#version {0}
 uniform mat4x4 ViewProjection;
 uniform mat4x4 View;
 uniform float GridScale;
@@ -39,13 +39,13 @@ void main()
 }
 ";
 
-        private const string FragmentShader = @"#version 140
+        private const string FragmentShader = @"#version {0}
 in vec2 texcoord;
 in vec4 view_position;
 out vec4 out_color;
 
-const float FADE_NEAR = 10;
-const float FADE_FAR = 100;
+const float FADE_NEAR = 10.0;
+const float FADE_FAR = 100.0;
 const float N = 25.0; //gives a decent thickness
 
 uniform vec4 GridColor;
@@ -61,11 +61,11 @@ float invGridAlpha( in vec2 p, in vec2 ddx, in vec2 ddy )
 
 void main()
 {
-    float grid = (1 - invGridAlpha(texcoord, dFdx(texcoord), dFdy(texcoord)));
+    float grid = (1.0 - invGridAlpha(texcoord, dFdx(texcoord), dFdy(texcoord)));
     float dist = length(view_position);
 	float fadeFactor = (FADE_FAR- dist) / (FADE_FAR - FADE_NEAR);
 	fadeFactor = clamp(fadeFactor, 0.0, 1.0);
-    out_color = GridColor * vec4(1,1,1,grid * fadeFactor); 
+    out_color = GridColor * vec4(1.0,1.0,1.0,grid * fadeFactor); 
 }
 ";
         static void Load()
@@ -83,7 +83,8 @@ void main()
             elements = new ElementBuffer(6);
             elements.SetData(new short[] { 0, 1, 2, 1, 3, 2});
             vertices.SetElementBuffer(elements);
-            shader = new Shader(VertexShader, FragmentShader);
+            string glslVer = GL.GLES ? "310 es\nprecision mediump float;\nprecision mediump int;" : "140";
+            shader = new Shader(VertexShader.Replace("{0}", glslVer), FragmentShader.Replace("{0}", glslVer));
             viewProj = shader.GetLocation("ViewProjection");
             view = shader.GetLocation("View");
             gridColor = shader.GetLocation("GridColor");

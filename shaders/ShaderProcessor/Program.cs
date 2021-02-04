@@ -101,8 +101,8 @@ namespace ShaderProcessor
                 {
                     for (int i = 0; i < 2; i++)
                     {
-                        //Validate for 150 and 430
-                        var ver = (i == 1) ? "430" : "150";
+                        //Validate for 310 es and 430
+                        var ver = (i == 1) ? "430" : "310 es\nprecision highp float;\nprecision highp int;";
                         var vs = (i == 1) ? new[] {"VERTEX_SHADER", "FEATURES430" } : new[] {"VERTEX_SHADER"};
                         var fs = (i == 1) ? new[] {"FRAGMENT_SHADER", "FEATURES430" } : new[] {"FRAGMENT_SHADER"};
                         //Default defines

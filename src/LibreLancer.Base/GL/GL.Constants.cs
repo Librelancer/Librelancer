@@ -63,6 +63,7 @@ namespace LibreLancer
 		public const int GL_R8I = 0x8231;
 		public const int GL_R8UI = 0x8232;
 		public const int GL_RG8I = 0x8237;
+        public const int GL_RGBA8 = 0x8058;
 		public const int GL_RGBA8I = 0x8D8E;
 		public const int GL_R16I = 0x8233;
 		public const int GL_RG16UI = 0x823A;

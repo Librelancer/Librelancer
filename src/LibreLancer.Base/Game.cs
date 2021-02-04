@@ -318,6 +318,34 @@ namespace LibreLancer
         public bool Focused { get; private set; }
         public bool EventsThisFrame { get; private set; }
         public event Action WillClose;
+
+        static bool CreateContextCore(IntPtr sdlWin, out IntPtr ctx)
+        {
+            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 2);
+            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
+            ctx = SDL.SDL_GL_CreateContext(sdlWin);
+            if (ctx == IntPtr.Zero) return false;
+            if (!GL.CheckStringSDL()) {
+                SDL.SDL_GL_DeleteContext(ctx);
+                ctx = IntPtr.Zero;
+            }
+            return true;
+        }
+        static bool CreateContextES(IntPtr sdlWin, out IntPtr ctx)
+        {
+            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 1);
+            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_ES);
+            ctx = SDL.SDL_GL_CreateContext(sdlWin);
+            if (ctx == IntPtr.Zero) return false;
+            if (!GL.CheckStringSDL(true)) {
+                SDL.SDL_GL_DeleteContext(ctx);
+                ctx = IntPtr.Zero;
+            }
+            GL.GLES = true;
+            return true;
+        }
         public void Run()
         {
             FLLog.Info("Engine", "Version: " + Platform.GetInformationalVersion<Game>());
@@ -333,8 +361,8 @@ namespace LibreLancer
             SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
             //Set GL states
             SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 2);
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
+            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 1);
+            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_ES);
             SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DEPTH_SIZE, 24);
             //Create Window
             var flags = SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE;
@@ -368,19 +396,19 @@ namespace LibreLancer
             }
             SDL.SDL_EventState(SDL.SDL_EventType.SDL_DROPFILE, SDL.SDL_ENABLE);
             windowptr = sdlWin;
-            var glcontext = SDL.SDL_GL_CreateContext(sdlWin);
-            if (glcontext == IntPtr.Zero || !GL.CheckStringSDL())
+            IntPtr glcontext = IntPtr.Zero;
+            if (Environment.GetEnvironmentVariable("LIBRELANCER_RENDERER") == "GLES" ||
+                !CreateContextCore(sdlWin, out glcontext))
             {
-                SDL.SDL_GL_DeleteContext(glcontext);
-                Dialogs.CrashWindow.Run("Librelancer", "Failed to create OpenGL context",
-                    "Your driver or gpu does not support at least OpenGL 3.2");
-                return;
+                if (!CreateContextES(sdlWin, out glcontext))
+                {
+                    Dialogs.CrashWindow.Run("Librelancer", "Failed to create OpenGL context",
+                        "Your driver or gpu does not support at least OpenGL 3.2 or OpenGL ES 3.1");
+                    return;
+                }
             }
-            else
-            {
-                GL.LoadSDL();
-                Renderer = string.Format("{0} ({1})", GL.GetString(GL.GL_VERSION), GL.GetString(GL.GL_RENDERER));
-            }
+            GL.LoadSDL();
+            Renderer = string.Format("{0} ({1})", GL.GetString(GL.GL_VERSION), GL.GetString(GL.GL_RENDERER));
             SetVSync(true);
             //Init game state
             RenderState = new RenderState();

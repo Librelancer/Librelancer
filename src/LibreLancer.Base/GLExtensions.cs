@@ -77,9 +77,14 @@ namespace LibreLancer
 			ExtensionList = new List<string> (n);
 			for (int i = 0; i < n; i++)
 				ExtensionList.Add (GL.GetString (GL.GL_EXTENSIONS, i));
-            var versionStr = GL.GetString(GL.GL_VERSION).Trim();
-            versionInteger = int.Parse(versionStr[0].ToString()) * 100 + int.Parse(versionStr[2].ToString()) * 10;
-			FLLog.Debug("GL", "Extensions: \n" + string.Join("\n", ExtensionList));
+            if (GL.GLES) {
+                versionInteger = 310;
+            }
+            else {
+                var versionStr = GL.GetString(GL.GL_VERSION).Trim();
+                versionInteger = int.Parse(versionStr[0].ToString()) * 100 + int.Parse(versionStr[2].ToString()) * 10;
+            }
+            FLLog.Debug("GL", "Extensions: \n" + string.Join("\n", ExtensionList));
 		}
         public static void CheckExtensions()
         {

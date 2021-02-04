@@ -25,7 +25,7 @@ void main()
     N = normalize(vec3(normmat * vec4(vertex_normal,0.0)));
     V = -vec3(modelview * vec4(vertex_position,1.0));
 
-	out_texcoord = vec2(vertex_texture1.x, 1 - vertex_texture1.y);
+	out_texcoord = vec2(vertex_texture1.x, 1.0 - vertex_texture1.y);
 }
 
 @fragment

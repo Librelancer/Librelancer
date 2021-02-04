@@ -353,6 +353,8 @@ namespace LibreLancer.Shaders
             string prelude;
             if (GLExtensions.Features430)
                 prelude = "#version 430\n#define FEATURES430\n" + insert;
+            else if (GL.GLES)
+                prelude = "#version 310 es\nprecision highp float;\nprecision highp int;\n"  + insert;
             else
                 prelude = "#version 150\n" + insert;
             return new ShaderVariables(new Shader(prelude + vertex, prelude + fragment));

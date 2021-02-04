@@ -100,6 +100,8 @@ namespace LibreLancer
 		public static TexImage2D TexImage2D;
 		[MapsTo("glTexImage2DMultisample")]
 		public static TexImage2DMultisample TexImage2DMultisample;
+        [MapsTo("glTexStorage2DMultisample")]
+        public static TexImage2DMultisample TexStorage2DMultisample;
 		[MapsTo("glTexSubImage2D")]
 		public static TexSubImage2D TexSubImage2D;
 		[MapsTo("glCompressedTexImage2D")]
@@ -229,15 +231,15 @@ namespace LibreLancer
 		public static VertexAttribPointer VertexAttribPointer;
 		[MapsTo("glDrawBuffers")]
 		static DrawBuffers _DrawBuffers;
-		public static unsafe void DrawBuffers(int[] buffers)
-		{
-			fixed(int* ptr = buffers)
-			{
-				_DrawBuffers(buffers.Length, (IntPtr)ptr);
-			}
-		}
-		[MapsTo("glDrawBuffer")]
-		public static DrawBuffer DrawBuffer;
+        [MapsTo("glDrawBuffer")]
+        static DrawBuffer _DrawBuffer;
+        public static unsafe void DrawBuffer(int buffer)
+        {
+            if (GL.GLES)
+                _DrawBuffers(1, (IntPtr) (&buffer));
+            else
+                _DrawBuffer(buffer);
+        }
         [MapsTo("glMapBuffer")]
         public static MapBuffer MapBuffer;
 		[MapsTo("glMapBufferRange")]
@@ -309,13 +311,12 @@ namespace LibreLancer
 		[MapsTo("glReadPixels")]
 		public static ReadPixels ReadPixels;
 
-        public static bool GLES = true;
+        public static bool GLES = false;
 		static Dictionary<int, string> errors;
         public static bool ErrorChecking = false;
 
 		public static void LoadSDL()
 		{
-            GLES = false;
             Load((f, t) =>
             {
                 var proc = SDL.SDL_GL_GetProcAddress(f);
@@ -323,11 +324,12 @@ namespace LibreLancer
                 return Marshal.GetDelegateForFunctionPointer(proc, (t));
             });
 		}
-        public static bool CheckStringSDL()
+        public static bool CheckStringSDL(bool checkGles = false)
         {
             _getString = (GetString)Marshal.GetDelegateForFunctionPointer(SDL.SDL_GL_GetProcAddress("glGetString"), typeof(GetString));
             var str = GetString(GL.GL_VERSION);
             FLLog.Info("GL", "Version String: " + GetString(GL.GL_VERSION));
+            if (checkGles) return str.StartsWith("OpenGL ES 3");
             var major = int.Parse(str[0].ToString());
             return major >= 3;
         }
