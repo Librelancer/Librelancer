@@ -105,7 +105,7 @@ namespace LibreLancer
 		public Renderer2D (RenderState rstate)
 		{
 			rs = rstate;
-            string glslVer = GL.GLES ? "320 es\nprecision mediump float;" : "140";
+            string glslVer = GL.GLES ? "300 es\nprecision mediump float;" : "140";
             imgShader = new Shader (vertex_source.Replace("{0}", glslVer), img_fragment_source.Replace("{0}", glslVer));
 			imgShader.SetInteger (imgShader.GetLocation("tex"), 0);
             blendLocation = imgShader.GetLocation("blend");
