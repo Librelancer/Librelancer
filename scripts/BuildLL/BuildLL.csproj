@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Bullseye" Version="3.7.0" />
+        <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0096" />
+        <PackageReference Include="LibGit2Sharp.NativeBinaries" Version="2.0.312" />
+        <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="3.1.0" />
+    </ItemGroup>
+
+</Project>

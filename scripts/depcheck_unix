@@ -1,0 +1,10 @@
+#!/bin/bash
+# Script to check if dependencies for build are installed
+
+check_command() {
+    command -v $1 >/dev/null 2>&1 || { echo >&2 "Cannot find $1 on PATH"; exit 1; }
+}
+
+check_command dotnet
+check_command cmake
+check_command make
