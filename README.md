@@ -25,7 +25,7 @@ Download daily builds from https://librelancer.net/downloads.html
 
 * 64-bit Windows 7 or newer
 * Visual Studio 2019 with:
-* * .NET Core 3.1 SDK
+* * .NET 5.0 SDK
 * *  Desktop C++ Development Workflow
 * [CMake](https://cmake.org/)
 
@@ -43,8 +43,7 @@ Powershell security issues can be troubleshooted [here](https://cakebuild.net/do
 
 **Prerequisites:**
 
-* mono
-* .NET Core 3.1 SDK
+* .NET 5.0 SDK
 * SDL2
 * OpenAL
 * gcc and g++
