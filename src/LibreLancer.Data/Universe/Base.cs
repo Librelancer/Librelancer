@@ -9,6 +9,7 @@ using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Universe
 {
+    //TODO: Update to new Ini API
 	public class Base : UniverseElement
 	{
 		public string System { get; private set; }
@@ -93,7 +94,8 @@ namespace LibreLancer.Data.Universe
 						AutosaveForbidden = e[0].ToBoolean();
 						break;
 					default:
-						throw new Exception("Invalid Entry in " + section.Name + ": " + e.Name);
+                        FLLog.Warning("Ini", $"Invalid Entry `{e.Name}` in {section.Name}: {e.File}:{e.Line}");
+                        break;
 				}
 			}
 
@@ -124,7 +126,8 @@ namespace LibreLancer.Data.Universe
                                         FLLog.Error("Base", "Unimplemented: price_variance");
                                         break;
                                     default:
-                                        throw new Exception("Invalid Entry in " + s.Name + ": " + e.Name);
+                                        FLLog.Warning("Ini", $"Invalid Entry `{e.Name}` in {section.Name}: {e.File}:{e.Line}");
+                                        break;
                                 }
                             }
                             break;
@@ -132,7 +135,8 @@ namespace LibreLancer.Data.Universe
                             Rooms.Add(new Room(s, data));
                             break;
                         default:
-                            throw new Exception("Invalid Section in " + file + ": " + s.Name);
+                            FLLog.Warning("Ini", $"Invalid Sectiom `{s.Name}` in {s.File}:{s.Line}");
+                            break;
                     }
                 }
             }
