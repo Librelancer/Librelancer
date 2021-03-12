@@ -10,7 +10,7 @@ Support Librelancer on Patreon: https://www.patreon.com/librelancer
 |  Name | Status |
 |-|-|
 | Windows x86/x64 | [![Build status](https://ci.appveyor.com/api/projects/status/k55k2t37q1ytm1w3?svg=true)](https://ci.appveyor.com/project/CallumDev/librelancer) |
-| Linux amd64 | [![Build Status](https://travis-ci.org/Librelancer/Librelancer.svg?branch=master)](https://travis-ci.org/Librelancer/Librelancer) |
+| Linux amd64 | [![Build Status](https://travis-ci.org/Librelancer/Librelancer.svg?branch=main)](https://travis-ci.org/Librelancer/Librelancer) |
 
 Download daily builds from https://librelancer.net/downloads.html
 
