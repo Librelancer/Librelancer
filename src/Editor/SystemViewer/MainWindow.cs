@@ -302,6 +302,12 @@ C# Memory Usage: {5}
         void ChangeSystem()
         {
             if (sysIndex != sysIndexLoaded) {
+                if (world != null) {
+                    world.Renderer.Dispose();
+                    world.Dispose();
+                    var renderer = new SystemRenderer(camera, GameData, Resources, this);
+                    world = new GameWorld(renderer);
+                }
                 camera.UpdateProjection();
                 camera.Free = false;
                 camera.Zoom = 5000;

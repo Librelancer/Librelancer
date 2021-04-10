@@ -334,8 +334,10 @@ namespace LibreLancer
         }
         static bool CreateContextES(IntPtr sdlWin, out IntPtr ctx)
         {
+            //mesa on raspberry pi OS won't give you a 3.1 context if you request it
+            //but it will give you 3.1 if you request 3.0  ¯\_(ツ)_/¯
             SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 1);
+            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 0);
             SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_ES);
             ctx = SDL.SDL_GL_CreateContext(sdlWin);
             if (ctx == IntPtr.Zero) return false;
@@ -403,7 +405,7 @@ namespace LibreLancer
                 if (!CreateContextES(sdlWin, out glcontext))
                 {
                     Dialogs.CrashWindow.Run("Librelancer", "Failed to create OpenGL context",
-                        "Your driver or gpu does not support at least OpenGL 3.2 or OpenGL ES 3.1");
+                        "Your driver or gpu does not support at least OpenGL 3.2 or OpenGL ES 3.1\n" + SDL.SDL_GetError() ?? "");
                     return;
                 }
             }
