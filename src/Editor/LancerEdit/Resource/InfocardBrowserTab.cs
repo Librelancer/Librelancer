@@ -44,7 +44,7 @@ namespace LancerEdit
             var vfs = FileSystem.FromFolder(rootFolder, true);
             fonts.LoadFontsFromIni(ini, vfs);
             if (ini.JsonResources != null)
-                manager = new InfocardManager(File.ReadAllText(ini.JsonResources.Item1), File.ReadAllText(ini.JsonResources.Item2));
+                manager = new InfocardManager(ini.JsonResources, vfs);
             else
                 manager = new InfocardManager(ini.Resources);
             stringsIds = manager.StringIds.ToArray();

@@ -29,23 +29,67 @@ namespace LibreLancer.Data
 			}
 		}
 
-		public InfocardManager(Dictionary<int, string> strings, Dictionary<int, string> infocards)
-		{
-			this.strings = strings;
-			this.infocards = infocards;
-		}
-
-        public InfocardManager(string stringsJson, string infocardsJson)
+        class JsonContainer
         {
-            strings = JsonConvert.DeserializeObject<Dictionary<int, string>>(stringsJson);
-            infocards = JsonConvert.DeserializeObject<Dictionary<int, string>>(infocardsJson);
+            public string filetype;
+            public Dictionary<int, string> data;
         }
+
+		public InfocardManager(List<string> jsonFiles, FileSystem vfs)
+        {
+            strings = new Dictionary<int, string>();
+            infocards = new Dictionary<int, string>();
+            foreach (var f in jsonFiles)
+            {
+                using (var reader = new StreamReader(vfs.Open(f)))
+                {
+                    var file = JSON.Deserialize<JsonContainer>(reader.ReadToEnd());
+                    if(string.IsNullOrEmpty(file.filetype)) throw new Exception($"{f} is not a valid resource file");
+                    if(file.data == null) continue;
+                    if (file.filetype.Equals("strings", StringComparison.OrdinalIgnoreCase))
+                    {
+                        foreach (var kv in file.data)
+                        {
+                            try
+                            {
+                                strings.Add(kv.Key, kv.Value);
+                            }
+                            catch (ArgumentException)
+                            {
+                                throw new Exception($"{f} trying to add existing IDS {kv.Key}");
+                            }
+                        }
+                    } 
+                    else if (file.filetype.Equals("infocards", StringComparison.OrdinalIgnoreCase))
+                    {
+                        foreach (var kv in file.data)
+                        {
+                            try
+                            {
+                                infocards.Add(kv.Key, kv.Value);
+                            }
+                            catch (ArgumentException)
+                            {
+                                throw new Exception($"{f} trying to add existing IDS {kv.Key}");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception($"Invalid filetype in {f} (expected strings or infocards)");
+                    }
+                }
+            }
+        }
+
+      
 
         public void ExportStrings(string filename)
 		{
 			using (var writer = new StreamWriter(filename))
-			{
-				writer.Write(JsonConvert.SerializeObject(strings, Formatting.Indented));
+            {
+                var obj = new JsonContainer() {filetype = "strings", data = strings};
+				writer.Write(JsonConvert.SerializeObject(obj, Formatting.Indented));
 			}
 		}
 
@@ -53,7 +97,8 @@ namespace LibreLancer.Data
 		{
 			using (var writer = new StreamWriter(filename))
 			{
-				writer.Write(JsonConvert.SerializeObject(infocards, Formatting.Indented));
+                var obj = new JsonContainer() {filetype = "infocards", data = infocards};
+                writer.Write(JsonConvert.SerializeObject(obj, Formatting.Indented));
 			}
 		}
 

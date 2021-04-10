@@ -44,7 +44,7 @@ namespace LibreLancer.Data
 		public string BodypartsPath { get; private set; }
 		public string CostumesPath { get; private set; }
 		public string EffectShapesPath { get; private set; }
-		public Tuple<string, string> JsonResources { get; private set; }
+		public List<string> JsonResources { get; private set; }
 
         public List<string> NoNavmapSystems { get; private set; }
         static readonly string[] NoNavmaps = {
@@ -116,7 +116,16 @@ namespace LibreLancer.Data
 					}
 					break;
 				case "jsonresources":
-					JsonResources = new Tuple<string, string>(resolveFileEXE(s[0][0].ToString()), resolveFileEXE(s[0][1].ToString()));
+                    //This currently breaks LancerEdit VFS usage
+                    JsonResources = new List<string>();
+                    foreach (var e in s) {
+                        if (e.Name.ToLowerInvariant() != "file")
+                        {
+                            FLLog.Warning("Ini", $"Unexpected entry `{e.Name}` in [JsonResources] (expected file)");
+                            continue;
+                        }
+                        JsonResources.Add(DataPath + e[0].ToString());
+                    }
 					break;
 				case "resources":
                     Resources = new List<DllFile> ();

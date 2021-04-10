@@ -98,7 +98,7 @@ namespace LibreLancer.Data
                 Dacom = new DacomIni (VFS);
             if (Freelancer.JsonResources != null)
             {
-                Infocards = new InfocardManager(File.ReadAllText(Freelancer.JsonResources.Item1), File.ReadAllText(Freelancer.JsonResources.Item2));
+                Infocards = new InfocardManager(Freelancer.JsonResources, VFS);
             }
             else
             {
@@ -146,6 +146,8 @@ namespace LibreLancer.Data
             //Shapes
             tasks.Add(Task.Run(() =>
             {
+                if (string.IsNullOrEmpty(Freelancer.EffectShapesPath))
+                    throw new Exception("Need one effect_shapes entry");
                 EffectShapes = new TexturePanels(Freelancer.EffectShapesPath, VFS);
             }));
             //Effects
@@ -178,6 +180,7 @@ namespace LibreLancer.Data
             {
                 //Hud
                 Hud = new HudIni();
+                if (string.IsNullOrEmpty(Freelancer.HudPath)) throw new Exception("Need one hud path");
                 Hud.AddIni(Freelancer.HudPath, VFS);
                 //navbar.ini
                 BaseNavBar = new BaseNavBarIni(VFS);
