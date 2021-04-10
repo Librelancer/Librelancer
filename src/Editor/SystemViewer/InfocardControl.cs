@@ -31,7 +31,10 @@ namespace SystemViewer
         public void Draw(float width)
         {
             icard.Recalculate(width);
-
+            if (icard.Height < 1 || width < 1) {
+                ImGui.Dummy(new Vector2(1, 1));
+                return;
+            }
             if (icard.Height != renderHeight || (int)width != renderWidth)
             {
                 renderWidth = (int)width;
