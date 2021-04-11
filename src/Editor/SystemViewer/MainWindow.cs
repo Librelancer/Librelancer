@@ -350,7 +350,7 @@ C# Memory Usage: {5}
             systems = GameData.ListSystems().OrderBy(x => x).ToArray();
             Resources.ClearTextures();
             string navPrettyMap;
-            if ((navPrettyMap = GameData.TryResolveData("INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_prettymap.3db")) !=
+            if ((navPrettyMap = GameData.VFS.Resolve(GameData.Ini.Freelancer.DataPath + "INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_prettymap.3db", false)) !=
                 null)
             {
                 Resources.LoadResourceFile(navPrettyMap);
