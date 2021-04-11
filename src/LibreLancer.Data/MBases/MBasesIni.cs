@@ -11,19 +11,21 @@ namespace LibreLancer.Data
 	public class MBasesIni : IniFile
 	{
         public Dictionary<string, MBase> Bases = new Dictionary<string, MBase>(StringComparer.OrdinalIgnoreCase);
-		int i;
-		public MBasesIni(FileSystem vfs)
-		{
-            var sections = ParseFile("DATA\\MISSIONS\\mbases.ini", vfs).ToArray();
-			for (i = 0; i < sections.Length; i++) {
-				if (sections[i].Name.ToLowerInvariant() == "mbase")
-				{
+		public MBasesIni() { }
+
+        int i;
+        public void AddFile(string path, FileSystem vfs)
+        {
+            var sections = ParseFile(path, vfs).ToArray();
+            for (i = 0; i < sections.Length; i++) {
+                if (sections[i].Name.ToLowerInvariant() == "mbase")
+                {
                     var mb = new MBase(EnumerateSections(sections));
                     Bases[mb.Nickname] = mb; //Add() won't overwrite duplicates
-					i--;
-				}
-			}
-		}
+                    i--;
+                }
+            }
+        }
 		IEnumerable<Section> EnumerateSections(Section[] sections)
 		{
 			yield return sections[i];

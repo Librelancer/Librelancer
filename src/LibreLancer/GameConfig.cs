@@ -40,24 +40,30 @@ namespace LibreLancer
 
 		Func<string> filePath;
 
+        static bool FileExists(string dir, string f)
+        {
+            return Directory.GetFiles(dir).Any(x => Path.GetFileName(x).Equals(f, StringComparison.OrdinalIgnoreCase));
+        }
+
 		public static bool CheckFLDirectory(string dir)
         {
             if (!Directory.Exists(dir)) return false;
             bool exeExists = false;
-            bool dataExists = false;
-            foreach (var child in Directory.GetDirectories(dir).Select(Path.GetFileName))
-            {
-                if (child.Equals("exe", StringComparison.OrdinalIgnoreCase))
-                    exeExists = true;
-                if (child.Equals("data", StringComparison.OrdinalIgnoreCase))
-                    dataExists = true;
+            string exePath = null;
+            foreach (var child in Directory.GetDirectories(dir)) {
+                if (Path.GetFileName(child).Equals("exe", StringComparison.OrdinalIgnoreCase)) {
+                    exePath = child;
+                    break;
+                }
             }
-            return exeExists && dataExists;
+            if (FileExists(dir, "librelancer.ini")) return true;
+            if (!string.IsNullOrEmpty(exePath) && FileExists(exePath, "freelancer.ini")) return true;
+            return false;
         }
 
         public void Validate()
         {
-            if (!LibreLancer.GameConfig.CheckFLDirectory(FreelancerPath))
+            if (!CheckFLDirectory(FreelancerPath))
             {
                 throw new InvalidFreelancerDirectory(FreelancerPath);
             }

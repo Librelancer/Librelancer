@@ -25,20 +25,23 @@ namespace InterfaceEdit
            
         }
 
+        public string ResolvedDataDir { get; private set; }
+        
         void Load()
         {
             UiData.FlDirectory = FlFolder;
             UiData.ResourceManager = new GameResourceManager(window);
             UiData.FileSystem = FileSystem.FromFolder(FlFolder);
             UiData.Fonts = window.Fonts;
+            var flIni = new FreelancerIni(UiData.FileSystem);
+            var dataPath = UiData.FileSystem.Resolve(flIni.DataPath) + "/";
+            ResolvedDataDir = dataPath;
+            UiData.DataPath = flIni.DataPath;
             UiData.OpenFolder(XmlFolder);
             
-            var flIni = new FreelancerIni(UiData.FileSystem);
-            var dataPath = UiData.FileSystem.Resolve(flIni.DataPath); 
-           
             try
             {
-                var navbarIni = new LibreLancer.Data.BaseNavBarIni(UiData.FileSystem);
+                var navbarIni = new LibreLancer.Data.BaseNavBarIni(dataPath, UiData.FileSystem);
                 UiData.NavbarIcons = navbarIni.Navbar;
             }
             catch (Exception)
@@ -72,7 +75,6 @@ namespace InterfaceEdit
                 UiData.Infocards = new InfocardManager(flIni.JsonResources, UiData.FileSystem);
             else if (flIni.Resources != null)
                 UiData.Infocards = new InfocardManager(flIni.Resources);
-            UiData.DataPath = flIni.DataPath;
             XmlLoader = new UiXmlLoader(UiData.Resources);
             try
             {

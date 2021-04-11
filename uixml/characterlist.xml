@@ -1,5 +1,5 @@
 <Scene ID="characterlist" ScriptFile="mainmenu.lua">
-<ImageFile Path="DATA/INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga" Width="640" Height="480"/>
+<ImageFile Path="INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga" Width="640" Height="480"/>
 <Panel id="animgroupA" Width="640" Height="480" Anchor="Center">
 	<ImageFile Path="DATA/uiscreens/characterlist.png" Width="640" Height="480" Visible="false"/>
 	<Button X="18" Y="121" Style="menubutton" TextSize="14" ID="newchar" Text="NEW CHARACTER"/>

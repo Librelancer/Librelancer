@@ -94,8 +94,17 @@ namespace LibreLancer.Data
         {
             if (Loaded)
                 return;
-            if(LoadDacom)
-                Dacom = new DacomIni (VFS);
+            if (LoadDacom)
+            {
+                if (!string.IsNullOrEmpty(Freelancer.DacomPath)) {
+                    Dacom = new DacomIni(Freelancer.DacomPath, VFS);
+                }
+                else {
+                    new MaterialMap(); //no dacom, make default global thing
+                    //todo: fix this
+                }
+            }
+            
             if (Freelancer.JsonResources != null)
             {
                 Infocards = new InfocardManager(Freelancer.JsonResources, VFS);
@@ -118,7 +127,7 @@ namespace LibreLancer.Data
                 if (Freelancer.StarsPath != null)
                     Stars = new StararchIni(Freelancer.StarsPath, VFS);
                 else
-                    Stars = new StararchIni("DATA\\SOLAR\\stararch.ini", VFS);
+                    Stars = new StararchIni(Freelancer.DataPath + "SOLAR\\stararch.ini", VFS);
             }));
             tasks.Add(Task.Run(() =>
             {
@@ -160,7 +169,7 @@ namespace LibreLancer.Data
             tasks.Add(Task.Run(() =>
             {
                 //Mouse
-                Mouse = new MouseIni(Freelancer.DataPath + "/mouse.ini", VFS);
+                Mouse = new MouseIni(Freelancer.MousePath, VFS);
                 //Fonts
                 RichFonts = new RichFontsIni();
                 foreach (var rf in Freelancer.RichFontPaths)
@@ -183,7 +192,7 @@ namespace LibreLancer.Data
                 if (string.IsNullOrEmpty(Freelancer.HudPath)) throw new Exception("Need one hud path");
                 Hud.AddIni(Freelancer.HudPath, VFS);
                 //navbar.ini
-                BaseNavBar = new BaseNavBarIni(VFS);
+                BaseNavBar = new BaseNavBarIni(Freelancer.DataPath, VFS);
             }));
             tasks.Add(Task.Run(() =>
             {
@@ -193,7 +202,16 @@ namespace LibreLancer.Data
             tasks.Add(Task.Run(() =>
             {
                 //mbases.ini
-                MBases = new MBasesIni(VFS);
+                MBases = new MBasesIni();
+                if (Freelancer.MBasesPaths != null)
+                {
+                    foreach(var f in Freelancer.MBasesPaths)
+                        MBases.AddFile(f, VFS);
+                }
+                else
+                {
+                    MBases.AddFile(Freelancer.DataPath + "MISSIONS\\mbases.ini", VFS);
+                }
             }));
             tasks.Add(Task.Run(() =>
             {
@@ -248,7 +266,7 @@ namespace LibreLancer.Data
             tasks.Add(Task.Run(() =>
             {
                 Cameras = new CameraIni();
-                Cameras.ParseAndFill(Freelancer.DataPath + "cameras.ini", VFS);
+                Cameras.ParseAndFill(Freelancer.CamerasPath, VFS);
             }));
             ContentDll = new ContentDll();
             if (VFS.FileExists("DLLS\\BIN\\content.dll"))

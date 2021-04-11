@@ -13,6 +13,7 @@ namespace LibreLancer.Data
 {
 	public class FreelancerIni : IniFile
 	{
+        public bool IsLibrelancer { get; private set; }
 		public List<DllFile> Resources { get; private set; }
 		public List<string> StartupMovies { get; private set; }
 
@@ -44,7 +45,20 @@ namespace LibreLancer.Data
 		public string BodypartsPath { get; private set; }
 		public string CostumesPath { get; private set; }
 		public string EffectShapesPath { get; private set; }
+        //Extended. Not in vanilla
 		public List<string> JsonResources { get; private set; }
+
+        public string DacomPath { get; private set; } = "EXE\\dacom.ini";
+
+        public string NewPlayerPath { get; private set; } = "EXE\\newplayer.fl";
+        
+        public string MpNewCharacterPath { get; private set; } = "EXE\\mpnewcharacter.fl";
+        
+        public List<string> MBasesPaths { get; private set; }
+        
+        public string MousePath { get; private set; }
+        public string CamerasPath { get; private set; }
+        public string ConstantsPath { get; private set; }
 
         public List<string> NoNavmapSystems { get; private set; }
         static readonly string[] NoNavmaps = {
@@ -65,10 +79,29 @@ namespace LibreLancer.Data
             "fc_kn_grp",
             "fc_ln_grp"
         };
-        public FreelancerIni(FileSystem vfs) : this("EXE\\freelancer.ini", vfs) { }
+
+        static string FindIni(FileSystem vfs)
+        {
+            if (vfs.FileExists("librelancer.ini"))
+                return "librelancer.ini";
+            else
+                return "EXE\\freelancer.ini";
+        }
+
+        static string EndInSep(string path)
+        {
+            if (path[path.Length - 1] == '/' ||
+                path[path.Length - 1] == '\\')
+                return path;
+            return path + Path.DirectorySeparatorChar;
+        }
+        public FreelancerIni(FileSystem vfs) : this(FindIni(vfs), vfs) { }
 
         public FreelancerIni (string path, FileSystem vfs)
-		{
+        {
+            if (vfs == null) throw new ArgumentNullException(nameof(vfs), "vfs cannot be null");
+            IsLibrelancer = path.EndsWith("librelancer.ini", StringComparison.OrdinalIgnoreCase);
+            if (IsLibrelancer) DacomPath = null;
 			EquipmentPaths = new List<string> ();
 			LoadoutPaths = new List<string> ();
 			ShiparchPaths = new List<string> ();
@@ -89,18 +122,8 @@ namespace LibreLancer.Data
             bool extHideFac = false;
             NoNavmapSystems = new List<string>(NoNavmaps);
             HiddenFactions = new List<string>(NoShowFactions);
-
-            //For DLL resolving (skip VFS for editor usage)
-            var fullPath = vfs == null ? path : vfs.Resolve(path);
-            var directory = Path.GetDirectoryName(fullPath);
-            var dirFiles = Directory.GetFiles(directory).Select(a => Path.GetFileName(a));
-            Func<string, string> resolveFileEXE = (x) =>
-            {
-                if (File.Exists(Path.Combine(directory, x))) return Path.Combine(directory, x);
-                var res = dirFiles.FirstOrDefault(y => y.Equals(x, StringComparison.OrdinalIgnoreCase));
-                if (res != null) return Path.Combine(directory, res);
-                return null;
-            };
+            
+            var fullPath = vfs.Resolve(path);
 
             foreach (Section s in ParseFile(fullPath, vfs)) {
 				switch (s.Name.ToLowerInvariant ()) {
@@ -111,12 +134,18 @@ namespace LibreLancer.Data
 								throw new Exception ("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
 							if (DataPath != null)
 								throw new Exception ("Duplicate " + e.Name + " Entry in " + s.Name);
-							DataPath = "EXE\\" + e [0].ToString () + "\\";
-						}
+                            if (IsLibrelancer)
+                                DataPath = EndInSep(e[0].ToString());
+                            else
+                                DataPath = "EXE\\" + EndInSep(e[0].ToString());
+                        }
+                        if (e.Name.ToLowerInvariant() == "dacom path")
+                        {
+                            DacomPath = e[0].ToString();
+                        }
 					}
 					break;
 				case "jsonresources":
-                    //This currently breaks LancerEdit VFS usage
                     JsonResources = new List<string>();
                     foreach (var e in s) {
                         if (e.Name.ToLowerInvariant() != "file")
@@ -130,16 +159,20 @@ namespace LibreLancer.Data
 				case "resources":
                     Resources = new List<DllFile> ();
                     //NOTE: Freelancer hardcodes resources.dll
+                    //Not hardcoded for librelancer.ini as it will break
+                    string start = IsLibrelancer ? "" : "EXE\\";
                     string pathStr;
-                    if ((pathStr = resolveFileEXE("resources.dll")) != null)
-                        Resources.Add(new DllFile(pathStr, vfs));
-                    else
-                        FLLog.Warning("Dll", "resources.dll not found");
-					foreach (Entry e in s)
+                    if (!IsLibrelancer) {
+                        if ((pathStr = vfs.Resolve(start + "resources.dll", false)) != null)
+                            Resources.Add(new DllFile(pathStr, vfs));
+                        else
+                            FLLog.Warning("Dll", "resources.dll not found");
+                    }
+                    foreach (Entry e in s)
 					{
 						if (e.Name.ToLowerInvariant () != "dll")
 							continue;
-                        if ((pathStr = resolveFileEXE(e[0].ToString())) != null)
+                        if ((pathStr = vfs.Resolve(start + e[0].ToString(), false)) != null)
                             Resources.Add(new DllFile(pathStr, vfs));
                         else
                             FLLog.Warning("Dll", e[0].ToString());
@@ -248,12 +281,36 @@ namespace LibreLancer.Data
                         case "voices":
                             VoicePaths.Add(DataPath + e[0].ToString());
                             break;
-						}
+                        //extended
+                        case "newplayer":
+                            NewPlayerPath = DataPath + e[0].ToString();
+                            break;
+                        case "mpnewcharacter":
+                            MpNewCharacterPath = DataPath + e[0].ToString();
+                            break;
+                        case "mbases":
+                            if (MBasesPaths == null) MBasesPaths = new List<string>();
+                            MBasesPaths.Add(DataPath + e[0].ToString());
+                            break;
+                        case "mouse":
+                            MousePath = DataPath + e[0].ToString();
+                            break;
+                        case "cameras":
+                            CamerasPath = DataPath + e[0].ToString();
+                            break;
+                        case "constants":
+                            ConstantsPath = DataPath + e[0].ToString();
+                            break;
+                        }
 					}
 					break;
 				}
 			}
-		}
+
+            if (string.IsNullOrEmpty(MousePath)) MousePath = DataPath + "mouse.ini";
+            if (string.IsNullOrEmpty(CamerasPath)) CamerasPath = DataPath + "cameras.ini";
+            if (string.IsNullOrEmpty(ConstantsPath)) ConstantsPath = DataPath + "constants.ini";
+        }
 	}
 }
 

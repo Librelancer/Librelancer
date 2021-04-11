@@ -16,7 +16,7 @@ namespace LibreLancer.Interface
     public class NavmapIcons : INavmapIcons
     {
         //TODO: Turn this into directory lookup + .3db like vanilla
-        private const string DIR = "DATA/INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/SPACEOBJECTS/";
+        private const string DIR = "INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/SPACEOBJECTS/";
         static Dictionary<string,string> models = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             { "nav_depot", $"{DIR}nav_depot.3db" },
@@ -51,9 +51,9 @@ namespace LibreLancer.Interface
         public IEnumerable<string> Libraries()
         {
             yield return $"{DIR}spaceobjects.mat";
-            yield return "DATA/INTERFACE/interface.generic.vms";
-            yield return "DATA/INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/navmaptextures.txm";
-            yield return "DATA/INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/zoomedmap_liberty.3db";
+            yield return "INTERFACE/interface.generic.vms";
+            yield return "INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/navmaptextures.txm";
+            yield return "INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/zoomedmap_liberty.3db";
         }
         public UiRenderable GetSystemObject(string name)
         {

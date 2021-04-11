@@ -38,10 +38,10 @@ namespace LancerEdit
         public InfocardBrowserTab(string flini, MainWindow win)
         {
             this.win = win;
-            var ini = new FreelancerIni(flini, null);
-            fonts = new FontManager();
             var rootFolder = Path.Combine(Path.GetDirectoryName(flini), "../");
             var vfs = FileSystem.FromFolder(rootFolder, true);
+            var ini = new FreelancerIni(flini, vfs);
+            fonts = new FontManager();
             fonts.LoadFontsFromIni(ini, vfs);
             if (ini.JsonResources != null)
                 manager = new InfocardManager(ini.JsonResources, vfs);

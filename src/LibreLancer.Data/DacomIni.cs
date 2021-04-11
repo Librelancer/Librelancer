@@ -10,9 +10,9 @@ namespace LibreLancer.Data
 	public class DacomIni : IniFile
 	{
 		public MaterialMap MaterialMap { get; private set; }
-		public DacomIni (FileSystem vfs)
+		public DacomIni (string dacomPath, FileSystem vfs)
 		{
-			foreach (Section s in ParseFile("EXE\\dacom.ini", vfs, true)) {
+			foreach (Section s in ParseFile(dacomPath, vfs, true)) {
 				switch (s.Name.ToLowerInvariant ()) {
 				case "materialmap":
 					var map = new MaterialMap ();

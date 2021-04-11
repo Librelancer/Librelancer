@@ -53,7 +53,7 @@ namespace LibreLancer.Interface
         public void PopulateIcons(UiContext ctx, GameData.StarSystem sys)
         {
             foreach(var l in ctx.Data.NavmapIcons.Libraries())
-                ctx.Data.ResourceManager.LoadResourceFile(ctx.Data.FileSystem.Resolve(l));
+                ctx.Data.ResourceManager.LoadResourceFile(ctx.Data.FileSystem.Resolve(ctx.Data.DataPath + l));
             objects = new List<DrawObject>();
             tradelanes = new List<Tradelanes>();
             navmapscale = sys.NavMapScale;

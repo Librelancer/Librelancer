@@ -26,8 +26,8 @@ namespace InterfaceEdit
         {
             this.resources = context.Resources;
             this.context = context;
-            librarySelector = new FileSelector(context.FlDirectory);
-            modelSelector = new FileSelector(context.FlDirectory);
+            librarySelector = new FileSelector(mainWindow.Project.ResolvedDataDir);
+            modelSelector = new FileSelector(mainWindow.Project.ResolvedDataDir);
             this.mainWindow = mainWindow;
         }
 
@@ -173,7 +173,7 @@ namespace InterfaceEdit
             {
                 if (ImGui.Button("Add"))
                 {
-                    librarySelector = new FileSelector(context.FlDirectory);
+                    librarySelector = new FileSelector(mainWindow.Project.ResolvedDataDir);
                     librarySelector.Filter = FileSelector.MakeFilter(".utf", ".vms", ".mat", ".txm", ".3db", ".cmp");
                     librarySelector.Open();
                 }
@@ -199,7 +199,7 @@ namespace InterfaceEdit
             ImGui.BeginChild("##tabinner");
             if (ImGui.Button("Add"))
             {
-                modelSelector = new FileSelector(context.FlDirectory);
+                modelSelector = new FileSelector(mainWindow.Project.ResolvedDataDir);
                 modelSelector.Filter = FileSelector.MakeFilter(".3db", ".cmp");
                 modelSelector.Open();
             }

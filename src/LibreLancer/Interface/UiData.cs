@@ -48,15 +48,13 @@ namespace LibreLancer.Interface
 
         public string GetNavbarIconPath(string icon)
         {
-            var p = DataPath.Replace('\\', Path.DirectorySeparatorChar);
             string ic;
             if (!NavbarIcons.TryGetValue(icon, out ic))
             {
                 FLLog.Warning("Interface", $"Could not find icon {icon}");
                 ic = NavbarIcons.Values.First();
             }
-
-            return Path.Combine(p, ic);
+            return ic;
         }
         public string GetFont(string fontName)
         {
@@ -77,7 +75,7 @@ namespace LibreLancer.Interface
         {
             try
             {
-                var file = FileSystem.Resolve(filename);
+                var file = DataResolve(filename);
                 if (!loadedFiles.ContainsKey(file))
                 {
                     loadedFiles.Add(file, LibreLancer.ImageLib.Generic.FromFile(file));
@@ -95,7 +93,7 @@ namespace LibreLancer.Interface
             if(string.IsNullOrEmpty(path)) return null;
             try
             {
-                return ((IRigidModelFile) ResourceManager.GetDrawable(FileSystem.Resolve(path))).CreateRigidModel(true);
+                return ((IRigidModelFile) ResourceManager.GetDrawable(DataResolve(path))).CreateRigidModel(true);
             }
             catch (Exception e)
             {
@@ -168,16 +166,21 @@ namespace LibreLancer.Interface
                 return uibundle.Exists(file);
             }
         }
+        
+        public string DataResolve(string file)
+        {
+            return FileSystem.Resolve(DataPath + file);
+        }
 
         public void LoadLibraries()
         {
             foreach (var file in Resources.LibraryFiles)
             {
-                ResourceManager.LoadResourceFile(FileSystem.Resolve(file));
+                ResourceManager.LoadResourceFile(DataResolve(file));
             }
             foreach (var file in NavmapIcons.Libraries())
             {
-                ResourceManager.LoadResourceFile(FileSystem.Resolve(file));
+                ResourceManager.LoadResourceFile(DataResolve(file));
             }
         }
     }

@@ -21,6 +21,7 @@ namespace SystemViewer
         {
             var uidata = new UiData();
             uidata.FileSystem = window.GameData.VFS;
+            uidata.DataPath = window.GameData.Ini.Freelancer.DataPath;
             uidata.Fonts = window.GetService<FontManager>();
             uidata.ResourceManager = window.Resources;
             ctx = new UiContext(uidata);

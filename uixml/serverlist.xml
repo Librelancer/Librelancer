@@ -1,5 +1,5 @@
 <Scene ID="multiplayer">
- 	<ImageFile Path="DATA/INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga" Width="640" Height="480"/>
+ 	<ImageFile Path="INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga" Width="640" Height="480"/>
 	<Panel id="animgroupA" Width="640" Height="480" Anchor="Center">
 		<ImageFile Path="DATA/uiscreens/serverlist.png" Width="640" Height="480" Visible="false"/>
 		<Panel id="listpanel" Width="607" Height="264" X="28" Y="84">
