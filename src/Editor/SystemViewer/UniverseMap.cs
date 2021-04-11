@@ -14,13 +14,15 @@ namespace SystemViewer
         public static string Draw(int imageId, GameDataManager gameData, int width, int height, int offsetY)
         {
             var crmin = ImGui.GetWindowContentRegionMin() + new Vector2(0, offsetY);
-            if (imageId != -1)
-            {
-                var wpos = ImGui.GetWindowPos() + new Vector2(0, offsetY);
-                var a = wpos +  ImGui.GetWindowContentRegionMin();
-                var b = wpos +  ImGui.GetWindowContentRegionMax();
-                var drawList = ImGui.GetWindowDrawList();
+            var wpos = ImGui.GetWindowPos() + new Vector2(0, offsetY);
+            var a = wpos +  ImGui.GetWindowContentRegionMin();
+            var b = wpos +  ImGui.GetWindowContentRegionMax();
+            var drawList = ImGui.GetWindowDrawList();
+            if (imageId != -1) {
                 drawList.AddImage((IntPtr) imageId, a, b, new Vector2(0, 1), new Vector2(1, 0));
+            }
+            else {
+                drawList.AddRectFilled(a, b, 0xFF000000);
             }
 
             float margin = 0.15f;

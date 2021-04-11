@@ -59,7 +59,7 @@ namespace LibreLancer
             return VFS.Resolve(fldata.Freelancer.DataPath + input);
         }
 
-        string ResolveDataNoExcept(string input)
+        public string TryResolveData(string input)
         {
             var v =  VFS.Resolve(fldata.Freelancer.DataPath + input, false);
             if(v == null) FLLog.Error("GameData", $"File {fldata.Freelancer.DataPath}{input} not found");
@@ -1096,12 +1096,12 @@ namespace LibreLancer
         ResolvedModel ResolveDrawable(IEnumerable<string> libs, string file)
         {
             var mdl = new ResolvedModel() {
-                ModelFile = ResolveDataNoExcept(file)
+                ModelFile = TryResolveData(file)
             };
             if (mdl.ModelFile == null) return null;
             if (libs != null)
             {
-                mdl.LibraryFiles = libs.Select(x => ResolveDataNoExcept(x)).Where(x => x != null).ToArray();
+                mdl.LibraryFiles = libs.Select(x => TryResolveData(x)).Where(x => x != null).ToArray();
             }
             return mdl;
         }
@@ -1109,12 +1109,12 @@ namespace LibreLancer
         ResolvedModel ResolveDrawable(string libs, string file)
         {
             var mdl = new ResolvedModel() {
-                ModelFile = ResolveDataNoExcept(file)
+                ModelFile = TryResolveData(file)
             };
             if (mdl.ModelFile == null) return null;
             if (!string.IsNullOrEmpty(libs))
             {
-                mdl.LibraryFiles = new[] {ResolveDataNoExcept(libs)};
+                mdl.LibraryFiles = new[] {TryResolveData(libs)};
                 if (mdl.LibraryFiles[0] == null) mdl.LibraryFiles = new string[0];
             }
             return mdl;
@@ -1410,13 +1410,13 @@ namespace LibreLancer
                 return null;
             }
             if (visfx == null) return null;
-            var alepath = ResolveDataNoExcept(visfx.AlchemyPath);
+            var alepath = TryResolveData(visfx.AlchemyPath);
             if (alepath == null) return null;
             return new ResolvedFx()
             {
                 AlePath = alepath,
                 VisFxCrc = (uint)visfx.EffectCrc,
-                LibraryFiles = visfx.Textures.Select(ResolveDataNoExcept).Where(x => x != null).ToArray()
+                LibraryFiles = visfx.Textures.Select(TryResolveData).Where(x => x != null).ToArray()
             };
         }
 

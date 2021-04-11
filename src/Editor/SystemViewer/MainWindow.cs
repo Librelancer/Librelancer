@@ -349,7 +349,12 @@ C# Memory Usage: {5}
             world = new GameWorld(renderer);
             systems = GameData.ListSystems().OrderBy(x => x).ToArray();
             Resources.ClearTextures();
-            Resources.LoadResourceFile(GameData.ResolveDataPath("INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_prettymap.3db"));
+            string navPrettyMap;
+            if ((navPrettyMap = GameData.TryResolveData("INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_prettymap.3db")) !=
+                null)
+            {
+                Resources.LoadResourceFile(navPrettyMap);
+            }
             universeBackgroundTex = (Resources.FindTexture("fancymap.tga") as Texture2D);
             if (universeBackgroundTex != null)
                 universeBackgroundRegistered = ImGuiHelper.RegisterTexture(universeBackgroundTex);
