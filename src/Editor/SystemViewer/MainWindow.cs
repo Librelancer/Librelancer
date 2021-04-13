@@ -61,7 +61,8 @@ namespace SystemViewer
         protected override void Update(double elapsed)
         {
             if(world != null) {
-                ProcessInput(elapsed);
+                if(!ImGui.GetIO().WantCaptureKeyboard)
+                    ProcessInput(elapsed);
                 camera.Update(elapsed);
                 camera.Free = true;
                 world.Update(elapsed);
@@ -107,21 +108,25 @@ namespace SystemViewer
             }
             if (Keyboard.IsKeyDown(Keys.D1))
             {
-                camera.MoveSpeed = 3000;
+                camera.MoveSpeed = LOWSPEED;
             }
             if (Keyboard.IsKeyDown(Keys.D2))
             {
-                camera.MoveSpeed = 300;
+                camera.MoveSpeed = MEDSPEED;
             }
             if (Keyboard.IsKeyDown(Keys.D3))
             {
-                camera.MoveSpeed = 90;
+                camera.MoveSpeed = HIGHSPEED;
             }
             if(Keyboard.IsKeyDown(Keys.F6))
             {
                 openChangeSystem = true;
             }
         }
+
+        private const float LOWSPEED = 90;
+        private const float MEDSPEED = 300;
+        private const float HIGHSPEED = 3000;
         const string DEBUG_TEXT =
 @"{0} ({1})
 Position: (X: {2:0.00}, Y: {3:0.00}, Z: {4:0.00})
@@ -139,6 +144,7 @@ C# Memory Usage: {5}
         bool wireFrame = false;
         bool infocardOpen = true;
         bool universeOpen = true;
+        bool controlsOpen = true;
         InfocardControl icard;
         Infocard systemInfocard;
         protected override void Draw(double elapsed)
@@ -187,6 +193,8 @@ C# Memory Usage: {5}
                 if (ImGui.MenuItem("Wireframe", "", wireFrame, true)) wireFrame = !wireFrame;
                 if (ImGui.MenuItem("Infocard", "", infocardOpen, true)) infocardOpen = !infocardOpen;
                 if (ImGui.MenuItem("Universe Map", "", universeOpen, true)) universeOpen = !universeOpen;
+                if (ImGui.MenuItem("Controls", "", controlsOpen, true)) controlsOpen = !controlsOpen;
+
                 if(ImGui.MenuItem("VSync", "", vSync, true))
                 {
                     vSync = !vSync;
@@ -197,6 +205,20 @@ C# Memory Usage: {5}
             var h = ImGui.GetWindowHeight();
             ImGui.EndMainMenuBar();
             //Other Windows
+            if (camera != null && controlsOpen)
+            {
+                if (ImGui.Begin("Controls", ref controlsOpen))
+                {
+                    ImGui.Text("WSAD - Movement");
+                    ImGui.Text("Arrow Keys - Rotation");
+                    ImGui.SliderFloat("Move Speed", ref camera.MoveSpeed, 1, 12000);
+                    if (ImGui.Button(LOWSPEED.ToString())) camera.MoveSpeed = LOWSPEED;
+                    ImGui.SameLine();
+                    if (ImGui.Button(MEDSPEED.ToString())) camera.MoveSpeed = MEDSPEED;
+                    ImGui.SameLine();
+                    if (ImGui.Button(HIGHSPEED.ToString())) camera.MoveSpeed = HIGHSPEED;
+                }
+            }
             if(world != null) {
                 if(showDebug) {
                     ImGui.SetNextWindowPos(new Vector2(0, h), ImGuiCond.Always, Vector2.Zero);
