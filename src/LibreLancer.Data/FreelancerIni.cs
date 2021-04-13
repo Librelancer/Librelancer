@@ -59,6 +59,8 @@ namespace LibreLancer.Data
         public string MousePath { get; private set; }
         public string CamerasPath { get; private set; }
         public string ConstantsPath { get; private set; }
+        
+        public string NavmapPath { get; private set; }
 
         public List<string> NoNavmapSystems { get; private set; }
         static readonly string[] NoNavmaps = {
@@ -300,6 +302,9 @@ namespace LibreLancer.Data
                             break;
                         case "constants":
                             ConstantsPath = DataPath + e[0].ToString();
+                            break;
+                        case "navmap":
+                            NavmapPath = DataPath + e[0].ToString();
                             break;
                         }
 					}

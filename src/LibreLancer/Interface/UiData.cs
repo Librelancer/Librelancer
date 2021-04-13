@@ -24,7 +24,7 @@ namespace LibreLancer.Interface
         public Stylesheet Stylesheet;
         public InterfaceResources Resources;
         //TODO: Make configurable
-        public INavmapIcons NavmapIcons = new NavmapIcons();
+        public INavmapIcons NavmapIcons;
         public string XInterfacePath;
         //Editor-only
         public string FlDirectory;
@@ -40,6 +40,10 @@ namespace LibreLancer.Interface
             NavbarIcons = game.GameData.GetBaseNavbarIcons();
             Sounds = game.Sound;
             DataPath = game.GameData.Ini.Freelancer.DataPath;
+            if (game.GameData.Ini.Navmap != null)
+                NavmapIcons = new IniNavmapIcons(game.GameData.Ini.Navmap);
+            else
+                NavmapIcons = new NavmapIcons();
             if (!string.IsNullOrWhiteSpace(game.GameData.Ini.Freelancer.XInterfacePath))
                 OpenFolder(game.GameData.Ini.Freelancer.XInterfacePath);
             else

@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Interface;
 
 namespace LibreLancer.Interface
 {
@@ -12,7 +13,76 @@ namespace LibreLancer.Interface
         UiRenderable GetBackground();
         IEnumerable<string> Libraries();
     }
-    
+
+    public class IniNavmapIcons : INavmapIcons
+    {
+        private NavmapIni ini;
+        Dictionary<string, UiRenderable> renderables = new Dictionary<string, UiRenderable>();
+        public IniNavmapIcons(NavmapIni ini)
+        {
+            this.ini = ini;
+            if (ini.Icons == null)
+                throw new Exception("Navmap Ini must have [Icons] section with nav_depot entry");
+            if (!ini.Icons.Map.TryGetValue("nav_depot", out var _))
+                throw new Exception("Navmap Ini must have nav_depot in [Icons]");
+        }
+
+        public IEnumerable<string> Libraries() => ini.LibraryFiles ?? (IEnumerable<string>) Array.Empty<string>();
+        
+        public UiRenderable GetSystemObject(string name)
+        {
+            var type = ini.Type?.Type ?? NavIconType.Model;
+            if (string.IsNullOrEmpty(name)) return GetSystemObject("nav_depot");
+            if (!renderables.TryGetValue(name, out var renderable))
+            {
+                if (!ini.Icons.Map.TryGetValue(name, out var model))
+                {
+                    return GetSystemObject("nav_depot");
+                }
+                renderable = new UiRenderable();
+                if (type == NavIconType.Model)
+                {
+                    renderable.AddElement(new DisplayModel()
+                    {
+                        Model = new InterfaceModel()
+                        {
+                            Name = name, Path = model, XScale = 50, YScale = 50
+                        }
+                    });
+                } 
+                else if (type == NavIconType.Texture)
+                {
+                    renderable.AddElement(new DisplayImage()
+                    {
+                        Image = new InterfaceImage()
+                        {
+                            Name = model, TexName = model
+                        }
+                    });
+                }
+                
+
+                renderables.Add(name, renderable);
+            }
+            return renderable;
+        }
+        
+        private UiRenderable background;
+        public UiRenderable GetBackground()
+        {
+            if (background == null) {
+                background = new UiRenderable();
+                background.AddElement(new DisplayImage()
+                {
+                    Image = new InterfaceImage()
+                    {
+                        TexName = ini.Background?.Texture ?? "NAV_zoomedliberty.tga"
+                    }
+                });
+            }
+            return background;
+        }
+    }
     public class NavmapIcons : INavmapIcons
     {
         //TODO: Turn this into directory lookup + .3db like vanilla

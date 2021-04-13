@@ -59,6 +59,7 @@ namespace LibreLancer.Data
         public NewCharDBIni NewCharDB;
         public ContentDll ContentDll;
         public InfocardMapIni InfocardMap;
+        public NavmapIni Navmap; //Extension
         
         public string DataVersion;
         public bool Loaded = false;
@@ -193,6 +194,7 @@ namespace LibreLancer.Data
                 Hud.AddIni(Freelancer.HudPath, VFS);
                 //navbar.ini
                 BaseNavBar = new BaseNavBarIni(Freelancer.DataPath, VFS);
+                if (!string.IsNullOrEmpty(Freelancer.NavmapPath)) Navmap = new NavmapIni(Freelancer.NavmapPath, VFS);
             }));
             tasks.Add(Task.Run(() =>
             {
