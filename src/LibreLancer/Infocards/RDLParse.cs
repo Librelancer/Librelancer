@@ -269,7 +269,7 @@ namespace LibreLancer.Infocards
             }
             else if ((data & TRA_font) != 0)
             {
-                var d = fonts.GetInfocardFont((int)(data >> 3 + 1));
+                var d = fonts.GetInfocardFont((int)((data >> 3 & TRA_font) + 1));
                 node.FontName = d.FontName;
                 node.FontSize = d.FontSize;
             }
