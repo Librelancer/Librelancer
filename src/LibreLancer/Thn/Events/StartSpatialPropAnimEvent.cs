@@ -47,7 +47,10 @@ namespace LibreLancer.Thn
             if (GetValue(sp, "axisrot", out LuaTable axisrot))
             {
                 SetFlags |= AnimVars.AxisRot;
-                sp.TryGetVector3(1, out AxisRot.Axis);
+                if (!axisrot.TryGetVector3(1, out AxisRot.Axis)) {
+                    FLLog.Error("Thn", "START_SPATIAL_PROP_ANIM axisrot missing axis");
+                    AxisRot.Axis = Vector3.UnitY;
+                }
                 AxisRot.Degrees = (float) axisrot[0];
             }
             if (GetValue(sp, "pos", out Pos)) SetFlags |= AnimVars.Pos;
