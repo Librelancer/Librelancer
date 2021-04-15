@@ -85,13 +85,14 @@ namespace LibreLancer
         {
             if (LoadLibrary(file) == IntPtr.Zero)
             {
-                CrashWindow.Run("Librelancer", "Missing Components", IntPtr.Size == 8 ? errx64 : errx86);
+                CrashWindow.Run("Librelancer", "Missing Components", 
+                    "LoadLibrary failed for " + file + ": " + Marshal.GetLastWin32Error() + "\n" + (IntPtr.Size == 8 ? errx64 : errx86));
                 return false;
             }
             return true;
         }
 
-        [DllImport("kernel32.dll")]
+        [DllImport("kernel32.dll", SetLastError=true)]
         static extern IntPtr LoadLibrary(string lpLibFileName);
 
         public static bool CheckDependencies()
@@ -99,7 +100,8 @@ namespace LibreLancer
             if (RunningOS != OS.Windows) return true;
             if (!CheckVCRun("msvcr110.dll", V2012_64, V2012_32)) return false;
             if (!CheckVCRun("vcruntime140.dll", V2015_64, V2015_32)) return false;
-            if (!CheckVCRun("vcruntime140_1.dll", V2015_64, V2015_32)) return false;
+            if(IntPtr.Size == 8) //vcruntime140_1.dll only seems present on x64
+                if (!CheckVCRun("vcruntime140_1.dll", V2015_64, V2015_32)) return false;
             return true;
         }
     }

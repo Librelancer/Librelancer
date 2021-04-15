@@ -362,9 +362,6 @@ namespace LibreLancer
             SDL.SDL_SetHint(SDL.SDL_HINT_IME_INTERNAL_EDITING, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
             //Set GL states
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 1);
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_ES);
             SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DEPTH_SIZE, 24);
             //Create Window
             var flags = SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE;
@@ -393,7 +390,8 @@ namespace LibreLancer
             }
             if (sdlWin == IntPtr.Zero)
             {
-                FLLog.Error("SDL", "Failed to create window, exiting.");
+                Dialogs.CrashWindow.Run("Librelancer", "Failed to create SDL window",
+                    "SDL Error: " + (SDL.SDL_GetError() ?? ""));
                 return;
             }
             SDL.SDL_EventState(SDL.SDL_EventType.SDL_DROPFILE, SDL.SDL_ENABLE);
