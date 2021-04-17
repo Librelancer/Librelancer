@@ -217,7 +217,7 @@ namespace LibreLancer.Infocards
 				else
 				{
 					data &= ~TRA_font;
-					data |= (uint.Parse(temp) - 1) << 3;
+					data |= (uint.Parse(temp)) << 3;
 				}
 			}
 			if (attrs.TryGetValue("BOLD", out temp))
@@ -267,9 +267,10 @@ namespace LibreLancer.Infocards
                 node.FontSize = d.FontSize;
                 //node.FontIndex = 0;
             }
-            else if ((data & TRA_font) != 0)
+            else if ((mask & TRA_font) != 0)
             {
-                var d = fonts.GetInfocardFont((int)((data >> 3 & TRA_font) + 1));
+                int fnt = (int)((data & TRA_font) >> 3);
+                var d = fonts.GetInfocardFont(fnt);
                 node.FontName = d.FontName;
                 node.FontSize = d.FontSize;
             }

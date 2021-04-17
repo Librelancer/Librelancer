@@ -36,10 +36,12 @@ namespace LibreLancer
         
         void LoadFonts(FontsIni fonts, RichFontsIni rf, FileSystem fs, string dataPath)
         {
-            var d = dataPath.Replace('\\', Path.DirectorySeparatorChar);
             foreach(var f in fonts.FontFiles)
             {
-                Platform.AddTtfFile(fs.Resolve(Path.Combine(d, f)));
+                var path = fs.Resolve(dataPath + f, false);
+                if(path == null)
+                    FLLog.Error("Fonts", "Could not find ttf file " + dataPath + f);
+                Platform.AddTtfFile(path);
             }
             nicknames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (var id in fonts.UIFonts)
