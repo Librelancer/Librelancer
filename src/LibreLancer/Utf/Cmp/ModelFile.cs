@@ -73,6 +73,7 @@ namespace LibreLancer.Utf.Cmp
                         break;
                     case "hardpoints":
                         IntermediateNode hardpointsNode = node as IntermediateNode;
+                        if(hardpointsNode == null) break;
                         foreach (Node hpn in hardpointsNode)
                         {
 							if (hpn is LeafNode)
