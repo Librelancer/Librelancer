@@ -171,8 +171,14 @@ namespace LibreLancer.Interface
             }
         }
         
+        //some info is using fully-qualified paths instead of data-relative paths.
+        //maybe fix? but not likely
         public string DataResolve(string file)
         {
+            string path;
+            if((path = FileSystem.Resolve(file, false)) != null) {
+                return path;
+            }
             return FileSystem.Resolve(DataPath + file);
         }
 

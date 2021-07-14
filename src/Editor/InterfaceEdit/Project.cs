@@ -22,7 +22,6 @@ namespace InterfaceEdit
         public Project(MainWindow window)
         {
             this.window = window;
-           
         }
 
         public string ResolvedDataDir { get; private set; }
@@ -37,6 +36,8 @@ namespace InterfaceEdit
             var dataPath = UiData.FileSystem.Resolve(flIni.DataPath) + "/";
             ResolvedDataDir = dataPath;
             UiData.DataPath = flIni.DataPath;
+            //TODO: Fix to work with custom game
+            UiData.NavmapIcons = new NavmapIcons();
             UiData.OpenFolder(XmlFolder);
             
             try
