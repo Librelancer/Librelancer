@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.Net;
 using LiteNetLib;
 using LiteNetLib.Utils;
+using Quaternion = System.Numerics.Quaternion;
 
 namespace LibreLancer
 {
@@ -60,31 +62,38 @@ namespace LibreLancer
             //Scene
             Register<SpawnPlayerPacket>(SpawnPlayerPacket.Read);
             Register<BaseEnterPacket>(BaseEnterPacket.Read);
-            //Base-side
-            Register<LaunchPacket>(LaunchPacket.Read);
             //Space
             Register<PositionUpdatePacket>(PositionUpdatePacket.Read);
             Register<SpawnObjectPacket>(SpawnObjectPacket.Read);
             Register<SpawnDebrisPacket>(SpawnDebrisPacket.Read);
             Register<ObjectUpdatePacket>(ObjectUpdatePacket.Read);
             Register<SpawnSolarPacket>(SpawnSolarPacket.Read);
-            Register<DestroyPartPacket>(DestroyPartPacket.Read);
-            Register<DespawnObjectPacket>(DespawnObjectPacket.Read);
-            Register<CallThornPacket>(CallThornPacket.Read);
-            //Chat
-            Register<ConsoleCommandPacket>(ConsoleCommandPacket.Read);
             //Server->Client Generic Commands
-            Register<PlaySoundPacket>(PlaySoundPacket.Read);
-            Register<PlayMusicPacket>(PlayMusicPacket.Read);
             Register<UpdateRTCPacket>(UpdateRTCPacket.Read);
             Register<MsnDialogPacket>(MsnDialogPacket.Read);
-            //Client->Server Responses
-            Register<LineSpokenPacket>(LineSpokenPacket.Read);
-            Register<EnterLocationPacket>(EnterLocationPacket.Read);
-            Register<RTCCompletePacket>(RTCCompletePacket.Read);
+            //Support packets
+            Register<RespondIntPacket>(RespondIntPacket.Read);
+            //Protocol
+            GeneratedProtocol.RegisterPackets();
         }
     }
 
+    public class RespondIntPacket : IPacket
+    {
+        public int Sequence;
+        public int Value;
+        
+        public static object Read(NetPacketReader message)
+        {
+            return new RespondIntPacket() {Sequence = message.GetInt(), Value = message.GetInt()};
+        }
+        
+        public void WriteContents(NetDataWriter msg)
+        {
+            msg.Put(Sequence);
+            msg.Put(Value);
+        }
+    }
     public class LoginSuccessPacket : IPacket
     {
         public static object Read(NetPacketReader message)
@@ -212,58 +221,12 @@ namespace LibreLancer
         }
     }
 
-    public class EnterLocationPacket : IPacket
-    {
-        public string Base;
-        public string Room;
-        public static object Read(NetPacketReader message)
-        {
-            return new EnterLocationPacket() {Base = message.GetString(), Room = message.GetString()};
-        }
-        public void WriteContents(NetDataWriter msg)
-        {
-            msg.Put(Base);
-            msg.Put(Room);
-        }
-    }
-
     public class UpdateRTCPacket : IPacket
     {
         public string[] RTCs;
         public static object Read(NetPacketReader message) =>
             new UpdateRTCPacket() {RTCs = message.GetStringArray()};
         public void WriteContents(NetDataWriter msg) => msg.PutArray(RTCs);
-    }
-
-    public class RTCCompletePacket : IPacket
-    {
-        public string RTC;
-        public static object Read(NetPacketReader message) => new RTCCompletePacket() {RTC = message.GetString()};
-        public void WriteContents(NetDataWriter msg) => msg.Put(RTC);
-    }
-
-    public class DestroyPartPacket : IPacket
-    {
-        public byte IDType;
-        public int ID;
-        public string PartName;
-
-        public static object Read(NetPacketReader message)
-        {
-            return new DestroyPartPacket()
-            {
-                IDType = message.GetByte(),
-                ID = message.GetInt(),
-                PartName = message.GetString()
-            };
-        }
-
-        public void WriteContents(NetDataWriter message)
-        {
-            message.Put(IDType);
-            message.Put(ID);
-            message.Put(PartName);
-        }
     }
 
     public class SpawnDebrisPacket : IPacket
@@ -544,19 +507,7 @@ namespace LibreLancer
             return p;
         }
     }
-
-    public class DespawnObjectPacket : IPacket
-    {
-        public int ID;
-        public static object Read(NetPacketReader message) => new DespawnObjectPacket() { ID = message.GetInt() };
-        public void WriteContents(NetDataWriter message) => message.Put(ID);
-    }
-
-    public class LaunchPacket : IPacket
-    {
-        public static object Read(NetPacketReader message) => new LaunchPacket();
-        public void WriteContents(NetDataWriter message) { }
-    }
+    
 
     public class PositionUpdatePacket : IPacket
     {
@@ -577,58 +528,7 @@ namespace LibreLancer
             msg.Put(Orientation);
         }
     }
-
-    public class PlaySoundPacket : IPacket
-    {
-        public string Sound;
-        public static object Read(NetPacketReader message)
-        {
-            return new PlaySoundPacket() {Sound = message.GetString()};
-        }
-        public void WriteContents(NetDataWriter msg)
-        {
-            msg.Put(Sound);
-        }
-    }
     
-    public class PlayMusicPacket : IPacket
-    {
-        public string Music;
-        public static object Read(NetPacketReader message)
-        {
-            return new PlayMusicPacket() { Music = message.GetString()};
-        }
-        public void WriteContents(NetDataWriter msg)
-        {
-            msg.Put(Music);
-        }
-    }
-
-    public class ConsoleCommandPacket : IPacket
-    {
-        public string Command;
-        public static object Read(NetPacketReader message)
-        {
-            return new ConsoleCommandPacket() {Command = message.GetString()};
-        }
-        public void WriteContents(NetDataWriter msg)
-        {
-            msg.Put(Command);
-        }
-    }
-
-    public class CallThornPacket : IPacket
-    {
-        public string Thorn;
-        public static object Read(NetPacketReader message)
-        {
-            return new CallThornPacket() { Thorn = message.GetString() };
-        }
-        public void WriteContents(NetDataWriter msg)
-        {
-            msg.Put(Thorn);
-        }
-    }
 
     public class NetDlgLine
     {
@@ -659,19 +559,6 @@ namespace LibreLancer
                 msg.Put(ln.Voice);
                 msg.Put(ln.Hash);
             }
-        }
-    }
-
-    public class LineSpokenPacket : IPacket
-    {
-        public uint Hash;
-        public static object Read(NetPacketReader message)
-        {
-            return new LineSpokenPacket() { Hash = message.GetUInt() };
-        }
-        public void WriteContents(NetDataWriter msg)
-        {
-            msg.Put(Hash);
         }
     }
 }

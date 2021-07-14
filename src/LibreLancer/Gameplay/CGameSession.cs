@@ -6,6 +6,7 @@ using System;
 using System.Numerics;
 using System.Collections.Generic;
 using LibreLancer.Data.Missions;
+using LibreLancer.Net;
 using LibreLancer.Utf.Cmp;
 using LiteNetLib;
 
@@ -24,7 +25,7 @@ namespace LibreLancer
     }
 
 
-    public class CGameSession
+    public class CGameSession : IClientPlayer,  INetResponder
 	{
         public long Credits;
 		public string PlayerShip;
@@ -38,10 +39,14 @@ namespace LibreLancer
 		public Matrix4x4 PlayerOrientation;
 
         private IPacketConnection connection;
+        private IServerPlayer rpcServer;
+        public IServerPlayer RpcServer => rpcServer;
 		public CGameSession(FreelancerGame g, IPacketConnection connection)
 		{
 			Game = g;
             this.connection = connection;
+            rpcServer = new RemoteServerPlayer(connection, this);
+            ResponseHandler = new NetResponseHandler();
         }
 
         public void AddRTC(string[] paths)
@@ -58,13 +63,12 @@ namespace LibreLancer
         public void FinishCutscene(StoryCutsceneIni cutscene)
         {
             ActiveCutscenes.Remove(cutscene);
-            connection.SendPacket(new RTCCompletePacket() {RTC = cutscene.RefPath},
-                PacketDeliveryMethod.ReliableOrdered);
+            rpcServer.RTCComplete(cutscene.RefPath);
         }
 
         public void RoomEntered(string room, string bse)
         {
-            connection.SendPacket(new EnterLocationPacket() { Base = bse, Room = room}, PacketDeliveryMethod.ReliableOrdered);
+            rpcServer.OnLocationEnter(bse, room);
         }
 
         private bool hasChanged = false;
@@ -189,15 +193,31 @@ namespace LibreLancer
 
         void RunSync(Action gp) => gameplayActions.Enqueue(gp);
 
-        void PlaySound(string sound) => audioActions.Enqueue(() => Game.Sound.PlayOneShot(sound));
-        void PlayMusic(string music) => audioActions.Enqueue(() => Game.Sound.PlayMusic(music));
+        void IClientPlayer.DespawnObject(int id)
+        {
+            var despawn = objects[id];
+            gp.world.Objects.Remove(despawn);
+            objects.Remove(id);
+        }
+
+        void IClientPlayer.PlaySound(string sound)
+        {
+            audioActions.Enqueue(() => Game.Sound.PlayOneShot(sound));
+        }
+
+        void IClientPlayer.DestroyPart(byte idtype, int id, string part)
+        {
+            RunSync(() => { objects[id].DisableCmpPart(part); });
+        }
+        
+        void IClientPlayer.PlayMusic(string music) => audioActions.Enqueue(() => Game.Sound.PlayMusic(music));
 
         void RunDialog(NetDlgLine[] lines, int index = 0)
         {
             if (index >= lines.Length) return;
             Game.Sound.PlayVoiceLine(lines[index].Voice, lines[index].Hash, () =>
             {
-                connection.SendPacket(new LineSpokenPacket() { Hash = lines[index].Hash }, PacketDeliveryMethod.ReliableOrdered);
+                rpcServer.LineSpoken(lines[index].Hash);
                 RunDialog(lines, index + 1);
             });
         }
@@ -210,19 +230,31 @@ namespace LibreLancer
                 HandlePacket(packet);
             }
         }
+
+        void IClientPlayer.CallThorn(string thorn)
+        {
+            RunSync(() =>
+            {
+                var thn = new ThnScript(Game.GameData.ResolveDataPath(thorn));
+                gp.Thn = new Cutscene(new ThnScriptContext(null), gp);
+                gp.Thn.BeginScene(thn);
+            });
+        }
+
+
+        public NetResponseHandler ResponseHandler;
         public void HandlePacket(IPacket pkt)
         {
+            if (ResponseHandler.HandlePacket(pkt))
+                return;
+            var hcp = GeneratedProtocol.HandleClientPacket(pkt, this, this);
+            hcp.Wait();
+            if (hcp.Result)
+                return;
             if(!(pkt is ObjectUpdatePacket))
                 FLLog.Debug("Client", "Got packet of type " + pkt.GetType());
             switch(pkt)
             {
-                case CallThornPacket ct:
-                    RunSync(() => {
-                        var thn = new ThnScript(Game.GameData.ResolveDataPath(ct.Thorn));
-                        gp.Thn = new Cutscene(new ThnScriptContext(null), gp);
-                        gp.Thn.BeginScene(thn);
-                    });
-                    break;
                 case UpdateRTCPacket rtc:
                     AddRTC(rtc.RTCs);
                     break;
@@ -230,12 +262,6 @@ namespace LibreLancer
                     RunSync(() => {
                         RunDialog(msndlg.Lines);
                     });
-                    break;
-                case PlaySoundPacket psnd:
-                    PlaySound(psnd.Sound);
-                    break;
-                case PlayMusicPacket mus:
-                    PlayMusic(mus.Music);
                     break;
                 case SpawnPlayerPacket p:
                     PlayerBase = null;
@@ -272,12 +298,6 @@ namespace LibreLancer
                                 objects.Add(si.ID, go);
                             }
                         }
-                    });
-                    break;
-                case DestroyPartPacket p:
-                    RunSync(() =>
-                    {
-                        objects[p.ID].DisableCmpPart(p.PartName);
                     });
                     break;
                 case SpawnDebrisPacket p:
@@ -325,14 +345,6 @@ namespace LibreLancer
                             UpdateObject(p.Tick, update);
                     });
                     break;
-                case DespawnObjectPacket p:
-                    RunSync(() =>
-                    {
-                        var despawn = objects[p.ID];
-                        gp.world.Objects.Remove(despawn);
-                        objects.Remove(p.ID);
-                    });
-                    break;
                 default:
                     if (ExtraPackets != null) ExtraPackets(pkt);
                     else FLLog.Error("Network", "Unknown packet type " + pkt.GetType().ToString());
@@ -360,9 +372,9 @@ namespace LibreLancer
             }
         }
 
-        public void Launch() => connection.SendPacket(new LaunchPacket(), PacketDeliveryMethod.ReliableOrdered);
-        
-        public void ProcessConsoleCommand(string str) => connection.SendPacket(new ConsoleCommandPacket() {Command = str}, PacketDeliveryMethod.ReliableOrdered);
+        public void Launch() => rpcServer.Launch();
+
+        public void ProcessConsoleCommand(string str) => rpcServer.ConsoleCommand(str);
         
 
         public void Disconnected()
@@ -373,6 +385,11 @@ namespace LibreLancer
         public void OnExit()
         {
             connection.Shutdown();
+        }
+
+        void INetResponder.Respond_int(int sequence, int i)
+        {
+            connection.SendPacket(new RespondIntPacket() { Sequence =  sequence, Value = i }, PacketDeliveryMethod.ReliableOrdered);
         }
     }
 }

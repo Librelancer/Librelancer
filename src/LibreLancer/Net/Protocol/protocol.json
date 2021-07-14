@@ -1,0 +1,43 @@
+{
+    "server_methods": [
+        { "name": "Launch" },
+        {
+          "name": "RTCComplete",
+          "args": [ { "name": "rtc", "type": "string" }]
+        },
+        {
+          "name": "LineSpoken",
+          "args": [ { "name":  "hash", "type":  "uint" }]
+        },
+        {
+          "name": "OnLocationEnter",
+          "args": [ { "name":  "_base", "type":  "string" }, { "name":  "room", "type":  "string"}]
+        },
+        {
+          "name": "ConsoleCommand",
+          "args": [ {"name": "command", "type":  "string" } ]
+        }
+    ],
+    "client_methods": [
+        { 
+            "name": "CallThorn",
+        	"args": [ { "name": "script", "type": "string" } ]
+        },
+        {
+          "name": "DespawnObject",
+          "args": [ {"name": "id", "type":  "int"}]
+        },
+        {
+          "name": "PlaySound",
+          "args": [{"name": "sound", "type":  "string" }]
+        },
+        {
+          "name": "PlayMusic",
+          "args": [{"name": "music", "type":  "string" }]
+        },
+        {
+          "name": "DestroyPart",
+          "args": [{"name":  "idtype", "type":  "byte"}, {"name": "id", "type": "int" }, {"name": "part", "type":  "string"}]
+        }
+    ]
+}

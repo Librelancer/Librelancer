@@ -10,10 +10,11 @@ using System.Text;
 using System.Threading;
 using LibreLancer.GameData.Items;
 using LibreLancer.Entities.Character;
+using LibreLancer.Net;
 
 namespace LibreLancer
 {
-    public class Player
+    public class Player : IServerPlayer, INetResponder
     {
         //ID
         public int ID = 0;
@@ -34,13 +35,18 @@ namespace LibreLancer
         public List<SelectableCharacter> CharacterList;
        
         Guid playerGuid; //:)
-        
+
+        public NetResponseHandler ResponseHandler;
+
+        private RemoteClientPlayer rpcClient;
         public Player(IPacketClient client, GameServer game, Guid playerGuid)
         {
             this.Client = client;
             this.game = game;
             this.playerGuid = playerGuid;
             ID = Interlocked.Increment(ref _gid);
+            ResponseHandler = new NetResponseHandler();
+            rpcClient = new RemoteClientPlayer(this);
         }
 
         public void UpdateMissionRuntime(double elapsed)
@@ -63,7 +69,7 @@ namespace LibreLancer
             }
         }
 
-        public void RemoveRTC(string rtc)
+        void IServerPlayer.RTCComplete(string rtc)
         {
             lock (rtcs)
             {
@@ -71,7 +77,17 @@ namespace LibreLancer
                 Client.SendPacket(new UpdateRTCPacket() { RTCs = rtcs.ToArray()}, PacketDeliveryMethod.ReliableOrdered);
             }
         }
-        
+
+        void IServerPlayer.LineSpoken(uint hash)
+        {
+            msnRuntime?.LineFinished(hash);
+        }
+
+        void IServerPlayer.OnLocationEnter(string _base, string room)
+        {
+            msnRuntime?.EnterLocation(room, _base);
+        }
+
         public void OpenSaveGame(Data.Save.SaveGame sg)
         {
             Orientation = Quaternion.Identity;
@@ -214,15 +230,25 @@ namespace LibreLancer
         
         public void SendDestroyPart(int id, string part)
         {
-            Client.SendPacket(new DestroyPartPacket()
-            {
-                ID = id,
-                PartName = part
-            }, PacketDeliveryMethod.ReliableOrdered);
+            rpcClient.DestroyPart(0, id, part);
         }
         
         public void ProcessPacket(IPacket packet)
         {
+            if(ResponseHandler.HandlePacket(packet))
+                return;
+            try
+            {
+                var hsp = GeneratedProtocol.HandleServerPacket(packet, this, this);
+                hsp.Wait();
+                if (hsp.Result)
+                    return;
+            }
+            catch (Exception e)
+            {
+                FLLog.Exception("Player", e);
+                throw;
+            }
             try
             {
                 switch(packet)
@@ -230,24 +256,9 @@ namespace LibreLancer
                     case CharacterListActionPacket c:
                         ListAction(c);
                         break;
-                    case LaunchPacket l:
-                        Launch();
-                        break;
-                    case EnterLocationPacket lc:
-                        msnRuntime?.EnterLocation(lc.Room, lc.Base);
-                        break;
                     case PositionUpdatePacket p:
                         //TODO: Error handling
                         World?.PositionUpdate(this, p.Position, p.Orientation);
-                        break;
-                    case RTCCompletePacket cp:
-                        RemoveRTC(cp.RTC);
-                        break;
-                    case LineSpokenPacket lp:
-                        msnRuntime?.LineFinished(lp.Hash);
-                        break;
-                    case ConsoleCommandPacket cmd:
-                        HandleConsoleCommand(cmd.Command);
                         break;
                 }
             }
@@ -259,12 +270,13 @@ namespace LibreLancer
           
         }
 
-        public void HandleConsoleCommand(string cmd)
+        void IServerPlayer.ConsoleCommand(string cmd)
         {
             if (cmd.StartsWith("base", StringComparison.OrdinalIgnoreCase)) {
                 ForceLand(cmd.Substring(4).Trim());
             }
         }
+        
         void ListAction(CharacterListActionPacket pkt)
         {
             switch(pkt.Action)
@@ -398,7 +410,7 @@ namespace LibreLancer
         
         public void Despawn(int objId)
         {
-            Client.SendPacket(new DespawnObjectPacket() { ID = objId }, PacketDeliveryMethod.ReliableOrdered);
+            rpcClient.DespawnObject(objId);
         }
         
         public void Disconnected()
@@ -408,12 +420,12 @@ namespace LibreLancer
         
         public void PlaySound(string sound)
         {
-            Client.SendPacket(new PlaySoundPacket() { Sound = sound }, PacketDeliveryMethod.ReliableOrdered);
+            rpcClient.PlaySound(sound);
         }
 
         public void PlayMusic(string music)
         {
-            Client.SendPacket(new PlayMusicPacket() {Music = music }, PacketDeliveryMethod.ReliableOrdered);
+            rpcClient.PlayMusic(music);
         }
 
         public void PlayDialog(NetDlgLine[] dialog)
@@ -422,10 +434,12 @@ namespace LibreLancer
         }
         public void CallThorn(string thorn)
         {
-            Client.SendPacket(new CallThornPacket() { Thorn = thorn }, PacketDeliveryMethod.ReliableOrdered);
+            rpcClient.CallThorn(thorn);
         }
         
-        void Launch()
+        
+        
+        void IServerPlayer.Launch()
         {
             var b = game.GameData.GetBase(Base);
             var sys = game.GameData.GetSystem(b.System);
@@ -461,6 +475,11 @@ namespace LibreLancer
                 world.SpawnPlayer(this, Position, Orientation);
                 msnRuntime?.EnteredSpace();
             });
+        }
+
+        void INetResponder.Respond_int(int sequence, int i)
+        {
+           Client.SendPacket(new RespondIntPacket() { Sequence = sequence, Value = i}, PacketDeliveryMethod.ReliableOrdered);
         }
     }
 }
