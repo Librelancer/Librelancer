@@ -121,10 +121,7 @@ namespace LibreLancer
             }
             if (Base != null)
             {
-                lock (rtcs)
-                {
-                    rpcClient.BaseEnter(Base, Character.EncodeLoadout(), rtcs.ToArray());
-                }
+                PlayerEnterBase();
                 InitStory(sg);
             }
             else
@@ -142,6 +139,35 @@ namespace LibreLancer
             
         }
 
+
+        bool NewsFind(LibreLancer.Data.Missions.NewsItem ni)
+        {
+            if (ni.Rank[0] != "mission_01a_loaded")
+                return false;
+            foreach(var x in ni.Base)
+                if (x.Equals(Base, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            return false;
+        }
+        
+        void PlayerEnterBase()
+        {
+            //fetch news articles
+            List<NewsArticle> news = new List<NewsArticle>();
+            foreach (var x in game.GameData.Ini.News.NewsItems.Where(NewsFind))
+            {
+                news.Add(new NewsArticle()
+                {
+                    Icon = x.Icon, Category = x.Category, Headline =  x.Headline,
+                    Logo = x.Logo, Text = x.Text
+                });
+            }
+            //send to player
+            lock (rtcs)
+            {
+                rpcClient.BaseEnter(Base, Character.EncodeLoadout(), rtcs.ToArray(), news.ToArray());
+            }
+        }
         void InitStory(Data.Save.SaveGame sg)
         {
             var missionNum = sg.StoryInfo?.MissionNum ?? 0;
@@ -277,7 +303,7 @@ namespace LibreLancer
                 Character = NetCharacter.FromDb(sc.Id, game);
                 FLLog.Info("Server", $"sending packet");
                 Base = Character.Base;
-                rpcClient.BaseEnter(Character.Base, Character.EncodeLoadout(), null);
+                PlayerEnterBase();
                 return true;
             }
             else
@@ -354,7 +380,7 @@ namespace LibreLancer
             World?.RemovePlayer(this);
             World = null;
             Base = target;
-            rpcClient.BaseEnter(Base, Character.EncodeLoadout(), rtcs.ToArray());
+            PlayerEnterBase();
         }
         
         public void Despawn(int objId)

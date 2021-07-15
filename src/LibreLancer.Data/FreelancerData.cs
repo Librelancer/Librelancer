@@ -20,6 +20,7 @@ using LibreLancer.Data.Effects;
 using LibreLancer.Data.Goods;
 using LibreLancer.Data.Fuses;
 using LibreLancer.Data.Interface;
+using LibreLancer.Data.Missions;
 using LibreLancer.Data.NewCharDB;
     
 namespace LibreLancer.Data
@@ -52,6 +53,7 @@ namespace LibreLancer.Data
         public AsteroidArchIni Asteroids;
         public FontsIni Fonts;
         public RichFontsIni RichFonts;
+        public NewsIni News;
         public PetalDbIni PetalDb;
         public HudIni Hud;
         public BaseNavBarIni BaseNavBar;
@@ -213,6 +215,14 @@ namespace LibreLancer.Data
                 else
                 {
                     MBases.AddFile(Freelancer.DataPath + "MISSIONS\\mbases.ini", VFS);
+                }
+            }));
+            tasks.Add(Task.Run(() =>
+            {
+                News = new NewsIni();
+                if (VFS.FileExists(Freelancer.DataPath + "MISSIONS\\news.ini"))
+                {
+                    News.AddNewsIni(Freelancer.DataPath + "MISSIONS\\news.ini", VFS);
                 }
             }));
             tasks.Add(Task.Run(() =>

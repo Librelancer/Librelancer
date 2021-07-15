@@ -37,6 +37,7 @@ namespace LibreLancer
 		public string PlayerBase;
 		public Vector3 PlayerPosition;
 		public Matrix4x4 PlayerOrientation;
+        public NewsArticle[] News = new NewsArticle[0];
 
         private IPacketConnection connection;
         private IServerPlayer rpcServer;
@@ -246,9 +247,10 @@ namespace LibreLancer
             });
         }
 
-        void IClientPlayer.BaseEnter(string _base, NetShipLoadout ship, string[] rtcs)
+        void IClientPlayer.BaseEnter(string _base, NetShipLoadout ship, string[] rtcs, NewsArticle[] news)
         {
             PlayerBase = _base;
+            News = news;
             SetSelfLoadout(ship);
             SceneChangeRequired();
             AddRTC(rtcs);

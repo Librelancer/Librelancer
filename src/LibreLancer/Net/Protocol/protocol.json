@@ -82,7 +82,8 @@
           "args": [
             { "name" :  "_base", "type":  "string" },
             { "name" :  "ship", "type":  "NetShipLoadout" },
-            { "name":  "rtcs", "type":  "string[]" }
+            { "name":  "rtcs", "type":  "string[]" },
+            { "name":  "news", "type":  "NewsArticle[]" }
           ]
         },
         {
