@@ -20,7 +20,7 @@ typeMethods = {
   "long" : "GetLong",
   "IPEndPoint" : "GetNetEndPoint",
   "short" : "GetShort",
-  "string" : "GetString",
+  "string" : "GetStringPacked",
   "uint" : "GetUInt",
   "ulong" : "GetULong",
   "ushort" : "GetUShort",
@@ -211,22 +211,32 @@ def Packet(mthd, classname):
   writeline("public static object Read(NetPacketReader message)")
   writeline("{")
   tabs += 1
+  if "return" in mthd:
+      writeline("int Sequence = message.GetInt();")
   if "args" in mthd:
       for a in mthd["args"]:
         if "[]" in a["type"]:
             single_type = a["type"].replace("[","")
             single_type = single_type.replace("]","")
-            writeline("var " + a["name"] + " = new " + single_type + "[(int)message.GetVariableUInt32()];")
+            # Null arrays are written with length 0
+            # Otherwise length + 1
+            writeline("uint __len_" + a["name"] + " = message.GetVariableUInt32();")
+            writeline(a["type"] + " " + a["name"] + " = null;")
+            writeline("if (__len_" + a["name"] + " > 0) {")
+            tabs += 1
+            writeline(a["name"] + " = new " + single_type + "[(int)(__len_" + a["name"] + " - 1)];")
             writeline("for(int _ARRIDX = 0; _ARRIDX < " + a["name"] + ".Length; _ARRIDX++)")
             tabs += 1
             read_expr(a["name"] + "[_ARRIDX]", single_type)
             tabs -= 1
+            tabs -= 1
+            writeline("}")
         else:
             read_expr("var " + a["name"], a["type"])
   writeline("return new " + classname + "() {")
   tabs += 1
   if "return" in mthd:
-    writeline("Sequence = message.GetInt(),")
+    writeline("Sequence = Sequence,")
   if "args" in mthd:
     for a in mthd["args"]:
       writeline(a["name"] + " = " + a["name"] + ",")
@@ -236,7 +246,9 @@ def Packet(mthd, classname):
   writeline("}")
   
   def put_single(name, type):
-    if type in typeMethods:
+    if type == "string":
+        writeline("message.PutStringPacked(" + name + ");")
+    elif type in typeMethods:
         writeline("message.Put(" + name + ");")
     else:
         writeline(name + ".Put(message);")
@@ -252,11 +264,19 @@ def Packet(mthd, classname):
       if "[]" in a["type"]:
         single_type = a["type"].replace("[","")
         single_type = single_type.replace("]","")
-        writeline("message.PutVariableUInt32((uint)" + a["name"] + ".Length);")
+        # Null arrays are written with length 0
+        # Otherwise length + 1
+        writeline("if (" + a["name"] + " != null) {")
+        tabs += 1
+        writeline("message.PutVariableUInt32((uint)(" + a["name"] + ".Length + 1));")
         writeline("foreach(var _element in " + a["name"] + ")")
         tabs += 1
         put_single("_element", single_type)
         tabs -= 1
+        tabs -= 1
+        writeline("} else {")
+        writeline("    message.PutVariableUInt32(0);")
+        writeline("}")
       else:
         put_single(a["name"], a["type"])
   tabs -= 1

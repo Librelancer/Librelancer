@@ -51,6 +51,7 @@ namespace LibreLancer
 
         public void AddRTC(string[] paths)
         {
+            if (paths == null) return;
             ActiveCutscenes = new List<StoryCutsceneIni>();
             foreach (var path in paths)
             {

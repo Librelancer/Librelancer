@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Numerics;
+using System.Text;
 
 namespace LibreLancer
 {
@@ -27,7 +28,7 @@ namespace LibreLancer
             writer.Put((byte)num1);
         }
 
-        public static uint GetVariableUInt32(this LiteNetLib.NetPacketReader reader)
+        public static uint GetVariableUInt32(this LiteNetLib.Utils.NetDataReader reader)
         {
             int num1 = 0;
             int num2 = 0;
@@ -41,6 +42,27 @@ namespace LibreLancer
             }
             throw new Exception("Malformed variable UInt32");
         }
+
+        public static void PutStringPacked(this LiteNetLib.Utils.NetDataWriter om, string s)
+        {
+            if (s == null) {
+                om.PutVariableUInt32(0); 
+            }
+            else {
+                var bytes = Encoding.UTF8.GetBytes(s);
+                om.PutVariableUInt32((uint)(bytes.Length + 1));
+                om.Put(bytes);
+            }
+        }
+        public static string GetStringPacked(this LiteNetLib.Utils.NetDataReader im)
+        {
+            var len = im.GetVariableUInt32();
+            if (len == 0) return null;
+            len--;
+            var bytes = im.GetBytes((int) len);
+            return Encoding.UTF8.GetString(bytes);
+        }
+        
 		public static void Put(this LiteNetLib.Utils.NetDataWriter om, Quaternion q)
         {
             var pack = new BitWriter(32);
