@@ -1,4 +1,7 @@
 # Run with python3 gen.py
+# MIT License - Copyright (c) Callum McGing
+# This file is subject to the terms and conditions defined in
+# LICENSE, which is part of this source code package
 
 import json
 from datetime import datetime,timezone
@@ -22,7 +25,6 @@ typeMethods = {
   "ulong" : "GetULong",
   "ushort" : "GetUShort",
   "bool" : "GetBool",
-  "string[]" : "GetStringArray",
 }
 
 # Read the json
@@ -31,6 +33,13 @@ with open("protocol.json", "r") as f:
   
 jfile = json.loads(jstr)
 
+# Generator Helper
+varidx = 0
+def get_varname():
+  global varidx
+  varidx += 1
+  return "_" + str(varidx)
+  
 # File output code
 outfile = open("Protocol.gen.cs", "w")
 tabs = 0
@@ -60,6 +69,8 @@ def writeend(line):
 def whitespace():
   outfile.write("\n")
 
+return_packets = []
+
 # Creates a C# method prototype from JSON description
 def method_proto(method, _class):
   _proto = ""
@@ -86,7 +97,9 @@ def remote_method(mthd, prefix):
   writeline("{")
   tabs += 1
   if "return" in mthd:
-    writeline("var complete = GetCompletionSource_" + mthd["return"] + "(retSeq);")
+    writeline("var complete = ResponseHandler.GetCompletionSource_" + mthd["return"] + "(retSeq);")
+    if mthd["return"] not in return_packets:
+        return_packets.append(mthd["return"])
   writeline("SendPacket(new " + prefix + "Packet_" + mthd["name"] + "() {")
   tabs += 1
   if "return" in mthd:
@@ -172,6 +185,8 @@ tabs -= 1
 whitespace()
 writeline("}")
 
+
+
 #
 # Packet Definitions
 #
@@ -188,19 +203,44 @@ def Packet(mthd, classname):
     for a in mthd["args"]:
       writeline("public " + a["type"] + " " + a["name"] + ";")
   # Read Packet
-  writeline("public static object Read(NetPacketReader message) => new " + classname + "() {")
+  def read_expr(name, type):
+    if type in typeMethods:
+        writeline(name + " = message." + typeMethods[type] + "();")
+    else:
+        writeline(name + " = " + type + ".Read(message);")
+  writeline("public static object Read(NetPacketReader message)")
+  writeline("{")
+  tabs += 1
+  if "args" in mthd:
+      for a in mthd["args"]:
+        if "[]" in a["type"]:
+            single_type = a["type"].replace("[","")
+            single_type = single_type.replace("]","")
+            writeline("var " + a["name"] + " = new " + single_type + "[(int)message.GetVariableUInt32()];")
+            writeline("for(int _ARRIDX = 0; _ARRIDX < " + a["name"] + ".Length; _ARRIDX++)")
+            tabs += 1
+            read_expr(a["name"] + "[_ARRIDX]", single_type)
+            tabs -= 1
+        else:
+            read_expr("var " + a["name"], a["type"])
+  writeline("return new " + classname + "() {")
   tabs += 1
   if "return" in mthd:
     writeline("Sequence = message.GetInt(),")
   if "args" in mthd:
     for a in mthd["args"]:
-      if a["type"] in typeMethods:
-        writeline(a["name"] + " =  message." + typeMethods[a["type"]] + "(),")
-      else:
-        writeline(a["name"] + " = " + a["type"] + ".Read(message)," )
+      writeline(a["name"] + " = " + a["name"] + ",")
   tabs -= 1
   writeline("};")
+  tabs -= 1
+  writeline("}")
   
+  def put_single(name, type):
+    if type in typeMethods:
+        writeline("message.Put(" + name + ");")
+    else:
+        writeline(name + ".Put(message);")
+    
   # Write Packet
   writeline("public void WriteContents(NetDataWriter message)")
   writeline("{")
@@ -209,13 +249,16 @@ def Packet(mthd, classname):
     writeline("message.Put(Sequence);")
   if "args" in mthd:
     for a in mthd["args"]:
-      if a["type"] in typeMethods:
-        if "[]" in a["type"]:
-          writeline("message.PutArray(" + a["name"] + ");")
-        else:
-          writeline("message.Put(" + a["name"] + ");")
+      if "[]" in a["type"]:
+        single_type = a["type"].replace("[","")
+        single_type = single_type.replace("]","")
+        writeline("message.PutVariableUInt32((uint)" + a["name"] + ".Length);")
+        writeline("foreach(var _element in " + a["name"] + ")")
+        tabs += 1
+        put_single("_element", single_type)
+        tabs -= 1
       else:
-        writeline(a["name"] + ".Put(message);")
+        put_single(a["name"], a["type"])
   tabs -= 1
   writeline("}")
   tabs -= 1
@@ -229,6 +272,63 @@ for mthd in jfile["server_methods"]:
 for mthd in jfile["client_methods"]:
   classname = "ClientPacket_" + mthd["name"]
   Packet(mthd, classname)
+
+#
+# Response packets
+#
+for t in return_packets:
+    Packet({ "return": "yes", "args": [ { "name": "Value", "type": t } ] }, "ResponsePacket_" + t)
+
+
+  
+#
+# Completion Sources
+#
+writeline("public partial class NetResponseHandler")
+writeline("{")
+tabs += 1
+# GetCompletionSource_ 
+for t in return_packets:
+  writeline("public TaskCompletionSource<" + t + "> GetCompletionSource_" + t + "(int sequence)")
+  writeline("{")
+  tabs += 1
+  writeline("var src = new TaskCompletionSource<" + t + ">();")
+  writeline("completionSources.Add(sequence, src);")
+  writeline("return src;")
+  tabs -= 1
+  writeline("}")
+  whitespace()
+
+#
+# HandlePacket
+#
+writeline("public bool HandlePacket(IPacket pkt)")
+writeline("{")
+tabs += 1
+writeline("switch (pkt)")
+writeline("{")
+tabs += 1
+for t in return_packets:
+    varname = get_varname()
+    writeline("case ResponsePacket_" + t + " " + varname + ": {")
+    tabs += 1
+    writeline("if (completionSources.TryGetValue(" + varname + ".Sequence, out object k)) {")
+    tabs += 1
+    writeline("completionSources.Remove(" + varname + ".Sequence);")
+    writeline("if (k is TaskCompletionSource<" + t + "> i) i.SetResult(" + varname + ".Value);")
+    tabs -= 1
+    writeline("}")
+    writeline("return true;")
+    tabs -= 1
+    writeline("}")
+tabs -= 1
+writeline("}")
+writeline("return false;")
+tabs -= 1
+writeline("}")
+tabs -= 1
+writeline("}")
+
 
 #
 # Generated Packets
@@ -240,21 +340,17 @@ tabs += 1
 writeline("public static void RegisterPackets()")
 writeline("{")
 tabs += 1
+def write_register(classname):
+    writeline("Packets.Register<" + classname + ">(" + classname + ".Read);")
+for t in return_packets:
+    write_register("ResponsePacket_" + t)
 for mthd in jfile["server_methods"]:
-  classname = "ServerPacket_" + mthd["name"]
-  writeline("Packets.Register<" + classname + ">(" + classname + ".Read);")
+  write_register("ServerPacket_" + mthd["name"])
 for mthd in jfile["client_methods"]:
-  classname = "ClientPacket_" + mthd["name"]
-  writeline("Packets.Register<" + classname + ">(" + classname + ".Read);")
+  write_register("ClientPacket_" + mthd["name"])
 tabs -= 1
 writeline("}")
 whitespace()
-
-varidx = 0
-def get_varname():
-  global varidx
-  varidx += 1
-  return "_" + str(varidx)
 
 def handle_packet(mthd, classname):
   global tabs
@@ -275,12 +371,13 @@ def handle_packet(mthd, classname):
   tabs -= 1
   writeend(");")
   if "return" in mthd:
-    writeline("res.Respond_" + mthd["return"] + "(" + varname + ".Sequence, retval);");
+    writeline("res.SendResponse(new ResponsePacket_" + mthd["return"] + "() { Sequence = " + varname + ".Sequence, Value = retval });");
   writeline("return true;")
   tabs -= 1
   writeline("}")
-  
+
 # Server Handler
+varidx = 0
 writeline("public static async Task<bool> HandleServerPacket(IPacket pkt, IServerPlayer player, INetResponder res)")
 writeline("{")
 tabs += 1
@@ -299,8 +396,8 @@ writeline("}")
 whitespace()
 
 
-varidx = 0
 # Client Handler
+varidx = 0
 writeline("public static async Task<bool> HandleClientPacket(IPacket pkt, IClientPlayer player, INetResponder res)")
 writeline("{")
 tabs += 1

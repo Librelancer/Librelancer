@@ -61,6 +61,12 @@
           ]
         },
         {
+          "name": "SpawnSolar",
+          "args": [
+            { "name":  "solars", "type":  "SolarInfo[]" }
+          ]
+        },
+        {
           "name": "SpawnDebris",
           "args": [
             { "name":  "id", "type":  "int" },
@@ -100,6 +106,10 @@
         {
           "name": "DestroyPart",
           "args": [{"name":  "idtype", "type":  "byte"}, {"name": "id", "type": "int" }, {"name": "part", "type":  "string"}]
+        },
+        {
+          "name": "RunMissionDialog",
+          "args": [ {"name":  "lines", "type": "NetDlgLine[]" }]
         }
     ]
 }

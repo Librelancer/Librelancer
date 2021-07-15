@@ -274,6 +274,35 @@ namespace LibreLancer
         {
             RunSync(() => { objects[id].DisableCmpPart(part); });
         }
+        void IClientPlayer.RunMissionDialog(NetDlgLine[] lines)
+        {
+            RunSync(() => { RunDialog(lines); });
+        }
+
+        void IClientPlayer.SpawnSolar(SolarInfo[] solars)
+        {
+            RunSync(() =>
+            {
+                foreach (var si in solars)
+                {
+                    if (!objects.ContainsKey(si.ID))
+                    {
+                        var arch = Game.GameData.GetSolarArchetype(si.Archetype);
+                        var go = new GameObject(arch, Game.ResourceManager, true);
+                        go.StaticPosition = si.Position;
+                        go.Transform = Matrix4x4.CreateFromQuaternion(si.Orientation) *
+                                       Matrix4x4.CreateTranslation(si.Position);
+                        go.Nickname = $"$Solar{si.ID}";
+                        go.World = gp.world;
+                        go.Register(go.World.Physics);
+                        go.CollisionGroups = arch.CollisionGroups;
+                        FLLog.Debug("Client", $"Spawning object {si.ID}");
+                        gp.world.Objects.Add(go);
+                        objects.Add(si.ID, go);
+                    }
+                }
+            });
+        }
         
         void IClientPlayer.PlayMusic(string music) => audioActions.Enqueue(() => Game.Sound.PlayMusic(music));
 
@@ -320,34 +349,6 @@ namespace LibreLancer
                 FLLog.Debug("Client", "Got packet of type " + pkt.GetType());
             switch(pkt)
             {
-                case MsnDialogPacket msndlg:
-                    RunSync(() => {
-                        RunDialog(msndlg.Lines);
-                    });
-                    break;
-                case SpawnSolarPacket solar:
-                    RunSync(() =>
-                    {
-                        foreach (var si in solar.Solars)
-                        {
-                            if (!objects.ContainsKey(si.ID))
-                            {
-                                var arch = Game.GameData.GetSolarArchetype(si.Archetype);
-                                var go = new GameObject(arch, Game.ResourceManager, true);
-                                go.StaticPosition = si.Position;
-                                go.Transform = Matrix4x4.CreateFromQuaternion(si.Orientation) *
-                                               Matrix4x4.CreateTranslation(si.Position);
-                                go.Nickname = $"$Solar{si.ID}";
-                                go.World = gp.world;
-                                go.Register(go.World.Physics);
-                                go.CollisionGroups = arch.CollisionGroups;
-                                FLLog.Debug("Client", $"Spawning object {si.ID}");
-                                gp.world.Objects.Add(go);
-                                objects.Add(si.ID, go);
-                            }
-                        }
-                    });
-                    break;
                 case ObjectUpdatePacket p:
                     RunSync(() =>
                     {
@@ -397,14 +398,6 @@ namespace LibreLancer
             connection.Shutdown();
         }
 
-        void INetResponder.Respond_int(int sequence, int i)
-        {
-            connection.SendPacket(new RespondIntPacket() { Sequence =  sequence, Value = i }, PacketDeliveryMethod.ReliableOrdered);
-        }
-
-        void INetResponder.Respond_bool(int sequence, bool b)
-        {
-            connection.SendPacket(new RespondIntPacket() { Sequence =  sequence, Value = b ? 1 : 0 }, PacketDeliveryMethod.ReliableOrdered);
-        }
+        void INetResponder.SendResponse(IPacket packet) => connection.SendPacket(packet, PacketDeliveryMethod.ReliableOrdered);
     }
 }

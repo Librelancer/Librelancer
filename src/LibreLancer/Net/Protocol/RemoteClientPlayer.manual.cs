@@ -1,3 +1,6 @@
+// MIT License - Copyright (c) Callum McGing
+// This file is subject to the terms and conditions defined in
+// LICENSE, which is part of this source code package
 using System.Threading.Tasks;
 
 
@@ -15,15 +18,7 @@ namespace LibreLancer.Net
             srv.Client.SendPacket(packet, PacketDeliveryMethod.ReliableOrdered);
         }
 
-        TaskCompletionSource<int> GetCompletionSource_int(int retSeq)
-        {
-            return srv.ResponseHandler.GetCompletionSource_int(retSeq);
-        }
-        
-        TaskCompletionSource<bool> GetCompletionSource_bool(int retSeq)
-        {
-            return srv.ResponseHandler.GetCompletionSource_bool(retSeq);
-        }
-        
+        private NetResponseHandler ResponseHandler => srv.ResponseHandler;
+
     }
 }

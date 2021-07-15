@@ -1,8 +1,10 @@
+// MIT License - Copyright (c) Callum McGing
+// This file is subject to the terms and conditions defined in
+// LICENSE, which is part of this source code package
 namespace LibreLancer.Net
 {
     public interface INetResponder
     {
-        void Respond_int(int sequence, int i);
-        void Respond_bool(int sequence, bool b);
+        void SendResponse(IPacket packet);
     }
 }

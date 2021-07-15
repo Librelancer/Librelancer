@@ -8,6 +8,7 @@ using System.Numerics;
 using LibreLancer.Net;
 using LiteNetLib;
 using LiteNetLib.Utils;
+using Microsoft.VisualBasic;
 using Quaternion = System.Numerics.Quaternion;
 
 namespace LibreLancer
@@ -60,32 +61,11 @@ namespace LibreLancer
             //Space
             Register<PositionUpdatePacket>(PositionUpdatePacket.Read);
             Register<ObjectUpdatePacket>(ObjectUpdatePacket.Read);
-            Register<SpawnSolarPacket>(SpawnSolarPacket.Read);
-            //Server->Client Generic Commands
-            Register<MsnDialogPacket>(MsnDialogPacket.Read);
-            //Support packets
-            Register<RespondIntPacket>(RespondIntPacket.Read);
             //Protocol
             GeneratedProtocol.RegisterPackets();
         }
     }
-
-    public class RespondIntPacket : IPacket
-    {
-        public int Sequence;
-        public int Value;
-        
-        public static object Read(NetPacketReader message)
-        {
-            return new RespondIntPacket() {Sequence = message.GetInt(), Value = message.GetInt()};
-        }
-        
-        public void WriteContents(NetDataWriter msg)
-        {
-            msg.Put(Sequence);
-            msg.Put(Value);
-        }
-    }
+    
     public class LoginSuccessPacket : IPacket
     {
         public static object Read(NetPacketReader message)
@@ -140,29 +120,12 @@ namespace LibreLancer
                 Orientation = message.GetQuaternion()
             };
         }
-        public void Write(NetDataWriter message)
+        public void Put(NetDataWriter message)
         {
             message.Put(ID);
             message.Put(Archetype);
             message.Put(Position);
             message.Put(Orientation);
-        }
-    }
-    public class SpawnSolarPacket : IPacket
-    {
-        public List<SolarInfo> Solars;
-        public static object Read(NetPacketReader message)
-        {
-            var count = message.GetVariableUInt32();
-            var solars = new List<SolarInfo>((int)count);
-            for (int i = 0; i < count; i++)
-                solars.Add(SolarInfo.Read(message));
-            return new SpawnSolarPacket() {Solars = solars};
-        }
-        public void WriteContents(NetDataWriter message)
-        {
-            message.PutVariableUInt32((uint)Solars.Count);
-            foreach (var si in Solars) si.Write(message);
         }
     }
 
@@ -410,31 +373,12 @@ namespace LibreLancer
     {
         public string Voice;
         public uint Hash;
-    }
-    
-    public class MsnDialogPacket : IPacket
-    {
-        public NetDlgLine[] Lines;
-        public static object Read(NetPacketReader message)
+        public static NetDlgLine Read(NetPacketReader message) => new NetDlgLine()
+            {Voice = message.GetString(), Hash = message.GetUInt()};
+        public void Put(NetDataWriter message)
         {
-            var pk = new MsnDialogPacket() { Lines = new NetDlgLine[(int)message.GetVariableUInt32()] };
-            for (int i = 0; i < pk.Lines.Length; i++)
-            {
-                pk.Lines[i] = new NetDlgLine() {
-                    Voice = message.GetString(),
-                    Hash = message.GetUInt()
-                };
-            }
-
-            return pk;
-        }
-        public void WriteContents(NetDataWriter msg) {
-            msg.PutVariableUInt32((uint)Lines.Length);
-            foreach (var ln in Lines)
-            {
-                msg.Put(ln.Voice);
-                msg.Put(ln.Hash);
-            }
+            message.Put(Voice);
+            message.Put(Hash);
         }
     }
 }

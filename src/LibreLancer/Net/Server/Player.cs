@@ -197,11 +197,11 @@ namespace LibreLancer
 
         public void SendSolars(Dictionary<string, GameObject> solars)
         {
-            var pkt = new SpawnSolarPacket() {Solars = new List<SolarInfo>()};
+            var si = new List<SolarInfo>();
             foreach (var solar in solars)
             {
                 var tr = solar.Value.GetTransform();
-                pkt.Solars.Add(new SolarInfo()
+                si.Add(new SolarInfo()
                 {
                     ID = solar.Value.NetID,
                     Archetype = solar.Value.ArchetypeName,
@@ -209,7 +209,7 @@ namespace LibreLancer
                     Orientation = tr.ExtractRotation()
                 });
             }
-            Client.SendPacket(pkt, PacketDeliveryMethod.ReliableOrdered);
+            rpcClient.SpawnSolar(si.ToArray());
         }
         
         public void SendDestroyPart(int id, string part)
@@ -379,7 +379,7 @@ namespace LibreLancer
 
         public void PlayDialog(NetDlgLine[] dialog)
         {
-            Client.SendPacket(new MsnDialogPacket() { Lines = dialog }, PacketDeliveryMethod.ReliableOrdered);
+            rpcClient.RunMissionDialog(dialog);
         }
         public void CallThorn(string thorn)
         {
@@ -420,14 +420,9 @@ namespace LibreLancer
             });
         }
 
-        void INetResponder.Respond_int(int sequence, int i)
+        void INetResponder.SendResponse(IPacket packet)
         {
-            Client.SendPacket(new RespondIntPacket() { Sequence = sequence, Value = i}, PacketDeliveryMethod.ReliableOrdered);
-        }
-
-        void INetResponder.Respond_bool(int sequence, bool b)
-        {
-            Client.SendPacket(new RespondIntPacket() { Sequence = sequence, Value = b ? 1 : 0 }, PacketDeliveryMethod.ReliableOrdered);
+            Client.SendPacket(packet, PacketDeliveryMethod.ReliableOrdered);
         }
     }
 }
