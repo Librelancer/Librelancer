@@ -13,6 +13,13 @@ namespace LibreLancer.Net
             completionSources.Add(retSeq, src);
             return src;
         }
+        
+        public TaskCompletionSource<bool> GetCompletionSource_bool(int retSeq)
+        {
+            var src = new TaskCompletionSource<bool>();
+            completionSources.Add(retSeq, src);
+            return src;
+        }
 
         public bool HandlePacket(IPacket pkt)
         {
@@ -23,9 +30,13 @@ namespace LibreLancer.Net
                         completionSources.Remove(ri.Sequence);
                         if (k is TaskCompletionSource<int> i) {
                             i.SetResult(ri.Value);
+                        } 
+                        else if (k is TaskCompletionSource<bool> b)
+                        {
+                            b.SetResult(ri.Value != 0);
                         }
                     }
-                    break;
+                    return true;
             }
             return false;
         }

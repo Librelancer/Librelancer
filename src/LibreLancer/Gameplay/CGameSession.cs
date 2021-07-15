@@ -185,13 +185,78 @@ namespace LibreLancer
                 while (connection.PollPacket(out packet))
                 {
                     HandlePacket(packet);
-                    if (packet is BaseEnterPacket || packet is SpawnPlayerPacket)
+                    if (packet is ClientPacket_BaseEnter || packet is ClientPacket_SpawnPlayer)
                         started = true;
                 }
             }
         }
 
         void RunSync(Action gp) => gameplayActions.Enqueue(gp);
+
+        void IClientPlayer.SpawnObject(int id, string name, Vector3 position, Quaternion orientation, NetShipLoadout loadout)
+        {
+            RunSync(() =>
+            {
+                var shp = Game.GameData.GetShip((int) loadout.ShipCRC);
+                //Set up player object + camera
+                var newobj = new GameObject(shp, Game.ResourceManager);
+                newobj.Name = "NetPlayer " + id;
+                newobj.Transform = Matrix4x4.CreateFromQuaternion(orientation) *
+                                   Matrix4x4.CreateTranslation(position);
+                if(connection is GameNetClient) 
+                    newobj.Components.Add(new CNetPositionComponent(newobj));
+                objects.Add(id, newobj);
+                gp.world.Objects.Add(newobj);
+            });
+        }
+
+        void IClientPlayer.SpawnPlayer(string system, Vector3 position, Quaternion orientation, NetShipLoadout ship)
+        {
+            PlayerBase = null;
+            PlayerSystem = system;
+            PlayerPosition = position;
+            PlayerOrientation = Matrix4x4.CreateFromQuaternion(orientation);
+            SetSelfLoadout(ship);
+            SceneChangeRequired();
+        }
+
+        void IClientPlayer.SpawnDebris(int id, string archetype, string part, Vector3 position, Quaternion orientation, float mass)
+        {
+            RunSync(() =>
+            {
+                var arch = Game.GameData.GetSolarArchetype(archetype);
+                var mdl =
+                    ((IRigidModelFile) arch.ModelFile.LoadFile(Game.ResourceManager)).CreateRigidModel(true);
+                var newpart = mdl.Parts[part].Clone();
+                var newmodel = new RigidModel()
+                {
+                    Root = newpart,
+                    AllParts = new[] { newpart },
+                    MaterialAnims = mdl.MaterialAnims,
+                    Path = mdl.Path,
+                };
+                var go = new GameObject($"debris{id}", newmodel, Game.ResourceManager, part, mass, true);
+                go.Transform = Matrix4x4.CreateFromQuaternion(orientation) *
+                               Matrix4x4.CreateTranslation(position);
+                go.World = gp.world;
+                go.Register(go.World.Physics);
+                gp.world.Objects.Add(go);
+                objects.Add(id, go);
+            });
+        }
+
+        void IClientPlayer.BaseEnter(string _base, NetShipLoadout ship, string[] rtcs)
+        {
+            PlayerBase = _base;
+            SetSelfLoadout(ship);
+            SceneChangeRequired();
+            AddRTC(rtcs);
+        }
+
+        void IClientPlayer.UpdateRTCs(string[] rtcs)
+        {
+            AddRTC(rtcs);
+        }
 
         void IClientPlayer.DespawnObject(int id)
         {
@@ -255,27 +320,10 @@ namespace LibreLancer
                 FLLog.Debug("Client", "Got packet of type " + pkt.GetType());
             switch(pkt)
             {
-                case UpdateRTCPacket rtc:
-                    AddRTC(rtc.RTCs);
-                    break;
                 case MsnDialogPacket msndlg:
                     RunSync(() => {
                         RunDialog(msndlg.Lines);
                     });
-                    break;
-                case SpawnPlayerPacket p:
-                    PlayerBase = null;
-                    PlayerSystem = p.System;
-                    PlayerPosition = p.Position;
-                    PlayerOrientation = Matrix4x4.CreateFromQuaternion(p.Orientation);
-                    SetSelfLoadout(p.Ship);
-                    SceneChangeRequired();
-                    break;
-                case BaseEnterPacket b:
-                    PlayerBase = b.Base;
-                    SetSelfLoadout(b.Ship);
-                    SceneChangeRequired();
-                    AddRTC(b.RTCs);
                     break;
                 case SpawnSolarPacket solar:
                     RunSync(() =>
@@ -298,44 +346,6 @@ namespace LibreLancer
                                 objects.Add(si.ID, go);
                             }
                         }
-                    });
-                    break;
-                case SpawnDebrisPacket p:
-                    RunSync(() =>
-                    {
-                        var arch = Game.GameData.GetSolarArchetype(p.Archetype);
-                        var mdl =
-                            ((IRigidModelFile) arch.ModelFile.LoadFile(Game.ResourceManager)).CreateRigidModel(true);
-                        var newpart = mdl.Parts[p.Part].Clone();
-                        var newmodel = new RigidModel()
-                        {
-                            Root = newpart,
-                            AllParts = new[] { newpart },
-                            MaterialAnims = mdl.MaterialAnims,
-                            Path = mdl.Path,
-                        };
-                        var go = new GameObject($"debris{p.ID}", newmodel, Game.ResourceManager, p.Part, p.Mass, true);
-                        go.Transform = Matrix4x4.CreateFromQuaternion(p.Orientation) *
-                                       Matrix4x4.CreateTranslation(p.Position);
-                        go.World = gp.world;
-                        go.Register(go.World.Physics);
-                        gp.world.Objects.Add(go);
-                        objects.Add(p.ID, go);
-                    });
-                    break;
-                case SpawnObjectPacket p:
-                    RunSync(() =>
-                    {
-                        var shp = Game.GameData.GetShip((int) p.Loadout.ShipCRC);
-                        //Set up player object + camera
-                        var newobj = new GameObject(shp, Game.ResourceManager);
-                        newobj.Name = "NetPlayer " + p.ID;
-                        newobj.Transform = Matrix4x4.CreateFromQuaternion(p.Orientation) *
-                                           Matrix4x4.CreateTranslation(p.Position);
-                        if(connection is GameNetClient) 
-                            newobj.Components.Add(new CNetPositionComponent(newobj));
-                        objects.Add(p.ID, newobj);
-                        gp.world.Objects.Add(newobj);
                     });
                     break;
                 case ObjectUpdatePacket p:
@@ -390,6 +400,11 @@ namespace LibreLancer
         void INetResponder.Respond_int(int sequence, int i)
         {
             connection.SendPacket(new RespondIntPacket() { Sequence =  sequence, Value = i }, PacketDeliveryMethod.ReliableOrdered);
+        }
+
+        void INetResponder.Respond_bool(int sequence, bool b)
+        {
+            connection.SendPacket(new RespondIntPacket() { Sequence =  sequence, Value = b ? 1 : 0 }, PacketDeliveryMethod.ReliableOrdered);
         }
     }
 }

@@ -8,9 +8,11 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using LibreLancer.GameData.Items;
 using LibreLancer.Entities.Character;
 using LibreLancer.Net;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace LibreLancer
 {
@@ -65,7 +67,7 @@ namespace LibreLancer
             lock (rtcs)
             {
                 rtcs.Add(rtc);
-                Client.SendPacket(new UpdateRTCPacket() { RTCs = rtcs.ToArray()}, PacketDeliveryMethod.ReliableOrdered);
+                rpcClient.UpdateRTCs(rtcs.ToArray());
             }
         }
 
@@ -74,7 +76,7 @@ namespace LibreLancer
             lock (rtcs)
             {
                 rtcs.Remove(rtc);
-                Client.SendPacket(new UpdateRTCPacket() { RTCs = rtcs.ToArray()}, PacketDeliveryMethod.ReliableOrdered);
+                rpcClient.UpdateRTCs(rtcs.ToArray());
             }
         }
 
@@ -121,12 +123,7 @@ namespace LibreLancer
             {
                 lock (rtcs)
                 {
-                    Client.SendPacket(new BaseEnterPacket()
-                    {
-                        Base = Base,
-                        Ship = Character.EncodeLoadout(),
-                        RTCs = rtcs.ToArray()
-                    }, PacketDeliveryMethod.ReliableOrdered);
+                    rpcClient.BaseEnter(Base, Character.EncodeLoadout(), rtcs.ToArray());
                 }
                 InitStory(sg);
             }
@@ -136,13 +133,7 @@ namespace LibreLancer
                 game.RequestWorld(sys, (world) =>
                 {
                     World = world; 
-                    Client.SendPacket(new SpawnPlayerPacket()
-                    {
-                        System = System,
-                        Position = Position,
-                        Orientation = Orientation,
-                        Ship = Character.EncodeLoadout()
-                    }, PacketDeliveryMethod.ReliableOrdered);
+                    rpcClient.SpawnPlayer(System, Position, Orientation, Character.EncodeLoadout());
                     world.SpawnPlayer(this, Position, Orientation);
                     //work around race condition where world spawns after player has been sent to a base
                     InitStory(sg);
@@ -201,14 +192,7 @@ namespace LibreLancer
 
         public void SpawnPlayer(Player p)
         {
-            Client.SendPacket(new SpawnObjectPacket()
-            {
-                ID = p.ID,
-                Name = p.Name,
-                Position = p.Position,
-                Orientation = p.Orientation,
-                Loadout = p.Character.EncodeLoadout()
-            }, PacketDeliveryMethod.ReliableOrdered);
+            rpcClient.SpawnObject(p.ID, p.Name, p.Position, p.Orientation, p.Character.EncodeLoadout());
         }
 
         public void SendSolars(Dictionary<string, GameObject> solars)
@@ -253,9 +237,6 @@ namespace LibreLancer
             {
                 switch(packet)
                 {
-                    case CharacterListActionPacket c:
-                        ListAction(c);
-                        break;
                     case PositionUpdatePacket p:
                         //TODO: Error handling
                         World?.PositionUpdate(this, p.Position, p.Orientation);
@@ -276,136 +257,104 @@ namespace LibreLancer
                 ForceLand(cmd.Substring(4).Trim());
             }
         }
-        
-        void ListAction(CharacterListActionPacket pkt)
+
+        void IServerPlayer.RequestCharacterDB()
         {
-            switch(pkt.Action)
+            Client.SendPacket(new NewCharacterDBPacket()
             {
-                case CharacterListAction.RequestCharacterDB:
+                Factions = game.GameData.Ini.NewCharDB.Factions,
+                Packages = game.GameData.Ini.NewCharDB.Packages,
+                Pilots = game.GameData.Ini.NewCharDB.Pilots
+            }, PacketDeliveryMethod.ReliableOrdered);
+        }
+
+        async Task<bool> IServerPlayer.SelectCharacter(int index)
+        {
+            if (index >= 0 && index < CharacterList.Count)
+            {
+                var sc = CharacterList[index];
+                FLLog.Info("Server", $"opening id {sc.Id}");
+                Character = NetCharacter.FromDb(sc.Id, game);
+                FLLog.Info("Server", $"sending packet");
+                Base = Character.Base;
+                rpcClient.BaseEnter(Character.Base, Character.EncodeLoadout(), null);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        async Task<bool> IServerPlayer.DeleteCharacter(int index)
+        {
+            if (index < 0 || index >= CharacterList.Count)
+                return false;
+            var sc = CharacterList[index];
+            game.Database.DeleteCharacter(sc.Id);
+            CharacterList.Remove(sc);
+            return true;
+        }
+
+        async Task<bool> IServerPlayer.CreateNewCharacter(string name, int index)
+        {
+            if (!game.Database.NameInUse(name))
+            {
+                Character ch = null;
+                game.Database.AddCharacter(playerGuid, (db) =>
                 {
-                    Client.SendPacket(new NewCharacterDBPacket()
+                    ch = db;
+                    var sg = game.NewCharacter(name, index);
+                    db.Name = sg.Player.Name;
+                    db.Base = sg.Player.Base;
+                    db.System = sg.Player.System;
+                    db.Rank = 1;
+                    db.Costume = sg.Player.Costume;
+                    db.ComCostume = sg.Player.ComCostume;
+                    db.Money = sg.Player.Money;
+                    db.Ship = sg.Player.ShipArchetype;
+                    db.Equipment = new HashSet<EquipmentEntity>();
+                    db.Cargo = new HashSet<CargoItem>();
+                    foreach (var eq in sg.Player.Equip)
                     {
-                        Factions = game.GameData.Ini.NewCharDB.Factions,
-                        Packages = game.GameData.Ini.NewCharDB.Packages,
-                        Pilots = game.GameData.Ini.NewCharDB.Pilots
-                    }, PacketDeliveryMethod.ReliableOrdered);
-                    break;
-                }
-                case CharacterListAction.SelectCharacter:
-                {
-                    if (pkt.IntArg >= 0 && pkt.IntArg < CharacterList.Count)
-                    {
-                        var sc = CharacterList[pkt.IntArg];
-                        FLLog.Info("Server", $"opening id {sc.Id}");
-                        Character = NetCharacter.FromDb(sc.Id, game);
-                        FLLog.Info("Server", $"sending packet");
-                        Base = Character.Base;
-                        Client.SendPacket(new BaseEnterPacket()
+                        db.Equipment.Add(new EquipmentEntity()
                         {
-                            Base = Character.Base,
-                            Ship = Character.EncodeLoadout()
-                        }, PacketDeliveryMethod.ReliableOrdered);
-                    }
-                    else
-                    {
-                        Client.SendPacket(new CharacterListActionResponsePacket()
-                        {
-                            Action = CharacterListAction.SelectCharacter,
-                            Status = CharacterListStatus.ErrBadIndex
-                        }, PacketDeliveryMethod.ReliableOrdered);
-                    }
-                    break;
-                }
-                case CharacterListAction.DeleteCharacter:
-                {
-                    var sc = CharacterList[pkt.IntArg];
-                    game.Database.DeleteCharacter(sc.Id);
-                    CharacterList.Remove(sc);
-                    Client.SendPacket(new CharacterListActionResponsePacket()
-                    {
-                        Action = CharacterListAction.DeleteCharacter,
-                        Status = CharacterListStatus.OK
-                    }, PacketDeliveryMethod.ReliableOrdered);
-                    break;
-                }
-                case CharacterListAction.CreateNewCharacter:
-                {
-                    if (!game.Database.NameInUse(pkt.StringArg))
-                    {
-                        Character ch = null;
-                        game.Database.AddCharacter(playerGuid, (db) =>
-                        {
-                            ch = db;
-                            var sg = game.NewCharacter(pkt.StringArg, pkt.IntArg);
-                            db.Name = sg.Player.Name;
-                            db.Base = sg.Player.Base;
-                            db.System = sg.Player.System;
-                            db.Rank = 1;
-                            db.Costume = sg.Player.Costume;
-                            db.ComCostume = sg.Player.ComCostume;
-                            db.Money = sg.Player.Money;
-                            db.Ship = sg.Player.ShipArchetype;
-                            db.Equipment = new HashSet<EquipmentEntity>();
-                            db.Cargo = new HashSet<CargoItem>();
-                            foreach (var eq in sg.Player.Equip)
-                            {
-                                db.Equipment.Add(new EquipmentEntity()
-                                {
-                                    EquipmentNickname = eq.EquipName,
-                                    EquipmentHardpoint = eq.Hardpoint
-                                });
-                            }
-                            foreach (var cg in sg.Player.Cargo)
-                            {
-                                db.Cargo.Add(new CargoItem()
-                                {
-                                    ItemName = cg.CargoName,
-                                    ItemCount = cg.Count
-                                });
-                            }
+                            EquipmentNickname = eq.EquipName,
+                            EquipmentHardpoint = eq.Hardpoint
                         });
-                        var sel = NetCharacter.FromDb(ch.Id, game).ToSelectable();
-                        CharacterList.Add(sel);
-                        Client.SendPacket(new AddCharacterPacket()
-                        {
-                            Character = sel
-                        }, PacketDeliveryMethod.ReliableOrdered);
-                    } else
-                    {
-                        Client.SendPacket(new CharacterListActionResponsePacket()
-                        {
-                            Action = CharacterListAction.CreateNewCharacter,
-                            Status = CharacterListStatus.ErrUnknown
-                        }, PacketDeliveryMethod.ReliableOrdered);
                     }
-                    break;
-                }
+                    foreach (var cg in sg.Player.Cargo)
+                    {
+                        db.Cargo.Add(new CargoItem()
+                        {
+                            ItemName = cg.CargoName,
+                            ItemCount = cg.Count
+                        });
+                    }
+                });
+                var sel = NetCharacter.FromDb(ch.Id, game).ToSelectable();
+                CharacterList.Add(sel);
+                Client.SendPacket(new AddCharacterPacket()
+                {
+                    Character = sel
+                }, PacketDeliveryMethod.ReliableOrdered);
+                return true;
+            } else {
+                return false;
             }
         }
 
         public void SpawnDebris(int id, string archetype, string part, Matrix4x4 tr, float mass)
         {
-            Client.SendPacket(new SpawnDebrisPacket()
-            {
-                ID = id,
-                Archetype =  archetype,
-                Part = part,
-                Mass = mass,
-                Orientation =  tr.ExtractRotation(),
-                Position = Vector3.Transform(Vector3.Zero, tr)
-            }, PacketDeliveryMethod.ReliableOrdered);
+            rpcClient.SpawnDebris(id, archetype, part, Vector3.Transform(Vector3.Zero, tr), tr.ExtractRotation(), mass);
         }
+        
         public void ForceLand(string target)
         {
             World?.RemovePlayer(this);
             World = null;
             Base = target;
-            Client.SendPacket(new BaseEnterPacket()
-            {
-                Base = Base,
-                Ship = Character.EncodeLoadout(),
-                RTCs = rtcs.ToArray()
-            }, PacketDeliveryMethod.ReliableOrdered);
+            rpcClient.BaseEnter(Base, Character.EncodeLoadout(), rtcs.ToArray());
         }
         
         public void Despawn(int objId)
@@ -465,13 +414,7 @@ namespace LibreLancer
                     Orientation = (obj.Rotation ?? Matrix4x4.Identity).ExtractRotation();
                     Position = Vector3.Transform(new Vector3(0, 0, 500), Orientation) + obj.Position; //TODO: This is bad
                 }
-                Client.SendPacket(new SpawnPlayerPacket()
-                {
-                    System = System,
-                    Position = Position,
-                    Orientation = Orientation,
-                    Ship = Character.EncodeLoadout()
-                }, PacketDeliveryMethod.ReliableOrdered);
+                rpcClient.SpawnPlayer(System, Position, Orientation, Character.EncodeLoadout());
                 world.SpawnPlayer(this, Position, Orientation);
                 msnRuntime?.EnteredSpace();
             });
@@ -479,7 +422,12 @@ namespace LibreLancer
 
         void INetResponder.Respond_int(int sequence, int i)
         {
-           Client.SendPacket(new RespondIntPacket() { Sequence = sequence, Value = i}, PacketDeliveryMethod.ReliableOrdered);
+            Client.SendPacket(new RespondIntPacket() { Sequence = sequence, Value = i}, PacketDeliveryMethod.ReliableOrdered);
+        }
+
+        void INetResponder.Respond_bool(int sequence, bool b)
+        {
+            Client.SendPacket(new RespondIntPacket() { Sequence = sequence, Value = b ? 1 : 0 }, PacketDeliveryMethod.ReliableOrdered);
         }
     }
 }

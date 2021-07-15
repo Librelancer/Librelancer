@@ -141,22 +141,15 @@ namespace LibreLancer
                         case NewCharacterDBPacket ncdb:
                             state.ui.Event("OpenNewCharacter");
                             break;
-                        case CharacterListActionResponsePacket cresp:
-                            switch (cresp.Action)
-                            {
-                                case CharacterListAction.DeleteCharacter:
-                                    if (cresp.Status == CharacterListStatus.OK)
-                                    {
-                                        cselInfo.Characters.RemoveAt(delIndex);
-                                        delIndex = -1;
-                                    }
-                                    break;
-                            }
+                        default:
+                            netSession.HandlePacket(pkt);
                             break;
                     }
+                    
                 }
             }
             private GameNetClient netClient;
+            private CGameSession netSession;
             ServerList serverList = new ServerList();
             private CharacterSelectInfo cselInfo;
 
@@ -166,6 +159,7 @@ namespace LibreLancer
             {
                 StopNetworking();
                 netClient = new GameNetClient(state.Game);
+                netSession = new CGameSession(state.Game, netClient);
                 netClient.UUID = state.Game.Config.UUID.Value;
                 netClient.ServerFound += info => serverList.Servers.Add(info);
                 netClient.Disconnected += NetClientOnDisconnected;
@@ -175,26 +169,18 @@ namespace LibreLancer
 
             public void RequestNewCharacter()
             {
-                netClient.SendPacket(new CharacterListActionPacket()
-                {
-                    Action = CharacterListAction.RequestCharacterDB
-                }, PacketDeliveryMethod.ReliableOrdered);
+                netSession.RpcServer.RequestCharacterDB();
             }
 
             public void LoadCharacter()
             {
-                netClient.SendPacket(new CharacterListActionPacket()
-                {
-                    Action = CharacterListAction.SelectCharacter,
-                    IntArg = cselInfo.Selected
-                }, PacketDeliveryMethod.ReliableOrdered);
-                var session = new CGameSession(state.Game, netClient);
-                netClient.Disconnected += (str) => session.Disconnected();
+                netSession.RpcServer.SelectCharacter(cselInfo.Selected);
+                netClient.Disconnected += (str) => netSession.Disconnected();
                 netClient.Disconnected -= NetClientOnDisconnected;
                 netClient = null;
                 state.FadeOut(0.2, () =>
                 {
-                    state.Game.ChangeState(new NetWaitState(session, state.Game));
+                    state.Game.ChangeState(new NetWaitState(netSession, state.Game));
                 });
             }
 
@@ -202,11 +188,16 @@ namespace LibreLancer
             public void DeleteCharacter()
             {
                 delIndex = cselInfo.Selected;
-                netClient.SendPacket(new CharacterListActionPacket()
+                netSession.RpcServer.DeleteCharacter(cselInfo.Selected).ContinueWith((t) =>
                 {
-                    Action = CharacterListAction.DeleteCharacter,
-                    IntArg = cselInfo.Selected
-                }, PacketDeliveryMethod.ReliableOrdered);
+                    if (t.Result) {
+                        state.Game.QueueUIThread(() =>
+                        {
+                            cselInfo.Characters.RemoveAt(delIndex);
+                            delIndex = -1;
+                        });
+                    }
+                });
             }
 
             private void NetClientOnDisconnected(string obj)
@@ -232,12 +223,7 @@ namespace LibreLancer
 
             public void NewCharacter(string name, int index)
             {
-                netClient.SendPacket(new CharacterListActionPacket()
-                {
-                    Action = CharacterListAction.CreateNewCharacter,
-                    StringArg =  name,
-                    IntArg = index
-                }, PacketDeliveryMethod.ReliableOrdered);
+                netSession.RpcServer.CreateNewCharacter(name, index);
             }
             
             public void StopNetworking()

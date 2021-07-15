@@ -56,20 +56,12 @@ namespace LibreLancer
             //Menu
             Register<OpenCharacterListPacket>(OpenCharacterListPacket.Read);
             Register<NewCharacterDBPacket>(NewCharacterDBPacket.Read);
-            Register<CharacterListActionPacket>(CharacterListActionPacket.Read);
-            Register<CharacterListActionResponsePacket>(CharacterListActionResponsePacket.Read);
             Register<AddCharacterPacket>(AddCharacterPacket.Read);
-            //Scene
-            Register<SpawnPlayerPacket>(SpawnPlayerPacket.Read);
-            Register<BaseEnterPacket>(BaseEnterPacket.Read);
             //Space
             Register<PositionUpdatePacket>(PositionUpdatePacket.Read);
-            Register<SpawnObjectPacket>(SpawnObjectPacket.Read);
-            Register<SpawnDebrisPacket>(SpawnDebrisPacket.Read);
             Register<ObjectUpdatePacket>(ObjectUpdatePacket.Read);
             Register<SpawnSolarPacket>(SpawnSolarPacket.Read);
             //Server->Client Generic Commands
-            Register<UpdateRTCPacket>(UpdateRTCPacket.Read);
             Register<MsnDialogPacket>(MsnDialogPacket.Read);
             //Support packets
             Register<RespondIntPacket>(RespondIntPacket.Read);
@@ -131,33 +123,7 @@ namespace LibreLancer
         }
 
     }
-
-    public class SpawnPlayerPacket : IPacket
-    {
-        public string System;
-        public Vector3 Position;
-        public Quaternion Orientation;
-        public NetShipLoadout Ship;
-
-        public static object Read(NetPacketReader message)
-        {
-            return new SpawnPlayerPacket()
-            {
-                System = message.GetString(),
-                Position = message.GetVector3(),
-                Orientation = message.GetQuaternion(),
-                Ship = NetShipLoadout.Read(message)
-            };
-        }
-        public void WriteContents(NetDataWriter message)
-        {
-            message.Put(System);
-            message.Put(Position);
-            message.Put(Orientation);
-            Ship.Put(message);
-        }
-    }
-
+    
     public class SolarInfo
     {
         public int ID;
@@ -197,96 +163,6 @@ namespace LibreLancer
         {
             message.PutVariableUInt32((uint)Solars.Count);
             foreach (var si in Solars) si.Write(message);
-        }
-    }
-
-    public class BaseEnterPacket : IPacket
-    {
-        public string Base;
-        public NetShipLoadout Ship;
-        public string[] RTCs;
-        public static object Read(NetPacketReader message)
-        {
-            return new BaseEnterPacket()
-            {
-                Base = message.GetString(),
-                Ship = NetShipLoadout.Read(message), RTCs = message.GetStringArray()
-            };
-        }
-        public void WriteContents(NetDataWriter message)
-        {
-            message.Put(Base);
-            Ship.Put(message);
-            message.PutArray(RTCs);
-        }
-    }
-
-    public class UpdateRTCPacket : IPacket
-    {
-        public string[] RTCs;
-        public static object Read(NetPacketReader message) =>
-            new UpdateRTCPacket() {RTCs = message.GetStringArray()};
-        public void WriteContents(NetDataWriter msg) => msg.PutArray(RTCs);
-    }
-
-    public class SpawnDebrisPacket : IPacket
-    {
-        public int ID;
-        public string Archetype;
-        public string Part;
-        public Vector3 Position;
-        public Quaternion Orientation;
-        public float Mass;
-
-        public static object Read(NetPacketReader message)
-        {
-            return new SpawnDebrisPacket()
-            {
-                ID = message.GetInt(),
-                Archetype = message.GetString(),
-                Part = message.GetString(),
-                Position = message.GetVector3(),
-                Orientation = message.GetQuaternion(),
-                Mass = message.GetFloat()
-            };
-        }
-
-        public void WriteContents(NetDataWriter message)
-        {
-            message.Put(ID);
-            message.Put(Archetype);
-            message.Put(Part);
-            message.Put(Position);
-            message.Put(Orientation);
-            message.Put(Mass);
-        }
-    }
-    public class SpawnObjectPacket : IPacket
-    {
-        public int ID;
-        public string Name;
-        public Vector3 Position;
-        public Quaternion Orientation;
-        public NetShipLoadout Loadout;
-
-        public static object Read(NetPacketReader message)
-        {
-            return new SpawnObjectPacket()
-            {
-                ID = message.GetInt(),
-                Name = message.GetString(),
-                Position = message.GetVector3(),
-                Orientation = message.GetQuaternion(),
-                Loadout = NetShipLoadout.Read(message)
-            };
-        }
-        public void WriteContents(NetDataWriter message)
-        {
-            message.Put(ID);
-            message.Put(Name);
-            message.Put(Position);
-            message.Put(Orientation);
-            Loadout.Put(message);
         }
     }
 

@@ -20,5 +20,10 @@ namespace LibreLancer.Net
             return srv.ResponseHandler.GetCompletionSource_int(retSeq);
         }
         
+        TaskCompletionSource<bool> GetCompletionSource_bool(int retSeq)
+        {
+            return srv.ResponseHandler.GetCompletionSource_bool(retSeq);
+        }
+        
     }
 }

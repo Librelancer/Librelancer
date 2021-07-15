@@ -16,12 +16,74 @@
         {
           "name": "ConsoleCommand",
           "args": [ {"name": "command", "type":  "string" } ]
+        },
+        {
+          "name": "RequestCharacterDB"
+        },
+        {
+          "name": "SelectCharacter",
+          "return": "bool",
+          "args": [ {"name": "index", "type":  "int"}]
+        },
+        {
+          "name": "DeleteCharacter",
+          "return": "bool",
+          "args": [ {"name": "index", "type":  "int"}]
+        },
+        {
+          "name": "CreateNewCharacter",
+          "return": "bool",
+          "args": [ { "name": "name", "type":  "string" }, { "name": "index", "type":  "int" }]
         }
     ],
     "client_methods": [
         { 
             "name": "CallThorn",
         	"args": [ { "name": "script", "type": "string" } ]
+        },
+        {
+          "name": "SpawnObject",
+          "args": [ 
+            { "name":  "id", "type":  "int" }, 
+            { "name":  "name", "type":  "string" }, 
+            { "name":  "position", "type":  "Vector3" },
+            { "name":  "orientation", "type":  "Quaternion" },
+            { "name":  "loadout", "type":  "NetShipLoadout" }
+          ]
+        },
+        {
+          "name": "SpawnPlayer",
+          "args": [
+            { "name":  "system", "type":  "string" },
+            { "name":  "position", "type":  "Vector3" },
+            { "name":  "orientation", "type":  "Quaternion" },
+            { "name":  "ship", "type": "NetShipLoadout" }
+          ]
+        },
+        {
+          "name": "SpawnDebris",
+          "args": [
+            { "name":  "id", "type":  "int" },
+            { "name":  "archetype", "type":  "string" },
+            { "name":  "part", "type":  "string" },
+            { "name":  "position", "type":  "Vector3" },
+            { "name":  "orientation", "type":  "Quaternion" },
+            { "name":  "mass", "type":  "float" }
+          ]
+        },
+        {
+          "name": "BaseEnter",
+          "args": [
+            { "name" :  "_base", "type":  "string" },
+            { "name" :  "ship", "type":  "NetShipLoadout" },
+            { "name":  "rtcs", "type":  "string[]" }
+          ]
+        },
+        {
+          "name": "UpdateRTCs",
+          "args": [
+            { "name":  "rtcs", "type":  "string[]" }
+          ]
         },
         {
           "name": "DespawnObject",
