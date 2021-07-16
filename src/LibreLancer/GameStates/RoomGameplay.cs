@@ -12,6 +12,7 @@ using LibreLancer.Utf.Dfm;
 using LibreLancer.Data.Missions;
 using LibreLancer.Infocards;
 using LibreLancer.Interface;
+using LibreLancer.Net;
 
 namespace LibreLancer
 {
@@ -27,7 +28,7 @@ namespace LibreLancer
 			"IDS_HOTSPOT_PLANETSCAPE"
 		};
         const string LAUNCH_ACTION = "$LAUNCH";
-
+        private const string INVALID_ACTION = "$INVALID";
 		Base currentBase;        
         private StarSystem sys;
         BaseRoom currentRoom;
@@ -115,7 +116,14 @@ namespace LibreLancer
         public class BaseUiApi : UiApi
         {
             RoomGameplay g;
-            public BaseUiApi(RoomGameplay g) => this.g = g;
+            private NewsArticle[] articles;
+            public BaseUiApi(RoomGameplay g)
+            {
+                this.g = g;
+                articles = g.session.News;
+            }
+
+            public NewsArticle[] GetNewsArticles() => articles;
             public bool IsMultiplayer() => false;
             public void HotspotPressed(string item) => g.Hud_OnManeuverSelected(item);
             public string ActiveNavbarButton() => g.active;
@@ -142,12 +150,18 @@ namespace LibreLancer
             public NavbarButtonInfo[] GetActionButtons()
             {
                 var actions = new List<NavbarButtonInfo>();
-                if (string.IsNullOrEmpty(g.virtualRoom) &&
-                    (g.currentRoom.Nickname.Equals("cityscape", StringComparison.OrdinalIgnoreCase) ||
-                     g.currentRoom.Nickname.Equals("deck", StringComparison.OrdinalIgnoreCase) ||
-                     g.currentRoom.Nickname.Equals("planetscape", StringComparison.OrdinalIgnoreCase)))
+                string cRoom = (string.IsNullOrEmpty(g.virtualRoom) ? g.currentRoom.Nickname : g.virtualRoom)
+                    .ToLowerInvariant();
+                switch (cRoom)
                 {
-                    actions.Add(new NavbarButtonInfo(LAUNCH_ACTION, "IDS_HOTSPOT_LAUNCH"));
+                    case "cityscape":
+                    case "deck":
+                    case "planetscape":
+                        actions.Add(new NavbarButtonInfo(LAUNCH_ACTION, "IDS_HOTSPOT_LAUNCH"));
+                        break;
+                    case "bar":
+                        actions.Add(new NavbarButtonInfo(INVALID_ACTION, "IDS_HOTSPOT_NEWSVENDOR"));
+                        break;
                 }
                 return actions.ToArray();
             }
@@ -207,6 +221,7 @@ namespace LibreLancer
         void Hud_OnManeuverSelected(string arg)
         {
             if (arg == active) return;
+            if (arg == INVALID_ACTION) return;
             Game.QueueUIThread(() => //Fixes stack trace
             {
                 if(arg == LAUNCH_ACTION)

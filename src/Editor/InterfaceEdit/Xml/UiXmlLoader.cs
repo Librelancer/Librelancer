@@ -300,14 +300,16 @@ namespace LibreLancer.Interface
                 }
                 if (objectMaps != null)
                 {
-                    var nEnd = child.NodesAfterSelf().FirstOrDefault();
-                    var li = (IXmlLineInfo) nEnd;
-                    objectMaps.Add(new XmlObjectMap()
+                    var li = child.NodesAfterSelf().FirstOrDefault() as IXmlLineInfo;
+                    if (li != null)
                     {
-                        Line = li.LineNumber,
-                        Column = li.LinePosition,
-                        Object = result
-                    });
+                        objectMaps.Add(new XmlObjectMap()
+                        {
+                            Line = li.LineNumber,
+                            Column = li.LinePosition,
+                            Object = result
+                        });
+                    }
                 }
             }
             if (isContentList)

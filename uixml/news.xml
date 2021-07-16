@@ -1,0 +1,53 @@
+<Scene>
+<Panel Width="640" Height="480" Anchor="Center">
+    <!-- Background -->
+    <ImageFile Path="news.png" Fill="true" Tint="#FFFFFFFF" Visible="false" />
+	<Panel ID="background" Width="531" X="1" Height="381" Y="23" Anchor="Center">
+	    <Panel.Background>
+	        <DisplayModel model="news_background" /> 
+	    </Panel.Background>
+	    <!-- Controls -->
+	    <Panel ID="contents" Width="531" Height="381">
+	        <Button ID="close" Style="xbutton" Anchor="TopRight" X="16" Y="14" Width="12" Height="12" />
+	        <TextBlock Y="7" Width="531" Height="50" HorizontalAlignment="Center" Text="NEWS" TextColor="text" TextShadow="#000000FF" VerticalAlignment="Top" TextSize="14" />
+	        <!-- Headlines -->
+	        <Panel X="28.24" Y="30" Width="297" Height="160">
+	        	<Panel.Background>
+	        		<DisplayModel model="news_headlineframe" />
+	        	</Panel.Background>
+	        	<ListBox id="news_list" X = "5" Y = "5" Width = "287" Height="150">
+	        	
+	        	</ListBox>
+	        </Panel>
+	        <!-- Video -->
+	        <Panel X="335" Y="50" Width="163" Height="121">
+	        	<Panel.Border>
+	        		<DisplayModel model="news_videowindow"/>
+	        	</Panel.Border>
+	        	<TextureImage X="1" Y="1" Width="161" Height="119" id="news_logo" Name="news_newtokyo">
+	        		<TextureImage.Background>
+	        			<DisplayColor color="black" />
+	        		</TextureImage.Background>
+	        	</TextureImage>
+	        </Panel>
+	        <!-- Article -->
+	        <Panel X="27" Y="198" Width="472" Height="148">
+	           <Panel.Border>
+	               <DisplayModel model="news_textframe" />
+	           </Panel.Border>
+	           <TextBlock id="news_headline" X="40" Y="5" Width="414" Height="23" Text="Hello World" HorizontalAlignment="Left" TextColor="text" TextShadow="black"/>
+	           <InfocardDisplay X="8" Y="35" id="news_text" Width="456" Height="106"/>
+	        </Panel>
+	    </Panel>
+	</Panel>
+	
+</Panel>
+</Scene>
+
+
+
+
+
+
+
+

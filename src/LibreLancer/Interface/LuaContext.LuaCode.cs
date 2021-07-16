@@ -119,6 +119,9 @@ end
 function Vector3(x,y,z)
     return _f:Vector3(x,y,z)
 end
+function StringFromID(id)
+    return _f:StringFromID(id)
+end
 function require(mod)
     return _f:Require(mod)
 end

@@ -127,6 +127,9 @@
   <Model name="nav_labels" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_labels.3db" x="0" y="0" xscale="64" yscale="64" />
   <Model name="nav_filter_political" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_filter_political.3db" x="0" y="0" xscale="64" yscale="64" />
   <Model name="nav_filter_physical" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_filter_physical.3db" x="0" y="0" xscale="64" yscale="64" />
+  <Model name="news_textframe" path="INTERFACE/NEURONET/NEWSVENDOR/news_textframe.3db" x="0" y="0" xscale="1.756" yscale="5.6" />
+  <Model name="news_headlineframe" path="INTERFACE/NEURONET/NEWSVENDOR/news_headlineframe.3db" x="0" y="-0.125" xscale="2.8" yscale="5.2" />
+  <Model name="news_videowindow" path="INTERFACE/NEURONET/NEWSVENDOR/news_videowindow.3db" x="0" y="0" xscale="5.104" yscale="6.83" />
   <Image name="sliderarrow_up" texname="HUD_sliderarrow" type="Triangle" flip="false">
     <TexCoords>
       <X0>0.086419754</X0>
@@ -239,4 +242,5 @@
   </Image>
   <LibraryFile>INTERFACE/interface.generic.vms</LibraryFile>
   <LibraryFile>INTERFACE/UI/uitextures.txm</LibraryFile>
+  <LibraryFile>INTERFACE/NEURONET/NEWSVENDOR/newsvendor.txm</LibraryFile>
 </InterfaceResources>

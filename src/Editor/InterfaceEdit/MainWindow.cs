@@ -257,6 +257,7 @@ namespace InterfaceEdit
                     FlDirectory = Project.UiData.FlDirectory,
                     ResourceManager = Project.UiData.ResourceManager,
                     NavbarIcons = Project.UiData.NavbarIcons,
+                    NavmapIcons = Project.UiData.NavmapIcons,
                     Resources = Project.UiData.Resources
                 };
                 _playData.SetBundle(Compiler.Compile(Project.XmlFolder, Project.XmlLoader));

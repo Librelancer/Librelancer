@@ -106,6 +106,7 @@ namespace InterfaceEdit
         public void Create(string folder, string projectpath)
         {
             UiData = new UiData();
+            UiData.NavmapIcons = new NavmapIcons();
             FlFolder = folder;
             XmlFolder = Path.GetDirectoryName(projectpath);
             WriteBlankFiles();

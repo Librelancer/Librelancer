@@ -81,12 +81,20 @@ function baseside:ctor()
         container:AddChild(obj)
     end
 
+	local has_news = false
+	local news_button = {}
+
     local actionbox = navbox.GetActionBox(self.Widget, container, btns, actions, activeIDS)
     for index, action in ipairs(actions) do
         local obj = NavbarAction(action.IconName)
-        obj:OnClick(function()
-            Game:HotspotPressed(action.IDS)
-        end)
+		if action.IconName == "IDS_HOTSPOT_NEWSVENDOR" then
+			has_news = true
+			news_button = obj
+		else
+        	obj:OnClick(function()
+            	Game:HotspotPressed(action.IDS)
+        	end)
+		end
         navbox.PositionAction(obj, actionbox, index)
     end
     
@@ -98,15 +106,24 @@ function baseside:ctor()
 	self.Map = mapwindow()
 	self.Map:InitMap()
 
-	self.WindowManager = childwindowmanager(self.Widget, {
+	local windows = {
 		{ self.Elements.nn_map, self.Map },
 		{ self.Elements.nn_info, self.InfoWindow }
-	})
+	}
+	if has_news then
+		self.News = news()
+		table.insert(windows, { news_button, self.News })
+	end
+	self.WindowManager = childwindowmanager(self.Widget, windows)
 end
 
 function baseside:Chatbox()
    self.Elements.chatbox.Visible = true 
 end
+
+
+
+
 
 
 

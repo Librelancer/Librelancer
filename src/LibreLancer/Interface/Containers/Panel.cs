@@ -55,6 +55,7 @@ namespace LibreLancer.Interface
             Background?.Draw(context, myRectangle);
             foreach(var child in Children)
                 child.Render(context, myRectangle);
+            Border?.Draw(context, myRectangle);
         }
     }
 }

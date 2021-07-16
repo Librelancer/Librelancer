@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using LibreLancer;
 
 namespace LibreLancer.Interface
@@ -11,6 +12,7 @@ namespace LibreLancer.Interface
     public class TextBlock : UiWidget
     {
         public float TextSize { get; set; }
+        public float MarginX { get; set; }
         public string Font { get; set; }
         InfoTextAccessor txtAccess = new InfoTextAccessor();
         public string Text
@@ -33,11 +35,17 @@ namespace LibreLancer.Interface
         public InterfaceColor TextColor { get; set; }
         public InterfaceColor TextShadow { get; set; }
         public bool Clip { get; set; } = true;
+
+        public bool Fill { get; set; } = false;
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
             if (!Visible) return;
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
             var myRectangle = new RectangleF(myPos.X, myPos.Y, Width, Height);
+            if (Fill) {
+                myRectangle = parentRectangle;
+            }
+            myRectangle.X += MarginX;
             if (Background != null)
             {
                 foreach(var elem in Background.Elements)

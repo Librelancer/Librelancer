@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using LibreLancer.Infocards;
 
 namespace LibreLancer.Interface
@@ -18,6 +19,12 @@ namespace LibreLancer.Interface
             scrollbar.ApplyStyle(sheet);
         }
 
+        private string setString = null;
+        public void SetString(string str)
+        {
+            this.setString = str;
+        }
+
         RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
@@ -26,6 +33,24 @@ namespace LibreLancer.Interface
         }
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
+            //TODO: fix up
+            if (setString != null)
+            {
+                Infocard = new Infocard() {Nodes = new List<RichTextNode>()};
+                foreach (var s in setString.Split('\n')) {
+                    Infocard.Nodes.Add(new RichTextTextNode()
+                    {
+                        Contents = s,
+                        FontName = context.Data.Fonts.ResolveNickname("ListText"),
+                        FontSize = 22,
+                        Alignment = TextAlignment.Left,
+                        Color = context.Data.GetColor("text").Color,
+                        Shadow = new TextShadow(context.Data.GetColor("black").Color)
+                    });
+                    Infocard.Nodes.Add(new RichTextParagraphNode());
+                }
+                setString = null;
+            }
             if (!Visible) return;
             var myRectangle = GetMyRectangle(context, parentRectangle);
             Background?.Draw(context, myRectangle);

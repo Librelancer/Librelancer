@@ -147,6 +147,7 @@ namespace LibreLancer.Interface
             public InterfaceImage GetImage(string img) => c.uiContext.Data.Resources.Images.First(x => x.Name == img);
             public string GetNavbarIconPath(string ico) => c.uiContext.Data.GetNavbarIconPath(ico);
             public Vector3 Vector3(float x, float y, float z) => new Vector3(x, y, z);
+            public string StringFromID(int id) => c.uiContext.Data.Infocards.GetStringResource(id);
 
             Dictionary<string,DynValue> mods = new Dictionary<string, DynValue>();
             public DynValue Require(string mod)
