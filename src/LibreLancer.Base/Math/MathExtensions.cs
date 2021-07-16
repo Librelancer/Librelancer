@@ -48,41 +48,28 @@ namespace LibreLancer
 		{
 			return new Vector3 (mat.M11, mat.M21, mat.M31);
 		}
-		/// <summary>
-		/// Gets the Pitch Yaw and Roll from a Matrix3 SLOW!!!
-		/// </summary>
-		/// <returns>(x - pitch, y - yaw, z - roll)</returns>
-		/// <param name="mx">The matrix.</param>
-		public static Vector3 GetEuler(this Matrix4x4 mx)
-		{
-			double p, y, r;
-			DecomposeOrientation(mx, out p, out y, out r);
-			return new Vector3((float)p, (float)y, (float)r);
-		}
+        
+        static void ToEuler(Matrix4x4 mx, out float yaw, out float pitch, out float roll)
+        {
+            var r = mx.ExtractRotation();
+            yaw = MathF.Atan2(2.0f * (r.Y * r.W + r.X * r.Z), 1.0f - 2.0f * (r.X * r.X + r.Y * r.Y));
+            pitch = MathF.Asin(2.0f * (r.X * r.W - r.Y * r.Z));
+            roll = MathF.Atan2(2.0f * (r.X * r.Y + r.Z * r.W), 1.0f - 2.0f * (r.X * r.X + r.Z * r.Z));
+        }
 
+
+        /// <summary>
+        /// Gets the Pitch Yaw and Roll from a Matrix4x4 SLOW!!!
+        /// </summary>
+        /// <returns>(x - pitch, y - yaw, z - roll)</returns>
+        /// <param name="mx">The matrix.</param>
         public static Vector3 GetEulerDegrees(this Matrix4x4 mx)
         {
-            double p, y, r;
-            DecomposeOrientation(mx, out p, out y, out r);
-            const double radToDeg = 180.0 / Math.PI;
-            return new Vector3((float)(p * radToDeg), (float)(y * radToDeg), (float)(r * radToDeg));
+            float p, y, r;
+            ToEuler(mx, out p, out y, out r);
+            const float radToDeg = 180.0f / MathF.PI;
+            return new Vector3(p * radToDeg, y * radToDeg, r * radToDeg);
         }
-		static void DecomposeOrientation(Matrix4x4 mx, out double xPitch, out double yYaw, out double zRoll)
-		{
-            double h = Math.Sqrt(mx.M11 * mx.M11 + mx.M21 * mx.M21);
-            if(h > 1 / 524288.0) //Magic number
-            {
-                xPitch = Math.Atan2(mx.M32, mx.M33);
-                yYaw = Math.Atan2(-mx.M31, h);
-                zRoll = Math.Atan2(mx.M21, mx.M11);
-            }
-            else
-            {
-                xPitch = Math.Atan2(-mx.M23, mx.M22);
-                yYaw = Math.Atan2(-mx.M31, h);
-                zRoll = 0;
-            }
-        }
-	}
+    }
 }
 

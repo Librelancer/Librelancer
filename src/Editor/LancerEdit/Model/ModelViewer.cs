@@ -787,11 +787,8 @@ namespace LancerEdit
                 ImGui.Text(selectedNode.Construct.ChildName);
                 ImGui.Text(selectedNode.Construct.GetType().Name);
                 ImGui.Text("Origin: " + selectedNode.Construct.Origin.ToString());
-                var euler = selectedNode.Construct.Rotation.GetEuler();
-                ImGui.Text(string.Format("Rotation: (Pitch {0:0.000}, Yaw {1:0.000}, Roll {2:0.000})",
-                                        MathHelper.RadiansToDegrees(euler.X),
-                                        MathHelper.RadiansToDegrees(euler.Y),
-                                         MathHelper.RadiansToDegrees(euler.Z)));
+                var euler = selectedNode.Construct.Rotation.GetEulerDegrees();
+                ImGui.Text(string.Format("Rotation: (Pitch {0:0.000}, Yaw {1:0.000}, Roll {2:0.000})", euler.X, euler.Y, euler.Z));
                 ImGui.Separator();
             }
 
