@@ -59,7 +59,8 @@ namespace LibreLancer.Interface
             thumb.Height = track.Height * ThumbSize;
             thumb.Y = ScrollOffset * (track.Height - thumb.Height);
             thumb.Width = track.Width;
-            if (thumb.Dragging && (track.Height - thumb.Height) >= 0.01f) {
+            if (thumb.Dragging && (track.Height - thumb.Height) >= 0.01f)
+            {
                 var newY = MathHelper.Clamp(thumb.DragOffset.Y + dragYStart, 0, track.Height - thumb.Height);
                 ScrollOffset = newY / (track.Height - thumb.Height);
             }
@@ -67,6 +68,7 @@ namespace LibreLancer.Interface
 
         private double lastTime = 0;
         private float timer = 1 / 8f;
+        private int nextScrollDir = 0;
         public void Render(UiContext context, RectangleF parent)
         {
             float delta = 0;
@@ -99,6 +101,10 @@ namespace LibreLancer.Interface
                 if (ScrollOffset > 1) ScrollOffset = 1;
                 timer = 1 / 8f;
             }
+            //process non smooth scroll wheel
+            ScrollOffset += nextScrollDir * Tick;
+            ScrollOffset = MathHelper.Clamp(ScrollOffset, 0, 1);
+            nextScrollDir = 0;
             //draw track
             Style?.TrackArea?.Draw(context, track);
             //draw thumb
@@ -127,9 +133,16 @@ namespace LibreLancer.Interface
 
         public void OnMouseWheel(float delta)
         {
-            ScrollOffset -= Tick * 4 * delta;
-            if (ScrollOffset > 1) ScrollOffset = 1;
-            if (ScrollOffset < 0) ScrollOffset = 0;
+            if (Smooth)
+            {
+                ScrollOffset -= Tick * 4 * delta;
+                if (ScrollOffset > 1) ScrollOffset = 1;
+                if (ScrollOffset < 0) ScrollOffset = 0;
+            }
+            else
+            {
+                nextScrollDir = delta > 0 ? -1 : 1;
+            }
         }
         
     }

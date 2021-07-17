@@ -75,7 +75,7 @@ namespace LibreLancer.Interface
                 Scrollbar.Tick = 0;
                 Scrollbar.ThumbSize = 1;
                 _lastScroll = 0;
-            } else if (scrollCount != _lastScroll && scrollCount > 0) {
+            } else if (scrollCount != _lastScroll) {
                 _lastScroll = scrollCount;
                 Scrollbar.ThumbSize = 1.0f - (Math.Min(scrollCount, 9) * 0.1f);
                 Scrollbar.Tick = 1.0f / scrollCount;
@@ -98,7 +98,14 @@ namespace LibreLancer.Interface
             Border?.Draw(context,myRectangle);
         }
 
-        
+        public override void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta)
+        {
+            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
+            var myRectangle = new RectangleF(myPos.X,myPos.Y, Width, Height);
+            if(myRectangle.Contains(context.MouseX, context.MouseY))
+                Scrollbar.OnMouseWheel(delta);
+        }
+
         public override void ApplyStylesheet(Stylesheet sheet)
         {
             Scrollbar.ApplyStyle(sheet);
@@ -113,7 +120,7 @@ namespace LibreLancer.Interface
                 Scrollbar.OnMouseDown(context, myRectangle);
             for (int i = childOffset; i < childOffset + MaxDisplayChildren() && i < Children.Count; i++)
             {
-                Children[i].OnMouseDown(context, parentRectangle);
+                Children[i].OnMouseDown(context, myRectangle);
             }
         }
 
@@ -125,7 +132,7 @@ namespace LibreLancer.Interface
                 Scrollbar.OnMouseUp(context, myRectangle);
             for (int i = childOffset; i < childOffset + MaxDisplayChildren() && i < Children.Count; i++)
             {
-                Children[i].OnMouseUp(context, parentRectangle);
+                Children[i].OnMouseUp(context, myRectangle);
             }
         }
         
@@ -137,7 +144,7 @@ namespace LibreLancer.Interface
                 Scrollbar.OnMouseUp(context, myRectangle);
             for (int i = childOffset; i < childOffset + MaxDisplayChildren() && i < Children.Count; i++)
             {
-                Children[i].OnMouseClick(context, parentRectangle);
+                Children[i].OnMouseClick(context, myRectangle);
                 if (Children[i].DoSelect) {
                     UnselectAll();
                     Children[i].Selected = true;

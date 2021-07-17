@@ -2,6 +2,8 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System;
+
 namespace LibreLancer.Interface
 {
     [UiLoadable]
@@ -51,8 +53,8 @@ namespace LibreLancer.Interface
         }
         public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
         {
-            if (!Visible) return;
             DoSelect = false;
+            if (!Visible) return;
             var myRectangle = GetMyRectangle(context, parentRectangle);
             ItemA?.OnMouseClick(context,myRectangle);
             ItemB?.OnMouseClick(context,myRectangle);

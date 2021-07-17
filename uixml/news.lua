@@ -14,6 +14,7 @@ local function control_icon_3db(name, control)
 	colorElem.Color = GetColor("black")
 	control.Background:AddElement(colorElem)
 	local elem = NewObject("DisplayModel")
+	elem.Tint = GetColor("text")
 	local model = NewObject("InterfaceModel")
 	model.Path = paths_3db[name]
 	model.XScale = 32
@@ -38,10 +39,10 @@ local function news_list_item(icon, strid)
 	wire.Color = GetColor("yellow")
 	li.SelectedBorder:AddElement(wire)
 	-- Item
-	li.ItemMarginX = 5
+	li.ItemMarginX = 14
 	li.ItemA = NewObject("Panel")
 	control_icon_3db(icon, li.ItemA)
-	li.ItemA.Width = 30
+	li.ItemA.Width = 26
 	li.ItemB = NewObject("Panel")
 	local tb = NewObject("TextBlock")	
 	tb.HorizontalAlignment = HorizontalAlignment.Left
@@ -79,6 +80,7 @@ function news:ctor()
 		self:setstory(self.Articles[e.news_list.SelectedIndex + 1])
 	end)
 end
+
 
 
 
