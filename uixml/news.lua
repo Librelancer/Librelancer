@@ -1,7 +1,28 @@
 require 'childwindow.lua'
 
+local paths_3db = {
+	world = "INTERFACE/NEURONET/NEWSVENDOR/news_worldnews.3db",
+	critical = "INTERFACE/NEURONET/NEWSVENDOR/news_missioncriticalnews.3db",
+	system = "INTERFACE/NEURONET/NEWSVENDOR/news_system.3db",
+	universe = "INTERFACE/NEURONET/NEWSVENDOR/news_universe.3db",
+	faction = "INTERFACE/NEURONET/NEWSVENDOR/news_universe.3db",
+}
 
-local function news_list_item(strid)
+local function control_icon_3db(name, control)
+	control.Background = NewObject("UiRenderable")
+	local colorElem = NewObject("DisplayColor")
+	colorElem.Color = GetColor("black")
+	control.Background:AddElement(colorElem)
+	local elem = NewObject("DisplayModel")
+	local model = NewObject("InterfaceModel")
+	model.Path = paths_3db[name]
+	model.XScale = 32
+	model.YScale = 32
+	elem.Model = model
+	control.Background:AddElement(elem)
+end
+
+local function news_list_item(icon, strid)
 	local li = NewObject("ListItem")
 	-- Border
 	li.Border = NewObject("UiRenderable")
@@ -19,11 +40,8 @@ local function news_list_item(strid)
 	-- Item
 	li.ItemMarginX = 5
 	li.ItemA = NewObject("Panel")
-	li.ItemA.Background = NewObject("UiRenderable")
-	li.ItemA.Width = 40
-	local red = NewObject("DisplayColor")
-	red.Color = GetColor("red")
-	li.ItemA.Background:AddElement(red)
+	control_icon_3db(icon, li.ItemA)
+	li.ItemA.Width = 30
 	li.ItemB = NewObject("Panel")
 	local tb = NewObject("TextBlock")	
 	tb.HorizontalAlignment = HorizontalAlignment.Left
@@ -41,6 +59,7 @@ function news:setstory(article)
 	e.news_headline.Strid = article.Headline
 	e.news_logo.Name = article.Logo
 	e.news_text:SetString(StringFromID(article.Text))
+	control_icon_3db(article.Icon, e.news_icon)
 end
 
 function news:ctor()
@@ -51,7 +70,7 @@ function news:ctor()
 	end)
 	self.Articles = Game:GetNewsArticles()
 	for index, article in ipairs(self.Articles) do
-		local item = news_list_item(article.Category)
+		local item = news_list_item(article.Icon, article.Category)
 		e.news_list.Children:Add(item)
 	end
 	self:setstory(self.Articles[1])
@@ -60,6 +79,8 @@ function news:ctor()
 		self:setstory(self.Articles[e.news_list.SelectedIndex + 1])
 	end)
 end
+
+
 
 
 

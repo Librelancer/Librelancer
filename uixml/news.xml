@@ -35,6 +35,9 @@
 	           <Panel.Border>
 	               <DisplayModel model="news_textframe" />
 	           </Panel.Border>
+	           <Panel id="news_icon" X="3" Y="2" Width="30" Height="30">
+	           		<Panel.Background><DisplayColor color="red"/></Panel.Background>
+	           </Panel>
 	           <TextBlock id="news_headline" X="40" Y="5" Width="414" Height="23" Text="Hello World" HorizontalAlignment="Left" TextColor="text" TextShadow="black"/>
 	           <InfocardDisplay X="8" Y="35" id="news_text" Width="456" Height="106"/>
 	        </Panel>
@@ -43,6 +46,7 @@
 	
 </Panel>
 </Scene>
+
 
 
 
