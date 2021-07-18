@@ -8,20 +8,49 @@ using System.Numerics;
 namespace LibreLancer
 {
 	public static class DebugDrawing
-	{
-		public static void DrawShadowedText(Renderer2D trender, float size, string text, float x, float y, Color4? col = null)
+    {
+        private static Texture2D debugFont;
+		public static void DrawShadowedText(Renderer2D trender, string text, float x, float y, Color4? col = null)
 		{
-			trender.DrawString("Arial",
-			                   size,
-				text,
-				new Vector2(x,y) + new Vector2(2), 
-				Color4.Black);
-			trender.DrawString("Arial",
-			                   size,
-				text,
-				new Vector2(x,y), 
-				col ?? Color4.White);
-		}
+            if (debugFont == null)
+            {
+                using (var stream =
+                    typeof(DebugDrawing).Assembly.GetManifestResourceStream(
+                        "LibreLancer.Interface.LiberationSans_0.png"))
+                {
+                    debugFont = (Texture2D)ImageLib.Generic.FromStream(stream, false);
+                }
+            }
+            Color4 color = col ?? Color4.White;
+            int dX = (int) x;
+            int dY = (int) y;
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (text[i] == ' ')
+                {
+                    dX += DebugFont.Glyphs[' '].XAdvance;
+                } else if (text[i] == '\t')
+                {
+                    dX += DebugFont.Glyphs[' '].XAdvance * 4;
+                } 
+                else if (text[i] == '\n')
+                {
+                    dX = (int) x;
+                    dY += DebugFont.LineHeight;
+                }
+                else
+                {
+                    DebugFont.DebugGlyph glyph;
+                    if (!DebugFont.Glyphs.TryGetValue(text[i], out glyph))
+                        glyph = DebugFont.Glyphs['?'];
+                    trender.Draw(debugFont, glyph.Source,
+                        new Rectangle(dX+2+glyph.XOffset, dY+2+glyph.YOffset, glyph.Source.Width, glyph.Source.Height), Color4.Black, BlendMode.Normal, false);
+                    trender.Draw(debugFont, glyph.Source,
+                        new Rectangle(dX+glyph.XOffset, dY+glyph.YOffset, glyph.Source.Width, glyph.Source.Height), color, BlendMode.Normal, false);
+                    dX += glyph.XAdvance;
+                }
+            }
+        }
 
 
 		static readonly string[] SizeSuffixes =

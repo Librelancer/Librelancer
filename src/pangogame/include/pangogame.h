@@ -58,7 +58,7 @@ PGRenderContext *pg_createcontext(
 );
 
 PGBuiltText *pg_buildtext(PGRenderContext* ctx, char **markups, PGAlign* aligns, int paragraphCount, int width);
-void pg_drawstring(PGRenderContext* ctx, const char *str, const char* fontName, float fontSize, int indent, int underline, float r, float g, float b, float a, float *shadow);
+void pg_drawstring(PGRenderContext* ctx, const char *str, const char* fontName, float fontSize, PGAlign align, int underline, float r, float g, float b, float a, float *shadow, float *oWidth, float *oHeight);
 void pg_measurestring(PGRenderContext* ctx, const char* str, const char* fontName, float fontSize, float *width, float *height);
 float pg_lineheight(PGRenderContext* ctx, const char* fontName, float fontSize);
 void pg_drawtext(PGRenderContext* ctx, PGBuiltText *text);

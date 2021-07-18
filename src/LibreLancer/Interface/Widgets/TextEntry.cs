@@ -71,13 +71,15 @@ namespace LibreLancer.Interface
         {
             doSetFocus = true;
         }
+
+        private CachedRenderString renderCache;
         void DrawText(UiContext context, RectangleF myRect)
         {
             //Padding
             myRect.X += 2;
             myRect.Width -= 4;
             //Draw
-            DrawText(context, myRect, FontSize, Font, TextColor, TextShadow, HorizontalAlignment.Left,
+            DrawText(context, ref renderCache, myRect, FontSize, Font, TextColor, TextShadow, HorizontalAlignment.Left,
                 VerticalAlignment.Center,
                 true, (hasFocus && cursorVisible) ? CurrentText + "|" : CurrentText);
         }

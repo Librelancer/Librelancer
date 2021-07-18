@@ -453,8 +453,8 @@ namespace LibreLancer
 			Game.Renderer2D.Start(Game.Width, Game.Height);
             DoFade(delta);
             #if DEBUG
-            Game.Renderer2D.DrawString("Arial", 15, "Room: " + currentRoom.Nickname + "\n" + "Virtual: " +
-                (virtualRoom ?? "NONE"), new Vector2(5, 5), Color4.White);
+            DebugDrawing.DrawShadowedText(Game.Renderer2D, "Room: " + currentRoom.Nickname + "\n" + "Virtual: " +
+                (virtualRoom ?? "NONE"), 5, 5, Color4.White);
             #endif
             if (letterboxAmount > 0)
             {

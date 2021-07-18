@@ -216,19 +216,16 @@ namespace LibreLancer.Text.DirectWrite
         {
             return size / 72 * 96;
         }
-        public override void DrawStringBaseline(string fontName, float size, string text, float x, float y, float start_x, Color4 color, bool underline = false, TextShadow shadow = default)
+        public override void DrawStringBaseline(string fontName, float size, string text, float x, float y, Color4 color, bool underline = false, TextShadow shadow = default)
         {
             using (var layout = new TextLayout(dwFactory, text, GetFormat(fontName, ConvertSize(size)), float.MaxValue, float.MaxValue))
             {
-                var indent = (x - start_x);
-                if(Math.Abs(indent) > 0.001f) {
-                    layout.SetInlineObject(new Indent(indent), new TextRange(0, 0));
-                }
+
                 layout.SetDrawingEffect(new ColorDrawingEffect(color, shadow), new TextRange(0, text.Length));
                 layout.Draw(Renderer, 0, 0);
                 foreach(var q in Renderer.Quads) {
                     var d = q.Destination;
-                    d.X += (int)start_x;
+                    d.X += (int)x;
                     d.Y += (int)y;
                     if (q.Texture == null)
                         render2d.FillRectangle(d, q.Color);
@@ -238,6 +235,77 @@ namespace LibreLancer.Text.DirectWrite
                 Renderer.Quads = new List<DrawQuad>();
             }
         }
+
+        class DirectWriteCachedText : CachedRenderString
+        {
+            public DrawQuad[] quads;
+            public Point size;
+        }
+
+        void UpdateCache(ref CachedRenderString cache, string fontName, float size, string text, bool underline, TextAlignment alignment)
+        {
+            if (cache == null)
+            {
+                cache = new DirectWriteCachedText()
+                {
+                    FontName = fontName, FontSize = size, Text = text, Underline = underline,
+                    Alignment = alignment
+                };
+            }
+            if (cache is not DirectWriteCachedText pc) throw new ArgumentException("cache");
+            if (pc.quads == null || pc.Update(fontName, text, size, underline, alignment))
+            {
+                using (var layout = new TextLayout(dwFactory, text, GetFormat(fontName, ConvertSize(size)), float.MaxValue, float.MaxValue))
+                {
+                    layout.TextAlignment = CastAlignment(alignment);
+                    layout.SetDrawingEffect(new ColorDrawingEffect(Color4.White, new TextShadow()), new TextRange(0, text.Length));
+                    layout.Draw(Renderer, 0, 0);
+                    pc.quads = Renderer.Quads.ToArray();
+                    Renderer.Quads = new List<DrawQuad>();
+                    var metrics = layout.Metrics;
+                    pc.size = new Point((int)metrics.WidthIncludingTrailingWhitespace, (int)metrics.Height);
+                }
+            }
+        }
+
+        public override Point MeasureStringCached(ref CachedRenderString cache, string fontName, float size,
+            string text,
+            bool underline, TextAlignment alignment)
+        {
+            if (string.IsNullOrEmpty(text)) return Point.Zero;
+            UpdateCache(ref cache, fontName, size, text, underline, alignment);
+            return ((DirectWriteCachedText) cache).size;
+        }
+        public override void DrawStringCached(ref CachedRenderString cache, string fontName, float size, string text,
+            float x, float y, Color4 color, bool underline = false, TextShadow shadow = default,
+            TextAlignment alignment = TextAlignment.Left)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+            UpdateCache(ref cache, fontName, size, text, underline, alignment);
+            var pc = (DirectWriteCachedText) cache;
+            if (shadow.Enabled)
+            {
+                foreach(var q in pc.quads) {
+                    var d = q.Destination;
+                    d.X += (int)x + 2;
+                    d.Y += (int)y + 2;
+                    if (q.Texture == null)
+                        render2d.FillRectangle(d, shadow.Color);
+                    else
+                        render2d.Draw(q.Texture, q.Source, d, shadow.Color);
+                }
+            }
+            foreach(var q in pc.quads) {
+                var d = q.Destination;
+                d.X += (int)x;
+                d.Y += (int)y;
+                if (q.Texture == null)
+                    render2d.FillRectangle(d, color);
+                else
+                    render2d.Draw(q.Texture, q.Source, d, color);
+            }
+        }
+        
         public override float LineHeight(string fontName, float size)
         {
             using (var layout = new TextLayout(dwFactory, "", GetFormat(fontName, ConvertSize(size)), float.MaxValue, float.MaxValue))

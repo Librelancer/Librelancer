@@ -70,6 +70,12 @@ static uint8_t pg_gamma(uint8_t px)
 }
 void pg_getglyph(PGRenderContext *ctx, CachedGlyph *outGlyph, uint32_t codePoint, uint32_t pangoFontHash, FT_Face face, PangoFont* pango)
 {
+	//Render Glyph
+	std::map<uint64_t,CachedGlyph>::iterator gres = ctx->glyphs.find(GLYPHMAP_KEY(pangoFontHash,codePoint));
+	if(gres != ctx->glyphs.end()) {
+		*outGlyph = gres->second;
+		return;
+	}
 	//Fetch synthesized props
 	GValue patternprop = G_VALUE_INIT;
 	g_value_init(&patternprop, G_TYPE_POINTER);
@@ -78,12 +84,6 @@ void pg_getglyph(PGRenderContext *ctx, CachedGlyph *outGlyph, uint32_t codePoint
 	FcBool embolden = false;
 	if(FcPatternGetBool(pattern, FC_EMBOLDEN, 0, &embolden) != FcResultMatch)
 		embolden = FcFalse;
-	//Render Glyph
-	std::map<uint64_t,CachedGlyph>::iterator gres = ctx->glyphs.find(GLYPHMAP_KEY(pangoFontHash,codePoint));
-	if(gres != ctx->glyphs.end()) {
-		*outGlyph = gres->second;
-		return;
-	}
 	FT_Load_Glyph(face, codePoint, FT_LOAD_TARGET_LIGHT);
 	if(embolden) {
 		FT_GlyphSlot_Embolden(face->glyph);
@@ -164,11 +164,11 @@ void pg_drawtext(PGRenderContext* ctx, PGBuiltText *text)
 }
 
 #define MulColor(x) ((guint16)((x) * 65535))
-void pg_drawstring(PGRenderContext* ctx, const char *str, const char* fontName, float fontSize, int indent, int underline, float r, float g, float b, float a, float *shadow)
+void pg_drawstring(PGRenderContext* ctx, const char *str, const char* fontName, float fontSize, PGAlign align, int underline, float r, float g, float b, float a, float *shadow, float *oWidth, float *oHeight)
 {
     //Layout
     PangoLayout *layout = pango_layout_new(ctx->pangoContext);
-    pango_layout_set_indent(layout, indent * PANGO_SCALE);
+    pango_layout_set_alignment(layout, convert_alignment(align));
     pango_layout_set_text(layout, str, strlen(str));
     PangoFontDescription *font = pango_font_description_new();
     pango_font_description_set_family(font, fontName);
@@ -190,6 +190,13 @@ void pg_drawstring(PGRenderContext* ctx, const char *str, const char* fontName, 
     }
     pango_layout_set_attributes(layout, attrList);
     pango_attr_list_unref(attrList);
+    PangoRectangle ink;
+	PangoRectangle logical;
+	pango_layout_get_extents(layout, &ink, &logical);
+    if(oWidth)
+        *oWidth = (float)(logical.width / PANGO_SCALE);
+    if(oHeight)
+        *oHeight = (float)(logical.height / PANGO_SCALE);
     //Calculate
     PGBuiltText built;
     built.layouts = &layout;

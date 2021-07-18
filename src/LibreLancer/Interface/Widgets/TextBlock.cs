@@ -37,6 +37,8 @@ namespace LibreLancer.Interface
         public bool Clip { get; set; } = true;
 
         public bool Fill { get; set; } = false;
+
+        private CachedRenderString renderCache;
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
             if (!Visible) return;
@@ -53,7 +55,7 @@ namespace LibreLancer.Interface
             }
             var txt = txtAccess.GetText(context);
             if (!string.IsNullOrEmpty(txt))
-                DrawText(context, myRectangle, TextSize, Font, TextColor, TextShadow, HorizontalAlignment, VerticalAlignment, Clip,
+                DrawText(context, ref renderCache, myRectangle, TextSize, Font, TextColor, TextShadow, HorizontalAlignment, VerticalAlignment, Clip,
                     txt);
         }
     }

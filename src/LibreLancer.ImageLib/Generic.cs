@@ -43,7 +43,7 @@ namespace LibreLancer.ImageLib
             };
         }
         
-        public static unsafe Texture FromStream(Stream stream)
+        public static unsafe Texture FromStream(Stream stream, bool flip = true)
         {
             if (DDS.StreamIsDDS (stream)) {
                 return DDS.FromStream(stream);
@@ -59,7 +59,7 @@ namespace LibreLancer.ImageLib
                 }
                 /* stb_image it */
                 int x = 0, y = 0;
-                StbImage.stbi_set_flip_vertically_on_load(1);
+                StbImage.stbi_set_flip_vertically_on_load(flip ? 1 : 0);
                 ImageResult image = ImageResult.FromMemory(b, ColorComponents.RedGreenBlueAlpha);
                 x = image.Width;
                 y = image.Height;

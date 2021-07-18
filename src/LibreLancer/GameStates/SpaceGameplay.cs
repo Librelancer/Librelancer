@@ -578,7 +578,7 @@ Mouse Flight: {11}
                     else
                         sel_obj = selected.Name;
                 }
-                DebugDrawing.DrawShadowedText(Game.Renderer2D, 16, string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Nickname, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, control.PlayerPitch, control.PlayerYaw, control.Roll, mouseFlight), 5, 5);
+                DebugDrawing.DrawShadowedText(Game.Renderer2D,  string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Nickname, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, control.PlayerPitch, control.PlayerYaw, control.Roll, mouseFlight), 5, 5);
                 //pyw.Draw(Game.Renderer2D);
                 current_cur.Draw(Game.Renderer2D, Game.Mouse);
             }

@@ -171,7 +171,9 @@ namespace LibreLancer.Interface
             var width = (dividerPositions[column] * parentRect.Width) - x;
             return new RectangleF(parentRect.X + x + 1, y + 1, width - 2, lineHeight - 2);
         }
-        
+
+        private CachedRenderString[] columnStrings;
+        private CachedRenderString[][] rowStrings;
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
             if (Width <= 0 || Height <= 0) return;
@@ -191,10 +193,12 @@ namespace LibreLancer.Interface
                 }
             }
             //Draw headers
+            if (columnStrings == null || columnStrings.Length != Columns.Count)
+                columnStrings = new CachedRenderString[Columns.Count];
             for (int i = 0; i < Columns.Count; i++)
             {
                 var c = GetCell(rect, -1, i);
-                DrawText(context, c, HeaderTextSize, HeaderFont, HeaderColor ?? InterfaceColor.White, TextShadow,
+                DrawText(context, ref columnStrings[i], c, HeaderTextSize, HeaderFont, HeaderColor ?? InterfaceColor.White, TextShadow,
                     HorizontalAlignment.Center, VerticalAlignment.Default,
                     true, Columns[i].GetLabel(context));
             }
@@ -202,6 +206,11 @@ namespace LibreLancer.Interface
             if (data != null)
             {
                 var rowCount = Math.Min(DisplayRowCount, data.Count);
+                if (rowStrings == null || rowCount != rowStrings.Length || (rowStrings.Length > 0 && rowStrings[0].Length != Columns.Count))
+                {
+                    rowStrings = new CachedRenderString[rowCount][];
+                    for (int i = 0; i < rowCount; i++) rowStrings[i] = new CachedRenderString[Columns.Count];
+                }
                 for (int row = 0; row < rowCount; row++)
                 {
                     //Process hovering on a row
@@ -228,7 +237,7 @@ namespace LibreLancer.Interface
                         var str = data.GetContentString(row, Columns[column].Data);
                         if (string.IsNullOrWhiteSpace(str)) continue;
                         var c = GetCell(rect, row, column);
-                        DrawText(context, c, BodyTextSize, BodyFont, rowColor, TextShadow, HorizontalAlignment.Center,
+                        DrawText(context, ref rowStrings[row][column], c, BodyTextSize, BodyFont, rowColor, TextShadow, HorizontalAlignment.Center,
                             VerticalAlignment.Default, true, str);
                     }
                 }

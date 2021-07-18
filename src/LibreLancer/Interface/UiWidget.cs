@@ -36,8 +36,15 @@ namespace LibreLancer.Interface
         static bool IsDefault<T>(T value) => EqualityComparer<T>.Default.Equals(value, default(T));
         protected static T Cascade<T>(T style, T style2, T self) where T : class => (self ?? style2 ?? style);
 
+        static TextAlignment CastAlign(HorizontalAlignment h)
+        {
+            if (h == HorizontalAlignment.Center) return TextAlignment.Center;
+            if (h == HorizontalAlignment.Right) return TextAlignment.Right;
+            return TextAlignment.Left;
+        }
         protected void DrawText(
-            UiContext context, 
+            UiContext context,
+            ref CachedRenderString cache,
             RectangleF myRectangle, 
             float textSize, 
             string font, 
@@ -67,13 +74,13 @@ namespace LibreLancer.Interface
                     break;
                 case HorizontalAlignment.Right:
                 {
-                    var sz = context.Renderer2D.MeasureString(fnt, size, text);
+                    var sz = context.Renderer2D.MeasureStringCached(ref cache, fnt, size, text, false, CastAlign(horizontalAlign));
                     drawX = drawRect.X + drawRect.Width - sz.X;
                     break;
                 }
                 default: // Center
                 {
-                    var sz = context.Renderer2D.MeasureString(fnt, size, text);
+                    var sz = context.Renderer2D.MeasureStringCached(ref cache, fnt, size, text, false, CastAlign(horizontalAlign));
                     drawX = drawRect.X + (drawRect.Width / 2f) - (sz.X / 2f);
                     break;
                 }
@@ -92,18 +99,9 @@ namespace LibreLancer.Interface
 
             var shadow = new TextShadow();
             if (shadowColor != null) shadow = new TextShadow(shadowColor.Color);
-            if (clip)
-            {
-                context.Renderer2D.DrawWithClip(drawRect,
-                    () =>
-                    {
-                        context.Renderer2D.DrawStringBaseline(fnt, size, text, drawX, drawY, drawX, color, false, shadow);
-                    });
-            }
-            else
-            {
-                context.Renderer2D.DrawStringBaseline(fnt, size, text, drawX, drawY, drawX, color, false, shadow);
-            }
+            if (clip) context.Renderer2D.StartClip(drawRect);
+            context.Renderer2D.DrawStringCached(ref cache, fnt, size, text, drawX, drawY, color, false, shadow, CastAlign(horizontalAlign));
+            if (clip) context.Renderer2D.EndClip();
         }
         public abstract void Render(UiContext context, RectangleF parentRectangle);
 

@@ -71,8 +71,8 @@ namespace LibreLancer.Text.Pango
         static extern IntPtr pg_drawtext(IntPtr ctx, IntPtr text);
 
         [DllImport("pangogame")]
-        static extern void pg_drawstring(IntPtr ctx, IntPtr str, IntPtr fontName, float fontSize, int indent,
-            int underline, float r, float g, float b, float a, Color4* shadow);
+        static extern void pg_drawstring(IntPtr ctx, IntPtr str, IntPtr fontName, float fontSize, TextAlignment align,
+            int underline, float r, float g, float b, float a, Color4* shadow, float *oWidth, float *oHeight);
 
         [DllImport("pangogame")]
         static extern void pg_measurestring(IntPtr ctx, IntPtr str, IntPtr fontName, float fontSize, out float width,
@@ -88,9 +88,7 @@ namespace LibreLancer.Text.Pango
         PGDrawCallback draw;
         PGAllocateTextureCallback alloc;
         PGUpdateTextureCallback update;
-        List<Texture2D> textures = new List<Texture2D>();
-
-
+        private List<Texture2D> textures = new List<Texture2D>();
         Renderer2D ren;
         IntPtr ctx;
         public PangoText(Renderer2D renderer)
@@ -280,10 +278,9 @@ namespace LibreLancer.Text.Pango
         CircularBuffer<MeasureResults> measures = new CircularBuffer<MeasureResults>(64);
         CircularBuffer<StringResults> cachedStrings = new CircularBuffer<StringResults>(64);
         CircularBuffer<HeightResult> lineHeights = new CircularBuffer<HeightResult>(64);
-        
+
         struct StringInfo
         {
-            public int Indent;
             public int Underline;
             public unsafe int MakeHash(string fontName, string text)
             {
@@ -333,16 +330,15 @@ namespace LibreLancer.Text.Pango
         }
 
         
-        public override void DrawStringBaseline(string fontName, float size, string text, float x, float y, float start_x, Color4 color, bool underline = false, TextShadow shadow = default)
+        public override void DrawStringBaseline(string fontName, float size, string text, float x, float y, Color4 color, bool underline = false, TextShadow shadow = default)
         {
             if(string.IsNullOrEmpty(fontName)) throw new InvalidOperationException("fontName null");
             var pixels = size * (96.0f / 72.0f);
             drawX = int.MaxValue;
             drawY = int.MaxValue;
-            int indent = (int) (x - start_x);
             StringInfo info = new StringInfo()
             {
-                Indent = indent, Underline = underline ? 1 : 0
+                Underline = underline ? 1 : 0
             };
             var hash = info.MakeHash(fontName, text);
             PGQuad[] quads = null;
@@ -360,14 +356,15 @@ namespace LibreLancer.Text.Pango
                 fixed(byte *tC = &textConv.ToUTF8Z().GetPinnableReference(),
                       tF = &fontConv.ToUTF8Z().GetPinnableReference())
                 {
-                    pg_drawstring(ctx, (IntPtr)tC, (IntPtr)tF, pixels, indent, underline ? 1 : 0, 1, 1, 1, 1, (Color4*) 0);
+                    pg_drawstring(ctx, (IntPtr)tC, (IntPtr)tF, pixels, TextAlignment.Left, underline ? 1 : 0, 1, 1, 1, 1, (Color4*) 0,
+                        (float*)0, (float*)0);
                 }
                 quads = lastQuads;
                 lastQuads = null;
                 cachedStrings.Enqueue(new StringResults() {Hash = hash, Size = size, Quads = quads});
             }
 
-            drawX = (int) start_x;
+            drawX = (int) x;
             drawY = (int) y;
             if (shadow.Enabled)
             {
@@ -430,6 +427,80 @@ namespace LibreLancer.Text.Pango
                 return retval;
             }
         }
+
+        void UpdateCache(ref CachedRenderString cache, string fontName, float size, string text, bool underline,
+            TextAlignment alignment)
+        {
+            if (cache == null)
+            {
+                cache = new PangoRenderCache()
+                {
+                    FontName = fontName, FontSize = size, Text = text, Underline = underline,
+                    Alignment = alignment
+                };
+            }
+            if (cache is not PangoRenderCache pc) throw new ArgumentException("cache");
+            if (pc.quads == null || pc.Update(fontName, text, size, underline, alignment))
+            {
+                var pixels = size * (96.0f / 72.0f);
+                drawX = int.MaxValue;
+                drawY = int.MaxValue;
+                using var textConv = new UTF8ZHelper(stackalloc byte[256], text);
+                using var fontConv = new UTF8ZHelper(stackalloc byte[256], fontName);
+                float szX, szY;
+                fixed(byte *tC = &textConv.ToUTF8Z().GetPinnableReference(),
+                    tF = &fontConv.ToUTF8Z().GetPinnableReference())
+                {
+                    pg_drawstring(ctx, (IntPtr)tC, (IntPtr)tF, pixels, alignment, underline ? 1 : 0, 1, 1, 1, 1, (Color4*) 0, &szX, &szY);
+                }
+                pc.quads = lastQuads;
+                pc.size = new Point((int) szX, (int) szY);
+                lastQuads = null;
+            }
+        }
+
+        public override void DrawStringCached(ref CachedRenderString cache, string fontName, float size, string text, float x, float y,
+            Color4 color, bool underline = false, TextShadow shadow = default, TextAlignment alignment = TextAlignment.Left)
+        {
+            UpdateCache(ref cache, fontName, size, text, underline, alignment);
+            var pc = (PangoRenderCache) cache;
+            drawX = (int) x;
+            drawY = (int) y;
+            if (shadow.Enabled)
+            {
+                for (int i = 0; i < pc.quads.Length; i++)
+                {
+                    var q = pc.quads[i];
+                    q.Dest.X += drawX + 2;
+                    q.Dest.Y += drawY + 2;
+                    var t = textures[(int)q.Texture->UserData];
+                    ren.Draw(t, q.Source, q.Dest, shadow.Color);
+                }
+            }
+            for (int i = 0; i < pc.quads.Length; i++)
+            {
+                var q = pc.quads[i];
+                q.Dest.X += drawX;
+                q.Dest.Y += drawY;
+                var t = textures[(int)q.Texture->UserData];
+                ren.Draw(t, q.Source, q.Dest, color);
+            }
+        }
+
+        public override Point MeasureStringCached(ref CachedRenderString cache, string fontName, float size, string text, bool underline,
+            TextAlignment alignment)
+        {
+            UpdateCache(ref cache, fontName, size, text, underline, alignment);
+            var pc = (PangoRenderCache) cache;
+            return pc.size;
+        }
+
+        class PangoRenderCache : CachedRenderString
+        {
+            internal PGQuad[] quads;
+            internal Point size;
+        }
+
         public override void Dispose()
         {
         }

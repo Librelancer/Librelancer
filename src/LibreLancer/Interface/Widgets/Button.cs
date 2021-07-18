@@ -51,6 +51,7 @@ namespace LibreLancer.Interface
         private bool lastFrameMouseInside = false;
         string GetText(UiContext context) => txtAccess.GetText(context);
 
+        private CachedRenderString textCache;
 
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
@@ -88,6 +89,7 @@ namespace LibreLancer.Interface
             {
                 DrawText(
                     context,
+                    ref textCache,
                     myRectangle,
                     Cascade(style?.Normal?.TextSize, activeStyle?.TextSize, TextSize),
                     Cascade(style?.Normal?.FontFamily, activeStyle?.FontFamily, FontFamily),

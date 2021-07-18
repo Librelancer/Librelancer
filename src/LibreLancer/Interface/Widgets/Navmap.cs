@@ -178,6 +178,10 @@ namespace LibreLancer.Interface
         private readonly string[] GRIDLETTERS = {
             "A", "B", "C", "D", "E", "F", "G", "H"
         };
+
+        private CachedRenderString[] letterCache = new CachedRenderString[16];
+        private CachedRenderString systemNameCache;
+        private CachedRenderString[] objectStrings;
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
             context.Mode2D();
@@ -196,18 +200,19 @@ namespace LibreLancer.Interface
             //Draw Letters
             var rHoriz = rect.Width / 8;
             var rVert = rect.Height / 8;
+            int jj = 0;
             for (int i = 0; i < 8; i++)
             {
                 var renNum = GRIDNUMBERS[i];
                 var renLet = GRIDLETTERS[i];
                 var hOff = (rHoriz * i);
                 RectangleF letterRect = new RectangleF(rect.X + hOff, rect.Y + rect.Height + 1, rHoriz, lH);
-                DrawText(context, letterRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
+                DrawText(context, ref letterCache[jj++], letterRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
                     new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Bottom,
                     false, renLet);
                 var vOff = (rVert * i);
                 var numRect = new RectangleF(rect.X - lH, rect.Y + vOff, lH, rVert);
-                DrawText(context, numRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
+                DrawText(context, ref letterCache[jj++], numRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
                     new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Center,
                     false, renNum);
             }
@@ -257,14 +262,16 @@ namespace LibreLancer.Interface
             {
                 var sysNameFont = context.Data.GetFont("$NavMap1600");
                 var sysNameSize = 16f * (parentRect.Height / 480);
-                DrawText(context, rect, sysNameSize, sysNameFont, InterfaceColor.White,
+                DrawText(context, ref systemNameCache, rect, sysNameSize, sysNameFont, InterfaceColor.White,
                     new InterfaceColor() {Color = Color4.Black}, HorizontalAlignment.Center,
                     VerticalAlignment.Bottom, false, systemName);
             }
             var fontSize = 11f * (parentRect.Height / 480);
             var font = context.Data.GetFont("$NavMap800");
             //Draw Objects
-           
+            if (objectStrings == null || objectStrings.Length < objects.Count)
+                objectStrings = new CachedRenderString[objects.Count];
+            jj = 0;
             foreach (var obj in objects)
             {
                 var posAbs = WorldToMap(obj.XZ);
@@ -280,7 +287,7 @@ namespace LibreLancer.Interface
                 {
                     context.Mode2D();
                     var measured = context.Renderer2D.MeasureString(font, fontSize, obj.Name);
-                    DrawText(context, new RectangleF(posAbs.X - 100, posAbs.Y, 200, 50), fontSize, font, InterfaceColor.White, 
+                    DrawText(context, ref objectStrings[jj++], new RectangleF(posAbs.X - 100, posAbs.Y, 200, 50), fontSize, font, InterfaceColor.White, 
                         new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Top, false,
                         obj.Name);
                 }

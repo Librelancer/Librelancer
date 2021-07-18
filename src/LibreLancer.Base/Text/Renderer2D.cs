@@ -185,32 +185,66 @@ namespace LibreLancer
             isCircle = false;
             
         }
-
-		public void DrawWithClip(Rectangle clip, Action drawfunc)
+        
+        public void DrawWithClip(Rectangle clip, Action drawfunc)
 		{
-			if (!active)
-				throw new InvalidOperationException("Renderer2D.Start() must be called before Renderer2D.DrawWithClip()");
-			Flush();
+			StartClip(clip);
+			drawfunc();
+            EndClip();
+        }
+        
+        public void StartClip(Rectangle clip)
+        {
+            if (!active)
+                throw new InvalidOperationException("Renderer2D.Start() must be called before Renderer2D.StartClip()");
+            Flush();
             rs.ScissorEnabled = true;
             rs.ScissorRectangle = clip;
-			drawfunc();
-			Flush();
+        }
+
+        public void EndClip()
+        {
+            if (!active)
+                throw new InvalidOperationException("Renderer2D.Start() must be called before Renderer2D.EndClip()");
+            Flush();
             rs.ScissorEnabled = false;
-		}
+        }
 
 		public void DrawString(string fontName, float size, string str, Vector2 vec, Color4 color)
         {
-            DrawStringBaseline(fontName, size, str, vec.X, vec.Y, vec.X, color);
+            DrawStringBaseline(fontName, size, str, vec.X, vec.Y, color);
         }
 
-		public void DrawStringBaseline(string fontName, float size, string text, float x, float y, float start_x, Color4 color, bool underline = false, TextShadow shadow = default)
-		{
-			if (!active)
-				throw new InvalidOperationException("Renderer2D.Start() must be called before Renderer2D.DrawString");
-			if (text == "" || size < 1) //skip empty str
-				return;
-            CreateRichTextEngine().DrawStringBaseline(fontName, size, text, x, y, start_x, color, underline, shadow);
+        public void DrawStringBaseline(string fontName, float size, string text, float x, float y,
+            Color4 color, bool underline = false, TextShadow shadow = default)
+        {
+            if (!active)
+                throw new InvalidOperationException("Renderer2D.Start() must be called before Renderer2D.DrawString");
+            if (text == "" || size < 1) //skip empty str
+                return;
+            CreateRichTextEngine().DrawStringBaseline(fontName, size, text, x, y, color, underline, shadow);
         }
+
+        public void DrawStringCached(ref CachedRenderString cache, string fontName, float size, string text,
+            float x, float y, Color4 color, bool underline = false, TextShadow shadow = default,
+            TextAlignment alignment = TextAlignment.Left)
+        {
+            if (!active)
+                throw new InvalidOperationException("Renderer2D.Start() must be called before Renderer2D.DrawStringCached");
+            if (text == "" || size < 1) //skip empty str
+                return;
+            CreateRichTextEngine().DrawStringCached(ref cache, fontName, size, text, x, y, color, underline, shadow, alignment);
+        }
+
+        public Point MeasureStringCached(ref CachedRenderString cache, string fontName, float size, string text, bool underline = false, TextAlignment alignment = TextAlignment.Left)
+        {
+            if (!active)
+                throw new InvalidOperationException("Renderer2D.Start() must be called before Renderer2D.MeasureStringCached");
+            if (text == "" || size < 1) //skip empty str
+                return Point.Zero;
+            return CreateRichTextEngine().MeasureStringCached(ref cache, fontName, size, text, underline, alignment);
+        }
+
         public void FillRectangle(Rectangle rect, Color4 color)
 		{
 			DrawQuad(dot, new Rectangle(0,0,1,1), rect, color, BlendMode.Normal);
