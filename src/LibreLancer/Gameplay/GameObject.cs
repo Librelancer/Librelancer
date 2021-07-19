@@ -24,27 +24,57 @@ namespace LibreLancer
 		public string Nickname;
         public string ArchetypeName;
         public int NetID;
-		public Hardpoint Attachment;
-		Matrix4x4 _transform = Matrix4x4.Identity;
-		public Matrix4x4 Transform
+		public Hardpoint _attachment;
+		Matrix4x4 _localTransform = Matrix4x4.Identity;
+		public Matrix4x4 LocalTransform
 		{
 			get
 			{
-                if (PhysicsComponent != null && PhysicsComponent.Body != null)
-                    return PhysicsComponent.Body.Transform;
-				return _transform;
-			} set
-			{
-				_transform = value;
-				if (PhysicsComponent != null && PhysicsComponent.Body != null)
-				{
-                    PhysicsComponent.Body.SetTransform(value);
-				}
-			}
+                return _localTransform;
+			} 
 		}
-		public GameObject Parent;
-		bool isstatic = false;
-		public Vector3 StaticPosition;
+
+        public void SetLocalTransform(Matrix4x4 tr, bool phys = false)
+        {
+            _localTransform = tr;
+            transformDirty = true;
+            for (int i = 0; i < Children.Count; i++)
+            {
+                Children[i].transformDirty = true;
+            }
+            if (!phys && PhysicsComponent != null && PhysicsComponent.Body != null)
+            {
+                PhysicsComponent.Body.SetTransform(tr);
+            }
+        }
+
+        Matrix4x4 CalculateTransform()
+        {
+            var tr = LocalTransform;
+            if (_attachment != null)
+                tr *= _attachment.Transform;
+            if (_parent != null)
+                tr *= _parent.WorldTransform;
+            return tr;
+        }
+        
+        private bool transformDirty = false;
+        Matrix4x4 worldTransform = Matrix4x4.Identity;
+        
+        public Matrix4x4 WorldTransform
+        {
+            get {
+                if (transformDirty)
+                {
+                    transformDirty = false;
+                    worldTransform = CalculateTransform();
+                }
+                return worldTransform;
+            }
+        }
+
+
+        private GameObject _parent;
 		IDrawable dr;
 		Dictionary<string, Hardpoint> hardpoints = new Dictionary<string, Hardpoint>(StringComparer.OrdinalIgnoreCase);
 		//Components
@@ -56,22 +86,34 @@ namespace LibreLancer
 		public AnimationComponent AnimationComponent;
 		public SystemObject SystemObject;
         public RigidModel RigidModel;
-        public bool IsStatic => isstatic;
-        /// <summary>
-        /// Don't call unless you're absolutely sure what you're doing!
-        /// </summary>
-        /// <param name="val">Sets a static position for the object (only works properly before Register())</param>
-        public void SetStatic(bool val) => isstatic = val;
-		public GameObject(Archetype arch, ResourceManager res, bool draw = true, bool staticpos = false)
+
+        public GameObject Parent
+        {
+            get => _parent;
+            set {
+                _parent = value;
+                transformDirty = true;
+            }
+        }
+
+        public Hardpoint Attachment
+        {
+            get => _attachment;
+            set {
+                _attachment = value;
+                transformDirty = true;
+            }
+        }
+
+        public GameObject(Archetype arch, ResourceManager res, bool draw = true)
 		{
-			isstatic = staticpos;
 			if (arch is Archs.Sun)
 			{
 				RenderComponent = new SunRenderer((Archs.Sun)arch);
             }
 			else
 			{
-				InitWithDrawable(arch.ModelFile.LoadFile(res), res, draw, staticpos);
+				InitWithDrawable(arch.ModelFile.LoadFile(res), res, draw);
 			}
 		}
 		public GameObject()
@@ -81,14 +123,12 @@ namespace LibreLancer
         public static GameObject WithModel(ResolvedModel modelFile, bool draw, ResourceManager res)
         {
             var go = new GameObject();
-            go.isstatic = false;
-            go.InitWithDrawable(modelFile.LoadFile(res), res, draw, false, false);
+            go.InitWithDrawable(modelFile.LoadFile(res), res, draw,  false);
             return go;
         }
-		public GameObject(IDrawable drawable, ResourceManager res, bool draw = true, bool staticpos = false, bool phys = true)
+		public GameObject(IDrawable drawable, ResourceManager res, bool draw = true,  bool phys = true)
 		{
-			isstatic = false;
-            InitWithDrawable(drawable, res, draw, staticpos, phys);
+            InitWithDrawable(drawable, res, draw,  phys);
         }
         public GameObject(Ship ship, ResourceManager res, bool draw = true)
         {
@@ -122,10 +162,11 @@ namespace LibreLancer
             }
         }
 		public void UpdateCollision()
-		{
+        {
+            for (int i = 0; i < Children.Count; i++) Children[i].transformDirty = true;
 			if (PhysicsComponent == null) return;
             PhysicsComponent.UpdateParts();
-		}
+        }
         
         public void DisableCmpPart(string part)
         {
@@ -145,8 +186,8 @@ namespace LibreLancer
             if (RigidModel != null && RigidModel.Parts.TryGetValue(part, out var srcpart))
             {
                 DisableCmpPart(part);
-                var tr = srcpart.LocalTransform * GetTransform();
-                var pos0 = Vector3.Transform(Vector3.Zero, GetTransform());
+                var tr = srcpart.LocalTransform * WorldTransform;
+                var pos0 = Vector3.Transform(Vector3.Zero, WorldTransform);
                 var pos1 = Vector3.Transform(Vector3.Zero, tr);
                 var vec = (pos1 - pos0).Normalized();
                 var initialforce = 100f;
@@ -165,7 +206,7 @@ namespace LibreLancer
             }
         }
         public ResourceManager Resources;
-        void InitWithDrawable(IDrawable drawable, ResourceManager res, bool draw, bool staticpos, bool havePhys = true)
+        void InitWithDrawable(IDrawable drawable, ResourceManager res, bool draw, bool havePhys = true)
 		{
 			Resources = res;
 			dr = drawable;
@@ -252,17 +293,18 @@ namespace LibreLancer
 			}
 		}
 
-		public void Update(double time)
-		{
+		public void Update(double time, bool doRenderUpdate = true)
+        {
+            bool childRU = doRenderUpdate;
             if (RenderComponent != null)
-			{
-                if (Parent == null || Parent.RenderUpdate(this)) {
-                    var tr = GetTransform();
-                    RenderComponent.Update(time, isstatic ? StaticPosition : Vector3.Transform(Vector3.Zero, tr), tr);
+            {
+                childRU = RenderComponent == null || RenderComponent.CurrentLevel == 0;
+                if (doRenderUpdate || !RenderComponent.InheritCull) {
+                    RenderComponent.Update(time, Vector3.Transform(Vector3.Zero, WorldTransform), WorldTransform);
                 }
             }
             for (int i = 0; i < Children.Count; i++)
-				Children[i].Update(time);
+				Children[i].Update(time, childRU);
 			for (int i = 0; i < Components.Count; i++)
 				Components[i].Update(time);
 		}
@@ -273,11 +315,7 @@ namespace LibreLancer
 				Children[i].FixedUpdate(time);
 			for (int i = 0; i < Components.Count; i++)
 				Components[i].FixedUpdate(time);
-            if (!isstatic && PhysicsComponent != null && PhysicsComponent.Body != null)
-			{
-                Transform = PhysicsComponent.Body.Transform;
-			}
-		}
+        }
 
 		public void Register(PhysicsWorld physics)
 		{
@@ -291,15 +329,10 @@ namespace LibreLancer
 
 		public GameWorld GetWorld()
 		{
-			if (World == null) return Parent.GetWorld();
+			if (World == null) return _parent.GetWorld();
 			return World;
 		}
-
-        protected bool RenderUpdate(GameObject child)
-        {
-            if (ForceRenderCheck.Contains(child.RenderComponent)) return true;
-            return RenderComponent == null || RenderComponent.CurrentLevel == 0 || !child.RenderComponent.InheritCull;
-        }
+        
         public void PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
         {
             if(RenderComponent == null || RenderComponent.PrepareRender(camera,nr,sys))
@@ -312,11 +345,11 @@ namespace LibreLancer
                     child.PrepareRender(camera, nr, sys);
                 }
             }
-            foreach (var child in ForceRenderCheck)
+            foreach (var child in ExtraRenderers)
                 child.PrepareRender(camera, nr, sys);
         }
 
-        public List<ObjectRenderer> ForceRenderCheck = new List<ObjectRenderer>();
+        public List<ObjectRenderer> ExtraRenderers = new List<ObjectRenderer>();
 
 		public void Unregister(PhysicsWorld physics)
 		{
@@ -342,7 +375,7 @@ namespace LibreLancer
 
 		public Vector3 InverseTransformPoint(Vector3 input)
 		{
-			var tf = GetTransform();
+			var tf = WorldTransform;
             Matrix4x4.Invert(tf, out tf);
 			return Vector3.Transform(input, tf);
 		}
@@ -352,17 +385,7 @@ namespace LibreLancer
 			return hardpoints.Values;
 		}
 
-		public Matrix4x4 GetTransform()
-		{
-			if (isstatic)
-				return Transform;
-			var tr = Transform;
-			if (Attachment != null)
-				tr *= Attachment.Transform;
-			if (Parent != null)
-				tr *= Parent.GetTransform();
-			return tr;
-		}
+		
 
 		public override string ToString()
 		{

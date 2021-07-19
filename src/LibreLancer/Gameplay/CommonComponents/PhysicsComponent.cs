@@ -50,6 +50,10 @@ namespace LibreLancer
                 sur.FinishUpdatePart();
                 partRemoved = true;
             }
+            if (Body.Active)
+            {
+                Parent.SetLocalTransform(Body.Transform, true);
+            }
             base.FixedUpdate(time);
         }
 
@@ -77,9 +81,9 @@ namespace LibreLancer
                 }
             }
             if(Mass < float.Epsilon) {
-                Body = physics.AddStaticObject(Parent.GetTransform(), cld);
+                Body = physics.AddStaticObject(Parent.WorldTransform, cld);
             } else {
-                Body = physics.AddDynamicObject(Mass, Parent.GetTransform(), cld, Inertia);
+                Body = physics.AddDynamicObject(Mass, Parent.WorldTransform, cld, Inertia);
             }
             Body.Tag = Parent;
             collider = cld;

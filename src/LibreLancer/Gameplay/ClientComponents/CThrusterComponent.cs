@@ -32,12 +32,12 @@ namespace LibreLancer
 		public override void Register(Physics.PhysicsWorld physics)
 		{
 			for (int i = 0; i < fireFx.Count; i++)
-                Parent.ForceRenderCheck.Add(fireFx[i].Effect);
+                Parent.ExtraRenderers.Add(fireFx[i].Effect);
 		}
 		public override void Unregister(Physics.PhysicsWorld physics)
 		{
 			for (int i = 0; i < fireFx.Count; i++)
-                Parent.ForceRenderCheck.Remove(fireFx[i].Effect);
+                Parent.ExtraRenderers.Remove(fireFx[i].Effect);
 		}
     }
 }

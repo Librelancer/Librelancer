@@ -116,7 +116,7 @@ namespace LibreLancer
             while (gameplayActions.TryDequeue(out var act))
                 act();
             var player = gp.world.GetObject("player");
-            var tr = player.GetTransform();
+            var tr = player.WorldTransform;
             var pos = Vector3.Transform(Vector3.Zero, tr);
             var orient = tr.ExtractRotation();
             connection.SendPacket(new PositionUpdatePacket()
@@ -203,8 +203,8 @@ namespace LibreLancer
                 //Set up player object + camera
                 var newobj = new GameObject(shp, Game.ResourceManager);
                 newobj.Name = "NetPlayer " + id;
-                newobj.Transform = Matrix4x4.CreateFromQuaternion(orientation) *
-                                   Matrix4x4.CreateTranslation(position);
+                newobj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
+                                         Matrix4x4.CreateTranslation(position));
                 if(connection is GameNetClient) 
                     newobj.Components.Add(new CNetPositionComponent(newobj));
                 objects.Add(id, newobj);
@@ -238,8 +238,8 @@ namespace LibreLancer
                     Path = mdl.Path,
                 };
                 var go = new GameObject($"debris{id}", newmodel, Game.ResourceManager, part, mass, true);
-                go.Transform = Matrix4x4.CreateFromQuaternion(orientation) *
-                               Matrix4x4.CreateTranslation(position);
+                go.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
+                                     Matrix4x4.CreateTranslation(position));
                 go.World = gp.world;
                 go.Register(go.World.Physics);
                 gp.world.Objects.Add(go);
@@ -292,9 +292,8 @@ namespace LibreLancer
                     {
                         var arch = Game.GameData.GetSolarArchetype(si.Archetype);
                         var go = new GameObject(arch, Game.ResourceManager, true);
-                        go.StaticPosition = si.Position;
-                        go.Transform = Matrix4x4.CreateFromQuaternion(si.Orientation) *
-                                       Matrix4x4.CreateTranslation(si.Position);
+                        go.SetLocalTransform(Matrix4x4.CreateFromQuaternion(si.Orientation) *
+                                             Matrix4x4.CreateTranslation(si.Position));
                         go.Nickname = $"$Solar{si.ID}";
                         go.World = gp.world;
                         go.Register(go.World.Physics);
@@ -379,10 +378,10 @@ namespace LibreLancer
             }
             else
             {
-                var tr = obj.GetTransform();
+                var tr = obj.WorldTransform;
                 var pos = update.HasPosition ? update.Position : Vector3.Transform(Vector3.Zero, tr);
                 var rot = update.HasOrientation ? update.Orientation : tr.ExtractRotation();
-                obj.Transform = Matrix4x4.CreateFromQuaternion(rot) * Matrix4x4.CreateTranslation(pos);
+                obj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(rot) * Matrix4x4.CreateTranslation(pos));
             }
         }
 

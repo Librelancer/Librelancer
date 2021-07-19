@@ -39,12 +39,14 @@ namespace LibreLancer
                     }
                     Translate.Y = charRen.Skeleton.FloorHeight + charRen.Skeleton.RootHeight;
                 }
-                if(HpMount == null)
-                    Object.Transform = Rotate * Matrix4x4.CreateTranslation(Translate);
-                else {
+
+                if (HpMount == null)
+                    Object.SetLocalTransform(Rotate * Matrix4x4.CreateTranslation(Translate));
+                else
+                {
                     var tr = HpMount.Transform;
                     Matrix4x4.Invert(tr, out tr);
-                    Object.Transform = tr * (Rotate * Matrix4x4.CreateTranslation(Translate));
+                    Object.SetLocalTransform(tr * (Rotate * Matrix4x4.CreateTranslation(Translate)));
                 }
             }
             if(Camera != null)

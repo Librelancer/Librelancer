@@ -58,7 +58,8 @@ namespace LibreLancer
                 obj.NetID = player.ID;
                 GameWorld.Objects.Add(obj);
                 Players[player] = obj;
-                Players[player].Transform = Matrix4x4.CreateFromQuaternion(orientation) * Matrix4x4.CreateTranslation(position);
+                Players[player].SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
+                                                  Matrix4x4.CreateTranslation(position));
             });
         }
 
@@ -80,7 +81,8 @@ namespace LibreLancer
         {
             actions.Enqueue(() =>
             {
-                Players[player].Transform = Matrix4x4.CreateFromQuaternion(orientation) * Matrix4x4.CreateTranslation(position);
+                Players[player].SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
+                                                  Matrix4x4.CreateTranslation(position));
             });
         }
 
@@ -92,11 +94,11 @@ namespace LibreLancer
             actions.Enqueue(() =>
             {
                 var arch = Server.GameData.GetSolarArchetype(archetype);
-                var gameobj = new GameObject(arch, Server.Resources, false, true);
+                var gameobj = new GameObject(arch, Server.Resources, false);
                 gameobj.ArchetypeName = archetype;
                 gameobj.NetID = GenerateID();
-                gameobj.StaticPosition = position;
-                gameobj.Transform = Matrix4x4.CreateFromQuaternion(orientation) * Matrix4x4.CreateTranslation(position);
+                gameobj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
+                                          Matrix4x4.CreateTranslation(position));
                 gameobj.Nickname = nickname;
                 gameobj.World = GameWorld;
                 gameobj.Register(GameWorld.Physics);
@@ -125,7 +127,7 @@ namespace LibreLancer
                 var id = GenerateID();
                 var go = new GameObject($"debris{id}", newmodel, Server.Resources, part, mass, false);
                 go.NetID = id;
-                go.Transform = transform;
+                go.SetLocalTransform(transform);
                 GameWorld.Objects.Add(go);
                 updatingObjects.Add(go);
                 go.Register(GameWorld.Physics);
@@ -201,7 +203,7 @@ namespace LibreLancer
         {
             foreach(var player in Players)
             {
-                var tr = player.Value.GetTransform();
+                var tr = player.Value.WorldTransform;
                 player.Key.Position = Vector3.Transform(Vector3.Zero, tr);
                 player.Key.Orientation = tr.ExtractRotation();
             }
@@ -231,7 +233,7 @@ namespace LibreLancer
                     var update = new PackedShipUpdate();
                     update.ID = obj.NetID;
                     update.HasPosition = true;
-                    var tr = obj.GetTransform();
+                    var tr = obj.WorldTransform;
                     update.Position = Vector3.Transform(Vector3.Zero, tr);
                     update.HasOrientation = true;
                     update.Orientation = tr.ExtractRotation();

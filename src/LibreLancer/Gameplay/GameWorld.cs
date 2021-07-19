@@ -53,12 +53,11 @@ namespace LibreLancer
 
             foreach (var obj in sys.Objects)
             {
-                var g = new GameObject(obj.Archetype, res, Renderer != null, true);
+                var g = new GameObject(obj.Archetype, res, Renderer != null);
                 g.Name = obj.DisplayName;
                 g.Nickname = obj.Nickname;
-                g.Transform = (obj.Rotation ?? Matrix4x4.Identity) * Matrix4x4.CreateTranslation(obj.Position);
+                g.SetLocalTransform((obj.Rotation ?? Matrix4x4.Identity) * Matrix4x4.CreateTranslation(obj.Position));
                 g.SetLoadout(obj.Loadout, obj.LoadoutNoHardpoint);
-                g.StaticPosition = obj.Position;
                 g.World = this;
                 g.CollisionGroups = obj.Archetype.CollisionGroups;
                 if (g.RenderComponent != null)

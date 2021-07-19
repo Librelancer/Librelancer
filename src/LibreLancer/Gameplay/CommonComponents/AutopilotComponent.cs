@@ -51,7 +51,7 @@ namespace LibreLancer
 			float maxSpeed = 1f;
 			if (CurrentBehaviour == AutopilotBehaviours.Goto)
 			{
-				targetPoint = TargetObject.PhysicsComponent == null ? Vector3.Transform(Vector3.Zero,TargetObject.GetTransform()) : TargetObject.PhysicsComponent.Body.Position;
+				targetPoint = TargetObject.PhysicsComponent == null ? Vector3.Transform(Vector3.Zero,TargetObject.WorldTransform) : TargetObject.PhysicsComponent.Body.Position;
 				ResetDockState();
 			}
 			else
@@ -66,7 +66,7 @@ namespace LibreLancer
 				}
 				var hp = docking.GetDockHardpoints(Parent.PhysicsComponent.Body.Position).Skip(lastTargetHp).First();
 				radius = 5;
-                targetPoint = Vector3.Transform(Vector3.Zero, hp.Transform * TargetObject.GetTransform());
+                targetPoint = Vector3.Transform(Vector3.Zero, hp.Transform * TargetObject.WorldTransform);
 				if (lastTargetHp > 0) maxSpeed = 0.3f;
 				if (lastTargetHp == 2) radius = docking.TriggerRadius;
 				if (!hasTriggeredAnimation && docking.TryTriggerAnimation(Parent)) hasTriggeredAnimation = true;

@@ -377,11 +377,11 @@ namespace LibreLancer
                 if(playerShip.HardpointExists("HpMount"))
                 {
                     Matrix4x4.Invert(playerShip.GetHardpoint("HpMount").Transform, out var tr);
-                    playerShip.Transform = tr;
+                    playerShip.SetLocalTransform(tr);
                 }
                 else
                 {
-                    playerShip.Transform = Matrix4x4.Identity;
+                    playerShip.SetLocalTransform(Matrix4x4.Identity);
                 }
                 shipMarker.Object.Children.Add(playerShip);
             }
@@ -412,7 +412,7 @@ namespace LibreLancer
                 if(obj.HardpointExists("HpMount"))
                 {
                     Matrix4x4.Invert(obj.GetHardpoint("HpMount").Transform, out var tr);
-                    obj.Transform = tr;
+                    obj.SetLocalTransform(tr);
                 }
             }
             if (sc == null) {

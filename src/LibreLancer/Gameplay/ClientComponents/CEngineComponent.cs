@@ -37,7 +37,7 @@ namespace LibreLancer
         }
 		public override void Update(double time)
         {
-            var tr = parent.GetTransform();
+            var tr = parent.WorldTransform;
             var pos = Vector3.Transform(Vector3.Zero,tr);
             var vel = Vector3.Zero;
             if (parent.PhysicsComponent != null)
@@ -100,7 +100,7 @@ namespace LibreLancer
                 }
 
                 for (int i = 0; i < fireFx.Count; i++)
-                    Parent.ForceRenderCheck.Add(fireFx[i].Effect);
+                    Parent.ExtraRenderers.Add(fireFx[i].Effect);
             }
 
             SoundManager sound;
@@ -123,7 +123,7 @@ namespace LibreLancer
 		public override void Unregister(Physics.PhysicsWorld physics)
 		{
             for (int i = 0; i < fireFx.Count; i++)
-                Parent.ForceRenderCheck.Remove(fireFx[i].Effect);
+                Parent.ExtraRenderers.Remove(fireFx[i].Effect);
             rumble.Kill();
             character.Kill();
         }

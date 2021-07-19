@@ -37,7 +37,7 @@ namespace LibreLancer
                     if (hpChild != null)
                     {
                         Matrix4x4.Invert(hpChild.Transform, out var invTr);
-                        obj.Transform = invTr;
+                        obj.SetLocalTransform(invTr);
                     }
                 }
                 var hp = parent.GetHardpoint(hardpoint);
@@ -65,13 +65,7 @@ namespace LibreLancer
                         //}
                     }
                 }
-                //Optimisation: Don't re-calculate transforms every frame for static objects
-                if(parent.IsStatic && (hp == null || hp.IsStatic))
-                {
-                    obj.Transform = obj.GetTransform();
-                    obj.SetStatic(true);
-                    obj.StaticPosition = Vector3.Transform(Vector3.Zero, obj.Transform);
-                }
+ 
             }
         }
     }

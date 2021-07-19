@@ -15,12 +15,13 @@ namespace LibreLancer.Fx
     {
         //Limits
         const int MAX_PARTICLES = 40000;
+        private const int INITIAL_PARTICLES = 1000;
         //How many will render at once
         const int MAX_APP_NODES = 2048;
         const int MAX_BEAMS = 512;
         const int MAX_APP_PARTICLES = 5000;
 
-        public Particle[] Particles = new Particle[MAX_PARTICLES];
+        public Particle[] Particles = new Particle[INITIAL_PARTICLES];
         public Stack<int> FreeParticles = new Stack<int>();
 
         ElementBuffer ibo;
@@ -171,6 +172,9 @@ namespace LibreLancer.Fx
             {
                 var p = FreeParticles.Pop();
                 maxActive = Math.Max(p, maxActive);
+                if (maxActive >= Particles.Length) {
+                    Array.Resize(ref Particles, Particles.Length * 2 > MAX_PARTICLES ? MAX_PARTICLES : Particles.Length * 2);
+                }
                 return p;
             }
             else

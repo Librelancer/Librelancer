@@ -52,7 +52,7 @@ namespace LibreLancer
             var rad = obj.PhysicsComponent.Body.Collider.Radius;
 			foreach (var hps in GetDockHardpoints(obj.PhysicsComponent.Body.Position))
             {
-                var targetPos = Vector3.Transform(Vector3.Zero, hps.Transform * Parent.GetTransform());
+                var targetPos = Vector3.Transform(Vector3.Zero, hps.Transform * Parent.WorldTransform);
 				var dist = (targetPos - obj.PhysicsComponent.Body.Position).Length();
 				if (dist < 20 + rad)
 				{
@@ -79,7 +79,7 @@ namespace LibreLancer
 		public bool CanDock(GameObject obj)
 		{
 			var hp = Parent.GetHardpoint(tlHP ?? DockHardpoint);
-			var targetPos = Vector3.Transform(Vector3.Zero, hp.Transform * Parent.GetTransform());
+			var targetPos = Vector3.Transform(Vector3.Zero, hp.Transform * Parent.WorldTransform);
 			if ((targetPos - obj.PhysicsComponent.Body.Position).Length() < (TriggerRadius * 2 + obj.PhysicsComponent.Body.Collider.Radius))
 			{
 				return true;

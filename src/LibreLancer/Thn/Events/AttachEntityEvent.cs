@@ -31,7 +31,8 @@ namespace LibreLancer.Thn
                 Matrix4x4 rotate = Parent.Rotate;
                 if (Part != null && (Position || Orientation))
                 {
-                    var tr = Part.GetTransform();
+                    Part.SetLocalTransform(Part.LocalTransform); //force update: hacky
+                    var tr = Part.WorldTransform;
                     if (Position) translate = tr.Translation;
                     if (Orientation) rotate = Matrix4x4.CreateFromQuaternion(tr.ExtractRotation());
                 }
@@ -49,7 +50,7 @@ namespace LibreLancer.Thn
                     if (lookFunc == null)
                     {
                         //offset does not affect LOOK_AT flags
-                        if (Part != null) lookFunc = () => Vector3.Transform(Vector3.Zero, Part.Transform);
+                        if (Part != null) lookFunc = () => Vector3.Transform(Vector3.Zero, Part.LocalTransform);
                         else lookFunc = () => Parent.Translate;
                     }
                     if (Child.Camera != null) Child.Camera.LookAt = lookFunc;
@@ -147,7 +148,7 @@ namespace LibreLancer.Thn
                 (Flags & AttachFlags.OrientationRelative) == AttachFlags.OrientationRelative)
             {
                 if (part != null)
-                    lastRotate = part.GetTransform().ExtractRotation();
+                    lastRotate = part.WorldTransform.ExtractRotation();
                 else
                     lastRotate = objB.Rotate.ExtractRotation();
             }

@@ -108,7 +108,7 @@ namespace LibreLancer.Physics
             accumulatedTime += elapsed;
             while(accumulatedTime >= TIMESTEP) {
                 FixedUpdate?.Invoke(TIMESTEP);
-                if (disposed) return; //Alllow delete within FixedUpdate. Hacky but works
+                if (disposed) return; //Allow delete within FixedUpdate. Hacky but works
                 btWorld.StepSimulation(TIMESTEP, 0, TIMESTEP);
                 accumulatedTime -= TIMESTEP;
                 //Update C#-side properties after each step. Creates stuttering otherwise

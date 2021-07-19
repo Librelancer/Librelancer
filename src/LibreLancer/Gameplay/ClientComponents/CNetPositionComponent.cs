@@ -83,8 +83,8 @@ namespace LibreLancer
             UpdateOrientation(time);
             if (setV && setQ)
             {
-                Parent.Transform = Matrix4x4.CreateFromQuaternion(currentQuat) *
-                                   Matrix4x4.CreateTranslation(currentPos);
+                Parent.SetLocalTransform(Matrix4x4.CreateFromQuaternion(currentQuat) *
+                                         Matrix4x4.CreateTranslation(currentPos));
             }
         }
 

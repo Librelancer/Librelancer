@@ -20,6 +20,8 @@ namespace LibreLancer.Physics
             Collider = col;
         }
 
+        public bool Active => !Static && RigidBody.ActivationState != ActivationState.IslandSleeping;
+
         public Matrix4x4 Transform { get; private set; }
 
         public Vector3 Position { get; private set; }

@@ -226,7 +226,7 @@ namespace LibreLancer
             var si = new List<SolarInfo>();
             foreach (var solar in solars)
             {
-                var tr = solar.Value.GetTransform();
+                var tr = solar.Value.WorldTransform;
                 si.Add(new SolarInfo()
                 {
                     ID = solar.Value.NetID,

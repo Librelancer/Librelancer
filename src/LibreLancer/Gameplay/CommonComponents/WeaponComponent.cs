@@ -31,7 +31,7 @@ namespace LibreLancer
                 projectiles = Parent.GetWorld().Projectiles;
                 toSpawn = projectiles.GetData(Object);
             }
-            var tr = (Parent.Attachment.Transform * Parent.Parent.GetTransform());
+            var tr = (Parent.Attachment.Transform * Parent.Parent.WorldTransform);
             for (int i = 0; i < hpfires.Length; i++)
             {
                 var pos = Vector3.Transform(Vector3.Zero, hpfires[i].Transform * tr);
@@ -43,7 +43,7 @@ namespace LibreLancer
             DrawDebugPoints();
             var hp = Parent.Attachment;
             //Parent is the gun itself rotated
-            var br = hp.TransformNoRotate * Parent.Parent.GetTransform();
+            var br = hp.TransformNoRotate * Parent.Parent.WorldTransform;
             //Inverse Transform
             Matrix4x4.Invert(br, out var beforeRotate);
             var local = TransformGL(point, beforeRotate);
@@ -109,7 +109,7 @@ namespace LibreLancer
                 projectiles = Parent.GetWorld().Projectiles;
                 toSpawn = projectiles.GetData(Object);
             }
-            var tr = (Parent.Attachment.Transform * Parent.Parent.GetTransform());
+            var tr = (Parent.Attachment.Transform * Parent.Parent.WorldTransform);
             for (int i = 0; i < hpfires.Length; i++)
             {
                 var pos = Vector3.Transform(Vector3.Zero, hpfires[i].Transform * tr);

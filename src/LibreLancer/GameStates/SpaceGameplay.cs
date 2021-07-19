@@ -70,7 +70,7 @@ Mouse Flight: {11}
             ui.OpenScene("hud");
             var shp = Game.GameData.GetShip(session.PlayerShip);
             //Set up player object + camera
-            player = new GameObject(shp.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager, true, false);
+            player = new GameObject(shp.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager);
             control = new ShipPhysicsComponent(player);
             control.Ship = shp;
             shipInput = new ShipInputComponent(player);
@@ -78,7 +78,7 @@ Mouse Flight: {11}
             player.Components.Add(control);
             weapons = new WeaponControlComponent(player);
             player.Components.Add(weapons);
-            player.Transform = session.PlayerOrientation * Matrix4x4.CreateTranslation(session.PlayerPosition);
+            player.SetLocalTransform(session.PlayerOrientation * Matrix4x4.CreateTranslation(session.PlayerPosition));
             player.PhysicsComponent.Mass = shp.Mass;
             if(shp.Mass < 0)
             {
@@ -95,7 +95,7 @@ Mouse Flight: {11}
             if (powerCore == null) throw new Exception("Player launched without a powercore equipped!");
             camera = new ChaseCamera(Game.Viewport, Game.GameData.Ini.Cameras);
             camera.ChasePosition = session.PlayerPosition;
-            camera.ChaseOrientation = player.Transform.ClearTranslation();
+            camera.ChaseOrientation = player.LocalTransform.ClearTranslation();
             var offset = shp.ChaseOffset;
             
             camera.DesiredPositionOffset = offset;

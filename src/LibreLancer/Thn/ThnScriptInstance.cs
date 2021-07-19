@@ -69,7 +69,8 @@ namespace LibreLancer
                     ((ModelRenderer)obj.Object.RenderComponent).LightGroup = kv.Value.LightGroup;
                     obj.Entity = kv.Value;
                     Vector3 transform = kv.Value.Position ?? Vector3.Zero;
-                    obj.Object.Transform = (kv.Value.RotationMatrix ?? Matrix4x4.Identity) * Matrix4x4.CreateTranslation(transform);
+                    obj.Object.SetLocalTransform((kv.Value.RotationMatrix ?? Matrix4x4.Identity) *
+                                                 Matrix4x4.CreateTranslation(transform));
                     obj.HpMount = Cutscene.PlayerShip.GetHardpoint("HpMount");
                     Cutscene.World.Objects.Add(obj.Object);
                     Objects.Add(kv.Key, obj);
@@ -135,7 +136,7 @@ namespace LibreLancer
                     }
                     else
                     {
-                        obj.Object = new GameObject(drawable, Cutscene.Game.GetService<ResourceManager>(), true, false, false);
+                        obj.Object = new GameObject(drawable, Cutscene.Game.GetService<ResourceManager>(), true, false);
                         obj.Object.Name = kv.Value.Name;
                         obj.Object.PhysicsComponent = null; //Jitter seems to interfere with directly setting orientation
                         if (getHpMount)
@@ -223,7 +224,8 @@ namespace LibreLancer
                 if (obj.Object != null)
                 {
                     Vector3 transform = kv.Value.Position ?? Vector3.Zero;
-                    obj.Object.Transform = (kv.Value.RotationMatrix ?? Matrix4x4.Identity) * Matrix4x4.CreateTranslation(transform);
+                    obj.Object.SetLocalTransform((kv.Value.RotationMatrix ?? Matrix4x4.Identity) *
+                                                 Matrix4x4.CreateTranslation(transform));
                     Cutscene.World.Objects.Add(obj.Object);
                 }
                 obj.Entity = kv.Value;

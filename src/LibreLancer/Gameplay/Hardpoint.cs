@@ -30,9 +30,7 @@ namespace LibreLancer
             if(Definition == null) Definition = new FixedHardpointDefinition("dummy");
             Name = def == null ? "Dummy Hardpoint" : def.Name;
             Revolute = def as RevoluteHardpointDefinition;
-            IsStatic = parent is FixConstruct && def is FixedHardpointDefinition;
         }
-        public bool IsStatic { get; private set; }
 
         public Matrix4x4 HpTransformInfo
         {
@@ -64,7 +62,7 @@ namespace LibreLancer
         }
         public override string ToString()
         {
-            return string.Format("[{0}, IsStatic={1}]", Name, IsStatic);
+            return string.Format("[{0}: {1}]", Name, Revolute != null ? "Rev" : "Fix");
         }
     }
 }

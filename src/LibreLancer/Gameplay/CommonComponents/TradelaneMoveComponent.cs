@@ -35,7 +35,7 @@ namespace LibreLancer
 			if (eng != null) eng.Speed = 0.9f;
 
 			var tgtcmp = tgt.GetComponent<DockComponent>();
-            var targetPoint = Vector3.Transform(Vector3.Zero, tgt.GetHardpoint(lane).Transform * tgt.GetTransform());
+            var targetPoint = Vector3.Transform(Vector3.Zero, tgt.GetHardpoint(lane).Transform * tgt.WorldTransform);
 			var direction = targetPoint - Parent.PhysicsComponent.Body.Position;
 			var distance = direction.Length();
 			if (distance < 200)
