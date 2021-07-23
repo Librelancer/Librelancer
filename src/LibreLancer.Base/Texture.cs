@@ -3,21 +3,13 @@
 // LICENSE, which is part of this source code package
 
 using System;
+
 namespace LibreLancer
 {
     public abstract class Texture : IDisposable
     {
         public uint ID;
         public SurfaceFormat Format { get; protected set; }
-        static bool compressedChecked = false;
-        protected static void CheckCompressed()
-        {
-            if (!compressedChecked)
-            {
-                GLExtensions.CheckExtensions();
-                compressedChecked = true;
-            }
-        }
         public int LevelCount
         {
             get;
@@ -54,6 +46,29 @@ namespace LibreLancer
 			}
 		}
 
+        protected unsafe byte[] ConvertData<T> (T[] input, int w, int h) where T: unmanaged
+        {
+            if (Format == SurfaceFormat.Bgra5551)
+            {
+                var output = new byte[input.Length];
+                fixed (T* iptr = input)
+                fixed(byte *optr = output)
+                {
+                    ushort* us = (ushort*) iptr;
+                    ushort* os = (ushort*) optr;
+                    for(int i = 0; i < w * h; i++) {
+                        var p = us[i];
+                        var a = (p >> 15) & 0x01;
+                        var r = (p >> 10) & 0x1F;
+                        var g = (p >> 5) & 0x1F;
+                        var b = (p >> 0) & 0x1F;
+                        os[i] = (ushort)(r << 11 | g << 6 | b << 1 | a);
+                    }
+                }
+                return output;
+            }
+            return null;
+        }
         
         protected static void GetMipSize(int level, int inWidth, int inHeight, out int width, out int height)
         {

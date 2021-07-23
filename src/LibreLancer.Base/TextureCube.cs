@@ -31,24 +31,37 @@ namespace LibreLancer
             if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)
             {
                 int imageSize = 0;
-                CheckCompressed();
-                switch (Format)
+                if (GLExtensions.S3TC)
                 {
-                    case SurfaceFormat.Dxt1:
-                    case SurfaceFormat.Dxt3:
-                    case SurfaceFormat.Dxt5:
-                        imageSize = ((size + 3) / 4) * ((size + 3) / 4) * format.GetSize();
-                        break;
-                    default:
-                        throw new NotSupportedException();
+                    switch (Format)
+                    {
+                        case SurfaceFormat.Dxt1:
+                        case SurfaceFormat.Dxt3:
+                        case SurfaceFormat.Dxt5:
+                            imageSize = ((size + 3) / 4) * ((size + 3) / 4) * format.GetSize();
+                            break;
+                        default:
+                            throw new NotSupportedException();
+                    }
                 }
 
                 for (int i = 0; i < 6; i++)
                 {
                     var target = ((CubeMapFace)i).ToGL();
-                    GL.CompressedTexImage2D(target, 0, glInternalFormat,
-                        size, size, 0,
-                        imageSize, IntPtr.Zero);
+                    if (GLExtensions.S3TC)
+                    {
+                        GL.CompressedTexImage2D(target, 0, glInternalFormat,
+                            size, size, 0,
+                            imageSize, IntPtr.Zero);
+                    }
+                    else
+                    {
+                        GL.TexImage2D(target, 0,
+                            GL.GL_RGBA,
+                            size, size, 0,
+                            GL.GL_BGRA, GL.GL_UNSIGNED_BYTE, IntPtr.Zero);
+                    }
+                  
                 }
             }
             else
@@ -64,7 +77,7 @@ namespace LibreLancer
 
         private int maxLevel = 0;
         private int currentLevels = 0;
-        public void SetData<T>(CubeMapFace face, int level, Rectangle? rect, T[] data, int start, int count) where T : struct
+        public void SetData<T>(CubeMapFace face, int level, Rectangle? rect, T[] data, int start, int count) where T : unmanaged
         {
             int target = face.ToGL();
             maxLevel = Math.Max(level, maxLevel);
@@ -74,7 +87,7 @@ namespace LibreLancer
                 int w, h;
                 GetMipSize (level, Size, Size, out w, out h);
                 var handle = GCHandle.Alloc (data, GCHandleType.Pinned);
-                GL.CompressedTexImage2D (target, level, glInternalFormat,
+                S3TC.CompressedTexImage2D (target, level, glInternalFormat,
                     w, h, 0,
                     count, handle.AddrOfPinnedObject());
                 handle.Free ();
@@ -90,21 +103,27 @@ namespace LibreLancer
                     h = rect.Value.Height;
                     x = rect.Value.X;
                     y = rect.Value.Y;
-                    var handle = GCHandle.Alloc (data, GCHandleType.Pinned);
+                    var conv = ConvertData(data, w, h);
+                    GCHandle handle;
+                    if(conv != null) handle = GCHandle.Alloc (conv, GCHandleType.Pinned);
+                    else handle = GCHandle.Alloc (data, GCHandleType.Pinned);
                     GL.TexSubImage2D (target, level, x, y, w, h, glFormat, glType, handle.AddrOfPinnedObject());
                     handle.Free ();
                 }
                 else {
                     w = Math.Max(Size >> level, 1);
                     h = Math.Max(Size >> level, 1);
-                    var handle = GCHandle.Alloc (data, GCHandleType.Pinned);
+                    var conv = ConvertData(data, w, h);
+                    GCHandle handle;
+                    if(conv != null) handle = GCHandle.Alloc (conv, GCHandleType.Pinned);
+                    else handle = GCHandle.Alloc (data, GCHandleType.Pinned);
                     GL.TexImage2D (target, level, glInternalFormat, w, h, 0, glFormat, glType, handle.AddrOfPinnedObject());
                     handle.Free ();
                 }
             }
         }
 
-        public void SetData<T>(CubeMapFace face, T[] data) where T : struct
+        public void SetData<T>(CubeMapFace face, T[] data) where T : unmanaged
         {
             SetData<T>(face, 0, null, data, 0, data.Length);
         }

@@ -46,8 +46,9 @@ namespace LibreLancer
                     break;
 				case SurfaceFormat.Bgra5551:
 					glInternalFormat = GL.GL_RGB5_A1;
-					glFormat = GL.GL_BGRA;
-					glType = GL.GL_UNSIGNED_SHORT_1_5_5_5_REVERSED;
+					glFormat = GL.GL_RGBA;
+                    //converted internally. reverse not supported on GLES
+					glType = GL.GL_UNSIGNED_SHORT_5_5_5_1;
                     break;
                 /*case SurfaceFormat.Alpha8: luminance removed in GL 3.1
                     glInternalFormat = PixelInternalFormat.Luminance;

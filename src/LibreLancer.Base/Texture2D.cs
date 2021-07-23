@@ -34,20 +34,29 @@ namespace LibreLancer
 			Dxt1 = format == SurfaceFormat.Dxt1;
 			if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)
             {
-                CheckCompressed();
-                switch (Format)
+                if (GLExtensions.S3TC)
                 {
-                    case SurfaceFormat.Dxt1:
-                    case SurfaceFormat.Dxt3:
-                    case SurfaceFormat.Dxt5:
-                        imageSize = ((Width + 3) / 4) * ((Height + 3) / 4) * format.GetSize();
-                        break;
-                    default:
-                        throw new NotSupportedException();
+                    switch (Format)
+                    {
+                        case SurfaceFormat.Dxt1:
+                        case SurfaceFormat.Dxt3:
+                        case SurfaceFormat.Dxt5:
+                            imageSize = ((Width + 3) / 4) * ((Height + 3) / 4) * format.GetSize();
+                            break;
+                        default:
+                            throw new NotSupportedException();
+                    }
+                    GL.CompressedTexImage2D(GL.GL_TEXTURE_2D, 0, glInternalFormat,
+                        Width, Height, 0,
+                        imageSize, IntPtr.Zero);
                 }
-				GL.CompressedTexImage2D(GL.GL_TEXTURE_2D, 0, glInternalFormat,
-                                        Width, Height, 0,
-                                        imageSize, IntPtr.Zero);
+                else
+                {
+                    GL.TexImage2D(GL.GL_TEXTURE_2D, 0,
+                        GL.GL_RGBA,
+                        Width, Height, 0,
+                        GL.GL_BGRA, GL.GL_UNSIGNED_BYTE, IntPtr.Zero);
+                }
             }
             else {
 				GL.TexImage2D(GL.GL_TEXTURE_2D, 0,
@@ -120,7 +129,7 @@ namespace LibreLancer
             }
         }
 		
-		public unsafe void SetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T: struct
+		public unsafe void SetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T: unmanaged
         {
             maxLevel = Math.Max(level, maxLevel);
             BindTo(4);
@@ -129,12 +138,13 @@ namespace LibreLancer
 				int w, h;
 				GetMipSize (level, Width, Height, out w, out h);
 				var handle = GCHandle.Alloc (data, GCHandleType.Pinned);
-					GL.CompressedTexImage2D (GL.GL_TEXTURE_2D, level, glInternalFormat,
+					S3TC.CompressedTexImage2D (GL.GL_TEXTURE_2D, level, glInternalFormat,
 						w, h, 0,
 						count, handle.AddrOfPinnedObject());
 				handle.Free ();
             }
-            else {
+            else
+            {
                 int w = Width;
                 int h = Height;
                 int x = 0;
@@ -145,14 +155,20 @@ namespace LibreLancer
                     h = rect.Value.Height;
                     x = rect.Value.X;
                     y = rect.Value.Y;
-					var handle = GCHandle.Alloc (data, GCHandleType.Pinned);
+                    var conv = ConvertData(data, w, h);
+                    GCHandle handle;
+                    if(conv != null) handle = GCHandle.Alloc (conv, GCHandleType.Pinned);
+                    else handle = GCHandle.Alloc (data, GCHandleType.Pinned);
 					GL.TexSubImage2D (GL.GL_TEXTURE_2D, level, x, y, w, h, glFormat, glType, handle.AddrOfPinnedObject());
 					handle.Free ();
                 }
                 else {
                     w = Math.Max(Width >> level, 1);
                     h = Math.Max(Height >> level, 1);
-					var handle = GCHandle.Alloc (data, GCHandleType.Pinned);
+                    var conv = ConvertData(data, w, h);
+                    GCHandle handle;
+                    if(conv != null) handle = GCHandle.Alloc (conv, GCHandleType.Pinned);
+                    else handle = GCHandle.Alloc (data, GCHandleType.Pinned);
 					GL.TexImage2D (GL.GL_TEXTURE_2D, level, glInternalFormat, w, h, 0, glFormat, glType, handle.AddrOfPinnedObject());
 					handle.Free ();
                 }
@@ -184,7 +200,7 @@ namespace LibreLancer
 			GL.TexSubImage2D (GL.GL_TEXTURE_2D, 0, rect.X, rect.Y, rect.Width, rect.Height, glFormat, glType, data);
 		}
 
-        public void SetData<T>(T[] data) where T : struct
+        public void SetData<T>(T[] data) where T : unmanaged
         {
             SetData<T>(0, null, data, 0, data.Length);
         }

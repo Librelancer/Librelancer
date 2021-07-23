@@ -588,9 +588,6 @@ namespace LibreLancer
             else
                 imgShader.SetFloat(blendLocation, 0f);
             imgShader.SetInteger(circleLocation, isCircle ? 1 : 0);
-            var verts = new Vertex2D[vertexCount];
-            for (int i = 0; i < vertexCount; i++)
-                verts[i] = vertices[i];
             vbo.EndStreaming(vertexCount);
 			vbo.Draw (PrimitiveTypes.TriangleList, primitiveCount);
             vertices = (Vertex2D*)vbo.BeginStreaming();
