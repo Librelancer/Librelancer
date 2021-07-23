@@ -160,7 +160,8 @@ namespace LibreLancer
                         actions.Add(new NavbarButtonInfo(LAUNCH_ACTION, "IDS_HOTSPOT_LAUNCH"));
                         break;
                     case "bar":
-                        actions.Add(new NavbarButtonInfo(INVALID_ACTION, "IDS_HOTSPOT_NEWSVENDOR"));
+                        if(g.session.News?.Length > 0)
+                            actions.Add(new NavbarButtonInfo(INVALID_ACTION, "IDS_HOTSPOT_NEWSVENDOR"));
                         break;
                 }
                 return actions.ToArray();
