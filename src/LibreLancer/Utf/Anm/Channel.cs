@@ -212,15 +212,37 @@ namespace LibreLancer.Utf.Anm
 		public Channel(IntermediateNode root)
 		{
             //Fetch from nodes
+            byte[] cdata = null;
 			foreach (LeafNode channelSubNode in root)
 			{
                 if(channelSubNode.Name.Equals("header", StringComparison.OrdinalIgnoreCase))
                     ReadHeader(channelSubNode);
                 else if (channelSubNode.Name.Equals("frames", StringComparison.OrdinalIgnoreCase))
                 {
-                    channelData = channelSubNode.ByteArrayData;
+                    cdata = channelSubNode.ByteArrayData;
                 }
             }
+            /* Pad data to avoid ARM data alignment errors */
+            if((ChannelType & 0x80) == 0x80 ||
+               (ChannelType & 0x40) == 0x40) {
+                int startStride = 0;
+                if(Interval < 0) startStride += 4;
+                if((ChannelType & 0x1) == 0x1) startStride += 4;
+                if((ChannelType & 0x2) == 0x2) startStride += 12;
+                int fullStride = startStride + 8;
+                int compStride = startStride + 6;
+                channelData = new byte[fullStride * FrameCount];
+                for(int i = 0; i < FrameCount; i++) {
+                    int src = compStride * i;
+                    int dst = fullStride * i;
+                    for(int j = 0; j < compStride; j++) {
+                        channelData[dst + j] = cdata[src + j];
+                    }
+                }
+            } else {
+                channelData = cdata;
+            }
+                    
             FrameType frameType = FrameType.Float;
             QuaternionMethod = QuaternionMethod.Full;
             bool vec = false;
@@ -253,14 +275,14 @@ namespace LibreLancer.Utf.Anm
                 quat = true;
                 QuaternionMethod = QuaternionMethod.Compressed0x40;
                 Quaternions = new CompressedAccessor0x40(this, stride);
-                stride += 6;
+                stride += 8;
             }
             if ((ChannelType & 0x80) == 0x80)
             {
                 quat = true;
                 QuaternionMethod = QuaternionMethod.Compressed0x80;
                 Quaternions = new CompressedAccessor0x80(this, stride);
-                stride += 6;
+                stride += 8;
             }
             if ((ChannelType & 0x4) == 0x4)
             {
