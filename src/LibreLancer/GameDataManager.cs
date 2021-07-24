@@ -854,29 +854,32 @@ namespace LibreLancer
                 a.Band.OffsetDistance = ast.Band.OffsetDist ?? 0f;
             }
             a.Cube = new List<GameData.StaticAsteroid>();
-            a.CubeRotation = new GameData.AsteroidCubeRotation();
-            a.CubeRotation.AxisX = ast.Cube_RotationX ?? GameData.AsteroidCubeRotation.Default_AxisX;
-            a.CubeRotation.AxisY = ast.Cube_RotationY ?? GameData.AsteroidCubeRotation.Default_AxisY;
-            a.CubeRotation.AxisZ = ast.Cube_RotationZ ?? GameData.AsteroidCubeRotation.Default_AxisZ;
-            a.CubeSize = ast.Field.CubeSize ?? 100; //HACK: Actually handle null cube correctly
-            a.SetFillDist(ast.Field.FillDist.Value);
-            a.EmptyCubeFrequency = ast.Field.EmptyCubeFrequency ?? 0f;
-            foreach (var c in ast.Cube)
+            if (ast.Field != null)
             {
-                var sta = new GameData.StaticAsteroid()
+                a.CubeRotation = new GameData.AsteroidCubeRotation();
+                a.CubeRotation.AxisX = ast.Cube_RotationX ?? GameData.AsteroidCubeRotation.Default_AxisX;
+                a.CubeRotation.AxisY = ast.Cube_RotationY ?? GameData.AsteroidCubeRotation.Default_AxisY;
+                a.CubeRotation.AxisZ = ast.Cube_RotationZ ?? GameData.AsteroidCubeRotation.Default_AxisZ;
+                a.CubeSize = ast.Field.CubeSize ?? 100; //HACK: Actually handle null cube correctly
+                a.SetFillDist(ast.Field.FillDist.Value);
+                a.EmptyCubeFrequency = ast.Field.EmptyCubeFrequency ?? 0f;
+                foreach (var c in ast.Cube)
                 {
-                    Rotation = c.Rotation,
-                    Position = c.Position,
-                    Info = c.Info,
-                    Archetype = c.Name
-                };
-                var arch = fldata.Asteroids.FindAsteroid(c.Name);
-                sta.Drawable = ResolveDrawable(arch.MaterialLibrary, arch.DaArchetype);
-                sta.RotationMatrix =
-                    Matrix4x4.CreateRotationX(MathHelper.DegreesToRadians(c.Rotation.X)) *
-                    Matrix4x4.CreateRotationY(MathHelper.DegreesToRadians(c.Rotation.Y)) *
-                    Matrix4x4.CreateRotationZ(MathHelper.DegreesToRadians(c.Rotation.Z));
-                a.Cube.Add(sta);
+                    var sta = new GameData.StaticAsteroid()
+                    {
+                        Rotation = c.Rotation,
+                        Position = c.Position,
+                        Info = c.Info,
+                        Archetype = c.Name
+                    };
+                    var arch = fldata.Asteroids.FindAsteroid(c.Name);
+                    sta.Drawable = ResolveDrawable(arch.MaterialLibrary, arch.DaArchetype);
+                    sta.RotationMatrix =
+                        Matrix4x4.CreateRotationX(MathHelper.DegreesToRadians(c.Rotation.X)) *
+                        Matrix4x4.CreateRotationY(MathHelper.DegreesToRadians(c.Rotation.Y)) *
+                        Matrix4x4.CreateRotationZ(MathHelper.DegreesToRadians(c.Rotation.Z));
+                    a.Cube.Add(sta);
+                }
             }
             a.ExclusionZones = new List<GameData.ExclusionZone>();
             if (ast.ExclusionZones != null)

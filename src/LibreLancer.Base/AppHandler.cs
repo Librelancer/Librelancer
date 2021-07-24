@@ -39,7 +39,7 @@ namespace LibreLancer
                 var ex = (Exception)(e.ExceptionObject);
 
                 CrashWindow.Run("Uh-oh!", errorMessage,
-                FormatException(ex));
+                FormatException(ex).ToString());
             };
             try
             {
@@ -51,24 +51,39 @@ namespace LibreLancer
             catch (Exception ex)
             {
                 try { onCrash?.Invoke(); } catch { }
-                CrashWindow.Run("Uh-oh!", errorMessage, FormatException(ex));
+                CrashWindow.Run("Uh-oh!", errorMessage, FormatException(ex).ToString());
             }
 
 #endif
         }
 
-        static string FormatException(Exception ex)
+        static StringBuilder FormatException(Exception ex, StringBuilder builder = default, int j = 0)
         {
-            var builder = new StringBuilder();
+            builder ??= new StringBuilder();
             builder.AppendLine(ex.Message);
             builder.AppendLine(ex.StackTrace);
-            Exception ex2 = ex;
-            while ((ex2 = ex2.InnerException) != null)
-            {
-                builder.AppendLine($"Inner: {ex2.Message}");
-                builder.AppendLine(ex2.StackTrace);
+            j++;
+            if (j > 100) {
+                builder.AppendLine("-- EXCEPTION OVERFLOW --");
+                return builder;
             }
-            return builder.ToString();
+            if (ex is AggregateException ag)
+            {
+                for (int i = 0; i < ag.InnerExceptions.Count; i++)
+                {
+                    builder.AppendLine($"Inner Exception #{i + 1}:");
+                    FormatException(ag.InnerExceptions[i], builder, j);
+                }
+            }
+            else
+            {
+                if (ex.InnerException != null)
+                {
+                    builder.AppendLine("Inner Exception: ");
+                    FormatException(ex.InnerException, builder, j);
+                }
+            }
+            return builder;
         }
     }
 }
