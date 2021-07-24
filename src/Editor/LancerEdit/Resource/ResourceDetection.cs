@@ -73,6 +73,7 @@ namespace LancerEdit
 			}
 			RefTex(m.EtName, res, missing, texrefs, m.Name, refstr);
 			RefTex(m.DmName, res, missing, texrefs, m.Name, refstr);
+            RefTex(m.Dm0Name, res, missing, texrefs, m.Name, refstr);
 			RefTex(m.Dm1Name, res, missing, texrefs, m.Name, refstr);
 		}
 

@@ -114,7 +114,7 @@ namespace LibreLancer.Utf.Mat
 		/// </summary>
 		public int Dm0Flags { get; private set; }
 
-		private string dm0Name;
+		public string Dm0Name;
 
 
 		/// <summary>
@@ -311,7 +311,7 @@ namespace LibreLancer.Utf.Mat
 					Dm0Flags = n.Int32Data.Value;
 					break;
 				case "dm0_name":
-					dm0Name = n.StringData;
+					Dm0Name = n.StringData;
 					break;
 				case "dm1_flags":
 					Dm1Flags = n.Int32Data.Value;
@@ -408,7 +408,7 @@ namespace LibreLancer.Utf.Mat
 						m2.FlipV = FlipV;
 						m2.DtSampler = DtName;
 						m2.DtFlags = (SamplerFlags)DtFlags;
-						m2.Dm0Sampler = dm0Name;
+						m2.Dm0Sampler = Dm0Name;
 						m2.Dm0Flags = (SamplerFlags)Dm0Flags;
 						m2.Dm1Sampler = Dm1Name;
 						m2.Dm1Flags = (SamplerFlags)Dm1Flags;
@@ -427,7 +427,7 @@ namespace LibreLancer.Utf.Mat
 						ilm.DtSampler = DtName;
 						ilm.DtFlags = (SamplerFlags)DtFlags;
 
-						ilm.Dm0Sampler = dm0Name;
+						ilm.Dm0Sampler = Dm0Name;
 						ilm.Dm0Flags = (SamplerFlags)Dm0Flags;
 						ilm.Dm1Sampler = Dm1Name;
 						ilm.Dm1Flags = (SamplerFlags)Dm1Flags;
