@@ -17,6 +17,32 @@ namespace LibreLancer
         public const float ANGLE_MIN = (float)(-2 * Math.PI);
         public const float ANGLE_MAX = (float)(2 * Math.PI);
         
+        public static void PutVariableUInt64(this LiteNetLib.Utils.NetDataWriter writer, ulong value)
+        {
+            ulong num1 = value;
+            while (num1 >= 0x80)
+            {
+                writer.Put((byte)(num1 | 0x80));
+                num1 = num1 >> 7;
+            }
+            writer.Put((byte)num1);
+        }
+        
+        public static ulong GetVariableUInt64(this LiteNetLib.Utils.NetDataReader reader)
+        {
+            ulong num1 = 0;
+            int num2 = 0;
+            while (reader.AvailableBytes > 0)
+            {
+                byte num3 = reader.GetByte();
+                num1 |= (ulong)(num3 & 0x7f) << num2;
+                num2 += 7;
+                if ((num3 & 0x80) == 0)
+                    return num1;
+            }
+            throw new Exception("Malformed variable UInt32");
+        }
+        
         public static void PutVariableUInt32(this LiteNetLib.Utils.NetDataWriter writer, uint value)
         {
             uint num1 = value;

@@ -37,6 +37,10 @@
         }
     ],
     "client_methods": [
+        {
+          "name": "UpdateBaselinePrices",
+          "args": [ { "name": "prices", "type":  "BaselinePrice[]" }]
+        },
         { 
             "name": "CallThorn",
         	"args": [ { "name": "script", "type": "string" } ]
@@ -83,7 +87,8 @@
             { "name" :  "_base", "type":  "string" },
             { "name" :  "ship", "type":  "NetShipLoadout" },
             { "name":  "rtcs", "type":  "string[]" },
-            { "name":  "news", "type":  "NewsArticle[]" }
+            { "name":  "news", "type":  "NewsArticle[]" },
+            { "name":  "goods", "type":  "SoldGood[]" }
           ]
         },
         {

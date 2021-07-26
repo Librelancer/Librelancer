@@ -23,12 +23,9 @@ namespace LibreLancer.Data.Goods
         public int IdsName;
         [Entry("ids_info")]
         public int IdsInfo;
+        //da_archetype not valid, disco typo
         [Entry("shop_archetype")]
         public string ShopArchetype;
-        [Entry("da_archetype")]
-        public string DaArchetype; //Is this valid? Probably same as ShopArchetype
-        [Entry("attachment_archetype")]
-        public string AttachmentArchetype; //TODO: Sort these archetypes out
         [Entry("material_library")]
         public List<string> MaterialLibraries = new List<string>();
         [Entry("price")]

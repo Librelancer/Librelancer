@@ -165,7 +165,7 @@ namespace LibreLancer
             //send to player
             lock (rtcs)
             {
-                rpcClient.BaseEnter(Base, Character.EncodeLoadout(), rtcs.ToArray(), news.ToArray());
+                rpcClient.BaseEnter(Base, Character.EncodeLoadout(), rtcs.ToArray(), news.ToArray(), null);
             }
         }
         void InitStory(Data.Save.SaveGame sg)
@@ -301,7 +301,7 @@ namespace LibreLancer
                 var sc = CharacterList[index];
                 FLLog.Info("Server", $"opening id {sc.Id}");
                 Character = NetCharacter.FromDb(sc.Id, game);
-                FLLog.Info("Server", $"sending packet");
+                rpcClient.UpdateBaselinePrices(game.BaselineGoodPrices);
                 Base = Character.Base;
                 PlayerEnterBase();
                 return true;

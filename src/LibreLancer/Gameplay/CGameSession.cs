@@ -247,13 +247,18 @@ namespace LibreLancer
             });
         }
 
-        void IClientPlayer.BaseEnter(string _base, NetShipLoadout ship, string[] rtcs, NewsArticle[] news)
+        void IClientPlayer.BaseEnter(string _base, NetShipLoadout ship, string[] rtcs, NewsArticle[] news, SoldGood[] goods)
         {
             PlayerBase = _base;
             News = news;
             SetSelfLoadout(ship);
             SceneChangeRequired();
             AddRTC(rtcs);
+        }
+
+        void IClientPlayer.UpdateBaselinePrices(BaselinePrice[] prices)
+        {
+            
         }
 
         void IClientPlayer.UpdateRTCs(string[] rtcs)

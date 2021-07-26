@@ -15,6 +15,7 @@ namespace LibreLancer.GameData.Items
         public float[] LODRanges;
         public string HPChild;
         public ResolvedModel ModelFile;
-	}
+        public ResolvedGood Good;
+    }
 }
 

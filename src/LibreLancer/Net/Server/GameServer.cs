@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using LibreLancer.Data.Save;
 using LibreLancer.Database;
 using LibreLancer.GameData;
+using LibreLancer.Net;
 using Microsoft.EntityFrameworkCore.Design;
 
 namespace LibreLancer
@@ -27,6 +28,8 @@ namespace LibreLancer
         public GameDataManager GameData;
         public ServerDatabase Database;
         public ResourceManager Resources;
+        
+        public BaselinePrice[] BaselineGoodPrices;
         
         
         volatile bool running = false;
@@ -146,6 +149,20 @@ namespace LibreLancer
             });
         }
 
+        void InitBaselinePrices()
+        {
+            var bp = new List<BaselinePrice>();
+            foreach (var good in GameData.AllGoods)
+            {
+                bp.Add(new BaselinePrice()
+                {
+                    GoodCRC = CrcTool.FLModelCrc(good.Ini.Nickname),
+                    Price = (ulong)good.Ini.Price
+                });
+            }
+            BaselineGoodPrices = bp.ToArray();
+        }
+
         void GameThread()
         {
             if (needLoadData)
@@ -154,6 +171,7 @@ namespace LibreLancer
                 GameData.LoadData();
                 FLLog.Info("Server", "Finished Loading Game Data");
             }
+            InitBaselinePrices();
             Database = new ServerDatabase(this);
             Listener?.Start();
             Stopwatch sw = Stopwatch.StartNew();

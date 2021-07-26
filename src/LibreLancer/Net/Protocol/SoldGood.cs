@@ -1,0 +1,58 @@
+// MIT License - Copyright (c) Callum McGing
+// This file is subject to the terms and conditions defined in
+// LICENSE, which is part of this source code package
+
+using System;
+using LiteNetLib;
+using LiteNetLib.Utils;
+
+namespace LibreLancer.Net
+{
+    public struct SoldGood
+    {
+        //Name of Good (CRC)
+        public uint GoodCRC;
+        //Required player rank
+        public int Rank;
+        //Required reputation [-1,1]
+        public float Rep;
+        //Price
+        public ulong Price;
+        
+        public void Put(NetDataWriter message)
+        {
+            message.Put(GoodCRC);
+            message.Put((short)(Rep * 32767f));
+            message.PutVariableUInt32(Rank < 0 ? 0U : (uint)(Rank + 1));
+            message.PutVariableUInt64(Price);
+        }
+
+        public static SoldGood Read(NetPacketReader message) => new()
+        {
+            GoodCRC = message.GetUInt(),
+            Rep = message.GetShort() / 32767f,
+            Rank = ((int)message.GetVariableUInt32()) - 1,
+            Price = message.GetVariableUInt64()
+        };
+    }
+
+    public struct BaselinePrice
+    {
+        //Name of Good (CRC)
+        public uint GoodCRC;
+        //Price
+        public ulong Price;
+        
+        public void Put(NetDataWriter message)
+        {
+            message.Put(GoodCRC);
+            message.PutVariableUInt64(Price);
+        }
+
+        public static BaselinePrice Read(NetPacketReader message) => new()
+        {
+            GoodCRC = message.GetUInt(),
+            Price = message.GetVariableUInt64()
+        };
+    }
+}

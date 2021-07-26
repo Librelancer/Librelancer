@@ -14,6 +14,7 @@ using System.Xml.Serialization;
 using LibreLancer.Data.Fuses;
 using LibreLancer.Data.Solar;
 using LibreLancer.GameData;
+using LibreLancer.GameData.Items;
 using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Dfm;
 using FileSystem = LibreLancer.Data.FileSystem;
@@ -194,12 +195,19 @@ namespace LibreLancer
             }
             fldata.MBases = null; //Free memory
         }
+
+        private Dictionary<uint, string> goodHashes = new Dictionary<uint, string>();
+        private Dictionary<string, ResolvedGood> goods = new Dictionary<string, ResolvedGood>();
+        public IEnumerable<ResolvedGood> AllGoods => goods.Values;
+        
+        public string GoodFromCRC(uint crc) => goodHashes[crc];
         void InitGoods()
         {
             FLLog.Info("Game", "Initing " + fldata.Goods.Goods.Count + " goods");
             Dictionary<string, Data.Goods.Good> hulls = new Dictionary<string, Data.Goods.Good>(256, StringComparer.OrdinalIgnoreCase);
             foreach (var g in fldata.Goods.Goods)
             {
+                goodHashes.Add(CrcTool.FLModelCrc(g.Nickname), g.Nickname);
                 switch (g.Category)
                 {
                     case Data.Goods.GoodCategory.ShipHull:
@@ -219,8 +227,13 @@ namespace LibreLancer
                         shipPackages.Add(g.Nickname, sp);
                         break;
                     case Data.Goods.GoodCategory.Equipment:
-                        break;
                     case Data.Goods.GoodCategory.Commodity:
+                        if (equipments.TryGetValue(g.Nickname, out var equip))
+                        {
+                            var good = new ResolvedGood() {Equipment = equip, Ini = g};
+                            equip.Good = good;
+                            goods.Add(g.Nickname, good);
+                        }
                         break;
                 }
             }
@@ -534,6 +547,8 @@ namespace LibreLancer
 
                 if (val is Data.Equipment.Engine deng)
                     equip = new GameData.Items.EngineEquipment() {Def = deng};
+                if (val is Data.Equipment.Commodity cm)
+                    equip = new GameData.Items.CommodityEquipment();
                 if(equip == null) 
                     continue;
                 equip.Nickname = val.Nickname;
