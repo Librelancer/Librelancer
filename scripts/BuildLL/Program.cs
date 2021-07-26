@@ -59,9 +59,9 @@ namespace BuildLL
             foreach (var proj in projs)
             {
                 var name = Path.GetFileName(proj);
-                if (!publishedProjects.Contains(proj)) {
+                if (!publishedProjects.Contains(rid + ":" proj)) {
                     CustomPublish.PatchedPublish(proj, objDir + rid + "/" + name, rid);
-                    publishedProjects.Add(proj);
+                    publishedProjects.Add(rid + ":" + proj);
                 }
             }
             CustomPublish.Merge(objDir + rid, binDir + rid, rid,
