@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Security.Cryptography;
 using static BuildLL.Runtime;
@@ -20,15 +21,19 @@ namespace BuildLL
                 }
             }
         }
-        static void CopyFilesRecursively (DirectoryInfo source, DirectoryInfo target) {
+        static void CopyFilesRecursively (DirectoryInfo source, DirectoryInfo target, List<string> copiedFiles = null) {
             foreach (DirectoryInfo dir in source.GetDirectories())
-                CopyFilesRecursively(dir, target.CreateSubdirectory(dir.Name));
+                CopyFilesRecursively(dir, target.CreateSubdirectory(dir.Name), copiedFiles);
             foreach (FileInfo file in source.GetFiles()) {
-                file.CopyTo(Path.Combine(target.FullName, file.Name), true);
+                string targetPath = Path.Combine(target.FullName,file.Name);
+                if(copiedFiles == null || !copiedFiles.Contains(targetPath)) {
+                    file.CopyTo(targetPath, true);
+                    copiedFiles?.Add(targetPath);
+                }
             }
         }
 
-        public static void Merge(string sourceDir, string outputDir, string rid)
+        public static void Merge(string sourceDir, string outputDir, string rid, string[] directories)
         {
             var splitRID = rid.Split('-');
             var win32 = splitRID[0].ToLowerInvariant() == "win7";
@@ -37,7 +42,9 @@ namespace BuildLL
             var hashes = new Dictionary<string,string>();
 
             bool valid = true;
-            foreach(var dir in Directory.GetDirectories(sourceDir)) {
+            foreach(var dir in Directory.GetDirectories(sourceDir))
+            {
+                if (!directories.Contains(Path.GetFileNameWithoutExtension(dir))) continue;
                 Console.WriteLine($"Validating {dir}");
                 foreach(var file in Directory.GetFiles(dir,"*", SearchOption.AllDirectories)) {
                     var fname = file.Substring(dir.Length);
@@ -55,9 +62,12 @@ namespace BuildLL
             if (!valid) throw new Exception("Publish validation failed");
             Directory.CreateDirectory(outputDir);
             var output = new DirectoryInfo(outputDir);
+            var copiedFiles = new List<string>();
+            
             foreach(var dir in new DirectoryInfo(sourceDir).GetDirectories()) {
+                if (!directories.Contains(Path.GetFileNameWithoutExtension(dir.Name))) continue;
                 Console.WriteLine($"Copying {dir}");
-                CopyFilesRecursively(dir, output);
+                CopyFilesRecursively(dir, output, copiedFiles);
             }
 
             if(!win32 || arch == "x64") RmDir(Path.Combine(outputDir, "x86"));

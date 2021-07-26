@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using static Bullseye.Targets;
@@ -37,7 +38,7 @@ namespace BuildLL
             "src/Launcher/Launcher.csproj",
             "src/Server/Server.csproj"
         };
-        
+
         static void Clean(string rid)
         {
             Dotnet.Clean("./src/LibreLancer.sln");
@@ -47,18 +48,24 @@ namespace BuildLL
             RmDir("./bin/librelancer-sdk-" + rid);
         }
 
+       static  List<string> publishedProjects = new List<string>();
+
         static void FullBuild(string rid, bool sdk)
         {
             var projs = sdk ? sdkProjects : engineProjects;
-            var objDir = sdk ? "./obj/projs-sdk-" : "./obj/projs-";
+            var objDir = "./obj/projs-";
             var binDir = sdk ? "./bin/librelancer-sdk-" : "./bin/librelancer-";
             var outdir = binDir + rid;
             foreach (var proj in projs)
             {
                 var name = Path.GetFileName(proj);
-                CustomPublish.PatchedPublish(proj, objDir + rid + "/" + name, rid);
+                if (!publishedProjects.Contains(proj)) {
+                    CustomPublish.PatchedPublish(proj, objDir + rid + "/" + name, rid);
+                    publishedProjects.Add(proj);
+                }
             }
-            CustomPublish.Merge(objDir + rid, binDir + rid, rid);
+            CustomPublish.Merge(objDir + rid, binDir + rid, rid,
+                projs.Select(x => Path.GetFileNameWithoutExtension(x)).ToArray());
             CopyFile("Credits.txt", outdir);
             if (IsWindows) {
                 CopyFile("deps/openal-soft-license.txt", outdir);
