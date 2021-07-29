@@ -259,6 +259,16 @@ namespace LibreLancer
                         if(gd.Min != 0 || gd.Max != 0) //Vanilla adds disabled ships ??? (why)
                             b.SoldShips.Add(new GameData.Market.SoldShip() { Package = sp });
                     }
+                    else if (goods.TryGetValue(gd.Good, out var good))
+                    {
+                        b.SoldGoods.Add(new BaseSoldGood()
+                        {
+                            Rep = gd.Rep,
+                            Rank = gd.Rank,
+                            Good = good,
+                            Price = (ulong)((double)good.Ini.Price * gd.Multiplier)
+                        });
+                    }
                 }
             }
             fldata.Markets = null; //Free memory

@@ -31,6 +31,7 @@ namespace LibreLancer
         public string Name = "Player";
         public string System;
         public string Base;
+        public GameData.Base BaseData;
         public Vector3 Position;
         public Quaternion Orientation;
         //Store so we can choose the correct character from the index
@@ -142,7 +143,7 @@ namespace LibreLancer
 
         bool NewsFind(LibreLancer.Data.Missions.NewsItem ni)
         {
-            if (ni.Rank[0] != "mission_01a_loaded")
+            if (ni.Rank[1] != "mission_end")
                 return false;
             foreach(var x in ni.Base)
                 if (x.Equals(Base, StringComparison.OrdinalIgnoreCase))
@@ -162,10 +163,18 @@ namespace LibreLancer
                     Logo = x.Logo, Text = x.Text
                 });
             }
+            //load base
+            BaseData = game.GameData.GetBase(Base);
             //send to player
             lock (rtcs)
             {
-                rpcClient.BaseEnter(Base, Character.EncodeLoadout(), rtcs.ToArray(), news.ToArray(), null);
+                rpcClient.BaseEnter(Base, Character.EncodeLoadout(), rtcs.ToArray(), news.ToArray(), BaseData.SoldGoods.Select(x => new SoldGood()
+                {
+                    GoodCRC = CrcTool.FLModelCrc(x.Good.Ini.Nickname),
+                    Price = x.Price,
+                    Rank = x.Rank,
+                    Rep = x.Rep
+                }).ToArray());
             }
         }
         void InitStory(Data.Save.SaveGame sg)
