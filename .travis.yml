@@ -9,6 +9,6 @@ deploy:
     skip-cleanup: true
     github-token: $GITHUB_TOKEN
     on:
-        branch: master
+        branch: main
     local-dir: packaging/packages
     repo: Librelancer/daily-builds

@@ -103,7 +103,7 @@ def remote_method(mthd, prefix):
   writeline("SendPacket(new " + prefix + "Packet_" + mthd["name"] + "() {")
   tabs += 1
   if "return" in mthd:
-    writeline("Sequence = retSeq++,")
+    writeline("Sequence = Interlocked.Increment(ref retSeq),")
   if "args" in mthd:
     for x in mthd["args"]:
       writeline(x["name"] + " = " + x["name"] + ",")
@@ -123,6 +123,7 @@ writeline("// Method count: " + str(len(jfile["client_methods"]) + len(jfile["se
 whitespace()
 writeline("using System;")
 writeline("using System.Numerics;")
+writeline("using System.Threading;")
 writeline("using System.Threading.Tasks;")
 writeline("using LiteNetLib;")
 writeline("using LiteNetLib.Utils;")
