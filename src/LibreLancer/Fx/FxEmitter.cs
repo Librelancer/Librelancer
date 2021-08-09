@@ -108,7 +108,7 @@ namespace LibreLancer.Fx
 		{
 			if (reference.Paired.Count == 0) return;
             if (NodeLifeSpan < instance.GlobalTime) return;
-            if (reference.Paired[0].Node.NodeLifeSpan < instance.GlobalTime) return;
+            //if (reference.Paired[0].Node.NodeLifeSpan < instance.GlobalTime) return;
 			var maxCount = MaxParticles == null ? int.MaxValue : (int)Math.Ceiling(MaxParticles.GetValue(sparam, (float)instance.GlobalTime));
 			var freq = Frequency == null ? 0f : Frequency.GetValue(sparam, (float)instance.GlobalTime);
 			var spawnMs = freq <= 0 ? 0 : 1 / (double)freq;

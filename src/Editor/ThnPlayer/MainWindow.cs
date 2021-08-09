@@ -36,6 +36,9 @@ namespace ThnPlayer
         List<string> openFiles = new List<string>();
 
         private DecompiledThn[] decompiled;
+
+        public string PreloadDataDir;
+        public string[] PreloadOpen;
         
         ImGuiHelper guiHelper;
         FontManager fontMan;
@@ -108,6 +111,7 @@ namespace ThnPlayer
         private string[] toReload = null;
         void Open(params string[] files)
         {
+            if(files.Length <= 0) return;
             if (files.Length == 1) {
                 recents.FileOpened(files[0]);
             }
@@ -148,6 +152,12 @@ namespace ThnPlayer
             bool openLoad = false;
             bool openMultiple = false;
             isMultipleOpen = false;
+            if (PreloadDataDir != null)
+            {
+                openLoad = true;
+                LoadData(PreloadDataDir);
+                PreloadDataDir = null;
+            }
             //Main Menu
             ImGui.BeginMainMenuBar();
             if(ImGui.BeginMenu("File")) {
@@ -201,7 +211,7 @@ namespace ThnPlayer
                 openLoad = false;
             }
             popupopen = true;
-            if(ImGui.BeginPopupModal("Loading", ref popupopen, ImGuiWindowFlags.AlwaysAutoResize)) {
+            if(ImGuiExt.BeginModalNoClose("Loading", ImGuiWindowFlags.AlwaysAutoResize)) {
                 if (loaded) ImGui.CloseCurrentPopup();
                 ImGuiExt.Spinner("##spinner", 10, 2, ImGui.GetColorU32(ImGuiCol.ButtonHovered, 1));
                 ImGui.SameLine();
@@ -275,6 +285,11 @@ namespace ThnPlayer
             fontMan.LoadFontsFromGameData(GameData);
             Resources.ClearTextures();
             loaded = true;
+            if (PreloadOpen != null)
+            {
+                Open(PreloadOpen);
+                PreloadOpen = null;
+            }
         }
 
         private bool loaded = true;

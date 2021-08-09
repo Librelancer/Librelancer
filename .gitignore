@@ -32,7 +32,7 @@ launchSettings.json
 *.user
 *.opendb
 .vs/
-
+.vscode/
 
 # Sublime Text
 *.sublime-project
