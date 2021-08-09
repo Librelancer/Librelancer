@@ -41,7 +41,7 @@ namespace BuildLL
 
         static void Clean(string rid)
         {
-            Dotnet.Clean("./src/LibreLancer.sln");
+            Dotnet.Clean("LibreLancer.sln");
             RmDir("./obj/projs-" + rid);
             RmDir("./obj/projs-sdk-" + rid);
             RmDir("./bin/librelancer-" + rid);
@@ -199,7 +199,7 @@ namespace BuildLL
 
             Target("Restore", () =>
             {
-                Dotnet.Restore("./src/LibreLancer.sln");
+                Dotnet.Restore("LibreLancer.sln");
             });
             
             Target("BuildEngine", DependsOn("GenerateVersion", "BuildNatives", "Restore"), () =>

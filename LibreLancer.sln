@@ -3,61 +3,61 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30204.135
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.ImageLib", "LibreLancer.ImageLib\LibreLancer.ImageLib.csproj", "{C5A7F58E-2B72-4D74-BA5B-F9C06534AA67}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.ImageLib", "src\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj", "{C5A7F58E-2B72-4D74-BA5B-F9C06534AA67}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "lancer", "lancer\lancer.csproj", "{F25C3752-0AB4-45CA-90DA-EFD276C4322A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "lancer", "src\lancer\lancer.csproj", "{F25C3752-0AB4-45CA-90DA-EFD276C4322A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.Data", "LibreLancer.Data\LibreLancer.Data.csproj", "{9B0FD3DC-41D9-4018-AEB3-FC775B3514BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.Data", "src\LibreLancer.Data\LibreLancer.Data.csproj", "{9B0FD3DC-41D9-4018-AEB3-FC775B3514BE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer", "LibreLancer\LibreLancer.csproj", "{1C9FCC8A-5D11-4772-A9F5-D2471C9B9EA8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer", "src\LibreLancer\LibreLancer.csproj", "{1C9FCC8A-5D11-4772-A9F5-D2471C9B9EA8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.Physics", "LibreLancer.Physics\LibreLancer.Physics.csproj", "{120C3A6A-4871-4847-BC65-CE4B1F64833A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.Physics", "src\LibreLancer.Physics\LibreLancer.Physics.csproj", "{120C3A6A-4871-4847-BC65-CE4B1F64833A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.Base", "LibreLancer.Base\LibreLancer.Base.csproj", "{1B3ADA80-AD52-4503-91CC-272F7057EDE0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.Base", "src\LibreLancer.Base\LibreLancer.Base.csproj", "{1B3ADA80-AD52-4503-91CC-272F7057EDE0}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Editor", "Editor", "{0DD85B53-3CB2-448A-AF08-7E2CEE69746E}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Editor", "src\Editor", "{0DD85B53-3CB2-448A-AF08-7E2CEE69746E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InterfaceEdit", "Editor\InterfaceEdit\InterfaceEdit.csproj", "{2D55D94D-D39A-446D-BB2E-B2E3F2F6C585}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InterfaceEdit", "src\Editor\InterfaceEdit\InterfaceEdit.csproj", "{2D55D94D-D39A-446D-BB2E-B2E3F2F6C585}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.ImUI", "Editor\LibreLancer.ImUI\LibreLancer.ImUI.csproj", "{DEFD315F-030C-438F-B797-6ACF9615E726}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.ImUI", "src\Editor\LibreLancer.ImUI\LibreLancer.ImUI.csproj", "{DEFD315F-030C-438F-B797-6ACF9615E726}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SystemViewer", "Editor\SystemViewer\SystemViewer.csproj", "{531D1B55-E764-44E6-BDB4-F19F29233DB0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SystemViewer", "src\Editor\SystemViewer\SystemViewer.csproj", "{531D1B55-E764-44E6-BDB4-F19F29233DB0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThnPlayer", "Editor\ThnPlayer\ThnPlayer.csproj", "{D26E97A5-7453-4D41-A471-BD78BB74FCC5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThnPlayer", "src\Editor\ThnPlayer\ThnPlayer.csproj", "{D26E97A5-7453-4D41-A471-BD78BB74FCC5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LancerEdit", "Editor\LancerEdit\LancerEdit.csproj", "{079429EC-F982-4954-B4DD-AD99160F3437}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LancerEdit", "src\Editor\LancerEdit\LancerEdit.csproj", "{079429EC-F982-4954-B4DD-AD99160F3437}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.Media", "LibreLancer.Media\LibreLancer.Media.csproj", "{1DABA0C8-4F3C-4CB5-863C-A1D38505F9A7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.Media", "src\LibreLancer.Media\LibreLancer.Media.csproj", "{1DABA0C8-4F3C-4CB5-863C-A1D38505F9A7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.Thorn", "LibreLancer.Thorn\LibreLancer.Thorn.csproj", "{D1EC308E-F0C7-4A2D-9464-B4C7EAE0E167}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.Thorn", "src\LibreLancer.Thorn\LibreLancer.Thorn.csproj", "{D1EC308E-F0C7-4A2D-9464-B4C7EAE0E167}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "Server\Server.csproj", "{FDC20255-07A5-4F6B-9B32-151D8D053A11}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "src\Server\Server.csproj", "{FDC20255-07A5-4F6B-9B32-151D8D053A11}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Launcher", "Launcher\Launcher.csproj", "{3D82C20A-F844-40CC-86B2-0F9FA66854FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Launcher", "src\Launcher\Launcher.csproj", "{3D82C20A-F844-40CC-86B2-0F9FA66854FF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "thorn2lua", "thorn2lua\thorn2lua.csproj", "{9D59408D-4708-45F6-AB61-18A00F9ADD78}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "thorn2lua", "src\thorn2lua\thorn2lua.csproj", "{9D59408D-4708-45F6-AB61-18A00F9ADD78}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External", "External", "{7C43D186-1DB4-4BD2-B8C1-FDCF8619D366}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External", "src\External", "{7C43D186-1DB4-4BD2-B8C1-FDCF8619D366}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FontConfigSharp_Core", "External\FontConfigSharp_Core\FontConfigSharp_Core.csproj", "{9F68F668-25AC-4332-8A98-60451C069F59}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FontConfigSharp_Core", "src\External\FontConfigSharp_Core\FontConfigSharp_Core.csproj", "{9F68F668-25AC-4332-8A98-60451C069F59}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BulletSharpPInvoke_Core31", "External\BulletSharpPInvoke_Core31\BulletSharpPInvoke_Core31.csproj", "{CFAB0E9C-C8DE-4AFC-99C5-3B3974BE34D0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BulletSharpPInvoke_Core31", "src\External\BulletSharpPInvoke_Core31\BulletSharpPInvoke_Core31.csproj", "{CFAB0E9C-C8DE-4AFC-99C5-3B3974BE34D0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.ContentEdit", "Editor\LibreLancer.ContentEdit\LibreLancer.ContentEdit.csproj", "{AAB8A1F9-AE15-4C1F-8097-C264D1B24573}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.ContentEdit", "src\Editor\LibreLancer.ContentEdit\LibreLancer.ContentEdit.csproj", "{AAB8A1F9-AE15-4C1F-8097-C264D1B24573}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "lleditscript", "Editor\lleditscript\lleditscript.csproj", "{BE914D42-4FA8-4EF6-B4BE-1D9D6BA93392}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "lleditscript", "src\Editor\lleditscript\lleditscript.csproj", "{BE914D42-4FA8-4EF6-B4BE-1D9D6BA93392}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Database", "Librelancer.Database\LibreLancer.Database.csproj", "{BFE792B8-C255-49D2-B29C-19667017F9CD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Database", "src\Librelancer.Database\LibreLancer.Database.csproj", "{BFE792B8-C255-49D2-B29C-19667017F9CD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Entities", "LibreLancer.Entities\LibreLancer.Entities.csproj", "{C8B790AF-8912-44D8-8422-6E54FC55CADF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Entities", "src\LibreLancer.Entities\LibreLancer.Entities.csproj", "{C8B790AF-8912-44D8-8422-6E54FC55CADF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenerateLuaHardwire", "GenerateLuaHardwire\GenerateLuaHardwire.csproj", "{D9938D72-9DB6-495E-9DF7-95CAD176DB53}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenerateLuaHardwire", "src\GenerateLuaHardwire\GenerateLuaHardwire.csproj", "{D9938D72-9DB6-495E-9DF7-95CAD176DB53}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoonSharp.Interpreter", "..\extern\moonsharp\src\MoonSharp.Interpreter\MoonSharp.Interpreter.csproj", "{CD7767BD-EF07-4C51-A44E-D470806EB661}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoonSharp.Interpreter", "extern\moonsharp\src\MoonSharp.Interpreter\MoonSharp.Interpreter.csproj", "{CD7767BD-EF07-4C51-A44E-D470806EB661}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoonSharp.Hardwire", "..\extern\moonsharp\src\MoonSharp.Hardwire\MoonSharp.Hardwire.csproj", "{D4570A5D-290B-4D3D-B40C-C2E75BC3FDC8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoonSharp.Hardwire", "extern\moonsharp\src\MoonSharp.Hardwire\MoonSharp.Hardwire.csproj", "{D4570A5D-290B-4D3D-B40C-C2E75BC3FDC8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocumentationMSBuild", "Editor\DocumentationMSBuild\DocumentationMSBuild.csproj", "{A9892300-0387-416A-B96D-DAAFE4749E9B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocumentationMSBuild", "src\Editor\DocumentationMSBuild\DocumentationMSBuild.csproj", "{A9892300-0387-416A-B96D-DAAFE4749E9B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
