@@ -1,5 +1,5 @@
 language: csharp
-dotnet: 5.0.103
+dotnet: 5.0.400
 before_install:
  - sudo apt-get install -y libpango1.0-dev
 script:
