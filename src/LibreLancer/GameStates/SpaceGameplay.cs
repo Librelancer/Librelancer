@@ -156,9 +156,9 @@ Mouse Flight: {11}
 
             private string activeManeuver = "FreeFlight";
             public string GetActiveManeuver() => activeManeuver;
-            public LuaCompatibleDictionary<string, bool> GetManeuversEnabled()
+            public LuaCompatibleDictionary GetManeuversEnabled()
             {
-                var dict = new LuaCompatibleDictionary<string, bool>();
+                var dict = new LuaCompatibleDictionary();
                 dict.Set("FreeFlight", true);
                 dict.Set("Goto", g.selected != null);
                 dict.Set("Dock", g.selected?.GetComponent<DockComponent>() != null);

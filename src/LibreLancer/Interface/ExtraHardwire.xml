@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MoonSharp>
+    <ExtraType><![CDATA[System.Collections.Generic.List<LibreLancer.Interface.ListItem>]]></ExtraType>
+    <ExtraType><![CDATA[System.Collections.Generic.List<LibreLancer.Interface.UiWidget>]]></ExtraType>
+    <ExtraType><![CDATA[System.Collections.Generic.List<LibreLancer.Interface.XmlStyle>]]></ExtraType>
+    <ExtraType><![CDATA[System.Collections.Generic.List<LibreLancer.Interface.DisplayElement>]]></ExtraType>
+    <ExtraType><![CDATA[System.Collections.Generic.List<LibreLancer.Interface.TableColumn>]]></ExtraType>
+</MoonSharp>

@@ -7,10 +7,12 @@ using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Data.Solar;
 using LibreLancer.GameData;
+using MoonSharp.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
+    [MoonSharpUserData]
     public class Navmap : UiWidget
     { 
         class DrawObject

@@ -3,10 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using MoonSharp.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
+    [MoonSharpUserData]
     public class ListItem : UiWidget
     {
         public Panel ItemA { get; set; }

@@ -4,10 +4,12 @@
 
 using System;
 using LibreLancer;
+using MoonSharp.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
+    [MoonSharpUserData]
     public class ImageFile : UiWidget
     {
        public string Path { get; set; }

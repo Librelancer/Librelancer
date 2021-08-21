@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using LibreLancer.Lua;
 using MoonSharp.Interpreter;
 using MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors;
 using MoonSharp.Interpreter.Loaders;
@@ -25,7 +24,7 @@ namespace LibreLancer.Interface
         static LuaContext()
         {
             UserData.DefaultAccessMode = InteropAccessMode.Hardwired;
-            Lua.LuaContext_Hardwire.Initialize();
+            LuaHardwire_LibreLancer.Initialize();
             UserData.RegisterType<HorizontalAlignment>();
             UserData.RegisterType<VerticalAlignment>();
             UserData.RegisterType<AnchorKind>();
@@ -60,8 +59,23 @@ namespace LibreLancer.Interface
                 globalTable[g] = script.Globals[g];
             }
             var typeTable = new Table(script);
-            LuaContext_Hardwire.GenerateTypeTable(typeTable);
             globalTable["ClrTypes"] = typeTable;
+            typeTable["System_Collections_Generic_List___LibreLancer_Interface_XmlStyle___"] = typeof(List<XmlStyle>);
+            typeTable["System_Collections_Generic_List___LibreLancer_Interface_DisplayElement___"] =
+                typeof(List<DisplayElement>);
+            typeTable["System_Collections_Generic_List___LibreLancer_Interface_UiWidget___"] = typeof(List<UiWidget>);
+            typeTable["System_Collections_Generic_List___LibreLancer_Interface_ListItem___"] =
+                typeof(List<ListItem>);
+            typeTable["System_Collections_Generic_List___LibreLancer_Interface_TableColumn___"] =
+                typeof(List<TableColumn>);
+            
+            foreach (var type in typeof(LuaContext).Assembly.GetTypes())
+            {
+                if (type.GetCustomAttributes(false).OfType<MoonSharpUserDataAttribute>().Any())
+                {
+                    typeTable[type.FullName.Replace(".", "_")] = type;
+                }
+            }
             globalTable["Game"] = context.GameApi;
             //Functions
             globalTable["Funcs"] = new ContextFunctions(this);

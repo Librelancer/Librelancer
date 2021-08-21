@@ -4,10 +4,12 @@
 
 using System;
 using LibreLancer;
+using MoonSharp.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
+    [MoonSharpUserData]
     public class TextureImage : UiWidget
     {
         private string _name;

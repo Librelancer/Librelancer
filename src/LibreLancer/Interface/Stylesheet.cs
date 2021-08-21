@@ -5,10 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MoonSharp.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
+    [MoonSharpUserData]
     public class Stylesheet
     {
         [UiContent]
@@ -31,6 +33,7 @@ namespace LibreLancer.Interface
     }
 
     [UiLoadable]
+    [MoonSharpUserData]
     public class ButtonStyle : XmlStyle
     {
         
@@ -45,6 +48,7 @@ namespace LibreLancer.Interface
         public ButtonAppearance Disabled { get; set; }
     }
     [UiLoadable]
+    [MoonSharpUserData]
     public class ButtonAppearance
     {
         public UiRenderable Background { get; set; }
@@ -58,6 +62,7 @@ namespace LibreLancer.Interface
     }
     
     [UiLoadable]
+    [MoonSharpUserData]
     public class ScrollbarStyle : XmlStyle
     {
         public ButtonStyle UpButton { get; set; }

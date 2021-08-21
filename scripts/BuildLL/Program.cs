@@ -111,26 +111,6 @@ namespace BuildLL
                 }
             });
 
-            Target("UpdateLua", DependsOn("GenerateVersion"), () =>
-            {
-                File.WriteAllText(
-                    "./src/LibreLancer/Interface/LuaContext_Hardwire.cs",
-                    @"namespace LibreLancer.Lua
-{
-    static class LuaContext_Hardwire
-    {
-        public static void Initialize()
-        {
-        }
-        public static void GenerateTypeTable(object o)
-        {
-        }
-    }
-}");
-                Dotnet.Run("./src/GenerateLuaHardwire/GenerateLuaHardwire.csproj",
-                    "./src/LibreLancer/Interface/LuaContext_Hardwire.cs");
-            });
-
             static string GetFileArgs(string dir, string glob)
             {
                 return string.Join(" ", Directory.GetFiles(dir, glob).Select(x => Quote(x)));

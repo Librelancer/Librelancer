@@ -5,10 +5,12 @@
 using System;
 using System.Numerics;
 using LibreLancer;
+using MoonSharp.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
+    [MoonSharpUserData]
     public class TextBlock : UiWidget
     {
         public float TextSize { get; set; }

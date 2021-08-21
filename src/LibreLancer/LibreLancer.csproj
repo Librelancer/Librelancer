@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\extern\moonsharp\src\MoonSharp.Interpreter\MoonSharp.Interpreter.csproj" />
+    <ProjectReference Include="..\..\extern\moonsharp\src\MoonSharp.HardwireGen\MoonSharp.HardwireGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj" />
     <ProjectReference Include="..\Librelancer.Database\LibreLancer.Database.csproj" />
     <ProjectReference Include="..\LibreLancer.Data\LibreLancer.Data.csproj" />
@@ -26,10 +27,18 @@
     <ProjectReference Include="..\LibreLancer.Thorn\LibreLancer.Thorn.csproj" />
   </ItemGroup>
 
+  <PropertyGroup>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        <CompilerGeneratedFilesOutputPath>obj\Generated</CompilerGeneratedFilesOutputPath>
+    </PropertyGroup>
   <ItemGroup>
     <Folder Include="Interface\Default" />
     <Folder Include="Properties" />
   </ItemGroup>
+    
+    <ItemGroup>
+        <AdditionalFiles Include="Interface\ExtraHardwire.xml"/>
+    </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Shaders\lightingcull.glcompute" />

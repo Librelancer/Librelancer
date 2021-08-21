@@ -4,10 +4,12 @@
 
 using System;
 using System.Numerics;
+using MoonSharp.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
+    [MoonSharpUserData]
     public class Scene : Container
     {
         public override void Render(UiContext context, RectangleF parentRectangle)

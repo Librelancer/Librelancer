@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using MoonSharp.Interpreter;
 
 namespace LibreLancer.Interface
 {
@@ -38,6 +39,7 @@ namespace LibreLancer.Interface
     }
     
     [UiLoadable]
+    [MoonSharpUserData]
     public class DisplayModel : DisplayElement
     {
         public InterfaceModel Model { get; set; }

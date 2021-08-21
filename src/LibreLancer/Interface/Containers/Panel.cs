@@ -2,9 +2,12 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using MoonSharp.Interpreter;
+
 namespace LibreLancer.Interface
 {
     [UiLoadable]
+    [MoonSharpUserData]
     public class Panel : Container
     {
         RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)

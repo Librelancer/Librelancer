@@ -5,10 +5,12 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer;
+using MoonSharp.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
+    [MoonSharpUserData]
     public class ListBox : UiWidget
     {
         public Scrollbar Scrollbar = new Scrollbar() { Smooth = false };

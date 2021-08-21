@@ -1,9 +1,11 @@
 
 using System.Runtime.CompilerServices;
+using MoonSharp.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
+    [MoonSharpUserData]
     public class DisplayWireBorder : DisplayElement
     {
         public float Width { get; set; } = 1;

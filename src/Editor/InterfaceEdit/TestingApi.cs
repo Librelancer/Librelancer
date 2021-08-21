@@ -138,9 +138,9 @@ namespace InterfaceEdit
         public Maneuver[] GetManeuvers() => ManeuverData;
         public string GetActiveManeuver() => "FreeFlight";
 
-        public LuaCompatibleDictionary<string, bool> GetManeuversEnabled()
+        public LuaCompatibleDictionary GetManeuversEnabled()
         {
-            var dict = new LuaCompatibleDictionary<string, bool>();
+            var dict = new LuaCompatibleDictionary();
             dict.Set("FreeFlight", true);
             dict.Set("Goto", true);
             dict.Set("Dock", true);

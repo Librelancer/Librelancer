@@ -6,10 +6,12 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using LibreLancer.Interface;
+using MoonSharp.Interpreter;
 
 namespace LibreLancer.Infocards
 {
     [UiLoadable]
+    [MoonSharpUserData]
 	public class Infocard
 	{
 		public List<RichTextNode> Nodes;

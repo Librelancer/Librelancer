@@ -6,10 +6,12 @@ using System;
 using System.Numerics;
 using System.Xml.Schema;
 using LibreLancer;
+using MoonSharp.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
+    [MoonSharpUserData]
     public class Button : UiWidget
     {
         public bool Selected { get; set; }

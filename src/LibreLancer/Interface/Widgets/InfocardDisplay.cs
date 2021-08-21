@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using LibreLancer.Infocards;
+using MoonSharp.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
+    [MoonSharpUserData]
     public class InfocardDisplay : UiWidget
     {
         public Infocard Infocard { get; set; }

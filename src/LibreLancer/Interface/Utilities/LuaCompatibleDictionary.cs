@@ -3,16 +3,16 @@
 // LICENSE, which is part of this source code package
 
 using System.Collections.Generic;
+using MoonSharp.Interpreter;
 
 namespace LibreLancer.Interface
 {
-    //This class exists to provide the Get method
-    //Using indexers with NLua is glacial so this stops that from happening
-    [MoonSharp.Interpreter.MoonSharpUserData]
-    public class LuaCompatibleDictionary<TKey, TValue>
+
+    [MoonSharpUserData]
+    public class LuaCompatibleDictionary
     {
-        public Dictionary<TKey, TValue> Storage = new Dictionary<TKey, TValue>();
-        public TValue Get(TKey key) => Storage[key];
-        public void Set(TKey key, TValue value) => Storage[key] = value;
+        public Dictionary<string, object> Storage = new Dictionary<string, object>();
+        public object Get(string key) => Storage[key];
+        public void Set(string key, object value) => Storage[key] = value;
     }
 }
