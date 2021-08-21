@@ -88,6 +88,8 @@ namespace BuildLL
 
         public static void Targets()
         {
+            if(parallel > 0) Dotnet.CPUCount = parallel;
+                
             Target("default", DependsOn("BuildAll"));
             Target("BuildAll", DependsOn("BuildEngine", "BuildSdk"));
             
