@@ -13,7 +13,7 @@ namespace LibreLancer.Data.Solar
 {
 	public class Loadout
     {
-        [Entry("nickname")] public string Nickname;
+        [Entry("nickname", Required =  true)] public string Nickname;
 
         [Entry("archetype")] public string Archetype;
 
