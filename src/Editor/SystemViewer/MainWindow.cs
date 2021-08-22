@@ -230,9 +230,9 @@ C# Memory Usage: {5}
                                              DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), (int)Math.Round(RenderFrequency), VertexBuffer.TotalDrawcalls, VertexBuffer.TotalBuffers));
                     ImGui.End();
                 }
-                ImGui.SetNextWindowSize(new Vector2(100, 100), ImGuiCond.FirstUseEver);
                 if (infocardOpen)
                 {
+                    ImGui.SetNextWindowSize(new Vector2(300, 300), ImGuiCond.FirstUseEver);
                     if (ImGui.Begin("Infocard", ref infocardOpen))
                     {
                         var szX = Math.Max(20, ImGui.GetWindowWidth());
@@ -249,6 +249,7 @@ C# Memory Usage: {5}
 
                 if (universeOpen)
                 {
+                    ImGui.SetNextWindowSize(new Vector2(300, 300), ImGuiCond.FirstUseEver);
                     if (ImGui.Begin("Map", ref universeOpen))
                     {
                         ImGui.BeginTabBar("##maptabs");
