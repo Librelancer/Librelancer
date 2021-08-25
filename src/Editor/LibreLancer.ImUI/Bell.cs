@@ -36,6 +36,7 @@ namespace LibreLancer.ImUI
 
         private static bool tryCanberra = true;
 
+        private static DateTime lastPlay = DateTime.UnixEpoch;
         static void PlayCanberra()
         {
             if (!tryCanberra) return;
@@ -68,16 +69,22 @@ namespace LibreLancer.ImUI
         [DllImport("winmm.dll", SetLastError=true)]
         static extern bool PlaySound(string pszSound, IntPtr hmod, uint fdwSound);
         private const uint SND_ASYNC = 0x0001;
-        
+
+        private static object _bellLock = new object();
         public static void Play()
         {
-            if (Platform.RunningOS == OS.Windows)
+            lock (_bellLock)
             {
-                PlaySound("Asterisk", IntPtr.Zero, SND_ASYNC);
-            }
-            else if (Platform.RunningOS == OS.Linux)
-            {
-                PlayCanberra();
+                if ((DateTime.Now - lastPlay).TotalMilliseconds < 500) return;
+                lastPlay = DateTime.Now;
+                if (Platform.RunningOS == OS.Windows)
+                {
+                    PlaySound("Asterisk", IntPtr.Zero, SND_ASYNC);
+                }
+                else if (Platform.RunningOS == OS.Linux)
+                {
+                    PlayCanberra();
+                }
             }
         }
     }

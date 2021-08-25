@@ -2,170 +2,193 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-//beware! ugly code beyond here
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml;
-using LibreLancer.Dll.Structs;
+
 namespace LibreLancer.Dll
 {
-	class ManagedDllProvider
-	{
-		private const uint RT_RCDATA = 23;
-		private const uint RT_STRING = 6;
-		private const ushort IMAGE_FILE_32BIT_MACHINE = 256;
+    class ManagedDllProvider
+    {
+        [StructLayout(LayoutKind.Sequential)]
+        struct IMAGE_RESOURCE_DIRECTORY //Size: 16
+        {
+            public uint Characteristics;
+            public uint TimeDateStamp;
+            public ushort MajorVersion;
+            public ushort MinorVersion;
+            public ushort NumberOfNamedEntries;
+            public ushort NumberOfIdEntries;
+        }
+        [StructLayout(LayoutKind.Sequential, Pack = 1)] //Size: 8
+        struct IMAGE_RESOURCE_DIRECTORY_ENTRY
+        {
+            public uint Name;
+            public uint OffsetToData; //Relative to rsrc
+        }
+        [StructLayout(LayoutKind.Sequential)]
+        struct IMAGE_RESOURCE_DATA_ENTRY
+        {
+            public uint OffsetToData; //Relative to start of dll
+            public uint Size;
+            public uint CodePage;
+            public uint Reserved;
+        }
 
-		public Dictionary<int, string> Strings;
-		public Dictionary<int, string> Infocards;
+        class ResourceTable
+        {
+            public uint Type;
+            public List<Resource> Resources = new List<Resource>();
+        }
+        class Resource
+        {
+            public uint Name;
+            public List<ResourceData> Locales = new List<ResourceData>();
+        }
 
-		public ManagedDllProvider (Stream stream)
-		{
-            using (BinaryReader binaryReader = new BinaryReader(stream))
+        class ResourceData
+        {
+            public uint Locale;
+            public ArraySegment<byte> Data;
+        }
+        
+        const uint RT_RCDATA = 23;
+        const uint RT_STRING = 6;
+        const uint IMAGE_RESOURCE_NAME_IS_STRING = 0x80000000;
+        const uint IMAGE_RESOURCE_DATA_IS_DIRECTORY = 0x80000000;
+
+        public Dictionary<int, string> Strings = new Dictionary<int, string>();
+        public Dictionary<int, string> Infocards = new Dictionary<int, string>();
+        
+        public ManagedDllProvider(Stream stream, string name)
+        {
+            var (rsrcOffset, rsrc) = GetRsrcSection(stream);
+            var directory = Struct<IMAGE_RESOURCE_DIRECTORY>(rsrc, 0);
+            List<ResourceTable> resources = new List<ResourceTable>();
+            for (int i = 0; i < directory.NumberOfNamedEntries + directory.NumberOfIdEntries; i++)
             {
-                var dosHeader = binaryReader.ReadStruct<IMAGE_DOS_HEADER>();
-                binaryReader.BaseStream.Seek(dosHeader.e_lfanew, SeekOrigin.Begin);
-                byte[] array = binaryReader.ReadBytes(4);
-                if (Encoding.ASCII.GetString(array) != "PE\0\0")
-                {
-                    throw new Exception("Not a PE File");
-                }
-                var fileHeader = binaryReader.ReadStruct<IMAGE_FILE_HEADER>();
-                if ((IMAGE_FILE_32BIT_MACHINE & fileHeader.Characteristics) != IMAGE_FILE_32BIT_MACHINE)
-                {
-                    throw new Exception("Not a 32-bit PE File");
-                }
-                binaryReader.ReadStruct<IMAGE_OPTIONAL_HEADER>();
-                var sectionHeaders = new IMAGE_SECTION_HEADER[(int)fileHeader.NumberOfSections];
-                IMAGE_SECTION_HEADER? rsrcSection = default(IMAGE_SECTION_HEADER?);
-                for (int i = 0; i < (int)fileHeader.NumberOfSections; i++)
-                {
-                    sectionHeaders[i] = binaryReader.ReadStruct<IMAGE_SECTION_HEADER>();
-                    if (sectionHeaders[i].Section == ".rsrc")
-                    {
-                        rsrcSection = new IMAGE_SECTION_HEADER?(sectionHeaders[i]);
-                    }
-                }
-                if (!rsrcSection.HasValue)
-                {
-                    throw new Exception("No resources");
-                }
-                binaryReader.BaseStream.Seek((long)((ulong)rsrcSection.Value.PointerToRawData), SeekOrigin.Begin);
-                var rootDirectory = binaryReader.ReadStruct<IMAGE_RESOURCE_DIRECTORY>();
-                int num = (int)(rootDirectory.NumberOfIdEntries + rootDirectory.NumberOfNamedEntries);
-                var entries = new IMAGE_RESOURCE_DIRECTORY_ENTRY[num];
-                for (int j = 0; j < num; j++)
-                {
-                    entries[j] = binaryReader.ReadStruct<IMAGE_RESOURCE_DIRECTORY_ENTRY>();
-                }
-                Strings = new Dictionary<int, string>();
-                Infocards = new Dictionary<int, string>();
-                for (int k = 0; k < num; k++)
-                {
-                    if (entries[k].Name == RT_STRING)
-                    {
-                        ReadStringTable(binaryReader, entries[k].OffsetToData, rsrcSection.Value.PointerToRawData);
-                    }
-                    if (entries[k].Name == RT_RCDATA)
-                    {
-                        ReadXML(binaryReader, entries[k].OffsetToData, rsrcSection.Value.PointerToRawData);
-                    }
-                }
-                binaryReader.Close();
+                var off = 16 + (i * 8);
+                var entry = Struct <IMAGE_RESOURCE_DIRECTORY_ENTRY>(rsrc, off);
+                if ((IMAGE_RESOURCE_NAME_IS_STRING & entry.Name) == IMAGE_RESOURCE_NAME_IS_STRING) continue;
+                resources.Add(ReadResourceTable(rsrcOffset, DirOffset(entry.OffsetToData), rsrc, entry.Name));
             }
-		}
 
-		private void ReadStringTable (BinaryReader reader, uint offset, uint rsrcStart)
-		{
-			reader.BaseStream.Seek ((long)((offset & 0x7FFFFFFF) + rsrcStart), SeekOrigin.Begin);
-			IMAGE_RESOURCE_DIRECTORY rootDir = reader.ReadStruct<IMAGE_RESOURCE_DIRECTORY> ();
-			int num = (int)(rootDir.NumberOfIdEntries + rootDir.NumberOfNamedEntries);
-			IMAGE_RESOURCE_DIRECTORY_ENTRY[] entries = new IMAGE_RESOURCE_DIRECTORY_ENTRY[num];
-			for (int i = 0; i < num; i++)
-			{
-				entries [i] = reader.ReadStruct<IMAGE_RESOURCE_DIRECTORY_ENTRY> ();
-			}
-			for (int i = 0; i < num; i++)
-			{
-				uint dirOffset = entries [i].OffsetToData & 0x7FFFFFFF;
-				reader.BaseStream.Seek ((long)(dirOffset + rsrcStart), SeekOrigin.Begin);
-				reader.ReadStruct<IMAGE_RESOURCE_DIRECTORY> ();
-				IMAGE_RESOURCE_DIRECTORY_ENTRY languageEntry = reader.ReadStruct<IMAGE_RESOURCE_DIRECTORY_ENTRY> ();
-				reader.BaseStream.Seek ((long)(languageEntry.OffsetToData + rsrcStart), SeekOrigin.Begin);
-				IMAGE_RESOURCE_DATA_ENTRY dataEntry = reader.ReadStruct<IMAGE_RESOURCE_DATA_ENTRY> ();
-				reader.BaseStream.Seek ((long)dataEntry.OffsetToData, SeekOrigin.Begin);
-				int blockId = (int)((entries [i].Name - 1u) * 16);
+            foreach (var table in resources) {
+                if (table.Type == RT_RCDATA)
+                {
+                    foreach (var res in table.Resources)
+                    {
+                        int idx = res.Locales[0].Data.Offset;
+                        int count = res.Locales[0].Data.Count;
+                        if (res.Locales[0].Data.Count > 2)
+                        {
+                            if (res.Locales[0].Data[0] == 0xFF && res.Locales[0].Data[1] == 0xFE)
+                            {
+                                //skip BOM
+                                idx += 2;
+                                count -= 2;
+                            }
+                        }
+                        try {
+                            Infocards.Add ((int)res.Name, Encoding.Unicode.GetString(res.Locales[0].Data.Array,idx,count));
+                        } catch (Exception) {
+                            FLLog.Error ("Infocards", $"{name}: Infocard Corrupt: {res.Name}");
+                        }
+                    }
+                }
+                else if (table.Type == RT_STRING)
+                {
+                    foreach (var res in table.Resources)
+                    {
+                        int blockId = (int)((res.Name - 1u) * 16);
+                        var seg = res.Locales[0].Data;
+                        using (var reader = new BinaryReader(new MemoryStream(seg.Array, seg.Offset, seg.Count)))
+                        {
+                            for (int j = 0; j < 16; j++)
+                            {
+                                int length = (int) (reader.ReadUInt16() * 2);
+                                if (length != 0)
+                                {
+                                    byte[] bytes = reader.ReadBytes(length);
+                                    string str = Encoding.Unicode.GetString(bytes);
+                                    Strings.Add(blockId + j, str);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
-				for (int j = 0; j < 16; j++)
-				{
-					int length = (int)(reader.ReadUInt16 () * 2);
-					if (length != 0)
-					{
-						byte[] bytes = reader.ReadBytes (length);
-						string str = Encoding.Unicode.GetString (bytes);
-						Strings.Add (blockId + j, str);
-					}
-				}
-			}
-		}
+        static int DirOffset(uint a) => (int)(a & 0x7FFFFFFF);
 
-		private void ReadXML (BinaryReader reader, uint offset, uint rsrcStart)
-		{
-			reader.BaseStream.Seek ((long)((offset & 0x7FFFFFFF) + rsrcStart), SeekOrigin.Begin);
-			IMAGE_RESOURCE_DIRECTORY rootDir = reader.ReadStruct<IMAGE_RESOURCE_DIRECTORY> ();
-			int num = (int)(rootDir.NumberOfIdEntries + rootDir.NumberOfNamedEntries);
-			IMAGE_RESOURCE_DIRECTORY_ENTRY[] entries = new IMAGE_RESOURCE_DIRECTORY_ENTRY[num];
-			for (int i = 0; i < num; i++)
-			{
-				entries [i] = reader.ReadStruct<IMAGE_RESOURCE_DIRECTORY_ENTRY> ();
-			}
-			for (int j = 0; j < num; j++)
-			{
-				uint dirOffset = entries [j].OffsetToData & 0x7FFFFFFF;
-				reader.BaseStream.Seek ((long)(dirOffset + rsrcStart), SeekOrigin.Begin);
-				reader.ReadStruct<IMAGE_RESOURCE_DIRECTORY> ();
-				IMAGE_RESOURCE_DIRECTORY_ENTRY languageEntry = reader.ReadStruct<IMAGE_RESOURCE_DIRECTORY_ENTRY> ();
-				reader.BaseStream.Seek ((long)(languageEntry.OffsetToData + rsrcStart), SeekOrigin.Begin);
-				IMAGE_RESOURCE_DATA_ENTRY dataEntry = reader.ReadStruct<IMAGE_RESOURCE_DATA_ENTRY> ();
-				reader.BaseStream.Seek ((long)dataEntry.OffsetToData, SeekOrigin.Begin);
-				byte[] xmlBytes = reader.ReadBytes ((int)dataEntry.Size);
-				int idx = 0;
-				int count = xmlBytes.Length;
-				if (xmlBytes[0] == 0xFF && xmlBytes[1] == 0xFE) //Skip BOM
-				{
-					idx = 2;
-					count -= 2;
-				}
-				try {
-					Infocards.Add ((int)entries [j].Name, Encoding.Unicode.GetString(xmlBytes,idx,count));
-				} catch (Exception) {
-					FLLog.Error ("Infocards", "Infocard Corrupt: " + entries[j].Name);
-				}
+        static ResourceTable ReadResourceTable(int rsrcOffset, int offset, byte[] rsrc, uint type)
+        {
+            var directory = Struct<IMAGE_RESOURCE_DIRECTORY>(rsrc, offset);
+            bool hasLanguage = false;
+            var table = new ResourceTable() {Type = type};
+            for (int i = 0; i < directory.NumberOfNamedEntries + directory.NumberOfIdEntries; i++)
+            {
+                var off = offset + 16 + (i * 8);
+                var entry = Struct<IMAGE_RESOURCE_DIRECTORY_ENTRY>(rsrc, off);
+                var res = new Resource() { Name = entry.Name };
+                if ((IMAGE_RESOURCE_DATA_IS_DIRECTORY & entry.OffsetToData) == IMAGE_RESOURCE_DATA_IS_DIRECTORY)
+                {
+                    var langDirectory = Struct<IMAGE_RESOURCE_DIRECTORY>(rsrc, DirOffset(entry.OffsetToData));
+                    for (int j = 0; j < langDirectory.NumberOfIdEntries + langDirectory.NumberOfNamedEntries; j++)
+                    {
+                        var langOff = DirOffset(entry.OffsetToData) + 16 + (j * 8);
+                        var langEntry = Struct<IMAGE_RESOURCE_DIRECTORY_ENTRY>(rsrc, langOff);
+                        if((IMAGE_RESOURCE_DATA_IS_DIRECTORY & langEntry.OffsetToData) == IMAGE_RESOURCE_DATA_IS_DIRECTORY)
+                            throw new Exception("Malformed .rsrc section");
+                        var dataEntry = Struct<IMAGE_RESOURCE_DATA_ENTRY>(rsrc, (int) langEntry.OffsetToData);
+                        var dat = new ArraySegment<byte>(rsrc, (int)dataEntry.OffsetToData - rsrcOffset, (int)dataEntry.Size);
+                        res.Locales.Add(new ResourceData() {Locale = langEntry.Name, Data = dat});
+                    }
+                }
+                else
+                    throw new Exception("Malformed .rsrc section");
+                table.Resources.Add(res);
+            }
+            return table;
+        }
 
-			}
-		}
-
-		public string GetXml (ushort resourceId)
-		{
-
-			try {
-				return Infocards[(int)resourceId];
-			} catch (Exception) {
-				FLLog.Warning ("Infocards","Not Found: " + resourceId);
-				return null;
-			}
-
-		}
-
-		public string GetString (ushort resourceId)
-		{
-			try {
-				return Strings[(int)resourceId];
-			} catch (Exception) {
-				FLLog.Warning ("Infocards","Not Found: " + resourceId);
-				return "";
-			}
-		}
-	}
+        static T Struct<T>(byte[] bytes, int offset) where T : unmanaged
+        {
+            var sz = Marshal.SizeOf(typeof(T));
+            if(offset + sz >= bytes.Length || offset < 0)
+                throw new IndexOutOfRangeException();
+            var handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+            try
+            {
+                return (T) Marshal.PtrToStructure(handle.AddrOfPinnedObject() + offset, typeof(T));
+            }
+            finally {
+                handle.Free();
+            }
+        }
+        
+        static (int, byte[]) GetRsrcSection(Stream stream)
+        {
+            using (var pe = new PEReader(stream))
+            {
+                var section = pe.GetSectionData(".rsrc");
+                int offset = 0;
+                for (int i = 0; i < pe.PEHeaders.SectionHeaders.Length; i++)
+                {
+                    var h = pe.PEHeaders.SectionHeaders[i];
+                    if (h.Name == ".rsrc") {
+                        offset = h.VirtualAddress;
+                    }
+                }
+                var array = new byte[section.Length];
+                section.GetContent().CopyTo(array);
+                return (offset, array);
+            }
+        }
+    }
 }

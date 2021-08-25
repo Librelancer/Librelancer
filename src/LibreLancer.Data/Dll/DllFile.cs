@@ -24,14 +24,14 @@ namespace LibreLancer.Dll
             {
                 using (var file = File.OpenRead(path))
                 {
-                    provider = new ManagedDllProvider(file);
+                    provider = new ManagedDllProvider(file, Name);
                 }
             }
             else
             {
                 using (var file = vfs.Open(path))
                 {
-                    provider = new ManagedDllProvider(file);
+                    provider = new ManagedDllProvider(file, Name);
                 }
             }
         }
