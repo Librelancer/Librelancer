@@ -58,6 +58,14 @@ namespace BuildLL
             if(Directory.Exists(directory)) Directory.Delete(directory, true);
         }
 
+        public static void Cmd(string command)
+        {
+            var psi = new ProcessStartInfo("cmd", $"/c \"{command}\"");
+            var process = Process.Start(psi);
+            process.WaitForExit();
+            if (process.ExitCode != 0) throw new Exception($"Command Failed: {command}");
+        }
+
         public static string Bash(string command, bool print = true)
         {
             if (print && IsVerbose) Console.WriteLine(command);
@@ -115,6 +123,9 @@ namespace BuildLL
             app.HelpOption();
             // add options
             Program.Options();
+            //post build
+            string postbuild = null;
+            StringArg("--postbuild", x => postbuild = x, "Command to run after build");
             // translate from Bullseye to McMaster.Extensions.CommandLineUtils
             app.Argument("targets", "A list of targets to run or list. If not specified, the \"default\" target will be run, or all targets will be listed.", true);
             foreach (var option in Options.Definitions)
@@ -134,36 +145,57 @@ namespace BuildLL
                     if (WebHook.UseWebhook)
                     {
                         var message = "Build started.";
-                        if (TryGetEnv("APPVEYOR_JOB_NUMBER", out string jobNumber))
+                        if (TryGetEnv("APPVEYOR_BUILD_NUMBER", out string jobNumber))
                             message += $" #{jobNumber}.";
                         WebHook.AppveyorDiscordWebhook(message);
                     }
-                    RunTargetsAndExit(targets, options);
-                    if (WebHook.UseWebhook)
+                    var task = RunTargetsWithoutExitingAsync(targets, options);
+                    task.Wait();
+                    if (task.Exception != null)
                     {
-                        var message = "Build succeeded.";
-                        if (TryGetEnv("APPVEYOR_JOB_NUMBER", out string jobNumber))
-                            message += $" #{jobNumber}.";
-                        WebHook.AppveyorDiscordWebhook(message);
+                        OnError(task.Exception);
+                        return 2;
                     }
-                    return 0;
+                    else
+                    {
+                        if (!string.IsNullOrEmpty(postbuild))
+                        {
+                            if(IsWindows)
+                                Cmd(postbuild);
+                            else
+                                Bash(postbuild);
+                        }
+                        if (WebHook.UseWebhook)
+                        {
+                            var message = "Build succeeded.";
+                            if (TryGetEnv("APPVEYOR_BUILD_NUMBER", out string jobNumber))
+                                message += $" #{jobNumber}.";
+                            WebHook.AppveyorDiscordWebhook(message);
+                        }
+                        return 0;
+                    }
                 }
                 catch (Exception e)
                 {
-                    Console.Error.WriteLine(e);
-                    if (WebHook.UseWebhook)
-                    {
-                        var message = "Build failed.";
-                        if (TryGetEnv("APPVEYOR_JOB_NUMBER", out string jobNumber))
-                            message += $" #{jobNumber}.";
-                        message += "\n" + e.ToString();
-                        WebHook.AppveyorDiscordWebhook(message);
-                    }
+                    OnError(e);
                     return 2;
                 }
                 
             });
             return app.Execute(args);
+        }
+
+        static void OnError(Exception e)
+        {
+            Console.Error.WriteLine(e);
+            if (WebHook.UseWebhook)
+            {
+                var message = "Build failed.";
+                if (TryGetEnv("APPVEYOR_JOB_NUMBER", out string jobNumber))
+                    message += $" #{jobNumber}.";
+                message += "\n" + e.ToString();
+                WebHook.AppveyorDiscordWebhook(message);
+            }
         }
 
         public static string FindExeWin32(string exe, params string[] extraPaths)
