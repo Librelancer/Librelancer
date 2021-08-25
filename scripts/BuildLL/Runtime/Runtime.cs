@@ -25,6 +25,11 @@ namespace BuildLL
             return $"\"{s.Replace("\"", "\\\"")}\"";
         }
 
+        public static bool TryGetEnv(string variable, out string value)
+        {
+            value = Environment.GetEnvironmentVariable(variable);
+            return !string.IsNullOrWhiteSpace(value);
+        }
       
         public static void CopyFile(string src, string dst)
         {
@@ -126,12 +131,34 @@ namespace BuildLL
                 try
                 { 
                     Program.Targets();
+                    if (WebHook.UseWebhook)
+                    {
+                        var message = "Build started.";
+                        if (TryGetEnv("APPVEYOR_JOB_NUMBER", out string jobNumber))
+                            message += $" #{jobNumber}.";
+                        WebHook.AppveyorDiscordWebhook(message);
+                    }
                     RunTargetsAndExit(targets, options);
+                    if (WebHook.UseWebhook)
+                    {
+                        var message = "Build succeeded.";
+                        if (TryGetEnv("APPVEYOR_JOB_NUMBER", out string jobNumber))
+                            message += $" #{jobNumber}.";
+                        WebHook.AppveyorDiscordWebhook(message);
+                    }
                     return 0;
                 }
                 catch (Exception e)
                 {
                     Console.Error.WriteLine(e);
+                    if (WebHook.UseWebhook)
+                    {
+                        var message = "Build failed.";
+                        if (TryGetEnv("APPVEYOR_JOB_NUMBER", out string jobNumber))
+                            message += $" #{jobNumber}.";
+                        message += "\n" + e.ToString();
+                        WebHook.AppveyorDiscordWebhook(message);
+                    }
                     return 2;
                 }
                 
