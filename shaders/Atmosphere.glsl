@@ -1,4 +1,6 @@
+@feature VERTEX_LIGHTING
 @vertex
+@include (includes/lighting.inc)
 in vec3 vertex_position;
 in vec3 vertex_normal;
 in vec2 vertex_texture1;
@@ -26,6 +28,8 @@ void main()
 	V = normalize(-vec3((View * World) * p));
 	world_position = (World * vec4(vertex_position,1)).xyz;
 	out_normal = (NormalMatrix * vec4(vertex_normal,0)).xyz;
+	vec4 view_position = (View * World) * vec4(vertex_position,1);
+	light_vert(world_position, view_position, out_normal);
 }
 
 @fragment

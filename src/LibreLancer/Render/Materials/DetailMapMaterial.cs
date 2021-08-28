@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Shaders;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
 namespace LibreLancer
@@ -26,7 +27,7 @@ namespace LibreLancer
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Opaque;
 
-            var sh = Shaders.DetailMapMaterial.Get();
+            var sh = Shaders.DetailMapMaterial.Get(GL.GLES ? ShaderFeatures.VERTEX_LIGHTING : 0);
 			sh.SetWorld (World);
             sh.SetView(Camera);
             sh.SetViewProjection(Camera);

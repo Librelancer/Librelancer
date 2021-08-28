@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Shaders;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
 namespace LibreLancer
@@ -24,7 +25,7 @@ namespace LibreLancer
 		{
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Normal;
-            var sh = Shaders.Atmosphere.Get();
+            var sh = Shaders.Atmosphere.Get(GL.GLES ? ShaderFeatures.VERTEX_LIGHTING : 0);
 			sh.SetAc(Ac);
 			sh.SetDc(Dc);
 			sh.SetOc(Alpha);

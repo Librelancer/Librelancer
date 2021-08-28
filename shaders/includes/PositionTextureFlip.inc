@@ -1,4 +1,6 @@
-﻿@vertex
+﻿@feature VERTEX_LIGHTING
+@vertex
+@include (lighting.inc)
 in vec3 vertex_position;
 in vec3 vertex_normal;
 in vec2 vertex_texture1;
@@ -23,4 +25,5 @@ void main()
 	out_normal = (NormalMatrix * vec4(vertex_normal,0.0)).xyz;
 	out_texcoord = texcoord;
 	frag_vertexcolor = vec4(1);
+	light_vert(world_position, view_position, out_normal);
 }
