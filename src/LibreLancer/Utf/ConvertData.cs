@@ -10,24 +10,16 @@ using System.Numerics;
 
 namespace LibreLancer
 {
-    public static unsafe class ConvertData
+    //We don't use pointers to access data as they can cause data misalignment errors on Armhf
+    public static class ConvertData
     {
-        public static Vector2 ToVector2(BinaryReader reader)
-        {
-            Vector2 result = Vector2.Zero;
 
-            result.X = reader.ReadSingle();
-            result.Y = reader.ReadSingle();
+        static float Float(byte[] data, int start, int idx) => BitConverter.ToSingle(data, start + idx * 4);
 
-            return result;
-        }
 
         public static Vector3 ToVector3(byte[] data, int start = 0)
         {
-            fixed (byte* pinned = data)
-            {
-                return *(Vector3*) (&pinned[start]);
-            }
+            return new Vector3(Float(data, start, 0), Float(data, start, 1), Float(data, start, 2));
         }
 
         public static Vector3 ToVector3(BinaryReader reader)
@@ -50,28 +42,24 @@ namespace LibreLancer
 
         public static Matrix4x4 ToMatrix3x3(byte[] data, int start = 0)
         {
-            fixed (byte* pinned = data)
-            {
-                var floats = (float*) (&pinned[start]);
-                var result = Matrix4x4.Identity;
-                result.M11 = floats[0];
-                result.M21 = floats[1];
-                result.M31 = floats[2];
+            var result = Matrix4x4.Identity;
+                result.M11 = Float(data, start, 0);
+                result.M21 = Float(data, start, 1);
+                result.M31 = Float(data, start, 2);
                 result.M41 = 0;
-                result.M12 = floats[3];
-                result.M22 = floats[4];
-                result.M32 = floats[5];
+                result.M12 = Float(data, start, 3);
+                result.M22 = Float(data, start, 4);
+                result.M32 = Float(data, start, 5);
                 result.M42 = 0;
-                result.M13 = floats[6];
-                result.M23 = floats[7];
-                result.M33 = floats[8];
+                result.M13 = Float(data, start, 6);
+                result.M23 = Float(data, start, 7);
+                result.M33 = Float(data, start, 8);
                 result.M43 = 0;
                 result.M14 = 0;
-                result.M24 = 0;
-                result.M34 = 0;
-                result.M44 = 1;
-                return result;
-            }
+            result.M24 = 0;
+            result.M34 = 0;
+            result.M44 = 1;
+            return result;
         }
 
         public static Matrix4x4 ToMatrix3x3(BinaryReader reader)
@@ -107,11 +95,7 @@ namespace LibreLancer
 
         public static Color4 ToColor(byte[] data, int start = 0)
         {
-            fixed (byte* pinned = data)
-            {
-                var floats = (float*) (&pinned[start]);
-                return new Color4(floats[0], floats[1], floats[2], 1f);
-            }
+            return new Color4(Float(data, start, 0), Float(data, start, 1), Float(data, start, 2), 1f);
         }
     }
 }
