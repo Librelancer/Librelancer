@@ -67,13 +67,13 @@ namespace LibreLancer
                 }
             }
         }
-        public void DrawBuffer(int level, ResourceManager res, CommandBuffer buffer, Matrix4x4 world, ref Lighting lights, MaterialAnimCollection mc, Material overrideMat = null)
+        public void DrawBuffer(int level, ResourceManager res, CommandBuffer buffer, Matrix4x4 world, ref Lighting lights, MaterialAnimCollection mc, Material overrideMat = null, int max = int.MaxValue)
         {
             if (Levels == null || Levels.Length <= level) return;
             var l = Levels[level];
             if (l == null) return;
             WorldMatrixHandle wm = buffer.WorldBuffer.SubmitMatrix(ref world);
-            for (int i = 0; i < l.Length; i++)
+            for (int i = 0; i < l.Length && i < max; i++)
             {
                 var dc = l[i];
                 MaterialAnim ma = null;
@@ -117,7 +117,7 @@ namespace LibreLancer
         }
 
         private ulong drawN = ulong.MaxValue;
-        public unsafe void DrawImmediate(int level, ResourceManager res, RenderState renderState, Matrix4x4 world, ref Lighting lights, MaterialAnimCollection mc, Material overrideMat = null)
+        public unsafe void DrawImmediate(int level, ResourceManager res, RenderState renderState, Matrix4x4 world, ref Lighting lights, MaterialAnimCollection mc, Material overrideMat = null, int max = int.MaxValue)
         {
             if (Levels == null || Levels.Length < level) return;
             var l = Levels[level];
@@ -127,7 +127,7 @@ namespace LibreLancer
             src.World = world;
             Matrix4x4.Invert(world, out src.Normal);
             src.Normal = Matrix4x4.Transpose(src.Normal);
-            for (int i = 0; i < l.Length; i++)
+            for (int i = 0; i < l.Length && i < max; i++)
             {
                 var dc = l[i];
                 MaterialAnim ma = null;
@@ -222,6 +222,7 @@ namespace LibreLancer
         public AnmFile Animation;
         public RigidModelPart Root;
         public RigidModelPart[] AllParts;
+        public bool Sphere;
         //Used for collision purposes only
         //Sur models use hash value of 0 instead of "Root" hash for 3db files
         public bool From3db; 

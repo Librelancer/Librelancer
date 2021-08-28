@@ -168,6 +168,7 @@ namespace LibreLancer.Utf.Mat
         public RigidModel CreateRigidModel(bool drawable)
         {
             var model = new RigidModel();
+            model.Sphere = true;
             var part = new RigidModelPart();
             var dcs = new List<MeshDrawcall>();
             var scale = Matrix4x4.CreateScale(Radius);

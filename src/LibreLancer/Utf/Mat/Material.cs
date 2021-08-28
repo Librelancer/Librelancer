@@ -238,6 +238,7 @@ namespace LibreLancer.Utf.Mat
 					case "Masked2DetailMapMaterial":
 					case "NomadMaterialNoBendy":
 					case "NomadMaterial":
+                    case "_DepthPrepass":
 						break;
 					default:
 						throw new Exception("Invalid material type: " + type);
@@ -376,6 +377,9 @@ namespace LibreLancer.Utf.Mat
 			{
 				switch (type)
 				{
+                    case "_DepthPrepass":
+                        _rmat = new DepthPrepassMaterial();
+                        break;
 					case "Nebula":
 					case "NebulaTwo":
 						var nb = new NebulaMaterial();

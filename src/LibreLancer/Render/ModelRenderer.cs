@@ -93,9 +93,20 @@ namespace LibreLancer
             return true; //not visible
 		}
 
+        private Material depthPrepass;
 		public override void DepthPrepass(ICamera camera, RenderState rstate)
 		{
-            
+            if (Model.Sphere)
+            {
+                if (depthPrepass == null)
+                {
+                    depthPrepass = new Material(sysr.ResourceManager);
+                    depthPrepass.Type = "_DepthPrepass";
+                }
+
+                depthPrepass.Update(camera);
+                Model.AllParts[0].Mesh.DrawImmediate(0, sysr.ResourceManager, rstate, World, ref Lighting.Empty, null, depthPrepass, 6);
+            }
         }
 
         Matrix4x4 _worldSph;
