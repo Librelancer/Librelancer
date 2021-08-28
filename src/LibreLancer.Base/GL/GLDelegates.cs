@@ -42,6 +42,9 @@ namespace LibreLancer.GLDelegates
     [SuppressUnmanagedCodeSecurity]
     public delegate void BlendFuncSeparate(int srcRGB, int drcRGB, int srcAlpha, int dstAlpha);
     [SuppressUnmanagedCodeSecurity]
+    public delegate void DepthRange(float near, float far);
+    [SuppressUnmanagedCodeSecurity]
+    
     public delegate void PolygonMode(int faces, int mode);
 	[SuppressUnmanagedCodeSecurity]
 	public delegate void LineWidth(float width);

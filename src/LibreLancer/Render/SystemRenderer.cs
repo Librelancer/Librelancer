@@ -290,32 +290,12 @@ namespace LibreLancer
 			}
 			else
 			{
-				rstate.DepthEnabled = false;
 				if (starSystem == null)
 					rstate.ClearColor = NullColor;
 				else
 					rstate.ClearColor = starSystem.BackgroundColor;
 				rstate.ClearAll();
-				//Starsphere
-                if(camera is ThnCamera thn) thn.DefaultZ();
-				for (int i = 0; i < StarSphereModels.Length; i++)
-				{
-					Matrix4x4 ssworld = Matrix4x4.CreateTranslation(camera.Position);
-                    
-					if (StarSphereWorlds != null) ssworld = StarSphereWorlds[i] * ssworld;
-                    var lighting = Lighting.Empty;
-                    if (StarSphereLightings != null) lighting = StarSphereLightings[i];
-                    StarSphereModels[i].DrawImmediate(rstate, resman, ssworld, ref lighting);
-                }
-                if (camera is ThnCamera thn2) thn2.CameraZ();
-				//Render fog transition: if any
-				if (nr != null)
-				{
-					rstate.DepthEnabled = false;
-					nr.RenderFogTransition();
-					rstate.DepthEnabled = true;
-				}
-			}
+            }
 			DebugRenderer.StartFrame(camera, rstate);
 			Polyline.SetCamera(camera);
 			commands.StartFrame(rstate);
@@ -323,7 +303,6 @@ namespace LibreLancer
 			//Optimisation for dictionary lookups
 			LightEquipRenderer.FrameStart();
 			//Clear depth buffer for game objects
-			rstate.ClearDepth();
 			billboards.Begin(camera, commands);
 			//JThreads.Instance.FinishExecute(); //Make sure visibility calculations are complete						  
 			if (GLExtensions.Features430 && ExtraLights)
@@ -417,6 +396,29 @@ namespace LibreLancer
 			//Opaque Pass
 			rstate.DepthEnabled = true;
 			commands.DrawOpaque(rstate);
+            if (!transitioned)
+            {
+                //Starsphere
+                GL.DepthRange(1, 1);
+                if(camera is ThnCamera thn) thn.DefaultZ();
+                for (int i = 0; i < StarSphereModels.Length; i++)
+                {
+                    Matrix4x4 ssworld = Matrix4x4.CreateTranslation(camera.Position);
+                    
+                    if (StarSphereWorlds != null) ssworld = StarSphereWorlds[i] * ssworld;
+                    var lighting = Lighting.Empty;
+                    if (StarSphereLightings != null) lighting = StarSphereLightings[i];
+                    StarSphereModels[i].DrawImmediate(rstate, resman, ssworld, ref lighting);
+                }
+                if (camera is ThnCamera thn2) thn2.CameraZ();
+                if (nr != null)
+                {
+                    //rstate.DepthEnabled = false;
+                    nr.RenderFogTransition();
+                    //rstate.DepthEnabled = true;
+                }
+                GL.DepthRange(0, 1);
+            }
 			//Transparent Pass
             rstate.DepthWrite = false;
 			commands.DrawTransparent(rstate);

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace LibreLancer
 {
@@ -116,6 +117,14 @@ namespace LibreLancer
 			}
 		}
 
+        public Vector2 DepthRange
+        {
+            set
+            {
+                GL.DepthRange(value.X, value.Y);
+            }
+        }
+
         bool colorWrite = true;
         bool requestedColorWrite = true;
         public bool ColorWrite
@@ -130,10 +139,8 @@ namespace LibreLancer
 			get {
 				return cull;
 			} set {
-				if (cull == value)
-					return;
+				
 				cull = value;
-				cullDirty = true;
 			}
 		}
         public bool ScissorEnabled { get => scissorEnabled; set => scissorEnabled = value; }
@@ -155,7 +162,6 @@ namespace LibreLancer
 
 		internal void Trash()
 		{
-			cullDirty = true;
 			clearDirty = true;
 			wireframeDirty = true;
 			depthDirty = true;
@@ -163,7 +169,7 @@ namespace LibreLancer
 		}
 
 		bool cull = true;
-		bool cullDirty = false;
+		bool doCull = true;
 
 		Color4 clearColor = Color4.Black;
 		bool clearDirty = false;
@@ -291,13 +297,13 @@ namespace LibreLancer
 				}
 				blendDirty = false;
 			}
-			if (cullDirty) {
+			if (doCull != cull) {
 				if (cull)
 					GL.Enable (GL.GL_CULL_FACE);
 				else
 					GL.Disable (GL.GL_CULL_FACE);
-				cullDirty = false;
-			}
+                doCull = cull;
+            }
 			if (requestedCull != cullFace)
 			{
 				cullFace = requestedCull;

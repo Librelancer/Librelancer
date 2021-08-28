@@ -69,6 +69,9 @@ namespace LibreLancer
         public static ColorMask ColorMask;
 		[MapsTo("glPolygonOffset")]
 		public static PolygonOffset PolygonOffset;
+        [MapsTo("glDepthRangef")] 
+        public static DepthRange DepthRange;
+        
 		//[MapsTo("glAlphaFunc")]
 		//public static AlphaFunc AlphaFunc;
 		//Textures
