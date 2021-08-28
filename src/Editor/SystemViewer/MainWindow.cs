@@ -217,6 +217,7 @@ C# Memory Usage: {5}
                     if (ImGui.Button(MEDSPEED.ToString())) camera.MoveSpeed = MEDSPEED;
                     ImGui.SameLine();
                     if (ImGui.Button(HIGHSPEED.ToString())) camera.MoveSpeed = HIGHSPEED;
+                    ImGui.End();
                 }
             }
             if(world != null) {
