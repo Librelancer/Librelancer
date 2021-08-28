@@ -42,7 +42,6 @@ namespace LibreLancer.Shaders
 		int fadeRangePosition;
 
 		int materialAnimPosition;
-		int flipNormalPosition;
         int skinningEnabledPosition;
 		Shader shader;
 
@@ -82,7 +81,6 @@ namespace LibreLancer.Shaders
 
 			fadeRangePosition = sh.GetLocation("FadeRange");
 			materialAnimPosition = sh.GetLocation("MaterialAnim");
-			flipNormalPosition = sh.GetLocation("FlipNormal");
             skinningEnabledPosition = sh.GetLocation("SkinningEnabled");
 		}
 
@@ -335,12 +333,6 @@ namespace LibreLancer.Shaders
 		{
 			if (materialAnimPosition != -1)
 				shader.SetVector4(materialAnimPosition, anim);
-		}
-
-		public void SetFlipNormal(bool flip)
-		{
-			if (flipNormalPosition != -1)
-				shader.SetFloat(flipNormalPosition, flip ? -1 : 1);
 		}
 
         public static void Log(string text)

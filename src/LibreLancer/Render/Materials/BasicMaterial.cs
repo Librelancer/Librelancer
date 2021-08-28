@@ -51,10 +51,6 @@ namespace LibreLancer
             throw new NotImplementedException(vertextype.GetType().Name);
 		}
         ShaderVariables lastShader;
-        public override void UpdateFlipNormals()
-        {
-            lastShader.SetFlipNormal(FlipNormals);
-        }
 
         public override void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights)
 		{
@@ -110,7 +106,6 @@ namespace LibreLancer
 			{
 				shader.SetMaterialAnim(new Vector4(0, 0, 1, 1));
 			}
-			shader.SetFlipNormal(FlipNormals);
             if (Bones != null && vertextype is DfmVertex) {
                 shader.Shader.UniformBlockBinding("Bones", 1);
                 shader.SetSkinningEnabled(true);

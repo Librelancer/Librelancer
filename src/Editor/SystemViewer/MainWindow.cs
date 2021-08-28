@@ -242,9 +242,9 @@ C# Memory Usage: {5}
                             icard = new InfocardControl(this, systemInfocard, szX);
                         }
                         icard.Draw(szX);
-
+                        ImGui.End();
                     }
-                    ImGui.End();
+                    
                 }
 
                 if (universeOpen)
@@ -284,8 +284,8 @@ C# Memory Usage: {5}
                         }
 
                         ImGui.EndTabBar();
+                        ImGui.End();
                     }
-                    ImGui.End();
                 }
             }
             //dialogs must be children of window or ImGui default "Debug" window appears

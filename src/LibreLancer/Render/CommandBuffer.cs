@@ -74,15 +74,12 @@ namespace LibreLancer
                 material.MaterialAnim = anim;
                 material.World = world;
                 material.Use(rstate, buffer.VertexType, ref lights);
+                if (material.DoubleSided) {
+                    rstate.Cull = false;
+                }
                 buffer.Draw(primitive, baseVertex, start, count);
-                if (material.DoubleSided)
-                {
-                    material.FlipNormals = true;
-                    material.UpdateFlipNormals();
-                    rstate.CullFace = CullFaces.Front;
-                    buffer.Draw(primitive, baseVertex, start, count);
-                    rstate.CullFace = CullFaces.Back;
-                    material.FlipNormals = false;
+                if (material.DoubleSided) {
+                    rstate.Cull = true;
                 }
             }
 		}
@@ -326,29 +323,13 @@ namespace LibreLancer
 					Material.FadeNear = *(float*)(&fn);
 					Material.FadeFar = *(float*)(&ff);
 				}
-                if (Material.DisableCull) state.Cull = false;
+                if (Material.DisableCull || Material.DoubleSided) state.Cull = false;
 				Material.Use(state, Buffer.VertexType, ref Lights);
 				if ((CmdType != RenderCmdType.MaterialFade) && BaseVertex != -1)
 					Buffer.Draw(Primitive, BaseVertex, Start, Count);
 				else
 					Buffer.Draw(Primitive, Count);
-				if (Material.DoubleSided)
-				{
-                    Material.FlipNormals = true;
-                    Material.UpdateFlipNormals();
-					state.CullFace = CullFaces.Front;
-					if ((CmdType != RenderCmdType.MaterialFade) && BaseVertex != -1)
-						Buffer.Draw(Primitive, BaseVertex, Start, Count);
-					else
-						Buffer.Draw(Primitive, Count);
-					state.CullFace = CullFaces.Back;
-                    Material.FlipNormals = false;
-				}
-				if (CmdType == RenderCmdType.MaterialFade)
-				{
-					Material.Fade = false;
-				}
-                if (Material.DisableCull) state.Cull = true;
+                if (Material.DisableCull || Material.DoubleSided) state.Cull = true;
 			}
 			else if (CmdType == RenderCmdType.Shader)
 			{

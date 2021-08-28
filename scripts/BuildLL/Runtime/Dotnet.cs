@@ -32,7 +32,7 @@ namespace BuildLL
         {
             string a = "";
             if (!string.IsNullOrWhiteSpace(args)) a = $" -- {args}";
-            RunCommand("dotnet", $"run {M()} /nr:false --project {P(project)}{a}");
+            RunCommand("dotnet", $"run --project {P(project)}{a}");
         }
 
         public static void Publish(string project, DotnetPublishSettings settings = null)

@@ -16,7 +16,6 @@ namespace LibreLancer
         public static bool VertexLighting = false;
 		public MaterialAnim MaterialAnim;
 		public WorldMatrixHandle World = new WorldMatrixHandle();
-		public bool FlipNormals = false;
 		public ICamera Camera;
 		public ILibFile Library;
 		public bool Fade = false;
@@ -25,7 +24,6 @@ namespace LibreLancer
         public UniformBuffer Bones;
         public int BufferOffset;
         public abstract void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights);
-        public virtual void UpdateFlipNormals() {} //Optimisation
 		public abstract bool IsTransparent { get; }
         public virtual bool DisableCull {  get { return false; } }
         public bool DoubleSided = false;
