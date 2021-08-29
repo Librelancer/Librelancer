@@ -288,8 +288,16 @@ namespace LibreLancer
 
         void IServerPlayer.ConsoleCommand(string cmd)
         {
-            if (cmd.StartsWith("base", StringComparison.OrdinalIgnoreCase)) {
-                ForceLand(cmd.Substring(4).Trim());
+            if (cmd.StartsWith("base", StringComparison.OrdinalIgnoreCase))
+            {
+                var arg = cmd.Substring(4).Trim();
+                if(game.GameData.BaseExists(arg))
+                    ForceLand(arg);
+                else 
+                    rpcClient.OnConsoleMessage($"Base does not exist `{arg}`");
+            }
+            else {
+                rpcClient.OnConsoleMessage("Unrecognised command");
             }
         }
 

@@ -129,6 +129,8 @@ namespace LibreLancer
             public string ActiveNavbarButton() => g.active;
 
             public Infocard CurrentInfocard() => g.roomInfocard;
+            
+            public ChatSource GetChats() => g.session.Chats;
 
             public void PopulateNavmap(Navmap navmap)
             {

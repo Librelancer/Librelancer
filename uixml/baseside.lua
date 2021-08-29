@@ -115,11 +115,14 @@ function baseside:ctor()
 		table.insert(windows, { news_button, self.News })
 	end
 	self.WindowManager = childwindowmanager(self.Widget, windows)
+
+	self.Elements.chat.Chat = Game:GetChats()
 end
 
 function baseside:Chatbox()
    self.Elements.chatbox.Visible = true 
 end
+
 
 
 

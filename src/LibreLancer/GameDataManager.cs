@@ -85,6 +85,7 @@ namespace LibreLancer
         {
             return fldata.RichFonts.Fonts;
         }
+        public bool BaseExists(string id) => bases.ContainsKey(id);
         public GameData.Base GetBase(string id)
         {
             return bases[id];

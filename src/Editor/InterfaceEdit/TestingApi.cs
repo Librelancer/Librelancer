@@ -138,6 +138,10 @@ namespace InterfaceEdit
         public Maneuver[] GetManeuvers() => ManeuverData;
         public string GetActiveManeuver() => "FreeFlight";
 
+        private ChatSource chats = new ChatSource();
+        
+        public ChatSource GetChats() => chats;
+
         public LuaCompatibleDictionary GetManeuversEnabled()
         {
             var dict = new LuaCompatibleDictionary();

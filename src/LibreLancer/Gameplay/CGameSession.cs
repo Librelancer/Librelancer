@@ -6,6 +6,7 @@ using System;
 using System.Numerics;
 using System.Collections.Generic;
 using LibreLancer.Data.Missions;
+using LibreLancer.Interface;
 using LibreLancer.Net;
 using LibreLancer.Utf.Cmp;
 using LiteNetLib;
@@ -38,7 +39,7 @@ namespace LibreLancer
 		public Vector3 PlayerPosition;
 		public Matrix4x4 PlayerOrientation;
         public NewsArticle[] News = new NewsArticle[0];
-
+        public ChatSource Chats = new ChatSource();
         private IPacketConnection connection;
         private IServerPlayer rpcServer;
         public IServerPlayer RpcServer => rpcServer;
@@ -191,6 +192,11 @@ namespace LibreLancer
                         started = true;
                 }
             }
+        }
+
+        void IClientPlayer.OnConsoleMessage(string text)
+        {
+            Chats.Append(text, "Arial", 10, Color4.LimeGreen);
         }
 
         void RunSync(Action gp) => gameplayActions.Enqueue(gp);

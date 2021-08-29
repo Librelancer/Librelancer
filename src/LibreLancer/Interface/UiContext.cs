@@ -138,6 +138,12 @@ namespace LibreLancer.Interface
             return points * ratio;
         }
 
+        public float PixelsToPoints(float pixels)
+        {
+            var ratio = 480 / ViewportHeight;
+            return pixels * ratio;
+        }
+
         public int PointsToPixels(float points)
         {
             var ratio = ViewportHeight / 480;

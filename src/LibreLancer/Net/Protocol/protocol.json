@@ -71,6 +71,10 @@
           ]
         },
         {
+          "name": "OnConsoleMessage",
+          "args": [ { "name":  "text", "type":  "string" }]
+        },
+        {
           "name": "SpawnDebris",
           "args": [
             { "name":  "id", "type":  "int" },

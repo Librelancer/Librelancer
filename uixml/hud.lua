@@ -90,6 +90,7 @@ function hud:ctor()
     self.Elements.chatbox.OnTextEntered(function (text)
                                             Game:TextEntered(text)
                                         end)
+	self.Elements.chat.Chat = Game:GetChats()
 end
 
 function hud:Update()
@@ -101,4 +102,5 @@ end
 function hud:Chatbox()
    self.Elements.chatbox.Visible = true 
 end
+
 

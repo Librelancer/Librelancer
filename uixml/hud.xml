@@ -72,7 +72,9 @@
         	<DisplayRectangle color="green"/>
         </ChatBox.Border>
     </ChatBox>
+    <ChatDisplay Anchor="BottomLeft" Y="130" Height="250" Width="510" X="10" id="chat"/>
 </Scene>
+
 
 
 

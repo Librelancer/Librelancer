@@ -153,6 +153,8 @@ Mouse Flight: {11}
                 nav.PopulateIcons(g.ui, g.sys);
             }
 
+            public ChatSource GetChats() => g.session.Chats;
+
 
             private string activeManeuver = "FreeFlight";
             public string GetActiveManeuver() => activeManeuver;

@@ -56,7 +56,7 @@ namespace LibreLancer.Interface
     public class InterfaceColor
     {
         public static readonly InterfaceColor White = new InterfaceColor() {Color = Color4.White};
-
+        public static readonly InterfaceColor Black = new InterfaceColor() {Color = Color4.Black};
         public string Name;
         public Color4 Color;
         public InterfaceColorAnimation Animation;
