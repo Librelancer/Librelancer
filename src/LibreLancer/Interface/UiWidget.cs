@@ -67,6 +67,10 @@ namespace LibreLancer.Interface
             var size = context.TextSize(textSize);
             var lineHeight = context.Renderer2D.LineHeight(fnt, size);
             var drawRect = context.PointsToPixels(myRectangle);
+            var sz = context.Renderer2D.MeasureStringCached(ref cache, fnt, size, text, false, CastAlign(horizontalAlign));
+            //workaround for font substitution causing layout issues - e.g. CJK
+            //TODO: How to get max lineheight of fonts in string?
+            if (sz.Y > lineHeight && sz.Y < (lineHeight * 2)) lineHeight = sz.Y; 
             float drawX, drawY;
             switch (horizontalAlign) {
                 case HorizontalAlignment.Left:
@@ -74,13 +78,11 @@ namespace LibreLancer.Interface
                     break;
                 case HorizontalAlignment.Right:
                 {
-                    var sz = context.Renderer2D.MeasureStringCached(ref cache, fnt, size, text, false, CastAlign(horizontalAlign));
                     drawX = drawRect.X + drawRect.Width - sz.X;
                     break;
                 }
                 default: // Center
                 {
-                    var sz = context.Renderer2D.MeasureStringCached(ref cache, fnt, size, text, false, CastAlign(horizontalAlign));
                     drawX = drawRect.X + (drawRect.Width / 2f) - (sz.X / 2f);
                     break;
                 }
@@ -105,9 +107,15 @@ namespace LibreLancer.Interface
         }
         public abstract void Render(UiContext context, RectangleF parentRectangle);
 
+        private Stylesheet _lastSheet;
         public virtual void ApplyStylesheet(Stylesheet sheet)
         {
-            
+            _lastSheet = sheet;
+        }
+
+        public void ReloadStyle()
+        {
+            if(_lastSheet != null) ApplyStylesheet(_lastSheet);
         }
         public virtual void UnFocus()
         {

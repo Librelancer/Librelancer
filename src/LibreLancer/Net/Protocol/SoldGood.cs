@@ -18,6 +18,8 @@ namespace LibreLancer.Net
         public float Rep;
         //Price
         public ulong Price;
+        //For Sale
+        public bool ForSale;
         
         public void Put(NetDataWriter message)
         {
@@ -25,6 +27,7 @@ namespace LibreLancer.Net
             message.Put((short)(Rep * 32767f));
             message.PutVariableUInt32(Rank < 0 ? 0U : (uint)(Rank + 1));
             message.PutVariableUInt64(Price);
+            message.Put(ForSale);
         }
 
         public static SoldGood Read(NetPacketReader message) => new()
@@ -32,7 +35,8 @@ namespace LibreLancer.Net
             GoodCRC = message.GetUInt(),
             Rep = message.GetShort() / 32767f,
             Rank = ((int)message.GetVariableUInt32()) - 1,
-            Price = message.GetVariableUInt64()
+            Price = message.GetVariableUInt64(),
+            ForSale = message.GetBool()
         };
     }
 

@@ -12,6 +12,46 @@
 			</ButtonAppearance.Background>
 		</ButtonStyle.Hover>
 	</ButtonStyle>
+	<!-- Sell button -->
+	<ButtonStyle Width="132" Height="26" Name="trader_sell">
+		<ButtonStyle.Normal MarginRight="46" TextSize="13" TextColor="text" TextShadow="black" FontFamily="$ButtonText">
+			<ButtonAppearance.Background>
+				<DisplayModel model="inv_sellarrow.3db" tint="text" />
+			</ButtonAppearance.Background>
+			<ButtonAppearance.Border>
+				<DisplayWireBorder color="text" width="2"/>
+			</ButtonAppearance.Border>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover TextColor="text_hover">
+			<ButtonAppearance.Background>
+				<DisplayModel model="inv_sellarrow.3db" tint="text_hover" />
+			</ButtonAppearance.Background>
+			<ButtonAppearance.Border>
+				<DisplayWireBorder color="text_hover" width="2"/>
+			</ButtonAppearance.Border>
+		</ButtonStyle.Hover>
+	</ButtonStyle>
+	
+	<!-- Buy button -->
+	<ButtonStyle Width="132" Height="26" Name="trader_buy">
+		<ButtonStyle.Normal MarginLeft="17" TextSize="13" TextColor="text" TextShadow="black" FontFamily="$ButtonText">
+			<ButtonAppearance.Background>
+				<DisplayModel model="inv_buyarrow.3db" tint="text" />
+			</ButtonAppearance.Background>
+			<ButtonAppearance.Border>
+				<DisplayWireBorder color="text" width="2"/>
+			</ButtonAppearance.Border>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover TextColor="text_hover">
+			<ButtonAppearance.Background>
+				<DisplayModel model="inv_buyarrow.3db" tint="text_hover" />
+			</ButtonAppearance.Background>
+			<ButtonAppearance.Border>
+				<DisplayWireBorder color="text_hover" width="2"/>
+			</ButtonAppearance.Border>
+		</ButtonStyle.Hover>
+	</ButtonStyle>
+	
 	<!-- Neuronet buttons -->
 	<ButtonStyle Width="21" Height="21" Name="nn_info">
 		<ButtonStyle.Normal>
@@ -284,6 +324,7 @@
 		</ScrollbarStyle.Thumb>
 	</ScrollbarStyle>
 </Stylesheet>
+
 
 
 

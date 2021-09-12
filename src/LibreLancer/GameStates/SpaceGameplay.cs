@@ -154,6 +154,7 @@ Mouse Flight: {11}
             }
 
             public ChatSource GetChats() => g.session.Chats;
+            public double GetCredits() => g.session.Credits;
 
 
             private string activeManeuver = "FreeFlight";

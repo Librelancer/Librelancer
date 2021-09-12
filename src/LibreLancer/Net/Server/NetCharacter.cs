@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 
 namespace LibreLancer
 {
@@ -14,9 +16,11 @@ namespace LibreLancer
         public long Credits;
         public GameData.Ship Ship;
         public List<NetEquipment> Equipment;
-
+        public List<NetCargo> Cargo;
         private long charId;
         GameDataManager gData;
+        
+        private int _itemID;
         public static NetCharacter FromDb(long id, GameServer game)
         {
             var character = game.Database.GetCharacter(id);
@@ -29,6 +33,7 @@ namespace LibreLancer
             nc.Ship = game.GameData.GetShip(character.Ship);
             nc.Credits = character.Money;
             nc.Equipment = new List<NetEquipment>(character.Equipment.Count);
+            nc.Cargo = new List<NetCargo>();
             foreach(var equip in character.Equipment)
             {
                 var resolved = game.GameData.GetEquipment(equip.EquipmentNickname);
@@ -43,16 +48,33 @@ namespace LibreLancer
             return nc;
         }
 
+        public void AddCargo(GameData.Items.Equipment equip, int count)
+        {
+            var slot = Cargo.FirstOrDefault(x => equip.Good.Equipment == x.Equipment);
+            if (slot == null)
+            {
+                Cargo.Add(new NetCargo() { Equipment =  equip, Count = count});
+            }
+            else
+            {
+                slot.Count += count;
+            }
+        }
+
         public NetShipLoadout EncodeLoadout()
         {
             var sl = new NetShipLoadout();
             sl.ShipCRC = Ship.CRC;
             sl.Equipment = new List<NetShipEquip>(Equipment.Count);
+            sl.Cargo = new List<NetShipCargo>(Cargo.Count);
             foreach(var equip in Equipment) {
                 sl.Equipment.Add(new NetShipEquip(
                 equip.Hardpoint == null ? 0 : CrcTool.FLModelCrc(equip.Hardpoint),
                     equip.Equipment.CRC,
                 (byte)(equip.Health * 255f))); 
+            }
+            foreach (var c in Cargo) { 
+                sl.Cargo.Add(new NetShipCargo(c.ID, c.Equipment.CRC, c.Count));
             }
             return sl;
         }
@@ -69,6 +91,22 @@ namespace LibreLancer
             return selectable;
         }
 
+    }
+
+    public class NetCargo
+    {
+        private static int _id;
+        public readonly int ID;
+        public NetCargo()
+        {
+            ID = Interlocked.Increment(ref _id);
+        }
+        public NetCargo(int id)
+        {
+            ID = id;
+        }
+        public GameData.Items.Equipment Equipment;
+        public int Count;
     }
 
     public class NetEquipment

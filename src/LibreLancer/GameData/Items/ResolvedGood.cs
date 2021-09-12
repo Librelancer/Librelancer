@@ -8,7 +8,7 @@ namespace LibreLancer.GameData.Items
     {
         public Data.Goods.Good Ini;
         public Equipment Equipment;
-
+        public uint CRC;
         public override string ToString()
         {
             return Ini?.Nickname ?? "Invalid";

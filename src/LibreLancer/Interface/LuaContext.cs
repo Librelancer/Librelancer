@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Infocards;
 using MoonSharp.Interpreter;
 using MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors;
 using MoonSharp.Interpreter.Loaders;
@@ -162,6 +163,9 @@ namespace LibreLancer.Interface
             public string GetNavbarIconPath(string ico) => c.uiContext.Data.GetNavbarIconPath(ico);
             public Vector3 Vector3(float x, float y, float z) => new Vector3(x, y, z);
             public string StringFromID(int id) => c.uiContext.Data.Infocards.GetStringResource(id);
+            public Infocard GetInfocard(int id) =>
+                RDLParse.Parse(c.uiContext.Data.Infocards.GetXmlResource(id), c.uiContext.Data.Fonts);
+            public string NumberToStringCS(double num, string fmt) => num.ToString(fmt);
 
             Dictionary<string,DynValue> mods = new Dictionary<string, DynValue>();
             public DynValue Require(string mod)

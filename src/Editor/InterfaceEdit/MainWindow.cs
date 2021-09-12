@@ -171,6 +171,7 @@ namespace InterfaceEdit
                     ImGui.MenuItem("Repair", "", ref TestApi.HasRepairAction);
                     ImGui.MenuItem("Missions", "", ref TestApi.HasMissionVendor);
                     ImGui.MenuItem("News", "", ref TestApi.HasNewsAction);
+                    ImGui.MenuItem("Commodity Trader", "", ref TestApi.HasCommodityTraderAction);
                     ImGui.EndMenu();
                 }
                 ImGui.EndMenu();

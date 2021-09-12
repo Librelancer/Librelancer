@@ -84,12 +84,18 @@ function baseside:ctor()
 	local has_news = false
 	local news_button = {}
 
+	local has_commodity = false
+	local commodity_button = {}
+	
     local actionbox = navbox.GetActionBox(self.Widget, container, btns, actions, activeIDS)
     for index, action in ipairs(actions) do
         local obj = NavbarAction(action.IconName)
 		if action.IconName == "IDS_HOTSPOT_NEWSVENDOR" then
 			has_news = true
 			news_button = obj
+		elseif action.IconName == "IDS_HOTSPOT_COMMODITYTRADER" then
+			has_commodity = true
+			commodity_button = obj
 		else
         	obj:OnClick(function()
             	Game:HotspotPressed(action.IDS)
@@ -105,14 +111,18 @@ function baseside:ctor()
 	self.InfoWindow = infowindow()
 	self.Map = mapwindow()
 	self.Map:InitMap()
-
+	self.CommodityTrader = commodity()
 	local windows = {
 		{ self.Elements.nn_map, self.Map },
-		{ self.Elements.nn_info, self.InfoWindow }
+		{ self.Elements.nn_info, self.InfoWindow },
 	}
 	if has_news then
 		self.News = news()
 		table.insert(windows, { news_button, self.News })
+	end
+	if has_commodity then
+		self.CommodityTrader = commodity()
+		table.insert(windows, { commodity_button, self.CommodityTrader })
 	end
 	self.WindowManager = childwindowmanager(self.Widget, windows)
 
@@ -122,6 +132,8 @@ end
 function baseside:Chatbox()
    self.Elements.chatbox.Visible = true 
 end
+
+
 
 
 

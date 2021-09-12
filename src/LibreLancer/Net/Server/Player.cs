@@ -21,6 +21,7 @@ namespace LibreLancer
         //ID
         public int ID = 0;
         static int _gid = 0;
+
         //Reference
         public IPacketClient Client;
         GameServer game;
@@ -106,6 +107,7 @@ namespace LibreLancer
                 ps = game.GameData.GetShip(sg.Player.ShipArchetypeCrc).Nickname;
             Character.Ship = game.GameData.GetShip(ps);
             Character.Equipment = new List<NetEquipment>();
+            Character.Cargo = new List<NetCargo>();
             foreach (var eq in sg.Player.Equip)
             {
                 var hp = eq.Hardpoint;
@@ -120,6 +122,19 @@ namespace LibreLancer
                     });
                 }
             }
+            foreach (var cg in sg.Player.Cargo)
+            {
+                Equipment equip;
+                if (cg.CargoName != null) equip = game.GameData.GetEquipment(cg.CargoName);
+                else equip = game.GameData.GetEquipment(cg.CargoHash);
+                if (equip != null)
+                {
+                    Character.Cargo.Add(new NetCargo()
+                    {
+                        Equipment = equip, Count = cg.Count
+                    });
+                }
+            }
             if (Base != null)
             {
                 PlayerEnterBase();
@@ -131,7 +146,7 @@ namespace LibreLancer
                 game.RequestWorld(sys, (world) =>
                 {
                     World = world; 
-                    rpcClient.SpawnPlayer(System, Position, Orientation, Character.EncodeLoadout());
+                    rpcClient.SpawnPlayer(System, Position, Orientation, Character.Credits, Character.EncodeLoadout());
                     world.SpawnPlayer(this, Position, Orientation);
                     //work around race condition where world spawns after player has been sent to a base
                     InitStory(sg);
@@ -139,8 +154,7 @@ namespace LibreLancer
             }
             
         }
-
-
+        
         bool NewsFind(LibreLancer.Data.Missions.NewsItem ni)
         {
             if (ni.Rank[1] != "mission_end")
@@ -168,15 +182,69 @@ namespace LibreLancer
             //send to player
             lock (rtcs)
             {
-                rpcClient.BaseEnter(Base, Character.EncodeLoadout(), rtcs.ToArray(), news.ToArray(), BaseData.SoldGoods.Select(x => new SoldGood()
+                rpcClient.BaseEnter(Base, Character.Credits, Character.EncodeLoadout(), rtcs.ToArray(), news.ToArray(), BaseData.SoldGoods.Select(x => new SoldGood()
                 {
                     GoodCRC = CrcTool.FLModelCrc(x.Good.Ini.Nickname),
                     Price = x.Price,
                     Rank = x.Rank,
-                    Rep = x.Rep
+                    Rep = x.Rep,
+                    ForSale = x.ForSale
                 }).ToArray());
             }
         }
+
+        async Task<bool> IServerPlayer.PurchaseGood(string item, int count)
+        {
+            if (BaseData == null) return false;
+            var g = BaseData.SoldGoods.FirstOrDefault(x =>
+                x.Good.Equipment.Nickname.Equals(item, StringComparison.OrdinalIgnoreCase));
+            if (g == null) return false;
+            var cost = (long) (g.Price * (ulong)count);
+            if (Character.Credits >= cost)
+            {
+                Character.Credits -= cost;
+                Character.AddCargo(g.Good.Equipment, count);
+                rpcClient.UpdateInventory(Character.Credits, Character.EncodeLoadout());
+                return true;
+            }
+            return false;
+        }
+
+        async Task<bool> IServerPlayer.SellGood(int id, int count)
+        {
+            if (BaseData == null)
+            {
+                FLLog.Error("Player", $"{Name} tried to sell good while in space");
+                return false;
+            }
+            var slot = Character.Cargo.FirstOrDefault(x => x.ID == id);
+            if (slot == null)
+            {
+                FLLog.Error("Player", $"{Name} tried to sell unknown slot {id}");
+                return false;
+            }
+            if (slot.Count < count)
+            {
+                FLLog.Error("Player", $"{Name} tried to oversell slot");
+                return false;
+            }
+            var g = BaseData.SoldGoods.FirstOrDefault(x =>
+                x.Good.Equipment.Nickname.Equals(slot.Equipment.Nickname, StringComparison.OrdinalIgnoreCase));
+            ulong unitPrice;
+            if (g != null) {
+                unitPrice = g.Price;
+            }
+            else {
+                unitPrice = (ulong)slot.Equipment.Good.Ini.Price;
+            }
+
+            slot.Count -= count;
+            if (slot.Count <= 0) Character.Cargo.Remove(slot);
+            Character.Credits += (long)((ulong)count * unitPrice);
+            rpcClient.UpdateInventory(Character.Credits, Character.EncodeLoadout());
+            return true;
+        }
+        
         void InitStory(Data.Save.SaveGame sg)
         {
             var missionNum = sg.StoryInfo?.MissionNum ?? 0;
@@ -286,19 +354,47 @@ namespace LibreLancer
           
         }
 
+        class ConsoleCommand
+        {
+            public string Cmd;
+            public Action<string> Action;
+            public ConsoleCommand(string cmd, Action<string> act)
+            {
+                this.Cmd = cmd;
+                this.Action = act;
+            }
+        }
+
+        private ConsoleCommand[] Commands;
+
+        void InitCommands()
+        {
+            Commands = new ConsoleCommand[]
+            {
+                new("base", (arg) =>
+                {
+                    if(game.GameData.BaseExists(arg))
+                        ForceLand(arg);
+                    else 
+                        rpcClient.OnConsoleMessage($"Base does not exist `{arg}`");
+                }),
+                new("credits", (x) => rpcClient.OnConsoleMessage($"You have ${Character.Credits}"))
+            };
+        }
+
         void IServerPlayer.ConsoleCommand(string cmd)
         {
-            if (cmd.StartsWith("base", StringComparison.OrdinalIgnoreCase))
+            if (Commands == null) InitCommands();
+            foreach (var x in Commands)
             {
-                var arg = cmd.Substring(4).Trim();
-                if(game.GameData.BaseExists(arg))
-                    ForceLand(arg);
-                else 
-                    rpcClient.OnConsoleMessage($"Base does not exist `{arg}`");
+                if (cmd.StartsWith(x.Cmd, StringComparison.OrdinalIgnoreCase))
+                {
+                    var arg = cmd.Substring(x.Cmd.Length).Trim();
+                    x.Action(arg);
+                    return;
+                }
             }
-            else {
-                rpcClient.OnConsoleMessage("Unrecognised command");
-            }
+            rpcClient.OnConsoleMessage("Unrecognised command");
         }
 
         void IServerPlayer.RequestCharacterDB()
@@ -438,6 +534,8 @@ namespace LibreLancer
             game.RequestWorld(sys, (world) =>
             {
                 this.World = world;
+                BaseData = null;
+                Base = null;
                 var obj = sys.Objects.FirstOrDefault((o) =>
                 {
                     return (o.Dock != null &&
@@ -457,7 +555,7 @@ namespace LibreLancer
                     Orientation = (obj.Rotation ?? Matrix4x4.Identity).ExtractRotation();
                     Position = Vector3.Transform(new Vector3(0, 0, 500), Orientation) + obj.Position; //TODO: This is bad
                 }
-                rpcClient.SpawnPlayer(System, Position, Orientation, Character.EncodeLoadout());
+                rpcClient.SpawnPlayer(System, Position, Orientation, Character.Credits, Character.EncodeLoadout());
                 world.SpawnPlayer(this, Position, Orientation);
                 msnRuntime?.EnteredSpace();
             });

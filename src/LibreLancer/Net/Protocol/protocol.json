@@ -34,6 +34,16 @@
           "name": "CreateNewCharacter",
           "return": "bool",
           "args": [ { "name": "name", "type":  "string" }, { "name": "index", "type":  "int" }]
+        },
+        {
+          "name": "PurchaseGood",
+          "return": "bool",
+          "args": [ { "name":  "item", "type":  "string" }, { "name":  "count", "type":  "int" }]
+        },
+        {
+          "name": "SellGood",
+          "return": "bool",
+          "args": [ { "name":  "id", "type":  "int" }, { "name":  "count", "type":  "int" }]
         }
     ],
     "client_methods": [
@@ -61,7 +71,15 @@
             { "name":  "system", "type":  "string" },
             { "name":  "position", "type":  "Vector3" },
             { "name":  "orientation", "type":  "Quaternion" },
+            { "name":  "credits", "type":  "long" },
             { "name":  "ship", "type": "NetShipLoadout" }
+          ]
+        },
+        {
+          "name": "UpdateInventory",
+          "args": [
+            { "name":  "credits", "type":  "long" },
+            { "name":  "ship", "type":  "NetShipLoadout" }
           ]
         },
         {
@@ -89,6 +107,7 @@
           "name": "BaseEnter",
           "args": [
             { "name" :  "_base", "type":  "string" },
+            { "name":  "credits", "type":  "long" },
             { "name" :  "ship", "type":  "NetShipLoadout" },
             { "name":  "rtcs", "type":  "string[]" },
             { "name":  "news", "type":  "NewsArticle[]" },

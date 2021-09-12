@@ -11,6 +11,8 @@ namespace LibreLancer.GameData.Items
 		{
 		}
         public string Nickname;
+        public int IdsName;
+        public int IdsInfo;
         public uint CRC;
         public float[] LODRanges;
         public string HPChild;

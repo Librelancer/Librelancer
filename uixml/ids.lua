@@ -1,0 +1,4 @@
+-- IDs referenced by UI code
+STRID_BUY = 3016
+STRID_SELL = 3017
+STRID_CREDITS = 1142

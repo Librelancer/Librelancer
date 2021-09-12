@@ -125,7 +125,12 @@ end
 function require(mod)
     return _f:Require(mod)
 end
-
+function NumberToStringCS(num, fmt)
+    return _f:NumberToStringCS(num, fmt)
+end
+function GetInfocard(id)
+    return _f:GetInfocard(id)
+end
 ";
     }
 }

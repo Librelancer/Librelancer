@@ -32,6 +32,7 @@ namespace LibreLancer
 		public string PlayerShip;
 		public List<string> PlayerComponents = new List<string>();
         public List<EquipMount> Mounts = new List<EquipMount>();
+        public List<NetCargo> Cargo = new List<NetCargo>();
         public List<StoryCutsceneIni> ActiveCutscenes = new List<StoryCutsceneIni>();
 		public FreelancerGame Game;
 		public string PlayerSystem;
@@ -99,15 +100,23 @@ namespace LibreLancer
         {
             hasChanged = false;
             UpdatePackets();
+            UIUpdate();
             return hasChanged;
         }
 
         Queue<Action> gameplayActions = new Queue<Action>();
+        private Queue<Action> uiActions = new Queue<Action>();
         private Queue<Action> audioActions = new Queue<Action>();
 
         void UpdateAudio()
         {
             while (audioActions.TryDequeue(out var act))
+                act();
+        }
+
+        void UIUpdate()
+        {
+            while (uiActions.TryDequeue(out var act))
                 act();
         }
         
@@ -174,6 +183,12 @@ namespace LibreLancer
                     Game.GameData.GetEquipment(eq.EquipCRC).Nickname
                 ));
             }
+            Cargo = new List<NetCargo>();
+            foreach (var cg in ld.Cargo)
+            {
+                var equip = Game.GameData.GetEquipment(cg.EquipCRC);
+                Cargo.Add(new NetCargo(cg.ID) { Equipment = equip, Count = cg.Count });
+            }
         }
 
         //Use only for Single Player
@@ -201,6 +216,17 @@ namespace LibreLancer
 
         void RunSync(Action gp) => gameplayActions.Enqueue(gp);
 
+        public Action OnUpdateInventory;
+
+        void IClientPlayer.UpdateInventory(long credits, NetShipLoadout loadout)
+        {
+            Credits = credits;
+            SetSelfLoadout(loadout);
+            if (OnUpdateInventory != null) {
+                uiActions.Enqueue(OnUpdateInventory);
+            }
+        }
+
         void IClientPlayer.SpawnObject(int id, string name, Vector3 position, Quaternion orientation, NetShipLoadout loadout)
         {
             RunSync(() =>
@@ -218,9 +244,10 @@ namespace LibreLancer
             });
         }
 
-        void IClientPlayer.SpawnPlayer(string system, Vector3 position, Quaternion orientation, NetShipLoadout ship)
+        void IClientPlayer.SpawnPlayer(string system, Vector3 position, Quaternion orientation, long credits, NetShipLoadout ship)
         {
             PlayerBase = null;
+            Credits = credits;
             PlayerSystem = system;
             PlayerPosition = position;
             PlayerOrientation = Matrix4x4.CreateFromQuaternion(orientation);
@@ -253,18 +280,24 @@ namespace LibreLancer
             });
         }
 
-        void IClientPlayer.BaseEnter(string _base, NetShipLoadout ship, string[] rtcs, NewsArticle[] news, SoldGood[] goods)
+        public SoldGood[] Goods;
+
+        void IClientPlayer.BaseEnter(string _base, long credits, NetShipLoadout ship, string[] rtcs, NewsArticle[] news, SoldGood[] goods)
         {
             PlayerBase = _base;
             News = news;
+            Goods = goods;
+            Credits = credits;
             SetSelfLoadout(ship);
             SceneChangeRequired();
             AddRTC(rtcs);
         }
 
+        public Dictionary<uint, ulong> BaselinePrices = new Dictionary<uint, ulong>();
         void IClientPlayer.UpdateBaselinePrices(BaselinePrice[] prices)
         {
-            
+            foreach (var p in prices)
+                BaselinePrices[p.GoodCRC] = p.Price;
         }
 
         void IClientPlayer.UpdateRTCs(string[] rtcs)

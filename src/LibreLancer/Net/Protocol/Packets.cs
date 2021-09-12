@@ -142,10 +142,25 @@ namespace LibreLancer
         }
     }
 
+    public class NetShipCargo
+    {
+        public int ID;
+        public uint EquipCRC;
+        public int Count;
+
+        public NetShipCargo(int id, uint crc, int count)
+        {
+            ID = id;
+            EquipCRC = crc;
+            Count = count;
+        }
+    }
+
     public class NetShipLoadout
     {
         public uint ShipCRC;
         public List<NetShipEquip> Equipment;
+        public List<NetShipCargo> Cargo;
         public static NetShipLoadout Read(NetPacketReader message)
         {
             var s = new NetShipLoadout();
@@ -154,6 +169,12 @@ namespace LibreLancer
             s.Equipment = new List<NetShipEquip>(equipCount);
             for(int i = 0; i < equipCount; i++) {
                 s.Equipment.Add(new NetShipEquip(message.GetUInt(), message.GetUInt(), message.GetByte()));
+            }
+            var cargoCount = (int)message.GetVariableUInt32();
+            s.Cargo = new List<NetShipCargo>(cargoCount);
+            for (int i = 0; i < cargoCount; i++)
+            {
+                s.Cargo.Add(new NetShipCargo(message.GetInt(), message.GetUInt(), message.GetInt()));
             }
             return s;
         }
@@ -165,6 +186,12 @@ namespace LibreLancer
                 message.Put(equip.HardpointCRC);
                 message.Put(equip.EquipCRC);
                 message.Put(equip.Health);
+            }
+            foreach (var c in Cargo)
+            {
+                message.Put(c.ID);
+                message.Put(c.EquipCRC);
+                message.Put(c.Count);
             }
         }
     }

@@ -54,6 +54,8 @@ namespace LibreLancer.Interface
         public UiRenderable Background { get; set; }
         public UiRenderable Border { get; set; }
         public float TextSize { get; set; }
+        public float MarginLeft { get; set; }
+        public float MarginRight { get; set; }
         public string FontFamily { get; set; }
         public HorizontalAlignment HorizontalAlignment { get; set; }
         public VerticalAlignment VerticalAlignment { get; set; }

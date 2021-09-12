@@ -7,6 +7,7 @@ using LibreLancer.Interface;
 using System.Collections.Generic;
 using LibreLancer.Infocards;
 using LibreLancer.Net;
+using MoonSharp.Interpreter;
 
 namespace InterfaceEdit
 {
@@ -142,6 +143,7 @@ namespace InterfaceEdit
         
         public ChatSource GetChats() => chats;
 
+        public double GetCredits() => 12345678;
         public LuaCompatibleDictionary GetManeuversEnabled()
         {
             var dict = new LuaCompatibleDictionary();
@@ -151,6 +153,69 @@ namespace InterfaceEdit
             dict.Set("Formation", false);
             return dict;
         }
+
+       
+
+        public class TraderFake
+        {
+            UIInventoryItem[] pitems = new[]
+            {
+                new UIInventoryItem()
+                {
+                    Icon = @"Equipment\models\commodities\nn_icons\COMMOD_chemicals.3db",
+                    Price = 240,
+                    IdsName = 261626,
+                    IdsInfo = 65908,
+                    Count = 32,
+                },
+                new UIInventoryItem()
+                {
+                    Icon = @"Equipment\models\commodities\nn_icons\COMMOD_metals.3db",
+                    Price = 40,
+                    IdsName = 261627,
+                    IdsInfo = 65908,
+                    Count = 1
+                }
+            };
+            
+            UIInventoryItem[] titems = new[]
+            {
+                new UIInventoryItem()
+                {
+                    Icon = @"Equipment\models\commodities\nn_icons\COMMOD_chemicals.3db",
+                    Price = 240,
+                    IdsName = 261626, //mox
+                    IdsInfo = 65908,
+                    Count = 0,
+                },
+                new UIInventoryItem()
+                {
+                    Icon = @"Equipment\models\commodities\nn_icons\COMMOD_metals.3db",
+                    Price = 40,
+                    IdsName = 261627, //basic alloy
+                    IdsInfo = 65885,
+                    Count = 0
+                }
+            };
+
+            public UIInventoryItem[] GetPlayerGoods(string filter) => pitems;
+            public UIInventoryItem[] GetTraderGoods(string filter) => titems;
+
+            public void Buy(string good, int count)
+            {
+            }
+
+            public void Sell(int id, int count)
+            {
+            }
+
+            public void OnUpdateInventory(Closure handler)
+            {
+            }
+        }
+
+        public TraderFake Trader = new TraderFake();
+
 
         public int ThrustPercent() => 111;
         public int Speed() => 67;

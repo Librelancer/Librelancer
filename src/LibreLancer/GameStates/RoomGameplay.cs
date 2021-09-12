@@ -121,6 +121,7 @@ namespace LibreLancer
             {
                 this.g = g;
                 articles = g.session.News;
+                Trader = new Trader(g.session);
             }
 
             public NewsArticle[] GetNewsArticles() => articles;
@@ -129,6 +130,10 @@ namespace LibreLancer
             public string ActiveNavbarButton() => g.active;
 
             public Infocard CurrentInfocard() => g.roomInfocard;
+
+            public double GetCredits() => g.session.Credits;
+
+            public Trader Trader;
             
             public ChatSource GetChats() => g.session.Chats;
 
@@ -165,6 +170,16 @@ namespace LibreLancer
                         if(g.session.News?.Length > 0)
                             actions.Add(new NavbarButtonInfo(INVALID_ACTION, "IDS_HOTSPOT_NEWSVENDOR"));
                         break;
+                }
+
+                foreach (var hp in g.currentRoom.Hotspots)
+                {
+                    switch (hp.Name.ToUpperInvariant())
+                    {
+                        case "IDS_HOTSPOT_COMMODITYTRADER":
+                            actions.Add(new NavbarButtonInfo("CommodityTrader", hp.Name));
+                            break;
+                    }
                 }
                 return actions.ToArray();
             }

@@ -18,7 +18,11 @@ namespace LibreLancer.Interface
         public string Style { get; set; }
         public float TextSize { get; set; }
         public string FontFamily { get; set; }
+
+        public float MarginLeft { get; set; }
         
+        public float MarginRight { get; set; }
+
         InfoTextAccessor txtAccess = new InfoTextAccessor();
         public string Text
         {
@@ -41,6 +45,8 @@ namespace LibreLancer.Interface
         public VerticalAlignment VerticalAlignment { get; set; }
         public InterfaceColor TextColor { get; set; }
         public InterfaceColor TextShadow { get; set; }
+        
+        public bool DebugTextFrame { get; set; }
         
         private ButtonStyle style;
         private bool styleSetManual = false;
@@ -87,12 +93,25 @@ namespace LibreLancer.Interface
             if (!Enabled) activeStyle = style?.Disabled;
             var bk = Cascade(style?.Normal?.Background, activeStyle?.Background, Background);
             bk?.Draw(context, myRectangle);
-            if (!string.IsNullOrEmpty(Text) && !string.IsNullOrWhiteSpace(Text))
+
+            float mLeft = Cascade(style?.Normal?.MarginLeft, activeStyle?.MarginLeft, MarginLeft);
+            float mRight = Cascade(style?.Normal?.MarginRight, activeStyle?.MarginRight, MarginRight);
+
+            var txt = GetText(context);
+            if (!string.IsNullOrEmpty(txt) && !string.IsNullOrWhiteSpace(txt))
             {
+                var textRect = myRectangle;
+                textRect.X += mLeft;
+                textRect.Width -= mRight;
+                if (DebugTextFrame)
+                {
+                    context.Mode2D();
+                    context.Renderer2D.DrawRectangle(context.PointsToPixels(textRect), Color4.Aqua, 1);
+                }
                 DrawText(
                     context,
                     ref textCache,
-                    myRectangle,
+                    textRect,
                     Cascade(style?.Normal?.TextSize, activeStyle?.TextSize, TextSize),
                     Cascade(style?.Normal?.FontFamily, activeStyle?.FontFamily, FontFamily),
                     Cascade(style?.Normal?.TextColor, activeStyle?.TextColor, TextColor),
@@ -100,7 +119,7 @@ namespace LibreLancer.Interface
                     Cascade(style?.Normal?.HorizontalAlignment, activeStyle?.HorizontalAlignment, HorizontalAlignment),
                     Cascade(style?.Normal?.VerticalAlignment, activeStyle?.VerticalAlignment, VerticalAlignment),
                     true,
-                    GetText(context)
+                    txt
                 );
             }
             var border = Cascade(style?.Normal?.Border, activeStyle?.Border, Border);
@@ -176,6 +195,7 @@ namespace LibreLancer.Interface
 
         public override void ApplyStylesheet(Stylesheet sheet)
         {
+            base.ApplyStylesheet(sheet);
             if(!styleSetManual) style = sheet.Lookup<ButtonStyle>(Style);
         }
     }

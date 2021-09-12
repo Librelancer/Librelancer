@@ -7,7 +7,7 @@
 				<DisplayModel Model="front_serverselect"/>
 			</Panel.Background>
 			<TextBlock Width="607" Height="20" InfoId="393330" Text="FREELANCER SERVERS" TextShadow="black" TextColor="text" X="0" Font="$Header" TextSize="16" Y="-19"/>
-			<TextBlock Width="640" Height="20" HorizontalAlignment="Left" Text="SELECT A SERVER" TextShadow="black" TextColor="text" X="14" Font="$Header" TextSize="16" Y="11"/>
+			<TextBlock Width="640" Height="20" InfoId="393341" HorizontalAlignment="Left" Text="SELECT A SERVER" TextShadow="black" TextColor="text" X="14" Font="$Header" TextSize="16" Y="11"/>
 			<DataTable id="listtable" X="20" Y="45" Width="560" Height="190" 
                        DisplayRowCount="8" LineColor="text" LineHover="text_hover" LineDown="yellow" HeaderColor="text"
                        BodyColor="text" BodyHover="text_hover" SelectedColor="yellow" HeaderTextSize="13">
@@ -31,11 +31,12 @@
 			<Panel.Background>
 				<DisplayModel model="front_serverselect_info"/>
 			</Panel.Background>
-			<TextBlock Width="140" Height="20" Anchor="TopCenter" HorizontalAlignment="Center" Text="SERVER DESCRIPTION" TextShadow="black" TextColor="text" Font="$Header" TextSize="15" Y="10"/>
+			<TextBlock Width="140" Height="20" Anchor="TopCenter" HorizontalAlignment="Center" Strid="1860" Text="SERVER DESCRIPTION" TextShadow="black" TextColor="text" Font="$Header" TextSize="15" Y="10"/>
 			<TextBlock id="descriptiontext" Width="420" Height="39" Anchor="BottomCenter" HorizontalAlignment="Left" VerticalAlignment="Top" TextShadow="black" TextColor="text" Font="$ListText" TextSize="9" Y="9"/>
 		</Panel>
 		<Button X="455" Y="350" id="refreshlist" Style="menubutton" InfoId="393255" Text="REFRESH LIST"/>
 		<Button X="455" Y="414" id="connect" Style="menubutton" InfoId="393239" Text="CONNECT >"/>
 	</Panel>
 </Scene>
+
 

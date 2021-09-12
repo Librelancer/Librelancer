@@ -12,5 +12,6 @@ namespace LibreLancer.GameData
         public ResolvedGood Good;
         public float Rep;
         public ulong Price;
+        public bool ForSale;
     }
 }

@@ -130,6 +130,10 @@
   <Model name="news_textframe" path="INTERFACE/NEURONET/NEWSVENDOR/news_textframe.3db" x="0" y="0" xscale="1.756" yscale="5.6" />
   <Model name="news_headlineframe" path="INTERFACE/NEURONET/NEWSVENDOR/news_headlineframe.3db" x="0" y="-0.125" xscale="2.8" yscale="5.2" />
   <Model name="news_videowindow" path="INTERFACE/NEURONET/NEWSVENDOR/news_videowindow.3db" x="0" y="0" xscale="5.104" yscale="6.83" />
+  <Model name="inv_trade_background" path="INTERFACE/NEURONET/INVENTORY/inv_biginforcard.cmp" x="-1" y="0.973" xscale="1.55" yscale="2.4" />
+  <Model name="inv_sellarrow.3db" path="INTERFACE/NEURONET/INVENTORY/inv_sellarrow.3db" x="0.63" y="0" xscale="7.4" yscale="36" />
+  <Model name="inv_buyarrow.3db" path="INTERFACE/NEURONET/INVENTORY/inv_buyarrow.3db" x="-0.6" y="0" xscale="7.4" yscale="36" />
+  <Model name="commod_consumergoods.3db" path="EQUIPMENT/MODELS/COMMODITIES/NN_ICONS/commod_consumergoods.3db" x="0" y="0" xscale="28.2" yscale="29.4" />
   <Image name="sliderarrow_up" texname="HUD_sliderarrow" type="Triangle" flip="false">
     <TexCoords>
       <X0>0.086419754</X0>

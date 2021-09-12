@@ -9,7 +9,7 @@
 	    <!-- Controls -->
 	    <Panel ID="contents" Width="531" Height="381">
 	        <Button ID="close" Style="xbutton" Anchor="TopRight" X="16" Y="14" Width="12" Height="12" />
-	        <TextBlock Y="7" Width="531" Height="50" HorizontalAlignment="Center" Text="NEWS" TextColor="text" TextShadow="#000000FF" VerticalAlignment="Top" TextSize="14" />
+	        <TextBlock Y="7" Width="531" Height="50" HorizontalAlignment="Center" Strid="1195" Text="NEWS" TextColor="text" TextShadow="#000000FF" VerticalAlignment="Top" TextSize="14" />
 	        <!-- Headlines -->
 	        <Panel X="28.24" Y="30" Width="297" Height="160">
 	        	<Panel.Background>
@@ -46,3 +46,4 @@
 	
 </Panel>
 </Scene>
+

@@ -1,0 +1,32 @@
+<Scene>
+<Panel Width="640" Height="480" Anchor="Center">
+<Panel Anchor="Center" Y="37" X="3" Width="624" Height="406" ID="background">
+<Panel.Background>
+<DisplayModel model="inv_trade_background" />
+</Panel.Background>
+
+<Panel Width="624" Height="406" ID="contents">
+	<Button style="xbutton" id="close" Anchor="TopRight" X="13" Y="20" Width="13" Height="13" />
+	<TextBlock TextColor="text" TextShadow="#000000FF" X="410" Y="18" Width="200" Height="20" Strid="8515" TextSize="13" /> <!-- DEALER -->
+	<TextBlock TextColor="text" TextShadow="#000000FF" X="4" Y="18" Width="200" Height="20" Strid="8511" TextSize="13" /> <!-- INVENTORY-->
+	<TextBlock TextColor="text" TextShadow="#000000FF" X="4" Y="33" Width="200" Height="20" Text="CREDITS $1,845" TextSize="11" id="credits_text" /> <!-- CREDITS -->
+	<Button id="btn_buysell" style="trader_buy" Strid="3016" X="245" Y="29" />
+	
+	<ListBox id="inv_list" X = "14" Y = "55" Width = "186" Height="170" ItemHeight="32">
+
+	</ListBox>
+	
+	<ListBox id="tr_list" X = "418" Y = "55" Width = "186" Height="170" ItemHeight="32">
+
+	</ListBox>
+	<InfocardDisplay id="item_infocard" X="40" Y="270" Width="545" Height="120" >
+
+	</InfocardDisplay>
+</Panel>
+</Panel>
+</Panel>
+</Scene>
+
+
+
+

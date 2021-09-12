@@ -33,7 +33,7 @@ namespace LibreLancer.Interface
         }
         
         private int childOffset = 0;
-        private int selectedIndex = 0;
+        private int selectedIndex = -1;
 
         public int SelectedIndex
         {
@@ -44,7 +44,8 @@ namespace LibreLancer.Interface
             set {
                 UnselectAll();
                 selectedIndex = value;
-                Children[selectedIndex].Selected = true;
+                if(value > 0 && value < Children.Count)
+                    Children[selectedIndex].Selected = true;
             }
         }
         

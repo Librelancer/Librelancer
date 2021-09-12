@@ -199,8 +199,12 @@ namespace LibreLancer
 
         private Dictionary<uint, string> goodHashes = new Dictionary<uint, string>();
         private Dictionary<string, ResolvedGood> goods = new Dictionary<string, ResolvedGood>();
-        public IEnumerable<ResolvedGood> AllGoods => goods.Values;
+        private Dictionary<string, ResolvedGood> equipToGood = new Dictionary<string, ResolvedGood>();
         
+        public IEnumerable<ResolvedGood> AllGoods => goods.Values;
+
+        public bool TryGetGood(string nickname, out ResolvedGood good) => goods.TryGetValue(nickname, out good);
+
         public string GoodFromCRC(uint crc) => goodHashes[crc];
         void InitGoods()
         {
@@ -231,7 +235,7 @@ namespace LibreLancer
                     case Data.Goods.GoodCategory.Commodity:
                         if (equipments.TryGetValue(g.Nickname, out var equip))
                         {
-                            var good = new ResolvedGood() {Equipment = equip, Ini = g};
+                            var good = new ResolvedGood() {Equipment = equip, Ini = g, CRC = CrcTool.FLModelCrc(g.Nickname) };
                             equip.Good = good;
                             goods.Add(g.Nickname, good);
                         }
@@ -267,7 +271,8 @@ namespace LibreLancer
                             Rep = gd.Rep,
                             Rank = gd.Rank,
                             Good = good,
-                            Price = (ulong)((double)good.Ini.Price * gd.Multiplier)
+                            Price = (ulong)((double)good.Ini.Price * gd.Multiplier),
+                            ForSale = gd.Max > 0
                         });
                     }
                 }
@@ -566,6 +571,8 @@ namespace LibreLancer
                 equip.CRC = FLHash.CreateID(equip.Nickname);
                 equip.HPChild = val.HPChild;
                 equip.LODRanges = val.LODRanges;
+                equip.IdsName = val.IdsName;
+                equip.IdsInfo = val.IdsInfo;
                 equipments[equip.Nickname] = equip;
                 equipmentHashes[equip.CRC] = equip;
             }
