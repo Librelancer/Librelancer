@@ -93,6 +93,7 @@ void pg_getglyph(PGRenderContext *ctx, CachedGlyph *outGlyph, uint32_t codePoint
 	if(ctx->currentX + rendered.width > PG_TEXTURE_SIZE) {
 		ctx->currentX = 0;
 		ctx->currentY += ctx->lineMax;
+        ctx->lineMax = 0;
 	}
 	if(ctx->currentY + rendered.rows > PG_TEXTURE_SIZE) {
 		pg_newtex(ctx);
