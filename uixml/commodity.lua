@@ -102,11 +102,13 @@ function commodity:ctor()
 	end
 	e.inv_list:OnSelectedIndexChanged(function()
 		self:set_buysell("sell")
+		PlaySound('ui_item_select')
 		e.tr_list.SelectedIndex = -1
 		e.item_infocard.Infocard = GetInfocard(self.PlayerGoods[e.inv_list.SelectedIndex + 1].IdsInfo, 1)
 	end)
 	e.tr_list:OnSelectedIndexChanged(function()
 		self:set_buysell("buy")
+		PlaySound('ui_item_select')
 		e.inv_list.SelectedIndex = -1
 		e.item_infocard.Infocard = GetInfocard(self.TraderGoods[e.tr_list.SelectedIndex + 1].IdsInfo, 1)
 	end)
@@ -117,7 +119,9 @@ function commodity:ctor()
 		if self.BuyState == "buy" then
 			Game.Trader:Buy(self.TraderGoods[e.tr_list.SelectedIndex + 1].Good, 1)
 		elseif self.BuyState == "sell" then
-			Game.Trader:Sell(self.PlayerGoods[e.inv_list.SelectedIndex + 1].ID, 1)
+			Game.Trader:Sell(self.PlayerGoods[e.inv_list.SelectedIndex + 1].ID, 1, function()
+				PlaySound('ui_receive_money')
+			end)
 		end
 	end)
 	self:set_buysell("hidden")
@@ -156,6 +160,7 @@ function commodity:set_buysell(state)
 		x.Visible = false
 	end
 end
+
 
 
 

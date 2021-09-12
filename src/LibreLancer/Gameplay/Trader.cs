@@ -32,9 +32,13 @@ namespace LibreLancer
             session.RpcServer.PurchaseGood(good, count);
         }
 
-        public void Sell(int id, int count)
+        public void Sell(int id, int count, Closure onSuccess)
         {
-            session.RpcServer.SellGood(id, count);
+            session.RpcServer.SellGood(id, count).ContinueWith(x =>
+            {
+                FLLog.Info("Client", "Sold Item!");
+                if(x.Result) session.EnqueueAction(() => onSuccess.Call());
+            });
         }
 
         private Closure handler;

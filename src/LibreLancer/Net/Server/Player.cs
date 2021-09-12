@@ -534,8 +534,6 @@ namespace LibreLancer
             game.RequestWorld(sys, (world) =>
             {
                 this.World = world;
-                BaseData = null;
-                Base = null;
                 var obj = sys.Objects.FirstOrDefault((o) =>
                 {
                     return (o.Dock != null &&
@@ -547,7 +545,7 @@ namespace LibreLancer
                 Position = Vector3.Zero;
                 if (obj == null)
                 {
-                    FLLog.Error("Base", "Can't find object in " + sys + " docking to " + b);
+                    FLLog.Error("Base", "Can't find object in " + sys.Nickname + " docking to " + b.Nickname);
                 }
                 else
                 {
@@ -555,6 +553,8 @@ namespace LibreLancer
                     Orientation = (obj.Rotation ?? Matrix4x4.Identity).ExtractRotation();
                     Position = Vector3.Transform(new Vector3(0, 0, 500), Orientation) + obj.Position; //TODO: This is bad
                 }
+                BaseData = null;
+                Base = null;
                 rpcClient.SpawnPlayer(System, Position, Orientation, Character.Credits, Character.EncodeLoadout());
                 world.SpawnPlayer(this, Position, Orientation);
                 msnRuntime?.EnteredSpace();

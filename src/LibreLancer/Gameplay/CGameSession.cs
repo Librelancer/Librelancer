@@ -227,6 +227,8 @@ namespace LibreLancer
             }
         }
 
+        public void EnqueueAction(Action a) => uiActions.Enqueue(a);
+
         void IClientPlayer.SpawnObject(int id, string name, Vector3 position, Quaternion orientation, NetShipLoadout loadout)
         {
             RunSync(() =>

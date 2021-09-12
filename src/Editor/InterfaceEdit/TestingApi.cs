@@ -205,8 +205,9 @@ namespace InterfaceEdit
             {
             }
 
-            public void Sell(int id, int count)
+            public void Sell(int id, int count, Closure onSuccess)
             {
+                onSuccess.Call();
             }
 
             public void OnUpdateInventory(Closure handler)

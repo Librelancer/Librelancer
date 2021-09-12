@@ -6,7 +6,7 @@
 import json
 from datetime import datetime,timezone
 
-print("Librelancer Protocol Generator 2021-07-16")
+print("Librelancer Protocol Generator 2021-09-21")
 
 # NetPacketReader methods
 typeMethods = {
@@ -97,13 +97,14 @@ def remote_method(mthd, prefix):
   writeline("{")
   tabs += 1
   if "return" in mthd:
-    writeline("var complete = ResponseHandler.GetCompletionSource_" + mthd["return"] + "(retSeq);")
+    writeline("var __SEQ = Interlocked.Increment(ref retSeq);")
+    writeline("var complete = ResponseHandler.GetCompletionSource_" + mthd["return"] + "(__SEQ);")
     if mthd["return"] not in return_packets:
         return_packets.append(mthd["return"])
   writeline("SendPacket(new " + prefix + "Packet_" + mthd["name"] + "() {")
   tabs += 1
   if "return" in mthd:
-    writeline("Sequence = Interlocked.Increment(ref retSeq),")
+    writeline("Sequence = __SEQ,")
   if "args" in mthd:
     for x in mthd["args"]:
       writeline(x["name"] + " = " + x["name"] + ",")

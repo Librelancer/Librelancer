@@ -34,6 +34,7 @@ function ChildWindow:Open(widget)
 end
 
 function ChildWindow:AnimateIn()
+	PlaySound('ui_motion_swish')
 	self.Time = 0
 	self.Duration = 0.25
 	self.AnimatingIn = true
@@ -43,6 +44,7 @@ function ChildWindow:AnimateIn()
 end
 
 function ChildWindow:AnimateOut(cb)
+	PlaySound('ui_motion_swish')
 	self.OutCallback = cb
 	self.Time = 0
 	self.Duration = 0.25
@@ -59,6 +61,7 @@ function ChildWindow:Update(delta)
 		if self.Time > self.Duration then
 			self.Elements.contents.Visible = true
 			self.AnimatingIn = false
+			PlaySound('ui_window_open')
 			if self.OnOpen then
 				self.OnOpen()
 			end
@@ -89,4 +92,5 @@ function ChildWindow:Close(cb)
 		self:AnimateOut(cb)
 	end
 end
+
 
