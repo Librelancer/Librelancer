@@ -57,38 +57,50 @@ namespace LibreLancer.Interface
         {
             DoSelect = false;
             if (!Visible) return;
-            var myRectangle = GetMyRectangle(context, parentRectangle);
-            ItemA?.OnMouseClick(context,myRectangle);
-            ItemB?.OnMouseClick(context,myRectangle);
-            if (rectangleA.Contains(context.MouseX, context.MouseY) ||
-                rectangleB.Contains(context.MouseX, context.MouseY))
+            if (Enabled)
             {
-                DoSelect = true;
+                var myRectangle = GetMyRectangle(context, parentRectangle);
+                ItemA?.OnMouseClick(context, myRectangle);
+                ItemB?.OnMouseClick(context, myRectangle);
+                if (rectangleA.Contains(context.MouseX, context.MouseY) ||
+                    rectangleB.Contains(context.MouseX, context.MouseY))
+                {
+                    DoSelect = true;
+                }
             }
         }
 
         public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
         {
             if (!Visible) return;
-            var myRectangle = GetMyRectangle(context, parentRectangle);
-            ItemA?.OnMouseUp(context,myRectangle);
-            ItemB?.OnMouseDown(context,myRectangle);
+            if (Enabled)
+            {
+                var myRectangle = GetMyRectangle(context, parentRectangle);
+                ItemA?.OnMouseUp(context, myRectangle);
+                ItemB?.OnMouseDown(context, myRectangle);
+            }
         }
 
         public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
         {
             if (!Visible) return;
-            var myRectangle = GetMyRectangle(context, parentRectangle);
-            ItemA?.OnMouseUp(context,myRectangle);
-            ItemB?.OnMouseDown(context,myRectangle);
+            if (Enabled)
+            {
+                var myRectangle = GetMyRectangle(context, parentRectangle);
+                ItemA?.OnMouseUp(context, myRectangle);
+                ItemB?.OnMouseDown(context, myRectangle);
+            }
         }
 
         public override void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta)
         {
             if (!Visible) return;
-            var myRectangle = GetMyRectangle(context, parentRectangle);
-            ItemA?.OnMouseUp(context,myRectangle);
-            ItemB?.OnMouseDown(context,myRectangle);
+            if (Enabled)
+            {
+                var myRectangle = GetMyRectangle(context, parentRectangle);
+                ItemA?.OnMouseUp(context, myRectangle);
+                ItemB?.OnMouseDown(context, myRectangle);
+            }
         }
 
         public override void Render(UiContext context, RectangleF parentRectangle)
@@ -98,12 +110,14 @@ namespace LibreLancer.Interface
             Background?.Draw(context, myRectangle);
             ItemA?.Render(context, myRectangle);
             ItemB?.Render(context, myRectangle);
-
             UiRenderable border = Border;
-            if (Selected) border = SelectedBorder ?? border;
-            if (rectangleA.Contains(context.MouseX, context.MouseY) ||
-                rectangleB.Contains(context.MouseX, context.MouseY)) 
-                border = HoverBorder ?? border;
+            if (Enabled)
+            {
+                if (Selected) border = SelectedBorder ?? border;
+                if (rectangleA.Contains(context.MouseX, context.MouseY) ||
+                    rectangleB.Contains(context.MouseX, context.MouseY))
+                    border = HoverBorder ?? border;
+            }
             if(ItemA != null) border?.Draw(context, rectangleA);
             if(ItemB != null) border?.Draw(context, rectangleB);
         }

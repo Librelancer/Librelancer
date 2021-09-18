@@ -1,5 +1,6 @@
 <Scene>
 <Panel Width="640" Height="480" Anchor="Center">
+<ImageFile Path="trader_buy.png" Fill="true" Visible="false" />
 <Panel Anchor="Center" Y="37" X="3" Width="624" Height="406" ID="background">
 <Panel.Background>
 <DisplayModel model="inv_trade_background" />
@@ -10,14 +11,25 @@
 	<TextBlock TextColor="text" TextShadow="#000000FF" X="410" Y="18" Width="200" Height="20" Strid="8515" TextSize="13" /> <!-- DEALER -->
 	<TextBlock TextColor="text" TextShadow="#000000FF" X="4" Y="18" Width="200" Height="20" Strid="8511" TextSize="13" /> <!-- INVENTORY-->
 	<TextBlock TextColor="text" TextShadow="#000000FF" X="4" Y="33" Width="200" Height="20" Text="CREDITS $1,845" TextSize="11" id="credits_text" /> <!-- CREDITS -->
+	<Panel id="buysell_controls">
 	<Button id="btn_buysell" style="trader_buy" Strid="3016" X="245" Y="29" />
-	
+	<TextBlock TextColor="text" TextShadow="#000000FF" Text="Select Quantity" Strid="1145" HorizontalAlignment="Center" Height="18" Width="180" X="222" Y="116" TextSize="9">
+	</TextBlock>
+	<HSlider ID="quantitySlider" Width="160" X="236" Y="142"  />
+	<TextBlock TextColor="text" TextShadow="#000000FF" Text="Quantity:" Strid="1146" HorizontalAlignment="Left" Height="18" Width="100" X="248" Y="164" TextSize="9"/>
+	<TextBlock id="quantity_label" TextColor="text" TextShadow="#000000FF" Text="0" HorizontalAlignment="Right" Height="18" Width="124" X="248" Y="164" TextSize="9"/>
+	<TextBlock TextColor="text" TextShadow="#000000FF" Text="Price:" Strid="1147" HorizontalAlignment="Left" Height="18" Width="100" X="248" Y="188" TextSize="9"/>
+	<TextBlock id="unit_price" TextColor="text" TextShadow="#000000FF" Text="$0" HorizontalAlignment="Right" Height="18" Width="124" X="248" Y="188" TextSize="9"/>
+	<TextBlock TextColor="text" TextShadow="#000000FF" Text="Total:" Strid="1148" HorizontalAlignment="Left" Height="18" Width="100" X="248" Y="212" TextSize="9"/>
+	<TextBlock id="price_total" TextColor="text" TextShadow="#000000FF" Text="$0" HorizontalAlignment="Right" Height="18" Width="124" X="248" Y="212" TextSize="9"/>
+	</Panel>
+	<Panel id="item_preview" X="226" Y="73" Width="171" Height="32"/>
+	<InfocardDisplay id="error_text" X="230" Y="15" Width="163" Height="50">
+	</InfocardDisplay>
 	<ListBox id="inv_list" X = "14" Y = "55" Width = "186" Height="170" ItemHeight="32">
-
 	</ListBox>
 	
 	<ListBox id="tr_list" X = "418" Y = "55" Width = "186" Height="170" ItemHeight="32">
-
 	</ListBox>
 	<InfocardDisplay id="item_infocard" X="40" Y="270" Width="545" Height="120" >
 
@@ -26,7 +38,4 @@
 </Panel>
 </Panel>
 </Scene>
-
-
-
 

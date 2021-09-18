@@ -400,18 +400,78 @@ namespace InterfaceEdit
             }
             else
             {
+                if (ImGui.Button("0°")) mdl.Rotation = QuadRotation.None;
+                ImGui.SameLine();
+                if (ImGui.Button("90°")) mdl.Rotation = QuadRotation.Rotate90;
+                ImGui.SameLine();
+                if (ImGui.Button("180°")) mdl.Rotation = QuadRotation.Rotate180;
+                ImGui.SameLine();
+                if (ImGui.Button("270°")) mdl.Rotation = QuadRotation.Rotate270;
+                ImGui.Text($"Rotation: {(int)mdl.Rotation * 90}°");
                 var szX = (int) ImGui.GetColumnWidth() - 5;
                 szX = Math.Min(szX, 150);
                 var ratio = foundTexture.Height / (float)foundTexture.Width;
                 var szY = (int) (szX * ratio);
-                var t1 = new Vector2(0,1);
-                var t2= new Vector2(1,0);
+                //source
+                ImGui.Text("Source:");
+                ImGui.SliderFloat("X", ref mdl.TexCoords.X0, 0, 1);
+                ImGui.SliderFloat("Y", ref mdl.TexCoords.Y0, 0, 1);
+                ImGui.SliderFloat("Width", ref mdl.TexCoords.X3, 0, 1);
+                ImGui.SliderFloat("Height", ref mdl.TexCoords.Y3, 0, 1);
+                //res
+                var x0 = mdl.TexCoords.X0;
+                var x1 = mdl.TexCoords.X0 + mdl.TexCoords.X3;
+                var y0 = mdl.TexCoords.Y0;
+                var y1 = mdl.TexCoords.Y0 + mdl.TexCoords.Y3;
+                var a = new Vector2(x0, y1);
+                var b = new Vector2(x1, y1);
+                var c = new Vector2(x0, y0);
+                var d = new Vector2(x1, y0);
                 if (mdl.Flip)
                 {
-                    t1.Y = 0;
-                    t2.Y = 1;
+                    a.Y = b.Y = 0;
+                    c.Y = d.Y = 1;
                 }
-                ImGui.Image((IntPtr) foundTextureId, new Vector2(szX, szY), t1,t2);
+                Vector2 tl = a, tr = b, bl = c, br = d;
+                if (mdl.Rotation == QuadRotation.Rotate90)
+                {
+                    tl = c;
+                    tr = a;
+                    bl = d;
+                    br = b;
+                }
+                else if (mdl.Rotation == QuadRotation.Rotate180)
+                {
+                    tl = d;
+                    tr = c;
+                    bl = b;
+                    br = a;
+                }
+                else if (mdl.Rotation == QuadRotation.Rotate270)
+                {
+                    tl = b;
+                    tr = d;
+                    bl = a;
+                    br = c;
+                }
+               
+                //pos
+                var cPos = (Vector2)ImGui.GetCursorPos();
+                var wPos = (Vector2)ImGui.GetWindowPos();
+                var scrPos = -ImGui.GetScrollY();
+                var xy = cPos + wPos + new Vector2(0, scrPos);
+                var sz = new Vector2(szX, szY);
+                
+                ImGui.GetWindowDrawList().AddImageQuad(
+                    (IntPtr)foundTextureId,
+                    xy, 
+                    new Vector2(xy.X + sz.X, xy.Y),
+                    xy + sz, 
+                    new Vector2(xy.X, xy.Y + sz.Y), 
+                    tl,tr,br,bl, 
+                    UInt32.MaxValue 
+                    );
+                ImGui.Dummy(new Vector2(szX, szY));
             }
             
         }

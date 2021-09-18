@@ -22,9 +22,18 @@ namespace LibreLancer.Interface
         }
 
         private string setString = null;
+        private string setFont = null;
+        private int setSize = 0;
         public void SetString(string str)
         {
             this.setString = str;
+        }
+
+        public void SetString(string str, string font, int size)
+        {
+            this.setString = str;
+            this.setFont = font;
+            this.setSize = size;
         }
 
         RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
@@ -39,12 +48,14 @@ namespace LibreLancer.Interface
             if (setString != null)
             {
                 Infocard = new Infocard() {Nodes = new List<RichTextNode>()};
+                string fontName = setFont ?? "$ListText";
+                if (fontName[0] == '$') fontName = context.Data.Fonts.ResolveNickname(fontName.Substring(1));
                 foreach (var s in setString.Split('\n')) {
                     Infocard.Nodes.Add(new RichTextTextNode()
                     {
                         Contents = s,
-                        FontName = context.Data.Fonts.ResolveNickname("ListText"),
-                        FontSize = 22,
+                        FontName = fontName,
+                        FontSize = setSize < 1 ? 22 : setSize,
                         Alignment = TextAlignment.Left,
                         Color = context.Data.GetColor("text").Color,
                         Shadow = new TextShadow(context.Data.GetColor("black").Color)
@@ -52,6 +63,8 @@ namespace LibreLancer.Interface
                     Infocard.Nodes.Add(new RichTextParagraphNode());
                 }
                 setString = null;
+                setFont = null;
+                setSize = 0;
             }
             if (!Visible) return;
             var myRectangle = GetMyRectangle(context, parentRectangle);

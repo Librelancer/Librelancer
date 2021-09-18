@@ -70,11 +70,34 @@ namespace LibreLancer.Interface
         public ButtonStyle UpButton { get; set; }
         public ButtonStyle DownButton { get; set; }
         public ButtonStyle Thumb { get; set; }
+        
+        public ButtonStyle ThumbTop { get; set; }
+        
+        public ButtonStyle ThumbBottom { get; set; }
         public UiRenderable Background { get; set; }
         public UiRenderable TrackArea { get; set; }
         public float ButtonMarginX { get; set; }
         public float TrackMarginX { get; set; }
         public float TrackMarginY { get; set; }
         public float Width { get; set; }
+    }
+    
+    [UiLoadable]
+    [MoonSharpUserData]
+    public class HSliderStyle : XmlStyle
+    {
+        public ButtonStyle LeftButton { get; set; }
+        public ButtonStyle RightButton { get; set; }
+        public ButtonStyle Thumb { get; set; }
+        
+        public ButtonStyle ThumbLeft { get; set; }
+        public ButtonStyle ThumbRight { get; set; }
+        
+        public UiRenderable Background { get; set; }
+        public UiRenderable TrackArea { get; set; }
+        public float ButtonMarginY { get; set; }
+        public float TrackMarginX { get; set; }
+        public float TrackMarginY { get; set; }
+        public float Height { get; set; }
     }
 }

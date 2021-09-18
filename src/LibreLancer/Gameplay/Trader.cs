@@ -27,9 +27,12 @@ namespace LibreLancer
             filters["commodity"] = CommodityFilter;
         }
 
-        public void Buy(string good, int count)
+        public void Buy(string good, int count, Closure onSuccess)
         {
-            session.RpcServer.PurchaseGood(good, count);
+            session.RpcServer.PurchaseGood(good, count).ContinueWith((x) =>
+            {
+                if (x.Result) session.EnqueueAction(() => onSuccess.Call());
+            });
         }
 
         public void Sell(int id, int count, Closure onSuccess)
@@ -61,6 +64,17 @@ namespace LibreLancer
             return func;
         }
 
+        void SortGoods(List<UIInventoryItem> item)
+        {
+            //TODO: Freelancer doesn't sort alphabetically. What does it do?
+            /*item.Sort((x, y) =>
+            {
+                var str1 = session.Game.GameData.GetString(x.IdsName) ?? "Z";
+                var str2 = session.Game.GameData.GetString(y.IdsName) ?? "Z";
+                return str1.CompareTo(str2);
+            });*/
+        }
+
         public UIInventoryItem[] GetTraderGoods(string filter)
         {
             List<UIInventoryItem> traderGoods = new List<UIInventoryItem>();
@@ -72,6 +86,10 @@ namespace LibreLancer
                 if (!session.Game.GameData.TryGetGood(nick, out ResolvedGood g))
                     continue;
                 if (!filterfunc(g.Equipment)) continue;
+                var price = GetPrice(g);
+                string rank = "neutral";
+                if (g.Ini.BadBuyPrice != 0 && price >= g.Ini.BadBuyPrice * g.Ini.Price) rank = "bad";
+                if (g.Ini.GoodBuyPrice != 0 && price <= g.Ini.GoodBuyPrice * g.Ini.Price) rank = "good";
                 traderGoods.Add(new UIInventoryItem()
                 {
                     ID = -1,
@@ -80,9 +98,11 @@ namespace LibreLancer
                     Good = g.Ini.Nickname,
                     IdsInfo = g.Equipment.IdsInfo,
                     IdsName = g.Equipment.IdsName,
-                    Price = GetPrice(g)
+                    PriceRank = rank,
+                    Price = price
                 });
             }
+            SortGoods(traderGoods);
             return traderGoods.ToArray();
         }
 
@@ -105,6 +125,12 @@ namespace LibreLancer
             {
                 if (item.Equipment.Good == null) continue;
                 if(!filterfunc(item.Equipment)) continue;
+                var price = GetPrice(item.Equipment.Good);
+                var rank = "neutral";
+                if (item.Equipment.Good.Ini.GoodSellPrice != 0 && price >= item.Equipment.Good.Ini.GoodSellPrice * item.Equipment.Good.Ini.Price) 
+                    rank = "good";
+                if (item.Equipment.Good.Ini.BadSellPrice != 0 && price <= item.Equipment.Good.Ini.BadSellPrice * item.Equipment.Good.Ini.Price)
+                    rank = "bad";
                 inventoryItems.Add(new UIInventoryItem()
                 {
                     ID = item.ID,
@@ -113,9 +139,11 @@ namespace LibreLancer
                     Good = item.Equipment.Good.Ini.Nickname,
                     IdsInfo = item.Equipment.IdsInfo,
                     IdsName = item.Equipment.IdsName,
-                    Price = GetPrice(item.Equipment.Good)
+                    Price = price,
+                    PriceRank = rank
                 });
             }
+            SortGoods(inventoryItems);
             return inventoryItems.ToArray();
         }
     }

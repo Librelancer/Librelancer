@@ -143,7 +143,7 @@ namespace InterfaceEdit
         
         public ChatSource GetChats() => chats;
 
-        public double GetCredits() => 12345678;
+        public double GetCredits() => 10000;
         public LuaCompatibleDictionary GetManeuversEnabled()
         {
             var dict = new LuaCompatibleDictionary();
@@ -164,6 +164,7 @@ namespace InterfaceEdit
                 {
                     Icon = @"Equipment\models\commodities\nn_icons\COMMOD_chemicals.3db",
                     Price = 240,
+                    PriceRank = "good",
                     IdsName = 261626,
                     IdsInfo = 65908,
                     Count = 32,
@@ -172,6 +173,7 @@ namespace InterfaceEdit
                 {
                     Icon = @"Equipment\models\commodities\nn_icons\COMMOD_metals.3db",
                     Price = 40,
+                    PriceRank = "bad",
                     IdsName = 261627,
                     IdsInfo = 65908,
                     Count = 1
@@ -184,6 +186,7 @@ namespace InterfaceEdit
                 {
                     Icon = @"Equipment\models\commodities\nn_icons\COMMOD_chemicals.3db",
                     Price = 240,
+                    PriceRank = "neutral",
                     IdsName = 261626, //mox
                     IdsInfo = 65908,
                     Count = 0,
@@ -191,7 +194,8 @@ namespace InterfaceEdit
                 new UIInventoryItem()
                 {
                     Icon = @"Equipment\models\commodities\nn_icons\COMMOD_metals.3db",
-                    Price = 40,
+                    Price = 20000,
+                    PriceRank = "bad",
                     IdsName = 261627, //basic alloy
                     IdsInfo = 65885,
                     Count = 0
@@ -201,7 +205,7 @@ namespace InterfaceEdit
             public UIInventoryItem[] GetPlayerGoods(string filter) => pitems;
             public UIInventoryItem[] GetTraderGoods(string filter) => titems;
 
-            public void Buy(string good, int count)
+            public void Buy(string good, int count, Closure onSuccess)
             {
             }
 

@@ -15,6 +15,7 @@ namespace LibreLancer.Interface
         public int IdsName; //from item def
         public int IdsInfo;
         public double Price; //price per unit
+        public string PriceRank;
         public int Count;  //how many do we have in this slot? (set to 0 to not show count)
     }
 }

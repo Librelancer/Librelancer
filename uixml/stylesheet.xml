@@ -282,6 +282,7 @@
 		</ButtonStyle.Hover>
         <ButtonStyle.Disabled TextColor="#666"/>
 	</ButtonStyle>
+    <!-- ScrollbarStyle -->
 	<ScrollbarStyle Width="16" TrackMarginY="4" ButtonMarginX="2">
 		<ScrollbarStyle.UpButton Height="12">
 			<ButtonStyle.Normal>
@@ -310,6 +311,30 @@
 		<ScrollbarStyle.TrackArea>
 			<DisplayRectangle color="text" WidthPx="1"/>
 		</ScrollbarStyle.TrackArea>
+		<ScrollbarStyle.ThumbTop Height="1.5">
+			<ButtonStyle.Normal>
+				<ButtonAppearance.Background>
+					<DisplayImage image="slider_top" tint="text"/>
+				</ButtonAppearance.Background>
+			</ButtonStyle.Normal>
+			<ButtonStyle.Hover>
+				<ButtonAppearance.Background>
+					<DisplayImage image="slider_top" tint="slow_blue_yellow"/>
+				</ButtonAppearance.Background>
+			</ButtonStyle.Hover>
+		</ScrollbarStyle.ThumbTop>
+		<ScrollbarStyle.ThumbBottom Height="1.5">
+			<ButtonStyle.Normal>
+				<ButtonAppearance.Background>
+					<DisplayImage image="slider_bottom" tint="text"/>
+				</ButtonAppearance.Background>
+			</ButtonStyle.Normal>
+			<ButtonStyle.Hover>
+				<ButtonAppearance.Background>
+					<DisplayImage image="slider_bottom" tint="slow_blue_yellow"/>
+				</ButtonAppearance.Background>
+			</ButtonStyle.Hover>
+		</ScrollbarStyle.ThumbBottom>
 		<ScrollbarStyle.Thumb Height="32">
 			<ButtonStyle.Normal>
 				<ButtonAppearance.Background>
@@ -323,7 +348,79 @@
 			</ButtonStyle.Hover>
 		</ScrollbarStyle.Thumb>
 	</ScrollbarStyle>
+    <!-- HSliderStyle -->
+    <HSliderStyle Height="10" TrackMarginX="4" ButtonMarginY="1">
+		<HSliderStyle.LeftButton Width="8">
+			<ButtonStyle.Normal>
+				<ButtonAppearance.Background>
+					<DisplayImage image="sliderarrow_left" tint="text"/>
+				</ButtonAppearance.Background>
+			</ButtonStyle.Normal>
+			<ButtonStyle.Hover>
+				<ButtonAppearance.Background>
+					<DisplayImage image="sliderarrow_left" tint="slow_blue_yellow"/>
+				</ButtonAppearance.Background>
+			</ButtonStyle.Hover>
+		</HSliderStyle.LeftButton>
+		<HSliderStyle.RightButton Width="8">
+			<ButtonStyle.Normal>
+				<ButtonAppearance.Background>
+					<DisplayImage image="sliderarrow_right" tint="text"/>
+				</ButtonAppearance.Background>
+			</ButtonStyle.Normal>
+			<ButtonStyle.Hover>
+				<ButtonAppearance.Background>
+					<DisplayImage image="sliderarrow_right" tint="slow_blue_yellow"/>
+				</ButtonAppearance.Background>
+			</ButtonStyle.Hover>
+		</HSliderStyle.RightButton>
+		<HSliderStyle.TrackArea>
+			<DisplayRectangle color="text" WidthPx="1"/>
+		</HSliderStyle.TrackArea>
+		<HSliderStyle.ThumbLeft Width="1.5">
+			<ButtonStyle.Normal>
+				<ButtonAppearance.Background>
+					<DisplayImage image="slider_top" tint="text"/>
+				</ButtonAppearance.Background>
+			</ButtonStyle.Normal>
+			<ButtonStyle.Hover>
+				<ButtonAppearance.Background>
+					<DisplayImage image="slider_top" tint="slow_blue_yellow"/>
+				</ButtonAppearance.Background>
+			</ButtonStyle.Hover>
+		</HSliderStyle.ThumbLeft>
+		<HSliderStyle.ThumbRight Width="1.5">
+			<ButtonStyle.Normal>
+				<ButtonAppearance.Background>
+					<DisplayImage image="slider_bottom" tint="text"/>
+				</ButtonAppearance.Background>
+			</ButtonStyle.Normal>
+			<ButtonStyle.Hover>
+				<ButtonAppearance.Background>
+					<DisplayImage image="slider_bottom" tint="slow_blue_yellow"/>
+				</ButtonAppearance.Background>
+			</ButtonStyle.Hover>
+		</HSliderStyle.ThumbRight>
+		<HSliderStyle.Thumb Height="32">
+			<ButtonStyle.Normal>
+				<ButtonAppearance.Background>
+					<DisplayImage image="hslider_middle" tint="text"/>
+				</ButtonAppearance.Background>
+			</ButtonStyle.Normal>
+			<ButtonStyle.Hover>
+				<ButtonAppearance.Background>
+					<DisplayImage image="hslider_middle" tint="slow_blue_yellow"/>
+				</ButtonAppearance.Background>
+			</ButtonStyle.Hover>
+		</HSliderStyle.Thumb>
+	</HSliderStyle>
 </Stylesheet>
+
+
+
+
+
+
 
 
 

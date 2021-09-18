@@ -61,14 +61,24 @@ namespace LibreLancer.Interface
 
         private CachedRenderString textCache;
 
-        public override void Render(UiContext context, RectangleF parentRectangle)
+        internal void Draw(UiContext context, RectangleF myRectangle, bool hover, bool pressed, bool selected)
         {
-            if (!Visible) return;
             ButtonAppearance activeStyle = null;
+            if(selected) activeStyle = style.Selected;
+            if (hover) activeStyle = style?.Hover;
+            if (pressed) activeStyle = style?.Pressed ?? style?.Hover;
+            var bk = Cascade(style?.Normal?.Background, activeStyle?.Background, Background);
+            bk?.Draw(context, myRectangle);
+            var border = Cascade(style?.Normal?.Border, activeStyle?.Border, Border);
+            border?.Draw(context, myRectangle);
+        }
+
+        internal void Update(UiContext context, RectangleF parentRectangle)
+        {
             var myRectangle = GetMyRectangle(context, parentRectangle);
             if (myRectangle.Contains(context.MouseX, context.MouseY))
             {
-                activeStyle = style?.Hover;
+                Hovered = true;
                 if (!lastFrameMouseInside)
                 {
                     var sound = MouseEnterSound ?? style?.MouseEnterSound;
@@ -79,7 +89,10 @@ namespace LibreLancer.Interface
                 lastFrameMouseInside = true;
             }
             else
+            {
+                Hovered = false;
                 lastFrameMouseInside = false;
+            }
             if (Dragging) {
                 DragOffset = new Vector2(context.MouseX, context.MouseY) - DragStart;   
             }
@@ -87,6 +100,22 @@ namespace LibreLancer.Interface
                 if (!myRectangle.Contains(context.MouseX, context.MouseY)) {
                     HeldDown = false;
                 }
+            }
+        }
+
+        public bool Hovered { get; set; }
+        public override void Render(UiContext context, RectangleF parentRectangle)
+        {
+            if (!Visible) return;
+            Update(context, parentRectangle);
+            ButtonAppearance activeStyle = null;
+            var myRectangle = GetMyRectangle(context, parentRectangle);
+            if (myRectangle.Contains(context.MouseX, context.MouseY)) {
+                activeStyle = style?.Hover;
+            }
+            else {
+            }
+            if (HeldDown) {
                 activeStyle = style?.Pressed ?? style?.Hover;
             }
             if (Selected) activeStyle = style?.Selected;

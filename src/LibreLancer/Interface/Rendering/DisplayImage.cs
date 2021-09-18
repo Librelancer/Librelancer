@@ -41,7 +41,13 @@ namespace LibreLancer.Interface
             }
             else
             {
-                context.Renderer2D.DrawImageStretched(texture, rect, color, Image.Flip);
+                var src = new Rectangle(
+                    (int) (Image.TexCoords.X0 * texture.Width),
+                    (int) (Image.TexCoords.Y0 * texture.Height),
+                    (int) (Image.TexCoords.X3 * texture.Width),
+                    (int) (Image.TexCoords.Y3 * texture.Height)
+                );
+                context.Renderer2D.Draw(texture, src, rect, color, BlendMode.Normal, Image.Flip, Image.Rotation);
             }
         }
 

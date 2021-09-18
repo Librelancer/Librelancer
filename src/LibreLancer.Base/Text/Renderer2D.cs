@@ -416,7 +416,7 @@ namespace LibreLancer
 			FillRectangle(new Rectangle(rect.X + rect.Width - width, rect.Y, width, rect.Height), color);
 		}
 
-        public void DrawImageStretched(Texture2D tex, Rectangle dest, Color4 color, bool flip = false)
+        public void DrawImageStretched(Texture2D tex, Rectangle dest, Color4 color, bool flip = false, QuadRotation orient = QuadRotation.None)
 		{
 			DrawQuad (
 				tex,
@@ -424,7 +424,8 @@ namespace LibreLancer
 				dest,
 				color,
 				BlendMode.Normal,
-				flip
+				flip,
+                orient
 			);
 		}
 		void Swap<T>(ref T a, ref T b)
@@ -434,10 +435,10 @@ namespace LibreLancer
 			b = temp;
 		}
 
-		public void Draw(Texture2D tex, Rectangle source, Rectangle dest, Color4 color, BlendMode mode = BlendMode.Normal, bool flip = false)
-		{
-			DrawQuad(tex, source, dest, color, mode, flip);
-		}
+		public void Draw(Texture2D tex, Rectangle source, Rectangle dest, Color4 color, BlendMode mode = BlendMode.Normal, bool flip = false, QuadRotation orient = QuadRotation.None)
+        {
+            DrawQuad(tex, source, dest, color, mode, flip, orient);
+        }
 
 		public void FillTriangle(Vector2 point1, Vector2 point2, Vector2 point3, Color4 color)
         {
@@ -518,7 +519,7 @@ namespace LibreLancer
             primitiveCount += 2;
         }
 
-        void DrawQuad(Texture2D tex, Rectangle source, Rectangle dest, Color4 color, BlendMode mode, bool flip = false)
+        void DrawQuad(Texture2D tex, Rectangle source, Rectangle dest, Color4 color, BlendMode mode, bool flip = false, QuadRotation orient = QuadRotation.None)
         {
             Prepare(mode, tex, false);
 
@@ -531,18 +532,46 @@ namespace LibreLancer
 			float srcW = (float)source.Width;
 			float srcH = (float)source.Height;
 
-			Vector2 topLeftCoord = new Vector2 (srcX / (float)tex.Width,
-				srcY / (float)tex.Height);
-			Vector2 topRightCoord = new Vector2 ((srcX + srcW) / (float)tex.Width,
-				srcY / (float)tex.Height);
-			Vector2 bottomLeftCoord = new Vector2 (srcX / (float)tex.Width,
-				(srcY + srcH) / (float)tex.Height);
-			Vector2 bottomRightCoord = new Vector2 ((srcX + srcW) / (float)tex.Width,
-				(srcY + srcH) / (float)tex.Height);
+            Vector2 ta = new Vector2 (srcX / (float)tex.Width,
+                srcY / (float)tex.Height);
+            Vector2 tb = new Vector2 ((srcX + srcW) / (float)tex.Width,
+                srcY / (float)tex.Height);
+            Vector2 tc = new Vector2 (srcX / (float)tex.Width,
+                (srcY + srcH) / (float)tex.Height);
+            Vector2 td = new Vector2 ((srcX + srcW) / (float)tex.Width,
+                (srcY + srcH) / (float)tex.Height);
+
+            Vector2 topLeftCoord = ta;
+            Vector2 topRightCoord = tb;
+            Vector2 bottomLeftCoord = tc;
+            Vector2 bottomRightCoord = td;
 			if (flip) {
 				Swap (ref bottomLeftCoord, ref topLeftCoord);
 				Swap (ref bottomRightCoord, ref topRightCoord);
 			}
+
+            if (orient == QuadRotation.Rotate90)
+            {
+                topLeftCoord = tc;
+                topRightCoord = ta;
+                bottomLeftCoord = td;
+                bottomRightCoord = tb;
+            }
+            else if (orient == QuadRotation.Rotate180)
+            {
+                topLeftCoord = td;
+                bottomLeftCoord = tb;
+                topRightCoord = tc;
+                bottomRightCoord = ta;
+            }
+            else if (orient == QuadRotation.Rotate270)
+            {
+                topLeftCoord = tb;
+                topRightCoord = td;
+                bottomLeftCoord = ta;
+                bottomRightCoord = tc;
+            }
+            
 			vertices [vertexCount++] = new Vertex2D (
 				new Vector2 (x, y),
 				topLeftCoord,

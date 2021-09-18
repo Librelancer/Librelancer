@@ -102,6 +102,7 @@ namespace LibreLancer.Interface
         [XmlAttribute("texname")] public string TexName;
         [XmlAttribute("texpath")] public string TexPath;
         [XmlAttribute("type")] public InterfaceImageKind Type;
+        [XmlAttribute("rot")] public QuadRotation Rotation;
         [XmlAttribute("flip")] public bool Flip;
         [XmlElement("TexCoords")] public InterfacePoints TexCoords = new InterfacePoints();
         [XmlElement("DisplayCoords")] public InterfacePoints DisplayCoords = new InterfacePoints();

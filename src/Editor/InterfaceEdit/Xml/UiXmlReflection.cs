@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection;
 using LibreLancer;
+using MoonSharp.Interpreter.Interop;
 
 namespace LibreLancer.Interface.Reflection
 {
@@ -99,6 +100,7 @@ namespace LibreLancer.Interface.Reflection
                 info = new XmlTypeInfo();
                 foreach (var property in type.GetRuntimeProperties())
                 {
+                    if (!property.IsPropertyInfoPublic()) continue;
                     if(property.GetCustomAttribute<UiIgnoreAttribute>() != null) 
                         continue;
                     var ptype = property.PropertyType;
