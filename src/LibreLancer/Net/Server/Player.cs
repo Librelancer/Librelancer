@@ -99,7 +99,7 @@ namespace LibreLancer
             Base = sg.Player.Base;
             System = sg.Player.System;
             Character = new NetCharacter();
-            Character.Credits = sg.Player.Money;
+            Character.UpdateCredits(sg.Player.Money);
             string ps;
             if (sg.Player.ShipArchetype != null)
                 ps = sg.Player.ShipArchetype;
@@ -202,7 +202,7 @@ namespace LibreLancer
             var cost = (long) (g.Price * (ulong)count);
             if (Character.Credits >= cost)
             {
-                Character.Credits -= cost;
+                Character.UpdateCredits(Character.Credits - cost);
                 Character.AddCargo(g.Good.Equipment, count);
                 rpcClient.UpdateInventory(Character.Credits, Character.EncodeLoadout());
                 return true;
@@ -238,9 +238,8 @@ namespace LibreLancer
                 unitPrice = (ulong)slot.Equipment.Good.Ini.Price;
             }
 
-            slot.Count -= count;
-            if (slot.Count <= 0) Character.Cargo.Remove(slot);
-            Character.Credits += (long)((ulong)count * unitPrice);
+            Character.RemoveCargo(slot, count);
+            Character.UpdateCredits(Character.Credits + (long) ((ulong) count * unitPrice));
             rpcClient.UpdateInventory(Character.Credits, Character.EncodeLoadout());
             return true;
         }
@@ -504,6 +503,7 @@ namespace LibreLancer
         public void Disconnected()
         {
             World?.RemovePlayer(this);
+            Character?.Dispose();
         }
         
         public void PlaySound(string sound)

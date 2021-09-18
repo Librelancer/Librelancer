@@ -187,6 +187,7 @@ namespace LibreLancer
                 message.Put(equip.EquipCRC);
                 message.Put(equip.Health);
             }
+            message.PutVariableUInt32((uint) Cargo.Count);
             foreach (var c in Cargo)
             {
                 message.Put(c.ID);

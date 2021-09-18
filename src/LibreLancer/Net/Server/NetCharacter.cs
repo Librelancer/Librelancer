@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using LibreLancer.Entities.Character;
 
 namespace LibreLancer
 {
@@ -13,28 +14,28 @@ namespace LibreLancer
     {
         public string Name;
         public string Base;
-        public long Credits;
+        public long Credits { get; private set; }
         public GameData.Ship Ship;
         public List<NetEquipment> Equipment;
         public List<NetCargo> Cargo;
         private long charId;
         GameDataManager gData;
-        
+        private DatabaseCharacter dbChar;
         private int _itemID;
         public static NetCharacter FromDb(long id, GameServer game)
         {
-            var character = game.Database.GetCharacter(id);
-            
+            var db = game.Database.GetCharacter(id);
             var nc = new NetCharacter();
-            nc.Name = character.Name;
+            nc.Name = db.Character.Name;
             nc.gData = game.GameData;
+            nc.dbChar = db;
             nc.charId = id;
-            nc.Base = character.Base;
-            nc.Ship = game.GameData.GetShip(character.Ship);
-            nc.Credits = character.Money;
-            nc.Equipment = new List<NetEquipment>(character.Equipment.Count);
+            nc.Base = db.Character.Base;
+            nc.Ship = game.GameData.GetShip(db.Character.Ship);
+            nc.Credits = db.Character.Money;
+            nc.Equipment = new List<NetEquipment>(db.Character.Equipment.Count);
             nc.Cargo = new List<NetCargo>();
-            foreach(var equip in character.Equipment)
+            foreach(var equip in db.Character.Equipment)
             {
                 var resolved = game.GameData.GetEquipment(equip.EquipmentNickname);
                 if (resolved == null) continue;
@@ -45,7 +46,23 @@ namespace LibreLancer
                     Health = 1f
                 });
             }
+            foreach (var cargo in db.Character.Cargo)
+            {
+                var resolved = game.GameData.GetEquipment(cargo.ItemName);
+                if (resolved == null) continue;
+                nc.Cargo.Add(new NetCargo() { Count = (int)cargo.ItemCount, Equipment = resolved, DbItem = cargo});
+            }
             return nc;
+        }
+
+        public void UpdateCredits(long credits)
+        {
+            Credits = credits;
+            if (dbChar != null)
+            {
+                dbChar.Character.Money = credits;
+                dbChar.ApplyChanges();
+            }
         }
 
         public void AddCargo(GameData.Items.Equipment equip, int count)
@@ -53,11 +70,41 @@ namespace LibreLancer
             var slot = Cargo.FirstOrDefault(x => equip.Good.Equipment == x.Equipment);
             if (slot == null)
             {
-                Cargo.Add(new NetCargo() { Equipment =  equip, Count = count});
+                CargoItem dbItem = null;
+                if (dbChar != null)
+                {
+                    dbItem = new CargoItem() {ItemCount = count, ItemName = equip.Nickname};
+                    dbChar.Character.Cargo.Add(dbItem);
+                    dbChar.ApplyChanges();
+                }
+                Cargo.Add(new NetCargo() { Equipment =  equip, Count = count, DbItem = dbItem});
             }
             else
             {
+                if (dbChar != null)
+                {
+                    slot.DbItem.ItemCount += count;
+                    dbChar.ApplyChanges();
+                }
                 slot.Count += count;
+            }
+        }
+
+        public void RemoveCargo(NetCargo slot, int amount)
+        {
+            slot.Count -= amount;
+            if (slot.Count <= 0)
+            {
+                Cargo.Remove(slot);
+                if (slot.DbItem != null)
+                {
+                    dbChar.Character.Cargo.Remove(slot.DbItem);
+                    dbChar.ApplyChanges();
+                }
+            } 
+            else if(slot.DbItem != null)
+            {
+                slot.DbItem.ItemCount = slot.Count;
             }
         }
 
@@ -91,6 +138,15 @@ namespace LibreLancer
             return selectable;
         }
 
+        public void Dispose()
+        {
+            if (dbChar != null)
+            {
+                dbChar.Dispose();
+                dbChar = null;
+            }
+        }
+
     }
 
     public class NetCargo
@@ -107,6 +163,7 @@ namespace LibreLancer
         }
         public GameData.Items.Equipment Equipment;
         public int Count;
+        public CargoItem DbItem;
     }
 
     public class NetEquipment

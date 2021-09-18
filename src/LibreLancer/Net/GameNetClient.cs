@@ -222,8 +222,10 @@ namespace LibreLancer
             };
             listener.NetworkReceiveEvent += (peer, reader, method) =>
             {
+#if !DEBUG
                 try
                 {
+#endif
                     var packetCount = reader.GetByte(); //reliable packets can be merged
                     if (packetCount > 1)
                         FLLog.Debug("Net", $"Received {packetCount} merged packets");
@@ -264,12 +266,16 @@ namespace LibreLancer
                             packets.Enqueue(pkt);
                         }
                     }
+#if !DEBUG
                 }
+                
                 catch (Exception e)
                 {
                     FLLog.Error("Client", "Error reading packet");
                     client.DisconnectAll();
+                
                 }
+#endif
             };
             listener.PeerDisconnectedEvent += (peer, info) =>
             {

@@ -11,6 +11,24 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LibreLancer
 {
+
+    public class DatabaseCharacter : IDisposable
+    {
+        public Character Character;
+        private DbContext context;
+
+        internal DatabaseCharacter(Character c, DbContext ctx)
+        {
+            Character = c;
+            context = ctx;
+        }
+        public void ApplyChanges() => context.SaveChanges();
+
+        public void Dispose()
+        {
+            context.Dispose();
+        }
+    }
 	public class ServerDatabase
     {
         private GameServer server;
@@ -78,35 +96,22 @@ namespace LibreLancer
             }
         }
         
-        public Character GetCharacter(long id)
+        public DatabaseCharacter GetCharacter(long id)
         {
-            using (var ctx = CreateDbContext())
-            {
-                return ctx.Characters
+            var ctx = CreateDbContext();
+            var character = ctx.Characters
                     .Include(c => c.Equipment)
                     .Include(c => c.Cargo)
                     .Include(c => c.Reputations)
                     .Include(c => c.VisitEntries)
                     .First(c => c.Id == id);
-            }
+            return new DatabaseCharacter(character, ctx);
         }
 
-        public void UpdateCharacter(long id, Action<Character> updateAction)
-        {
-            using (var ctx = CreateDbContext())
-            {
-                var c = ctx.Characters.First(c => c.Id == id);
-                updateAction?.Invoke(c);
-                c.UpdateDate = DateTime.UtcNow;
-                ctx.SaveChanges();
-            }
-        }
-        
         public void AddCharacter(Guid playerGuid, Action<Character> fillCharacter)
         {
             using (var ctx = CreateDbContext())
             {
-                ctx.ChangeTracker.AutoDetectChangesEnabled = false;
                 //Get account
                 var acc = ctx.Accounts.First(x => x.AccountIdentifier == playerGuid);
                 //Init object
