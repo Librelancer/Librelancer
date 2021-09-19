@@ -34,7 +34,7 @@ namespace LibreLancer
          * 10 - Tip
          * 11 - Trail
          */
-        static readonly ushort[] spearIndices = new ushort[]
+        static readonly ushort[] spearIndices =
         {
             0,1,2, 
             0,1,3,
@@ -69,16 +69,33 @@ namespace LibreLancer
          * 15 - Tip
          * 16 - Tail
          */
-        static readonly ushort[] boltIndices = new ushort[]
+        static readonly ushort[] boltIndices =
         {
-            0, 1, 3,
-            0 ,1, 4,
-            0, 2, 3,
-            0, 2, 4,
-            8, 13, 5,
-            5, 13, 10,
-            5, 9, 14,
-            10, 14, 5
+            0,1,2, 
+            0,1,3,
+            0,2,4,
+            0,3,4,
+            5,9,15,
+            6,9,15,
+            7,9,15,
+            8,9,15,
+            //mid to sec-up
+            5,6,10,
+            6,10,11,
+            //mid to sec-down
+            5,7,10,
+            10,12,7,
+            //mid to sec-left
+            5,8,10,
+            10,13,8,
+            //mid to sec-right
+            5,9,10,
+            10,14,9,
+            //sec to tail
+            10,11,16,
+            10,12,16,
+            10,13,16,
+            10,14,16
         };
         //TODO: Finish BeamBolt
         static ushort[] ConstructIndices(ushort[] source, int vcount, int count)
@@ -146,7 +163,7 @@ namespace LibreLancer
             {
                 commands.AddCommand(shader.Shader, SetupShader, EnableCull, commands.WorldBuffer.Identity, new RenderUserData(),
                     bufferSpear,
-                    PrimitiveTypes.TriangleList, 0, spearCount * 12, true, SortLayers.OBJECT);
+                    PrimitiveTypes.TriangleList, 0, spearCount * (spearIndices.Length / 3), true, SortLayers.OBJECT);
                 spearCount = 0;
                 vertexCountSpear = 0;
             }
@@ -154,7 +171,7 @@ namespace LibreLancer
             {
                 commands.AddCommand(shader.Shader, SetupShader, EnableCull, commands.WorldBuffer.Identity, new RenderUserData(),
                     bufferBolt,
-                    PrimitiveTypes.TriangleList, 0, boltCount * 20, true, SortLayers.OBJECT);
+                    PrimitiveTypes.TriangleList, 0, boltCount * (boltIndices.Length / 3), true, SortLayers.OBJECT);
                 vertexCountBolt = 0;
                 boltCount = 0;
             }
@@ -174,12 +191,60 @@ namespace LibreLancer
 
         public void AddBeamBolt(Vector3 p, Vector3 normal, BeamBolt bolt, float maxTrailLen)
         {
-            //boltCount++;
             //Head
             CoordsFromTexture(bolt.HeadTexture, out var tl, out var tr, out var bl, out var br, out var mid);
-
-            //Core, tip and trail
+            var right = Vector3.Cross(normal, Vector3.UnitY);
+            right.Normalize();
+            var up = Vector3.Cross(right, normal);
+            up.Normalize();
+            var hRad = bolt.HeadWidth / 2;
+            var cRad = bolt.CoreWidth / 2;
+            var secRad = bolt.SecCoreWidth / 2;
+            //Quad Center
+            verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p, bolt.CoreColor, mid);
+            //Quad TL
+            verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p + (up * hRad) - (right * hRad), bolt.OuterColor, tl);
+            //Quad TR
+            verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p + (up * hRad) + (right * hRad), bolt.OuterColor, tr);
+            //Quad BL
+            verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p - (up * hRad) - (right * hRad), bolt.OuterColor, bl);
+            //Quad BR
+            verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p - (up * hRad) + (right * hRad), bolt.OuterColor, br);
+            //Tip and trail
             CoordsFromTexture(bolt.TrailTexture, out tl, out tr, out bl, out br, out mid);
+            //Mid-Mid
+            verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p, bolt.CoreColor, bl);
+            //Mid-Top
+            verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p + (up * cRad), bolt.CoreColor, br);
+            //Mid-Bottom
+            verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p - (up * cRad), bolt.CoreColor, br);
+            //Mid-Left
+            verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p -(right * cRad), bolt.CoreColor, br);
+            //Mid-Right
+            verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p + (right * cRad), bolt.CoreColor, br);
+            
+            //sec
+            var coreLen = Math.Min(maxTrailLen, bolt.CoreLength);
+            var p2 = p - (normal * coreLen);
+            //Sec-Mid
+            verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p2, bolt.SecCoreColor, bl);
+            //Sec-Top
+            verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p2 + (up * secRad), bolt.SecOuterColor, br);
+            //Sec-Bottom
+            verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p2 - (up * secRad), bolt.SecOuterColor, br);
+            //Sec-Left
+            verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p2 -(right * secRad), bolt.SecOuterColor, br);
+            //Sec-Right
+            verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p2 + (right * secRad), bolt.SecOuterColor, br);
+           
+            //Tip
+            verticesBolt[vertexCountBolt++] =
+                new VertexPositionColorTexture(p + (normal * bolt.TipLength), bolt.TipColor, tr);
+            //Trail
+            var tailLength = Math.Min(maxTrailLen, bolt.TailLength + bolt.CoreLength);
+            verticesBolt[vertexCountBolt++] =
+                new VertexPositionColorTexture(p - (normal * tailLength), bolt.TailColor, tr);
+            boltCount++;
         }
         public void AddBeamSpear(Vector3 p, Vector3 normal, BeamSpear spear, float maxTrailLen)
         {

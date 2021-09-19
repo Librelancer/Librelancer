@@ -127,8 +127,7 @@ namespace LancerEdit
             } 
             else if (bolt != null)
             {
-                Vector2 tl, tr, bl, br;
-                //CoordsFromTexture(bolt.HeadTexture, out tl, out tr, out bl, out br);
+                beams.AddBeamBolt(position, norm, bolt, float.MaxValue);
             }
             beams.End();
             fxPool.Draw(camera, null, mw.Resources, null);
