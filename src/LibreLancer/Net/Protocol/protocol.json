@@ -69,10 +69,19 @@
           "name": "SpawnPlayer",
           "args": [
             { "name":  "system", "type":  "string" },
+            { "name":  "systime", "type":  "double" },
             { "name":  "position", "type":  "Vector3" },
             { "name":  "orientation", "type":  "Quaternion" },
             { "name":  "credits", "type":  "long" },
             { "name":  "ship", "type": "NetShipLoadout" }
+          ]
+        },
+        {
+          "name": "StartAnimation",
+          "args": [
+            { "name":  "systemObject", "type":  "bool" },
+            { "name":  "id", "type":  "int" },
+            { "name":  "anim", "type":  "string" }
           ]
         },
         {

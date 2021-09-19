@@ -49,6 +49,11 @@ namespace LibreLancer
 				FLLog.Error("Animation", animationName + " not present");
 		}
 
+        public void WarpTime(double totalTime)
+        {
+            this.totalTime = totalTime;
+        }
+
         public void ResetAnimations()
         {
             animations.Clear();

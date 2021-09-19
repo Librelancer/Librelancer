@@ -27,6 +27,26 @@ namespace LibreLancer
         public event Action<string> Disconnected;
         public Guid UUID;
         ConcurrentQueue<IPacket> packets = new ConcurrentQueue<IPacket>();
+
+        public int LossPercent
+        {
+            get
+            {
+                if (running)
+                    return (int) (client?.FirstPeer?.Statistics?.PacketLossPercent ?? 100);
+                return -1;
+            }
+        }
+
+        public int Ping
+        {
+            get
+            {
+                if (running)
+                    return client?.FirstPeer?.Ping ?? -1;
+                return -1;
+            }
+        }
         
         public void Start()
         {
@@ -164,6 +184,7 @@ namespace LibreLancer
                 UnconnectedMessagesEnabled = true,
                 IPv6Enabled = true,
                 NatPunchEnabled = true,
+                EnableStatistics = true,
                 ChannelsCount =  3
             };
             listener.NetworkReceiveUnconnectedEvent += (remote, msg, type) =>

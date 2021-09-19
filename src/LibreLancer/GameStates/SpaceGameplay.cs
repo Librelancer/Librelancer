@@ -23,6 +23,7 @@ Pitch: {8:0.00}
 Yaw: {9:0.00}
 Roll: {10:0.00}
 Mouse Flight: {11}
+World Time: {12:F2}
 ";
 		private const float ROTATION_SPEED = 1f;
 		GameData.StarSystem sys;
@@ -109,7 +110,7 @@ Mouse Flight: {11}
 
             sysrender = new SystemRenderer(camera, Game.GameData, Game.ResourceManager, Game);
             world = new GameWorld(sysrender);
-            world.LoadSystem(sys, Game.ResourceManager);
+            world.LoadSystem(sys, Game.ResourceManager, session.SpawnTime);
             session.WorldReady();
             player.World = world;
             world.Objects.Add(player);
@@ -581,7 +582,7 @@ Mouse Flight: {11}
                     else
                         sel_obj = selected.Name;
                 }
-                DebugDrawing.DrawShadowedText(Game.Renderer2D,  string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Nickname, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, control.PlayerPitch, control.PlayerYaw, control.Roll, mouseFlight), 5, 5);
+                DebugDrawing.DrawShadowedText(Game.Renderer2D,  string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Nickname, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, control.PlayerPitch, control.PlayerYaw, control.Roll, mouseFlight, session.WorldTime), 5, 5);
                 //pyw.Draw(Game.Renderer2D);
                 current_cur.Draw(Game.Renderer2D, Game.Mouse);
             }

@@ -146,7 +146,7 @@ namespace LibreLancer
                 game.RequestWorld(sys, (world) =>
                 {
                     World = world; 
-                    rpcClient.SpawnPlayer(System, Position, Orientation, Character.Credits, Character.EncodeLoadout());
+                    rpcClient.SpawnPlayer(System, world.TotalTime, Position, Orientation, Character.Credits, Character.EncodeLoadout());
                     world.SpawnPlayer(this, Position, Orientation);
                     //work around race condition where world spawns after player has been sent to a base
                     InitStory(sg);
@@ -555,7 +555,7 @@ namespace LibreLancer
                 }
                 BaseData = null;
                 Base = null;
-                rpcClient.SpawnPlayer(System, Position, Orientation, Character.Credits, Character.EncodeLoadout());
+                rpcClient.SpawnPlayer(System, world.TotalTime, Position, Orientation, Character.Credits, Character.EncodeLoadout());
                 world.SpawnPlayer(this, Position, Orientation);
                 msnRuntime?.EnteredSpace();
             });

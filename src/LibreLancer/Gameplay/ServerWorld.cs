@@ -21,6 +21,9 @@ namespace LibreLancer
 
         private int mId = -1;
         object _idLock = new object();
+
+        
+        public double TotalTime { get; private set; }
         int GenerateID()
         {
             lock (_idLock)
@@ -162,6 +165,7 @@ namespace LibreLancer
         private double maxNoPlayers = 2.0;
         public bool Update(double delta)
         {
+            TotalTime += delta;
             //Avoid locks during Update
             Action act;
             while(actions.Count > 0 && actions.TryDequeue(out act)){ act(); }

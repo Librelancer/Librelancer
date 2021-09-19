@@ -21,7 +21,21 @@ namespace LibreLancer
 	{
 		//Object data
 		public string Name;
-		public string Nickname;
+
+        private string _nickname;
+        public uint NicknameCRC { get; private set; }
+        public string Nickname
+        {
+            get
+            {
+                return _nickname;
+            }
+            set
+            {
+                _nickname = value;
+                NicknameCRC = CrcTool.FLModelCrc(_nickname);
+            }
+        }
         public string ArchetypeName;
         public int NetID;
 		public Hardpoint _attachment;
@@ -86,7 +100,7 @@ namespace LibreLancer
 		public AnimationComponent AnimationComponent;
 		public SystemObject SystemObject;
         public RigidModel RigidModel;
-
+        
         public GameObject Parent
         {
             get => _parent;
@@ -133,8 +147,11 @@ namespace LibreLancer
         public GameObject(Ship ship, ResourceManager res, bool draw = true)
         {
             InitWithDrawable(ship.ModelFile.LoadFile(res), res, draw, false);
-            PhysicsComponent.Mass = ship.Mass;
-            PhysicsComponent.Inertia = ship.RotationInertia;
+            if (PhysicsComponent != null)
+            {
+                PhysicsComponent.Mass = ship.Mass;
+                PhysicsComponent.Inertia = ship.RotationInertia;
+            }
         }
 
         public GameObject(string name, RigidModel model, ResourceManager res, string partName, float mass, bool draw)
@@ -247,9 +264,9 @@ namespace LibreLancer
             }
 		}
 
-        public void SetLoadout(Dictionary<string, Equipment> equipment, List<Equipment> nohp)
-		{
-			foreach (var k in equipment.Keys)
+        public void SetLoadout(Dictionary<string, Equipment> equipment, List<Equipment> nohp, double timeOffset)
+        {
+            foreach (var k in equipment.Keys)
                 EquipmentObjectManager.InstantiateEquipment(this, Resources, RenderComponent != null, k, equipment[k]);
             foreach (var eq in nohp)
 			{
@@ -260,7 +277,8 @@ namespace LibreLancer
 						AnimationComponent?.StartAnimation(anm.Animation);
 				}
 			}
-		}
+            AnimationComponent?.WarpTime(timeOffset); //Looping animations sync up to server vaguely
+        }
 
 
 		void PopulateHardpoints()

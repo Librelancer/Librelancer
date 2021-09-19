@@ -41,7 +41,7 @@ namespace LibreLancer
             Projectiles = new ProjectileManager(this);
 		}
 
-        public void LoadSystem(StarSystem sys, ResourceManager res)
+        public void LoadSystem(StarSystem sys, ResourceManager res, double timeOffset = 0)
 		{
             foreach (var g in Objects)
                 g.Unregister(Physics);
@@ -57,7 +57,7 @@ namespace LibreLancer
                 g.Name = obj.DisplayName;
                 g.Nickname = obj.Nickname;
                 g.SetLocalTransform((obj.Rotation ?? Matrix4x4.Identity) * Matrix4x4.CreateTranslation(obj.Position));
-                g.SetLoadout(obj.Loadout, obj.LoadoutNoHardpoint);
+                g.SetLoadout(obj.Loadout, obj.LoadoutNoHardpoint, timeOffset);
                 g.World = this;
                 g.CollisionGroups = obj.Archetype.CollisionGroups;
                 if (g.RenderComponent != null)
@@ -105,7 +105,16 @@ namespace LibreLancer
         #else
         public void DrawDebug(Vector3 point) {}
 #endif
-        
+
+        public GameObject GetObject(uint crc)
+        {
+            if (crc == 0) return null;
+            foreach (var obj in Objects)
+            {
+                if (obj.NicknameCRC == crc) return obj;
+            }
+            return null;
+        }
 		public GameObject GetObject(string nickname)
 		{
 			if (nickname == null) return null;

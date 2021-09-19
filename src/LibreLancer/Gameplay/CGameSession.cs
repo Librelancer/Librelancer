@@ -44,7 +44,12 @@ namespace LibreLancer
         private IPacketConnection connection;
         private IServerPlayer rpcServer;
         public IServerPlayer RpcServer => rpcServer;
-		public CGameSession(FreelancerGame g, IPacketConnection connection)
+
+        public double SpawnTime; //server time at time of spawn
+        private double tOffset; //game time at time of spawn
+        public double WorldTime => Game.TotalTime - tOffset + SpawnTime;
+
+        public CGameSession(FreelancerGame g, IPacketConnection connection)
 		{
 			Game = g;
             this.connection = connection;
@@ -246,15 +251,31 @@ namespace LibreLancer
             });
         }
 
-        void IClientPlayer.SpawnPlayer(string system, Vector3 position, Quaternion orientation, long credits, NetShipLoadout ship)
+        void IClientPlayer.SpawnPlayer(string system, double systemTime, Vector3 position, Quaternion orientation, long credits, NetShipLoadout ship)
         {
             PlayerBase = null;
+            SpawnTime = systemTime;
+            FLLog.Info("Client", $"Spawning at time {systemTime}");
+            tOffset = Game.TotalTime;
             Credits = credits;
             PlayerSystem = system;
             PlayerPosition = position;
             PlayerOrientation = Matrix4x4.CreateFromQuaternion(orientation);
             SetSelfLoadout(ship);
             SceneChangeRequired();
+        }
+
+        void IClientPlayer.StartAnimation(bool systemObject, int id, string anim)
+        {
+            RunSync(() =>
+            {
+                GameObject obj;
+                if (systemObject)
+                    obj = gp.world.GetObject((uint) id);
+                else
+                    obj = objects[id];
+                obj?.AnimationComponent?.StartAnimation(anim);
+            });
         }
 
         void IClientPlayer.SpawnDebris(int id, string archetype, string part, Vector3 position, Quaternion orientation, float mass)
@@ -433,7 +454,26 @@ namespace LibreLancer
 
         public void Launch() => rpcServer.Launch();
 
-        public void ProcessConsoleCommand(string str) => rpcServer.ConsoleCommand(str);
+        public void ProcessConsoleCommand(string str)
+        {
+            Chats.Append(str, "Arial", 9, Color4.Green);
+            if (str == "#netstat")
+            {
+                if(connection is GameNetClient nc)
+                {
+                    string stats = $"Ping: {nc.Ping}, Loss {nc.LossPercent}%";
+                    Chats.Append(stats, "Arial", 9, Color4.CornflowerBlue);
+                }
+                else
+                {
+                    Chats.Append("Offline", "Arial", 9, Color4.CornflowerBlue);
+                }
+            }
+            else
+            {
+                rpcServer.ConsoleCommand(str);
+            }
+        }
         
 
         public void Disconnected()
