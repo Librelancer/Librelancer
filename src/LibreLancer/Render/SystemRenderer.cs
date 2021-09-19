@@ -175,7 +175,14 @@ namespace LibreLancer
             FxPool.Update(elapsed);
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Update(camera);
 			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Update(elapsed);
-		}
+            for (int i = tempFx.Count - 1; i >= 0; i--) {
+                tempFx[i].Render.Update(elapsed, tempFx[i].Position, Matrix4x4.CreateTranslation(tempFx[i].Position));
+                if (tempFx[i].Render.Finished)
+                {
+                    tempFx.RemoveAt(i);
+                }
+            }
+        }
 
         private Vector3[] debugPoints = new Vector3[0];
         public void UseDebugPoints(List<Vector3> list)
@@ -239,6 +246,22 @@ namespace LibreLancer
                 objects.Add(render);
             }
         }
+
+        class TemporaryFx
+        {
+            public ParticleEffectRenderer Render;
+            public Vector3 Position;
+        }
+
+        private List<TemporaryFx> tempFx = new List<TemporaryFx>();
+        public void SpawnTempFx(ParticleEffect fx, Vector3 position)
+        {
+            var ren = new ParticleEffectRenderer(fx);
+            ren.SParam = 0;
+            ren.Active = true;
+            tempFx.Add(new TemporaryFx() { Render = ren, Position = position });
+        }
+        
 		public unsafe void Draw()
 		{
 			if (gconfig.MSAASamples > 0)
@@ -278,6 +301,10 @@ namespace LibreLancer
 				}, i);
 			}
 			JThreads.Instance.BeginExecute();*/
+            foreach (var obj in tempFx)
+            {
+                obj.Render.PrepareRender(camera, nr, this);
+            }
             for (int i = 0; i < World.Objects.Count; i++)
             {
                 World.Objects[i].PrepareRender(camera, nr, this);

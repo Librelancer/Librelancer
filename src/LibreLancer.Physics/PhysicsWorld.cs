@@ -11,6 +11,7 @@ using BM = BulletSharp.Math;
 namespace LibreLancer.Physics
 {
     public delegate void FixedUpdateHandler(double elapsed);
+
     /// <summary>
     /// Creates a bullet physics world. Any object created here will be invalid upon Dispose()
     /// </summary>
@@ -31,6 +32,9 @@ namespace LibreLancer.Physics
         List<PhysicsObject> dynamicObjects = new List<PhysicsObject>();
         bool disposed = false;
 
+        private PointCallback pointCb;
+        private CollisionObject pointObj;
+
         public PhysicsWorld()
         {
             collisionConf = new DefaultCollisionConfiguration();
@@ -39,38 +43,85 @@ namespace LibreLancer.Physics
             broadphase = new DbvtBroadphase();
             btWorld = new DiscreteDynamicsWorld(btDispatcher, broadphase, null, collisionConf);
             btWorld.Gravity = BM.Vector3.Zero;
+
+            pointCb = new PointCallback();
+            pointObj = new CollisionObject();
+            pointObj.CollisionShape = new SphereShape(1);
         }
 
 
         DebugDrawWrapper wrap;
+
         public void EnableWireframes(IDebugRenderer renderer)
         {
             wrap = new DebugDrawWrapper(renderer);
             btWorld.DebugDrawer = wrap;
         }
+
         public void DisableWireframes()
         {
             btWorld.DebugDrawer = null;
             wrap = null;
         }
+
         public void DrawWorld()
         {
             btWorld.DebugDrawWorld();
         }
+
         public PhysicsObject AddStaticObject(Matrix4x4 transform, Collider col)
         {
-            using(var rbInfo = new RigidBodyConstructionInfo(0, 
-                                                             new DefaultMotionState(transform.Cast()), 
-                                                             col.BtShape, BM.Vector3.Zero)) {
+            using (var rbInfo = new RigidBodyConstructionInfo(0,
+                new DefaultMotionState(transform.Cast()),
+                col.BtShape, BM.Vector3.Zero))
+            {
                 var body = new RigidBody(rbInfo);
                 body.Restitution = 1;
-                var phys = new PhysicsObject(body, col) { Static = true };
+                var phys = new PhysicsObject(body, col) {Static = true};
                 phys.UpdateProperties();
                 body.UserObject = phys;
                 btWorld.AddRigidBody(body);
                 objects.Add(phys);
                 return phys;
             }
+        }
+
+        class PointCallback : ContactResultCallback
+        {
+            public void Reset()
+            {
+                Hit = false;
+                Victim = null;
+                ContactPoint = Vector3.Zero;
+            }
+            public bool Hit { get; private set; }
+            
+            public PhysicsObject Victim { get; private set; }
+            public Vector3 ContactPoint { get; private set; }
+            public override float AddSingleResult(ManifoldPoint cp, CollisionObjectWrapper colObj0Wrap, int partId0, int index0,
+                CollisionObjectWrapper colObj1Wrap, int partId1, int index1)
+            {
+                Hit = true;
+                if (colObj0Wrap.CollisionObject.UserObject is PhysicsObject p0) {
+                    Victim = p0;
+                    ContactPoint = cp.PositionWorldOnA.Cast();
+                }
+                if (colObj1Wrap.CollisionObject.UserObject is PhysicsObject p1) {
+                    Victim = p1;
+                    ContactPoint = cp.PositionWorldOnB.Cast();
+                }
+                return 0;
+            }
+        }
+        public bool PointCollision(Vector3 point, out PhysicsObject obj, out Vector3 contactPoint)
+        {
+            obj = null;
+            pointCb.Reset();
+            pointObj.WorldTransform = BM.Matrix.Translation(point.Cast());
+            btWorld.ContactTest(pointObj, pointCb);
+            obj = pointCb.Victim;
+            contactPoint = pointCb.ContactPoint;
+            return pointCb.Hit;
         }
 
         public PhysicsObject AddDynamicObject(float mass, Matrix4x4 transform, Collider col, Vector3? inertia = null) {
@@ -150,7 +201,9 @@ namespace LibreLancer.Physics
                 btWorld.RemoveCollisionObject(obj);
                 obj.Dispose();
             }
-
+            pointCb.Dispose();
+            pointObj.CollisionShape.Dispose();
+            pointObj.Dispose();
             btWorld.Dispose();
             broadphase.Dispose();
             btDispatcher.Dispose();

@@ -14,6 +14,7 @@ namespace LibreLancer
 		public bool Active = true;
 		SystemRenderer sys;
 		ParticleEffectInstance fx;
+        public bool Finished = false;
 		public ParticleEffectRenderer(ParticleEffect effect)
 		{
             if (effect == null) return;
@@ -50,8 +51,9 @@ namespace LibreLancer
 			{
 				tr = transform;
 				fx.Update(time, transform, SParam);
-			}
-		}
+                if (fx.IsFinished()) Finished = true;
+            }
+        }
 		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
             if (fx == null) return;

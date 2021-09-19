@@ -5,6 +5,8 @@
 using System;
 using System.Numerics;
 using System.Collections.Generic;
+using LibreLancer.Fx;
+
 namespace LibreLancer
 {
     public class ProjectileManager
@@ -29,7 +31,11 @@ namespace LibreLancer
                 Projectiles[i].Time += tFloat;
                 if(Projectiles[i].Time >= Projectiles[i].Data.Lifetime) {
                     Projectiles[i].Alive = false;
+                } else if (world.Physics.PointCollision(Projectiles[i].Position, out Physics.PhysicsObject po, out Vector3 contactPoint)) {
+                    Projectiles[i].Alive = false;
+                    world.Renderer.SpawnTempFx(Projectiles[i].Data.HitEffect, contactPoint);
                 }
+                
             }
         }
 
@@ -42,6 +48,9 @@ namespace LibreLancer
             pdata.Munition = gunDef.Munition;
             pdata.Lifetime = gunDef.Munition.Def.Lifetime;
             pdata.Velocity = gunDef.Def.MuzzleVelocity;
+            var res = world.Renderer.Game.GetService<GameDataManager>();
+            pdata.HitEffect = res.GetEffect(gunDef.Munition.Def.MunitionHitEffect)
+                .GetEffect(world.Renderer.ResourceManager);
             datas.Add(gunDef.Nickname, pdata);
             return pdata;
         }
@@ -64,6 +73,7 @@ namespace LibreLancer
         public GameData.Items.MunitionEquip Munition;
         public float Velocity;
         public float Lifetime;
+        public ParticleEffect HitEffect;
     }
 
     public struct Projectile

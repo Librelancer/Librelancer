@@ -38,6 +38,24 @@ namespace LibreLancer.Fx
         double globaltime = 0;
         public double GlobalTime => globaltime;
 
+        public bool IsFinished() 
+        {
+            for (int i = 0; i < ParticleCounts.Length; i++)
+            {
+                if (ParticleCounts[i] > 0) return false;
+            }
+            for (int i = 0; i < Effect.References.Count; i++)
+            {
+                var r = Effect.References[i];
+                if (NodeEnabled(r) && (r.Node is FxEmitter emit))
+                {
+                    if (globaltime < emit.NodeLifeSpan)
+                        return false;
+                }
+            }
+            return true;
+        }
+
         public ParticleEffectInstance(ParticleEffect fx)
         {
             SpawnTimers = new double[fx.EmitterCount];
