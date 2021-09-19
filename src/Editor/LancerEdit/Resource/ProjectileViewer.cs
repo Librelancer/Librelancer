@@ -123,7 +123,7 @@ namespace LancerEdit
             var position = Vector3.Zero;
             if (beam != null)
             {
-                beams.AddBeamSpear(position, norm, beam);
+                beams.AddBeamSpear(position, norm, beam, float.MaxValue);
             } 
             else if (bolt != null)
             {

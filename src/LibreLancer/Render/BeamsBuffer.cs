@@ -172,7 +172,7 @@ namespace LibreLancer
             rs.Cull = true;
         }
 
-        public void AddBeamBolt(Vector3 p, Vector3 normal, BeamBolt bolt)
+        public void AddBeamBolt(Vector3 p, Vector3 normal, BeamBolt bolt, float maxTrailLen)
         {
             //boltCount++;
             //Head
@@ -181,7 +181,7 @@ namespace LibreLancer
             //Core, tip and trail
             CoordsFromTexture(bolt.TrailTexture, out tl, out tr, out bl, out br, out mid);
         }
-        public void AddBeamSpear(Vector3 p, Vector3 normal, BeamSpear spear)
+        public void AddBeamSpear(Vector3 p, Vector3 normal, BeamSpear spear, float maxTrailLen)
         {
             if(!begun) throw new InvalidOperationException();
             //Head
@@ -218,8 +218,9 @@ namespace LibreLancer
             verticesSpear[vertexCountSpear++] =
                 new VertexPositionColorTexture(p + (normal * spear.TipLength), spear.TipColor, tr);
             //Trail
+            var tailLength = Math.Min(maxTrailLen, spear.TailLength);
             verticesSpear[vertexCountSpear++] =
-                new VertexPositionColorTexture(p - (normal * spear.TailLength), spear.TailColor, tr);
+                new VertexPositionColorTexture(p - (normal * tailLength), spear.TailColor, tr);
             spearCount++;
         }
 

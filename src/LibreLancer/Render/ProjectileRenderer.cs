@@ -45,10 +45,11 @@ namespace LibreLancer
             for (int i = 0; i < renderCount; i++)
             {
                 var p = toRender[i];
+                var currDist = (p.Position - p.Start).Length();
                 if(p.Data.Munition.ConstEffect_Spear != null)
-                    beams.AddBeamSpear(p.Position, p.Normal.Normalized(), p.Data.Munition.ConstEffect_Spear);
+                    beams.AddBeamSpear(p.Position, p.Normal.Normalized(), p.Data.Munition.ConstEffect_Spear, currDist);
                 if(p.Data.Munition.ConstEffect_Bolt != null)
-                    beams.AddBeamBolt(p.Position, p.Normal.Normalized(), p.Data.Munition.ConstEffect_Bolt);
+                    beams.AddBeamBolt(p.Position, p.Normal.Normalized(), p.Data.Munition.ConstEffect_Bolt, currDist);
             }
         }
     }

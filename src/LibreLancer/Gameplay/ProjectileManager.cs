@@ -63,6 +63,7 @@ namespace LibreLancer
                 Time = 0,
                 Alive = true,
                 Position = position,
+                Start = position,
                 Normal = heading * projectile.Velocity
             };
             projectilePtr++;
@@ -82,6 +83,7 @@ namespace LibreLancer
         public bool Alive;
         public float Time;
         public Vector3 Position;
+        public Vector3 Start;
         public Vector3 Normal;
     }
 }
