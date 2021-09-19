@@ -20,7 +20,7 @@ namespace LibreLancer
 
 		public override void FixedUpdate(double time)
 		{
-			var cmp = currenttradelane.GetComponent<DockComponent>();
+			var cmp = currenttradelane.GetComponent<CDockComponent>();
 			var tgt = Parent.GetWorld().GetObject(lane == "HpRightLane" ? cmp.Action.Target : cmp.Action.TargetLeft);
 			if (tgt == null)
 			{
@@ -34,7 +34,7 @@ namespace LibreLancer
 			var eng = Parent.GetComponent<CEngineComponent>();
 			if (eng != null) eng.Speed = 0.9f;
 
-			var tgtcmp = tgt.GetComponent<DockComponent>();
+			var tgtcmp = tgt.GetComponent<CDockComponent>();
             var targetPoint = Vector3.Transform(Vector3.Zero, tgt.GetHardpoint(lane).Transform * tgt.WorldTransform);
 			var direction = targetPoint - Parent.PhysicsComponent.Body.Position;
 			var distance = direction.Length();

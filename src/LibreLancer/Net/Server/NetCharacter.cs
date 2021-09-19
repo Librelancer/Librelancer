@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using LibreLancer.Entities.Character;
 
@@ -13,7 +14,9 @@ namespace LibreLancer
     public class NetCharacter
     {
         public string Name;
-        public string Base;
+        public string Base { get; private set; }
+        public string System { get; private set; }
+        public Vector3 Position { get; private set; }
         public long Credits { get; private set; }
         public GameData.Ship Ship;
         public List<NetEquipment> Equipment;
@@ -22,6 +25,23 @@ namespace LibreLancer
         GameDataManager gData;
         private DatabaseCharacter dbChar;
         private int _itemID;
+
+        public void UpdatePosition(string _base, string sys, Vector3 pos)
+        {
+            Base = _base;
+            System = sys;
+            Position = pos;
+            if (dbChar != null)
+            {
+                dbChar.Character.Base = _base;
+                dbChar.Character.System = sys;
+                dbChar.Character.X = pos.X;
+                dbChar.Character.Y = pos.Y;
+                dbChar.Character.Z = pos.Z;
+                dbChar.ApplyChanges();
+            }
+        }
+        
         public static NetCharacter FromDb(long id, GameServer game)
         {
             var db = game.Database.GetCharacter(id);
@@ -31,6 +51,8 @@ namespace LibreLancer
             nc.dbChar = db;
             nc.charId = id;
             nc.Base = db.Character.Base;
+            nc.System = db.Character.System;
+            nc.Position = new Vector3(db.Character.X, db.Character.Y, db.Character.Z);
             nc.Ship = game.GameData.GetShip(db.Character.Ship);
             nc.Credits = db.Character.Money;
             nc.Equipment = new List<NetEquipment>(db.Character.Equipment.Count);

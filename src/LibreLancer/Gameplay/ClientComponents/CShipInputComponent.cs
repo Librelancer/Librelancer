@@ -12,6 +12,7 @@ namespace LibreLancer
         public Vector2 MousePosition;
         public Vector2 Viewport;
         public float Throttle = 0;
+        public float AutopilotThrottle = 0;
         public float BankLimit = 35f;
         public bool MouseFlight = false;
 
@@ -27,7 +28,7 @@ namespace LibreLancer
             if (physics == null) physics = Parent.GetComponent<ShipPhysicsComponent>();
             if (Camera == null) return;
             if (physics == null) return;
-            physics.EnginePower = Throttle;
+            physics.EnginePower = AutopilotThrottle > 0 ? AutopilotThrottle : Throttle;
             if (MouseFlight)
             {
                 //Calculate turning direction

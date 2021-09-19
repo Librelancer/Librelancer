@@ -39,6 +39,11 @@ namespace LibreLancer.Entities.Character
 
         // Current base if docked
         public string Base { get; set; }
+        
+        // Current position of ship
+        public float X { get; set; }
+        public float Y { get; set; }
+        public float Z { get; set; }
 
         // Current ship archetype
         public string Ship { get; set; }

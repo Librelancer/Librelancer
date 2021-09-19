@@ -110,7 +110,7 @@ World Time: {12:F2}
 
             sysrender = new SystemRenderer(camera, Game.GameData, Game.ResourceManager, Game);
             world = new GameWorld(sysrender);
-            world.LoadSystem(sys, Game.ResourceManager, session.SpawnTime);
+            world.LoadSystem(sys, Game.ResourceManager, false, session.SpawnTime);
             session.WorldReady();
             player.World = world;
             world.Objects.Add(player);
@@ -129,7 +129,6 @@ World Time: {12:F2}
             input.ToggleActivated += Input_ToggleActivated;
             input.ToggleUp += Input_ToggleUp;
             pilotcomponent = new AutopilotComponent(player);
-            pilotcomponent.DockComplete += Pilotcomponent_DockComplete;
             player.Components.Add(pilotcomponent);
             player.World = world;
             world.MessageBroadcasted += World_MessageBroadcasted;
@@ -165,7 +164,7 @@ World Time: {12:F2}
                 var dict = new LuaCompatibleDictionary();
                 dict.Set("FreeFlight", true);
                 dict.Set("Goto", g.selected != null);
-                dict.Set("Dock", g.selected?.GetComponent<DockComponent>() != null);
+                dict.Set("Dock", g.selected?.GetComponent<CDockComponent>() != null);
                 dict.Set("Formation", false);
                 return dict;
             }
@@ -199,20 +198,7 @@ World Time: {12:F2}
 			}
 		}
 
-        void Pilotcomponent_DockComplete(DockAction action)
-		{
-			pilotcomponent.CurrentBehaviour = AutopilotBehaviours.None;
-			if (action.Kind == DockKinds.Base)
-			{
-				Game.ChangeState(new RoomGameplay(Game, session, action.Target));
-			}
-			else if(action.Kind == DockKinds.Jump)
-			{
-				//session.JumpTo(action.Target, action.Exit);
-			}
-		}
-
-		public override void Unregister()
+        public override void Unregister()
 		{
 			Game.Keyboard.TextInput -= Game_TextInput;
 			Game.Keyboard.KeyDown -= Keyboard_KeyDown;
@@ -255,11 +241,14 @@ World Time: {12:F2}
 					return true;
 				case "Dock":
 					if (selected == null) return false;
-					DockComponent d;
-					if ((d = selected.GetComponent<DockComponent>()) != null)
+					CDockComponent d;
+					if ((d = selected.GetComponent<CDockComponent>()) != null)
 					{
 						pilotcomponent.TargetObject = selected;
 						pilotcomponent.CurrentBehaviour = AutopilotBehaviours.Dock;
+                        pilotcomponent.StartDock();
+                        if(d.Action.Kind != DockKinds.Tradelane)
+                            session.RpcServer.RequestDock(selected.Nickname);
 						return true;
 					}
 					return false;

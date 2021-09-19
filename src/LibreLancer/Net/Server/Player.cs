@@ -9,6 +9,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using LibreLancer.Data.Save;
 using LibreLancer.GameData.Items;
 using LibreLancer.Entities.Character;
 using LibreLancer.Net;
@@ -43,6 +44,9 @@ namespace LibreLancer
         public NetResponseHandler ResponseHandler;
 
         private RemoteClientPlayer rpcClient;
+
+        public RemoteClientPlayer RemoteClient => rpcClient;
+        
         public Player(IPacketClient client, GameServer game, Guid playerGuid)
         {
             this.Client = client;
@@ -92,7 +96,7 @@ namespace LibreLancer
             msnRuntime?.EnterLocation(room, _base);
         }
 
-        public void OpenSaveGame(Data.Save.SaveGame sg)
+        public void OpenSaveGame(SaveGame sg)
         {
             Orientation = Quaternion.Identity;
             Position = sg.Player.Position;
@@ -142,19 +146,23 @@ namespace LibreLancer
             }
             else
             {
-                var sys = game.GameData.GetSystem(System);
-                game.RequestWorld(sys, (world) =>
-                {
-                    World = world; 
-                    rpcClient.SpawnPlayer(System, world.TotalTime, Position, Orientation, Character.Credits, Character.EncodeLoadout());
-                    world.SpawnPlayer(this, Position, Orientation);
-                    //work around race condition where world spawns after player has been sent to a base
-                    InitStory(sg);
-                });
+                SpaceInitialSpawn(sg);
             }
             
         }
-        
+
+        void SpaceInitialSpawn(SaveGame sg)
+        {
+            var sys = game.GameData.GetSystem(System);
+            game.RequestWorld(sys, (world) =>
+            {
+                World = world; 
+                rpcClient.SpawnPlayer(System, world.TotalTime, Position, Orientation, Character.Credits, Character.EncodeLoadout());
+                world.SpawnPlayer(this, Position, Orientation);
+                //work around race condition where world spawns after player has been sent to a base
+                if(sg != null) InitStory(sg);
+            });
+        }
         bool NewsFind(LibreLancer.Data.Missions.NewsItem ni)
         {
             if (ni.Rank[1] != "mission_end")
@@ -179,6 +187,8 @@ namespace LibreLancer
             }
             //load base
             BaseData = game.GameData.GetBase(Base);
+            //update
+            Character.UpdatePosition(Base, System, Position);
             //send to player
             lock (rtcs)
             {
@@ -415,7 +425,13 @@ namespace LibreLancer
                 Character = NetCharacter.FromDb(sc.Id, game);
                 rpcClient.UpdateBaselinePrices(game.BaselineGoodPrices);
                 Base = Character.Base;
-                PlayerEnterBase();
+                System = Character.System;
+                Position = Character.Position;
+                if (Base != null) {
+                    PlayerEnterBase();
+                } else {
+                    SpaceInitialSpawn(null);
+                }
                 return true;
             }
             else
@@ -502,6 +518,7 @@ namespace LibreLancer
         
         public void Disconnected()
         {
+            Character.UpdatePosition(Base, System, Position);
             World?.RemovePlayer(this);
             Character?.Dispose();
         }
@@ -524,9 +541,44 @@ namespace LibreLancer
         {
             rpcClient.CallThorn(thorn);
         }
-        
-        
-        
+
+        public void JumpTo(string system, string target)
+        {
+            rpcClient.StartJumpTunnel();
+            if(World != null) World.RemovePlayer(this);
+            
+            var sys = game.GameData.GetSystem(system);
+            game.RequestWorld(sys, (world) =>
+            {
+                this.World = world;
+                var obj = sys.Objects.FirstOrDefault((o) =>
+                {
+                    return o.Nickname.Equals(target, StringComparison.OrdinalIgnoreCase);
+                });
+                System = system;
+                Base = null;
+                Position = Vector3.Zero;
+                if (obj == null) {
+                    FLLog.Error("Server", $"Can't find target {target} to spawn player in {system}");
+                }
+                else {
+                    Position = obj.Position;
+                    Orientation = (obj.Rotation ?? Matrix4x4.Identity).ExtractRotation();
+                    Position = Vector3.Transform(new Vector3(0, 0, 500), Orientation) + obj.Position; //TODO: This is bad
+                }
+                BaseData = null;
+                Base = null;
+                rpcClient.SpawnPlayer(System, world.TotalTime, Position, Orientation, Character.Credits, Character.EncodeLoadout());
+                world.SpawnPlayer(this, Position, Orientation);
+                msnRuntime?.EnteredSpace();
+            });
+        }
+
+        void IServerPlayer.RequestDock(string nickname)
+        {
+            World.RequestDock(this, nickname);
+        }
+
         void IServerPlayer.Launch()
         {
             var b = game.GameData.GetBase(Base);

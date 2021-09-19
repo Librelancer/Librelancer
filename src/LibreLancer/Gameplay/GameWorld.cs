@@ -41,7 +41,7 @@ namespace LibreLancer
             Projectiles = new ProjectileManager(this);
 		}
 
-        public void LoadSystem(StarSystem sys, ResourceManager res, double timeOffset = 0)
+        public void LoadSystem(StarSystem sys, ResourceManager res, bool server, double timeOffset = 0)
 		{
             foreach (var g in Objects)
                 g.Unregister(Physics);
@@ -71,13 +71,24 @@ namespace LibreLancer
                 {
                     if (obj.Archetype.DockSpheres.Count > 0) //Dock with no DockSphere?
                     {
-                        g.Components.Add(new DockComponent(g)
+                        if (server)
                         {
-                            Action = obj.Dock,
-                            DockAnimation = obj.Archetype.DockSpheres[0].Script,
-                            DockHardpoint = obj.Archetype.DockSpheres[0].Hardpoint,
-                            TriggerRadius = obj.Archetype.DockSpheres[0].Radius
-                        });
+                            g.Components.Add(new SDockableComponent(g)
+                            {
+                                Action = obj.Dock,
+                                DockSpheres = obj.Archetype.DockSpheres.ToArray()
+                            });
+                        }
+                        else
+                        {
+                            g.Components.Add(new CDockComponent(g)
+                            {
+                                Action = obj.Dock,
+                                DockAnimation = obj.Archetype.DockSpheres[0].Script,
+                                DockHardpoint = obj.Archetype.DockSpheres[0].Hardpoint,
+                                TriggerRadius = obj.Archetype.DockSpheres[0].Radius
+                            });
+                        }
                     }
                 }
                 g.Register(Physics);

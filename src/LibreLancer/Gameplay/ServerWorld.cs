@@ -41,7 +41,7 @@ namespace LibreLancer
             GameWorld = new GameWorld(null);
             GameWorld.Server = this;
             GameWorld.PhysicsUpdate += GameWorld_PhysicsUpdate;
-            GameWorld.LoadSystem(system, server.Resources);
+            GameWorld.LoadSystem(system, server.Resources, true);
         }
 
         public int PlayerCount;
@@ -58,6 +58,7 @@ namespace LibreLancer
                 }
                 player.SendSolars(SpawnedSolars);
                 var obj = new GameObject() { World = GameWorld };
+                obj.Components.Add(new SPlayerComponent(player, obj));
                 obj.NetID = player.ID;
                 GameWorld.Objects.Add(obj);
                 Players[player] = obj;
@@ -65,6 +66,47 @@ namespace LibreLancer
                                                   Matrix4x4.CreateTranslation(position));
             });
         }
+
+        public void RequestDock(Player player, string nickname)
+        {
+            actions.Enqueue(() =>
+            {
+                var obj = Players[player];
+                FLLog.Info("Server", $"{player.Name} requested dock at {nickname}");
+                var dock = GameWorld.Objects.FirstOrDefault(x =>
+                    x.Nickname.Equals(nickname, StringComparison.OrdinalIgnoreCase));
+                if(dock == null)
+                    FLLog.Warning("Server", $"Dock object {nickname} does not exist.");
+                else
+                {
+                    var component = dock.GetComponent<SDockableComponent>();
+                    if(component == null)
+                        FLLog.Warning("Server", $"object {nickname} is not dockable.");
+                    else {
+                        component.StartDock(obj, 0);
+                    }
+                }
+            });
+        }
+        
+        public void StartAnimation(GameObject obj, string script)
+        {
+            int id = 0;
+            bool sysObj = false;
+            if (!string.IsNullOrEmpty(obj.Nickname))
+            {
+                id = (int) obj.NicknameCRC;
+                sysObj = true;
+            }
+            else
+            {
+                id = obj.NetID;
+            }
+            foreach (var p in Players) {
+                p.Key.RemoteClient.StartAnimation(sysObj, id, script);
+            }
+        }
+        
 
         public void RemovePlayer(Player player)
         {

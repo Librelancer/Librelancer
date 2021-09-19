@@ -196,6 +196,11 @@ namespace LibreLancer
             }
         }
 
+        void IClientPlayer.StartJumpTunnel()
+        {
+            FLLog.Warning("Client", "Jump tunnel unimplemented");
+        }
+
         //Use only for Single Player
         //Works because the data is already loaded,
         //and this is really only waiting for the embedded server to start
@@ -274,7 +279,7 @@ namespace LibreLancer
                     obj = gp.world.GetObject((uint) id);
                 else
                     obj = objects[id];
-                obj?.AnimationComponent?.StartAnimation(anim);
+                obj?.AnimationComponent?.StartAnimation(anim, false);
             });
         }
 

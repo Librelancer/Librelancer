@@ -44,6 +44,10 @@
           "name": "SellGood",
           "return": "bool",
           "args": [ { "name":  "id", "type":  "int" }, { "name":  "count", "type":  "int" }]
+        },
+        {
+          "name": "RequestDock",
+          "args": [ { "name": "nickname", "type":  "string" }]
         }
     ],
     "client_methods": [
@@ -148,6 +152,9 @@
         {
           "name": "RunMissionDialog",
           "args": [ {"name":  "lines", "type": "NetDlgLine[]" }]
+        },
+        {
+          "name": "StartJumpTunnel"
         }
     ]
 }

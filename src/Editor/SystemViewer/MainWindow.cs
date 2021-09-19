@@ -347,7 +347,7 @@ C# Memory Usage: {5}
                 systemInfocard = GameData.GetInfocard(curSystem.Infocard, fontMan);
                 if (icard != null) icard.SetInfocard(systemInfocard);
                 GameData.LoadAllSystem(curSystem);
-                world.LoadSystem(curSystem, Resources);
+                world.LoadSystem(curSystem, Resources, false);
                 systemMap.SetObjects(curSystem);
                 sysIndexLoaded = sysIndex;
             }
@@ -387,7 +387,7 @@ C# Memory Usage: {5}
             curSystem = GameData.GetSystem(systems[0]);
             systemInfocard = GameData.GetInfocard(curSystem.Infocard, fontMan);
             GameData.LoadAllSystem(curSystem);
-            world.LoadSystem(curSystem, Resources);
+            world.LoadSystem(curSystem, Resources, false);
             systemMap.SetObjects(curSystem);
         }
         void LoadData(string path)
