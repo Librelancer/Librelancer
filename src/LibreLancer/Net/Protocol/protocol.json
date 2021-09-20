@@ -48,6 +48,10 @@
         {
           "name": "RequestDock",
           "args": [ { "name": "nickname", "type":  "string" }]
+        },
+        {
+          "name": "FireProjectiles",
+          "args": [ { "name":  "projectiles", "type":  "ProjectileSpawn[]" }]
         }
     ],
     "client_methods": [
@@ -79,6 +83,10 @@
             { "name":  "credits", "type":  "long" },
             { "name":  "ship", "type": "NetShipLoadout" }
           ]
+        },
+        {
+          "name": "FireProjectiles",
+          "args": [ { "name":  "projectiles", "type":  "ProjectileSpawn[]" }]
         },
         {
           "name": "StartAnimation",

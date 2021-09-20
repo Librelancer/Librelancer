@@ -6,6 +6,7 @@ using System;
 using System.Numerics;
 using System.Collections.Generic;
 using LibreLancer.Data.Missions;
+using LibreLancer.GameData.Items;
 using LibreLancer.Interface;
 using LibreLancer.Net;
 using LibreLancer.Utf.Cmp;
@@ -194,6 +195,19 @@ namespace LibreLancer
                 var equip = Game.GameData.GetEquipment(cg.EquipCRC);
                 Cargo.Add(new NetCargo(cg.ID) { Equipment = equip, Count = cg.Count });
             }
+        }
+
+        void IClientPlayer.FireProjectiles(ProjectileSpawn[] projectiles)
+        {
+            RunSync(() =>
+            {
+                foreach (var p in projectiles)
+                {
+                    var x = Game.GameData.GetEquipment(p.Gun) as GunEquipment;
+                    var projdata = gp.world.Projectiles.GetData(x);
+                    gp.world.Projectiles.SpawnProjectile(projdata, p.Start, p.Heading);
+                }
+            });
         }
 
         void IClientPlayer.StartJumpTunnel()

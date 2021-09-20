@@ -96,6 +96,11 @@ namespace LibreLancer
             msnRuntime?.EnterLocation(room, _base);
         }
 
+        void IServerPlayer.FireProjectiles(ProjectileSpawn[] projectiles)
+        {
+            World?.FireProjectiles(projectiles, this);
+        }
+
         public void OpenSaveGame(SaveGame sg)
         {
             Orientation = Quaternion.Identity;

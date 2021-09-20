@@ -426,6 +426,10 @@ World Time: {12:F2}
             }
             if (Game.Mouse.IsButtonDown(MouseButtons.Right))
                 weapons.FireAll();
+            if (world.Projectiles.HasQueued)
+            {
+                session.RpcServer.FireProjectiles(world.Projectiles.GetQueue());
+            }
         }
 
 		GameObject GetSelection(float x, float y)

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
+using LibreLancer.Net;
 
 namespace LibreLancer
 {
@@ -85,6 +86,18 @@ namespace LibreLancer
                     else {
                         component.StartDock(obj, 0);
                     }
+                }
+            });
+        }
+
+        public void FireProjectiles(ProjectileSpawn[] projectiles, Player owner)
+        {
+            actions.Enqueue(() =>
+            {
+                foreach (var p in Players.Keys)
+                {
+                    if (p == owner) continue;
+                    p.RemoteClient.FireProjectiles(projectiles);
                 }
             });
         }

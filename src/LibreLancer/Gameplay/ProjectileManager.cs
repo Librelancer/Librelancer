@@ -6,6 +6,7 @@ using System;
 using System.Numerics;
 using System.Collections.Generic;
 using LibreLancer.Fx;
+using LibreLancer.Net;
 
 namespace LibreLancer
 {
@@ -48,13 +49,32 @@ namespace LibreLancer
             pdata.Munition = gunDef.Munition;
             pdata.Lifetime = gunDef.Munition.Def.Lifetime;
             pdata.Velocity = gunDef.Def.MuzzleVelocity;
-            var res = world.Renderer.Game.GetService<GameDataManager>();
-            pdata.HitEffect = res.GetEffect(gunDef.Munition.Def.MunitionHitEffect)
-                .GetEffect(world.Renderer.ResourceManager);
+            if (world.Renderer != null)
+            {
+                var res = world.Renderer.Game.GetService<GameDataManager>();
+                pdata.HitEffect = res.GetEffect(gunDef.Munition.Def.MunitionHitEffect)
+                    .GetEffect(world.Renderer.ResourceManager);
+            }
             datas.Add(gunDef.Nickname, pdata);
             return pdata;
         }
 
+        private List<ProjectileSpawn> queued = new List<ProjectileSpawn>();
+        public bool HasQueued => queued.Count > 0;
+
+        public ProjectileSpawn[] GetQueue()
+        {
+            var x = queued.ToArray();
+            queued.Clear();
+            return x;
+        }
+        public void QueueProjectile(GameData.Items.GunEquipment gunDef, Vector3 position, Vector3 heading)
+        {
+            queued.Add(new ProjectileSpawn()
+            {
+                Gun = gunDef.CRC, Heading = heading, Start = position
+            });
+        }
         public void SpawnProjectile(ProjectileData projectile, Vector3 position, Vector3 heading)
         {
             if (projectilePtr == 16383) projectilePtr = 0;
