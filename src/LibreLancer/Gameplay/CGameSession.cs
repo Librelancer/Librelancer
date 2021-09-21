@@ -139,7 +139,8 @@ namespace LibreLancer
             connection.SendPacket(new PositionUpdatePacket()
             {
                 Position =  pos,
-                Orientation = orient
+                Orientation = orient,
+                Speed = player.GetComponent<CEngineComponent>()?.Speed ?? 0
             }, PacketDeliveryMethod.SequenceB);
         }
 
@@ -274,10 +275,22 @@ namespace LibreLancer
                                          Matrix4x4.CreateTranslation(position));
                 newobj.Components.Add(new HealthComponent(newobj) { CurrentHealth = loadout.Health, MaxHealth = shp.Hitpoints });
                 newobj.Components.Add(new CDamageFuseComponent(newobj, shp.Fuses));
+                var hpcrcs = new Dictionary<uint, string>();
+                foreach (var hp in HardpointList(shp.ModelFile.LoadFile(Game.ResourceManager)))
+                    hpcrcs.Add(CrcTool.FLModelCrc(hp), hp);
+                Mounts = new List<EquipMount>();
+                foreach (var eq in loadout.Equipment)
+                {
+                    string hp = eq.HardpointCRC == 0 ? null : hpcrcs[eq.HardpointCRC];
+                    var equip = Game.GameData.GetEquipment(eq.EquipCRC);
+                    if (equip == null) continue;
+                    EquipmentObjectManager.InstantiateEquipment(newobj, Game.ResourceManager, EquipmentType.LocalPlayer, hp, equip);
+                }
                 newobj.Register(gp.world.Physics);
                 if(connection is GameNetClient) 
                     newobj.Components.Add(new CNetPositionComponent(newobj));
                 objects.Add(id, newobj);
+                
                 gp.world.Objects.Add(newobj);
             });
         }
@@ -475,6 +488,9 @@ namespace LibreLancer
             var obj = objects[update.ID];
             //Component only present in multiplayer
             var netPos = obj.GetComponent<CNetPositionComponent>();
+            if (update.HasPosition && obj.TryGetComponent<CEngineComponent>(out var eng)) {
+                eng.Speed = update.EngineThrottlePct / 255f;
+            }
             if (netPos != null)
             {
                 if(update.HasPosition) netPos.QueuePosition(tick, update.Position);

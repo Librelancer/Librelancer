@@ -19,7 +19,7 @@ namespace LibreLancer
 		public void Update(GameObject parent, double time, float sparam)
 		{
 			Effect.SParam = sparam;
-			var world = Attachment.Transform * parent.WorldTransform;
+			var world = (Attachment?.Transform ?? Matrix4x4.Identity) * parent.WorldTransform;
 			Effect.Update(time, Vector3.Transform(Vector3.Zero, world), world);
 		}
 	}

@@ -66,6 +66,7 @@ namespace LibreLancer
                     CurrentHealth = player.Character.Ship.Hitpoints,
                     MaxHealth = player.Character.Ship.Hitpoints
                 });
+                obj.Components.Add(new SEngineComponent(obj));
                 obj.NetID = player.ID;
                 GameWorld.Objects.Add(obj);
                 obj.Register(GameWorld.Physics);
@@ -160,12 +161,13 @@ namespace LibreLancer
             });
         }
 
-        public void PositionUpdate(Player player, Vector3 position, Quaternion orientation)
+        public void PositionUpdate(Player player, Vector3 position, Quaternion orientation, float speed)
         {
             actions.Enqueue(() =>
             {
                 Players[player].SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
                                                   Matrix4x4.CreateTranslation(position));
+                Players[player].GetComponent<SEngineComponent>().Speed = speed;
             });
         }
 
@@ -309,6 +311,7 @@ namespace LibreLancer
                     update.ID = otherPlayer.Key.ID;
                     update.HasPosition = true;
                     update.Position = otherPlayer.Key.Position;
+                    update.EngineThrottlePct = (byte) (otherPlayer.Value.GetComponent<SEngineComponent>().Speed * 255f);
                     update.HasOrientation = true;
                     update.Orientation = otherPlayer.Key.Orientation;
                     update.HasHealth = true;

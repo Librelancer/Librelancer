@@ -98,7 +98,7 @@ World Time: {12:F2}
             {
                 var equip = Game.GameData.GetEquipment(equipment.Item);
                 if (equip == null) continue;
-                EquipmentObjectManager.InstantiateEquipment(player, Game.ResourceManager, true, equipment.Hardpoint, equip);
+                EquipmentObjectManager.InstantiateEquipment(player, Game.ResourceManager, EquipmentType.LocalPlayer, equipment.Hardpoint, equip);
             }
             powerCore = player.GetComponent<PowerCoreComponent>();
             if (powerCore == null) throw new Exception("Player launched without a powercore equipped!");

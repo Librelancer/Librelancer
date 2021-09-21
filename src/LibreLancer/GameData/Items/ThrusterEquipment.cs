@@ -19,10 +19,10 @@ namespace LibreLancer.GameData.Items
         
         static ThrusterEquipment() => EquipmentObjectManager.RegisterType<ThrusterEquipment>(AddEquipment);
 
-        static GameObject AddEquipment(GameObject parent, ResourceManager res, bool draw, string hardpoint, Equipment equip)
+        static GameObject AddEquipment(GameObject parent, ResourceManager res, EquipmentType type, string hardpoint, Equipment equip)
         {
             var th = (ThrusterEquipment)equip;
-            var obj = GameObject.WithModel(th.ModelFile, draw, parent.Resources);
+            var obj = GameObject.WithModel(th.ModelFile, type != EquipmentType.Server, parent.Resources);
             obj.Components.Add(new CThrusterComponent(obj, th));
             return obj;
         }

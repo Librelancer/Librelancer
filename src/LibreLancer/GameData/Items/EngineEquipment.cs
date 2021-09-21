@@ -8,7 +8,7 @@ namespace LibreLancer.GameData.Items
 	public class EngineEquipment : Equipment
     {
         static EngineEquipment() => EquipmentObjectManager.RegisterType<EngineEquipment>(AddEquipment);
-        static GameObject AddEquipment(GameObject parent, ResourceManager res, bool draw, string hardpoint, Equipment equip)
+        static GameObject AddEquipment(GameObject parent, ResourceManager res, EquipmentType type, string hardpoint, Equipment equip)
         {
             parent.Components.Add(new CEngineComponent(parent, (EngineEquipment)equip));
             return null;

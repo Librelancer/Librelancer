@@ -13,7 +13,14 @@ namespace LibreLancer
     /// <summary>
     /// Return a GameObject only if you add one to the parent
     /// </summary>
-    public delegate GameObject MountEquipmentHandler(GameObject parent, ResourceManager res, bool draw, string hardpoint, Equipment equip);
+    public delegate GameObject MountEquipmentHandler(GameObject parent, ResourceManager res, EquipmentType type, string hardpoint, Equipment equip);
+
+    public enum EquipmentType
+    {
+        Server,
+        RemoteObject,
+        LocalPlayer
+    }
     public class EquipmentObjectManager
     {
         static Dictionary<Type, MountEquipmentHandler> handlers = new Dictionary<Type, MountEquipmentHandler>();
@@ -21,9 +28,9 @@ namespace LibreLancer
         {
             handlers.Add(typeof(T), handler);
         }
-        public static void InstantiateEquipment(GameObject parent, ResourceManager res, bool draw, string hardpoint, Equipment equip)
+        public static void InstantiateEquipment(GameObject parent, ResourceManager res, EquipmentType type, string hardpoint, Equipment equip)
         {
-            var obj = handlers[equip.GetType()](parent, res, draw, hardpoint, equip);
+            var obj = handlers[equip.GetType()](parent, res, type, hardpoint, equip);
             //Do setup of child attachment, hardpoint, lod inheriting, static position etc.
             if (obj != null)
             {

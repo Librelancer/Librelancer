@@ -358,7 +358,7 @@ namespace LibreLancer
                 {
                     case PositionUpdatePacket p:
                         //TODO: Error handling
-                        World?.PositionUpdate(this, p.Position, p.Orientation);
+                        World?.PositionUpdate(this, p.Position, p.Orientation, p.Speed);
                         break;
                 }
             }

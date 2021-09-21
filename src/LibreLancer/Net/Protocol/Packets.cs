@@ -277,8 +277,6 @@ namespace LibreLancer
         public byte EngineThrottlePct;
         //Orientation
         public Quaternion Orientation; //packed 6 bytes
-        //Cruise Charge Pct (CruiseCharging == 2)
-        public byte CruiseChargePct;
         //Health!
         public bool HasShield; //1 bit
         public bool HasHull; //1 bit
@@ -310,8 +308,6 @@ namespace LibreLancer
             }
             if(HasOrientation) 
                 message.PutQuaternion(Orientation);
-            if (CruiseThrust == CruiseThrustState.CruiseCharging)
-                message.PutByte(CruiseChargePct);
             if(HasHealth) 
             {
                 message.PutBool(HasShield);
@@ -356,8 +352,6 @@ namespace LibreLancer
             }
             if(p.HasOrientation)
                 p.Orientation = message.GetQuaternion();
-            if (p.CruiseThrust == CruiseThrustState.CruiseCharging)
-                p.CruiseChargePct = message.GetByte();
             if(p.HasHealth)
             {
                 p.HasShield = message.GetBool();
@@ -389,19 +383,22 @@ namespace LibreLancer
     {
         public Vector3 Position;
         public Quaternion Orientation;
+        public float Speed;
 
         public static object Read(NetPacketReader message)
         {
             return new PositionUpdatePacket()
             {
                 Position = message.GetVector3(),
-                Orientation = message.GetQuaternion()
+                Orientation = message.GetQuaternion(),
+                Speed = message.GetFloat()
             };
         }
         public void WriteContents(NetDataWriter msg)
         {
             msg.Put(Position);
             msg.Put(Orientation);
+            msg.Put(Speed);
         }
     }
     

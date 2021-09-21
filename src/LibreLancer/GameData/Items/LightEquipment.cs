@@ -23,11 +23,11 @@ namespace LibreLancer.GameData.Items
         
         static LightEquipment() => EquipmentObjectManager.RegisterType<LightEquipment>(AddEquipment);
 
-        private static GameObject AddEquipment(GameObject parent, ResourceManager res, bool draw, string hardpoint, Equipment equip)
+        private static GameObject AddEquipment(GameObject parent, ResourceManager res, EquipmentType type, string hardpoint, Equipment equip)
         {
             var lq = (LightEquipment)equip;
             var obj = new GameObject();
-            if (draw)
+            if (type != EquipmentType.Server)
             {
                 obj.RenderComponent = new LightEquipRenderer(lq) {LightOn = !lq.DockingLight};
             }

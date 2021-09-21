@@ -271,7 +271,7 @@ namespace LibreLancer
         public void SetLoadout(Dictionary<string, Equipment> equipment, List<Equipment> nohp, double timeOffset)
         {
             foreach (var k in equipment.Keys)
-                EquipmentObjectManager.InstantiateEquipment(this, Resources, RenderComponent != null, k, equipment[k]);
+                EquipmentObjectManager.InstantiateEquipment(this, Resources, (RenderComponent != null) ? EquipmentType.RemoteObject : EquipmentType.Server, k, equipment[k]);
             foreach (var eq in nohp)
 			{
 				if (eq is AnimationEquipment)

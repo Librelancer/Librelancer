@@ -19,7 +19,7 @@ namespace LibreLancer
             private bool ran = false;
             private Queue<FuseAction> actions;
             private double T = 0;
-            private List<GameObject> children = new List<GameObject>();
+            private List<AttachedEffect> effects = new List<AttachedEffect>();
             private int renIndex = 0;
 
             public DamageFuseRunner(FuseResources fuse, float threshold)
@@ -31,16 +31,18 @@ namespace LibreLancer
             
             public void Update(float health, double time, GameObject parent)
             {
+                foreach(var fx in effects)
+                    fx.Update(parent, time, 0);
                 if (health > threshold)
                 {
                     T = 0;
                     renIndex = 0;
                     if (ran)
                     {
-                        foreach (var child in children) {
-                            parent.Children.Remove(child);
-                            parent.ExtraRenderers.Remove(child.RenderComponent);
+                        foreach (var child in effects) {
+                            parent.ExtraRenderers.Remove(child.Effect);
                         }
+                        effects.Clear();
                         actions = new Queue<FuseAction>(fuse.Fuse.Actions.OrderBy(x => x.AtT));
                     }
                     ran = false;
@@ -63,15 +65,10 @@ namespace LibreLancer
                             foreach (var fxhp in fxact.Hardpoints)
                             {
                                 var hp = parent.GetHardpoint(fxhp);
-                                var fxobj = new GameObject()
-                                {
-                                    Parent = parent,
-                                    Attachment = hp,
-                                    RenderComponent = new ParticleEffectRenderer(pfx) { Index = renIndex++ }
-                                };
-                                parent.Children.Add(fxobj);
-                                parent.ExtraRenderers.Add(fxobj.RenderComponent);
-                                children.Add(fxobj);
+                                var fxobj = new AttachedEffect(hp,
+                                    new ParticleEffectRenderer(pfx) {Index = renIndex++});
+                                parent.ExtraRenderers.Add(fxobj.Effect);
+                                effects.Add(fxobj);
                             }
                         }
                     }
