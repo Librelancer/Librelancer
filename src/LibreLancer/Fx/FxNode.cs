@@ -51,7 +51,12 @@ namespace LibreLancer.Fx
 		{
 		}
 
-		public FxNode(string name, string nodename)
+        public override string ToString()
+        {
+            return $"{Name} - {NodeName}";
+        }
+
+        public FxNode(string name, string nodename)
 		{
 			Name = name;
 			NodeName = nodename;

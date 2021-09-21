@@ -152,10 +152,6 @@ namespace LibreLancer
 
         public void Update(double t)
 		{
-            Physics?.Step(t);
-			for (int i = 0; i < Objects.Count; i++)
-				Objects[i].Update(t);
-            RenderUpdate?.Invoke(t);
             if (Renderer != null)
             {
                 #if DEBUG
@@ -163,7 +159,11 @@ namespace LibreLancer
                 #endif
                 Renderer.Update(t);
             }
-		}
+            Physics?.Step(t);
+			for (int i = 0; i < Objects.Count; i++)
+				Objects[i].Update(t);
+            RenderUpdate?.Invoke(t);
+        }
 
 		public event Action<GameObject, GameMessageKind> MessageBroadcasted;
 

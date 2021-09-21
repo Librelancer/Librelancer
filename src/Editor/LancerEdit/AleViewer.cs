@@ -111,12 +111,14 @@ namespace LancerEdit
             lastEffect = currentEffect;
             ImGui.Text("Effect:");
             ImGui.SameLine();
+            ImGui.PushItemWidth(160);
             ImGui.Combo("##effect", ref currentEffect, effectNames, effectNames.Length);
+            ImGui.PopItemWidth();
             if (currentEffect != lastEffect) SetupRender(currentEffect);
             ImGui.SameLine();
-            ImGui.Button("+");
-            ImGui.SameLine();
-            ImGui.Button("-");
+            ImGui.PushItemWidth(80);
+            ImGui.SliderFloat("SParam", ref sparam, 0, 1, "%f");
+            ImGui.PopItemWidth();
             ImGui.Separator();
             //Viewport
             ImGui.BeginChild("##renderchild");
@@ -174,6 +176,13 @@ namespace LancerEdit
             var wasEnabled = enabled;
             ImGui.Checkbox("Enabled", ref enabled);
             if (enabled != wasEnabled) instance.SetNodeEnabled(selectedReference, enabled);
+            //
+            if (selectedReference.Node is FxEmitter emitter)
+            {
+                ImGui.Text($"InitLifeSpan: {emitter.InitLifeSpan.GetValue(sparam, 0)}");
+                ImGui.Text($"Frequency: {emitter.Frequency.GetValue(sparam, 0)}");
+                ImGui.Text($"Pressure: {emitter.Pressure.GetValue(sparam, 0)}");
+            }
             //Normals?
 
             //Textures?
@@ -272,8 +281,8 @@ namespace LancerEdit
         public override void Update(double elapsed)
         {
             transform = Matrix4x4.CreateRotationX(aleViewport.ModelRotation.Y) * Matrix4x4.CreateRotationY(aleViewport.ModelRotation.X);
-            instance.Update(elapsed, transform, sparam);
             pool.Update(elapsed);
+            instance.Update(elapsed, transform, sparam);
         }
 
         public override void Dispose()

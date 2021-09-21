@@ -46,13 +46,13 @@ namespace LibreLancer.Fx
             beam.ParticleIndices[beam.ParticleCount++] = pidx;
         }
 
-        class LifetimeComparer : IComparer<int>
+        class AgeComparer : IComparer<int>
         {
-            public readonly static LifetimeComparer Instance = new LifetimeComparer();
+            public readonly static AgeComparer Instance = new AgeComparer();
             public Particle[] Particles;
             public int Compare(int x, int y)
             {
-                return Particles[x].LifeSpan.CompareTo(Particles[y].LifeSpan);
+                return Particles[x].TimeAlive.CompareTo(Particles[y].TimeAlive);
             }
         }
 
@@ -61,8 +61,8 @@ namespace LibreLancer.Fx
             //get particles!
             var beam = instance.Beams[reference.BeamIndex];
             if (beam.ParticleCount < 2) { beam.ParticleCount = 0;  return; }
-            LifetimeComparer.Instance.Particles = instance.Pool.Particles;
-            Array.Sort(beam.ParticleIndices, 0, beam.ParticleCount, LifetimeComparer.Instance);
+            AgeComparer.Instance.Particles = instance.Pool.Particles;
+            Array.Sort(beam.ParticleIndices, 0, beam.ParticleCount, AgeComparer.Instance);
             //draw
             var node_tr = GetAttachment(reference, transform);
 			Texture2D tex;

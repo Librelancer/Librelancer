@@ -143,6 +143,8 @@ World Time: {12:F2}
             Game.Sound.ResetListenerVelocity();
             FadeIn(0.5, 0.5);
         }
+
+        private int frameCount = 0;
         [MoonSharp.Interpreter.MoonSharpUserData]
         public class LuaAPI
         {
@@ -229,8 +231,10 @@ World Time: {12:F2}
             else
             {
                 if(e.Key == Keys.Enter) ui.ChatboxEvent();
+                #if DEBUG
                 if (e.Key == Keys.R && (e.Modifiers & KeyModifiers.Control) != 0)
                     world.RenderDebugPoints = !world.RenderDebugPoints;
+                #endif
             }
         }
 
@@ -314,6 +318,12 @@ World Time: {12:F2}
             else
                 sysrender.Camera = camera;
 			world.Update(delta);
+            if (frameCount < 2)
+            {
+                frameCount++;
+                if(frameCount == 2)
+                    session.BeginUpdateProcess();
+            }
 		}
 
 		bool cruise = false;

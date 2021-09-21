@@ -80,7 +80,8 @@ namespace LibreLancer.Fx
 				bl,
 				br,
 				n,
-                Rotate == null ? 0f : MathHelper.DegreesToRadians(Rotate.GetValue(sparam, time))
+                Rotate == null ? 0f : MathHelper.DegreesToRadians(Rotate.GetValue(sparam, time)),
+                reference.Index
 			);
 			if (DrawNormals)
 			{

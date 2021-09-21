@@ -27,6 +27,16 @@ namespace LibreLancer.Fx
 
     public class ParticleEffectInstance
     {
+        private static int _id;
+        private int ID;
+
+        public override string ToString()
+        {
+            return $"Instance {ID:X}";
+        }
+
+        public int DrawIndex; //needed to fix multiple fx spawned by fuse
+
         public ParticleEffectPool Pool;
         public ParticleEffect Effect;
         public ResourceManager Resources;
@@ -58,6 +68,7 @@ namespace LibreLancer.Fx
 
         public ParticleEffectInstance(ParticleEffect fx)
         {
+            ID = Interlocked.Increment(ref _id);
             SpawnTimers = new double[fx.EmitterCount];
             ParticleCounts = new int[fx.EmitterCount];
             enableStates = new bool[fx.References.Count];
@@ -102,7 +113,7 @@ namespace LibreLancer.Fx
                 }
             }
         }
-
+        
         public int GetNextFreeParticle() => Pool.GetFreeParticle();
 
         public bool NodeEnabled(NodeReference node) => enableStates[node.Index];

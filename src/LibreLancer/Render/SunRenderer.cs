@@ -170,7 +170,7 @@ namespace LibreLancer
             var gr = (Texture2D)sysr.ResourceManager.FindTexture(Sun.GlowSprite);
             commands.AddCommand(radialShader.Shader, RadialSetup, Cleanup, commands.WorldBuffer.Identity,
                 new RenderUserData() { Float = 1, Color = new Color4(dist_scale, alpha, 0, 0), Texture = gr }, sysr.StaticBillboards.VertexBuffer, PrimitiveTypes.TriangleList,
-                idx, 2, true, SortLayers.SUN, z + 108f);
+                idx, 2, true, SortLayers.SUN, z, 1);
             //next
             idx += 6;
             //draw spines
@@ -179,7 +179,7 @@ namespace LibreLancer
                 var spinetex = (Texture2D)sysr.ResourceManager.FindTexture(Sun.SpinesSprite);
                 commands.AddCommand(spineShader.Shader, SpineSetup, Cleanup, commands.WorldBuffer.Identity,
                     new RenderUserData() { Texture = spinetex }, sysr.StaticBillboards.VertexBuffer, PrimitiveTypes.TriangleList,
-                    idx, 2 * Sun.Spines.Count, true, SortLayers.SUN, z + 1112f);
+                    idx, 2 * Sun.Spines.Count, true, SortLayers.SUN, z, 2);
             }
         }
 	}

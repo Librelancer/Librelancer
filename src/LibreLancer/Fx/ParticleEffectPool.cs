@@ -189,7 +189,7 @@ namespace LibreLancer.Fx
         }
 
         //Drawing info
-        (ParticleEffectInstance i, FxAppearance a)[] appearances = new (ParticleEffectInstance i, FxAppearance a)[MAX_APP_NODES];
+        (ParticleEffectInstance i, FxAppearance a, int idx)[] appearances = new (ParticleEffectInstance i, FxAppearance a, int idx)[MAX_APP_NODES];
         ParticleEffectInstance[] beams = new ParticleEffectInstance[MAX_BEAMS];
         BufferInfo[] bufspace = new BufferInfo[MAX_APP_NODES];
         int countApp = 0;
@@ -227,7 +227,7 @@ namespace LibreLancer.Fx
                         //render with vertices
                     }
                     else { //getindex
-                        var idx = GetAppFxIdx(inst, app);
+                        var idx = GetAppFxIdx(inst, app, Particles[i].Appearance.Index);
                         if (idx != -1) {
                             bufspace[idx].Count++;
                             if (bufspace[idx].Count >= MAX_APP_PARTICLES) bufspace[idx].Count = MAX_APP_PARTICLES;
@@ -273,6 +273,7 @@ namespace LibreLancer.Fx
                 var primCount = bufspace[i].Count * 2;
                 //Draw
                 Texture2D texture;
+                int drawIdx = (ni.i.DrawIndex << 11) + ni.idx;
                 switch(ni.a)
                 {
                     case FxPerpAppearance perp:
@@ -285,7 +286,7 @@ namespace LibreLancer.Fx
                             cmd.WorldBuffer.Identity,
                             new RenderUserData() { Texture = texture, Float = (float)perp.BlendInfo },
                             vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount, true,
-                            SortLayers.OBJECT, z
+                            SortLayers.OBJECT, z, drawIdx
                         );
                         basicCount += primCount / 2;
                         break;
@@ -299,7 +300,7 @@ namespace LibreLancer.Fx
                             cmd.WorldBuffer.Identity,
                             new RenderUserData() { Texture = texture, Float = (float)rect.BlendInfo },
                             vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount, true,
-                            SortLayers.OBJECT, z
+                            SortLayers.OBJECT, z, drawIdx
                         );
                         basicCount += primCount / 2;
                         break;
@@ -315,7 +316,7 @@ namespace LibreLancer.Fx
                             cmd.WorldBuffer.Identity,
                             new RenderUserData() { Texture = texture, Float = (float)basic.BlendInfo },
                             vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount, true,
-                            SortLayers.OBJECT, z
+                            SortLayers.OBJECT, z, drawIdx
                         );
                         basicCount += primCount / 2;
                         break;
@@ -342,9 +343,9 @@ namespace LibreLancer.Fx
         {
             rs.Cull = true;
         }
-        int GetAppFxIdx(ParticleEffectInstance instance, FxAppearance a)
+        int GetAppFxIdx(ParticleEffectInstance instance, FxAppearance a, int index)
         {
-            var item = (instance, a);
+            var item = (instance, a, index);
             //Equals() is slower for us here
             for(int i = 0; i < countApp; i++)
             {
@@ -368,9 +369,10 @@ namespace LibreLancer.Fx
             Vector2 bottomleft,
             Vector2 bottomright,
             Vector3 normal,
-            float angle)
+            float angle,
+            int index)
         {
-            var idx = GetAppFxIdx(instance, appearance);
+            var idx = GetAppFxIdx(instance, appearance, index);
             if (bufspace[idx].Current == (bufspace[idx].Start + bufspace[idx].Count) * 4) return;
             var right = Vector3.Cross(normal, Vector3.UnitY);
             var up = Vector3.Cross(right, normal);
@@ -393,10 +395,11 @@ namespace LibreLancer.Fx
             Vector2 topright,
             Vector2 bottomleft,
             Vector2 bottomright,
-            float angle
+            float angle,
+            int index
         )
         {
-            var idx = GetAppFxIdx(instance, appearance);
+            var idx = GetAppFxIdx(instance, appearance, index);
             if (bufspace[idx].Current == (bufspace[idx].Start + bufspace[idx].Count) * 4) return;
             CreateQuad(
                 ref bufspace[idx].Current, 
@@ -417,10 +420,11 @@ namespace LibreLancer.Fx
             Vector2 bottomleft,
             Vector2 bottomright,
             Vector3 normal,
-            float angle
+            float angle,
+            int index
         )
         {
-            var idx = GetAppFxIdx(instance, appearance);
+            var idx = GetAppFxIdx(instance, appearance, index);
             if (bufspace[idx].Current == (bufspace[idx].Start + bufspace[idx].Count) * 4) return;
             var up = normal;
             var toCamera = (camera.Position - Position).Normalized();

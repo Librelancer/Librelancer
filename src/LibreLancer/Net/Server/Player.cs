@@ -394,7 +394,30 @@ namespace LibreLancer
                     else 
                         rpcClient.OnConsoleMessage($"Base does not exist `{arg}`");
                 }),
-                new("credits", (x) => rpcClient.OnConsoleMessage($"You have ${Character.Credits}"))
+                new("credits", (x) => rpcClient.OnConsoleMessage($"You have ${Character.Credits}")),
+                new("sethealth", (arg) =>
+                {
+                    if (int.TryParse(arg, out var h))
+                    {
+                        if (Client is LocalPacketClient)
+                        {
+                            if (World != null) {
+                                World.EnqueueAction(() => {
+                                    World.Players[this].GetComponent<HealthComponent>().CurrentHealth = h;
+                                    rpcClient.OnConsoleMessage("OK");
+                                });
+                            }
+                        }
+                        else
+                        {
+                            rpcClient.OnConsoleMessage("Permission denied");
+                        }
+                    }
+                    else
+                    {
+                        rpcClient.OnConsoleMessage("Invalid argument");
+                    }
+                })
             };
         }
 

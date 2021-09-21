@@ -114,7 +114,7 @@ namespace LibreLancer
             {
                 var pos = Vector3.Transform(Vector3.Zero, hpfires[i].Transform * tr);
                 var heading = (point - pos).Normalized();
-                projectiles.SpawnProjectile(toSpawn, pos, heading);
+                projectiles.SpawnProjectile(Parent.Parent, toSpawn, pos, heading);
                 projectiles.QueueProjectile(Object, pos, heading);
             }
             CurrentCooldown = Object.Def.RefireDelay;

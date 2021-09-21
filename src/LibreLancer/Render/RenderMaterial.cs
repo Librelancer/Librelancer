@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using System.Threading;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
@@ -12,7 +13,15 @@ using LibreLancer.Shaders;
 namespace LibreLancer
 {
 	public abstract class RenderMaterial
-	{
+    {
+        private static int _key = 0;
+        
+        public int Key { get; private set; }
+
+        protected RenderMaterial()
+        {
+            Key = Interlocked.Increment(ref _key);
+        }
         public static bool VertexLighting = false;
 		public MaterialAnim MaterialAnim;
 		public WorldMatrixHandle World = new WorldMatrixHandle();

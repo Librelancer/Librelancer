@@ -88,6 +88,7 @@ namespace LibreLancer
             {
                 var resman = GetResourceManager();
                 var hps = parent.GetHardpoints();
+                var trailFx = gameData.GetEffect(Engine.Def.TrailEffect).GetEffect(resman);
                 var fx = gameData.GetEffect(Engine.Def.FlameEffect).GetEffect(resman);
 
                 foreach (var hp in hps)
@@ -95,7 +96,8 @@ namespace LibreLancer
                     if (!hp.Name.Equals("hpengineglow", StringComparison.OrdinalIgnoreCase) &&
                         hp.Name.StartsWith("hpengine", StringComparison.OrdinalIgnoreCase))
                     {
-                        fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(fx)));
+                        fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(trailFx)));
+                        fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(fx) { Index = 1 }));
                     }
                 }
 

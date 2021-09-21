@@ -15,6 +15,7 @@ namespace LibreLancer
 		SystemRenderer sys;
 		ParticleEffectInstance fx;
         public bool Finished = false;
+        public int Index; //needed to fix fuses spawning multiple fx on top of each-other
 		public ParticleEffectRenderer(ParticleEffect effect)
 		{
             if (effect == null) return;
@@ -51,6 +52,7 @@ namespace LibreLancer
 			{
 				tr = transform;
 				fx.Update(time, transform, SParam);
+                fx.DrawIndex = Index;
                 if (fx.IsFinished()) Finished = true;
             }
         }

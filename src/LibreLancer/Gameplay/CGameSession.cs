@@ -93,6 +93,7 @@ namespace LibreLancer
             }
             else
             {
+                processUpdatePackets = false;
                 gp = new SpaceGameplay(Game, this);
                 Game.ChangeState(gp);
                 hasChanged = true;
@@ -142,10 +143,16 @@ namespace LibreLancer
             }, PacketDeliveryMethod.SequenceB);
         }
 
+        volatile bool processUpdatePackets = false;
         public void WorldReady()
         {
             while (gameplayActions.TryDequeue(out var act))
                 act();
+        }
+
+        public void BeginUpdateProcess()
+        {
+            processUpdatePackets = true;
         }
 
         public Action<IPacket> ExtraPackets;
@@ -197,7 +204,7 @@ namespace LibreLancer
             }
         }
 
-        void IClientPlayer.FireProjectiles(ProjectileSpawn[] projectiles)
+        void IClientPlayer.SpawnProjectiles(int owner, ProjectileSpawn[] projectiles)
         {
             RunSync(() =>
             {
@@ -205,7 +212,7 @@ namespace LibreLancer
                 {
                     var x = Game.GameData.GetEquipment(p.Gun) as GunEquipment;
                     var projdata = gp.world.Projectiles.GetData(x);
-                    gp.world.Projectiles.SpawnProjectile(projdata, p.Start, p.Heading);
+                    gp.world.Projectiles.SpawnProjectile(objects[owner], projdata, p.Start, p.Heading);
                 }
             });
         }
@@ -443,14 +450,17 @@ namespace LibreLancer
             switch(pkt)
             {
                 case ObjectUpdatePacket p:
-                    RunSync(() =>
+                    if (processUpdatePackets)
                     {
-                        var hp = gp?.player?.GetComponent<HealthComponent>();
-                        if(hp != null)
-                            hp.CurrentHealth = p.PlayerHealth;
-                        foreach (var update in p.Updates)
-                            UpdateObject(p.Tick, update);
-                    });
+                        RunSync(() =>
+                        {
+                            var hp = gp?.player?.GetComponent<HealthComponent>();
+                            if (hp != null)
+                                hp.CurrentHealth = p.PlayerHealth;
+                            foreach (var update in p.Updates)
+                                UpdateObject(p.Tick, update);
+                        });
+                    }
                     break;
                 default:
                     if (ExtraPackets != null) ExtraPackets(pkt);

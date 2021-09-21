@@ -15,7 +15,7 @@ namespace LibreLancer
 {
     public class ServerWorld
     {
-        private Dictionary<Player, GameObject> Players = new Dictionary<Player, GameObject>();
+        public Dictionary<Player, GameObject> Players = new Dictionary<Player, GameObject>();
         ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
         public GameWorld GameWorld;
         public GameServer Server;
@@ -104,6 +104,11 @@ namespace LibreLancer
             });
         }
 
+        public void EnqueueAction(Action a)
+        {
+            actions.Enqueue(a);
+        }
+
         public void FireProjectiles(ProjectileSpawn[] projectiles, Player owner)
         {
             actions.Enqueue(() =>
@@ -111,13 +116,13 @@ namespace LibreLancer
                 foreach (var p in Players.Keys)
                 {
                     if (p == owner) continue;
-                    p.RemoteClient.FireProjectiles(projectiles);
+                    p.RemoteClient.SpawnProjectiles(owner.ID, projectiles);
                 }
 
                 foreach (var p in projectiles)
                 {
                     var pdata = GameWorld.Projectiles.GetData(Server.GameData.GetEquipment(p.Gun) as GunEquipment);
-                    GameWorld.Projectiles.SpawnProjectile(pdata, p.Start, p.Heading);
+                    GameWorld.Projectiles.SpawnProjectile(Players[owner], pdata, p.Start, p.Heading);
                 }
             });
         }

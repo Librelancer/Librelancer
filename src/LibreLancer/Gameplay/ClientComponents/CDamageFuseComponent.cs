@@ -20,6 +20,7 @@ namespace LibreLancer
             private Queue<FuseAction> actions;
             private double T = 0;
             private List<GameObject> children = new List<GameObject>();
+            private int renIndex = 0;
 
             public DamageFuseRunner(FuseResources fuse, float threshold)
             {
@@ -33,6 +34,7 @@ namespace LibreLancer
                 if (health > threshold)
                 {
                     T = 0;
+                    renIndex = 0;
                     if (ran)
                     {
                         foreach (var child in children) {
@@ -65,7 +67,7 @@ namespace LibreLancer
                                 {
                                     Parent = parent,
                                     Attachment = hp,
-                                    RenderComponent = new ParticleEffectRenderer(pfx)
+                                    RenderComponent = new ParticleEffectRenderer(pfx) { Index = renIndex++ }
                                 };
                                 parent.Children.Add(fxobj);
                                 parent.ExtraRenderers.Add(fxobj.RenderComponent);

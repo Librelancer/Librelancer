@@ -29,7 +29,12 @@ namespace LibreLancer
                 if (!Projectiles[i].Alive) continue;
                 var length = Projectiles[i].Normal.Length() * tFloat;
                 var dir = Projectiles[i].Normal.Normalized();
-                if (world.Physics.PointRaycast(null, Projectiles[i].Position, dir, length, out var contactPoint,
+                if (world.Physics.PointRaycast(
+                    Projectiles[i].Owner?.PhysicsComponent?.Body, 
+                    Projectiles[i].Position, 
+                    dir, 
+                    length, 
+                    out var contactPoint,
                     out var po))
                 {
                     Projectiles[i].Alive = false;
@@ -83,11 +88,12 @@ namespace LibreLancer
                 Gun = gunDef.CRC, Heading = heading, Start = position
             });
         }
-        public void SpawnProjectile(ProjectileData projectile, Vector3 position, Vector3 heading)
+        public void SpawnProjectile(GameObject owner, ProjectileData projectile, Vector3 position, Vector3 heading)
         {
             if (projectilePtr == 16383) projectilePtr = 0;
             Projectiles[projectilePtr] = new Projectile() {
                 Data = projectile,
+                Owner = owner,
                 Time = 0,
                 Alive = true,
                 Position = position,
@@ -108,6 +114,7 @@ namespace LibreLancer
     public struct Projectile
     {
         public ProjectileData Data;
+        public GameObject Owner;
         public bool Alive;
         public float Time;
         public Vector3 Position;

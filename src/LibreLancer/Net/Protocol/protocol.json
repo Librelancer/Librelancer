@@ -85,8 +85,11 @@
           ]
         },
         {
-          "name": "FireProjectiles",
-          "args": [ { "name":  "projectiles", "type":  "ProjectileSpawn[]" }]
+          "name": "SpawnProjectiles",
+          "args": [ 
+            { "name":  "owner", "type":  "int" },
+            { "name":  "projectiles", "type":  "ProjectileSpawn[]" }
+          ]
         },
         {
           "name": "StartAnimation",

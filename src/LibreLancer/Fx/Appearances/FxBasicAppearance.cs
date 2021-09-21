@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using Castle.DynamicProxy.Contributors;
 using LibreLancer.Utf.Ale;
 using LibreLancer.Utf.Mat;
 
@@ -106,7 +107,8 @@ namespace LibreLancer.Fx
 				tr,
 				bl,
 				br,
-                Rotate == null ? 0f : MathHelper.DegreesToRadians(Rotate.GetValue(sparam, time))
+                Rotate == null ? 0f : MathHelper.DegreesToRadians(Rotate.GetValue(sparam, time)),
+                reference.Index
 			);
 		}
 

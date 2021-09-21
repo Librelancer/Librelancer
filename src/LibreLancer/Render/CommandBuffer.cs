@@ -46,6 +46,7 @@ namespace LibreLancer
 			{
 				Transparents[transparentCommand++] = new RenderCommand()
 				{
+                    Key = RenderCommand.MakeKey(RenderType.Transparent, material.Key, layer, z, 0),
 					Source = material,
 					MaterialAnim = anim,
 					Lights = lights,
@@ -56,9 +57,7 @@ namespace LibreLancer
 					Primitive = primitive,
 					CmdType = RenderCmdType.Material,
 					World = world,
-					SortLayer = layer,
-					Z = z
-				};
+                };
 			}
 			else
 			{
@@ -88,6 +87,7 @@ namespace LibreLancer
 		{
 			Transparents[transparentCommand++] = new RenderCommand()
 			{
+                Key = RenderCommand.MakeKey(RenderType.Transparent, material.Key, layer, z, 0),
 				Source = material,
 				MaterialAnim = null,
 				Lights = lights,
@@ -99,16 +99,15 @@ namespace LibreLancer
 				BaseVertex = *(int*)(&fadeParams.X),
 				Index = *(int*)(&fadeParams.Y),
 				World = world,
-				SortLayer = layer, //Fade is always transparent 
-				Z = z
-			};
+            };
 		}
-		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, WorldMatrixHandle world, Lighting lt, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0)
+		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, WorldMatrixHandle world, Lighting lt, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0, int renIndex = 0)
 		{
 			if (transparent)
 			{
 				Transparents[transparentCommand++] = new RenderCommand()
 				{
+                    Key = RenderCommand.MakeKey(RenderType.Transparent, 0, layer, z, renIndex),
 					Source = shader,
 					ShaderSetup = setup,
 					World = world,
@@ -120,21 +119,20 @@ namespace LibreLancer
 					Count = count,
 					Primitive = primitive,
 					CmdType = RenderCmdType.Shader,
-					SortLayer = transparent ? layer : SortLayers.OPAQUE,
-					Z = z
-				};
+                };
 			}
 			else
 			{
                 throw new InvalidOperationException();
 			}
 		}
-		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, WorldMatrixHandle world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0)
+		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, WorldMatrixHandle world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0, int renIndex = 0)
 		{
 			if (transparent)
 			{
 				Transparents[transparentCommand++] = new RenderCommand()
 				{
+                    Key = RenderCommand.MakeKey(RenderType.Transparent, 0, layer, z, renIndex),
 					Source = shader,
 					ShaderSetup = setup,
 					World = world,
@@ -145,21 +143,20 @@ namespace LibreLancer
 					Count = count,
 					Primitive = primitive,
 					CmdType = RenderCmdType.Shader,
-					SortLayer = transparent ? layer : SortLayers.OPAQUE,
-					Z = z
-				};
+                };
 			}
 			else
 			{
                 throw new InvalidOperationException();
 			}
 		}
-		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, WorldMatrixHandle world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, bool transparent, int layer, float z = 0)
+		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, WorldMatrixHandle world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, bool transparent, int layer, float z = 0, int renIndex = 0)
 		{
 			if (transparent)
 			{
 				Transparents[transparentCommand++] = new RenderCommand()
 				{
+                    Key = RenderCommand.MakeKey(RenderType.Transparent, 0, layer, z, renIndex),
 					Source = shader,
 					ShaderSetup = setup,
 					World = world,
@@ -171,9 +168,7 @@ namespace LibreLancer
 					Primitive = primitive,
 					CmdType = RenderCmdType.Shader,
 					BaseVertex = -1,
-					SortLayer = transparent ? layer : SortLayers.OPAQUE,
-					Z = z
-				};
+                };
 			}
 			else
 			{
@@ -184,13 +179,12 @@ namespace LibreLancer
 		{
 			Transparents[transparentCommand++] = new RenderCommand()
 			{
+                Key = RenderCommand.MakeKey(RenderType.Transparent, 0, sortLayer, z, 0),
 				CmdType = RenderCmdType.Billboard,
 				Source = billboards,
 				Hash = hash,
 				Index = index,
-				SortLayer = sortLayer,
-				Z = z
-			};
+            };
 		}
 
 		public void DrawOpaque(RenderState state)
@@ -258,12 +252,8 @@ namespace LibreLancer
 		}
 		public int Compare(int x, int y)
 		{
-			if (cmds[x].SortLayer > cmds[y].SortLayer)
-				return -1;
-			if (cmds[x].SortLayer < cmds[y].SortLayer)
-				return 1;
-			if (cmds[x].CmdType == RenderCmdType.Billboard && 
-                     cmds[y].CmdType == RenderCmdType.Billboard)
+            /*if (cmds[x].CmdType == RenderCmdType.Billboard && 
+                cmds[y].CmdType == RenderCmdType.Billboard)
             {
                 var b = (Billboards)cmds[x].Source;
                 //Batch additive billboards (lights)
@@ -272,8 +262,8 @@ namespace LibreLancer
                 {
                     return b.GetTextureID(cmds[x].Index).CompareTo(b.GetTextureID(cmds[y].Index));
                 }
-            }
-            return cmds[x].Z.CompareTo(cmds[y].Z);
+            }*/
+            return cmds[x].Key.CompareTo(cmds[y].Key);
 		}
 	}
 	public enum RenderCmdType : byte
@@ -283,8 +273,38 @@ namespace LibreLancer
 		Shader,
 		Billboard
 	}
+
+    public enum RenderType
+    {
+        Opaque,
+        Starsphere,
+        Transparent
+    }
 	public struct RenderCommand
 	{
+        static ulong float2index(float f)
+        {
+            var i = BitConverter.SingleToInt32Bits(f);
+            uint mask = (uint)(-(i >> 31)) | 0x80000000;
+            return (ulong) (i ^ mask);
+        }
+        public static ulong MakeKey(RenderType type, int matKey, int sortlayer, float z, int index)
+        {
+            if (type == RenderType.Transparent)
+            {
+                return (2UL << 62) | ((ulong) sortlayer << 54) | float2index(-z) << 22 | ((ulong) index & 0x3fffff);
+            } 
+            else if (type == RenderType.Opaque)
+            {
+                return (ulong) matKey;
+            }
+            else
+            {
+                return (1UL << 62); //starsphere
+            }
+        }
+
+        public ulong Key;
 		public PrimitiveTypes Primitive;
 		public object Source;
         public WorldMatrixHandle World;
@@ -297,14 +317,12 @@ namespace LibreLancer
 		public int Start;
 		public int Count;
         public Lighting Lights;
-		public float Z;
-		public int SortLayer;
-		public MaterialAnim MaterialAnim;
+        public MaterialAnim MaterialAnim;
 		public int Hash;
 		public int Index;
 		public override string ToString()
 		{
-			return string.Format("[Z: {0}]", Z);
+			return string.Format("[Key: {0}]", Key);
 		}
 		public unsafe void Run(RenderState state)
 		{
