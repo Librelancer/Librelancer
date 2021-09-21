@@ -31,8 +31,7 @@ namespace LibreLancer.Physics
         List<PhysicsObject> objects = new List<PhysicsObject>();
         List<PhysicsObject> dynamicObjects = new List<PhysicsObject>();
         bool disposed = false;
-
-        private PointCallback pointCb;
+        
         private CollisionObject pointObj;
 
         public PhysicsWorld()
@@ -44,7 +43,6 @@ namespace LibreLancer.Physics
             btWorld = new DiscreteDynamicsWorld(btDispatcher, broadphase, null, collisionConf);
             btWorld.Gravity = BM.Vector3.Zero;
 
-            pointCb = new PointCallback();
             pointObj = new CollisionObject();
             pointObj.CollisionShape = new SphereShape(1);
         }
@@ -86,42 +84,32 @@ namespace LibreLancer.Physics
             }
         }
 
-        class PointCallback : ContactResultCallback
+        public bool PointRaycast(PhysicsObject me, Vector3 origin, Vector3 direction, float maxDist, out Vector3 contactPoint, out PhysicsObject didHit)
         {
-            public void Reset()
-            {
-                Hit = false;
-                Victim = null;
-                ContactPoint = Vector3.Zero;
+            contactPoint = Vector3.Zero;
+            didHit = null;
+            ClosestRayResultCallback cb;
+            var from = origin.Cast();
+            var to = (origin + direction * maxDist).Cast();
+            if (me != null) {
+                cb = new KinematicClosestNotMeRayResultCallback(me.RigidBody);
+                cb.RayFromWorld = from;
+                cb.RayToWorld = to;
             }
-            public bool Hit { get; private set; }
-            
-            public PhysicsObject Victim { get; private set; }
-            public Vector3 ContactPoint { get; private set; }
-            public override float AddSingleResult(ManifoldPoint cp, CollisionObjectWrapper colObj0Wrap, int partId0, int index0,
-                CollisionObjectWrapper colObj1Wrap, int partId1, int index1)
-            {
-                Hit = true;
-                if (colObj0Wrap.CollisionObject.UserObject is PhysicsObject p0) {
-                    Victim = p0;
-                    ContactPoint = cp.PositionWorldOnA.Cast();
-                }
-                if (colObj1Wrap.CollisionObject.UserObject is PhysicsObject p1) {
-                    Victim = p1;
-                    ContactPoint = cp.PositionWorldOnB.Cast();
-                }
-                return 0;
+            else {
+                cb = new ClosestRayResultCallback(ref from,  ref to);
             }
-        }
-        public bool PointCollision(Vector3 point, out PhysicsObject obj, out Vector3 contactPoint)
-        {
-            obj = null;
-            pointCb.Reset();
-            pointObj.WorldTransform = BM.Matrix.Translation(point.Cast());
-            btWorld.ContactTest(pointObj, pointCb);
-            obj = pointCb.Victim;
-            contactPoint = pointCb.ContactPoint;
-            return pointCb.Hit;
+            using (cb)
+            {
+                btWorld.RayTestRef(ref from, ref to, cb);
+                if (cb.HasHit)
+                {
+                    didHit = cb.CollisionObject.UserObject as PhysicsObject;
+                    contactPoint = cb.HitPointWorld.Cast();
+                    return true;
+                }
+                return false;
+            }
         }
 
         public PhysicsObject AddDynamicObject(float mass, Matrix4x4 transform, Collider col, Vector3? inertia = null) {
@@ -201,7 +189,6 @@ namespace LibreLancer.Physics
                 btWorld.RemoveCollisionObject(obj);
                 obj.Dispose();
             }
-            pointCb.Dispose();
             pointObj.CollisionShape.Dispose();
             pointObj.Dispose();
             btWorld.Dispose();

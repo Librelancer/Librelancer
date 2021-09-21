@@ -229,6 +229,8 @@ World Time: {12:F2}
             else
             {
                 if(e.Key == Keys.Enter) ui.ChatboxEvent();
+                if (e.Key == Keys.R && (e.Modifiers & KeyModifiers.Control) != 0)
+                    world.RenderDebugPoints = !world.RenderDebugPoints;
             }
         }
 
@@ -391,6 +393,7 @@ World Time: {12:F2}
                     shipInput.Throttle -= (float)(delta);
                     shipInput.Throttle = MathHelper.Clamp(shipInput.Throttle, 0, 1);
 				}
+                
 			}
 
 			StrafeControls strafe = StrafeControls.None;
@@ -430,6 +433,10 @@ World Time: {12:F2}
             var start = Vector3Ex.UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
             var tgt = start + (dir.Normalized() * 400);
             weapons.AimPoint = tgt;
+
+            if (world.Physics.PointRaycast(player.PhysicsComponent.Body, start, dir, 1000, out var contactPoint, out var po)) {
+                weapons.AimPoint = contactPoint;
+            }
 
             if(!Game.Mouse.IsButtonDown(MouseButtons.Left) && Game.TotalTime - lastDown < 0.25)
             {

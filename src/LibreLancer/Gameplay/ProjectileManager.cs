@@ -27,12 +27,11 @@ namespace LibreLancer
             var tFloat = (float)time;
             for(int i = 0; i < Projectiles.Length; i++) {
                 if (!Projectiles[i].Alive) continue;
-                Projectiles[i].Position += (Projectiles[i].Normal * tFloat);
-                world.DrawDebug(Projectiles[i].Position);
-                Projectiles[i].Time += tFloat;
-                if(Projectiles[i].Time >= Projectiles[i].Data.Lifetime) {
-                    Projectiles[i].Alive = false;
-                } else if (world.Physics.PointCollision(Projectiles[i].Position, out Physics.PhysicsObject po, out Vector3 contactPoint)) {
+                var length = Projectiles[i].Normal.Length() * tFloat;
+                var dir = Projectiles[i].Normal.Normalized();
+                if (world.Physics.PointRaycast(null, Projectiles[i].Position, dir, length, out var contactPoint,
+                    out var po))
+                {
                     Projectiles[i].Alive = false;
                     world.Renderer?.SpawnTempFx(Projectiles[i].Data.HitEffect, contactPoint);
                     if (po.Tag is GameObject go) 
@@ -40,7 +39,12 @@ namespace LibreLancer
                         world.Server?.ProjectileHit(go, Projectiles[i].Data.Munition);
                     }
                 }
-                
+                Projectiles[i].Position += (Projectiles[i].Normal * tFloat);
+                world.DrawDebug(Projectiles[i].Position);
+                Projectiles[i].Time += tFloat;
+                if(Projectiles[i].Time >= Projectiles[i].Data.Lifetime) {
+                    Projectiles[i].Alive = false;
+                }
             }
         }
 
