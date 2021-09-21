@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
+using LibreLancer.GameData.Items;
 using LibreLancer.Net;
 
 namespace LibreLancer
@@ -58,14 +59,27 @@ namespace LibreLancer
                     p.Key.SpawnPlayer(player);
                 }
                 player.SendSolars(SpawnedSolars);
-                var obj = new GameObject() { World = GameWorld };
+                var obj = new GameObject(player.Character.Ship, Server.Resources, false, true) { World = GameWorld };
                 obj.Components.Add(new SPlayerComponent(player, obj));
+                obj.Components.Add(new HealthComponent(obj)
+                {
+                    CurrentHealth = player.Character.Ship.Hitpoints,
+                    MaxHealth = player.Character.Ship.Hitpoints
+                });
                 obj.NetID = player.ID;
                 GameWorld.Objects.Add(obj);
+                obj.Register(GameWorld.Physics);
                 Players[player] = obj;
                 Players[player].SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
                                                   Matrix4x4.CreateTranslation(position));
             });
+        }
+
+        public void ProjectileHit(GameObject obj, MunitionEquip munition)
+        {
+            if (obj.TryGetComponent<HealthComponent>(out var health)) {
+                health.Damage(munition.Def.HullDamage);
+            }
         }
 
         public void RequestDock(Player player, string nickname)
@@ -98,6 +112,12 @@ namespace LibreLancer
                 {
                     if (p == owner) continue;
                     p.RemoteClient.FireProjectiles(projectiles);
+                }
+
+                foreach (var p in projectiles)
+                {
+                    var pdata = GameWorld.Projectiles.GetData(Server.GameData.GetEquipment(p.Gun) as GunEquipment);
+                    GameWorld.Projectiles.SpawnProjectile(pdata, p.Start, p.Heading);
                 }
             });
         }
@@ -266,25 +286,29 @@ namespace LibreLancer
                 player.Key.Position = Vector3.Transform(Vector3.Zero, tr);
                 player.Key.Orientation = tr.ExtractRotation();
             }
-            IEnumerable<Player> targets;
+            IEnumerable<KeyValuePair<Player,GameObject>> targets;
             if (mp) {
-                targets = Players.Keys.Where(x => x.Client is RemotePacketClient);
+                targets = Players.Where(x => x.Key.Client is RemotePacketClient);
             }
             else {
-                targets = Players.Keys.Where(x => x.Client is LocalPacketClient);
+                targets = Players.Where(x => x.Key.Client is LocalPacketClient);
             }
             foreach (var player in targets)
             {
                 List<PackedShipUpdate> ps = new List<PackedShipUpdate>();
-                foreach (var otherPlayer in Players.Keys)
+                var phealth = player.Value.GetComponent<HealthComponent>().CurrentHealth;
+                foreach (var otherPlayer in Players)
                 {
-                    if (otherPlayer == player) continue;
+                    if (otherPlayer.Key == player.Key) continue;
                     var update = new PackedShipUpdate();
-                    update.ID = otherPlayer.ID;
+                    update.ID = otherPlayer.Key.ID;
                     update.HasPosition = true;
-                    update.Position = otherPlayer.Position;
+                    update.Position = otherPlayer.Key.Position;
                     update.HasOrientation = true;
-                    update.Orientation = otherPlayer.Orientation;
+                    update.Orientation = otherPlayer.Key.Orientation;
+                    update.HasHealth = true;
+                    update.HasHull = true;
+                    update.HullHp = (int) (otherPlayer.Value.GetComponent<HealthComponent>().CurrentHealth);
                     ps.Add(update);
                 }
                 foreach (var obj in updatingObjects)
@@ -298,9 +322,10 @@ namespace LibreLancer
                     update.Orientation = tr.ExtractRotation();
                     ps.Add(update);
                 }
-                player.SendUpdate(new ObjectUpdatePacket()
+                player.Key.SendUpdate(new ObjectUpdatePacket()
                 {
                     Tick = tick,
+                    PlayerHealth = phealth,
                     Updates = ps.ToArray()
                 });
             }

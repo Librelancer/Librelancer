@@ -39,6 +39,8 @@ World Time: {12:F2}
         ShipInputComponent shipInput;
         WeaponControlComponent weapons;
 		PowerCoreComponent powerCore;
+        HealthComponent playerHealth;
+        
 		public float Velocity = 0f;
 		const float MAX_VELOCITY = 80f;
 		Cursor cur_arrow;
@@ -79,8 +81,14 @@ World Time: {12:F2}
             player.Components.Add(control);
             weapons = new WeaponControlComponent(player);
             player.Components.Add(weapons);
+            player.Components.Add(new CDamageFuseComponent(player, shp.Fuses));
+
             player.SetLocalTransform(session.PlayerOrientation * Matrix4x4.CreateTranslation(session.PlayerPosition));
             player.PhysicsComponent.Mass = shp.Mass;
+            playerHealth = new HealthComponent(player);
+            playerHealth.MaxHealth = shp.Hitpoints;
+            playerHealth.CurrentHealth = shp.Hitpoints;
+            player.Components.Add(playerHealth);
             if(shp.Mass < 0)
             {
                 FLLog.Error("Ship", "Mass < 0");
@@ -156,6 +164,10 @@ World Time: {12:F2}
             public ChatSource GetChats() => g.session.Chats;
             public double GetCredits() => g.session.Credits;
 
+            public float GetPlayerHealth() => g.playerHealth.CurrentHealth / g.playerHealth.MaxHealth;
+            public float GetPlayerShield() => 0f;
+        
+            public float GetPlayerPower() => 1f;
 
             private string activeManeuver = "FreeFlight";
             public string GetActiveManeuver() => activeManeuver;

@@ -153,8 +153,11 @@ namespace InterfaceEdit
             dict.Set("Formation", false);
             return dict;
         }
-
-       
+        
+        public float GetPlayerHealth() => 0.75f;
+        public float GetPlayerShield() => 0.8f;
+        
+        public float GetPlayerPower() => 1f;
 
         public class TraderFake
         {

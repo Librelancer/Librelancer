@@ -144,9 +144,9 @@ namespace LibreLancer
 		{
             InitWithDrawable(drawable, res, draw,  phys);
         }
-        public GameObject(Ship ship, ResourceManager res, bool draw = true)
+        public GameObject(Ship ship, ResourceManager res, bool draw = true, bool phys = false)
         {
-            InitWithDrawable(ship.ModelFile.LoadFile(res), res, draw, false);
+            InitWithDrawable(ship.ModelFile.LoadFile(res), res, draw, phys);
             if (PhysicsComponent != null)
             {
                 PhysicsComponent.Mass = ship.Mass;
@@ -246,6 +246,10 @@ namespace LibreLancer
                 name = Path.GetFileNameWithoutExtension(RigidModel.Path);
                 if (File.Exists(path))
                     phys = new PhysicsComponent(this) { SurPath = path };
+                else if (havePhys)
+                {
+                    FLLog.Error("Sur", $"Could not load sur file {path}");
+                }
                 if (RigidModel.Animation != null)
                 {
                     AnimationComponent = new AnimationComponent(this, RigidModel.Animation);
@@ -292,6 +296,12 @@ namespace LibreLancer
                         hardpoints.Add(hp.Definition.Name, hp);
                 }
             }
+        }
+
+        public bool TryGetComponent<T>(out T component) where T : GameComponent
+        {
+            component = GetComponent<T>();
+            return (component != null);
         }
 
 		public T GetComponent<T>() where T : GameComponent

@@ -1168,6 +1168,7 @@ namespace LibreLancer
                 ship.RotationInertia = orig.RotationInertia;
                 ship.SteeringTorque = orig.SteeringTorque;
                 ship.CruiseSpeed = 300;
+                ship.Hitpoints = orig.Hitpoints;
                 ship.StrafeForce = orig.StrafeForce;
                 ship.ChaseOffset = orig.CameraOffset;
                 ship.CameraHorizontalTurnAngle = orig.CameraHorizontalTurnAngle;
@@ -1176,6 +1177,14 @@ namespace LibreLancer
                 ship.Nickname = orig.Nickname;
                 ship.NameIds = orig.IdsName;
                 ship.CRC = FLHash.CreateID(ship.Nickname);
+                foreach (var fuse in orig.Fuses)
+                {
+                    ship.Fuses.Add(new DamageFuse()
+                    {
+                        Fuse = GetFuse(fuse.Fuse),
+                        Threshold = fuse.Threshold
+                    });
+                }
                 ships.Add(ship.Nickname, ship);
                 shipHashes.Add(ship.CRC, ship);
             }
@@ -1408,23 +1417,29 @@ namespace LibreLancer
 
         public FuseResources GetFuse(string fusename)
         {
-            FuseResources fuse;
-            if (!fuses.TryGetValue(fusename, out fuse))
-            {
-                var fz = fldata.Fuses.Fuses[fusename];
-                fuse = new GameData.FuseResources() {Fuse = fz};
-                foreach (var act in fz.Actions)
+            lock (fuses) {
+                FuseResources fuse;
+                if (!fuses.TryGetValue(fusename, out fuse))
                 {
-                    if (act is FuseStartEffect fza)
+                    var fz = fldata.Fuses.Fuses[fusename];
+                    fuse = new GameData.FuseResources() {Fuse = fz};
+                    foreach (var act in fz.Actions)
                     {
-                        //if (!fuse.Fx.ContainsKey(fza.Effect))
-                            //fuse.Fx[fza.Effect] = GetEffect(fza.Effect).GetEffect(resource);
+                        if (resource is GameResourceManager && act is FuseStartEffect fza)
+                        {
+                            if(string.IsNullOrEmpty(fza.Effect)) continue;
+                            if (!fuse.Fx.ContainsKey(fza.Effect))
+                            {
+                                fuse.Fx[fza.Effect] = GetEffect(fza.Effect);
+                            }
+                        }
                     }
+
+                    fuses.Add(fusename, fuse);
                 }
 
-                fuses.Add(fusename, fuse);
+                return fuse;
             }
-            return fuse;
         }
 
         public bool HasEffect(string effectName)

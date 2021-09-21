@@ -309,7 +309,9 @@ namespace LibreLancer
 
         public void SpawnPlayer(Player p)
         {
-            rpcClient.SpawnObject(p.ID, p.Name, p.Position, p.Orientation, p.Character.EncodeLoadout());
+            var lO = p.Character.EncodeLoadout();
+            lO.Health = p.Character.Ship.Hitpoints;
+            rpcClient.SpawnObject(p.ID, p.Name, p.Position, p.Orientation, lO);
         }
 
         public void SendSolars(Dictionary<string, GameObject> solars)
@@ -523,7 +525,7 @@ namespace LibreLancer
         
         public void Disconnected()
         {
-            Character.UpdatePosition(Base, System, Position);
+            Character?.UpdatePosition(Base, System, Position);
             World?.RemovePlayer(this);
             Character?.Dispose();
         }

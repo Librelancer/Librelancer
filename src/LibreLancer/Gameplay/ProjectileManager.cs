@@ -34,7 +34,11 @@ namespace LibreLancer
                     Projectiles[i].Alive = false;
                 } else if (world.Physics.PointCollision(Projectiles[i].Position, out Physics.PhysicsObject po, out Vector3 contactPoint)) {
                     Projectiles[i].Alive = false;
-                    world.Renderer.SpawnTempFx(Projectiles[i].Data.HitEffect, contactPoint);
+                    world.Renderer?.SpawnTempFx(Projectiles[i].Data.HitEffect, contactPoint);
+                    if (po.Tag is GameObject go) 
+                    {
+                        world.Server?.ProjectileHit(go, Projectiles[i].Data.Munition);
+                    }
                 }
                 
             }

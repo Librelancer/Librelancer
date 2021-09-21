@@ -10,7 +10,7 @@ namespace LibreLancer.GameData
 {
     public class FuseResources
     {
-        //public Dictionary<string, ParticleEffect> Fx = new Dictionary<string, ParticleEffect>(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, ResolvedFx> Fx = new Dictionary<string, ResolvedFx>(StringComparer.OrdinalIgnoreCase);
         public Data.Fuses.Fuse Fuse;
     }
 }

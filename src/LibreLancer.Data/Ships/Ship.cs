@@ -110,12 +110,16 @@ namespace LibreLancer.Data.Ships
         [Entry("explosion_resistance")]
         public float ExplosionResistance;
 
+        public List<ShipFuse> Fuses = new List<ShipFuse>();
+        
         bool HandleEntry(Entry e)
         {
             switch(e.Name.ToLowerInvariant())
             {
-                case "shield_link":
                 case "fuse":
+                     Fuses.Add(new ShipFuse(e));
+                     return true;
+                case "shield_link":
                 case "surface_hit_effects":
                 case "hp_type":
                     return true;
@@ -123,4 +127,22 @@ namespace LibreLancer.Data.Ships
             return false;
         }
 	}
+
+    public class ShipFuse
+    {
+        public string Fuse;
+        public float DelayUNKNOWN;
+        public float Threshold;
+
+        public ShipFuse()
+        {
+        }
+
+        public ShipFuse(Entry e)
+        {
+            Fuse = e[0].ToString();
+            DelayUNKNOWN = e[1].ToSingle();
+            Threshold = e[2].ToSingle();
+        }
+    }
 }

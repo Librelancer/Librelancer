@@ -159,12 +159,14 @@ namespace LibreLancer
     public class NetShipLoadout
     {
         public uint ShipCRC;
+        public float Health;
         public List<NetShipEquip> Equipment;
         public List<NetShipCargo> Cargo;
         public static NetShipLoadout Read(NetPacketReader message)
         {
             var s = new NetShipLoadout();
             s.ShipCRC = message.GetUInt();
+            s.Health = message.GetFloat();
             var equipCount = (int)message.GetVariableUInt32();
             s.Equipment = new List<NetShipEquip>(equipCount);
             for(int i = 0; i < equipCount; i++) {
@@ -181,6 +183,7 @@ namespace LibreLancer
         public void Put(NetDataWriter message)
         {
             message.Put(ShipCRC);
+            message.Put(Health);
             message.PutVariableUInt32((uint)Equipment.Count);
             foreach(var equip in Equipment) {
                 message.Put(equip.HardpointCRC);
@@ -200,12 +203,16 @@ namespace LibreLancer
     public class ObjectUpdatePacket : IPacket
     {
         public uint Tick;
+        public float PlayerHealth;
+        public float PlayerShield;
         public PackedShipUpdate[] Updates;
         public const int UpdateLimit = byte.MaxValue;
         public static object Read(NetPacketReader message)
         {
             var p = new ObjectUpdatePacket();
             p.Tick = message.GetUInt();
+            p.PlayerHealth = message.GetFloat();
+            p.PlayerShield = message.GetFloat();
             var pack = new BitReader(message.GetRemainingBytes(), 0);
             var updateCount = pack.GetUInt(8);
             p.Updates = new PackedShipUpdate[updateCount];
@@ -216,6 +223,8 @@ namespace LibreLancer
         public void WriteContents(NetDataWriter message)
         {
             message.Put(Tick);
+            message.Put(PlayerHealth);
+            message.Put(PlayerShield);
             var writer = new BitWriter();
             if(Updates.Length > 255)
                 throw new Exception("Too many updates for net packet");

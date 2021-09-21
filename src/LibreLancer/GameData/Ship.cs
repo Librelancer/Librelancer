@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace LibreLancer.GameData
@@ -20,11 +21,14 @@ namespace LibreLancer.GameData
 		public float Mass;
 		public float StrafeForce;
 		public float CruiseSpeed;
+        public float Hitpoints;
 
         public Vector3 ChaseOffset;
         public float CameraHorizontalTurnAngle;
         public float CameraVerticalTurnUpAngle;
         public float CameraVerticalTurnDownAngle;
+
+        public List<DamageFuse> Fuses = new List<DamageFuse>();
 
         public Ship ()
 		{

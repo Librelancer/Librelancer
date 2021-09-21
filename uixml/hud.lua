@@ -97,10 +97,14 @@ function hud:Update()
     self:UpdateManeuverState()
     self.Elements.speedText.Text = Game:Speed() .. ""
     self.Elements.thrustText.Text = Game:ThrustPercent() .. "%"
+	self.Elements.hullgauge.PercentFilled = Game:GetPlayerHealth()
+	self.Elements.powergauge.PercentFilled = Game:GetPlayerPower()
+	self.Elements.shieldgauge.PercentFilled = Game:GetPlayerShield()
 end
 
 function hud:Chatbox()
    self.Elements.chatbox.Visible = true 
 end
+
 
 

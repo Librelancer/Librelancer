@@ -259,10 +259,15 @@ namespace LibreLancer
             {
                 var shp = Game.GameData.GetShip((int) loadout.ShipCRC);
                 //Set up player object + camera
-                var newobj = new GameObject(shp, Game.ResourceManager);
+                var newobj = new GameObject(shp, Game.ResourceManager, true, true) {
+                    World = gp.world
+                };
                 newobj.Name = "NetPlayer " + id;
                 newobj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
                                          Matrix4x4.CreateTranslation(position));
+                newobj.Components.Add(new HealthComponent(newobj) { CurrentHealth = loadout.Health, MaxHealth = shp.Hitpoints });
+                newobj.Components.Add(new CDamageFuseComponent(newobj, shp.Fuses));
+                newobj.Register(gp.world.Physics);
                 if(connection is GameNetClient) 
                     newobj.Components.Add(new CNetPositionComponent(newobj));
                 objects.Add(id, newobj);
@@ -440,6 +445,9 @@ namespace LibreLancer
                 case ObjectUpdatePacket p:
                     RunSync(() =>
                     {
+                        var hp = gp?.player?.GetComponent<HealthComponent>();
+                        if(hp != null)
+                            hp.CurrentHealth = p.PlayerHealth;
                         foreach (var update in p.Updates)
                             UpdateObject(p.Tick, update);
                     });
@@ -461,6 +469,11 @@ namespace LibreLancer
             {
                 if(update.HasPosition) netPos.QueuePosition(tick, update.Position);
                 if(update.HasOrientation) netPos.QueueOrientation(tick, update.Orientation);
+                if (update.HasHealth) {
+                    var health = obj.GetComponent<HealthComponent>();
+                    if (health != null)
+                        health.CurrentHealth = (float)update.HullHp;
+                }
             }
             else
             {
