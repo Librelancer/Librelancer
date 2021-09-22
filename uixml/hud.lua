@@ -95,16 +95,44 @@ end
 
 function hud:Update()
     self:UpdateManeuverState()
-    self.Elements.speedText.Text = Game:Speed() .. ""
-    self.Elements.thrustText.Text = Game:ThrustPercent() .. "%"
-	self.Elements.hullgauge.PercentFilled = Game:GetPlayerHealth()
-	self.Elements.powergauge.PercentFilled = Game:GetPlayerPower()
-	self.Elements.shieldgauge.PercentFilled = Game:GetPlayerShield()
+	local e = self.Elements
+    e.speedText.Text = Game:Speed() .. ""
+    e.thrustText.Text = Game:ThrustPercent() .. "%"
+	e.hullgauge.PercentFilled = Game:GetPlayerHealth()
+	e.powergauge.PercentFilled = Game:GetPlayerPower()
+	e.shieldgauge.PercentFilled = Game:GetPlayerShield()
+	if Game:SelectionVisible() then
+		local pos = Game:SelectionPosition()
+		e.selection.Visible = true
+		e.selection.X = pos.X - (e.selection.Width / 2.0)
+		e.selection.Y = pos.Y - (e.selection.Height / 2.0)
+		e.selection_name.Text = Game:SelectionName()
+		local health = Game:SelectionHealth()
+		local shield = Game:SelectionShield()
+		if health >= 0 then
+			e.selection_health.Visible = true
+			e.selection_health.PercentFilled = health
+		else
+			e.selection_health.Visible = false
+		end
+		if shield >= 0 then
+			e.selection_shield.Visible = true
+			e.selection_shield.PercentFilled = shield
+		else
+			e.selection_shield.Visible = false
+		end
+	else
+		e.selection.Visible = false
+	end
 end
 
 function hud:Chatbox()
    self.Elements.chatbox.Visible = true 
 end
+
+
+
+
 
 
 

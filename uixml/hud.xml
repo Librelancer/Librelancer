@@ -34,6 +34,23 @@
 			<DisplayModel model="hud_nnbox5"/>
 		</Panel.Background>
 	</Panel>
+	<Panel X="10" Y="10" Width="150" Height="100" id="selection" Visible="true">
+		<Panel Anchor="TopLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tl"/></Panel.Background></Panel>
+		<Panel Anchor="TopRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tr"/></Panel.Background></Panel>
+		<Panel Anchor="BottomLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_bl"/></Panel.Background></Panel>
+		<Panel Anchor="BottomRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_br"/></Panel.Background></Panel>
+		<TextBlock id="selection_name" Y="-3" Anchor="TopCenter" Width="150" Height="20" Text="Target" VerticalAlignment="Top" TextSize="9"></TextBlock>
+		<Gauge Width="50" Height="5" Y="9" Anchor="BottomCenter" PercentFilled="0.5" id="selection_health">
+			<Gauge.Fill><DisplayColor color="red"/></Gauge.Fill>
+			<Gauge.Background><DisplayColor color="black"/></Gauge.Background>
+			<Gauge.Border><DisplayRectangle color="red"/></Gauge.Border>
+		</Gauge>
+		<Gauge Width="50" Height="5" Y="2" Anchor="BottomCenter" PercentFilled="0.5" id="selection_shield">
+			<Gauge.Fill><DisplayColor color="blue"/></Gauge.Fill>
+			<Gauge.Background><DisplayColor color="black"/></Gauge.Background>
+			<Gauge.Border><DisplayRectangle color="blue"/></Gauge.Border>
+		</Gauge>
+	</Panel>
 	<Button Anchor="TopRight" Style="nn_info" ID="nn_info" X="8" Y="2"/>
 	<Button Anchor="TopRight" Style="nn_playerstatus" ID="nn_playerstatus" X="37" Y="2"/>
 	<Button Anchor="TopRight" Style="nn_inventory" ID="nn_inventory" X="52" Y="6"/>
@@ -74,6 +91,12 @@
     </ChatBox>
     <ChatDisplay Anchor="BottomLeft" Y="130" Height="250" Width="510" X="10" id="chat"/>
 </Scene>
+
+
+
+
+
+
 
 
 

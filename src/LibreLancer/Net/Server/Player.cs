@@ -453,6 +453,7 @@ namespace LibreLancer
                 var sc = CharacterList[index];
                 FLLog.Info("Server", $"opening id {sc.Id}");
                 Character = NetCharacter.FromDb(sc.Id, game);
+                Name = Character.Name;
                 rpcClient.UpdateBaselinePrices(game.BaselineGoodPrices);
                 Base = Character.Base;
                 System = Character.System;

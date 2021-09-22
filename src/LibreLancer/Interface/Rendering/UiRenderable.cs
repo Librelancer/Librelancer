@@ -24,6 +24,7 @@ namespace LibreLancer.Interface
             context.RenderState.ScissorRectangle = clipRectangle;
             context.RenderState.ScissorEnabled = true;
             Draw(context, rectangle);
+            context.Mode3D(); //flush
             context.RenderState.ScissorEnabled = false;
         }
     }

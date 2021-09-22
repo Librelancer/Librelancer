@@ -423,14 +423,14 @@ namespace InterfaceEdit
                 var x1 = mdl.TexCoords.X0 + mdl.TexCoords.X3;
                 var y0 = mdl.TexCoords.Y0;
                 var y1 = mdl.TexCoords.Y0 + mdl.TexCoords.Y3;
-                var a = new Vector2(x0, y1);
-                var b = new Vector2(x1, y1);
-                var c = new Vector2(x0, y0);
-                var d = new Vector2(x1, y0);
+                var a = new Vector2(x0, y0);
+                var b = new Vector2(x1, y0);
+                var c = new Vector2(x0, y1);
+                var d = new Vector2(x1, y1);
                 if (mdl.Flip)
                 {
-                    a.Y = b.Y = 0;
-                    c.Y = d.Y = 1;
+                    a.Y = b.Y = y1;
+                    c.Y = d.Y = y0;
                 }
                 Vector2 tl = a, tr = b, bl = c, br = d;
                 if (mdl.Rotation == QuadRotation.Rotate90)

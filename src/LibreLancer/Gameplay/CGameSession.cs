@@ -270,7 +270,7 @@ namespace LibreLancer
                 var newobj = new GameObject(shp, Game.ResourceManager, true, true) {
                     World = gp.world
                 };
-                newobj.Name = "NetPlayer " + id;
+                newobj.Name = name;
                 newobj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
                                          Matrix4x4.CreateTranslation(position));
                 newobj.Components.Add(new HealthComponent(newobj) { CurrentHealth = loadout.Health, MaxHealth = shp.Hitpoints });

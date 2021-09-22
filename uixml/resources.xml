@@ -315,7 +315,96 @@
       <Y3>1</Y3>
     </DisplayCoords>
   </Image>
+  <Image name="tgtcorner_tl" texname="HUD_targetingelement" type="Normal" rot="None" flip="false">
+    <TexCoords>
+      <X0>0</X0>
+      <Y0>1</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>0.248</X3>
+      <Y3>0.245</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
+  </Image>
+  <Image name="tgtcorner_tr" texname="HUD_targetingelement" type="Normal" rot="Rotate90" flip="false">
+    <TexCoords>
+      <X0>0</X0>
+      <Y0>1</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>0.248</X3>
+      <Y3>0.245</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
+  </Image>
+  <Image name="tgtcorner_bl" texname="HUD_targetingelement" type="Normal" rot="Rotate270" flip="false">
+    <TexCoords>
+      <X0>0</X0>
+      <Y0>1</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>0.248</X3>
+      <Y3>0.245</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
+  </Image>
+  <Image name="tgtcorner_br" texname="HUD_targetingelement" type="Normal" rot="Rotate180" flip="false">
+    <TexCoords>
+      <X0>0</X0>
+      <Y0>1</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>0.248</X3>
+      <Y3>0.245</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
+  </Image>
   <LibraryFile>INTERFACE/interface.generic.vms</LibraryFile>
   <LibraryFile>INTERFACE/UI/uitextures.txm</LibraryFile>
   <LibraryFile>INTERFACE/NEURONET/NEWSVENDOR/newsvendor.txm</LibraryFile>
+  <LibraryFile>INTERFACE/buttontextures.txm</LibraryFile>
 </InterfaceResources>

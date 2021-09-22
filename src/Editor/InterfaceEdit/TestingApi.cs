@@ -224,6 +224,12 @@ namespace InterfaceEdit
 
         public TraderFake Trader = new TraderFake();
 
+        public string SelectionName() => "Selected Object";
+        public bool SelectionVisible() => true;
+
+        public float SelectionHealth() => 0.5f;
+        public float SelectionShield() => 0.75f;
+        public LuaVector2 SelectionPosition() => new LuaVector2(300,300);
 
         public int ThrustPercent() => 111;
         public int Speed() => 67;

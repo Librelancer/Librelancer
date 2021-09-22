@@ -15,6 +15,20 @@ using MoonSharp.Interpreter.Loaders;
 
 namespace LibreLancer.Interface
 {
+    [MoonSharpUserData]
+    public class LuaVector2
+    {
+        public float X;
+        public float Y;
+        public LuaVector2()
+        {
+        }
+        public LuaVector2(float x, float y)
+        {
+            X = x;
+            Y = y;
+        }
+    }
     public partial class LuaContext : IDisposable
     {
         Script script;

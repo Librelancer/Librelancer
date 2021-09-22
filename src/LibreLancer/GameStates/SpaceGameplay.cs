@@ -158,6 +158,39 @@ World Time: {12:F2}
                 return g.Game.GameData.GetManeuvers().ToArray();
             }
 
+            public string SelectionName()
+            {
+                return g.selected?.Name ?? "NULL";
+            }
+
+            public bool SelectionVisible()
+            {
+                return g.selected != null && g.ScreenPosition(g.selected).visible;
+            }
+
+            public float SelectionHealth()
+            {
+                if (g.selected == null) return -1;
+                if (!g.selected.TryGetComponent<HealthComponent>(out var health))
+                    return -1;
+                return MathHelper.Clamp(health.CurrentHealth / health.MaxHealth, 0, 1);
+            }
+            public float SelectionShield() => -1;
+
+            public LuaVector2 SelectionPosition()
+            {
+                if (g.selected == null) return new LuaVector2(-1000, -1000);
+                var (pos, visible) = g.ScreenPosition(g.selected);
+                if (visible) {
+                    return new LuaVector2(
+                        g.ui.PixelsToPoints(pos.X),
+                        g.ui.PixelsToPoints(pos.Y)
+                    );
+                } else {
+                    return new LuaVector2(-1000, -1000);
+                }
+            }
+
             public void PopulateNavmap(Navmap nav)
             {
                 nav.PopulateIcons(g.ui, g.sys);
@@ -562,6 +595,19 @@ World Time: {12:F2}
 			return aSquared < rSquared;
 		}
 
+        (Vector2 pos, bool visible) ScreenPosition(GameObject obj)
+        {
+            var worldPos = Vector3.Transform(Vector3.Zero, obj.WorldTransform);
+            var clipSpace = Vector4.Transform(new Vector4(worldPos, 1), camera.ViewProjection);
+            var ndc = clipSpace / clipSpace.W;
+            var viewSize = new Vector2(Game.Width, Game.Height);
+            var windowSpace = new Vector2(
+                ((ndc.X + 1.0f) / 2.0f) * Game.Width,
+                ((1.0f - ndc.Y) / 2.0f) * Game.Height
+            );
+            return (windowSpace, ndc.Z < 1);
+        }
+
 		//RigidBody debugDrawBody;
 		public override void Draw(double delta)
 		{
@@ -609,7 +655,7 @@ World Time: {12:F2}
                 current_cur.Draw(Game.Renderer2D, Game.Mouse);
             }
             DoFade(delta);
-			Game.Renderer2D.Finish();
+            Game.Renderer2D.Finish();
 		}
 
         public override void Exiting()
