@@ -433,7 +433,7 @@ namespace LibreLancer
                     return;
                 }
             }
-            rpcClient.OnConsoleMessage("Unrecognised command");
+            rpcClient.OnConsoleMessage($"Unrecognised command '{cmd}'");
         }
 
         void IServerPlayer.RequestCharacterDB()

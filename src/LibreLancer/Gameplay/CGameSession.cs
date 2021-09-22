@@ -299,7 +299,7 @@ namespace LibreLancer
         {
             PlayerBase = null;
             SpawnTime = systemTime;
-            FLLog.Info("Client", $"Spawning at time {systemTime}");
+            FLLog.Info("Client", $"Spawning in {system} at time {systemTime}");
             tOffset = Game.TotalTime;
             Credits = credits;
             PlayerSystem = system;

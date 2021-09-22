@@ -9,7 +9,7 @@ using System.Text;
 
 namespace LibreLancer
 {
-	public static class NetPacking
+	public static partial class NetPacking
 	{
         public const int BITS_COMPONENT = 10;
         public const float UNIT_MIN = -0.707107f;
@@ -69,25 +69,7 @@ namespace LibreLancer
             throw new Exception("Malformed variable UInt32");
         }
 
-        public static void PutStringPacked(this LiteNetLib.Utils.NetDataWriter om, string s)
-        {
-            if (s == null) {
-                om.PutVariableUInt32(0); 
-            }
-            else {
-                var bytes = Encoding.UTF8.GetBytes(s);
-                om.PutVariableUInt32((uint)(bytes.Length + 1));
-                om.Put(bytes);
-            }
-        }
-        public static string GetStringPacked(this LiteNetLib.Utils.NetDataReader im)
-        {
-            var len = im.GetVariableUInt32();
-            if (len == 0) return null;
-            len--;
-            var bytes = im.GetBytes((int) len);
-            return Encoding.UTF8.GetString(bytes);
-        }
+        
         
 		public static void Put(this LiteNetLib.Utils.NetDataWriter om, Quaternion q)
         {
