@@ -309,6 +309,20 @@ namespace LibreLancer
 		}
 
         private GameObject playerShip;
+
+        void CreatePlayerEquipment()
+        {
+            playerShip.Children.Clear();
+            foreach (var mount in session.Mounts)
+            {
+                if (!string.IsNullOrEmpty(mount.Hardpoint)) {
+                    var equip = Game.GameData.GetEquipment(mount.Item);
+                    if (equip == null) continue;
+                    EquipmentObjectManager.InstantiateEquipment(playerShip, Game.ResourceManager, EquipmentType.Cutscene, mount.Hardpoint, equip);
+                }
+            }
+        }
+        
 		void SwitchToRoom(bool dolanding)
         {
             session.RoomEntered(virtualRoom ?? currentRoom.Nickname, currentBase.Nickname);
@@ -323,6 +337,8 @@ namespace LibreLancer
             var shp = Game.GameData.GetShip(session.PlayerShip);
             playerShip = new GameObject(shp.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager); 
             playerShip.PhysicsComponent = null;
+            CreatePlayerEquipment();
+            session.OnUpdatePlayerShip = CreatePlayerEquipment;
             var ctx = new ThnScriptContext(currentRoom.OpenSet());
             ctx.PlayerShip = playerShip;
             if(currentBase.TerrainTiny != null) ctx.Substitutions.Add("$terrain_tiny", currentBase.TerrainTiny);

@@ -15,7 +15,8 @@ namespace LibreLancer.GameData.Items
         {
             var gn = (GunEquipment) equip;
             var child = GameObject.WithModel(gn.ModelFile, type != EquipmentType.Server, res);
-            if(type != EquipmentType.RemoteObject)
+            if(type != EquipmentType.RemoteObject &&
+               type != EquipmentType.Cutscene)
                 child.Components.Add(new WeaponComponent(child, gn));
             return child;
         }

@@ -27,7 +27,8 @@ namespace LibreLancer.GameData.Items
         {
             var lq = (LightEquipment)equip;
             var obj = new GameObject();
-            if (type != EquipmentType.Server)
+            if (type != EquipmentType.Server && 
+                type != EquipmentType.Cutscene)
             {
                 obj.RenderComponent = new LightEquipRenderer(lq) {LightOn = !lq.DockingLight};
             }

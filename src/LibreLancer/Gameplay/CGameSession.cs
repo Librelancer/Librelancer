@@ -249,6 +249,7 @@ namespace LibreLancer
         void RunSync(Action gp) => gameplayActions.Enqueue(gp);
 
         public Action OnUpdateInventory;
+        public Action OnUpdatePlayerShip;
 
         void IClientPlayer.UpdateInventory(long credits, NetShipLoadout loadout)
         {
@@ -256,6 +257,8 @@ namespace LibreLancer
             SetSelfLoadout(loadout);
             if (OnUpdateInventory != null) {
                 uiActions.Enqueue(OnUpdateInventory);
+                if(gp == null && OnUpdatePlayerShip != null)
+                    uiActions.Enqueue(OnUpdatePlayerShip);
             }
         }
 

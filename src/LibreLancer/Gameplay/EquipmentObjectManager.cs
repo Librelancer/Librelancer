@@ -19,7 +19,8 @@ namespace LibreLancer
     {
         Server,
         RemoteObject,
-        LocalPlayer
+        LocalPlayer,
+        Cutscene
     }
     public class EquipmentObjectManager
     {
