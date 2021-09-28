@@ -16,6 +16,13 @@ namespace LibreLancer.Interface
         public int IdsInfo;
         public double Price; //price per unit
         public string PriceRank;
+        public string Hardpoint;
+        public int IdsHardpoint;
+        public int IdsHardpointDescription;
+        public bool Combinable;
         public int Count;  //how many do we have in this slot? (set to 0 to not show count)
+        public bool MountIcon;
+        public bool CanMount;
+        internal int HpSortIndex;
     }
 }

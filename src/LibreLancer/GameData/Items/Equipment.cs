@@ -11,6 +11,7 @@ namespace LibreLancer.GameData.Items
 		{
 		}
         public string Nickname;
+        public string HpType;
         public int IdsName;
         public int IdsInfo;
         public uint CRC;

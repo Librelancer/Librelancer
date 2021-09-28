@@ -55,6 +55,7 @@ namespace LibreLancer.GameData
 		public string Behavior;
 		public string Room;
 		public string SetVirtualRoom;
+        public string VirtualRoom;
 	}
 	public class BaseNpc
 	{

@@ -133,6 +133,7 @@ namespace LibreLancer.Interface
         private int nextScrollDir = 0;
         public override void Render(UiContext context, RectangleF parent)
         {
+            if(!Visible) return;
             float delta = 0;
             if (lastTime == 0) {
                 lastTime = context.GlobalTime;
@@ -176,22 +177,23 @@ namespace LibreLancer.Interface
             {
                 left = Style.ThumbLeft.Width;
                 var rect = new RectangleF(track.X + thumb.X, track.Y + thumb.Y, left + 1, track.Height);
-                thumbleft.Draw(context, rect, thumb.Hovered, thumb.HeldDown, thumb.Selected);
+                thumbleft.Draw(context, rect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
             }
             if (Style.ThumbRight != null)
             {
                 //bottom = Style.ThumbBottom.Height;
                 right = Style.ThumbRight.Width;
                 var rect = new RectangleF(track.X + thumb.X + thumb.Width - right - 1, thumb.Y + track.Y, right + 1, track.Height);
-                thumbright.Draw(context, rect, thumb.Hovered, thumb.HeldDown, thumb.Selected);
+                thumbright.Draw(context, rect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
             }
             var thumbRect = new RectangleF(track.X + thumb.X + left, track.Y, thumb.Width - left - right, thumb.Height);
-            thumb.Draw(context, thumbRect, thumb.Hovered, thumb.HeldDown, thumb.Selected);
+            thumb.Draw(context, thumbRect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
         }
 
         private float dragXStart;
         public override void OnMouseDown(UiContext context, RectangleF parent)
         {
+            if (!Visible) return;
             Layout(context, parent, out var myRectangle, out var track);
             thumb.OnMouseDown(context, track);
             leftbutton.OnMouseDown(context, myRectangle);
@@ -202,6 +204,7 @@ namespace LibreLancer.Interface
 
         public override void OnMouseUp(UiContext context, RectangleF parent)
         {
+            if (!Visible) return;
             Layout(context, parent, out var myRectangle, out var track);
             leftbutton.OnMouseUp(context, myRectangle);
             rightbutton.OnMouseUp(context, myRectangle);
@@ -211,6 +214,7 @@ namespace LibreLancer.Interface
 
         public override void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta)
         {
+            if (!Visible) return;
             Layout(context, parentRectangle, out _, out var track);
             if (track.Contains(context.MouseX, context.MouseY))
             {

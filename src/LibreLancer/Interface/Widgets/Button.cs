@@ -61,12 +61,13 @@ namespace LibreLancer.Interface
 
         private CachedRenderString textCache;
 
-        internal void Draw(UiContext context, RectangleF myRectangle, bool hover, bool pressed, bool selected)
+        internal void Draw(UiContext context, RectangleF myRectangle, bool hover, bool pressed, bool selected, bool enabled)
         {
             ButtonAppearance activeStyle = null;
             if(selected) activeStyle = style.Selected;
             if (hover) activeStyle = style?.Hover;
             if (pressed) activeStyle = style?.Pressed ?? style?.Hover;
+            if (!enabled) activeStyle = style?.Disabled;
             var bk = Cascade(style?.Normal?.Background, activeStyle?.Background, Background);
             bk?.Draw(context, myRectangle);
             var border = Cascade(style?.Normal?.Border, activeStyle?.Border, Border);

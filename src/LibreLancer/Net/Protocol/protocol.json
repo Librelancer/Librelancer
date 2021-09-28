@@ -46,12 +46,27 @@
           "args": [ { "name":  "id", "type":  "int" }, { "name":  "count", "type":  "int" }]
         },
         {
+          "name": "SellAttachedGood",
+          "return": "bool",
+          "args": [ { "name": "hardpoint", "type": "string" }]
+        },
+        {
           "name": "RequestDock",
           "args": [ { "name": "nickname", "type":  "string" }]
         },
         {
           "name": "FireProjectiles",
           "args": [ { "name":  "projectiles", "type":  "ProjectileSpawn[]" }]
+        },
+        {
+          "name": "Unmount",
+          "return": "bool",
+          "args": [ { "name":  "hardpoint", "type":  "string" }]
+        },
+        {
+          "name": "Mount",
+          "return": "bool",
+          "args": [ { "name":  "id", "type":  "int" }]
         }
     ],
     "client_methods": [

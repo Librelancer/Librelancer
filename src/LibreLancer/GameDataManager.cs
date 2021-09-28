@@ -11,6 +11,7 @@ using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using LibreLancer.Data.Equipment;
 using LibreLancer.Data.Fuses;
 using LibreLancer.Data.Solar;
 using LibreLancer.GameData;
@@ -168,7 +169,8 @@ namespace LibreLancer
                             Name = hp.Name,
                             Behavior = hp.Behavior,
                             Room = hp.RoomSwitch,
-                            SetVirtualRoom = hp.VirtualRoom
+                            SetVirtualRoom = hp.SetVirtualRoom,
+                            VirtualRoom = hp.VirtualRoom
                         });
                     nr.Nickname = room.Nickname;
                     if (room.Nickname == inibase.StartRoom) b.StartRoom = nr;
@@ -512,17 +514,15 @@ namespace LibreLancer
                 {
                     equip = GetAttachedFx((Data.Equipment.AttachedFx)val);
                 }
-                if (val is Data.Equipment.PowerCore)
+                if (val is Data.Equipment.PowerCore pc)
                 {
-                    var pc = (val as Data.Equipment.PowerCore);
                     var eqp = new GameData.Items.PowerEquipment();
                     eqp.Def = pc;
                     eqp.ModelFile = ResolveDrawable(pc.MaterialLibrary, pc.DaArchetype);
                     equip = eqp;
                 }
-                if (val is Data.Equipment.Gun)
+                if (val is Data.Equipment.Gun gn)
                 {
-                    var gn = (val as Data.Equipment.Gun);
                     var mn = fldata.Equipment.Munitions.FirstOrDefault((x) => x.Nickname.Equals(gn.ProjectileArchetype, StringComparison.OrdinalIgnoreCase));
                     if (mn == null)
                     {
@@ -541,24 +541,43 @@ namespace LibreLancer
                     };
                     var eqp = new GameData.Items.GunEquipment()
                     {
+                        HpType = gn.HpGunType,
                         Munition = mequip,
                         Def = gn
                     };
                     equip = eqp;
                     equip.ModelFile = ResolveDrawable(gn.MaterialLibrary, gn.DaArchetype);
                 }
-                if (val is Data.Equipment.Thruster)
+                if (val is Data.Equipment.Thruster th)
                 {
-                    var th = (val as Data.Equipment.Thruster);
                     var eqp = new GameData.Items.ThrusterEquipment()
                     {
                         Drain = th.PowerUsage,
                         Force = th.MaxForce,
-                        HpParticles = th.HpParticles
+                        HpParticles = th.HpParticles,
+                        HpType = "hp_thruster"
                     };
                     equip = eqp;
                     eqp.Particles = GetEffect(th.Particles);
                     equip.ModelFile = ResolveDrawable(th.MaterialLibrary, th.DaArchetype);
+                }
+                if (val is Data.Equipment.ShieldGenerator sh)
+                {
+                    var eqp = new GameData.Items.ShieldEquipment()
+                    {
+                        HpType = sh.HpType
+                    };
+                    eqp.ModelFile = ResolveDrawable(sh.MaterialLibrary, sh.DaArchetype);
+                    equip = eqp;
+                }
+                if (val is Data.Equipment.CountermeasureDropper cms)
+                {
+                    var eqp = new CountermeasureEquipment()
+                    {
+                        HpType = "hp_countermeasure"
+                    };
+                    eqp.ModelFile = ResolveDrawable(cms.MaterialLibrary, cms.DaArchetype);
+                    equip = eqp;
                 }
 
                 if (val is Data.Equipment.Engine deng)
@@ -1185,6 +1204,26 @@ namespace LibreLancer
                         Threshold = fuse.Threshold
                     });
                 }
+
+                foreach (var hp in orig.HardpointTypes)
+                {
+                    if (!fldata.HpTypes.Types.TryGetValue(hp.Type, out var typedef)) {
+                        FLLog.Error("Ship", $"Unrecognised hp_type {hp.Type} in {ship.Nickname}");
+                        continue;
+                    }
+                    if (!ship.PossibleHardpoints.TryGetValue(hp.Type, out var possible)) {
+                        possible = new List<string>();
+                        ship.PossibleHardpoints.Add(hp.Type, possible);
+                    }
+                    foreach (var tgt in hp.Hardpoints) {
+                        if (!ship.HardpointTypes.TryGetValue(tgt, out var types)) {
+                            types = new List<HpType>();
+                            ship.HardpointTypes.Add(tgt, types);
+                        }
+                        types.Add(typedef);
+                        possible.Add(tgt);
+                    }
+                }
                 ships.Add(ship.Nickname, ship);
                 shipHashes.Add(ship.CRC, ship);
             }
@@ -1461,6 +1500,7 @@ namespace LibreLancer
                 return null;
             }
             if (visfx == null) return null;
+            if(string.IsNullOrWhiteSpace(visfx.AlchemyPath)) return null;
             var alepath = TryResolveData(visfx.AlchemyPath);
             if (alepath == null) return null;
             return new ResolvedFx()

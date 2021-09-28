@@ -165,11 +165,28 @@ namespace InterfaceEdit
             {
                 new UIInventoryItem()
                 {
+                    Hardpoint = "HpWeapon01",
+                    IdsHardpoint = 1526,
+                    IdsHardpointDescription = 907,
+                    MountIcon = true,
+                    Icon = @"equipment\models\commodities\nn_icons\EQUIPICON_gun.3db",
+                    IdsName = 263175,
+                    IdsInfo = 264175
+                },
+                new UIInventoryItem()
+                {
+                    Hardpoint = "HpWeapon02",
+                    IdsHardpoint = 1527,
+                    IdsHardpointDescription = 907
+                },
+                new UIInventoryItem()
+                {
                     Icon = @"Equipment\models\commodities\nn_icons\COMMOD_chemicals.3db",
                     Price = 240,
                     PriceRank = "good",
                     IdsName = 261626,
                     IdsInfo = 65908,
+                    Combinable = true,
                     Count = 32,
                 },
                 new UIInventoryItem()
@@ -179,8 +196,33 @@ namespace InterfaceEdit
                     PriceRank = "bad",
                     IdsName = 261627,
                     IdsInfo = 65908,
+                    Combinable = true,
                     Count = 1
-                }
+                },
+                new UIInventoryItem()
+                {
+                    Icon = @"equipment\models\commodities\nn_icons\EQUIPICON_gun.3db",
+                    Price = 1000,
+                    IdsName = 263175,
+                    IdsInfo = 264175,
+                    Combinable = false,
+                    Count = 1,
+                    MountIcon = true,
+                    CanMount = true
+                },
+                new UIInventoryItem()
+                {
+                    Icon = @"equipment\models\commodities\nn_icons\EQUIPICON_gun.3db",
+                    Price = 2000,
+                    IdsName = 263177,
+                    IdsInfo = 264177,
+                    Combinable = false,
+                    Count = 1,
+                    MountIcon = true,
+                    CanMount = false
+                },
+                
+              
             };
             
             UIInventoryItem[] titems = new[]
@@ -192,6 +234,7 @@ namespace InterfaceEdit
                     PriceRank = "neutral",
                     IdsName = 261626, //mox
                     IdsInfo = 65908,
+                    Combinable = true,
                     Count = 0,
                 },
                 new UIInventoryItem()
@@ -201,6 +244,7 @@ namespace InterfaceEdit
                     PriceRank = "bad",
                     IdsName = 261627, //basic alloy
                     IdsInfo = 65885,
+                    Combinable = true,
                     Count = 0
                 }
             };
@@ -212,13 +256,18 @@ namespace InterfaceEdit
             {
             }
 
-            public void Sell(int id, int count, Closure onSuccess)
+            public void Sell(UIInventoryItem item, int count, Closure onSuccess)
             {
                 onSuccess.Call();
             }
 
             public void OnUpdateInventory(Closure handler)
             {
+            }
+
+            public void ProcessMount(UIInventoryItem item, Closure onsuccess)
+            {
+                onsuccess.Call("mount");
             }
         }
 

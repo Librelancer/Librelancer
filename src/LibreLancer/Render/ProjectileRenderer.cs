@@ -28,7 +28,14 @@ namespace LibreLancer
             renderCount = 0;
             for(int i = 0; i < Projectiles.Projectiles.Length; i++) {
                 if (Projectiles.Projectiles[i].Alive)
+                {
+                    if (Projectiles.Projectiles[i].Effect != null)
+                    {
+                        Projectiles.Projectiles[i].Effect.Resources = sys.ResourceManager;
+                        Projectiles.Projectiles[i].Effect.Pool = sys.FxPool;
+                    }
                     toRender[renderCount++] = Projectiles.Projectiles[i];
+                }
             }
             if (renderCount > 0) sys.AddObject(this);
             return true;
@@ -39,6 +46,11 @@ namespace LibreLancer
         }
         public override void Update(double time, Vector3 position, Matrix4x4 transform)
         {
+            for (int i = 0; i < renderCount; i++)
+            {
+                var p = toRender[i];
+                p.Effect?.Update(time, Matrix4x4.CreateTranslation(p.Position), 0);
+            }
         }
         public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
         {
@@ -50,6 +62,9 @@ namespace LibreLancer
                     beams.AddBeamSpear(p.Position, p.Normal.Normalized(), p.Data.Munition.ConstEffect_Spear, currDist);
                 if(p.Data.Munition.ConstEffect_Bolt != null)
                     beams.AddBeamBolt(p.Position, p.Normal.Normalized(), p.Data.Munition.ConstEffect_Bolt, currDist);
+                if (p.Effect != null) {
+                    p.Effect.Draw(Matrix4x4.CreateTranslation(p.Position), 0);
+                }
             }
         }
     }

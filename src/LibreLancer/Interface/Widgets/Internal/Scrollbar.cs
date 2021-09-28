@@ -118,16 +118,16 @@ namespace LibreLancer.Interface
             {
                 top = Style.ThumbTop.Height;
                 var rect = new RectangleF(track.X, track.Y + thumb.Y, track.Width, top + 1);
-                thumbTop.Draw(context, rect, thumb.Hovered, thumb.HeldDown, thumb.Selected);
+                thumbTop.Draw(context, rect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
             }
             if (Style.ThumbBottom != null)
             {
                 bottom = Style.ThumbBottom.Height;
                 var rect = new RectangleF(track.X, track.Y + thumb.Y + thumb.Height - bottom - 1, track.Width, bottom + 1);
-                thumbBottom.Draw(context, rect, thumb.Hovered, thumb.HeldDown, thumb.Selected);
+                thumbBottom.Draw(context, rect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
             }
             var thumbRect = new RectangleF(track.X, track.Y + thumb.Y + top, thumb.Width, thumb.Height - top - bottom);
-            thumb.Draw(context, thumbRect, thumb.Hovered, thumb.HeldDown, thumb.Selected);
+            thumb.Draw(context, thumbRect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
         }
 
         private float dragYStart;

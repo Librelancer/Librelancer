@@ -103,6 +103,13 @@ namespace LibreLancer.Interface
             }
         }
 
+        public override void ApplyStylesheet(Stylesheet sheet)
+        {
+            base.ApplyStylesheet(sheet);
+            ItemA?.ApplyStylesheet(sheet);
+            ItemB?.ApplyStylesheet(sheet);
+        }
+
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
             if (!Visible) return;

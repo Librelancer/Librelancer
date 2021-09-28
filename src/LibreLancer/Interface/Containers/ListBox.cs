@@ -113,6 +113,8 @@ namespace LibreLancer.Interface
         {
             Scrollbar.ApplyStyle(sheet);
             base.ApplyStylesheet(sheet);
+            foreach(var item in Children)
+                item.ApplyStylesheet(sheet);
         }
 
         public override void OnMouseDown(UiContext context, RectangleF parentRectangle)

@@ -282,6 +282,73 @@
 		</ButtonStyle.Hover>
         <ButtonStyle.Disabled TextColor="#666"/>
 	</ButtonStyle>
+	<ButtonStyle Width="15" Height="15" Name="inv_category_weapons">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background><DisplayModel model="inv_category_weapons" tint="text"/></ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background><DisplayModel model="inv_category_weapons" tint="text_hover"/></ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background><DisplayModel model="inv_category_weapons" tint="yellow"/></ButtonAppearance.Background>
+		</ButtonStyle.Selected>
+	</ButtonStyle>
+	<ButtonStyle Width="15" Height="15" Name="inv_category_ammo">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background><DisplayModel model="inv_category_ammo" tint="text"/></ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background><DisplayModel model="inv_category_ammo" tint="text_hover"/></ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background><DisplayModel model="inv_category_ammo" tint="yellow"/></ButtonAppearance.Background>
+		</ButtonStyle.Selected>
+	</ButtonStyle>
+	<ButtonStyle Width="15" Height="15" Name="inv_category_internal">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background><DisplayModel model="inv_category_internal" tint="text"/></ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background><DisplayModel model="inv_category_internal" tint="text_hover"/></ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background><DisplayModel model="inv_category_internal" tint="yellow"/></ButtonAppearance.Background>
+		</ButtonStyle.Selected>
+	</ButtonStyle>
+	<ButtonStyle Width="15" Height="15" Name="inv_category_external">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background><DisplayModel model="inv_category_external" tint="text"/></ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background><DisplayModel model="inv_category_external" tint="text_hover"/></ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background><DisplayModel model="inv_category_external" tint="yellow"/></ButtonAppearance.Background>
+		</ButtonStyle.Selected>
+	</ButtonStyle>
+	
+	<ButtonStyle Width="8" Height="8" Name="inv_mount">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background><DisplayModel model="inv_mount" tint="text"/></ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background><DisplayModel model="inv_mount" tint="text_hover"/></ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Disabled>
+			<ButtonAppearance.Background><DisplayModel model="inv_mount" tint="gray"/></ButtonAppearance.Background>
+		</ButtonStyle.Disabled>
+	</ButtonStyle>
+	<ButtonStyle Width="8" Height="8" Name="inv_unmount">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background><DisplayModel model="inv_unmount" tint="text"/></ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background><DisplayModel model="inv_unmount" tint="text_hover"/></ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Disabled>
+			<ButtonAppearance.Background><DisplayModel model="inv_unmount" tint="gray"/></ButtonAppearance.Background>
+		</ButtonStyle.Disabled>
+	</ButtonStyle>
     <!-- ScrollbarStyle -->
 	<ScrollbarStyle Width="16" TrackMarginY="4" ButtonMarginX="2">
 		<ScrollbarStyle.UpButton Height="12">
@@ -415,6 +482,9 @@
 		</HSliderStyle.Thumb>
 	</HSliderStyle>
 </Stylesheet>
+
+
+
 
 
 

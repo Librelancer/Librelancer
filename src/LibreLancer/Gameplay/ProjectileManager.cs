@@ -38,6 +38,7 @@ namespace LibreLancer
                     out var po))
                 {
                     Projectiles[i].Alive = false;
+                    Projectiles[i].Effect = null;
                     world.Renderer?.SpawnTempFx(Projectiles[i].Data.HitEffect, contactPoint);
                     if (po.Tag is GameObject go) 
                     {
@@ -49,6 +50,7 @@ namespace LibreLancer
                 Projectiles[i].Time += tFloat;
                 if(Projectiles[i].Time >= Projectiles[i].Data.Lifetime) {
                     Projectiles[i].Alive = false;
+                    Projectiles[i].Effect = null;
                 }
             }
         }
@@ -66,6 +68,8 @@ namespace LibreLancer
             {
                 var res = world.Renderer.Game.GetService<GameDataManager>();
                 pdata.HitEffect = res.GetEffect(gunDef.Munition.Def.MunitionHitEffect)
+                    .GetEffect(world.Renderer.ResourceManager);
+                pdata.TravelEffect = res.GetEffect(gunDef.Munition.Def.ConstEffect)?
                     .GetEffect(world.Renderer.ResourceManager);
             }
             datas.Add(gunDef.Nickname, pdata);
@@ -100,6 +104,9 @@ namespace LibreLancer
                 Start = position,
                 Normal = heading * projectile.Velocity
             };
+            if (world.Renderer != null && projectile.TravelEffect != null) {
+                Projectiles[projectilePtr].Effect = new ParticleEffectInstance(projectile.TravelEffect);
+            }
             projectilePtr++;
         }
     }
@@ -109,11 +116,13 @@ namespace LibreLancer
         public float Velocity;
         public float Lifetime;
         public ParticleEffect HitEffect;
+        public ParticleEffect TravelEffect;
     }
 
     public struct Projectile
     {
         public ProjectileData Data;
+        public ParticleEffectInstance Effect;
         public GameObject Owner;
         public bool Alive;
         public float Time;

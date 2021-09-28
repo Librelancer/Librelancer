@@ -174,10 +174,16 @@ namespace LibreLancer
 
                 foreach (var hp in g.currentRoom.Hotspots)
                 {
+                    if (!string.IsNullOrEmpty(hp.VirtualRoom) &&
+                        !hp.VirtualRoom.Equals(g.virtualRoom, StringComparison.OrdinalIgnoreCase))
+                        continue;
                     switch (hp.Name.ToUpperInvariant())
                     {
                         case "IDS_HOTSPOT_COMMODITYTRADER":
                             actions.Add(new NavbarButtonInfo("CommodityTrader", hp.Name));
+                            break;
+                        case "IDS_HOTSPOT_EQUIPMENTDEALER":
+                            actions.Add(new NavbarButtonInfo("EquipmentDealer", hp.Name));
                             break;
                     }
                 }

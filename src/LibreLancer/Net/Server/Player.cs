@@ -6,14 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using LibreLancer.Data.Save;
 using LibreLancer.GameData.Items;
 using LibreLancer.Entities.Character;
 using LibreLancer.Net;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace LibreLancer
 {
@@ -99,6 +97,57 @@ namespace LibreLancer
         void IServerPlayer.FireProjectiles(ProjectileSpawn[] projectiles)
         {
             World?.FireProjectiles(projectiles, this);
+        }
+
+        string FirstAvailableHardpoint(string hptype)
+        {
+            if (!Character.Ship.PossibleHardpoints.TryGetValue(hptype, out var candidates))
+                return null;
+            foreach (var possible in candidates)
+            {
+                if(!Character.Equipment.Any(x => possible.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)))
+                    return possible;
+            }
+            return null;
+        }
+        Task<bool> IServerPlayer.Unmount(string hardpoint)
+        {
+            if (BaseData == null) {
+                FLLog.Error("Player", $"{Name} tried to unmount good while in space");
+                return Task.FromResult(false);
+            }
+            var equip = Character.Equipment.FirstOrDefault(x =>
+                hardpoint.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase));
+            if (equip == null) {
+                FLLog.Error("Player", $"{Name} tried to unmount empty hardpoint");
+                return Task.FromResult(false);
+            }
+            Character.RemoveEquipment(equip);
+            Character.AddCargo(equip.Equipment, 1);
+            rpcClient.UpdateInventory(Character.Credits, Character.EncodeLoadout());
+            return Task.FromResult(true);
+        }
+
+        Task<bool> IServerPlayer.Mount(int id)
+        {
+            if (BaseData == null) {
+                FLLog.Error("Player", $"{Name} tried to mount good while in space");
+                return Task.FromResult(false);
+            }
+            var slot = Character.Cargo.FirstOrDefault(x => x.ID == id);
+            if (slot == null) {
+                FLLog.Error("Player", $"{Name} tried to mount unknown slot {id}");
+                return Task.FromResult(false);
+            }
+            string hp = FirstAvailableHardpoint(slot.Equipment.HpType);
+            if (hp == null) {
+                FLLog.Error("Player", $"{Name} has no hp available to mount {slot.Equipment.Nickname} ({slot.Equipment.HpType})");
+                return Task.FromResult(false);
+            }
+            Character.RemoveCargo(slot, 1);
+            Character.AddEquipment(new NetEquipment() { Equipment = slot.Equipment, Hardpoint = hp });
+            rpcClient.UpdateInventory(Character.Credits, Character.EncodeLoadout());
+            return Task.FromResult(true);
         }
 
         public void OpenSaveGame(SaveGame sg)
@@ -208,40 +257,45 @@ namespace LibreLancer
             }
         }
 
-        async Task<bool> IServerPlayer.PurchaseGood(string item, int count)
+        Task<bool> IServerPlayer.PurchaseGood(string item, int count)
         {
-            if (BaseData == null) return false;
+            if (BaseData == null) return Task.FromResult(false);
             var g = BaseData.SoldGoods.FirstOrDefault(x =>
                 x.Good.Equipment.Nickname.Equals(item, StringComparison.OrdinalIgnoreCase));
-            if (g == null) return false;
+            if (g == null) return Task.FromResult(false);
             var cost = (long) (g.Price * (ulong)count);
             if (Character.Credits >= cost)
             {
+                string hp;
+                if (count == 1 && (hp = FirstAvailableHardpoint(g.Good.Equipment.HpType)) != null) {
+                    Character.AddEquipment(new NetEquipment() { Hardpoint = hp, Equipment = g.Good.Equipment });
+                }
+                else {
+                    Character.AddCargo(g.Good.Equipment, count);
+                }
                 Character.UpdateCredits(Character.Credits - cost);
-                Character.AddCargo(g.Good.Equipment, count);
                 rpcClient.UpdateInventory(Character.Credits, Character.EncodeLoadout());
-                return true;
+                return Task.FromResult(true);
             }
-            return false;
+            return Task.FromResult(false);
         }
 
-        async Task<bool> IServerPlayer.SellGood(int id, int count)
+        Task<bool> IServerPlayer.SellGood(int id, int count)
         {
-            if (BaseData == null)
-            {
+            if (BaseData == null) {
                 FLLog.Error("Player", $"{Name} tried to sell good while in space");
-                return false;
+                return Task.FromResult(false);
             }
             var slot = Character.Cargo.FirstOrDefault(x => x.ID == id);
             if (slot == null)
             {
                 FLLog.Error("Player", $"{Name} tried to sell unknown slot {id}");
-                return false;
+                return Task.FromResult(false);
             }
             if (slot.Count < count)
             {
                 FLLog.Error("Player", $"{Name} tried to oversell slot");
-                return false;
+                return Task.FromResult(false);
             }
             var g = BaseData.SoldGoods.FirstOrDefault(x =>
                 x.Good.Equipment.Nickname.Equals(slot.Equipment.Nickname, StringComparison.OrdinalIgnoreCase));
@@ -256,9 +310,36 @@ namespace LibreLancer
             Character.RemoveCargo(slot, count);
             Character.UpdateCredits(Character.Credits + (long) ((ulong) count * unitPrice));
             rpcClient.UpdateInventory(Character.Credits, Character.EncodeLoadout());
-            return true;
+            return Task.FromResult(true);
         }
-        
+
+        Task<bool> IServerPlayer.SellAttachedGood(string hardpoint)
+        {
+            if (BaseData == null) {
+                FLLog.Error("Player", $"{Name} tried to sell good while in space");
+                return Task.FromResult(false);
+            }
+            var equip = Character.Equipment.FirstOrDefault(x =>
+                hardpoint.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase));
+            if (equip == null) {
+                FLLog.Error("Player", $"{Name} tried to sell unknown slot {hardpoint}");
+                return Task.FromResult(false);
+            }
+            var g = BaseData.SoldGoods.FirstOrDefault(x =>
+                x.Good.Equipment.Nickname.Equals(equip.Equipment.Nickname, StringComparison.OrdinalIgnoreCase));
+            ulong unitPrice;
+            if (g != null) {
+                unitPrice = g.Price;
+            }
+            else {
+                unitPrice = (ulong)equip.Equipment.Good.Ini.Price;
+            }
+            Character.RemoveEquipment(equip);
+            Character.UpdateCredits(Character.Credits + (long)unitPrice);
+            rpcClient.UpdateInventory(Character.Credits, Character.EncodeLoadout());
+            return Task.FromResult(true);
+        }
+
         void InitStory(Data.Save.SaveGame sg)
         {
             var missionNum = sg.StoryInfo?.MissionNum ?? 0;
@@ -446,7 +527,7 @@ namespace LibreLancer
             }, PacketDeliveryMethod.ReliableOrdered);
         }
 
-        async Task<bool> IServerPlayer.SelectCharacter(int index)
+        Task<bool> IServerPlayer.SelectCharacter(int index)
         {
             if (index >= 0 && index < CharacterList.Count)
             {
@@ -463,25 +544,25 @@ namespace LibreLancer
                 } else {
                     SpaceInitialSpawn(null);
                 }
-                return true;
+                return Task.FromResult(false);
             }
             else
             {
-                return false;
+                return Task.FromResult(true);
             }
         }
 
-        async Task<bool> IServerPlayer.DeleteCharacter(int index)
+        Task<bool> IServerPlayer.DeleteCharacter(int index)
         {
             if (index < 0 || index >= CharacterList.Count)
-                return false;
+                return Task.FromResult(false);
             var sc = CharacterList[index];
             game.Database.DeleteCharacter(sc.Id);
             CharacterList.Remove(sc);
-            return true;
+            return Task.FromResult(true);
         }
 
-        async Task<bool> IServerPlayer.CreateNewCharacter(string name, int index)
+        Task<bool> IServerPlayer.CreateNewCharacter(string name, int index)
         {
             if (!game.Database.NameInUse(name))
             {
@@ -523,9 +604,9 @@ namespace LibreLancer
                 {
                     Character = sel
                 }, PacketDeliveryMethod.ReliableOrdered);
-                return true;
+                return Task.FromResult(true);
             } else {
-                return false;
+                return Task.FromResult(false);
             }
         }
 

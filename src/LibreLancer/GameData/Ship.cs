@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.Data.Equipment;
 
 namespace LibreLancer.GameData
 {
@@ -30,6 +31,8 @@ namespace LibreLancer.GameData
 
         public List<DamageFuse> Fuses = new List<DamageFuse>();
 
+        public Dictionary<string, List<HpType>> HardpointTypes = new (StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, List<string>> PossibleHardpoints = new (StringComparer.OrdinalIgnoreCase); 
         public Ship ()
 		{
 		}

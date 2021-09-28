@@ -148,6 +148,9 @@ namespace LibreLancer.Data.Universe
                                         hotspot.RoomSwitch = e[0].ToString();
                                         break;
                                     case "set_virtual_room":
+                                        hotspot.SetVirtualRoom = e[0].ToString();
+                                        break;
+                                    case "virtual_room":
                                         hotspot.VirtualRoom = e[0].ToString();
                                         break;
                                 }
@@ -175,6 +178,7 @@ namespace LibreLancer.Data.Universe
 		public string Name;
 		public string Behavior;
 		public string RoomSwitch;
-		public string VirtualRoom;
-	}
+		public string SetVirtualRoom;
+        public string VirtualRoom;
+    }
 }

@@ -85,6 +85,7 @@ function baseside:ctor()
 	local news_button = {}
 
 	local has_commodity = false
+	local has_equipment = false
 	local commodity_button = {}
 	
     local actionbox = navbox.GetActionBox(self.Widget, container, btns, actions, activeIDS)
@@ -95,6 +96,9 @@ function baseside:ctor()
 			news_button = obj
 		elseif action.IconName == "IDS_HOTSPOT_COMMODITYTRADER" then
 			has_commodity = true
+			commodity_button = obj
+		elseif action.IconName == "IDS_HOTSPOT_EQUIPMENTDEALER" then
+			has_equipment = true
 			commodity_button = obj
 		else
         	obj:OnClick(function()
@@ -121,7 +125,10 @@ function baseside:ctor()
 		table.insert(windows, { news_button, self.News })
 	end
 	if has_commodity then
-		self.CommodityTrader = commodity()
+		self.CommodityTrader = commodity("commodity")
+		table.insert(windows, { commodity_button, self.CommodityTrader })
+	elseif has_equipment then
+		self.CommodityTrader = commodity("equipment")
 		table.insert(windows, { commodity_button, self.CommodityTrader })
 	end
 	self.WindowManager = childwindowmanager(self.Widget, windows)
@@ -132,6 +139,8 @@ end
 function baseside:Chatbox()
    self.Elements.chatbox.Visible = true 
 end
+
+
 
 
 

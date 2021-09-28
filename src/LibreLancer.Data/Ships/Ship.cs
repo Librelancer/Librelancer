@@ -111,7 +111,8 @@ namespace LibreLancer.Data.Ships
         public float ExplosionResistance;
 
         public List<ShipFuse> Fuses = new List<ShipFuse>();
-        
+
+        public List<ShipHpDef> HardpointTypes = new List<ShipHpDef>();
         bool HandleEntry(Entry e)
         {
             switch(e.Name.ToLowerInvariant())
@@ -121,7 +122,9 @@ namespace LibreLancer.Data.Ships
                      return true;
                 case "shield_link":
                 case "surface_hit_effects":
+                    return true;
                 case "hp_type":
+                    HardpointTypes.Add(new ShipHpDef(e));
                     return true;
             }
             return false;

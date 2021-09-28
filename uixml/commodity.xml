@@ -1,6 +1,6 @@
 <Scene>
 <Panel Width="640" Height="480" Anchor="Center">
-<ImageFile Path="trader_buy.png" Fill="true" Visible="false" />
+<ImageFile Path="DATA\equip_sell.png" Fill="true" Visible="false" />
 <Panel Anchor="Center" Y="37" X="3" Width="624" Height="406" ID="background">
 <Panel.Background>
 <DisplayModel model="inv_trade_background" />
@@ -11,6 +11,12 @@
 	<TextBlock TextColor="text" TextShadow="#000000FF" X="410" Y="18" Width="200" Height="20" Strid="8515" TextSize="13" /> <!-- DEALER -->
 	<TextBlock TextColor="text" TextShadow="#000000FF" X="4" Y="18" Width="200" Height="20" Strid="8511" TextSize="13" /> <!-- INVENTORY-->
 	<TextBlock TextColor="text" TextShadow="#000000FF" X="4" Y="33" Width="200" Height="20" Text="CREDITS $1,845" TextSize="11" id="credits_text" /> <!-- CREDITS -->
+	<Panel id="inv_categories">
+		<Button X="101" Y="223" id="category_weapons" Style="inv_category_weapons"/>
+		<Button X="118" Y="223" id="category_ammo" Style="inv_category_ammo"/>
+		<Button X="135" Y="223" id="category_external" Style="inv_category_external"/>
+		<Button X="153" Y="223" id="category_internal" Style="inv_category_internal"/>
+	</Panel>
 	<Panel id="buysell_controls">
 	<Button id="btn_buysell" style="trader_buy" Strid="3016" X="245" Y="29" />
 	<TextBlock TextColor="text" TextShadow="#000000FF" Text="Select Quantity" Strid="1145" HorizontalAlignment="Center" Height="18" Width="180" X="222" Y="116" TextSize="9">
@@ -38,4 +44,7 @@
 </Panel>
 </Panel>
 </Scene>
+
+
+
 

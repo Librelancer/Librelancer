@@ -37,6 +37,7 @@ namespace LibreLancer.Data
         public EffectsIni Effects;
         public FuseIni Fuses;
         public EquipmentIni Equipment;
+        public HpTypesIni HpTypes;
         public LoadoutsIni Loadouts;
         public SolararchIni Solar;
         public StararchIni Stars;
@@ -279,6 +280,11 @@ namespace LibreLancer.Data
             {
                 Cameras = new CameraIni();
                 Cameras.ParseAndFill(Freelancer.CamerasPath, VFS);
+            }));
+            tasks.Add(Task.Run(() =>
+            {
+                HpTypes = new HpTypesIni();
+                HpTypes.LoadDefault();
             }));
             ContentDll = new ContentDll();
             if (VFS.FileExists("DLLS\\BIN\\content.dll"))
