@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Globalization;
 using System.IO;
 
 namespace LibreLancer.Ini
@@ -61,9 +62,13 @@ namespace LibreLancer.Ini
         public float ToSingle()
 		{
 			float result;
-			if (float.TryParse(value, out result)) return result;
-			else return float.NaN;
-		}
+            if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out result)) return result;
+            else
+            {
+                FLLog.Error("Ini", $"Failed to parse float {value}");
+                return 0;
+            }
+        }
 
 		public override string ToString()
 		{

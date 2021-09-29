@@ -138,12 +138,12 @@ namespace LibreLancer.Ini
                                     bool tempBool;
                                     float tempFloat;
                                     long tempLong;
-                                    if (part.Length == 0)
+                                    if (s.Length == 0)
                                     {
                                         values.Add(new StringValue(""));
                                         continue;
                                     }
-                                    if (part[0] == '-' || (part[0] >= '0' && part[0] <= '9'))
+                                    if (s[0] == '-' || (s[0] >= '0' && s[0] <= '9'))
                                     {
                                         if (long.TryParse(s, out tempLong))
                                         {

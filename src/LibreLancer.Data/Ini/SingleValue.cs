@@ -27,8 +27,7 @@ namespace LibreLancer.Ini
 
 		public static implicit operator float(SingleValue operand)
 		{
-			if (operand == null) return float.NaN;
-			else return operand.value;
+            return operand.value;
 		}
 
 		public bool ToBoolean()
