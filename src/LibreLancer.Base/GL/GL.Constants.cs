@@ -13,6 +13,7 @@ namespace LibreLancer
         public const int GL_DEBUG_SOURCE_SHADER_COMPILER = 0x8248;
         public const int GL_DEBUG_SOURCE_OTHER = 0x824B;
         public const int GL_DONT_CARE = 0x1100;
+        public const int GL_DEBUG_SEVERITY_LOW = 0x9148;
         public const int GL_DEBUG_TYPE_PERFORMANCE = 0x8250;
         //clear buffers
 		public const int GL_COLOR_BUFFER_BIT = 0x00004000;
