@@ -14,7 +14,7 @@ namespace LibreLancer
         static extern bool SetDllDirectory(string directory);
         public static void Run(Action action, Action onCrash = null)
         {
-            string errorMessage =  "Librelancer has crashed. See the log for more information.";
+            string errorMessage =  $"Librelancer has crashed. See the log for more information.";
             Environment.SetEnvironmentVariable("ALSOFT_LOGLEVEL", "2");
             if (Platform.RunningOS == OS.Windows)
             {
@@ -59,6 +59,7 @@ namespace LibreLancer
 
         static StringBuilder FormatException(Exception ex, StringBuilder builder = default, int j = 0)
         {
+            bool addVersion = j == 0;
             builder ??= new StringBuilder();
             builder.AppendLine(ex.Message);
             builder.AppendLine(ex.StackTrace);
@@ -82,6 +83,11 @@ namespace LibreLancer
                     builder.AppendLine("Inner Exception: ");
                     FormatException(ex.InnerException, builder, j);
                 }
+            }
+            if (addVersion)
+            {
+                builder.AppendLine()
+                    .AppendLine($"Librelancer Version: {Platform.GetInformationalVersion<Platforms.IPlatform>()}");
             }
             return builder;
         }

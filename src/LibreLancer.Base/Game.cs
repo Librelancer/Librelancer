@@ -409,6 +409,7 @@ namespace LibreLancer
             }
             GL.LoadSDL();
             Renderer = string.Format("{0} ({1})", GL.GetString(GL.GL_VERSION), GL.GetString(GL.GL_RENDERER));
+            FLLog.Info("GL", $"Renderer: {GL.GetString(GL.GL_RENDERER)}");
             SetVSync(true);
             //Init game state
             RenderState = new RenderState();
