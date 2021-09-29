@@ -9,6 +9,8 @@ local function good_icon_3db(name, control)
 	colorElem.Color = GetColor("black")
 	control.Background:AddElement(colorElem)
 	local elem = NewObject("DisplayModel")
+	elem.BaseRadius = 0.052
+	elem.Clip = true
 	elem.Tint = GetColor("text")
 	local model = NewObject("InterfaceModel")
 	model.Path = name
@@ -359,5 +361,7 @@ function commodity:set_buysell(state, strid)
 		iprev.Visible = false
 	end
 end
+
+
 
 

@@ -48,6 +48,10 @@ namespace LibreLancer.Interface
         public Vector3 Rotate { get; set; }
         public Vector3 RotateAnimation { get; set; }
         
+        public float BaseRadius { get; set; }
+        
+        public bool Clip { get; set; }
+        
         private RigidModel model;
         private bool loadable = true;
         private List<ModifiedMaterial> mats;
@@ -57,7 +61,11 @@ namespace LibreLancer.Interface
             if (!CanRender(context)) return;
             context.Mode3D();
             var rect = context.PointsToPixels(clientRectangle);
-            
+            if (Clip)
+            {
+                context.RenderState.ScissorEnabled = true;
+                context.RenderState.ScissorRectangle = rect;
+            }
             Matrix4x4 rotationMatrix = Matrix4x4.Identity;
             var rot = Rotate + (RotateAnimation * (float)context.GlobalTime);
             if (rot != Vector3.Zero) {
@@ -65,7 +73,13 @@ namespace LibreLancer.Interface
                       Matrix4x4.CreateRotationY(rot.Y) *
                       Matrix4x4.CreateRotationZ(rot.Z);
             }
-            var transform = Matrix4x4.CreateScale(Model.XScale, Model.YScale, 1) *
+
+            float scaleMult = 1;
+            if (BaseRadius > 0)
+            {
+                scaleMult = BaseRadius / model.GetRadius();
+            }
+            var transform = Matrix4x4.CreateScale(Model.XScale * scaleMult, Model.YScale * scaleMult, 1) *
                             rotationMatrix *
                             Matrix4x4.CreateTranslation(Model.X, Model.Y, 0);
             context.MatrixCam.CreateTransform((int)context.ViewportWidth, (int)context.ViewportHeight, rect);
@@ -86,6 +100,7 @@ namespace LibreLancer.Interface
                     mats[i].Mat.Dc = mats[i].Dc;
                 }
             }           
+            context.RenderState.ScissorEnabled = false;
             context.RenderState.Cull = true;
         }
         
