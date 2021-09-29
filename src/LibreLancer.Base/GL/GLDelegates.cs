@@ -11,10 +11,16 @@ namespace LibreLancer.GLDelegates
 	public class MapsToAttribute : Attribute
 	{
 		public string Target;
+        public string TargetGLES;
 		public MapsToAttribute(string target)
 		{
 			Target = target;
 		}
+        public MapsToAttribute(string target, string targetGles)
+        {
+            Target = target;
+            TargetGLES = targetGles;
+        }
 	}
 	//General state
     [SuppressUnmanagedCodeSecurity]
@@ -221,5 +227,16 @@ namespace LibreLancer.GLDelegates
 	public delegate void ReadPixels(int x, int y, int width, int height, int format, int type, IntPtr data);
     [SuppressUnmanagedCodeSecurity]
     public delegate int GetError();
+
+    [SuppressUnmanagedCodeSecurity]
+    public delegate void GlDebugProcKHR(int source, int type, uint id, int severity, int length, IntPtr message,
+        IntPtr userparam);
+
+    [SuppressUnmanagedCodeSecurity]
+    public delegate void DebugMessageCallback(GlDebugProcKHR callback, IntPtr userParam);
+
+    [SuppressUnmanagedCodeSecurity]
+    public delegate void DebugMessageControl(int source, int type, int severity, int count, IntPtr ids, bool enabled);
+    
 }
 

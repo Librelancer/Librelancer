@@ -12,13 +12,22 @@ namespace LibreLancer
 		public static List<string> ExtensionList;
 		static bool? _computeShaders;
         static bool s3tc;
-
+        private static bool debugInfo;
         public static bool S3TC
         {
             get
             {
                 PopulateExtensions();
                 return s3tc;
+            }
+        }
+
+        public static bool DebugInfo
+        {
+            get
+            {
+                PopulateExtensions();
+                return debugInfo;
             }
         }
 		public static bool ComputeShaders
@@ -34,7 +43,7 @@ namespace LibreLancer
 				return _computeShaders.Value;
 			}
 		}
-
+        
         static bool? _anisotropy;
         public static bool Anisotropy
         {
@@ -79,6 +88,9 @@ namespace LibreLancer
             }
             FLLog.Info("GL", "Extensions: \n" + string.Join(", ", ExtensionList));
             s3tc = ExtensionList.Contains("GL_EXT_texture_compression_s3tc");
+            debugInfo = ExtensionList.Contains("GL_KHR_debug");
+            if (debugInfo)
+                FLLog.Info("GL", "KHR_debug supported");
             if (s3tc)
             {
                 FLLog.Info("GL", "S3TC extension supported");

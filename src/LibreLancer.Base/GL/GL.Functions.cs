@@ -4,12 +4,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
+using System.Xml.XPath;
 using LibreLancer.GLDelegates;
 
 #pragma warning disable 0649
@@ -314,11 +316,16 @@ namespace LibreLancer
 		[MapsTo("glReadPixels")]
 		public static ReadPixels ReadPixels;
 
+        [MapsTo("glDebugMessageCallback", "glDebugMessageCallbackKHR")]
+        public static DebugMessageCallback DebugMessageCallback;
+
+        [MapsTo("glDebugMessageControl", "glDebugMessageControlKHR")]
+        public static DebugMessageControl DebugMessageControl;
+        
         public static bool GLES = false;
 		static Dictionary<int, string> errors;
         public static bool ErrorChecking = false;
-
-		public static void LoadSDL()
+        public static void LoadSDL()
 		{
             Load((f, t) =>
             {
@@ -326,7 +333,24 @@ namespace LibreLancer
                 if (proc == IntPtr.Zero) return null;
                 return Marshal.GetDelegateForFunctionPointer(proc, (t));
             });
+            if (GLExtensions.DebugInfo)
+            {
+                Enable(GL_DEBUG_OUTPUT_KHR);
+                DebugMessageControl(GL_DEBUG_SOURCE_SHADER_COMPILER, GL_DONT_CARE, GL_DONT_CARE, 0, IntPtr.Zero, false);
+                DebugMessageControl(GL_DEBUG_SOURCE_OTHER, GL_DONT_CARE, GL_DONT_CARE, 0, IntPtr.Zero, false);
+                DebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_PERFORMANCE, GL_DONT_CARE, 0, IntPtr.Zero, false);
+                DebugMessageCallback(DebugCallback, IntPtr.Zero);
+            }
 		}
+
+        private static GlDebugProcKHR DebugCallback = DebugCallbackHandler;
+        static void DebugCallbackHandler(int source, int type, uint id, int severity, int length, IntPtr message,
+            IntPtr userparam)
+        {
+            FLLog.Info("GL_KHR_debug", $"{Marshal.PtrToStringUTF8(message)}");
+        }
+        
+        
         public static bool CheckStringSDL(bool checkGles = false)
         {
             _getString = (GetString)Marshal.GetDelegateForFunctionPointer(SDL.SDL_GL_GetProcAddress("glGetString"), typeof(GetString));
@@ -336,7 +360,7 @@ namespace LibreLancer
             var major = int.Parse(str[0].ToString());
             return major >= 3;
         }
-        public static void Load(Func<string,Type,Delegate> getprocaddress)
+        static void Load(Func<string,Type,Delegate> getprocaddress)
         {
             tid = Thread.CurrentThread.ManagedThreadId;
             errors = new Dictionary<int, string>();
@@ -357,6 +381,8 @@ namespace LibreLancer
                     if (attr.AttributeType == typeof(MapsToAttribute))
                     {
                         proc = (string)attr.ConstructorArguments[0].Value;
+                        if(GLES && attr.ConstructorArguments.Count > 1)
+                            proc = (string)attr.ConstructorArguments[1].Value;
                     }
                 }
                 if (proc == null)
