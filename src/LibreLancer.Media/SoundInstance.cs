@@ -90,7 +90,7 @@ namespace LibreLancer.Media
         
         public bool DisposeOnStop = false;
 
-        internal volatile bool Playing = false;
+        public volatile bool Playing = false;
         
         private SourceProperties properties;
         private int dirtyFlags = 0;

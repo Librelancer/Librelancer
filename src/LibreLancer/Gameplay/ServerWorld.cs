@@ -123,7 +123,7 @@ namespace LibreLancer
                 foreach (var p in projectiles)
                 {
                     var pdata = GameWorld.Projectiles.GetData(Server.GameData.GetEquipment(p.Gun) as GunEquipment);
-                    GameWorld.Projectiles.SpawnProjectile(Players[owner], pdata, p.Start, p.Heading);
+                    GameWorld.Projectiles.SpawnProjectile(Players[owner], p.Hardpoint, pdata, p.Start, p.Heading);
                 }
             });
         }

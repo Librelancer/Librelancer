@@ -213,7 +213,7 @@ namespace LibreLancer
                 {
                     var x = Game.GameData.GetEquipment(p.Gun) as GunEquipment;
                     var projdata = gp.world.Projectiles.GetData(x);
-                    gp.world.Projectiles.SpawnProjectile(objects[owner], projdata, p.Start, p.Heading);
+                    gp.world.Projectiles.SpawnProjectile(objects[owner], p.Hardpoint, projdata, p.Start, p.Heading);
                 }
             });
         }

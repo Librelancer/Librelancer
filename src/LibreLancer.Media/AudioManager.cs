@@ -134,6 +134,7 @@ namespace LibreLancer.Media
                 {
                     var src = Instances[sfxInstances[i]].Source;
                     var instance = Instances[sfxInstances[i]].Instance;
+                    if (src == uint.MaxValue) continue;
                     int state;
                     Al.alGetSourcei(src, Al.AL_SOURCE_STATE, out state);
                     if (state == Al.AL_STOPPED)

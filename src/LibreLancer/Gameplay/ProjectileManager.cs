@@ -6,6 +6,7 @@ using System;
 using System.Numerics;
 using System.Collections.Generic;
 using LibreLancer.Fx;
+using LibreLancer.Media;
 using LibreLancer.Net;
 
 namespace LibreLancer
@@ -53,6 +54,18 @@ namespace LibreLancer
                     Projectiles[i].Effect = null;
                 }
             }
+
+            //collect sound instances
+            List<ulong> toRemove = new List<ulong>();
+            foreach (var kv in _instances) {
+                if (!kv.Value.Playing)
+                {
+                    kv.Value.Dispose();
+                    toRemove.Add(kv.Key);
+                }
+            }
+            foreach (var k in toRemove)
+                _instances.Remove(k);
         }
 
         Dictionary<string, ProjectileData> datas = new Dictionary<string, ProjectileData>();
@@ -85,14 +98,16 @@ namespace LibreLancer
             queued.Clear();
             return x;
         }
-        public void QueueProjectile(GameData.Items.GunEquipment gunDef, Vector3 position, Vector3 heading)
+        public void QueueProjectile(GameData.Items.GunEquipment gunDef, uint hardpoint, Vector3 position, Vector3 heading)
         {
             queued.Add(new ProjectileSpawn()
             {
-                Gun = gunDef.CRC, Heading = heading, Start = position
+                Gun = gunDef.CRC, Hardpoint = hardpoint, Heading = heading, Start = position
             });
         }
-        public void SpawnProjectile(GameObject owner, ProjectileData projectile, Vector3 position, Vector3 heading)
+
+        private Dictionary<ulong, SoundInstance> _instances = new Dictionary<ulong, SoundInstance>();
+        public void SpawnProjectile(GameObject owner, uint hardpoint, ProjectileData projectile, Vector3 position, Vector3 heading)
         {
             if (projectilePtr == 16383) projectilePtr = 0;
             Projectiles[projectilePtr] = new Projectile() {
@@ -104,6 +119,20 @@ namespace LibreLancer
                 Start = position,
                 Normal = heading * projectile.Velocity
             };
+            SoundManager snd;
+            if (world.Renderer != null && (snd = world.Renderer.Game.GetService<SoundManager>()) != null)
+            {
+                ulong soundID = ((ulong) owner.Unique << 32) | (ulong)hardpoint;
+                if (!_instances.TryGetValue(soundID, out var inst))
+                {
+                    inst = snd.GetInstance(projectile.Munition.Def.OneShotSound, 0, -1, -1, position);
+                    _instances[soundID] = inst;
+                }
+                inst?.Set3D();
+                inst?.SetPosition(position);
+                inst?.Stop();
+                inst?.Play();
+            }
             if (world.Renderer != null && projectile.TravelEffect != null) {
                 Projectiles[projectilePtr].Effect = new ParticleEffectInstance(projectile.TravelEffect);
             }

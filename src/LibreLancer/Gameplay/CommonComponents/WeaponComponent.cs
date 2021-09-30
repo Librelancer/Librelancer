@@ -110,12 +110,13 @@ namespace LibreLancer
                 toSpawn = projectiles.GetData(Object);
             }
             var tr = (Parent.Attachment.Transform * Parent.Parent.WorldTransform);
+            uint hp = CrcTool.FLModelCrc(Parent.Attachment.Name);
             for (int i = 0; i < hpfires.Length; i++)
             {
                 var pos = Vector3.Transform(Vector3.Zero, hpfires[i].Transform * tr);
                 var heading = (point - pos).Normalized();
-                projectiles.SpawnProjectile(Parent.Parent, toSpawn, pos, heading);
-                projectiles.QueueProjectile(Object, pos, heading);
+                projectiles.SpawnProjectile(Parent.Parent, hp, toSpawn, pos, heading);
+                projectiles.QueueProjectile(Object, hp, pos, heading);
             }
             CurrentCooldown = Object.Def.RefireDelay;
             

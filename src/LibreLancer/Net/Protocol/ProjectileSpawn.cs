@@ -7,6 +7,7 @@ namespace LibreLancer.Net
     public struct ProjectileSpawn
     {
         public uint Gun;
+        public uint Hardpoint;
         public Vector3 Start;
         public Vector3 Heading;
 
@@ -14,6 +15,7 @@ namespace LibreLancer.Net
         {
             var p = new ProjectileSpawn();
             p.Gun = message.GetUInt();
+            p.Hardpoint = message.GetUInt();
             p.Start = message.GetVector3();
             p.Heading = message.GetVector3();
             return p;
@@ -22,6 +24,7 @@ namespace LibreLancer.Net
         public void Put(NetDataWriter message)
         {
             message.Put(Gun);
+            message.Put(Hardpoint);
             message.Put(Start);
             message.Put(Heading);
         }

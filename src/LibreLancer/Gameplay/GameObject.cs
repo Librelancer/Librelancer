@@ -7,6 +7,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Threading;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
@@ -19,6 +20,10 @@ namespace LibreLancer
 {
 	public class GameObject
 	{
+        //
+        private static int _unique = 0;
+
+        public readonly int Unique = Interlocked.Increment(ref _unique);
 		//Object data
 		public string Name;
 
