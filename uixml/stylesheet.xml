@@ -1,10 +1,22 @@
 <Stylesheet>
 	<!-- Generic buttons -->
-	<ButtonStyle Width="16" Height="16" Name="xbutton">
+	<ButtonStyle Width="16" Height="16" Name="wirebutton">
 		<ButtonStyle.Normal>
 			<ButtonAppearance.Background>
-				<DisplayModel model="xbutton" Tint="text"/>
+				<DisplayWireBorder color="text"/>
 			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Border>
+				<DisplayWireBorder color="text_hover"/>
+			</ButtonAppearance.Border>
+		</ButtonStyle.Hover>
+	</ButtonStyle>
+	<ButtonStyle Width="16" Height="16" Name="xbutton">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Border>
+				<DisplayModel model="xbutton" Tint="text"/>
+			</ButtonAppearance.Border>
 		</ButtonStyle.Normal>
 		<ButtonStyle.Hover>
 			<ButtonAppearance.Background>
@@ -482,6 +494,7 @@
 		</HSliderStyle.Thumb>
 	</HSliderStyle>
 </Stylesheet>
+
 
 
 

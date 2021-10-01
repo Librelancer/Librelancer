@@ -92,6 +92,11 @@ namespace InterfaceEdit
         public void StartNetworking()
         {
         }
+        
+        public bool ConnectAddress(string address)
+        {
+            return false;
+        }
 
         public void StopNetworking()
         {

@@ -234,6 +234,7 @@ namespace LibreLancer.Interface
         public int OpenModal(UiWidget widget)
         {
             var handle = _h++;
+            widget.ApplyStylesheet(Data.Stylesheet);
             modals.Add(new ModalState() {Widget = widget, Handle = handle});
             return handle;
         }

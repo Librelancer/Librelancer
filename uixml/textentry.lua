@@ -1,11 +1,11 @@
-ModalClass(newcharacter)
+ModalClass(textentry)
 
-function newcharacter:ctor(cb)
-	print(cb)
+function textentry:ctor(cb, title)
 	self:ModalInit()
 	self:ModalCallback(cb)
 	local scn = self.Elements
     scn.content:SetFocus()
+	scn.title.Text = title
     scn.content:OnTextEntered(function(name)
         self:Close('ok', name, 0)
     end)
@@ -13,5 +13,7 @@ function newcharacter:ctor(cb)
 		self:Close('cancel')
 	end)
 end
+
+
 
 

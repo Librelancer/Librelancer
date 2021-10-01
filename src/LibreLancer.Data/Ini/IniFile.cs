@@ -49,7 +49,7 @@ namespace LibreLancer.Ini
             return 2;
         }
 
-        protected IEnumerable<Section> ParseFile(string path, MemoryStream stream, bool allowmaps = false)
+        protected IEnumerable<Section> ParseFile(string path, MemoryStream stream, bool preparse = true, bool allowmaps = false)
         {
             if (string.IsNullOrEmpty(path)) path = "[Memory]";
             stream.Position = 0;
@@ -143,7 +143,7 @@ namespace LibreLancer.Ini
                                         values.Add(new StringValue(""));
                                         continue;
                                     }
-                                    if (s[0] == '-' || (s[0] >= '0' && s[0] <= '9'))
+                                    if (preparse && (s[0] == '-' || s[0] >= '0' && s[0] <= '9'))
                                     {
                                         if (long.TryParse(s, out tempLong))
                                         {
@@ -159,7 +159,7 @@ namespace LibreLancer.Ini
                                         else
                                             values.Add(new StringValue(s));
                                     }
-                                    else if (bool.TryParse(s, out tempBool))
+                                    else if (preparse && bool.TryParse(s, out tempBool))
                                         values.Add(new BooleanValue(tempBool));
                                     else
                                         values.Add(new StringValue(s));
@@ -208,7 +208,7 @@ namespace LibreLancer.Ini
                     }
                 }
 
-                foreach (var s in ParseFile(path, stream, allowmaps)) yield return s;
+                foreach (var s in ParseFile(path, stream, true, allowmaps)) yield return s;
             }
 		}
 	}

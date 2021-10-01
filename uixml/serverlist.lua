@@ -13,6 +13,16 @@ function serverlist:ctor()
 		Game:ConnectSelection()
 	end)
 
+	scn.directip:OnClick(function()
+		OpenModal(textentry(function(result, text)
+			if result == "ok" then
+				if not Game:ConnectAddress(text) then
+					OpenModal(modal("Error", "Address not valid"))
+				end
+			end
+		end, StringFromID(1861)))
+	end)
+
 	scn.animgroupA:Animate('flyinleft', 0, 0.8)
 	scn.animgroupB:Animate('flyinright', 0, 0.8)
 	Game:StartNetworking()
@@ -37,6 +47,9 @@ function serverlist:Update()
 	scn.connect.Enabled = sv:ValidSelection()
 	scn.descriptiontext.Text = sv:CurrentDescription()
 end
+
+
+
 
 
 

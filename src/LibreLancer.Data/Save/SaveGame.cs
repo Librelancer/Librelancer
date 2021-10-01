@@ -35,7 +35,7 @@ namespace LibreLancer.Data.Save
             var sg = new SaveGame();
             using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(str)))
             {
-                sg.ParseAndFill(name, stream);
+                sg.ParseAndFill(name, stream, false);
             }
             return sg;
         }
@@ -44,7 +44,7 @@ namespace LibreLancer.Data.Save
             var sg = new SaveGame();
             using (var stream = new MemoryStream(FlCodec.ReadFile(path)))
             {
-                sg.ParseAndFill(path, stream);
+                sg.ParseAndFill(path, stream, false);
             }
             return sg;
         }

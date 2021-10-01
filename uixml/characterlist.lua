@@ -34,9 +34,9 @@ function characterlist:Update()
 end
 
 function characterlist:OpenNewCharacter()
-	OpenModal(newcharacter(function(result, name, index)
+	OpenModal(textentry(function(result, name, index)
 		self:CreateCharacter(result, name, index)
-	end))
+	end, StringFromID(STRID_NEW_CHARACTER)))
 end
 
 function characterlist:CreateCharacter(result, name, index)

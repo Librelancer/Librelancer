@@ -492,10 +492,10 @@ namespace LibreLancer.Ini
             }
         }
 
-        public void ParseAndFill(string filename, MemoryStream stream)
+        public void ParseAndFill(string filename, MemoryStream stream, bool preparse = true)
         {
             var sections = GetContainerInfo(GetType());
-            foreach (var section in ParseFile(filename, stream))
+            foreach (var section in ParseFile(filename, stream, preparse))
             {
                 ProcessSection(section, sections);
             }

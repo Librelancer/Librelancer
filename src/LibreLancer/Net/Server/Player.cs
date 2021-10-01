@@ -564,6 +564,7 @@ namespace LibreLancer
 
         Task<bool> IServerPlayer.CreateNewCharacter(string name, int index)
         {
+            FLLog.Info("Player", $"New char {name}");
             if (!game.Database.NameInUse(name))
             {
                 Character ch = null;

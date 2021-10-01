@@ -3,12 +3,8 @@
         <Panel.Background>
             <DisplayModel model="errorexplanation.cmp"/>
         </Panel.Background>
-        <Button id="close" Anchor="TopRight" X="13" Y="13" Width="16" Height="16">
-            <Button.Background>
-                <DisplayModel model="xbutton" tint="text"/>
-            </Button.Background>
-        </Button>
-        <TextBlock id="title" Y="8" Anchor="TopCenter" color="text" font="$Header" TextSize="13" Width="410" Height="30" Text="NEW CHARACTER"/>
+        <Button id="close" Anchor="TopRight" X="13" Y="13" style="xbutton"/>
+        <TextBlock id="title" Y="8" Anchor="TopCenter" color="text" font="$Header" TextShadow="black" TextSize="13" Width="410" Height="30" Text="TITLE"/>
         <TextEntry id="content" Anchor="Center" Y="10" Width="360" Height="30"
         Font="PlayerName" TextColor="text" TextShadow="black">
         	<TextEntry.Border>
@@ -20,3 +16,5 @@
         </TextEntry>
     </Panel>
 </Scene>
+
+

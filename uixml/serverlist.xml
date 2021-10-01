@@ -6,6 +6,7 @@
 			<Panel.Background>
 				<DisplayModel Model="front_serverselect"/>
 			</Panel.Background>
+			<Button Width="40" Height="20" Anchor="TopRight" Text="Direct IP" X="12" Y="10" TextSize="9" style="wirebutton" id="directip"/>
 			<TextBlock Width="607" Height="20" InfoId="393330" Text="FREELANCER SERVERS" TextShadow="black" TextColor="text" X="0" Font="$Header" TextSize="16" Y="-19"/>
 			<TextBlock Width="640" Height="20" InfoId="393341" HorizontalAlignment="Left" Text="SELECT A SERVER" TextShadow="black" TextColor="text" X="14" Font="$Header" TextSize="16" Y="11"/>
 			<DataTable id="listtable" X="20" Y="45" Width="560" Height="190" 
@@ -38,5 +39,6 @@
 		<Button X="455" Y="414" id="connect" Style="menubutton" InfoId="393239" Text="CONNECT >"/>
 	</Panel>
 </Scene>
+
 
 

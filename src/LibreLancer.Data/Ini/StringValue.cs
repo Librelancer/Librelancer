@@ -60,7 +60,8 @@ namespace LibreLancer.Ini
         }
 
         public float ToSingle()
-		{
+        {
+            if (string.IsNullOrWhiteSpace(value)) return 0;
 			float result;
             if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out result)) return result;
             else

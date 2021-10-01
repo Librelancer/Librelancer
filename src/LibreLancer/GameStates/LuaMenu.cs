@@ -221,8 +221,12 @@ namespace LibreLancer
                 }
             }
 
+            public bool ConnectAddress(string address) => netClient.Connect(address);
+
+
             public void NewCharacter(string name, int index)
             {
+                FLLog.Info("Net", $"Requesting new char: `{name}`");
                 netSession.RpcServer.CreateNewCharacter(name, index);
             }
             
