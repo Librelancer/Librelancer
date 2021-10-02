@@ -8,8 +8,8 @@
 		<Panel.Background>
 			<DisplayModel model="ls_background"/>
 		</Panel.Background>
-		<DataTable id="listtable" X="18" Y="19" Width="365" Height="300" 
-        	DisplayRowCount="17" LineColor="text" LineHover="text_hover" LineDown="yellow" HeaderColor="text"
+		<DataTable id="listtable" X="18" Y="10" Width="365" Height="309" 
+        	DisplayRowCount="21" LineColor="text" LineHover="text_hover" LineDown="yellow" HeaderColor="text"
          	BodyColor="text" BodyHover="text_hover" SelectedColor="yellow" HeaderTextSize="13" ShowHeaders="false" ShowColumnBorders="false">
 			<DataTable.Columns>
 				<TableColumn Label="name"  Data="name" InitialWidthPercent="70" TextAlignment="left"/>
@@ -25,4 +25,5 @@
 		</Panel>
 	</Panel>
 </Scene>
+
 

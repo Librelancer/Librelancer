@@ -20,7 +20,7 @@ void main()
 {
 	vec4 sampler = texture(DtSampler, out_texcoord);
 	#ifdef ALPHATEST_ENABLED
-	if(sampler.a < 1.0) {
+	if(sampler.a < 0.5) {
 		discard;
 	}
 	#endif

@@ -36,7 +36,7 @@ namespace LibreLancer
             {
                 if (files[row].Save.Player.TimeStamp == null) return "";
                 return
-                    $"{files[row].Save.Player.TimeStamp.Value.ToShortDateString()} {files[row].Save.Player.TimeStamp.Value.ToShortTimeString()}";
+                    $"{files[row].Save.Player.TimeStamp.Value.ToShortDateString()} {files[row].Save.Player.TimeStamp.Value:HH:mm}";
             }
             return "[invalid]";
         }

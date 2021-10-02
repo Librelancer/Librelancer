@@ -22,6 +22,7 @@ namespace LibreLancer
 		public bool OcEnabled = false;
 		public bool EtEnabled = false;
 		public bool AlphaEnabled = false;
+        public bool AlphaTest = false;
 		public Color4 Ec = Color4.White;
 		public string EtSampler;
 		public SamplerFlags EtFlags;
@@ -61,7 +62,7 @@ namespace LibreLancer
             if (EtEnabled) caps |= ShaderFeatures.ET_ENABLED;
             if (Fade) caps |= ShaderFeatures.FADE_ENABLED;
             var dxt1 = GetDxt1();
-            if (dxt1)
+            if (dxt1 || AlphaTest)
             {
                 caps |= ShaderFeatures.ALPHATEST_ENABLED;
                 //Shitty way of dealing with alpha_mask
@@ -82,7 +83,7 @@ namespace LibreLancer
 			shader.SetDc(Dc);
 			//Oc
 			shader.SetOc(Oc);
-			if (AlphaEnabled || Fade || OcEnabled || dxt1)
+			if (AlphaEnabled || Fade || OcEnabled || dxt1 || AlphaTest)
 			{
 				rstate.BlendMode = BlendMode.Normal;
 			}

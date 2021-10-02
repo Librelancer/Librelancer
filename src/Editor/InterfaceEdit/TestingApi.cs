@@ -40,7 +40,7 @@ namespace InterfaceEdit
 
         static string FlTime(DateTime time)
         {
-            return $"{time.ToShortDateString()} {time.ToShortTimeString()}";
+            return $"{time.ToShortDateString()} {time:HH:mm}";
         }
         public string GetContentString(int row, string column)
         {
