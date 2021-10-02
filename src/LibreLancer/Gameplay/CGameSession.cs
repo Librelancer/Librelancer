@@ -530,6 +530,10 @@ namespace LibreLancer
                     Chats.Append("Offline", "Arial", 9, Color4.CornflowerBlue);
                 }
             }
+            else if (str == "#debug")
+            {
+                Game.Debug.Enabled = !Game.Debug.Enabled;
+            }
             else
             {
                 rpcServer.ConsoleCommand(str);

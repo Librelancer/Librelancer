@@ -52,7 +52,6 @@ World Time: {12:F2}
         bool loading = true;
         LoadingScreen loader;
         public Cutscene Thn;
-        DebugGraph pyw;
         private UiContext ui;
         private UiWidget widget;
         private LuaAPI uiApi;
@@ -367,11 +366,6 @@ World Time: {12:F2}
 			control.EngineState = cruise ? EngineStates.Cruise : EngineStates.Standard;
             if(Thn == null || !Thn.Running)
 			    ProcessInput(delta);
-#if false
-            pyw.PlotPoint(0, control.PlayerPitch);
-            pyw.PlotPoint(1, control.PlayerYaw);
-            pyw.PlotPoint(2, control.Roll);
-#endif
             //Has to be here or glitches
             camera.ChasePosition = player.PhysicsComponent.Body.Position;
             camera.ChaseOrientation = player.PhysicsComponent.Body.Transform.ClearTranslation();
@@ -451,7 +445,7 @@ World Time: {12:F2}
 			var pc = player.PhysicsComponent;
             shipInput.Viewport = new Vector2(Game.Width, Game.Height);
             shipInput.Camera = camera;
-            if (Game.Mouse.IsButtonDown(MouseButtons.Left) || mouseFlight)
+            if ((!Game.Debug.CaptureMouse && Game.Mouse.IsButtonDown(MouseButtons.Left)) || mouseFlight)
 			{
                 var mX = Game.Mouse.X;
                 var mY = Game.Mouse.Y;
@@ -481,7 +475,7 @@ World Time: {12:F2}
                 weapons.AimPoint = contactPoint;
             }
 
-            if(!Game.Mouse.IsButtonDown(MouseButtons.Left) && Game.TotalTime - lastDown < 0.25)
+            if(!(Game.Debug.CaptureMouse && Game.Mouse.IsButtonDown(MouseButtons.Left)) && Game.TotalTime - lastDown < 0.25)
             {
                 var newselected = GetSelection(Game.Mouse.X, Game.Mouse.Y);
                 if (newselected != null) selected = newselected;
@@ -650,8 +644,14 @@ World Time: {12:F2}
                     else
                         sel_obj = selected.Name;
                 }
-                DebugDrawing.DrawShadowedText(Game.Renderer2D,  string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z, sys.Nickname, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj, control.PlayerPitch, control.PlayerYaw, control.Roll, mouseFlight, session.WorldTime), 5, 5);
-                //pyw.Draw(Game.Renderer2D);
+
+                var text = string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z,
+                    sys.Nickname, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj,
+                    control.PlayerPitch, control.PlayerYaw, control.Roll, mouseFlight, session.WorldTime);
+                Game.Debug.Draw(delta, () =>
+                {
+                    ImGuiNET.ImGui.Text(text);
+                });
                 current_cur.Draw(Game.Renderer2D, Game.Mouse);
             }
             DoFade(delta);

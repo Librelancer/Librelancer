@@ -14,6 +14,7 @@ namespace LibreLancer
 	public class FreelancerGame : Game
     {
 		public GameDataManager GameData;
+        public DebugView Debug;
         public UiContext Ui;
 		public AudioManager Audio;
 		public FontManager Fonts;
@@ -118,7 +119,7 @@ namespace LibreLancer
             Services.Add(GameData);
             Services.Add(Sound);
             Services.Add(Typewriter);
-            
+            Debug = new DebugView(this);
 			if (useintromovies && IntroMovies.Count > 0)
 				ChangeState(new IntroMovie(this, 0));
 			else

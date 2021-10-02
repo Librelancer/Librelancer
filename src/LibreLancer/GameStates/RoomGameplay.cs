@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using System.Linq;
+using ImGuiNET;
 using LibreLancer.GameData;
 using LibreLancer.Utf.Dfm;
 using LibreLancer.Data.Missions;
@@ -492,10 +493,6 @@ namespace LibreLancer
             ui.RenderWidget(delta);
 			Game.Renderer2D.Start(Game.Width, Game.Height);
             DoFade(delta);
-            #if DEBUG
-            DebugDrawing.DrawShadowedText(Game.Renderer2D, "Room: " + currentRoom.Nickname + "\n" + "Virtual: " +
-                (virtualRoom ?? "NONE"), 5, 5, Color4.White);
-            #endif
             if (letterboxAmount > 0)
             {
                 var pct = Cutscene.LETTERBOX_HEIGHT * (float) letterboxAmount;
@@ -513,6 +510,11 @@ namespace LibreLancer
                     ui.Visible = true;
                 }
             }
+            Game.Debug.Draw(delta, () =>
+            {
+                ImGui.Text($"Room: {currentRoom.Nickname}");
+                ImGui.Text($"Virtual: {virtualRoom ?? "NONE"}");
+            });
             if(ui.Visible) cursor.Draw(Game.Renderer2D, Game.Mouse);
             Game.Renderer2D.Finish();
         }

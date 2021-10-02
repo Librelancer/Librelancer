@@ -315,11 +315,11 @@ namespace LibreLancer.ImUI
 			io.MouseDown[1] = game.Mouse.IsButtonDown(MouseButtons.Right);
 			io.MouseDown[2] = game.Mouse.IsButtonDown(MouseButtons.Middle);
             io.MouseWheel = game.Mouse.Wheel;
-            game.TextInputEnabled = io.WantCaptureKeyboard;
+            if(HandleKeyboard)
+                game.TextInputEnabled = io.WantCaptureKeyboard;
 			//TODO: Mouse Wheel
 			ImGui.NewFrame();
-            
-		}
+        }
         //These are required as FBOs with 1 - SrcAlpha will end up with alpha != 1
         public static void DisableAlpha()
         {
@@ -342,6 +342,9 @@ namespace LibreLancer.ImUI
             toFree = new List<RenderTarget2D>();
 		}
 
+        public bool SetCursor = true;
+        public bool HandleKeyboard = true;
+        
 		VertexBuffer vbo;
 		ElementBuffer ibo;
 		ushort[] ibuffer;
@@ -352,26 +355,30 @@ namespace LibreLancer.ImUI
 		{
 			var io = ImGui.GetIO();
             //Set cursor
-            var cur = ImGuiNative.igGetMouseCursor();
-            switch(cur) {
-                case ImGuiMouseCursor.Arrow:
-                    game.CursorKind = CursorKind.Arrow;
-                    break;
-                case ImGuiMouseCursor.ResizeAll:
-                    game.CursorKind = CursorKind.Move;
-                    break;
-                case ImGuiMouseCursor.TextInput:
-                    game.CursorKind = CursorKind.TextInput;
-                    break;
-                case ImGuiMouseCursor.ResizeNS:
-                    game.CursorKind = CursorKind.ResizeNS;
-                    break;
-                case ImGuiMouseCursor.ResizeNESW:
-                    game.CursorKind = CursorKind.ResizeNESW;
-                    break;
-                case ImGuiMouseCursor.ResizeNWSE:
-                    game.CursorKind = CursorKind.ResizeNWSE;
-                    break;
+            if (SetCursor)
+            {
+                var cur = ImGuiNative.igGetMouseCursor();
+                switch (cur)
+                {
+                    case ImGuiMouseCursor.Arrow:
+                        game.CursorKind = CursorKind.Arrow;
+                        break;
+                    case ImGuiMouseCursor.ResizeAll:
+                        game.CursorKind = CursorKind.Move;
+                        break;
+                    case ImGuiMouseCursor.TextInput:
+                        game.CursorKind = CursorKind.TextInput;
+                        break;
+                    case ImGuiMouseCursor.ResizeNS:
+                        game.CursorKind = CursorKind.ResizeNS;
+                        break;
+                    case ImGuiMouseCursor.ResizeNESW:
+                        game.CursorKind = CursorKind.ResizeNESW;
+                        break;
+                    case ImGuiMouseCursor.ResizeNWSE:
+                        game.CursorKind = CursorKind.ResizeNWSE;
+                        break;
+                }
             }
             //Render
             draw_data.ScaleClipRects(io.DisplayFramebufferScale);

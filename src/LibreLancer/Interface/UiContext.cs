@@ -74,6 +74,7 @@ namespace LibreLancer.Interface
         
         private void MouseOnMouseUp(MouseEventArgs e)
         {
+            if (game.Debug.CaptureMouse) return;
             if ((e.Buttons & MouseButtons.Left) == MouseButtons.Left)
             {
                 OnMouseClick();
@@ -83,6 +84,7 @@ namespace LibreLancer.Interface
 
         private void MouseOnMouseDown(MouseEventArgs e)
         {
+            if (game.Debug.CaptureMouse) return;
             if ((e.Buttons & MouseButtons.Left) == MouseButtons.Left) OnMouseDown();
         }
 
