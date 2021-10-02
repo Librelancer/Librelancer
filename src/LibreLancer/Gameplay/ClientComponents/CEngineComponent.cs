@@ -9,11 +9,9 @@ using LibreLancer.GameData.Items;
 using LibreLancer.Fx;
 namespace LibreLancer
 {
-	public class CEngineComponent : GameComponent
+	public class CEngineComponent : SEngineComponent
 	{
-		public EngineEquipment Engine;
-		public float Speed = 1f;
-		List<AttachedEffect> fireFx = new List<AttachedEffect>();
+        List<AttachedEffect> fireFx = new List<AttachedEffect>();
         private AttachedSound rumble;
         private AttachedSound character;
         private AttachedSound cruiseLoop;
@@ -22,6 +20,7 @@ namespace LibreLancer
 		{
             this.parent = parent;
 			Engine = engine;
+            Speed = 1f;
         }
 
         float PitchFromRange(Vector2 range)
@@ -48,20 +47,28 @@ namespace LibreLancer
             {
                 if (Speed > 0.91f) {
                     rumble.Active = false;
-                    character.Active = false;
                 }
                 else {
                     rumble.Active = true;
-                    character.Active = true;
                     rumble.Position = pos;
                     rumble.Pitch = PitchFromRange(Engine.Def.RumblePitchRange);
                     rumble.Attenuation = AttenFromRange(Engine.Def.RumbleAttenRange);
-                    character.Position = pos;
-                    character.Pitch = PitchFromRange(Engine.Def.CharacterPitchRange);
                     rumble.Velocity = vel;
-                    character.Velocity = vel;
                 }
                 rumble.Update();
+            }
+
+            if (character != null)
+            {
+                if (Speed > 0.91f) {
+                    character.Active = false;
+                }
+                else {                    
+                    character.Pitch = PitchFromRange(Engine.Def.CharacterPitchRange);
+                    character.Active = true;
+                    character.Position = pos;
+                    character.Velocity = vel;
+                }
                 character.Update();
             }
 
@@ -88,7 +95,9 @@ namespace LibreLancer
             {
                 var resman = GetResourceManager();
                 var hps = parent.GetHardpoints();
-                var trailFx = gameData.GetEffect(Engine.Def.TrailEffect).GetEffect(resman);
+                ParticleEffect trailFx = null;
+                if(!string.IsNullOrEmpty(Engine.Def.TrailEffect))
+                    trailFx = gameData.GetEffect(Engine.Def.TrailEffect).GetEffect(resman);
                 var fx = gameData.GetEffect(Engine.Def.FlameEffect).GetEffect(resman);
 
                 foreach (var hp in hps)
@@ -96,7 +105,8 @@ namespace LibreLancer
                     if (!hp.Name.Equals("hpengineglow", StringComparison.OrdinalIgnoreCase) &&
                         hp.Name.StartsWith("hpengine", StringComparison.OrdinalIgnoreCase))
                     {
-                        fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(trailFx)));
+                        if(trailFx != null)
+                            fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(trailFx)));
                         fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(fx) { Index = 1 }));
                     }
                 }
@@ -108,18 +118,27 @@ namespace LibreLancer
             SoundManager sound;
             if ((sound = GetSoundManager()) != null)
             {
-                rumble = new AttachedSound(sound)
+                if (!string.IsNullOrWhiteSpace(Engine.Def.RumbleSound))
                 {
-                    Active = true, Sound = Engine.Def.RumbleSound
-                };
-                character = new AttachedSound(sound)
+                    rumble = new AttachedSound(sound)
+                    {
+                        Active = true, Sound = Engine.Def.RumbleSound
+                    };
+                }
+                if (!string.IsNullOrWhiteSpace(Engine.Def.CharacterLoopSound))
                 {
-                    Active = true, Sound = Engine.Def.CharacterLoopSound
-                };
-                cruiseLoop = new AttachedSound(sound)
+                    character = new AttachedSound(sound)
+                    {
+                        Active = true, Sound = Engine.Def.CharacterLoopSound
+                    };
+                }
+                if (!string.IsNullOrWhiteSpace(Engine.Def.CruiseLoopSound))
                 {
-                    Active = false, Sound = Engine.Def.CruiseLoopSound
-                };
+                    cruiseLoop = new AttachedSound(sound)
+                    {
+                        Active = false, Sound = Engine.Def.CruiseLoopSound
+                    };
+                }
             }
         }
 		public override void Unregister(Physics.PhysicsWorld physics)

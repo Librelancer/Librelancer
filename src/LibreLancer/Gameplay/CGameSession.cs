@@ -551,15 +551,15 @@ namespace LibreLancer
             if (update.HasPosition && obj.TryGetComponent<CEngineComponent>(out var eng)) {
                 eng.Speed = update.EngineThrottlePct / 255f;
             }
+            if (update.HasHealth) {
+                var health = obj.GetComponent<HealthComponent>();
+                if (health != null)
+                    health.CurrentHealth = (float)update.HullHp;
+            }
             if (netPos != null)
             {
                 if(update.HasPosition) netPos.QueuePosition(tick, update.Position);
                 if(update.HasOrientation) netPos.QueueOrientation(tick, update.Orientation);
-                if (update.HasHealth) {
-                    var health = obj.GetComponent<HealthComponent>();
-                    if (health != null)
-                        health.CurrentHealth = (float)update.HullHp;
-                }
             }
             else
             {

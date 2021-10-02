@@ -119,13 +119,25 @@ namespace LibreLancer
                 if (CanDock(dock.Dock, dock.Ship)) {
                     if (Action.Kind == DockKinds.Base)
                     {
-                        var player = dock.Ship.GetComponent<SPlayerComponent>();
-                        player.Player.ForceLand(Action.Target);
+                        if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player))
+                        {
+                            player.Player.ForceLand(Action.Target);
+                        } 
+                        else if (dock.Ship.TryGetComponent<SNPCComponent>(out var npc))
+                        {
+                            npc.Docked();
+                        }
                     }
                     else if (Action.Kind == DockKinds.Jump)
                     {
-                        var player = dock.Ship.GetComponent<SPlayerComponent>();
-                        player.Player.JumpTo(Action.Target, Action.Exit);
+                        if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player))
+                        {
+                            player.Player.JumpTo(Action.Target, Action.Exit);
+                        } 
+                        else if (dock.Ship.TryGetComponent<SNPCComponent>(out var npc))
+                        {
+                            npc.Docked();
+                        }
                     }
                     activeDockings.RemoveAt(i);
                 }

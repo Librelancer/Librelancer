@@ -478,9 +478,9 @@ namespace LibreLancer
                 new("credits", (x) => rpcClient.OnConsoleMessage($"You have ${Character.Credits}")),
                 new("sethealth", (arg) =>
                 {
-                    if (int.TryParse(arg, out var h))
+                    if (PermissionCheck())
                     {
-                        if (Client is LocalPacketClient)
+                        if (int.TryParse(arg, out var h))
                         {
                             if (World != null) {
                                 World.EnqueueAction(() => {
@@ -491,15 +491,46 @@ namespace LibreLancer
                         }
                         else
                         {
-                            rpcClient.OnConsoleMessage("Permission denied");
+                            rpcClient.OnConsoleMessage("Invalid argument");
                         }
                     }
-                    else
+                }),
+                new("npcspawn", (arg) =>
+                {
+                    if (PermissionCheck() && World != null)
                     {
-                        rpcClient.OnConsoleMessage("Invalid argument");
+                        if (World.Server.GameData.TryGetLoadout(arg.Trim(), out var ld))
+                        {
+                            World.NPCs.SpawnNPC(ld, Position + new Vector3(0, 0, 200)).ContinueWith(x =>
+                            {
+                                rpcClient.OnConsoleMessage($"ID = {x.Result}");
+                            });
+                        }
+                        else
+                        {
+                            rpcClient.OnConsoleMessage($"Unknown loadout '{arg}'");
+                        }
+                    }
+                }),
+                new ("npcdock", (arg) =>
+                {
+                    var x = arg.Split(',');
+                    if (PermissionCheck() && x.Length == 2 && int.TryParse(x[0].Trim(), out int netid) && World != null)
+                    {
+                        World.NPCs.DockWith(netid, x[1].Trim());
                     }
                 })
             };
+        }
+
+        bool PermissionCheck()
+        {
+            if (Client is LocalPacketClient) return true;
+            else
+            {
+                rpcClient.OnConsoleMessage("Permission denied");
+                return false;
+            }
         }
 
         void IServerPlayer.ConsoleCommand(string cmd)

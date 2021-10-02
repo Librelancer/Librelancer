@@ -31,7 +31,13 @@ namespace LibreLancer
         }
         public static void InstantiateEquipment(GameObject parent, ResourceManager res, EquipmentType type, string hardpoint, Equipment equip)
         {
-            var obj = handlers[equip.GetType()](parent, res, type, hardpoint, equip);
+            var etype = equip.GetType();
+            if (!handlers.TryGetValue(etype, out var handle))
+            {
+                FLLog.Error("Equipment", $"Cannot instantiate {etype}");
+                return;
+            }
+            var obj = handle(parent, res, type, hardpoint, equip);
             //Do setup of child attachment, hardpoint, lod inheriting, static position etc.
             if (obj != null)
             {

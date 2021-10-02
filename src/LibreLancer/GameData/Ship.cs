@@ -12,6 +12,7 @@ namespace LibreLancer.GameData
 	public class Ship
 	{
 		public string Nickname;
+        public float[] LODRanges;
         public int NameIds;
         public int Infocard;
         public uint CRC;

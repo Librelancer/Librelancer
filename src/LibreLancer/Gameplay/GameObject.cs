@@ -152,6 +152,10 @@ namespace LibreLancer
         public GameObject(Ship ship, ResourceManager res, bool draw = true, bool phys = false)
         {
             InitWithDrawable(ship.ModelFile.LoadFile(res), res, draw, phys);
+            if (RenderComponent != null)
+            {
+                RenderComponent.LODRanges = ship.LODRanges;
+            }
             if (PhysicsComponent != null)
             {
                 PhysicsComponent.Mass = ship.Mass;

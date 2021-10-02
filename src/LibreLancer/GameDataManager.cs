@@ -629,10 +629,12 @@ namespace LibreLancer
         Dictionary<string, GameData.StarSystem> systems = new Dictionary<string, GameData.StarSystem>(StringComparer.OrdinalIgnoreCase);
 
         public IEnumerable<GameData.StarSystem> AllSystems => systems.Values;
+        
+
         void InitSystems()
         {
             FLLog.Info("Game", "Initing " + fldata.Universe.Systems.Count + " systems");
-            _solarLoadouts = new Dictionary<string, Loadout>();
+            _solarLoadouts = new Dictionary<string, Loadout>(StringComparer.OrdinalIgnoreCase);
             foreach (var l in fldata.Loadouts.Loadouts)
                 _solarLoadouts[l.Nickname] = l;
             foreach (var inisys in fldata.Universe.Systems)
@@ -1182,6 +1184,7 @@ namespace LibreLancer
             {
                 var ship = new GameData.Ship();
                 ship.ModelFile = ResolveDrawable(orig.MaterialLibraries, orig.DaArchetypeName);
+                ship.LODRanges = orig.LodRanges;
                 ship.Mass = orig.Mass;
                 ship.AngularDrag = orig.AngularDrag;
                 ship.RotationInertia = orig.RotationInertia;
@@ -1326,6 +1329,11 @@ namespace LibreLancer
             _solarLoadouts.TryGetValue(key, out var ld);
             return ld;
         }
+        public bool TryGetLoadout(string name, out Loadout l)
+        {
+            return _solarLoadouts.TryGetValue(name, out l);
+        }
+        
         public GameData.SystemObject GetSystemObject(Data.Universe.SystemObject o)
         {
             var obj = new GameData.SystemObject();

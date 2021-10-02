@@ -51,7 +51,7 @@ namespace LibreLancer
         {
             if (!Active) return;
             //Component checks
-            var engine = Parent.GetComponent<CEngineComponent>(); //Get mounted engine
+            var engine = Parent.GetComponent<SEngineComponent>(); //Get mounted engine
             var power = Parent.GetComponent<PowerCoreComponent>();
             if (Parent.PhysicsComponent == null) return;
             if (Parent.PhysicsComponent.Body == null) return;

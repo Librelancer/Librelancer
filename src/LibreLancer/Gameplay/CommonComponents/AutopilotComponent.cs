@@ -79,7 +79,7 @@ namespace LibreLancer
 					Parent.World.BroadcastMessage(Parent, GameMessageKind.ManeuverFinished);
 					return;
 				}
-				var hp = docking.GetDockHardpoints(Parent.PhysicsComponent.Body.Position).Skip(lastTargetHp).First();
+                var hp = docking.GetDockHardpoints(Parent.PhysicsComponent.Body.Position).Skip(lastTargetHp).First();
 				radius = 5;
                 targetPoint = Vector3.Transform(Vector3.Zero, hp.Transform * TargetObject.WorldTransform);
 				if (lastTargetHp > 0) maxSpeed = 0.3f;

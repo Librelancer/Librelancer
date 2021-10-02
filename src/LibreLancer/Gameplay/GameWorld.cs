@@ -79,16 +79,13 @@ namespace LibreLancer
                                 DockSpheres = obj.Archetype.DockSpheres.ToArray()
                             });
                         }
-                        else
+                        g.Components.Add(new CDockComponent(g)
                         {
-                            g.Components.Add(new CDockComponent(g)
-                            {
-                                Action = obj.Dock,
-                                DockAnimation = obj.Archetype.DockSpheres[0].Script,
-                                DockHardpoint = obj.Archetype.DockSpheres[0].Hardpoint,
-                                TriggerRadius = obj.Archetype.DockSpheres[0].Radius
-                            });
-                        }
+                            Action = obj.Dock,
+                            DockAnimation = obj.Archetype.DockSpheres[0].Script,
+                            DockHardpoint = obj.Archetype.DockSpheres[0].Hardpoint,
+                            TriggerRadius = obj.Archetype.DockSpheres[0].Radius
+                        });
                     }
                 }
                 g.Register(Physics);

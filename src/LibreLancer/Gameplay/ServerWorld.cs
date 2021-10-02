@@ -20,7 +20,7 @@ namespace LibreLancer
         public GameWorld GameWorld;
         public GameServer Server;
         public GameData.StarSystem System;
-
+        public NPCManager NPCs;
         private int mId = -1;
         object _idLock = new object();
 
@@ -56,6 +56,7 @@ namespace LibreLancer
             GameWorld.Server = this;
             GameWorld.PhysicsUpdate += GameWorld_PhysicsUpdate;
             GameWorld.LoadSystem(system, server.Resources, true);
+            NPCs = new NPCManager(this);
         }
 
         public int PlayerCount;
@@ -71,6 +72,8 @@ namespace LibreLancer
                     p.Key.SpawnPlayer(player);
                 }
                 player.SendSolars(SpawnedSolars);
+                foreach(var npc in spawnedNPCs)
+                    SpawnShip(npc, player);
                 var obj = new GameObject(player.Character.Ship, Server.Resources, false, true) { World = GameWorld };
                 obj.Components.Add(new SPlayerComponent(player, obj));
                 obj.Components.Add(new HealthComponent(obj)
@@ -163,6 +166,7 @@ namespace LibreLancer
         {
             actions.Enqueue(() =>
             {
+                Players[player].Unregister(GameWorld.Physics);
                 GameWorld.Objects.Remove(Players[player]);
                 Players.Remove(player);
                 foreach(var p in Players)
@@ -170,6 +174,17 @@ namespace LibreLancer
                     p.Key.Despawn(player.ID);
                 }
                 Interlocked.Decrement(ref PlayerCount);
+            });
+        }
+
+        public void RemoveNPC(GameObject obj)
+        {
+            actions.Enqueue(() =>
+            {
+                obj.Unregister(GameWorld.Physics);
+                GameWorld.Objects.Remove(obj);
+                spawnedNPCs.Remove(obj);
+                foreach (var p in Players) p.Key.Despawn(obj.NetID);
             });
         }
 
@@ -185,7 +200,8 @@ namespace LibreLancer
 
         public Dictionary<string, GameObject> SpawnedSolars = new Dictionary<string, GameObject>();
         List<GameObject> updatingObjects = new List<GameObject>();
-        
+        List<GameObject> spawnedNPCs = new List<GameObject>();
+
         public void SpawnSolar(string nickname, string archetype, string loadout, Vector3 position, Quaternion orientation)
         {
             actions.Enqueue(() =>
@@ -235,6 +251,27 @@ namespace LibreLancer
                     p.SpawnDebris(go.NetID, archetype, part, transform, mass);
                 }
             });
+        }
+
+        public void OnNPCSpawn(GameObject obj)
+        {
+            obj.NetID = GenerateID();
+            obj.World = GameWorld;
+            obj.Register(GameWorld.Physics);
+            GameWorld.Objects.Add(obj);
+            updatingObjects.Add(obj);
+            spawnedNPCs.Add(obj);
+            foreach (Player p in Players.Keys)
+            {
+                SpawnShip(obj, p);
+            }
+        }
+
+        void SpawnShip(GameObject obj, Player p)
+        {
+            var pos = Vector3.Transform(Vector3.Zero, obj.LocalTransform);
+            var orient = obj.LocalTransform.ExtractRotation();
+            p.RemoteClient.SpawnObject(obj.NetID, obj.Name, pos, orient, obj.GetComponent<SNPCComponent>().Loadout);
         }
 
         public void PartDisabled(GameObject obj, string part)
@@ -341,6 +378,12 @@ namespace LibreLancer
                     update.Position = Vector3.Transform(Vector3.Zero, tr);
                     update.HasOrientation = true;
                     update.Orientation = tr.ExtractRotation();
+                    if (obj.TryGetComponent<HealthComponent>(out var health))
+                    {
+                        update.HasHealth = true;
+                        update.HasHull = true;
+                        update.HullHp = (int) health.CurrentHealth;
+                    }
                     ps.Add(update);
                 }
                 player.Key.SendUpdate(new ObjectUpdatePacket()
