@@ -60,9 +60,7 @@ namespace LibreLancer.Fx
 				src_pos += nd * (l * sc * 0.25f);
 			}
 			var p = Vector3.Transform(src_pos, node_tr);
-			Texture2D tex;
-			Vector2 tl, tr, bl, br;
-			HandleTexture(res, globaltime, sparam, ref particle, out tex, out tl, out tr, out bl, out br);
+            TextureHandler.Update(Texture, res);
 			var c = Color.GetValue(sparam, time);
 			var a = Alpha.GetValue(sparam, time);
             var p2 = Vector3.Transform(src_pos + (particle.Normal * 20), node_tr);
@@ -71,14 +69,11 @@ namespace LibreLancer.Fx
 			instance.Pool.DrawRect(
                 particle.Instance,
                 this,
-				tex,
+				TextureHandler,
 				p,
 				new Vector2(l, w) * sc * 0.5f,
 				new Color4(c,a),
-				tl,
-				tr,
-				bl,
-				br,
+				GetFrame(globaltime, sparam, ref particle),
 				n,
                 Rotate == null ? 0f : MathHelper.DegreesToRadians(Rotate.GetValue(sparam, time)),
                 reference.Index

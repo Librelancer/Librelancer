@@ -15,9 +15,7 @@ namespace LibreLancer.Fx
         {
             var time = particle.TimeAlive / particle.LifeSpan;
             var node_tr = GetAttachment(reference, transform);
-			Texture2D tex;
-			Vector2 tl, tr, bl, br;
-			HandleTexture(res, globaltime, sparam, ref particle, out tex, out tl, out tr, out bl, out br);
+            TextureHandler.Update(Texture, res);
 			var c = Color.GetValue(sparam, time);
 			var a = Alpha.GetValue(sparam, time);
             var q = particle.Orientation * Transform.GetDeltaRotation(sparam, lasttime, globaltime);
@@ -29,15 +27,12 @@ namespace LibreLancer.Fx
             instance.Pool.DrawPerspective(
                 particle.Instance,
                 this,
-				tex,
+				TextureHandler,
                 Vector3.Transform(particle.Position,transform),
                 mat,
 				new Vector2(Size.GetValue(sparam, time)),
 				new Color4(c, a),
-				tl,
-				tr,
-				bl,
-				br,
+				GetFrame(globaltime,sparam, ref particle),
 				n,
                 Rotate == null ? 0f : MathHelper.DegreesToRadians(Rotate.GetValue(sparam, time)),
                 reference.Index

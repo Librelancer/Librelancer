@@ -55,17 +55,19 @@ namespace LibreLancer.Fx
             }
         }
 
-        void CreateQuad(ref int count, Vector3 position, Vector2 size, Color4 color, float angle, Vector2 topleft, Vector2 topright, Vector2 bottomleft, Vector2 bottomright, Vector3 src_right, Vector3 src_up)
+        void CreateQuad(ref int count, Vector3 position, Vector2 size, Color4 color, float angle, ParticleTexture texture, float frame, Vector3 src_right, Vector3 src_up)
         {
             var sz1 = new Vector3(size.X * -0.5f, size.Y * -0.5f, angle);
             var sz2 = new Vector3(size.X * 0.5f, size.Y * -0.5f, angle);
             var sz3 = new Vector3(size.X * -0.5f, size.Y * 0.5f, angle);
             var sz4 = new Vector3(size.X * 0.5f, size.Y * 0.5f, angle);
+            var frameNo = (int)Math.Floor((texture.FrameCount - 1) * frame);
+            int i = frameNo * 4;
             vertices[count++] = new ParticleVertex()
             {
                 Position = position,
                 Color = color,
-                TextureCoordinate = bottomleft,
+                TextureCoordinate = texture.Coordinates[i + 2],
                 Dimensions = sz1,
                 Right = src_right,
                 Up = src_up
@@ -74,7 +76,7 @@ namespace LibreLancer.Fx
             {
                 Position = position,
                 Color = color,
-                TextureCoordinate = topleft,
+                TextureCoordinate = texture.Coordinates[i],
                 Dimensions = sz2,
                 Right = src_right,
                 Up = src_up
@@ -83,7 +85,7 @@ namespace LibreLancer.Fx
             {
                 Position = position,
                 Color = color,
-                TextureCoordinate = bottomright,
+                TextureCoordinate = texture.Coordinates[i + 3],
                 Dimensions = sz3,
                 Right = src_right,
                 Up = src_up
@@ -92,7 +94,7 @@ namespace LibreLancer.Fx
             {
                 Position = position,
                 Color = color,
-                TextureCoordinate = topright,
+                TextureCoordinate = texture.Coordinates[i + 1],
                 Dimensions = sz4,
                 Right = src_right,
                 Up = src_up
@@ -277,7 +279,7 @@ namespace LibreLancer.Fx
                 switch(ni.a)
                 {
                     case FxPerpAppearance perp:
-                        perp.GetTexture2D(res, out texture);
+                        texture = perp.TextureHandler.Texture;
                         if (texture == null) throw new InvalidOperationException("texture null");
                         cmd.AddCommand(
                             basicShader.Shader,
@@ -291,7 +293,7 @@ namespace LibreLancer.Fx
                         basicCount += primCount / 2;
                         break;
                     case FxRectAppearance rect:
-                        rect.GetTexture2D(res, out texture);
+                        texture = rect.TextureHandler.Texture;
                         if (texture == null) throw new InvalidOperationException("texture null");
                         cmd.AddCommand(
                             basicShader.Shader,
@@ -307,7 +309,7 @@ namespace LibreLancer.Fx
                     case FxOrientedAppearance orient:
                         break;
                     case FxBasicAppearance basic:
-                        basic.GetTexture2D(res, out texture);
+                        texture = basic.TextureHandler.Texture;
                         if (texture == null) throw new InvalidOperationException("texture null");
                         cmd.AddCommand(
                             basicShader.Shader,
@@ -359,15 +361,12 @@ namespace LibreLancer.Fx
         public void DrawPerspective(
             ParticleEffectInstance instance,
             FxBasicAppearance appearance,
-            Texture2D texture,
+            ParticleTexture texture,
             Vector3 pos,
             Matrix4x4 world,
             Vector2 size,
             Color4 color,
-            Vector2 topleft,
-            Vector2 topright,
-            Vector2 bottomleft,
-            Vector2 bottomright,
+            float frame,
             Vector3 normal,
             float angle,
             int index)
@@ -380,7 +379,7 @@ namespace LibreLancer.Fx
             right.Normalize();
             CreateQuad(
                 ref bufspace[idx].Current,
-                pos, size, color, angle, topleft, topright, bottomleft, bottomright,
+                pos, size, color, angle, texture, frame,
                 right, up
             );
         }
@@ -388,13 +387,11 @@ namespace LibreLancer.Fx
         public void DrawBasic(
             ParticleEffectInstance instance,
             FxBasicAppearance appearance,
+            ParticleTexture texture,
             Vector3 Position,
             Vector2 size,
             Color4 color,
-            Vector2 topleft,
-            Vector2 topright,
-            Vector2 bottomleft,
-            Vector2 bottomright,
+            float frame,
             float angle,
             int index
         )
@@ -403,7 +400,7 @@ namespace LibreLancer.Fx
             if (bufspace[idx].Current == (bufspace[idx].Start + bufspace[idx].Count) * 4) return;
             CreateQuad(
                 ref bufspace[idx].Current, 
-                Position, size, color, angle, topleft, topright, bottomleft, bottomright,
+                Position, size, color, angle, texture, frame,
                 camera.View.GetRight(), camera.View.GetUp()
             );
         }
@@ -411,14 +408,11 @@ namespace LibreLancer.Fx
         public void DrawRect(
             ParticleEffectInstance instance, 
             FxBasicAppearance appearance,
-            Texture2D texture,
+            ParticleTexture texture,
             Vector3 Position,
             Vector2 size,
             Color4 color,
-            Vector2 topleft,
-            Vector2 topright,
-            Vector2 bottomleft,
-            Vector2 bottomright,
+            float frame,
             Vector3 normal,
             float angle,
             int index
@@ -431,7 +425,7 @@ namespace LibreLancer.Fx
             var right = Vector3.Cross(toCamera, up);
             CreateQuad(
                 ref bufspace[idx].Current,
-                Position, size, color, angle, topleft, topright, bottomleft, bottomright,
+                Position, size, color, angle, texture, frame,
                 right, up
             );
         }

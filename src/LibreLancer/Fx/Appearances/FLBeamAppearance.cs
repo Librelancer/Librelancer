@@ -68,12 +68,18 @@ namespace LibreLancer.Fx
 			Texture2D tex;
 			Vector2 tl, tr, bl, br;
             var res = instance.Resources;
-			HandleTexture(res, globalTime, sparam, ref instance.Pool.Particles[beam.ParticleIndices[0]], out tex, out tl, out tr, out bl, out br);
-			//Sorting hack kinda
+            TextureHandler.Update(Texture, res);
+            var frame = GetFrame(globalTime, sparam, ref instance.Pool.Particles[beam.ParticleIndices[0]]);
+            int index = (int) Math.Floor((TextureHandler.FrameCount - 1) * frame) * 4;
+            tl = TextureHandler.Coordinates[index];
+            tr = TextureHandler.Coordinates[index + 1];
+            bl = TextureHandler.Coordinates[index + 2];
+            br = TextureHandler.Coordinates[index + 3];
+            //Sorting hack kinda
 			var z = RenderHelpers.GetZ(instance.Pool.Camera.Position, Vector3.Transform(Vector3.Zero, node_tr));
 			for (int j = 0; j < 2; j++) //two planes
 			{
-				poly.StartLine(tex, BlendInfo);
+				poly.StartLine(TextureHandler.Texture, BlendInfo);
 				bool odd = true;
 				Vector3 dir = Vector3.Zero;
 

@@ -92,134 +92,37 @@ namespace LibreLancer.Fx
                 particle.Orientation *= deltaq;
             }
 			var p = Vector3.Transform(Vector3.Transform(particle.Position, particle.Orientation), node_tr);
-			Texture2D tex;
-			Vector2 tl, tr, bl, br;
-			HandleTexture(res, sparam, globaltime, ref particle, out tex, out tl, out tr, out bl, out br);
+            TextureHandler.Update(Texture, res);
 			var c = Color.GetValue(sparam, time);
 			var a = Alpha.GetValue(sparam, time);
 			instance.Pool.DrawBasic(
                 particle.Instance,
                 this,
+                TextureHandler,
 				p,
 				new Vector2(Size.GetValue(sparam, time)) * 2,
 				new Color4(c, a),
-				tl,
-				tr,
-				bl,
-				br,
+				GetFrame(globaltime, sparam, ref particle),
                 Rotate == null ? 0f : MathHelper.DegreesToRadians(Rotate.GetValue(sparam, time)),
                 reference.Index
 			);
 		}
 
-		TextureShape _tex;
-		TexFrameAnimation _frame;
-		Texture2D _tex2D;
+        public ParticleTexture TextureHandler = new ParticleTexture();
 
-        public void GetTexture2D(ResourceManager res,out Texture2D tex2d)
+        protected float GetFrame(float globaltime, float sparam, ref Particle particle)
         {
-            if (Texture == null)
+            float frame = 0;
+            if (UseCommonAnimation)
             {
-                tex2d = res.NullTexture;
-                return;
+                frame = CommonAnimation.GetValue(sparam, globaltime);
             }
-            //Get the Texture2D
-            if (_tex == null && _frame == null && _tex2D != null)
+            else
             {
-                if (_tex2D == null || _tex2D.IsDisposed)
-                    _tex2D = res.FindTexture(Texture) as Texture2D;
-                tex2d = _tex2D;
+                frame = Animation.GetValue(sparam, particle.TimeAlive / particle.LifeSpan);
             }
-            else if (_tex == null)
-            {
-                if (res.TryGetShape(Texture, out _tex))
-                    _tex2D = (Texture2D)res.FindTexture(_tex.Texture);
-                else if (res.TryGetFrameAnimation(Texture, out _frame))
-                {
-                    _tex2D = res.FindTexture(Texture + "_0") as Texture2D;
-                }
-                else
-                {
-                    _tex2D = res.FindTexture(Texture) as Texture2D;
-                }
-            }
-            if (_tex2D == null || _tex2D.IsDisposed)
-            {
-                if (_frame == null)
-                    _tex2D = res.FindTexture(_tex == null ? Texture : _tex.Texture) as Texture2D;
-                else
-                    _tex2D = res.FindTexture(Texture + "_0") as Texture2D;
-            }
-            tex2d = _tex2D;
-            if (tex2d == null) tex2d = (Texture2D)res.FindTexture(ResourceManager.WhiteTextureName);
+            return  MathHelper.Clamp(frame, 0, 1);
         }
-
-        protected void HandleTexture(
-			ResourceManager res,
-			float globaltime,
-			float sparam, 
-			ref Particle particle, 
-			out Texture2D tex2d, 
-			out Vector2 tl, 
-			out Vector2 tr, 
-			out Vector2 bl, 
-			out Vector2 br
-		)
-		{
-			//Initial texcoords
-			tl = new Vector2(0, 0);
-			tr = new Vector2(1, 0);
-			bl = new Vector2(0, 1);
-			br = new Vector2(1, 1);
-            //Get texture
-            GetTexture2D(res, out tex2d);
-			//Shape?
-			if (_tex != null)
-			{
-				tl = new Vector2(_tex.Dimensions.X, _tex.Dimensions.Y);
-				tr = new Vector2(_tex.Dimensions.X + _tex.Dimensions.Width, _tex.Dimensions.Y);
-				bl = new Vector2(_tex.Dimensions.X, _tex.Dimensions.Y + _tex.Dimensions.Height);
-				br = new Vector2(_tex.Dimensions.X + _tex.Dimensions.Width, _tex.Dimensions.Y + _tex.Dimensions.Height);
-			}
-			else if (_frame != null)
-			{
-				float frame = 0;
-				if (UseCommonAnimation)
-				{
-					frame = CommonAnimation.GetValue(sparam, globaltime);
-				}
-				else
-				{
-					frame = Animation.GetValue(sparam, particle.TimeAlive / particle.LifeSpan);
-				}
-				frame = MathHelper.Clamp(frame, 0, 1);
-                var frameNo = (int)Math.Floor((_frame.FrameCount - 1) * frame);
-				var rect = _frame.Frames[frameNo];
-                var uv1 = new Vector2(rect.UV1.X, 1 - rect.UV1.Y);
-                var uv2 = new Vector2(rect.UV2.X, 1 - rect.UV2.Y);
-                tl = uv1;
-                tr = new Vector2(uv2.X, uv1.Y);
-                bl = new Vector2(uv1.X, uv2.Y);
-                br = uv2;
-			}
-			//Flip
-			if (FlipHorizontal)
-			{
-				tl.X = 1 - tl.X;
-				tr.X = 1 - tl.X;
-				bl.X = 1 - bl.X;
-				br.X = 1 - br.X;
-			}
-			if (FlipVertical)
-			{
-				tl.Y = 1 - tl.Y;
-				tr.Y = 1 - tr.Y;
-				bl.Y = 1 - bl.Y;
-				br.Y = 1 - br.Y;
-			}
-		}
-
-
-	}
+    }
 }
 

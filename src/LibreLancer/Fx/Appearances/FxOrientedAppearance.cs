@@ -33,7 +33,7 @@ namespace LibreLancer.Fx
             var p = Vector3.Transform(particle.Position, node_tr);
 			Texture2D tex;
 			Vector2 tl, tr, bl, br;
-			HandleTexture(res, globaltime, sparam, ref particle, out tex, out tl, out tr, out bl, out br);
+			//HandleTexture(res, globaltime, sparam, ref particle, out tex, out tl, out tr, out bl, out br);
 			var c = Color.GetValue(sparam, time);
 			var a = Alpha.GetValue(sparam, time);
 
