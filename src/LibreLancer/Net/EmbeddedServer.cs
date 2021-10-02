@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.IO;
 using LiteNetLib;
 
 namespace LibreLancer
@@ -25,6 +26,12 @@ namespace LibreLancer
             //This starts the simulation + packet sending
             Server.Start();
             Server.LocalPlayer.OpenSaveGame(sg);
+        }
+
+        public void Save(string path, string description, bool autosave)
+        {
+            Server.LocalPlayer.OnSPSave();
+            File.WriteAllText(path, SaveWriter.WriteSave(Server.LocalPlayer.Character, description, autosave ? 1628 : 0, DateTime.Now));
         }
         
         public void SendPacket(IPacket packet, PacketDeliveryMethod method)

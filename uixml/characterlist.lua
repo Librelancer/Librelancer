@@ -20,6 +20,12 @@ function characterlist:ctor()
 			OpenScene("serverlist")
 		end)
 	end)
+	self.Elements.mainmenu:OnClick(function()
+		self:ExitAnimation(function()
+			Game:StopNetworking()
+			OpenScene("mainmenu")
+		end)
+	end)
 end
 
 function characterlist:ExitAnimation(f)
@@ -52,5 +58,6 @@ function characterlist:Disconnect()
 		end)
 	end))
 end
+
 
 

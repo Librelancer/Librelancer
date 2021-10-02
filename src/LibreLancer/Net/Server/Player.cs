@@ -628,7 +628,11 @@ namespace LibreLancer
         {
             rpcClient.DespawnObject(objId);
         }
-        
+
+        public void OnSPSave()
+        {
+            Character?.UpdatePosition(Base, System, Position);
+        }
         public void Disconnected()
         {
             Character?.UpdatePosition(Base, System, Position);

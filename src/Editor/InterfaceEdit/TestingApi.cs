@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System;
 using LibreLancer;
 using LibreLancer.Interface;
 using System.Collections.Generic;
@@ -18,6 +19,37 @@ namespace InterfaceEdit
         public string GetContentString(int row, string column)
         {
             return "A";
+        }
+
+        public string CurrentDescription()
+        {
+            if (Selected < 0) return "";
+            return "Server Description";
+        }
+
+        public bool ValidSelection()
+        {
+            return Selected > -1;
+        }
+    }
+
+    public class TestSaveGameList : ITableData
+    {
+        public int Count => 5;
+        public int Selected { get; set; } = -1;
+
+        static string FlTime(DateTime time)
+        {
+            return $"{time.ToShortDateString()} {time.ToShortTimeString()}";
+        }
+        public string GetContentString(int row, string column)
+        {
+            if (column == "name")
+                return ((char) ('a' + row)).ToString();
+            else if (column == "date")
+                return FlTime(new DateTime(2019, 7, 3 + row, 12, 05, 10 + row));
+            else
+                return "n/a";
         }
 
         public string CurrentDescription()
@@ -56,6 +88,7 @@ namespace InterfaceEdit
             LuaContext.RegisterType<TestingApi>();
             LuaContext.RegisterType<TestServerList>();
             LuaContext.RegisterType<TestCharacterList>();
+            LuaContext.RegisterType<TestSaveGameList>();
         }
         static readonly NavbarButtonInfo cityscape = new NavbarButtonInfo("IDS_HOTSPOT_EXIT", "Cityscape");
         static readonly NavbarButtonInfo bar = new NavbarButtonInfo("IDS_HOTSPOT_BAR", "Bar");
@@ -78,6 +111,18 @@ namespace InterfaceEdit
 
         TestServerList serverList = new TestServerList();
         public TestServerList ServerList() => serverList;
+
+        private TestSaveGameList _testSaveGames = new TestSaveGameList();
+
+        public TestSaveGameList SaveGames() => _testSaveGames;
+
+        public void LoadSelectedGame()
+        {
+        }
+
+        public void DeleteSelectedGame()
+        {
+        }
 
         public Infocard _Infocard;
 

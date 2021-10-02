@@ -5,6 +5,7 @@
 using System;
 using System.Numerics;
 using System.Collections.Generic;
+using System.IO;
 using LibreLancer.Data.Missions;
 using LibreLancer.GameData.Items;
 using LibreLancer.Interface;
@@ -241,6 +242,8 @@ namespace LibreLancer
             }
         }
 
+        private int enterCount = 0;
+
         void IClientPlayer.OnConsoleMessage(string text)
         {
             Chats.Append(text, "Arial", 10, Color4.LimeGreen);
@@ -300,6 +303,7 @@ namespace LibreLancer
 
         void IClientPlayer.SpawnPlayer(string system, double systemTime, Vector3 position, Quaternion orientation, long credits, NetShipLoadout ship)
         {
+            enterCount++;
             PlayerBase = null;
             SpawnTime = systemTime;
             FLLog.Info("Client", $"Spawning in {system} at time {systemTime}");
@@ -354,6 +358,12 @@ namespace LibreLancer
 
         void IClientPlayer.BaseEnter(string _base, long credits, NetShipLoadout ship, string[] rtcs, NewsArticle[] news, SoldGood[] goods)
         {
+            if (enterCount > 0 && (connection is EmbeddedServer es)) {
+                var path = Game.GetSaveFolder();
+                Directory.CreateDirectory(path);
+                es.Save(Path.Combine(path, "AutoSave.fl"), null, true);
+            }
+            enterCount++;
             PlayerBase = _base;
             News = news;
             Goods = goods;

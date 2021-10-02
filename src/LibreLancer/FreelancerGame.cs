@@ -126,6 +126,11 @@ namespace LibreLancer
 				ChangeState(new LoadingDataState(this));
         }
 
+        public string GetSaveFolder()
+        {
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Librelancer");
+        }
+
         protected override void OnResize()
         {
             if (currentState != null)

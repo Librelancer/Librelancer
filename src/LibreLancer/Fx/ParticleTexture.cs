@@ -38,6 +38,8 @@ namespace LibreLancer.Fx
                 frameanim = null;
                 shape = null;
             }
+
+            Name = name;
             if (shape == null && frameanim == null && Texture != null)
             {
                 if (Texture == null || Texture.IsDisposed)
@@ -57,7 +59,7 @@ namespace LibreLancer.Fx
                 }
                 else if (res.TryGetFrameAnimation(name, out frameanim))
                 {
-                    Texture = res.FindTexture(Texture + "_0") as Texture2D;
+                    Texture = res.FindTexture(name + "_0") as Texture2D;
                     Coordinates = new Vector2[frameanim.FrameCount * 4];
                     for (int i = 0; i < frameanim.FrameCount; i++)
                     {

@@ -38,7 +38,10 @@ namespace LibreLancer.Interface
         }
         public string Data { get; set; }
         public int InitialWidthPercent { get; set; }
-        
+
+        public HorizontalAlignment TextAlignment { get; set; } = HorizontalAlignment.Center;
+        public bool Clip { get; set; } = true;
+
         public string GetLabel(UiContext context) => txtAccess.GetText(context);
     }
     
@@ -60,6 +63,9 @@ namespace LibreLancer.Interface
         public InterfaceColor LineDown { get; set; }
         public InterfaceColor TextShadow { get; set; }
         public int DisplayRowCount { get; set; } = 5;
+
+        public bool ShowHeaders { get; set; } = true;
+        public bool ShowColumnBorders { get; set; } = true;
 
         private ITableData data;
         private float[] dividerPositions;
@@ -109,13 +115,16 @@ namespace LibreLancer.Interface
             if (rect.Contains(context.MouseX, context.MouseY))
             {
                 if (dragging == -1) {
-                    for (int i = 0; i < dividerPositions.Length; i++)
+                    if (ShowColumnBorders)
                     {
-                        var dragRect = GetDividerRect(i, rect);
-                        if (dragRect.Contains(context.MouseX, context.MouseY))
+                        for (int i = 0; i < dividerPositions.Length; i++)
                         {
-                            dragging = i;
-                            break;
+                            var dragRect = GetDividerRect(i, rect);
+                            if (dragRect.Contains(context.MouseX, context.MouseY))
+                            {
+                                dragging = i;
+                                break;
+                            }
                         }
                     }
                 }
@@ -197,14 +206,18 @@ namespace LibreLancer.Interface
                 }
             }
             //Draw headers
-            if (columnStrings == null || columnStrings.Length != Columns.Count)
-                columnStrings = new CachedRenderString[Columns.Count];
-            for (int i = 0; i < Columns.Count; i++)
+            if (ShowHeaders)
             {
-                var c = GetCell(rect, -1, i);
-                DrawText(context, ref columnStrings[i], c, HeaderTextSize, HeaderFont, HeaderColor ?? InterfaceColor.White, TextShadow,
-                    HorizontalAlignment.Center, VerticalAlignment.Default,
-                    true, Columns[i].GetLabel(context));
+                if (columnStrings == null || columnStrings.Length != Columns.Count)
+                    columnStrings = new CachedRenderString[Columns.Count];
+                for (int i = 0; i < Columns.Count; i++)
+                {
+                    var c = GetCell(rect, -1, i);
+                    DrawText(context, ref columnStrings[i], c, HeaderTextSize, HeaderFont,
+                        HeaderColor ?? InterfaceColor.White, TextShadow,
+                        HorizontalAlignment.Center, VerticalAlignment.Default,
+                        true, Columns[i].GetLabel(context));
+                }
             }
             //Draw content
             if (data != null)
@@ -241,25 +254,29 @@ namespace LibreLancer.Interface
                         var str = data.GetContentString(row, Columns[column].Data);
                         if (string.IsNullOrWhiteSpace(str)) continue;
                         var c = GetCell(rect, row, column);
-                        DrawText(context, ref rowStrings[row][column], c, BodyTextSize, BodyFont, rowColor, TextShadow, HorizontalAlignment.Center,
-                            VerticalAlignment.Default, true, str);
+                        DrawText(context, ref rowStrings[row][column], c, BodyTextSize, BodyFont, rowColor, TextShadow, Columns[column].TextAlignment,
+                            VerticalAlignment.Default, Columns[column].Clip, str);
                     }
                 }
             }
 
             //Draw dividers
-            for (int i = 0; i < dividerPositions.Length; i++)
+            if (ShowColumnBorders)
             {
-                var x = rect.X + dividerPositions[i] * rect.Width;
-                var y1 = rect.Y;
-                var y2 = rect.Y + rect.Height;
-                InterfaceColor dragCol = (dragging == i) ? LineDown : null;
-                InterfaceColor overCol = null;
-                var dragRect = GetDividerRect(i, rect);
-                if (dragRect.Contains(context.MouseX, context.MouseY)) overCol = LineHover;
-                var color = (Cascade(LineColor ?? InterfaceColor.White, overCol, dragCol)).GetColor(context.GlobalTime);
-                context.Renderer2D.DrawLine(color, context.PointsToPixels(new Vector2(x, y1)),
-                    context.PointsToPixels(new Vector2(x, y2)));
+                for (int i = 0; i < dividerPositions.Length; i++)
+                {
+                    var x = rect.X + dividerPositions[i] * rect.Width;
+                    var y1 = rect.Y;
+                    var y2 = rect.Y + rect.Height;
+                    InterfaceColor dragCol = (dragging == i) ? LineDown : null;
+                    InterfaceColor overCol = null;
+                    var dragRect = GetDividerRect(i, rect);
+                    if (dragRect.Contains(context.MouseX, context.MouseY)) overCol = LineHover;
+                    var color =
+                        (Cascade(LineColor ?? InterfaceColor.White, overCol, dragCol)).GetColor(context.GlobalTime);
+                    context.Renderer2D.DrawLine(color, context.PointsToPixels(new Vector2(x, y1)),
+                        context.PointsToPixels(new Vector2(x, y2)));
+                }
             }
             //Draw row lines
             var lineHeight = rect.Height / (DisplayRowCount + 1);

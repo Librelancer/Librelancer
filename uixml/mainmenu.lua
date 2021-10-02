@@ -11,6 +11,11 @@ function mainmenu:ctor()
 			Game:NewGame()
 		end)
 	end)
+	scn.loadgame:OnClick(function()
+		self:ExitAnimation(function() 
+			OpenScene("loadgame")
+		end)
+	end)
 	scn.multiplayer:OnClick(function()
 		self:ExitAnimation(function()
 			OpenScene("serverlist")
@@ -37,6 +42,7 @@ function mainmenu:ExitAnimation(f)
 	e.newgame:Animate('flyoutleft', 0.2, 0.6)
 	Timer(0.8, f)
 end
+
 
 
 

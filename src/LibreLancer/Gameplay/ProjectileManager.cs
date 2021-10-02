@@ -80,8 +80,10 @@ namespace LibreLancer
             if (world.Renderer != null)
             {
                 var res = world.Renderer.Game.GetService<GameDataManager>();
+                if(gunDef.Munition.Def.MunitionHitEffect != null)
                 pdata.HitEffect = res.GetEffect(gunDef.Munition.Def.MunitionHitEffect)
                     .GetEffect(world.Renderer.ResourceManager);
+               if(gunDef.Munition.Def.ConstEffect != null)
                 pdata.TravelEffect = res.GetEffect(gunDef.Munition.Def.ConstEffect)?
                     .GetEffect(world.Renderer.ResourceManager);
             }

@@ -103,7 +103,27 @@ namespace LibreLancer
         public class MenuAPI : UiApi
         {
             LuaMenu state;
-            public MenuAPI(LuaMenu m) => state = m;
+            private SaveGameFolder saves;
+            public MenuAPI(LuaMenu m)
+            {
+                state = m;
+                saves = new SaveGameFolder(m.Game.GetSaveFolder(), m.Game.GameData.Ini.Infocards);
+            }
+
+            public SaveGameFolder SaveGames() => saves;
+            public void DeleteSelectedGame() => saves.TryDelete(saves.Selected);
+
+            public void LoadSelectedGame()
+            {
+                state.FadeOut(0.2, () =>
+                {
+                    var embeddedServer = new EmbeddedServer(state.Game.GameData);
+                    var session = new CGameSession(state.Game, embeddedServer);
+                    embeddedServer.StartFromSave(saves.SelectedFile);
+                    state.Game.ChangeState(new NetWaitState(session, state.Game));
+                });
+            }
+
             public override void NewGame()
             {
                 state.FadeOut(0.2, () =>

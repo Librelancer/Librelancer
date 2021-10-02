@@ -1,0 +1,28 @@
+<Scene>
+	<ImageFile Path="INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga" Width="640" Height="480"/>
+	<Panel Width="640" Height="480" Anchor="Center">
+		<Button X="34" Y="98" id="mainmenu" Style="menubutton" Strid="1416" ID="load" Text="LOAD GAME"/>
+		<Button X="34" Y="148" id="mainmenu" Style="menubutton" Strid="1417" ID="delete" Text="LOAD GAME"/>
+		<Button X="34" Y="200" id="mainmenu" Style="menubutton" Strid="1418" ID="goback" Text="MAIN MENU"/>
+		<Panel X="224" Y="83" Width="404" Height="341" Visible="true">
+		<Panel.Background>
+			<DisplayModel model="ls_background"/>
+		</Panel.Background>
+		<DataTable id="listtable" X="18" Y="19" Width="365" Height="300" 
+        	DisplayRowCount="17" LineColor="text" LineHover="text_hover" LineDown="yellow" HeaderColor="text"
+         	BodyColor="text" BodyHover="text_hover" SelectedColor="yellow" HeaderTextSize="13" ShowHeaders="false" ShowColumnBorders="false">
+			<DataTable.Columns>
+				<TableColumn Label="name"  Data="name" InitialWidthPercent="70" TextAlignment="left"/>
+				<TableColumn Label="date" Data="date" InitialWidthPercent="11" Clip="false" TextAlignment="Right">
+				</TableColumn>
+			</DataTable.Columns>
+		</DataTable>
+		</Panel>
+		<Panel X="18" Y="302" Width="167" Height="125">
+			<Panel.Background>
+				<DisplayModel model="front_infowindow"/>
+			</Panel.Background>
+		</Panel>
+	</Panel>
+</Scene>
+

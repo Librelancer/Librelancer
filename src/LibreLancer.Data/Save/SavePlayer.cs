@@ -73,7 +73,8 @@ namespace LibreLancer.Data.Save
     {
         [Entry("descrip_strid")] public int DescripStrid;
 
-        [Entry("description")] public string Description;
+        //HandleEntry(description)
+        public string Description;
 
         //HandleEntry (tstamp)
         public DateTime? TimeStamp;
@@ -134,6 +135,19 @@ namespace LibreLancer.Data.Save
         [Entry("tstamp")]
         void HandleTimestamp(Entry e) => TimeStamp = DateTime.FromFileTime(e[0].ToInt64() << 32 | e[1].ToInt64());
 
+        [Entry("description")]
+        void HandleDescription(Entry e)
+        {
+            try
+            {
+                var bytes = SplitInGroups(e[0].ToString(), 2).Select(x => byte.Parse(x, NumberStyles.HexNumber)).ToArray();
+                Description = Encoding.BigEndianUnicode.GetString(bytes);
+            }
+            catch (Exception)
+            {
+                Description = string.Join(',', e.Select(x => x.ToString()));
+            }
+        }
         [Entry("name")]
         void HandleName(Entry e)
         {
@@ -144,7 +158,7 @@ namespace LibreLancer.Data.Save
             }
             catch (Exception)
             {
-                Name = e[0].ToString();
+                Name = string.Join(',', e.Select(x => x.ToString()));
             }
         }
 

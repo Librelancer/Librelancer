@@ -145,6 +145,7 @@
   <Model name="inv_category_ammo" path="INTERFACE/NEURONET/INVENTORY/ammo.3db" x="0" y="0" xscale="64" yscale="64" />
   <Model name="inv_mount" path="INTERFACE/NEURONET/INVENTORY/mount.3db" x="0" y="0" xscale="96.8" yscale="103.4" />
   <Model name="inv_unmount" path="INTERFACE/NEURONET/INVENTORY/unmount.3db" x="0" y="0" xscale="96.8" yscale="103.4" />
+  <Model name="ls_background" path="INTERFACE/LOADSAVE/ls_background.cmp" x="0" y="0" xscale="3.15" yscale="3.3" />
   <Image name="sliderarrow_up" texname="HUD_sliderarrow" type="Triangle" rot="None" flip="false">
     <TexCoords>
       <X0>0.086419754</X0>
