@@ -128,7 +128,7 @@ namespace LibreLancer
 
         public string GetSaveFolder()
         {
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Librelancer");
+            return GetSaveDirectory("Librelancer", "Librelancer");
         }
 
         protected override void OnResize()

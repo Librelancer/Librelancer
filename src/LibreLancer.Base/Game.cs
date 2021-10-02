@@ -7,6 +7,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.IO;
 using System.Numerics;
 using System.Threading;
 using System.Text;
@@ -40,6 +41,52 @@ namespace LibreLancer
             width = w;
             height = h;
             mythread = Thread.CurrentThread.ManagedThreadId;
+        }
+
+        protected static string GetSaveDirectory(string OrgName, string GameName)
+        {
+            string platform = SDL.SDL_GetPlatform();
+            if (platform.Equals("Windows"))
+            {
+                return Path.Combine(
+                    Environment.GetFolderPath(
+                        Environment.SpecialFolder.MyDocuments
+                    ),
+                    "SavedGames",
+                    GameName
+                );
+            }
+            else if (platform.Equals("Mac OS X"))
+            {
+                string osConfigDir = Environment.GetEnvironmentVariable("HOME");
+                if (String.IsNullOrEmpty(osConfigDir))
+                {
+                    return "."; // Oh well.
+                }
+                osConfigDir += "/Library/Application Support";
+                return Path.Combine(osConfigDir, GameName);
+            }
+            else if (	platform.Equals("Linux") ||
+                        platform.Equals("FreeBSD") ||
+                        platform.Equals("OpenBSD") ||
+                        platform.Equals("NetBSD")	)
+            {
+                string osConfigDir = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+                if (String.IsNullOrEmpty(osConfigDir))
+                {
+                    osConfigDir = Environment.GetEnvironmentVariable("HOME");
+                    if (String.IsNullOrEmpty(osConfigDir))
+                    {
+                        return "."; // Oh well.
+                    }
+                    osConfigDir += "/.local/share";
+                }
+                return Path.Combine(osConfigDir, GameName);
+            }
+            else
+            {
+                return SDL.SDL_GetPrefPath(OrgName, GameName);
+            }
         }
 
         public int Width
