@@ -136,9 +136,14 @@ function baseside:ctor()
 	self.Elements.chat.Chat = Game:GetChats()
 end
 
+function baseside:Pause()
+	OpenModal(pausemenu())
+end
+
 function baseside:Chatbox()
    self.Elements.chatbox.Visible = true 
 end
+
 
 
 

@@ -241,6 +241,19 @@ namespace LibreLancer.Interface
             return handle;
         }
 
+        public void SwapModal(UiWidget widget, int handle)
+        {
+            widget.ApplyStylesheet(Data.Stylesheet);
+            for (int i = 0; i < modals.Count; i++)
+            {
+                if (modals[i].Handle == handle)
+                {
+                    modals[i].Widget = widget;
+                    break;
+                }
+            }
+        }
+
         public void CloseModal(int handle)
         {
             for (int i = 0; i < modals.Count; i++)

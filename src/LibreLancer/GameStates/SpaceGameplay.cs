@@ -55,6 +55,10 @@ World Time: {12:F2}
         private UiContext ui;
         private UiWidget widget;
         private LuaAPI uiApi;
+
+        private bool pausemenu = false;
+        private bool paused = false;
+
 		public SpaceGameplay(FreelancerGame g, CGameSession session) : base(g)
 		{
 			FLLog.Info("Game", "Entering system " + session.PlayerSystem);
@@ -69,6 +73,7 @@ World Time: {12:F2}
 
         void FinishLoad()
         {
+            Game.Saves.Selected = -1;
             ui.OpenScene("hud");
             var shp = Game.GameData.GetShip(session.PlayerShip);
             //Set up player object + camera
@@ -151,6 +156,40 @@ World Time: {12:F2}
             public LuaAPI(SpaceGameplay gameplay)
             {
                 this.g = gameplay;   
+            }
+
+            public bool IsMultiplayer() => g.session.Multiplayer;
+            
+            public SaveGameFolder SaveGames() => g.Game.Saves;
+            public void DeleteSelectedGame() => g.Game.Saves.TryDelete(g.Game.Saves.Selected);
+
+            public void LoadSelectedGame()
+            {
+                g.FadeOut(0.2, () =>
+                {
+                    g.session.OnExit();
+                    var embeddedServer = new EmbeddedServer(g.Game.GameData);
+                    var session = new CGameSession(g.Game, embeddedServer);
+                    embeddedServer.StartFromSave(g.Game.Saves.SelectedFile);
+                    g.Game.ChangeState(new NetWaitState(session, g.Game));
+                });
+            }
+
+            public void SaveGame(string description)
+            {
+                g.session.Save(description);
+            }
+
+            public void Resume()
+            {
+                g.session.Resume();
+                g.pausemenu = false;
+                g.paused = false;
+            }
+            
+            public void QuitToMenu()
+            {
+                g.session.QuitToMenu();
             }
             public Maneuver[] GetManeuvers()
             {
@@ -263,6 +302,14 @@ World Time: {12:F2}
             else
             {
                 if(e.Key == Keys.Enter) ui.ChatboxEvent();
+                if (!pausemenu && e.Key == Keys.F1)
+                {
+                    pausemenu = true;
+                    if(!session.Multiplayer) 
+                        paused = true;
+                    session.Pause();
+                    ui.Event("Pause");
+                }
                 #if DEBUG
                 if (e.Key == Keys.R && (e.Modifiers & KeyModifiers.Control) != 0)
                     world.RenderDebugPoints = !world.RenderDebugPoints;
@@ -344,12 +391,12 @@ World Time: {12:F2}
                 Game.DisableTextInput();
             if (Thn != null && Thn.Running)
             {
-                Thn.Update(delta);
+                Thn.Update(paused ? 0 : delta);
                 sysrender.Camera = Thn.CameraHandle;
             }
             else
                 sysrender.Camera = camera;
-			world.Update(delta);
+			world.Update(paused ? 0 : delta);
             if (frameCount < 2)
             {
                 frameCount++;
@@ -378,7 +425,7 @@ World Time: {12:F2}
 
 		void Input_ToggleActivated(int id)
 		{
-			if (ui.KeyboardGrabbed) return;
+			if (ui.KeyboardGrabbed || paused) return;
 			switch (id)
 			{
 				case InputAction.ID_TOGGLECRUISE:
@@ -395,7 +442,7 @@ World Time: {12:F2}
 
 		void Input_ToggleUp(int obj)
 		{
-            if (ui.KeyboardGrabbed) return;
+            if (ui.KeyboardGrabbed || paused) return;
             if (obj == InputAction.ID_THRUST)
 				control.ThrustEnabled = false;
 		}
@@ -414,7 +461,8 @@ World Time: {12:F2}
 		const float ACCEL = 85;
 		GameObject selected;
 		void ProcessInput(double delta)
-		{
+        {
+            if (paused) return;
 			input.Update();
 
 			if (!ui.KeyboardGrabbed)
@@ -601,6 +649,7 @@ World Time: {12:F2}
             );
             return (windowSpace, ndc.Z < 1);
         }
+
 
 		//RigidBody debugDrawBody;
 		public override void Draw(double delta)

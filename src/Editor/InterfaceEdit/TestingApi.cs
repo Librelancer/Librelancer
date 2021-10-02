@@ -55,7 +55,7 @@ namespace InterfaceEdit
         public string CurrentDescription()
         {
             if (Selected < 0) return "";
-            return "Server Description";
+            return ((char) ('a' + Selected)).ToString();
         }
 
         public bool ValidSelection()
@@ -117,6 +117,14 @@ namespace InterfaceEdit
         public TestSaveGameList SaveGames() => _testSaveGames;
 
         public void LoadSelectedGame()
+        {
+        }
+
+        public void Resume()
+        {
+        }
+
+        public void QuitToMenu()
         {
         }
 

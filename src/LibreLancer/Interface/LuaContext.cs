@@ -170,6 +170,7 @@ namespace LibreLancer.Interface
             public void PlaySound(string snd) => c.uiContext.PlaySound(snd);
             public void SetWidget(UiWidget widget) => c.uiContext.SetWidget(widget);
             public int OpenModal(UiWidget widget) => c.uiContext.OpenModal(widget);
+            public void SwapModal(UiWidget widget, int handle) => c.uiContext.SwapModal(widget, handle);
             public void CloseModal(int handle) => c.uiContext.CloseModal(handle);
             public InterfaceColor GetColor(string col) => c.uiContext.Data.GetColor(col);
             public InterfaceModel GetModel(string mdl) => c.uiContext.Data.Resources.Models.First(x => x.Name == mdl);

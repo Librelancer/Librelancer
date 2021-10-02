@@ -40,6 +40,7 @@ namespace LibreLancer
 #if DEBUG
             g.Keyboard.KeyDown += Keyboard_KeyDown;
 #endif
+            Game.Saves.Selected = -1;
             FadeIn(0.1, 0.3);
         }
 
@@ -103,15 +104,13 @@ namespace LibreLancer
         public class MenuAPI : UiApi
         {
             LuaMenu state;
-            private SaveGameFolder saves;
             public MenuAPI(LuaMenu m)
             {
                 state = m;
-                saves = new SaveGameFolder(m.Game.GetSaveFolder(), m.Game.GameData.Ini.Infocards);
             }
 
-            public SaveGameFolder SaveGames() => saves;
-            public void DeleteSelectedGame() => saves.TryDelete(saves.Selected);
+            public SaveGameFolder SaveGames() => state.Game.Saves;
+            public void DeleteSelectedGame() => state.Game.Saves.TryDelete(state.Game.Saves.Selected);
 
             public void LoadSelectedGame()
             {
@@ -119,7 +118,7 @@ namespace LibreLancer
                 {
                     var embeddedServer = new EmbeddedServer(state.Game.GameData);
                     var session = new CGameSession(state.Game, embeddedServer);
-                    embeddedServer.StartFromSave(saves.SelectedFile);
+                    embeddedServer.StartFromSave(state.Game.Saves.SelectedFile);
                     state.Game.ChangeState(new NetWaitState(session, state.Game));
                 });
             }

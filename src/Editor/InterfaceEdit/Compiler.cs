@@ -50,6 +50,15 @@ function OpenModal(m)
     end 
 end
 
+function SwapModal(m, m2)
+    if m._modalinfo == nil or m2._modalinfo == nil then
+        error('Class is not modal type')
+    else
+        m2._modalinfo.closehandle = m._modalinfo.closehandle
+        Funcs:SwapModal(m2.Widget, m._modalinfo.closehandle)
+    end
+end
+
 local function m_modalinit(self)
     self._modalinfo = {}
 end

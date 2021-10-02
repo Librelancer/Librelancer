@@ -159,10 +159,17 @@ namespace LibreLancer.Interface
                     if (c.Contains(context.MouseX, context.MouseY))
                     {
                         data.Selected = row;
+                        onSelect?.Invoke();
                         break;
                     }
                 }
             }
+        }
+
+        private Action onSelect;
+        public void OnItemSelected(Closure c)
+        {
+            onSelect = () => c.Call();
         }
         public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
         {

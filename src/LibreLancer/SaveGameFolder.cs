@@ -29,8 +29,7 @@ namespace LibreLancer
             if (row < 0 || row >= files.Count) return "";
             if (column == "name")
             {
-                return files[row].Save.Player.Description ??
-                       infocards.GetStringResource(files[row].Save.Player.DescripStrid);
+                return GetDescription(row);
             }
             else if (column == "date")
             {
@@ -41,10 +40,18 @@ namespace LibreLancer
             return "[invalid]";
         }
 
+        string GetDescription(int row)
+        {
+            return files[row].Save.Player.Description ??
+                   infocards.GetStringResource(files[row].Save.Player.DescripStrid);
+        }
+
+        private string folder;
         public SaveGameFolder(string folder, InfocardManager infocards)
         {
             FLLog.Info("Save", $"Loading folder {folder}");
             this.infocards = infocards;
+            this.folder = folder;
             if (Directory.Exists(folder)) {
                 files = LoadFiles(folder).OrderByDescending(x => x.Save.Player.TimeStamp.HasValue)
                     .ThenByDescending(x => x.Save.Player.TimeStamp).ToList();
@@ -54,6 +61,14 @@ namespace LibreLancer
                 files = new List<SaveGameFile>();
                 FLLog.Info("Save", "Folder does not exist");
             }
+        }
+
+        public void AddFile(string path)
+        {
+            Selected = -1;
+            files.Add(new SaveGameFile() { Path = path, Save = SaveGame.FromFile(path)});
+            files = files.OrderByDescending(x => x.Save.Player.TimeStamp.HasValue)
+                .ThenByDescending(x => x.Save.Player.TimeStamp).ToList();
         }
 
         static IEnumerable<SaveGameFile> LoadFiles(string folder)
@@ -90,6 +105,11 @@ namespace LibreLancer
                 Selected = -1;
             }
             catch { }
+        }
+
+        public string CurrentDescription()
+        {
+            return ValidSelection() ? GetDescription(Selected) : "";
         }
 
         public bool ValidSelection()

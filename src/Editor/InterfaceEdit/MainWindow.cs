@@ -42,6 +42,11 @@ namespace InterfaceEdit
             new MaterialMap();
             Fonts = new FontManager();
             LibreLancer.Shaders.AllShaders.Compile();
+            Keyboard.KeyDown += args =>
+            {
+                if (playing && args.Key == Keys.F1)
+                    _playContext.Event("Pause");
+            };
         }
 
         List<DockTab> tabs = new List<DockTab>();

@@ -1,17 +1,26 @@
 <Scene>
-	<ImageFile Path="INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga" id="fllogo" Width="640" Height="480"/>
-	<Scene Visible="false" id="backdrop"><Scene.Background><DisplayColor color="rgba(0,0,0,0.25)"/></Scene.Background></Scene>
+	<Scene.Background><DisplayColor color="rgba(0,0,0,0.25)"/></Scene.Background>
 	<Panel Width="640" Height="480" Anchor="Center">
-		<Button X="34" Y="98" id="mainmenu" Style="menubutton" Strid="1416" ID="load" Text="LOAD GAME"/>
+		<Button X="34" Y="98" id="mainmenu" Style="menubutton" Strid="1415" ID="save" Text="SAVE GAME"/>
 		<Button X="34" Y="148" id="mainmenu" Style="menubutton" Strid="1417" ID="delete" Text="LOAD GAME"/>
 		<Button X="34" Y="200" id="mainmenu" Style="menubutton" Strid="1418" ID="goback" Text="MAIN MENU"/>
-		<Button X="34" Y="252" id="mainmenu" Style="menubutton" Strid="1419" ID="resume" Text="RETURN TO GAME" Visible="false"/>
+		<Button X="34" Y="252" id="mainmenu" Style="menubutton" Strid="1419" ID="resume" Text="RETURN TO GAME"/>
 		<Panel X="224" Y="83" Width="404" Height="341" Visible="true">
 		<Panel.Background>
 			<DisplayModel model="ls_background"/>
 		</Panel.Background>
-		<DataTable id="listtable" X="18" Y="10" Width="365" Height="309" 
-        	DisplayRowCount="21" LineColor="text" LineHover="text_hover" LineDown="yellow" HeaderColor="text"
+		<TextBlock Font="PlayerName" TextColor="text" TextShadow="black" Anchor="TopCenter" Width="300" Height="40" Strid="1426" Text="SAVE GAME DESCRIPTION" Y="45" TextSize="11" />
+		<TextEntry id="content" Anchor="TopCenter" Y="20" Width="360" Height="30"
+        Font="PlayerName" TextColor="text" TextShadow="black">
+        	<TextEntry.Border>
+        		<DisplayRectangle color="text"/>
+        	</TextEntry.Border>
+            <TextEntry.FocusedBorder>
+                <DisplayRectangle color="yellow"/>
+            </TextEntry.FocusedBorder>
+        </TextEntry>
+		<DataTable id="listtable" X="18" Y="80" Width="365" Height="229" 
+        	DisplayRowCount="16" LineColor="text" LineHover="text_hover" LineDown="yellow" HeaderColor="text"
          	BodyColor="text" BodyTextSize="8" BodyHover="text_hover" SelectedColor="yellow" HeaderTextSize="13" ShowHeaders="false" ShowColumnBorders="false">
 			<DataTable.Columns>
 				<TableColumn Label="name"  Data="name" InitialWidthPercent="70" TextAlignment="left"/>
@@ -27,6 +36,8 @@
 		</Panel>
 	</Panel>
 </Scene>
+
+
 
 
 

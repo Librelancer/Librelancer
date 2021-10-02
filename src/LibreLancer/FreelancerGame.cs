@@ -25,6 +25,7 @@ namespace LibreLancer
 		public Billboards Billboards;
 		public NebulaVertices Nebulae;
 		public ScreenshotManager Screenshots;
+        public SaveGameFolder Saves;
 		public List<string> IntroMovies;
 		public string MpvOverride;
 		public bool InitialLoadComplete = false;
@@ -96,6 +97,7 @@ namespace LibreLancer
                 Sound = new SoundManager(GameData, Audio);
                 Services.Add(Sound);
                 FLLog.Info("Game", "Finished loading game data");
+                Saves = new SaveGameFolder(GetSaveFolder(), GameData.Ini.Infocards);
                 InitialLoadComplete = true;
             });
             GameDataLoaderThread.Name = "GamedataLoader";

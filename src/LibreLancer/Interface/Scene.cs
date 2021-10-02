@@ -14,9 +14,12 @@ namespace LibreLancer.Interface
     {
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
-            Update(context, Vector2.Zero);
-            Background?.Draw(context, parentRectangle);
-            base.Render(context, parentRectangle);
+            if (Visible)
+            {
+                Update(context, Vector2.Zero);
+                Background?.Draw(context, parentRectangle);
+                base.Render(context, parentRectangle);
+            }
         }
         
         private Stylesheet currentSheet;

@@ -208,7 +208,7 @@ namespace LibreLancer.Interface
         }
         public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
         {
-            if (!Visible) return;
+            if (!Visible || !Enabled) return;
             if (CurrentAnimation != null) return;
             var myRect = GetMyRectangle(context, parentRectangle);
             if (myRect.Contains(context.MouseX, context.MouseY)) {

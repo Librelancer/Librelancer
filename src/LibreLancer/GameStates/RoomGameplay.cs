@@ -54,6 +54,8 @@ namespace LibreLancer
             Enter,
             Launch
         }
+
+        private bool paused = false;
         
         public RoomGameplay(FreelancerGame g, CGameSession session, string newBase, BaseRoom room = null, string virtualRoom = null) : base(g)
         {
@@ -124,9 +126,39 @@ namespace LibreLancer
                 articles = g.session.News;
                 Trader = new Trader(g.session);
             }
+            
+            public SaveGameFolder SaveGames() => g.Game.Saves;
+            public void DeleteSelectedGame() => g.Game.Saves.TryDelete(g.Game.Saves.Selected);
+
+            public void LoadSelectedGame()
+            {
+                g.FadeOut(0.2, () =>
+                {
+                    g.session.OnExit();
+                    var embeddedServer = new EmbeddedServer(g.Game.GameData);
+                    var session = new CGameSession(g.Game, embeddedServer);
+                    embeddedServer.StartFromSave(g.Game.Saves.SelectedFile);
+                    g.Game.ChangeState(new NetWaitState(session, g.Game));
+                });
+            }
+
+            public void SaveGame(string description)
+            {
+                g.session.Save(description);
+            }
+            
+            public void Resume()
+            {
+                g.paused = false;
+            }
+
+            public void QuitToMenu()
+            {
+                g.session.QuitToMenu();
+            }
 
             public NewsArticle[] GetNewsArticles() => articles;
-            public bool IsMultiplayer() => false;
+            public bool IsMultiplayer() => g.session.Multiplayer;
             public void HotspotPressed(string item) => g.Hud_OnManeuverSelected(item);
             public string ActiveNavbarButton() => g.active;
 
@@ -277,7 +309,7 @@ namespace LibreLancer
 			}
 			else
 			{
-                if (e.Key == Keys.Escape)
+                if (e.Key == Keys.Escape && !paused)
                 {
                     switch (currentState)
                     {
@@ -293,9 +325,14 @@ namespace LibreLancer
                             break;
                     }
                 }
-				if (e.Key == Keys.Enter)
+				if (e.Key == Keys.Enter && !paused)
                 {
                     ui.ChatboxEvent();
+                }
+                if (e.Key == Keys.F1 && !paused)
+                {
+                    paused = true;
+                    ui.Event("Pause");
                 }
 			}
 		}
@@ -326,6 +363,7 @@ namespace LibreLancer
         
 		void SwitchToRoom(bool dolanding)
         {
+            Game.Saves.Selected = -1;
             session.RoomEntered(virtualRoom ?? currentRoom.Nickname, currentBase.Nickname);
 			if (currentRoom.Music == null)
 			{
@@ -473,7 +511,10 @@ namespace LibreLancer
             ProcessCutscenes();
             if (scene != null) {
                 scene.UpdateViewport(Game.Viewport);
-                scene.Update(firstFrame ? 0 : delta);
+                if(paused)
+                    scene.Update(0);
+                else
+                    scene.Update(firstFrame ? 0 : delta);
             }
             firstFrame = false;
             ui.Update(Game);
@@ -484,8 +525,8 @@ namespace LibreLancer
         }
 
 
-        
-		public override void Draw(double delta)
+
+        public override void Draw(double delta)
         {
             RenderMaterial.VertexLighting = true;
             if (scene != null)

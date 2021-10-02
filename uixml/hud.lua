@@ -126,9 +126,14 @@ function hud:Update()
 	end
 end
 
+function hud:Pause()
+	OpenModal(pausemenu())
+end
+
 function hud:Chatbox()
    self.Elements.chatbox.Visible = true 
 end
+
 
 
 

@@ -32,7 +32,7 @@ namespace LibreLancer
                 builder.Append("base = ").AppendLine(ch.Base);
             if (!string.IsNullOrWhiteSpace(ch.System))
                 builder.Append("system = ").AppendLine(ch.System);
-            builder.Append("position = ").AppendLine(Vector3(ch.Position));
+            builder.Append("pos = ").AppendLine(Vector3(ch.Position));
             builder.Append("money = ").AppendLine(ch.Credits.ToString());
             if (ch.Ship != null)
                 builder.Append("ship_archetype = ").AppendLine(ch.Ship.Nickname);

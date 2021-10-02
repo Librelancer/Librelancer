@@ -6,6 +6,8 @@ using System;
 using System.Numerics;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 using LibreLancer.Data.Missions;
 using LibreLancer.GameData.Items;
 using LibreLancer.Interface;
@@ -50,6 +52,51 @@ namespace LibreLancer
         public double SpawnTime; //server time at time of spawn
         private double tOffset; //game time at time of spawn
         public double WorldTime => Game.TotalTime - tOffset + SpawnTime;
+
+        public bool Multiplayer => connection is GameNetClient;
+
+        public void Pause()
+        {
+            (connection as EmbeddedServer)?.Server.LocalPlayer.World?.Pause();
+        }
+
+        public void Resume()
+        {
+            (connection as EmbeddedServer)?.Server.LocalPlayer.World?.Resume();
+        }
+
+        private const string SAVE_ALPHABET = "01234567890abcdefghijklmnopqrstuvwxyz";
+        static string Encode(long number)
+        {
+            if(number < 0)
+                throw new ArgumentException();
+            var builder = new StringBuilder();
+            var divisor = (long) SAVE_ALPHABET.Length;
+            while (number > 0)
+            {
+                number = Math.DivRem(number, divisor, out var rem);
+                builder.Append(SAVE_ALPHABET[(int) rem]);
+            }
+            return new string(builder.ToString().Reverse().ToArray());
+        }
+
+        public void Save(string description)
+        {
+            var filename = $"Save0{Encode(DateTimeOffset.Now.ToUnixTimeSeconds())}.fl";
+            if (string.IsNullOrWhiteSpace(description)) description = "Save";
+            var folder = Game.GetSaveFolder();
+            var path = Path.Combine(folder, filename);
+            int i = 0;
+            while (File.Exists(path)) {
+                filename = $"Save0{Encode(DateTimeOffset.Now.ToUnixTimeSeconds())}{i++}.fl";
+                path = Path.Combine(folder, filename);
+            }
+            if (connection is EmbeddedServer es)
+            {
+                es.Save(path, description, false);
+                Game.Saves.AddFile(path);
+            }
+        }
 
         public CGameSession(FreelancerGame g, IPacketConnection connection)
 		{
@@ -553,6 +600,12 @@ namespace LibreLancer
 
         public void Disconnected()
         {
+            Game.ChangeState(new LuaMenu(Game));
+        }
+
+        public void QuitToMenu()
+        {
+            connection.Shutdown();
             Game.ChangeState(new LuaMenu(Game));
         }
 

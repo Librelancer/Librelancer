@@ -1,7 +1,7 @@
 <Stylesheet>
 	<!-- Generic buttons -->
 	<ButtonStyle Width="16" Height="16" Name="wirebutton">
-		<ButtonStyle.Normal>
+		<ButtonStyle.Normal TextColor="text" TextShadow="black">
 			<ButtonAppearance.Background>
 				<DisplayWireBorder color="text"/>
 			</ButtonAppearance.Background>
@@ -494,6 +494,7 @@
 		</HSliderStyle.Thumb>
 	</HSliderStyle>
 </Stylesheet>
+
 
 
 

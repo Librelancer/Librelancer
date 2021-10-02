@@ -1,0 +1,17 @@
+<Scene>
+<Scene.Background><DisplayColor color="rgba(0,0,0,0.25)"/></Scene.Background>
+<Panel Width="640" Height="480" Anchor="Center">
+
+<Panel Width="310" Height="315" Anchor="Center" Y="-6">
+	<Panel.Background><DisplayModel model="escapewindow"/></Panel.Background>
+	<TextBlock X="46" Y="10" TextColor="text" TextShadow="black" Width="219" Height="37" TextSize="13" Text="GAME PAUSED"/>
+	<Button style="wirebutton" id="resume" Width="219" Height="37" X="46" Y="53" TextSize="13" Strid="1821" Text="RESUME GAME"/>
+	<Button style="wirebutton" id="savegame" Width="219" Height="37" X="46" Y="104" TextSize="13" Strid="1822" Text="SAVE GAME"/>
+	<Button style="wirebutton" id="loadgame" Width="219" Height="37" X="46" Y="155" TextSize="13" Strid="1823" Text="LOAD GAME"/>
+	<Button style="wirebutton" id="options" Width="219" Height="37" X="46" Y="206" TextSize="13" Strid="1824" Text="OPTIONS"/>
+	<Button style="wirebutton" id="quittomenu" Width="219" Height="37" X="46" Y="257" TextSize="13" Strid="1825" Text="QUIT TO MAIN MENU"/>
+</Panel>
+</Panel>
+</Scene>
+
+

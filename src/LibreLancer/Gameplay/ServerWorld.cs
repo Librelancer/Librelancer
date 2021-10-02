@@ -35,6 +35,18 @@ namespace LibreLancer
                 return retVal;
             }
         }
+
+        private bool paused = false;
+
+        public void Pause()
+        {
+            EnqueueAction(() => paused = true);
+        }
+
+        public void Resume()
+        {
+            EnqueueAction(() => paused = false);
+        }
         
         public ServerWorld(GameData.StarSystem system, GameServer server)
         {
@@ -247,6 +259,7 @@ namespace LibreLancer
         private double maxNoPlayers = 2.0;
         public bool Update(double delta)
         {
+            if (paused) return true;
             TotalTime += delta;
             //Avoid locks during Update
             Action act;
