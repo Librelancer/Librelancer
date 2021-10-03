@@ -28,6 +28,9 @@ namespace LibreLancer
 
         public void FireAll()
         {
+            if (Parent.TryGetComponent<ShipPhysicsComponent>(out var flight) &&
+                (flight.EngineState == EngineStates.Cruise || flight.EngineState == EngineStates.CruiseCharging))
+                return;
             foreach(var wp in Parent.GetChildComponents<WeaponComponent>())
             {
                 wp.Fire(AimPoint);

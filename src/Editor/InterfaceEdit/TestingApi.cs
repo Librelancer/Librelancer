@@ -154,6 +154,8 @@ namespace InterfaceEdit
         public void StopNetworking()
         {
         }
+
+        public int CruiseCharge() => 25;
         
         public void PopulateNavmap(Navmap nav) {}
         

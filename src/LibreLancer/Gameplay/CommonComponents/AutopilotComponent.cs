@@ -104,6 +104,14 @@ namespace LibreLancer
             var myRadius = Parent.PhysicsComponent.Body.Collider.Radius;
 			var distance = (targetPoint - Parent.PhysicsComponent.Body.Position).Length();
 
+            if (distance > 1000)
+            {
+                control.BeginCruise();
+            }
+            else if (distance < 600)
+            {
+                control.EndCruise();
+            }
 			var distrad = radius < 0 ? (targetRadius + myRadius + 40) : radius + myRadius;
 			bool distanceSatisfied =  distrad >= distance;
 			if (distanceSatisfied)

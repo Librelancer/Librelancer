@@ -12,6 +12,8 @@ namespace LibreLancer
     public class AttachedSound
     {
         public bool Active;
+        public bool PlayOnce;
+        public bool Played = false;
         public string Sound;
         public AudioEntry Entry;
         public Vector3 Position;
@@ -21,9 +23,10 @@ namespace LibreLancer
         public SoundInstance Instance;
         private SoundManager manager;
         
-        public AttachedSound(SoundManager manager)
+        public AttachedSound(SoundManager manager, bool playOnce = false)
         {
             this.manager = manager;
+            PlayOnce = playOnce;
         }
 
         public void Update()
@@ -37,6 +40,11 @@ namespace LibreLancer
                     EnsureStopped();
                 else
                     TryMakeActive();
+                if (PlayOnce && Played && !(Instance?.Playing ?? false))
+                {
+                    EnsureStopped();
+                    Active = false;
+                }
             }
             else
                 EnsureStopped();
@@ -52,13 +60,15 @@ namespace LibreLancer
         }
         void TryMakeActive()
         {
+            if (PlayOnce && Played) return;
             if (Instance == null)
             {
                 Instance = manager.GetInstance(Sound, Entry.Attenuation, -1, 1, Position);
                 if (Instance != null)
                 {
                     Instance.SetPitch(Pitch);
-                    Instance.Play(true);
+                    Instance.Play(!PlayOnce);
+                    Played = true;
                 }
             }
         }

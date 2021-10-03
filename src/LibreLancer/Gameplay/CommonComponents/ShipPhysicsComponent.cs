@@ -34,6 +34,7 @@ namespace LibreLancer
         public bool ThrustEnabled = false;
         public EngineStates EngineState = EngineStates.Standard;
         public StrafeControls CurrentStrafe = StrafeControls.None;
+        public float ChargePercent;
         public float Pitch; //From -1 to 1
         public float Yaw; //From -1 to 1
         public float Roll; //From -1 to 1
@@ -41,6 +42,34 @@ namespace LibreLancer
         public float PlayerPitch;
         public float PlayerYaw;
         PIDController rollPID = new PIDController() { P = 2 };
+
+        public void CruiseToggle()
+        {
+            if (EngineState == EngineStates.Cruise ||
+                EngineState == EngineStates.CruiseCharging)
+            {
+                EngineState = EngineStates.Standard;
+            }
+            else
+            {
+                BeginCruise();
+            }
+        }
+
+        public void EndCruise()
+        {
+            EngineState = EngineStates.Standard;
+        }
+
+        public void BeginCruise()
+        {
+            if (EngineState != EngineStates.Cruise &&
+                EngineState != EngineStates.CruiseCharging)
+            {
+                EngineState = EngineStates.CruiseCharging;
+                ChargePercent = 0f;
+            }
+        }
 
         public ShipPhysicsComponent(GameObject parent) : base(parent)
         {
@@ -59,6 +88,9 @@ namespace LibreLancer
             if (power == null) return;
             //Drag = -linearDrag * Velocity
             var drag = -engine.Engine.Def.LinearDrag * Parent.PhysicsComponent.Body.LinearVelocity;
+            if (EngineState == EngineStates.CruiseCharging) {
+                EnginePower = 1f;
+            }
             var engine_force = EnginePower * engine.Engine.Def.MaxForce;
             power.CurrentThrustCapacity += power.Equip.ThrustChargeRate * (float)(time);
             power.CurrentThrustCapacity = MathHelper.Clamp(power.CurrentThrustCapacity, 0, power.Equip.ThrustCapacity);
@@ -77,7 +109,17 @@ namespace LibreLancer
                     if (power.CurrentThrustCapacity == 0) ThrustEnabled = false;
                 }
             }
-            if (EngineState == EngineStates.Cruise)
+
+            if (EngineState == EngineStates.CruiseCharging) {
+                EnginePower = 1f;
+                ChargePercent += (1.0f / engine.Engine.Def.CruiseChargeTime) * (float)time;
+                if (ChargePercent >= 1.0f)
+                {
+                    EngineState = EngineStates.Cruise;
+                }
+                engine.Speed = 0.9f + (ChargePercent * 0.1f);
+            }
+            else if (EngineState == EngineStates.Cruise)
             { //Cruise has entirely different force calculation
                 engine_force = Ship.CruiseSpeed * engine.Engine.Def.LinearDrag;
                 //Set fx sparam. TODO: This is poorly named

@@ -15,12 +15,13 @@ namespace LibreLancer
         private AttachedSound rumble;
         private AttachedSound character;
         private AttachedSound cruiseLoop;
+        private AttachedSound cruiseStart;
+        private AttachedSound cruiseEnd;
 		GameObject parent;
 		public CEngineComponent(GameObject parent, EngineEquipment engine) : base(parent)
 		{
             this.parent = parent;
 			Engine = engine;
-            Speed = 1f;
         }
 
         float PitchFromRange(Vector2 range)
@@ -45,7 +46,7 @@ namespace LibreLancer
             }
             if (rumble != null)
             {
-                if (Speed > 0.91f) {
+                if (Speed > 0.901f) {
                     rumble.Active = false;
                 }
                 else {
@@ -60,7 +61,7 @@ namespace LibreLancer
 
             if (character != null)
             {
-                if (Speed > 0.91f) {
+                if (Speed > 0.901f) {
                     character.Active = false;
                 }
                 else {                    
@@ -74,15 +75,47 @@ namespace LibreLancer
 
             if (cruiseLoop != null)
             {
-                if (Speed < 0.98f) {
+                if (Speed < 0.995f) {
+                    if (cruiseLoop.Active)
+                    {
+                        cruiseEnd.Active = true;
+                    }
                     cruiseLoop.Active = false;
                 }
-                else {
+                else
+                {
+                    cruiseEnd.Active = false;
+                    cruiseEnd.Played = false;
                     cruiseLoop.Active = true;
                     cruiseLoop.Position = pos;
                     cruiseLoop.Velocity = vel;
                 }
                 cruiseLoop.Update();
+            }
+
+            if (cruiseStart != null)
+            {
+                if (Speed <= 0.9f || Speed >= 0.995f)
+                {
+                    cruiseStart.Active = false;
+                    cruiseStart.Played = false;
+                }
+                else
+                {
+                    cruiseEnd.Active = false;
+                    cruiseEnd.Played = false;
+                    cruiseStart.Active = true;
+                    cruiseStart.Position = pos;
+                    cruiseStart.Velocity = vel;
+                }
+                cruiseStart.Update();
+            }
+            
+            if (cruiseEnd != null)
+            {
+                cruiseEnd.Position = pos;
+                cruiseEnd.Velocity = vel;
+                cruiseEnd.Update();
             }
             for (int i = 0; i < fireFx.Count; i++)
 				fireFx[i].Update(parent, time, Speed);
@@ -137,6 +170,22 @@ namespace LibreLancer
                     cruiseLoop = new AttachedSound(sound)
                     {
                         Active = false, Sound = Engine.Def.CruiseLoopSound
+                    };
+                }
+                if (!string.IsNullOrWhiteSpace(Engine.Def.CruiseStartSound))
+                {
+                    cruiseStart = new AttachedSound(sound)
+                    {
+                        Active = false, Sound = Engine.Def.CruiseStartSound,
+                        PlayOnce = true
+                    };
+                }
+                if (!string.IsNullOrWhiteSpace(Engine.Def.CruiseStopSound))
+                {
+                    cruiseEnd = new AttachedSound(sound)
+                    {
+                        Active = false, Sound = Engine.Def.CruiseStopSound,
+                        PlayOnce = true
                     };
                 }
             }

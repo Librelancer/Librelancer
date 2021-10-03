@@ -158,6 +158,7 @@ World Time: {12:F2}
                 this.g = gameplay;   
             }
 
+            public int CruiseCharge() => g.control.EngineState == EngineStates.CruiseCharging ? (int)(g.control.ChargePercent * 100) : -1;
             public bool IsMultiplayer() => g.session.Multiplayer;
             
             public SaveGameFolder SaveGames() => g.Game.Saves;
@@ -405,12 +406,10 @@ World Time: {12:F2}
             }
 		}
 
-		bool cruise = false;
 		bool thrust = false;
 
 		void World_PhysicsUpdate(double delta)
 		{
-			control.EngineState = cruise ? EngineStates.Cruise : EngineStates.Standard;
             if(Thn == null || !Thn.Running)
 			    ProcessInput(delta);
             //Has to be here or glitches
@@ -429,7 +428,7 @@ World Time: {12:F2}
 			switch (id)
 			{
 				case InputAction.ID_TOGGLECRUISE:
-					cruise = !cruise;
+                    control.CruiseToggle();
 					break;
 				case InputAction.ID_TOGGLEMOUSEFLIGHT:
 					mouseFlight = !mouseFlight;

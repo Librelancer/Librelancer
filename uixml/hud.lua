@@ -1,3 +1,5 @@
+require 'ids.lua'
+
 local function ModelRenderable(model, tint)
 	local renderable = NewObject('UiRenderable')
 	local modelElem = NewObject('DisplayModel')
@@ -101,6 +103,13 @@ function hud:Update()
 	e.hullgauge.PercentFilled = Game:GetPlayerHealth()
 	e.powergauge.PercentFilled = Game:GetPlayerPower()
 	e.shieldgauge.PercentFilled = Game:GetPlayerShield()
+	local cruise = Game:CruiseCharge()
+	if cruise >= 0 then
+		e.cruisecharge.Text = StringFromID(STRID_CRUISE_CHARGING) .. " - " .. cruise .. "%"
+		e.cruisecharge.Visible = true
+	else
+		e.cruisecharge.Visible = false
+	end
 	if Game:SelectionVisible() then
 		local pos = Game:SelectionPosition()
 		e.selection.Visible = true
@@ -133,6 +142,7 @@ end
 function hud:Chatbox()
    self.Elements.chatbox.Visible = true 
 end
+
 
 
 

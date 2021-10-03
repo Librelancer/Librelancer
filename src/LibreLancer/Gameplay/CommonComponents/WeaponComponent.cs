@@ -103,6 +103,9 @@ namespace LibreLancer
 
         public void Fire(Vector3 point)
         {
+            if (Parent.Parent.TryGetComponent<ShipPhysicsComponent>(out var flight) &&
+                (flight.EngineState == EngineStates.Cruise || flight.EngineState == EngineStates.CruiseCharging))
+                return;
             if (CurrentCooldown > 0) return;
             if (projectiles == null) {
                 hpfires = Parent.GetHardpoints().Where((x) => x.Name.StartsWith("hpfire", StringComparison.CurrentCultureIgnoreCase)).ToArray();

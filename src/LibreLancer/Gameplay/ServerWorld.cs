@@ -376,6 +376,10 @@ namespace LibreLancer
                     update.HasPosition = true;
                     var tr = obj.WorldTransform;
                     update.Position = Vector3.Transform(Vector3.Zero, tr);
+                    if (obj.TryGetComponent<SEngineComponent>(out var engine))
+                    {
+                        update.EngineThrottlePct = (byte) (engine.Speed * 255f);
+                    }
                     update.HasOrientation = true;
                     update.Orientation = tr.ExtractRotation();
                     if (obj.TryGetComponent<HealthComponent>(out var health))
