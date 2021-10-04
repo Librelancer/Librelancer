@@ -48,16 +48,16 @@ namespace LancerEdit
                 rid = ImGuiHelper.RegisterTexture(renderTarget.Texture);
             }
 
-            window.RenderState.RenderTarget = renderTarget;
+            window.RenderContext.RenderTarget = renderTarget;
             window.Viewport.Push(0, 0, renderWidth, renderHeight);
-            var cc = window.RenderState.ClearColor;
-            window.RenderState.ClearColor = Color4.Transparent;
-            window.RenderState.ClearAll();
-            window.RenderState.ClearColor = cc;
-            window.Renderer2D.Start(renderWidth, renderHeight);
+            var cc = window.RenderContext.ClearColor;
+            window.RenderContext.ClearColor = Color4.Transparent;
+            window.RenderContext.ClearAll();
+            window.RenderContext.ClearColor = cc;
+            window.RenderContext.Renderer2D.Start(renderWidth, renderHeight);
             window.RichText.RenderText(icard, 0, 0);
-            window.Renderer2D.Finish();
-            window.RenderState.RenderTarget = null;
+            window.RenderContext.Renderer2D.Finish();
+            window.RenderContext.RenderTarget = null;
             window.Viewport.Pop();
 
             var cPos = (Vector2)ImGui.GetCursorPos();

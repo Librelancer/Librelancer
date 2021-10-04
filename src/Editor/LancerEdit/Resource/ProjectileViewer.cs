@@ -118,7 +118,7 @@ namespace LancerEdit
             if (viewport.Mode == CameraModes.Arcball)
                 to = Vector3.Zero;
             camera.Update(viewport.RenderWidth, viewport.RenderHeight, viewport.CameraOffset, to, rot);
-            mw.Commands.StartFrame(mw.RenderState);
+            mw.Commands.StartFrame(mw.RenderContext);
             beams.Begin(mw.Commands, mw.Resources, camera);
             var position = Vector3.Zero;
             if (beam != null)
@@ -131,19 +131,19 @@ namespace LancerEdit
             }
             beams.End();
             fxPool.Draw(camera, null, mw.Resources, null);
-            mw.Commands.DrawOpaque(mw.RenderState);
-            mw.RenderState.DepthWrite = false;
-            mw.Commands.DrawTransparent(mw.RenderState);
-            mw.RenderState.DepthWrite = true;
+            mw.Commands.DrawOpaque(mw.RenderContext);
+            mw.RenderContext.DepthWrite = false;
+            mw.Commands.DrawTransparent(mw.RenderContext);
+            mw.RenderContext.DepthWrite = true;
             if (constEffect != null)
             {
-                mw.Renderer2D.Start(viewport.RenderWidth, viewport.RenderHeight);
+                mw.RenderContext.Renderer2D.Start(viewport.RenderWidth, viewport.RenderHeight);
                 var debugText = new StringBuilder();
                 debugText.AppendLine($"ConstEffect: {constEffect.Nickname}");
                 if (bolt != null) debugText.AppendLine($"Bolt: {bolt.Nickname}");
                 if (beam != null) debugText.AppendLine($"Beam: {beam.Nickname}");
-                mw.Renderer2D.DrawString("Arial", 10, debugText.ToString(), Vector2.One, Color4.White);
-                mw.Renderer2D.Finish();
+                mw.RenderContext.Renderer2D.DrawString("Arial", 10, debugText.ToString(), Vector2.One, Color4.White);
+                mw.RenderContext.Renderer2D.Finish();
             }
             viewport.End();
             ImGui.EndChild();

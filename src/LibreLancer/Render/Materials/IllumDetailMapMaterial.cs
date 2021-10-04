@@ -26,12 +26,12 @@ namespace LibreLancer
 		public int FlipV;
 
 
-		public override void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights)
+		public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights)
 		{
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Opaque;
 
-            var sh = Shaders.IllumDetailMapMaterial.Get(GL.GLES ? ShaderFeatures.VERTEX_LIGHTING : 0);
+            var sh = Shaders.IllumDetailMapMaterial.Get(RenderContext.GLES ? ShaderFeatures.VERTEX_LIGHTING : 0);
             sh.SetViewProjection(Camera);
 			sh.SetWorld(World);
             sh.SetView(Camera);
@@ -53,7 +53,7 @@ namespace LibreLancer
             sh.UseProgram();
 		}
 
-		public override void ApplyDepthPrepass(RenderState rstate)
+		public override void ApplyDepthPrepass(RenderContext rstate)
 		{
 			rstate.BlendMode = BlendMode.Normal;
             var sh = Shaders.DepthPass_Normal.Get();

@@ -136,7 +136,7 @@ namespace LibreLancer.Interface
                 if (DebugTextFrame)
                 {
                     context.Mode2D();
-                    context.Renderer2D.DrawRectangle(context.PointsToPixels(textRect), Color4.Aqua, 1);
+                    context.RenderContext.Renderer2D.DrawRectangle(context.PointsToPixels(textRect), Color4.Aqua, 1);
                 }
                 DrawText(
                     context,

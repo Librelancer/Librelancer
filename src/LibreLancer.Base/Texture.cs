@@ -97,7 +97,7 @@ namespace LibreLancer
                         GL.TexParameteri(target, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_LINEAR);
                         GL.TexParameteri(target, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
                         if(GLExtensions.Anisotropy) {
-                            GL.TexParameterf(target, GL.GL_TEXTURE_MAX_ANISOTROPY_EXT, RenderState.Instance.AnisotropyLevel);
+                            GL.TexParameterf(target, GL.GL_TEXTURE_MAX_ANISOTROPY_EXT, RenderContext.Instance.AnisotropyLevel);
                         }
                         break;
 					case TextureFiltering.Trilinear:

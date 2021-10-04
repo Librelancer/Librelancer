@@ -22,7 +22,6 @@ namespace InterfaceEdit
     {
         ImGuiHelper guiHelper;
         public ViewportManager Viewport;
-        public Renderer2D Renderer2D;
         private RecentFilesHandler recentFiles;
         public MainWindow() : base(950,600,false)
         {
@@ -35,9 +34,7 @@ namespace InterfaceEdit
             Title = "InterfaceEdit";
             guiHelper = new ImGuiHelper(this);
             FileDialog.RegisterParent(this);
-            Renderer2D = new Renderer2D(RenderState);
-            Services.Add(Renderer2D);
-            Viewport = new ViewportManager(RenderState);
+            Viewport = new ViewportManager(RenderContext);
             Viewport.Push(0,0,Width,Height);
             new MaterialMap();
             Fonts = new FontManager();
@@ -95,8 +92,8 @@ namespace InterfaceEdit
             var delta = elapsed;
             RenderDelta = delta;
             Viewport.Replace(0, 0, Width, Height);
-            RenderState.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
-            RenderState.ClearAll();
+            RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
+            RenderContext.ClearAll();
             guiHelper.NewFrame(elapsed);
             ImGui.PushFont(ImGuiHelper.Noto);
             ImGui.BeginMainMenuBar();
@@ -249,7 +246,7 @@ namespace InterfaceEdit
             recentFiles.DrawErrors();
             //Finish Render
             ImGui.PopFont();
-            guiHelper.Render(RenderState);
+            guiHelper.Render(RenderContext);
         }
 
 
@@ -274,8 +271,7 @@ namespace InterfaceEdit
                 _playData.SetBundle(Compiler.Compile(Project.XmlFolder, Project.XmlLoader));
                 _playContext = new UiContext(_playData)
                 {
-                    RenderState = RenderState,
-                    Renderer2D = Renderer2D
+                    RenderContext = RenderContext
                 };
                 _playContext.GameApi = TestApi;
                 _playContext.LoadCode();
@@ -337,10 +333,10 @@ namespace InterfaceEdit
                 renderTarget = new RenderTarget2D(rtX, rtY);
                 renderTargetImage = ImGuiHelper.RegisterTexture(renderTarget.Texture);
             }
-            RenderState.RenderTarget = renderTarget;
+            RenderContext.RenderTarget = renderTarget;
             Viewport.Push(0,0,rtX,rtY);
-            RenderState.ClearColor = Color4.Black;
-            RenderState.ClearAll();
+            RenderContext.ClearColor = Color4.Black;
+            RenderContext.ClearAll();
             //Do drawing
             _playContext.GlobalTime = TotalTime;
             _playContext.ViewportWidth = rtX;
@@ -348,7 +344,7 @@ namespace InterfaceEdit
             _playContext.RenderWidget(delta);
             //
             Viewport.Pop();
-            RenderState.RenderTarget = null;
+            RenderContext.RenderTarget = null;
             //We don't use ImageButton because we need to be specific about sizing
             var cPos = ImGui.GetCursorPos();
             ImGui.Image((IntPtr) renderTargetImage, new Vector2(rtX, rtY), new Vector2(0, 1), new Vector2(1, 0));

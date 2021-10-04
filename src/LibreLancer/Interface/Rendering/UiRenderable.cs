@@ -21,11 +21,11 @@ namespace LibreLancer.Interface
         {
             context.Mode3D();
             var clipRectangle = context.PointsToPixels(clip);
-            context.RenderState.ScissorRectangle = clipRectangle;
-            context.RenderState.ScissorEnabled = true;
+            context.RenderContext.ScissorRectangle = clipRectangle;
+            context.RenderContext.ScissorEnabled = true;
             Draw(context, rectangle);
             context.Mode3D(); //flush
-            context.RenderState.ScissorEnabled = false;
+            context.RenderContext.ScissorEnabled = false;
         }
     }
 

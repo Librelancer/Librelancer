@@ -27,7 +27,6 @@ namespace LancerEdit
 		public ViewportManager Viewport;
 		public CommandBuffer Commands; //This is a huge object - only have one
 		public MaterialMap MaterialMap;
-        public Renderer2D Renderer2D;
         public RichTextEngine RichText;
         public FontManager Fonts;
         public string Version;
@@ -95,7 +94,7 @@ namespace LancerEdit
             guiHelper.PauseWhenUnfocused = Config.PauseWhenUnfocused;
             Audio = new AudioManager(this);
             FileDialog.RegisterParent(this);
-			Viewport = new ViewportManager(RenderState);
+			Viewport = new ViewportManager(RenderContext);
             options = new OptionsWindow(this);
             Resources = new GameResourceManager(this);
 			Commands = new CommandBuffer();
@@ -114,9 +113,7 @@ namespace LancerEdit
             if(InitOpenFile != null)
                 foreach(var f in InitOpenFile) 
                     OpenFile(f);
-            Renderer2D = new Renderer2D(RenderState);
-            RichText = Renderer2D.CreateRichTextEngine();
-            Services.Add(Renderer2D);
+            RichText = RenderContext.Renderer2D.CreateRichTextEngine(); 
             Fonts = new FontManager();
             Fonts.ConstructDefaultFonts();
             Services.Add(Fonts);
@@ -219,8 +216,8 @@ namespace LancerEdit
             }
             TimeStep = elapsed;
 			Viewport.Replace(0, 0, Width, Height);
-			RenderState.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
-			RenderState.ClearAll();
+			RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
+			RenderContext.ClearAll();
 			guiHelper.NewFrame(elapsed);
 			ImGui.PushFont(ImGuiHelper.Noto);
 			ImGui.BeginMainMenuBar();
@@ -518,11 +515,11 @@ namespace LancerEdit
                 if (lastFrame != null) lastFrame.Dispose();
                 lastFrame = new RenderTarget2D(Width, Height);
             }
-            RenderState.RenderTarget = lastFrame;
-            RenderState.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
-            RenderState.ClearAll();
-			guiHelper.Render(RenderState);
-            RenderState.RenderTarget = null;
+            RenderContext.RenderTarget = lastFrame;
+            RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
+            RenderContext.ClearAll();
+			guiHelper.Render(RenderContext);
+            RenderContext.RenderTarget = null;
             lastFrame.BlitToScreen();
             foreach (var tab in toAdd)
             {

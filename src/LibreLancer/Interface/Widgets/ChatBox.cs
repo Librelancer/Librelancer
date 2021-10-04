@@ -50,10 +50,10 @@ namespace LibreLancer.Interface
                 Contents = CurrentText, FontName = "Arial", FontSize = sizeF, Shadow = new TextShadow(Color4.Black)
             };
             context.Mode2D();
-            var rtf = context.Renderer2D.CreateRichTextEngine();
+            var rtf = context.RenderContext.Renderer2D.CreateRichTextEngine();
             var rect = context.PointsToPixels(myRect);
             var built = rtf.BuildText(new[] {node0, node1}, (int) rect.Width - 4, 1f);
-            context.Renderer2D.DrawWithClip(rect, () =>
+            context.RenderContext.Renderer2D.DrawWithClip(rect, () =>
             { 
                 rtf.RenderText(built, (int)rect.X + 2, (int)rect.Y + 2);
             });

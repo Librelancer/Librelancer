@@ -66,7 +66,7 @@ namespace LibreLancer.Media
             }
         }
 
-        public override void Draw(RenderState rstate)
+        public override void Draw(RenderContext rstate)
         {
             if(Playing)
             {

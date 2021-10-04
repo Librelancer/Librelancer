@@ -27,7 +27,7 @@ namespace LibreLancer
 		}
         
 
-		public override void ApplyDepthPrepass(RenderState rstate)
+		public override void ApplyDepthPrepass(RenderContext rstate)
 		{
 			throw new InvalidOperationException();
 		}
@@ -42,7 +42,7 @@ namespace LibreLancer
 
         public override bool DisableCull => true;
 
-        public override void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights)
+        public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights)
 		{
 			rstate.BlendMode = BlendMode.Normal;
             var shader = Shaders.Nomad.Get();

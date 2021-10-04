@@ -32,7 +32,7 @@ namespace LibreLancer.Interface
                 var pa = new Vector2(x + dc.X0 * w, y + dc.Y0 * h);
                 var pb = new Vector2(x + dc.X1 * w, y + dc.Y1 * h);
                 var pc = new Vector2(x + dc.X2 * w, y + dc.Y2 * h);
-                context.Renderer2D.DrawTriangle(texture, pa, pb, pc,
+                context.RenderContext.Renderer2D.DrawTriangle(texture, pa, pb, pc,
                     new Vector2(Image.TexCoords.X0, 1 - Image.TexCoords.Y0),
                     new Vector2(Image.TexCoords.X1, 1 - Image.TexCoords.Y1),
                     new Vector2(Image.TexCoords.X2, 1 - Image.TexCoords.Y2), 
@@ -47,7 +47,7 @@ namespace LibreLancer.Interface
                     (int) (Image.TexCoords.X3 * texture.Width),
                     (int) (Image.TexCoords.Y3 * texture.Height)
                 );
-                context.Renderer2D.Draw(texture, src, rect, color, BlendMode.Normal, Image.Flip, Image.Rotation);
+                context.RenderContext.Renderer2D.Draw(texture, src, rect, color, BlendMode.Normal, Image.Flip, Image.Rotation);
             }
         }
 

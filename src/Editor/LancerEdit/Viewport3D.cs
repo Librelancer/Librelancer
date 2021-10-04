@@ -12,7 +12,7 @@ namespace LancerEdit
 {
     public class Viewport3D : IDisposable
     {
-        RenderState rstate;
+        RenderContext rstate;
         ViewportManager vps;
         int rw = -1, rh = -1;
         int mrw = -1, mrh = -1, msamples = 0;
@@ -39,7 +39,7 @@ namespace LancerEdit
         public Viewport3D(MainWindow mw) 
         {
             this.mw = mw;
-            rstate = mw.RenderState;
+            rstate = mw.RenderContext;
             vps = mw.Viewport;
         }
 

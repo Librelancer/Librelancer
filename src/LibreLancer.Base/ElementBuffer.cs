@@ -21,14 +21,14 @@ namespace LibreLancer
 			this.isDynamic = isDynamic;
             IndexCount = count;
             Handle = GL.GenBuffer();
-            GLBind.VertexArray(RenderState.Instance.NullVAO);
+            GLBind.VertexArray(RenderContext.Instance.NullVAO);
 			GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, Handle);
 			GL.BufferData(GL.GL_ELEMENT_ARRAY_BUFFER, new IntPtr(count * 2), IntPtr.Zero, isDynamic ? GL.GL_DYNAMIC_DRAW : GL.GL_STATIC_DRAW);
 
 		}
         public void SetData(short[] data)
         {
-            GLBind.VertexArray(RenderState.Instance.NullVAO);
+            GLBind.VertexArray(RenderContext.Instance.NullVAO);
             GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, Handle);			
             fixed(short* ptr = data) {
 				GL.BufferData (GL.GL_ELEMENT_ARRAY_BUFFER, new IntPtr (data.Length * 2), (IntPtr)ptr, isDynamic ? GL.GL_DYNAMIC_DRAW : GL.GL_STATIC_DRAW);
@@ -40,7 +40,7 @@ namespace LibreLancer
         }
         public void SetData(ushort[] data, int count, int start = 0)
 		{
-            GLBind.VertexArray(RenderState.Instance.NullVAO);
+            GLBind.VertexArray(RenderContext.Instance.NullVAO);
             GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, Handle);
 			fixed (ushort* ptr = data) {;
 				GL.BufferSubData(GL.GL_ELEMENT_ARRAY_BUFFER, new IntPtr(start * 2), new IntPtr(count * 2), (IntPtr)ptr);

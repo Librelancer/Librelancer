@@ -38,7 +38,7 @@ namespace LibreLancer.Media
             if (player != null)
                 player.PlayFile(filename);
 		}
-		public void Draw(RenderState rstate)
+		public void Draw(RenderContext rstate)
 		{
             if (player != null)
                 player.Draw(rstate);

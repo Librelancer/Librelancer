@@ -532,14 +532,14 @@ namespace LibreLancer
             if (scene != null)
 				scene.Draw();
             ui.RenderWidget(delta);
-			Game.Renderer2D.Start(Game.Width, Game.Height);
+			Game.RenderContext.Renderer2D.Start(Game.Width, Game.Height);
             DoFade(delta);
             if (letterboxAmount > 0)
             {
                 var pct = Cutscene.LETTERBOX_HEIGHT * (float) letterboxAmount;
                 int h = (int) (Game.Height * pct);
-                Game.Renderer2D.FillRectangle(new Rectangle(0, 0, Game.Width, h), Color4.Black);
-                Game.Renderer2D.FillRectangle(new Rectangle(0, Game.Height - h, Game.Width, h), Color4.Black);
+                Game.RenderContext.Renderer2D.FillRectangle(new Rectangle(0, 0, Game.Width, h), Color4.Black);
+                Game.RenderContext.Renderer2D.FillRectangle(new Rectangle(0, Game.Height - h, Game.Width, h), Color4.Black);
             }
             if (animatingLetterbox)
             {
@@ -556,8 +556,8 @@ namespace LibreLancer
                 ImGui.Text($"Room: {currentRoom.Nickname}");
                 ImGui.Text($"Virtual: {virtualRoom ?? "NONE"}");
             });
-            if(ui.Visible) cursor.Draw(Game.Renderer2D, Game.Mouse);
-            Game.Renderer2D.Finish();
+            if(ui.Visible) cursor.Draw(Game.RenderContext.Renderer2D, Game.Mouse);
+            Game.RenderContext.Renderer2D.Finish();
         }
 
         public override void Exiting()

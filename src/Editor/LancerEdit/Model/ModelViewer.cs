@@ -21,7 +21,7 @@ namespace LancerEdit
     {
         Lighting lighting;
         IDrawable drawable;
-        RenderState rstate;
+        RenderContext rstate;
         CommandBuffer buffer;
         ViewportManager vps;
         ResourceManager res;
@@ -99,7 +99,7 @@ namespace LancerEdit
             this.drawable = drawable;
             this.parent = parent;
             this.hprefs = hprefs;
-            rstate = win.RenderState;
+            rstate = win.RenderContext;
             vps = win.Viewport;
             res = win.Resources;
             buffer = win.Commands;

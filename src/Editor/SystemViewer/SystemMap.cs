@@ -29,8 +29,7 @@ namespace SystemViewer
             uidata.Fonts = window.GetService<FontManager>();
             uidata.ResourceManager = window.Resources;
             ctx = new UiContext(uidata);
-            ctx.RenderState = window.RenderState;
-            ctx.Renderer2D = window.Renderer2D;
+            ctx.RenderContext = window.RenderContext;
             navmap = new Navmap();
             navmap.Width = 480;
             navmap.Height = 480;
@@ -81,11 +80,11 @@ namespace SystemViewer
             win.Viewport.Push(0, 0, width, height);
             ctx.ViewportWidth = width;
             ctx.ViewportHeight = height;
-            ctx.RenderState.RenderTarget = rtarget;
-            ctx.RenderState.ClearColor = Color4.TransparentBlack;
-            ctx.RenderState.ClearAll();
+            ctx.RenderContext.RenderTarget = rtarget;
+            ctx.RenderContext.ClearColor = Color4.TransparentBlack;
+            ctx.RenderContext.ClearAll();
             ctx.RenderWidget(delta);
-            ctx.RenderState.RenderTarget = null;
+            ctx.RenderContext.RenderTarget = null;
             win.Viewport.Pop();
             //ImGui
             //TODO: Implement in Navmap then add buttons

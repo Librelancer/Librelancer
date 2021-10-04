@@ -17,7 +17,6 @@ namespace Launcher
     {
         ImGuiHelper imGui;
         ViewportManager Viewport;
-        Renderer2D Renderer2D;
         public MainWindow() : base(500, 300, false)
         {
 
@@ -27,8 +26,7 @@ namespace Launcher
         {
             Title = "Librelancer";
             imGui = new ImGuiHelper(this);
-            Renderer2D = new Renderer2D(RenderState);
-            Viewport = new ViewportManager(RenderState);
+            Viewport = new ViewportManager(RenderContext);
             Viewport.Push(0, 0, Width, Height);
             FileDialog.RegisterParent(this);
             freelancerFolder = new TextBuffer(512);
@@ -54,14 +52,14 @@ namespace Launcher
         protected override void Draw(double elapsed)
         {
             Viewport.Replace(0, 0, Width, Height);
-            RenderState.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
-            RenderState.ClearAll();
+            RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
+            RenderContext.ClearAll();
             imGui.NewFrame(elapsed);
-            Renderer2D.Start(Width, Height);
-            Renderer2D.DrawString("Arial", 16, "Librelancer", new Vector2(8), Color4.Black);
-            Renderer2D.DrawString("Arial", 16, "Librelancer", new Vector2(6), Color4.White);
-            var startY = Renderer2D.LineHeight("Arial", 16) + 8;
-            Renderer2D.Finish();
+            RenderContext.Renderer2D.Start(Width, Height);
+            RenderContext.Renderer2D.DrawString("Arial", 16, "Librelancer", new Vector2(8), Color4.Black);
+            RenderContext.Renderer2D.DrawString("Arial", 16, "Librelancer", new Vector2(6), Color4.White);
+            var startY = RenderContext.Renderer2D.LineHeight("Arial", 16) + 8;
+            RenderContext.Renderer2D.Finish();
             ImGui.PushFont(ImGuiHelper.Noto);
             var size = (Vector2)ImGui.GetIO().DisplaySize;
             ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - startY), ImGuiCond.Always);
@@ -119,7 +117,7 @@ namespace Launcher
             if (ImGui.Button("Launch")) LaunchClicked();
             ImGui.End();
             ImGui.PopFont();
-            imGui.Render(RenderState);
+            imGui.Render(RenderContext);
         }
 
         string errorText = "";

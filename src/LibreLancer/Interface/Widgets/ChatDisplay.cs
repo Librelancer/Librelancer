@@ -34,7 +34,7 @@ namespace LibreLancer.Interface
                     var msg = Chat.Messages[i];
                     if (msg.TimeAlive <= 0) continue;
                     msg.TimeAlive -= dt;
-                    var sz = context.Renderer2D.MeasureStringCached(ref msg.Cache, msg.Font, context.TextSize(msg.Size),
+                    var sz = context.RenderContext.Renderer2D.MeasureStringCached(ref msg.Cache, msg.Font, context.TextSize(msg.Size),
                         msg.Text);
                     float h = context.PixelsToPoints(sz.Y);
                     y -= h;

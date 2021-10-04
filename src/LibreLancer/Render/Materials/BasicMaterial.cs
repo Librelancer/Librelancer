@@ -53,7 +53,7 @@ namespace LibreLancer
 		}
         ShaderVariables lastShader;
 
-        public override void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights)
+        public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights)
 		{
 			if (Camera == null)
 				return;
@@ -127,7 +127,7 @@ namespace LibreLancer
             shader.UseProgram();
 		}
 
-		public override void ApplyDepthPrepass(RenderState rstate)
+		public override void ApplyDepthPrepass(RenderContext rstate)
 		{
 			rstate.BlendMode = BlendMode.Normal;
             //TODO: This is screwy - Re-do DXT1 test if need be for perf

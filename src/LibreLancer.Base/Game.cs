@@ -31,7 +31,7 @@ namespace LibreLancer
         ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
         int mythread = -1;
         public ScreenshotSaveHandler ScreenshotSave;
-        public RenderState RenderState;
+        public RenderContext RenderContext;
         public string Renderer
         {
             get; private set;
@@ -255,12 +255,12 @@ namespace LibreLancer
 
         public void UnbindAll()
         {
-            GLBind.VertexArray(RenderState.Instance.NullVAO);
+            GLBind.VertexArray(RenderContext.Instance.NullVAO);
         }
         public void TrashGLState()
         {
             GLBind.Trash();
-            RenderState.Instance.Trash();
+            RenderContext.Instance.Trash();
         }
 
         public void QueueUIThread(Action work)
@@ -304,7 +304,7 @@ namespace LibreLancer
                 {
                     GL.ReadPixels(0, 0, width, height, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, (IntPtr)ptr);
                 }
-                var c = RenderState.ClearColor;
+                var c = RenderContext.ClearColor;
                 for (int x = 0; x < width; x++)
                     for (int y = 0; y < height; y++)
                     {
@@ -459,7 +459,7 @@ namespace LibreLancer
             FLLog.Info("GL", $"Renderer: {GL.GetString(GL.GL_RENDERER)}");
             SetVSync(true);
             //Init game state
-            RenderState = new RenderState();
+            RenderContext = new RenderContext();
             Load();
             //kill the value we set so it doesn't crash child processes
             if(setMesaThread) Environment.SetEnvironmentVariable("mesa_glthread",null); 

@@ -16,7 +16,7 @@ namespace LibreLancer.Interface
             var color = (Color ?? InterfaceColor.White).GetColor(context.GlobalTime);
             context.Mode2D();
             if (context.PointsToPixels(Width) <= 1) {
-                context.Renderer2D.DrawRectangle(context.PointsToPixels(clientRectangle), color, 1);
+                context.RenderContext.Renderer2D.DrawRectangle(context.PointsToPixels(clientRectangle), color, 1);
             }
             float w = Width / 3;
             //Left
@@ -45,7 +45,7 @@ namespace LibreLancer.Interface
             var alphaZero = new Color4(color.R, color.G, color.B, 0);
             Color4 left = alphaSide == 0 ? alphaZero : color;
             Color4 right = alphaSide == 2 ? alphaZero : color;
-            context.Renderer2D.FillRectangleColors(context.PointsToPixelsF(r), left, right, left, right);
+            context.RenderContext.Renderer2D.FillRectangleColors(context.PointsToPixelsF(r), left, right, left, right);
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -54,7 +54,7 @@ namespace LibreLancer.Interface
             var alphaZero = new Color4(color.R, color.G, color.B, 0);
             Color4 top = alphaSide == 0 ? alphaZero : color;
             Color4 bottom = alphaSide == 2 ? alphaZero : color;
-            context.Renderer2D.FillRectangleColors(context.PointsToPixelsF(r), top, top, bottom, bottom);
+            context.RenderContext.Renderer2D.FillRectangleColors(context.PointsToPixelsF(r), top, top, bottom, bottom);
         }
     }
 }

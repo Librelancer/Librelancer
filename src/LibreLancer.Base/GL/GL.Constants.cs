@@ -6,7 +6,7 @@ using System;
 
 namespace LibreLancer
 {
-	public static partial class GL
+    static partial class GL
     {
         //debug
         public const int GL_DEBUG_OUTPUT_KHR = 0x92E0;

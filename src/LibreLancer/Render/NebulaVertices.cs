@@ -92,10 +92,10 @@ namespace LibreLancer
 			lastIndex = currentIndex;
 		}
 		static ShaderAction shaderDelegate = ShaderSetup;
-		static unsafe void ShaderSetup(Shader shader, RenderState state, ref RenderCommand command)
+		static unsafe void ShaderSetup(Shader shader, RenderContext context, ref RenderCommand command)
 		{
-			state.Cull = false;
-			state.BlendMode = BlendMode.Normal;
+			context.Cull = false;
+			context.BlendMode = BlendMode.Normal;
 			var vp = command.UserData.Camera.ViewProjection;
 			shader.SetMatrix(_viewproj, ref vp);
 			shader.SetMatrix(_world, (IntPtr)command.World.Source);
@@ -103,10 +103,10 @@ namespace LibreLancer
 			shader.SetInteger(_texture, 0);
 			command.UserData.Texture.BindTo(0);
 		}
-		static Action<RenderState> resetDelegate = ResetState;
-		static void ResetState(RenderState state)
+		static Action<RenderContext> resetDelegate = ResetState;
+		static void ResetState(RenderContext context)
 		{
-			state.Cull = true;
+			context.Cull = true;
 		}
 		public void SetData()
 		{

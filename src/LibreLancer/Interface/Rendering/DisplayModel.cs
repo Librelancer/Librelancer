@@ -63,8 +63,8 @@ namespace LibreLancer.Interface
             var rect = context.PointsToPixels(clientRectangle);
             if (Clip)
             {
-                context.RenderState.ScissorEnabled = true;
-                context.RenderState.ScissorRectangle = rect;
+                context.RenderContext.ScissorEnabled = true;
+                context.RenderContext.ScissorRectangle = rect;
             }
             Matrix4x4 rotationMatrix = Matrix4x4.Identity;
             var rot = Rotate + (RotateAnimation * (float)context.GlobalTime);
@@ -83,7 +83,7 @@ namespace LibreLancer.Interface
                             rotationMatrix *
                             Matrix4x4.CreateTranslation(Model.X, Model.Y, 0);
             context.MatrixCam.CreateTransform((int)context.ViewportWidth, (int)context.ViewportHeight, rect);
-            context.RenderState.Cull = false;
+            context.RenderContext.Cull = false;
             model.UpdateTransform();
             model.Update(context.MatrixCam, context.GlobalTime, context.Data.ResourceManager);
             if (Tint != null)
@@ -92,7 +92,7 @@ namespace LibreLancer.Interface
                 for (int i = 0; i < mats.Count; i++)
                     mats[i].Mat.Dc = color;
             }
-            model.DrawImmediate(context.RenderState, context.Data.ResourceManager, transform, ref Lighting.Empty);
+            model.DrawImmediate(context.RenderContext, context.Data.ResourceManager, transform, ref Lighting.Empty);
             if (Tint != null)
             {
                 for (int i = 0; i < mats.Count; i++)
@@ -100,8 +100,8 @@ namespace LibreLancer.Interface
                     mats[i].Mat.Dc = mats[i].Dc;
                 }
             }           
-            context.RenderState.ScissorEnabled = false;
-            context.RenderState.Cull = true;
+            context.RenderContext.ScissorEnabled = false;
+            context.RenderContext.Cull = true;
         }
         
         bool CanRender(UiContext context)

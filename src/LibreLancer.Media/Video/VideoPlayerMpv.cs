@@ -31,7 +31,7 @@ namespace LibreLancer.Media
 			return framebuffer.Texture;
 		}
 		bool firstDraw = true;
-		public override void Draw(RenderState rstate)
+		public override void Draw(RenderContext rstate)
 		{
 			Mpv.mpv_event* ev = Mpv.mpv_wait_event(mpvhandle, 0);
 			while (ev->event_id != Mpv.mpv_event_id.MPV_EVENT_NONE)

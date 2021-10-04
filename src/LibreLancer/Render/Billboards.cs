@@ -285,7 +285,7 @@ namespace LibreLancer
         }
 
         bool _iboFilled = false;
-		public void Render(int index, int hash, RenderState rs)
+		public void Render(int index, int hash, RenderContext rs)
 		{
 			if (hash != lastDatHash && lastDatHash != -1)
 				FlushCommands(rs);
@@ -307,7 +307,7 @@ namespace LibreLancer
             }
 		}
 
-        void DrawCommands(RenderState rs, int start, int count)
+        void DrawCommands(RenderContext rs, int start, int count)
         {
             shaderBasic.UseProgram();
             rs.Cull = false;
@@ -329,7 +329,7 @@ namespace LibreLancer
         }
 
         bool _frameStart = true;
-		public void FlushCommands(RenderState rs)
+		public void FlushCommands(RenderContext rs)
 		{
             FillIbo();
 			if (indexCountBasic == 0)

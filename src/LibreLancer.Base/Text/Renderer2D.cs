@@ -94,7 +94,7 @@ namespace LibreLancer
 			}
 		}
 		
-		RenderState rs;
+		RenderContext rs;
 		VertexBuffer vbo;
 		ElementBuffer el;
         Vertex2D* vertices;
@@ -102,7 +102,7 @@ namespace LibreLancer
 		Texture2D dot;
         private int blendLocation;
         private int circleLocation;
-		public Renderer2D (RenderState rstate)
+		internal Renderer2D (RenderContext rstate)
 		{
 			rs = rstate;
             string glslVer = GL.GLES ? "300 es\nprecision mediump float;" : "140";

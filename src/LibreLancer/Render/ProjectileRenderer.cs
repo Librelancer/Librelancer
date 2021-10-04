@@ -19,7 +19,7 @@ namespace LibreLancer
             Projectiles = projs;
             toRender = new Projectile[Projectiles.Projectiles.Length];
         }
-        public override void DepthPrepass(ICamera camera, RenderState rstate)
+        public override void DepthPrepass(ICamera camera, RenderContext rstate)
         {
         }
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)

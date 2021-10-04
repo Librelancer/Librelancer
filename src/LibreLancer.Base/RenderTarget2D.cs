@@ -38,6 +38,11 @@ namespace LibreLancer
 
         public void BlitToScreen()
         {
+            if (RenderContext.Instance.applied.ScissorEnabled) {
+                GL.Disable(GL.GL_SCISSOR_TEST);
+                RenderContext.Instance.applied.ScissorEnabled = false;
+            }
+            RenderContext.Instance.applied.RenderTarget = null;
             GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, FBO);
             GL.BindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0);
             GL.BlitFramebuffer(0, 0, Width, Height, 0, 0, Width, Height, GL.GL_COLOR_BUFFER_BIT, GL.GL_LINEAR);

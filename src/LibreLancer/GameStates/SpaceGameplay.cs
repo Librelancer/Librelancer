@@ -685,7 +685,7 @@ World Time: {12:F2}
             }
             sysrender.Draw();
 
-            sysrender.DebugRenderer.StartFrame(camera, Game.RenderState);
+            sysrender.DebugRenderer.StartFrame(camera, Game.RenderContext);
             sysrender.DebugRenderer.Render();
 
             if ((Thn == null || !Thn.Running) && ShowHud)
@@ -698,13 +698,13 @@ World Time: {12:F2}
                 ui.Visible = false;
             }
 
-            Game.Renderer2D.Start(Game.Width, Game.Height);
+            Game.RenderContext.Renderer2D.Start(Game.Width, Game.Height);
             if (Thn != null && Thn.Running)
             {
                 var pct = Cutscene.LETTERBOX_HEIGHT;
                 int h = (int) (Game.Height * pct);
-                Game.Renderer2D.FillRectangle(new Rectangle(0, 0, Game.Width, h), Color4.Black);
-                Game.Renderer2D.FillRectangle(new Rectangle(0, Game.Height - h, Game.Width, h), Color4.Black);
+                Game.RenderContext.Renderer2D.FillRectangle(new Rectangle(0, 0, Game.Width, h), Color4.Black);
+                Game.RenderContext.Renderer2D.FillRectangle(new Rectangle(0, Game.Height - h, Game.Width, h), Color4.Black);
             }
             if ((Thn == null || !Thn.Running) && ShowHud)
             {
@@ -724,10 +724,10 @@ World Time: {12:F2}
                 {
                     ImGuiNET.ImGui.Text(text);
                 });
-                current_cur.Draw(Game.Renderer2D, Game.Mouse);
+                current_cur.Draw(Game.RenderContext.Renderer2D, Game.Mouse);
             }
             DoFade(delta);
-            Game.Renderer2D.Finish();
+            Game.RenderContext.Renderer2D.Finish();
 		}
 
         public override void Exiting()

@@ -45,7 +45,7 @@ namespace LibreLancer.Interface
             {
                 context.Mode2D();
                 var color = (Tint ?? InterfaceColor.White).Color;
-                context.Renderer2D.DrawImageStretched(texture, context.PointsToPixels(myRectangle), color, Flip);
+                context.RenderContext.Renderer2D.DrawImageStretched(texture, context.PointsToPixels(myRectangle), color, Flip);
             }
         }
     }

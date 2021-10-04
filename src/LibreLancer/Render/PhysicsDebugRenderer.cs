@@ -23,8 +23,8 @@ namespace LibreLancer
 		}
 
 		ICamera camera;
-		RenderState rstate;
-		public void StartFrame(ICamera cam, RenderState rs)
+		RenderContext rstate;
+		public void StartFrame(ICamera cam, RenderContext rs)
 		{
 			camera = cam;
 			rstate = rs;

@@ -17,7 +17,7 @@ using LibreLancer.GLDelegates;
 #pragma warning disable 0649
 namespace LibreLancer
 {
-	public static partial class GL
+    static partial class GL
 	{
 		//General State
 		[MapsTo("glEnable")]

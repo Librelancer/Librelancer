@@ -10,7 +10,7 @@ namespace LibreLancer
 {
 	public class NormalDebugMaterial : RenderMaterial
 	{
-        public override void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights)
+        public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights)
 		{
             Shaders.ShaderVariables sh;
             //These things don't have normals
@@ -33,7 +33,7 @@ namespace LibreLancer
             sh.UseProgram();
 		}
 
-		public override void ApplyDepthPrepass(RenderState rstate)
+		public override void ApplyDepthPrepass(RenderContext rstate)
 		{
 			throw new NotImplementedException();
 		}

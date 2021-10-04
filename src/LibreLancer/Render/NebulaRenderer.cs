@@ -346,7 +346,7 @@ namespace LibreLancer
             return sysr.StaticBillboards.DoVertices(ref puffId, puffVertices);
         }
         static ShaderAction puffSetup = SetupPuffShader;
-        static void SetupPuffShader(Shader sh, RenderState rs, ref RenderCommand dat)
+        static void SetupPuffShader(Shader sh, RenderContext rs, ref RenderCommand dat)
         {
             sh.SetInteger(_ptex0, 0);
             dat.UserData.Texture.BindTo(0);
@@ -354,7 +354,7 @@ namespace LibreLancer
             rs.BlendMode = BlendMode.Normal;
             rs.Cull = false;
         }
-        static Action<RenderState> puffCleanup = (x) => x.Cull = true;
+        static Action<RenderContext> puffCleanup = (x) => x.Cull = true;
 
         void DrawPuffRing(bool inside, CommandBuffer buffer)
 		{

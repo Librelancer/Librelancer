@@ -72,7 +72,7 @@ namespace LibreLancer
                 var alpha = (float)(fadeTime / fadeDuration);
                 if (alpha < 0) alpha = 0;
                 if (!fadeIn) alpha = (1 - alpha);
-                Game.Renderer2D.FillRectangle(new Rectangle(0, 0, Game.Width, Game.Height), new Color4(0, 0, 0, alpha));
+                Game.RenderContext.Renderer2D.FillRectangle(new Rectangle(0, 0, Game.Width, Game.Height), new Color4(0, 0, 0, alpha));
                 if (totalTime > fadeDelay) fadeTime -= delta; //Delay fade in
                 if (fadeTime < -0.25f) //negative allows last frame
                 {

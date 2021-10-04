@@ -27,7 +27,7 @@ namespace LibreLancer.Interface
             );
             var rect = context.PointsToPixels(withMargins);
             var width = WidthPx > 0 ? WidthPx : context.PointsToPixels(Width);
-            context.Renderer2D.DrawRectangle(rect, color, width);
+            context.RenderContext.Renderer2D.DrawRectangle(rect, color, width);
         }
     }
 }

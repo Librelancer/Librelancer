@@ -335,13 +335,13 @@ namespace LibreLancer.Fx
             }
         }
 
-        static void SetupShader(Shader shdr, RenderState res, ref RenderCommand cmd)
+        static void SetupShader(Shader shdr, RenderContext res, ref RenderCommand cmd)
         {
             cmd.UserData.Texture.BindTo(0);
             res.BlendMode = (BlendMode)cmd.UserData.Float;
             res.Cull = false;
         }
-        static void EnableCull(RenderState rs)
+        static void EnableCull(RenderContext rs)
         {
             rs.Cull = true;
         }

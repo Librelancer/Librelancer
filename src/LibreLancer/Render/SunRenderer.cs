@@ -101,7 +101,7 @@ namespace LibreLancer
         static int radialSize;
         static int spineSize;
         static int radialAlpha;
-        static ShaderAction RadialSetup = (Shader shdr, RenderState res, ref RenderCommand cmd) =>
+        static ShaderAction RadialSetup = (Shader shdr, RenderContext res, ref RenderCommand cmd) =>
         {
             if (cmd.UserData.Float == 0)
                 res.BlendMode = BlendMode.Additive;
@@ -113,7 +113,7 @@ namespace LibreLancer
             cmd.UserData.Texture.BindTo(0);
             res.Cull = false;
         };
-        static ShaderAction SpineSetup = (Shader shdr, RenderState res, ref RenderCommand cmd) =>
+        static ShaderAction SpineSetup = (Shader shdr, RenderContext res, ref RenderCommand cmd) =>
         {
             res.BlendMode = BlendMode.Normal;
             shdr.SetInteger(spineTex0, 0);
@@ -121,7 +121,7 @@ namespace LibreLancer
             cmd.UserData.Texture.BindTo(0);
             res.Cull = false;
         };
-        static Action<RenderState> Cleanup = (x) =>
+        static Action<RenderContext> Cleanup = (x) =>
         {
             x.Cull = true;
         };

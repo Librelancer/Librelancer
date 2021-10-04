@@ -21,8 +21,7 @@ namespace LibreLancer.Interface
         public bool MouseLeftDown;
         public double GlobalTime;
         //Rendering
-        public RenderState RenderState;
-        public Renderer2D Renderer2D;
+        public RenderContext RenderContext;
         public MatrixCamera MatrixCam = new MatrixCamera(Matrix4x4.Identity);
         //Data
         public UiData Data;
@@ -51,8 +50,7 @@ namespace LibreLancer.Interface
         
         public UiContext(FreelancerGame game)
         {
-            Renderer2D = game.Renderer2D;
-            RenderState = game.RenderState;
+            RenderContext = game.RenderContext;
             Data = new UiData(game);
             this.game = game;
             game.Mouse.MouseDown += MouseOnMouseDown;
@@ -179,14 +177,14 @@ namespace LibreLancer.Interface
         public void Mode2D()
         {
             if (mode2d) return;
-            Renderer2D.Start((int)ViewportWidth, (int)ViewportHeight);
+            RenderContext.Renderer2D.Start((int)ViewportWidth, (int)ViewportHeight);
             mode2d = true;
         }
         
         public void Mode3D()
         {
             if (!mode2d) return;
-            Renderer2D.Finish();
+            RenderContext.Renderer2D.Finish();
             mode2d = false;
         }
         
@@ -329,7 +327,7 @@ namespace LibreLancer.Interface
                 OnMouseWheel(game.Mouse.Wheel);   
             }
             textFocusWidget = null;
-            RenderState.DepthEnabled = false;
+            RenderContext.DepthEnabled = false;
             mode2d = false;
             var aspect = ViewportWidth / ViewportHeight;
             var desktopRect = new RectangleF(0, 0, 480 * aspect, 480);
@@ -337,8 +335,8 @@ namespace LibreLancer.Interface
             foreach(var widget in modals)
                 widget.Widget.Render(this, desktopRect);
             if (mode2d)
-                Renderer2D.Finish();
-            RenderState.DepthEnabled = true;
+                RenderContext.Renderer2D.Finish();
+            RenderContext.DepthEnabled = true;
         }
     }
 }

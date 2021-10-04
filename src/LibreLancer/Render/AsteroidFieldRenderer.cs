@@ -570,7 +570,7 @@ namespace LibreLancer
         }
         static ShaderAction bandShaderDelegate = BandShaderSetup;
         private static int bkf = 0;
-        static void BandShaderSetup(Shader shader, RenderState state, ref RenderCommand command)
+        static void BandShaderSetup(Shader shader, RenderContext context, ref RenderCommand command)
         {
             bandShader.SetWorld(command.World);
             var vp = command.UserData.Camera.ViewProjection;
@@ -582,14 +582,14 @@ namespace LibreLancer
             RenderMaterial.SetLights(bandShader, ref command.Lights, bkf++);
             command.UserData.Texture.BindTo(0);
             shader.UseProgram();
-            state.BlendMode = BlendMode.Normal;
-            state.Cull = false;
+            context.BlendMode = BlendMode.Normal;
+            context.Cull = false;
         }
 
-        static Action<RenderState> bandShaderCleanup = BandShaderCleanup;
-        static void BandShaderCleanup(RenderState state)
+        static Action<RenderContext> bandShaderCleanup = BandShaderCleanup;
+        static void BandShaderCleanup(RenderContext context)
         {
-            state.Cull = true;
+            context.Cull = true;
         }
     }
 }

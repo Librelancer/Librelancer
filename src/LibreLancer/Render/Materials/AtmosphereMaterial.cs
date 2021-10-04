@@ -21,11 +21,11 @@ namespace LibreLancer
 		public float Scale;
 
 
-		public override unsafe void Use (RenderState rstate, IVertexType vertextype, ref Lighting lights)
+		public override unsafe void Use (RenderContext rstate, IVertexType vertextype, ref Lighting lights)
 		{
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Normal;
-            var sh = Shaders.Atmosphere.Get(GL.GLES ? ShaderFeatures.VERTEX_LIGHTING : 0);
+            var sh = Shaders.Atmosphere.Get(RenderContext.GLES ? ShaderFeatures.VERTEX_LIGHTING : 0);
 			sh.SetAc(Ac);
 			sh.SetDc(Dc);
 			sh.SetOc(Alpha);
@@ -45,7 +45,7 @@ namespace LibreLancer
             sh.UseProgram ();
 		}
 
-		public override void ApplyDepthPrepass(RenderState rstate)
+		public override void ApplyDepthPrepass(RenderContext rstate)
 		{
 			throw new InvalidOperationException();
 		}

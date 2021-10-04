@@ -170,7 +170,7 @@ namespace LibreLancer.ImUI
 			fontTexture.SetFiltering(TextureFiltering.Linear);
 			io.Fonts.SetTexID((IntPtr)FONT_TEXTURE_ID);
 			io.Fonts.ClearTexData();
-            string glslVer = GL.GLES ? "300 es\nprecision mediump float;" : "140";
+            string glslVer = RenderContext.GLES ? "300 es\nprecision mediump float;" : "140";
 			textShader = new Shader(vertex_source.Replace("{0}", glslVer), text_fragment_source.Replace("{0}", glslVer));
 			colorShader = new Shader(vertex_source.Replace("{0}", glslVer), color_fragment_source.Replace("{0}", glslVer));
 			dot = new Texture2D(1, 1, false, SurfaceFormat.Color);
@@ -233,14 +233,14 @@ namespace LibreLancer.ImUI
         int RenderGradientInternal(ViewportManager vps, Color4 top, Color4 bottom)
         {
             var target = new RenderTarget2D(128,128);
-            var r2d = game.GetService<Renderer2D>();
-            game.RenderState.RenderTarget = target;
+            var r2d = game.RenderContext.Renderer2D;
+            game.RenderContext.RenderTarget = target;
             vps.Push(0, 0, 128, 128);
             r2d.Start(128, 128);
             r2d.DrawVerticalGradient(new Rectangle(0,0,128,128), top, bottom);
             r2d.Finish();
             vps.Pop();
-            game.RenderState.RenderTarget = null;
+            game.RenderContext.RenderTarget = null;
             toFree.Add(target);
             return RegisterTexture(target.Texture);
         }
@@ -331,7 +331,7 @@ namespace LibreLancer.ImUI
         }
 
         List<RenderTarget2D> toFree = new List<RenderTarget2D>();
-		public void Render(RenderState rstate)
+		public void Render(RenderContext rstate)
 		{
 			ImGui.Render();
             RenderImDrawData(ImGui.GetDrawData(), rstate);
@@ -351,7 +351,7 @@ namespace LibreLancer.ImUI
 		Vertex2D[] vbuffer;
 		int vboSize = -1;
 		int iboSize = -1;
-		unsafe void RenderImDrawData(ImDrawDataPtr draw_data, RenderState rstate)
+		unsafe void RenderImDrawData(ImDrawDataPtr draw_data, RenderContext rstate)
 		{
 			var io = ImGui.GetIO();
             //Set cursor
@@ -463,14 +463,13 @@ namespace LibreLancer.ImUI
 						dot.BindTo(0);
 					}
 
-					GL.Enable(GL.GL_SCISSOR_TEST);
-					GL.Scissor(
-					(int)pcmd.ClipRect.X,
-					(int)(io.DisplaySize.Y - pcmd.ClipRect.W),
-					(int)(pcmd.ClipRect.Z - pcmd.ClipRect.X),
-					(int)(pcmd.ClipRect.W - pcmd.ClipRect.Y));
-					vbo.Draw(PrimitiveTypes.TriangleList, 0, startIndex, (int)pcmd.ElemCount / 3);
-					GL.Disable(GL.GL_SCISSOR_TEST);
+                    var displayPos = draw_data.DisplayPos;
+                    rstate.ScissorEnabled = true;
+                    rstate.ScissorRectangle = new Rectangle((int) pcmd.ClipRect.X, (int) pcmd.ClipRect.Y,
+                        (int) (pcmd.ClipRect.Z - pcmd.ClipRect.X),
+                        (int) (pcmd.ClipRect.W - pcmd.ClipRect.Y));
+                    vbo.Draw(PrimitiveTypes.TriangleList, 0, startIndex, (int)pcmd.ElemCount / 3);
+                    rstate.ScissorEnabled = false;
 					startIndex += (int)pcmd.ElemCount;
 				}
 			}

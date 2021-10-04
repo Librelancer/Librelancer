@@ -281,7 +281,7 @@ namespace LibreLancer.Interface
                     if (dragRect.Contains(context.MouseX, context.MouseY)) overCol = LineHover;
                     var color =
                         (Cascade(LineColor ?? InterfaceColor.White, overCol, dragCol)).GetColor(context.GlobalTime);
-                    context.Renderer2D.DrawLine(color, context.PointsToPixels(new Vector2(x, y1)),
+                    context.RenderContext.Renderer2D.DrawLine(color, context.PointsToPixels(new Vector2(x, y1)),
                         context.PointsToPixels(new Vector2(x, y2)));
                 }
             }
@@ -291,13 +291,13 @@ namespace LibreLancer.Interface
             var x2 = rect.X + rect.Width;
             var lineColor = (LineColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
             //Headers
-            context.Renderer2D.DrawLine(lineColor, context.PointsToPixels(new Vector2(x1, rect.Y + lineHeight)),
+            context.RenderContext.Renderer2D.DrawLine(lineColor, context.PointsToPixels(new Vector2(x1, rect.Y + lineHeight)),
                 context.PointsToPixels(new Vector2(x2, rect.Y + lineHeight)));
             //Rows
             for (int i = 0; i < DisplayRowCount; i++)
             {
                 var h = rect.Y + lineHeight * (i + 2);
-                context.Renderer2D.DrawLine(lineColor, context.PointsToPixels(new Vector2(x1, h)),
+                context.RenderContext.Renderer2D.DrawLine(lineColor, context.PointsToPixels(new Vector2(x1, h)),
                     context.PointsToPixels(new Vector2(x2, h)));
             }
             Border?.Draw(context, rect);

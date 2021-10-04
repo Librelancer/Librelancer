@@ -20,7 +20,6 @@ namespace SystemViewer
         public GameResourceManager Resources;
         public Billboards Billboards;
         public NebulaVertices Nebulae;
-        public Renderer2D Renderer2D;
         public RichTextEngine RichText;
 
         private const float ROTATION_SPEED = 1f;
@@ -42,17 +41,15 @@ namespace SystemViewer
             LibreLancer.Shaders.AllShaders.Compile();
             guiHelper = new ImGuiHelper(this);
             FileDialog.RegisterParent(this);
-            Viewport = new ViewportManager(this.RenderState);
+            Viewport = new ViewportManager(this.RenderContext);
             Viewport.Push(0, 0, 800, 600);
             Billboards = new Billboards();
             Nebulae = new NebulaVertices();
             Resources = new GameResourceManager(this);
-            Renderer2D = new Renderer2D(this.RenderState);
-            RichText = Renderer2D.CreateRichTextEngine();
+            RichText = RenderContext.Renderer2D.CreateRichTextEngine();
             Services.Add(Billboards);
             Services.Add(Nebulae);
             Services.Add(Resources);
-            Services.Add(Renderer2D);
             fontMan = new FontManager();
             fontMan.ConstructDefaultFonts();
             Services.Add(fontMan);
@@ -152,13 +149,13 @@ C# Memory Usage: {5}
             VertexBuffer.TotalDrawcalls = 0;
             EnableTextInput();
             Viewport.Replace(0, 0, Width, Height);
-            RenderState.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
-            RenderState.ClearAll();
+            RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
+            RenderContext.ClearAll();
             //
             if(world != null) {
-                if (wireFrame) RenderState.Wireframe = true;
+                if (wireFrame) RenderContext.Wireframe = true;
                 world.Renderer.Draw();
-                RenderState.Wireframe = false;
+                RenderContext.Wireframe = false;
             }
             //
             guiHelper.NewFrame(elapsed);
@@ -320,7 +317,7 @@ C# Memory Usage: {5}
                 ImGui.EndPopup();
             }
             ImGui.PopFont();
-            guiHelper.Render(RenderState);
+            guiHelper.Render(RenderContext);
         }
 
         void ChangeSystem()

@@ -341,16 +341,16 @@ namespace InterfaceEdit
                 renderTarget = new RenderTarget2D(rtX, rtY);
                 renderTargetImage = ImGuiHelper.RegisterTexture(renderTarget.Texture);
             }
-            mainWindow.RenderState.RenderTarget = renderTarget;
+            mainWindow.RenderContext.RenderTarget = renderTarget;
             mainWindow.Viewport.Push(0,0,rtX,rtY);
-            mainWindow.RenderState.ClearColor = Color4.Black;
-            mainWindow.RenderState.ClearAll();
+            mainWindow.RenderContext.ClearColor = Color4.Black;
+            mainWindow.RenderContext.ClearAll();
         }
 
         void DrawViewport()
         {
             mainWindow.Viewport.Pop();
-            mainWindow.RenderState.RenderTarget = null;
+            mainWindow.RenderContext.RenderTarget = null;
             var cPos = ImGui.GetCursorPos();
             ImGui.Image((IntPtr) renderTargetImage, new Vector2(rtX, rtY), new Vector2(0, 1), new Vector2(1, 0));
             ImGui.SetCursorPos(cPos);
@@ -368,21 +368,21 @@ namespace InterfaceEdit
             BindViewport(szX, szY);
             //Do drawing
             var rectangle = new Rectangle(5, 5, rtX - 10, rtY - 10);
-            mainWindow.Renderer2D.Start(rtX, rtY);
-            mainWindow.Renderer2D.FillRectangle(rectangle, Color4.CornflowerBlue);
-            mainWindow.Renderer2D.Finish();
+            mainWindow.RenderContext.Renderer2D.Start(rtX, rtY);
+            mainWindow.RenderContext.Renderer2D.FillRectangle(rectangle, Color4.CornflowerBlue);
+            mainWindow.RenderContext.Renderer2D.Finish();
             var transform = Matrix4x4.CreateScale(mdl.XScale, mdl.YScale, 1) *
                             Matrix4x4.CreateTranslation(mdl.X, mdl.Y, 0);
             var mcam = new MatrixCamera(Matrix4x4.Identity);
             mcam.CreateTransform(rtX, rtY, rectangle);
             
             drawable.Update(mcam, mainWindow.TotalTime, context.ResourceManager);
-            mainWindow.RenderState.Cull = false;
-            mainWindow.RenderState.ScissorEnabled = true;
-            mainWindow.RenderState.ScissorRectangle = rectangle;
-            drawable.DrawImmediate(mainWindow.RenderState, context.ResourceManager, transform, ref Lighting.Empty);
-            mainWindow.RenderState.ScissorEnabled = false;
-            mainWindow.RenderState.Cull = true;
+            mainWindow.RenderContext.Cull = false;
+            mainWindow.RenderContext.ScissorEnabled = true;
+            mainWindow.RenderContext.ScissorRectangle = rectangle;
+            drawable.DrawImmediate(mainWindow.RenderContext, context.ResourceManager, transform, ref Lighting.Empty);
+            mainWindow.RenderContext.ScissorEnabled = false;
+            mainWindow.RenderContext.Cull = true;
             DrawViewport();
         }
         

@@ -15,8 +15,8 @@ namespace LibreLancer
 		}
 		static ViewportManager _vpm;
 		Stack<Viewport> viewports = new Stack<Viewport>();
-		RenderState render;
-		public ViewportManager (RenderState rs)
+		RenderContext render;
+		public ViewportManager (RenderContext rs)
 		{
 			_vpm = this;
 			render = rs;
@@ -25,7 +25,7 @@ namespace LibreLancer
 		{
 			var vp = new Viewport (x, y, width, height);
 			viewports.Push (vp);
-			render.SetViewport (x, y, width, height);
+            render.Viewport = new Rectangle(x, y, width, height);
 		}
 		public void Replace(int x, int y, int width, int height)
 		{
@@ -41,8 +41,8 @@ namespace LibreLancer
 		{
 			viewports.Pop ();
 			var vp = viewports.Peek ();
-			render.SetViewport (vp.X, vp.Y, vp.Width, vp.Height);
-		}
+            render.Viewport = new Rectangle(vp.X, vp.Y, vp.Width, vp.Height);
+        }
 	}
 }
 

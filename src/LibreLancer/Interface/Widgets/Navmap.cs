@@ -191,7 +191,7 @@ namespace LibreLancer.Interface
             var gridIdentSize = 13 * (parentRect.Height / 480);
             var gridIdentFont = context.Data.GetFont("$NavMap800");
             var inputRatio = 480 / context.ViewportHeight;
-            var lH = context.Renderer2D.LineHeight(gridIdentFont, context.TextSize(gridIdentSize)) * inputRatio + 3;
+            var lH = context.RenderContext.Renderer2D.LineHeight(gridIdentFont, context.TextSize(gridIdentSize)) * inputRatio + 3;
             RectangleF rect = parentRect;
             if (LetterMargin)
             {
@@ -239,7 +239,7 @@ namespace LibreLancer.Interface
             if (zoneclip.Width <= 0) zoneclip.Width = 1;
             if (zoneclip.Height <= 0) zoneclip.Height = 1;
             //Draw zones
-            context.Renderer2D.DrawWithClip(zoneclip, () =>
+            context.RenderContext.Renderer2D.DrawWithClip(zoneclip, () =>
             {
                 foreach (var zone in zones)
                 {
@@ -254,7 +254,7 @@ namespace LibreLancer.Interface
                     var center = context.PointsToPixelsF(mCenter);
                     var dimensions = context.PointsToPixelsF(mDim);
                     var r2 = new RectangleF(mCenter.X - mDim.X / 2, mCenter.Y - mDim.Y / 2, rect.Width, rect.Height);
-                    context.Renderer2D.EllipseMask(texture, tR, context.PointsToPixelsF(r2),
+                    context.RenderContext.Renderer2D.EllipseMask(texture, tR, context.PointsToPixelsF(r2),
                         center, dimensions, zone.Angle, zone.Tint);
                 }
             });
@@ -288,7 +288,7 @@ namespace LibreLancer.Interface
                 if (!string.IsNullOrWhiteSpace(obj.Name))
                 {
                     context.Mode2D();
-                    var measured = context.Renderer2D.MeasureString(font, fontSize, obj.Name);
+                    var measured = context.RenderContext.Renderer2D.MeasureString(font, fontSize, obj.Name);
                     DrawText(context, ref objectStrings[jj++], new RectangleF(posAbs.X - 100, posAbs.Y, 200, 50), fontSize, font, InterfaceColor.White, 
                         new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Top, false,
                         obj.Name);
@@ -300,14 +300,14 @@ namespace LibreLancer.Interface
                 context.Mode2D();
                 var posA = context.PointsToPixels(WorldToMap(tl.StartXZ));
                 var posB = context.PointsToPixels(WorldToMap(tl.EndXZ));
-                context.Renderer2D.DrawLine(Color4.CornflowerBlue, posA, posB);
+                context.RenderContext.Renderer2D.DrawLine(Color4.CornflowerBlue, posA, posB);
             }
 
             //Map Border
             if (MapBorder) {
                 context.Mode2D();
                 var pRect = context.PointsToPixels(rect);
-                context.Renderer2D.DrawRectangle(pRect, Color4.White, 1);
+                context.RenderContext.Renderer2D.DrawRectangle(pRect, Color4.White, 1);
             }
            
         }

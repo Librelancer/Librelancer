@@ -93,7 +93,7 @@ namespace LibreLancer
             return true; //not visible
 		}
 
-		public override void DepthPrepass(ICamera camera, RenderState rstate)
+		public override void DepthPrepass(ICamera camera, RenderContext rstate)
 		{
             
         }

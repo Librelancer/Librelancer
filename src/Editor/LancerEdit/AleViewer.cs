@@ -17,7 +17,7 @@ namespace LancerEdit
     {
         //GL
         Viewport3D aleViewport;
-        RenderState rstate;
+        RenderContext rstate;
         CommandBuffer buffer;
         PolylineRender polyline;
         PhysicsDebugRenderer debug;
@@ -48,7 +48,7 @@ namespace LancerEdit
                 effectNames[i] = string.Format("{0} (0x{1:X})", plib.Effects[i].Name, plib.Effects[i].CRC);
             Title = string.Format("Ale Viewer ({0})", name);
             this.name = name;
-            this.rstate = main.RenderState;
+            this.rstate = main.RenderContext;
             aleViewport = new Viewport3D(main);
             aleViewport.DefaultOffset = 
             aleViewport.CameraOffset = new Vector3(0, 0, 200);

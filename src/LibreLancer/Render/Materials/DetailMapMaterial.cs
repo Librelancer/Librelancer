@@ -22,12 +22,12 @@ namespace LibreLancer
 		public SamplerFlags DtFlags;
 
 
-		public override void Use (RenderState rstate, IVertexType vertextype, ref Lighting lights)
+		public override void Use (RenderContext rstate, IVertexType vertextype, ref Lighting lights)
 		{
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Opaque;
 
-            var sh = Shaders.DetailMapMaterial.Get(GL.GLES ? ShaderFeatures.VERTEX_LIGHTING : 0);
+            var sh = Shaders.DetailMapMaterial.Get(RenderContext.GLES ? ShaderFeatures.VERTEX_LIGHTING : 0);
 			sh.SetWorld (World);
             sh.SetView(Camera);
             sh.SetViewProjection(Camera);
@@ -46,7 +46,7 @@ namespace LibreLancer
             sh.UseProgram ();
 		}
 
-		public override void ApplyDepthPrepass(RenderState rstate)
+		public override void ApplyDepthPrepass(RenderContext rstate)
 		{
 			rstate.BlendMode = BlendMode.Normal;
             var sh = Shaders.DepthPass_Normal.Get();

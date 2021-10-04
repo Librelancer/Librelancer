@@ -25,7 +25,7 @@ namespace LibreLancer.Interface
         {
             var px = context.PointsToPixels(myRect);
             //Get current state
-            var rs = context.RenderState;
+            var rs = context.RenderContext;
             var cc = rs.ClearColor;
             var prevRt = rs.RenderTarget;
             //new state
@@ -42,7 +42,7 @@ namespace LibreLancer.Interface
             rs.DepthEnabled = false;
             rs.ClearColor = cc;
             context.Mode2D();
-            context.Renderer2D.Draw(renderTarget.Texture, new Rectangle(0,0,px.Width,px.Height), px, Color4.White);
+            context.RenderContext.Renderer2D.Draw(renderTarget.Texture, new Rectangle(0,0,px.Width,px.Height), px, Color4.White);
             //Free
             renderTarget.Dispose();
         }

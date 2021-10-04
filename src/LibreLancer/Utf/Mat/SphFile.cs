@@ -150,7 +150,7 @@ namespace LibreLancer.Utf.Mat
         {
             if (SideMaterials.Length >= 6)
             {
-                sphere = cache.GetQuadSphere(GL.GLES ? 26 : 32);
+                sphere = cache.GetQuadSphere(RenderContext.GLES ? 26 : 32);
                 defaultMaterial = cache.DefaultMaterial;
                 ready = true;
             }

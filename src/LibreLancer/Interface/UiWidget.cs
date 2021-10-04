@@ -65,9 +65,9 @@ namespace LibreLancer.Interface
             context.Mode2D();
             var fnt = context.Data.GetFont(font);
             var size = context.TextSize(textSize);
-            var lineHeight = context.Renderer2D.LineHeight(fnt, size);
+            var lineHeight = context.RenderContext.Renderer2D.LineHeight(fnt, size);
             var drawRect = context.PointsToPixels(myRectangle);
-            var sz = context.Renderer2D.MeasureStringCached(ref cache, fnt, size, text, false, CastAlign(horizontalAlign));
+            var sz = context.RenderContext.Renderer2D.MeasureStringCached(ref cache, fnt, size, text, false, CastAlign(horizontalAlign));
             //workaround for font substitution causing layout issues - e.g. CJK
             //TODO: How to get max lineheight of fonts in string?
             if (sz.Y > lineHeight && sz.Y < (lineHeight * 2)) lineHeight = sz.Y; 
@@ -101,9 +101,9 @@ namespace LibreLancer.Interface
 
             var shadow = new TextShadow();
             if (shadowColor != null) shadow = new TextShadow(shadowColor.Color);
-            if (clip) context.Renderer2D.StartClip(drawRect);
-            context.Renderer2D.DrawStringCached(ref cache, fnt, size, text, drawX, drawY, color, false, shadow, CastAlign(horizontalAlign));
-            if (clip) context.Renderer2D.EndClip();
+            if (clip) context.RenderContext.Renderer2D.StartClip(drawRect);
+            context.RenderContext.Renderer2D.DrawStringCached(ref cache, fnt, size, text, drawX, drawY, color, false, shadow, CastAlign(horizontalAlign));
+            if (clip) context.RenderContext.Renderer2D.EndClip();
         }
         public abstract void Render(UiContext context, RectangleF parentRectangle);
 

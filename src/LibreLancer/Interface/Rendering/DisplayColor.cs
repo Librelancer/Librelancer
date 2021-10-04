@@ -16,7 +16,7 @@ namespace LibreLancer.Interface
             if (Color == null) return;
             context.Mode2D();
             var rect = context.PointsToPixels(clientRectangle);
-            context.Renderer2D.FillRectangle(rect, Color.GetColor(context.GlobalTime));
+            context.RenderContext.Renderer2D.FillRectangle(rect, Color.GetColor(context.GlobalTime));
         }
     }
 }

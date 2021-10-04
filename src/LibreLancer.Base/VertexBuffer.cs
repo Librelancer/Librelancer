@@ -96,7 +96,7 @@ namespace LibreLancer
 		public void Draw(PrimitiveTypes primitiveType, int baseVertex, int startIndex, int primitiveCount)
 		{
             if (primitiveCount == 0) throw new InvalidOperationException("primitiveCount can't be 0");
-            RenderState.Instance.Apply ();
+            RenderContext.Instance.Apply ();
 			int indexElementCount = primitiveType.GetArrayLength (primitiveCount);
 			GLBind.VertexArray (VAO);
 			GL.DrawElementsBaseVertex (primitiveType.GLType (),
@@ -131,7 +131,7 @@ namespace LibreLancer
         }
 		public void Draw(PrimitiveTypes primitiveType, int primitiveCount)
 		{
-			RenderState.Instance.Apply ();
+			RenderContext.Instance.Apply ();
 			GLBind.VertexArray (VAO);
 			if (HasElements) {
                 GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, _elements.Handle);
@@ -152,7 +152,7 @@ namespace LibreLancer
 		}
 		public void Draw(PrimitiveTypes primitiveType,int start, int primitiveCount)
 		{
-			RenderState.Instance.Apply();
+			RenderContext.Instance.Apply();
 			GLBind.VertexArray(VAO);
 			if (HasElements)
 			{

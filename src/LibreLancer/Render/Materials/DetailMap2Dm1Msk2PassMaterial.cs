@@ -24,12 +24,12 @@ namespace LibreLancer
 		public DetailMap2Dm1Msk2PassMaterial ()
 		{
 		}
-        public override void Use (RenderState rstate, IVertexType vertextype, ref Lighting lights)
+        public override void Use (RenderContext rstate, IVertexType vertextype, ref Lighting lights)
 		{
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Opaque;
 
-			var sh = Shaders.DetailMap2Dm1Msk2PassMaterial.Get (GL.GLES ? ShaderFeatures.VERTEX_LIGHTING : 0);
+			var sh = Shaders.DetailMap2Dm1Msk2PassMaterial.Get (RenderContext.GLES ? ShaderFeatures.VERTEX_LIGHTING : 0);
 			sh.SetWorld (World);
 			sh.SetViewProjection (Camera);
 			sh.SetView (Camera);
@@ -46,7 +46,7 @@ namespace LibreLancer
             sh.UseProgram ();
 		}
 
-		public override void ApplyDepthPrepass(RenderState rstate)
+		public override void ApplyDepthPrepass(RenderContext rstate)
 		{
 			rstate.BlendMode = BlendMode.Normal;
             var sh = Shaders.DepthPass_Normal.Get();

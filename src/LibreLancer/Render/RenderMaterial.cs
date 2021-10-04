@@ -32,14 +32,14 @@ namespace LibreLancer
 		public float FadeFar = 0;
         public UniformBuffer Bones;
         public int BufferOffset;
-        public abstract void Use(RenderState rstate, IVertexType vertextype, ref Lighting lights);
+        public abstract void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights);
 		public abstract bool IsTransparent { get; }
         public virtual bool DisableCull {  get { return false; } }
         public bool DoubleSided = false;
 		Texture2D[] textures = new Texture2D[8];
 		bool[] loaded = new bool[8];
 
-        public abstract void ApplyDepthPrepass(RenderState rstate);
+        public abstract void ApplyDepthPrepass(RenderContext rstate);
 
         private const int MAX_SET_LIGHTS = 8;
 
@@ -151,7 +151,7 @@ namespace LibreLancer
 			return textures[cacheidx];
 		}
 
-		protected void BindTexture(RenderState rstate, int cacheidx, string tex, int unit, SamplerFlags flags, string nullName = null)
+		protected void BindTexture(RenderContext rstate, int cacheidx, string tex, int unit, SamplerFlags flags, string nullName = null)
 		{
 			if (tex == null)
 			{

@@ -206,7 +206,7 @@ namespace LancerEdit
             var bm = ((BasicMaterial)mat);
             bm.Oc = 1;
             bm.OcEnabled = true;
-            GL.PolygonOffset(1, 1);
+            rstate.PolygonOffset = new Vector2(1, 1);
             foreach(var mdl in surs) {
                 if (mdl.Hardpoint && !surShowHps) continue;
                 if (!mdl.Hardpoint && !surShowHull) continue;
@@ -216,7 +216,7 @@ namespace LancerEdit
                 foreach (var dc in mdl.Draws)
                     mdl.Vertices.Draw(PrimitiveTypes.TriangleList, dc.BaseVertex, dc.Start, dc.Count);
             }
-            GL.PolygonOffset(0, 0);
+            rstate.PolygonOffset = new Vector2(0, 0);
             bm.OcEnabled = false;
             rstate.DepthWrite = true;
             rstate.Cull = true;
@@ -262,9 +262,9 @@ namespace LancerEdit
         {
             if (_window.Config.BackgroundGradient && bkgG)
             {
-                _window.Renderer2D.Start(renderWidth, renderHeight);
-                _window.Renderer2D.DrawVerticalGradient(new Rectangle(0,0,renderWidth,renderHeight), _window.Config.Background, _window.Config.Background2);
-                _window.Renderer2D.Finish();
+                _window.RenderContext.Renderer2D.Start(renderWidth, renderHeight);
+                _window.RenderContext.Renderer2D.DrawVerticalGradient(new Rectangle(0,0,renderWidth,renderHeight), _window.Config.Background, _window.Config.Background2);
+                _window.RenderContext.Renderer2D.Finish();
             }
             rstate.DepthEnabled = true;
             rstate.Cull = true;
@@ -345,10 +345,10 @@ namespace LancerEdit
             if (doWireframe)
             {
                 buffer.StartFrame(rstate);
-                GL.PolygonOffset(1, 1);
+                rstate.PolygonOffset = new Vector2(1, 1);
                 rstate.Wireframe = true;
                 DrawSimple(cam, true);
-                GL.PolygonOffset(0, 0);
+                rstate.PolygonOffset = new Vector2(0, 0);
                 buffer.DrawOpaque(rstate);
                 rstate.Wireframe = false;
             }

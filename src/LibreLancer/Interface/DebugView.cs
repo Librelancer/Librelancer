@@ -36,7 +36,7 @@ namespace LibreLancer.Interface
                 ImGui.End();
                 otherWindows?.Invoke();
                 ImGui.PopFont();
-                igrender.Render(game.RenderState);
+                igrender.Render(game.RenderContext);
             }
             else
             {

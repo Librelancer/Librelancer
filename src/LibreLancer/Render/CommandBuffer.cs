@@ -11,7 +11,7 @@ using LibreLancer.Utf.Cmp;
 
 namespace LibreLancer
 {
-	public delegate void ShaderAction(Shader shdr, RenderState res, ref RenderCommand cmd);
+	public delegate void ShaderAction(Shader shdr, RenderContext res, ref RenderCommand cmd);
 	public class CommandBuffer
 	{
 		const int MAX_COMMANDS = 16384;
@@ -23,7 +23,7 @@ namespace LibreLancer
 		int currentCommand = 0;
 		int transparentCommand = 0;
 		Action _transparentSort;
-        RenderState rstate;
+        RenderContext rstate;
         public UniformBuffer BonesBuffer;
         public WorldMatrixBuffer WorldBuffer;
         public CommandBuffer()
@@ -32,7 +32,7 @@ namespace LibreLancer
             BonesBuffer = new UniformBuffer(800, 64, typeof(Matrix4x4));
             WorldBuffer = new WorldMatrixBuffer();
         }
-        public void StartFrame(RenderState rstate)
+        public void StartFrame(RenderContext rstate)
 		{
 			currentCommand = 0;
 			transparentCommand = 0;
@@ -101,7 +101,7 @@ namespace LibreLancer
 				World = world,
             };
 		}
-		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, WorldMatrixHandle world, Lighting lt, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0, int renIndex = 0)
+		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderContext> cleanup, WorldMatrixHandle world, Lighting lt, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0, int renIndex = 0)
 		{
 			if (transparent)
 			{
@@ -126,7 +126,7 @@ namespace LibreLancer
                 throw new InvalidOperationException();
 			}
 		}
-		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, WorldMatrixHandle world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0, int renIndex = 0)
+		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderContext> cleanup, WorldMatrixHandle world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0, int renIndex = 0)
 		{
 			if (transparent)
 			{
@@ -150,7 +150,7 @@ namespace LibreLancer
                 throw new InvalidOperationException();
 			}
 		}
-		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderState> cleanup, WorldMatrixHandle world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, bool transparent, int layer, float z = 0, int renIndex = 0)
+		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderContext> cleanup, WorldMatrixHandle world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, bool transparent, int layer, float z = 0, int renIndex = 0)
 		{
 			if (transparent)
 			{
@@ -187,7 +187,7 @@ namespace LibreLancer
             };
 		}
 
-		public void DrawOpaque(RenderState state)
+		public void DrawOpaque(RenderContext context)
 		{
             SortTransparent();
             FillBillboards();
@@ -225,21 +225,21 @@ namespace LibreLancer
 
 		int[] cmdptr = new int[MAX_COMMANDS];
 		int transparentCount = 0;
-		public void DrawTransparent(RenderState state)
+		public void DrawTransparent(RenderContext context)
 		{
 		  	Billboards lastbb = null;
 			for (int i = transparentCommand - 1; i >= 0; i--)
 			{
 				if (lastbb != null && Transparents[cmdptr[i]].CmdType != RenderCmdType.Billboard)
 				{
-					lastbb.FlushCommands(state);
+					lastbb.FlushCommands(context);
 					lastbb = null;
 				}
 				lastbb = (Transparents[cmdptr[i]].Source as Billboards);
-				Transparents[cmdptr[i]].Run(state);
+				Transparents[cmdptr[i]].Run(context);
 			}
 			if (lastbb != null)
-				lastbb.FlushCommands(state);
+				lastbb.FlushCommands(context);
 		}
 
 	}
@@ -324,7 +324,7 @@ namespace LibreLancer
 		{
 			return string.Format("[Key: {0}]", Key);
 		}
-		public unsafe void Run(RenderState state)
+		public unsafe void Run(RenderContext context)
 		{
 			if (CmdType == RenderCmdType.Material || CmdType == RenderCmdType.MaterialFade)
 			{
@@ -341,30 +341,30 @@ namespace LibreLancer
 					Material.FadeNear = *(float*)(&fn);
 					Material.FadeFar = *(float*)(&ff);
 				}
-                if (Material.DisableCull || Material.DoubleSided) state.Cull = false;
-				Material.Use(state, Buffer.VertexType, ref Lights);
+                if (Material.DisableCull || Material.DoubleSided) context.Cull = false;
+				Material.Use(context, Buffer.VertexType, ref Lights);
 				if ((CmdType != RenderCmdType.MaterialFade) && BaseVertex != -1)
 					Buffer.Draw(Primitive, BaseVertex, Start, Count);
 				else
 					Buffer.Draw(Primitive, Count);
-                if (Material.DisableCull || Material.DoubleSided) state.Cull = true;
+                if (Material.DisableCull || Material.DoubleSided) context.Cull = true;
 			}
 			else if (CmdType == RenderCmdType.Shader)
 			{
 				var Shader = (Shader)Source;
-				ShaderSetup(Shader, state, ref this);
+				ShaderSetup(Shader, context, ref this);
 				Shader.UseProgram();
 				if (BaseVertex != -1)
 					Buffer.Draw(Primitive, BaseVertex, Start, Count);
 				else
 					Buffer.Draw(Primitive, Start, Count);
 				if (Cleanup != null)
-					((Action<RenderState>)Cleanup)(state);
+					((Action<RenderContext>)Cleanup)(context);
 			}
 			else if (CmdType == RenderCmdType.Billboard)
 			{
 				var Billboards = (Billboards)Source;
-				Billboards.Render(Index, Hash, state);
+				Billboards.Render(Index, Hash, context);
 			}
 		}
 	}

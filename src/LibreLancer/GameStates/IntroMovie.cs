@@ -30,16 +30,16 @@ namespace LibreLancer
 		{
 			if (idx != int.MaxValue)
 			{
-				player.Draw(Game.RenderState);
+				player.Draw(Game.RenderContext);
 				if (!player.Playing)
 				{
 					Leave();
 					return;
 				}
 				var tex = player.GetTexture();
-				Game.Renderer2D.Start(Game.Width, Game.Height);
-				Game.Renderer2D.DrawImageStretched(tex, new Rectangle(0, 0, Game.Width, Game.Height), Color4.White);
-				Game.Renderer2D.Finish();
+				Game.RenderContext.Renderer2D.Start(Game.Width, Game.Height);
+				Game.RenderContext.Renderer2D.DrawImageStretched(tex, new Rectangle(0, 0, Game.Width, Game.Height), Color4.White);
+				Game.RenderContext.Renderer2D.Finish();
 			}
 			else
 				Leave();

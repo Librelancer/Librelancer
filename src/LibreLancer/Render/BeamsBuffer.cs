@@ -176,7 +176,7 @@ namespace LibreLancer
                 boltCount = 0;
             }
         }
-        static void SetupShader(Shader shdr, RenderState res, ref RenderCommand cmd)
+        static void SetupShader(Shader shdr, RenderContext res, ref RenderCommand cmd)
         {
             code_beam.SetWrapModeS(WrapMode.ClampToEdge);
             code_beam.SetWrapModeT(WrapMode.ClampToEdge);
@@ -184,7 +184,7 @@ namespace LibreLancer
             res.BlendMode = BlendMode.Additive;
             res.Cull = false;
         }
-        static void EnableCull(RenderState rs)
+        static void EnableCull(RenderContext rs)
         {
             rs.Cull = true;
         }

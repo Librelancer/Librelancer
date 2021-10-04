@@ -117,7 +117,7 @@ namespace LibreLancer
         }
 
         private ulong drawN = ulong.MaxValue;
-        public unsafe void DrawImmediate(int level, ResourceManager res, RenderState renderState, Matrix4x4 world, ref Lighting lights, MaterialAnimCollection mc, Material overrideMat = null)
+        public unsafe void DrawImmediate(int level, ResourceManager res, RenderContext renderContext, Matrix4x4 world, ref Lighting lights, MaterialAnimCollection mc, Material overrideMat = null)
         {
             if (Levels == null || Levels.Length < level) return;
             var l = Levels[level];
@@ -155,7 +155,7 @@ namespace LibreLancer
                     tr = dc.Scale * world;
                 mat.Render.World = handle;
                 mat.Render.MaterialAnim = ma;
-                mat.Render.Use(renderState, dc.Buffer.VertexType, ref lights);
+                mat.Render.Use(renderContext, dc.Buffer.VertexType, ref lights);
                 dc.Buffer.Draw(PrimitiveTypes.TriangleList, dc.BaseVertex, dc.StartIndex, dc.PrimitiveCount);
                 
             }
@@ -253,7 +253,7 @@ namespace LibreLancer
             return f;
         }
 
-        public void DrawImmediate(RenderState rstate, ResourceManager res, Matrix4x4 world, ref Lighting lights, Material overrideMat = null)
+        public void DrawImmediate(RenderContext rstate, ResourceManager res, Matrix4x4 world, ref Lighting lights, Material overrideMat = null)
         {
             for (int i = 0; i < AllParts.Length; i++)
             {

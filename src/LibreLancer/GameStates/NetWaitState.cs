@@ -22,8 +22,8 @@ namespace LibreLancer
 
         public override void Draw(double delta)
         {
-            Game.RenderState.ClearColor = Color4.Black;
-            Game.RenderState.ClearAll();
+            Game.RenderContext.ClearColor = Color4.Black;
+            Game.RenderContext.ClearAll();
         }
 
         public override void Exiting()

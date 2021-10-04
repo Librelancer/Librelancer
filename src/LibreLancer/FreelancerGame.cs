@@ -21,7 +21,6 @@ namespace LibreLancer
 		public SoundManager Sound;
         public Typewriter Typewriter;
 		public GameResourceManager ResourceManager;
-		public Renderer2D Renderer2D;
 		public Billboards Billboards;
 		public NebulaVertices Nebulae;
 		public ScreenshotManager Screenshots;
@@ -103,11 +102,10 @@ namespace LibreLancer
             GameDataLoaderThread.Name = "GamedataLoader";
             GameDataLoaderThread.Start();
             //
-            Renderer2D = new Renderer2D(RenderState);
             Fonts = new FontManager();
 			Billboards = new Billboards ();
 			Nebulae = new NebulaVertices();
-			ViewportManager = new ViewportManager (RenderState);
+			ViewportManager = new ViewportManager (RenderContext);
 			ViewportManager.Push(0, 0, Width, Height);
 			Screenshots = new ScreenshotManager(this);
             Typewriter = new Typewriter(this);
@@ -115,7 +113,6 @@ namespace LibreLancer
             Services.Add(Billboards);
             Services.Add(Nebulae);
             Services.Add(ResourceManager);
-            Services.Add(Renderer2D);
             Services.Add(Config);
             Services.Add(Fonts);
             Services.Add(GameData);
@@ -169,7 +166,7 @@ namespace LibreLancer
 				Title = string.Format ("LibreLancer: {0:00.00}fps/ {2:00.00}ms - {1} Drawcalls", RenderFrequency, drawCallsPerFrame, FrameTime * 1000.0);
 				fps_updatetimer = FPS_INTERVAL;
 			}
-			RenderState.ClearAll ();
+			RenderContext.ClearAll ();
 			if (currentState != null)
 				currentState.Draw (elapsed);
             Typewriter.Render();

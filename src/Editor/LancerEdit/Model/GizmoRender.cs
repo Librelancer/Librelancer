@@ -127,7 +127,7 @@ namespace LancerEdit
         }
 
 
-        public static void RenderGizmos(ICamera cam, RenderState rstate)
+        public static void RenderGizmos(ICamera cam, RenderContext rstate)
         {
             rstate.DepthEnabled = true;
             lineBuffer.SetData(lines, vertexCountL);

@@ -54,19 +54,17 @@ namespace ThnPlayer
             LibreLancer.Shaders.AllShaders.Compile();
             guiHelper = new ImGuiHelper(this);
             FileDialog.RegisterParent(this);
-            Viewports = new ViewportManager(this.RenderState);
+            Viewports = new ViewportManager(this.RenderContext);
             Viewports.Push(0, 0, 800, 600);
             Billboards = new Billboards();
             Nebulae = new NebulaVertices();
             Resources = new GameResourceManager(this);
-            Renderer2D = new Renderer2D(this.RenderState);
             Audio = new AudioManager(this);
             Sounds = new SoundManager(Audio);
             Services.Add(Sounds);
             Services.Add(Billboards);
             Services.Add(Nebulae);
             Services.Add(Resources);
-            Services.Add(Renderer2D);
             fontMan = new FontManager();
             fontMan.ConstructDefaultFonts();
             Services.Add(fontMan);
@@ -138,8 +136,8 @@ namespace ThnPlayer
             VertexBuffer.TotalDrawcalls = 0;
             EnableTextInput();
             Viewports.Replace(0, 0, Width, Height);
-            RenderState.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
-            RenderState.ClearAll();
+            RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
+            RenderContext.ClearAll();
             //
             if (cutscene != null)
             {
@@ -277,7 +275,7 @@ namespace ThnPlayer
                 }
             }
             ImGui.PopFont();
-            guiHelper.Render(RenderState);
+            guiHelper.Render(RenderContext);
         }
         void OnLoadComplete()
         {

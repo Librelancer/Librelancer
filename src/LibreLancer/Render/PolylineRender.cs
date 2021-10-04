@@ -91,7 +91,7 @@ namespace LibreLancer
 			vbo.SetData(vertices, vertexCount);
 			vertexCount = 0;
 		}
-		static void Setup(Shader shdr, RenderState res, ref LibreLancer.RenderCommand cmd)
+		static void Setup(Shader shdr, RenderContext res, ref LibreLancer.RenderCommand cmd)
 		{
 			shader.SetViewProjection(cmd.UserData.Camera);
 			cmd.UserData.Texture.BindTo(0);
@@ -99,7 +99,7 @@ namespace LibreLancer
 			res.Cull = false;
 		}
 				
-		static void Cleanup(RenderState rs)
+		static void Cleanup(RenderContext rs)
 		{
 			rs.Cull = true;
 		}

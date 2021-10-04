@@ -13,7 +13,7 @@ namespace LancerEdit
     public class OptionsWindow
     {
         private EditorConfiguration config;
-        private RenderState rstate;
+        private RenderContext rstate;
         private ImGuiHelper guiHelper;
         private ViewportManager vps;
         static readonly string[] defaultFilters = {
@@ -37,14 +37,14 @@ namespace LancerEdit
         public OptionsWindow(MainWindow win)
         {
             config = win.Config;
-            rstate = win.RenderState;
+            rstate = win.RenderContext;
             guiHelper = win.guiHelper;
             vps = win.Viewport;
             
             var texturefilters = new List<string>(defaultFilters);
-            if (win.RenderState.MaxAnisotropy > 0)
+            if (win.RenderContext.MaxAnisotropy > 0)
             {
-                anisotropyLevels = win.RenderState.GetAnisotropyLevels();
+                anisotropyLevels = win.RenderContext.GetAnisotropyLevels();
                 foreach (var lvl in anisotropyLevels)
                 {
                     texturefilters.Add(string.Format("Anisotropic {0}x", lvl));
@@ -52,7 +52,7 @@ namespace LancerEdit
             }
             var msaa = new List<int> { 0 };
             int a = 2;
-            while (a <= win.RenderState.MaxSamples)
+            while (a <= win.RenderContext.MaxSamples)
             {
                 msaa.Add(a);
                 a *= 2;

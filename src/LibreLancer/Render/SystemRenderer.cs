@@ -50,7 +50,7 @@ namespace LibreLancer
         public BeamsBuffer Beams;
         public StaticBillboards StaticBillboards = new StaticBillboards();
 		ResourceManager cache;
-		RenderState rstate;
+		RenderContext rstate;
 		Game game;
 		Texture2D dot;
 
@@ -100,7 +100,7 @@ namespace LibreLancer
             Polyline = new PolylineRender(commands);
             FxPool = new ParticleEffectPool(commands);
             cache = rescache;
-            rstate = rescache.Game.RenderState;
+            rstate = rescache.Game.RenderContext;
             this.game = game;
             gconfig = game.GetService<GameConfig>();
             billboards = game.GetService<Billboards>();
@@ -389,9 +389,9 @@ namespace LibreLancer
                 Matrix4x4.Invert(p, out p);
 				pointLightCull.UniformMatrix4fv("viewMatrix", ref v);
 				pointLightCull.UniformMatrix4fv("invProjection", ref p);
-				GL.MemoryBarrier(GL.GL_SHADER_STORAGE_BARRIER_BIT); //I don't think these need to be here - confirm then remove?
+				rstate.SSBOMemoryBarrier(); //I don't think these need to be here - confirm then remove?
 				pointLightCull.Dispatch((uint)tilesW, (uint)tilesH, 1);
-				GL.MemoryBarrier(GL.GL_SHADER_STORAGE_BARRIER_BIT);
+				rstate.SSBOMemoryBarrier();
 			}
 			else
 			{
@@ -426,7 +426,7 @@ namespace LibreLancer
             if (!transitioned)
             {
                 //Starsphere
-                GL.DepthRange(1, 1);
+                rstate.DepthRange = new Vector2(1, 1);
                 if(camera is ThnCamera thn) thn.DefaultZ();
                 for (int i = 0; i < StarSphereModels.Length; i++)
                 {
@@ -444,7 +444,8 @@ namespace LibreLancer
                     nr.RenderFogTransition();
                     //rstate.DepthEnabled = true;
                 }
-                GL.DepthRange(0, 1);
+
+                rstate.DepthRange = new Vector2(0, 1);
             }
 			//Transparent Pass
             rstate.DepthWrite = false;

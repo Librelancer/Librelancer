@@ -83,7 +83,7 @@ void main()
             elements = new ElementBuffer(6);
             elements.SetData(new short[] { 0, 1, 2, 1, 3, 2});
             vertices.SetElementBuffer(elements);
-            string glslVer = GL.GLES ? "310 es\nprecision mediump float;\nprecision mediump int;" : "140";
+            string glslVer = RenderContext.GLES ? "310 es\nprecision mediump float;\nprecision mediump int;" : "140";
             shader = new Shader(VertexShader.Replace("{0}", glslVer), FragmentShader.Replace("{0}", glslVer));
             viewProj = shader.GetLocation("ViewProjection");
             view = shader.GetLocation("View");
@@ -91,7 +91,7 @@ void main()
             gridScale = shader.GetLocation("GridScale");
         }    
         
-        public static void Draw(RenderState rstate, ICamera camera, Color4 color)
+        public static void Draw(RenderContext rstate, ICamera camera, Color4 color)
         {
             Load();
             //Set state
