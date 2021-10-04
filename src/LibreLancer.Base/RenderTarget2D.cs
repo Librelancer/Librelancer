@@ -38,6 +38,7 @@ namespace LibreLancer
 
         public void BlitToScreen()
         {
+            RenderContext.Instance.Renderer2D.Flush();
             if (RenderContext.Instance.applied.ScissorEnabled) {
                 GL.Disable(GL.GL_SCISSOR_TEST);
                 RenderContext.Instance.applied.ScissorEnabled = false;

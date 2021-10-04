@@ -698,7 +698,6 @@ World Time: {12:F2}
                 ui.Visible = false;
             }
 
-            Game.RenderContext.Renderer2D.Start(Game.Width, Game.Height);
             if (Thn != null && Thn.Running)
             {
                 var pct = Cutscene.LETTERBOX_HEIGHT;
@@ -727,7 +726,6 @@ World Time: {12:F2}
                 current_cur.Draw(Game.RenderContext.Renderer2D, Game.Mouse);
             }
             DoFade(delta);
-            Game.RenderContext.Renderer2D.Finish();
 		}
 
         public override void Exiting()

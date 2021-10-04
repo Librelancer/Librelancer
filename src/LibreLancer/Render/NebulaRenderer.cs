@@ -65,10 +65,7 @@ namespace LibreLancer
 		{
 			var c = GetFogColor();
 			c.A = CalculateTransition(Nebula.Zone);
-
-			render2D.Start(game.Width, game.Height);
-			render2D.FillRectangle(new Rectangle(0, 0, game.Width, game.Height), c);
-			render2D.Finish();
+            render2D.FillRectangle(new Rectangle(0, 0, game.Width, game.Height), c);
 		}
 
 		Color4 GetFogColor()

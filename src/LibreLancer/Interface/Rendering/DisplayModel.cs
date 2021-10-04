@@ -55,14 +55,24 @@ namespace LibreLancer.Interface
         private RigidModel model;
         private bool loadable = true;
         private List<ModifiedMaterial> mats;
+        
+        public static Matrix4x4 CreateTransform(int gWidth, int gHeight, Rectangle r)
+        {
+            float gX = (float)gWidth / 2;
+            float gY = (float)gHeight / 2;
+            var tX = (r.X + (r.Width / 2) - gX) / gX;
+            var tY = (gY - r.Y - (r.Height / 2)) / gY;
+            var sX = r.Width / (float)(gWidth);
+            var sY = r.Height / (float)(gHeight);
+            return Matrix4x4.CreateScale(sX, sY, 1) * Matrix4x4.CreateTranslation(tX, tY, 0);
+        }
+        
         public override void Render(UiContext context, RectangleF clientRectangle)
         {
             if (Model == null) return;
             if (!CanRender(context)) return;
-            context.Mode3D();
             var rect = context.PointsToPixels(clientRectangle);
-            if (Clip)
-            {
+            if (Clip) {
                 context.RenderContext.ScissorEnabled = true;
                 context.RenderContext.ScissorRectangle = rect;
             }
@@ -82,7 +92,7 @@ namespace LibreLancer.Interface
             var transform = Matrix4x4.CreateScale(Model.XScale * scaleMult, Model.YScale * scaleMult, 1) *
                             rotationMatrix *
                             Matrix4x4.CreateTranslation(Model.X, Model.Y, 0);
-            context.MatrixCam.CreateTransform((int)context.ViewportWidth, (int)context.ViewportHeight, rect);
+            transform *= CreateTransform((int) context.ViewportWidth, (int) context.ViewportHeight, rect);
             context.RenderContext.Cull = false;
             model.UpdateTransform();
             model.Update(context.MatrixCam, context.GlobalTime, context.Data.ResourceManager);

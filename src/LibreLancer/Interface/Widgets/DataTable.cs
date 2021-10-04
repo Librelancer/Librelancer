@@ -202,7 +202,6 @@ namespace LibreLancer.Interface
             if (dividerPositions == null) return;
             var rect = GetMyRectangle(context, parentRectangle);
             Background?.Draw(context, rect);
-            context.Mode2D();
             //Handle resizing columns
             if (dragging != -1 && context.MouseLeftDown)
             {

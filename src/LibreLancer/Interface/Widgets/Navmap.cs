@@ -186,7 +186,6 @@ namespace LibreLancer.Interface
         private CachedRenderString[] objectStrings;
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
-            context.Mode2D();
             var parentRect = GetMyRectangle(context, parentRectangle);
             var gridIdentSize = 13 * (parentRect.Height / 480);
             var gridIdentFont = context.Data.GetFont("$NavMap800");
@@ -222,7 +221,6 @@ namespace LibreLancer.Interface
             var scale = new Vector2(GridSizeDefault / (navmapscale == 0 ? 1 : navmapscale));
             var background = context.Data.NavmapIcons.GetBackground();
             background.DrawWithClip(context, rect, rect);
-            context.Mode2D();
             //Draw Zones
             Vector2 WorldToMap(Vector2 a)
             {
@@ -239,25 +237,25 @@ namespace LibreLancer.Interface
             if (zoneclip.Width <= 0) zoneclip.Width = 1;
             if (zoneclip.Height <= 0) zoneclip.Height = 1;
             //Draw zones
-            context.RenderContext.Renderer2D.DrawWithClip(zoneclip, () =>
+            context.RenderContext.ScissorEnabled = true;
+            context.RenderContext.ScissorRectangle = zoneclip;
+            foreach (var zone in zones)
             {
-                foreach (var zone in zones)
-                {
-                    Texture2D texture = null;
-                    if (!string.IsNullOrEmpty(zone.Texture))
-                        texture = (Texture2D) context.Data.ResourceManager.FindTexture(zone.Texture);
-                    var tR = new Rectangle(0, 0, 480, 480);
-                    texture?.SetWrapModeS(WrapMode.Repeat);
-                    texture?.SetWrapModeT(WrapMode.Repeat);
-                    var mCenter = WorldToMap(zone.XZ);
-                    var mDim = zone.Dimensions / scale * new Vector2(rect.Width, rect.Height);
-                    var center = context.PointsToPixelsF(mCenter);
-                    var dimensions = context.PointsToPixelsF(mDim);
-                    var r2 = new RectangleF(mCenter.X - mDim.X / 2, mCenter.Y - mDim.Y / 2, rect.Width, rect.Height);
-                    context.RenderContext.Renderer2D.EllipseMask(texture, tR, context.PointsToPixelsF(r2),
-                        center, dimensions, zone.Angle, zone.Tint);
-                }
-            });
+                Texture2D texture = null;
+                if (!string.IsNullOrEmpty(zone.Texture))
+                    texture = (Texture2D) context.Data.ResourceManager.FindTexture(zone.Texture);
+                var tR = new Rectangle(0, 0, 480, 480);
+                texture?.SetWrapModeS(WrapMode.Repeat);
+                texture?.SetWrapModeT(WrapMode.Repeat);
+                var mCenter = WorldToMap(zone.XZ);
+                var mDim = zone.Dimensions / scale * new Vector2(rect.Width, rect.Height);
+                var center = context.PointsToPixelsF(mCenter);
+                var dimensions = context.PointsToPixelsF(mDim);
+                var r2 = new RectangleF(mCenter.X - mDim.X / 2, mCenter.Y - mDim.Y / 2, rect.Width, rect.Height);
+                context.RenderContext.Renderer2D.EllipseMask(texture, tR, context.PointsToPixelsF(r2),
+                    center, dimensions, zone.Angle, zone.Tint);
+            }
+            context.RenderContext.ScissorEnabled = false;
             
             //System Name
             if (!string.IsNullOrWhiteSpace(systemName))
@@ -287,7 +285,6 @@ namespace LibreLancer.Interface
 
                 if (!string.IsNullOrWhiteSpace(obj.Name))
                 {
-                    context.Mode2D();
                     var measured = context.RenderContext.Renderer2D.MeasureString(font, fontSize, obj.Name);
                     DrawText(context, ref objectStrings[jj++], new RectangleF(posAbs.X - 100, posAbs.Y, 200, 50), fontSize, font, InterfaceColor.White, 
                         new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Top, false,
@@ -297,7 +294,6 @@ namespace LibreLancer.Interface
 
             foreach (var tl in tradelanes)
             {
-                context.Mode2D();
                 var posA = context.PointsToPixels(WorldToMap(tl.StartXZ));
                 var posB = context.PointsToPixels(WorldToMap(tl.EndXZ));
                 context.RenderContext.Renderer2D.DrawLine(Color4.CornflowerBlue, posA, posB);
@@ -305,7 +301,6 @@ namespace LibreLancer.Interface
 
             //Map Border
             if (MapBorder) {
-                context.Mode2D();
                 var pRect = context.PointsToPixels(rect);
                 context.RenderContext.Renderer2D.DrawRectangle(pRect, Color4.White, 1);
             }

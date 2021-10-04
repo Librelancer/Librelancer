@@ -173,21 +173,6 @@ namespace LibreLancer.Interface
             var pixels = inputPoints * ratio;
             return (int)Math.Floor(pixels);
         }
-        
-        public void Mode2D()
-        {
-            if (mode2d) return;
-            RenderContext.Renderer2D.Start((int)ViewportWidth, (int)ViewportHeight);
-            mode2d = true;
-        }
-        
-        public void Mode3D()
-        {
-            if (!mode2d) return;
-            RenderContext.Renderer2D.Finish();
-            mode2d = false;
-        }
-        
         public void Update(UiWidget widget, double globalTime, int mouseX, int mouseY, bool leftDown)
         {
             GlobalTime = globalTime;
@@ -334,8 +319,6 @@ namespace LibreLancer.Interface
             baseWidget.Render(this, desktopRect);
             foreach(var widget in modals)
                 widget.Widget.Render(this, desktopRect);
-            if (mode2d)
-                RenderContext.Renderer2D.Finish();
             RenderContext.DepthEnabled = true;
         }
     }

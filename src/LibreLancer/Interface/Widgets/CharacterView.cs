@@ -29,7 +29,6 @@ namespace LibreLancer.Interface
             var cc = rs.ClearColor;
             var prevRt = rs.RenderTarget;
             //new state
-            context.Mode3D();
             rs.DepthEnabled = true;
             var renderTarget = new RenderTarget2D(px.Width, px.Height);
             rs.RenderTarget = renderTarget;
@@ -41,7 +40,6 @@ namespace LibreLancer.Interface
             rs.RenderTarget = prevRt;
             rs.DepthEnabled = false;
             rs.ClearColor = cc;
-            context.Mode2D();
             context.RenderContext.Renderer2D.Draw(renderTarget.Texture, new Rectangle(0,0,px.Width,px.Height), px, Color4.White);
             //Free
             renderTarget.Dispose();

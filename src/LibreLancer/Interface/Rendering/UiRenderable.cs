@@ -19,12 +19,10 @@ namespace LibreLancer.Interface
 
         public void DrawWithClip(UiContext context, RectangleF rectangle, RectangleF clip)
         {
-            context.Mode3D();
             var clipRectangle = context.PointsToPixels(clip);
             context.RenderContext.ScissorRectangle = clipRectangle;
             context.RenderContext.ScissorEnabled = true;
             Draw(context, rectangle);
-            context.Mode3D(); //flush
             context.RenderContext.ScissorEnabled = false;
         }
     }

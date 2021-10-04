@@ -37,9 +37,7 @@ namespace LibreLancer
 					return;
 				}
 				var tex = player.GetTexture();
-				Game.RenderContext.Renderer2D.Start(Game.Width, Game.Height);
 				Game.RenderContext.Renderer2D.DrawImageStretched(tex, new Rectangle(0, 0, Game.Width, Game.Height), Color4.White);
-				Game.RenderContext.Renderer2D.Finish();
 			}
 			else
 				Leave();

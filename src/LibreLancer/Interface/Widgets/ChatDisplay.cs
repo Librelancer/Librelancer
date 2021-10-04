@@ -23,7 +23,6 @@ namespace LibreLancer.Interface
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
             var rect = GetMyRectangle(context, parentRectangle);
-            context.Mode2D();
             Background?.Draw(context, rect);
             float y = rect.Y + rect.Height;
             float dt = (float) context.DeltaTime;

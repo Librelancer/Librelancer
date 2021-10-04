@@ -62,7 +62,6 @@ namespace LibreLancer.Interface
             if (textSize <= 0) textSize = 10;
             var color = (textColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
             if (color.A < float.Epsilon) return;
-            context.Mode2D();
             var fnt = context.Data.GetFont(font);
             var size = context.TextSize(textSize);
             var lineHeight = context.RenderContext.Renderer2D.LineHeight(fnt, size);
@@ -101,9 +100,14 @@ namespace LibreLancer.Interface
 
             var shadow = new TextShadow();
             if (shadowColor != null) shadow = new TextShadow(shadowColor.Color);
-            if (clip) context.RenderContext.Renderer2D.StartClip(drawRect);
+            if (clip) {
+                context.RenderContext.ScissorEnabled = true;
+                context.RenderContext.ScissorRectangle = drawRect;
+            }
             context.RenderContext.Renderer2D.DrawStringCached(ref cache, fnt, size, text, drawX, drawY, color, false, shadow, CastAlign(horizontalAlign));
-            if (clip) context.RenderContext.Renderer2D.EndClip();
+            if (clip) {
+                context.RenderContext.ScissorEnabled = false;
+            }
         }
         public abstract void Render(UiContext context, RectangleF parentRectangle);
 

@@ -72,7 +72,6 @@ namespace LibreLancer.Interface
             myRectangle.Width -= scrollbar.Style.Width;
             if (Infocard != null)
             {
-                context.Mode2D();
                 var rte = context.RenderContext.Renderer2D.CreateRichTextEngine();
                 var myRect = context.PointsToPixels(myRectangle);
                 if (currInfocard != Infocard || mW != myRect.Width)
@@ -95,14 +94,14 @@ namespace LibreLancer.Interface
                 }
                 if(scrollbarVisible)
                     scrollbar.Render(context, new RectangleF(myRectangle.X + myRectangle.Width, myRectangle.Y, scrollbar.Style.Width, myRectangle.Height));
-                context.RenderContext.Renderer2D.DrawWithClip(myRect, () =>
-                {
-                    int y = myRect.Y;
-                    if (scrollbarVisible) {
-                        y -= (int) (scrollbar.ScrollOffset * (richText.Height - myRect.Height));
-                    }
-                    rte.RenderText(richText, myRect.X, y);
-                });
+                context.RenderContext.ScissorEnabled = true;
+                context.RenderContext.ScissorRectangle = myRect;
+                int y = myRect.Y;
+                if (scrollbarVisible) { 
+                    y -= (int) (scrollbar.ScrollOffset * (richText.Height - myRect.Height));
+                }
+                rte.RenderText(richText, myRect.X, y);
+                context.RenderContext.ScissorEnabled = false;
             }
             Border?.Draw(context, myRectangle);
         }

@@ -261,10 +261,8 @@ namespace LancerEdit
         void DrawGL(int renderWidth, int renderHeight, bool viewport, bool bkgG)
         {
             if (_window.Config.BackgroundGradient && bkgG)
-            {
-                _window.RenderContext.Renderer2D.Start(renderWidth, renderHeight);
+            { 
                 _window.RenderContext.Renderer2D.DrawVerticalGradient(new Rectangle(0,0,renderWidth,renderHeight), _window.Config.Background, _window.Config.Background2);
-                _window.RenderContext.Renderer2D.Finish();
             }
             rstate.DepthEnabled = true;
             rstate.Cull = true;

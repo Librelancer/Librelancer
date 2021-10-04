@@ -110,19 +110,31 @@ namespace LibreLancer
         public bool ScissorEnabled
         {
             get => requested.ScissorEnabled;
-            set => requested.ScissorEnabled = value;
+            set
+            {
+                Renderer2D.ScissorChanged();
+                requested.ScissorEnabled = value;
+            }
         }
 
         public Rectangle ScissorRectangle
         {
             get => requested.ScissorRect;
-            set => requested.ScissorRect = value;
+            set
+            {
+                Renderer2D.ScissorChanged();
+                requested.ScissorRect = value;
+            }
         }
-        
+
         public RenderTarget RenderTarget
         {
             get => requested.RenderTarget;
-            set => requested.RenderTarget = value;
+            set
+            {
+                Renderer2D.Flush();
+                requested.RenderTarget = value;
+            }
         }
 
         public CullFaces CullFace
@@ -183,7 +195,11 @@ namespace LibreLancer
         public Rectangle Viewport
         {
             get => requested.Viewport;
-            set => requested.Viewport = value;
+            set
+            {
+                Renderer2D.Flush();
+                requested.Viewport = value;
+            }
         }
 
         public Vector2 PolygonOffset
@@ -242,18 +258,76 @@ namespace LibreLancer
             }
         }
         
-        public void EndFrame()
+        internal void EndFrame()
         {
-            
+            Renderer2D.Flush();
         }
-        
-		public void Apply()
-		{
+
+        internal void ApplyScissor()
+        {
+            if(requested.ScissorEnabled != applied.ScissorEnabled)
+            {
+                if (requested.ScissorEnabled) GL.Enable(GL.GL_SCISSOR_TEST);
+                else GL.Disable(GL.GL_SCISSOR_TEST);
+                applied.ScissorEnabled = requested.ScissorEnabled;
+            }
+            if(requested.ScissorEnabled & (requested.ScissorRect != applied.ScissorRect))
+            {
+                var cr = requested.ScissorRect;
+                applied.ScissorRect = cr;
+                if (cr.Height < 1) cr.Height = 1;
+                if (cr.Width < 1) cr.Width = 1;
+                GL.Scissor(cr.X, applied.Viewport.Height - cr.Y - cr.Height, cr.Width, cr.Height);
+            }
+        }
+
+        internal void ApplyRenderTarget()
+        {
             if (requested.RenderTarget != applied.RenderTarget) {
                 applied.RenderTarget = RenderTarget;
                 if (RenderTarget != null) RenderTarget.BindFramebuffer();
                 else LibreLancer.RenderTarget.ClearBinding();
             }
+        }
+
+        internal void SetBlendMode(BlendMode mode)
+        {
+            if (mode != applied.BlendMode) {
+                if (!applied.BlendEnabled && mode != BlendMode.Opaque) {
+                    GL.Enable (GL.GL_BLEND);
+                    applied.BlendEnabled = true;
+                }
+                if (applied.BlendEnabled && mode == BlendMode.Opaque) {
+                    GL.Disable (GL.GL_BLEND);
+                    applied.BlendEnabled = false;
+                }
+                switch (mode)
+                {
+                    case BlendMode.Normal:
+                        GL.BlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+                        break;
+                    case BlendMode.Additive:
+                        GL.BlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE);
+                        break;
+                    case BlendMode.OneInvSrcColor:
+                        GL.BlendFunc (GL.GL_ONE, GL.GL_ONE_MINUS_SRC_COLOR);
+                        break;
+                    case BlendMode.SrcAlphaInvDestColor:
+                        GL.BlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_DST_COLOR);
+                        break;
+                    case BlendMode.InvDestColorSrcAlpha:
+                        GL.BlendFunc(GL.GL_ONE_MINUS_DST_COLOR, GL.GL_SRC_ALPHA);
+                        break;
+                    case BlendMode.DestColorSrcColor:
+                        GL.BlendFunc(GL.GL_DST_COLOR, GL.GL_SRC_COLOR);
+                        break;
+                }
+                applied.BlendMode = mode;
+            }
+        }
+		public void Apply()
+		{
+            Renderer2D.Flush();
             if (requested.ClearColor != applied.ClearColor) {
                 GL.ClearColor (requested.ClearColor.R, requested.ClearColor.G, requested.ClearColor.B, requested.ClearColor.A);
                 applied.ClearColor = requested.ClearColor;
@@ -264,6 +338,7 @@ namespace LibreLancer
             }
             
             ApplyViewport();
+            SetBlendMode(requested.BlendMode);
 
             if (requested.DepthRange != applied.DepthRange)
             {
@@ -279,38 +354,7 @@ namespace LibreLancer
 				applied.DepthEnabled = requested.DepthEnabled;
 			}
 
-			if (requested.BlendMode != applied.BlendMode) {
-				if (!applied.BlendEnabled && requested.BlendMode != BlendMode.Opaque) {
-					GL.Enable (GL.GL_BLEND);
-					applied.BlendEnabled = true;
-				}
-				if (applied.BlendEnabled && requested.BlendMode == BlendMode.Opaque) {
-					GL.Disable (GL.GL_BLEND);
-					applied.BlendEnabled = false;
-				}
-				switch (requested.BlendMode)
-				{
-					case BlendMode.Normal:
-						GL.BlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
-						break;
-					case BlendMode.Additive:
-						GL.BlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE);
-						break;
-					case BlendMode.OneInvSrcColor:
-						GL.BlendFunc (GL.GL_ONE, GL.GL_ONE_MINUS_SRC_COLOR);
-						break;
-                    case BlendMode.SrcAlphaInvDestColor:
-                        GL.BlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_DST_COLOR);
-                        break;
-                    case BlendMode.InvDestColorSrcAlpha:
-                        GL.BlendFunc(GL.GL_ONE_MINUS_DST_COLOR, GL.GL_SRC_ALPHA);
-                        break;
-                    case BlendMode.DestColorSrcColor:
-                        GL.BlendFunc(GL.GL_DST_COLOR, GL.GL_SRC_COLOR);
-                        break;
-				}
-                applied.BlendMode = requested.BlendMode;
-            }
+			
 			if (requested.CullEnabled != applied.CullEnabled) {
 				if (requested.CullEnabled)
 					GL.Enable (GL.GL_CULL_FACE);
@@ -336,20 +380,7 @@ namespace LibreLancer
 				GL.DepthMask(requested.DepthWrite);
 				applied.DepthWrite = requested.DepthWrite;
 			}
-            if(requested.ScissorEnabled != applied.ScissorEnabled)
-            {
-                if (requested.ScissorEnabled) GL.Enable(GL.GL_SCISSOR_TEST);
-                else GL.Disable(GL.GL_SCISSOR_TEST);
-                applied.ScissorEnabled = requested.ScissorEnabled;
-            }
-            if(requested.ScissorEnabled & (requested.ScissorRect != applied.ScissorRect))
-            {
-                var cr = requested.ScissorRect;
-                applied.ScissorRect = cr;
-                if (cr.Height < 1) cr.Height = 1;
-                if (cr.Width < 1) cr.Width = 1;
-                GL.Scissor(cr.X, applied.Viewport.Height - cr.Y - cr.Height, cr.Width, cr.Height);
-            }
+            ApplyScissor();
             if (requested.PolygonOffset != applied.PolygonOffset)
             {
                 applied.PolygonOffset = requested.PolygonOffset;

@@ -3,15 +3,17 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Net;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Xml;
 using LibreLancer.Vertices;
 
 namespace LibreLancer
 {
 	public unsafe class Renderer2D : IDisposable
 	{
-		const int MAX_GLYPHS = 512; //512 rendered glyphs per drawcall
+		const int MAX_GLYPHS = 2048; //2048 rendered quads/drawcall
 		const int MAX_VERT = MAX_GLYPHS * 4;
 		const int MAX_INDEX = MAX_GLYPHS * 6;
 
@@ -45,7 +47,12 @@ namespace LibreLancer
         uniform bool circle;
 		void main()
 		{
-            vec4 src = texture(tex, out_texcoord);
+            vec4 src;
+            if(out_texcoord.x < -999.0) {
+                src = vec4(1);
+            } else {
+                src = texture(tex, out_texcoord);
+            }
             src = mix(src, vec4(1.0,1.0,1.0, src.r), blend);
             if(circle) {
                 vec2 val = c_pos - vec2(0.5);
@@ -102,12 +109,13 @@ namespace LibreLancer
 		Texture2D dot;
         private int blendLocation;
         private int circleLocation;
-		internal Renderer2D (RenderContext rstate)
+
+        internal Renderer2D (RenderContext rstate)
 		{
 			rs = rstate;
             string glslVer = GL.GLES ? "300 es\nprecision mediump float;" : "140";
             imgShader = new Shader (vertex_source.Replace("{0}", glslVer), img_fragment_source.Replace("{0}", glslVer));
-			imgShader.SetInteger (imgShader.GetLocation("tex"), 0);
+			imgShader.SetInteger (imgShader.GetLocation("tex"), 4);
             blendLocation = imgShader.GetLocation("blend");
             circleLocation = imgShader.GetLocation("circle");
 			vbo = new VertexBuffer (typeof(Vertex2D), MAX_VERT, true);
@@ -165,52 +173,39 @@ namespace LibreLancer
             return CreateRichTextEngine().LineHeight(fontName, size);
         }
         
-		bool active = false;
 		int vertexCount = 0;
 		int primitiveCount = 0;
 		Texture2D currentTexture = null;
 		BlendMode currentMode = BlendMode.Normal;
         private bool isCircle = false;
-		int vpHeight;
-		public void Start(int vpWidth, int vpHeight)
-		{
-			if (active)
-				throw new InvalidOperationException ("Renderer2D.Start() called without calling Renderer2D.Finish()");
-			active = true;
-			this.vpHeight = vpHeight;
-			var mat = Matrix4x4.CreateOrthographicOffCenter (0, vpWidth, vpHeight, 0, 0, 1);
-			imgShader.SetMatrix (imgShader.GetLocation("modelviewproj"), ref mat);
-			currentMode = BlendMode.Normal;
-            vertices = (Vertex2D*)vbo.BeginStreaming();
-            isCircle = false;
-            
-        }
-        
-        public void DrawWithClip(Rectangle clip, Action drawfunc)
-		{
-			StartClip(clip);
-			drawfunc();
-            EndClip();
-        }
-        
-        public void StartClip(Rectangle clip)
+        private int cVpW = 0, cVpH = 0;
+
+        void SetViewport(int vpW, int vpH)
         {
-            if (!active)
-                throw new InvalidOperationException("Renderer2D.Start() must be called before Renderer2D.StartClip()");
-            Flush();
-            rs.ScissorEnabled = true;
-            rs.ScissorRectangle = clip;
+            if (vpW != cVpW ||
+                vpH != cVpH)
+            {
+                cVpW = vpW;
+                cVpH = vpH;
+                var mat = Matrix4x4.CreateOrthographicOffCenter (0, vpW, vpH, 0, 0, 1);
+                imgShader.SetMatrix (imgShader.GetLocation("modelviewproj"), ref mat);
+            }
         }
 
-        public void EndClip()
+        private bool scissorUsed = false;
+        
+        internal void ScissorChanged()
         {
-            if (!active)
-                throw new InvalidOperationException("Renderer2D.Start() must be called before Renderer2D.EndClip()");
-            Flush();
-            rs.ScissorEnabled = false;
+            if (scissorUsed)
+                Flush();
         }
 
-		public void DrawString(string fontName, float size, string str, Vector2 vec, Color4 color)
+        internal void ViewportChanged()
+        {
+            Flush();
+        }
+
+        public void DrawString(string fontName, float size, string str, Vector2 vec, Color4 color)
         {
             DrawStringBaseline(fontName, size, str, vec.X, vec.Y, color);
         }
@@ -218,8 +213,6 @@ namespace LibreLancer
         public void DrawStringBaseline(string fontName, float size, string text, float x, float y,
             Color4 color, bool underline = false, TextShadow shadow = default)
         {
-            if (!active)
-                throw new InvalidOperationException("Renderer2D.Start() must be called before Renderer2D.DrawString");
             if (text == "" || size < 1) //skip empty str
                 return;
             CreateRichTextEngine().DrawStringBaseline(fontName, size, text, x, y, color, underline, shadow);
@@ -229,8 +222,6 @@ namespace LibreLancer
             float x, float y, Color4 color, bool underline = false, TextShadow shadow = default,
             TextAlignment alignment = TextAlignment.Left)
         {
-            if (!active)
-                throw new InvalidOperationException("Renderer2D.Start() must be called before Renderer2D.DrawStringCached");
             if (text == "" || size < 1) //skip empty str
                 return;
             CreateRichTextEngine().DrawStringCached(ref cache, fontName, size, text, x, y, color, underline, shadow, alignment);
@@ -238,8 +229,6 @@ namespace LibreLancer
 
         public Point MeasureStringCached(ref CachedRenderString cache, string fontName, float size, string text, bool underline = false, TextAlignment alignment = TextAlignment.Left)
         {
-            if (!active)
-                throw new InvalidOperationException("Renderer2D.Start() must be called before Renderer2D.MeasureStringCached");
             if (text == "" || size < 1) //skip empty str
                 return Point.Zero;
             return CreateRichTextEngine().MeasureStringCached(ref cache, fontName, size, text, underline, alignment);
@@ -247,7 +236,7 @@ namespace LibreLancer
 
         public void FillRectangle(Rectangle rect, Color4 color)
 		{
-			DrawQuad(dot, new Rectangle(0,0,1,1), rect, color, BlendMode.Normal);
+			DrawQuad(dot, new Rectangle(), rect, color, BlendMode.Normal);
 		}
 
         const int C_TL = 0;
@@ -259,6 +248,10 @@ namespace LibreLancer
 
         public void EllipseMask(Texture2D tex, Rectangle source, RectangleF parent, Vector2 center, Vector2 dimensions, float angle, Color4 color)
         {
+            if (rs.ScissorEnabled && !scissorUsed) {
+                Flush();
+                scissorUsed = true;
+            }
             tex ??= dot;
             Prepare(BlendMode.Normal, tex, true);
 
@@ -328,6 +321,10 @@ namespace LibreLancer
         }
         public void FillRectangleColors(RectangleF rec, Color4 tl, Color4 tr, Color4 bl, Color4 br)
         {
+            if (rs.ScissorEnabled && !scissorUsed) {
+                Flush();
+                scissorUsed = true;
+            }
             Prepare(BlendMode.Normal, dot, false);
 
             float x = (float)rec.X;
@@ -337,22 +334,22 @@ namespace LibreLancer
             
             vertices [vertexCount++] = new Vertex2D (
                 new Vector2 (x, y),
-                Vector2.Zero,
+                noTex,
                 tl
             );
             vertices [vertexCount++] = new Vertex2D (
                 new Vector2 (x + w, y),
-                Vector2.Zero,
+                noTex,
                 tr
             );
             vertices [vertexCount++] = new Vertex2D (
                 new Vector2(x, y + h),
-                Vector2.Zero,
+                noTex,
                 bl
             );
             vertices [vertexCount++] = new Vertex2D (
                 new Vector2 (x + w, y + h),
-                Vector2.Zero,
+                noTex,
                 br
             );
 
@@ -362,19 +359,35 @@ namespace LibreLancer
         {
             if (currentMode != mode ||
                 isCircle != circle ||
-                (currentTexture != null && currentTexture != tex) ||
+                (currentTexture != null && (currentTexture != tex && currentTexture != dot) && tex != dot) ||
                 (primitiveCount + 2) * 3 >= MAX_INDEX ||
                 (vertexCount + 4) >= MAX_VERT)
             {
                 Flush();
             }
-            currentTexture = tex;
+            if(vertices == (Vertex2D*)0) {
+                currentMode = BlendMode.Normal;
+                currentTexture = null;
+                vertices = (Vertex2D*)vbo.BeginStreaming();
+                isCircle = false;
+            }
+            if (tex == dot) {
+                currentTexture ??= tex;
+            }
+            else {
+                currentTexture = tex;
+            }
             currentMode = mode;
             isCircle = circle;
         }
 
+        private static readonly Vector2 noTex = new Vector2(-9999, -9999);
         public void DrawLine(Color4 color, Vector2 start, Vector2 end)
         {
+            if (rs.ScissorEnabled && !scissorUsed) {
+                Flush();
+                scissorUsed = true;
+            }
             Prepare(BlendMode.Normal, dot, false);
 
 			var edge = end - start;
@@ -387,22 +400,22 @@ namespace LibreLancer
 
 			vertices[vertexCount++] = new Vertex2D(
 				new Vector2(x,y),
-				Vector2.Zero,
+				noTex,
 				color
 			);
 			vertices[vertexCount++] = new Vertex2D(
 				new Vector2(x + w * cos, y + (w * sin)),
-				Vector2.Zero,
+				noTex,
 				color
 			);
 			vertices[vertexCount++] = new Vertex2D(
 				new Vector2(x - sin, y + cos),
-				Vector2.Zero,
+				noTex,
 				color
 			);
 			vertices[vertexCount++] = new Vertex2D(
 				new Vector2(x + w * cos - sin, y + w * sin + cos),
-				Vector2.Zero,
+				noTex,
 				color
 			);
 
@@ -472,6 +485,10 @@ namespace LibreLancer
         public void DrawTriangle(Texture2D tex, Vector2 pa, Vector2 pb, Vector2 pc, Vector2 uva, Vector2 uvb,
             Vector2 uvc, Color4 color)
         {
+            if (rs.ScissorEnabled && !scissorUsed) {
+                Flush();
+                scissorUsed = true;
+            }
             Prepare(BlendMode.Normal, tex, false);
 
             vertices[vertexCount++] = new Vertex2D(
@@ -491,6 +508,10 @@ namespace LibreLancer
 
         public void DrawVerticalGradient(Rectangle rect, Color4 top, Color4 bottom)
         {
+            if (rs.ScissorEnabled && !scissorUsed) {
+                Flush();
+                scissorUsed = true;
+            }
             Prepare(BlendMode.Normal, dot, false);
             var x = (float) rect.X;
             var y = (float) rect.Y;
@@ -498,22 +519,22 @@ namespace LibreLancer
             var h = (float) rect.Height;
             vertices[vertexCount++] = new Vertex2D(
                 new Vector2(x,y),
-                Vector2.Zero,
+                noTex,
                 top
             );
             vertices[vertexCount++] = new Vertex2D(
                 new Vector2(x + w, y),
-                Vector2.Zero,
+                noTex,
                 top
             );
             vertices[vertexCount++] = new Vertex2D(
                 new Vector2(x, y + h), 
-                Vector2.Zero,
+                noTex,
                 bottom
             );
             vertices[vertexCount++] = new Vertex2D(
                 new Vector2(x + w, y + h),
-                Vector2.Zero,
+                noTex,
                 bottom
              );
             primitiveCount += 2;
@@ -521,6 +542,7 @@ namespace LibreLancer
 
         void DrawQuad(Texture2D tex, Rectangle source, Rectangle dest, Color4 color, BlendMode mode, bool flip = false, QuadRotation orient = QuadRotation.None)
         {
+            if (rs.ScissorEnabled && !dest.Intersects(rs.ScissorRectangle)) return;
             Prepare(mode, tex, false);
 
 			float x = (float)dest.X;
@@ -532,98 +554,178 @@ namespace LibreLancer
 			float srcW = (float)source.Width;
 			float srcH = (float)source.Height;
 
-            Vector2 ta = new Vector2 (srcX / (float)tex.Width,
-                srcY / (float)tex.Height);
-            Vector2 tb = new Vector2 ((srcX + srcW) / (float)tex.Width,
-                srcY / (float)tex.Height);
-            Vector2 tc = new Vector2 (srcX / (float)tex.Width,
-                (srcY + srcH) / (float)tex.Height);
-            Vector2 td = new Vector2 ((srcX + srcW) / (float)tex.Width,
-                (srcY + srcH) / (float)tex.Height);
-
-            Vector2 topLeftCoord = ta;
-            Vector2 topRightCoord = tb;
-            Vector2 bottomLeftCoord = tc;
-            Vector2 bottomRightCoord = td;
-			if (flip) {
-				Swap (ref bottomLeftCoord, ref topLeftCoord);
-				Swap (ref bottomRightCoord, ref topRightCoord);
-			}
-
-            if (orient == QuadRotation.Rotate90)
+            var p1 = new Vector2(x, y);
+            var p2 = new Vector2(x + w, y);
+            var p3 = new Vector2(x, y + h);
+            var p4 = new Vector2(x + w, y + h);
+            bool clipped = false;
+            static void ClipPoint(ref Vector2 p, Rectangle r, ref bool clipped)
             {
-                topLeftCoord = tc;
-                topRightCoord = ta;
-                bottomLeftCoord = td;
-                bottomRightCoord = tb;
-            }
-            else if (orient == QuadRotation.Rotate180)
-            {
-                topLeftCoord = td;
-                bottomLeftCoord = tb;
-                topRightCoord = tc;
-                bottomRightCoord = ta;
-            }
-            else if (orient == QuadRotation.Rotate270)
-            {
-                topLeftCoord = tb;
-                topRightCoord = td;
-                bottomLeftCoord = ta;
-                bottomRightCoord = tc;
+                if (p.X < r.X) {
+                    p.X = r.X;
+                    clipped = true;
+                }
+                if (p.X > (r.X + r.Width)) {
+                    p.X = r.X + r.Width;
+                    clipped = true;
+                }
+                if (p.Y < r.Y) {
+                    p.Y = r.Y;
+                    clipped = true;
+                }
+                if (p.Y > (r.Y + r.Height)) {
+                    p.Y = r.Y + r.Height;
+                    clipped = true;
+                }
             }
             
-			vertices [vertexCount++] = new Vertex2D (
-				new Vector2 (x, y),
+            if (rs.ScissorEnabled && !scissorUsed)
+            {
+                ClipPoint(ref p1, rs.ScissorRectangle, ref clipped);
+                ClipPoint(ref p2, rs.ScissorRectangle, ref clipped);
+                ClipPoint(ref p3, rs.ScissorRectangle, ref clipped);
+                ClipPoint(ref p4, rs.ScissorRectangle, ref clipped);
+            }
+            
+            Vector2 topLeftCoord;
+            Vector2 topRightCoord;
+            Vector2 bottomLeftCoord;
+            Vector2 bottomRightCoord;
+            if (tex != dot)
+            {
+                Vector2 ta = new Vector2(srcX / (float) tex.Width,
+                    srcY / (float) tex.Height);
+                Vector2 tb = new Vector2((srcX + srcW) / (float) tex.Width,
+                    srcY / (float) tex.Height);
+                Vector2 tc = new Vector2(srcX / (float) tex.Width,
+                    (srcY + srcH) / (float) tex.Height);
+                Vector2 td = new Vector2((srcX + srcW) / (float) tex.Width,
+                    (srcY + srcH) / (float) tex.Height);
+                topLeftCoord = ta;
+                topRightCoord = tb;
+                bottomLeftCoord = tc;
+                bottomRightCoord = td;
+                
+                if (orient == QuadRotation.Rotate90)
+                {
+                    topLeftCoord = tc;
+                    topRightCoord = ta;
+                    bottomLeftCoord = td;
+                    bottomRightCoord = tb;
+                }
+                else if (orient == QuadRotation.Rotate180)
+                {
+                    topLeftCoord = td;
+                    bottomLeftCoord = tb;
+                    topRightCoord = tc;
+                    bottomRightCoord = ta;
+                }
+                else if (orient == QuadRotation.Rotate270)
+                {
+                    topLeftCoord = tb;
+                    topRightCoord = td;
+                    bottomLeftCoord = ta;
+                    bottomRightCoord = tc;
+                }
+                
+                if (flip)
+                {
+                    Swap(ref bottomLeftCoord, ref topLeftCoord);
+                    Swap(ref bottomRightCoord, ref topRightCoord);
+                }
+
+                static float GetLerpAmount(float x, float begin, float end) {
+                    return (x - begin) / (end - begin);
+                }
+
+                if (clipped) {
+                    var xStart = topLeftCoord.X;
+                    var xAmount = topRightCoord.X - xStart;
+                    var yStart = topLeftCoord.Y;
+                    var yAmount = bottomLeftCoord.Y - yStart;
+
+                    topLeftCoord.X = (xStart + (xAmount) * GetLerpAmount(p1.X, x, x + w));
+                    topLeftCoord.Y = (yStart + (yAmount) * GetLerpAmount(p1.Y, y, y + h));
+                    
+                    topRightCoord.X = (xStart + (xAmount) * GetLerpAmount(p2.X, x, x + w));
+                    topRightCoord.Y = (yStart + (yAmount) * GetLerpAmount(p2.Y, y, y + h));
+                    
+                    bottomLeftCoord.X = (xStart + (xAmount) * GetLerpAmount(p3.X, x, x + w));
+                    bottomLeftCoord.Y = (yStart + (yAmount) * GetLerpAmount(p3.Y, y, y + h));
+                    
+                    bottomRightCoord.X = (xStart + (xAmount) * GetLerpAmount(p4.X, x, x + w));
+                    bottomRightCoord.Y = (yStart + (yAmount) * GetLerpAmount(p4.Y, y, y + h));
+                }
+            }
+            else
+            {
+                topLeftCoord = topRightCoord = bottomLeftCoord = bottomRightCoord = noTex;
+            }
+
+            vertices [vertexCount++] = new Vertex2D (
+				p1,
 				topLeftCoord,
 				color
 			);
 			vertices [vertexCount++] = new Vertex2D (
-				new Vector2 (x + w, y),
+				p2,
 				topRightCoord,
 				color
 			);
 			vertices [vertexCount++] = new Vertex2D (
-				new Vector2(x, y + h),
+				p3,
 				bottomLeftCoord,
 				color
 			);
 			vertices [vertexCount++] = new Vertex2D (
-				new Vector2 (x + w, y + h),
+				p4,
 				bottomRightCoord,
 				color
 			);
 
 			primitiveCount += 2;
 		}
-
-        public void Finish()
-        {
-            if (!active)
-                throw new InvalidOperationException("TextRenderer.Start() must be called before TextRenderer.Finish()");
-            Flush();
-            active = false;
-        }
-
-        public void Flush()
+        
+        internal void Flush()
 		{
 			if (vertexCount == 0 || primitiveCount == 0)
 				return;
-			rs.Cull = false;
-			rs.BlendMode = currentMode;
-			rs.DepthEnabled = false;
-			currentTexture.BindTo (0);
+            var lastProgram = GLBind.LastProgram;
+            rs.ApplyRenderTarget();
+            rs.ApplyViewport();
+            SetViewport(rs.applied.Viewport.Width, rs.applied.Viewport.Height);
+            if (scissorUsed) {
+                rs.ApplyScissor();
+            }
+            else {
+                if (rs.applied.ScissorEnabled) {
+                    GL.Disable(GL.GL_SCISSOR_TEST);
+                    rs.applied.ScissorEnabled = false;
+                }
+            }
+            if (rs.applied.CullEnabled) {
+                GL.Disable(GL.GL_CULL_FACE);
+                rs.applied.CullEnabled = false;
+            }
+            if (rs.applied.DepthEnabled) {
+                GL.Disable(GL.GL_DEPTH_TEST);
+                rs.applied.DepthEnabled = false;
+            }
+            rs.SetBlendMode(currentMode);
+            currentTexture.BindTo (4);
             if(currentTexture.Format == SurfaceFormat.R8)
                 imgShader.SetFloat(blendLocation, 1f);
             else
                 imgShader.SetFloat(blendLocation, 0f);
             imgShader.SetInteger(circleLocation, isCircle ? 1 : 0);
+            imgShader.UseProgram();
             vbo.EndStreaming(vertexCount);
-			vbo.Draw (PrimitiveTypes.TriangleList, primitiveCount);
-            vertices = (Vertex2D*)vbo.BeginStreaming();
+			vbo.DrawInternal (PrimitiveTypes.TriangleList, primitiveCount);
+            vertices = (Vertex2D*)0;
             vertexCount = 0;
 			primitiveCount = 0;
 			currentTexture = null;
-			rs.Cull = true;
+            GLBind.UseProgram(lastProgram);
 		}
 
 		public void Dispose()

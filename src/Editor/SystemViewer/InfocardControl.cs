@@ -54,9 +54,7 @@ namespace SystemViewer
             window.RenderContext.ClearColor = Color4.Transparent;
             window.RenderContext.ClearAll();
             window.RenderContext.ClearColor = cc;
-            window.RenderContext.Renderer2D.Start(renderWidth, renderHeight);
             window.RichText.RenderText(icard, 0, 0);
-            window.RenderContext.Renderer2D.Finish();
             window.RenderContext.RenderTarget = null;
             window.Viewport.Pop();
 

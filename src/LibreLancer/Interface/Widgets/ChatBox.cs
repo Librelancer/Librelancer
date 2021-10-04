@@ -49,14 +49,13 @@ namespace LibreLancer.Interface
             {
                 Contents = CurrentText, FontName = "Arial", FontSize = sizeF, Shadow = new TextShadow(Color4.Black)
             };
-            context.Mode2D();
             var rtf = context.RenderContext.Renderer2D.CreateRichTextEngine();
             var rect = context.PointsToPixels(myRect);
             var built = rtf.BuildText(new[] {node0, node1}, (int) rect.Width - 4, 1f);
-            context.RenderContext.Renderer2D.DrawWithClip(rect, () =>
-            { 
-                rtf.RenderText(built, (int)rect.X + 2, (int)rect.Y + 2);
-            });
+            context.RenderContext.ScissorEnabled = true;
+            context.RenderContext.ScissorRectangle = rect;
+            rtf.RenderText(built, (int)rect.X + 2, (int)rect.Y + 2);
+            context.RenderContext.ScissorEnabled = false;
             built.Dispose();
         }
         RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)

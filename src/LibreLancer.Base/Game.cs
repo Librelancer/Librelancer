@@ -589,6 +589,7 @@ namespace LibreLancer
                 if (!running)
                     break;
                 Draw(elapsed);
+                RenderContext.EndFrame();
                 //Frame time before, FPS after
                 var tk = timer.Elapsed.TotalSeconds - totalTime;
                 frameTime = CalcAverageTime(tk);

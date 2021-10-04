@@ -14,7 +14,6 @@ namespace LibreLancer.Interface
         public override void Render(UiContext context, RectangleF clientRectangle)
         {
             var color = (Color ?? InterfaceColor.White).GetColor(context.GlobalTime);
-            context.Mode2D();
             if (context.PointsToPixels(Width) <= 1) {
                 context.RenderContext.Renderer2D.DrawRectangle(context.PointsToPixels(clientRectangle), color, 1);
             }

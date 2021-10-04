@@ -55,11 +55,9 @@ namespace Launcher
             RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
             RenderContext.ClearAll();
             imGui.NewFrame(elapsed);
-            RenderContext.Renderer2D.Start(Width, Height);
             RenderContext.Renderer2D.DrawString("Arial", 16, "Librelancer", new Vector2(8), Color4.Black);
             RenderContext.Renderer2D.DrawString("Arial", 16, "Librelancer", new Vector2(6), Color4.White);
             var startY = RenderContext.Renderer2D.LineHeight("Arial", 16) + 8;
-            RenderContext.Renderer2D.Finish();
             ImGui.PushFont(ImGuiHelper.Noto);
             var size = (Vector2)ImGui.GetIO().DisplaySize;
             ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - startY), ImGuiCond.Always);

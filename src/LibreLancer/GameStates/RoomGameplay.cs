@@ -532,7 +532,6 @@ namespace LibreLancer
             if (scene != null)
 				scene.Draw();
             ui.RenderWidget(delta);
-			Game.RenderContext.Renderer2D.Start(Game.Width, Game.Height);
             DoFade(delta);
             if (letterboxAmount > 0)
             {
@@ -557,7 +556,6 @@ namespace LibreLancer
                 ImGui.Text($"Virtual: {virtualRoom ?? "NONE"}");
             });
             if(ui.Visible) cursor.Draw(Game.RenderContext.Renderer2D, Game.Mouse);
-            Game.RenderContext.Renderer2D.Finish();
         }
 
         public override void Exiting()

@@ -236,9 +236,7 @@ namespace LibreLancer.ImUI
             var r2d = game.RenderContext.Renderer2D;
             game.RenderContext.RenderTarget = target;
             vps.Push(0, 0, 128, 128);
-            r2d.Start(128, 128);
             r2d.DrawVerticalGradient(new Rectangle(0,0,128,128), top, bottom);
-            r2d.Finish();
             vps.Pop();
             game.RenderContext.RenderTarget = null;
             toFree.Add(target);

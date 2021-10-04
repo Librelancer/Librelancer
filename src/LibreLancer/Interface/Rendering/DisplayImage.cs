@@ -19,7 +19,6 @@ namespace LibreLancer.Interface
         {
             if (Image == null) return;
             if (!CanRender(context)) return;
-            context.Mode2D();
             var color = (Tint ?? InterfaceColor.White).GetColor(context.GlobalTime);
             var rect = context.PointsToPixels(clientRectangle);
             if (Image.Type == InterfaceImageKind.Triangle)

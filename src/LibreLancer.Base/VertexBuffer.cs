@@ -132,24 +132,29 @@ namespace LibreLancer
 		public void Draw(PrimitiveTypes primitiveType, int primitiveCount)
 		{
 			RenderContext.Instance.Apply ();
-			GLBind.VertexArray (VAO);
-			if (HasElements) {
-                GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, _elements.Handle);
-				int indexElementCount = primitiveType.GetArrayLength (primitiveCount);
-				GL.DrawElements (primitiveType.GLType (),
-					indexElementCount,
-					GL.GL_UNSIGNED_SHORT,
-					IntPtr.Zero
-				);
-			} else {
-				int indexElementCount = primitiveType.GetArrayLength(primitiveCount);
-				GL.DrawArrays (primitiveType.GLType (),
-					0,
-					indexElementCount
-				);
-			}
-			TotalDrawcalls++;
+			DrawInternal(primitiveType, primitiveCount);
 		}
+
+        internal void DrawInternal(PrimitiveTypes primitiveType, int primitiveCount)
+        {
+            GLBind.VertexArray (VAO);
+            if (HasElements) {
+                GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, _elements.Handle);
+                int indexElementCount = primitiveType.GetArrayLength (primitiveCount);
+                GL.DrawElements (primitiveType.GLType (),
+                    indexElementCount,
+                    GL.GL_UNSIGNED_SHORT,
+                    IntPtr.Zero
+                );
+            } else {
+                int indexElementCount = primitiveType.GetArrayLength(primitiveCount);
+                GL.DrawArrays (primitiveType.GLType (),
+                    0,
+                    indexElementCount
+                );
+            }
+            TotalDrawcalls++;
+        }
 		public void Draw(PrimitiveTypes primitiveType,int start, int primitiveCount)
 		{
 			RenderContext.Instance.Apply();

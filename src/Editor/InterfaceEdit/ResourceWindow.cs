@@ -368,14 +368,11 @@ namespace InterfaceEdit
             BindViewport(szX, szY);
             //Do drawing
             var rectangle = new Rectangle(5, 5, rtX - 10, rtY - 10);
-            mainWindow.RenderContext.Renderer2D.Start(rtX, rtY);
             mainWindow.RenderContext.Renderer2D.FillRectangle(rectangle, Color4.CornflowerBlue);
-            mainWindow.RenderContext.Renderer2D.Finish();
             var transform = Matrix4x4.CreateScale(mdl.XScale, mdl.YScale, 1) *
                             Matrix4x4.CreateTranslation(mdl.X, mdl.Y, 0);
+            transform *= DisplayModel.CreateTransform(rtX, rtY, rectangle);
             var mcam = new MatrixCamera(Matrix4x4.Identity);
-            mcam.CreateTransform(rtX, rtY, rectangle);
-            
             drawable.Update(mcam, mainWindow.TotalTime, context.ResourceManager);
             mainWindow.RenderContext.Cull = false;
             mainWindow.RenderContext.ScissorEnabled = true;

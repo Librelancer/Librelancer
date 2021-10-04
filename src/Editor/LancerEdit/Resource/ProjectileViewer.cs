@@ -137,13 +137,11 @@ namespace LancerEdit
             mw.RenderContext.DepthWrite = true;
             if (constEffect != null)
             {
-                mw.RenderContext.Renderer2D.Start(viewport.RenderWidth, viewport.RenderHeight);
                 var debugText = new StringBuilder();
                 debugText.AppendLine($"ConstEffect: {constEffect.Nickname}");
                 if (bolt != null) debugText.AppendLine($"Bolt: {bolt.Nickname}");
                 if (beam != null) debugText.AppendLine($"Beam: {beam.Nickname}");
                 mw.RenderContext.Renderer2D.DrawString("Arial", 10, debugText.ToString(), Vector2.One, Color4.White);
-                mw.RenderContext.Renderer2D.Finish();
             }
             viewport.End();
             ImGui.EndChild();

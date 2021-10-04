@@ -69,12 +69,10 @@ namespace LibreLancer.Interface
                     var fonts = game.GetService<FontManager>();
                     var fnt = fonts.ResolveNickname("MissionObjective");
                     var r2d = game.RenderContext.Renderer2D;
-                    r2d.Start(game.Width, game.Height);
                     var off = new Vector2(30,30);
                     var shadow = off + new Vector2(2, 2);
                     r2d.DrawString(fnt, 16, str, shadow, Color4.Black);
                     r2d.DrawString(fnt, 16, str, off, Color4.LightGreen);
-                    r2d.Finish();
                 }
             }
         }
