@@ -336,7 +336,8 @@ namespace LibreLancer
 				GL.PolygonMode (GL.GL_FRONT_AND_BACK, requested.Wireframe ? GL.GL_LINE : GL.GL_FILL);
                 applied.Wireframe = requested.Wireframe;
             }
-            
+
+            ApplyRenderTarget();
             ApplyViewport();
             SetBlendMode(requested.BlendMode);
 

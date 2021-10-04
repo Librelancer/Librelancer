@@ -696,6 +696,7 @@ namespace LibreLancer
             SetViewport(rs.applied.Viewport.Width, rs.applied.Viewport.Height);
             if (scissorUsed) {
                 rs.ApplyScissor();
+                scissorUsed = false;
             }
             else {
                 if (rs.applied.ScissorEnabled) {
