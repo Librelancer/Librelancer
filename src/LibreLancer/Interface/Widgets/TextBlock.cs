@@ -49,12 +49,13 @@ namespace LibreLancer.Interface
             if (Fill) {
                 myRectangle = parentRectangle;
             }
-            myRectangle.X += MarginX;
             if (Background != null)
             {
                 foreach(var elem in Background.Elements)
                     elem.Render(context, myRectangle);
             }
+            myRectangle.X += MarginX;
+            myRectangle.Width -= MarginX * 2;
             var txt = txtAccess.GetText(context);
             if (!string.IsNullOrEmpty(txt))
                 DrawText(context, ref renderCache, myRectangle, TextSize, Font, TextColor, TextShadow, HorizontalAlignment, VerticalAlignment, Clip,

@@ -101,6 +101,7 @@ namespace LibreLancer
 
         string FirstAvailableHardpoint(string hptype)
         {
+            if(string.IsNullOrWhiteSpace(hptype)) return null;
             if (!Character.Ship.PossibleHardpoints.TryGetValue(hptype, out var candidates))
                 return null;
             foreach (var possible in candidates)
