@@ -36,7 +36,7 @@
 			<DisplayModel model="hud_nnbox5"/>
 		</Panel.Background>
 	</Panel>
-	<Panel X="10" Y="10" Width="150" Height="100" id="selection" Visible="true">
+	<Panel X="10" Y="10" Width="150" Height="100" id="selection" Visible="true" CaptureMouse="false">
 		<Panel Anchor="TopLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tl"/></Panel.Background></Panel>
 		<Panel Anchor="TopRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tr"/></Panel.Background></Panel>
 		<Panel Anchor="BottomLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_bl"/></Panel.Background></Panel>
@@ -93,6 +93,7 @@
     </ChatBox>
     <ChatDisplay Anchor="BottomLeft" Y="130" Height="250" Width="510" X="10" id="chat"/>
 </Scene>
+
 
 
 

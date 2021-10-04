@@ -10,6 +10,7 @@ namespace LibreLancer.Interface
     [MoonSharpUserData]
     public class Panel : Container
     {
+        public bool CaptureMouse { get; set; } = true;
         RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
@@ -59,6 +60,14 @@ namespace LibreLancer.Interface
             foreach(var child in Children)
                 child.Render(context, myRectangle);
             Border?.Draw(context, myRectangle);
+        }
+
+        public override bool MouseWanted(UiContext context, RectangleF parentRectangle, float x, float y)
+        {
+            if (!Visible || !CaptureMouse) return false;
+            var myRectangle = GetMyRectangle(context, parentRectangle);
+            if (Background != null && myRectangle.Contains(x, y)) return true;
+            return base.MouseWanted(context, myRectangle, x, y);
         }
     }
 }

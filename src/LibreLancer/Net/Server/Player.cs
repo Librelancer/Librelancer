@@ -519,6 +519,14 @@ namespace LibreLancer
                     {
                         World.NPCs.DockWith(netid, x[1].Trim());
                     }
+                }),
+                new ("npcattack", (arg) =>
+                {
+                    var x = arg.Split(',');
+                    if (PermissionCheck() && x.Length == 2 && int.TryParse(x[0].Trim(), out int netid) && World != null)
+                    {
+                        World.NPCs.Attack(netid, x[1].Trim());
+                    }
                 })
             };
         }

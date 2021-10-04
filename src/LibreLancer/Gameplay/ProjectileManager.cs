@@ -100,11 +100,11 @@ namespace LibreLancer
             queued.Clear();
             return x;
         }
-        public void QueueProjectile(GameData.Items.GunEquipment gunDef, uint hardpoint, Vector3 position, Vector3 heading)
+        public void QueueProjectile(int owner, GameData.Items.GunEquipment gunDef, uint hardpoint, Vector3 position, Vector3 heading)
         {
             queued.Add(new ProjectileSpawn()
             {
-                Gun = gunDef.CRC, Hardpoint = hardpoint, Heading = heading, Start = position
+                Owner = owner, Gun = gunDef.CRC, Hardpoint = hardpoint, Heading = heading, Start = position
             });
         }
 

@@ -197,6 +197,11 @@ namespace LibreLancer.Interface
                     break;
             }
         }
+
+        public virtual bool MouseWanted(UiContext context, RectangleF parentRectangle, float x, float y)
+        {
+            return false;
+        }
         
         public virtual void OnMouseDown(UiContext context, RectangleF parentRectangle) { }
         public virtual void OnMouseClick(UiContext context, RectangleF parentRectangle) { }

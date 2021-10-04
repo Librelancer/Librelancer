@@ -12,27 +12,35 @@ namespace LibreLancer
     {
         public static Vector3 UnProject(Vector3 mouse, Matrix4x4 projection, Matrix4x4 view, Vector2 viewport)
         {
-            Vector4 vec;
+            Vector3 vec;
 
             vec.X = 2.0f * mouse.X / (float)viewport.X - 1;
             vec.Y = -(2.0f * mouse.Y / (float)viewport.Y - 1);
             vec.Z = mouse.Z;
-            vec.W = 1.0f;
 
-            Matrix4x4.Invert(view, out var viewInv);
-            Matrix4x4.Invert(projection, out var projInv);
+            Matrix4x4.Invert((view * projection), out var invmat);
 
-            vec = Vector4.Transform(vec, projInv);
-            vec = Vector4.Transform(vec, viewInv);
+            var invsrc = Vector3.Transform(vec, invmat);
+            
+            float a = (
+                ((vec.X * invmat.M14) + (vec.Y * invmat.M24)) +
+                (vec.Z * invmat.M34)
+            ) + invmat.M44;
 
-            if (vec.W > 0.000001f || vec.W < -0.000001f)
+            if (Math.Abs(1.0 - a) > float.Epsilon)
             {
-                vec.X /= vec.W;
-                vec.Y /= vec.W;
-                vec.Z /= vec.W;
+                invsrc /= a;
             }
 
-            return new Vector3(vec.X, vec.Y, vec.Z);
+            return invsrc;
+            /*Matrix4x4.Invert(view, out var viewInv);
+            /*Matrix4x4.Invert(projection, out var projInv);
+
+            /*vec = Vector3.Transform(vec, projInv);
+            vec = Vector3.Transform(vec, viewInv);*/
+            
+
+            //return new Vector3(vec.X, vec.Y, vec.Z);
         }
 
         public static float SignedAngle(Vector3 v1, Vector3 v2, Vector3 reference)

@@ -16,8 +16,9 @@ namespace LibreLancer.Physics
                 BtShape.Dispose();
             }
         }
-        public float Radius {
+        public virtual float Radius {
             get {
+                //This seems to return incorrect values. Even for spheres :/
                 BtShape.GetBoundingSphere(out _, out float r);
                 return r;
             }

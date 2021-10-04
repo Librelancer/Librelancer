@@ -19,6 +19,9 @@ namespace LibreLancer.Physics
         public SphereCollider(float radius)
         {
             btSphere = new SphereShape(radius);
+            this.Radius = radius;
         }
+
+        public override float Radius { get; }
     }
 }

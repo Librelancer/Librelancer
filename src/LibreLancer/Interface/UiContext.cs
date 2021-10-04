@@ -210,6 +210,14 @@ namespace LibreLancer.Interface
                 game.Mouse.X, game.Mouse.Y, game.Mouse.IsButtonDown(MouseButtons.Left));
         }
 
+        public bool MouseWanted(int mouseX, int mouseY)
+        {
+            var inputRatio = 480 / ViewportHeight;
+            if (!Visible) return false;
+            if (modals.Count > 0) return true;
+            return baseWidget?.MouseWanted(this, GetRectangle(), mouseX * inputRatio, mouseY * inputRatio) ?? false;
+        }
+
         public void OnFocus()
         {
             baseWidget.UnFocus();

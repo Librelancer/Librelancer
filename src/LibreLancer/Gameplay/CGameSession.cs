@@ -253,7 +253,7 @@ namespace LibreLancer
             }
         }
 
-        void IClientPlayer.SpawnProjectiles(int owner, ProjectileSpawn[] projectiles)
+        void IClientPlayer.SpawnProjectiles(ProjectileSpawn[] projectiles)
         {
             RunSync(() =>
             {
@@ -261,7 +261,7 @@ namespace LibreLancer
                 {
                     var x = Game.GameData.GetEquipment(p.Gun) as GunEquipment;
                     var projdata = gp.world.Projectiles.GetData(x);
-                    gp.world.Projectiles.SpawnProjectile(objects[owner], p.Hardpoint, projdata, p.Start, p.Heading);
+                    gp.world.Projectiles.SpawnProjectile(objects[p.Owner], p.Hardpoint, projdata, p.Start, p.Heading);
                 }
             });
         }

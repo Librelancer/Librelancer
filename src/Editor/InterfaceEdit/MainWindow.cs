@@ -240,6 +240,11 @@ namespace InterfaceEdit
                 ImGuiWindowFlags.NoMove | 
                 ImGuiWindowFlags.NoResize);
             ImGui.Text($"InterfaceEdit{(Project != null ? " - Editing: " : "")}{(Project?.ProjectFile ?? "")}");
+            if (playing)
+            {
+                ImGui.SameLine();
+                ImGui.Text($"Mouse Wanted: {mouseWanted}");
+            }
             ImGui.End();
             recentFiles.DrawErrors();
             //Finish Render
@@ -308,6 +313,7 @@ namespace InterfaceEdit
         private RenderTarget2D renderTarget;
         private int renderTargetImage;
         private bool lastDown = false;
+        bool mouseWanted = false;
         void Player(double delta)
         {
             bool childopened = true;
@@ -357,6 +363,7 @@ namespace InterfaceEdit
                     _playContext.OnMouseWheel(ImGui.GetIO().MouseWheel);
                 }
                 _playContext.Update(null, TotalTime, mX, mY, false);
+                mouseWanted = _playContext.MouseWanted(mX, mY);
                 if(ImGui.IsItemClicked(0)) _playContext.OnMouseClick();
                 var isDown = ImGui.IsMouseDown(0);
                 if (lastDown && !isDown) _playContext.OnMouseUp();
@@ -364,7 +371,9 @@ namespace InterfaceEdit
                 _playContext.MouseLeftDown = isDown;
                 lastDown = isDown;
             }
-            else {
+            else
+            {
+                mouseWanted = false;
                 _playContext.Update(null, TotalTime, 0, 0, false);
                 _playContext.MouseLeftDown = false;
                 if (lastDown)

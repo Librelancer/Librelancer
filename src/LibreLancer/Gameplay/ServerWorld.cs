@@ -129,12 +129,13 @@ namespace LibreLancer
         {
             actions.Enqueue(() =>
             {
+                for(int i = 0; i < projectiles.Length; i++)
+                    projectiles[i].Owner = owner.ID;
                 foreach (var p in Players.Keys)
                 {
                     if (p == owner) continue;
-                    p.RemoteClient.SpawnProjectiles(owner.ID, projectiles);
+                    p.RemoteClient.SpawnProjectiles(projectiles);
                 }
-
                 foreach (var p in projectiles)
                 {
                     var pdata = GameWorld.Projectiles.GetData(Server.GameData.GetEquipment(p.Gun) as GunEquipment);
@@ -303,6 +304,13 @@ namespace LibreLancer
             while(actions.Count > 0 && actions.TryDequeue(out act)){ act(); }
             //Update
             GameWorld.Update(delta);
+            //projectiles
+            if (GameWorld.Projectiles.HasQueued)
+            {
+                var queue = GameWorld.Projectiles.GetQueue();
+                foreach(var p in Players)
+                    p.Key.RemoteClient.SpawnProjectiles(queue);
+            }
             //Network update tick
             current += delta;
             tickTime += delta;

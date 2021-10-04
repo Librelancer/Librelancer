@@ -32,6 +32,19 @@ namespace LibreLancer
             });
         }
 
+        public void Attack(int id, string obj)
+        {
+            World.EnqueueAction(() =>
+            {
+                var npc = World.GameWorld.Objects.FirstOrDefault(x => x.NetID == id);
+                var tgt = World.GameWorld.Objects.FirstOrDefault(x =>
+                    obj.Equals(x.Nickname, StringComparison.OrdinalIgnoreCase));
+                if (npc == null || tgt == null) return;
+                if (npc.TryGetComponent<SNPCComponent>(out var n))
+                    n.Attack(tgt);
+            });
+        }
+
         public Task<int> SpawnNPC(Loadout loadout, Vector3 position)
         {
             var completionSource = new TaskCompletionSource<int>();
@@ -63,6 +76,7 @@ namespace LibreLancer
                 obj.Components.Add(new ShipPhysicsComponent(obj) { Ship = ship });
                 obj.Components.Add(new ShipInputComponent(obj));
                 obj.Components.Add(new AutopilotComponent(obj));
+                obj.Components.Add(new WeaponControlComponent(obj));
                 World.OnNPCSpawn(obj);
                 completionSource.SetResult(obj.NetID);
             });

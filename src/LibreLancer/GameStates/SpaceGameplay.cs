@@ -3,10 +3,13 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Dynamic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Interface;
+using LibreLancer.Net;
 using LibreLancer.Physics;
+using Microsoft.EntityFrameworkCore.Sqlite.Query.Internal;
 
 namespace LibreLancer
 {
@@ -43,7 +46,8 @@ World Time: {12:F2}
         
 		public float Velocity = 0f;
 		const float MAX_VELOCITY = 80f;
-		Cursor cur_arrow;
+        Cursor cur_arrow;
+		Cursor cur_cross;
 		Cursor cur_reticle;
 		Cursor current_cur;
 		CEngineComponent ecpt;
@@ -131,12 +135,14 @@ World Time: {12:F2}
             player.Register(world.Physics);
             Game.Sound.PlayMusic(sys.MusicSpace);
             //world.Physics.EnableWireframes(debugphysics);
-            cur_arrow = Game.ResourceManager.GetCursor("cross");
+            cur_arrow = Game.ResourceManager.GetCursor("arrow");
+            cur_cross = Game.ResourceManager.GetCursor("cross");
             cur_reticle = Game.ResourceManager.GetCursor("fire_neutral");
-            current_cur = cur_arrow;
+            current_cur = cur_cross;
             Game.Keyboard.TextInput += Game_TextInput;
             Game.Keyboard.KeyDown += Keyboard_KeyDown;
             Game.Mouse.MouseDown += Mouse_MouseDown;
+            Game.Mouse.MouseUp += Mouse_MouseUp;
             input = new InputManager(Game);
             input.ToggleActivated += Input_ToggleActivated;
             input.ToggleUp += Input_ToggleUp;
@@ -147,6 +153,8 @@ World Time: {12:F2}
             Game.Sound.ResetListenerVelocity();
             FadeIn(0.5, 0.5);
         }
+
+        
 
         private int frameCount = 0;
         [MoonSharp.Interpreter.MoonSharpUserData]
@@ -446,16 +454,33 @@ World Time: {12:F2}
 				control.ThrustEnabled = false;
 		}
 
-        double lastDown = -1000;
+        private bool isLeftDown = false;
+
 
         void Mouse_MouseDown(MouseEventArgs e)
         {
             if((e.Buttons & MouseButtons.Left) > 0)
             {
-                lastDown = Game.TotalTime;
-            }
+                if(!(Game.Debug.CaptureMouse) && !ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y))
+                {
+                    var newselected = GetSelection(Game.Mouse.X, Game.Mouse.Y);
+                    if (newselected != null) selected = newselected;
+                    isLeftDown = true;
+                }
+                else
+                {
+                    isLeftDown = false;
+                }
+            } 
         }
 
+        private void Mouse_MouseUp(MouseEventArgs e)
+        {
+            if ((e.Buttons & MouseButtons.Left) > 0)
+            {
+                isLeftDown = false;
+            }
+        }
 
 		const float ACCEL = 85;
 		GameObject selected;
@@ -492,7 +517,7 @@ World Time: {12:F2}
 			var pc = player.PhysicsComponent;
             shipInput.Viewport = new Vector2(Game.Width, Game.Height);
             shipInput.Camera = camera;
-            if ((!Game.Debug.CaptureMouse && Game.Mouse.IsButtonDown(MouseButtons.Left)) || mouseFlight)
+            if (isLeftDown || mouseFlight)
 			{
                 var mX = Game.Mouse.X;
                 var mY = Game.Mouse.Y;
@@ -509,24 +534,23 @@ World Time: {12:F2}
                 camera.MouseFlight = false;
 			}
 			control.CurrentStrafe = strafe;
-			//control.EnginePower = Velocity / MAX_VELOCITY;
-			var obj = GetSelection(Game.Mouse.X, Game.Mouse.Y);
-			current_cur = obj == null ? cur_arrow : cur_reticle;
-			
-            var dir = Vector3Ex.UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 1f), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
+            var obj = GetSelection(Game.Mouse.X, Game.Mouse.Y);
+            if (ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y))
+                current_cur = cur_arrow;
+            else {
+                current_cur = obj == null ? cur_cross : cur_reticle;
+            }
+            var end = Vector3Ex.UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 1f), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
             var start = Vector3Ex.UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
-            var tgt = start + (dir.Normalized() * 400);
+            var dir = (end - start).Normalized();
+            var tgt = start + (dir * 400);
             weapons.AimPoint = tgt;
 
             if (world.Physics.PointRaycast(player.PhysicsComponent.Body, start, dir, 1000, out var contactPoint, out var po)) {
                 weapons.AimPoint = contactPoint;
             }
 
-            if(!(Game.Debug.CaptureMouse && Game.Mouse.IsButtonDown(MouseButtons.Left)) && Game.TotalTime - lastDown < 0.25)
-            {
-                var newselected = GetSelection(Game.Mouse.X, Game.Mouse.Y);
-                if (newselected != null) selected = newselected;
-            }
+           
             if (Game.Mouse.IsButtonDown(MouseButtons.Right))
                 weapons.FireAll();
             if (world.Projectiles.HasQueued)
@@ -534,20 +558,22 @@ World Time: {12:F2}
                 session.RpcServer.FireProjectiles(world.Projectiles.GetQueue());
             }
         }
+        
+        
 
 		GameObject GetSelection(float x, float y)
 		{
 			var vp = new Vector2(Game.Width, Game.Height);
-
-			var start = Vector3Ex.UnProject(new Vector3(x, y, 0f), camera.Projection, camera.View, vp);
+            var start = Vector3Ex.UnProject(new Vector3(x, y, 0f), camera.Projection, camera.View, vp);
 			var end = Vector3Ex.UnProject(new Vector3(x, y, 1f), camera.Projection, camera.View, vp);
-			var dir = end;
+            var dir = (end - start).Normalized();
 
 			PhysicsObject rb;
-			var result = SelectionCast(
+
+            var result = SelectionCast(
 				start,
 				dir,
-				800000,
+				50000,
 				out rb
 			);
 			if (result && rb.Tag is GameObject)
@@ -561,28 +587,41 @@ World Time: {12:F2}
 			float dist = float.MaxValue;
 			body = null;
 			var jitterDir = direction * maxDist;
+            var md2 = maxDist * maxDist;
 			foreach (var rb in world.Physics.Objects)
-			{
+            {
 				if (rb.Tag == player) continue;
-				if (rb.Collider is SphereCollider)
+                if (Vector3.DistanceSquared(rb.Position, camera.Position) > md2) continue;
+                if (rb.Collider is SphereCollider)
 				{
 					//Test spheres
 					var sph = (SphereCollider)rb.Collider;
-					if (SphereRayIntersect(rayOrigin, direction, maxDist, rb.Position, sph.Radius))
-					{
-						var nd = Vector3.DistanceSquared(rb.Position, camera.Position);
-						if (nd < dist)
-						{
-							dist = nd;
-							body = rb;
-						}
-					}
-				}
+                    var ray = new Ray(rayOrigin, direction);
+                    var sphere = new BoundingSphere(rb.Position, sph.Radius);
+                    var res = ray.Intersects(sphere);
+                    if (res != null)
+                    {
+                        var p2 = rayOrigin + (direction * res.Value);
+                        if (res == 0.0) p2 = rb.Position;
+                        var nd = Vector3.DistanceSquared(p2, camera.Position);
+                        if (nd < dist)
+                        {
+                            dist = nd;
+                            body = rb;
+                        }
+                    }
+                }
 				else
 				{
 					//var tag = rb.Tag as GameObject;
+                    var box = rb.GetBoundingBox();
                     if (!rb.GetBoundingBox().RayIntersect(ref rayOrigin, ref jitterDir)) continue;
-                    body = rb;
+                    var nd = Vector3.DistanceSquared(rb.Position, camera.Position);
+                    if (nd < dist)
+                    {
+                        dist = nd;
+                        body = rb;
+                    }
 					/*if (tag == null || tag.CmpParts.Count == 0)
 					{
 						//Single part
@@ -620,22 +659,7 @@ World Time: {12:F2}
 			}
 			return body != null;
 		}
-
-		static bool SphereRayIntersect(Vector3 rayOrigin, Vector3 d, float maxdistance, Vector3 centre, float radius)
-		{
-			var dist = Vector3.DistanceSquared(rayOrigin, centre);
-			if (dist > (maxdistance - radius) * (maxdistance - radius)) return false;
-			//Ray start offset from sphere centre
-			var p = rayOrigin - centre;
-			float rSquared = radius * radius;
-			float p_d = Vector3.Dot(p, d);
-			if (p_d > 0 || Vector3.Dot(p, p) < rSquared)
-				return false;
-			var a = p - p_d * d;
-			var aSquared = Vector3.Dot(a, a);
-			return aSquared < rSquared;
-		}
-
+        
         (Vector2 pos, bool visible) ScreenPosition(GameObject obj)
         {
             var worldPos = Vector3.Transform(Vector3.Zero, obj.WorldTransform);

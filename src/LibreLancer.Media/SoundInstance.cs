@@ -154,7 +154,6 @@ namespace LibreLancer.Media
                 {
                     dirtyFlags = int.MaxValue;
                     Playing = false;
-                    Stopped();
                     return;
                 }
                 SetPropertiesAl(src, ref props, int.MaxValue);
@@ -228,12 +227,12 @@ namespace LibreLancer.Media
         public void Stop()
         {
             uint _id = ID;
+            Playing = false;
             man.Do(() =>
             {
                 var src = man.AM_GetInstanceSource(_id, false);
                 if (src != uint.MaxValue) {
                     Al.alSourceStopv(1, ref src);
-                    Playing = false;
                 }
             });
         }

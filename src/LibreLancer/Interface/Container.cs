@@ -51,6 +51,18 @@ namespace LibreLancer.Interface
                 child.ApplyStylesheet(sheet);
         }
 
+        public override bool MouseWanted(UiContext context, RectangleF parentRectangle, float x, float y)
+        {
+            if (!Visible)
+                return false;
+            foreach (var child in Children)
+            {
+                if(child.MouseWanted(context, parentRectangle, x, y))
+                    return true;
+            }
+            return false;
+        }
+
         public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
         {
             if (!Visible) return;

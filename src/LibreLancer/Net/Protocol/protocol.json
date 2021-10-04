@@ -102,7 +102,6 @@
         {
           "name": "SpawnProjectiles",
           "args": [ 
-            { "name":  "owner", "type":  "int" },
             { "name":  "projectiles", "type":  "ProjectileSpawn[]" }
           ]
         },
