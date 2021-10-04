@@ -28,7 +28,7 @@ namespace LibreLancer
 			camera = c;
 			game = g;
             nverts = g.GetService<NebulaVertices>();
-            render2D = g.GetService<Renderer2D>();
+            render2D = g.RenderContext.Renderer2D;
             resman = g.GetService<ResourceManager>();
             billboards = g.GetService<Billboards>();
             this.sysr = sysr;

@@ -100,7 +100,8 @@ World Time: {12:F2}
             {
                 FLLog.Error("Ship", "Mass < 0");
             }
-            player.Nickname = "player";
+
+            player.Tag = GameObject.ClientPlayerTag;
             foreach (var equipment in session.Mounts)
             {
                 var equip = Game.GameData.GetEquipment(equipment.Item);

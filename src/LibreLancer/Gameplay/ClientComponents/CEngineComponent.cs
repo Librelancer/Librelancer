@@ -129,8 +129,11 @@ namespace LibreLancer
                 var resman = GetResourceManager();
                 var hps = parent.GetHardpoints();
                 ParticleEffect trailFx = null;
-                if(!string.IsNullOrEmpty(Engine.Def.TrailEffect))
-                    trailFx = gameData.GetEffect(Engine.Def.TrailEffect).GetEffect(resman);
+                string trailFxName = Engine.Def.TrailEffect;
+                if (Parent.Tag == GameObject.ClientPlayerTag && !string.IsNullOrEmpty(Engine.Def.TrailEffectPlayer))
+                    trailFxName = Engine.Def.TrailEffectPlayer;
+                if(!string.IsNullOrEmpty(trailFxName))
+                    trailFx = gameData.GetEffect(trailFxName).GetEffect(resman);
                 var fx = gameData.GetEffect(Engine.Def.FlameEffect).GetEffect(resman);
 
                 foreach (var hp in hps)

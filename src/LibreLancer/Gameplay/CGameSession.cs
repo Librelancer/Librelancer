@@ -180,7 +180,7 @@ namespace LibreLancer
             UpdateAudio();
             while (gameplayActions.TryDequeue(out var act))
                 act();
-            var player = gp.world.GetObject("player");
+            var player = gp.player;
             var tr = player.WorldTransform;
             var pos = Vector3.Transform(Vector3.Zero, tr);
             var orient = tr.ExtractRotation();

@@ -41,6 +41,9 @@ namespace LibreLancer
                 NicknameCRC = CrcTool.FLModelCrc(_nickname);
             }
         }
+
+        public static object ClientPlayerTag = new object();
+        public object Tag;
         public string ArchetypeName;
         public int NetID;
 		public Hardpoint _attachment;
