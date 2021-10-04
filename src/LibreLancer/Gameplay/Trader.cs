@@ -187,6 +187,7 @@ namespace LibreLancer
 
         bool CanMount(string hpType)
         {
+            if(string.IsNullOrWhiteSpace(hpType)) return false;
             var myShip = session.Game.GameData.GetShip(session.PlayerShip);
             if (!myShip.PossibleHardpoints.TryGetValue(hpType, out var possible))
                 return false;
@@ -263,6 +264,7 @@ namespace LibreLancer
                     Price = price,
                     PriceRank = rank,
                     MountIcon = !string.IsNullOrEmpty(item.Equipment.HpType),
+                    Combinable = item.Equipment.Good.Ini.Combinable,
                     CanMount = CanMount(item.Equipment.HpType)
                 });
             }
