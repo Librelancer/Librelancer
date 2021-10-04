@@ -279,7 +279,7 @@ namespace LibreLancer.Fx
                 switch(ni.a)
                 {
                     case FxPerpAppearance perp:
-                        texture = perp.TextureHandler.Texture;
+                        texture = perp.TextureHandler.Texture ?? res.WhiteTexture;
                         if (texture == null) throw new InvalidOperationException("texture null");
                         cmd.AddCommand(
                             basicShader.Shader,
@@ -293,7 +293,7 @@ namespace LibreLancer.Fx
                         basicCount += primCount / 2;
                         break;
                     case FxRectAppearance rect:
-                        texture = rect.TextureHandler.Texture;
+                        texture = rect.TextureHandler.Texture ?? res.WhiteTexture;
                         if (texture == null) throw new InvalidOperationException("texture null");
                         cmd.AddCommand(
                             basicShader.Shader,
@@ -309,8 +309,7 @@ namespace LibreLancer.Fx
                     case FxOrientedAppearance orient:
                         break;
                     case FxBasicAppearance basic:
-                        texture = basic.TextureHandler.Texture;
-                        if (texture == null) throw new InvalidOperationException("texture null");
+                        texture = basic.TextureHandler.Texture ?? res.WhiteTexture;
                         cmd.AddCommand(
                             basicShader.Shader,
                             SetupShader,

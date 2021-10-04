@@ -60,14 +60,22 @@ namespace LibreLancer.Utf.Ale
 				if (sparam >= Items [i].SParam && sparam <= Items [i + 1].SParam) {
 					c1 = Items [i];
 					c2 = Items [i + 1];
-				}
+                    if (i + 2 < Items.Count && (sparam >= Items[i + 1].SParam && sparam <= Items[i + 2].SParam))
+                    {
+                        //go one more for duplicates
+                        c1 = Items[i + 1];
+                        c2 = Items[i + 2];
+                    }
+                    break;
+                }
 			}
 			//We're at the end
 			if (c1 == null) {
 				return Items [Items.Count - 1].GetValue(time);
 			}
 			//Interpolate between SParams
-			var v1 = c1.GetValue (time);
+            if (Math.Abs(c1.SParam - c2.SParam) < float.Epsilon) return c2.GetValue(time);
+            var v1 = c1.GetValue (time);
 			var v2 = c2.GetValue (time);
 			return Easing.Ease (Type, sparam, c1.SParam, c2.SParam, v1, v2);
 		}

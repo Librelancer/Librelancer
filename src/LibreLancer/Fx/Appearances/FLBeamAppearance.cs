@@ -79,7 +79,7 @@ namespace LibreLancer.Fx
 			var z = RenderHelpers.GetZ(instance.Pool.Camera.Position, Vector3.Transform(Vector3.Zero, node_tr));
 			for (int j = 0; j < 2; j++) //two planes
 			{
-				poly.StartLine(TextureHandler.Texture, BlendInfo);
+				poly.StartLine(TextureHandler.Texture ?? res.WhiteTexture, BlendInfo);
 				bool odd = true;
 				Vector3 dir = Vector3.Zero;
 

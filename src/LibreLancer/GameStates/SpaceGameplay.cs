@@ -50,7 +50,6 @@ World Time: {12:F2}
 		Cursor cur_cross;
 		Cursor cur_reticle;
 		Cursor current_cur;
-		CEngineComponent ecpt;
 		InputManager input;
 		CGameSession session;
         bool loading = true;

@@ -46,8 +46,11 @@ namespace LibreLancer.Utf.Ale
 				var b = Keyframes[i + 1];
                 //TODO: Actually do this properly with InTangent and OutTangent
                 if (time >= a.Time && time <= b.Time)
+                {
+                    if(Math.Abs(a.Time - b.Time) < float.Epsilon) return b.Value;
                     return Easing.Ease(EasingTypes.Linear, time, a.Time, b.Time, a.Value, b.Value);
-			}
+                }
+            }
             //This should be an error at some stage, but the implementation is broken.
             return Keyframes[Keyframes.Count - 1].Value;
 			//throw new Exception("Malformed AlchemyCurve");

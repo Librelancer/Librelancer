@@ -68,11 +68,14 @@ namespace LibreLancer.Fx
             if (reference.Paired[0].Parent == null)
             {
                 instance.Pool.Particles[idx].Position = Vector3.Transform(
-                instance.Pool.Particles[idx].Position, transform);
+                    instance.Pool.Particles[idx].Position, transform);
                 var len = instance.Pool.Particles[idx].Normal.Length();
-                var nr = instance.Pool.Particles[idx].Normal.Normalized();
-                var transformed = Vector3.TransformNormal(nr, transform).Normalized();
-                instance.Pool.Particles[idx].Normal = transformed * len;
+                if (Math.Abs(len) > float.Epsilon)
+                {
+                    var nr = instance.Pool.Particles[idx].Normal.Normalized();
+                    var transformed = Vector3.TransformNormal(nr, transform).Normalized();
+                    instance.Pool.Particles[idx].Normal = transformed * len;
+                }
             }
 		}
         protected virtual void SetParticle(int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam, float globaltime)
@@ -116,6 +119,8 @@ namespace LibreLancer.Fx
             var count = instance.ParticleCounts[reference.EmitterIndex];
 			if (spawnMs > 0)
 			{
+                if(instance.SpawnTimers[reference.EmitterIndex] > spawnMs)
+                    instance.SpawnTimers[reference.EmitterIndex] = spawnMs;
 				//Spawn lots of particles
 				var dt = Math.Min(delta, 1); //don't go crazy during debug pauses
 				while (true)
@@ -139,7 +144,9 @@ namespace LibreLancer.Fx
                         count++;
                     }
 				}
-			}
+			} else {
+                instance.SpawnTimers[reference.EmitterIndex] = 0;
+            }
             instance.ParticleCounts[reference.EmitterIndex] = count;
 		}
 	}
