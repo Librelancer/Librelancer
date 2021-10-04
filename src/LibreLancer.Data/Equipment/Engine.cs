@@ -35,5 +35,8 @@ namespace LibreLancer.Data.Equipment
         [Entry("outside_cone_attenuation")] public float OutsideConeAttenuation;
         [Entry("inside_sound_cone")] public float InsideSoundCone;
         [Entry("outside_sound_cone")] public float OutsideSoundCone;
+        
+        //EXTENSION
+        [Entry("cruise_speed")] public float CruiseSpeed;
     }
 }

@@ -46,7 +46,7 @@ namespace LibreLancer
             }
             if (rumble != null)
             {
-                if (Speed > 0.901f) {
+                if (Speed >= 0.901f) {
                     rumble.Active = false;
                 }
                 else {
@@ -61,7 +61,7 @@ namespace LibreLancer
 
             if (character != null)
             {
-                if (Speed > 0.901f) {
+                if (Speed >= 0.901f) {
                     character.Active = false;
                 }
                 else {                    

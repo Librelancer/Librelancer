@@ -71,6 +71,16 @@ namespace LibreLancer
                 .ThenByDescending(x => x.Save.Player.TimeStamp).ToList();
         }
 
+        public void UpdateFile(string path)
+        {
+            var f = files.FirstOrDefault(x => x.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
+            if (f != null) {
+                f.Save = SaveGame.FromFile(path);
+                files = files.OrderByDescending(x => x.Save.Player.TimeStamp.HasValue)
+                    .ThenByDescending(x => x.Save.Player.TimeStamp).ToList();
+            }
+        }
+
         static IEnumerable<SaveGameFile> LoadFiles(string folder)
         {
             foreach (var f in Directory.GetFiles(folder, "*.fl"))

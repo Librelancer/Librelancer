@@ -581,7 +581,13 @@ namespace LibreLancer
                 }
 
                 if (val is Data.Equipment.Engine deng)
-                    equip = new GameData.Items.EngineEquipment() {Def = deng};
+                {
+                    var engequip = new EngineEquipment() {Def = deng};
+                    if (deng.CruiseSpeed > 0)
+                        engequip.CruiseSpeed = deng.CruiseSpeed;
+                    equip = engequip;
+                }
+
                 if (val is Data.Equipment.Commodity cm)
                     equip = new GameData.Items.CommodityEquipment();
                 if(equip == null) 
@@ -1189,7 +1195,6 @@ namespace LibreLancer
                 ship.AngularDrag = orig.AngularDrag;
                 ship.RotationInertia = orig.RotationInertia;
                 ship.SteeringTorque = orig.SteeringTorque;
-                ship.CruiseSpeed = 300;
                 ship.Hitpoints = orig.Hitpoints;
                 ship.StrafeForce = orig.StrafeForce;
                 ship.ChaseOffset = orig.CameraOffset;

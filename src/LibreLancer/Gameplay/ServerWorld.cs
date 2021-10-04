@@ -297,11 +297,12 @@ namespace LibreLancer
         private double maxNoPlayers = 2.0;
         public bool Update(double delta)
         {
-            if (paused) return true;
-            TotalTime += delta;
             //Avoid locks during Update
             Action act;
             while(actions.Count > 0 && actions.TryDequeue(out act)){ act(); }
+            //pause
+            if (paused) return true;
+            TotalTime += delta;
             //Update
             GameWorld.Update(delta);
             //projectiles

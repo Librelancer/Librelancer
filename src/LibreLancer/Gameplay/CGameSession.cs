@@ -238,8 +238,8 @@ namespace LibreLancer
                 string hp;
                 if (eq.HardpointCRC == 0)
                     hp = null;
-                else
-                    hp = hpcrcs[eq.HardpointCRC];
+                else if (!hpcrcs.TryGetValue(eq.HardpointCRC, out hp))
+                    continue;
                 Mounts.Add(new EquipMount(
                     hp,
                     Game.GameData.GetEquipment(eq.EquipCRC).Nickname
@@ -409,6 +409,7 @@ namespace LibreLancer
                 var path = Game.GetSaveFolder();
                 Directory.CreateDirectory(path);
                 es.Save(Path.Combine(path, "AutoSave.fl"), null, true);
+                Game.Saves.UpdateFile(Path.Combine(path, "AutoSave.fl"));
             }
             enterCount++;
             PlayerBase = _base;

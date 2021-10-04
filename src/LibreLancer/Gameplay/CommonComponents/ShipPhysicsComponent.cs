@@ -42,6 +42,8 @@ namespace LibreLancer
         public float PlayerPitch;
         public float PlayerYaw;
         PIDController rollPID = new PIDController() { P = 2 };
+        
+        float cruiseAccelPct = 0;
 
         public void CruiseToggle()
         {
@@ -68,6 +70,7 @@ namespace LibreLancer
             {
                 EngineState = EngineStates.CruiseCharging;
                 ChargePercent = 0f;
+                cruiseAccelPct = 0f;
             }
         }
 
@@ -117,11 +120,21 @@ namespace LibreLancer
                 {
                     EngineState = EngineStates.Cruise;
                 }
-                engine.Speed = 0.9f + (ChargePercent * 0.1f);
+
+                if (ChargePercent >= 0.6f) {
+                    var fxPct = (ChargePercent - 0.6f) / 0.4f * 0.1f;
+                    engine.Speed = 0.9f + fxPct;
+                }
+                else {
+                    engine.Speed = 0.901f;
+                }
             }
             else if (EngineState == EngineStates.Cruise)
             { //Cruise has entirely different force calculation
-                engine_force = Ship.CruiseSpeed * engine.Engine.Def.LinearDrag;
+                cruiseAccelPct += (float)(time * 1.0f / engine.Engine.CruiseAccelTime);
+                if (cruiseAccelPct > 1.0f) cruiseAccelPct = 1.0f;
+                var cruise_force = engine.Engine.CruiseSpeed * engine.Engine.Def.LinearDrag;
+                engine_force = engine.Engine.Def.MaxForce + (cruise_force - engine.Engine.Def.MaxForce) * cruiseAccelPct;
                 //Set fx sparam. TODO: This is poorly named
                 engine.Speed = 1.0f;
             }

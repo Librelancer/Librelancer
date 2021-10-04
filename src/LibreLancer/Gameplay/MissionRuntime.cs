@@ -203,7 +203,7 @@ namespace LibreLancer
                         player.ForceLand(act.Entry[0].ToString());
                         break;
                     case TriggerActions.Act_AdjAcct:
-                        //session.Credits += act.Entry[0].ToInt32();
+                        player.Character.UpdateCredits(player.Character.Credits + act.Entry[0].ToInt32());
                         break;
                     case TriggerActions.Act_SpawnSolar:
                         SpawnSolar(act.Entry[0].ToString(), player);
@@ -235,24 +235,25 @@ namespace LibreLancer
                         player.AddRTC(act.Entry[0].ToString());
                         break;
                     case TriggerActions.Act_SetShipAndLoadout:
-                        /*if(!act.Entry[0].ToString().Equals("none", StringComparison.OrdinalIgnoreCase))
+                        if(!act.Entry[0].ToString().Equals("none", StringComparison.OrdinalIgnoreCase))
                         {
-                            var loadout = session.Game.GameData.Ini.Loadouts.FindLoadout(act.Entry[1].ToString());
-                            if (loadout != null)
+                            if (player.Game.GameData.TryGetLoadout(act.Entry[1].ToString(), out var loadout))
                             {
-                                session.PlayerShip = act.Entry[0].ToString();
-                                session.Mounts = new List<EquipMount>();
-                                foreach(var equip in loadout.Equip)
+                                player.Character.Ship = player.Game.GameData.GetShip(act.Entry[0].ToString());
+                                player.Character.Equipment = new List<NetEquipment>();
+                                foreach (var equip in loadout.Equip)
                                 {
-                                    if (equip.Value == null) continue;
-                                    var hp = equip.Key.StartsWith("__noHardpoint")
-                                        ? null
-                                        : equip.Key;
-                                    session.Mounts.Add(new EquipMount(hp, equip.Value));
+                                    var e = player.Game.GameData.GetEquipment(equip.Nickname);
+                                    if (e == null) continue;
+                                    player.Character.Equipment.Add(new NetEquipment()
+                                    {
+                                        Equipment = e,
+                                        Hardpoint = equip.Hardpoint,
+                                        Health = 1f
+                                    });
                                 }
                             }
-                           
-                        }*/
+                        }
                         break;
                 }
             }

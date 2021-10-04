@@ -23,7 +23,7 @@ namespace LibreLancer
 
         //Reference
         public IPacketClient Client;
-        GameServer game;
+        public GameServer Game;
         public ServerWorld World;
         private MissionRuntime msnRuntime;
         //State
@@ -48,7 +48,7 @@ namespace LibreLancer
         public Player(IPacketClient client, GameServer game, Guid playerGuid)
         {
             this.Client = client;
-            this.game = game;
+            this.Game = game;
             this.playerGuid = playerGuid;
             ID = Interlocked.Increment(ref _gid);
             ResponseHandler = new NetResponseHandler();
@@ -163,16 +163,16 @@ namespace LibreLancer
             if (sg.Player.ShipArchetype != null)
                 ps = sg.Player.ShipArchetype;
             else
-                ps = game.GameData.GetShip(sg.Player.ShipArchetypeCrc).Nickname;
-            Character.Ship = game.GameData.GetShip(ps);
+                ps = Game.GameData.GetShip(sg.Player.ShipArchetypeCrc).Nickname;
+            Character.Ship = Game.GameData.GetShip(ps);
             Character.Equipment = new List<NetEquipment>();
             Character.Cargo = new List<NetCargo>();
             foreach (var eq in sg.Player.Equip)
             {
                 var hp = eq.Hardpoint;
                 Equipment equip;
-                if (eq.EquipName != null) equip = game.GameData.GetEquipment(eq.EquipName);
-                else equip = game.GameData.GetEquipment(eq.EquipHash);
+                if (eq.EquipName != null) equip = Game.GameData.GetEquipment(eq.EquipName);
+                else equip = Game.GameData.GetEquipment(eq.EquipHash);
                 if (equip != null)
                 {
                     Character.Equipment.Add(new NetEquipment()
@@ -184,8 +184,8 @@ namespace LibreLancer
             foreach (var cg in sg.Player.Cargo)
             {
                 Equipment equip;
-                if (cg.CargoName != null) equip = game.GameData.GetEquipment(cg.CargoName);
-                else equip = game.GameData.GetEquipment(cg.CargoHash);
+                if (cg.CargoName != null) equip = Game.GameData.GetEquipment(cg.CargoName);
+                else equip = Game.GameData.GetEquipment(cg.CargoHash);
                 if (equip != null)
                 {
                     Character.Cargo.Add(new NetCargo()
@@ -208,8 +208,8 @@ namespace LibreLancer
 
         void SpaceInitialSpawn(SaveGame sg)
         {
-            var sys = game.GameData.GetSystem(System);
-            game.RequestWorld(sys, (world) =>
+            var sys = Game.GameData.GetSystem(System);
+            Game.RequestWorld(sys, (world) =>
             {
                 World = world; 
                 rpcClient.SpawnPlayer(System, world.TotalTime, Position, Orientation, Character.Credits, Character.EncodeLoadout());
@@ -232,7 +232,7 @@ namespace LibreLancer
         {
             //fetch news articles
             List<NewsArticle> news = new List<NewsArticle>();
-            foreach (var x in game.GameData.Ini.News.NewsItems.Where(NewsFind))
+            foreach (var x in Game.GameData.Ini.News.NewsItems.Where(NewsFind))
             {
                 news.Add(new NewsArticle()
                 {
@@ -241,7 +241,7 @@ namespace LibreLancer
                 });
             }
             //load base
-            BaseData = game.GameData.GetBase(Base);
+            BaseData = Game.GameData.GetBase(Base);
             //update
             Character.UpdatePosition(Base, System, Position);
             //send to player
@@ -344,10 +344,10 @@ namespace LibreLancer
         void InitStory(Data.Save.SaveGame sg)
         {
             var missionNum = sg.StoryInfo?.MissionNum ?? 0;
-            if (game.GameData.Ini.ContentDll.AlwaysMission13) missionNum = 14;
-            if (missionNum != 0 && (missionNum - 1) < game.GameData.Ini.Missions.Count)
+            if (Game.GameData.Ini.ContentDll.AlwaysMission13) missionNum = 14;
+            if (missionNum != 0 && (missionNum - 1) < Game.GameData.Ini.Missions.Count)
             {
-                msnRuntime = new MissionRuntime(game.GameData.Ini.Missions[missionNum - 1], this);
+                msnRuntime = new MissionRuntime(Game.GameData.Ini.Missions[missionNum - 1], this);
                 msnRuntime.Update(0.0);
             }
         }
@@ -364,14 +364,14 @@ namespace LibreLancer
             {
                 FLLog.Info("Server", "Account logged in");
                 Client.SendPacket(new LoginSuccessPacket(), PacketDeliveryMethod.ReliableOrdered);
-                CharacterList = game.Database.PlayerLogin(playerGuid);
+                CharacterList = Game.Database.PlayerLogin(playerGuid);
                 Client.SendPacket(new OpenCharacterListPacket()
                 {
                     Info = new CharacterSelectInfo()
                     {
-                        ServerName = game.ServerName,
-                        ServerDescription = game.ServerDescription,
-                        ServerNews = game.ServerNews,
+                        ServerName = Game.ServerName,
+                        ServerDescription = Game.ServerDescription,
+                        ServerNews = Game.ServerNews,
                         Characters = CharacterList,
                     }
                 }, PacketDeliveryMethod.ReliableOrdered);
@@ -471,7 +471,7 @@ namespace LibreLancer
             {
                 new("base", (arg) =>
                 {
-                    if(game.GameData.BaseExists(arg))
+                    if(Game.GameData.BaseExists(arg))
                         ForceLand(arg);
                     else 
                         rpcClient.OnConsoleMessage($"Base does not exist `{arg}`");
@@ -561,9 +561,9 @@ namespace LibreLancer
         {
             Client.SendPacket(new NewCharacterDBPacket()
             {
-                Factions = game.GameData.Ini.NewCharDB.Factions,
-                Packages = game.GameData.Ini.NewCharDB.Packages,
-                Pilots = game.GameData.Ini.NewCharDB.Pilots
+                Factions = Game.GameData.Ini.NewCharDB.Factions,
+                Packages = Game.GameData.Ini.NewCharDB.Packages,
+                Pilots = Game.GameData.Ini.NewCharDB.Pilots
             }, PacketDeliveryMethod.ReliableOrdered);
         }
 
@@ -573,9 +573,9 @@ namespace LibreLancer
             {
                 var sc = CharacterList[index];
                 FLLog.Info("Server", $"opening id {sc.Id}");
-                Character = NetCharacter.FromDb(sc.Id, game);
+                Character = NetCharacter.FromDb(sc.Id, Game);
                 Name = Character.Name;
-                rpcClient.UpdateBaselinePrices(game.BaselineGoodPrices);
+                rpcClient.UpdateBaselinePrices(Game.BaselineGoodPrices);
                 Base = Character.Base;
                 System = Character.System;
                 Position = Character.Position;
@@ -597,7 +597,7 @@ namespace LibreLancer
             if (index < 0 || index >= CharacterList.Count)
                 return Task.FromResult(false);
             var sc = CharacterList[index];
-            game.Database.DeleteCharacter(sc.Id);
+            Game.Database.DeleteCharacter(sc.Id);
             CharacterList.Remove(sc);
             return Task.FromResult(true);
         }
@@ -605,13 +605,13 @@ namespace LibreLancer
         Task<bool> IServerPlayer.CreateNewCharacter(string name, int index)
         {
             FLLog.Info("Player", $"New char {name}");
-            if (!game.Database.NameInUse(name))
+            if (!Game.Database.NameInUse(name))
             {
                 Character ch = null;
-                game.Database.AddCharacter(playerGuid, (db) =>
+                Game.Database.AddCharacter(playerGuid, (db) =>
                 {
                     ch = db;
-                    var sg = game.NewCharacter(name, index);
+                    var sg = Game.NewCharacter(name, index);
                     db.Name = sg.Player.Name;
                     db.Base = sg.Player.Base;
                     db.System = sg.Player.System;
@@ -639,7 +639,7 @@ namespace LibreLancer
                         });
                     }
                 });
-                var sel = NetCharacter.FromDb(ch.Id, game).ToSelectable();
+                var sel = NetCharacter.FromDb(ch.Id, Game).ToSelectable();
                 CharacterList.Add(sel);
                 Client.SendPacket(new AddCharacterPacket()
                 {
@@ -704,8 +704,8 @@ namespace LibreLancer
             rpcClient.StartJumpTunnel();
             if(World != null) World.RemovePlayer(this);
             
-            var sys = game.GameData.GetSystem(system);
-            game.RequestWorld(sys, (world) =>
+            var sys = Game.GameData.GetSystem(system);
+            Game.RequestWorld(sys, (world) =>
             {
                 this.World = world;
                 var obj = sys.Objects.FirstOrDefault((o) =>
@@ -738,9 +738,9 @@ namespace LibreLancer
 
         void IServerPlayer.Launch()
         {
-            var b = game.GameData.GetBase(Base);
-            var sys = game.GameData.GetSystem(b.System);
-            game.RequestWorld(sys, (world) =>
+            var b = Game.GameData.GetBase(Base);
+            var sys = Game.GameData.GetSystem(b.System);
+            Game.RequestWorld(sys, (world) =>
             {
                 this.World = world;
                 var obj = sys.Objects.FirstOrDefault((o) =>

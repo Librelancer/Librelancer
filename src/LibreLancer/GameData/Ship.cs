@@ -22,7 +22,6 @@ namespace LibreLancer.GameData
 		public Vector3 RotationInertia;
 		public float Mass;
 		public float StrafeForce;
-		public float CruiseSpeed;
         public float Hitpoints;
 
         public Vector3 ChaseOffset;
