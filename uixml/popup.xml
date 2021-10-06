@@ -1,0 +1,23 @@
+<Scene>
+	<Panel Anchor="Center" Width="410" Height="280">
+		<Panel.Background>
+			<DisplayModel model="errorexplanation.cmp"/>
+		</Panel.Background>
+		<Button id="ok_ok" Anchor="BottomCenter" style="wirebutton" Text="OK" Strid="1041" Y="20" TextSize="13" Width="100" Height="30" Visible="false"/>
+		<Button id="accept" Anchor="BottomCenter" style="wirebutton" Text="ACCEPT" Strid="1197" Y="20" TextSize="13" Width="100" X="-53" Height="30"/>
+		<Button id="decline" Anchor="BottomCenter" style="wirebutton" Text="DECLINE" Strid="1352" Y="20" TextSize="13" Width="100" X="53" Height="30"/>
+		<TextBlock id="title" Y="10" Anchor="TopCenter" Width="410" Height="30" TextSize="13" Text="TITLE" TextColor="text" TextShadow="black"/>
+		<InfocardDisplay Y="-9" Width="380" Anchor="Center" Height="190" id="contents">
+		</InfocardDisplay>
+	</Panel>
+</Scene>
+
+
+
+
+
+
+
+
+
+

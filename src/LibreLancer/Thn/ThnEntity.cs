@@ -19,6 +19,7 @@ namespace LibreLancer
 		public int SortGroup;
 		public int UserFlag;
 		public string MeshCategory;
+        public string Actor;
 		public Vector3? Position;
 		public Matrix4x4? RotationMatrix;
 		public float? FovH;

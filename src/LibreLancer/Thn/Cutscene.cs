@@ -14,6 +14,7 @@ namespace LibreLancer
         public string Name;
         public Vector3 Translate;
         public Matrix4x4 Rotate;
+        public string Actor;
         public GameObject Object;
         public DynamicLight Light;
         public ThnEntity Entity;
@@ -133,19 +134,37 @@ namespace LibreLancer
             camera?.SetViewport(vp);
         }
 
+        public void AddObject(ThnObject obj)
+        {
+            sceneObjects[obj.Name] = obj;
+            if (obj.Object != null) {
+                World?.Objects.Add(obj.Object);
+            }
+        }
+
         public void BeginScene(params ThnScript[] scene) => BeginScene((IEnumerable<ThnScript>)scene);
         public void BeginScene(IEnumerable<ThnScript> scene)
         {
             var scripts = scene.ToArray();
             SceneSetup(scripts);
         }
-        void SceneSetup(ThnScript[] scripts)
+
+        public void FidgetScript(ThnScript scene)
+        {
+            SceneSetup(new[] { scene }, false);
+        }
+        
+        void SceneSetup(ThnScript[] scripts, bool resetObjects = true)
         {
             hasScene = false;
             currentTime = 0;
-            sceneObjects = new Dictionary<string, ThnObject>(StringComparer.OrdinalIgnoreCase);
-            layers = new List<Tuple<IDrawable, ThnObject>>();
-            if (spawnObjects) {
+            if (resetObjects)
+            {
+                sceneObjects = new Dictionary<string, ThnObject>(StringComparer.OrdinalIgnoreCase);
+                layers = new List<Tuple<IDrawable, ThnObject>>();
+            }
+
+            if (spawnObjects && resetObjects) {
                 if (Renderer != null)
                 {
                     Renderer.Dispose();
@@ -154,30 +173,36 @@ namespace LibreLancer
                 Renderer = new SystemRenderer(camera, gameData, game.GetService<GameResourceManager>(), game);
                 World = new GameWorld(Renderer, false);
             }
-            if (scriptContext.SetScript != null)
+            if (scriptContext.SetScript != null && resetObjects)
             {
                 var inst = new ThnScriptInstance(this, scriptContext.SetScript);
                 inst.ConstructEntities(sceneObjects, spawnObjects);
             }
-            if (instances != null)
+            if (instances != null && resetObjects)
             {
                 foreach (var inst in instances)
                     inst.Cleanup();
             }
-            instances = new List<ThnScriptInstance>();
+            if(resetObjects)
+                instances = new List<ThnScriptInstance>();
             foreach (var script in scripts)
             {
                 var ts = new ThnScriptInstance(this, script);
-                ts.ConstructEntities(sceneObjects, spawnObjects);
+                ts.ConstructEntities(sceneObjects, spawnObjects && resetObjects);
                 instances.Add(ts);
             }
-            var firstCamera = sceneObjects.Values.FirstOrDefault(x => x.Camera != null);
-            if (firstCamera == null) firstCamera = sceneObjects.Values.FirstOrDefault(x => x.Camera != null);
-            if(firstCamera != null) {
-                camera.Transform = firstCamera.Camera;
+
+            if (resetObjects)
+            {
+                var firstCamera = sceneObjects.Values.FirstOrDefault(x => x.Camera != null);
+                if (firstCamera == null) firstCamera = sceneObjects.Values.FirstOrDefault(x => x.Camera != null);
+                if (firstCamera != null)
+                {
+                    camera.Transform = firstCamera.Camera;
+                }
             }
 
-            if (spawnObjects)
+            if (spawnObjects && resetObjects)
             {
                 //Add starspheres in the right order
                 var sorted = ((IEnumerable<Tuple<IDrawable, ThnObject>>) layers).Reverse()

@@ -13,6 +13,7 @@ namespace LibreLancer
     public abstract class ThnEventProcessor
     {
         public abstract bool Run(double delta);
+
     }
     public class ThnScriptInstance
     {
@@ -208,13 +209,28 @@ namespace LibreLancer
                 }
                 else if (kv.Value.Type == EntityTypes.Deformable)
                 {
-                    obj.Object = new GameObject();
-                    gameData.GetCostume(template, out DfmFile body, out DfmFile head, out DfmFile leftHand, out DfmFile rightHand);
-                    var skel = new DfmSkeletonManager(body, head, leftHand, rightHand);
-                    obj.Object.RenderComponent = new CharacterRenderer(skel);
-                    var anmComponent = new AnimationComponent(obj.Object, gameData.GetCharacterAnimations());
-                    obj.Object.AnimationComponent = anmComponent;
-                    obj.Object.Components.Add(anmComponent);
+                    //TODO: Hacky with fidget/placement scripts
+                    if (string.IsNullOrEmpty(kv.Value.Actor) || !objects.ContainsKey(kv.Value.Actor))
+                    {
+                        obj.Object = new GameObject();
+                        gameData.GetCostume(template, out DfmFile body, out DfmFile head, out DfmFile leftHand,
+                            out DfmFile rightHand);
+                        var skel = new DfmSkeletonManager(body, head, leftHand, rightHand);
+                        obj.Object.RenderComponent = new CharacterRenderer(skel);
+                        var anmComponent = new AnimationComponent(obj.Object, gameData.GetCharacterAnimations());
+                        obj.Object.AnimationComponent = anmComponent;
+                        obj.Object.Components.Add(anmComponent);
+                    }
+                    else
+                    {
+                        obj.Actor = kv.Value.Actor;
+                        if (Objects.TryGetValue(obj.Actor, out var act))
+                        {
+                            act.Translate = obj.Translate;
+                            act.Rotate = obj.Rotate;
+                            act.Update();
+                        }
+                    }
                 }
                 else if (kv.Value.Type == EntityTypes.Sound)
                 {
@@ -277,6 +293,7 @@ namespace LibreLancer
             {
                 if (v.Instance != null && !v.Instance.Disposed)
                 {
+                    v.Instance.Stop();
                     v.Instance.Dispose();
                     v.Instance = null;
                 }

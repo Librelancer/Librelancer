@@ -166,6 +166,8 @@ World Time: {12:F2}
                 this.g = gameplay;   
             }
 
+            public void PopupFinish(string id) => g.session.RpcServer.ClosedPopup(id);
+
             public int CruiseCharge() => g.control.EngineState == EngineStates.CruiseCharging ? (int)(g.control.ChargePercent * 100) : -1;
             public bool IsMultiplayer() => g.session.Multiplayer;
             

@@ -144,6 +144,20 @@ function baseside:Chatbox()
    self.Elements.chatbox.Visible = true 
 end
 
+function baseside:Popup(title, contents, id)
+	OpenModal(popup(title,contents, 'ok', function()
+		Game:PopupFinish(id)
+	end))
+end
+
+function baseside:MissionOffer(mission)
+	OpenModal(popup(STRID_MISSION,mission, 'accept', function(result)
+		Game:MissionResponse(result)
+	end))
+end
+
+
+
 
 
 

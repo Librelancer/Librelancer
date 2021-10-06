@@ -88,6 +88,8 @@ namespace LibreLancer.Data
             "MISSIONS\\M13\\M13.ini"
         };
 
+        public SpecificNPCIni SpecificNPCs;
+
         public FreelancerData (FreelancerIni fli, FileSystem vfs)
         {
             Freelancer = fli;
@@ -138,6 +140,14 @@ namespace LibreLancer.Data
                 Asteroids = new AsteroidArchIni();
                 foreach (var ast in Freelancer.AsteroidPaths)
                     Asteroids.AddFile(ast, VFS);
+            }));
+            tasks.Add(Task.Run(() =>
+            {
+                SpecificNPCs = new SpecificNPCIni();
+                if (VFS.FileExists(Freelancer.DataPath + "MISSIONS\\specific_npc.ini"))
+                {
+                    SpecificNPCs.AddFile(Freelancer.DataPath + "MISSIONS\\specific_npc.ini", VFS);
+                }
             }));
             tasks.Add(Task.Run(() =>
             {

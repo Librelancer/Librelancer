@@ -143,6 +143,12 @@ function hud:Chatbox()
    self.Elements.chatbox.Visible = true 
 end
 
+function hud:Popup(title, contents, id)
+	OpenModal(popup(title,contents, function()
+		Game:PopupFinish(id)
+	end))
+end
+
 
 
 

@@ -5,19 +5,13 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Collections;
-
 using LibreLancer.Data.Missions;
+
 namespace LibreLancer
 {
 
     public class MissionRuntime
     {
-        class MissionTimer
-        {
-            public double T;
-        }
-
         Player player;
         MissionIni msn;
         object _msnLock = new object();
@@ -25,161 +19,143 @@ namespace LibreLancer
         {
             this.msn = msn;
             this.player = player;
-            triggered = new BitArray(msn.Triggers.Count);
-            active = new BitArray(msn.Triggers.Count);
+            foreach (var t in msn.Triggers)
+            {
+                if (t.InitState == TriggerInitState.ACTIVE)
+                {
+                    ActivateTrigger(t);
+                }
+            }
         }
 
+        void ActivateTrigger(string trigger)
+        {
+            var tr = msn.Triggers.FirstOrDefault(x => trigger.Equals(x.Nickname, StringComparison.OrdinalIgnoreCase));
+            if (tr != null)
+                ActivateTrigger(tr);
+            else
+                FLLog.Error("Mission", $"Failed to activate unknown trigger {trigger}");
+        }
+        
+        void ActivateTrigger(MissionTrigger trigger)
+        {
+            activeTriggers.Add(new ActiveTrigger()
+            {
+                Trigger = trigger,
+                Conditions = new List<MissionCondition>(trigger.Conditions)
+            });
+        }
+
+        static bool CondTrue(TriggerConditions cond)
+        {
+            return cond == TriggerConditions.Cnd_True || cond == TriggerConditions.Cnd_SpaceExit ||
+                   cond == TriggerConditions.Cnd_BaseEnter;
+        }
+        
         public void Update(double elapsed)
         {
             lock (_msnLock)
             {
-                foreach (var t in timers)
+                foreach (var t in activeTriggers)
                 {
-                    t.Value.T += elapsed;
+                    t.ActiveTime += elapsed;
+                    for (int i = t.Conditions.Count - 1; i >= 0; i--)
+                    {
+                        if (t.Conditions[i].Type == TriggerConditions.Cnd_Timer &&
+                            t.ActiveTime >= t.Conditions[i].Entry[0].ToSingle())
+                        {
+                            t.Conditions.RemoveAt(i);
+                        } else if (CondTrue(t.Conditions[i].Type))
+                            t.Conditions.RemoveAt(i);
+                    }
                 }
                 CheckMissionScript();
             }
         }
 
-        public void EnsureLoaded()
+        class ActiveTrigger
         {
-            /*foreach (var tr in msn.Triggers)
-            {
-                foreach (var act in tr.Actions)
-                {
-                    if(act.Type == TriggerActions.Act_PlaySoundEffect)
-                        session.Game.Sound.LoadSound(act.Entry[0].ToString());
-                    if(act.Type == TriggerActions.Act_LightFuse)
-                        session.Game.GameData.GetFuse(act.Entry[1].ToString());
-                }
-            }*/
+            public MissionTrigger Trigger;
+            public List<MissionCondition> Conditions = new List<MissionCondition>();
+            public double ActiveTime;
         }
+        private List<ActiveTrigger> activeTriggers = new List<ActiveTrigger>();
 
-        //Implement just enough of the mission script to get the player to a base from
-        //FP7_system in vanilla, and set the loadout on disco
-        BitArray triggered;
-        BitArray active;
-        void CheckMissionScript()
+        void ProcessCondition(TriggerConditions cond, Func<MissionCondition, bool> action)
         {
-            for (int i = 0; i < msn.Triggers.Count; i++)
-            {
-                if (triggered[i]) continue;
-                var tr = msn.Triggers[i];
-                if (!active[i] && tr.InitState != Data.Missions.TriggerInitState.ACTIVE)
-                    continue;
-                active[i] = true;
-                if (CheckConditions(tr))
-                    DoTrigger(i);
+            lock (_msnLock) {
+                foreach (var tr in activeTriggers) {
+                    for (int i = tr.Conditions.Count - 1; i >= 0; i--)
+                    {
+                        if (tr.Conditions[i].Type == cond && action(tr.Conditions[i]))
+                        {
+                            tr.Conditions.RemoveAt(i);
+                        }
+                    }
+                }
             }
         }
+        
+        void ProcessCondition(TriggerConditions cond, Func<MissionCondition, MissionTrigger, bool> action)
+        {
+            lock (_msnLock) {
+                foreach (var tr in activeTriggers) {
+                    for (int i = tr.Conditions.Count - 1; i >= 0; i--)
+                    {
+                        if (tr.Conditions[i].Type == cond && action(tr.Conditions[i], tr.Trigger))
+                        {
+                            tr.Conditions.RemoveAt(i);
+                        }
+                    }
+                }
+            }
+        }
+      
+        void CheckMissionScript()
+        {
+            for (int i = activeTriggers.Count - 1; i >= 0; i--)
+            {
+                if (activeTriggers[i].Conditions.Count == 0)
+                {
+                    DoTrigger(activeTriggers[i].Trigger);
+                    activeTriggers.RemoveAt(i);
+                }
+            }
+        }
+        
+        static bool IdEquals(string a, string b) => a.Equals(b, StringComparison.OrdinalIgnoreCase);
 
         public void EnterLocation(string room, string bse)
         {
-            lock (_msnLock)
-            {
-                locsEntered.Add(new Tuple<string, string>(room, bse));
-                CheckMissionScript();
-            }
+            ProcessCondition(TriggerConditions.Cnd_LocEnter, (c) => IdEquals(room, c.Entry[0].ToString()) &&
+                                                                    IdEquals(bse, c.Entry[1].ToString()));
+        }
+
+        public void ClosePopup(string id)
+        {
+            ProcessCondition(TriggerConditions.Cnd_PopUpDialog, (c) => IdEquals(id, c.Entry[0].ToString()));
+        }
+
+        public void StoryNPCSelect(string name, string room, string _base)
+        {
+            ProcessCondition(TriggerConditions.Cnd_CharSelect, (c) => IdEquals(name,c.Entry[0].ToString()) &&
+                                                                      IdEquals(room, c.Entry[1].ToString()) &&
+                                                                      IdEquals(_base, c.Entry[2].ToString()));
         }
 
         public void FinishRTC(string rtc)
         {
-            lock (_msnLock)
-            {
-                CheckMissionScript();
-            }
+            ProcessCondition(TriggerConditions.Cnd_RTCDone, (c) => IdEquals(rtc, c.Entry[0].ToString()));
         }
 
-        private bool enteredSpace = false;
         public void EnteredSpace()
         {
-            enteredSpace = true;
+            ProcessCondition(TriggerConditions.Cnd_SpaceEnter, (c, tr) => IdEquals("FP7_System", tr.System));
         }
         
-        Dictionary<string, MissionTimer> timers = new Dictionary<string, MissionTimer>();
-        List<string> finishedLines = new List<string>();
-        List<Tuple<string,string>> locsEntered = new List<Tuple<string, string>>();
-        bool CheckConditions(MissionTrigger tr)
+        void DoTrigger(MissionTrigger tr)
         {
-            bool cndSatisfied = true;
-            foreach (var cnd in tr.Conditions)
-            {
-                if (cnd.Type == TriggerConditions.Cnd_True ||
-                    cnd.Type == TriggerConditions.Cnd_BaseEnter ||
-                    cnd.Type == TriggerConditions.Cnd_SpaceExit)
-                    cndSatisfied = true;
-                else if (cnd.Type == TriggerConditions.Cnd_SpaceEnter)
-                {
-                    if (!enteredSpace)
-                    {
-                        if(player.World == null)
-                            cndSatisfied = false;
-                    }
-                }
-                else if (cnd.Type == TriggerConditions.Cnd_CommComplete)
-                {
-                    if (finishedLines.Contains(cnd.Entry[0].ToString()))
-                        cndSatisfied = true;
-                    else
-                    {
-                        cndSatisfied = false;
-                        break;
-                    }
-                }
-                else if (cnd.Type == TriggerConditions.Cnd_RTCDone)
-                {
-                    
-                }
-                else if (cnd.Type == TriggerConditions.Cnd_Timer)
-                {
-                    MissionTimer t;
-                    if(!timers.TryGetValue(tr.Nickname, out t))
-                    {
-                        t = new MissionTimer();
-                        timers.Add(tr.Nickname, t);
-                    }
-                    if (t.T < cnd.Entry[0].ToSingle())
-                    {
-                        cndSatisfied = false;
-                        break;
-                    }
-                }
-                else if (cnd.Type == TriggerConditions.Cnd_LocEnter)
-                {
-                    var room = cnd.Entry[0].ToString();
-                    var bse = cnd.Entry[1].ToString();
-                    bool entered = false;
-                    foreach (var c in locsEntered)
-                    {
-                        if (c.Item1.Equals(room, StringComparison.OrdinalIgnoreCase) &&
-                            c.Item2.Equals(bse, StringComparison.OrdinalIgnoreCase))
-                        {
-                            entered = true;
-                            break;
-                        }
-                    }
-                    if (!entered)
-                    {
-                        cndSatisfied = false;
-                        break;
-                    }
-                }
-                else
-                {
-                    cndSatisfied = false;
-                    break;
-                }
-            }
-            return cndSatisfied;
-        }
-        void DoTrigger(int i)
-        {
-            active[i] = true;
-            var tr = msn.Triggers[i];
-            if(!CheckConditions(tr)) return; 
             FLLog.Debug("Mission", "Running trigger " + tr.Nickname);
-            if (timers.ContainsKey(tr.Nickname)) timers.Remove(tr.Nickname);
-            triggered[i] = true;
 
             foreach (var act in tr.Actions)
             {
@@ -187,14 +163,7 @@ namespace LibreLancer
                 {
                     case TriggerActions.Act_ActTrig:
                         var trname = act.Entry[0].ToString();
-                        for (int j = 0; j < msn.Triggers.Count; j++)
-                        {
-                            if (trname.Equals(msn.Triggers[j].Nickname, StringComparison.OrdinalIgnoreCase))
-                            {
-                                DoTrigger(j);
-                                break;
-                            }
-                        }
+                        ActivateTrigger(trname);
                         break;
                     case TriggerActions.Act_PlaySoundEffect:
                         player.PlaySound(act.Entry[0].ToString());
@@ -225,6 +194,14 @@ namespace LibreLancer
                             fzr.Run();
                         });
                         break;
+                    case TriggerActions.Act_PopUpDialog:
+                    {
+                        var title = act.Entry[0].ToInt32();
+                        var contents = act.Entry[1].ToInt32();
+                        var id = act.Entry[2].ToString();
+                        player.RemoteClient.PopupOpen(title, contents, id);
+                        break;
+                    }
                     case TriggerActions.Act_PlayMusic:
                         player.PlayMusic(act.Entry[3].ToString());
                         break;
@@ -267,9 +244,7 @@ namespace LibreLancer
                 {
                     if (waitingLines[i].Hash == hash)
                     {
-                        lock (finishedLines) {
-                            finishedLines.Add(waitingLines[i].Line);
-                        }
+                        ProcessCondition(TriggerConditions.Cnd_CommComplete, (c) => IdEquals(waitingLines[i].Line, c.Entry[0].ToString()));
                         waitingLines.RemoveAt(i);
                         break;
                     }

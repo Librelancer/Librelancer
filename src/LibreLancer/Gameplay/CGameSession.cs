@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Concurrent;
 using System.Numerics;
 using System.Collections.Generic;
 using System.IO;
@@ -264,6 +265,21 @@ namespace LibreLancer
                     gp.world.Projectiles.SpawnProjectile(objects[p.Owner], p.Hardpoint, projdata, p.Start, p.Heading);
                 }
             });
+        }
+
+        public class Popup
+        {
+            public int Title;
+            public int Contents;
+            public string ID;
+        }
+
+        public ConcurrentQueue<Popup> Popups = new();
+
+        void IClientPlayer.PopupOpen(int title, int contents, string id)
+        {
+            FLLog.Debug("CGameSession", "Enqueuing popup");
+            Popups.Enqueue(new Popup() { Title = title, Contents = contents, ID = id });
         }
 
         void IClientPlayer.StartJumpTunnel()

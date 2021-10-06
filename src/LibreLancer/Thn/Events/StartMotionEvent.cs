@@ -32,6 +32,16 @@ namespace LibreLancer.Thn
                 FLLog.Error("Thn", $"${Targets[0]} does not exist");
                 return;
             }
+
+            if (obj.Actor != null)
+            {
+                var a = obj.Actor;
+                if (!instance.Objects.TryGetValue(obj.Actor, out obj))
+                {
+                    FLLog.Error("Thn", $"Could not find object for actor {a}");
+                    return;
+                }
+            }
             if (obj.Object != null && obj.Object.AnimationComponent != null) //Check if object has Cmp animation
             {
                 bool loop = (Flags == 2);

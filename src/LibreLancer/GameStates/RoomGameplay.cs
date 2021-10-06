@@ -40,6 +40,7 @@ namespace LibreLancer
 		string baseId;
         string active;
 		Cursor cursor;
+        private Cursor talk_story;
 		string virtualRoom;
         List<BaseHotspot> tophotspots;
         private ThnScript[] sceneScripts;
@@ -91,7 +92,9 @@ namespace LibreLancer
             SetActiveHotspot(rm);
             Game.Keyboard.TextInput += Game_TextInput;
             Game.Keyboard.KeyDown += Keyboard_KeyDown;
+            Game.Mouse.MouseDown += MouseOnMouseDown;
             cursor = Game.ResourceManager.GetCursor("arrow");
+            talk_story = Game.ResourceManager.GetCursor("talk_story");
             ui = Game.Ui;
             ui.GameApi = new BaseUiApi(this);
             ui.OpenScene("baseside");
@@ -99,6 +102,26 @@ namespace LibreLancer
             SwitchToRoom(room == null);
             FadeIn(0.8, 1.7);
         }
+
+        private void MouseOnMouseDown(MouseEventArgs e)
+        {
+            RTCHotspot hp;
+            if ((hp = GetHotspot(e.X, e.Y)) != null) {
+                PlayScript(hp.ini, CutsceneState.Regular);
+                session.RpcServer.StoryNPCSelect(hp.npc, currentRoom.Nickname, currentBase.Nickname);
+            }
+        }
+
+        void MissionAccepted()
+        {
+            PlayScript(currentCutscene, CutsceneState.Accept);
+        }
+
+        void MissionRejected()
+        {
+            PlayScript(currentCutscene, CutsceneState.Reject);
+        }
+
         void SetActiveHotspot(string rm)
         {
             foreach (var hp in tophotspots) {
@@ -126,6 +149,14 @@ namespace LibreLancer
                 articles = g.session.News;
                 Trader = new Trader(g.session);
             }
+
+            public void MissionResponse(string r)
+            {
+                if(r == "accept")
+                    g.MissionAccepted();
+                else
+                    g.MissionRejected();
+            }
             
             public SaveGameFolder SaveGames() => g.Game.Saves;
             public void DeleteSelectedGame() => g.Game.Saves.TryDelete(g.Game.Saves.Selected);
@@ -142,6 +173,7 @@ namespace LibreLancer
                 });
             }
 
+            public void PopupFinish(string id) => g.session.RpcServer.ClosedPopup(id);
             public void SaveGame(string description)
             {
                 g.session.Save(description);
@@ -231,29 +263,73 @@ namespace LibreLancer
 		{
 			Game.Keyboard.TextInput -= Game_TextInput;
 			Game.Keyboard.KeyDown -= Keyboard_KeyDown;
+            Game.Mouse.MouseDown -= MouseOnMouseDown;
 			scene.Dispose();
 		}
-        
-        List<StoryCutsceneIni> processedCutscenes = new List<StoryCutsceneIni>();
+
+        private HashSet<string> processedPaths = new HashSet<string>();
+        private Queue<StoryCutsceneIni> toPlay = new Queue<StoryCutsceneIni>();
         void ProcessCutscenes()
         {
             foreach (var ct in session.ActiveCutscenes)
             {
-                if (processedCutscenes.Contains(ct)) continue;
+                if (processedPaths.Contains(ct.RefPath.ToLowerInvariant())) continue;
                 if (ct.Encounters.Count != 1) continue;
-                if (!ct.Encounters[0].Autoplay) continue;
                 var n = ct.Encounters[0].Location;
                 if (n[0].Equals(currentBase.Nickname, StringComparison.OrdinalIgnoreCase) &&
                     n[1].Equals(currentRoom.Nickname, StringComparison.OrdinalIgnoreCase))
                 {
-                    processedCutscenes.Add(ct);
-                    ui.Visible = false;
-                    var script = new ThnScript(session.Game.GameData.ResolveDataPath(ct.Encounters[0].Action));
-                    currentCutscene = ct;
-                    RoomDoSceneScript(script, ScriptState.Cutscene);
+                    processedPaths.Add(ct.RefPath.ToLowerInvariant());
+                    if (ct.Encounters[0].Autoplay) {
+                        PlayScript(ct, CutsceneState.Regular);
+                    } else {
+                        toPlay.Enqueue(ct);
+                    }
                 }
             }
         }
+
+        enum CutsceneState
+        {
+            None,
+            Offer,
+            Decision,
+            Accept,
+            Reject,
+            Regular
+        }
+
+        private CutsceneState cState = CutsceneState.None;
+        void PlayScript(StoryCutsceneIni ct, CutsceneState state)
+        {
+            ui.Visible = false;
+            cState = CutsceneState.Regular;
+            string scName = ct.Encounters[0].Action;
+            if (!string.IsNullOrEmpty(ct.Encounters[0].Offer)) {
+                scName = ct.Encounters[0].Offer;
+                cState = CutsceneState.Offer;
+            }
+            switch (state)
+            {
+                case CutsceneState.Decision:
+                    scName = ct.Encounters[0].Decision;
+                    cState = state;
+                    break;
+                case CutsceneState.Accept:
+                    scName = ct.Encounters[0].Accept;
+                    cState = state;
+                    break;
+                case CutsceneState.Reject:
+                    scName = ct.Encounters[0].Reject;
+                    cState = state;
+                    break;
+            }
+            var script = new ThnScript(session.Game.GameData.ResolveDataPath(scName));
+            currentCutscene = ct;
+            RoomDoSceneScript(script, ScriptState.Cutscene);
+        }
+        
+        
 
         private bool didLaunch = false;
         public void Launch()
@@ -316,12 +392,9 @@ namespace LibreLancer
                         case ScriptState.Launch:
                             SendLaunch();
                             break;
+                        case ScriptState.Cutscene:
                         case ScriptState.Enter:
-                            FadeOut(0.25, () =>
-                            {
-                                RoomDoSceneScript(null, ScriptState.None);
-                                FadeIn(0.2, 0.25);
-                            });
+                            SceneOnScriptFinished(waitingForFinish);
                             break;
                     }
                 }
@@ -402,19 +475,102 @@ namespace LibreLancer
             }
         }
 
+        Vector2 ScreenPosition(Vector3 worldPos)
+        {
+            var clipSpace = Vector4.Transform(new Vector4(worldPos, 1), scene.CameraHandle.ViewProjection);
+            var ndc = clipSpace / clipSpace.W;
+            var viewSize = new Vector2(Game.Width, Game.Height);
+            var windowSpace = new Vector2(
+                ((ndc.X + 1.0f) / 2.0f) * Game.Width,
+                ((1.0f - ndc.Y) / 2.0f) * Game.Height
+            );
+            return windowSpace;
+        }
+
+        class RTCHotspot
+        {
+            public ThnObject obj;
+            public StoryCutsceneIni ini;
+            public string npc;
+        }
+        private List<RTCHotspot> hotspots = new List<RTCHotspot>();
+
+        RTCHotspot GetHotspot(int mX, int mY)
+        {
+            foreach (var hp in hotspots)
+            {
+                var sp = ScreenPosition(hp.obj.Translate);
+                var rect = new RectangleF(
+                    sp.X - 50, sp.Y - 50, 100, 100);
+                if (rect.Contains(mX, mY)) return hp;
+            }
+
+            return null;
+        }
+
+      
+
+        void ProcessNextCutscene()
+        {
+            var ct = toPlay.Dequeue();
+            int position = 0;
+            int i = 0;
+            foreach(var npc in ct.Chars)
+            {
+                var obj = new GameObject() {Nickname = npc.Actor};
+                var costumeName = Game.GameData.GetCostumeForNPC(npc.Npc);
+                Game.GameData.GetCostume(costumeName, out var body, out var head, out var lh, out var rh);
+                var skel = new DfmSkeletonManager(body, head, lh, rh);
+                obj.RenderComponent = new CharacterRenderer(skel);
+                var anmComponent = new AnimationComponent(obj, Game.GameData.GetCharacterAnimations());
+                obj.AnimationComponent = anmComponent;
+                obj.Components.Add(anmComponent);
+                string spot = npc.Spot;
+                if (string.IsNullOrEmpty(spot)) {
+                    spot = ct.Reserves[0].Spot[position++];
+                }
+                var pos = scene.GetObject(spot).Translate;
+                obj.SetLocalTransform(Matrix4x4.CreateTranslation(pos));
+                var thnObj = new ThnObject();
+                thnObj.Name = npc.Actor;
+                thnObj.Rotate = Matrix4x4.Identity;
+                thnObj.Translate = pos;
+                thnObj.Object = obj;
+                scene.AddObject(thnObj);
+                scene.FidgetScript(new ThnScript(session.Game.GameData.ResolveDataPath(npc.Fidget)));
+                if(i == 0) hotspots.Add(new RTCHotspot() { ini = ct, obj = thnObj, npc = npc.Npc });
+                i++;
+            }
+        }
+
         private void SceneOnScriptFinished(ThnScript obj)
         {
             if (waitingForFinish != null && obj == waitingForFinish)
             {
                 if (currentCutscene != null)
                 {
+                    if (cState == CutsceneState.Decision)
+                    {
+                        return;
+                    }
                     FadeOut(0.25, () =>
                     {
                         RoomDoSceneScript(null, ScriptState.None);
                         ui.Visible = true;
                         FLLog.Info("Thn", "Finished cutscene");
-                        session.FinishCutscene(currentCutscene);
-                        currentCutscene = null;
+                        if (cState == CutsceneState.Regular)
+                        {
+                            session.FinishCutscene(currentCutscene);
+                            currentCutscene = null;
+                            if (toPlay.Count > 0) {
+                                ProcessNextCutscene();
+                            }
+                        }
+                        else if (cState == CutsceneState.Offer)
+                        {
+                            PlayScript(currentCutscene, CutsceneState.Decision);
+                            ui.Event("MissionOffer", currentCutscene.Encounters[0].MissionTextId);
+                        }
                         FadeIn(0.2,0.25);
                     });
                 }
@@ -469,6 +625,7 @@ namespace LibreLancer
         private bool firstFrame = false; //Stops a desync in scene starting
         void RoomDoSceneScript(ThnScript sc, ScriptState state)
         {
+            hotspots = new List<RTCHotspot>();
             firstFrame = true;
             currentState = state;
             if (sc == null) currentState = ScriptState.None;
@@ -503,6 +660,8 @@ namespace LibreLancer
                 ui.Visible = false;
                 letterboxAmount = 1;
             }
+            if (cState == CutsceneState.Decision)
+                letterboxAmount = -1;
         }
 
 		public override void Update(double delta)
@@ -517,6 +676,13 @@ namespace LibreLancer
                     scene.Update(firstFrame ? 0 : delta);
             }
             firstFrame = false;
+            if (!firstFrame) {
+                if (session.Popups.Count > 0 && session.Popups.TryDequeue(out var popup))
+                {
+                    FLLog.Debug("Room", "Displaying popup");
+                    ui.Event("Popup", popup.Title, popup.Contents, popup.ID);
+                }
+            }
             ui.Update(Game);
             if (ui.KeyboardGrabbed)
                 Game.EnableTextInput();
@@ -555,7 +721,12 @@ namespace LibreLancer
                 ImGui.Text($"Room: {currentRoom.Nickname}");
                 ImGui.Text($"Virtual: {virtualRoom ?? "NONE"}");
             });
-            if(ui.Visible) cursor.Draw(Game.RenderContext.Renderer2D, Game.Mouse);
+
+            if (ui.Visible || ui.HasModal)
+            {
+                if(GetHotspot(Game.Mouse.X, Game.Mouse.Y) != null) talk_story.Draw(Game.RenderContext.Renderer2D, Game.Mouse);
+                else cursor.Draw(Game.RenderContext.Renderer2D, Game.Mouse);
+            }
         }
 
         public override void Exiting()

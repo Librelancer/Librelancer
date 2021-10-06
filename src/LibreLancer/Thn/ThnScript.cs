@@ -281,7 +281,10 @@ namespace LibreLancer
 				{
 					e.NoFog = ThnTypes.Convert<bool>(o);
 				}
-
+                if (usrprops.TryGetValue("Actor", out o))
+                {
+                    e.Actor = o.ToString();
+                }
                 if (usrprops.TryGetValue("TextString", out o))
                 {
                     e.DisplayText = new ThnDisplayText();

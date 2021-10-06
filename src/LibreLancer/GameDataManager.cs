@@ -119,6 +119,12 @@ namespace LibreLancer
                 rightHand = (DfmFile) resource.GetDrawable(VFS.Resolve(cs.RightHand.MeshPath));
             return true;
         }
+        
+        public string GetCostumeForNPC(string npc)
+        {
+            return Ini.SpecificNPCs.Npcs.FirstOrDefault(x => x.Nickname.Equals(npc, StringComparison.OrdinalIgnoreCase))
+                ?.BaseAppr;
+        }
         IEnumerable<Data.Universe.Base> InitBases()
         {
             FLLog.Info("Game", "Initing " + fldata.Universe.Bases.Count + " bases");

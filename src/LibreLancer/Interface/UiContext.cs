@@ -188,16 +188,16 @@ namespace LibreLancer.Interface
         {
             ViewportWidth = game.Width;
             ViewportHeight = game.Height;
-            if(Visible)
             Update(baseWidget, game.TotalTime,
                 game.Mouse.X, game.Mouse.Y, game.Mouse.IsButtonDown(MouseButtons.Left));
         }
 
+        public bool HasModal => modals.Count > 0;
         public bool MouseWanted(int mouseX, int mouseY)
         {
             var inputRatio = 480 / ViewportHeight;
-            if (!Visible) return false;
             if (modals.Count > 0) return true;
+            if (!Visible) return false;
             return baseWidget?.MouseWanted(this, GetRectangle(), mouseX * inputRatio, mouseY * inputRatio) ?? false;
         }
 
@@ -271,9 +271,9 @@ namespace LibreLancer.Interface
         public bool Visible = true;
         UiWidget GetActive()
         {
+            if (modals.Count > 0) return modals[modals.Count - 1].Widget;
             if(!Visible) return null;
             if (baseWidget == null) return null;
-            if (modals.Count > 0) return modals[modals.Count - 1].Widget;
             return baseWidget;
         }
 
@@ -281,6 +281,10 @@ namespace LibreLancer.Interface
         public void Event(string ev)
         {
             lua.CallEvent(ev);
+        }
+        public void Event(string ev, params object[] p)
+        {
+            lua.CallEvent(ev, p);
         }
         public void OnMouseDown() => GetActive()?.OnMouseDown(this, GetRectangle());
         public void OnMouseUp() => GetActive()?.OnMouseUp(this, GetRectangle());
@@ -302,7 +306,7 @@ namespace LibreLancer.Interface
         public void RenderWidget(double delta)
         {
             DeltaTime = delta;
-            if (baseWidget == null || !Visible)
+            if (baseWidget == null)
             {
                 textFocusWidget = null;
                 return;
@@ -313,10 +317,10 @@ namespace LibreLancer.Interface
             }
             textFocusWidget = null;
             RenderContext.DepthEnabled = false;
-            mode2d = false;
             var aspect = ViewportWidth / ViewportHeight;
             var desktopRect = new RectangleF(0, 0, 480 * aspect, 480);
-            baseWidget.Render(this, desktopRect);
+            if(Visible)
+                baseWidget.Render(this, desktopRect);
             foreach(var widget in modals)
                 widget.Widget.Render(this, desktopRect);
             RenderContext.DepthEnabled = true;

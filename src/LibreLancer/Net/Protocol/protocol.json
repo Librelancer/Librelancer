@@ -67,6 +67,14 @@
           "name": "Mount",
           "return": "bool",
           "args": [ { "name":  "id", "type":  "int" }]
+        },
+        {
+          "name": "ClosedPopup",
+          "args": [ { "name":  "id", "type":  "string" }]
+        },
+        {
+          "name": "StoryNPCSelect",
+          "args": [ { "name":  "name", "type":  "string" }, { "name":  "room", "type":  "string" }, { "name":  "_base", "type":  "string" }]
         }
     ],
     "client_methods": [
@@ -180,6 +188,10 @@
         },
         {
           "name": "StartJumpTunnel"
+        },
+        {
+          "name": "PopupOpen",
+          "args": [ { "name":  "title" ,  "type":  "int" }, { "name":  "contents" ,  "type":  "int" }, { "name":  "id" , "type":  "string" } ]
         }
     ]
 }

@@ -81,7 +81,19 @@ namespace LibreLancer
             {
                 rtcs.Remove(rtc);
                 rpcClient.UpdateRTCs(rtcs.ToArray());
+                msnRuntime?.FinishRTC(rtc);
             }
+        }
+
+        void IServerPlayer.StoryNPCSelect(string name, string room, string _base)
+        {
+            msnRuntime?.StoryNPCSelect(name,room,_base);
+        }
+        
+
+        void IServerPlayer.ClosedPopup(string id)
+        {
+            msnRuntime?.ClosePopup(id);
         }
 
         void IServerPlayer.LineSpoken(uint hash)
@@ -196,11 +208,12 @@ namespace LibreLancer
             }
             if (Base != null)
             {
-                PlayerEnterBase();
                 InitStory(sg);
+                PlayerEnterBase();
             }
             else
             {
+                InitStory(sg);
                 SpaceInitialSpawn(sg);
             }
             
@@ -214,8 +227,7 @@ namespace LibreLancer
                 World = world; 
                 rpcClient.SpawnPlayer(System, world.TotalTime, Position, Orientation, Character.Credits, Character.EncodeLoadout());
                 world.SpawnPlayer(this, Position, Orientation);
-                //work around race condition where world spawns after player has been sent to a base
-                if(sg != null) InitStory(sg);
+                msnRuntime?.EnteredSpace();
             });
         }
         bool NewsFind(LibreLancer.Data.Missions.NewsItem ni)
