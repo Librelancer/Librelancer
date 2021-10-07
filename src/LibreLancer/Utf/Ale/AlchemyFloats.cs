@@ -10,7 +10,7 @@ namespace LibreLancer.Utf.Ale
 	{
 		public float SParam;
 		public EasingTypes Type;
-		public Tuple<float,float>[] Data;
+		public ValueTuple<float,float>[] Data;
 		public AlchemyFloats ()
 		{
 		}
@@ -38,6 +38,17 @@ namespace LibreLancer.Utf.Ale
 			//Interpolate!
 			return Easing.Ease(Type,time, t1, t2, v1, v2);
 		}
+
+        public float GetMax(bool abs)
+        {
+            float max = 0;
+            foreach (var i in Data)
+            {
+                var x = abs ? Math.Abs(i.Item2) : i.Item1;
+                if (x > max) max = x;
+            }
+            return max;
+        }
 	}
 }
 

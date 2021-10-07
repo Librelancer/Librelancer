@@ -19,6 +19,19 @@ namespace LibreLancer.Utf.Ale
         {
             get { return Keyframes != null && Keyframes.Count != 1; }
         }
+
+        public float GetMax(bool abs)
+        {
+            if (Keyframes == null)
+                return abs ? Math.Abs(Value) : Value;
+            float max = 0;
+            foreach (var k in Keyframes)
+            {
+                var x = abs ? Math.Abs(k.Value) : k.Value;
+                if (x > max) max = x;
+            }
+            return max;
+        }
         public float GetValue(float time) {
 			if (Keyframes == null)
 				return Value;

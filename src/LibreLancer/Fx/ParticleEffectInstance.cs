@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Linq;
 using System.Numerics;
 using System.Threading;
 
@@ -86,8 +87,9 @@ namespace LibreLancer.Fx
             {
                 if (node.Node is FLBeamAppearance) Beams[node.BeamIndex].Node = node;
             }
+            
         }
-
+        
         public void Reset()
         {
             globaltime = 0;
@@ -100,6 +102,16 @@ namespace LibreLancer.Fx
 
         double lasttime = 0;
         public Vector3 Position = Vector3.Zero;
+
+        public bool Culled = false;
+
+        public void UpdateCull(ICamera camera)
+        {
+            if (!float.IsFinite(Effect.Radius)) return;
+            var sph = new BoundingSphere(Position, Effect.Radius);
+            Culled = !camera.Frustum.Intersects(sph);
+        }
+        
         public void Update(double delta, Matrix4x4 transform, float sparam)
         {
             if (Pool == null) return;

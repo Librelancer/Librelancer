@@ -48,6 +48,17 @@ namespace LibreLancer.Utf.Ale
             }
         }
 
+        public float GetMax(bool abs)
+        {
+            float max = 0;
+            foreach (var item in Items)
+            {
+                var x = item.GetMax(abs);
+                if (x > max) max = x;
+            }
+            return max;
+        }
+
         public float GetValue(float sparam, float time)
 		{
 			//1 item, 1 value

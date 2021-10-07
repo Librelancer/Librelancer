@@ -107,6 +107,26 @@ namespace LibreLancer.Fx
             return idx != -1;
         }
 
+        static float Max3(float a, float b, float c) => Math.Max(Math.Max(a, b), c);
+        public float GetMaxDistance(NodeReference reference)
+        {
+            var pr = reference;
+
+            float max = 0;
+               
+            while (pr != null && !pr.IsAttachmentNode)
+            {
+                if (pr.Node.Transform.HasTransform)
+                {
+                    max += Max3(pr.Node.Transform.TranslateX.GetMax(true), pr.Node.Transform.TranslateY.GetMax(true),
+                        pr.Node.Transform.TranslateZ.GetMax(true));
+                }
+                pr = pr.Parent;
+            }
+            return max;
+        }
+        
+
 		public override void Update(NodeReference reference, ParticleEffectInstance instance, double delta, ref Matrix4x4 transform, float sparam)
 		{
 			if (reference.Paired.Count == 0) return;

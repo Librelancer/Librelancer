@@ -67,6 +67,7 @@ namespace LibreLancer.Fx
                 }
                 fx.EmitterCount = emitterIndex;
                 fx.BeamCount = beamIndex;
+                fx.CalculateRadius();
                 Effects.Add(fx);
 			}
 		}

@@ -33,6 +33,7 @@ namespace LibreLancer
             {
                 sys.AddObject(this);
                 fx.Pool = sys.FxPool;
+                fx.UpdateCull(camera);
                 return true;
             }
             fx.Pool = null;

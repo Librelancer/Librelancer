@@ -213,6 +213,7 @@ namespace LibreLancer.Fx
                 if (!Particles[i].Active)
                     continue;
                 var inst = Particles[i].Instance;
+                if(inst.Culled) continue;
                 inst.Pool = this; //HACK
                 if(inst.NodeEnabled(Particles[i].Appearance))
                 {
@@ -253,6 +254,7 @@ namespace LibreLancer.Fx
                 if (!Particles[i].Active)
                     continue;
                 var inst = Particles[i].Instance;
+                if(inst.Culled) continue;
                 if (inst.NodeEnabled(Particles[i].Appearance))
                 {
                     var app = (FxAppearance)Particles[i].Appearance.Node;

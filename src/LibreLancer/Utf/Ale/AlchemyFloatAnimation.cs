@@ -19,13 +19,24 @@ namespace LibreLancer.Utf.Ale
 				var floats = new AlchemyFloats ();
 				floats.SParam = reader.ReadSingle ();
 				floats.Type = (EasingTypes)reader.ReadByte ();
-				floats.Data = new Tuple<float, float>[reader.ReadByte ()];
+				floats.Data = new ValueTuple<float, float>[reader.ReadByte ()];
 				for (int i = 0; i < floats.Data.Length; i++) {
-					floats.Data [i] = new Tuple<float, float> (reader.ReadSingle (), reader.ReadSingle ());
+					floats.Data [i] = new ValueTuple<float, float> (reader.ReadSingle (), reader.ReadSingle ());
 				}
 				Items.Add (floats);
 			}
 		}
+
+        public float GetMax(bool abs)
+        {
+            float max = 0;
+            foreach (var item in Items)
+            {
+                var x = item.GetMax(abs);
+                if (x > max) max = x;
+            }
+            return max;
+        }
 		public float GetValue(float sparam, float time)
 		{
 			//1 item, 1 value
