@@ -38,7 +38,8 @@ namespace LibreLancer.Utf.Ale
 				if (sparam >= Items [i].SParam && sparam <= Items [i + 1].SParam) {
 					c1 = Items [i];
 					c2 = Items [i + 1];
-				}
+                    break;
+                }
 			}
 			//We're at the end
 			if (c1 == null) {

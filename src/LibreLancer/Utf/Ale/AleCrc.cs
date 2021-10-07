@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-//WARNING: AUTO-GENERATED FILE. EDIT 'AleCrc.tt' INSTEAD OF THIS ONE.
 using System;
 using System.Collections.Generic;
 namespace LibreLancer.Utf.Ale

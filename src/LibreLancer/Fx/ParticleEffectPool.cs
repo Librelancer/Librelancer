@@ -199,11 +199,14 @@ namespace LibreLancer.Fx
 
         public ICamera Camera => camera;
 
+        private int fNo = 0;
+
         public void Draw(ICamera camera, PolylineRender polyline, ResourceManager res, PhysicsDebugRenderer debug)
         {
             this.camera = camera;
             countApp = 0;
             int beamPtr = 0;
+            fNo++;
             //Generate list of active nodes
             for (int i = 0; i < maxActive; i++)
             {
@@ -346,15 +349,20 @@ namespace LibreLancer.Fx
         }
         int GetAppFxIdx(ParticleEffectInstance instance, FxAppearance a, int index)
         {
-            var item = (instance, a, index);
-            //Equals() is slower for us here
-            for(int i = 0; i < countApp; i++)
-            {
-                if (appearances[i].a == a && appearances[i].i == instance) return i;
+            if (instance.FrameNumber != fNo) {
+                instance.FrameNumber = fNo;
+                for (int i = 0; i < instance.ParticleIndex.Length; i++)
+                {
+                    instance.ParticleIndex[i] = -1;
+                }
             }
-            if (countApp + 1 >= MAX_APP_NODES) return -1;
-            appearances[countApp] = item;
-            return countApp++;
+            if (instance.ParticleIndex[index] == -1)
+            {
+                if (countApp + 1 >= MAX_APP_NODES) return -1;
+                appearances[countApp] = (instance, a, index);
+                instance.ParticleIndex[index] = countApp++;
+            }
+            return instance.ParticleIndex[index];
         }
 
         public void DrawPerspective(

@@ -43,6 +43,8 @@ namespace LibreLancer.Fx
 
         public double[] SpawnTimers;
         public int[] ParticleCounts;
+        public int[] ParticleIndex;
+        public int FrameNumber;
         public BeamParticles[] Beams;
         bool[] enableStates;
         double globaltime = 0;
@@ -72,6 +74,7 @@ namespace LibreLancer.Fx
             SpawnTimers = new double[fx.EmitterCount];
             ParticleCounts = new int[fx.EmitterCount];
             enableStates = new bool[fx.References.Count];
+            ParticleIndex = new int[fx.References.Count];
             if(fx.BeamCount > 0)
             {
                 Beams = new BeamParticles[fx.BeamCount];

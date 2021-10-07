@@ -30,7 +30,8 @@ namespace LibreLancer.Utf.Ale
 					t2 = Data [i + 1].Item1;
 					v1 = Data [i].Item2;
 					v2 = Data [i + 1].Item2;
-				}
+                    break;
+                }
 			}
 			//Time wasn't between any values. Return max.
 			if (t1 == float.NegativeInfinity) {

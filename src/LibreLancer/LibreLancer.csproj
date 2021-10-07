@@ -51,17 +51,4 @@
     <PackageReference Include="LiteNetLib" Version="0.9.2.2" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="Utf\Ale\AleCrc.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>AleCrc.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Utf\Ale\AleCrc.cs">
-      <DependentUpon>AleCrc.tt</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
 </Project>

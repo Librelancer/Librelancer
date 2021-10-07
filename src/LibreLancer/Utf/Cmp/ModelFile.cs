@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Vms;
@@ -41,7 +42,7 @@ namespace LibreLancer.Utf.Cmp
             Path = root.Name;
             load(root, additionalLibrary);
         }
-
+        
         private void load(IntermediateNode root, ILibFile additionalLibrary)
         {
             this.additionalLibrary = additionalLibrary;
@@ -81,12 +82,13 @@ namespace LibreLancer.Utf.Cmp
 							var hardpointTypeNode = (IntermediateNode)hpn;
                             switch (hardpointTypeNode.Name.ToLowerInvariant())
                             {
+                                //OfType<> to avoid crashes with bad models
                                 case "fixed":
-                                    foreach (IntermediateNode fixedNode in hardpointTypeNode)
+                                    foreach (IntermediateNode fixedNode in hardpointTypeNode.OfType<IntermediateNode>())
                                         Hardpoints.Add(new FixedHardpointDefinition(fixedNode));
                                     break;
                                 case "revolute":
-                                    foreach (IntermediateNode revoluteNode in hardpointTypeNode)
+                                    foreach (IntermediateNode revoluteNode in hardpointTypeNode.OfType<IntermediateNode>())
                                         Hardpoints.Add(new RevoluteHardpointDefinition(revoluteNode));
                                     break;
                                 default:
