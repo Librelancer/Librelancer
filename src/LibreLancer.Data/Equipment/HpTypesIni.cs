@@ -59,8 +59,6 @@ namespace LibreLancer.Data.Equipment
             /* CD = class 1, Torp = class 2, ensures display is correct */
             new HpType("hp_torpedo_special_2", Weapon, 1, 1742, 916),
             new HpType("hp_torpedo_special_1", Weapon, 2, 1741, 908),
-            new HpType("hp_mine_dropper", Weapon, 0, 1522, 911),
-            new HpType("hp_countermeasure", Weapon, 0, 1523, 910),
             new HpType("hp_turret_special_1", Weapon, 1, 1731, 909),
             new HpType("hp_turret_special_2", Weapon, 2, 1732, 909),
             new HpType("hp_turret_special_3", Weapon, 3, 1733, 909),
@@ -71,6 +69,9 @@ namespace LibreLancer.Data.Equipment
             new HpType("hp_turret_special_8", Weapon, 8, 1738, 909),
             new HpType("hp_turret_special_9", Weapon, 9, 1739, 909),
             new HpType("hp_turret_special_10", Weapon, 10, 1740, 909),
+            new HpType("hp_mine_dropper", Weapon, 0, 1522, 911),
+            /*new HpType("hp_countermeasure", Weapon, 0, 1523, 910),*/
+            new HpType("hp_countermeasure_dropper", Weapon, 0, 1523, 910),
         };
 
         public Dictionary<string, HpType> Types = new(StringComparer.OrdinalIgnoreCase);
