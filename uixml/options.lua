@@ -1,5 +1,112 @@
-function options:ctor()
-	self.Elements.goback:OnClick(function()
-		OpenScene("mainmenu")
-	end)	
+function options:panel(p)
+	for _, panel in ipairs(self.Panels) do
+		if panel[1] == p[1] then
+			panel[1].Selected = true
+			panel[2].Visible = true
+		else
+			panel[1].Selected = false
+			panel[2].Visible = false
+		end
+	end
 end
+
+local msaa_levels = {
+	"NONE",
+	"MSAA 2x",
+	"MSAA 4x",
+	"MSAA 8x"
+}
+
+local function val_selection(left, right, display, values, vmin, vmax, vcurrent)
+	local state = {}
+	state.vmin = vmin
+	state.vmax = vmax
+	state.vcurrent = vcurrent
+	state.values = values
+	local function setval(idx)
+		local i = idx
+		if i < vmin then i = vmax end
+		if i > vmax then i = vmin end
+		state.vcurrent = i
+		display.Text = state.values[state.vcurrent]
+	end
+	left:OnClick(function()
+		setval(state.vcurrent - 1)
+	end)
+	right:OnClick(function()
+		setval(state.vcurrent + 1)
+	end)
+	setval(vcurrent)
+	return state
+end
+
+-- Map strings to MSAA Amounts
+local function msaa_to_idx(i)
+	if i == 2 then return 2 end
+	if i == 4 then return 3 end
+	if i >= 8 then return 4 end
+	return 1
+end
+
+local function idx_to_msaa(i)
+	if i == 2 then return 2 end
+	if i == 3 then return 4 end
+	if i == 4 then return 8 end
+	return 0
+end
+
+-- Anisotropy Levels
+local function idx_to_anisotropy(i)
+	if i == 1 then return 0 end
+	return math.pow(2, i - 1)
+end
+local function anisotropy_to_idx(i)
+	if i == 0 then return 1 end
+	local x = 2
+	for j = 2, 10 do
+		if x == i then
+			return j
+		else
+			x = x * 2
+		end
+	end
+	return 0
+end
+
+
+function options:ctor()
+	local e = self.Elements
+	self.Elements.goback:OnClick(function()
+		self.opts.SfxVolume = e.sfxvol.Value
+		self.opts.MusicVolume = e.musicvol.Value
+		self.opts.MSAA = idx_to_msaa(self.MSAA.vcurrent)
+		self.opts.Anisotropy = idx_to_anisotropy(self.AF.vcurrent)
+		Game:ApplySettings(self.opts)
+		OpenScene("mainmenu")
+	end)
+	self.Panels = {
+		{ e.performance, e.win_performance },
+		{ e.audio, e.win_audio }
+	}
+	for _, p in ipairs(self.Panels) do
+		p[1]:OnClick(function() self:panel(p) end)
+	end
+	self:panel(self.Panels[1])
+	self.opts = Game:GetCurrentSettings()
+	e.sfxvol.Value = self.opts.SfxVolume
+	e.musicvol.Value = self.opts.MusicVolume
+	self.AnisotropyLevels = self.opts.AnisotropyLevels()
+	local anisotropy = {
+		"NONE"
+	}
+	for _, i in ipairs(self.AnisotropyLevels) do
+		table.insert(anisotropy, tostring(i) .."x AF")
+	end
+	self.MSAA = val_selection(e.msaa_left, e.msaa_right, e.msaa_display, msaa_levels, 1, msaa_to_idx(self.opts:MaxMSAA()), msaa_to_idx(self.opts.MSAA))
+	self.AF = val_selection(e.af_left, e.af_right, e.af_display, anisotropy, 1, #anisotropy, anisotropy_to_idx(self.opts.Anisotropy))
+end
+
+
+
+
+

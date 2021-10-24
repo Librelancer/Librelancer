@@ -25,13 +25,13 @@ namespace InterfaceEdit
         private RecentFilesHandler recentFiles;
         public MainWindow() : base(950,600,false)
         {
-            TestApi = new TestingApi(this);
             recentFiles = new RecentFilesHandler(OpenGui);
         }
 
         protected override void Load()
         {
             Title = "InterfaceEdit";
+            TestApi = new TestingApi(this);
             guiHelper = new ImGuiHelper(this);
             FileDialog.RegisterParent(this);
             Viewport = new ViewportManager(RenderContext);

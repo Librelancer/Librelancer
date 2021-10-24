@@ -1,26 +1,38 @@
 <Stylesheet>
 	<!-- Generic buttons -->
-	<ButtonStyle Width="16" Height="16" Name="wirebutton">
-		<ButtonStyle.Normal TextColor="text" TextShadow="black">
-			<ButtonAppearance.Background>
-				<DisplayWireBorder color="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Border>
-				<DisplayWireBorder color="text_hover"/>
-			</ButtonAppearance.Border>
-		</ButtonStyle.Hover>
-	</ButtonStyle>
 	<ButtonStyle Width="16" Height="16" Name="xbutton">
 		<ButtonStyle.Normal>
-			<ButtonAppearance.Border>
+			<ButtonAppearance.Background>
 				<DisplayModel model="xbutton" Tint="text"/>
-			</ButtonAppearance.Border>
+			</ButtonAppearance.Background>
 		</ButtonStyle.Normal>
 		<ButtonStyle.Hover>
 			<ButtonAppearance.Background>
 				<DisplayModel model="xbutton" Tint="text_hover"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+	</ButtonStyle>
+	<ButtonStyle Width="8" Height="9" Name="sel_left">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayImage Image="sliderarrow_left" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayImage image="sliderarrow_left" Tint="text_hover"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+	</ButtonStyle>
+	<ButtonStyle Width="8" Height="9" Name="sel_right">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayImage Image="sliderarrow_right" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayImage image="sliderarrow_right" Tint="text_hover"/>
 			</ButtonAppearance.Background>
 		</ButtonStyle.Hover>
 	</ButtonStyle>
@@ -280,6 +292,7 @@
 		</ButtonStyle.Normal>
 		<ButtonStyle.Hover TextColor="text_hover"/>
         <ButtonStyle.Disabled TextColor="#666"/>
+        <ButtonStyle.Selected TextColor="yellow"/>
 	</ButtonStyle>
 	<ButtonStyle Width="162" Height="36" Name="wirebutton" MouseEnterSound="ui_rollover">
 		<ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="16" FontFamily="$ButtonText">
@@ -494,6 +507,8 @@
 		</HSliderStyle.Thumb>
 	</HSliderStyle>
 </Stylesheet>
+
+
 
 
 

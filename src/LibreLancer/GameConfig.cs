@@ -12,14 +12,10 @@ namespace LibreLancer
 	public class GameConfig
 	{
 		public string FreelancerPath = "";
-        public float MasterVolume = 1.0f;
-        public float SfxVolume = 1.0f;
-        public float MusicVolume = 1.0f;
+        public GameSettings Settings = new GameSettings();
         public bool IntroMovies = true;
 		public int BufferWidth = 1024;
 		public int BufferHeight = 768;
-		public int MSAASamples = 0;
-		public bool VSync = true;
 		public Guid? UUID;
 
 		//This default is to stop dlopen on linux from trying to open itself

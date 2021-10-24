@@ -108,6 +108,14 @@ namespace LibreLancer
             {
                 state = m;
             }
+            
+            public GameSettings GetCurrentSettings() => state.Game.Config.Settings.MakeCopy();
+
+            public void ApplySettings(GameSettings settings)
+            {
+                state.Game.Config.Settings = settings;
+                state.Game.Config.Save();
+            }
 
             public SaveGameFolder SaveGames() => state.Game.Saves;
             public void DeleteSelectedGame() => state.Game.Saves.TryDelete(state.Game.Saves.Selected);

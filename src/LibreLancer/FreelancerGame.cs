@@ -56,8 +56,8 @@ namespace LibreLancer
 
         private void CfgOnSaved(GameConfig config)
         {
-            Audio.MasterVolume = config.MasterVolume;
-            Audio.Music.Volume = config.MusicVolume;
+            Audio.MasterVolume = config.Settings.MasterVolume;
+            Audio.Music.Volume = config.Settings.MusicVolume;
         }
 
         public void ChangeState(GameState state)
@@ -72,7 +72,8 @@ namespace LibreLancer
             Thread.CurrentThread.Name = "FreelancerGame UIThread";
 			//Move to stop _TSGetMainThread error on OSX
 			MinimumWindowSize = new Point(640, 480);
-			SetVSync(Config.VSync);
+			SetVSync(Config.Settings.VSync);
+            Config.Settings.RenderContext = RenderContext;
 			new IdentityCamera(this);
 			uithread = Thread.CurrentThread.ManagedThreadId;
 			useintromovies = _cfg.IntroMovies;
@@ -83,8 +84,8 @@ namespace LibreLancer
 			//Init Audio
 			FLLog.Info("Audio", "Initialising Audio");
 			Audio = new AudioManager(this);
-            Audio.MasterVolume = _cfg.MasterVolume;
-            Audio.Music.Volume = _cfg.MusicVolume;
+            Audio.MasterVolume = _cfg.Settings.MasterVolume;
+            Audio.Music.Volume = _cfg.Settings.MusicVolume;
 			//Load data
 			FLLog.Info("Game", "Loading game data");
 			GameData = new GameDataManager(_cfg.FreelancerPath, ResourceManager);

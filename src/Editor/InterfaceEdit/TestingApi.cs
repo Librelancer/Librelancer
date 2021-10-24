@@ -116,6 +116,15 @@ namespace InterfaceEdit
 
         public TestSaveGameList SaveGames() => _testSaveGames;
 
+        private GameSettings settings = new GameSettings();
+
+        public GameSettings GetCurrentSettings() => settings.MakeCopy();
+
+        public void ApplySettings(GameSettings settings)
+        {
+            this.settings = settings;
+        }
+
         public void LoadSelectedGame()
         {
         }
@@ -370,6 +379,7 @@ namespace InterfaceEdit
         public TestingApi(MainWindow win)
         {
             this.win = win;
+            this.settings.RenderContext = win.RenderContext;
         }
         
         public void RequestNewCharacter()

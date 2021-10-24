@@ -34,11 +34,11 @@ namespace Launcher
             freelancerFolder.SetText(config.FreelancerPath);
             resolutionX = config.BufferWidth;
             resolutionY = config.BufferHeight;
-            vsync = config.VSync;
+            vsync = config.Settings.VSync;
             skipIntroMovies = !config.IntroMovies;
-            masterVolume = config.MasterVolume;
-            musicVolume = config.MusicVolume;
-            sfxVolume = config.SfxVolume;
+            masterVolume = config.Settings.MasterVolume;
+            musicVolume = config.Settings.MusicVolume;
+            sfxVolume = config.Settings.SfxVolume;
             if (Program.introForceDisable) skipIntroMovies = true;
         }
         int resolutionX = 640;
@@ -126,10 +126,10 @@ namespace Launcher
             {
                 config.FreelancerPath = freelancerFolder.GetText();
                 config.IntroMovies = !skipIntroMovies;
-                config.MasterVolume = masterVolume;
-                config.MusicVolume = musicVolume;
-                config.SfxVolume = sfxVolume;
-                config.VSync = vsync;
+                config.Settings.MasterVolume = masterVolume;
+                config.Settings.MusicVolume = musicVolume;
+                config.Settings.SfxVolume = sfxVolume;
+                config.Settings.VSync = vsync;
                 config.BufferWidth = resolutionX;
                 config.BufferHeight = resolutionY;
                 config.Validate();

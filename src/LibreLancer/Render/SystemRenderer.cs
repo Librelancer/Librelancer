@@ -264,7 +264,7 @@ namespace LibreLancer
         
 		public unsafe void Draw()
 		{
-			if (gconfig.MSAASamples > 0)
+			if (gconfig.Settings.MSAA > 0)
 			{
 				if (_mwidth != Game.Width || _mheight != Game.Height)
 				{
@@ -272,10 +272,11 @@ namespace LibreLancer
 					_mheight = Game.Height;
 					if (msaa != null)
 						msaa.Dispose();
-					msaa = new MultisampleTarget(Game.Width, Game.Height, gconfig.MSAASamples);
+					msaa = new MultisampleTarget(Game.Width, Game.Height, gconfig.Settings.MSAA);
 				}
                 rstate.RenderTarget = msaa;
 			}
+            rstate.AnisotropyLevel = gconfig.Settings.Anisotropy;
 			NebulaRenderer nr = CheckNebulae(); //are we in a nebula?
 
 			bool transitioned = false;
@@ -374,7 +375,7 @@ namespace LibreLancer
                 foreach (var obj in objects) obj.DepthPrepass(camera, rstate);
 				rstate.DepthFunction = DepthFunction.LessEqual;
                 rstate.RenderTarget = null;
-                if (gconfig.MSAASamples > 0) rstate.RenderTarget = msaa;
+                if (gconfig.Settings.MSAA > 0) rstate.RenderTarget = msaa;
 				//Run compute shader
 				pointLightBuffer.BindIndex(0);
 				transparentLightBuffer.BindIndex(1);
@@ -466,7 +467,7 @@ namespace LibreLancer
             }
             debugPoints = new Vector3[0];
 			DebugRenderer.Render();
-			if (gconfig.MSAASamples > 0)
+			if (gconfig.Settings.MSAA > 0)
 			{
 				msaa.BlitToScreen();
                 rstate.RenderTarget = null;

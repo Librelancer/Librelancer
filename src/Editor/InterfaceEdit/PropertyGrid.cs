@@ -110,11 +110,12 @@ namespace InterfaceEdit
             ImGui.Text("Value");
             ImGui.Separator();
             ImGui.NextColumn();
+            bool edited = false;
             foreach(var e in editors)
                 if (e.Edit())
-                    return true;
+                    edited = true;
             ImGui.EndChild();
-            return false;
+            return edited;
         }
     }
 }

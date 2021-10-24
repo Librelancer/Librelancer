@@ -1,13 +1,40 @@
-<Scene ID="options" ScriptFile="mainmenu.lua">
+<Scene ID="options">
 	<ImageFile Path="uiscreens/audiooptions.png" Width="640" Height="480" Anchor="Center" Tint="magenta"/>
  	<ImageFile Path="INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga" Width="640" Height="480"/>
 	<Panel Width="640" Height="480" Anchor="Center">
-		<Button X="33" Y="89" Style="menubutton" ID="general" Text="GENERAL"/>
-		<Button X="33" Y="141" Style="menubutton" ID="controls" Text="CONTROLS"/>
+		<Button X="33" Y="89" Style="menubutton" ID="general" Text="GENERAL" Enabled="false" />
+		<Button X="33" Y="141" Style="menubutton" ID="controls" Text="CONTROLS" Enabled="false" />
 		<Button X="33" Y="193" Style="menubutton" ID="performance" Text="PERFORMANCE"/>
 		<Button X="33" Y="246" Style="menubutton" ID="audio" Text="AUDIO"/>
-		<Button X="33" Y="298" Style="menubutton" ID="credits" Text="CREDITS"/>
+		<Button X="33" Y="298" Style="menubutton" ID="credits" Text="CREDITS" Enabled="false" />
 		<Button X="33" Y="407" Style="menubutton" ID="goback" Text="MAIN MENU"/>
+		<Panel Width="390" Height="380" X="30" Y="32" Anchor="CenterRight">
+			<Panel.Background><DisplayModel model="framewithdipdown"/></Panel.Background>
+			<Panel Width="390" Height="380" ID="win_audio" Visible="false">
+				<TextBlock Text="AUDIO OPTIONS" Strid="1679" Width="390" Height="22" Y="-22"  Anchor="TopCenter" TextColor="text" TextShadow="black" TextSize="13"/>
+				<!-- SFX Volume -->
+				<TextBlock X="18" Y="29" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Strid="1336"/>
+				<HSlider Width="175" Height="12" X="196" Y="34" id="sfxvol"/>
+				<!-- Music Volume -->
+				<TextBlock X="18" Y="59" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Strid="1337"/>
+				<HSlider Width="175" Height="12" X="196" Y="64" id="musicvol"/>
+			</Panel>
+			<Panel Width="390" Height="480" ID="win_performance" Visible="true">
+				<TextBlock Text="PERFORMANCE OPTIONS" Strid="1677" Width="390" Height="22" Y="-22"  Anchor="TopCenter" TextColor="text" TextShadow="black" TextSize="13"/>
+				<!-- MSAA -->
+				<TextBlock X="18" Y="30" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Text="ANTI-ALIASING"/>
+				<Button id="msaa_left" style="sel_left" X="200" Y="37"/>
+				<Button id="msaa_right" style="sel_right" X="350" Y="37"/>
+				<TextBlock id="msaa_display" X="204" Y="30" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="12" Text="MSAA SELECTION"/>
+				<!-- ANISOTROPY -->
+				<TextBlock X="18" Y="60" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Text="ANISOTROPIC FILTERING"/>
+				<Button id="af_left" style="sel_left" X="200" Y="67"/>
+				<Button id="af_right" style="sel_right" X="350" Y="67"/>
+				<TextBlock id="af_display" X="204" Y="60" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="12" Text="AF SELECTION"/>
+			</Panel>
+		</Panel>
 	</Panel>
 </Scene> 
+
+
 
