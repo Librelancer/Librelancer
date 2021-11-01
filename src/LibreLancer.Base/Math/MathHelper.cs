@@ -340,5 +340,15 @@ namespace LibreLancer
             if (x == 0) return false;
             return (x & (x - 1)) == 0;
         }
+
+        public static float WrapF(float x, float max)
+        {
+            return (max + x % max) % max;
+        }
+
+        public static float WrapF(float x, float min, float max)
+        {
+            return min + WrapF(x - min, max - min);
+        }
     }
 }

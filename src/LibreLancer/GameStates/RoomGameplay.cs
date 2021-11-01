@@ -724,8 +724,8 @@ namespace LibreLancer
 
             if (ui.Visible || ui.HasModal)
             {
-                if(GetHotspot(Game.Mouse.X, Game.Mouse.Y) != null) talk_story.Draw(Game.RenderContext.Renderer2D, Game.Mouse);
-                else cursor.Draw(Game.RenderContext.Renderer2D, Game.Mouse);
+                if(GetHotspot(Game.Mouse.X, Game.Mouse.Y) != null) talk_story.Draw(Game.RenderContext.Renderer2D, Game.Mouse, Game.TotalTime);
+                else cursor.Draw(Game.RenderContext.Renderer2D, Game.Mouse, Game.TotalTime);
             }
         }
 

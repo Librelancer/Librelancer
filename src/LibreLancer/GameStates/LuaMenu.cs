@@ -271,7 +271,7 @@ namespace LibreLancer
             scene.Draw();
             ui.RenderWidget(delta);
             DoFade(delta);
-            cur.Draw(Game.RenderContext.Renderer2D, Game.Mouse);
+            cur.Draw(Game.RenderContext.Renderer2D, Game.Mouse, Game.TotalTime);
         }
 
 

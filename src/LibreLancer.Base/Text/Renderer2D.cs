@@ -244,6 +244,78 @@ namespace LibreLancer
         private const int C_BL = 1;
         private const int C_BR = 1 << 16 | 1;
 
+
+        public void DrawRotated(Texture2D tex, Rectangle source, Rectangle dest, Vector2 origin, Color4 color, BlendMode mode, float angle, bool flip = false)
+        {
+            if (rs.ScissorEnabled && !scissorUsed) {
+                Flush();
+                scissorUsed = true;
+            }
+            Prepare(mode, tex, false);
+            float x = dest.X;
+            float y = dest.Y;
+            float w = dest.Width;
+            float h = dest.Height;
+            float dx = -origin.X;
+            float dy = -origin.Y;
+            
+            float srcX = (float)source.X;
+            float srcY = (float)source.Y;
+            float srcW = (float)source.Width;
+            float srcH = (float)source.Height;
+
+            
+            var cos = MathF.Cos(angle);
+            var sin = MathF.Sin(angle);
+            var tl = new Vector2(
+                x + dx * cos - dy * sin,
+                y + dx * sin + dy * cos
+            );
+            var tr = new Vector2(
+                x+(dx+w)*cos-dy*sin,
+                y+(dx+w)*sin+dy*cos
+            );
+            var bl = new Vector2(
+                x + dx * cos - (dy + h) * sin,
+                y + dx * sin + (dy + h) * cos
+            );
+            var br = new Vector2(
+                x+(dx+w)*cos-(dy+h)*sin,
+                y+(dx+w)*sin+(dy+h)*cos
+            );
+            
+            Vector2 ta = new Vector2(srcX / (float) tex.Width,
+                srcY / (float) tex.Height);
+            Vector2 tb = new Vector2((srcX + srcW) / (float) tex.Width,
+                srcY / (float) tex.Height);
+            Vector2 tc = new Vector2(srcX / (float) tex.Width,
+                (srcY + srcH) / (float) tex.Height);
+            Vector2 td = new Vector2((srcX + srcW) / (float) tex.Width,
+                (srcY + srcH) / (float) tex.Height);
+
+            vertices [vertexCount++] = new Vertex2D (
+                tl, ta,
+                0,
+                color
+            );
+            vertices [vertexCount++] = new Vertex2D (
+                tr, tb,
+                0,
+                color
+            );
+            vertices [vertexCount++] = new Vertex2D (
+                bl, tc,
+                0,
+                color
+            );
+            vertices [vertexCount++] = new Vertex2D (
+                br, td,
+                0,
+                color
+            );
+
+            primitiveCount += 2;
+        }
        
 
         public void EllipseMask(Texture2D tex, Rectangle source, RectangleF parent, Vector2 center, Vector2 dimensions, float angle, Color4 color)

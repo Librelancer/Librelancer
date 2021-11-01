@@ -18,20 +18,25 @@ namespace LibreLancer
 		public Vector2 Hotspot = Vector2.Zero;
 		public ResourceManager Resources;
 
-		public void Draw(Renderer2D renderer, Mouse m)
+		public void Draw(Renderer2D renderer, Mouse m, double globalTime)
 		{
-            var pos = new Vector2(m.X, m.Y) - (Hotspot * Scale);
+            //var pos = new Vector2(m.X, m.Y) - (Hotspot * Scale);
 			var dst = new Rectangle(
-				(int)pos.X, (int)pos.Y,
+				(int)m.X, (int)m.Y,
 				(int)(Dimensions.Width * Scale), (int)(Dimensions.Height * Scale)
 			);
-			renderer.Draw(
+            var angle = MathHelper.WrapF((float)globalTime * Spin, -MathF.PI, MathF.PI);
+            var hp = new Vector2((int) (Hotspot.X * Scale), (int) (Hotspot.Y * Scale));
+            renderer.DrawRotated(
 				(Texture2D)Resources.FindTexture(Texture),
 				Dimensions,
 				dst,
+                hp,
 				Color,
-				BlendMode.Additive
+				BlendMode.Additive,
+                angle
 			);
+            renderer.FillRectangle(new Rectangle(m.X, m.Y, 1,1), Color4.Red);
 		}
 	}
 }

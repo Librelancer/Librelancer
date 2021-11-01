@@ -725,7 +725,7 @@ World Time: {12:F2}
                 {
                     ImGuiNET.ImGui.Text(text);
                 });
-                current_cur.Draw(Game.RenderContext.Renderer2D, Game.Mouse);
+                current_cur.Draw(Game.RenderContext.Renderer2D, Game.Mouse, Game.TotalTime);
             }
             DoFade(delta);
 		}
