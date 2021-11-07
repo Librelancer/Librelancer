@@ -11,18 +11,19 @@ using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ImUI;
 using LibreLancer.ContentEdit;
+using SimpleMesh;
 
 namespace LancerEdit
 {
-    public class ColladaTab : EditorTab
+    public class ImportModelTab : EditorTab
     {
-        List<ColladaObject> objs;
+        private Model model;
         List<OutModel> output = new List<OutModel>();
         class OutModel
         {
             public string Name;
-            ColladaObject def;
-            public ColladaObject Def {
+            ModelNode def;
+            public ModelNode Def {
                 get {
                     if (LODs.Count > 0) return LODs[0];
                     else return def;
@@ -32,7 +33,7 @@ namespace LancerEdit
             }
             public bool ParentTransform = false;
             public bool Transform = true;
-            public List<ColladaObject> LODs = new List<ColladaObject>();
+            public List<ModelNode> LODs = new List<ModelNode>();
             public List<OutModel> Children = new List<OutModel>();
             public List<MaterialName> Materials = new List<MaterialName>();
         }
@@ -41,18 +42,18 @@ namespace LancerEdit
         string modelNameDefault;
         class MaterialName
         {
-            public ColladaGeometry Geometry;
+            public Geometry Geometry;
             public int Drawcall;
             public TextBuffer Name;
         }
         MainWindow win;
-        public ColladaTab(List<ColladaObject> objects, string fname, MainWindow win)
+        public ImportModelTab(Model model, string fname, MainWindow win)
         {
-            objs = objects;
+            this.model = model;
             Autodetect();
             foreach (var obj in output)
                 DoMats(obj);
-            Title = string.Format("Collada Importer ({0})", fname);
+            Title = string.Format("Model Importer ({0})", fname);
             modelNameDefault = Path.GetFileNameWithoutExtension(fname);
             modelNameBuffer.SetText(modelNameDefault);
             this.win = win;
@@ -60,9 +61,9 @@ namespace LancerEdit
         void DoMats(OutModel mdl)
         {
             foreach(var lod in mdl.LODs) {
-                for (int i = 0; i < lod.Geometry.Drawcalls.Length; i++) {
+                for (int i = 0; i < lod.Geometry.Groups.Length; i++) {
                     var buf = new TextBuffer(256);
-                    buf.SetText(lod.Geometry.Drawcalls[i].Material.Name);
+                    buf.SetText(lod.Geometry.Groups[i].Material.Name);
                     mdl.Materials.Add(new MaterialName()
                     {
                         Geometry = lod.Geometry,
@@ -77,16 +78,17 @@ namespace LancerEdit
         }
         void Autodetect()
         {
-            Dictionary<string, ColladaObject[]> autodetect = new Dictionary<string,ColladaObject[]>(StringComparer.InvariantCultureIgnoreCase);
-            foreach (var obj in objs)
+            Dictionary<string, ModelNode[]> autodetect = new Dictionary<string,ModelNode[]>(StringComparer.InvariantCultureIgnoreCase);
+            foreach (var obj in model.Roots)
                 GetLods(obj, autodetect);
-            foreach(var obj in objs) {
+            foreach(var obj in model.Roots) {
                 AutodetectTree(obj, output, autodetect);
             }
         }
-        void AutodetectTree(ColladaObject obj, List<OutModel> parent, Dictionary<string,ColladaObject[]> autodetect)
+        void AutodetectTree(ModelNode obj, List<OutModel> parent, Dictionary<string,ModelNode[]> autodetect)
         {
-            if (!obj.AutodetectInclude) return;
+            var num = LodNumber(obj, out _);
+            if (num != 0) return;
             var mdl = new OutModel();
             mdl.Name = obj.Name;
             if (obj.Name.EndsWith("_lod0", StringComparison.InvariantCultureIgnoreCase))
@@ -99,15 +101,14 @@ namespace LancerEdit
             }
             parent.Add(mdl);
         }
-        void GetLods(ColladaObject obj, Dictionary<string,ColladaObject[]> autodetect)
+        void GetLods(ModelNode obj, Dictionary<string,ModelNode[]> autodetect)
         {
             string objn;
             var num = LodNumber(obj, out objn);
-            obj.AutodetectInclude = (num == 0);
             if(num != -1) {
-               ColladaObject[] lods;
+               ModelNode[] lods;
                 if(!autodetect.TryGetValue(objn, out lods)) {
-                    lods = new ColladaObject[10];
+                    lods = new ModelNode[10];
                     autodetect.Add(objn, lods);
                 }
                 lods[num] = obj;
@@ -116,7 +117,7 @@ namespace LancerEdit
                 GetLods(child, autodetect);
         }
         //Autodetected LOD: object with geometry + suffix _lod[0-9]
-        int LodNumber(ColladaObject obj, out string name)
+        int LodNumber(ModelNode obj, out string name)
         {
             name = obj.Name;
             if (obj.Geometry == null) return -1;
@@ -135,20 +136,20 @@ namespace LancerEdit
         void ApplyMatNames(OutModel model)
         {
             foreach(var mat in model.Materials) {
-                mat.Geometry.Drawcalls[mat.Drawcall].Material.Name = mat.Name.GetText();
+                mat.Geometry.Groups[mat.Drawcall].Material.Name = mat.Name.GetText();
             }
             foreach(var child in model.Children) {
                 ApplyMatNames(child);
             }
         }
-        const string EXPORTER_VERSION = "LancerEdit Collada Importer 2018";
+        
         bool Finish(out EditableUtf result)
         {
             result = null;
             var utf = new EditableUtf();
             //Vanity
             var expv = new LUtfNode() { Name = "Exporter Version", Parent = utf.Root };
-            expv.Data = System.Text.Encoding.UTF8.GetBytes(EXPORTER_VERSION);
+            expv.Data = System.Text.Encoding.UTF8.GetBytes("LancerEdit " + Platform.GetInformationalVersion<ImportModelTab>());
             utf.Root.Children.Add(expv);
             //Apply Material names
             foreach(var mdl in output) {
@@ -184,7 +185,7 @@ namespace LancerEdit
                 }
                 if(generateMaterials)
                 {
-                    List<ColladaMaterial> materials = new List<ColladaMaterial>();
+                    List<SimpleMesh.Material> materials = new List<SimpleMesh.Material>();
                     foreach (var mdl in output)
                         IterateMaterials(materials, mdl);
                     var mats = new LUtfNode() { Name = "material library", Parent = utf.Root };
@@ -249,12 +250,12 @@ namespace LancerEdit
             foreach (var child in model.Children)
                 ExportModels(mdlName, root, suffix, vms, child);
         }
-        static LUtfNode DefaultMaterialNode(LUtfNode parent, ColladaMaterial mat, int i)
+        static LUtfNode DefaultMaterialNode(LUtfNode parent, SimpleMesh.Material mat, int i)
         {
             var matnode = new LUtfNode() { Name = mat.Name, Parent = parent };
             matnode.Children = new List<LUtfNode>();
             matnode.Children.Add(new LUtfNode() { Name = "Type", Parent = matnode, Data = Encoding.ASCII.GetBytes("DcDt") });
-            var arr = new float[] {mat.Dc.R, mat.Dc.G, mat.Dc.B};
+            var arr = new float[] {mat.DiffuseColor.X, mat.DiffuseColor.Y, mat.DiffuseColor.Z};
             matnode.Children.Add(new LUtfNode() { Name = "Dc", Parent = matnode, Data = UnsafeHelpers.CastArray(arr) });
             matnode.Children.Add(new LUtfNode() { Name = "Dt_name", Parent = matnode, Data = Encoding.ASCII.GetBytes(mat.Name + ".dds") });
             matnode.Children.Add(new LUtfNode() { Name = "Dt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
@@ -270,7 +271,7 @@ namespace LancerEdit
             return texnode;
         }
 
-        static bool HasMat(List<ColladaMaterial> materials, ColladaMaterial m)
+        static bool HasMat(List<Material> materials, Material m)
         {
             foreach (var m2 in materials)
             {
@@ -278,10 +279,10 @@ namespace LancerEdit
             }
             return false;
         }
-        static void IterateMaterials(List<ColladaMaterial> materials, OutModel mdl)
+        static void IterateMaterials(List<Material> materials, OutModel mdl)
         {
             foreach (var lod in mdl.LODs)
-                foreach (var dc in lod.Geometry.Drawcalls)
+                foreach (var dc in lod.Geometry.Groups)
                     if (dc.Material != null && !HasMat(materials, dc.Material))
                         materials.Add(dc.Material);
             foreach (var child in mdl.Children)
@@ -293,9 +294,9 @@ namespace LancerEdit
             var vms = vmeshlibrary ?? new LUtfNode() { Name = "VMeshLibrary", Parent = node3db, Children = new List<LUtfNode>() };
             for (int i = 0; i < mdl.LODs.Count; i++)
             {
-                var n = new LUtfNode() { Name = string.Format("{0}-{1}.lod{2}.{3}.vms", mdlName, mdl.Name, i, (int)mdl.LODs[i].Geometry.FVF), Parent = vms };
+                var n = new LUtfNode() { Name = string.Format("{0}-{1}.lod{2}.{3}.vms", mdlName, mdl.Name, i, (int)GeometryWriter.FVF(mdl.LODs[i].Geometry)), Parent = vms };
                 n.Children = new List<LUtfNode>();
-                n.Children.Add(new LUtfNode() { Name = "VMeshData", Parent = n, Data = mdl.LODs[i].Geometry.VMeshData() });
+                n.Children.Add(new LUtfNode() { Name = "VMeshData", Parent = n, Data = GeometryWriter.VMeshData(mdl.LODs[i].Geometry) });
                 vms.Children.Add(n);
             }
             if(vmeshlibrary == null)
@@ -315,7 +316,8 @@ namespace LancerEdit
                     {
                         Name = "VMeshRef",
                         Parent = n.Children[0],
-                        Data = mdl.LODs[i].Geometry.VMeshRef(string.Format("{0}-{1}.lod{2}.{3}.vms", mdlName, mdl.Name, i, (int)mdl.LODs[i].Geometry.FVF))
+                        Data = GeometryWriter.VMeshRef(mdl.LODs[i].Geometry, 
+                            string.Format("{0}-{1}.lod{2}.{3}.vms", mdlName, mdl.Name, i, (int)GeometryWriter.FVF(mdl.LODs[i].Geometry)))
                     });
                     multilevel.Children.Add(n);
                 }
@@ -340,7 +342,7 @@ namespace LancerEdit
                 {
                     Name = "VMeshRef",
                     Parent = part,
-                    Data = mdl.LODs[0].Geometry.VMeshRef(string.Format("{0}-{1}.lod0.{2}.vms", mdlName, mdl.Name, (int)mdl.LODs[0].Geometry.FVF))
+                    Data = GeometryWriter.VMeshRef(mdl.LODs[0].Geometry,string.Format("{0}-{1}.lod0.{2}.vms", mdlName, mdl.Name,  (int)GeometryWriter.FVF(mdl.LODs[0].Geometry)))
                 });
                 node3db.Children.Add(part);
             }

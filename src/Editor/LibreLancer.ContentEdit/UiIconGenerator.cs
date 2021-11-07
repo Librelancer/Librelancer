@@ -8,7 +8,7 @@ using System.Numerics;
 using System.Text;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Vms;
-using Vert = LibreLancer.Vertices.VertexPositionNormalDiffuseTextureTwo;
+using SimpleMesh;
 
 namespace LibreLancer.ContentEdit
 {
@@ -19,21 +19,21 @@ namespace LibreLancer.ContentEdit
     }
     public static class UiIconGenerator
     {
-        private static Vert[] vertices_commodity = {
-            new Vert(new Vector3(-0.030086353f, -0.03651117f,-7.872152E-08f), Vector3.UnitZ, 0, new Vector2(0.00050f,0.99950f), Vector2.Zero),
-            new Vert(new Vector3(0.040959664f, -0.03651117f,-7.872152E-08f), Vector3.UnitZ, 0, new Vector2(0.99950f,0.99950f), Vector2.Zero),
-            new Vert(new Vector3(0.040959664f, 0.031633444f,-7.82092E-08f), Vector3.UnitZ, 0, new Vector2(0.99950f,0.00050f), Vector2.Zero),
-            new Vert(new Vector3(-0.030086353f, 0.031633433f,-7.82092E-08f), Vector3.UnitZ, 0, new Vector2(0.00050f,0.00050f), Vector2.Zero),
+        private static Vertex[] vertices_commodity = {
+            new Vertex(new Vector3(-0.030086353f, -0.03651117f,-7.872152E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.00050f,0.99950f), Vector2.Zero),
+            new Vertex(new Vector3(0.040959664f, -0.03651117f,-7.872152E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.99950f,0.99950f), Vector2.Zero),
+            new Vertex(new Vector3(0.040959664f, 0.031633444f,-7.82092E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.99950f,0.00050f), Vector2.Zero),
+            new Vertex(new Vector3(-0.030086353f, 0.031633433f,-7.82092E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.00050f,0.00050f), Vector2.Zero),
         };
         private static ushort[] indices_commodity = {
             0, 1, 2, 0, 2, 3
         };
         
-        private static Vert[] vertices_ship = {
-            new Vert(new Vector3(0.035523012f, -0.03407232f,-1.1246429E-07f), Vector3.UnitZ, 0, new Vector2(0.99950f,0.99950f), Vector2.Zero),
-            new Vert(new Vector3(0.035523012f, 0.034072332f,-1.1195198E-07f), Vector3.UnitZ, 0, new Vector2(0.99950f,0.00050f), Vector2.Zero),
-            new Vert(new Vector3(-0.035523023f, -0.03407232f,-1.1246429E-07f), Vector3.UnitZ, 0, new Vector2(0.00050f,0.99950f), Vector2.Zero),
-            new Vert(new Vector3(-0.035523023f, 0.034072317f,-1.1195196E-07f), Vector3.UnitZ, 0, new Vector2(0.00050f,0.00050f), Vector2.Zero),
+        private static Vertex[] vertices_ship = {
+            new Vertex(new Vector3(0.035523012f, -0.03407232f,-1.1246429E-07f), Vector3.UnitZ, Vector4.One, new Vector2(0.99950f,0.99950f), Vector2.Zero),
+            new Vertex(new Vector3(0.035523012f, 0.034072332f,-1.1195198E-07f), Vector3.UnitZ, Vector4.One, new Vector2(0.99950f,0.00050f), Vector2.Zero),
+            new Vertex(new Vector3(-0.035523023f, -0.03407232f,-1.1246429E-07f), Vector3.UnitZ, Vector4.One, new Vector2(0.00050f,0.99950f), Vector2.Zero),
+            new Vertex(new Vector3(-0.035523023f, 0.034072317f,-1.1195196E-07f), Vector3.UnitZ, Vector4.One, new Vector2(0.00050f,0.00050f), Vector2.Zero),
         };
 
         private static ushort[] indices_ship = {
@@ -66,15 +66,15 @@ namespace LibreLancer.ContentEdit
             string materialName = $"data.icon.{iconName}.{unique}";
             string meshName = $"data.icon.{iconName}.lod0-{unique}.vms";
             //VMeshLibrary
-            var geom = new ColladaGeometry();
+            var geom = new Geometry();
             geom.Vertices = type == IconType.Commodity ? vertices_commodity : vertices_ship;
-            geom.Indices = type == IconType.Commodity ? indices_commodity : indices_ship;
-            geom.FVF = D3DFVF.NORMAL | D3DFVF.XYZ | D3DFVF.TEX1;
-            geom.Drawcalls = new[]
+            geom.Indices = new Indices() {Indices16 = (type == IconType.Commodity ? indices_commodity : indices_ship)};
+            geom.Attributes = VertexAttributes.Position | VertexAttributes.Normal | VertexAttributes.Texture1;
+            geom.Groups = new TriangleGroup[]
             {
-                new ColladaDrawcall() { StartVertex = 0, EndVertex = 3, Material = new ColladaMaterial() { Name = materialName}, StartIndex = 0, TriCount = 2 }
+                new TriangleGroup() { BaseVertex =  0, StartIndex = 0, Material = new SimpleMesh.Material() { Name = materialName }, IndexCount = 6 }
             };
-            geom.CalculateDimensions();
+            geom.CalculateBounds();
             var vmsLib = new LUtfNode() {Name = "VMeshLibrary", Parent = modelFile.Root, Children = new List<LUtfNode>()};
             modelFile.Root.Children.Add(vmsLib);
             var vmsName = new LUtfNode() {Name = meshName, Parent = vmsLib, Children = new List<LUtfNode>()};
@@ -83,12 +83,12 @@ namespace LibreLancer.ContentEdit
             {
                Name = "VMeshData",
                Parent = vmsName,
-               Data = geom.VMeshData()
+               Data = GeometryWriter.VMeshData(geom)
             });
             //VMeshPart
             var vmeshPart = new LUtfNode() {Name = "VMeshPart", Parent = modelFile.Root, Children = new List<LUtfNode>()};
             modelFile.Root.Children.Add(vmeshPart);
-            vmeshPart.Children.Add(new LUtfNode() {Name = "VMeshRef", Parent = vmeshPart, Data = geom.VMeshRef(meshName)});
+            vmeshPart.Children.Add(new LUtfNode() {Name = "VMeshRef", Parent = vmeshPart, Data = GeometryWriter.VMeshRef(geom, meshName)});
             
             //Texture
             var textureLibrary = new LUtfNode()

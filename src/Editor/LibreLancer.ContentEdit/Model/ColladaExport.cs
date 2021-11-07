@@ -8,8 +8,8 @@ using System.Globalization;
 using System.Numerics;
 using System.IO;
 using System.Linq;
-
-using CL = Collada141;
+using System.Xml.Serialization;
+using CL = SimpleMesh.Formats.Collada.Schema;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Vms;
@@ -18,6 +18,8 @@ namespace LibreLancer.ContentEdit
 {
     public class ColladaExport
     {
+        private static XmlSerializer _xml = new XmlSerializer(typeof(CL.COLLADA));
+
         public static void ExportCollada(ModelFile mdl, ResourceManager resources, string output)
         {
             var dae = NewCollada();
@@ -27,7 +29,7 @@ namespace LibreLancer.ContentEdit
             var scenes = new CL.library_visual_scenes();
             var vscene = new CL.visual_scene();
             vscene.name = vscene.id = "main-scene";
-            scenes.visual_scene = new CL.visual_scene[] { vscene };
+            scenes.visual_scene = new CL.visual_scene[] {vscene};
             dae.scene = new CL.COLLADAScene();
             dae.scene.instance_visual_scene = new CL.InstanceWithExtra()
             {
@@ -39,7 +41,7 @@ namespace LibreLancer.ContentEdit
             {
                 name = x.Name,
                 id = x.Name + "-material",
-                instance_effect = new CL.instance_effect() { url = "#" + x.Name + "-effect" }
+                instance_effect = new CL.instance_effect() {url = "#" + x.Name + "-effect"}
             }).ToArray();
             efx.effect = exported.Materials.Select((x) => new CL.effect()
             {
@@ -54,26 +56,29 @@ namespace LibreLancer.ContentEdit
                             sid = "common",
                             Item = new CL.effectFx_profile_abstractProfile_COMMONTechniquePhong()
                             {
-                                ambient = ColladaColor("ambient",Color4.Black),
-                                emission = ColladaColor("emmision",Color4.Black),
-                                diffuse = ColladaColor("diffuse",x.Dc),
-                                specular = ColladaColor("specular",new Color4(0.25f,0.25f,0.25f,1f)),
-                                shininess = ColladaFloat("shininess",50),
-                                index_of_refraction = ColladaFloat("index_of_refraction",1)
+                                ambient = ColladaColor("ambient", Color4.Black),
+                                emission = ColladaColor("emmision", Color4.Black),
+                                diffuse = ColladaColor("diffuse", x.Dc),
+                                specular = ColladaColor("specular", new Color4(0.25f, 0.25f, 0.25f, 1f)),
+                                shininess = ColladaFloat("shininess", 50),
+                                index_of_refraction = ColladaFloat("index_of_refraction", 1)
                             }
                         }
                     }
                 }
             }).ToArray();
             var nodes = new List<CL.node>();
-            for (int i = 0; i < exported.Geometries.Count; i++) {
+            for (int i = 0; i < exported.Geometries.Count; i++)
+            {
                 nodes.Add(exported.GetNode(i, Matrix4x4.Identity, mdl.Path));
             }
+
             vscene.node = nodes.ToArray();
-            dae.Items = new object[] { efx, mats, geos, scenes };
+            dae.Items = new object[] {efx, mats, geos, scenes};
             using (var stream = File.Create(output))
-                ColladaSupport.XML.Serialize(stream, dae);
+                _xml.Serialize(stream, dae);
         }
+
         class InputModel
         {
             public Matrix4x4 Transform;
@@ -82,6 +87,7 @@ namespace LibreLancer.ContentEdit
             public List<InputModel> Children = new List<InputModel>();
             public ExportModel Export;
         }
+
         public static void ExportCollada(CmpFile cmp, ResourceManager resources, string output)
         {
             //Build tree
@@ -89,7 +95,8 @@ namespace LibreLancer.ContentEdit
             List<InputModel> parentModels = new List<InputModel>();
             foreach (var p in cmp.Parts)
             {
-                if (p.Construct == null) {
+                if (p.Construct == null)
+                {
                     rootModel = new InputModel()
                     {
                         Transform = Matrix4x4.Identity,
@@ -99,17 +106,23 @@ namespace LibreLancer.ContentEdit
                     break;
                 }
             }
+
             parentModels.Add(rootModel);
             var q = new Queue<Part>(cmp.Parts);
             int infiniteDetect = 0;
-            while(q.Count > 0) {
+            while (q.Count > 0)
+            {
                 var part = q.Dequeue();
-                if(part.Construct == null) {
+                if (part.Construct == null)
+                {
                     continue;
                 }
+
                 bool enqueue = true;
-                foreach(var mdl in parentModels) {
-                    if(part.Construct.ParentName == mdl.Con) {
+                foreach (var mdl in parentModels)
+                {
+                    if (part.Construct.ParentName == mdl.Con)
+                    {
                         var child = new InputModel()
                         {
                             Transform = part.Construct.Rotation * Matrix4x4.CreateTranslation(part.Construct.Origin),
@@ -122,12 +135,13 @@ namespace LibreLancer.ContentEdit
                         break;
                     }
                 }
+
                 if (enqueue)
                     q.Enqueue(part);
                 infiniteDetect++;
-                if(infiniteDetect > 200000000) throw new Exception("Infinite cmp loop detected");
+                if (infiniteDetect > 200000000) throw new Exception("Infinite cmp loop detected");
             }
-            
+
             //Build collada
             var dae = NewCollada();
             var efx = new CL.library_effects();
@@ -136,7 +150,7 @@ namespace LibreLancer.ContentEdit
             var scenes = new CL.library_visual_scenes();
             var vscene = new CL.visual_scene();
             vscene.name = vscene.id = "main-scene";
-            scenes.visual_scene = new CL.visual_scene[] { vscene };
+            scenes.visual_scene = new CL.visual_scene[] {vscene};
             dae.scene = new CL.COLLADAScene();
             dae.scene.instance_visual_scene = new CL.InstanceWithExtra()
             {
@@ -151,7 +165,8 @@ namespace LibreLancer.ContentEdit
             {
                 name = x,
                 id = x + "-material",
-                instance_effect = new CL.instance_effect() {
+                instance_effect = new CL.instance_effect()
+                {
                     url = "#" + x + "-effect"
                 }
             }).ToArray();
@@ -168,12 +183,12 @@ namespace LibreLancer.ContentEdit
                             sid = "common",
                             Item = new CL.effectFx_profile_abstractProfile_COMMONTechniquePhong()
                             {
-                                ambient = ColladaColor("ambient",Color4.Black),
-                                emission = ColladaColor("emmision",Color4.Black),
-                                diffuse = ColladaColor("diffuse",x.Dc),
-                                specular = ColladaColor("specular",new Color4(0.25f,0.25f,0.25f,1f)),
-                                shininess = ColladaFloat("shininess",50),
-                                index_of_refraction = ColladaFloat("index_of_refraction",1)
+                                ambient = ColladaColor("ambient", Color4.Black),
+                                emission = ColladaColor("emmision", Color4.Black),
+                                diffuse = ColladaColor("diffuse", x.Dc),
+                                specular = ColladaColor("specular", new Color4(0.25f, 0.25f, 0.25f, 1f)),
+                                shininess = ColladaFloat("shininess", 50),
+                                index_of_refraction = ColladaFloat("index_of_refraction", 1)
                             }
                         }
                     }
@@ -182,40 +197,50 @@ namespace LibreLancer.ContentEdit
             var rootNodes = new List<CL.node>();
             BuildNodes(rootModel, rootNodes);
             vscene.node = rootNodes.ToArray();
-            dae.Items = new object[] { efx, mats, geos, scenes };
+            dae.Items = new object[] {efx, mats, geos, scenes};
             using (var stream = File.Create(output))
-                ColladaSupport.XML.Serialize(stream, dae);
+                _xml.Serialize(stream, dae);
         }
+
         static CL.common_color_or_texture_type ColladaColor(string sid, Color4 c)
         {
             var cl = new CL.common_color_or_texture_type();
-            cl.Item = new CL.common_color_or_texture_typeColor() { sid = sid, Text =
-                String.Join(" ", new[] { c.R, c.G, c.B, c.A }.Select((x) => x.ToString()))
-                };
+            cl.Item = new CL.common_color_or_texture_typeColor()
+            {
+                sid = sid, Text =
+                    String.Join(" ", new[] {c.R, c.G, c.B, c.A}.Select((x) => x.ToString()))
+            };
             return cl;
         }
+
         static CL.common_float_or_param_type ColladaFloat(string sid, float f)
         {
             var cl = new CL.common_float_or_param_type();
-            cl.Item = new CL.common_float_or_param_typeFloat() { sid = sid, Value = f };
+            cl.Item = new CL.common_float_or_param_typeFloat() {sid = sid, Value = f};
             return cl;
         }
-        static void BuildNodes(InputModel mdl, List<CL.node> parent) 
+
+        static void BuildNodes(InputModel mdl, List<CL.node> parent)
         {
             var node = mdl.Export.GetNode(0, mdl.Transform, mdl.Model.Path);
-            if(mdl.Children.Count > 0) {
+            if (mdl.Children.Count > 0)
+            {
                 var children = new List<CL.node>();
                 foreach (var child in mdl.Children)
                     BuildNodes(child, children);
                 node.node1 = children.ToArray();
             }
+
             parent.Add(node);
-            for (int i = 1; i < mdl.Export.Geometries.Count; i++) {
+            for (int i = 1; i < mdl.Export.Geometries.Count; i++)
+            {
                 var n = mdl.Export.GetNode(i, mdl.Transform, mdl.Model.Path);
                 parent.Add(n);
             }
         }
-        static void BuildModel(ResourceManager res, InputModel mdl, List<CL.geometry> geoList, List<string> mats, List<ExportMaterial> matinfos)
+
+        static void BuildModel(ResourceManager res, InputModel mdl, List<CL.geometry> geoList, List<string> mats,
+            List<ExportMaterial> matinfos)
         {
             var processed = ProcessModel(mdl.Model, res);
             mdl.Export = processed;
@@ -228,14 +253,17 @@ namespace LibreLancer.ContentEdit
                     matinfos.Add(mat);
                 }
             }
+
             foreach (var child in mdl.Children)
                 BuildModel(res, child, geoList, mats, matinfos);
         }
+
         class ExportMaterial
         {
             public string Name;
             public Color4 Dc;
         }
+
         class ExportModel
         {
             public List<CL.geometry> Geometries = new List<CL.geometry>();
@@ -244,9 +272,9 @@ namespace LibreLancer.ContentEdit
             CL.instance_material[] GetMaterials(CL.geometry g)
             {
                 var materials = new List<CL.instance_material>();
-                foreach (var item in ((CL.mesh)g.Item).Items)
+                foreach (var item in ((CL.mesh) g.Item).Items)
                 {
-                    string matref = ((CL.triangles)item).material;
+                    string matref = ((CL.triangles) item).material;
                     if (!materials.Any((m) => m.symbol == matref))
                     {
                         materials.Add(new CL.instance_material()
@@ -256,11 +284,14 @@ namespace LibreLancer.ContentEdit
                         });
                     }
                 }
+
                 return materials.ToArray();
             }
+
             string MatrixText(Matrix4x4 t)
             {
-                var floats = new float[] {
+                var floats = new float[]
+                {
                     t.M11, t.M21, t.M31, t.M41,
                     t.M12, t.M22, t.M32, t.M42,
                     t.M13, t.M23, t.M33, t.M43,
@@ -268,6 +299,7 @@ namespace LibreLancer.ContentEdit
                 };
                 return string.Join(" ", floats.Select((x) => x.ToString(CultureInfo.InvariantCulture)));
             }
+
             public CL.node GetNode(int index, Matrix4x4 transform, string name)
             {
                 var n = new CL.node();
@@ -275,20 +307,27 @@ namespace LibreLancer.ContentEdit
                 {
                     name += "_lod" + index;
                 }
-				n.name = n.id = name;
-                    n.Items = new object[] {
-                        new CL.matrix() {
-                            sid = "transform",
-                            Text = MatrixText(transform)
-                        }
-                    };
-                n.ItemsElementName = new CL.ItemsChoiceType7[] {
+
+                n.name = n.id = name;
+                n.Items = new object[]
+                {
+                    new CL.matrix()
+                    {
+                        sid = "transform",
+                        Text = MatrixText(transform)
+                    }
+                };
+                n.ItemsElementName = new CL.ItemsChoiceType7[]
+                {
                     CL.ItemsChoiceType7.matrix
                 };
-                n.instance_geometry = new CL.instance_geometry[] {
-                    new CL.instance_geometry{
+                n.instance_geometry = new CL.instance_geometry[]
+                {
+                    new CL.instance_geometry
+                    {
                         url = "#" + Geometries[index].id,
-                        bind_material = new CL.bind_material() {
+                        bind_material = new CL.bind_material()
+                        {
                             technique_common = GetMaterials(Geometries[index])
                         }
                     }
@@ -322,21 +361,27 @@ namespace LibreLancer.ContentEdit
                 mesh.vertices = new CL.vertices()
                 {
                     id = geo.name + "-vertices",
-                    input = new CL.InputLocal[] {new CL.InputLocal()
+                    input = new CL.InputLocal[]
                     {
+                        new CL.InputLocal()
+                        {
                             semantic = "POSITION", source = "#" + positions.id
-                    }}
+                        }
+                    }
                 };
-                var sources = new List<CL.source>() { positions };
-                if((processed.FVF & D3DFVF.NORMAL) == D3DFVF.NORMAL) {
+                var sources = new List<CL.source>() {positions};
+                if ((processed.FVF & D3DFVF.NORMAL) == D3DFVF.NORMAL)
+                {
                     normals = CreateSource(
                         geo.name + "-normals",
-                        (k) => new Vector4(processed.Vertices[k].Normal,0),
-                        3,processed.Vertices.Length);
+                        (k) => new Vector4(processed.Vertices[k].Normal, 0),
+                        3, processed.Vertices.Length);
                     sources.Add(normals);
                     idxC++;
                 }
-                if((processed.FVF & D3DFVF.DIFFUSE) == D3DFVF.DIFFUSE) {
+
+                if ((processed.FVF & D3DFVF.DIFFUSE) == D3DFVF.DIFFUSE)
+                {
                     colors = CreateSource(
                         geo.name + "-color",
                         (k) =>
@@ -347,6 +392,7 @@ namespace LibreLancer.ContentEdit
                     sources.Add(colors);
                     idxC++;
                 }
+
                 bool doTex1, doTex2 = false;
                 if ((processed.FVF & D3DFVF.TEX2) == D3DFVF.TEX2)
                     doTex1 = doTex2 = true;
@@ -354,32 +400,39 @@ namespace LibreLancer.ContentEdit
                     doTex1 = true;
                 else
                     doTex1 = doTex2 = false;
-                if(doTex1) {
+                if (doTex1)
+                {
                     tex1 = CreateSource(
                         geo.name + "-tex1",
-                        (k) => new Vector4(processed.Vertices[k].TextureCoordinate,0,0),
+                        (k) => new Vector4(processed.Vertices[k].TextureCoordinate, 0, 0),
                         2, processed.Vertices.Length);
                     sources.Add(tex1);
                     idxC++;
                 }
-                if(doTex2) {
+
+                if (doTex2)
+                {
                     tex2 = CreateSource(
                         geo.name + "-tex2",
-                        (k) => new Vector4(processed.Vertices[k].TextureCoordinateTwo ,0,0),
+                        (k) => new Vector4(processed.Vertices[k].TextureCoordinateTwo, 0, 0),
                         2, processed.Vertices.Length);
                     sources.Add(tex2);
                     idxC++;
                 }
+
                 mesh.source = sources.ToArray();
                 var items = new List<object>();
-                foreach(var dc in processed.Drawcalls) {
+                foreach (var dc in processed.Drawcalls)
+                {
                     if (!ex.Materials.Any((x) => x.Name == dc.Material.Name)) ex.Materials.Add(dc.Material);
                     var trs = new CL.triangles();
-                    trs.count = (ulong)(dc.Indices.Length / 3);
+                    trs.count = (ulong) (dc.Indices.Length / 3);
                     trs.material = dc.Material.Name + "-material";
                     List<int> pRefs = new List<int>(dc.Indices.Length * idxC);
-                    List<CL.InputLocalOffset> inputs = new List<CL.InputLocalOffset>() {
-                        new CL.InputLocalOffset() {
+                    List<CL.InputLocalOffset> inputs = new List<CL.InputLocalOffset>()
+                    {
+                        new CL.InputLocalOffset()
+                        {
                             semantic = "VERTEX", source = "#" + geo.id + "-vertices", offset = 0
                         }
                     };
@@ -413,25 +466,30 @@ namespace LibreLancer.ContentEdit
                             offset = off++
                         });
                     trs.input = inputs.ToArray();
-                    for (int i = 0; i < dc.Indices.Length; i++) {
+                    for (int i = 0; i < dc.Indices.Length; i++)
+                    {
                         for (int j = 0; j < idxC; j++)
                             pRefs.Add(dc.Indices[i]);
                     }
+
                     trs.p = string.Join(" ", pRefs.ToArray());
                     items.Add(trs);
                 }
+
                 mesh.Items = items.ToArray();
                 ex.Geometries.Add(geo);
             }
+
             return ex;
         }
 
-        static CL.source CreateSource(string id,Func<int,Vector4> get, int components, int len)
+        static CL.source CreateSource(string id, Func<int, Vector4> get, int components, int len)
         {
             var src = new CL.source();
             src.id = id;
             var floats = new float[len * components];
-            for (int i = 0; i < len;i++) {
+            for (int i = 0; i < len; i++)
+            {
                 var v4 = get(i);
                 floats[i * components] = v4.X;
                 floats[i * components + 1] = v4.Y;
@@ -440,6 +498,7 @@ namespace LibreLancer.ContentEdit
                 if (components > 3)
                     floats[i * components + 3] = v4.W;
             }
+
             string arrId = id + "-array";
             src.Item = new CL.float_array()
             {
@@ -450,132 +509,204 @@ namespace LibreLancer.ContentEdit
             var acc = new CL.accessor()
             {
                 source = "#" + arrId,
-                count = (ulong)len,
-                stride = (ulong)components
+                count = (ulong) len,
+                stride = (ulong) components
             };
             src.technique_common.accessor = acc;
-            if(components == 2) {
-                acc.param = new CL.param[] {
-                    new CL.param() { name = "U", type = "float" },
-                    new CL.param() { name = "V", type = "float" }
-                };
-            } else if (components == 3) {
-                acc.param = new CL.param[] {
-                    new CL.param() { name = "X", type = "float" },
-                    new CL.param() { name = "Y", type = "float" },
-                    new CL.param() { name = "Z", type = "float" }
-                };
-            } else if (components == 4) {
-                acc.param = new CL.param[] {
-                    new CL.param() { name = "R", type = "float" },
-                    new CL.param() { name = "G", type = "float" },
-                    new CL.param() { name = "B", type = "float" },
-                    new CL.param() { name = "A", type = "float" }
+            if (components == 2)
+            {
+                acc.param = new CL.param[]
+                {
+                    new CL.param() {name = "U", type = "float"},
+                    new CL.param() {name = "V", type = "float"}
                 };
             }
+            else if (components == 3)
+            {
+                acc.param = new CL.param[]
+                {
+                    new CL.param() {name = "X", type = "float"},
+                    new CL.param() {name = "Y", type = "float"},
+                    new CL.param() {name = "Z", type = "float"}
+                };
+            }
+            else if (components == 4)
+            {
+                acc.param = new CL.param[]
+                {
+                    new CL.param() {name = "R", type = "float"},
+                    new CL.param() {name = "G", type = "float"},
+                    new CL.param() {name = "B", type = "float"},
+                    new CL.param() {name = "A", type = "float"}
+                };
+            }
+
             return src;
         }
+
         static VMeshDump ProcessRef(VMeshRef vms, ResourceManager resources)
         {
             var d = new VMeshDump();
             List<VertexPositionNormalDiffuseTextureTwo> verts = new List<VertexPositionNormalDiffuseTextureTwo>();
             List<int> hashes = new List<int>();
-            for (int meshi = vms.StartMesh; meshi < vms.StartMesh + vms.MeshCount; meshi++) {
+            for (int meshi = vms.StartMesh; meshi < vms.StartMesh + vms.MeshCount; meshi++)
+            {
                 var m = vms.Mesh.Meshes[meshi];
                 var dc = new VmsDrawcall();
                 LibreLancer.Utf.Mat.Material mat;
-                if((mat = resources.FindMaterial(m.MaterialCrc)) != null) {
-                    dc.Material = new ExportMaterial() { 
+                if ((mat = resources.FindMaterial(m.MaterialCrc)) != null)
+                {
+                    dc.Material = new ExportMaterial()
+                    {
                         Name = mat.Name,
                         Dc = mat.Dc
                     };
-                } else {
-                    dc.Material = new ExportMaterial() {
+                }
+                else
+                {
+                    dc.Material = new ExportMaterial()
+                    {
                         Name = string.Format("material_0x{0:X8}", m.MaterialCrc),
                         Dc = Color4.White
                     };
                 }
+
                 List<int> indices = new List<int>(m.NumRefVertices);
-                for (int i = m.TriangleStart; i < m.TriangleStart + m.NumRefVertices; i++) {
+                for (int i = m.TriangleStart; i < m.TriangleStart + m.NumRefVertices; i++)
+                {
                     int idx = vms.Mesh.Indices[i] + m.StartVertex + vms.StartVertex;
                     VertexPositionNormalDiffuseTextureTwo vert;
                     if (vms.Mesh.verticesVertexPosition != null)
-                        vert = new VertexPositionNormalDiffuseTextureTwo() { Position = vms.Mesh.verticesVertexPosition[idx].Position };
-                    else if (vms.Mesh.verticesVertexPositionNormal != null) {
+                        vert = new VertexPositionNormalDiffuseTextureTwo()
+                            {Position = vms.Mesh.verticesVertexPosition[idx].Position};
+                    else if (vms.Mesh.verticesVertexPositionNormal != null)
+                    {
                         vert = new VertexPositionNormalDiffuseTextureTwo()
                         {
                             Position = vms.Mesh.verticesVertexPositionNormal[idx].Position,
                             Normal = vms.Mesh.verticesVertexPositionNormal[idx].Normal
                         };
-                    } else if (vms.Mesh.verticesVertexPositionTexture != null) {
+                    }
+                    else if (vms.Mesh.verticesVertexPositionTexture != null)
+                    {
                         vert = new VertexPositionNormalDiffuseTextureTwo()
                         {
                             Position = vms.Mesh.verticesVertexPositionTexture[idx].Position,
                             TextureCoordinate = vms.Mesh.verticesVertexPositionTexture[idx].TextureCoordinate
                         };
-                    } else if (vms.Mesh.verticesVertexPositionNormalTexture != null) {
+                    }
+                    else if (vms.Mesh.verticesVertexPositionNormalTexture != null)
+                    {
                         vert = new VertexPositionNormalDiffuseTextureTwo()
                         {
                             Position = vms.Mesh.verticesVertexPositionNormalTexture[idx].Position,
                             Normal = vms.Mesh.verticesVertexPositionNormalTexture[idx].Normal,
                             TextureCoordinate = vms.Mesh.verticesVertexPositionNormalTexture[idx].TextureCoordinate
                         };
-                    } else if (vms.Mesh.verticesVertexPositionNormalTextureTwo != null) {
+                    }
+                    else if (vms.Mesh.verticesVertexPositionNormalTextureTwo != null)
+                    {
                         vert = new VertexPositionNormalDiffuseTextureTwo()
                         {
                             Position = vms.Mesh.verticesVertexPositionNormalTextureTwo[idx].Position,
                             Normal = vms.Mesh.verticesVertexPositionNormalTextureTwo[idx].Normal,
                             TextureCoordinate = vms.Mesh.verticesVertexPositionNormalTextureTwo[idx].TextureCoordinate,
-                            TextureCoordinateTwo = vms.Mesh.verticesVertexPositionNormalTextureTwo[idx].TextureCoordinateTwo
+                            TextureCoordinateTwo = vms.Mesh.verticesVertexPositionNormalTextureTwo[idx]
+                                .TextureCoordinateTwo
                         };
-                    } else if (vms.Mesh.verticesVertexPositionNormalDiffuseTexture != null) {
+                    }
+                    else if (vms.Mesh.verticesVertexPositionNormalDiffuseTexture != null)
+                    {
                         vert = new VertexPositionNormalDiffuseTextureTwo()
                         {
                             Position = vms.Mesh.verticesVertexPositionNormalDiffuseTexture[idx].Position,
                             Normal = vms.Mesh.verticesVertexPositionNormalDiffuseTexture[idx].Normal,
                             Diffuse = vms.Mesh.verticesVertexPositionNormalDiffuseTexture[idx].Diffuse,
-                            TextureCoordinate = vms.Mesh.verticesVertexPositionNormalDiffuseTexture[idx].TextureCoordinate
+                            TextureCoordinate = vms.Mesh.verticesVertexPositionNormalDiffuseTexture[idx]
+                                .TextureCoordinate
                         };
-                    } else if (vms.Mesh.verticesVertexPositionNormalDiffuseTextureTwo != null) {
+                    }
+                    else if (vms.Mesh.verticesVertexPositionNormalDiffuseTextureTwo != null)
+                    {
                         vert = vms.Mesh.verticesVertexPositionNormalDiffuseTextureTwo[idx];
                     }
                     else
                         throw new Exception("something in state is real bad"); //Never called
 
-                    var hash = ColladaSupport.HashVert(ref vert);
-                    int newIndex = ColladaSupport.FindDuplicate(hashes, verts, 0, ref vert, hash);
-                    if(newIndex == -1) {
+                    var hash = HashVert(ref vert);
+                    int newIndex = FindDuplicate(hashes, verts, 0, ref vert, hash);
+                    if (newIndex == -1)
+                    {
                         newIndex = verts.Count;
                         verts.Add(vert);
                         hashes.Add(hash);
                     }
+
                     indices.Add(newIndex);
                 }
+
                 dc.Indices = indices.ToArray();
                 d.Drawcalls.Add(dc);
             }
+
             d.Vertices = verts.ToArray();
             d.FVF = vms.Mesh.OriginalFVF;
             return d;
         }
+
+        static int HashVert(ref VertexPositionNormalDiffuseTextureTwo vert)
+        {
+            unchecked
+            {
+                int hash = (int) 2166136261;
+                hash = hash * 16777619 ^ vert.Position.GetHashCode();
+                hash = hash * 16777619 ^ vert.Normal.GetHashCode();
+                hash = hash * 16777619 ^ vert.TextureCoordinate.GetHashCode();
+                hash = hash * 16777619 ^ vert.TextureCoordinateTwo.GetHashCode();
+                hash = hash * 16777619 ^ vert.Diffuse.GetHashCode();
+                return hash;
+            }
+        }
+
+        static int FindDuplicate(List<int> hashes, List<VertexPositionNormalDiffuseTextureTwo> buf, int startIndex,
+            ref VertexPositionNormalDiffuseTextureTwo search, int hash)
+        {
+            for (int i = startIndex; i < buf.Count; i++)
+            {
+                if (hashes[i] != hash) continue;
+                if (buf[i].Position != search.Position) continue;
+                if (buf[i].Normal != search.Normal) continue;
+                if (buf[i].TextureCoordinate != search.TextureCoordinate) continue;
+                if (buf[i].Diffuse != search.Diffuse) continue;
+                if (buf[i].TextureCoordinateTwo != search.TextureCoordinateTwo) continue;
+                return i;
+            }
+
+            return -1;
+        }
+
         class VMeshDump
         {
             public VertexPositionNormalDiffuseTextureTwo[] Vertices;
             public D3DFVF FVF;
             public List<VmsDrawcall> Drawcalls = new List<VmsDrawcall>();
         }
+
         class VmsDrawcall
         {
             public ExportMaterial Material;
             public int[] Indices;
         }
+
         static CL.COLLADA NewCollada()
         {
             var dae = new CL.COLLADA();
             dae.asset = new CL.asset();
-            dae.asset.created = dae.asset.modified = DateTime.Now;
-            dae.asset.contributor = new CL.assetContributor[] {
-                new CL.assetContributor() {
+            dae.asset.created = dae.asset.modified = (DateTime.UtcNow.ToString("s") + "Z");
+            dae.asset.contributor = new CL.assetContributor[]
+            {
+                new CL.assetContributor()
+                {
                     author = "LancerEdit User",
                     authoring_tool = "LancerEdit"
                 }

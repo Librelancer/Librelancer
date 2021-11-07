@@ -14,7 +14,6 @@ namespace LancerEdit
         [STAThread]
         static void Main(string[] args)
 		{
-            ColladaSupport.InitXML();
             MainWindow mw = null;
             AppHandler.Run(() =>
             {

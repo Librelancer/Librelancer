@@ -147,6 +147,18 @@ namespace LibreLancer.Utf.Vms
 							verticesVertexPositionNormalDiffuseTexture[i] = new VertexPositionNormalDiffuseTexture(position, normal, Diffuse[i], textureCoordinate);
 						}
                         break;
+                    //TODO: Hacky
+                    case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.DIFFUSE:
+                        verticesVertexPositionNormalDiffuseTexture = new VertexPositionNormalDiffuseTexture[VertexCount];
+                        Diffuse = new uint[VertexCount];
+                        for (int i = 0; i < VertexCount; i++)
+                        {
+                            var position = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                            var normal = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                            Diffuse[i] = reader.ReadUInt32();
+                            verticesVertexPositionNormalDiffuseTexture[i] = new VertexPositionNormalDiffuseTexture(position, normal, Diffuse[i], Vector2.Zero);
+                        }
+                        break;
                     case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX2: //(D3DFVF)0x0212:
                         verticesVertexPositionNormalTextureTwo = new VertexPositionNormalTextureTwo[VertexCount];
                         for (int i = 0; i < VertexCount; i++) verticesVertexPositionNormalTextureTwo[i] = new VertexPositionNormalTextureTwo(reader);
@@ -159,7 +171,7 @@ namespace LibreLancer.Utf.Vms
                         for (int i = 0; i < VertexCount; i++) vertices[i] = new VertexPositionNormalTextureTangentBinormal(reader);
                         break;*/
                     default:
-                        throw new FileContentException("UTF:VMeshData", "FVF 0x" + FlexibleVertexFormat + " not supported.");
+                        throw new FileContentException("UTF:VMeshData", "FVF 0x" + ((int)FlexibleVertexFormat).ToString("X") + " not supported.");
                 }
             }
         }
@@ -194,6 +206,7 @@ namespace LibreLancer.Utf.Vms
                 case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX1: //(D3DFVF)0x0112:
                     cache.AllocateVertices(verticesVertexPositionNormalTexture, Indices, out IndexOffset, out VertexOffset, out _vertexBuffer, out IndexHandle);
                     break;
+                case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.DIFFUSE:
                 case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.DIFFUSE | D3DFVF.TEX1: //(D3DFVF)0x0152:
                     cache.AllocateVertices(verticesVertexPositionNormalDiffuseTexture, Indices, out IndexOffset, out VertexOffset, out _vertexBuffer, out IndexHandle);
                     break;

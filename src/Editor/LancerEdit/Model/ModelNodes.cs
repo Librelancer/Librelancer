@@ -14,10 +14,10 @@ namespace LancerEdit
     //Class for keeping hardpoints node references
     public class ModelNodes
     {
-        public List<ModelNode> Nodes = new List<ModelNode>();
+        public List<ModelHpNode> Nodes = new List<ModelHpNode>();
         public LUtfNode Cons;
     }
-    public class ModelNode
+    public class ModelHpNode
     {
         public string Name;
         public LUtfNode Node;

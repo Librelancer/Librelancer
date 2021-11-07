@@ -148,7 +148,7 @@ namespace LancerEdit
                         drawable.Initialize(main.Resources);
                         if(Utf.Root.Children.Any((x) => x.Name.Equals("cmpnd",StringComparison.OrdinalIgnoreCase))) {
                             foreach(var child in Utf.Root.Children.Where((x) => x.Name.EndsWith(".3db", StringComparison.OrdinalIgnoreCase))) {
-                                var n = new ModelNode();
+                                var n = new ModelHpNode();
                                 n.Name = child.Name;
                                 n.Node = child;
                                 n.HardpointsNode = child.Children.FirstOrDefault((x) => x.Name.Equals("hardpoints", StringComparison.OrdinalIgnoreCase));
@@ -157,7 +157,7 @@ namespace LancerEdit
                             var cmpnd = Utf.Root.Children.First((x) => x.Name.Equals("cmpnd", StringComparison.OrdinalIgnoreCase));
                             hpn.Cons = cmpnd.Children.FirstOrDefault((x) => x.Name.Equals("cons", StringComparison.OrdinalIgnoreCase));
                         } else {
-                            var n = new ModelNode();
+                            var n = new ModelHpNode();
                             n.Name = "ROOT";
                             n.Node = Utf.Root;
                             n.HardpointsNode = Utf.Root.Children.FirstOrDefault((x) => x.Name.Equals("hardpoints", StringComparison.OrdinalIgnoreCase));

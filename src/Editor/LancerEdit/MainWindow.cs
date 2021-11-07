@@ -49,8 +49,10 @@ namespace LancerEdit
             new FileFilter("Txm Files","txm"),
             new FileFilter("Ale Files","ale")
         );
-        FileDialogFilters ColladaFilters = new FileDialogFilters(
-            new FileFilter("Collada Files", "dae")
+        FileDialogFilters ImportModelFilters = new FileDialogFilters(
+            new FileFilter("Model Files","dae","obj"),
+            new FileFilter("Collada Files", "dae"),
+            new FileFilter("Wavefront Obj Files", "obj")
         );
         FileDialogFilters FreelancerIniFilter = new FileDialogFilters(
             new FileFilter("Freelancer.ini","freelancer.ini")
@@ -274,23 +276,29 @@ namespace LancerEdit
 				{
 					AddTab(new ResourcesTab(this, Resources, MissingResources, ReferencedMaterials, ReferencedTextures));
 				}
-                if(Theme.IconMenuItem("Import Collada","import",Color4.White,true))
+                if(Theme.IconMenuItem("Import Model","import",Color4.White,true))
                 {
                     string input;
-                    if((input = FileDialog.Open(ColladaFilters)) != null)
+                    if((input = FileDialog.Open(ImportModelFilters)) != null)
                     {
                         StartLoadingSpinner();
                         new Thread(() =>
                         {
-                            List<ColladaObject> dae = null;
+                            SimpleMesh.Model model = null;
                             try
                             {
-                                dae = ColladaSupport.Parse(input);
-                                EnsureUIThread(() => FinishColladaLoad(dae, System.IO.Path.GetFileName(input)));
+                                using var stream = File.OpenRead(input);
+                                model = SimpleMesh.Model.FromStream(stream).AutoselectRoot(out _).CalculateBounds();
+                                foreach (var x in model.Geometries)
+                                {
+                                    if (x.Vertices.Length >= 65534) throw new Exception("Too many vertices");
+                                    if (x.Indices.Length >= 65534) throw new Exception("Too many indices");
+                                }
+                                EnsureUIThread(() => FinishImporterLoad(model, System.IO.Path.GetFileName(input)));
                             }
                             catch (Exception ex)
                             {
-                                EnsureUIThread(() => ColladaError(ex));
+                                EnsureUIThread(() => ImporterError(ex));
                             }
                         }).Start();
                     }
@@ -608,12 +616,12 @@ namespace LancerEdit
             ImGui.SameLine(Math.Max((win / 2f) - (txt / 2f),0));
             ImGui.Text(text);
         }
-        void FinishColladaLoad(List<ColladaObject> dae, string tabName)
+        void FinishImporterLoad(SimpleMesh.Model model, string tabName)
         {
            FinishLoadingSpinner();
-            AddTab(new ColladaTab(dae, tabName, this));
+            AddTab(new ImportModelTab(model, tabName, this));
         }
-        void ColladaError(Exception ex)          
+        void ImporterError(Exception ex)          
         {
             FinishLoadingSpinner();
             ErrorDialog("Import Error:\n" + ex.Message + "\n" + ex.StackTrace);
