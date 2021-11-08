@@ -50,8 +50,10 @@ namespace LancerEdit
             new FileFilter("Ale Files","ale")
         );
         FileDialogFilters ImportModelFilters = new FileDialogFilters(
-            new FileFilter("Model Files","dae","obj"),
+            new FileFilter("Model Files","dae","gltf","glb","obj"),
             new FileFilter("Collada Files", "dae"),
+            new FileFilter("glTF Files", "gltf"),
+            new FileFilter("glTF Binary Files", "glb"),
             new FileFilter("Wavefront Obj Files", "obj")
         );
         FileDialogFilters FreelancerIniFilter = new FileDialogFilters(
@@ -288,7 +290,7 @@ namespace LancerEdit
                             try
                             {
                                 using var stream = File.OpenRead(input);
-                                model = SimpleMesh.Model.FromStream(stream).AutoselectRoot(out _).CalculateBounds();
+                                model = SimpleMesh.Model.FromStream(stream).AutoselectRoot(out _).ApplyRootTransforms(false).CalculateBounds();
                                 foreach (var x in model.Geometries)
                                 {
                                     if (x.Vertices.Length >= 65534) throw new Exception("Too many vertices");
