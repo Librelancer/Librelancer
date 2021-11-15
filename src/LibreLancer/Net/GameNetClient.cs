@@ -182,7 +182,7 @@ namespace LibreLancer
             client = new NetManager(listener)
             {
                 UnconnectedMessagesEnabled = true,
-                IPv6Enabled = true,
+                IPv6Mode =  IPv6Mode.SeparateSocket,
                 NatPunchEnabled = true,
                 EnableStatistics = true,
                 ChannelsCount =  3
@@ -241,7 +241,7 @@ namespace LibreLancer
                 }
                 msg.Recycle();
             };
-            listener.NetworkReceiveEvent += (peer, reader, method) =>
+            listener.NetworkReceiveEvent += (peer, reader, channel, method) =>
             {
 #if !DEBUG
                 try

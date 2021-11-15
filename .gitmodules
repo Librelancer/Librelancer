@@ -50,3 +50,6 @@
 [submodule "extern/SimpleMesh"]
 	path = extern/SimpleMesh
 	url = https://github.com/CallumDev/SimpleMesh
+[submodule "extern/LiteNetLib"]
+	path = extern/LiteNetLib
+	url = https://github.com/RevenantX/LiteNetLib

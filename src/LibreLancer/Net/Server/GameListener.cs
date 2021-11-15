@@ -95,7 +95,7 @@ namespace LibreLancer
                     reader.Recycle();
                 }
             };
-            listener.NetworkReceiveEvent += (peer, reader, method) =>
+            listener.NetworkReceiveEvent += (peer, reader, channel, method) =>
             {
                 try
                 {
@@ -157,32 +157,32 @@ namespace LibreLancer
                     onAck();
             };
             Server = new NetManager(listener);
-            Server.IPv6Enabled = true;
+            Server.IPv6Mode = IPv6Mode.SeparateSocket;
             Server.UnconnectedMessagesEnabled = true;
             Server.BroadcastReceiveEnabled = true;
             Server.ChannelsCount = 3;
+            Server.UnsyncedEvents = true;
             Server.Start(Port);
             FLLog.Info("Server", "Listening on port " + Port);
             var sw = Stopwatch.StartNew();
             var last = 0.0;
-            while (running)
+            ServerLoop sendLoop = null;
+            sendLoop = new ServerLoop((time) =>
             {
-                Server.PollEvents();
-                var e = sw.Elapsed.TotalSeconds;
-                var ts = e - last;
-                last = e;
                 foreach (var p in Server.ConnectedPeerList)
                 {
                     if (p.Tag is Player player)
                     {
-                        (player.Client as RemotePacketClient)?.Update(ts);
+                        (player.Client as RemotePacketClient)?.Update(time.TotalSeconds);
                     }
                 }
-                Thread.Sleep(0); //Reduce load
-            }
+
+                if (!running) sendLoop.Stop();
+            });
+            sendLoop.Start();
             Server.Stop();
         }
-
+        
         void BeginAuthentication(NetPeer peer)
         {
             var msg = new NetDataWriter();

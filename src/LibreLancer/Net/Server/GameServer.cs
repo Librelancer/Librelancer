@@ -163,6 +163,48 @@ namespace LibreLancer
             BaselineGoodPrices = bp.ToArray();
         }
 
+        private ServerLoop processingLoop;
+
+        //FromSeconds creates an inaccurate timespan
+        static readonly TimeSpan RATE_60 = TimeSpan.FromTicks(166667);
+        static readonly TimeSpan RATE_30 = TimeSpan.FromTicks(333333);
+
+        void Process(TimeSpan time)
+        {
+            while (!localPackets.IsEmpty && localPackets.TryDequeue(out var local))
+                LocalPlayer.ProcessPacket(local);
+            Action a;
+            if (worldRequests.Count > 0 && worldRequests.TryDequeue(out a))
+                a();
+            //Update
+            LocalPlayer?.UpdateMissionRuntime(time.TotalSeconds);
+            ConcurrentBag<StarSystem> toSpinDown = new ConcurrentBag<StarSystem>();
+            Parallel.ForEach(worlds, (world) =>
+            {
+                if(!world.Value.Update(time.TotalSeconds))
+                    toSpinDown.Add(world.Key);
+            });
+            //Remove
+            if (toSpinDown.Count > 0)
+            {
+                lock (availableWorlds) 
+                {
+                    foreach (var w in toSpinDown)
+                    {
+                        if (worlds[w].PlayerCount <= 0)
+                        {
+                            worlds[w].Finish();
+                            availableWorlds.Remove(w);
+                            worlds.Remove(w);
+                            FLLog.Info("Server", $"Shut down world {w.Nickname} ({w.Name})");
+                        }
+                    }
+                }
+            }
+            processingLoop.TimeStep = worlds.Count > 0 ? RATE_60 : RATE_30;
+            if (!running) processingLoop.Stop();
+        }
+
         void GameThread()
         {
             if (needLoadData)
@@ -174,49 +216,9 @@ namespace LibreLancer
             InitBaselinePrices();
             Database = new ServerDatabase(this);
             Listener?.Start();
-            Stopwatch sw = Stopwatch.StartNew();
             double lastTime = 0;
-            while (running)
-            {
-                while (!localPackets.IsEmpty && localPackets.TryDequeue(out var local))
-                    LocalPlayer.ProcessPacket(local);
-                Action a;
-                if (worldRequests.Count > 0 && worldRequests.TryDequeue(out a))
-                    a();
-                //Start Loop
-                var time = sw.Elapsed.TotalMilliseconds;
-                var elapsed = (time - lastTime);
-                if (elapsed < 2) continue;
-                elapsed /= 1000f;
-                lastTime = time;
-                //Update
-                LocalPlayer?.UpdateMissionRuntime(elapsed);
-                ConcurrentBag<StarSystem> toSpinDown = new ConcurrentBag<StarSystem>();
-                Parallel.ForEach(worlds, (world) =>
-                {
-                    if(!world.Value.Update(elapsed))
-                        toSpinDown.Add(world.Key);
-                });
-                //Remove
-                if (toSpinDown.Count > 0)
-                {
-                    lock (availableWorlds) 
-                    {
-                        foreach (var w in toSpinDown)
-                        {
-                            if (worlds[w].PlayerCount <= 0)
-                            {
-                                worlds[w].Finish();
-                                availableWorlds.Remove(w);
-                                worlds.Remove(w);
-                                FLLog.Info("Server", $"Shut down world {w.Nickname} ({w.Name})");
-                            }
-                        }
-                    }
-                }
-                //Sleep
-                Thread.Sleep(0);
-            }
+            processingLoop = new ServerLoop(Process);
+            processingLoop.Start();
             Listener?.Stop();
         }
     }

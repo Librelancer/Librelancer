@@ -15,6 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\extern\LiteNetLib\LiteNetLib\LiteNetLib.csproj" />
     <ProjectReference Include="..\..\extern\moonsharp\src\MoonSharp.Interpreter\MoonSharp.Interpreter.csproj" />
     <ProjectReference Include="..\..\extern\moonsharp\src\MoonSharp.HardwireGen\MoonSharp.HardwireGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     <ProjectReference Include="..\Editor\LibreLancer.ImUI\LibreLancer.ImUI.csproj" />
@@ -45,10 +46,6 @@
     <EmbeddedResource Include="Shaders\lightingcull.glcompute" />
     <EmbeddedResource Include="Interface\Default\interface.json" />
     <None Remove="Interface\LiberationSans_0.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="LiteNetLib" Version="0.9.2.2" />
   </ItemGroup>
 
 </Project>
