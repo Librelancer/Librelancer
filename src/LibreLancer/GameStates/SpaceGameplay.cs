@@ -166,6 +166,13 @@ World Time: {12:F2}
                 this.g = gameplay;   
             }
 
+            public GameSettings GetCurrentSettings() => g.Game.Config.Settings.MakeCopy();
+
+            public void ApplySettings(GameSettings settings)
+            {
+                g.Game.Config.Settings = settings;
+                g.Game.Config.Save();
+            }
             public void PopupFinish(string id) => g.session.RpcServer.ClosedPopup(id);
 
             public int CruiseCharge() => g.control.EngineState == EngineStates.CruiseCharging ? (int)(g.control.ChargePercent * 100) : -1;

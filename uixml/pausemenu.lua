@@ -14,6 +14,11 @@ function pausemenu:ctor()
 		local sg = savegame()
 		SwapModal(self,sg)
 	end)
+	e.options:OnClick(function()
+		local opt = options()
+		opt:asmodal()
+		SwapModal(self, opt)
+	end)
 	e.resume:OnClick(function()
 		Game:Resume()
 		self:Close()
@@ -23,6 +28,7 @@ function pausemenu:ctor()
 		self:Close()
 	end)
 end
+
 
 
 

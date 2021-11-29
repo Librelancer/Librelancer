@@ -1,3 +1,15 @@
+require 'ids.lua'
+
+ModalClass(options)
+
+function options:asmodal()
+	self:ModalInit()
+	self.Elements.fllogo.Visible = false
+	self.Elements.backdrop.Visible = true
+	self.Elements.goback.Strid = STRID_RETURN_TO_GAME
+	self.isModal = true
+end
+
 function options:panel(p)
 	for _, panel in ipairs(self.Panels) do
 		if panel[1] == p[1] then
@@ -76,13 +88,19 @@ end
 
 function options:ctor()
 	local e = self.Elements
+	self.isModal = false
 	self.Elements.goback:OnClick(function()
 		self.opts.SfxVolume = e.sfxvol.Value
 		self.opts.MusicVolume = e.musicvol.Value
 		self.opts.MSAA = idx_to_msaa(self.MSAA.vcurrent)
 		self.opts.Anisotropy = idx_to_anisotropy(self.AF.vcurrent)
 		Game:ApplySettings(self.opts)
-		OpenScene("mainmenu")
+		if self.isModal then
+			Game:Resume()
+			self:Close()
+		else
+			OpenScene("mainmenu")
+		end
 	end)
 	self.Panels = {
 		{ e.performance, e.win_performance },
@@ -105,6 +123,8 @@ function options:ctor()
 	self.MSAA = val_selection(e.msaa_left, e.msaa_right, e.msaa_display, msaa_levels, 1, msaa_to_idx(self.opts:MaxMSAA()), msaa_to_idx(self.opts.MSAA))
 	self.AF = val_selection(e.af_left, e.af_right, e.af_display, anisotropy, 1, #anisotropy, anisotropy_to_idx(self.opts.Anisotropy))
 end
+
+
 
 
 

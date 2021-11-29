@@ -1,6 +1,7 @@
 <Scene ID="options">
 	<ImageFile Path="uiscreens/audiooptions.png" Width="640" Height="480" Anchor="Center" Tint="magenta"/>
- 	<ImageFile Path="INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga" Width="640" Height="480"/>
+ 	<ImageFile Path="INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga" ID="fllogo" Width="640" Height="480"/>
+ 	<Scene Visible="false" id="backdrop"><Scene.Background><DisplayColor color="rgba(0,0,0,0.25)"/></Scene.Background></Scene>
 	<Panel Width="640" Height="480" Anchor="Center">
 		<Button X="33" Y="89" Style="menubutton" ID="general" Text="GENERAL" Enabled="false" />
 		<Button X="33" Y="141" Style="menubutton" ID="controls" Text="CONTROLS" Enabled="false" />
@@ -35,6 +36,7 @@
 		</Panel>
 	</Panel>
 </Scene> 
+
 
 
 

@@ -149,6 +149,14 @@ namespace LibreLancer
                 articles = g.session.News;
                 Trader = new Trader(g.session);
             }
+            
+            public GameSettings GetCurrentSettings() => g.Game.Config.Settings.MakeCopy();
+
+            public void ApplySettings(GameSettings settings)
+            {
+                g.Game.Config.Settings = settings;
+                g.Game.Config.Save();
+            }
 
             public void MissionResponse(string r)
             {
