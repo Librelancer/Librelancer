@@ -63,6 +63,7 @@ namespace LibreLancer.Data
         public ContentDll ContentDll;
         public InfocardMapIni InfocardMap;
         public NavmapIni Navmap; //Extension
+        public NPCShipIni NPCShips;
         
         public string DataVersion;
         public bool Loaded = false;
@@ -283,8 +284,18 @@ namespace LibreLancer.Data
                 foreach (var msn in missionFiles)
                 {
                     if (VFS.FileExists(Freelancer.DataPath + msn))
-                        Missions.Add(new Data.Missions.MissionIni(Freelancer.DataPath + msn, VFS));
+                    {
+                        var m = new MissionIni(Freelancer.DataPath + msn, VFS);
+                        if (m.Info?.NpcShipFile != null)
+                        {
+                            m.ShipIni = new NPCShipIni(Freelancer.DataPath + m.Info.NpcShipFile, VFS);
+                        }
+                        Missions.Add(m);
+                    }
                 }
+
+                if (VFS.FileExists(Freelancer.DataPath + "missions\\npcships.ini"))
+                    NPCShips = new NPCShipIni(Freelancer.DataPath + "missions\\npcships.ini", VFS);
             }));
             tasks.Add(Task.Run(() =>
             {

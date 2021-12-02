@@ -23,31 +23,43 @@ namespace LibreLancer
         public Hardpoint HpMount;
         public ThnSound Sound;
         public bool Animating = false;
+        public bool PosFromObject = false;
         public void Update()
         {
             if (Object != null)
             {
-                if (Object.RenderComponent is CharacterRenderer charRen)
+                if (PosFromObject)
                 {
-                    if (charRen.Skeleton.ApplyRootMotion)
-                    {
-                        var newTranslate = charRen.Skeleton.RootTranslation - charRen.Skeleton.RootTranslationOrigin;
-                        var newRotate = charRen.Skeleton.RootRotation * charRen.Skeleton.RootRotationOrigin;
-                        charRen.Skeleton.RootRotationOrigin = Quaternion.Inverse(charRen.Skeleton.RootRotation);
-                        charRen.Skeleton.RootTranslationOrigin = charRen.Skeleton.RootTranslation;
-                        Rotate = Matrix4x4.CreateFromQuaternion(newRotate) * Rotate;
-                        Translate += Vector3.Transform(newTranslate, Rotate);
-                    }
-                    Translate.Y = charRen.Skeleton.FloorHeight + charRen.Skeleton.RootHeight;
+                    var tr = Object.WorldTransform;
+                    Translate = Vector3.Transform(Vector3.Zero, tr);
+                    Rotate = Matrix4x4.CreateFromQuaternion(tr.ExtractRotation());
                 }
-
-                if (HpMount == null)
-                    Object.SetLocalTransform(Rotate * Matrix4x4.CreateTranslation(Translate));
                 else
                 {
-                    var tr = HpMount.Transform;
-                    Matrix4x4.Invert(tr, out tr);
-                    Object.SetLocalTransform(tr * (Rotate * Matrix4x4.CreateTranslation(Translate)));
+                    if (Object.RenderComponent is CharacterRenderer charRen)
+                    {
+                        if (charRen.Skeleton.ApplyRootMotion)
+                        {
+                            var newTranslate = charRen.Skeleton.RootTranslation -
+                                               charRen.Skeleton.RootTranslationOrigin;
+                            var newRotate = charRen.Skeleton.RootRotation * charRen.Skeleton.RootRotationOrigin;
+                            charRen.Skeleton.RootRotationOrigin = Quaternion.Inverse(charRen.Skeleton.RootRotation);
+                            charRen.Skeleton.RootTranslationOrigin = charRen.Skeleton.RootTranslation;
+                            Rotate = Matrix4x4.CreateFromQuaternion(newRotate) * Rotate;
+                            Translate += Vector3.Transform(newTranslate, Rotate);
+                        }
+
+                        Translate.Y = charRen.Skeleton.FloorHeight + charRen.Skeleton.RootHeight;
+                    }
+
+                    if (HpMount == null)
+                        Object.SetLocalTransform(Rotate * Matrix4x4.CreateTranslation(Translate));
+                    else
+                    {
+                        var tr = HpMount.Transform;
+                        Matrix4x4.Invert(tr, out tr);
+                        Object.SetLocalTransform(tr * (Rotate * Matrix4x4.CreateTranslation(Translate)));
+                    }
                 }
             }
             if(Camera != null)
@@ -73,6 +85,7 @@ namespace LibreLancer
         public Game Game => game;
         public ICamera CameraHandle => camera;
         public Dictionary<string, string> Substitutions => scriptContext.Substitutions;
+        public GameObject MainObject => scriptContext.MainObject;
         public GameDataManager GameData => gameData;
         public bool Running => running;
 
@@ -105,7 +118,8 @@ namespace LibreLancer
         public void SetAmbient(Vector3 amb)
         {
             if (hasScene) return;
-            Renderer.SystemLighting.Ambient = new Color4(amb.X / 255f, amb.Y / 255f, amb.Z / 255f, 1);
+            if(Renderer != null)
+                Renderer.SystemLighting.Ambient = new Color4(amb.X / 255f, amb.Y / 255f, amb.Z / 255f, 1);
             hasScene = true;
         }
 

@@ -75,6 +75,9 @@
         {
           "name": "StoryNPCSelect",
           "args": [ { "name":  "name", "type":  "string" }, { "name":  "room", "type":  "string" }, { "name":  "_base", "type":  "string" }]
+        },
+        {
+          "name": "RTCMissionAccepted"
         }
     ],
     "client_methods": [
@@ -84,7 +87,11 @@
         },
         { 
             "name": "CallThorn",
-        	"args": [ { "name": "script", "type": "string" } ]
+        	"args": [ { "name": "script", "type": "string" }, { "name":  "mainObject", "type":  "int" } ]
+        },
+        {
+          "name": "ForceMove",
+          "args": [ { "name":  "position", "type":  "Vector3" }]
         },
         {
           "name": "SpawnObject",

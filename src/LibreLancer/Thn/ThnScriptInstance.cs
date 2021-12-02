@@ -5,6 +5,7 @@
 using System;
 using System.Numerics;
 using System.Collections.Generic;
+using LibreLancer.Ini;
 using LibreLancer.Thn;
 using LibreLancer.Utf.Dfm;
 
@@ -206,6 +207,12 @@ namespace LibreLancer
                     obj.Object = new GameObject();
                     obj.Object.Name = "Marker";
                     obj.Object.Nickname = "";
+                    if (kv.Value.MainObject && Cutscene.MainObject != null)
+                    {
+                        obj.Object.Parent = Cutscene.MainObject;
+                        obj.Object.Components.Add(new DirtyTransformComponent(obj.Object));
+                        obj.PosFromObject = true;
+                    }
                 }
                 else if (kv.Value.Type == EntityTypes.Deformable)
                 {
@@ -239,9 +246,12 @@ namespace LibreLancer
                 }
                 if (obj.Object != null)
                 {
-                    Vector3 transform = kv.Value.Position ?? Vector3.Zero;
-                    obj.Object.SetLocalTransform((kv.Value.RotationMatrix ?? Matrix4x4.Identity) *
-                                                 Matrix4x4.CreateTranslation(transform));
+                    if (!obj.PosFromObject)
+                    {
+                        Vector3 transform = kv.Value.Position ?? Vector3.Zero;
+                        obj.Object.SetLocalTransform((kv.Value.RotationMatrix ?? Matrix4x4.Identity) *
+                                                     Matrix4x4.CreateTranslation(transform));
+                    }
                     Cutscene.World.Objects.Add(obj.Object);
                 }
                 obj.Entity = kv.Value;

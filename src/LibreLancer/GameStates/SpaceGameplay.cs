@@ -352,16 +352,14 @@ World Time: {12:F2}
 			switch (e)
 			{
 				case "FreeFlight":
-					pilotcomponent.CurrentBehaviour = AutopilotBehaviours.None;
+                    pilotcomponent.Cancel();
 					return true;
 				case "Dock":
 					if (selected == null) return false;
 					CDockComponent d;
 					if ((d = selected.GetComponent<CDockComponent>()) != null)
 					{
-						pilotcomponent.TargetObject = selected;
-						pilotcomponent.CurrentBehaviour = AutopilotBehaviours.Dock;
-                        pilotcomponent.StartDock();
+                        pilotcomponent.StartDock(selected);
                         if(d.Action.Kind != DockKinds.Tradelane)
                             session.RpcServer.RequestDock(selected.Nickname);
 						return true;
@@ -369,8 +367,7 @@ World Time: {12:F2}
 					return false;
 				case "Goto":
 					if (selected == null) return false;
-					pilotcomponent.TargetObject = selected;
-					pilotcomponent.CurrentBehaviour = AutopilotBehaviours.Goto;
+                    pilotcomponent.GotoObject(selected);
 					return true;
 			}
 			return false;
@@ -410,6 +407,7 @@ World Time: {12:F2}
             if (Thn != null && Thn.Running)
             {
                 Thn.Update(paused ? 0 : delta);
+                ((ThnCamera)Thn.CameraHandle).DefaultZ(); //using Thn Z here is just asking for trouble
                 sysrender.Camera = Thn.CameraHandle;
             }
             else

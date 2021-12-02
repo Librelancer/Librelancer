@@ -142,7 +142,6 @@ namespace LibreLancer.Thn
                     }
                 }
             }
-            Vector3 offset = Vector3.Zero;
             Quaternion lastRotate = Quaternion.Identity;
             if ((Flags & AttachFlags.Orientation) == AttachFlags.Orientation &&
                 (Flags & AttachFlags.OrientationRelative) == AttachFlags.OrientationRelative)
@@ -164,7 +163,7 @@ namespace LibreLancer.Thn
                 EntityRelative = ((Flags & AttachFlags.EntityRelative) == AttachFlags.EntityRelative),
                 LookAt = ((Flags & AttachFlags.LookAt) == AttachFlags.LookAt),
                 LastRotate = lastRotate,
-                Offset = offset
+                Offset = Offset
             });
         }
     }

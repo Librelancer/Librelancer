@@ -569,6 +569,11 @@ namespace LibreLancer
             rpcClient.OnConsoleMessage($"Unrecognised command '{cmd}'");
         }
 
+        void IServerPlayer.RTCMissionAccepted()
+        {
+            msnRuntime?.MissionAccepted();
+        }
+
         void IServerPlayer.RequestCharacterDB()
         {
             Client.SendPacket(new NewCharacterDBPacket()
@@ -706,9 +711,9 @@ namespace LibreLancer
         {
             rpcClient.RunMissionDialog(dialog);
         }
-        public void CallThorn(string thorn)
+        public void CallThorn(string thorn, int mainObject)
         {
-            rpcClient.CallThorn(thorn);
+            rpcClient.CallThorn(thorn, mainObject);
         }
 
         public void JumpTo(string system, string target)

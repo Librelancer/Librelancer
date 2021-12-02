@@ -114,6 +114,7 @@ namespace LibreLancer
 
         void MissionAccepted()
         {
+            session.RpcServer.RTCMissionAccepted();
             PlayScript(currentCutscene, CutsceneState.Accept);
         }
 

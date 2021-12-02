@@ -70,6 +70,8 @@ namespace LibreLancer
             }
         }
 
+        public void ForceTransformDirty() => transformDirty = true;
+
         Matrix4x4 CalculateTransform()
         {
             var tr = LocalTransform;

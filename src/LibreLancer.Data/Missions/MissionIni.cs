@@ -29,6 +29,7 @@ namespace LibreLancer.Data.Missions
         [Section("ObjList")]
         public List<ObjList> ObjLists = new List<ObjList>();
 
+        public NPCShipIni ShipIni;
         public MissionIni(string path, FileSystem vfs)
         {
             ParseAndFill(path, vfs);

@@ -10,6 +10,7 @@ namespace LibreLancer
     {
         public ThnScript SetScript;
         public GameObject PlayerShip;
+        public GameObject MainObject;
         public Dictionary<string,string> Substitutions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         public ThnScriptContext(ThnScript set)
         {

@@ -515,12 +515,26 @@ namespace LibreLancer
             }
         }
 
-        void IClientPlayer.CallThorn(string thorn)
+        void IClientPlayer.ForceMove(Vector3 position)
+        {
+            RunSync(() =>
+            {
+                PlayerPosition = position;
+                var player = gp.player;
+                var rot = player.LocalTransform.ExtractRotation();
+                player.SetLocalTransform(Matrix4x4.CreateFromQuaternion(rot) * Matrix4x4.CreateTranslation(position));
+            });
+        }
+
+        void IClientPlayer.CallThorn(string thorn, int mainObject)
         {
             RunSync(() =>
             {
                 var thn = new ThnScript(Game.GameData.ResolveDataPath(thorn));
-                gp.Thn = new Cutscene(new ThnScriptContext(null), gp);
+                objects.TryGetValue(mainObject, out var mo);
+                if(mo != null) FLLog.Info("Client", "Found thorn mainObject");
+                else FLLog.Info("Client", $"Did not find mainObject with ID `{mainObject}`");
+                gp.Thn = new Cutscene(new ThnScriptContext(null) { MainObject = mo }, gp);
                 gp.Thn.BeginScene(thn);
             });
         }

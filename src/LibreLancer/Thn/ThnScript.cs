@@ -292,6 +292,11 @@ namespace LibreLancer
                     if (usrprops.TryGetValue("TextStart", out o))
                         e.DisplayText.Start = FuzzyFloat(o);
                 }
+
+                if (usrprops.TryGetValue("main_object", out o))
+                {
+                    e.MainObject = true;
+                }
 			}
             if(table.TryGetValue("audioprops", out o))
             {
