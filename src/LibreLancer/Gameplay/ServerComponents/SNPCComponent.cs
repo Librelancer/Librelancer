@@ -34,7 +34,7 @@ namespace LibreLancer
 
         public override void FixedUpdate(double time)
         {
-            CurrentState?.Update(Parent, this);
+            CurrentState?.Update(Parent, this, time);
         }
 
         public void DockWith(GameObject tgt)

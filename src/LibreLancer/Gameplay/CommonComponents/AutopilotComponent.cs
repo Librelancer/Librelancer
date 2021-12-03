@@ -40,13 +40,14 @@ namespace LibreLancer
         private GameObject _targetObject;
         private Vector3 _targetPosition;
         private float _targetRadius;
-
+        private float _maxThrottle;
         public bool CanCruise = false;
-        public void GotoVec(Vector3 vec, bool cruise)
+        public void GotoVec(Vector3 vec, bool cruise, float maxThrottle = 1)
         {
             _targetObject = null;
             _targetPosition = vec;
             _targetRadius = 5;
+            _maxThrottle = maxThrottle;
             CurrentBehaviour = AutopilotBehaviours.Goto;
             CanCruise = cruise;
         }
@@ -56,6 +57,7 @@ namespace LibreLancer
             _targetObject = obj;
             CurrentBehaviour = AutopilotBehaviours.Goto;
             CanCruise = true;
+            _maxThrottle = 1;
         }
 
         public void Cancel()
@@ -193,8 +195,9 @@ namespace LibreLancer
 					targetPower = maxSpeed;
 			}
 
+            if (targetPower > _maxThrottle) targetPower = _maxThrottle;
             if(input != null)
-             input.AutopilotThrottle = targetPower;
+                input.AutopilotThrottle = targetPower;
             control.EnginePower = targetPower;
         }
 

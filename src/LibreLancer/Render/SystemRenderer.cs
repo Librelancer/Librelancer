@@ -261,7 +261,8 @@ namespace LibreLancer
             ren.Active = true;
             tempFx.Add(new TemporaryFx() { Render = ren, Position = position });
         }
-        
+
+        public bool ZOverride = false; // Stop Thn Camera from changing Z
 		public unsafe void Draw()
 		{
 			if (gconfig.Settings.MSAA > 0)
@@ -428,7 +429,7 @@ namespace LibreLancer
             {
                 //Starsphere
                 rstate.DepthRange = new Vector2(1, 1);
-                if(camera is ThnCamera thn) thn.DefaultZ();
+                if(camera is ThnCamera thn && !ZOverride) thn.DefaultZ();
                 for (int i = 0; i < StarSphereModels.Length; i++)
                 {
                     Matrix4x4 ssworld = Matrix4x4.CreateTranslation(camera.Position);
@@ -438,7 +439,7 @@ namespace LibreLancer
                     if (StarSphereLightings != null) lighting = StarSphereLightings[i];
                     StarSphereModels[i].DrawImmediate(rstate, resman, ssworld, ref lighting);
                 }
-                if (camera is ThnCamera thn2) thn2.CameraZ();
+                if (camera is ThnCamera thn2 && !ZOverride) thn2.CameraZ();
                 if (nr != null)
                 {
                     //rstate.DepthEnabled = false;

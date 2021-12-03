@@ -9,22 +9,24 @@ namespace LibreLancer.AI.ObjList
     {
         public Vector3 Target;
         public bool Cruise;
+        public float MaxThrottle;
 
-        public AiGotoVecState(Vector3 target, bool cruise = false)
+        public AiGotoVecState(Vector3 target, bool cruise, float maxThrottle)
         {
             Target = target;
             Cruise = cruise;
+            MaxThrottle = maxThrottle;
         }
         
         public override void OnStart(GameObject obj, SNPCComponent ai)
         {
             if (obj.TryGetComponent<AutopilotComponent>(out var ap))
             {
-                ap.GotoVec(Target, Cruise);
+                ap.GotoVec(Target, Cruise, MaxThrottle);
             }
         }
 
-        public override void Update(GameObject obj, SNPCComponent ai)
+        public override void Update(GameObject obj, SNPCComponent ai, double time)
         {
             if (obj.TryGetComponent<AutopilotComponent>(out var ap))
             {

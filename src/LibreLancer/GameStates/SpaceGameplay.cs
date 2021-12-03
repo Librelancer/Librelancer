@@ -125,6 +125,7 @@ World Time: {12:F2}
             camera.Reset();
 
             sysrender = new SystemRenderer(camera, Game.GameData, Game.ResourceManager, Game);
+            sysrender.ZOverride = true; //Draw all with regular Z
             world = new GameWorld(sysrender);
             world.LoadSystem(sys, Game.ResourceManager, false, session.SpawnTime);
             session.WorldReady();

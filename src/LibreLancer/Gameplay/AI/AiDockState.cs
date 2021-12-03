@@ -21,7 +21,7 @@ namespace LibreLancer.AI
             }
         }
 
-        public override void Update(GameObject obj, SNPCComponent ai)
+        public override void Update(GameObject obj, SNPCComponent ai, double time)
         {
         }
     }

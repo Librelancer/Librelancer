@@ -6,6 +6,6 @@ namespace LibreLancer.AI
     public abstract class AiState
     {
         public abstract void OnStart(GameObject obj, SNPCComponent ai);
-        public abstract void Update(GameObject obj, SNPCComponent ai);
+        public abstract void Update(GameObject obj, SNPCComponent ai, double dt);
     }
 }
