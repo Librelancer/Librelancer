@@ -17,7 +17,8 @@ namespace LibreLancer.Gameplay.Missions
         {
             Position = new Vector3(act.Entry[0].ToSingle(), act.Entry[1].ToSingle(),
                 act.Entry[2].ToSingle());
-            Unknown = act.Entry[3].ToSingle(); 
+            if(act.Entry.Count > 3)
+                Unknown = act.Entry[3].ToSingle(); 
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)

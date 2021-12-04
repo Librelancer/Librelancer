@@ -9,7 +9,7 @@ namespace LibreLancer
 {
     public class CNetPositionComponent : GameComponent
     {
-        private const int BUFFER_MS = 80;
+        public int BufferTime = 80;
         struct PosState
         {
             public uint Tick;
@@ -96,7 +96,7 @@ namespace LibreLancer
         private double quatTimer;
         void UpdatePosition(double delta)
         {
-            if (receivedPosTime < BUFFER_MS || posBuffer.Count < 2)
+            if (receivedPosTime < BufferTime || posBuffer.Count < 2)
             {
                 setV = false;
                 return;
@@ -105,20 +105,28 @@ namespace LibreLancer
             var dataA = posBuffer[0];
             var dataB = posBuffer[1];
             var lerpTime = SeqDiff(dataB.Tick, dataA.Tick) / 1000.0;
-            var t = posTimer / lerpTime;
-            currentPos = Vector3.Lerp(dataA.Pos, dataB.Pos, (float)t);
-            posTimer += delta;
+            if (lerpTime == 0) {
+                currentPos = dataB.Pos;
+            }
+            else {
+                var t = posTimer / lerpTime;
+                currentPos = Vector3.Lerp(dataA.Pos, dataB.Pos, (float) t);
+                posTimer += delta;
+            }
+
             if (posTimer > lerpTime)
             {
                 receivedPosTime -= (int)(lerpTime * 1000);
                 posBuffer.Dequeue();
                 posTimer -= lerpTime;
             }
+
+            if (float.IsNaN(currentPos.X)) throw new Exception("NaN position");
         }
         
         void UpdateOrientation(double delta)
         {
-            if (receivedOrientTime < BUFFER_MS || orientBuffer.Count < 2)
+            if (receivedOrientTime < BufferTime || orientBuffer.Count < 2)
             {
                 setQ = false;
                 return;
@@ -127,8 +135,13 @@ namespace LibreLancer
             var dataA = orientBuffer[0];
             var dataB = orientBuffer[1];
             var lerpTime = SeqDiff(dataB.Tick, dataA.Tick) / 1000.0;
-            var t = quatTimer / lerpTime;
-            currentQuat = Quaternion.Slerp(dataA.Orient, dataB.Orient, (float) t);
+            if (lerpTime == 0) {
+                currentQuat = dataB.Orient;
+            }
+            else {
+                var t = quatTimer / lerpTime;
+                currentQuat = Quaternion.Slerp(dataA.Orient, dataB.Orient, (float) t);
+            }
             quatTimer += delta;
             if (quatTimer > lerpTime)
             {
@@ -136,6 +149,8 @@ namespace LibreLancer
                 orientBuffer.Dequeue();
                 quatTimer -= lerpTime;
             }
+            if (float.IsNaN(currentQuat.X)) throw new Exception("NaN orientation");
+
         }
     }
 }

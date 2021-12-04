@@ -356,8 +356,10 @@ namespace LibreLancer
                     EquipmentObjectManager.InstantiateEquipment(newobj, Game.ResourceManager, EquipmentType.LocalPlayer, hp, equip);
                 }
                 newobj.Register(gp.world.Physics);
-                if(connection is GameNetClient) 
-                    newobj.Components.Add(new CNetPositionComponent(newobj));
+                var netpos = new CNetPositionComponent(newobj);
+                if (connection is EmbeddedServer)
+                    netpos.BufferTime = 2;
+                newobj.Components.Add(netpos);
                 objects.Add(id, newobj);
                 
                 gp.world.Objects.Add(newobj);

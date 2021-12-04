@@ -405,15 +405,13 @@ World Time: {12:F2}
                 Game.EnableTextInput();
             else
                 Game.DisableTextInput();
+            world.Update(paused ? 0 : delta);
             if (Thn != null && Thn.Running)
             {
-                Thn.Update(paused ? 0 : delta);
-                ((ThnCamera)Thn.CameraHandle).DefaultZ(); //using Thn Z here is just asking for trouble
                 sysrender.Camera = Thn.CameraHandle;
             }
             else
                 sysrender.Camera = camera;
-			world.Update(paused ? 0 : delta);
             if (frameCount < 2)
             {
                 frameCount++;
@@ -434,6 +432,11 @@ World Time: {12:F2}
             camera.Update(delta);
             if ((Thn == null || !Thn.Running)) //HACK: Cutscene also updates the listener so we don't do it if one is running
                 Game.Sound.UpdateListener(delta, camera.Position, camera.CameraForward, camera.CameraUp);
+            else
+            {
+                Thn.Update(paused ? 0 : delta);
+                ((ThnCamera)Thn.CameraHandle).DefaultZ(); //using Thn Z here is just asking for trouble
+            }
         }
 
 		bool mouseFlight = false;
@@ -713,7 +716,7 @@ World Time: {12:F2}
                 Game.RenderContext.Renderer2D.FillRectangle(new Rectangle(0, 0, Game.Width, h), Color4.Black);
                 Game.RenderContext.Renderer2D.FillRectangle(new Rectangle(0, Game.Height - h, Game.Width, h), Color4.Black);
             }
-            if ((Thn == null || !Thn.Running) && ShowHud)
+            Game.Debug.Draw(delta, () =>
             {
                 string sel_obj = "None";
                 if (selected != null)
@@ -723,14 +726,13 @@ World Time: {12:F2}
                     else
                         sel_obj = selected.Name;
                 }
-
                 var text = string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z,
                     sys.Nickname, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj,
                     control.PlayerPitch, control.PlayerYaw, control.Roll, mouseFlight, session.WorldTime);
-                Game.Debug.Draw(delta, () =>
-                {
-                    ImGuiNET.ImGui.Text(text);
-                });
+                ImGuiNET.ImGui.Text(text);
+            });
+            if ((Thn == null || !Thn.Running) && ShowHud)
+            {
                 current_cur.Draw(Game.RenderContext.Renderer2D, Game.Mouse, Game.TotalTime);
             }
             DoFade(delta);

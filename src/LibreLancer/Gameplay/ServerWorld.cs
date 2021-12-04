@@ -54,7 +54,6 @@ namespace LibreLancer
             System = system;
             GameWorld = new GameWorld(null);
             GameWorld.Server = this;
-            GameWorld.PhysicsUpdate += GameWorld_PhysicsUpdate;
             GameWorld.LoadSystem(system, server.Resources, true);
             NPCs = new NPCManager(this);
         }
@@ -323,6 +322,7 @@ namespace LibreLancer
                 //Send multiplayer updates (less)
                 SendPositionUpdates(true, tick);
             }
+            SendPositionUpdates(false, tick);
             //Despawn after 2 seconds of nothing
             if (PlayerCount == 0) {
                 noPlayersTime += delta;
@@ -338,10 +338,6 @@ namespace LibreLancer
         const double UPDATE_RATE = 1 / 25.0;
         double current = 0;
         private double tickTime = 0;
-        void GameWorld_PhysicsUpdate(double delta)
-        {
-            SendPositionUpdates(false, 0); //Send single player updates (more)
-        }
 
         //This could do with some work
         void SendPositionUpdates(bool mp, uint tick)

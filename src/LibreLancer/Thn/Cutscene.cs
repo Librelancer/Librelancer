@@ -24,13 +24,24 @@ namespace LibreLancer
         public ThnSound Sound;
         public bool Animating = false;
         public bool PosFromObject = false;
+
+        public void UpdateIfMain()
+        {
+            if (Object != null && PosFromObject)
+            {
+                var tr = Object.Parent.WorldTransform;
+                Translate = Vector3.Transform(Vector3.Zero, tr);
+                Rotate = Matrix4x4.CreateFromQuaternion(tr.ExtractRotation());
+            }
+        }
+        
         public void Update()
         {
             if (Object != null)
             {
                 if (PosFromObject)
                 {
-                    var tr = Object.WorldTransform;
+                    var tr = Object.Parent.WorldTransform;
                     Translate = Vector3.Transform(Vector3.Zero, tr);
                     Rotate = Matrix4x4.CreateFromQuaternion(tr.ExtractRotation());
                 }
@@ -292,6 +303,7 @@ namespace LibreLancer
                 sound.UpdateListener(delta, pos, forward, up);
             }
 			currentTime += delta;
+            foreach (var obj in sceneObjects.Values) obj.UpdateIfMain();
             if (text != null)
             {
                 if (currentTime > text.Start)
@@ -307,7 +319,7 @@ namespace LibreLancer
             }
             //
             foreach (var obj in sceneObjects.Values) obj.Update();
-			camera.Update();
+            camera.Update();
             if(Renderer != null)
 			    World.Update(delta);
 		}
