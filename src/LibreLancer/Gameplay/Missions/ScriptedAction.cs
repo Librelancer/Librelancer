@@ -44,6 +44,9 @@ namespace LibreLancer.Missions
                     case TriggerActions.Act_SpawnFormation:
                         yield return new Act_SpawnFormation(a);
                         break;
+                    case TriggerActions.Act_Destroy:
+                        yield return new Act_Destroy(a);
+                        break;
                     case TriggerActions.Act_MovePlayer:
                         yield return new Act_MovePlayer(a);
                         break;

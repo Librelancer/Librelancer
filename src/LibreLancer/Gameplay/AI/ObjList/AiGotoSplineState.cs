@@ -2,18 +2,21 @@ using System;
 using System.Numerics;
 namespace LibreLancer.AI.ObjList
 {
+    //TODO: cruise over whole spline
     public class AiGotoSplineState : AiObjListState
     {
         private int index = 0;
         public Vector3[] Points;
-        public bool Cruise;
+        public AiGotoKind Cruise;
         public float MaxThrottle;
+        public float Range;
         
-        public AiGotoSplineState(Vector3[] points, bool cruise, float maxThrottle)
+        public AiGotoSplineState(Vector3[] points, AiGotoKind cruise, float maxThrottle, float range)
         {
             Points = points;
             Cruise = cruise;
             MaxThrottle = maxThrottle;
+            Range = range;
         }
 
         public override void OnStart(GameObject obj, SNPCComponent ai)
@@ -21,7 +24,7 @@ namespace LibreLancer.AI.ObjList
             index = 0;
             if (obj.TryGetComponent<AutopilotComponent>(out var ap))
             {
-                ap.GotoVec(Eval(0), Cruise);
+                ap.GotoVec(Eval(0), Cruise != AiGotoKind.GotoNoCruise, MaxThrottle);
             }
         }
 
@@ -66,7 +69,8 @@ namespace LibreLancer.AI.ObjList
                     if (index + 1 < 4)
                     {
                         index++;
-                        ap.GotoVec(Eval(times[index]), Cruise);
+                        //ap.GotoVec(Points[index], Cruise, MaxThrottle, Range);
+                        ap.GotoVec(Eval(times[index]), Cruise != AiGotoKind.GotoNoCruise, MaxThrottle);
                     }
                     else
                         ai.SetState(Next);

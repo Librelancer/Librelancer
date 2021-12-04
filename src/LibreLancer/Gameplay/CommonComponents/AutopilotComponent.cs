@@ -42,7 +42,8 @@ namespace LibreLancer
         private float _targetRadius;
         private float _maxThrottle;
         public bool CanCruise = false;
-        public void GotoVec(Vector3 vec, bool cruise, float maxThrottle = 1)
+        private float gotoRange = 40;
+        public void GotoVec(Vector3 vec, bool cruise, float maxThrottle = 1, float gotoRange = 40)
         {
             _targetObject = null;
             _targetPosition = vec;
@@ -50,14 +51,16 @@ namespace LibreLancer
             _maxThrottle = maxThrottle;
             CurrentBehaviour = AutopilotBehaviours.Goto;
             CanCruise = cruise;
+            this.gotoRange = gotoRange;
         }
 
-        public void GotoObject(GameObject obj)
+        public void GotoObject(GameObject obj, bool cruise = true, float maxThrottle = 1, float gotoRange = 40)
         {
             _targetObject = obj;
             CurrentBehaviour = AutopilotBehaviours.Goto;
-            CanCruise = true;
-            _maxThrottle = 1;
+            CanCruise = cruise;
+            _maxThrottle = maxThrottle;
+            this.gotoRange = gotoRange;
         }
 
         public void Cancel()
@@ -82,6 +85,7 @@ namespace LibreLancer
 
             CurrentBehaviour = AutopilotBehaviours.Dock;
             CanCruise = true;
+            gotoRange = 40;
         }
 
         Vector3 GetTargetPoint()
@@ -146,20 +150,20 @@ namespace LibreLancer
 			}
 
             float targetPower = 0;
-            //Bring ship to within 40 metres of target
+            //Bring ship to within GotoRange metres of target
             var targetRadius = GetTargetRadius();
             var myRadius = Parent.PhysicsComponent.Body.Collider.Radius;
 			var distance = (targetPoint - Parent.PhysicsComponent.Body.Position).Length();
 
-            if (distance > 1000 && CanCruise) 
+            if ((distance - gotoRange) > 2000 && CanCruise) 
             {
                 control.BeginCruise();
             }
-            else if (distance < 600)
+            else if ((distance - gotoRange) < 200)
             {
                 control.EndCruise();
             }
-			var distrad = radius < 0 ? (targetRadius + myRadius + 40) : radius + myRadius;
+			var distrad = radius < 0 ? (targetRadius + myRadius + gotoRange) : radius + myRadius;
 			bool distanceSatisfied =  distrad >= distance;
 			if (distanceSatisfied)
 				targetPower = 0;

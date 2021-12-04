@@ -43,24 +43,34 @@ namespace LibreLancer
         
         public List<string> InitTriggers = new List<string>();
 
+        //Set only the first one
+        //Without this, order ships spawn in the wrong place in M01A
+        static void Set<T>(Dictionary<string, T> dict, string k, T value)
+        {
+            if (!dict.ContainsKey(k)) dict[k] = value;
+            else {
+                FLLog.Warning("Mission", $"Duplicate {typeof(T)} `{k}`, ignoring.");
+            }
+        }
+
         public MissionScript(MissionIni ini)
         {
             this.Ini = ini;
             foreach (var s in ini.Solars)
-                Solars[s.Nickname] = s;
+                Set(Solars, s.Nickname, s);
             foreach (var s in ini.Ships)
-                Ships[s.Nickname] = s;
+                Set(Ships, s.Nickname, s);
             foreach (var n in ini.NPCs)
-                NPCs[n.Nickname] = n;
+                Set(NPCs, n.Nickname, n);
             foreach (var f in ini.Formations)
-                Formations[f.Nickname] = f;
+                Set(Formations, f.Nickname, f);
             foreach (var ol in ini.ObjLists)
-                ObjLists[ol.Nickname] = new ScriptAiCommands() {
+                Set(ObjLists, ol.Nickname, new ScriptAiCommands() {
                     Nickname = ol.Nickname,
                     Ini = ol
-                };
+                });
             foreach (var dlg in ini.Dialogs)
-                Dialogs[dlg.Nickname] = dlg;
+                Set(Dialogs, dlg.Nickname, dlg);
             if (ini.ShipIni != null)
             {
                 foreach (var s in ini.ShipIni.ShipArches)
@@ -92,28 +102,69 @@ namespace LibreLancer
             AiObjListState last = null;
             foreach (var l in list.Commands)
             {
+                AiObjListState cur = null;
                 switch (l.Command)
                 {
+                    //goto_type, x, y, z, range, BOOL, throttle
                     case ObjListCommands.GotoVec:
                     {
                         var pos = new Vector3(l.Entry[1].ToSingle(), l.Entry[2].ToSingle(), l.Entry[3].ToSingle());
-                        var cruise = !l.Entry[0].ToString()
-                            .Equals("goto_no_cruise", StringComparison.OrdinalIgnoreCase);
+                        var cruise = AiGotoKind.Goto;
+                        if (l.Entry[0].ToString().Equals("goto_cruise", StringComparison.OrdinalIgnoreCase))
+                            cruise = AiGotoKind.GotoCruise;
+                        if (l.Entry[0].ToString().Equals("goto_no_cruise", StringComparison.OrdinalIgnoreCase))
+                            cruise = AiGotoKind.GotoNoCruise;
                         float maxThrottle = 1;
+                        float range = 0;
+                        if (l.Entry.Count > 4)
+                        {
+                            range = l.Entry[4].ToSingle();
+                        }
                         if (l.Entry.Count > 6)
                         {
                             maxThrottle = l.Entry[6].ToSingle() / 100.0f;
                             if (maxThrottle <= 0) maxThrottle = 1;
                         }
-                        var cur = new AiGotoVecState(pos, cruise, maxThrottle);
-                        if (last != null) last.Next = cur;
-                        last = cur;
+                        cur = new AiGotoVecState(pos, cruise, maxThrottle,range);
+                        break;
+                    }
+                    //goto_type, target, range, BOOL, throttle
+                    case ObjListCommands.GotoShip:
+                    {
+                        var cruise = AiGotoKind.Goto;
+                        if (l.Entry[0].ToString().Equals("goto_cruise", StringComparison.OrdinalIgnoreCase))
+                            cruise = AiGotoKind.GotoCruise;
+                        if (l.Entry[0].ToString().Equals("goto_no_cruise", StringComparison.OrdinalIgnoreCase))
+                            cruise = AiGotoKind.GotoNoCruise;
+                        float maxThrottle = 1;
+                        float range = 0;
+                        if (l.Entry.Count > 2)
+                        {
+                            range = l.Entry[2].ToSingle();
+                        }
+                        if (l.Entry.Count > 4)
+                        {
+                            maxThrottle = l.Entry[4].ToSingle() / 100.0f;
+                            if (maxThrottle <= 0) maxThrottle = 1;
+                        }
+                        cur = new AiGotoShipState(l.Entry[1].ToString(), cruise, maxThrottle, range);
                         break;
                     }
                     case ObjListCommands.GotoSpline:
                     {
-                        var cruise = !l.Entry[0].ToString()
-                            .Equals("goto_no_cruise", StringComparison.OrdinalIgnoreCase);
+                        //goto_type
+                        //xyz
+                        //xyz
+                        //xyz
+                        //xyz
+                        //range
+                        //BOOL
+                        //throttle
+                        var cruise = AiGotoKind.Goto;
+                        if (l.Entry[0].ToString().Equals("goto_cruise", StringComparison.OrdinalIgnoreCase))
+                            cruise = AiGotoKind.GotoCruise;
+                        if (l.Entry[0].ToString().Equals("goto_no_cruise", StringComparison.OrdinalIgnoreCase))
+                        cruise = AiGotoKind.GotoNoCruise;
                         var points = new Vector3[]
                         {
                             new (l.Entry[1].ToSingle(), l.Entry[2].ToSingle(), l.Entry[3].ToSingle()),
@@ -122,23 +173,31 @@ namespace LibreLancer
                             new (l.Entry[10].ToSingle(), l.Entry[11].ToSingle(), l.Entry[12].ToSingle()),
                         };
                         float maxThrottle = 1;
+                        float range = 0;
+                        if (l.Entry.Count > 13)
+                        {
+                            range = l.Entry[13].ToSingle();
+                        }
                         if (l.Entry.Count > 15)
                         {
                             maxThrottle = l.Entry[15].ToSingle() / 100.0f;
                             if (maxThrottle <= 0) maxThrottle = 1;
                         }
-                        var cur = new AiGotoSplineState(points, cruise, maxThrottle);
-                        if (last != null) last.Next = cur;
-                        last = cur;
+
+                        cur = new AiGotoSplineState(points, cruise, maxThrottle, range);
                         break;
                     }
                     case ObjListCommands.Delay:
                     {
-                        var cur = new AiDelayState(l.Entry[0].ToSingle());
-                        if (last != null) last.Next = cur;
-                        last = cur;
+                        cur = new AiDelayState(l.Entry[0].ToSingle());
                         break;
                     }
+                }
+
+                if (cur != null)
+                {
+                    if (last != null) last.Next = cur;
+                    last = cur;
                 }
             }
             return last;

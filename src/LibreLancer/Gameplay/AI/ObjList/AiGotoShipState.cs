@@ -6,21 +6,16 @@ using System.Runtime.Remoting;
 
 namespace LibreLancer.AI.ObjList
 {
-
-    public enum AiGotoKind
+    
+    public class AiGotoShipState : AiObjListState
     {
-        Goto,
-        GotoCruise,
-        GotoNoCruise
-    }
-    public class AiGotoVecState : AiObjListState
-    {
-        public Vector3 Target;
+        public string Target;
         public AiGotoKind Cruise;
         public float MaxThrottle;
         public float Range;
 
-        public AiGotoVecState(Vector3 target, AiGotoKind cruise, float maxThrottle, float range)
+        
+        public AiGotoShipState(string target, AiGotoKind cruise, float maxThrottle, float range)
         {
             Target = target;
             Cruise = cruise;
@@ -30,9 +25,10 @@ namespace LibreLancer.AI.ObjList
         
         public override void OnStart(GameObject obj, SNPCComponent ai)
         {
+            var tgtObject = obj.World.GetObject(Target);
             if (obj.TryGetComponent<AutopilotComponent>(out var ap))
             {
-                ap.GotoVec(Target, Cruise != AiGotoKind.GotoNoCruise, MaxThrottle, Range);
+                ap.GotoObject(tgtObject, Cruise != AiGotoKind.GotoNoCruise, MaxThrottle, Range);
                 if(Cruise == AiGotoKind.GotoCruise)
                     obj.GetComponent<ShipPhysicsComponent>().BeginCruise();
             }
@@ -43,7 +39,7 @@ namespace LibreLancer.AI.ObjList
             if (obj.TryGetComponent<AutopilotComponent>(out var ap))
             {
                 if (ap.CurrentBehaviour == AutopilotBehaviours.None) ;
-                    ai.SetState(Next);
+                ai.SetState(Next);
             }
             else
             {
