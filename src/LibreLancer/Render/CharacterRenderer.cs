@@ -11,7 +11,9 @@ using LibreLancer.Utf.Dfm;
 namespace LibreLancer
 {
 	public class CharacterRenderer : ObjectRenderer
-	{
+    {
+        public const float RADIUS = 1.5f;
+        
         public DfmSkeletonManager Skeleton;
 		public CharacterRenderer(DfmSkeletonManager skeleton)
 		{
@@ -33,7 +35,7 @@ namespace LibreLancer
             Skeleton.UploadBoneData(commands.BonesBuffer);
             var lighting = RenderHelpers.ApplyLights(
                 lights, LightGroup, 
-                Vector3.Transform(Vector3.Zero, transform), float.MaxValue, nr,
+                Vector3.Transform(Vector3.Zero, transform), RADIUS, nr,
                 LitAmbient, LitDynamic, NoFog
                 );
             Skeleton.Body.SetSkinning(Skeleton.BodySkinning);
@@ -60,12 +62,23 @@ namespace LibreLancer
         }
         public override bool OutOfView(ICamera camera)
         {
-            return false;
+            var position = Vector3.Transform(Vector3.Zero, transform);
+            var bsphere = new BoundingSphere(position, RADIUS);
+            return !camera.Frustum.Intersects(bsphere);
         }
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
         {
-            sys.AddObject(this);
-            return true;
+            var position = Vector3.Transform(Vector3.Zero, transform);
+            var bsphere = new BoundingSphere(position, RADIUS);
+            if (camera.Frustum.Intersects(bsphere))
+            {
+                sys.AddObject(this);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }
