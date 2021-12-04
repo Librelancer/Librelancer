@@ -161,6 +161,9 @@ namespace LibreLancer.Fx
                         SpawnParticle(idx, reference, instance, ref transform, sparam, (float)instance.GlobalTime);
                         var app = (FxAppearance)reference.Paired[0].Node;
                         app.OnParticleSpawned(idx, instance.Pool.Particles[idx].Appearance, instance);
+                        //Simulate time already alive (TODO fix the time loop properly)
+                        instance.Pool.Particles[idx].TimeAlive = (float) dt;
+                        instance.Pool.Particles[idx].Position += instance.Pool.Particles[idx].Normal * (float)dt;
                         count++;
                     }
 				}
