@@ -99,6 +99,7 @@ namespace LibreLancer
         }
 
         Matrix4x4 _worldSph;
+        private BitArray128 visibleParts;
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
 		{
             _worldSph = World;
@@ -124,10 +125,14 @@ namespace LibreLancer
                     return false;
                 }
 			}
+
+            bool visible = false;
             if (Model != null)
             {
-                foreach (var part in Model.AllParts)
-                { 
+                visibleParts = new BitArray128();
+                for (int i = 0; i < Model.AllParts.Length; i++)
+                {
+                    var part = Model.AllParts[i];
                     if(!part.Active || part.Mesh == null) continue;
                     var center = Vector3.Transform(part.Mesh.Center, part.LocalTransform * World);
                     var lvl = GetLevel(part, center, camera.Position);
@@ -136,22 +141,24 @@ namespace LibreLancer
                         var bsphere = new BoundingSphere(center, part.Mesh.Radius);
                         if (camera.Frustum.Intersects(bsphere))
                         {
-                            sysr.AddObject(this);
-                            return true; //visible
+                            visible = true;
+                            visibleParts[i] = true;
                         }
                     }
                 }
             }
-            return false;
+
+            if (visible) sysr.AddObject(this);
+            return visible;
 		}
 		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
             if (Model != null) {
                 Model.Update(camera, sysr.Game.TotalTime, sysr.ResourceManager);
-                foreach (var part in Model.AllParts)
+                for (int i = 0; i < Model.AllParts.Length; i++)
                 {
-                    if (part.Mesh == null) continue;
-                    if (!part.Active) continue;
+                    if (!visibleParts[i]) continue;
+                    var part = Model.AllParts[i];
                     var w = part.LocalTransform * World;
                     var center = Vector3.Transform(part.Mesh.Center, w);
                     var lvl = GetLevel(part, center, camera.Position);
