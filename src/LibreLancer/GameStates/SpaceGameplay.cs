@@ -130,7 +130,7 @@ World Time: {12:F2}
             world.LoadSystem(sys, Game.ResourceManager, false, session.SpawnTime);
             session.WorldReady();
             player.World = world;
-            world.Objects.Add(player);
+            world.AddObject(player);
             world.RenderUpdate += World_RenderUpdate;
             world.PhysicsUpdate += World_PhysicsUpdate;
             player.Register(world.Physics);

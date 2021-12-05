@@ -74,7 +74,7 @@ namespace LibreLancer
                     obj.Object.SetLocalTransform((kv.Value.RotationMatrix ?? Matrix4x4.Identity) *
                                                  Matrix4x4.CreateTranslation(transform));
                     obj.HpMount = Cutscene.PlayerShip.GetHardpoint("HpMount");
-                    Cutscene.World.Objects.Add(obj.Object);
+                    Cutscene.World.AddObject(obj.Object);
                     Objects.Add(kv.Key, obj);
                     continue;
                 }
@@ -252,7 +252,7 @@ namespace LibreLancer
                         obj.Object.SetLocalTransform((kv.Value.RotationMatrix ?? Matrix4x4.Identity) *
                                                      Matrix4x4.CreateTranslation(transform));
                     }
-                    Cutscene.World.Objects.Add(obj.Object);
+                    Cutscene.World.AddObject(obj.Object);
                 }
                 obj.Entity = kv.Value;
                 Objects[kv.Key] = obj;

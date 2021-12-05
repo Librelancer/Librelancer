@@ -184,18 +184,22 @@ namespace LibreLancer.Missions
         }
     }
 
+    //Sometimes 4 parameters, with the music track being the 4th
+    //Sometimes no_params (= stop music? not sure)
     public class Act_PlayMusic : ScriptedAction
     {
         public string Music;
 
         public Act_PlayMusic(MissionAction act)
         {
-            Music = act.Entry[3].ToString();
+            if(act.Entry.Count > 1)
+                Music = act.Entry[3].ToString();
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            runtime.Player.PlayMusic(Music);
+            if(Music != null)
+                runtime.Player.PlayMusic(Music);
         }
     }
 

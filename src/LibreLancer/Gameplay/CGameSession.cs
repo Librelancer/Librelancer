@@ -362,7 +362,7 @@ namespace LibreLancer
                 newobj.Components.Add(netpos);
                 objects.Add(id, newobj);
                 
-                gp.world.Objects.Add(newobj);
+                gp.world.AddObject(newobj);
             });
         }
 
@@ -414,7 +414,7 @@ namespace LibreLancer
                                      Matrix4x4.CreateTranslation(position));
                 go.World = gp.world;
                 go.Register(go.World.Physics);
-                gp.world.Objects.Add(go);
+                gp.world.AddObject(go);
                 objects.Add(id, go);
             });
         }
@@ -454,7 +454,7 @@ namespace LibreLancer
         void IClientPlayer.DespawnObject(int id)
         {
             var despawn = objects[id];
-            gp.world.Objects.Remove(despawn);
+            gp.world.RemoveObject(despawn);
             objects.Remove(id);
         }
 
@@ -489,7 +489,7 @@ namespace LibreLancer
                         go.Register(go.World.Physics);
                         go.CollisionGroups = arch.CollisionGroups;
                         FLLog.Debug("Client", $"Spawning object {si.ID}");
-                        gp.world.Objects.Add(go);
+                        gp.world.AddObject(go);
                         objects.Add(si.ID, go);
                     }
                 }

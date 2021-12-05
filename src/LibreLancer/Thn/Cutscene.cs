@@ -163,7 +163,7 @@ namespace LibreLancer
         {
             sceneObjects[obj.Name] = obj;
             if (obj.Object != null) {
-                World?.Objects.Add(obj.Object);
+                World?.AddObject(obj.Object);
             }
         }
 

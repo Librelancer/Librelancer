@@ -82,7 +82,7 @@ namespace LibreLancer
                 });
                 obj.Components.Add(new SEngineComponent(obj));
                 obj.NetID = player.ID;
-                GameWorld.Objects.Add(obj);
+                GameWorld.AddObject(obj);
                 obj.Register(GameWorld.Physics);
                 Players[player] = obj;
                 Players[player].SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
@@ -167,7 +167,7 @@ namespace LibreLancer
             actions.Enqueue(() =>
             {
                 Players[player].Unregister(GameWorld.Physics);
-                GameWorld.Objects.Remove(Players[player]);
+                GameWorld.RemoveObject(Players[player]);
                 Players.Remove(player);
                 foreach(var p in Players)
                 {
@@ -182,7 +182,7 @@ namespace LibreLancer
             actions.Enqueue(() =>
             {
                 obj.Unregister(GameWorld.Physics);
-                GameWorld.Objects.Remove(obj);
+                GameWorld.RemoveObject(obj);
                 spawnedNPCs.Remove(obj);
                 foreach (var p in Players) p.Key.Despawn(obj.NetID);
             });
@@ -216,7 +216,7 @@ namespace LibreLancer
                 gameobj.World = GameWorld;
                 gameobj.Register(GameWorld.Physics);
                 gameobj.CollisionGroups = arch.CollisionGroups;
-                GameWorld.Objects.Add(gameobj);
+                GameWorld.AddObject(gameobj);
                 SpawnedSolars.Add(nickname, gameobj);
                 foreach(Player p in Players.Keys)
                     p.SendSolars(SpawnedSolars);
@@ -241,7 +241,7 @@ namespace LibreLancer
                 var go = new GameObject($"debris{id}", newmodel, Server.Resources, part, mass, false);
                 go.NetID = id;
                 go.SetLocalTransform(transform);
-                GameWorld.Objects.Add(go);
+                GameWorld.AddObject(go);
                 updatingObjects.Add(go);
                 go.Register(GameWorld.Physics);
                 go.PhysicsComponent.Body.Impulse(initialForce);
@@ -258,7 +258,7 @@ namespace LibreLancer
             obj.NetID = GenerateID();
             obj.World = GameWorld;
             obj.Register(GameWorld.Physics);
-            GameWorld.Objects.Add(obj);
+            GameWorld.AddObject(obj);
             updatingObjects.Add(obj);
             spawnedNPCs.Add(obj);
             foreach (Player p in Players.Keys)
@@ -286,7 +286,7 @@ namespace LibreLancer
             {
                 var s = SpawnedSolars[nickname];
                 SpawnedSolars.Remove(nickname);
-                GameWorld.Objects.Remove(s);
+                GameWorld.RemoveObject(s);
                 foreach (Player p in Players.Keys)
                     p.Despawn(s.NetID);
             });
