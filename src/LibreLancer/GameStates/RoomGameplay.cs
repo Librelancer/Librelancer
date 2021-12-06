@@ -182,7 +182,11 @@ namespace LibreLancer
                 });
             }
 
-            public void PopupFinish(string id) => g.session.RpcServer.ClosedPopup(id);
+            public void PopupFinish(string id)
+            {
+                g.session.RpcServer.ClosedPopup(id);
+            }
+
             public void SaveGame(string description)
             {
                 g.session.Save(description);

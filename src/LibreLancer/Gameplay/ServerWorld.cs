@@ -36,6 +36,8 @@ namespace LibreLancer
             }
         }
 
+        public bool Paused => paused;
+        
         private bool paused = false;
 
         public void Pause()

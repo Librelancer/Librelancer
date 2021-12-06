@@ -144,10 +144,12 @@ function hud:Chatbox()
 end
 
 function hud:Popup(title, contents, id)
-	OpenModal(popup(title,contents, function()
+	OpenModal(popup(title,contents, 'ok', function()
 		Game:PopupFinish(id)
 	end))
 end
+
+
 
 
 

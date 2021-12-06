@@ -177,7 +177,10 @@ namespace LibreLancer
             if (worldRequests.Count > 0 && worldRequests.TryDequeue(out a))
                 a();
             //Update
-            LocalPlayer?.UpdateMissionRuntime(time.TotalSeconds);
+            if (!(LocalPlayer?.World?.Paused ?? false))
+            {
+                LocalPlayer?.UpdateMissionRuntime(time.TotalSeconds);
+            }
             ConcurrentBag<StarSystem> toSpinDown = new ConcurrentBag<StarSystem>();
             Parallel.ForEach(worlds, (world) =>
             {

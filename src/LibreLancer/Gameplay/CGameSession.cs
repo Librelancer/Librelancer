@@ -542,13 +542,16 @@ namespace LibreLancer
         {
             RunSync(() =>
             {
-                var obj = objects[id];
-                if (!obj.TryGetComponent<CNetEffectsComponent>(out var fx))
+                if (objects.TryGetValue(id, out var obj))
                 {
-                    fx = new CNetEffectsComponent(obj);
-                    obj.Components.Add(fx);
+                    if (!obj.TryGetComponent<CNetEffectsComponent>(out var fx))
+                    {
+                        fx = new CNetEffectsComponent(obj);
+                        obj.Components.Add(fx);
+                    }
+
+                    fx.UpdateEffects(effect);
                 }
-                fx.UpdateEffects(effect);
             });
         }
 

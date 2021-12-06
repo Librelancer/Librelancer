@@ -174,7 +174,12 @@ World Time: {12:F2}
                 g.Game.Config.Settings = settings;
                 g.Game.Config.Save();
             }
-            public void PopupFinish(string id) => g.session.RpcServer.ClosedPopup(id);
+
+            public void PopupFinish(string id)
+            {
+                g.session.RpcServer.ClosedPopup(id);
+                Resume();
+            }
 
             public int CruiseCharge() => g.control.EngineState == EngineStates.CruiseCharging ? (int)(g.control.ChargePercent * 100) : -1;
             public bool IsMultiplayer() => g.session.Multiplayer;
@@ -198,7 +203,7 @@ World Time: {12:F2}
             {
                 g.session.Save(description);
             }
-
+            
             public void Resume()
             {
                 g.session.Resume();
@@ -417,6 +422,17 @@ World Time: {12:F2}
                 frameCount++;
                 if(frameCount == 2)
                     session.BeginUpdateProcess();
+            }
+            else
+            {
+                if (session.Popups.Count > 0 && session.Popups.TryDequeue(out var popup))
+                {
+                    FLLog.Debug("Space", "Displaying popup");
+                    if(!session.Multiplayer) 
+                        paused = true;
+                    session.Pause();
+                    ui.Event("Popup", popup.Title, popup.Contents, popup.ID);
+                }
             }
 		}
 
