@@ -199,8 +199,9 @@ namespace LibreLancer
 		{
             for (int i = 0; i < fireFx.Count; i++)
                 Parent.ExtraRenderers.Remove(fireFx[i].Effect);
-            rumble.Kill();
-            character.Kill();
+            rumble?.Kill();
+            character?.Kill();
+            cruiseLoop?.Kill();
         }
 
 	}

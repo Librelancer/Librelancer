@@ -12,33 +12,37 @@ namespace LibreLancer
 {
     public class SFuseRunnerComponent : GameComponent
     {
-        public FuseResources Fuse;
-        public bool Running = false;
-        public double T = 0;
-
         public List<SpawnedEffect> Effects = new List<SpawnedEffect>();
         public SFuseRunnerComponent(GameObject parent) : base(parent)
         {
         }
-
-        Queue<FuseAction> actions;
-        public void Run()
+        class FuseInstance
         {
-            actions = new Queue<FuseAction>(Fuse.Fuse.Actions.OrderBy(x => x.AtT));
-            Running = true;
-            T = 0;
+            public Queue<FuseAction> actions;
+            public FuseResources Fuse;
+            public double T = 0;
+        }
+
+        private List<FuseInstance> instances = new List<FuseInstance>();
+        public void Run(FuseResources fuse)
+        {
+            var instance = new FuseInstance();
+            instance.Fuse = fuse;
+            instance.actions = new Queue<FuseAction>(fuse.Fuse.Actions.OrderBy(x => x.AtT));
+            instance.T = 0;
+            instances.Add(instance);
         }
 
 
         private uint fxID = 1;
-        
-        public override void Update(double time)
+
+        void Update(double time, FuseInstance instance)
         {
-            T += time;
+            instance.T += time / instance.Fuse.Fuse.Lifetime;
             FuseAction act;
-            while(actions.Count > 0 && (act = actions.Peek()).AtT <= T)
+            while(instance.actions.Count > 0 && (act = instance.actions.Peek()).AtT <= instance.T)
             {
-                actions.Dequeue();
+                instance.actions.Dequeue();
                 if (act is FuseStartEffect)
                 {
                     var fxact = ((FuseStartEffect) act);
@@ -67,12 +71,27 @@ namespace LibreLancer
                 }
                 else if (act is FuseImpulse)
                 {
-
+                    
                 }
-                else if (act is FuseIgniteFuse)
+                else if (act is FuseIgniteFuse ig)
                 {
-
+                    Run(instance.Fuse.GameData.GetFuse(ig.Fuse));
                 }
+                else if (act is FuseDestroyRoot)
+                {
+                    if (Parent.TryGetComponent<SNPCComponent>(out var npc))
+                    {
+                        npc.Killed();
+                    }
+                }
+            }
+        }
+        
+        public override void Update(double time)
+        {
+            for (int i = 0; i < instances.Count; i++)
+            {
+                Update(time, instances[i]);
             }
         }
     }

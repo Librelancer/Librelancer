@@ -395,13 +395,21 @@ namespace LibreLancer
             });
         }
 
-        void IClientPlayer.SpawnDebris(int id, string archetype, string part, Vector3 position, Quaternion orientation, float mass)
+        void IClientPlayer.SpawnDebris(int id, GameObjectKind kind, string archetype, string part, Vector3 position, Quaternion orientation, float mass)
         {
             RunSync(() =>
             {
-                var arch = Game.GameData.GetSolarArchetype(archetype);
-                var mdl =
-                    ((IRigidModelFile) arch.ModelFile.LoadFile(Game.ResourceManager)).CreateRigidModel(true);
+                RigidModel mdl;
+                if (kind == GameObjectKind.Ship)
+                {
+                    var ship = Game.GameData.GetShip(archetype);
+                    mdl = ((IRigidModelFile) ship.ModelFile.LoadFile(Game.ResourceManager)).CreateRigidModel(true);
+                }
+                else
+                {
+                    var arch = Game.GameData.GetSolarArchetype(archetype);
+                    mdl = ((IRigidModelFile) arch.ModelFile.LoadFile(Game.ResourceManager)).CreateRigidModel(true);
+                }
                 var newpart = mdl.Parts[part].Clone();
                 var newmodel = new RigidModel()
                 {
@@ -455,6 +463,7 @@ namespace LibreLancer
         void IClientPlayer.DespawnObject(int id)
         {
             var despawn = objects[id];
+            despawn.Unregister(gp.world.Physics);
             gp.world.RemoveObject(despawn);
             objects.Remove(id);
         }

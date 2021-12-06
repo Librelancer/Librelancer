@@ -27,6 +27,11 @@ typeMethods = {
   "bool" : "GetBool",
 }
 
+# Enumerations
+enums = {
+    "GameObjectKind"
+}
+
 # Read the json
 with open("protocol.json", "r") as f:
   jstr = f.read()
@@ -208,6 +213,8 @@ def Packet(mthd, classname):
   def read_expr(name, type):
     if type in typeMethods:
         writeline(name + " = message." + typeMethods[type] + "();")
+    elif type in enums:
+        writeline(name + " = (" + type + ")message.GetInt();")
     else:
         writeline(name + " = " + type + ".Read(message);")
   writeline("public static object Read(NetPacketReader message)")
@@ -242,6 +249,8 @@ def Packet(mthd, classname):
   def put_single(name, type):
     if type == "string":
         writeline("message.PutStringPacked(" + name + ");")
+    elif type in enums:
+        writeline("message.Put((int)" + name + ");")
     elif type in typeMethods:
         writeline("message.Put(" + name + ");")
     else:

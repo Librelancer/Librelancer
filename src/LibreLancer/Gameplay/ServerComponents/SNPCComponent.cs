@@ -25,6 +25,10 @@ namespace LibreLancer
             this.manager = manager;
         }
 
+        public void Killed()
+        {
+            manager.Despawn(Parent);
+        }
         public void Docked()
         {
             manager.Despawn(Parent);

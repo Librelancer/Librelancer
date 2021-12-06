@@ -11,8 +11,8 @@ namespace LibreLancer.Data.Fuses
     {
         [Entry("name")]
         public string Name;
-        [Entry("lifetime")]
-        public float Lifetime;
+        [Entry("lifetime")] 
+        public float Lifetime = 1;
         [Entry("death_fuse")]
         public bool DeathFuse;
 

@@ -153,6 +153,7 @@
           "name": "SpawnDebris",
           "args": [
             { "name":  "id", "type":  "int" },
+            { "name":  "kind", "type":  "GameObjectKind" },
             { "name":  "archetype", "type":  "string" },
             { "name":  "part", "type":  "string" },
             { "name":  "position", "type":  "Vector3" },

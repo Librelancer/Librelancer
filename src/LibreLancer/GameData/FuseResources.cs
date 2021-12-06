@@ -12,5 +12,6 @@ namespace LibreLancer.GameData
     {
         public Dictionary<string, ResolvedFx> Fx = new Dictionary<string, ResolvedFx>(StringComparer.OrdinalIgnoreCase);
         public Data.Fuses.Fuse Fuse;
+        public GameDataManager GameData;
     }
 }

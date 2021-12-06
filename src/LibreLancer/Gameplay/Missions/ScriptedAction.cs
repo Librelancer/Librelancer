@@ -262,9 +262,12 @@ namespace LibreLancer.Missions
             {
                 var fuse = runtime.Player.World.Server.GameData.GetFuse(Fuse);
                 var gameObj = runtime.Player.World.GameWorld.GetObject(Target);
-                var fzr = new SFuseRunnerComponent(gameObj) { Fuse = fuse };
-                gameObj.Components.Add(fzr);
-                fzr.Run();
+                if (!gameObj.TryGetComponent<SFuseRunnerComponent>(out var fr))
+                {
+                    fr = new SFuseRunnerComponent(gameObj);
+                    gameObj.Components.Add(fr);
+                }
+                fr.Run(fuse);
             });
         }
     }

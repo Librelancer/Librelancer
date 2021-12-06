@@ -18,6 +18,12 @@ using Archs = LibreLancer.GameData.Archetypes;
 
 namespace LibreLancer
 {
+    public enum GameObjectKind
+    {
+        None,
+        Ship,
+        Solar
+    }
 	public class GameObject
 	{
         //
@@ -46,6 +52,7 @@ namespace LibreLancer
         }
 
         public static object ClientPlayerTag = new object();
+        public GameObjectKind Kind = GameObjectKind.None;
         public object Tag;
         public string ArchetypeName;
         public int NetID;
@@ -160,6 +167,8 @@ namespace LibreLancer
         public GameObject(Ship ship, ResourceManager res, bool draw = true, bool phys = false)
         {
             InitWithDrawable(ship.ModelFile.LoadFile(res), res, draw, phys);
+            ArchetypeName = ship.Nickname;
+            Kind = GameObjectKind.Ship;
             if (RenderComponent != null)
             {
                 RenderComponent.LODRanges = ship.LODRanges;
@@ -201,7 +210,7 @@ namespace LibreLancer
 			if (PhysicsComponent == null) return;
             PhysicsComponent.UpdateParts();
         }
-        
+
         public void DisableCmpPart(string part)
         {
             if(RigidModel != null && RigidModel.Parts.TryGetValue(part, out var p))
@@ -209,6 +218,14 @@ namespace LibreLancer
                 p.Active = false;
                 PhysicsComponent.DisablePart(p);
                 World?.Server?.PartDisabled(this, part);
+                for (int i = Children.Count - 1; i <= 0; i--)
+                {
+                    var child = Children[i];
+                    if (!(child.Attachment?.Parent?.Active ?? true))
+                    {
+                        Children.RemoveAt(i);
+                    }
+                }
             }
         }
         
@@ -236,7 +253,7 @@ namespace LibreLancer
                         initialforce = cg.ChildImpulse;
                     }
                 }
-                World.Server.SpawnDebris(ArchetypeName, part, tr, mass, vec * initialforce);
+                World.Server.SpawnDebris(Kind, ArchetypeName, part, tr, mass, vec * initialforce);
             }
         }
         public ResourceManager Resources;

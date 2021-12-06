@@ -39,6 +39,9 @@ namespace LibreLancer.Data.Fuses
                     case "impulse":
                         current.Actions.Add(FromSection<FuseImpulse>(section));
                         break;
+                    case "destroy_root":
+                        current.Actions.Add(FromSection<FuseDestroyRoot>(section));
+                        break;
                 }
             }
         }

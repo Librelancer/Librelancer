@@ -1492,10 +1492,9 @@ namespace LibreLancer
                             }
                         }
                     }
-
+                    fuse.GameData = this;
                     fuses.Add(fusename, fuse);
                 }
-
                 return fuse;
             }
         }

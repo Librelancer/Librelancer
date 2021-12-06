@@ -235,12 +235,21 @@ namespace LibreLancer
             });
         }
 
-        public void SpawnDebris(string archetype, string part, Matrix4x4 transform, float mass, Vector3 initialForce)
+        public void SpawnDebris(GameObjectKind kind, string archetype, string part, Matrix4x4 transform, float mass, Vector3 initialForce)
         {
             actions.Enqueue(() =>
             {
-                var arch = Server.GameData.GetSolarArchetype(archetype);
-                var mdl = ((IRigidModelFile) arch.ModelFile.LoadFile(Server.Resources)).CreateRigidModel(false);
+                RigidModel mdl;
+                if (kind == GameObjectKind.Ship)
+                {
+                    var ship = Server.GameData.GetShip(archetype);
+                    mdl = ((IRigidModelFile) ship.ModelFile.LoadFile(Server.Resources)).CreateRigidModel(false);
+                }
+                else
+                {
+                    var arch = Server.GameData.GetSolarArchetype(archetype);
+                    mdl = ((IRigidModelFile) arch.ModelFile.LoadFile(Server.Resources)).CreateRigidModel(false);
+                }
                 var newpart = mdl.Parts[part].Clone();
                 var newmodel = new RigidModel()
                 {
@@ -260,7 +269,7 @@ namespace LibreLancer
                 //Spawn debris
                 foreach (Player p in Players.Keys)
                 {
-                    p.SpawnDebris(go.NetID, archetype, part, transform, mass);
+                    p.SpawnDebris(go.NetID, kind, archetype, part, transform, mass);
                 }
             });
         }

@@ -668,9 +668,9 @@ namespace LibreLancer
             }
         }
 
-        public void SpawnDebris(int id, string archetype, string part, Matrix4x4 tr, float mass)
+        public void SpawnDebris(int id, GameObjectKind kind, string archetype, string part, Matrix4x4 tr, float mass)
         {
-            rpcClient.SpawnDebris(id, archetype, part, Vector3.Transform(Vector3.Zero, tr), tr.ExtractRotation(), mass);
+            rpcClient.SpawnDebris(id, kind, archetype, part, Vector3.Transform(Vector3.Zero, tr), tr.ExtractRotation(), mass);
         }
         
         public void ForceLand(string target)

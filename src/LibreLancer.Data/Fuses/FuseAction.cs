@@ -13,6 +13,11 @@ namespace LibreLancer.Data.Fuses
         [Entry("at_t")]
         public float AtT;
     }
+
+    public class FuseDestroyRoot : FuseAction
+    {
+    }
+    
     public class FuseStartEffect : FuseAction //[start_effect]
     {
         [Entry("effect")]
