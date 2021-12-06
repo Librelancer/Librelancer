@@ -154,6 +154,7 @@ namespace LibreLancer
 			if (currentState != null)
 				currentState.Update (elapsed);
             Typewriter.Update(elapsed);
+            Audio.Update();
         }
 
 		const double FPS_INTERVAL = 0.25;

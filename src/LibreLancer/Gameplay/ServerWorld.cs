@@ -90,10 +90,22 @@ namespace LibreLancer
             });
         }
 
-        public void ProjectileHit(GameObject obj, MunitionEquip munition)
+        public void EffectSpawned(GameObject obj)
+        {
+            foreach (var p in Players)
+            {
+                p.Key.RemoteClient.UpdateEffects(obj.NetID, obj.GetComponent<SFuseRunnerComponent>().Effects.ToArray());
+            }
+        }
+        
+
+        public void ProjectileHit(GameObject obj, GameObject owner, MunitionEquip munition)
         {
             if (obj.TryGetComponent<HealthComponent>(out var health)) {
                 health.Damage(munition.Def.HullDamage);
+            }
+            if (obj.TryGetComponent<SNPCComponent>(out var npc)) {
+                npc.OnProjectileHit(owner);
             }
         }
 
@@ -392,6 +404,11 @@ namespace LibreLancer
                         update.HasHealth = true;
                         update.HasHull = true;
                         update.HullHp = (int) health.CurrentHealth;
+                    }
+                    if (obj.TryGetComponent<WeaponControlComponent>(out var weapons))
+                    {
+                        update.HasGuns = true;
+                        update.GunOrients = weapons.GetRotations();
                     }
                     ps.Add(update);
                 }

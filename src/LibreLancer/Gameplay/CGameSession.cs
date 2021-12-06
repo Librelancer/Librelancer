@@ -360,6 +360,7 @@ namespace LibreLancer
                 if (connection is EmbeddedServer)
                     netpos.BufferTime = 2;
                 newobj.Components.Add(netpos);
+                newobj.Components.Add(new WeaponControlComponent(newobj));
                 objects.Add(id, newobj);
                 
                 gp.world.AddObject(newobj);
@@ -527,17 +528,38 @@ namespace LibreLancer
                 player.SetLocalTransform(Matrix4x4.CreateFromQuaternion(rot) * Matrix4x4.CreateTranslation(position));
             });
         }
+        
+        void IClientPlayer.UpdateEffects(int id, SpawnedEffect[] effect)
+        {
+            RunSync(() =>
+            {
+                var obj = objects[id];
+                if (!obj.TryGetComponent<CNetEffectsComponent>(out var fx))
+                {
+                    fx = new CNetEffectsComponent(obj);
+                    obj.Components.Add(fx);
+                }
+                fx.UpdateEffects(effect);
+            });
+        }
 
         void IClientPlayer.CallThorn(string thorn, int mainObject)
         {
             RunSync(() =>
             {
-                var thn = new ThnScript(Game.GameData.ResolveDataPath(thorn));
-                objects.TryGetValue(mainObject, out var mo);
-                if(mo != null) FLLog.Info("Client", "Found thorn mainObject");
-                else FLLog.Info("Client", $"Did not find mainObject with ID `{mainObject}`");
-                gp.Thn = new Cutscene(new ThnScriptContext(null) { MainObject = mo }, gp);
-                gp.Thn.BeginScene(thn);
+                if (thorn == null)
+                {
+                    gp.Thn = null;
+                }
+                else
+                {
+                    var thn = new ThnScript(Game.GameData.ResolveDataPath(thorn));
+                    objects.TryGetValue(mainObject, out var mo);
+                    if (mo != null) FLLog.Info("Client", "Found thorn mainObject");
+                    else FLLog.Info("Client", $"Did not find mainObject with ID `{mainObject}`");
+                    gp.Thn = new Cutscene(new ThnScriptContext(null) {MainObject = mo}, gp);
+                    gp.Thn.BeginScene(thn);
+                }
             });
         }
 
@@ -588,6 +610,11 @@ namespace LibreLancer
                 var health = obj.GetComponent<HealthComponent>();
                 if (health != null)
                     health.CurrentHealth = (float)update.HullHp;
+            }
+
+            if (update.HasGuns && obj.TryGetComponent<WeaponControlComponent>(out var weapons))
+            {
+                weapons.SetRotations(update.GunOrients);
             }
             if (netPos != null)
             {

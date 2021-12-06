@@ -35,6 +35,22 @@ namespace LibreLancer
         public void ActivateTrigger(string trigger)
         {
             var t = Script.AvailableTriggers[trigger];
+            foreach (var cond in t.Conditions)
+            {
+                if (cond.Type == TriggerConditions.Cnd_ProjHit)
+                {
+                    Player.WorldAction(() =>
+                    {
+                        var obj = Player.World.GameWorld.GetObject(cond.Entry[0].ToString());
+                        if (obj != null)
+                        {
+                            obj.GetComponent<SNPCComponent>().ProjectileHitHook = ProjectileHit;
+                        }else {
+                            FLLog.Warning("Mission", $"Cnd_ProjHit won't register for not spawned {cond.Entry[0]}");   
+                        }
+                    });
+                }
+            }
             activeTriggers.Add(new ActiveTrigger()
             {
                 Trigger = t,
@@ -45,8 +61,7 @@ namespace LibreLancer
         public void DeactivateTrigger(string trigger)
         {
             var x = activeTriggers.FirstOrDefault(x => x.Trigger.Nickname.Equals(trigger, StringComparison.OrdinalIgnoreCase));
-            if (x != null)
-                activeTriggers.Remove(x);
+            if (x != null) x.Deactivated = true;
         }
         
 
@@ -80,6 +95,7 @@ namespace LibreLancer
         class ActiveTrigger
         {
             public ScriptedTrigger Trigger;
+            public bool Deactivated;
             public List<MissionCondition> Conditions = new List<MissionCondition>();
             public double ActiveTime;
         }
@@ -119,9 +135,13 @@ namespace LibreLancer
       
         void CheckMissionScript()
         {
+            List<ActiveTrigger> toRemove = new List<ActiveTrigger>();
             for (int i = activeTriggers.Count - 1; i >= 0; i--)
             {
-                if (activeTriggers[i].Conditions.Count == 0)
+                if (activeTriggers[i].Deactivated)
+                {
+                    activeTriggers.RemoveAt(i);
+                } else if (activeTriggers[i].Conditions.Count == 0)
                 {
                     DoTrigger(activeTriggers[i].Trigger);
                     activeTriggers.RemoveAt(i);
@@ -131,6 +151,15 @@ namespace LibreLancer
         
         static bool IdEquals(string a, string b) => a.Equals(b, StringComparison.OrdinalIgnoreCase);
 
+
+        void ProjectileHit(GameObject victim, GameObject attacker)
+        {
+            ProcessCondition(TriggerConditions.Cnd_ProjHit, (c) =>
+                IdEquals(c.Entry[0].ToString(), victim.Nickname) &&
+                    IdEquals(c.Entry[2].ToString(), attacker.Nickname)
+            );
+        }
+        
         public void EnterLocation(string room, string bse)
         {
             ProcessCondition(TriggerConditions.Cnd_LocEnter, (c) => IdEquals(room, c.Entry[0].ToString()) &&

@@ -237,16 +237,19 @@ namespace LibreLancer
 
     public struct GunOrient
     {
+        public uint Hardpoint;
         public float AnglePitch;
         public float AngleRot;
         public void ReadIn(ref BitReader message)
         {
+            Hardpoint = message.GetUInt();
             AnglePitch = message.GetRadiansQuantized();
             AngleRot = message.GetRadiansQuantized();
         }
         public void WriteTo(ref BitWriter message)
         {
-            //2 bytes each
+            //8 bytes each
+            message.PutUInt(Hardpoint, 32);
             message.PutRadiansQuantized(AnglePitch);
             message.PutRadiansQuantized(AngleRot);
         }

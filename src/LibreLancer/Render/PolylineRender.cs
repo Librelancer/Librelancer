@@ -10,7 +10,7 @@ namespace LibreLancer
 {
 	public class PolylineRender : IDisposable
 	{
-		const int MAX_VERTICES = 8192;
+		const int MAX_VERTICES = 32768;
 
 		VertexPositionColorTexture[] vertices = new VertexPositionColorTexture[MAX_VERTICES];
 		VertexBuffer vbo;

@@ -77,11 +77,23 @@ namespace LibreLancer.Missions
                     case TriggerActions.Act_CallThorn:
                         yield return new Act_CallThorn(a);
                         break;
+                    case TriggerActions.Act_RevertCam:
+                        yield return new Act_RevertCam();
+                        break;
                     case TriggerActions.Act_AddRTC:
                         yield return new Act_AddRTC(a);
                         break;
                     case TriggerActions.Act_SetShipAndLoadout:
                         yield return new Act_SetShipAndLoadout(a);
+                        break;
+                    case TriggerActions.Act_SetVibeLblToShip:
+                        yield return new Act_SetVibeLblToShip(a);
+                        break;
+                    case TriggerActions.Act_SetVibe:
+                        yield return new Act_SetVibe(a);
+                        break;
+                    case TriggerActions.Act_SetVibeShipToLbl:
+                        yield return new Act_SetVibeShipToLbl(a);
                         break;
                     default:
                         break;
@@ -304,6 +316,14 @@ namespace LibreLancer.Missions
         }
     }
 
+    public class Act_RevertCam : ScriptedAction
+    {
+        public override void Invoke(MissionRuntime runtime, MissionScript script)
+        {
+            runtime.Player.CallThorn(null, 0);
+        }
+    }
+
     public class Act_CallThorn : ScriptedAction
     {
         public string Thorn;
@@ -318,6 +338,7 @@ namespace LibreLancer.Missions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
+            FLLog.Info("Act_CallThorn", Thorn);
             runtime.Player.WorldAction(() =>
             {
                 int mainObject = 0;

@@ -9,7 +9,7 @@ namespace LibreLancer.Media
 {
 	class StreamingSource : IDisposable
     {
-        private const int POOL_BUFFER_SIZE = 4096;
+        private const int POOL_BUFFER_SIZE = 8192;
         
 		bool dataleft;
 		StreamingSound sound;

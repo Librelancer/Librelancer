@@ -53,6 +53,17 @@ namespace LibreLancer
             }
         }
 
+        public IEnumerable<MissionShip> GetShipsByLabel(string label)
+        {
+            foreach (var sh in Ships)
+            {
+                if (sh.Value.Labels.Contains(label, StringComparer.OrdinalIgnoreCase))
+                {
+                    yield return sh.Value;
+                }
+            }
+        }
+
         public MissionScript(MissionIni ini)
         {
             this.Ini = ini;

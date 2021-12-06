@@ -166,7 +166,8 @@ namespace LancerEdit
 			foreach (var tab in tabs)
 				tab.Update(elapsed);
             if (errorTimer > 0) errorTimer -= elapsed;
-		}
+            Audio.Update();
+        }
         public string[] InitOpenFile;
         public void OpenFile(string f)
         {

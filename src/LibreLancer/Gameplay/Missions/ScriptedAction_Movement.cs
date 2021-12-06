@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System;
 using System.Numerics;
 using LibreLancer.Data.Missions;
 using LibreLancer.Missions;
@@ -47,7 +48,11 @@ namespace LibreLancer.Gameplay.Missions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            if (script.Ships.ContainsKey(Ship))
+            if (Ship.Equals("player", StringComparison.OrdinalIgnoreCase))
+            {
+                runtime.Player.RemoteClient.ForceMove(Position);
+            }
+            else if (script.Ships.ContainsKey(Ship))
             {
                 runtime.Player.WorldAction(() =>
                 {

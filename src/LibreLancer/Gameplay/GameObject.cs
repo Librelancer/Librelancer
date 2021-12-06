@@ -38,7 +38,10 @@ namespace LibreLancer
             set
             {
                 _nickname = value;
-                NicknameCRC = CrcTool.FLModelCrc(_nickname);
+                if (value == null)
+                    NicknameCRC = 0;
+                else
+                    NicknameCRC = CrcTool.FLModelCrc(value);
             }
         }
 

@@ -13,6 +13,8 @@ namespace LibreLancer
         public GunEquipment Object;
         public double CurrentCooldown = 0;
 
+        public Vector2 Angles = new Vector2(0, 0);
+
         public WeaponComponent(GameObject parent, GunEquipment def) : base(parent)
         {
             Object = def;
@@ -22,6 +24,55 @@ namespace LibreLancer
         {
             CurrentCooldown -= time;
             if (CurrentCooldown < 0) CurrentCooldown = 0;
+            if (_targetX > -1000) {
+                DoRotation(_targetX, _targetY, time);
+            }
+        }
+
+        void DoRotation(float x, float y, double time)
+        {
+            var hp = Parent.Attachment;
+            var rads = MathHelper.DegreesToRadians(Object.Def.TurnRate);
+            var delta = (float)(time * rads);
+            if(hp.Revolute != null)
+            {
+                var target = x;
+                var current = Parent.Attachment.CurrentRevolution;
+
+                if(current > target) {
+                    current -= delta;
+                    if (current <= target) current = target;
+                }
+                if(current < target) {
+                    current += delta;
+                    if (current >= target) current = target;
+                }
+                hp.Revolve(current);
+                Angles.X = current;
+            }
+            //TODO: Finding barrel construct properly?
+            Utf.RevConstruct barrel = null;
+            foreach (var mdl in Parent.RigidModel.AllParts)
+                if (mdl.Construct is Utf.RevConstruct revCon)
+                    barrel = revCon;
+            if(barrel != null) {
+                var target = y;
+                var current = barrel.Current;
+                if (current > target)
+                {
+                    current -= delta;
+                    if (current <= target) current = target;
+                }
+                if (current < target)
+                {
+                    current += delta;
+                    if (current >= target) current = target;
+                }
+
+                barrel.Update(target, Quaternion.Identity);
+                Angles.Y = current;
+                Parent.RigidModel.UpdateTransform();
+            }
         }
 
         void DrawDebugPoints()
@@ -38,6 +89,15 @@ namespace LibreLancer
                 Parent.Parent.World.DrawDebug(pos);
             }
         }
+
+        private float _targetX = -1000;
+        private float _targetY = -1000;
+        public void RotateTowards(float x, float y)
+        {
+            _targetX = x;
+            _targetY = y;
+        }
+        
         public void AimTowards(Vector3 point, double time)
         {
             DrawDebugPoints();
@@ -48,44 +108,9 @@ namespace LibreLancer
             Matrix4x4.Invert(br, out var beforeRotate);
             var local = TransformGL(point, beforeRotate);
             var localProper = local.Normalized();
-            var rads = MathHelper.DegreesToRadians(Object.Def.TurnRate);
-            var delta = (float)(time * rads);
-            if(hp.Revolute != null) {
-                var target = -localProper.X * (float)Math.PI;
-                var current = Parent.Attachment.CurrentRevolution;
-
-                if(current > target) {
-                    current -= delta;
-                    if (current <= target) current = target;
-                }
-                if(current < target) {
-                    current += delta;
-                    if (current >= target) current = target;
-                }
-                hp.Revolve(current);
-            }
-            //TODO: Finding barrel construct properly?
-            Utf.RevConstruct barrel = null;
-            foreach (var mdl in Parent.RigidModel.AllParts)
-                if (mdl.Construct is Utf.RevConstruct revCon)
-                    barrel = revCon;
-            if(barrel != null) {
-                var target = localProper.Y * (float)Math.PI;
-                var current = barrel.Current;
-                if (current > target)
-                {
-                    current -= delta;
-                    if (current <= target) current = target;
-                }
-                if (current < target)
-                {
-                    current += delta;
-                    if (current >= target) current = target;
-                }
-
-                barrel.Update(target, Quaternion.Identity);
-                Parent.RigidModel.UpdateTransform();
-            }
+            var x = -localProper.X * (float) Math.PI;
+            var y = localProper.Y * (float) Math.PI;
+            DoRotation(x, y, time);
         }
         
         static Vector3 TransformGL(Vector3 position, Matrix4x4 matrix)
@@ -100,6 +125,13 @@ namespace LibreLancer
         ProjectileManager projectiles;
         ProjectileData toSpawn;
         Hardpoint[] hpfires;
+
+
+        static float GetAngle(Vector3 pointA, Vector3 pointB)
+        {
+            var angle = MathF.Acos(Vector3.Dot(pointA.Normalized(), pointB.Normalized()));
+            return angle;
+        }
 
         public void Fire(Vector3 point)
         {
@@ -117,13 +149,17 @@ namespace LibreLancer
             for (int i = 0; i < hpfires.Length; i++)
             {
                 var pos = Vector3.Transform(Vector3.Zero, hpfires[i].Transform * tr);
+                var normal = Vector3.TransformNormal(-Vector3.UnitZ, hpfires[i].Transform * tr);
                 var heading = (point - pos).Normalized();
-                projectiles.SpawnProjectile(Parent.Parent, hp, toSpawn, pos, heading);
-                projectiles.QueueProjectile(Parent.Parent.NetID, Object, hp, pos, heading);
+
+                var angle = GetAngle(normal, heading);
+                if (angle <= MathHelper.DegreesToRadians(40)) //TODO: MUZZLE_CONE_ANGLE constant
+                {
+                    projectiles.SpawnProjectile(Parent.Parent, hp, toSpawn, pos, heading);
+                    projectiles.QueueProjectile(Parent.Parent.NetID, Object, hp, pos, heading);
+                }
             }
             CurrentCooldown = Object.Def.RefireDelay;
-            
-            
         }
     }
 }

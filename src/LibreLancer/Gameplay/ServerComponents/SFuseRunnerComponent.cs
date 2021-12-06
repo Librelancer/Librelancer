@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LibreLancer.Data.Equipment;
 using LibreLancer.GameData;
 using LibreLancer.Data.Fuses;
 namespace LibreLancer
@@ -14,6 +15,8 @@ namespace LibreLancer
         public FuseResources Fuse;
         public bool Running = false;
         public double T = 0;
+
+        public List<SpawnedEffect> Effects = new List<SpawnedEffect>();
         public SFuseRunnerComponent(GameObject parent) : base(parent)
         {
         }
@@ -26,6 +29,9 @@ namespace LibreLancer
             T = 0;
         }
 
+
+        private uint fxID = 1;
+        
         public override void Update(double time)
         {
             T += time;
@@ -35,20 +41,13 @@ namespace LibreLancer
                 actions.Dequeue();
                 if (act is FuseStartEffect)
                 {
-                    /*var fxact = ((FuseStartEffect)act);
-                    if (Fuse.Fx[fxact.Effect] == null) continue;
-                    foreach (var fxhp in fxact.Hardpoints)
+                    var fxact = ((FuseStartEffect) act);
+                    Effects.Add(new SpawnedEffect()
                     {
-                        var hp = Parent.GetHardpoint(fxhp);
-                        var fxobj = new GameObject()
-                        {
-                            Parent = Parent,
-                            Attachment = hp,
-                            RenderComponent = new ParticleEffectRenderer(Fuse.Fx[fxact.Effect])
-                        };
-                        Parent.ForceRenderCheck.Add(fxobj.RenderComponent);
-                        Parent.Children.Add(fxobj);
-                    }*/
+                        ID = fxID++, Effect = fxact.Effect,
+                        Hardpoints = fxact.Hardpoints.ToArray()
+                    });
+                    Parent.World.Server.EffectSpawned(Parent);
                 }
                 else if (act is FuseDestroyGroup)
                 {

@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Linq;
 using System.Numerics;
 namespace LibreLancer
 {
@@ -25,6 +26,45 @@ namespace LibreLancer
                 }
             }
         }
+
+        public void SetRotations(GunOrient[] orients)
+        {
+            foreach (var wp in Parent.GetChildComponents<WeaponComponent>())
+            {
+                var hp = CrcTool.FLModelCrc(wp.Parent.Attachment.Name);
+                foreach (var o in orients) {
+                    if (o.Hardpoint == hp)
+                    {
+                        wp.RotateTowards(o.AngleRot, o.AnglePitch);
+                        break;
+                    }
+                }
+            }
+        }
+
+        public GunOrient[] GetRotations()
+        {
+            return Parent.GetChildComponents<WeaponComponent>().Select(x => new GunOrient()
+            {
+                Hardpoint = CrcTool.FLModelCrc(x.Parent.Attachment.Name),
+                AngleRot = x.Angles.X,
+                AnglePitch = x.Angles.Y
+            }).ToArray();
+        }
+        
+
+        public float GetMaxRange()
+        {
+            float range = 0;
+            foreach (var wp in Parent.GetChildComponents<WeaponComponent>())
+            {
+                var r = wp.Object.Munition.Def.Lifetime * wp.Object.Def.MuzzleVelocity;
+                if (r > range) range = r;
+            }
+            return range;
+        }
+        
+        
 
         public void FireAll()
         {

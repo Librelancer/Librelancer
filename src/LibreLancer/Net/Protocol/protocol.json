@@ -115,6 +115,10 @@
           ]
         },
         {
+          "name": "UpdateEffects",
+          "args": [ { "name":  "id", "type":  "int" }, { "name": "effects", "type": "SpawnedEffect[]" }]
+        },
+        {
           "name": "SpawnProjectiles",
           "args": [ 
             { "name":  "projectiles", "type":  "ProjectileSpawn[]" }

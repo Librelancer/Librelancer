@@ -43,7 +43,7 @@ namespace LibreLancer
                     world.Renderer?.SpawnTempFx(Projectiles[i].Data.HitEffect, contactPoint);
                     if (po.Tag is GameObject go) 
                     {
-                        world.Server?.ProjectileHit(go, Projectiles[i].Data.Munition);
+                        world.Server?.ProjectileHit(go, Projectiles[i].Owner, Projectiles[i].Data.Munition);
                     }
                 }
                 Projectiles[i].Position += (Projectiles[i].Normal * tFloat);
@@ -130,6 +130,8 @@ namespace LibreLancer
                     inst = snd.GetInstance(projectile.Munition.Def.OneShotSound, 0, -1, -1, position);
                     _instances[soundID] = inst;
                 }
+
+                if (inst != null) inst.Priority = -2;
                 inst?.Set3D();
                 inst?.SetPosition(position);
                 inst?.Stop();
