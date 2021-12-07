@@ -27,7 +27,6 @@
     
   
   <ItemGroup>
-    <Folder Include="Docs\assets" />
     <Folder Include="Properties" />
   </ItemGroup>
 

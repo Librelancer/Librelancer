@@ -17,8 +17,15 @@
           </Content>
       </ItemGroup>
       <ItemGroup>
-          <Content Include="$(MSBuildThisFileDirectory)\..\..\bin\natives\**\*.*">
+          <Content Include="$(MSBuildThisFileDirectory)\..\..\bin\natives\*">
               <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
           </Content>
-      </ItemGroup>
+          <None 
+            Include="$(MSBuildThisFileDirectory)\..\..\bin\natives\x86\*" 
+            CopyToOutputDirectory="PreserveNewest"
+            Link="x86/%(RecursiveDir)%(Filename)%(Extension)"/>
+          <None Include="$(MSBuildThisFileDirectory)\..\..\bin\natives\x64\*" 
+          CopyToOutputDirectory="PreserveNewest"
+          Link="x64/%(RecursiveDir)%(Filename)%(Extension)"/>
+      </ItemGroup>   
 </Project>
