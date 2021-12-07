@@ -22,7 +22,8 @@ using LibreLancer.Data.Fuses;
 using LibreLancer.Data.Interface;
 using LibreLancer.Data.Missions;
 using LibreLancer.Data.NewCharDB;
-    
+using LibreLancer.Data.Pilots;
+
 namespace LibreLancer.Data
 {
     public class FreelancerData
@@ -64,6 +65,7 @@ namespace LibreLancer.Data
         public InfocardMapIni InfocardMap;
         public NavmapIni Navmap; //Extension
         public NPCShipIni NPCShips;
+        public PilotsIni Pilots;
         
         public string DataVersion;
         public bool Loaded = false;
@@ -159,6 +161,19 @@ namespace LibreLancer.Data
             tasks.Add(Task.Run(() =>
             {
                 Universe = new UniverseIni(Freelancer.UniversePath, this);
+            }));
+            //Pilots
+            tasks.Add(Task.Run(() =>
+            {
+                Pilots = new PilotsIni();
+                if (VFS.FileExists(Freelancer.DataPath + "MISSIONS\\pilots_population.ini"))
+                {
+                    Pilots.AddFile(Freelancer.DataPath + "MISSIONS\\pilots_population.ini", VFS);
+                }
+                if (VFS.FileExists(Freelancer.DataPath + "MISSIONS\\pilots_story.ini"))
+                {
+                    Pilots.AddFile(Freelancer.DataPath + "MISSIONS\\pilots_story.ini", VFS);
+                }
             }));
             //Graphs
             tasks.Add(Task.Run(() =>

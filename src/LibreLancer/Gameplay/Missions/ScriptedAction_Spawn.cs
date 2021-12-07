@@ -52,7 +52,8 @@ namespace LibreLancer.Gameplay.Missions
             runtime.Player.WorldAction(() =>
             {
                 runtime.Player.World.Server.GameData.TryGetLoadout(shipArch.Loadout, out var ld);
-                var obj = runtime.Player.World.NPCs.DoSpawn(ship.Nickname, ld, pos, orient);
+                var pilot = runtime.Player.World.Server.GameData.GetPilot(shipArch.Pilot);
+                var obj = runtime.Player.World.NPCs.DoSpawn(ship.Nickname, ld, pilot, pos, orient);
                 obj.GetComponent<SNPCComponent>().SetState(state);
             });
         }

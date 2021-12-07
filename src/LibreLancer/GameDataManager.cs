@@ -306,6 +306,7 @@ namespace LibreLancer
                 FLLog.Info("Game", "Loading Character Animations");
                 GetCharacterAnimations();
             });
+            AsyncAction(InitPilots);
             FLLog.Info("Game", "Initing Tables");
             var introbases = InitBases().ToArray();
             InitShips();
@@ -1187,6 +1188,60 @@ namespace LibreLancer
                 if (mdl.LibraryFiles[0] == null) mdl.LibraryFiles = new string[0];
             }
             return mdl;
+        }
+
+        void FillBlock<T>(string blockId, List<T> source, ref T dest) where T : Data.Pilots.PilotBlock
+        {
+            if (!string.IsNullOrEmpty(blockId))
+            {
+                dest = source.First(x => x.Nickname.Equals(blockId, StringComparison.OrdinalIgnoreCase));
+            }
+        }
+
+        void FillPilot(Pilot pilot, Data.Pilots.Pilot src)
+        {
+            if (src.Inherit != null)
+            {
+                var parent = fldata.Pilots.Pilots.First(x =>
+                    x.Nickname.Equals(src.Inherit, StringComparison.OrdinalIgnoreCase));
+                FillPilot(pilot, parent);
+            }
+            FillBlock(src.BuzzHeadTowardId, fldata.Pilots.BuzzHeadTowardBlocks, ref pilot.BuzzHeadToward);
+            FillBlock(src.BuzzPassById, fldata.Pilots.BuzzPassByBlocks, ref pilot.BuzzPassBy);
+            FillBlock(src.CountermeasureId, fldata.Pilots.CountermeasureBlocks, ref pilot.Countermeasure);
+            FillBlock(src.DamageReactionId, fldata.Pilots.DamageReactionBlocks, ref pilot.DamageReaction);
+            FillBlock(src.EngineKillId, fldata.Pilots.EngineKillBlocks, ref pilot.EngineKill);
+            FillBlock(src.EvadeBreakId, fldata.Pilots.EvadeBreakBlocks, ref pilot.EvadeBreak);
+            FillBlock(src.EvadeDodgeId, fldata.Pilots.EvadeDodgeBlocks, ref pilot.EvadeDodge); 
+            FillBlock(src.FormationId, fldata.Pilots.FormationBlocks, ref pilot.Formation);
+            FillBlock(src.GunId, fldata.Pilots.GunBlocks, ref pilot.Gun);
+            FillBlock(src.JobId, fldata.Pilots.JobBlocks, ref pilot.Job);
+            FillBlock(src.MineId, fldata.Pilots.MineBlocks, ref pilot.Mine); 
+            FillBlock(src.MissileId, fldata.Pilots.MissileBlocks, ref pilot.Missile);
+            FillBlock(src.MissileReactionId, fldata.Pilots.MissileReactionBlocks, ref pilot.MissileReactionBlock);
+            FillBlock(src.RepairId, fldata.Pilots.RepairBlocks, ref pilot.Repair);
+            FillBlock(src.StrafeId, fldata.Pilots.StrafeBlocks, ref pilot.Strafe);
+            FillBlock(src.TrailId, fldata.Pilots.TrailBlocks, ref pilot.Trail);
+        }
+
+        private Dictionary<string, Pilot> pilots = new Dictionary<string, Pilot>(StringComparer.OrdinalIgnoreCase);
+
+        public Pilot GetPilot(string nickname)
+        {
+            if(string.IsNullOrEmpty(nickname)) return null;
+            pilots.TryGetValue(nickname, out var p);
+            return p;
+        }
+        
+        void InitPilots()
+        {
+            FLLog.Info("Game", "Initing Pilots");
+            foreach (var orig in fldata.Pilots.Pilots)
+            {
+                var p = new Pilot() {Nickname = orig.Nickname};
+                FillPilot(p, orig);
+                pilots[p.Nickname] = p;
+            }
         }
         
         void InitShips()

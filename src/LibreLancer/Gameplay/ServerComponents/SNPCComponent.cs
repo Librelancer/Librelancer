@@ -14,6 +14,8 @@ namespace LibreLancer
         public Action<GameObject, GameObject> ProjectileHitHook;
 
         public List<GameObject> HostileNPCs = new List<GameObject>();
+
+        public GameData.Pilot Pilot;
         
         public void OnProjectileHit(GameObject attacker)
         {
@@ -46,6 +48,8 @@ namespace LibreLancer
             state?.OnStart(Parent, this);
         }
 
+        private double fireTimer;
+        
         public override void FixedUpdate(double time)
         {
             CurrentState?.Update(Parent, this, time);
@@ -62,14 +66,20 @@ namespace LibreLancer
                     break;
                 }
             }
+            
             if (shootAt != null && Parent.TryGetComponent<WeaponControlComponent>(out var weapons))
             {
                 var dist = Vector3.Distance(shootAt.WorldTransform.Translation, myPos);
                 var range = weapons.GetMaxRange() * 0.95f;
                 if (dist < range)
                 {
+                    fireTimer -= time;
                     weapons.AimPoint = Vector3.Transform(Vector3.Zero, shootAt.WorldTransform);
-                    weapons.FireAll();
+                    if (fireTimer <= 0)
+                    {
+                        weapons.FireAll();
+                        fireTimer = Pilot?.Gun?.FireIntervalTime ?? 0;
+                    }
                 }
                 else {
                     if (CurrentState == null && Parent.TryGetComponent<AutopilotComponent>(out var ap)) {
@@ -79,6 +89,10 @@ namespace LibreLancer
                         }
                     }
                 }
+            }
+            else
+            {
+                fireTimer = Pilot?.Gun?.FireIntervalTime ?? 0;
             }
         }
 

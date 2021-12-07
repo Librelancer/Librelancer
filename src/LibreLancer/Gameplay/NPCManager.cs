@@ -55,7 +55,7 @@ namespace LibreLancer
                 act(missionNPCs[nickname]);
             });
         }
-        public GameObject DoSpawn(string nickname, Loadout loadout, Vector3 position, Quaternion orient)
+        public GameObject DoSpawn(string nickname, Loadout loadout, GameData.Pilot pilot, Vector3 position, Quaternion orient)
         {
             NetShipLoadout netLoadout = new NetShipLoadout();
             netLoadout.Equipment = new List<NetShipEquip>();
@@ -80,7 +80,7 @@ namespace LibreLancer
                 var hp = equipped.Hardpoint == null ? 0 : CrcTool.FLModelCrc(equipped.Hardpoint);
                 netLoadout.Equipment.Add(new NetShipEquip(hp, e.CRC, 255));
             }
-            obj.Components.Add(new SNPCComponent(obj, this) {Loadout = netLoadout});
+            obj.Components.Add(new SNPCComponent(obj, this) {Loadout = netLoadout, Pilot = pilot});
             obj.Components.Add(new ShipPhysicsComponent(obj) { Ship = ship });
             obj.Components.Add(new ShipInputComponent(obj));
             obj.Components.Add(new AutopilotComponent(obj));
@@ -95,7 +95,7 @@ namespace LibreLancer
             var completionSource = new TaskCompletionSource<int>();
             World.EnqueueAction(() =>
             {
-                var obj = DoSpawn(null, loadout, position, Quaternion.Identity);
+                var obj = DoSpawn(null, loadout, null, position, Quaternion.Identity);
                 completionSource.SetResult(obj.NetID);
             });
             return completionSource.Task;
