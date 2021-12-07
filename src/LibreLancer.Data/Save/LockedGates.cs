@@ -11,5 +11,8 @@ namespace LibreLancer.Data.Save
     {
         [Entry("npc_locked_gate", Multiline = true)]
         public List<int> NpcLockedGates = new List<int>();
+
+        [Entry("locked_gate", Multiline = true)]
+        public List<int> PlayerLockedGates = new List<int>();
     }
 }

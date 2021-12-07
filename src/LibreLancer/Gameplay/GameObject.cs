@@ -218,7 +218,7 @@ namespace LibreLancer
                 p.Active = false;
                 PhysicsComponent.DisablePart(p);
                 World?.Server?.PartDisabled(this, part);
-                for (int i = Children.Count - 1; i <= 0; i--)
+                for (int i = Children.Count - 1; i >= 0; i--)
                 {
                     var child = Children[i];
                     if (!(child.Attachment?.Parent?.Active ?? true))

@@ -1190,11 +1190,16 @@ namespace LibreLancer
             return mdl;
         }
 
-        void FillBlock<T>(string blockId, List<T> source, ref T dest) where T : Data.Pilots.PilotBlock
+        void FillBlock<T>(string nick, string blockId, List<T> source, ref T dest) where T : Data.Pilots.PilotBlock
         {
             if (!string.IsNullOrEmpty(blockId))
             {
-                dest = source.First(x => x.Nickname.Equals(blockId, StringComparison.OrdinalIgnoreCase));
+                var obj = source.FirstOrDefault(x => x.Nickname.Equals(blockId, StringComparison.OrdinalIgnoreCase));
+                if (obj == null) {
+                    FLLog.Warning("Pilot", $"{nick}: Unable to find {typeof(T).Name} '{blockId}'");
+                } else {
+                    dest = obj;
+                }
             }
         }
 
@@ -1206,22 +1211,24 @@ namespace LibreLancer
                     x.Nickname.Equals(src.Inherit, StringComparison.OrdinalIgnoreCase));
                 FillPilot(pilot, parent);
             }
-            FillBlock(src.BuzzHeadTowardId, fldata.Pilots.BuzzHeadTowardBlocks, ref pilot.BuzzHeadToward);
-            FillBlock(src.BuzzPassById, fldata.Pilots.BuzzPassByBlocks, ref pilot.BuzzPassBy);
-            FillBlock(src.CountermeasureId, fldata.Pilots.CountermeasureBlocks, ref pilot.Countermeasure);
-            FillBlock(src.DamageReactionId, fldata.Pilots.DamageReactionBlocks, ref pilot.DamageReaction);
-            FillBlock(src.EngineKillId, fldata.Pilots.EngineKillBlocks, ref pilot.EngineKill);
-            FillBlock(src.EvadeBreakId, fldata.Pilots.EvadeBreakBlocks, ref pilot.EvadeBreak);
-            FillBlock(src.EvadeDodgeId, fldata.Pilots.EvadeDodgeBlocks, ref pilot.EvadeDodge); 
-            FillBlock(src.FormationId, fldata.Pilots.FormationBlocks, ref pilot.Formation);
-            FillBlock(src.GunId, fldata.Pilots.GunBlocks, ref pilot.Gun);
-            FillBlock(src.JobId, fldata.Pilots.JobBlocks, ref pilot.Job);
-            FillBlock(src.MineId, fldata.Pilots.MineBlocks, ref pilot.Mine); 
-            FillBlock(src.MissileId, fldata.Pilots.MissileBlocks, ref pilot.Missile);
-            FillBlock(src.MissileReactionId, fldata.Pilots.MissileReactionBlocks, ref pilot.MissileReactionBlock);
-            FillBlock(src.RepairId, fldata.Pilots.RepairBlocks, ref pilot.Repair);
-            FillBlock(src.StrafeId, fldata.Pilots.StrafeBlocks, ref pilot.Strafe);
-            FillBlock(src.TrailId, fldata.Pilots.TrailBlocks, ref pilot.Trail);
+
+            string n = src.Nickname;
+            FillBlock(n,src.BuzzHeadTowardId, fldata.Pilots.BuzzHeadTowardBlocks, ref pilot.BuzzHeadToward);
+            FillBlock(n, src.BuzzPassById, fldata.Pilots.BuzzPassByBlocks, ref pilot.BuzzPassBy);
+            FillBlock(n, src.CountermeasureId, fldata.Pilots.CountermeasureBlocks, ref pilot.Countermeasure);
+            FillBlock(n, src.DamageReactionId, fldata.Pilots.DamageReactionBlocks, ref pilot.DamageReaction);
+            FillBlock(n, src.EngineKillId, fldata.Pilots.EngineKillBlocks, ref pilot.EngineKill);
+            FillBlock(n, src.EvadeBreakId, fldata.Pilots.EvadeBreakBlocks, ref pilot.EvadeBreak);
+            FillBlock(n, src.EvadeDodgeId, fldata.Pilots.EvadeDodgeBlocks, ref pilot.EvadeDodge); 
+            FillBlock(n, src.FormationId, fldata.Pilots.FormationBlocks, ref pilot.Formation);
+            FillBlock(n, src.GunId, fldata.Pilots.GunBlocks, ref pilot.Gun);
+            FillBlock(n, src.JobId, fldata.Pilots.JobBlocks, ref pilot.Job);
+            FillBlock(n, src.MineId, fldata.Pilots.MineBlocks, ref pilot.Mine); 
+            FillBlock(n, src.MissileId, fldata.Pilots.MissileBlocks, ref pilot.Missile);
+            FillBlock(n, src.MissileReactionId, fldata.Pilots.MissileReactionBlocks, ref pilot.MissileReactionBlock);
+            FillBlock(n, src.RepairId, fldata.Pilots.RepairBlocks, ref pilot.Repair);
+            FillBlock(n, src.StrafeId, fldata.Pilots.StrafeBlocks, ref pilot.Strafe);
+            FillBlock(n, src.TrailId, fldata.Pilots.TrailBlocks, ref pilot.Trail);
         }
 
         private Dictionary<string, Pilot> pilots = new Dictionary<string, Pilot>(StringComparer.OrdinalIgnoreCase);
