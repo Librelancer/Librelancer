@@ -209,7 +209,6 @@ namespace BuildLL
             });
             Target("BuildSdk", DependsOn("GenerateVersion", "BuildDocumentation", "BuildNatives", "Restore"), () =>
             {
-                Dotnet.Build("./src/Editor/DocumentationMSBuild/DocumentationMSBuild.csproj");
                 if(IsWindows) {
                     FullBuild("win7-x86", true);
                     FullBuild("win7-x64", true);
