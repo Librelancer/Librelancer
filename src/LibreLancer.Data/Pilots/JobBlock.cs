@@ -102,6 +102,7 @@ namespace LibreLancer.Data.Pilots
         Gunboat,
         Cruiser,
         Capital,
+        Jumpgate,
         Weapons_Platform,
         Solar,
         Destroyable_Depot,
