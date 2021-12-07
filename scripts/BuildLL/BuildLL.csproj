@@ -9,7 +9,14 @@
       <PackageReference Include="Bullseye" Version="3.7.0" />
         <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0096" />
         <PackageReference Include="LibGit2Sharp.NativeBinaries" Version="2.0.312" />
+        <PackageReference Include="Markdig" Version="0.26.0" />
+        <PackageReference Include="MarkdigExtensions.UrlRewriter" Version="1.0.0" />
         <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="3.1.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="template.html" />
+      <EmbeddedResource Include="template.html" />
     </ItemGroup>
 
 </Project>

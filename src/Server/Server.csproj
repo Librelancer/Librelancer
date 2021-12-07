@@ -29,4 +29,6 @@
     </PackageReference>
   </ItemGroup>
 
+  <Import Project="..\PublishAssets\PublishAssets.projitems" Label="Shared" />
+
 </Project>

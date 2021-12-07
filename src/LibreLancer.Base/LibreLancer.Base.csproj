@@ -22,21 +22,7 @@
     <ProjectReference Include="..\External\FontConfigSharp_Core\FontConfigSharp_Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Remove="LibreLancer.Base.dll.config" />
-    <Content Include="LibreLancer.Base.dll.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <None Remove="LibreLancer.Media.dll.config" />
-    <Content Include="LibreLancer.Media.dll.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="..\..\bin\natives\**\*.*">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+  
   <ItemGroup>
     <Folder Include="Properties" />
   </ItemGroup>

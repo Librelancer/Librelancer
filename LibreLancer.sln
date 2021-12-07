@@ -61,6 +61,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleMesh", "extern\Simple
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiteNetLib", "extern\LiteNetLib\LiteNetLib\LiteNetLib.csproj", "{62379547-E88E-4484-8338-9A0B06476E34}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "PublishAssets", "src\PublishAssets\PublishAssets.shproj", "{FD9729FD-84FC-49E7-B3FF-BBA3F4268B87}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

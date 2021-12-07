@@ -17,4 +17,6 @@
       <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.5.0" />
     </ItemGroup>
 
+    <Import Project="..\..\PublishAssets\PublishAssets.projitems" Label="Shared" />
+
 </Project>

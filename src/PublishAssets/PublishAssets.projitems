@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>1DBC7217-C374-49FB-97B2-A7E300DB05C9</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>PublishAssets</Import_RootNamespace>
+  </PropertyGroup>
+   <ItemGroup>
+          <Content Include="$(MSBuildThisFileDirectory)\LibreLancer.Base.dll.config">
+              <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+          </Content>
+          <Content Include="$(MSBuildThisFileDirectory)\LibreLancer.Media.dll.config">
+              <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+          </Content>
+      </ItemGroup>
+      <ItemGroup>
+          <Content Include="$(MSBuildThisFileDirectory)\..\..\bin\natives\**\*.*">
+              <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+          </Content>
+      </ItemGroup>
+</Project>

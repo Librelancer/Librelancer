@@ -21,7 +21,6 @@
     <ProjectReference Include="..\..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj" />
     <ProjectReference Include="..\..\LibreLancer.Media\LibreLancer.Media.csproj" />
     <ProjectReference Include="..\..\LibreLancer\LibreLancer.csproj" />
-    <ProjectReference Include="..\DocumentationMSBuild\DocumentationMSBuild.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\LibreLancer.ContentEdit\LibreLancer.ContentEdit.csproj" />
     <ProjectReference Include="..\LibreLancer.ImUI\LibreLancer.ImUI.csproj" />
   </ItemGroup>
@@ -43,20 +42,5 @@
       <Link>reactor_64.png</Link>
     </EmbeddedResource>
   </ItemGroup>
-    <!-- MSBuild code for generating documentation -->
-    <ItemGroup>
-        <Content Include="Docs\**\*" />
-    </ItemGroup>
-    <UsingTask TaskName="DocumentationTask" AssemblyFile="$(MSBuildThisFileDirectory)..\DocumentationMSBuild\bin\DocumentationMSBuild.dll" />
-    <Target Name="BuildDocumentation">
-        <DocumentationTask VersionString="$(InformationalVersion)" SourceDir="$(MSBuildThisFileDirectory)Docs" OutputDir="$(IntermediateOutputPath)gen\Docs" />
-        <ItemGroup>
-            <ExtraContent Include="$(IntermediateOutputPath)gen\**\*.*" />
-        </ItemGroup>
-    </Target>
-    <Target Name="CopyDocumentation" DependsOnTargets="BuildDocumentation" BeforeTargets="BeforeBuild;PrepareForPublish">
-        <CreateItem Include="%(ExtraContent.FullPath)" AdditionalMetadata="Link=%(ExtraContent.ContentDir)%(ExtraContent.RecursiveDir)%(ExtraContent.Filename)%(ExtraContent.Extension);CopyToOutputDirectory=PreserveNewest">
-            <Output TaskParameter="Include" ItemName="Content" />
-        </CreateItem>
-    </Target>
+  <Import Project="..\..\PublishAssets\PublishAssets.projitems" Label="Shared" />
 </Project>
