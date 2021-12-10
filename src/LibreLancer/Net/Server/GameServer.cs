@@ -213,7 +213,7 @@ namespace LibreLancer
             if (needLoadData)
             {
                 FLLog.Info("Server", "Loading Game Data...");
-                GameData.LoadData();
+                GameData.LoadData(null);
                 FLLog.Info("Server", "Finished Loading Game Data");
             }
             InitBaselinePrices();

@@ -397,7 +397,7 @@ C# Memory Usage: {5}
             Thread GameDataLoaderThread = new Thread(() =>
             {
                 GameData = new GameDataManager(path, Resources);
-                GameData.LoadData();
+                GameData.LoadData(this);
                 FLLog.Info("Game", "Finished loading game data");
                 EnsureUIThread(OnLoadComplete);
             });

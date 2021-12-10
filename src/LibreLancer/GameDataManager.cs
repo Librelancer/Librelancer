@@ -298,45 +298,10 @@ namespace LibreLancer
             Task.WaitAll(asyncTasks.ToArray());
             asyncTasks = new List<Task>();
         }
-        public void LoadData()
+        public void LoadData(IUIThread ui, Action onIniLoaded = null)
         {
             fldata.LoadData();
-            AsyncAction(() =>
-            {
-                FLLog.Info("Game", "Loading Character Animations");
-                GetCharacterAnimations();
-            });
-            AsyncAction(InitPilots);
-            FLLog.Info("Game", "Initing Tables");
-            var introbases = InitBases().ToArray();
-            InitShips();
-            InitArchetypes();
-            InitEquipment();
-            InitGoods();
-            InitMarkets();
-            InitSystems();
-            FLLog.Info("Game", "Loading intro scenes");
-            IntroScenes = new List<GameData.IntroScene>();
-            foreach (var b in introbases)
-            {
-                foreach (var room in b.Rooms)
-                {
-                    if (room.Nickname == b.StartRoom)
-                    {
-                        var isc = new GameData.IntroScene();
-                        isc.Scripts = new List<ThnScript>();
-                        foreach (var p in room.SceneScripts)
-                        {
-                            var path = ResolveDataPath(p);
-                            isc.ThnName = path;
-                            isc.Scripts.Add(new ThnScript(path));
-                        }
-                        isc.Music = room.Music;
-                        IntroScenes.Add(isc);
-                    }
-                }
-            }
-            if (glResource != null)
+            if (glResource != null && ui != null)
             {
                 glResource.AddPreload(
                     fldata.EffectShapes.Files.Select(txmfile => ResolveDataPath(txmfile))
@@ -351,7 +316,50 @@ namespace LibreLancer
                     };
                     glResource.AddShape(shape.Key, s);
                 }
+                ui.QueueUIThread(() => glResource.Preload());
             }
+            if(onIniLoaded != null) ui.QueueUIThread(onIniLoaded);
+            AsyncAction(() =>
+            {
+                FLLog.Info("Game", "Loading Character Animations");
+                GetCharacterAnimations();
+            });
+            
+            AsyncAction(InitPilots);
+            FLLog.Info("Game", "Initing Tables");
+            AsyncAction(InitShips);
+            var introbases = InitBases().ToArray();
+            AsyncAction(() =>
+            {
+                FLLog.Info("Game", "Loading intro scenes");
+                IntroScenes = new List<GameData.IntroScene>();
+                foreach (var b in introbases)
+                {
+                    foreach (var room in b.Rooms)
+                    {
+                        if (room.Nickname == b.StartRoom)
+                        {
+                            var isc = new GameData.IntroScene();
+                            isc.Scripts = new List<ThnScript>();
+                            foreach (var p in room.SceneScripts)
+                            {
+                                var path = ResolveDataPath(p);
+                                isc.ThnName = path;
+                                isc.Scripts.Add(new ThnScript(path));
+                            }
+                            isc.Music = room.Music;
+                            IntroScenes.Add(isc);
+                        }
+                    }
+                }
+            });
+            InitArchetypes();
+            InitEquipment();
+            InitGoods();
+            InitMarkets();
+            InitSystems();
+            
+           
             FLLog.Info("Game", "Waiting on threads");
             WaitTasks();
             fldata.Universe = null; //Free universe ini!

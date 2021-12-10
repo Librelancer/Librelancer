@@ -68,6 +68,8 @@ namespace LibreLancer
 				currentState.Unregister();
 			currentState = state;
 		}
+
+        public bool InisLoaded = false;
 		protected override void Load()
         {
             Thread.CurrentThread.Name = "FreelancerGame UIThread";
@@ -97,9 +99,12 @@ namespace LibreLancer
             var saveLoadTask = Task.Run(() => Saves.Load(GetSaveFolder()));
             Thread GameDataLoaderThread = new Thread(() =>
             {
-                GameData.LoadData();
-                Sound = new SoundManager(GameData, Audio);
-                Services.Add(Sound);
+                GameData.LoadData(this, () =>
+                {
+                    Sound = new SoundManager(GameData, Audio);
+                    Services.Add(Sound);
+                    InisLoaded = true;
+                });
                 FLLog.Info("Game", "Finished loading game data");
                 saveLoadTask.Wait();
                 Saves.Infocards = GameData.Ini.Infocards;

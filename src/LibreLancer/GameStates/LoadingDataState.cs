@@ -18,27 +18,32 @@ namespace LibreLancer
 			splash = g.GameData.GetSplashScreen();
 		}
         bool shadersCompiled = false;
+        private bool uiLoaded = false;
         int xCnt = 0;
         public override void Draw(double delta)
 		{
             xCnt++;
 			Game.RenderContext.Renderer2D.DrawImageStretched(splash, new Rectangle(0, 0, Game.Width, Game.Height), Color4.White, true);
             DoFade(delta);
-            if (!shadersCompiled && (xCnt >= 5))
+            if (!shadersCompiled && (xCnt >= 3))
             {
                 Shaders.AllShaders.Compile();
                 shadersCompiled = true;
             }
-        }
-		public override void Update(double delta)
-		{
-            if (Game.InitialLoadComplete && !invoked)
+            if (xCnt >= 3&& Game.InisLoaded && !uiLoaded)
             {
-                invoked = true;
-                Game.ResourceManager.Preload();
                 Game.Fonts.LoadFontsFromGameData(Game.GameData);
                 Game.Ui = new UiContext(Game);
                 Game.Ui.LoadCode();
+                FLLog.Info("UI", "Interface loaded");
+                uiLoaded = true;
+            }
+        }
+		public override void Update(double delta)
+		{
+            if (Game.InitialLoadComplete && shadersCompiled && uiLoaded && !invoked)
+            {
+                invoked = true;
                 FadeOut(0.1, () =>
                 {
                     if (Game.Config.CustomState != null)
