@@ -69,8 +69,8 @@ namespace LibreLancer
             if (orientBuffer.Count == orientBuffer.Capacity)
             {
                 FLLog.Warning("Net", "Something bad happened lerp orient");
-                receivedPosTime = 0;
-                posBuffer.Clear();
+                receivedOrientTime = 0;
+                orientBuffer.Clear();
             }
             orientBuffer.Enqueue(new OrientState()
             {
