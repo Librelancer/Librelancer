@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.IO;
 using System.Threading.Tasks;
@@ -29,6 +30,7 @@ namespace LibreLancer
 		public List<string> IntroMovies;
 		public string MpvOverride;
 		public bool InitialLoadComplete = false;
+        public Stopwatch LoadTimer;
 		int uithread;
 		bool useintromovies;
 		GameState currentState;
@@ -53,6 +55,7 @@ namespace LibreLancer
             _cfg.Saved += CfgOnSaved;
 			ScreenshotSave += FreelancerGame_ScreenshotSave;
             Utf.Mat.TextureData.Bitch = true;
+            LoadTimer = Stopwatch.StartNew();
         }
 
         private void CfgOnSaved(GameConfig config)

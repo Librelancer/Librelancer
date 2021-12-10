@@ -19,8 +19,10 @@ namespace LibreLancer
         Cutscene scene;
         Cursor cur;
         MenuAPI api;
+        
         public LuaMenu(FreelancerGame g) : base(g)
         {
+            
             api = new MenuAPI(this);
             ui = Game.Ui;
             ui.GameApi = api;
@@ -41,6 +43,12 @@ namespace LibreLancer
             g.Keyboard.KeyDown += Keyboard_KeyDown;
 #endif
             Game.Saves.Selected = -1;
+            if (g.LoadTimer != null)
+            {
+                g.LoadTimer.Stop();
+                FLLog.Info("Game", $"Initial load took {g.LoadTimer.Elapsed.TotalSeconds} seconds");
+                g.LoadTimer = null;
+            }
             FadeIn(0.1, 0.3);
         }
 
