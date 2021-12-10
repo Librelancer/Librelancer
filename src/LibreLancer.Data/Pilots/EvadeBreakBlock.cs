@@ -8,7 +8,7 @@ using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Pilots
 {
-    public class EvadeBreakBlock : PilotBlock
+    public class EvadeBreakBlock : PilotBlock, ICustomEntryHandler
     {
         [Entry("evade_break_roll_throttle")] public float RollThrottle;
         [Entry("evade_break_time")] public float Time;
@@ -27,20 +27,19 @@ namespace LibreLancer.Data.Pilots
         public List<DirectionWeight> DirectionWeights = new List<DirectionWeight>();
         public List<EvadeBreakStyle> StyleWeights = new List<EvadeBreakStyle>();
 
-        bool HandleEntry(Entry e)
+        
+        private static readonly CustomEntry[] _custom = new CustomEntry[]
         {
-            if (e.Name.Equals("evade_break_direction_weight", StringComparison.OrdinalIgnoreCase))
-            {
-                DirectionWeights.Add(new DirectionWeight(e));
-                return true;
-            }
-            if (e.Name.Equals("evade_break_style_weight", StringComparison.OrdinalIgnoreCase))
-            {
-                StyleWeights.Add(new EvadeBreakStyle(e));
-                return true;
-            }
-            return false;
-        }
+            new(
+                "evade_break_style_weight",
+                (s, e) =>
+                    ((EvadeBreakBlock) s).StyleWeights.Add(new EvadeBreakStyle(e))),
+            new("evade_break_direction_weight",
+                (s, e) => ((EvadeBreakBlock) s).DirectionWeights.Add(new DirectionWeight(e)))
+
+        };
+
+        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
     }
     
     public class EvadeBreakStyle

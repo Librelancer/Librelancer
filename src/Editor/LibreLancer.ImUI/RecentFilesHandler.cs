@@ -19,7 +19,6 @@ namespace LibreLancer.ImUI
     }
     public class RecentFilesHandler
     {
-        static XmlSerializer _serializer = new XmlSerializer(typeof(RecentFilesXml));
         private RecentFilesXml data;
         private Action<string> open;
         public RecentFilesHandler(Action<string> openFile)
@@ -29,10 +28,11 @@ namespace LibreLancer.ImUI
             {
                 var path = CachePath();
                 if (File.Exists(path)) {
-                    using (var stream = File.OpenRead(path))
+                    data = new RecentFilesXml()
                     {
-                        data = (RecentFilesXml)_serializer.Deserialize(stream);
-                    }
+                        Files = File.ReadAllLines(path).Where((x) => !string.IsNullOrWhiteSpace(x))
+                            .ToList()
+                    };
                 }
                 else
                 {
@@ -110,9 +110,7 @@ namespace LibreLancer.ImUI
         {
             try
             {
-                using (var stream = File.Create(CachePath())) {
-                    _serializer.Serialize(stream, data);
-                }
+                File.WriteAllLines(CachePath(), data.Files);
             }
             catch (Exception)
             {
@@ -167,7 +165,7 @@ namespace LibreLancer.ImUI
             {
                 directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             }
-            return Path.Combine(directory, "librelancer." + Assembly.GetEntryAssembly().GetName().Name + ".recentfiles.xml");
+            return Path.Combine(directory, "librelancer." + Assembly.GetEntryAssembly().GetName().Name + ".recentfiles.txt");
         }
     }
 }

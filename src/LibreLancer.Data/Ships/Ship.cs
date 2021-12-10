@@ -8,7 +8,7 @@ using System.Numerics;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Ships
 {
-	public class Ship
+	public class Ship : ICustomEntryHandler
 	{
         [Entry("ids_name")]
 		public int IdsName;
@@ -113,23 +113,17 @@ namespace LibreLancer.Data.Ships
         public List<ShipFuse> Fuses = new List<ShipFuse>();
 
         public List<ShipHpDef> HardpointTypes = new List<ShipHpDef>();
-        bool HandleEntry(Entry e)
+
+        private static readonly CustomEntry[] _custom = new CustomEntry[]
         {
-            switch(e.Name.ToLowerInvariant())
-            {
-                case "fuse":
-                     Fuses.Add(new ShipFuse(e));
-                     return true;
-                case "shield_link":
-                case "surface_hit_effects":
-                    return true;
-                case "hp_type":
-                    HardpointTypes.Add(new ShipHpDef(e));
-                    return true;
-            }
-            return false;
-        }
-	}
+            new("fuse", (h, e) => ((Ship) h).Fuses.Add(new ShipFuse(e))),
+            new("shield_link", CustomEntry.Ignore),
+            new("surface_hit_effects", CustomEntry.Ignore),
+            new("hp_type", (h, e) => ((Ship) h).HardpointTypes.Add(new ShipHpDef(e)))
+        };
+
+        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+    }
 
     public class ShipFuse
     {

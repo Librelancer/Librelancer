@@ -6,7 +6,7 @@ using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Equipment
 {
-    public class ShieldGenerator : AbstractEquipment
+    public class ShieldGenerator : AbstractEquipment, ICustomEntryHandler
     {
         [Entry("shield_rebuilt_sound")] public string ShieldRebuiltSound;
         [Entry("shield_collapse_particle")] public string ShieldCollapseParticle;
@@ -21,7 +21,13 @@ namespace LibreLancer.Data.Equipment
         [Entry("shield_type")] public string ShieldType;
         public List<ShieldHitEffect> ShieldHitEffects = new List<ShieldHitEffect>();
 
-        [Entry("shield_hit_effects", Multiline = true)]
+        private static readonly CustomEntry[] _custom = new CustomEntry[]
+        {
+            new("shield_hit_effects", (s,e) => ((ShieldGenerator)s).HandleShieldHitEffects(e)),
+        };
+
+        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+        
         void HandleShieldHitEffects(Entry e)
         {
             ShieldHitEffects.Add(new ShieldHitEffect()

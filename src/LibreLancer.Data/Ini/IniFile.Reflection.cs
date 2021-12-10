@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Numerics;
 using LibreLancer.Data;
 
@@ -17,7 +16,7 @@ namespace LibreLancer.Ini
     //Class for constructing ini through Reflection
     public abstract partial class IniFile
     {
-        static uint HashLC(string s)
+        public static uint Hash(string s)
         {
             uint num = 0x811c9dc5;
             for (int i = 0; i < s.Length; i++)
@@ -37,7 +36,6 @@ namespace LibreLancer.Ini
             public uint[] FieldHashes;
             public List<ReflectionSection> ChildSections = new List<ReflectionSection>();
             public ulong RequiredFields = 0;
-            public Func<object, Entry, bool> HandleEntry;
         }
 
         class ReflectionSection
@@ -57,7 +55,7 @@ namespace LibreLancer.Ini
 
             public ReflectionSection GetSection(string s)
             {
-                var hash = HashLC(s);
+                var hash = Hash(s);
                 for (int i = 0; i < SectionHashes.Length; i++)
                 {
                     if (SectionHashes[i] == hash && Sections[i].Name.Equals(s, StringComparison.OrdinalIgnoreCase))
@@ -72,7 +70,6 @@ namespace LibreLancer.Ini
             public EntryAttribute Attr;
             public FieldInfo Field;
             public Type NullableType;
-            public Action<object,Entry> Method;
         }
 
         static Dictionary<Type, ContainerClass> containerclasses = new Dictionary<Type, ContainerClass>();
@@ -98,24 +95,6 @@ namespace LibreLancer.Ini
 
         static object _sLock = new object();
         static object _cLock = new object();
-
-        static Func<object, Entry, bool> CompileHandleEntry(Type t, MethodInfo mi)
-        {
-            var obj = Expression.Parameter(typeof(object), "obj");
-            var e = Expression.Parameter(typeof(Entry), "e");
-            var conv = Expression.Convert(obj, t);
-            var lambda = Expression.Lambda<Func<object, Entry, bool>>(Expression.Call(conv, mi, e), obj, e);
-            return lambda.Compile();
-        }
-
-        static Action<object, Entry> CompileTypeEntry(Type t, MethodInfo mi)
-        {
-            var obj = Expression.Parameter(typeof(object), "obj");
-            var e = Expression.Parameter(typeof(Entry), "e");
-            var conv = Expression.Convert(obj, t);
-            var lambda = Expression.Lambda<Action<object, Entry>>(Expression.Call(conv, mi, e), obj, e);
-            return lambda.Compile();
-        }
 
         static ReflectionInfo GetSectionInfo(Type t)
         {
@@ -154,27 +133,11 @@ namespace LibreLancer.Ini
                     }
                     
                 }
-                foreach (var method in t.GetMethods(F_CLASSMEMBERS))
-                {
-                    var attrs = method.GetCustomAttributes<EntryAttribute>();
-                    foreach (var a in attrs) {
-                        info.Fields.Add(new ReflectionField() { Attr = a, Method = CompileTypeEntry(t, method) });
-                        if (a.Required) info.RequiredFields |= (1ul << (info.Fields.Count - 1));
-                    }
-                }
                 //This should never be tripped
                 if (info.Fields.Count > 64) throw new Exception("Too many fields!! Edit bitmask code & raise limit");
                 info.FieldHashes = new uint[info.Fields.Count];
                 for (int i = 0; i < info.Fields.Count; i++) {
-                    info.FieldHashes[i] = HashLC(info.Fields[i].Attr.Name);
-                }
-                foreach (var mthd in t.GetMethods(F_CLASSMEMBERS))
-                {
-                    if (mthd.Name == "HandleEntry")
-                    {
-                        info.HandleEntry = CompileHandleEntry(t, mthd);
-                        break;
-                    }
+                    info.FieldHashes[i] = Hash(info.Fields[i].Attr.Name);
                 }
                 sectionclasses.Add(t, info);
                 return info;
@@ -227,7 +190,7 @@ namespace LibreLancer.Ini
                 cinfo.Sections = sections.ToArray();
                 cinfo.SectionHashes = new uint[cinfo.Sections.Length];
                 for (int i = 0; i < cinfo.SectionHashes.Length; i++) {
-                    cinfo.SectionHashes[i] = HashLC(cinfo.Sections[i].Name);
+                    cinfo.SectionHashes[i] = Hash(cinfo.Sections[i].Name);
                 }
                 return cinfo;
             }
@@ -262,7 +225,7 @@ namespace LibreLancer.Ini
             foreach (var e in s)
             {
                 //Find entry
-                var eHash = HashLC(e.Name);
+                var eHash = Hash(e.Name);
                 int idx = -1;
                 for (int i = 0; i < type.Fields.Count; i++)
                 {
@@ -277,8 +240,22 @@ namespace LibreLancer.Ini
                 if (idx == -1)
                 {
                     bool handled = false;
-                    if (type.HandleEntry != null)
-                        handled = type.HandleEntry(obj, e);
+                    if (obj is ICustomEntryHandler ce)
+                    {
+                        foreach (var k in ce.CustomEntries)
+                        {
+                            if (k.Hash == eHash)
+                            {
+                                k.Handler(ce, e);
+                                handled = true;
+                                break;
+                            }
+                        }
+                    } else if (obj is IEntryHandler eh)
+                    {
+                        eh.HandleEntry(e);
+                        handled = true;
+                    }
                     if (!handled) FLLog.Warning("Ini", "Unknown entry " + e.Name + FormatLine(e.File, e.Line, s.Name));
                     continue;
                 }
@@ -294,12 +271,6 @@ namespace LibreLancer.Ini
                     bitmask |= 1ul << idx;
                 }
                 requiredBits &= ~(1ul << idx);
-                //Handle by method
-                if (field.Method != null)
-                {
-                    field.Method(obj, e);
-                    continue;
-                }
                 //Handle by type
                 var ftype = field.Field.FieldType;
                 Type nType;

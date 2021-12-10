@@ -10,7 +10,7 @@ using LibreLancer.Ini;
 namespace LibreLancer.Data.Universe
 {
     [SelfSection("cube")]
-	public class AsteroidField : ZoneReference
+	public class AsteroidField : ZoneReference, ICustomEntryHandler
     {
         [Section("field")]
         public Field Field;
@@ -37,7 +37,11 @@ namespace LibreLancer.Data.Universe
         [Section("lootablezone")]
 		public List<LootableZone> LootableZones = new List<LootableZone>();
 
-        [Entry("asteroid", Multiline = true)]
-        void HandleAsteroid(Entry e) => Cube.Add(new CubeAsteroid(e));
+        private static readonly CustomEntry[] _custom = new CustomEntry[]
+        {
+            new("asteroid", (s,e) => ((AsteroidField)s).Cube.Add(new CubeAsteroid(e))),
+        };
+        
+        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
     }
 }

@@ -8,7 +8,7 @@ using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Pilots
 {
-    public class EvadeDodgeBlock : PilotBlock
+    public class EvadeDodgeBlock : PilotBlock, ICustomEntryHandler
     {
         [Entry("evade_dodge_cone_angle")] public float DodgeConeAngle;
         [Entry("evade_dodge_interval_time")] public float DodgeIntervalTime;
@@ -34,21 +34,19 @@ namespace LibreLancer.Data.Pilots
         public List<DodgeStyle> DodgeStyleWeights = new List<DodgeStyle>();
         public List<DirectionWeight> DodgeDirectionWeights = new List<DirectionWeight>();
 
-        bool HandleEntry(Entry e)
+        private static readonly CustomEntry[] _custom = new CustomEntry[]
         {
-            if (e.Name.Equals("evade_dodge_style_weight", StringComparison.OrdinalIgnoreCase))
-            {
-                DodgeStyleWeights.Add(new DodgeStyle(e));
-                return true;
-            }
-            if (e.Name.Equals("evade_dodge_direction_weight", StringComparison.OrdinalIgnoreCase))
-            {
-                DodgeDirectionWeights.Add(new DirectionWeight(e));
-                return true;
-            }
-            return false;
-        }
-        
+            new(
+                "evade_dodge_style_weight",
+                (s, e) =>
+                    ((EvadeDodgeBlock) s).DodgeStyleWeights.Add(new DodgeStyle(e))),
+            new("evade_dodge_direction_weight",
+                (s, e) => ((EvadeDodgeBlock) s).DodgeDirectionWeights.Add(new DirectionWeight(e)))
+
+        };
+
+        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+
     }
 
     public class DodgeStyle

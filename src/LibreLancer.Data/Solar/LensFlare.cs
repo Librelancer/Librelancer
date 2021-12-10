@@ -3,10 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using LibreLancer.Ini;
+
 namespace LibreLancer.Data.Solar
 {
-	public class LensFlare
+	public class LensFlare: ICustomEntryHandler
 	{
         [Entry("nickname")]
 		public string Nickname;
@@ -17,11 +19,13 @@ namespace LibreLancer.Data.Solar
         [Entry("max_radius")]
 		public int MaxRadius;
 
-        //Don't know what to do with bead entry yet, but it is valid
-        [Entry("bead", Multiline = true)]
-        void Noop(Entry e)
+        private static readonly CustomEntry[] _custom = new CustomEntry[]
         {
-        }
+            //Don't know what to do with bead entry yet, but it is valid
+            new("bead", CustomEntry.Ignore)
+        };
+
+        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
     }
 }
 

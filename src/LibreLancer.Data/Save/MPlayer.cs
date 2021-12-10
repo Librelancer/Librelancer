@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Save
 {
-    public class MPlayer
+    public class MPlayer : ICustomEntryHandler
     {
         [Entry("can_dock")]
         public int CanDock;
@@ -24,9 +24,11 @@ namespace LibreLancer.Data.Save
         [Entry("locked_gate", Multiline = true)]
         public List<int> LockedGates = new List<int>();
 
-        [Entry("vnpc", Multiline = true)]
-        void Noop(Entry e)
+        private static readonly CustomEntry[] _custom = new CustomEntry[]
         {
-        }
+            new("vnpc", CustomEntry.Ignore),
+        };
+
+        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
     }
 }

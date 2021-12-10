@@ -12,7 +12,7 @@ using LibreLancer.Data.Solar;
 
 namespace LibreLancer.Data
 {
-	public class Archetype 
+	public class Archetype : ICustomEntryHandler
 	{
         [Entry("nickname")]
         public string Nickname = "";
@@ -65,20 +65,23 @@ namespace LibreLancer.Data
         public float DistanceRender;
         [Entry("nomad")]
         public bool Nomad;
+        
+        private static readonly CustomEntry[] _custom = new CustomEntry[]
+        {
+            new("docking_sphere", (s,e) => ((Archetype)s).HandleDockingSphere(e)),
+            new("animated_textures", CustomEntry.Ignore),
+            new("surface_hit_effects", CustomEntry.Ignore),
+            new("fuse", CustomEntry.Ignore),
+            new("shield_link", CustomEntry.Ignore)
+        };
 
-        [Entry("docking_sphere", Multiline = true)]
+        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+        
         void HandleDockingSphere(Entry e)
         {
             string scr = e.Count == 4 ? e[3].ToString() : null;
             DockingSpheres.Add(new DockSphere() { Name = e[0].ToString(), Hardpoint = e[1].ToString(), Radius = e[2].ToInt32(), Script = scr });
         }
-
-        [Entry("animated_textures")]
-        [Entry("surface_hit_effects")]
-        [Entry("fuse", Multiline = true)]
-        [Entry("shield_link")]
-        void Noop(Entry e)
-        {
-        }
+        
     }
 }

@@ -9,7 +9,7 @@ using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Universe
 {
-	public class Zone : SystemPart
+	public class Zone : SystemPart, IEntryHandler
     {
         [Entry("shape")] 
         public ZoneShape? Shape;
@@ -107,7 +107,7 @@ namespace LibreLancer.Data.Universe
         
 		//public List<Encounter> Encounters { get; private set; }
 
-        bool HandleEntry(Entry e)
+        bool IEntryHandler.HandleEntry(Entry e)
         {
             if (e.Name.Equals("encounter", StringComparison.OrdinalIgnoreCase) ||
                 e.Name.Equals("faction", StringComparison.OrdinalIgnoreCase) ||

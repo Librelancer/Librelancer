@@ -10,7 +10,7 @@ using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Solar
 {
-	public class CollisionGroup
+	public class CollisionGroup : ICustomEntryHandler
 	{
         [Entry("obj")]
         public string obj;
@@ -38,15 +38,13 @@ namespace LibreLancer.Data.Solar
         [Entry("dmg_obj")]
         public string DmgObj;
 
-        bool HandleEntry(Entry e)
+        //TODO
+        //fuse = fuse_docking_ring, 0.000000, 1
+        private static readonly CustomEntry[] _custom = new CustomEntry[]
         {
-            if (e.Name.Equals("fuse", StringComparison.InvariantCultureIgnoreCase))
-            {
-                //TODO
-                //fuse = fuse_docking_ring, 0.000000, 1
-                return true;
-            }
-            return false;
-        }
+            new("fuse", CustomEntry.Ignore)
+        };
+        
+        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
     }
 }

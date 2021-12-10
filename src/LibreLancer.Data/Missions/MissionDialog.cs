@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Missions
 {
-    public class MissionDialog
+    public class MissionDialog : ICustomEntryHandler
     {
         [Entry("nickname")]
         public string Nickname;
@@ -15,7 +15,12 @@ namespace LibreLancer.Data.Missions
 
         public List<DialogLine> Lines = new List<DialogLine>();
 
-        [Entry("line", Multiline = true)]
+        private static readonly CustomEntry[] _custom = new CustomEntry[]
+        {
+            new("line", (s,e) => ((MissionDialog)s).HandleLine(e)),
+        };
+
+        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
         void HandleLine(Entry e) => Lines.Add(new DialogLine() { Source = e[0].ToString(), Target = e[1].ToString(), Line = e[2].ToString() });
     }
     public class DialogLine

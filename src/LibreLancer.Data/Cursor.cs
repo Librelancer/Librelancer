@@ -3,11 +3,14 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Ini;
+
 namespace LibreLancer.Data
 {
-	public class Cursor
+    
+	public class Cursor : ICustomEntryHandler
 	{
         [Entry("nickname")]
 		public string Nickname;
@@ -22,12 +25,13 @@ namespace LibreLancer.Data
         [Entry("color")]
 		public Color4 Color = Color4.White;
 
-        [Entry("anim")]
-        void HandleAnim(Entry e)
+        private static readonly CustomEntry[] _custom = new CustomEntry[]
         {
-            //TODO: Incomplete parse
-            Shape = e[0].ToString();
-        }
+            new("anim", (s,e) => ((Cursor)s).Shape = e[0].ToString()),
+        };
+
+        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+     
         public string Shape;
     }
 }

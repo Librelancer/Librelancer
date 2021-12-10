@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Missions
 {
-    public class ObjList
+    public class ObjList : IEntryHandler
     {
         [Entry("nickname")]
         public string Nickname;
@@ -15,7 +15,7 @@ namespace LibreLancer.Data.Missions
         public List<ObjCmd> Commands = new List<ObjCmd>();
         
         
-        bool HandleEntry(Entry e)
+        bool IEntryHandler.HandleEntry(Entry e)
         {
             ObjListCommands c;
             if(Enum.TryParse<ObjListCommands>(e.Name, true, out c))

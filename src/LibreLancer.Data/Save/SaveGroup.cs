@@ -7,14 +7,18 @@ using System.Collections.Generic;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Save
 {
-    public class SaveGroup
+    public class SaveGroup : ICustomEntryHandler
     {
         [Entry("nickname")]
         public string Nickname;
 
         public List<SaveRep> Rep = new List<SaveRep>();
 
-        [Entry("rep", Multiline = true)]
-        void HandleRep(Entry e) => Rep.Add(new SaveRep(e));
+        private static readonly CustomEntry[] _custom = new CustomEntry[]
+        {
+            new("rep", (s,e) => ((SaveGroup)s).Rep.Add(new SaveRep(e)))
+        };
+
+        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
     }
 }

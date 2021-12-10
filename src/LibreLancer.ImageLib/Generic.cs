@@ -4,8 +4,8 @@
 
 using System;
 using System.IO;
-using LibreLancer.GLDelegates;
 using StbImageSharp;
+
 namespace LibreLancer.ImageLib
 {
     public static class Generic

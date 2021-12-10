@@ -45,11 +45,11 @@ namespace LibreLancer.Data.Interface
     {
         [Entry("texture")] public string Texture;
     }
-    public class NavmapIniIcons
+    public class NavmapIniIcons : IEntryHandler
     {
         public Dictionary<string, string> Map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         
-        bool HandleEntry(Entry e)
+        bool IEntryHandler.HandleEntry(Entry e)
         {
             Map[e.Name] = e[0].ToString();
             return true;

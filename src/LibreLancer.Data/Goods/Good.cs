@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Goods
 {
-    public class Good
+    public class Good : ICustomEntryHandler
     {
         [Entry("nickname")]
         public string Nickname;
@@ -52,7 +52,14 @@ namespace LibreLancer.Data.Goods
         public string FreeAmmoName;
         public int FreeAmmoCount;
 
-        [Entry("addon", Multiline = true)]
+        private static readonly CustomEntry[] _custom = new CustomEntry[]
+        {
+            new("addon", (s,e) => ((Good)s).HandleAddon(e)),
+            new("free_ammo", (s,e) => ((Good)s).HandleFreeAmmo(e)),
+        };
+
+        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+        
         void HandleAddon(Entry e)
         {
             int amt = 1;
@@ -60,7 +67,6 @@ namespace LibreLancer.Data.Goods
             Addons.Add(new GoodAddon() { Equipment = e[0].ToString(), Hardpoint = e[1].ToString(), Amount = amt });
         }
 
-        [Entry("free_ammo")]
         void HandleFreeAmmo(Entry e)
         {
             FreeAmmoName = e[0].ToString();

@@ -43,44 +43,55 @@ namespace LibreLancer.Media
         private int audioThreadId;
         private IntPtr ctx;
         private IntPtr dev;
-        
-        static AudioManager()
-        {
-            Platform.RegisterDllMap(typeof(AudioManager).Assembly);
-        }
+
+        private Task initTask;
+       
 		public AudioManager(IUIThread uithread)
 		{
-            Music = new MusicPlayer(this);
 			UIThread = uithread;
             audioThreadId = Thread.CurrentThread.ManagedThreadId;
-            //Init context
-            dev = Alc.alcOpenDevice(null);
-            ctx = Alc.alcCreateContext(dev, IntPtr.Zero);
-            Alc.alcMakeContextCurrent(ctx);
-            for (int i = 0; i < MAX_SOURCES; i++)
+            initTask = Task.Run(() =>
             {
-                freeSources.Enqueue(Al.GenSource());
-            }
-            for (int i = 0; i < MAX_STREAM_BUFFERS; i++)
-            {
-                Buffers.Enqueue(Al.GenBuffer());
-            }
-            Instances = new InstanceInfo[MAX_INSTANCES];
-            for (int i = 0; i < MAX_INSTANCES; i++)
-            {
-                Instances[i].Source = uint.MaxValue;
-                freeInstances.Enqueue((uint) i);
-            }
-            uint musicSource;
-            for (int i = 0; i < 2; i++)
-            {
-                while (!freeSources.TryDequeue(out musicSource)) {}
-                streamingSources.Enqueue(musicSource);
-            }
-            FLLog.Debug("Audio", "Audio initialised");
-            Ready = true;
-            Al.alListenerf(Al.AL_GAIN, ALUtils.ClampVolume(ALUtils.LinearToAlGain(_masterVolume)));
+                Platform.RegisterDllMap(typeof(AudioManager).Assembly);
+                Music = new MusicPlayer(this);
+                //Init context
+                dev = Alc.alcOpenDevice(null);
+                ctx = Alc.alcCreateContext(dev, IntPtr.Zero);
+                Alc.alcMakeContextCurrent(ctx);
+                for (int i = 0; i < MAX_SOURCES; i++)
+                {
+                    freeSources.Enqueue(Al.GenSource());
+                }
+
+                for (int i = 0; i < MAX_STREAM_BUFFERS; i++)
+                {
+                    Buffers.Enqueue(Al.GenBuffer());
+                }
+
+                Instances = new InstanceInfo[MAX_INSTANCES];
+                for (int i = 0; i < MAX_INSTANCES; i++)
+                {
+                    Instances[i].Source = uint.MaxValue;
+                    freeInstances.Enqueue((uint) i);
+                }
+
+                uint musicSource;
+                for (int i = 0; i < 2; i++)
+                {
+                    while (!freeSources.TryDequeue(out musicSource))
+                    {
+                    }
+
+                    streamingSources.Enqueue(musicSource);
+                }
+
+                FLLog.Debug("Audio", "Audio initialised");
+                Al.alListenerf(Al.AL_GAIN, ALUtils.ClampVolume(ALUtils.LinearToAlGain(_masterVolume)));
+                Ready = true;
+            });
         }
+
+        public void WaitReady() => initTask.Wait();
 
         public void Update()
         {

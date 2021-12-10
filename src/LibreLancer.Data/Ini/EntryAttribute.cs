@@ -5,7 +5,7 @@
 using System;
 namespace LibreLancer.Ini
 {
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
     public class EntryAttribute : Attribute
     {
         public string Name;

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Missions
 {
-    public class MissionTrigger
+    public class MissionTrigger : IEntryHandler
     {
         [Entry("nickname")]
         public string Nickname;
@@ -20,7 +20,7 @@ namespace LibreLancer.Data.Missions
         public List<MissionAction> Actions = new List<MissionAction>();
         public List<MissionCondition> Conditions = new List<MissionCondition>();
 
-        bool HandleEntry(Entry e)
+        bool IEntryHandler.HandleEntry(Entry e)
         {
             TriggerActions t;
             if (Enum.TryParse(e.Name, true, out t))

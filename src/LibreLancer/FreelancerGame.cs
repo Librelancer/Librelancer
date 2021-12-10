@@ -84,6 +84,7 @@ namespace LibreLancer
 			//Init Audio
 			FLLog.Info("Audio", "Initialising Audio");
 			Audio = new AudioManager(this);
+            Audio.WaitReady();
             Audio.MasterVolume = _cfg.Settings.MasterVolume;
             Audio.Music.Volume = _cfg.Settings.MusicVolume;
 			//Load data

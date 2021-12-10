@@ -7,7 +7,7 @@ using System.Numerics;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Missions
 {
-    public class MissionShip
+    public class MissionShip : ICustomEntryHandler
     {
         [Entry("nickname")]
         public string Nickname;
@@ -35,7 +35,13 @@ namespace LibreLancer.Data.Missions
         public string InitObjectives;
         public List<MissionShipCargo> Cargo = new List<MissionShipCargo>();
 
-        [Entry("cargo", Multiline = true)]
+        private static readonly CustomEntry[] _custom = new CustomEntry[]
+        {
+            new("cargo", (s,e) => ((MissionShip)s).ParseCargo(e)),
+        };
+
+        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+        
         void ParseCargo(Entry e)
         {
             Cargo.Add(new MissionShipCargo()

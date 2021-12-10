@@ -78,7 +78,7 @@ namespace LibreLancer
 			GL.GetIntegerv (GL.GL_NUM_EXTENSIONS, out n);
 			ExtensionList = new List<string> (n);
 			for (int i = 0; i < n; i++)
-				ExtensionList.Add (GL.GetString (GL.GL_EXTENSIONS, i));
+				ExtensionList.Add (GL.GetStringi (GL.GL_EXTENSIONS, i));
             if (GL.GLES) {
                 versionInteger = 310;
             }

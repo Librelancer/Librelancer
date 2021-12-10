@@ -21,7 +21,6 @@ namespace LancerEdit
 		public ImGuiHelper guiHelper;
 		public AudioManager Audio;
 		public GameResourceManager Resources;
-		public Billboards Billboards;
 		public PolylineRender Polyline;
 		public PhysicsDebugRenderer DebugRender;
 		public ViewportManager Viewport;
@@ -102,7 +101,6 @@ namespace LancerEdit
             options = new OptionsWindow(this);
             Resources = new GameResourceManager(this);
 			Commands = new CommandBuffer();
-			Billboards = new Billboards();
 			Polyline = new PolylineRender(Commands);
 			DebugRender = new PhysicsDebugRenderer();
             Viewport.Push(0, 0, 800, 600);

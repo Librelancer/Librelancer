@@ -69,8 +69,10 @@ namespace LibreLancer.Data.Save
     }
 
 
-    public class SavePlayer
+    public class SavePlayer : ICustomEntryHandler
     {
+        
+        
         [Entry("descrip_strid")] public int DescripStrid;
 
         //HandleEntry(description)
@@ -120,22 +122,21 @@ namespace LibreLancer.Data.Save
         //HandleEntry(visit)
 
 
-        [Entry("interface")] public int Interface;
-
-
-        [Entry("house", Multiline = true)]
-        void HandleHouse(Entry e) => House.Add(new SaveRep(e));
-
-        [Entry("log", Multiline = true)]
-        [Entry("visit", Multiline =  true)]
-        void Noop(Entry e)
+        private static readonly CustomEntry[] _custom = new CustomEntry[]
         {
-        }
-
-        [Entry("tstamp")]
-        void HandleTimestamp(Entry e) => TimeStamp = DateTime.FromFileTime(e[0].ToInt64() << 32 | e[1].ToInt64());
-
-        [Entry("description")]
+            new("tstamp", (h, e) =>  ((SavePlayer)h).TimeStamp =  DateTime.FromFileTime(e[0].ToInt64() << 32 | e[1].ToInt64())),
+            new("house", (h, e) => ((SavePlayer)h).House.Add(new SaveRep(e))),
+            new("description", (h,e) => ((SavePlayer)h).HandleDescription(e)),
+            new("log", CustomEntry.Ignore),
+            new("visit", CustomEntry.Ignore),
+            new("name", (h,e) =>((SavePlayer)h).HandleName(e)),
+            new("equip", (h, e) => ((SavePlayer)h).Equip.Add(new PlayerEquipment(e))),
+            new("cargo", (h, e) => ((SavePlayer)h).Cargo.Add(new PlayerCargo(e))),
+            new ("ship_archetype", (h, e) => ((SavePlayer)h).HandleShipArchetype(e))
+        };
+        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+        
+        [Entry("interface")] public int Interface;
         void HandleDescription(Entry e)
         {
             try
@@ -148,7 +149,6 @@ namespace LibreLancer.Data.Save
                 Description = string.Join(',', e.Select(x => x.ToString()));
             }
         }
-        [Entry("name")]
         void HandleName(Entry e)
         {
             try
@@ -171,13 +171,6 @@ namespace LibreLancer.Data.Save
             return builder.ToString();
         }
 
-        [Entry("equip", Multiline = true)]
-        void HandleEquip(Entry e) => Equip.Add(new PlayerEquipment(e));
-
-        [Entry("cargo", Multiline = true)]
-        void HandleCargo(Entry e) => Cargo.Add(new PlayerCargo(e));
-
-        [Entry("ship_archetype")]
         void HandleShipArchetype(Entry e)
         {
             ShipArchetypeCrc = e[0].ToInt32();

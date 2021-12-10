@@ -11,28 +11,26 @@ using LibreLancer.Data.Equipment;
 
 namespace LibreLancer.Data.Solar
 {
-	public class Loadout
+	public class Loadout : ICustomEntryHandler
     {
         [Entry("nickname", Required =  true)] public string Nickname;
 
         [Entry("archetype")] public string Archetype;
 
         public List<LoadoutCargo> Cargo = new List<LoadoutCargo>();
-        [Entry("cargo", Multiline = true)]
-        void HandleCargo(Entry e) => Cargo.Add(new LoadoutCargo(e));
-
-        [Entry("hull", Multiline = true)]
-        [Entry("addon", Multiline = true)]
-        [Entry("hull_damage", Multiline = true)]
-        void Noop(Entry e)
-        {
-            
-        }
-
         public List<LoadoutEquip> Equip = new List<LoadoutEquip>();
 
-        [Entry("equip", Multiline = true)]
-        void HandleEquip(Entry e) => Equip.Add(new LoadoutEquip(e));
+        private static readonly CustomEntry[] _custom = new CustomEntry[]
+        {
+            new("cargo", (s,e) => ((Loadout)s).Cargo.Add(new LoadoutCargo(e))),
+            new("equip", (s,e) => ((Loadout)s).Equip.Add(new LoadoutEquip(e))),
+            new("hull", CustomEntry.Ignore),
+            new("addon", CustomEntry.Ignore),
+            new("hull_damage", CustomEntry.Ignore)
+        };
+
+        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+
     }
 
     public class LoadoutEquip

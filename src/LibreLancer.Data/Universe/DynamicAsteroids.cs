@@ -10,9 +10,9 @@ using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Universe
 {
-	public class DynamicAsteroids
+	public class DynamicAsteroids : IEntryHandler
 	{
-        bool HandleEntry(Entry e)
+        bool IEntryHandler.HandleEntry(Entry e)
         {
             return true;
         }
