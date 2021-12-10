@@ -58,6 +58,7 @@ namespace LibreLancer
                         if (act is FuseStartEffect)
                         {
                             var fxact = ((FuseStartEffect)act);
+                            if(string.IsNullOrWhiteSpace(fxact.Effect)) continue;
                             if (!fuse.Fx.TryGetValue(fxact.Effect, out var fx)) continue;
                             if (fx == null) continue;
                             var pfx = fx.GetEffect(parent.World.Renderer.ResourceManager);

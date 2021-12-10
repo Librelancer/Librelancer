@@ -300,6 +300,11 @@ namespace LibreLancer
                     }
                 }
             }
+
+            if (currentCutscene == null && toPlay.Count > 0)
+            {
+                ProcessNextCutscene();
+            }
         }
 
         enum CutsceneState

@@ -104,7 +104,7 @@ namespace LibreLancer
             {
                 GameData.LoadData(this, () =>
                 {
-                    Sound = new SoundManager(GameData, Audio);
+                    Sound = new SoundManager(GameData, Audio, this);
                     Services.Add(Sound);
                     InisLoaded = true;
                 });

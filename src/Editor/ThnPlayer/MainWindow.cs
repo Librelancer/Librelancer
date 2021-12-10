@@ -60,7 +60,7 @@ namespace ThnPlayer
             Nebulae = new NebulaVertices();
             Resources = new GameResourceManager(this);
             Audio = new AudioManager(this);
-            Sounds = new SoundManager(Audio);
+            Sounds = new SoundManager(Audio, this);
             Services.Add(Sounds);
             Services.Add(Billboards);
             Services.Add(Nebulae);

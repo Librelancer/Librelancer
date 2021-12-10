@@ -26,6 +26,7 @@ namespace LibreLancer
 
         public float GetT(float intime)
         {
+            if (Duration <= 0) return 1;
             if (intime > Duration) intime = Duration;
             if (intime < 0) intime = 0;
             if (ParamCurve != null) {

@@ -204,7 +204,7 @@ namespace LibreLancer.Missions
 
         public Act_PlayMusic(MissionAction act)
         {
-            if(act.Entry.Count > 1)
+            if(act.Entry.Count > 3) //4th entry seems to = specific music. First 3 maybe change ambient?
                 Music = act.Entry[3].ToString();
         }
 

@@ -3,9 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Threading;
+using System.Threading.Tasks;
 using LibreLancer.Data.Audio;
 using LibreLancer.Media;
 using LibreLancer.Utf.Audio;
@@ -19,18 +22,21 @@ namespace LibreLancer
         private LRUCache<string, LoadedSound> soundCache;
      
 
-        Dictionary<string, VoiceUtf> voiceUtfs = new Dictionary<string, VoiceUtf>();
-        public SoundManager(GameDataManager gameData, AudioManager audio)
+        private IUIThread ui;
+        
+        public SoundManager(GameDataManager gameData, AudioManager audio, IUIThread ui)
 		{
 			data = gameData;
 			this.audio = audio;
             soundCache = new LRUCache<string, LoadedSound>(64, OnLoadSound);
-		}
+            this.ui = ui;
+        }
 
-        public SoundManager(AudioManager audio)
+        public SoundManager(AudioManager audio, IUIThread ui)
         {
             this.audio = audio;
             soundCache = new LRUCache<string, LoadedSound>(64, OnLoadSound);
+            this.ui = ui;
         }
 
         public void SetGameData(GameDataManager data)
@@ -137,26 +143,45 @@ namespace LibreLancer
             }
             return inst;
         }
+        class LazyConcurrentDictionary<TKey, TValue>
+        {
+            private readonly ConcurrentDictionary<TKey, Lazy<TValue>> concurrentDictionary;
+
+            public LazyConcurrentDictionary()
+            {
+                this.concurrentDictionary = new ConcurrentDictionary<TKey, Lazy<TValue>>();
+            }
+
+            public TValue GetOrAdd(TKey key, Func<TKey, TValue> valueFactory)
+            {
+                var lazyResult = this.concurrentDictionary.GetOrAdd(key, k => new Lazy<TValue>(() => valueFactory(k), LazyThreadSafetyMode.ExecutionAndPublication));
+
+                return lazyResult.Value;
+            }
+        }
+
+        private LazyConcurrentDictionary<string, VoiceUtf> voiceUtfs = new LazyConcurrentDictionary<string, VoiceUtf>();
         public void PlayVoiceLine(string voice, uint hash, Action onEnd)
         {
-            //TODO: Make this asynchronous
-            var path = data.GetVoicePath(voice);
-            VoiceUtf v;
-            if(!voiceUtfs.TryGetValue(path, out v))
+            Task.Run(() =>
             {
-                v = new VoiceUtf(path);
-                voiceUtfs.Add(path, v);
-            }
-            var file = v.AudioFiles[hash];
-            var sn = audio.AllocateData();
-            sn.LoadStream(new MemoryStream(file));
-            var instance = audio.CreateInstance(sn, SoundType.Voice);
-            instance.DisposeOnStop = true;
-            instance.OnStop = () => {
-                sn.Dispose();
-                onEnd();
-            };
-            instance.Play();
+                var path = data.GetVoicePath(voice);
+                var v = voiceUtfs.GetOrAdd(path, (s) => new VoiceUtf(s));
+                var file = v.AudioFiles[hash];
+                var sn = audio.AllocateData();
+                using var ms = new MemoryStream(file);
+                sn.LoadStream(ms);
+                ui.QueueUIThread(() =>
+                {
+                    var instance = audio.CreateInstance(sn, SoundType.Voice);
+                    instance.DisposeOnStop = true;
+                    instance.OnStop = () => {
+                        sn.Dispose();
+                        onEnd();
+                    };
+                    instance.Play();
+                });
+            });
         }
         public void PlayMusic(string name, bool oneshot = false)
         {
@@ -171,11 +196,8 @@ namespace LibreLancer
                 FLLog.Error("Music", "Can't find file for " + name);
             }
         }
-        public void ClearVoiceCache()
-        {
-            voiceUtfs = new Dictionary<string, VoiceUtf>();
-        }
-		public void StopMusic()
+        
+        public void StopMusic()
 		{
 			audio.Music.Stop();
 		}

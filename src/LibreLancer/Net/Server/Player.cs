@@ -353,9 +353,33 @@ namespace LibreLancer
             return Task.FromResult(true);
         }
 
+        private Dictionary<string, int> missionNumbers = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "mission_01a", 1 },
+            { "mission_01b", 2 },
+            { "mission_02", 3 },
+            { "mission_03", 4 },
+            { "mission_04", 5 },
+            { "mission_05", 6 },
+            { "mission_06", 7 },
+            { "mission_07", 8 },
+            { "mission_08", 9 },
+            { "mission_09", 10 },
+            { "mission_10", 11 },
+            { "mission_11", 12 },
+            { "mission_12", 13 },
+            { "mission_13", 14 }
+        };
+
+        void MissionNumber(string str, ref int num)
+        {
+            if (!string.IsNullOrEmpty(str) && missionNumbers.TryGetValue(str, out var n))
+                num = n;
+        }
         void InitStory(Data.Save.SaveGame sg)
         {
             var missionNum = sg.StoryInfo?.MissionNum ?? 0;
+            MissionNumber(sg.StoryInfo?.Mission, ref missionNum);
             if (Game.GameData.Ini.ContentDll.AlwaysMission13) missionNum = 14;
             if (missionNum != 0 && (missionNum - 1) < Game.GameData.Ini.Missions.Count)
             {
