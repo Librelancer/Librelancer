@@ -145,7 +145,7 @@ namespace LibreLancer
                 float seg0 = 0;
                 for (int i = 0; i < segments.Length; i++)
                 {
-                    if (t < seg0 + lengthPercents[i])
+                    if (t <= seg0 + lengthPercents[i])
                     {
                         var t2 = (t - seg0) / lengthPercents[i];
                         return segments[i].ValueAt(t2);
@@ -190,7 +190,7 @@ namespace LibreLancer
             {
                 float seg0 = 0;
                 for (int i = 0; i < segments.Length; i++)  {
-                    if (t < seg0 + lengthPercents[i])
+                    if (t <= seg0 + lengthPercents[i])
                     {
                         var t2 = (t - seg0) / lengthPercents[i];
                         return Quaternion.Slerp(curveQuats[i], curveQuats[i + 1], t2);
