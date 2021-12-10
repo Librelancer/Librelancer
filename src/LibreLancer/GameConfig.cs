@@ -7,18 +7,27 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
+using LibreLancer.Ini;
+
 namespace LibreLancer
 {
-	public class GameConfig
+    [SelfSection("Librelancer")]
+	public class GameConfig : IniFile
 	{
+        [Entry("freelancer_path")]
 		public string FreelancerPath = "";
+        [Section("Settings")]
         public GameSettings Settings = new GameSettings();
+        [Entry("intro_movies")]
         public bool IntroMovies = true;
+        [Entry("res_width")]
 		public int BufferWidth = 1024;
+        [Entry("res_height")]
 		public int BufferHeight = 768;
+        [Entry("uuid")]
 		public Guid? UUID;
 
-		//This default is to stop dlopen on linux from trying to open itself
+        //This default is to stop dlopen on linux from trying to open itself
 		[XmlIgnore]
 		public string MpvOverride = "__MPV_OVERRIDE_STRING";
 
@@ -75,15 +84,11 @@ namespace LibreLancer
 			var cfgpath = (filePath ?? DefaultConfigPath)();
             if (File.Exists(cfgpath))
             {
-                var xml = new XmlSerializer(typeof(GameConfig));
-                using (var reader = new StreamReader(cfgpath))
-                {
-                    var loaded = (GameConfig)xml.Deserialize(reader);
-                    loaded.filePath = (filePath ?? DefaultConfigPath);
-                    if (loaded.UUID == null)
-                        loaded.UUID = Guid.NewGuid();
-                    return loaded;
-                }
+                var cfg = new GameConfig((filePath ?? DefaultConfigPath));
+                cfg.ParseAndFill(cfgpath, null);
+                if (cfg.UUID == null)
+                    cfg.UUID = Guid.NewGuid();
+                return cfg;
             }
             else
             {
@@ -98,10 +103,17 @@ namespace LibreLancer
 		public void Save()
         {
             Saved?.Invoke(this);
-            var xml = new XmlSerializer(typeof(GameConfig));
+            
 			using (var writer = new StreamWriter(filePath()))
 			{
-				xml.Serialize(writer, this);
+				writer.WriteLine("[Librelancer]");
+                writer.WriteLine($"freelancer_path = {FreelancerPath}");
+                writer.WriteLine($"res_width = {BufferWidth}");
+                writer.WriteLine($"res_height = {BufferHeight}");
+                writer.WriteLine($"intro_movies = {IntroMovies}");
+                writer.WriteLine($"uuid = {UUID.Value:D}");
+                writer.WriteLine();
+                Settings.Write(writer);
 			}
 		}
 
@@ -109,7 +121,7 @@ namespace LibreLancer
         
 		static string DefaultConfigPath()
 		{
-			return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "librelancer.xml");
+			return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "librelancer.ini");
 		}
 	}
 }

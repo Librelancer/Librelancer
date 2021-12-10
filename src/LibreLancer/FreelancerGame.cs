@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.IO;
+using System.Threading.Tasks;
 using LibreLancer.GameData;
 using LibreLancer.Interface;
 using LibreLancer.Media;
@@ -92,13 +93,16 @@ namespace LibreLancer
 			GameData = new GameDataManager(_cfg.FreelancerPath, ResourceManager);
 			IntroMovies = GameData.GetIntroMovies();
 			MpvOverride = _cfg.MpvOverride;
+            Saves = new SaveGameFolder();
+            var saveLoadTask = Task.Run(() => Saves.Load(GetSaveFolder()));
             Thread GameDataLoaderThread = new Thread(() =>
             {
                 GameData.LoadData();
                 Sound = new SoundManager(GameData, Audio);
                 Services.Add(Sound);
                 FLLog.Info("Game", "Finished loading game data");
-                Saves = new SaveGameFolder(GetSaveFolder(), GameData.Ini.Infocards);
+                saveLoadTask.Wait();
+                Saves.Infocards = GameData.Ini.Infocards;
                 InitialLoadComplete = true;
             });
             GameDataLoaderThread.Name = "GamedataLoader";

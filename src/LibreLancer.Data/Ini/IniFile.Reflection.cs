@@ -427,6 +427,16 @@ namespace LibreLancer.Ini
                         lst.Add(strings);
                     }
                 }
+                else if (ftype == typeof(Guid))
+                {
+                    if (ComponentCheck(1, s, e, 1))
+                    {
+                        if (Guid.TryParse(e[0].ToString(), out var g))
+                            field.Field.SetValue(obj, g);
+                        else
+                            FLLog.Warning("Ini", "Unable to parse GUID" + FormatLine(e.File, e.Line, s.Name));
+                    }
+                }
                 else if (ftype.IsEnum)
                 {
                     if (ComponentCheck(1, s, e))

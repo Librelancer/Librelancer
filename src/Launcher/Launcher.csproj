@@ -24,4 +24,6 @@
     <ProjectReference Include="..\LibreLancer\LibreLancer.csproj" />
   </ItemGroup>
 
+  <Import Project="..\PublishAssets\PublishAssets.projitems" Label="Shared" />
+
 </Project>

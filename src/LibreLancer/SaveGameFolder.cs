@@ -21,6 +21,11 @@ namespace LibreLancer
         private List<SaveGameFile> files = new List<SaveGameFile>();
         private InfocardManager infocards;
 
+        [MoonSharpHidden] public InfocardManager Infocards
+        {
+            get => infocards;
+            set => infocards = value;
+        }
         [MoonSharpHidden] public string SelectedFile => ValidSelection() ? files[Selected].Path : null;
         public int Count => files.Count;
         public int Selected { get; set; }
@@ -47,7 +52,10 @@ namespace LibreLancer
         }
 
         private string folder;
-        public SaveGameFolder(string folder, InfocardManager infocards)
+
+        public SaveGameFolder() { }
+        
+        public void Load(string folder)
         {
             FLLog.Info("Save", $"Loading folder {folder}");
             this.infocards = infocards;

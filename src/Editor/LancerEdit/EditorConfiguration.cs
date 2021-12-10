@@ -43,7 +43,7 @@ namespace LancerEdit
 
         static string FormatColor(Color4 c)
         {
-            static string Fmt(float f) => f.ToString("F3", CultureInfo.InvariantCulture);
+            static string Fmt(float f) => ((int) (f * 255f)).ToString();
             return $"{Fmt(c.R)}, {Fmt(c.G)}, {Fmt(c.B)}, {Fmt(c.A)}";
         }
         public void Save()
@@ -56,9 +56,9 @@ namespace LancerEdit
                 writer.WriteLine($"view_buttons = {(ViewButtons ? "true" : "false")}");
                 writer.WriteLine($"pause_when_unfocused = {(PauseWhenUnfocused ? "true" : "false")}");
                 writer.WriteLine($"background_top = {FormatColor(Background)}");
-                writer.WriteLine($"background_bottom = {FormatColor(Background)}");
+                writer.WriteLine($"background_bottom = {FormatColor(Background2)}");
                 writer.WriteLine($"background_gradient = {(BackgroundGradient ? "true" : "false")}");
-                writer.WriteLine($"grid_color = {FormatColor(Background)}");
+                writer.WriteLine($"grid_color = {FormatColor(GridColor)}");
                 writer.WriteLine($"default_camera_mode = {DefaultCameraMode}");
             }
         }
