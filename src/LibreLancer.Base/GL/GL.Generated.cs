@@ -86,7 +86,7 @@ namespace LibreLancer
         private static delegate* unmanaged<uint,uint,uint,void> _glBindBufferBase;
         private static delegate* unmanaged<int,void> _glMemoryBarrier;
         private static delegate* unmanaged<int,int,int,IntPtr,void> _glDrawElements;
-        private static delegate* unmanaged<int,int,int,void> _DrawArrays;
+        private static delegate* unmanaged<int,int,int,void> _glDrawArrays;
         private static delegate* unmanaged<int,int,int,IntPtr,int,void> _glDrawElementsBaseVertex;
         private static delegate* unmanaged<int,uint*,void> _glGenFramebuffers;
         private static delegate* unmanaged<int,int> _glCheckFramebufferStatus;
@@ -187,7 +187,7 @@ namespace LibreLancer
             _glBindBufferBase = (delegate* unmanaged<uint,uint,uint,void>)getProcAddress("glBindBufferBase");
             _glMemoryBarrier = (delegate* unmanaged<int,void>)getProcAddress("glMemoryBarrier");
             _glDrawElements = (delegate* unmanaged<int,int,int,IntPtr,void>)getProcAddress("glDrawElements");
-            _DrawArrays = (delegate* unmanaged<int,int,int,void>)getProcAddress("DrawArrays");
+            _glDrawArrays = (delegate* unmanaged<int,int,int,void>)getProcAddress("glDrawArrays");
             _glDrawElementsBaseVertex = (delegate* unmanaged<int,int,int,IntPtr,int,void>)getProcAddress("glDrawElementsBaseVertex");
             _glGenFramebuffers = (delegate* unmanaged<int,uint*,void>)getProcAddress("glGenFramebuffers");
             _glCheckFramebufferStatus = (delegate* unmanaged<int,int>)getProcAddress("glCheckFramebufferStatus");
@@ -637,7 +637,7 @@ namespace LibreLancer
         }
         public static void DrawArrays(int mode, int first, int count)
         {
-            _DrawArrays(mode, first, count);
+            _glDrawArrays(mode, first, count);
             ErrorCheck();
         }
         public static void DrawElementsBaseVertex(int mode, int count, int type, IntPtr indices, int basevertex)
@@ -750,4 +750,3 @@ namespace LibreLancer
         }
     }
 }
-
