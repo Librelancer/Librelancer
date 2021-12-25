@@ -13,7 +13,6 @@ namespace LancerEdit
     public class Viewport3D : IDisposable
     {
         RenderContext rstate;
-        ViewportManager vps;
         int rw = -1, rh = -1;
         int mrw = -1, mrh = -1, msamples = 0;
         int rid;
@@ -40,7 +39,6 @@ namespace LancerEdit
         {
             this.mw = mw;
             rstate = mw.RenderContext;
-            vps = mw.Viewport;
         }
 
         private float zoom;
@@ -90,7 +88,7 @@ namespace LancerEdit
                 rstate.RenderTarget = msaa;
             else
                 rstate.RenderTarget = RenderTarget;
-            vps.Push(0, 0, rw, rh);
+            rstate.PushViewport(0, 0, rw, rh);
             rstate.Cull = true;
             rstate.DepthEnabled = true;
             rstate.ClearColor = Background;
@@ -99,7 +97,7 @@ namespace LancerEdit
 
         public void End(bool view = true)
         {
-            vps.Pop();
+            rstate.PopViewport();
             rstate.RenderTarget = null;
             if (mw.Config.MSAA != 0)
                 msaa.BlitToRenderTarget(RenderTarget);

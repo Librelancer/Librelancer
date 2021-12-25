@@ -15,7 +15,6 @@ namespace SystemViewer
 {
     public class MainWindow : Game
     {
-        public ViewportManager Viewport;
         public GameDataManager GameData;
         public GameResourceManager Resources;
         public Billboards Billboards;
@@ -41,8 +40,7 @@ namespace SystemViewer
             LibreLancer.Shaders.AllShaders.Compile();
             guiHelper = new ImGuiHelper(this);
             FileDialog.RegisterParent(this);
-            Viewport = new ViewportManager(this.RenderContext);
-            Viewport.Push(0, 0, 800, 600);
+            RenderContext.PushViewport(0, 0, 800, 600);
             Billboards = new Billboards();
             Nebulae = new NebulaVertices();
             Resources = new GameResourceManager(this);
@@ -148,7 +146,7 @@ C# Memory Usage: {5}
         {
             VertexBuffer.TotalDrawcalls = 0;
             EnableTextInput();
-            Viewport.Replace(0, 0, Width, Height);
+            RenderContext.ReplaceViewport(0, 0, Width, Height);
             RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
             RenderContext.ClearAll();
             //
@@ -352,7 +350,7 @@ C# Memory Usage: {5}
         protected override void OnResize()
         {
             if(camera != null) {
-                camera.Viewport = new Viewport(0, 0, Width, Height);
+                camera.Viewport = new Rectangle(0, 0, Width, Height);
                 camera.UpdateProjection();
             }
         }
@@ -363,7 +361,7 @@ C# Memory Usage: {5}
         {
             systemMap.CreateContext(this);
             fontMan.LoadFontsFromGameData(GameData);
-            camera = new DebugCamera(new Viewport(0, 0, Width, Height));
+            camera = new DebugCamera(new Rectangle(0, 0, Width, Height));
             camera.Zoom = 5000;
             camera.UpdateProjection();
             var renderer = new SystemRenderer(camera, GameData, Resources, this);

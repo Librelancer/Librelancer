@@ -31,7 +31,7 @@ namespace LibreLancer
             g.GameData.PopulateCursors();
             g.CursorKind = CursorKind.None;
             intro = g.GameData.GetIntroScene();
-            scene = new Cutscene(new ThnScriptContext(null), Game.GameData, Game.Viewport, Game);
+            scene = new Cutscene(new ThnScriptContext(null), Game.GameData, Game.RenderContext.CurrentViewport, Game);
             scene.BeginScene(intro.Scripts);
             FLLog.Info("Thn", "Playing " + intro.ThnName);
             cur = g.ResourceManager.GetCursor("arrow");
@@ -289,7 +289,7 @@ namespace LibreLancer
         {
             ui.Update(Game);
             Game.TextInputEnabled = ui.KeyboardGrabbed;
-            scene.UpdateViewport(Game.Viewport);
+            scene.UpdateViewport(Game.RenderContext.CurrentViewport);
             scene.Update(delta);
             api._Update();
         }

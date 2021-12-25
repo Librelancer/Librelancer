@@ -21,7 +21,6 @@ namespace InterfaceEdit
     public class MainWindow : Game
     {
         ImGuiHelper guiHelper;
-        public ViewportManager Viewport;
         private RecentFilesHandler recentFiles;
         public MainWindow() : base(950,600,false)
         {
@@ -34,8 +33,7 @@ namespace InterfaceEdit
             TestApi = new TestingApi(this);
             guiHelper = new ImGuiHelper(this);
             FileDialog.RegisterParent(this);
-            Viewport = new ViewportManager(RenderContext);
-            Viewport.Push(0,0,Width,Height);
+            RenderContext.PushViewport(0,0,Width,Height);
             new MaterialMap();
             Fonts = new FontManager();
             LibreLancer.Shaders.AllShaders.Compile();
@@ -44,6 +42,7 @@ namespace InterfaceEdit
                 if (playing && args.Key == Keys.F1)
                     _playContext.Event("Pause");
             };
+            CommandBuffer = new CommandBuffer();
         }
 
         List<DockTab> tabs = new List<DockTab>();
@@ -53,6 +52,7 @@ namespace InterfaceEdit
         public FontManager Fonts;
         public TestingApi TestApi;
         public Project Project;
+        public CommandBuffer CommandBuffer;
 
 
         public void UiEvent(string ev)
@@ -91,7 +91,7 @@ namespace InterfaceEdit
         {
             var delta = elapsed;
             RenderDelta = delta;
-            Viewport.Replace(0, 0, Width, Height);
+            RenderContext.ReplaceViewport(0, 0, Width, Height);
             RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
             RenderContext.ClearAll();
             guiHelper.NewFrame(elapsed);
@@ -273,6 +273,7 @@ namespace InterfaceEdit
                 {
                     RenderContext = RenderContext
                 };
+                _playContext.CommandBuffer = CommandBuffer;
                 _playContext.GameApi = TestApi;
                 _playContext.LoadCode();
                 _playContext.OpenScene(classname);
@@ -334,7 +335,7 @@ namespace InterfaceEdit
                 renderTargetImage = ImGuiHelper.RegisterTexture(renderTarget.Texture);
             }
             RenderContext.RenderTarget = renderTarget;
-            Viewport.Push(0,0,rtX,rtY);
+            RenderContext.PushViewport(0,0,rtX,rtY);
             RenderContext.ClearColor = Color4.Black;
             RenderContext.ClearAll();
             //Do drawing
@@ -343,7 +344,7 @@ namespace InterfaceEdit
             _playContext.ViewportHeight = rtY;
             _playContext.RenderWidget(delta);
             //
-            Viewport.Pop();
+            RenderContext.PopViewport();
             RenderContext.RenderTarget = null;
             //We don't use ImageButton because we need to be specific about sizing
             var cPos = ImGui.GetCursorPos();

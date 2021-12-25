@@ -192,15 +192,38 @@ namespace LibreLancer
             Renderer2D = new Renderer2D(this);
         }
 
-        public Rectangle Viewport
+        public Rectangle CurrentViewport => requested.Viewport;
+
+        Stack<Rectangle> viewports = new Stack<Rectangle>();
+        
+        public void PushViewport(int x, int y, int width, int height)
         {
-            get => requested.Viewport;
-            set
-            {
-                Renderer2D.Flush();
-                requested.Viewport = value;
-            }
+            var vp = new Rectangle (x, y, width, height);
+            viewports.Push (vp);
+            SetViewport(new Rectangle(x,y,width,height));
         }
+        
+        public void ReplaceViewport(int x, int y, int width, int height)
+        {
+            if(viewports.Count >= 1)
+                viewports.Pop ();
+            PushViewport (x, y, width, height);
+        }
+        
+        public void PopViewport()
+        {
+            viewports.Pop ();
+            var vp = viewports.Peek ();
+            SetViewport(new Rectangle(vp.X, vp.Y, vp.Width, vp.Height));
+        }
+
+        void SetViewport(Rectangle vp)
+        {
+            Renderer2D.Flush();
+            requested.Viewport = vp;
+        }
+
+        public void Flush() => Renderer2D.Flush();
 
         public Vector2 PolygonOffset
         {
@@ -261,6 +284,8 @@ namespace LibreLancer
         internal void EndFrame()
         {
             Renderer2D.Flush();
+            if (viewports.Count != 1)
+                throw new Exception ("viewports.Count != 1 at end of frame");
         }
 
         internal void ApplyScissor()

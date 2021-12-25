@@ -23,7 +23,6 @@ namespace LancerEdit
         IDrawable drawable;
         RenderContext rstate;
         CommandBuffer buffer;
-        ViewportManager vps;
         ResourceManager res;
         public string Name;
         int viewMode = 0;
@@ -100,7 +99,6 @@ namespace LancerEdit
             this.parent = parent;
             this.hprefs = hprefs;
             rstate = win.RenderContext;
-            vps = win.Viewport;
             res = win.Resources;
             buffer = win.Commands;
             _window = win;

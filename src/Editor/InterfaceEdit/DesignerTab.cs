@@ -30,6 +30,7 @@ namespace InterfaceEdit
             xmlEditor = new ColorTextEdit();
             xmlEditor.SetText(text);
             context = new UiContext(mainWindow.Project.UiData);
+            context.CommandBuffer = mainWindow.CommandBuffer;
             context.RenderContext = mainWindow.RenderContext;
             context.GameApi = mainWindow.TestApi;
             TextChanged();
@@ -150,7 +151,7 @@ namespace InterfaceEdit
             }
 
             mainWindow.RenderContext.RenderTarget = renderTarget;
-            mainWindow.Viewport.Push(0,0,rtX,rtY);
+            mainWindow.RenderContext.PushViewport(0,0,rtX,rtY);
             mainWindow.RenderContext.ClearColor = Color4.Black;
             mainWindow.RenderContext.ClearAll();
             //Do drawing
@@ -162,7 +163,7 @@ namespace InterfaceEdit
                 context.RenderWidget(delta);
             }
             //
-            mainWindow.Viewport.Pop();
+            mainWindow.RenderContext.PopViewport();
             mainWindow.RenderContext.RenderTarget = null;
             //We don't use ImageButton because we need to be specific about sizing
             var cPos = ImGui.GetCursorPos();

@@ -477,7 +477,7 @@ namespace LibreLancer
             if(currentBase.TerrainLrg != null) ctx.Substitutions.Add("$terrain_lrg", currentBase.TerrainLrg);
             if(currentBase.TerrainDyna1 != null) ctx.Substitutions.Add("$terrain_dyna_01", currentBase.TerrainDyna1);
             if(currentBase.TerrainDyna2 != null) ctx.Substitutions.Add("$terrain_dyna_02", currentBase.TerrainDyna2);
-            scene = new Cutscene(ctx, Game.GameData, Game.Viewport, Game);
+            scene = new Cutscene(ctx, Game.GameData, Game.RenderContext.CurrentViewport, Game);
             scene.ScriptFinished += SceneOnScriptFinished;
             sceneScripts = currentRoom.OpenScene().ToArray();
             if (dolanding && !string.IsNullOrEmpty(currentRoom.LandScript))
@@ -687,7 +687,7 @@ namespace LibreLancer
             session.Update();
             ProcessCutscenes();
             if (scene != null) {
-                scene.UpdateViewport(Game.Viewport);
+                scene.UpdateViewport(Game.RenderContext.CurrentViewport);
                 if(paused)
                     scene.Update(0);
                 else

@@ -11,7 +11,7 @@ namespace LibreLancer
     //Based on camera rigs from https://github.com/brihernandez/FreelancerFlightExample
     public class ChaseCamera : ICamera
 	{
-		public Viewport Viewport
+		public Rectangle Viewport
 		{
 			get
 			{
@@ -23,7 +23,7 @@ namespace LibreLancer
 				UpdateProjection();
 			}
 		}
-		Viewport _vp;
+		Rectangle _vp;
 
 		public Vector3 ChasePosition { get; set; }
 		public Matrix4x4 ChaseOrientation { get; set; }
@@ -86,7 +86,7 @@ namespace LibreLancer
 		}
 
         private CameraIni ini;
-		public ChaseCamera(Viewport viewport, CameraIni ini)
+		public ChaseCamera(Rectangle viewport, CameraIni ini)
 		{
             this.ini = ini;
 			this.Viewport = viewport;

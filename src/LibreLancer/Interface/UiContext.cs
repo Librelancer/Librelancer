@@ -25,6 +25,8 @@ namespace LibreLancer.Interface
         public MatrixCamera MatrixCam = new MatrixCamera(Matrix4x4.Identity);
         //Data
         public UiData Data;
+
+        public CommandBuffer CommandBuffer;
         //Ui
         private object _gameApi;
         public object GameApi
@@ -55,6 +57,7 @@ namespace LibreLancer.Interface
             this.game = game;
             game.Mouse.MouseDown += MouseOnMouseDown;
             game.Mouse.MouseUp += MouseOnMouseUp;
+            CommandBuffer = new CommandBuffer();
         }
 
         public void LoadCode()

@@ -18,15 +18,15 @@ namespace LibreLancer
         private Matrix4x4 ogProjection;
 		Matrix4x4 viewProjection;
 		BoundingFrustum frustum;
-		Viewport viewport;
+		Rectangle viewport;
 
-		public ThnCamera(Viewport vp)
+		public ThnCamera(Rectangle vp)
 		{
 			viewport = vp;
 			Update();
 		}
 
-        public void SetViewport(Viewport vp)
+        public void SetViewport(Rectangle vp)
         {
             viewport = vp;
         }

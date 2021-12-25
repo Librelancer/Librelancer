@@ -225,19 +225,19 @@ namespace LibreLancer.ImUI
 			return id;
 		}
 
-        public static int RenderGradient(ViewportManager vps, Color4 top, Color4 bottom)
+        public static int RenderGradient( Color4 top, Color4 bottom)
         {
-            return instance.RenderGradientInternal(vps, top, bottom);
+            return instance.RenderGradientInternal(top, bottom);
         }
 
-        int RenderGradientInternal(ViewportManager vps, Color4 top, Color4 bottom)
+        int RenderGradientInternal(Color4 top, Color4 bottom)
         {
             var target = new RenderTarget2D(128,128);
             var r2d = game.RenderContext.Renderer2D;
             game.RenderContext.RenderTarget = target;
-            vps.Push(0, 0, 128, 128);
+            game.RenderContext.PushViewport(0, 0, 128, 128);
             r2d.DrawVerticalGradient(new Rectangle(0,0,128,128), top, bottom);
-            vps.Pop();
+            game.RenderContext.PopViewport();
             game.RenderContext.RenderTarget = null;
             toFree.Add(target);
             return RegisterTexture(target.Texture);

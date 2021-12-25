@@ -49,14 +49,14 @@ namespace SystemViewer
             }
 
             window.RenderContext.RenderTarget = renderTarget;
-            window.Viewport.Push(0, 0, renderWidth, renderHeight);
+            window.RenderContext.PushViewport(0, 0, renderWidth, renderHeight);
             var cc = window.RenderContext.ClearColor;
             window.RenderContext.ClearColor = Color4.Transparent;
             window.RenderContext.ClearAll();
             window.RenderContext.ClearColor = cc;
             window.RichText.RenderText(icard, 0, 0);
             window.RenderContext.RenderTarget = null;
-            window.Viewport.Pop();
+            window.RenderContext.PopViewport();
 
             //ImGui. Base off ImageButton so we can get input for selection later
             var style = ImGui.GetStyle();

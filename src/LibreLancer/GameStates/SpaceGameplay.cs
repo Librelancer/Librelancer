@@ -110,7 +110,7 @@ World Time: {12:F2}
             }
             powerCore = player.GetComponent<PowerCoreComponent>();
             if (powerCore == null) throw new Exception("Player launched without a powercore equipped!");
-            camera = new ChaseCamera(Game.Viewport, Game.GameData.Ini.Cameras);
+            camera = new ChaseCamera(Game.RenderContext.CurrentViewport, Game.GameData.Ini.Cameras);
             camera.ChasePosition = session.PlayerPosition;
             camera.ChaseOrientation = player.LocalTransform.ClearTranslation();
             var offset = shp.ChaseOffset;
@@ -385,7 +385,7 @@ World Time: {12:F2}
 		}
         public override void OnResize()
         {
-            camera.Viewport = Game.Viewport;
+            camera.Viewport = Game.RenderContext.CurrentViewport;
         }
 
         public bool ShowHud = true;

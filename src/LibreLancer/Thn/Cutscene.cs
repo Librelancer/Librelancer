@@ -140,13 +140,13 @@ namespace LibreLancer
             gameData = gameplay.FlGame.GameData;
             World = gameplay.world;
             spawnObjects = false;
-            camera = new ThnCamera(gameplay.FlGame.Viewport);
+            camera = new ThnCamera(gameplay.FlGame.RenderContext.CurrentViewport);
             scriptContext = context;
         }
 
         private ThnScriptContext scriptContext;
         List<ThnScriptInstance> instances = new List<ThnScriptInstance>();
-        public Cutscene(ThnScriptContext context, GameDataManager gameData, Viewport viewport, Game game)
+        public Cutscene(ThnScriptContext context, GameDataManager gameData, Rectangle viewport, Game game)
         {
             scriptContext = context;
             this.game = game;
@@ -154,7 +154,7 @@ namespace LibreLancer
 			camera = new ThnCamera(viewport);
         }
 
-        public void UpdateViewport(Viewport vp)
+        public void UpdateViewport(Rectangle vp)
         {
             camera?.SetViewport(vp);
         }

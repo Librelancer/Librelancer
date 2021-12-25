@@ -15,7 +15,6 @@ namespace LancerEdit
         private EditorConfiguration config;
         private RenderContext rstate;
         private ImGuiHelper guiHelper;
-        private ViewportManager vps;
         static readonly string[] defaultFilters = {
             "Linear", "Bilinear", "Trilinear"
         };
@@ -39,7 +38,6 @@ namespace LancerEdit
             config = win.Config;
             rstate = win.RenderContext;
             guiHelper = win.guiHelper;
-            vps = win.Viewport;
             
             var texturefilters = new List<string>(defaultFilters);
             if (win.RenderContext.MaxAnisotropy > 0)
@@ -128,7 +126,7 @@ namespace LancerEdit
                 config.MSAA = msaaLevels[cMsaa];
                 ImGui.Checkbox("View Buttons", ref config.ViewButtons);
                 ImGui.Checkbox("Pause When Unfocused", ref config.PauseWhenUnfocused);
-                if (ViewerControls.GradientButton("Viewport Background", config.Background, config.Background2, new Vector2(22), vps, config.BackgroundGradient))
+                if (ViewerControls.GradientButton("Viewport Background", config.Background, config.Background2, new Vector2(22), config.BackgroundGradient))
                 {
                     ImGui.OpenPopup("Viewport Background");
                     editCol = new Vector3(config.Background.R, config.Background.G, config.Background.B);

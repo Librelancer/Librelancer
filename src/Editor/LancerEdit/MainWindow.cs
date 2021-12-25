@@ -23,7 +23,6 @@ namespace LancerEdit
 		public GameResourceManager Resources;
 		public PolylineRender Polyline;
 		public PhysicsDebugRenderer DebugRender;
-		public ViewportManager Viewport;
 		public CommandBuffer Commands; //This is a huge object - only have one
 		public MaterialMap MaterialMap;
         public RichTextEngine RichText;
@@ -97,13 +96,12 @@ namespace LancerEdit
             guiHelper.PauseWhenUnfocused = Config.PauseWhenUnfocused;
             Audio = new AudioManager(this);
             FileDialog.RegisterParent(this);
-			Viewport = new ViewportManager(RenderContext);
             options = new OptionsWindow(this);
             Resources = new GameResourceManager(this);
 			Commands = new CommandBuffer();
 			Polyline = new PolylineRender(Commands);
 			DebugRender = new PhysicsDebugRenderer();
-            Viewport.Push(0, 0, 800, 600);
+            RenderContext.PushViewport(0, 0, 800, 600);
             Keyboard.KeyDown += Keyboard_KeyDown;
             //TODO: Icon-setting code very messy
             using (var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("LancerEdit.reactor_64.png"))
@@ -218,7 +216,7 @@ namespace LancerEdit
                 return;
             }
             TimeStep = elapsed;
-			Viewport.Replace(0, 0, Width, Height);
+			RenderContext.ReplaceViewport(0, 0, Width, Height);
 			RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
 			RenderContext.ClearAll();
 			guiHelper.NewFrame(elapsed);

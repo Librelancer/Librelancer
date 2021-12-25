@@ -34,12 +34,7 @@ namespace LibreLancer
 		int uithread;
 		bool useintromovies;
 		GameState currentState;
-        public ViewportManager ViewportManager;
-		public Viewport Viewport {
-			get {
-				return new Viewport (0, 0, Width, Height);
-			}
-		}
+	
 		public GameConfig Config
 		{
 			get
@@ -119,8 +114,7 @@ namespace LibreLancer
             Fonts = new FontManager();
 			Billboards = new Billboards ();
 			Nebulae = new NebulaVertices();
-			ViewportManager = new ViewportManager (RenderContext);
-			ViewportManager.Push(0, 0, Width, Height);
+			RenderContext.PushViewport(0, 0, Width, Height);
 			Screenshots = new ScreenshotManager(this);
             Typewriter = new Typewriter(this);
             
@@ -175,7 +169,7 @@ namespace LibreLancer
 		int drawCallsPerFrame = 0;
 		protected override void Draw (double elapsed)
 		{
-			ViewportManager.Instance.Replace(0, 0, Width, Height);
+			RenderContext.ReplaceViewport(0, 0, Width, Height);
 			fps_updatetimer -= elapsed;
 			if (fps_updatetimer <= 0) {
 				Title = string.Format ("LibreLancer: {0:00.00}fps/ {2:00.00}ms - {1} Drawcalls", RenderFrequency, drawCallsPerFrame, FrameTime * 1000.0);
@@ -187,7 +181,6 @@ namespace LibreLancer
             Typewriter.Render();
 			drawCallsPerFrame = VertexBuffer.TotalDrawcalls;
 			VertexBuffer.TotalDrawcalls = 0;
-			ViewportManager.Instance.CheckViewports ();
         }
 
 		void FreelancerGame_ScreenshotSave(string filename, int width, int height, byte[] data)

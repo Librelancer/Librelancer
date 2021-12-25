@@ -77,7 +77,7 @@ namespace SystemViewer
                 rt = ImGuiHelper.RegisterTexture(rtarget.Texture);
             }
             //Draw
-            win.Viewport.Push(0, 0, width, height);
+            win.RenderContext.PushViewport(0, 0, width, height);
             ctx.ViewportWidth = width;
             ctx.ViewportHeight = height;
             ctx.RenderContext.RenderTarget = rtarget;
@@ -85,7 +85,7 @@ namespace SystemViewer
             ctx.RenderContext.ClearAll();
             ctx.RenderWidget(delta);
             ctx.RenderContext.RenderTarget = null;
-            win.Viewport.Pop();
+            win.RenderContext.PopViewport();
             //ImGui
             //TODO: Implement in Navmap then add buttons
             /*

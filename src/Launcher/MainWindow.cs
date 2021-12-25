@@ -16,7 +16,6 @@ namespace Launcher
     class MainWindow : Game
     {
         ImGuiHelper imGui;
-        ViewportManager Viewport;
         public MainWindow() : base(500, 300, false)
         {
 
@@ -26,8 +25,7 @@ namespace Launcher
         {
             Title = "Librelancer";
             imGui = new ImGuiHelper(this);
-            Viewport = new ViewportManager(RenderContext);
-            Viewport.Push(0, 0, Width, Height);
+            RenderContext.PushViewport(0, 0, Width, Height);
             FileDialog.RegisterParent(this);
             freelancerFolder = new TextBuffer(512);
             config = GameConfig.Create();
@@ -51,7 +49,7 @@ namespace Launcher
         TextBuffer freelancerFolder;
         protected override void Draw(double elapsed)
         {
-            Viewport.Replace(0, 0, Width, Height);
+            RenderContext.ReplaceViewport(0, 0, Width, Height);
             RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
             RenderContext.ClearAll();
             imGui.NewFrame(elapsed);

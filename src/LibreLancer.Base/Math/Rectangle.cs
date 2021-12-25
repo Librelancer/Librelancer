@@ -71,6 +71,8 @@ namespace LibreLancer
                 return hc;
             }
         }
+
+        public float AspectRatio => (float) Width / (float) Height;
     }
 }
 

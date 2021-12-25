@@ -342,14 +342,14 @@ namespace InterfaceEdit
                 renderTargetImage = ImGuiHelper.RegisterTexture(renderTarget.Texture);
             }
             mainWindow.RenderContext.RenderTarget = renderTarget;
-            mainWindow.Viewport.Push(0,0,rtX,rtY);
+            mainWindow.RenderContext.PushViewport(0,0,rtX,rtY);
             mainWindow.RenderContext.ClearColor = Color4.Black;
             mainWindow.RenderContext.ClearAll();
         }
 
         void DrawViewport()
         {
-            mainWindow.Viewport.Pop();
+            mainWindow.RenderContext.PopViewport();
             mainWindow.RenderContext.RenderTarget = null;
             var cPos = ImGui.GetCursorPos();
             ImGui.Image((IntPtr) renderTargetImage, new Vector2(rtX, rtY), new Vector2(0, 1), new Vector2(1, 0));

@@ -5,7 +5,7 @@
 using System;
 using System.Numerics;
 using LibreLancer;
-namespace LancerEdit
+namespace LibreLancer
 {
     public class LookAtCamera : ICamera
     {

@@ -10,7 +10,7 @@ namespace LibreLancer
 	public class DebugCamera : ICamera
 	{
 		public float MoveSpeed = 3000f;
-		public Viewport Viewport { 
+		public Rectangle Viewport { 
 			get { 
 				return _vp; 
 			}  set {
@@ -18,7 +18,7 @@ namespace LibreLancer
 				UpdateProjection(); 
 			}
 		}
-		Viewport _vp;
+		Rectangle _vp;
 
 		private Vector3 currentTarget, selectedTarget;
 		public Vector3 Target
@@ -63,7 +63,7 @@ namespace LibreLancer
 
         public bool Free { get; set; }
 
-		public DebugCamera(Viewport viewport)
+		public DebugCamera(Rectangle viewport)
 		{
 			this.Viewport = viewport;
 			Free = false;
