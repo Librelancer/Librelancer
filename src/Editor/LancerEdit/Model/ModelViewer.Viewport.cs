@@ -387,18 +387,20 @@ namespace LancerEdit
         void DrawWires()
         {
             var matrix = GetModelMatrix();
+            int i = 0;
             foreach (var part in vmsModel.AllParts)
             {
                 if (part.Wireframe != null)
                 {
-                    DrawVMeshWire(part.Wireframe, part.LocalTransform * matrix);
+                    DrawVMeshWire(part.Wireframe, part.LocalTransform * matrix, i++);
                 }
             }
         }
-        void DrawVMeshWire(VMeshWire wires, Matrix4x4 mat)
+        void DrawVMeshWire(VMeshWire wires, Matrix4x4 mat, int color)
         {
             var c = _window.DebugRender.Color;
-            _window.DebugRender.Color = Color4.White;
+            color %= initialCmpColors.Length;
+            _window.DebugRender.Color = initialCmpColors[color];
             for (int i = 0; i < wires.Lines.Length / 2; i++)
             {
                 _window.DebugRender.DrawLine(
