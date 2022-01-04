@@ -5,7 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
 using LibreLancer.Utf.Mat;
 namespace LibreLancer.Utf.Vms
 {
@@ -48,9 +48,22 @@ namespace LibreLancer.Utf.Vms
         {
             foreach (IntermediateNode vmsNode in vMeshLibrary)
             {
-                if (vmsNode.Count != 1) throw new Exception("Invalid VMeshLibrary: More than one child or zero elements: " + vmsNode.Name);
-                LeafNode vMeshDataNode = vmsNode[0] as LeafNode;
-				Meshes.Add (CrcTool.FLModelCrc (vmsNode.Name), new VMeshData (vMeshDataNode.DataSegment, materialLibrary, vmsNode.Name));
+                var vMeshDataNode =
+                    vmsNode.FirstOrDefault(x => x.Name.Equals("VMeshData", StringComparison.OrdinalIgnoreCase));
+                if (vMeshDataNode == null) {
+                    FLLog.Error("VMS", "Invalid VMeshLibrary: No VMeshData: " + vmsNode.Name);
+                    continue;
+                }
+                LeafNode vmsdat = vmsNode[0] as LeafNode;
+                if (vmsdat == null)
+                {
+                    FLLog.Error("VMS", "Invalid VMeshLibrary: VMeshData has no bytes: " + vmsNode.Name);
+                }
+                else
+                {
+                    Meshes.Add(CrcTool.FLModelCrc(vmsNode.Name),
+                        new VMeshData(vmsdat.DataSegment, materialLibrary, vmsNode.Name));
+                }
             }
         }
 
