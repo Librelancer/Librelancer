@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Security.Cryptography;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using static BuildLL.Runtime;
 
 namespace BuildLL
@@ -72,7 +74,35 @@ namespace BuildLL
 
             if(!win32 || arch == "x64") RmDir(Path.Combine(outputDir, "x86"));
             if(!win32 || arch =="x86") RmDir(Path.Combine(outputDir, "x64"));
-	
+
+            foreach (var file in Directory.GetFiles(Path.Combine(outputDir,"lib")))
+            {
+                if (file.EndsWith(".deps.json"))
+                {
+                    Console.WriteLine($"Fixing {file}");
+                    var parent = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(file));
+                    var targets = ((JObject)parent.Property("targets").Value);
+                    foreach (var o in targets.Properties())
+                    {
+                        var target = (JObject)o.Value;
+                        foreach (var asm in target.Properties())
+                        {
+                            var value = (JObject)asm.Value;
+                            var natives = value.Property("native");
+                            if (natives != null) {
+                                ((JObject)natives.Value).Properties().ToList().ForEach(p =>
+                                {
+                                    if (p.Name.Equals("createdump"))
+                                        p.Remove();
+                                });
+                            }
+                        }
+                        
+                    }
+                    File.WriteAllText(file, parent.ToString());
+                }
+            }
+            
             Console.WriteLine("Publish Complete");
         }
         
@@ -125,7 +155,6 @@ namespace BuildLL
             //Delete junk files
             DeleteFilesGlob(publishDir,
                 "*.pdb",
-                "*.json",
                 "createdump",
                 "SOS_README.md"
             );
