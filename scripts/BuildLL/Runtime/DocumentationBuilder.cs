@@ -22,7 +22,6 @@ namespace BuildLL
             // Copy each file into the new directory.
             foreach (FileInfo fi in source.GetFiles())
             {
-                Console.WriteLine(@"Copying {0}\{1}", target.FullName, fi.Name);
                 fi.CopyTo(Path.Combine(target.FullName, fi.Name), true);
             }
 
@@ -71,11 +70,12 @@ namespace BuildLL
         {
             Directory.CreateDirectory(Path.Combine(output, "assets"));
             //Copy project assets
+            Console.WriteLine("Copying documentation assets");
             if(Directory.Exists(Path.Combine(sourceDir, "assets"))) {
                 Copy(Path.Combine(sourceDir, "assets"), Path.Combine(output, "assets"));
             }
-            
-            //Generate markdown
+            Console.WriteLine("Generating HTML");
+            //Generate HTML
             foreach (var file in Directory.GetFiles(sourceDir, "*.md"))
             {
                 string outPath = Path.Combine(output, Path.ChangeExtension(Path.GetFileName(file), ".html"));

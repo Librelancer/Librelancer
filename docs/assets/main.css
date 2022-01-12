@@ -2,7 +2,7 @@ html { font-family: 'Open Sans', sans-serif; }
 body { font-size: 100%; color: rgb(180, 180, 180); background-color: rgb(33, 33, 33); margin: 0 auto; max-width: 66.6em; }
 em { color: rgb(224, 224, 224); }
 a { color:rgb(140, 200, 241); }
-pre { font-family: 'Source Code Pro', monospace; }
+pre, code { font-family: 'Source Code Pro', monospace; }
 dt { font-weight: bold; }
 h1, h2, h3 { font-weight: normal; color: rgb(255, 255, 255); }
 table { border-collapse: collapse; }
