@@ -64,23 +64,11 @@ namespace LibreLancer
 
         public void Sell(UIInventoryItem item, int count, Closure onSuccess)
         {
-            if (item.Hardpoint != null)
-            {
-                session.RpcServer.SellAttachedGood(item.Hardpoint).ContinueWith(x =>
+            session.RpcServer.SellGood(item.ID, count).ContinueWith(x =>
                 {
                     FLLog.Info("Client", "Sold Item!");
                     if(x.Result) session.EnqueueAction(() => onSuccess.Call());
                 });
-            }
-            else
-            {
-                session.RpcServer.SellGood(item.ID, count).ContinueWith(x =>
-                {
-                    FLLog.Info("Client", "Sold Item!");
-                    if(x.Result) session.EnqueueAction(() => onSuccess.Call());
-                });
-            }
-           
         }
 
         private Closure handler;
@@ -95,7 +83,7 @@ namespace LibreLancer
             this.handler = handler;
             session.OnUpdateInventory = UpdateAction;
         }
-        static Func<Equipment, bool> GetFilter(string name)
+        public static Func<Equipment, bool> GetFilter(string name)
         {
             if (string.IsNullOrEmpty(name)) return AllowAll;
             if (!filters.TryGetValue(name, out var func))
@@ -103,7 +91,7 @@ namespace LibreLancer
             return func;
         }
 
-        void SortGoods(List<UIInventoryItem> item)
+        public static void SortGoods(CGameSession session, List<UIInventoryItem> item)
         {
             item.Sort((x, y) =>
             {
@@ -170,7 +158,7 @@ namespace LibreLancer
                     Price = price
                 });
             }
-            SortGoods(traderGoods);
+            SortGoods(session, traderGoods);
             return traderGoods.ToArray();
         }
 
@@ -193,10 +181,34 @@ namespace LibreLancer
                 return false;
             foreach (var hp in possible)
             {
-                if (!session.Mounts.Any(x => hp.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)))
+                if (!session.Items.Any(x => hp.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)))
                     return true;
             }
             return false;
+        }
+
+        public static UIInventoryItem FromNetCargo(NetCargo item, double price, bool canMount)
+        {
+            var rank = "neutral";
+            if (item.Equipment.Good.Ini.GoodSellPrice != 0 && price >= item.Equipment.Good.Ini.GoodSellPrice * item.Equipment.Good.Ini.Price) 
+                rank = "good";
+            if (item.Equipment.Good.Ini.BadSellPrice != 0 && price <= item.Equipment.Good.Ini.BadSellPrice * item.Equipment.Good.Ini.Price)
+                rank = "bad";
+            if (item.Equipment.Good.Ini.BadSellPrice == 0 && item.Equipment.Good.Ini.GoodSellPrice == 0) rank = null;
+            return new UIInventoryItem()
+            {
+                ID = item.ID,
+                Count = item.Count,
+                Icon = item.Equipment.Good.Ini.ItemIcon,
+                Good = item.Equipment.Good.Ini.Nickname,
+                IdsInfo = item.Equipment.IdsInfo,
+                IdsName = item.Equipment.IdsName,
+                Price = price,
+                PriceRank = rank,
+                MountIcon = !string.IsNullOrEmpty(item.Equipment.HpType),
+                Combinable = item.Equipment.Good.Ini.Combinable,
+                CanMount = canMount
+            };
         }
         
         public UIInventoryItem[] GetPlayerGoods(string filter)
@@ -225,12 +237,13 @@ namespace LibreLancer
                 ui.IdsHardpoint = hptype.IdsName;
                 ui.HpSortIndex = hptype.SortIndex;
                 ui.IdsHardpointDescription = hptype.IdsHpDescription;
-                var mounted = session.Mounts.FirstOrDefault(x =>
+                var mounted = session.Items.FirstOrDefault(x =>
                     hardpoint.Key.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase));
                 if (mounted != null)
                 {
-                    var equip = session.Game.GameData.GetEquipment(mounted.Item);
+                    var equip = mounted.Equipment;
                     if (equip == null || equip.Good == null) continue;
+                    ui.ID = mounted.ID;
                     ui.Count = 1;
                     ui.Good = equip.Good.Ini.Nickname;
                     ui.Icon = equip.Good.Ini.ItemIcon;
@@ -239,36 +252,22 @@ namespace LibreLancer
                     ui.Price = GetPrice(equip.Good);
                     ui.MountIcon = true;
                     ui.CanMount = true;
+                    if (equip is not CommodityEquipment)
+                        ui.Price = (ulong) (ui.Price * TradeConstants.EQUIP_RESALE_MULTIPLIER);
                 }
                 inventoryItems.Add(ui);
             }
-            foreach (var item in session.Cargo)
+            foreach (var item in session.Items)
             {
                 if (item.Equipment.Good == null) continue;
+                if (!string.IsNullOrEmpty(item.Hardpoint)) continue;
                 if(!filterfunc(item.Equipment)) continue;
                 var price = GetPrice(item.Equipment.Good);
-                var rank = "neutral";
-                if (item.Equipment.Good.Ini.GoodSellPrice != 0 && price >= item.Equipment.Good.Ini.GoodSellPrice * item.Equipment.Good.Ini.Price) 
-                    rank = "good";
-                if (item.Equipment.Good.Ini.BadSellPrice != 0 && price <= item.Equipment.Good.Ini.BadSellPrice * item.Equipment.Good.Ini.Price)
-                    rank = "bad";
-                if (item.Equipment.Good.Ini.BadSellPrice == 0 && item.Equipment.Good.Ini.GoodSellPrice == 0) rank = null;
-                inventoryItems.Add(new UIInventoryItem()
-                {
-                    ID = item.ID,
-                    Count = item.Count,
-                    Icon = item.Equipment.Good.Ini.ItemIcon,
-                    Good = item.Equipment.Good.Ini.Nickname,
-                    IdsInfo = item.Equipment.IdsInfo,
-                    IdsName = item.Equipment.IdsName,
-                    Price = price,
-                    PriceRank = rank,
-                    MountIcon = !string.IsNullOrEmpty(item.Equipment.HpType),
-                    Combinable = item.Equipment.Good.Ini.Combinable,
-                    CanMount = CanMount(item.Equipment.HpType)
-                });
+                if (item.Equipment is not CommodityEquipment)
+                    price = (ulong) (price * TradeConstants.EQUIP_RESALE_MULTIPLIER);
+                inventoryItems.Add(FromNetCargo(item, price, CanMount(item.Equipment.HpType)));
             }
-            SortGoods(inventoryItems);
+            SortGoods(session, inventoryItems);
             return inventoryItems.ToArray();
         }
     }

@@ -26,8 +26,7 @@ namespace LibreLancer.Database
 
             // Define relationships
             modelBuilder.Entity<Account>().HasMany(x => x.Characters).WithOne(x => x.Account);
-            modelBuilder.Entity<Character>().HasMany(x => x.Cargo).WithOne().OnDelete(DeleteBehavior.Cascade);
-            modelBuilder.Entity<Character>().HasMany(x => x.Equipment).WithOne().OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Character>().HasMany(x => x.Items).WithOne().OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<Character>().HasMany(x => x.Reputations).WithOne().OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<Character>().HasMany(x => x.VisitEntries).WithOne().OnDelete(DeleteBehavior.Cascade);
         }

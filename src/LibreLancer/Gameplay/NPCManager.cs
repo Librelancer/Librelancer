@@ -58,8 +58,7 @@ namespace LibreLancer
         public GameObject DoSpawn(string nickname, Loadout loadout, GameData.Pilot pilot, Vector3 position, Quaternion orient)
         {
             NetShipLoadout netLoadout = new NetShipLoadout();
-            netLoadout.Equipment = new List<NetShipEquip>();
-            netLoadout.Cargo = new List<NetShipCargo>();
+            netLoadout.Items = new List<NetShipCargo>();
             var ship = World.Server.GameData.GetShip(loadout.Archetype);
             netLoadout.ShipCRC = ship.CRC;
             var obj = new GameObject(ship, World.Server.Resources, false, true);
@@ -77,8 +76,8 @@ namespace LibreLancer
                 if (e == null) continue;
                 EquipmentObjectManager.InstantiateEquipment(obj, World.Server.Resources, EquipmentType.Server,
                     equipped.Hardpoint, e);
-                var hp = equipped.Hardpoint == null ? 0 : CrcTool.FLModelCrc(equipped.Hardpoint);
-                netLoadout.Equipment.Add(new NetShipEquip(hp, e.CRC, 255));
+                var hp = equipped.Hardpoint == null ? NetShipCargo.InternalCrc : CrcTool.FLModelCrc(equipped.Hardpoint);
+                netLoadout.Items.Add(new NetShipCargo(0, e.CRC, hp, 255, 1));
             }
             obj.Components.Add(new SNPCComponent(obj, this) {Loadout = netLoadout, Pilot = pilot});
             obj.Components.Add(new ShipPhysicsComponent(obj) { Ship = ship });

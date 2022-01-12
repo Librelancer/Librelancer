@@ -38,6 +38,22 @@ namespace LibreLancer
         {
             return new Vector3(GetFloat(), GetFloat(), GetFloat());
         }
+
+        public Vector3 GetNormal()
+        {
+            var maxIndex = (int) GetUInt(2);
+            var sign = GetBool();
+            var a = GetRangedFloat(NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, 14);
+            var b = GetRangedFloat(NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, 15);
+            var c = (float)Math.Sqrt(1f - (a * a + b * b));
+            if (sign) c = -c;
+            if (maxIndex == 0)
+                return new Vector3(c, a, b);
+            else if (maxIndex == 1)
+                return new Vector3(a, c, b);
+            else
+                return new Vector3(a, b, c);
+        }
         
         public Quaternion GetQuaternion()
         {

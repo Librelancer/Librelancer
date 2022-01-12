@@ -100,6 +100,12 @@ namespace LibreLancer
             return ~crc;
         }
 
+        public static uint HardpointCrc(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return 0;
+            return FLModelCrc(name);
+        }
+
 		public static uint FLAleCrc(string name)
 		{
 			if (name == null) throw new ArgumentNullException("name");

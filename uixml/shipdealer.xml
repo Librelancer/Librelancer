@@ -1,0 +1,93 @@
+<Scene>
+<Panel Width="640" Height="480" Anchor="Center">
+<Panel Anchor="Center" Y="37" X="3" Width="624" Height="406" ID="background">
+<Panel.Background>
+<DisplayModel model="inv_trade_background" />
+</Panel.Background>
+
+<Panel Width="624" Height="406" ID="contents">
+	<Panel ID="shipitems" Width="624" Height="406" Visible="false">
+	<TextBlock TextColor="text" TextShadow="#000000FF" X="410" Y="18" Width="200" Height="20" Strid="8515" TextSize="13" /> <!-- DEALER -->
+	<TextBlock TextColor="text" TextShadow="#000000FF" X="4" Y="18" Width="200" Height="20" Strid="8511" TextSize="13" /> <!-- INVENTORY-->
+	<TextBlock TextColor="text" TextShadow="#000000FF" X="4" Y="33" Width="200" Height="20" Text="CREDITS $1,845" TextSize="11" id="credits_text" /> <!-- CREDITS -->
+	<TextBlock TextColor="text" TextShadow="#000000FF" X="410" Y="33" Width="200" Height="20" Text="SHIP PRICE $1,977" TextSize="11" id="ship_price_text" /> <!-- SHIP PRICE-->
+	<Panel id="inv_categories">
+		<Button X="101" Y="223" id="category_weapons" Style="inv_category_weapons"/>
+		<Button X="118" Y="223" id="category_ammo" Style="inv_category_ammo"/>
+		<Button X="135" Y="223" id="category_external" Style="inv_category_external"/>
+		<Button X="153" Y="223" id="category_internal" Style="inv_category_internal"/>
+		<Button X="171" Y="223" id="category_commodity" Style="inv_category_commodity"/>
+	</Panel>
+	<Panel id="buysell_controls">
+	<Button id="btn_buysell" style="trader_buy" Strid="3016" X="245" Y="29" />
+	<TextBlock TextColor="text" TextShadow="#000000FF" Text="Select Quantity" Strid="1145" HorizontalAlignment="Center" Height="18" Width="180" X="222" Y="116" TextSize="9">
+	</TextBlock>
+	<HSlider ID="quantitySlider" Width="160" X="236" Y="142"  />
+	<TextBlock TextColor="text" TextShadow="#000000FF" Text="Quantity:" Strid="1146" HorizontalAlignment="Left" Height="18" Width="100" X="248" Y="164" TextSize="9"/>
+	<TextBlock id="quantity_label" TextColor="text" TextShadow="#000000FF" Text="0" HorizontalAlignment="Right" Height="18" Width="124" X="248" Y="164" TextSize="9"/>
+	<TextBlock TextColor="text" TextShadow="#000000FF" Text="Price:" Strid="1147" HorizontalAlignment="Left" Height="18" Width="100" X="248" Y="188" TextSize="9"/>
+	<TextBlock id="unit_price" TextColor="text" TextShadow="#000000FF" Text="$0" HorizontalAlignment="Right" Height="18" Width="124" X="248" Y="188" TextSize="9"/>
+	<TextBlock TextColor="text" TextShadow="#000000FF" Text="Total:" Strid="1148" HorizontalAlignment="Left" Height="18" Width="100" X="248" Y="212" TextSize="9"/>
+	<TextBlock id="price_total" TextColor="text" TextShadow="#000000FF" Text="$0" HorizontalAlignment="Right" Height="18" Width="124" X="248" Y="212" TextSize="9"/>
+	</Panel>
+	<Panel id="item_preview" X="226" Y="73" Width="171" Height="32"/>
+	<InfocardDisplay id="error_text" X="230" Y="15" Width="163" Height="50">
+	</InfocardDisplay>
+	<ListBox id="inv_list" X = "14" Y = "55" Width = "186" Height="170" ItemHeight="32">
+	</ListBox>
+	
+	<ListBox id="tr_list" X = "418" Y = "55" Width = "186" Height="170" ItemHeight="32">
+	</ListBox>
+	<Button style="wirebutton" Text="BUY" X="230" Y="210" ID="buy_ship"/>
+	<InfocardDisplay X="228" Y="210" Width="170" Height="40" id="credits_needed_text" /> <!-- CREDITS -->
+	</Panel>
+
+	<Button style="xbutton" id="close" Anchor="TopRight" X="13" Y="20" Width="13" Height="13" />
+	
+	<Panel ID="shiplist" Visible="false">
+	<ListBox id="pship_list" X = "14" Y ="85" Width = "186" Height="100" ItemHeight="32">
+	</ListBox>
+	<ListBox id="tship_list" X = "418" Y = "85" Width = "186" Height="100" ItemHeight="32">
+	</ListBox>
+	<TextBlock TextSize="13" TextColor="text" TextShadow="black" X="15" Y="35" Width="192" Height="30" Text="PLAYER SHIP" Strid="1582"/>
+	<TextBlock TextSize="13" TextColor="text" TextShadow="black" X="419" Y="35" Width="192" Height="30" Text="DEALER SHIPS" Strid="1120"/>
+	<Panel id="ship_preview_panel" Visible="false">
+	<TextBlock TextSize="13" TextColor="text" TextShadow="black" X="219" Y="9" Width="192" Height="30" Text="SHIP_NAME" id="ship_name"/>
+	<TextBlock TextSize="11" TextColor="text" TextShadow="black" X="219" Y="28" Width="192" Height="30" Text="SHIP_CLASS" id="ship_class"/>
+	<ModelView ID="ship_preview" X="230" Y="55" Width="160" Height="142">
+	</ModelView>
+	<Button style="wirebutton" Text="BUY" X="230" Y="210" ID="start_buy"/>
+	</Panel>
+	
+
+	
+	<InfocardDisplay id="item_infocard" X="40" Y="270" Width="545" Height="120" >
+	</InfocardDisplay>
+	
+	</Panel>
+</Panel>
+
+
+</Panel>
+</Panel>
+</Scene>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -27,6 +27,9 @@ function ChildWindow:Open(widget)
 	if self.Opened then
 		return
 	end
+	if self.OnChildOpen ~= nil then
+		self:OnChildOpen()
+	end
 	self.Opened = true
 	self.Parent = widget
 	self:AnimateIn()
@@ -92,5 +95,7 @@ function ChildWindow:Close(cb)
 		self:AnimateOut(cb)
 	end
 end
+
+
 
 

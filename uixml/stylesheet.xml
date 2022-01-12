@@ -351,7 +351,17 @@
 			<ButtonAppearance.Background><DisplayModel model="inv_category_external" tint="yellow"/></ButtonAppearance.Background>
 		</ButtonStyle.Selected>
 	</ButtonStyle>
-	
+	<ButtonStyle Width="15" Height="15" Name="inv_category_commodity">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background><DisplayModel model="inv_category_commodity" tint="text"/></ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background><DisplayModel model="inv_category_commodity" tint="text_hover"/></ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background><DisplayModel model="inv_category_commodity" tint="yellow"/></ButtonAppearance.Background>
+		</ButtonStyle.Selected>
+	</ButtonStyle>
 	<ButtonStyle Width="8" Height="8" Name="inv_mount">
 		<ButtonStyle.Normal>
 			<ButtonAppearance.Background><DisplayModel model="inv_mount" tint="text"/></ButtonAppearance.Background>
@@ -507,6 +517,8 @@
 		</HSliderStyle.Thumb>
 	</HSliderStyle>
 </Stylesheet>
+
+
 
 
 

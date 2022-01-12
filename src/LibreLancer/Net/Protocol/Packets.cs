@@ -129,29 +129,22 @@ namespace LibreLancer
         }
     }
 
-    public class NetShipEquip
-    {
-        public uint HardpointCRC;
-        public uint EquipCRC;
-        public byte Health;
-        public NetShipEquip(uint hardpoint, uint crc, byte health)
-        {
-            HardpointCRC = hardpoint;
-            EquipCRC = crc;
-            Health = health;
-        }
-    }
-
     public class NetShipCargo
     {
         public int ID;
         public uint EquipCRC;
+        public uint HardpointCRC;
+        public byte Health;
         public int Count;
 
-        public NetShipCargo(int id, uint crc, int count)
+        public static readonly uint InternalCrc = CrcTool.FLModelCrc("internal");
+
+        public NetShipCargo(int id, uint crc, uint hp, byte health, int count)
         {
             ID = id;
             EquipCRC = crc;
+            HardpointCRC = hp;
+            Health = health;
             Count = count;
         }
     }
@@ -160,23 +153,17 @@ namespace LibreLancer
     {
         public uint ShipCRC;
         public float Health;
-        public List<NetShipEquip> Equipment;
-        public List<NetShipCargo> Cargo;
+        public List<NetShipCargo> Items;
         public static NetShipLoadout Read(NetPacketReader message)
         {
             var s = new NetShipLoadout();
             s.ShipCRC = message.GetUInt();
             s.Health = message.GetFloat();
-            var equipCount = (int)message.GetVariableUInt32();
-            s.Equipment = new List<NetShipEquip>(equipCount);
-            for(int i = 0; i < equipCount; i++) {
-                s.Equipment.Add(new NetShipEquip(message.GetUInt(), message.GetUInt(), message.GetByte()));
-            }
             var cargoCount = (int)message.GetVariableUInt32();
-            s.Cargo = new List<NetShipCargo>(cargoCount);
+            s.Items = new List<NetShipCargo>(cargoCount);
             for (int i = 0; i < cargoCount; i++)
             {
-                s.Cargo.Add(new NetShipCargo(message.GetInt(), message.GetUInt(), message.GetInt()));
+                s.Items.Add(new NetShipCargo(message.GetInt(), message.GetUInt(), message.GetUInt(), message.GetByte(), message.GetInt()));
             }
             return s;
         }
@@ -184,17 +171,13 @@ namespace LibreLancer
         {
             message.Put(ShipCRC);
             message.Put(Health);
-            message.PutVariableUInt32((uint)Equipment.Count);
-            foreach(var equip in Equipment) {
-                message.Put(equip.HardpointCRC);
-                message.Put(equip.EquipCRC);
-                message.Put(equip.Health);
-            }
-            message.PutVariableUInt32((uint) Cargo.Count);
-            foreach (var c in Cargo)
+            message.PutVariableUInt32((uint) Items.Count);
+            foreach (var c in Items)
             {
                 message.Put(c.ID);
                 message.Put(c.EquipCRC);
+                message.Put(c.HardpointCRC);
+                message.Put(c.Health);
                 message.Put(c.Count);
             }
         }

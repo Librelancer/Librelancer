@@ -101,6 +101,9 @@ end
 function PlaySound(sound)
     _f:PlaySound(sound)
 end
+function PlayVoiceLine(voice, line)
+    _f:PlayVoiceLine(voice, line)
+end
 function GetColor(color)
     return _f:GetColor(color)
 end

@@ -46,9 +46,20 @@
           "args": [ { "name":  "id", "type":  "int" }, { "name":  "count", "type":  "int" }]
         },
         {
-          "name": "SellAttachedGood",
-          "return": "bool",
-          "args": [ { "name": "hardpoint", "type": "string" }]
+          "name": "GetShipPackage",
+          "return": "ShipPackageInfo",
+          "args": [ { "name":  "package", "type":  "int" }]
+        },
+        {
+          "name": "PurchaseShip",
+          "return": "ShipPurchaseStatus",
+          "args": [
+            { "name":  "package", "type": "int" },
+            { "name":  "mountedPlayer", "type":  "MountId[]" },
+            { "name":  "mountedPackage", "type":  "MountId[]"},
+            { "name":  "sellPlayer", "type":  "SellCount[]" },
+            { "name":  "sellPackage", "type":  "SellCount[]" }
+          ]
         },
         {
           "name": "RequestDock",
@@ -109,9 +120,7 @@
             { "name":  "system", "type":  "string" },
             { "name":  "systime", "type":  "double" },
             { "name":  "position", "type":  "Vector3" },
-            { "name":  "orientation", "type":  "Quaternion" },
-            { "name":  "credits", "type":  "long" },
-            { "name":  "ship", "type": "NetShipLoadout" }
+            { "name":  "orientation", "type":  "Quaternion" }
           ]
         },
         {
@@ -136,6 +145,7 @@
           "name": "UpdateInventory",
           "args": [
             { "name":  "credits", "type":  "long" },
+            { "name":  "shipworth", "type":  "ulong" },
             { "name":  "ship", "type":  "NetShipLoadout" }
           ]
         },
@@ -165,11 +175,10 @@
           "name": "BaseEnter",
           "args": [
             { "name" :  "_base", "type":  "string" },
-            { "name":  "credits", "type":  "long" },
-            { "name" :  "ship", "type":  "NetShipLoadout" },
             { "name":  "rtcs", "type":  "string[]" },
             { "name":  "news", "type":  "NewsArticle[]" },
-            { "name":  "goods", "type":  "SoldGood[]" }
+            { "name":  "goods", "type":  "SoldGood[]" },
+            { "name":  "ships", "type":  "NetSoldShip[]" }
           ]
         },
         {

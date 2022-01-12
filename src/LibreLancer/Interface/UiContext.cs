@@ -264,6 +264,11 @@ namespace LibreLancer.Interface
         {
             Data.Sounds?.PlayOneShot(sound);
         }
+
+        public void PlayVoiceLine(string voice, string line)
+        {
+            Data.Sounds?.PlayVoiceLine(voice, FLHash.CreateID(line), null);
+        }
         
         class ModalState
         {

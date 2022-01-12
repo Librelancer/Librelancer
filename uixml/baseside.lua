@@ -87,6 +87,9 @@ function baseside:ctor()
 	local has_commodity = false
 	local has_equipment = false
 	local commodity_button = {}
+
+	local has_shipdealer = false
+	local shipdealer_button = {}
 	
     local actionbox = navbox.GetActionBox(self.Widget, container, btns, actions, activeIDS)
     for index, action in ipairs(actions) do
@@ -100,6 +103,9 @@ function baseside:ctor()
 		elseif action.IconName == "IDS_HOTSPOT_EQUIPMENTDEALER" then
 			has_equipment = true
 			commodity_button = obj
+		elseif action.IconName == "IDS_HOTSPOT_SHIPDEALER" then
+			has_shipdealer = true
+			shipdealer_button = obj
 		else
         	obj:OnClick(function()
             	Game:HotspotPressed(action.IDS)
@@ -130,6 +136,9 @@ function baseside:ctor()
 	elseif has_equipment then
 		self.CommodityTrader = commodity("equipment")
 		table.insert(windows, { commodity_button, self.CommodityTrader })
+	elseif has_shipdealer then
+		self.ShipDealer = shipdealer()
+		table.insert(windows, { shipdealer_button, self.ShipDealer })
 	end
 	self.WindowManager = childwindowmanager(self.Widget, windows)
 
@@ -155,6 +164,7 @@ function baseside:MissionOffer(mission)
 		Game:MissionResponse(result)
 	end))
 end
+
 
 
 

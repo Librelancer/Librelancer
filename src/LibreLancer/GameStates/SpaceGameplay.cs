@@ -102,11 +102,9 @@ World Time: {12:F2}
             }
 
             player.Tag = GameObject.ClientPlayerTag;
-            foreach (var equipment in session.Mounts)
+            foreach (var equipment in session.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
             {
-                var equip = Game.GameData.GetEquipment(equipment.Item);
-                if (equip == null) continue;
-                EquipmentObjectManager.InstantiateEquipment(player, Game.ResourceManager, EquipmentType.LocalPlayer, equipment.Hardpoint, equip);
+                EquipmentObjectManager.InstantiateEquipment(player, Game.ResourceManager, EquipmentType.LocalPlayer, equipment.Hardpoint, equipment.Equipment);
             }
             powerCore = player.GetComponent<PowerCoreComponent>();
             if (powerCore == null) throw new Exception("Player launched without a powercore equipped!");

@@ -42,6 +42,28 @@ namespace LibreLancer
             }
             throw new Exception("Malformed variable UInt32");
         }
+
+        public static uint Zig(int value)
+        {
+            return (uint)((value << 1) ^ (value >> 31));
+        }
+        
+        public static int Zag(uint ziggedValue)
+        {
+            const int Int32Msb = 1 << 31;
+            int value = (int)ziggedValue;
+            return (-(value & 0x01)) ^ ((value >> 1) & ~Int32Msb);
+        }
+        
+        public static void PutVariableInt32(this LiteNetLib.Utils.NetDataWriter writer, int value)
+        {
+            PutVariableUInt32(writer, Zig(value));
+        }
+        
+        public static int GetVariableInt32(this LiteNetLib.Utils.NetDataReader reader)
+        {
+            return Zag(GetVariableUInt32(reader));
+        }
         
         public static void PutVariableUInt32(this LiteNetLib.Utils.NetDataWriter writer, uint value)
         {
@@ -78,13 +100,29 @@ namespace LibreLancer
             Debug.Assert(pack.ByteLength == 4);
             pack.WriteToPacket(om);
         }
-
-		public static Quaternion GetQuaternion(this LiteNetLib.Utils.NetDataReader im)
+        
+        public static Quaternion GetQuaternion(this LiteNetLib.Utils.NetDataReader im)
         {
             var buf = new byte[4];
             im.GetBytes(buf, 4);
             var pack = new BitReader(buf, 0);
             return pack.GetQuaternion();
+        }
+        
+        public static void PutNormal(this LiteNetLib.Utils.NetDataWriter om, Vector3 n)
+        {
+            var pack = new BitWriter(32);
+            pack.PutNormal(n);
+            Debug.Assert(pack.ByteLength == 4);
+            pack.WriteToPacket(om);
+        }
+
+        public static Vector3 GetNormal(this LiteNetLib.Utils.NetDataReader im)
+        {
+            var buf = new byte[4];
+            im.GetBytes(buf, 4);
+            var pack = new BitReader(buf, 0);
+            return pack.GetNormal();
         }
             
 

@@ -34,10 +34,10 @@ namespace LibreLancer
     public class CGameSession : IClientPlayer,  INetResponder
 	{
         public long Credits;
+        public ulong ShipWorth;
 		public string PlayerShip;
 		public List<string> PlayerComponents = new List<string>();
-        public List<EquipMount> Mounts = new List<EquipMount>();
-        public List<NetCargo> Cargo = new List<NetCargo>();
+        public List<NetCargo> Items = new List<NetCargo>();
         public List<StoryCutsceneIni> ActiveCutscenes = new List<StoryCutsceneIni>();
 		public FreelancerGame Game;
 		public string PlayerSystem;
@@ -206,51 +206,24 @@ namespace LibreLancer
         }
 
         public Action<IPacket> ExtraPackets;
-
-        static IEnumerable<string> HardpointList(IDrawable dr)
-        {
-            if(dr is ModelFile)
-            {
-                var mdl = (ModelFile)dr;
-                foreach (var hp in mdl.Hardpoints)
-                    yield return hp.Name;
-            }
-            else if (dr is CmpFile)
-            {
-                var cmp = (CmpFile)dr;
-                foreach(var model in cmp.Models.Values)
-                {
-                    foreach (var hp in model.Hardpoints)
-                        yield return hp.Name;
-                }
-            }
-        }
+        
 
         void SetSelfLoadout(NetShipLoadout ld)
         {
             var sh = Game.GameData.GetShip((int)ld.ShipCRC);
             PlayerShip = sh.Nickname;
-            var hpcrcs = new Dictionary<uint, string>();
-            foreach (var hp in HardpointList(sh.ModelFile.LoadFile(Game.ResourceManager)))
-                hpcrcs.Add(CrcTool.FLModelCrc(hp), hp);
-            Mounts = new List<EquipMount>();
-            foreach (var eq in ld.Equipment)
-            {
-                string hp;
-                if (eq.HardpointCRC == 0)
-                    hp = null;
-                else if (!hpcrcs.TryGetValue(eq.HardpointCRC, out hp))
-                    continue;
-                Mounts.Add(new EquipMount(
-                    hp,
-                    Game.GameData.GetEquipment(eq.EquipCRC).Nickname
-                ));
-            }
-            Cargo = new List<NetCargo>();
-            foreach (var cg in ld.Cargo)
+            var hplookup = new HardpointLookup(sh.ModelFile.LoadFile(Game.ResourceManager));
+            Items = new List<NetCargo>(ld.Items.Count);
+            foreach (var cg in ld.Items)
             {
                 var equip = Game.GameData.GetEquipment(cg.EquipCRC);
-                Cargo.Add(new NetCargo(cg.ID) { Equipment = equip, Count = cg.Count });
+                Items.Add(new NetCargo(cg.ID)
+                {
+                    Equipment = equip,
+                    Hardpoint = hplookup.GetHardpoint(cg.HardpointCRC),
+                    Health = cg.Health / 255f,
+                    Count = cg.Count
+                });
             }
         }
 
@@ -317,9 +290,10 @@ namespace LibreLancer
         public Action OnUpdateInventory;
         public Action OnUpdatePlayerShip;
 
-        void IClientPlayer.UpdateInventory(long credits, NetShipLoadout loadout)
+        void IClientPlayer.UpdateInventory(long credits, ulong shipWorth, NetShipLoadout loadout)
         {
             Credits = credits;
+            ShipWorth = shipWorth;
             SetSelfLoadout(loadout);
             if (OnUpdateInventory != null) {
                 uiActions.Enqueue(OnUpdateInventory);
@@ -344,16 +318,12 @@ namespace LibreLancer
                                          Matrix4x4.CreateTranslation(position));
                 newobj.Components.Add(new HealthComponent(newobj) { CurrentHealth = loadout.Health, MaxHealth = shp.Hitpoints });
                 newobj.Components.Add(new CDamageFuseComponent(newobj, shp.Fuses));
-                var hpcrcs = new Dictionary<uint, string>();
-                foreach (var hp in HardpointList(shp.ModelFile.LoadFile(Game.ResourceManager)))
-                    hpcrcs.Add(CrcTool.FLModelCrc(hp), hp);
-                Mounts = new List<EquipMount>();
-                foreach (var eq in loadout.Equipment)
+                var hplookup = new HardpointLookup(shp.ModelFile.LoadFile(Game.ResourceManager));
+                foreach (var eq in loadout.Items.Where(x => x.HardpointCRC != 0))
                 {
-                    string hp = eq.HardpointCRC == 0 ? null : hpcrcs[eq.HardpointCRC];
                     var equip = Game.GameData.GetEquipment(eq.EquipCRC);
                     if (equip == null) continue;
-                    EquipmentObjectManager.InstantiateEquipment(newobj, Game.ResourceManager, EquipmentType.LocalPlayer, hp, equip);
+                    EquipmentObjectManager.InstantiateEquipment(newobj, Game.ResourceManager, EquipmentType.LocalPlayer, hplookup.GetHardpoint(eq.HardpointCRC), equip);
                 }
                 newobj.Register(gp.world.Physics);
                 var netpos = new CNetPositionComponent(newobj);
@@ -367,18 +337,16 @@ namespace LibreLancer
             });
         }
 
-        void IClientPlayer.SpawnPlayer(string system, double systemTime, Vector3 position, Quaternion orientation, long credits, NetShipLoadout ship)
+        void IClientPlayer.SpawnPlayer(string system, double systemTime, Vector3 position, Quaternion orientation)
         {
             enterCount++;
             PlayerBase = null;
             SpawnTime = systemTime;
             FLLog.Info("Client", $"Spawning in {system} at time {systemTime}");
             tOffset = Game.TotalTime;
-            Credits = credits;
             PlayerSystem = system;
             PlayerPosition = position;
             PlayerOrientation = Matrix4x4.CreateFromQuaternion(orientation);
-            SetSelfLoadout(ship);
             SceneChangeRequired();
         }
 
@@ -429,8 +397,9 @@ namespace LibreLancer
         }
 
         public SoldGood[] Goods;
+        public NetSoldShip[] Ships;
 
-        void IClientPlayer.BaseEnter(string _base, long credits, NetShipLoadout ship, string[] rtcs, NewsArticle[] news, SoldGood[] goods)
+        void IClientPlayer.BaseEnter(string _base, string[] rtcs, NewsArticle[] news, SoldGood[] goods, NetSoldShip[] ships)
         {
             if (enterCount > 0 && (connection is EmbeddedServer es)) {
                 var path = Game.GetSaveFolder();
@@ -442,8 +411,7 @@ namespace LibreLancer
             PlayerBase = _base;
             News = news;
             Goods = goods;
-            Credits = credits;
-            SetSelfLoadout(ship);
+            Ships = ships;
             SceneChangeRequired();
             AddRTC(rtcs);
         }
@@ -653,6 +621,7 @@ namespace LibreLancer
                 {
                     string stats = $"Ping: {nc.Ping}, Loss {nc.LossPercent}%";
                     Chats.Append(stats, "Arial", 9, Color4.CornflowerBlue);
+                    Chats.Append($"Sent: {DebugDrawing.SizeSuffix(nc.BytesSent)}, Received: {DebugDrawing.SizeSuffix(nc.BytesReceived)}", "Arial", 9, Color4.CornflowerBlue);
                 }
                 else
                 {

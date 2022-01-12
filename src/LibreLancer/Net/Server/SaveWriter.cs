@@ -36,15 +36,20 @@ namespace LibreLancer
             builder.Append("money = ").AppendLine(ch.Credits.ToString());
             if (ch.Ship != null)
                 builder.Append("ship_archetype = ").AppendLine(ch.Ship.Nickname);
-            foreach (var equipment in ch.Equipment)
+            foreach (var item in ch.Items)
             {
-                builder.Append("equip = ").Append(equipment.Equipment.Nickname).Append(",")
-                    .Append(equipment.Hardpoint ?? "").Append(",").AppendLine("1");
-            }
-            foreach (var cargo in ch.Cargo)
-            {
-                builder.Append("cargo = ");
-                builder.AppendLine($"{cargo.Equipment.Nickname}, {cargo.Count}, , , 0");
+                if (!string.IsNullOrEmpty(item.Hardpoint))
+                {
+                    var hp = item.Hardpoint.Equals("internal", StringComparison.OrdinalIgnoreCase)
+                        ? ""
+                        : item.Hardpoint;
+                    builder.Append("equip = ").Append(item.Equipment.Nickname).Append(",")
+                        .Append(hp).Append(",").AppendLine("1");
+                }
+                else {
+                    builder.Append("cargo = ");
+                    builder.AppendLine($"{item.Equipment.Nickname}, {item.Count}, , , 0");
+                }
             }
             return builder.ToString();
         }

@@ -19,8 +19,7 @@ namespace LibreLancer
         public Vector3 Position { get; private set; }
         public long Credits { get; private set; }
         public GameData.Ship Ship;
-        public List<NetEquipment> Equipment;
-        public List<NetCargo> Cargo;
+        public List<NetCargo> Items;
         private long charId;
         GameDataManager gData;
         private DatabaseCharacter dbChar;
@@ -55,25 +54,19 @@ namespace LibreLancer
             nc.Position = new Vector3(db.Character.X, db.Character.Y, db.Character.Z);
             nc.Ship = game.GameData.GetShip(db.Character.Ship);
             nc.Credits = db.Character.Money;
-            nc.Equipment = new List<NetEquipment>(db.Character.Equipment.Count);
-            nc.Cargo = new List<NetCargo>();
-            foreach(var equip in db.Character.Equipment)
-            {
-                var resolved = game.GameData.GetEquipment(equip.EquipmentNickname);
-                if (resolved == null) continue;
-                nc.Equipment.Add(new NetEquipment()
-                {
-                    Hardpoint = equip.EquipmentHardpoint,
-                    Equipment = resolved,
-                    Health = 1f,
-                    DbItem = equip
-                });
-            }
-            foreach (var cargo in db.Character.Cargo)
+            nc.Items = new List<NetCargo>();
+            foreach (var cargo in db.Character.Items)
             {
                 var resolved = game.GameData.GetEquipment(cargo.ItemName);
                 if (resolved == null) continue;
-                nc.Cargo.Add(new NetCargo() { Count = (int)cargo.ItemCount, Equipment = resolved, DbItem = cargo});
+                nc.Items.Add(new NetCargo()
+                {
+                    Count = (int)cargo.ItemCount, 
+                    Hardpoint = cargo.Hardpoint,
+                    Health = cargo.Health,
+                    Equipment = resolved, 
+                    DbItem = cargo
+                });
             }
             return nc;
         }
@@ -88,22 +81,31 @@ namespace LibreLancer
             }
         }
 
-        public void AddCargo(GameData.Items.Equipment equip, int count)
+        public void ItemModified(NetCargo cargo)
         {
-            if (equip.Good.Ini.Combinable)
+            if (dbChar != null) {
+                dbChar.ApplyChanges();
+            }
+        }
+
+        public void AddCargo(GameData.Items.Equipment equip, string hardpoint, int count)
+        {
+            if (equip.Good?.Ini.Combinable ?? false) 
             {
-                var slot = Cargo.FirstOrDefault(x => equip.Good.Equipment == x.Equipment);
+                if (!string.IsNullOrEmpty(hardpoint))
+                {
+                    throw new InvalidOperationException("Tried to mount combinable item");
+                }
+                var slot = Items.FirstOrDefault(x => equip.Good.Equipment == x.Equipment);
                 if (slot == null)
                 {
                     CargoItem dbItem = null;
-                    if (dbChar != null)
-                    {
+                    if (dbChar != null) {
                         dbItem = new CargoItem() {ItemCount = count, ItemName = equip.Nickname};
-                        dbChar.Character.Cargo.Add(dbItem);
+                        dbChar.Character.Items.Add(dbItem);
                         dbChar.ApplyChanges();
                     }
-
-                    Cargo.Add(new NetCargo() {Equipment = equip, Count = count, DbItem = dbItem});
+                    Items.Add(new NetCargo() {Equipment = equip, Count = count, DbItem = dbItem});
                 }
                 else
                 {
@@ -118,49 +120,32 @@ namespace LibreLancer
                 CargoItem dbItem = null;
                 if (dbChar != null)
                 {
-                    dbItem = new CargoItem() {ItemCount = count, ItemName = equip.Nickname};
-                    dbChar.Character.Cargo.Add(dbItem);
+                    dbItem = new CargoItem() {ItemCount = count, Hardpoint = hardpoint, ItemName = equip.Nickname};
+                    dbChar.Character.Items.Add(dbItem);
                     dbChar.ApplyChanges();
                 }
-                Cargo.Add(new NetCargo() { Equipment =  equip, Count = count, DbItem = dbItem });
+                Items.Add(new NetCargo() { Equipment =  equip, Hardpoint = hardpoint, Count = count, DbItem = dbItem });
             }
         }
 
-        public void AddEquipment(NetEquipment equip)
+        public void SetShip(GameData.Ship ship)
         {
-            Equipment.Add(equip);
-            if (dbChar != null)
-            {
-                equip.DbItem = new EquipmentEntity()
-                {
-                    EquipmentHardpoint = equip.Hardpoint,
-                    EquipmentNickname = equip.Equipment.Nickname
-                };
-                dbChar.Character.Equipment.Add(equip.DbItem);
-                dbChar.ApplyChanges();
-            }   
-        }
-        public void RemoveEquipment(NetEquipment equip)
-        {
-            Equipment.Remove(equip);
-            if (equip.DbItem != null)
-            {
-                dbChar.Character.Equipment.Remove(equip.DbItem);
+            Ship = ship;
+            if (dbChar != null) {
+                dbChar.Character.Ship = ship.Nickname;
                 dbChar.ApplyChanges();
             }
         }
-
         
-
         public void RemoveCargo(NetCargo slot, int amount)
         {
             slot.Count -= amount;
             if (slot.Count <= 0)
             {
-                Cargo.Remove(slot);
+                Items.Remove(slot);
                 if (slot.DbItem != null)
                 {
-                    dbChar.Character.Cargo.Remove(slot.DbItem);
+                    dbChar.Character.Items.Remove(slot.DbItem);
                     dbChar.ApplyChanges();
                 }
             } 
@@ -174,16 +159,14 @@ namespace LibreLancer
         {
             var sl = new NetShipLoadout();
             sl.ShipCRC = Ship.CRC;
-            sl.Equipment = new List<NetShipEquip>(Equipment.Count);
-            sl.Cargo = new List<NetShipCargo>(Cargo.Count);
-            foreach(var equip in Equipment) {
-                sl.Equipment.Add(new NetShipEquip(
-                equip.Hardpoint == null ? 0 : CrcTool.FLModelCrc(equip.Hardpoint),
-                    equip.Equipment.CRC,
-                (byte)(equip.Health * 255f))); 
-            }
-            foreach (var c in Cargo) { 
-                sl.Cargo.Add(new NetShipCargo(c.ID, c.Equipment.CRC, c.Count));
+            sl.Items = new List<NetShipCargo>(Items.Count);
+            foreach (var c in Items)
+            {
+                sl.Items.Add(new NetShipCargo(
+                    c.ID, c.Equipment.CRC,
+                    CrcTool.HardpointCrc(c.Hardpoint), (byte) (c.Health * 255f), 
+                    c.Count
+                ));
             }
             return sl;
         }
@@ -224,15 +207,9 @@ namespace LibreLancer
             ID = id;
         }
         public GameData.Items.Equipment Equipment;
+        public string Hardpoint;
+        public float Health;
         public int Count;
         public CargoItem DbItem;
-    }
-
-    public class NetEquipment
-    {
-        public string Hardpoint;
-        public GameData.Items.Equipment Equipment;
-        public float Health;
-        public EquipmentEntity DbItem;
     }
 }

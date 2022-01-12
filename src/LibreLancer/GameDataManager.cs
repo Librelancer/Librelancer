@@ -13,9 +13,11 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using LibreLancer.Data.Equipment;
 using LibreLancer.Data.Fuses;
+using LibreLancer.Data.Goods;
 using LibreLancer.Data.Solar;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Items;
+using LibreLancer.GameData.Market;
 using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Dfm;
 using FileSystem = LibreLancer.Data.FileSystem;
@@ -208,16 +210,34 @@ namespace LibreLancer
         private Dictionary<uint, string> goodHashes = new Dictionary<uint, string>();
         private Dictionary<string, ResolvedGood> goods = new Dictionary<string, ResolvedGood>();
         private Dictionary<string, ResolvedGood> equipToGood = new Dictionary<string, ResolvedGood>();
+        Dictionary<string, long> shipPrices = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
         
         public IEnumerable<ResolvedGood> AllGoods => goods.Values;
 
         public bool TryGetGood(string nickname, out ResolvedGood good) => goods.TryGetValue(nickname, out good);
 
         public string GoodFromCRC(uint crc) => goodHashes[crc];
+
+        private Dictionary<string, string> shipToIcon =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        public string GetShipIcon(Ship ship)
+        {
+            shipToIcon.TryGetValue(ship.Nickname, out string icon);
+            return icon;
+        }
+
+        public long GetShipPrice(Ship ship)
+        {
+            shipPrices.TryGetValue(ship.Nickname, out long price);
+            return price;
+        }
+        
         void InitGoods()
         {
             FLLog.Info("Game", "Initing " + fldata.Goods.Goods.Count + " goods");
             Dictionary<string, Data.Goods.Good> hulls = new Dictionary<string, Data.Goods.Good>(256, StringComparer.OrdinalIgnoreCase);
+            List<Data.Goods.Good> ships = new List<Good>();
             foreach (var g in fldata.Goods.Goods)
             {
                 goodHashes.Add(CrcTool.FLModelCrc(g.Nickname), g.Nickname);
@@ -225,19 +245,11 @@ namespace LibreLancer
                 {
                     case Data.Goods.GoodCategory.ShipHull:
                         hulls.Add(g.Nickname, g);
-                        //Handled in ship (albeit slowly)
+                        shipToIcon[g.Ship] = TryResolveData(g.ItemIcon);
+                        shipPrices[g.Ship] = g.Price;
                         break;
                     case Data.Goods.GoodCategory.Ship:
-                        Data.Goods.Good hull;
-                        if (!hulls.TryGetValue(g.Hull, out hull))
-                        {
-                            hull = fldata.Goods.Goods.First(x => x.Nickname.Equals(g.Hull, StringComparison.OrdinalIgnoreCase));
-                        }
-                        var sp = new GameData.Market.ShipPackage();
-                        sp.Ship = hull.Ship;
-                        sp.Nickname = g.Nickname;
-                        sp.BasePrice = hull.Price;
-                        shipPackages.Add(g.Nickname, sp);
+                        ships.Add(g);
                         break;
                     case Data.Goods.GoodCategory.Equipment:
                     case Data.Goods.GoodCategory.Commodity:
@@ -249,6 +261,29 @@ namespace LibreLancer
                         }
                         break;
                 }
+            }
+
+            foreach (var g in ships)
+            {
+                Data.Goods.Good hull = hulls[g.Hull];
+                var sp = new GameData.Market.ShipPackage();
+                sp.Ship = hull.Ship;
+                sp.Nickname = g.Nickname;
+                sp.CRC = FLHash.CreateID(sp.Nickname);
+                sp.BasePrice = hull.Price;
+                foreach (var addon in g.Addons) {
+                    if (equipments.TryGetValue(addon.Equipment, out var equip))
+                    {
+                        sp.Addons.Add(new PackageAddon()
+                        {
+                            Equipment  = equip,
+                            Hardpoint = addon.Hardpoint,
+                            Amount = addon.Amount
+                        });
+                    }
+                }
+                shipPackages.Add(g.Nickname, sp);
+                shipPackageByCRC.Add(sp.CRC, sp);
             }
             fldata.Goods = null; //Free memory
         }
@@ -289,6 +324,14 @@ namespace LibreLancer
         }
         Dictionary<string, GameData.Base> bases;
         Dictionary<string, GameData.Market.ShipPackage> shipPackages = new Dictionary<string, GameData.Market.ShipPackage>();
+        private Dictionary<uint, GameData.Market.ShipPackage> shipPackageByCRC = new Dictionary<uint, ShipPackage>();
+
+
+        public ShipPackage GetShipPackage(uint crc)
+        {
+            shipPackageByCRC.TryGetValue(crc, out var pkg);
+            return pkg;
+        }
 
         private List<Task> asyncTasks = new List<Task>();
         void AsyncAction(Action a) =>  asyncTasks.Add(Task.Run(a));
@@ -1268,6 +1311,7 @@ namespace LibreLancer
                 ship.ModelFile = ResolveDrawable(orig.MaterialLibraries, orig.DaArchetypeName);
                 ship.LODRanges = orig.LodRanges;
                 ship.Mass = orig.Mass;
+                ship.Class = orig.ShipClass;
                 ship.AngularDrag = orig.AngularDrag;
                 ship.RotationInertia = orig.RotationInertia;
                 ship.SteeringTorque = orig.SteeringTorque;
@@ -1279,6 +1323,7 @@ namespace LibreLancer
                 ship.CameraVerticalTurnDownAngle = orig.CameraVerticalTurnDownAngle;
                 ship.Nickname = orig.Nickname;
                 ship.NameIds = orig.IdsName;
+                ship.Infocard = orig.IdsInfo;
                 ship.CRC = FLHash.CreateID(ship.Nickname);
                 foreach (var fuse in orig.Fuses)
                 {

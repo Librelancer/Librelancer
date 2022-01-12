@@ -15,8 +15,7 @@ namespace LibreLancer.Entities.Character
         {
             this.Reputations = new HashSet<Reputation>();
             this.VisitEntries = new HashSet<VisitEntry>();
-            this.Cargo = new HashSet<CargoItem>();
-            this.Equipment = new HashSet<EquipmentEntity>();
+            this.Items = new HashSet<CargoItem>();
         }
 
         public string Name { get; set; }
@@ -82,10 +81,8 @@ namespace LibreLancer.Entities.Character
         // In vanilla, visit = hash of solar nickname, visit value. Vanilla visit values can be found here: https://the-starport.net/freelancer/forum/viewtopic.php?post_id=34251#forumpost34251
         // Should be a subtable with that information inside of it. Playername would be the primary key.
         public virtual ICollection<VisitEntry> VisitEntries { get; set; }
-
-        public virtual ICollection<EquipmentEntity> Equipment { get; set; }
-
-        public virtual ICollection<CargoItem> Cargo { get; set; }
+        
+        public virtual ICollection<CargoItem> Items { get; set; }
 
         public long AccountId { get; set; }
 

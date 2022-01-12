@@ -81,6 +81,7 @@ namespace InterfaceEdit
             return Selected > -1;
         }
     }
+
     public class TestingApi
     {
         static TestingApi()
@@ -89,7 +90,9 @@ namespace InterfaceEdit
             LuaContext.RegisterType<TestServerList>();
             LuaContext.RegisterType<TestCharacterList>();
             LuaContext.RegisterType<TestSaveGameList>();
+            LuaContext.RegisterType<FakeShipDealer>();
         }
+
         static readonly NavbarButtonInfo cityscape = new NavbarButtonInfo("IDS_HOTSPOT_EXIT", "Cityscape");
         static readonly NavbarButtonInfo bar = new NavbarButtonInfo("IDS_HOTSPOT_BAR", "Bar");
         static readonly NavbarButtonInfo trader = new NavbarButtonInfo("IDS_HOTSPOT_COMMODITYTRADER_ROOM", "Trader");
@@ -107,6 +110,8 @@ namespace InterfaceEdit
         public bool HasNewsAction = false;
         public bool HasCommodityTraderAction = false;
         public bool HasEquipmentDealerAction = false;
+        public bool HasShipDealerAction = false;
+
         public int ActiveHotspotIndex = 0;
 
         TestServerList serverList = new TestServerList();
@@ -154,7 +159,7 @@ namespace InterfaceEdit
         public void StartNetworking()
         {
         }
-        
+
         public bool ConnectAddress(string address)
         {
             return false;
@@ -165,29 +170,36 @@ namespace InterfaceEdit
         }
 
         public int CruiseCharge() => 25;
-        
-        public void PopulateNavmap(Navmap nav) {}
-        
+
+        public void PopulateNavmap(Navmap nav)
+        {
+        }
+
         public NavbarButtonInfo[] GetNavbarButtons()
         {
             var l = new List<NavbarButtonInfo>();
             l.Add(cityscape);
-            if(HasBar) l.Add(bar);
+            if (HasBar) l.Add(bar);
             if (HasTrader) l.Add(trader);
-            if(HasEquip) l.Add(equip);
-            if(HasShipDealer) l.Add(shipDealer);
+            if (HasEquip) l.Add(equip);
+            if (HasShipDealer) l.Add(shipDealer);
             return l.ToArray();
         }
 
         private NewsArticle[] articles = new[]
         {
-            new NewsArticle() { Icon = "critical", Logo  = "news_scene2", Category = 15001, Headline = 15001, Text = 15002 },
-            new NewsArticle() { Icon = "world", Logo  = "news_schultzsky", Category = 15003, Headline = 15003, Text = 15004 },
-            new NewsArticle() { Icon = "world", Logo  = "news_manhattan", Category = 15009, Headline = 15009, Text = 15010 },
-            new NewsArticle() { Icon = "system", Logo = "news_cambridge", Category = 56152, Headline = 56152, Text = 56153 },
-            new NewsArticle() { Icon = "world", Logo = "news_leeds", Category = 56162, Headline = 56162, Text = 56163 },
-            new NewsArticle() { Icon = "system", Logo = "news_leeds", Category = 56166, Headline = 56166, Text = 56167 },
-            new NewsArticle() { Icon = "world", Logo = "news_newtokyo", Category = 56180, Headline = 56180, Text = 56181 },
+            new NewsArticle()
+                {Icon = "critical", Logo = "news_scene2", Category = 15001, Headline = 15001, Text = 15002},
+            new NewsArticle()
+                {Icon = "world", Logo = "news_schultzsky", Category = 15003, Headline = 15003, Text = 15004},
+            new NewsArticle()
+                {Icon = "world", Logo = "news_manhattan", Category = 15009, Headline = 15009, Text = 15010},
+            new NewsArticle()
+                {Icon = "system", Logo = "news_cambridge", Category = 56152, Headline = 56152, Text = 56153},
+            new NewsArticle() {Icon = "world", Logo = "news_leeds", Category = 56162, Headline = 56162, Text = 56163},
+            new NewsArticle() {Icon = "system", Logo = "news_leeds", Category = 56166, Headline = 56166, Text = 56167},
+            new NewsArticle()
+                {Icon = "world", Logo = "news_newtokyo", Category = 56180, Headline = 56180, Text = 56181},
         };
 
         public NewsArticle[] GetNewsArticles() => articles;
@@ -198,9 +210,10 @@ namespace InterfaceEdit
             if (HasLaunchAction) l.Add(new NavbarButtonInfo("Launch", "IDS_HOTSPOT_LAUNCH"));
             if (HasRepairAction) l.Add(new NavbarButtonInfo("Repair", "IDS_NN_REPAIR_YOUR_SHIP"));
             if (HasMissionVendor) l.Add(new NavbarButtonInfo("MissionVendor", "IDS_HOTSPOT_MISSIONVENDOR"));
-            if(HasNewsAction) l.Add(new NavbarButtonInfo("NewsVendor", "IDS_HOTSPOT_NEWSVENDOR"));
-            if(HasCommodityTraderAction) l.Add(new NavbarButtonInfo("CommodityTrader", "IDS_HOTSPOT_COMMODITYTRADER"));
-            if(HasEquipmentDealerAction) l.Add(new NavbarButtonInfo("EquipmentDealer", "IDS_HOTSPOT_EQUIPMENTDEALER"));
+            if (HasNewsAction) l.Add(new NavbarButtonInfo("NewsVendor", "IDS_HOTSPOT_NEWSVENDOR"));
+            if (HasCommodityTraderAction) l.Add(new NavbarButtonInfo("CommodityTrader", "IDS_HOTSPOT_COMMODITYTRADER"));
+            if (HasEquipmentDealerAction) l.Add(new NavbarButtonInfo("EquipmentDealer", "IDS_HOTSPOT_EQUIPMENTDEALER"));
+            if (HasShipDealerAction) l.Add(new NavbarButtonInfo("ShipDealer", "IDS_HOTSPOT_SHIPDEALER"));
             return l.ToArray();
         }
 
@@ -209,10 +222,11 @@ namespace InterfaceEdit
         public string GetActiveManeuver() => "FreeFlight";
 
         private ChatSource chats = new ChatSource();
-        
+
         public ChatSource GetChats() => chats;
 
         public double GetCredits() => 10000;
+
         public LuaCompatibleDictionary GetManeuversEnabled()
         {
             var dict = new LuaCompatibleDictionary();
@@ -222,15 +236,15 @@ namespace InterfaceEdit
             dict.Set("Formation", false);
             return dict;
         }
-        
+
         public float GetPlayerHealth() => 0.75f;
         public float GetPlayerShield() => 0.8f;
-        
+
         public float GetPlayerPower() => 1f;
 
         public class TraderFake
         {
-            UIInventoryItem[] pitems = new[]
+            public static UIInventoryItem[] pitems = new[]
             {
                 new UIInventoryItem()
                 {
@@ -290,11 +304,11 @@ namespace InterfaceEdit
                     MountIcon = true,
                     CanMount = false
                 },
-                
-              
+
+
             };
-            
-            UIInventoryItem[] titems = new[]
+
+            public static UIInventoryItem[] titems = new[]
             {
                 new UIInventoryItem()
                 {
@@ -340,7 +354,10 @@ namespace InterfaceEdit
             }
         }
 
+       
+
         public TraderFake Trader = new TraderFake();
+        public FakeShipDealer ShipDealer = new FakeShipDealer();
 
         public string SelectionName() => "Selected Object";
         public bool SelectionVisible() => true;
@@ -391,5 +408,47 @@ namespace InterfaceEdit
         public void DeleteCharacter() { }
 
         public void NewCharacter(string name, int index) { }
+    }
+
+    [MoonSharpUserData]
+    public class FakeShipDealer
+    {
+        public UISoldShip[] SoldShips() => new[]{
+            new UISoldShip()
+            {
+                IdsName = 237051,
+                IdsInfo = 66598,
+                Price = 172000,
+                Model = @"DATA\ships\rheinland\rh_elite\rh_elite.cmp",
+                Icon = @"DATA\Equipment\models\commodities\nn_icons\rh_elite.3db",
+                ShipClass = 1,
+            },
+            new UISoldShip()
+            {
+                IdsName = 237033,
+                IdsInfo = 66567,
+                Price = 10400,
+                Model = @"DATA\ships\liberty\li_elite\li_elite.cmp",
+                Icon = @"DATA\Equipment\models\commodities\nn_icons\li_elite.3db",
+                ShipClass = 4,
+            }
+        };
+
+        public UISoldShip PlayerShip() => new UISoldShip()
+        {
+            IdsName = 237015,
+            IdsInfo = 66527,
+            Price = 4800,
+            Model = @"DATA\ships\civilian\cv_starflier\cv_starflier.cmp",
+            Icon = @"DATA\Equipment\models\commodities\nn_icons\cv_starflier.3db",
+        };
+
+        public void StartPurchase(UISoldShip ship, Closure callback)
+        {
+            
+        }
+
+        public UIInventoryItem[] GetPlayerGoods(string filter) => TestingApi.TraderFake.pitems;
+        public UIInventoryItem[] GetDealerGoods(string filter) => TestingApi.TraderFake.titems;
     }
 }

@@ -165,16 +165,17 @@ namespace LibreLancer.Missions
                 if (p.Game.GameData.TryGetLoadout(Loadout, out var loadout))
                 {
                     p.Character.Ship = p.Game.GameData.GetShip(Ship);
-                    p.Character.Equipment = new List<NetEquipment>();
+                    p.Character.Items = new List<NetCargo>();
                     foreach (var equip in loadout.Equip)
                     {
                         var e = p.Game.GameData.GetEquipment(equip.Nickname);
                         if (e == null) continue;
-                        p.Character.Equipment.Add(new NetEquipment()
+                        p.Character.Items.Add(new NetCargo()
                         {
                             Equipment = e,
                             Hardpoint = equip.Hardpoint,
-                            Health = 1f
+                            Health = 1f,
+                            Count = 1
                         });
                     }
                 }

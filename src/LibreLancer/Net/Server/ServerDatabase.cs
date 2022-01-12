@@ -100,8 +100,7 @@ namespace LibreLancer
         {
             var ctx = CreateDbContext();
             var character = ctx.Characters
-                    .Include(c => c.Equipment)
-                    .Include(c => c.Cargo)
+                    .Include(c => c.Items)
                     .Include(c => c.Reputations)
                     .Include(c => c.VisitEntries)
                     .First(c => c.Id == id);

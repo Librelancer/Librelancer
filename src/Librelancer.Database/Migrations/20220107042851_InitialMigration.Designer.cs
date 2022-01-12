@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LibreLancer.Database.Migrations
 {
     [DbContext(typeof(LibreLancerContext))]
-    [Migration("20210919060801_PlayerSpacePosition")]
-    partial class PlayerSpacePosition
+    [Migration("20220107042851_InitialMigration")]
+    partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -54,6 +54,12 @@ namespace LibreLancer.Database.Migrations
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("TEXT");
+
+                    b.Property<string>("Hardpoint")
+                        .HasColumnType("TEXT");
+
+                    b.Property<float>("Health")
+                        .HasColumnType("REAL");
 
                     b.Property<bool>("IsMissionItem")
                         .HasColumnType("INTEGER");
@@ -159,34 +165,6 @@ namespace LibreLancer.Database.Migrations
                     b.ToTable("Characters");
                 });
 
-            modelBuilder.Entity("LibreLancer.Entities.Character.EquipmentEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<long?>("CharacterId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("EquipmentHardpoint")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("EquipmentNickname")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CharacterId");
-
-                    b.ToTable("EquipmentEntity");
-                });
-
             modelBuilder.Entity("LibreLancer.Entities.Character.Reputation", b =>
                 {
                     b.Property<long>("Id")
@@ -246,7 +224,7 @@ namespace LibreLancer.Database.Migrations
             modelBuilder.Entity("LibreLancer.Entities.Character.CargoItem", b =>
                 {
                     b.HasOne("LibreLancer.Entities.Character.Character", null)
-                        .WithMany("Cargo")
+                        .WithMany("Items")
                         .HasForeignKey("CharacterId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
@@ -260,14 +238,6 @@ namespace LibreLancer.Database.Migrations
                         .IsRequired();
 
                     b.Navigation("Account");
-                });
-
-            modelBuilder.Entity("LibreLancer.Entities.Character.EquipmentEntity", b =>
-                {
-                    b.HasOne("LibreLancer.Entities.Character.Character", null)
-                        .WithMany("Equipment")
-                        .HasForeignKey("CharacterId")
-                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("LibreLancer.Entities.Character.Reputation", b =>
@@ -293,9 +263,7 @@ namespace LibreLancer.Database.Migrations
 
             modelBuilder.Entity("LibreLancer.Entities.Character.Character", b =>
                 {
-                    b.Navigation("Cargo");
-
-                    b.Navigation("Equipment");
+                    b.Navigation("Items");
 
                     b.Navigation("Reputations");
 

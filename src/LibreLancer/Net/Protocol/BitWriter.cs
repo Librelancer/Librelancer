@@ -47,6 +47,41 @@ namespace LibreLancer
             PutRangedFloat(angle, NetPacking.ANGLE_MIN, NetPacking.ANGLE_MAX, 16);
         }
 
+        public void PutNormal(Vector3 v)
+        {
+            v.Normalize();
+            var maxIndex = 0;
+            var maxValue = Math.Abs(v.X);
+            bool sign = v.X < 0;
+            if (Math.Abs(v.Y) > maxValue) {
+                maxIndex = 1;
+                maxValue = Math.Abs(v.Y);
+                sign = v.Y < 0;
+            }
+            if (Math.Abs(v.Z) > maxValue)
+            {
+                maxIndex = 2;
+                sign = v.Z < 0;
+            }
+            PutUInt((uint)maxIndex, 2);
+            PutBool(sign);
+            if (maxIndex == 0)
+            {
+                PutRangedFloat( v.Y, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, 14);
+                PutRangedFloat(v.Z, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, 15);
+            }
+            if (maxIndex == 1)
+            {
+                PutRangedFloat(v.X, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, 14);
+                PutRangedFloat(v.Z, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, 15);
+            }
+            if (maxIndex == 2)
+            {
+                PutRangedFloat(v.X, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, 14);
+                PutRangedFloat(v.Y, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, 15);
+            }
+        }
+
         public void PutQuaternion(Quaternion q)
         {
             var maxIndex = 0;

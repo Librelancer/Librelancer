@@ -177,7 +177,7 @@ namespace LibreLancer
                     instance.DisposeOnStop = true;
                     instance.OnStop = () => {
                         sn.Dispose();
-                        onEnd();
+                        onEnd?.Invoke();
                     };
                     instance.Play();
                 });

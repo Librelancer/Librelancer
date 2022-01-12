@@ -150,6 +150,7 @@ namespace LibreLancer.Interface
             for (int i = childOffset; i < childOffset + MaxDisplayChildren() && i < Children.Count; i++)
             {
                 Children[i].OnMouseClick(context, myRectangle);
+                if (i >= Children.Count) break;
                 if (Children[i].DoSelect) {
                     UnselectAll();
                     Children[i].Selected = true;

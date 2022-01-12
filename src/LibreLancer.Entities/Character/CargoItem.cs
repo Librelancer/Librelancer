@@ -13,6 +13,14 @@ namespace LibreLancer.Entities.Character
 
         // The amount of the item present in the cargo hold
         public long ItemCount { get; set; }
+        
+        // Hardpoint item is mounted to, null if not mounted
+        
+        public string Hardpoint { get; set; }
+        
+        // Health of the item
+        
+        public float Health { get; set;  }
 
         // Can the item be dropped
         public bool IsMissionItem { get; set; }

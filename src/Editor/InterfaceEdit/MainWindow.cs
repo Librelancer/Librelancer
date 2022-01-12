@@ -74,6 +74,10 @@ namespace InterfaceEdit
         {
             Project = new Project(this);
             Project.Open(path);
+            Project.UiData.ResourceManager.LoadResourceFile(
+                Project.UiData.DataResolve(@"ships\rheinland\rh_playerships.mat"));
+            Project.UiData.ResourceManager.LoadResourceFile(
+                Project.UiData.DataResolve(@"ships\liberty\li_playerships.mat"));
             recentFiles.FileOpened(path);
             resourceEditor = new ResourceWindow(this, Project.UiData);
             resourceEditor.IsOpen = true;
@@ -174,6 +178,7 @@ namespace InterfaceEdit
                     ImGui.MenuItem("Missions", "", ref TestApi.HasMissionVendor);
                     ImGui.MenuItem("News", "", ref TestApi.HasNewsAction);
                     ImGui.MenuItem("Commodity Trader", "", ref TestApi.HasCommodityTraderAction);
+                    ImGui.MenuItem("Ship Dealer", "", ref TestApi.HasShipDealerAction);
                     ImGui.EndMenu();
                 }
                 ImGui.EndMenu();

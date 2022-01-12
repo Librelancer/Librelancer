@@ -149,6 +149,7 @@ namespace LibreLancer
                 this.g = g;
                 articles = g.session.News;
                 Trader = new Trader(g.session);
+                ShipDealer = new ShipDealer(g.session);
             }
             
             public GameSettings GetCurrentSettings() => g.Game.Config.Settings.MakeCopy();
@@ -212,6 +213,7 @@ namespace LibreLancer
             public double GetCredits() => g.session.Credits;
 
             public Trader Trader;
+            public ShipDealer ShipDealer;
             
             public ChatSource GetChats() => g.session.Chats;
 
@@ -259,6 +261,9 @@ namespace LibreLancer
                     {
                         case "IDS_HOTSPOT_COMMODITYTRADER":
                             actions.Add(new NavbarButtonInfo("CommodityTrader", hp.Name));
+                            break;
+                        case "IDS_HOTSPOT_SHIPDEALER":
+                            actions.Add(new NavbarButtonInfo("ShipDealer", hp.Name));
                             break;
                         case "IDS_HOTSPOT_EQUIPMENTDEALER":
                             actions.Add(new NavbarButtonInfo("EquipmentDealer", hp.Name));
@@ -442,12 +447,10 @@ namespace LibreLancer
         void CreatePlayerEquipment()
         {
             playerShip.Children.Clear();
-            foreach (var mount in session.Mounts)
+            foreach (var mount in session.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
             {
-                if (!string.IsNullOrEmpty(mount.Hardpoint)) {
-                    var equip = Game.GameData.GetEquipment(mount.Item);
-                    if (equip == null) continue;
-                    EquipmentObjectManager.InstantiateEquipment(playerShip, Game.ResourceManager, EquipmentType.Cutscene, mount.Hardpoint, equip);
+                if (mount.Hardpoint != "internal") {
+                    EquipmentObjectManager.InstantiateEquipment(playerShip, Game.ResourceManager, EquipmentType.Cutscene, mount.Hardpoint, mount.Equipment);
                 }
             }
         }
@@ -649,7 +652,10 @@ namespace LibreLancer
             if (sc == null) currentState = ScriptState.None;
             waitingForFinish = sc;
             scene.BeginScene(Scripts(sceneScripts, new[] { sc }));
-            var ships = currentBase.SoldShips.Select(x => x.Package.Ship).ToArray();
+            string[] ships = Array.Empty<string>();
+            if (session.Ships != null) {
+                ships = session.Ships.Select(x => Game.GameData.GetShip(x.ShipCRC).Nickname).ToArray();
+            }
             for(int i = 0; (i < ships.Length && i < currentRoom.ForSaleShipPlacements.Count); i++)
             {
                 ThnObject marker = scene.GetObject(currentRoom.ForSaleShipPlacements[i]);

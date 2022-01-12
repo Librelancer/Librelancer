@@ -6,11 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using System.IO;
 using System.Threading.Tasks;
-using LibreLancer.GameData;
 using LibreLancer.Interface;
 using LibreLancer.Media;
+
 namespace LibreLancer
 {
 	public class FreelancerGame : Game

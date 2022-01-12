@@ -168,6 +168,7 @@ namespace LibreLancer.Interface
             }
             public void Timer(float time, object func) => c.Timer(time, func);
             public void PlaySound(string snd) => c.uiContext.PlaySound(snd);
+            public void PlayVoiceLine(string voice, string line) => c.uiContext.PlayVoiceLine(voice, line);
             public void SetWidget(UiWidget widget) => c.uiContext.SetWidget(widget);
             public int OpenModal(UiWidget widget) => c.uiContext.OpenModal(widget);
             public void SwapModal(UiWidget widget, int handle) => c.uiContext.SwapModal(widget, handle);

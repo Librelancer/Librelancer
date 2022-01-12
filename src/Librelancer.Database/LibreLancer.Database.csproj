@@ -22,8 +22,4 @@
     <ProjectReference Include="..\LibreLancer.Entities\LibreLancer.Entities.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Migrations\" />
-  </ItemGroup>
-
 </Project>

@@ -47,6 +47,26 @@ namespace LibreLancer
                 return -1;
             }
         }
+
+        public int BytesSent
+        {
+            get
+            {
+                if (running)
+                    return (int) (client?.Statistics?.BytesSent ?? 0);
+                return 0;
+            }
+        }
+        
+        public int BytesReceived
+        {
+            get
+            {
+                if (running)
+                    return (int) (client?.Statistics?.BytesReceived ?? 0);
+                return 0;
+            }
+        }
         
         public void Start()
         {
@@ -98,6 +118,7 @@ namespace LibreLancer
             lock (srvinfo) srvinfo.Clear();
             connecting = true;
             while (client == null || !client.IsRunning) Thread.Sleep(0);
+            client.Statistics?.Reset();
             client.Connect(endPoint, AppIdentifier);
         }
 
