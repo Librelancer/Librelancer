@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
@@ -37,14 +38,37 @@ namespace lleditscript
                 Console.Error.WriteLine("Usage: lleditscript script.cs [arguments]");
                 return 0;
             }
+
+            bool argsStdin = false;
             var filePath = args[0];
-            string scriptText = null;
-            if (!File.Exists(args[0]))
+
+            if (args[0] == "--args-stdin")
             {
-                Console.Error.WriteLine("Script file '{0}' not found", args[0]);
-                return 2;
+                argsStdin = true;
+                filePath = args[1];
+            }
+
+            string[] scriptArguments;
+            if (argsStdin)
+            {
+                var input_args = new List<string>();
+                string line;
+                while ((line = Console.ReadLine()) != null)
+                {
+                    input_args.Add(line);
+                }
+                scriptArguments = input_args.ToArray();
+            } else
+            {
+                scriptArguments = args.Skip(1).ToArray();
             }
             
+            string scriptText = null;
+            if (!File.Exists(filePath))
+            {
+                Console.Error.WriteLine("Script file '{0}' not found", filePath);
+                return 2;
+            }
             scriptText = File.ReadAllText(filePath);
 
             if (scriptText.StartsWith("#!"))
@@ -59,7 +83,7 @@ namespace lleditscript
                     typeof(FreelancerGame).Assembly, typeof(string).Assembly,
                     typeof(EditableUtf).Assembly, typeof(Game).Assembly)
                     .WithImports(Namespaces).WithAllowUnsafe(true).WithFilePath(filePath);
-                var globals = new Globals {Arguments = args.Skip(1).ToArray()};
+                var globals = new Globals {Arguments = scriptArguments};
                 var script = CSharpScript.Create(scriptText, opts, typeof(Globals));
                 var tk = script.RunAsync(globals);
                 tk.Wait();

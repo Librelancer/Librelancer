@@ -7,12 +7,14 @@ using System.Numerics;
 using System.Text;
 using System.Threading;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.ImUI;
 using LibreLancer.Media;
 using ImGuiNET;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace LancerEdit
 {
@@ -118,6 +120,7 @@ namespace LancerEdit
             Fonts.ConstructDefaultFonts();
             Services.Add(Fonts);
             Make3dbDlg = new CommodityIconDialog(this);
+            LoadScripts();
         }
 
         void Keyboard_KeyDown(KeyEventArgs e)
@@ -204,6 +207,59 @@ namespace LancerEdit
                 loadingSpinnerActive = false;
                 finishLoading = true;
             });
+        }
+
+        public List<EditScript> Scripts = new List<EditScript>();
+
+        IEnumerable<string> GetScriptFiles(IEnumerable<string> directories)
+        {
+            foreach (var dir in directories)
+            {
+                if(!Directory.Exists(dir)) continue;
+                foreach (var f in Directory.GetFiles(dir, "*.cs-script"))
+                {
+                    yield return f;
+                }
+            }
+        }
+        
+        private string GetBasePath()
+        {
+            using var processModule = Process.GetCurrentProcess().MainModule;
+            return Path.GetDirectoryName(processModule?.FileName);
+        }
+
+        string GetAssemblyFolder()
+        {
+            return Path.GetDirectoryName(typeof(MainWindow).Assembly.Location);
+        }
+        public void LoadScripts()
+        {
+            Scripts = new List<EditScript>();
+            var scriptDirs = new List<string>(2);
+            var baseDir = Path.Combine(GetBasePath(), "editorscripts");
+            scriptDirs.Add(baseDir);
+            var asmDir = Path.Combine(GetAssemblyFolder(), "editorscripts");
+            if (asmDir != baseDir) scriptDirs.Add(asmDir);
+            foreach (var file in GetScriptFiles(scriptDirs))
+            {
+                try
+                {
+                    var sc = new EditScript(file);
+                    if(sc.Validate()) Scripts.Add(sc);
+                    else FLLog.Error("Scripts", $"Failed to Validate {file}");
+                }
+                catch (Exception)
+                {
+                    FLLog.Error("Scripts", $"Failed to Validate {file}");
+                }
+            }
+        }
+        
+        private List<ScriptRunner> activeScripts = new List<ScriptRunner>();
+        public void RunScript(EditScript sc)
+        {
+            activeScripts.Add(new ScriptRunner(sc, this));
         }
         
 		protected override void Draw(double elapsed)
@@ -341,6 +397,22 @@ namespace LancerEdit
                 }
                 ImGui.EndMenu();
             }
+            if (ImGui.BeginMenu("Scripts"))
+            {
+                if (ImGui.MenuItem("Refresh")) {
+                    LoadScripts();
+                }
+                ImGui.Separator();
+                int k = 0;
+                foreach (var sc in Scripts)
+                {
+                    var n = ImGuiExt.IDWithExtra(sc.Info.Name, k++);
+                    if (ImGui.MenuItem(n)) {
+                        RunScript(sc);
+                    }
+                }
+                ImGui.EndMenu();
+            }
 			if (ImGui.BeginMenu("Help"))
 			{
                 if(Theme.IconMenuItem("Topics","help",Color4.White,true))
@@ -373,6 +445,11 @@ namespace LancerEdit
             {
                 ImGui.OpenPopup("Processing");
                 openLoading = false;
+            }
+
+            for (int i = activeScripts.Count - 1; i >= 0; i--)
+            {
+                if (!activeScripts[i].Draw()) activeScripts.RemoveAt(i);
             }
             bool pOpen = true;
 

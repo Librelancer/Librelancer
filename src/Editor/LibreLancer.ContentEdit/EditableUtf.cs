@@ -375,7 +375,6 @@ namespace LibreLancer.ContentEdit
                         }
 					}
 				}
-                LibreLancer.FLLog.Info("UTF", "Bytes Saved: " + bytesSaved);
 				byte[] stringBlock;
 				using (var mem = new MemoryStream())
 				{
