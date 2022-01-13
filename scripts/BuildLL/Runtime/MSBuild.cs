@@ -25,6 +25,8 @@ namespace BuildLL
         static string VSPath(string ver, string[] editions, string msbuildVer, MSBuildPlatform platform)
         {
             var pg = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+            if(ver == "2022") pg = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles); //2022 is 64-bit
+            
             foreach (var e in editions)
             {
                 var bin = Path.Combine(pg, "Microsoft Visual Studio", ver, e, "MSBuild", msbuildVer, "Bin");
