@@ -24,8 +24,8 @@ Download daily builds from https://librelancer.net/downloads.html
 **Prerequisites:**
 
 * 64-bit Windows 7 or newer
-* Visual Studio 2019 with:
-* * .NET 5.0 SDK
+* Visual Studio 2022 with:
+* * .NET 6.0 SDK
 * *  Desktop C++ Development Workflow
 * [CMake](https://cmake.org/)
 

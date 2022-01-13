@@ -142,18 +142,18 @@ namespace BuildLL
                     //build 32-bit
                     CMake.Run(".", new CMakeSettings() {
                         OutputPath = "obj/x86",
-                        Generator = "Visual Studio 16 2019",
+                        Generator = "Visual Studio 17 2022",
                         Platform = "Win32"
                     });
-                    MSBuild.Run("./obj/x86/librelancernatives.sln", "/m /p:Configuration=Release", VSVersion.VS2019, MSBuildPlatform.x86);
+                    MSBuild.Run("./obj/x86/librelancernatives.sln", "/m /p:Configuration=Release", VSVersion.VS2022, MSBuildPlatform.x86);
                     CopyDirContents("./obj/x86/binaries/", "./bin/natives/x86", false, "*.dll");
                     //build 64-bit
                     CMake.Run(".", new CMakeSettings() {
                         OutputPath = "obj/x64",
-                        Generator = "Visual Studio 16 2019",
+                        Generator = "Visual Studio 17 2022",
                         Platform = "x64"
                     });
-                    MSBuild.Run("./obj/x64/librelancernatives.sln", "/m /p:Configuration=Release", VSVersion.VS2019, MSBuildPlatform.x64);
+                    MSBuild.Run("./obj/x64/librelancernatives.sln", "/m /p:Configuration=Release", VSVersion.VS2022, MSBuildPlatform.x64);
                     CopyDirContents("./obj/x64/binaries/", "./bin/natives/x64", false, "*.dll");
                 }
                 else
