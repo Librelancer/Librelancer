@@ -707,7 +707,7 @@ namespace LibreLancer
                         {
                             if (World != null) {
                                 World.EnqueueAction(() => {
-                                    World.Players[this].GetComponent<HealthComponent>().CurrentHealth = h;
+                                    World.Players[this].GetComponent<SHealthComponent>().CurrentHealth = h;
                                     rpcClient.OnConsoleMessage("OK");
                                 });
                             }
@@ -854,7 +854,7 @@ namespace LibreLancer
                         db.Items.Add(new CargoItem()
                         {
                             ItemName = eq.EquipName,
-                            Hardpoint = eq.Hardpoint,
+                            Hardpoint = string.IsNullOrEmpty(eq.Hardpoint) ? "internal" : eq.Hardpoint,
                             ItemCount = 1
                         });
                     }

@@ -268,7 +268,7 @@ namespace LibreLancer
         public bool HasHull; //1 bit
         public bool HasParts; //1 bit
         public byte[] Parts; //3 bits each
-        public int ShieldHp; //4 bytes
+        public float ShieldHp; //4 bytes
         public int HullHp; //4 bytes
         //Guns
         public GunOrient[] GunOrients; //4 bytes each (half floats)
@@ -306,7 +306,7 @@ namespace LibreLancer
                         message.PutUInt(Parts[i], 3);
                     }
                 }
-                if (HasShield) message.PutInt(ShieldHp); //4 bytes
+                if (HasShield) message.PutFloat(ShieldHp); //4 bytes
                 if (HasHull) message.PutInt(HullHp); //4 bytes
             }
             if(HasGuns) 
@@ -350,7 +350,7 @@ namespace LibreLancer
                         p.Parts[i] = (byte)message.GetUInt(3);
                     }
                 }
-                if (p.HasShield) p.ShieldHp = message.GetInt();
+                if (p.HasShield) p.ShieldHp = message.GetFloat();
                 if (p.HasHull) p.HullHp = message.GetInt();
             }
             if (p.HasGuns)

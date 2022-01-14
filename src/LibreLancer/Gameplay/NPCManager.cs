@@ -65,7 +65,7 @@ namespace LibreLancer
             obj.Name = $"Bob NPC - {loadout.Nickname}";
             obj.Nickname = nickname;
             obj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orient) * Matrix4x4.CreateTranslation(position));
-            obj.Components.Add(new HealthComponent(obj)
+            obj.Components.Add(new SHealthComponent(obj)
             {
                 CurrentHealth = ship.Hitpoints,
                 MaxHealth = ship.Hitpoints

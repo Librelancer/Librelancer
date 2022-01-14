@@ -623,7 +623,8 @@ namespace LibreLancer
                 {
                     var eqp = new GameData.Items.ShieldEquipment()
                     {
-                        HpType = sh.HpType
+                        HpType = sh.HpType,
+                        Def = sh
                     };
                     eqp.ModelFile = ResolveDrawable(sh.MaterialLibrary, sh.DaArchetype);
                     equip = eqp;

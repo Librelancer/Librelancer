@@ -77,12 +77,14 @@ namespace LibreLancer
                     SpawnShip(npc, player);
                 var obj = new GameObject(player.Character.Ship, Server.Resources, false, true) { World = GameWorld };
                 obj.Components.Add(new SPlayerComponent(player, obj));
-                obj.Components.Add(new HealthComponent(obj)
+                obj.Components.Add(new SHealthComponent(obj)
                 {
                     CurrentHealth = player.Character.Ship.Hitpoints,
                     MaxHealth = player.Character.Ship.Hitpoints
                 });
                 obj.Components.Add(new SEngineComponent(obj));
+                foreach(var item in player.Character.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
+                    EquipmentObjectManager.InstantiateEquipment(obj, Server.Resources, EquipmentType.Server, item.Hardpoint, item.Equipment);
                 obj.NetID = player.ID;
                 GameWorld.AddObject(obj);
                 obj.Register(GameWorld.Physics);
@@ -103,7 +105,7 @@ namespace LibreLancer
 
         public void ProjectileHit(GameObject obj, GameObject owner, MunitionEquip munition)
         {
-            if (obj.TryGetComponent<HealthComponent>(out var health)) {
+            if (obj.TryGetComponent<SHealthComponent>(out var health)) {
                 health.Damage(munition.Def.HullDamage);
             }
             if (obj.TryGetComponent<SNPCComponent>(out var npc)) {
@@ -381,7 +383,10 @@ namespace LibreLancer
             foreach (var player in targets)
             {
                 List<PackedShipUpdate> ps = new List<PackedShipUpdate>();
-                var phealth = player.Value.GetComponent<HealthComponent>().CurrentHealth;
+                var phealthcomponent = player.Value.GetComponent<SHealthComponent>();
+                var phealth = phealthcomponent.CurrentHealth;
+                var pshield = phealthcomponent.ShieldHealth;
+                
                 foreach (var otherPlayer in Players)
                 {
                     if (otherPlayer.Key == player.Key) continue;
@@ -394,7 +399,10 @@ namespace LibreLancer
                     update.Orientation = otherPlayer.Key.Orientation;
                     update.HasHealth = true;
                     update.HasHull = true;
-                    update.HullHp = (int) (otherPlayer.Value.GetComponent<HealthComponent>().CurrentHealth);
+                    update.HasShield = true;
+                    var ohealth = otherPlayer.Value.GetComponent<SHealthComponent>();
+                    update.HullHp = (int) (ohealth.CurrentHealth);
+                    update.ShieldHp = ohealth.ShieldHealth;
                     ps.Add(update);
                 }
                 foreach (var obj in updatingObjects)
@@ -410,11 +418,13 @@ namespace LibreLancer
                     }
                     update.HasOrientation = true;
                     update.Orientation = tr.ExtractRotation();
-                    if (obj.TryGetComponent<HealthComponent>(out var health))
+                    if (obj.TryGetComponent<SHealthComponent>(out var health))
                     {
                         update.HasHealth = true;
                         update.HasHull = true;
+                        update.HasShield = true;
                         update.HullHp = (int) health.CurrentHealth;
+                        update.ShieldHp = health.ShieldHealth;
                     }
                     if (obj.TryGetComponent<WeaponControlComponent>(out var weapons))
                     {
@@ -427,6 +437,7 @@ namespace LibreLancer
                 {
                     Tick = tick,
                     PlayerHealth = phealth,
+                    PlayerShield = pshield,
                     Updates = ps.ToArray()
                 });
             }

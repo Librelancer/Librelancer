@@ -316,7 +316,7 @@ namespace LibreLancer
                 newobj.Name = name;
                 newobj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
                                          Matrix4x4.CreateTranslation(position));
-                newobj.Components.Add(new HealthComponent(newobj) { CurrentHealth = loadout.Health, MaxHealth = shp.Hitpoints });
+                newobj.Components.Add(new CHealthComponent(newobj) { CurrentHealth = loadout.Health, MaxHealth = shp.Hitpoints });
                 newobj.Components.Add(new CDamageFuseComponent(newobj, shp.Fuses));
                 var hplookup = new HardpointLookup(shp.ModelFile.LoadFile(Game.ResourceManager));
                 foreach (var eq in loadout.Items.Where(x => x.HardpointCRC != 0))
@@ -562,9 +562,12 @@ namespace LibreLancer
                     {
                         RunSync(() =>
                         {
-                            var hp = gp?.player?.GetComponent<HealthComponent>();
+                            var hp = gp?.player?.GetComponent<CHealthComponent>();
                             if (hp != null)
+                            {
                                 hp.CurrentHealth = p.PlayerHealth;
+                                hp.ShieldHealth = p.PlayerShield;
+                            }
                             foreach (var update in p.Updates)
                                 UpdateObject(p.Tick, update);
                         });
@@ -587,9 +590,11 @@ namespace LibreLancer
                 eng.Speed = update.EngineThrottlePct / 255f;
             }
             if (update.HasHealth) {
-                var health = obj.GetComponent<HealthComponent>();
+                var health = obj.GetComponent<CHealthComponent>();
                 if (health != null)
                     health.CurrentHealth = (float)update.HullHp;
+                if(update.HasShield)
+                    health.ShieldHealth = update.ShieldHp;
             }
 
             if (update.HasGuns && obj.TryGetComponent<WeaponControlComponent>(out var weapons))

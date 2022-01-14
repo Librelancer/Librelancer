@@ -42,7 +42,7 @@ World Time: {12:F2}
         ShipInputComponent shipInput;
         WeaponControlComponent weapons;
 		PowerCoreComponent powerCore;
-        HealthComponent playerHealth;
+        CHealthComponent playerHealth;
         
 		public float Velocity = 0f;
 		const float MAX_VELOCITY = 80f;
@@ -92,7 +92,7 @@ World Time: {12:F2}
 
             player.SetLocalTransform(session.PlayerOrientation * Matrix4x4.CreateTranslation(session.PlayerPosition));
             player.PhysicsComponent.Mass = shp.Mass;
-            playerHealth = new HealthComponent(player);
+            playerHealth = new CHealthComponent(player);
             playerHealth.MaxHealth = shp.Hitpoints;
             playerHealth.CurrentHealth = shp.Hitpoints;
             player.Components.Add(playerHealth);
@@ -231,11 +231,18 @@ World Time: {12:F2}
             public float SelectionHealth()
             {
                 if (g.selected == null) return -1;
-                if (!g.selected.TryGetComponent<HealthComponent>(out var health))
+                if (!g.selected.TryGetComponent<CHealthComponent>(out var health))
                     return -1;
                 return MathHelper.Clamp(health.CurrentHealth / health.MaxHealth, 0, 1);
             }
-            public float SelectionShield() => -1;
+
+            public float SelectionShield()
+            {
+                if (g.selected == null) return -1;
+                if (!g.selected.TryGetComponent<CHealthComponent>(out var health)) return -1;
+                return health.ShieldHealth;
+            }
+            
 
             public LuaVector2 SelectionPosition()
             {
@@ -260,7 +267,7 @@ World Time: {12:F2}
             public double GetCredits() => g.session.Credits;
 
             public float GetPlayerHealth() => g.playerHealth.CurrentHealth / g.playerHealth.MaxHealth;
-            public float GetPlayerShield() => 0f;
+            public float GetPlayerShield() => g.playerHealth.ShieldHealth;
         
             public float GetPlayerPower() => 1f;
 

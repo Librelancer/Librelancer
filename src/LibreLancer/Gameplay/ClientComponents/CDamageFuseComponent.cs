@@ -87,7 +87,7 @@ namespace LibreLancer
 
         public override void Update(double time)
         {
-            if (!Parent.TryGetComponent<HealthComponent>(out var health))
+            if (!Parent.TryGetComponent<SHealthComponent>(out var health))
                 return;
             foreach(var runner in runners)
                 runner.Update(health.CurrentHealth, time, Parent);
