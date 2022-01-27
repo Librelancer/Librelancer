@@ -5,77 +5,78 @@
 using System;
 using LibreLancer;
 using LibreLancer.Fx;
+using LibreLancer.ImUI;
+
 namespace LancerEdit
 {
     public partial class AleViewer
     {
-        void NodeIcon(FxNode n, out string icon, out Color4 color)
+        void NodeIcon(FxNode n, out char icon)
         {
             //Default
-            icon = "fxnode";
-            color = Color4.White;
+            icon = Icons.Leaf;
             //Emitters
             if (n is FxSphereEmitter)
             {
-                icon = "sphere";
+                icon = Icons.Globe;
             }
             if (n is FxConeEmitter)
             {
-                icon = "cone";
+                icon = Icons.IceCream;
             }
             if (n is FxCubeEmitter)
             {
-                icon = "fix";
+                icon = Icons.Cube;
             }
             //Fields
             if (n is FLBeamField)
             {
-                icon = "fieldbeam";
+                icon = Icons.Bolt;
             }
             if (n is FLDustField)
             {
-                icon = "fielddust";
+                icon = Icons.Cloud;
             }
             if (n is FxAirField)
             {
-                icon = "fieldair";
+                icon = Icons.Wind;
             }
             if (n is FxCollideField)
             {
-                icon = "fieldcollide";
+                icon = Icons.CarCrash;
             }
             if (n is FxGravityField)
             {
-                icon = "fieldgravity";
+                icon = Icons.AngleDoubleDown;
             }
             if (n is FxRadialField)
             {
-                icon = "fieldradial";
+                icon = Icons.Bullseye;
             }
             if (n is FxTurbulenceField)
             {
-                icon = "pris";
+                icon = Icons.Fan;
             }
             //Appearances
             if (n is FLBeamAppearance)
             {
-                icon = "appbeam";
+                icon = Icons.Bolt;
             }
             else if (n is FxParticleAppearance)
             {
-                icon = "appparticle";
+                icon = Icons.SprayCan;
             }
             else if (n is FxRectAppearance)
             {
-                icon = "apprect";
+                icon = Icons.Stop;
             }
             else if (n is FxPerpAppearance)
             {
-                icon = "appperp";
+                icon = Icons.Splotch;
             }
             else if (n is FxBasicAppearance)
             {
-                icon = "appbasic";
+                icon = Icons.Images;
             }
         }
     }

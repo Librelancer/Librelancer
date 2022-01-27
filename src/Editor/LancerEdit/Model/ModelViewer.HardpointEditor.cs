@@ -117,7 +117,7 @@ namespace LancerEdit
                 var infos = newIsFixed ? HardpointInformation.Fix : HardpointInformation.Rev;
                 foreach (var item in infos)
                 {
-                    if (Theme.IconMenuItem(item.Name, item.Icon, item.Color, true))
+                    if (Theme.IconMenuItem(item.Icon, item.Name, true))
                     {
                         switch (item.Autoname)
                         {

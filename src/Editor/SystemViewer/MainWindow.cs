@@ -38,7 +38,7 @@ namespace SystemViewer
         {
             Title = "System Viewer";
             LibreLancer.Shaders.AllShaders.Compile();
-            guiHelper = new ImGuiHelper(this);
+            guiHelper = new ImGuiHelper(this, DpiScale);
             FileDialog.RegisterParent(this);
             RenderContext.PushViewport(0, 0, 800, 600);
             Billboards = new Billboards();
@@ -161,7 +161,7 @@ C# Memory Usage: {5}
             //Main Menu
             ImGui.BeginMainMenuBar();
             if(ImGui.BeginMenu("File")) {
-                if(Theme.IconMenuItem("Open","open",Color4.White,true)) {
+                if(Theme.IconMenuItem(Icons.Open, "Open",true)) {
                     var folder = FileDialog.ChooseFolder();
                     if(folder != null) {
                         if(GameConfig.CheckFLDirectory(folder)) {
@@ -172,7 +172,7 @@ C# Memory Usage: {5}
                         }
                     }
                 }
-                if(Theme.IconMenuItem("Quit","quit",Color4.White,true)) {
+                if(Theme.IconMenuItem(Icons.Quit, "Quit", true)) {
                     Exit();
                 }
                 ImGui.EndMenu();

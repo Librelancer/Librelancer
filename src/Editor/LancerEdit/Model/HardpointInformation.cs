@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer;
+using LibreLancer.ImUI;
+
 namespace LancerEdit
 {
     public enum HpNaming
@@ -18,8 +20,7 @@ namespace LancerEdit
         public class HpEntry {
             public string Name;
             public HpNaming Autoname;
-            public string Icon;
-            public Color4 Color;
+            public char Icon;
         }
         public static List<HpEntry> Fix = new List<HpEntry>();
         public static List<HpEntry> Rev = new List<HpEntry>();
@@ -30,45 +31,45 @@ namespace LancerEdit
             foreach (var e in Rev) yield return e;
         }
 
-        static void AddFix(string name, HpNaming n, string icon, Color4 c)
+        static void AddFix(string name, HpNaming n, char icon)
         {
-            Fix.Add(new HpEntry() { Name = name, Autoname = n, Icon = icon, Color = c });
+            Fix.Add(new HpEntry() { Name = name, Autoname = n, Icon = icon });
         }
-        static void AddRev(string name, HpNaming n, string icon, Color4 c)
+        static void AddRev(string name, HpNaming n, char icon)
         {
-            Rev.Add(new HpEntry() { Name = name, Autoname = n, Icon = icon, Color = c });
+            Rev.Add(new HpEntry() { Name = name, Autoname = n, Icon = icon });
         }
 
         static HardpointInformation()
         {
-            AddFix("HpBayDoor01", HpNaming.None, "fix", Color4.Purple);
-            AddFix("HpBayDoor02", HpNaming.None, "fix", Color4.Purple);
-            AddFix("HpCM", HpNaming.Number, "fix", Color4.LightGreen);
-            AddFix("HpCockpit", HpNaming.None, "fix", Color4.Purple);
-            AddFix("HpContrail", HpNaming.Number, "fix", Color4.LightSkyBlue);
-            AddFix("HpDockCam", HpNaming.Letter, "fix",Color4.Yellow);
-            AddFix("HpDockLight", HpNaming.Number, "fix", Color4.LightSkyBlue);
-            AddFix("HpDockMount", HpNaming.Letter, "fix", Color4.Yellow);
-            AddFix("HpDockPoint", HpNaming.Letter, "fix", Color4.Yellow);
-            AddFix("HpEngine", HpNaming.Number, "fix", Color4.Purple);
-            AddFix("HpFX", HpNaming.Number, "fix", Color4.LightSkyBlue);
-            AddFix("HpHeadLight", HpNaming.Number, "fix", Color4.LightSkyBlue);
-            AddFix("HpLaunchCam", HpNaming.Letter, "fix", Color4.Yellow);
-            AddFix("HpMine", HpNaming.Number, "fix", Color4.LightGreen);
-            AddFix("HpMount", HpNaming.None, "fix", Color4.Purple);
-            AddFix("HpPilot", HpNaming.None, "fix", Color4.Purple);
-            AddFix("HpRunningLight", HpNaming.Number, "fix", Color4.LightSkyBlue);
-            AddFix("HpShield", HpNaming.Number, "fix", Color4.LightGreen);
-            AddFix("HpSpecialEquipment", HpNaming.Number, "fix", Color4.LightGreen);
-            AddFix("HpThruster", HpNaming.Number, "fix", Color4.LightGreen);
-            AddFix("HpTractor_Source", HpNaming.None, "fix", Color4.Purple);
-            AddFix("HpFire", HpNaming.Number, "fix", Color4.Coral);
-            AddFix("HpConnect", HpNaming.None, "fix", Color4.Coral);
+            AddFix("HpBayDoor01", HpNaming.None, Icons.Cube_Purple);
+            AddFix("HpBayDoor02", HpNaming.None, Icons.Cube_Purple);
+            AddFix("HpCM", HpNaming.Number, Icons.Cube_LightGreen);
+            AddFix("HpCockpit", HpNaming.None, Icons.Cube_Purple);
+            AddFix("HpContrail", HpNaming.Number, Icons.Cube_LightSkyBlue);
+            AddFix("HpDockCam", HpNaming.Letter, Icons.Cube_LightYellow);
+            AddFix("HpDockLight", HpNaming.Number, Icons.Cube_LightSkyBlue);
+            AddFix("HpDockMount", HpNaming.Letter, Icons.Cube_LightYellow);
+            AddFix("HpDockPoint", HpNaming.Letter, Icons.Cube_LightYellow);
+            AddFix("HpEngine", HpNaming.Number, Icons.Cube_Purple);
+            AddFix("HpFX", HpNaming.Number, Icons.Cube_LightSkyBlue);
+            AddFix("HpHeadLight", HpNaming.Number, Icons.Cube_LightSkyBlue);
+            AddFix("HpLaunchCam", HpNaming.Letter, Icons.Cube_LightYellow);
+            AddFix("HpMine", HpNaming.Number, Icons.Cube_LightGreen);
+            AddFix("HpMount", HpNaming.None, Icons.Cube_Purple);
+            AddFix("HpPilot", HpNaming.None, Icons.Cube_Purple);
+            AddFix("HpRunningLight", HpNaming.Number, Icons.Cube_LightSkyBlue);
+            AddFix("HpShield", HpNaming.Number, Icons.Cube_LightGreen);
+            AddFix("HpSpecialEquipment", HpNaming.Number, Icons.Cube_LightGreen);
+            AddFix("HpThruster", HpNaming.Number, Icons.Cube_LightGreen);
+            AddFix("HpTractor_Source", HpNaming.None, Icons.Cube_Purple);
+            AddFix("HpFire", HpNaming.Number, Icons.Cube_Coral);
+            AddFix("HpConnect", HpNaming.None, Icons.Cube_Coral);
 
-            AddRev("HpTorpedo", HpNaming.Number, "rev", Color4.LightGreen);
-            AddRev("HpTurret", HpNaming.Number, "rev", Color4.LightGreen);
-            AddRev("HpWeapon", HpNaming.Number, "rev", Color4.LightGreen);
-            AddRev("HpConnect", HpNaming.None, "rev", Color4.Coral);
+            AddRev("HpTorpedo", HpNaming.Number, Icons.Rev_LightGreen);
+            AddRev("HpTurret", HpNaming.Number, Icons.Rev_LightGreen);
+            AddRev("HpWeapon", HpNaming.Number, Icons.Rev_LightGreen);
+            AddRev("HpConnect", HpNaming.None, Icons.Rev_Coral);
         }
     }
 }

@@ -8,7 +8,7 @@ using System.IO;
 using System.Xml.Serialization;
 using LibreLancer;
 using LibreLancer.Ini;
-
+using static System.FormattableString;
 namespace LancerEdit
 {
     public enum CameraModes
@@ -41,6 +41,7 @@ namespace LancerEdit
         [Entry("default_camera_mode")]
         public int DefaultCameraMode = 0;
 
+        [Entry("ui_scale")] public float UiScale = 1f;
         static string FormatColor(Color4 c)
         {
             static string Fmt(float f) => ((int) (f * 255f)).ToString();
@@ -60,6 +61,7 @@ namespace LancerEdit
                 writer.WriteLine($"background_gradient = {(BackgroundGradient ? "true" : "false")}");
                 writer.WriteLine($"grid_color = {FormatColor(GridColor)}");
                 writer.WriteLine($"default_camera_mode = {DefaultCameraMode}");
+                writer.WriteLine(Invariant($"ui_scale = {UiScale:F4}"));
             }
         }
 
@@ -71,6 +73,8 @@ namespace LancerEdit
                 {
                     var ec = new EditorConfiguration();
                     ec.ParseAndFill(configPath, null);
+                    if (ec.UiScale < 1 || ec.UiScale > 2.5f)
+                        ec.UiScale = 1;
                     return ec;
                 }
                 else

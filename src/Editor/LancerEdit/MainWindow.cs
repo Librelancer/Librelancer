@@ -90,11 +90,12 @@ namespace LancerEdit
             recentFiles = new RecentFilesHandler(OpenFile);
         }
         double errorTimer = 0;
+        private int logoTexture;
 		protected override void Load()
         {
             DefaultMaterialMap.Init();
 			Title = "LancerEdit";
-            guiHelper = new ImGuiHelper(this);
+            guiHelper = new ImGuiHelper(this, DpiScale * Config.UiScale);
             guiHelper.PauseWhenUnfocused = Config.PauseWhenUnfocused;
             Audio = new AudioManager(this);
             FileDialog.RegisterParent(this);
@@ -110,6 +111,11 @@ namespace LancerEdit
             {
                 var icon = LibreLancer.ImageLib.Generic.BytesFromStream(stream);
                 SetWindowIcon(icon.Width, icon.Height, icon.Data);
+            }
+            using (var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("LancerEdit.reactor_128.png"))
+            {
+                var icon = (Texture2D)LibreLancer.ImageLib.Generic.FromStream(stream);
+                logoTexture = ImGuiHelper.RegisterTexture(icon);
             }
             //Open passed in files!
             if(InitOpenFile != null)
@@ -279,14 +285,15 @@ namespace LancerEdit
 			ImGui.PushFont(ImGuiHelper.Noto);
 			ImGui.BeginMainMenuBar();
 			if (ImGui.BeginMenu("File"))
-			{
-				if (Theme.IconMenuItem("New", "new", Color4.White, true))
+            {
+                var lst = ImGui.GetWindowDrawList();
+				if (Theme.IconMenuItem(Icons.File, "New", true))
 				{
 					var t = new UtfTab(this, new EditableUtf(), "Untitled");
 					ActiveTab = t;
                     AddTab(t);
 				}
-				if (Theme.IconMenuItem("Open", "open", Color4.White, true))
+                if (Theme.IconMenuItem(Icons.Open, "Open", true))
 				{
                     var f = FileDialog.Open(UtfFilters);
                     OpenFile(f);
@@ -294,22 +301,22 @@ namespace LancerEdit
 
                 recentFiles.Menu();
 				if (ActiveTab == null)
-				{
-					Theme.IconMenuItem("Save", "save", Color4.LightGray, false);
-                    Theme.IconMenuItem("Save As", "saveas", Color4.LightGray, false);
+                {
+                    Theme.IconMenuItem(Icons.Save, "Save", false);
+                    Theme.IconMenuItem(Icons.Save, "Save As", false);
                 }
 				else
 				{
-					if (Theme.IconMenuItem(string.Format("Save '{0}'", ActiveTab.DocumentName), "saveas", Color4.White, true))
+					if (Theme.IconMenuItem(Icons.Save, string.Format("Save '{0}'", ActiveTab.DocumentName), true))
                     {
                         Save();
                     }
-                    if (Theme.IconMenuItem("Save As", "saveas", Color4.White, true))
+                    if (Theme.IconMenuItem(Icons.Save, "Save As",  true))
                     {
                         SaveAs();
                     }
 				}
-				if (Theme.IconMenuItem("Quit", "quit", Color4.White, true))
+				if (Theme.IconMenuItem(Icons.Quit, "Quit", true))
 				{
 					Exit();
 				}
@@ -317,21 +324,21 @@ namespace LancerEdit
 			}
             if (ImGui.BeginMenu("View"))
             {
-                Theme.IconMenuToggle("Log", "log", Color4.White, ref showLog, true);
+                Theme.IconMenuToggle(Icons.Log, "Log", ref showLog, true);
                 ImGui.EndMenu();
             }
 			if (ImGui.BeginMenu("Tools"))
 			{
-                if(Theme.IconMenuItem("Options","options",Color4.White,true))
+                if(Theme.IconMenuItem(Icons.Cog, "Options",true))
                 {
                     options.Show();
                 }
                
-				if (Theme.IconMenuItem("Resources","resources",Color4.White,true))
+				if (Theme.IconMenuItem(Icons.Palette, "Resources",true))
 				{
 					AddTab(new ResourcesTab(this, Resources, MissingResources, ReferencedMaterials, ReferencedTextures));
 				}
-                if(Theme.IconMenuItem("Import Model","import",Color4.White,true))
+                if(Theme.IconMenuItem(Icons.FileImport, "Import Model",true))
                 {
                     string input;
                     if((input = FileDialog.Open(ImportModelFilters)) != null)
@@ -358,14 +365,14 @@ namespace LancerEdit
                         }).Start();
                     }
                 }
-                if (Theme.IconMenuItem("Generate Icon", "genicon", Color4.White, true))
+                if (Theme.IconMenuItem(Icons.SprayCan, "Generate Icon", true))
                 {
                     string input;
                     if ((input = FileDialog.Open(ImageFilter)) != null) {
                         Make3dbDlg.Open(input);
                     }
                 }
-                if(Theme.IconMenuItem("Infocard Browser","browse",Color4.White,true))
+                if(Theme.IconMenuItem(Icons.BookOpen, "Infocard Browser",true))
                 {
                     string input;
                     if((input = FileDialog.Open(FreelancerIniFilter)) != null) {
@@ -415,13 +422,13 @@ namespace LancerEdit
             }
 			if (ImGui.BeginMenu("Help"))
 			{
-                if(Theme.IconMenuItem("Topics","help",Color4.White,true))
+                if(Theme.IconMenuItem(Icons.Book, "Topics", true))
                 {
                     var selfPath = Path.GetDirectoryName(typeof(MainWindow).Assembly.Location);
                     var helpFile = Path.Combine(selfPath, "Docs", "index.html");
                     Shell.OpenCommand(helpFile);
                 }
-				if (Theme.IconMenuItem("About","about",Color4.White,true))
+				if (Theme.IconMenuItem(Icons.Info, "About", true))
 				{
 					openAbout = true;
 				}
@@ -465,12 +472,9 @@ namespace LancerEdit
 			if (ImGui.BeginPopupModal("About", ref pOpen, ImGuiWindowFlags.AlwaysAutoResize))
 			{
                 ImGui.SameLine(ImGui.GetWindowWidth() / 2 - 64);
-                Theme.Icon("reactor_128", Color4.White);
+                ImGui.Image((IntPtr) logoTexture, new Vector2(128), new Vector2(0, 1), new Vector2(1, 0));
                 CenterText(Version);
-				CenterText("Callum McGing 2018-2021");
-                ImGui.Separator();
-                CenterText("Icons from Icons8: https://icons8.com/");
-                CenterText("Icons from komorra: https://opengameart.org/content/kmr-editor-icon-set");
+				CenterText("Callum McGing 2018-2022");
                 ImGui.Separator();
                 var btnW = ImGui.CalcTextSize("OK").X + ImGui.GetStyle().FramePadding.X * 2;
                 ImGui.Dummy(Vector2.One);
@@ -518,7 +522,7 @@ namespace LancerEdit
 			{
                 ((EditorTab)tab).DetectResources(MissingResources, ReferencedMaterials, ReferencedTextures);
 			}
-            ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - 25), ImGuiCond.Always);
+            ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - (25 * ImGuiHelper.Scale)), ImGuiCond.Always);
             ImGui.SetNextWindowPos(new Vector2(0, menu_height), ImGuiCond.Always, Vector2.Zero);
             bool childopened = true;
             ImGui.Begin("tabwindow", ref childopened,
@@ -532,8 +536,8 @@ namespace LancerEdit
             if (showLog)
             {
                 ImGuiExt.SplitterV(2f, ref h1, ref h2, 8, 8, -1);
-                h1 = totalH - h2 - 24f;
-                if (tabs.Count > 0) h1 -= 20f;
+                h1 = totalH - h2 - 24f * ImGuiHelper.Scale;
+                if (tabs.Count > 0) h1 -= 20f * ImGuiHelper.Scale;
                 ImGui.BeginChild("###tabcontent" + (selected != null ? selected.RenderTitle : ""),new Vector2(-1,h1),false,ImGuiWindowFlags.None);
             } else
                 ImGui.BeginChild("###tabcontent" + (selected != null ? selected.RenderTitle : ""));
@@ -548,16 +552,17 @@ namespace LancerEdit
             if(showLog) {
                 ImGui.BeginChild("###log", new Vector2(-1, h2), false, ImGuiWindowFlags.None);
                 ImGui.Text("Log");
-                ImGui.SameLine(ImGui.GetWindowWidth() - 20);
-                if (Theme.IconButton("closelog", "x", Color4.White))
-                    showLog = false;
-                logBuffer.InputTextMultiline("##logtext", new Vector2(-1, h2 - 24), ImGuiInputTextFlags.ReadOnly);
+                ImGui.SameLine(ImGui.GetWindowWidth() - 30 * ImGuiHelper.Scale);
+                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
+                if (ImGui.Button(Icons.X.ToString())) showLog = false;
+                ImGui.PopStyleVar();
+                logBuffer.InputTextMultiline("##logtext", new Vector2(-1, h2 - 28 * ImGuiHelper.Scale), ImGuiInputTextFlags.ReadOnly);
                 ImGui.EndChild();
             }
             ImGui.End();
             Make3dbDlg.Draw();
 			//Status bar
-			ImGui.SetNextWindowSize(new Vector2(size.X, 25f), ImGuiCond.Always);
+			ImGui.SetNextWindowSize(new Vector2(size.X, 25f * ImGuiHelper.Scale), ImGuiCond.Always);
 			ImGui.SetNextWindowPos(new Vector2(0, size.Y - 6f), ImGuiCond.Always, Vector2.Zero);
 			bool sbopened = true;
 			ImGui.Begin("statusbar", ref sbopened, 

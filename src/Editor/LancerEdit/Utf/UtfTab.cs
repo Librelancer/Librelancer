@@ -618,13 +618,13 @@ namespace LancerEdit
                 ImGui.MenuItem(node.Name, false);
                 ImGui.MenuItem(string.Format("CRC: 0x{0:X}", CrcTool.FLModelCrc(node.Name)), false);
                 ImGui.Separator();
-                if(Theme.IconMenuItem("Rename","rename",Color4.White, node != Utf.Root))
+                if(Theme.IconMenuItem(Icons.Edit, "Rename", node != Utf.Root))
                 {
                     text.SetText(node.Name);
                     renameNode = node;
                     popups.OpenPopup("Rename Node");
                 }
-                if (Theme.IconMenuItem("Delete", "delete", Color4.White, node != Utf.Root))
+                if (Theme.IconMenuItem(Icons.TrashAlt, "Delete", node != Utf.Root))
                 {
                     deleteParent = parent;
                     deleteNode = node;
@@ -637,7 +637,7 @@ namespace LancerEdit
                         deleteParent.Children.Remove(deleteNode);
                     });
                 }
-                if (Theme.IconMenuItem("Clear", "clear", Color4.White, node.Children != null || node.Data != null))
+                if (Theme.IconMenuItem(Icons.Eraser, "Clear", node.Children != null || node.Data != null))
                 {
                     clearNode = node;
                     Confirm("Clearing this node will delete all data and children. Continue?", () =>
@@ -650,7 +650,7 @@ namespace LancerEdit
                     });
                 }
                 ImGui.Separator();
-                if (Theme.BeginIconMenu("Add","add",Color4.White))
+                if (Theme.BeginIconMenu(Icons.PlusCircle, "Add"))
                 {
                     if (ImGui.MenuItem("Child"))
                     {
@@ -686,20 +686,20 @@ namespace LancerEdit
                     ImGui.EndMenu();
                 }
                 ImGui.Separator();
-                if (Theme.IconMenuItem("Cut", "cut", Color4.White, node != Utf.Root))
+                if (Theme.IconMenuItem(Icons.Cut, "Cut", node != Utf.Root))
                 {
                     parent.Children.Remove(node);
                     main.ClipboardCopy = false;
                     main.Clipboard = node;
                 }
-                if (Theme.IconMenuItem("Copy", "copy", Color4.White, node != Utf.Root))
+                if (Theme.IconMenuItem(Icons.Copy, "Copy", node != Utf.Root))
                 {
                     main.ClipboardCopy = true;
                     main.Clipboard = node.MakeCopy();
                 }
                 if (main.Clipboard != null)
                 {
-                    if (Theme.BeginIconMenu("Paste","paste",Color4.White))
+                    if (Theme.BeginIconMenu(Icons.Paste, "Paste"))
                     {
                         if (ImGui.MenuItem("Before", node != Utf.Root))
                         {
@@ -776,7 +776,7 @@ namespace LancerEdit
                 }
                 else
                 {
-                    Theme.IconMenuItem("Paste", "paste", Color4.White, false);
+                    Theme.IconMenuItem(Icons.Paste, "Paste", false);
                 }
                 ImGui.EndPopup();
             }
@@ -819,7 +819,7 @@ namespace LancerEdit
                 }
                 else
                 {
-                    Theme.Icon("node_empty", Color4.White);
+                    ImGui.Text($"  {Icons.BulletEmpty}");
                     ImGui.SameLine();
                 }
                 bool selected = selectedNode == node;

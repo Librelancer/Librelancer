@@ -26,8 +26,8 @@ namespace LancerEdit
         private int cameraMode = 0;
         private static readonly DropdownOption[] camModes= new[]
         {
-            new DropdownOption("Arcball", "sphere", CameraModes.Arcball),
-            new DropdownOption("Walkthrough", "man", CameraModes.Walkthrough),
+            new DropdownOption("Arcball", Icons.Globe, CameraModes.Arcball),
+            new DropdownOption("Walkthrough", Icons.StreetView, CameraModes.Walkthrough),
         };
         //Tab
         string name;
@@ -199,28 +199,22 @@ namespace LancerEdit
             else
                 label = ImGuiExt.IDWithExtra(reference.Node.NodeName, idx);
             ImGui.PushStyleColor(ImGuiCol.Text, col);
-            string icon;
-            Color4 color;
-            NodeIcon(reference.Node, out icon, out color);
+            char icon;
+            NodeIcon(reference.Node, out icon);
             if (reference.Children.Count > 0)
             {
-                if (ImGui.TreeNodeEx(ImGuiExt.Pad(label), ImGuiTreeNodeFlags.OpenOnDoubleClick | ImGuiTreeNodeFlags.OpenOnArrow))
+                if (Theme.IconTreeNode(icon,label, ImGuiTreeNodeFlags.OpenOnDoubleClick | ImGuiTreeNodeFlags.OpenOnArrow))
                 {
-                    Theme.RenderTreeIcon(label.Split('#')[0], icon, color);
                     int j = 0;
                     foreach (var child in reference.Children)
                         DoNode(child, j++, enabled, disabled);
                     ImGui.TreePop();
                 }
-                else
-                    Theme.RenderTreeIcon(label.Split('#')[0], icon, color);
+               
             }
             else
             {
-                Theme.Icon(icon, color);
-                ImGui.SameLine();
-
-                if (ImGui.Selectable(label, selectedReference == reference))
+                if (ImGui.Selectable($"{icon}  {label}", selectedReference == reference))
                 {
                     selectedReference = reference;
                 }

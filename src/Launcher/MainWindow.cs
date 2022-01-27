@@ -24,7 +24,7 @@ namespace Launcher
         protected override void Load()
         {
             Title = "Librelancer";
-            imGui = new ImGuiHelper(this);
+            imGui = new ImGuiHelper(this, DpiScale);
             RenderContext.PushViewport(0, 0, Width, Height);
             FileDialog.RegisterParent(this);
             freelancerFolder = new TextBuffer(512);
@@ -53,9 +53,10 @@ namespace Launcher
             RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
             RenderContext.ClearAll();
             imGui.NewFrame(elapsed);
-            RenderContext.Renderer2D.DrawString("Arial", 16, "Librelancer", new Vector2(8), Color4.Black);
-            RenderContext.Renderer2D.DrawString("Arial", 16, "Librelancer", new Vector2(6), Color4.White);
-            var startY = RenderContext.Renderer2D.LineHeight("Arial", 16) + 8;
+            var fontSize = (int) (DpiScale * 16);
+            RenderContext.Renderer2D.DrawString("Arial", fontSize, "Librelancer", new Vector2(8), Color4.Black);
+            RenderContext.Renderer2D.DrawString("Arial", fontSize, "Librelancer", new Vector2(6), Color4.White);
+            var startY = RenderContext.Renderer2D.LineHeight("Arial", fontSize) + (int) (8 * DpiScale);
             ImGui.PushFont(ImGuiHelper.Noto);
             var size = (Vector2)ImGui.GetIO().DisplaySize;
             ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - startY), ImGuiCond.Always);
@@ -109,7 +110,7 @@ namespace Launcher
                 ImGui.Checkbox("Skip Intro Movies", ref skipIntroMovies);
             ImGui.Dummy(new Vector2(16));
             ImGui.Dummy(new Vector2(1));
-            ImGui.SameLine(ImGui.GetWindowWidth() - 70);
+            ImGui.SameLine(ImGui.GetWindowWidth() - 70 * ImGuiHelper.Scale);
             if (ImGui.Button("Launch")) LaunchClicked();
             ImGui.End();
             ImGui.PopFont();

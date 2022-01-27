@@ -28,23 +28,23 @@ namespace LancerEdit
         int viewMode = 0;
         private static readonly DropdownOption[] viewModes = new[]
         {
-            new DropdownOption("Textured", "fieldcollide"),
-            new DropdownOption("Lit", "lit"),
-            new DropdownOption("Flat", "flat"),
-            new DropdownOption("Normals", "dummy"),
-            new DropdownOption("None", "viewnone")
+            new DropdownOption("Textured", Icons.Image),
+            new DropdownOption("Lit", Icons.Lightbulb),
+            new DropdownOption("Flat", Icons.PenSquare),
+            new DropdownOption("Normals", Icons.ArrowsAltH),
+            new DropdownOption("None", Icons.EyeSlash)
         };
         private static readonly DropdownOption[] camModesNormal = new[]
         {
-            new DropdownOption("Arcball", "sphere", CameraModes.Arcball),
-            new DropdownOption("Walkthrough", "man", CameraModes.Walkthrough),
-            new DropdownOption("Starsphere", "starsphere", CameraModes.Starsphere),
+            new DropdownOption("Arcball", Icons.Globe, CameraModes.Arcball),
+            new DropdownOption("Walkthrough", Icons.StreetView, CameraModes.Walkthrough),
+            new DropdownOption("Starsphere", Icons.Star, CameraModes.Starsphere),
         };
         private static readonly DropdownOption[] camModesCockpit = new[]
         {
-            new DropdownOption("Arcball", "sphere", CameraModes.Arcball),
-            new DropdownOption("Walkthrough", "man", CameraModes.Walkthrough),
-            new DropdownOption("Cockpit", "screen", CameraModes.Cockpit),
+            new DropdownOption("Arcball", Icons.Globe, CameraModes.Arcball),
+            new DropdownOption("Walkthrough", Icons.StreetView, CameraModes.Walkthrough),
+            new DropdownOption("Cockpit", Icons.Video, CameraModes.Cockpit),
         };
         bool doBackground = true;
         bool doWireframe = false;
@@ -209,7 +209,7 @@ namespace LancerEdit
         bool[] openTabs = new bool[] { false, false, false, false };
         void TabButton(string name, int idx)
         {
-            if (TabHandler.VerticalTab(name, openTabs[idx]))
+            if (TabHandler.VerticalTab($"{name}", openTabs[idx]))
             {
                 if (!openTabs[idx])
                 {
@@ -382,22 +382,18 @@ namespace LancerEdit
             var n = ImGuiExt.IDSafe(string.Format("{0} ({1})", cn.Construct.ChildName, ConType(cn.Construct)));
             var tflags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
             if (selectedNode == cn) tflags |= ImGuiTreeNodeFlags.Selected;
-            var icon = "fix";
-            var color = Color4.LightYellow;
+            var icon = Icons.Cube_LightYellow;
             if (cn.Construct is PrisConstruct)
             {
-                icon = "pris";
-                color = Color4.LightPink;
+                icon = Icons.Con_Pris;
             }
             if (cn.Construct is SphereConstruct)
             {
-                icon = "sphere";
-                color = Color4.LightGreen;
+                icon = Icons.Con_Sph;
             }
             if (cn.Construct is RevConstruct)
             {
-                icon = "rev";
-                color = Color4.LightCoral;
+                icon = Icons.Rev_LightCoral;
             }
             bool mdlVisible = cn.Active;
             if (!mdlVisible)
@@ -405,19 +401,17 @@ namespace LancerEdit
                 var disabledColor = ImGui.GetStyle().Colors[(int)ImGuiCol.TextDisabled];
                 ImGui.PushStyleColor(ImGuiCol.Text, disabledColor);
             }
-            if (ImGui.TreeNodeEx(ImGuiExt.Pad(n), tflags))
+            if (Theme.IconTreeNode(icon, n, tflags))
             {
                 if (!mdlVisible) ImGui.PopStyleColor();
                 if (ImGui.IsItemClicked(0))
                     selectedNode = cn;
                 ConstructContext(cn, mdlVisible);
-                Theme.RenderTreeIcon(n, icon, color);
                 if (cn.Children != null)
                 {
                     foreach (var child in cn.Children)
                         DoConstructNode(child);
                 }
-
                 DoModel(cn);
                 ImGui.TreePop();
             }
@@ -427,7 +421,6 @@ namespace LancerEdit
                 if (ImGui.IsItemClicked(0))
                     selectedNode = cn;
                 ConstructContext(cn, mdlVisible);
-                Theme.RenderTreeIcon(n, icon, color);
             }
         }
 
@@ -440,15 +433,15 @@ namespace LancerEdit
                 {
                     //Visibility of model (this is bad)
                     bool visibleVar = mdlVisible;
-                    Theme.IconMenuToggle("Visible", "eye", Color4.White, ref visibleVar, true);
+                    Theme.IconMenuToggle(Icons.Eye, "Visible", ref visibleVar, true);
                     if(visibleVar != mdlVisible)
                     {
                         con.Active = visibleVar;
                     }
                 }
-                if (Theme.BeginIconMenu("Change To","change",Color4.White)) {
+                if (Theme.BeginIconMenu(Icons.Exchange, "Change To")) {
                     var cmp = (CmpFile)drawable;
-                    if(!(con.Construct is FixConstruct) && Theme.IconMenuItem("Fix","fix",Color4.LightYellow,true)) {
+                    if(!(con.Construct is FixConstruct) && Theme.IconMenuItem(Icons.Cube_LightYellow, "Fix",true)) {
                         var fix = new FixConstruct(cmp.Constructs)
                         {
                             ParentName = con.Construct.ParentName,
@@ -460,7 +453,7 @@ namespace LancerEdit
                         con.Construct = fix;
                         OnDirtyPart();
                     }
-                    if(!(con.Construct is RevConstruct) && Theme.IconMenuItem("Rev","rev",Color4.LightCoral,true)) {
+                    if(!(con.Construct is RevConstruct) && Theme.IconMenuItem(Icons.Rev_LightCoral, "Rev",true)) {
                         var rev = new RevConstruct()
                         {
                             ParentName = con.Construct.ParentName,
@@ -471,7 +464,7 @@ namespace LancerEdit
                         con.Construct = rev;
                         OnDirtyPart();
                     }
-                    if(!(con.Construct is PrisConstruct) && Theme.IconMenuItem("Pris","pris",Color4.LightPink,true)) {
+                    if(!(con.Construct is PrisConstruct) && Theme.IconMenuItem(Icons.Con_Pris, "Pris",true)) {
                         var pris = new PrisConstruct()
                         {
                             ParentName = con.Construct.ParentName,
@@ -482,7 +475,7 @@ namespace LancerEdit
                         con.Construct = pris;
                         OnDirtyPart();
                     }
-                    if(!(con.Construct is SphereConstruct) && Theme.IconMenuItem("Sphere","sphere",Color4.LightGreen,true)) {
+                    if(!(con.Construct is SphereConstruct) && Theme.IconMenuItem(Icons.Con_Sph, "Sphere",true)) {
                         var sphere = new SphereConstruct()
                         {
                             ParentName = con.Construct.ParentName,
@@ -495,7 +488,7 @@ namespace LancerEdit
                     }
                     ImGui.EndMenu();
                 }
-                if(Theme.IconMenuItem("Edit","edit",Color4.White,true))
+                if(Theme.IconMenuItem(Icons.Edit, "Edit", true))
                 {
                     AddPartEditor(con.Construct);
                 }
@@ -510,7 +503,7 @@ namespace LancerEdit
         void DoModel(RigidModelPart part)
         {
             //Hardpoints
-            bool open = ImGui.TreeNode(ImGuiExt.Pad("Hardpoints"));
+            bool open = Theme.IconTreeNode(Icons.Hardpoints, "Hardpoints");
             var act = NewHpMenu(part.Path);
             switch(act) {
                 case ContextActions.NewFixed:
@@ -521,7 +514,6 @@ namespace LancerEdit
                     popups.OpenPopup("New Hardpoint");
                     break;
             }
-            Theme.RenderTreeIcon("Hardpoints", "hardpoint", Color4.CornflowerBlue);
             if (open)
             {
                 List<Action> addActions = new List<Action>();
@@ -546,17 +538,21 @@ namespace LancerEdit
                     }
                     if (hp.Definition is RevoluteHardpointDefinition)
                     {
-                        Theme.Icon("rev", Color4.LightSeaGreen);
+                        ImGui.Text(Icons.Rev_LightSeaGreen.ToString());
                     }
                     else
                     {
-                        Theme.Icon("fix", Color4.Purple);
+                        ImGui.Text(Icons.Cube_Purple.ToString());
                     }
                     ImGui.SameLine();
-                    if (Theme.IconButton("visible$" + hp.Name, "eye", gz.Enabled ? Color4.White : Color4.Gray))
-                    {
-                        gz.Enabled = !gz.Enabled;
-                    }
+                    ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(0));
+                    ImGui.PushID("visible$" + hp.Name);
+                    var push = !gz.Enabled;
+                    if(push) ImGui.PushStyleColor(ImGuiCol.Text, (uint)Color4.Gray.ToAbgr());
+                    if (ImGui.Button(Icons.Eye.ToString())) gz.Enabled = !gz.Enabled;
+                    if(push) ImGui.PopStyleColor();
+                    ImGui.PopID();
+                    ImGui.PopStyleVar(1);
                     ImGui.SameLine();
                     ImGui.Selectable(ImGuiExt.IDSafe(hp.Name));
                     var action = EditDeleteHpMenu(part.Path + hp.Name);
@@ -655,30 +651,31 @@ namespace LancerEdit
         }
         ContextActions NewHpMenu(string n)
         {
+            var retval = ContextActions.None;
             if(ImGui.IsItemClicked(ImGuiMouseButton.Right))
                 ImGui.OpenPopup(n + "_HardpointContext");
             if(ImGui.BeginPopupContextItem(n + "_HardpointContext")) {
-                if(Theme.BeginIconMenu("New","add",Color4.White)) {
-                    if (Theme.IconMenuItem("Fixed Hardpoint","fix",Color4.Purple,true)) return ContextActions.NewFixed;
-                    if (Theme.IconMenuItem("Revolute Hardpoint","rev",Color4.LightSeaGreen,true)) return ContextActions.NewRevolute;
+                if(Theme.BeginIconMenu(Icons.PlusCircle, "New")) {
+                    if (Theme.IconMenuItem(Icons.Cube_Purple, "Fixed Hardpoint",true)) retval = ContextActions.NewFixed;
+                    if (Theme.IconMenuItem(Icons.Rev_LightSeaGreen, "Revolute Hardpoint",true)) retval = ContextActions.NewRevolute;
                     ImGui.EndMenu();
                 }
                 ImGui.EndPopup();
             }
-            return ContextActions.None;
+            return retval;
         }
         ContextActions EditDeleteHpMenu(string n)
         {
             if(ImGui.IsItemClicked(ImGuiMouseButton.Right))
                 ImGui.OpenPopup(n + "_HardpointEditCtx");
             if(ImGui.BeginPopupContextItem(n + "_HardpointEditCtx")) {
-                if(Theme.IconMenuItem("Edit","edit",Color4.White,true)) return ContextActions.Edit;
-                if(Theme.IconMenuItem("Delete","delete",Color4.White,true)) return ContextActions.Delete;
-                if(Theme.BeginIconMenu("Duplicate", "duplicate", Color4.White))
+                if(Theme.IconMenuItem(Icons.Edit, "Edit",true)) return ContextActions.Edit;
+                if(Theme.IconMenuItem(Icons.TrashAlt, "Delete",true)) return ContextActions.Delete;
+                if(Theme.BeginIconMenu(Icons.Clone, "Duplicate"))
                 {
-                    if (Theme.IconMenuItem("Mirror X", "axis_x", Color4.Red, true)) return ContextActions.MirrorX;
-                    if (Theme.IconMenuItem("Mirror Y", "axis_y", Color4.LightGreen, true)) return ContextActions.MirrorY;
-                    if (Theme.IconMenuItem("Mirror Z", "axis_z", Color4.LightBlue, true)) return ContextActions.MirrorZ;
+                    if (ImGui.MenuItem("Mirror X")) return ContextActions.MirrorX;
+                    if (ImGui.MenuItem("Mirror Y")) return ContextActions.MirrorY;
+                    if (ImGui.MenuItem("Mirror Z")) return ContextActions.MirrorZ;
                     ImGui.EndMenu();
                 }
                 ImGui.EndPopup();
@@ -795,11 +792,10 @@ namespace LancerEdit
                 var col = ImGui.GetStyle().Colors[(int)ImGuiCol.TextDisabled];
                 ImGui.PushStyleColor(ImGuiCol.Text, col);
             }
-            if (ImGui.TreeNodeEx(ImGuiExt.Pad("Root"), ImGuiTreeNodeFlags.DefaultOpen))
+            if (Theme.IconTreeNode(Icons.Tree_DarkGreen, "Root", ImGuiTreeNodeFlags.DefaultOpen))
             {
                 if (!vmsModel.Root.Active) ImGui.PopStyleColor();
                 RootModelContext(vmsModel.Root.Active);
-                Theme.RenderTreeIcon("Root", "tree", Color4.DarkGreen);
                 if (vmsModel.Root.Children != null)
                 {
                     foreach (var n in vmsModel.Root.Children)
@@ -813,7 +809,6 @@ namespace LancerEdit
             else {
                 if (!vmsModel.Root.Active) ImGui.PopStyleColor();
                 RootModelContext(vmsModel.Root.Active);
-                Theme.RenderTreeIcon("Root", "tree", Color4.DarkGreen);
             }
         }
 
@@ -824,7 +819,7 @@ namespace LancerEdit
             if (ImGui.BeginPopupContextItem(Unique + "_mdl_rootpopup"))
             {
                 bool visibleVar = rootVisible;
-                Theme.IconMenuToggle("Visible", "eye", Color4.White, ref visibleVar, true);
+                Theme.IconMenuToggle(Icons.Eye, "Visible", ref visibleVar, true);
                 if (visibleVar != rootVisible) vmsModel.Root.Active = visibleVar;
                 ImGui.EndPopup();
             }

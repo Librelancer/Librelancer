@@ -16,7 +16,6 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 //custom controls
-IGEXPORT void *igFontFindGlyph(void *font, unsigned short c);
 IGEXPORT bool igExtSplitterV(float thickness, float* size1, float *size2, float min_size1, float min_size2, float splitter_long_axis_size);
 IGEXPORT bool igExtSpinner(const char* label, float radius, int thickness, int color);
 //font

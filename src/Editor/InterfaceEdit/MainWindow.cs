@@ -31,7 +31,7 @@ namespace InterfaceEdit
         {
             Title = "InterfaceEdit";
             TestApi = new TestingApi(this);
-            guiHelper = new ImGuiHelper(this);
+            guiHelper = new ImGuiHelper(this, DpiScale);
             FileDialog.RegisterParent(this);
             RenderContext.PushViewport(0,0,Width,Height);
             new MaterialMap();
@@ -103,7 +103,7 @@ namespace InterfaceEdit
             ImGui.BeginMainMenuBar();
             if (ImGui.BeginMenu("File"))
             {
-                if (Theme.IconMenuItem("New", "new", Color4.White, true))
+                if (Theme.IconMenuItem(Icons.File, "New", true))
                 {
                     string folder;
                     string outpath;
@@ -118,7 +118,7 @@ namespace InterfaceEdit
                     }
                 }
 
-                if (Theme.IconMenuItem("Open", "open", Color4.White, true))
+                if (Theme.IconMenuItem(Icons.Open, "Open", true))
                 {
                     string f;
                     if ((f = FileDialog.Open(projectFilters)) != null)
@@ -129,21 +129,21 @@ namespace InterfaceEdit
                 recentFiles.Menu();
                 if (!playing && selected is SaveableTab saveable)
                 {
-                    if (Theme.IconMenuItem($"Save '{saveable.Title}'", "save", Color4.White, true))
+                    if (Theme.IconMenuItem(Icons.Save, $"Save '{saveable.Title}'",  true))
                     {
                         saveable.Save();   
                     }
                 }
                 else
                 {
-                    Theme.IconMenuItem("Save", "save", Color4.LightGray, false);
+                    Theme.IconMenuItem(Icons.Save, "Save", false);
                 }
 
                 if (ImGui.MenuItem("Compile", Project != null && !playing))
                 {
                     CompileProject();
                 }
-                if (Theme.IconMenuItem("Quit", "quit", Color4.White, true))
+                if (Theme.IconMenuItem(Icons.Quit, "Quit", true))
                 {
                     Exit();
                 }
@@ -212,7 +212,7 @@ namespace InterfaceEdit
             ImGui.EndMainMenuBar();
             var size = (Vector2)ImGui.GetIO().DisplaySize;
             size.Y -= menu_height;
-            ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - 25), ImGuiCond.Always);
+            ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - 25 * ImGuiHelper.Scale), ImGuiCond.Always);
             ImGui.SetNextWindowPos(new Vector2(0, menu_height), ImGuiCond.Always, Vector2.Zero);
             if (playing)
             {
@@ -232,7 +232,7 @@ namespace InterfaceEdit
             }
             else Tabs();
             //Status Bar
-            ImGui.SetNextWindowSize(new Vector2(size.X, 25f), ImGuiCond.Always);
+            ImGui.SetNextWindowSize(new Vector2(size.X, 25f * ImGuiHelper.Scale), ImGuiCond.Always);
             ImGui.SetNextWindowPos(new Vector2(0, size.Y - 6f), ImGuiCond.Always, Vector2.Zero);
             bool sbopened = true;
             ImGui.Begin("statusbar", ref sbopened, 
@@ -326,7 +326,7 @@ namespace InterfaceEdit
                 ImGuiWindowFlags.NoMove |
                 ImGuiWindowFlags.NoResize);
             var szX = Math.Max((int) ImGui.GetWindowContentRegionWidth(), 32);
-            var szY = Math.Max((int) ImGui.GetWindowHeight() - 20, 32);
+            var szY = Math.Max((int) ImGui.GetWindowHeight() - (int)(20 * ImGuiHelper.Scale), 32);
             if (rtX != szX || rtY != szY)
             {
                 rtX = szX;

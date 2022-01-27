@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -64,9 +65,9 @@ namespace LibreLancer.ImUI
 		uniform sampler2D tex;
 		void main()
 		{
-			float alpha = texture(tex, out_texcoord).r;
-            if(out_texcoord.x > 3.0) alpha = 1.0;
-			out_color = vec4(blendColor.xyz, blendColor.a * alpha);
+			vec4 color = texture(tex, out_texcoord);
+            if(out_texcoord.x > 3.0) color.a = 1.0;
+			out_color = blendColor * color;
 		}
 		";
 
@@ -101,8 +102,11 @@ namespace LibreLancer.ImUI
         [DllImport("cimgui")]
         static extern IntPtr ImFontConfig_ImFontConfig();
 
-		public unsafe ImGuiHelper(Game game)
-		{
+        public static float Scale { get; private set; } = 1;
+
+		public unsafe ImGuiHelper(Game game, float scale)
+        {
+            Scale = scale;
 			this.game = game;
 			game.Keyboard.KeyDown += Keyboard_KeyDown;
 			game.Keyboard.KeyUp += Keyboard_KeyUp;
@@ -138,6 +142,7 @@ namespace LibreLancer.ImUI
             fontConfigA.GlyphRanges = rangesPtrLatin;
             fontConfigB.GlyphRanges = rangesPtrFull;
             fontConfigC.GlyphRanges = rangesPtrFull;
+
             Default = io.Fonts.AddFontDefault(fontConfigA);
 			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.Roboto-Medium.ttf"))
 			{
@@ -145,9 +150,49 @@ namespace LibreLancer.ImUI
 				stream.Read(ttf, 0, ttf.Length);
 				ttfPtr = Marshal.AllocHGlobal(ttf.Length);
 				Marshal.Copy(ttf, 0, ttfPtr, ttf.Length);
-                Noto = io.Fonts.AddFontFromMemoryTTF(ttfPtr, ttf.Length, 15, fontConfigB);
+                Noto = io.Fonts.AddFontFromMemoryTTF(ttfPtr, ttf.Length, (int)(15 * Scale), fontConfigB);
 			}
-			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.checkerboard.png"))
+
+            using (var stream =
+                   typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.fa-solid-900.ttf"))
+            {
+                var iconFontConfig = new ImFontConfigPtr(ImFontConfig_ImFontConfig());
+                iconFontConfig.MergeMode = true;
+                iconFontConfig.GlyphMinAdvanceX = iconFontConfig.GlyphMaxAdvanceX = (int) (20 * Scale);
+                var glyphs = new List<ushort>();
+                foreach (var chars in Icons.GetChars())
+                {
+                    glyphs.Add(chars);
+                    glyphs.Add(chars);
+                }
+                glyphs.Add(0);
+                var rangesPtrIcon = Marshal.AllocHGlobal(sizeof(short) * glyphs.Count);
+                for (int i = 0; i < glyphs.Count; i++) ((ushort*)rangesPtrIcon)[i] = glyphs[i];
+                iconFontConfig.GlyphRanges = rangesPtrIcon;
+                var ttf = new byte[stream.Length];
+                stream.Read(ttf, 0, ttf.Length);
+                ttfPtr = Marshal.AllocHGlobal(ttf.Length);
+                Marshal.Copy(ttf, 0, ttfPtr, ttf.Length);
+                io.Fonts.AddFontFromMemoryTTF(ttfPtr, ttf.Length, (int)(15 * Scale), iconFontConfig);
+            }
+            
+            using (var stream =
+                   typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.empty-bullet.ttf"))
+            {
+                var iconFontConfig = new ImFontConfigPtr(ImFontConfig_ImFontConfig());
+                iconFontConfig.MergeMode = true;
+                var glyphs = new ushort[] {Icons.BulletEmpty, Icons.BulletEmpty, 0};
+                var rangesPtrIcon = Marshal.AllocHGlobal(sizeof(short) * glyphs.Length);
+                for (int i = 0; i < glyphs.Length; i++) ((ushort*)rangesPtrIcon)[i] = glyphs[i];
+                iconFontConfig.GlyphRanges = rangesPtrIcon;
+                var ttf = new byte[stream.Length];
+                stream.Read(ttf, 0, ttf.Length);
+                ttfPtr = Marshal.AllocHGlobal(ttf.Length);
+                Marshal.Copy(ttf, 0, ttfPtr, ttf.Length);
+                io.Fonts.AddFontFromMemoryTTF(ttfPtr, ttf.Length, (int)(15 * Scale), iconFontConfig);
+            }
+
+            using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.checkerboard.png"))
 			{
 				checkerboard = (Texture2D)LibreLancer.ImageLib.Generic.FromStream(stream);
 				CheckerboardId = RegisterTexture(checkerboard);
@@ -155,17 +200,18 @@ namespace LibreLancer.ImUI
             var monospace = Platform.GetMonospaceBytes();
             fixed (byte* mmPtr = monospace)
             {
-                SystemMonospace = io.Fonts.AddFontFromMemoryTTF((IntPtr) mmPtr, monospace.Length, 16, fontConfigC);
+                SystemMonospace = io.Fonts.AddFontFromMemoryTTF((IntPtr) mmPtr, monospace.Length, (int)(16 * Scale), fontConfigC);
             }
-
+            
             ImGuiExt.BuildFontAtlas((IntPtr)io.Fonts.NativePtr);
             byte* fontBytes;
             int fontWidth, fontHeight;
-            io.Fonts.GetTexDataAsAlpha8(out fontBytes, out fontWidth, out fontHeight);
+            io.Fonts.GetTexDataAsRGBA32(out fontBytes, out fontWidth, out fontHeight);
             io.Fonts.TexUvWhitePixel = new Vector2(10, 10);
-            fontTexture = new Texture2D(fontWidth,fontHeight, false, SurfaceFormat.R8);
-			var bytes = new byte[fontWidth * fontHeight];
-            Marshal.Copy((IntPtr)fontBytes, bytes, 0, fontWidth * fontHeight);
+            Icons.TintGlyphs(fontBytes, fontWidth, fontHeight, Noto);
+            fontTexture = new Texture2D(fontWidth,fontHeight, false, SurfaceFormat.Color);
+			var bytes = new byte[fontWidth * fontHeight * 4];
+            Marshal.Copy((IntPtr)fontBytes, bytes, 0, fontWidth * fontHeight * 4);
 			fontTexture.SetData(bytes);
 			fontTexture.SetFiltering(TextureFiltering.Linear);
 			io.Fonts.SetTexID((IntPtr)FONT_TEXTURE_ID);
@@ -176,7 +222,7 @@ namespace LibreLancer.ImUI
 			dot = new Texture2D(1, 1, false, SurfaceFormat.Color);
 			var c = new Color4b[] { Color4b.White };
 			dot.SetData(c);
-            Theme.Apply();
+            Theme.Apply(scale);
             //Required for clipboard function on non-Windows platforms
             utf8buf = Marshal.AllocHGlobal(8192);
             instance = this;

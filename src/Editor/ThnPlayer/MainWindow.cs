@@ -51,7 +51,7 @@ namespace ThnPlayer
         {
             Title = "Thn Player";
             LibreLancer.Shaders.AllShaders.Compile();
-            guiHelper = new ImGuiHelper(this);
+            guiHelper = new ImGuiHelper(this, DpiScale);
             FileDialog.RegisterParent(this);
             RenderContext.PushViewport(0, 0, 800, 600);
             Billboards = new Billboards();
@@ -158,7 +158,7 @@ namespace ThnPlayer
             //Main Menu
             ImGui.BeginMainMenuBar();
             if(ImGui.BeginMenu("File")) {
-                if(Theme.IconMenuItem("Load Game Data","open",Color4.White,true)) {
+                if(Theme.IconMenuItem(Icons.Open, "Load Game Data",true)) {
                     var folder = FileDialog.ChooseFolder();
                     if(folder != null) {
                         if(GameConfig.CheckFLDirectory(folder)) {
@@ -169,7 +169,7 @@ namespace ThnPlayer
                         }
                     }
                 }
-                if (Theme.IconMenuItem("Open Thn", "open", Color4.White, GameData != null))
+                if (Theme.IconMenuItem(Icons.Open, "Open Thn", GameData != null))
                 {
                     var file = FileDialog.Open();
                     if (file != null)
@@ -179,15 +179,15 @@ namespace ThnPlayer
                 }
                 
                 if (GameData != null) recents.Menu();
-                else Theme.IconMenuItem("Open Recent", "open", Color4.White, false);
+                else Theme.IconMenuItem(Icons.Open, "Open Recent", false);
 
-                if (Theme.IconMenuItem("Open Multiple", "open", Color4.White, GameData != null))
+                if (Theme.IconMenuItem(Icons.Open, "Open Multiple", GameData != null))
                 {
                     openFiles = new List<string>();
                     openMultiple = true;
                 }
                 
-                if(Theme.IconMenuItem("Quit","quit",Color4.White,true)) {
+                if(Theme.IconMenuItem(Icons.Quit, "Quit",true)) {
                     Exit();
                 }
                 ImGui.EndMenu();

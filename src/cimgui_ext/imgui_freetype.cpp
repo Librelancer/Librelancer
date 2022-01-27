@@ -27,6 +27,8 @@
 #include "imgui_internal.h"     // ImMin,ImMax,ImFontAtlasBuild*,
 #include <stdint.h>
 #include <ft2build.h>
+#include <map>
+#include <cstdio>
 #include FT_FREETYPE_H          // <freetype/freetype.h>
 #include FT_MODULE_H            // <freetype/ftmodapi.h>
 #include FT_GLYPH_H             // <freetype/ftglyph.h>
@@ -327,6 +329,13 @@ struct ImFontBuildDstDataFT
     ImBitVector         GlyphsSet;          // This is used to resolve collision when multiple sources are merged into a same destination font.
 };
 
+static std::map<int, int> mappings;
+
+void ImGuiFreeType::MapGlyph(int glyph, int actual)
+{
+    mappings[glyph] = actual;
+}
+
 bool ImFontAtlasBuildWithFreeType(FT_Library ft_library, ImFontAtlas* atlas, unsigned int extra_flags)
 {
     IM_ASSERT(atlas->ConfigData.Size > 0);
@@ -393,9 +402,12 @@ bool ImFontAtlasBuildWithFreeType(FT_Library ft_library, ImFontAtlas* atlas, uns
             {
                 if (dst_tmp.GlyphsSet.TestBit(codepoint))    // Don't overwrite existing glyphs. We could make this an option (e.g. MergeOverwrite)
                     continue;
-                uint32_t glyph_index = FT_Get_Char_Index(src_tmp.Font.Face, codepoint); // It is actually in the font? (FIXME-OPT: We are not storing the glyph_index..)
-                if (glyph_index == 0)
-                    continue;
+                
+                int load_cp = codepoint;
+                auto pos = mappings.find(codepoint);
+                if(pos != mappings.end()) load_cp = pos->second;
+                
+                uint32_t glyph_index = FT_Get_Char_Index(src_tmp.Font.Face, load_cp); // It is actually in the font? (FIXME-OPT: We are not storing the glyph_index..)
 
                 // Add to avail set/counters
                 src_tmp.GlyphsCount++;
@@ -474,7 +486,11 @@ bool ImFontAtlasBuildWithFreeType(FT_Library ft_library, ImFontAtlas* atlas, uns
         {
             ImFontBuildSrcGlyphFT& src_glyph = src_tmp.GlyphsList[glyph_i];
 
-            const FT_Glyph_Metrics* metrics = src_tmp.Font.LoadGlyph(src_glyph.Codepoint);
+            int load_cp = src_glyph.Codepoint;
+            auto pos = mappings.find(load_cp);
+            if(pos != mappings.end()) load_cp = pos->second;
+                
+            const FT_Glyph_Metrics* metrics = src_tmp.Font.LoadGlyph(load_cp);
             if (metrics == NULL)
                 continue;
 

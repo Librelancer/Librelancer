@@ -42,17 +42,7 @@ namespace LibreLancer.ImUI
                 ImGui.EndTabBar();
             }
         }
-        [StructLayout(LayoutKind.Sequential)]
-        struct ImFontGlyph
-        {
-            public ushort Codepoint;
-            public float AdvanceX;
-            public float X0, Y0, X1, Y1;
-            public float U0, V0, U1, V1;
-        }
-
-        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
-        static extern ImFontGlyph* igFontFindGlyph(ImFont* font, char c);
+       
 
         public static bool VerticalTab(string text, bool v)
         {
@@ -73,7 +63,7 @@ namespace LibreLancer.ImUI
                                                     textSize.X + pad * 2));
             ImGui.PopStyleColor();
             foreach(var c in text.Reverse()) {
-                var glyph = igFontFindGlyph(font, c);
+                var glyph = ImGuiExt.igFontFindGlyph(font, c);
                 ImGuiNative.ImDrawList_PrimReserve(
                 dlist, 6, 4
                 );

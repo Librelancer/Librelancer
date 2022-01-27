@@ -47,16 +47,18 @@ namespace SystemViewer
         private RenderTarget2D rtarget;
         private int rw = -1, rh = -1, rt = -1;
 
-        static bool NavButton(string icon, string tooltip, bool selected)
+        static bool NavButton(char icon, string tooltip, bool selected)
         {
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
             if (selected) {
                 ImGui.PushStyleColor(ImGuiCol.Button, ImGui.GetStyle().Colors[(int)ImGuiCol.ButtonActive]);
             }
-            var ret = Theme.IconButton(icon, icon, Color4.White);
+            var ret = ImGui.Button(icon.ToString());
             if(selected) ImGui.PopStyleColor();
             if (ImGui.IsItemHovered()) {
                 ImGui.SetTooltip(tooltip);
             }
+            ImGui.PopStyleVar();
             return ret;
         }
         public void Draw(int width, int height, double delta)

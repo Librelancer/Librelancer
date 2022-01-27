@@ -34,6 +34,10 @@
     <EmbeddedResource Include="checkerboard.png" />
     <None Remove="Roboto-Medium.ttf" />
     <EmbeddedResource Include="Roboto-Medium.ttf" />
+    <None Remove="fa-solid-900.ttf" />
+    <EmbeddedResource Include="fa-solid-900.ttf" />
+    <None Remove="empty-bullet.ttf" />
+    <EmbeddedResource Include="empty-bullet.ttf" />
   </ItemGroup>
 
 </Project>

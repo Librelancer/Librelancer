@@ -441,12 +441,11 @@ namespace LancerEdit
                                          ImGuiTreeNodeFlags.DefaultOpen |
                                          ImGuiTreeNodeFlags.OpenOnArrow;
             if (mdl == selected) flags |= ImGuiTreeNodeFlags.Selected;
-            var open = ImGui.TreeNodeEx(ImGuiExt.Pad(mdl.Name + "##" + i++), flags);
+            var open = Theme.IconTreeNode(Icons.Cube_LightPink, $"{mdl.Name}##{i++}", flags);
             if(ImGui.IsItemClicked(0)) {
                 selected = mdl;
             }
             ImGui.SameLine();
-            Theme.RenderTreeIcon(mdl.Name,"fix", Color4.LightPink);
             if(open)
             {
                 if(ImGui.TreeNode("LODs")) {

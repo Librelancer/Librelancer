@@ -29,8 +29,8 @@ namespace LancerEdit
 
         private static readonly DropdownOption[] camModesNormal = new[]
         {
-            new DropdownOption("Arcball", "sphere", CameraModes.Arcball),
-            new DropdownOption("Walkthrough", "man", CameraModes.Walkthrough)
+            new DropdownOption("Arcball", Icons.Globe, CameraModes.Arcball),
+            new DropdownOption("Walkthrough", Icons.StreetView, CameraModes.Walkthrough)
         };
         
         public OptionsWindow(MainWindow win)
@@ -126,7 +126,7 @@ namespace LancerEdit
                 config.MSAA = msaaLevels[cMsaa];
                 ImGui.Checkbox("View Buttons", ref config.ViewButtons);
                 ImGui.Checkbox("Pause When Unfocused", ref config.PauseWhenUnfocused);
-                if (ViewerControls.GradientButton("Viewport Background", config.Background, config.Background2, new Vector2(22), config.BackgroundGradient))
+                if (ViewerControls.GradientButton("Viewport Background", config.Background, config.Background2, new Vector2(22 * ImGuiHelper.Scale), config.BackgroundGradient))
                 {
                     ImGui.OpenPopup("Viewport Background");
                     editCol = new Vector3(config.Background.R, config.Background.G, config.Background.B);
@@ -165,7 +165,7 @@ namespace LancerEdit
                     if (ImGui.Button("Cancel")) ImGui.CloseCurrentPopup();
                     ImGui.EndPopup();
                 }
-                if(ImGui.ColorButton("Grid Color", config.GridColor, ImGuiColorEditFlags.NoAlpha, new Vector2(22)))
+                if(ImGui.ColorButton("Grid Color", config.GridColor, ImGuiColorEditFlags.NoAlpha, new Vector2(22 * ImGuiHelper.Scale)))
                 {
                     ImGui.OpenPopup("Grid Color");
                     editCol = new Vector3(config.GridColor.R, config.GridColor.G, config.GridColor.B);
@@ -190,6 +190,10 @@ namespace LancerEdit
                     }
                     ImGui.EndPopup();
                 }
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text("Ui Scale (Requires Restart)");
+                ImGui.SameLine();
+                ImGui.SliderFloat("##uiscale", ref config.UiScale, 1, 2.5f);
                 guiHelper.PauseWhenUnfocused = config.PauseWhenUnfocused;
                 ImGui.End();
             }

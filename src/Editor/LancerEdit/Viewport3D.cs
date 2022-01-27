@@ -23,8 +23,8 @@ namespace LancerEdit
         public float ModelScale = 0.25f;
         public Vector2 ModelRotation = Vector2.Zero;
         public Vector2 CameraRotation = Vector2.Zero;
-        public int MarginH = 40;
-        public int MarginW = 15;
+        public int MarginH = (int) (40 * ImGuiHelper.Scale);
+        public int MarginW = (int)(15 * ImGuiHelper.Scale);
         public int MinWidth = 120;
         public int MinHeight = 120;
 
@@ -109,6 +109,8 @@ namespace LancerEdit
             if (view)
             {
                 ImGuiHelper.DisableAlpha();
+                ImGui.Dummy(Vector2.One);
+                ImGui.SameLine();
                 ImGui.ImageButton((IntPtr)rid, new Vector2(rw, rh),
                                   new Vector2(0,1), new Vector2(1,0),
                                   0,

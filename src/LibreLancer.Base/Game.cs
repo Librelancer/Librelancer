@@ -43,6 +43,7 @@ namespace LibreLancer
             mythread = Thread.CurrentThread.ManagedThreadId;
         }
 
+        public float DpiScale { get; set; } = 1;
         protected static string GetSaveDirectory(string OrgName, string GameName)
         {
             string platform = SDL.SDL_GetPlatform();
@@ -395,8 +396,20 @@ namespace LibreLancer
             GL.GLES = true;
             return true;
         }
+        
+        [DllImport("user32.dll", SetLastError=true)]
+        static extern bool SetProcessDPIAware();
         public void Run()
         {
+            //Try to set DPI Awareness on Win32
+            if (Platform.RunningOS == OS.Windows)
+            {
+                try {
+                    SetProcessDPIAware(); }
+                catch {
+                }
+            }
+
             FLLog.Info("Engine", "Version: " + Platform.GetInformationalVersion<Game>());
             //TODO: This makes i5-7200U on mesa 18 faster, but this should probably be a configurable option
             bool setMesaThread = string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("mesa_glthread"));
@@ -411,7 +424,8 @@ namespace LibreLancer
             //Set GL states
             SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DEPTH_SIZE, 24);
             //Create Window
-            var flags = SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE;
+            var flags = SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
+                        SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI;
             if (fullscreen)
                 flags |= SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP;
             var sdlWin = SDL.SDL_CreateWindow(
@@ -460,6 +474,19 @@ namespace LibreLancer
             SetVSync(true);
             //Init game state
             RenderContext = new RenderContext();
+            SDL.SDL_GetWindowSize(sdlWin, out int windowWidth, out int windowHeight);
+            SDL.SDL_GL_GetDrawableSize(sdlWin, out  width, out height);
+            var scaleW = (float) width / windowWidth;
+            var scaleH = (float) height / windowHeight;
+            if (Platform.RunningOS != OS.Windows) DpiScale = scaleH;
+            else
+            {
+                if (SDL.SDL_GetDisplayDPI(0, out float ddpi, out _, out _) == 0)
+                {
+                    DpiScale = ddpi / 96.0f;
+                }
+            }
+            FLLog.Info("GL", $"Dpi Scale: {DpiScale:F4}");
             Load();
             //kill the value we set so it doesn't crash child processes
             if(setMesaThread) Environment.SetEnvironmentVariable("mesa_glthread",null); 
@@ -481,6 +508,12 @@ namespace LibreLancer
                           (winFlags & SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS) ==
                           SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS;
                 EventsThisFrame = false;
+                //Get Size
+                SDL.SDL_GetWindowSize(sdlWin, out  windowWidth, out  windowHeight);
+                SDL.SDL_GL_GetDrawableSize(sdlWin, out  width, out  height);
+                scaleW = (float) width / windowWidth;
+                scaleH = (float) height / windowHeight;
+                if (Platform.RunningOS != OS.Windows) DpiScale = scaleH;
                 //This allows for press/release in same frame to have
                 //button down for one frame, e.g. trackpoint middle click on Linux/libinput.
                 MouseButtons pressedThisFrame = 0;
@@ -511,15 +544,15 @@ namespace LibreLancer
                             }
                         case SDL.SDL_EventType.SDL_MOUSEMOTION:
                             {
-                                Mouse.X = e.motion.x;
-                                Mouse.Y = e.motion.y;
+                                Mouse.X = (int) (scaleW * e.motion.x);
+                                Mouse.Y = (int) (scaleH * e.motion.y);
                                 Mouse.OnMouseMove();
                                 break;
                             }
                         case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
                             {
-                                Mouse.X = e.button.x;
-                                Mouse.Y = e.button.y;
+                                Mouse.X = (int) (scaleW * e.button.x);
+                                Mouse.Y = (int) (scaleH * e.button.y);
                                 var btn = GetMouseButton(e.button.button);
                                 Mouse.Buttons |= btn;
                                 pressedThisFrame |= btn;
@@ -528,8 +561,8 @@ namespace LibreLancer
                             }
                         case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
                             {
-                                Mouse.X = e.button.x;
-                                Mouse.Y = e.button.y;
+                                Mouse.X = (int) (scaleW * e.button.x);
+                                Mouse.Y = (int) (scaleH * e.button.y);
                                 var btn = GetMouseButton(e.button.button);
                                 if ((pressedThisFrame & btn) == btn)
                                     doRelease |= btn;
@@ -564,7 +597,6 @@ namespace LibreLancer
                         case SDL.SDL_EventType.SDL_WINDOWEVENT:
                             if (e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
                             {
-                                SDL.SDL_GetWindowSize(windowptr, out width, out height);
                                 OnResize();
                             }
                             break;

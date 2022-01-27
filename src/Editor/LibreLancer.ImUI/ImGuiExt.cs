@@ -9,18 +9,27 @@ using System.Runtime.InteropServices;
 using ImGuiNET;
 namespace LibreLancer.ImUI
 {
-    public class ImGuiExt
+    public unsafe class ImGuiExt
     {
         [DllImport("cimgui", EntryPoint = "igBuildFontAtlas", CallingConvention = CallingConvention.Cdecl)]
         public static extern void BuildFontAtlas(IntPtr atlas);
 
         [DllImport("cimgui", EntryPoint = "igExtSplitterV", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool SplitterV(float thickness, ref float size1, ref float size2, float min_size1, float min_size2, float splitter_long_axis_size);
-        const string PADDING = "     ";
-        public static string Pad(string s)
+        
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct ImFontGlyph
         {
-            return PADDING + s;
+            public ushort Codepoint;
+            public float AdvanceX;
+            public float X0, Y0, X1, Y1;
+            public float U0, V0, U1, V1;
         }
+
+        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
+        public static extern ImFontGlyph* igFontFindGlyph(ImFont* font, uint c);
+        
         public static unsafe bool BeginModalNoClose(string name, ImGuiWindowFlags flags)
         {
             byte* native_name;

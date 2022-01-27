@@ -35,8 +35,8 @@ namespace LancerEdit
         private int cameraMode = 0;
         private static readonly DropdownOption[] camModes= new[]
         {
-            new DropdownOption("Arcball", "sphere", CameraModes.Arcball),
-            new DropdownOption("Walkthrough", "man", CameraModes.Walkthrough),
+            new DropdownOption("Arcball", Icons.Globe, CameraModes.Arcball),
+            new DropdownOption("Walkthrough", Icons.StreetView, CameraModes.Walkthrough),
         };
         private FileSystem vfs;
         private EffectsIni effects;

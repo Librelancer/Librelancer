@@ -113,8 +113,8 @@ namespace InterfaceEdit
                 for (int i = 0; i < directoryNames.Length; i++)
                 {
                     IconSelectable(
+                        Icons.Open,
                         ImGuiExt.IDWithExtra(directoryNames[i], i), 
-                        "folder", Color4.White,
                         false,
                         out bool doubleClicked
                         );
@@ -126,9 +126,8 @@ namespace InterfaceEdit
                 }
                 for (int i = 0; i < fileNames.Length; i++)
                 {
-                    if (IconSelectable(
+                    if (IconSelectable(Icons.File,
                         ImGuiExt.IDWithExtra(fileNames[i], -i),
-                        "file", Color4.White, 
                         fileNameSelected == i, out bool doubleClicked))
                         fileNameSelected = i;
                     if (doubleClicked)
@@ -142,14 +141,10 @@ namespace InterfaceEdit
             }
             return null;
         }
-        const string MENU_PADDING = "            ";
 
-        static bool IconSelectable(string text, string icon, Color4 tint, bool selected, out bool doubleClicked)
+        static bool IconSelectable(char icon, string text,  bool selected, out bool doubleClicked)
         {
-            Theme.Icon(icon, tint);
-            ImGui.SameLine(-1);
-            bool ret = false;
-            ret = ImGui.Selectable(MENU_PADDING + text, selected);
+            var ret = ImGui.Selectable($"{icon}  {text}", selected);
             doubleClicked = ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0);
             return ret;
         }

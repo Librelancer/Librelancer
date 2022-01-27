@@ -52,11 +52,11 @@ namespace LibreLancer.ImUI
         {
             if (data.Files.Count <= 0)
             {
-                Theme.IconMenuItem("Open Recent", "open", Color4.LightGray, false);
+                Theme.IconMenuItem(Icons.Open, "Open Recent", false);
             }
             else
             {
-                if (Theme.BeginIconMenu("Open Recent", "open", Color4.White))
+                if (Theme.BeginIconMenu(Icons.Open, "Open Recent"))
                 {
                     int i = 0;
                     string toOpen = null;

@@ -76,10 +76,12 @@ namespace LibreLancer.ImUI
         static Delegate del;
         static int response;
         static bool running;
+
+        delegate void ResponseHandler(IntPtr dialog, int response_id, IntPtr data);
         public static int gtk_dialog_run_HACK(IntPtr dlg)
         {
             if(del == null) {
-                del = (Action<IntPtr,int,IntPtr>)run_response_handler;
+                del = (ResponseHandler)run_response_handler;
                 ptr = Marshal.GetFunctionPointerForDelegate(del);
             }
             gtk_widget_show(dlg);

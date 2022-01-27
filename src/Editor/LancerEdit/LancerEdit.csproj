@@ -37,12 +37,10 @@
     <None Update="editorscripts\img2icon.cs-script">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="..\..\..\editoricons\appicon\reactor_64.png">
-      <Link>reactor_64.png</Link>
-    </EmbeddedResource>
+    <None Remove="reactor_128.png" />
+    <EmbeddedResource Include="reactor_128.png" />
+    <None Remove="reactor_64.png" />
+    <EmbeddedResource Include="reactor_64.png" />
   </ItemGroup>
   <Import Project="..\..\PublishAssets\PublishAssets.projitems" Label="Shared" />
 </Project>

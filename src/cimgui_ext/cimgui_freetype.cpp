@@ -8,7 +8,7 @@
 #include "ftshim.h"
 
 static bool functionsLoaded = false;
-
+extern "C" {
 IGEXPORT bool igBuildFontAtlas(void* atlas)
 {
 	if(!functionsLoaded) {
@@ -18,4 +18,10 @@ IGEXPORT bool igBuildFontAtlas(void* atlas)
 	return ImGuiFreeType::BuildFontAtlas((ImFontAtlas*)atlas);
 }
 
+
+IGEXPORT void igMapGlyph(int glyph, int actual)
+{
+    ImGuiFreeType::MapGlyph(glyph, actual);
+}
+}
 /* DYNAMICALLY LOADED FREETYPE USING FREETYPESHIM */
