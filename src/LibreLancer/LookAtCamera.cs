@@ -56,6 +56,9 @@ namespace LibreLancer
             get {
                 return fn++;
             }
+            set {
+                fn = value;
+            }
         }
     }
 }

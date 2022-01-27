@@ -276,6 +276,7 @@ namespace LancerEdit
             var to = modelViewport.CameraOffset + (dir * 10);
             if (modelViewport.Mode == CameraModes.Arcball) to = Vector3.Zero;
             lookAtCam.Update(renderWidth, renderHeight, modelViewport.CameraOffset, to, rot);
+            lookAtCam.FrameNumber = fR++;
             ThnCamera tcam = null;
             float znear = 0;
             float zfar = 0;
@@ -474,6 +475,7 @@ namespace LancerEdit
                         if (!partMaterials.TryGetValue(i, out mat))
                         {
                             mat = new Material(res);
+                            mat.Name = "FLAT PART MATERIAL";
                             mat.DtName = ResourceManager.WhiteTextureName;
                             mat.Dc = initialCmpColors[jColors++];
                             if (jColors >= initialCmpColors.Length) jColors = 0;
