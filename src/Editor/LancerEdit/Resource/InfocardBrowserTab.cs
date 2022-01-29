@@ -53,6 +53,7 @@ namespace LancerEdit
             stringClipper = new ListClipper(stringsIds.Length);
             infocardClipper = new ListClipper(infocardsIds.Length);
             Title = "Infocard Browser";
+            display = new InfocardControl(win, blankInfocard, 100); 
         }
 
         void GotoString()
@@ -90,15 +91,68 @@ namespace LancerEdit
 
         private int gotoItem = -1;
         int id = 0;
+
+        private Infocard blankInfocard = new Infocard()
+            {Nodes = new List<RichTextNode>(new[] {new RichTextTextNode() { FontName = "Arial", FontSize = 12, Contents = ""}})};
+
+        void DisplayInfoXml()
+        {
+            if (currentInfocard == -1)
+            {
+                display.SetInfocard(blankInfocard);
+                return;
+            }
+            display.SetInfocard(RDLParse.Parse(manager.GetXmlResource(infocardsIds[currentInfocard]), fonts));
+        }
+
+        void DisplayInfoString()
+        {
+            if (currentString == -1)
+            {
+                display.SetInfocard(blankInfocard);
+                return;
+            }
+            var str = manager.GetStringResource(stringsIds[currentString]);
+            if (string.IsNullOrWhiteSpace(str))
+            {
+                display.SetInfocard(blankInfocard);
+                return;
+            }
+            var infocard = new Infocard()
+            {
+                Nodes = new List<RichTextNode>()
+            };
+            foreach (var ln in str.Split('\n'))
+            {
+                if (!string.IsNullOrWhiteSpace(ln))
+                {
+                    infocard.Nodes.Add(new RichTextTextNode()
+                    {
+                        Contents = ln, FontName = "Arial", FontSize = 22
+                    });
+                }
+                infocard.Nodes.Add(new RichTextParagraphNode());
+            }
+            display.SetInfocard(infocard);
+
+        }
         
         public override void Draw()
         {
             SearchDialog();
             InfocardXmlDialog();
             //strings vs infocards
-            if (ImGuiExt.ToggleButton("Strings", showStrings)) showStrings = true;
+            if (ImGuiExt.ToggleButton("Strings", showStrings))
+            {
+                showStrings = true;
+                DisplayInfoString();
+            }
             ImGui.SameLine();
-            if (ImGuiExt.ToggleButton("Infocards", !showStrings)) showStrings = false;
+            if (ImGuiExt.ToggleButton("Infocards", !showStrings))
+            {
+                showStrings = false;
+                DisplayInfoXml();
+            }
             ImGui.SameLine();
             ImGui.PushItemWidth(140);
             ImGui.InputInt("##id", ref id, 0, 0);
@@ -137,7 +191,7 @@ namespace LancerEdit
                             if (ImGui.Selectable(stringsIds[i] + "##" + i, currentString == i))
                             {
                                 currentString = i;
-                                txt.SetText(manager.GetStringResource(stringsIds[i]));
+                                DisplayInfoString();
                             }
                         }
                     }
@@ -164,14 +218,7 @@ namespace LancerEdit
                             {
                                 currentInfocard = i;
                                 currentXml = manager.GetXmlResource(infocardsIds[currentInfocard]);
-                                if (display == null)
-                                {
-                                    display = new InfocardControl(win, RDLParse.Parse(manager.GetXmlResource(infocardsIds[currentInfocard]), fonts), 100);
-                                }
-                                else
-                                {
-                                    display.SetInfocard(RDLParse.Parse(manager.GetXmlResource(infocardsIds[currentInfocard]), fonts));
-                                }
+                                DisplayInfoXml();
                             }
                         }
                     }
@@ -195,7 +242,14 @@ namespace LancerEdit
                 if (currentString != -1)
                 {
                     ImGui.Text(stringsIds[currentString].ToString());
-                    txt.InputTextMultiline("##txt", new Vector2(-1, ImGui.GetWindowHeight() - 70), ImGuiInputTextFlags.ReadOnly);
+                    ImGui.SameLine();
+                    if (ImGui.Button("Copy Text"))
+                    {
+                        win.SetClipboardText(manager.GetStringResource(stringsIds[currentString]));
+                    }
+                    ImGui.BeginChild("##display");
+                    display.Draw(ImGui.GetWindowWidth() - 15);
+                    ImGui.EndChild();
                 }
             }
             else
