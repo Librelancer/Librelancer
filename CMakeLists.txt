@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.1)
 project (librelancernatives)
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE MinSizeRel)
 set(CMAKE_C_STANDARD 99)
 set(LIBOUTPUTDIR ${CMAKE_BINARY_DIR}/binaries)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIBOUTPUTDIR})
