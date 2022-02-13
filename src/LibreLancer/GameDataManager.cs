@@ -80,7 +80,9 @@ namespace LibreLancer
             var movies = new List<string>();
             foreach (var file in fldata.Freelancer.StartupMovies)
             {
-                movies.Add(ResolveDataPath(file));
+                var path = TryResolveData(file);
+                if (path != null)
+                    movies.Add(path);
             }
             return movies;
         }
