@@ -63,7 +63,7 @@ namespace LancerEdit
                 if(id == stringsIds[i]) {
                     gotoItem = i;
                     currentString = i;
-                    txt.SetText(manager.GetStringResource(stringsIds[i]));
+                    DisplayInfoString();
                 }
             }
         }
@@ -77,14 +77,7 @@ namespace LancerEdit
                     gotoItem = i;
                     currentInfocard = i;
                     currentXml = manager.GetXmlResource(infocardsIds[currentInfocard]);
-                    if (display == null)
-                    {
-                        display = new InfocardControl(win, RDLParse.Parse(manager.GetXmlResource(infocardsIds[currentInfocard]), fonts), 100);
-                    }
-                    else
-                    {
-                        display.SetInfocard(RDLParse.Parse(manager.GetXmlResource(infocardsIds[currentInfocard]), fonts));
-                    }
+                    DisplayInfoXml();
                 }
             }
         }
@@ -241,7 +234,7 @@ namespace LancerEdit
             {
                 if (currentString != -1)
                 {
-                    ImGui.Text(stringsIds[currentString].ToString());
+                    ImGui.TextUnformatted(stringsIds[currentString].ToString());
                     ImGui.SameLine();
                     if (ImGui.Button("Copy Text"))
                     {
@@ -257,7 +250,7 @@ namespace LancerEdit
                 if(currentInfocard != -1)
                 {
                     ImGui.AlignTextToFramePadding();
-                    ImGui.Text(infocardsIds[currentInfocard].ToString());
+                    ImGui.TextUnformatted(infocardsIds[currentInfocard].ToString());
                     ImGui.SameLine();
                     if (ImGui.Button("View Xml"))
                     {
@@ -303,16 +296,16 @@ namespace LancerEdit
         {
             if (s.Length > MAX_PREV_LEN)
             {
-                return s.Substring(0, MAX_PREV_LEN) + "...";
+                s = s.Substring(0, MAX_PREV_LEN) + "...";
             }
-            return s;
+            return s.Replace("%", "%%");
         }
         private bool searchDlgOpen = false;
         private bool searchResultsOpen = false;
         void SearchResults()
         {
             ImGui.Begin(ImGuiExt.IDWithExtra("Search", Unique), ref searchResultsOpen, ImGuiWindowFlags.AlwaysAutoResize);
-            ImGui.Text(resultTitle);
+            ImGui.TextUnformatted(resultTitle);
             ImGui.BeginChild("##results", new Vector2(200,200), true);
             for(int i = 0; i < searchResults.Length; i++)
             {
