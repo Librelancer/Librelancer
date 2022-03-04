@@ -1,4 +1,5 @@
 <Scene ScriptFile="hud.lua">
+    <Scene id="hudcontrols">
 	<Panel Anchor="BottomLeft" Height="145.2" Width="169.88">
 		<Panel.Background>
 			<DisplayModel model="contactlistbox"/>
@@ -82,6 +83,7 @@
 			<DisplayModel model="navbox4"/>
 		</Panel.Background>
 	</Panel>
+	</Scene>
     <!-- neuralnet here-->
     <ChatBox Anchor="BottomCenter" Y="50" Width="250" Height="60" ID="chatbox">
         <ChatBox.Background>
@@ -93,6 +95,7 @@
     </ChatBox>
     <ChatDisplay Anchor="BottomLeft" Y="130" Height="250" Width="510" X="10" id="chat"/>
 </Scene>
+
 
 
 

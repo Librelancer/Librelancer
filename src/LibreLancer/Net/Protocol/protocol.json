@@ -89,6 +89,9 @@
         },
         {
           "name": "RTCMissionAccepted"
+        },
+        {
+          "name": "Respawn"
         }
     ],
     "client_methods": [
@@ -186,6 +189,9 @@
           "args": [
             { "name":  "rtcs", "type":  "string[]" }
           ]
+        },
+        {
+          "name": "Killed"
         },
         {
           "name": "DespawnObject",

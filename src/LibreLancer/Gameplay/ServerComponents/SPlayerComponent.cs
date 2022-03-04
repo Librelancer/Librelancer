@@ -9,5 +9,10 @@ namespace LibreLancer
         {
             this.Player = player;
         }
+
+        public void Killed()
+        {
+            Player.Killed();
+        }
     }
 }

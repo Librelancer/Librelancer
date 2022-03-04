@@ -158,7 +158,7 @@ namespace LibreLancer
                 }
             });
         }
-        
+
         public void StartAnimation(GameObject obj, string script)
         {
             int id = 0;
@@ -172,11 +172,12 @@ namespace LibreLancer
             {
                 id = obj.NetID;
             }
-            foreach (var p in Players) {
+
+            foreach (var p in Players)
+            {
                 p.Key.RemoteClient.StartAnimation(sysObj, id, script);
             }
         }
-        
 
         public void RemovePlayer(Player player)
         {

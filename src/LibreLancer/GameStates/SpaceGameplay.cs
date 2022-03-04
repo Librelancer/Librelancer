@@ -173,6 +173,11 @@ World Time: {12:F2}
                 g.Game.Config.Save();
             }
 
+            public void Respawn()
+            {
+                g.session.RpcServer.Respawn();
+            }
+
             public void PopupFinish(string id)
             {
                 g.session.RpcServer.ClosedPopup(id);
@@ -448,8 +453,11 @@ World Time: {12:F2}
             if(Thn == null || !Thn.Running)
 			    ProcessInput(delta);
             //Has to be here or glitches
-            camera.ChasePosition = player.PhysicsComponent.Body.Position;
-            camera.ChaseOrientation = player.PhysicsComponent.Body.Transform.ClearTranslation();
+            if (!Dead)
+            {
+                camera.ChasePosition = player.PhysicsComponent.Body.Position;
+                camera.ChaseOrientation = player.PhysicsComponent.Body.Transform.ClearTranslation();
+            }
             camera.Update(delta);
             if ((Thn == null || !Thn.Running)) //HACK: Cutscene also updates the listener so we don't do it if one is running
                 Game.Sound.UpdateListener(delta, camera.Position, camera.CameraForward, camera.CameraUp);
@@ -516,10 +524,23 @@ World Time: {12:F2}
 
 		const float ACCEL = 85;
 		GameObject selected;
+
+        public bool Dead = false;
+        public void Killed()
+        {
+            Dead = true;
+            world.RemoveObject(player);
+            ui.Event("Killed");
+        }
+        
 		void ProcessInput(double delta)
         {
+            if (Dead) {
+                current_cur = cur_arrow;
+                return;
+            }
             if (paused) return;
-			input.Update();
+            input.Update();
 
 			if (!ui.KeyboardGrabbed)
             {

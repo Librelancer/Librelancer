@@ -63,6 +63,13 @@ function hud:UpdateManeuverState()
 	end
 end
 
+function hud:Killed()
+	self.Elements.hudcontrols.Visible = false
+	OpenModal(popup(STRID_GAME_OVER,STRID_YOU_ARE_DEAD, 'ok', function()
+		Game:Respawn()
+	end))
+end
+
 local navbox = require 'navbox'
 
 function hud:ctor()
@@ -148,6 +155,8 @@ function hud:Popup(title, contents, id)
 		Game:PopupFinish(id)
 	end))
 end
+
+
 
 
 

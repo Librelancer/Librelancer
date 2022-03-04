@@ -12,6 +12,7 @@ namespace LibreLancer
         private NPCManager manager;
 
         public Action<GameObject, GameObject> ProjectileHitHook;
+        public Action OnKilled;
 
         public List<GameObject> HostileNPCs = new List<GameObject>();
 
@@ -29,6 +30,7 @@ namespace LibreLancer
 
         public void Killed()
         {
+            OnKilled?.Invoke();
             manager.Despawn(Parent);
         }
         public void Docked()

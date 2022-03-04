@@ -21,6 +21,9 @@ STRID_MISSION = 1350
 
 STRID_RETURN_TO_GAME = 1419
 
+STRID_GAME_OVER = 1826
+STRID_YOU_ARE_DEAD = 1827
+
 -- Ship Classes
 
 STRID_CLS_LF = 923
@@ -59,6 +62,7 @@ function LoadShipClassNames()
 	ShipClassNames[3] = StringFromID(STRID_CLS_FR)
 	ShipClassNames[4] = StringFromID(STRID_CLS_VHF)
 end
+
 
 
 

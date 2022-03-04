@@ -178,6 +178,35 @@ namespace LibreLancer
                                                                       IdEquals(_base, c.Entry[2].ToString()));
         }
 
+        public void NpcKilled(string ship)
+        {
+            ProcessCondition(TriggerConditions.Cnd_Destroyed, (c) => IdEquals(ship, c.Entry[0].ToString()));
+            
+        }
+        
+        //TODO: Bad tracking
+
+        private Dictionary<string, int> labelCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        public void LabelIncrement(string label)
+        {
+            labelCounts.TryGetValue(label, out int c);
+            c++;
+            labelCounts[label] = c;
+        }
+
+        public void LabelKilled(string label)
+        {
+            labelCounts.TryGetValue(label, out int c);
+            c--;
+            if (c <= 0)
+            {
+                c = 0;
+                ProcessCondition(TriggerConditions.Cnd_Destroyed, (c) => IdEquals(label, c.Entry[0].ToString()));
+            }
+            labelCounts[label] = c;
+        }
+        
+
         public void MissionAccepted()
         {
             ProcessCondition(TriggerConditions.Cnd_MsnResponse, (c) => IdEquals("accept", c.Entry[0].ToString()));

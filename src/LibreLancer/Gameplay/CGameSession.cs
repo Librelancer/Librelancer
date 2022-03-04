@@ -260,6 +260,14 @@ namespace LibreLancer
             FLLog.Warning("Client", "Jump tunnel unimplemented");
         }
 
+        void IClientPlayer.Killed()
+        {
+            RunSync(() =>
+            {
+                gp.Killed();
+            });
+        }
+
         //Use only for Single Player
         //Works because the data is already loaded,
         //and this is really only waiting for the embedded server to start
@@ -430,10 +438,21 @@ namespace LibreLancer
 
         void IClientPlayer.DespawnObject(int id)
         {
-            var despawn = objects[id];
-            despawn.Unregister(gp.world.Physics);
-            gp.world.RemoveObject(despawn);
-            objects.Remove(id);
+            RunSync(() =>
+            {
+                if (objects.TryGetValue(id, out var despawn))
+                {
+                    despawn.Unregister(gp.world.Physics);
+                    gp.world.RemoveObject(despawn);
+                    objects.Remove(id);
+                    FLLog.Debug("Client", $"Despawned {id}");
+                }
+                else
+                {
+                    FLLog.Warning("Client", $"Tried to despawn unknown {id}");
+                }
+               
+            });
         }
 
         void IClientPlayer.PlaySound(string sound)
@@ -474,7 +493,14 @@ namespace LibreLancer
             });
         }
         
-        void IClientPlayer.PlayMusic(string music) => audioActions.Enqueue(() => Game.Sound.PlayMusic(music));
+        void IClientPlayer.PlayMusic(string music) => audioActions.Enqueue(() =>
+        {
+            if(string.IsNullOrWhiteSpace(music) ||
+               music.Equals("none", StringComparison.OrdinalIgnoreCase))
+                Game.Sound.StopMusic();
+            else
+                Game.Sound.PlayMusic(music);
+        });
 
         void RunDialog(NetDlgLine[] lines, int index = 0)
         {

@@ -34,7 +34,8 @@ namespace LibreLancer.Gameplay.Missions
             var ship = script.Ships[msnShip];
             var npcDef = script.NPCs[ship.NPC];
             script.NpcShips.TryGetValue(npcDef.NpcShipArch, out var shipArch);
-           
+            foreach (var lbl in ship.Labels)
+                runtime.LabelIncrement(lbl);
             if (shipArch == null)
             {
                 shipArch = runtime.Player.Game.GameData.Ini.NPCShips.ShipArches.First(x =>
@@ -54,7 +55,13 @@ namespace LibreLancer.Gameplay.Missions
                 runtime.Player.World.Server.GameData.TryGetLoadout(shipArch.Loadout, out var ld);
                 var pilot = runtime.Player.World.Server.GameData.GetPilot(shipArch.Pilot);
                 var obj = runtime.Player.World.NPCs.DoSpawn(ship.Nickname, ld, pilot, pos, orient);
-                obj.GetComponent<SNPCComponent>().SetState(state);
+                var npcComp = obj.GetComponent<SNPCComponent>();
+                npcComp.OnKilled = () => {
+                    runtime.NpcKilled(msnShip);
+                    foreach (var lbl in ship.Labels)
+                        runtime.LabelKilled(lbl);
+                };
+                npcComp.SetState(state);
             });
         }
     }

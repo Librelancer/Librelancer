@@ -37,6 +37,12 @@ namespace LibreLancer
                 CurrentHealth -= amount;
                 if (CurrentHealth <= 0) {
                     CurrentHealth = 0;
+                    if (Parent.TryGetComponent<SNPCComponent>(out var npc)) {
+                        npc.Killed(); 
+                    }
+                    if (Parent.TryGetComponent<SPlayerComponent>(out var player)) {
+                        player.Killed();
+                    }
                 }
             }
         }

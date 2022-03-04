@@ -37,6 +37,8 @@ namespace LibreLancer
         public Quaternion Orientation;
         //Store so we can choose the correct character from the index
         public List<SelectableCharacter> CharacterList;
+        //Respawn?
+        public bool Dead = false;
        
         Guid playerGuid; //:)
 
@@ -897,6 +899,30 @@ namespace LibreLancer
             rpcClient.DespawnObject(objId);
         }
 
+        public void Killed()
+        {
+            World?.RemovePlayer(this);
+            World = null;
+            Dead = true;
+            rpcClient.Killed();
+            Base = Character.Base;
+            System = Character.System;
+            Position = Character.Position;
+        }
+
+        void IServerPlayer.Respawn()
+        {
+            if (Dead)
+            {
+                Dead = false;
+                if (Base != null) {
+                    PlayerEnterBase();
+                } else {
+                    SpaceInitialSpawn(null);
+                }
+            }
+        }
+        
         public void OnSPSave()
         {
             Character?.UpdatePosition(Base, System, Position);
