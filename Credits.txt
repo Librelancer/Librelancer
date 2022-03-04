@@ -34,6 +34,3 @@ OpenAL-Soft (Windows)
 ------------
 OpenAL-Soft is licensed under the GNU LGPL 2
 See openal-soft-license.txt for details
-
-Editor Icons from Icons8: https://icons8.com/
-Editor Icons from komorra: https://opengameart.org/content/kmr-editor-icon-set
