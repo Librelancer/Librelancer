@@ -6,6 +6,7 @@ using System;
 using LibreLancer;
 using LibreLancer.Interface;
 using System.Collections.Generic;
+using System.Numerics;
 using LibreLancer.Infocards;
 using LibreLancer.Net;
 using MoonSharp.Interpreter;
@@ -364,7 +365,7 @@ namespace InterfaceEdit
 
         public float SelectionHealth() => 0.5f;
         public float SelectionShield() => 0.75f;
-        public LuaVector2 SelectionPosition() => new LuaVector2(300,300);
+        public Vector2 SelectionPosition() => new Vector2(300,300);
 
         public int ThrustPercent() => 111;
         public int Speed() => 67;

@@ -14,7 +14,7 @@ namespace LibreLancer.Gameplay.Missions
         public Vector3 Position;
         public float Unknown; //1 in M01A
         
-        public Act_MovePlayer(MissionAction act)
+        public Act_MovePlayer(MissionAction act) : base(act)
         {
             Position = new Vector3(act.Entry[0].ToSingle(), act.Entry[1].ToSingle(),
                 act.Entry[2].ToSingle());
@@ -34,7 +34,7 @@ namespace LibreLancer.Gameplay.Missions
         public Vector3 Position;
         public Quaternion? Quaternion;
         
-        public Act_RelocateShip(MissionAction act)
+        public Act_RelocateShip(MissionAction act) : base(act)
         {
             Ship = act.Entry[0].ToString();
             Position = new Vector3(act.Entry[1].ToSingle(), act.Entry[2].ToSingle(),

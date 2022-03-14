@@ -30,6 +30,7 @@ namespace LibreLancer
             {
                 ActivateTrigger(t);
             }
+            UpdateUiTriggers();
         }
 
         public void ActivateTrigger(string trigger)
@@ -89,7 +90,42 @@ namespace LibreLancer
                     }
                 }
                 CheckMissionScript();
+                if (uiUpdate)
+                {
+                    uiUpdate = false;
+                    UpdateUiTriggers();
+                }
             }
+        }
+
+        public TriggerInfo[] ActiveTriggersInfo = new TriggerInfo[0];
+        void UpdateUiTriggers()
+        {
+            ActiveTriggersInfo = GetTriggerInfo().ToArray();
+        }
+
+        IEnumerable<TriggerInfo> GetTriggerInfo()
+        {
+            foreach (var t in activeTriggers)
+            {
+                var ti = new TriggerInfo() {Name = t.Trigger.Nickname};
+                foreach (var a in t.Trigger.Actions)
+                {
+                    ti.Actions.Add(a.Text);
+                }
+                foreach (var c in t.Conditions)
+                {
+                    ti.Conditions.Add(c.Entry.ToString());
+                }
+                yield return ti;
+            }
+        }
+
+        public class TriggerInfo
+        {
+            public string Name;
+            public List<string> Actions = new List<string>();
+            public List<string> Conditions = new List<string>();
         }
 
         class ActiveTrigger
@@ -110,6 +146,7 @@ namespace LibreLancer
                         if (tr.Conditions[i].Type == cond && action(tr.Conditions[i]))
                         {
                             tr.Conditions.RemoveAt(i);
+                            uiUpdate = true;
                         }
                     }
                 }
@@ -118,13 +155,15 @@ namespace LibreLancer
         
         void ProcessCondition(TriggerConditions cond, Func<MissionCondition, ScriptedTrigger, bool> action)
         {
-            lock (_msnLock) {
+            lock (_msnLock)
+            {
                 foreach (var tr in activeTriggers) {
                     for (int i = tr.Conditions.Count - 1; i >= 0; i--)
                     {
                         if (tr.Conditions[i].Type == cond && action(tr.Conditions[i], tr.Trigger))
                         {
                             tr.Conditions.RemoveAt(i);
+                            uiUpdate = true;
                         }
                     }
                 }
@@ -132,19 +171,22 @@ namespace LibreLancer
         }
         
         static Func<MissionCondition, bool> TruePredicate = (c) => true;
-      
+
+        private bool uiUpdate = false;
+        
         void CheckMissionScript()
         {
-            List<ActiveTrigger> toRemove = new List<ActiveTrigger>();
             for (int i = activeTriggers.Count - 1; i >= 0; i--)
             {
                 if (activeTriggers[i].Deactivated)
                 {
                     activeTriggers.RemoveAt(i);
+                    uiUpdate = true;
                 } else if (activeTriggers[i].Conditions.Count == 0)
                 {
                     DoTrigger(activeTriggers[i].Trigger);
                     activeTriggers.RemoveAt(i);
+                    uiUpdate = true;
                 }
             }
         }
@@ -205,7 +247,15 @@ namespace LibreLancer
             }
             labelCounts[label] = c;
         }
-        
+
+        public void LabelDecrement(string label)
+        {
+            labelCounts.TryGetValue(label, out int c);
+            c--;
+            if (c <= 0) c = 0;
+            labelCounts[label] = c;
+        }
+
 
         public void MissionAccepted()
         {

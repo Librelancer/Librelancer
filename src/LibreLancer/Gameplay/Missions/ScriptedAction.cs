@@ -12,6 +12,11 @@ namespace LibreLancer.Missions
 {
     public abstract class ScriptedAction
     {
+        public string Text { get; private set; }
+        protected ScriptedAction(MissionAction a)
+        {
+            Text = a.Entry.ToString();
+        }
         public abstract void Invoke(MissionRuntime runtime, MissionScript script);
 
         public static IEnumerable<ScriptedAction> Convert(IEnumerable<MissionAction> actions)
@@ -78,7 +83,7 @@ namespace LibreLancer.Missions
                         yield return new Act_CallThorn(a);
                         break;
                     case TriggerActions.Act_RevertCam:
-                        yield return new Act_RevertCam();
+                        yield return new Act_RevertCam(a);
                         break;
                     case TriggerActions.Act_AddRTC:
                         yield return new Act_AddRTC(a);
@@ -106,7 +111,7 @@ namespace LibreLancer.Missions
     {
         public string Trigger;
 
-        public Act_ActTrig(MissionAction act)
+        public Act_ActTrig(MissionAction act) : base(act)
         {
             Trigger = act.Entry[0].ToString();
         }
@@ -121,7 +126,7 @@ namespace LibreLancer.Missions
     {
         public string Trigger;
 
-        public Act_DeactTrig(MissionAction act)
+        public Act_DeactTrig(MissionAction act) : base(act)
         {
             Trigger = act.Entry[0].ToString();
         }
@@ -135,7 +140,7 @@ namespace LibreLancer.Missions
     public class Act_AddRTC : ScriptedAction
     {
         public string RTC;
-        public Act_AddRTC(MissionAction act)
+        public Act_AddRTC(MissionAction act) : base(act)
         {
             RTC = act.Entry[0].ToString();
         }
@@ -151,7 +156,7 @@ namespace LibreLancer.Missions
         public string Ship;
         public string Loadout;
 
-        public Act_SetShipAndLoadout(MissionAction act)
+        public Act_SetShipAndLoadout(MissionAction act) : base(act)
         {
             Ship = act.Entry[0].ToString();
             Loadout = act.Entry[1].ToString();
@@ -186,7 +191,7 @@ namespace LibreLancer.Missions
     {
         public string Effect;
         
-        public Act_PlaySoundEffect(MissionAction act)
+        public Act_PlaySoundEffect(MissionAction act) : base(act)
         {
             Effect = act.Entry[0].ToString();
         }
@@ -203,7 +208,7 @@ namespace LibreLancer.Missions
     {
         public string Music;
 
-        public Act_PlayMusic(MissionAction act)
+        public Act_PlayMusic(MissionAction act) : base(act)
         {
             if(act.Entry.Count > 3) //4th entry seems to = specific music. First 3 maybe change ambient?
                 Music = act.Entry[3].ToString();
@@ -220,7 +225,7 @@ namespace LibreLancer.Missions
     {
         public string Base;
 
-        public Act_ForceLand(MissionAction act)
+        public Act_ForceLand(MissionAction act) : base(act)
         {
             Base = act.Entry[0].ToString();
         }
@@ -235,7 +240,7 @@ namespace LibreLancer.Missions
     {
         public int Amount;
 
-        public Act_AdjAcct(MissionAction act)
+        public Act_AdjAcct(MissionAction act) : base(act)
         {
             Amount = act.Entry[0].ToInt32();
         }
@@ -251,7 +256,7 @@ namespace LibreLancer.Missions
         public string Target;
         public string Fuse;
 
-        public Act_LightFuse(MissionAction act)
+        public Act_LightFuse(MissionAction act) : base(act)
         {
             Target = act.Entry[0].ToString();
             Fuse = act.Entry[1].ToString();
@@ -279,7 +284,7 @@ namespace LibreLancer.Missions
         public int Contents;
         public string ID;
 
-        public Act_PopupDialog(MissionAction act)
+        public Act_PopupDialog(MissionAction act) : base(act)
         {
             Title = act.Entry[0].ToInt32();
             Contents = act.Entry[1].ToInt32();
@@ -297,7 +302,7 @@ namespace LibreLancer.Missions
         public string Target;
         public string List;
 
-        public Act_GiveObjList(MissionAction act)
+        public Act_GiveObjList(MissionAction act) : base(act)
         {
             Target = act.Entry[0].ToString();
             List = act.Entry[1].ToString();
@@ -322,6 +327,8 @@ namespace LibreLancer.Missions
 
     public class Act_RevertCam : ScriptedAction
     {
+        public Act_RevertCam(MissionAction act) : base(act) { }
+
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             runtime.Player.CallThorn(null, 0);
@@ -333,7 +340,7 @@ namespace LibreLancer.Missions
         public string Thorn;
         public string MainObject;
 
-        public Act_CallThorn(MissionAction act)
+        public Act_CallThorn(MissionAction act) : base(act)
         {
             Thorn = act.Entry[0].ToString();
             if (act.Entry.Count > 1)

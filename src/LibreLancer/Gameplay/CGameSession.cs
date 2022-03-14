@@ -549,6 +549,15 @@ namespace LibreLancer
             });
         }
 
+        public MissionRuntime.TriggerInfo[] GetTriggerInfo()
+        {
+            if (connection is EmbeddedServer es)
+            {
+                return es.Server.LocalPlayer?.MissionRuntime?.ActiveTriggersInfo;
+            }
+            return null;
+        }
+
         void IClientPlayer.CallThorn(string thorn, int mainObject)
         {
             RunSync(() =>

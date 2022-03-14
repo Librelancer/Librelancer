@@ -68,6 +68,8 @@ namespace LibreLancer
             }
         }
 
+        public MissionRuntime MissionRuntime => msnRuntime;
+
         List<string> rtcs = new List<string>();
         public void AddRTC(string rtc)
         {

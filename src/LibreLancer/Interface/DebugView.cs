@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Numerics;
 using ImGuiNET;
 using LibreLancer.ImUI;
 namespace LibreLancer.Interface
@@ -22,6 +23,33 @@ namespace LibreLancer.Interface
 
         public bool Enabled = false;
         public bool CaptureMouse = false;
+
+        public void MissionWindow(MissionRuntime.TriggerInfo[] triggers)
+        {
+            if (triggers != null)
+            {
+                ImGui.Begin("Triggers");
+                int i = 0;
+                foreach (var t in triggers)
+                {
+                    ImGui.BeginChild($"{t.Name};{i++}", new Vector2(-1, 100), true);
+                    ImGui.PushFont(ImGuiHelper.SystemMonospace);
+                    ImGui.Text(t.Name);
+                    ImGui.PopFont();
+                    ImGui.Text("Conditions");
+                    ImGui.Separator();
+                    foreach(var c in t.Conditions)
+                        ImGui.Text(c);
+                    ImGui.Separator();
+                    ImGui.Text("Actions");
+                    ImGui.Separator();
+                    foreach (var a in t.Actions)
+                        ImGui.Text(a);
+                    ImGui.EndChild();
+                }
+                ImGui.End();
+            }
+        }
 
         public void Draw(double elapsed, Action debugWindow = null, Action otherWindows = null)
         {

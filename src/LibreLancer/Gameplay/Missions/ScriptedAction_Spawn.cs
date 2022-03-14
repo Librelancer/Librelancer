@@ -14,7 +14,7 @@ namespace LibreLancer.Gameplay.Missions
     public class Act_SpawnSolar : ScriptedAction
     {
         public string Solar;
-        public Act_SpawnSolar(MissionAction act)
+        public Act_SpawnSolar(MissionAction act) : base(act)
         {
             Solar = act.Entry[0].ToString();
         }
@@ -29,6 +29,8 @@ namespace LibreLancer.Gameplay.Missions
 
     public abstract class ShipSpawnBase : ScriptedAction
     {
+        protected ShipSpawnBase(MissionAction act) : base(act) { }
+
         protected void SpawnShip(string msnShip, Vector3? spawnpos, Quaternion? spawnorient, string objList, MissionScript script, MissionRuntime runtime)
         {
             var ship = script.Ships[msnShip];
@@ -79,7 +81,7 @@ namespace LibreLancer.Gameplay.Missions
             new Vector3(0, -60, 0),
             new Vector3(0, 60, 0)
         };
-        public Act_SpawnFormation(MissionAction act)
+        public Act_SpawnFormation(MissionAction act) : base(act)
         {
             Formation = act.Entry[0].ToString();
             if (act.Entry.Count > 1)
@@ -110,7 +112,7 @@ namespace LibreLancer.Gameplay.Missions
         public Vector3? Position;
         public Quaternion? Orientation;
 
-        public Act_SpawnShip(MissionAction act)
+        public Act_SpawnShip(MissionAction act) : base(act)
         {
             Ship = act.Entry[0].ToString();
             if (act.Entry.Count > 1)
@@ -137,7 +139,7 @@ namespace LibreLancer.Gameplay.Missions
     {
         public string Target;
 
-        public Act_Destroy(MissionAction act)
+        public Act_Destroy(MissionAction act) : base(act)
         {
             Target = act.Entry[0].ToString();
         }
@@ -146,6 +148,11 @@ namespace LibreLancer.Gameplay.Missions
         {
             if (script.Ships.ContainsKey(Target))
             {
+                var ship = script.Ships[Target];
+                var npcDef = script.NPCs[ship.NPC];
+                script.NpcShips.TryGetValue(npcDef.NpcShipArch, out var shipArch);
+                foreach (var lbl in ship.Labels)
+                    runtime.LabelDecrement(lbl);
                 runtime.Player.WorldAction(() => { runtime.Player.World.NPCs.Despawn(runtime.Player.World.GameWorld.GetObject(Target)); });
             }
         }

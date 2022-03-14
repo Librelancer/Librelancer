@@ -744,6 +744,9 @@ namespace LibreLancer
             {
                 ImGui.Text($"Room: {currentRoom.Nickname}");
                 ImGui.Text($"Virtual: {virtualRoom ?? "NONE"}");
+            }, () =>
+            {
+                Game.Debug.MissionWindow(session.GetTriggerInfo());
             });
 
             if (ui.Visible || ui.HasModal)

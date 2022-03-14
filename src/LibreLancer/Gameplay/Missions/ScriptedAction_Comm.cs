@@ -12,7 +12,7 @@ namespace LibreLancer.Gameplay.Missions
     {
         public string Dialog;
 
-        public Act_StartDialog(MissionAction act)
+        public Act_StartDialog(MissionAction act) : base(act)
         {
             Dialog = act.Entry[0].ToString();
         }
@@ -49,7 +49,7 @@ namespace LibreLancer.Gameplay.Missions
         public string Destination;
         public string Line;
 
-        public Act_SendComm(MissionAction act)
+        public Act_SendComm(MissionAction act) : base(act)
         {
             Source = act.Entry[0].ToString();
             Destination = act.Entry[1].ToString();
@@ -76,7 +76,7 @@ namespace LibreLancer.Gameplay.Missions
     {
         public string Voice;
         public string Line;
-        public Act_EtherComm(MissionAction act)
+        public Act_EtherComm(MissionAction act) : base(act)
         {
             Voice = act.Entry[0].ToString();
             Line = act.Entry[3].ToString();

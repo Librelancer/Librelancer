@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
 using System.Numerics;
@@ -249,17 +250,17 @@ World Time: {12:F2}
             }
             
 
-            public LuaVector2 SelectionPosition()
+            public Vector2 SelectionPosition()
             {
-                if (g.selected == null) return new LuaVector2(-1000, -1000);
+                if (g.selected == null) return new Vector2(-1000, -1000);
                 var (pos, visible) = g.ScreenPosition(g.selected);
                 if (visible) {
-                    return new LuaVector2(
+                    return new Vector2(
                         g.ui.PixelsToPoints(pos.X),
                         g.ui.PixelsToPoints(pos.Y)
                     );
                 } else {
-                    return new LuaVector2(-1000, -1000);
+                    return new Vector2(-1000, -1000);
                 }
             }
 
@@ -772,6 +773,9 @@ World Time: {12:F2}
                     sys.Nickname, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj,
                     control.PlayerPitch, control.PlayerYaw, control.Roll, mouseFlight, session.WorldTime);
                 ImGuiNET.ImGui.Text(text);
+            }, () =>
+            {
+                Game.Debug.MissionWindow(session.GetTriggerInfo());
             });
             if ((Thn == null || !Thn.Running) && ShowHud)
             {

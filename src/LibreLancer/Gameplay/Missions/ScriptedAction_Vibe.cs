@@ -16,6 +16,8 @@ namespace LibreLancer.Missions
 
     public abstract class SetVibeBase : ScriptedAction
     {
+        protected SetVibeBase(MissionAction act) : base(act) { }
+
         protected void SetVibe(MissionRuntime runtime, string target, string other, VibeSet vibe)
         {
             runtime.Player.WorldAction(() =>
@@ -43,7 +45,7 @@ namespace LibreLancer.Missions
         public string Target;
         public string Other;
 
-        public Act_SetVibe(MissionAction act)
+        public Act_SetVibe(MissionAction act) : base(act)
         {
             Target = act.Entry[0].ToString();
             Other = act.Entry[1].ToString();
@@ -61,7 +63,7 @@ namespace LibreLancer.Missions
         public string Label;
         public string Ship;
 
-        public Act_SetVibeShipToLbl(MissionAction act)
+        public Act_SetVibeShipToLbl(MissionAction act) : base(act)
         {
             Ship = act.Entry[0].ToString();
             Label = act.Entry[1].ToString();
@@ -80,7 +82,7 @@ namespace LibreLancer.Missions
         public string Label;
         public string Ship;
 
-        public Act_SetVibeLblToShip(MissionAction act)
+        public Act_SetVibeLblToShip(MissionAction act) : base(act)
         {
             Label = act.Entry[0].ToString();
             Ship = act.Entry[1].ToString();
