@@ -18,6 +18,9 @@ namespace LibreLancer
         SurCollider sur;
         public uint PlainCrc = 0;
         PhysicsWorld pworld;
+
+        public bool SetTransform = true;
+        
         public PhysicsComponent(GameObject parent) : base(parent)
         {
         }
@@ -50,7 +53,7 @@ namespace LibreLancer
                 sur.FinishUpdatePart();
                 partRemoved = true;
             }
-            if (Body.Active)
+            if (Body.Active && SetTransform)
             {
                 Parent.SetLocalTransform(Body.Transform, true);
             }

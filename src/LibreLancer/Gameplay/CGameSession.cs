@@ -321,6 +321,7 @@ namespace LibreLancer
                 var newobj = new GameObject(shp, Game.ResourceManager, true, true) {
                     World = gp.world
                 };
+                if (newobj.PhysicsComponent != null) newobj.PhysicsComponent.SetTransform = false;
                 newobj.Name = name;
                 newobj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
                                          Matrix4x4.CreateTranslation(position));
@@ -334,10 +335,12 @@ namespace LibreLancer
                     EquipmentObjectManager.InstantiateEquipment(newobj, Game.ResourceManager, EquipmentType.LocalPlayer, hplookup.GetHardpoint(eq.HardpointCRC), equip);
                 }
                 newobj.Register(gp.world.Physics);
-                var netpos = new CNetPositionComponent(newobj);
-                if (connection is EmbeddedServer)
-                    netpos.BufferTime = 2;
-                newobj.Components.Add(netpos);
+                if (connection is not EmbeddedServer)
+                {
+                    var netpos = new CNetPositionComponent(newobj);
+                    newobj.Components.Add(netpos);
+                }
+
                 newobj.Components.Add(new WeaponControlComponent(newobj));
                 objects.Add(id, newobj);
                 
@@ -397,6 +400,7 @@ namespace LibreLancer
                 var go = new GameObject($"debris{id}", newmodel, Game.ResourceManager, part, mass, true);
                 go.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
                                      Matrix4x4.CreateTranslation(position));
+                if (go.PhysicsComponent != null) go.PhysicsComponent.SetTransform = false;
                 go.World = gp.world;
                 go.Register(go.World.Physics);
                 gp.world.AddObject(go);
@@ -481,6 +485,7 @@ namespace LibreLancer
                         var go = new GameObject(arch, Game.ResourceManager, true);
                         go.SetLocalTransform(Matrix4x4.CreateFromQuaternion(si.Orientation) *
                                              Matrix4x4.CreateTranslation(si.Position));
+                        if (go.PhysicsComponent != null) go.PhysicsComponent.SetTransform = false;
                         go.Nickname = $"$Solar{si.ID}";
                         go.World = gp.world;
                         go.Register(go.World.Physics);
