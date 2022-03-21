@@ -97,8 +97,14 @@ namespace LibreLancer.Missions
                     case TriggerActions.Act_SetVibe:
                         yield return new Act_SetVibe(a);
                         break;
+                    case TriggerActions.Act_SetVibeLbl:
+                        yield return new Act_SetVibeLbl(a);
+                        break;
                     case TriggerActions.Act_SetVibeShipToLbl:
                         yield return new Act_SetVibeShipToLbl(a);
+                        break;
+                    case TriggerActions.Act_Invulnerable:
+                        yield return new Act_Invulnerable(a);
                         break;
                     default:
                         break;
@@ -148,6 +154,29 @@ namespace LibreLancer.Missions
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             runtime.Player.AddRTC(RTC);
+        }
+    }
+
+    public class Act_Invulnerable : ScriptedAction
+    {
+        public string Object;
+        public bool Invulnerable;
+        public Act_Invulnerable(MissionAction act) : base(act)
+        {
+            Object = act.Entry[0].ToString();
+            Invulnerable = act.Entry[1].ToBoolean();
+        }
+
+        public override void Invoke(MissionRuntime runtime, MissionScript script)
+        {
+            runtime.Player.WorldAction(() =>
+            {
+                var tgt = runtime.Player.World.GameWorld.GetObject(Object);
+                if (tgt != null && tgt.TryGetComponent<SHealthComponent>(out var health))
+                {
+                    health.Invulnerable = Invulnerable;
+                }
+            });
         }
     }
 

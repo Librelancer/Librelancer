@@ -79,7 +79,9 @@ namespace LibreLancer
                 var hp = equipped.Hardpoint == null ? NetShipCargo.InternalCrc : CrcTool.FLModelCrc(equipped.Hardpoint);
                 netLoadout.Items.Add(new NetShipCargo(0, e.CRC, hp, 255, 1));
             }
-            obj.Components.Add(new SNPCComponent(obj, this) {Loadout = netLoadout, Pilot = pilot});
+            var npcComponent = new SNPCComponent(obj, this) {Loadout = netLoadout};
+            npcComponent.SetPilot(pilot);
+            obj.Components.Add(npcComponent);
             obj.Components.Add(new ShipPhysicsComponent(obj) { Ship = ship });
             obj.Components.Add(new ShipInputComponent(obj));
             obj.Components.Add(new AutopilotComponent(obj));

@@ -1,6 +1,7 @@
 using System;
 using LibreLancer.Data.Missions;
 using LibreLancer.Missions;
+using SharpDX.DirectWrite;
 
 namespace LibreLancer.Missions
 {
@@ -54,6 +55,30 @@ namespace LibreLancer.Missions
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             SetVibe(runtime, Target, Other, Vibe);
+        }
+    }
+
+    public class Act_SetVibeLbl : SetVibeBase
+    {
+        public VibeSet Vibe;
+        public string Label1;
+        public string Label2;
+
+        public Act_SetVibeLbl(MissionAction act) : base(act)
+        {
+            Label1 = act.Entry[0].ToString();
+            Label2 = act.Entry[1].ToString();
+            Vibe = Enum.Parse<VibeSet>(act.Entry[2].ToString(), true);
+        }
+        public override void Invoke(MissionRuntime runtime, MissionScript script)
+        {
+            foreach (var ship1 in script.GetShipsByLabel(Label1))
+            {
+                foreach (var ship2 in script.GetShipsByLabel(Label2))
+                {
+                    SetVibe(runtime, ship1.Nickname, ship2.Nickname, Vibe);
+                }
+            }
         }
     }
     

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.AI;
+using LibreLancer.Data.Pilots;
 
 namespace LibreLancer
 {
@@ -16,7 +17,7 @@ namespace LibreLancer
 
         public List<GameObject> HostileNPCs = new List<GameObject>();
 
-        public GameData.Pilot Pilot;
+        private GameData.Pilot Pilot;
         
         public void OnProjectileHit(GameObject attacker)
         {
@@ -50,13 +51,45 @@ namespace LibreLancer
             state?.OnStart(Parent, this);
         }
 
+        private Dictionary<GameObjectKind, int> attackPref = new Dictionary<GameObjectKind, int>();
+        public void SetPilot(GameData.Pilot pilot)
+        {
+            Pilot = pilot;
+            attackPref = new Dictionary<GameObjectKind, int>();
+            if (pilot == null) return;
+            
+            if (Pilot.Job != null) {
+                for (int i = 0; i < Pilot.Job.AttackPreferences.Count; i++)
+                {
+                    int weight = Pilot.Job.AttackPreferences.Count - i;
+                    switch (Pilot.Job.AttackPreferences[i].Target)
+                    {
+                        case AttackTarget.Fighter:
+                            attackPref[GameObjectKind.Ship] = weight;
+                            break;
+                        case AttackTarget.Solar:
+                            attackPref[GameObjectKind.Solar] = weight;
+                            break;
+                    }
+                }
+            }
+        }
+
+        int GetHostileWeight(GameObject obj)
+        {
+            if (attackPref.TryGetValue(obj.Kind, out var weight))
+                return weight;
+            return 0;
+        }
+
         private double fireTimer;
         
         public override void FixedUpdate(double time)
         {
             CurrentState?.Update(Parent, this, time);
-            //Attack hostile
+            //Get hostile
             GameObject shootAt = null;
+            int shootAtWeight = -1000;
             var myPos = Parent.WorldTransform.Translation;
             foreach (var other in Parent.GetWorld().SpatialLookup
                 .GetNearbyObjects(Parent, myPos, 5000))
@@ -64,11 +97,23 @@ namespace LibreLancer
                 if (Vector3.Distance(other.WorldTransform.Translation, myPos) < 5000 &&
                     HostileNPCs.Contains(other))
                 {
-                    shootAt = other;
-                    break;
+                    int weight = GetHostileWeight(other);
+                    if (weight > shootAtWeight)
+                    {
+                        shootAtWeight = weight;
+                        shootAt = other;
+                    }
                 }
             }
-            
+            //Fly towards hostile if needed
+            if (CurrentState == null && shootAt != null){
+                var dist = Vector3.Distance(shootAt.WorldTransform.Translation, myPos);
+                if (dist > 150 && Parent.TryGetComponent<AutopilotComponent>(out var ap))
+                {
+                    ap.GotoObject(shootAt, false, 1, 150);
+                }
+            }
+            //Shoot at hostile
             if (shootAt != null && Parent.TryGetComponent<WeaponControlComponent>(out var weapons))
             {
                 var dist = Vector3.Distance(shootAt.WorldTransform.Translation, myPos);

@@ -13,6 +13,8 @@ namespace LibreLancer
         
         public float ShieldHealth { get; set; }
         
+        public bool Invulnerable { get; set; }
+        
         public SHealthComponent(GameObject parent) : base(parent) { }
 
         public override void FixedUpdate(double time)
@@ -35,6 +37,9 @@ namespace LibreLancer
             if (shield == null || !shield.Damage(amount))
             {
                 CurrentHealth -= amount;
+                if (Invulnerable && CurrentHealth < (MaxHealth * 0.09f)) {
+                    CurrentHealth = MaxHealth * 0.09f;
+                }
                 if (CurrentHealth <= 0) {
                     CurrentHealth = 0;
                     if (Parent.TryGetComponent<SNPCComponent>(out var npc)) {
