@@ -18,15 +18,21 @@ namespace LibreLancer.Physics
         static Dictionary<string, SurFile> cachedsurs = new Dictionary<string, SurFile>();
         static SurFile GetSur(string path)
         {
-            var real = Path.GetFullPath(path);
-            SurFile sur;
-            if(!cachedsurs.TryGetValue(real, out sur)) {
-                using(var stream = File.OpenRead(real)) {
-                    sur = new SurFile(stream);
+            lock (cachedsurs) //avoid race condition
+            {
+                var real = Path.GetFullPath(path);
+                SurFile sur;
+                if (!cachedsurs.TryGetValue(real, out sur))
+                {
+                    using (var stream = File.OpenRead(real))
+                    {
+                        sur = new SurFile(stream);
+                    }
+
+                    cachedsurs.Add(real, sur);
                 }
-                cachedsurs.Add(real, sur);
+                return sur;
             }
-            return sur;
         }
 
         internal override CollisionShape BtShape {
