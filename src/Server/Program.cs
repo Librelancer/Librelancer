@@ -25,6 +25,7 @@ namespace Server
 	{
         public static int Main(string[] args)
         {
+            AppHandler.ConsoleInit();
             if (args.Length > 0 && args[0] == "--makeconfig")
 			{
 				MakeConfig();
