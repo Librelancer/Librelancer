@@ -8,7 +8,7 @@ using LibreLancer.Interface;
 
 namespace LibreLancer
 {
-    [MoonSharp.Interpreter.MoonSharpUserData]
+    [WattleScript.Interpreter.WattleScriptUserData]
 	public class CharacterSelectInfo : ITableData
 	{
         public string ServerName;
@@ -42,7 +42,7 @@ namespace LibreLancer
             return (Selected >= 0 && Selected < Count);
         }
     }
-    [MoonSharp.Interpreter.MoonSharpUserData]
+    [WattleScript.Interpreter.WattleScriptUserData]
     public class SelectableCharacter
     {
         public string Name;

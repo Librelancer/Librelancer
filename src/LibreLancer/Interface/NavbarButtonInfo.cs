@@ -1,6 +1,6 @@
 namespace LibreLancer.Interface
 {
-    [MoonSharp.Interpreter.MoonSharpUserData]
+    [WattleScript.Interpreter.WattleScriptUserData]
     public class NavbarButtonInfo
     {
         public string IDS;

@@ -3,12 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System.Numerics;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class DisplayImage : DisplayElement
     {
         public InterfaceImage Image { get; set; }

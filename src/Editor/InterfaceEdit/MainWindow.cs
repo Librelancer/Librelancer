@@ -389,7 +389,7 @@ namespace InterfaceEdit
 
         static void BuildExceptionString(Exception e, StringBuilder detail)
         {
-            if (e is MoonSharp.Interpreter.InterpreterException ie)
+            if (e is WattleScript.Interpreter.InterpreterException ie)
             {
                 detail.AppendLine(ie.DecoratedMessage);
             }

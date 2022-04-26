@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class ChatSource
     {
         internal List<DisplayMessage> Messages = new List<DisplayMessage>(15);

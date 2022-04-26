@@ -2,17 +2,17 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 using System;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class TextEntry : UiWidget
     {
         event Action<string> TextEntered;
 
-        public void OnTextEntered(MoonSharp.Interpreter.Closure handler)
+        public void OnTextEntered(WattleScript.Interpreter.Closure handler)
         {
             TextEntered += (s) =>
             {

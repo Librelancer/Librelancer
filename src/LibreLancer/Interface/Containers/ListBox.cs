@@ -5,12 +5,12 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class ListBox : UiWidget
     {
         public Scrollbar Scrollbar = new Scrollbar() { Smooth = false };
@@ -51,7 +51,7 @@ namespace LibreLancer.Interface
         
         event Action SelectedIndexChanged;
 
-        public void OnSelectedIndexChanged(MoonSharp.Interpreter.Closure handler)
+        public void OnSelectedIndexChanged(WattleScript.Interpreter.Closure handler)
         {
             SelectedIndexChanged += () =>
             {

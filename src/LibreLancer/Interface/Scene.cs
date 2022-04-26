@@ -4,12 +4,12 @@
 
 using System;
 using System.Numerics;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class Scene : Container
     {
         public override void Render(UiContext context, RectangleF parentRectangle)

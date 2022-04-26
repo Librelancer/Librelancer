@@ -4,11 +4,11 @@
 
 using LiteNetLib;
 using LiteNetLib.Utils;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer.Net
 {
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class NewsArticle
     {
         public string Icon;

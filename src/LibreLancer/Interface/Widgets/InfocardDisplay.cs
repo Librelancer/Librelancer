@@ -4,12 +4,12 @@
 
 using System.Collections.Generic;
 using LibreLancer.Infocards;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class InfocardDisplay : UiWidget
     {
         public Infocard Infocard { get; set; }

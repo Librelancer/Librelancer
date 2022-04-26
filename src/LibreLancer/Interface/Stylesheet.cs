@@ -5,12 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class Stylesheet
     {
         [UiContent]
@@ -33,7 +33,7 @@ namespace LibreLancer.Interface
     }
 
     [UiLoadable]
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class ButtonStyle : XmlStyle
     {
         
@@ -48,7 +48,7 @@ namespace LibreLancer.Interface
         public ButtonAppearance Disabled { get; set; }
     }
     [UiLoadable]
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class ButtonAppearance
     {
         public UiRenderable Background { get; set; }
@@ -64,7 +64,7 @@ namespace LibreLancer.Interface
     }
     
     [UiLoadable]
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class ScrollbarStyle : XmlStyle
     {
         public ButtonStyle UpButton { get; set; }
@@ -83,7 +83,7 @@ namespace LibreLancer.Interface
     }
     
     [UiLoadable]
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class HSliderStyle : XmlStyle
     {
         public ButtonStyle LeftButton { get; set; }

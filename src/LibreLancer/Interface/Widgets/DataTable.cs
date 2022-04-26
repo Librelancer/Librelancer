@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
@@ -17,7 +17,7 @@ namespace LibreLancer.Interface
     }
     
     [UiLoadable]
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class TableColumn
     {
         InfoTextAccessor txtAccess = new InfoTextAccessor();
@@ -46,7 +46,7 @@ namespace LibreLancer.Interface
     }
     
     [UiLoadable]
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class DataTable : UiWidget
     {
         public List<TableColumn> Columns { get; set; } = new List<TableColumn>();

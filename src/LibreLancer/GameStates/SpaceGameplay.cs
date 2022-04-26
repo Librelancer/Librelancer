@@ -157,7 +157,7 @@ World Time: {12:F2}
         
 
         private int frameCount = 0;
-        [MoonSharp.Interpreter.MoonSharpUserData]
+        [WattleScript.Interpreter.WattleScriptUserData]
         public class LuaAPI
         {
             SpaceGameplay g;

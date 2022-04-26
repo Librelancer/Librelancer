@@ -3,12 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System.Collections.Generic;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
 
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class LuaCompatibleDictionary
     {
         public Dictionary<string, object> Storage = new Dictionary<string, object>();

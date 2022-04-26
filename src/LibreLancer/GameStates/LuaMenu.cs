@@ -61,7 +61,7 @@ namespace LibreLancer
         {
             ui.OnKeyDown(e.Key);
         }
-        [MoonSharp.Interpreter.MoonSharpUserData]
+        [WattleScript.Interpreter.WattleScriptUserData]
         public class ServerList : ITableData
         {
             public List<LocalServerInfo> Servers = new List<LocalServerInfo>();
@@ -108,7 +108,7 @@ namespace LibreLancer
                 Servers = new List<LocalServerInfo>();
             }
         }
-        [MoonSharp.Interpreter.MoonSharpUserData]
+        [WattleScript.Interpreter.WattleScriptUserData]
         public class MenuAPI : UiApi
         {
             LuaMenu state;

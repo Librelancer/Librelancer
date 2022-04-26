@@ -4,12 +4,12 @@
 
 using System;
 using LibreLancer;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class TextureImage : UiWidget
     {
         private string _name;

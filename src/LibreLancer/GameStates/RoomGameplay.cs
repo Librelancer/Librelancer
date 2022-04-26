@@ -139,7 +139,7 @@ namespace LibreLancer
             }
         }
 
-        [MoonSharp.Interpreter.MoonSharpUserData]
+        [WattleScript.Interpreter.WattleScriptUserData]
         public class BaseUiApi : UiApi
         {
             RoomGameplay g;

@@ -8,11 +8,11 @@ using System.Linq;
 using LibreLancer.Data.Equipment;
 using LibreLancer.GameData.Items;
 using LibreLancer.Interface;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer
 {
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class Trader
     {
         private CGameSession session;

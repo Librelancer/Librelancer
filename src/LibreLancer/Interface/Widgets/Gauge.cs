@@ -3,12 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using LibreLancer;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class Gauge : UiWidget
     {
         public UiRenderable Fill { get; set; }

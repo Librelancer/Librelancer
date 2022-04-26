@@ -5,7 +5,7 @@
 using System;
 namespace LibreLancer
 {
-    [MoonSharp.Interpreter.MoonSharpUserData]
+    [WattleScript.Interpreter.WattleScriptUserData]
     public class Maneuver
 	{
 		public string Action;

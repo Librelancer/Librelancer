@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection;
 using LibreLancer;
-using MoonSharp.Interpreter.Interop;
+using WattleScript.Interpreter.Interop;
 
 namespace LibreLancer.Interface.Reflection
 {

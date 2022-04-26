@@ -38,9 +38,6 @@
 [submodule "extern/crunch"]
 	path = extern/crunch
 	url = https://github.com/DaemonEngine/crunch
-[submodule "extern/moonsharp"]
-	path = extern/moonsharp
-	url = https://github.com/Librelancer/moonsharp
 [submodule "extern/thorncompiler"]
 	path = extern/thorncompiler
 	url = https://github.com/Librelancer/thorncompiler
@@ -53,3 +50,6 @@
 [submodule "extern/LiteNetLib"]
 	path = extern/LiteNetLib
 	url = https://github.com/RevenantX/LiteNetLib
+[submodule "extern/wattlescript"]
+	path = extern/wattlescript
+	url = https://github.com/WattleScript/wattlescript

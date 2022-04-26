@@ -147,7 +147,7 @@ namespace LibreLancer.Interface
         }
 
         private event Action<double> callback;
-        public void OnUpdate(MoonSharp.Interpreter.Closure handler)
+        public void OnUpdate(WattleScript.Interpreter.Closure handler)
         {
             callback += (x) =>
             {

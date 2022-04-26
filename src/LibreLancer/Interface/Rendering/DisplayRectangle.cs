@@ -1,10 +1,10 @@
 using LibreLancer;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class DisplayRectangle : DisplayElement
     {
         public float MarginTop { get; set; }

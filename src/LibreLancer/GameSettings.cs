@@ -6,11 +6,11 @@ using System.Globalization;
 using System.IO;
 using System.Xml.Serialization;
 using LibreLancer.Ini;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer
 {
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class GameSettings
     {
         [Entry("master_volume")]
@@ -29,7 +29,7 @@ namespace LibreLancer
         public int[] AnisotropyLevels() => RenderContext.GetAnisotropyLevels();
         public int MaxMSAA() => RenderContext.MaxSamples;
 
-        [MoonSharpHidden]
+        [WattleScriptHidden]
         public void Write(TextWriter writer)
         {
             static string Fmt(float f) => f.ToString("F3", CultureInfo.InvariantCulture);
@@ -42,10 +42,10 @@ namespace LibreLancer
             writer.WriteLine($"msaa = {MSAA}");
         }
         
-        [MoonSharpHidden] 
+        [WattleScriptHidden] 
         public RenderContext RenderContext;
         
-        [MoonSharpHidden]
+        [WattleScriptHidden]
         public GameSettings MakeCopy()
         {
             var gs = new GameSettings();

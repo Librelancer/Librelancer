@@ -3,13 +3,13 @@
 // LICENSE, which is part of this source code package
 using System;
 using System.Numerics;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 //TODO: Implement
 namespace LibreLancer.Interface
 {
     [UiLoadable]
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class CharacterView : Widget3D    
     {
         DfmSkeletonManager Skeleton;

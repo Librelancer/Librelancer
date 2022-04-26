@@ -2,11 +2,11 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class UIInventoryItem
     {
         public int ID; //id - for inventory

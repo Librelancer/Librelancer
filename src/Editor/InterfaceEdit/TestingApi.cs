@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Infocards;
 using LibreLancer.Net;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace InterfaceEdit
 {
@@ -411,7 +411,7 @@ namespace InterfaceEdit
         public void NewCharacter(string name, int index) { }
     }
 
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class FakeShipDealer
     {
         public UISoldShip[] SoldShips() => new[]{

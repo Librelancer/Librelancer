@@ -6,12 +6,12 @@ using System;
 using System.Numerics;
 using System.Xml.Schema;
 using LibreLancer;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class Button : UiWidget
     {
         public bool Selected { get; set; }
@@ -198,7 +198,7 @@ namespace LibreLancer.Interface
 
         event Action Clicked;
 
-        public void OnClick(MoonSharp.Interpreter.Closure handler)
+        public void OnClick(WattleScript.Interpreter.Closure handler)
         {
             Clicked += () =>
             {

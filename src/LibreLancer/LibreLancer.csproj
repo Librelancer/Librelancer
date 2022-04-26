@@ -16,8 +16,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\extern\LiteNetLib\LiteNetLib\LiteNetLib.csproj" />
-    <ProjectReference Include="..\..\extern\moonsharp\src\MoonSharp.Interpreter\MoonSharp.Interpreter.csproj" />
-    <ProjectReference Include="..\..\extern\moonsharp\src\MoonSharp.HardwireGen\MoonSharp.HardwireGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\..\extern\wattlescript\src\WattleScript.HardwireGen\WattleScript.HardwireGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer"/>
+    <ProjectReference Include="..\..\extern\wattlescript\src\WattleScript.Interpreter\WattleScript.Interpreter.csproj" />
     <ProjectReference Include="..\Editor\LibreLancer.ImUI\LibreLancer.ImUI.csproj" />
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj" />
     <ProjectReference Include="..\Librelancer.Database\LibreLancer.Database.csproj" />

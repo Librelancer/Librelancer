@@ -10,10 +10,10 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using LibreLancer.Infocards;
-using MoonSharp.Interpreter;
-using MoonSharp.Interpreter.Interop.BasicDescriptors;
-using MoonSharp.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors;
-using MoonSharp.Interpreter.Loaders;
+using WattleScript.Interpreter;
+using WattleScript.Interpreter.Interop.BasicDescriptors;
+using WattleScript.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors;
+using WattleScript.Interpreter.Loaders;
 
 namespace LibreLancer.Interface
 {
@@ -185,7 +185,7 @@ namespace LibreLancer.Interface
             
             foreach (var type in typeof(LuaContext).Assembly.GetTypes())
             {
-                if (type.GetCustomAttributes(false).OfType<MoonSharpUserDataAttribute>().Any())
+                if (type.GetCustomAttributes(false).OfType<WattleScriptUserDataAttribute>().Any())
                 {
                     typeTable[type.FullName.Replace(".", "_")] = type;
                 }
@@ -257,7 +257,7 @@ namespace LibreLancer.Interface
             timers.Add(new LuaTimer() { Time = timer, Function = func});
         }
         
-        [MoonSharpUserData]
+        [WattleScriptUserData]
         public class ContextFunctions
         {
             private LuaContext c;

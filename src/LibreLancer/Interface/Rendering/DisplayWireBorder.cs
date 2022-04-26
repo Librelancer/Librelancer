@@ -1,11 +1,11 @@
 
 using System.Runtime.CompilerServices;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class DisplayWireBorder : DisplayElement
     {
         public float Width { get; set; } = 1;

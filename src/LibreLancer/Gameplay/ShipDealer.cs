@@ -10,11 +10,11 @@ using LibreLancer.GameData;
 using LibreLancer.GameData.Items;
 using LibreLancer.Interface;
 using LibreLancer.Net;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer
 {
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class ShipDealer
     {
         private CGameSession session;

@@ -4,11 +4,11 @@
 
 using LibreLancer.GameData;
 using LibreLancer.Net;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
-    [MoonSharpUserData]
+    [WattleScriptUserData]
 
     public class UISoldShip
     {
@@ -18,9 +18,9 @@ namespace LibreLancer.Interface
         public string Icon;
         public string Model;
         public double Price;
-        [MoonSharpHidden] 
+        [WattleScriptHidden] 
         public NetSoldShip Server;
-        [MoonSharpHidden]
+        [WattleScriptHidden]
         public Ship Ship;
     }
 }

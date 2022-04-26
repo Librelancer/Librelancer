@@ -1,11 +1,11 @@
 using LibreLancer;
 using System.Collections.Generic;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
     [UiLoadable]
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class UiRenderable
     {
         [UiContent]

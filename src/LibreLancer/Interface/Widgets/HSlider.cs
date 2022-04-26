@@ -5,15 +5,15 @@
 using System;
 using System.Linq;
 using LibreLancer;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     [UiLoadable]
     public class HSlider : UiWidget
     {
-        [MoonSharpHidden]
+        [WattleScriptHidden]
         public HSliderStyle Style;
 
         private float ScrollOffset;

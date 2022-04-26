@@ -5,11 +5,11 @@ using System.Linq;
 using LibreLancer.Data;
 using LibreLancer.Data.Save;
 using LibreLancer.Interface;
-using MoonSharp.Interpreter;
+using WattleScript.Interpreter;
 
 namespace LibreLancer
 {
-    [MoonSharpUserData]
+    [WattleScriptUserData]
     public class SaveGameFolder : ITableData
     {
         class SaveGameFile
@@ -21,12 +21,12 @@ namespace LibreLancer
         private List<SaveGameFile> files = new List<SaveGameFile>();
         private InfocardManager infocards;
 
-        [MoonSharpHidden] public InfocardManager Infocards
+        [WattleScriptHidden] public InfocardManager Infocards
         {
             get => infocards;
             set => infocards = value;
         }
-        [MoonSharpHidden] public string SelectedFile => ValidSelection() ? files[Selected].Path : null;
+        [WattleScriptHidden] public string SelectedFile => ValidSelection() ? files[Selected].Path : null;
         public int Count => files.Count;
         public int Selected { get; set; }
         public string GetContentString(int row, string column)
