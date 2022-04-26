@@ -3,24 +3,18 @@ using System.IO;
 using System.Collections.Generic;
 using System.IO.Compression;
 using System.Text;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace LibreLancer.Interface
 {
     //Output of InterfaceEdit, works OK with version control
     public class InterfaceTextBundle
     {
-        public SortedDictionary<string, string> db = new SortedDictionary<string, string>();
-
-        private static JsonSerializer _json = JsonSerializer.Create(new JsonSerializerSettings()
-        {
-            Formatting = Formatting.Indented
-        });
+        public SortedDictionary<string, string> db { get; set; } = new SortedDictionary<string, string>();
+        
         public string ToJSON()
         {
-            var writer = new StringWriter();
-            _json.Serialize(writer, this);
-            return writer.ToString();
+            return JsonSerializer.Serialize(this, new JsonSerializerOptions() {WriteIndented = true});
         }
 
         public bool Exists(string key)
@@ -30,8 +24,14 @@ namespace LibreLancer.Interface
         
         public static InterfaceTextBundle FromJSON(string text)
         {
-            var reader = new StringReader(text);
-            return (InterfaceTextBundle)_json.Deserialize(reader, typeof(InterfaceTextBundle));
+            //Quicker to use JsonDocument than to spin up a serializer
+            var doc = JsonDocument.Parse(text);
+            var tb = new InterfaceTextBundle();
+            var db = doc.RootElement.GetProperty("db");
+            foreach (var kv in db.EnumerateObject()) {
+                tb.db[kv.Name] = kv.Value.GetString();
+            }
+            return tb;
         }
         
         public void AddStringCompressed(string key, string value)

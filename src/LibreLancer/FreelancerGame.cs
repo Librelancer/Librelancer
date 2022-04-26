@@ -66,10 +66,17 @@ namespace LibreLancer
 			currentState = state;
 		}
 
-        public bool InisLoaded = false;
+        public volatile bool InisLoaded = false;
 		protected override void Load()
         {
             Thread.CurrentThread.Name = "FreelancerGame UIThread";
+            //Hacky but reduces load time by initing XmlSerializer
+            //as well JIT'ing the lua hardwire on a background thread.
+            Task.Run(() =>
+            {
+                new InterfaceResources().ToXml();
+                LuaContext.Initialize();
+            });
 			//Move to stop _TSGetMainThread error on OSX
 			MinimumWindowSize = new Point(640, 480);
 			SetVSync(Config.Settings.VSync);
