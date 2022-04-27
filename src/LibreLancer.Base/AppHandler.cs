@@ -12,6 +12,17 @@ namespace LibreLancer
     {
         [DllImport("kernel32.dll")]
         static extern bool SetDllDirectory(string directory);
+        
+        public static void ConsoleInit()
+        {
+            if (Platform.RunningOS == OS.Windows)
+            {
+                string bindir = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);
+                var fullpath = Path.Combine(bindir, IntPtr.Size == 8 ? "x64" : "x86");
+                SetDllDirectory(fullpath);
+            }
+        }
+        
         public static void Run(Action action, Action onCrash = null)
         {
             string errorMessage =  $"Librelancer has crashed. See the log for more information.";

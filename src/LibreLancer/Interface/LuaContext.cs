@@ -36,6 +36,9 @@ namespace LibreLancer.Interface
             UserData.RegisterType(new Vector3Lua());
         }
 
+        //Run static .cctor
+        public static void Initialize() { }
+
         class Vector2Lua : HardwiredUserDataDescriptor
         {
             public Vector2Lua() : base(typeof(Vector2))
