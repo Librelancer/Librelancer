@@ -82,6 +82,50 @@ namespace InterfaceEdit
             return Selected > -1;
         }
     }
+    
+    [WattleScriptUserData]
+    public class FakeKeyMap : ITableData
+    {
+        public int Count => 3;
+        public int Selected { get; set; } = -1;
+        public string GetContentString(int row, string column)
+        {
+            switch (column)
+            {
+                case "key": return "Key";
+                case "primary": return "Prim";
+                case "secondary": return "Sec";
+            }
+            return "";
+        }
+
+        public void SetGroup(int group)
+        {
+            //No-op
+        }
+
+        public void CaptureInput(int index, bool primary, Closure onFinish)
+        {
+            //No-op
+        }
+
+        public void CancelCapture()
+        {
+        }
+
+        public void ClearCapture()
+        {
+        }
+
+        public int GetKeyId(int row) => 1109;
+
+
+        public bool ValidSelection()
+        {
+            return Selected > -1;
+        }
+    }
+
 
     public class TestingApi
     {
@@ -92,6 +136,7 @@ namespace InterfaceEdit
             LuaContext.RegisterType<TestCharacterList>();
             LuaContext.RegisterType<TestSaveGameList>();
             LuaContext.RegisterType<FakeShipDealer>();
+            LuaContext.RegisterType<FakeKeyMap>();
         }
 
         static readonly NavbarButtonInfo cityscape = new NavbarButtonInfo("IDS_HOTSPOT_EXIT", "Cityscape");
@@ -355,8 +400,10 @@ namespace InterfaceEdit
             }
         }
 
-       
 
+
+        public FakeKeyMap GetKeyMap() => new FakeKeyMap();
+        
         public TraderFake Trader = new TraderFake();
         public FakeShipDealer ShipDealer = new FakeShipDealer();
 
@@ -411,6 +458,7 @@ namespace InterfaceEdit
         public void NewCharacter(string name, int index) { }
     }
 
+    
     [WattleScriptUserData]
     public class FakeShipDealer
     {

@@ -42,6 +42,14 @@ namespace LibreLancer.Interface
             foreach(var child in Children)
                 child.OnMouseUp(context, myRectangle);
         }
+        
+        public override void OnMouseDoubleClick(UiContext context, RectangleF parentRectangle)
+        {
+            if (!Visible) return;
+            var myRectangle = GetMyRectangle(context, parentRectangle);
+            foreach(var child in Children)
+                child.OnMouseDoubleClick(context, myRectangle);
+        }
 
         public override void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta)
         {

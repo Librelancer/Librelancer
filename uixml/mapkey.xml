@@ -1,0 +1,11 @@
+<Scene>
+	<Panel Anchor="Center" Width="410" Height="177">
+		<Panel.Background>
+			<DisplayModel model="errorexplanation.cmp"/>
+		</Panel.Background>
+		<Button id="clear" Anchor="BottomLeft" style="wirebutton" Text="clear" Strid="1688" Width="130" Height="32" X="50" Y="18"/>
+		<Button id="cancel" Anchor="BottomRight" style="wirebutton" Text="cancel" Strid="1597" Width="130" Height="32" X="50" Y="18"/>
+		<TextBlock Y="38" Strid="1510" TextSize="13" TextColor="text" TextShadow="black" Anchor="TopCenter" Width="410" Height="30" Text="title"/>
+		<TextBlock id="keyName" TextColor="text" TextSize="13" TextShadow="black" Anchor="Center" Width="410" Height="30" Text="content"/>
+	</Panel>
+</Scene>

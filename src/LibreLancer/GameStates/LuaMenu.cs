@@ -42,6 +42,8 @@ namespace LibreLancer
 #if DEBUG
             g.Keyboard.KeyDown += Keyboard_KeyDown;
 #endif
+            g.Keyboard.KeyUp += Keyboard_OnKeyUp;
+            g.Mouse.MouseUp += Mouse_MouseUp;
             Game.Saves.Selected = -1;
             if (g.LoadTimer != null)
             {
@@ -52,15 +54,44 @@ namespace LibreLancer
             FadeIn(0.1, 0.3);
         }
 
+        private void Mouse_MouseUp(MouseEventArgs e)
+        {
+            if (e.Buttons != MouseButtons.Left && KeyCaptureContext.Capturing(keyCapture))
+            {
+                keyCapture.Set(UserInput.FromMouse(e.Buttons));
+            }
+        }
+
+        private KeyCaptureContext keyCapture;
+        private void Keyboard_OnKeyUp(KeyEventArgs e)
+        {
+            if (KeyCaptureContext.Capturing(keyCapture))
+            {
+                if (e.Key != Keys.Escape &&
+                    e.Key != Keys.F1)
+                {
+                    keyCapture.Set(UserInput.FromKey(e.Modifiers, e.Key));
+                }
+                else
+                {
+                    keyCapture.Cancel();
+                }
+            }
+        }
+
+
         private void UiTextInput(string text)
         {
-            ui.OnTextEntry(text);
+            if(!KeyCaptureContext.Capturing(keyCapture))
+                ui.OnTextEntry(text);
         }
 
         private void UiKeyDown(KeyEventArgs e)
         {
-            ui.OnKeyDown(e.Key);
+            if(!KeyCaptureContext.Capturing(keyCapture))
+                ui.OnKeyDown(e.Key);
         }
+        
         [WattleScript.Interpreter.WattleScriptUserData]
         public class ServerList : ITableData
         {
@@ -115,6 +146,16 @@ namespace LibreLancer
             public MenuAPI(LuaMenu m)
             {
                 state = m;
+            }
+
+            public KeyMapTable GetKeyMap()
+            {
+                var table = new KeyMapTable(state.Game.InputMap, state.Game.GameData.Ini.Infocards);
+                table.OnCaptureInput += (k) =>
+                {
+                    state.keyCapture = k;
+                };
+                return table;
             }
             
             public GameSettings GetCurrentSettings() => state.Game.Config.Settings.MakeCopy();
@@ -337,6 +378,8 @@ namespace LibreLancer
 #if DEBUG
             Game.Keyboard.KeyDown -= Keyboard_KeyDown;
 #endif
+            Game.Keyboard.KeyUp -= Keyboard_OnKeyUp;
+            Game.Mouse.MouseUp -= Mouse_MouseUp;
         }
     }
 }

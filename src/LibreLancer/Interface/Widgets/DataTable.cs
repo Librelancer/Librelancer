@@ -111,6 +111,8 @@ namespace LibreLancer.Interface
         {
             if (Width <= 0 || Height <= 0) return;
             if (!Visible) return;
+            if (dividerPositions == null) GenerateDividerPositions();
+            if (dividerPositions == null) return;
             var rect = GetMyRectangle(context, parentRectangle);
             if (rect.Contains(context.MouseX, context.MouseY))
             {
@@ -141,20 +143,26 @@ namespace LibreLancer.Interface
             return (x - xm1) > 6 &&
                    (x1 - x) > 6;
         }
+
+        bool CanInteract()
+        {
+            if (Width <= 0 || Height <= 0) return false;
+            if (!Visible) return false;
+            if (data == null) return false;
+            if (dividerPositions == null) GenerateDividerPositions();
+            if (dividerPositions == null) return false;
+            return true;
+        }
         
         public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
         {
-            if (Width <= 0 || Height <= 0) return;
-            if (!Visible) return;
-            if (data == null) return;
+            if (!CanInteract()) return;
             var rect = GetMyRectangle(context, parentRectangle);
             var rowCount = Math.Min(DisplayRowCount, data.Count);
             for (int row = 0; row < rowCount; row++)
             {
                 for (int column = 0; column < Columns.Count; column++)
                 {
-                    var str = data.GetContentString(row, Columns[column].Data);
-                    if (string.IsNullOrWhiteSpace(str)) continue;
                     var c = GetCell(rect, row, column);
                     if (c.Contains(context.MouseX, context.MouseY))
                     {
@@ -165,12 +173,38 @@ namespace LibreLancer.Interface
                 }
             }
         }
+        
+        public override void OnMouseDoubleClick(UiContext context, RectangleF parentRectangle)
+        {
+            if (!CanInteract()) return;
+            var rect = GetMyRectangle(context, parentRectangle);
+            var rowCount = Math.Min(DisplayRowCount, data.Count);
+            for (int row = 0; row < rowCount; row++)
+            {
+                for (int column = 0; column < Columns.Count; column++)
+                {
+                    var c = GetCell(rect, row, column);
+                    if (c.Contains(context.MouseX, context.MouseY))
+                    {
+                        onDoubleClicked?.Invoke(row, column);
+                        break;
+                    }
+                }
+            }
+        }
 
         private Action onSelect;
+        private Action<int, int> onDoubleClicked;
         public void OnItemSelected(Closure c)
         {
             onSelect = () => c.Call();
         }
+
+        public void OnDoubleClick(Closure c)
+        {
+            onDoubleClicked = (row,column) => c.Call(row,column);
+        }
+        
         public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
         {
             dragging = -1;

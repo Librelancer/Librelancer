@@ -557,6 +557,8 @@ namespace LibreLancer
                                 Mouse.Buttons |= btn;
                                 pressedThisFrame |= btn;
                                 Mouse.OnMouseDown(btn);
+                                if(e.button.clicks == 2)
+                                    Mouse.OnMouseDoubleClick(btn);
                                 break;
                             }
                         case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:

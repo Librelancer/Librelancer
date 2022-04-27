@@ -48,6 +48,7 @@ namespace LibreLancer
         private StoryCutsceneIni currentCutscene;
         private ScriptState currentState = ScriptState.None;
         private Infocard roomInfocard;
+        private InputManager input;
         enum ScriptState
         {
             None,
@@ -98,9 +99,21 @@ namespace LibreLancer
             ui = Game.Ui;
             ui.GameApi = new BaseUiApi(this);
             ui.OpenScene("baseside");
+            input = new InputManager(Game, Game.InputMap);
+            input.ActionDown += Input_Action;
             //Set up THN
             SwitchToRoom(room == null);
             FadeIn(0.8, 1.7);
+        }
+
+        private void Input_Action(InputAction action)
+        {
+            switch (action)
+            {
+                case InputAction.USER_CHAT:
+                    ui.ChatboxEvent();
+                    break;
+            }
         }
 
         private void MouseOnMouseDown(MouseEventArgs e)
@@ -153,6 +166,16 @@ namespace LibreLancer
             }
             
             public GameSettings GetCurrentSettings() => g.Game.Config.Settings.MakeCopy();
+            
+            public KeyMapTable GetKeyMap()
+            {
+                var table = new KeyMapTable(g.Game.InputMap, g.Game.GameData.Ini.Infocards);
+                table.OnCaptureInput += (k) =>
+                {
+                    g.input.KeyCapture = k;
+                };
+                return table;
+            }
 
             public void ApplySettings(GameSettings settings)
             {
@@ -282,6 +305,7 @@ namespace LibreLancer
 			Game.Keyboard.TextInput -= Game_TextInput;
 			Game.Keyboard.KeyDown -= Keyboard_KeyDown;
             Game.Mouse.MouseDown -= MouseOnMouseDown;
+            input.Dispose();
 			scene.Dispose();
 		}
 
@@ -401,7 +425,8 @@ namespace LibreLancer
 		}
 
 		void Keyboard_KeyDown(KeyEventArgs e)
-		{
+        {
+            if (KeyCaptureContext.Capturing(input.KeyCapture)) return;
 			if (ui.KeyboardGrabbed)
 			{
 				ui.OnKeyDown(e.Key);
@@ -420,10 +445,6 @@ namespace LibreLancer
                             SceneOnScriptFinished(waitingForFinish);
                             break;
                     }
-                }
-				if (e.Key == Keys.Enter && !paused)
-                {
-                    ui.ChatboxEvent();
                 }
                 if (e.Key == Keys.F1 && !paused)
                 {

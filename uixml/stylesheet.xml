@@ -307,6 +307,24 @@
 		</ButtonStyle.Hover>
         <ButtonStyle.Disabled TextColor="#666"/>
 	</ButtonStyle>
+	<ButtonStyle Width="90" Height="20" Name="wirebutton_small" MouseEnterSound="ui_rollover">
+		<ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="9" FontFamily="$ButtonText">
+			<ButtonAppearance.Background>
+				<DisplayWireBorder Width="2" Color="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover TextColor="text_hover">
+			<ButtonAppearance.Background>
+				<DisplayWireBorder Width="2" Color="text_hover"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Selected TextColor="yellow">
+			<ButtonAppearance.Background>
+				<DisplayWireBorder Width="2" Color="yellow"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Selected>
+        <ButtonStyle.Disabled TextColor="#666"/>
+	</ButtonStyle>
 	<ButtonStyle Width="15" Height="15" Name="inv_category_weapons">
 		<ButtonStyle.Normal>
 			<ButtonAppearance.Background><DisplayModel model="inv_category_weapons" tint="text"/></ButtonAppearance.Background>
@@ -517,6 +535,7 @@
 		</HSliderStyle.Thumb>
 	</HSliderStyle>
 </Stylesheet>
+
 
 
 

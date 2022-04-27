@@ -85,6 +85,12 @@ local function anisotropy_to_idx(i)
 	return 0
 end
 
+function options:setcontrolcategory(cat)
+	self.keymap:SetGroup(cat - 1)
+	for index, value in ipairs(self.controlcategories) do
+		value.Selected = index == cat
+	end
+end
 
 function options:ctor()
 	local e = self.Elements
@@ -104,7 +110,8 @@ function options:ctor()
 	end)
 	self.Panels = {
 		{ e.performance, e.win_performance },
-		{ e.audio, e.win_audio }
+		{ e.audio, e.win_audio },
+		{ e.controls, e.win_controls }
 	}
 	for _, p in ipairs(self.Panels) do
 		p[1]:OnClick(function() self:panel(p) end)
@@ -112,6 +119,22 @@ function options:ctor()
 	self:panel(self.Panels[1])
 	self.opts = Game:GetCurrentSettings()
 	e.sfxvol.Value = self.opts.SfxVolume
+	self.keymap = Game:GetKeyMap()
+	e.listtable:SetData(self.keymap)
+	e.listtable:OnDoubleClick(function(row, column)
+		local mk = mapkey(self.keymap:GetKeyId(row), function(reason)
+			if reason == 'cancel' then
+				self.keymap:CancelCapture()
+			elseif reason == 'clear' then
+				self.keymap:ClearCapture()
+			end
+		end)
+		OpenModal(mk)
+		self.keymap:CaptureInput(row, column != 2, function()
+			mk:Close('captured')
+			print("captured!")
+		end)
+	end)
 	e.musicvol.Value = self.opts.MusicVolume
 	self.AnisotropyLevels = self.opts.AnisotropyLevels()
 	local anisotropy = {
@@ -122,7 +145,18 @@ function options:ctor()
 	end
 	self.MSAA = val_selection(e.msaa_left, e.msaa_right, e.msaa_display, msaa_levels, 1, msaa_to_idx(self.opts:MaxMSAA()), msaa_to_idx(self.opts.MSAA))
 	self.AF = val_selection(e.af_left, e.af_right, e.af_display, anisotropy, 1, #anisotropy, anisotropy_to_idx(self.opts.Anisotropy))
+
+	self.controlcategories = { e.cat_ship, e.cat_ui, e.cat_mp }
+	e.cat_ship:OnClick(function() self:setcontrolcategory(1) end)
+	e.cat_ui:OnClick(function() self:setcontrolcategory(2) end)
+	e.cat_mp:OnClick(function() self:setcontrolcategory(3) end)
 end
+
+
+
+
+
+
 
 
 

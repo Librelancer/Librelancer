@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\extern\LiteNetLib\LiteNetLib\LiteNetLib.csproj" />
-    <ProjectReference Include="..\..\extern\wattlescript\src\WattleScript.HardwireGen\WattleScript.HardwireGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer"/>
+    <ProjectReference Include="..\..\extern\wattlescript\src\WattleScript.HardwireGen\WattleScript.HardwireGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     <ProjectReference Include="..\..\extern\wattlescript\src\WattleScript.Interpreter\WattleScript.Interpreter.csproj" />
     <ProjectReference Include="..\Editor\LibreLancer.ImUI\LibreLancer.ImUI.csproj" />
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj" />

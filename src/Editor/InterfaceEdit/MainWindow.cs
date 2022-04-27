@@ -366,7 +366,11 @@ namespace InterfaceEdit
                 }
                 _playContext.Update(null, TotalTime, mX, mY, false);
                 mouseWanted = _playContext.MouseWanted(mX, mY);
-                if(ImGui.IsItemClicked(0)) _playContext.OnMouseClick();
+                if (ImGui.IsItemClicked(0))
+                {
+                    _playContext.OnMouseClick();
+                    if(ImGui.IsMouseDoubleClicked(0)) _playContext.OnMouseDoubleClick();
+                }
                 var isDown = ImGui.IsMouseDown(0);
                 if (lastDown && !isDown) _playContext.OnMouseUp();
                 if (isDown && !lastDown) _playContext.OnMouseDown();

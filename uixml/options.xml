@@ -1,10 +1,10 @@
 <Scene ID="options">
-	<ImageFile Path="uiscreens/audiooptions.png" Width="640" Height="480" Anchor="Center" Tint="magenta"/>
+	<ImageFile Path="controls.png" Width="640" Height="480" Anchor="Center" Tint="magenta" Visible="false"/>
  	<ImageFile Path="INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga" ID="fllogo" Width="640" Height="480"/>
  	<Scene Visible="false" id="backdrop"><Scene.Background><DisplayColor color="rgba(0,0,0,0.25)"/></Scene.Background></Scene>
 	<Panel Width="640" Height="480" Anchor="Center">
 		<Button X="33" Y="89" Style="menubutton" ID="general" Text="GENERAL" Enabled="false" />
-		<Button X="33" Y="141" Style="menubutton" ID="controls" Text="CONTROLS" Enabled="false" />
+		<Button X="33" Y="141" Style="menubutton" ID="controls" Text="CONTROLS" />
 		<Button X="33" Y="193" Style="menubutton" ID="performance" Text="PERFORMANCE"/>
 		<Button X="33" Y="246" Style="menubutton" ID="audio" Text="AUDIO"/>
 		<Button X="33" Y="298" Style="menubutton" ID="credits" Text="CREDITS" Enabled="false" />
@@ -20,7 +20,22 @@
 				<TextBlock X="18" Y="59" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Strid="1337"/>
 				<HSlider Width="175" Height="12" X="196" Y="64" id="musicvol"/>
 			</Panel>
-			<Panel Width="390" Height="480" ID="win_performance" Visible="true">
+			<Panel Width="390" Height="480" ID="win_controls" Visible="true">
+				<TextBlock Text="Control Options" Strid="1681" Width="390" Height="22" Y="-22"  Anchor="TopCenter" TextColor="text" TextShadow="black" TextSize="13"/>
+				<Button id="cat_ship" style="wirebutton_small" Text="Ship Controls" Strid="1902" X="37" Y="29" Selected="true"/>
+				<Button id="cat_ui" style="wirebutton_small" Text="Ui" Strid="1903" Y="29" X="146" />
+				<Button id="cat_mp" style="wirebutton_small" Text="mp" Strid="1904" Y="29" X="255" />
+				<DataTable id="listtable" X="26" Y="64" Width="339" Height="249" Visible="true"
+        			DisplayRowCount="14" BodyFont="$Normal" LineColor="text" LineHover="text_hover" LineDown="yellow" HeaderColor="text"
+         			BodyColor="text" BodyTextSize="9" BodyHover="text_hover" SelectedColor="yellow" HeaderTextSize="10" ShowHeaders="true" ShowColumnBorders="true">
+					<DataTable.Columns>
+						<TableColumn Label="" Data="key" InitialWidthPercent="33" TextAlignment="left"/>
+						<TableColumn Strid="1891" Label="primary" Data="primary" InitialWidthPercent="33"/>
+						<TableColumn Strid="1892" Label="secondary" Data="secondary" InitialWidthPercent="33"/>
+					</DataTable.Columns>
+				</DataTable>
+			</Panel>
+			<Panel Width="390" Height="480" ID="win_performance" Visible="false">
 				<TextBlock Text="PERFORMANCE OPTIONS" Strid="1677" Width="390" Height="22" Y="-22"  Anchor="TopCenter" TextColor="text" TextShadow="black" TextSize="13"/>
 				<!-- MSAA -->
 				<TextBlock X="18" Y="30" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Text="ANTI-ALIASING"/>
@@ -36,6 +51,11 @@
 		</Panel>
 	</Panel>
 </Scene> 
+
+
+
+
+
 
 
 

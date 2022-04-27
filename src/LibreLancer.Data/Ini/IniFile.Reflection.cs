@@ -51,6 +51,7 @@ namespace LibreLancer.Ini
         class ContainerClass
         {
             public ReflectionSection[] Sections;
+            public uint[] IgnoreHashes;
             public uint[] SectionHashes;
 
             public ReflectionSection GetSection(string s)
@@ -152,6 +153,8 @@ namespace LibreLancer.Ini
                 if (containerclasses.TryGetValue(t, out cinfo)) return cinfo;
                 cinfo = new ContainerClass();
                 var sections = new List<ReflectionSection>();
+                cinfo.IgnoreHashes =
+                    t.GetCustomAttributes<IgnoreSectionAttribute>().Select(x => Hash(x.Name)).ToArray();
                 foreach (var field in t.GetFields(F_CLASSMEMBERS))
                 {
                     foreach (var attr in field.GetCustomAttributes<SectionAttribute>())
@@ -503,6 +506,7 @@ namespace LibreLancer.Ini
         
         void ProcessSection(Section section, ContainerClass sections, string datapath = null, FileSystem vfs = null)
         {
+            if (sections.IgnoreHashes.Contains(Hash(section.Name))) return;
             var tgt = sections.GetSection(section.Name);
             if (tgt == null)
             {

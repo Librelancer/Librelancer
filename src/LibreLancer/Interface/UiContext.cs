@@ -57,7 +57,17 @@ namespace LibreLancer.Interface
             this.game = game;
             game.Mouse.MouseDown += MouseOnMouseDown;
             game.Mouse.MouseUp += MouseOnMouseUp;
+            game.Mouse.MouseDoubleClick += MouseOnDoubleClick;
             CommandBuffer = new CommandBuffer();
+        }
+
+        private void MouseOnDoubleClick(MouseEventArgs e)
+        {
+            if (game.Debug.CaptureMouse) return;
+            if ((e.Buttons & MouseButtons.Left) == MouseButtons.Left)
+            {
+                OnMouseDoubleClick();
+            }
         }
 
         public void LoadCode()
@@ -297,6 +307,8 @@ namespace LibreLancer.Interface
         public void OnMouseDown() => GetActive()?.OnMouseDown(this, GetRectangle());
         public void OnMouseUp() => GetActive()?.OnMouseUp(this, GetRectangle());
         public void OnMouseClick() => GetActive()?.OnMouseClick(this, GetRectangle());
+        
+        public void OnMouseDoubleClick() => GetActive()?.OnMouseDoubleClick(this, GetRectangle());
 
         public void OnMouseWheel(float delta) => GetActive()?.OnMouseWheel(this, GetRectangle(), delta);
 

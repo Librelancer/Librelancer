@@ -143,9 +143,8 @@ World Time: {12:F2}
             Game.Keyboard.KeyDown += Keyboard_KeyDown;
             Game.Mouse.MouseDown += Mouse_MouseDown;
             Game.Mouse.MouseUp += Mouse_MouseUp;
-            input = new InputManager(Game);
-            input.ToggleActivated += Input_ToggleActivated;
-            input.ToggleUp += Input_ToggleUp;
+            input = new InputManager(Game, Game.InputMap);
+            input.ActionUp += Input_ActionUp;
             pilotcomponent = new AutopilotComponent(player);
             player.Components.Add(pilotcomponent);
             player.World = world;
@@ -166,6 +165,15 @@ World Time: {12:F2}
                 this.g = gameplay;   
             }
 
+            public KeyMapTable GetKeyMap()
+            {
+                var table = new KeyMapTable(g.Game.InputMap, g.Game.GameData.Ini.Infocards);
+                table.OnCaptureInput += (k) =>
+                {
+                    g.input.KeyCapture = k;
+                };
+                return table;
+            }
             public GameSettings GetCurrentSettings() => g.Game.Config.Settings.MakeCopy();
 
             public void ApplySettings(GameSettings settings)
@@ -336,7 +344,6 @@ World Time: {12:F2}
             }
             else
             {
-                if(e.Key == Keys.Enter) ui.ChatboxEvent();
                 if (!pausemenu && e.Key == Keys.F1)
                 {
                     pausemenu = true;
@@ -471,28 +478,21 @@ World Time: {12:F2}
 
 		bool mouseFlight = false;
 
-		void Input_ToggleActivated(int id)
+		void Input_ActionUp(InputAction action)
 		{
 			if (ui.KeyboardGrabbed || paused) return;
-			switch (id)
+			switch (action)
 			{
-				case InputAction.ID_TOGGLECRUISE:
+				case InputAction.USER_CRUISE:
                     control.CruiseToggle();
 					break;
-				case InputAction.ID_TOGGLEMOUSEFLIGHT:
+				case InputAction.USER_TURN_SHIP:
 					mouseFlight = !mouseFlight;
 					break;
-				case InputAction.ID_THRUST:
-					control.ThrustEnabled = true;
-					break;
-			}
-		}
-
-		void Input_ToggleUp(int obj)
-		{
-            if (ui.KeyboardGrabbed || paused) return;
-            if (obj == InputAction.ID_THRUST)
-				control.ThrustEnabled = false;
+                case InputAction.USER_CHAT:
+                    ui.ChatboxEvent();
+                    break;
+            }
 		}
 
         private bool isLeftDown = false;
@@ -545,13 +545,13 @@ World Time: {12:F2}
 
 			if (!ui.KeyboardGrabbed)
             {
-				if (input.ActionDown(InputAction.ID_THROTTLEUP))
+				if (input.IsActionDown(InputAction.USER_INC_THROTTLE))
 				{
                     shipInput.Throttle += (float)(delta);
 					shipInput.Throttle = MathHelper.Clamp(shipInput.Throttle, 0, 1);
 				}
 
-				else if (input.ActionDown(InputAction.ID_THROTTLEDOWN))
+				else if (input.IsActionDown(InputAction.USER_DEC_THROTTLE))
 				{
                     shipInput.Throttle -= (float)(delta);
                     shipInput.Throttle = MathHelper.Clamp(shipInput.Throttle, 0, 1);
@@ -562,10 +562,10 @@ World Time: {12:F2}
 			StrafeControls strafe = StrafeControls.None;
             if (!ui.KeyboardGrabbed)
 			{
-				if (input.ActionDown(InputAction.ID_STRAFELEFT)) strafe |= StrafeControls.Left;
-				if (input.ActionDown(InputAction.ID_STRAFERIGHT)) strafe |= StrafeControls.Right;
-				if (input.ActionDown(InputAction.ID_STRAFEUP)) strafe |= StrafeControls.Up;
-				if (input.ActionDown(InputAction.ID_STRAFEDOWN)) strafe |= StrafeControls.Down;
+				if (input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_UP)) strafe |= StrafeControls.Left;
+				if (input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_RIGHT)) strafe |= StrafeControls.Right;
+				if (input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_UP)) strafe |= StrafeControls.Up;
+				if (input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_DOWN)) strafe |= StrafeControls.Down;
             }
 
 			var pc = player.PhysicsComponent;
@@ -605,7 +605,7 @@ World Time: {12:F2}
             }
 
            
-            if (Game.Mouse.IsButtonDown(MouseButtons.Right))
+            if (input.IsActionDown(InputAction.USER_FIRE_WEAPONS))
                 weapons.FireAll();
             if (world.Projectiles.HasQueued)
             {

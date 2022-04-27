@@ -30,6 +30,7 @@ namespace LibreLancer
 		public string MpvOverride;
 		public bool InitialLoadComplete = false;
         public Stopwatch LoadTimer;
+        public InputMap InputMap = new InputMap();
 		int uithread;
 		bool useintromovies;
 		GameState currentState;
@@ -99,6 +100,7 @@ namespace LibreLancer
                 GameData.LoadData(this, () =>
                 {
                     Sound = new SoundManager(GameData, Audio, this);
+                    InputMap.LoadFromKeymap(GameData.Ini.Keymap, GameData.Ini.KeyList);
                     Services.Add(Sound);
                     InisLoaded = true;
                 });

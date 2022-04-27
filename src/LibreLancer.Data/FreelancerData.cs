@@ -66,6 +66,8 @@ namespace LibreLancer.Data
         public NavmapIni Navmap; //Extension
         public NPCShipIni NPCShips;
         public PilotsIni Pilots;
+        public KeymapIni Keymap;
+        public KeyListIni KeyList;
         
         public string DataVersion;
         public bool Loaded = false;
@@ -321,6 +323,11 @@ namespace LibreLancer.Data
             {
                 HpTypes = new HpTypesIni();
                 HpTypes.LoadDefault();
+            }));
+            tasks.Add(Task.Run(() =>
+            {
+                Keymap = new KeymapIni(Freelancer.DataPath + "interface\\keymap.ini", VFS);
+                KeyList = new KeyListIni(Freelancer.DataPath + "interface\\keylist.ini", VFS);
             }));
             ContentDll = new ContentDll();
             if (VFS.FileExists("DLLS\\BIN\\content.dll"))
