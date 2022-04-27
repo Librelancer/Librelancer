@@ -29,7 +29,15 @@ namespace Launcher
             FileDialog.RegisterParent(this);
             freelancerFolder = new TextBuffer(512);
             config = GameConfig.Create();
-            freelancerFolder.SetText(config.FreelancerPath);
+            if (config.FreelancerPath == "")
+            {
+                if (Platform.RunningOS == OS.Windows) {
+                    string CombinedPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),"\\Microsoft Games\\Freelancer");
+                    freelancerFolder.SetText(CombinedPath);
+                }
+            }
+            else
+                freelancerFolder.SetText(config.FreelancerPath);
             resolutionX = config.BufferWidth;
             resolutionY = config.BufferHeight;
             vsync = config.Settings.VSync;
@@ -67,7 +75,7 @@ namespace Launcher
                 ImGuiWindowFlags.NoSavedSettings |
                 ImGuiWindowFlags.NoBringToFrontOnFocus |
                 ImGuiWindowFlags.NoMove |
-                ImGuiWindowFlags.NoResize | 
+                ImGuiWindowFlags.NoResize |
                 ImGuiWindowFlags.NoBackground);
             if (ImGui.BeginPopupModal("Error", ref openError, ImGuiWindowFlags.AlwaysAutoResize))
             {
@@ -160,7 +168,7 @@ namespace Launcher
             ImGui.SliderFloat("##slider", ref flt, 0, 1);
             ImGui.PopID();
         }
-        
+
         private string GetBasePath()
         {
             using var processModule = Process.GetCurrentProcess().MainModule;
