@@ -1,5 +1,4 @@
 <Scene ID="options">
-	<ImageFile Path="controls.png" Width="640" Height="480" Anchor="Center" Tint="magenta" Visible="false"/>
  	<ImageFile Path="INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga" ID="fllogo" Width="640" Height="480"/>
  	<Scene Visible="false" id="backdrop"><Scene.Background><DisplayColor color="rgba(0,0,0,0.25)"/></Scene.Background></Scene>
 	<Panel Width="640" Height="480" Anchor="Center">
@@ -25,13 +24,15 @@
 				<Button id="cat_ship" style="wirebutton_small" Text="Ship Controls" Strid="1902" X="37" Y="29" Selected="true"/>
 				<Button id="cat_ui" style="wirebutton_small" Text="Ui" Strid="1903" Y="29" X="146" />
 				<Button id="cat_mp" style="wirebutton_small" Text="mp" Strid="1904" Y="29" X="255" />
+				<Button id="ctrl_default" style="wirebutton_small" Text="def" Strid="1508" Y="331" X="45" />
+				<Button id="ctrl_cancel" style="wirebutton_small" Text="canc" Strid="1597" Y="331" X="240" />
 				<DataTable id="listtable" X="26" Y="64" Width="339" Height="249" Visible="true"
         			DisplayRowCount="14" BodyFont="$Normal" LineColor="text" LineHover="text_hover" LineDown="yellow" HeaderColor="text"
          			BodyColor="text" BodyTextSize="9" BodyHover="text_hover" SelectedColor="yellow" HeaderTextSize="10" ShowHeaders="true" ShowColumnBorders="true">
 					<DataTable.Columns>
-						<TableColumn Label="" Data="key" InitialWidthPercent="33" TextAlignment="left"/>
-						<TableColumn Strid="1891" Label="primary" Data="primary" InitialWidthPercent="33"/>
-						<TableColumn Strid="1892" Label="secondary" Data="secondary" InitialWidthPercent="33"/>
+						<TableColumn Label="" Data="key" InitialWidthPercent="40" TextAlignment="left"/>
+						<TableColumn Strid="1891" Label="primary" Data="primary" InitialWidthPercent="30"/>
+						<TableColumn Strid="1892" Label="secondary" Data="secondary" InitialWidthPercent="30"/>
 					</DataTable.Columns>
 				</DataTable>
 			</Panel>
@@ -51,6 +52,7 @@
 		</Panel>
 	</Panel>
 </Scene> 
+
 
 
 

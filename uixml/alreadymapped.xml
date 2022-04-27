@@ -1,0 +1,12 @@
+<Scene>
+	<Panel Anchor="Center" Width="410" Height="177">
+		<Panel.Background>
+			<DisplayModel model="errorexplanation.cmp"/>
+		</Panel.Background>
+		<Button id="continue" Anchor="BottomLeft" style="wirebutton" Text="continue" Strid="1512" Width="130" Height="32" X="50" Y="18"/>
+		<Button id="cancel" Anchor="BottomRight" style="wirebutton" Text="cancel" Strid="1597" Width="130" Height="32" X="50" Y="18"/>
+		<TextBlock Y="30" id="input" TextSize="13" TextColor="text" TextShadow="black" Anchor="TopCenter" Width="410" Height="30" Text="key"/>
+		<TextBlock Y="58" Strid="1515" TextSize="13" TextColor="text" TextShadow="black" Anchor="TopCenter" Width="410" Height="30" Text="already mapped"/>
+		<TextBlock Y="86" id="keyName" TextColor="text" TextSize="13" TextShadow="black" Anchor="TopCenter" Width="410" Height="30" Text="action"/>
+	</Panel>
+</Scene>

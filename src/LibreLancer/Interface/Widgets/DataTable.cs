@@ -49,6 +49,7 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class DataTable : UiWidget
     {
+        public Scrollbar Scrollbar = new Scrollbar() { Smooth = false };
         public List<TableColumn> Columns { get; set; } = new List<TableColumn>();
         public string BodyFont { get; set; } = "$ListText";
         public int BodyTextSize { get; set; }
@@ -95,6 +96,14 @@ namespace LibreLancer.Interface
             this.data = data;
         }
 
+        int ScrollCount()
+        {
+            int c = data.Count - DisplayRowCount;
+            return c <= 0 ? 0 : c;
+        }
+        
+        private int childOffset = 0;
+        
         private int dragging = -1;
 
         RectangleF GetDividerRect(int index, RectangleF rect)
@@ -114,6 +123,10 @@ namespace LibreLancer.Interface
             if (dividerPositions == null) GenerateDividerPositions();
             if (dividerPositions == null) return;
             var rect = GetMyRectangle(context, parentRectangle);
+            if (_lastScroll > 0) {
+                Scrollbar.OnMouseDown(context, rect);
+                rect.Width -= Scrollbar.Style.Width;
+            }
             if (rect.Contains(context.MouseX, context.MouseY))
             {
                 if (dragging == -1) {
@@ -154,11 +167,21 @@ namespace LibreLancer.Interface
             return true;
         }
         
+        public override void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta)
+        {
+            var rect = GetMyRectangle(context, parentRectangle);
+            if(rect.Contains(context.MouseX, context.MouseY))
+                Scrollbar.OnMouseWheel(delta);
+        }
+        
         public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
         {
             if (!CanInteract()) return;
             var rect = GetMyRectangle(context, parentRectangle);
-            var rowCount = Math.Min(DisplayRowCount, data.Count);
+            if (_lastScroll > 0) {
+                rect.Width -= Scrollbar.Style.Width;
+            }
+            var rowCount = Math.Min(DisplayRowCount, (data.Count - childOffset));
             for (int row = 0; row < rowCount; row++)
             {
                 for (int column = 0; column < Columns.Count; column++)
@@ -166,7 +189,7 @@ namespace LibreLancer.Interface
                     var c = GetCell(rect, row, column);
                     if (c.Contains(context.MouseX, context.MouseY))
                     {
-                        data.Selected = row;
+                        data.Selected = (row + childOffset);
                         onSelect?.Invoke();
                         break;
                     }
@@ -178,7 +201,10 @@ namespace LibreLancer.Interface
         {
             if (!CanInteract()) return;
             var rect = GetMyRectangle(context, parentRectangle);
-            var rowCount = Math.Min(DisplayRowCount, data.Count);
+            if (_lastScroll > 0) {
+                rect.Width -= Scrollbar.Style.Width;
+            }
+            var rowCount = Math.Min(DisplayRowCount, (data.Count - childOffset));
             for (int row = 0; row < rowCount; row++)
             {
                 for (int column = 0; column < Columns.Count; column++)
@@ -186,7 +212,7 @@ namespace LibreLancer.Interface
                     var c = GetCell(rect, row, column);
                     if (c.Contains(context.MouseX, context.MouseY))
                     {
-                        onDoubleClicked?.Invoke(row, column);
+                        onDoubleClicked?.Invoke(row + childOffset, column);
                         break;
                     }
                 }
@@ -207,7 +233,17 @@ namespace LibreLancer.Interface
         
         public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
         {
+            var rect = GetMyRectangle(context, parentRectangle);
+            if (_lastScroll > 0) {
+               Scrollbar.OnMouseUp(context, rect);
+            }
             dragging = -1;
+        }
+
+        public override void ApplyStylesheet(Stylesheet sheet)
+        {
+            base.ApplyStylesheet(sheet);
+            Scrollbar.ApplyStyle(sheet);
         }
 
         RectangleF GetCell(RectangleF parentRect, int row, int column)
@@ -228,6 +264,7 @@ namespace LibreLancer.Interface
 
         private CachedRenderString[] columnStrings;
         private CachedRenderString[][] rowStrings;
+        private int _lastScroll = 0;
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
             if (Width <= 0 || Height <= 0) return;
@@ -236,6 +273,28 @@ namespace LibreLancer.Interface
             if (dividerPositions == null) return;
             var rect = GetMyRectangle(context, parentRectangle);
             Background?.Draw(context, rect);
+            //Update scrolling
+            int scrollCount = ScrollCount();
+            if (scrollCount <= 0) {
+                childOffset = 0;
+                Scrollbar.ScrollOffset = 0;
+                Scrollbar.Tick = 0;
+                Scrollbar.ThumbSize = 1;
+                _lastScroll = 0;
+            } else if (scrollCount != _lastScroll) {
+                _lastScroll = scrollCount;
+                Scrollbar.ThumbSize = 1.0f - (Math.Min(scrollCount, 9) * 0.1f);
+                Scrollbar.Tick = 1.0f / scrollCount;
+                Scrollbar.ScrollOffset = childOffset / (float) scrollCount;
+            } else {
+                childOffset = (int)(Scrollbar.ScrollOffset * scrollCount);
+            }
+
+            if (scrollCount > 0) {
+                Scrollbar.Render(context, rect);
+                rect.Width -= Scrollbar.Style.Width;
+            }
+
             //Handle resizing columns
             if (dragging != -1 && context.MouseLeftDown)
             {
@@ -262,7 +321,7 @@ namespace LibreLancer.Interface
             //Draw content
             if (data != null)
             {
-                var rowCount = Math.Min(DisplayRowCount, data.Count);
+                var rowCount = Math.Min(DisplayRowCount, (data.Count - childOffset));
                 if (rowStrings == null || rowCount != rowStrings.Length || (rowStrings.Length > 0 && rowStrings[0].Length != Columns.Count))
                 {
                     rowStrings = new CachedRenderString[rowCount][];
@@ -276,7 +335,7 @@ namespace LibreLancer.Interface
                     {
                         for (int column = 0; column < Columns.Count; column++)
                         {
-                            var str = data.GetContentString(row, Columns[column].Data);
+                            var str = data.GetContentString(row + childOffset, Columns[column].Data);
                             if (string.IsNullOrWhiteSpace(str)) continue;
                             var c = GetCell(rect, row, column);
                             if (c.Contains(context.MouseX, context.MouseY))
@@ -288,10 +347,10 @@ namespace LibreLancer.Interface
                     }
                     //Render the row
                     var rowColor = Cascade(BodyColor ?? InterfaceColor.White, hovered ? BodyHover : null,
-                        data.Selected == row ? SelectedColor : null);
+                        data.Selected == (row + childOffset) ? SelectedColor : null);
                     for (int column = 0; column < Columns.Count; column++)
                     {
-                        var str = data.GetContentString(row, Columns[column].Data);
+                        var str = data.GetContentString(row + childOffset, Columns[column].Data);
                         if (string.IsNullOrWhiteSpace(str)) continue;
                         var c = GetCell(rect, row, column);
                         DrawText(context, ref rowStrings[row][column], c, BodyTextSize, BodyFont, rowColor, TextShadow, Columns[column].TextAlignment,

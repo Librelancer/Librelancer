@@ -100,6 +100,7 @@ function options:ctor()
 		self.opts.MusicVolume = e.musicvol.Value
 		self.opts.MSAA = idx_to_msaa(self.MSAA.vcurrent)
 		self.opts.Anisotropy = idx_to_anisotropy(self.AF.vcurrent)
+		self.keymap:Save()
 		Game:ApplySettings(self.opts)
 		if self.isModal then
 			Game:Resume()
@@ -130,9 +131,11 @@ function options:ctor()
 			end
 		end)
 		OpenModal(mk)
-		self.keymap:CaptureInput(row, column != 2, function()
+		self.keymap:CaptureInput(row, column != 2, function(state, combo, key, accept)
 			mk:Close('captured')
-			print("captured!")
+			if state == 'overwrite' then
+				OpenModal(alreadymapped(combo, key, function(e) if e == 'continue' then accept() end end))
+			end
 		end)
 	end)
 	e.musicvol.Value = self.opts.MusicVolume
@@ -150,7 +153,10 @@ function options:ctor()
 	e.cat_ship:OnClick(function() self:setcontrolcategory(1) end)
 	e.cat_ui:OnClick(function() self:setcontrolcategory(2) end)
 	e.cat_mp:OnClick(function() self:setcontrolcategory(3) end)
+	e.ctrl_default:OnClick(function() self.keymap:DefaultBindings() end)
+	e.ctrl_cancel:OnClick(function() self.keymap:ResetBindings() end)
 end
+
 
 
 

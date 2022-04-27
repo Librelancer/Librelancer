@@ -11,10 +11,14 @@ public class KeyMapTable : ITableData
 
     private InputMap map;
     private InfocardManager infocards;
+
+    private InputBinding[] mapCopy;
     
     public KeyMapTable(InputMap map, InfocardManager infocards)
     {
         this.map = map;
+        mapCopy = new InputBinding[map.Actions.Length];
+        Array.Copy(map.Actions, mapCopy, map.Actions.Length);
         this.infocards = infocards;
     }
 
@@ -29,9 +33,9 @@ public class KeyMapTable : ITableData
             case "key":
                 return infocards.GetStringResource(map.StrId[(int)map.KeyGroups[groupIndex][row]]);
             case "primary":
-                return map.Actions[(int) map.KeyGroups[groupIndex][row]].Primary.ToDisplayString(infocards);
+                return mapCopy[(int) map.KeyGroups[groupIndex][row]].Primary.ToDisplayString(infocards);
             case "secondary":
-                return map.Actions[(int) map.KeyGroups[groupIndex][row]].Secondary.ToDisplayString(infocards);
+                return mapCopy[(int) map.KeyGroups[groupIndex][row]].Secondary.ToDisplayString(infocards);
         }
         return "";
     }
@@ -44,8 +48,23 @@ public class KeyMapTable : ITableData
 
     public void CaptureInput(int index, bool primary, Closure onFinish)
     {
-        _ctx = new KeyCaptureContext(map.Actions, map.KeyGroups[groupIndex][index], primary, onFinish);
+        _ctx = new KeyCaptureContext(mapCopy, map.KeyGroups[groupIndex][index], primary, infocards, map.StrId, onFinish);
         OnCaptureInput?.Invoke(_ctx);
+    }
+
+    public void DefaultBindings()
+    {
+        Array.Copy(map.DefaultMapping, mapCopy, mapCopy.Length);
+    }
+
+    public void ResetBindings()
+    {
+        Array.Copy(map.Actions, mapCopy, mapCopy.Length);
+    }
+
+    public void Save()
+    {
+        Array.Copy(mapCopy, map.Actions, map.Actions.Length);
     }
     
     public void CancelCapture()
@@ -71,29 +90,68 @@ public class KeyCaptureContext
     private InputAction action;
     private bool primary;
     private Closure captureFinish;
+    private int[] strid;
+    private InfocardManager ic;
 
     public static bool Capturing(KeyCaptureContext ctx)
     {
         return ctx?.active ?? false;
     }
-    public KeyCaptureContext(InputBinding[] map, InputAction action, bool primary, Closure onFinish)
+    public KeyCaptureContext(InputBinding[] map, InputAction action, bool primary, InfocardManager ic, int[] strid, Closure onFinish)
     {
         this.map = map;
         active = true;
         this.action = action;
         this.primary = primary;
+        this.ic = ic;
+        this.strid = strid;
         this.captureFinish = onFinish;
+    }
+
+    InputAction FindAction(UserInput input)
+    {
+        for (int i = 0; i < map.Length; i++)
+        {
+            if (map[i].Primary == input ||
+                map[i].Secondary == input)
+                return (InputAction) i;
+        }
+        return InputAction.COUNT;
+    }
+
+    void SetOverwrite(UserInput input)
+    {
+        for (int i = 0; i < map.Length; i++)
+        {
+            if (map[i].Primary == input) map[i].Primary = default;
+            if (map[i].Secondary == input) map[i].Secondary = default;
+        }
+        if (primary)
+            map[(int) action].Primary = input;
+        else
+            map[(int)action].Secondary = input;
     }
     
     public void Set(UserInput input)
     {
         if (!active) return;
-        if (primary)
-            map[(int) action].Primary = input;
-        else
-            map[(int)action].Secondary = input;
         active = false;
-        captureFinish.Call("ok");
+        InputAction found;
+        if ((found = FindAction(input)) != InputAction.COUNT)
+        {
+            captureFinish.Call("overwrite", input.ToDisplayString(ic), strid[(int) found], (Action) (() =>
+            {
+                SetOverwrite(input);
+            }));
+        }
+        else
+        {
+            if (primary)
+                map[(int) action].Primary = input;
+            else
+                map[(int) action].Secondary = input;
+            captureFinish.Call("ok");
+        }
     }
 
     public void Cancel()

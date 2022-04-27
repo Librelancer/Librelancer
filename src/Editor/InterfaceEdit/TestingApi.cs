@@ -109,6 +109,18 @@ namespace InterfaceEdit
             //No-op
         }
 
+        public void DefaultBindings()
+        {
+        }
+
+        public void ResetBindings()
+        {
+        }
+
+        public void Save()
+        {
+        }
+
         public void CancelCapture()
         {
         }

@@ -9,6 +9,7 @@ namespace LibreLancer;
 public class InputMap
 {
     public InputBinding[] Actions = new InputBinding[(int) InputAction.COUNT];
+    public InputBinding[] DefaultMapping = new InputBinding[(int) InputAction.COUNT];
     public int[] StrId = new int[(int) InputAction.COUNT];
     public int[] InfoId = new int[(int) InputAction.COUNT];
 
@@ -61,10 +62,11 @@ public class InputMap
             }
             StrId[(int) action] = cmd.IdsName;
             InfoId[(int) action] = cmd.IdsInfo;
-            if(cmd.Keys.Count > 0) Actions[(int) action].Primary = ParseKey(cmd.Keys[0]);
-            if (cmd.Keys.Count > 1) Actions[(int) action].Secondary = ParseKey(cmd.Keys[1]);
+            if(cmd.Keys.Count > 0) DefaultMapping[(int) action].Primary = ParseKey(cmd.Keys[0]);
+            if (cmd.Keys.Count > 1) DefaultMapping[(int) action].Secondary = ParseKey(cmd.Keys[1]);
         }
         KeyGroups = keyList.Groups.Select(x => ParseGroup(x.Keys).ToArray()).ToArray();
+        Array.Copy(DefaultMapping, Actions, Actions.Length);
     }
 
     public string Dump()
