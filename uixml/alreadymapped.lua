@@ -1,25 +1,14 @@
-ModalClass(alreadymapped)
-
-function alreadymapped:ctor(key, button, callback)
-    local e = self.Elements
-	e.input.Text = key
-    e.keyName.strid = button
-    self:ModalInit()
-	if callback ~= nil then
-    	self:ModalCallback(callback)
-	end
-    e.continue:OnClick(function()
-        self:Close('continue')
-    end)
-    e.cancel:OnClick(function()
-        self:Close('cancel')
-    end)
-end
-
-
-
-
-
-
-
-
+class alreadymapped : alreadymapped_Designer with Modal 
+{    
+    alreadymapped(key, button, callback)
+    {
+        base();
+        var e = this.Elements;
+        e.input.Text = key;
+        e.keyName.Strid = button;
+        this.ModalInit();
+        if (callback != nil) this.ModalCallback(callback);
+        e.btnContinue.OnClick(() => this.Close('continue'));
+        e.cancel.OnClick(() => this.Close('cancel'));
+    }
+}

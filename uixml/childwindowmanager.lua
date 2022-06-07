@@ -1,48 +1,43 @@
--- Manages child windows
-childwindowmanager = class()
+// Manages child windows
+// Window = { button, window } 1, 2
 
--- Window = { button, window } 1, 2
-
-function childwindowmanager:init(widget, windows)
-	self.windows = windows
-	for i, w in ipairs(windows) do
-		w[1]:OnClick(function() 
-			self:OpenWindow(widget, w[2])
-		end)
-		w[2].OnClose = function()
-			self.CanOpen = true
-			self:SetButtonActive(nil)
-		end
-		w[2].OnOpen = function()
-			self.CanOpen = true
-		end
-	end	
-	self.CanOpen = true
-end
-
-function childwindowmanager:OpenWindow(widget, window)
-	if self.ActiveWindow == window then
-		self.CanOpen = false
-		window:Close()
-	elseif self.CanOpen then
-		self.CanOpen = false
-		if self.ActiveWindow then
-			self.ActiveWindow:Close(function()
-				self.CanOpen = false
-				window:Open(widget)
-				self:SetButtonActive(window)
-			end)
-		else
-			window:Open(widget)
-			self:SetButtonActive(window)
-		end
-	end
-end
-
-function childwindowmanager:SetButtonActive(window)
-	self.ActiveWindow = window
-	for i, w in ipairs(self.windows) do
-		w[1].Selected = (w[2] == window)
-	end
-end
-
+class childwindowmanager
+{
+    childwindowmanager(widget, windows)
+    {
+        this.windows = windows;
+        for (i, w in ipairs(windows)) {
+            w[1].OnClick(() => this.OpenWindow(widget, w[2]));
+            w[2].OnClose = () => { this.CanOpen = true; this.SetButtonActive(nil); };
+            w[2].OnOpen = () => { this.CanOpen = true; }
+        }
+        this.CanOpen = true;
+    }
+    
+    OpenWindow(widget, window)
+    {
+        if(this.ActiveWindow == window) {
+            this.CanOpen = false;
+            window.close();
+        } elseif (this.CanOpen) {
+            this.CanOpen = false;
+            if (this.ActiveWindow != nil) {
+                this.ActiveWindow.Close(() => { 
+                    this.CanOpen = false; 
+                    window.Open(widget); 
+                    this.SetButtonActive(window); 
+                });
+            } else {
+                window.Open(widget);
+                this.SetButtonActive(window);
+            }
+        }
+    }
+    
+    SetButtonActive(window)
+    {
+        this.ActiveWindow = window
+	    for (w in this.windows)
+		    w[1].Selected = (w[2] == window);
+    }
+}

@@ -127,26 +127,22 @@ namespace LibreLancer.Interface.Reflection
         public string PrintClassInit(string className, string fieldName)
         {
             var printer = new LuaPrinterContext();
-            printer.WriteLine($"{className} = class()");
-            printer.WriteLine($"function {className}:CreateWidget()");
+            //class
+            printer.WriteLine($"class {className}_Designer {{");
             printer.TabIn();
-            printer.WriteLine($"self.{fieldName} = {UiComplexProperty.TypeInitExpression(Type)}");
-            printer.WriteLine("self.Elements = {}");
-            printer.ElementProperty = "self.Elements";
-            PrintSetter(printer, $"self.{fieldName}");
+            //constructor
+            printer.WriteLine($"{className}_Designer()");
+            printer.WriteLine("{");
+            printer.TabIn();
+            printer.WriteLine($"this.{fieldName} = {UiComplexProperty.TypeInitExpression(Type)}");
+            printer.WriteLine("this.Elements = {}");
+            printer.ElementProperty = "this.Elements";
+            PrintSetter(printer, $"this.{fieldName}");
             printer.ElementProperty = null;
             printer.TabOut();
-            printer.WriteLine("end");
-            printer.WriteLine($"function {className}:init(...)");
-            printer.TabIn();
-            printer.WriteLine("self:CreateWidget()");
-            printer.WriteLine("if self.ctor ~= nil then");
-            printer.TabIn();
-            printer.WriteLine("self:ctor(...)");
+            printer.WriteLine("}");
             printer.TabOut();
-            printer.WriteLine("end");
-            printer.TabOut();
-            printer.WriteLine("end");
+            printer.WriteLine("}");
             return printer.GetString();
         }
 
@@ -154,12 +150,13 @@ namespace LibreLancer.Interface.Reflection
         {
             var printer = new LuaPrinterContext();
             printer.WriteLine($"function CreateStylesheet()");
+            printer.WriteLine("{");
             printer.TabIn();
             printer.WriteLine("local stylesheet = ClrTypes.LibreLancer_Interface_Stylesheet.__new()");
             PrintSetter(printer, "stylesheet");
             printer.WriteLine("return stylesheet");
             printer.TabOut();
-            printer.WriteLine("end");
+            printer.WriteLine("}");
             return printer.GetString();
         }
     }
@@ -355,7 +352,7 @@ namespace LibreLancer.Interface.Reflection
             var (ident, define) = printer.GetIdentifier();
             printer.WriteLine($"{(define ? "local " : "")}{ident} = {TypeInitExpression(type)}");
             foreach(var obj in Values)
-                printer.WriteLine($"{ident}:Add({ObjToString(obj)}");
+                printer.WriteLine($"{ident}.Add({ObjToString(obj)}");
             printer.WriteLine($"{parent}.{property.Name} = {ident}");
             printer.FreeIdentifier(ident);
         }
@@ -443,7 +440,7 @@ namespace LibreLancer.Interface.Reflection
                 var (objIdent, objDefine) = printer.GetIdentifier();
                 printer.WriteLine($"{(objDefine ? "local " : "")}{objIdent} = {TypeInitExpression(obj.Type)}");
                 obj.PrintSetter(printer, objIdent);
-                printer.WriteLine($"{ident}:Add({objIdent})");
+                printer.WriteLine($"{ident}.Add({objIdent})");
                 printer.FreeIdentifier(objIdent);
                 if (printer.ElementProperty != null)
                 {

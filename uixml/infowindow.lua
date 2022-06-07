@@ -1,10 +1,12 @@
-require 'childwindow.lua'
+require 'childwindow'
 
-function infowindow:ctor()
-	MakeChildWindow(self)
-	self.Elements.info.Infocard = Game:CurrentInfocard()
-	self.Elements.close:OnClick(function() 
-		self:Close() 
-	end)
-end
-
+class infowindow : infowindow_Designer with ChildWindow
+{
+    infowindow()
+    {
+        base();
+        this.ChildWindowInit();
+        this.Elements.info.Infocard = Game.CurrentInfocard();
+        this.Elements.close.OnClick(() => this.Close());
+    }
+}

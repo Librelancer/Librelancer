@@ -396,6 +396,11 @@ namespace InterfaceEdit
             if (e is WattleScript.Interpreter.InterpreterException ie)
             {
                 detail.AppendLine(ie.DecoratedMessage);
+                detail.AppendLine("Callstack: ");
+                foreach (var k in ie.CallStack)
+                {
+                    detail.AppendLine(k.ToString());
+                }
             }
             detail.AppendLine(e.GetType().FullName);
             detail.AppendLine(e.Message);

@@ -1,19 +1,20 @@
 require 'ids.lua'
 
 local function ModelRenderable(model, tint)
+{
 	local renderable = NewObject('UiRenderable')
 	local modelElem = NewObject('DisplayModel')
 	modelElem.Model = model
-	if tint ~= nil then
-		modelElem.Tint = tint
-	end
-	renderable:AddElement(modelElem)
-	
+	if (tint != nil)
+		modelElem.Tint = tint;
+		
+	renderable.AddElement(modelElem)
 	return renderable
-end
+}
 
 local function HudButton(modelPath, disabledPath)
-	-- Construct Appearance
+{
+	// Construct Appearance
 	local model = NewObject('InterfaceModel')
 	model.Path = modelPath
 	model.X = 0
@@ -42,129 +43,112 @@ local function HudButton(modelPath, disabledPath)
 	local disabledAppearance = NewObject('ButtonAppearance')
 	disabledAppearance.Background = ModelRenderable(disabledModel)
 	style.Disabled = disabledAppearance
-	-- Set Appearance
-	button:SetStyle(style)
+	// Set Appearance
+	button.SetStyle(style)
 	return button
-end
+}
 
 local function NavbarAction(hotspot)
+{
 	local obj = NavbarButton(hotspot, false)
 	obj.Width = 33
 	obj.Height = 33
 	return obj
-end
-
-function hud:UpdateManeuverState()
-	local activeManeuver = Game:GetActiveManeuver()
-	local maneuversEnabled = Game:GetManeuversEnabled()
-	for action, button in pairs(self.ManeuverButtons) do
-		button.Selected = (activeManeuver == action)
-		button.Enabled = maneuversEnabled:Get(action)
-	end
-end
-
-function hud:Killed()
-	self.Elements.hudcontrols.Visible = false
-	OpenModal(popup(STRID_GAME_OVER,STRID_YOU_ARE_DEAD, 'ok', function()
-		Game:Respawn()
-	end))
-end
+}
 
 local navbox = require 'navbox'
 
-function hud:ctor()
-    self.ManeuverButtons = {}
-    local btns = Game:GetManeuvers()
-    local container = navbox.GetNavbox(self.Widget, btns)
-    local locX = navbox.GetStartX(btns) - 15
-    local activeIDS = 0
-    for index, button in ipairs(btns) do
-        local obj = HudButton(button.ActiveModel, button.InactiveModel)
-        self.ManeuverButtons[button.Action] = obj
-        obj.Anchor = AnchorKind.TopCenter
-        obj.X = locX
-        locX = locX + navbox.XSpacing + 10
-        obj.Y = navbox.OffsetY
-        if button.Action ~= activeids then
-            obj:OnClick(function()
-                Game:HotspotPressed(button.Action)
-            end)
-        else
-            activeIDS = index
-        end
-        container:AddChild(obj)
-    end
-    self:UpdateManeuverState()
+class hud : hud_Designer
+{
+    hud()
+    {
+		base();
+        this.ManeuverButtons = {}
+        local btns = Game.GetManeuvers()
+        local container = navbox.GetNavbox(this.Widget, btns)
+        local locX = navbox.GetStartX(btns) - 15
+        local activeIDS = 0
+        for (index, button in ipairs(btns)) {
+            local obj = HudButton(button.ActiveModel, button.InactiveModel)
+            this.ManeuverButtons[button.Action] = obj
+            obj.Anchor = AnchorKind.TopCenter
+            obj.X = locX
+            locX = locX + navbox.XSpacing + 10
+            obj.Y = navbox.OffsetY
+            if (button.Action != activeids)
+                obj.OnClick(() => Game.HotspotPressed(button.Action));
+            else
+                activeIDS = index;
+            container.AddChild(obj)
+        }
+        this.UpdateManeuverState()
+        this.Elements.chatbox.OnTextEntered(() => Game.TextEntered(text));
+	    this.Elements.chat.Chat = Game.GetChats()
+    }
     
-    self.Elements.chatbox.OnTextEntered(function (text)
-                                            Game:TextEntered(text)
-                                        end)
-	self.Elements.chat.Chat = Game:GetChats()
-end
-
-function hud:Update()
-    self:UpdateManeuverState()
-	local e = self.Elements
-    e.speedText.Text = Game:Speed() .. ""
-    e.thrustText.Text = Game:ThrustPercent() .. "%"
-	e.hullgauge.PercentFilled = Game:GetPlayerHealth()
-	e.powergauge.PercentFilled = Game:GetPlayerPower()
-	e.shieldgauge.PercentFilled = Game:GetPlayerShield()
-	local cruise = Game:CruiseCharge()
-	if cruise >= 0 then
-		e.cruisecharge.Text = StringFromID(STRID_CRUISE_CHARGING) .. " - " .. cruise .. "%"
-		e.cruisecharge.Visible = true
-	else
-		e.cruisecharge.Visible = false
-	end
-	if Game:SelectionVisible() then
-		local pos = Game:SelectionPosition()
-		e.selection.Visible = true
-		e.selection.X = pos.X - (e.selection.Width / 2.0)
-		e.selection.Y = pos.Y - (e.selection.Height / 2.0)
-		e.selection_name.Text = Game:SelectionName()
-		local health = Game:SelectionHealth()
-		local shield = Game:SelectionShield()
-		if health >= 0 then
-			e.selection_health.Visible = true
-			e.selection_health.PercentFilled = health
-		else
-			e.selection_health.Visible = false
-		end
-		if shield >= 0 then
-			e.selection_shield.Visible = true
-			e.selection_shield.PercentFilled = shield
-		else
-			e.selection_shield.Visible = false
-		end
-	else
-		e.selection.Visible = false
-	end
-end
-
-function hud:Pause()
-	OpenModal(pausemenu())
-end
-
-function hud:Chatbox()
-   self.Elements.chatbox.Visible = true 
-end
-
-function hud:Popup(title, contents, id)
-	OpenModal(popup(title,contents, 'ok', function()
-		Game:PopupFinish(id)
-	end))
-end
-
-
-
-
-
-
-
-
-
-
-
-
-
+    Update()
+    {
+        this.UpdateManeuverState()
+	    local e = this.Elements
+        e.speedText.Text = Game.Speed() + ""
+        e.thrustText.Text = Game.ThrustPercent() + "%"
+	    e.hullgauge.PercentFilled = Game.GetPlayerHealth()
+	    e.powergauge.PercentFilled = Game.GetPlayerPower()
+	    e.shieldgauge.PercentFilled = Game.GetPlayerShield()
+	    local cruise = Game.CruiseCharge()
+	    
+	    if (cruise >= 0) {
+		    e.cruisecharge.Text = StringFromID(STRID_CRUISE_CHARGING) + " - " + cruise + "%"
+		    e.cruisecharge.Visible = true
+	    } else {
+		    e.cruisecharge.Visible = false
+	    }
+	    
+	    if (Game.SelectionVisible()) {
+		    local pos = Game.SelectionPosition()
+		    e.selection.Visible = true
+		    e.selection.X = pos.X - (e.selection.Width / 2.0)
+		    e.selection.Y = pos.Y - (e.selection.Height / 2.0)
+		    e.selection_name.Text = Game.SelectionName()
+		    local health = Game.SelectionHealth()
+		    local shield = Game.SelectionShield()
+		    if (health >= 0) {
+			    e.selection_health.Visible = true
+			    e.selection_health.PercentFilled = health
+		    } else {
+			    e.selection_health.Visible = false
+		    }
+		    if (shield >= 0) {
+			    e.selection_shield.Visible = true
+			    e.selection_shield.PercentFilled = shield
+		    } else {
+			    e.selection_shield.Visible = false
+		    }
+	    } else {
+		    e.selection.Visible = false
+	    }
+    }
+    
+    
+    UpdateManeuverState()
+    {
+        local activeManeuver = Game.GetActiveManeuver()
+	    local maneuversEnabled = Game.GetManeuversEnabled()
+	    for (action, button in pairs(this.ManeuverButtons)) 
+	    {
+		    button.Selected = (activeManeuver == action)
+		    button.Enabled = maneuversEnabled.Get(action)
+	    }
+    }
+    
+    Killed()
+    {
+        this.Elements.hudcontrols.Visible = false;
+        OpenModal(new popup(STRID_GAME_OVER,STRID_YOU_ARE_DEAD, 'ok', () => Game.Respawn()));
+    }
+    
+    
+    Pause() => OpenModal(new pausemenu());
+    Chatbox() => this.Elements.chatbox.Visible = true;
+    Popup(title,contents,id) => OpenModal(new popup(title,contents,'ok', () => Game.PopupFinish(id)));
+}

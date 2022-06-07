@@ -13,6 +13,7 @@ local objects = {
 }
 
 function NewObject(obj)
+{
     return objects[obj]()
-end
+}
 

@@ -1,19 +1,14 @@
-ModalClass(textentry)
-
-function textentry:ctor(cb, title)
-	self:ModalInit()
-	self:ModalCallback(cb)
-	local scn = self.Elements
-    scn.content:SetFocus()
-	scn.title.Text = title
-    scn.content:OnTextEntered(function(name)
-        self:Close('ok', name, 0)
-    end)
-	scn.close:OnClick(function()
-		self:Close('cancel')
-	end)
-end
-
-
-
-
+class textentry : textentry_Designer with Modal
+{
+    textentry(cb, title)
+    {
+        base();
+        this.ModalInit();
+        this.ModalCallback(cb);
+        var scn = self.Elements;
+        scn.content.SetFocus();
+        scn.title.Text = title;
+        scn.content.OnTextEntered(() => this.Close('ok', name, 0));
+        scn.close.OnClick(() => this.Close('cancel'));
+    }
+}

@@ -4,11 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Text;
 using LibreLancer.Infocards;
 using WattleScript.Interpreter;
 using WattleScript.Interpreter.Interop.BasicDescriptors;
@@ -164,17 +163,14 @@ namespace LibreLancer.Interface
         public LuaContext(UiContext context)
         {
             uiContext = context;
-            script = new Script(CoreModules.Preset_HardSandbox | CoreModules.Metatables);
-            script.Options.DebugPrint = s => FLLog.Info("Lua", s);
+            script = new Script(CoreModules.Preset_SoftSandboxWattle | CoreModules.LoadMethods);
+            script.Options.Syntax = ScriptSyntax.Wattle;
+            script.Options.DebugPrint = s => FLLog.Info("WattleScript", s);
             script.Globals["HorizontalAlignment"] = UserData.CreateStatic<HorizontalAlignment>();
             script.Globals["VerticalAlignment"] = UserData.CreateStatic<VerticalAlignment>();
             script.Globals["AnchorKind"] = UserData.CreateStatic<AnchorKind>();
             script.Options.ScriptLoader = new UiScriptLoader(context);
             var globalTable = script.Globals;
-            foreach (var g in script.Globals.Keys)
-            {
-                globalTable[g] = script.Globals[g];
-            }
             var typeTable = new Table(script);
             globalTable["ClrTypes"] = typeTable;
             typeTable["System_Collections_Generic_List___LibreLancer_Interface_XmlStyle___"] = typeof(List<XmlStyle>);
@@ -194,9 +190,24 @@ namespace LibreLancer.Interface
                 }
             }
             globalTable["Game"] = context.GameApi;
+            globalTable["Events"] = DynValue.NewTable(script);
             //Functions
             globalTable["Funcs"] = new ContextFunctions(this);
-            script.DoString(DEFAULT_LUA, null, "LuaContext.LuaCode");
+            StringBuilder globalsCode = new StringBuilder();
+            globalsCode.AppendLine("local _f = Funcs");
+            foreach (var method in typeof(ContextFunctions).GetMethods())
+            {
+                if (method.Name == "GetType" ||
+                    method.Name == "ToString" ||
+                    method.Name == "Equals" ||
+                    method.Name == "GetHashCode")
+                    continue;
+                globalsCode.Append("function ").Append(method.Name).AppendLine("(...)");
+                globalsCode.Append("    return _f.").Append(method.Name).AppendLine("(...)");
+                globalsCode.AppendLine("end");
+            }
+            globalsCode.AppendLine("Funcs = nil");
+            script.DoString(globalsCode.ToString(), null, "context functions");
         }
 
         public void LoadMain()
@@ -272,8 +283,8 @@ namespace LibreLancer.Interface
             public void PlaySound(string snd) => c.uiContext.PlaySound(snd);
             public void PlayVoiceLine(string voice, string line) => c.uiContext.PlayVoiceLine(voice, line);
             public void SetWidget(UiWidget widget) => c.uiContext.SetWidget(widget);
-            public int OpenModal(UiWidget widget) => c.uiContext.OpenModal(widget);
-            public void SwapModal(UiWidget widget, int handle) => c.uiContext.SwapModal(widget, handle);
+            public int OpenModalWidget(UiWidget widget) => c.uiContext.OpenModal(widget);
+            public void SwapModalWidget(UiWidget widget, int handle) => c.uiContext.SwapModal(widget, handle);
             public void CloseModal(int handle) => c.uiContext.CloseModal(handle);
             public InterfaceColor GetColor(string col) => c.uiContext.Data.GetColor(col);
             public InterfaceModel GetModel(string mdl) => c.uiContext.Data.Resources.Models.First(x => x.Name == mdl);
@@ -290,19 +301,6 @@ namespace LibreLancer.Interface
             public Infocard GetInfocard(int id) =>
                 RDLParse.Parse(c.uiContext.Data.Infocards.GetXmlResource(id), c.uiContext.Data.Fonts);
             public string NumberToStringCS(double num, string fmt) => num.ToString(fmt);
-
-            Dictionary<string,DynValue> mods = new Dictionary<string, DynValue>();
-            public DynValue Require(string mod)
-            {
-                if (mods.ContainsKey(mod))
-                    return mods[mod];
-                string filename = mod;
-                if (!c.uiContext.Data.FileExists(filename))
-                    filename += ".lua";
-                var mx =  c.script.DoString(c.uiContext.Data.ReadAllText(filename), null, mod);
-                mods.Add(mod, mx);
-                return mx;
-            }
         }
         public void CallEvent(string ev, params object[] p)
         {
@@ -330,7 +328,7 @@ namespace LibreLancer.Interface
             }
             public override bool ScriptFileExists(string name)
             {
-                return true;
+                return context.Data.FileExists(name);
             }
             public override object LoadFile(string file, Table globalContext)
             {
@@ -338,6 +336,8 @@ namespace LibreLancer.Interface
             }
             public override string ResolveModuleName(string modname, Table globalContext)
             {
+                if (context.Data.FileExists(modname)) return modname;
+                if (context.Data.FileExists(modname + ".lua")) return modname + ".lua";
                 return modname;
             }
         }

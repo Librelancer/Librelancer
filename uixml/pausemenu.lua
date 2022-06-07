@@ -1,34 +1,29 @@
-ModalClass(pausemenu)
-
-function pausemenu:ctor()
-	self:ModalInit()
-	local e = self.Elements
-	e.loadgame.Enabled = not Game:IsMultiplayer()
-	e.loadgame:OnClick(function()
-		local lg = loadgame()
-		lg:asmodal()
-		SwapModal(self, lg) 
-	end)
-	e.savegame.Enabled = not Game:IsMultiplayer()
-	e.savegame:OnClick(function()
-		local sg = savegame()
-		SwapModal(self,sg)
-	end)
-	e.options:OnClick(function()
-		local opt = options()
-		opt:asmodal()
-		SwapModal(self, opt)
-	end)
-	e.resume:OnClick(function()
-		Game:Resume()
-		self:Close()
-	end)
-	e.quittomenu:OnClick(function()
-		Game:QuitToMenu()
-		self:Close()
-	end)
-end
-
+class pausemenu : pausemenu_Designer with Modal
+{
+    pausemenu()
+    {
+        base()
+        var e = this.Elements
+        e.loadgame.Enabled = !Game.IsMultiplayer()
+        e.loadgame.OnClick(() => {
+            var lg = new loadgame();
+            lg.asmodal();
+            SwapModal(this, lg);
+        });
+        e.savegame.Enabled = !Game.IsMultiplayer()
+        e.savegame.OnClick(() => {
+            var sg = new savegame();
+            SwapModal(this, sg);
+        });
+        e.options.OnClick(() => {
+            var opt = new options()
+            opt.asmodal();
+            SwapModal(this, opt);
+        });
+        e.resume.OnClick(() => { Game.Resume(); this.Close(); });
+        e.quittomenu.OnClick(() => { Game.QuitToMenu(); this.Close(); });
+    }
+}
 
 
 

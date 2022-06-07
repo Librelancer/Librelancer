@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using LibreLancer.Interface;
+using WattleScript.Interpreter;
 
 namespace InterfaceEdit
 {
@@ -33,55 +34,59 @@ namespace InterfaceEdit
 local active = {}
 local _classes = {}
 function OpenScene(s)
-    local w = _classes[s]()
+{
+    local w = _classes[s]['new']()
     SetActive(w)
-end
+}
+
 function SetActive(w)
+{
     active = w
     SetWidget(w.Widget)
     CallEvent('enter')
-end
+}
 
 function OpenModal(m)
-   if m._modalinfo ~= nil then
-        m._modalinfo.closehandle = Funcs:OpenModal(m.Widget)
-    else
+{
+    if (m._modalinfo != null) {
+        m._modalinfo.closehandle = OpenModalWidget(m.Widget)
+    } else {
         error('Class is not modal type')
-    end 
-end
+    } 
+}
 
-function SwapModal(m, m2)
-    if m._modalinfo == nil or m2._modalinfo == nil then
+function SwapModal(m, m2) {
+    if (m._modalinfo == nil || m2._modalinfo == nil) {
         error('Class is not modal type')
-    else
+    } else {
         m2._modalinfo.closehandle = m._modalinfo.closehandle
-        Funcs:SwapModal(m2.Widget, m._modalinfo.closehandle)
-    end
-end
+        SwapModalWidget(m2.Widget, m._modalinfo.closehandle)
+    }
+}
 
-local function m_modalinit(self)
-    self._modalinfo = {}
-end
-local function m_modalcallback(self, f)
-    self._modalinfo.Callback = f
-end
-local function m_close(self, ...)
-    Funcs:CloseModal(self._modalinfo.closehandle)
-    if self._modalinfo.Callback ~= nil then
-        self._modalinfo.Callback(...)
-    end
-end
-function ModalClass(c)
-    c.ModalInit = m_modalinit
-    c.ModalCallback = m_modalcallback
-    c.Close = m_close
-end
+mixin Modal {
+    ModalInit()
+    {
+        this._modalinfo = {}
+    }
+    ModalCallback(callback)
+    {
+        this._modalinfo.Callback = callback
+    }
+    Close(...)
+    {
+        CloseModal(this._modalinfo.closehandle)
+        if (self._modalinfo.Callback != nil)
+            self._modalinfo.Callback(...);
+    }
+}
 
 function CallEvent(ev, ...)
-    if active[ev] ~= nil then
-        active[ev](active, ...)
-    end
-end
+{
+    if (active[ev] != nil) {
+        active[ev](...)
+    }
+}
 ";
         public static InterfaceTextBundle Compile(string xmlFolder, UiXmlLoader xmlLoader, string outfolder = null)
         {
@@ -91,6 +96,11 @@ end
             bundle.AddStringCompressed("resources.xml", File.ReadAllText(Path.Combine(xmlFolder, "resources.xml")));
             foreach (var file in LuaFiles(xmlFolder))
             {
+                //try compile. will throw exception on failure
+                var sc = new Script();
+                sc.Options.Syntax = ScriptSyntax.Wattle;
+                sc.LoadFile(Path.Combine(xmlFolder, file));
+                //
                 bundle.AddStringCompressed(file, File.ReadAllText(Path.Combine(xmlFolder, file)));
             }
             var mainlua = new StringBuilder();

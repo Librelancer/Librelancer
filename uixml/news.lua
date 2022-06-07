@@ -9,10 +9,11 @@ local paths_3db = {
 }
 
 local function control_icon_3db(name, control)
+{
 	control.Background = NewObject("UiRenderable")
 	local colorElem = NewObject("DisplayColor")
 	colorElem.Color = GetColor("black")
-	control.Background:AddElement(colorElem)
+	control.Background.AddElement(colorElem)
 	local elem = NewObject("DisplayModel")
 	elem.Tint = GetColor("text")
 	local model = NewObject("InterfaceModel")
@@ -20,25 +21,26 @@ local function control_icon_3db(name, control)
 	model.XScale = 32
 	model.YScale = 32
 	elem.Model = model
-	control.Background:AddElement(elem)
-end
+	control.Background.AddElement(elem)
+}
 
 local function news_list_item(icon, strid)
+{
 	local li = NewObject("ListItem")
-	-- Border
+	// Border
 	li.Border = NewObject("UiRenderable")
 	local wire = NewObject("DisplayWireBorder")
 	wire.Color = GetColor("text")
-	li.Border:AddElement(wire)
+	li.Border.AddElement(wire)
 	li.HoverBorder = NewObject("UiRenderable")
 	wire = NewObject("DisplayWireBorder")
 	wire.Color = GetColor("slow_blue_yellow")
-	li.HoverBorder:AddElement(wire)
+	li.HoverBorder.AddElement(wire)
 	li.SelectedBorder = NewObject("UiRenderable")
 	wire = NewObject("DisplayWireBorder")
 	wire.Color = GetColor("yellow")
-	li.SelectedBorder:AddElement(wire)
-	-- Item
+	li.SelectedBorder.AddElement(wire)
+	// Item
 	li.ItemMarginX = 14
 	li.ItemA = NewObject("Panel")
 	control_icon_3db(icon, li.ItemA)
@@ -51,40 +53,33 @@ local function news_list_item(icon, strid)
 	tb.Fill = true
 	tb.Strid = strid
 	tb.MarginX = 3
-	li.ItemB.Children:Add(tb)
+	li.ItemB.Children.Add(tb)
 	return li
-end
+}
 
-function news:setstory(article)
-	local e = self.Elements
-	e.news_headline.Strid = article.Headline
-	e.news_logo.Name = article.Logo
-	e.news_text:SetString(StringFromID(article.Text))
-	control_icon_3db(article.Icon, e.news_icon)
-end
-
-function news:ctor()
-	MakeChildWindow(self)
-	local e = self.Elements
-	e.close:OnClick(function() 
-		self:Close() 
-	end)
-	self.Articles = Game:GetNewsArticles()
-	for index, article in ipairs(self.Articles) do
-		local item = news_list_item(article.Icon, article.Category)
-		e.news_list.Children:Add(item)
-	end
-	self:setstory(self.Articles[1])
-	e.news_list.SelectedIndex = 0
-	e.news_list:OnSelectedIndexChanged(function()
-		self:setstory(self.Articles[e.news_list.SelectedIndex + 1])
-	end)
-end
-
-
-
-
-
-
-
-
+class news : news_Designer with ChildWindow
+{
+	news()
+	{
+		base();
+		this.ChildWindowInit();
+		local e = this.Elements;
+		e.close.OnClick(() => this.Close());
+		this.Articles = Game.GetNewsArticles();
+		for (article in this.Articles) {
+			local item = news_list_item(article.Icon, article.Category);
+			e.news_list.Children.Add(item);
+		}
+		this.setstory(this.Articles[1]);
+		e.news_list.SelectedIndex = 0;
+		e.news_list.OnSelectedIndexChanged(() => this.setstory(this.Articles[e.news_list.SelectedIndex + 1]));
+	}
+	setstory(article)
+	{
+		local e = this.Elements
+		e.news_headline.Strid = article.Headline
+		e.news_logo.Name = article.Logo
+		e.news_text.SetString(StringFromID(article.Text))
+		control_icon_3db(article.Icon, e.news_icon)
+	}
+}

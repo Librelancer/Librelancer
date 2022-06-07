@@ -98,6 +98,7 @@ namespace LibreLancer.Interface
 
         int ScrollCount()
         {
+            if (data == null) return 0;
             int c = data.Count - DisplayRowCount;
             return c <= 0 ? 0 : c;
         }

@@ -773,6 +773,7 @@ World Time: {12:F2}
                     sys.Nickname, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj,
                     control.PlayerPitch, control.PlayerYaw, control.Roll, mouseFlight, session.WorldTime);
                 ImGuiNET.ImGui.Text(text);
+                //ImGuiNET.ImGui.Text(pilotcomponent.ThrottleControl.Current.ToString());
             }, () =>
             {
                 Game.Debug.MissionWindow(session.GetTriggerInfo());

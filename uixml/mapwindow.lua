@@ -1,13 +1,15 @@
 require 'childwindow.lua'
 
-function mapwindow:ctor()
-	MakeChildWindow(self)	
-	self.Elements.exit:OnClick(function()
-		self:Close()
-	end)
-end
-
-function mapwindow:InitMap()
-	Game:PopulateNavmap(self.Elements.navmap)
-end
-
+class mapwindow : mapwindow_Designer with ChildWindow
+{
+    mapwindow()
+    {
+        base();
+        this.ChildWindowInit();
+        this.Elements.exit.OnClick(() => this.Close());
+    }
+    InitMap()
+    {
+        Game.PopulateNavmap(this.Elements.navmap);
+    }
+}

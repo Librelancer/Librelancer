@@ -1,27 +1,5 @@
 require 'ids.lua'
 
-ModalClass(options)
-
-function options:asmodal()
-	self:ModalInit()
-	self.Elements.fllogo.Visible = false
-	self.Elements.backdrop.Visible = true
-	self.Elements.goback.Strid = STRID_RETURN_TO_GAME
-	self.isModal = true
-end
-
-function options:panel(p)
-	for _, panel in ipairs(self.Panels) do
-		if panel[1] == p[1] then
-			panel[1].Selected = true
-			panel[2].Visible = true
-		else
-			panel[1].Selected = false
-			panel[2].Visible = false
-		end
-	end
-end
-
 local msaa_levels = {
 	"NONE",
 	"MSAA 2x",
@@ -30,143 +8,158 @@ local msaa_levels = {
 }
 
 local function val_selection(left, right, display, values, vmin, vmax, vcurrent)
+{
 	local state = {}
 	state.vmin = vmin
 	state.vmax = vmax
 	state.vcurrent = vcurrent
 	state.values = values
 	local function setval(idx)
+	{
 		local i = idx
-		if i < vmin then i = vmax end
-		if i > vmax then i = vmin end
+		if (i < vmin) i = vmax;
+		if (i > vmax) i = vmin;
 		state.vcurrent = i
 		display.Text = state.values[state.vcurrent]
-	end
-	left:OnClick(function()
-		setval(state.vcurrent - 1)
-	end)
-	right:OnClick(function()
-		setval(state.vcurrent + 1)
-	end)
+	}
+	left.OnClick(() => setval(state.vcurrent - 1));
+	right.OnClick(() => setval(state.vcurrent + 1));
 	setval(vcurrent)
 	return state
-end
+}
 
--- Map strings to MSAA Amounts
+// Map strings to MSAA Amounts
 local function msaa_to_idx(i)
-	if i == 2 then return 2 end
-	if i == 4 then return 3 end
-	if i >= 8 then return 4 end
+{
+	if (i == 2) return 2;
+	if (i == 4) return 3;
+	if (i >= 8) return 4;
 	return 1
-end
+}
 
 local function idx_to_msaa(i)
-	if i == 2 then return 2 end
-	if i == 3 then return 4 end
-	if i == 4 then return 8 end
-	return 0
-end
+{
+	switch(i) {
+		case 2: return 2;
+		case 3: return 4;
+		case 4: return 8;
+		default: return 0;
+	}
+}
 
--- Anisotropy Levels
-local function idx_to_anisotropy(i)
-	if i == 1 then return 0 end
-	return math.pow(2, i - 1)
-end
+// Anisotropy Levels
+local function idx_to_anisotropy(i) => i == 1 ? 0 : math.pow(2, i - 1);
+
 local function anisotropy_to_idx(i)
-	if i == 0 then return 1 end
+{
+	if (i == 0) return 1;
 	local x = 2
-	for j = 2, 10 do
-		if x == i then
-			return j
-		else
-			x = x * 2
-		end
-	end
-	return 0
-end
-
-function options:setcontrolcategory(cat)
-	self.keymap:SetGroup(cat - 1)
-	for index, value in ipairs(self.controlcategories) do
-		value.Selected = index == cat
-	end
-end
-
-function options:ctor()
-	local e = self.Elements
-	self.isModal = false
-	self.Elements.goback:OnClick(function()
-		self.opts.SfxVolume = e.sfxvol.Value
-		self.opts.MusicVolume = e.musicvol.Value
-		self.opts.MSAA = idx_to_msaa(self.MSAA.vcurrent)
-		self.opts.Anisotropy = idx_to_anisotropy(self.AF.vcurrent)
-		self.keymap:Save()
-		Game:ApplySettings(self.opts)
-		if self.isModal then
-			Game:Resume()
-			self:Close()
-		else
-			OpenScene("mainmenu")
-		end
-	end)
-	self.Panels = {
-		{ e.performance, e.win_performance },
-		{ e.audio, e.win_audio },
-		{ e.controls, e.win_controls }
+	for (j in 2..10) {
+		if(x == i) return j;
+		x *= 2;
 	}
-	for _, p in ipairs(self.Panels) do
-		p[1]:OnClick(function() self:panel(p) end)
-	end
-	self:panel(self.Panels[1])
-	self.opts = Game:GetCurrentSettings()
-	e.sfxvol.Value = self.opts.SfxVolume
-	self.keymap = Game:GetKeyMap()
-	e.listtable:SetData(self.keymap)
-	e.listtable:OnDoubleClick(function(row, column)
-		local mk = mapkey(self.keymap:GetKeyId(row), function(reason)
-			if reason == 'cancel' then
-				self.keymap:CancelCapture()
-			elseif reason == 'clear' then
-				self.keymap:ClearCapture()
-			end
-		end)
-		OpenModal(mk)
-		self.keymap:CaptureInput(row, column != 2, function(state, combo, key, accept)
-			mk:Close('captured')
-			if state == 'overwrite' then
-				OpenModal(alreadymapped(combo, key, function(e) if e == 'continue' then accept() end end))
-			end
-		end)
-	end)
-	e.musicvol.Value = self.opts.MusicVolume
-	self.AnisotropyLevels = self.opts.AnisotropyLevels()
-	local anisotropy = {
-		"NONE"
+	return 1;
+}
+
+class options : options_Designer with Modal
+{
+	options()
+	{
+		base();
+		local e = this.Elements
+		this.isModal = false
+		this.Elements.goback.OnClick(() => {
+			this.opts.SfxVolume = e.sfxvol.Value
+			this.opts.MusicVolume = e.musicvol.Value
+			this.opts.MSAA = idx_to_msaa(this.MSAA.vcurrent)
+			this.opts.Anisotropy = idx_to_anisotropy(this.AF.vcurrent)
+			this.keymap.Save();
+			Game.ApplySettings(this.opts)
+			if (this.isModal) {
+				Game.Resume()
+				this.Close()
+			} else {
+				OpenScene("mainmenu")
+			}
+		});
+		this.Panels = {
+			{ e.performance, e.win_performance },
+			{ e.audio, e.win_audio },
+			{ e.controls, e.win_controls }
+		}
+		for (p in this.Panels)
+			p[1].OnClick(() => this.panel(p));
+		
+		this.panel(this.Panels[1])
+		this.opts = Game.GetCurrentSettings()
+		e.sfxvol.Value = this.opts.SfxVolume
+		this.keymap = Game.GetKeyMap()
+
+		e.listtable.SetData(this.keymap)
+
+		e.listtable.OnDoubleClick((row, column) => {
+
+			local mk = new mapkey(this.keymap.GetKeyId(row), (reason) => {
+				if (reason == 'cancel')
+					this.keymap.CancelCapture();
+				elseif (reason == 'clear')
+					this.keymap.ClearCapture();
+			});
+			OpenModal(mk)
+			this.keymap.CaptureInput(row, column != 2, (state, combo, key, accept) => {
+				mk.Close('captured')
+				if (state == 'overwrite')
+					OpenModal(new alreadymapped(combo, key, (e) => { if (e == 'continue')  accept(); }));
+			});
+
+		});
+
+		e.musicvol.Value = this.opts.MusicVolume
+
+		this.AnisotropyLevels = this.opts.AnisotropyLevels()
+		local anisotropy = { "NONE" }
+		for (i in this.AnisotropyLevels)
+			table.insert(anisotropy, tostring(i) + "x AF");
+	
+		this.MSAA = val_selection(e.msaa_left, e.msaa_right, e.msaa_display, msaa_levels, 1, msaa_to_idx(this.opts.MaxMSAA()), msaa_to_idx(this.opts.MSAA))
+		this.AF = val_selection(e.af_left, e.af_right, e.af_display, anisotropy, 1, anisotropy.length, anisotropy_to_idx(this.opts.Anisotropy))
+
+		this.controlcategories = { e.cat_ship, e.cat_ui, e.cat_mp }
+		e.cat_ship.OnClick(() => this.setcontrolcategory(1))
+		e.cat_ui.OnClick(() => this.setcontrolcategory(2))
+		e.cat_mp.OnClick(() => this.setcontrolcategory(3))
+		e.ctrl_default.OnClick(() => this.keymap.DefaultBindings())
+		e.ctrl_cancel.OnClick(() => this.keymap.ResetBindings())
 	}
-	for _, i in ipairs(self.AnisotropyLevels) do
-		table.insert(anisotropy, tostring(i) .."x AF")
-	end
-	self.MSAA = val_selection(e.msaa_left, e.msaa_right, e.msaa_display, msaa_levels, 1, msaa_to_idx(self.opts:MaxMSAA()), msaa_to_idx(self.opts.MSAA))
-	self.AF = val_selection(e.af_left, e.af_right, e.af_display, anisotropy, 1, #anisotropy, anisotropy_to_idx(self.opts.Anisotropy))
 
-	self.controlcategories = { e.cat_ship, e.cat_ui, e.cat_mp }
-	e.cat_ship:OnClick(function() self:setcontrolcategory(1) end)
-	e.cat_ui:OnClick(function() self:setcontrolcategory(2) end)
-	e.cat_mp:OnClick(function() self:setcontrolcategory(3) end)
-	e.ctrl_default:OnClick(function() self.keymap:DefaultBindings() end)
-	e.ctrl_cancel:OnClick(function() self.keymap:ResetBindings() end)
-end
+	asmodal()
+	{
+		this.ModalInit()
+		this.Elements.fllogo.Visible = false
+		this.Elements.backdrop.Visible = true
+		this.Elements.goback.Strid = STRID_RETURN_TO_GAME
+		this.isModal = true
+		return this;
+	}
 
+	panel(p)
+	{
+		for(panel in this.Panels) {
+			if(panel[1] == p[1]) {
+				panel[1].Selected = true;
+				panel[2].Visible = true;
+			} else {
+				panel[1].Selected = false;
+				panel[2].Visible = false;
+			}
+		}
+	}
 
-
-
-
-
-
-
-
-
-
-
-
-
+	setcontrolcategory(cat)
+	{
+		this.keymap.SetGroup(cat - 1);
+		for (index, value in ipairs(this.controlcategories)) {
+			value.Selected = index == cat
+		}
+	}
+}

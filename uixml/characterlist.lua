@@ -1,63 +1,48 @@
-function characterlist:ctor()
-	local scn = self.Elements
-	scn.listtable:SetData(Game:CharacterList())
-
-	scn.newchar:OnClick(function()
-		Game:RequestNewCharacter()
-	end)
-
-	scn.loadchar:OnClick(function()
-		Game:LoadCharacter()
-	end)
-
-	scn.deletechar:OnClick(function()
-		Game:DeleteCharacter()
-	end)
-
-	scn.serverlist:OnClick(function()
-		self:ExitAnimation(function()
-			Game:StopNetworking()
-			OpenScene("serverlist")
-		end)
-	end)
-	self.Elements.mainmenu:OnClick(function()
-		self:ExitAnimation(function()
-			Game:StopNetworking()
-			OpenScene("mainmenu")
-		end)
-	end)
-end
-
-function characterlist:ExitAnimation(f)
-	f()
-end
-
-function characterlist:Update()
-	local scn = self.Elements
-	local cl = Game:CharacterList()
-	scn.loadchar.Enabled = cl:ValidSelection()
-	scn.deletechar.Enabled = cl:ValidSelection()
-end
-
-function characterlist:OpenNewCharacter()
-	OpenModal(textentry(function(result, name, index)
-		self:CreateCharacter(result, name, index)
-	end, StringFromID(STRID_NEW_CHARACTER)))
-end
-
-function characterlist:CreateCharacter(result, name, index)
-	if result == 'ok' then
-		Game:NewCharacter(name, index)
-	end
-end
-
-function characterlist:Disconnect()
-	OpenModal(modal("Error", "You were disconnected from the server", "ok", function()
-		self:ExitAnimation(function()
-			OpenScene("mainmenu")
-		end)
-	end))
-end
-
-
-
+class characterlist : characterlist_Designer 
+{
+    characterlist()
+    {
+        base()
+        var e = this.Elements;
+        e.listtable.SetData(Game.CharacterList());
+        
+        e.newchar.OnClick(() => Game.RequestNewCharacter());
+        e.loadchar.OnClick(() => Game.LoadCharacter());
+        e.deletechar.OnClick(() => Game.DeleteCharacter());
+        e.serverlist.OnClick(() => ExitAnimation(() => {
+            Game.StopNetworking();
+            OpenScene("serverlist");
+        }));
+        e.mainmenu.OnClick(() => ExitAnimation(() => {
+            Game.StopNetworking();
+            OpenScene("mainmenu");
+        }));
+    }
+    
+    //TODO: Animate out
+    ExitAnimation(f) => f();
+    
+    Update()
+    {
+        var scn = this.Elements;
+        var cl = Game.CharacterList();
+        scn.loadchar.Enabled = cl.ValidSelection();
+	    scn.deletechar.Enabled = cl.ValidSelection();
+    }
+    
+    OpenNewCharacter()
+    {
+        OpenModal(new textentry((r,n,i) => this.CreateCharacter(r,n,i), StringFromID(STRID_NEW_CHARACTER)));
+    }
+    
+    CreateCharacter(result, name, index)
+    {
+        if(result == 'ok')
+            Game.NewCharacter(name, index);
+    }
+    
+    Disconnect()
+    {
+        OpenModal(new modal("Error", "You were disconnected from the server", "ok", () => this.ExitAnimation(() => OpenScene("mainmenu"))));
+    }
+}

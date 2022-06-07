@@ -1,4 +1,4 @@
--- IDs referenced by UI code
+// IDs referenced by UI code
 STRID_BUY = 3016
 STRID_SELL = 3017
 STRID_CREDITS = 1142
@@ -24,14 +24,14 @@ STRID_RETURN_TO_GAME = 1419
 STRID_GAME_OVER = 1826
 STRID_YOU_ARE_DEAD = 1827
 
--- Ship Classes
+// Ship Classes
 
 STRID_CLS_LF = 923
 STRID_CLS_HF = 924
 STRID_CLS_FR = 925
 STRID_CLS_VHF = 926
 
--- Initialiser with default values included here for compatibility with the adoxa shipclass plugin
+// Initialiser with default values included here for compatibility with the adoxa shipclass plugin
 
 ShipClassNames = {
     "Light Fighter",
@@ -57,11 +57,12 @@ ShipClassNames = {
 }
 
 function LoadShipClassNames()
+{
 	ShipClassNames[1] = StringFromID(STRID_CLS_LF)
 	ShipClassNames[2] = StringFromID(STRID_CLS_HF)
 	ShipClassNames[3] = StringFromID(STRID_CLS_FR)
 	ShipClassNames[4] = StringFromID(STRID_CLS_VHF)
-end
+}
 
 
 

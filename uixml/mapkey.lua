@@ -1,23 +1,13 @@
-ModalClass(mapkey)
-
-function mapkey:ctor(button, callback)
-    local e = self.Elements
-    e.keyName.strid = button
-    self:ModalInit()
-	if callback ~= nil then
-    	self:ModalCallback(callback)
-	end
-    e.clear:OnClick(function()
-        self:Close('clear')
-    end)
-    e.cancel:OnClick(function()
-        self:Close('cancel')
-    end)
-end
-
-
-
-
-
-
-
+class mapkey : mapkey_Designer with Modal
+{
+    mapkey(button, callback)
+    {
+        base()
+        var e = this.Elements
+        e.keyName.strid = button
+        this.ModalInit();
+        if(callback != null) this.ModalCallback(callback);
+        e.clear.OnClick(() => this.Close('clear'));
+        e.cancel.OnClick(() => this.Close('cancel'));
+    }
+}

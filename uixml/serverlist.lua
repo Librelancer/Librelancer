@@ -1,55 +1,49 @@
-function serverlist:ctor()
-	local scn = self.Elements
+class serverlist : serverlist_Designer
+{
+	serverlist()
+	{
+		base();
+		var e = this.Elements;
+		e.mainmenu.OnClick(() => this.ExitAnimation(() => {
+			Game.StopNetworking();
+			OpenScene("mainmenu");
+		}));
 
-	scn.mainmenu:OnClick(function()
-		self:ExitAnimation(function()
-			Game:StopNetworking()
-			OpenScene("mainmenu")
-		end)
-	end)
+		e.listtable.SetData(Game.ServerList());
+		e.connect.OnClick(() => Game.ConnectSelection());
+		e.directip.OnClick(() => {
+			OpenModal(new textentry((result,text) => {
+				if(result == "ok") {
+					if(!Game.ConnectAddress(text)) {
+						OpenModal(new modal("Error", "Address not valid"));
+					}
+				}
+			}), StringFromID(1861));
+		});
 
-	scn.listtable:SetData(Game:ServerList())
-	scn.connect:OnClick(function()
-		Game:ConnectSelection()
-	end)
+		e.animgroupA.Animate('flyinleft', 0, 0.8)
+		e.animgroupB.Animate('flyinright', 0, 0.8)
+		Game.StartNetworking();
+	}
 
-	scn.directip:OnClick(function()
-		OpenModal(textentry(function(result, text)
-			if result == "ok" then
-				if not Game:ConnectAddress(text) then
-					OpenModal(modal("Error", "Address not valid"))
-				end
-			end
-		end, StringFromID(1861)))
-	end)
+	ExitAnimation(f)
+	{
+		local e = self.Elements
+		e.animgroupA.Animate('flyoutleft', 0, 0.8)
+		e.animgroupB.Animate('flyoutright', 0, 0.8)
+		Timer(0.8, f)
+	}
 
-	scn.animgroupA:Animate('flyinleft', 0, 0.8)
-	scn.animgroupB:Animate('flyinright', 0, 0.8)
-	Game:StartNetworking()
-end
+	CharacterList()
+	{
+		this.ExitAnimation(() => OpenScene("characterlist"));
+	}
 
-function serverlist:ExitAnimation(f)
-	local scn = self.Elements
-	scn.animgroupA:Animate('flyoutleft', 0, 0.8)
-	scn.animgroupB:Animate('flyoutright', 0, 0.8)
-	Timer(0.8, f)
-end
-
-function serverlist:CharacterList()
-	self:ExitAnimation(function()
-		OpenScene("characterlist")
-	end)
-end
-
-function serverlist:Update()
-	local scn = self.Elements
-	local sv = Game:ServerList()
-	scn.connect.Enabled = sv:ValidSelection()
-	scn.descriptiontext.Text = sv:CurrentDescription()
-end
-
-
-
-
-
-
+	Update()
+	{
+		local scn = this.Elements
+		local sv = Game.ServerList()
+		scn.connect.Enabled = sv.ValidSelection()
+		scn.descriptiontext.Text = sv.CurrentDescription()
+	}
+}

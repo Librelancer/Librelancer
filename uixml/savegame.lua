@@ -1,39 +1,36 @@
-ModalClass(savegame)
+class savegame : savegame_Designer with Modal
+{
+	savegame()
+	{
+		base();
+		this.ModalInit();
+		local e = this.Elements;
+		
+		e.listtable.SetData(Game.SaveGames());
+		e.listtable.OnItemSelected(() => e.content.CurrentText = Game.SaveGames().CurrentDescription());
+		e.content.MaxChars = 32;
 
-function savegame:ctor()
-	local e = self.Elements
-	self:ModalInit()
-	e.listtable:SetData(Game:SaveGames())
-	e.listtable:OnItemSelected(function()
-		e.content.CurrentText = Game:SaveGames():CurrentDescription()
-	end)
-	e.content.MaxChars = 32
-	e.resume:OnClick(function()
-		Game:Resume()
-		self:Close()
-	end)
-	e.goback:OnClick(function()
-		Game:QuitToMenu()
-		self:Close()
-	end)	
-	e.save:OnClick(function()
-		Game:SaveGame(e.content.CurrentText)
-	end)
-	e.content:OnTextEntered(function(name)
-		Game:SaveGame(name)
-	end)
-	e.delete:OnClick(function()
-		Game:DeleteSelectedGame()
-	end)
-end
+		e.resume.OnClick(() => {
+			Game.Resume();
+			this.Close();
+		})
 
-function savegame:Update()
-	local scn = self.Elements
-	local sv = Game:SaveGames()	
-	scn.delete.Enabled = sv:ValidSelection()
-end
+		e.goback.OnClick(() => {
+			Game.QuitToMenu();
+			this.Close();
+		})
 
-
+		e.save.OnClick(() => Game.SaveGame(e.content.CurrentText));
+		e.content.OnTextEntered((name) => Game.SaveGame(name));
+		e.delete.OnClick(() => Game.DeleteSelectedGame());
+	}
+	Update()
+	{
+		local scn = this.Elements
+		local sv = Game.SaveGames()	
+		scn.delete.Enabled = sv.ValidSelection()
+	}
+}
 
 
 
