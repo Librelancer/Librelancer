@@ -29,6 +29,12 @@ namespace LibreLancer
             this.manager = manager;
         }
 
+        public void StartTradelane()
+        {
+            Parent.GetComponent<ShipPhysicsComponent>().Active = false;
+        }
+        
+
         public void Killed()
         {
             OnKilled?.Invoke();

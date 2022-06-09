@@ -59,7 +59,7 @@ namespace LibreLancer
             Register<NewCharacterDBPacket>(NewCharacterDBPacket.Read);
             Register<AddCharacterPacket>(AddCharacterPacket.Read);
             //Space
-            Register<PositionUpdatePacket>(PositionUpdatePacket.Read);
+            Register<InputUpdatePacket>(InputUpdatePacket.Read);
             Register<ObjectUpdatePacket>(ObjectUpdatePacket.Read);
             //Protocol
             GeneratedProtocol.RegisterPackets();
@@ -188,6 +188,10 @@ namespace LibreLancer
         public uint Tick;
         public float PlayerHealth;
         public float PlayerShield;
+        public Vector3 PlayerPosition;
+        public Quaternion PlayerRotation;
+        public Vector3 PlayerLinearVelocity;
+        public Vector3 PlayerAngularVelocity;
         public PackedShipUpdate[] Updates;
         public const int UpdateLimit = byte.MaxValue;
         public static object Read(NetPacketReader message)
@@ -196,6 +200,10 @@ namespace LibreLancer
             p.Tick = message.GetUInt();
             p.PlayerHealth = message.GetFloat();
             p.PlayerShield = message.GetFloat();
+            p.PlayerPosition = message.GetVector3();
+            p.PlayerRotation = message.GetQuaternion();
+            p.PlayerLinearVelocity = message.GetVector3();
+            p.PlayerAngularVelocity = message.GetVector3();
             var pack = new BitReader(message.GetRemainingBytes(), 0);
             var updateCount = pack.GetUInt(8);
             p.Updates = new PackedShipUpdate[updateCount];
@@ -208,6 +216,10 @@ namespace LibreLancer
             message.Put(Tick);
             message.Put(PlayerHealth);
             message.Put(PlayerShield);
+            message.Put(PlayerPosition);
+            message.Put(PlayerRotation);
+            message.Put(PlayerLinearVelocity);
+            message.Put(PlayerAngularVelocity);
             var writer = new BitWriter();
             if(Updates.Length > 255)
                 throw new Exception("Too many updates for net packet");
@@ -248,143 +260,161 @@ namespace LibreLancer
 
     public class PackedShipUpdate
     {
-        //Player ID
-        public int ID;
-        //1 byte bitfield
-        public bool Hidden;
-        public CruiseThrustState CruiseThrust; //2 bits
+        //Info
+        public bool IsCRC;
         public bool HasPosition;
-        public bool HasOrientation;
-        public bool HasHealth;
-        public bool HasGuns;
-        public bool DockingLights;
-        //Position - 13 bytes (vec3 + throttle)
+        public CruiseThrustState CruiseThrust; //4-5
+        public bool Tradelane; //6
+        public bool EngineKill; //7
+        public bool DockingLights; //8
+        //0 = 0%, 1 = 100%, 2 = float
+        public uint Shield;
+        public bool Hull;
+        public float Throttle;
+        //Data
+        public int ID; //Variable or CRC
         public Vector3 Position;
-        public byte EngineThrottlePct;
-        //Orientation
-        public Quaternion Orientation; //packed 6 bytes
-        //Health!
-        public bool HasShield; //1 bit
-        public bool HasHull; //1 bit
-        public bool HasParts; //1 bit
-        public byte[] Parts; //3 bits each
-        public float ShieldHp; //4 bytes
-        public int HullHp; //4 bytes
-        //Guns
-        public GunOrient[] GunOrients; //4 bytes each (half floats)
+        public Quaternion Orientation;
+        public Vector3 LinearVelocity;
+        public Vector3 AngularVelocity;
+        public float HullValue;
+        public float ShieldValue;
+        public GunOrient[] Guns;
+        public byte[] PartHealth;
 
         public void WriteTo(ref BitWriter message)
         {
-            message.PutInt(ID);
-            message.PutBool(Hidden);
-            if(Hidden)
-            {
-                return;
-            }
-            message.PutUInt((uint)CruiseThrust, 2); //2 bits
+            //Header - 16 bits
+            message.PutBool(IsCRC);
             message.PutBool(HasPosition);
-            message.PutBool(HasOrientation);
-            message.PutBool(HasHealth);
-            message.PutBool(HasGuns);
+            message.PutBool(Tradelane);
+            message.PutBool(EngineKill);
             message.PutBool(DockingLights);
-            if (HasPosition)
-            {
+            message.PutBool(Hull);
+            message.PutBool(LinearVelocity != Vector3.Zero);
+            message.PutBool(AngularVelocity != Vector3.Zero);
+            message.PutBool(Guns != null && Guns.Length > 0);
+            message.PutBool(PartHealth != null && PartHealth.Length > 0);
+            message.PutUInt((uint)CruiseThrust, 2);
+            message.PutUInt((uint)Shield, 2);
+            if (Throttle == 0) {
+                message.PutUInt(0, 2); //0%
+            } else if (Throttle == 1) {
+                message.PutUInt(1, 2); //100%
+            } else if (Throttle > 0) {
+                message.PutUInt(2,2); //positive throttle
+            }
+            else {
+                message.PutUInt(3, 2); //negative throttle
+            }
+            //Data
+            if (IsCRC) message.PutInt(ID);
+            else message.PutVarInt32(ID);
+            if (HasPosition) {
                 message.PutVector3(Position);
-                message.PutByte(EngineThrottlePct);
-            }
-            if(HasOrientation) 
                 message.PutQuaternion(Orientation);
-            if(HasHealth) 
-            {
-                message.PutBool(HasShield);
-                message.PutBool(HasHull);
-                message.PutBool(HasParts);
-                if(HasParts)
-                {
-                    message.PutByte((byte)Parts.Length);
-                    for(int i = 0; i < Parts.Length; i++) {
-                        message.PutUInt(Parts[i], 3);
-                    }
-                }
-                if (HasShield) message.PutFloat(ShieldHp); //4 bytes
-                if (HasHull) message.PutInt(HullHp); //4 bytes
             }
-            if(HasGuns) 
-            {
-                message.PutByte((byte)GunOrients.Length);
-                foreach (var g in GunOrients)
-                    g.WriteTo(ref message);
+            if(LinearVelocity != Vector3.Zero)
+                message.PutVector3(LinearVelocity);
+            if(AngularVelocity != Vector3.Zero)
+                message.PutVector3(AngularVelocity);
+            if (Throttle != 1 && Throttle != 0) {
+                message.PutByte((byte)(Math.Abs(Throttle) * 255f));
+            }
+            if (Hull) message.PutFloat(HullValue);
+            if (Shield == 2) message.PutFloat(ShieldValue);
+            if (Guns != null && Guns.Length > 0) {
+                message.PutByte((byte)Guns.Length);
+                foreach(var g in Guns) g.WriteTo(ref message);
+            }
+            if (PartHealth != null && PartHealth.Length > 0) {
+                message.PutByte((byte)PartHealth.Length);
+                foreach(var p in PartHealth) message.PutUInt(p, 3);
             }
         }
         public static PackedShipUpdate ReadFrom(ref BitReader message)
         {
             var p = new PackedShipUpdate();
-            p.ID = (int)message.GetUInt(32);
-            p.Hidden = message.GetBool();
-            if(p.Hidden)
-            {
-                return p;
-            }
-            p.CruiseThrust = (CruiseThrustState)message.GetUInt(2);
+            p.IsCRC = message.GetBool();
             p.HasPosition = message.GetBool();
-            p.HasOrientation = message.GetBool();
-            p.HasHealth = message.GetBool();
-            p.HasGuns = message.GetBool();
+            p.Tradelane = message.GetBool();
+            p.EngineKill = message.GetBool();
             p.DockingLights = message.GetBool();
-            if(p.HasPosition)
-            {
+            p.Hull = message.GetBool();
+            bool readLinear = message.GetBool();
+            bool readAngular = message.GetBool();
+            bool readGuns = message.GetBool();
+            bool readParts = message.GetBool();
+            p.CruiseThrust = (CruiseThrustState) message.GetUInt(2);
+            p.Shield = message.GetUInt(2);
+            var throttle = message.GetUInt(2);
+            if (p.IsCRC) p.ID = message.GetInt();
+            else p.ID = message.GetVarInt32();
+            if (p.HasPosition) {
                 p.Position = message.GetVector3();
-                p.EngineThrottlePct = message.GetByte();
-            }
-            if(p.HasOrientation)
                 p.Orientation = message.GetQuaternion();
-            if(p.HasHealth)
-            {
-                p.HasShield = message.GetBool();
-                p.HasHull = message.GetBool();
-                p.HasParts = message.GetBool();
-                if(p.HasParts) {
-                    p.Parts = new byte[message.GetByte()];
-                    for(int i = 0; i < p.Parts.Length; i++)
-                    {
-                        p.Parts[i] = (byte)message.GetUInt(3);
-                    }
-                }
-                if (p.HasShield) p.ShieldHp = message.GetFloat();
-                if (p.HasHull) p.HullHp = message.GetInt();
             }
-            if (p.HasGuns)
+            if (readLinear) p.LinearVelocity = message.GetVector3();
+            if (readAngular) p.AngularVelocity = message.GetVector3();
+            switch (throttle)
             {
-                p.GunOrients = new GunOrient[message.GetByte()];
-                for (int i = 0; i < p.GunOrients.Length; i++) {
-                    p.GunOrients[i].ReadIn(ref message);
-                }
+                case 0:
+                    p.Throttle = 0; 
+                    break;
+                case 1:
+                    p.Throttle = 1;
+                    break;
+                case 2:
+                    p.Throttle = message.GetByte() / 255f;
+                    break;
+                case 3:
+                    p.Throttle = -(message.GetByte() / 255f);
+                    break;
+            }
+            if (p.Hull) p.HullValue = message.GetFloat();
+            if (p.Shield == 2) p.ShieldValue = message.GetFloat();
+            if (readGuns) {
+                p.Guns = new GunOrient[message.GetByte()];
+                for(int i = 0; i < p.Guns.Length; i++) p.Guns[i].ReadIn(ref message);
+            }
+            else {
+                p.Guns = Array.Empty<GunOrient>();
+            }
+            if (readParts) {
+                p.PartHealth = new byte[message.GetByte()];
+                for (int i = 0; i < p.PartHealth.Length; i++) p.PartHealth[i] = (byte) message.GetUInt(3);
+            }
+            else {
+                p.PartHealth = Array.Empty<byte>();
             }
             return p;
         }
     }
     
 
-    public class PositionUpdatePacket : IPacket
+    public class InputUpdatePacket : IPacket
     {
-        public Vector3 Position;
-        public Quaternion Orientation;
-        public float Speed;
+        public float Pitch;
+        public float Yaw;
+        public float Roll;
+        public float Throttle;
 
         public static object Read(NetPacketReader message)
         {
-            return new PositionUpdatePacket()
+            return new InputUpdatePacket()
             {
-                Position = message.GetVector3(),
-                Orientation = message.GetQuaternion(),
-                Speed = message.GetFloat()
+                Pitch = message.GetFloat(),
+                Yaw = message.GetFloat(),
+                Roll = message.GetFloat(),
+                Throttle = message.GetFloat()
             };
         }
         public void WriteContents(NetDataWriter msg)
         {
-            msg.Put(Position);
-            msg.Put(Orientation);
-            msg.Put(Speed);
+            msg.Put(Pitch);
+            msg.Put(Yaw);
+            msg.Put(Roll);
+            msg.Put(Throttle);
         }
     }
     

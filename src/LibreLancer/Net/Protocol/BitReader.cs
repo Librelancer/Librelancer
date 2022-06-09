@@ -39,6 +39,53 @@ namespace LibreLancer
             return new Vector3(GetFloat(), GetFloat(), GetFloat());
         }
 
+        public int GetVarInt32()
+        {
+            return NetPacking.Zag(GetVarUInt32());
+        }
+        
+        public uint GetVarUInt32()
+        {
+            uint a = 0;
+            int b = GetByte();
+            a = (uint) (b & 0x7f);
+            int extraCount = 0;
+            //first extra
+            if ((b & 0x80) == 0x80)
+            {
+                b = GetByte();
+                a |= (uint) ((b & 0x7f) << 7);
+                extraCount++;
+            }
+            //second extra
+            if ((b & 0x80) == 0x80)
+            {
+                b = GetByte();
+                a |= (uint) ((b & 0x7f) << 14);
+                extraCount++;
+            }
+            //third extra
+            if ((b & 0x80) == 0x80)
+            {
+                b = GetByte();
+                a |= (uint) ((b & 0x7f) << 21);
+                extraCount++;
+            }
+            //fourth extra
+            if ((b & 0x80) == 0x80)
+            {
+                b = GetByte();
+                a |= (uint) ((b & 0xf) << 28);
+                extraCount++;
+            }
+            switch (extraCount) {
+                case 1: a += 128; break;
+                case 2: a += 16512; break;
+                case 3: a += 2113663; break;
+            }
+            return a;
+        }
+
         public Vector3 GetNormal()
         {
             var maxIndex = (int) GetUInt(2);

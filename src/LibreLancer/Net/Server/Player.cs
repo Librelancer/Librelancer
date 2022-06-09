@@ -68,6 +68,19 @@ namespace LibreLancer
             }
         }
 
+        public bool InTradelane;
+        public void StartTradelane()
+        {
+            rpcClient.StartTradelane();
+            InTradelane = true;
+        }
+
+        public void EndTradelane()
+        {
+            rpcClient.EndTradelane();
+            InTradelane = false;
+        }
+
         public MissionRuntime MissionRuntime => msnRuntime;
 
         List<string> rtcs = new List<string>();
@@ -245,7 +258,7 @@ namespace LibreLancer
             Game.RequestWorld(sys, (world) =>
             {
                 World = world; 
-                rpcClient.SpawnPlayer(System, world.TotalTime, Position, Orientation);
+                rpcClient.SpawnPlayer(System, 0, Position, Orientation);
                 world.SpawnPlayer(this, Position, Orientation);
                 msnRuntime?.EnteredSpace();
             });
@@ -664,9 +677,9 @@ namespace LibreLancer
             {
                 switch(packet)
                 {
-                    case PositionUpdatePacket p:
+                    case InputUpdatePacket p:
                         //TODO: Error handling
-                        World?.PositionUpdate(this, p.Position, p.Orientation, p.Speed);
+                        World?.InputsUpdate(this, p);
                         break;
                 }
             }
@@ -981,7 +994,7 @@ namespace LibreLancer
                 }
                 BaseData = null;
                 Base = null;
-                rpcClient.SpawnPlayer(System, world.TotalTime, Position, Orientation);
+                rpcClient.SpawnPlayer(System, 0, Position, Orientation);
                 world.SpawnPlayer(this, Position, Orientation);
                 msnRuntime?.EnteredSpace();
             });
@@ -1020,7 +1033,7 @@ namespace LibreLancer
                 }
                 BaseData = null;
                 Base = null;
-                rpcClient.SpawnPlayer(System, world.TotalTime, Position, Orientation);
+                rpcClient.SpawnPlayer(System, 0, Position, Orientation);
                 world.SpawnPlayer(this, Position, Orientation);
                 msnRuntime?.EnteredSpace();
             });

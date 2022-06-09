@@ -20,21 +20,26 @@ namespace LibreLancer
 
 		public override void FixedUpdate(double time)
 		{
-			var cmp = currenttradelane.GetComponent<CDockComponent>();
+			var cmp = currenttradelane.GetComponent<SDockableComponent>();
 			var tgt = Parent.GetWorld().GetObject(lane == "HpRightLane" ? cmp.Action.Target : cmp.Action.TargetLeft);
 			if (tgt == null)
 			{
 				var ctrl = Parent.GetComponent<ShipPhysicsComponent>();
-				ctrl.EnginePower = 0.4f;
-				ctrl.Active = true;
+                if (ctrl != null)
+                {
+                    ctrl.EnginePower = 0.4f;
+                    ctrl.Active = true;
+                }
+                if (Parent.TryGetComponent<SPlayerComponent>(out var player))
+                {
+                    player.Player.EndTradelane();
+                }
 				Parent.Components.Remove(this);
-				Parent.World.BroadcastMessage(Parent, GameMessageKind.ManeuverFinished);
 				return;
 			}
 			var eng = Parent.GetComponent<CEngineComponent>();
 			if (eng != null) eng.Speed = 0.9f;
 
-			var tgtcmp = tgt.GetComponent<CDockComponent>();
             var targetPoint = Vector3.Transform(Vector3.Zero, tgt.GetHardpoint(lane).Transform * tgt.WorldTransform);
 			var direction = targetPoint - Parent.PhysicsComponent.Body.Position;
 			var distance = direction.Length();

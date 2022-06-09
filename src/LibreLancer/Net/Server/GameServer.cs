@@ -165,11 +165,13 @@ namespace LibreLancer
 
         private ServerLoop processingLoop;
 
+        public double TotalTime => processingLoop.TotalTime.TotalSeconds;
+
         //FromSeconds creates an inaccurate timespan
         static readonly TimeSpan RATE_60 = TimeSpan.FromTicks(166667);
         static readonly TimeSpan RATE_30 = TimeSpan.FromTicks(333333);
 
-        void Process(TimeSpan time)
+        void Process(TimeSpan time, TimeSpan totalTime)
         {
             while (!localPackets.IsEmpty && localPackets.TryDequeue(out var local))
                 LocalPlayer.ProcessPacket(local);
@@ -184,7 +186,7 @@ namespace LibreLancer
             ConcurrentBag<StarSystem> toSpinDown = new ConcurrentBag<StarSystem>();
             Parallel.ForEach(worlds, (world) =>
             {
-                if(!world.Value.Update(time.TotalSeconds))
+                if(!world.Value.Update(time.TotalSeconds, totalTime.TotalSeconds))
                     toSpinDown.Add(world.Key);
             });
             //Remove

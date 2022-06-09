@@ -167,7 +167,7 @@ namespace LibreLancer
             var sw = Stopwatch.StartNew();
             var last = 0.0;
             ServerLoop sendLoop = null;
-            sendLoop = new ServerLoop((time) =>
+            sendLoop = new ServerLoop((time,totalTime) =>
             {
                 foreach (var p in Server.ConnectedPeerList)
                 {

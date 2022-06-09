@@ -11,6 +11,5 @@ namespace LibreLancer
         public const uint PING_MAGIC = 0xBACAFEBA;
 		public const string DEFAULT_APP_IDENT = "LIBRELANCER";
         public const string BROADCAST_KEY = "BROADCAST-LIBRELANCER";
-        public const uint MAX_TICK_MS = 300000;
     }
 }

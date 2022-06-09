@@ -47,6 +47,49 @@ namespace LibreLancer
             PutRangedFloat(angle, NetPacking.ANGLE_MIN, NetPacking.ANGLE_MAX, 16);
         }
 
+        public void PutVarInt32(int i)
+        {
+            PutVarUInt32(NetPacking.Zig(i));
+        }
+        
+        public void PutVarUInt32(uint u)
+        {
+            if (u <= 127) 
+            {
+                PutByte((byte)u);
+            } 
+            else if (u <= 16511) 
+            {
+                u -= 128;
+                PutByte((byte)((u & 0x7f) | 0x80));
+                PutByte((byte)((u >> 7) & 0x7f));
+            } 
+            else if (u <= 2113662) 
+            {
+                u -= 16512;
+                PutByte((byte)((u & 0x7f) | 0x80));
+                PutByte((byte) (((u >> 7) & 0x7f) | 0x80));
+                PutByte((byte)((u >> 14) & 0x7f));
+            } 
+            else if (u <= 270549118)
+            {
+                u -= 2113663;
+                PutByte((byte)((u & 0x7f) | 0x80));
+                PutByte((byte)(((u >> 7) & 0x7f) | 0x80));
+                PutByte((byte)(((u >> 14) & 0x7f) | 0x80));
+                PutByte((byte)((u >> 21) & 0x7f));
+            }
+            else
+            {
+                PutByte((byte)((u & 0x7f) | 0x80));
+                PutByte((byte)(((u >> 7) & 0x7f) | 0x80));
+                PutByte((byte)(((u >> 14) & 0x7f) | 0x80));
+                PutByte((byte)(((u >> 21) & 0x7f) | 0x80));
+                PutByte((byte)((u >> 28) & 0x7f));
+            }
+        }
+        
+
         public void PutNormal(Vector3 v)
         {
             v.Normalize();

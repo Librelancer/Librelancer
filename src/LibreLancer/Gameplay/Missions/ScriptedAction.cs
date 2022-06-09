@@ -207,7 +207,7 @@ namespace LibreLancer.Missions
                         p.Character.Items.Add(new NetCargo()
                         {
                             Equipment = e,
-                            Hardpoint = equip.Hardpoint,
+                            Hardpoint = string.IsNullOrEmpty(equip.Hardpoint) ? "internal" : equip.Hardpoint,
                             Health = 1f,
                             Count = 1
                         });

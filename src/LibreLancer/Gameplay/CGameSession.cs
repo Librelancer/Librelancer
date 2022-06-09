@@ -13,8 +13,6 @@ using LibreLancer.Data.Missions;
 using LibreLancer.GameData.Items;
 using LibreLancer.Interface;
 using LibreLancer.Net;
-using LibreLancer.Utf.Cmp;
-using LiteNetLib;
 
 namespace LibreLancer
 {
@@ -50,9 +48,8 @@ namespace LibreLancer
         private IServerPlayer rpcServer;
         public IServerPlayer RpcServer => rpcServer;
 
-        public double SpawnTime; //server time at time of spawn
-        private double tOffset; //game time at time of spawn
-        public double WorldTime => Game.TotalTime - tOffset + SpawnTime;
+        private double timeOffset;
+        public double WorldTime => Game.TotalTime - timeOffset;
 
         public bool Multiplayer => connection is GameNetClient;
 
@@ -176,24 +173,33 @@ namespace LibreLancer
                 act();
         }
         
-        public void GameplayUpdate(SpaceGameplay gp)
+        public void GameplayUpdate(SpaceGameplay gp, double delta)
         {
             UpdateAudio();
             while (gameplayActions.TryDequeue(out var act))
                 act();
             var player = gp.player;
-            var tr = player.WorldTransform;
-            var pos = Vector3.Transform(Vector3.Zero, tr);
-            var orient = tr.ExtractRotation();
-            connection.SendPacket(new PositionUpdatePacket()
+            var phys = player.GetComponent <ShipPhysicsComponent>();
+            connection.SendPacket(new InputUpdatePacket()
             {
-                Position =  pos,
-                Orientation = orient,
-                Speed = player.GetComponent<CEngineComponent>()?.Speed ?? 0
-            }, PacketDeliveryMethod.SequenceB);
+                Pitch = Math.Abs(phys.PlayerPitch) > 0 ? phys.PlayerPitch : phys.Pitch,
+                Yaw = Math.Abs(phys.PlayerYaw) > 0 ? phys.PlayerYaw : phys.Yaw,
+                Roll = phys.Roll,
+                Throttle = phys.EnginePower
+            }, PacketDeliveryMethod.SequenceA);
+            
+            if (processUpdatePackets)
+            {
+                while (updatePackets.Count > 0 && (WorldTime * 1000.0) >= updatePackets.Peek().Tick)
+                {
+                    ProcessUpdate(updatePackets.Dequeue());
+                }
+            }
         }
 
         volatile bool processUpdatePackets = false;
+        
+        
         public void WorldReady()
         {
             while (gameplayActions.TryDequeue(out var act))
@@ -203,6 +209,27 @@ namespace LibreLancer
         public void BeginUpdateProcess()
         {
             processUpdatePackets = true;
+        }
+        
+        private Queue<ObjectUpdatePacket> updatePackets = new Queue<ObjectUpdatePacket>();
+
+        void ProcessUpdate(ObjectUpdatePacket p)
+        {
+            var hp = gp.player.GetComponent<CHealthComponent>();
+            if (hp != null)
+            {
+                   hp.CurrentHealth = p.PlayerHealth;
+                   hp.ShieldHealth = p.PlayerShield;
+            }
+            if(gp?.player != null)
+            {
+                gp.player.SetLocalTransform(Matrix4x4.CreateFromQuaternion(p.PlayerRotation) *
+                                                Matrix4x4.CreateTranslation(p.PlayerPosition));
+                gp.player.PhysicsComponent.Body.LinearVelocity = p.PlayerLinearVelocity;
+                gp.player.PhysicsComponent.Body.AngularVelocity = p.PlayerAngularVelocity;
+            }
+            foreach (var update in p.Updates)
+                UpdateObject(update);
         }
 
         public Action<IPacket> ExtraPackets;
@@ -226,6 +253,17 @@ namespace LibreLancer
                 });
             }
         }
+
+        void IClientPlayer.StartTradelane()
+        {
+            RunSync(() => gp.StartTradelane());
+        }
+
+        void IClientPlayer.EndTradelane()
+        {
+            RunSync(() => gp.EndTradelane());
+        }
+        
 
         void IClientPlayer.SpawnProjectiles(ProjectileSpawn[] projectiles)
         {
@@ -335,11 +373,6 @@ namespace LibreLancer
                     EquipmentObjectManager.InstantiateEquipment(newobj, Game.ResourceManager, EquipmentType.LocalPlayer, hplookup.GetHardpoint(eq.HardpointCRC), equip);
                 }
                 newobj.Register(gp.world.Physics);
-                if (connection is not EmbeddedServer)
-                {
-                    var netpos = new CNetPositionComponent(newobj);
-                    newobj.Components.Add(netpos);
-                }
 
                 newobj.Components.Add(new WeaponControlComponent(newobj));
                 objects.Add(id, newobj);
@@ -352,9 +385,7 @@ namespace LibreLancer
         {
             enterCount++;
             PlayerBase = null;
-            SpawnTime = systemTime;
             FLLog.Info("Client", $"Spawning in {system} at time {systemTime}");
-            tOffset = Game.TotalTime;
             PlayerSystem = system;
             PlayerPosition = position;
             PlayerOrientation = Matrix4x4.CreateFromQuaternion(orientation);
@@ -455,7 +486,6 @@ namespace LibreLancer
                 {
                     FLLog.Warning("Client", $"Tried to despawn unknown {id}");
                 }
-               
             });
         }
 
@@ -516,6 +546,8 @@ namespace LibreLancer
                 RunDialog(lines, index + 1);
             });
         }
+
+       
         
         void UpdatePackets()
         {
@@ -598,20 +630,8 @@ namespace LibreLancer
             switch(pkt)
             {
                 case ObjectUpdatePacket p:
-                    if (processUpdatePackets)
-                    {
-                        RunSync(() =>
-                        {
-                            var hp = gp?.player?.GetComponent<CHealthComponent>();
-                            if (hp != null)
-                            {
-                                hp.CurrentHealth = p.PlayerHealth;
-                                hp.ShieldHealth = p.PlayerShield;
-                            }
-                            foreach (var update in p.Updates)
-                                UpdateObject(p.Tick, update);
-                        });
-                    }
+                    if (processUpdatePackets) updatePackets.Enqueue(p);
+                    else timeOffset = Game.TotalTime - (p.Tick / 1000.0);
                     break;
                 default:
                     if (ExtraPackets != null) ExtraPackets(pkt);
@@ -620,38 +640,34 @@ namespace LibreLancer
             }
         }
 
-        void UpdateObject(uint tick, PackedShipUpdate update)
+        void UpdateObject(PackedShipUpdate update)
         {
             if (!objects.ContainsKey(update.ID)) return;
             var obj = objects[update.ID];
             //Component only present in multiplayer
-            var netPos = obj.GetComponent<CNetPositionComponent>();
-            if (update.HasPosition && obj.TryGetComponent<CEngineComponent>(out var eng)) {
-                eng.Speed = update.EngineThrottlePct / 255f;
+            if (update.HasPosition && obj.TryGetComponent<CEngineComponent>(out var eng))
+            {
+                eng.Speed = update.Throttle;
             }
-            if (update.HasHealth) {
-                var health = obj.GetComponent<CHealthComponent>();
-                if (health != null)
-                    health.CurrentHealth = (float)update.HullHp;
-                if(update.HasShield)
-                    health.ShieldHealth = update.ShieldHp;
+            if (obj.TryGetComponent<CHealthComponent>(out var health))
+            {
+                if (update.Hull)
+                    health.CurrentHealth = update.HullValue;
+                else
+                    health.CurrentHealth = health.MaxHealth;
+                /*if (obj.TryGetComponent<CShieldComponent>(out var shield))
+                {
+                    if (update.Shield == 0) shield.ShieldPercent = 0;
+                }*/
+            }
+            if (obj.TryGetComponent<WeaponControlComponent>(out var weapons) && (update.Guns?.Length ?? 0) > 0)
+            {
+                weapons.SetRotations(update.Guns);
             }
 
-            if (update.HasGuns && obj.TryGetComponent<WeaponControlComponent>(out var weapons))
+            if (update.HasPosition)
             {
-                weapons.SetRotations(update.GunOrients);
-            }
-            if (netPos != null)
-            {
-                if(update.HasPosition) netPos.QueuePosition(tick, update.Position);
-                if(update.HasOrientation) netPos.QueueOrientation(tick, update.Orientation);
-            }
-            else
-            {
-                var tr = obj.WorldTransform;
-                var pos = update.HasPosition ? update.Position : Vector3.Transform(Vector3.Zero, tr);
-                var rot = update.HasOrientation ? update.Orientation : tr.ExtractRotation();
-                obj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(rot) * Matrix4x4.CreateTranslation(pos));
+                obj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(update.Orientation) * Matrix4x4.CreateTranslation(update.Position));
             }
         }
 

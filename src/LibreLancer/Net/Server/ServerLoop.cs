@@ -15,9 +15,9 @@ namespace LibreLancer
 
         public TimeSpan TotalTime { get; private set; }
         
-        private Action<TimeSpan> onStep;
+        private Action<TimeSpan,TimeSpan> onStep;
         
-        public ServerLoop(Action<TimeSpan> onStep)
+        public ServerLoop(Action<TimeSpan,TimeSpan> onStep)
         {
             for (int i = 0; i < SLEEP_TIME_COUNT; i++)
                 sleepTimes.Enqueue(TimeSpan.FromMilliseconds(1));
@@ -82,12 +82,12 @@ namespace LibreLancer
                     TotalTime += TimeStep;
                     accumulatedTime -= TimeStep;
                     stepCount++;
-                    onStep(TimeStep);
+                    onStep(TimeStep,TotalTime);
                 }
                 if (stepCount == 2 && accumulatedTime >= TimeStep)
                 {
                     TotalTime += accumulatedTime;
-                    onStep(accumulatedTime);
+                    onStep(accumulatedTime,TotalTime);
                     accumulatedTime = TimeSpan.Zero;
                 }
             }

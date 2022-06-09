@@ -135,17 +135,7 @@ namespace LibreLancer
                 targetPoint = Vector3.Transform(Vector3.Zero, hp.Transform * _targetObject.WorldTransform);
 				if (lastTargetHp > 0) maxSpeed = 0.3f;
 				if (lastTargetHp == 2) radius = docking.TriggerRadius;
-                if (docking.Action.Kind == DockKinds.Tradelane)
-                {
-                    if (docking.TryDockTL(Parent, tlDockHP))
-                    {
-                        CurrentBehaviour = AutopilotBehaviours.None;
-                        ResetDockState();
-                        //Parent.World.BroadcastMessage(Parent, GameMessageKind.ManeuverFinished);
-                        return;
-                    }
-                }
-				var d2 = (targetPoint - Parent.PhysicsComponent.Body.Position).Length();
+                var d2 = (targetPoint - Parent.PhysicsComponent.Body.Position).Length();
 				if (d2 < 80) maxSpeed = 0.3f;
 			}
 

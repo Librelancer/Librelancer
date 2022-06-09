@@ -126,7 +126,7 @@ World Time: {12:F2}
             sysrender = new SystemRenderer(camera, Game.GameData, Game.ResourceManager, Game);
             sysrender.ZOverride = true; //Draw all with regular Z
             world = new GameWorld(sysrender);
-            world.LoadSystem(sys, Game.ResourceManager, false, session.SpawnTime);
+            world.LoadSystem(sys, Game.ResourceManager, false, session.WorldTime);
             session.WorldReady();
             player.World = world;
             world.AddObject(player);
@@ -384,8 +384,7 @@ World Time: {12:F2}
 					if ((d = selected.GetComponent<CDockComponent>()) != null)
 					{
                         pilotcomponent.StartDock(selected);
-                        if(d.Action.Kind != DockKinds.Tradelane)
-                            session.RpcServer.RequestDock(selected.Nickname);
+                        session.RpcServer.RequestDock(selected.Nickname);
 						return true;
 					}
 					return false;
@@ -420,7 +419,7 @@ World Time: {12:F2}
                 }
                 return;
             }
-            session.GameplayUpdate(this);
+            session.GameplayUpdate(this, delta);
             if (session.Update()) return;
             if (ShowHud && (Thn == null || !Thn.Running))
                 ui.Update(Game);
@@ -612,9 +611,19 @@ World Time: {12:F2}
                 session.RpcServer.FireProjectiles(world.Projectiles.GetQueue());
             }
         }
-        
-        
 
+        public void StartTradelane()
+        {
+            player.GetComponent<ShipPhysicsComponent>().Active = false;
+            pilotcomponent.Cancel();
+        }
+
+        public void EndTradelane()
+        {
+            player.GetComponent<ShipPhysicsComponent>().Active = true;
+        }
+        
+        
 		GameObject GetSelection(float x, float y)
 		{
 			var vp = new Vector2(Game.Width, Game.Height);

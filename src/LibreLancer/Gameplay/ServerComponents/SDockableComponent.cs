@@ -14,9 +14,7 @@ namespace LibreLancer
 	public class SDockableComponent : GameComponent
 	{
 		public DockAction Action;
-
-        string tlHP;
-
+        
         public DockSphere[] DockSpheres;
         
 		public SDockableComponent(GameObject parent) : base(parent)
@@ -39,12 +37,10 @@ namespace LibreLancer
 				var dot = Vector3.Dot(heading, fwd);
 				if (dot > 0)
 				{
-					tlHP = "HpLeftLane";
 					yield return Parent.GetHardpoint("HpLeftLane");
 				}
 				else
 				{
-					tlHP = "HpRightLane";
 					yield return Parent.GetHardpoint("HpRightLane");
 				}
 			}
@@ -68,7 +64,7 @@ namespace LibreLancer
 		}
         
 
-        bool CanDock(int i, GameObject obj)
+        bool CanDock(int i, GameObject obj, string tlHP = null)
 		{
             var rad = obj.PhysicsComponent?.Body.Collider.Radius ?? 15;
             var pos = Vector3.Transform(Vector3.Zero, obj.WorldTransform);
@@ -97,6 +93,7 @@ namespace LibreLancer
             public GameObject Ship;
             public bool HasTriggeredAnimation = false;
             public int LastTargetHp = 0;
+            public string TLHardpoint;
         }
 
         private List<DockingAction> activeDockings = new List<DockingAction>();
@@ -104,7 +101,20 @@ namespace LibreLancer
 
         public void StartDock(GameObject obj, int index)
         {
-            activeDockings.Add(new DockingAction() { Dock = index, Ship = obj });
+            var pos = Vector3.Transform(Vector3.Zero, obj.WorldTransform);
+            if (Action.Kind == DockKinds.Tradelane)
+            {
+                activeDockings.Add(new DockingAction()
+                {
+                    Dock = index,
+                    Ship = obj,
+                    TLHardpoint =  GetDockHardpoints(index, pos).First().Name
+                });
+            }
+            else
+            {
+                activeDockings.Add(new DockingAction() {Dock = index, Ship = obj});
+            }
         }
         
         public override void FixedUpdate(double time)
@@ -116,7 +126,7 @@ namespace LibreLancer
                 {
                     dock.HasTriggeredAnimation = true;
                 }
-                if (CanDock(dock.Dock, dock.Ship)) {
+                if (CanDock(dock.Dock, dock.Ship, dock.TLHardpoint)) {
                     if (Action.Kind == DockKinds.Base)
                     {
                         if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player))
@@ -137,6 +147,19 @@ namespace LibreLancer
                         else if (dock.Ship.TryGetComponent<SNPCComponent>(out var npc))
                         {
                             npc.Docked();
+                        }
+                    }
+                    else if (Action.Kind == DockKinds.Tradelane)
+                    {
+                        var movement = new TradelaneMoveComponent(dock.Ship, Parent, dock.TLHardpoint);
+                        dock.Ship.Components.Add(movement);
+                        if (dock.Ship.TryGetComponent<SNPCComponent>(out var npc))
+                        {
+                            npc.StartTradelane();
+                        }
+                        else if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player))
+                        {
+                            player.Player.StartTradelane();
                         }
                     }
                     activeDockings.RemoveAt(i);
