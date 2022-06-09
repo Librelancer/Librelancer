@@ -254,6 +254,7 @@ World Time: {12:F2}
             {
                 if (g.selected == null) return -1;
                 if (!g.selected.TryGetComponent<CHealthComponent>(out var health)) return -1;
+                if (!g.selected.GetChildComponents<CShieldComponent>().Any()) return -1;
                 return health.ShieldHealth;
             }
             
@@ -782,6 +783,7 @@ World Time: {12:F2}
                     sys.Nickname, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj,
                     control.PlayerPitch, control.PlayerYaw, control.Roll, mouseFlight, session.WorldTime);
                 ImGuiNET.ImGui.Text(text);
+                ImGuiNET.ImGui.Text($"input queue: {session.UpdateQueueCount}");
                 //ImGuiNET.ImGui.Text(pilotcomponent.ThrottleControl.Current.ToString());
             }, () =>
             {

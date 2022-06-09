@@ -197,6 +197,8 @@ namespace LibreLancer
             }
         }
 
+        public int UpdateQueueCount => updatePackets.Count;
+        
         volatile bool processUpdatePackets = false;
         
         
@@ -655,10 +657,9 @@ namespace LibreLancer
                     health.CurrentHealth = update.HullValue;
                 else
                     health.CurrentHealth = health.MaxHealth;
-                /*if (obj.TryGetComponent<CShieldComponent>(out var shield))
-                {
-                    if (update.Shield == 0) shield.ShieldPercent = 0;
-                }*/
+                if (update.Shield == 0) health.ShieldHealth = 0;
+                else if (update.Shield == 1) health.ShieldHealth = 1;
+                else health.ShieldHealth = update.ShieldValue;
             }
             if (obj.TryGetComponent<WeaponControlComponent>(out var weapons) && (update.Guns?.Length ?? 0) > 0)
             {

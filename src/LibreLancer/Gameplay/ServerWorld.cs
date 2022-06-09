@@ -371,6 +371,9 @@ namespace LibreLancer
         //This could do with some work
         void SendPositionUpdates(bool mp, double tick)
         {
+            tick *= 1000.0;
+            while (tick > uint.MaxValue) tick -= uint.MaxValue;
+            
             foreach(var player in Players)
             {
                 var tr = player.Value.WorldTransform;
@@ -421,22 +424,14 @@ namespace LibreLancer
                             update.Hull = true;
                             update.HullValue = health.CurrentHealth;
                         }
-                        SShieldComponent shield;
-                        if ((shield = obj.GetChildComponents<SShieldComponent>().FirstOrDefault()) != null)
-                        {
-                            if (shield.OfflineTimer > 0)
-                            {
-                                update.Shield = 0;
-                            } 
-                            else if (shield.Health >= shield.Equip.Def.MaxCapacity)
-                            {
-                                update.Shield = 1;
-                            }
-                            else
-                            {
-                                update.Shield = 2;
-                                update.ShieldValue = shield.Health;
-                            }
+
+                        if (health.ShieldHealth <= 0)
+                            update.Shield = 0;
+                        else if (health.ShieldHealth >= 1)
+                            update.Shield = 1;
+                        else {
+                            update.Shield = 2;
+                            update.ShieldValue = health.ShieldHealth;
                         }
                     }
                     if (obj.TryGetComponent<WeaponControlComponent>(out var weapons))
@@ -445,9 +440,6 @@ namespace LibreLancer
                     }
                     ps.Add(update);
                 }
-
-                tick *= 1000.0;
-                while (tick > uint.MaxValue) tick -= uint.MaxValue;
                 
                 player.Key.SendUpdate(new ObjectUpdatePacket()
                 {
