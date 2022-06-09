@@ -5,7 +5,7 @@ class textentry : textentry_Designer with Modal
         base();
         this.ModalInit();
         this.ModalCallback(cb);
-        var scn = self.Elements;
+        var scn = this.Elements;
         scn.content.SetFocus();
         scn.title.Text = title;
         scn.content.OnTextEntered(() => this.Close('ok', name, 0));

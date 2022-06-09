@@ -76,8 +76,8 @@ mixin Modal {
     Close(...)
     {
         CloseModal(this._modalinfo.closehandle)
-        if (self._modalinfo.Callback != nil)
-            self._modalinfo.Callback(...);
+        if (this._modalinfo.Callback != nil)
+            this._modalinfo.Callback(...);
     }
 }
 

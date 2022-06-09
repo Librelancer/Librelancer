@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using LibreLancer.Interface;
@@ -30,7 +31,7 @@ namespace LibreLancer
 		public string MpvOverride;
 		public bool InitialLoadComplete = false;
         public Stopwatch LoadTimer;
-        public InputMap InputMap = new InputMap();
+        public InputMap InputMap;
 		int uithread;
 		bool useintromovies;
 		GameState currentState;
@@ -101,6 +102,7 @@ namespace LibreLancer
 			IntroMovies = GameData.GetIntroMovies();
 			MpvOverride = _cfg.MpvOverride;
             Saves = new SaveGameFolder();
+            InputMap = new InputMap(Path.Combine(GetSaveFolder(), "keymap.ini"));
             var saveLoadTask = Task.Run(() => Saves.Load(GetSaveFolder()));
             Thread GameDataLoaderThread = new Thread(() =>
             {
@@ -108,6 +110,7 @@ namespace LibreLancer
                 {
                     Sound = new SoundManager(GameData, Audio, this);
                     InputMap.LoadFromKeymap(GameData.Ini.Keymap, GameData.Ini.KeyList);
+                    InputMap.LoadMapping();
                     Services.Add(Sound);
                     InisLoaded = true;
                 });

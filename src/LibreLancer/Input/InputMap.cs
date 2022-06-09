@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using LibreLancer.Data.Interface;
+using LibreLancer.Ini;
 
 namespace LibreLancer;
 
-public class InputMap
+public class InputMap : IniFile
 {
     public InputBinding[] Actions = new InputBinding[(int) InputAction.COUNT];
     public InputBinding[] DefaultMapping = new InputBinding[(int) InputAction.COUNT];
@@ -14,6 +16,13 @@ public class InputMap
     public int[] InfoId = new int[(int) InputAction.COUNT];
 
     public InputAction[][] KeyGroups;
+    
+    public string FilePath;
+
+    public InputMap(string filePath)
+    {
+        FilePath = filePath;
+    }
     
     static readonly Dictionary<string, KeyModifiers> modifierTable =
         new (StringComparer.OrdinalIgnoreCase)
@@ -69,7 +78,27 @@ public class InputMap
         Array.Copy(DefaultMapping, Actions, Actions.Length);
     }
 
-    public string Dump()
+    public void LoadMapping()
+    {
+        if (!File.Exists(FilePath)) return;
+        using var stream = File.OpenRead(FilePath);
+        for (int i = 0; i < Actions.Length; i++) Actions[i] = new InputBinding();
+        foreach (var section in ParseFile(FilePath, stream))
+        {
+            if (section.Name.ToLowerInvariant() != "inputmap") continue;
+            foreach (var e in section)
+            {
+                if (!Enum.TryParse(e.Name, true, out InputAction action))
+                    continue;
+                if (e.Count != 2)
+                    continue;
+                Actions[(int)action].Primary = UserInput.FromInt32(e[0].ToInt32());
+                Actions[(int) action].Secondary = UserInput.FromInt32(e[1].ToInt32());
+            }
+        }
+    }
+    
+    public void WriteMapping()
     {
         var builder = new StringBuilder();
         builder.AppendLine("[InputMap]");
@@ -81,7 +110,6 @@ public class InputMap
                     Actions[i].Secondary.ToInt32());
             }
         }
-
-        return builder.ToString();
+        File.WriteAllText(FilePath, builder.ToString());
     }
 }

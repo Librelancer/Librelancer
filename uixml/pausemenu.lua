@@ -3,6 +3,7 @@ class pausemenu : pausemenu_Designer with Modal
     pausemenu()
     {
         base()
+		this.ModalInit();
         var e = this.Elements
         e.loadgame.Enabled = !Game.IsMultiplayer()
         e.loadgame.OnClick(() => {
@@ -24,6 +25,3 @@ class pausemenu : pausemenu_Designer with Modal
         e.quittomenu.OnClick(() => { Game.QuitToMenu(); this.Close(); });
     }
 }
-
-
-

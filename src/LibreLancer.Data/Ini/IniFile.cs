@@ -49,7 +49,7 @@ namespace LibreLancer.Ini
             return 2;
         }
 
-        protected IEnumerable<Section> ParseFile(string path, MemoryStream stream, bool preparse = true, bool allowmaps = false)
+        protected IEnumerable<Section> ParseFile(string path, Stream stream, bool preparse = true, bool allowmaps = false)
         {
             if (string.IsNullOrEmpty(path)) path = "[Memory]";
             stream.Position = 0;

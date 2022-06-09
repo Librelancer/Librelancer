@@ -28,7 +28,7 @@ class serverlist : serverlist_Designer
 
 	ExitAnimation(f)
 	{
-		local e = self.Elements
+		local e = this.Elements
 		e.animgroupA.Animate('flyoutleft', 0, 0.8)
 		e.animgroupB.Animate('flyoutright', 0, 0.8)
 		Timer(0.8, f)

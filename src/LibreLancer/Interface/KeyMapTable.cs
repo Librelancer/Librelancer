@@ -65,6 +65,7 @@ public class KeyMapTable : ITableData
     public void Save()
     {
         Array.Copy(mapCopy, map.Actions, map.Actions.Length);
+        map.WriteMapping();
     }
     
     public void CancelCapture()
