@@ -18,7 +18,7 @@ class childwindowmanager
     {
         if(this.ActiveWindow == window) {
             this.CanOpen = false;
-            window.close();
+            window.Close();
         } elseif (this.CanOpen) {
             this.CanOpen = false;
             if (this.ActiveWindow != nil) {
