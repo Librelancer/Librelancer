@@ -370,16 +370,7 @@ namespace LibreLancer
 			for (int i = 0; i < Components.Count; i++)
 				Components[i].Update(time);
 		}
-        
-        public void FixedUpdate(double time)
-		{
-			for (int i = 0; i < Children.Count; i++)
-				Children[i].FixedUpdate(time);
-			for (int i = 0; i < Components.Count; i++)
-				Components[i].FixedUpdate(time);
-        }
-
-		public void Register(PhysicsWorld physics)
+        public void Register(PhysicsWorld physics)
 		{
 			foreach (var child in Children)
 				child.Register(physics);

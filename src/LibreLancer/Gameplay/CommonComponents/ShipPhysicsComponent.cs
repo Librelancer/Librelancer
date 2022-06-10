@@ -78,8 +78,9 @@ namespace LibreLancer
         {
             Active = true;
         }
+        
         //TODO: Engine Kill
-        public override void FixedUpdate(double time)
+        public override void Update(double time)
         {
             if (!Active) return;
             //Component checks

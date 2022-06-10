@@ -130,8 +130,6 @@ World Time: {12:F2}
             session.WorldReady();
             player.World = world;
             world.AddObject(player);
-            world.RenderUpdate += World_RenderUpdate;
-            world.PhysicsUpdate += World_PhysicsUpdate;
             player.Register(world.Physics);
             Game.Sound.PlayMusic(sys.MusicSpace);
             //world.Physics.EnableWireframes(debugphysics);
@@ -397,10 +395,6 @@ World Time: {12:F2}
 			return false;
 		}
 
-		void World_RenderUpdate(double delta)
-		{
-
-		}
         public override void OnResize()
         {
             camera.Viewport = Game.RenderContext.CurrentViewport;
@@ -429,6 +423,7 @@ World Time: {12:F2}
             else
                 Game.DisableTextInput();
             world.Update(paused ? 0 : delta);
+            UpdateCamera(delta);
             if (Thn != null && Thn.Running)
             {
                 sysrender.Camera = Thn.CameraHandle;
@@ -456,7 +451,7 @@ World Time: {12:F2}
 
 		bool thrust = false;
 
-		void World_PhysicsUpdate(double delta)
+		void UpdateCamera(double delta)
 		{
             if(Thn == null || !Thn.Running)
 			    ProcessInput(delta);

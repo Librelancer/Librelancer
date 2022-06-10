@@ -100,7 +100,7 @@ namespace LibreLancer
             return _targetObject.PhysicsComponent.Body.Collider.Radius;
         }
         
-		public override void FixedUpdate(double time)
+		public override void Update(double time)
 		{
 			var control = Parent.GetComponent<ShipPhysicsComponent>();
             var input = Parent.GetComponent<ShipInputComponent>();

@@ -117,7 +117,7 @@ namespace LibreLancer
             }
         }
         
-        public override void FixedUpdate(double time)
+        public override void Update(double time)
         {
             for(int i = activeDockings.Count - 1; i >= 0; i--)
             {
@@ -166,10 +166,5 @@ namespace LibreLancer
                 }
             }
         }
-
-        public override void Update(double time)
-		{
-            
-		}
-	}
+    }
 }

@@ -90,7 +90,7 @@ namespace LibreLancer
 
         private double fireTimer;
         
-        public override void FixedUpdate(double time)
+        public override void Update(double time)
         {
             CurrentState?.Update(Parent, this, time);
             //Get hostile

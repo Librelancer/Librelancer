@@ -28,16 +28,22 @@ namespace LibreLancer.Media
 		}
 
 		public void Play(string filename, float attenuation = 0, bool loop = false)
-		{
-			Stop();
-			var stream = File.OpenRead(filename);
-			var data = SoundLoader.Open(stream);
-            sound = dev.CreateStreaming(data, filename);
-            sound.Stopped += Sound_Stopped;
-            this.attenuation = attenuation;
-            UpdateGain();
-			sound.Begin(loop);
-		}
+        {
+            dev.Do(() =>
+            {
+                if (sound != null)
+                {
+                    sound.Dispose();
+                    sound = null;
+                }
+                var stream = File.OpenRead(filename);
+                var data = SoundLoader.Open(stream);
+                sound = dev.CreateStreaming(data, filename);
+                this.attenuation = attenuation;
+                UpdateGain();
+                sound.Begin(loop);
+            });
+        }
 
         void UpdateGain()
         {
@@ -46,20 +52,18 @@ namespace LibreLancer.Media
         
 		public void Stop()
 		{
-			if (sound != null)
-			{
-				sound.Stop();
-				sound = null;
-			}
+			dev.Do(() =>
+            {
+                if (sound != null)
+                {
+                    sound.Dispose();
+                    sound = null;
+                }
+            });
+            
 		}
 
-		void Sound_Stopped(object sender, EventArgs e)
-		{
-			var snd = (StreamingSource)sender;
-			snd.Dispose();
-		}
-
-		public PlayState State {
+        public PlayState State {
 			get {
 				return sound == null ? PlayState.Stopped : PlayState.Playing;
 			}

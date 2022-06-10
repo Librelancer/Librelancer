@@ -20,7 +20,7 @@ namespace LibreLancer
             Player.Killed();
         }
 
-        public override void FixedUpdate(double time)
+        public override void Update(double time)
         {
             if (Parent.TryGetComponent<ShipPhysicsComponent>(out var phys))
             {

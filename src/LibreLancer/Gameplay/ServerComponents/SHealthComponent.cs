@@ -17,7 +17,7 @@ namespace LibreLancer
         
         public SHealthComponent(GameObject parent) : base(parent) { }
 
-        public override void FixedUpdate(double time)
+        public override void Update(double time)
         {
             var shield = Parent.GetChildComponents<SShieldComponent>().FirstOrDefault();
             if (shield != null)

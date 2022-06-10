@@ -20,11 +20,6 @@ namespace LibreLancer
 		private List<GameObject> objects = new List<GameObject>();
 
         public IReadOnlyList<GameObject> Objects => objects;
-        
-		public delegate void RenderUpdateHandler(double delta);
-		public event RenderUpdateHandler RenderUpdate;
-		public delegate void PhysicsUpdateHandler(double delta);
-		public event PhysicsUpdateHandler PhysicsUpdate;
 
         public SpatialLookup SpatialLookup = new SpatialLookup();
 
@@ -42,7 +37,6 @@ namespace LibreLancer
                 }
             }
             if(initPhys)
-            Physics.FixedUpdate += FixedUpdate;
             Projectiles = new ProjectileManager(this);
 		}
 
@@ -156,16 +150,7 @@ namespace LibreLancer
 				obj.Register(Physics);
 		}
 
-        void FixedUpdate(double time)
-        {
-            Projectiles.FixedUpdate(time);
-            for (int i = 0; i < objects.Count; i++) {
-                objects[i].FixedUpdate(time);
-                SpatialLookup.UpdatePosition(objects[i], Vector3.Transform(Vector3.Zero, objects[i].WorldTransform));
-            }
-
-            if (PhysicsUpdate != null) PhysicsUpdate(time);
-        }
+       
 
         public void Update(double t)
 		{
@@ -176,10 +161,13 @@ namespace LibreLancer
                 #endif
                 Renderer.Update(t);
             }
-            Physics?.Step(t);
-			for (int i = 0; i < objects.Count; i++)
+            Physics?.StepSimulation((float)t);
+            Projectiles?.Update(t);
+            for (int i = 0; i < objects.Count; i++)
 				objects[i].Update(t);
-            RenderUpdate?.Invoke(t);
+            for (int i = 0; i < objects.Count; i++) {
+                SpatialLookup.UpdatePosition(objects[i], Vector3.Transform(Vector3.Zero, objects[i].WorldTransform));
+            }
         }
 
 		public event Action<GameObject, GameMessageKind> MessageBroadcasted;

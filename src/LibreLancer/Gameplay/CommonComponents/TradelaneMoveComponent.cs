@@ -18,7 +18,7 @@ namespace LibreLancer
 			this.lane = lane;
 		}
 
-		public override void FixedUpdate(double time)
+		public override void Update(double time)
 		{
 			var cmp = currenttradelane.GetComponent<SDockableComponent>();
 			var tgt = Parent.GetWorld().GetObject(lane == "HpRightLane" ? cmp.Action.Target : cmp.Action.TargetLeft);

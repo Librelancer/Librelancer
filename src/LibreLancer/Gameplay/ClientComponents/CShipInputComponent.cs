@@ -23,7 +23,7 @@ namespace LibreLancer
         public PIDController PitchControl = new PIDController() { P = 3.5f };
         public PIDController YawControl = new PIDController() { P = 3.5f };
         public PIDController RollControl = new PIDController() { P = 4f };
-        public override void FixedUpdate(double time)
+        public override void Update(double time)
         {
             if (physics == null) physics = Parent.GetComponent<ShipPhysicsComponent>();
             if (Camera == null) return;

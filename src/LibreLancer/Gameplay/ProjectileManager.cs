@@ -23,7 +23,7 @@ namespace LibreLancer
             this.world = world;
         }
 
-        public void FixedUpdate(double time)
+        public void Update(double time)
         {
             var tFloat = (float)time;
             for(int i = 0; i < Projectiles.Length; i++) {

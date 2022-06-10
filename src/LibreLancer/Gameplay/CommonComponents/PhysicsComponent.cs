@@ -46,7 +46,7 @@ namespace LibreLancer
             partRemoved = true;
         }
 
-        public override void FixedUpdate(double time)
+        public override void Update(double time)
         {
             if(partRemoved)
             {
@@ -57,7 +57,6 @@ namespace LibreLancer
             {
                 Parent.SetLocalTransform(Body.Transform, true);
             }
-            base.FixedUpdate(time);
         }
 
         public override void Register(PhysicsWorld physics)

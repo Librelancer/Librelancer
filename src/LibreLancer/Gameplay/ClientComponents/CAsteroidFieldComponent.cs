@@ -89,7 +89,7 @@ namespace LibreLancer
 
         //List<RigidBody> bodies = new List<RigidBody>();
         List<PhysicsObject> bodies = new List<PhysicsObject>();
-		public override void FixedUpdate(double time)
+		public override void Update(double time)
 		{
 			var world = Parent.GetWorld();
 			var player = world.GetObject("player");
