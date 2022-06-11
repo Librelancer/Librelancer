@@ -299,6 +299,13 @@ namespace LibreLancer
                     {
                         var errorPos = state.Position - moveState[i].Position;
                         var errorQuat = MathHelper.QuatError(state.Orientation, moveState[i].Orientation);
+                        var phys = gp.player.GetComponent<ShipPhysicsComponent>();
+                        
+                        if (p.PlayerState.CruiseAccelPct > 0 || p.PlayerState.CruiseChargePct > 0) {
+                            phys.ResyncChargePercent(p.PlayerState.CruiseChargePct, (1 / 60.0f) * (moveState.Count - i));
+                            phys.ResyncCruiseAccel(p.PlayerState.CruiseAccelPct, (1 / 60.0f) * (moveState.Count - i));
+                        }
+
                         if (errorPos.Length() > 0.1 || errorQuat > 0.1f)
                         {
                             //Resimulating messes up the physics world, save state
@@ -325,6 +332,8 @@ namespace LibreLancer
                             gp.player.SetLocalTransform(Matrix4x4.CreateFromQuaternion(state.Orientation) * Matrix4x4.CreateTranslation(state.Position));
                             gp.player.PhysicsComponent.Body.LinearVelocity = state.LinearVelocity;
                             gp.player.PhysicsComponent.Body.AngularVelocity = state.AngularVelocity;
+                            phys.ChargePercent = state.CruiseChargePct;
+                            phys.CruiseAccelPct = state.CruiseAccelPct;
                             //simulate inputs
                             i++;
                             Resimulate(i, gp);

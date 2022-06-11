@@ -415,6 +415,7 @@ namespace LibreLancer
                     ps.Add(update);
                 }
 
+                var phys = player.Value.GetComponent<ShipPhysicsComponent>();
                 var state = new PlayerAuthState
                 {
                     Health = phealth,
@@ -422,7 +423,9 @@ namespace LibreLancer
                     Position = player.Key.Position,
                     Orientation = player.Key.Orientation,
                     LinearVelocity = player.Value.PhysicsComponent.Body.LinearVelocity,
-                    AngularVelocity = MathHelper.ApplyEpsilon(player.Value.PhysicsComponent.Body.AngularVelocity)
+                    AngularVelocity = MathHelper.ApplyEpsilon(player.Value.PhysicsComponent.Body.AngularVelocity),
+                    CruiseAccelPct = phys.CruiseAccelPct,
+                    CruiseChargePct = phys.ChargePercent
                 };
                 player.Key.SendUpdate(new ObjectUpdatePacket()
                 {

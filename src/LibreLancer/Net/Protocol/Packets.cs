@@ -191,6 +191,8 @@ namespace LibreLancer
         public Quaternion Orientation;
         public Vector3 LinearVelocity;
         public Vector3 AngularVelocity;
+        public float CruiseChargePct;
+        public float CruiseAccelPct;
         public static PlayerAuthState Read(ref BitReader reader)
         {
             var pa = new PlayerAuthState();
@@ -201,6 +203,8 @@ namespace LibreLancer
             pa.Orientation = reader.GetQuaternion(18);
             pa.LinearVelocity = reader.GetVector3();
             pa.AngularVelocity = reader.GetVector3();
+            pa.CruiseChargePct = reader.GetRangedFloat(0, 1, 12);
+            pa.CruiseAccelPct = reader.GetRangedFloat(0, 1, 12);
             return pa;
         }
 
@@ -213,6 +217,8 @@ namespace LibreLancer
             writer.PutQuaternion(Orientation, 18);
             writer.PutVector3(LinearVelocity);
             writer.PutVector3(AngularVelocity);
+            writer.PutRangedFloat(CruiseChargePct, 0, 1, 12);
+            writer.PutRangedFloat(CruiseAccelPct, 0, 1, 12);
         }
     }
 

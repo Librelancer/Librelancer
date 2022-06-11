@@ -46,6 +46,33 @@ namespace LibreLancer
         }
         
         //TODO: Engine Kill
+
+        public void ResyncChargePercent(float prev, float time)
+        {
+            if (EngineState == EngineStates.Cruise || EngineState == EngineStates.CruiseCharging)
+            {
+                var engine = Parent.GetComponent<SEngineComponent>(); //Get mounted engine
+                ChargePercent = prev + (1.0f / engine.Engine.Def.CruiseChargeTime) * (float) time;
+                if (ChargePercent >= 1) {
+                    ChargePercent = 1;
+                    EngineState = EngineStates.Cruise;
+                }
+                else {
+                    EngineState = EngineStates.CruiseCharging;
+                }
+            }
+        }
+
+        public void ResyncCruiseAccel(float prev, float time)
+        {
+            if (EngineState == EngineStates.Cruise)
+            {
+                var engine = Parent.GetComponent<SEngineComponent>(); //Get mounted engine
+                CruiseAccelPct = prev + (float)(time * 1.0f / engine.Engine.CruiseAccelTime);
+                if (CruiseAccelPct > 1.0f) CruiseAccelPct = 1.0f;
+            }
+        }
+        
         public override void Update(double time)
         {
             if (!Active) return;
@@ -62,6 +89,8 @@ namespace LibreLancer
             else
             {
                 EngineState = EngineStates.Standard;
+                ChargePercent = 0;
+                CruiseAccelPct = 0;
             }
             //Component checks
             var engine = Parent.GetComponent<SEngineComponent>(); //Get mounted engine
@@ -100,6 +129,7 @@ namespace LibreLancer
                 if (ChargePercent >= 1.0f)
                 {
                     EngineState = EngineStates.Cruise;
+                    ChargePercent = 1f;
                 }
 
                 if (ChargePercent >= 0.6f) {
@@ -118,6 +148,7 @@ namespace LibreLancer
                 engine_force = engine.Engine.Def.MaxForce + (cruise_force - engine.Engine.Def.MaxForce) * CruiseAccelPct;
                 //Set fx sparam. TODO: This is poorly named
                 engine.Speed = 1.0f;
+                ChargePercent = 1f;
             }
             else
             {
