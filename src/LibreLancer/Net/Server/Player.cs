@@ -715,6 +715,27 @@ namespace LibreLancer
                     else 
                         rpcClient.OnConsoleMessage($"Base does not exist `{arg}`");
                 }),
+                new("warp", (arg) =>
+                {
+                    var argSplit = arg.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    if (argSplit.Length == 3)
+                    {
+                        if (PermissionCheck() && World != null)
+                        {
+                            if (float.TryParse(argSplit[0], out var x) &&
+                                float.TryParse(argSplit[1], out var y) &&
+                                float.TryParse(argSplit[2], out var z))
+                            {
+                                World.EnqueueAction(() =>
+                                {
+                                    var obj = World.Players[this];
+                                    obj.SetLocalTransform(Matrix4x4.CreateTranslation(x,y,z));
+                                });
+                            } else
+                                rpcClient.OnConsoleMessage("Invalid argument");
+                        }
+                    } else rpcClient.OnConsoleMessage("Invalid argument");
+                }),
                 new("credits", (x) => rpcClient.OnConsoleMessage($"You have ${Character.Credits}")),
                 new("sethealth", (arg) =>
                 {

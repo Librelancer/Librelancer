@@ -55,21 +55,15 @@ namespace LibreLancer
 			Count = 0;
 		}
 
-		public T this[int index]
+		public ref T this[int index]
 		{
 			get
 			{
 				if (index < 0 || index >= Count)
 					throw new ArgumentOutOfRangeException("index");
-				return backing[(tail + index) % Capacity];
+				return ref backing[(tail + index) % Capacity];
 			}
-			set
-			{
-				if (index < 0 || index >= Count)
-					throw new ArgumentOutOfRangeException("index");
-				backing[(tail + index) % Capacity] = value;
-			}
-		}
+        }
 
 	}
 }

@@ -102,11 +102,11 @@ namespace LibreLancer
         
 		public override void Update(double time)
 		{
-			var control = Parent.GetComponent<ShipPhysicsComponent>();
+			var control = Parent.GetComponent<ShipSteeringComponent>();
+            var phys = Parent.GetComponent<ShipPhysicsComponent>();
             var input = Parent.GetComponent<ShipInputComponent>();
-            if(input != null)input.AutopilotThrottle = 0;
+            if(input != null) input.AutopilotThrottle = 0;
             if (control == null) return;
-			control.Pitch = control.Yaw = 0;
             if (CurrentBehaviour == AutopilotBehaviours.None)
 			{
 				ResetDockState();
@@ -147,11 +147,11 @@ namespace LibreLancer
 
             if ((distance - gotoRange) > 2000 && CanCruise) 
             {
-                control.BeginCruise();
+                phys.BeginCruise();
             }
             else if ((distance - gotoRange) < 200)
             {
-                control.EndCruise();
+                phys.EndCruise();
             }
 			var distrad = radius < 0 ? (targetRadius + myRadius + gotoRange) : radius + myRadius;
 			bool distanceSatisfied =  distrad >= distance;
@@ -169,13 +169,13 @@ namespace LibreLancer
 			bool directionSatisfied = (Math.Abs(vec.X) < 0.0015f && Math.Abs(vec.Y) < 0.0015f);
 			if (!directionSatisfied)
 			{
-				control.Yaw = MathHelper.Clamp((float)YawControl.Update(0, vec.X, dt), -1, 1);
-				control.Pitch = MathHelper.Clamp((float)PitchControl.Update(0, -vec.Y, dt), -1, 1);
+				control.InYaw = MathHelper.Clamp((float)YawControl.Update(0, vec.X, dt), -1, 1);
+				control.InPitch = MathHelper.Clamp((float)PitchControl.Update(0, -vec.Y, dt), -1, 1);
 			}
 			else
 			{
-				control.Yaw = 0;
-				control.Pitch = 0;
+				control.InYaw = 0;
+				control.InPitch = 0;
 			}
 			if (distanceSatisfied && directionSatisfied && CurrentBehaviour == AutopilotBehaviours.Goto)
 			{
@@ -192,7 +192,7 @@ namespace LibreLancer
             if (targetPower > _maxThrottle) targetPower = _maxThrottle;
             if(input != null)
                 input.AutopilotThrottle = targetPower;
-            control.EnginePower = targetPower;
+            control.InThrottle = targetPower;
         }
 
 	}

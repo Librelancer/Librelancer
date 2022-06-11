@@ -35,14 +35,9 @@ namespace LibreLancer
         public EngineStates EngineState = EngineStates.Standard;
         public StrafeControls CurrentStrafe = StrafeControls.None;
         public float ChargePercent;
-        public float Pitch; //From -1 to 1
-        public float Yaw; //From -1 to 1
-        public float Roll; //From -1 to 1
-                           //I know it's hacky :(
-        public float PlayerPitch;
-        public float PlayerYaw;
-        PIDController rollPID = new PIDController() { P = 2 };
-        
+        public Vector3 Steering;
+        public int Tick;
+
         float cruiseAccelPct = 0;
 
         public void CruiseToggle()
@@ -177,42 +172,13 @@ namespace LibreLancer
                 strafe +
                 (Parent.PhysicsComponent.Body.RotateVector(-Vector3.UnitZ) * engine_force)
             );
-            Parent.PhysicsComponent.Body.AddForce(totalForce);
-            //steer
-            //based on the amazing work of Why485 (https://www.youtube.com/user/Why485)
-            var steerControl = new Vector3(Math.Abs(PlayerPitch) > 0 ? PlayerPitch : Pitch,
-                                           Math.Abs(PlayerYaw) > 0 ? PlayerYaw : Yaw,
-                                           Roll);
-            double pitch, yaw, roll;
-            DecomposeOrientation(Parent.PhysicsComponent.Body.Transform, out pitch, out yaw, out roll);
-            if (Math.Abs(PlayerPitch) < float.Epsilon && Math.Abs(PlayerYaw) < float.Epsilon)
-                steerControl.Z = MathHelper.Clamp((float)rollPID.Update(0, roll, (float)time), -0.5f, 0.5f);
-            else
-                rollPID.Reset();
-
-            var angularForce = Parent.PhysicsComponent.Body.RotateVector(steerControl * Ship.SteeringTorque);
+            var angularForce = Steering * Ship.SteeringTorque;
             angularForce += (Parent.PhysicsComponent.Body.AngularVelocity * -1) * Ship.AngularDrag;
-            //transform torque by direction = unity's AddRelativeTorque
+            //Add forces
+            Parent.PhysicsComponent.Body.AddForce(totalForce);
             Parent.PhysicsComponent.Body.AddTorque(angularForce);
         }
 
-        //Specific decomposition for roll
-        static void DecomposeOrientation(Matrix4x4 mx, out double xPitch, out double yYaw, out double zRoll)
-        {
-            xPitch = Math.Asin(-mx.M32);
-            double threshold = 0.001; // Hardcoded constant – burn him, he’s a witch
-            double test = Math.Cos(xPitch);
-
-            if (test > threshold)
-            {
-                zRoll = Math.Atan2(mx.M12, mx.M22);
-                yYaw = Math.Atan2(mx.M31, mx.M33);
-            }
-            else
-            {
-                zRoll = Math.Atan2(-mx.M21, mx.M11);
-                yYaw = 0.0;
-            }
-        }
+        
     }
 }

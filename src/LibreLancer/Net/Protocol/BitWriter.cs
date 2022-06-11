@@ -125,7 +125,7 @@ namespace LibreLancer
             }
         }
 
-        public void PutQuaternion(Quaternion q)
+        public void PutQuaternion(Quaternion q, int precision = NetPacking.BITS_COMPONENT)
         {
             var maxIndex = 0;
             var maxValue = float.MinValue;
@@ -152,27 +152,27 @@ namespace LibreLancer
             PutUInt((uint)maxIndex, 2);
             if (maxIndex == 0)
             {
-                PutRangedFloat(q.Y * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, NetPacking.BITS_COMPONENT);
-                PutRangedFloat(q.Z * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, NetPacking.BITS_COMPONENT);
-                PutRangedFloat(q.W * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, NetPacking.BITS_COMPONENT);
+                PutRangedFloat(q.Y * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
+                PutRangedFloat(q.Z * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
+                PutRangedFloat(q.W * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
             }
             else if (maxIndex == 1)
             {
-                PutRangedFloat(q.X * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, NetPacking.BITS_COMPONENT);
-                PutRangedFloat(q.Z * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, NetPacking.BITS_COMPONENT);
-                PutRangedFloat(q.W * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, NetPacking.BITS_COMPONENT);
+                PutRangedFloat(q.X * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
+                PutRangedFloat(q.Z * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
+                PutRangedFloat(q.W * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
             }
             else if (maxIndex == 2)
             {
-                PutRangedFloat(q.X * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, NetPacking.BITS_COMPONENT);
-                PutRangedFloat(q.Y * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, NetPacking.BITS_COMPONENT);
-                PutRangedFloat(q.W * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, NetPacking.BITS_COMPONENT);
+                PutRangedFloat(q.X * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
+                PutRangedFloat(q.Y * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
+                PutRangedFloat(q.W * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
             }
             else
             {
-                PutRangedFloat(q.X * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, NetPacking.BITS_COMPONENT);
-                PutRangedFloat(q.Y * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, NetPacking.BITS_COMPONENT);
-                PutRangedFloat(q.Z * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, NetPacking.BITS_COMPONENT);
+                PutRangedFloat(q.X * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
+                PutRangedFloat(q.Y * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
+                PutRangedFloat(q.Z * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
             }
         }
         public void PutBool(bool b)
@@ -255,7 +255,14 @@ namespace LibreLancer
             if (buffer.Length < byteLen)
                 Array.Resize(ref buffer, byteLen + GROWTH_AMOUNT);
         }
-        
+
+
+        public byte[] GetBuffer()
+        {
+            var b = new byte[ByteLength];
+            for (int i = 0; i < ByteLength; i++) b[i] = buffer[i];
+            return b;
+        }
         
         public int ByteLength => (bitOffset + 7) >> 3;
         public void WriteToPacket(NetDataWriter dw)

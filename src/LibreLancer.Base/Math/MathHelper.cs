@@ -10,6 +10,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Text;
 
 namespace LibreLancer
@@ -345,10 +346,27 @@ namespace LibreLancer
         {
             return (max + x % max) % max;
         }
+        
+        public static float QuatError(Quaternion a, Quaternion b)
+        {
+            if (a.W < 0) a = -a;
+            if (b.W < 0) b = -b;
+            var errorQuat = 1 - Quaternion.Dot(a, b);
+            return errorQuat < float.Epsilon ? 0 : errorQuat;
+        }
 
         public static float WrapF(float x, float min, float max)
         {
             return min + WrapF(x - min, max - min);
+        }
+
+        public static Vector3 ApplyEpsilon(Vector3 input, float epsilon = 0.0001f)
+        {
+            var output = input;
+            if (Math.Abs(output.X) < epsilon) output.X = 0;
+            if (Math.Abs(output.Y) < epsilon) output.Y = 0;
+            if (Math.Abs(output.Z) < epsilon) output.Z = 0;
+            return output;
         }
     }
 }

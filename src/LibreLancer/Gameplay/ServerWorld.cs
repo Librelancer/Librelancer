@@ -211,14 +211,8 @@ namespace LibreLancer
         {
             actions.Enqueue(() =>
             {
-                if(!player.InTradelane)
-                {
-                    var phys = Players[player].GetComponent<SPlayerComponent>();
-                    phys.Pitch = input.Pitch;
-                    phys.Yaw = input.Yaw;
-                    phys.Roll = input.Roll;
-                    phys.EnginePower = input.Throttle;
-                }
+                var phys = Players[player].GetComponent<SPlayerComponent>();
+                phys.Inputs.Enqueue(input);
             });
         }
 
@@ -344,14 +338,7 @@ namespace LibreLancer
                     p.Key.RemoteClient.SpawnProjectiles(queue);
             }
             //Network update tick
-            current += delta;
-            tickTime += delta;
-            if (current >= UPDATE_RATE) {
-                current -= UPDATE_RATE;
-                //Send multiplayer updates (less)
-                SendPositionUpdates(true, totalTime);
-            }
-            SendPositionUpdates(false, totalTime);
+            SendPositionUpdates(totalTime);
             //Despawn after 2 seconds of nothing
             if (PlayerCount == 0) {
                 noPlayersTime += delta;
@@ -364,12 +351,8 @@ namespace LibreLancer
             }
         }
 
-        const double UPDATE_RATE = 1 / 25.0;
-        double current = 0;
-        private double tickTime = 0;
-
         //This could do with some work
-        void SendPositionUpdates(bool mp, double tick)
+        void SendPositionUpdates(double tick)
         {
             tick *= 1000.0;
             while (tick > uint.MaxValue) tick -= uint.MaxValue;
@@ -380,14 +363,8 @@ namespace LibreLancer
                 player.Key.Position = Vector3.Transform(Vector3.Zero, tr);
                 player.Key.Orientation = tr.ExtractRotation();
             }
-            IEnumerable<KeyValuePair<Player,GameObject>> targets;
-            if (mp) {
-                targets = Players.Where(x => x.Key.Client is RemotePacketClient);
-            }
-            else {
-                targets = Players.Where(x => x.Key.Client is LocalPacketClient);
-            }
-            foreach (var player in targets)
+           
+            foreach (var player in Players)
             {
                 List<PackedShipUpdate> ps = new List<PackedShipUpdate>();
                 var phealthcomponent = player.Value.GetComponent<SHealthComponent>();
@@ -411,7 +388,7 @@ namespace LibreLancer
                     if (obj.PhysicsComponent != null)
                     {
                         update.LinearVelocity = obj.PhysicsComponent.Body.LinearVelocity;
-                        update.AngularVelocity = obj.PhysicsComponent.Body.AngularVelocity;
+                        update.AngularVelocity = MathHelper.ApplyEpsilon(obj.PhysicsComponent.Body.AngularVelocity);
                     }
                     if(obj.TryGetComponent<SEngineComponent>(out var engine))
                     {
@@ -440,16 +417,21 @@ namespace LibreLancer
                     }
                     ps.Add(update);
                 }
-                
+
+                var state = new PlayerAuthState
+                {
+                    Health = phealth,
+                    Shield = pshield,
+                    Position = player.Key.Position,
+                    Orientation = player.Key.Orientation,
+                    LinearVelocity = player.Value.PhysicsComponent.Body.LinearVelocity,
+                    AngularVelocity = MathHelper.ApplyEpsilon(player.Value.PhysicsComponent.Body.AngularVelocity)
+                };
                 player.Key.SendUpdate(new ObjectUpdatePacket()
                 {
                     Tick = (uint)tick,
-                    PlayerHealth = phealth,
-                    PlayerShield = pshield,
-                    PlayerPosition =  player.Key.Position,
-                    PlayerRotation = player.Key.Orientation,
-                    PlayerLinearVelocity = player.Value.PhysicsComponent.Body.LinearVelocity,
-                    PlayerAngularVelocity = player.Value.PhysicsComponent.Body.AngularVelocity,
+                    InputSequence = player.Value.GetComponent<SPlayerComponent>().SequenceApplied,
+                    PlayerState = state,
                     Updates = ps.ToArray()
                 });
             }

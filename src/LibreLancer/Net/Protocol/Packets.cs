@@ -183,28 +183,53 @@ namespace LibreLancer
         }
     }
 
+    public struct PlayerAuthState
+    {
+        public float Health;
+        public float Shield;
+        public Vector3 Position;
+        public Quaternion Orientation;
+        public Vector3 LinearVelocity;
+        public Vector3 AngularVelocity;
+        public static PlayerAuthState Read(ref BitReader reader)
+        {
+            var pa = new PlayerAuthState();
+            pa.Health = reader.GetFloat();
+            pa.Shield = reader.GetFloat();
+            pa.Position = reader.GetVector3();
+            //Extra precision
+            pa.Orientation = reader.GetQuaternion(18);
+            pa.LinearVelocity = reader.GetVector3();
+            pa.AngularVelocity = reader.GetVector3();
+            return pa;
+        }
+
+        public void Write(ref BitWriter writer)
+        {
+            writer.PutFloat(Health);
+            writer.PutFloat(Shield);
+            writer.PutVector3(Position);
+            //Extra precision
+            writer.PutQuaternion(Orientation, 18);
+            writer.PutVector3(LinearVelocity);
+            writer.PutVector3(AngularVelocity);
+        }
+    }
+
     public class ObjectUpdatePacket : IPacket
     {
         public uint Tick;
-        public float PlayerHealth;
-        public float PlayerShield;
-        public Vector3 PlayerPosition;
-        public Quaternion PlayerRotation;
-        public Vector3 PlayerLinearVelocity;
-        public Vector3 PlayerAngularVelocity;
+        public int InputSequence;
+        public PlayerAuthState PlayerState;
         public PackedShipUpdate[] Updates;
         public const int UpdateLimit = byte.MaxValue;
         public static object Read(NetPacketReader message)
         {
             var p = new ObjectUpdatePacket();
             p.Tick = message.GetUInt();
-            p.PlayerHealth = message.GetFloat();
-            p.PlayerShield = message.GetFloat();
-            p.PlayerPosition = message.GetVector3();
-            p.PlayerRotation = message.GetQuaternion();
-            p.PlayerLinearVelocity = message.GetVector3();
-            p.PlayerAngularVelocity = message.GetVector3();
+            p.InputSequence = message.GetInt();
             var pack = new BitReader(message.GetRemainingBytes(), 0);
+            p.PlayerState = PlayerAuthState.Read(ref pack);
             var updateCount = pack.GetUInt(8);
             p.Updates = new PackedShipUpdate[updateCount];
             for(int i = 0; i < p.Updates.Length; i++)
@@ -214,13 +239,9 @@ namespace LibreLancer
         public void WriteContents(NetDataWriter message)
         {
             message.Put(Tick);
-            message.Put(PlayerHealth);
-            message.Put(PlayerShield);
-            message.Put(PlayerPosition);
-            message.Put(PlayerRotation);
-            message.Put(PlayerLinearVelocity);
-            message.Put(PlayerAngularVelocity);
+            message.Put(InputSequence);
             var writer = new BitWriter();
+            PlayerState.Write(ref writer);
             if(Updates.Length > 255)
                 throw new Exception("Too many updates for net packet");
             writer.PutUInt((uint) Updates.Length, 8);
@@ -394,26 +415,26 @@ namespace LibreLancer
 
     public class InputUpdatePacket : IPacket
     {
-        public float Pitch;
-        public float Yaw;
-        public float Roll;
+        public int Sequence;
+        public Vector3 Steering;
+        public StrafeControls Strafe;
         public float Throttle;
 
         public static object Read(NetPacketReader message)
         {
             return new InputUpdatePacket()
             {
-                Pitch = message.GetFloat(),
-                Yaw = message.GetFloat(),
-                Roll = message.GetFloat(),
+                Sequence = message.GetInt(),
+                Steering =  message.GetVector3(),
+                Strafe = (StrafeControls)message.GetByte(),
                 Throttle = message.GetFloat()
             };
         }
         public void WriteContents(NetDataWriter msg)
         {
-            msg.Put(Pitch);
-            msg.Put(Yaw);
-            msg.Put(Roll);
+            msg.Put(Sequence);
+            msg.Put(Steering);
+            msg.Put((byte)Strafe);
             msg.Put(Throttle);
         }
     }

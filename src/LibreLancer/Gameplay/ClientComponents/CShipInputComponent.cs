@@ -18,17 +18,17 @@ namespace LibreLancer
 
         public int Rolling;
 
-        ShipPhysicsComponent physics;
+        private ShipSteeringComponent steering;
 
         public PIDController PitchControl = new PIDController() { P = 3.5f };
         public PIDController YawControl = new PIDController() { P = 3.5f };
         public PIDController RollControl = new PIDController() { P = 4f };
         public override void Update(double time)
         {
-            if (physics == null) physics = Parent.GetComponent<ShipPhysicsComponent>();
+            if (steering == null) steering = Parent.GetComponent<ShipSteeringComponent>();
             if (Camera == null) return;
-            if (physics == null) return;
-            physics.EnginePower = AutopilotThrottle > 0 ? AutopilotThrottle : Throttle;
+            if (steering == null) return;
+            steering.InThrottle = AutopilotThrottle > 0 ? AutopilotThrottle : Throttle;
             if (MouseFlight)
             {
                 //Calculate turning direction
@@ -42,11 +42,10 @@ namespace LibreLancer
             }
             else
             {
-                physics.PlayerYaw = physics.PlayerPitch = 0;
-                physics.Roll = 0;
+                steering.InPitch = steering.InYaw = steering.InRoll = 0;
             }
-            if (Rolling == -1) physics.Roll = -1;
-            else if (Rolling == 1) physics.Roll = 1;
+            if (Rolling == -1) steering.InRoll = -1;
+            else if (Rolling == 1) steering.InRoll = 1;
         }
 
         void TurnTowards(Vector3 gotoPos,double dt)
@@ -55,8 +54,8 @@ namespace LibreLancer
             //normalize it
             vec.Normalize();
             //update pitch/yaw
-            physics.PlayerYaw = -MathHelper.Clamp((float)YawControl.Update(0, vec.X, dt), -1, 1);
-            physics.PlayerPitch = -MathHelper.Clamp((float)PitchControl.Update(0, -vec.Y, dt), -1, 1);
+            steering.InYaw = -MathHelper.Clamp((float)YawControl.Update(0, vec.X, dt), -1, 1);
+            steering.InPitch = -MathHelper.Clamp((float)PitchControl.Update(0, -vec.Y, dt), -1, 1);
         }
 
         void BankShip(Vector3 upVector, double dt)
@@ -71,9 +70,7 @@ namespace LibreLancer
             var transformForward = CalcDir(ref tr, -Vector3.UnitZ);
             float signedAngle = Vector3Ex.SignedAngle(transformUp, upVector, transformForward);
             float bankError = (signedAngle - bankTarget) * 0.1f;
-
-            physics.Roll = (float)MathHelper.Clamp(RollControl.Update(bankTarget * 0.5f, signedAngle * 0.5f, dt), -1, 1);
-            
+            steering.InRoll = (float)MathHelper.Clamp(RollControl.Update(bankTarget * 0.5f, signedAngle * 0.5f, dt), -1, 1);
         }
 
         //My math lib seems to be lacking at the moment

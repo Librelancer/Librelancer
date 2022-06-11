@@ -161,10 +161,12 @@ namespace LibreLancer
                 #endif
                 Renderer.Update(t);
             }
-            Physics?.StepSimulation((float)t);
             Projectiles?.Update(t);
             for (int i = 0; i < objects.Count; i++)
 				objects[i].Update(t);
+            Physics?.StepSimulation((float)t);
+            for (int i = 0; i < objects.Count; i++)
+                objects[i].PhysicsComponent?.Update(t);
             for (int i = 0; i < objects.Count; i++) {
                 SpatialLookup.UpdatePosition(objects[i], Vector3.Transform(Vector3.Zero, objects[i].WorldTransform));
             }

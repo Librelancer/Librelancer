@@ -132,6 +132,7 @@ namespace LibreLancer
         {
             gameplayActions.Clear();
             objects = new Dictionary<int, GameObject>();
+            
             if (PlayerBase != null)
             {
                 Game.ChangeState(new RoomGameplay(Game, this, PlayerBase));
@@ -148,7 +149,7 @@ namespace LibreLancer
 
         SpaceGameplay gp;
         Dictionary<int, GameObject> objects = new Dictionary<int, GameObject>();
-
+        
         public bool Update()
         {
             hasChanged = false;
@@ -172,7 +173,20 @@ namespace LibreLancer
             while (uiActions.TryDequeue(out var act))
                 act();
         }
-        
+
+        private CircularBuffer<PlayerMoveState> moveState = new CircularBuffer<PlayerMoveState>(128);
+        struct PlayerMoveState
+        {
+            public int Tick;
+            public Vector3 Position;
+            public Quaternion Orientation;
+            public Vector3 AngularVelocity;
+            public Vector3 LinearVelocity;
+            public Vector3 Steering;
+            public float Throttle;
+            public StrafeControls Strafe;
+        }
+
         public void GameplayUpdate(SpaceGameplay gp, double delta)
         {
             UpdateAudio();
@@ -180,19 +194,32 @@ namespace LibreLancer
                 act();
             var player = gp.player;
             var phys = player.GetComponent <ShipPhysicsComponent>();
+            var steering = player.GetComponent<ShipSteeringComponent>();
             connection.SendPacket(new InputUpdatePacket()
             {
-                Pitch = Math.Abs(phys.PlayerPitch) > 0 ? phys.PlayerPitch : phys.Pitch,
-                Yaw = Math.Abs(phys.PlayerYaw) > 0 ? phys.PlayerYaw : phys.Yaw,
-                Roll = phys.Roll,
+                Sequence = (int)gp.FlGame.CurrentTick,
+                Steering = steering.OutputSteering,
+                Strafe = phys.CurrentStrafe,
                 Throttle = phys.EnginePower
             }, PacketDeliveryMethod.SequenceA);
+
+            moveState.Enqueue(new PlayerMoveState()
+            {
+                Tick = (int)gp.FlGame.CurrentTick,
+                Position = player.PhysicsComponent.Body.Position,
+                Orientation = player.PhysicsComponent.Body.Transform.ExtractRotation(),
+                AngularVelocity = MathHelper.ApplyEpsilon(player.PhysicsComponent.Body.AngularVelocity),
+                LinearVelocity = player.PhysicsComponent.Body.LinearVelocity,
+                Steering = steering.OutputSteering,
+                Strafe = phys.CurrentStrafe,
+                Throttle = phys.EnginePower
+            });
             
             if (processUpdatePackets)
             {
                 while (updatePackets.Count > 0 && (WorldTime * 1000.0) >= updatePackets.Peek().Tick)
                 {
-                    ProcessUpdate(updatePackets.Dequeue());
+                    ProcessUpdate(updatePackets.Dequeue(), gp);
                 }
             }
         }
@@ -211,27 +238,115 @@ namespace LibreLancer
         public void BeginUpdateProcess()
         {
             processUpdatePackets = true;
+            moveState = new CircularBuffer<PlayerMoveState>(128);
         }
         
         private Queue<ObjectUpdatePacket> updatePackets = new Queue<ObjectUpdatePacket>();
 
-        void ProcessUpdate(ObjectUpdatePacket p)
+       
+
+        void Resimulate(int i, SpaceGameplay gp)
         {
+            var physComponent = gp.player.GetComponent<ShipPhysicsComponent>();
+            var player = gp.player;
+            physComponent.Tick = moveState[i].Tick;
+            physComponent.CurrentStrafe = moveState[i].Strafe;
+            physComponent.EnginePower = moveState[i].Throttle;
+            physComponent.Steering = moveState[i].Steering;
+            physComponent.Update(1 / 60.0f);
+            gp.player.World.Physics.StepSimulation(1 / 60.0f);
+            moveState[i].Position = player.PhysicsComponent.Body.Position;
+            moveState[i].Orientation = player.PhysicsComponent.Body.Transform.ExtractRotation();
+        }
+
+        struct SavedObject
+        {
+            public Matrix4x4 Transform;
+            public Vector3 LinearVelocity;
+            public Vector3 AngularVelocity;
+        }
+        void ProcessUpdate(ObjectUpdatePacket p, SpaceGameplay gp)
+        {
+            foreach (var update in p.Updates)
+                UpdateObject(update);
             var hp = gp.player.GetComponent<CHealthComponent>();
+            var state = p.PlayerState;
             if (hp != null)
             {
-                   hp.CurrentHealth = p.PlayerHealth;
-                   hp.ShieldHealth = p.PlayerShield;
+                hp.CurrentHealth = state.Health;
+                hp.ShieldHealth = state.Shield;
             }
             if(gp?.player != null)
             {
-                gp.player.SetLocalTransform(Matrix4x4.CreateFromQuaternion(p.PlayerRotation) *
-                                                Matrix4x4.CreateTranslation(p.PlayerPosition));
-                gp.player.PhysicsComponent.Body.LinearVelocity = p.PlayerLinearVelocity;
-                gp.player.PhysicsComponent.Body.AngularVelocity = p.PlayerAngularVelocity;
+                for (int i = moveState.Count - 1; i >= 0; i--)
+                {
+                    if (moveState[i].Tick == p.InputSequence)
+                    {
+                        var errorPos = state.Position - moveState[i].Position;
+                        var errorQuat = MathHelper.QuatError(state.Orientation, moveState[i].Orientation);
+                        if (errorPos.Length() > 0.1 || errorQuat > 0.1f)
+                        {
+                            //Resimulating messes up the physics world, save state
+                            Dictionary<int, SavedObject> savedTransforms = new Dictionary<int, SavedObject>();
+                            foreach (var o in objects)
+                            {
+                                savedTransforms[o.Key] = new SavedObject()
+                                {
+                                    Transform = o.Value.LocalTransform,
+                                    LinearVelocity = o.Value.PhysicsComponent.Body.LinearVelocity,
+                                    AngularVelocity = o.Value.PhysicsComponent.Body.AngularVelocity
+                                };
+                            }
+
+                            FLLog.Info("Client", $"Applying correction at tick {p.InputSequence}. Errors ({errorPos.Length()},{errorQuat})");
+                            var tr = gp.player.LocalTransform;
+                            var predictedPos = Vector3.Transform(Vector3.Zero, tr);
+                            var predictedOrient = tr.ExtractRotation();
+                            
+                            moveState[i].Position = state.Position;
+                            moveState[i].Orientation = state.Orientation;
+                            
+                            //Set states
+                            gp.player.SetLocalTransform(Matrix4x4.CreateFromQuaternion(state.Orientation) * Matrix4x4.CreateTranslation(state.Position));
+                            gp.player.PhysicsComponent.Body.LinearVelocity = state.LinearVelocity;
+                            gp.player.PhysicsComponent.Body.AngularVelocity = state.AngularVelocity;
+                            //simulate inputs
+                            i++;
+                            Resimulate(i, gp);
+                            FLLog.Info("Client", $"Resimulated for {p.InputSequence+1}, {moveState[i].Position}|{moveState[i].Orientation}");
+                            i++;
+                            for (; i < moveState.Count; i++) {
+                                Resimulate(i, gp);
+                            }
+                            //
+                            var newPos = gp.player.PhysicsComponent.Body.Position;
+                            var newOrient = gp.player.PhysicsComponent.Body.Transform.ExtractRotation();
+                            if ((predictedPos - newPos).Length() > 10) {
+                                gp.player.PhysicsComponent.PredictionErrorPos = Vector3.Zero;
+                                gp.player.PhysicsComponent.PredictionErrorQuat = Quaternion.Identity;
+                            } 
+                            else {
+                                gp.player.PhysicsComponent.PredictionErrorPos = (predictedPos - newPos);
+                                gp.player.PhysicsComponent.PredictionErrorQuat =
+                                    Quaternion.Inverse(newOrient) * predictedOrient;
+                            }
+                            gp.player.PhysicsComponent.Update(1 / 60.0);
+                            //Resimulating messes up the physics world, restore state
+                            foreach (var o in objects)
+                            {
+                                var saved = savedTransforms[o.Key];
+                                o.Value.SetLocalTransform(saved.Transform);
+                                o.Value.PhysicsComponent.Body.LinearVelocity = saved.LinearVelocity;
+                                o.Value.PhysicsComponent.Body.AngularVelocity = saved.AngularVelocity;
+                            }
+                        }
+
+                        break;
+                        
+                    }
+                }
             }
-            foreach (var update in p.Updates)
-                UpdateObject(update);
+           
         }
 
         public Action<IPacket> ExtraPackets;

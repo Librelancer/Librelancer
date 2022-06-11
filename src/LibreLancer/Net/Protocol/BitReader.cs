@@ -102,12 +102,12 @@ namespace LibreLancer
                 return new Vector3(a, b, c);
         }
         
-        public Quaternion GetQuaternion()
+        public Quaternion GetQuaternion(int precision = NetPacking.BITS_COMPONENT)
         {
             var maxIndex = (int) GetUInt(2);
-            var a = GetRangedFloat(NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, NetPacking.BITS_COMPONENT);
-            var b = GetRangedFloat(NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, NetPacking.BITS_COMPONENT);
-            var c = GetRangedFloat(NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, NetPacking.BITS_COMPONENT);
+            var a = GetRangedFloat(NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
+            var b = GetRangedFloat(NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
+            var c = GetRangedFloat(NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
             var d = (float)Math.Sqrt(1f - (a * a + b * b + c * c));
             #if DEBUG
             if (float.IsNaN(a) || float.IsNaN(b) || float.IsNaN(c) || float.IsNaN(d))
