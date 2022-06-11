@@ -154,13 +154,7 @@ namespace LibreLancer
 
         public void Update(double t)
 		{
-            if (Renderer != null)
-            {
-                #if DEBUG
-                Renderer.UseDebugPoints(DebugPoints);
-                #endif
-                Renderer.Update(t);
-            }
+            
             Projectiles?.Update(t);
             for (int i = 0; i < objects.Count; i++)
 				objects[i].Update(t);
@@ -170,6 +164,19 @@ namespace LibreLancer
             for (int i = 0; i < objects.Count; i++) {
                 SpatialLookup.UpdatePosition(objects[i], Vector3.Transform(Vector3.Zero, objects[i].WorldTransform));
             }
+        }
+
+        public void RenderUpdate(double t)
+        {
+            if (Renderer != null)
+            {
+                #if DEBUG
+                Renderer.UseDebugPoints(DebugPoints);
+                #endif
+                Renderer.Update(t);
+            }
+            for(int i = 0; i < objects.Count; i++)
+                objects[i].RenderUpdate(t);
         }
 
 		public event Action<GameObject, GameMessageKind> MessageBroadcasted;

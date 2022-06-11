@@ -744,6 +744,7 @@ World Time: {12:F2}
                 loader.Draw(delta);
                 return;
             }
+            world.RenderUpdate(delta);
             sysrender.Draw();
 
             sysrender.DebugRenderer.StartFrame(camera, Game.RenderContext);

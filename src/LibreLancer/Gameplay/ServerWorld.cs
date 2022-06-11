@@ -64,35 +64,32 @@ namespace LibreLancer
         public void SpawnPlayer(Player player, Vector3 position, Quaternion orientation)
         {
             Interlocked.Increment(ref PlayerCount);
-            actions.Enqueue(() =>
+            foreach (var p in Players)
             {
-                foreach (var p in Players)
-                {
-                    player.SpawnPlayer(p.Key);
-                    p.Key.SpawnPlayer(player);
-                }
-                player.SendSolars(SpawnedSolars);
-                foreach(var npc in spawnedNPCs)
-                    SpawnShip(npc, player);
-                var obj = new GameObject(player.Character.Ship, Server.Resources, false, true) { World = GameWorld };
-                foreach(var item in player.Character.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
-                    EquipmentObjectManager.InstantiateEquipment(obj, Server.Resources, EquipmentType.Server, item.Hardpoint, item.Equipment);
-                obj.Components.Add(new SPlayerComponent(player, obj));
-                obj.Components.Add(new SHealthComponent(obj)
-                {
-                    CurrentHealth = player.Character.Ship.Hitpoints,
-                    MaxHealth = player.Character.Ship.Hitpoints
-                });
-                obj.Components.Add(new ShipPhysicsComponent(obj) { Ship = player.Character.Ship });
-
-                obj.NetID = player.ID;
-                GameWorld.AddObject(obj);
-                obj.Register(GameWorld.Physics);
-                Players[player] = obj;
-                Players[player].SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
-                                                  Matrix4x4.CreateTranslation(position));
-                updatingObjects.Add(obj);
+                player.SpawnPlayer(p.Key);
+                p.Key.SpawnPlayer(player);
+            }
+            player.SendSolars(SpawnedSolars);
+            foreach(var npc in spawnedNPCs)
+                SpawnShip(npc, player);
+            var obj = new GameObject(player.Character.Ship, Server.Resources, false, true) { World = GameWorld };
+            foreach(var item in player.Character.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
+                EquipmentObjectManager.InstantiateEquipment(obj, Server.Resources, EquipmentType.Server, item.Hardpoint, item.Equipment);
+            obj.Components.Add(new SPlayerComponent(player, obj));
+            obj.Components.Add(new SHealthComponent(obj)
+            {
+                CurrentHealth = player.Character.Ship.Hitpoints, 
+                MaxHealth = player.Character.Ship.Hitpoints
             });
+            obj.Components.Add(new ShipPhysicsComponent(obj) { Ship = player.Character.Ship });
+
+            obj.NetID = player.ID;
+            GameWorld.AddObject(obj);
+            obj.Register(GameWorld.Physics);
+            Players[player] = obj;
+            Players[player].SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
+                                              Matrix4x4.CreateTranslation(position));
+            updatingObjects.Add(obj);
         }
 
         public void EffectSpawned(GameObject obj)

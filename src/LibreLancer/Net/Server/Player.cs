@@ -257,10 +257,13 @@ namespace LibreLancer
             var sys = Game.GameData.GetSystem(System);
             Game.RequestWorld(sys, (world) =>
             {
-                World = world; 
-                rpcClient.SpawnPlayer(System, 0, Position, Orientation);
-                world.SpawnPlayer(this, Position, Orientation);
-                msnRuntime?.EnteredSpace();
+                World = world;
+                world.EnqueueAction(() =>
+                {
+                    world.SpawnPlayer(this, Position, Orientation);
+                    rpcClient.SpawnPlayer(System, 0, Position, Orientation);
+                    msnRuntime?.EnteredSpace();
+                });
             });
         }
         bool NewsFind(LibreLancer.Data.Missions.NewsItem ni)
@@ -1015,9 +1018,12 @@ namespace LibreLancer
                 }
                 BaseData = null;
                 Base = null;
-                rpcClient.SpawnPlayer(System, 0, Position, Orientation);
-                world.SpawnPlayer(this, Position, Orientation);
-                msnRuntime?.EnteredSpace();
+                world.EnqueueAction(() =>
+                {
+                    world.SpawnPlayer(this, Position, Orientation);
+                    rpcClient.SpawnPlayer(System, 0, Position, Orientation);
+                    msnRuntime?.EnteredSpace();
+                });
             });
         }
 
@@ -1054,9 +1060,12 @@ namespace LibreLancer
                 }
                 BaseData = null;
                 Base = null;
-                rpcClient.SpawnPlayer(System, 0, Position, Orientation);
-                world.SpawnPlayer(this, Position, Orientation);
-                msnRuntime?.EnteredSpace();
+                world.EnqueueAction(() =>
+                {
+                    world.SpawnPlayer(this, Position, Orientation);
+                    rpcClient.SpawnPlayer(System, 0, Position, Orientation);
+                    msnRuntime?.EnteredSpace();
+                });
             });
         }
 

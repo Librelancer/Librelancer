@@ -741,7 +741,7 @@ namespace LibreLancer
         {
             RenderMaterial.VertexLighting = true;
             if (scene != null)
-				scene.Draw();
+				scene.Draw(delta);
             ui.RenderWidget(delta);
             DoFade(delta);
             if (letterboxAmount > 0)

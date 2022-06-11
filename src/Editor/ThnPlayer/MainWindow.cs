@@ -140,7 +140,7 @@ namespace ThnPlayer
             //
             if (cutscene != null)
             {
-                cutscene.Draw();
+                cutscene.Draw(elapsed);
             }
             Typewriter.Render();
             //

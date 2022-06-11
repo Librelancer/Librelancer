@@ -324,9 +324,11 @@ namespace LibreLancer
 			    World.Update(delta);
 		}
 
-		public void Draw()
+		public void Draw(double delta)
         {
             UpdateStarsphere();
+            if(Renderer != null)
+                World.RenderUpdate(delta);
 			Renderer.Draw();
         }
 

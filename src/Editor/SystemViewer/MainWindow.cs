@@ -152,6 +152,7 @@ C# Memory Usage: {5}
             //
             if(world != null) {
                 if (wireFrame) RenderContext.Wireframe = true;
+                world.RenderUpdate(elapsed);
                 world.Renderer.Draw();
                 RenderContext.Wireframe = false;
             }

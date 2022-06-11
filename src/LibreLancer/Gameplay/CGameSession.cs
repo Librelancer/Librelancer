@@ -265,8 +265,9 @@ namespace LibreLancer
             public Vector3 LinearVelocity;
             public Vector3 AngularVelocity;
         }
+
         void ProcessUpdate(ObjectUpdatePacket p, SpaceGameplay gp)
-        {
+        { 
             foreach (var update in p.Updates)
                 UpdateObject(update);
             var hp = gp.player.GetComponent<CHealthComponent>();
@@ -313,7 +314,6 @@ namespace LibreLancer
                             //simulate inputs
                             i++;
                             Resimulate(i, gp);
-                            FLLog.Info("Client", $"Resimulated for {p.InputSequence+1}, {moveState[i].Position}|{moveState[i].Orientation}");
                             i++;
                             for (; i < moveState.Count; i++) {
                                 Resimulate(i, gp);
@@ -747,7 +747,10 @@ namespace LibreLancer
             switch(pkt)
             {
                 case ObjectUpdatePacket p:
-                    if (processUpdatePackets) updatePackets.Enqueue(p);
+                    if (processUpdatePackets)
+                    {
+                        updatePackets.Enqueue(p);
+                    }
                     else timeOffset = Game.TotalTime - (p.Tick / 1000.0);
                     break;
                 default:

@@ -25,8 +25,8 @@ namespace LibreLancer
         {
             if (Parent.TryGetComponent<ShipPhysicsComponent>(out var phys))
             {
-                if (Inputs.Count > 6) { //Skip an update
-                    FLLog.Info("Server", "Skip an update");
+                if (Inputs.Count > 10) { //Skip an update
+                    FLLog.Info("Server", $"Receiving updates too fast, throwing away #{Inputs.Peek().Sequence}");
                     Inputs.Dequeue();
                 }
                 if (Inputs.Count >= 5)
