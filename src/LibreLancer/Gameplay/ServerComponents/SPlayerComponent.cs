@@ -37,15 +37,22 @@ namespace LibreLancer
                         phys.Steering = Vector3.Zero;
                         phys.CurrentStrafe = StrafeControls.None;
                         phys.EnginePower = 0;
+                        phys.ThrustEnabled = false;
+                        phys.CruiseEnabled = false;
                     }
                     else
                     {
                         phys.Steering = input.Steering;
                         phys.CurrentStrafe = input.Strafe;
                         phys.EnginePower = input.Throttle;
+                        phys.ThrustEnabled = input.Thrust;
+                        phys.CruiseEnabled = input.Cruise;
                     }
                     phys.Tick = input.Sequence;
                     SequenceApplied = input.Sequence;
+                } else
+                {
+                    FLLog.Info("Server", $"No input to apply, repeating #{SequenceApplied}");
                 }
             }
         }

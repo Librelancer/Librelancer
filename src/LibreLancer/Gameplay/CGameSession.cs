@@ -185,6 +185,11 @@ namespace LibreLancer
             public Vector3 Steering;
             public float Throttle;
             public StrafeControls Strafe;
+            public bool Thrust;
+            public bool CruiseEnabled;
+            public EngineStates EngineState;
+            public float CruiseAccelPct;
+            public float ChargePct;
         }
 
         public void GameplayUpdate(SpaceGameplay gp, double delta)
@@ -200,7 +205,9 @@ namespace LibreLancer
                 Sequence = (int)gp.FlGame.CurrentTick,
                 Steering = steering.OutputSteering,
                 Strafe = phys.CurrentStrafe,
-                Throttle = phys.EnginePower
+                Throttle = phys.EnginePower,
+                Cruise = steering.Cruise,
+                Thrust = steering.Thrust,
             }, PacketDeliveryMethod.SequenceA);
 
             moveState.Enqueue(new PlayerMoveState()
@@ -212,7 +219,12 @@ namespace LibreLancer
                 LinearVelocity = player.PhysicsComponent.Body.LinearVelocity,
                 Steering = steering.OutputSteering,
                 Strafe = phys.CurrentStrafe,
-                Throttle = phys.EnginePower
+                Throttle = phys.EnginePower,
+                Thrust = steering.Thrust,
+                CruiseEnabled = steering.Cruise,
+                EngineState = phys.EngineState,
+                CruiseAccelPct = phys.CruiseAccelPct,
+                ChargePct = phys.ChargePercent
             });
             
             if (processUpdatePackets)
@@ -253,10 +265,12 @@ namespace LibreLancer
             physComponent.CurrentStrafe = moveState[i].Strafe;
             physComponent.EnginePower = moveState[i].Throttle;
             physComponent.Steering = moveState[i].Steering;
+            physComponent.ThrustEnabled = moveState[i].Thrust;
             physComponent.Update(1 / 60.0f);
             gp.player.World.Physics.StepSimulation(1 / 60.0f);
             moveState[i].Position = player.PhysicsComponent.Body.Position;
             moveState[i].Orientation = player.PhysicsComponent.Body.Transform.ExtractRotation();
+            
         }
 
         struct SavedObject

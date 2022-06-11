@@ -16,7 +16,11 @@ namespace LibreLancer
         public float InYaw;
         public float InRoll;
         public float InThrottle;
+        public bool Cruise;
+        public bool Thrust;
         public int Tick;
+
+        public bool PlayerInput;
         
         PIDController rollPID = new PIDController() { P = 2 };
         
@@ -29,7 +33,17 @@ namespace LibreLancer
             var physics = Parent.GetComponent<ShipPhysicsComponent>(); //Get mounted engine
 
             //Set output parameters
-            var steerControl = new Vector3(InPitch, InYaw, InRoll);
+            Vector3 steerControl;
+            if (!PlayerInput && Parent.TryGetComponent<AutopilotComponent>(out var autoPilot) &&
+                autoPilot.CurrentBehaviour != AutopilotBehaviours.None) 
+            {
+                steerControl = new Vector3(autoPilot.OutPitch, autoPilot.OutYaw, 0);
+            } 
+            else 
+            {
+                steerControl = new Vector3(InPitch, InYaw, InRoll);
+            } 
+            
             double pitch, yaw, roll;
             DecomposeOrientation(Parent.PhysicsComponent.Body.Transform, out pitch, out yaw, out roll);
             
@@ -41,6 +55,8 @@ namespace LibreLancer
             OutputSteering = MathHelper.ApplyEpsilon(OutputSteering);
             physics.Steering = OutputSteering;
             physics.EnginePower = InThrottle;
+            physics.ThrustEnabled = Thrust;
+            physics.CruiseEnabled = Cruise;
             physics.Tick = Tick;
         }
         

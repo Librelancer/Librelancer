@@ -39,10 +39,12 @@ namespace LibreLancer
                 //Turn
                 TurnTowards(gotoPos, time);
                 BankShip(Camera.CameraUp, time);
+                steering.PlayerInput = true;
             }
             else
             {
                 steering.InPitch = steering.InYaw = steering.InRoll = 0;
+                steering.PlayerInput = false;
             }
             if (Rolling == -1) steering.InRoll = -1;
             else if (Rolling == 1) steering.InRoll = 1;

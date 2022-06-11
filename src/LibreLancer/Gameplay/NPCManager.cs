@@ -81,10 +81,10 @@ namespace LibreLancer
             }
             var npcComponent = new SNPCComponent(obj, this) {Loadout = netLoadout};
             npcComponent.SetPilot(pilot);
-            obj.Components.Add(npcComponent);
-            obj.Components.Add(new ShipPhysicsComponent(obj) { Ship = ship });
-            obj.Components.Add(new ShipInputComponent(obj));
+            obj.Components.Add(npcComponent);            
             obj.Components.Add(new AutopilotComponent(obj));
+            obj.Components.Add(new ShipSteeringComponent(obj));
+            obj.Components.Add(new ShipPhysicsComponent(obj) { Ship = ship });
             obj.Components.Add(new WeaponControlComponent(obj));
             World.OnNPCSpawn(obj);
             if (nickname != null) missionNPCs[nickname] = obj;

@@ -33,8 +33,8 @@ namespace LibreLancer.AI.ObjList
             if (obj.TryGetComponent<AutopilotComponent>(out var ap))
             {
                 ap.GotoVec(Target, Cruise != AiGotoKind.GotoNoCruise, MaxThrottle, Range);
-                if(Cruise == AiGotoKind.GotoCruise)
-                    obj.GetComponent<ShipPhysicsComponent>().BeginCruise();
+                if (Cruise == AiGotoKind.GotoCruise)
+                    obj.GetComponent<ShipPhysicsComponent>().CruiseEnabled = true;
             }
         }
 

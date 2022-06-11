@@ -32,43 +32,14 @@ namespace LibreLancer
                                        //TODO: I forget how this is configured in .ini files. Constants.ini?
                                        //Some mods have a per-ship (engine?) cruise speed. Check how this is implemented, and include as native feature.
         public bool ThrustEnabled = false;
+        public bool CruiseEnabled = false;
         public EngineStates EngineState = EngineStates.Standard;
         public StrafeControls CurrentStrafe = StrafeControls.None;
         public float ChargePercent;
         public Vector3 Steering;
+        public float CruiseAccelPct = 0;
         public int Tick;
-
-        float cruiseAccelPct = 0;
-
-        public void CruiseToggle()
-        {
-            if (EngineState == EngineStates.Cruise ||
-                EngineState == EngineStates.CruiseCharging)
-            {
-                EngineState = EngineStates.Standard;
-            }
-            else
-            {
-                BeginCruise();
-            }
-        }
-
-        public void EndCruise()
-        {
-            EngineState = EngineStates.Standard;
-        }
-
-        public void BeginCruise()
-        {
-            if (EngineState != EngineStates.Cruise &&
-                EngineState != EngineStates.CruiseCharging)
-            {
-                EngineState = EngineStates.CruiseCharging;
-                ChargePercent = 0f;
-                cruiseAccelPct = 0f;
-            }
-        }
-
+        
         public ShipPhysicsComponent(GameObject parent) : base(parent)
         {
             Active = true;
@@ -78,6 +49,20 @@ namespace LibreLancer
         public override void Update(double time)
         {
             if (!Active) return;
+            if (CruiseEnabled)
+            {
+                if (EngineState != EngineStates.Cruise && 
+                    EngineState != EngineStates.CruiseCharging)
+                {
+                    EngineState = EngineStates.CruiseCharging;
+                    ChargePercent = 0f;
+                    CruiseAccelPct = 0f;
+                }
+            }
+            else
+            {
+                EngineState = EngineStates.Standard;
+            }
             //Component checks
             var engine = Parent.GetComponent<SEngineComponent>(); //Get mounted engine
             var power = Parent.GetComponent<PowerCoreComponent>();
@@ -127,10 +112,10 @@ namespace LibreLancer
             }
             else if (EngineState == EngineStates.Cruise)
             { //Cruise has entirely different force calculation
-                cruiseAccelPct += (float)(time * 1.0f / engine.Engine.CruiseAccelTime);
-                if (cruiseAccelPct > 1.0f) cruiseAccelPct = 1.0f;
+                CruiseAccelPct += (float)(time * 1.0f / engine.Engine.CruiseAccelTime);
+                if (CruiseAccelPct > 1.0f) CruiseAccelPct = 1.0f;
                 var cruise_force = engine.Engine.CruiseSpeed * engine.Engine.Def.LinearDrag;
-                engine_force = engine.Engine.Def.MaxForce + (cruise_force - engine.Engine.Def.MaxForce) * cruiseAccelPct;
+                engine_force = engine.Engine.Def.MaxForce + (cruise_force - engine.Engine.Def.MaxForce) * CruiseAccelPct;
                 //Set fx sparam. TODO: This is poorly named
                 engine.Speed = 1.0f;
             }

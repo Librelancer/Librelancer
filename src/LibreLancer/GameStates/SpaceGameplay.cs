@@ -83,13 +83,17 @@ World Time: {12:F2}
             var shp = Game.GameData.GetShip(session.PlayerShip);
             //Set up player object + camera
             player = new GameObject(shp, Game.ResourceManager, true, true);
-            control = new ShipPhysicsComponent(player);
-            control.Ship = shp;
+            control = new ShipPhysicsComponent(player) {Ship = shp};
             shipInput = new ShipInputComponent(player);
             weapons = new WeaponControlComponent(player);
-            player.Components.Add(shipInput);
+            pilotcomponent = new AutopilotComponent(player);
             steering = new ShipSteeringComponent(player);
+            //Order components in terms of inputs (very important)
+            player.Components.Add(pilotcomponent);
+            player.Components.Add(shipInput);
+            //takes input from pilot and shipinput
             player.Components.Add(steering);
+            //takes input from steering
             player.Components.Add(control);
             player.Components.Add(weapons);
             player.Components.Add(new CDamageFuseComponent(player, shp.Fuses));
@@ -144,8 +148,7 @@ World Time: {12:F2}
             Game.Mouse.MouseUp += Mouse_MouseUp;
             input = new InputManager(Game, Game.InputMap);
             input.ActionUp += Input_ActionUp;
-            pilotcomponent = new AutopilotComponent(player);
-            player.Components.Add(pilotcomponent);
+            
             player.World = world;
             world.MessageBroadcasted += World_MessageBroadcasted;
             Game.Sound.ResetListenerVelocity();
@@ -481,7 +484,7 @@ World Time: {12:F2}
 			switch (action)
 			{
 				case InputAction.USER_CRUISE:
-                    control.CruiseToggle();
+                    steering.Cruise = !steering.Cruise;
 					break;
 				case InputAction.USER_TURN_SHIP:
 					mouseFlight = !mouseFlight;
@@ -553,8 +556,8 @@ World Time: {12:F2}
                     shipInput.Throttle -= (float)(delta);
                     shipInput.Throttle = MathHelper.Clamp(shipInput.Throttle, 0, 1);
 				}
-                
-			}
+                steering.Thrust = input.IsActionDown(InputAction.USER_AFTERBURN);
+            }
 
 			StrafeControls strafe = StrafeControls.None;
             if (!ui.KeyboardGrabbed)
@@ -568,7 +571,7 @@ World Time: {12:F2}
 			var pc = player.PhysicsComponent;
             shipInput.Viewport = new Vector2(Game.Width, Game.Height);
             shipInput.Camera = camera;
-            if (isLeftDown || mouseFlight)
+            if ((isLeftDown || mouseFlight) && control.Active)
 			{
                 var mX = Game.Mouse.X;
                 var mY = Game.Mouse.Y;

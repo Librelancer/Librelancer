@@ -29,11 +29,13 @@ namespace LibreLancer
 		bool hasTriggeredAnimation = false;
 		int lastTargetHp = 0;
         private string tlDockHP = null;
-		void ResetDockState()
+        bool haveSetCruise = false;
+        void ResetDockState()
 		{
 			hasTriggeredAnimation = false;
 			lastTargetHp = 0;
             tlDockHP = null;
+            haveSetCruise = false;
         }
         
         
@@ -52,6 +54,8 @@ namespace LibreLancer
             CurrentBehaviour = AutopilotBehaviours.Goto;
             CanCruise = cruise;
             this.gotoRange = gotoRange;
+            if (Parent.TryGetComponent<ShipSteeringComponent>(out var comp)) 
+                comp.InThrottle = maxThrottle;
         }
 
         public void GotoObject(GameObject obj, bool cruise = true, float maxThrottle = 1, float gotoRange = 40)
@@ -61,6 +65,8 @@ namespace LibreLancer
             CanCruise = cruise;
             _maxThrottle = maxThrottle;
             this.gotoRange = gotoRange;
+            if (Parent.TryGetComponent<ShipSteeringComponent>(out var comp)) 
+                comp.InThrottle = maxThrottle;
         }
 
         public void Cancel()
@@ -99,12 +105,17 @@ namespace LibreLancer
             if (_targetObject == null) return _targetRadius;
             return _targetObject.PhysicsComponent.Body.Collider.Radius;
         }
+
+        public float OutPitch;
+        public float OutYaw;
+        
+        
         
 		public override void Update(double time)
 		{
 			var control = Parent.GetComponent<ShipSteeringComponent>();
-            var phys = Parent.GetComponent<ShipPhysicsComponent>();
             var input = Parent.GetComponent<ShipInputComponent>();
+            
             if(input != null) input.AutopilotThrottle = 0;
             if (control == null) return;
             if (CurrentBehaviour == AutopilotBehaviours.None)
@@ -144,14 +155,17 @@ namespace LibreLancer
             var targetRadius = GetTargetRadius();
             var myRadius = Parent.PhysicsComponent.Body.Collider.Radius;
 			var distance = (targetPoint - Parent.PhysicsComponent.Body.Position).Length();
-
-            if ((distance - gotoRange) > 2000 && CanCruise) 
+            
+            if ((distance - gotoRange) > 2000 && CanCruise)
             {
-                phys.BeginCruise();
+                if (!haveSetCruise) {
+                    control.Cruise = true;
+                    haveSetCruise = true;
+                }
             }
             else if ((distance - gotoRange) < 200)
             {
-                phys.EndCruise();
+                control.Cruise = false;
             }
 			var distrad = radius < 0 ? (targetRadius + myRadius + gotoRange) : radius + myRadius;
 			bool distanceSatisfied =  distrad >= distance;
@@ -169,13 +183,13 @@ namespace LibreLancer
 			bool directionSatisfied = (Math.Abs(vec.X) < 0.0015f && Math.Abs(vec.Y) < 0.0015f);
 			if (!directionSatisfied)
 			{
-				control.InYaw = MathHelper.Clamp((float)YawControl.Update(0, vec.X, dt), -1, 1);
-				control.InPitch = MathHelper.Clamp((float)PitchControl.Update(0, -vec.Y, dt), -1, 1);
+				OutYaw = MathHelper.Clamp((float)YawControl.Update(0, vec.X, dt), -1, 1);
+				OutPitch = MathHelper.Clamp((float)PitchControl.Update(0, -vec.Y, dt), -1, 1);
 			}
 			else
 			{
-				control.InYaw = 0;
-				control.InPitch = 0;
+				OutYaw = 0;
+				OutPitch = 0;
 			}
 			if (distanceSatisfied && directionSatisfied && CurrentBehaviour == AutopilotBehaviours.Goto)
 			{

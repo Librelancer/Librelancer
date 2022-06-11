@@ -419,6 +419,8 @@ namespace LibreLancer
         public Vector3 Steering;
         public StrafeControls Strafe;
         public float Throttle;
+        public bool Cruise;
+        public bool Thrust;
 
         public static object Read(NetPacketReader message)
         {
@@ -427,7 +429,9 @@ namespace LibreLancer
                 Sequence = message.GetInt(),
                 Steering =  message.GetVector3(),
                 Strafe = (StrafeControls)message.GetByte(),
-                Throttle = message.GetFloat()
+                Throttle = message.GetFloat(),
+                Cruise = message.GetBool(),
+                Thrust = message.GetBool()
             };
         }
         public void WriteContents(NetDataWriter msg)
@@ -436,6 +440,8 @@ namespace LibreLancer
             msg.Put(Steering);
             msg.Put((byte)Strafe);
             msg.Put(Throttle);
+            msg.Put(Cruise);
+            msg.Put(Thrust);
         }
     }
     
