@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -659,8 +660,19 @@ namespace LibreLancer
         {
             rpcClient.DestroyPart(0, id, part);
         }
+
+        private ConcurrentQueue<IPacket> inputPackets = new ConcurrentQueue<IPacket>();
+        public void EnqueuePacket(IPacket packet)
+        {
+            inputPackets.Enqueue(packet);
+        }
+
+        public void ProcessPacketQueue()
+        {
+            while(inputPackets.TryDequeue(out var pkt)) ProcessPacketDirect(pkt);
+        }
         
-        public void ProcessPacket(IPacket packet)
+        public void ProcessPacketDirect(IPacket packet)
         {
             if(ResponseHandler.HandlePacket(packet))
                 return;

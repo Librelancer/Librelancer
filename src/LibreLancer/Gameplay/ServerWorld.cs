@@ -209,7 +209,7 @@ namespace LibreLancer
             actions.Enqueue(() =>
             {
                 var phys = Players[player].GetComponent<SPlayerComponent>();
-                phys.Inputs.Enqueue(input);
+                phys.QueueInput(input);
             });
         }
 

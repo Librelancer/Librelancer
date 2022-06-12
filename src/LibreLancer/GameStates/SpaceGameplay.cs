@@ -153,7 +153,10 @@ World Time: {12:F2}
             world.MessageBroadcasted += World_MessageBroadcasted;
             Game.Sound.ResetListenerVelocity();
             FadeIn(0.5, 0.5);
+            updateStartDelay = 3;
         }
+
+        private int updateStartDelay = -1;
 
         
 
@@ -427,7 +430,8 @@ World Time: {12:F2}
             steering.Tick = (int) Game.CurrentTick;
             world.Update(paused ? 0 : delta);
             if (session.Update()) return;
-            session.GameplayUpdate(this, delta);
+            if(updateStartDelay == 0)
+                session.GameplayUpdate(this, delta);
             UpdateCamera(delta);
             if (Thn != null && Thn.Running)
             {
@@ -747,6 +751,8 @@ World Time: {12:F2}
                 loader.Draw(delta);
                 return;
             }
+
+            if (updateStartDelay > 0) updateStartDelay--;
             world.RenderUpdate(delta);
             sysrender.Draw();
 

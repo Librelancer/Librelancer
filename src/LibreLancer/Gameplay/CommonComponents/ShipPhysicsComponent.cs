@@ -11,10 +11,10 @@ namespace LibreLancer
 	public enum StrafeControls
 	{
 		None = 0,
-		Left = 2,
-		Right = 4,
-		Up = 8,
-		Down = 16
+		Left = 1,
+		Right = 2,
+		Up = 4,
+		Down = 8
 	}
 	public enum EngineStates
 	{

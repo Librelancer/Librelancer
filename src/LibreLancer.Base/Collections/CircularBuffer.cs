@@ -43,6 +43,7 @@ namespace LibreLancer
 		public T Dequeue()
 		{
 			var dequeued = backing[tail];
+            backing[tail] = default(T);
 			tail = (tail + 1) % Capacity;
 			Count--;
 			return dequeued;
@@ -51,6 +52,7 @@ namespace LibreLancer
 		public void Clear()
 		{
 			head = Capacity - 1;
+            Array.Clear(backing);
 			tail = 0;
 			Count = 0;
 		}

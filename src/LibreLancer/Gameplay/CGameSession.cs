@@ -192,6 +192,20 @@ namespace LibreLancer
             public float ChargePct;
         }
 
+        NetInputControls FromMoveState(int i)
+        {
+            i++;
+            return new NetInputControls()
+            {
+                Sequence =  moveState[^i].Tick,
+                Steering = moveState[^i].Steering,
+                Strafe = moveState[^i].Strafe,
+                Throttle = moveState[^i].Throttle,
+                Cruise = moveState[^i].CruiseEnabled,
+                Thrust = moveState[^i].Thrust
+            };
+        }
+
         public void GameplayUpdate(SpaceGameplay gp, double delta)
         {
             UpdateAudio();
@@ -200,15 +214,7 @@ namespace LibreLancer
             var player = gp.player;
             var phys = player.GetComponent <ShipPhysicsComponent>();
             var steering = player.GetComponent<ShipSteeringComponent>();
-            connection.SendPacket(new InputUpdatePacket()
-            {
-                Sequence = (int)gp.FlGame.CurrentTick,
-                Steering = steering.OutputSteering,
-                Strafe = phys.CurrentStrafe,
-                Throttle = phys.EnginePower,
-                Cruise = steering.Cruise,
-                Thrust = steering.Thrust,
-            }, PacketDeliveryMethod.SequenceA);
+           
 
             moveState.Enqueue(new PlayerMoveState()
             {
@@ -226,6 +232,13 @@ namespace LibreLancer
                 CruiseAccelPct = phys.CruiseAccelPct,
                 ChargePct = phys.ChargePercent
             });
+
+            //Store multiple updates for redundancy.
+            var ip = new InputUpdatePacket() {Current = FromMoveState(0)};
+            if (moveState.Count > 1) ip.HistoryA = FromMoveState(1);
+            if (moveState.Count > 2) ip.HistoryB = FromMoveState(2);
+            if (moveState.Count > 3) ip.HistoryC = FromMoveState(3);
+            connection.SendPacket(ip, PacketDeliveryMethod.SequenceA);
             
             if (processUpdatePackets)
             {

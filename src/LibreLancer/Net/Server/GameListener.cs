@@ -133,7 +133,7 @@ namespace LibreLancer
                     else
                     {
                         var player = (Player) peer.Tag;
-                        Task.Run(() => player.ProcessPacket(pkt));
+                        player.EnqueuePacket(pkt);
                     }
                 }
                 #if !DEBUG
@@ -174,6 +174,7 @@ namespace LibreLancer
                 {
                     if (p.Tag is Player player)
                     {
+                        player.ProcessPacketQueue();
                         (player.Client as RemotePacketClient)?.Update(time.TotalSeconds);
                     }
                 }

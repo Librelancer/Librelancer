@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using LibreLancer.Net;
 using LiteNetLib;
@@ -41,13 +42,13 @@ namespace LibreLancer
             return (IPacket)parsers[(int)message.GetVariableUInt32()](message);
         }
 
-        #if DEBUG
+#if DEBUG
         public static void CheckRegistered(IPacket p)
         {
             var idx = packetTypes.IndexOf(p.GetType());
             if(idx == -1) throw new Exception($"Packet type not registered {p.GetType().Name}");
         }
-        #endif
+#endif
         static Packets()
         {
             //Authentication
@@ -419,35 +420,96 @@ namespace LibreLancer
     }
     
 
-    public class InputUpdatePacket : IPacket
+    public struct NetInputControls
     {
         public int Sequence;
         public Vector3 Steering;
         public StrafeControls Strafe;
         public float Throttle;
         public bool Cruise;
-        public bool Thrust;
+        public bool Thrust;    
+    }
+    
+    public class InputUpdatePacket : IPacket
+    {
+        public NetInputControls Current;
+        public NetInputControls HistoryA;
+        public NetInputControls HistoryB;
+        public NetInputControls HistoryC;
 
-        public static object Read(NetPacketReader message)
+        [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
+        static void WriteDelta(ref BitWriter writer, ref NetInputControls baseline, ref NetInputControls cur)
         {
-            return new InputUpdatePacket()
-            {
-                Sequence = message.GetInt(),
-                Steering =  message.GetVector3(),
-                Strafe = (StrafeControls)message.GetByte(),
-                Throttle = message.GetFloat(),
-                Cruise = message.GetBool(),
-                Thrust = message.GetBool()
-            };
+            writer.PutVarInt32(cur.Sequence - baseline.Sequence);
+            writer.PutUInt((uint)cur.Strafe, 4);
+            writer.PutBool(cur.Cruise);
+            writer.PutBool(cur.Thrust);
+            writer.PutBool(cur.Throttle != baseline.Throttle);
+            writer.PutBool(cur.Steering != baseline.Steering);
+            if(cur.Throttle != baseline.Throttle)
+                writer.PutFloat(cur.Throttle);
+            if(cur.Steering != baseline.Steering)
+                writer.PutVector3(cur.Steering);
         }
+        
+        static NetInputControls ReadDelta(ref BitReader reader, ref NetInputControls baseline)
+        {
+            var nc = new NetInputControls();
+            nc.Sequence = baseline.Sequence + reader.GetVarInt32();
+            nc.Strafe = (StrafeControls)reader.GetUInt(4);
+            nc.Cruise = reader.GetBool();
+            nc.Thrust = reader.GetBool();
+            bool readThrottle = reader.GetBool();
+            bool readSteering = reader.GetBool();
+            nc.Throttle = readThrottle ? reader.GetFloat() : baseline.Throttle;
+            nc.Steering = readSteering ? reader.GetVector3() : baseline.Steering;
+            return nc;
+        }
+
+        public static object Read(NetDataReader message)
+        {
+            var br = new BitReader(message.GetRemainingBytes(), 0);
+            var p = new InputUpdatePacket();
+            p.Current.Sequence = br.GetVarInt32();
+            p.Current.Steering = br.GetVector3();
+            p.Current.Strafe = (StrafeControls) br.GetUInt(4);
+            p.Current.Cruise = br.GetBool();
+            p.Current.Thrust = br.GetBool();
+            var throttle = br.GetUInt(2);
+            if (throttle == 0) p.Current.Throttle = 0;
+            else if (throttle == 1) p.Current.Throttle = 1;
+            else {
+                p.Current.Throttle = br.GetFloat();
+            }
+            p.HistoryA = ReadDelta(ref br, ref p.Current);
+            p.HistoryB = ReadDelta(ref br, ref p.HistoryA);
+            p.HistoryC = ReadDelta(ref br, ref p.HistoryB);
+            return p;
+        }
+        
+        [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
         public void WriteContents(NetDataWriter msg)
         {
-            msg.Put(Sequence);
-            msg.Put(Steering);
-            msg.Put((byte)Strafe);
-            msg.Put(Throttle);
-            msg.Put(Cruise);
-            msg.Put(Thrust);
+            var bw = new BitWriter();
+            bw.PutVarInt32(Current.Sequence);
+            bw.PutVector3(Current.Steering);
+            bw.PutUInt((uint)Current.Strafe, 4);
+            bw.PutBool(Current.Cruise);
+            bw.PutBool(Current.Thrust);
+            if (Current.Throttle == 0){
+                bw.PutUInt(0, 2);
+            } else if (Current.Throttle >= 1){
+                bw.PutUInt(1,2);
+            }else {
+                bw.PutUInt(2, 2);
+                bw.PutFloat(Current.Throttle);
+            }
+            
+            WriteDelta(ref bw, ref Current, ref HistoryA);
+            WriteDelta(ref bw, ref HistoryA, ref HistoryB);
+            WriteDelta(ref bw, ref HistoryB, ref HistoryC);
+            FLLog.Info("Client", $"Packet Size = {bw.ByteLength}");
+            bw.WriteToPacket(msg);
         }
     }
     

@@ -174,7 +174,7 @@ namespace LibreLancer
         void Process(TimeSpan time, TimeSpan totalTime)
         {
             while (!localPackets.IsEmpty && localPackets.TryDequeue(out var local))
-                LocalPlayer.ProcessPacket(local);
+                LocalPlayer.ProcessPacketDirect(local);
             Action a;
             if (worldRequests.Count > 0 && worldRequests.TryDequeue(out a))
                 a();
