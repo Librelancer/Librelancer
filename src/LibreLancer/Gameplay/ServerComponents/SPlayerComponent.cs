@@ -3,15 +3,15 @@ using System.Numerics;
 
 namespace LibreLancer
 {
-    /// <summary>
-    /// Class that handles receiving inputs from the network and applying them to the player
-    /// Also stores a reference to the player class.
-    ///
-    /// Caveats:
-    ///    - This will currently bug out if the network latency increases significantly
-    ///      and stays increased. This only handles jitter and latency spikes, as well as
-    ///      the occasional dropped packet.
-    /// </summary>
+    /*
+     * Component that handles a remote player controlling this GameObject
+     * Stores a reference to the Player class, and buffers inputs
+     *
+     *
+     * Notes:
+     *   - When the buffer underflows (extended latency spike), the buffer is expanded and a hard
+     *   resync of the tick numbers occurs, this causes a large resimulation on the client.
+     */
     public class SPlayerComponent : GameComponent
     {
         struct ReceivedInputs
@@ -54,13 +54,15 @@ namespace LibreLancer
                     {
                         Controls = new NetInputControls() {Sequence = i}
                     };
+                    faked.FromClient = false;
                     inputs.Enqueue(faked);
                 }
             }
             //Add on the current packet. LiteNetLib guarantees we always
             //receive packets in order, and will drop out of order packets.
             inputs.Enqueue(new ReceivedInputs(input.Current));
-            //Recover lost inputs from redundant data sent in a packet
+            //Recover lost inputs from redundant data sent in the packet
+            //This handles minor packet loss
             for (int i = inputs.Count - 1; i >= 0; i--)
             {
                 if (inputs[i].Sequence == input.HistoryA.Sequence &&
@@ -85,11 +87,29 @@ namespace LibreLancer
 
         private NetInputControls? _last;
         private int sequenceFetch = -int.MaxValue;
-        
+        private int underbufferCounter = 0;
+        private bool fillAgain = false;
+
+        private const int UNDERFLOW_THRESHOLD = 16;
+        private const int NO_UNDERFLOW_THRESHOLD = 72;
+        private int okFrames = 0;
         bool GetInput(out NetInputControls packet, out int sequence)
         {
             packet = new NetInputControls();
             sequence = 0;
+            
+            if (_last != null && fillAgain) {
+                //We are waiting for the buffer to refill for our hard resync
+                if (inputs.Count > 7) {
+                    fillAgain = false;
+                }
+                else {
+                    packet = _last.Value;
+                    sequence = sequenceFetch;
+                    return true;
+                }
+            }
+            
             if (_last == null && inputs.Count == 0)
             {
                 //Haven't received any data yet
@@ -99,26 +119,40 @@ namespace LibreLancer
             {
                 //Initialise buffer
                 if (sequenceFetch == -int.MaxValue) {
-                    sequenceFetch = inputs.Peek().Sequence - 7;
+                    sequenceFetch = inputs.Peek().Sequence - 8;
                 }
                 sequenceFetch++;
                 if (inputs.Peek().Sequence < sequenceFetch) {
                     //Head of queue is behind what we are simulating
                     //This is where we should probably adapt to the average RTT
                     //getting much higher.
+                    okFrames = 0;
+                    underbufferCounter++;
+                    if (underbufferCounter > UNDERFLOW_THRESHOLD) {
+                        FLLog.Info("Server", $"({Player.Name ?? Player.ID.ToString()}): Client input underflow detected, increasing buffer");
+                        sequenceFetch--;
+                        underbufferCounter = 0;
+                        fillAgain = true;
+                    }
                     inputs.Dequeue();
                 }
                 if (inputs.Count > 0 && inputs.Peek().Sequence == sequenceFetch)
                 {
                     var popInput = inputs.Dequeue();
-                    if (inputs.Peek().FromClient) {
+                    if (popInput.FromClient) {
                         //We have valid input from the client
                         sequence = sequenceFetch;
                         _last = packet = popInput.Controls;
+                        okFrames++;
+                        if (okFrames > NO_UNDERFLOW_THRESHOLD){
+                            underbufferCounter = 0;
+                            okFrames = 0;
+                        }
                     } else if( _last != null) {
                         //We have a lost packet, just use last frame's inputs
                         sequence = sequenceFetch;
                         packet = _last.Value;
+                        okFrames = 0;
                     }
                     else {
                         return false;

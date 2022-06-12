@@ -508,7 +508,6 @@ namespace LibreLancer
             WriteDelta(ref bw, ref Current, ref HistoryA);
             WriteDelta(ref bw, ref HistoryA, ref HistoryB);
             WriteDelta(ref bw, ref HistoryB, ref HistoryC);
-            FLLog.Info("Client", $"Packet Size = {bw.ByteLength}");
             bw.WriteToPacket(msg);
         }
     }
