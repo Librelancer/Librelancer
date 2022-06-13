@@ -983,7 +983,22 @@ namespace LibreLancer
                 }
             }
         }
+
+        void IServerPlayer.ChatMessage(ChatCategory category, string message)
+        {
+            FLLog.Info("Chat", $"({DateTime.Now} {category}) {Name}: {message}");
+            switch (category)
+            {
+                case ChatCategory.System:
+                    Game.SystemChatMessage(this, message);
+                    break;
+                case ChatCategory.Local:
+                    World?.LocalChatMessage(this, message);
+                    break;
+            }
+        }
         
+
         public void OnSPSave()
         {
             Character?.UpdatePosition(Base, System, Position);

@@ -92,6 +92,10 @@
         },
         {
           "name": "Respawn"
+        },
+        {
+          "name": "ChatMessage",
+          "args": [ { "name":  "category", "type":  "ChatCategory" }, { "name":  "message", "type":  "string" }]
         }
     ],
     "client_methods": [
@@ -217,6 +221,10 @@
         },
         {
           "name": "EndTradelane"
+        },
+        {
+          "name": "ReceiveChatMessage",
+          "args": [ { "name":  "category", "type":  "ChatCategory" }, { "name":  "player", "type":  "string" },{ "name":  "message", "type":  "string" }]
         },
         {
           "name": "PopupOpen",

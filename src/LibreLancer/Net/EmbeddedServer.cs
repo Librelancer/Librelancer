@@ -18,6 +18,7 @@ namespace LibreLancer
             Client = new LocalPacketClient();
             Server = new GameServer(gameData);
             Server.LocalPlayer = new Player(Client, Server, Guid.Empty);
+            Server.ConnectedPlayers.Add(Server.LocalPlayer);
         }
         
         public void StartFromSave(string path)

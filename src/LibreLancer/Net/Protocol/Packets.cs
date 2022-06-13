@@ -16,7 +16,7 @@ namespace LibreLancer
 {
     public interface IPacket
     {
-        void WriteContents(NetDataWriter msg);
+        void WriteContents(NetDataWriter outPacket);
     }
 
     public static class Packets
@@ -29,17 +29,17 @@ namespace LibreLancer
             parsers.Add(parser);
         }
 
-        public static void Write(NetDataWriter message, IPacket p)
+        public static void Write(NetDataWriter outPacket, IPacket p)
         {
             var pkt = packetTypes.IndexOf(p.GetType());
             if(pkt == -1) throw new Exception($"Packet type not registered {p.GetType().Name}");
-            message.PutVariableUInt32((uint) pkt);
-            p.WriteContents(message);
+            outPacket.PutVariableUInt32((uint) pkt);
+            p.WriteContents(outPacket);
         }
 
-        public static IPacket Read(NetPacketReader message)
+        public static IPacket Read(NetPacketReader inPacket)
         { 
-            return (IPacket)parsers[(int)message.GetVariableUInt32()](message);
+            return (IPacket)parsers[(int)inPacket.GetVariableUInt32()](inPacket);
         }
 
 #if DEBUG
@@ -74,7 +74,7 @@ namespace LibreLancer
             return new LoginSuccessPacket();
         }
 
-        public void WriteContents(NetDataWriter msg)
+        public void WriteContents(NetDataWriter outPacket)
         {
         }
     }
@@ -85,9 +85,9 @@ namespace LibreLancer
         {
             return new AuthenticationPacket() { Type = (AuthenticationKind)message.GetByte() };
         }
-        public void WriteContents(NetDataWriter message)
+        public void WriteContents(NetDataWriter outPacket)
         {
-            message.Put((byte)Type);
+            outPacket.Put((byte)Type);
         }
     }
 
@@ -98,9 +98,9 @@ namespace LibreLancer
         {
             return new AuthenticationReplyPacket() { Guid = new Guid(message.GetBytes(16)) };
         }
-        public void WriteContents(NetDataWriter message)
+        public void WriteContents(NetDataWriter outPacket)
         {
-            message.Put(Guid.ToByteArray());
+            outPacket.Put(Guid.ToByteArray());
         }
 
     }
@@ -243,10 +243,10 @@ namespace LibreLancer
                 p.Updates[i] = PackedShipUpdate.ReadFrom(ref pack);
             return p;
         }
-        public void WriteContents(NetDataWriter message)
+        public void WriteContents(NetDataWriter outPacket)
         {
-            message.Put(Tick);
-            message.Put(InputSequence);
+            outPacket.Put(Tick);
+            outPacket.Put(InputSequence);
             var writer = new BitWriter();
             PlayerState.Write(ref writer);
             if(Updates.Length > 255)
@@ -254,7 +254,7 @@ namespace LibreLancer
             writer.PutUInt((uint) Updates.Length, 8);
             foreach (var p in Updates)
                 p.WriteTo (ref writer);
-            writer.WriteToPacket(message);
+            writer.WriteToPacket(outPacket);
         }
     }
 
@@ -488,7 +488,7 @@ namespace LibreLancer
         }
         
         [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
-        public void WriteContents(NetDataWriter msg)
+        public void WriteContents(NetDataWriter outPacket)
         {
             var bw = new BitWriter();
             bw.PutVarInt32(Current.Sequence);
@@ -508,7 +508,7 @@ namespace LibreLancer
             WriteDelta(ref bw, ref Current, ref HistoryA);
             WriteDelta(ref bw, ref HistoryA, ref HistoryB);
             WriteDelta(ref bw, ref HistoryB, ref HistoryC);
-            bw.WriteToPacket(msg);
+            bw.WriteToPacket(outPacket);
         }
     }
     

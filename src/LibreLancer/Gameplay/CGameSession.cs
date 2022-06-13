@@ -823,30 +823,42 @@ namespace LibreLancer
 
         public void Launch() => rpcServer.Launch();
 
-        public void ProcessConsoleCommand(string str)
+        public void OnChat(ChatCategory category, string str)
         {
-            Chats.Append(str, "Arial", 9, Color4.Green);
-            if (str == "#netstat")
+            if (category == ChatCategory.Console)
             {
-                if(connection is GameNetClient nc)
+                Chats.Append(str, "Arial", 9, Color4.Green);
+                if (str == "#netstat")
                 {
-                    string stats = $"Ping: {nc.Ping}, Loss {nc.LossPercent}%";
-                    Chats.Append(stats, "Arial", 9, Color4.CornflowerBlue);
-                    Chats.Append($"Sent: {DebugDrawing.SizeSuffix(nc.BytesSent)}, Received: {DebugDrawing.SizeSuffix(nc.BytesReceived)}", "Arial", 9, Color4.CornflowerBlue);
+                    if (connection is GameNetClient nc)
+                    {
+                        string stats = $"Ping: {nc.Ping}, Loss {nc.LossPercent}%";
+                        Chats.Append(stats, "Arial", 9, Color4.CornflowerBlue);
+                        Chats.Append(
+                            $"Sent: {DebugDrawing.SizeSuffix(nc.BytesSent)}, Received: {DebugDrawing.SizeSuffix(nc.BytesReceived)}",
+                            "Arial", 9, Color4.CornflowerBlue);
+                    }
+                    else
+                    {
+                        Chats.Append("Offline", "Arial", 9, Color4.CornflowerBlue);
+                    }
+                }
+                else if (str == "#debug")
+                {
+                    Game.Debug.Enabled = !Game.Debug.Enabled;
                 }
                 else
                 {
-                    Chats.Append("Offline", "Arial", 9, Color4.CornflowerBlue);
+                    rpcServer.ConsoleCommand(str);
                 }
+            } else {
+                rpcServer.ChatMessage(category, str);  
             }
-            else if (str == "#debug")
-            {
-                Game.Debug.Enabled = !Game.Debug.Enabled;
-            }
-            else
-            {
-                rpcServer.ConsoleCommand(str);
-            }
+        }
+
+        void IClientPlayer.ReceiveChatMessage(ChatCategory category, string player, string message)
+        {
+            Chats.Append($"{player}: {message}", "Arial", 11, category.GetColor());
         }
         
 

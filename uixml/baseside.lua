@@ -111,7 +111,7 @@ class baseside : baseside_Designer
             navbox.PositionAction(obj, actionbox, index)
         }
     
-        this.Elements.chatbox.OnTextEntered((text) => Game.TextEntered(text));
+        this.Elements.chatbox.OnTextEntered((category, text) => Game.ChatEntered(category, text));
 	    this.InfoWindow = new infowindow()
 	    this.Map = new mapwindow()
 	    this.Map.InitMap()
@@ -146,3 +146,4 @@ class baseside : baseside_Designer
     
     MissionOffer(mission) => OpenModal(new popup(STRID_MISSION, mission, 'accept', (result) => Game.MissionResponse(result)));
 }
+

@@ -163,6 +163,25 @@ namespace LibreLancer
             BaselineGoodPrices = bp.ToArray();
         }
 
+        public void SystemChatMessage(Player source, string message)
+        {
+            var s = source.System;
+            foreach (var p in GetPlayers())
+            {
+                if(p.System.Equals(s, StringComparison.OrdinalIgnoreCase))
+                    p.RemoteClient.ReceiveChatMessage(ChatCategory.System, source.Name, message);
+            }
+        }
+
+        IEnumerable<Player> GetPlayers()
+        {
+            lock (ConnectedPlayers)
+            {
+                return ConnectedPlayers.ToArray();
+            }
+        }
+        
+
         private ServerLoop processingLoop;
 
         public double TotalTime => processingLoop.TotalTime.TotalSeconds;

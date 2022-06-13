@@ -304,6 +304,22 @@ namespace LibreLancer
                 p.SendDestroyPart(obj.NetID, part);
         }
 
+        public void LocalChatMessage(Player player, string message)
+        {
+            actions.Enqueue(() =>
+            {
+                var pObj = Players[player];
+                player.RemoteClient.ReceiveChatMessage(ChatCategory.Local, player.Name, message);
+                foreach (var obj in GameWorld.SpatialLookup.GetNearbyObjects(pObj,
+                             Vector3.Transform(Vector3.Zero, pObj.LocalTransform), 15000))
+                {
+                    if (obj.TryGetComponent<SPlayerComponent>(out var other)) {
+                        other.Player.RemoteClient.ReceiveChatMessage(ChatCategory.Local, player.Name, message);
+                    }
+                }
+            });
+        }
+
         public void DeleteSolar(string nickname)
         {
             actions.Enqueue(() =>

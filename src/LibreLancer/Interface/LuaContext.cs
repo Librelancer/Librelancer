@@ -31,6 +31,7 @@ namespace LibreLancer.Interface
             UserData.RegisterType<HorizontalAlignment>();
             UserData.RegisterType<VerticalAlignment>();
             UserData.RegisterType<AnchorKind>();
+            UserData.RegisterType<ChatCategory>();
             UserData.RegisterType(new Vector2Lua());
             UserData.RegisterType(new Vector3Lua());
         }

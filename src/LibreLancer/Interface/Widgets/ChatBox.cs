@@ -10,15 +10,31 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class ChatBox : UiWidget
     {
-        event Action<string> TextEntered;
+        event Action<ChatCategory, string> TextEntered;
         public void OnTextEntered(WattleScript.Interpreter.Closure handler)
         {
-            TextEntered += (s) =>
+            TextEntered += (c,s) =>
             {
-                handler.Call(s);
+                handler.Call(c, s);
             };
         }
-        public string CurrentEntry = "Console->";
+
+        public ChatCategory Category = ChatCategory.System;
+
+        public string CurrentEntry
+        {
+            get
+            {
+                switch (Category)
+                {
+                    case ChatCategory.Console: return "Console->";
+                    case ChatCategory.Local: return "Local->";
+                    case ChatCategory.System: return "System->";
+                    default: return ">";
+                }
+            }
+        }
+        
         public string CurrentText = "";
         public int MaxChars = 100;
         public float FontSize { get; set; } = 12f;
@@ -43,7 +59,7 @@ namespace LibreLancer.Interface
             var sizeF = context.TextSize(FontSize);
             var node0 = new RichTextTextNode()
             {
-                Contents = CurrentEntry, FontName = "Arial", FontSize = sizeF, Color = Color4.Green, Shadow = new TextShadow(Color4.Black)
+                Contents = CurrentEntry, FontName = "Arial", FontSize = sizeF, Color = Category.GetColor(), Shadow = new TextShadow(Color4.Black)
             };
             var node1 = new RichTextTextNode()
             {
@@ -70,9 +86,19 @@ namespace LibreLancer.Interface
         {
             if (key == Keys.Enter)
             {
-                if(!string.IsNullOrWhiteSpace(CurrentText)) TextEntered?.Invoke(CurrentText);
+                if(!string.IsNullOrWhiteSpace(CurrentText)) TextEntered?.Invoke(Category, CurrentText);
                 CurrentText = "";
                 Visible = false;
+            }
+            if (key == Keys.Up)
+            {
+                Category--;
+                if (Category < 0) Category = ChatCategory.MAX - 1;
+            }
+            if (key == Keys.Down)
+            {
+                Category++;
+                if (Category >= ChatCategory.MAX) Category = 0;
             }
             if (key == Keys.Escape)
             {

@@ -6,7 +6,7 @@
 import json
 from datetime import datetime,timezone
 
-print("Librelancer Protocol Generator 2021-09-21")
+print("Librelancer Protocol Generator 2022-06-13")
 
 # NetPacketReader methods
 typeMethods = {
@@ -30,7 +30,8 @@ typeMethods = {
 # Enumerations
 enums = {
     "GameObjectKind",
-    "ShipPurchaseStatus"
+    "ShipPurchaseStatus",
+    "ChatCategory"
 }
 
 # Read the json
@@ -215,22 +216,22 @@ def Packet(mthd, classname):
   # Read Packet
   def read_expr(name, type, nullable):
     if type in typeMethods:
-        writeline(name + " = message." + typeMethods[type] + "();")
+        writeline(name + " = inPacket." + typeMethods[type] + "();")
     elif type in enums:
-        writeline(name + " = (" + type + ")message.GetInt();")
+        writeline(name + " = (" + type + ")inPacket.GetInt();")
     else:
         if nullable:
-            writestart("if(message.GetByte() == 1) ")
+            writestart("if(inPacket.GetByte() == 1) ")
         else:
             writestart("")
-        writeend(name + " = " + type + ".Read(message);")
+        writeend(name + " = " + type + ".Read(inPacket);")
         
-  writeline("public static object Read(NetPacketReader message)")
+  writeline("public static object Read(NetPacketReader inPacket)")
   writeline("{")
   tabs += 1
   writeline("var _packet = new " + classname + "();")
   if "return" in mthd:
-      writeline("_packet.Sequence = message.GetInt();")
+      writeline("_packet.Sequence = inPacket.GetInt();")
   if "args" in mthd:
       for a in mthd["args"]:
         if "[]" in a["type"]:
@@ -238,7 +239,7 @@ def Packet(mthd, classname):
             single_type = single_type.replace("]","")
             # Null arrays are written with length 0
             # Otherwise length + 1
-            writeline("uint __len_" + a["name"] + " = message.GetVariableUInt32();")
+            writeline("uint __len_" + a["name"] + " = inPacket.GetVariableUInt32();")
             writeline("if (__len_" + a["name"] + " > 0) {")
             tabs += 1
             writeline("_packet." + a["name"] + " = new " + single_type + "[(int)(__len_" + a["name"] + " - 1)];")
@@ -256,27 +257,27 @@ def Packet(mthd, classname):
   
   def put_single(name, type, nullable):
     if type == "string":
-        writeline("message.PutStringPacked(" + name + ");")
+        writeline("outPacket.PutStringPacked(" + name + ");")
     elif type in enums:
-        writeline("message.Put((int)" + name + ");")
+        writeline("outPacket.Put((int)" + name + ");")
     elif type in typeMethods:
-        writeline("message.Put(" + name + ");")
+        writeline("outPacket.Put(" + name + ");")
     else:
         if nullable:
-            writeline("if (" + name + " == null) message.Put((byte)0);")
+            writeline("if (" + name + " == null) outPacket.Put((byte)0);")
             writeline("else {")
-            writeline("    message.Put((byte)1);")
-            writeline("    " + name + ".Put(message);")
+            writeline("    outPacket.Put((byte)1);")
+            writeline("    " + name + ".Put(outPacket);")
             writeline("}")
         else:
-            writeline(name + ".Put(message);")
+            writeline(name + ".Put(outPacket);")
     
   # Write Packet
-  writeline("public void WriteContents(NetDataWriter message)")
+  writeline("public void WriteContents(NetDataWriter outPacket)")
   writeline("{")
   tabs += 1
   if "return" in mthd:
-    writeline("message.Put(Sequence);")
+    writeline("outPacket.Put(Sequence);")
   if "args" in mthd:
     for a in mthd["args"]:
       if "[]" in a["type"]:
@@ -286,14 +287,14 @@ def Packet(mthd, classname):
         # Otherwise length + 1
         writeline("if (" + a["name"] + " != null) {")
         tabs += 1
-        writeline("message.PutVariableUInt32((uint)(" + a["name"] + ".Length + 1));")
+        writeline("outPacket.PutVariableUInt32((uint)(" + a["name"] + ".Length + 1));")
         writeline("foreach(var _element in " + a["name"] + ")")
         tabs += 1
         put_single("_element", single_type, "nullable" in mthd)
         tabs -= 1
         tabs -= 1
         writeline("} else {")
-        writeline("    message.PutVariableUInt32(0);")
+        writeline("    outPacket.PutVariableUInt32(0);")
         writeline("}")
       else:
         put_single(a["name"], a["type"], "nullable" in mthd)

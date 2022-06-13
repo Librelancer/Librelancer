@@ -82,7 +82,7 @@ class hud : hud_Designer
             container.AddChild(obj)
         }
         this.UpdateManeuverState()
-        this.Elements.chatbox.OnTextEntered((text) => Game.TextEntered(text));
+        this.Elements.chatbox.OnTextEntered((category, text) => Game.ChatEntered(category, text));
 	    this.Elements.chat.Chat = Game.GetChats()
     }
     
@@ -152,4 +152,5 @@ class hud : hud_Designer
     Chatbox() => this.Elements.chatbox.Visible = true;
     Popup(title,contents,id) => OpenModal(new popup(title,contents,'ok', () => Game.PopupFinish(id)));
 }
+
 

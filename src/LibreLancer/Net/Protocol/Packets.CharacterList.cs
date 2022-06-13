@@ -62,34 +62,34 @@ namespace LibreLancer
             };
         }
 
-        public void WriteContents(NetDataWriter message)
+        public void WriteContents(NetDataWriter outPacket)
         {
-            message.PutVariableUInt32((uint)Factions.Count);
+            outPacket.PutVariableUInt32((uint)Factions.Count);
             foreach(var f in Factions) {
-                message.Put(f.Nickname);
-                message.Put(f.RepGroup);
-                message.Put(f.Base);
-                message.Put(f.Package);
-                message.Put(f.Pilot);
+                outPacket.Put(f.Nickname);
+                outPacket.Put(f.RepGroup);
+                outPacket.Put(f.Base);
+                outPacket.Put(f.Package);
+                outPacket.Put(f.Pilot);
             }
-            message.PutVariableUInt32((uint)Packages.Count);
+            outPacket.PutVariableUInt32((uint)Packages.Count);
             foreach(var p in Packages) {
-                message.Put(p.Nickname);
-                message.Put(p.StridName);
-                message.Put(p.StridDesc);
-                message.Put(p.Ship);
-                message.Put(p.Loadout);
-                message.Put(p.Money);
+                outPacket.Put(p.Nickname);
+                outPacket.Put(p.StridName);
+                outPacket.Put(p.StridDesc);
+                outPacket.Put(p.Ship);
+                outPacket.Put(p.Loadout);
+                outPacket.Put(p.Money);
             }
-            message.PutVariableUInt32((uint)Pilots.Count);
+            outPacket.PutVariableUInt32((uint)Pilots.Count);
             foreach(var p in Pilots) {
-                message.Put(p.Nickname);
-                message.Put(p.Body);
-                message.Put(p.Comm);
-                message.Put(p.Voice);
-                message.Put(p.BodyAnim);
-                message.Put(p.CommAnim[0]);
-                message.Put(p.CommAnim[1]);
+                outPacket.Put(p.Nickname);
+                outPacket.Put(p.Body);
+                outPacket.Put(p.Comm);
+                outPacket.Put(p.Voice);
+                outPacket.Put(p.BodyAnim);
+                outPacket.Put(p.CommAnim[0]);
+                outPacket.Put(p.CommAnim[1]);
             }
         }
     }
@@ -117,19 +117,19 @@ namespace LibreLancer
             }
             return oc;
         }
-        public void WriteContents(NetDataWriter message)
+        public void WriteContents(NetDataWriter outPacket)
         {
-            message.Put(Info.ServerName);
-            message.Put(Info.ServerDescription);
-            message.Put(Info.ServerNews);
-            message.PutVariableUInt32((uint)Info.Characters.Count);
+            outPacket.Put(Info.ServerName);
+            outPacket.Put(Info.ServerDescription);
+            outPacket.Put(Info.ServerNews);
+            outPacket.PutVariableUInt32((uint)Info.Characters.Count);
             foreach(var c in Info.Characters)
             {
-                message.Put(c.Name);
-                message.PutVariableUInt32((uint)c.Rank);
-                message.Put(c.Funds);
-                message.Put(c.Ship);
-                message.Put(c.Location);
+                outPacket.Put(c.Name);
+                outPacket.PutVariableUInt32((uint)c.Rank);
+                outPacket.Put(c.Funds);
+                outPacket.Put(c.Ship);
+                outPacket.Put(c.Location);
             }
         }
     }
@@ -147,13 +147,13 @@ namespace LibreLancer
             ac.Character.Location = message.GetString();
             return ac;
         }
-        public void WriteContents(NetDataWriter message)
+        public void WriteContents(NetDataWriter outPacket)
         {
-            message.Put(Character.Name);
-            message.PutVariableUInt32((uint)Character.Rank);
-            message.Put(Character.Funds);
-            message.Put(Character.Ship);
-            message.Put(Character.Location);
+            outPacket.Put(Character.Name);
+            outPacket.PutVariableUInt32((uint)Character.Rank);
+            outPacket.Put(Character.Funds);
+            outPacket.Put(Character.Ship);
+            outPacket.Put(Character.Location);
         }
     }
 }

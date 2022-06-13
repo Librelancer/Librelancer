@@ -148,12 +148,18 @@ World Time: {12:F2}
             Game.Mouse.MouseUp += Mouse_MouseUp;
             input = new InputManager(Game, Game.InputMap);
             input.ActionUp += Input_ActionUp;
-            
+            input.ActionDown += InputOnActionDown;
             player.World = world;
             world.MessageBroadcasted += World_MessageBroadcasted;
             Game.Sound.ResetListenerVelocity();
             FadeIn(0.5, 0.5);
             updateStartDelay = 3;
+        }
+
+        private void InputOnActionDown(InputAction obj)
+        {
+           if(!ui.KeyboardGrabbed && obj == InputAction.USER_CHAT)
+               ui.ChatboxEvent();
         }
 
         private int updateStartDelay = -1;
@@ -314,9 +320,9 @@ World Time: {12:F2}
                 }
             }
 
-            public void TextEntered(string text)
+            public void ChatEntered(ChatCategory category, string text)
             {
-                g.Hud_OnTextEntry(text);
+                g.session.OnChat(category, text);
             }
 
             internal void SetManeuver(string m)
@@ -376,12 +382,8 @@ World Time: {12:F2}
 
 		bool dogoto = false;
 		AutopilotComponent pilotcomponent = null;
-		void Hud_OnTextEntry(string obj)
-        {
-            session.ProcessConsoleCommand(obj);
-        }
 
-		bool ManeuverSelect(string e)
+        bool ManeuverSelect(string e)
 		{
 			switch (e)
 			{
@@ -406,10 +408,6 @@ World Time: {12:F2}
 			return false;
 		}
 
-        public override void OnResize()
-        {
-            camera.Viewport = Game.RenderContext.CurrentViewport;
-        }
 
         public bool ShowHud = true;
 
@@ -466,6 +464,7 @@ World Time: {12:F2}
 
 		void UpdateCamera(double delta)
 		{
+            camera.Viewport = Game.RenderContext.CurrentViewport;
             if(Thn == null || !Thn.Running)
 			    ProcessInput(delta);
             //Has to be here or glitches
@@ -497,9 +496,6 @@ World Time: {12:F2}
 				case InputAction.USER_TURN_SHIP:
 					mouseFlight = !mouseFlight;
 					break;
-                case InputAction.USER_CHAT:
-                    ui.ChatboxEvent();
-                    break;
             }
 		}
 

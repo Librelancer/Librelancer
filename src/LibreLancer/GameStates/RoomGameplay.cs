@@ -108,6 +108,7 @@ namespace LibreLancer
 
         private void Input_Action(InputAction action)
         {
+            if (ui.KeyboardGrabbed) return;
             switch (action)
             {
                 case InputAction.USER_CHAT:
@@ -295,9 +296,9 @@ namespace LibreLancer
                 }
                 return actions.ToArray();
             }
-            public void TextEntered(string text)
+            public void ChatEntered(ChatCategory category, string text)
             {
-                g.Hud_OnTextEntry(text);
+                g.session.OnChat(category, text);
             }
         }
 		public override void Unregister()
@@ -457,10 +458,6 @@ namespace LibreLancer
 		void Game_TextInput(string text)
 		{
             ui.OnTextEntry(text);
-		}
-		void Hud_OnTextEntry(string obj)
-		{
-            session.ProcessConsoleCommand(obj);
 		}
 
         private GameObject playerShip;
