@@ -154,7 +154,6 @@ namespace LibreLancer
 
         public void Update(double t)
 		{
-            
             Projectiles?.Update(t);
             for (int i = 0; i < objects.Count; i++)
 				objects[i].Update(t);

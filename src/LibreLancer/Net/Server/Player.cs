@@ -261,8 +261,8 @@ namespace LibreLancer
                 World = world;
                 world.EnqueueAction(() =>
                 {
-                    world.SpawnPlayer(this, Position, Orientation);
                     rpcClient.SpawnPlayer(System, 0, Position, Orientation);
+                    world.SpawnPlayer(this, Position, Orientation);
                     msnRuntime?.EnteredSpace();
                 });
             });
@@ -1032,8 +1032,8 @@ namespace LibreLancer
                 Base = null;
                 world.EnqueueAction(() =>
                 {
-                    world.SpawnPlayer(this, Position, Orientation);
                     rpcClient.SpawnPlayer(System, 0, Position, Orientation);
+                    world.SpawnPlayer(this, Position, Orientation);
                     msnRuntime?.EnteredSpace();
                 });
             });
@@ -1074,8 +1074,8 @@ namespace LibreLancer
                 Base = null;
                 world.EnqueueAction(() =>
                 {
-                    world.SpawnPlayer(this, Position, Orientation);
                     rpcClient.SpawnPlayer(System, 0, Position, Orientation);
+                    world.SpawnPlayer(this, Position, Orientation);
                     msnRuntime?.EnteredSpace();
                 });
             });
