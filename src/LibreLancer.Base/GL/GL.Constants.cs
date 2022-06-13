@@ -15,6 +15,7 @@ namespace LibreLancer
         public const int GL_DONT_CARE = 0x1100;
         public const int GL_DEBUG_SEVERITY_LOW = 0x9148;
         public const int GL_DEBUG_TYPE_PERFORMANCE = 0x8250;
+        public const int GL_DEBUG_TYPE_ERROR = 0x824C;
         //clear buffers
 		public const int GL_COLOR_BUFFER_BIT = 0x00004000;
 		public const int GL_DEPTH_BUFFER_BIT = 0x00000100;
