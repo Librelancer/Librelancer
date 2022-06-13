@@ -29,6 +29,12 @@ namespace LibreLancer
             this.manager = manager;
         }
 
+        public void StartTradelane()
+        {
+            Parent.GetComponent<ShipPhysicsComponent>().Active = false;
+        }
+        
+
         public void Killed()
         {
             OnKilled?.Invoke();
@@ -84,7 +90,7 @@ namespace LibreLancer
 
         private double fireTimer;
         
-        public override void FixedUpdate(double time)
+        public override void Update(double time)
         {
             CurrentState?.Update(Parent, this, time);
             //Get hostile

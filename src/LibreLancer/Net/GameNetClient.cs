@@ -43,7 +43,8 @@ namespace LibreLancer
             get
             {
                 if (running)
-                    return client?.FirstPeer?.Ping ?? -1;
+                    //LiteNetLib returns Ping as RTT/2 - not the regular measure of ping.
+                    return (client?.FirstPeer?.Ping ?? 0) * 2;
                 return -1;
             }
         }

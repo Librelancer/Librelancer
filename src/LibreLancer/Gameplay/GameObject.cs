@@ -201,7 +201,6 @@ namespace LibreLancer
                     Mass = mass,
                     PlainCrc = plainCrc
                 };
-                Components.Add(PhysicsComponent);
             }
         }
 		public void UpdateCollision()
@@ -355,31 +354,30 @@ namespace LibreLancer
 			}
 		}
 
-		public void Update(double time, bool doRenderUpdate = true)
+		public void Update(double time)
         {
-            bool childRU = doRenderUpdate;
-            if (RenderComponent != null)
-            {
-                childRU = RenderComponent == null || RenderComponent.CurrentLevel == 0;
-                if (doRenderUpdate || !RenderComponent.InheritCull) {
-                    RenderComponent.Update(time, Vector3.Transform(Vector3.Zero, WorldTransform), WorldTransform);
-                }
-            }
             for (int i = 0; i < Children.Count; i++)
-				Children[i].Update(time, childRU);
+				Children[i].Update(time);
 			for (int i = 0; i < Components.Count; i++)
 				Components[i].Update(time);
 		}
-        
-        public void FixedUpdate(double time)
-		{
-			for (int i = 0; i < Children.Count; i++)
-				Children[i].FixedUpdate(time);
-			for (int i = 0; i < Components.Count; i++)
-				Components[i].FixedUpdate(time);
-        }
 
-		public void Register(PhysicsWorld physics)
+        public void RenderUpdate(double time)
+        {
+            bool childRU = true;
+            if (RenderComponent != null)
+            {
+                childRU = RenderComponent == null || RenderComponent.CurrentLevel == 0;
+                RenderComponent.Update(time, Vector3.Transform(Vector3.Zero, WorldTransform), WorldTransform);
+            }
+            if (childRU)
+            {
+                for(int i = 0; i < Children.Count; i++)
+                    Children[i].RenderUpdate(time);
+            }
+        }
+        
+        public void Register(PhysicsWorld physics)
 		{
 			foreach (var child in Children)
 				child.Register(physics);

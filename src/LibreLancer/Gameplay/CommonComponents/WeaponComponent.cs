@@ -20,7 +20,7 @@ namespace LibreLancer
             Object = def;
         }
 
-        public override void FixedUpdate(double time)
+        public override void Update(double time)
         {
             CurrentCooldown -= time;
             if (CurrentCooldown < 0) CurrentCooldown = 0;

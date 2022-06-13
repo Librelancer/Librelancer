@@ -249,6 +249,9 @@ namespace LibreLancer
                 return frameTime;
             }
         }
+        
+        public long CurrentTick { get; private set; }
+        
         public IntPtr GetGLProcAddress(string name)
         {
             return SDL.SDL_GL_GetProcAddress(name);
@@ -399,6 +402,20 @@ namespace LibreLancer
         
         [DllImport("user32.dll", SetLastError=true)]
         static extern bool SetProcessDPIAware();
+        
+        private TimeSpan accumulatedTime;
+        private TimeSpan lastTime;
+        TimeSpan TimeStep = TimeSpan.FromTicks(166667);
+
+        TimeSpan Accumulate(Stopwatch sw)
+        {
+            var current = sw.Elapsed;
+            var diff = (current - lastTime);
+            accumulatedTime += diff;
+            lastTime = current;
+            return diff;
+        }
+        
         public void Run()
         {
             //Try to set DPI Awareness on Win32
@@ -619,7 +636,14 @@ namespace LibreLancer
                 while (actions.TryDequeue(out work))
                     work();
                 totalTime = timer.Elapsed.TotalSeconds;
-                Update(elapsed);
+                Accumulate(timer);
+                while (accumulatedTime >= TimeStep)
+                {
+                    CurrentTick++;
+                    Update(TimeStep.TotalSeconds);
+                    accumulatedTime -= TimeStep;
+                }
+
                 if (!running)
                     break;
                 Draw(elapsed);

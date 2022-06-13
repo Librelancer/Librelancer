@@ -13,8 +13,6 @@ using LibreLancer.Data.Missions;
 using LibreLancer.GameData.Items;
 using LibreLancer.Interface;
 using LibreLancer.Net;
-using LibreLancer.Utf.Cmp;
-using LiteNetLib;
 
 namespace LibreLancer
 {
@@ -50,9 +48,8 @@ namespace LibreLancer
         private IServerPlayer rpcServer;
         public IServerPlayer RpcServer => rpcServer;
 
-        public double SpawnTime; //server time at time of spawn
-        private double tOffset; //game time at time of spawn
-        public double WorldTime => Game.TotalTime - tOffset + SpawnTime;
+        private double timeOffset;
+        public double WorldTime => Game.TotalTime - timeOffset;
 
         public bool Multiplayer => connection is GameNetClient;
 
@@ -135,6 +132,7 @@ namespace LibreLancer
         {
             gameplayActions.Clear();
             objects = new Dictionary<int, GameObject>();
+            
             if (PlayerBase != null)
             {
                 Game.ChangeState(new RoomGameplay(Game, this, PlayerBase));
@@ -151,7 +149,7 @@ namespace LibreLancer
 
         SpaceGameplay gp;
         Dictionary<int, GameObject> objects = new Dictionary<int, GameObject>();
-
+        
         public bool Update()
         {
             hasChanged = false;
@@ -175,25 +173,87 @@ namespace LibreLancer
             while (uiActions.TryDequeue(out var act))
                 act();
         }
-        
-        public void GameplayUpdate(SpaceGameplay gp)
+
+        private CircularBuffer<PlayerMoveState> moveState = new CircularBuffer<PlayerMoveState>(128);
+        struct PlayerMoveState
+        {
+            public int Tick;
+            public Vector3 Position;
+            public Quaternion Orientation;
+            public Vector3 AngularVelocity;
+            public Vector3 LinearVelocity;
+            public Vector3 Steering;
+            public float Throttle;
+            public StrafeControls Strafe;
+            public bool Thrust;
+            public bool CruiseEnabled;
+            public EngineStates EngineState;
+            public float CruiseAccelPct;
+            public float ChargePct;
+        }
+
+        NetInputControls FromMoveState(int i)
+        {
+            i++;
+            return new NetInputControls()
+            {
+                Sequence =  moveState[^i].Tick,
+                Steering = moveState[^i].Steering,
+                Strafe = moveState[^i].Strafe,
+                Throttle = moveState[^i].Throttle,
+                Cruise = moveState[^i].CruiseEnabled,
+                Thrust = moveState[^i].Thrust
+            };
+        }
+
+        public void GameplayUpdate(SpaceGameplay gp, double delta)
         {
             UpdateAudio();
             while (gameplayActions.TryDequeue(out var act))
                 act();
             var player = gp.player;
-            var tr = player.WorldTransform;
-            var pos = Vector3.Transform(Vector3.Zero, tr);
-            var orient = tr.ExtractRotation();
-            connection.SendPacket(new PositionUpdatePacket()
+            var phys = player.GetComponent <ShipPhysicsComponent>();
+            var steering = player.GetComponent<ShipSteeringComponent>();
+           
+
+            moveState.Enqueue(new PlayerMoveState()
             {
-                Position =  pos,
-                Orientation = orient,
-                Speed = player.GetComponent<CEngineComponent>()?.Speed ?? 0
-            }, PacketDeliveryMethod.SequenceB);
+                Tick = (int)gp.FlGame.CurrentTick,
+                Position = player.PhysicsComponent.Body.Position,
+                Orientation = player.PhysicsComponent.Body.Transform.ExtractRotation(),
+                AngularVelocity = MathHelper.ApplyEpsilon(player.PhysicsComponent.Body.AngularVelocity),
+                LinearVelocity = player.PhysicsComponent.Body.LinearVelocity,
+                Steering = steering.OutputSteering,
+                Strafe = phys.CurrentStrafe,
+                Throttle = phys.EnginePower,
+                Thrust = steering.Thrust,
+                CruiseEnabled = steering.Cruise,
+                EngineState = phys.EngineState,
+                CruiseAccelPct = phys.CruiseAccelPct,
+                ChargePct = phys.ChargePercent
+            });
+
+            //Store multiple updates for redundancy.
+            var ip = new InputUpdatePacket() {Current = FromMoveState(0)};
+            if (moveState.Count > 1) ip.HistoryA = FromMoveState(1);
+            if (moveState.Count > 2) ip.HistoryB = FromMoveState(2);
+            if (moveState.Count > 3) ip.HistoryC = FromMoveState(3);
+            connection.SendPacket(ip, PacketDeliveryMethod.SequenceA);
+            
+            if (processUpdatePackets)
+            {
+                while (updatePackets.Count > 0 && (WorldTime * 1000.0) >= updatePackets.Peek().Tick)
+                {
+                    ProcessUpdate(updatePackets.Dequeue(), gp);
+                }
+            }
         }
 
+        public int UpdateQueueCount => updatePackets.Count;
+        
         volatile bool processUpdatePackets = false;
+        
+        
         public void WorldReady()
         {
             while (gameplayActions.TryDequeue(out var act))
@@ -203,6 +263,126 @@ namespace LibreLancer
         public void BeginUpdateProcess()
         {
             processUpdatePackets = true;
+            moveState = new CircularBuffer<PlayerMoveState>(128);
+        }
+        
+        private Queue<ObjectUpdatePacket> updatePackets = new Queue<ObjectUpdatePacket>();
+
+       
+
+        void Resimulate(int i, SpaceGameplay gp)
+        {
+            var physComponent = gp.player.GetComponent<ShipPhysicsComponent>();
+            var player = gp.player;
+            physComponent.Tick = moveState[i].Tick;
+            physComponent.CurrentStrafe = moveState[i].Strafe;
+            physComponent.EnginePower = moveState[i].Throttle;
+            physComponent.Steering = moveState[i].Steering;
+            physComponent.ThrustEnabled = moveState[i].Thrust;
+            physComponent.Update(1 / 60.0f);
+            gp.player.World.Physics.StepSimulation(1 / 60.0f);
+            moveState[i].Position = player.PhysicsComponent.Body.Position;
+            moveState[i].Orientation = player.PhysicsComponent.Body.Transform.ExtractRotation();
+            
+        }
+
+        struct SavedObject
+        {
+            public Matrix4x4 Transform;
+            public Vector3 LinearVelocity;
+            public Vector3 AngularVelocity;
+        }
+
+        void ProcessUpdate(ObjectUpdatePacket p, SpaceGameplay gp)
+        { 
+            foreach (var update in p.Updates)
+                UpdateObject(update);
+            var hp = gp.player.GetComponent<CHealthComponent>();
+            var state = p.PlayerState;
+            if (hp != null)
+            {
+                hp.CurrentHealth = state.Health;
+                hp.ShieldHealth = state.Shield;
+            }
+            if(gp?.player != null)
+            {
+                for (int i = moveState.Count - 1; i >= 0; i--)
+                {
+                    if (moveState[i].Tick == p.InputSequence)
+                    {
+                        var errorPos = state.Position - moveState[i].Position;
+                        var errorQuat = MathHelper.QuatError(state.Orientation, moveState[i].Orientation);
+                        var phys = gp.player.GetComponent<ShipPhysicsComponent>();
+                        
+                        if (p.PlayerState.CruiseAccelPct > 0 || p.PlayerState.CruiseChargePct > 0) {
+                            phys.ResyncChargePercent(p.PlayerState.CruiseChargePct, (1 / 60.0f) * (moveState.Count - i));
+                            phys.ResyncCruiseAccel(p.PlayerState.CruiseAccelPct, (1 / 60.0f) * (moveState.Count - i));
+                        }
+
+                        if (errorPos.Length() > 0.1 || errorQuat > 0.1f)
+                        {
+                            //Resimulating messes up the physics world, save state
+                            Dictionary<int, SavedObject> savedTransforms = new Dictionary<int, SavedObject>();
+                            foreach (var o in objects)
+                            {
+                                savedTransforms[o.Key] = new SavedObject()
+                                {
+                                    Transform = o.Value.LocalTransform,
+                                    LinearVelocity = o.Value.PhysicsComponent.Body.LinearVelocity,
+                                    AngularVelocity = o.Value.PhysicsComponent.Body.AngularVelocity
+                                };
+                            }
+
+                            FLLog.Info("Client", $"Applying correction at tick {p.InputSequence}. Errors ({errorPos.Length()},{errorQuat})");
+                            var tr = gp.player.LocalTransform;
+                            var predictedPos = Vector3.Transform(Vector3.Zero, tr);
+                            var predictedOrient = tr.ExtractRotation();
+                            
+                            moveState[i].Position = state.Position;
+                            moveState[i].Orientation = state.Orientation;
+                            
+                            //Set states
+                            gp.player.SetLocalTransform(Matrix4x4.CreateFromQuaternion(state.Orientation) * Matrix4x4.CreateTranslation(state.Position));
+                            gp.player.PhysicsComponent.Body.LinearVelocity = state.LinearVelocity;
+                            gp.player.PhysicsComponent.Body.AngularVelocity = state.AngularVelocity;
+                            phys.ChargePercent = state.CruiseChargePct;
+                            phys.CruiseAccelPct = state.CruiseAccelPct;
+                            //simulate inputs
+                            i++;
+                            Resimulate(i, gp);
+                            i++;
+                            for (; i < moveState.Count; i++) {
+                                Resimulate(i, gp);
+                            }
+                            //
+                            var newPos = gp.player.PhysicsComponent.Body.Position;
+                            var newOrient = gp.player.PhysicsComponent.Body.Transform.ExtractRotation();
+                            if ((predictedPos - newPos).Length() > 10) {
+                                gp.player.PhysicsComponent.PredictionErrorPos = Vector3.Zero;
+                                gp.player.PhysicsComponent.PredictionErrorQuat = Quaternion.Identity;
+                            } 
+                            else {
+                                gp.player.PhysicsComponent.PredictionErrorPos = (predictedPos - newPos);
+                                gp.player.PhysicsComponent.PredictionErrorQuat =
+                                    Quaternion.Inverse(newOrient) * predictedOrient;
+                            }
+                            gp.player.PhysicsComponent.Update(1 / 60.0);
+                            //Resimulating messes up the physics world, restore state
+                            foreach (var o in objects)
+                            {
+                                var saved = savedTransforms[o.Key];
+                                o.Value.SetLocalTransform(saved.Transform);
+                                o.Value.PhysicsComponent.Body.LinearVelocity = saved.LinearVelocity;
+                                o.Value.PhysicsComponent.Body.AngularVelocity = saved.AngularVelocity;
+                            }
+                        }
+
+                        break;
+                        
+                    }
+                }
+            }
+           
         }
 
         public Action<IPacket> ExtraPackets;
@@ -226,6 +406,17 @@ namespace LibreLancer
                 });
             }
         }
+
+        void IClientPlayer.StartTradelane()
+        {
+            RunSync(() => gp.StartTradelane());
+        }
+
+        void IClientPlayer.EndTradelane()
+        {
+            RunSync(() => gp.EndTradelane());
+        }
+        
 
         void IClientPlayer.SpawnProjectiles(ProjectileSpawn[] projectiles)
         {
@@ -335,11 +526,6 @@ namespace LibreLancer
                     EquipmentObjectManager.InstantiateEquipment(newobj, Game.ResourceManager, EquipmentType.LocalPlayer, hplookup.GetHardpoint(eq.HardpointCRC), equip);
                 }
                 newobj.Register(gp.world.Physics);
-                if (connection is not EmbeddedServer)
-                {
-                    var netpos = new CNetPositionComponent(newobj);
-                    newobj.Components.Add(netpos);
-                }
 
                 newobj.Components.Add(new WeaponControlComponent(newobj));
                 objects.Add(id, newobj);
@@ -352,9 +538,7 @@ namespace LibreLancer
         {
             enterCount++;
             PlayerBase = null;
-            SpawnTime = systemTime;
             FLLog.Info("Client", $"Spawning in {system} at time {systemTime}");
-            tOffset = Game.TotalTime;
             PlayerSystem = system;
             PlayerPosition = position;
             PlayerOrientation = Matrix4x4.CreateFromQuaternion(orientation);
@@ -455,7 +639,6 @@ namespace LibreLancer
                 {
                     FLLog.Warning("Client", $"Tried to despawn unknown {id}");
                 }
-               
             });
         }
 
@@ -516,6 +699,8 @@ namespace LibreLancer
                 RunDialog(lines, index + 1);
             });
         }
+
+       
         
         void UpdatePackets()
         {
@@ -600,18 +785,9 @@ namespace LibreLancer
                 case ObjectUpdatePacket p:
                     if (processUpdatePackets)
                     {
-                        RunSync(() =>
-                        {
-                            var hp = gp?.player?.GetComponent<CHealthComponent>();
-                            if (hp != null)
-                            {
-                                hp.CurrentHealth = p.PlayerHealth;
-                                hp.ShieldHealth = p.PlayerShield;
-                            }
-                            foreach (var update in p.Updates)
-                                UpdateObject(p.Tick, update);
-                        });
+                        updatePackets.Enqueue(p);
                     }
+                    else timeOffset = Game.TotalTime - (p.Tick / 1000.0);
                     break;
                 default:
                     if (ExtraPackets != null) ExtraPackets(pkt);
@@ -620,38 +796,33 @@ namespace LibreLancer
             }
         }
 
-        void UpdateObject(uint tick, PackedShipUpdate update)
+        void UpdateObject(PackedShipUpdate update)
         {
             if (!objects.ContainsKey(update.ID)) return;
             var obj = objects[update.ID];
             //Component only present in multiplayer
-            var netPos = obj.GetComponent<CNetPositionComponent>();
-            if (update.HasPosition && obj.TryGetComponent<CEngineComponent>(out var eng)) {
-                eng.Speed = update.EngineThrottlePct / 255f;
+            if (update.HasPosition && obj.TryGetComponent<CEngineComponent>(out var eng))
+            {
+                eng.Speed = update.Throttle;
             }
-            if (update.HasHealth) {
-                var health = obj.GetComponent<CHealthComponent>();
-                if (health != null)
-                    health.CurrentHealth = (float)update.HullHp;
-                if(update.HasShield)
-                    health.ShieldHealth = update.ShieldHp;
+            if (obj.TryGetComponent<CHealthComponent>(out var health))
+            {
+                if (update.Hull)
+                    health.CurrentHealth = update.HullValue;
+                else
+                    health.CurrentHealth = health.MaxHealth;
+                if (update.Shield == 0) health.ShieldHealth = 0;
+                else if (update.Shield == 1) health.ShieldHealth = 1;
+                else health.ShieldHealth = update.ShieldValue;
+            }
+            if (obj.TryGetComponent<WeaponControlComponent>(out var weapons) && (update.Guns?.Length ?? 0) > 0)
+            {
+                weapons.SetRotations(update.Guns);
             }
 
-            if (update.HasGuns && obj.TryGetComponent<WeaponControlComponent>(out var weapons))
+            if (update.HasPosition)
             {
-                weapons.SetRotations(update.GunOrients);
-            }
-            if (netPos != null)
-            {
-                if(update.HasPosition) netPos.QueuePosition(tick, update.Position);
-                if(update.HasOrientation) netPos.QueueOrientation(tick, update.Orientation);
-            }
-            else
-            {
-                var tr = obj.WorldTransform;
-                var pos = update.HasPosition ? update.Position : Vector3.Transform(Vector3.Zero, tr);
-                var rot = update.HasOrientation ? update.Orientation : tr.ExtractRotation();
-                obj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(rot) * Matrix4x4.CreateTranslation(pos));
+                obj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(update.Orientation) * Matrix4x4.CreateTranslation(update.Position));
             }
         }
 

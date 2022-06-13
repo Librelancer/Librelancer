@@ -133,19 +133,20 @@ namespace LibreLancer
                     else
                     {
                         var player = (Player) peer.Tag;
-                        //Task.Run(() => player.ProcessPacket(pkt));
-                        player.ProcessPacket(pkt);
+                        player.EnqueuePacket(pkt);
                     }
                 }
-                catch (Exception)
+                #if !DEBUG
+                catch (Exception e)
                 {
-                    throw;
+                    FLLog.Warning("Server", $"Error when reading packet {e}");
                     var dw = new NetDataWriter();
                     dw.Put("Packet processing error");
                     peer.Disconnect(dw);
                     if (peer.Tag is Player p)
                         p.Disconnected();
                 }
+                #endif
                 finally
                 {
                     reader.Recycle();
@@ -167,12 +168,13 @@ namespace LibreLancer
             var sw = Stopwatch.StartNew();
             var last = 0.0;
             ServerLoop sendLoop = null;
-            sendLoop = new ServerLoop((time) =>
+            sendLoop = new ServerLoop((time,totalTime) =>
             {
                 foreach (var p in Server.ConnectedPeerList)
                 {
                     if (p.Tag is Player player)
                     {
+                        player.ProcessPacketQueue();
                         (player.Client as RemotePacketClient)?.Update(time.TotalSeconds);
                     }
                 }

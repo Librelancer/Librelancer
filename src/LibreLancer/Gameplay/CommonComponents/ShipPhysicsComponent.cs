@@ -11,10 +11,10 @@ namespace LibreLancer
 	public enum StrafeControls
 	{
 		None = 0,
-		Left = 2,
-		Right = 4,
-		Up = 8,
-		Down = 16
+		Left = 1,
+		Right = 2,
+		Up = 4,
+		Down = 8
 	}
 	public enum EngineStates
 	{
@@ -32,56 +32,66 @@ namespace LibreLancer
                                        //TODO: I forget how this is configured in .ini files. Constants.ini?
                                        //Some mods have a per-ship (engine?) cruise speed. Check how this is implemented, and include as native feature.
         public bool ThrustEnabled = false;
+        public bool CruiseEnabled = false;
         public EngineStates EngineState = EngineStates.Standard;
         public StrafeControls CurrentStrafe = StrafeControls.None;
         public float ChargePercent;
-        public float Pitch; //From -1 to 1
-        public float Yaw; //From -1 to 1
-        public float Roll; //From -1 to 1
-                           //I know it's hacky :(
-        public float PlayerPitch;
-        public float PlayerYaw;
-        PIDController rollPID = new PIDController() { P = 2 };
+        public Vector3 Steering;
+        public float CruiseAccelPct = 0;
+        public int Tick;
         
-        float cruiseAccelPct = 0;
-
-        public void CruiseToggle()
-        {
-            if (EngineState == EngineStates.Cruise ||
-                EngineState == EngineStates.CruiseCharging)
-            {
-                EngineState = EngineStates.Standard;
-            }
-            else
-            {
-                BeginCruise();
-            }
-        }
-
-        public void EndCruise()
-        {
-            EngineState = EngineStates.Standard;
-        }
-
-        public void BeginCruise()
-        {
-            if (EngineState != EngineStates.Cruise &&
-                EngineState != EngineStates.CruiseCharging)
-            {
-                EngineState = EngineStates.CruiseCharging;
-                ChargePercent = 0f;
-                cruiseAccelPct = 0f;
-            }
-        }
-
         public ShipPhysicsComponent(GameObject parent) : base(parent)
         {
             Active = true;
         }
+        
         //TODO: Engine Kill
-        public override void FixedUpdate(double time)
+
+        public void ResyncChargePercent(float prev, float time)
+        {
+            if (EngineState == EngineStates.Cruise || EngineState == EngineStates.CruiseCharging)
+            {
+                var engine = Parent.GetComponent<SEngineComponent>(); //Get mounted engine
+                ChargePercent = prev + (1.0f / engine.Engine.Def.CruiseChargeTime) * (float) time;
+                if (ChargePercent >= 1) {
+                    ChargePercent = 1;
+                    EngineState = EngineStates.Cruise;
+                }
+                else {
+                    EngineState = EngineStates.CruiseCharging;
+                }
+            }
+        }
+
+        public void ResyncCruiseAccel(float prev, float time)
+        {
+            if (EngineState == EngineStates.Cruise)
+            {
+                var engine = Parent.GetComponent<SEngineComponent>(); //Get mounted engine
+                CruiseAccelPct = prev + (float)(time * 1.0f / engine.Engine.CruiseAccelTime);
+                if (CruiseAccelPct > 1.0f) CruiseAccelPct = 1.0f;
+            }
+        }
+        
+        public override void Update(double time)
         {
             if (!Active) return;
+            if (CruiseEnabled)
+            {
+                if (EngineState != EngineStates.Cruise && 
+                    EngineState != EngineStates.CruiseCharging)
+                {
+                    EngineState = EngineStates.CruiseCharging;
+                    ChargePercent = 0f;
+                    CruiseAccelPct = 0f;
+                }
+            }
+            else
+            {
+                EngineState = EngineStates.Standard;
+                ChargePercent = 0;
+                CruiseAccelPct = 0;
+            }
             //Component checks
             var engine = Parent.GetComponent<SEngineComponent>(); //Get mounted engine
             var power = Parent.GetComponent<PowerCoreComponent>();
@@ -119,6 +129,7 @@ namespace LibreLancer
                 if (ChargePercent >= 1.0f)
                 {
                     EngineState = EngineStates.Cruise;
+                    ChargePercent = 1f;
                 }
 
                 if (ChargePercent >= 0.6f) {
@@ -131,12 +142,13 @@ namespace LibreLancer
             }
             else if (EngineState == EngineStates.Cruise)
             { //Cruise has entirely different force calculation
-                cruiseAccelPct += (float)(time * 1.0f / engine.Engine.CruiseAccelTime);
-                if (cruiseAccelPct > 1.0f) cruiseAccelPct = 1.0f;
+                CruiseAccelPct += (float)(time * 1.0f / engine.Engine.CruiseAccelTime);
+                if (CruiseAccelPct > 1.0f) CruiseAccelPct = 1.0f;
                 var cruise_force = engine.Engine.CruiseSpeed * engine.Engine.Def.LinearDrag;
-                engine_force = engine.Engine.Def.MaxForce + (cruise_force - engine.Engine.Def.MaxForce) * cruiseAccelPct;
+                engine_force = engine.Engine.Def.MaxForce + (cruise_force - engine.Engine.Def.MaxForce) * CruiseAccelPct;
                 //Set fx sparam. TODO: This is poorly named
                 engine.Speed = 1.0f;
+                ChargePercent = 1f;
             }
             else
             {
@@ -176,42 +188,13 @@ namespace LibreLancer
                 strafe +
                 (Parent.PhysicsComponent.Body.RotateVector(-Vector3.UnitZ) * engine_force)
             );
-            Parent.PhysicsComponent.Body.AddForce(totalForce);
-            //steer
-            //based on the amazing work of Why485 (https://www.youtube.com/user/Why485)
-            var steerControl = new Vector3(Math.Abs(PlayerPitch) > 0 ? PlayerPitch : Pitch,
-                                           Math.Abs(PlayerYaw) > 0 ? PlayerYaw : Yaw,
-                                           Roll);
-            double pitch, yaw, roll;
-            DecomposeOrientation(Parent.PhysicsComponent.Body.Transform, out pitch, out yaw, out roll);
-            if (Math.Abs(PlayerPitch) < float.Epsilon && Math.Abs(PlayerYaw) < float.Epsilon)
-                steerControl.Z = MathHelper.Clamp((float)rollPID.Update(0, roll, (float)time), -0.5f, 0.5f);
-            else
-                rollPID.Reset();
-
-            var angularForce = Parent.PhysicsComponent.Body.RotateVector(steerControl * Ship.SteeringTorque);
+            var angularForce = Steering * Ship.SteeringTorque;
             angularForce += (Parent.PhysicsComponent.Body.AngularVelocity * -1) * Ship.AngularDrag;
-            //transform torque by direction = unity's AddRelativeTorque
+            //Add forces
+            Parent.PhysicsComponent.Body.AddForce(totalForce);
             Parent.PhysicsComponent.Body.AddTorque(angularForce);
         }
 
-        //Specific decomposition for roll
-        static void DecomposeOrientation(Matrix4x4 mx, out double xPitch, out double yYaw, out double zRoll)
-        {
-            xPitch = Math.Asin(-mx.M32);
-            double threshold = 0.001; // Hardcoded constant – burn him, he’s a witch
-            double test = Math.Cos(xPitch);
-
-            if (test > threshold)
-            {
-                zRoll = Math.Atan2(mx.M12, mx.M22);
-                yYaw = Math.Atan2(mx.M31, mx.M33);
-            }
-            else
-            {
-                zRoll = Math.Atan2(-mx.M21, mx.M11);
-                yYaw = 0.0;
-            }
-        }
+        
     }
 }

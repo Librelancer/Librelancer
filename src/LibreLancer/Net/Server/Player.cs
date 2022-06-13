@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -66,6 +67,19 @@ namespace LibreLancer
                 while (worldActions.Count > 0)
                     worldActions.Dequeue()();
             }
+        }
+
+        public bool InTradelane;
+        public void StartTradelane()
+        {
+            rpcClient.StartTradelane();
+            InTradelane = true;
+        }
+
+        public void EndTradelane()
+        {
+            rpcClient.EndTradelane();
+            InTradelane = false;
         }
 
         public MissionRuntime MissionRuntime => msnRuntime;
@@ -244,10 +258,13 @@ namespace LibreLancer
             var sys = Game.GameData.GetSystem(System);
             Game.RequestWorld(sys, (world) =>
             {
-                World = world; 
-                rpcClient.SpawnPlayer(System, world.TotalTime, Position, Orientation);
-                world.SpawnPlayer(this, Position, Orientation);
-                msnRuntime?.EnteredSpace();
+                World = world;
+                world.EnqueueAction(() =>
+                {
+                    rpcClient.SpawnPlayer(System, 0, Position, Orientation);
+                    world.SpawnPlayer(this, Position, Orientation);
+                    msnRuntime?.EnteredSpace();
+                });
             });
         }
         bool NewsFind(LibreLancer.Data.Missions.NewsItem ni)
@@ -643,8 +660,19 @@ namespace LibreLancer
         {
             rpcClient.DestroyPart(0, id, part);
         }
+
+        private ConcurrentQueue<IPacket> inputPackets = new ConcurrentQueue<IPacket>();
+        public void EnqueuePacket(IPacket packet)
+        {
+            inputPackets.Enqueue(packet);
+        }
+
+        public void ProcessPacketQueue()
+        {
+            while(inputPackets.TryDequeue(out var pkt)) ProcessPacketDirect(pkt);
+        }
         
-        public void ProcessPacket(IPacket packet)
+        public void ProcessPacketDirect(IPacket packet)
         {
             if(ResponseHandler.HandlePacket(packet))
                 return;
@@ -664,9 +692,9 @@ namespace LibreLancer
             {
                 switch(packet)
                 {
-                    case PositionUpdatePacket p:
+                    case InputUpdatePacket p:
                         //TODO: Error handling
-                        World?.PositionUpdate(this, p.Position, p.Orientation, p.Speed);
+                        World?.InputsUpdate(this, p);
                         break;
                 }
             }
@@ -701,6 +729,27 @@ namespace LibreLancer
                         ForceLand(arg);
                     else 
                         rpcClient.OnConsoleMessage($"Base does not exist `{arg}`");
+                }),
+                new("warp", (arg) =>
+                {
+                    var argSplit = arg.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    if (argSplit.Length == 3)
+                    {
+                        if (PermissionCheck() && World != null)
+                        {
+                            if (float.TryParse(argSplit[0], out var x) &&
+                                float.TryParse(argSplit[1], out var y) &&
+                                float.TryParse(argSplit[2], out var z))
+                            {
+                                World.EnqueueAction(() =>
+                                {
+                                    var obj = World.Players[this];
+                                    obj.SetLocalTransform(Matrix4x4.CreateTranslation(x,y,z));
+                                });
+                            } else
+                                rpcClient.OnConsoleMessage("Invalid argument");
+                        }
+                    } else rpcClient.OnConsoleMessage("Invalid argument");
                 }),
                 new("credits", (x) => rpcClient.OnConsoleMessage($"You have ${Character.Credits}")),
                 new("sethealth", (arg) =>
@@ -981,9 +1030,12 @@ namespace LibreLancer
                 }
                 BaseData = null;
                 Base = null;
-                rpcClient.SpawnPlayer(System, world.TotalTime, Position, Orientation);
-                world.SpawnPlayer(this, Position, Orientation);
-                msnRuntime?.EnteredSpace();
+                world.EnqueueAction(() =>
+                {
+                    rpcClient.SpawnPlayer(System, 0, Position, Orientation);
+                    world.SpawnPlayer(this, Position, Orientation);
+                    msnRuntime?.EnteredSpace();
+                });
             });
         }
 
@@ -1020,9 +1072,12 @@ namespace LibreLancer
                 }
                 BaseData = null;
                 Base = null;
-                rpcClient.SpawnPlayer(System, world.TotalTime, Position, Orientation);
-                world.SpawnPlayer(this, Position, Orientation);
-                msnRuntime?.EnteredSpace();
+                world.EnqueueAction(() =>
+                {
+                    rpcClient.SpawnPlayer(System, 0, Position, Orientation);
+                    world.SpawnPlayer(this, Position, Orientation);
+                    msnRuntime?.EnteredSpace();
+                });
             });
         }
 

@@ -20,6 +20,9 @@ namespace LibreLancer
         PhysicsWorld pworld;
 
         public bool SetTransform = true;
+
+        public Vector3 PredictionErrorPos = Vector3.Zero;
+        public Quaternion PredictionErrorQuat = Quaternion.Identity;
         
         public PhysicsComponent(GameObject parent) : base(parent)
         {
@@ -46,8 +49,9 @@ namespace LibreLancer
             partRemoved = true;
         }
 
-        public override void FixedUpdate(double time)
+        public override void Update(double time)
         {
+            if (Body == null) return;
             if(partRemoved)
             {
                 sur.FinishUpdatePart();
@@ -55,9 +59,22 @@ namespace LibreLancer
             }
             if (Body.Active && SetTransform)
             {
-                Parent.SetLocalTransform(Body.Transform, true);
+                //Smooth out errors
+                if (PredictionErrorPos.Length() > 0 ||
+                    MathHelper.QuatError(PredictionErrorQuat, Quaternion.Identity) > 0.001)
+                {
+                    PredictionErrorPos *= 0.95f;
+                    if (PredictionErrorPos.Length() < 0.001) PredictionErrorPos = Vector3.Zero;
+                    PredictionErrorQuat = Quaternion.Slerp(PredictionErrorQuat, Quaternion.Identity, 0.05f);
+                    if(MathHelper.QuatError(PredictionErrorQuat, Quaternion.Identity) < 0.001)
+                        PredictionErrorQuat = Quaternion.Identity;
+                }
+                var pos = Body.Position;
+                var quat = Body.Transform.ExtractRotation();
+                
+                Parent.SetLocalTransform(Matrix4x4.CreateFromQuaternion(quat * PredictionErrorQuat) *
+                    Matrix4x4.CreateTranslation(pos + PredictionErrorPos), true);
             }
-            base.FixedUpdate(time);
         }
 
         public override void Register(PhysicsWorld physics)

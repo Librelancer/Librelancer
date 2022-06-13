@@ -40,6 +40,7 @@ World Time: {12:F2}
 		string currentText = "";
 		public GameObject player;
 		ShipPhysicsComponent control;
+        ShipSteeringComponent steering;
         ShipInputComponent shipInput;
         WeaponControlComponent weapons;
 		PowerCoreComponent powerCore;
@@ -81,18 +82,22 @@ World Time: {12:F2}
             ui.OpenScene("hud");
             var shp = Game.GameData.GetShip(session.PlayerShip);
             //Set up player object + camera
-            player = new GameObject(shp.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager);
-            control = new ShipPhysicsComponent(player);
-            control.Ship = shp;
+            player = new GameObject(shp, Game.ResourceManager, true, true);
+            control = new ShipPhysicsComponent(player) {Ship = shp};
             shipInput = new ShipInputComponent(player);
-            player.Components.Add(shipInput);
-            player.Components.Add(control);
             weapons = new WeaponControlComponent(player);
+            pilotcomponent = new AutopilotComponent(player);
+            steering = new ShipSteeringComponent(player);
+            //Order components in terms of inputs (very important)
+            player.Components.Add(pilotcomponent);
+            player.Components.Add(shipInput);
+            //takes input from pilot and shipinput
+            player.Components.Add(steering);
+            //takes input from steering
+            player.Components.Add(control);
             player.Components.Add(weapons);
             player.Components.Add(new CDamageFuseComponent(player, shp.Fuses));
-
             player.SetLocalTransform(session.PlayerOrientation * Matrix4x4.CreateTranslation(session.PlayerPosition));
-            player.PhysicsComponent.Mass = shp.Mass;
             playerHealth = new CHealthComponent(player);
             playerHealth.MaxHealth = shp.Hitpoints;
             playerHealth.CurrentHealth = shp.Hitpoints;
@@ -126,12 +131,10 @@ World Time: {12:F2}
             sysrender = new SystemRenderer(camera, Game.GameData, Game.ResourceManager, Game);
             sysrender.ZOverride = true; //Draw all with regular Z
             world = new GameWorld(sysrender);
-            world.LoadSystem(sys, Game.ResourceManager, false, session.SpawnTime);
+            world.LoadSystem(sys, Game.ResourceManager, false, session.WorldTime);
             session.WorldReady();
             player.World = world;
             world.AddObject(player);
-            world.RenderUpdate += World_RenderUpdate;
-            world.PhysicsUpdate += World_PhysicsUpdate;
             player.Register(world.Physics);
             Game.Sound.PlayMusic(sys.MusicSpace);
             //world.Physics.EnableWireframes(debugphysics);
@@ -145,13 +148,15 @@ World Time: {12:F2}
             Game.Mouse.MouseUp += Mouse_MouseUp;
             input = new InputManager(Game, Game.InputMap);
             input.ActionUp += Input_ActionUp;
-            pilotcomponent = new AutopilotComponent(player);
-            player.Components.Add(pilotcomponent);
+            
             player.World = world;
             world.MessageBroadcasted += World_MessageBroadcasted;
             Game.Sound.ResetListenerVelocity();
             FadeIn(0.5, 0.5);
+            updateStartDelay = 3;
         }
+
+        private int updateStartDelay = -1;
 
         
 
@@ -254,6 +259,7 @@ World Time: {12:F2}
             {
                 if (g.selected == null) return -1;
                 if (!g.selected.TryGetComponent<CHealthComponent>(out var health)) return -1;
+                if (!g.selected.GetChildComponents<CShieldComponent>().Any()) return -1;
                 return health.ShieldHealth;
             }
             
@@ -384,8 +390,7 @@ World Time: {12:F2}
 					if ((d = selected.GetComponent<CDockComponent>()) != null)
 					{
                         pilotcomponent.StartDock(selected);
-                        if(d.Action.Kind != DockKinds.Tradelane)
-                            session.RpcServer.RequestDock(selected.Nickname);
+                        session.RpcServer.RequestDock(selected.Nickname);
 						return true;
 					}
 					return false;
@@ -397,10 +402,6 @@ World Time: {12:F2}
 			return false;
 		}
 
-		void World_RenderUpdate(double delta)
-		{
-
-		}
         public override void OnResize()
         {
             camera.Viewport = Game.RenderContext.CurrentViewport;
@@ -420,15 +421,18 @@ World Time: {12:F2}
                 }
                 return;
             }
-            session.GameplayUpdate(this);
-            if (session.Update()) return;
             if (ShowHud && (Thn == null || !Thn.Running))
                 ui.Update(Game);
             if(ui.KeyboardGrabbed)
                 Game.EnableTextInput();
             else
                 Game.DisableTextInput();
+            steering.Tick = (int) Game.CurrentTick;
             world.Update(paused ? 0 : delta);
+            if (session.Update()) return;
+            if(updateStartDelay == 0)
+                session.GameplayUpdate(this, delta);
+            UpdateCamera(delta);
             if (Thn != null && Thn.Running)
             {
                 sysrender.Camera = Thn.CameraHandle;
@@ -456,15 +460,15 @@ World Time: {12:F2}
 
 		bool thrust = false;
 
-		void World_PhysicsUpdate(double delta)
+		void UpdateCamera(double delta)
 		{
             if(Thn == null || !Thn.Running)
 			    ProcessInput(delta);
             //Has to be here or glitches
             if (!Dead)
             {
-                camera.ChasePosition = player.PhysicsComponent.Body.Position;
-                camera.ChaseOrientation = player.PhysicsComponent.Body.Transform.ClearTranslation();
+                camera.ChasePosition = Vector3.Transform(Vector3.Zero, player.LocalTransform);
+                camera.ChaseOrientation = player.LocalTransform.ClearTranslation();
             }
             camera.Update(delta);
             if ((Thn == null || !Thn.Running)) //HACK: Cutscene also updates the listener so we don't do it if one is running
@@ -484,7 +488,7 @@ World Time: {12:F2}
 			switch (action)
 			{
 				case InputAction.USER_CRUISE:
-                    control.CruiseToggle();
+                    steering.Cruise = !steering.Cruise;
 					break;
 				case InputAction.USER_TURN_SHIP:
 					mouseFlight = !mouseFlight;
@@ -556,13 +560,13 @@ World Time: {12:F2}
                     shipInput.Throttle -= (float)(delta);
                     shipInput.Throttle = MathHelper.Clamp(shipInput.Throttle, 0, 1);
 				}
-                
-			}
+                steering.Thrust = input.IsActionDown(InputAction.USER_AFTERBURN);
+            }
 
 			StrafeControls strafe = StrafeControls.None;
             if (!ui.KeyboardGrabbed)
 			{
-				if (input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_UP)) strafe |= StrafeControls.Left;
+				if (input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_LEFT)) strafe |= StrafeControls.Left;
 				if (input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_RIGHT)) strafe |= StrafeControls.Right;
 				if (input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_UP)) strafe |= StrafeControls.Up;
 				if (input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_DOWN)) strafe |= StrafeControls.Down;
@@ -571,7 +575,7 @@ World Time: {12:F2}
 			var pc = player.PhysicsComponent;
             shipInput.Viewport = new Vector2(Game.Width, Game.Height);
             shipInput.Camera = camera;
-            if (isLeftDown || mouseFlight)
+            if ((isLeftDown || mouseFlight) && control.Active)
 			{
                 var mX = Game.Mouse.X;
                 var mY = Game.Mouse.Y;
@@ -612,9 +616,19 @@ World Time: {12:F2}
                 session.RpcServer.FireProjectiles(world.Projectiles.GetQueue());
             }
         }
-        
-        
 
+        public void StartTradelane()
+        {
+            player.GetComponent<ShipPhysicsComponent>().Active = false;
+            pilotcomponent.Cancel();
+        }
+
+        public void EndTradelane()
+        {
+            player.GetComponent<ShipPhysicsComponent>().Active = true;
+        }
+        
+        
 		GameObject GetSelection(float x, float y)
 		{
 			var vp = new Vector2(Game.Width, Game.Height);
@@ -737,6 +751,9 @@ World Time: {12:F2}
                 loader.Draw(delta);
                 return;
             }
+
+            if (updateStartDelay > 0) updateStartDelay--;
+            world.RenderUpdate(delta);
             sysrender.Draw();
 
             sysrender.DebugRenderer.StartFrame(camera, Game.RenderContext);
@@ -771,8 +788,9 @@ World Time: {12:F2}
                 }
                 var text = string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z,
                     sys.Nickname, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj,
-                    control.PlayerPitch, control.PlayerYaw, control.Roll, mouseFlight, session.WorldTime);
+                    control.Steering.X, control.Steering.Y, control.Steering.Z, mouseFlight, session.WorldTime);
                 ImGuiNET.ImGui.Text(text);
+                ImGuiNET.ImGui.Text($"input queue: {session.UpdateQueueCount}");
                 //ImGuiNET.ImGui.Text(pilotcomponent.ThrottleControl.Current.ToString());
             }, () =>
             {

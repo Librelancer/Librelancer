@@ -46,22 +46,6 @@ namespace LibreLancer
 				}
 			}
 		}
-
-        public bool TryDockTL(GameObject obj, string hardpoint)
-        {
-            var hp = Parent.GetHardpoint(hardpoint);
-            var targetPos = Vector3.Transform(Vector3.Zero, hp.Transform * Parent.WorldTransform);
-            if ((targetPos - obj.PhysicsComponent.Body.Position).Length() < (TriggerRadius * 2 + obj.PhysicsComponent.Body.Collider.Radius))
-            {
-                var control = obj.GetComponent<ShipPhysicsComponent>();
-                control.Active = false;
-                var movement = new TradelaneMoveComponent(obj, Parent, hardpoint);
-                obj.Components.Add(movement);
-                return true;
-            }
-            return false;
-        }
-
         public override void Update(double time)
 		{
 		}

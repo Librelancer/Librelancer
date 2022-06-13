@@ -8,7 +8,8 @@ class textentry : textentry_Designer with Modal
         var scn = this.Elements;
         scn.content.SetFocus();
         scn.title.Text = title;
-        scn.content.OnTextEntered(() => this.Close('ok', name, 0));
+        scn.content.OnTextEntered((name) => this.Close('ok', name, 0));
         scn.close.OnClick(() => this.Close('cancel'));
     }
 }
+

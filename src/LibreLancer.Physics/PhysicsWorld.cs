@@ -10,8 +10,6 @@ using BM = BulletSharp.Math;
 
 namespace LibreLancer.Physics
 {
-    public delegate void FixedUpdateHandler(double elapsed);
-
     /// <summary>
     /// Creates a bullet physics world. Any object created here will be invalid upon Dispose()
     /// </summary>
@@ -21,9 +19,7 @@ namespace LibreLancer.Physics
         {
             get { return objects; }
         }
-
-        public event FixedUpdateHandler FixedUpdate;
-
+        
         DiscreteDynamicsWorld btWorld;
         CollisionDispatcher btDispatcher;
         DbvtBroadphase broadphase;
@@ -139,24 +135,16 @@ namespace LibreLancer.Physics
                 return phys;
             }
         }
-        double accumulatedTime = 0;
-        private const float TIMESTEP = 1 / 60.0f;
-        public void Step(double elapsed)
+
+        public void StepSimulation(float timestep)
         {
-            if (disposed) throw new ObjectDisposedException("PhysicsWorld");
-            accumulatedTime += elapsed;
-            while(accumulatedTime >= TIMESTEP) {
-                FixedUpdate?.Invoke(TIMESTEP);
-                if (disposed) return; //Allow delete within FixedUpdate. Hacky but works
-                btWorld.StepSimulation(TIMESTEP, 0, TIMESTEP);
-                accumulatedTime -= TIMESTEP;
-                //Update C#-side properties after each step. Creates stuttering otherwise
-                foreach (var obj in dynamicObjects) {
-                    obj.UpdateProperties();
-                    obj.RigidBody.Activate(true);
-                }
+            btWorld.StepSimulation(timestep, 0, timestep);
+            if (disposed) return; //Allow delete within FixedUpdate. Hacky but works
+            //Update C#-side properties after each step. Creates stuttering otherwise
+            foreach (var obj in dynamicObjects) {
+                obj.UpdateProperties();
+                obj.RigidBody.Activate(true);
             }
-           
         }
 
         /// <summary>

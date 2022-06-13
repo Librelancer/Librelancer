@@ -43,6 +43,7 @@ namespace LibreLancer
 		public T Dequeue()
 		{
 			var dequeued = backing[tail];
+            backing[tail] = default(T);
 			tail = (tail + 1) % Capacity;
 			Count--;
 			return dequeued;
@@ -51,25 +52,20 @@ namespace LibreLancer
 		public void Clear()
 		{
 			head = Capacity - 1;
+            Array.Clear(backing);
 			tail = 0;
 			Count = 0;
 		}
 
-		public T this[int index]
+		public ref T this[int index]
 		{
 			get
 			{
 				if (index < 0 || index >= Count)
 					throw new ArgumentOutOfRangeException("index");
-				return backing[(tail + index) % Capacity];
+				return ref backing[(tail + index) % Capacity];
 			}
-			set
-			{
-				if (index < 0 || index >= Count)
-					throw new ArgumentOutOfRangeException("index");
-				backing[(tail + index) % Capacity] = value;
-			}
-		}
+        }
 
 	}
 }

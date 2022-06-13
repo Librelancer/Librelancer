@@ -22,7 +22,7 @@ namespace LibreLancer
             this.Health = Equip.Def.MaxCapacity;
         }
 
-        public override void FixedUpdate(double time)
+        public override void Update(double time)
         {
             if (OfflineTimer > 0)
             {

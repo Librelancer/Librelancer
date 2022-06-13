@@ -12,8 +12,8 @@ namespace LibreLancer
 	public static partial class NetPacking
 	{
         public const int BITS_COMPONENT = 10;
-        public const float UNIT_MIN = -0.707107f;
-        public const float UNIT_MAX = 0.707107f;
+        public const float UNIT_MIN = -0.70710677f;
+        public const float UNIT_MAX = 0.70710677f;
         public const float ANGLE_MIN = (float)(-2 * Math.PI);
         public const float ANGLE_MAX = (float)(2 * Math.PI);
         

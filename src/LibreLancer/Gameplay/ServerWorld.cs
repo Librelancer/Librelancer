@@ -25,7 +25,6 @@ namespace LibreLancer
         object _idLock = new object();
 
         
-        public double TotalTime { get; private set; }
         int GenerateID()
         {
             lock (_idLock)
@@ -65,33 +64,32 @@ namespace LibreLancer
         public void SpawnPlayer(Player player, Vector3 position, Quaternion orientation)
         {
             Interlocked.Increment(ref PlayerCount);
-            actions.Enqueue(() =>
+            foreach (var p in Players)
             {
-                foreach (var p in Players)
-                {
-                    player.SpawnPlayer(p.Key);
-                    p.Key.SpawnPlayer(player);
-                }
-                player.SendSolars(SpawnedSolars);
-                foreach(var npc in spawnedNPCs)
-                    SpawnShip(npc, player);
-                var obj = new GameObject(player.Character.Ship, Server.Resources, false, true) { World = GameWorld };
-                obj.Components.Add(new SPlayerComponent(player, obj));
-                obj.Components.Add(new SHealthComponent(obj)
-                {
-                    CurrentHealth = player.Character.Ship.Hitpoints,
-                    MaxHealth = player.Character.Ship.Hitpoints
-                });
-                obj.Components.Add(new SEngineComponent(obj));
-                foreach(var item in player.Character.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
-                    EquipmentObjectManager.InstantiateEquipment(obj, Server.Resources, EquipmentType.Server, item.Hardpoint, item.Equipment);
-                obj.NetID = player.ID;
-                GameWorld.AddObject(obj);
-                obj.Register(GameWorld.Physics);
-                Players[player] = obj;
-                Players[player].SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
-                                                  Matrix4x4.CreateTranslation(position));
+                player.SpawnPlayer(p.Key);
+                p.Key.SpawnPlayer(player);
+            }
+            player.SendSolars(SpawnedSolars);
+            foreach(var npc in spawnedNPCs)
+                SpawnShip(npc, player);
+            var obj = new GameObject(player.Character.Ship, Server.Resources, false, true) { World = GameWorld };
+            foreach(var item in player.Character.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
+                EquipmentObjectManager.InstantiateEquipment(obj, Server.Resources, EquipmentType.Server, item.Hardpoint, item.Equipment);
+            obj.Components.Add(new SPlayerComponent(player, obj));
+            obj.Components.Add(new SHealthComponent(obj)
+            {
+                CurrentHealth = player.Character.Ship.Hitpoints, 
+                MaxHealth = player.Character.Ship.Hitpoints
             });
+            obj.Components.Add(new ShipPhysicsComponent(obj) { Ship = player.Character.Ship });
+
+            obj.NetID = player.ID;
+            GameWorld.AddObject(obj);
+            obj.Register(GameWorld.Physics);
+            Players[player] = obj;
+            Players[player].SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
+                                              Matrix4x4.CreateTranslation(position));
+            updatingObjects.Add(obj);
         }
 
         public void EffectSpawned(GameObject obj)
@@ -185,6 +183,7 @@ namespace LibreLancer
             {
                 Players[player].Unregister(GameWorld.Physics);
                 GameWorld.RemoveObject(Players[player]);
+                updatingObjects.Remove(Players[player]);
                 Players.Remove(player);
                 foreach(var p in Players)
                 {
@@ -205,13 +204,12 @@ namespace LibreLancer
             });
         }
 
-        public void PositionUpdate(Player player, Vector3 position, Quaternion orientation, float speed)
+        public void InputsUpdate(Player player, InputUpdatePacket input)
         {
             actions.Enqueue(() =>
             {
-                Players[player].SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
-                                                  Matrix4x4.CreateTranslation(position));
-                Players[player].GetComponent<SEngineComponent>().Speed = speed;
+                var phys = Players[player].GetComponent<SPlayerComponent>();
+                phys.QueueInput(input);
             });
         }
 
@@ -320,14 +318,13 @@ namespace LibreLancer
 
         private double noPlayersTime;
         private double maxNoPlayers = 2.0;
-        public bool Update(double delta)
+        public bool Update(double delta, double totalTime)
         {
             //Avoid locks during Update
             Action act;
             while(actions.Count > 0 && actions.TryDequeue(out act)){ act(); }
             //pause
             if (paused) return true;
-            TotalTime += delta;
             //Update
             GameWorld.Update(delta);
             //projectiles
@@ -338,17 +335,7 @@ namespace LibreLancer
                     p.Key.RemoteClient.SpawnProjectiles(queue);
             }
             //Network update tick
-            current += delta;
-            tickTime += delta;
-            if (tickTime > (LNetConst.MAX_TICK_MS / 1000.0))
-                tickTime -= (LNetConst.MAX_TICK_MS / 1000.0);
-            var tick = (uint) (tickTime * 1000.0);
-            if (current >= UPDATE_RATE) {
-                current -= UPDATE_RATE;
-                //Send multiplayer updates (less)
-                SendPositionUpdates(true, tick);
-            }
-            SendPositionUpdates(false, tick);
+            SendPositionUpdates(totalTime);
             //Despawn after 2 seconds of nothing
             if (PlayerCount == 0) {
                 noPlayersTime += delta;
@@ -361,84 +348,90 @@ namespace LibreLancer
             }
         }
 
-        const double UPDATE_RATE = 1 / 25.0;
-        double current = 0;
-        private double tickTime = 0;
-
         //This could do with some work
-        void SendPositionUpdates(bool mp, uint tick)
+        void SendPositionUpdates(double tick)
         {
+            tick *= 1000.0;
+            while (tick > uint.MaxValue) tick -= uint.MaxValue;
+            
             foreach(var player in Players)
             {
                 var tr = player.Value.WorldTransform;
                 player.Key.Position = Vector3.Transform(Vector3.Zero, tr);
                 player.Key.Orientation = tr.ExtractRotation();
             }
-            IEnumerable<KeyValuePair<Player,GameObject>> targets;
-            if (mp) {
-                targets = Players.Where(x => x.Key.Client is RemotePacketClient);
-            }
-            else {
-                targets = Players.Where(x => x.Key.Client is LocalPacketClient);
-            }
-            foreach (var player in targets)
+           
+            foreach (var player in Players)
             {
                 List<PackedShipUpdate> ps = new List<PackedShipUpdate>();
                 var phealthcomponent = player.Value.GetComponent<SHealthComponent>();
                 var phealth = phealthcomponent.CurrentHealth;
                 var pshield = phealthcomponent.ShieldHealth;
                 
-                foreach (var otherPlayer in Players)
-                {
-                    if (otherPlayer.Key == player.Key) continue;
-                    var update = new PackedShipUpdate();
-                    update.ID = otherPlayer.Key.ID;
-                    update.HasPosition = true;
-                    update.Position = otherPlayer.Key.Position;
-                    update.EngineThrottlePct = (byte) (otherPlayer.Value.GetComponent<SEngineComponent>().Speed * 255f);
-                    update.HasOrientation = true;
-                    update.Orientation = otherPlayer.Key.Orientation;
-                    update.HasHealth = true;
-                    update.HasHull = true;
-                    update.HasShield = true;
-                    var ohealth = otherPlayer.Value.GetComponent<SHealthComponent>();
-                    update.HullHp = (int) (ohealth.CurrentHealth);
-                    update.ShieldHp = ohealth.ShieldHealth;
-                    ps.Add(update);
-                }
                 foreach (var obj in updatingObjects)
                 {
+                    //Skip self
+                    if (obj.TryGetComponent<SPlayerComponent>(out var pComp) &&
+                        pComp.Player == player.Key)
+                        continue;
+                    //Update object
                     var update = new PackedShipUpdate();
                     update.ID = obj.NetID;
+                    update.IsCRC = false;
                     update.HasPosition = true;
                     var tr = obj.WorldTransform;
                     update.Position = Vector3.Transform(Vector3.Zero, tr);
-                    if (obj.TryGetComponent<SEngineComponent>(out var engine))
-                    {
-                        update.EngineThrottlePct = (byte) (engine.Speed * 255f);
-                    }
-                    update.HasOrientation = true;
                     update.Orientation = tr.ExtractRotation();
+                    if (obj.PhysicsComponent != null)
+                    {
+                        update.LinearVelocity = obj.PhysicsComponent.Body.LinearVelocity;
+                        update.AngularVelocity = MathHelper.ApplyEpsilon(obj.PhysicsComponent.Body.AngularVelocity);
+                    }
+                    if(obj.TryGetComponent<SEngineComponent>(out var engine))
+                    {
+                        update.Throttle = engine.Speed;
+                    }
                     if (obj.TryGetComponent<SHealthComponent>(out var health))
                     {
-                        update.HasHealth = true;
-                        update.HasHull = true;
-                        update.HasShield = true;
-                        update.HullHp = (int) health.CurrentHealth;
-                        update.ShieldHp = health.ShieldHealth;
+                        if (health.CurrentHealth < health.MaxHealth)
+                        {
+                            update.Hull = true;
+                            update.HullValue = health.CurrentHealth;
+                        }
+
+                        if (health.ShieldHealth <= 0)
+                            update.Shield = 0;
+                        else if (health.ShieldHealth >= 1)
+                            update.Shield = 1;
+                        else {
+                            update.Shield = 2;
+                            update.ShieldValue = health.ShieldHealth;
+                        }
                     }
                     if (obj.TryGetComponent<WeaponControlComponent>(out var weapons))
                     {
-                        update.HasGuns = true;
-                        update.GunOrients = weapons.GetRotations();
+                        update.Guns = weapons.GetRotations();
                     }
                     ps.Add(update);
                 }
+
+                var phys = player.Value.GetComponent<ShipPhysicsComponent>();
+                var state = new PlayerAuthState
+                {
+                    Health = phealth,
+                    Shield = pshield,
+                    Position = player.Key.Position,
+                    Orientation = player.Key.Orientation,
+                    LinearVelocity = player.Value.PhysicsComponent.Body.LinearVelocity,
+                    AngularVelocity = MathHelper.ApplyEpsilon(player.Value.PhysicsComponent.Body.AngularVelocity),
+                    CruiseAccelPct = phys.CruiseAccelPct,
+                    CruiseChargePct = phys.ChargePercent
+                };
                 player.Key.SendUpdate(new ObjectUpdatePacket()
                 {
-                    Tick = tick,
-                    PlayerHealth = phealth,
-                    PlayerShield = pshield,
+                    Tick = (uint)tick,
+                    InputSequence = player.Value.GetComponent<SPlayerComponent>().SequenceApplied,
+                    PlayerState = state,
                     Updates = ps.ToArray()
                 });
             }

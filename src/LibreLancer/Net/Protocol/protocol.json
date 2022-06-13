@@ -217,6 +217,12 @@
           "name": "StartJumpTunnel"
         },
         {
+          "name": "StartTradelane"
+        },
+        {
+          "name": "EndTradelane"
+        },
+        {
           "name": "PopupOpen",
           "args": [ { "name":  "title" ,  "type":  "int" }, { "name":  "contents" ,  "type":  "int" }, { "name":  "id" , "type":  "string" } ]
         }
