@@ -335,7 +335,7 @@ namespace LibreLancer
                     p.Key.RemoteClient.SpawnProjectiles(queue);
             }
             //Network update tick
-            SendPositionUpdates(totalTime);
+            SendWorldUpdates(totalTime);
             //Despawn after 2 seconds of nothing
             if (PlayerCount == 0) {
                 noPlayersTime += delta;
@@ -348,8 +348,20 @@ namespace LibreLancer
             }
         }
 
+        IEnumerable<GameObject> GetUpdatingObjects()
+        {
+            foreach (var obj in updatingObjects) yield return obj;
+            foreach (var obj in GameWorld.Objects)
+            {
+                if (obj.SystemObject == null) continue;
+                if (obj.TryGetComponent<SSolarComponent>(out var docking) &&
+                    docking.SendSolarUpdate)
+                    yield return obj;
+            }
+        }
+
         //This could do with some work
-        void SendPositionUpdates(double tick)
+        void SendWorldUpdates(double tick)
         {
             tick *= 1000.0;
             while (tick > uint.MaxValue) tick -= uint.MaxValue;
@@ -360,15 +372,19 @@ namespace LibreLancer
                 player.Key.Position = Vector3.Transform(Vector3.Zero, tr);
                 player.Key.Orientation = tr.ExtractRotation();
             }
-           
+
+            var toUpdate = GetUpdatingObjects().ToArray();
+
             foreach (var player in Players)
             {
                 List<PackedShipUpdate> ps = new List<PackedShipUpdate>();
                 var phealthcomponent = player.Value.GetComponent<SHealthComponent>();
                 var phealth = phealthcomponent.CurrentHealth;
-                var pshield = phealthcomponent.ShieldHealth;
-                
-                foreach (var obj in updatingObjects)
+                var pshieldComponent = player.Value.GetChildComponents<SShieldComponent>().FirstOrDefault();
+                float pshield = 0;
+                if (pshieldComponent != null)
+                    pshield = pshieldComponent.Health / pshieldComponent.Equip.Def.MaxCapacity;
+                foreach (var obj in toUpdate)
                 {
                     //Skip self
                     if (obj.TryGetComponent<SPlayerComponent>(out var pComp) &&
@@ -376,16 +392,25 @@ namespace LibreLancer
                         continue;
                     //Update object
                     var update = new PackedShipUpdate();
-                    update.ID = obj.NetID;
-                    update.IsCRC = false;
-                    update.HasPosition = true;
-                    var tr = obj.WorldTransform;
-                    update.Position = Vector3.Transform(Vector3.Zero, tr);
-                    update.Orientation = tr.ExtractRotation();
-                    if (obj.PhysicsComponent != null)
+                    if (obj.SystemObject == null)
                     {
-                        update.LinearVelocity = obj.PhysicsComponent.Body.LinearVelocity;
-                        update.AngularVelocity = MathHelper.ApplyEpsilon(obj.PhysicsComponent.Body.AngularVelocity);
+                        update.ID = obj.NetID;
+                        update.IsCRC = false;
+                        update.HasPosition = true;
+                        var tr = obj.WorldTransform;
+                        update.Position = Vector3.Transform(Vector3.Zero, tr);
+                        update.Orientation = tr.ExtractRotation();
+                        if (obj.PhysicsComponent != null)
+                        {
+                            update.LinearVelocity = obj.PhysicsComponent.Body.LinearVelocity;
+                            update.AngularVelocity = MathHelper.ApplyEpsilon(obj.PhysicsComponent.Body.AngularVelocity);
+                        }
+                    }
+                    else
+                    {
+                        //Static Solar
+                        update.ID = (int) obj.NicknameCRC;
+                        update.IsCRC = true;
                     }
                     if(obj.TryGetComponent<SEngineComponent>(out var engine))
                     {
@@ -398,14 +423,18 @@ namespace LibreLancer
                             update.Hull = true;
                             update.HullValue = health.CurrentHealth;
                         }
-
-                        if (health.ShieldHealth <= 0)
-                            update.Shield = 0;
-                        else if (health.ShieldHealth >= 1)
-                            update.Shield = 1;
-                        else {
-                            update.Shield = 2;
-                            update.ShieldValue = health.ShieldHealth;
+                        var sh = obj.GetChildComponents<SShieldComponent>().FirstOrDefault();
+                        if (sh != null)
+                        {
+                            var h = sh.Health / sh.Equip.Def.MaxCapacity;
+                            if (h <= 0)
+                                update.Shield = 0;
+                            else if (h >= 1)
+                                update.Shield = 1;
+                            else {
+                                update.Shield = 2;
+                                update.ShieldValue = h;
+                            }
                         }
                     }
                     if (obj.TryGetComponent<WeaponControlComponent>(out var weapons))

@@ -116,6 +116,7 @@ namespace LibreLancer
                 activeDockings.Add(new DockingAction() {Dock = index, Ship = obj});
             }
         }
+
         
         public override void Update(double time)
         {

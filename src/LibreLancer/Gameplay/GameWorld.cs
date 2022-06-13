@@ -55,6 +55,7 @@ namespace LibreLancer
                 var g = new GameObject(obj.Archetype, res, Renderer != null);
                 g.Name = obj.DisplayName;
                 g.Nickname = obj.Nickname;
+                g.SystemObject = obj;
                 g.SetLocalTransform((obj.Rotation ?? Matrix4x4.Identity) * Matrix4x4.CreateTranslation(obj.Position));
                 g.SetLoadout(obj.Loadout, obj.LoadoutNoHardpoint, timeOffset);
                 g.World = this;
@@ -87,6 +88,13 @@ namespace LibreLancer
                         });
                     }
                 }
+
+                if (server)
+                {
+                    g.Components.Add(new SHealthComponent(g) { InfiniteHealth = true, CurrentHealth = 100, MaxHealth = 100 });
+                    if(obj.Archetype.IsUpdatableSolar()) g.Components.Add(new SSolarComponent(g));
+                }
+                
                 g.Register(Physics);
                 AddObject(g);
             }

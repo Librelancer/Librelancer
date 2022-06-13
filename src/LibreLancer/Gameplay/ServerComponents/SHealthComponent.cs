@@ -11,31 +11,19 @@ namespace LibreLancer
         public float MaxHealth { get; set; }
         public float CurrentHealth { get; set; }
         
-        public float ShieldHealth { get; set; }
         
         public bool Invulnerable { get; set; }
         
+        public bool InfiniteHealth { get; set; }
+        
         public SHealthComponent(GameObject parent) : base(parent) { }
-
-        public override void Update(double time)
-        {
-            var shield = Parent.GetChildComponents<SShieldComponent>().FirstOrDefault();
-            if (shield != null)
-            {
-                if (shield.Health <= 0)
-                    ShieldHealth = shield.Health;
-                else
-                    ShieldHealth = shield.Health / shield.Equip.Def.MaxCapacity;
-            } else {
-                ShieldHealth = -1;
-            }
-        }
 
         public void Damage(float amount)
         {
             var shield = Parent.GetChildComponents<SShieldComponent>().FirstOrDefault();
             if (shield == null || !shield.Damage(amount))
             {
+                if (InfiniteHealth) return;
                 CurrentHealth -= amount;
                 if (Invulnerable && CurrentHealth < (MaxHealth * 0.09f)) {
                     CurrentHealth = MaxHealth * 0.09f;

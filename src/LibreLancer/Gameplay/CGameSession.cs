@@ -296,13 +296,14 @@ namespace LibreLancer
         void ProcessUpdate(ObjectUpdatePacket p, SpaceGameplay gp)
         { 
             foreach (var update in p.Updates)
-                UpdateObject(update);
+                UpdateObject(update, gp.world);
             var hp = gp.player.GetComponent<CHealthComponent>();
             var state = p.PlayerState;
             if (hp != null)
             {
                 hp.CurrentHealth = state.Health;
-                hp.ShieldHealth = state.Shield;
+                var sh = gp.player.GetChildComponents<CShieldComponent>().FirstOrDefault();
+                sh?.SetShieldPercent(state.Shield);
             }
             if(gp?.player != null)
             {
@@ -782,10 +783,16 @@ namespace LibreLancer
             }
         }
 
-        void UpdateObject(PackedShipUpdate update)
+        void UpdateObject(PackedShipUpdate update, GameWorld world)
         {
-            if (!objects.ContainsKey(update.ID)) return;
-            var obj = objects[update.ID];
+            GameObject obj;
+            if (update.IsCRC) {
+                obj = world.GetObject((uint) update.ID);
+            }
+            else {
+                if (!objects.TryGetValue(update.ID, out obj))
+                    return;
+            }
             //Component only present in multiplayer
             if (update.HasPosition && obj.TryGetComponent<CEngineComponent>(out var eng))
             {
@@ -797,15 +804,17 @@ namespace LibreLancer
                     health.CurrentHealth = update.HullValue;
                 else
                     health.CurrentHealth = health.MaxHealth;
-                if (update.Shield == 0) health.ShieldHealth = 0;
-                else if (update.Shield == 1) health.ShieldHealth = 1;
-                else health.ShieldHealth = update.ShieldValue;
+            }
+            var sh = obj.GetChildComponents<CShieldComponent>().FirstOrDefault();
+            if (sh != null) {
+                if (update.Shield == 0) sh.SetShieldPercent(0);
+                else if (update.Shield == 1) sh.SetShieldPercent(1);
+                else sh.SetShieldPercent(update.ShieldValue);
             }
             if (obj.TryGetComponent<WeaponControlComponent>(out var weapons) && (update.Guns?.Length ?? 0) > 0)
             {
                 weapons.SetRotations(update.Guns);
             }
-
             if (update.HasPosition)
             {
                 obj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(update.Orientation) * Matrix4x4.CreateTranslation(update.Position));

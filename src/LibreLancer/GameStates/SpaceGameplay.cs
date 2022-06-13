@@ -258,9 +258,9 @@ World Time: {12:F2}
             public float SelectionShield()
             {
                 if (g.selected == null) return -1;
-                if (!g.selected.TryGetComponent<CHealthComponent>(out var health)) return -1;
-                if (!g.selected.GetChildComponents<CShieldComponent>().Any()) return -1;
-                return health.ShieldHealth;
+                CShieldComponent shield;
+                if ((shield = g.selected.GetChildComponents<CShieldComponent>().FirstOrDefault()) == null) return -1;
+                return shield.ShieldPercent;
             }
             
 
@@ -287,7 +287,11 @@ World Time: {12:F2}
             public double GetCredits() => g.session.Credits;
 
             public float GetPlayerHealth() => g.playerHealth.CurrentHealth / g.playerHealth.MaxHealth;
-            public float GetPlayerShield() => g.playerHealth.ShieldHealth;
+
+            public float GetPlayerShield()
+            {
+                return g.player.GetChildComponents<CShieldComponent>().FirstOrDefault()?.ShieldPercent ?? -1;
+            }
         
             public float GetPlayerPower() => 1f;
 

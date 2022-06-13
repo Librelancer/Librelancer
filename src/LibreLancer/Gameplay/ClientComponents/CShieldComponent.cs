@@ -26,7 +26,7 @@ namespace LibreLancer
             this.equipment = equip;
         }
 
-        public void SetShieldPercent(float value, Action<ShieldUpdate> callback)
+        public void SetShieldPercent(float value, Action<ShieldUpdate> callback = null)
         {
             //Notify important changes
             if (ShieldPercent <= -1 && value > 0) {

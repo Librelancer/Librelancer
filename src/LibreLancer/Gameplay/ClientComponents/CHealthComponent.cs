@@ -11,8 +11,6 @@ namespace LibreLancer
         public float MaxHealth { get; set; }
         public float CurrentHealth { get; set; }
         
-        public float ShieldHealth { get; set; }
-        
         public CHealthComponent(GameObject parent) : base(parent) { }
     }
 }
