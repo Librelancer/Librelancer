@@ -146,7 +146,16 @@ namespace LibreLancer
 
         public string GetSaveFolder()
         {
-            return GetSaveDirectory("Librelancer", "Librelancer");
+            var dir = GetSaveDirectory("Librelancer", "Librelancer");
+            try
+            { 
+                Directory.CreateDirectory(dir);
+            }
+            catch (Exception e)
+            {
+                FLLog.Error("Save", $"Could not create save directory {dir}. {e.Message}");
+            }
+            return dir;
         }
 
         protected override void OnResize()

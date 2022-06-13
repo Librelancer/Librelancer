@@ -65,7 +65,14 @@ public class KeyMapTable : ITableData
     public void Save()
     {
         Array.Copy(mapCopy, map.Actions, map.Actions.Length);
-        map.WriteMapping();
+        try
+        {
+            map.WriteMapping();
+        }
+        catch (Exception e)
+        {
+            FLLog.Error("Save", $"Could not write keymap.ini. {e.Message}");
+        }
     }
     
     public void CancelCapture()
