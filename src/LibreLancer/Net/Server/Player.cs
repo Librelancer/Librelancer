@@ -601,6 +601,16 @@ namespace LibreLancer
             worldActions.Enqueue(a);
         }
 
+        public void ForceMove(Vector3 position, Quaternion? orientation = null)
+        {
+            worldActions.Enqueue(() =>
+            {
+                var obj = World.Players[this];
+                var rot = orientation ?? obj.LocalTransform.ExtractRotation();
+                obj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(rot) * Matrix4x4.CreateTranslation(position));
+            });
+        }
+
         public void DoAuthSuccess()
         {
             try

@@ -348,10 +348,7 @@ namespace LibreLancer
                             phys.ChargePercent = state.CruiseChargePct;
                             phys.CruiseAccelPct = state.CruiseAccelPct;
                             //simulate inputs
-                            i++;
-                            Resimulate(i, gp);
-                            i++;
-                            for (; i < moveState.Count; i++) {
+                            for (i = i + 1; i < moveState.Count; i++) {
                                 Resimulate(i, gp);
                             }
                             //
@@ -711,17 +708,6 @@ namespace LibreLancer
             }
         }
 
-        void IClientPlayer.ForceMove(Vector3 position)
-        {
-            RunSync(() =>
-            {
-                PlayerPosition = position;
-                var player = gp.player;
-                var rot = player.LocalTransform.ExtractRotation();
-                player.SetLocalTransform(Matrix4x4.CreateFromQuaternion(rot) * Matrix4x4.CreateTranslation(position));
-            });
-        }
-        
         void IClientPlayer.UpdateEffects(int id, SpawnedEffect[] effect)
         {
             RunSync(() =>

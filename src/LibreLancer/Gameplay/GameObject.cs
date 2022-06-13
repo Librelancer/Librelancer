@@ -201,6 +201,7 @@ namespace LibreLancer
                     Mass = mass,
                     PlainCrc = plainCrc
                 };
+                Components.Add(PhysicsComponent);
             }
         }
 		public void UpdateCollision()

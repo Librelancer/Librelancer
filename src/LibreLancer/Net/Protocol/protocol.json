@@ -104,10 +104,6 @@
         	"args": [ { "name": "script", "type": "string" }, { "name":  "mainObject", "type":  "int" } ]
         },
         {
-          "name": "ForceMove",
-          "args": [ { "name":  "position", "type":  "Vector3" }]
-        },
-        {
           "name": "SpawnObject",
           "args": [ 
             { "name":  "id", "type":  "int" }, 

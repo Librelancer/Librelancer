@@ -34,7 +34,7 @@ namespace LibreLancer.AI.ObjList
             {
                 ap.GotoVec(Target, Cruise != AiGotoKind.GotoNoCruise, MaxThrottle, Range);
                 if (Cruise == AiGotoKind.GotoCruise)
-                    obj.GetComponent<ShipPhysicsComponent>().CruiseEnabled = true;
+                    obj.GetComponent<ShipSteeringComponent>().Cruise = true;
             }
         }
 

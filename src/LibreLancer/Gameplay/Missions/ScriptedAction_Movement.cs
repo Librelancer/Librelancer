@@ -24,7 +24,7 @@ namespace LibreLancer.Gameplay.Missions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            runtime.Player.RemoteClient.ForceMove(Position);
+            runtime.Player.ForceMove(Position);
         }
     }
 
@@ -32,7 +32,7 @@ namespace LibreLancer.Gameplay.Missions
     {
         public string Ship;
         public Vector3 Position;
-        public Quaternion? Quaternion;
+        public Quaternion? Orientation;
         
         public Act_RelocateShip(MissionAction act) : base(act)
         {
@@ -41,7 +41,7 @@ namespace LibreLancer.Gameplay.Missions
                 act.Entry[3].ToSingle());
             if (act.Entry.Count > 4)
             {
-                Quaternion = new Quaternion(act.Entry[5].ToSingle(), act.Entry[6].ToSingle(), act.Entry[7].ToSingle(),
+                Orientation = new Quaternion(act.Entry[5].ToSingle(), act.Entry[6].ToSingle(), act.Entry[7].ToSingle(),
                     act.Entry[4].ToSingle());
             }
         }
@@ -50,14 +50,14 @@ namespace LibreLancer.Gameplay.Missions
         {
             if (Ship.Equals("player", StringComparison.OrdinalIgnoreCase))
             {
-                runtime.Player.RemoteClient.ForceMove(Position);
+                runtime.Player.ForceMove(Position, Orientation);
             }
             else if (script.Ships.ContainsKey(Ship))
             {
                 runtime.Player.WorldAction(() =>
                 {
                     var obj = runtime.Player.World.GameWorld.GetObject(Ship);
-                    var quat = Quaternion ?? obj.LocalTransform.ExtractRotation();
+                    var quat = Orientation ?? obj.LocalTransform.ExtractRotation();
                     obj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(quat) * Matrix4x4.CreateTranslation(Position));
                 });
             }   
