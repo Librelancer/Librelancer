@@ -64,12 +64,50 @@ namespace LibreLancer
             var x = activeTriggers.FirstOrDefault(x => x.Trigger.Nickname.Equals(trigger, StringComparison.OrdinalIgnoreCase));
             if (x != null) x.Deactivated = true;
         }
-        
 
-        static bool CondTrue(TriggerConditions cond)
+
+        GameObject GetObject(string obj)
         {
-            return cond == TriggerConditions.Cnd_True || cond == TriggerConditions.Cnd_SpaceExit ||
-                   cond == TriggerConditions.Cnd_BaseEnter;
+            if (obj == "Player")
+                return Player.World.Players[Player];
+            else
+                return Player.World.GameWorld.GetObject(obj);
+        }
+        bool CheckPerTickCond(TriggerConditions cond, MissionCondition data, float time)
+        {
+            if (cond == TriggerConditions.Cnd_True || cond == TriggerConditions.Cnd_SpaceExit ||
+                cond == TriggerConditions.Cnd_BaseEnter)
+                return true;
+
+            if (cond == TriggerConditions.Cnd_DistShip)
+            {
+                if (Player.World == null) return false;
+                
+                bool inside = data.Entry[0].ToString() == "inside";
+                var objA = Player.World.GameWorld.GetObject(data.Entry[1].ToString());
+                var objB = Player.World.GameWorld.GetObject(data.Entry[2].ToString());
+                var d = data.Entry[3].ToSingle();
+                d *= d;
+                bool satisfy;
+                if (Vector3.DistanceSquared(
+                        Vector3.Transform(Vector3.Zero, objA.LocalTransform),
+                        Vector3.Transform(Vector3.Zero, objB.LocalTransform)) < d)
+                    satisfy = inside;
+                else
+                    satisfy = !inside;
+                if (data.Entry.Count > 5 &&
+                    IdEquals(data.Entry[5].ToString(), "TICK_AWAY"))
+                {
+                    if (satisfy) {
+                        data.Data += time;
+                        if (data.Data > data.Entry[4].ToSingle()) return true;
+                    }
+                    return false;
+                }
+                return satisfy;
+            }
+            
+            return false;
         }
         
         public void Update(double elapsed)
@@ -85,7 +123,7 @@ namespace LibreLancer
                             t.ActiveTime >= t.Conditions[i].Entry[0].ToSingle())
                         {
                             t.Conditions.RemoveAt(i);
-                        } else if (CondTrue(t.Conditions[i].Type))
+                        } else if (CheckPerTickCond(t.Conditions[i].Type, t.Conditions[i], (float)elapsed))
                             t.Conditions.RemoveAt(i);
                     }
                 }
@@ -223,7 +261,16 @@ namespace LibreLancer
         public void NpcKilled(string ship)
         {
             ProcessCondition(TriggerConditions.Cnd_Destroyed, (c) => IdEquals(ship, c.Entry[0].ToString()));
-            
+        }
+
+        public void TradelaneEntered(string ship, string pointA, string pointB)
+        {
+            ProcessCondition(TriggerConditions.Cnd_TLEntered, (c) =>
+            {
+                return IdEquals(c.Entry[0].ToString(), ship) &&
+                       IdEquals(c.Entry[1].ToString(), pointA) &&
+                       IdEquals(c.Entry[2].ToString(), pointB);
+            });
         }
         
         //TODO: Bad tracking

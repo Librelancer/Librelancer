@@ -58,6 +58,8 @@ namespace LibreLancer
         }
 
         private bool paused = false;
+
+        private int nextObjectiveUpdate = 0;
         
         public RoomGameplay(FreelancerGame g, CGameSession session, string newBase, BaseRoom room = null, string virtualRoom = null) : base(g)
         {
@@ -97,6 +99,8 @@ namespace LibreLancer
             cursor = Game.ResourceManager.GetCursor("arrow");
             talk_story = Game.ResourceManager.GetCursor("talk_story");
             ui = Game.Ui;
+            nextObjectiveUpdate = session.CurrentObjectiveIds;
+            session.ObjectiveUpdated = () => nextObjectiveUpdate = session.CurrentObjectiveIds;
             ui.GameApi = new BaseUiApi(this);
             ui.OpenScene("baseside");
             input = new InputManager(Game, Game.InputMap);
@@ -167,7 +171,8 @@ namespace LibreLancer
             }
             
             public GameSettings GetCurrentSettings() => g.Game.Config.Settings.MakeCopy();
-            
+
+            public int GetObjectiveStrid() => g.session.CurrentObjectiveIds;
             public KeyMapTable GetKeyMap()
             {
                 var table = new KeyMapTable(g.Game.InputMap, g.Game.GameData.Ini.Infocards);
@@ -209,6 +214,7 @@ namespace LibreLancer
 
             public void PopupFinish(string id)
             {
+                g.waitObjectiveFrames = 30;
                 g.session.RpcServer.ClosedPopup(id);
             }
 
@@ -584,6 +590,7 @@ namespace LibreLancer
 
         private void SceneOnScriptFinished(ThnScript obj)
         {
+            waitObjectiveFrames = 50;
             if (waitingForFinish != null && obj == waitingForFinish)
             {
                 if (currentCutscene != null)
@@ -706,8 +713,12 @@ namespace LibreLancer
                 letterboxAmount = -1;
         }
 
+        private const int OBJECTIVE_WAIT_TIME = 16;
+        private int waitObjectiveFrames = 16;
 		public override void Update(double delta)
         {
+            waitObjectiveFrames--;
+            if (waitObjectiveFrames < 0) waitObjectiveFrames = 0;
             session.Update();
             ProcessCutscenes();
             if (scene != null) {
@@ -767,6 +778,11 @@ namespace LibreLancer
                 Game.Debug.MissionWindow(session.GetTriggerInfo());
             });
 
+            if (ui.Visible && !ui.HasModal && nextObjectiveUpdate != 0 && waitObjectiveFrames <= 0)
+            {
+                ui.Event("ObjectiveUpdate", nextObjectiveUpdate);
+                nextObjectiveUpdate = 0;
+            }
             if (ui.Visible || ui.HasModal)
             {
                 if(GetHotspot(Game.Mouse.X, Game.Mouse.Y) != null) talk_story.Draw(Game.RenderContext.Renderer2D, Game.Mouse, Game.TotalTime);

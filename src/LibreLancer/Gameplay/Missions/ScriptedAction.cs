@@ -106,8 +106,33 @@ namespace LibreLancer.Missions
                     case TriggerActions.Act_Invulnerable:
                         yield return new Act_Invulnerable(a);
                         break;
+                    case TriggerActions.Act_SetNNObj:
+                        yield return new Act_SetNNObj(a);
+                        break;
                     default:
                         break;
+                }
+            }
+        }
+    }
+
+    public class Act_SetNNObj : ScriptedAction
+    {
+        public string Objective;
+
+        public Act_SetNNObj(MissionAction act) : base(act)
+        {
+            Objective = act.Entry[0].ToString();
+        }
+
+        public override void Invoke(MissionRuntime runtime, MissionScript script)
+        {
+            if (script.Objectives.TryGetValue(Objective, out var v)) {
+                if (v.Type[0] == "ids")
+                {
+                    runtime.Player.ObjectiveIds = int.Parse(v.Type[1]);
+                    FLLog.Info("Server", $"Set player objective to {runtime.Player.ObjectiveIds}");
+                    runtime.Player.RemoteClient.ObjectiveUpdate(runtime.Player.ObjectiveIds);
                 }
             }
         }

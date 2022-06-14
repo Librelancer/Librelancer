@@ -32,6 +32,19 @@ namespace LibreLancer.Interface
                 _idsText = null;
             }
         }
+
+        private bool _allCaps = false;
+        public bool AllCaps
+        {
+            get => _allCaps;
+            set
+            {
+                _allCaps = value;
+                _idsTried = false;
+                _idsText = null;
+            }
+        }
+        
         private string _idsText = null;
         private bool _idsTried = false;
         public string GetText(UiContext context)
@@ -43,7 +56,11 @@ namespace LibreLancer.Interface
             if (Strid != 0) {
                 _idsTried = true;
                 _idsText = context.Data.Infocards.GetStringResource(Strid);
-                if (!string.IsNullOrEmpty(_idsText)) return _idsText;
+                if (!string.IsNullOrEmpty(_idsText))
+                {
+                    if (_allCaps) _idsText = _idsText.ToUpper();
+                    return _idsText;
+                }
             }
             if (InfoId != 0) {
                 _idsTried = true;
@@ -51,6 +68,7 @@ namespace LibreLancer.Interface
                 if (xml == null) return Text;
                 var icard = Infocards.RDLParse.Parse(xml, context.Data.Fonts);
                 _idsText = icard.ExtractText().TrimEnd();
+                _idsText = _idsText.ToUpper();
                 return _idsText;
             }
             return Text;

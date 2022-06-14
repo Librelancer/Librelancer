@@ -136,7 +136,21 @@ class baseside : baseside_Designer
 	    }
 	    this.WindowManager = new childwindowmanager(this.Widget, windows)
 	    this.Elements.chat.Chat = Game.GetChats()
+		this.Elements.nnobj.Visible = false;
     }
+
+	ObjectiveUpdate(nnids)
+	{
+		if(nnids > 0) {
+			PlaySound("ui_new_story_star");
+			local e = this.Elements
+			e.nnobj.FadeIn(1.0);
+			e.nnobj.Strid = nnids;
+			Timer(4, () => e.nnobj.FadeOut(1.0));
+		} else {
+			e.nnobj.FadeOut(1.0);
+		}
+	}
     
     Pause() => OpenModal(new pausemenu());
     
@@ -146,4 +160,6 @@ class baseside : baseside_Designer
     
     MissionOffer(mission) => OpenModal(new popup(STRID_MISSION, mission, 'accept', (result) => Game.MissionResponse(result)));
 }
+
+
 

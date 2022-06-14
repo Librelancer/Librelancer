@@ -52,6 +52,7 @@ namespace LibreLancer.Data.Missions
     {
         public TriggerConditions Type;
         public Entry Entry;
+        public float Data;
         public MissionCondition(TriggerConditions cnd, Entry e)
         {
             Type = cnd;

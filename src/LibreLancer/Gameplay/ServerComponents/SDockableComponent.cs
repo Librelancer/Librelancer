@@ -161,6 +161,7 @@ namespace LibreLancer
                         else if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player))
                         {
                             player.Player.StartTradelane();
+                            movement.LaneEntered();
                         }
                     }
                     activeDockings.RemoveAt(i);

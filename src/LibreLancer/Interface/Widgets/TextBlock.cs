@@ -32,6 +32,13 @@ namespace LibreLancer.Interface
             get => txtAccess.InfoId;
             set => txtAccess.InfoId = value;
         }
+
+        public bool AllCaps
+        {
+            get => txtAccess.AllCaps;
+            set => txtAccess.AllCaps = value;
+        }
+    
         public HorizontalAlignment HorizontalAlignment { get; set; }
         public VerticalAlignment VerticalAlignment { get; set; }
         public InterfaceColor TextColor { get; set; }
@@ -40,9 +47,49 @@ namespace LibreLancer.Interface
 
         public bool Fill { get; set; } = false;
 
+        public float TextAlpha { get; set; } = 1;
+
         private CachedRenderString renderCache;
+
+        private bool fading = true;
+        private float fadeStep = 0;
+        
+        public void FadeIn(float duration)
+        {
+            if (!Visible) {
+                Visible = true;
+                TextAlpha = 0;
+                fadeStep = 1.0f / duration;
+            }
+        }
+        
+        public void FadeOut(float duration)
+        {
+            if (Visible && fadeStep <= 0) {
+                Visible = true;
+                fadeStep = -(1.0f / duration);
+                if (!fading) {
+                    fading = true;
+                }
+            }
+        }
+        
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
+            if (fading) {
+                TextAlpha += (float) (context.DeltaTime * fadeStep);
+                if (TextAlpha > 1) {
+                    TextAlpha = 1;
+                    fading = false;
+                    fadeStep = 0;
+                }
+                if (TextAlpha < 0) {
+                    TextAlpha = 1;
+                    Visible = false;
+                    fading = false;
+                    fadeStep = 0;
+                }
+            }
             if (!Visible) return;
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
             var myRectangle = new RectangleF(myPos.X, myPos.Y, Width, Height);
@@ -59,7 +106,7 @@ namespace LibreLancer.Interface
             var txt = txtAccess.GetText(context);
             if (!string.IsNullOrEmpty(txt))
                 DrawText(context, ref renderCache, myRectangle, TextSize, Font, TextColor, TextShadow, HorizontalAlignment, VerticalAlignment, Clip,
-                    txt);
+                    txt, TextAlpha);
         }
     }
 }

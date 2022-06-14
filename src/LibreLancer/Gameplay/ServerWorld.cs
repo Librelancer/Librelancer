@@ -82,7 +82,7 @@ namespace LibreLancer
                 MaxHealth = player.Character.Ship.Hitpoints
             });
             obj.Components.Add(new ShipPhysicsComponent(obj) { Ship = player.Character.Ship });
-
+            if (player == Server.LocalPlayer) obj.Nickname = "Player"; //HACK: Set local player ID for mission script
             obj.NetID = player.ID;
             GameWorld.AddObject(obj);
             obj.Register(GameWorld.Physics);

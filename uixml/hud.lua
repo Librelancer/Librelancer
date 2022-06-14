@@ -114,9 +114,23 @@ class hud : hud_Designer
         this.UpdateManeuverState()
         this.Elements.chatbox.OnTextEntered((category, text) => Game.ChatEntered(category, text));
 	    this.Elements.chat.Chat = Game.GetChats()
+		this.Elements.nnobj.Visible = false;
     }
     
-    Update()
+	ObjectiveUpdate(nnids)
+	{
+		if(nnids > 0) {
+			PlaySound("ui_new_story_star");
+			local e = this.Elements
+			e.nnobj.FadeIn(1.0);
+			e.nnobj.Strid = nnids;
+			Timer(4, () => e.nnobj.FadeOut(1.0));
+		} else {
+			e.nnobj.FadeOut(1.0);
+		}
+	}
+
+    Update(delta)
     {
         this.UpdateManeuverState()
 	    local e = this.Elements
@@ -182,6 +196,10 @@ class hud : hud_Designer
     Chatbox() => this.Elements.chatbox.Visible = true;
     Popup(title,contents,id) => OpenModal(new popup(title,contents,'ok', () => Game.PopupFinish(id)));
 }
+
+
+
+
 
 
 

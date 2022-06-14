@@ -63,15 +63,18 @@ World Time: {12:F2}
 
         private bool pausemenu = false;
         private bool paused = false;
+        private int nextObjectiveUpdate = 0;
 
 		public SpaceGameplay(FreelancerGame g, CGameSession session) : base(g)
-		{
+        {
 			FLLog.Info("Game", "Entering system " + session.PlayerSystem);
             g.ResourceManager.ClearTextures(); //Do before loading things
             this.session = session;
             sys = g.GameData.GetSystem(session.PlayerSystem);
             ui = Game.Ui;
             ui.GameApi = uiApi = new LuaAPI(this);
+            nextObjectiveUpdate = session.CurrentObjectiveIds;
+            session.ObjectiveUpdated = () => nextObjectiveUpdate = session.CurrentObjectiveIds;
             loader = new LoadingScreen(g, g.GameData.LoadSystemResources(sys));
             loader.Init();
         }
@@ -187,6 +190,7 @@ World Time: {12:F2}
             }
             public GameSettings GetCurrentSettings() => g.Game.Config.Settings.MakeCopy();
 
+            public int GetObjectiveStrid() => g.session.CurrentObjectiveIds;
             public void ApplySettings(GameSettings settings)
             {
                 g.Game.Config.Settings = settings;
@@ -200,6 +204,7 @@ World Time: {12:F2}
 
             public void PopupFinish(string id)
             {
+                g.waitObjectiveFrames = 30;
                 g.session.RpcServer.ClosedPopup(id);
                 Resume();
             }
@@ -745,6 +750,7 @@ World Time: {12:F2}
 
 
 		//RigidBody debugDrawBody;
+        private int waitObjectiveFrames = 120;
 		public override void Draw(double delta)
 		{
             RenderMaterial.VertexLighting = false;
@@ -755,6 +761,7 @@ World Time: {12:F2}
             }
 
             if (updateStartDelay > 0) updateStartDelay--;
+            if (waitObjectiveFrames > 0) waitObjectiveFrames--;
             world.RenderUpdate(delta);
             sysrender.Draw();
 
@@ -764,6 +771,11 @@ World Time: {12:F2}
             if ((Thn == null || !Thn.Running) && ShowHud)
             {
                 ui.Visible = true;
+                if (nextObjectiveUpdate != 0 && waitObjectiveFrames <= 0)
+                {
+                    ui.Event("ObjectiveUpdate", nextObjectiveUpdate);
+                    nextObjectiveUpdate = 0;
+                }
                 ui.RenderWidget(delta);
             }
             else

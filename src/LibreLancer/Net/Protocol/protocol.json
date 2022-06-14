@@ -121,7 +121,7 @@
           "name": "SpawnPlayer",
           "args": [
             { "name":  "system", "type":  "string" },
-            { "name":  "systime", "type":  "double" },
+            { "name":  "objective", "type":  "int" },
             { "name":  "position", "type":  "Vector3" },
             { "name":  "orientation", "type":  "Quaternion" }
           ]
@@ -178,6 +178,7 @@
           "name": "BaseEnter",
           "args": [
             { "name" :  "_base", "type":  "string" },
+            { "name":  "objective", "type":  "int" },
             { "name":  "rtcs", "type":  "string[]" },
             { "name":  "news", "type":  "NewsArticle[]" },
             { "name":  "goods", "type":  "SoldGood[]" },
@@ -189,6 +190,10 @@
           "args": [
             { "name":  "rtcs", "type":  "string[]" }
           ]
+        },
+        {
+          "name": "ObjectiveUpdate",
+          "args": [ { "name":  "objective", "type":  "int" }]
         },
         {
           "name": "Killed"

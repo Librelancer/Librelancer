@@ -18,6 +18,21 @@ namespace LibreLancer
 			this.lane = lane;
 		}
 
+        public void LaneEntered()
+        {
+            if (Parent.TryGetComponent<SPlayerComponent>(out var player) &&
+                player.Player.MissionRuntime != null)
+            {
+                var cmp = currenttradelane.GetComponent<SDockableComponent>();
+
+                player.Player.MissionRuntime.TradelaneEntered(
+                    "Player",
+                    currenttradelane.Nickname,
+                    lane == "HpRightLane" ? cmp.Action.Target : cmp.Action.TargetLeft
+                    );
+            }
+        }
+
 		public override void Update(double time)
 		{
 			var cmp = currenttradelane.GetComponent<SDockableComponent>();
@@ -46,7 +61,8 @@ namespace LibreLancer
 			if (distance < 200)
 			{
 				currenttradelane = tgt;
-				return;
+                LaneEntered();
+                return;
 			}
 			direction.Normalize();
 			Parent.PhysicsComponent.Body.LinearVelocity = direction * 2500;

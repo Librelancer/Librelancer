@@ -302,6 +302,8 @@ namespace InterfaceEdit
 
         public double GetCredits() => 10000;
 
+        public int GetObjectiveStrid() => 21825;
+
         public LuaCompatibleDictionary GetManeuversEnabled()
         {
             var dict = new LuaCompatibleDictionary();

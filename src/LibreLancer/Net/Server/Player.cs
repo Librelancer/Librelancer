@@ -36,6 +36,7 @@ namespace LibreLancer
         public GameData.Base BaseData;
         public Vector3 Position;
         public Quaternion Orientation;
+        public int ObjectiveIds;
         //Store so we can choose the correct character from the index
         public List<SelectableCharacter> CharacterList;
         //Respawn?
@@ -261,7 +262,7 @@ namespace LibreLancer
                 World = world;
                 world.EnqueueAction(() =>
                 {
-                    rpcClient.SpawnPlayer(System, 0, Position, Orientation);
+                    rpcClient.SpawnPlayer(System, ObjectiveIds, Position, Orientation);
                     world.SpawnPlayer(this, Position, Orientation);
                     msnRuntime?.EnteredSpace();
                 });
@@ -316,7 +317,7 @@ namespace LibreLancer
             //send to player
             lock (rtcs)
             {
-                rpcClient.BaseEnter(Base, rtcs.ToArray(), news.ToArray(), BaseData.SoldGoods.Select(x => new SoldGood()
+                rpcClient.BaseEnter(Base, ObjectiveIds, rtcs.ToArray(), news.ToArray(), BaseData.SoldGoods.Select(x => new SoldGood()
                 {
                     GoodCRC = CrcTool.FLModelCrc(x.Good.Ini.Nickname),
                     Price = x.Price,
@@ -1058,7 +1059,7 @@ namespace LibreLancer
                 Base = null;
                 world.EnqueueAction(() =>
                 {
-                    rpcClient.SpawnPlayer(System, 0, Position, Orientation);
+                    rpcClient.SpawnPlayer(System, ObjectiveIds, Position, Orientation);
                     world.SpawnPlayer(this, Position, Orientation);
                     msnRuntime?.EnteredSpace();
                 });
@@ -1100,7 +1101,7 @@ namespace LibreLancer
                 Base = null;
                 world.EnqueueAction(() =>
                 {
-                    rpcClient.SpawnPlayer(System, 0, Position, Orientation);
+                    rpcClient.SpawnPlayer(System, ObjectiveIds, Position, Orientation);
                     world.SpawnPlayer(this, Position, Orientation);
                     msnRuntime?.EnteredSpace();
                 });

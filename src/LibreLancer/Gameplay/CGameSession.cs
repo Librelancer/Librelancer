@@ -46,21 +46,31 @@ namespace LibreLancer
         public ChatSource Chats = new ChatSource();
         private IPacketConnection connection;
         private IServerPlayer rpcServer;
+        public int CurrentObjectiveIds;
         public IServerPlayer RpcServer => rpcServer;
 
         private double timeOffset;
         public double WorldTime => Game.TotalTime - timeOffset;
 
         public bool Multiplayer => connection is GameNetClient;
+        private bool paused = false;
 
         public void Pause()
         {
-            (connection as EmbeddedServer)?.Server.LocalPlayer.World?.Pause();
+            if (connection is EmbeddedServer es)
+            {
+                es.Server.LocalPlayer.World?.Pause();
+                paused = true;
+            }
         }
 
         public void Resume()
         {
-            (connection as EmbeddedServer)?.Server.LocalPlayer.World?.Resume();
+            if (connection is EmbeddedServer es)
+            {
+                es.Server.LocalPlayer.World?.Resume();
+                paused = false;
+            }
         }
 
         private const string SAVE_ALPHABET = "01234567890abcdefghijklmnopqrstuvwxyz";
@@ -102,6 +112,7 @@ namespace LibreLancer
             this.connection = connection;
             rpcServer = new RemoteServerPlayer(connection, this);
             ResponseHandler = new NetResponseHandler();
+            _updateTick = (int)g.CurrentTick;
         }
 
         public void AddRTC(string[] paths)
@@ -206,45 +217,49 @@ namespace LibreLancer
             };
         }
 
+        private int _updateTick = 0;
         public void GameplayUpdate(SpaceGameplay gp, double delta)
         {
             UpdateAudio();
             while (gameplayActions.TryDequeue(out var act))
                 act();
-            var player = gp.player;
-            var phys = player.GetComponent <ShipPhysicsComponent>();
-            var steering = player.GetComponent<ShipSteeringComponent>();
-           
-
-            moveState.Enqueue(new PlayerMoveState()
+            if (!paused)
             {
-                Tick = (int)gp.FlGame.CurrentTick,
-                Position = player.PhysicsComponent.Body.Position,
-                Orientation = player.PhysicsComponent.Body.Transform.ExtractRotation(),
-                AngularVelocity = MathHelper.ApplyEpsilon(player.PhysicsComponent.Body.AngularVelocity),
-                LinearVelocity = player.PhysicsComponent.Body.LinearVelocity,
-                Steering = steering.OutputSteering,
-                Strafe = phys.CurrentStrafe,
-                Throttle = phys.EnginePower,
-                Thrust = steering.Thrust,
-                CruiseEnabled = steering.Cruise,
-                EngineState = phys.EngineState,
-                CruiseAccelPct = phys.CruiseAccelPct,
-                ChargePct = phys.ChargePercent
-            });
+                var player = gp.player;
+                var phys = player.GetComponent<ShipPhysicsComponent>();
+                var steering = player.GetComponent<ShipSteeringComponent>();
 
-            //Store multiple updates for redundancy.
-            var ip = new InputUpdatePacket() {Current = FromMoveState(0)};
-            if (moveState.Count > 1) ip.HistoryA = FromMoveState(1);
-            if (moveState.Count > 2) ip.HistoryB = FromMoveState(2);
-            if (moveState.Count > 3) ip.HistoryC = FromMoveState(3);
-            connection.SendPacket(ip, PacketDeliveryMethod.SequenceA);
-            
-            if (processUpdatePackets)
-            {
-                while (updatePackets.Count > 0 && (WorldTime * 1000.0) >= updatePackets.Peek().Tick)
+
+                moveState.Enqueue(new PlayerMoveState()
                 {
-                    ProcessUpdate(updatePackets.Dequeue(), gp);
+                    Tick = _updateTick++,
+                    Position = player.PhysicsComponent.Body.Position,
+                    Orientation = player.PhysicsComponent.Body.Transform.ExtractRotation(),
+                    AngularVelocity = MathHelper.ApplyEpsilon(player.PhysicsComponent.Body.AngularVelocity),
+                    LinearVelocity = player.PhysicsComponent.Body.LinearVelocity,
+                    Steering = steering.OutputSteering,
+                    Strafe = phys.CurrentStrafe,
+                    Throttle = phys.EnginePower,
+                    Thrust = steering.Thrust,
+                    CruiseEnabled = steering.Cruise,
+                    EngineState = phys.EngineState,
+                    CruiseAccelPct = phys.CruiseAccelPct,
+                    ChargePct = phys.ChargePercent
+                });
+
+                //Store multiple updates for redundancy.
+                var ip = new InputUpdatePacket() {Current = FromMoveState(0)};
+                if (moveState.Count > 1) ip.HistoryA = FromMoveState(1);
+                if (moveState.Count > 2) ip.HistoryB = FromMoveState(2);
+                if (moveState.Count > 3) ip.HistoryC = FromMoveState(3);
+                connection.SendPacket(ip, PacketDeliveryMethod.SequenceA);
+
+                if (processUpdatePackets)
+                {
+                    while (updatePackets.Count > 0 && (WorldTime * 1000.0) >= updatePackets.Peek().Tick)
+                    {
+                        ProcessUpdate(updatePackets.Dequeue(), gp);
+                    }
                 }
             }
         }
@@ -449,6 +464,14 @@ namespace LibreLancer
             FLLog.Warning("Client", "Jump tunnel unimplemented");
         }
 
+        public Action ObjectiveUpdated;
+
+        void IClientPlayer.ObjectiveUpdate(int objective)
+        {
+            CurrentObjectiveIds = objective;
+            ObjectiveUpdated?.Invoke();
+        }
+
         void IClientPlayer.Killed()
         {
             RunSync(() =>
@@ -532,11 +555,12 @@ namespace LibreLancer
             });
         }
 
-        void IClientPlayer.SpawnPlayer(string system, double systemTime, Vector3 position, Quaternion orientation)
+        void IClientPlayer.SpawnPlayer(string system, int objective, Vector3 position, Quaternion orientation)
         {
             enterCount++;
             PlayerBase = null;
-            FLLog.Info("Client", $"Spawning in {system} at time {systemTime}");
+            CurrentObjectiveIds = objective;
+            FLLog.Info("Client", $"Spawning in {system}");
             PlayerSystem = system;
             PlayerPosition = position;
             PlayerOrientation = Matrix4x4.CreateFromQuaternion(orientation);
@@ -593,7 +617,7 @@ namespace LibreLancer
         public SoldGood[] Goods;
         public NetSoldShip[] Ships;
 
-        void IClientPlayer.BaseEnter(string _base, string[] rtcs, NewsArticle[] news, SoldGood[] goods, NetSoldShip[] ships)
+        void IClientPlayer.BaseEnter(string _base, int objective, string[] rtcs, NewsArticle[] news, SoldGood[] goods, NetSoldShip[] ships)
         {
             if (enterCount > 0 && (connection is EmbeddedServer es)) {
                 var path = Game.GetSaveFolder();
@@ -601,6 +625,7 @@ namespace LibreLancer
                 es.Save(Path.Combine(path, "AutoSave.fl"), null, true);
                 Game.Saves.UpdateFile(Path.Combine(path, "AutoSave.fl"));
             }
+            CurrentObjectiveIds = objective;
             enterCount++;
             PlayerBase = _base;
             News = news;

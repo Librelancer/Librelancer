@@ -40,6 +40,9 @@ namespace LibreLancer
 
         public Dictionary<string, MissionDialog> Dialogs =
             new Dictionary<string, MissionDialog>(StringComparer.OrdinalIgnoreCase);
+
+        public Dictionary<string, NNObjective> Objectives =
+            new Dictionary<string, NNObjective>(StringComparer.OrdinalIgnoreCase);
         
         public List<string> InitTriggers = new List<string>();
 
@@ -75,6 +78,8 @@ namespace LibreLancer
                 Set(NPCs, n.Nickname, n);
             foreach (var f in ini.Formations)
                 Set(Formations, f.Nickname, f);
+            foreach(var o in ini.Objectives)
+                Set(Objectives, o.Nickname, o);
             foreach (var ol in ini.ObjLists)
                 Set(ObjLists, ol.Nickname, new ScriptAiCommands() {
                     Nickname = ol.Nickname,

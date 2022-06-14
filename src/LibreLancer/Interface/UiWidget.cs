@@ -53,7 +53,8 @@ namespace LibreLancer.Interface
             HorizontalAlignment horizontalAlign,
             VerticalAlignment verticalAlign,
             bool clip,
-            string text
+            string text,
+            float alpha = 1f
          )
         {
             if (string.IsNullOrEmpty(text)) return;
@@ -61,6 +62,7 @@ namespace LibreLancer.Interface
             if (string.IsNullOrEmpty(font)) font = "$Normal";
             if (textSize <= 0) textSize = 10;
             var color = (textColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
+            color.A *= alpha;
             if (color.A < float.Epsilon) return;
             var fnt = context.Data.GetFont(font);
             var size = context.TextSize(textSize);
@@ -97,9 +99,11 @@ namespace LibreLancer.Interface
                     drawY = drawRect.Y + (drawRect.Height / 2) - lineHeight / 2;
                     break;
             }
-
             var shadow = new TextShadow();
-            if (shadowColor != null) shadow = new TextShadow(shadowColor.Color);
+            if (shadowColor != null) {
+                shadow = new TextShadow(shadowColor.Color);
+                shadow.Color.A *= alpha;
+            }
             if (clip) {
                 context.RenderContext.ScissorEnabled = true;
                 context.RenderContext.ScissorRectangle = drawRect;
