@@ -9,6 +9,9 @@
 		<Panel.Background>
 			<DisplayModel model="shipinfobox"/>
 		</Panel.Background>
+		<ListBox id="weapons_list" X = "14" Y = "32" Width = "142" Height="111" ItemHeight="11">
+
+	    </ListBox>
 	</Panel>
 	<TextBlock Anchor="BottomCenter" Height="27" Width="275" Y="60" Text = "CRUISE ENGINE CHARGING - WEAPONS OFF-LINE - 25%"
 	TextShadow="black" TextColor="text" TextSize="12" id="cruisecharge" Visible="false" />
@@ -95,6 +98,8 @@
     </ChatBox>
     <ChatDisplay Anchor="BottomLeft" Y="130" Height="250" Width="510" X="10" id="chat"/>
 </Scene>
+
+
 
 
 

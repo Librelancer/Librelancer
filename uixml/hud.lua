@@ -56,6 +56,32 @@ local function NavbarAction(hotspot)
 	return obj
 }
 
+local function weapon_list_item(index, name)
+{
+	local li = NewObject("ListItem")
+	li.ItemA = NewObject("Panel")
+	li.ItemA.Width = 13;
+	local ta = NewObject("TextBlock")
+	ta.TextSize = 8
+	ta.HorizontalAlignment = HorizontalAlignment.Right
+	ta.TextColor = GetColor("text")
+	ta.TextShadow = GetColor("black")
+	ta.Fill = true
+	ta.Text = tostring(index)
+	li.ItemA.Children.Add(ta)
+	li.ItemB = NewObject("Panel")
+	local tb = NewObject("TextBlock")	
+	tb.TextSize = 8
+	tb.HorizontalAlignment = HorizontalAlignment.Left
+	tb.TextColor = GetColor("text")
+	tb.TextShadow = GetColor("black")
+	tb.Fill = true
+	tb.Strid = name
+	tb.MarginX = 3
+	li.ItemB.Children.Add(tb)
+	return li;
+}
+
 local navbox = require 'navbox'
 
 class hud : hud_Designer
@@ -81,6 +107,10 @@ class hud : hud_Designer
                 activeIDS = index;
             container.AddChild(obj)
         }
+		local weaplist = this.Elements.weapons_list;
+		for (index, weapon in ipairs(Game.GetWeapons())) {
+			weaplist.Children.Add(weapon_list_item(index, weapon.Strid));
+		}
         this.UpdateManeuverState()
         this.Elements.chatbox.OnTextEntered((category, text) => Game.ChatEntered(category, text));
 	    this.Elements.chat.Chat = Game.GetChats()
@@ -152,5 +182,7 @@ class hud : hud_Designer
     Chatbox() => this.Elements.chatbox.Visible = true;
     Popup(title,contents,id) => OpenModal(new popup(title,contents,'ok', () => Game.PopupFinish(id)));
 }
+
+
 
 

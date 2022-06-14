@@ -79,7 +79,6 @@ World Time: {12:F2}
         void FinishLoad()
         {
             Game.Saves.Selected = -1;
-            ui.OpenScene("hud");
             var shp = Game.GameData.GetShip(session.PlayerShip);
             //Set up player object + camera
             player = new GameObject(shp, Game.ResourceManager, true, true);
@@ -152,6 +151,7 @@ World Time: {12:F2}
             player.World = world;
             world.MessageBroadcasted += World_MessageBroadcasted;
             Game.Sound.ResetListenerVelocity();
+            ui.OpenScene("hud");
             FadeIn(0.5, 0.5);
             updateStartDelay = 3;
         }
@@ -324,6 +324,8 @@ World Time: {12:F2}
             {
                 g.session.OnChat(category, text);
             }
+
+            public UiEquippedWeapon[] GetWeapons() => g.weapons.GetUiElements().ToArray();
 
             internal void SetManeuver(string m)
             {

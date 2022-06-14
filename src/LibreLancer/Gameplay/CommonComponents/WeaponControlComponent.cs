@@ -3,8 +3,11 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Interface;
+
 namespace LibreLancer
 {
     //For objects that shoot
@@ -74,6 +77,14 @@ namespace LibreLancer
             foreach(var wp in Parent.GetChildComponents<WeaponComponent>())
             {
                 wp.Fire(AimPoint);
+            }
+        }
+
+        public IEnumerable<UiEquippedWeapon> GetUiElements()
+        {
+            foreach (var wp in Parent.GetChildComponents<WeaponComponent>())
+            {
+                yield return new UiEquippedWeapon(true, wp.Object.IdsName);
             }
         }
 

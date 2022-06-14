@@ -218,6 +218,23 @@ namespace InterfaceEdit
         {
         }
 
+        public UiEquippedWeapon[] GetWeapons()
+        {
+            return new UiEquippedWeapon[]
+            {
+                new(true, 263357),
+                new(true, 263357),
+                new(true, 263357),
+                new(true, 263357),
+                new(true, 263370),
+                new(true, 263370),
+                new(true, 263161),
+                new(false, 263172),
+                new(false, 263754)
+            };
+        }
+        
+
         public bool ConnectAddress(string address)
         {
             return false;

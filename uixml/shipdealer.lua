@@ -125,7 +125,7 @@ class shipdealer : shipdealer_Designer with ChildWindow
 		e.tr_list.SelectedIndex = -1
 		this.set_buysell("hidden")
 		this.construct_inventory()
-		this.DealerGoods = Game.Trader.DealerGoods(category)
+		this.DealerGoods = Game.ShipDealer.GetDealerGoods(category)
 		e.tr_list.Children.Clear()
 		for (item in this.DealerGoods) {
 			local item = good_list_item(item, "buy", false)
@@ -162,7 +162,7 @@ class shipdealer : shipdealer_Designer with ChildWindow
 					this.change_category(this.category)
 				});	
 			});
-			e.inv_list.Children.Add(item)
+			e.inv_list.Children.Add(li)
 		}
 		local str = StringFromID(STRID_CREDITS) + NumberToStringCS(Game.GetCredits(), "N0")
 		e.credits_text.Text = str
@@ -249,3 +249,4 @@ class shipdealer : shipdealer_Designer with ChildWindow
 			e.item_infocard.Infocard = nil;
 	}
 }
+
