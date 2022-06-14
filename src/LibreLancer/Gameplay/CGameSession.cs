@@ -297,7 +297,6 @@ namespace LibreLancer
             gp.player.World.Physics.StepSimulation(1 / 60.0f);
             moveState[i].Position = player.PhysicsComponent.Body.Position;
             moveState[i].Orientation = player.PhysicsComponent.Body.Transform.ExtractRotation();
-            
         }
 
         struct SavedObject
@@ -307,6 +306,21 @@ namespace LibreLancer
             public Vector3 AngularVelocity;
         }
 
+        void SmoothError(GameObject obj, Vector3 oldPos, Quaternion oldQuat)
+        {
+            var newPos = obj.PhysicsComponent.Body.Position;
+            var newOrient = obj.PhysicsComponent.Body.Transform.ExtractRotation();
+            if ((oldPos - newPos).Length() > 10) {
+                obj.PhysicsComponent.PredictionErrorPos = Vector3.Zero;
+                obj.PhysicsComponent.PredictionErrorQuat = Quaternion.Identity;
+            } 
+            else {
+                obj.PhysicsComponent.PredictionErrorPos = (oldPos - newPos);
+                obj.PhysicsComponent.PredictionErrorQuat =
+                    Quaternion.Inverse(newOrient) * oldQuat;
+            }
+        }
+        
         void ProcessUpdate(ObjectUpdatePacket p, SpaceGameplay gp)
         { 
             foreach (var update in p.Updates)
@@ -366,18 +380,7 @@ namespace LibreLancer
                             for (i = i + 1; i < moveState.Count; i++) {
                                 Resimulate(i, gp);
                             }
-                            //
-                            var newPos = gp.player.PhysicsComponent.Body.Position;
-                            var newOrient = gp.player.PhysicsComponent.Body.Transform.ExtractRotation();
-                            if ((predictedPos - newPos).Length() > 10) {
-                                gp.player.PhysicsComponent.PredictionErrorPos = Vector3.Zero;
-                                gp.player.PhysicsComponent.PredictionErrorQuat = Quaternion.Identity;
-                            } 
-                            else {
-                                gp.player.PhysicsComponent.PredictionErrorPos = (predictedPos - newPos);
-                                gp.player.PhysicsComponent.PredictionErrorQuat =
-                                    Quaternion.Inverse(newOrient) * predictedOrient;
-                            }
+                            SmoothError(gp.player, predictedPos, predictedOrient);
                             gp.player.PhysicsComponent.Update(1 / 60.0);
                             //Resimulating messes up the physics world, restore state
                             foreach (var o in objects)
@@ -532,11 +535,9 @@ namespace LibreLancer
             RunSync(() =>
             {
                 var shp = Game.GameData.GetShip((int) loadout.ShipCRC);
-                //Set up player object + camera
                 var newobj = new GameObject(shp, Game.ResourceManager, true, true) {
                     World = gp.world
                 };
-                if (newobj.PhysicsComponent != null) newobj.PhysicsComponent.SetTransform = false;
                 newobj.Name = name;
                 newobj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
                                          Matrix4x4.CreateTranslation(position));
@@ -845,7 +846,13 @@ namespace LibreLancer
             }
             if (update.HasPosition)
             {
-                obj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(update.Orientation) * Matrix4x4.CreateTranslation(update.Position));
+                var oldPos = Vector3.Transform(Vector3.Zero, obj.LocalTransform);
+                var oldQuat = obj.LocalTransform.ExtractRotation();
+                obj.PhysicsComponent.Body.LinearVelocity = update.LinearVelocity;
+                obj.PhysicsComponent.Body.AngularVelocity = update.AngularVelocity;
+                obj.PhysicsComponent.Body.Activate();
+                obj.PhysicsComponent.Body.SetTransform(Matrix4x4.CreateFromQuaternion(update.Orientation) * Matrix4x4.CreateTranslation(update.Position));
+                SmoothError(obj, oldPos, oldQuat);
             }
         }
 

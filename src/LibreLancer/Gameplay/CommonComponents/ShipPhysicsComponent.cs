@@ -120,12 +120,6 @@ namespace LibreLancer
                     power.CurrentThrustCapacity -= (float)(thruster.Equip.Drain * time);
                     power.CurrentThrustCapacity = MathHelper.Clamp(power.CurrentThrustCapacity, 0, power.Equip.ThrustCapacity);
                     if (power.CurrentThrustCapacity == 0) ThrustEnabled = false;
-                    if (Parent.TryGetComponent<SPlayerComponent>(out var x) ||
-                        Parent.TryGetComponent<ShipInputComponent>(out var i))
-                    {
-                        FLLog.Info(x?.GetType()?.Name ?? "CLIENT" , $"{thruster.Equip.Nickname} - {power.Equip.Nickname}");
-
-                    }
                 }
             }
 
