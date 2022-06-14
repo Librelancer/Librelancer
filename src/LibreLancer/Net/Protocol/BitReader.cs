@@ -11,6 +11,7 @@ namespace LibreLancer
     {
         private ReadOnlySpan<byte> array;
         private int bitsOffset;
+        public int BitsLeft => (array.Length * 8) - bitsOffset;
 
         public BitReader(ReadOnlySpan<byte> array, int bitsOffset)
         {
@@ -153,7 +154,7 @@ namespace LibreLancer
         {
             return UnpackBits(array, 1, bitsOffset++) != 0;
         }
-
+        
         static uint UnpackUInt(ReadOnlySpan<byte> buffer, int nBits, int readOffset)
         {
             //Byte 1

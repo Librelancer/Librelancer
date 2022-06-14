@@ -256,6 +256,10 @@ namespace LibreLancer
                 Array.Resize(ref buffer, byteLen + GROWTH_AMOUNT);
         }
 
+        public bool NeedsNewByte(int bitCount)
+        {
+            return bitCount >= 8 || (8 - (bitOffset & 0x7)) < bitCount;
+        }
 
         public byte[] GetBuffer()
         {
