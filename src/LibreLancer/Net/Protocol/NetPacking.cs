@@ -65,33 +65,84 @@ namespace LibreLancer
             return Zag(GetVariableUInt32(reader));
         }
         
-        public static void PutVariableUInt32(this LiteNetLib.Utils.NetDataWriter writer, uint value)
+        public static void PutVariableUInt32(this LiteNetLib.Utils.NetDataWriter writer, uint u)
         {
-            uint num1 = value;
-            while (num1 >= 0x80)
+            if (u <= 127) 
             {
-                writer.Put((byte)(num1 | 0x80));
-                num1 = num1 >> 7;
+                writer.Put((byte)u);
+            } 
+            else if (u <= 16511) 
+            {
+                u -= 128;
+                writer.Put((byte)((u & 0x7f) | 0x80));
+                writer.Put((byte)((u >> 7) & 0x7f));
+            } 
+            else if (u <= 2113662) 
+            {
+                u -= 16512;
+                writer.Put((byte)((u & 0x7f) | 0x80));
+                writer.Put((byte) (((u >> 7) & 0x7f) | 0x80));
+                writer.Put((byte)((u >> 14) & 0x7f));
+            } 
+            else if (u <= 270549118)
+            {
+                u -= 2113663;
+                writer.Put((byte)((u & 0x7f) | 0x80));
+                writer.Put((byte)(((u >> 7) & 0x7f) | 0x80));
+                writer.Put((byte)(((u >> 14) & 0x7f) | 0x80));
+                writer.Put((byte)((u >> 21) & 0x7f));
             }
-            writer.Put((byte)num1);
+            else
+            {
+                writer.Put((byte)((u & 0x7f) | 0x80));
+                writer.Put((byte)(((u >> 7) & 0x7f) | 0x80));
+                writer.Put((byte)(((u >> 14) & 0x7f) | 0x80));
+                writer.Put((byte)(((u >> 21) & 0x7f) | 0x80));
+                writer.Put((byte)((u >> 28) & 0x7f));
+            }
         }
 
         public static uint GetVariableUInt32(this LiteNetLib.Utils.NetDataReader reader)
         {
-            int num1 = 0;
-            int num2 = 0;
-            while (reader.AvailableBytes > 0)
+            uint a = 0;
+            int b = reader.GetByte();
+            a = (uint) (b & 0x7f);
+            int extraCount = 0;
+            //first extra
+            if ((b & 0x80) == 0x80)
             {
-                byte num3 = reader.GetByte();
-                num1 |= (num3 & 0x7f) << num2;
-                num2 += 7;
-                if ((num3 & 0x80) == 0)
-                    return (uint)num1;
+                b = reader.GetByte();
+                a |= (uint) ((b & 0x7f) << 7);
+                extraCount++;
             }
-            throw new Exception("Malformed variable UInt32");
+            //second extra
+            if ((b & 0x80) == 0x80)
+            {
+                b = reader.GetByte();
+                a |= (uint) ((b & 0x7f) << 14);
+                extraCount++;
+            }
+            //third extra
+            if ((b & 0x80) == 0x80)
+            {
+                b = reader.GetByte();
+                a |= (uint) ((b & 0x7f) << 21);
+                extraCount++;
+            }
+            //fourth extra
+            if ((b & 0x80) == 0x80)
+            {
+                b = reader.GetByte();
+                a |= (uint) ((b & 0xf) << 28);
+                extraCount++;
+            }
+            switch (extraCount) {
+                case 1: a += 128; break;
+                case 2: a += 16512; break;
+                case 3: a += 2113663; break;
+            }
+            return a;
         }
-
-        
         
 		public static void Put(this LiteNetLib.Utils.NetDataWriter om, Quaternion q)
         {

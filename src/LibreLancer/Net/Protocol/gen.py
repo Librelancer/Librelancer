@@ -6,11 +6,11 @@
 import json
 from datetime import datetime,timezone
 
-print("Librelancer Protocol Generator 2022-06-13")
+print("Librelancer Protocol Generator 2022-06-14")
 
 # NetPacketReader methods
 typeMethods = {
-  "int" : "GetInt",
+  "int" : "GetVariableInt32",
   "Quaternion" : "GetQuaternion",
   "Vector3" : "GetVector3",
   "byte" : "GetByte",
@@ -25,6 +25,9 @@ typeMethods = {
   "ulong" : "GetULong",
   "ushort" : "GetUShort",
   "bool" : "GetBool",
+}
+encodeMethods = {
+    "int": "PutVariableInt32"
 }
 
 # Enumerations
@@ -218,7 +221,7 @@ def Packet(mthd, classname):
     if type in typeMethods:
         writeline(name + " = inPacket." + typeMethods[type] + "();")
     elif type in enums:
-        writeline(name + " = (" + type + ")inPacket.GetInt();")
+        writeline(name + " = (" + type + ")inPacket.GetVariableInt32();")
     else:
         if nullable:
             writestart("if(inPacket.GetByte() == 1) ")
@@ -231,7 +234,7 @@ def Packet(mthd, classname):
   tabs += 1
   writeline("var _packet = new " + classname + "();")
   if "return" in mthd:
-      writeline("_packet.Sequence = inPacket.GetInt();")
+      writeline("_packet.Sequence = inPacket.GetVariableInt32();")
   if "args" in mthd:
       for a in mthd["args"]:
         if "[]" in a["type"]:
@@ -259,7 +262,9 @@ def Packet(mthd, classname):
     if type == "string":
         writeline("outPacket.PutStringPacked(" + name + ");")
     elif type in enums:
-        writeline("outPacket.Put((int)" + name + ");")
+        writeline("outPacket.PutVariableInt32((int)" + name + ");")
+    elif type in encodeMethods:
+        writeline("outPacket." + encodeMethods[type] + "(" + name + ");")
     elif type in typeMethods:
         writeline("outPacket.Put(" + name + ");")
     else:
@@ -277,7 +282,7 @@ def Packet(mthd, classname):
   writeline("{")
   tabs += 1
   if "return" in mthd:
-    writeline("outPacket.Put(Sequence);")
+    writeline("outPacket.PutVariableInt32(Sequence);")
   if "args" in mthd:
     for a in mthd["args"]:
       if "[]" in a["type"]:
