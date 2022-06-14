@@ -37,13 +37,16 @@ class characterlist : characterlist_Designer
     
     CreateCharacter(result, name, index)
     {
-        if(result == 'ok')
-            Game.NewCharacter(name, index);
+        if(result == 'ok') Game.NewCharacter(name, index, () => {
+			OpenModal(new popup(0, STRID_NAME_TAKEN, "ok"));
+		});
     }
     
     Disconnect()
     {
-        OpenModal(new modal("Error", "You were disconnected from the server", "ok", () => this.ExitAnimation(() => OpenScene("mainmenu"))));
+        OpenModal(new popup(0, STRID_DISCONNECT, "ok", () => this.ExitAnimation(() => OpenScene("mainmenu"))));
     }
 }
+
+
 

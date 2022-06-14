@@ -92,7 +92,7 @@ namespace LibreLancer
         {
             using (var ctx = CreateDbContext())
             {
-                return ctx.Characters.Any(x => x.Name == name);
+                return ctx.Characters.Any(x => x.Name.Equals(name));
             }
         }
         

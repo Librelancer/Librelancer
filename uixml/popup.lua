@@ -4,7 +4,12 @@ class popup : popup_Designer with Modal
     {
         base()
         var e = this.Elements;
-        e.title.Strid = title ?? 0;
+        if((title ?? 0) == 0) {
+			e.title.Visible = false;
+		} else {
+			e.title.Strid = title;
+		}
+
         e.contents.SetString(StringFromID(contents ?? 0));
         this.ModalInit();
         if(buttons == 'ok') {
@@ -20,3 +25,6 @@ class popup : popup_Designer with Modal
         e.decline.OnClick(() => this.Close('decline'));
     }
 }
+
+
+

@@ -1,8 +1,11 @@
-<Scene ScriptFile="modal.lua">
-	<Panel Anchor="Center" Width="410" Height="177">
+<Scene>
+	<Scene.Background><DisplayColor color="rgba(0,0,0,0.7)"/></Scene.Background>
+	<Panel Width="640" Height="480" Anchor="Center">
 		<Panel.Background>
-			<DisplayModel model="errorexplanation.cmp"/>
+			<DisplayModel model="front_loadingbar.cmp" tint="lightgreen"/>
 		</Panel.Background>
-		<TextBlock id="content" Anchor="Center" Width="410" Height="177" Text="Connecting..."/>
+		<TextBlock Width="266" Height="20" Y="-2" Anchor="Center" Strid="124" Font="Agency FB" TextColor="text" TextShadow="black" TextSize="14"/>
 	</Panel>
 </Scene>
+
+

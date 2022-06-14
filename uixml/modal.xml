@@ -4,11 +4,12 @@
 			<DisplayModel model="errorexplanation.cmp"/>
 		</Panel.Background>
 		<Button id="close" Anchor="TopRight" X="13" Y="13" Style="xbutton"/>
-		<Button id="ok_ok" Anchor="BottomCenter" style="wirebutton" Text="OK" Y="18" Visible="false"/>
+		<Button id="ok_ok" Anchor="BottomCenter" style="wirebutton" Text="OK" Strid="1041" Y="18" Visible="false"/>
 		<TextBlock id="title" Y="8" Anchor="TopCenter" Width="410" Height="30" Text="title"/>
 		<TextBlock id="content" Anchor="Center" Width="410" Height="30" Text="content"/>
 	</Panel>
 </Scene>
+
 
 
 

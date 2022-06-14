@@ -56,7 +56,9 @@ class serverlist : serverlist_Designer
 			this.connecting.Close();
 			this.connecting = nil;
 		}
-        OpenModal(new modal("Error", "Unable to connect to the server", "ok", () => this.InitNetwork()));
+        OpenModal(new popup(0, STRID_DISCONNECT, "ok", () => this.InitNetwork()));
     }
 }
+
+
 

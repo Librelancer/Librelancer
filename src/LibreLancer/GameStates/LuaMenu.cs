@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using LibreLancer.GameData;
 using LibreLancer.Interface;
 using LiteNetLib;
+using WattleScript.Interpreter;
 
 namespace LibreLancer
 {
@@ -300,10 +301,12 @@ namespace LibreLancer
             public void ConnectAddress(string address) => netClient.Connect(address);
 
 
-            public void NewCharacter(string name, int index)
+            public void NewCharacter(string name, int index, Closure onError)
             {
                 FLLog.Info("Net", $"Requesting new char: `{name}`");
-                netSession.RpcServer.CreateNewCharacter(name, index);
+                netSession.RpcServer.CreateNewCharacter(name, index).ContinueWith((task) => {
+                    if(!task.Result) state.Game.QueueUIThread(() => onError.Call());
+                });
             }
             
             public void StopNetworking()

@@ -24,6 +24,12 @@ STRID_RETURN_TO_GAME = 1419
 STRID_GAME_OVER = 1826
 STRID_YOU_ARE_DEAD = 1827
 
+// Mp Related ids
+
+STRID_DISCONNECT = 1847
+STRID_NAME_TAKEN = 1848
+
+
 // Ship Classes
 
 STRID_CLS_LF = 923
@@ -63,6 +69,8 @@ function LoadShipClassNames()
 	ShipClassNames[3] = StringFromID(STRID_CLS_FR)
 	ShipClassNames[4] = StringFromID(STRID_CLS_VHF)
 }
+
+
 
 
 

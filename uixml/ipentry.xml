@@ -5,7 +5,7 @@
         </Panel.Background>
         <Button id="close" Anchor="TopRight" X="13" Y="13" style="xbutton"/>
         <TextBlock id="title" Y="8" Anchor="TopCenter" color="text" font="$Header" TextShadow="black" TextSize="13" Width="410" Height="30" Strid="1861"/>
-        <Button id="ok" Anchor="BottomCenter" style="wirebutton" Text="OK" Y="20"/>
+        <Button id="ok" Anchor="BottomCenter" style="wirebutton" Text="OK" Strid="1041" Y="20"/>
         <TextEntry id="content" Anchor="Center" Y="-5" Width="360" Height="30"
         Font="PlayerName" TextColor="text" TextShadow="black">
         	<TextEntry.Border>
@@ -17,3 +17,4 @@
         </TextEntry>
     </Panel>
 </Scene>
+

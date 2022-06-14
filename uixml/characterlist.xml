@@ -2,11 +2,11 @@
 <ImageFile Path="INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga" Width="640" Height="480"/>
 <Panel id="animgroupA" Width="640" Height="480" Anchor="Center">
 	<ImageFile Path="DATA/uiscreens/characterlist.png" Width="640" Height="480" Visible="false"/>
-	<Button X="18" Y="121" Style="menubutton" TextSize="14" ID="newchar" Text="NEW CHARACTER"/>
-	<Button X="18" Y="166" Style="menubutton" TextSize="14" ID="loadchar" Text="LOAD CHARACTER"/>
-	<Button X="18" Y="211" Style="menubutton" TextSize="14" ID="deletechar" Text="DELETE CHARACTER"/>
-	<Button X="18" Y="256" Style="menubutton" TextSize="14" ID="serverlist" Text="SELECT ANOTHER SERVER"/>
-	<Button X="18" Y="301" Style="menubutton" TextSize="14" ID="mainmenu" Text="MAIN MENU"/>
+	<Button X="18" Y="121" Style="menubutton" TextSize="14" ID="newchar" InfoId="393252"/>
+	<Button X="18" Y="166" Style="menubutton" TextSize="14" ID="loadchar" InfoId="393250"/>
+	<Button X="18" Y="211" Style="menubutton" TextSize="14" ID="deletechar" InfoId="393245"/>
+	<Button X="18" Y="256" Style="menubutton" TextSize="14" ID="serverlist" InfoId="393258"/>
+	<Button X="18" Y="301" Style="menubutton" TextSize="14" ID="mainmenu" InfoId="393251"/>
 	<Panel X="194" Y="104" Width="435" Height="277">
 		<Panel.Background>
 			<DisplayModel model="front_characselectbox"/>
@@ -15,11 +15,11 @@
         	DisplayRowCount="12" LineColor="text" LineHover="text_hover" LineDown="yellow" HeaderColor="text"
          	BodyColor="text" BodyHover="text_hover" SelectedColor="yellow" HeaderTextSize="13">
 			<DataTable.Columns>
-				<TableColumn Label="CHARACTER NAME"  Data="name" InitialWidthPercent="29" />
+				<TableColumn Strid="2801"  Data="name" InitialWidthPercent="29" />
 				<TableColumn Label="RANK"  Data="rank" InitialWidthPercent="11" />
-				<TableColumn Label="FUNDS"  Data="funds" InitialWidthPercent="17" />
-				<TableColumn Label="SHIP TYPE"  Data="ship" InitialWidthPercent="20" />
-				<TableColumn Label="LOCATION"  Data="location" InitialWidthPercent="10"/>
+				<TableColumn InfoId="393263"  Data="funds" InitialWidthPercent="17" />
+				<TableColumn InfoId="393290"  Data="ship" InitialWidthPercent="20" />
+				<TableColumn InfoId="393289"  Data="location" InitialWidthPercent="10"/>
 			</DataTable.Columns>
 		</DataTable>
 	</Panel>
@@ -35,3 +35,4 @@
 	</Panel>
 </Panel>
 </Scene>
+

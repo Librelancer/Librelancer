@@ -895,9 +895,9 @@ namespace LibreLancer
 
         Task<bool> IServerPlayer.CreateNewCharacter(string name, int index)
         {
-            FLLog.Info("Player", $"New char {name}");
             if (!Game.Database.NameInUse(name))
             {
+                FLLog.Info("Player", $"New char: {name}");
                 Character ch = null;
                 Game.Database.AddCharacter(playerGuid, (db) =>
                 {
@@ -938,6 +938,7 @@ namespace LibreLancer
                 }, PacketDeliveryMethod.ReliableOrdered);
                 return Task.FromResult(true);
             } else {
+                FLLog.Info("Player", $"Char name in use: {name}");
                 return Task.FromResult(false);
             }
         }
