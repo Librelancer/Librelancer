@@ -218,7 +218,14 @@ namespace LibreLancer.Missions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            if(!Ship.Equals("none", StringComparison.OrdinalIgnoreCase))
+            if (Ship.Equals("none", StringComparison.OrdinalIgnoreCase))
+            {
+                var p = runtime.Player;
+                p.Character.Ship = null;
+                p.Character.Items = new List<NetCargo>();
+                runtime.Player.UpdateCurrentInventory();
+            }
+            else
             {
                 var p = runtime.Player;
                 if (p.Game.GameData.TryGetLoadout(Loadout, out var loadout))
@@ -238,6 +245,7 @@ namespace LibreLancer.Missions
                         });
                     }
                 }
+                runtime.Player.UpdateCurrentInventory();
             }
         }
     }

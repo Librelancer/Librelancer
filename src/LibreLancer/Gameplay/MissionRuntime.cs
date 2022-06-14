@@ -73,10 +73,15 @@ namespace LibreLancer
             else
                 return Player.World.GameWorld.GetObject(obj);
         }
+
+        public void SpaceExit() =>  ProcessCondition(TriggerConditions.Cnd_SpaceExit, TruePredicate);
+
+        public void BaseEnter(string _base) => ProcessCondition(TriggerConditions.Cnd_BaseEnter,
+            (x) => IdEquals(x.Entry[0].ToString(), _base));
+        
         bool CheckPerTickCond(TriggerConditions cond, MissionCondition data, float time)
         {
-            if (cond == TriggerConditions.Cnd_True || cond == TriggerConditions.Cnd_SpaceExit ||
-                cond == TriggerConditions.Cnd_BaseEnter)
+            if (cond == TriggerConditions.Cnd_True)
                 return true;
 
             if (cond == TriggerConditions.Cnd_DistShip)
@@ -212,7 +217,7 @@ namespace LibreLancer
 
         private bool uiUpdate = false;
         
-        void CheckMissionScript()
+        public void CheckMissionScript()
         {
             for (int i = activeTriggers.Count - 1; i >= 0; i--)
             {
@@ -220,10 +225,12 @@ namespace LibreLancer
                 {
                     activeTriggers.RemoveAt(i);
                     uiUpdate = true;
-                } else if (activeTriggers[i].Conditions.Count == 0)
+                } 
+                else if (activeTriggers[i].Conditions.Count == 0)
                 {
-                    DoTrigger(activeTriggers[i].Trigger);
+                    var tr = activeTriggers[i].Trigger;
                     activeTriggers.RemoveAt(i);
+                    DoTrigger(tr);
                     uiUpdate = true;
                 }
             }

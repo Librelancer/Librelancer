@@ -213,6 +213,8 @@ namespace LibreLancer
         
         public UIInventoryItem[] GetPlayerGoods(string filter)
         {
+            if (session.PlayerShip == null) return Array.Empty<UIInventoryItem>();
+            
             List<UIInventoryItem> inventoryItems = new List<UIInventoryItem>();
             var filterfunc = GetFilter(filter);
             var myShip = session.Game.GameData.GetShip(session.PlayerShip);

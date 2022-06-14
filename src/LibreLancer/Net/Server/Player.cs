@@ -314,9 +314,13 @@ namespace LibreLancer
             BaseData = Game.GameData.GetBase(Base);
             //update
             Character.UpdatePosition(Base, System, Position);
+            MissionRuntime?.SpaceExit();
+            MissionRuntime?.BaseEnter(Base);
+            MissionRuntime?.CheckMissionScript();
             //send to player
             lock (rtcs)
             {
+               
                 rpcClient.BaseEnter(Base, ObjectiveIds, rtcs.ToArray(), news.ToArray(), BaseData.SoldGoods.Select(x => new SoldGood()
                 {
                     GoodCRC = CrcTool.FLModelCrc(x.Good.Ini.Nickname),
@@ -949,6 +953,8 @@ namespace LibreLancer
             rpcClient.SpawnDebris(id, kind, archetype, part, Vector3.Transform(Vector3.Zero, tr), tr.ExtractRotation(), mass);
         }
         
+        public void UpdateCurrentInventory() => rpcClient.UpdateInventory(Character.Credits, GetShipWorth(), Character.EncodeLoadout());
+
         public void ForceLand(string target)
         {
             World?.RemovePlayer(this);
@@ -1073,6 +1079,10 @@ namespace LibreLancer
 
         void IServerPlayer.Launch()
         {
+            if (Character.Ship == null) {
+                FLLog.Error("Server", $"{Name} cannot launch without a ship");
+                return;
+            }
             var b = Game.GameData.GetBase(Base);
             var sys = Game.GameData.GetSystem(b.System);
             Game.RequestWorld(sys, (world) =>

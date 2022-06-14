@@ -228,8 +228,7 @@ namespace LibreLancer
                 var player = gp.player;
                 var phys = player.GetComponent<ShipPhysicsComponent>();
                 var steering = player.GetComponent<ShipSteeringComponent>();
-
-
+                
                 moveState.Enqueue(new PlayerMoveState()
                 {
                     Tick = _updateTick++,
@@ -403,20 +402,24 @@ namespace LibreLancer
 
         void SetSelfLoadout(NetShipLoadout ld)
         {
-            var sh = Game.GameData.GetShip((int)ld.ShipCRC);
-            PlayerShip = sh.Nickname;
-            var hplookup = new HardpointLookup(sh.ModelFile.LoadFile(Game.ResourceManager));
+            var sh = ld.ShipCRC == 0 ? null : Game.GameData.GetShip((int)ld.ShipCRC);
+            PlayerShip = sh?.Nickname ?? null;
+            
             Items = new List<NetCargo>(ld.Items.Count);
-            foreach (var cg in ld.Items)
+            if (sh != null)
             {
-                var equip = Game.GameData.GetEquipment(cg.EquipCRC);
-                Items.Add(new NetCargo(cg.ID)
+                var hplookup = new HardpointLookup(sh.ModelFile.LoadFile(Game.ResourceManager));
+                foreach (var cg in ld.Items)
                 {
-                    Equipment = equip,
-                    Hardpoint = hplookup.GetHardpoint(cg.HardpointCRC),
-                    Health = cg.Health / 255f,
-                    Count = cg.Count
-                });
+                    var equip = Game.GameData.GetEquipment(cg.EquipCRC);
+                    Items.Add(new NetCargo(cg.ID)
+                    {
+                        Equipment = equip,
+                        Hardpoint = hplookup.GetHardpoint(cg.HardpointCRC),
+                        Health = cg.Health / 255f,
+                        Count = cg.Count
+                    });
+                }
             }
         }
 

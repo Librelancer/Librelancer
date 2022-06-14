@@ -158,7 +158,7 @@ namespace LibreLancer
         public NetShipLoadout EncodeLoadout()
         {
             var sl = new NetShipLoadout();
-            sl.ShipCRC = Ship.CRC;
+            sl.ShipCRC = Ship?.CRC ?? 0;
             sl.Items = new List<NetShipCargo>(Items.Count);
             foreach (var c in Items)
             {

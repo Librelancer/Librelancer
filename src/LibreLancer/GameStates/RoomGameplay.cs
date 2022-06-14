@@ -106,7 +106,7 @@ namespace LibreLancer
             input = new InputManager(Game, Game.InputMap);
             input.ActionDown += Input_Action;
             //Set up THN
-            SwitchToRoom(room == null);
+            SwitchToRoom(room == null && session.PlayerShip != null);
             FadeIn(0.8, 1.7);
         }
 
@@ -274,7 +274,8 @@ namespace LibreLancer
                     case "cityscape":
                     case "deck":
                     case "planetscape":
-                        actions.Add(new NavbarButtonInfo(LAUNCH_ACTION, "IDS_HOTSPOT_LAUNCH"));
+                        if(g.session.PlayerShip != null)
+                            actions.Add(new NavbarButtonInfo(LAUNCH_ACTION, "IDS_HOTSPOT_LAUNCH"));
                         break;
                     case "bar":
                         if(g.session.News?.Length > 0)
@@ -284,20 +285,22 @@ namespace LibreLancer
 
                 foreach (var hp in g.currentRoom.Hotspots)
                 {
-                    if (!string.IsNullOrEmpty(hp.VirtualRoom) &&
-                        !hp.VirtualRoom.Equals(g.virtualRoom, StringComparison.OrdinalIgnoreCase))
-                        continue;
-                    switch (hp.Name.ToUpperInvariant())
-                    {
-                        case "IDS_HOTSPOT_COMMODITYTRADER":
-                            actions.Add(new NavbarButtonInfo("CommodityTrader", hp.Name));
-                            break;
-                        case "IDS_HOTSPOT_SHIPDEALER":
-                            actions.Add(new NavbarButtonInfo("ShipDealer", hp.Name));
-                            break;
-                        case "IDS_HOTSPOT_EQUIPMENTDEALER":
-                            actions.Add(new NavbarButtonInfo("EquipmentDealer", hp.Name));
-                            break;
+                    if(g.session.PlayerShip != null) {
+                        if (!string.IsNullOrEmpty(hp.VirtualRoom) &&
+                            !hp.VirtualRoom.Equals(g.virtualRoom, StringComparison.OrdinalIgnoreCase))
+                            continue;
+                        switch (hp.Name.ToUpperInvariant())
+                        {
+                            case "IDS_HOTSPOT_COMMODITYTRADER":
+                                actions.Add(new NavbarButtonInfo("CommodityTrader", hp.Name));
+                                break;
+                            case "IDS_HOTSPOT_SHIPDEALER":
+                                actions.Add(new NavbarButtonInfo("ShipDealer", hp.Name));
+                                break;
+                            case "IDS_HOTSPOT_EQUIPMENTDEALER":
+                                actions.Add(new NavbarButtonInfo("EquipmentDealer", hp.Name));
+                                break;
+                        }
                     }
                 }
                 return actions.ToArray();
@@ -470,11 +473,16 @@ namespace LibreLancer
 
         void CreatePlayerEquipment()
         {
-            playerShip.Children.Clear();
-            foreach (var mount in session.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
+            if (playerShip.RenderComponent != null)
             {
-                if (mount.Hardpoint != "internal") {
-                    EquipmentObjectManager.InstantiateEquipment(playerShip, Game.ResourceManager, EquipmentType.Cutscene, mount.Hardpoint, mount.Equipment);
+                playerShip.Children.Clear();
+                foreach (var mount in session.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
+                {
+                    if (mount.Hardpoint != "internal")
+                    {
+                        EquipmentObjectManager.InstantiateEquipment(playerShip, Game.ResourceManager,
+                            EquipmentType.Cutscene, mount.Hardpoint, mount.Equipment);
+                    }
                 }
             }
         }
@@ -491,10 +499,19 @@ namespace LibreLancer
 			{
 				Game.Sound.PlayMusic(currentRoom.Music, currentRoom.MusicOneShot);
 			}
-            var shp = Game.GameData.GetShip(session.PlayerShip);
-            playerShip = new GameObject(shp.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager); 
-            playerShip.PhysicsComponent = null;
-            CreatePlayerEquipment();
+
+            if (session.PlayerShip != null)
+            {
+                var shp = Game.GameData.GetShip(session.PlayerShip);
+                playerShip = new GameObject(shp.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager); 
+                playerShip.PhysicsComponent = null;
+                CreatePlayerEquipment();
+            }
+            else
+            {
+                playerShip = new GameObject(); //Empty
+            }
+          
             session.OnUpdatePlayerShip = CreatePlayerEquipment;
             var ctx = new ThnScriptContext(currentRoom.OpenSet());
             ctx.PlayerShip = playerShip;
