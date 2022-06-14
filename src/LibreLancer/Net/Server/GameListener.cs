@@ -74,9 +74,9 @@ namespace LibreLancer
                         var dw = new NetDataWriter();
                         dw.Put((int) 1);
                         dw.Put(unique);
-                        dw.Put(game.ServerName);
-                        dw.Put(game.ServerDescription);
-                        dw.Put(game.GameData.DataVersion);
+                        dw.PutStringPacked(game.ServerName);
+                        dw.PutStringPacked(game.ServerDescription);
+                        dw.PutStringPacked(game.GameData.DataVersion);
                         dw.Put(Server.ConnectedPeersCount);
                         dw.Put(MaxConnections);
                         Server.SendUnconnectedMessage(dw, point);

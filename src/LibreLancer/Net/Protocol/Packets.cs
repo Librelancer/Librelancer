@@ -116,7 +116,7 @@ namespace LibreLancer
             return new SolarInfo
             {
                 ID = message.GetInt(),
-                Archetype = message.GetString(),
+                Archetype = message.GetStringPacked(),
                 Position = message.GetVector3(),
                 Orientation = message.GetQuaternion()
             };
@@ -124,7 +124,7 @@ namespace LibreLancer
         public void Put(NetDataWriter message)
         {
             message.Put(ID);
-            message.Put(Archetype);
+            message.PutStringPacked(Archetype);
             message.Put(Position);
             message.Put(Orientation);
         }
@@ -518,10 +518,10 @@ namespace LibreLancer
         public string Voice;
         public uint Hash;
         public static NetDlgLine Read(NetPacketReader message) => new NetDlgLine()
-            {Voice = message.GetString(), Hash = message.GetUInt()};
+            {Voice = message.GetStringPacked(), Hash = message.GetUInt()};
         public void Put(NetDataWriter message)
         {
-            message.Put(Voice);
+            message.PutStringPacked(Voice);
             message.Put(Hash);
         }
     }

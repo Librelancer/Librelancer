@@ -235,9 +235,9 @@ namespace LibreLancer
                     var info = new LocalServerInfo();
                     info.EndPoint = remote;
                     info.Unique = msg.GetInt();
-                    info.Name = msg.GetString();
-                    info.Description = msg.GetString();
-                    info.DataVersion = msg.GetString();
+                    info.Name = msg.GetStringPacked();
+                    info.Description = msg.GetStringPacked();
+                    info.DataVersion = msg.GetStringPacked();
                     info.CurrentPlayers = msg.GetInt();
                     info.MaxPlayers = msg.GetInt();
                     info.LastPingTime = sw.ElapsedMilliseconds;
