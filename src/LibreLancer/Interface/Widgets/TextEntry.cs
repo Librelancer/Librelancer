@@ -106,6 +106,8 @@ namespace LibreLancer.Interface
                     CurrentText = CurrentText.Substring(0, CurrentText.Length - 1);
             }
         }
+
+        public bool NotEmpty => !string.IsNullOrWhiteSpace(CurrentText);
         
         public override void OnTextInput(string text)
         {

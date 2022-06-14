@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 using LiteNetLib;
 using LiteNetLib.Utils;
 
@@ -123,16 +124,19 @@ namespace LibreLancer
             client.Connect(endPoint, AppIdentifier);
         }
 
-        public bool Connect(string str)
+        public void Connect(string str)
         {
-            IPEndPoint ep;
-            if (ParseEP(str, out ep))
+            Task.Run(() =>
             {
-                Connect(ep);
-                return true;
-            }
-            else
-                return false;
+                IPEndPoint ep;
+                if (ParseEP(str, out ep))
+                {
+                    Connect(ep);
+                }
+                else {
+                    mainThread.QueueUIThread(() => { Disconnected?.Invoke("Invalid IP or Host Address"); });
+                }
+            });
         }
 
         static bool ParseEP(string str, out IPEndPoint endpoint)

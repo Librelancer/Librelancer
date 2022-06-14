@@ -9,17 +9,12 @@ class serverlist : serverlist_Designer
 			OpenScene("mainmenu");
 		}));
 
-		e.connect.OnClick(() => Game.ConnectSelection());
-		e.directip.OnClick(() => {
-			OpenModal(new textentry((result,text) => {
-				if(result == "ok") {
-					if(!Game.ConnectAddress(text)) {
-						OpenModal(new modal("Error", "Address not valid"));
-					}
-				}
-			}, StringFromID(1861)));
+		e.connect.OnClick(() => {
+			this.connecting = new connecting();
+			OpenModal(this.connecting);
+			Game.ConnectSelection()
 		});
-
+		e.directip.OnClick(() => OpenModal(new ipentry(this)));
 		e.animgroupA.Animate('flyinleft', 0, 0.8)
 		e.animgroupB.Animate('flyinright', 0, 0.8)
 		this.InitNetwork();
@@ -41,6 +36,9 @@ class serverlist : serverlist_Designer
 
 	CharacterList()
 	{
+		if(this.connecting != nil) {
+			this.connecting.Close();
+		}
 		this.ExitAnimation(() => OpenScene("characterlist"));
 	}
 
@@ -54,6 +52,11 @@ class serverlist : serverlist_Designer
 
  	Disconnect()
     {
+		if(this.connecting != nil) {
+			this.connecting.Close();
+			this.connecting = nil;
+		}
         OpenModal(new modal("Error", "Unable to connect to the server", "ok", () => this.InitNetwork()));
     }
 }
+
