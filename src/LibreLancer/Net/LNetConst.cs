@@ -10,6 +10,6 @@ namespace LibreLancer
 		public const int DEFAULT_PORT = 43443;
         public const uint PING_MAGIC = 0xBACAFEBA;
 		public const string DEFAULT_APP_IDENT = "LIBRELANCER";
-        public const string BROADCAST_KEY = "BROADCAST-LIBRELANCER";
+        public const ulong BROADCAST_KEY = 0xBEEFBEEFCAFECAFE;
     }
 }

@@ -9,11 +9,11 @@ class characterlist : characterlist_Designer
         e.newchar.OnClick(() => Game.RequestNewCharacter());
         e.loadchar.OnClick(() => Game.LoadCharacter());
         e.deletechar.OnClick(() => Game.DeleteCharacter());
-        e.serverlist.OnClick(() => ExitAnimation(() => {
+        e.serverlist.OnClick(() => this.ExitAnimation(() => {
             Game.StopNetworking();
             OpenScene("serverlist");
         }));
-        e.mainmenu.OnClick(() => ExitAnimation(() => {
+        e.mainmenu.OnClick(() => this.ExitAnimation(() => {
             Game.StopNetworking();
             OpenScene("mainmenu");
         }));
@@ -46,3 +46,4 @@ class characterlist : characterlist_Designer
         OpenModal(new modal("Error", "You were disconnected from the server", "ok", () => this.ExitAnimation(() => OpenScene("mainmenu"))));
     }
 }
+

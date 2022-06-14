@@ -69,8 +69,8 @@ namespace LibreLancer
                 {
                     if (type == UnconnectedMessageType.Broadcast)
                     {
-                        if (!reader.TryGetString(out string str)) return;
-                        if (str != LNetConst.BROADCAST_KEY) return;
+                        reader.TryGetULong(out ulong key);
+                        if (key != LNetConst.BROADCAST_KEY) return;
                         var dw = new NetDataWriter();
                         dw.Put((int) 1);
                         dw.Put(unique);
