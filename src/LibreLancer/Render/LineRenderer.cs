@@ -7,7 +7,7 @@ using System.Numerics;
 using LibreLancer.Vertices;
 namespace LibreLancer
 {
-	public class PhysicsDebugRenderer :  IDisposable, Physics.IDebugRenderer
+	public class LineRenderer :  IDisposable, Physics.IDebugRenderer
 	{
 		public Color4 Color = Color4.Red;
 		const int MAX_LINES = 200000;
@@ -16,7 +16,7 @@ namespace LibreLancer
 		int lineVertices = 0;
 
 		Shaders.ShaderVariables shader;
-		public PhysicsDebugRenderer()
+		public LineRenderer()
         {
             shader = Shaders.PhysicsDebug.Get();
 			linebuffer = new VertexBuffer(typeof(VertexPositionColor), MAX_LINES * 2, true);

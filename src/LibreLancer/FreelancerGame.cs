@@ -27,6 +27,7 @@ namespace LibreLancer
 		public NebulaVertices Nebulae;
 		public ScreenshotManager Screenshots;
         public SaveGameFolder Saves;
+        public LineRenderer Lines;
 		public List<string> IntroMovies;
 		public string MpvOverride;
 		public bool InitialLoadComplete = false;
@@ -128,7 +129,7 @@ namespace LibreLancer
 			RenderContext.PushViewport(0, 0, Width, Height);
 			Screenshots = new ScreenshotManager(this);
             Typewriter = new Typewriter(this);
-            
+            Lines = new LineRenderer();
             Services.Add(Billboards);
             Services.Add(Nebulae);
             Services.Add(ResourceManager);

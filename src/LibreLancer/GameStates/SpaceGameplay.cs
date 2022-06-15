@@ -253,6 +253,8 @@ World Time: {12:F2}
                 return g.selected?.Name ?? "NULL";
             }
 
+            public TargetShipWireframe SelectionWireframe() => g.selected != null ? g.targetWireframe : null;
+
             public bool SelectionVisible()
             {
                 return g.selected != null && g.ScreenPosition(g.selected).visible;
@@ -748,6 +750,7 @@ World Time: {12:F2}
             return (windowSpace, ndc.Z < 1);
         }
 
+        private TargetShipWireframe targetWireframe = new TargetShipWireframe();
 
 		//RigidBody debugDrawBody;
         private int waitObjectiveFrames = 120;
@@ -758,6 +761,14 @@ World Time: {12:F2}
             {
                 loader.Draw(delta);
                 return;
+            }
+
+            if (selected != null) {
+                targetWireframe.Model = selected.RigidModel;
+                var lookAt = Matrix4x4.CreateLookAt(Vector3.Transform(Vector3.Zero, player.LocalTransform),
+                    Vector3.Transform(Vector3.UnitZ * 4, player.LocalTransform), Vector3.UnitY);
+                
+                targetWireframe.Matrix = (lookAt * selected.LocalTransform).ClearTranslation();
             }
 
             if (updateStartDelay > 0) updateStartDelay--;

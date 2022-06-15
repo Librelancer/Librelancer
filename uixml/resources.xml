@@ -80,6 +80,15 @@
       <Speed>1.2</Speed>
     </Animation>
   </Color>
+  <Color>
+    <Name>wireframe</Name>
+    <Color>
+      <R>0.36862746</R>
+      <G>0.53333336</G>
+      <B>0.6117647</B>
+      <A>1</A>
+    </Color>
+  </Color>
   <Model name="fullbutton_animating" path="INTERFACE/NEURONET/INVENTORY/front_button.cmp" x="0" y="0" xscale="7.8" yscale="31" />
   <Model name="hullgauge" path="INTERFACE/HUD/hud_hullgauge.3db" x="0" y="0" xscale="11.7" yscale="249" />
   <Model name="shieldgauge" path="INTERFACE/HUD/hud_shieldgauge.3db" x="0" y="0" xscale="11.7" yscale="249" />

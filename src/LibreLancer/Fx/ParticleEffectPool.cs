@@ -201,7 +201,7 @@ namespace LibreLancer.Fx
 
         private int fNo = 0;
 
-        public void Draw(ICamera camera, PolylineRender polyline, ResourceManager res, PhysicsDebugRenderer debug)
+        public void Draw(ICamera camera, PolylineRender polyline, ResourceManager res, LineRenderer debug)
         {
             this.camera = camera;
             countApp = 0;

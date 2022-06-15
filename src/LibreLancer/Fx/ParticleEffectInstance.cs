@@ -142,7 +142,7 @@ namespace LibreLancer.Fx
         
         public Matrix4x4 DrawTransform;
         public float DrawSParam;
-        public void DrawBeams(PolylineRender polyline, PhysicsDebugRenderer debug, Matrix4x4 transform, float sparam)
+        public void DrawBeams(PolylineRender polyline, LineRenderer debug, Matrix4x4 transform, float sparam)
         {
             if (Beams != null)
             {

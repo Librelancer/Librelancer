@@ -22,6 +22,7 @@ namespace LibreLancer.Interface
         public double GlobalTime;
         //Rendering
         public RenderContext RenderContext;
+        public LineRenderer Lines;
         public MatrixCamera MatrixCam = new MatrixCamera(Matrix4x4.Identity);
         //Data
         public UiData Data;
@@ -53,6 +54,7 @@ namespace LibreLancer.Interface
         public UiContext(FreelancerGame game)
         {
             RenderContext = game.RenderContext;
+            Lines = game.Lines;
             Data = new UiData(game);
             this.game = game;
             game.Mouse.MouseDown += MouseOnMouseDown;

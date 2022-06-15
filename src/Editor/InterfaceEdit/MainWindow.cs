@@ -43,6 +43,7 @@ namespace InterfaceEdit
                     _playContext.Event("Pause");
             };
             CommandBuffer = new CommandBuffer();
+            LineRenderer = new LineRenderer();
         }
 
         List<DockTab> tabs = new List<DockTab>();
@@ -53,7 +54,7 @@ namespace InterfaceEdit
         public TestingApi TestApi;
         public Project Project;
         public CommandBuffer CommandBuffer;
-
+        public LineRenderer LineRenderer;
 
         public void UiEvent(string ev)
         {
@@ -276,7 +277,8 @@ namespace InterfaceEdit
                 _playData.SetBundle(Compiler.Compile(Project.XmlFolder, Project.XmlLoader));
                 _playContext = new UiContext(_playData)
                 {
-                    RenderContext = RenderContext
+                    RenderContext = RenderContext,
+                    Lines = LineRenderer
                 };
                 _playContext.CommandBuffer = CommandBuffer;
                 _playContext.GameApi = TestApi;

@@ -365,7 +365,7 @@ namespace LibreLancer
             ApplyRenderTarget();
             ApplyViewport();
             SetBlendMode(requested.BlendMode);
-
+            GL.LineWidth(1);
             if (requested.DepthRange != applied.DepthRange)
             {
                 applied.DepthRange = requested.DepthRange;

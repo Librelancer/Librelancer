@@ -139,6 +139,7 @@ class hud : hud_Designer
 	    e.hullgauge.PercentFilled = Game.GetPlayerHealth()
 	    e.powergauge.PercentFilled = Game.GetPlayerPower()
 	    e.shieldgauge.PercentFilled = Game.GetPlayerShield()
+		e.wireframe.SetWireframe(Game.SelectionWireframe())
 	    local cruise = Game.CruiseCharge()
 	    
 	    if (cruise >= 0) {
@@ -196,6 +197,7 @@ class hud : hud_Designer
     Chatbox() => this.Elements.chatbox.Visible = true;
     Popup(title,contents,id) => OpenModal(new popup(title,contents,'ok', () => Game.PopupFinish(id)));
 }
+
 
 
 

@@ -183,6 +183,7 @@ namespace InterfaceEdit
 
         public GameSettings GetCurrentSettings() => settings.MakeCopy();
 
+
         public void ApplySettings(GameSettings settings)
         {
             this.settings = settings;
@@ -444,7 +445,9 @@ namespace InterfaceEdit
         public float SelectionHealth() => 0.5f;
         public float SelectionShield() => 0.75f;
         public Vector2 SelectionPosition() => new Vector2(300,300);
-
+        
+        public TargetShipWireframe SelectionWireframe() => null;
+        
         public int ThrustPercent() => 111;
         public int Speed() => 67;
         public void HotspotPressed(string hotspot)

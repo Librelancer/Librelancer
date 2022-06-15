@@ -32,6 +32,7 @@ namespace InterfaceEdit
             context = new UiContext(mainWindow.Project.UiData);
             context.CommandBuffer = mainWindow.CommandBuffer;
             context.RenderContext = mainWindow.RenderContext;
+            context.Lines = mainWindow.LineRenderer;
             context.GameApi = mainWindow.TestApi;
             TextChanged();
         }

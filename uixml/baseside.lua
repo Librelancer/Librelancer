@@ -14,7 +14,7 @@ local function ModelRenderable(model, tint)
 local function NavbarButton(hotspot, active)
 {
 	// State
-	local normalTint = active ? GetColor('yellow') : GetColor('white')
+	local normalTint = active ? GetColor('yellow') : GetColor('text')
 	// Construct Appearance
 	local model = NewObject('InterfaceModel')
 	model.Path = GetNavbarIconPath(hotspot)
@@ -30,7 +30,7 @@ local function NavbarButton(hotspot, active)
 	regAppearance.Background = ModelRenderable(model, normalTint)
 	style.Normal = regAppearance
 	local hoverAppearance = NewObject('ButtonAppearance')
-	hoverAppearance.Background = active ? regAppearance.Background : ModelRenderable(model, GetColor('white_hover'));
+	hoverAppearance.Background = active ? regAppearance.Background : ModelRenderable(model, GetColor('text_hover'));
 	style.Hover = hoverAppearance
 	// Set Appearance
 	button.ID = hotspot
@@ -160,6 +160,7 @@ class baseside : baseside_Designer
     
     MissionOffer(mission) => OpenModal(new popup(STRID_MISSION, mission, 'accept', (result) => Game.MissionResponse(result)));
 }
+
 
 
 

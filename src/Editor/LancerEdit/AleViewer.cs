@@ -20,7 +20,7 @@ namespace LancerEdit
         RenderContext rstate;
         CommandBuffer buffer;
         PolylineRender polyline;
-        PhysicsDebugRenderer debug;
+        LineRenderer debug;
         ParticleEffectPool pool;
         ResourceManager res;
         private int cameraMode = 0;
@@ -56,7 +56,7 @@ namespace LancerEdit
             aleViewport.ResetControls();;
             buffer = main.Commands;
             polyline = main.Polyline;
-            debug = main.DebugRender;
+            debug = main.LineRenderer;
             SetupRender(0);
         }
         ParticleEffectInstance instance;

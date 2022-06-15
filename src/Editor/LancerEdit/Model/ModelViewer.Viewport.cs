@@ -311,7 +311,7 @@ namespace LancerEdit
             {
                 GridRender.Draw(rstate, cam, _window.Config.GridColor);
             }
-            _window.DebugRender.StartFrame(cam, rstate);
+            _window.LineRenderer.StartFrame(cam, rstate);
             if (drawable is DF.DfmFile dfm)
             {
                 skel.UploadBoneData(buffer.BonesBuffer);
@@ -354,7 +354,7 @@ namespace LancerEdit
             }
             if (drawVMeshWire) DrawWires();
             //Draw VMeshWire (if used)
-            _window.DebugRender.Render();
+            _window.LineRenderer.Render();
             //Draw Sur
             if (surs != null)
                 RenderSurs(cam);
@@ -400,17 +400,17 @@ namespace LancerEdit
         }
         void DrawVMeshWire(VMeshWire wires, Matrix4x4 mat, int color)
         {
-            var c = _window.DebugRender.Color;
+            var c = _window.LineRenderer.Color;
             color %= initialCmpColors.Length;
-            _window.DebugRender.Color = initialCmpColors[color];
+            _window.LineRenderer.Color = initialCmpColors[color];
             for (int i = 0; i < wires.Lines.Length / 2; i++)
             {
-                _window.DebugRender.DrawLine(
+                _window.LineRenderer.DrawLine(
                     Vector3.Transform(wires.Lines[i * 2],mat),
                     Vector3.Transform(wires.Lines[i * 2 + 1],mat)
                 );
             }
-            _window.DebugRender.Color = c;
+            _window.LineRenderer.Color = c;
         }
 
         void DrawHardpoints(ICamera cam)

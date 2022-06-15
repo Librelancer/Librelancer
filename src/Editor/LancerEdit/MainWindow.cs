@@ -24,7 +24,7 @@ namespace LancerEdit
 		public AudioManager Audio;
 		public GameResourceManager Resources;
 		public PolylineRender Polyline;
-		public PhysicsDebugRenderer DebugRender;
+		public LineRenderer LineRenderer;
 		public CommandBuffer Commands; //This is a huge object - only have one
 		public MaterialMap MaterialMap;
         public RichTextEngine RichText;
@@ -103,7 +103,7 @@ namespace LancerEdit
             Resources = new GameResourceManager(this);
 			Commands = new CommandBuffer();
 			Polyline = new PolylineRender(Commands);
-			DebugRender = new PhysicsDebugRenderer();
+			LineRenderer = new LineRenderer();
             RenderContext.PushViewport(0, 0, 800, 600);
             Keyboard.KeyDown += Keyboard_KeyDown;
             //TODO: Icon-setting code very messy

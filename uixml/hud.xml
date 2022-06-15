@@ -4,6 +4,8 @@
 		<Panel.Background>
 			<DisplayModel model="contactlistbox"/>
 		</Panel.Background>
+		<WireframeView id="wireframe" X = "14" Y = "32" Width = "142" Height="111" WireframeColor="wireframe">
+		</WireframeView>
 	</Panel>
 	<Panel Anchor="BottomRight" Height="145.2" Width="169.88">
 		<Panel.Background>
@@ -99,6 +101,10 @@
     <ChatDisplay Anchor="BottomLeft" Y="130" Height="250" Width="510" X="10" id="chat"/>
     <TextBlock Y="70" Anchor="TopCenter" Width="640" Height="70" TextColor="text" TextSize="14" TextShadow="black" Strid="21810" AllCaps="true" id="nnobj" />
 </Scene>
+
+
+
+
 
 
 

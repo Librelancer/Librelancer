@@ -42,7 +42,7 @@ namespace LibreLancer
 		public RigidModel[] StarSphereModels;
 		public Matrix4x4[] StarSphereWorlds;
         public Lighting[] StarSphereLightings;
-		public PhysicsDebugRenderer DebugRenderer;
+		public LineRenderer DebugRenderer;
         public Action PhysicsHook;
 		public PolylineRender Polyline;
 		public SystemLighting SystemLighting = new SystemLighting();
@@ -107,7 +107,7 @@ namespace LibreLancer
             resman = game.GetService<ResourceManager>();
             nebulae = game.GetService<NebulaVertices>();
             dot = (Texture2D)rescache.FindTexture(ResourceManager.WhiteTextureName);
-            DebugRenderer = new PhysicsDebugRenderer();
+            DebugRenderer = new LineRenderer();
             Beams = new BeamsBuffer();
             if (GLExtensions.Features430)
             {
