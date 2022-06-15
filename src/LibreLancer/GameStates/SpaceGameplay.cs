@@ -75,6 +75,7 @@ World Time: {12:F2}
             ui.GameApi = uiApi = new LuaAPI(this);
             nextObjectiveUpdate = session.CurrentObjectiveIds;
             session.ObjectiveUpdated = () => nextObjectiveUpdate = session.CurrentObjectiveIds;
+            session.OnUpdateInventory = session.OnUpdatePlayerShip = null; //we should clear these handlers better
             loader = new LoadingScreen(g, g.GameData.LoadSystemResources(sys));
             loader.Init();
         }

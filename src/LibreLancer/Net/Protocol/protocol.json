@@ -14,10 +14,6 @@
           "args": [ { "name":  "_base", "type":  "string" }, { "name":  "room", "type":  "string"}]
         },
         {
-          "name": "ConsoleCommand",
-          "args": [ {"name": "command", "type":  "string" } ]
-        },
-        {
           "name": "RequestCharacterDB"
         },
         {

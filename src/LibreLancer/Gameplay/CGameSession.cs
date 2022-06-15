@@ -860,33 +860,26 @@ namespace LibreLancer
 
         public void OnChat(ChatCategory category, string str)
         {
-            if (category == ChatCategory.Console)
+            if (str.TrimEnd() == "/netstat")
             {
-                Chats.Append(str, "Arial", 9, Color4.Green);
-                if (str == "#netstat")
+                if (connection is GameNetClient nc)
                 {
-                    if (connection is GameNetClient nc)
-                    {
-                        string stats = $"Ping: {nc.Ping}, Loss {nc.LossPercent}%";
-                        Chats.Append(stats, "Arial", 9, Color4.CornflowerBlue);
-                        Chats.Append(
-                            $"Sent: {DebugDrawing.SizeSuffix(nc.BytesSent)}, Received: {DebugDrawing.SizeSuffix(nc.BytesReceived)}",
-                            "Arial", 9, Color4.CornflowerBlue);
-                    }
-                    else
-                    {
-                        Chats.Append("Offline", "Arial", 9, Color4.CornflowerBlue);
-                    }
-                }
-                else if (str == "#debug")
-                {
-                    Game.Debug.Enabled = !Game.Debug.Enabled;
+                    string stats = $"Ping: {nc.Ping}, Loss {nc.LossPercent}%";
+                    Chats.Append(stats, "Arial", 9, Color4.CornflowerBlue);
+                    Chats.Append(
+                        $"Sent: {DebugDrawing.SizeSuffix(nc.BytesSent)}, Received: {DebugDrawing.SizeSuffix(nc.BytesReceived)}",
+                        "Arial", 9, Color4.CornflowerBlue);
                 }
                 else
                 {
-                    rpcServer.ConsoleCommand(str);
+                    Chats.Append("Offline", "Arial", 9, Color4.CornflowerBlue);
                 }
-            } else {
+            }
+            else if (str.TrimEnd() == "/debug")
+            {
+                Game.Debug.Enabled = !Game.Debug.Enabled;
+            }
+            else {
                 rpcServer.ChatMessage(category, str);  
             }
         }

@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using LibreLancer;
@@ -19,6 +20,7 @@ namespace Server
 
 		public string DatabasePath;
         public bool UseLazyLoading;
+        public string[] Admins;
     }
 
 	class MainClass
@@ -40,6 +42,7 @@ namespace Server
 			var config = JSON.Deserialize<Config>(File.ReadAllText("librelancerserver.config.json"));
             config.DatabasePath = Path.GetFullPath(config.DatabasePath);
 			var srv = new GameServer(config.FreelancerPath);
+            if (config.Admins != null) srv.AdminCharacters = new List<string>(config.Admins);
 			var ctxFactory = new SqlDesignTimeFactory(config);
             if (!File.Exists(config.DatabasePath))
             {

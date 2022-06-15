@@ -30,8 +30,10 @@ namespace LibreLancer
         public ResourceManager Resources;
         
         public BaselinePrice[] BaselineGoodPrices;
-        
-        
+
+        public List<string> AdminCharacters = new List<string>();
+
+
         volatile bool running = false;
 
         public GameListener Listener;
@@ -180,6 +182,9 @@ namespace LibreLancer
                 return ConnectedPlayers.ToArray();
             }
         }
+
+        public Player GetConnectedPlayer(string name) =>
+            GetPlayers().FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
         
 
         private ServerLoop processingLoop;

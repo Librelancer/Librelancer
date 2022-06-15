@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using LibreLancer.Net;
 using LiteNetLib;
 using LiteNetLib.Utils;
 
@@ -44,7 +45,7 @@ namespace LibreLancer
             listener.ConnectionRequestEvent += request =>
             {
                 if (Server.ConnectedPeersCount > MaxConnections) request.Reject();
-                else request.AcceptIfKey(AppIdentifier);
+                else request.AcceptIfKey(AppIdentifier + GeneratedProtocol.PROTOCOL_HASH);
             };
             listener.PeerConnectedEvent += peer =>
             {

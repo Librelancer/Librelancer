@@ -14,6 +14,7 @@ using LibreLancer.GameData.Items;
 using LibreLancer.Entities.Character;
 using LibreLancer.GameData.Market;
 using LibreLancer.Net;
+using LibreLancer.Net.ConsoleCommands;
 
 namespace LibreLancer
 {
@@ -21,8 +22,8 @@ namespace LibreLancer
     {
         //ID
         public int ID = 0;
-        static int _gid = 0;
-
+        private static int _gid = 0;
+        public bool IsAdmin;
         //Reference
         public IPacketClient Client;
         public GameServer Game;
@@ -199,6 +200,7 @@ namespace LibreLancer
 
         public void OpenSaveGame(SaveGame sg)
         {
+            IsAdmin = true;
             Orientation = Quaternion.Identity;
             Position = sg.Player.Position;
             Base = sg.Player.Base;
@@ -379,7 +381,7 @@ namespace LibreLancer
             }
             if (slot.Count < count)
             {
-                FLLog.Error("Player", $"{Name} tried to oversell slot");
+                FLLog.Error("Player", $"{Name} tried to oversell slot ({slot.Equipment?.Nickname ?? "null"})");
                 return Task.FromResult(false);
             }
             ulong unitPrice = GetUnitPrice(slot.Equipment);
@@ -458,10 +460,11 @@ namespace LibreLancer
                     FLLog.Error("Player", $"{Name} tried to sell unknown slot {item.ID}");
                     return Task.FromResult(ShipPurchaseStatus.Fail);
                 }
-                if (!counts.TryGetValue(slot.ID, out int count))
-                    counts[slot.ID] = slot.Count;
+                if (!counts.TryGetValue(slot.ID, out int count)) {
+                    count = counts[slot.ID] = slot.Count;
+                }
                 if (count < item.Count) {
-                    FLLog.Error("Player", $"{Name} tried to oversell slot");
+                    FLLog.Error("Player", $"{Name} tried to oversell slot ({slot.Equipment.Nickname}, {count} < {item.Count})");
                     return Task.FromResult(ShipPurchaseStatus.Fail);
                 }
                 var price = GetUnitPrice(slot.Equipment);
@@ -721,132 +724,6 @@ namespace LibreLancer
           
         }
 
-        class ConsoleCommand
-        {
-            public string Cmd;
-            public Action<string> Action;
-            public ConsoleCommand(string cmd, Action<string> act)
-            {
-                this.Cmd = cmd;
-                this.Action = act;
-            }
-        }
-
-        private ConsoleCommand[] Commands;
-
-        void InitCommands()
-        {
-            Commands = new ConsoleCommand[]
-            {
-                new("base", (arg) =>
-                {
-                    if(Game.GameData.BaseExists(arg))
-                        ForceLand(arg);
-                    else 
-                        rpcClient.OnConsoleMessage($"Base does not exist `{arg}`");
-                }),
-                new("warp", (arg) =>
-                {
-                    var argSplit = arg.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                    if (argSplit.Length == 3)
-                    {
-                        if (PermissionCheck() && World != null)
-                        {
-                            if (float.TryParse(argSplit[0], out var x) &&
-                                float.TryParse(argSplit[1], out var y) &&
-                                float.TryParse(argSplit[2], out var z))
-                            {
-                                World.EnqueueAction(() =>
-                                {
-                                    var obj = World.Players[this];
-                                    obj.SetLocalTransform(Matrix4x4.CreateTranslation(x,y,z));
-                                });
-                            } else
-                                rpcClient.OnConsoleMessage("Invalid argument");
-                        }
-                    } else rpcClient.OnConsoleMessage("Invalid argument");
-                }),
-                new("credits", (x) => rpcClient.OnConsoleMessage($"You have ${Character.Credits}")),
-                new("sethealth", (arg) =>
-                {
-                    if (PermissionCheck())
-                    {
-                        if (int.TryParse(arg, out var h))
-                        {
-                            if (World != null) {
-                                World.EnqueueAction(() => {
-                                    World.Players[this].GetComponent<SHealthComponent>().CurrentHealth = h;
-                                    rpcClient.OnConsoleMessage("OK");
-                                });
-                            }
-                        }
-                        else
-                        {
-                            rpcClient.OnConsoleMessage("Invalid argument");
-                        }
-                    }
-                }),
-                new("npcspawn", (arg) =>
-                {
-                    if (PermissionCheck() && World != null)
-                    {
-                        if (World.Server.GameData.TryGetLoadout(arg.Trim(), out var ld))
-                        {
-                            World.NPCs.SpawnNPC(ld, Position + new Vector3(0, 0, 200)).ContinueWith(x =>
-                            {
-                                rpcClient.OnConsoleMessage($"ID = {x.Result}");
-                            });
-                        }
-                        else
-                        {
-                            rpcClient.OnConsoleMessage($"Unknown loadout '{arg}'");
-                        }
-                    }
-                }),
-                new ("npcdock", (arg) =>
-                {
-                    var x = arg.Split(',');
-                    if (PermissionCheck() && x.Length == 2 && int.TryParse(x[0].Trim(), out int netid) && World != null)
-                    {
-                        World.NPCs.DockWith(netid, x[1].Trim());
-                    }
-                }),
-                new ("npcattack", (arg) =>
-                {
-                    var x = arg.Split(',');
-                    if (PermissionCheck() && x.Length == 2 && int.TryParse(x[0].Trim(), out int netid) && World != null)
-                    {
-                        World.NPCs.Attack(netid, x[1].Trim());
-                    }
-                })
-            };
-        }
-
-        bool PermissionCheck()
-        {
-            if (Client is LocalPacketClient) return true;
-            else
-            {
-                rpcClient.OnConsoleMessage("Permission denied");
-                return false;
-            }
-        }
-
-        void IServerPlayer.ConsoleCommand(string cmd)
-        {
-            if (Commands == null) InitCommands();
-            foreach (var x in Commands)
-            {
-                if (cmd.StartsWith(x.Cmd, StringComparison.OrdinalIgnoreCase))
-                {
-                    var arg = cmd.Substring(x.Cmd.Length).Trim();
-                    x.Action(arg);
-                    return;
-                }
-            }
-            rpcClient.OnConsoleMessage($"Unrecognised command '{cmd}'");
-        }
-
         void IServerPlayer.RTCMissionAccepted()
         {
             msnRuntime?.MissionAccepted();
@@ -869,6 +746,7 @@ namespace LibreLancer
                 var sc = CharacterList[index];
                 FLLog.Info("Server", $"opening id {sc.Id}");
                 Character = NetCharacter.FromDb(sc.Id, Game);
+                IsAdmin = Game.AdminCharacters.Contains(Character.Name);
                 Name = Character.Name;
                 rpcClient.UpdateBaselinePrices(Game.BaselineGoodPrices);
                 rpcClient.UpdateInventory(Character.Credits, GetShipWorth(), Character.EncodeLoadout());
@@ -994,15 +872,23 @@ namespace LibreLancer
 
         void IServerPlayer.ChatMessage(ChatCategory category, string message)
         {
-            FLLog.Info("Chat", $"({DateTime.Now} {category}) {Name}: {message}");
-            switch (category)
+            if (message.Length >= 2 && message[0] == '/' && char.IsLetter(message[1]))
             {
-                case ChatCategory.System:
-                    Game.SystemChatMessage(this, message);
-                    break;
-                case ChatCategory.Local:
-                    World?.LocalChatMessage(this, message);
-                    break;
+                FLLog.Info("Console", $"({DateTime.Now} {category}) {Name}: {message}");
+                ConsoleCommands.Run(this, message.Substring(1));
+            }
+            else
+            {
+                FLLog.Info("Chat", $"({DateTime.Now} {category}) {Name}: {message}");
+                switch (category)
+                {
+                    case ChatCategory.System:
+                        Game.SystemChatMessage(this, message);
+                        break;
+                    case ChatCategory.Local:
+                        World?.LocalChatMessage(this, message);
+                        break;
+                }
             }
         }
         

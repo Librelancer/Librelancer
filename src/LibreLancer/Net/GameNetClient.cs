@@ -10,6 +10,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using LibreLancer.Net;
 using LiteNetLib;
 using LiteNetLib.Utils;
 
@@ -121,7 +122,7 @@ namespace LibreLancer
             connecting = true;
             while (client == null || !client.IsRunning) Thread.Sleep(0);
             client.Statistics?.Reset();
-            client.Connect(endPoint, AppIdentifier);
+            client.Connect(endPoint, AppIdentifier + GeneratedProtocol.PROTOCOL_HASH);
         }
 
         public void Connect(string str)

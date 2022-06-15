@@ -75,7 +75,6 @@ namespace LibreLancer
 
         void UpdateAction()
         {
-            
             handler.Call();
         }
         public void OnUpdateInventory(Closure handler)

@@ -4,9 +4,12 @@
 # LICENSE, which is part of this source code package
 
 import json
+import hashlib
+import base64
+from functools import partial
 from datetime import datetime,timezone
 
-print("Librelancer Protocol Generator 2022-06-14")
+print("Librelancer Protocol Generator 2022-06-15")
 
 # NetPacketReader methods
 typeMethods = {
@@ -37,11 +40,19 @@ enums = {
     "ChatCategory"
 }
 
+def get_md5(filename):
+    with open(filename, mode='rb') as f:
+        d = hashlib.md5()
+        for buf in iter(partial(f.read, 128), b''):
+            d.update(buf)
+    return base64.b64encode(d.digest()).decode().rstrip("=")
+    
 # Read the json
 with open("protocol.json", "r") as f:
   jstr = f.read()
   
 jfile = json.loads(jstr)
+filehash = get_md5("protocol.json")
 
 # Generator Helper
 varidx = 0
@@ -380,6 +391,9 @@ writeline("}")
 writeline("static class GeneratedProtocol")
 writeline("{")
 tabs += 1
+writestart("public const string PROTOCOL_HASH = \"")
+write(filehash)
+writeend("\";")
 # Register Packets
 writeline("public static void RegisterPackets()")
 writeline("{")
