@@ -53,7 +53,7 @@ namespace LibreLancer
             {
                 Instance.SetPosition(Position);
                 Instance.SetVelocity(Velocity);
-                Instance.SetAttenuation(Attenuation);
+                Instance.SetAttenuation(Entry.Attenuation + Attenuation);
                 Instance.SetPitch(Pitch);
                 Instance.UpdateProperties();
             }
@@ -63,7 +63,7 @@ namespace LibreLancer
             if (PlayOnce && Played) return;
             if (Instance == null)
             {
-                Instance = manager.GetInstance(Sound, Entry.Attenuation, -1, 1, Position);
+                Instance = manager.GetInstance(Sound, Attenuation + Entry.Attenuation, -1, 1, Position);
                 if (Instance != null)
                 {
                     Instance.SetPitch(Pitch);

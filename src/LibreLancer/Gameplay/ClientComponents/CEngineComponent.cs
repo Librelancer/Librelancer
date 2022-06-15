@@ -35,6 +35,7 @@ namespace LibreLancer
             if (range == Vector2.Zero) return 0;
             return MathHelper.Lerp(range.X, range.Y, Speed);
         }
+        
 		public override void Update(double time)
         {
             var tr = parent.WorldTransform;

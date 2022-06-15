@@ -58,6 +58,9 @@ namespace LibreLancer.Media
                 dev = Alc.alcOpenDevice(null);
                 ctx = Alc.alcCreateContext(dev, IntPtr.Zero);
                 Alc.alcMakeContextCurrent(ctx);
+                //Matches Freelancer (verified with dsoal)
+                Al.alDopplerFactor(0.1f);
+                
                 for (int i = 0; i < MAX_SOURCES; i++)
                 {
                     freeSources.Enqueue(Al.GenSource());

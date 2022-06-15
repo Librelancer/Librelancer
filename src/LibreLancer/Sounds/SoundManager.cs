@@ -121,6 +121,7 @@ namespace LibreLancer
             soundCache.UsedValue(snd);
             if (snd.Data == null) return;
             var inst = audio.CreateInstance(snd.Data, EntryType(name));
+            inst.SetAttenuation(snd.Entry.Attenuation);
             inst.DisposeOnStop = true;
             inst.Play();
         }
@@ -132,7 +133,9 @@ namespace LibreLancer
             if (snd.Data == null) return null;
             var inst = audio.CreateInstance(snd.Data, EntryType(name));
             if (inst == null) return null;
-            inst.SetAttenuation(attenuation);
+            inst.SetAttenuation(attenuation + snd.Entry.Attenuation);
+            if (mind < 0) mind = snd.Entry.Range.X;
+            if (maxd < 0) maxd = snd.Entry.Range.Y;
             if (mind != -1 && maxd != -1)
             {
                 inst.SetDistance(mind, maxd);

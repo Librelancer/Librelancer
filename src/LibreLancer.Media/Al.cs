@@ -68,6 +68,9 @@ namespace LibreLancer.Media
             [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
             public static extern void alDeleteBuffers(int i, ref uint buffers);
 
+            [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+            public static extern void alDopplerFactor(float factor);
+
         }
 
         //CONSTANTS
@@ -215,6 +218,12 @@ namespace LibreLancer.Media
         public static void alDeleteBuffers(int i, ref uint buffers)
         {
             Native.alDeleteBuffers(i, ref buffers);
+            CheckErrors();
+        }
+
+        public static void alDopplerFactor(float factor)
+        {
+            Native.alDopplerFactor(factor);
             CheckErrors();
         }
 
