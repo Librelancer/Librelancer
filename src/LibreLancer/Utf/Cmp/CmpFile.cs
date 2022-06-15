@@ -188,7 +188,7 @@ namespace LibreLancer.Utf.Cmp
 
         public RigidModel CreateRigidModel(bool drawable)
         {
-            var mdl = new RigidModel() {Path = Path};
+            var mdl = new RigidModel() {Path = Path, Source = RigidModelSource.Compound};
             mdl.Parts = new Dictionary<string, RigidModelPart>(StringComparer.OrdinalIgnoreCase);
             var rp = GetRootPart();
             List<RigidModelPart> allParts = new List<RigidModelPart>();

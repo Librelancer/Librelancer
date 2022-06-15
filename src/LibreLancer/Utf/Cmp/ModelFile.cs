@@ -219,7 +219,7 @@ namespace LibreLancer.Utf.Cmp
             var model = new RigidModel();
             model.Root = CreatePart(drawable);
             model.Root.Name = "Root";
-            model.From3db = true;
+            model.Source = RigidModelSource.SinglePart;
             model.AllParts = new[] { model.Root };
             model.Path = Path;
             model.MaterialAnims = MaterialAnim;

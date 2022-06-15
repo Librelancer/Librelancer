@@ -157,6 +157,20 @@
   <Model name="ls_background" path="INTERFACE/LOADSAVE/ls_background.cmp" x="0" y="0" xscale="3.15" yscale="3.3" />
   <Model name="escapewindow" path="INTERFACE/NEURONET/OPTIONS/escapewindow2.cmp" x="0" y="0" xscale="4" yscale="4" />
   <Model name="inv_category_commodity" path="INTERFACE/NEURONET/INVENTORY/commodities.3db" x="0" y="0" xscale="64" yscale="64" />
+  <Model name="hud_shiptarget" path="INTERFACE/HUD/hud_shiptarget.3db" x="0" y="0" xscale="52" yscale="52" />
+  <Model name="hud_nextenemy" path="INTERFACE/HUD/hud_nextenemy.3db" x="0" y="0.02" xscale="64" yscale="69" />
+  <Model name="hud_nanobots" path="INTERFACE/HUD/hud_repairactivate.3db" x="0" y="0" xscale="77" yscale="75" />
+  <Model name="hud_tractorbeam2" path="INTERFACE/HUD/hud_tractorbeam2.3db" x="0" y="0" xscale="69" yscale="69" />
+  <Model name="hud_radiationalert" path="INTERFACE/HUD/hud_radiationalert.3db" x="0" y="0" xscale="63" yscale="63" />
+  <Model name="hud_hailship" path="INTERFACE/HUD/hud_communication.3db" x="0" y="0" xscale="65" yscale="65" />
+  <Model name="hud_contactall" path="INTERFACE/HUD/hud_contactall.3db" x="0" y="0" xscale="86" yscale="86" />
+  <Model name="hud_contactloot" path="INTERFACE/HUD/hud_contactloot.3db" x="0" y="0" xscale="86" yscale="86" />
+  <Model name="hud_contactship" path="INTERFACE/HUD/hud_contactship.3db" x="0" y="0" xscale="86" yscale="96" />
+  <Model name="hud_contactstation" path="INTERFACE/HUD/hud_contactstation.3db" x="0" y="0" xscale="86" yscale="86" />
+  <Model name="hud_contactlist" path="INTERFACE/HUD/hud_contactlist.3db" x="0" y="0" xscale="64" yscale="64" />
+  <Model name="hud_contactimportant" path="INTERFACE/HUD/hud_contactimportant.3db" x="0" y="0" xscale="86" yscale="86" />
+  <Model name="hud_targetedobject" path="INTERFACE/HUD/hud_targetedobject.3db" x="0" y="0" xscale="76" yscale="76" />
+  <Model name="hud_shieldbatteries" path="INTERFACE/HUD/hud_shieldgaugeicon.3db" x="0" y="0" xscale="75" yscale="75" />
   <Image name="sliderarrow_up" texname="HUD_sliderarrow" type="Triangle" rot="None" flip="false">
     <TexCoords>
       <X0>0.086419754</X0>

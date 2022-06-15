@@ -11,7 +11,7 @@ namespace LibreLancer.Interface
 {
     [UiLoadable]
     [WattleScriptUserData]
-    public class WireframeView : Widget3D
+    public partial class WireframeView : Widget3D
     {
         public WireframeView()
         {
@@ -42,31 +42,42 @@ namespace LibreLancer.Interface
 
         void DrawWires(UiContext context)
         {
-            int i = 0;
-            foreach (var part in target.Model.AllParts)
+            if (target.Model.Source == RigidModelSource.Sphere)
             {
-                if (part.Wireframe != null)
+                DrawVMeshWire(context, sphereWireframe, target.Matrix);
+            }
+            else
+            {
+                foreach (var part in target.Model.AllParts)
                 {
-                    DrawVMeshWire(context, part.Wireframe, part.LocalTransform * target.Matrix);
+                    if (part.Wireframe != null)
+                    {
+                        DrawVMeshWire(context, part.Wireframe.Lines, part.LocalTransform * target.Matrix);
+                    }
                 }
             }
         }
-        void DrawVMeshWire(UiContext context, VMeshWire wires, Matrix4x4 mat)
+        void DrawVMeshWire(UiContext context, Vector3[] wires, Matrix4x4 mat)
         {
             var color = (WireframeColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
             context.Lines.Color = color;
-            for (int i = 0; i < wires.Lines.Length / 2; i++)
+            for (int i = 0; i < wires.Length / 2; i++)
             {
                 context.Lines.DrawLine(
-                    Vector3.Transform(wires.Lines[i * 2],mat),
-                    Vector3.Transform(wires.Lines[i * 2 + 1],mat)
+                    Vector3.Transform(wires[i * 2],mat),
+                    Vector3.Transform(wires[i * 2 + 1],mat)
                 );
             }
         }
         
         protected override void Draw3DContent(UiContext context, RectangleF rect)
         {
-            var cam = GetCamera(-target.Model.GetRadius() * 2.05f, context, rect);
+            float zoom;
+            if (target.Model.Source == RigidModelSource.Sphere)
+                zoom = SPHERE_OFFSET;
+            else
+                zoom = -target.Model.GetRadius() * 2.05f;
+            var cam = GetCamera(zoom, context, rect);
             context.Lines.StartFrame(cam, context.RenderContext);
             DrawWires(context);
             context.Lines.Render();

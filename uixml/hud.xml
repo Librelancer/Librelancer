@@ -1,91 +1,113 @@
 <Scene ScriptFile="hud.lua">
+	<!--<Panel Anchor="Center" Width="640" Height="480">
+		<ImageFile Path="DATA/freelancer_21.jpg" Fill="true" />
+	</Panel>-->
     <Scene id="hudcontrols">
 	<Panel Anchor="BottomLeft" Height="145.2" Width="169.88">
 		<Panel.Background>
-			<DisplayModel model="contactlistbox"/>
+			<DisplayModel model="contactlistbox" />
 		</Panel.Background>
-		<WireframeView id="wireframe" X = "14" Y = "32" Width = "142" Height="111" WireframeColor="wireframe">
+		<Button id="nextenemy" X="22" Y="3" Width="21" height="20">
+			<Button.Background><DisplayModel model="hud_nextenemy" tint="text" /></Button.Background>
+		</Button>
+		<Button id="showwireframe" X="106" Y="3" Width="18" Height="18">
+			<Button.Background><DisplayModel model="hud_targetedobject" tint="text" /></Button.Background>
+		</Button>
+		<Button id="showcontactlist" X="126.5" Y="2" Width="20" Height="22">
+			<Button.Background><DisplayModel model="hud_contactlist" tint="text" /></Button.Background>
+		</Button>
+		<Scene id="contactlist">
+		
+		</Scene>
+		<Scene id="targetwireframe">
+		<WireframeView id="wireframe" X="14" Y="32" Width="142" Height="111" WireframeColor="wireframe">
 		</WireframeView>
+		</Scene>
 	</Panel>
 	<Panel Anchor="BottomRight" Height="145.2" Width="169.88">
 		<Panel.Background>
-			<DisplayModel model="shipinfobox"/>
+			<DisplayModel model="shipinfobox" />
 		</Panel.Background>
-		<ListBox id="weapons_list" X = "14" Y = "32" Width = "142" Height="111" ItemHeight="11">
+		<Button id="usenanobots" X="27" Y="4" Width="19" Height="18">
+			<Button.Background><DisplayModel model="hud_nanobots" tint="text" /></Button.Background>
+		</Button>
+		<Button id="useshieldbats" X="62" Y="3" Width="20" Height="20">
+			<Button.Background><DisplayModel model="hud_shieldbatteries" tint="text" /></Button.Background>
+		</Button>
+		<ListBox id="weapons_list" X="14" Y="32" Width="142" Height="111" ItemHeight="11">
 
 	    </ListBox>
 	</Panel>
-	<TextBlock Anchor="BottomCenter" Height="27" Width="275" Y="60" Text = "CRUISE ENGINE CHARGING - WEAPONS OFF-LINE - 25%"
-	TextShadow="black" TextColor="text" TextSize="12" id="cruisecharge" Visible="false" />
+	<TextBlock Anchor="BottomCenter" Height="27" Width="275" Y="60" Text="CRUISE ENGINE CHARGING - WEAPONS OFF-LINE - 25%" TextShadow="black" TextColor="text" TextSize="12" id="cruisecharge" Visible="false" />
 	<Panel Anchor="BottomCenter" Height="27" Width="131" X="4" Y="-5">
 		<Panel.Background>
-			<DisplayModel model="gaugecontainer"/>
+			<DisplayModel model="gaugecontainer" />
 		</Panel.Background>
 		<Gauge ID="powergauge" Anchor="TopCenter" Width="100" Height="4.5" Y="3.5" PercentFilled="1">
 			<Gauge.Fill>
-				<DisplayModel model="powergauge"/>
+				<DisplayModel model="powergauge" />
 			</Gauge.Fill>
 		</Gauge>
 		<Gauge ID="shieldgauge" Anchor="TopCenter" Width="100" Height="4.5" Y="10" PercentFilled="1">
 			<Gauge.Fill>
-				<DisplayModel model="shieldgauge"/>
+				<DisplayModel model="shieldgauge" />
 			</Gauge.Fill>
 		</Gauge>
 		<Gauge ID="hullgauge" Anchor="TopCenter" Width="100" Height="4.5" Y="15" PercentFilled="1">
 			<Gauge.Fill>
-				<DisplayModel model="hullgauge"/>
+				<DisplayModel model="hullgauge" />
 			</Gauge.Fill>
 		</Gauge>
 	</Panel>
-	<Panel Anchor="TopRight" Height="34" Width="131" Y="-7" >
+	<Panel Anchor="TopRight" Height="34" Width="131" Y="-7">
 		<Panel.Background>
-			<DisplayModel model="hud_nnbox5"/>
+			<DisplayModel model="hud_nnbox5" />
 		</Panel.Background>
 	</Panel>
 	<Panel X="10" Y="10" Width="150" Height="100" id="selection" Visible="true" CaptureMouse="false">
-		<Panel Anchor="TopLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tl"/></Panel.Background></Panel>
-		<Panel Anchor="TopRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tr"/></Panel.Background></Panel>
-		<Panel Anchor="BottomLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_bl"/></Panel.Background></Panel>
-		<Panel Anchor="BottomRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_br"/></Panel.Background></Panel>
+		<Panel Anchor="TopLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tl" /></Panel.Background></Panel>
+		<Panel Anchor="TopRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tr" /></Panel.Background></Panel>
+		<Panel Anchor="BottomLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_bl" /></Panel.Background></Panel>
+		<Panel Anchor="BottomRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_br" /></Panel.Background></Panel>
 		<TextBlock id="selection_name" Y="-3" Anchor="TopCenter" Width="150" Height="20" Text="Target" VerticalAlignment="Top" TextSize="9"></TextBlock>
 		<Gauge Width="50" Height="5" Y="9" Anchor="BottomCenter" PercentFilled="0.5" id="selection_health">
-			<Gauge.Fill><DisplayColor color="red"/></Gauge.Fill>
-			<Gauge.Background><DisplayColor color="black"/></Gauge.Background>
-			<Gauge.Border><DisplayRectangle color="red"/></Gauge.Border>
+			<Gauge.Fill><DisplayColor color="red" /></Gauge.Fill>
+			<Gauge.Background><DisplayColor color="black" /></Gauge.Background>
+			<Gauge.Border><DisplayRectangle color="red" /></Gauge.Border>
 		</Gauge>
 		<Gauge Width="50" Height="5" Y="2" Anchor="BottomCenter" PercentFilled="0.5" id="selection_shield">
-			<Gauge.Fill><DisplayColor color="blue"/></Gauge.Fill>
-			<Gauge.Background><DisplayColor color="black"/></Gauge.Background>
-			<Gauge.Border><DisplayRectangle color="blue"/></Gauge.Border>
+			<Gauge.Fill><DisplayColor color="blue" /></Gauge.Fill>
+			<Gauge.Background><DisplayColor color="black" /></Gauge.Background>
+			<Gauge.Border><DisplayRectangle color="blue" /></Gauge.Border>
 		</Gauge>
 	</Panel>
-	<Button Anchor="TopRight" Style="nn_info" ID="nn_info" X="8" Y="2"/>
-	<Button Anchor="TopRight" Style="nn_playerstatus" ID="nn_playerstatus" X="37" Y="2"/>
-	<Button Anchor="TopRight" Style="nn_inventory" ID="nn_inventory" X="52" Y="6"/>
-	<Button Anchor="TopRight" Style="nn_map" ID="nn_map" X="76" Y="2"/>
-	<Button Anchor="TopRight" Style="nn_storystar" ID="nn_storystar" X="103" Y="1"/>
+	<Button Anchor="TopRight" Style="nn_info" ID="nn_info" X="8" Y="2" />
+	<Button Anchor="TopRight" Style="nn_playerstatus" ID="nn_playerstatus" X="37" Y="2" />
+	<Button Anchor="TopRight" Style="nn_inventory" ID="nn_inventory" X="52" Y="6" />
+	<Button Anchor="TopRight" Style="nn_map" ID="nn_map" X="76" Y="2" />
+	<Button Anchor="TopRight" Style="nn_storystar" ID="nn_storystar" X="103" Y="1" />
 	<Panel Anchor="BottomCenter" Height="25" Width="212" Y="-6" X="4">
 		<Panel.Background>
-			<DisplayModel model="numberboxes"/>
+			<DisplayModel model="numberboxes" />
 		</Panel.Background>
-		<TextBlock ID="thrustText" Height="18" Width="26" X="8" Y="1" Font="Agency FB" Text="100%" TextColor="text"/>
-		<TextBlock ID="speedText" Anchor="TopRight" Height="18" Width="26" X="10" Y="1" Font="Agency FB" Text="80" TextColor="text"/>
+		<TextBlock ID="thrustText" Height="18" Width="26" X="8" Y="1" Font="Agency FB" Text="100%" TextColor="text" />
+		<TextBlock ID="speedText" Anchor="TopRight" Height="18" Width="26" X="10" Y="1" Font="Agency FB" Text="80" TextColor="text" />
 	</Panel>
 	<!-- Managed by navbox.lua -->
 	<Panel ID="actionbox1" Y="42" Anchor="TopCenter" Width="33" Height="31" X="-80.4" Visible="false">
 		<Panel.Background>
-			<DisplayModel model="actionbox1"/>
+			<DisplayModel model="actionbox1" />
 		</Panel.Background>
 	</Panel>
-	<Panel ID="actionbox2"/>
-	<Panel ID="actionbox3"/>
-	<Panel ID="navbox1"/>
-	<Panel ID="navbox2"/>
-	<Panel ID="navbox3"/>
-	<Panel ID="navbox5"/>
+	<Panel ID="actionbox2" />
+	<Panel ID="actionbox3" />
+	<Panel ID="navbox1" />
+	<Panel ID="navbox2" />
+	<Panel ID="navbox3" />
+	<Panel ID="navbox5" />
 	<Panel ID="navbox4" Anchor="TopCenter" Y="-10" Width="225" Height="52.12" Visible="true">
 		<Panel.Background>
-			<DisplayModel model="navbox4"/>
+			<DisplayModel model="navbox4" />
 		</Panel.Background>
 	</Panel>
 	</Scene>
@@ -101,33 +123,3 @@
     <ChatDisplay Anchor="BottomLeft" Y="130" Height="250" Width="510" X="10" id="chat"/>
     <TextBlock Y="70" Anchor="TopCenter" Width="640" Height="70" TextColor="text" TextSize="14" TextShadow="black" Strid="21810" AllCaps="true" id="nnobj" />
 </Scene>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

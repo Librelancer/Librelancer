@@ -215,6 +215,13 @@ namespace LibreLancer
         }
     }
 
+    public enum RigidModelSource
+    {
+        Compound,
+        SinglePart,
+        Sphere
+    }
+
     public class RigidModel
     {
         public string Path;
@@ -222,9 +229,9 @@ namespace LibreLancer
         public AnmFile Animation;
         public RigidModelPart Root;
         public RigidModelPart[] AllParts;
-        //Used for collision purposes only
         //Sur models use hash value of 0 instead of "Root" hash for 3db files
-        public bool From3db; 
+        //Sphere models don't carry a VMeshWire
+        public RigidModelSource Source;
         //Lookup for multipart - NULL on single-part
         public Dictionary<string, RigidModelPart> Parts;
         public void UpdateTransform()

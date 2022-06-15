@@ -88,7 +88,7 @@ namespace LibreLancer
                 var mr = (ModelRenderer)Parent.RenderComponent;
                 sur = new SurCollider(SurPath);
                 cld = sur;
-                if(Parent.RigidModel.From3db) {
+                if(Parent.RigidModel.Source == RigidModelSource.SinglePart) {
                     sur.AddPart(PlainCrc, Matrix4x4.Identity, null);
                 } else {
                     foreach(var part in Parent.RigidModel.AllParts) {
