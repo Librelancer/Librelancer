@@ -31,6 +31,7 @@ namespace LibreLancer
         
         public BaselinePrice[] BaselineGoodPrices;
 
+        //TODO: This should be set in the database, not as a config string
         public List<string> AdminCharacters = new List<string>();
 
 
