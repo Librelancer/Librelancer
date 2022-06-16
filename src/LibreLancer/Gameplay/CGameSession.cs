@@ -886,9 +886,31 @@ namespace LibreLancer
             }
         }
 
+        
+
         void IClientPlayer.ReceiveChatMessage(ChatCategory category, string player, string message)
         {
             Chats.Append($"{player}: {message}", "Arial", 26, category.GetColor());
+        }
+        
+        private static int NEW_PLAYER = 393298;
+        private static int DEPARTING_PLAYER = 393299;
+
+        private string newPlayerStr;
+        private string departingPlayerStr;
+
+        void IClientPlayer.OnPlayerJoin(int id, string name)
+        {
+            if (newPlayerStr == null)
+                newPlayerStr = Game.GameData.GetInfocardText(NEW_PLAYER, Game.Fonts).TrimEnd('\n');
+            Chats.Append($"{newPlayerStr}{name}", "Arial", 26, Color4.DarkRed);
+        }
+
+        void IClientPlayer.OnPlayerLeave(int id, string name)
+        {
+            if (departingPlayerStr == null)
+                departingPlayerStr = Game.GameData.GetInfocardText(DEPARTING_PLAYER, Game.Fonts).TrimEnd('\n');
+            Chats.Append($"{departingPlayerStr}{name}", "Arial", 26, Color4.DarkRed);
         }
         
 

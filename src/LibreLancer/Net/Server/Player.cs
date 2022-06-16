@@ -753,6 +753,8 @@ namespace LibreLancer
                 Base = Character.Base;
                 System = Character.System;
                 Position = Character.Position;
+                foreach(var player in Game.AllPlayers.Where(x => x != this))
+                    player.RemoteClient.OnPlayerJoin(ID, Name);
                 if (Base != null) {
                     PlayerEnterBase();
                 } else {
@@ -899,9 +901,14 @@ namespace LibreLancer
         }
         public void Disconnected()
         {
-            Character?.UpdatePosition(Base, System, Position);
-            World?.RemovePlayer(this);
-            Character?.Dispose();
+            if (Character != null)
+            {
+                Character.UpdatePosition(Base, System, Position);
+                World?.RemovePlayer(this);
+                Character?.Dispose();
+                foreach(var player in Game.AllPlayers.Where(x => x != this))
+                    player.RemoteClient.OnPlayerLeave(ID, Name);
+            }
         }
         
         public void PlaySound(string sound)

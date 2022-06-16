@@ -184,6 +184,8 @@ namespace LibreLancer
             }
         }
 
+        public IEnumerable<Player> AllPlayers => GetPlayers();
+
         public Player GetConnectedPlayer(string name) =>
             GetPlayers().FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
         
