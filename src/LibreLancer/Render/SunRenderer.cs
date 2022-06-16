@@ -87,7 +87,7 @@ namespace LibreLancer
             vertices = vx.ToArray();
         }
 
-        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
+        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
         {
             sysr = sys;
             sys.AddObject(this);

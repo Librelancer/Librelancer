@@ -365,17 +365,9 @@ namespace LibreLancer
 
         public void RenderUpdate(double time)
         {
-            bool childRU = true;
-            if (RenderComponent != null)
-            {
-                childRU = RenderComponent == null || RenderComponent.CurrentLevel == 0;
-                RenderComponent.Update(time, Vector3.Transform(Vector3.Zero, WorldTransform), WorldTransform);
-            }
-            if (childRU)
-            {
-                for(int i = 0; i < Children.Count; i++)
-                    Children[i].RenderUpdate(time);
-            }
+            RenderComponent?.Update(time, Vector3.Transform(Vector3.Zero, WorldTransform), WorldTransform);
+            for (int i = 0; i < Children.Count; i++)
+                Children[i].RenderUpdate(time);
         }
         
         public void Register(PhysicsWorld physics)
@@ -394,20 +386,22 @@ namespace LibreLancer
 			return World;
 		}
         
-        public void PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
+        public void PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool parentCull = false)
         {
-            if(RenderComponent == null || RenderComponent.PrepareRender(camera,nr,sys))
-            {
+            if(RenderComponent == null || RenderComponent.PrepareRender(camera,nr,sys, parentCull)) {
                 //Guns etc. aren't drawn when parent isn't on LOD0
-                var isZero = RenderComponent == null || RenderComponent.CurrentLevel == 0;
-                foreach (var child in Children) {
-                    if((child.RenderComponent != null && !child.RenderComponent.InheritCull) ||
-                       isZero)
-                    child.PrepareRender(camera, nr, sys);
-                }
+                parentCull = RenderComponent != null && RenderComponent.CurrentLevel > 0;
             }
+            else {
+                parentCull = true;
+            }
+
+            foreach (var child in Children) {
+                child.PrepareRender(camera, nr, sys, parentCull);
+            }
+            
             foreach (var child in ExtraRenderers)
-                child.PrepareRender(camera, nr, sys);
+                child.PrepareRender(camera, nr, sys, false);
         }
 
         public List<ObjectRenderer> ExtraRenderers = new List<ObjectRenderer>();

@@ -66,7 +66,7 @@ namespace LibreLancer
             var bsphere = new BoundingSphere(position, RADIUS);
             return !camera.Frustum.Intersects(bsphere);
         }
-        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
+        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
         {
             var position = Vector3.Transform(Vector3.Zero, transform);
             var bsphere = new BoundingSphere(position, RADIUS);

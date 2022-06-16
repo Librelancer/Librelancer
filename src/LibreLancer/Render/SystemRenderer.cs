@@ -305,7 +305,7 @@ namespace LibreLancer
 			JThreads.Instance.BeginExecute();*/
             foreach (var obj in tempFx)
             {
-                obj.Render.PrepareRender(camera, nr, this);
+                obj.Render.PrepareRender(camera, nr, this, false);
             }
             for (int i = 0; i < World.Objects.Count; i++)
             {

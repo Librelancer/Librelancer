@@ -22,14 +22,14 @@ namespace LibreLancer
 			fx = new ParticleEffectInstance(effect);
 		}
         Vector3 cameraPos;
-        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
+        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
         {
             if (fx == null) return false;
             this.sys = sys;
             cameraPos = camera.Position;
             dist = Vector3.DistanceSquared(pos, camera.Position);
             fx.Resources = sys.ResourceManager;
-            if (Active && dist < (20000 * 20000))
+            if (Active && dist < (20000 * 20000) && !forceCull)
             {
                 sys.AddObject(this);
                 fx.Pool = sys.FxPool;

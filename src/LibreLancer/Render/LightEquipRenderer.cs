@@ -104,9 +104,10 @@ namespace LibreLancer
             }
         }
 
-        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
+        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
         {
             var visible = (
+                !forceCull && 
                 LightOn && 
                 Vector3.DistanceSquared(camera.Position, pos) < CULL &&
                 camera.Frustum.Intersects(new BoundingSphere(pos, equip.BulbSize * 3))

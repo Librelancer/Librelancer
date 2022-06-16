@@ -428,9 +428,24 @@ namespace LibreLancer
                         update.ID = (int) obj.NicknameCRC;
                         update.IsCRC = true;
                     }
-                    if(obj.TryGetComponent<SEngineComponent>(out var engine))
+
+                    if (obj.TryGetComponent<SEngineComponent>(out var eng))
+                        update.Throttle = eng.Speed;
+                    
+                    if(obj.TryGetComponent<ShipPhysicsComponent>(out var objPhysics))
                     {
-                        update.Throttle = engine.Speed;
+                        switch (objPhysics.EngineState)
+                        {
+                            case EngineStates.CruiseCharging:
+                                update.CruiseThrust = CruiseThrustState.CruiseCharging;
+                                break;
+                            case EngineStates.Cruise:
+                                update.CruiseThrust = CruiseThrustState.Cruising;
+                                break;
+                            case EngineStates.Standard when objPhysics.ThrustEnabled:
+                                update.CruiseThrust = CruiseThrustState.Thrusting;
+                                break;
+                        }
                     }
                     if (obj.TryGetComponent<SHealthComponent>(out var health))
                     {

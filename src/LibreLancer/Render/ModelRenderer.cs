@@ -100,7 +100,7 @@ namespace LibreLancer
 
         Matrix4x4 _worldSph;
         private BitArray128 visibleParts;
-        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
+        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
 		{
             _worldSph = World;
             if(Spin != Vector3.Zero)
@@ -110,7 +110,7 @@ namespace LibreLancer
                      Matrix4x4.CreateRotationZ((float)spinZ)) * World;
             }
             this.sysr = sys;
-			if (Nebula != null && nr != Nebula)
+			if (Nebula != null && nr != Nebula || forceCull)
 			{
                 return false;
 			}

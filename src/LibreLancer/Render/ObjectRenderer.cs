@@ -28,7 +28,7 @@ namespace LibreLancer
 			return true;
 		}
 
-        public virtual bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
+        public virtual bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
 		{
             return false;
 		}

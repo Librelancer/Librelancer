@@ -4,25 +4,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+
 namespace LibreLancer
 {
-	public class CThrusterComponent : GameComponent
+	public class CThrusterComponent : ThrusterComponent
 	{
-		public GameData.Items.ThrusterEquipment Equip;
-		public bool Enabled;
-		List<AttachedEffect> fireFx = new List<AttachedEffect>();
-		public CThrusterComponent(GameObject parent, GameData.Items.ThrusterEquipment equip) : base(parent)
-		{
-			Equip = equip;
-			var hps = parent.GetHardpoints();
-			foreach (var hp in hps)
-			{
-				if (!hp.Name.Equals(Equip.HpParticles, StringComparison.OrdinalIgnoreCase))
-				{
-					//fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(Equip.Particles)));
-				}
-			}
-		}
+        List<AttachedEffect> fireFx = new List<AttachedEffect>();
+		public CThrusterComponent(GameObject parent, GameData.Items.ThrusterEquipment equip) : base(parent, equip) { }
 
 		public override void Update(double time)
 		{
@@ -30,8 +19,20 @@ namespace LibreLancer
 				fireFx[i].Update(Parent, time, Enabled ? 1 : 0);
 		}
 		public override void Register(Physics.PhysicsWorld physics)
-		{
-			for (int i = 0; i < fireFx.Count; i++)
+        {
+            GameDataManager gameData;
+            if ((gameData = GetGameData()) != null)
+            {
+                var resman = GetResourceManager();
+                var pfx = Equip.Particles.GetEffect(resman);
+                foreach (var hp in Parent.GetHardpoints()
+                             .Where(x => x.Name.Equals(Equip.HpParticles, StringComparison.OrdinalIgnoreCase)))
+                {
+                    fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(pfx)));
+                }
+            }
+
+            for (int i = 0; i < fireFx.Count; i++)
                 Parent.ExtraRenderers.Add(fireFx[i].Effect);
 		}
 		public override void Unregister(Physics.PhysicsWorld physics)

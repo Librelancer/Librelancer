@@ -826,6 +826,8 @@ namespace LibreLancer
             if (update.HasPosition && obj.TryGetComponent<CEngineComponent>(out var eng))
             {
                 eng.Speed = update.Throttle;
+                foreach (var comp in obj.GetChildComponents<CThrusterComponent>())
+                    comp.Enabled = (update.CruiseThrust == CruiseThrustState.Thrusting);
             }
             if (obj.TryGetComponent<CHealthComponent>(out var health))
             {

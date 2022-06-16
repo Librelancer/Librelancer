@@ -22,7 +22,7 @@ namespace LibreLancer
         public override void DepthPrepass(ICamera camera, RenderContext rstate)
         {
         }
-        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys)
+        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
         {
             beams = sys.Beams;
             renderCount = 0;

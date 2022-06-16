@@ -17,10 +17,10 @@ namespace LibreLancer
         private AttachedSound cruiseLoop;
         private AttachedSound cruiseStart;
         private AttachedSound cruiseEnd;
-		GameObject parent;
+		GameObject Ship;
 		public CEngineComponent(GameObject parent, EngineEquipment engine) : base(parent)
 		{
-            this.parent = parent;
+            this.Ship = parent;
 			Engine = engine;
         }
 
@@ -38,12 +38,12 @@ namespace LibreLancer
         
 		public override void Update(double time)
         {
-            var tr = parent.WorldTransform;
+            var tr = Ship.WorldTransform;
             var pos = Vector3.Transform(Vector3.Zero,tr);
             var vel = Vector3.Zero;
-            if (parent.PhysicsComponent != null)
+            if (Ship.PhysicsComponent != null)
             {
-                vel = parent.PhysicsComponent.Body.LinearVelocity;
+                vel = Ship.PhysicsComponent.Body.LinearVelocity;
             }
             if (rumble != null)
             {
@@ -118,17 +118,17 @@ namespace LibreLancer
                 cruiseEnd.Velocity = vel;
                 cruiseEnd.Update();
             }
-            for (int i = 0; i < fireFx.Count; i++)
-				fireFx[i].Update(parent, time, Speed);
             
-		}
+            for (int i = 0; i < fireFx.Count; i++)
+				fireFx[i].Update(Ship, time, Speed);
+        }
 		public override void Register(Physics.PhysicsWorld physics)
         {
             GameDataManager gameData;
             if ((gameData = GetGameData()) != null)
             {
                 var resman = GetResourceManager();
-                var hps = parent.GetHardpoints();
+                var hps = Ship.GetHardpoints();
                 ParticleEffect trailFx = null;
                 string trailFxName = Engine.Def.TrailEffect;
                 if (Parent.Tag == GameObject.ClientPlayerTag && !string.IsNullOrEmpty(Engine.Def.TrailEffectPlayer))

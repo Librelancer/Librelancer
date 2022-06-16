@@ -23,8 +23,10 @@ namespace LibreLancer.GameData.Items
         {
             var th = (ThrusterEquipment)equip;
             var obj = GameObject.WithModel(th.ModelFile, type != EquipmentType.Server, parent.Resources);
-            if(type != EquipmentType.Cutscene)
+            if(type == EquipmentType.LocalPlayer || type == EquipmentType.RemoteObject)
                 obj.Components.Add(new CThrusterComponent(obj, th));
+            else if (type == EquipmentType.Server)
+                obj.Components.Add(new ThrusterComponent(obj, th));
             return obj;
         }
     }
