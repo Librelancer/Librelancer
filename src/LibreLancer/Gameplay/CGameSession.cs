@@ -508,7 +508,7 @@ namespace LibreLancer
 
         void IClientPlayer.OnConsoleMessage(string text)
         {
-            Chats.Append(text, "Arial", 10, Color4.LimeGreen);
+            Chats.Append(text, "Arial", 26, Color4.LimeGreen);
         }
 
         void RunSync(Action gp) => gameplayActions.Enqueue(gp);
@@ -865,14 +865,14 @@ namespace LibreLancer
                 if (connection is GameNetClient nc)
                 {
                     string stats = $"Ping: {nc.Ping}, Loss {nc.LossPercent}%";
-                    Chats.Append(stats, "Arial", 9, Color4.CornflowerBlue);
+                    Chats.Append(stats, "Arial", 26, Color4.CornflowerBlue);
                     Chats.Append(
                         $"Sent: {DebugDrawing.SizeSuffix(nc.BytesSent)}, Received: {DebugDrawing.SizeSuffix(nc.BytesReceived)}",
                         "Arial", 9, Color4.CornflowerBlue);
                 }
                 else
                 {
-                    Chats.Append("Offline", "Arial", 9, Color4.CornflowerBlue);
+                    Chats.Append("Offline", "Arial", 26, Color4.CornflowerBlue);
                 }
             }
             else if (str.TrimEnd() == "/debug")
@@ -886,7 +886,7 @@ namespace LibreLancer
 
         void IClientPlayer.ReceiveChatMessage(ChatCategory category, string player, string message)
         {
-            Chats.Append($"{player}: {message}", "Arial", 11, category.GetColor());
+            Chats.Append($"{player}: {message}", "Arial", 26, category.GetColor());
         }
         
 

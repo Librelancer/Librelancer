@@ -3,6 +3,8 @@
 // LICENSE, which is part of this source code package
 using System;
 using System.Collections.Generic;
+using System.Net;
+using SharpDX.MediaFoundation;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -12,6 +14,10 @@ namespace LibreLancer.Interface
     public class ChatDisplay: UiWidget
     {
         public ChatSource Chat = new ChatSource();
+
+        private BuiltRichText builtText;
+        private float builtMultiplier = 0;
+        private ChatSource.DisplayMessage[] buildMessges = Array.Empty<ChatSource.DisplayMessage>();
         
         RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
@@ -19,30 +25,72 @@ namespace LibreLancer.Interface
             var myRectangle = new RectangleF(myPos.X, myPos.Y, Width, Height);
             return myRectangle;
         }
+
+        ChatSource.DisplayMessage[] GetMessageIds()
+        {
+            lock (Chat.Messages)
+            {
+                List<ChatSource.DisplayMessage> ids = new();
+                for (int i = Chat.Messages.Count - 1; i >= 0 && (i >= Chat.Messages.Count - 16); i--)
+                {
+                    var msg = Chat.Messages[i];
+                    if (msg.TimeAlive <= 0) continue;
+                    ids.Add(msg);
+                }
+                return ids.ToArray();
+            }
+        }
+
+        bool IdChanged(ChatSource.DisplayMessage[] src)
+        {
+            if (src.Length != buildMessges.Length) return true;
+            for (int i = 0; i < src.Length; i++) {
+                if (src[i] != buildMessges[i]) return true;
+            }
+            return false;
+        }
         
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
             var rect = GetMyRectangle(context, parentRectangle);
             Background?.Draw(context, rect);
-            float y = rect.Y + rect.Height;
-            float dt = (float) context.DeltaTime;
-            lock (Chat.Messages)
-            {
-                for (int i = Chat.Messages.Count - 1; i >= 0 && (i >= Chat.Messages.Count - 16); i--)
-                {
-                    var msg = Chat.Messages[i];
-                    if (msg.TimeAlive <= 0) continue;
-                    msg.TimeAlive -= dt;
-                    var sz = context.RenderContext.Renderer2D.MeasureStringCached(ref msg.Cache, msg.Font, context.TextSize(msg.Size),
-                        msg.Text);
-                    float h = context.PixelsToPoints(sz.Y);
-                    y -= h;
-                    DrawText(context, ref msg.Cache, new RectangleF(rect.X, y, rect.Width, h), msg.Size, msg.Font,
-                        msg.Color, InterfaceColor.Black, HorizontalAlignment.Left, VerticalAlignment.Default,
-                        false, msg.Text);
-                    y -= 2;
-                }
+            var ids = GetMessageIds();
+            for (int i = Chat.Messages.Count - 1; i >= 0 && (i >= Chat.Messages.Count - 16); i--) {
+                Chat.Messages[i].TimeAlive -= (float)context.DeltaTime;
             }
+            
+            if (ids.Length > 0)
+            {
+                var textMultiplier = (context.ViewportHeight / 480) * 0.5f;
+                var displayRect = context.PointsToPixels(rect);
+
+                if (Math.Abs(builtMultiplier - textMultiplier) > 0.01f ||
+                    builtText == null ||
+                    IdChanged(ids))
+                {
+                    builtText?.Dispose();
+                    var nodes = new List<RichTextNode>();
+                    for (int i = ids.Length - 1; i >= 0; i--) {
+                        nodes.Add(new RichTextTextNode() {
+                            Contents = ids[i].Text,
+                            Color = ids[i].Color,
+                            FontName = ids[i].Font,
+                            FontSize = ids[i].Size,
+                            Shadow = new TextShadow(Color4.Black)
+                        });
+                        if(i > 0) nodes.Add(new RichTextParagraphNode());
+                    }
+                    builtText = context.RenderContext.Renderer2D.CreateRichTextEngine().BuildText(nodes,
+                        displayRect.Width, textMultiplier);
+                    buildMessges = ids;
+                    builtMultiplier = textMultiplier;
+                }
+
+                builtText.Recalculate(displayRect.Width);
+                context.RenderContext.Renderer2D.CreateRichTextEngine().RenderText(builtText,
+                    displayRect.X, (int)(displayRect.Y + displayRect.Height - builtText.Height));
+            }
+            
             Border?.Draw(context, rect);
         }
     }

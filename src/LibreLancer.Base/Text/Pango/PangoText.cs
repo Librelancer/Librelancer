@@ -30,15 +30,22 @@ namespace LibreLancer.Text.Pango
             height = pg_getheight(handle);
         }
 
+        private bool disposed = false;
         public override void Dispose()
         {
+            disposed = true;
             pg_destroytext(Handle);
+        }
+
+        ~PangoBuiltText()
+        {
+            if (!disposed) Dispose();
         }
 
         int width = -1;
         public override void Recalculate(float width)
         {
-            if ((int)width == this.width)
+            if (Math.Abs((int)width - this.width) < 2)
                 return;
             this.width = (int)width;
             pg_updatewidth(Handle, (int)width);

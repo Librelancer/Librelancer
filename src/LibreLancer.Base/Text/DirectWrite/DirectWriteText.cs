@@ -35,15 +35,23 @@ namespace LibreLancer.Text.DirectWrite
         public int Width;
 
         public override float Height => height;
+        private bool disposed = false;
 
         public override void Dispose()
         {
+            disposed = true;
             foreach (var l in Layout) l.Dispose();
+        }
+
+        ~DirectWriteBuiltText()
+        {
+            if (!disposed) Dispose();
         }
 
         public override void Recalculate(float width)
         {
-            if (((int)width) == Width) return;
+            if (Math.Abs((int)width - Width) < 2)
+                return;
             Width = (int)width;
             foreach(var layout in Layout) {
                 layout.MaxWidth = width;
