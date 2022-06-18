@@ -162,7 +162,8 @@ World Time: {12:F2}
 
         private void InputOnActionDown(InputAction obj)
         {
-           if(!ui.KeyboardGrabbed && obj == InputAction.USER_CHAT)
+            if(obj == InputAction.USER_SCREEN_SHOT) Game.Screenshots.TakeScreenshot();
+            if(!ui.KeyboardGrabbed && obj == InputAction.USER_CHAT)
                ui.ChatboxEvent();
         }
 

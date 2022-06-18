@@ -112,6 +112,7 @@ namespace LibreLancer
 
         private void Input_Action(InputAction action)
         {
+            if(action == InputAction.USER_SCREEN_SHOT) Game.Screenshots.TakeScreenshot();
             if (ui.KeyboardGrabbed) return;
             switch (action)
             {
