@@ -1320,6 +1320,7 @@ namespace LibreLancer
                 ship.SteeringTorque = orig.SteeringTorque;
                 ship.Hitpoints = orig.Hitpoints;
                 ship.StrafeForce = orig.StrafeForce;
+                ship.MaxBankAngle = orig.MaxBankAngle;
                 ship.ChaseOffset = orig.CameraOffset;
                 ship.CameraHorizontalTurnAngle = orig.CameraHorizontalTurnAngle;
                 ship.CameraVerticalTurnUpAngle = orig.CameraVerticalTurnUpAngle;

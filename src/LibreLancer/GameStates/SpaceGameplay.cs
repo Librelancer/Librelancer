@@ -87,7 +87,7 @@ World Time: {12:F2}
             //Set up player object + camera
             player = new GameObject(shp, Game.ResourceManager, true, true);
             control = new ShipPhysicsComponent(player) {Ship = shp};
-            shipInput = new ShipInputComponent(player);
+            shipInput = new ShipInputComponent(player) {BankLimit = shp.MaxBankAngle};
             weapons = new WeaponControlComponent(player);
             pilotcomponent = new AutopilotComponent(player);
             steering = new ShipSteeringComponent(player);

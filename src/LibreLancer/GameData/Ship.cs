@@ -26,6 +26,7 @@ namespace LibreLancer.GameData
         public float Hitpoints;
 
         public Vector3 ChaseOffset;
+        public float MaxBankAngle;
         public float CameraHorizontalTurnAngle;
         public float CameraVerticalTurnUpAngle;
         public float CameraVerticalTurnDownAngle;
