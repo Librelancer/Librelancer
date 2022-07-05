@@ -265,6 +265,9 @@ namespace LibreLancer.Text.DirectWrite
             {
                 using (var layout = new TextLayout(dwFactory, text, GetFormat(fontName, ConvertSize(size)), float.MaxValue, float.MaxValue))
                 {
+                    if (alignment != TextAlignment.Left) {
+                        layout.MaxWidth = layout.Metrics.Width;
+                    }
                     layout.TextAlignment = CastAlignment(alignment);
                     layout.SetDrawingEffect(new ColorDrawingEffect(Color4.White, new TextShadow()), new TextRange(0, text.Length));
                     layout.Draw(Renderer, 0, 0);
