@@ -7,7 +7,6 @@ using System.IO;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 using LibreLancer.Data.Equipment;
 using LibreLancer.Data.Solar;

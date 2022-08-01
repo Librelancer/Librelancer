@@ -3,23 +3,25 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 namespace LibreLancer.Data
 {
-	//Wrap around JsonConvert
+	//Wrap around JsonSerializer
 	public class JSON
 	{
 		public static T Deserialize<T>(string str)
-		{
-			return JsonConvert.DeserializeObject<T>(str);
-		}
+        {
+            return JsonSerializer.Deserialize<T>(str);
+        }
 		public static string Serialize<T>(T obj)
         {
-            return JsonConvert.SerializeObject(obj, new JsonSerializerSettings()
+            return JsonSerializer.Serialize<T>(obj, new JsonSerializerOptions()
             {
-                Formatting = Formatting.Indented,
-                ReferenceLoopHandling =  ReferenceLoopHandling.Ignore
+                WriteIndented = true,
+                ReferenceHandler = ReferenceHandler.IgnoreCycles
             });
-		}
+        }
 	}
 }

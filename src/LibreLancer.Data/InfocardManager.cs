@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using LibreLancer.Dll;
-using Newtonsoft.Json;
 
 namespace LibreLancer.Data
 {
@@ -89,8 +88,8 @@ namespace LibreLancer.Data
 			using (var writer = new StreamWriter(filename))
             {
                 var obj = new JsonContainer() {filetype = "strings", data = strings};
-				writer.Write(JsonConvert.SerializeObject(obj, Formatting.Indented));
-			}
+                writer.Write(JSON.Serialize(obj));
+            }
 		}
 
 		public void ExportInfocards(string filename)
@@ -98,8 +97,8 @@ namespace LibreLancer.Data
 			using (var writer = new StreamWriter(filename))
 			{
                 var obj = new JsonContainer() {filetype = "infocards", data = infocards};
-                writer.Write(JsonConvert.SerializeObject(obj, Formatting.Indented));
-			}
+                writer.Write(JSON.Serialize(obj));
+            }
 		}
 
         public IEnumerable<int> StringIds => strings.Keys.OrderBy(x => x);
