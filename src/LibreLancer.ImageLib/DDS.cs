@@ -114,27 +114,27 @@ namespace LibreLancer.ImageLib
             var tex = new TextureCube(w, sfc.Length > 1, fmt);
             //Positive X
             for (int i = 0; i < sfc.Length; i++)
-                tex.SetData(CubeMapFace.PositiveX, 0, null, sfc[i], 0, sfc[i].Length);
+                tex.SetData(CubeMapFace.PositiveX, i, null, sfc[i], 0, sfc[i].Length);
             //Negative 
             sfc = LoadSurface(ref header, reader, out fmt, out w, out h);
             for (int i = 0; i < sfc.Length; i++)
-                tex.SetData(CubeMapFace.NegativeX, 0, null, sfc[i], 0, sfc[i].Length);
+                tex.SetData(CubeMapFace.NegativeX, i, null, sfc[i], 0, sfc[i].Length);
             //Positive Y
             sfc = LoadSurface(ref header, reader, out fmt, out w, out h);
             for (int i = 0; i < sfc.Length; i++)
-                tex.SetData(CubeMapFace.PositiveY, 0, null, sfc[i], 0, sfc[i].Length);
+                tex.SetData(CubeMapFace.PositiveY, i, null, sfc[i], 0, sfc[i].Length);
             //Negative Y
             sfc = LoadSurface(ref header, reader, out fmt, out w, out h);
             for (int i = 0; i < sfc.Length; i++)
-                tex.SetData(CubeMapFace.NegativeY, 0, null, sfc[i], 0, sfc[i].Length);
+                tex.SetData(CubeMapFace.NegativeY, i, null, sfc[i], 0, sfc[i].Length);
             //Positive Z
             sfc = LoadSurface(ref header, reader, out fmt, out w, out h);
             for (int i = 0; i < sfc.Length; i++)
-                tex.SetData(CubeMapFace.PositiveZ, 0, null, sfc[i], 0, sfc[i].Length);
+                tex.SetData(CubeMapFace.PositiveZ, i, null, sfc[i], 0, sfc[i].Length);
             //Negative Z
             sfc = LoadSurface(ref header, reader, out fmt, out w, out h);
             for (int i = 0; i < sfc.Length; i++)
-                tex.SetData(CubeMapFace.NegativeZ, 0, null, sfc[i], 0, sfc[i].Length);
+                tex.SetData(CubeMapFace.NegativeZ, i, null, sfc[i], 0, sfc[i].Length);
             return tex;
         }
 

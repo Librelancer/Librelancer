@@ -38,15 +38,21 @@ namespace LibreLancer.Utf.Mat
 			foreach (Node materialNode in materialLibraryNode) {
 				if (materialNode is IntermediateNode) {
 					uint materialId = CrcTool.FLModelCrc (materialNode.Name);
-					if (!Materials.ContainsKey (materialId))
-						Materials.Add (materialId, Material.FromNode (materialNode as IntermediateNode, this));
+                    if (!Materials.ContainsKey(materialId))
+                    {
+                        try
+                        {
+                            var mat = Material.FromNode(materialNode as IntermediateNode, this);
+                            Materials.Add (materialId, Material.FromNode (materialNode as IntermediateNode, this));
+                        }
+                        catch (Exception e)
+                        {
+                            FLLog.Error("Mat", $"Error loading material {materialNode.Name}: {e.Message}");
+                        }
+                    }
 				}
-				//else if (subNode.Name.Equals("material count", StringComparison.OrdinalIgnoreCase))
-				//count = (subNode as LeafNode).getIntegerBlaBLubb;
-			}
-			//if (count != materials.Count)
-			//throw new Exception("Invalid material count: " + count + " != " + materials.Count);
-		}
+            }
+        }
 
 		public Texture FindTexture (string name)
 		{
