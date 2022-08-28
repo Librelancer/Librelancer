@@ -912,6 +912,30 @@ namespace LibreLancer
                 departingPlayerStr = Game.GameData.GetInfocardText(DEPARTING_PLAYER, Game.Fonts).TrimEnd('\n');
             Chats.Append($"{departingPlayerStr}{name}", "Arial", 26, Color4.DarkRed);
         }
+
+        void IClientPlayer.TradelaneActivate(uint id, bool left)
+        {
+            gameplayActions.Enqueue(() =>
+            {
+                if (gp.world.GetObject(id)?.TryGetComponent<CTradelaneComponent>(out var tl) ?? false)
+                {
+                    if(left) tl.ActivateLeft();
+                    else tl.ActivateRight();
+                }
+            });
+        }
+
+        void IClientPlayer.TradelaneDeactivate(uint id, bool left)
+        {
+            gameplayActions.Enqueue(() =>
+            {
+                if (gp.world.GetObject(id)?.TryGetComponent<CTradelaneComponent>(out var tl) ?? false)
+                {
+                    if (left) tl.DeactivateLeft();
+                    else tl.DeactivateRight();
+                }
+            });
+        }
         
 
         public void Disconnected()

@@ -648,7 +648,14 @@ namespace LibreLancer
                         engequip.CruiseSpeed = deng.CruiseSpeed;
                     equip = engequip;
                 }
-
+                
+                if (val is Tradelane tl)
+                {
+                    var tlequip = new TradelaneEquipment();
+                    tlequip.RingActive = GetEffect(tl.TlRingActive);
+                    equip = tlequip;
+                }
+                
                 if (val is Data.Equipment.Commodity cm)
                     equip = new GameData.Items.CommodityEquipment();
                 if(equip == null) 
@@ -749,8 +756,17 @@ namespace LibreLancer
                         var lt = new RenderLight();
                         var srcCol = src.Color.Value;
                         lt.Color = new Color3f(srcCol.R, srcCol.G, srcCol.B);
-                        lt.Position = src.Pos.Value;
-                        lt.Range = src.Range.Value;
+                        if(src.Pos.HasValue)
+                            lt.Position = src.Pos.Value;
+                        else
+                            FLLog.Warning("Light", $"{inisys.Nickname}: Light Source {src.Nickname} missing position");
+                        if (src.Range.HasValue)
+                            lt.Range = src.Range.Value;
+                        else
+                        {
+                            lt.Range = 200000;
+                            FLLog.Warning("Light", $"{inisys.Nickname}: Light Source {src.Nickname} missing range");
+                        }
                         lt.Direction = src.Direction ?? new Vector3(0, 0, 1);
                         lt.Kind = ((src.Type ?? Data.Universe.LightType.Point) == Data.Universe.LightType.Point) ? LightKind.Point : LightKind.Directional;
                         lt.Attenuation = src.Attenuation ?? Vector3.UnitY;

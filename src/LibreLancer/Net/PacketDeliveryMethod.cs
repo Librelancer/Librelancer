@@ -8,6 +8,8 @@ namespace LibreLancer
     public enum PacketDeliveryMethod
     {
         ReliableOrdered,
+        ReliableOrderedB,
+        ReliableOrderedC,
         SequenceA,
         SequenceB,
         SequenceC
@@ -19,20 +21,25 @@ namespace LibreLancer
         {
             channel = 0;
             method = DeliveryMethod.ReliableOrdered;
-            if (self == PacketDeliveryMethod.SequenceA)
+            switch (self)
             {
-                method = DeliveryMethod.Sequenced;
-                channel = 0;
-            }
-            if (self == PacketDeliveryMethod.SequenceB)
-            {
-                method = DeliveryMethod.Sequenced;
-                channel = 1;
-            }
-            if (self == PacketDeliveryMethod.SequenceC)
-            {
-                method = DeliveryMethod.Sequenced;
-                channel = 2;
+                case PacketDeliveryMethod.SequenceA:
+                    method = DeliveryMethod.Sequenced;
+                    break;
+                case PacketDeliveryMethod.SequenceB:
+                    method = DeliveryMethod.Sequenced;
+                    channel = 1;
+                    break;
+                case PacketDeliveryMethod.SequenceC:
+                    method = DeliveryMethod.Unreliable;
+                    channel = 2;
+                    break;
+                case PacketDeliveryMethod.ReliableOrderedB:
+                    channel = 1;
+                    break;
+                case PacketDeliveryMethod.ReliableOrderedC:
+                    channel = 2;
+                    break;
             }
         }
     }

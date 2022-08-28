@@ -157,6 +157,22 @@ namespace LibreLancer
             });
         }
 
+        public void ActivateLane(GameObject obj, bool left)
+        {
+            foreach (var p in Players)
+            {
+                p.Key.RemoteClient.TradelaneActivate(obj.NicknameCRC, left);
+            }
+        }
+        
+        public void DeactivateLane(GameObject obj, bool left)
+        {
+            foreach (var p in Players)
+            {
+                p.Key.RemoteClient.TradelaneDeactivate(obj.NicknameCRC, left);
+            }
+        }
+        
         public void StartAnimation(GameObject obj, string script)
         {
             int id = 0;

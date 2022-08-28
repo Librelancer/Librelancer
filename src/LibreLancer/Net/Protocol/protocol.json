@@ -234,6 +234,16 @@
           "name": "EndTradelane"
         },
         {
+          "name": "TradelaneActivate",
+          "args": [ { "name":  "id", "type":  "uint" }, { "name":  "left", "type":  "bool"}],
+          "channel": "1"
+        },
+        {
+          "name": "TradelaneDeactivate",
+          "args": [ { "name":  "id", "type":  "uint" }, { "name":  "left", "type":  "bool" }],
+          "channel": "1"
+        },
+        {
           "name": "ReceiveChatMessage",
           "args": [ { "name":  "category", "type":  "ChatCategory" }, { "name":  "player", "type":  "string" },{ "name":  "message", "type":  "string" }]
         },

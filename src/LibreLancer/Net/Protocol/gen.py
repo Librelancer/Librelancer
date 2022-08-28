@@ -9,7 +9,7 @@ import base64
 from functools import partial
 from datetime import datetime,timezone
 
-print("Librelancer Protocol Generator 2022-06-15")
+print("Librelancer Protocol Generator 2022-06-21")
 
 # NetPacketReader methods
 typeMethods = {
@@ -130,7 +130,12 @@ def remote_method(mthd, prefix):
     for x in mthd["args"]:
       writeline(x["name"] + " = " + x["name"] + ",")
   tabs -= 1
-  writeline("});")
+  writestart("}, ")
+  channel = 0
+  if "channel" in mthd:
+    channel = int(mthd["channel"])
+  write(str(channel))
+  writeend(");")
   if "return" in mthd:
     writeline("return complete.Task;")
   tabs -= 1

@@ -313,7 +313,10 @@ namespace LibreLancer
 					var anm = (AnimationEquipment)eq;
 					if(anm.Animation != null)
 						AnimationComponent?.StartAnimation(anm.Animation);
-				}
+				} 
+                else
+                    EquipmentObjectManager.InstantiateEquipment(this, Resources, (RenderComponent != null) ? EquipmentType.RemoteObject : EquipmentType.Server, "internal", eq);
+
 			}
             AnimationComponent?.WarpTime(timeOffset); //Looping animations sync up to server vaguely
         }
