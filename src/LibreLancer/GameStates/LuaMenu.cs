@@ -98,7 +98,7 @@ namespace LibreLancer
         private void UiKeyDown(KeyEventArgs e)
         {
             if(!KeyCaptureContext.Capturing(keyCapture))
-                ui.OnKeyDown(e.Key);
+                ui.OnKeyDown(e.Key, (e.Modifiers & KeyModifiers.Control) != 0);
         }
         
         [WattleScript.Interpreter.WattleScriptUserData]

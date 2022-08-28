@@ -93,8 +93,13 @@ namespace LibreLancer.Interface
             var myRect = new RectangleF(myPos.X,myPos.Y, Width, Height);
             return myRect;
         }
-        public override void OnKeyDown(Keys key)
+        public override void OnKeyDown(UiContext context, Keys key, bool control)
         {
+            if (control && key == Keys.V)
+            {
+                OnTextInput(context.GetClipboardText());
+            }
+            
             if (key == Keys.Enter)
             {
                 if(!string.IsNullOrWhiteSpace(CurrentText)) TextEntered?.Invoke(CurrentText);

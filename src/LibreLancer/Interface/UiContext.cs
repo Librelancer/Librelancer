@@ -63,6 +63,12 @@ namespace LibreLancer.Interface
             CommandBuffer = new CommandBuffer();
         }
 
+        public string GetClipboardText()
+        {
+            if (game != null) return game.GetClipboardText();
+            return "";
+        }
+
         private void MouseOnDoubleClick(MouseEventArgs e)
         {
             if (game.Debug.CaptureMouse) return;
@@ -320,7 +326,7 @@ namespace LibreLancer.Interface
 
         public bool KeyboardGrabbed => textFocusWidget != null;
 
-        public void OnKeyDown(Keys key) => textFocusWidget?.OnKeyDown(key);
+        public void OnKeyDown(Keys key, bool control) => textFocusWidget?.OnKeyDown(this, key, control);
 
         public void OnTextEntry(string text) => textFocusWidget?.OnTextInput(text);
 

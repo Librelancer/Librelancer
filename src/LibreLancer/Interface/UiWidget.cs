@@ -220,7 +220,7 @@ namespace LibreLancer.Interface
         public virtual void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta) { }
 
         public virtual void OnMouseUp(UiContext context, RectangleF parentRectangle) { }
-        public virtual void OnKeyDown(Keys key) { }
+        public virtual void OnKeyDown(UiContext context, Keys key, bool control) { }
         public virtual void OnTextInput(string text) { }
         public virtual Vector2 GetDimensions() => new Vector2(Width, Height);
         public virtual UiWidget GetElement(string elementID)

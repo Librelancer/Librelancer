@@ -367,7 +367,7 @@ World Time: {12:F2}
 		{
             if (ui.KeyboardGrabbed)
             {
-                ui.OnKeyDown(e.Key);
+                ui.OnKeyDown(e.Key, (e.Modifiers & KeyModifiers.Control) != 0);
             }
             else
             {
