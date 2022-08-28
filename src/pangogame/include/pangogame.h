@@ -7,7 +7,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
+
+#include <stdint.h>
 typedef struct _PGTexturePrivate PGTexturePrivate;
 
 typedef struct _PGTexture {
@@ -15,6 +16,13 @@ typedef struct _PGTexture {
 } PGTexture;
 
 /** TYPES **/
+
+typedef enum {
+	PGAlign_Left = 0,
+	PGAlign_Right = 1,
+	PGAlign_Center = 2
+} PGAlign;
+
 typedef struct _PGQuad {
     PGTexture* tex;
 	int srcX;
@@ -31,12 +39,25 @@ typedef struct _PGQuad {
 	float a;
 } PGQuad;
 
-
-typedef enum {
-	PGAlign_Left = 0,
-	PGAlign_Right = 1,
-	PGAlign_Center = 2
-} PGAlign;
+typedef struct _PGAttribute {
+  int startIndex;
+  int endIndex;
+  int bold;
+  int italic;
+  int underline;
+  uint32_t fgColor;
+  int fontSize;
+  const char *fontName;
+  int shadowEnabled;
+  uint32_t shadowColor;
+} PGAttribute;
+  
+typedef struct _PGParagraph {
+  const char *text;
+  PGAlign alignment;
+  PGAttribute *attributes;
+  int attributeCount;
+} PGParagraph;
 
 
 typedef struct _PGRenderContext PGRenderContext;
@@ -57,7 +78,12 @@ PGRenderContext *pg_createcontext(
 	PGDrawCallback draw
 );
 
-PGBuiltText *pg_buildtext(PGRenderContext* ctx, char **markups, PGAlign* aligns, int paragraphCount, int width);
+  
+PGBuiltText *pg_buildtext(PGRenderContext *ctx,
+                          PGParagraph     *paragraphs,
+                          int              paragraphCount,
+                          int              width);
+PGBuiltText *pg_buildtext_markup(PGRenderContext* ctx, char **markups, PGAlign* aligns, int paragraphCount, int width);
 void pg_drawstring(PGRenderContext* ctx, const char *str, const char* fontName, float fontSize, PGAlign align, int underline, float r, float g, float b, float a, float *shadow, float *oWidth, float *oHeight);
 void pg_measurestring(PGRenderContext* ctx, const char* str, const char* fontName, float fontSize, float *width, float *height);
 float pg_lineheight(PGRenderContext* ctx, const char* fontName, float fontSize);

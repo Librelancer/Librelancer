@@ -125,7 +125,82 @@ static PangoAlignment convert_alignment(PGAlign alignment)
 	return PANGO_ALIGN_CENTER;
 }
 
-PGBuiltText *pg_buildtext(PGRenderContext* ctx, char **markups, PGAlign* aligns, int paragraphCount, int width)
+#define PG_8To16(x,y) (guint16)(((x >> y) & 0xFF) * 257)
+
+
+PGBuiltText *pg_buildtext(PGRenderContext *ctx,
+                          PGParagraph     *paragraphs,
+                          int              paragraphCount,
+                          int              width)
+{
+	PangoFontDescription *defaultFont = pango_font_description_new();
+	pango_font_description_set_family(defaultFont, "sans");
+	pango_font_description_set_size(defaultFont, 12 * PANGO_SCALE);
+
+    PangoLayout **layouts = (PangoLayout**)malloc(sizeof(PangoLayout**) * paragraphCount);
+	for(int i = 0; i < paragraphCount; i++) {
+	    PangoLayout *layout = pango_layout_new(ctx->pangoContext);
+	    pango_layout_set_text(layout, paragraphs[i].text, strlen(paragraphs[i].text));
+	    pango_layout_set_width(layout, width * PANGO_SCALE);
+		pango_layout_set_alignment(layout, convert_alignment(paragraphs[i].alignment));
+		pango_layout_set_font_description(layout, defaultFont);
+		PangoAttrList *attrList = pango_attr_list_new();
+		for(int j = 0; j < paragraphs[i].attributeCount; j++) {
+		    if(paragraphs[i].attributes[j].bold) {
+		        PangoAttribute* boldAttr = pango_attr_weight_new(PANGO_WEIGHT_BOLD);
+		        boldAttr->start_index = paragraphs[i].attributes[j].startIndex;
+		        boldAttr->end_index = paragraphs[i].attributes[j].endIndex;
+		        pango_attr_list_insert(attrList, boldAttr);
+		    }
+		    if(paragraphs[i].attributes[j].italic) {
+		        PangoAttribute* italicAttr = pango_attr_style_new(PANGO_STYLE_ITALIC);
+		        italicAttr->start_index = paragraphs[i].attributes[j].startIndex;
+		        italicAttr->end_index = paragraphs[i].attributes[j].endIndex;
+		        pango_attr_list_insert(attrList, italicAttr);
+		    }
+		    if(paragraphs[i].attributes[j].underline) {
+		        PangoAttribute *underlineAttr = pango_attr_underline_new(PANGO_UNDERLINE_SINGLE);
+		        underlineAttr->start_index = paragraphs[i].attributes[j].startIndex;
+		        underlineAttr->end_index = paragraphs[i].attributes[j].endIndex;
+                pango_attr_list_insert(attrList, underlineAttr);
+		    }
+		    if(paragraphs[i].attributes[j].shadowEnabled) {
+		        PangoAttribute *shadowAttr = pango_attr_background_new(
+                    PG_8To16(paragraphs[i].attributes[j].shadowColor, 24),
+                    PG_8To16(paragraphs[i].attributes[j].shadowColor, 16),
+                    PG_8To16(paragraphs[i].attributes[j].shadowColor, 8)
+                );
+                shadowAttr->start_index = paragraphs[i].attributes[j].startIndex;
+		        shadowAttr->end_index = paragraphs[i].attributes[j].endIndex;
+		        pango_attr_list_insert(attrList, shadowAttr);
+		    }
+		    PangoAttribute *colorAttr = pango_attr_foreground_new(
+                PG_8To16(paragraphs[i].attributes[j].fgColor, 24),
+                PG_8To16(paragraphs[i].attributes[j].fgColor, 16),
+                PG_8To16(paragraphs[i].attributes[j].fgColor, 8)
+            );
+            colorAttr->start_index = paragraphs[i].attributes[j].startIndex;
+		    colorAttr->end_index = paragraphs[i].attributes[j].endIndex;
+		    pango_attr_list_insert(attrList, colorAttr);
+		    PangoFontDescription *font = pango_font_description_new();
+		    pango_font_description_set_family(font, paragraphs[i].attributes[j].fontName);
+		    pango_font_description_set_size(font, paragraphs[i].attributes[j].fontSize * PANGO_SCALE);
+		    PangoAttribute *fontAttr = pango_attr_font_desc_new(font);
+		    fontAttr->start_index = paragraphs[i].attributes[j].startIndex;
+		    fontAttr->end_index = paragraphs[i].attributes[j].endIndex;
+		    pango_attr_list_insert(attrList, fontAttr);
+		    pango_font_description_free(font);
+		}
+		pango_layout_set_attributes(layout, attrList);
+        pango_attr_list_unref(attrList);
+        layouts[i] = layout;
+	}
+	pango_font_description_free(defaultFont);
+	PGBuiltText *built = pg_pango_constructtext(ctx, layouts, paragraphCount);
+	return built;                   
+}
+
+PGBuiltText *pg_buildtext_markup(PGRenderContext* ctx, char **markups, PGAlign* aligns, int paragraphCount, int width)
 {
 	PangoLayout **layouts = (PangoLayout**)malloc(sizeof(PangoLayout**) * paragraphCount);
 	for(int i = 0; i < paragraphCount; i++) {

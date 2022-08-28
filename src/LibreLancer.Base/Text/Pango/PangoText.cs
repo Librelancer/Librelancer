@@ -68,12 +68,61 @@ namespace LibreLancer.Text.Pango
         public IntPtr UserData;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    struct PGAttribute
+    {
+        public int StartIndex;
+        public int EndIndex;
+        public int Bold;
+        public int Italic;
+        public int Underline;
+        public uint FgColor;
+        public int FontSize;
+        public IntPtr FontName;
+        public int ShadowEnabled;
+        public uint ShadowColor;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    unsafe struct PGParagraph
+    {
+        public IntPtr Text;
+        public TextAlignment Alignment;
+        public PGAttribute* Attributes;
+        public int AttributeCount;
+    }
+
+    unsafe class HGlobalPool : IDisposable
+    {
+        private List<IntPtr> allocated = new List<IntPtr>();
+
+        public IntPtr Allocate(string s)
+        {
+            var p = UnsafeHelpers.StringToHGlobalUTF8(s);
+            allocated.Add(p);
+            return p;
+        }
+
+        public T* Allocate<T>(int size) where T : unmanaged
+        {
+            var p = Marshal.AllocHGlobal(Marshal.SizeOf<T>() * size);
+            allocated.Add(p);
+            return (T*) p;
+        }
+
+        public void Dispose()
+        {
+            foreach(var p in allocated) Marshal.FreeHGlobal(p);
+        }
+    }
+    
+
     unsafe class PangoText : RichTextEngine
     {
         [DllImport("pangogame")]
         static extern IntPtr pg_createcontext(IntPtr allocate, IntPtr update, IntPtr draw);
         [DllImport("pangogame")]
-        public static extern IntPtr pg_buildtext(IntPtr ctx, IntPtr markups, IntPtr alignments, int count, int width);
+        public static extern IntPtr pg_buildtext(IntPtr ctx, IntPtr paragraphs, int paragraphCount, int width);
         [DllImport("pangogame")]
         static extern IntPtr pg_drawtext(IntPtr ctx, IntPtr text);
 
@@ -177,70 +226,46 @@ namespace LibreLancer.Text.Pango
                 }
             }
             //Build markup
-            var markups = new List<string>();
-            var alignments = new List<TextAlignment>();
+            using var pool = new HGlobalPool();
+            PGParagraph[] native = new PGParagraph[paragraphs.Count];
             for(int i = 0; i < paragraphs.Count; i++)
             {
-                //make span
+                PGAttribute* attrs = pool.Allocate<PGAttribute>(paragraphs[i].Count);
+                native[i].AttributeCount = paragraphs[i].Count;
+                native[i].Attributes = attrs;
                 var builder = new StringBuilder();
+                int idx = 0;
                 TextAlignment a = TextAlignment.Left;
-                foreach (var tn in paragraphs[i])
+                for(int j = 0; j < paragraphs[i].Count; j++)
                 {
-                    var text = (RichTextTextNode)tn;
+                    var text = (RichTextTextNode)paragraphs[i][j];
                     a = text.Alignment;
-                    builder.Append("<span ");
-                    if (text.Italic)
-                        builder.Append("font_style=\"italic\" ");
-                    else
-                        builder.Append("font_style=\"normal\" ");
-                    if (text.Bold)
-                        builder.Append("font_weight=\"bold\" ");
-                    else
-                        builder.Append("font_weight=\"normal\" ");
+                    attrs[j].StartIndex = idx;
+                    idx += Encoding.UTF8.GetByteCount(text.Contents);
+                    attrs[j].EndIndex = idx;
+                    builder.Append(text.Contents);
+                    attrs[j].Bold = text.Bold ? 1 : 0;
+                    attrs[j].Italic = text.Italic ? 1 : 0;
+                    attrs[j].Underline = text.Underline ? 1 : 0;
                     if (text.Shadow.Enabled)
                     {
-                        builder.Append("bgcolor=\"#");
-                        builder.Append(((int)(text.Shadow.Color.R * 255f)).ToString("X2"));
-                        builder.Append(((int)(text.Shadow.Color.G * 255f)).ToString("X2"));
-                        builder.Append(((int)(text.Shadow.Color.B * 255f)).ToString("X2"));
-                        builder.Append("\" ");
+                        attrs[j].ShadowEnabled = 1;
+                        attrs[j].ShadowColor = (uint) text.Shadow.Color.ToRgba();
                     }
-                    builder.Append("fgcolor=\"#");
-                    builder.Append(((int)(text.Color.R * 255f)).ToString("X2"));
-                    builder.Append(((int)(text.Color.G * 255f)).ToString("X2"));
-                    builder.Append(((int)(text.Color.B * 255f)).ToString("X2"));
-                    builder.Append("\" underline=\"");
-                    if (text.Underline) builder.Append("single\" ");
-                    else builder.Append("none\" ");
-                    builder.Append("size=\"");
-                    builder.Append((int)(text.FontSize * sizeMultiplier * 1024));
-                    builder.Append("\" font_family=\"");
-                    builder.Append(text.FontName);
-                    builder.Append("\">");
-                    builder.Append(System.Net.WebUtility.HtmlEncode(text.Contents));
-                    builder.Append("</span>");
+                    else
+                        attrs[j].ShadowEnabled = 0;
+                    attrs[j].FgColor = (uint) text.Color.ToRgba();
+                    attrs[j].FontName = pool.Allocate(text.FontName);
+                    attrs[j].FontSize = (int)(text.FontSize * sizeMultiplier);
                 }
-                markups.Add(builder.ToString());
-                alignments.Add(a);
+                native[i].Text = pool.Allocate(builder.ToString());
+                native[i].Alignment = a;
             }
             //Pass
-            IntPtr[] stringPointers = new IntPtr[markups.Count];
-            for(int i = 0; i < markups.Count; i++)
-            {
-                stringPointers[i] = UnsafeHelpers.StringToHGlobalUTF8(markups[i]);
-            }
-            var aligns = alignments.ToArray();
             PangoBuiltText txt;
-            fixed(IntPtr* stringPtr = stringPointers)
+            fixed(PGParagraph* pPtr = native)
             {
-                fixed(TextAlignment *alignPtr = aligns)
-                {
-                    txt = new PangoBuiltText(ctx, pg_buildtext(ctx, (IntPtr)stringPtr, (IntPtr)alignPtr, markups.Count, width));
-                }
-            }
-            for (int i = 0; i < markups.Count; i++)
-            {
-                Marshal.FreeHGlobal(stringPointers[i]);
+                txt = new PangoBuiltText(ctx, pg_buildtext(ctx, (IntPtr)pPtr, native.Length, width));
             }
             return txt;
         }
