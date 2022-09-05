@@ -27,11 +27,7 @@ namespace LibreLancer
         [Entry("uuid")]
 		public Guid? UUID;
 
-        //This default is to stop dlopen on linux from trying to open itself
-		[XmlIgnore]
-		public string MpvOverride = "__MPV_OVERRIDE_STRING";
-
-		[XmlIgnore]
+        [XmlIgnore]
 		public Func<FreelancerGame, GameState> CustomState;
 
 		private GameConfig(Func<string> filePath) 

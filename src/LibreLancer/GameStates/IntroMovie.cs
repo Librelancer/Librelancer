@@ -12,8 +12,8 @@ namespace LibreLancer
 		int idx = int.MaxValue;
         bool inited = false;
 		public IntroMovie(FreelancerGame game, int index) : base(game)
-		{
-			player = new VideoPlayer(game, game.MpvOverride);
+        {
+            player = new VideoPlayer(game);
 			if ((inited = player.Init()) && game.IntroMovies.Count > 0)
             {
                 idx = index;

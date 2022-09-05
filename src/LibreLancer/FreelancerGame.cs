@@ -29,7 +29,6 @@ namespace LibreLancer
         public SaveGameFolder Saves;
         public LineRenderer Lines;
 		public List<string> IntroMovies;
-		public string MpvOverride;
 		public bool InitialLoadComplete = false;
         public Stopwatch LoadTimer;
         public InputMap InputMap;
@@ -101,7 +100,6 @@ namespace LibreLancer
 			FLLog.Info("Game", "Loading game data");
 			GameData = new GameDataManager(_cfg.FreelancerPath, ResourceManager);
 			IntroMovies = GameData.GetIntroMovies();
-			MpvOverride = _cfg.MpvOverride;
             Saves = new SaveGameFolder();
             InputMap = new InputMap(Path.Combine(GetSaveFolder(), "keymap.ini"));
             var saveLoadTask = Task.Run(() => Saves.Load(GetSaveFolder()));

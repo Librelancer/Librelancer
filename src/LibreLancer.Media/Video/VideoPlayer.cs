@@ -15,13 +15,13 @@ namespace LibreLancer.Media
 				return player.Playing;
 			}
 		}
-		public VideoPlayer(Game game, string mpvoverride)
-		{
-			if (Platform.RunningOS != OS.Windows)
-				player = new VideoPlayerMpv(game, mpvoverride);
-			else
-				LoadWMF();
-		}
+		public VideoPlayer(Game game)
+        {
+            if (Platform.RunningOS != OS.Windows)
+                player = null;
+            else
+                LoadWMF();
+        }
 
 		void LoadWMF()
 		{
