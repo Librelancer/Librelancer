@@ -293,6 +293,15 @@ namespace LibreLancer.Ini
                 {
                     if (ComponentCheck(1, s, e)) field.Field.SetValue(obj, e[0].ToInt32());
                 }
+                else if (ftype == typeof(ValueRange<int>))
+                {
+                    if (ComponentCheck(2, s, e)) field.Field.SetValue(obj, new ValueRange<int>(e[0].ToInt32(), e[1].ToInt32()));
+                }
+                else if (ftype == typeof(ValueRange<float>))
+                {
+                    if (ComponentCheck(2, s, e)) field.Field.SetValue(obj, new ValueRange<float>(e[0].ToSingle(), e[1].ToSingle()));
+
+                }
                 else if (ftype == typeof(long))
                 {
                     if (ComponentCheck(1, s, e)) field.Field.SetValue(obj, e[0].ToInt64());

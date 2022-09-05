@@ -18,6 +18,7 @@ using LibreLancer.Data.Cameras;
 using LibreLancer.Data.Effects;
 using LibreLancer.Data.Goods;
 using LibreLancer.Data.Fuses;
+using LibreLancer.Data.InitialWorld;
 using LibreLancer.Data.Interface;
 using LibreLancer.Data.Missions;
 using LibreLancer.Data.NewCharDB;
@@ -62,6 +63,8 @@ namespace LibreLancer.Data
         public NewCharDBIni NewCharDB;
         public ContentDll ContentDll;
         public InfocardMapIni InfocardMap;
+        public InitialWorldIni InitialWorld;
+        public FactionPropIni FactionProps;
         public NavmapIni Navmap; //Extension
         public NPCShipIni NPCShips;
         public PilotsIni Pilots;
@@ -327,6 +330,16 @@ namespace LibreLancer.Data
             {
                 Keymap = new KeymapIni(Freelancer.DataPath + "interface\\keymap.ini", VFS);
                 KeyList = new KeyListIni(Freelancer.DataPath + "interface\\keylist.ini", VFS);
+            }));
+            tasks.Add(Task.Run(() =>
+            {
+                InitialWorld = new InitialWorldIni();
+                InitialWorld.AddFile(Freelancer.DataPath + "initialworld.ini", VFS);
+            }));
+            tasks.Add(Task.Run(() =>
+            {
+                FactionProps = new FactionPropIni();
+                FactionProps.AddFile(Freelancer.DataPath + "missions\\faction_prop.ini", VFS);
             }));
             ContentDll = new ContentDll();
             if (VFS.FileExists("DLLS\\BIN\\content.dll"))
