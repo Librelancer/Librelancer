@@ -26,16 +26,4 @@ namespace LibreLancer.Data.InitialWorld
         IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
     }
 
-    public struct GroupReputation
-    {
-        public float Rep;
-        public string Name;
-        public GroupReputation(float rep, string name)
-        {
-            Rep = rep;
-            Name = name;
-        }
-        
-    }
-    
 }

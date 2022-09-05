@@ -5,6 +5,7 @@ using System;
 using System.Numerics;
 using System.Text;
 using LibreLancer.Data.Save;
+using Microsoft.Win32;
 
 namespace LibreLancer
 {
@@ -50,6 +51,10 @@ namespace LibreLancer
                     builder.Append("cargo = ");
                     builder.AppendLine($"{item.Equipment.Nickname}, {item.Count}, , , 0");
                 }
+            }
+            foreach (var rep in ch.Reputation.Reputations)
+            {
+                builder.AppendLine($"house = {Float(rep.Value)}, {rep.Key.Nickname}");
             }
             return builder.ToString();
         }

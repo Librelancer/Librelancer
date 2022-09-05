@@ -151,6 +151,10 @@
           ]
         },
         {
+          "name": "UpdateReputations",
+          "args": [ { "name":  "reps", "type":  "NetReputation[]" }]
+        },
+        {
           "name": "UpdateInventory",
           "args": [
             { "name":  "credits", "type":  "long" },

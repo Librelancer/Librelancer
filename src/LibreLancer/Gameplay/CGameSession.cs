@@ -39,7 +39,8 @@ namespace LibreLancer
         public List<StoryCutsceneIni> ActiveCutscenes = new List<StoryCutsceneIni>();
 		public FreelancerGame Game;
 		public string PlayerSystem;
-		public string PlayerBase;
+        public ReputationCollection PlayerReputations = new ReputationCollection();
+        public string PlayerBase;
 		public Vector3 PlayerPosition;
 		public Matrix4x4 PlayerOrientation;
         public NewsArticle[] News = new NewsArticle[0];
@@ -515,6 +516,16 @@ namespace LibreLancer
 
         public Action OnUpdateInventory;
         public Action OnUpdatePlayerShip;
+
+        void IClientPlayer.UpdateReputations(NetReputation[] reps)
+        {
+            foreach (var r in reps)
+            {
+                var f = Game.GameData.GetFaction(r.FactionHash);
+                if (f != null)
+                    PlayerReputations.Reputations[f] = r.Reputation;
+            }
+        }
 
         void IClientPlayer.UpdateInventory(long credits, ulong shipWorth, NetShipLoadout loadout)
         {

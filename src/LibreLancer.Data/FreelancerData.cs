@@ -65,6 +65,7 @@ namespace LibreLancer.Data
         public InfocardMapIni InfocardMap;
         public InitialWorldIni InitialWorld;
         public FactionPropIni FactionProps;
+        public EmpathyIni Empathy;
         public NavmapIni Navmap; //Extension
         public NPCShipIni NPCShips;
         public PilotsIni Pilots;
@@ -340,6 +341,11 @@ namespace LibreLancer.Data
             {
                 FactionProps = new FactionPropIni();
                 FactionProps.AddFile(Freelancer.DataPath + "missions\\faction_prop.ini", VFS);
+            }));
+            tasks.Add(Task.Run(() =>
+            {
+                Empathy = new EmpathyIni();
+                Empathy.AddFile(Freelancer.DataPath + "missions\\empathy.ini", VFS);
             }));
             ContentDll = new ContentDll();
             if (VFS.FileExists("DLLS\\BIN\\content.dll"))

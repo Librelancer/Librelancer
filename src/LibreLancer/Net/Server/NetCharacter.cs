@@ -8,6 +8,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using LibreLancer.Entities.Character;
+using Microsoft.Win32;
 
 namespace LibreLancer
 {
@@ -18,6 +19,10 @@ namespace LibreLancer
         public string System { get; private set; }
         public Vector3 Position { get; private set; }
         public long Credits { get; private set; }
+
+        public ReputationCollection Reputation = new ReputationCollection();
+        
+
         public GameData.Ship Ship;
         public List<NetCargo> Items;
         private long charId;
@@ -40,11 +45,38 @@ namespace LibreLancer
                 dbChar.ApplyChanges();
             }
         }
+
+        public void UpdateReputations()
+        {
+            if (dbChar != null)
+            {
+                foreach (var rep in Reputation.Reputations)
+                {
+                    var dbRep = dbChar.Character.Reputations.FirstOrDefault(x =>
+                        x.RepGroup.Equals(rep.Key.Nickname, StringComparison.OrdinalIgnoreCase));
+                    if (dbRep != null)
+                    {
+                        dbRep.ReputationValue = rep.Value;
+                    }
+                    else
+                    {
+                        dbChar.Character.Reputations.Add(new Reputation() { RepGroup = rep.Key.Nickname, ReputationValue = rep.Value });
+                    }
+                }
+                dbChar.ApplyChanges();
+            }
+        }
         
         public static NetCharacter FromDb(long id, GameServer game)
         {
             var db = game.Database.GetCharacter(id);
             var nc = new NetCharacter();
+            nc.Reputation = new ReputationCollection();
+            foreach (var rep in db.Character.Reputations)
+            {
+                var f = game.GameData.GetFaction(rep.RepGroup);
+                if (f != null) nc.Reputation.Reputations[f] = rep.ReputationValue;
+            }
             nc.Name = db.Character.Name;
             nc.gData = game.GameData;
             nc.dbChar = db;

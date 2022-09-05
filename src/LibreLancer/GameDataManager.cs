@@ -14,6 +14,7 @@ using System.Xml.Serialization;
 using LibreLancer.Data.Equipment;
 using LibreLancer.Data.Fuses;
 using LibreLancer.Data.Goods;
+using LibreLancer.Data.Missions;
 using LibreLancer.Data.Solar;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Items;
@@ -213,7 +214,10 @@ namespace LibreLancer
         private Dictionary<string, ResolvedGood> goods = new Dictionary<string, ResolvedGood>();
         private Dictionary<string, ResolvedGood> equipToGood = new Dictionary<string, ResolvedGood>();
         Dictionary<string, long> shipPrices = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
-        
+
+        private Dictionary<string, Faction> factions = new Dictionary<string, Faction>(StringComparer.OrdinalIgnoreCase);
+        private Dictionary<uint, Faction> factionHash = new Dictionary<uint, Faction>();
+
         public IEnumerable<ResolvedGood> AllGoods => goods.Values;
 
         public bool TryGetGood(string nickname, out ResolvedGood good) => goods.TryGetValue(nickname, out good);
@@ -343,6 +347,77 @@ namespace LibreLancer
             Task.WaitAll(asyncTasks.ToArray());
             asyncTasks = new List<Task>();
         }
+
+        void InitFactions()
+        {
+            FLLog.Info("Factions", $"Initing {fldata.InitialWorld.Groups} factions");
+            foreach (var f in fldata.InitialWorld.Groups)
+            {
+                var hash = CrcTool.FLModelCrc(f.Nickname);
+                var fac = new Faction() {
+                    Nickname = f.Nickname,
+                    Hash = hash,
+                    IdsInfo = f.IdsInfo,
+                    IdsName = f.IdsName,
+                    IdsShortName = f.IdsShortName,
+                    Properties = fldata.FactionProps.FactionProps.FirstOrDefault(x => x.Affiliation.Equals(f.Nickname, StringComparison.OrdinalIgnoreCase))
+                };
+                factions[f.Nickname] = fac;
+                factionHash[hash] = fac;
+            }
+
+            foreach (var f in fldata.InitialWorld.Groups)
+            {
+                var us = factions[f.Nickname];
+                foreach (var rep in f.Rep)
+                {
+                    if (factions.TryGetValue(rep.Name, out var other))
+                    {
+                        us.Reputations[other] = rep.Rep;
+                    }
+                    else
+                    {
+                        FLLog.Warning("InitialWorld", $"Reputation for non-existing faction {rep.Name}");
+                    }
+                }
+                var emp = fldata.Empathy.RepChangeEffects.FirstOrDefault(x => x.Group.Equals(us.Nickname));
+                if (emp != null)
+                {
+                    us.ObjectDestroyRepChange =
+                        emp.Events.LastOrDefault(x => x.Type == EmpathyEventType.ObjectDestruction).ChangeAmount;
+                    us.MissionSucceedRepChange =
+                        emp.Events.LastOrDefault(x => x.Type == EmpathyEventType.RandomMissionSuccess).ChangeAmount;
+                    us.MissionFailRepChange =
+                        emp.Events.LastOrDefault(x => x.Type == EmpathyEventType.RandomMissionFailure).ChangeAmount;
+                    us.MissionAbortRepChange =
+                        emp.Events.LastOrDefault(x => x.Type == EmpathyEventType.RandomMissionAbort).ChangeAmount;
+                    us.FactionEmpathy = emp.EmpathyRate
+                        .Where(x => x.Rep != 0 && (GetFaction(x.Name) != null))
+                        .Select(x => new Empathy(GetFaction(x.Name), x.Rep))
+                        .ToArray();
+                }
+                else
+                {
+                    us.FactionEmpathy = Array.Empty<Empathy>();
+                }
+            }
+            
+            
+        }
+
+        public Faction GetFaction(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return null;
+            factions.TryGetValue(name, out var f);
+            return f;
+        }
+
+        public Faction GetFaction(uint hash)
+        {
+            factionHash.TryGetValue(hash, out var f);
+            return f;
+        }
+        
         public void LoadData(IUIThread ui, Action onIniLoaded = null)
         {
             fldata.LoadData();
@@ -398,6 +473,7 @@ namespace LibreLancer
                     }
                 }
             });
+            InitFactions();
             InitArchetypes();
             InitEquipment();
             InitGoods();
@@ -1484,6 +1560,7 @@ namespace LibreLancer
         {
             var obj = new GameData.SystemObject();
             obj.Nickname = o.Nickname;
+            obj.Faction = GetFaction(o.Reputation);
             obj.Visit = o.Visit ?? 0;
             obj.DisplayName = GetString(o.IdsName);
             obj.Position = o.Pos.Value;

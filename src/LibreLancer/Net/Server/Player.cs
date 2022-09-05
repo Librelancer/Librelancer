@@ -242,6 +242,11 @@ namespace LibreLancer
                     });
                 }
             }
+            foreach (var rep in RepFromSave(sg))
+            {
+                Character.Reputation.Reputations[rep.fac] = rep.rep;
+            }
+            UpdateCurrentReputations();
             rpcClient.UpdateInventory(Character.Credits, GetShipWorth(), Character.EncodeLoadout());
             if (Base != null)
             {
@@ -749,6 +754,7 @@ namespace LibreLancer
                 IsAdmin = Game.AdminCharacters.Contains(Character.Name);
                 Name = Character.Name;
                 rpcClient.UpdateBaselinePrices(Game.BaselineGoodPrices);
+                UpdateCurrentReputations();
                 rpcClient.UpdateInventory(Character.Credits, GetShipWorth(), Character.EncodeLoadout());
                 Base = Character.Base;
                 System = Character.System;
@@ -767,6 +773,7 @@ namespace LibreLancer
                 return Task.FromResult(true);
             }
         }
+        
 
         Task<bool> IServerPlayer.DeleteCharacter(int index)
         {
@@ -776,6 +783,16 @@ namespace LibreLancer
             Game.Database.DeleteCharacter(sc.Id);
             CharacterList.Remove(sc);
             return Task.FromResult(true);
+        }
+
+        IEnumerable<(GameData.Faction fac, float rep)> RepFromSave(SaveGame sg)
+        {
+            foreach (var h in sg.Player.House)
+            {
+                var f = Game.GameData.GetFaction(h.Group);
+                if (f != null)
+                    yield return (f, h.Reputation);
+            }
         }
 
         Task<bool> IServerPlayer.CreateNewCharacter(string name, int index)
@@ -814,6 +831,10 @@ namespace LibreLancer
                             ItemCount = cg.Count
                         });
                     }
+                    foreach (var rep in RepFromSave(sg))
+                    {
+                        db.Reputations.Add(new Reputation() { RepGroup = rep.fac.Nickname, ReputationValue = rep.rep });
+                    }
                 });
                 var sel = NetCharacter.FromDb(ch.Id, Game).ToSelectable();
                 CharacterList.Add(sel);
@@ -831,6 +852,15 @@ namespace LibreLancer
         public void SpawnDebris(int id, GameObjectKind kind, string archetype, string part, Matrix4x4 tr, float mass)
         {
             rpcClient.SpawnDebris(id, kind, archetype, part, Vector3.Transform(Vector3.Zero, tr), tr.ExtractRotation(), mass);
+        }
+
+        void UpdateCurrentReputations()
+        {
+            rpcClient.UpdateReputations(Character.Reputation.Reputations.Select(x => new NetReputation()
+            {
+                FactionHash = x.Key.Hash,
+                Reputation = x.Value
+            }).ToArray());
         }
         
         public void UpdateCurrentInventory() => rpcClient.UpdateInventory(Character.Credits, GetShipWorth(), Character.EncodeLoadout());
