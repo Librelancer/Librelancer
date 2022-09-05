@@ -27,6 +27,6 @@ namespace LibreLancer.Data.Missions
         [Entry("text")] public int Text;
         [Entry("base", Multiline = true)] public List<string> Base = new List<string>();
         [Entry("autoselect", Presence = true)] public bool Autoselect;
-        [Entry("audio")] public string Audio; //Unused in vanilla
+        [Entry("audio", Presence = true)] public string Audio; //Unused in vanilla
     }
 }

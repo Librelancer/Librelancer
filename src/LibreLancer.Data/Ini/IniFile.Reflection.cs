@@ -283,7 +283,8 @@ namespace LibreLancer.Ini
                 //Fill
                 if (ftype == typeof(string))
                 {
-                    if (ComponentCheck(1, s, e)) field.Field.SetValue(obj, e[0].ToString());
+                    if (field.Attr.Presence && e.Count < 1) { /* Allow for blank strings (hack)*/}
+                    else if (ComponentCheck(1, s, e)) field.Field.SetValue(obj, e[0].ToString());
                 }
                 else if (ftype == typeof(float))
                 {
