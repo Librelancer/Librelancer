@@ -444,6 +444,9 @@ namespace InterfaceEdit
 
         public float SelectionHealth() => 0.5f;
         public float SelectionShield() => 0.75f;
+
+        public string SelectionReputation() => "friendly";
+        
         public Vector2 SelectionPosition() => new Vector2(300,300);
         
         public TargetShipWireframe SelectionWireframe() => null;

@@ -277,6 +277,17 @@ World Time: {12:F2}
                 if ((shield = g.selected.GetChildComponents<CShieldComponent>().FirstOrDefault()) == null) return -1;
                 return shield.ShieldPercent;
             }
+
+            public string SelectionReputation()
+            {
+                if (g.selected.SystemObject != null)
+                {
+                    var rep = g.session.PlayerReputations.GetReputation(g.selected.SystemObject.Faction);
+                    if (rep < -0.4) return "hostile";
+                    if (rep > 0.4) return "friendly";
+                }
+                return "neutral";
+            }
             
 
             public Vector2 SelectionPosition()

@@ -169,6 +169,13 @@ class hud : hud_Designer
 		    } else {
 			    e.selection_shield.Visible = false
 		    }
+			
+			local color = GetColor('color_' + Game.SelectionReputation())
+			
+			e.sel_tl.Background.GetElement(0).Tint = color; 
+			e.sel_tr.Background.GetElement(0).Tint = color; 
+			e.sel_bl.Background.GetElement(0).Tint = color; 
+			e.sel_br.Background.GetElement(0).Tint = color; 
 	    } else {
 		    e.selection.Visible = false
 	    }
@@ -197,6 +204,10 @@ class hud : hud_Designer
     Chatbox() => this.Elements.chatbox.Visible = true;
     Popup(title,contents,id) => OpenModal(new popup(title,contents,'ok', () => Game.PopupFinish(id)));
 }
+
+
+
+
 
 
 

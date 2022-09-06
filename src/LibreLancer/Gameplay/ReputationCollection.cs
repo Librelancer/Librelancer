@@ -9,6 +9,7 @@ public class ReputationCollection
 
     public float GetReputation(Faction f)
     {
+        if (f == null) return 0;
         if (Reputations.TryGetValue(f, out var r)) return r;
         else return 0;
     }

@@ -65,10 +65,10 @@
 		</Panel.Background>
 	</Panel>
 	<Panel X="10" Y="10" Width="150" Height="100" id="selection" Visible="true" CaptureMouse="false">
-		<Panel Anchor="TopLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tl" /></Panel.Background></Panel>
-		<Panel Anchor="TopRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tr" /></Panel.Background></Panel>
-		<Panel Anchor="BottomLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_bl" /></Panel.Background></Panel>
-		<Panel Anchor="BottomRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_br" /></Panel.Background></Panel>
+		<Panel id="sel_tl" Anchor="TopLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tl" /></Panel.Background></Panel>
+		<Panel id="sel_tr" Anchor="TopRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tr" /></Panel.Background></Panel>
+		<Panel id="sel_bl" Anchor="BottomLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_bl" /></Panel.Background></Panel>
+		<Panel id="sel_br" Anchor="BottomRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_br" /></Panel.Background></Panel>
 		<TextBlock id="selection_name" Y="-3" Anchor="TopCenter" Width="150" Height="20" Text="Target" VerticalAlignment="Top" TextSize="9"></TextBlock>
 		<Gauge Width="50" Height="5" Y="9" Anchor="BottomCenter" PercentFilled="0.5" id="selection_health">
 			<Gauge.Fill><DisplayColor color="red" /></Gauge.Fill>
@@ -123,3 +123,4 @@
     <ChatDisplay Anchor="BottomLeft" Y="130" Height="250" Width="510" X="10" id="chat"/>
     <TextBlock Y="70" Anchor="TopCenter" Width="640" Height="70" TextColor="text" TextSize="14" TextShadow="black" Strid="21810" AllCaps="true" id="nnobj" />
 </Scene>
+
