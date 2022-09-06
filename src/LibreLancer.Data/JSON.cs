@@ -13,13 +13,17 @@ namespace LibreLancer.Data
 	{
 		public static T Deserialize<T>(string str)
         {
-            return JsonSerializer.Deserialize<T>(str);
+            return JsonSerializer.Deserialize<T>(str, new JsonSerializerOptions()
+            {
+                IncludeFields = true
+            });
         }
 		public static string Serialize<T>(T obj)
         {
             return JsonSerializer.Serialize<T>(obj, new JsonSerializerOptions()
             {
                 WriteIndented = true,
+                IncludeFields = true,
                 ReferenceHandler = ReferenceHandler.IgnoreCycles
             });
         }
