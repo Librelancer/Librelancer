@@ -881,7 +881,7 @@ namespace LibreLancer
                     Chats.Append(stats, "Arial", 26, Color4.CornflowerBlue);
                     Chats.Append(
                         $"Sent: {DebugDrawing.SizeSuffix(nc.BytesSent)}, Received: {DebugDrawing.SizeSuffix(nc.BytesReceived)}",
-                        "Arial", 9, Color4.CornflowerBlue);
+                        "Arial", 26, Color4.CornflowerBlue);
                 }
                 else
                 {
