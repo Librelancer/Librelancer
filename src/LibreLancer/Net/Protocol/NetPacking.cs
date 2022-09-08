@@ -143,6 +143,22 @@ namespace LibreLancer
             }
             return a;
         }
+
+        public static unsafe void Put(this LiteNetLib.Utils.NetDataWriter om, Guid g)
+        {
+            var longs = (ulong*)&g;
+            om.Put(longs[0]);
+            om.Put(longs[1]);
+        }
+
+        public static unsafe Guid GetGuid(this LiteNetLib.Utils.NetDataReader im)
+        {
+            Guid g = new Guid();
+            var longs = (ulong*) &g;
+            longs[0] = im.GetULong();
+            longs[1] = im.GetULong();
+            return g;
+        }
         
 		public static void Put(this LiteNetLib.Utils.NetDataWriter om, Quaternion q)
         {

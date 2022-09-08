@@ -46,7 +46,7 @@ namespace LibreLancer
         void NetThread()
         {
             EventBasedNetListener listener = new EventBasedNetListener();
-            int unique = Environment.TickCount;
+            var unique = Guid.NewGuid();
             listener.ConnectionRequestEvent += request =>
             {
                 if (Server.ConnectedPeersCount > MaxConnections) request.Reject();
@@ -78,13 +78,13 @@ namespace LibreLancer
                         reader.TryGetULong(out ulong key);
                         if (key != LNetConst.BROADCAST_KEY) return;
                         var dw = new NetDataWriter();
-                        dw.Put((int) 1);
+                        dw.Put((byte) 1);
                         dw.Put(unique);
                         dw.PutStringPacked(game.ServerName);
                         dw.PutStringPacked(game.ServerDescription);
                         dw.PutStringPacked(game.GameData.DataVersion);
-                        dw.Put(Server.ConnectedPeersCount);
-                        dw.Put(MaxConnections);
+                        dw.PutVariableUInt32((uint)Server.ConnectedPeersCount);
+                        dw.PutVariableUInt32((uint)MaxConnections);
                         Server.SendUnconnectedMessage(dw, point);
 
                     } else if (type == UnconnectedMessageType.BasicMessage)
@@ -92,7 +92,7 @@ namespace LibreLancer
                         if (!reader.TryGetUInt(out uint magic)) return;
                         if (magic != LNetConst.PING_MAGIC) return;
                         var dw = new NetDataWriter();
-                        dw.Put((int) 0);
+                        dw.Put((byte) 0);
                         Server.SendUnconnectedMessage(dw, point);
                     }
                 }

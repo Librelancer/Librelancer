@@ -217,7 +217,7 @@ namespace LibreLancer
             listener.NetworkReceiveUnconnectedEvent += (remote, msg, type) =>
             {
                 if (type == UnconnectedMessageType.Broadcast) return;
-                if (msg.GetInt() == 0) {
+                if (msg.GetByte() == 0) {
                     lock (srvinfo)
                     {
                         foreach (var info in srvinfo)
@@ -235,12 +235,12 @@ namespace LibreLancer
                 {
                     var info = new LocalServerInfo();
                     info.EndPoint = remote;
-                    info.Unique = msg.GetInt();
+                    info.Unique = msg.GetGuid();
                     info.Name = msg.GetStringPacked();
                     info.Description = msg.GetStringPacked();
                     info.DataVersion = msg.GetStringPacked();
-                    info.CurrentPlayers = msg.GetInt();
-                    info.MaxPlayers = msg.GetInt();
+                    info.CurrentPlayers = (int)msg.GetVariableUInt32();
+                    info.MaxPlayers = (int)msg.GetVariableUInt32();
                     info.LastPingTime = sw.ElapsedMilliseconds;
                     NetDataWriter writer = new NetDataWriter();
                     writer.Put(LNetConst.PING_MAGIC);

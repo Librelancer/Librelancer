@@ -96,11 +96,11 @@ namespace LibreLancer
         public Guid Guid;
         public static AuthenticationReplyPacket Read(NetPacketReader message)
         {
-            return new AuthenticationReplyPacket() { Guid = new Guid(message.GetBytes(16)) };
+            return new AuthenticationReplyPacket() { Guid = message.GetGuid() };
         }
         public void WriteContents(NetDataWriter outPacket)
         {
-            outPacket.Put(Guid.ToByteArray());
+            outPacket.Put(Guid);
         }
 
     }
