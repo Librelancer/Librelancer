@@ -14,6 +14,11 @@ namespace LibreLancer
 {
 	public class GameListener
     {
+        static GameListener()
+        {
+            NetDebug.Logger = new NetDebugLogger();
+        }
+        
         private GameServer game;
 		static readonly object TagConnecting = new object();
 
