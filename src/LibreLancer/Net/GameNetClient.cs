@@ -372,8 +372,10 @@ namespace LibreLancer
                 if (Interlocked.Read(ref localPeerRequests) > 0)
                 {
                     Interlocked.Decrement(ref localPeerRequests);
+                    lock (srvinfo) srvinfo.Clear();
                     var dw = new NetDataWriter();
                     dw.Put(LNetConst.BROADCAST_KEY);
+                    FLLog.Debug("Net", "Sending broadcast");
                     client.SendBroadcast(dw, LNetConst.BROADCAST_PORT);
                 }
                 //ping servers

@@ -8,7 +8,7 @@ class serverlist : serverlist_Designer
 			Game.StopNetworking();
 			OpenScene("mainmenu");
 		}));
-
+		e.refreshlist.OnClick(() => Game.RefreshServers());
 		e.connect.OnClick(() => {
 			this.connecting = new connecting();
 			OpenModal(this.connecting);
@@ -77,6 +77,7 @@ class serverlist : serverlist_Designer
         OpenModal(new popup(0, STRID_DISCONNECT, "ok", () => this.InitNetwork()));
     }
 }
+
 
 
 
