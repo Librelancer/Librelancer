@@ -102,6 +102,57 @@ namespace LibreLancer
             }
         }
 
+        public static bool TryPeekVariableUInt32(this LiteNetLib.Utils.NetDataReader reader, ref int offset, out uint len)
+        {
+            len = 0;
+            bool TryPeekByte(ref int o, out byte v)
+            {
+                v = 0;
+                if (reader.AvailableBytes < o) return false;
+                v = reader.RawData[reader.Position + o++];
+                return true;
+            }
+            uint a = 0;
+            if (!TryPeekByte(ref offset, out byte b)) return false;
+            a = (uint) (b & 0x7f);
+            int extraCount = 0;
+            //first extra
+            if ((b & 0x80) == 0x80)
+            {
+                if (!TryPeekByte(ref offset, out b)) return false;
+                a |= (uint) ((b & 0x7f) << 7);
+                extraCount++;
+            }
+            //second extra
+            if ((b & 0x80) == 0x80)
+            {
+                if (!TryPeekByte(ref offset, out b)) return false;
+                a |= (uint) ((b & 0x7f) << 7);
+                extraCount++;
+            }
+            //third extra
+            if ((b & 0x80) == 0x80)
+            {
+                if (!TryPeekByte(ref offset, out b)) return false;
+                a |= (uint) ((b & 0x7f) << 7);
+                extraCount++;
+            }
+            //fourth extra
+            if ((b & 0x80) == 0x80)
+            {
+                if (!TryPeekByte(ref offset, out b)) return false;
+                a |= (uint) ((b & 0x7f) << 7);
+                extraCount++;
+            }
+            switch (extraCount) {
+                case 1: a += 128; break;
+                case 2: a += 16512; break;
+                case 3: a += 2113663; break;
+            }
+            len = a;
+            return true;
+        }
+
         public static uint GetVariableUInt32(this LiteNetLib.Utils.NetDataReader reader)
         {
             uint a = 0;

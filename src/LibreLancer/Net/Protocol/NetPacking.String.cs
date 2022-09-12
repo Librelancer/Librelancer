@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace LibreLancer
@@ -210,6 +211,40 @@ namespace LibreLancer
                     om.Put(bytes);
                 }
             }
+        }
+
+        public static bool TryGetStringPacked(this LiteNetLib.Utils.NetDataReader im, out string str, uint maxLength = 2048)
+        {
+            str = null;
+            if (im.AvailableBytes < 1) return false;
+            var firstByte = im.PeekByte();
+            if (firstByte == 0) { im.SkipBytes(1); return true; }
+            if (firstByte == 1) { im.SkipBytes(1); str = ""; return true; }
+            var type = (firstByte >> 6);
+            uint len;
+            if (type == 0 || type == 2)
+            {
+                len = (uint) ((firstByte & 0x3f) - 1);
+                if (len > maxLength) return false;
+                if (im.AvailableBytes < len + 1) return false;
+                im.SkipBytes(1);
+            }
+            else
+            {
+                if (im.AvailableBytes < 64) return false; //63 + im.GetByte()
+                int off = 1;
+                if (!TryPeekVariableUInt32(im, ref off, out len)) return false;
+                len += 63;
+                if (len > maxLength) return false;
+                if (im.AvailableBytes < off + len) return false;
+                im.SkipBytes(off);
+            }
+            var bytes = im.GetBytes((int)len);
+            if (type == 0 || type == 1)
+                str = DecodeString(bytes);
+            else
+                str = Encoding.UTF8.GetString(bytes);
+            return true;
         }
         public static string GetStringPacked(this LiteNetLib.Utils.NetDataReader im)
         {

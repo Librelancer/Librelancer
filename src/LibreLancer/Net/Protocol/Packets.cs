@@ -52,7 +52,7 @@ namespace LibreLancer
         static Packets()
         {
             //Authentication
-            Register<AuthenticationPacket>(AuthenticationPacket.Read);
+            Register<GuidAuthenticationPacket>(GuidAuthenticationPacket.Read);
             Register<AuthenticationReplyPacket>(AuthenticationReplyPacket.Read);
             Register<LoginSuccessPacket>(LoginSuccessPacket.Read);
             //Menu
@@ -78,45 +78,27 @@ namespace LibreLancer
         {
         }
     }
-    public class AuthenticationPacket : IPacket
+    public class GuidAuthenticationPacket : IPacket
     {
-        public AuthenticationKind Type;
-        public string URL;
-        public static AuthenticationPacket Read(NetPacketReader message)
+        public static GuidAuthenticationPacket Read(NetPacketReader message)
         {
-            return new AuthenticationPacket() { Type = (AuthenticationKind)message.GetByte(), URL = message.GetStringPacked() };
+            return new GuidAuthenticationPacket() { };
         }
         public void WriteContents(NetDataWriter outPacket)
         {
-            outPacket.Put((byte)Type);
-            outPacket.PutStringPacked(URL);
         }
     }
 
     public class AuthenticationReplyPacket : IPacket
     {
-        public string Token;
         public Guid Guid;
         public static AuthenticationReplyPacket Read(NetPacketReader message)
         {
-            var isToken = message.GetBool();
-            if (isToken) {
-                return new AuthenticationReplyPacket() { Token = message.GetStringPacked() };
-            }
-            else{
-                return new AuthenticationReplyPacket() { Guid = message.GetGuid() };
-            }
+            return new AuthenticationReplyPacket() { Guid = message.GetGuid() };
         }
         public void WriteContents(NetDataWriter outPacket)
         {
-            if (Token != null) {
-                outPacket.Put(true);
-                outPacket.PutStringPacked(Token);
-            }
-            else {
-                outPacket.Put(false);
-                outPacket.Put(Guid);
-            }
+            outPacket.Put(Guid);
         }
 
     }

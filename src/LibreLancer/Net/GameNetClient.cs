@@ -119,13 +119,22 @@ namespace LibreLancer
         bool connecting = true;
         public void Connect(IPEndPoint endPoint)
         {
+            ConnectInternal(endPoint, null);
+        }
+
+        void ConnectInternal(IPEndPoint endPoint, string token)
+        {
+            var dw = new NetDataWriter();
+            dw.PutStringPacked(AppIdentifier + GeneratedProtocol.PROTOCOL_HASH);
+            if(!string.IsNullOrEmpty(token))
+                dw.PutStringPacked(token);
             if(!running) throw new InvalidOperationException();
             lock (srvinfo) srvinfo.Clear();
             connecting = true;
             loginUrl = null;
             while (client == null || !client.IsRunning) Thread.Sleep(0);
             client.Statistics?.Reset();
-            client.Connect(endPoint, AppIdentifier + GeneratedProtocol.PROTOCOL_HASH);
+            client.Connect(endPoint, dw);
         }
 
         public void Connect(string str)
@@ -206,14 +215,16 @@ namespace LibreLancer
         List<LocalServerInfo> srvinfo = new List<LocalServerInfo>();
 
         private string loginUrl;
+        private IPEndPoint loginEndpoint;
         public void Login(string username, string password)
         {
             if (!running || string.IsNullOrEmpty(loginUrl)) throw new InvalidOperationException();
             Task.Run(async () =>
             {
                 var token = await http.Login(loginUrl, username, password);
-                if (token != null)
-                    SendPacket(new AuthenticationReplyPacket() { Token = token }, PacketDeliveryMethod.ReliableOrdered);
+                if (token != null) {
+                    ConnectInternal(loginEndpoint, token);
+                }
                 else
                 {
                     FLLog.Error("Http", "Login failed");
@@ -305,34 +316,12 @@ namespace LibreLancer
                         var pkt = Packets.Read(reader);
                         if (connecting)
                         {
-                            if (pkt is AuthenticationPacket)
+                            if (pkt is GuidAuthenticationPacket)
                             {
-                                var auth = (AuthenticationPacket) pkt;
-                                FLLog.Info("Net", "Authentication Packet Received");
-                                if (auth.Type == AuthenticationKind.Token)
-                                {
-                                    FLLog.Info("Net", "Token");
-                                    Task.Run(async () =>
-                                    {
-                                        if (auth.URL.StartsWith("https://") &&
-                                            await http.LoginServerInfo(auth.URL))
-                                        {
-                                            loginUrl = auth.URL;
-                                            mainThread.QueueUIThread(() => AuthenticationRequired?.Invoke(false));
-                                        }
-                                        else
-                                        {
-                                            FLLog.Info("Http", $"{auth.URL} invalid auth server");
-                                            client.DisconnectAll();
-                                        }
-                                    });
-                                }
-                                else if (auth.Type == AuthenticationKind.GUID)
-                                {
-                                    FLLog.Info("Net", "GUID");
-                                    SendPacket(new AuthenticationReplyPacket() {Guid = this.UUID},
+                                var auth = (GuidAuthenticationPacket) pkt;
+                                FLLog.Info("Net", "GUID Request Received");
+                                SendPacket(new AuthenticationReplyPacket() {Guid = this.UUID},
                                         PacketDeliveryMethod.ReliableOrdered);
-                                }
                             }
                             else if (pkt is LoginSuccessPacket)
                             {
@@ -362,9 +351,29 @@ namespace LibreLancer
             };
             listener.PeerDisconnectedEvent += (peer, info) =>
             {
-                if (info.AdditionalData.TryGetString(out var reason))
-                    FLLog.Info("Disconnect", reason);
-                mainThread.QueueUIThread(() => { Disconnected?.Invoke(info.Reason.ToString()); });
+                if (info.AdditionalData.TryGetStringPacked(out var reason) &&
+                    connecting && reason.StartsWith("TokenRequired?"))
+                {
+                    loginEndpoint = peer.EndPoint;
+                    var url = reason.Substring(14);
+                    Task.Run(async () =>
+                    {
+                        if (await http.LoginServerInfo(url))
+                        {
+                            loginUrl = url;
+                            mainThread.QueueUIThread(() => AuthenticationRequired?.Invoke(false));
+                        }
+                        else
+                        {
+                            mainThread.QueueUIThread(() => { Disconnected?.Invoke(info.Reason.ToString()); });
+                        }
+                    });
+                }
+                else
+                {
+                    FLLog.Info("Net", $"Disconnected {reason ?? info.Reason.ToString()}");
+                    mainThread.QueueUIThread(() => { Disconnected?.Invoke(info.Reason.ToString()); });
+                }
             };
             client.Start();
             while (running)

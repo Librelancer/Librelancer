@@ -13,20 +13,21 @@ namespace LibreLancer
         record LoginResult(string token);
 
         record VerifyResult(Guid guid);
-        
+
+        static Uri Combine(string baseUrl, string relUrl) => new Uri(new Uri(baseUrl), relUrl);
         public static async Task<string> Login(this HttpClient client, string url, string username, string password)
         {
             try
             {
                 FLLog.Info("Http", $"Logging in {username}");
-                var result = await client.PostAsync(url + "/login", JsonContent.Create(new
+                var result = await client.PostAsync(Combine(url,"/login"), JsonContent.Create(new
                 {
                     username = username,
                     password = password
                 }));
                 if (!result.IsSuccessStatusCode)
                 {
-                    FLLog.Error("Http", $"Login failed for {username}");
+                    FLLog.Error("Http", $"Login failed for {username} {result.StatusCode} {await result.Content.ReadAsStringAsync()}");
                     return null;
                 }
                 var login = await result.Content.ReadFromJsonAsync<LoginResult>();
@@ -45,7 +46,7 @@ namespace LibreLancer
             try
             {
                 FLLog.Info("Http", $"Registering {username}");
-                var result = await client.PostAsync(url + "/register", JsonContent.Create(new
+                var result = await client.PostAsync(Combine(url,"/register"), JsonContent.Create(new
                 {
                     username = username,
                     password = password
@@ -92,7 +93,7 @@ namespace LibreLancer
         {
             try
             {
-                var result = await client.PostAsync(url + "/verifytoken", JsonContent.Create(new
+                var result = await client.PostAsync(Combine(url,"/verifytoken"), JsonContent.Create(new
                 {
                     token = token
                 }));
