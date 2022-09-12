@@ -71,7 +71,7 @@ namespace LibreLancer
             {
                 FLLog.Info("Http", $"Contacting login server {url}");
 
-                var result = await client.GetAsync(url);
+                var result = await client.GetAsync(Combine(url, "/info"));
                 if (!result.IsSuccessStatusCode) return false;
                 var appInfo = await result.Content.ReadFromJsonAsync<ServerInfo>();
                 if (appInfo.application == "authserver")
