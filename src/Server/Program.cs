@@ -17,10 +17,11 @@ namespace Server
 		public string ServerName;
 		public string ServerDescription;
 		public string FreelancerPath;
-
+        public string LoginUrl;
 		public string DatabasePath;
         public bool UseLazyLoading;
         public string[] Admins;
+        public int Port = LNetConst.DEFAULT_PORT;
     }
 
 	class MainClass
@@ -61,13 +62,21 @@ namespace Server
                     FLLog.Info("Server", "Migrating database");
                     ctx.Database.Migrate();
                 }
-                FLLog.Debug("model", ctx.Model.ToString());
             }
             
             srv.DbContextFactory = ctxFactory;
             srv.ServerName = config.ServerName;
 			srv.ServerDescription = config.ServerDescription;
-			srv.Start();
+            srv.LoginUrl = config.LoginUrl;
+            srv.Listener.Port = config.Port > 0 ? config.Port : LNetConst.DEFAULT_PORT;
+            
+            if (!string.IsNullOrWhiteSpace(srv.LoginUrl) &&
+                !srv.LoginUrl.StartsWith("https://"))
+            {
+                Console.Error.WriteLine("Configuration Error: Only HTTPS login servers are supported");
+                return 2;
+            }
+            srv.Start();
 
             bool running = true;
 			while (running)

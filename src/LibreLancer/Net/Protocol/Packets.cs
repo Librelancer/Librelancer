@@ -81,26 +81,42 @@ namespace LibreLancer
     public class AuthenticationPacket : IPacket
     {
         public AuthenticationKind Type;
+        public string URL;
         public static AuthenticationPacket Read(NetPacketReader message)
         {
-            return new AuthenticationPacket() { Type = (AuthenticationKind)message.GetByte() };
+            return new AuthenticationPacket() { Type = (AuthenticationKind)message.GetByte(), URL = message.GetStringPacked() };
         }
         public void WriteContents(NetDataWriter outPacket)
         {
             outPacket.Put((byte)Type);
+            outPacket.PutStringPacked(URL);
         }
     }
 
     public class AuthenticationReplyPacket : IPacket
     {
+        public string Token;
         public Guid Guid;
         public static AuthenticationReplyPacket Read(NetPacketReader message)
         {
-            return new AuthenticationReplyPacket() { Guid = message.GetGuid() };
+            var isToken = message.GetBool();
+            if (isToken) {
+                return new AuthenticationReplyPacket() { Token = message.GetStringPacked() };
+            }
+            else{
+                return new AuthenticationReplyPacket() { Guid = message.GetGuid() };
+            }
         }
         public void WriteContents(NetDataWriter outPacket)
         {
-            outPacket.Put(Guid);
+            if (Token != null) {
+                outPacket.Put(true);
+                outPacket.PutStringPacked(Token);
+            }
+            else {
+                outPacket.Put(false);
+                outPacket.Put(Guid);
+            }
         }
 
     }

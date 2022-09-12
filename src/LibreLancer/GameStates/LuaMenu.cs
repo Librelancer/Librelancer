@@ -248,8 +248,20 @@ namespace LibreLancer
                 netClient.UUID = state.Game.Config.UUID.Value;
                 netClient.ServerFound += info => serverList.Servers.Add(info);
                 netClient.Disconnected += NetClientOnDisconnected;
+                netClient.AuthenticationRequired += NetClientOnAuthenticationRequired;
                 netClient.Start();
                 RefreshServers();
+            }
+
+            private void NetClientOnAuthenticationRequired(bool retry)
+            {
+                if(retry) state.ui.Event("IncorrectPassword");
+                else state.ui.Event("Login");
+            }
+
+            public void Login(string username, string password)
+            {
+                netClient?.Login(username, password);
             }
 
             public void RequestNewCharacter()

@@ -15,7 +15,8 @@ namespace LibreLancer.Data
         {
             return JsonSerializer.Deserialize<T>(str, new JsonSerializerOptions()
             {
-                IncludeFields = true
+                IncludeFields = true,
+                NumberHandling = JsonNumberHandling.AllowReadingFromString
             });
         }
 		public static string Serialize<T>(T obj)

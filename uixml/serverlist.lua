@@ -50,6 +50,24 @@ class serverlist : serverlist_Designer
 		scn.descriptiontext.Text = sv.CurrentDescription()
 	}
 
+	Login()
+	{
+		if(this.connecting != nil) {
+			this.connecting.Close();
+			this.connecting = nil;
+		}
+		OpenModal(new login(this));
+	}
+
+	IncorrectPassword()
+	{
+		if(this.connecting != nil) {
+			this.connecting.Close();
+			this.connecting = nil;
+		}
+		OpenModal(new login(this, true));
+	}
+
  	Disconnect()
     {
 		if(this.connecting != nil) {
@@ -59,6 +77,9 @@ class serverlist : serverlist_Designer
         OpenModal(new popup(0, STRID_DISCONNECT, "ok", () => this.InitNetwork()));
     }
 }
+
+
+
 
 
 

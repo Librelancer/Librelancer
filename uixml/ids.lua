@@ -28,6 +28,8 @@ STRID_YOU_ARE_DEAD = 1827
 
 STRID_DISCONNECT = 1847
 STRID_NAME_TAKEN = 1848
+STRID_PASSWORD_PROMPT = 1872
+STRID_INCORRECT_PASSWORD = 1849
 
 
 // Ship Classes
@@ -69,6 +71,7 @@ function LoadShipClassNames()
 	ShipClassNames[3] = StringFromID(STRID_CLS_FR)
 	ShipClassNames[4] = StringFromID(STRID_CLS_VHF)
 }
+
 
 
 

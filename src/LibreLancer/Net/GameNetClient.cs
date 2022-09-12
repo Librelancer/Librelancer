@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,11 +26,12 @@ namespace LibreLancer
         public string AppIdentifier = LNetConst.DEFAULT_APP_IDENT;
         
         public event Action<LocalServerInfo> ServerFound;
-        public event Action<string> AuthenticationRequired;
+        public event Action<bool> AuthenticationRequired;
         public event Action<string> Disconnected;
         public Guid UUID;
         ConcurrentQueue<IPacket> packets = new ConcurrentQueue<IPacket>();
-
+        private HttpClient http;
+        
         public int LossPercent
         {
             get
@@ -120,6 +122,7 @@ namespace LibreLancer
             if(!running) throw new InvalidOperationException();
             lock (srvinfo) srvinfo.Clear();
             connecting = true;
+            loginUrl = null;
             while (client == null || !client.IsRunning) Thread.Sleep(0);
             client.Statistics?.Reset();
             client.Connect(endPoint, AppIdentifier + GeneratedProtocol.PROTOCOL_HASH);
@@ -202,9 +205,28 @@ namespace LibreLancer
         Stopwatch sw;
         List<LocalServerInfo> srvinfo = new List<LocalServerInfo>();
 
+        private string loginUrl;
+        public void Login(string username, string password)
+        {
+            if (!running || string.IsNullOrEmpty(loginUrl)) throw new InvalidOperationException();
+            Task.Run(async () =>
+            {
+                var token = await http.Login(loginUrl, username, password);
+                if (token != null)
+                    SendPacket(new AuthenticationReplyPacket() { Token = token }, PacketDeliveryMethod.ReliableOrdered);
+                else
+                {
+                    FLLog.Error("Http", "Login failed");
+                    mainThread.QueueUIThread(() => AuthenticationRequired?.Invoke(true));
+                }
+            });
+        }
+        
+
         void NetworkThread()
         {
             sw = Stopwatch.StartNew();
+            http = new HttpClient();
             var listener = new EventBasedNetListener();
             client = new NetManager(listener)
             {
@@ -236,6 +258,7 @@ namespace LibreLancer
                     var info = new LocalServerInfo();
                     info.EndPoint = remote;
                     info.Unique = msg.GetGuid();
+                    info.EndPoint.Port = (int)msg.GetVariableUInt32();
                     info.Name = msg.GetStringPacked();
                     info.Description = msg.GetStringPacked();
                     info.DataVersion = msg.GetStringPacked();
@@ -289,8 +312,20 @@ namespace LibreLancer
                                 if (auth.Type == AuthenticationKind.Token)
                                 {
                                     FLLog.Info("Net", "Token");
-                                    var str = reader.GetString();
-                                    mainThread.QueueUIThread(() => AuthenticationRequired(str));
+                                    Task.Run(async () =>
+                                    {
+                                        if (auth.URL.StartsWith("https://") &&
+                                            await http.LoginServerInfo(auth.URL))
+                                        {
+                                            loginUrl = auth.URL;
+                                            mainThread.QueueUIThread(() => AuthenticationRequired?.Invoke(false));
+                                        }
+                                        else
+                                        {
+                                            FLLog.Info("Http", $"{auth.URL} invalid auth server");
+                                            client.DisconnectAll();
+                                        }
+                                    });
                                 }
                                 else if (auth.Type == AuthenticationKind.GUID)
                                 {
@@ -327,6 +362,8 @@ namespace LibreLancer
             };
             listener.PeerDisconnectedEvent += (peer, info) =>
             {
+                if (info.AdditionalData.TryGetString(out var reason))
+                    FLLog.Info("Disconnect", reason);
                 mainThread.QueueUIThread(() => { Disconnected?.Invoke(info.Reason.ToString()); });
             };
             client.Start();
@@ -337,7 +374,7 @@ namespace LibreLancer
                     Interlocked.Decrement(ref localPeerRequests);
                     var dw = new NetDataWriter();
                     dw.Put(LNetConst.BROADCAST_KEY);
-                    client.SendBroadcast(dw, LNetConst.DEFAULT_PORT);
+                    client.SendBroadcast(dw, LNetConst.BROADCAST_PORT);
                 }
                 //ping servers
                 lock (srvinfo)
@@ -360,6 +397,7 @@ namespace LibreLancer
             }
             client.DisconnectAll();
             client.Stop();
+            http.Dispose();
         }
 
         public void SendPacket(IPacket packet, PacketDeliveryMethod method)

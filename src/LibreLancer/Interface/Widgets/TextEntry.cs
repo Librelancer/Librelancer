@@ -27,6 +27,8 @@ namespace LibreLancer.Interface
         public InterfaceColor TextColor { get; set; }
         public InterfaceColor TextShadow { get; set; }
         public UiRenderable FocusedBorder { get; set; }
+        
+        public bool Password { get; set; }
 
         private bool doSetFocus = false;
         private bool hasFocus = false;
@@ -75,6 +77,16 @@ namespace LibreLancer.Interface
         }
 
         private CachedRenderString renderCache;
+
+        string GetCurrentText()
+        {
+            string text = CurrentText;
+            if (Password)
+                text = new string('*', CurrentText.Length);
+            if (hasFocus && cursorVisible) return text + "|";
+            else return text;
+        }
+        
         void DrawText(UiContext context, RectangleF myRect)
         {
             //Padding
@@ -83,7 +95,7 @@ namespace LibreLancer.Interface
             //Draw
             DrawText(context, ref renderCache, myRect, FontSize, Font, TextColor, TextShadow, HorizontalAlignment.Left,
                 VerticalAlignment.Center,
-                true, (hasFocus && cursorVisible) ? CurrentText + "|" : CurrentText);
+                true, GetCurrentText());
         }
         RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {

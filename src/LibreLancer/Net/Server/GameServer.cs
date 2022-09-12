@@ -23,6 +23,7 @@ namespace LibreLancer
         public string ServerName = "Librelancer Server";
         public string ServerDescription = "Description of the server is here.";
         public string ServerNews = "News of the server goes here";
+        public string LoginUrl = null;
         
         public IDesignTimeDbContextFactory<LibreLancerContext> DbContextFactory;
         public GameDataManager GameData;

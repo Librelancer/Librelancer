@@ -1,0 +1,39 @@
+<Scene>
+	<Scene.Background><DisplayColor color="rgba(0,0,0,0.7)"/></Scene.Background>
+    <Panel Anchor="Center" Width="427" Height="268" ID="background">
+		<Panel.Background>
+			<DisplayModel model="hlp_window"/>
+		</Panel.Background>
+        <Button id="close" Anchor="TopRight" X="18" Y="16" style="xbutton"/>
+        <InfocardDisplay Y="40" Width="380" Anchor="TopCenter" Height="90" id="errorDisplay">
+		</InfocardDisplay>
+        <TextBlock id="title" Y="8" Anchor="TopCenter" TextColor="text" font="$Header" TextShadow="black" TextSize="13" Width="410" Height="30" Text="Login"/>
+        <Button id="ok" Anchor="BottomCenter" style="wirebutton" Text="OK" Strid="1041" Y="30"/>
+        <TextBlock X="5" Y="-20" Anchor="CenterLeft" TextColor="text" font="$ListText" TextShadow="black" TextSize="13" Width="100" Height="30" Text="Username"/>
+        <TextEntry X="40" Y="-20" id="username" Anchor="Center"  Width="280" Height="30"
+        Font="$PlayerName" TextColor="text" TextShadow="black">
+        	<TextEntry.Border>
+        		<DisplayRectangle color="text"/>
+        	</TextEntry.Border>
+            <TextEntry.FocusedBorder>
+                <DisplayRectangle color="yellow"/>
+            </TextEntry.FocusedBorder>
+        </TextEntry>
+        <TextBlock X="5" Y="20" Anchor="CenterLeft" TextColor="text" font="$ListText" TextShadow="black" TextSize="13" Width="100" Height="30" Text="Password"/>
+        <TextEntry X="40" Y="20" id="password" Password="true" Anchor="Center"  Width="280" Height="30"
+        Font="$PlayerName" TextColor="text" TextShadow="black">
+        	<TextEntry.Border>
+        		<DisplayRectangle color="text"/>
+        	</TextEntry.Border>
+            <TextEntry.FocusedBorder>
+                <DisplayRectangle color="yellow"/>
+            </TextEntry.FocusedBorder>
+        </TextEntry>
+    </Panel>
+</Scene>
+
+
+
+
+
+
