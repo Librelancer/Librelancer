@@ -20,17 +20,19 @@ typeMethods = {
   "sbyte" : "GetSByte",
   "double" : "GetDouble",
   "float" : "GetFloat",
-  "long" : "GetLong",
+  "long" : "GetVariableInt64",
   "IPEndPoint" : "GetNetEndPoint",
   "short" : "GetShort",
   "string" : "GetStringPacked",
   "uint" : "GetUInt",
-  "ulong" : "GetULong",
+  "ulong" : "GetVariableUInt64",
   "ushort" : "GetUShort",
   "bool" : "GetBool",
 }
 encodeMethods = {
-    "int": "PutVariableInt32"
+    "int": "PutVariableInt32",
+    "long": "PutVariableInt64",
+    "ulong": "PutVariableUInt64"
 }
 
 # Enumerations

@@ -49,7 +49,7 @@ namespace LibreLancer
 
         public void PutVarInt32(int i)
         {
-            PutVarUInt32(NetPacking.Zig(i));
+            PutVarUInt32(NetPacking.Zig32(i));
         }
         
         public void PutVarUInt32(uint u)

@@ -42,7 +42,7 @@ namespace LibreLancer
 
         public int GetVarInt32()
         {
-            return NetPacking.Zag(GetVarUInt32());
+            return NetPacking.Zag32(GetVarUInt32());
         }
         
         public uint GetVarUInt32()

@@ -7,7 +7,7 @@
     "  change the md5 hash of this file."
     ],
     
-    "__revision": "1",
+    "__revision": "2",
     
     "server_methods": [
         { "name": "Launch" },

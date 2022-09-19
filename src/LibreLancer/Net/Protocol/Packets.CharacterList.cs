@@ -39,7 +39,7 @@ namespace LibreLancer
                     StridDesc = message.GetInt(),
                     Ship = message.GetStringPacked(),
                     Loadout = message.GetStringPacked(),
-                    Money = message.GetLong()
+                    Money = message.GetVariableInt64()
                 });
             }
             var pilotCount = (int)message.GetVariableUInt32();
@@ -79,7 +79,7 @@ namespace LibreLancer
                 outPacket.Put(p.StridDesc);
                 outPacket.PutStringPacked(p.Ship);
                 outPacket.PutStringPacked(p.Loadout);
-                outPacket.Put(p.Money);
+                outPacket.PutVariableInt64(p.Money);
             }
             outPacket.PutVariableUInt32((uint)Pilots.Count);
             foreach(var p in Pilots) {
@@ -110,7 +110,7 @@ namespace LibreLancer
                 var c = new SelectableCharacter();
                 c.Name = message.GetStringPacked();
                 c.Rank = (int)message.GetVariableUInt32();
-                c.Funds = message.GetLong();
+                c.Funds = message.GetVariableInt64();
                 c.Ship = message.GetStringPacked();
                 c.Location = message.GetStringPacked();
                 oc.Info.Characters.Add(c);
@@ -127,7 +127,7 @@ namespace LibreLancer
             {
                 outPacket.PutStringPacked(c.Name);
                 outPacket.PutVariableUInt32((uint)c.Rank);
-                outPacket.Put(c.Funds);
+                outPacket.PutVariableInt64(c.Funds);
                 outPacket.PutStringPacked(c.Ship);
                 outPacket.PutStringPacked(c.Location);
             }
@@ -142,7 +142,7 @@ namespace LibreLancer
             ac.Character = new SelectableCharacter();
             ac.Character.Name = message.GetStringPacked();
             ac.Character.Rank = (int)message.GetVariableUInt32();
-            ac.Character.Funds = message.GetLong();
+            ac.Character.Funds = message.GetVariableInt64();
             ac.Character.Ship = message.GetStringPacked();
             ac.Character.Location = message.GetStringPacked();
             return ac;
@@ -151,7 +151,7 @@ namespace LibreLancer
         {
             outPacket.PutStringPacked(Character.Name);
             outPacket.PutVariableUInt32((uint)Character.Rank);
-            outPacket.Put(Character.Funds);
+            outPacket.PutVariableInt64(Character.Funds);
             outPacket.PutStringPacked(Character.Ship);
             outPacket.PutStringPacked(Character.Location);
         }
