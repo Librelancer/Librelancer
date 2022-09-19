@@ -71,7 +71,7 @@ namespace LibreLancer
             if (!drawables.TryGetValue(filename, out drawable))
             {
                 drawable = Utf.UtfLoader.LoadDrawable(filename, this);
-                drawable.ClearResources();
+                drawable?.ClearResources();
                 drawables.Add(filename, drawable);
             }
             return drawable;

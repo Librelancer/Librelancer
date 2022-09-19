@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Numerics;
+using LibreLancer.Net;
 using LiteNetLib.Utils;
 
 namespace LibreLancer
@@ -11,10 +12,21 @@ namespace LibreLancer
         
         private byte[] buffer;
         private int bitOffset;
+
+        public NetHpidWriter HpidWriter;
+        
         public BitWriter(int initialCapacity = 64)
         {
             buffer = new byte [(initialCapacity + 7) >> 3];
             bitOffset = 0;
+        }
+        
+        public void PutHpid(string hpid)
+        {
+            if (HpidWriter == null) throw new InvalidOperationException();
+            if(hpid == null) PutVarUInt32(0);
+            else if(hpid == "") PutVarUInt32(1);
+            else PutVarUInt32(HpidWriter.GetIndex(hpid) + 2);
         }
 
         public void PutInt(int i) => PutUInt((uint) i, 32);
@@ -192,6 +204,14 @@ namespace LibreLancer
             float unit = ((f - min) / (max - min));
             PutUInt((uint)(intMax * unit), bits);
         }
+
+        public void PutRangedVector3(Vector3 v, float min, float max, int bits)
+        {
+            PutRangedFloat(v.X, min, max, bits);
+            PutRangedFloat(v.Y, min, max, bits);
+            PutRangedFloat(v.Z, min, max, bits);
+        }
+        
         static void PackUInt(uint src, int nBits, Span<byte> dest, int destOffset)
         {
             if (nBits <= 8)
@@ -269,7 +289,7 @@ namespace LibreLancer
         }
         
         public int ByteLength => (bitOffset + 7) >> 3;
-        public void WriteToPacket(NetDataWriter dw)
+        public void WriteToPacket(PacketWriter dw)
         {
             dw.Put(buffer, 0, (bitOffset + 7) >> 3);
         }

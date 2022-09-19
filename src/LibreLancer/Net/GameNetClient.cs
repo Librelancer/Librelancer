@@ -31,6 +31,7 @@ namespace LibreLancer
         public Guid UUID;
         ConcurrentQueue<IPacket> packets = new ConcurrentQueue<IPacket>();
         private HttpClient http;
+        private NetHpidWriter hpidWrite;
         
         public int LossPercent
         {
@@ -124,10 +125,14 @@ namespace LibreLancer
 
         void ConnectInternal(IPEndPoint endPoint, string token)
         {
-            var dw = new NetDataWriter();
-            dw.PutStringPacked(AppIdentifier + GeneratedProtocol.PROTOCOL_HASH);
+            hpidWrite = new NetHpidWriter();
+            hpidWrite.OnAddString += s => {
+                SendPacket(new AddStringPacket() { ToAdd = s }, PacketDeliveryMethod.ReliableOrdered);
+            };
+            var dw = new PacketWriter();
+            dw.Put(AppIdentifier + GeneratedProtocol.PROTOCOL_HASH);
             if(!string.IsNullOrEmpty(token))
-                dw.PutStringPacked(token);
+                dw.Put(token);
             if(!running) throw new InvalidOperationException();
             lock (srvinfo) srvinfo.Clear();
             connecting = true;
@@ -239,6 +244,7 @@ namespace LibreLancer
             sw = Stopwatch.StartNew();
             http = new HttpClient();
             var listener = new EventBasedNetListener();
+            NetHpidReader hpidReader = new NetHpidReader();
             client = new NetManager(listener)
             {
                 UnconnectedMessagesEnabled = true,
@@ -247,9 +253,10 @@ namespace LibreLancer
                 EnableStatistics = true,
                 ChannelsCount =  3
             };
-            listener.NetworkReceiveUnconnectedEvent += (remote, msg, type) =>
+            listener.NetworkReceiveUnconnectedEvent += (remote, npr, type) =>
             {
                 if (type == UnconnectedMessageType.Broadcast) return;
+                var msg = new PacketReader(npr);
                 if (msg.GetByte() == 0) {
                     lock (srvinfo)
                     {
@@ -270,13 +277,13 @@ namespace LibreLancer
                     info.EndPoint = remote;
                     info.Unique = msg.GetGuid();
                     info.EndPoint.Port = (int)msg.GetVariableUInt32();
-                    info.Name = msg.GetStringPacked();
-                    info.Description = msg.GetStringPacked();
-                    info.DataVersion = msg.GetStringPacked();
+                    info.Name = msg.GetString();
+                    info.Description = msg.GetString();
+                    info.DataVersion = msg.GetString();
                     info.CurrentPlayers = (int)msg.GetVariableUInt32();
                     info.MaxPlayers = (int)msg.GetVariableUInt32();
                     info.LastPingTime = sw.ElapsedMilliseconds;
-                    NetDataWriter writer = new NetDataWriter();
+                    PacketWriter writer = new PacketWriter();
                     writer.Put(LNetConst.PING_MAGIC);
                     client.SendUnconnectedMessage(writer, remote);
                     lock (srvinfo)
@@ -300,21 +307,28 @@ namespace LibreLancer
                         }
                     }
                 }
-                msg.Recycle();
+                npr.Recycle();
             };
-            listener.NetworkReceiveEvent += (peer, reader, channel, method) =>
+            listener.NetworkReceiveEvent += (peer, msg, channel, method) =>
             {
 #if !DEBUG
                 try
                 {
 #endif
+                    var reader = new PacketReader(msg, hpidReader);
                     var packetCount = reader.GetByte(); //reliable packets can be merged
                     if (packetCount > 1)
                         FLLog.Debug("Net", $"Received {packetCount} merged packets");
                     for (int i = 0; i < packetCount; i++)
                     {
                         var pkt = Packets.Read(reader);
-                        if (connecting)
+                        if (pkt is SetStringsPacket strs) {
+                            hpidReader.SetStrings(strs.Data);
+                        }
+                        else if (pkt is AddStringPacket add) {
+                            hpidReader.AddString(add.ToAdd);
+                        }
+                        else if (connecting)
                         {
                             if (pkt is GuidAuthenticationPacket)
                             {
@@ -326,6 +340,7 @@ namespace LibreLancer
                             else if (pkt is LoginSuccessPacket)
                             {
                                 FLLog.Info("Client", "Login success");
+                                SendPacket(new SetStringsPacket() { Data = hpidWrite.GetData() }, PacketDeliveryMethod.ReliableOrdered);
                                 connecting = false;
                             }
                             else
@@ -345,13 +360,13 @@ namespace LibreLancer
                 {
                     FLLog.Error("Client", "Error reading packet");
                     client.DisconnectAll();
-                
                 }
 #endif
             };
             listener.PeerDisconnectedEvent += (peer, info) =>
             {
-                if (info.AdditionalData.TryGetStringPacked(out var reason) &&
+                var additional = new PacketReader(info.AdditionalData);
+                if (additional.TryGetString(out var reason) &&
                     connecting && reason.StartsWith("TokenRequired?"))
                 {
                     loginEndpoint = peer.EndPoint;
@@ -382,7 +397,7 @@ namespace LibreLancer
                 {
                     Interlocked.Decrement(ref localPeerRequests);
                     lock (srvinfo) srvinfo.Clear();
-                    var dw = new NetDataWriter();
+                    var dw = new PacketWriter();
                     dw.Put(LNetConst.BROADCAST_KEY);
                     FLLog.Debug("Net", "Sending broadcast");
                     client.SendBroadcast(dw, LNetConst.BROADCAST_PORT);
@@ -396,7 +411,7 @@ namespace LibreLancer
                         if (nowMs - inf.LastPingTime > 2000) //ping every 2 seconds?
                         {
                             inf.LastPingTime = nowMs;
-                            var om = new NetDataWriter();
+                            var om = new PacketWriter();
                             om.Put(LNetConst.PING_MAGIC);
                             client.SendUnconnectedMessage(om, inf.EndPoint);
                         }
@@ -413,7 +428,7 @@ namespace LibreLancer
 
         public void SendPacket(IPacket packet, PacketDeliveryMethod method)
         {
-            var om = new NetDataWriter();
+            var om = new PacketWriter(new NetDataWriter(), hpidWrite);
             Packets.Write(om, packet);
             method.ToLiteNetLib(out DeliveryMethod mt, out byte ch);
             client.FirstPeer?.Send(om, ch, mt);

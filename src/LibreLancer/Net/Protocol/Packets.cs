@@ -5,31 +5,32 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.IO.Compression;
 using System.Numerics;
 using LibreLancer.Net;
 using LiteNetLib;
 using LiteNetLib.Utils;
-using Microsoft.VisualBasic;
-using Quaternion = System.Numerics.Quaternion;
+
 
 namespace LibreLancer
 {
     public interface IPacket
     {
-        void WriteContents(NetDataWriter outPacket);
+        void WriteContents(PacketWriter outPacket);
     }
 
     public static class Packets
     {
-        static List<Func<NetPacketReader, object>> parsers = new List<Func<NetPacketReader,object>>();
+        static List<Func<PacketReader, object>> parsers = new List<Func<PacketReader,object>>();
         static List<Type> packetTypes = new List<Type>();
-        public static void Register<T>(Func<NetPacketReader,object> parser) where T : IPacket
+        public static void Register<T>(Func<PacketReader,object> parser) where T : IPacket
         {
             packetTypes.Add(typeof(T));
             parsers.Add(parser);
         }
 
-        public static void Write(NetDataWriter outPacket, IPacket p)
+        public static void Write(PacketWriter outPacket, IPacket p)
         {
             var pkt = packetTypes.IndexOf(p.GetType());
             if(pkt == -1) throw new Exception($"Packet type not registered {p.GetType().Name}");
@@ -37,7 +38,7 @@ namespace LibreLancer
             p.WriteContents(outPacket);
         }
 
-        public static IPacket Read(NetPacketReader inPacket)
+        public static IPacket Read(PacketReader inPacket)
         { 
             return (IPacket)parsers[(int)inPacket.GetVariableUInt32()](inPacket);
         }
@@ -64,27 +65,59 @@ namespace LibreLancer
             Register<ObjectUpdatePacket>(ObjectUpdatePacket.Read);
             //Protocol
             GeneratedProtocol.RegisterPackets();
+            //String Updates (low priority)
+            Register<SetStringsPacket>(SetStringsPacket.Read);
+            Register<AddStringPacket>(AddStringPacket.Read);
+        }
+    }
+
+    public class AddStringPacket : IPacket
+    {
+        public string ToAdd;
+
+        public static AddStringPacket Read(PacketReader message) => new()
+        {
+            ToAdd = message.GetString()
+        };
+
+        public void WriteContents(PacketWriter outPacket)
+        {
+            outPacket.Put(ToAdd);
+        }
+    }
+    
+    public class SetStringsPacket : IPacket
+    {
+        public byte[] Data;
+        public static object Read(PacketReader message)
+        {
+            return new SetStringsPacket() { Data = message.GetRemainingBytes() };
+        }
+
+        public void WriteContents(PacketWriter outPacket)
+        {
+            outPacket.Put(Data, 0, Data.Length);
         }
     }
     
     public class LoginSuccessPacket : IPacket
     {
-        public static object Read(NetPacketReader message)
+        public static object Read(PacketReader message)
         {
             return new LoginSuccessPacket();
         }
 
-        public void WriteContents(NetDataWriter outPacket)
+        public void WriteContents(PacketWriter outPacket)
         {
         }
     }
     public class GuidAuthenticationPacket : IPacket
     {
-        public static GuidAuthenticationPacket Read(NetPacketReader message)
+        public static GuidAuthenticationPacket Read(PacketReader message)
         {
             return new GuidAuthenticationPacket() { };
         }
-        public void WriteContents(NetDataWriter outPacket)
+        public void WriteContents(PacketWriter outPacket)
         {
         }
     }
@@ -92,11 +125,11 @@ namespace LibreLancer
     public class AuthenticationReplyPacket : IPacket
     {
         public Guid Guid;
-        public static AuthenticationReplyPacket Read(NetPacketReader message)
+        public static AuthenticationReplyPacket Read(PacketReader message)
         {
             return new AuthenticationReplyPacket() { Guid = message.GetGuid() };
         }
-        public void WriteContents(NetDataWriter outPacket)
+        public void WriteContents(PacketWriter outPacket)
         {
             outPacket.Put(Guid);
         }
@@ -109,20 +142,20 @@ namespace LibreLancer
         public string Archetype;
         public Vector3 Position;
         public Quaternion Orientation;
-        public static SolarInfo Read(NetPacketReader message)
+        public static SolarInfo Read(PacketReader message)
         {
             return new SolarInfo
             {
                 ID = message.GetInt(),
-                Archetype = message.GetStringPacked(),
+                Archetype = message.GetString(),
                 Position = message.GetVector3(),
                 Orientation = message.GetQuaternion()
             };
         }
-        public void Put(NetDataWriter message)
+        public void Put(PacketWriter message)
         {
             message.Put(ID);
-            message.PutStringPacked(Archetype);
+            message.Put(Archetype);
             message.Put(Position);
             message.Put(Orientation);
         }
@@ -132,17 +165,15 @@ namespace LibreLancer
     {
         public int ID;
         public uint EquipCRC;
-        public uint HardpointCRC;
+        public string Hardpoint;
         public byte Health;
         public int Count;
-
-        public static readonly uint InternalCrc = CrcTool.FLModelCrc("internal");
-
-        public NetShipCargo(int id, uint crc, uint hp, byte health, int count)
+        
+        public NetShipCargo(int id, uint crc, string hp, byte health, int count)
         {
             ID = id;
             EquipCRC = crc;
-            HardpointCRC = hp;
+            Hardpoint = hp;
             Health = health;
             Count = count;
         }
@@ -153,7 +184,7 @@ namespace LibreLancer
         public uint ShipCRC;
         public float Health;
         public List<NetShipCargo> Items;
-        public static NetShipLoadout Read(NetPacketReader message)
+        public static NetShipLoadout Read(PacketReader message)
         {
             var s = new NetShipLoadout();
             s.ShipCRC = message.GetUInt();
@@ -162,22 +193,28 @@ namespace LibreLancer
             s.Items = new List<NetShipCargo>(cargoCount);
             for (int i = 0; i < cargoCount; i++)
             {
-                s.Items.Add(new NetShipCargo(message.GetInt(), message.GetUInt(), message.GetUInt(), message.GetByte(), message.GetInt()));
+                s.Items.Add(new NetShipCargo(
+                    message.GetVariableInt32(), 
+                    message.GetUInt(), 
+                    message.GetHpid(), 
+                    message.GetByte(), 
+                    (int)message.GetVariableUInt32()
+                    ));
             }
             return s;
         }
-        public void Put(NetDataWriter message)
+        public void Put(PacketWriter message)
         {
             message.Put(ShipCRC);
             message.Put(Health);
             message.PutVariableUInt32((uint) Items.Count);
             foreach (var c in Items)
             {
-                message.Put(c.ID);
+                message.PutVariableInt32(c.ID);
                 message.Put(c.EquipCRC);
-                message.Put(c.HardpointCRC);
+                message.PutHpid(c.Hardpoint);
                 message.Put(c.Health);
-                message.Put(c.Count);
+                message.PutVariableUInt32((uint)c.Count);
             }
         }
     }
@@ -228,12 +265,12 @@ namespace LibreLancer
         public PlayerAuthState PlayerState;
         public PackedShipUpdate[] Updates;
         public const int UpdateLimit = byte.MaxValue;
-        public static object Read(NetPacketReader message)
+        public static object Read(PacketReader message)
         {
             var p = new ObjectUpdatePacket();
             p.Tick = message.GetUInt();
             p.InputSequence = message.GetInt();
-            var pack = new BitReader(message.GetRemainingBytes(), 0);
+            var pack = new BitReader(message.GetRemainingBytes(), 0, message.HpidReader);
             p.PlayerState = PlayerAuthState.Read(ref pack);
             var updateCount = pack.GetUInt(8);
             p.Updates = new PackedShipUpdate[updateCount];
@@ -241,11 +278,12 @@ namespace LibreLancer
                 p.Updates[i] = PackedShipUpdate.ReadFrom(ref pack);
             return p;
         }
-        public void WriteContents(NetDataWriter outPacket)
+        public void WriteContents(PacketWriter outPacket)
         {
             outPacket.Put(Tick);
             outPacket.Put(InputSequence);
             var writer = new BitWriter();
+            writer.HpidWriter = outPacket.HpidWriter;
             PlayerState.Write(ref writer);
             if(Updates.Length > 255)
                 throw new Exception("Too many updates for net packet");
@@ -258,19 +296,19 @@ namespace LibreLancer
 
     public struct GunOrient
     {
-        public uint Hardpoint;
+        public string Hardpoint;
         public float AnglePitch;
         public float AngleRot;
         public void ReadIn(ref BitReader message)
         {
-            Hardpoint = message.GetUInt();
+            Hardpoint = message.GetHpid();
             AnglePitch = message.GetRadiansQuantized();
             AngleRot = message.GetRadiansQuantized();
         }
         public void WriteTo(ref BitWriter message)
         {
-            //8 bytes each
-            message.PutUInt(Hardpoint, 32);
+            //5-9 bytes each
+            message.PutHpid(Hardpoint);
             message.PutRadiansQuantized(AnglePitch);
             message.PutRadiansQuantized(AngleRot);
         }
@@ -341,9 +379,9 @@ namespace LibreLancer
                 message.PutQuaternion(Orientation);
             }
             if(LinearVelocity != Vector3.Zero)
-                message.PutVector3(LinearVelocity);
+                message.PutRangedVector3(LinearVelocity, -32768, 32767, 24);
             if(AngularVelocity != Vector3.Zero)
-                message.PutVector3(AngularVelocity);
+                message.PutRangedVector3(AngularVelocity, -16384, 16383, 24);
             if (Throttle != 1 && Throttle != 0) {
                 message.PutByte((byte)(Math.Abs(Throttle) * 255f));
             }
@@ -380,8 +418,8 @@ namespace LibreLancer
                 p.Position = message.GetVector3();
                 p.Orientation = message.GetQuaternion();
             }
-            if (readLinear) p.LinearVelocity = message.GetVector3();
-            if (readAngular) p.AngularVelocity = message.GetVector3();
+            if (readLinear) p.LinearVelocity = message.GetRangedVector3(-32768, 32767, 24);
+            if (readAngular) p.AngularVelocity = message.GetRangedVector3(-16384, 16383, 24);
             switch (throttle)
             {
                 case 0:
@@ -464,7 +502,7 @@ namespace LibreLancer
             return nc;
         }
 
-        public static object Read(NetDataReader message)
+        public static object Read(PacketReader message)
         {
             var br = new BitReader(message.GetRemainingBytes(), 0);
             var p = new InputUpdatePacket();
@@ -486,7 +524,7 @@ namespace LibreLancer
         }
         
         [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
-        public void WriteContents(NetDataWriter outPacket)
+        public void WriteContents(PacketWriter outPacket)
         {
             var bw = new BitWriter();
             bw.PutVarInt32(Current.Sequence);
@@ -515,11 +553,11 @@ namespace LibreLancer
     {
         public string Voice;
         public uint Hash;
-        public static NetDlgLine Read(NetPacketReader message) => new NetDlgLine()
-            {Voice = message.GetStringPacked(), Hash = message.GetUInt()};
-        public void Put(NetDataWriter message)
+        public static NetDlgLine Read(PacketReader message) => new NetDlgLine()
+            {Voice = message.GetString(), Hash = message.GetUInt()};
+        public void Put(PacketWriter message)
         {
-            message.PutStringPacked(Voice);
+            message.Put(Voice);
             message.Put(Hash);
         }
     }

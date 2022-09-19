@@ -9,7 +9,7 @@ namespace LibreLancer
 {
     public interface IPacketClient
     {
-        void SendPacket(IPacket packet, PacketDeliveryMethod method);
+        void SendPacket(IPacket packet, PacketDeliveryMethod method, bool force = false);
         void SendPacketWithEvent(IPacket packet, Action onAck, PacketDeliveryMethod method);
     }
 }

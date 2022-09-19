@@ -4,6 +4,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Numerics;
+using LibreLancer.Net;
 
 namespace LibreLancer
 {
@@ -12,11 +13,21 @@ namespace LibreLancer
         private ReadOnlySpan<byte> array;
         private int bitsOffset;
         public int BitsLeft => (array.Length * 8) - bitsOffset;
-
-        public BitReader(ReadOnlySpan<byte> array, int bitsOffset)
+        public NetHpidReader HpidReader;
+        public BitReader(ReadOnlySpan<byte> array, int bitsOffset, NetHpidReader hpidReader = null)
         {
             this.array = array;
             this.bitsOffset = bitsOffset;
+            this.HpidReader = hpidReader;
+        }
+        
+        public string GetHpid()
+        {
+            if (HpidReader == null) throw new InvalidOperationException();
+            var idx = GetVarUInt32();
+            if (idx == 0) return null;
+            else if (idx == 1) return "";
+            else return HpidReader.GetString(idx - 2);
         }
 
         public int GetInt()
@@ -139,6 +150,12 @@ namespace LibreLancer
         {
             var u =  GetUInt(bits) / (float) ((1 << bits) - 1);
             return (min + (u * (max - min)));
+        }
+
+        public Vector3 GetRangedVector3(float min, float max, int bits)
+        {
+            return new Vector3(GetRangedFloat(min, max, bits), GetRangedFloat(min, max, bits),
+                GetRangedFloat(min, max, bits));
         }
         public float GetRadiansQuantized()
         {

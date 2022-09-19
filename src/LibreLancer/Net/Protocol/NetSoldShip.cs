@@ -14,7 +14,7 @@ namespace LibreLancer.Net
         public ulong HullPrice;
         public ulong PackagePrice;
         
-        public void Put(NetDataWriter message)
+        public void Put(PacketWriter message)
         {
             message.Put(ShipCRC);
             message.Put(PackageCRC);
@@ -22,7 +22,7 @@ namespace LibreLancer.Net
             message.PutVariableUInt64(PackagePrice);
         }
 
-        public static NetSoldShip Read(NetPacketReader message) => new()
+        public static NetSoldShip Read(PacketReader message) => new()
         {
             ShipCRC = message.GetInt(),
             PackageCRC = message.GetInt(),

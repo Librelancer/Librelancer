@@ -26,6 +26,7 @@ namespace LibreLancer
         public bool IsAdmin;
         //Reference
         public IPacketClient Client;
+        public NetHpidReader HpidReader = new NetHpidReader();
         public GameServer Game;
         public ServerWorld World;
         private MissionRuntime msnRuntime;
@@ -413,7 +414,7 @@ namespace LibreLancer
                 return new IncludedGood()
                 {
                     EquipCRC = x.Equipment.CRC,
-                    HardpointCRC = string.IsNullOrWhiteSpace(x.Hardpoint) ? InternalCRC : CrcTool.FLModelCrc(x.Hardpoint),
+                    Hardpoint = string.IsNullOrWhiteSpace(x.Hardpoint) ? "internal" : x.Hardpoint,
                     Amount = x.Amount
                 };
             }).ToArray();

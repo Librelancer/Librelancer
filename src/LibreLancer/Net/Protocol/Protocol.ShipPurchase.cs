@@ -20,13 +20,13 @@ namespace LibreLancer.Net
     {
         public int ID;
         public int Count;
-        public static SellCount Read(NetPacketReader message) => new()
+        public static SellCount Read(PacketReader message) => new()
         {
             ID = message.GetInt(),
             Count = (int)message.GetVariableUInt32()
         };
 
-        public void Put(NetDataWriter message)
+        public void Put(PacketWriter message)
         {
             message.Put(ID);
             message.PutVariableUInt32((uint)Count);
@@ -37,37 +37,37 @@ namespace LibreLancer.Net
         public int ID;
         public string Hardpoint;
 
-        public static MountId Read(NetPacketReader message) => new()
+        public static MountId Read(PacketReader message) => new()
         {
             ID = message.GetInt(),
-            Hardpoint = message.GetStringPacked()
+            Hardpoint = message.GetString()
         };
 
-        public void Put(NetDataWriter message)
+        public void Put(PacketWriter message)
         {
             message.Put(ID);
-            message.PutStringPacked(Hardpoint);
+            message.Put(Hardpoint);
         }
     }
     
     public struct IncludedGood
     {
         public uint EquipCRC;
-        public uint HardpointCRC;
+        public string Hardpoint;
         public int Amount;
-        public static IncludedGood Read(NetPacketReader message)
+        public static IncludedGood Read(PacketReader message)
         {
             var ic = new IncludedGood();
             ic.EquipCRC = message.GetUInt();
-            ic.HardpointCRC = message.GetUInt();
+            ic.Hardpoint = message.GetHpid();
             ic.Amount = (int)message.GetVariableUInt32();
             return ic;
         }
 
-        public void Put(NetDataWriter message)
+        public void Put(PacketWriter message)
         {
             message.Put(EquipCRC);
-            message.Put(HardpointCRC);
+            message.PutHpid(Hardpoint);
             message.PutVariableUInt32((uint)Amount);
         }
         
@@ -76,7 +76,7 @@ namespace LibreLancer.Net
     public class ShipPackageInfo
     {
         public IncludedGood[] Included;
-        public static ShipPackageInfo Read(NetPacketReader message)
+        public static ShipPackageInfo Read(PacketReader message)
         {
             var p = new ShipPackageInfo();
             var inclen = message.GetVariableUInt32();
@@ -87,7 +87,7 @@ namespace LibreLancer.Net
             return p;
         }
 
-        public void Put(NetDataWriter message)
+        public void Put(PacketWriter message)
         {
             if (Included != null) 
             {

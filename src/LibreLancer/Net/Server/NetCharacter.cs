@@ -196,7 +196,7 @@ namespace LibreLancer
             {
                 sl.Items.Add(new NetShipCargo(
                     c.ID, c.Equipment.CRC,
-                    CrcTool.HardpointCrc(c.Hardpoint), (byte) (c.Health * 255f), 
+                    c.Hardpoint, (byte) (c.Health * 255f), 
                     c.Count
                 ));
             }

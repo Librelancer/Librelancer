@@ -17,19 +17,19 @@ namespace LibreLancer.Net
         public int Headline;
         public int Text;
 
-        public void Put(NetDataWriter message)
+        public void Put(PacketWriter message)
         {
-            message.PutStringPacked(Icon);
-            message.PutStringPacked(Logo);
+            message.Put(Icon);
+            message.Put(Logo);
             message.Put(Category);
             message.Put(Headline);
             message.Put(Text);
         }
 
-        public static NewsArticle Read(NetPacketReader message) => new()
+        public static NewsArticle Read(PacketReader message) => new()
         {
-            Icon = message.GetStringPacked(),
-            Logo = message.GetStringPacked(),
+            Icon = message.GetString(),
+            Logo = message.GetString(),
             Category = message.GetInt(),
             Headline = message.GetInt(),
             Text = message.GetInt()

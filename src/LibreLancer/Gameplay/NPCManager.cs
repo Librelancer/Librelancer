@@ -76,8 +76,7 @@ namespace LibreLancer
                 if (e == null) continue;
                 EquipmentObjectManager.InstantiateEquipment(obj, World.Server.Resources, EquipmentType.Server,
                     equipped.Hardpoint, e);
-                var hp = equipped.Hardpoint == null ? NetShipCargo.InternalCrc : CrcTool.FLModelCrc(equipped.Hardpoint);
-                netLoadout.Items.Add(new NetShipCargo(0, e.CRC, hp, 255, 1));
+                netLoadout.Items.Add(new NetShipCargo(0, e.CRC, equipped.Hardpoint ?? "internal", 255, 1));
             }
             var npcComponent = new SNPCComponent(obj, this) {Loadout = netLoadout};
             npcComponent.SetPilot(pilot);

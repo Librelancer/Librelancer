@@ -412,14 +412,13 @@ namespace LibreLancer
             Items = new List<NetCargo>(ld.Items.Count);
             if (sh != null)
             {
-                var hplookup = new HardpointLookup(sh.ModelFile.LoadFile(Game.ResourceManager));
                 foreach (var cg in ld.Items)
                 {
                     var equip = Game.GameData.GetEquipment(cg.EquipCRC);
                     Items.Add(new NetCargo(cg.ID)
                     {
                         Equipment = equip,
-                        Hardpoint = hplookup.GetHardpoint(cg.HardpointCRC),
+                        Hardpoint = cg.Hardpoint,
                         Health = cg.Health / 255f,
                         Count = cg.Count
                     });
@@ -554,12 +553,11 @@ namespace LibreLancer
                                          Matrix4x4.CreateTranslation(position));
                 newobj.Components.Add(new CHealthComponent(newobj) { CurrentHealth = loadout.Health, MaxHealth = shp.Hitpoints });
                 newobj.Components.Add(new CDamageFuseComponent(newobj, shp.Fuses));
-                var hplookup = new HardpointLookup(shp.ModelFile.LoadFile(Game.ResourceManager));
-                foreach (var eq in loadout.Items.Where(x => x.HardpointCRC != 0))
+                foreach (var eq in loadout.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
                 {
                     var equip = Game.GameData.GetEquipment(eq.EquipCRC);
                     if (equip == null) continue;
-                    EquipmentObjectManager.InstantiateEquipment(newobj, Game.ResourceManager, EquipmentType.LocalPlayer, hplookup.GetHardpoint(eq.HardpointCRC), equip);
+                    EquipmentObjectManager.InstantiateEquipment(newobj, Game.ResourceManager, EquipmentType.LocalPlayer, eq.Hardpoint, equip);
                 }
                 newobj.Register(gp.world.Physics);
 

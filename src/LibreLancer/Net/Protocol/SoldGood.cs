@@ -21,7 +21,7 @@ namespace LibreLancer.Net
         //For Sale
         public bool ForSale;
         
-        public void Put(NetDataWriter message)
+        public void Put(PacketWriter message)
         {
             message.Put(GoodCRC);
             message.Put((short)(Rep * 32767f));
@@ -30,7 +30,7 @@ namespace LibreLancer.Net
             message.Put(ForSale);
         }
 
-        public static SoldGood Read(NetPacketReader message) => new()
+        public static SoldGood Read(PacketReader message) => new()
         {
             GoodCRC = message.GetUInt(),
             Rep = message.GetShort() / 32767f,
@@ -47,13 +47,13 @@ namespace LibreLancer.Net
         //Price
         public ulong Price;
         
-        public void Put(NetDataWriter message)
+        public void Put(PacketWriter message)
         {
             message.Put(GoodCRC);
             message.PutVariableUInt64(Price);
         }
 
-        public static BaselinePrice Read(NetPacketReader message) => new()
+        public static BaselinePrice Read(PacketReader message) => new()
         {
             GoodCRC = message.GetUInt(),
             Price = message.GetVariableUInt64()

@@ -12,26 +12,26 @@ namespace LibreLancer.Net
     {
         public int Owner;
         public uint Gun;
-        public uint Hardpoint;
+        public string Hardpoint;
         public Vector3 Start;
         public Vector3 Heading;
 
-        public static ProjectileSpawn Read(NetPacketReader message)
+        public static ProjectileSpawn Read(PacketReader message)
         {
             var p = new ProjectileSpawn();
             p.Owner = message.GetVariableInt32();
             p.Gun = message.GetUInt();
-            p.Hardpoint = message.GetUInt();
+            p.Hardpoint = message.GetHpid();
             p.Start = message.GetVector3();
             p.Heading = message.GetNormal();
             return p;
         }
 
-        public void Put(NetDataWriter message)
+        public void Put(PacketWriter message)
         {
             message.PutVariableInt32(Owner);
             message.Put(Gun);
-            message.Put(Hardpoint);
+            message.PutHpid(Hardpoint);
             message.Put(Start);
             message.PutNormal(Heading);
         }

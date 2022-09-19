@@ -100,7 +100,7 @@ namespace LibreLancer
             queued.Clear();
             return x;
         }
-        public void QueueProjectile(int owner, GameData.Items.GunEquipment gunDef, uint hardpoint, Vector3 position, Vector3 heading)
+        public void QueueProjectile(int owner, GameData.Items.GunEquipment gunDef, string hardpoint, Vector3 position, Vector3 heading)
         {
             queued.Add(new ProjectileSpawn()
             {
@@ -109,7 +109,7 @@ namespace LibreLancer
         }
 
         private Dictionary<ulong, SoundInstance> _instances = new Dictionary<ulong, SoundInstance>();
-        public void SpawnProjectile(GameObject owner, uint hardpoint, ProjectileData projectile, Vector3 position, Vector3 heading)
+        public void SpawnProjectile(GameObject owner, string hardpoint, ProjectileData projectile, Vector3 position, Vector3 heading)
         {
             if (projectilePtr == 16383) projectilePtr = 0;
             Projectiles[projectilePtr] = new Projectile() {
@@ -124,7 +124,7 @@ namespace LibreLancer
             SoundManager snd;
             if (world.Renderer != null && (snd = world.Renderer.Game.GetService<SoundManager>()) != null)
             {
-                ulong soundID = ((ulong) owner.Unique << 32) | (ulong)hardpoint;
+                ulong soundID = ((ulong) owner.Unique << 32) | (ulong)CrcTool.HardpointCrc(hardpoint);
                 if (!_instances.TryGetValue(soundID, out var inst))
                 {
                     inst = snd.GetInstance(projectile.Munition.Def.OneShotSound, 0, -1, -1, position);

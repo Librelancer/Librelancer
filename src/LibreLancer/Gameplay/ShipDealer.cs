@@ -355,7 +355,6 @@ namespace LibreLancer
 
                 selectedCrc = ship.Server.PackageCRC;
                 selectedShip = ship.Ship;
-                var hplookup = new HardpointLookup(ship.Ship.ModelFile.LoadFile(session.Game.ResourceManager));
                 playerItems = new List<ShipTradeItem>();
                 dealerItems = new List<ShipTradeItem>();
                 for (int i = 0; i < task.Result.Included.Length; i++)
@@ -365,7 +364,7 @@ namespace LibreLancer
                     playerItems.Add(new ShipTradeItem()
                     {
                         Show = eq.Good != null,
-                        Hardpoint = hplookup.GetHardpoint(item.HardpointCRC),
+                        Hardpoint = item.Hardpoint,
                         Include = new ResolvedInclude()
                         {
                             ID = i,

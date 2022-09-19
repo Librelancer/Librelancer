@@ -13,25 +13,25 @@ namespace LibreLancer
         public uint ID;
         public string Effect;
         public string[] Hardpoints;
-        public void Put(NetDataWriter message)
+        public void Put(PacketWriter message)
         {
             message.PutVariableUInt32(ID);
-            message.PutStringPacked(Effect);
+            message.Put(Effect);
             message.PutVariableUInt32((uint)Hardpoints.Length);
             foreach(var hp in Hardpoints)
-                message.PutStringPacked(hp);
+                message.Put(hp);
         }
 
-        public static SpawnedEffect Read(NetPacketReader message)
+        public static SpawnedEffect Read(PacketReader message)
         {
             var x = new SpawnedEffect()
             {
                 ID = message.GetVariableUInt32(),
-                Effect= message.GetStringPacked()
+                Effect = message.GetString()
             };
             x.Hardpoints = new string[message.GetVariableUInt32()];
             for (int i = 0; i < x.Hardpoints.Length; i++)
-                x.Hardpoints[i] = message.GetStringPacked();
+                x.Hardpoints[i] = message.GetString();
             return x;
         }
     }

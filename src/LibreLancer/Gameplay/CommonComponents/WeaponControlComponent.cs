@@ -34,9 +34,8 @@ namespace LibreLancer
         {
             foreach (var wp in Parent.GetChildComponents<WeaponComponent>())
             {
-                var hp = CrcTool.FLModelCrc(wp.Parent.Attachment.Name);
                 foreach (var o in orients) {
-                    if (o.Hardpoint == hp)
+                    if (o.Hardpoint.Equals(wp.Parent.Attachment.Name,StringComparison.OrdinalIgnoreCase))
                     {
                         wp.RotateTowards(o.AngleRot, o.AnglePitch);
                         break;
@@ -49,7 +48,7 @@ namespace LibreLancer
         {
             return Parent.GetChildComponents<WeaponComponent>().Select(x => new GunOrient()
             {
-                Hardpoint = CrcTool.FLModelCrc(x.Parent.Attachment.Name),
+                Hardpoint = x.Parent.Attachment.Name,
                 AngleRot = x.Angles.X,
                 AnglePitch = x.Angles.Y
             }).ToArray();

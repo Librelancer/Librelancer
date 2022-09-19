@@ -11,7 +11,7 @@ from datetime import datetime,timezone
 
 print("Librelancer Protocol Generator 2022-06-21")
 
-# NetPacketReader methods
+# PacketReader methods
 typeMethods = {
   "int" : "GetVariableInt32",
   "Quaternion" : "GetQuaternion",
@@ -23,7 +23,7 @@ typeMethods = {
   "long" : "GetVariableInt64",
   "IPEndPoint" : "GetNetEndPoint",
   "short" : "GetShort",
-  "string" : "GetStringPacked",
+  "string" : "GetString",
   "uint" : "GetUInt",
   "ulong" : "GetVariableUInt64",
   "ushort" : "GetUShort",
@@ -247,7 +247,7 @@ def Packet(mthd, classname):
             writestart("")
         writeend(name + " = " + type + ".Read(inPacket);")
         
-  writeline("public static object Read(NetPacketReader inPacket)")
+  writeline("public static object Read(PacketReader inPacket)")
   writeline("{")
   tabs += 1
   writeline("var _packet = new " + classname + "();")
@@ -277,9 +277,7 @@ def Packet(mthd, classname):
   writeline("}")
   
   def put_single(name, type, nullable):
-    if type == "string":
-        writeline("outPacket.PutStringPacked(" + name + ");")
-    elif type in enums:
+    if type in enums:
         writeline("outPacket.PutVariableInt32((int)" + name + ");")
     elif type in encodeMethods:
         writeline("outPacket." + encodeMethods[type] + "(" + name + ");")
@@ -296,7 +294,7 @@ def Packet(mthd, classname):
             writeline(name + ".Put(outPacket);")
     
   # Write Packet
-  writeline("public void WriteContents(NetDataWriter outPacket)")
+  writeline("public void WriteContents(PacketWriter outPacket)")
   writeline("{")
   tabs += 1
   if "return" in mthd:
