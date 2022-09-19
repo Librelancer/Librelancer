@@ -1,0 +1,16 @@
+<Scene>
+<Panel Width="3000" Height="480">
+<Panel.Background><DisplayColor color="rgba(0,0,0,0)"/></Panel.Background> <!-- Panel that wants mouse -->
+</Panel>
+<Scene id="loader" Visible="false">
+<Scene.Background><DisplayColor color="rgba(0,0,0,0.7)"/></Scene.Background>
+<Panel Width="640" Height="480" Anchor="Center">
+	<Panel.Background>
+		<DisplayModel model="front_loadingbar.cmp"/>
+	</Panel.Background>
+	<TextBlock Width="266" Height="20" Y="-2" Anchor="Center" Text="LOADING" Font="Agency FB" TextColor="text" TextShadow="black" TextSize="14"/>
+</Panel>
+</Scene>
+
+
+</Scene>

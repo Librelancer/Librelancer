@@ -66,7 +66,11 @@ class shipdealer : shipdealer_Designer with ChildWindow
 			}
 		});
 		e.buy_ship.OnClick(() => {
+            local loading = new asyncload();
+            Timer(0.5, () => loading.showall());
+			OpenModal(loading);
 			Game.ShipDealer.Purchase((result) => {
+				loading.Close();
 				switch(result) {
 					case "fail": PlaySound("ui_select_reject"); break;
 					case "success": PlayVoiceLine("NNVoice", "ship_purchase_complete"); break;
@@ -249,4 +253,6 @@ class shipdealer : shipdealer_Designer with ChildWindow
 			e.item_infocard.Infocard = nil;
 	}
 }
+
+
 
