@@ -533,6 +533,8 @@ namespace LibreLancer
                     usedHardpoints.Add(hp);
                 }
             }
+            
+            Character.BeginTransaction();
             //Remove sold items
             foreach (var item in counts) {
                 var slot = Character.Items.FirstOrDefault(x => x.ID == item.Key);
@@ -569,6 +571,8 @@ namespace LibreLancer
                 Character.AddCargo(item.Equipment, item.Equipment.Good == null ? item.Hardpoint : null, item.Amount);
             }
             Character.UpdateCredits(Character.Credits - shipPrice);
+            Character.ApplyTransaction();
+            
             rpcClient.UpdateInventory(Character.Credits, GetShipWorth(), Character.EncodeLoadout());
             //Success
             return Task.FromResult(shipPrice < 0 ? ShipPurchaseStatus.SuccessGainCredits : ShipPurchaseStatus.Success);

@@ -28,8 +28,28 @@ namespace LibreLancer
         private long charId;
         GameDataManager gData;
         private DatabaseCharacter dbChar;
-        private int _itemID;
 
+
+        private bool inTransaction = false;
+        void TryApply()
+        {
+            if(!inTransaction)
+                dbChar?.ApplyChanges();
+        }
+
+        public void BeginTransaction()
+        {
+            if (inTransaction) throw new InvalidOperationException("Already making transaction");
+            inTransaction = true;
+        }
+
+        public void ApplyTransaction()
+        {
+            if (!inTransaction) throw new InvalidOperationException("No transaction to apply");
+            dbChar?.ApplyChanges();
+            inTransaction = false;
+        }
+        
         public void UpdatePosition(string _base, string sys, Vector3 pos)
         {
             Base = _base;
@@ -42,7 +62,7 @@ namespace LibreLancer
                 dbChar.Character.X = pos.X;
                 dbChar.Character.Y = pos.Y;
                 dbChar.Character.Z = pos.Z;
-                dbChar.ApplyChanges();
+                TryApply();
             }
         }
 
@@ -63,7 +83,7 @@ namespace LibreLancer
                         dbChar.Character.Reputations.Add(new Reputation() { RepGroup = rep.Key.Nickname, ReputationValue = rep.Value });
                     }
                 }
-                dbChar.ApplyChanges();
+                TryApply();
             }
         }
         
@@ -109,14 +129,14 @@ namespace LibreLancer
             if (dbChar != null)
             {
                 dbChar.Character.Money = credits;
-                dbChar.ApplyChanges();
+                TryApply();
             }
         }
 
         public void ItemModified(NetCargo cargo)
         {
             if (dbChar != null) {
-                dbChar.ApplyChanges();
+                TryApply();
             }
         }
 
@@ -135,7 +155,7 @@ namespace LibreLancer
                     if (dbChar != null) {
                         dbItem = new CargoItem() {ItemCount = count, ItemName = equip.Nickname};
                         dbChar.Character.Items.Add(dbItem);
-                        dbChar.ApplyChanges();
+                        TryApply();
                     }
                     Items.Add(new NetCargo() {Equipment = equip, Count = count, DbItem = dbItem});
                 }
@@ -144,7 +164,7 @@ namespace LibreLancer
                     if (dbChar != null)
                     {
                         slot.DbItem.ItemCount += count;
-                        dbChar.ApplyChanges();
+                        TryApply();
                     }
                     slot.Count += count;
                 }
@@ -154,7 +174,7 @@ namespace LibreLancer
                 {
                     dbItem = new CargoItem() {ItemCount = count, Hardpoint = hardpoint, ItemName = equip.Nickname};
                     dbChar.Character.Items.Add(dbItem);
-                    dbChar.ApplyChanges();
+                    TryApply();
                 }
                 Items.Add(new NetCargo() { Equipment =  equip, Hardpoint = hardpoint, Count = count, DbItem = dbItem });
             }
@@ -165,7 +185,7 @@ namespace LibreLancer
             Ship = ship;
             if (dbChar != null) {
                 dbChar.Character.Ship = ship.Nickname;
-                dbChar.ApplyChanges();
+                TryApply();
             }
         }
         
@@ -178,7 +198,7 @@ namespace LibreLancer
                 if (slot.DbItem != null)
                 {
                     dbChar.Character.Items.Remove(slot.DbItem);
-                    dbChar.ApplyChanges();
+                    TryApply();
                 }
             } 
             else if(slot.DbItem != null)
