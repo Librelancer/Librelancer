@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -274,15 +275,15 @@ namespace LibreLancer
             ServerLoop sendLoop = null;
             sendLoop = new ServerLoop((time,_) =>
             {
-                foreach (var p in Server.ConnectedPeerList.ToArray())
+                //ToArray() to stop collection modified errors
+                Parallel.ForEach(Server.ConnectedPeerList
+                    .Where(p => p.Tag is Player && p.ConnectionState == ConnectionState.Connected)
+                    .ToArray(), (p) =>
                 {
-                    if (p.Tag is Player player && p.ConnectionState == ConnectionState.Connected) 
-                    {
-                        player.ProcessPacketQueue();
-                        (player.Client as RemotePacketClient)?.Update(time.TotalSeconds);
-                    }
-                }
-
+                    var player = (Player) p.Tag;
+                    player.ProcessPacketQueue();
+                    (player.Client as RemotePacketClient)?.Update(time.TotalSeconds);
+                });
                 if (!running) sendLoop.Stop();
             });
             sendLoop.Start();
