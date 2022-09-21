@@ -61,6 +61,11 @@ namespace LibreLancer
                 }
             }
         }
+
+        public void Disconnect()
+        {
+            Client.Disconnect();
+        }
         
 
         public void SendPacketWithEvent(IPacket packet, Action onAck, PacketDeliveryMethod method)

@@ -629,7 +629,7 @@ namespace LibreLancer
             });
         }
 
-        public void DoAuthSuccess()
+        public void OnLoggedIn()
         {
             try
             {
@@ -646,6 +646,8 @@ namespace LibreLancer
                         Characters = CharacterList,
                     }
                 }, PacketDeliveryMethod.ReliableOrdered);
+
+                packetQueueTask = Task.Run(ProcessPacketQueue);
             }
             catch (Exception ex)
             {
@@ -689,15 +691,32 @@ namespace LibreLancer
             rpcClient.DestroyPart(0, id, part);
         }
 
-        private ConcurrentQueue<IPacket> inputPackets = new ConcurrentQueue<IPacket>();
+        private BlockingCollection<IPacket> inputPackets = new BlockingCollection<IPacket>();
+        private Task packetQueueTask;
+        
         public void EnqueuePacket(IPacket packet)
         {
-            inputPackets.Enqueue(packet);
+            inputPackets.Add(packet);
         }
 
-        public void ProcessPacketQueue()
+        //Long running task, quits when we finish consuming the collection
+        void ProcessPacketQueue()
         {
-            while(inputPackets.TryDequeue(out var pkt)) ProcessPacketDirect(pkt);
+            foreach (var pkt in inputPackets.GetConsumingEnumerable())
+            {
+                try
+                {
+                    ProcessPacketDirect(pkt);
+                }
+                catch (Exception)
+                {
+                    FLLog.Error("Player", $"Exception thrown while processing packets. Force disconnect {Character?.Name ?? "null"}");
+                    (Client as RemotePacketClient)?.Disconnect();
+                    Disconnected();
+                    break;
+                }
+            }
+            FLLog.Debug("Player", "ProcessPacketQueue() finished");
         }
         
         public void ProcessPacketDirect(IPacket packet)
@@ -934,8 +953,14 @@ namespace LibreLancer
         {
             Character?.UpdatePosition(Base, System, Position);
         }
+        
         public void Disconnected()
         {
+            if (packetQueueTask != null)
+            {
+                inputPackets.CompleteAdding();
+                packetQueueTask.Wait(1000);
+            }
             if (Character != null)
             {
                 Character.UpdatePosition(Base, System, Position);
@@ -943,6 +968,7 @@ namespace LibreLancer
                 Character?.Dispose();
                 foreach(var player in Game.AllPlayers.Where(x => x != this))
                     player.RemoteClient.OnPlayerLeave(ID, Name);
+                Character = null;
             }
         }
         

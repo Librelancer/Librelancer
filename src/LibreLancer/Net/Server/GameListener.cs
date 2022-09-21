@@ -107,7 +107,7 @@ namespace LibreLancer
                                 var p = new Player(remote,
                                     game, guid);
                                 peer.Tag = p;
-                                Task.Run(() => p.DoAuthSuccess());
+                                Task.Run(() => p.OnLoggedIn());
                                 lock (game.ConnectedPlayers)
                                 {
                                     game.ConnectedPlayers.Add(p);
@@ -199,7 +199,7 @@ namespace LibreLancer
                                 remote.SendPacket(new SetStringsPacket() { Data = hpids.GetData() }, PacketDeliveryMethod.ReliableOrdered, true);
                                 var p = new Player(remote, game, auth.Guid);
                                 peer.Tag = p;
-                                Task.Run(() => p.DoAuthSuccess());
+                                Task.Run(() => p.OnLoggedIn());
                                 lock (game.ConnectedPlayers)
                                 {
                                     game.ConnectedPlayers.Add(p);
@@ -281,7 +281,6 @@ namespace LibreLancer
                     .ToArray(), (p) =>
                 {
                     var player = (Player) p.Tag;
-                    player.ProcessPacketQueue();
                     (player.Client as RemotePacketClient)?.Update(time.TotalSeconds);
                 });
                 if (!running) sendLoop.Stop();
