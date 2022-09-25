@@ -9,7 +9,7 @@ else ()
 endif ()
 project(pangogame)
 include(FindPkgConfig)
-pkg_check_modules(PANGO REQUIRED pango pangoft2)
+pkg_check_modules(PANGO REQUIRED pango cairo pangocairo)
 add_library(pangogame SHARED
 	src/pangogame.cpp
 	src/pangorender.cpp

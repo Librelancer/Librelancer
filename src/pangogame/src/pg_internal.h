@@ -11,10 +11,12 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <limits.h>
+#include <cairo.h>
 #include <pango/pango-layout.h>
 #include <pango/pango-renderer.h>
 #include <pango/pango-font.h>
-#include <pango/pangoft2.h>
+#include <pango/pango-utils.h>
+#include <pango/pangocairo.h>
 
 #define MAX_TEXTURES 16
 #define PG_TEXTURE_SIZE 1024
@@ -35,7 +37,7 @@ struct _PGBuiltText {
     int initialLen;
 };
 
-void pg_getglyph(PGRenderContext *ctx, CachedGlyph *outGlyph, uint32_t codePoint, uint32_t pangoFontHash, FT_Face face, PangoFont *pango);
+void pg_getglyph(PGRenderContext *ctx, CachedGlyph *outGlyph, uint32_t codePoint, uint32_t pangoFontHash, PangoFont *pango);
 PGBuiltText *pg_pango_constructtext(PGRenderContext *ctx, PangoLayout **layouts, int layoutCount);
 void pg_pango_calculatetext(PGBuiltText *text, float* color);
 

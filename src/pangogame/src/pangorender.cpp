@@ -73,7 +73,6 @@ void doDrawRectangle(PangoRenderer* renderer, PangoRenderPart part, int x, int y
 void drawGlyphRun (uint32_t fontHash, float red, float green, float blue, PangoRenderer* renderer, PangoFont* font, PangoGlyphString* glyphs, int px, int py)
 {
     CacheRenderer* ren = CACHERENDERER(renderer);
-	FT_Face face = pango_fc_font_lock_face((PangoFcFont*) font);
 	
 	PangoGlyphUnit layoutX = px;
 	PangoGlyphUnit layoutY = py;
@@ -98,7 +97,7 @@ void drawGlyphRun (uint32_t fontHash, float red, float green, float blue, PangoR
 			continue;
 		}
 		CachedGlyph cached;
-		pg_getglyph(ren->ctx, &cached, glyph, fontHash, face, font);
+		pg_getglyph(ren->ctx, &cached, glyph, fontHash, font);
 		PGQuad q;
         q.tex = cached.tex;
 		q.srcX = cached.srcX;
@@ -116,8 +115,6 @@ void drawGlyphRun (uint32_t fontHash, float red, float green, float blue, PangoR
 		stb_arr_push(ren->built->quads, q);
 		layoutX += gi->geometry.width;
 	}
-	
-	pango_fc_font_unlock_face((PangoFcFont*) font);
 }
 
 void doDrawGlyphs(PangoRenderer* renderer, PangoFont* font, PangoGlyphString* glyphs, int px, int py)
