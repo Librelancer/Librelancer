@@ -138,6 +138,29 @@ namespace InterfaceEdit
         }
     }
 
+    [WattleScriptUserData]
+    public class FakeContactList : IContactListData
+    {
+        string[] contacts =
+        {
+            "Contact01", "Contact02", "Contact03", "Contact04",
+            "Contact05", "Contact06", "Contact07", "Contact08",
+            "Contact09", "Contact10", "Contact11", "Contact12",
+            "Contact13", "Contact14", "Contact15", "Contact16",
+            "Contact17", "Contact18", "Contact19", "Contact20"
+        };
+        
+        private int selIndex = -1;
+        public int Count => contacts.Length;
+        public bool IsSelected(int index) => selIndex == index;
+
+        public void SelectIndex(int index) => selIndex = index;
+
+        public string Get(int index) => contacts[index];
+
+        public RepAttitude GetAttitude(int index) => RepAttitude.Friendly;
+    }
+
 
     public class TestingApi
     {
@@ -149,6 +172,7 @@ namespace InterfaceEdit
             LuaContext.RegisterType<TestSaveGameList>();
             LuaContext.RegisterType<FakeShipDealer>();
             LuaContext.RegisterType<FakeKeyMap>();
+            LuaContext.RegisterType<FakeContactList>();
         }
 
         static readonly NavbarButtonInfo cityscape = new NavbarButtonInfo("IDS_HOTSPOT_EXIT", "Cityscape");
@@ -182,6 +206,8 @@ namespace InterfaceEdit
         private GameSettings settings = new GameSettings();
 
         public GameSettings GetCurrentSettings() => settings.MakeCopy();
+
+        public FakeContactList GetContactList() => new FakeContactList();
 
 
         public void ApplySettings(GameSettings settings)

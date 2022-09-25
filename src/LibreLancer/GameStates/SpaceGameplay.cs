@@ -11,6 +11,7 @@ using LibreLancer.Interface;
 using LibreLancer.Net;
 using LibreLancer.Physics;
 using Microsoft.EntityFrameworkCore.Sqlite.Query.Internal;
+using SharpDX.DirectWrite;
 
 namespace LibreLancer
 {
@@ -45,6 +46,7 @@ World Time: {12:F2}
         WeaponControlComponent weapons;
 		PowerCoreComponent powerCore;
         CHealthComponent playerHealth;
+        private ContactList contactList;
         
 		public float Velocity = 0f;
 		const float MAX_VELOCITY = 80f;
@@ -163,6 +165,7 @@ World Time: {12:F2}
             player.World = world;
             world.MessageBroadcasted += World_MessageBroadcasted;
             Game.Sound.ResetListenerVelocity();
+            contactList = new ContactList(this);
             ui.OpenScene("hud");
             FadeIn(0.5, 0.5);
             updateStartDelay = 3;
@@ -176,8 +179,76 @@ World Time: {12:F2}
         }
 
         private int updateStartDelay = -1;
-
         
+        [WattleScript.Interpreter.WattleScriptUserData]
+
+        public class ContactList : IContactListData
+        {
+            readonly record struct Contact(GameObject obj, float distance, string display);
+            
+            private Contact[] Contacts = Array.Empty<Contact>();
+            private SpaceGameplay game;
+            private Vector3 playerPos;
+
+            string GetDistanceString(float distance)
+            {
+                if (distance < 1000)
+                    return $"{(int)distance}m";
+                else if (distance < 10000)
+                    return string.Format("{0:F1}k", distance / 1000);
+                else if (distance < 90000)
+                    return $"{((int) distance) / 1000}k";
+                else
+                    return "FAR";
+            }
+            
+            Contact GetContact(GameObject obj)
+            {
+                var distance = Vector3.Distance(playerPos, Vector3.Transform(Vector3.Zero, obj.WorldTransform));
+                return new Contact(obj, distance, $"{GetDistanceString(distance)} - {obj.Name}");
+            }
+            
+            public void UpdateList()
+            {
+                playerPos = Vector3.Transform(Vector3.Zero, game.player.WorldTransform);
+                Contacts = game.world.Objects.Where(x => !string.IsNullOrEmpty(x.Name) && x != game.player).Select(GetContact)
+                    .OrderBy(x => x.distance).ToArray();
+            }
+
+            public ContactList(SpaceGameplay game)
+            {
+                this.game = game;
+            }
+
+            public int Count => Contacts.Length;
+            public bool IsSelected(int index)
+            {
+                return game.selected == Contacts[index].obj;
+            }
+
+            public void SelectIndex(int index)
+            {
+                game.selected = Contacts[index].obj;
+            }
+
+            public string Get(int index)
+            {
+                return Contacts[index].display;
+            }
+
+            public RepAttitude GetAttitude(int index)
+            {
+                if (Contacts[index].obj.SystemObject != null)
+                {
+                    var rep = game.session.PlayerReputations.GetReputation(Contacts[index].obj.SystemObject.Faction);
+                    if (rep < -0.4) return RepAttitude.Hostile;
+                    if (rep > 0.4) return RepAttitude.Friendly;
+                }
+                return RepAttitude.Neutral;
+            }
+        }
+
+
 
         private int frameCount = 0;
         [WattleScript.Interpreter.WattleScriptUserData]
@@ -189,6 +260,7 @@ World Time: {12:F2}
                 this.g = gameplay;   
             }
 
+            public ContactList GetContactList() => g.contactList;
             public KeyMapTable GetKeyMap()
             {
                 var table = new KeyMapTable(g.Game.InputMap, g.Game.GameData.Ini.Infocards);
@@ -454,7 +526,10 @@ World Time: {12:F2}
                 return;
             }
             if (ShowHud && (Thn == null || !Thn.Running))
+            {
+                contactList.UpdateList();
                 ui.Update(Game);
+            }
             if(ui.KeyboardGrabbed)
                 Game.EnableTextInput();
             else

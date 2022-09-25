@@ -10,18 +10,17 @@
 		<Button id="nextenemy" X="22" Y="3" Width="21" height="20">
 			<Button.Background><DisplayModel model="hud_nextenemy" tint="text" /></Button.Background>
 		</Button>
-		<Button id="showwireframe" X="106" Y="3" Width="18" Height="18">
-			<Button.Background><DisplayModel model="hud_targetedobject" tint="text" /></Button.Background>
+		<Button id="showwireframe" X="106" Y="3" Width="18" Height="18" Style="hud_targetedobject">
 		</Button>
-		<Button id="showcontactlist" X="126.5" Y="2" Width="20" Height="22">
-			<Button.Background><DisplayModel model="hud_contactlist" tint="text" /></Button.Background>
+		<Button id="showcontactlist" X="126.5" Y="2" Style="hud_contactlist" Selected="true">
 		</Button>
 		<Scene id="contactlist">
-		
+			<ContactList id="contactlistview" X="14" Y="48" Width="142" Height="90" FriendlyColor="color_friendly" HostileColor="color_hostile" NeutralColor="color_neutral" TextSize="8" Font="$Normal" DisplayRowCount="8" HoverColor="text_hover" SelectedColor="yellow">
+			</ContactList>
 		</Scene>
-		<Scene id="targetwireframe">
-		<WireframeView id="wireframe" X="14" Y="32" Width="142" Height="111" WireframeColor="wireframe">
-		</WireframeView>
+		<Scene id="targetwireframe" Visible="false">
+			<WireframeView id="wireframe" X="14" Y="32" Width="142" Height="111" WireframeColor="wireframe">
+			</WireframeView>
 		</Scene>
 	</Panel>
 	<Panel Anchor="BottomRight" Height="145.2" Width="169.88">
@@ -123,4 +122,8 @@
     <ChatDisplay Anchor="BottomLeft" Y="130" Height="250" Width="510" X="10" id="chat"/>
     <TextBlock Y="70" Anchor="TopCenter" Width="640" Height="70" TextColor="text" TextSize="14" TextShadow="black" Strid="21810" AllCaps="true" id="nnobj" />
 </Scene>
+
+
+
+
 

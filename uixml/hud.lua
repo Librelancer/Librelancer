@@ -112,9 +112,25 @@ class hud : hud_Designer
 			weaplist.Children.Add(weapon_list_item(index, weapon.Strid));
 		}
         this.UpdateManeuverState()
-        this.Elements.chatbox.OnTextEntered((category, text) => Game.ChatEntered(category, text));
-	    this.Elements.chat.Chat = Game.GetChats()
-		this.Elements.nnobj.Visible = false;
+		local e = this.Elements;
+        e.chatbox.OnTextEntered((category, text) => Game.ChatEntered(category, text));
+		e.contactlistview.SetData(Game.GetContactList());
+	    e.chat.Chat = Game.GetChats()
+		e.nnobj.Visible = false;
+		
+		e.showwireframe.OnClick(() => {
+			e.showwireframe.Selected = true;
+			e.showcontactlist.Selected = false;
+			e.contactlist.Visible = false;
+			e.targetwireframe.Visible = true;
+		});
+
+		e.showcontactlist.OnClick(() => {
+			e.showwireframe.Selected = false;
+			e.showcontactlist.Selected = true;
+			e.contactlist.Visible = true;
+			e.targetwireframe.Visible = false;
+		});
     }
     
 	ObjectiveUpdate(nnids)
@@ -204,6 +220,9 @@ class hud : hud_Designer
     Chatbox() => this.Elements.chatbox.Visible = true;
     Popup(title,contents,id) => OpenModal(new popup(title,contents,'ok', () => Game.PopupFinish(id)));
 }
+
+
+
 
 
 

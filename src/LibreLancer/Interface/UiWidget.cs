@@ -4,9 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Numerics;
-using LibreLancer;
 
 namespace LibreLancer.Interface
 {
@@ -204,6 +202,11 @@ namespace LibreLancer.Interface
                     CurrentAnimation.Begin(aspectRatio);
                     break;
             }
+        }
+
+        public override string ToString()
+        {
+            return $"{ID ?? "(no id)"} - {GetType()}";
         }
 
         public virtual bool MouseWanted(UiContext context, RectangleF parentRectangle, float x, float y)

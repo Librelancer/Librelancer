@@ -76,6 +76,42 @@
 		</ButtonStyle.Hover>
 	</ButtonStyle>
 	
+	<!-- Hud buttons -->
+	<ButtonStyle Width="20" Height="22" Name="hud_contactlist">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_contactlist" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_contactlist" Tint="text_hover"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_contactlist" Tint="yellow"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Selected>
+	</ButtonStyle>
+	<ButtonStyle Width="18" Height="18" Name="hud_targetedobject">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_targetedobject" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_targetedobject" Tint="text_hover"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_targetedobject" Tint="yellow"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Selected>
+	</ButtonStyle>
+	
 	<!-- Neuronet buttons -->
 	<ButtonStyle Width="21" Height="21" Name="nn_info">
 		<ButtonStyle.Normal>
@@ -535,6 +571,3 @@
 		</HSliderStyle.Thumb>
 	</HSliderStyle>
 </Stylesheet>
-
-
-

@@ -30,6 +30,7 @@ namespace LibreLancer.Interface
         
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
+            if (!Visible) return;
             base.Render(context, parentRectangle);
             var rect = GetMyRectangle(context, parentRectangle);
             if (rect.Width <= 0 || rect.Height <= 0) return;
