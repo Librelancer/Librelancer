@@ -346,9 +346,11 @@ float pg_lineheight(PGRenderContext* ctx, const char* fontName, float fontSize)
     pango_font_description_free(desc);
     if(!font) return 0;  
     PangoFontMetrics *metrics = pango_font_get_metrics(font, NULL);
-    float retval = (float)(pango_font_metrics_get_height(metrics) / PANGO_SCALE);
+    //height = ascent + descent (get_height is not available in Ubuntu 20.04)
+    float ascent = (float)(pango_font_metrics_get_ascent(metrics) / PANGO_SCALE);
+    float descent = (float)(pango_font_metrics_get_descent(metrics) / PANGO_SCALE);
     g_object_unref(font);
-    return retval;
+    return ascent + descent;
 }
 
 void pg_addttfglobal(const char *filename)
