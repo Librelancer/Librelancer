@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Infocards;
 using LibreLancer.Interface;
 using LibreLancer.Net;
 using LibreLancer.Physics;
@@ -329,6 +330,21 @@ World Time: {12:F2}
             {
                 return g.Game.GameData.GetManeuvers().ToArray();
             }
+
+            public Infocard CurrentInfocard()
+            {
+                if (g.selected?.SystemObject != null)
+                {
+                    int ids = 0;
+                    if (g.selected.SystemObject.IdsInfo.Length > 0) {
+                        ids = g.selected.SystemObject.IdsInfo[0];
+                    }
+                    return g.Game.GameData.GetInfocard(ids, g.Game.Fonts);
+                }
+                return null;
+            }
+
+            public string CurrentInfoString() => g.selected?.Name;
 
             public string SelectionName()
             {

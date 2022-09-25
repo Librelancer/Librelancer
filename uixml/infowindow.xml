@@ -5,11 +5,12 @@
 			<DisplayModel model="hlp_window"/>
 		</Panel.Background>
 		<Panel Width="427" Height="268" ID="contents">
-			<TextBlock Anchor="TopCenter" Width="427" Height="40" Strid="905" TextSize="15" Y="2" TextColor="text"></TextBlock>
+			<TextBlock id="title" Anchor="TopCenter" Width="427" Height="40" TextSize="15" Y="2" TextColor="text"></TextBlock>
 			<InfocardDisplay X="22" Y="40" Width="380" Height="208" ID="info"/>
 			<Button id="close" Anchor="TopRight" X="16" Y="15" Style="xbutton"/>
 		</Panel>
 	</Panel>
 </Panel>
 </Scene>
+
 

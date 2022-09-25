@@ -232,9 +232,9 @@ namespace InterfaceEdit
         }
 
         public Infocard _Infocard;
-
+        
         public Infocard CurrentInfocard() => _Infocard;
-        public string CurrentInfoString() => "CURRENT INFORMATION";
+        public string CurrentInfoString() => "CURRENT INFORMATION (test)";
 
 
         public void ConnectSelection()

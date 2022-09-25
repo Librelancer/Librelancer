@@ -241,6 +241,8 @@ namespace LibreLancer
 
             public Infocard CurrentInfocard() => g.roomInfocard;
 
+            public string CurrentInfoString() => null;
+
             public double GetCredits() => g.session.Credits;
 
             public Trader Trader;

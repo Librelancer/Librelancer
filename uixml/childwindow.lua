@@ -60,7 +60,9 @@ mixin ChildWindow
 			    this.Elements.contents.Visible = true
 			    this.AnimatingIn = false
 			    PlaySound('ui_window_open')
-			    if (this.OnOpen) this.OnOpen();
+			    if (this.OnOpen != nil) {
+					this.OnOpen();
+				}
 		    }
 	    }
 	    if (this.AnimatingOut) {
@@ -86,3 +88,5 @@ mixin ChildWindow
         if (this.Opened) this.AnimateOut(cb);
     }
 }
+
+

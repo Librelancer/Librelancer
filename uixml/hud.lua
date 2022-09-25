@@ -118,6 +118,7 @@ class hud : hud_Designer
 	    e.chat.Chat = Game.GetChats()
 		e.nnobj.Visible = false;
 		
+		
 		e.showwireframe.OnClick(() => {
 			e.showwireframe.Selected = true;
 			e.showcontactlist.Selected = false;
@@ -131,6 +132,16 @@ class hud : hud_Designer
 			e.contactlist.Visible = true;
 			e.targetwireframe.Visible = false;
 		});
+
+		this.Map = new mapwindow()
+		this.InfoWindow = new infowindow()
+	    this.Map.InitMap()
+		
+		var windows = {
+			{ e.nn_map, this.Map },
+		    { this.Elements.nn_info, this.InfoWindow }
+		};
+		this.WindowManager = new childwindowmanager(this.Widget, windows)
     }
     
 	ObjectiveUpdate(nnids)
@@ -220,6 +231,8 @@ class hud : hud_Designer
     Chatbox() => this.Elements.chatbox.Visible = true;
     Popup(title,contents,id) => OpenModal(new popup(title,contents,'ok', () => Game.PopupFinish(id)));
 }
+
+
 
 
 

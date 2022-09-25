@@ -47,6 +47,7 @@
         	<DisplayRectangle color="green"/>
         </ChatBox.Border>
     </ChatBox>
-    <ChatDisplay Anchor="BottomLeft" Y="130" Height="250" Width="510" X="10" id="chat"/>
+    <ChatDisplay Anchor="BottomLeft" Y="150" Height="250" Width="510" X="10" id="chat"/>
     <TextBlock Y="70" Anchor="TopCenter" Width="640" Height="70" TextColor="text" TextSize="14" TextShadow="black" Strid="21810" AllCaps="true" id="nnobj" />
 </Scene>
+
