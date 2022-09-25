@@ -33,7 +33,7 @@ World Time: {12:F2}
 		GameData.StarSystem sys;
 		public GameWorld world;
         public FreelancerGame FlGame => Game;
-		ChaseCamera camera;
+		
 		SystemRenderer sysrender;
 		bool wireframe = false;
 		bool textEntry = false;
@@ -80,6 +80,11 @@ World Time: {12:F2}
             loader.Init();
         }
 
+        ChaseCamera _chaseCamera;
+        TurretViewCamera _turretViewCamera; 
+        ICamera activeCamera;
+        private bool isTurretView = false;
+        
         void FinishLoad()
         {
             Game.Saves.Selected = -1;
@@ -117,21 +122,25 @@ World Time: {12:F2}
             }
             powerCore = player.GetComponent<PowerCoreComponent>();
             if (powerCore == null) throw new Exception("Player launched without a powercore equipped!");
-            camera = new ChaseCamera(Game.RenderContext.CurrentViewport, Game.GameData.Ini.Cameras);
-            camera.ChasePosition = session.PlayerPosition;
-            camera.ChaseOrientation = player.LocalTransform.ClearTranslation();
+            _chaseCamera = new ChaseCamera(Game.RenderContext.CurrentViewport, Game.GameData.Ini.Cameras);
+            _turretViewCamera = new TurretViewCamera(Game.RenderContext.CurrentViewport, Game.GameData.Ini.Cameras);
+            _turretViewCamera.CameraOffset = new Vector3(0, 0, shp.ChaseOffset.Length());
+            _chaseCamera.ChasePosition = session.PlayerPosition;
+            _chaseCamera.ChaseOrientation = player.LocalTransform.ClearTranslation();
             var offset = shp.ChaseOffset;
             
-            camera.DesiredPositionOffset = offset;
+            _chaseCamera.DesiredPositionOffset = offset;
             if (shp.CameraHorizontalTurnAngle > 0)
-                camera.HorizontalTurnAngle = shp.CameraHorizontalTurnAngle;
+                _chaseCamera.HorizontalTurnAngle = shp.CameraHorizontalTurnAngle;
             if (shp.CameraVerticalTurnUpAngle > 0)
-                camera.VerticalTurnUpAngle = shp.CameraVerticalTurnUpAngle;
+                _chaseCamera.VerticalTurnUpAngle = shp.CameraVerticalTurnUpAngle;
             if (shp.CameraVerticalTurnDownAngle > 0)
-                camera.VerticalTurnDownAngle = shp.CameraVerticalTurnDownAngle;
-            camera.Reset();
+                _chaseCamera.VerticalTurnDownAngle = shp.CameraVerticalTurnDownAngle;
+            _chaseCamera.Reset();
 
-            sysrender = new SystemRenderer(camera, Game.GameData, Game.ResourceManager, Game);
+            activeCamera = _chaseCamera;
+            
+            sysrender = new SystemRenderer(_chaseCamera, Game.GameData, Game.ResourceManager, Game);
             sysrender.ZOverride = true; //Draw all with regular Z
             world = new GameWorld(sysrender);
             world.LoadSystem(sys, Game.ResourceManager, false, session.WorldTime);
@@ -140,7 +149,6 @@ World Time: {12:F2}
             world.AddObject(player);
             player.Register(world.Physics);
             Game.Sound.PlayMusic(sys.MusicSpace);
-            //world.Physics.EnableWireframes(debugphysics);
             cur_arrow = Game.ResourceManager.GetCursor("arrow");
             cur_cross = Game.ResourceManager.GetCursor("cross");
             cur_reticle = Game.ResourceManager.GetCursor("fire_neutral");
@@ -462,7 +470,7 @@ World Time: {12:F2}
                 sysrender.Camera = Thn.CameraHandle;
             }
             else
-                sysrender.Camera = camera;
+                sysrender.Camera = activeCamera;
             if (frameCount < 2)
             {
                 frameCount++;
@@ -485,19 +493,26 @@ World Time: {12:F2}
 		bool thrust = false;
 
 		void UpdateCamera(double delta)
-		{
-            camera.Viewport = Game.RenderContext.CurrentViewport;
+        {
+            activeCamera = isTurretView ? _turretViewCamera : _chaseCamera;
+            _chaseCamera.Viewport = Game.RenderContext.CurrentViewport;
+            _turretViewCamera.Viewport = Game.RenderContext.CurrentViewport;
             if(Thn == null || !Thn.Running)
 			    ProcessInput(delta);
             //Has to be here or glitches
             if (!Dead)
             {
-                camera.ChasePosition = Vector3.Transform(Vector3.Zero, player.LocalTransform);
-                camera.ChaseOrientation = player.LocalTransform.ClearTranslation();
+                _turretViewCamera.ChasePosition = Vector3.Transform(Vector3.Zero, player.LocalTransform);
+                _chaseCamera.ChasePosition = Vector3.Transform(Vector3.Zero, player.LocalTransform);
+                _chaseCamera.ChaseOrientation = player.LocalTransform.ClearTranslation();
             }
-            camera.Update(delta);
-            if ((Thn == null || !Thn.Running)) //HACK: Cutscene also updates the listener so we don't do it if one is running
-                Game.Sound.UpdateListener(delta, camera.Position, camera.CameraForward, camera.CameraUp);
+            _turretViewCamera.Update(delta);
+            _chaseCamera.Update(delta);
+            if ((Thn == null ||
+                 !Thn.Running)) //HACK: Cutscene also updates the listener so we don't do it if one is running
+            {
+                Game.Sound.UpdateListener(delta, _chaseCamera.Position, _chaseCamera.CameraForward, _chaseCamera.CameraUp);
+            }
             else
             {
                 Thn.Update(paused ? 0 : delta);
@@ -518,6 +533,9 @@ World Time: {12:F2}
 				case InputAction.USER_TURN_SHIP:
 					mouseFlight = !mouseFlight;
 					break;
+                case InputAction.USER_AUTO_TURRET:
+                    isTurretView = !isTurretView;
+                    break;
             }
 		}
 
@@ -596,32 +614,48 @@ World Time: {12:F2}
 
 			var pc = player.PhysicsComponent;
             shipInput.Viewport = new Vector2(Game.Width, Game.Height);
-            shipInput.Camera = camera;
+            shipInput.Camera = _chaseCamera;
             if ((isLeftDown || mouseFlight) && control.Active)
 			{
                 var mX = Game.Mouse.X;
                 var mY = Game.Mouse.Y;
-                camera.MousePosition = new Vector2(
-                    mX, Game.Height - mY
-                );
-                shipInput.MouseFlight = true;
-                shipInput.MousePosition = new Vector2(mX, mY);
-                camera.MouseFlight = true;
+                if (isTurretView)
+                {
+                    _turretViewCamera.PanControls = new Vector2(
+                        2f * (mX / (float)Game.Width) -1f, -(2f * (mY / (float)Game.Height) - 1f)
+                    );
+                    shipInput.MouseFlight = false;
+                    _chaseCamera.MouseFlight = false;
+                }
+                else
+                {
+                    _chaseCamera.MousePosition = new Vector2(
+                        mX, Game.Height - mY
+                    );
+                    shipInput.MouseFlight = true;
+                    shipInput.MousePosition = new Vector2(mX, mY);
+                    _chaseCamera.MouseFlight = true;
+                    _turretViewCamera.PanControls = Vector2.Zero;
+                }
             }
 			else
 			{
                 shipInput.MouseFlight = false;
-                camera.MouseFlight = false;
-			}
+                _chaseCamera.MouseFlight = false;
+                _turretViewCamera.PanControls = Vector2.Zero;
+            }
 			control.CurrentStrafe = strafe;
+            
+            GetCameraMatrices(out var cameraView, out var cameraProjection);
+
             var obj = GetSelection(Game.Mouse.X, Game.Mouse.Y);
             if (ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y))
                 current_cur = cur_arrow;
             else {
                 current_cur = obj == null ? cur_cross : cur_reticle;
             }
-            var end = Vector3Ex.UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 1f), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
-            var start = Vector3Ex.UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0), camera.Projection, camera.View, new Vector2(Game.Width, Game.Height));
+            var end = Vector3Ex.UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 1f), cameraProjection, cameraView, new Vector2(Game.Width, Game.Height));
+            var start = Vector3Ex.UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0), cameraProjection, cameraView, new Vector2(Game.Width, Game.Height));
             var dir = (end - start).Normalized();
             var tgt = start + (dir * 400);
             weapons.AimPoint = tgt;
@@ -649,13 +683,26 @@ World Time: {12:F2}
         {
             player.GetComponent<ShipPhysicsComponent>().Active = true;
         }
-        
+
+
+        void GetCameraMatrices(out Matrix4x4 view, out Matrix4x4 projection)
+        {
+            view = activeCamera.View;
+            projection = activeCamera.Projection;
+        }
+
+        void GetViewProjection(out Matrix4x4 vp)
+        {
+            vp = activeCamera.ViewProjection;
+        }
         
 		GameObject GetSelection(float x, float y)
-		{
+        {
+            GetCameraMatrices(out var cameraView, out var cameraProjection);
+           
 			var vp = new Vector2(Game.Width, Game.Height);
-            var start = Vector3Ex.UnProject(new Vector3(x, y, 0f), camera.Projection, camera.View, vp);
-			var end = Vector3Ex.UnProject(new Vector3(x, y, 1f), camera.Projection, camera.View, vp);
+            var start = Vector3Ex.UnProject(new Vector3(x, y, 0f), cameraProjection, cameraView, vp);
+			var end = Vector3Ex.UnProject(new Vector3(x, y, 1f), cameraProjection, cameraView, vp);
             var dir = (end - start).Normalized();
 
 			PhysicsObject rb;
@@ -681,7 +728,7 @@ World Time: {12:F2}
 			foreach (var rb in world.Physics.Objects)
             {
 				if (rb.Tag == player) continue;
-                if (Vector3.DistanceSquared(rb.Position, camera.Position) > md2) continue;
+                if (Vector3.DistanceSquared(rb.Position, activeCamera.Position) > md2) continue;
                 if (rb.Collider is SphereCollider)
 				{
 					//Test spheres
@@ -693,7 +740,7 @@ World Time: {12:F2}
                     {
                         var p2 = rayOrigin + (direction * res.Value);
                         if (res == 0.0) p2 = rb.Position;
-                        var nd = Vector3.DistanceSquared(p2, camera.Position);
+                        var nd = Vector3.DistanceSquared(p2, activeCamera.Position);
                         if (nd < dist)
                         {
                             dist = nd;
@@ -706,7 +753,7 @@ World Time: {12:F2}
 					//var tag = rb.Tag as GameObject;
                     var box = rb.GetBoundingBox();
                     if (!rb.GetBoundingBox().RayIntersect(ref rayOrigin, ref jitterDir)) continue;
-                    var nd = Vector3.DistanceSquared(rb.Position, camera.Position);
+                    var nd = Vector3.DistanceSquared(rb.Position, activeCamera.Position);
                     if (nd < dist)
                     {
                         dist = nd;
@@ -752,8 +799,9 @@ World Time: {12:F2}
         
         (Vector2 pos, bool visible) ScreenPosition(GameObject obj)
         {
+            GetViewProjection(out var vp);
             var worldPos = Vector3.Transform(Vector3.Zero, obj.WorldTransform);
-            var clipSpace = Vector4.Transform(new Vector4(worldPos, 1), camera.ViewProjection);
+            var clipSpace = Vector4.Transform(new Vector4(worldPos, 1), vp);
             var ndc = clipSpace / clipSpace.W;
             var viewSize = new Vector2(Game.Width, Game.Height);
             var windowSpace = new Vector2(
@@ -789,7 +837,7 @@ World Time: {12:F2}
             world.RenderUpdate(delta);
             sysrender.Draw();
 
-            sysrender.DebugRenderer.StartFrame(camera, Game.RenderContext);
+            sysrender.DebugRenderer.StartFrame(activeCamera, Game.RenderContext);
             sysrender.DebugRenderer.Render();
 
             if ((Thn == null || !Thn.Running) && ShowHud)
@@ -824,7 +872,7 @@ World Time: {12:F2}
                     else
                         sel_obj = selected.Name;
                 }
-                var text = string.Format(DEMO_TEXT, camera.Position.X, camera.Position.Y, camera.Position.Z,
+                var text = string.Format(DEMO_TEXT, activeCamera.Position.X, activeCamera.Position.Y, activeCamera.Position.Z,
                     sys.Nickname, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj,
                     control.Steering.X, control.Steering.Y, control.Steering.Z, mouseFlight, session.WorldTime);
                 ImGuiNET.ImGui.Text(text);

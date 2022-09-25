@@ -158,7 +158,7 @@ namespace LibreLancer
 			{
 				foreach (var n in system.Nebulae)
 				{
-					Nebulae.Add(new NebulaRenderer(n, camera, Game, this));
+					Nebulae.Add(new NebulaRenderer(n, Game, this));
 				}
 			}
 
