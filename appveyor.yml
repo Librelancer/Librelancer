@@ -1,0 +1,62 @@
+branches:
+  only:
+  - main
+
+environment:
+  matrix:
+
+  - job_name: Windows build
+    appveyor_build_worker_image: Visual Studio 2022
+
+  - job_name: Linux build
+    appveyor_build_worker_image: Ubuntu
+  
+matrix:
+  fast_finish: true
+
+
+for:
+  -
+    matrix:
+      only:
+        - job_name: Windows build
+
+    build_script:
+    - cmd: cd c:\projects\librelancer
+    - cmd: mkdir bin
+    - cmd: git rev-parse --short HEAD > bin/revision.txt
+    - cmd: git submodule update --init --recursive
+    - cmd: echo cd c:\projects\librelancer\bin > postbuild.bat
+    - cmd: echo 7z a librelancer-daily-win32.zip -r librelancer-win7-x86 revision.txt >> postbuild.bat
+    - cmd: echo 7z a librelancer-daily-win64.zip -r librelancer-win7-x64 revision.txt >> postbuild.bat
+    - cmd: echo 7z a librelancer-sdk-daily-win32.zip -r librelancer-sdk-win7-x86 revision.txt >> postbuild.bat
+    - cmd: echo 7z a librelancer-sdk-daily-win64.zip -r librelancer-sdk-win7-x64 revision.txt >> postbuild.bat
+    - cmd: powershell -File .\build.ps1 --postbuild postbuild.bat
+    
+    artifacts:
+      - path: bin\librelancer-daily-win32.zip
+        name: librelancer-daily-win32
+      - path: bin\librelancer-daily-win64.zip
+        name: librelancer-daily-win64
+      - path: bin\librelancer-sdk-daily-win32.zip
+        name: librelancer-sdk-daily-win32
+      - path: bin\librelancer-sdk-daily-win64.zip
+        name: librelancer-sdk-daily-win64
+  -
+    matrix:
+      only:
+        - job_name: Linux build
+
+    install:
+    - sh: sudo apt update && sudo apt install -y libgtk-3-dev
+
+    build_script:
+        - sh:  cd /home/appveyor/projects/librelancer
+        - sh: git submodule update --init --recursive
+        - sh:  ./build.sh -j$(nproc) LinuxDaily
+      
+    artifacts:
+      - path: packaging/packages/librelancer-daily-ubuntu-amd64.tar.gz
+        name: librelancer-daily-ubuntu-amd64.tar.gz
+      - path: packaging/packages/librelancer-sdk-daily-ubuntu-amd64.tar.gz
+        name: librelancer-sdk-daily-ubuntu-amd64.tar.gz

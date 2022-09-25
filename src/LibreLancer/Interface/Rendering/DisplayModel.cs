@@ -52,6 +52,12 @@ namespace LibreLancer.Interface
         
         public bool Clip { get; set; }
         
+        public bool VMeshWire { get; set; }
+
+        public bool DrawModel { get; set; } = true;
+
+        public InterfaceColor WireframeColor { get; set; }
+        
         private RigidModel model;
         private bool loadable = true;
         private List<ModifiedMaterial> mats;
@@ -66,6 +72,20 @@ namespace LibreLancer.Interface
             var sY = r.Height / (float)(gHeight);
             return Matrix4x4.CreateScale(sX, sY, 1) * Matrix4x4.CreateTranslation(tX, tY, 0);
         }
+        
+        void DrawVMeshWire(UiContext context, Vector3[] wires, Matrix4x4 mat)
+        {
+            var color = (WireframeColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
+            context.Lines.Color = color;
+            for (int i = 0; i < wires.Length / 2; i++)
+            {
+                context.Lines.DrawLine(
+                    Vector3.Transform(wires[i * 2],mat),
+                    Vector3.Transform(wires[i * 2 + 1],mat)
+                );
+            }
+        }
+
         
         public override void Render(UiContext context, RectangleF clientRectangle)
         {
@@ -94,22 +114,40 @@ namespace LibreLancer.Interface
                             Matrix4x4.CreateTranslation(Model.X, Model.Y, 0);
             transform *= CreateTransform((int) context.ViewportWidth, (int) context.ViewportHeight, rect);
             context.RenderContext.Cull = false;
-            model.UpdateTransform();
-            model.Update(context.MatrixCam, context.GlobalTime, context.Data.ResourceManager);
-            if (Tint != null)
+            if (DrawModel)
             {
-                var color = Tint.GetColor(context.GlobalTime);
-                for (int i = 0; i < mats.Count; i++)
-                    mats[i].Mat.Dc = color;
-            }
-            model.DrawImmediate(context.RenderContext, context.Data.ResourceManager, transform, ref Lighting.Empty);
-            if (Tint != null)
-            {
-                for (int i = 0; i < mats.Count; i++)
+                model.UpdateTransform();
+                model.Update(context.MatrixCam, context.GlobalTime, context.Data.ResourceManager);
+                if (Tint != null)
                 {
-                    mats[i].Mat.Dc = mats[i].Dc;
+                    var color = Tint.GetColor(context.GlobalTime);
+                    for (int i = 0; i < mats.Count; i++)
+                        mats[i].Mat.Dc = color;
                 }
-            }           
+
+                model.DrawImmediate(context.RenderContext, context.Data.ResourceManager, transform, ref Lighting.Empty);
+
+                if (Tint != null)
+                {
+                    for (int i = 0; i < mats.Count; i++)
+                    {
+                        mats[i].Mat.Dc = mats[i].Dc;
+                    }
+                }
+            }
+            if (VMeshWire)
+            {
+                context.Lines.StartFrame(context.MatrixCam, context.RenderContext);
+                foreach (var part in model.AllParts)
+                {
+                    if (part.Wireframe != null)
+                    {
+                        DrawVMeshWire(context, part.Wireframe.Lines, part.LocalTransform * transform);
+                    }
+                }
+                context.Lines.Render();
+                context.RenderContext.DepthEnabled = false;
+            }
             context.RenderContext.ScissorEnabled = false;
             context.RenderContext.Cull = true;
         }

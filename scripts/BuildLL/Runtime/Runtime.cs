@@ -144,7 +144,7 @@ namespace BuildLL
                     Program.Targets();
                     if (WebHook.UseWebhook)
                     {
-                        var message = "Build started.";
+                        var message = $"Build started ({RuntimeInformation.OSDescription}).";
                         if (TryGetEnv("APPVEYOR_BUILD_NUMBER", out string jobNumber))
                             message += $" #{jobNumber}.";
                         WebHook.AppveyorDiscordWebhook(message);
@@ -167,7 +167,7 @@ namespace BuildLL
                         }
                         if (WebHook.UseWebhook)
                         {
-                            var message = "Build succeeded.";
+                            var message = $"Build succeeded ({RuntimeInformation.OSDescription}).";
                             if (TryGetEnv("APPVEYOR_BUILD_NUMBER", out string jobNumber))
                                 message += $" #{jobNumber}.";
                             WebHook.AppveyorDiscordWebhook(message);
