@@ -10,40 +10,27 @@ namespace LibreLancer
 {
     public class NPCManager
     {
+        private NPCWattleScripting scripting;
         public ServerWorld World;
         public NPCManager(ServerWorld world)
         {
             this.World = world;
+            scripting = new NPCWattleScripting(this);
         }
 
+        public Task<string> RunScript(string src)
+        {
+            TaskCompletionSource<string> source = new TaskCompletionSource<string>();
+            World.EnqueueAction(() =>
+            {
+                source.SetResult(scripting.Run(src));
+            });
+            return source.Task;
+        }
+        
         public void Despawn(GameObject obj)
         {
             World.RemoveNPC(obj);
-        }
-        public void DockWith(int id, string obj)
-        {
-            World.EnqueueAction(() =>
-            {
-                var npc = World.GameWorld.Objects.FirstOrDefault(x => x.NetID == id);
-                var tgt = World.GameWorld.Objects.FirstOrDefault(x =>
-                    obj.Equals(x.Nickname, StringComparison.OrdinalIgnoreCase));
-                if (npc == null || tgt == null) return;
-                if (npc.TryGetComponent<SNPCComponent>(out var n))
-                    n.DockWith(tgt);
-            });
-        }
-
-        public void Attack(int id, string obj)
-        {
-            World.EnqueueAction(() =>
-            {
-                var npc = World.GameWorld.Objects.FirstOrDefault(x => x.NetID == id);
-                var tgt = World.GameWorld.Objects.FirstOrDefault(x =>
-                    obj.Equals(x.Nickname, StringComparison.OrdinalIgnoreCase));
-                if (npc == null || tgt == null) return;
-                if (npc.TryGetComponent<SNPCComponent>(out var n))
-                    n.Attack(tgt);
-            });
         }
 
         private Dictionary<string, GameObject> missionNPCs = new Dictionary<string, GameObject>(StringComparer.OrdinalIgnoreCase);
@@ -88,17 +75,6 @@ namespace LibreLancer
             World.OnNPCSpawn(obj);
             if (nickname != null) missionNPCs[nickname] = obj;
             return obj;
-        }
-
-        public Task<int> SpawnNPC(Loadout loadout, Vector3 position)
-        {
-            var completionSource = new TaskCompletionSource<int>();
-            World.EnqueueAction(() =>
-            {
-                var obj = DoSpawn(null, loadout, null, position, Quaternion.Identity);
-                completionSource.SetResult(obj.NetID);
-            });
-            return completionSource.Task;
         }
     }
 }

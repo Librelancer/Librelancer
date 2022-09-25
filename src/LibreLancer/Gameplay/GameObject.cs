@@ -51,6 +51,7 @@ namespace LibreLancer
             }
         }
 
+        public ShipFormation Formation = null;
         public static object ClientPlayerTag = new object();
         public GameObjectKind Kind = GameObjectKind.None;
         public object Tag;

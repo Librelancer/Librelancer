@@ -890,6 +890,14 @@ namespace LibreLancer
             {
                 Game.Debug.Enabled = !Game.Debug.Enabled;
             }
+            else if (str.TrimEnd() == "/pos")
+            {
+                if (gp != null)
+                    ((IClientPlayer) this).OnConsoleMessage(Vector3.Transform(Vector3.Zero, gp.player.LocalTransform)
+                        .ToString());
+                else
+                    ((IClientPlayer) this).OnConsoleMessage("null");
+            }
             else {
                 rpcServer.ChatMessage(category, str);  
             }

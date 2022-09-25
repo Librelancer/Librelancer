@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Diagnostics;
 using System.Numerics;
 using System.Linq;
 namespace LibreLancer
@@ -11,7 +12,8 @@ namespace LibreLancer
 	{
 		None,
 		Goto,
-		Dock
+		Dock,
+        Formation
 	}
 	public class AutopilotComponent : GameComponent
 	{
@@ -108,22 +110,15 @@ namespace LibreLancer
 
         public float OutPitch;
         public float OutYaw;
-        
-        
-        
-		public override void Update(double time)
-		{
-			var control = Parent.GetComponent<ShipSteeringComponent>();
-            var input = Parent.GetComponent<ShipInputComponent>();
-            
-            if(input != null) input.AutopilotThrottle = 0;
-            if (control == null) return;
-            if (CurrentBehaviour == AutopilotBehaviours.None)
-			{
-				ResetDockState();
-				return;
-			}
-			Vector3 targetPoint = Vector3.Zero;
+
+        public void StartFormation()
+        {
+            CurrentBehaviour = AutopilotBehaviours.Formation;
+        }
+
+        public void ProcessGotoDock(double time, ShipSteeringComponent control, ShipInputComponent input)
+        {
+            Vector3 targetPoint = Vector3.Zero;
 			float radius = -1;
 			float maxSpeed = 1f;
 			if (CurrentBehaviour == AutopilotBehaviours.Goto)
@@ -174,23 +169,8 @@ namespace LibreLancer
 			else
 				targetPower = maxSpeed;
 
-			//Orientation
-			var dt = time;
-			var vec = Parent.InverseTransformPoint(targetPoint);
-			//normalize it
-			vec.Normalize();
-			//
-			bool directionSatisfied = (Math.Abs(vec.X) < 0.0015f && Math.Abs(vec.Y) < 0.0015f);
-			if (!directionSatisfied)
-			{
-				OutYaw = MathHelper.Clamp((float)YawControl.Update(0, vec.X, dt), -1, 1);
-				OutPitch = MathHelper.Clamp((float)PitchControl.Update(0, -vec.Y, dt), -1, 1);
-			}
-			else
-			{
-				OutYaw = 0;
-				OutPitch = 0;
-			}
+            var directionSatisfied = TurnTowards(time, targetPoint);
+            
 			if (distanceSatisfied && directionSatisfied && CurrentBehaviour == AutopilotBehaviours.Goto)
 			{
 				Parent.World.BroadcastMessage(Parent, GameMessageKind.ManeuverFinished);
@@ -207,6 +187,74 @@ namespace LibreLancer
             if(input != null)
                 input.AutopilotThrottle = targetPower;
             control.InThrottle = targetPower;
+        }
+
+        bool TurnTowards(double time, Vector3 targetPoint)
+        {
+            //Orientation
+            var dt = time;
+            var vec = Parent.InverseTransformPoint(targetPoint);
+            //normalize it
+            vec.Normalize();
+            //
+            bool directionSatisfied = (Math.Abs(vec.X) < 0.0015f && Math.Abs(vec.Y) < 0.0015f);
+            if (!directionSatisfied)
+            {
+                OutYaw = MathHelper.Clamp((float)YawControl.Update(0, vec.X, dt), -1, 1);
+                OutPitch = MathHelper.Clamp((float)PitchControl.Update(0, -vec.Y, dt), -1, 1);
+                return false;
+            }
+            else
+            {
+                OutYaw = 0;
+                OutPitch = 0;
+                return true;
+            }
+        }
+
+        public void ProcessFormation(double time, ShipSteeringComponent control, ShipInputComponent input)
+        {
+            if (Parent.Formation == null) {
+                CurrentBehaviour = AutopilotBehaviours.None;
+                return;
+            }
+            
+            var targetPoint = Parent.Formation.GetOffset(Parent);
+            var distance = (targetPoint - Parent.PhysicsComponent.Body.Position).Length();
+
+            if (distance > 30) {
+                TurnTowards(time, targetPoint);
+                if(input != null) input.AutopilotThrottle = 1;
+                control.InThrottle = 1;
+            }
+            else {
+                OutYaw = 0;
+                OutPitch = 0;
+                if(input != null) input.AutopilotThrottle = 0;
+                control.InThrottle = 0;
+            }
+        }
+        
+		public override void Update(double time)
+		{
+			var control = Parent.GetComponent<ShipSteeringComponent>();
+            var input = Parent.GetComponent<ShipInputComponent>();
+            
+            if(input != null) input.AutopilotThrottle = 0;
+            if (control == null) return;
+            switch (CurrentBehaviour)
+            {
+                case AutopilotBehaviours.Dock:
+                case AutopilotBehaviours.Goto:
+                    ProcessGotoDock(time, control, input);
+                    break;
+                case AutopilotBehaviours.Formation:
+                    ProcessFormation(time, control, input);
+                    break;
+                case AutopilotBehaviours.None:
+                    ResetDockState();
+                    break;
+            }
         }
 
 	}
