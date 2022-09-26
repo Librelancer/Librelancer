@@ -66,7 +66,7 @@ typedef struct _PGBuiltText PGBuiltText;
 /** CALLBACKS **/
 typedef void (*PGDrawCallback)(PGQuad* quads, int count);
 /** Implementation must set userdata variable in PGTexture **/
-typedef void (*PGAllocateTextureCallback)(PGTexture *texture, int width, int height);
+typedef void (*PGAllocateTextureCallback)(PGTexture *texture, int width, int height, int isColor);
 typedef void (*PGUpdateTextureCallback)(PGTexture *texture, void *buffer, int x, int y, int width, int height);
 
 /** FUNCTIONS **/

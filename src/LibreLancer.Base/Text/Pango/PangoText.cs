@@ -138,7 +138,7 @@ namespace LibreLancer.Text.Pango
         static extern float pg_lineheight(IntPtr ctx, IntPtr fontName, float fontSize);
         
         delegate void PGDrawCallback(PGQuad* quads, int count);
-        delegate void PGAllocateTextureCallback(PGTexture* texture, int width, int height);
+        delegate void PGAllocateTextureCallback(PGTexture* texture, int width, int height, int isColor);
         delegate void PGUpdateTextureCallback(PGTexture* texture, IntPtr buffer, int x, int y, int width, int height);
 
         PGDrawCallback draw;
@@ -186,19 +186,23 @@ namespace LibreLancer.Text.Pango
             }
         }
 
-        void Alloc(PGTexture *texture, int width, int height)
+        void Alloc(PGTexture *texture, int width, int height, int isColor)
         {
-            textures.Add(new Texture2D(width, height, false, SurfaceFormat.R8));
+            textures.Add(new Texture2D(width, height, false, isColor == 0 ? SurfaceFormat.R8 : SurfaceFormat.Color));
             texture->UserData = (IntPtr)(textures.Count - 1);
         }
 
         void Update(PGTexture *texture, IntPtr buffer, int x, int y, int width, int height)
         {
             var t = textures[(int)texture->UserData];
-            GL.PixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
+            if(t.Format == SurfaceFormat.R8)
+                GL.PixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
+            else
+                Console.WriteLine("Uploading color data");
             var rect = new Rectangle(x, y, width, height);
             t.SetData(0, rect, buffer);
-            GL.PixelStorei(GL.GL_UNPACK_ALIGNMENT, 4);
+            if(t.Format == SurfaceFormat.R8)
+                GL.PixelStorei(GL.GL_UNPACK_ALIGNMENT, 4);
         }
 
         

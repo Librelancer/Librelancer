@@ -70,7 +70,17 @@ void doDrawRectangle(PangoRenderer* renderer, PangoRenderPart part, int x, int y
 	stb_arr_push(ren->built->quads, q);
 }
 
-void drawGlyphRun (uint32_t fontHash, float red, float green, float blue, PangoRenderer* renderer, PangoFont* font, PangoGlyphString* glyphs, int px, int py)
+// We compile on systems that don't
+// have Pango 1.50 available
+struct _GlyphVisAttr_150
+{
+  guint is_cluster_start : 1;
+  guint is_color         : 1;
+};
+
+
+
+void drawGlyphRun (int shadow, uint32_t fontHash, float red, float green, float blue, PangoRenderer* renderer, PangoFont* font, PangoGlyphString* glyphs, int px, int py)
 {
     CacheRenderer* ren = CACHERENDERER(renderer);
 	
@@ -84,7 +94,13 @@ void drawGlyphRun (uint32_t fontHash, float red, float green, float blue, PangoR
 			//TODO: figure out how to draw a question mark
 			continue;
 		}
-
+        
+        int isColor = 0;
+        if(!shadow && pango_version() >= PANGO_VERSION_ENCODE(1,50,0)) {
+            _GlyphVisAttr_150 *visAttr = (_GlyphVisAttr_150*)&gi->attr;
+            isColor = visAttr->is_color;
+        }
+        
 		unsigned int glyph = gi->glyph;
 		PangoRectangle r;
 		pango_font_get_glyph_extents(font, glyph, &r, 0);
@@ -97,7 +113,7 @@ void drawGlyphRun (uint32_t fontHash, float red, float green, float blue, PangoR
 			continue;
 		}
 		CachedGlyph cached;
-		pg_getglyph(ren->ctx, &cached, glyph, fontHash, font);
+		pg_getglyph(ren->ctx, &cached, isColor ? (glyph | GLYPH_COLOR_FLAG) : glyph, fontHash, font);
 		PGQuad q;
         q.tex = cached.tex;
 		q.srcX = cached.srcX;
@@ -108,9 +124,15 @@ void drawGlyphRun (uint32_t fontHash, float red, float green, float blue, PangoR
 		q.dstY = PANGO_PIXELS(layoutY + gi->geometry.y_offset) - cached.offsetTop;
 		q.dstW = cached.srcW;
 		q.dstH = cached.srcH;
-		q.r = red;
-		q.g = green;
-		q.b = blue;
+		if(isColor) {
+		    q.r = 1;
+		    q.g = 1;
+		    q.b = 1;
+		} else {
+		    q.r = red;
+		    q.g = green;
+		    q.b = blue;
+		}
 		q.a = ren->alpha;
 		stb_arr_push(ren->built->quads, q);
 		layoutX += gi->geometry.width;
@@ -141,9 +163,9 @@ void doDrawGlyphs(PangoRenderer* renderer, PangoFont* font, PangoGlyphString* gl
         shR = shadow->red / 65536.0f;
         shG = shadow->green / 65536.0f;
         shB = shadow->blue / 65536.0f;
-        drawGlyphRun(fontHash, shR, shG, shB, renderer, font, glyphs, px + 2 * PANGO_SCALE, py + (2 * PANGO_SCALE));
+        drawGlyphRun(1, fontHash, shR, shG, shB, renderer, font, glyphs, px + 2 * PANGO_SCALE, py + (2 * PANGO_SCALE));
     }
-    drawGlyphRun(fontHash, red, green, blue, renderer, font, glyphs, px, py);
+    drawGlyphRun(0, fontHash, red, green, blue, renderer, font, glyphs, px, py);
 }
 
 

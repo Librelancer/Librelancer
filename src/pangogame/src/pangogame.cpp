@@ -12,28 +12,33 @@
 
 #define PG_MAX(x,y) (x) < (y) ? y : x
 
+struct _PGPacking {
+    int curTex;
+    int currentX;
+    int currentY;
+    int lineMax;
+    PGTexture* pages[MAX_TEXTURES];
+};
+
 struct _PGRenderContext {
 	PangoContext *pangoContext;
 	PangoFontMap* fontMap;
 	PGDrawCallback drawCb;
 	PGAllocateTextureCallback allocCb;
 	PGUpdateTextureCallback updateCb;
-	int curTex;
-	int currentX;
-	int currentY;
-	int lineMax;
-	PGTexture* pages[MAX_TEXTURES];
+	_PGPacking texa8;
+	_PGPacking texargb32;
 	std::map<uint64_t,CachedGlyph> glyphs;
 }; 
 
-static void pg_newtex(PGRenderContext *ctx)
+static void pg_newtex(PGRenderContext *ctx, _PGPacking *pack, int color)
 {
 	PGTexture *tex = (PGTexture*)malloc(sizeof(PGTexture));
-	ctx->allocCb(tex, PG_TEXTURE_SIZE, PG_TEXTURE_SIZE);
-	ctx->currentX = 0;
-	ctx->currentY = 0;
-	ctx->lineMax = 0;
-	ctx->pages[ctx->curTex++] = tex;
+	ctx->allocCb(tex, PG_TEXTURE_SIZE, PG_TEXTURE_SIZE, color);
+	pack->currentX = 0;
+	pack->currentY = 0;
+	pack->lineMax = 0;
+	pack->pages[pack->curTex++] = tex;
 }
 
 PGRenderContext *pg_createcontext(
@@ -43,16 +48,17 @@ PGRenderContext *pg_createcontext(
 )
 {
 	PGRenderContext *ctx = (PGRenderContext*)malloc(sizeof(PGRenderContext));
+	memset(ctx, 0, sizeof(PGRenderContext));
 	new (ctx) PGRenderContext();
 	ctx->allocCb = allocate;
 	ctx->updateCb = update;
 	ctx->drawCb = draw;
-	ctx->curTex = 0;
 	ctx->pangoContext = pango_context_new();
 	ctx->fontMap = pango_cairo_font_map_new();
     pango_cairo_font_map_set_resolution(PANGO_CAIRO_FONT_MAP(ctx->fontMap), 72.0);
 	pango_context_set_font_map(ctx->pangoContext, ctx->fontMap);
-	pg_newtex(ctx);
+	pg_newtex(ctx, &ctx->texa8, 0);
+	pg_newtex(ctx, &ctx->texargb32, 1);
 	return ctx;
 }
 
@@ -86,15 +92,17 @@ void pg_getglyph(PGRenderContext *ctx, CachedGlyph *outGlyph, uint32_t codePoint
 		return;
 	}
 	
+	int isColor = (codePoint & GLYPH_COLOR_FLAG);
+	
 	PangoRectangle ink_rect;
-	pango_font_get_glyph_extents (pango, codePoint, &ink_rect, NULL);
+	pango_font_get_glyph_extents (pango, (codePoint & ~GLYPH_COLOR_FLAG), &ink_rect, NULL);
     pango_extents_to_pixels (&ink_rect, NULL);
     
-    size_t bufferSize = (ink_rect.height * ink_rect.width);
+    size_t bufferSize = (ink_rect.height * ink_rect.width * (isColor ? 4 : 1));
     unsigned char *buffer = (unsigned char*)malloc(bufferSize);
     memset(buffer, 0, bufferSize);
     
-    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_A8, ink_rect.width, ink_rect.height);
+    cairo_surface_t *surface = cairo_image_surface_create(isColor ? CAIRO_FORMAT_ARGB32 : CAIRO_FORMAT_A8, ink_rect.width, ink_rect.height);
     int stride = cairo_image_surface_get_stride(surface);
 
     cairo_t *cr = cairo_create(surface);
@@ -102,11 +110,10 @@ void pg_getglyph(PGRenderContext *ctx, CachedGlyph *outGlyph, uint32_t codePoint
     PangoGlyphString glyph_string;
     PangoGlyphInfo glyph_info;
 
-    glyph_info.glyph = codePoint;
+    glyph_info.glyph = (codePoint & ~GLYPH_COLOR_FLAG);
     glyph_info.geometry.width = (ink_rect.width * 1024);
     glyph_info.geometry.x_offset = -(ink_rect.x * 1024);
     glyph_info.geometry.y_offset = -(ink_rect.y * 1024);
-    
     glyph_string.num_glyphs = 1;
     glyph_string.glyphs = &glyph_info;
     
@@ -114,37 +121,44 @@ void pg_getglyph(PGRenderContext *ctx, CachedGlyph *outGlyph, uint32_t codePoint
     cairo_destroy(cr);
     cairo_surface_flush(surface);
     unsigned char *data = cairo_image_surface_get_data(surface);
-    //Tightly pack image and gamma correct
-    for(int y = 0; y < ink_rect.height; y++) {
-        for(int x = 0; x < ink_rect.width; x++) {
-            buffer[(y * ink_rect.width) + x] = pg_gamma[data[(y * stride) + x]];
+    if(isColor) {
+        //Straight copy
+        memcpy(buffer, data, bufferSize);
+    } else {
+        //Tightly pack image and gamma correct
+        for(int y = 0; y < ink_rect.height; y++) {
+            for(int x = 0; x < ink_rect.width; x++) {
+                buffer[(y * ink_rect.width) + x] = pg_gamma[data[(y * stride) + x]];
+            }
         }
     }
     cairo_surface_destroy(surface);
        
 	//Upload
-	if(ctx->currentX + ink_rect.width > PG_TEXTURE_SIZE) {
-		ctx->currentX = 0;
-		ctx->currentY += ctx->lineMax;
-        ctx->lineMax = 0;
+	_PGPacking *packing = isColor ? &ctx->texargb32 : &ctx->texa8;
+	
+	if(packing->currentX + ink_rect.width > PG_TEXTURE_SIZE) {
+		packing->currentX = 0;
+		packing->currentY += packing->lineMax;
+        packing->lineMax = 0;
 	}
-	if(ctx->currentY + ink_rect.height > PG_TEXTURE_SIZE) {
-		pg_newtex(ctx);
+	if(packing->currentY + ink_rect.height > PG_TEXTURE_SIZE) {
+		pg_newtex(ctx, packing, isColor);
 	}
-	ctx->lineMax = PG_MAX(ctx->lineMax, ink_rect.height);
-	PGTexture *tex = ctx->pages[ctx->curTex - 1];
-	ctx->updateCb(tex, buffer, ctx->currentX, ctx->currentY, ink_rect.width, ink_rect.height);
+	packing->lineMax = PG_MAX(packing->lineMax, ink_rect.height);
+	PGTexture *tex = packing->pages[packing->curTex - 1];
+	ctx->updateCb(tex, buffer, packing->currentX, packing->currentY, ink_rect.width, ink_rect.height);
 	free(buffer);
 	//create glyph
 	outGlyph->tex = tex;
-	outGlyph->srcX = ctx->currentX;
-	outGlyph->srcY = ctx->currentY;
+	outGlyph->srcX = packing->currentX;
+	outGlyph->srcY = packing->currentY;
 	outGlyph->srcW = ink_rect.width;
 	outGlyph->srcH = ink_rect.height;
 	outGlyph->offsetLeft = ink_rect.x;
 	outGlyph->offsetTop = -ink_rect.y;
 	ctx->glyphs[GLYPHMAP_KEY(pangoFontHash,codePoint)] = outGlyph[0];
-	ctx->currentX += ink_rect.width;
+	packing->currentX += ink_rect.width;
 }
 
 static PangoAlignment convert_alignment(PGAlign alignment)
@@ -376,8 +390,11 @@ void pg_destroycontext(PGRenderContext *ctx)
 	g_object_unref(ctx->pangoContext);
 	g_object_unref(ctx->fontMap);
 
-	for(int i = 0; i < ctx->curTex; i++) {
-		free(ctx->pages[i]);
+	for(int i = 0; i < ctx->texa8.curTex; i++) {
+		free(ctx->texa8.pages[i]);
+	}
+	for(int i = 0; i < ctx->texargb32.curTex; i++) {
+		free(ctx->texargb32.pages[i]);
 	}
 	free(ctx);
 }

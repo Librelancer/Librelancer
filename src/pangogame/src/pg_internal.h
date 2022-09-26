@@ -20,6 +20,7 @@
 
 #define MAX_TEXTURES 16
 #define PG_TEXTURE_SIZE 1024
+#define GLYPH_COLOR_FLAG (0x80000000)
 
 typedef struct {
 	PGTexture* tex;
