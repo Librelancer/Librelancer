@@ -37,13 +37,13 @@ for:
     
     artifacts:
       - path: bin\librelancer-daily-win32.zip
-        name: librelancer-daily-win32
+        name: librelancer-daily-win32.zip
       - path: bin\librelancer-daily-win64.zip
-        name: librelancer-daily-win64
+        name: librelancer-daily-win64.zip
       - path: bin\librelancer-sdk-daily-win32.zip
-        name: librelancer-sdk-daily-win32
+        name: librelancer-sdk-daily-win32.zip
       - path: bin\librelancer-sdk-daily-win64.zip
-        name: librelancer-sdk-daily-win64
+        name: librelancer-sdk-daily-win64.zip
 
     deploy:
       provider: Webhook
