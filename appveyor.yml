@@ -42,6 +42,13 @@ for:
         name: librelancer-sdk-daily-win32
       - path: bin\librelancer-sdk-daily-win64.zip
         name: librelancer-sdk-daily-win64
+
+    deploy:
+      provider: Webhook
+      url: https://librelancer.net/webhook.php
+      authorization:
+        secure: 9aQ2qeWQBx1XSedh23m7NfucPR+NYHeIn4CZDBZSQnxYfrNmQYoAdHkjGwp6Bka46vcaqiq5yYqsMY/YIlaZkviGxsJh5HY9b2vrfHYPpOI=
+      request_timeout: 5
   -
     matrix:
       only:
@@ -60,3 +67,10 @@ for:
         name: librelancer-daily-ubuntu-amd64.tar.gz
       - path: packaging/packages/librelancer-sdk-daily-ubuntu-amd64.tar.gz
         name: librelancer-sdk-daily-ubuntu-amd64.tar.gz
+
+    deploy:
+      provider: Webhook
+      url: https://librelancer.net/webhook.php
+      authorization:
+        secure: 9aQ2qeWQBx1XSedh23m7NfucPR+NYHeIn4CZDBZSQnxYfrNmQYoAdHkjGwp6Bka46vcaqiq5yYqsMY/YIlaZkviGxsJh5HY9b2vrfHYPpOI=
+      request_timeout: 5
