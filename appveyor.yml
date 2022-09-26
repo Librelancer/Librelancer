@@ -32,6 +32,8 @@ for:
     - cmd: echo 7z a librelancer-sdk-daily-win32.zip -r librelancer-sdk-win7-x86 revision.txt >> postbuild.bat
     - cmd: echo 7z a librelancer-sdk-daily-win64.zip -r librelancer-sdk-win7-x64 revision.txt >> postbuild.bat
     - cmd: powershell -File .\build.ps1 --postbuild postbuild.bat
+
+    test: off
     
     artifacts:
       - path: bin\librelancer-daily-win32.zip
@@ -61,6 +63,8 @@ for:
         - sh:  cd /home/appveyor/projects/librelancer
         - sh: git submodule update --init --recursive
         - sh:  ./build.sh -j$(nproc) LinuxDaily
+
+    test: off
       
     artifacts:
       - path: packaging/packages/librelancer-daily-ubuntu-amd64.tar.gz
