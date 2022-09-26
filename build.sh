@@ -29,4 +29,4 @@ if [ $? -ne 0 ]; then
 fi
 
 cd $SCRIPT_DIR
-dotnet run --project ./scripts/BuildLL/BuildLL.csproj -- "$@"
+dotnet run --project ./scripts/BuildLL/BuildLL.csproj -p:RestoreUseStaticGraphEvaluation=true -- "$@"

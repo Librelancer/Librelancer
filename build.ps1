@@ -74,4 +74,4 @@ if($SDKResult -eq "notfound") {
 # RUN BUILD SCRIPT
 ###########################################################################
 Set-Location -Path $PSScriptRoot
-dotnet run --project ./scripts/BuildLL/BuildLL.csproj -- $args
+dotnet run --project ./scripts/BuildLL/BuildLL.csproj -p:RestoreUseStaticGraphEvaluation=true -- $args

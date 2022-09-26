@@ -18,15 +18,15 @@ namespace BuildLL
         }
         public static void Restore(string project)
         {
-            RunCommand("dotnet", $"restore {M()} /nr:false {P(project)}");
+            RunCommand("dotnet", $"restore {M()} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
         }
         public static void Build(string project)
         {
-            RunCommand("dotnet", $"build {M()} /nr:false {P(project)}");
+            RunCommand("dotnet", $"build {M()} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
         }
         public static void Clean(string project)
         {
-            RunCommand("dotnet", $"clean {M()} /nr:false {P(project)}");
+            RunCommand("dotnet", $"clean {M()} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
         }
         public static void Run(string project, string args = null)
         {
@@ -38,7 +38,7 @@ namespace BuildLL
         public static void Publish(string project, DotnetPublishSettings settings = null)
         {
             var argbuilder = new StringBuilder();
-            argbuilder.Append($"publish {M()} /nr:false");
+            argbuilder.Append($"publish {M()} -p:RestoreUseStaticGraphEvaluation=true /nr:false");
             if (!string.IsNullOrWhiteSpace(settings?.Configuration))
                 argbuilder.Append(" -c ").Append(settings.Configuration);
             if (!string.IsNullOrWhiteSpace(settings?.OutputDirectory))
