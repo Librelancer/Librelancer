@@ -14,7 +14,11 @@ namespace LibreLancer
 
         record VerifyResult(Guid guid);
 
-        static Uri Combine(string baseUrl, string relUrl) => new Uri(new Uri(baseUrl), relUrl);
+        static string Combine(string baseUrl, string relUrl)
+        {
+            return $"{baseUrl.TrimEnd('/')}/{relUrl.TrimStart('/')}";
+        }
+        
         public static async Task<string> Login(this HttpClient client, string url, string username, string password)
         {
             try
