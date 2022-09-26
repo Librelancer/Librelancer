@@ -1,0 +1,20 @@
+<Scene>
+<Panel Width="640" Height="480" Anchor="Center">
+	<Panel Anchor="Center" X="2" Y="-37" Width="429" Height="271" ID="background">
+		<Panel.Background>
+			<DisplayModel model="char_infowindow"/>
+		</Panel.Background>
+		<Panel Width="429" Height="271" ID="contents">
+			<TextBlock id="title" Anchor="TopCenter" Width="427" Height="40" TextSize="14" Y="2" TextColor="text" Strid="931"></TextBlock>
+			<TextBlock id="reputation" X="18" Width="166" Height="40" TextSize="11" Y="21" TextColor="text" Strid="1586"></TextBlock>
+			<Button id="close" Anchor="TopRight" X="16" Y="15" Style="xbutton"/>
+			<ListBox id="factions" X="18" Y="52" Width="185" Height="200" ItemHeight="33">
+			</ListBox>
+		</Panel>
+	</Panel>
+</Panel>
+</Scene>
+
+
+
+

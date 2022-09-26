@@ -174,6 +174,9 @@ namespace LibreLancer
             public GameSettings GetCurrentSettings() => g.Game.Config.Settings.MakeCopy();
 
             public int GetObjectiveStrid() => g.session.CurrentObjectiveIds;
+
+            public DisplayFaction[] GetPlayerRelations() => g.session.GetUIRelations();
+            
             public KeyMapTable GetKeyMap()
             {
                 var table = new KeyMapTable(g.Game.InputMap, g.Game.GameData.Ini.Infocards);

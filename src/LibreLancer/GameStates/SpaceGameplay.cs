@@ -321,6 +321,8 @@ World Time: {12:F2}
                 g.pausemenu = false;
                 g.paused = false;
             }
+
+            public DisplayFaction[] GetPlayerRelations() => g.session.GetUIRelations();
             
             public void QuitToMenu()
             {

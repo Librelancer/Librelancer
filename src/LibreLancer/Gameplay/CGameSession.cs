@@ -264,6 +264,15 @@ namespace LibreLancer
             }
         }
 
+        public DisplayFaction[] GetUIRelations()
+        {
+            return PlayerReputations.Reputations
+                .Where(x => !x.Key.Hidden)
+                .Select(x => new DisplayFaction(x.Key.IdsName, x.Value))
+                .OrderBy(x => x.Relationship)
+                .ToArray();
+        }
+
         public int UpdateQueueCount => updatePackets.Count;
         
         volatile bool processUpdatePackets = false;

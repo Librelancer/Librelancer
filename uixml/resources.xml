@@ -200,6 +200,7 @@
   <Model name="hud_shieldbatteries" path="INTERFACE/HUD/hud_shieldgaugeicon.3db" x="0" y="0" xscale="75" yscale="75" />
   <Model name="relation_hostile" path="INTERFACE/NEURONET/INVENTORY/pstat_grandienthate.3db" x="0" y="0" xscale="16.4" yscale="123" />
   <Model name="relation_friendly" path="INTERFACE/NEURONET/INVENTORY/pstat_grandientlove.3db" x="0" y="0" xscale="16.4" yscale="123" />
+  <Model name="char_infowindow" path="INTERFACE/NEURONET/INVENTORY/char_infowindow.cmp" x="-0.01" y="0" xscale="2.25" yscale="3.55" />
   <Image name="sliderarrow_up" texname="HUD_sliderarrow" type="Triangle" rot="None" flip="false">
     <TexCoords>
       <X0>0.086419754</X0>

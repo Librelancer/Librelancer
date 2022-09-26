@@ -5,6 +5,7 @@ namespace LibreLancer.GameData
     public class Faction
     {
         public string Nickname;
+        public bool Hidden; //Hidden from the player status list
         public uint Hash;
         public int IdsName;
         public int IdsShortName;

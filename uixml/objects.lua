@@ -9,11 +9,14 @@ local objects = {
     ButtonAppearance = ClrTypes.LibreLancer_Interface_ButtonAppearance.__new,
 	ListItem = ClrTypes.LibreLancer_Interface_ListItem.__new,
 	Panel = ClrTypes.LibreLancer_Interface_Panel.__new,
-	TextBlock = ClrTypes.LibreLancer_Interface_TextBlock.__new
+	TextBlock = ClrTypes.LibreLancer_Interface_TextBlock.__new,
+	Gauge = ClrTypes.LibreLancer_Interface_Gauge.__new
 }
 
 function NewObject(obj)
 {
     return objects[obj]()
 }
+
+
 

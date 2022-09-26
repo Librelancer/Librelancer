@@ -135,11 +135,13 @@ class hud : hud_Designer
 
 		this.Map = new mapwindow()
 		this.InfoWindow = new infowindow()
+		this.PlayerStatus = new playerstatus()
 	    this.Map.InitMap()
 		
 		var windows = {
 			{ e.nn_map, this.Map },
-		    { this.Elements.nn_info, this.InfoWindow }
+		    { this.Elements.nn_info, this.InfoWindow },
+			{ this.Elements.nn_playerstatus, this.PlayerStatus }
 		};
 		this.WindowManager = new childwindowmanager(this.Widget, windows)
     }
@@ -231,6 +233,7 @@ class hud : hud_Designer
     Chatbox() => this.Elements.chatbox.Visible = true;
     Popup(title,contents,id) => OpenModal(new popup(title,contents,'ok', () => Game.PopupFinish(id)));
 }
+
 
 
 

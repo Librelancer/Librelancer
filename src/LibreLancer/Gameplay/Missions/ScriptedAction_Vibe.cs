@@ -9,6 +9,7 @@ namespace LibreLancer.Missions
     {
         REP_FRIEND_MAXIMUM,
         REP_FRIEND_THRESHOLD,
+        REP_NEUTRAL_FRIENDLY,
         REP_NEUTRAL,
         REP_NEUTRAL_HOSTILE,
         REP_HOSTILE_MAXIMUM,

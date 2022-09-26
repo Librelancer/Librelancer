@@ -362,6 +362,7 @@ namespace LibreLancer
                     IdsShortName = f.IdsShortName,
                     Properties = fldata.FactionProps.FactionProps.FirstOrDefault(x => x.Affiliation.Equals(f.Nickname, StringComparison.OrdinalIgnoreCase))
                 };
+                fac.Hidden = fldata.Freelancer.HiddenFactions.Contains(fac.Nickname, StringComparer.OrdinalIgnoreCase);
                 factions[f.Nickname] = fac;
                 factionHash[hash] = fac;
             }

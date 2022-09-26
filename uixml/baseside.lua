@@ -114,11 +114,13 @@ class baseside : baseside_Designer
         this.Elements.chatbox.OnTextEntered((category, text) => Game.ChatEntered(category, text));
 	    this.InfoWindow = new infowindow()
 	    this.Map = new mapwindow()
+		this.PlayerStatus = new playerstatus()
 	    this.Map.InitMap()
 	    this.CommodityTrader = new commodity()
 	    local windows = {
 		    { this.Elements.nn_map, this.Map },
 		    { this.Elements.nn_info, this.InfoWindow },
+			{ this.Elements.nn_playerstatus, this.PlayerStatus }
 	    }
 	    if (has_news) {
 		    this.News = new news();
@@ -160,6 +162,7 @@ class baseside : baseside_Designer
     
     MissionOffer(mission) => OpenModal(new popup(STRID_MISSION, mission, 'accept', (result) => Game.MissionResponse(result)));
 }
+
 
 
 
