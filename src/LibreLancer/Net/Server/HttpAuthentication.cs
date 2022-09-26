@@ -31,7 +31,7 @@ namespace LibreLancer
                 }));
                 if (!result.IsSuccessStatusCode)
                 {
-                    FLLog.Error("Http", $"Login failed for {username} {result.StatusCode} {await result.Content.ReadAsStringAsync()}");
+                    FLLog.Error("Http", $"Login failed for {username} {result.StatusCode}. Response:\n {await result.Content.ReadAsStringAsync()}");
                     return null;
                 }
                 var login = await result.Content.ReadFromJsonAsync<LoginResult>();
@@ -75,8 +75,14 @@ namespace LibreLancer
             {
                 FLLog.Info("Http", $"Contacting login server {url}");
 
-                var result = await client.GetAsync(Combine(url, "/info"));
-                if (!result.IsSuccessStatusCode) return false;
+                var requestUrl = Combine(url, "/info");
+                var result = await client.GetAsync(requestUrl);
+                if (!result.IsSuccessStatusCode)
+                {
+                    FLLog.Error("Http", $"Login server contact failed, {result.StatusCode}: {requestUrl}");
+                    FLLog.Error("Http", "Response:\n" + await result.Content.ReadAsStringAsync());
+                    return false;
+                }
                 var appInfo = await result.Content.ReadFromJsonAsync<ServerInfo>();
                 if (appInfo.application == "authserver")
                 {
