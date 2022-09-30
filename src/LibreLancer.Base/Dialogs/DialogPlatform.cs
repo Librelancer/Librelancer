@@ -21,21 +21,11 @@ namespace LibreLancer.Dialogs
                 Backend = WINFORMS;
                 return;
             }
-            if (HasCommand("kdialog")) Backend = KDIALOG;
-            else if (HasCommand("zenity")) Backend = ZENITY;
+            if (Shell.HasCommand("kdialog")) Backend = KDIALOG;
+            else if (Shell.HasCommand("zenity")) Backend = ZENITY;
             else Backend = SDL;
         }
         
-        static bool HasCommand(string cmd)
-        {
-            var startInfo = new ProcessStartInfo("/bin/sh")
-            {
-                UseShellExecute = false,
-                Arguments = $" -c \"command -v {cmd} >/dev/null 2>&1\""
-            };
-            var p = Process.Start(startInfo);
-            p.WaitForExit();
-            return p.ExitCode == 0;
-        }
+        
     }
 }

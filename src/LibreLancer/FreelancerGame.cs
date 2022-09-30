@@ -86,9 +86,7 @@ namespace LibreLancer
 			new IdentityCamera(this);
 			uithread = Thread.CurrentThread.ManagedThreadId;
 			useintromovies = _cfg.IntroMovies;
-			FLLog.Info("Platform", Platform.RunningOS.ToString() + (IntPtr.Size == 4 ? " 32-bit" : " 64-bit"));
-			FLLog.Info("Available Threads", Environment.ProcessorCount.ToString());
-			//Cache
+            //Cache
 			ResourceManager = new GameResourceManager(this);
 			//Init Audio
 			FLLog.Info("Audio", "Initialising Audio");

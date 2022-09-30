@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using LibreLancer.Platforms;
 using LibreLancer.Dialogs;
 
@@ -16,9 +17,11 @@ namespace LibreLancer
 	{
 		public static OS RunningOS;
 		static IPlatform RunningPlatform;
+        public static string OSDescription;
 
-		static Platform ()
-		{
+        static Platform ()
+        {
+            OSDescription = $"{RuntimeInformation.OSDescription} - {RuntimeInformation.ProcessArchitecture}";
 			switch (Environment.OSVersion.Platform) {
 			case PlatformID.Unix:
 				if (Directory.Exists ("/Applications")
@@ -30,7 +33,21 @@ namespace LibreLancer
                 } else {
 					RunningOS = OS.Linux;
 					RunningPlatform = new LinuxPlatform ();
-				}
+                    //Get current distribution
+                    if (File.Exists("/etc/os-release"))
+                    {
+                        var x = Regex.Match(File.ReadAllText("/etc/os-release"), @"^PRETTY_NAME\s*?\=(.*)$",
+                            RegexOptions.Multiline);
+                        if (x.Success && x.Groups[1].Length > 0)
+                            OSDescription = x.Groups[1].Value.TrimStart('\"', '\'').TrimEnd('\"', '\'') + " " +
+                                            OSDescription;
+                    }
+                    else if (Shell.HasCommand("lsb_release")) {
+                        var lsbVersion = Shell.GetString("lsb_release", "-d");
+                        if (!string.IsNullOrWhiteSpace(lsbVersion))
+                            OSDescription = lsbVersion + " " + OSDescription;
+                    }
+                }
 				break;
 			case PlatformID.MacOSX:
 				RunningOS = OS.Mac;
@@ -42,6 +59,8 @@ namespace LibreLancer
 			}
             RegisterDllMap(typeof(Platform).Assembly);
 		}
+
+        
         public static bool IsDirCaseSensitive (string directory)
 		{
 			return RunningPlatform.IsDirCaseSensitive (directory);

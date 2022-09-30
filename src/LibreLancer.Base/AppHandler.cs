@@ -12,9 +12,16 @@ namespace LibreLancer
     {
         [DllImport("kernel32.dll")]
         static extern bool SetDllDirectory(string directory);
+
+        static void LogPlatform()
+        {
+            FLLog.Info("Platform", Platform.OSDescription);
+            FLLog.Info("Available Threads", Environment.ProcessorCount.ToString());
+        }
         
         public static void ConsoleInit()
         {
+            LogPlatform();
             if (Platform.RunningOS == OS.Windows)
             {
                 string bindir = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);
@@ -25,6 +32,7 @@ namespace LibreLancer
         
         public static void Run(Action action, Action onCrash = null)
         {
+            LogPlatform();
             string errorMessage =  $"Librelancer has crashed. See the log for more information.";
             Environment.SetEnvironmentVariable("ALSOFT_LOGLEVEL", "2");
             if (Platform.RunningOS == OS.Windows)
