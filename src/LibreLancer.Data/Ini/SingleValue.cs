@@ -50,7 +50,13 @@ namespace LibreLancer.Ini
             return (int)value;
         }
 
-        public float ToSingle()
+        public bool TryGetSingle(out float f)
+        {
+            f = value;
+            return true;
+        }
+
+        public float ToSingle(string propertyName = null)
 		{
 			return value;
 		}

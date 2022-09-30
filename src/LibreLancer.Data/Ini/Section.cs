@@ -35,7 +35,7 @@ namespace LibreLancer.Ini
 			entries = new List<Entry>(count);
 
 			for (int i = 0; i < count; i++)
-				entries.Add(new Entry(file, reader, stringBlock));
+				entries.Add(new Entry(file, reader, stringBlock, Name));
 		}
 
 		public Section(string name)

@@ -140,7 +140,7 @@ namespace LibreLancer.Ini
                                     long tempLong;
                                     if (s.Length == 0)
                                     {
-                                        values.Add(new StringValue(""));
+                                        values.Add(new StringValue("", currentSection.Name, path, currentLine));
                                         continue;
                                     }
                                     if (preparse && (s[0] == '-' || s[0] >= '0' && s[0] <= '9'))
@@ -157,12 +157,12 @@ namespace LibreLancer.Ini
                                             values.Add(new SingleValue(tempFloat, null));
                                         }
                                         else
-                                            values.Add(new StringValue(s));
+                                            values.Add(new StringValue(s, currentSection.Name, path, currentLine));
                                     }
                                     else if (preparse && bool.TryParse(s, out tempBool))
                                         values.Add(new BooleanValue(tempBool));
                                     else
-                                        values.Add(new StringValue(s));
+                                        values.Add(new StringValue(s, currentSection.Name, path, currentLine));
                                 }
 
                                 currentSection.Add(new Entry(parts[0].Trim(), values) { File = path, Line = currentLine });

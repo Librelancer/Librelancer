@@ -23,7 +23,7 @@ namespace LibreLancer.Ini
         public int Line = -1;
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string")]
-		public Entry(string file, BinaryReader reader, BiniStringBlock stringBlock)
+		public Entry(string file, BinaryReader reader, BiniStringBlock stringBlock, string section)
 		{
 			if (reader == null) throw new ArgumentNullException("reader");
 			if (stringBlock == null) throw new ArgumentNullException("stringBlock");
@@ -50,7 +50,7 @@ namespace LibreLancer.Ini
 					values.Add(new SingleValue(reader));
 					break;
 				case IniValueType.String:
-					values.Add(new StringValue(reader, stringBlock));
+					values.Add(new StringValue(reader, stringBlock, section, file, -1));
 					break;
 				default:
 					throw new FileContentException(BINI, "Unknown BINI value type: " + valueType);

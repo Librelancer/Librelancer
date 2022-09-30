@@ -10,25 +10,31 @@ namespace LibreLancer.Ini
 {
 	public class StringValue : IValue
 	{
-		private int valuePointer;
 		private string value;
+        private string section;
+        private string file;
+        private int line;
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string")]
-		public StringValue(BinaryReader reader, BiniStringBlock stringBlock)
+		public StringValue(BinaryReader reader, BiniStringBlock stringBlock, string section, string file, int line)
 		{
 			if (reader == null) throw new ArgumentNullException("reader");
 			if (stringBlock == null) throw new ArgumentNullException("stringBlock");
 
-			this.valuePointer = reader.ReadInt32();
-            this.value = stringBlock.Get(valuePointer);
+            this.value = stringBlock.Get(reader.ReadInt32());
+            this.section = section;
+            this.file = file;
+            this.line = line;
         }
 
-		public StringValue(string value)
+		public StringValue(string value, string section, string file, int line)
 		{
 			if (value == null) throw new ArgumentNullException("value");
-			this.valuePointer = -1;
 			this.value = value;
-		}
+            this.section = section;
+            this.file = file;
+            this.line = line;
+        }
 
 		public static implicit operator string(StringValue operand)
 		{
@@ -59,14 +65,17 @@ namespace LibreLancer.Ini
             else return -1;
         }
 
-        public float ToSingle()
+        public float ToSingle(string propertyName = null)
         {
             if (string.IsNullOrWhiteSpace(value)) return 0;
 			float result;
             if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out result)) return result;
             else
             {
-                FLLog.Error("Ini", $"Failed to parse float {value}");
+                var lineInfo = line >= 0 ? ":" + line : " (line not available)";
+                var nameInfo = string.IsNullOrWhiteSpace(propertyName) ? "" : $" for {propertyName}";
+                FLLog.Error("Ini", 
+                    $"Failed to parse float '{value}'{nameInfo} in section {section}: {file}{lineInfo}");
                 return 0;
             }
         }

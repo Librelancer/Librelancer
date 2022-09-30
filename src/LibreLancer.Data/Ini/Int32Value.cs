@@ -44,8 +44,9 @@ namespace LibreLancer.Ini
         {
             return value;
         }
+        
 
-        public float ToSingle()
+        public float ToSingle(string propertyName = null)
 		{
 			return value;
 		}

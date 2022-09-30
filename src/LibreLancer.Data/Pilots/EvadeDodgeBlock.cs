@@ -26,7 +26,7 @@ namespace LibreLancer.Data.Pilots
         [Entry("evade_dodge_corkscrew_roll_throttle")]
         public float DodgeCorkscrewRollThrottle;
         [Entry("evade_dodge_corkscrew_roll_flip_direction")]
-        public float DodgeCorkscrewRollFlipDirection;
+        public bool DodgeCorkscrewRollFlipDirection;
         [Entry("evade_dodge_interval_time_variance_percent")]
         public float DodgeIntervalTimeVariancePercent;
         [Entry("evade_dodge_cone_angle_variance_percent")]

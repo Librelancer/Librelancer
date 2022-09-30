@@ -35,7 +35,7 @@ namespace LibreLancer.Ini
 			return this;
 		}
 
-		public float ToSingle()
+		public float ToSingle(string propertyName = null)
 		{
 			throw new NotImplementedException();
 		}

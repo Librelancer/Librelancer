@@ -27,7 +27,8 @@ namespace LibreLancer.Ini
         {
             throw new InvalidCastException();
         }
-        public float ToSingle ()
+
+        public float ToSingle (string propertyName = null)
 		{
 			throw new InvalidCastException ();
 		}
