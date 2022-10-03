@@ -39,11 +39,13 @@ class textentry : textentry_Designer with Modal
 	SetInfo(charinfo)
 	{
 		var e = this.Elements;
-		e.charname.Strid = charinfo.StridName;
-		e.chardesc.Strid = charinfo.StridDesc;
-		e.charmoney.Text  = string.format("%s %s%s", StringFromID(1428), StringFromID(STRID_CREDIT_SIGN), NumberToStringCS(charinfo.Money, "N0"))
-		e.charloc.Text = StringFromID(1427) + " " + charinfo.Location;
-		e.shipname.Text = StringFromID(1425) + " " + charinfo.ShipName;
+		e.char_info.SetString(
+`{StringFromID(1428)} {StringFromID(STRID_CREDIT_SIGN)}{NumberToStringCS(charinfo.Money, "N0")}
+{StringFromID(1425)} {charinfo.ShipName}
+{StringFromID(1427)} {charinfo.Location}
+{StringFromID(charinfo.StridName)}
+{StringFromID(charinfo.StridDesc)}`
+		);
 		e.ship_preview.ModelPath = charinfo.ShipModel;
 	}
 
@@ -52,6 +54,7 @@ class textentry : textentry_Designer with Modal
 		this.Close('ok', text, this.index - 1);
 	}
 }
+
 
 
 
