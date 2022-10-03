@@ -30,24 +30,39 @@ namespace LibreLancer.Thn
                 FLLog.Error("Thn", $"Entity {Targets[0]} does not exist");
                 return;
             }
-            var ren = ((ParticleEffectRenderer)obj.Object.RenderComponent);
             if (Duration <= float.Epsilon) {
-                ren.SParam = SParam;
+                if (obj.Engine != null) {
+                    obj.Engine.Speed = SParam;
+                }
+                else {
+                    var ren = ((ParticleEffectRenderer)obj.Object.RenderComponent);
+                    ren.SParam = SParam;
+                }
             }
             else
             {
+                float startValue;
+                if (obj.Engine != null)
+                {
+                    startValue = obj.Engine.Speed;
+                }
+                else
+                {
+                    var ren = ((ParticleEffectRenderer)obj.Object.RenderComponent);
+                    startValue = ren.SParam;
+                }
                 instance.AddProcessor(new SParamAnimation()
                 {
-                    Renderer = ren,
+                    Object = obj,
                     Event = this,
-                    StartValue = ren.SParam
+                    StartValue = startValue
                 });
             }
         }
 
         class SParamAnimation : ThnEventProcessor
         {
-            public ParticleEffectRenderer Renderer;
+            public ThnObject Object;
             public StartPSysPropAnimEvent Event;
             public float StartValue;
 
@@ -55,11 +70,20 @@ namespace LibreLancer.Thn
             public override bool Run(double delta)
             {
                 time += delta;
-                Renderer.SParam = MathHelper.Lerp(
+                var value = MathHelper.Lerp(
                     StartValue, 
                     Event.SParam, 
                     Event.GetT((float) time)
                     );
+                if (Object.Engine != null)
+                {
+                    Object.Engine.Speed = value;
+                }
+                else
+                {
+                    var ren = ((ParticleEffectRenderer)Object.Object.RenderComponent);
+                    ren.SParam = value;
+                }
                 return time < Event.Duration;
             }
         }

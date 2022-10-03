@@ -386,7 +386,7 @@ namespace LibreLancer
 
 		public GameWorld GetWorld()
 		{
-			if (World == null) return _parent.GetWorld();
+			if (World == null) return _parent?.GetWorld();
 			return World;
 		}
         

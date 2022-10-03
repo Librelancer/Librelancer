@@ -5,6 +5,7 @@
 using System;
 using System.Numerics;
 using System.Collections.Generic;
+using System.Diagnostics;
 using LibreLancer.GameData.Items;
 using LibreLancer.Fx;
 namespace LibreLancer
@@ -18,6 +19,23 @@ namespace LibreLancer
         private AttachedSound cruiseStart;
         private AttachedSound cruiseEnd;
 		GameObject Ship;
+
+        private bool _active = true;
+
+        public bool Active
+        {
+            get => _active;
+            set {
+                foreach(var fx in fireFx)
+                {
+                    fx.Effect.Active = value;
+                }
+                _active = value;
+            }
+        }
+
+        public bool PlaySound = true;
+        
 		public CEngineComponent(GameObject parent, EngineEquipment engine) : base(parent)
 		{
             this.Ship = parent;
@@ -151,11 +169,14 @@ namespace LibreLancer
                 }
 
                 for (int i = 0; i < fireFx.Count; i++)
+                {
                     Parent.ExtraRenderers.Add(fireFx[i].Effect);
+                    fireFx[i].Effect.Active = Active;
+                }
             }
 
             SoundManager sound;
-            if ((sound = GetSoundManager()) != null)
+            if (PlaySound && (sound = GetSoundManager()) != null)
             {
                 if (!string.IsNullOrWhiteSpace(Engine.Def.RumbleSound))
                 {

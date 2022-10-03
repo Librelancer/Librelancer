@@ -49,9 +49,15 @@ namespace LibreLancer
             processors.Add(ev);
         }
 
+        bool CheckObject(ThnEntity e, object sub, EntityTypes type, string templateName)
+        {
+            return sub != null && type == e.Type && e.Template.Equals(templateName, StringComparison.OrdinalIgnoreCase);
+        }
         public void ConstructEntities(Dictionary<string, ThnObject> objects, bool spawnObjects)
         {
             this.Objects = objects;
+            if (spawnObjects && Cutscene.PlayerShip != null)
+                Cutscene.PlayerShip.World = Cutscene.World;
             foreach (var kv in thn.Entities)
             {
                 if (Objects.ContainsKey(kv.Key)) continue;
@@ -61,8 +67,7 @@ namespace LibreLancer
                 obj.Translate = kv.Value.Position ?? Vector3.Zero;
                 obj.Rotate = kv.Value.RotationMatrix ?? Matrix4x4.Identity;
                 //PlayerShip object
-                if (spawnObjects  && Cutscene.PlayerShip != null && kv.Value.Type == EntityTypes.Compound &&
-                kv.Value.Template.Equals("playership", StringComparison.InvariantCultureIgnoreCase))
+                if (spawnObjects && CheckObject(kv.Value, Cutscene.PlayerShip, EntityTypes.Compound, "playership"))
                 {
                     obj.Object = Cutscene.PlayerShip;
                     obj.Object.RenderComponent.LitDynamic = (kv.Value.ObjectFlags & ThnObjectFlags.LitDynamic) == ThnObjectFlags.LitDynamic;
@@ -75,6 +80,14 @@ namespace LibreLancer
                                                  Matrix4x4.CreateTranslation(transform));
                     obj.HpMount = Cutscene.PlayerShip.GetHardpoint("HpMount");
                     Cutscene.World.AddObject(obj.Object);
+                    Objects.Add(kv.Key, obj);
+                    continue;
+                }
+
+                if (spawnObjects && CheckObject(kv.Value, Cutscene.PlayerEngine, EntityTypes.PSys, "PlayerShipEngines"))
+                {
+                    obj.Entity = kv.Value;
+                    obj.Engine = Cutscene.PlayerEngine;
                     Objects.Add(kv.Key, obj);
                     continue;
                 }

@@ -24,6 +24,7 @@ namespace LibreLancer
         public ThnSound Sound;
         public bool Animating = false;
         public bool PosFromObject = false;
+        public CEngineComponent Engine;
 
         public void UpdateIfMain()
         {
@@ -92,6 +93,7 @@ namespace LibreLancer
 		public GameWorld World;
 		public SystemRenderer Renderer;
         public GameObject PlayerShip => scriptContext.PlayerShip;
+        public CEngineComponent PlayerEngine => scriptContext.PlayerEngine;
         //Public properties
         public Game Game => game;
         public ICamera CameraHandle => camera;

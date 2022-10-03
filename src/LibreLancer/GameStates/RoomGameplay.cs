@@ -484,11 +484,8 @@ namespace LibreLancer
                 playerShip.Children.Clear();
                 foreach (var mount in session.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
                 {
-                    if (mount.Hardpoint != "internal")
-                    {
-                        EquipmentObjectManager.InstantiateEquipment(playerShip, Game.ResourceManager,
+                    EquipmentObjectManager.InstantiateEquipment(playerShip, Game.ResourceManager,
                             EquipmentType.Cutscene, mount.Hardpoint, mount.Equipment);
-                    }
                 }
             }
         }
@@ -521,6 +518,12 @@ namespace LibreLancer
             session.OnUpdatePlayerShip = CreatePlayerEquipment;
             var ctx = new ThnScriptContext(currentRoom.OpenSet());
             ctx.PlayerShip = playerShip;
+            if (playerShip.TryGetComponent<CEngineComponent>(out var cengine))
+            {
+                ctx.PlayerEngine = cengine;
+                cengine.Active = false;
+                cengine.PlaySound = false;
+            }
             if(currentBase.TerrainTiny != null) ctx.Substitutions.Add("$terrain_tiny", currentBase.TerrainTiny);
             if(currentBase.TerrainSml != null) ctx.Substitutions.Add("$terrain_sml", currentBase.TerrainSml);
             if(currentBase.TerrainMdm != null) ctx.Substitutions.Add("$terrain_mdm", currentBase.TerrainMdm);

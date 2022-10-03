@@ -12,8 +12,36 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class ModelView : Widget3D
     {
+        private Lighting lighting;
         public ModelView()
         {
+            lighting = Lighting.Create();
+            lighting.Enabled = true;
+            lighting.Ambient = Color3f.Black;
+            var src = new SystemLighting();
+            src.Lights.Add(new DynamicLight()
+            {
+                Light = new RenderLight()
+                {
+                    Kind = LightKind.Directional,
+                    Direction = new Vector3(0, -1, 0),
+                    Color = Color3f.White
+                }
+            });
+            src.Lights.Add(new DynamicLight()
+            {
+                Light = new RenderLight()
+                {
+                    Kind = LightKind.Directional,
+                    Direction = new Vector3(0, 0, 1),
+                    Color = Color3f.White
+                }
+            });
+            lighting.Lights.SourceLighting = src;
+            lighting.Lights.SourceEnabled[0] = true;
+            lighting.Lights.SourceEnabled[1] = true;
+            lighting.NumberOfTilesX = -1;
+            
             OrbitPan = new Vector2(-10.29f, -0.53f);
         }
 
@@ -55,7 +83,7 @@ namespace LibreLancer.Interface
             context.CommandBuffer.StartFrame(context.RenderContext);
             model.UpdateTransform();
             model.Update(cam, context.GlobalTime, context.Data.ResourceManager);
-            model.DrawBuffer(0, context.CommandBuffer, context.Data.ResourceManager, Matrix4x4.Identity, ref Lighting.Empty);
+            model.DrawBuffer(0, context.CommandBuffer, context.Data.ResourceManager, Matrix4x4.Identity, ref lighting);
             context.CommandBuffer.DrawOpaque(context.RenderContext);
             context.RenderContext.DepthWrite = false;
             context.CommandBuffer.DrawTransparent(context.RenderContext);

@@ -18,6 +18,12 @@ namespace LibreLancer.Thn
                 FLLog.Error("Thn", "Entity " + Targets[0] + " does not exist");
                 return;
             }
+            if (obj.Engine != null)
+            {
+                obj.Engine.Active = true;
+                instance.AddProcessor(new StopEngine() { Duration = Duration, Fx = obj.Engine });
+                return;
+            }
             if (obj.Object == null)
             {
                 FLLog.Error("Thn", "Entity " + Targets[0] + " null renderer");
@@ -26,6 +32,23 @@ namespace LibreLancer.Thn
             var r = (ParticleEffectRenderer)obj.Object.RenderComponent;
             r.Active = true;
             instance.AddProcessor(new StopPSys() { Duration = Duration, Fx = r });
+        }
+
+        class StopEngine : ThnEventProcessor
+        {
+            double time;
+            public double Duration;
+            public CEngineComponent Fx;
+            public override bool Run(double delta)
+            {
+                time += delta;
+                if(time >= Duration)
+                {
+                    Fx.Active = false;
+                    return false;
+                }
+                return true;
+            }
         }
 
         class StopPSys : ThnEventProcessor
