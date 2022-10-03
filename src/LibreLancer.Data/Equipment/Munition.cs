@@ -45,10 +45,6 @@ namespace LibreLancer.Data.Equipment
         public string ExplosionArch;
         [Entry("munition_hit_effect")]
         public string MunitionHitEffect;
-        [Entry("loot_appearance")]
-        public string LootAppearance;
-        [Entry("units_per_container")]
-        public int UnitsPerContainer;
         [Entry("cruise_disruptor")]
         public bool CruiseDisruptor;
     }

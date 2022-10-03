@@ -658,7 +658,16 @@ namespace LibreLancer
                     eqp.ModelFile = ResolveDrawable(pc.MaterialLibrary, pc.DaArchetype);
                     equip = eqp;
                 }
-                if (val is Data.Equipment.Gun gn)
+                if (val is Data.Equipment.CountermeasureDropper cms)
+                {
+                    var eqp = new CountermeasureEquipment()
+                    {
+                        HpType = "hp_countermeasure_dropper"
+                    };
+                    eqp.ModelFile = ResolveDrawable(cms.MaterialLibrary, cms.DaArchetype);
+                    equip = eqp;
+                }
+                else if (val is Data.Equipment.Gun gn)
                 {
                     var mn = fldata.Equipment.Munitions.FirstOrDefault((x) => x.Nickname.Equals(gn.ProjectileArchetype, StringComparison.OrdinalIgnoreCase));
                     if (mn == null)
@@ -708,15 +717,7 @@ namespace LibreLancer
                     eqp.ModelFile = ResolveDrawable(sh.MaterialLibrary, sh.DaArchetype);
                     equip = eqp;
                 }
-                if (val is Data.Equipment.CountermeasureDropper cms)
-                {
-                    var eqp = new CountermeasureEquipment()
-                    {
-                        HpType = "hp_countermeasure"
-                    };
-                    eqp.ModelFile = ResolveDrawable(cms.MaterialLibrary, cms.DaArchetype);
-                    equip = eqp;
-                }
+                
 
                 if (val is Data.Equipment.Engine deng)
                 {

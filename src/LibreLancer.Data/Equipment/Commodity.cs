@@ -9,8 +9,6 @@ namespace LibreLancer.Data.Equipment
     public class Commodity : AbstractEquipment
     {
         [Entry("pod_appearance")] public string PodAppearance;
-        [Entry("loot_appearance")] public string LootAppearance;
         [Entry("decay_per_second")] public int DecayPerSecond;
-        [Entry("units_per_container")] public int UnitsPerContainer;
     }
 }

@@ -46,7 +46,10 @@ namespace LibreLancer.Data.Equipment
         public string DebrisType;
         [Entry("indestructible")]
         public bool Indestructible;
-        
+        [Entry("loot_appearance")] 
+        public string LootAppearance;
+        [Entry("units_per_container")] 
+        public int UnitsPerContainer;
         [Section("lod", Child = true)]
         public List<Lod> LodInfo = new List<Lod>();
     }
