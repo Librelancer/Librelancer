@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using LibreLancer.GameData;
 using LibreLancer.Interface;
@@ -200,6 +201,10 @@ namespace LibreLancer
                 });
             }
 
+            private UiNewCharacter[] newCharacters;
+
+            public UiNewCharacter[] GetNewCharacters() => newCharacters;
+
             void ResolveNicknames(SelectableCharacter c)
             {
                 c.Ship = state.Game.GameData.GetString(state.Game.GameData.GetShip(c.Ship).NameIds);
@@ -224,8 +229,28 @@ namespace LibreLancer
                             cselInfo.Characters.Add(ac.Character);
                             break;
                         case NewCharacterDBPacket ncdb:
+                        {
+                            newCharacters = new UiNewCharacter[ncdb.Factions.Count];
+                            for (int i = 0; i < ncdb.Factions.Count; i++)
+                            {
+                                var package = ncdb.Packages.First(x =>
+                                    x.Nickname.Equals(ncdb.Factions[i].Package, StringComparison.OrdinalIgnoreCase));
+                                var ship = state.Game.GameData.GetShip(package.Ship);
+                                ship.ModelFile.LoadFile(state.Game.ResourceManager);
+                                var loc = state.Game.GameData.GetString(state.Game.GameData.GetBase(ncdb.Factions[i].Base).IdsName);
+                                newCharacters[i] = new UiNewCharacter()
+                                {
+                                    Money = package.Money,
+                                    StridDesc = package.StridDesc,
+                                    StridName = package.StridName,
+                                    ShipName = state.Game.GameData.GetString(ship.NameIds),
+                                    ShipModel = ship.ModelFile.ModelFile,
+                                    Location = loc
+                                };
+                            }
                             state.ui.Event("OpenNewCharacter");
                             break;
+                        }
                         default:
                             netSession.HandlePacket(pkt);
                             break;

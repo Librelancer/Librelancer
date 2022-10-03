@@ -209,6 +209,30 @@ namespace InterfaceEdit
 
         public FakeContactList GetContactList() => new FakeContactList();
 
+        public UiNewCharacter[] GetNewCharacters()
+        {
+            return new UiNewCharacter[]
+            {
+                new()
+                {
+                    StridName = 11051,
+                    StridDesc = 11551,
+                    Money = 2000,
+                    ShipModel = @"DATA\ships\civilian\cv_starflier\cv_starflier.cmp",
+                    ShipName = "TestShip",
+                    Location = "New York"
+                },
+                new()
+                {
+                    StridName = 1249,
+                    StridDesc = 1286,
+                    Money = 2000,
+                    ShipModel = @"DATA\ships\rheinland\rh_elite\rh_elite.cmp",
+                    ShipName = @"TestShip2",
+                    Location = "New Berlin"
+                },
+            };
+        }
 
         public void ApplySettings(GameSettings settings)
         {

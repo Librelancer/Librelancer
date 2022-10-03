@@ -1,11 +1,19 @@
 <Scene ScriptFile="newcharacter.lua">
-    <Panel Anchor="Center" Width="410" Height="177">
-        <Panel.Background>
-            <DisplayModel model="errorexplanation.cmp"/>
-        </Panel.Background>
-        <Button id="close" Anchor="TopRight" X="13" Y="13" style="xbutton"/>
-        <TextBlock id="title" Y="8" Anchor="TopCenter" color="text" font="$Header" TextShadow="black" TextSize="13" Width="410" Height="30" Text="TITLE"/>
-        <TextEntry id="content" Anchor="Center" Y="10" Width="360" Height="30"
+    <Panel Anchor="Center" X="2" Y="-37" Width="429" Height="271" ID="background">
+       <Panel.Background>
+			<DisplayModel model="char_infowindow"/>
+		</Panel.Background>
+        <Button id="close" Anchor="TopRight" X="20" Y="18" style="xbutton"/>
+        
+        <TextBlock id="title" Y="8" Anchor="TopCenter" TextColor="text" font="$Header" TextShadow="black" TextSize="13" Width="410" Height="30" Text="TITLE"/>
+        <TextBlock id="charmoney" X="25" Y="30" Anchor="TopCenter" TextColor="text" font="$ListText" TextShadow="#000000FF" TextSize="10" Width="410" Height="30" Text="Money:" HorizontalAlignment="Left" />
+        <TextBlock id="shipname" X="25" Y="50" Anchor="TopCenter" TextColor="text" font="$ListText" TextShadow="#000000FF" TextSize="10" Width="410" Height="30" Text="Ship:" HorizontalAlignment="Left" />
+        <TextBlock id="charloc" X="25" Y="70" Anchor="TopCenter" TextColor="text" font="$ListText" TextShadow="#000000FF" TextSize="10" Width="410" Height="30" Text="Location:" HorizontalAlignment="Left" />
+        <TextBlock id="charname" X="25" Y="90" Anchor="TopCenter" TextColor="text" font="$ListText" TextShadow="#000000FF" TextSize="10" Width="410" Height="30" Text="" HorizontalAlignment="Left" />
+        <TextBlock id="chardesc" X="25" Y="110" Anchor="TopCenter" TextColor="text" font="$ListText" TextShadow="#000000FF" TextSize="10" Width="410" Height="30" Text="" HorizontalAlignment="Left" />
+        <ModelView ID="ship_preview" X="215" Y="34" Width="190" Height="142">
+		</ModelView>
+        <TextEntry id="content" Anchor="BottomCenter" Y="60" Width="360" Height="30"
         Font="PlayerName" TextColor="text" TextShadow="black">
         	<TextEntry.Border>
         		<DisplayRectangle color="text"/>
@@ -14,7 +22,11 @@
                 <DisplayRectangle color="yellow"/>
             </TextEntry.FocusedBorder>
         </TextEntry>
+        <Button id="ok" Anchor="BottomCenter" style="wirebutton" Text="OK" Strid="1041" Y="20" TextSize="13" Width="100" Height="30"/>
+        <Button id="char_left" Anchor="BottomLeft" style="sel_left" X="40" Y="30"/>
+		<Button id="char_right" Anchor="BottomRight" style="sel_right" X="40" Y="30" />
     </Panel>
 </Scene>
+
 
 
