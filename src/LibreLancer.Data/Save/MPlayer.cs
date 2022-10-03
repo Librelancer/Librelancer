@@ -17,10 +17,10 @@ namespace LibreLancer.Data.Save
         public float TotalCashEarned;
         [Entry("total_time_played")]
         public float TotalTimePlayed;
-        [Entry("sys_visited")]
-        public int SysVisited;
-        [Entry("base_visited")]
-        public int BaseVisited;
+        [Entry("sys_visited", Multiline = true)]
+        public List<int> SysVisited = new List<int>();
+        [Entry("base_visited", Multiline = true)] 
+        public List<int> BaseVisited = new List<int>();
         [Entry("locked_gate", Multiline = true)]
         public List<int> LockedGates = new List<int>();
 

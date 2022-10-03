@@ -143,6 +143,30 @@ namespace LibreLancer
         USER_ZOOM_OUT,
         USER_Z_ROTATE,
         USER_Z_UNROTATE,
+        //FL debug (unused)
+        DBG_ALTER_CAMERA_FORWARD,
+        DBG_ALTER_CAMERA_BACK,
+        DBG_ALTER_CAMERA_UP,
+        DBG_ALTER_CAMERA_DOWN,
+        DBG_INFO,
+        DBG_INFO_2,
+        DBG_INTERFACE_VIEW,
+        DBG_BLINK_WARP,
+        DBG_TEST_EFFECT,
+        DBG_DESTROY_TARGET,
+        DBG_AI_TOOL,
+        DBG_CONSOLE,
+        DBG_OPTIONS,
+        DBG_TEXTURES,
+        DBG_FPS,
+        DBG_FPS_GRAPH,
+        DBG_NAVMAP_TELEPORT,
+        DBG_NAVMAP_DRAW_ZONES,
+        DBG_NAVMAP_DRAW_SHIPS,
+        DBG_NAVMAP_SHOW_ALL,
+        DBG_SHOW_MISSION,
+        DBG_FIRE_FORWARD,
+        //Count of elements
         COUNT
     }
 

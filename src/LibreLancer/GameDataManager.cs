@@ -350,7 +350,7 @@ namespace LibreLancer
 
         void InitFactions()
         {
-            FLLog.Info("Factions", $"Initing {fldata.InitialWorld.Groups} factions");
+            FLLog.Info("Factions", $"Initing {fldata.InitialWorld.Groups.Count} factions");
             foreach (var f in fldata.InitialWorld.Groups)
             {
                 var hash = CrcTool.FLModelCrc(f.Nickname);
