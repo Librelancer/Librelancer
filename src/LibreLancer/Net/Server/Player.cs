@@ -138,12 +138,22 @@ namespace LibreLancer
             if(string.IsNullOrWhiteSpace(hptype)) return null;
             if (!Character.Ship.PossibleHardpoints.TryGetValue(hptype, out var candidates))
                 return null;
+            int currIndex = int.MaxValue;
+            string currValue = null;
             foreach (var possible in candidates)
             {
-                if(!Character.Items.Any(x => possible.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)))
-                    return possible;
+                if (!Character.Items.Any(x => possible.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)))
+                {
+                    var index = Character.Ship.HardpointTypes[possible].OrderBy(x => x.SortIndex)
+                        .FirstOrDefault().SortIndex;
+                    if (index < currIndex)
+                    {
+                        currIndex = index;
+                        currValue = possible;
+                    }
+                }
             }
-            return null;
+            return currValue;
         }
 
         ulong GetShipWorth()
