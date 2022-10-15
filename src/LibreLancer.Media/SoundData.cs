@@ -1,4 +1,4 @@
-// MIT License - Copyright (c) Callum McGing
+﻿// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -27,9 +27,6 @@ namespace LibreLancer.Media
         public int DataLength { get; private set; }
         public void LoadStream(Stream stream)
 		{
-            if (!SoundLoader.IsSound(stream))
-                throw new ArgumentException("Data stream can't be played as audio.");
-
             using (var snd = SoundLoader.Open(stream))
 			{
 				byte[] data;

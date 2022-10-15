@@ -1,4 +1,4 @@
-// MIT License - Copyright (c) Callum McGing
+﻿// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -479,8 +479,9 @@ namespace LancerEdit
                             main.Audio.PlayStream(stream);
                         }
                     }
-                    catch (ArgumentException ex)
+                    catch (Exception ex)
                     {
+                        FLLog.Error("Audio", ex.ToString());
                         ErrorPopup("Error:\n" + ex.Message);
                     }
                 }
