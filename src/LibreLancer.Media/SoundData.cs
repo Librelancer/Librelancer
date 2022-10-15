@@ -27,7 +27,7 @@ namespace LibreLancer.Media
         public int DataLength { get; private set; }
         public void LoadStream(Stream stream)
 		{
-            using (var snd = SoundLoader.Open(stream))
+			using (var snd = SoundLoader.Open(stream))
 			{
 				byte[] data;
 				if (snd.Size != -1)

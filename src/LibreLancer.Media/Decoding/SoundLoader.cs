@@ -32,7 +32,7 @@ namespace LibreLancer.Media
             sound.Frequency = dec.Frequency;
             return sound;
         }
-    }
+	}
     enum LdFormat
     {
         Mono8 = 1,
