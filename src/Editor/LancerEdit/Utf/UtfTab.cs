@@ -471,10 +471,18 @@ namespace LancerEdit
                 }
                 if (ImGui.Button("Play Audio"))
                 {
-                    var data = main.Audio.AllocateData();
-                    using (var stream = new MemoryStream(selectedNode.Data))
+                    try
                     {
-                        main.Audio.PlayStream(stream);
+                        var data = main.Audio.AllocateData();
+                        using (var stream = new MemoryStream(selectedNode.Data))
+                        {
+                            main.Audio.PlayStream(stream);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        FLLog.Error("Audio", ex.ToString());
+                        ErrorPopup("Error:\n" + ex.Message);
                     }
                 }
                 if (ImGui.Button("Import Data"))
