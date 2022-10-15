@@ -20,7 +20,7 @@ class shipdealer : shipdealer_Designer with ChildWindow
 			PlaySound('ui_item_select');
 			e.tship_list.SelectedIndex = -1;
 			e.start_buy.Visible = false;
-			this.PreviewShip(Game.ShipDealer.PlaeyrShip());
+			this.PreviewShip(Game.ShipDealer.PlayerShip());
 		});
 		e.close.OnClick(() => this.Close());
 		e.start_buy.OnClick(() => {
@@ -253,6 +253,7 @@ class shipdealer : shipdealer_Designer with ChildWindow
 			e.item_infocard.Infocard = nil;
 	}
 }
+
 
 
 
