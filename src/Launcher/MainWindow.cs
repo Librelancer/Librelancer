@@ -10,6 +10,7 @@ using LibreLancer;
 using LibreLancer.Exceptions;
 using LibreLancer.ImUI;
 using ImGuiNET;
+using Microsoft.Win32;
 
 namespace Launcher
 {
@@ -31,9 +32,13 @@ namespace Launcher
             config = GameConfig.Create();
             if (config.FreelancerPath == "")
             {
-                if (Platform.RunningOS == OS.Windows) {
-                    string CombinedPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),"\\Microsoft Games\\Freelancer");
-                    freelancerFolder.SetText(CombinedPath);
+                if (Platform.RunningOS == OS.Windows)
+                {
+                    var combinedPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),"\\Microsoft Games\\Freelancer");
+                    const string flPathRegistry = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft Games\\Freelancer\\1.0";
+
+                    var actualPath = (string) Registry.GetValue(flPathRegistry, "AppPath", combinedPath);
+                    freelancerFolder.SetText(actualPath);
                 }
             }
             else
