@@ -1,8 +1,9 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections;
 using System.IO;
 using System.Runtime.InteropServices;
 namespace LibreLancer.Media
@@ -32,7 +33,24 @@ namespace LibreLancer.Media
             sound.Frequency = dec.Frequency;
             return sound;
         }
-	}
+
+        // RIFF
+        private static readonly byte[] SoundHeader = { 0x52, 0x49, 0x46, 0x46 };
+
+        /// <summary>
+        /// Checks if the stream is a valid RIFF sound file.
+        /// </summary>
+        /// <param name="stream">Data stream</param>
+        /// <returns>Whether or not the stream contains the RIFF sound header.</returns>
+        public static bool IsSound(Stream stream)
+        {
+            var buffer = new byte[SoundHeader.Length];
+            stream.Read(buffer, 0, SoundHeader.Length);
+            stream.Seek(0, SeekOrigin.Begin);
+
+            return StructuralComparisons.StructuralEqualityComparer.Equals(buffer, SoundHeader);
+        }
+    }
     enum LdFormat
     {
         Mono8 = 1,

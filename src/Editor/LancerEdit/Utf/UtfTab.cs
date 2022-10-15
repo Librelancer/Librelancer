@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -471,10 +471,17 @@ namespace LancerEdit
                 }
                 if (ImGui.Button("Play Audio"))
                 {
-                    var data = main.Audio.AllocateData();
-                    using (var stream = new MemoryStream(selectedNode.Data))
+                    try
                     {
-                        main.Audio.PlayStream(stream);
+                        var data = main.Audio.AllocateData();
+                        using (var stream = new MemoryStream(selectedNode.Data))
+                        {
+                            main.Audio.PlayStream(stream);
+                        }
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        ErrorPopup("Error:\n" + ex.Message);
                     }
                 }
                 if (ImGui.Button("Import Data"))
