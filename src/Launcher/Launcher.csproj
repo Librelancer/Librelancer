@@ -26,4 +26,8 @@
 
   <Import Project="..\PublishAssets\PublishAssets.projitems" Label="Shared" />
 
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
+    <DefineConstants>_WINDOWS</DefineConstants>
+  </PropertyGroup>
+
 </Project>
