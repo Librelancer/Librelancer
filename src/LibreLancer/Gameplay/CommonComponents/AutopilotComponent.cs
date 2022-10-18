@@ -6,6 +6,8 @@ using System;
 using System.Diagnostics;
 using System.Numerics;
 using System.Linq;
+using System.Runtime.InteropServices;
+
 namespace LibreLancer
 {
 	public enum AutopilotBehaviours
@@ -219,19 +221,26 @@ namespace LibreLancer
                 return;
             }
             
-            var targetPoint = Parent.Formation.GetOffset(Parent);
+            var targetPoint = Parent.Formation.GetShipPosition(Parent);
             var distance = (targetPoint - Parent.PhysicsComponent.Body.Position).Length();
-
+            var lead = Parent.Formation.LeadShip;
+            
+            if (distance > 2000) {
+                control.Cruise = true;
+            } else {
+                if (lead.TryGetComponent<ShipPhysicsComponent>(out var leadControl))
+                {
+                    control.Cruise = leadControl.CruiseEnabled;
+                    if(input != null) input.AutopilotThrottle = leadControl.EnginePower;
+                    control.InThrottle = leadControl.EnginePower;
+                }
+            }
             if (distance > 30) {
                 TurnTowards(time, targetPoint);
-                if(input != null) input.AutopilotThrottle = 1;
-                control.InThrottle = 1;
             }
             else {
                 OutYaw = 0;
                 OutPitch = 0;
-                if(input != null) input.AutopilotThrottle = 0;
-                control.InThrottle = 0;
             }
         }
         

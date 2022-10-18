@@ -134,6 +134,21 @@ namespace LibreLancer
             }
         }
 
+        void StartTradelane(GameObject ship, string tlHardpoint)
+        {
+            var movement = new TradelaneMoveComponent(ship, Parent, tlHardpoint);
+            ship.Components.Add(movement);
+            if (ship.TryGetComponent<SNPCComponent>(out var npc))
+            {
+                npc.StartTradelane();
+            }
+            else if (ship.TryGetComponent<SPlayerComponent>(out var player))
+            {
+                player.Player.StartTradelane();
+            }
+            movement.LaneEntered();
+            ship.Components.Add(movement);
+        }
         
         public override void Update(double time)
         {
@@ -178,16 +193,12 @@ namespace LibreLancer
                     }
                     else if (Action.Kind == DockKinds.Tradelane)
                     {
-                        var movement = new TradelaneMoveComponent(dock.Ship, Parent, dock.TLHardpoint);
-                        dock.Ship.Components.Add(movement);
-                        if (dock.Ship.TryGetComponent<SNPCComponent>(out var npc))
+                        StartTradelane(dock.Ship, dock.TLHardpoint);
+                        if (dock.Ship.Formation != null &&
+                            dock.Ship.Formation.LeadShip == dock.Ship)
                         {
-                            npc.StartTradelane();
-                        }
-                        else if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player))
-                        {
-                            player.Player.StartTradelane();
-                            movement.LaneEntered();
+                            foreach(var ship in dock.Ship.Formation.Followers)
+                                StartTradelane(ship, dock.TLHardpoint);
                         }
                     }
                     activeDockings.RemoveAt(i);

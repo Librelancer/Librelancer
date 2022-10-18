@@ -12,6 +12,7 @@ namespace LibreLancer
 	{
 		GameObject currenttradelane;
 		string lane;
+        
 		public TradelaneMoveComponent(GameObject parent, GameObject tradelane, string lane) : base(parent)
 		{
 			currenttradelane = tradelane;
@@ -52,10 +53,17 @@ namespace LibreLancer
 				Parent.Components.Remove(this);
 				return;
 			}
+
+            var offset = Vector3.Zero;
+            if (Parent.Formation != null)
+            {
+                offset = Parent.Formation.GetShipOffset(Parent);
+            }
+            
 			var eng = Parent.GetComponent<CEngineComponent>();
 			if (eng != null) eng.Speed = 0.9f;
 
-            var targetPoint = Vector3.Transform(Vector3.Zero, tgt.GetHardpoint(lane).Transform * tgt.WorldTransform);
+            var targetPoint = Vector3.Transform(Vector3.Zero + offset, tgt.GetHardpoint(lane).Transform * tgt.WorldTransform);
 			var direction = targetPoint - Parent.PhysicsComponent.Body.Position;
 			var distance = direction.Length();
 			if (distance < 200)

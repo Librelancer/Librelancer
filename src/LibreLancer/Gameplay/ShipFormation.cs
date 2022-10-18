@@ -17,13 +17,20 @@ namespace LibreLancer
             new Vector3(0, 60, 0)
         };
 
-        public Vector3 GetOffset(GameObject self)
+        public Vector3 GetShipOffset(GameObject self)
         {
             if (LeadShip == self) return Vector3.Zero;
             var idx = Followers.IndexOf(self);
             if (idx == -1) throw new InvalidOperationException("Ship not in formation");
-            return Vector3.Transform(Offsets[idx], LeadShip.WorldTransform);
+            return Offsets[idx];
         }
+
+        public Vector3 GetShipPosition(GameObject self)
+        {
+            return Vector3.Transform(GetShipOffset(self), LeadShip.WorldTransform);
+        }
+        
+        
 
         public ShipFormation()
         {
