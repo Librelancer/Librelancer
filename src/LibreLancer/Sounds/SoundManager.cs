@@ -85,7 +85,7 @@ namespace LibreLancer
         public void LoadSound(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) return;
-            LoadSoundAsync(name);
+            soundCache.Get(name);
         }
 
         LoadedSound GetSound(string name)
