@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using BulletSharp;
-using BM = BulletSharp.Math;
 
 namespace LibreLancer.Physics
 {
@@ -37,7 +36,7 @@ namespace LibreLancer.Physics
             btDispatcher = new CollisionDispatcher(collisionConf);
             broadphase = new DbvtBroadphase();
             btWorld = new DiscreteDynamicsWorld(btDispatcher, broadphase, null, collisionConf);
-            btWorld.Gravity = BM.Vector3.Zero;
+            btWorld.Gravity = Vector3.Zero;
 
             pointObj = new CollisionObject();
             pointObj.CollisionShape = new SphereShape(1);
@@ -66,8 +65,8 @@ namespace LibreLancer.Physics
         public PhysicsObject AddStaticObject(Matrix4x4 transform, Collider col)
         {
             using (var rbInfo = new RigidBodyConstructionInfo(0,
-                new DefaultMotionState(transform.Cast()),
-                col.BtShape, BM.Vector3.Zero))
+                new DefaultMotionState(transform),
+                col.BtShape, Vector3.Zero))
             {
                 var body = new RigidBody(rbInfo);
                 body.Restitution = 1;
@@ -85,8 +84,8 @@ namespace LibreLancer.Physics
             contactPoint = Vector3.Zero;
             didHit = null;
             ClosestRayResultCallback cb;
-            var from = origin.Cast();
-            var to = (origin + direction * maxDist).Cast();
+            var from = origin;
+            var to = (origin + direction * maxDist);
             if (me != null) {
                 cb = new KinematicClosestNotMeRayResultCallback(me.RigidBody);
                 cb.RayFromWorld = from;
@@ -101,7 +100,7 @@ namespace LibreLancer.Physics
                 if (cb.HasHit)
                 {
                     didHit = cb.CollisionObject.UserObject as PhysicsObject;
-                    contactPoint = cb.HitPointWorld.Cast();
+                    contactPoint = cb.HitPointWorld;
                     return true;
                 }
                 return false;
@@ -112,15 +111,15 @@ namespace LibreLancer.Physics
             if(mass < float.Epsilon) {
                 throw new Exception("Mass must be non-zero");
             }
-            BM.Vector3 localInertia;
+            Vector3 localInertia;
             if (inertia != null) {
-                localInertia = inertia.Value.Cast();
+                localInertia = inertia.Value;
             }
             else {
                 col.BtShape.CalculateLocalInertia(mass, out localInertia);
             }
             using (var rbInfo = new RigidBodyConstructionInfo(mass,
-                                                             new DefaultMotionState(transform.Cast()),
+                                                             new DefaultMotionState(transform),
                                                              col.BtShape, localInertia))
             {
                 var body = new RigidBody(rbInfo);

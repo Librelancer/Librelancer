@@ -4,7 +4,6 @@
 
 using System;
 using BulletSharp;
-using BM = BulletSharp.Math;
 namespace LibreLancer.Physics
 {
     public abstract class Collider : IDisposable

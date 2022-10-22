@@ -5,7 +5,6 @@
 using System;
 using System.Numerics;
 using BulletSharp;
-using BM = BulletSharp.Math;
 namespace LibreLancer.Physics
 {
     public class PhysicsObject
@@ -29,41 +28,41 @@ namespace LibreLancer.Physics
         public void SetTransform(Matrix4x4 transform)
         {
             Transform = transform;
-            RigidBody.WorldTransform = transform.Cast();
+            RigidBody.WorldTransform = transform;
             Position = Vector3.Transform(Vector3.Zero, Transform);
         }
 
         public Vector3 AngularVelocity
         {
             get {
-                var ang = RigidBody.AngularVelocity.Cast();
+                var ang = RigidBody.AngularVelocity;
                 if (ang.LengthSquared() < float.Epsilon) return Vector3.Zero;
                 return ang;
             } set {
-                RigidBody.AngularVelocity = value.Cast();
+                RigidBody.AngularVelocity = value;
             }
         }
 
         public Vector3 LinearVelocity
         {
             get {
-                return RigidBody.LinearVelocity.Cast();
+                return RigidBody.LinearVelocity;
             }
             set {
-                RigidBody.LinearVelocity = value.Cast();
+                RigidBody.LinearVelocity = value;
             }
         }
 
         public BoundingBox GetBoundingBox()
         {
-            BM.Vector3 min, max;
+            Vector3 min, max;
             Collider.BtShape.GetAabb(RigidBody.WorldTransform, out min, out max);
-            return new BoundingBox(min.Cast(), max.Cast());
+            return new BoundingBox(min, max);
         }
 
         public Vector3 RotateVector(Vector3 src)
         {
-            return Vector3.Transform(src, RigidBody.WorldTransform.Cast().ClearTranslation());
+            return Vector3.Transform(src, RigidBody.WorldTransform.ClearTranslation());
         }
 
         public void SetDamping(float linearDamping, float angularDamping)
@@ -76,7 +75,7 @@ namespace LibreLancer.Physics
             if (force.LengthSquared() > float.Epsilon)
             {
                 RigidBody.Activate(true);
-                RigidBody.ApplyForce(force.Cast(), BM.Vector3.Zero);
+                RigidBody.ApplyForce(force, Vector3.Zero);
             }
         }
 
@@ -90,7 +89,7 @@ namespace LibreLancer.Physics
             if(force.LengthSquared() > float.Epsilon)
             {
                 RigidBody.Activate(true);
-                RigidBody.ApplyImpulse(force.Cast(), BM.Vector3.Zero);
+                RigidBody.ApplyImpulse(force, Vector3.Zero);
             }
         }
         public void AddTorque(Vector3 torque)
@@ -98,13 +97,13 @@ namespace LibreLancer.Physics
             if (torque.LengthSquared() > float.Epsilon)
             {
                 RigidBody.Activate(true);
-                RigidBody.ApplyTorque(torque.Cast());
+                RigidBody.ApplyTorque(torque);
             }
         }
 
         internal void UpdateProperties()
         {
-            Transform = RigidBody.WorldTransform.Cast();
+            Transform = RigidBody.WorldTransform;
             Position = Vector3.Transform(Vector3.Zero, Transform);
         }
     }
