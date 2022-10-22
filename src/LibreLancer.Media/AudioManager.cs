@@ -16,7 +16,6 @@ namespace LibreLancer.Media
 	{
 		//TODO: Heuristics to determine max number of sources
 		const int MAX_SOURCES = 31;
-		const int MAX_STREAM_BUFFERS = 32;
         private const int MAX_INSTANCES = 2048;
 		internal volatile bool Ready = false;
 		bool running = true;
@@ -33,14 +32,8 @@ namespace LibreLancer.Media
         List<uint> sfxInstances = new List<uint>();
         Queue<uint> freeSources = new Queue<uint>();
         ConcurrentQueue<uint> freeInstances = new ConcurrentQueue<uint>();
-        //streamer data
-        internal Queue<uint> Buffers = new Queue<uint>();
-        internal Queue<uint> streamingSources = new Queue<uint>();
-        internal List<StreamingSource> activeStreamers = new List<StreamingSource>();
-        internal List<StreamingSource> toRemove = new List<StreamingSource>();
         public MusicPlayer Music { get; private set; }
         internal IUIThread UIThread;
-        private int audioThreadId;
         private IntPtr ctx;
         private IntPtr dev;
 
@@ -49,11 +42,9 @@ namespace LibreLancer.Media
 		public AudioManager(IUIThread uithread)
 		{
 			UIThread = uithread;
-            audioThreadId = Thread.CurrentThread.ManagedThreadId;
             initTask = Task.Run(() =>
             {
                 Platform.RegisterDllMap(typeof(AudioManager).Assembly);
-                Music = new MusicPlayer(this);
                 //Init context
                 dev = Alc.alcOpenDevice(null);
                 ctx = Alc.alcCreateContext(dev, IntPtr.Zero);
@@ -61,15 +52,11 @@ namespace LibreLancer.Media
                 //Matches Freelancer (verified with dsoal)
                 Al.alDopplerFactor(0.1f);
                 
-                for (int i = 0; i < MAX_SOURCES; i++)
+                for (int i = 0; i < (MAX_SOURCES - 3); i++)
                 {
                     freeSources.Enqueue(Al.GenSource());
                 }
-
-                for (int i = 0; i < MAX_STREAM_BUFFERS; i++)
-                {
-                    Buffers.Enqueue(Al.GenBuffer());
-                }
+                
 
                 Instances = new InstanceInfo[MAX_INSTANCES];
                 for (int i = 0; i < MAX_INSTANCES; i++)
@@ -77,16 +64,8 @@ namespace LibreLancer.Media
                     Instances[i].Source = uint.MaxValue;
                     freeInstances.Enqueue((uint) i);
                 }
-
-                uint musicSource;
-                for (int i = 0; i < 2; i++)
-                {
-                    while (!freeSources.TryDequeue(out musicSource))
-                    {
-                    }
-
-                    streamingSources.Enqueue(musicSource);
-                }
+                
+                Music = new MusicPlayer(Al.GenSource(), Al.GenSource(), Al.GenSource());
 
                 FLLog.Debug("Audio", "Audio initialised");
                 Al.alListenerf(Al.AL_GAIN, ALUtils.ClampVolume(ALUtils.LinearToAlGain(_masterVolume)));
@@ -96,44 +75,35 @@ namespace LibreLancer.Media
 
         public void WaitReady() => initTask.Wait();
 
-        public void Update()
+        public Task UpdateAsync()
         {
-            if (running)
+            return Task.Run(() =>
             {
-                //Run actions
-                Action toRun;
-                while (actions.TryDequeue(out toRun)) toRun();
-                //update SFX
-                for (int i = sfxInstances.Count - 1; i >= 0; i--)
+                if (running)
                 {
-                    var src = Instances[sfxInstances[i]].Source;
-                    var instance = Instances[sfxInstances[i]].Instance;
-                    if (src == uint.MaxValue) continue;
-                    int state;
-                    Al.alGetSourcei(src, Al.AL_SOURCE_STATE, out state);
-                    if (state == Al.AL_STOPPED)
+                    //Run actions
+                    Action toRun;
+                    while (actions.TryDequeue(out toRun)) toRun();
+                    //update SFX
+                    for (int i = sfxInstances.Count - 1; i >= 0; i--)
                     {
-                        Al.alSourcei(src, Al.AL_BUFFER, 0);
-                        freeSources.Enqueue(src);
-                        Instances[sfxInstances[i]].Source = uint.MaxValue;
-                        instance?.Stopped();
-                        sfxInstances.RemoveAt(i);
-                        i--;
+                        var src = Instances[sfxInstances[i]].Source;
+                        var instance = Instances[sfxInstances[i]].Instance;
+                        if (src == uint.MaxValue) continue;
+                        int state;
+                        Al.alGetSourcei(src, Al.AL_SOURCE_STATE, out state);
+                        if (state == Al.AL_STOPPED)
+                        {
+                            Al.alSourcei(src, Al.AL_BUFFER, 0);
+                            freeSources.Enqueue(src);
+                            Instances[sfxInstances[i]].Source = uint.MaxValue;
+                            instance?.Stopped();
+                            sfxInstances.RemoveAt(i);
+                            i--;
+                        }
                     }
                 }
-                //update Streaming
-                //Task.Run(() =>
-                //{
-                    foreach (var item in activeStreamers)
-                        item.Update();
-                    foreach (var item in toRemove)
-                    {
-                        activeStreamers.Remove(item);
-                        item.OnStopped();
-                    }
-                    toRemove.Clear();
-                //});
-            }
+            });
         }
 
 		bool AllocateSource(out uint source, int priority)
@@ -167,12 +137,7 @@ namespace LibreLancer.Media
                 return false;
             }
 		}
-
-        internal StreamingSource CreateStreaming(StreamingSound sound, string info)
-        {
-            return new StreamingSource(this, sound, streamingSources.Dequeue(), info);
-        }
-
+        
 		public SoundData AllocateData()
         {
             while (!Ready) {
@@ -204,13 +169,11 @@ namespace LibreLancer.Media
 
         internal void AM_AddInstance(uint id)
         {
-            CheckThreading();
             sfxInstances.Add(id);
         }
 
         internal void AM_ReleaseInstance(uint id)
         {
-            CheckThreading();
             Instances[id].Instance = null;
             freeInstances.Enqueue(id);
         }
@@ -274,7 +237,6 @@ namespace LibreLancer.Media
         
         internal uint AM_GetInstanceSource(uint instance, bool alloc)
         {
-            CheckThreading();
             if (instance == uint.MaxValue) return uint.MaxValue;
             if (alloc && Instances[instance].Source == uint.MaxValue)
             {
@@ -287,11 +249,6 @@ namespace LibreLancer.Media
         internal void Do(Action action)
         {
             actions.Enqueue(action);
-        }
-        void CheckThreading()
-        {
-            if(Thread.CurrentThread.ManagedThreadId != audioThreadId)
-                throw new InvalidOperationException("Audio manager action called off audio thread");
         }
 
         public SoundInstance CreateInstance(SoundData data, SoundType type)
@@ -325,6 +282,8 @@ namespace LibreLancer.Media
         public void Dispose()
 		{
 			running = false;
+            Music.Timer.Dispose();
+            Music.Task.Wait();
             //Delete context
             Alc.alcMakeContextCurrent(IntPtr.Zero);
             Alc.alcDestroyContext(ctx);

@@ -91,7 +91,7 @@ namespace ThnPlayer
                 cutscene.Update(elapsed);
             }
 
-            Audio.Update();
+            Audio.UpdateAsync().Wait();
             Typewriter.Update(elapsed);
         }
 

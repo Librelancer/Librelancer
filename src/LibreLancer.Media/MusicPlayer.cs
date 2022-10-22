@@ -3,33 +3,66 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace LibreLancer.Media
 {
-	public class MusicPlayer
-	{
-		AudioManager dev;
-		StreamingSource sound;
-		float _volume = 1.0f;
+    public class MusicPlayer
+    {
+        StreamingSource sound;
+        float _volume = 1.0f;
         private float attenuation = 0;
-		public float Volume
-		{
-			get {
-				return _volume;
-			} set {
-				_volume = value;
-                if(sound != null)
+
+        public float Volume
+        {
+            get { return _volume; }
+            set
+            {
+                _volume = value;
+                if (sound != null)
                     UpdateGain();
             }
-		}
-		internal MusicPlayer (AudioManager adev)
-		{
-			dev = adev;
-		}
+        }
 
-		public void Play(string filename, float attenuation = 0, bool loop = false)
+        internal PeriodicTimer Timer;
+        internal Task Task;
+        internal Queue<uint> Buffers = new Queue<uint>();
+        private uint[] sources;
+
+        internal MusicPlayer(params uint[] sources)
         {
-            dev.Do(() =>
+            this.sources = sources;
+            for(int i = 0; i < 24; i++)
+                Buffers.Enqueue(Al.GenBuffer());
+            Task = Task.Run(MusicLoop);
+            Timer = new PeriodicTimer(TimeSpan.FromMilliseconds(50));
+        }
+
+        private ConcurrentQueue<Action> actions = new();
+
+        async void MusicLoop()
+        {
+            do
+            {
+                while (actions.TryDequeue(out var a)) a();
+                if (sound != null)
+                {
+                    if (!sound.Update()) {
+                        sound = null;
+                        State = PlayState.Stopped;
+                    }
+                }
+            } while (await Timer.WaitForNextTickAsync());
+        }
+
+        public void Play(string filename, float attenuation = 0, bool loop = false)
+        {
+            State = PlayState.Playing;
+            actions.Enqueue(() =>
             {
                 if (sound != null)
                 {
@@ -38,7 +71,7 @@ namespace LibreLancer.Media
                 }
                 var stream = File.OpenRead(filename);
                 var data = SoundLoader.Open(stream);
-                sound = dev.CreateStreaming(data, filename);
+                sound = new StreamingSource(this, data, sources[0], filename);
                 this.attenuation = attenuation;
                 UpdateGain();
                 sound.Begin(loop);
@@ -49,10 +82,11 @@ namespace LibreLancer.Media
         {
             sound.Gain = ALUtils.LinearToAlGain(_volume) * ALUtils.DbToAlGain(attenuation);
         }
-        
-		public void Stop()
-		{
-			dev.Do(() =>
+
+        public void Stop()
+        {
+            State = PlayState.Stopped;
+            actions.Enqueue(() =>
             {
                 if (sound != null)
                 {
@@ -60,15 +94,11 @@ namespace LibreLancer.Media
                     sound = null;
                 }
             });
-            
-		}
 
-        public PlayState State {
-			get {
-				return sound == null ? PlayState.Stopped : PlayState.Playing;
-			}
-		}
-	}
+        }
+
+        public PlayState State { get; private set; }
+    }
 }
 
 

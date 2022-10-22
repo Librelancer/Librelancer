@@ -222,7 +222,9 @@ namespace LibreLancer.Media
             if (DisposeOnStop)
                 Dispose();
             Playing = false;
-            OnStop?.Invoke();
+            if (OnStop != null) {
+                man.UIThread.QueueUIThread(OnStop);
+            }
         }
         public void Stop()
         {

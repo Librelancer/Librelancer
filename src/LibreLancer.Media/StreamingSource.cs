@@ -10,39 +10,32 @@ namespace LibreLancer.Media
 	class StreamingSource : IDisposable
     {
         private const int POOL_BUFFER_SIZE = 8192;
-        
-		bool dataleft;
+        bool dataleft;
 		StreamingSound sound;
 		uint ID;
-		AudioManager manager;
 		bool looping = false;
 		bool playing = false;
 		public EventHandler Stopped;
+        private MusicPlayer manager;
 
 		float _gain = 1f;
 		public float Gain
 		{
-			get
-			{
-				return _gain;
-			} set
+            set
 			{
 				_gain = value;
 				if (playing)
 				{
-					manager.Do(() =>
-					{
-						Al.alSourcef(ID, Al.AL_GAIN, ALUtils.ClampVolume(_gain));
-					});
-				}
+                    Al.alSourcef(ID, Al.AL_GAIN, ALUtils.ClampVolume(_gain));
+                }
 			}
 		}
 
         private string info;
-		public StreamingSource(AudioManager mgr, StreamingSound snd, uint id, string info)
+		public StreamingSource(MusicPlayer music, StreamingSound snd, uint id, string info)
 		{
-			manager = mgr;
 			ID = id;
+            manager = music;
 			sound = snd;
             this.info = info;
         }
@@ -51,23 +44,18 @@ namespace LibreLancer.Media
 		{
 			CheckDisposed();
 			this.looping = looping;
-			manager.RunActionBlocking(_Begin);
-		}
-
-		void _Begin()
-		{
-			if (playing)
-			{
-				Cleanup();
-			}
-			dataleft = true;
-			playing = true;
+            if (playing)
+            {
+                Cleanup();
+            }
+            dataleft = true;
+            playing = true;
             var bytes = ArrayPool<byte>.Shared.Rent(POOL_BUFFER_SIZE);
-			for (int i = 0; i < 3; i++) {
-				var b = manager.Buffers.Dequeue();
+            for (int i = 0; i < 8; i++) {
+                var b = manager.Buffers.Dequeue();
                 int read = Read(bytes, sound.Data);
-				if (read != 0)
-				{
+                if (read != 0)
+                {
                     try
                     {
                         Al.BufferData(b, sound.Format, bytes, read, sound.Frequency);
@@ -78,28 +66,27 @@ namespace LibreLancer.Media
                         throw;
                     }
                     Al.alSourceQueueBuffers(ID, 1, ref b);
-				}
-				else
-				{
-					manager.Buffers.Enqueue(b);
-				}
-				if (read < POOL_BUFFER_SIZE)
-				{
-					if (!looping)
-					{
-						dataleft = false;
-						break;
-					}
-					else
-					{
-						sound.Data.Seek(0, SeekOrigin.Begin);
-					}
-				}
-			}
-			ArrayPool<byte>.Shared.Return(bytes);
-			Al.alSourcef(ID, Al.AL_GAIN, ALUtils.ClampVolume(_gain));
-			Al.alSourcePlay(ID);
-			manager.activeStreamers.Add(this);
+                }
+                else
+                {
+                    manager.Buffers.Enqueue(b);
+                }
+                if (read < POOL_BUFFER_SIZE)
+                {
+                    if (!looping)
+                    {
+                        dataleft = false;
+                        break;
+                    }
+                    else
+                    {
+                        sound.Data.Seek(0, SeekOrigin.Begin);
+                    }
+                }
+            }
+            ArrayPool<byte>.Shared.Return(bytes);
+            Al.alSourcef(ID, Al.AL_GAIN, ALUtils.ClampVolume(_gain));
+            Al.alSourcePlay(ID);
 		}
 
         int Read(byte[] buffer, Stream stream)
@@ -189,7 +176,7 @@ namespace LibreLancer.Media
 				}
 				else
 				{
-					CleanupDelayed();
+					Cleanup();
 					return false;
 				}
 			}
@@ -210,26 +197,15 @@ namespace LibreLancer.Media
 			}
 			sound.Data.Seek(0, SeekOrigin.Begin);
 		}
-
-		void CleanupDelayed()
-		{
-			Cleanup();
-			manager.toRemove.Add(this);
-		}
-
-		void CleanupImmediate()
-		{
-			Cleanup();
-			manager.activeStreamers.Remove(this);
-			if (Stopped != null)
-				OnStopped();
-		}
+        
 
 		public void Stop()
 		{
 			if (!playing) return;
 			CheckDisposed();
-			manager.RunActionBlocking(CleanupImmediate);
+            Cleanup();
+            if (Stopped != null)
+                OnStopped();
 		}
 
 		void CheckDisposed()
@@ -243,7 +219,6 @@ namespace LibreLancer.Media
             if (ID != uint.MaxValue)
             {
                 Stop();
-                manager.RunActionBlocking(() => manager.streamingSources.Enqueue(ID));
                 sound.Dispose();
                 ID = uint.MaxValue;
             }
@@ -253,10 +228,7 @@ namespace LibreLancer.Media
 
 		internal void OnStopped()
         {
-            if (Stopped != null)
-			{
-				manager.UIThread.QueueUIThread(() => Stopped(this, EventArgs.Empty));
-			}
-		}
+            Stopped?.Invoke(this, EventArgs.Empty);
+        }
 	}
 }
