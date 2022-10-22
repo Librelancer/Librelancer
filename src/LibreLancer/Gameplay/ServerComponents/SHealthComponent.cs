@@ -18,6 +18,8 @@ namespace LibreLancer
         
         public SHealthComponent(GameObject parent) : base(parent) { }
 
+        private bool isKilled = false;
+
         public void Damage(float amount)
         {
             var shield = Parent.GetChildComponents<SShieldComponent>().FirstOrDefault();
@@ -30,11 +32,13 @@ namespace LibreLancer
                 }
                 if (CurrentHealth <= 0) {
                     CurrentHealth = 0;
-                    if (Parent.TryGetComponent<SNPCComponent>(out var npc)) {
-                        npc.Killed(); 
-                    }
-                    if (Parent.TryGetComponent<SPlayerComponent>(out var player)) {
-                        player.Killed();
+                    if (!isKilled)
+                    {
+                        isKilled = true;
+                        if (Parent.TryGetComponent<SNPCComponent>(out var npc))
+                            npc.Killed();
+                        if (Parent.TryGetComponent<SPlayerComponent>(out var player))
+                            player.Killed();
                     }
                 }
             }
