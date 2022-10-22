@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using BulletSharp;
+using BM = BulletSharp.Math;
 
 namespace LibreLancer.Physics.Sur
 {
@@ -52,7 +53,7 @@ namespace LibreLancer.Physics.Sur
                         //Fill the geometry
                         var verts = new List<Vector3>();
                         foreach (var v in sfc.Vertices)
-                            verts.Add(Vector3.Transform(v.Point, transform));
+                            verts.Add(Vector3.Transform(v.Point.Cast(), transform));
                         var indices = new List<int>();
                         if (group.VertexArrayOffset != 0)
                             throw new Exception("tgroupheader vertexarrayoffset wrong");
@@ -96,7 +97,7 @@ namespace LibreLancer.Physics.Sur
                         continue;
                     var verts = new List<Vector3>();
                     foreach (var v in surface.Vertices)
-                        verts.Add(v.Point);
+                        verts.Add(v.Point.Cast());
                     var indices = new List<int>();
                     if (th.VertexArrayOffset != 0)
                         throw new Exception("tgroupheader vertexarrayoffset wrong");
@@ -124,7 +125,7 @@ namespace LibreLancer.Physics.Sur
 					var th = surface.Groups[i];
 					if (th.MeshID != meshId)
 						continue;
-					var verts = new List<Vector3>();
+					var verts = new List<BM.Vector3>();
                     foreach (var v in surface.Vertices)
                         verts.Add(v.Point);
                     var indices = new List<int>();

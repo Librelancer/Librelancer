@@ -3,8 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Numerics;
 using BulletSharp;
+using BM = BulletSharp.Math;
 
 namespace LibreLancer.Physics
 {
@@ -19,12 +19,12 @@ namespace LibreLancer.Physics
         DebugDrawModes drawMode = DebugDrawModes.DrawWireframe;
         public override DebugDrawModes DebugMode { get => drawMode; set => drawMode = value; }
 
-        public override void DrawLine(ref Vector3 from, ref Vector3 to, ref Vector3 color)
+        public override void DrawLine(ref BM.Vector3 from, ref BM.Vector3 to, ref BM.Vector3 color)
         {
-            ren.DrawLine(from, to, new Color4(color.X, color.Y, color.Z, 1));
+            ren.DrawLine(from.Cast(), to.Cast(), new Color4(color.X, color.Y, color.Z, 1));
         }
 
-        public override void Draw3DText(ref Vector3 location, string textString)
+        public override void Draw3DText(ref BM.Vector3 location, string textString)
         {
             
         }

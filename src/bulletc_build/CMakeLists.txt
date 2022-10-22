@@ -78,6 +78,7 @@ IF(MSVC)
 ENDIF(MSVC)
 
 ADD_LIBRARY(${BULLETC_LIB} SHARED
+    ${CSRCDIR}/../dllmain.cpp
     ${CSRCDIR}/conversion.h
     ${CSRCDIR}/main.h
     ${CSRCDIR}/collections.cpp

@@ -7,6 +7,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Numerics;
 using BulletSharp;
+using BM = BulletSharp.Math;
 using LibreLancer.Physics.Sur;
 
 namespace LibreLancer.Physics
@@ -57,7 +58,7 @@ namespace LibreLancer.Physics
             if (!sur.HasShape(meshId)) return;
             var hulls = sur.GetShape(meshId);
             var pt = new CollisionPart() { Tag = tag, Index = currentIndex, Count = hulls.Length };
-            var tr = localTransform;
+            var tr = localTransform.Cast();
             foreach(var h in hulls) {
                 btCompound.AddChildShape(tr, h);
             }
@@ -72,7 +73,7 @@ namespace LibreLancer.Physics
         }
         public void UpdatePart(object tag, Matrix4x4 localTransform)
         {
-            var tr = localTransform;
+            var tr = localTransform.Cast();
             foreach (var part in children)
             {
                 if (part.Tag == tag)
@@ -116,9 +117,9 @@ namespace LibreLancer.Physics
         public IEnumerable<BoundingBox> GetBoxes(Matrix4x4 transform)
         {
             foreach(var shape in btCompound.ChildList) {
-                Vector3 min, max;
-                shape.ChildShape.GetAabb(shape.Transform * transform, out min, out max);
-                yield return new BoundingBox(min, max);
+                BM.Vector3 min, max;
+                shape.ChildShape.GetAabb(shape.Transform * transform.Cast(), out min, out max);
+                yield return new BoundingBox(min.Cast(), max.Cast());
             }
         }
         class CollisionPart
