@@ -11,13 +11,17 @@ namespace LibreLancer.GameData.Items
         public MunitionEquip Munition;
 
         static GunEquipment() => EquipmentObjectManager.RegisterType<GunEquipment>(AddEquipment);
-        static GameObject AddEquipment(GameObject parent, ResourceManager res, EquipmentType type, string hardpoint, Equipment equip)
+        static GameObject AddEquipment(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint, Equipment equip)
         {
             var gn = (GunEquipment) equip;
             var child = GameObject.WithModel(gn.ModelFile, type != EquipmentType.Server, res);
             if(type != EquipmentType.RemoteObject &&
                type != EquipmentType.Cutscene)
                 child.Components.Add(new WeaponComponent(child, gn));
+            if (snd != null)
+            {
+                snd.LoadSound(gn.Munition.Def.OneShotSound);
+            }
             return child;
         }
     }

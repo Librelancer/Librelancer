@@ -61,7 +61,7 @@ namespace LibreLancer
             {
                 var e = World.Server.GameData.GetEquipment(equipped.Nickname);
                 if (e == null) continue;
-                EquipmentObjectManager.InstantiateEquipment(obj, World.Server.Resources, EquipmentType.Server,
+                EquipmentObjectManager.InstantiateEquipment(obj, World.Server.Resources, null, EquipmentType.Server,
                     equipped.Hardpoint, e);
                 netLoadout.Items.Add(new NetShipCargo(0, e.CRC, equipped.Hardpoint ?? "internal", 255, 1));
             }

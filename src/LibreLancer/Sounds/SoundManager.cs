@@ -28,14 +28,14 @@ namespace LibreLancer
 		{
 			data = gameData;
 			this.audio = audio;
-            soundCache = new LRUCache<string, LoadedSound>(64, OnLoadSound);
+            soundCache = new LRUCache<string, LoadedSound>(64, LoadSoundAsync);
             this.ui = ui;
         }
 
         public SoundManager(AudioManager audio, IUIThread ui)
         {
             this.audio = audio;
-            soundCache = new LRUCache<string, LoadedSound>(64, OnLoadSound);
+            soundCache = new LRUCache<string, LoadedSound>(64, LoadSoundAsync);
             this.ui = ui;
         }
 
@@ -84,9 +84,19 @@ namespace LibreLancer
 
         public void LoadSound(string name)
         {
-            soundCache.Get(name);
+            if (string.IsNullOrWhiteSpace(name)) return;
+            LoadSoundAsync(name);
         }
-        LoadedSound OnLoadSound(string name)
+
+        LoadedSound GetSound(string name)
+        {
+            var l = soundCache.Get(name);
+            l.LoadTask?.Wait();
+            l.LoadTask = null;
+            return l;
+        }
+
+        LoadedSound LoadSoundAsync(string name)
         {
             FLLog.Debug("Sounds", "Loading sound " + name);
             var loaded = new LoadedSound();
@@ -101,10 +111,12 @@ namespace LibreLancer
             {
                 var path = data.GetAudioPath(name);
                 var snd = audio.AllocateData();
-                snd.LoadFile(path);
-                loaded.Data = snd;
+                loaded.LoadTask = Task.Run(() =>
+                {
+                    snd.LoadFile(path);
+                    loaded.Data = snd;
+                });
             }
-
             return loaded;
         }
 
@@ -117,7 +129,7 @@ namespace LibreLancer
         }
         public void PlayOneShot(string name)
         {
-            var snd = soundCache.Get(name);
+            var snd = GetSound(name);
             soundCache.UsedValue(snd);
             if (snd.Data == null) return;
             var inst = audio.CreateInstance(snd.Data, EntryType(name));
@@ -128,7 +140,7 @@ namespace LibreLancer
         public SoundInstance GetInstance(string name, float attenuation = 0, float mind = -1,
             float maxd = -1, Vector3? pos = null)
         {
-            var snd = soundCache.Get(name);
+            var snd = GetSound(name);
             soundCache.UsedValue(snd);
             if (snd.Data == null) return null;
             var inst = audio.CreateInstance(snd.Data, EntryType(name));
@@ -210,8 +222,11 @@ namespace LibreLancer
         public string Name;
         public SoundData Data;
         public Data.Audio.AudioEntry Entry;
+        public Task LoadTask;
         public void Dispose()
         {
+            LoadTask?.Wait();
+            LoadTask = null;
             Data?.Dispose();
         }
     }

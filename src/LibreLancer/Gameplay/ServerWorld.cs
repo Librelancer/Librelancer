@@ -74,7 +74,7 @@ namespace LibreLancer
                 SpawnShip(npc, player);
             var obj = new GameObject(player.Character.Ship, Server.Resources, false, true) { World = GameWorld };
             foreach(var item in player.Character.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
-                EquipmentObjectManager.InstantiateEquipment(obj, Server.Resources, EquipmentType.Server, item.Hardpoint, item.Equipment);
+                EquipmentObjectManager.InstantiateEquipment(obj, Server.Resources, null, EquipmentType.Server, item.Hardpoint, item.Equipment);
             obj.Components.Add(new SPlayerComponent(player, obj));
             obj.Components.Add(new SHealthComponent(obj)
             {

@@ -307,7 +307,7 @@ namespace LibreLancer
         public void SetLoadout(Dictionary<string, Equipment> equipment, List<Equipment> nohp, double timeOffset)
         {
             foreach (var k in equipment.Keys)
-                EquipmentObjectManager.InstantiateEquipment(this, Resources, (RenderComponent != null) ? EquipmentType.RemoteObject : EquipmentType.Server, k, equipment[k]);
+                EquipmentObjectManager.InstantiateEquipment(this, Resources, null, (RenderComponent != null) ? EquipmentType.RemoteObject : EquipmentType.Server, k, equipment[k]);
             foreach (var eq in nohp)
 			{
 				if (eq is AnimationEquipment)
@@ -317,7 +317,7 @@ namespace LibreLancer
 						AnimationComponent?.StartAnimation(anm.Animation);
 				} 
                 else
-                    EquipmentObjectManager.InstantiateEquipment(this, Resources, (RenderComponent != null) ? EquipmentType.RemoteObject : EquipmentType.Server, "internal", eq);
+                    EquipmentObjectManager.InstantiateEquipment(this, Resources, null, (RenderComponent != null) ? EquipmentType.RemoteObject : EquipmentType.Server, "internal", eq);
 
 			}
             AnimationComponent?.WarpTime(timeOffset); //Looping animations sync up to server vaguely

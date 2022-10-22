@@ -10,7 +10,7 @@ namespace LibreLancer.GameData.Items
     {
         static CountermeasureEquipment() => EquipmentObjectManager.RegisterType<CountermeasureEquipment>(AddEquipment);
 
-        static GameObject AddEquipment(GameObject parent, ResourceManager res, EquipmentType type, string hardpoint, Equipment equip)
+        static GameObject AddEquipment(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint, Equipment equip)
         {
             var sh = (CountermeasureEquipment)equip;
             var obj = GameObject.WithModel(sh.ModelFile, type != EquipmentType.Server, parent.Resources);

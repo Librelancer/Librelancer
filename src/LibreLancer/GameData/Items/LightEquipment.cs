@@ -23,7 +23,7 @@ namespace LibreLancer.GameData.Items
         
         static LightEquipment() => EquipmentObjectManager.RegisterType<LightEquipment>(AddEquipment);
 
-        private static GameObject AddEquipment(GameObject parent, ResourceManager res, EquipmentType type, string hardpoint, Equipment equip)
+        private static GameObject AddEquipment(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint, Equipment equip)
         {
             var lq = (LightEquipment)equip;
             var obj = new GameObject();

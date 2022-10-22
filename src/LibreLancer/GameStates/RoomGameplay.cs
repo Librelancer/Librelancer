@@ -484,7 +484,7 @@ namespace LibreLancer
                 playerShip.Children.Clear();
                 foreach (var mount in session.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
                 {
-                    EquipmentObjectManager.InstantiateEquipment(playerShip, Game.ResourceManager,
+                    EquipmentObjectManager.InstantiateEquipment(playerShip, Game.ResourceManager, null,
                             EquipmentType.Cutscene, mount.Hardpoint, mount.Equipment);
                 }
             }

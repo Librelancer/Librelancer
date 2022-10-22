@@ -8,13 +8,27 @@ namespace LibreLancer.GameData.Items
 	public class EngineEquipment : Equipment
     {
         static EngineEquipment() => EquipmentObjectManager.RegisterType<EngineEquipment>(AddEquipment);
-        static GameObject AddEquipment(GameObject parent, ResourceManager res, EquipmentType type, string hardpoint, Equipment equip)
+        static GameObject AddEquipment(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint, Equipment equip)
         {
+            var eng = (EngineEquipment) equip;
             if(type != EquipmentType.Server)
-                parent.Components.Add(new CEngineComponent(parent, (EngineEquipment)equip));
+                parent.Components.Add(new CEngineComponent(parent, eng));
             else
             {
-                parent.Components.Add(new SEngineComponent(parent) {Engine = (EngineEquipment) equip});
+                parent.Components.Add(new SEngineComponent(parent) {Engine = eng});
+            }
+
+            if (snd != null)
+            {
+                snd.LoadSound(eng.Def.CruiseLoopSound);
+                snd.LoadSound(eng.Def.CruiseStartSound);
+                snd.LoadSound(eng.Def.CruiseStopSound);
+                snd.LoadSound(eng.Def.CruiseBackfireSound);
+                snd.LoadSound(eng.Def.CruiseStopSound);
+                snd.LoadSound(eng.Def.EngineKillSound);
+                snd.LoadSound(eng.Def.RumbleSound);
+                snd.LoadSound(eng.Def.CharacterLoopSound);
+                snd.LoadSound(eng.Def.CharacterStartSound);
             }
             return null;
         }

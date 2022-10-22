@@ -13,7 +13,7 @@ namespace LibreLancer
     /// <summary>
     /// Return a GameObject only if you add one to the parent
     /// </summary>
-    public delegate GameObject MountEquipmentHandler(GameObject parent, ResourceManager res, EquipmentType type, string hardpoint, Equipment equip);
+    public delegate GameObject MountEquipmentHandler(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint, Equipment equip);
 
     public enum EquipmentType
     {
@@ -29,7 +29,7 @@ namespace LibreLancer
         {
             handlers.Add(typeof(T), handler);
         }
-        public static void InstantiateEquipment(GameObject parent, ResourceManager res, EquipmentType type, string hardpoint, Equipment equip)
+        public static void InstantiateEquipment(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint, Equipment equip)
         {
             var etype = equip.GetType();
             if (!handlers.TryGetValue(etype, out var handle))
@@ -37,7 +37,7 @@ namespace LibreLancer
                 FLLog.Error("Equipment", $"Cannot instantiate {etype}");
                 return;
             }
-            var obj = handle(parent, res, type, hardpoint, equip);
+            var obj = handle(parent, res, snd, type, hardpoint, equip);
             //Do setup of child attachment, hardpoint, lod inheriting, static position etc.
             if (obj != null)
             {

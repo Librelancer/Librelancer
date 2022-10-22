@@ -14,7 +14,7 @@ namespace LibreLancer.GameData.Items
 		}
         static EffectEquipment() => EquipmentObjectManager.RegisterType<EffectEquipment>(AddEquipment);
 
-        static GameObject AddEquipment(GameObject parent, ResourceManager res, EquipmentType type, string hardpoint, Equipment equip)
+        static GameObject AddEquipment(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint, Equipment equip)
         {
             var obj = new GameObject();
             if (type != EquipmentType.Server)

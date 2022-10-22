@@ -567,7 +567,7 @@ namespace LibreLancer
                 {
                     var equip = Game.GameData.GetEquipment(eq.EquipCRC);
                     if (equip == null) continue;
-                    EquipmentObjectManager.InstantiateEquipment(newobj, Game.ResourceManager, EquipmentType.LocalPlayer, eq.Hardpoint, equip);
+                    EquipmentObjectManager.InstantiateEquipment(newobj, Game.ResourceManager, Game.Sound, EquipmentType.LocalPlayer, eq.Hardpoint, equip);
                 }
                 newobj.Register(gp.world.Physics);
 

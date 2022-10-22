@@ -6,7 +6,7 @@ public class TradelaneEquipment : Equipment
     
     static TradelaneEquipment() => EquipmentObjectManager.RegisterType<TradelaneEquipment>(AddEquipment);
 
-    static GameObject AddEquipment(GameObject parent, ResourceManager res, EquipmentType type, string hardpoint,
+    static GameObject AddEquipment(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint,
         Equipment equip)
     {
         if (type != EquipmentType.Server)
