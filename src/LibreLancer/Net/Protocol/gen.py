@@ -28,13 +28,13 @@ typeMethods = {
   "ulong" : "GetVariableUInt64",
   "ushort" : "GetUShort",
   "bool" : "GetBool",
+  "ObjectName": "GetObjectName",
 }
 encodeMethods = {
     "int": "PutVariableInt32",
     "long": "PutVariableInt64",
     "ulong": "PutVariableUInt64"
 }
-
 # Enumerations
 enums = {
     "GameObjectKind",

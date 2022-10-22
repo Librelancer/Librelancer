@@ -54,7 +54,7 @@ namespace LibreLancer
             foreach (var obj in sys.Objects)
             {
                 var g = new GameObject(obj.Archetype, res, Renderer != null);
-                g.Name = obj.DisplayName;
+                g.Name = new ObjectName(obj.DisplayName);
                 g.Nickname = obj.Nickname;
                 g.SystemObject = obj;
                 g.SetLocalTransform((obj.Rotation ?? Matrix4x4.Identity) * Matrix4x4.CreateTranslation(obj.Position));

@@ -152,7 +152,7 @@ namespace LibreLancer
                     else
                     {
                         obj.Object = new GameObject(drawable, Cutscene.Game.GetService<ResourceManager>(), true, false);
-                        obj.Object.Name = kv.Value.Name;
+                        obj.Object.Name = new ObjectName(kv.Value.Name);
                         obj.Object.PhysicsComponent = null; //Jitter seems to interfere with directly setting orientation
                         if (getHpMount)
                             obj.HpMount = obj.Object.GetHardpoint("HpMount");
@@ -218,7 +218,7 @@ namespace LibreLancer
                 else if (kv.Value.Type == EntityTypes.Marker)
                 {
                     obj.Object = new GameObject();
-                    obj.Object.Name = "Marker";
+                    obj.Object.Name = new ObjectName("Marker");
                     obj.Object.Nickname = "";
                     if (kv.Value.MainObject && Cutscene.MainObject != null)
                     {

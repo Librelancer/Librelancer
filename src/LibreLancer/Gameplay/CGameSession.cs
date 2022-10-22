@@ -549,7 +549,7 @@ namespace LibreLancer
 
         public void EnqueueAction(Action a) => uiActions.Enqueue(a);
 
-        void IClientPlayer.SpawnObject(int id, string name, Vector3 position, Quaternion orientation, NetShipLoadout loadout)
+        void IClientPlayer.SpawnObject(int id, ObjectName name, string affiliation, Vector3 position, Quaternion orientation, NetShipLoadout loadout)
         {
             RunSync(() =>
             {
@@ -563,6 +563,9 @@ namespace LibreLancer
                                          Matrix4x4.CreateTranslation(position));
                 newobj.Components.Add(new CHealthComponent(newobj) { CurrentHealth = loadout.Health, MaxHealth = shp.Hitpoints });
                 newobj.Components.Add(new CDamageFuseComponent(newobj, shp.Fuses));
+                var fac = Game.GameData.GetFaction(affiliation);
+                if(fac != null)
+                    newobj.Components.Add(new CFactionComponent(newobj, fac));
                 foreach (var eq in loadout.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
                 {
                     var equip = Game.GameData.GetEquipment(eq.EquipCRC);

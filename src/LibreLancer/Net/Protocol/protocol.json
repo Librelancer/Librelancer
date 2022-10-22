@@ -124,7 +124,8 @@
           "name": "SpawnObject",
           "args": [ 
             { "name":  "id", "type":  "int" }, 
-            { "name":  "name", "type":  "string" }, 
+            { "name":  "name", "type":  "ObjectName" },
+            { "name":  "affiliation", "type":  "string" },
             { "name":  "position", "type":  "Vector3" },
             { "name":  "orientation", "type":  "Quaternion" },
             { "name":  "loadout", "type":  "NetShipLoadout" }

@@ -57,12 +57,14 @@ namespace LibreLancer
             throw new ScriptRuntimeException($"Could not find object {id}");
         }
 
+        private int spawnCount = 0;
+
         public NPCWattleInstance spawnnpc(string loadout, float x, float y, float z)
         {
             if (!manager.World.Server.GameData.TryGetLoadout(loadout, out var resolved))
                 throw new ScriptRuntimeException($"Could not get loadout {loadout}");
             var position = new Vector3(x, y, z);
-            var obj = manager.DoSpawn(null, resolved, null, position, Quaternion.Identity);
+            var obj = manager.DoSpawn(new ObjectName("spawned " + ++spawnCount),null, null, resolved, null, position, Quaternion.Identity);
             return new NPCWattleInstance(obj, this);
         }
     }

@@ -29,6 +29,28 @@ public class PacketWriter
     {
         return pw.writer;
     }
+
+    public void Put(ObjectName on)
+    {
+        if (on == null)
+        {
+            PutVariableUInt32(0);
+        }
+        else
+        {
+            if (on._Ids != null)
+            {
+                PutVariableUInt32((uint)on._Ids.Length + 2);
+                foreach(var i in on._Ids)
+                    PutVariableInt32(i);
+            }
+            else
+            {
+                PutVariableUInt32(1);
+                Put(on._NameString);
+            }
+        }
+    }
     
     public void PutVariableUInt64(ulong u)
     {

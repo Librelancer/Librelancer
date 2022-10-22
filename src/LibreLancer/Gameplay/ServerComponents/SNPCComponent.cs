@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.AI;
 using LibreLancer.Data.Pilots;
+using LibreLancer.GameData;
 
 namespace LibreLancer
 {
@@ -17,8 +18,10 @@ namespace LibreLancer
         public Action OnKilled;
 
         public List<GameObject> HostileNPCs = new List<GameObject>();
-
+        public Faction Faction;
+        
         private GameData.Pilot Pilot;
+        
         
         public void OnProjectileHit(GameObject attacker)
         {

@@ -42,14 +42,25 @@ namespace LibreLancer
                 act(missionNPCs[nickname]);
             });
         }
-        public GameObject DoSpawn(string nickname, Loadout loadout, GameData.Pilot pilot, Vector3 position, Quaternion orient, MissionRuntime msn = null)
+
+        public ObjectName RandomName(string affiliation)
+        {
+            var fac = World.Server.GameData.GetFaction(affiliation);
+            if (fac == null) return new ObjectName("NULL");
+            var rand = new Random();
+            var first = rand.Next(0, 2) == 1 ? fac.Properties.FirstNameMale : fac.Properties.FirstNameFemale;
+            return new ObjectName(rand.Next(first), rand.Next(fac.Properties.LastName));
+
+        }
+        
+        public GameObject DoSpawn(ObjectName name, string nickname, string affiliation, Loadout loadout, GameData.Pilot pilot, Vector3 position, Quaternion orient, MissionRuntime msn = null)
         {
             NetShipLoadout netLoadout = new NetShipLoadout();
             netLoadout.Items = new List<NetShipCargo>();
             var ship = World.Server.GameData.GetShip(loadout.Archetype);
             netLoadout.ShipCRC = ship.CRC;
             var obj = new GameObject(ship, World.Server.Resources, false, true);
-            obj.Name = $"Bob NPC - {loadout.Nickname}";
+            obj.Name = name;
             obj.Nickname = nickname;
             obj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orient) * Matrix4x4.CreateTranslation(position));
             obj.Components.Add(new SHealthComponent(obj)
@@ -65,7 +76,7 @@ namespace LibreLancer
                     equipped.Hardpoint, e);
                 netLoadout.Items.Add(new NetShipCargo(0, e.CRC, equipped.Hardpoint ?? "internal", 255, 1));
             }
-            var npcComponent = new SNPCComponent(obj, this) {Loadout = netLoadout, MissionRuntime = msn};
+            var npcComponent = new SNPCComponent(obj, this) {Loadout = netLoadout, MissionRuntime = msn, Faction = World.Server.GameData.GetFaction(affiliation)};
             npcComponent.SetPilot(pilot);
             obj.Components.Add(npcComponent);            
             obj.Components.Add(new AutopilotComponent(obj));

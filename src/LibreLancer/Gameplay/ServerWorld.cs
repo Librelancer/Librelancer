@@ -311,7 +311,10 @@ namespace LibreLancer
         {
             var pos = Vector3.Transform(Vector3.Zero, obj.LocalTransform);
             var orient = obj.LocalTransform.ExtractRotation();
-            p.RemoteClient.SpawnObject(obj.NetID, obj.Name, pos, orient, obj.GetComponent<SNPCComponent>().Loadout);
+            string affiliation = null;
+            if (obj.TryGetComponent<SNPCComponent>(out var npc))
+                affiliation = npc.Faction?.Nickname;
+            p.RemoteClient.SpawnObject(obj.NetID, obj.Name, affiliation, pos, orient, obj.GetComponent<SNPCComponent>().Loadout);
         }
 
         public void PartDisabled(GameObject obj, string part)

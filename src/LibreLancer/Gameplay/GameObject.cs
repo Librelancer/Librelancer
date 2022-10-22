@@ -14,6 +14,7 @@ using LibreLancer.Utf.Cmp;
 using LibreLancer.Physics;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Items;
+using LibreLancer.Net;
 using Archs = LibreLancer.GameData.Archetypes;
 
 namespace LibreLancer
@@ -24,6 +25,52 @@ namespace LibreLancer
         Ship,
         Solar
     }
+
+    public class ObjectName
+    {
+        internal string _NameString = null;
+        internal int[] _Ids = null;
+        
+        private bool dirty = true;
+        private string cached;
+
+        public ObjectName(params int[] ids)
+        {
+            this._Ids = ids;
+        }
+
+        public ObjectName(string str)
+        {
+            this._NameString = str;
+        }
+        
+        public string GetName(GameDataManager gameData)
+        {
+            if (dirty)
+            {
+                if (_Ids != null)
+                    cached = string.Join(' ', _Ids.Select(gameData.GetString));
+                else
+                    cached = _NameString;
+                dirty = false;
+            }
+            return cached;
+        }
+
+
+        public override string ToString()
+        {
+            if (!string.IsNullOrEmpty(cached)) return cached;
+            else if (_Ids != null)
+            {
+                return "IDS: " + string.Join(',', _Ids.Select(x => x.ToString()));
+            } else if (_NameString != null)
+                return _NameString;
+            else
+                return "(NULL)";
+        }
+    }
+    
 	public class GameObject
 	{
         //
@@ -31,7 +78,7 @@ namespace LibreLancer
 
         public readonly int Unique = Interlocked.Increment(ref _unique);
 		//Object data
-		public string Name;
+		public ObjectName Name;
 
         private string _nickname;
         public uint NicknameCRC { get; private set; }

@@ -56,7 +56,16 @@ namespace LibreLancer.Gameplay.Missions
             {
                 runtime.Player.World.Server.GameData.TryGetLoadout(shipArch.Loadout, out var ld);
                 var pilot = runtime.Player.World.Server.GameData.GetPilot(shipArch.Pilot);
-                var obj = runtime.Player.World.NPCs.DoSpawn(ship.Nickname, ld, pilot, pos, orient, runtime);
+                ObjectName oName;
+                if (ship.RandomName)
+                {
+                    oName = runtime.Player.World.NPCs.RandomName(npcDef.Affiliation);
+                }
+                else
+                {
+                    oName = new ObjectName(npcDef.IndividualName);
+                }
+                var obj = runtime.Player.World.NPCs.DoSpawn(oName, ship.Nickname, npcDef.Affiliation, ld, pilot, pos, orient, runtime);
                 var npcComp = obj.GetComponent<SNPCComponent>();
                 npcComp.OnKilled = () => {
                     runtime.NpcKilled(msnShip);

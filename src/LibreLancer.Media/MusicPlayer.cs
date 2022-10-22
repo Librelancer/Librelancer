@@ -38,8 +38,8 @@ namespace LibreLancer.Media
             this.sources = sources;
             for(int i = 0; i < 24; i++)
                 Buffers.Enqueue(Al.GenBuffer());
-            Task = Task.Run(MusicLoop);
             Timer = new PeriodicTimer(TimeSpan.FromMilliseconds(50));
+            Task = Task.Run(MusicLoop);
         }
 
         private ConcurrentQueue<Action> actions = new();

@@ -100,6 +100,23 @@ public struct PacketReader
         }
         return a;
     }
+
+    public ObjectName GetObjectName()
+    {
+        var c = GetVariableUInt32();
+        if (c == 0) return null;
+        if (c == 1)
+        {
+            return new ObjectName(GetString());
+        }
+        else
+        {
+            var ids = new int[c - 2];
+            for (int i = 0; i < ids.Length; i++)
+                ids[i] = GetVariableInt32();
+            return new ObjectName(ids);
+        }
+    }
     
     public byte[] GetBytes(int count)
     {
