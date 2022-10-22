@@ -141,7 +141,8 @@ namespace LibreLancer
         }
 
         public GameObject(Archetype arch, ResourceManager res, bool draw = true)
-		{
+        {
+            Kind = GameObjectKind.Solar;
 			if (arch is Archs.Sun)
 			{
 				RenderComponent = new SunRenderer((Archs.Sun)arch);

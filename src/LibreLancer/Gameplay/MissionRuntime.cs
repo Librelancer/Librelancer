@@ -6,10 +6,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Numerics;
-using LibreLancer.AI;
-using LibreLancer.AI.ObjList;
 using LibreLancer.Data.Missions;
-using LibreLancer.Missions;
 
 namespace LibreLancer
 {
@@ -62,7 +59,10 @@ namespace LibreLancer
         public void DeactivateTrigger(string trigger)
         {
             var x = activeTriggers.FirstOrDefault(x => x.Trigger.Nickname.Equals(trigger, StringComparison.OrdinalIgnoreCase));
-            if (x != null) x.Deactivated = true;
+            if (x != null)
+            {
+                x.Deactivated = true;
+            }
         }
 
 
@@ -277,6 +277,24 @@ namespace LibreLancer
                 return IdEquals(c.Entry[0].ToString(), ship) &&
                        IdEquals(c.Entry[1].ToString(), pointA) &&
                        IdEquals(c.Entry[2].ToString(), pointB);
+            });
+        }
+
+        public void TradelaneExited(string ship, string lane)
+        {
+            ProcessCondition(TriggerConditions.Cnd_TLExited, (c) =>
+            {
+                return IdEquals(c.Entry[0].ToString(), ship) &&
+                       IdEquals(c.Entry[1].ToString(), lane);
+            });
+        }
+
+        public void PlayerManeuver(string type, string target)
+        {
+            ProcessCondition(TriggerConditions.Cnd_PlayerManeuver, (c) =>
+            {
+                return IdEquals(c.Entry[0].ToString(), type) &&
+                       IdEquals(c.Entry[1].ToString(), target);
             });
         }
         

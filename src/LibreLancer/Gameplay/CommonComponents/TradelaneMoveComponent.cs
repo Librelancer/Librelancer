@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using System.Numerics;
+using SharpDX.MediaFoundation;
 
 namespace LibreLancer
 {
@@ -19,18 +20,40 @@ namespace LibreLancer
 			this.lane = lane;
 		}
 
+        bool TryGetMissionRuntime(out MissionRuntime msn, out bool player)
+        {
+            if (Parent.TryGetComponent<SPlayerComponent>(out var p) &&
+                p.Player.MissionRuntime != null)
+            {
+                msn = p.Player.MissionRuntime;
+                player = true;
+                return true;
+            }
+
+            if (Parent.TryGetComponent<SNPCComponent>(out var npc) &&
+                npc.MissionRuntime != null)
+            {
+                msn = npc.MissionRuntime;
+                player = false;
+                return true;
+            }
+
+            player = false;
+            msn = null;
+            return false;
+        }
+
         public void LaneEntered()
         {
-            if (Parent.TryGetComponent<SPlayerComponent>(out var player) &&
-                player.Player.MissionRuntime != null)
+            if (TryGetMissionRuntime(out var msn, out var player))
             {
                 var cmp = currenttradelane.GetComponent<SDockableComponent>();
 
-                player.Player.MissionRuntime.TradelaneEntered(
-                    "Player",
+                msn.TradelaneEntered(
+                    player ? "Player" : Parent.Nickname,
                     currenttradelane.Nickname,
                     lane == "HpRightLane" ? cmp.Action.Target : cmp.Action.TargetLeft
-                    );
+                );
             }
         }
 
@@ -49,6 +72,10 @@ namespace LibreLancer
                 if (Parent.TryGetComponent<SPlayerComponent>(out var player))
                 {
                     player.Player.EndTradelane();
+                }
+                if (TryGetMissionRuntime(out var msn, out var isPlayer))
+                {
+                    msn.TradelaneExited(isPlayer ? "Player" : Parent.Nickname, currenttradelane.Nickname);
                 }
 				Parent.Components.Remove(this);
 				return;

@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using System.Numerics;
+using System.Text;
+using LibreLancer.AI;
 using WattleScript.Interpreter;
 
 namespace LibreLancer
@@ -99,6 +101,34 @@ namespace LibreLancer
                 n.Attack(tgt);
         }
 
+        void PrintState(AiState state, StringBuilder builder)
+        {
+            if (state == null) builder.Append("none");
+            else
+            {
+                builder.AppendLine(state.ToString());
+                if (state is AiObjListState obj)
+                {
+                    builder.Append("-> ");
+                    PrintState(obj.Next, builder);
+                }
+            }
+        }
+        public string state()
+        {
+            var builder = new StringBuilder();
+            if (Object.TryGetComponent<AutopilotComponent>(out var ap))
+            {
+                builder.AppendLine($"Autopilot: {ap.CurrentBehaviour}");
+            }
+            if (Object.TryGetComponent<SNPCComponent>(out var n))
+            {
+                PrintState(n.CurrentState, builder);
+                return builder.ToString();
+            }
+            return "(null)";
+        }
+
         public void formation(DynValue obj)
         {
             var tgt = Scripting.LookupObject(obj, "formation", 1);
@@ -110,7 +140,7 @@ namespace LibreLancer
             else
             {
                 if(!tgt.Formation.Followers.Contains(Object))
-                    tgt.Formation.Followers.Add(Object);
+                    tgt.Formation.Add(Object);
             }
             Object.Formation = tgt.Formation;
             if (Object.TryGetComponent<AutopilotComponent>(out var ap))

@@ -18,6 +18,7 @@ namespace LibreLancer
         public ServerWorld Server;
 
 		private List<GameObject> objects = new List<GameObject>();
+        private Dictionary<int, GameObject> netIDLookup = new Dictionary<int, GameObject>();
 
         public IReadOnlyList<GameObject> Objects => objects;
 
@@ -124,13 +125,23 @@ namespace LibreLancer
         public void AddObject(GameObject obj)
         {
             objects.Add(obj);
+            if(obj.NetID != 0)
+                netIDLookup.Add(obj.NetID, obj);
             SpatialLookup.AddObject(obj, Vector3.Transform(Vector3.Zero, obj.WorldTransform));
         }
 
         public void RemoveObject(GameObject obj)
         {
+            if (obj.NetID != 0)
+                netIDLookup.Remove(obj.NetID);
             objects.Remove(obj);
             SpatialLookup.RemoveObject(obj);
+        }
+
+        public GameObject GetFromNetID(int netId)
+        {
+            netIDLookup.TryGetValue(netId, out var go);
+            return go;
         }
 
         public GameObject GetObject(uint crc)

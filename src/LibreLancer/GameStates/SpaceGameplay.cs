@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
 using System.Numerics;
+using Castle.DynamicProxy.Tokens;
 using LibreLancer.Infocards;
 using LibreLancer.Interface;
 using LibreLancer.Net;
@@ -212,7 +213,9 @@ World Time: {12:F2}
             public void UpdateList()
             {
                 playerPos = Vector3.Transform(Vector3.Zero, game.player.WorldTransform);
-                Contacts = game.world.Objects.Where(x => !string.IsNullOrEmpty(x.Name) && x != game.player).Select(GetContact)
+                Contacts = game.world.Objects.Where(x => x != game.player &&
+                                                         (x.Kind == GameObjectKind.Ship || x.Kind == GameObjectKind.Solar) &&
+                                                         !string.IsNullOrWhiteSpace(x.Name)).Select(GetContact)
                     .OrderBy(x => x.distance).ToArray();
             }
 
@@ -427,7 +430,7 @@ World Time: {12:F2}
                 dict.Set("FreeFlight", true);
                 dict.Set("Goto", g.selected != null);
                 dict.Set("Dock", g.selected?.GetComponent<CDockComponent>() != null);
-                dict.Set("Formation", false);
+                dict.Set("Formation", g.selected != null && g.selected.Kind == GameObjectKind.Ship);
                 return dict;
             }
             public void HotspotPressed(string e)
@@ -501,7 +504,7 @@ World Time: {12:F2}
 		}
 
 		bool dogoto = false;
-		AutopilotComponent pilotcomponent = null;
+		public AutopilotComponent pilotcomponent = null;
 
         bool ManeuverSelect(string e)
 		{
@@ -524,6 +527,9 @@ World Time: {12:F2}
 					if (selected == null) return false;
                     pilotcomponent.GotoObject(selected);
 					return true;
+                case "Formation":
+                    session.RpcServer.EnterFormation(selected.NetID);
+                    return true;
 			}
 			return false;
 		}

@@ -11,6 +11,7 @@ namespace LibreLancer
         public AiState CurrentState;
         public NetShipLoadout Loadout;
         private NPCManager manager;
+        public MissionRuntime MissionRuntime;
 
         public Action<GameObject, GameObject> ProjectileHitHook;
         public Action OnKilled;
@@ -55,6 +56,26 @@ namespace LibreLancer
         {
             this.CurrentState = state;
             state?.OnStart(Parent, this);
+        }
+
+        public void EnterFormation(GameObject tgt, Vector3 offset)
+        {
+            if (tgt.Formation == null)
+            {
+                tgt.Formation = new ShipFormation(tgt, Parent);
+            }
+            else
+            {
+                if(!tgt.Formation.Contains(Parent))
+                    tgt.Formation.Add(Parent);
+            }
+            Parent.Formation = tgt.Formation;
+            if(offset != Vector3.Zero)
+                tgt.Formation.SetShipOffset(Parent, offset);
+            if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
+            {
+                ap.StartFormation();
+            }
         }
 
         private Dictionary<GameObjectKind, int> attackPref = new Dictionary<GameObjectKind, int>();

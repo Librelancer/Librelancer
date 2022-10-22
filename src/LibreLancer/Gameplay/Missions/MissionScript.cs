@@ -208,6 +208,18 @@ namespace LibreLancer
                         cur = new AiDelayState(l.Entry[0].ToSingle());
                         break;
                     }
+                    case ObjListCommands.BreakFormation:
+                    {
+                        cur = new AiBreakFormationState();
+                        break;
+                    }
+                    case ObjListCommands.Follow:
+                    {
+                        //[1] may be range?
+                        var off = new Vector3(l.Entry[2].ToSingle(), l.Entry[3].ToSingle(), l.Entry[4].ToSingle());
+                        cur = new AiFollowState(l.Entry[0].ToString(), off);
+                        break;
+                    }
                 }
 
                 if (cur != null)

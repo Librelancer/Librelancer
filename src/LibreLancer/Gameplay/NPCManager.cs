@@ -42,7 +42,7 @@ namespace LibreLancer
                 act(missionNPCs[nickname]);
             });
         }
-        public GameObject DoSpawn(string nickname, Loadout loadout, GameData.Pilot pilot, Vector3 position, Quaternion orient)
+        public GameObject DoSpawn(string nickname, Loadout loadout, GameData.Pilot pilot, Vector3 position, Quaternion orient, MissionRuntime msn = null)
         {
             NetShipLoadout netLoadout = new NetShipLoadout();
             netLoadout.Items = new List<NetShipCargo>();
@@ -65,7 +65,7 @@ namespace LibreLancer
                     equipped.Hardpoint, e);
                 netLoadout.Items.Add(new NetShipCargo(0, e.CRC, equipped.Hardpoint ?? "internal", 255, 1));
             }
-            var npcComponent = new SNPCComponent(obj, this) {Loadout = netLoadout};
+            var npcComponent = new SNPCComponent(obj, this) {Loadout = netLoadout, MissionRuntime = msn};
             npcComponent.SetPilot(pilot);
             obj.Components.Add(npcComponent);            
             obj.Components.Add(new AutopilotComponent(obj));

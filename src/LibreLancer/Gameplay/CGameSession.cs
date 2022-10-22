@@ -558,6 +558,7 @@ namespace LibreLancer
                     World = gp.world
                 };
                 newobj.Name = name;
+                newobj.NetID = id;
                 newobj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
                                          Matrix4x4.CreateTranslation(position));
                 newobj.Components.Add(new CHealthComponent(newobj) { CurrentHealth = loadout.Health, MaxHealth = shp.Hitpoints });
@@ -631,6 +632,7 @@ namespace LibreLancer
                 if (go.PhysicsComponent != null) go.PhysicsComponent.SetTransform = false;
                 go.World = gp.world;
                 go.Register(go.World.Physics);
+                go.NetID = id;
                 gp.world.AddObject(go);
                 objects.Add(id, go);
             });
@@ -719,6 +721,7 @@ namespace LibreLancer
                         go.Register(go.World.Physics);
                         go.CollisionGroups = arch.CollisionGroups;
                         FLLog.Debug("Client", $"Spawning object {si.ID}");
+                        go.NetID = si.ID;
                         gp.world.AddObject(go);
                         objects.Add(si.ID, go);
                     }
@@ -959,6 +962,33 @@ namespace LibreLancer
                 {
                     if (left) tl.DeactivateLeft();
                     else tl.DeactivateRight();
+                }
+            });
+        }
+
+        GameObject ObjOrPlayer(int id)
+        {
+            if (id == 0) return gp.player;
+            return objects[id];
+        }
+        
+        void IClientPlayer.UpdateFormation(NetFormation form)
+        {
+            gameplayActions.Enqueue(() =>
+            {
+                if (!form.Exists)
+                {
+                    gp.player.Formation = null;
+                }
+                else
+                {
+                    gp.player.Formation = new ShipFormation(
+                        ObjOrPlayer(form.LeadShip),
+                        form.Followers.Select(ObjOrPlayer).ToArray()
+                    );
+                    if (gp.player.Formation.LeadShip != gp.player) {
+                        gp.pilotcomponent.StartFormation();
+                    }
                 }
             });
         }

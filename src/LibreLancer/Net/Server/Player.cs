@@ -15,6 +15,7 @@ using LibreLancer.Entities.Character;
 using LibreLancer.GameData.Market;
 using LibreLancer.Net;
 using LibreLancer.Net.ConsoleCommands;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace LibreLancer
 {
@@ -1081,6 +1082,39 @@ namespace LibreLancer
                 });
             });
         }
+
+        void IServerPlayer.EnterFormation(int target)
+        {
+           worldActions.Enqueue(() =>
+           {
+               var self = World.Players[this];
+               var other = World.GameWorld.GetFromNetID(target);
+               if (other != null)
+               {
+                   if (other.Formation != null) {
+                       if(!other.Formation.Contains(self))
+                           other.Formation.Add(self);
+                   }
+                   else {
+                       other.Formation = new ShipFormation(other, self);
+                   }
+                   msnRuntime?.PlayerManeuver("formation", other.Nickname);
+               }
+               else {
+                   FLLog.Warning("Server", $"Could not find object to join formation {target}");
+               }
+           }); 
+        }
+
+        void IServerPlayer.LeaveFormation()
+        {
+            worldActions.Enqueue(() =>
+            {
+                var obj = World.Players[this];
+                obj.Formation?.Remove(obj);
+            });
+        }
+        
 
         void INetResponder.SendResponse(IPacket packet)
         {

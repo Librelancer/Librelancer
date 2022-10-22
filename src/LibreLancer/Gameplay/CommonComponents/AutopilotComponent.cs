@@ -216,7 +216,8 @@ namespace LibreLancer
 
         public void ProcessFormation(double time, ShipSteeringComponent control, ShipInputComponent input)
         {
-            if (Parent.Formation == null) {
+            if (Parent.Formation == null ||
+                Parent.Formation.LeadShip == Parent) {
                 CurrentBehaviour = AutopilotBehaviours.None;
                 return;
             }
@@ -233,6 +234,11 @@ namespace LibreLancer
                     control.Cruise = leadControl.CruiseEnabled;
                     if(input != null) input.AutopilotThrottle = leadControl.EnginePower;
                     control.InThrottle = leadControl.EnginePower;
+                }
+                else if (lead.TryGetComponent<CEngineComponent>(out var eng))
+                {
+                    control.Cruise = eng.Speed > 0.9f;
+                    if (input != null) input.AutopilotThrottle = MathHelper.Clamp(eng.Speed / 0.9f, 0, 1);
                 }
             }
             if (distance > 30) {
