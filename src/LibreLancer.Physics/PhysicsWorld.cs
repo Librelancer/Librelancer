@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -80,6 +80,13 @@ namespace LibreLancer.Physics
             }
         }
 
+        static bool IsInvalid(BM.Vector3 v)
+        {
+            return float.IsNaN(v.X) ||
+                float.IsNaN(v.Y) ||
+                float.IsNaN(v.Z);
+        }
+
         public bool PointRaycast(PhysicsObject me, Vector3 origin, Vector3 direction, float maxDist, out Vector3 contactPoint, out PhysicsObject didHit)
         {
             contactPoint = Vector3.Zero;
@@ -87,6 +94,9 @@ namespace LibreLancer.Physics
             ClosestRayResultCallback cb;
             var from = origin.Cast();
             var to = (origin + direction * maxDist).Cast();
+            if (IsInvalid(from) || IsInvalid(to)) return false;
+            if ((from - to).Length == 0) return false;
+
             if (me != null) {
                 cb = new KinematicClosestNotMeRayResultCallback(me.RigidBody);
                 cb.RayFromWorld = from;

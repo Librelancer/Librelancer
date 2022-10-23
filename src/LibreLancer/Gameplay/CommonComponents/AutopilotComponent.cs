@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -123,7 +123,16 @@ namespace LibreLancer
             Vector3 targetPoint = Vector3.Zero;
 			float radius = -1;
 			float maxSpeed = 1f;
-			if (CurrentBehaviour == AutopilotBehaviours.Goto)
+            if(_targetObject != null && !_targetObject.Exists)
+            {
+                //We're trying to get to an object that has been blown up
+                ResetDockState();
+                CurrentBehaviour = AutopilotBehaviours.None;
+                Parent.World.BroadcastMessage(Parent, GameMessageKind.ManeuverFinished);
+                _targetObject = null;
+                return;
+            }
+            if (CurrentBehaviour == AutopilotBehaviours.Goto)
             {
                 targetPoint = GetTargetPoint();
 				ResetDockState();

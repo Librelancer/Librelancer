@@ -593,6 +593,7 @@ World Time: {12:F2}
                     ui.Event("Popup", popup.Title, popup.Contents, popup.ID);
                 }
             }
+            if (selected != null && !selected.Exists) selected = null; //Object has been blown up/despawned
 		}
 
 		bool thrust = false;

@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -98,6 +98,7 @@ namespace LibreLancer
             }
         }
 
+        public bool Exists = true;
         public ShipFormation Formation = null;
         public static object ClientPlayerTag = new object();
         public GameObjectKind Kind = GameObjectKind.None;
@@ -424,6 +425,7 @@ namespace LibreLancer
         
         public void Register(PhysicsWorld physics)
 		{
+            Exists = true;
 			foreach (var child in Children)
 				child.Register(physics);
 			foreach (var component in Components)
@@ -460,6 +462,7 @@ namespace LibreLancer
 
 		public void Unregister(PhysicsWorld physics)
 		{
+            Exists = false;
             foreach (var component in Components)
                 component.Unregister(physics);
 			foreach (var child in Children)
