@@ -115,6 +115,16 @@ namespace BuildLL
                 if (a.HasValue()) setVal(a.ParsedValue);
             });
         }
+
+        public static void FlagArg(string option, Action setVal, string description = "")
+        {
+            var a = _app.Option(option, description, CommandOptionType.NoValue);
+            setArgActions.Add(() =>
+            {
+                if (a.HasValue()) setVal();
+            });
+        }
+
         static int Main(string[] args)
         {
             using var app = new CommandLineApplication() {UsePagerForHelpText = false};

@@ -14,17 +14,23 @@ namespace BuildLL
             argBuilder.Append(" -S ").AppendQuoted(Path.GetFullPath(directory));
             var workingDir = Path.GetFullPath(settings?.OutputPath ?? directory);
             Directory.CreateDirectory(workingDir);
-            if (settings?.Platform != null) {
+            if (settings?.Platform != null)
+            {
                 argBuilder.Append(" -A ").AppendQuoted(settings.Platform);
             }
-            if (settings?.Generator != null) {
+            if (settings?.Generator != null)
+            {
                 argBuilder.Append(" -G ").AppendQuoted(settings.Generator);
             }
-            if (settings?.Options != null) {
+            if (settings?.Options != null)
+            {
                 foreach (var o in settings.Options)
                     argBuilder.Append(" ").Append(o);
             }
-
+            if (!string.IsNullOrEmpty(settings?.BuildType))
+            {
+                argBuilder.Append(" -DCMAKE_BUILD_TYPE=").Append(settings.BuildType).Append(" ");
+            }
             string cmakePath = "cmake";
             if (IsWindows)
             {
@@ -44,5 +50,6 @@ namespace BuildLL
         public string Generator { get; set; }
         public string Platform { get; set; }
         public string[] Options { get; set; }
+        public string BuildType { get; set; }
     }
 }

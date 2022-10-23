@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30204.135
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.ImageLib", "src\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj", "{C5A7F58E-2B72-4D74-BA5B-F9C06534AA67}"
 EndProject
@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.Physics", "src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.Base", "src\LibreLancer.Base\LibreLancer.Base.csproj", "{1B3ADA80-AD52-4503-91CC-272F7057EDE0}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Editor", "src\Editor", "{0DD85B53-3CB2-448A-AF08-7E2CEE69746E}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Editor", "Editor", "{0DD85B53-3CB2-448A-AF08-7E2CEE69746E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InterfaceEdit", "src\Editor\InterfaceEdit\InterfaceEdit.csproj", "{2D55D94D-D39A-446D-BB2E-B2E3F2F6C585}"
 EndProject
@@ -37,7 +37,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Launcher", "src\Launcher\La
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "thorn2lua", "src\thorn2lua\thorn2lua.csproj", "{9D59408D-4708-45F6-AB61-18A00F9ADD78}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External", "src\External", "{7C43D186-1DB4-4BD2-B8C1-FDCF8619D366}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External", "External", "{7C43D186-1DB4-4BD2-B8C1-FDCF8619D366}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FontConfigSharp_Core", "src\External\FontConfigSharp_Core\FontConfigSharp_Core.csproj", "{9F68F668-25AC-4332-8A98-60451C069F59}"
 EndProject
@@ -47,19 +47,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.ContentEdit", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "lleditscript", "src\Editor\lleditscript\lleditscript.csproj", "{BE914D42-4FA8-4EF6-B4BE-1D9D6BA93392}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Database", "src\Librelancer.Database\LibreLancer.Database.csproj", "{BFE792B8-C255-49D2-B29C-19667017F9CD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.Database", "src\Librelancer.Database\LibreLancer.Database.csproj", "{BFE792B8-C255-49D2-B29C-19667017F9CD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Entities", "src\LibreLancer.Entities\LibreLancer.Entities.csproj", "{C8B790AF-8912-44D8-8422-6E54FC55CADF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.Entities", "src\LibreLancer.Entities\LibreLancer.Entities.csproj", "{C8B790AF-8912-44D8-8422-6E54FC55CADF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleMesh", "extern\SimpleMesh\SimpleMesh\SimpleMesh.csproj", "{4DD4455E-1891-45A5-8607-7B6F4F80CA57}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleMesh", "extern\SimpleMesh\SimpleMesh\SimpleMesh.csproj", "{4DD4455E-1891-45A5-8607-7B6F4F80CA57}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiteNetLib", "extern\LiteNetLib\LiteNetLib\LiteNetLib.csproj", "{62379547-E88E-4484-8338-9A0B06476E34}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LiteNetLib", "extern\LiteNetLib\LiteNetLib\LiteNetLib.csproj", "{62379547-E88E-4484-8338-9A0B06476E34}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "PublishAssets", "src\PublishAssets\PublishAssets.shproj", "{FD9729FD-84FC-49E7-B3FF-BBA3F4268B87}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WattleScript.Interpreter", "extern\wattlescript\src\WattleScript.Interpreter\WattleScript.Interpreter.csproj", "{E74F3E6D-D81A-4D76-937A-1BADF3791D3B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WattleScript.Interpreter", "extern\wattlescript\src\WattleScript.Interpreter\WattleScript.Interpreter.csproj", "{E74F3E6D-D81A-4D76-937A-1BADF3791D3B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WattleScript.HardwireGen", "extern\wattlescript\src\WattleScript.HardwireGen\WattleScript.HardwireGen.csproj", "{49D998AE-98EF-4786-9225-8A09CE6C96C1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WattleScript.HardwireGen", "extern\wattlescript\src\WattleScript.HardwireGen\WattleScript.HardwireGen.csproj", "{49D998AE-98EF-4786-9225-8A09CE6C96C1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -405,7 +405,16 @@ Global
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {93BAD06D-C79A-48A8-9687-91EAE0EA2332}
 	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {93BAD06D-C79A-48A8-9687-91EAE0EA2332}
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		src\PublishAssets\PublishAssets.projitems*{079429ec-f982-4954-b4dd-ad99160f3437}*SharedItemsImports = 5
+		src\PublishAssets\PublishAssets.projitems*{2d55d94d-d39a-446d-bb2e-b2e3f2f6c585}*SharedItemsImports = 5
+		src\PublishAssets\PublishAssets.projitems*{3d82c20a-f844-40cc-86b2-0f9fa66854ff}*SharedItemsImports = 5
+		src\PublishAssets\PublishAssets.projitems*{531d1b55-e764-44e6-bdb4-f19f29233db0}*SharedItemsImports = 5
+		src\PublishAssets\PublishAssets.projitems*{9d59408d-4708-45f6-ab61-18a00f9add78}*SharedItemsImports = 5
+		src\PublishAssets\PublishAssets.projitems*{be914d42-4fa8-4ef6-b4be-1d9d6ba93392}*SharedItemsImports = 5
+		src\PublishAssets\PublishAssets.projitems*{d26e97a5-7453-4d41-a471-bd78bb74fcc5}*SharedItemsImports = 5
+		src\PublishAssets\PublishAssets.projitems*{f25c3752-0ab4-45ca-90da-efd276c4322a}*SharedItemsImports = 5
+		src\PublishAssets\PublishAssets.projitems*{fd9729fd-84fc-49e7-b3ff-bba3f4268b87}*SharedItemsImports = 13
+		src\PublishAssets\PublishAssets.projitems*{fdc20255-07a5-4f6b-9b32-151d8d053a11}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

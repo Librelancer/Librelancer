@@ -13,12 +13,14 @@ namespace BuildLL
         private static string prefix = "/usr/local/";
         private static int parallel = -1;
         private static string glslangValidatorPath = null;
+        private static bool buildDebug = false;
         public static void Options()
         {
             StringArg("--assemblyversion", x => versionSetting = x, "Set generated version");
             StringArg("--prefix", x => prefix = x, "Set cmake install prefix");
             IntArg("-j|--jobs", x => parallel = x, "Parallelism for native build step");
             StringArg("--glslangValidator", x => glslangValidatorPath = x);
+            FlagArg("--debug", () => buildDebug = true, "Build natives with debug info");
         }
         
         static readonly string[] sdkProjects = {
@@ -130,9 +132,11 @@ namespace BuildLL
             
             Target("BuildNatives", () =>
             {
+                if (buildDebug) Console.WriteLine("Building natives with debug info");
                 Directory.CreateDirectory("obj");
                 Directory.CreateDirectory("bin/natives/x86");
                 Directory.CreateDirectory("bin/natives/x64");
+                string config = buildDebug ? "RelWithDebInfo" : "MinSizeRel";
                 if (IsWindows)
                 {
                     Directory.CreateDirectory("obj/x86");
@@ -143,25 +147,31 @@ namespace BuildLL
                     CMake.Run(".", new CMakeSettings() {
                         OutputPath = "obj/x86",
                         Generator = "Visual Studio 17 2022",
-                        Platform = "Win32"
+                        Platform = "Win32",
+                        BuildType = config
                     });
-                    MSBuild.Run("./obj/x86/librelancernatives.sln", "/m /p:Configuration=Release", VSVersion.VS2022, MSBuildPlatform.x86);
+                    MSBuild.Run("./obj/x86/librelancernatives.sln", $"/m /p:Configuration={config}", VSVersion.VS2022, MSBuildPlatform.x86);
                     CopyDirContents("./obj/x86/binaries/", "./bin/natives/x86", false, "*.dll");
+                    if(buildDebug) CopyDirContents("./obj/x86/binaries/", "./bin/natives/x86", false, "*.pdb");
                     //build 64-bit
                     CMake.Run(".", new CMakeSettings() {
                         OutputPath = "obj/x64",
                         Generator = "Visual Studio 17 2022",
-                        Platform = "x64"
+                        Platform = "x64",
+                        BuildType = config
                     });
-                    MSBuild.Run("./obj/x64/librelancernatives.sln", "/m /p:Configuration=Release", VSVersion.VS2022, MSBuildPlatform.x64);
+                    MSBuild.Run("./obj/x64/librelancernatives.sln", $"/m /p:Configuration={config}", VSVersion.VS2022, MSBuildPlatform.x64);
                     CopyDirContents("./obj/x64/binaries/", "./bin/natives/x64", false, "*.dll");
+                    if (buildDebug) CopyDirContents("./obj/x64/binaries/", "./bin/natives/x64", false, "*.pdb");
+
                 }
                 else
                 {
                     CMake.Run(".", new CMakeSettings()
                     {
                         OutputPath = "obj",
-                        Options = new[] { "-DCMAKE_INSTALL_PREFIX=" + prefix }
+                        Options = new[] { "-DCMAKE_INSTALL_PREFIX=" + prefix },
+                        BuildType = config
                     });
                     string args = "";
                     if (parallel > 0) args = "-j" + parallel;
