@@ -1,4 +1,4 @@
-﻿// MIT License - Copyright (c) Callum McGing
+// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -265,6 +265,9 @@ namespace LibreLancer
         public bool ZOverride = false; // Stop Thn Camera from changing Z
 		public unsafe void Draw()
 		{
+            if (Game.Width == 0 || Game.Height == 0) 
+                //Don't render on Width/Height = 0
+                return;
 			if (gconfig.Settings.MSAA > 0)
 			{
 				if (_mwidth != Game.Width || _mheight != Game.Height)
