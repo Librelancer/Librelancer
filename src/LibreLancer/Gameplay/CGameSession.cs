@@ -310,23 +310,17 @@ namespace LibreLancer
             physComponent.Steering = moveState[i].Steering;
             physComponent.ThrustEnabled = moveState[i].Thrust;
             physComponent.Update(1 / 60.0f);
-            gp.player.World.Physics.StepSimulation(1 / 60.0f);
+            gp.player.PhysicsComponent.Body.PredictionStep(1 / 60.0f);
             moveState[i].Position = player.PhysicsComponent.Body.Position;
             moveState[i].Orientation = player.PhysicsComponent.Body.Transform.ExtractRotation();
-        }
-
-        struct SavedObject
-        {
-            public Matrix4x4 Transform;
-            public Vector3 LinearVelocity;
-            public Vector3 AngularVelocity;
         }
 
         void SmoothError(GameObject obj, Vector3 oldPos, Quaternion oldQuat)
         {
             var newPos = obj.PhysicsComponent.Body.Position;
             var newOrient = obj.PhysicsComponent.Body.Transform.ExtractRotation();
-            if ((oldPos - newPos).Length() > 10) {
+            if ((oldPos - newPos).Length() > 
+                obj.PhysicsComponent.Body.LinearVelocity.Length() * 0.33f) {
                 obj.PhysicsComponent.PredictionErrorPos = Vector3.Zero;
                 obj.PhysicsComponent.PredictionErrorQuat = Quaternion.Identity;
             } 
@@ -366,26 +360,16 @@ namespace LibreLancer
 
                         if (errorPos.Length() > 0.1 || errorQuat > 0.1f)
                         {
-                            //Resimulating messes up the physics world, save state
-                            Dictionary<int, SavedObject> savedTransforms = new Dictionary<int, SavedObject>();
-                            foreach (var o in objects)
-                            {
-                                savedTransforms[o.Key] = new SavedObject()
-                                {
-                                    Transform = o.Value.LocalTransform,
-                                    LinearVelocity = o.Value.PhysicsComponent.Body.LinearVelocity,
-                                    AngularVelocity = o.Value.PhysicsComponent.Body.AngularVelocity
-                                };
-                            }
-
+                            // We now do a basic resim without collision
+                            // This needs some work to not show the errors in collision on screen
+                            // for the client, but it's almost there
+                            // This is much faster than stepping the entire simulation again
                             FLLog.Info("Client", $"Applying correction at tick {p.InputSequence}. Errors ({errorPos.Length()},{errorQuat})");
                             var tr = gp.player.LocalTransform;
                             var predictedPos = Vector3.Transform(Vector3.Zero, tr);
                             var predictedOrient = tr.ExtractRotation();
-                            
                             moveState[i].Position = state.Position;
                             moveState[i].Orientation = state.Orientation;
-                            
                             //Set states
                             gp.player.SetLocalTransform(Matrix4x4.CreateFromQuaternion(state.Orientation) * Matrix4x4.CreateTranslation(state.Position));
                             gp.player.PhysicsComponent.Body.LinearVelocity = state.LinearVelocity;
@@ -398,16 +382,7 @@ namespace LibreLancer
                             }
                             SmoothError(gp.player, predictedPos, predictedOrient);
                             gp.player.PhysicsComponent.Update(1 / 60.0);
-                            //Resimulating messes up the physics world, restore state
-                            foreach (var o in objects)
-                            {
-                                var saved = savedTransforms[o.Key];
-                                o.Value.SetLocalTransform(saved.Transform);
-                                o.Value.PhysicsComponent.Body.LinearVelocity = saved.LinearVelocity;
-                                o.Value.PhysicsComponent.Body.AngularVelocity = saved.AngularVelocity;
-                            }
                         }
-
                         break;
                         
                     }

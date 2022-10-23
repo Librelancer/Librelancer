@@ -101,6 +101,20 @@ namespace LibreLancer.Physics
                 RigidBody.ApplyTorque(torque.Cast());
             }
         }
+        
+        /// <summary>
+        /// Runs a step without collision detection or proper damping.
+        /// Useful for player reconciliation only
+        /// </summary>
+        /// <param name="timestep">Should be 1/60.0 normally</param>
+        public void PredictionStep(float timestep)
+        {
+            RigidBody.IntegrateVelocities(timestep);
+            RigidBody.PredictIntegratedTransform(timestep, out var predicted);
+            RigidBody.ProceedToTransform(predicted);
+            RigidBody.ClearForces();
+            UpdateProperties();
+        }
 
         internal void UpdateProperties()
         {
