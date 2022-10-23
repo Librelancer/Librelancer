@@ -256,9 +256,15 @@ namespace LibreLancer
 
                 if (processUpdatePackets)
                 {
+                    List<ObjectUpdatePacket> toUpdate = new List<ObjectUpdatePacket>();
                     while (updatePackets.Count > 0 && (WorldTime * 1000.0) >= updatePackets.Peek().Tick)
                     {
-                        ProcessUpdate(updatePackets.Dequeue(), gp);
+                        toUpdate.Add(updatePackets.Dequeue());
+                    }
+                    //Only do resync on the last packet processed this frame
+                    //Stops the resync spiral of death
+                    for (int i = 0; i < toUpdate.Count; i++) {
+                        ProcessUpdate(toUpdate[i], gp, i == toUpdate.Count - 1);
                     }
                 }
             }
@@ -331,7 +337,7 @@ namespace LibreLancer
             }
         }
         
-        void ProcessUpdate(ObjectUpdatePacket p, SpaceGameplay gp)
+        void ProcessUpdate(ObjectUpdatePacket p, SpaceGameplay gp, bool resync)
         { 
             foreach (var update in p.Updates)
                 UpdateObject(update, gp.world);
@@ -343,7 +349,7 @@ namespace LibreLancer
                 var sh = gp.player.GetChildComponents<CShieldComponent>().FirstOrDefault();
                 sh?.SetShieldPercent(state.Shield);
             }
-            if(gp?.player != null)
+            if(gp?.player != null && resync)
             {
                 for (int i = moveState.Count - 1; i >= 0; i--)
                 {
