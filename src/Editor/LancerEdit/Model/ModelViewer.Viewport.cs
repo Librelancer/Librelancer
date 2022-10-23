@@ -353,6 +353,7 @@ namespace LancerEdit
                 rstate.Wireframe = false;
             }
             if (drawVMeshWire) DrawWires();
+            if (doBounds) DrawBounds();
             //Draw VMeshWire (if used)
             _window.LineRenderer.Render();
             //Draw Sur
@@ -398,6 +399,63 @@ namespace LancerEdit
                 }
             }
         }
+
+        void DrawBounds()
+        {
+            var matrix = GetModelMatrix();
+            int i = 0;
+            foreach (var part in vmsModel.AllParts)
+            {
+                if (part.Mesh != null)
+                {
+                    DrawBox(part.Mesh.BoundingBox, part.LocalTransform * matrix, i++);
+                }
+            }
+        }
+
+        Vector3[] GetBoxMesh(BoundingBox box)
+        {
+            var a = new Vector3(box.Min.X, box.Max.Y, box.Max.Z); 
+            var b = new Vector3(box.Max.X, box.Max.Y, box.Max.Z); 
+            var c = new Vector3(box.Max.X, box.Min.Y, box.Max.Z);
+            var d = new Vector3(box.Min.X, box.Min.Y, box.Max.Z); 
+            var e = new Vector3(box.Min.X, box.Max.Y, box.Min.Z); 
+            var f = new Vector3(box.Max.X, box.Max.Y, box.Min.Z); 
+            var g = new Vector3(box.Max.X, box.Min.Y, box.Min.Z); 
+            var h = new Vector3(box.Min.X, box.Min.Y, box.Min.Z); 
+            return new[]
+            {
+                a,b,
+                c,d,
+                e,f,
+                g,h,
+                a,e,
+                b,f,
+                c,g,
+                d,h,
+                a,d,
+                b,c,
+                e,h,
+                f,g
+            };
+        }
+
+        void DrawBox(BoundingBox box, Matrix4x4 mat, int color)
+        {
+            var lines = GetBoxMesh(box);
+            var c = _window.LineRenderer.Color;
+            color %= initialCmpColors.Length;
+            _window.LineRenderer.Color = initialCmpColors[color];
+            for (int i = 0; i < lines.Length / 2; i++)
+            {
+                _window.LineRenderer.DrawLine(
+                    Vector3.Transform(lines[i * 2],mat),
+                    Vector3.Transform(lines[i * 2 + 1],mat)
+                );
+            }
+            _window.LineRenderer.Color = c;
+        }
+        
         void DrawVMeshWire(VMeshWire wires, Matrix4x4 mat, int color)
         {
             var c = _window.LineRenderer.Color;

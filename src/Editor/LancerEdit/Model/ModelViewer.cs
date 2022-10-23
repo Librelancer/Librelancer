@@ -48,6 +48,7 @@ namespace LancerEdit
         };
         bool doBackground = true;
         bool doWireframe = false;
+        private bool doBounds = false;
         bool drawVMeshWire = false;
 
         const int M_TEXTURED = 0;
@@ -283,6 +284,8 @@ namespace LancerEdit
                 ImGui.SameLine();
             }
             ImGui.Checkbox("Wireframe", ref doWireframe);
+            ImGui.SameLine();
+            ImGui.Checkbox("Bounds", ref doBounds);
             DoViewport();
             //
             var camModes = (cameraPart != null) ? camModesCockpit : camModesNormal;
