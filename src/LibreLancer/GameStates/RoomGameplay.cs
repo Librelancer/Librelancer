@@ -139,6 +139,7 @@ namespace LibreLancer
 
         void MissionRejected()
         {
+            session.RpcServer.RTCMissionRejected();
             PlayScript(currentCutscene, CutsceneState.Reject);
         }
 

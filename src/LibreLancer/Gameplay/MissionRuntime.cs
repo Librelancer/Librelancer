@@ -333,6 +333,11 @@ namespace LibreLancer
         {
             ProcessCondition(TriggerConditions.Cnd_MsnResponse, (c) => IdEquals("accept", c.Entry[0].ToString()));
         }
+
+        public void MissionRejected()
+        {
+            ProcessCondition(TriggerConditions.Cnd_MsnResponse, (c) => IdEquals("reject", c.Entry[0].ToString()));
+        }
         
 
         public void FinishRTC(string rtc)

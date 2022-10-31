@@ -769,6 +769,11 @@ namespace LibreLancer
             msnRuntime?.MissionAccepted();
         }
 
+        public void RTCMissionRejected()
+        {
+            msnRuntime?.MissionRejected();
+        }
+
         void IServerPlayer.RequestCharacterDB()
         {
             Client.SendPacket(new NewCharacterDBPacket()
